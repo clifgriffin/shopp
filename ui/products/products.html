@@ -1,0 +1,35 @@
+<div class="wrap">
+	<form action="" method="">
+	<h2>Products</h2>
+	<ul class="subsubsub">
+		<li><a href="">Products</a> |</li>
+		<li><a href="">Product Options</a> |</li>
+		<li><a href="">Categories</a></li>
+	</ul>
+	
+	<?php if (sizeof($Products) > 0): ?>
+	<table class="widefat">
+		<thead>
+		<tr>
+			<th scope="col" class="check-column"><input type="checkbox" onclick="checkAll(document.getElementById('posts-filter'));" /></th>
+	        <th scope="col">Name</th>
+	        <th scope="col">Description</th>
+	        <th scope="col" class="num">Posts</th>
+		</tr>
+		</thead>
+		<tbody id="products" class="list products">
+		<?php foreach ($Products as $Product):?>
+		<tr class='alternate'>
+			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='3' /></th>
+			<td><a class='row-title' href='categories.php?action=edit&amp;cat_ID=3' title='Edit &quot;Distributors&quot;'> Distributors</a></td>
+			<td></td>
+			<td class='num'>0</td>
+		</tr>
+		<?php endforeach; ?>
+		</tbody>
+	</table>
+	<?php else: ?>
+		<p>No products found.</p>
+	<?php endif; ?>
+	</form>
+</div>
