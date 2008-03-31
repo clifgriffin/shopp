@@ -1,0 +1,51 @@
+<script type="text/javascript" src="<?php echo $Shopp->uri ?>ui/products/editor.js"></script>
+<div class="wrap"> 
+<h2>Product Editor</h2> 
+<div id="ajax-response"></div> 
+
+<form name="product" id="product" method="post" action="" class="">
+	<table class="form-table"> 
+		<tr class="form-field form-required"> 
+			<th scope="row" valign="top"><label for="name">Product Name</label></th> 
+			<td><input name="name" id="name" type="text" value="<? echo $Product->name ?>" size="40" tabindex="1" /><br /> 
+            The name of the product to be displayed in the catalog, shopping cart and order reciept.</td> 
+		</tr>
+		<tr class="form-field"> 
+			<th scope="row" valign="top"><label for="description">Description</label></th> 
+			<td><textarea name="description" id="description" rows="2" cols="50" tabindex="2" style="width: 97%;"><? echo $Product->description ?></textarea><br /> 
+            A brief description of the product to draw the customer's attention.</td> 
+		</tr> 
+		<tr class="form-field"> 
+			<th scope="row" valign="top"><label for="details">Details</label></th> 
+			<td><textarea name="details" id="details" rows="8" cols="50" tabindex="3" style="width: 97%;"><? echo $Product->details ?></textarea><br /> 
+            Provide in-depth information about the product to be used on its product page.</td> 
+		</tr> 
+		<tr class="form-field"> 
+			<th scope="row" valign="top"><label for="brand">Brand</label></th> 
+			<td><select name="brand" tabindex="4"></select><input name="new-brand" id="new-brand" type="text" size="40" tabindex="4" /><br />
+			The name of the brand or manufacturer of this product.</td> 
+		</tr> 
+		<tr class="form-field">
+			<th scope="row" valign="top"><label for="category">Category</label></th> 
+			<td> 
+	  			<select name="category" id="category" tabindex="5"></select><input name="new-brand" id="new-brand" type="text" size="40" tabindex="4" /><br /> 
+                You can organize your products into categories for display in your catalog.</td> 
+		</tr>
+	</table>
+	
+	<h3>Pricing &amp; Product Options</h3>
+	<div><input type="hidden" name="deletePrices" id="deletePrices" value="" />
+		<input type="hidden" name="options" value="" id="options" /></div>
+	<table id="pricing" class="form-table"></table> 
+	<div class="tablenav">
+		<div class="alignright"><button type="button" id="addProductOption" class="button-secondary">Add A Product Option</button></div>
+	</div>
+	
+<p class="submit"><input type="submit" class="button" name="save" value="Save Product" /></p>
+</form>
+</div>
+
+<script type="text/javascript">
+var prices = <?php json($Product->prices) ?>;
+init();
+</script>

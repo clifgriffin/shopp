@@ -1,0 +1,24 @@
+/**
+ * shopp.css
+ * Generic layout styles for Shopp pages
+ *
+ * @author Jonathan Davis
+ * @version 1.0
+ * @copyright Ingenesis Limited, 31 March, 2008
+ * @package shopp
+ **/
+
+
+
+/**
+ * Shopping Cart 
+ **/
+.cart { width: 100%; }
+.cart th { font-weight: bold; }
+.cart .item { width: 50%; }
+.cart .money, 
+.cart .total,
+.cart .buttons td { text-align: right; }
+.cart .remove { font-size: 12px; }
+
+.submit { text-align: right; }

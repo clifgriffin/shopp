@@ -1,0 +1,16 @@
+body { position: relative; }
+button { cursor: pointer; }
+.form-table input.toggle { margin-left: -13px; }
+.form-table { position: relative; }
+.form-table td { position: relative; }
+.form-table td button.deleteButton { background: none; border: none; padding: 0; position: absolute; right: 5px; }
+.form-field th.pricing-label input { margin-top: 9px; }
+
+.pricing-table { width: 100%; }
+.pricing-table tr { background: none; }
+.pricing-table th { width: auto; border: none; padding: 0; vertical-align: top; }
+.pricing-table td { position: relative; border: none; padding: 0; vertical-align: top; white-space: no-wrap; }
+
+.pricing-table span.status { display: block; padding-top: 4px; }
+
+input.right { text-align: right; }

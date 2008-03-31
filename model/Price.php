@@ -1,7 +1,7 @@
 <?php
 /**
- * Variation class
- * Catalog product variations
+ * Price class
+ * Catalog product price variations
  *
  * @author Jonathan Davis
  * @version 1.0
@@ -9,14 +9,14 @@
  * @package shopp
  **/
 
-class Variation extends DatabaseObject {
+class Price extends DatabaseObject {
 
-	function Variation ($id=false) {
-		$this->init('var');
+	function Price ($id=false) {
+		$this->init('price');
 		if ($this->load($id)) return true;
 		else return false;
 	}
 
-} // end Option class
+} // end Price class
 
 ?>

@@ -1,28 +1,35 @@
 <div class="wrap">
-	<form action="" method="">
+	<form action="" method="get">
+	<div><input type="hidden" name="page" value="products" /></div>
 	<h2>Products</h2>
+	
 	<ul class="subsubsub">
 		<li><a href="">Products</a> |</li>
-		<li><a href="">Product Options</a> |</li>
 		<li><a href="">Categories</a></li>
 	</ul>
 	
+	<div class="tablenav">
+		<div class="alignright"><button type="submit" name="edit" value="new" class="button-secondary">New Product</button></div>
+	</div>
+	<br class="clear" />
 	<?php if (sizeof($Products) > 0): ?>
 	<table class="widefat">
 		<thead>
 		<tr>
 			<th scope="col" class="check-column"><input type="checkbox" onclick="checkAll(document.getElementById('posts-filter'));" /></th>
 	        <th scope="col">Name</th>
-	        <th scope="col">Description</th>
-	        <th scope="col" class="num">Posts</th>
+	        <th scope="col">Brand</th>
+	        <th scope="col">Category</th>
+	        <th scope="col">Price</th>
 		</tr>
 		</thead>
 		<tbody id="products" class="list products">
-		<?php foreach ($Products as $Product):?>
-		<tr class='alternate'>
+		<?php $even = false; foreach ($Products as $Product): ?>
+		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='3' /></th>
-			<td><a class='row-title' href='categories.php?action=edit&amp;cat_ID=3' title='Edit &quot;Distributors&quot;'> Distributors</a></td>
-			<td></td>
+			<td><a class='row-title' href='?page=products&amp;edit=<?php echo $Product->id; ?>' title='Edit &quot;<?php echo $Product->name; ?>&quot;'><?php echo $Product->name; ?></a></td>
+			<td><?php echo $Product->brand; ?></td>
+			<td><?php echo $Product->category; ?></td>
 			<td class='num'>0</td>
 		</tr>
 		<?php endforeach; ?>

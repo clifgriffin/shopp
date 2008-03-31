@@ -270,7 +270,7 @@ function is_robot() {
 /**
  * Generates JavaScript object(s) for AJAX responses from PHP data */
 function json ($data) {
-	$string = "";
+	$string = "\"\"";
 	if (is_array($data)) {
 		$objects = "";
 		foreach($data as $element) {
@@ -278,7 +278,7 @@ function json ($data) {
 			else $objects .= ", ".json_object($element);
 		}
 		
-		$string = "{\"results\":[".$objects."]}";
+		$string = "[".$objects."]";
 	} elseif (is_object($data)) {
 		$string = json_object($data);
 	}
@@ -402,6 +402,12 @@ if (!function_exists('property_exists')) {
 	function property_exists($object, $property) {
 		return array_key_exists($property, get_object_vars($object));
 	}
+}
+
+
+function money($number) {
+	
+	return money_format("%.2n",$number);
 }
 
 ?>

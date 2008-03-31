@@ -1,0 +1,48 @@
+<form id="cart" action="<?php echo SHOPP_URI; ?>" method="post">
+<?php if (sizeof($Cart->contents) > 0): ?>
+<table class="cart">
+	<tr>
+		<th scope="col" class="item">Cart Items</th>
+		<th scope="col">Quantity</th>
+		<th scope="col" class="money">Item Price</th>
+		<th scope="col" class="money">Item Total</th>
+	</tr>
+	<?php $even = false; foreach ($Cart->contents as $id => $Item): ?>
+		<tr<?php if (!even) echo 'class="alternate"'; $even = !$even; ?>>
+			<td>
+				<?php echo $Item->name; ?>
+				<input type="hidden" name="items[<?php echo $id; ?>][product]" value="<?php echo $Item->product; ?>" />
+				<?php if (sizeof($Item->options > 1)): ?>
+					<select name="items[<?php echo $id; ?>][price]">
+						<?php echo $Item->options($Item->price); ?>
+					</select>
+				<?php endif; ?>
+			</td>
+			<td><input type="text" name="items[<?php echo $id; ?>][quantity]" value="<?php echo $Item->quantity; ?>" size="3" id="quantity" /><p class="remove"><a href="<?php echo SHOPP_URI; ?>?cart=update&amp;item=$item&amp;quantity=0">Remove</a></p></td>
+			<td class="money"><?php echo money($Item->unitprice); ?></td>
+			<td class="money total"><?php echo money($Item->total); ?></td>
+		</tr>
+	<?php endforeach; ?>
+	<tr class="totals">
+		<th scope="row" colspan="3" class="total">Subtotal</td>
+		<td class="money"><?php echo money($Cart->data->subtotal); ?></td>
+	</tr>
+	<tr class="totals">
+		<th scope="row" colspan="3" class="total">Shipping</td>
+		<td class="money"><?php echo money($Cart->data->shipping); ?></td>
+	</tr>
+	<tr class="totals">
+		<th scope="row" colspan="3" class="total">Total</td>
+		<td class="money"><?php echo money($Cart->data->total); ?></td>
+	</tr>
+	<tr class="buttons">
+		<td colspan="4">
+		<button type="submit" name="cart" value="update">Update Subtotal</button>
+		</td>
+	</tr>
+</table>
+<p class="submit"><button type="submit" name="checkout" value="true">Checkout</button></p>
+<?php else: ?>
+	<p class="warning">There are currently no items in your shopping cart.</p>
+<?php endif; ?>
+</form>

@@ -24,6 +24,7 @@ class Cart {
 	var $modified;
 	var $ip;
 	var $data;
+	var $contents = array();
 	
 	// methods
 	
@@ -31,7 +32,6 @@ class Cart {
 	 * Constructor that creates a new shopping Cart runtime object */
 	function Cart () {
 		$this->_table = DBPREFIX."cart";
-		$this->data = new stdClass();
 		
 		session_set_save_handler(
 			array( &$this, 'open' ),	// Open
@@ -70,6 +70,7 @@ class Cart {
 		if ($result = $db->query("SELECT * FROM $this->_table WHERE session='$this->session'")) {
 			$this->ip = $result->ip;
 			$this->data = unserialize($result->data);
+			$this->contents = unserialize($result->contents);
 			$this->created = mktimestamp($result->created);
 			$this->modified = mktimestamp($result->modified);
 			
@@ -98,7 +99,8 @@ class Cart {
 		
 		$loggedin = ($this->loggedin) ? 1 : 0;
 		$data = serialize($this->data);
-		if (!$db->query("UPDATE $this->_table SET customer='$this->customer',ip='$this->ip',data='$data',modified=now() WHERE session='$this->session'")) 
+		$contents = serialize($this->contents);
+		if (!$db->query("UPDATE $this->_table SET customer='$this->customer',ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'")) 
 			trigger_error("Could not save session updates to the database.");
 		return true;
 	}
@@ -113,7 +115,85 @@ class Cart {
 			trigger_error("Could not delete cached session data.");
 		return true;
 	}
-
+	
+	/**
+	 * add()
+	 * Adds a product as an item to the cart */
+	function add ($quantity,$Product,$Price) {
+		if (($item = $this->hasproduct($Product->id,$Price->id)) !== false) {
+			$this->contents[$item]->add($quantity);
+		} else {
+			$Item = new Item($quantity,$Product,$Price);
+			$this->contents[] = $Item;
+		}
+		$this->totals();
+		$this->save();
+		return true;
+	}
+	
+	/**
+	 * remove()
+	 * Removes an item from the cart */
+	function remove ($item) {
+		array_splice($this->contents,$item,1);
+		$this->totals();
+		$this->save();
+		return true;
+	}
+	
+	/**
+	 * update()
+	 * Changes the quantity of an item in the cart */
+	function update ($item,$quantity) {
+		if (empty($this->contents)) return false;
+		if ($quantity == 0) return $this->remove($item);
+		else {
+			$this->contents[$item]->quantity($quantity);
+			$this->totals();
+			$this->save();
+		}
+		return true;
+	}
+	
+	/**
+	 * change()
+	 * Changes an item to a different product/price variation */
+	function change ($item,$Product,$Price) {
+		$this->contents[$item] = new Item($this->contents[$item]->quantity,$Product,$Price);
+		$this->totals();
+		$this->save();
+		return true;
+	}
+	
+	/**
+	 * hasproduct()
+	 * Determines if a specified product/price variation is 
+	 * currently in this cart */
+	function hasproduct($product,$price) {
+		$i = 0;
+		foreach ($this->contents as $Item) {
+			if ($Item->product == $product && 
+					$Item->price == $price) return $i;
+			$i++;
+		}
+		return false;
+	}
+	
+	function totals () {
+		$this->data = new StdClass();
+		$this->data->subtotal = 0;
+		$this->data->shipping = 0;
+		$this->data->tax = 0;
+		$this->data->total = 0;
+		
+		foreach ($this->contents as $Item) {
+			$this->data->subtotal +=  $Item->total;
+			// if ($Item->shipping="on")
+			// 	$this->data->shipping += $Item->domship;
+		}
+		$this->data->total = $this->data->subtotal+$this->data->shipping;		
+	}
+	
 } // end Cart class
 
 ?>

@@ -134,6 +134,9 @@ class DB extends Singleton {
 						break;
 					case "int":
 					case "float":
+						$value = preg_replace("/[^0-9\.]/","", $value);
+						$data[$property] = "'$value'";
+						break;
 					default:
 						// Anything not needing processing
 						// passes through into the object
