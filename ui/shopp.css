@@ -8,12 +8,12 @@
  * @package shopp
  **/
 
-
+.submit { text-align: right; }
 
 /**
  * Shopping Cart 
  **/
-.cart { width: 100%; }
+.cart { width: 100%; clear: both; }
 .cart th { font-weight: bold; }
 .cart .item { width: 50%; }
 .cart .money, 
@@ -21,4 +21,28 @@
 .cart .buttons td { text-align: right; }
 .cart .remove { font-size: 12px; }
 
-.submit { text-align: right; }
+
+
+/**
+ * Checkout 
+ **/
+.checkout ul { list-style-type: none; padding: 0; margin: 0; width: 100%; clear: both; line-height: 1; }
+.checkout ul li { clear: both; display: block; padding: 4px 0; }
+.checkout ul li label { font-size: 14px; clear: both; display: block; font-weight: bold; padding-bottom: 3px; }
+.checkout ul li label.inline { display: inline; clear: none; }
+.checkout ul li span { float: left; padding: 0 5px 0 0; }
+.checkout ul li div.inline.right { width: auto;  }
+.checkout ul li div.inline.right input { width: auto;  }
+.checkout ul li div.inline label { clear: none; display: inline; margin-left: 10px; }
+.checkout ul li span input { margin: 0 0 5px 0; }
+.checkout ul li div input,
+.checkout ul li div select { width: 100%; }
+.checkout ul li div.left { display: inline; width: 47%; float: left; margin: 0; }
+.checkout ul li div.right { display: inline; width: 47%; float: right; margin: 0; }
+
+
+.checkout ul li.address { display: inline; width: 48%; float: left; clear: none; }
+.checkout ul li.address.right { display: inline; float: right; }
+.checkout ul li span label,
+.checkout ul li div label { font-size: 11px; clear: both; font-weight: normal; padding-bottom: 8px; }
+

@@ -9,6 +9,9 @@ Author URI: http://ingenesis.net
 
 setlocale(LC_MONETARY, 'en_US'); // Move to settings manager
 
+define("SHOPP_VERSION","1.0");
+define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
+
 require("core/functions.php");
 require("core/DB.php");
 
@@ -28,6 +31,7 @@ class Shopp {
 		add_action('wp_head', array(&$this, 'stylesheet'));
 		add_action('init', array(&$this, 'uri'));
 		add_action('init', array(&$this, 'cart'));
+		add_action('init', array(&$this, 'checkout'));
 		add_filter('the_content',array(&$this, 'pages'));
 		
 	}
@@ -74,17 +78,54 @@ class Shopp {
 		
 		if ($_POST['cart'] == "ajax") cart_ajax();
 		else if (!empty($_GET['cart'])) cart_request();
-		else cart_post();
+		else cart_post();	
+	}
+	
+	function checkout () {
+		global $Cart;
+		if (empty($_POST['checkout'])) return true;
+		
+		require("model/Purchase.php");
+		require("model/Purchased.php");
+		require("model/Customer.php");
+		require("model/Billing.php");
+		require("model/Shipping.php");
+		include("gateways/AuthorizeNet/Authorize.net.php");
+		
+		$Customer = new Customer();
+		$Customer->updates($_POST);
+		
+		$Shipping = new Shipping();
+		$Shipping->updates($_POST['shipping']);
+
+		$Billing = new Billing();
+		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
+		$Billing->updates($_POST['billing']);
+		
+		
+		$Order = new stdClass();
+		$Order->Customer =& $Customer;
+		$Order->Shipping =& $Shipping;
+		$Order->Billing =& $Billing;
+		$Order->Cart =& $Cart;
+		
+		$Payment = new AuthorizeNet($Order);
+		$Payment->process();
 		
 	}
 	
+	
 	function pages ($content) {
 		include_once("flow/cart.php");
+		include_once("flow/checkout.php");
 		
 		preg_match_all("/\[(.*?)\]/",$content,$tags,PREG_SET_ORDER);
 		
 		foreach($tags as $tag) {
 			if ($tag[1] == "cart") cart_default();
+			if ($tag[1] == "checkout") one_step_checkout();
+			if ($tag[1] == "order-summary") checkout_order_summary();
+			
 		}
 		
 	}
