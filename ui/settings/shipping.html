@@ -1,0 +1,22 @@
+<div class="wrap">
+	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+	<h2>Shipping Settings</h2>
+	<?php include("navigation.html"); ?>
+
+	<form name="settings" id="general" method="post" action="<?php echo SHOPP_URI; ?>">
+		<table class="form-table"> 
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="shipping-toggle">Use Shipping</label></th> 
+				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if ($this->Core->Settings->get('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> Enabled</label><br /> 
+	            Check this to use shipping. Leave un-checked to disable shipping - helpful if you are only selling subscriptions or downloads.</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="shipping_base_domship">Base Shipping Fees</label></th> 
+				<td><input type="text" name="settings[shipping_base_domship]" value="<?php echo $this->Core->Settings->get('shipping_base_domship'); ?>" id="shipping_base_domship" size="5" /><label for="shipping_base_domship"> For Domestic Orders</label><br />
+					<input type="text" name="settings[shipping_base_intlship]" value="<?php echo $this->Core->Settings->get('shipping_base_intlship'); ?>" id="shipping_base_intlship" size="5" /><label for="shipping_base_intlship"> For International Orders</label><br />
+	            Enter a dollar amount (5.00) or a percentage (5%).  These charges are assessed only once for an entire order.</td>
+			</tr>
+		</table>
+		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
+	</form>
+</div>

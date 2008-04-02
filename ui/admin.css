@@ -14,3 +14,13 @@ button { cursor: pointer; }
 .pricing-table span.status { display: block; padding-top: 4px; }
 
 input.right { text-align: right; }
+
+#wpcontent .form-table select.scrolling { height: auto; }
+
+.form-table .multiple-select { overflow-x: hidden; overflow-y: auto; height: 100px; width: auto; display: inline-block; border: 1px solid rgb(221, 221, 221); background: #ffffff; }
+
+.form-table .multiple-select ul { list-style-type: none; margin: 0; padding: 0; line-height: 1; }
+.form-table .multiple-select ul li { margin: 0; padding: 0; }
+.form-table .multiple-select ul li input { float: left; margin: 4px 5px; }
+.form-table .multiple-select ul li label { display: block; padding: 3px 5px; }
+.form-table .multiple-select ul li.odd label { background: #f9f9f9; }

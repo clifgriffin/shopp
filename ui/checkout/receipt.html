@@ -1,4 +1,4 @@
-<?php if (count($Cart->contents) > 0): ?>
+<?php if (sizeof($Purchase->purchased) > 0): ?>
 <table class="cart">
 	<tr>
 		<th scope="col" class="item">Cart Items</th>
@@ -6,7 +6,7 @@
 		<th scope="col" class="money">Item Price</th>
 		<th scope="col" class="money">Item Total</th>
 	</tr>
-	<?php $even = false; foreach ($Cart->contents as $id => $Item): ?>
+	<?php $even = false; foreach ($Purchase->purchased as $id => $Item): ?>
 		<tr<?php if (!even) echo 'class="alternate"'; $even = !$even; ?>>
 			<td>
 				<?php echo $Item->name; ?>
@@ -19,15 +19,15 @@
 	<?php endforeach; ?>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Subtotal</th>
-		<td class="money"><?php echo money($Cart->data->subtotal); ?></td>
+		<td class="money"><?php echo money($Purchase->subtotal); ?></td>
 	</tr>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Shipping</th>
-		<td class="money"><?php echo money($Cart->data->shipping); ?></td>
+		<td class="money"><?php echo money($Purchase->shipping); ?></td>
 	</tr>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Total</th>
-		<td class="money"><?php echo money($Cart->data->total); ?></td>
+		<td class="money"><?php echo money($Purchase->total); ?></td>
 	</tr>
 </table>
 <?php else: ?>

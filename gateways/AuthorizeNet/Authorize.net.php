@@ -1,7 +1,7 @@
 <?php
 /**
- * AuthorizeNet class
- * 
+ * Authorize.Net
+ * @class AuthorizeNet
  *
  * @author Jonathan Davis
  * @version 1.0
@@ -9,38 +9,55 @@
  * @package Shopp
  **/
 
-
 class AuthorizeNet {
 	var $transaction = array();
+	var $settings = array();
+	var $Response = false;
 
-	function AuthorizeNet (&$Order) {
-		$this->build($Order);		
+	function AuthorizeNet (&$Order="") {
+		global $Shopp;
+		$this->settings = $Shopp->Settings->get('Authorize.Net');
+		
+		if (!empty($Order)) $this->build($Order);
 		return true;
 	}
 	
 	function process () {
-		$response = $this->send();
-		print "<p style='white-space: pre'>";
-		print $response;
-		print "</p>";
-		exit();
+		//$this->Response  = $this->send();
+		return true;
+		if ($this->Response->code == 1) return true;
+		else return false;
+	}
+	
+	function transactionid () {
+		if (!empty($this->Response)) return $Response->transactionid;
+	}
+	
+	function error () {
+		if (!empty($this->Response)) {
+			$Error = new stdClass();
+			$Error->code = $this->Response->reasoncode;
+			$Error->message = $this->Response->reason;
+			return $Error;
+		}
 	}
 	
 	function build ($Order) {
+		
 		$_ = array();
 		
 		// Options
-		$_['x_test_request']		= "TRUE"; // Set while testing
+		$_['x_test_request']		= $this->settings['testmode'];; // Set while testing
+		$_['x_login'] 				= $this->settings['login'];
+		$_['x_password'] 			= $this->settings['password'];
 		$_['x_Delim_Data'] 			= "TRUE"; 
 		$_['x_Delim_Char'] 			= ","; 
 		$_['x_Encap_Char'] 			= ""; 
 		$_['x_version'] 			= "3.1";
-		$_['x_login'] 				= "KMX937";
-		$_['x_password'] 			= "1Foot12Inches";
 		$_['x_relay_response']		= "FALSE";
 		$_['x_type'] 				= "AUTH_CAPTURE";
 		$_['x_method']				= "CC";
-		$_['x_email_customer']		= "TRUE";
+		$_['x_email_customer']		= "FALSE";
 		$_['x_merchant_email']		= "jond@ingenesis.net";
 		
 		// Required Fields
@@ -109,14 +126,97 @@ class AuthorizeNet {
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->transaction); 
 		curl_setopt($connection, CURLOPT_TIMEOUT, 60); 
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		// curl_setopt($connection, CURLOPT_REFERER, $referer); 
+		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);
 		curl_close($connection);
-		return $buffer;
+
+		$Response = $this->response($buffer);
+		return $Response;
+	}
+	
+	function response ($buffer) {
+		$_ = new stdClass();
+		list($_->code,
+			 $_->subcode,
+			 $_->reasoncode,
+			 $_->reason,
+			 $_->authcode,
+			 $_->avs,
+			 $_->transactionid,
+			 $_->invoicenum,
+			 $_->description,
+			 $_->amount,
+			 $_->method,
+			 $_->type,
+			 $_->customerid,
+			 $_->firstname,
+			 $_->lastname,
+			 $_->company,
+			 $_->address,
+			 $_->city,
+			 $_->state,
+			 $_->zip,
+			 $_->country,
+			 $_->phone,
+			 $_->fax,
+			 $_->email,
+			 $_->ship_to_first_name,
+			 $_->ship_to_last_name,
+			 $_->ship_to_company,
+			 $_->ship_to_address,
+			 $_->ship_to_city,
+			 $_->ship_to_state,
+			 $_->ship_to_zip,
+			 $_->ship_to_country,
+			 $_->tax,
+			 $_->duty,
+			 $_->freight,
+			 $_->taxexempt,
+			 $_->ponum,
+			 $_->md5hash,
+			 $_->cvv2code,
+			 $_->cvv2response) = split(",",$buffer);
+		return $_;
+	}
+	
+	function settings () {
+		global $Shopp;
+		$settings = $Shopp->Settings->get('Authorize.Net');
+		?>
+				
+		var authorize_net_settings = function () {
+			addSetting("Authorize.Net Login",
+							{'name':'settings[Authorize.Net][login]',
+							 'id':'gateway_login',
+							 'type':'text',
+							 'size':'16',
+							 'value':'<?php echo $settings['login']; ?>'},
+							 "Enter your Authorize.net Login ID.");
+
+			addSetting("Authorize.Net Password",
+							{'name':'settings[Authorize.Net][password]',
+							 'id':'gateway_password',
+							 'type':'text',
+							 'size':'24',
+							 'value':'<?php echo $settings['password']; ?>'},
+							 "Enter your Authorize.net Password or Transaction Key.");
+
+			addSetting("Authorize.Net Test Mode",
+							{'name':'settings[Authorize.Net][testmode]',
+							 'id':'gateway_testmode',
+							 'type':'checkbox',
+							 'value':'on',
+							 'unchecked':'off',
+							 'checked':<?php echo ($settings['testmode'] == "on")?'true':'false'; ?>},
+							 "Enabled");
+			}
+			
+			settings_callback['<?php echo __FILE__; ?>'] = authorize_net_settings;
+
+		<?
 	}
 
-	
 } // end AuthorizeNet class
 
 ?>

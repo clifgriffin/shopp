@@ -1,5 +1,5 @@
-<form id="cart" action="<?php echo SHOPP_URI; ?>" method="post">
 <?php if (sizeof($Cart->contents) > 0): ?>
+<form id="cart" action="<?php echo SHOPP_BASEURI; ?>" method="post">
 <table class="cart">
 	<tr>
 		<th scope="col" class="item">Cart Items</th>
@@ -12,13 +12,13 @@
 			<td>
 				<?php echo $Item->name; ?>
 				<input type="hidden" name="items[<?php echo $id; ?>][product]" value="<?php echo $Item->product; ?>" />
-				<?php if (sizeof($Item->options > 1)): ?>
+				<?php if (!empty($Item->option)): ?>
 					<select name="items[<?php echo $id; ?>][price]">
 						<?php echo $Item->options($Item->price); ?>
 					</select>
 				<?php endif; ?>
 			</td>
-			<td><input type="text" name="items[<?php echo $id; ?>][quantity]" value="<?php echo $Item->quantity; ?>" size="3" id="quantity" /><p class="remove"><a href="<?php echo SHOPP_URI; ?>?cart=update&amp;item=$item&amp;quantity=0">Remove</a></p></td>
+			<td><input type="text" name="items[<?php echo $id; ?>][quantity]" value="<?php echo $Item->quantity; ?>" size="3" id="quantity" /><p class="remove"><a href="<?php echo SHOPP_BASEURI; ?>?cart=update&amp;item=$item&amp;quantity=0">Remove</a></p></td>
 			<td class="money"><?php echo money($Item->unitprice); ?></td>
 			<td class="money total"><?php echo money($Item->total); ?></td>
 		</tr>
@@ -41,8 +41,10 @@
 		</td>
 	</tr>
 </table>
-<p class="submit"><button type="submit" name="checkout" value="true">Checkout</button></p>
+</form>
+<form id="cart" action="/shop/checkout" method="post">
+	<p class="submit"><button type="submit" name="checkout" value="true">Checkout</button></p>
+</form>
 <?php else: ?>
 	<p class="warning">There are currently no items in your shopping cart.</p>
 <?php endif; ?>
-</form>

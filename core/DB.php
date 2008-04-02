@@ -164,6 +164,17 @@ class DB extends Singleton {
 		return split("','",$list);
 	}
 	
+	/**
+	 * Send a large set of queries to the database. */
+	function batch ($queries) {
+		$db =& DB::get();
+		if (!empty($query)) {
+			if ($db->query($queries)) return true;
+		}
+		return false;
+	}
+	
+	
 } // END class DB
 
 

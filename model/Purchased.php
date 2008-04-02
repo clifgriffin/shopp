@@ -17,6 +17,16 @@ class Purchased extends DatabaseObject {
 		else return false;
 	}
 
+	function copydata ($Object,$prefix="") {
+		$ignores = array("_datatypes","_table","_key","_lists","id","created","modified");
+		foreach(get_object_vars($Object) as $property => $value) {
+			$property = $prefix.$property;
+			if (property_exists($this,$property) && 
+				!in_array($property,$ignores)) 
+				$this->{$property} = $value;
+		}
+	}
+
 } // end Purchased class
 
 ?>

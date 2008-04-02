@@ -4,16 +4,6 @@
  * Library of global utility functions */
 
 /**
- * Adds table schema to the install query. */
-function install_schema ($queries) {
-	$db =& DB::get();
-	$queries = explode(";\n", $queries);
-	array_pop($queries);
-	foreach ($queries as $query) if (!empty($query)) $db->query($query);
-	return true;
-}
-
-/**
  * Calculate the time based on a repeating interval in a given 
  * month and year. Ex: Fourth Thursday in November (Thanksgiving). */
 function datecalc($week=-1,$dayOfWeek=-1,$month=-1,$year=-1) {
@@ -404,6 +394,21 @@ if (!function_exists('property_exists')) {
 	}
 }
 
+/**
+ * Returns a list marked-up as drop-down menu options */
+function menuoptions ($list,$selected=null,$values=false) {
+	$string = "";
+	foreach ($list as $value => $text) {
+		if ($values) {
+			if ($value == $selected) $string .= "<option value=\"$value\" selected=\"selected\">$text</option>";
+			else  $string .= "<option value=\"$value\">$text</option>";
+		} else {
+			if ($text == $selected) $string .= "<option selected=\"selected\">$text</option>";
+			else  $string .= "<option>$text</option>";
+		}
+	}
+	return $string;
+}
 
 function money($number) {
 	

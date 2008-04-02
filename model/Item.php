@@ -9,13 +9,13 @@
  * @package shopp
  **/
 
-class Item extends DatabaseObject {
+class Item {
 	var $product;
 	var $price;
 	var $sku;
 	var $name;
 	var $brand;
-	var $option;
+	var $optionname;
 	var $description;
 	var $discount = 0;
 	var $quantity = 0;
@@ -31,14 +31,16 @@ class Item extends DatabaseObject {
 		$this->price = $Price->id;
 		$this->name = $Product->name;
 		$this->brand = $Product->brand;
-		$this->option = $Price->label;
-		$this->options = $Product->prices;
 		$this->sku = $Price->sku;
 		$this->discount = 0; // Not implemented yet
 		$this->quantity = $qty;
 		$this->unitprice = (($Price->sale == "on")?$Price->saleprice:$Price->price);
 		$this->total = $this->quantity * $this->unitprice;
-		
+
+		if (count($Product->prices) > 1) {
+			$this->optionname = $Price->label;
+			$this->options = $Product->prices;
+		}
 
 		if ($Price->shipping == "on") {
 			$this->domship = $Price->domship;

@@ -14,26 +14,32 @@ define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 
 require("core/functions.php");
 require("core/DB.php");
+require("core/Flow.php");
 
-require("model/Setting.php");
+require("model/Settings.php");
 require("model/Cart.php");
 
 $Shopp =& new Shopp();
 
 class Shopp {
+	var $Flow;
+	var $Settings;
 	
 	function Shopp () {
 		$this->path = dirname(__FILE__);
 		$this->uri = get_bloginfo('wpurl')."/wp-content/plugins/shopp/";
 		
+		$this->Flow = new Flow($this);
+		$this->Settings = new Settings();
+		
+		if (!$this->Settings->get('shopp_setup')) $this->Flow->setup();
+				
 		add_action('admin_menu', array(&$this, 'add_menus'));
 		add_action('admin_head', array(&$this, 'admin_header'));
 		add_action('wp_head', array(&$this, 'stylesheet'));
-		add_action('init', array(&$this, 'uri'));
 		add_action('init', array(&$this, 'cart'));
 		add_action('init', array(&$this, 'checkout'));
-		add_filter('the_content',array(&$this, 'pages'));
-		
+		add_action('init', array(&$this, 'pagecodes'));
 	}
 	
 	function add_menus () {
@@ -51,83 +57,122 @@ class Shopp {
 	function stylesheet () {
 		?><link rel='stylesheet' href='<?php echo $this->uri; ?>ui/shopp.css' type='text/css' /><?php
 	}
-	
-	function uri () {
-		define("SHOPP_URI",str_replace($_SERVER['QUERY_STRING'],"",$_SERVER['REQUEST_URI']));
-	}
-	
+		
 	function orders () {
 		include("ui/orders/orders.html");
 	}
 
 	function products () {
-		include("flow/products.php");
-
-		if (isset($_GET['edit'])) product_editor();
-				
-		products_list();
+		require("model/Product.php");
+		if (isset($_GET['edit'])) $this->Flow->product_editor();
+		$this->Flow->products_list();
 	}
 
 	function settings () {
-		include("ui/settings/settings.html");
+		switch($_GET['edit']) {
+			case "catalog":
+				$this->Flow->settings_catalog();
+				break;
+			case "payments":
+				$this->Flow->settings_payments();
+				break;
+			case "shipping":
+				$this->Flow->settings_shipping();
+				break;
+			default:
+				$this->Flow->settings_general();
+		}
+		
 	}
 	
 	function cart () {
 		if (empty($_POST['cart']) && empty($_GET['cart'])) return true;
-		include_once("flow/cart.php");
+		require("model/Product.php");
 		
-		if ($_POST['cart'] == "ajax") cart_ajax();
-		else if (!empty($_GET['cart'])) cart_request();
-		else cart_post();	
+		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax();
+		else if (!empty($_GET['cart'])) $this->Flow->cart_request();
+		else $this->Flow->cart_post();	
 	}
 	
 	function checkout () {
 		global $Cart;
+		$processor_file = $this->Settings->get('payment_gateway');
+
+		if (!$processor_file) return true;
+		if (!file_exists($processor_file)) return true;
 		if (empty($_POST['checkout'])) return true;
+		if ($_POST['checkout'] != "process") return true;
+		
+		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
 		
 		require("model/Purchase.php");
-		require("model/Purchased.php");
 		require("model/Customer.php");
 		require("model/Billing.php");
 		require("model/Shipping.php");
-		include("gateways/AuthorizeNet/Authorize.net.php");
 		
-		$Customer = new Customer();
-		$Customer->updates($_POST);
-		
-		$Shipping = new Shipping();
-		$Shipping->updates($_POST['shipping']);
-
-		$Billing = new Billing();
-		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
-		$Billing->updates($_POST['billing']);
-		
+		// Dynamically the payment processing gateway
+		$processor_data = $this->Flow->scan_gateway_meta($processor_file);
+		$ProcessorClass = $processor_data->tags['class'];
+		include($processor_file);
 		
 		$Order = new stdClass();
-		$Order->Customer =& $Customer;
-		$Order->Shipping =& $Shipping;
-		$Order->Billing =& $Billing;
+
+		$Order->Customer = new Customer();
+		$Order->Customer->updates($_POST);
+		
+		$Order->Shipping = new Shipping();
+		$Order->Shipping->updates($_POST['shipping']);
+
+		$Order->Billing = new Billing();
+		$Order->Billing->updates($_POST['billing']);
+		
 		$Order->Cart =& $Cart;
 		
-		$Payment = new AuthorizeNet($Order);
-		$Payment->process();
+		$Payment = new $ProcessorClass($Order);
+		if ($Payment->process()) {
+			$Order->Customer->save();
+			$Order->Shipping->customer = $Order->Customer->id;
+			$Order->Shipping->save();
+			$Order->Billing->customer = $Order->Customer->id;
+			$Order->Billing->save();
+			
+			$Purchase = new Purchase();
+			$Purchase->customer = $Order->Customer->id;
+			$Purchase->billing = $Order->Billing->id;
+			$Purchase->shipping = $Order->Shipping->id;
+			$Purchase->copydata($Order->Customer);
+			$Purchase->copydata($Order->Billing);
+			$Purchase->copydata($Order->Shipping,'ship');
+			$Purchase->copydata($Order->Cart->data);
+			$Purchase->freight = $Order->Cart->data->shipping;
+			$Purchase->gateway = $processor_data->name;
+			$Purchase->transactionid = $Payment->transactionid();
+			$Purchase->save();
+
+			foreach($Cart->contents as $Item) {
+				$Purchased = new Purchased();
+				$Purchased->copydata($Item);
+				$Purchased->purchase = $Purchase->id;
+				$Purchased->save();
+			}
+			
+			$Cart->data->Purchase = $Purchase->id;
+
+			header("Location: /shop/receipt/");
+			exit();
+		} else {
+			$Cart->data->OrderError = $Payment->error();
+		}
 		
 	}
 	
-	
-	function pages ($content) {
-		include_once("flow/cart.php");
-		include_once("flow/checkout.php");
-		
-		preg_match_all("/\[(.*?)\]/",$content,$tags,PREG_SET_ORDER);
-		
-		foreach($tags as $tag) {
-			if ($tag[1] == "cart") cart_default();
-			if ($tag[1] == "checkout") one_step_checkout();
-			if ($tag[1] == "order-summary") checkout_order_summary();
-			
-		}
-		
+	function pagecodes () {
+		remove_filter('the_content', 'wpautop');
+		add_filter('the_content', 'wpautop',8);
+		add_shortcode('cart',array(&$this->Flow,'cart_default'));
+		add_shortcode('checkout',array(&$this->Flow,'checkout_onestep'));
+		add_shortcode('order-summary',array(&$this->Flow,'checkout_order_summary'));
+		add_shortcode('receipt',array(&$this->Flow,'order_receipt'));
 	}
 
 } // end WebShop

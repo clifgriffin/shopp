@@ -180,6 +180,7 @@ class Cart {
 	}
 	
 	function totals () {
+		global $Shopp;
 		$this->data = new StdClass();
 		$this->data->subtotal = 0;
 		$this->data->shipping = 0;
@@ -188,8 +189,10 @@ class Cart {
 		
 		foreach ($this->contents as $Item) {
 			$this->data->subtotal +=  $Item->total;
-			// if ($Item->shipping="on")
-			// 	$this->data->shipping += $Item->domship;
+			if ($Item->shipping="on") {
+				$this->data->shipping += $Item->domship;
+			}
+				
 		}
 		$this->data->total = $this->data->subtotal+$this->data->shipping;		
 	}

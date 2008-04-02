@@ -1,16 +1,48 @@
 <div class="wrap">
-	<form action="" method="">
+	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 	<h2>Settings</h2>
-	<ul class="subsubsub">
-		<li><a href="">Settings</a> |</li>
-		<li><a href="">Catalog</a> |</li>
-		<li><a href="">Cart</a> |</li>
-		<li><a href="">Checkout</a> |</li>
-		<li><a href="">Shipping</a> |</li>
-		<li><a href="">Payment Processing</a> |</li>
-		<li><a href="">Currency</a> |</li>
-		<li><a href="">Tax</a></li>
-	</ul>
-	
+	<?php include("navigation.html"); ?>
+
+	<form name="settings" id="general" method="post" action="<?php echo SHOPP_URI; ?>">
+		<table class="form-table"> 
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="base_operations">Base of Operations</label></th> 
+				<td><select name="settings[base_operations]" id="base_operations">
+					<option></option>
+						<?php echo menuoptions($countries,$this->Core->Settings->get('base_operations'),true); ?>
+					</select><br /> 
+	            Select your primary business location.</td> 
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="target_markets">Target Markets</label></th> 
+				<td>
+					<div class="multiple-select">
+						<ul>
+							<?php 
+								$even = false;
+								$targets = $this->Core->Settings->get('target_markets');
+								if (!$targets) $targets = array();
+							?>
+							<?php foreach ($targets as $iso => $country): ?>
+								<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" checked="checked" /><label for="market-<?php echo $iso; ?>"><?php echo $country; ?></label></li>
+							<?php endforeach; ?>
+							<?php foreach ($countries as $iso => $country): ?>
+							<?php if (!in_array($country,$targets)): ?>
+							<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" /><label for="market-<?php echo $iso; ?>"><?php echo $country; ?></label></li>
+							<?php endif; endforeach; ?>
+						</ul>
+					</div>
+					<br /> 
+	            Select the markets you want to sell products to.  This will limit the countries that are available during the checkout process.</td> 
+			</tr>
+		</table>
+		<!-- <table class="form-table"> 
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="name">Setting Name</label></th> 
+				<td><input name="name" id="name" type="text" value="" size="40" tabindex="1" /><br /> 
+	            Helpful instructions.</td> 
+			</tr>
+		</table> -->
+		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
 	</form>
 </div>
