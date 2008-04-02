@@ -145,10 +145,9 @@ class Flow {
 	 **/
 	function order_receipt () {
 		global $Cart;
-		include("{$this->basepath}/model/Purchase.php");
+		include_once("{$this->basepath}/model/Purchase.php");
 		$Purchase = new Purchase($Cart->data->Purchase);
 		$Purchase->load_purchased();
-		
 		ob_start();
 		include("{$this->basepath}/ui/checkout/receipt.html");
 		$content = ob_get_contents();
@@ -171,7 +170,7 @@ class Flow {
 			$Product->load_prices();
 		} else $Product = new Product();
 
-		if (!empty($_POST['save'])) save_product($Product);
+		if (!empty($_POST['save'])) $this->save_product($Product);
 
 		include("{$this->basepath}/ui/products/editor.html");
 		exit();

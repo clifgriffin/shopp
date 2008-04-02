@@ -157,6 +157,13 @@ class Shopp {
 			}
 			
 			$Cart->data->Purchase = $Purchase->id;
+			$Cart->contents = array();
+
+			$_POST['from'] = "info@kmxus.com";
+			$_POST['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
+			$_POST['subject'] = "KMXUS.com Order Receipt";
+			$_POST['receipt'] = $this->Flow->order_receipt();
+			send_email("{$this->path}/ui/checkout/email.html");
 
 			header("Location: /shop/receipt/");
 			exit();

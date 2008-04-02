@@ -141,8 +141,8 @@ function strip_magic_quotes ($arr) {
 function send_email ($template) {
 	
 	if ( file_exists($template) ) $f = file($template);
-	else $msg = "Could not open the template file because the file does not exist or is not readable.";
-	if ( isset($msg) ) user_error($msg,WARNING);
+	else $msg = "Could not open the template file because the file does not exist or is not readable. ($template)";
+	if ( isset($msg) ) die($msg);
 
 	$in_body = false;
 	$headers = "";
@@ -154,6 +154,7 @@ function send_email ($template) {
 			while ( list($i,$label) = each($labels) ) {
 				if (in_array(strtolower($label[1]),$protected)) // Protect against header injection
 					$_POST[$label[1]] = str_replace(array("\r","\n"),"",urldecode($_POST[$label[1]]));  
+				$_POST[$label[1]] = str_replace("$","\\\$",$_POST[$label[1]]);
 				if (isset($_POST[$label[1]]) && ! is_array($_POST[$label[1]])) $line = preg_replace("/\[".$label[1]."\]/",$_POST[$label[1]],$line);
 			}
 		}
@@ -172,8 +173,8 @@ function send_email ($template) {
 
 	mail($to,$subject,$message,$headers);
 	/* -- DEBUG CODE -- */
-	//echo "TO: $to<BR>SUBJECT: $subject<BR>MESSAGE:<BR>$message<BR><BR>HEADERS:<BR>$headers";
-	//exit();
+	// echo "TO: $to<BR>SUBJECT: $subject<BR>MESSAGE:<BR>$message<BR><BR>HEADERS:<BR>$headers";
+	// exit();
 }
 
 /**

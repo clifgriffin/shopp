@@ -12,7 +12,7 @@
 			<td>
 				<?php echo $Item->name; ?>
 				<input type="hidden" name="items[<?php echo $id; ?>][product]" value="<?php echo $Item->product; ?>" />
-				<?php if (!empty($Item->option)): ?>
+				<?php if (!empty($Item->optionname)): ?>
 					<select name="items[<?php echo $id; ?>][price]">
 						<?php echo $Item->options($Item->price); ?>
 					</select>

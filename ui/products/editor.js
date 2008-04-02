@@ -140,11 +140,11 @@ var addProductOption = function (p) {
 		if (p.sale == "on") salepriceToggle.each(function() { this.checked = true; }).change();
 		if (p.shipping == "on") shippingToggle.each(function() { this.checked = true; }).change();
 		if (p.inventory == "on") inventoryToggle.each(function() { this.checked = true; }).change();
-		
-		saleprice.each(function() { this.value = asMoney(p.saleprice); });
-		shippingDom.each(function() { this.value = asMoney(p.domship); });
-		shippingIntl.each(function() { this.value = asMoney(p.domintl); });
-		stock.each(function() { this.value = p.stock; });
+
+		saleprice.val(asMoney(p.saleprice));
+		shippingDom.val(asMoney(p.domship));
+		shippingIntl.val(asMoney(p.intlship));
+		stock.val(p.stock);
 
 		if (p.tax == "off") tax.each(function() { this.checked = true; });
 		if (p.donation == "on") donation.each(function() { this.checked = true; });

@@ -190,7 +190,7 @@ class Cart {
 		foreach ($this->contents as $Item) {
 			$this->data->subtotal +=  $Item->total;
 			if ($Item->shipping="on") {
-				$this->data->shipping += $Item->domship;
+				$this->data->shipping += ($Item->quantity * $Item->domship);
 			}
 				
 		}
