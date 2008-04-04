@@ -1,5 +1,5 @@
 <div class="wrap">
-	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post" id="general_settings">
 	<h2>Settings</h2>
 	<?php include("navigation.html"); ?>
 
@@ -7,10 +7,15 @@
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="base_operations">Base of Operations</label></th> 
-				<td><select name="settings[base_operations]" id="base_operations">
+				<td><select name="settings[base_operations][country]" id="base_operations">
 					<option></option>
-						<?php echo menuoptions($countries,$this->Core->Settings->get('base_operations'),true); ?>
-					</select><br /> 
+						<?php echo menuoptions($countries,$operations['country'],true); ?>
+					</select>
+					<select name="settings[base_operations][region]" id="base_operations_region">
+						<?php if (isset($regions)) 
+								echo menuoptions($regions,$operations['region'],true); ?>
+					</select>
+					<br /> 
 	            Select your primary business location.</td> 
 			</tr>
 			<tr class="form-field form-required"> 
@@ -18,12 +23,7 @@
 				<td>
 					<div class="multiple-select">
 						<ul>
-							<?php 
-								$even = false;
-								$targets = $this->Core->Settings->get('target_markets');
-								if (!$targets) $targets = array();
-							?>
-							<?php foreach ($targets as $iso => $country): ?>
+							<?php $even = false; foreach ($targets as $iso => $country): ?>
 								<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" checked="checked" /><label for="market-<?php echo $iso; ?>"><?php echo $country; ?></label></li>
 							<?php endforeach; ?>
 							<?php foreach ($countries as $iso => $country): ?>
@@ -33,16 +33,36 @@
 						</ul>
 					</div>
 					<br /> 
-	            Select the markets you want to sell products to.  This will limit the countries that are available during the checkout process.</td> 
+	            Select the markets you are selling products to.</td> 
 			</tr>
 		</table>
-		<!-- <table class="form-table"> 
-			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="name">Setting Name</label></th> 
-				<td><input name="name" id="name" type="text" value="" size="40" tabindex="1" /><br /> 
-	            Helpful instructions.</td> 
-			</tr>
-		</table> -->
+
 		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
 	</form>
 </div>
+<script type="text/javascript">
+$j=jQuery.noConflict();
+
+if ($j('#base_operations').val() == '') $j('#base_operations_region').hide();
+
+$j('#base_operations').change(function() {
+	if ($j('#base_operations').val() == '') {
+		$j('#base_operations_region').hide();
+		return true;
+	}
+
+	$j.getJSON($j('#general_settings').attr('action')+'&lookup=regions&country='+$j(this).val(),
+		function(data) {
+			$j('#base_operations_region').hide();
+			$j('#base_operations_region').empty();
+			if (!data) return true;
+			
+			$j.each(data, function(value,label) {
+				option = $j('<option></option>').val(value).html(label).appendTo('#base_operations_region');
+			});
+			$j('#base_operations_region').show();
+			
+	});
+});
+
+</script>

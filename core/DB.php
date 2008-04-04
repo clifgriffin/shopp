@@ -192,12 +192,22 @@ class DatabaseObject {
 	 * so we know how to work with this table */
 	function init ($table,$key='id') {
 		$db =& DB::get();
+		global $Shopp;
 		
 		$this->_table = DBPREFIX.$table;// So we know what the table name is
 		$this->_key = $key;				// So we know what the primary key is
 		$this->_datatypes = array();	// So we know the format of the table
 		$this->_lists = array();		// So we know the options for each list
-
+		
+		if (isset($Shopp->Settings)) {
+			$Tables = $Shopp->Settings->get('datatype_model');
+			if (isset($Tables[$this->_table])) {
+				$this->_datatypes = $Tables[$this->_table]->_datatypes;
+				$this->_lists = $Tables[$this->_table]->_lists;
+				return true;
+			}
+		}
+		
 		$r = $db->query("SHOW COLUMNS FROM $this->_table");
 
 		// Map out the table definition into our data structure
@@ -212,7 +222,13 @@ class DatabaseObject {
 				$this->_lists[$property] = explode(",",$values);
 			}
 		}
-
+		
+		if (isset($Shopp->Settings)) {
+			$Tables[$this->_table] = new StdClass();
+			$Tables[$this->_table]->_datatypes = $this->_datatypes;
+			$Tables[$this->_table]->_lists = $this->_lists;
+			$Shopp->Settings->save('datatype_model',$Tables);
+		}
 	}
 	
 	/**

@@ -17,13 +17,19 @@ class Flow {
 	
 	function Flow (&$Core) {
 		$this->Core =& $Core;
+		
+		print $this->Core->Settings->get('catalog_url');
 		$this->basepath = dirname(dirname(__FILE__));
 		$this->uri = ((!empty($_SERVER['HTTPS']))?"https://":"http://").
-						$_SERVER['SERVER_NAME'].str_replace("?".$_SERVER['QUERY_STRING'],"",$_SERVER['REQUEST_URI']);
+					$_SERVER['SERVER_NAME'].str_replace("?".$_SERVER['QUERY_STRING'],"",$_SERVER['REQUEST_URI']);
 		$this->secureuri = 'https://'.$_SERVER['SERVER_NAME'].$this->uri;
 		define("SHOPP_BASEURI",$this->uri);
 		define("SHOPP_SECUREURI",$this->uri);	
-		define("SHOPP_PLUGINURI",$this->Core->uri);	
+		define("SHOPP_PLUGINURI",$this->Core->uri);
+		define("SHOPP_CATALOGURL",$this->Core->Settings->get('catalog_url'));
+		define("SHOPP_CARTURL",$this->Core->Settings->get('cart_url'));
+		define("SHOPP_CHECKOUTURL",$this->Core->Settings->get('checkout_url'));
+		define("SHOPP_RECEIPTURL",$this->Core->Settings->get('receipt_url'));
 	}
 
 	
@@ -230,6 +236,15 @@ class Flow {
 		$countries = array();
 		foreach ($this->Core->Settings->get('countries') as $iso => $country)
 			$countries[$iso] = $country['name'];
+			
+		$operations = $this->Core->Settings->get('base_operations');
+		if (!empty($operations['region'])) {
+			$regions = $this->Core->Settings->get('regions');
+			$regions = $regions[$operations['country']];
+		}
+		
+		$targets = $this->Core->Settings->get('target_markets');
+		if (!$targets) $targets = array();
 		
 		include("{$this->basepath}/ui/settings/settings.html");
 	}
@@ -237,10 +252,34 @@ class Flow {
 
 	function settings_catalog () {
 		if (!empty($_POST['save'])) $this->settings_save();
-		
 		include("{$this->basepath}/ui/settings/catalog.html");
 	}
 
+	function settings_cart () {
+		if (!empty($_POST['save'])) $this->settings_save();
+		include("{$this->basepath}/ui/settings/cart.html");
+	}
+
+	function settings_checkout () {
+		if (!empty($_POST['save'])) $this->settings_save();
+		include("{$this->basepath}/ui/settings/checkout.html");
+	}
+
+	function settings_shipping () {
+		if (!empty($_POST['save'])) $this->settings_save();
+		include("{$this->basepath}/ui/settings/shipping.html");
+	}
+
+	function settings_taxes () {
+		if (!empty($_POST['save'])) $this->settings_save();
+		
+		$rates = $this->Core->Settings->get('taxrates');
+		$base = $this->Core->Settings->get('base_operations');
+		$countries = $this->Core->Settings->get('target_markets');
+		$regions = $this->Core->Settings->get('regions');
+		
+		include("{$this->basepath}/ui/settings/taxes.html");
+	}	
 
 	function settings_payments () {
 		if (!empty($_POST['save'])) $this->settings_save();
@@ -257,12 +296,6 @@ class Flow {
 		}
 		
 		include("{$this->basepath}/ui/settings/payments.html");
-	}
-
-	function settings_shipping () {
-		if (!empty($_POST['save'])) $this->settings_save();
-		
-		include("{$this->basepath}/ui/settings/shipping.html");
 	}
 
 	function settings_get_gateways () {
@@ -307,7 +340,6 @@ class Flow {
 		}
 		return false;
 	}
-
 	
 	function settings_save () {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
@@ -316,31 +348,36 @@ class Flow {
 			$this->Core->Settings->save($setting,$value);
 		}
 	}
-	
-	
+		
 	/**
 	 * Setup - set up all the lists
 	 */
-	function setup () {
+	function development_setup () {
 		$this->setup_countries();
+		$this->setup_regions();
 		$this->setup_currencies();
-		$this->Core->Settings->add('shipping','on');	
-		$this->Core->Settings->add('shopp_setup','completed');	
+		$this->Core->Settings->save('shipping','on');	
+		$this->Core->Settings->save('shopp_setup','completed');	
 	}
 	
 	function setup_countries () {
 		global $Shopp;
 		include_once("init.php");
-		$this->Core->Settings->add('countries',$countries,false);
-		unset($countries);
+		$this->Core->Settings->save('countries',get_countries(),false);
 	}
 	
-	function setup_currencies () {
+	function setup_regions () {
 		global $Shopp;
 		include_once("init.php");
-		$this->Core->Settings->add('currencies',$currencies,false);
-		unset($currencies);
+		$this->Core->Settings->save('regions',get_country_regions(),false);
 	}
 
+	function setup_currencies () {
+		global $Shopp;
+		// include_once("init.php");
+		// $this->Core->Settings->save('currencies',$currencies,false);
+		// unset($currencies);
+	}
+	
 }
 ?>

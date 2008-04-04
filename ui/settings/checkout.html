@@ -1,0 +1,21 @@
+<div class="wrap">
+	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+	<h2>Checkout Settings</h2>
+	<?php include("navigation.html"); ?>
+
+	<form name="settings" id="general" method="post" action="<?php echo SHOPP_URI; ?>">
+		<table class="form-table"> 
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="checkout_url">Checkout Permalink</label></th> 
+				<td><input type="text" name="settings[checkout_url]" value="<?php echo $this->Core->Settings->get('checkout_url'); ?>" id="checkout_url" size="40" /><br /> 
+	            This is the full web address (URL) of your checkout page found in Manage &gt; Pages</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="receipt_url">Receipt Permalink</label></th> 
+				<td><input type="text" name="settings[receipt_url]" value="<?php echo $this->Core->Settings->get('receipt_url'); ?>" id="receipt_url" size="40" /><br /> 
+	            This is the full web address (URL) of your receipt page found in Manage &gt; Pages</td>
+			</tr>
+		</table>
+		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
+	</form>
+</div>

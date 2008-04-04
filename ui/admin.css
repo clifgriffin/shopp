@@ -1,17 +1,22 @@
 body { position: relative; }
 button { cursor: pointer; }
+button.deleteButton { background: none; border: none; padding: 0; width: 16px; height: 16px; }
+
 .form-table input.toggle { margin-left: -13px; }
 .form-table { position: relative; }
 .form-table td { position: relative; }
-.form-table td button.deleteButton { background: none; border: none; padding: 0; position: absolute; right: 5px; }
 .form-field th.pricing-label input { margin-top: 9px; }
 
 .pricing-table { width: 100%; }
 .pricing-table tr { background: none; }
 .pricing-table th { width: auto; border: none; padding: 0; vertical-align: top; }
 .pricing-table td { position: relative; border: none; padding: 0; vertical-align: top; white-space: no-wrap; }
+.pricing-table td button.deleteButton { position: absolute; right: 5px; }
 
 .pricing-table span.status { display: block; padding-top: 4px; }
+
+#taxrates-table th, #taxrates-table td { position: relative; text-align: left; border: none; padding: 0 5px 5px 0; }
+#taxrates-table button.deleteButton { margin-left: -16px; }
 
 input.right { text-align: right; }
 
@@ -24,3 +29,5 @@ input.right { text-align: right; }
 .form-table .multiple-select ul li input { float: left; margin: 4px 5px; }
 .form-table .multiple-select ul li label { display: block; padding: 3px 5px; }
 .form-table .multiple-select ul li.odd label { background: #f9f9f9; }
+
+button img { margin-bottom: -3px; }

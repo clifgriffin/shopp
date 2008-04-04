@@ -48,6 +48,6 @@
 </div>
 
 <script type="text/javascript">
-var prices = <?php json($Product->prices) ?>;
+var prices = <?php echo json_encode($Product->prices) ?>;
 init();
 </script>

@@ -6,7 +6,7 @@
 	<form name="settings" id="general" method="post" action="<?php echo SHOPP_URI; ?>">
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="shipping-toggle">Use Shipping</label></th> 
+				<th scope="row" valign="top"><label for="shipping-toggle">Calculate Shipping</label></th> 
 				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if ($this->Core->Settings->get('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> Enabled</label><br /> 
 	            Check this to use shipping. Leave un-checked to disable shipping - helpful if you are only selling subscriptions or downloads.</td>
 			</tr>

@@ -55,6 +55,6 @@ $j('#payment-gateway').change(function () {
 	if (this.value.length > 0) settings_callback[this.value]();
 });
 
-settings_callback[$j('#payment-gateway').val()]();
+if ($j('#payment-gateway').val() != '') settings_callback[$j('#payment-gateway').val()]();
 
 </script>

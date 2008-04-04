@@ -29,17 +29,22 @@ class Shopp {
 		$this->path = dirname(__FILE__);
 		$this->uri = get_bloginfo('wpurl')."/wp-content/plugins/shopp/";
 		
-		$this->Flow = new Flow($this);
 		$this->Settings = new Settings();
+		$this->Flow = new Flow($this);
 		
-		if (!$this->Settings->get('shopp_setup')) $this->Flow->setup();
+		// Move this to install()
+		if (!$this->Settings->get('shopp_setup')) $this->Flow->development_setup();
 				
 		add_action('admin_menu', array(&$this, 'add_menus'));
 		add_action('admin_head', array(&$this, 'admin_header'));
 		add_action('wp_head', array(&$this, 'stylesheet'));
+		add_action('init', array(&$this, 'lookups'));
 		add_action('init', array(&$this, 'cart'));
 		add_action('init', array(&$this, 'checkout'));
-		add_action('init', array(&$this, 'pagecodes'));
+		add_action('init', array(&$this, 'shortcodes'));
+		register_activation_hook(__FILE__, array(&$this,'activate'));
+
+	 
 	}
 	
 	function add_menus () {
@@ -69,15 +74,25 @@ class Shopp {
 	}
 
 	function settings () {
+		
 		switch($_GET['edit']) {
 			case "catalog":
 				$this->Flow->settings_catalog();
+				break;
+			case "cart":
+				$this->Flow->settings_cart();
+				break;
+			case "checkout":
+				$this->Flow->settings_checkout();
 				break;
 			case "payments":
 				$this->Flow->settings_payments();
 				break;
 			case "shipping":
 				$this->Flow->settings_shipping();
+				break;
+			case "taxes":
+				$this->Flow->settings_taxes();
 				break;
 			default:
 				$this->Flow->settings_general();
@@ -165,7 +180,7 @@ class Shopp {
 			$_POST['receipt'] = $this->Flow->order_receipt();
 			send_email("{$this->path}/ui/checkout/email.html");
 
-			header("Location: /shop/receipt/");
+			header("Location: ".SHOPP_RECEIPTURL);
 			exit();
 		} else {
 			$Cart->data->OrderError = $Payment->error();
@@ -173,7 +188,7 @@ class Shopp {
 		
 	}
 	
-	function pagecodes () {
+	function shortcodes () {
 		remove_filter('the_content', 'wpautop');
 		add_filter('the_content', 'wpautop',8);
 		add_shortcode('cart',array(&$this->Flow,'cart_default'));
@@ -181,5 +196,37 @@ class Shopp {
 		add_shortcode('order-summary',array(&$this->Flow,'checkout_order_summary'));
 		add_shortcode('receipt',array(&$this->Flow,'order_receipt'));
 	}
+	
+	function activate () {
+		$db =& DB::get();
+		
+		// If the plugin has been previously setup
+		// dump the datatype model cache so it can be rebuilt
+		// Useful when table schemas change so we can
+		// force them to get rebuilt
+		if ($this->Settings->get('shopp_setup'))
+			$this->Settings->save('datatype_model','');
 
-} // end WebShop
+		if ($this->Settings->unavailable) {
+			include("core/install.php");
+		}
+		
+	}
+	
+	/**
+	 * AJAX Responses
+	 */
+	function lookups() {
+		$db =& DB::get();
+		
+		switch($_GET['lookup']) {
+			case "regions":
+				$regions = $this->Settings->get('regions');
+				if (isset($_GET['country']))
+					echo json_encode($regions[$_GET['country']]);
+				exit();
+				break;
+		}
+	}
+
+} // end Shopp

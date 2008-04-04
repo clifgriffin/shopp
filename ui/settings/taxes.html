@@ -1,0 +1,124 @@
+<div class="wrap">
+	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+	<h2>Tax Settings</h2>
+	<?php include("navigation.html"); ?>
+
+	<form name="settings" id="general" method="post" action="<?php echo SHOPP_URI; ?>">
+		<table class="form-table"> 
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="taxes-toggle">Calculate Taxes</label></th> 
+				<td><input type="hidden" name="settings[taxes]" value="off" /><input type="checkbox" name="settings[taxes]" value="on" id="taxes-toggle"<?php if ($this->Core->Settings->get('taxes') == "on") echo ' checked="checked"'?> /><label for="taxes-toggle"> Enabled</label><br /> 
+	            Enables tax calculations.  Disable if you are exclusively selling non-taxable items.</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="taxrate[i]">Tax Rates</label></th> 
+				<td>
+					<table id="taxrates-table"></table>
+	            <button type="button" id="add-taxrate" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/ui/icons/add.png" alt="+" width="16" height="16" /> Add a Tax Rate</button></td> 
+			</tr>
+
+		</table>
+		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
+	</form>
+</div>
+
+<script type="text/javascript">
+$j=jQuery.noConflict();
+
+var rates = <?php echo json_encode($rates); ?>;
+var base = <?php echo json_encode($base); ?>;
+var countries = <?php echo json_encode($countries); ?>;
+var regions = <?php echo json_encode($regions); ?>;
+var taxrates = new Array();
+var regionsInUse = new Array();
+
+var disableRegionsInUse = function () {
+	$j('#taxrates-table tr select.region option').each (function () {
+		if ($j.inArray($j(this).val(),regionsInUse) != -1 && !this.selected)
+			$j(this).attr({'disabled':'disabled'});
+	});
+}
+
+var addTaxRate = function (r) {
+	i = taxrates.length;
+	var row = $j('<tr/>').appendTo('#taxrates-table');
+	
+	var rateCell = $j('<td></td>').html(' %').appendTo(row);
+	var rate = $j('<input type="text" name="settings[taxrates]['+i+'][rate]" value="" id="settings[taxrates]['+i+'][rate]" size="4" class="selectall right" />').prependTo(rateCell);
+	var deleteButton = $j('<button id="deleteButton['+i+']" class="deleteButton" type="button" title="Delete product option"></button>').prependTo(rateCell).hide();
+	var deleteIcon = $j('<img src="/wp-content/plugins/shopp/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteButton);
+	
+	var countryCell = $j('<td></td>').appendTo(row);
+	var countryMenu = $j('<select name="settings[taxrates]['+i+'][country]" id="country['+i+']"></select>').appendTo(countryCell);
+	
+	$j.each(countries, function(value,label) {
+		option = $j('<option></option>').val(value).html(label).appendTo(countryMenu);
+	});
+	
+	var regionCell = $j('<td></td>').appendTo(row);
+	var regionMenu = $j('<select name="settings[taxrates]['+i+'][region]" id="region['+i+']" class="region"></select>').appendTo(regionCell);
+
+	var updateRegionsMenu = function () {
+		regionMenu.empty();
+		if (regions[$j(countryMenu).val()]) {
+			$j.each(regions[$j(countryMenu).val()], function(value,label) {
+				if ($j.inArray(value,regionsInUse) != -1) option = $j('<option disabled="disabled"></option>').val(value).html(label).appendTo(regionMenu);				
+				else option = $j('<option></option>').val(value).html(label).appendTo(regionMenu);
+			});
+		}
+	}
+	
+	$j(row).hover(function() {
+			if (i > 0) deleteButton.show();
+		},function() {
+			deleteButton.hide();
+	});
+	
+	$j(deleteButton).click(function () {
+		if (taxrates.length > 1) {
+			if (confirm("Are you sure you want to delete this tax rate?")) {
+				row.remove();
+				taxrates.splice(i,1);
+			}
+		}
+	});
+	
+	
+	$j(countryMenu).change(function () {
+		updateRegionsMenu();
+	}).change();
+	
+	$j(regionMenu).change(function () {
+		if ($j.inArray(currentRegion,regionsInUse) != -1)
+			regionsInUse.splice($j.inArray(currentRegion,regionsInUse),1);
+		currentRegion = $j(regionMenu).val();
+		regionsInUse.push(currentRegion);
+		disableRegionsInUse();
+	});
+	
+	if (r) {
+		rate.val(r.rate);
+		countryMenu.val(r.country).change();
+		regionMenu.val(r.region).change();
+	} else {
+		countryMenu.val(base.country).change();
+		if ($j.inArray(base.region,regionsInUse) == -1)
+			regionMenu.val(base.region).change();
+		else regionMenu.change();
+	}
+
+	var currentRegion = regionMenu.val();
+
+	taxrates.push(row);
+	quickSelects();
+	
+}
+
+$j('#add-taxrate').click(function() {
+	addTaxRate();
+});
+
+if (rates.length > 0) for(i = 0; i < rates.length; i++) addTaxRate(rates[i]);
+else addTaxRate();
+
+</script>
