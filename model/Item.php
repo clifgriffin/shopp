@@ -25,7 +25,7 @@ class Item {
 	var $intlship = 0;
 	var $tax = true;
 
-	function Item ($qty,$Product,$Price) {
+	function Item ($qty,$Product,$Price,$TaxSetting) {
 		$Product->load_prices();
 		$this->product = $Product->id;
 		$this->price = $Price->id;
@@ -47,7 +47,7 @@ class Item {
 			$this->intlship = $Price->intlship;
 		}
 
-		$this->tax = ($Price->tax == "on")?true:false;
+		$this->tax = ($Price->tax == "on" && $TaxSetting == "on")?true:false;
 	}
 	
 	function quantity ($qty) {

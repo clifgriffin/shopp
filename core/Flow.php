@@ -29,6 +29,7 @@ class Flow {
 		define("SHOPP_CATALOGURL",$this->Core->Settings->get('catalog_url'));
 		define("SHOPP_CARTURL",$this->Core->Settings->get('cart_url'));
 		define("SHOPP_CHECKOUTURL",$this->Core->Settings->get('checkout_url'));
+		define("SHOPP_CONFIRMURL",$this->Core->Settings->get('confirm_url'));
 		define("SHOPP_RECEIPTURL",$this->Core->Settings->get('receipt_url'));
 	}
 
@@ -124,8 +125,12 @@ class Flow {
 		global $Cart;
 
 		ob_start();
+		$base = $this->Core->Settings->get('base_operations');
 		$markets = $this->Core->Settings->get('target_markets');
-		foreach ($markets as $iso => $country) $Countries[$iso] = $country;
+		$regions = $this->Core->Settings->get('regions');
+		foreach ($markets as $iso => $country) $countries[$iso] = $country;
+		$states = $regions[$base['country']];
+		
 		if (isset($Cart->data->OrderError)) include("{$this->basepath}/ui/checkout/errors.html");
 		include("{$this->basepath}/ui/checkout/checkout.html");
 		$content = ob_get_contents();
@@ -145,6 +150,16 @@ class Flow {
 		
 		return $content;
 	}
+	
+	function order_confirmation () {
+		global $Cart;
+		ob_start();
+		include("{$this->basepath}/ui/checkout/confirm.html");
+		$content = ob_get_contents();
+		ob_end_clean();
+		return $content;
+	}
+	
 
 	/**
 	 * Transaction flow handlers
@@ -217,7 +232,7 @@ class Flow {
 					$Price = new Price();
 					$option['product'] = $Product->id;
 				} else $Price = new Price($option['id']);
-
+				
 				$Price->updates($option);
 				$Price->save();
 			}

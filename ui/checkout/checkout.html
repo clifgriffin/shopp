@@ -1,4 +1,7 @@
 <script type="text/javascript" src="<?php echo SHOPP_PLUGINURI; ?>ui/checkout/checkout.js"></script>
+<script type="text/javascript">
+var regions = <?php echo json_encode($regions); ?>;
+</script>
 <form action="<?php echo SHOPP_CHECKOUTURL; ?>" method="post" class="checkout" id="checkout-form">
 
 	<ul>
@@ -17,13 +20,13 @@
 			<div><input type="text" name="shipping[address]" value="" class="required" id="shipping-address" title="Shipping street address" /><label for="shipping-address">Street Address</label></div>
 			<div><input type="text" name="shipping[xaddress]" value="" id="shipping-xaddress"  title="Shipping address line 2" /><label for="shipping-xaddress">Address Line 2</label></div>
 			<div class="left"><input type="text" name="shipping[city]" value="" class="required" id="shipping-city" title="City shipping sddress" /><label for="shipping-city">City</label></div>
-			<div class="right"><input type="text" name="shipping[state]" value="" class="required" id="shipping-state" title="State shipping address"/><label for="shipping-state">State / Province</label></div>
+			<div class="right"><select name="shipping[state]" id="shipping-state" class="required" title="State/Provice/Region shipping address">
+					<option value="" selected="selected"></option>
+					<?php echo menuoptions($states,"",true); ?>
+				</select><label for="shipping-state">State / Province</label></div>
 			<div class="left"><input type="text" name="shipping[postcode]" value="" class="required" id="shipping-postcode" title="Postal/Zip Code shipping address"/><label for="shipping-postcode">Postal / Zip Code</label></div>
 			<div class="right"><select name="shipping[country]" id="shipping-country" class="required" title="Country shipping address">
-
-				<option value="" selected="selected"></option>
-				<?php echo menuoptions($Countries,"",true); ?>
-				
+				<?php echo menuoptions($countries,$base['country'],true); ?>
 			</select><label for="shipping-country">Country</label></div>
 		</li>
 		<li class="address right">
@@ -31,13 +34,13 @@
 			<div><input type="text" name="billing[address]" value="" class="required" id="billing-address" title="Billing street address" /><label for="billing-address">Street Address</label></div>
 			<div><input type="text" name="billing[xaddress]" value="" id="billing-xaddress" title="Billing address line 2" /><label for="billing-xaddress">Address Line 2</label></div>
 			<div class="left"><input type="text" name="billing[city]" value="" class="required" id="billing-city" title="City billing address" /><label for="billing-city">City</label></div>
-			<div class="right"><input type="text" name="billing[state]" value="" class="required" id="billing-state" title="State billing address"/><label for="billing-xaddress">State / Province</label></div>
+			<div class="right"><select name="billing[state]" id="billing-state" class="required" title="State/Provice/Region billing address">
+					<option value="" selected="selected"></option>
+					<?php echo menuoptions($states,"",true); ?>
+				</select><label for="billing-state">State / Province</label></div>
 			<div class="left"><input type="text" name="billing[postcode]" value="" class="required" id="billing-postcode" title="Postal/Zip Code billing address"/><label for="billing-postcode">Postal / Zip Code</label></div>
 			<div class="right"><select name="billing[country]" id="billing-country" class="required" title="Country billing address">
-
-				<option value="" selected="selected"></option>
-				<?php echo menuoptions($Countries,"",true); ?>
-				
+				<?php echo menuoptions($countries,$base['country'],true); ?>
 			</select><label for="billing-country">Country</label></div>
 		</li>
 		<li>

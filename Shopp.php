@@ -37,10 +37,11 @@ class Shopp {
 				
 		add_action('admin_menu', array(&$this, 'add_menus'));
 		add_action('admin_head', array(&$this, 'admin_header'));
-		add_action('wp_head', array(&$this, 'stylesheet'));
+		add_action('wp_head', array(&$this, 'page_headers'));
 		add_action('init', array(&$this, 'lookups'));
 		add_action('init', array(&$this, 'cart'));
 		add_action('init', array(&$this, 'checkout'));
+		add_action('init', array(&$this, 'confirm'));
 		add_action('init', array(&$this, 'shortcodes'));
 		register_activation_hook(__FILE__, array(&$this,'activate'));
 
@@ -59,8 +60,9 @@ class Shopp {
 		<script type='text/javascript' src='<?php echo $this->uri; ?>ui/shopp.js'></script><?php
 	}
 	
-	function stylesheet () {
-		?><link rel='stylesheet' href='<?php echo $this->uri; ?>ui/shopp.css' type='text/css' /><?php
+	function page_headers () {
+		?><link rel='stylesheet' href='<?php echo $this->uri; ?>ui/shopp.css' type='text/css' />
+		<script type='text/javascript' src='http://wordpress/wp-includes/js/jquery/jquery.js?ver=1.2.3'></script><?php
 	}
 		
 	function orders () {
@@ -101,9 +103,10 @@ class Shopp {
 	}
 	
 	function cart () {
+		global $Cart;
 		if (empty($_POST['cart']) && empty($_GET['cart'])) return true;
 		require("model/Product.php");
-		
+
 		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax();
 		else if (!empty($_GET['cart'])) $this->Flow->cart_request();
 		else $this->Flow->cart_post();	
@@ -111,27 +114,18 @@ class Shopp {
 	
 	function checkout () {
 		global $Cart;
-		$processor_file = $this->Settings->get('payment_gateway');
 
-		if (!$processor_file) return true;
-		if (!file_exists($processor_file)) return true;
 		if (empty($_POST['checkout'])) return true;
+		if ($_POST['checkout'] == "confirmed") {
+			$this->order();
+			return true;
+		};
 		if ($_POST['checkout'] != "process") return true;
-		
+				
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
 		
-		require("model/Purchase.php");
-		require("model/Customer.php");
-		require("model/Billing.php");
-		require("model/Shipping.php");
-		
-		// Dynamically the payment processing gateway
-		$processor_data = $this->Flow->scan_gateway_meta($processor_file);
-		$ProcessorClass = $processor_data->tags['class'];
-		include($processor_file);
-		
 		$Order = new stdClass();
-
+		
 		$Order->Customer = new Customer();
 		$Order->Customer->updates($_POST);
 		
@@ -141,7 +135,50 @@ class Shopp {
 		$Order->Billing = new Billing();
 		$Order->Billing->updates($_POST['billing']);
 		
-		$Order->Cart =& $Cart;
+		
+		$Cart->data->Order = $Order;
+		// Check for taxes, or process order
+		if ($this->Settings->get('taxes') == "on") {
+			$taxrates = $this->Settings->get('taxrates');
+			foreach($taxrates as $setting) {
+				if ($Order->Shipping->state == $setting['region']) {
+					$Cart->data->Totals->taxrate = $setting['rate'];
+					break;					
+				}
+			}
+			
+			$Cart->totals();
+			header("Location: ".SHOPP_CONFIRMURL);
+			exit();
+		} elseif ($this->Settings->get('order_confirmation') == "always") {
+			header("Location: ".SHOPP_CONFIRMURL);
+			exit();
+		} else $this->order();
+	}
+	
+	function confirm() {
+		global $Cart;
+		$this->Flow->order_confirmation();
+	}
+	
+	function order() {
+		global $Cart;
+		$processor_file = $this->Settings->get('payment_gateway');
+
+		if (!$processor_file) return true;
+		if (!file_exists($processor_file)) return true;
+		
+		require_once("model/Purchase.php");
+		
+		// Dynamically the payment processing gateway
+		$processor_data = $this->Flow->scan_gateway_meta($processor_file);
+		$ProcessorClass = $processor_data->tags['class'];
+		include($processor_file);
+		
+		$Order =& $Cart->data->Order;
+		$Order->Totals =& $Cart->data->Totals;
+		$Order->Items =& $Cart->contents;
+		$Order->Cart =& $Cart->session;
 		
 		$Payment = new $ProcessorClass($Order);
 		if ($Payment->process()) {
@@ -149,6 +186,7 @@ class Shopp {
 			$Order->Shipping->customer = $Order->Customer->id;
 			$Order->Shipping->save();
 			$Order->Billing->customer = $Order->Customer->id;
+			$Order->Billing->card = substr($Order->Billing->card,-4);
 			$Order->Billing->save();
 			
 			$Purchase = new Purchase();
@@ -158,8 +196,8 @@ class Shopp {
 			$Purchase->copydata($Order->Customer);
 			$Purchase->copydata($Order->Billing);
 			$Purchase->copydata($Order->Shipping,'ship');
-			$Purchase->copydata($Order->Cart->data);
-			$Purchase->freight = $Order->Cart->data->shipping;
+			$Purchase->copydata($Cart->data->Totals);
+			$Purchase->freight = $Cart->data->Totals->shipping;
 			$Purchase->gateway = $processor_data->name;
 			$Purchase->transactionid = $Payment->transactionid();
 			$Purchase->save();
@@ -171,8 +209,10 @@ class Shopp {
 				$Purchased->save();
 			}
 			
-			$Cart->data->Purchase = $Purchase->id;
+			// Empty cart on successful order
 			$Cart->contents = array();
+			$Cart->data = new stdClass();
+			$Cart->data->Purchase = $Purchase->id;
 
 			$_POST['from'] = "info@kmxus.com";
 			$_POST['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
@@ -184,8 +224,7 @@ class Shopp {
 			exit();
 		} else {
 			$Cart->data->OrderError = $Payment->error();
-		}
-		
+		}		
 	}
 	
 	function shortcodes () {
@@ -194,6 +233,7 @@ class Shopp {
 		add_shortcode('cart',array(&$this->Flow,'cart_default'));
 		add_shortcode('checkout',array(&$this->Flow,'checkout_onestep'));
 		add_shortcode('order-summary',array(&$this->Flow,'checkout_order_summary'));
+		add_shortcode('confirmation-summary',array(&$this->Flow,'order_confirmation'));
 		add_shortcode('receipt',array(&$this->Flow,'order_receipt'));
 	}
 	

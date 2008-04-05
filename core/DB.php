@@ -198,12 +198,14 @@ class DatabaseObject {
 		$this->_key = $key;				// So we know what the primary key is
 		$this->_datatypes = array();	// So we know the format of the table
 		$this->_lists = array();		// So we know the options for each list
+		$this->_defaults = array();		// So we know the default values for each field
 		
 		if (isset($Shopp->Settings)) {
-			$Tables = $Shopp->Settings->get('datatype_model');
+			$Tables = $Shopp->Settings->get('data_model');
 			if (isset($Tables[$this->_table])) {
 				$this->_datatypes = $Tables[$this->_table]->_datatypes;
 				$this->_lists = $Tables[$this->_table]->_lists;
+				foreach($this->_datatypes as $property => $type) $this->{$property} = $this->_defaults[$property];
 				return true;
 			}
 		}
@@ -213,9 +215,10 @@ class DatabaseObject {
 		// Map out the table definition into our data structure
 		foreach($r as $object) {	
 			$property = $object->Field;
-			$this->{$property} = null;
+			$this->{$property} = $object->Default;
 			$this->_datatypes[$property] = $db->datatype($object->Type);
-			
+			$this->_defaults[$property] = $object->Default;
+						
 			// Grab out options from list fields
 			if ($db->datatype($object->Type) == "list") {
 				$values = str_replace("','", ",", substr($object->Type,strpos($object->Type,"'")+1,-2));
@@ -227,7 +230,8 @@ class DatabaseObject {
 			$Tables[$this->_table] = new StdClass();
 			$Tables[$this->_table]->_datatypes = $this->_datatypes;
 			$Tables[$this->_table]->_lists = $this->_lists;
-			$Shopp->Settings->save('datatype_model',$Tables);
+			$Tables[$this->_table]->_defaults = $this->_defaults;
+			$Shopp->Settings->save('data_model',$Tables);
 		}
 	}
 	
@@ -262,8 +266,9 @@ class DatabaseObject {
 			if (isset($data['created'])) $data['created'] = "now()";
 			if (isset($data['modified'])) $data['modified'] = "now()";
 			$dataset = $this->dataset($data);
+			//print "INSERT $this->_table SET $dataset";
 			$this->id = $db->query("INSERT $this->_table SET $dataset");
-			return true;
+			return $this->id;
 		}
 
 	}

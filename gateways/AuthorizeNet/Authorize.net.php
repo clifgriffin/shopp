@@ -41,8 +41,7 @@ class AuthorizeNet {
 		}
 	}
 	
-	function build ($Order) {
-		
+	function build (&$Order) {
 		$_ = array();
 		
 		// Options
@@ -60,9 +59,9 @@ class AuthorizeNet {
 		$_['x_merchant_email']		= "jond@ingenesis.net";
 		
 		// Required Fields
-		$_['x_amount']				= $Order->Cart->data->total;
+		$_['x_amount']				= $Order->Totals->total;
 		$_['x_customer_ip']			= $_SERVER["REMOTE_ADDR"];
-		$_['x_fp_sequence']			= $Order->Cart->session;
+		$_['x_fp_sequence']			= $Order->Cart;
 		$_['x_fp_timestamp']		= time();
 		// $_['x_fp_hash']				= hash_hmac("md5","{$_['x_login']}^{$_['x_fp_sequence']}^{$_['x_fp_timestamp']}^{$_['x_amount']}",$_['x_password']);
 		
@@ -91,15 +90,15 @@ class AuthorizeNet {
 		$_['x_ship_to_country']		= $Order->Shipping->country;
 		
 		// Transaction
-		$_['x_freight']				= $Order->Cart->data->shipping;
-		$_['x_tax']					= $Order->Cart->data->tax;
+		$_['x_freight']				= $Order->Totals->shipping;
+		$_['x_tax']					= $Order->Totals->tax;
 		
 		// Line Items
 		$i = 1;
-		foreach($Order->Cart->contents as $Item) {
+		foreach($Order->Items as $Item) {
 			$_['x_line_item'][] = ($i++)."<|>".$Item->name.((sizeof($Item->options) > 1)?" ".$Item->option:"")."<|><|>".$Item->quantity."<|>".$Item->unitprice."<|>".(($Item->tax)?"Y":"N");
 		}
-		
+
 		$this->transaction = "";
 		foreach($_ as $key => $value) {
 			if (is_array($value)) {

@@ -1,4 +1,4 @@
-$j=jQuery.noConflict();
+$j = jQuery.noConflict();
 
 var validate = function (form) {
 	var passed = true;
@@ -42,16 +42,16 @@ var validate = function (form) {
 	}
 	return passed;
 }
-$j(window).ready(function () {
 
+$j(window).ready(function () {
 	$j('#useshipping').click(function() {
 		if(this.checked) {
 	 		$j('#billing-address').val($j('#shipping-address').val()).attr('readonly','readonly');
 	 		$j('#billing-xaddress').val($j('#shipping-xaddress').val()).attr('readonly','readonly');
 	 		$j('#billing-city').val($j('#shipping-city').val()).attr('readonly','readonly');
-	 		$j('#billing-state').val($j('#shipping-state').val()).attr('readonly','readonly');
 	 		$j('#billing-postcode').val($j('#shipping-postcode').val()).attr('readonly','readonly');
-	 		$j('#billing-country').val($j('#shipping-country').val()).attr('readonly','readonly');
+	 		$j('#billing-country').val($j('#shipping-country').val()).attr('readonly','readonly').change();
+	 		$j('#billing-state').val($j('#shipping-state').val()).attr('readonly','readonly');
 		} else {
 			$j('#billing-address').removeAttr('readonly');
 	 		$j('#billing-xaddress').removeAttr('readonly');
@@ -66,5 +66,21 @@ $j(window).ready(function () {
 		if (validate(this)) return true;
 		else return false;
 	});
+	
+	$j('#shipping-country').change(function() {
+		$j('#shipping-state').empty();
+		$j('<option></option>').val('').html('').appendTo('#shipping-state');
+		$j.each(regions[this.value], function (value,label) {
+				option = $j('<option></option>').val(value).html(label).appendTo('#shipping-state');
+		});
+	});
+
+	$j('#billing-country').change(function() {
+		$j('#billing-state').empty();
+		$j('<option></option>').val('').html('').appendTo('#billing-state');
+		$j.each(regions[this.value], function (value,label) {
+				option = $j('<option></option>').val(value).html(label).appendTo('#billing-state');
+		});
+	});	
 	
 });

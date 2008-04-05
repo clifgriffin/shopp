@@ -16,7 +16,7 @@ var init = function () {
 		quickSelects();
 	});
 	
-	if (prices.length > 0) for(i = 0; i < prices.length; i++) addProductOption(prices[i]);
+	if (prices && prices.length > 0) for(i = 0; i < prices.length; i++) addProductOption(prices[i]);
 	else addProductOption();
 
 	quickSelects();

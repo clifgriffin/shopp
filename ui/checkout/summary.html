@@ -19,15 +19,27 @@
 	<?php endforeach; ?>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Subtotal</th>
-		<td class="money"><?php echo money($Cart->data->subtotal); ?></td>
+		<td class="money"><?php echo money($Cart->data->Totals->subtotal); ?></td>
 	</tr>
+	<?php if ($Cart->data->Totals->shipping > 0): ?>
 	<tr class="totals">
-		<th scope="row" colspan="3" class="total">Shipping</th>
-		<td class="money"><?php echo money($Cart->data->shipping); ?></td>
+		<th scope="row" colspan="3" class="total">Shipping</td>
+		<td class="money"><?php echo money($Cart->data->Totals->shipping); ?></td>
 	</tr>
+	<?php else: ?>
+		<tr class="totals">
+			<th scope="row" colspan="4" class="total"><?php echo $this->Core->Settings->get('free_shipping_text'); ?></td>
+		</tr>
+	<?php endif; ?>
+	<?php if ($Cart->data->Totals->tax > 0): ?>
+	<tr class="totals">
+		<th scope="row" colspan="3" class="total">Tax</th>
+		<td class="money"><?php echo money($Cart->data->Totals->tax); ?></td>
+	</tr>
+	<?php endif; ?>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Total</th>
-		<td class="money"><?php echo money($Cart->data->total); ?></td>
+		<td class="money"><?php echo money($Cart->data->Totals->total); ?></td>
 	</tr>
 </table>
 <?php else: ?>

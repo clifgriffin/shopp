@@ -37,8 +37,8 @@
 .checkout ul li span input { margin: 0 0 5px 0; }
 .checkout ul li div input,
 .checkout ul li div select { width: 100%; }
-.checkout ul li div.left { display: inline; width: 47%; float: left; margin: 0; }
-.checkout ul li div.right { display: inline; width: 47%; float: right; margin: 0; }
+.checkout ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
+.checkout ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
 
 
 .checkout ul li.address { display: inline; width: 48%; float: left; clear: none; }

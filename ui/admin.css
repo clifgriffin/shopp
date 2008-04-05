@@ -11,7 +11,8 @@ button.deleteButton { background: none; border: none; padding: 0; width: 16px; h
 .pricing-table tr { background: none; }
 .pricing-table th { width: auto; border: none; padding: 0; vertical-align: top; }
 .pricing-table td { position: relative; border: none; padding: 0; vertical-align: top; white-space: no-wrap; }
-.pricing-table td button.deleteButton { position: absolute; right: 5px; }
+#pricing tr td button.deleteButton { position: absolute; right: 5px; }
+#pricing, #pricing tr, #pricing tr td { position: relative; }
 
 .pricing-table span.status { display: block; padding-top: 4px; }
 

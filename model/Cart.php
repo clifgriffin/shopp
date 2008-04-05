@@ -10,6 +10,9 @@
  **/
 
 require("Item.php");
+require("Customer.php");
+require("Billing.php");
+require("Shipping.php");
 
 $Cart =& new Cart();
 session_start();
@@ -41,6 +44,14 @@ class Cart {
 			array( &$this, 'unload' ),	// Destroy
 			array( &$this, 'trash' )	// Garbage Collection
 		);
+		
+		$this->data = new stdClass();
+		$this->data->Totals = new stdClass();
+		$this->data->Totals->subtotal = 0;
+		$this->data->Totals->shipping = 0;
+		$this->data->Totals->tax = 0;
+		$this->data->Totals->taxrate = 0;
+		$this->data->Totals->total = 0;
 	}
 		
 	/* open()
@@ -120,10 +131,12 @@ class Cart {
 	 * add()
 	 * Adds a product as an item to the cart */
 	function add ($quantity,$Product,$Price) {
+		global $Shopp;
+		if ($Price->product != $Product->id) return false;
 		if (($item = $this->hasproduct($Product->id,$Price->id)) !== false) {
 			$this->contents[$item]->add($quantity);
 		} else {
-			$Item = new Item($quantity,$Product,$Price);
+			$Item = new Item($quantity,$Product,$Price,$Shopp->Settings->get('taxes'));
 			$this->contents[] = $Item;
 		}
 		$this->totals();
@@ -181,20 +194,32 @@ class Cart {
 	
 	function totals () {
 		global $Shopp;
-		$this->data = new StdClass();
-		$this->data->subtotal = 0;
-		$this->data->shipping = 0;
-		$this->data->tax = 0;
-		$this->data->total = 0;
-		
+		$Totals =& $this->data->Totals;
+		$Totals->subtotal = 0;
+		$Totals->shipping = 0;
+		$Totals->tax = 0;
+		$Totals->total = 0;
+
 		foreach ($this->contents as $Item) {
-			$this->data->subtotal +=  $Item->total;
-			if ($Item->shipping="on") {
-				$this->data->shipping += ($Item->quantity * $Item->domship);
-			}
+			$Totals->subtotal +=  $Item->total;
+			if ($Item->shipping = "on")
+				$Totals->shipping += ($Item->quantity * $Item->domship);
+
+			if ($Item->tax == "on" && $Totals->taxrate > 0)
+				$Totals->tax += $Item->total * ($Totals->taxrate/100);
 				
 		}
-		$this->data->total = $this->data->subtotal+$this->data->shipping;		
+		
+		if ($Totals->shipping > 0 
+				&& $Totals->tax > 0  
+				&& $Totals->taxrate > 0)
+			$Totals->tax += $Totals->shipping * ($Totals->taxrate/100);
+		
+		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
+		
+		
+		$Totals->total = $Totals->subtotal + 
+			$Totals->shipping + $Totals->tax;		
 	}
 	
 } // end Cart class
