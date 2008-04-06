@@ -24,13 +24,19 @@
 		</tr> 
 		<tr class="form-field"> 
 			<th scope="row" valign="top"><label for="brand">Brand</label></th> 
-			<td><select name="brand" tabindex="4"></select><input name="new-brand" id="new-brand" type="text" size="40" tabindex="5" /><br />
+			<td><select name="brand-menu" id="brand-menu" tabindex="4">
+				<?php if (count($brands) > 1)echo menuoptions($brands,$Product->brand); ?>
+				<option value="new">New Brand&hellip;</option>
+			</select><input name="brand" id="brand" value="<?php echo $brands[$Product->brand]; ?>" type="text" size="30" tabindex="5" /><br />
 			The name of the brand or manufacturer of this product.</td> 
 		</tr> 
 		<tr class="form-field">
-			<th scope="row" valign="top"><label for="category">Category</label></th> 
+			<th scope="row" valign="top"><label for="category-menu">Category</label></th> 
 			<td> 
-	  			<select name="category" id="category" tabindex="6"></select><input name="new-brand" id="new-brand" type="text" size="40" tabindex="7" /><br /> 
+	  			<select name="category-menu" id="category-menu" tabindex="6">
+					<?php if (count($categories) > 1) echo menuoptions($categories,$Product->category,true); ?>
+					<option value="new">New Category&hellip;</option>
+	  			</select><input name="category" id="category" value="<?php echo $categories[$Product->category]; ?>" type="text" size="30" tabindex="7" /><br /> 
                 You can organize your products into categories for display in your catalog.</td> 
 		</tr>
 	</table>

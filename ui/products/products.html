@@ -6,6 +6,7 @@
 	<?php include("navigation.html"); ?>
 
 	<div class="tablenav">
+		<button type="submit" name="deleting" value="product" class="button-secondary">Delete</button>
 		<div class="alignright"><button type="submit" name="edit" value="new" class="button-secondary">New Product</button></div>
 	</div>
 	<br class="clear" />
@@ -23,11 +24,14 @@
 		<tbody id="products" class="list products">
 		<?php $even = false; foreach ($Products as $Product): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
-			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='3' /></th>
+			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
 			<td><a class='row-title' href='?page=products&amp;edit=<?php echo $Product->id; ?>' title='Edit &quot;<?php echo $Product->name; ?>&quot;'><?php echo $Product->name; ?></a></td>
 			<td><?php echo $Product->brand; ?></td>
-			<td><?php echo $Product->category; ?></td>
-			<td class='num'>0</td>
+			<td><?php echo $categories[$Product->category]; ?></td>
+			<td><?php
+				if ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
+				else echo money($Product->maxprice)."&mdash;".money($Product->minprice);
+			?></td>
 		</tr>
 		<?php endforeach; ?>
 		</tbody>

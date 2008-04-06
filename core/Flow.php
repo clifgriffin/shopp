@@ -191,6 +191,13 @@ class Flow {
 			$Product->load_prices();
 		} else $Product = new Product();
 
+		$brands = array('');
+		$brandnames = $db->query("SELECT brand FROM $Product->_table GROUP BY brand",AS_ARRAY);
+		foreach($brandnames as $name) $brands[] = $name->brand;
+		
+		$categories = $this->Core->Settings->get('product_categories');
+		if (empty($categories)) $categories = array('');
+
 		if (!empty($_POST['save'])) $this->save_product($Product);
 
 		include("{$this->basepath}/ui/products/editor.html");
@@ -202,13 +209,38 @@ class Flow {
 		global $Products;
 		$db =& DB::get();
 
-		$Products = $db->query("SELECT * FROM shopp_product",AS_ARRAY);
+		if (!empty($_GET['delete']) && is_array($_GET['delete'])) {
+			foreach($_GET['delete'] as $deletion) {
+				$Product = new Product($deletion);
+				$Product->load_prices();
+				foreach ($Product->prices as $price) {
+					$Price = new Price();
+					$Price->delete();
+				}
+				$Product->delete();
+			}
+		}
+		
+		$categories = $this->Core->Settings->get('product_categories');
+		if (empty($categories)) $categories = array('');
+		
+		$Products = $db->query("SELECT pd.id,pd.name,pd.brand,pd.category,MAX(pt.price) AS maxprice,MIN(pt.price) as minprice FROM shopp_product AS pd LEFT JOIN shopp_price AS pt ON pd.id=pt.product GROUP BY pt.product",AS_ARRAY);
 		include("{$this->basepath}/ui/products/products.html");
 		exit();
 	}
 
 	function save_product($Product) {
-
+		
+		$categories = $this->Core->Settings->get('product_categories');
+		if (empty($categories)) $categories = array('');
+		
+		$categoryid = array_search($_POST['category'],$categories);
+		if ($categoryid === false) {
+			$categories[] = $_POST['category'];
+			$_POST['category'] = (count($categories)-1);
+			$this->Core->Settings->save('product_categories',$categories);
+		} else $_POST['category'] = $categoryid;
+		
 		$Product->updates($_POST);
 		$Product->save();
 

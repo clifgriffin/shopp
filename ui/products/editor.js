@@ -16,9 +16,28 @@ var init = function () {
 		quickSelects();
 	});
 	
+	if ($j('#brand-menu').val() == "new") $j('#brand-menu').hide();
+	else $j('#brand').hide();
+	if ($j('#category-menu').val() == "new") $j('#category-menu').hide();
+	else $j('#category').hide();
+	
+	$j('#brand-menu').change(function () {
+		if (this.value == "new") {
+			$j(this).hide();
+			$j('#brand').val('').show().focus();
+		} else $j('#brand').val($j(this).val());
+	});
+
+	$j('#category-menu').change(function () {
+		if (this.value == "new") {
+			$j(this).hide();
+			$j('#category').val('').show().focus();
+		} else $j('#category').val($j('#category-menu option:selected').text());
+	});
+	
 	if (prices && prices.length > 0) for(i = 0; i < prices.length; i++) addProductOption(prices[i]);
 	else addProductOption();
-
+	
 	quickSelects();
 }
 var addProductOption = function (p) {
