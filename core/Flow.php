@@ -203,13 +203,14 @@ class Flow {
 
 		$statusLabels = $this->Core->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
+		else ksort($statusLabels); 
 
-		$Orders = $db->query("SELECT * FROM $Purchase->_table ORDER BY created DESC",AS_ARRAY);
+		if (isset($_GET['status'])) $filter = "WHERE status='{$_GET['status']}'";
+		$Orders = $db->query("SELECT * FROM $Purchase->_table $filter ORDER BY created DESC",AS_ARRAY);
 		include("{$this->basepath}/ui/orders/orders.html");
-		exit();
 	}
 	
-	function order_manager() {
+	function order_manager () {
 		global $Purchase;
 		include("{$this->basepath}/model/Purchase.php");
 		if (preg_match("/\d+/",$_GET['manage'])) {
@@ -217,10 +218,26 @@ class Flow {
 			$Purchase->load_purchased();
 		} else $Purchase = new Purchase();
 		
+		if (!empty($_POST)) {
+			$Purchase->updates($_POST);
+			$Purchase->save();
+		}
+
+		$statusLabels = $this->Core->Settings->get('order_status');
+		if (empty($statusLabels)) $statusLabels = array('');
+		else ksort($statusLabels); 
+		
 		include("{$this->basepath}/ui/orders/order.html");
-		exit();
 	}
 	
+	function order_status_counts () {
+		$db =& DB::get();
+		
+		include_once("{$this->basepath}/model/Purchase.php");
+		$p = new Purchase();
+		
+		return $db->query("SELECT COUNT(status) AS total FROM {$p->_table} GROUP BY status ORDER BY status ASC");
+	}
 	
 	/**
 	 * Products admin flow handlers
@@ -245,7 +262,6 @@ class Flow {
 		if (!empty($_POST['save'])) $this->save_product($Product);
 
 		include("{$this->basepath}/ui/products/editor.html");
-		exit();
 
 	}
 
@@ -272,7 +288,6 @@ class Flow {
 		
 		$Products = $db->query("SELECT pd.id,pd.name,pd.brand,pd.category,MAX(pt.price) AS maxprice,MIN(pt.price) as minprice FROM shopp_product AS pd LEFT JOIN shopp_price AS pt ON pd.id=pt.product GROUP BY pt.product",AS_ARRAY);
 		include("{$this->basepath}/ui/products/products.html");
-		exit();
 	}
 
 	function save_product($Product) {
@@ -324,7 +339,10 @@ class Flow {
 	 **/
 	
 	function settings_general () {
-		if (!empty($_POST['save'])) $this->settings_save();
+		if (!empty($_POST['save'])) {
+			ksort($_POST['settings']['order_status']);
+			$this->settings_save();
+		}
 
 		$countries = array();
 		foreach ($this->Core->Settings->get('countries') as $iso => $country)

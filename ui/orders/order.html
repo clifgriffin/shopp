@@ -5,5 +5,17 @@
 	
 	<div id="order">
 	<?php include("{$this->basepath}/ui/checkout/receipt.html"); ?>
+		<div class="tablenav">
+		<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post" id="order-status">
+			<p class="alignright"><label for="order_status_menu">Order Status:</label>
+				<select name="status" id="order_status_menu">
+				<?php echo menuoptions($statusLabels,$Purchase->status,true); ?>
+				</select>
+				<span class="middle"><input type="checkbox" name="notify_customer" value="customer_notification" id="notify_customer" /><label for="notify_customer">&nbsp;Send customer notification</label></span>
+				<button type="submit" name="update" value="status" class="button-secondary">Update Status</button></p>
+		</form>
+		</div>
 	</div>
+	
 </div>
+

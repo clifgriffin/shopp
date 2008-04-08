@@ -67,13 +67,13 @@ class Shopp {
 		
 	function orders () {
 		if (isset($_GET['manage'])) $this->Flow->order_manager();
-		$this->Flow->orders_list();
+		else $this->Flow->orders_list();
 	}
 
 	function products () {
 		require("model/Product.php");
 		if (isset($_GET['edit'])) $this->Flow->product_editor();
-		$this->Flow->products_list();
+		else $this->Flow->products_list();
 	}
 
 	function settings () {

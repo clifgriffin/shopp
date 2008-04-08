@@ -22,6 +22,20 @@ CREATE TABLE `shopp_product` (
 	PRIMARY KEY(`id`)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
+DROP TABLE IF EXISTS `shopp_category`;
+CREATE TABLE `shopp_product` (
+	`id` bigint(20) unsigned NOT NULL auto_increment,
+	`name` varchar(255) NOT NULL default '',
+	`description` text NOT NULL default '',
+	`details` longtext NOT NULL default '',
+	`brand` varchar(255) NOT NULL default '',
+	`category` int(10) unsigned NOT NULL default '0',
+	`options` tinyint(3) unsigned NOT NULL default '1',
+	`created` datetime NOT NULL default '0000-00-00 00:00:00',
+	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY(`id`)
+) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
+
 DROP TABLE IF EXISTS `shopp_price`;
 CREATE TABLE `shopp_price` (
 	`id` bigint(20) unsigned NOT NULL auto_increment,

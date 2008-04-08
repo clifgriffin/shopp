@@ -54,3 +54,7 @@ button img { margin-bottom: -3px; }
 #order .cart .buttons td { text-align: right; }
 #order .cart .remove { font-size: 12px; }
 #order .cart tr.totals th,.cart tr.totals td { padding: 7px 15px 9px 10px; }
+
+#order-status p { margin: 0; padding: 0; }
+#order-status span { margin: 0 10px; }
+#order-status label { display: inline-block; padding-top: 3px; font-weight: bold; }
