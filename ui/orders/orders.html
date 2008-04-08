@@ -33,7 +33,7 @@
 		</tbody>
 	</table>
 	<?php else: ?>
-		<p>No orders, yet.</p>
+		<p>No<?php if (isset($_GET['status'])) echo ' '.strtolower($statusLabels[$_GET['status']]); ?> orders, yet.</p>
 	<?php endif; ?>
 	
 	</form>

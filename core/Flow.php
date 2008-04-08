@@ -235,8 +235,14 @@ class Flow {
 		
 		include_once("{$this->basepath}/model/Purchase.php");
 		$p = new Purchase();
+		$labels = $this->Core->Settings->get('order_status');
 		
-		return $db->query("SELECT COUNT(status) AS total FROM {$p->_table} GROUP BY status ORDER BY status ASC");
+		$r = $db->query("SELECT status,COUNT(status) AS total FROM {$p->_table} GROUP BY status ORDER BY status ASC");
+		$status = array();
+		foreach ($r as $count) $status[$count->status] = $count->total;
+		foreach ($labels as $id => $label) if (empty($status[$id])) $status[$id] = 0;
+
+		return $status;
 	}
 	
 	/**
