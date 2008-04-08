@@ -23,9 +23,11 @@
 				<td>
 					<div class="multiple-select">
 						<ul>
-							<?php $even = false; foreach ($targets as $iso => $country): ?>
+							
+							<?php $even = true; foreach ($targets as $iso => $country): ?>
 								<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" checked="checked" /><label for="market-<?php echo $iso; ?>"><?php echo $country; ?></label></li>
 							<?php endforeach; ?>
+							<li><input type="checkbox" name="selectall_targetmarkets"  id="selectall_targetmarkets" /><label for="selectall_targetmarkets"><strong>Select All</strong></label></li>							
 							<?php foreach ($countries as $iso => $country): ?>
 							<?php if (!in_array($country,$targets)): ?>
 							<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" /><label for="market-<?php echo $iso; ?>"><?php echo $country; ?></label></li>
@@ -35,6 +37,13 @@
 					<br /> 
 	            Select the markets you are selling products to.</td> 
 			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="cart-toggle">Order Status Labels</label></th> 
+				<td>
+				<ol id="order-statuslabels">
+				</ol>
+				Add your own order processing labels to indicate the status of an order to your customers.</td>
+			</tr>
 		</table>
 
 		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
@@ -42,6 +51,9 @@
 </div>
 <script type="text/javascript">
 $j=jQuery.noConflict();
+
+var labels = <?php echo json_encode($statusLabels); ?>;
+var labelInputs = new Array();
 
 if ($j('#base_operations').val() == '') $j('#base_operations_region').hide();
 
@@ -64,5 +76,55 @@ $j('#base_operations').change(function() {
 			
 	});
 });
+
+$j('#selectall_targetmarkets').change(function() {
+	$j('div.multiple-select ul li input').each( function () {
+		if (this.checked) this.checked = false;
+		else this.checked = true;
+	});
+});
+
+var addLabel = function (label,location) {
+	
+	var i = labelInputs.length;
+	
+	if (!location) var li = $j('<li id="item-'+i+'"></li>').appendTo('#order-statuslabels');
+	else var li = $j('<li id="item-'+i+'"></li>').insertAfter(location);
+	
+	var wrap = $j('<span></span>').appendTo(li);
+	var input = $j('<input type="text" name="settings[order_status][]" id="label['+i+']" size="14" />').appendTo(wrap);
+	var deleteButton = $j('<button type="button" class="delete"></button>').prependTo(wrap).hide();
+	var deleteIcon = $j('<img src="/wp-content/plugins/shopp/ui/icons/delete.png" alt="Delete" width="16" height="16" />').appendTo(deleteButton);
+	var addButton = $j('<button type="button" class="add"></button>').appendTo(li);
+	var addIcon = $j('<img src="/wp-content/plugins/shopp/ui/icons/add.png" alt="Add" width="16" height="16" />').appendTo(addButton);
+	
+	if (i > 0) {
+		wrap.hover(function() {
+			deleteButton.show();
+		},function () {
+			deleteButton.hide();
+		});
+	}
+	
+	addButton.click(function () {
+		addLabel(null,'#'+$j(li).attr('id'));
+	});
+	
+	deleteButton.click(function () {
+		if (confirm("Are you sure you want to remove this order status label?"))
+			li.remove();
+	});
+	
+	if (label) input.val(label);
+	
+	labelInputs.push(li);
+	
+}
+
+if (labels) {
+	$j(labels).each(function(id,label) {
+		addLabel(label);
+	});
+} else addLabel();
 
 </script>

@@ -14,7 +14,7 @@
 	<table class="widefat">
 		<thead>
 		<tr>
-			<th scope="col" class="check-column"><input type="checkbox" onclick="checkAll(document.getElementById('posts-filter'));" /></th>
+			<th scope="col" class="check-column"><input type="checkbox" id="selectall" /></th>
 	        <th scope="col">Name</th>
 	        <th scope="col">Brand</th>
 	        <th scope="col">Category</th>
@@ -41,3 +41,12 @@
 	<?php endif; ?>
 	</form>
 </div>
+<script type="text/javascript">
+	$j=jQuery.noConflict();
+	$j('#selectall').change( function() {
+		$j('#products th input').each( function () {
+			if (this.checked) this.checked = false;
+			else this.checked = true;
+		});
+	});
+</script>

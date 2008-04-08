@@ -1,0 +1,7 @@
+<ul class="subsubsub">
+	<li><a href="?page=<?php echo $this->Core->path; ?>/Shopp.php">All Orders</a></li>
+	<?php if (!empty($statusLabels)) ksort($statusLabels); if (!empty($statusLabels))foreach($statusLabels as $id => $label): ?>
+		<li>| <a href="?page=<?php echo $this->Core->path; ?>/Shopp.php&amp;status=<?php echo $id; ?>"><?php echo $label; ?></a></li>
+	<?php endforeach; ?>
+		
+</ul>

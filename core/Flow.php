@@ -179,6 +179,50 @@ class Flow {
 	}
 	
 	/**
+	 * Orders admin flow handlers
+	 */
+	function orders_list() {
+		global $Orders;
+		$db =& DB::get();
+
+		// if ($_GET['deleting'] == "order"
+		// 				&& !empty($_GET['delete']) 
+		// 				&& is_array($_GET['delete'])) {
+		// 			foreach($_GET['delete'] as $deletion) {
+		// 				$Product = new Product($deletion);
+		// 				$Product->load_prices();
+		// 				foreach ($Product->prices as $price) {
+		// 					$Price = new Price();
+		// 					$Price->delete();
+		// 				}
+		// 				$Product->delete();
+		// 			}
+		// 		}
+		include_once("{$this->basepath}/model/Purchase.php");
+		$Purchase = new Purchase();
+
+		$statusLabels = $this->Core->Settings->get('order_status');
+		if (empty($statusLabels)) $statusLabels = array('');
+
+		$Orders = $db->query("SELECT * FROM $Purchase->_table ORDER BY created DESC",AS_ARRAY);
+		include("{$this->basepath}/ui/orders/orders.html");
+		exit();
+	}
+	
+	function order_manager() {
+		global $Purchase;
+		include("{$this->basepath}/model/Purchase.php");
+		if (preg_match("/\d+/",$_GET['manage'])) {
+			$Purchase = new Purchase($_GET['manage']);
+			$Purchase->load_purchased();
+		} else $Purchase = new Purchase();
+		
+		include("{$this->basepath}/ui/orders/order.html");
+		exit();
+	}
+	
+	
+	/**
 	 * Products admin flow handlers
 	 **/
 	function product_editor() {
@@ -209,7 +253,9 @@ class Flow {
 		global $Products;
 		$db =& DB::get();
 
-		if (!empty($_GET['delete']) && is_array($_GET['delete'])) {
+		if ($_GET['deleting'] == "product"
+				&& !empty($_GET['delete']) 
+				&& is_array($_GET['delete'])) {
 			foreach($_GET['delete'] as $deletion) {
 				$Product = new Product($deletion);
 				$Product->load_prices();
@@ -292,6 +338,9 @@ class Flow {
 		
 		$targets = $this->Core->Settings->get('target_markets');
 		if (!$targets) $targets = array();
+		
+		$statusLabels = $this->Core->Settings->get('order_status');
+		if ($statusLabels) ksort($statusLabels);
 		
 		include("{$this->basepath}/ui/settings/settings.html");
 	}

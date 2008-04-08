@@ -1,11 +1,40 @@
 <div class="wrap">
 	<form action="" method="">
 	<h2>Orders</h2>
-	<ul class="subsubsub">
-		<li><a href="">All Orders</a> |</li>
-		<li><a href="">Incoming Orders</a> |</li>
-		<li><a href="">Completed Orders</a></li>
-	</ul>
+
+	<?php include("navigation.html"); ?>
+	<div class="tablenav">
+		<!-- <button type="submit" name="deleting" value="order" class="button-secondary">Delete</button> -->
+	</div>
+	<br class="clear" />
+	<?php if (sizeof($Orders) > 0): ?>
+	<table class="widefat">
+		<thead>
+		<tr>
+			<th scope="col" class="check-column"></th>
+	        <th scope="col">Date</th>
+	        <th scope="col">Name</th>
+	        <th scope="col">Destination</th>
+	        <th scope="col">Total</th>
+	        <th scope="col">Status</th>
+		</tr>
+		</thead>
+		<tbody id="orders" class="list orders">
+		<?php $even = false; foreach ($Orders as $Order): ?>
+		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
+			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
+			<td><?php echo date("Y/m/d",mktimestamp($Order->created)); ?></td>
+			<td><a class='row-title' href='?page=<?php echo $this->Core->path; ?>/Shopp.php&amp;manage=<?php echo $Order->id; ?>' title='View &quot;<?php echo $Order->id; ?>&quot;'><?php echo "{$Order->firstname} {$Order->lastname}"; ?></a></td>
+			<td><?php echo "{$Order->shipcity}, {$Order->shipstate} &mdash; {$Order->shipcountry}"; ?></td>
+			<td><?php echo money($Order->total); ?></td>
+			<td><?php echo $statusLabels[$Order->status]; ?></td>
+		</tr>
+		<?php endforeach; ?>
+		</tbody>
+	</table>
+	<?php else: ?>
+		<p>No orders, yet.</p>
+	<?php endif; ?>
 	
 	</form>
 </div>

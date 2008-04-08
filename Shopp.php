@@ -66,7 +66,8 @@ class Shopp {
 	}
 		
 	function orders () {
-		include("ui/orders/orders.html");
+		if (isset($_GET['manage'])) $this->Flow->order_manager();
+		$this->Flow->orders_list();
 	}
 
 	function products () {

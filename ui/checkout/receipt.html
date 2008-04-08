@@ -1,11 +1,36 @@
+<table class="transaction">
+	<tr><th>Order Num:</th><td><?php echo $Purchase->id; ?></td></tr>	
+	<tr><th>Order Date:</th><td><?php echo date('F j, Y', $Purchase->created); ?></td></tr>	
+	<tr><th>Billed To:</th><td><?php printf("%'X16d",$Purchase->card); ?> <?php echo $Purchase->cardtype; ?></td></tr>	
+	<tr><th>Transaction:</th><td><?php echo $Purchase->transactionid; ?></td></tr>	
+</table>
+
+<fieldset>
+	<legend>Ship To</legend>
+<address>
+<big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big>
+
+<?php echo $Purchase->shipaddress; ?>
+
+<?php echo $Purchase->shipxaddress; ?>
+
+<?php echo "{$Purchase->shipcity}, {$Purchase->shipstate} {$Purchase->shippostcode}" ?>
+
+<?php echo $Purchase->shipcountry ?>
+
+</address>
+</fieldset>
+
 <?php if (sizeof($Purchase->purchased) > 0): ?>
-<table class="cart">
+<table class="cart widefat">
+	<thead>
 	<tr>
 		<th scope="col" class="item">Items Ordered</th>
 		<th scope="col">Quantity</th>
 		<th scope="col" class="money">Item Price</th>
 		<th scope="col" class="money">Item Total</th>
 	</tr>
+	</thead>
 	<?php $even = false; foreach ($Purchase->purchased as $id => $Item): ?>
 		<tr<?php if (!even) echo 'class="alternate"'; $even = !$even; ?>>
 			<td>
@@ -43,5 +68,5 @@
 	</tr>
 </table>
 <?php else: ?>
-	<p class="warning">There are currently no items in your shopping cart.</p>
+	<p class="warning">There were no items found for this purchase.</p>
 <?php endif; ?>
