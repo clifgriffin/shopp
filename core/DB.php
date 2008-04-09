@@ -64,7 +64,7 @@ class DB extends Singleton {
 			if ($errors) trigger_error("Query failed.<br /><br />$error<br /><tt>$query</tt>");
 			else return false;
 		}
-		
+				
 		// Results handling
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i",$query) ) {
 			$this->affected = mysql_affected_rows();

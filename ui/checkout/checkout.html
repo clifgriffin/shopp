@@ -3,7 +3,7 @@
 var regions = <?php echo json_encode($regions); ?>;
 </script>
 <form action="<?php echo SHOPP_CHECKOUTURL; ?>" method="post" class="checkout" id="checkout-form">
-
+	<div><input type="hidden" name="checkout" value="process" /></div>
 	<ul>
 		<li>
 			<label for="firstname">Name</label>
@@ -62,7 +62,7 @@ var regions = <?php echo json_encode($regions); ?>;
 		</li>	
 	</ul>
 	<div class="clear"></div>
-	<p class="submit"><button type="submit" name="checkout" value="process">Submit Order</button></p>
+	<p class="submit"><button type="submit" name="checkout-button">Submit Order</button></p>
 
 </form>
 

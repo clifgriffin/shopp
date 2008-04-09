@@ -21,7 +21,7 @@
 .cart .buttons td { text-align: right; }
 .cart .remove { font-size: 12px; }
 
-
+.cart address { font-style: normal; }
 
 /**
  * Checkout 

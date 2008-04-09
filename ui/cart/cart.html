@@ -18,7 +18,7 @@
 					</select>
 				<?php endif; ?>
 			</td>
-			<td><input type="text" name="items[<?php echo $id; ?>][quantity]" value="<?php echo $Item->quantity; ?>" size="3" id="quantity" /><p class="remove"><a href="<?php echo SHOPP_CARTURL; ?>?cart=update&amp;item=$item&amp;quantity=0">Remove</a></p></td>
+			<td><input type="text" name="items[<?php echo $id; ?>][quantity]" value="<?php echo $Item->quantity; ?>" size="3" id="quantity" /><p class="remove"><a href="<?php echo SHOPP_CARTURL; ?>?cart=update&amp;item=<?php echo $id; ?>&amp;quantity=0">Remove</a></p></td>
 			<td class="money"><?php echo money($Item->unitprice); ?></td>
 			<td class="money total"><?php echo money($Item->total); ?></td>
 		</tr>
@@ -43,7 +43,8 @@
 	</tr>
 	<tr class="buttons">
 		<td colspan="4">
-		<button type="submit" name="cart" value="update">Update Subtotal</button>
+		<input type="hidden" name="cart" value="update" />
+		<button type="submit" name="cart-button" value="update">Update Subtotal</button>
 		</td>
 	</tr>
 </table>
@@ -53,4 +54,9 @@
 </form>
 <?php else: ?>
 	<p class="warning">There are currently no items in your shopping cart.</p>
+	<?php if ($_SERVER['SERVER_NAME'] == "wordpress") {
+		echo "<pre>";
+		print_r($Cart);
+		echo "</pre>";
+	} ?>
 <?php endif; ?>

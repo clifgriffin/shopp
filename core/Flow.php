@@ -41,30 +41,37 @@ class Flow {
 	function cart_post () {
 		global $Cart;
 
-		if (isset($_POST['product']) && isset($_POST['price'])) {
-			$Product = new Product($_POST['product']);
-			$Price = new Price($_POST['price']);
-			$quantity = (!empty($_POST['quantity']))?$_POST['quantity']:1;
-
-			if (isset($_POST['item'])) $Cart->change($_POST['item'],$Product,$Price);
-			$Cart->add($quantity,$Product,$Price);
-		}
-
-		if (!empty($_POST['item']) && isset($_POST['quantity']))
-			$Cart->update($_POST['item'],$_POST['quantity']);
-
-		if (!empty($_POST['items'])) {
-			foreach ($_POST['items'] as $id => $item) {
-				if (isset($item['quantity'])) $Cart->update($id,$item['quantity']);
-				if (isset($item['product']) && isset($item['price'])) {
-					$Product = new Product($item['product']);
-					$Price = new Price($item['price']);
-					$Cart->change($id,$Product,$Price);
+		switch($_POST['cart']) {
+			case "add":
+				if (isset($_POST['product']) && isset($_POST['price'])) {
+					$Product = new Product($_POST['product']);
+					$Price = new Price($_POST['price']);
+					$quantity = (!empty($_POST['quantity']))?$_POST['quantity']:1;
+			
+					if (isset($_POST['item'])) $Cart->change($_POST['item'],$Product,$Price);
+					else $Cart->add($quantity,$Product,$Price);
 				}
-			}
+				break;
+			case "update":
+				if (!empty($_POST['item']) && isset($_POST['quantity'])) {
+					$Cart->update($_POST['item'],$_POST['quantity']);
+				} elseif (!empty($_POST['items'])) {
+					foreach ($_POST['items'] as $id => $item) {
+						if (isset($item['quantity'])) {
+							$Cart->update($id,$item['quantity']);	
+						}
+						if (isset($item['product']) && isset($item['price'])) {
+							$Product = new Product($item['product']);
+							$Price = new Price($item['price']);
+							$Cart->change($id,$Product,$Price);
+						}
+					}
 
+				} 
+			
+				break;
 		}
-
+				
 	}
 
 	function cart_request () {
@@ -170,7 +177,8 @@ class Flow {
 		$Purchase = new Purchase($Cart->data->Purchase);
 		$Purchase->load_purchased();
 		ob_start();
-		include("{$this->basepath}/ui/checkout/receipt.html");
+		if (!empty($Purchase->id)) include("{$this->basepath}/ui/checkout/receipt.html");
+		else echo '<p class="error">There was a problem retrieving your order, although the transaction was successful.</p>';
 		$content = ob_get_contents();
 		ob_end_clean();		
 		return $content;

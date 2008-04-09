@@ -40,7 +40,7 @@ input.right { text-align: right; }
 button img { margin-bottom: -3px; }
 
 #order { position: relative; }
-#order address { font-style: normal; white-space: pre;  }
+#order address { font-style: normal; }
 #order fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
 #order table.transaction { float: right; }
 #order table.transaction th { text-align: right; }

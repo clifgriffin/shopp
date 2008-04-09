@@ -22,7 +22,6 @@ class Cart {
 	// properties
 	var $_table;
 	var $session;
-	var $customer = 0;
 	var $created;
 	var $modified;
 	var $ip;
@@ -108,10 +107,9 @@ class Cart {
 	function save () {
 		$db =& DB::get();
 		
-		$loggedin = ($this->loggedin) ? 1 : 0;
 		$data = serialize($this->data);
 		$contents = serialize($this->contents);
-		if (!$db->query("UPDATE $this->_table SET customer='$this->customer',ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'")) 
+		if (!$db->query("UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'")) 
 			trigger_error("Could not save session updates to the database.");
 		return true;
 	}

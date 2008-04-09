@@ -73,7 +73,7 @@ CREATE TABLE `shopp_asset` (
 
 DROP TABLE IF EXISTS `shopp_cart`;
 CREATE TABLE `shopp_cart` (
-	`session` varchar(32) NOT NULL default '',
+	`session` varchar(32) NOT NULL,
 	`customer` bigint(20) unsigned NOT NULL default '0',
 	`ip` varchar(15) NOT NULL default '0.0.0.0',
 	`data` longtext NOT NULL default '',

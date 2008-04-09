@@ -7,18 +7,11 @@
 
 <fieldset>
 	<legend>Ship To</legend>
-<address>
-<big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big>
-
-<?php echo $Purchase->shipaddress; ?>
-
-<?php echo $Purchase->shipxaddress; ?>
-
-<?php echo "{$Purchase->shipcity}, {$Purchase->shipstate} {$Purchase->shippostcode}" ?>
-
-<?php echo $Purchase->shipcountry ?>
-
-</address>
+	<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
+	<?php echo $Purchase->shipaddress; ?><br />
+	<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
+	<?php echo "{$Purchase->shipcity}, {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
+	<?php echo $Purchase->shipcountry ?></address>
 </fieldset>
 
 <?php if (sizeof($Purchase->purchased) > 0): ?>

@@ -41,7 +41,6 @@ class Shopp {
 		add_action('init', array(&$this, 'lookups'));
 		add_action('init', array(&$this, 'cart'));
 		add_action('init', array(&$this, 'checkout'));
-		add_action('init', array(&$this, 'confirm'));
 		add_action('init', array(&$this, 'shortcodes'));
 		register_activation_hook(__FILE__, array(&$this,'activate'));
 
@@ -110,19 +109,20 @@ class Shopp {
 
 		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax();
 		else if (!empty($_GET['cart'])) $this->Flow->cart_request();
-		else $this->Flow->cart_post();	
+		else $this->Flow->cart_post();
+
 	}
 	
 	function checkout () {
 		global $Cart;
-
+		
 		if (empty($_POST['checkout'])) return true;
 		if ($_POST['checkout'] == "confirmed") {
 			$this->order();
 			return true;
 		};
 		if ($_POST['checkout'] != "process") return true;
-				
+		
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
 		
 		$Order = new stdClass();
@@ -136,8 +136,8 @@ class Shopp {
 		$Order->Billing = new Billing();
 		$Order->Billing->updates($_POST['billing']);
 		
-		
 		$Cart->data->Order = $Order;
+		
 		// Check for taxes, or process order
 		if ($this->Settings->get('taxes') == "on") {
 			$taxrates = $this->Settings->get('taxrates');
@@ -158,12 +158,7 @@ class Shopp {
 			exit();
 		} else $this->order();
 	}
-	
-	function confirm() {
-		global $Cart;
-		$this->Flow->order_confirmation();
-	}
-	
+		
 	function order() {
 		global $Cart;
 		$processor_file = $this->Settings->get('payment_gateway');
