@@ -172,10 +172,8 @@ class Flow {
 		ob_start();
 		include("{$this->basepath}/ui/checkout/receipt.html");
 		$content = ob_get_contents();
-		ob_end_clean();
-		
+		ob_end_clean();		
 		return $content;
-		
 	}
 	
 	/**
@@ -185,20 +183,22 @@ class Flow {
 		global $Orders;
 		$db =& DB::get();
 
-		// if ($_GET['deleting'] == "order"
-		// 				&& !empty($_GET['delete']) 
-		// 				&& is_array($_GET['delete'])) {
-		// 			foreach($_GET['delete'] as $deletion) {
-		// 				$Product = new Product($deletion);
-		// 				$Product->load_prices();
-		// 				foreach ($Product->prices as $price) {
-		// 					$Price = new Price();
-		// 					$Price->delete();
-		// 				}
-		// 				$Product->delete();
-		// 			}
-		// 		}
 		include_once("{$this->basepath}/model/Purchase.php");
+
+		if ($_GET['deleting'] == "order"
+						&& !empty($_GET['delete']) 
+						&& is_array($_GET['delete'])) {
+			foreach($_GET['delete'] as $deletion) {
+				$Purchase = new Purchase($deletion);
+				$Purchase->load_purchased();
+				foreach ($Purchase->purchased as $purchased) {
+					$Purchased = new Purchased($purchased->id);
+					$Purchased->delete();
+				}
+				$Purchase->delete();
+			}
+		}
+
 		$Purchase = new Purchase();
 
 		$statusLabels = $this->Core->Settings->get('order_status');
@@ -237,11 +237,11 @@ class Flow {
 		$p = new Purchase();
 		$labels = $this->Core->Settings->get('order_status');
 		
-		$r = $db->query("SELECT status,COUNT(status) AS total FROM {$p->_table} GROUP BY status ORDER BY status ASC");
+		$r = $db->query("SELECT status,COUNT(status) AS total FROM {$p->_table} GROUP BY status ORDER BY status ASC",AS_ARRAY);
+
 		$status = array();
 		foreach ($r as $count) $status[$count->status] = $count->total;
 		foreach ($labels as $id => $label) if (empty($status[$id])) $status[$id] = 0;
-
 		return $status;
 	}
 	
@@ -282,7 +282,7 @@ class Flow {
 				$Product = new Product($deletion);
 				$Product->load_prices();
 				foreach ($Product->prices as $price) {
-					$Price = new Price();
+					$Price = new Price($price->id);
 					$Price->delete();
 				}
 				$Product->delete();

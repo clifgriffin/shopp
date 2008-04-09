@@ -6,7 +6,7 @@
 	<?php include("navigation.html"); ?>
 
 	<div class="tablenav">
-		<button type="submit" name="deleting" value="product" class="button-secondary">Delete</button>
+		<button type="submit" id="delete-button" name="deleting" value="product" class="button-secondary">Delete</button>
 		<div class="alignright"><button type="submit" name="edit" value="new" class="button-secondary">New Product</button></div>
 	</div>
 	<br class="clear" />
@@ -49,4 +49,10 @@
 			else this.checked = true;
 		});
 	});
+
+	$j('#delete-button').click(function() {
+		if (confirm("Are you sure you want to delete the selected products?")) return true;
+		else return false;
+	});
+	
 </script>

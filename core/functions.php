@@ -137,13 +137,13 @@ function strip_magic_quotes ($arr) {
  * Sends an e-mail message in the format of a specified e-mail 
  * template ($template) file providing variable substitution 
  * for variables appearing in the template as a bracketed
- * [variable] with data from the coinciding $_POST['variable']; */
-function send_email ($template) {
+ * [variable] with data from the coinciding $data['variable']
+ * or $_POST['variable'] */
+function send_email ($template,$data=array()) {
 	
 	if ( file_exists($template) ) $f = file($template);
-	else $msg = "Could not open the template file because the file does not exist or is not readable. ($template)";
-	if ( isset($msg) ) die($msg);
-
+	else die("Could not open the email template because the file does not exist or is not readable. ($template)");
+	$debug = false;
 	$in_body = false;
 	$headers = "";
 	$message = "";
@@ -152,17 +152,22 @@ function send_email ($template) {
 		// Data parse
 		if ( preg_match_all("/\[(.+?)\]/",$line,$labels,PREG_SET_ORDER) ) {
 			while ( list($i,$label) = each($labels) ) {
-				if (in_array(strtolower($label[1]),$protected)) // Protect against header injection
-					$_POST[$label[1]] = str_replace(array("\r","\n"),"",urldecode($_POST[$label[1]]));  
-				$_POST[$label[1]] = str_replace("$","\\\$",$_POST[$label[1]]);
-				if (isset($_POST[$label[1]]) && ! is_array($_POST[$label[1]])) $line = preg_replace("/\[".$label[1]."\]/",$_POST[$label[1]],$line);
+				$code = $label[1];
+				if (empty($data)) $string = $_POST[$code];
+				else $string = $data[$code];
+				$string = str_replace("$","\\\$",$string); // Treat $ signs as literals
+				if (isset($string) && !is_array($string)) $line = preg_replace("/\[".$code."\]/",$string,$line);
 			}
 		}
 
 		// Header parse
-		if ( preg_match("/^(.+?):\s(.+)\n$/",$line,$header_data) && ! $in_body ) {
-			if ( strtolower($header_data[1]) == "to" ) $to = $header_data[2];
-			else if ( strtolower($header_data[1]) == "subject" ) $subject = $header_data[2];
+		if ( preg_match("/^(.+?):\s(.+)\n$/",$line,$found) && !$in_body ) {
+			$header = $found[1];
+			$string = $found[2];
+			if (in_array(strtolower($header),$protected)) // Protect against header injection
+				$string = str_replace(array("\r","\n"),"",urldecode($string));
+			if ( strtolower($header) == "to" ) $to = $string;
+			else if ( strtolower($header) == "subject" ) $subject = $string;
 			else $headers .= $line;
 		}
 		
@@ -171,10 +176,12 @@ function send_email ($template) {
 		if ( $in_body ) $message .= $line;
 	}
 
-	mail($to,$subject,$message,$headers);
-	/* -- DEBUG CODE -- */
-	// echo "TO: $to<BR>SUBJECT: $subject<BR>MESSAGE:<BR>$message<BR><BR>HEADERS:<BR>$headers";
-	// exit();
+	if (!$debug) mail($to,$subject,$message,$headers);
+	else {
+		echo "TO: $to<BR>SUBJECT: $subject<BR>MESSAGE:<BR>$message<BR><BR>HEADERS:<BR>";
+		print_r($headers);
+		exit();		
+	}
 }
 
 /**

@@ -149,8 +149,10 @@ class Shopp {
 			}
 			
 			$Cart->totals();
-			header("Location: ".SHOPP_CONFIRMURL);
-			exit();
+			if ($Cart->data->Totals->tax > 0) {
+				header("Location: ".SHOPP_CONFIRMURL);
+				exit();
+			} else $this->order();
 		} elseif ($this->Settings->get('order_confirmation') == "always") {
 			header("Location: ".SHOPP_CONFIRMURL);
 			exit();
@@ -211,15 +213,26 @@ class Shopp {
 			}
 			
 			// Empty cart on successful order
-			$Cart->contents = array();
-			$Cart->data = new stdClass();
+			$Cart->unload();
+			session_destroy();
+
+			$Cart =& new Cart();
+			session_start();
 			$Cart->data->Purchase = $Purchase->id;
 
-			$_POST['from'] = "info@kmxus.com";
-			$_POST['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
-			$_POST['subject'] = "KMXUS.com Order Receipt";
-			$_POST['receipt'] = $this->Flow->order_receipt();
-			send_email("{$this->path}/ui/checkout/email.html");
+			// Send the e-mail receipt
+			$receipt = array();
+			$receipt['from'] = $this->Settings->get('shopowner_email');
+			$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
+			$receipt['subject'] = "KMXUS.com Order Receipt";
+			$receipt['receipt'] = $this->Flow->order_receipt();
+			$receipt['url'] = $_SERVER['SERVER_NAME'];
+			send_email("{$this->path}/ui/checkout/email.html",$receipt);
+			
+			if ($this->Settings->get('receipt_copy') == 1) {
+				$receipt['to'] = $this->Settings->get('shopowner_email');
+				send_email("{$this->path}/ui/checkout/email.html",$receipt);
+			}
 
 			header("Location: ".SHOPP_RECEIPTURL);
 			exit();

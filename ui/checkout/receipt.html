@@ -1,7 +1,7 @@
 <table class="transaction">
 	<tr><th>Order Num:</th><td><?php echo $Purchase->id; ?></td></tr>	
 	<tr><th>Order Date:</th><td><?php echo date('F j, Y', $Purchase->created); ?></td></tr>	
-	<tr><th>Billed To:</th><td><?php printf("%'X16d",$Purchase->card); ?> <?php echo $Purchase->cardtype; ?></td></tr>	
+	<tr><th>Billed To:</th><td><?php printf("%'X16d",$Purchase->card); ?> (<?php echo $Purchase->cardtype; ?>)</td></tr>	
 	<tr><th>Transaction:</th><td><?php echo $Purchase->transactionid; ?></td></tr>	
 </table>
 

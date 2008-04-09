@@ -1,9 +1,8 @@
 <div class="wrap">
-	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 	<h2>Checkout Settings</h2>
 	<?php include("navigation.html"); ?>
 
-	<form name="settings" id="general" method="post" action="<?php echo SHOPP_URI; ?>">
+	<form name="settings" id="general" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="checkout_url">Checkout Permalink</label></th> 
@@ -22,6 +21,11 @@
 				<th scope="row" valign="top"><label for="receipt_url">Receipt Permalink</label></th> 
 				<td><input type="text" name="settings[receipt_url]" value="<?php echo $this->Core->Settings->get('receipt_url'); ?>" id="receipt_url" size="40" /><br /> 
 	            This is the full web address (URL) of your receipt page found in Manage &gt; Pages</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="receipt_copy_both">Receipt Emails</label></th> 
+				<td><input type="radio" name="settings[receipt_copy]" value="0" id="receipt_copy_customer_only" /> <label for="receipt_copy_customer_only"<?php if ($this->Core->Settings->get('receipt_copy') == "0") echo ' checked="checked"'; ?>>Send to Customer Only</label><br />
+					<input type="radio" name="settings[receipt_copy]" value="1" id="receipt_copy_both"<?php if ($this->Core->Settings->get('receipt_copy') == "1") echo ' checked="checked"'; ?> /> <label for="receipt_copy_both">Send to Customer &amp; Shop Owner Email</label> (see <a href="?page=settings&amp;edit=general">General Settings</a>)
 			</tr>
 		</table>
 		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>

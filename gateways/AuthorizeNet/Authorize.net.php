@@ -17,19 +17,21 @@ class AuthorizeNet {
 	function AuthorizeNet (&$Order="") {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('Authorize.Net');
+		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		
 		if (!empty($Order)) $this->build($Order);
 		return true;
 	}
 	
 	function process () {
-		$this->Response  = $this->send();
+		// $this->Response = $this->send();
+		return true;
 		if ($this->Response->code == 1) return true;
 		else return false;
 	}
 	
 	function transactionid () {
-		if (!empty($this->Response)) return $Response->transactionid;
+		if (!empty($this->Response)) return $this->Response->transactionid;
 	}
 	
 	function error () {
@@ -56,7 +58,7 @@ class AuthorizeNet {
 		$_['x_type'] 				= "AUTH_CAPTURE";
 		$_['x_method']				= "CC";
 		$_['x_email_customer']		= "FALSE";
-		$_['x_merchant_email']		= "jond@ingenesis.net";
+		$_['x_merchant_email']		= $this->settings['merchant_email'];
 		
 		// Required Fields
 		$_['x_amount']				= $Order->Totals->total;

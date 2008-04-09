@@ -1,10 +1,11 @@
 <div class="wrap">
-	<form action="" method="">
+	<form action="" method="get">
+	<div><input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" /></div>
 	<h2>Orders</h2>
 
 	<?php include("navigation.html"); ?>
 	<div class="tablenav">
-		<!-- <button type="submit" name="deleting" value="order" class="button-secondary">Delete</button> -->
+		<button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary">Delete</button>
 	</div>
 	<br class="clear" />
 	<?php if (sizeof($Orders) > 0): ?>
@@ -22,7 +23,7 @@
 		<tbody id="orders" class="list orders">
 		<?php $even = false; foreach ($Orders as $Order): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
-			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
+			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Order->id; ?>' /></th>
 			<td><?php echo date("Y/m/d",mktimestamp($Order->created)); ?></td>
 			<td><a class='row-title' href='?page=<?php echo $this->Core->path; ?>/Shopp.php&amp;manage=<?php echo $Order->id; ?>' title='View &quot;<?php echo $Order->id; ?>&quot;'><?php echo "{$Order->firstname} {$Order->lastname}"; ?></a></td>
 			<td><?php echo "{$Order->shipcity}, {$Order->shipstate} &mdash; {$Order->shipcountry}"; ?></td>
@@ -38,3 +39,11 @@
 	
 	</form>
 </div>
+<script type="text/javascript">
+$j=jQuery.noConflict();
+
+$j('#delete-button').click(function() {
+	if (confirm("Are you sure you want to delete the selected orders?")) return true;
+	else return false;
+});
+</script>

@@ -98,7 +98,7 @@ class Cart {
 	 * session and releases all the objects. */
 	function unload () {
 		$db =& DB::get();		
-		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE session='$this->session'")) 
+		if (!$db->query("DELETE FROM $this->_table WHERE session='$this->session'")) 
 			trigger_error("Could not clear session data.");
 		return true;
 	}
