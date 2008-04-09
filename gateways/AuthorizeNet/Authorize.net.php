@@ -24,8 +24,7 @@ class AuthorizeNet {
 	}
 	
 	function process () {
-		// $this->Response = $this->send();
-		return true;
+		$this->Response = $this->send();
 		if ($this->Response->code == 1) return true;
 		else return false;
 	}
