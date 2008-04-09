@@ -172,7 +172,8 @@ class Cart {
 	 * change()
 	 * Changes an item to a different product/price variation */
 	function change ($item,$Product,$Price) {
-		$this->contents[$item] = new Item($this->contents[$item]->quantity,$Product,$Price);
+		global $Shopp;
+		$this->contents[$item] = new Item($this->contents[$item]->quantity,$Product,$Price,$Shopp->Settings->get('taxes'));
 		$this->totals();
 		$this->save();
 		return true;
