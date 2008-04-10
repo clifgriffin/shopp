@@ -33,7 +33,7 @@ var init = function () {
 	$j('#new-category input, #new-category select').hide();
 
 	$j('#add-new-category').click(function () {
-		// $j('#new-category input, #new-category select').toggle();
+		$j('#new-category input, #new-category select').toggle();
 		$j('#new-category input').focus();
 		
 		// Add a new category
