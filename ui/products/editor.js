@@ -7,10 +7,12 @@
  * @copyright Ingenesis Limited, 28 March, 2008
  * @package shopp
  **/
+
 $j=jQuery.noConflict();
 
 var pricingOptions = new Array();
 var init = function () {
+	cid = 10;
 	$j('#addProductOption').click(function() {
 		addProductOption();
 		quickSelects();
@@ -28,18 +30,113 @@ var init = function () {
 		} else $j('#brand').val($j(this).val());
 	});
 
-	$j('#category-menu').change(function () {
-		if (this.value == "new") {
-			$j(this).hide();
-			$j('#category').val('').show().focus();
-		} else $j('#category').val($j('#category-menu option:selected').text());
+	$j('#new-category input, #new-category select').hide();
+
+	$j('#add-new-category').click(function () {
+		// $j('#new-category input, #new-category select').toggle();
+		$j('#new-category input').focus();
+		
+		// Add a new category
+		var name = $j('#new-category input').val();
+		var parent = $j('#new-category select').val();
+		if (name != "") {
+			url = window.location.href.substr(0,window.location.href.indexOf('?'));
+			$j.getJSON(url+"?add=category&name="+name+"&parent="+parent,function(Category) {
+				addCategoryMenuItem(Category);
+				addCategoryParentMenuOption(Category);
+
+				// Reset the add new category inputs
+				$j('#new-category input').val('');
+				$j('#new-category select').each(function() { this.selectedIndex = 0; });
+			});
+			
+		}
 	});
-	
+
 	if (prices && prices.length > 0) for(i = 0; i < prices.length; i++) addProductOption(prices[i]);
 	else addProductOption();
-	
+
 	quickSelects();
 }
+
+
+// Add to selection menu
+var addCategoryMenuItem = function (c) {
+	var parent = false;
+	var name = $j('#new-category input').val();
+	var parentid = $j('#new-category select').val();
+
+	// Determine where to add on the tree (trunk, branch, leaf)
+	if (parentid > 0) {
+		if ($j('#category-element-'+parentid+' ~ li > ul').size() > 0)
+			parent = $j('#category-element-'+parentid+' ~ li > ul');
+		else {
+			var ulparent = $j('#category-element-'+parentid);
+			var liparent = $j('<li></li>').insertAfter(ulparent);
+			parent = $j('<ul></ul>').appendTo(liparent);
+		}
+	} else parent = $j('#category-menu > ul');
+	
+	// Figure out where to insert our item amongst siblings (leaves)
+	var insertionPoint = false;
+	parent.children().each(function() {
+		var label = $j(this).children('label').text();
+		if (label && name < label) {
+			insertionPoint = this;
+			return false;
+		}
+	});
+	
+	// Add the category selector
+	if (!insertionPoint) var li = $j('<li id="category-element-'+c.id+'"></li>').appendTo(parent);
+	else var li = $j('<li id="category-element-'+c.id+'"></li>').insertBefore(insertionPoint);
+	var checkbox = $j('<input type="checkbox" name="categories[]" value="'+c.id+'" id="category-'+c.id+'" checked="checked" />').appendTo(li);
+	var label = $j('<label for="category-'+c.id+'"></label>').html(name).appendTo(li);
+}
+
+
+// Add this to new category drop-down menu
+var addCategoryParentMenuOption = function (c) {
+	var name = $j('#new-category input').val();
+	var parent = $j('#new-category select').val();
+
+	parent = $j('#new-category select');
+	parentRel = $j('#new-category select option:selected').attr('rel').split(',');
+	children = new Array();
+	insertionPoint = false;
+
+	$j('#new-category select').each(function() { 
+		selected = this.selectedIndex;
+		var hasChildren = false;
+		for (var i = selected+1; i < this.options.length; i++) {
+			var rel = $j(this.options[i]).attr('rel').split(',');
+			if (new Number(parentRel[1])+1 == rel[1] && !hasChildren) hasChildren = true;
+			if (hasChildren && new Number(parentRel[1])+1 != rel[1]) hasChildren = false;
+			if (hasChildren) children.push(this.options[i]);
+			
+		}
+		if (selected == 0) children = this.options;
+		if (selected > 0 && children.length == 0) insertionPoint = $j(this.options[selected+1]);
+		
+	});
+	
+	$j(children).each(function () {
+		if (name < $j(this).text()) {
+			insertionPoint = this;
+			return false;
+		} 
+	});
+		
+	// Pad the label
+	var label = name;
+	for (i = 0; i < (new Number(parentRel[1])+1); i++) label = "&nbsp;&nbsp;&nbsp;"+label;			
+	
+	// Add our option
+	if (!insertionPoint) var option = $j('<option value="'+c.id+'" rel="'+parentRel[0]+','+(new Number(parentRel[1])+1)+'"></option>').html(label).appendTo(parent);
+	else var option = $j('<option value="'+c.id+'" rel="'+parentRel[0]+','+(new Number(parentRel[1])+1)+'"></option>').html(label).insertBefore(insertionPoint);
+}
+
+
 var addProductOption = function (p) {
 	
 	i = pricingOptions.length;

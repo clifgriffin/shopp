@@ -25,18 +25,36 @@
 		<tr class="form-field"> 
 			<th scope="row" valign="top"><label for="brand">Brand</label></th> 
 			<td><select name="brand-menu" id="brand-menu" tabindex="4">
-				<?php if (count($brands) > 1)echo menuoptions($brands,$Product->brand); ?>
+				<?php if (count($brands) > 1) echo menuoptions($brands,$Product->brand); ?>
 				<option value="new">New Brand&hellip;</option>
 			</select><input name="brand" id="brand" value="<?php echo $brands[$Product->brand]; ?>" type="text" size="30" tabindex="5" /><br />
 			The name of the brand or manufacturer of this product.</td> 
 		</tr> 
 		<tr class="form-field">
-			<th scope="row" valign="top"><label for="category-menu">Category</label></th> 
+			<th scope="row" valign="top"><label for="category-menu">Categories</label>
+				<div id="new-category">
+				<input type="text" name="new-category" value="" size="15" id="new-category" /><br />
+				<select name="new-category-parent"><?php echo $categories_menu; ?></select>
+				<button id="add-new-category" type="button" class="button-secondary"><small>Add New Category</small></button>
+				</div>
+				</th> 
 			<td> 
-	  			<select name="category-menu" id="category-menu" tabindex="6">
-					<?php if (count($categories) > 1) echo menuoptions($categories,$Product->category,true); ?>
-					<option value="new">New Category&hellip;</option>
-	  			</select><input name="category" id="category" value="<?php echo $categories[$Product->category]; ?>" type="text" size="30" tabindex="7" /><br /> 
+				<div id="category-menu" class="multiple-select">
+					<ul>
+						<?php $depth = 0; foreach ($categories as $category): 
+						if ($category->depth > $depth) echo "<li><ul>"; ?>
+						<?php if ($category->depth < $depth): ?>
+							<?php for ($i = $category->depth; $i < $depth; $i++): ?>
+								</ul></li>
+							<?php endfor; ?>
+						<?php endif; ?>
+						<li id="category-element-<?php echo $category->id; ?>"><input type="checkbox" name="categories[]" value="<?php echo $category->id; ?>" id="category-<?php echo $category->id; ?>"<?php if (in_array($category->id,$selectedCategories)) echo ' checked="checked"'; ?> /><label for="category-<?php echo $category->id; ?>"><?php echo $category->name; ?></label></li>
+						<?php $depth = $category->depth; endforeach; ?>
+						<?php for ($i = 0; $i < $depth; $i++): ?>
+							</ul></li>
+						<?php endfor; ?>
+					</ul>
+				</div><br />
                 You can organize your products into categories for display in your catalog.</td> 
 		</tr>
 	</table>

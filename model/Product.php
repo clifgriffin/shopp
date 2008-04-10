@@ -12,7 +12,9 @@
 require("Price.php");
 
 class Product extends DatabaseObject {
-
+	var $prices = array();
+	var $categories = array();
+	
 	function Product ($id=false) {
 		$this->init('product');
 		if ($this->load($id)) return true;
@@ -27,6 +29,37 @@ class Product extends DatabaseObject {
 		$this->prices = $db->query("SELECT * FROM $pricetable WHERE product=$this->id",AS_ARRAY);
 		return true;
 	}
+
+	function load_categories () {
+		$db =& DB::get();
+		
+		$catalogtable = DBPREFIX."catalog";
+		if (empty($this->id)) return false;
+		$this->categories = $db->query("SELECT * FROM $catalogtable WHERE product=$this->id",AS_ARRAY);
+		return true;
+	}
+	
+	function save_categories ($new) {
+		$db =& DB::get();
+		
+		$current = array();
+		foreach ($this->categories as $catalog) $current[] = $catalog->category;
+
+		$added = array_diff($new,$current);
+		$removed = array_diff($current,$new);
+
+		$catalogtable = DBPREFIX."catalog";
+		
+		foreach ($added as $id) {
+			$db->query("INSERT $catalogtable SET category='$id',product='$this->id',created=now(),modified=now()");
+		}
+		
+		foreach ($removed as $id) {
+			$db->query("DELETE FROM $catalogtable WHERE category='$id' AND product='$this->id'"); 
+		}
+		
+	}
+
 
 } // end Product class
 

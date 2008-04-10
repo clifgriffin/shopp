@@ -173,7 +173,7 @@ class Flow {
 	 **/
 	function order_receipt () {
 		global $Cart;
-		include_once("{$this->basepath}/model/Purchase.php");
+		require_once("{$this->basepath}/model/Purchase.php");
 		$Purchase = new Purchase($Cart->data->Purchase);
 		$Purchase->load_purchased();
 		ob_start();
@@ -191,7 +191,7 @@ class Flow {
 		global $Orders;
 		$db =& DB::get();
 
-		include_once("{$this->basepath}/model/Purchase.php");
+		require_once("{$this->basepath}/model/Purchase.php");
 
 		if ($_GET['deleting'] == "order"
 						&& !empty($_GET['delete']) 
@@ -220,7 +220,7 @@ class Flow {
 	
 	function order_manager () {
 		global $Purchase;
-		include("{$this->basepath}/model/Purchase.php");
+		require("{$this->basepath}/model/Purchase.php");
 		if (preg_match("/\d+/",$_GET['manage'])) {
 			$Purchase = new Purchase($_GET['manage']);
 			$Purchase->load_purchased();
@@ -256,29 +256,6 @@ class Flow {
 	/**
 	 * Products admin flow handlers
 	 **/
-	function product_editor() {
-		global $Product;
-		$db =& DB::get();
-
-
-		if ($_GET['edit'] != "new") {
-			$Product = new Product($_GET['edit']);
-			$Product->load_prices();
-		} else $Product = new Product();
-
-		$brands = array('');
-		$brandnames = $db->query("SELECT brand FROM $Product->_table GROUP BY brand",AS_ARRAY);
-		foreach($brandnames as $name) $brands[] = $name->brand;
-		
-		$categories = $this->Core->Settings->get('product_categories');
-		if (empty($categories)) $categories = array('');
-
-		if (!empty($_POST['save'])) $this->save_product($Product);
-
-		include("{$this->basepath}/ui/products/editor.html");
-
-	}
-
 	function products_list() {
 		global $Products;
 		$db =& DB::get();
@@ -303,22 +280,54 @@ class Flow {
 		$Products = $db->query("SELECT pd.id,pd.name,pd.brand,pd.category,MAX(pt.price) AS maxprice,MIN(pt.price) as minprice FROM shopp_product AS pd LEFT JOIN shopp_price AS pt ON pd.id=pt.product GROUP BY pt.product",AS_ARRAY);
 		include("{$this->basepath}/ui/products/products.html");
 	}
+		
+	function product_editor() {
+		global $Product;
+		$db =& DB::get();
+
+		if ($_GET['edit'] != "new") {
+			$Product = new Product($_GET['edit']);
+			$Product->load_prices();
+			$Product->load_categories();
+		} else $Product = new Product();
+
+		if (!empty($_POST['save'])) {
+			$this->save_product($Product);	
+			return true;
+		}
+
+		$brands = array('');
+		$brandnames = $db->query("SELECT brand FROM $Product->_table GROUP BY brand",AS_ARRAY);
+		foreach($brandnames as $name) $brands[] = $name->brand;
+		
+		require_once("{$this->basepath}/model/Category.php");
+		$Category = new Category();
+		$categories = $db->query("SELECT id,name,parent FROM $Category->_table ORDER BY parent,name",AS_ARRAY);
+		unset($Category);
+		$categories = sort_tree($categories);
+		if (empty($categories)) $categories = array('');
+		
+		$categories_menu = '<option value="0" rel="-1,-1">Parent Category&hellip;</option>';
+		foreach ($categories as $category) {
+			$padding = str_repeat("&nbsp;",$category->depth*3);
+			$categories_menu .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'">'.$padding.$category->name.'</option>';
+		}
+		
+		$selectedCategories = array();
+		foreach ($Product->categories as $catalog) $selectedCategories[] = $catalog->category;
+
+		include("{$this->basepath}/ui/products/editor.html");
+
+	}
 
 	function save_product($Product) {
 		
-		$categories = $this->Core->Settings->get('product_categories');
-		if (empty($categories)) $categories = array('');
-		
-		$categoryid = array_search($_POST['category'],$categories);
-		if ($categoryid === false) {
-			$categories[] = $_POST['category'];
-			$_POST['category'] = (count($categories)-1);
-			$this->Core->Settings->save('product_categories',$categories);
-		} else $_POST['category'] = $categoryid;
-		
-		$Product->updates($_POST);
+		$Product->updates($_POST,array('categories'));
 		$Product->save();
 
+		if (is_array($_POST['categories'])) 
+			$Product->save_categories($_POST['categories']);
+			
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 
 			// Delete prices that were marked for removal

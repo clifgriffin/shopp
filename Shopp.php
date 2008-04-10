@@ -39,6 +39,7 @@ class Shopp {
 		add_action('admin_head', array(&$this, 'admin_header'));
 		add_action('wp_head', array(&$this, 'page_headers'));
 		add_action('init', array(&$this, 'lookups'));
+		add_action('init', array(&$this, 'ajax'));
 		add_action('init', array(&$this, 'cart'));
 		add_action('init', array(&$this, 'checkout'));
 		add_action('init', array(&$this, 'shortcodes'));
@@ -233,7 +234,7 @@ class Shopp {
 			exit();
 		} else {
 			$Cart->data->OrderError = $Payment->error();
-		}		
+		}
 	}
 	
 	function shortcodes () {
@@ -277,5 +278,24 @@ class Shopp {
 				break;
 		}
 	}
+
+	function ajax() {
+		$db =& DB::get();
+		
+		switch($_GET['add']) {
+			case "category":
+				if (!empty($_GET['name'])) {
+					require("model/Category.php");
+					$Category = new Category();
+					$Category->name = $_GET['name'];
+					$Category->parent = $_GET['parent'];
+					$Category->save();
+					echo json_encode($Category);
+				}
+				exit();
+				break;
+		}
+	}
+
 
 } // end Shopp

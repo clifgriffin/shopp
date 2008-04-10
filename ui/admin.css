@@ -32,10 +32,19 @@ input.right { text-align: right; }
 .form-table .multiple-select { overflow-x: hidden; overflow-y: auto; height: 100px; width: auto; display: inline-block; border: 1px solid rgb(221, 221, 221); background: #ffffff; }
 
 .form-table .multiple-select ul { list-style-type: none; margin: 0; padding: 0; line-height: 1; }
-.form-table .multiple-select ul li { margin: 0; padding: 0; }
-.form-table .multiple-select ul li input { float: left; margin: 4px 5px; }
-.form-table .multiple-select ul li label { display: block; padding: 3px 5px; }
-.form-table .multiple-select ul li.odd label { background: #f9f9f9; }
+.form-table .multiple-select ul li { margin: 0; padding: 2px 2px 0 0; }
+.form-table .multiple-select ul li input { margin: 0 5px; }
+.form-table .multiple-select ul li label { }
+.form-table .multiple-select ul li.odd { background: #f9f9f9; }
+.form-table .multiple-select ul ul { padding-left: 20px; }
+
+#new-category, 
+#new-category input, 
+#new-category select,
+#new-category button { width: 100%; }
+#new-category { margin-top: 5px; }
+#category-menu { width: 250px; }
+
 
 button img { margin-bottom: -3px; }
 
