@@ -73,6 +73,8 @@ class Shopp {
 	function products () {
 		require("model/Product.php");
 		if (isset($_GET['edit'])) $this->Flow->product_editor();
+		elseif (isset($_GET['categories'])) $this->Flow->categories_list();
+		elseif (isset($_GET['category'])) $this->Flow->category_editor();
 		else $this->Flow->products_list();
 	}
 

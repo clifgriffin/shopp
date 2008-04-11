@@ -358,6 +358,68 @@ class Flow {
 	}
 	
 	/**
+	 * Category flow handlers
+	 **/
+	function categories_list () {
+		$db =& DB::get();
+		require_once("{$this->basepath}/model/Category.php");
+		require_once("{$this->basepath}/model/Catalog.php");
+
+		if ($_GET['deleting'] == "category"
+				&& !empty($_GET['delete']) 
+				&& is_array($_GET['delete'])) {
+			foreach($_GET['delete'] as $deletion) {
+				$Category = new Category($deletion);
+				$db->query("UPDATE $Category->_table SET parent=0 WHERE parent=$Category->id");
+				$Category->delete();
+			}
+		}
+
+		$Category = new Category();
+		$Catalog = new Catalog();
+		
+		$Categories = $db->query("select cat.*,count(sc.product) as products from $Category->_table as cat left join $Catalog->_table as sc on sc.category=cat.id group by cat.id order by parent,name",AS_ARRAY);
+		$Categories = sort_tree($Categories);
+		
+		unset($Category);
+		unset($Catalog);
+
+		include("{$this->basepath}/ui/products/categories.html");
+	}
+	
+	function category_editor () {
+		$db =& DB::get();
+		require_once("{$this->basepath}/model/Category.php");
+		
+		if ($_GET['category'] != "new") {
+			$Category = new Category($_GET['category']);
+		} else $Category = new Category();
+		
+		if (!empty($_POST['save'])) {
+			$Category->updates($_POST);
+			$Category->save();
+			$this->categories_list();
+			return true;
+		}		
+		
+		$categories = $db->query("SELECT id,name,parent FROM $Category->_table ORDER BY parent,name",AS_ARRAY);
+		$categories = sort_tree($categories);
+
+		$categories_menu = '<option value="0" rel="-1,-1">Parent Category&hellip;</option>';
+		foreach ($categories as $category) {
+			$padding = str_repeat("&nbsp;",$category->depth*3);
+			if ($Category->parent == $category->id) $selected = ' selected="selected"';
+			else $selected = "";
+			if ($Category->id != $category->id) $categories_menu .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'"'.$selected.'>'.$padding.$category->name.'</option>';
+		}
+
+
+		include("{$this->basepath}/ui/products/category.html");
+	}
+	
+	
+	
+	/**
 	 * Settings flow handlers
 	 **/
 	

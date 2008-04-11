@@ -1,4 +1,4 @@
 <ul class="subsubsub">
-	<li><a href="?page=products">Products</a> |</li>
-	<li><a href="">Categories</a></li>
+	<li><a href="?page=products"<?php if (!isset($_GET['categories']) && !isset($_GET['category'])) echo ' class="current"'; ?>>Products</a> |</li>
+	<li><a href="?page=products&amp;categories=list"<?php if (isset($_GET['categories']) || isset($_GET['category'])) echo ' class="current"'; ?>>Categories</a></li>
 </ul>
