@@ -274,10 +274,16 @@ class Flow {
 			}
 		}
 		
-		$categories = $this->Core->Settings->get('product_categories');
 		if (empty($categories)) $categories = array('');
 		
-		$Products = $db->query("SELECT pd.id,pd.name,pd.brand,pd.category,MAX(pt.price) AS maxprice,MIN(pt.price) as minprice FROM shopp_product AS pd LEFT JOIN shopp_price AS pt ON pd.id=pt.product GROUP BY pt.product",AS_ARRAY);
+		$pd = new Product();
+		$pt = new Price();
+		$cat = new Category();
+		$clog = new Catalog();
+		
+		$Products = $db->query("SELECT pd.id,pd.name,pd.brand,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd->_table AS pd LEFT JOIN $pt->_table AS pt ON pd.id=pt.product LEFT JOIN $clog->_table AS clog ON pt.product=clog.product LEFT JOIN $cat->_table AS cat ON cat.id=clog.category GROUP BY pt.product",AS_ARRAY);
+		unset($pd,$pt,$cat,$clog);
+		
 		include("{$this->basepath}/ui/products/products.html");
 	}
 		
@@ -343,11 +349,12 @@ class Flow {
 			}
 
 			// Save prices that there are updates for
-			foreach($_POST['price'] as $option) {
+			foreach($_POST['price'] as $i => $option) {
 				if (empty($option['id'])) {
 					$Price = new Price();
 					$option['product'] = $Product->id;
 				} else $Price = new Price($option['id']);
+				$option['sortorder'] = array_search($i,$_POST['sortorder'])+1;
 				
 				$Price->updates($option);
 				$Price->save();
@@ -381,8 +388,7 @@ class Flow {
 		$Categories = $db->query("select cat.*,count(sc.product) as products from $Category->_table as cat left join $Catalog->_table as sc on sc.category=cat.id group by cat.id order by parent,name",AS_ARRAY);
 		$Categories = sort_tree($Categories);
 		
-		unset($Category);
-		unset($Catalog);
+		unset($Category,$Catalog);
 
 		include("{$this->basepath}/ui/products/categories.html");
 	}

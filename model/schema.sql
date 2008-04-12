@@ -12,39 +12,52 @@ DROP TABLE IF EXISTS `shopp_product`;
 CREATE TABLE `shopp_product` (
 	`id` bigint(20) unsigned NOT NULL auto_increment,
 	`name` varchar(255) NOT NULL default '',
+	`slug` varchar(255) NOT NULL default '',
 	`description` text NOT NULL default '',
 	`details` longtext NOT NULL default '',
 	`brand` varchar(255) NOT NULL default '',
-	`category` int(10) unsigned NOT NULL default '0',
 	`options` tinyint(3) unsigned NOT NULL default '1',
 	`created` datetime NOT NULL default '0000-00-00 00:00:00',
 	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY(`id`),
-	FULLTEXT (`name`,`brand`,`description`,`details`)
+	KEY (`category`),
+	KEY (`slug`),
+	FULLTEXT (`name`,`brand`,`description`)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `shopp_category`;
 CREATE TABLE `shopp_category` (
-	`id` bigint(20) unsigned NOT NULL auto_increment,
-	`parent` bigint(20) unsigned NOT NULL default '0',
-	`name` varchar(255) NOT NULL default '',
-	`description` text NOT NULL default '',
-	`details` longtext NOT NULL default '',
-	`created` datetime NOT NULL default '0000-00-00 00:00:00',
-	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY(`id`),
-	KEY (`parent`)
-) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
+  `id` bigint(20) unsigned NOT NULL auto_increment,
+  `parent` bigint(20) unsigned NOT NULL default '0',
+  `name` varchar(255) NOT NULL default '',
+  `slug` varchar(64) NOT NULL default '',
+  `description` text NOT NULL,
+  `created` datetime NOT NULL default '0000-00-00 00:00:00',
+  `modified` datetime NOT NULL default '0000-00-00 00:00:00',
+  PRIMARY KEY  (`id`),
+  KEY `parent` (`parent`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `shopp_tag`;
+CREATE TABLE `shopp_tag` (
+  `id` bigint(20) unsigned NOT NULL auto_increment,
+  `name` varchar(255) NOT NULL default '',
+  `created` datetime NOT NULL default '0000-00-00 00:00:00',
+  `modified` datetime NOT NULL default '0000-00-00 00:00:00',
+  PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `shopp_catalog`;
 CREATE TABLE `shopp_catalog` (
 	`id` bigint(20) unsigned NOT NULL auto_increment,
 	`product` bigint(20) unsigned NOT NULL default '0',
 	`category` bigint(20) unsigned NOT NULL default '0',
+	`tag` bigint(20) unsigned NOT NULL default '0',
 	`created` datetime NOT NULL default '0000-00-00 00:00:00',
 	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY(`id`),
-	KEY (`category`,`product`)
+	KEY (`category`),
+	KEY (`tag`)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 
@@ -65,6 +78,7 @@ CREATE TABLE `shopp_price` (
 	`tax` enum('off','on') NOT NULL default 'on',
 	`donation` enum('off','on') NOT NULL default 'off',
 	`download` enum('off','on') NOT NULL default 'off',
+	`sortorder` int(10) unsigned NOT NULL default '0',
 	`created` datetime NOT NULL default '0000-00-00 00:00:00',
 	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY(`id`),

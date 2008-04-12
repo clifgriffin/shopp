@@ -26,7 +26,7 @@ class Product extends DatabaseObject {
 		
 		$pricetable = DBPREFIX."price";
 		if (empty($this->id)) return false;
-		$this->prices = $db->query("SELECT * FROM $pricetable WHERE product=$this->id",AS_ARRAY);
+		$this->prices = $db->query("SELECT * FROM $pricetable WHERE product=$this->id ORDER BY sortorder ASC",AS_ARRAY);
 		return true;
 	}
 

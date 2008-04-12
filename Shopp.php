@@ -55,14 +55,19 @@ class Shopp {
 		add_submenu_page(__FILE__,'Settings', 'Settings', 8, 'settings', array(&$this,'settings'));
 	}
 
-	function admin_header () {
-		?><link rel='stylesheet' href='<?php echo $this->uri; ?>ui/admin.css' type='text/css' />
-		<script type='text/javascript' src='<?php echo $this->uri; ?>ui/shopp.js'></script><?php
+	function admin_header () {?>
+		<link rel='stylesheet' href='<?php echo $this->uri; ?>ui/admin.css' type='text/css' />
+		<script type='text/javascript' src='<?php echo $this->uri; ?>ui/shopp.js'></script>
+		<?php if ($_GET['page'] == "products" && isset($_GET['edit'])): ?>
+		<script type='text/javascript' src='<?php echo $this->uri; ?>ui/jquery/jquery.tablednd.js'></script>
+		<?php endif;
 	}
 	
 	function page_headers () {
-		?><link rel='stylesheet' href='<?php echo $this->uri; ?>ui/shopp.css' type='text/css' />
-		<script type='text/javascript' src='http://wordpress/wp-includes/js/jquery/jquery.js?ver=1.2.3'></script><?php
+		?>
+		<link rel='stylesheet' href='<?php echo $this->uri; ?>ui/shopp.css' type='text/css' />
+		<script type='text/javascript' src='http://wordpress/wp-includes/js/jquery/jquery.js?ver=1.2.3'></script>
+		<?php
 	}
 		
 	function orders () {
@@ -72,6 +77,9 @@ class Shopp {
 
 	function products () {
 		require("model/Product.php");
+		require("model/Category.php");
+		require("model/Catalog.php");
+		
 		if (isset($_GET['edit'])) $this->Flow->product_editor();
 		elseif (isset($_GET['categories'])) $this->Flow->categories_list();
 		elseif (isset($_GET['category'])) $this->Flow->category_editor();

@@ -11,17 +11,16 @@
 $j=jQuery.noConflict();
 
 var pricingOptions = new Array();
+
 var init = function () {
-	cid = 10;
 	$j('#addProductOption').click(function() {
 		addProductOption();
 		quickSelects();
+		$j("#pricing").tableDnD({onDragClass:'dragging'});
 	});
 	
 	if ($j('#brand-menu').val() == "new") $j('#brand-menu').hide();
 	else $j('#brand').hide();
-	if ($j('#category-menu').val() == "new") $j('#category-menu').hide();
-	else $j('#category').hide();
 	
 	$j('#brand-menu').change(function () {
 		if (this.value == "new") {
@@ -57,6 +56,8 @@ var init = function () {
 	else addProductOption();
 
 	quickSelects();
+	$j("#pricing").tableDnD({onDragClass:'dragging'});
+	
 }
 
 
@@ -145,10 +146,11 @@ var addProductOption = function (p) {
 	var label = $j('<input type="text" name="price['+i+'][label]" value="Option '+(i+1)+'" id="label['+i+']" size="16" title="Enter a name for this product option (used when showing product variations)" class="selectall" tabindex="'+(i+1)+'00" />').appendTo(heading);
 	var myid = $j('<input type="hidden" name="price['+i+'][id]" id="id['+i+']" />').appendTo(heading);
 	var productid = $j('<input type="hidden" name="price['+i+'][product]" id="product['+i+']" />').appendTo(heading);
+	var sortorder = $j('<input type="hidden" name="sortorder[]" value="'+i+'" />').appendTo(heading);
 
 	var dataCell = $j('<td/>').appendTo(row);
-	var deleteButton = $j('<button id="deleteButton['+i+']" class="deleteButton" type="button" title="Delete product option"></button>').appendTo(dataCell).hide();
-	var deleteIcon = $j('<img src="/wp-content/plugins/shopp/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteButton);
+	var deleteButton = $j('<button id="deleteButton['+i+']" class="deleteButton" type="button" title="Delete product option&hellip;"></button>').appendTo(dataCell).hide();
+	var deleteIcon = $j('<img src="/wp-content/plugins/shopp/ui/icons/delete.png" width="16" height="16" title="Delete product option&hellip;" />').appendTo(deleteButton);
 
 	var pricingTable = $j('<table/>').addClass('pricing-table').appendTo(dataCell);
 
@@ -270,3 +272,5 @@ var addProductOption = function (p) {
 	pricingOptions.push(row);
 	$j('#options').val(pricingOptions.length);
 }
+
+

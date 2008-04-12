@@ -5,9 +5,11 @@
 	
 	<?php include("navigation.html"); ?>
 
+	<p class="controls"><button type="submit" name="edit" value="new" class="button">New Product</button></p>
+
 	<div class="tablenav">
 		<button type="submit" id="delete-button" name="deleting" value="product" class="button-secondary">Delete</button>
-		<div class="alignright"><button type="submit" name="edit" value="new" class="button-secondary">New Product</button></div>
+		<div class="alignright"></div>
 	</div>
 	<br class="clear" />
 	<?php if (sizeof($Products) > 0): ?>
@@ -27,7 +29,7 @@
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
 			<td><a class='row-title' href='?page=products&amp;edit=<?php echo $Product->id; ?>' title='Edit &quot;<?php echo $Product->name; ?>&quot;'><?php echo $Product->name; ?></a></td>
 			<td><?php echo $Product->brand; ?></td>
-			<td><?php echo $categories[$Product->category]; ?></td>
+			<td><?php echo $Product->categories; ?></td>
 			<td><?php
 				if ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
 				else echo money($Product->maxprice)."&mdash;".money($Product->minprice);

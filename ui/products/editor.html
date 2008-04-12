@@ -29,7 +29,7 @@
 				<option value="new">New Brand&hellip;</option>
 			</select><input name="brand" id="brand" value="<?php echo $brands[$Product->brand]; ?>" type="text" size="30" tabindex="5" /><br />
 			The name of the brand or manufacturer of this product.</td> 
-		</tr> 
+		</tr>
 		<tr class="form-field">
 			<th scope="row" valign="top"><label for="category-menu">Categories</label>
 				<div id="new-category">
@@ -60,9 +60,12 @@
 	</table>
 	
 	<h3>Pricing &amp; Product Options</h3>
+	
 	<div><input type="hidden" name="deletePrices" id="deletePrices" value="" />
 		<input type="hidden" name="options" value="" id="options" /></div>
-	<table id="pricing" class="form-table"></table> 
+	
+	<table id="pricing" class="form-table" onselectstart="return false"></table>
+	
 	<div class="tablenav">
 		<div class="alignright"><button type="button" id="addProductOption" class="button-secondary">Add A Product Option</button></div>
 	</div>
@@ -73,5 +76,6 @@
 
 <script type="text/javascript">
 var prices = <?php echo json_encode($Product->prices) ?>;
+
 init();
 </script>

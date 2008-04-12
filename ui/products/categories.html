@@ -8,9 +8,10 @@
 	
 	<?php include("navigation.html"); ?>
 
+	<p class="controls"><button type="submit" name="edit" value="new" class="button">New Category</button></p>
+
 	<div class="tablenav">
 		<button type="submit" id="delete-button" name="deleting" value="category" class="button-secondary">Delete</button>
-		<div class="alignright"><button type="submit" name="edit" value="new" class="button-secondary">New Category</button></div>
 	</div>
 	<br class="clear" />
 	<?php if (sizeof($Categories) > 0): ?>

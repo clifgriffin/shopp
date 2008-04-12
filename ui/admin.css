@@ -13,6 +13,9 @@ button.deleteButton { background: none; border: none; padding: 0; width: 16px; h
 .pricing-table td { position: relative; border: none; padding: 0; vertical-align: top; white-space: no-wrap; }
 #pricing tr td button.deleteButton { position: absolute; right: 5px; }
 #pricing, #pricing tr, #pricing tr td { position: relative; }
+#pricing tr.dragging th,
+#pricing tr.dragging td { background-color: #cee1ef;}
+
 
 .pricing-table span.status { display: block; padding-top: 4px; }
 
@@ -45,6 +48,8 @@ input.right { text-align: right; }
 #new-category { margin-top: 5px; }
 #category-menu { width: 250px; }
 
+form { position: relative; }
+p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 
 button img { margin-bottom: -3px; }
 
