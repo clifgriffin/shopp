@@ -36,7 +36,6 @@ class Shopp {
 		if (!$this->Settings->get('shopp_setup')) $this->Flow->development_setup();
 				
 		add_action('admin_menu', array(&$this, 'add_menus'));
-		add_action('admin_head', array(&$this, 'admin_header'));
 		add_action('wp_head', array(&$this, 'page_headers'));
 		add_action('init', array(&$this, 'lookups'));
 		add_action('init', array(&$this, 'ajax'));
@@ -49,24 +48,31 @@ class Shopp {
 	}
 	
 	function add_menus () {
-		add_menu_page('Shop', 'Shop', 8, __FILE__, array(&$this,'orders'));
-		add_submenu_page(__FILE__,'Orders', 'Orders', 8, __FILE__, array(&$this,'orders'));
-		add_submenu_page(__FILE__,'Products', 'Products', 8, 'products', array(&$this,'products'));
-		add_submenu_page(__FILE__,'Settings', 'Settings', 8, 'settings', array(&$this,'settings'));
+		$main = add_menu_page('Shop', 'Shop', 8, __FILE__, array(&$this,'orders'));
+		$orders = add_submenu_page(__FILE__,'Orders', 'Orders', 8, __FILE__, array(&$this,'orders'));
+		$products = add_submenu_page(__FILE__,'Products', 'Products', 8, 'products', array(&$this,'products'));
+		$settings = add_submenu_page(__FILE__,'Settings', 'Settings', 8, 'settings', array(&$this,'settings'));
+		add_action("admin_print_scripts-$main", array(&$this, 'admin_header'));
+		add_action("admin_print_scripts-$orders", array(&$this, 'admin_header'));
+		add_action("admin_print_scripts-$products", array(&$this, 'admin_header'));
+		add_action("admin_print_scripts-$settings", array(&$this, 'admin_header'));
+		
 	}
 
-	function admin_header () {?>
+	function admin_header () {
+		wp_enqueue_script('shopp',"{$this->uri}ui/shopp.js");
+		if ($_GET['page'] == "products" && isset($_GET['edit']))
+			wp_enqueue_script('jquery.tablednd',"{$this->uri}ui/jquery/jquery.tablednd.js",array('jquery'),'');
+			
+		?>
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>ui/admin.css' type='text/css' />
-		<script type='text/javascript' src='<?php echo $this->uri; ?>ui/shopp.js'></script>
-		<?php if ($_GET['page'] == "products" && isset($_GET['edit'])): ?>
-		<script type='text/javascript' src='<?php echo $this->uri; ?>ui/jquery/jquery.tablednd.js'></script>
-		<?php endif;
+		<?php
 	}
 	
 	function page_headers () {
+		wp_enqueue_script('jquery');
 		?>
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>ui/shopp.css' type='text/css' />
-		<script type='text/javascript' src='http://wordpress/wp-includes/js/jquery/jquery.js?ver=1.2.3'></script>
 		<?php
 	}
 		
