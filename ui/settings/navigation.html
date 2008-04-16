@@ -1,5 +1,6 @@
 <ul class="subsubsub">
 	<li><a href="?page=settings&amp;edit=general"<?php if (empty($_GET['edit']) || $_GET['edit']=="general") echo ' class="current"'; ?>>General</a> |</li>
+	<li><a href="?page=settings&amp;edit=products"<?php if ($_GET['edit']=="products") echo ' class="current"'; ?>>Products</a> |</li>
 	<li><a href="?page=settings&amp;edit=catalog"<?php if ($_GET['edit']=="catalog") echo ' class="current"'; ?>>Catalog</a> |</li>
 	<li><a href="?page=settings&amp;edit=cart"<?php if ($_GET['edit']=="cart") echo ' class="current"'; ?>>Cart</a> |</li>
 	<li><a href="?page=settings&amp;edit=checkout"<?php if ($_GET['edit']=="checkout") echo ' class="current"'; ?>>Checkout</a> |</li>

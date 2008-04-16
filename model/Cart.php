@@ -27,6 +27,8 @@ class Cart {
 	var $ip;
 	var $data;
 	var $contents = array();
+	var $looping = false;
+	var $runaway = 0;
 	
 	// methods
 	
@@ -83,6 +85,7 @@ class Cart {
 			$this->contents = unserialize($result->contents);
 			$this->created = mktimestamp($result->created);
 			$this->modified = mktimestamp($result->modified);
+			reset($this->contents);
 			
 		} else {
 			$db->query("INSERT INTO $this->_table (session, ip, created, modified) 
@@ -158,7 +161,7 @@ class Cart {
 	function update ($item,$quantity) {
 		if (empty($this->contents)) return false;
 		if ($quantity == 0) return $this->remove($item);
-		else {
+		elseif (isset($this->contents[$item])) {
 			$this->contents[$item]->quantity($quantity);
 			$this->totals();
 			$this->save();
@@ -219,6 +222,54 @@ class Cart {
 		
 		$Totals->total = $Totals->subtotal + 
 			$Totals->shipping + $Totals->tax;		
+	}
+	
+	function tag ($property,$options=array()) {
+		global $Shopp;
+		
+		// Return strings with no options
+		switch ($property) {
+			case "url": return SHOPP_CARTURL; break;
+			case "free-shipping-text": return $Shopp->Settings->get('free_shipping_text'); break;
+			case "firstitem": reset($this->contents); break;
+			case "hasitems": if (count($this->contents) > 0) return true; else return false; break;
+			case "items":
+				if (!$this->looping) {
+					reset($this->contents);
+					$this->looping = true;
+				} else next($this->contents);
+				
+				if (current($this->contents)) return true;
+				else {
+					$this->looping = false;
+					reset($this->contents);
+					return false;
+				}
+		}
+		
+		$result = "";
+		switch ($property) {
+			case "subtotal": $result = $this->data->Totals->subtotal; break;
+			case "shipping": $result = $this->data->Totals->shipping; break;
+			case "tax": $result = $this->data->Totals->tax; break;
+			case "total": $result = $this->data->Totals->total; break;
+		}
+		
+		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
+		else return money($result);
+		
+		return false;
+	}
+	
+	function itemtag ($property,$options=array()) {
+		if ($this->looping) {
+			$Item = current($this->contents);
+			if ($Item !== false) {
+				$id = key($this->contents);
+				if ($property == "id") return $id;
+				return $Item->tag($id,$property,$options);
+			}
+		} else return false;
 	}
 	
 } // end Cart class

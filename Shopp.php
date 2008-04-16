@@ -95,6 +95,9 @@ class Shopp {
 	function settings () {
 		
 		switch($_GET['edit']) {
+			case "products":
+				$this->Flow->settings_product_page();
+				break;
 			case "catalog":
 				$this->Flow->settings_catalog();
 				break;
@@ -256,6 +259,7 @@ class Shopp {
 	function shortcodes () {
 		remove_filter('the_content', 'wpautop');
 		add_filter('the_content', 'wpautop',8);
+		
 		add_shortcode('cart',array(&$this->Flow,'cart_default'));
 		add_shortcode('checkout',array(&$this->Flow,'checkout_onestep'));
 		add_shortcode('order-summary',array(&$this->Flow,'checkout_order_summary'));
@@ -313,5 +317,56 @@ class Shopp {
 		}
 	}
 
-
 } // end Shopp
+
+/**
+ * shopp()
+ * Provides for Shopp 'tag' support to allow for complete 
+ * customization of all customer interfaces
+ *
+ * @param $object - The object to get the tag property from
+ * @param $property - The property of the object to get/output
+ * @param $options - Custom options for the property result in query form (option1=value&option2=value&...)
+ */
+function shopp () {
+	global $Cart,$Shopp;
+	$args = func_get_args();
+	
+	$object = strtolower($args[0]);
+	$property = strtolower($args[1]);
+	$paramsets = strtolower($args[2]);
+	$paramsets = split("&",$paramsets);
+
+	$options = array();
+	foreach ($paramsets as $paramset) {
+		list($key,$value) = split("=",$paramset);
+		$options[$key] = $value;
+	}
+	
+	$result = "";
+	switch (strtolower($object)) {
+		case "cart": $result = $Cart->tag($property,$options); break;
+		case "cartitem": $result = $Cart->itemtag($property,$options); break;
+	}
+	
+	// Force boolean result
+	if (isset($options['is'])) {
+		if (value_is_true($options['is'])) {
+			if ($result) return true;
+		} else {
+			if ($result == false) return true;
+		}
+		return false;
+	}
+	
+	// Always return a boolean if the result is boolean
+	if (is_bool($result)) return $result;
+	
+	// Return the result instead of outputting it
+	if (isset($options['return']) && value_is_true($options['return']))
+		return $result;
+
+	// Output the result
+	echo $result;
+	return true;
+}

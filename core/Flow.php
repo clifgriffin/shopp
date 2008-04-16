@@ -455,6 +455,11 @@ class Flow {
 	}
 
 
+	function settings_product_page () {
+		if (!empty($_POST['save'])) $this->settings_save();
+		include("{$this->basepath}/ui/settings/products.html");
+	}
+
 	function settings_catalog () {
 		if (!empty($_POST['save'])) $this->settings_save();
 		include("{$this->basepath}/ui/settings/catalog.html");

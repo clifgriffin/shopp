@@ -250,6 +250,14 @@ function get_countries () {
 
 function get_country_regions() {
 	$regions = array();
+	$regions['AU'] = array();
+	$regions['AU']['NSW'] = 'New South Wales';
+	$regions['AU']['NT'] = 'Northern Territory';
+	$regions['AU']['QLD'] = 'Queensland';
+	$regions['AU']['TAS'] = 'Tasmania';
+	$regions['AU']['VIC'] = 'Victoria';
+	$regions['AU']['WA'] = 'Western Australia';
+
 	$regions['CA'] = array();
 	$regions['CA']['AB'] = 'Alberta';
 	$regions['CA']['BC'] = 'British Columbia';

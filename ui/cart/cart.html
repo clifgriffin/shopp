@@ -1,5 +1,5 @@
-<?php if (sizeof($Cart->contents) > 0): ?>
-<form id="cart" action="<?php echo SHOPP_CARTURL; ?>" method="post">
+<?php if (shopp('cart','hasitems')): ?>
+<form id="cart" action="<?php shopp('cart','url'); ?>" method="post">
 <table class="cart">
 	<tr>
 		<th scope="col" class="item">Cart Items</th>
@@ -7,39 +7,33 @@
 		<th scope="col" class="money">Item Price</th>
 		<th scope="col" class="money">Item Total</th>
 	</tr>
-	<?php $even = false; foreach ($Cart->contents as $id => $Item): ?>
-		<tr<?php if (!even) echo 'class="alternate"'; $even = !$even; ?>>
-			<td>
-				<?php echo $Item->name; ?>
-				<input type="hidden" name="items[<?php echo $id; ?>][product]" value="<?php echo $Item->product; ?>" />
-				<?php if (!empty($Item->optionname)): ?>
-					<select name="items[<?php echo $id; ?>][price]">
-						<?php echo $Item->options($Item->price); ?>
-					</select>
-				<?php endif; ?>
-			</td>
-			<td><input type="text" name="items[<?php echo $id; ?>][quantity]" value="<?php echo $Item->quantity; ?>" size="3" id="quantity" /><p class="remove"><a href="<?php echo SHOPP_CARTURL; ?>?cart=update&amp;item=<?php echo $id; ?>&amp;quantity=0">Remove</a></p></td>
-			<td class="money"><?php echo money($Item->unitprice); ?></td>
-			<td class="money total"><?php echo money($Item->total); ?></td>
+
+	<?php while(shopp('cart','items')): ?>
+		<tr>
+			<td><?php shopp('cartitem','name'); shopp('cartitem','options'); ?></td>
+			<td><?php shopp('cartitem','quantity','input=text'); ?></td>
+			<td class="money"><?php shopp('cartitem','unitprice'); ?></td>
+			<td class="money"><?php shopp('cartitem','total'); ?></td>
 		</tr>
-	<?php endforeach; ?>
+	<?php endwhile; ?>
+
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Subtotal</td>
-		<td class="money"><?php echo money($Cart->data->Totals->subtotal); ?></td>
+		<td class="money"><?php shopp('cart','subtotal'); ?></td>
 	</tr>
-	<?php if ($Cart->data->Totals->shipping > 0): ?>
+	<?php if (shopp('cart','shipping','is=true')): ?>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Shipping</td>
-		<td class="money"><?php echo money($Cart->data->Totals->shipping); ?></td>
+		<td class="money"><?php shopp('cart','shipping'); ?></td>
 	</tr>
 	<?php else: ?>
 		<tr class="totals">
-			<th scope="row" colspan="4" class="total"><?php echo $this->Core->Settings->get('free_shipping_text'); ?></td>
+			<th scope="row" colspan="4" class="total"><?php shopp('cart','free-shipping-text'); ?></td>
 		</tr>
 	<?php endif; ?>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Total</td>
-		<td class="money"><?php echo money($Cart->data->Totals->total); ?></td>
+		<td class="money"><?php shopp('cart','total'); ?></td>
 	</tr>
 	<tr class="buttons">
 		<td colspan="4">
@@ -49,7 +43,7 @@
 	</tr>
 </table>
 </form>
-<form id="cart" action="<?php echo SHOPP_CHECKOUTURL; ?>" method="post">
+<form action="<?php echo SHOPP_CHECKOUTURL; ?>" method="post">
 	<p class="submit"><button type="submit" name="checkout" value="true">Checkout</button></p>
 </form>
 <?php else: ?>

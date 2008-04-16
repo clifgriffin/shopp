@@ -61,10 +61,70 @@ class Item {
 	}
 	
 	function options ($selected = "") {
+		$string = "";
 		foreach($this->options as $option) {
-			if ($selected == $option->id) echo "<option value=\"$option->id\" selected=\"\">$option->label</option>";
-			else echo "<option value=\"$option->id\">$option->label</option>";
+			if ($selected == $option->id) $string .= "<option value=\"$option->id\" selected=\"\">$option->label</option>";
+			else $string .= "<option value=\"$option->id\">$option->label</option>";
 		}
+		return $string;
+	}
+	
+	function tag ($id,$property,$options=array()) {
+		// Return strings with no options
+		switch ($property) {
+			case "name": return $this->name;
+			case "brand": return $this->brand;
+			case "sku": return $this->sku;
+		}
+		
+		// Handle currency values
+		$result = "";
+		switch ($property) {
+			case "unitprice": $result = $this->unitprice; break;
+			case "total": $result = $this->total; break;
+			case "tax": $result = $this->tax; break;
+			case "total": $result = $this->data->Totals->total; break;
+			
+		}
+		if (!empty($result)) {
+			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
+			else return money($result);
+		}
+		
+		// Handle values with complex options
+		switch ($property) {
+			case "quantity": 
+				$size = 3;
+				$class = "";
+				$result = $this->quantity;
+				$title = "";
+				if (isset($options['size'])) $size = $options['size'];
+				if (isset($options['class'])) $class = ' class="'.$options['class'].'"';
+				if (isset($options['title'])) $class = ' class="'.$options['title'].'"';
+				if (isset($options['input']) && valid_input($options['input']))
+					$result = '<input type="'.$options['input'].'" name="items['.$id.']['.$property.']" id="items['.$id.']['.$property.']" title="'.$title.'" value="'.$this->quantity.'" size="'.$size.'"'.$class.' />';
+				break;
+			case "remove":
+				$label = "Remove";
+				if (isset($options['label'])) $label = $options['label'];
+				
+				
+				$result = '<a href="'.SHOPP_CARTURL.'?cart=update&amp;item='.$id.'&amp;quantity=0">'.$label.'</a>';
+				
+				break;
+			case "options":
+				$class = "";
+				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
+				if (!empty($this->optionname)) {
+					$result .= '&nbsp;<select name="items['.$id.'][price]" id="items['.$id.'][price]"'.$class.'>';
+					$result .= $this->options($this->price);
+					$result .= '</select>';
+				}
+		}
+		if (!empty($result)) return $result;
+		
+		
+		return false;
 	}
 
 } // end Item class

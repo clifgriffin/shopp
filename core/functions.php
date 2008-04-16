@@ -443,4 +443,17 @@ function money($number) {
 	return money_format("%.2n",$number);
 }
 
+function value_is_true ($value) {
+	switch (strtolower($value)) {
+		case "yes": case "true": case "1": case "on": return true;
+		default: return false;
+	}
+}
+
+function valid_input ($type) {
+	$inputs = array("text","hidden","checkbox","radio","button","submit");
+	if (in_array($type,$inputs) !== false) return true;
+	return false;
+}
+
 ?>

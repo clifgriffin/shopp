@@ -67,7 +67,7 @@ $j('#base_operations').change(function() {
 		return true;
 	}
 
-	$j.getJSON($j('#general_settings').attr('action')+'&lookup=regions&country='+$j(this).val(),
+	$j.getJSON($j('#general').attr('action')+'&lookup=regions&country='+$j('#base_operations').val(),
 		function(data) {
 			$j('#base_operations_region').hide();
 			$j('#base_operations_region').empty();
