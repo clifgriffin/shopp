@@ -16,8 +16,8 @@ require("core/functions.php");
 require("core/DB.php");
 require("core/Flow.php");
 
-require("model/Settings.php");
-require("model/Cart.php");
+require("core/model/Settings.php");
+require("core/model/Cart.php");
 
 $Shopp =& new Shopp();
 
@@ -65,14 +65,14 @@ class Shopp {
 			wp_enqueue_script('jquery.tablednd',"{$this->uri}ui/jquery/jquery.tablednd.js",array('jquery'),'');
 			
 		?>
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>ui/admin.css' type='text/css' />
+		<link rel='stylesheet' href='<?php echo $this->uri; ?>core/ui/admin.css' type='text/css' />
 		<?php
 	}
 	
 	function page_headers () {
 		wp_enqueue_script('jquery');
 		?>
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>ui/shopp.css' type='text/css' />
+		<link rel='stylesheet' href='<?php echo $this->uri; ?>core/ui/shopp.css' type='text/css' />
 		<?php
 	}
 		
@@ -82,9 +82,9 @@ class Shopp {
 	}
 
 	function products () {
-		require("model/Product.php");
-		require("model/Category.php");
-		require("model/Catalog.php");
+		require("core/model/Product.php");
+		require("core/model/Category.php");
+		require("core/model/Catalog.php");
 		
 		if (isset($_GET['edit'])) $this->Flow->product_editor();
 		elseif (isset($_GET['categories'])) $this->Flow->categories_list();
@@ -125,7 +125,7 @@ class Shopp {
 	function cart () {
 		global $Cart;
 		if (empty($_POST['cart']) && empty($_GET['cart'])) return true;
-		require("model/Product.php");
+		require("core/model/Product.php");
 
 		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax();
 		else if (!empty($_GET['cart'])) $this->Flow->cart_request();
@@ -186,7 +186,7 @@ class Shopp {
 		if (!$processor_file) return true;
 		if (!file_exists($processor_file)) return true;
 		
-		require_once("model/Purchase.php");
+		require_once("core/model/Purchase.php");
 		
 		// Dynamically the payment processing gateway
 		$processor_data = $this->Flow->scan_gateway_meta($processor_file);
@@ -305,7 +305,7 @@ class Shopp {
 		switch($_GET['add']) {
 			case "category":
 				if (!empty($_GET['name'])) {
-					require("model/Category.php");
+					require("core/model/Category.php");
 					$Category = new Category();
 					$Category->name = $_GET['name'];
 					$Category->parent = $_GET['parent'];

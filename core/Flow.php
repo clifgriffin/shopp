@@ -117,7 +117,7 @@ class Flow {
 		global $Cart;
 
 		ob_start();
-		include("{$this->basepath}/ui/cart/cart.html");
+		include("{$this->basepath}/core/ui/cart/cart.html");
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -138,8 +138,8 @@ class Flow {
 		foreach ($markets as $iso => $country) $countries[$iso] = $country;
 		$states = $regions[$base['country']];
 		
-		if (isset($Cart->data->OrderError)) include("{$this->basepath}/ui/checkout/errors.html");
-		include("{$this->basepath}/ui/checkout/checkout.html");
+		if (isset($Cart->data->OrderError)) include("{$this->basepath}/core/ui/checkout/errors.html");
+		include("{$this->basepath}/core/ui/checkout/checkout.html");
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -151,7 +151,7 @@ class Flow {
 		global $Cart;
 
 		ob_start();
-		include("{$this->basepath}/ui/checkout/summary.html");
+		include("{$this->basepath}/core/ui/checkout/summary.html");
 		$content = ob_get_contents();
 		ob_end_clean();
 		
@@ -161,7 +161,7 @@ class Flow {
 	function order_confirmation () {
 		global $Cart;
 		ob_start();
-		include("{$this->basepath}/ui/checkout/confirm.html");
+		include("{$this->basepath}/core/ui/checkout/confirm.html");
 		$content = ob_get_contents();
 		ob_end_clean();
 		return $content;
@@ -173,11 +173,11 @@ class Flow {
 	 **/
 	function order_receipt () {
 		global $Cart;
-		require_once("{$this->basepath}/model/Purchase.php");
+		require_once("{$this->basepath}/core/model/Purchase.php");
 		$Purchase = new Purchase($Cart->data->Purchase);
 		$Purchase->load_purchased();
 		ob_start();
-		if (!empty($Purchase->id)) include("{$this->basepath}/ui/checkout/receipt.html");
+		if (!empty($Purchase->id)) include("{$this->basepath}/core/ui/checkout/receipt.html");
 		else echo '<p class="error">There was a problem retrieving your order, although the transaction was successful.</p>';
 		$content = ob_get_contents();
 		ob_end_clean();		
@@ -191,7 +191,7 @@ class Flow {
 		global $Orders;
 		$db =& DB::get();
 
-		require_once("{$this->basepath}/model/Purchase.php");
+		require_once("{$this->basepath}/core/model/Purchase.php");
 
 		if ($_GET['deleting'] == "order"
 						&& !empty($_GET['delete']) 
@@ -215,12 +215,12 @@ class Flow {
 
 		if (isset($_GET['status'])) $filter = "WHERE status='{$_GET['status']}'";
 		$Orders = $db->query("SELECT * FROM $Purchase->_table $filter ORDER BY created DESC",AS_ARRAY);
-		include("{$this->basepath}/ui/orders/orders.html");
+		include("{$this->basepath}/core/ui/orders/orders.html");
 	}
 	
 	function order_manager () {
 		global $Purchase;
-		require("{$this->basepath}/model/Purchase.php");
+		require("{$this->basepath}/core/model/Purchase.php");
 		if (preg_match("/\d+/",$_GET['manage'])) {
 			$Purchase = new Purchase($_GET['manage']);
 			$Purchase->load_purchased();
@@ -235,13 +235,13 @@ class Flow {
 		if (empty($statusLabels)) $statusLabels = array('');
 		else ksort($statusLabels); 
 		
-		include("{$this->basepath}/ui/orders/order.html");
+		include("{$this->basepath}/core/ui/orders/order.html");
 	}
 	
 	function order_status_counts () {
 		$db =& DB::get();
 		
-		include_once("{$this->basepath}/model/Purchase.php");
+		include_once("{$this->basepath}/core/model/Purchase.php");
 		$p = new Purchase();
 		$labels = $this->Core->Settings->get('order_status');
 		
@@ -284,7 +284,7 @@ class Flow {
 		$Products = $db->query("SELECT pd.id,pd.name,pd.brand,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd->_table AS pd LEFT JOIN $pt->_table AS pt ON pd.id=pt.product LEFT JOIN $clog->_table AS clog ON pt.product=clog.product LEFT JOIN $cat->_table AS cat ON cat.id=clog.category GROUP BY pt.product",AS_ARRAY);
 		unset($pd,$pt,$cat,$clog);
 		
-		include("{$this->basepath}/ui/products/products.html");
+		include("{$this->basepath}/core/ui/products/products.html");
 	}
 		
 	function product_editor() {
@@ -306,7 +306,7 @@ class Flow {
 		$brandnames = $db->query("SELECT brand FROM $Product->_table GROUP BY brand",AS_ARRAY);
 		foreach($brandnames as $name) $brands[] = $name->brand;
 		
-		require_once("{$this->basepath}/model/Category.php");
+		require_once("{$this->basepath}/core/model/Category.php");
 		$Category = new Category();
 		$categories = $db->query("SELECT id,name,parent FROM $Category->_table ORDER BY parent,name",AS_ARRAY);
 		unset($Category);
@@ -322,7 +322,7 @@ class Flow {
 		$selectedCategories = array();
 		foreach ($Product->categories as $catalog) $selectedCategories[] = $catalog->category;
 
-		include("{$this->basepath}/ui/products/editor.html");
+		include("{$this->basepath}/core/ui/products/editor.html");
 
 	}
 
@@ -369,8 +369,8 @@ class Flow {
 	 **/
 	function categories_list () {
 		$db =& DB::get();
-		require_once("{$this->basepath}/model/Category.php");
-		require_once("{$this->basepath}/model/Catalog.php");
+		require_once("{$this->basepath}/core/model/Category.php");
+		require_once("{$this->basepath}/core/model/Catalog.php");
 
 		if ($_GET['deleting'] == "category"
 				&& !empty($_GET['delete']) 
@@ -390,12 +390,12 @@ class Flow {
 		
 		unset($Category,$Catalog);
 
-		include("{$this->basepath}/ui/products/categories.html");
+		include("{$this->basepath}/core/ui/products/categories.html");
 	}
 	
 	function category_editor () {
 		$db =& DB::get();
-		require_once("{$this->basepath}/model/Category.php");
+		require_once("{$this->basepath}/core/model/Category.php");
 		
 		if ($_GET['category'] != "new") {
 			$Category = new Category($_GET['category']);
@@ -420,7 +420,7 @@ class Flow {
 		}
 
 
-		include("{$this->basepath}/ui/products/category.html");
+		include("{$this->basepath}/core/ui/products/category.html");
 	}
 	
 	
@@ -451,33 +451,33 @@ class Flow {
 		$statusLabels = $this->Core->Settings->get('order_status');
 		if ($statusLabels) ksort($statusLabels);
 		
-		include("{$this->basepath}/ui/settings/settings.html");
+		include("{$this->basepath}/core/ui/settings/settings.html");
 	}
 
 
 	function settings_product_page () {
 		if (!empty($_POST['save'])) $this->settings_save();
-		include("{$this->basepath}/ui/settings/products.html");
+		include("{$this->basepath}/core/ui/settings/products.html");
 	}
 
 	function settings_catalog () {
 		if (!empty($_POST['save'])) $this->settings_save();
-		include("{$this->basepath}/ui/settings/catalog.html");
+		include("{$this->basepath}/core/ui/settings/catalog.html");
 	}
 
 	function settings_cart () {
 		if (!empty($_POST['save'])) $this->settings_save();
-		include("{$this->basepath}/ui/settings/cart.html");
+		include("{$this->basepath}/core/ui/settings/cart.html");
 	}
 
 	function settings_checkout () {
 		if (!empty($_POST['save'])) $this->settings_save();
-		include("{$this->basepath}/ui/settings/checkout.html");
+		include("{$this->basepath}/core/ui/settings/checkout.html");
 	}
 
 	function settings_shipping () {
 		if (!empty($_POST['save'])) $this->settings_save();
-		include("{$this->basepath}/ui/settings/shipping.html");
+		include("{$this->basepath}/core/ui/settings/shipping.html");
 	}
 
 	function settings_taxes () {
@@ -488,7 +488,7 @@ class Flow {
 		$countries = $this->Core->Settings->get('target_markets');
 		$regions = $this->Core->Settings->get('regions');
 		
-		include("{$this->basepath}/ui/settings/taxes.html");
+		include("{$this->basepath}/core/ui/settings/taxes.html");
 	}	
 
 	function settings_payments () {
@@ -505,7 +505,7 @@ class Flow {
 			$Processors[] = new $ProcessorClass();
 		}
 		
-		include("{$this->basepath}/ui/settings/payments.html");
+		include("{$this->basepath}/core/ui/settings/payments.html");
 	}
 
 	function settings_get_gateways () {
