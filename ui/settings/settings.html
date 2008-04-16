@@ -31,7 +31,7 @@
 							<?php $even = true; foreach ($targets as $iso => $country): ?>
 								<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" checked="checked" /><label for="market-<?php echo $iso; ?>"><?php echo $country; ?></label></li>
 							<?php endforeach; ?>
-							<li><input type="checkbox" name="selectall_targetmarkets"  id="selectall_targetmarkets" /><label for="selectall_targetmarkets"><strong>Select All</strong></label></li>							
+							<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_targetmarkets"  id="selectall_targetmarkets" /><label for="selectall_targetmarkets"><strong>Select All</strong></label></li>							
 							<?php foreach ($countries as $iso => $country): ?>
 							<?php if (!in_array($country,$targets)): ?>
 							<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" /><label for="market-<?php echo $iso; ?>"><?php echo $country; ?></label></li>
@@ -83,8 +83,10 @@ $j('#base_operations').change(function() {
 
 $j('#selectall_targetmarkets').change(function() {
 	$j('div.multiple-select ul li input').each( function () {
-		if (this.checked) this.checked = false;
-		else this.checked = true;
+		if (this.id !== "selectall_targetmarkets") {
+			if (this.checked) this.checked = false;
+			else this.checked = true;
+		}
 	});
 });
 
