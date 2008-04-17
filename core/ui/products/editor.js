@@ -150,7 +150,7 @@ var addProductOption = function (p) {
 
 	var dataCell = $j('<td/>').appendTo(row);
 	var deleteButton = $j('<button id="deleteButton['+i+']" class="deleteButton" type="button" title="Delete product option&hellip;"></button>').appendTo(dataCell).hide();
-	var deleteIcon = $j('<img src="/wp-content/plugins/shopp/ui/icons/delete.png" width="16" height="16" title="Delete product option&hellip;" />').appendTo(deleteButton);
+	var deleteIcon = $j('<img src="'+rsrcdir+'/core/ui/icons/delete.png" width="16" height="16" title="Delete product option&hellip;" />').appendTo(deleteButton);
 
 	var pricingTable = $j('<table/>').addClass('pricing-table').appendTo(dataCell);
 

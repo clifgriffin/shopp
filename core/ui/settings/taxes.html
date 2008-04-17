@@ -13,7 +13,7 @@
 				<th scope="row" valign="top"><label for="taxrate[i]">Tax Rates</label></th> 
 				<td>
 					<table id="taxrates-table"></table>
-	            <button type="button" id="add-taxrate" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/ui/icons/add.png" alt="+" width="16" height="16" /> Add a Tax Rate</button></td> 
+	            <button type="button" id="add-taxrate" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /> Add a Tax Rate</button></td> 
 			</tr>
 
 		</table>
@@ -45,7 +45,7 @@ var addTaxRate = function (r) {
 	var rateCell = $j('<td></td>').html(' %').appendTo(row);
 	var rate = $j('<input type="text" name="settings[taxrates]['+i+'][rate]" value="" id="settings[taxrates]['+i+'][rate]" size="4" class="selectall right" />').prependTo(rateCell);
 	var deleteButton = $j('<button id="deleteButton['+i+']" class="deleteButton" type="button" title="Delete product option"></button>').prependTo(rateCell).hide();
-	var deleteIcon = $j('<img src="/wp-content/plugins/shopp/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteButton);
+	var deleteIcon = $j('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteButton);
 	
 	var countryCell = $j('<td></td>').appendTo(row);
 	var countryMenu = $j('<select name="settings[taxrates]['+i+'][country]" id="country['+i+']"></select>').appendTo(countryCell);

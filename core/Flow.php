@@ -11,6 +11,8 @@
 
 class Flow {
 	var $Core;
+	var $Admin;
+
 	var $basepath;
 	var $baseuri;
 	var $secureuri;
@@ -18,11 +20,18 @@ class Flow {
 	function Flow (&$Core) {
 		$this->Core =& $Core;
 		
-		print $this->Core->Settings->get('catalog_url');
 		$this->basepath = dirname(dirname(__FILE__));
 		$this->uri = ((!empty($_SERVER['HTTPS']))?"https://":"http://").
 					$_SERVER['SERVER_NAME'].str_replace("?".$_SERVER['QUERY_STRING'],"",$_SERVER['REQUEST_URI']);
 		$this->secureuri = 'https://'.$_SERVER['SERVER_NAME'].$this->uri;
+		
+		$this->Admin = new stdClass();
+		$this->Admin->default = $this->Core->directory."/".$this->Core->file;
+		$this->Admin->orders = $this->Admin->default;
+		$this->Admin->settings = $this->Core->directory."/settings";
+		$this->Admin->products = $this->Core->directory."/products";
+		
+		
 		define("SHOPP_BASEURI",$this->uri);
 		define("SHOPP_SECUREURI",$this->uri);	
 		define("SHOPP_PLUGINURI",$this->Core->uri);

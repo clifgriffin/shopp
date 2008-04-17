@@ -1,5 +1,5 @@
 <div class="wrap">
-	<form action="" method="get">
+	<form action="?page=<?php echo $this->Admin->products; ?>" method="get">
 	<div>
 		<input type="hidden" name="page" value="products" />
 		<input type="hidden" name="categories" value="list" />
@@ -28,7 +28,7 @@
 		<?php $even = false; foreach ($Categories as $Category): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Category->id; ?>' /></th>
-			<td><a class='row-title' href='?page=products&amp;category=<?php echo $Category->id; ?>' title='Edit &quot;<?php echo $Category->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->depth).$Category->name; ?></a></td>
+			<td><a class='row-title' href='?page=<?php echo $this->Admin->products; ?>&amp;category=<?php echo $Category->id; ?>' title='Edit &quot;<?php echo $Category->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->depth).$Category->name; ?></a></td>
 			<td><?php echo $Category->description; ?></td>
 			<td class="num"><?php echo $Category->products; ?></td>
 		</tr>

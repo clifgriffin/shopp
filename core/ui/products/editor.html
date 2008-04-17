@@ -1,11 +1,11 @@
-<script type="text/javascript" src="<?php echo SHOPP_PLUGINURI ?>ui/products/editor.js"></script>
+<script type="text/javascript" src="<?php echo SHOPP_PLUGINURI ?>/core/ui/products/editor.js"></script>
 <div class="wrap"> 
 
 <h2>Product Editor</h2> 
 
 <div id="ajax-response"></div> 
 
-<form name="product" id="product" method="post" action="" class="">
+<form name="product" id="product" action="?page=<?php echo $this->Admin->products; ?>" method="post">
 	<table class="form-table"> 
 		<tr class="form-field form-required"> 
 			<th scope="row" valign="top"><label for="name">Product Name</label></th> 
@@ -79,6 +79,6 @@
 
 <script type="text/javascript">
 var prices = <?php echo json_encode($Product->prices) ?>;
-
+var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 init();
 </script>
