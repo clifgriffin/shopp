@@ -1,0 +1,114 @@
+<div class="wrap">
+	<h2>Product Page Settings</h2>
+	<?php include("navigation.html"); ?>
+
+	<form name="settings" id="general" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+		<table class="form-table"> 
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="productpages-toggle">Product Pages</label></th> 
+				<td><input type="hidden" name="settings[product_pages]" value="off" /><input type="checkbox" name="settings[product_pages]" value="on" id="productpages-toggle"<?php if ($this->Core->Settings->get('product_pages') == "on") echo ' checked="checked"'?> /><label for="productpages-toggle"> Enabled</label><br /> 
+	            Enables built-in product pages &amp; themed product pages.  Disable if you are using custom product pages.</td>
+			</tr>
+		</table>
+		<h3>Images Presentaton</h3>
+		<table class="form-table"> 
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="gallery-showcase">Type</label></th> 
+				<td><input type="radio" name="settings[product_showcase_type]" value="gallery" id="gallery-showcase"/><label for="gallery-showcase"> Thumbnail Gallery</label><br />
+<input type="radio" name="settings[product_showcase_type]" value="slideshow" id="slideshow-showcase"/><label for="slideshow-showcase"> Slideshow</label><br />
+	            Select a thumbnail gallery, or slideshow to showcase product images.</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="embedded-integration">Integration</label></th> 
+				<td><input type="radio" name="settings[product_showcase_integration]" value="embedded" id="embedded-integration"/><label for="embedded-integration"> Embedded in product page</label><br />
+<input type="radio" name="settings[product_showcase_integration]" value="windowed" id="windowed-integration"/><label for="windowed-integration"> Launch in a new window</label><br />
+	            Determines how the gallery or slideshow is displayed.</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="showcase-order">Image Order</label></th> 
+				<td><select name="settings[product_showcase_order]" id="showcase-order">
+					<option>Order</option>
+					<option>Reverse Order</option>
+					<option>Shuffle</option>
+				</select> by
+				<select name="settings[product_showcase_order]" id="showcase-order">
+					<option>Custom arrangement</option>
+					<option>File name</option>
+					<option>Description</option>
+					<option>Alt/Title</option>
+					<option>Upload date</option>
+				</select>
+				<br />
+	            Set how to organize the presentation of product images.</td>
+			</tr>
+		<tbody id="gallery-settings">
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="gallery-feature-width">Featured Image Size</label></th> 
+				<td><span id="gallery-feature-width-input"><input type="text" name="settings[gallery_feature_width]" value="<?php echo $this->Core->Settings->get('gallery_feature_width'); ?>" id="gallery-feature-width" size="5" /><label for="gallery-feature-width"> width</label></span> <span id="gallery-feature-height-input"><input type="text" name="settings[gallery_feature_height]" value="<?php echo $this->Core->Settings->get('gallery_feature_height'); ?>" id="gallery-feature-height" size="5" /><label for="gallery-feature-height"> height</label></span>
+					<p><select name="settings[gallery_feature_sizing]" id="gallery-feature-sizing">
+						<?php echo menuoptions($sizingOptions, $this->Core->Settings->get('gallery_feature_sizing'),true); ?>
+					</select></p>
+					<p><select name="settings[gallery_feature_quality]" id="gallery-feature-quality">
+						<?php echo menuoptions($qualityOptions, $this->Core->Settings->get('gallery_feature_quality'),true); ?>
+					</select></p>
+					</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="gallery-thumbnail-width">Thumbnails</label></th> 
+				<td><span id="gallery-thumbnail-width-input"><input type="text" name="settings[gallery_thumbnail_width]" value="<?php echo $this->Core->Settings->get('gallery_thumbnail_width'); ?>" id="gallery-thumbnail-width" size="5" /><label for="gallery-thumbnail-width"> width</label></span> <span id="gallery-thumbnail-height-input"><input type="text" name="settings[gallery_thumbnail_height]" value="<?php echo $this->Core->Settings->get('gallery_thumbnail_height'); ?>" id="gallery-thumbnail-height" size="5" /><label for="gallery-thumbnail-height"> height</label></span>
+					<p><select name="settings[gallery_thumbnail_sizing]" id="gallery-thumbnail-sizing">
+						<?php echo menuoptions($sizingOptions, $this->Core->Settings->get('gallery_thumbnail_sizing'),true); ?>
+					</select></p>
+					<p><select name="settings[gallery_thumbnail_quality]" id="gallery-thumbnail-quality">
+						<?php echo menuoptions($qualityOptions, $this->Core->Settings->get('gallery_thumbnail_quality'),true); ?>
+					</select></p>
+					</td>
+			</tr>
+			<!-- <tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="showcase-order">Zoom Effect</label></th> 
+				<td><select name="settings[product_showcase_order]" id="showcase-order">
+					<option>Thickbox</option>
+					<option>Lightbox</option>
+					<option>Highslide</option>
+					<option>Shutter</option>
+				</select>
+				<br />
+	            </td>
+			</tr> -->
+		</tbody>
+		</table>
+		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
+	</form>
+</div>
+<script type="text/javascript">
+$j=jQuery.noConflict();
+
+$j('#gallery-feature-sizing').change(function() {
+	if (this.selectedIndex == 0) {
+		$j('#gallery-feature-width-input').show();	
+		$j('#gallery-feature-height-input').hide();	
+	} else if (this.selectedIndex == 1) {
+		$j('#gallery-feature-width-input').hide();	
+		$j('#gallery-feature-height-input').show();	
+	} else {
+		$j('#gallery-feature-width-input').show();	
+		$j('#gallery-feature-height-input').show();	
+	}
+	
+}).change();
+
+$j('#gallery-thumbnail-sizing').change(function() {
+	if (this.selectedIndex == 0) {
+		$j('#gallery-thumbnail-width-input').show();	
+		$j('#gallery-thumbnail-height-input').hide();	
+	} else if (this.selectedIndex == 1) {
+		$j('#gallery-thumbnail-width-input').hide();	
+		$j('#gallery-thumbnail-height-input').show();	
+	} else {
+		$j('#gallery-thumbnail-width-input').show();	
+		$j('#gallery-thumbnail-height-input').show();	
+	}
+	
+}).change();
+
+</script>

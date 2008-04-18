@@ -1,0 +1,20 @@
+<div class="wrap">
+	<h2>Cart Settings</h2>
+	<?php include("navigation.html"); ?>
+
+	<form name="settings" id="general" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+		<table class="form-table"> 
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="cart-toggle">Shopping Cart</label></th> 
+				<td><input type="hidden" name="settings[cart]" value="off" /><input type="checkbox" name="settings[cart]" value="on" id="cart-toggle"<?php if ($this->Core->Settings->get('cart') == "on") echo ' checked="checked"'?> /><label for="cart-toggle"> Enabled</label><br /> 
+	            Enables the built-in shopping cart.  Disable if you selling a single product for direct checkout.</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="cart_url">Cart Permalink</label></th> 
+				<td><input type="text" name="settings[cart_url]" value="<?php echo $this->Core->Settings->get('cart_url'); ?>" id="cart_url" size="40" /><br /> 
+	            This is the full web address (URL) of your shopping cart page found in Manage &gt; Pages</td>
+			</tr>
+		</table>
+		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
+	</form>
+</div>

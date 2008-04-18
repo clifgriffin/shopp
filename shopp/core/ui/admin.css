@@ -1,0 +1,81 @@
+body { position: relative; }
+button { cursor: pointer; }
+button.deleteButton { background: none; border: none; padding: 0; width: 16px; height: 16px; }
+input.right { text-align: right; }
+
+.form-table input.toggle { margin-left: -13px; }
+.form-table { position: relative; }
+.form-table td { position: relative; }
+.form-field th.pricing-label input { margin-top: 9px; }
+
+.pricing-table { width: 100%; }
+.pricing-table tr { background: none; }
+.pricing-table th { width: auto; border: none; padding: 0; vertical-align: top; }
+.pricing-table td { position: relative; border: none; padding: 0; vertical-align: top; white-space: no-wrap; }
+.pricing-table span.status { display: block; padding-top: 4px; }
+
+#pricing tr td button.deleteButton { position: absolute; right: 5px; }
+#pricing, #pricing tr, #pricing tr td { position: relative; }
+#pricing tr.dragging th,
+#pricing tr.dragging td { background-color: #cee1ef;}
+
+#product-images table.form-table td { margin: 0; background: #cee1ef; padding: 10px 0 0 10px; }
+#product-images #lightbox { list-style-type: none; margin: 0; padding: 0; }
+#product-images #lightbox li { position: relative; display: block; float: left; background: #ffffff; border: none; margin: 0 10px 10px 0; padding: 5px; cursor: move; width: 128px; height: 96px; border: 1px solid #cee1ef;}
+#product-images button { margin-top: 20px; width: 100%; }
+#product-images #lightbox li button.deleteButton { margin: 0; width: auto; position: absolute; top: -4px; right: -5px; }
+#product-images #lightbox li div.progress { position: relative; width: 99px; height: 15px; margin: 40px 0 0 14px; background: #eeeeee; }
+div.progress div.bar { position: absolute; height: 15px; background: #85ec3d;  }
+div.progress img { position: absolute; }
+
+#wpcontent .form-table select.scrolling { height: auto; }
+
+.form-table .multiple-select { overflow-x: hidden; overflow-y: auto; height: 100px; width: auto; display: inline-block; border: 1px solid rgb(221, 221, 221); background: #ffffff; }
+
+.form-table .multiple-select ul { list-style-type: none; margin: 0; padding: 0; line-height: 1; }
+.form-table .multiple-select ul li { margin: 0; padding: 2px 2px 0 0; }
+.form-table .multiple-select ul li input { margin: 0 5px; }
+.form-table .multiple-select ul li label { }
+.form-table .multiple-select ul li.odd { background: #f9f9f9; }
+.form-table .multiple-select ul ul { padding-left: 20px; }
+
+#new-category, 
+#new-category input, 
+#new-category select,
+#new-category button { width: 100%; }
+#new-category { margin-top: 5px; }
+#category-menu { width: 250px; }
+
+form { position: relative; }
+p.controls { position: absolute; top: 0; right: 0; margin: 0; }
+
+button img { margin-bottom: -3px; }
+
+#order { position: relative; }
+#order address { font-style: normal; }
+#order fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
+#order table.transaction { float: right; }
+#order table.transaction th { text-align: right; }
+
+#order .cart { width: 100%; clear: both; border: none; }
+#order .cart td { border: none; }
+#order .cart th { font-weight: bold; text-align: left; border: none; }
+#order .cart .item { width: 50%; }
+#order .cart .money, 
+#order .cart .total,
+#order .cart .buttons td { text-align: right; }
+#order .cart .remove { font-size: 12px; }
+#order .cart tr.totals th,.cart tr.totals td { padding: 7px 15px 9px 10px; }
+
+#taxrates-table th, 
+#taxrates-table td{ position: relative; text-align: left; border: none; padding: 0 5px 5px 0; }
+#taxrates-table button.deleteButton { margin-left: -16px; }
+
+#order-status p { margin: 0; padding: 0; }
+#order-status span { margin: 0 10px; }
+#order-status label { display: inline-block; padding-top: 3px; font-weight: bold; }
+
+#order-statuslabels li { position: relative; }
+#order-statuslabels li input { padding-right: 20px; margin-right: 5px; }
+#order-statuslabels button { position: relative; background: none; border: none; padding: 0; width: 16px; height: 16px; }
+#order-statuslabels button.delete { position: absolute; left: 120px; top: 4px; }
