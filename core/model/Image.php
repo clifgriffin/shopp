@@ -92,16 +92,14 @@ class ImageProcessor {
 		$heightScale = $height / $this->src->height;
 		
 		$this->Processed->image = ImageCreateTrueColor($this->Processed->width,$this->Processed->height);
-		if ($heightScale < $widthScale) {
+		if ($heightScale > $widthScale) {
 			$scale = $height / $this->src->height;		// Scale by height
 			$width = ceil($this->src->width * $scale);	// Determine proportional width
 			$x = ($width - $this->Processed->width)*-0.5;	// Center scaled image on the canvas
 			ImageCopyResampled($this->Processed->image, $this->src->image, 
 				$x, 0, 0, 0, 
 				$width, $this->Processed->height, $this->src->width, $this->src->height);
-		}
-		
-		if ($widthScale < $heightScale) {
+		} else {
 			$scale = $width / $this->src->width;			// Scale by width
 			$height = ceil($this->src->height * $scale);	// Determine proportional height
 			$y = ($height - $this->Processed->height)*-0.5;	// Center scaled image on the canvas
