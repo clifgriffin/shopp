@@ -11,6 +11,7 @@
 $j=jQuery.noConflict();
 
 var pricingOptions = new Array();
+var uploader = false;
 
 var init = function () {
 	$j('#addProductOption').click(function() {
@@ -40,7 +41,7 @@ var init = function () {
 		var parent = $j('#new-category select').val();
 		if (name != "") {
 			url = window.location.href.substr(0,window.location.href.indexOf('?'));
-			$j.getJSON(url+"?add=category&name="+name+"&parent="+parent,function(Category) {
+			$j.getJSON(url+"?shopp=add-category&name="+name+"&parent="+parent,function(Category) {
 				addCategoryMenuItem(Category);
 				addCategoryParentMenuOption(Category);
 
@@ -62,12 +63,12 @@ var init = function () {
 	// Initialize image uploader
 	var swfu = new SWFUpload({
 		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
-		upload_url: siteurl+'/wp-admin/admin.php?&add=image',
+		upload_url: siteurl+'/wp-admin/admin.php?shopp=add-image',
 		post_params: {"product" : $j('#image-product-id').val()},
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
 		file_types : "*.jpg;*.gif",
-		file_types_description : "Web Image Files",
+		file_types_description : "Web-compatible Image Files",
 		file_upload_limit : filesizeLimit,
 		custom_settings : {
 			targetHolder : false,
@@ -76,7 +77,6 @@ var init = function () {
 		},
 		debug: false,
 
-		// The event handler functions are defined in uploads.js
 		file_queued_handler : imageFileQueued,
 		file_queue_error_handler : imageFileQueueError,
 		file_dialog_complete_handler : imageFileDialogComplete,
@@ -93,6 +93,34 @@ var init = function () {
 	$j('#product-images ul li button.deleteButton').each(function () {
 		enableDeleteButton(this);
 	});
+	
+	
+	// Initialize image uploader
+	uploader = new SWFUpload({
+		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
+		upload_url: siteurl+'/wp-admin/admin.php?shopp=add-download',
+		file_queue_limit : 1,
+		file_size_limit : filesizeLimit+'b',
+		file_types : "*.*",
+		file_types_description : "All Files",
+		file_upload_limit : filesizeLimit,
+		custom_settings : {
+			targetCell : false,
+			progressBar : false,
+		},
+		debug: false,
+
+		file_queued_handler : fileQueued,
+		file_queue_error_handler : fileQueueError,
+		file_dialog_complete_handler : fileDialogComplete,
+		upload_start_handler : startUpload,
+		upload_progress_handler : uploadProgress,
+		upload_error_handler : uploadError,
+		upload_success_handler : uploadSuccess,
+		upload_complete_handler : uploadComplete,
+		queue_complete_handler : queueComplete
+	});
+	
 	
 }
 
@@ -158,7 +186,7 @@ var addCategoryParentMenuOption = function (c) {
 	});
 	
 	$j(children).each(function () {
-		if (name < $j(this).text()) {
+		if (name < $j(this).text() && $j(this).val() != "0") {
 			insertionPoint = this;
 			return false;
 		} 
@@ -178,68 +206,109 @@ var addProductOption = function (p) {
 	
 	i = pricingOptions.length;
 	var row = $j('<tr id="row['+i+']"></tr>').addClass('form-field').appendTo('#pricing');
-	var heading = $j('<th class="pricing-label"><label for="label['+i+']">Option Name</label><br /></th>').appendTo(row);
-	var label = $j('<input type="text" name="price['+i+'][label]" value="Option '+(i+1)+'" id="label['+i+']" size="16" title="Enter a name for this product option (used when showing product variations)" class="selectall" tabindex="'+(i+1)+'00" />').appendTo(heading);
+	var heading = $j('<th class="pricing-label"><label for="label['+i+']">Product Option</label></th>').appendTo(row);
+	var label = $j('<input type="text" name="price['+i+'][label]" value="Option '+(i+1)+'" id="label['+i+']" size="16" title="Enter a name for this product option (used when showing product options)" class="selectall" tabindex="'+(i+1)+'00" />').appendTo(heading);
+	var grouping = $j('<input type="text" name="price['+i+'][grouping]" value="Option Group" id="grouping['+i+']" size="16" class="selectall" tabindex="'+(i+1)+'01" />').appendTo(heading);
+	
+	if (optionGroups.length > 0) {
+		var groupingMenu = $j('<select name="price['+i+'][groupingmenu]" id="groupingmenu['+i+']" tabindex="'+(i+1)+'01"></select>').appendTo(heading);
+		$j(optionGroups).each(function(g,option) {
+			$j('<option value="'+option+'">'+option+'</option>').appendTo(groupingMenu);
+		});
+		$j('<option value="create-new-grouping">New Option Set&hellip;</option>').appendTo(groupingMenu);
+		
+		groupingMenu.change(function () {
+			if (groupingMenu.val() == "create-new-grouping") {
+				groupingMenu.hide();
+				grouping.show();
+			} else grouping.val(groupingMenu.val());
+			if (groupingMenu.val() == "") {
+				console.log("Selected empty group name.");
+				grouping.val('');
+			}
+		});
+		grouping.hide();
+	}
+	
+	if (i == 0) {
+		label.hide();
+		grouping.hide();
+		groupingMenu.hide();
+	} else if (i == 1) {
+		$j('#label\\[0\\]').show();
+		if (groupingMenu) $j('#groupingmenu\\[0\\]').show();
+		else $j('#grouping\\[0\\]');
+	}
+		
 	var myid = $j('<input type="hidden" name="price['+i+'][id]" id="id['+i+']" />').appendTo(heading);
 	var productid = $j('<input type="hidden" name="price['+i+'][product]" id="product['+i+']" />').appendTo(heading);
 	var sortorder = $j('<input type="hidden" name="sortorder[]" value="'+i+'" />').appendTo(heading);
 
 	var dataCell = $j('<td/>').appendTo(row);
-	var deleteButton = $j('<button id="deleteButton['+i+']" class="deleteButton" type="button" title="Delete product option&hellip;"></button>').appendTo(dataCell).hide();
+	var deleteButton = $j('<button id="deleteButton['+i+']" class="deleteButton" type="button" title="Delete product option&hellip;" tabindex="'+(i+1)+'99"></button>').appendTo(dataCell).hide();
 	var deleteIcon = $j('<img src="'+rsrcdir+'/core/ui/icons/delete.png" width="16" height="16" title="Delete product option&hellip;" />').appendTo(deleteButton);
 
 	var pricingTable = $j('<table/>').addClass('pricing-table').appendTo(dataCell);
 
-	var headingsRow = $j('<tr/>').appendTo(pricingTable);
-	var skuHeading = $j('<th><label for="sku['+i+']" title="Stock Keeping Unit">SKU</label></th>').appendTo(headingsRow);
-	var priceHeading = $j('<th><label for="price['+i+']">Price</label></th>').appendTo(headingsRow);
-	var salepriceHeading = $j('<th><label for="sale['+i+']"> Sale Price</label></th>').appendTo(headingsRow);
-	var shippingHeading = $j('<th><label for="shipping['+i+']"> Shipping</label></th>').appendTo(headingsRow);
-	var inventoryHeading = $j('<th><label for="inventory['+i+']"> Inventory</label></th>').appendTo(headingsRow);
-	var settingsHeading = $j('<th>Other Settings</th>').appendTo(headingsRow);
-
-	var salepriceToggle = $j('<input type="checkbox" name="price['+i+'][sale]" id="sale['+i+']" tabindex="'+(i+1)+'03" />').prependTo(salepriceHeading);
-	var shippingToggle = $j('<input type="checkbox" name="price['+i+'][shipping]" id="shipping['+i+']" tabindex="'+(i+1)+'05" />').prependTo(shippingHeading);
-	var inventoryToggle = $j('<input type="checkbox" name="price['+i+'][inventory]" id="inventory['+i+']" tabindex="'+(i+1)+'08" />').prependTo(inventoryHeading);
-	
+	var headingsRow = $j('<tr/>').appendTo(pricingTable);	
 	var inputsRow = $j('<tr/>').appendTo(pricingTable);
-	var skuCell = $j('<td/>').appendTo(inputsRow);
-	var sku = $j('<input type="text" name="price['+i+'][sku]" id="sku['+i+']" size="10" title="Enter a unique tracking number for this product option." class="selectall" tabindex="'+(i+1)+'01" />').appendTo(skuCell);
+	
+	var typeHeading = $j('<th><label for="sku['+i+']" title="Stock Keeping Unit">SKU</label> &amp; <label for="type['+i+']" title="Type of product">Type</label></th>').appendTo(headingsRow);
+	var skutypeCell = $j('<td/>').appendTo(inputsRow);
+	var sku = $j('<input type="text" name="price['+i+'][sku]" id="sku['+i+']" size="10" title="Enter a unique tracking number for this product option." class="selectall" tabindex="'+(i+1)+'01" />').appendTo(skutypeCell);
+	$j('<br />').appendTo(skutypeCell);
+	var type = $j('<select name="price['+i+'][type]" id="type['+i+']" tabindex="'+(i+1)+'02"></select>').appendTo(skutypeCell);
+	$j(optionTypes).each(function (t,name) {
+		var option = $j('<option>'+name+'</option>').appendTo(type);
+	});
 
+	var priceHeading = $j('<th></th>').appendTo(headingsRow);
+	var priceLabel = $j('<label for="price['+i+']">Price</label>').appendTo(priceHeading);
 	var priceCell = $j('<td/>').appendTo(inputsRow);
-	var price = $j('<input type="text" name="price['+i+'][price]" id="price['+i+']" value="0" size="10" class="selectall right" tabindex="'+(i+1)+'02" />').appendTo(priceCell);
+	var price = $j('<input type="text" name="price['+i+'][price]" id="price['+i+']" value="0" size="10" class="selectall right" tabindex="'+(i+1)+'03" />').appendTo(priceCell);
+	$j('<br />').appendTo(priceCell);
+	var tax = $j('<input type="checkbox" name="price['+i+'][tax]" id="tax['+i+']" tabindex="'+(i+1)+'04" />').appendTo(priceCell);
+	var taxLabel = $j('<label for="tax['+i+']"> Not Taxable</label><br />').appendTo(priceCell);
 
+	var salepriceHeading = $j('<th><label for="sale['+i+']"> Sale Price</label></th>').appendTo(headingsRow);
+	var salepriceToggle = $j('<input type="checkbox" name="price['+i+'][sale]" id="sale['+i+']" tabindex="'+(i+1)+'05" />').prependTo(salepriceHeading);
 	var salepriceCell = $j('<td/>').appendTo(inputsRow);
 	var salepriceStatus = $j('<span id="test['+i+']">Not on Sale</span>').addClass('status').appendTo(salepriceCell);
 	var salepriceField = $j('<span/>').addClass('fields').appendTo(salepriceCell).hide();
-	var saleprice = $j('<input type="text" name="price['+i+'][saleprice]" id="saleprice['+i+']" size="10" class="selectall right" tabindex="'+(i+1)+'04" />').appendTo(salepriceField);
+	var saleprice = $j('<input type="text" name="price['+i+'][saleprice]" id="saleprice['+i+']" size="10" class="selectall right" tabindex="'+(i+1)+'06" />').appendTo(salepriceField);
 	
+	var donationSpacingCell = $j('<td rowspan="2" width="58%" />').appendTo(headingsRow);
+	
+	var shippingHeading = $j('<th><label for="shipping['+i+']"> Shipping</label></th>').appendTo(headingsRow);
+	var shippingToggle = $j('<input type="checkbox" name="price['+i+'][shipping]" id="shipping['+i+']" tabindex="'+(i+1)+'07" />').prependTo(shippingHeading);
 	var shippingCell = $j('<td/>').appendTo(inputsRow);
 	var shippingStatus = $j('<span>Shipping Disabled</span>').addClass('status').appendTo(shippingCell);
 	var shippingFields = $j('<span/>').addClass('fields').appendTo(shippingCell).hide();
-	var shippingDom = $j('<input type="text" name="price['+i+'][domship]" id="domship['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'06" />').appendTo(shippingFields);
+	var shippingDom = $j('<input type="text" name="price['+i+'][domship]" id="domship['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'08" />').appendTo(shippingFields);
 	var shippingDomLabel = $j('<label for="domship['+i+']" title="Domestic"> Dom</label><br />').appendTo(shippingFields);
-	var shippingIntl = $j('<input type="text" name="price['+i+'][intlship]" id="intlship['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'07" />').appendTo(shippingFields);
+	var shippingIntl = $j('<input type="text" name="price['+i+'][intlship]" id="intlship['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'09" />').appendTo(shippingFields);
 	var shippingIntlLabel = $j('<label for="intlship['+i+']" title="International"> Int\'l</label>').appendTo(shippingFields);
 
+	var inventoryHeading = $j('<th><label for="inventory['+i+']"> Inventory</label></th>').appendTo(headingsRow);
+	var inventoryToggle = $j('<input type="checkbox" name="price['+i+'][inventory]" id="inventory['+i+']" tabindex="'+(i+1)+'10" />').prependTo(inventoryHeading);
 	var inventoryCell = $j('<td/>').appendTo(inputsRow);
 	var inventoryStatus = $j('<span>Not Tracked</span>').addClass('status').appendTo(inventoryCell);
 	var inventoryField = $j('<span/>').addClass('fields').appendTo(inventoryCell).hide();
-	var stock = $j('<input type="text" name="price['+i+'][stock]" id="stock['+i+']" size="8" class="selectall" tabindex="'+(i+1)+'09" />').appendTo(inventoryField);
+	var stock = $j('<input type="text" name="price['+i+'][stock]" id="stock['+i+']" size="8" class="selectall" tabindex="'+(i+1)+'11" />').appendTo(inventoryField);
 	var inventoryBr = $j('<br/>').appendTo(inventoryField);
 	var inventoryLabel =$j('<label for="stock['+i+']">Qty in stock</label>').appendTo(inventoryField);
-	
-	var settingsCell = $j('<td/>').appendTo(inputsRow);
-	var tax = $j('<input type="checkbox" name="price['+i+'][tax]" id="tax['+i+']" tabindex="'+(i+1)+'10" />').appendTo(settingsCell);
-	var taxLabel = $j('<label for="tax['+i+']"> Not Taxable</label><br />').appendTo(settingsCell);
-	var donation = $j('<input type="checkbox" name="price['+i+'][donation]" id="donation['+i+']" tabindex="'+(i+1)+'11" />').appendTo(settingsCell);
-	var donationLabel = $j('<label for="donation['+i+']"> Donation</label><br />').appendTo(settingsCell);
-	var download = $j('<input type="checkbox" name="price['+i+'][download]" id="download['+i+']" tabindex="'+(i+1)+'12" />').appendTo(settingsCell);
-	var downloadLabel = $j('<label for="download['+i+']"> Download</label><br />').appendTo(settingsCell);
+		
+	var downloadHeading = $j('<th><label for="download['+i+']">Product Download</label></th>').appendTo(headingsRow);
+	var downloadCell = $j('<td width="31%" />').appendTo(inputsRow);
+	var downloadFile = $j('<span>No product download.</span>').appendTo(downloadCell);
 
+	var uploadHeading = $j('<td rowspan="2" class="controls" width="75" />').appendTo(headingsRow);
+	var uploadButton = $j('<button type="button" class="button-secondary" tabindex="'+(i+1)+'12"><small>Upload File</small></button>').appendTo(uploadHeading);
+	
+	uploadButton.click(function () { uploader.targetCell = downloadFile; uploader.selectFiles(); });
+	
 	var rowBG = row.css("background-color");
 	var deletingBG = "#ffebe8";
-	
 	
 	row.hover(function () {
 			deleteButton.show();
@@ -263,6 +332,44 @@ var addProductOption = function (p) {
 			}
 		}
 	});
+	var hideAllFields = function () {
+		salepriceHeading.hide();
+		salepriceCell.hide();
+		shippingHeading.hide();
+		shippingCell.hide();
+		inventoryHeading.hide();
+		inventoryCell.hide();
+		downloadHeading.hide();
+		downloadCell.hide();
+		uploadHeading.hide();
+		donationSpacingCell.hide();
+		priceLabel.html("Price");
+	}
+	
+	type.change(function () {
+		hideAllFields();
+		if (type.val() == "Shipped") {
+			salepriceHeading.show();
+			salepriceCell.show();
+			shippingHeading.show();
+			shippingCell.show();
+			inventoryHeading.show();
+			inventoryCell.show();
+		}
+		if (type.val() == "Download") {
+			salepriceHeading.show();
+			salepriceCell.show();
+			downloadHeading.show();
+			downloadCell.show();
+			uploadHeading.show();
+		}
+		if (type.val() == "Donation") {
+			priceLabel.html("Amount");
+			donationSpacingCell.show();
+			tax.each(function() { this.checked = true; }).change();
+		}
+		
+	});
 	
 	salepriceToggle.change(function (e) {
 		salepriceStatus.toggle();
@@ -285,11 +392,14 @@ var addProductOption = function (p) {
 	shippingIntl.change(function() { this.value = asMoney(this.value); }).change();
 	
 	if (p) {
-		label.each(function() { this.value = p.label; });
-		myid.each(function() { this.value = p.id; });
-		productid.each(function() { this.value = p.product; });
-		sku.each(function() { this.value = p.sku; });
-		price.each(function() { this.value = asMoney(p.price); });
+		label.val(p.label);
+		grouping.val(p.grouping);
+		if (groupingMenu) groupingMenu.val(p.grouping);
+		myid.val(p.id);
+		productid.val(p.product);
+		sku.val(p.sku);
+		type.val(p.type);
+		price.val(asMoney(p.price));
 
 		if (p.sale == "on") salepriceToggle.each(function() { this.checked = true; }).change();
 		if (p.shipping == "on") shippingToggle.each(function() { this.checked = true; }).change();
@@ -301,9 +411,9 @@ var addProductOption = function (p) {
 		stock.val(p.stock);
 
 		if (p.tax == "off") tax.each(function() { this.checked = true; });
-		if (p.donation == "on") donation.each(function() { this.checked = true; });
-		if (p.download == "on") download.each(function() { this.checked = true; });
 	}
+	type.change();
+	label.focus();
 	
 	pricingOptions.push(row);
 	$j('#options').val(pricingOptions.length);
@@ -340,7 +450,7 @@ var startImageUpload = function (file) {
 	var sorting = $j('<input type="hidden" name="images[]" value="" />').appendTo(cell);
 	var progress = $j('<div class="progress"></div>').appendTo(cell);
 	var bar = $j('<div class="bar"></div>').appendTo(progress);
-	var art = $j('<img src="'+rsrcdir+'/core/ui/icons/progressbar.png" alt="Upload Progress" width="99" height="15" />').appendTo(progress);
+	var art = $j('<div class="gloss"></div>').appendTo(progress);
 
 	this.targetHolder = cell;
 	this.progressBar = bar;
@@ -349,7 +459,7 @@ var startImageUpload = function (file) {
 }
 
 var imageUploadProgress = function (file, loaded, total) {
-	var progress = Math((loaded/total)*99).round();
+	var progress = Math((loaded/total)*100).round();
 	$j(this.progressBar).animate({'width':progress+'px'},100);
 }
 
@@ -365,7 +475,7 @@ var imageUploadSuccess = function (file, results) {
 	var deleteButton = $j('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($j(this.targetHolder)).hide();
 	var deleteIcon = $j('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
 	
-	$j(this.progressBar).animate({'width':'99px'},250,function () { 
+	$j(this.progressBar).animate({'width':'100px'},250,function () { 
 		$j(this).parent().fadeOut(500,function() {
 			$j(this).remove(); 
 			$j(img).fadeIn('500');
@@ -402,3 +512,67 @@ var enableDeleteButton = function (button) {
 	});
 }
 
+/**
+ * SWFUpload pricing option upload file event handlers
+ **/
+var fileQueued = function (file) {
+
+}
+
+var fileQueueError = function (file, error, message) {
+	if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
+		alert("You selected too many files to upload at one time. " + (message === 0 ? "You have reached the upload limit." : "You may upload " + (message > 1 ? "up to " + message + " files." : "only one file.")));
+		return;
+	}
+
+}
+
+var fileDialogComplete = function (selected, queued) {
+	try {
+		this.startUpload();
+	} catch (ex) {
+		this.debug(ex);
+	}
+}
+
+var startUpload = function (file) {
+	this.targetCell.html('');
+	var progress = $j('<div class="progress"></div>').appendTo(this.targetCell);
+	var bar = $j('<div class="bar"></div>').appendTo(progress);
+	var art = $j('<div class="gloss"></div>').appendTo(progress);
+	
+	this.progressBar = bar;
+	
+	return true;
+}
+
+var uploadProgress = function (file, loaded, total) {
+	var progress = Math((loaded/total)*100).round();
+	$j(this.progressBar).animate({'width':progress+'px'},100);
+}
+
+var uploadError = function (file, error, message) {
+
+}
+
+var uploadSuccess = function (file, results) {
+	var filedata = eval('('+results+')');
+	var targetCell = this.targetCell;
+	filedata.type = filedata.type.replace(/\//gi," ");
+	$j(this.progressBar).animate({'width':'100px'},250,function () { 
+		$j(this).parent().fadeOut(500,function() {
+			$j(this).remove(); 
+			$j(targetCell).html('<div class="file '+filedata.type+'">'+filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small></div>');
+			
+		});
+	});
+	
+	
+}
+
+var uploadComplete = function (file) {
+}
+
+var queueComplete = function (uploads) {
+
+}

@@ -423,6 +423,32 @@ function sort_tree ($items,$parent=0,$depth=-1) {
 }
 
 /**
+ * file_mimetype
+ * Tries a variety of methods to determine a file's mimetype */
+function file_mimetype ($file) {
+	if (function_exists('finfo_open')) {
+		// Try using PECL module
+		$f = finfo_open(FILEINFO_MIME);
+		$mime = finfo_file($f, $file);
+		finfo_close($f);
+		return $mime;
+	} elseif (class_exists('finfo')) {
+		// Or class
+		$f = new finfo(FILEINFO_MIME);
+		return $f->file($file);
+	} elseif (strlen($mime=@shell_exec("file -bI ".escapeshellarg($file)))!=0) {
+		// Use shell if allowed
+		return trim($mime);
+	} elseif (strlen($mime=@shell_exec("file -bi ".escapeshellarg($file)))!=0) {
+		// Use shell if allowed
+		return trim($mime);
+	} elseif (function_exists('mime_content_type')) {
+		// Try with magic-mime if available
+		return mime_content_type($file);
+	}
+}
+
+/**
  * Returns a list marked-up as drop-down menu options */
 function menuoptions ($list,$selected=null,$values=false) {
 	$string = "";

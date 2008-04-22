@@ -212,11 +212,6 @@ class Cart {
 				
 		}
 		
-		if ($Totals->shipping > 0 
-				&& $Totals->tax > 0  
-				&& $Totals->taxrate > 0)
-			$Totals->tax += $Totals->shipping * ($Totals->taxrate/100);
-		
 		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
 		
 		

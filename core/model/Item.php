@@ -13,6 +13,7 @@ class Item {
 	var $product;
 	var $price;
 	var $sku;
+	var $type;
 	var $name;
 	var $brand;
 	var $optionname;
@@ -32,6 +33,7 @@ class Item {
 		$this->name = $Product->name;
 		$this->brand = $Product->brand;
 		$this->sku = $Price->sku;
+		$this->type = $Price->type;
 		$this->discount = 0; // Not implemented yet
 		$this->quantity = $qty;
 		$this->unitprice = (($Price->sale == "on")?$Price->saleprice:$Price->price);

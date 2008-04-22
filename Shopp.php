@@ -48,7 +48,6 @@ class Shopp {
 		add_action('wp_head', array(&$this, 'page_headers'));
 		register_activation_hook(__FILE__, array(&$this,'activate'));
 
-	 
 	}
 	
 	function add_menus () {
@@ -103,29 +102,14 @@ class Shopp {
 	function settings () {
 		
 		switch($_GET['edit']) {
-			case "products":
-				$this->Flow->settings_product_page();
-				break;
-			case "catalog":
-				$this->Flow->settings_catalog();
-				break;
-			case "cart":
-				$this->Flow->settings_cart();
-				break;
-			case "checkout":
-				$this->Flow->settings_checkout();
-				break;
-			case "payments":
-				$this->Flow->settings_payments();
-				break;
-			case "shipping":
-				$this->Flow->settings_shipping();
-				break;
-			case "taxes":
-				$this->Flow->settings_taxes();
-				break;
-			default:
-				$this->Flow->settings_general();
+			case "products": 	$this->Flow->settings_product_page(); break;
+			case "catalog": 	$this->Flow->settings_catalog(); break;
+			case "cart": 		$this->Flow->settings_cart(); break;
+			case "checkout": 	$this->Flow->settings_checkout(); break;
+			case "payments": 	$this->Flow->settings_payments(); break;
+			case "shipping": 	$this->Flow->settings_shipping(); break;
+			case "taxes": 		$this->Flow->settings_taxes(); break;
+			default: 			$this->Flow->settings_general();
 		}
 		
 	}
@@ -323,8 +307,9 @@ class Shopp {
 	function ajax() {
 		$db =& DB::get();
 		
-		switch($_GET['add']) {
-			case "category":
+		// TODO: Move processing code to Flow
+		switch($_GET['shopp']) {
+			case "add-category":
 				if (!empty($_GET['name'])) {
 					require("core/model/Category.php");
 					$Category = new Category();
@@ -335,21 +320,22 @@ class Shopp {
 				}
 				exit();
 				break;
-			case "image":
+			case "add-image":
 				require("core/model/Asset.php");
 				require("core/model/Image.php");
 				
-				$data = file_get_contents($_FILES['Filedata']['tmp_name']);
+				// TODO: add some error handling here
+				
 				// Save the source image
 				$Image = new Asset();
-				$Image->product = $_POST['product'];
-				$Image->type = "image";
+				$Image->parent = $_POST['product'];
+				$Image->type = "product";
+				$Image->datatype = "image";
 				$Image->name = $_FILES['Filedata']['name'];
 				list($width, $height, $mimetype, $attr) = getimagesize($_FILES['Filedata']['tmp_name']);
 				$Image->properties = array("width" => $width,"height" => $height, "mimetype" => image_type_to_mime_type($mimetype), "attr" => $attr);
-				$Image->data = $data;
+				$Image->data = file_get_contents($_FILES['Filedata']['tmp_name']);
 				$Image->save();
-				unset($Image->data); // Save memory for thumbnail processing
 				
 				// Generate Thumbnail
 				$ThumbnailSettings = array();
@@ -359,12 +345,14 @@ class Shopp {
 				$ThumbnailSettings['quality'] = $this->Settings->get('gallery_thumbnail_quality');
 
 				$Thumbnail = new Asset();
-				$Thumbnail->product = $_POST['product'];
+				$Thumbnail->parent = $_POST['product'];
+				$Thumbnail->type = "product";
+				$Thumbnail->datatype = "thumbnail";
 				$Thumbnail->src = $Image->id;
-				$Thumbnail->type = "thumbnail";
 				$Thumbnail->name = "thumbnail_".$Image->name;
 				
-				$ThumbnailSizing = new ImageProcessor($data,$width,$height);
+				$ThumbnailSizing = new ImageProcessor($Image->data,$width,$height);
+				unset($Image->data); // Save memory for thumbnail processing
 				
 				switch ($ThumbnailSettings['sizing']) {
 					case "0": $ThumbnailSizing->scaleToWidth($ThumbnailSettings['width']); break;
@@ -385,6 +373,26 @@ class Shopp {
 				echo json_encode(array("id"=>$Thumbnail->id,"src"=>$Thumbnail->src));
 				exit();
 				break;
+			case "add-download":
+				require("core/model/Asset.php");
+
+				// TODO: Error handling
+				// TODO: Security - anti-virus scan?
+				
+				// Save the source image
+				$File = new Asset();
+				$File->parent = 0;
+				$File->name = $_FILES['Filedata']['name'];
+				$File->datatype = "download";
+				$File->size = filesize($_FILES['Filedata']['tmp_name']);
+				$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name']));
+				$File->data = file_get_contents($_FILES['Filedata']['tmp_name']);
+				$File->save();
+				unset($File->data); // Remove file contents from memory
+				
+				echo json_encode(array("id"=>$File->id,"name"=>$File->name,"type"=>$File->properties['mimetype'],"size"=>$File->size));
+				exit();
+				break;
 		}
 		
 		
@@ -394,8 +402,8 @@ class Shopp {
 
 /**
  * shopp()
- * Provides for Shopp 'tag' support to allow for complete 
- * customization of all customer interfaces
+ * Provides the Shopp 'tag' support to allow for complete 
+ * customization of customer interfaces
  *
  * @param $object - The object to get the tag property from
  * @param $property - The property of the object to get/output

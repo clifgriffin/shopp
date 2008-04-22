@@ -6,7 +6,7 @@ input.right { text-align: right; }
 .form-table input.toggle { margin-left: -13px; }
 .form-table { position: relative; }
 .form-table td { position: relative; }
-.form-field th.pricing-label input { margin-top: 9px; }
+.form-field th.pricing-label label { display: block; margin-bottom: 7px; }
 
 .pricing-table { width: 100%; }
 .pricing-table tr { background: none; }
@@ -14,19 +14,37 @@ input.right { text-align: right; }
 .pricing-table td { position: relative; border: none; padding: 0; vertical-align: top; white-space: no-wrap; }
 .pricing-table span.status { display: block; padding-top: 4px; }
 
-#pricing tr td button.deleteButton { position: absolute; right: 5px; }
 #pricing, #pricing tr, #pricing tr td { position: relative; }
 #pricing tr.dragging th,
 #pricing tr.dragging td { background-color: #cee1ef;}
+#pricing tr td button { padding: 1px 5px; }
+#pricing tr td button.deleteButton { position: absolute; right: 5px; padding: 0; }
+#pricing tr .controls { text-align: right; vertical-align: bottom; }
+
+#pricing div.file { background: url('/wp-content/plugins/shopp/core/ui/icons/page_white.png') no-repeat left 2px; padding-left: 20px; }
+#pricing div.file.image { background-image: url('/wp-content/plugins/shopp/core/ui/icons/image.png'); }
+#pricing div.file.audio { background-image: url('/wp-content/plugins/shopp/core/ui/icons/music.png'); }
+#pricing div.file.video { background-image: url('/wp-content/plugins/shopp/core/ui/icons/film.png'); }
+#pricing div.file.pdf { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_acrobat.png'); }
+#pricing div.file.msword { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_word.png'); }
+#pricing div.file.excel { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_excel.png'); }
+
+#pricing div.file.x-zip,
+#pricing div.file.x-stuffit,
+#pricing div.file.x-tar
+{ background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_zip.png'); }
+
+div.progress { position: relative; width: 100px; height: 10px; background: #ffffff; border: 1px solid #dddddd;}
+div.progress div.bar { position: absolute; height: 10px; background: #85ec3d;  }
+div.progress div.gloss { position: absolute; width: 100%; height: 10px; background: url('/wp-content/plugins/shopp/core/ui/icons/gloss.png') repeat-x; }
 
 #product-images table.form-table td { margin: 0; background: #cee1ef; padding: 10px 0 0 10px; }
 #product-images #lightbox { list-style-type: none; margin: 0; padding: 0; }
 #product-images #lightbox li { position: relative; display: block; float: left; background: #ffffff; border: none; margin: 0 10px 10px 0; padding: 5px; cursor: move; width: 128px; height: 96px; border: 1px solid #cee1ef;}
 #product-images button { margin-top: 20px; width: 100%; }
 #product-images #lightbox li button.deleteButton { margin: 0; width: auto; position: absolute; top: -4px; right: -5px; }
-#product-images #lightbox li div.progress { position: relative; width: 99px; height: 15px; margin: 40px 0 0 14px; background: #eeeeee; }
-div.progress div.bar { position: absolute; height: 15px; background: #85ec3d;  }
-div.progress img { position: absolute; }
+
+#product-images #lightbox div.progress { margin: 40px 0 0 14px; }
 
 #wpcontent .form-table select.scrolling { height: auto; }
 

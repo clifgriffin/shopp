@@ -32,7 +32,7 @@
 			<td><?php echo $Product->categories; ?></td>
 			<td><?php
 				if ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
-				else echo money($Product->maxprice)."&mdash;".money($Product->minprice);
+				else echo money($Product->minprice)."&mdash;".money($Product->maxprice);
 			?></td>
 		</tr>
 		<?php endforeach; ?>
