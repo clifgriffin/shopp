@@ -1,5 +1,5 @@
 <div class="wrap">
-	<form action="" method="get">
+	<form action="" id="categories" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" />
 	</div>
@@ -49,8 +49,10 @@
 	});
 
 	$j('#delete-button').click(function() {
-		if (confirm("Are you sure you want to delete the selected categories?")) return true;
-		else return false;
+		if (confirm("Are you sure you want to delete the selected categories?")) {
+			$j('<input type="hidden" name="categories" value="list" />').appendTo($j('#categories'));
+			return true;
+		} else return false;
 	});
 	
 </script>

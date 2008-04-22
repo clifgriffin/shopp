@@ -34,7 +34,7 @@
 				<div id="new-category">
 				<input type="text" name="new-category" value="" size="15" id="new-category" /><br />
 				<select name="new-category-parent"><?php echo $categories_menu; ?></select>
-				<button id="add-new-category" type="button" class="button-secondary"><small>Add New Category</small></button>
+				<button id="add-new-category" type="button" class="button-secondary" tabindex="5"><small>Add New Category</small></button>
 				</div>
 				</th> 
 			<td> 
@@ -47,7 +47,7 @@
 								</ul></li>
 							<?php endfor; ?>
 						<?php endif; ?>
-						<li id="category-element-<?php echo $category->id; ?>"><input type="checkbox" name="categories[]" value="<?php echo $category->id; ?>" id="category-<?php echo $category->id; ?>"<?php if (in_array($category->id,$selectedCategories)) echo ' checked="checked"'; ?> /><label for="category-<?php echo $category->id; ?>"><?php echo $category->name; ?></label></li>
+						<li id="category-element-<?php echo $category->id; ?>"><input type="checkbox" name="categories[]" value="<?php echo $category->id; ?>" id="category-<?php echo $category->id; ?>" tabindex="4"<?php if (in_array($category->id,$selectedCategories)) echo ' checked="checked"'; ?> /><label for="category-<?php echo $category->id; ?>"><?php echo $category->name; ?></label></li>
 						<?php $depth = $category->depth; endforeach; ?>
 						<?php for ($i = 0; $i < $depth; $i++): ?>
 							</ul></li>
@@ -60,7 +60,7 @@
 			<th scope="row" valign="top"><label>Product Images</label>
 				<input type="hidden" name="product" value="<?php echo $_GET['edit']; ?>" id="image-product-id" />
 				<input type="hidden" name="deleteImages" id="deleteImages" value="" />
-				<button type="button" class="button-secondary" name="add-image" id="add-product-image"><small>Add New Image</small></button></th> 
+				<button type="button" class="button-secondary" name="add-image" id="add-product-image" tabindex="6"><small>Add New Image</small></button></th> 
 			<td>
 				<ul id="lightbox">
 				<?php foreach ($Images as $thumbnail): ?>
@@ -90,6 +90,8 @@
 
 <script type="text/javascript">
 var prices = <?php echo json_encode($Product->prices) ?>;
+var optionGroups = <?php echo json_encode($optionGroups) ?>;
+var optionTypes = <?php echo json_encode($optionTypes) ?>;
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 var siteurl = '<?php echo get_option('siteurl'); ?>';
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;

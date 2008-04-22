@@ -1,7 +1,7 @@
 <?php
 /**
- * Flow controller
- * Main flow controller for all miscellaneous application flow calls
+ * Flow handler
+ * Main flow control handler for all application request/process handling
  *
  * @author Jonathan Davis
  * @version 1.0
@@ -299,8 +299,7 @@ class Flow {
 		$pt = new Price();
 		$cat = new Category();
 		$clog = new Catalog();
-		
-		$Products = $db->query("SELECT pd.id,pd.name,pd.brand,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd->_table AS pd LEFT JOIN $pt->_table AS pt ON pd.id=pt.product LEFT JOIN $clog->_table AS clog ON pt.product=clog.product LEFT JOIN $cat->_table AS cat ON cat.id=clog.category GROUP BY pt.product",AS_ARRAY);
+		$Products = $db->query("SELECT pd.id,pd.name,pd.brand,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd->_table AS pd LEFT JOIN $pt->_table AS pt ON pd.id=pt.product LEFT JOIN $clog->_table AS clog ON pd.id=clog.product LEFT JOIN $cat->_table AS cat ON cat.id=clog.category GROUP BY pd.id",AS_ARRAY);
 		unset($pd,$pt,$cat,$clog);
 		
 		include("{$this->basepath}/core/ui/products/products.html");
@@ -325,8 +324,15 @@ class Flow {
 		require_once("{$this->basepath}/core/model/Category.php");
 
 		$brands = array('');
-		$brandnames = $db->query("SELECT brand FROM $Product->_table GROUP BY brand",AS_ARRAY);
+		$brandnames = $db->query("SELECT brand FROM $Product->_table WHERE brand <> '' GROUP BY brand",AS_ARRAY);
 		foreach($brandnames as $name) $brands[] = $name->brand;
+
+		$Price = new Price();
+		$optionTypes = $Price->_lists['type'];
+		$optionGroups = array('');
+		$optionGroupNames = $db->query("SELECT grouping FROM $Price->_table WHERE grouping <> '' GROUP BY grouping",AS_ARRAY);
+		foreach($optionGroupNames as $name) $optionGroups[] = $name->grouping;
+		unset($Price,$optionGroupNames);
 		
 		$Category = new Category();
 		$categories = $db->query("SELECT id,name,parent FROM $Category->_table ORDER BY parent,name",AS_ARRAY);
@@ -338,7 +344,7 @@ class Flow {
 		foreach ($categories as $category) {
 			$padding = str_repeat("&nbsp;",$category->depth*3);
 			$categories_menu .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'">'.$padding.$category->name.'</option>';
-		}
+		}		
 		
 		$selectedCategories = array();
 		foreach ($Product->categories as $catalog) $selectedCategories[] = $catalog->category;
@@ -388,7 +394,6 @@ class Flow {
 			unset($Price);
 		}
 		
-		// TO DO: Move image deleting to Product class
 		if (!empty($_POST['deleteImages'])) {			
 			$deletes = array();
 			if (strpos($_POST['deleteImages'],","))	$deletes = split(',',$_POST['deleteImages']);
