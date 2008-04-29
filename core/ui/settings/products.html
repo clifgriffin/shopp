@@ -6,9 +6,15 @@
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="productpages-toggle">Product Pages</label></th> 
-				<td><input type="hidden" name="settings[product_pages]" value="off" /><input type="checkbox" name="settings[product_pages]" value="on" id="productpages-toggle"<?php if ($this->Core->Settings->get('product_pages') == "on") echo ' checked="checked"'?> /><label for="productpages-toggle"> Enabled</label><br /> 
+				<td><input type="hidden" name="settings[product_pages]" value="off" /><input type="checkbox" name="settings[product_pages]" value="on" id="productpages-toggle"<?php if ($this->Settings->get('product_pages') == "on") echo ' checked="checked"'?> /><label for="productpages-toggle"> Enabled</label><br /> 
 	            Enables built-in product pages &amp; themed product pages.  Disable if you are using custom product pages.</td>
 			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="outofstock-text">Out-of-stock Notice</label></th> 
+				<td><input type="text" name="settings[outofstock_text]" value="<?php echo $this->Settings->get('outofstock_text'); ?>" id="outofstock-text"><br /> 
+	            Text used to notify the customer the product is out-of-stock or on backorder.</td>
+			</tr>
+			
 		</table>
 		<h3>Images Presentaton</h3>
 		<table class="form-table"> 
@@ -44,23 +50,23 @@
 		<tbody id="gallery-settings">
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="gallery-feature-width">Featured Image Size</label></th> 
-				<td><span id="gallery-feature-width-input"><input type="text" name="settings[gallery_feature_width]" value="<?php echo $this->Core->Settings->get('gallery_feature_width'); ?>" id="gallery-feature-width" size="5" /><label for="gallery-feature-width"> width</label></span> <span id="gallery-feature-height-input"><input type="text" name="settings[gallery_feature_height]" value="<?php echo $this->Core->Settings->get('gallery_feature_height'); ?>" id="gallery-feature-height" size="5" /><label for="gallery-feature-height"> height</label></span>
+				<td><span id="gallery-feature-width-input"><input type="text" name="settings[gallery_feature_width]" value="<?php echo $this->Settings->get('gallery_feature_width'); ?>" id="gallery-feature-width" size="5" /><label for="gallery-feature-width"> width</label></span> <span id="gallery-feature-height-input"><input type="text" name="settings[gallery_feature_height]" value="<?php echo $this->Settings->get('gallery_feature_height'); ?>" id="gallery-feature-height" size="5" /><label for="gallery-feature-height"> height</label></span>
 					<p><select name="settings[gallery_feature_sizing]" id="gallery-feature-sizing">
-						<?php echo menuoptions($sizingOptions, $this->Core->Settings->get('gallery_feature_sizing'),true); ?>
+						<?php echo menuoptions($sizingOptions, $this->Settings->get('gallery_feature_sizing'),true); ?>
 					</select></p>
 					<p><select name="settings[gallery_feature_quality]" id="gallery-feature-quality">
-						<?php echo menuoptions($qualityOptions, $this->Core->Settings->get('gallery_feature_quality'),true); ?>
+						<?php echo menuoptions($qualityOptions, $this->Settings->get('gallery_feature_quality'),true); ?>
 					</select></p>
 					</td>
 			</tr>
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="gallery-thumbnail-width">Thumbnails</label></th> 
-				<td><span id="gallery-thumbnail-width-input"><input type="text" name="settings[gallery_thumbnail_width]" value="<?php echo $this->Core->Settings->get('gallery_thumbnail_width'); ?>" id="gallery-thumbnail-width" size="5" /><label for="gallery-thumbnail-width"> width</label></span> <span id="gallery-thumbnail-height-input"><input type="text" name="settings[gallery_thumbnail_height]" value="<?php echo $this->Core->Settings->get('gallery_thumbnail_height'); ?>" id="gallery-thumbnail-height" size="5" /><label for="gallery-thumbnail-height"> height</label></span>
+				<td><span id="gallery-thumbnail-width-input"><input type="text" name="settings[gallery_thumbnail_width]" value="<?php echo $this->Settings->get('gallery_thumbnail_width'); ?>" id="gallery-thumbnail-width" size="5" /><label for="gallery-thumbnail-width"> width</label></span> <span id="gallery-thumbnail-height-input"><input type="text" name="settings[gallery_thumbnail_height]" value="<?php echo $this->Settings->get('gallery_thumbnail_height'); ?>" id="gallery-thumbnail-height" size="5" /><label for="gallery-thumbnail-height"> height</label></span>
 					<p><select name="settings[gallery_thumbnail_sizing]" id="gallery-thumbnail-sizing">
-						<?php echo menuoptions($sizingOptions, $this->Core->Settings->get('gallery_thumbnail_sizing'),true); ?>
+						<?php echo menuoptions($sizingOptions, $this->Settings->get('gallery_thumbnail_sizing'),true); ?>
 					</select></p>
 					<p><select name="settings[gallery_thumbnail_quality]" id="gallery-thumbnail-quality">
-						<?php echo menuoptions($qualityOptions, $this->Core->Settings->get('gallery_thumbnail_quality'),true); ?>
+						<?php echo menuoptions($qualityOptions, $this->Settings->get('gallery_thumbnail_quality'),true); ?>
 					</select></p>
 					</td>
 			</tr>

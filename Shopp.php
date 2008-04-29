@@ -223,8 +223,11 @@ class Shopp {
 			$Cart->unload();
 			session_destroy();
 
+			// Start new cart session
 			$Cart =& new Cart();
 			session_start();
+			
+			// Save the purchase ID for later lookup
 			$Cart->data->Purchase = $Purchase->id;
 
 			// Send the e-mail receipt
@@ -254,6 +257,7 @@ class Shopp {
 		
 		add_shortcode('catalog',array(&$this->Flow,'catalog'));
 		add_shortcode('cart',array(&$this->Flow,'cart_default'));
+		add_shortcode('shipping-estimate',array(&$this->Flow,'shipping_estimate'));
 		add_shortcode('checkout',array(&$this->Flow,'checkout_onestep'));
 		add_shortcode('order-summary',array(&$this->Flow,'checkout_order_summary'));
 		add_shortcode('confirmation-summary',array(&$this->Flow,'order_confirmation'));
@@ -283,10 +287,10 @@ class Shopp {
 		$db =& DB::get();
 		
 		switch($_GET['lookup']) {
-			case "regions":
-				$regions = $this->Settings->get('regions');
+			case "zones":
+				$zones = $this->Settings->get('zones');
 				if (isset($_GET['country']))
-					echo json_encode($regions[$_GET['country']]);
+					echo json_encode($zones[$_GET['country']]);
 				exit();
 				break;
 			case "asset":
@@ -415,19 +419,20 @@ function shopp () {
 	
 	$object = strtolower($args[0]);
 	$property = strtolower($args[1]);
-	$paramsets = strtolower($args[2]);
+	$paramsets = $args[2];
 	$paramsets = split("&",$paramsets);
 
 	$options = array();
 	foreach ($paramsets as $paramset) {
 		list($key,$value) = split("=",$paramset);
-		$options[$key] = $value;
+		$options[strtolower($key)] = $value;
 	}
 	
 	$result = "";
 	switch (strtolower($object)) {
 		case "cart": $result = $Cart->tag($property,$options); break;
 		case "cartitem": $result = $Cart->itemtag($property,$options); break;
+		case "shipestimate": $result = $Cart->shipestimatetag($property,$options); break;
 	}
 	
 	// Force boolean result

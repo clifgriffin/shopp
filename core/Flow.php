@@ -10,15 +10,15 @@
  **/
 
 class Flow {
-	var $Core;
 	var $Admin;
+	var $Settings;
 
 	var $basepath;
 	var $baseuri;
 	var $secureuri;
 	
 	function Flow (&$Core) {
-		$this->Core =& $Core;
+		$this->Settings =& $Core->Settings;
 		
 		$this->basepath = dirname(dirname(__FILE__));
 		$this->uri = ((!empty($_SERVER['HTTPS']))?"https://":"http://").
@@ -26,20 +26,20 @@ class Flow {
 		$this->secureuri = 'https://'.$_SERVER['SERVER_NAME'].$this->uri;
 		
 		$this->Admin = new stdClass();
-		$this->Admin->default = $this->Core->directory."/".$this->Core->file;
+		$this->Admin->default = $Core->directory."/".$this->Core->file;
 		$this->Admin->orders = $this->Admin->default;
-		$this->Admin->settings = $this->Core->directory."/settings";
-		$this->Admin->products = $this->Core->directory."/products";
+		$this->Admin->settings = $Core->directory."/settings";
+		$this->Admin->products = $Core->directory."/products";
 		
 		
 		define("SHOPP_BASEURI",$this->uri);
 		define("SHOPP_SECUREURI",$this->uri);	
-		define("SHOPP_PLUGINURI",$this->Core->uri);
-		define("SHOPP_CATALOGURL",$this->Core->Settings->get('catalog_url'));
-		define("SHOPP_CARTURL",$this->Core->Settings->get('cart_url'));
-		define("SHOPP_CHECKOUTURL",$this->Core->Settings->get('checkout_url'));
-		define("SHOPP_CONFIRMURL",$this->Core->Settings->get('confirm_url'));
-		define("SHOPP_RECEIPTURL",$this->Core->Settings->get('receipt_url'));
+		define("SHOPP_PLUGINURI",$Core->uri);
+		define("SHOPP_CATALOGURL",$this->Settings->get('catalog_url'));
+		define("SHOPP_CARTURL",$this->Settings->get('cart_url'));
+		define("SHOPP_CHECKOUTURL",$this->Settings->get('checkout_url'));
+		define("SHOPP_CONFIRMURL",$this->Settings->get('confirm_url'));
+		define("SHOPP_RECEIPTURL",$this->Settings->get('receipt_url'));
 	}
 
 	/**
@@ -59,6 +59,11 @@ class Flow {
 	
 	function cart_post () {
 		global $Cart;
+		
+		if (isset($_POST['checkout'])) {
+			header("Location: ".SHOPP_CHECKOUTURL);
+			exit();
+		}
 
 		switch($_POST['cart']) {
 			case "add":
@@ -71,7 +76,12 @@ class Flow {
 					else $Cart->add($quantity,$Product,$Price);
 				}
 				break;
+			case "empty":
+				$Cart->clear();
+				break;
 			case "update":
+				if (!empty($_POST['shipping'])) $Cart->shipping($_POST['shipping']);
+			
 				if (!empty($_POST['item']) && isset($_POST['quantity'])) {
 					$Cart->update($_POST['item'],$_POST['quantity']);
 				} elseif (!empty($_POST['items'])) {
@@ -86,8 +96,16 @@ class Flow {
 						}
 					}
 
-				} 
+				}
 			
+				break;
+			case "shipestimate":
+				$countries = $this->Settings->get('countries');
+				$regions = $this->Settings->get('regions');
+				$_POST['shipping']['region'] = $regions[$countries[$_POST['shipping']['country']]['region']];
+				unset($countries,$regions);
+				$Cart->shipzone($_POST['shipping']);
+				$Cart->shipping();
 				break;
 		}
 				
@@ -95,7 +113,12 @@ class Flow {
 
 	function cart_request () {
 		global $Cart;
-
+		
+		if (isset($_POST['checkout'])) {
+			header("Location: ".SHOPP_CHECKOUTURL);
+			exit();
+		}
+		
 		switch ($_GET['cart']) {
 			case "add":		// Received an add product request, add a new item the cart
 				if (!empty($_GET['product']) && strpos($_GET['product'],",") !== false) {
@@ -106,6 +129,7 @@ class Flow {
 					$Cart->add($quantity,$Product,$Price);				
 				}
 				break;
+			case "empty": $Cart->clear(); break;
 			case "update":  // Received an update request
 
 				// Update quantity
@@ -142,7 +166,17 @@ class Flow {
 
 		return $content;
 	}
-	
+
+	function shipping_estimate ($attrs) {
+		global $Cart;
+
+		ob_start();
+		include("{$this->basepath}/core/ui/cart/shipping.html");
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		return $content;
+	}
 	
 	/**
 	 * Checkout flow handlers
@@ -151,9 +185,9 @@ class Flow {
 		global $Cart;
 
 		ob_start();
-		$base = $this->Core->Settings->get('base_operations');
-		$markets = $this->Core->Settings->get('target_markets');
-		$regions = $this->Core->Settings->get('regions');
+		$base = $this->Settings->get('base_operations');
+		$markets = $this->Settings->get('target_markets');
+		$regions = $this->Settings->get('regions');
 		foreach ($markets as $iso => $country) $countries[$iso] = $country;
 		$states = $regions[$base['country']];
 		
@@ -228,7 +262,7 @@ class Flow {
 
 		$Purchase = new Purchase();
 
-		$statusLabels = $this->Core->Settings->get('order_status');
+		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
 		else ksort($statusLabels); 
 
@@ -250,7 +284,7 @@ class Flow {
 			$Purchase->save();
 		}
 
-		$statusLabels = $this->Core->Settings->get('order_status');
+		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
 		else ksort($statusLabels); 
 		
@@ -262,8 +296,10 @@ class Flow {
 		
 		include_once("{$this->basepath}/core/model/Purchase.php");
 		$p = new Purchase();
-		$labels = $this->Core->Settings->get('order_status');
+		$labels = $this->Settings->get('order_status');
 		
+		if (empty($labels)) return false;
+
 		$r = $db->query("SELECT status,COUNT(status) AS total FROM {$p->_table} GROUP BY status ORDER BY status ASC",AS_ARRAY);
 
 		$status = array();
@@ -350,8 +386,11 @@ class Flow {
 		foreach ($Product->categories as $catalog) $selectedCategories[] = $catalog->category;
 
 		$Assets = new Asset();
-		$Images = $db->query("SELECT id,src FROM $Assets->_table WHERE product=$Product->id AND type='thumbnail' ORDER BY sortorder",AS_ARRAY);
+		$Images = $db->query("SELECT id,src FROM $Assets->_table WHERE type='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
 		unset($Assets);
+
+		$shiprates = $this->Settings->get('shipping_rates');
+		ksort($shiprates);
 
 		include("{$this->basepath}/core/ui/products/editor.html");
 
@@ -475,25 +514,34 @@ class Flow {
 	 **/
 	
 	function settings_general () {
+		$countries = array();
+		foreach ($this->Settings->get('countries') as $iso => $country) {
+			if ($_POST['settings']['base_operations']['country'] == $iso) 
+				$base_region = $country['region'];
+			$countries[$iso] = $country['name'];
+		}
+
 		if (!empty($_POST['save'])) {
+			$_POST['settings']['base_operations']['name'] = $countries[$_POST['settings']['base_operations']['country']];
+			$_POST['settings']['base_operations']['region'] = $base_region;
 			ksort($_POST['settings']['order_status']);
 			$this->settings_save();
 		}
 
-		$countries = array();
-		foreach ($this->Core->Settings->get('countries') as $iso => $country)
-			$countries[$iso] = $country['name'];
-			
-		$operations = $this->Core->Settings->get('base_operations');
-		if (!empty($operations['region'])) {
-			$regions = $this->Core->Settings->get('regions');
-			$regions = $regions[$operations['country']];
+		$operations = $this->Settings->get('base_operations');
+		if (!empty($operations['zone'])) {
+			$zones = $this->Settings->get('zones');
+			$zones = $zones[$operations['country']];
 		}
-		
-		$targets = $this->Core->Settings->get('target_markets');
+		$targets = $this->Settings->get('target_markets');
 		if (!$targets) $targets = array();
 		
-		$statusLabels = $this->Core->Settings->get('order_status');
+		$currencies = array('');
+		$currencylist = $this->Settings->get('currencies');
+		foreach($currencylist as $id => $currency) 
+			$currencies[$id] = $currency['name'];
+		
+		$statusLabels = $this->Settings->get('order_status');
 		if ($statusLabels) ksort($statusLabels);
 		
 		include("{$this->basepath}/core/ui/settings/settings.html");
@@ -534,17 +582,50 @@ class Flow {
 	}
 
 	function settings_shipping () {
-		if (!empty($_POST['save'])) $this->settings_save();
+		
+		if (!empty($_POST['save'])) {
+			// Sterilize $values
+			foreach ($_POST['settings']['shipping_rates'] as $i => $method) {
+				foreach ($method as $key => $rates) {
+					if (is_array($rates)) {
+						foreach ($rates as $id => $value) {
+							$_POST['settings']['shipping_rates'][$i][$key][$id] = preg_replace("/[^0-9\.\,]/","",$_POST['settings']['shipping_rates'][$i][$key][$id]);
+						}
+					}
+				}
+			}
+	 		$this->settings_save();			
+		}
+
+
+		$base = $this->Settings->get('base_operations');
+		$regions = $this->Settings->get('regions');
+		$region = $regions[$base['region']];
+		$useRegions = $this->Settings->get('shipping_regions');
+
+		$areas = $this->Settings->get('areas');
+		if (is_array($areas[$base['country']]) && $useRegions == "on") 
+			$areas = array_keys($areas[$base['country']]);
+		else $areas = array($base['country'] => $base['name']);
+		unset($countries,$regions);
+
+		$rates = $this->Settings->get('shipping_rates');
+		ksort($rates);
+		
+		// print "<pre>";
+		// print_r($rates);
+		// print "</pre>";
+		
 		include("{$this->basepath}/core/ui/settings/shipping.html");
 	}
 
 	function settings_taxes () {
 		if (!empty($_POST['save'])) $this->settings_save();
 		
-		$rates = $this->Core->Settings->get('taxrates');
-		$base = $this->Core->Settings->get('base_operations');
-		$countries = $this->Core->Settings->get('target_markets');
-		$regions = $this->Core->Settings->get('regions');
+		$rates = $this->Settings->get('taxrates');
+		$base = $this->Settings->get('base_operations');
+		$countries = $this->Settings->get('target_markets');
+		$zones = $this->Settings->get('zones');
 		
 		include("{$this->basepath}/core/ui/settings/taxes.html");
 	}	
@@ -603,7 +684,7 @@ class Flow {
 			$gateway->description = (!empty($data[1]))?$data[1]:"";
 			$gateway->tags = $tags;
 			$gateway->activated = false;
-			if ($this->Core->Settings->get('payment_gateway') == $file) $module->activated = true;
+			if ($this->Settings->get('payment_gateway') == $file) $module->activated = true;
 			return $gateway;
 		}
 		return false;
@@ -613,7 +694,7 @@ class Flow {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value) {
 			if (is_array($value)) asort($value);
-			$this->Core->Settings->save($setting,$value);
+			$this->Settings->save($setting,$value);
 		}
 	}
 		
@@ -621,30 +702,44 @@ class Flow {
 	 * Setup - set up all the lists
 	 */
 	function development_setup () {
-		$this->setup_countries();
 		$this->setup_regions();
+		$this->setup_countries();
+		$this->setup_zones();
+		$this->setup_areas();
 		$this->setup_currencies();
-		$this->Core->Settings->save('shipping','on');	
-		$this->Core->Settings->save('shopp_setup','completed');	
+		$this->Settings->save('shipping','on');	
+		$this->Settings->save('order_status',array('Pending','Completed'));	
+		$this->Settings->save('shopp_setup','completed');	
+	}
+
+	function setup_regions () {
+		global $Shopp;
+		include_once("init.php");
+		$this->Settings->save('regions',get_global_regions(),false);
 	}
 	
 	function setup_countries () {
 		global $Shopp;
 		include_once("init.php");
-		$this->Core->Settings->save('countries',get_countries(),false);
+		$this->Settings->save('countries',get_countries(),false);
 	}
 	
-	function setup_regions () {
+	function setup_zones () {
 		global $Shopp;
 		include_once("init.php");
-		$this->Core->Settings->save('regions',get_country_regions(),false);
+		$this->Settings->save('zones',get_country_zones(),false);
+	}
+
+	function setup_areas () {
+		global $Shopp;
+		include_once("init.php");
+		$this->Settings->save('areas',get_country_areas(),false);
 	}
 
 	function setup_currencies () {
 		global $Shopp;
-		// include_once("init.php");
-		// $this->Core->Settings->save('currencies',$currencies,false);
-		// unset($currencies);
+		include_once("init.php");
+		$this->Settings->save('currencies',get_currencies(),false);
 	}
 	
 }

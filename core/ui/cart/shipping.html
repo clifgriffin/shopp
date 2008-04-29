@@ -1,0 +1,11 @@
+<?php if (shopp('cart','hasitems')): ?>
+	
+
+<form id="shipping-estimate" action="<?php shopp('cart','url'); ?>" method="post" class="shopp">
+<p>
+	<span><?php shopp('shipestimate','postcode','label=Postal / Zip Code&size=10'); ?></span>
+	<span><?php shopp('shipestimate','country','label=Country'); ?></span>
+	<span><?php shopp('shipestimate','button'); ?></span>
+</p>
+</form>
+<?php endif; ?>

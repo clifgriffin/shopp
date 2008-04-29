@@ -22,11 +22,14 @@ class Item {
 	var $quantity = 0;
 	var $unitprice = 0;
 	var $total = 0;
-	var $domship = 0;
-	var $intlship = 0;
-	var $tax = true;
+	var $weight = 0;
+	var $shipfee = 0;
+	var $shipping = false;
+	var $tax = false;
 
-	function Item ($qty,$Product,$Price,$TaxSetting) {
+	function Item ($qty,&$Product,&$Price) {
+		global $Shopp; // To access settings
+
 		$Product->load_prices();
 		$this->product = $Product->id;
 		$this->price = $Price->id;
@@ -45,11 +48,12 @@ class Item {
 		}
 
 		if ($Price->shipping == "on") {
-			$this->domship = $Price->domship;
-			$this->intlship = $Price->intlship;
+			$this->shipping = true;
+			$this->weight = $Price->weight;
+			$this->shipfee = $Price->shipfee;
 		}
 
-		$this->tax = ($Price->tax == "on" && $TaxSetting == "on")?true:false;
+		$this->tax = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
 	}
 	
 	function quantity ($qty) {
@@ -69,6 +73,11 @@ class Item {
 			else $string .= "<option value=\"$option->id\">$option->label</option>";
 		}
 		return $string;
+	}
+	
+	function shipping (&$Shipping) {
+		
+		
 	}
 	
 	function tag ($id,$property,$options=array()) {

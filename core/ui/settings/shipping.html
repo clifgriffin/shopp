@@ -6,21 +6,312 @@
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="shipping-toggle">Calculate Shipping</label></th> 
-				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if ($this->Core->Settings->get('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> Enabled</label><br /> 
+				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if ($this->Settings->get('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> Enabled</label><br /> 
 	            Check this to use shipping. Leave un-checked to disable shipping - helpful if you are only selling subscriptions or downloads.</td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<!-- <tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="shipping_base_domship">Base Shipping Fees</label></th> 
-				<td><input type="text" name="settings[shipping_base_domship]" value="<?php echo $this->Core->Settings->get('shipping_base_domship'); ?>" id="shipping_base_domship" size="5" /><label for="shipping_base_domship"> For Domestic Orders</label><br />
-					<input type="text" name="settings[shipping_base_intlship]" value="<?php echo $this->Core->Settings->get('shipping_base_intlship'); ?>" id="shipping_base_intlship" size="5" /><label for="shipping_base_intlship"> For International Orders</label><br />
+				<td><input type="text" name="settings[shipping_base_domship]" value="<?php echo $this->Settings->get('shipping_base_domship'); ?>" id="shipping_base_domship" size="5" /><label for="shipping_base_domship"> For Domestic Orders</label><br />
+					<input type="text" name="settings[shipping_base_intlship]" value="<?php echo $this->Settings->get('shipping_base_intlship'); ?>" id="shipping_base_intlship" size="5" /><label for="shipping_base_intlship"> For International Orders</label><br />
 	            Enter a dollar amount (5.00) or a percentage (5%).  These charges are assessed only once for an entire order.</td>
+			</tr> -->
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="weight-units">Weight Unit</label></th> 
+				<td>
+				<select name="settings[weight_unit]" id="weight-unit">
+					<option></option>
+					<optgroup label="Metric Units">
+						<?php
+							$metric = array("g"=>"gram (g)","kg"=>"kilogram (kg)");
+							echo menuoptions($metric,$this->Settings->get('weight_unit'),true);
+						?>
+					</optgroup>
+					<optgroup label="Standard Units">
+						<?php
+							$standard = array("oz" => "ounces (oz)","lb" => "pounds (lbs)");
+							echo menuoptions($standard,$this->Settings->get('weight_unit'),true);
+						?>
+					</optgroup>
+				</select><br />
+				Used as unit of weight for all products.</td>
 			</tr>
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="free_shipping_text">Free Shipping Text</label></th> 
-				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo $this->Core->Settings->get('free_shipping_text'); ?>" id="free_shipping_text"><br /> 
+				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo $this->Settings->get('free_shipping_text'); ?>" id="free_shipping_text"><br /> 
 	            Text used to highlight no shipping costs (examples: Free shipping! or Shipping Included)</td>
 			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="regional_rates">Domestic Regions</label></th> 
+				<td><input type="hidden" name="settings[shipping_regions]" value="off" /><input type="checkbox" name="settings[shipping_regions]" value="on" id="regional_rates"<?php echo ($this->Settings->get('shipping_regions') == "on")?' checked="checked"':''; ?>><label for="regional_rates"> Enabled</label><br /> 
+	            Used for domestic regional shipping rates (only applies to operations based in the U.S. &amp; Canada)<br />
+				<strong>Note: </strong>You must click the "Save Changes" button for changes to take effect.</td>
+			</tr>
 		</table>
+
+		<h3>Shipping Methods &amp; Rates</h3>
+		<p><small>Shipping rates based on the order amount are calculated once against the order subtotal (which does not include tax).  Shipping rates based on weight are calculated once against the total order weight.  Shipping rates based on item quantity are calculated against the total quantity of each different item ordered.</small></p>
+		<?php $base = $this->Settings->get('base_operations'); if (!empty($base['country'])): ?>
+		<table id="shipping-rates" class="form-table"><tr><td></td></tr></table>
+		<div class="tablenav"><div class="alignright"><button type="button" name="add-shippingrate" id="add-shippingrate" class="button-secondary" tabindex="9999">Add Shipping Method Rates</button></div></div>
+		<?php else: ?>
+			<p class="tablenav"><small><strong>Note:</strong> You must select a Base of Operations location under <a href="?page=<?php echo $this->Admin->settings ?>&amp;edit=general">General settings</a> before you can configure shipping rates.</small></p>
+		<?php endif; ?>
 		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
 	</form>
 </div>
+
+<script type="text/javascript">
+$j=jQuery.noConflict();
+
+var addShippingRate = function (r) {
+	if (!r) r = false;
+	var i = shippingRates.length;
+	var row = $j('<tr class="form-field form-required"></tr>').appendTo($j('#shipping-rates'));
+	var heading = $j('<th scope="row" valign="top"><label for="name['+i+']">Option Name</label></th>').appendTo(row);
+	$j('<br />').appendTo(heading);
+	var name = $j('<input type="text" name="settings[shipping_rates]['+i+'][name]" value="" id="name['+i+']" size="16" tabindex="'+(i+1)+'00" class="selectall" />').appendTo(heading);
+	$j('<br />').appendTo(heading);
+
+	
+	var deliveryTimesMenu = $j('<select name="settings[shipping_rates]['+i+'][delivery]" id="delivery['+i+']" class="methods" tabindex="'+(i+1)+'02"></select>').appendTo(heading);
+	var lastGroup = false;
+	$j.each(deliveryTimes,function(range,label){
+		if (range.indexOf("group")==0) {
+			lastGroup = $j('<optgroup label="'+label+'"></optgroup>').appendTo(deliveryTimesMenu);	
+		} else {
+			if (lastGroup) $j('<option value="'+range+'">'+label+'</option>').appendTo(lastGroup);
+			else $j('<option value="'+range+'">'+label+'</option>').appendTo(deliveryTimesMenu);
+		}
+	});
+
+	$j('<br />').appendTo(heading);
+	
+	var methodMenu = $j('<select name="settings[shipping_rates]['+i+'][method]" id="method['+i+']" class="methods" tabindex="'+(i+1)+'01"></select>').appendTo(heading);
+	var lastGroup = false;
+	$j.each(methods,function(m,methodtype){
+		if (m.indexOf("group")==0) {
+			lastGroup = $j('<optgroup label="'+methodtype+'"></optgroup>').appendTo(methodMenu);	
+		} else {
+			if (lastGroup) $j('<option value="'+m+'">'+methodtype+'</option>').appendTo(lastGroup);
+			else $j('<option value="'+m+'">'+methodtype+'</option>').appendTo(methodMenu);
+		}
+	});	
+	var rateTableCell = $j('<td/>').appendTo(row);
+	var deleteRateButton = $j('<button type="button" name="deleteRate" class="deleteButton deleteRate"></button>').appendTo(rateTableCell).hide();
+	$j('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteRateButton);
+	
+	
+	var rateTable = $j('<table class="rate"/>').appendTo(rateTableCell);
+	
+	// All of this needs moved to modules
+	var headingsRow = $j('<tr class="headings"/>').appendTo(rateTable);
+
+	var unitHeading = $j('<th scope="col" class="units"></th>').appendTo(headingsRow);
+	var domesticHeading = new Array();
+	$j.each(domesticAreas,function(key,area) {
+		domesticHeading[key] = $j('<th scope="col"><label for="'+area+'[0]">'+area+'</label></th>').appendTo(headingsRow);
+	});
+	var regionHeading = $j('<th scope="col"><label for="'+region+'[0]">'+region+'</label></th>').appendTo(headingsRow);
+	var intlHeading = $j('<th scope="col"><label for="worldwide[0]">Worldwide</label></th>').appendTo(headingsRow);
+	var ctrlHeading = $j('<th scope="col" class="rowctrl"></th>').appendTo(headingsRow);
+	
+	
+	if (r) {
+		name.val(r.name);
+		methodMenu.val(r.method);
+		deliveryTimesMenu.val(r.delivery);
+
+		// Load the rate table based on calculation type
+		if (r['method'].substr(0,5) == "range") {
+			$j(r['max']).each(function(rowid,value) {
+				rateRow = addRateRow(i,r,rateTable);
+				$j(rateRow).trigger('changeType',['range',value]);
+			});
+		} else if (r['method'].substr(0,9) == "firstaddl") {
+			rateRow = addRateRow(i,r,rateTable);
+			$j(rateRow).trigger('changeType',['first']);
+			rateRow = addRateRow(i,r,rateTable);
+			$j(rateRow).trigger('changeType',['addl']);
+		} else {
+			rateRow = addRateRow(i,r,rateTable);
+			$j(rateRow).trigger('changeType');
+		}
+
+	} else {
+		name.val('Economy '+(i+1));
+		name.select();
+
+		rateRow = addRateRow(i,r,rateTable);
+		$j(rateRow).trigger('changeType');
+	}
+
+	
+	row.hover(function () {
+			deleteRateButton.show();
+		}, function () {
+			deleteRateButton.hide();
+	});
+	var rowBG = row.css("background-color");
+	var deletingBG = "#ffebe8";
+
+	deleteRateButton.hover (function () {
+			row.animate({backgroundColor:deletingBG},250);
+		},function() {
+			row.animate({backgroundColor:rowBG},250);		
+	});
+
+	deleteRateButton.click(function () {
+		if (shippingRates.length > 1) {
+			if (confirm("Are you sure you want to delete this product option?")) {
+				row.remove();
+				shippingRates.splice(i,1);
+			}
+		}
+	});
+	
+	$j(methodMenu).change(function() {
+		value = $j(this).val();
+		var rows = $j(rateTable).find('tbody').children().not('tr.headings');
+
+		if (value.substr(0,4) == "flat") {
+			$j(rows).each(function(r) {
+				$j(this).trigger('changeType',[value]);
+				if (r > 0) $j(this).remove();
+			});
+		} else if (value.substr(0,9) == "firstaddl") {			
+			if (rows.length == 1) {
+				$j(rows[0]).trigger('changeType',['first']);
+				addl = addRateRow(i,r,rateTable);
+				$j(addl).trigger('changeType',['addl']);
+			} else {
+				$j(rows).each(function(r) {
+					if (r == 0) $j(this).trigger('changeType',['first']);
+					if (r == 1) $j(this).trigger('changeType',['addl']);
+					if (r > 1) $j(this).remove();
+				});
+			}
+		} else if (value.substr(0,5) == "range") {
+			$j(rows).each(function(row) {
+				$j(this).trigger('changeType',['range']);
+			});
+		}
+		
+	});
+	
+	quickSelects();	
+	
+	shippingRates.push(row);
+	
+}
+
+var addRateRow = function (i,rates,table) {
+	var rows = $j(table).find('tbody').children().not('tr.headings');
+	var id = rows.length;
+	var row = $j('<tr/>').appendTo(table);
+	
+	var unitCell = $j('<td class="units"></td>').appendTo(row);
+	
+	$j.each(domesticAreas,function(key,area) {
+		var inputCell = $j('<td/>').appendTo(row);
+		if (!isNaN(key)) key = area;
+		if (rates && rates[key] && rates[key][id]) var value = rates[key][id];
+		else var value = 0;
+		$j('<input name="settings[shipping_rates]['+i+']['+key+'][]" id="'+area+'['+id+']" class="selectall right" size="7" tabindex="'+(i+1)+'04" />').change(function() {
+			this.value = asMoney(this.value);
+		}).val(value).appendTo(inputCell).change();
+	});
+	
+	var inputCell = $j('<td/>').appendTo(row);
+	if (rates && rates[region] && rates[region][id]) value = rates[region][id];
+	else value = 0;
+	$j('<input name="settings[shipping_rates]['+i+']['+region+'][]"  id="'+region+'['+id+']" class="selectall right" size="7" tabindex="'+(i+1)+'05" />').change(function() {
+		this.value = asMoney(this.value);
+	}).val(value).appendTo(inputCell).change();
+	
+	var inputCell = $j('<td/>').appendTo(row);
+	if (rates && rates['Worldwide'][id]) value = rates['Worldwide'][id];
+	else value = 0;
+	intlInput = $j('<input name="settings[shipping_rates]['+i+'][Worldwide][]" id="worldwide['+id+']"  class="selectall right" size="7" tabindex="'+(i+1)+'06" />').change(function() {
+		this.value = asMoney(this.value);
+	}).val(value).appendTo(inputCell).change();
+	
+	var rowCtrlCell = $j('<td class="rowctrl" />').appendTo(row);
+	var deleteButton = $j('<button type="button" name="delete"></button>').appendTo(rowCtrlCell);
+	if (rows.length == 0) {
+		deleteButton.attr('class','disabled');
+		deleteButton.attr('disabled','disabled');
+	}
+	deleteButton.click(function() {
+		$j(row).remove();
+	});
+	$j('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteButton);
+	var addButton = $j('<button type="button" name="add"></button>').appendTo(rowCtrlCell);
+	$j('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" width="16" height="16" />').appendTo(addButton);
+	addButton.click(function() {
+		insertedRow = addRateRow(i,rates,table);
+		$j(insertedRow).insertAfter($j(row));
+		$j(insertedRow).trigger('changeType',['range']);
+	});
+	
+	$j(row).bind('changeType',function(r,type,value,unit) {
+		var rows = $j(table).find('tbody').children().not('tr.headings');
+		var id = rows.length;
+		if (!type) type = "flat";
+		if (!value) value = 0;
+		if (!unit) unit = "Item";
+
+		$j(this).parent().find('.units').hide();
+		$j(this).parent().find('.rowctrl').hide();
+		
+		if (type == "first") {
+			$j(this).parent().find('.units').show();
+			$j(this).find('td.units').html('<span class="padding">&nbsp;</span><label>First '+unit+'</label>');
+		}
+
+		if (type == "addl") {
+			$j(this).parent().find('.units').show();
+			$j(this).find('td.units').html('<span class="padding">&nbsp;</span><label>Per Additional</label>');
+		}
+		
+		if (type == "range") {
+			$j(this).parent().find('.units').show();
+			var unitCell = $j(this).find('td.units').empty();
+			var unitCellLabel = $j('<label>Up to </label>').appendTo(unitCell);
+			var maxInput = $j('<input type="text" name="settings[shipping_rates]['+i+'][max][]" class="selectall right" size="7" id="max-'+i+'-'+id+'" tabindex="'+(i+1)+'02" />').val(value).appendTo(unitCell);
+						
+			$j(this).parent().find('.rowctrl').show();
+		}
+		
+	});
+
+	$j(row).bind('setUnitsLabel',function(r,unit) {
+		if (!unit) unit = '';
+		$j(this).parent().find('th.units').html(unit);
+	});
+
+	return row;
+}
+
+if ($j('#shipping-rates')) {
+	var shippingRates = new Array();
+	var rates = <?php echo json_encode($rates); ?>;
+	var methods = {"group1":"Flat Rates (Easy, Less Precise)","flat-order":"Flat rate on order","flat-item":"Flat rate per item","group2":"By Order Amount (Complex, More Precise)","range-amount":"Amount Range","group3":"Calculate By Order Weight (Complex, Very Pricise)","range-weight":"Weight Range","group4":"Calculate By Item Quantity (Complex, Most Precise)","firstaddl-qty":"First+additional","range-qty":"Quantity Range"};
+	var deliveryTimes = {"prompt":"Delivery time&hellip;","group1":"Business Days","1d-1d":"1 business day","1d-2d":"1-2 business days","1d-3d":"1-3 business days","1d-5d":"1-5 business days","2d-3d":"2-3 business days","2d-5d":"2-5 business days","2d-7d":"2-7 business days","3d-5d":"3-5 business days","group2":"Weeks","1w-2w":"1-2 weeks","2w-3w":"2-3 weeks"};
+	var domesticAreas = <?php echo json_encode($areas); ?>;
+	var region = '<?php echo $region; ?>';
+	
+	
+	$j('#add-shippingrate').click(function() {
+		addShippingRate();
+	});
+
+	$j('#shipping-rates').empty();
+	if (!rates) $j('#add-shippingrate').click();
+	else {
+		$j.each(rates,function(i,rate) {
+			addShippingRate(rate);
+		});	
+	}
+}
+
+</script>

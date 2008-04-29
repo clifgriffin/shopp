@@ -236,26 +236,6 @@ function phone ($num) {
 }
 
 /**
- * Find and mark-out inappropriate language */
-function language_censors ($text,$blackout="&bull;") {
-	$CENSORED_WORDS = array(
-		"/(\s)(shit|sh1t|sh!t|\*shit\*)/ie",
-		"/(\s)(motherfucker|fucked|fucker|fucking|fucks|fuck\w*?|phuck\w*|fuk\w*?|\*fuck\w*?\*)/ie",
-		"/(\s)(bitchy|bitch|\*bitch\*)/ie",
-		"/(\s)(dumbass|asshole|ass\s|fatass|jackass|asses\s)/ie",
-		"/(\s)(cuntrag|cunt\w*?|twat|pussy|dyke|dike|dooche\w*?|douche\w*?)/ie",
-		"/(\s)(foreskin|dick|cock|c0ck|cum\s|jizz)/ie",
-		"/(\s)(wank|masturbate|masturbater|masterbation|masterbating)/ie",
-		"/(\s)(tit\b|titt\w*?|boob\w*?|b00b)/ie",
-		"/(\s)(chink|nigger|nigga|ngr|spic|gook|injun|fag|faggot|queer)\s/ie",
-		"/(\s)(Goddamn|God\sdamn)/ie",
-	);
-	
-	$text = preg_replace($CENSORED_WORDS,"('\\1').str_repeat('$blackout',strlen('\\2'))", $text);
-	return $text;
-}
-
-/**
  * Determines if the current client is a known web crawler bot */
 function is_robot() {
 	$bots = array("Googlebot","TeomaAgent","Zyborg","Gulliver","Architext spider","FAST-WebCrawler","Slurp","Ask Jeeves","ia_archiver","Scooter","Mercator","crawler@fast","Crawler","InfoSeek sidewinder","Lycos_Spider_(T-Rex)","Fluffy the Spider","Ultraseek","MantraAgent","Moget","MuscatFerret","VoilaBot","Sleek Spider","KIT_Fireball","WebCrawler");
@@ -265,42 +245,6 @@ function is_robot() {
 	return false;
 }
 
-/**
- * Generates JavaScript object(s) for AJAX responses from PHP data */
-function json ($data) {
-	$string = "\"\"";
-	if (is_array($data)) {
-		$objects = "";
-		foreach($data as $element) {
-			if (empty($objects)) $objects = json_object($element);
-			else $objects .= ", ".json_object($element);
-		}
-		
-		$string = "[".$objects."]";
-	} elseif (is_object($data)) {
-		$string = json_object($data);
-	}
-	echo $string;
-}
-
-/**
- * Generates a JavaScript object for AJAX responses from a PHP object */
-function json_object ($object) {
-	$output = "{";
-	$string = "";
-	foreach (get_object_vars($object) as $property => $value) {
-		if ($property[0] != "_") {
-			if (is_int($value)) $pair = "\"$property\":$value";
-			else $pair = "\"$property\":\"$value\"";
-
-			if (empty($string)) $string = $pair;
-			else $string .= ", ".$pair;
-		}
-	}
-	$output .= $string;
-	$output .= "}";
-	return $output;
-}
 
 /**
  * parse_xml
@@ -465,7 +409,6 @@ function menuoptions ($list,$selected=null,$values=false) {
 }
 
 function money($number) {
-	
 	return money_format("%.2n",$number);
 }
 

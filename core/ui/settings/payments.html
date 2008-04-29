@@ -8,7 +8,7 @@
 				<th scope="row" valign="top"><label for="payment-gateway">Payment Gateway</label></th> 
 				<td><select name="settings[payment_gateway]" id="payment-gateway">
 					<option>Select One&hellip;</option>
-					<?php echo menuoptions($gateways,$this->Core->Settings->get('payment_gateway'),true)?>
+					<?php echo menuoptions($gateways,$this->Settings->get('payment_gateway'),true)?>
 					</select><br /> 
 	            Select the payment gateway processor you will be using to process credit card transactions.</td>
 			</tr>

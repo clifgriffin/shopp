@@ -6,14 +6,19 @@
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="taxes-toggle">Calculate Taxes</label></th> 
-				<td><input type="hidden" name="settings[taxes]" value="off" /><input type="checkbox" name="settings[taxes]" value="on" id="taxes-toggle"<?php if ($this->Core->Settings->get('taxes') == "on") echo ' checked="checked"'?> /><label for="taxes-toggle"> Enabled</label><br /> 
+				<td><input type="hidden" name="settings[taxes]" value="off" /><input type="checkbox" name="settings[taxes]" value="on" id="taxes-toggle"<?php if ($this->Settings->get('taxes') == "on") echo ' checked="checked"'?> /><label for="taxes-toggle"> Enabled</label><br /> 
 	            Enables tax calculations.  Disable if you are exclusively selling non-taxable items.</td>
 			</tr>
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="taxrate[i]">Tax Rates</label></th> 
 				<td>
-					<table id="taxrates-table"></table>
-	            <button type="button" id="add-taxrate" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /> Add a Tax Rate</button></td> 
+					<?php if ($this->Settings->get('target_markets')): ?>
+					<table id="taxrates-table"><tr><td></td></tr></table>
+	            <button type="button" id="add-taxrate" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /> Add a Tax Rate</button>
+					<?php else: ?>
+					<p><strong>Note: </strong>You must select the target markets you will be selling to under <a href="?page=<?php echo $this->Admin->settings ?>&amp;edit=general">General settings</a> before you can setup tax rates.</p>
+					<?php endif; ?>
+				</td> 
 			</tr>
 
 		</table>
@@ -22,18 +27,12 @@
 </div>
 
 <script type="text/javascript">
+//<![CDATA[
 $j=jQuery.noConflict();
 
-var rates = <?php echo json_encode($rates); ?>;
-var base = <?php echo json_encode($base); ?>;
-var countries = <?php echo json_encode($countries); ?>;
-var regions = <?php echo json_encode($regions); ?>;
-var taxrates = new Array();
-var regionsInUse = new Array();
-
-var disableRegionsInUse = function () {
-	$j('#taxrates-table tr select.region option').each (function () {
-		if ($j.inArray($j(this).val(),regionsInUse) != -1 && !this.selected)
+var disableZonesInUse = function () {
+	$j('#taxrates-table tr select.zone option').each (function () {
+		if ($j.inArray($j(this).val(),zonesInUse) != -1 && !this.selected)
 			$j(this).attr({'disabled':'disabled'});
 	});
 }
@@ -54,15 +53,15 @@ var addTaxRate = function (r) {
 		option = $j('<option></option>').val(value).html(label).appendTo(countryMenu);
 	});
 	
-	var regionCell = $j('<td></td>').appendTo(row);
-	var regionMenu = $j('<select name="settings[taxrates]['+i+'][region]" id="region['+i+']" class="region"></select>').appendTo(regionCell);
+	var zoneCell = $j('<td></td>').appendTo(row);
+	var zoneMenu = $j('<select name="settings[taxrates]['+i+'][zone]" id="zone['+i+']" class="zone"></select>').appendTo(zoneCell);
 
-	var updateRegionsMenu = function () {
-		regionMenu.empty();
-		if (regions[$j(countryMenu).val()]) {
-			$j.each(regions[$j(countryMenu).val()], function(value,label) {
-				if ($j.inArray(value,regionsInUse) != -1) option = $j('<option disabled="disabled"></option>').val(value).html(label).appendTo(regionMenu);				
-				else option = $j('<option></option>').val(value).html(label).appendTo(regionMenu);
+	var updateZoneMenu = function () {
+		zoneMenu.empty();
+		if (zones[$j(countryMenu).val()]) {
+			$j.each(zones[$j(countryMenu).val()], function(value,label) {
+				if ($j.inArray(value,zonesInUse) != -1) option = $j('<option disabled="disabled"></option>').val(value).html(label).appendTo(zoneMenu);				
+				else option = $j('<option></option>').val(value).html(label).appendTo(zoneMenu);
 			});
 		}
 	}
@@ -84,40 +83,51 @@ var addTaxRate = function (r) {
 	
 	
 	$j(countryMenu).change(function () {
-		updateRegionsMenu();
+		updateZoneMenu();
 	}).change();
 	
-	$j(regionMenu).change(function () {
-		if ($j.inArray(currentRegion,regionsInUse) != -1)
-			regionsInUse.splice($j.inArray(currentRegion,regionsInUse),1);
-		currentRegion = $j(regionMenu).val();
-		regionsInUse.push(currentRegion);
-		disableRegionsInUse();
+	$j(zoneMenu).change(function () {
+		if ($j.inArray(currentZone,zonesInUse) != -1)
+			zonesInUse.splice($j.inArray(currentZone,zonesInUse),1);
+		currentZone = $j(zoneMenu).val();
+		zonesInUse.push(currentZone);
+		disableZonesInUse();
 	});
 	
 	if (r) {
 		rate.val(r.rate);
 		countryMenu.val(r.country).change();
-		regionMenu.val(r.region).change();
+		zoneMenu.val(r.zone).change();
 	} else {
 		countryMenu.val(base.country).change();
-		if ($j.inArray(base.region,regionsInUse) == -1)
-			regionMenu.val(base.region).change();
-		else regionMenu.change();
+		if ($j.inArray(base.zone,zonesInUse) == -1)
+			zoneMenu.val(base.zone).change();
+		else zoneMenu.change();
 	}
 
-	var currentRegion = regionMenu.val();
+	var currentZone = zoneMenu.val();
 
 	taxrates.push(row);
 	quickSelects();
 	
 }
 
-$j('#add-taxrate').click(function() {
-	addTaxRate();
-});
+if ($j('#taxrates-table')) {
+	var rates = <?php echo json_encode($rates); ?>;
+	var base = <?php echo json_encode($base); ?>;
+	var countries = <?php echo json_encode($countries); ?>;
+	var zones = <?php echo json_encode($zones); ?>;
+	var taxrates = new Array();
+	var zonesInUse = new Array();
 
-if (rates.length > 0) for(i = 0; i < rates.length; i++) addTaxRate(rates[i]);
-else addTaxRate();
 
+	$j('#add-taxrate').click(function() {
+		addTaxRate();
+	});
+
+	$j('#taxrates-table').empty();
+	if (rates.length > 0) for(i = 0; i < rates.length; i++) addTaxRate(rates[i]);
+	else addTaxRate();	
+}
+//]]>
 </script>
