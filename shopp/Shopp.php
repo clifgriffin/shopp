@@ -7,7 +7,6 @@ Author: Ingenesis Limited
 Author URI: http://ingenesis.net
 */
 
-setlocale(LC_MONETARY, 'en_US'); // Move to settings manager
 
 define("SHOPP_VERSION","1.0");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
@@ -18,12 +17,14 @@ require("core/Flow.php");
 
 require("core/model/Settings.php");
 require("core/model/Cart.php");
+require("core/model/ShipCalcs.php");
 
 $Shopp =& new Shopp();
 
 class Shopp {
 	var $Flow;
 	var $Settings;
+	var $ShipCalcs;
 	
 	function Shopp () {
 		$this->path = dirname(__FILE__);
@@ -34,6 +35,9 @@ class Shopp {
 				
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
+		$this->ShipCalcs = new ShipCalcs($this->Settings,$this->path);
+		setlocale(LC_MONETARY, 'en_US'); // Move to settings manager
+		
 		
 		// Move this to install()
 		if (!$this->Settings->get('shopp_setup')) $this->Flow->development_setup();

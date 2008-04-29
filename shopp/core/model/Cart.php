@@ -232,76 +232,25 @@ class Cart {
 				
 		// Match region
 		if ($Shipping->country == $base['country']) {
-			// match domestic region or first entry
-			$regionRates = "";
-			if (isset($rate[$base['country']])) {
-				$regionRates = $rate[$base['country']];
-			} else {
-				// Try to get regional rate
-				$area = $Shipping->postarea();
-				$regionRates = $rate[$area];
-			}
+			if (isset($rate[$base['country']])) $column = $base['country'];  // Use the country rate
+			else $column = $Shipping->postarea(); // Try to get domestic regional rate
 		} else if (isset($rate[$Shipping->region])) {
 			// Global region rate
-			$regionRates = $rate[$Shipping->region];
+			$column = $Shipping->region;
 		} else {
 			// Worldwide shipping rate, last rate entry
-			$regionRates = array_slice($rate,-1,1);
+			end($rate);
+			$column = key($rate);
 		}
 		
-		$shipping = 0;
-		// Match rules & calculate
-		switch($rate['method']) {
-			case "flat-order":
- 				$shipping = $regionRates[0];
-				break;
-			case "flat-item":
-				foreach($this->contents as $item)
-					$shipping += $item->quantity * $regionRates[0];
-				break;
-			case "range-amount":
-				foreach ($rate['max'] as $id => $value) {
-					if ($this->data->Totals->subtotal <= $value) {
-						$shipping = $regionRates[$id];
-						break;
-					}
-				}
-				if ($shipping == 0) $shipping = $regionRates[$id];
-				break;
-			case "range-weight":
-				$weight = 0;
-				foreach($this->contents as $Item) $weight += ($Item->weight * $Item->quantity);
-				foreach ($rate['max'] as $id => $value) {
-					if ($weight <= $value) {
-						$shipping = $regionRates[$id];
-						break;
-					}
-				}
-				if ($shipping == 0) $shipping = $regionRates[$id];
-				break;
-			case "firstaddl-qty":
-				$items = 0;
-				foreach($this->contents as $Item) $items += $Item->quantity;
-				if ($items >= 1) $shipping += $regionRates[0];
-				if ($items > 1) $shipping += $regionRates[1] * ($items-1);
-				break;
-			case "range-qty":
-				$items = 0;
-				foreach($this->contents as $Item) $items += $Item->quantity;
-				foreach ($rate['max'] as $id => $value) {
-					if ($items <= $value) {
-						$shipping = $regionRates[$id];
-						break;
-					}
-				}
-				if ($shipping == 0) $shipping = $regionRates[$id];
-			break;
+		list($ShipCalcClass,$process) = split("::",$rate['method']);
+		if ($Shopp->ShipCalcs->modules[$ShipCalcClass]) {
+			$shipping = $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate($this,$rate,$column);
 		}
-		
+
 		// Calculate any product-specific shipping fee markups
 		foreach($this->contents as $Item){
 			if ($Item->shipfee > 0) $shipping += ($Item->quantity * $Item->shipfee);
-			//print_r($Item);
 		}
 
 		return $shipping;
