@@ -19,7 +19,8 @@ class Flow {
 	
 	function Flow (&$Core) {
 		$this->Settings =& $Core->Settings;
-		
+		$this->ShipCalcs =& $Core->ShipCalcs;
+
 		$this->basepath = dirname(dirname(__FILE__));
 		$this->uri = ((!empty($_SERVER['HTTPS']))?"https://":"http://").
 					$_SERVER['SERVER_NAME'].str_replace("?".$_SERVER['QUERY_STRING'],"",$_SERVER['REQUEST_URI']);
@@ -589,7 +590,7 @@ class Flow {
 				foreach ($method as $key => $rates) {
 					if (is_array($rates)) {
 						foreach ($rates as $id => $value) {
-							$_POST['settings']['shipping_rates'][$i][$key][$id] = preg_replace("/[^0-9\.\,]/","",$_POST['settings']['shipping_rates'][$i][$key][$id]);
+							$_POST['settings']['shipping_rates'][$i][$key][$id] = preg_replace("/[^0-9\.\+]/","",$_POST['settings']['shipping_rates'][$i][$key][$id]);
 						}
 					}
 				}
@@ -597,6 +598,7 @@ class Flow {
 	 		$this->settings_save();			
 		}
 
+		$methods = $this->ShipCalcs->methods;
 
 		$base = $this->Settings->get('base_operations');
 		$regions = $this->Settings->get('regions');

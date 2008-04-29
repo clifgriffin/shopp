@@ -1,3 +1,4 @@
+
 /**
  * stripe()
  * 
@@ -95,11 +96,13 @@ function stripe () {
 // }
 
 function quickSelects () {
-	$j('.selectall').each(function(input) {
-		$j(this).mouseup(function (e) {
+	(function($) {
+	$('.selectall').each(function(input) {
+		$(this).mouseup(function (e) {
 			this.select();
 		});
 	});
+	})(jQuery)
 }
 
 // function youAreHere () {
@@ -138,7 +141,7 @@ var asMoney = function(number,digits,currency,separator,decimal) {
  **/
 var asNumber = function(number) {
 	if (!number) number = 0;
-	number = number.toString().replace(new RegExp(/[,$¥]/g),"");
+	number = number.toString().replace(new RegExp(/[^0-9\.\,]/g),"");
 	return new Number(number);
 }
 
@@ -149,8 +152,10 @@ var asNumber = function(number) {
  * run the approriate formatting.
  */
 var formatFields = function () {
-	var f = $j('input');
+	(function($) {
+	var f = $('input');
 	for (i = 0; i < f.elements.length; i++) {
 		if (f.elements[i].className.match("currency")) f.elements[i].value = asMoney(f.elements[i].value);
 	}
+	})(jQuery)
 }
