@@ -53,6 +53,10 @@ class Cart {
 		$this->data->Totals->tax = 0;
 		$this->data->Totals->taxrate = 0;
 		$this->data->Totals->total = 0;
+
+		$this->data->Order = new stdClass();
+		$this->data->Purchase = false;
+
 	}
 		
 	/* open()
@@ -102,6 +106,7 @@ class Cart {
 		$db =& DB::get();		
 		if (!$db->query("DELETE FROM $this->_table WHERE session='$this->session'")) 
 			trigger_error("Could not clear session data.");
+		unset($this->session,$this->ip,$this->data,$this->contents);
 		return true;
 	}
 	
@@ -118,7 +123,7 @@ class Cart {
 	}
 
 	/* trash()
-	 * Garbage collection routine for cleaning up lingering 
+	 * Garbage collection routine for cleaning up old and expired
 	 * sessions. */
 	function trash () {
 		$db =& DB::get();
@@ -131,13 +136,12 @@ class Cart {
 	/**
 	 * add()
 	 * Adds a product as an item to the cart */
-	function add ($quantity,$Product,$Price) {
-		global $Shopp;
+	function add ($quantity,&$Product,&$Price) {
 		if ($Price->product != $Product->id) return false;
 		if (($item = $this->hasproduct($Product->id,$Price->id)) !== false) {
 			$this->contents[$item]->add($quantity);
 		} else {
-			$Item = new Item($quantity,$Product,$Price,$Shopp->Settings->get('taxes'));
+			$Item = new Item($quantity,$Product,$Price);
 			$this->contents[] = $Item;
 		}
 		$this->totals();
@@ -170,11 +174,18 @@ class Cart {
 	}
 	
 	/**
+	 * clear()
+	 * Empties the contents of the cart */
+	function clear () {
+		$this->contents = array();
+		return true;
+	}
+	
+	/**
 	 * change()
 	 * Changes an item to a different product/price variation */
-	function change ($item,$Product,$Price) {
-		global $Shopp;
-		$this->contents[$item] = new Item($this->contents[$item]->quantity,$Product,$Price,$Shopp->Settings->get('taxes'));
+	function change ($item,&$Product,&$Price) {
+		$this->contents[$item] = new Item($this->contents[$item]->quantity,$Product,$Price);
 		$this->totals();
 		$this->save();
 		return true;
@@ -194,6 +205,112 @@ class Cart {
 		return false;
 	}
 	
+	/**
+	 * shipzone()
+	 * Sets the shipping address location 
+	 * for calculating shipping estimates */
+	function shipzone ($data) {
+		global $Shopp;
+		
+		$this->data->Order->Shipping = new Shipping();
+		$this->data->Order->Shipping->updates($data);
+		$this->totals();
+	}
+	
+	/**
+	 * shipping()
+	 * Calulates shipping costs based on the contents
+	 * of the cart and the currently available shipping
+	 * location set with shipzone() */
+	function shipping () {
+		global $Shopp;
+		if (!$this->data->Order->Shipping) return false;
+		$Shipping =& $this->data->Order->Shipping;
+		$base = $Shopp->Settings->get('base_operations');
+		$methods = $Shopp->Settings->get('shipping_rates');
+		$rate = $methods[0];
+				
+		// Match region
+		if ($Shipping->country == $base['country']) {
+			// match domestic region or first entry
+			$regionRates = "";
+			if (isset($rate[$base['country']])) {
+				$regionRates = $rate[$base['country']];
+			} else {
+				// Try to get regional rate
+				$area = $Shipping->postarea();
+				$regionRates = $rate[$area];
+			}
+		} else if (isset($rate[$Shipping->region])) {
+			// Global region rate
+			$regionRates = $rate[$Shipping->region];
+		} else {
+			// Worldwide shipping rate, last rate entry
+			$regionRates = array_slice($rate,-1,1);
+		}
+		
+		$shipping = 0;
+		// Match rules & calculate
+		switch($rate['method']) {
+			case "flat-order":
+ 				$shipping = $regionRates[0];
+				break;
+			case "flat-item":
+				foreach($this->contents as $item)
+					$shipping += $item->quantity * $regionRates[0];
+				break;
+			case "range-amount":
+				foreach ($rate['max'] as $id => $value) {
+					if ($this->data->Totals->subtotal <= $value) {
+						$shipping = $regionRates[$id];
+						break;
+					}
+				}
+				if ($shipping == 0) $shipping = $regionRates[$id];
+				break;
+			case "range-weight":
+				$weight = 0;
+				foreach($this->contents as $Item) $weight += ($Item->weight * $Item->quantity);
+				foreach ($rate['max'] as $id => $value) {
+					if ($weight <= $value) {
+						$shipping = $regionRates[$id];
+						break;
+					}
+				}
+				if ($shipping == 0) $shipping = $regionRates[$id];
+				break;
+			case "firstaddl-qty":
+				$items = 0;
+				foreach($this->contents as $Item) $items += $Item->quantity;
+				if ($items >= 1) $shipping += $regionRates[0];
+				if ($items > 1) $shipping += $regionRates[1] * ($items-1);
+				break;
+			case "range-qty":
+				$items = 0;
+				foreach($this->contents as $Item) $items += $Item->quantity;
+				foreach ($rate['max'] as $id => $value) {
+					if ($items <= $value) {
+						$shipping = $regionRates[$id];
+						break;
+					}
+				}
+				if ($shipping == 0) $shipping = $regionRates[$id];
+			break;
+		}
+		
+		// Calculate any product-specific shipping fee markups
+		foreach($this->contents as $Item){
+			if ($Item->shipfee > 0) $shipping += ($Item->quantity * $Item->shipfee);
+			//print_r($Item);
+		}
+
+		return $shipping;
+	}
+	
+	/**
+	 * totals()
+	 * Calculates subtotal, shipping, tax and 
+	 * order total amounts */
 	function totals () {
 		global $Shopp;
 		$Totals =& $this->data->Totals;
@@ -204,16 +321,14 @@ class Cart {
 
 		foreach ($this->contents as $Item) {
 			$Totals->subtotal +=  $Item->total;
-			if ($Item->shipping = "on")
-				$Totals->shipping += ($Item->quantity * $Item->domship);
-
-			if ($Item->tax == "on" && $Totals->taxrate > 0)
+			
+			if ($Item->tax && $Totals->taxrate > 0)
 				$Totals->tax += $Item->total * ($Totals->taxrate/100);
 				
 		}
-		
 		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
 		
+		$Totals->shipping = $this->shipping();
 		
 		$Totals->total = $Totals->subtotal + 
 			$Totals->shipping + $Totals->tax;		
@@ -244,6 +359,26 @@ class Cart {
 		
 		$result = "";
 		switch ($property) {
+			case "shipping-estimates":
+				if (!empty($this->data->Order->Shipping->postcode)) break;
+				$base = $Shopp->Settings->get('base_operations');
+				$markets = $Shopp->Settings->get('target_markets');
+				foreach ($markets as $iso => $country) $countries[$iso] = $country;
+				$result .= '<form id="shipping-estimates" action="" method="post">';
+				$result .= '<p>';
+				$result .= '<input type="text" name="postcode" size="6" />';
+				$result .= '<select name="country">';
+				$result .= menuoptions($countries,$base['country'],true);
+				$result .= '</select>';
+				$result .= '</p>';
+				$result .= '<p class="submit"><input type="submit" name="cart" value="Estimate Shipping" /></p>';
+				return $result;
+				break;
+		}
+		
+		
+		$result = "";
+		switch ($property) {
 			case "subtotal": $result = $this->data->Totals->subtotal; break;
 			case "shipping": $result = $this->data->Totals->shipping; break;
 			case "tax": $result = $this->data->Totals->tax; break;
@@ -267,6 +402,41 @@ class Cart {
 		} else return false;
 	}
 	
+	function shipestimatetag ($property,$options=array()) {
+		global $Shopp;
+		$base = $Shopp->Settings->get('base_operations');
+		$markets = $Shopp->Settings->get('target_markets');
+		foreach ($markets as $iso => $country) $countries[$iso] = $country;
+		
+		$result = "";
+		switch ($property) {
+			case "postcode":
+				if (isset($options['size'])) $size = ' size="'.$options['size'].'"';
+				$result .= '<input type="text" name="shipping[postcode]" id="shipping-postcode" value="'.$this->data->Order->Shipping->postcode.'" title="Shipping destination postal/zip Code" '.$size.' />';
+				if (isset($options['label'])) 
+					$result .= '<label for="shipping-postcode">'.$options['label'].'</label>';
+				return $result;
+				break;
+			case "country":
+				if (isset($this->data->Order->Shipping->country)) $country = $this->data->Order->Shipping->country;
+				else $country = $base['country'];
+				$result .= '<select name="shipping[country]" id="shipping-country" title="Shipping destination country">';
+				$result .= menuoptions($countries,$country,true);
+				$result .= '</select>';
+				if (isset($options['label'])) 
+					$result .= '<label for="shipping-country">'.$options['label'].'</label>';
+				return $result;
+				break;
+			case "button":
+				if (isset($options['label'])) $label = $options['label'];
+				else $label = "Get Shipping Estimate";
+				$result .= '<input type="hidden" name="cart" value="shipestimate" />';
+				$result .= '<button type="submit" name="shipestimate" id="submit-shipestimate" value="'.$label.'" />'.$label.'</button>';
+				return $result;
+				break;
+		}
+	}
+		
 } // end Cart class
 
 ?>

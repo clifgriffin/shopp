@@ -282,12 +282,15 @@ var addProductOption = function (p) {
 	var shippingHeading = $j('<th><label for="shipping['+i+']"> Shipping</label></th>').appendTo(headingsRow);
 	var shippingToggle = $j('<input type="checkbox" name="price['+i+'][shipping]" id="shipping['+i+']" tabindex="'+(i+1)+'07" />').prependTo(shippingHeading);
 	var shippingCell = $j('<td/>').appendTo(inputsRow);
-	var shippingStatus = $j('<span>Shipping Disabled</span>').addClass('status').appendTo(shippingCell);
+	var shippingStatus = $j('<span>Free Shipping</span>').addClass('status').appendTo(shippingCell);
 	var shippingFields = $j('<span/>').addClass('fields').appendTo(shippingCell).hide();
-	var shippingDom = $j('<input type="text" name="price['+i+'][domship]" id="domship['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'08" />').appendTo(shippingFields);
-	var shippingDomLabel = $j('<label for="domship['+i+']" title="Domestic"> Dom</label><br />').appendTo(shippingFields);
-	var shippingIntl = $j('<input type="text" name="price['+i+'][intlship]" id="intlship['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'09" />').appendTo(shippingFields);
-	var shippingIntlLabel = $j('<label for="intlship['+i+']" title="International"> Int\'l</label>').appendTo(shippingFields);
+	var weight = $j('<input type="text" name="price['+i+'][weight]" id="weight['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'08" />').appendTo(shippingFields);
+	var shippingWeightLabel = $j('<label for="weight['+i+']" title="Weight"> Weight'+((weightUnit)?' ('+weightUnit+')':'')+'</label><br />').appendTo(shippingFields);
+	var shippingfee = $j('<input type="text" name="price['+i+'][shipfee]" id="shipfee['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'08" />').appendTo(shippingFields);
+	var shippingFeeLabel = $j('<label for="shipfee['+i+']" title="Additional shipping fee calculated per quantity ordered (for handling costs, etc)"> Markup</label><br />').appendTo(shippingFields);
+	
+
+	// var shippingIntlLabel = $j('<label for="intlship['+i+']" title="International"> Int\'l</label>').appendTo(shippingFields);
 
 	var inventoryHeading = $j('<th><label for="inventory['+i+']"> Inventory</label></th>').appendTo(headingsRow);
 	var inventoryToggle = $j('<input type="checkbox" name="price['+i+'][inventory]" id="inventory['+i+']" tabindex="'+(i+1)+'10" />').prependTo(inventoryHeading);
@@ -388,8 +391,7 @@ var addProductOption = function (p) {
 	
 	price.change(function() { this.value = asMoney(this.value); }).change();
 	saleprice.change(function() { this.value = asMoney(this.value); }).change();
-	shippingDom.change(function() { this.value = asMoney(this.value); }).change();
-	shippingIntl.change(function() { this.value = asMoney(this.value); }).change();
+	shippingfee.change(function() { this.value = asMoney(this.value); }).change();
 	
 	if (p) {
 		label.val(p.label);
@@ -406,8 +408,8 @@ var addProductOption = function (p) {
 		if (p.inventory == "on") inventoryToggle.each(function() { this.checked = true; }).change();
 
 		saleprice.val(asMoney(p.saleprice));
-		shippingDom.val(asMoney(p.domship));
-		shippingIntl.val(asMoney(p.intlship));
+		shippingfee.val(asMoney(p.shipfee));
+		weight.val(p.weight);
 		stock.val(p.stock);
 
 		if (p.tax == "off") tax.each(function() { this.checked = true; });
@@ -459,7 +461,7 @@ var startImageUpload = function (file) {
 }
 
 var imageUploadProgress = function (file, loaded, total) {
-	var progress = Math((loaded/total)*100).round();
+	var progress = Math.ceil((loaded/total)*100);
 	$j(this.progressBar).animate({'width':progress+'px'},100);
 }
 
@@ -547,7 +549,7 @@ var startUpload = function (file) {
 }
 
 var uploadProgress = function (file, loaded, total) {
-	var progress = Math((loaded/total)*100).round();
+	var progress = Math.ceil((loaded/total)*100);
 	$j(this.progressBar).animate({'width':progress+'px'},100);
 }
 

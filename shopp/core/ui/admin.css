@@ -1,6 +1,7 @@
 body { position: relative; }
 button { cursor: pointer; }
 button.deleteButton { background: none; border: none; padding: 0; width: 16px; height: 16px; }
+button img { display: inline-block; vertical-align: middle; }
 input.right { text-align: right; }
 
 .form-table input.toggle { margin-left: -13px; }
@@ -20,6 +21,7 @@ input.right { text-align: right; }
 #pricing tr td button { padding: 1px 5px; }
 #pricing tr td button.deleteButton { position: absolute; right: 5px; padding: 0; }
 #pricing tr .controls { text-align: right; vertical-align: bottom; }
+#pricing select.shiprate { width: 100px; }
 
 #pricing div.file { background: url('/wp-content/plugins/shopp/core/ui/icons/page_white.png') no-repeat left 2px; padding-left: 20px; }
 #pricing div.file.image { background-image: url('/wp-content/plugins/shopp/core/ui/icons/image.png'); }
@@ -48,7 +50,7 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 
 #wpcontent .form-table select.scrolling { height: auto; }
 
-.form-table .multiple-select { overflow-x: hidden; overflow-y: auto; height: 100px; width: auto; display: inline-block; border: 1px solid rgb(221, 221, 221); background: #ffffff; }
+.form-table .multiple-select { overflow-x: hidden; overflow-y: auto; height: 120px; width: auto; display: inline-block; border: 1px solid rgb(221, 221, 221); background: #ffffff; }
 
 .form-table .multiple-select ul { list-style-type: none; margin: 0; padding: 0; line-height: 1; }
 .form-table .multiple-select ul li { margin: 0; padding: 2px 2px 0 0; }
@@ -67,8 +69,8 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 form { position: relative; }
 p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 
-button img { margin-bottom: -3px; }
-
+/*button img { margin-bottom: -3px; }
+*/
 #order { position: relative; }
 #order address { font-style: normal; }
 #order fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
@@ -96,4 +98,17 @@ button img { margin-bottom: -3px; }
 #order-statuslabels li { position: relative; }
 #order-statuslabels li input { padding-right: 20px; margin-right: 5px; }
 #order-statuslabels button { position: relative; background: none; border: none; padding: 0; width: 16px; height: 16px; }
-#order-statuslabels button.delete { position: absolute; left: 120px; top: 4px; }
+#order-statuslabels button.delete { position: absolute; left: 120px; top: 6px; }
+
+#shipping-rates table.rate, #shipping-rates table.rate tr { background: none; }
+#shipping-rates table.rate tr.headings th { vertical-align: bottom; line-height: 1; }
+#shipping-rates, #shipping-rates td { position: relative; padding-left: 0; padding-right: 0; top: 0; }
+#shipping-rates td button.deleteRate { position: absolute; right: 5px; }
+#shipping-rates table.rate th, #shipping-rates table.rate td { border: none; padding: 2px; }
+#shipping-rates table.rate td { vertical-align: top; }
+#shipping-rates table.rate .units { text-align: right; white-space: nowrap; }
+#shipping-rates table.rate td span.padding { display: inline-block; height: 16px; padding: 3px 0; margin: 1px 0; }
+#shipping-rates table.rate td.rowctrl button { display: inline-block; margin: 0 10px 0 0; padding: 0; border: none; background: none; width: auto; height: auto; }
+#shipping-rates table.rate td.rowctrl { vertical-align: middle; white-space: nowrap;}
+#shipping-rates select.methods { width: 150px; }
+#shipping-rates button.disabled { opacity: 0.3; }

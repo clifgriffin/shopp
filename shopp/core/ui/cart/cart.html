@@ -38,13 +38,12 @@
 	<tr class="buttons">
 		<td colspan="4">
 		<input type="hidden" name="cart" value="update" />
-		<button type="submit" name="cart-button" value="update">Update Subtotal</button>
+		<button type="submit" name="cart" value="empty">Empty Cart</button>
+		<button type="submit" name="cart-button" value="update">Update Cart</button>
+		<button type="submit" name="checkout" value="checkout">Checkout</button>
 		</td>
 	</tr>
 </table>
-</form>
-<form action="<?php echo SHOPP_CHECKOUTURL; ?>" method="post">
-	<p class="submit"><button type="submit" name="checkout" value="true">Checkout</button></p>
 </form>
 <?php else: ?>
 	<p class="warning">There are currently no items in your shopping cart.</p>

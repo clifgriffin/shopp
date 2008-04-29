@@ -6,7 +6,7 @@
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="merchant_email">Merchant Email</label></th> 
-				<td><input type="text" name="settings[merchant_email]" value="<?php echo $this->Core->Settings->get('merchant_email'); ?>" id="merchant_email" size="30" /><br /> 
+				<td><input type="text" name="settings[merchant_email]" value="<?php echo $this->Settings->get('merchant_email'); ?>" id="merchant_email" size="30" /><br /> 
 	            Enter the email address for the owner of this shop to receive e-mail notifications.</td>
 			</tr>
 			<tr class="form-field form-required"> 
@@ -15,9 +15,8 @@
 					<option></option>
 						<?php echo menuoptions($countries,$operations['country'],true); ?>
 					</select>
-					<select name="settings[base_operations][region]" id="base_operations_region">
-						<?php if (isset($regions)) 
-								echo menuoptions($regions,$operations['region'],true); ?>
+					<select name="settings[base_operations][zone]" id="base_operations_zone">
+						<?php if (isset($zones)) echo menuoptions($zones,$operations['zone'],true); ?>
 					</select>
 					<br /> 
 	            Select your primary business location.</td> 
@@ -42,6 +41,15 @@
 	            Select the markets you are selling products to.</td> 
 			</tr>
 			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="currency">Currency</label></th> 
+				<td>
+					<select name="settings[currency]" id="currency">
+						<?php echo menuoptions($currencies,$this->Settings->get('currency'),true); ?>
+					</select><br />
+					Select the currency for your store.
+				</td>
+			</tr>
+			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="cart-toggle">Order Status Labels</label></th> 
 				<td>
 				<ol id="order-statuslabels">
@@ -59,24 +67,25 @@ $j=jQuery.noConflict();
 var labels = <?php echo json_encode($statusLabels); ?>;
 var labelInputs = new Array();
 
-if ($j('#base_operations').val() == '') $j('#base_operations_region').hide();
+if (!$j('#base_operations').val() || $j('#base_operations').val() == '') $j('#base_operations_zone').hide();
+if (!$j('#base_operations_zone').val()) $j('#base_operations_zone').hide();
 
 $j('#base_operations').change(function() {
 	if ($j('#base_operations').val() == '') {
-		$j('#base_operations_region').hide();
+		$j('#base_operations_zone').hide();
 		return true;
 	}
 
-	$j.getJSON($j('#general').attr('action')+'&lookup=regions&country='+$j('#base_operations').val(),
+	$j.getJSON($j('#general').attr('action')+'&lookup=zones&country='+$j('#base_operations').val(),
 		function(data) {
-			$j('#base_operations_region').hide();
-			$j('#base_operations_region').empty();
+			$j('#base_operations_zone').hide();
+			$j('#base_operations_zone').empty();
 			if (!data) return true;
 			
 			$j.each(data, function(value,label) {
-				option = $j('<option></option>').val(value).html(label).appendTo('#base_operations_region');
+				option = $j('<option></option>').val(value).html(label).appendTo('#base_operations_zone');
 			});
-			$j('#base_operations_region').show();
+			$j('#base_operations_zone').show();
 			
 	});
 });

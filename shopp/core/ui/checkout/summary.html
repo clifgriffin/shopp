@@ -28,7 +28,7 @@
 	</tr>
 	<?php else: ?>
 		<tr class="totals">
-			<th scope="row" colspan="4" class="total"><?php echo $this->Core->Settings->get('free_shipping_text'); ?></td>
+			<th scope="row" colspan="4" class="total"><?php echo $this->Settings->get('free_shipping_text'); ?></td>
 		</tr>
 	<?php endif; ?>
 	<?php if ($Cart->data->Totals->tax > 0): ?>

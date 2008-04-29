@@ -26,7 +26,7 @@ class Settings extends DatabaseObject {
 		if (!empty($name)) $results = $db->query("SELECT * FROM $this->_table WHERE name='$name'",AS_ARRAY,false);
 		else $results = $db->query("SELECT * FROM $this->_table WHERE autoload='on'",AS_ARRAY,false);
 		
-		if (!is_array($results)) return false;
+		if (!is_array($results) || sizeof($results) == 0) return false;
 		while(list($key,$entry) = each($results)) {
 			// Return unserialized, if serialized value
 			if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$entry->value)) 
@@ -84,22 +84,20 @@ class Settings extends DatabaseObject {
 	}
 	
 	function save ($name,$value) {
-		
 		// Update or Insert as needed
-		if ($this->get($name)) $this->update($name,$value);
-		else $this->add($name,$value);
-		
+		if ($this->get($name) === false) $this->add($name,$value);
+		else $this->update($name,$value);
 	}
 	
 	/**
 	 * Get a specific setting from the registry */
 	function get ($name) {
+		$value = false;
 		if (isset($this->registry[$name])) {
 			$value = $this->registry[$name];
 		} else if ($this->load($name)) {
 			$value = $this->registry[$name];
-		} else return false;
-		
+		}
 		return $value;
 	}
 	

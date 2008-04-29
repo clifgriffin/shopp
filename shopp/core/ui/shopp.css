@@ -26,23 +26,24 @@
 /**
  * Checkout 
  **/
-.checkout ul { list-style-type: none; padding: 0; margin: 0; width: 100%; clear: both; line-height: 1; }
-.checkout ul li { clear: both; display: block; padding: 4px 0; }
-.checkout ul li label { font-size: 14px; clear: both; display: block; font-weight: bold; padding-bottom: 3px; }
-.checkout ul li label.inline { display: inline; clear: none; }
-.checkout ul li span { float: left; padding: 0 5px 0 0; }
-.checkout ul li div.inline.right { width: auto;  }
-.checkout ul li div.inline.right input { width: auto;  }
-.checkout ul li div.inline label { clear: none; display: inline; margin-left: 10px; }
-.checkout ul li span input { margin: 0 0 5px 0; }
-.checkout ul li div input,
-.checkout ul li div select { width: 100%; }
-.checkout ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
-.checkout ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
+.shopp ul { list-style-type: none; padding: 0; margin: 0; width: 100%; clear: both; line-height: 1; }
+.shopp ul li { clear: both; display: block; padding: 4px 0; }
+.shopp label { font-size: 14px; clear: both; display: block; font-weight: bold; padding-bottom: 3px; }
+.shopp ul li label.inline { display: inline; clear: none; }
+.shopp span { float: left; padding: 0 5px 0 0; }
+.shopp ul li div.inline.right { width: auto;  }
+.shopp ul li div.inline.right input { width: auto;  }
+.shopp ul li div.inline label { clear: none; display: inline; margin-left: 10px; }
+.shopp ul li span input { margin: 0 0 5px 0; }
+.shopp ul li div input,
+.shopp ul li div select { width: 100%; }
+.shopp ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
+.shopp ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
 
 
-.checkout ul li.address { display: inline; width: 48%; float: left; clear: none; }
-.checkout ul li.address.right { display: inline; float: right; }
-.checkout ul li span label,
-.checkout ul li div label { font-size: 11px; clear: both; font-weight: normal; padding-bottom: 8px; }
+.shopp ul li.address { display: inline; width: 48%; float: left; clear: none; }
+.shopp ul li.address.right { display: inline; float: right; }
+.shopp span { display: inline-block; text-align: left; }
+.shopp span label,
+.shopp div label { font-size: 11px; clear: both; font-weight: normal; padding-bottom: 8px; }
 

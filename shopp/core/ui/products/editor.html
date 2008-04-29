@@ -92,8 +92,10 @@
 var prices = <?php echo json_encode($Product->prices) ?>;
 var optionGroups = <?php echo json_encode($optionGroups) ?>;
 var optionTypes = <?php echo json_encode($optionTypes) ?>;
+var shiprates = <?php echo json_encode($shiprates); ?>;
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 var siteurl = '<?php echo get_option('siteurl'); ?>';
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
+var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 init();
 </script>
