@@ -1,0 +1,55 @@
+<?php if (shopp('cart','hasitems')): ?>
+<form id="cart" action="<?php shopp('cart','url'); ?>" method="post">
+<table class="cart">
+	<tr>
+		<th scope="col" class="item">Cart Items</th>
+		<th scope="col">Quantity</th>
+		<th scope="col" class="money">Item Price</th>
+		<th scope="col" class="money">Item Total</th>
+	</tr>
+
+	<?php while(shopp('cart','items')): ?>
+		<tr>
+			<td><?php shopp('cartitem','name'); shopp('cartitem','options'); ?></td>
+			<td><?php shopp('cartitem','quantity','input=text'); ?></td>
+			<td class="money"><?php shopp('cartitem','unitprice'); ?></td>
+			<td class="money"><?php shopp('cartitem','total'); ?></td>
+		</tr>
+	<?php endwhile; ?>
+
+	<tr class="totals">
+		<th scope="row" colspan="3" class="total">Subtotal</td>
+		<td class="money"><?php shopp('cart','subtotal'); ?></td>
+	</tr>
+	<?php if (shopp('cart','shipping','is=true')): ?>
+	<tr class="totals">
+		<th scope="row" colspan="3" class="total">Shipping</td>
+		<td class="money"><?php shopp('cart','shipping'); ?></td>
+	</tr>
+	<?php else: ?>
+		<tr class="totals">
+			<th scope="row" colspan="4" class="total"><?php shopp('cart','free-shipping-text'); ?></td>
+		</tr>
+	<?php endif; ?>
+	<tr class="totals">
+		<th scope="row" colspan="3" class="total">Total</td>
+		<td class="money"><?php shopp('cart','total'); ?></td>
+	</tr>
+	<tr class="buttons">
+		<td colspan="4">
+		<input type="hidden" name="cart" value="update" />
+		<button type="submit" name="cart" value="empty">Empty Cart</button>
+		<button type="submit" name="cart-button" value="update">Update Cart</button>
+		<button type="submit" name="checkout" value="checkout">Checkout</button>
+		</td>
+	</tr>
+</table>
+</form>
+<?php else: ?>
+	<p class="warning">There are currently no items in your shopping cart.</p>
+	<?php if ($_SERVER['SERVER_NAME'] == "wordpress") {
+		echo "<pre>";
+		print_r($Cart);
+		echo "</pre>";
+	} ?>
+<?php endif; ?>
