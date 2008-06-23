@@ -111,28 +111,6 @@ function duration ($start,$end) {
 	return ceil(($end - $start) / 86400);
 }
 
-/**
- * Get rid of evil magic quotes!! */
-function no_magic_quotes() {
-	if (get_magic_quotes_gpc()) {
-		if (!empty($_GET))    $_GET    = strip_magic_quotes($_GET);
-		if (!empty($_POST))   $_POST   = strip_magic_quotes($_POST);
-		if (!empty($_COOKIE)) $_COOKIE = strip_magic_quotes($_COOKIE);
-	}
-}
-
-/**
- * Removes any extra quotes added to a given string ($arr)
- * by the built-in PHP GPC (Get, Post, Cookie) magic quote
- * functions. */
-function strip_magic_quotes ($arr) {
-	foreach ($arr as $k => $v) {
-		if (is_array($v)) $arr[$k] = strip_magic_quotes($v);
-		else $arr[$k] = stripslashes($v);
-	}
-	return $arr;
-}
-
 /** 
  * Sends an e-mail message in the format of a specified e-mail 
  * template ($template) file providing variable substitution 
