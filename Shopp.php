@@ -3,10 +3,10 @@
 Plugin Name: Shopp
 Version: 1.0
 Description: E-Commerce catalog, shopping cart & payment processing plugin
+Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
 Author URI: http://ingenesis.net
 */
-
 
 define("SHOPP_VERSION","1.0");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
@@ -22,9 +22,12 @@ require("core/model/ShipCalcs.php");
 $Shopp =& new Shopp();
 
 class Shopp {
+	var $Cart;
 	var $Flow;
 	var $Settings;
 	var $ShipCalcs;
+	var $Product;
+	var $Category;
 	
 	function Shopp () {
 		$this->path = dirname(__FILE__);
@@ -32,16 +35,25 @@ class Shopp {
 		$this->directory = basename($this->path);
 		$this->uri = get_bloginfo('wpurl')."/wp-content/plugins/".$this->directory;
 		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";
-				
+		
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
+		
+		// Change "shopp/Shopp.php" to __FILE__ at release
+		// __FILE__ doesn't work because of the development environment pathing
+		//register_deactivation_hook(__FILE__, array(&$this, 'deactivate'));
+		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
+
+		// Initialize defaults if they have not been entered
+		if (!$this->Settings->get('shopp_setup')) 
+			$this->Flow->setup();
+
+		$this->Cart = new Cart();
+		session_start();
+
 		$this->ShipCalcs = new ShipCalcs($this->Settings,$this->path);
-		setlocale(LC_MONETARY, 'en_US'); // Move to settings manager
-		
-		
-		// Move this to install()
-		if (!$this->Settings->get('shopp_setup')) $this->Flow->development_setup();
-				
+		setlocale(LC_MONETARY, 'en_US'); // Move to settings manager ??
+
 		add_action('init', array(&$this, 'lookups'));
 		add_action('init', array(&$this, 'ajax'));
 		add_action('init', array(&$this, 'cart'));
@@ -50,8 +62,31 @@ class Shopp {
 
 		add_action('admin_menu', array(&$this, 'add_menus'));
 		add_action('wp_head', array(&$this, 'page_headers'));
-		register_activation_hook(__FILE__, array(&$this,'activate'));
 
+		update_option('rewrite_rules', '');
+		add_filter('generate_rewrite_rules',array(&$this,'rewrites'));
+		add_filter('query_vars', array(&$this,'queryvars'));
+
+		wp_enqueue_script('shopp',"{$this->uri}/core/ui/shopp.js");
+
+	}
+	
+	function install () {
+		
+		if ($this->Settings->unavailable) 
+			include("core/install.php");
+				
+		// If the plugin has been previously setup
+		// dump the datatype model cache so it can be rebuilt
+		// Useful when table schemas change so we can
+		// force the in memory data model to get rebuilt
+		if ($this->Settings->get('shopp_setup'))
+			$this->Settings->save('datatype_model','');
+		
+	}
+	
+	function deactivate() {
+		return true;
 	}
 	
 	function add_menus () {
@@ -67,7 +102,6 @@ class Shopp {
 	}
 
 	function admin_header () {
-		wp_enqueue_script('shopp',"{$this->uri}/core/ui/shopp.js");
 		if ($_GET['page'] == $this->Flow->Admin->products && isset($_GET['edit']))
 			wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js");
 			wp_enqueue_script('jquery.tablednd',"{$this->uri}/core/ui/jquery/jquery.tablednd.js",array('jquery'),'');
@@ -85,6 +119,28 @@ class Shopp {
 		?>
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/shopp.css' type='text/css' />
 		<?php
+	}
+	
+	function rewrites ($wp_rewrite) {
+		$rules = array(
+			'(shop/cart)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
+			'(shop/checkout)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
+			'(shop/receipt)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
+			'(shop/confirm-order)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
+			'(shop)/images/(\d+)?$' => 'index.php?lookup=image&id='.$wp_rewrite->preg_index(2),
+			'(shop)/(\d+(,\d+)?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&productid='. $wp_rewrite->preg_index(2),
+			'(shop)/([a-zA-Z0-9_\-]+?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&category='. $wp_rewrite->preg_index(2),
+			'(shop)/([a-zA-Z0-9_\-]+?)/(.*?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&category='. $wp_rewrite->preg_index(2).'&productname='. $wp_rewrite->preg_index(3),			
+		);
+		
+		$wp_rewrite->rules = $rules + $wp_rewrite->rules;
+	}
+	
+	function queryvars ($vars) {
+		$vars[] = 'category';
+		$vars[] = 'productid';
+		$vars[] = 'productname';
+		return $vars;
 	}
 		
 	function orders () {
@@ -241,11 +297,11 @@ class Shopp {
 			$receipt['subject'] = "KMXUS.com Order Receipt";
 			$receipt['receipt'] = $this->Flow->order_receipt();
 			$receipt['url'] = $_SERVER['SERVER_NAME'];
-			send_email("{$this->path}/ui/checkout/email.html",$receipt);
+			send_email("{$this->path}/vanilla/email.html",$receipt);
 			
 			if ($this->Settings->get('receipt_copy') == 1) {
 				$receipt['to'] = $this->Settings->get('shopowner_email');
-				send_email("{$this->path}/ui/checkout/email.html",$receipt);
+				send_email("{$this->path}/vanilla/email.html",$receipt);
 			}
 
 			header("Location: ".SHOPP_RECEIPTURL);
@@ -268,28 +324,11 @@ class Shopp {
 		add_shortcode('receipt',array(&$this->Flow,'order_receipt'));
 	}
 	
-	function activate () {
-		$db =& DB::get();
-		
-		// If the plugin has been previously setup
-		// dump the datatype model cache so it can be rebuilt
-		// Useful when table schemas change so we can
-		// force them to get rebuilt
-		if ($this->Settings->get('shopp_setup'))
-			$this->Settings->save('datatype_model','');
-
-		if ($this->Settings->unavailable) {
-			include("core/install.php");
-		}
-		
-	}
-	
 	/**
 	 * AJAX Responses
 	 */
 	function lookups() {
 		$db =& DB::get();
-		
 		switch($_GET['lookup']) {
 			case "zones":
 				$zones = $this->Settings->get('zones');
@@ -420,7 +459,7 @@ class Shopp {
 function shopp () {
 	global $Cart,$Shopp;
 	$args = func_get_args();
-	
+
 	$object = strtolower($args[0]);
 	$property = strtolower($args[1]);
 	$paramsets = $args[2];
@@ -431,14 +470,15 @@ function shopp () {
 		list($key,$value) = split("=",$paramset);
 		$options[strtolower($key)] = $value;
 	}
-	
+
 	$result = "";
 	switch (strtolower($object)) {
 		case "cart": $result = $Cart->tag($property,$options); break;
 		case "cartitem": $result = $Cart->itemtag($property,$options); break;
 		case "shipestimate": $result = $Cart->shipestimatetag($property,$options); break;
+		case "product": $result = $Shopp->Flow->producttag($property,$options); break;
 	}
-	
+
 	// Force boolean result
 	if (isset($options['is'])) {
 		if (value_is_true($options['is'])) {
@@ -448,10 +488,10 @@ function shopp () {
 		}
 		return false;
 	}
-	
+
 	// Always return a boolean if the result is boolean
 	if (is_bool($result)) return $result;
-	
+
 	// Return the result instead of outputting it
 	if (isset($options['return']) && value_is_true($options['return']))
 		return $result;
@@ -460,3 +500,5 @@ function shopp () {
 	echo $result;
 	return true;
 }
+
+?>
