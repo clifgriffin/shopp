@@ -62,7 +62,7 @@ class TestMode {
 							 "Test Error Response");
 			}
 			
-			settings_callback['<?php echo __FILE__; ?>'] = testmode_settings;
+			gatewayHandlers.register('<?php echo __FILE__; ?>',testmode_settings);
 
 		<?
 	}
