@@ -14,9 +14,6 @@ require("Customer.php");
 require("Billing.php");
 require("Shipping.php");
 
-$Cart =& new Cart();
-session_start();
-
 class Cart {
 
 	// properties
@@ -55,6 +52,7 @@ class Cart {
 		$this->data->Totals->total = 0;
 
 		$this->data->Order = new stdClass();
+		$this->data->ShipCosts = array();
 		$this->data->Purchase = false;
 
 	}
@@ -89,7 +87,7 @@ class Cart {
 			$this->contents = unserialize($result->contents);
 			$this->created = mktimestamp($result->created);
 			$this->modified = mktimestamp($result->modified);
-			reset($this->contents);
+			//reset($this->contents);
 			
 		} else {
 			$db->query("INSERT INTO $this->_table (session, ip, created, modified) 
@@ -223,37 +221,43 @@ class Cart {
 	 * of the cart and the currently available shipping
 	 * location set with shipzone() */
 	function shipping () {
-		global $Shopp;
 		if (!$this->data->Order->Shipping) return false;
+
+		global $Shopp;
+		$ShipCosts =& $this->data->ShipCosts;
 		$Shipping =& $this->data->Order->Shipping;
 		$base = $Shopp->Settings->get('base_operations');
 		$methods = $Shopp->Settings->get('shipping_rates');
-		$rate = $methods[0];
-				
-		// Match region
-		if ($Shipping->country == $base['country']) {
-			if (isset($rate[$base['country']])) $column = $base['country'];  // Use the country rate
-			else $column = $Shipping->postarea(); // Try to get domestic regional rate
-		} else if (isset($rate[$Shipping->region])) {
-			// Global region rate
-			$column = $Shipping->region;
-		} else {
-			// Worldwide shipping rate, last rate entry
-			end($rate);
-			$column = key($rate);
+
+		foreach ($methods as $id => $rate) {
+			$shipping = 0;
+			// Match region
+			if ($Shipping->country == $base['country']) {
+				if (isset($rate[$base['country']])) $column = $base['country'];  // Use the country rate
+				else $column = $Shipping->postarea(); // Try to get domestic regional rate
+			} else if (isset($rate[$Shipping->region])) {
+				// Global region rate
+				$column = $Shipping->region;
+			} else {
+				// Worldwide shipping rate, last rate entry
+				end($rate);
+				$column = key($rate);
+			}
+		
+			list($ShipCalcClass,$process) = split("::",$rate['method']);
+			if ($Shopp->ShipCalcs->modules[$ShipCalcClass]) {
+				$shipping += $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate($this,$rate,$column);
+			}
+
+			// Calculate any product-specific shipping fee markups
+			foreach($this->contents as $Item){
+				if ($Item->shipfee > 0) $shipping += ($Item->quantity * $Item->shipfee);
+			}
+			
+			$ShipCosts[$rate['name']] = $shipping;
+			
 		}
 		
-		list($ShipCalcClass,$process) = split("::",$rate['method']);
-		if ($Shopp->ShipCalcs->modules[$ShipCalcClass]) {
-			$shipping = $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate($this,$rate,$column);
-		}
-
-		// Calculate any product-specific shipping fee markups
-		foreach($this->contents as $Item){
-			if ($Item->shipfee > 0) $shipping += ($Item->quantity * $Item->shipfee);
-		}
-
-		return $shipping;
 	}
 	
 	/**
@@ -277,7 +281,7 @@ class Cart {
 		}
 		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
 		
-		$Totals->shipping = $this->shipping();
+		//$Totals->shipping = $this->shipping();
 		
 		$Totals->total = $Totals->subtotal + 
 			$Totals->shipping + $Totals->tax;		
@@ -353,12 +357,40 @@ class Cart {
 	
 	function shipestimatetag ($property,$options=array()) {
 		global $Shopp;
+		$ShipCosts = $this->data->ShipCosts;
 		$base = $Shopp->Settings->get('base_operations');
 		$markets = $Shopp->Settings->get('target_markets');
 		foreach ($markets as $iso => $country) $countries[$iso] = $country;
-		
 		$result = "";
+		
 		switch ($property) {
+			case "hasestimates": if (count($ShipCosts) > 0) return true; else return false; break;
+			case "costs":			
+				if (!$this->looping) {
+					reset($ShipCosts);
+					$this->looping = true;
+				} else next($ShipCosts);
+				
+				if (current($ShipCosts)) return true;
+				else {
+					$this->looping = false;
+					return false;
+				}
+				break;
+			case "methodname": 
+				return key($ShipCosts);
+				break;
+			case "methodcost": 
+				return money(current($ShipCosts));
+				break;
+			case "methodinput":
+			 	if (isset($options['id'])) {
+					if ($options['id'] == "{methodname}") $options['id'] = key($ShipCosts);
+					$id = ' id="'.$options['id'].'"';	
+				}
+				$result .= '<input type="radio" name="shipmethod" value="'.key($ShipCosts).'" '.$id.'/>';
+				return $result;
+				break;
 			case "postcode":
 				if (isset($options['size'])) $size = ' size="'.$options['size'].'"';
 				$result .= '<input type="text" name="shipping[postcode]" id="shipping-postcode" value="'.$this->data->Order->Shipping->postcode.'" title="Shipping destination postal/zip Code" '.$size.' />';
@@ -370,6 +402,7 @@ class Cart {
 				if (isset($this->data->Order->Shipping->country)) $country = $this->data->Order->Shipping->country;
 				else $country = $base['country'];
 				$result .= '<select name="shipping[country]" id="shipping-country" title="Shipping destination country">';
+				$result .= '<option value=""></option>';
 				$result .= menuoptions($countries,$country,true);
 				$result .= '</select>';
 				if (isset($options['label'])) 
