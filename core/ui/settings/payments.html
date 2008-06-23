@@ -20,9 +20,9 @@
 </div>
 
 <script type="text/javascript">
-$j = jQuery.noConflict();
+(function($) {
 
-var settings_callback = new Array();
+var gatewayHandlers = new CallbackRegistry();
 
 var addSetting = function (label,field,help) {
 	fieldtype = field.type;
@@ -33,27 +33,26 @@ var addSetting = function (label,field,help) {
 	if (fieldtype == "checkbox" || fieldtype == "radio")
 		help = '<label for="'+field.id+'"> '+help+'</label>';
 
-	var row = $j('<tr></tr>').addClass('form-field').appendTo('#payment-settings');
-	var heading = $j('<th scope="row" valign="top"></th>').appendTo(row);
-	var fieldLabel = $j('<label/>').attr('for',field.id).html(label).appendTo(heading);
-	var dataCell = $j('<td></td>').html(' '+help).appendTo(row);
+	var row = $('<tr></tr>').addClass('form-field').appendTo('#payment-settings');
+	var heading = $('<th scope="row" valign="top"></th>').appendTo(row);
+	var fieldLabel = $('<label/>').attr('for',field.id).html(label).appendTo(heading);
+	var dataCell = $('<td></td>').html(' '+help).appendTo(row);
 
-	var input = $j('<input type="'+fieldtype+'" />').attr(field).prependTo(dataCell);
+	var input = $('<input type="'+fieldtype+'" />').attr(field).prependTo(dataCell);
 
 	if (fieldtype == "checkbox")
-		var hidden = $j('<input type="hidden" name="'+field.name+'" value="'+field.unchecked+'" />').prependTo(dataCell);
+		var hidden = $('<input type="hidden" name="'+field.name+'" value="'+field.unchecked+'" />').prependTo(dataCell);
 	
 }
 
-<?php
-foreach ($Processors as $Processor) $Processor->settings();
-?>
+<?php foreach ($Processors as $Processor) $Processor->settings(); ?>
 
-$j('#payment-gateway').change(function () {
-	$j('#payment-settings').empty();
-	if (this.value.length > 0) settings_callback[this.value]();
+$('#payment-gateway').change(function () {
+	$('#payment-settings').empty();
+	if (this.value.length > 0) gatewayHandlers.call(this.value);
 });
 
-if ($j('#payment-gateway').val() != '') settings_callback[$j('#payment-gateway').val()]();
+if ($('#payment-gateway').val() != '') gatewayHandlers.call($('#payment-gateway').val());
 
+})(jQuery);
 </script>

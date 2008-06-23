@@ -41,15 +41,6 @@
 	            Select the markets you are selling products to.</td> 
 			</tr>
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="currency">Currency</label></th> 
-				<td>
-					<select name="settings[currency]" id="currency">
-						<?php echo menuoptions($currencies,$this->Settings->get('currency'),true); ?>
-					</select><br />
-					Select the currency for your store.
-				</td>
-			</tr>
-			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="cart-toggle">Order Status Labels</label></th> 
 				<td>
 				<ol id="order-statuslabels">
@@ -62,36 +53,35 @@
 	</form>
 </div>
 <script type="text/javascript">
-$j=jQuery.noConflict();
-
+(function($){
 var labels = <?php echo json_encode($statusLabels); ?>;
 var labelInputs = new Array();
 
-if (!$j('#base_operations').val() || $j('#base_operations').val() == '') $j('#base_operations_zone').hide();
-if (!$j('#base_operations_zone').val()) $j('#base_operations_zone').hide();
+if (!$('#base_operations').val() || $('#base_operations').val() == '') $('#base_operations_zone').hide();
+if (!$('#base_operations_zone').val()) $('#base_operations_zone').hide();
 
-$j('#base_operations').change(function() {
-	if ($j('#base_operations').val() == '') {
-		$j('#base_operations_zone').hide();
+$('#base_operations').change(function() {
+	if ($('#base_operations').val() == '') {
+		$('#base_operations_zone').hide();
 		return true;
 	}
 
-	$j.getJSON($j('#general').attr('action')+'&lookup=zones&country='+$j('#base_operations').val(),
+	$.getJSON($('#general').attr('action')+'&lookup=zones&country='+$('#base_operations').val(),
 		function(data) {
-			$j('#base_operations_zone').hide();
-			$j('#base_operations_zone').empty();
+			$('#base_operations_zone').hide();
+			$('#base_operations_zone').empty();
 			if (!data) return true;
 			
-			$j.each(data, function(value,label) {
-				option = $j('<option></option>').val(value).html(label).appendTo('#base_operations_zone');
+			$.each(data, function(value,label) {
+				option = $('<option></option>').val(value).html(label).appendTo('#base_operations_zone');
 			});
-			$j('#base_operations_zone').show();
+			$('#base_operations_zone').show();
 			
 	});
 });
 
-$j('#selectall_targetmarkets').change(function() {
-	$j('div.multiple-select ul li input').each( function () {
+$('#selectall_targetmarkets').change(function() {
+	$('div.multiple-select ul li input').each( function () {
 		if (this.id !== "selectall_targetmarkets") {
 			if (this.checked) this.checked = false;
 			else this.checked = true;
@@ -103,15 +93,15 @@ var addLabel = function (label,location) {
 	
 	var i = labelInputs.length;
 	
-	if (!location) var li = $j('<li id="item-'+i+'"></li>').appendTo('#order-statuslabels');
-	else var li = $j('<li id="item-'+i+'"></li>').insertAfter(location);
+	if (!location) var li = $('<li id="item-'+i+'"></li>').appendTo('#order-statuslabels');
+	else var li = $('<li id="item-'+i+'"></li>').insertAfter(location);
 	
-	var wrap = $j('<span></span>').appendTo(li);
-	var input = $j('<input type="text" name="settings[order_status][]" id="label['+i+']" size="14" />').appendTo(wrap);
-	var deleteButton = $j('<button type="button" class="delete"></button>').prependTo(wrap).hide();
-	var deleteIcon = $j('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="Delete" width="16" height="16" />').appendTo(deleteButton);
-	var addButton = $j('<button type="button" class="add"></button>').appendTo(li);
-	var addIcon = $j('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="Add" width="16" height="16" />').appendTo(addButton);
+	var wrap = $('<span></span>').appendTo(li);
+	var input = $('<input type="text" name="settings[order_status][]" id="label['+i+']" size="14" />').appendTo(wrap);
+	var deleteButton = $('<button type="button" class="delete"></button>').prependTo(wrap).hide();
+	var deleteIcon = $('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="Delete" width="16" height="16" />').appendTo(deleteButton);
+	var addButton = $('<button type="button" class="add"></button>').appendTo(li);
+	var addIcon = $('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="Add" width="16" height="16" />').appendTo(addButton);
 	
 	if (i > 0) {
 		wrap.hover(function() {
@@ -122,7 +112,7 @@ var addLabel = function (label,location) {
 	}
 	
 	addButton.click(function () {
-		addLabel(null,'#'+$j(li).attr('id'));
+		addLabel(null,'#'+$(li).attr('id'));
 	});
 	
 	deleteButton.click(function () {
@@ -137,9 +127,9 @@ var addLabel = function (label,location) {
 }
 
 if (labels) {
-	$j(labels).each(function(id,label) {
+	$(labels).each(function(id,label) {
 		addLabel(label);
 	});
 } else addLabel();
-
+})(jQuery)
 </script>

@@ -47,3 +47,8 @@
 .shopp span label,
 .shopp div label { font-size: 11px; clear: both; font-weight: normal; padding-bottom: 8px; }
 
+/**
+ * Products
+ **/
+
+.shopp .original.price { text-decoration: line-through; }

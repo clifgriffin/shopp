@@ -56,6 +56,17 @@
 				</div><br />
                 You can organize your products into categories for display in your catalog.</td> 
 		</tr>
+		<tr class="form-field"> 
+			<th scope="row" valign="top"><label for="featured">Settings</label></th> 
+			<td><p><input type="hidden" name="featured" value="off" /><input type="checkbox" name="featured" value="on" id="featured" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /><label for="featured"> Featured Product</label></p>
+				<p>
+				<select name="">
+					<option>Single</option>
+					<option>Compound Product (Variations)</option>
+					<option>Build To Order (Components)</option>
+				</select><br /><label>Pricing Options</label></p>
+				</td> 
+		</tr>
 		<tr id="product-images" class="form-field form-required"> 
 			<th scope="row" valign="top"><label>Product Images</label>
 				<input type="hidden" name="product" value="<?php echo $_GET['edit']; ?>" id="image-product-id" />
