@@ -1,12 +1,18 @@
-<div class="product">
+<?php if (shopp('product','found')): ?>
+<form action="" method="post" class="shopp product">
 	<?php shopp('product','gallery'); ?>
 
 	<h3>
 		<?php shopp('product','name'); ?>
-		<caption><?php shopp('product','description'); ?></caption>
+		<sub><?php shopp('product','description'); ?></sub>
 	</h3>
-	<h4><?php shopp('product','price'); ?></h4>
-	<h4><?php shopp('product','saleprice'); ?></h4>
+	<?php shopp('product','photo'); ?>
+	<?php if (shopp('product','onsale')): ?>
+		<h4 class="original price"><?php shopp('product','price'); ?></h4>
+		<h4 class="sale price"><?php shopp('product','saleprice'); ?></h4>		
+	<?php else: ?>
+		<h4><?php shopp('product','price'); ?></h4>
+	<?php endif; ?>
 	
 	<div class="details"><?php shopp('product','details'); ?></div>
 	
@@ -15,4 +21,8 @@
 	<?php shopp('product','buynow'); ?>
 	<?php shopp('product','addtocart'); ?>
 	
-</div>
+</form>
+<?php else: ?>
+<h3>Product Not Found</h3>
+<p>Sorry!  The product you requested is not found in our catalog!</p>
+<?php endif; ?>
