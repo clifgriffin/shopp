@@ -1,7 +1,7 @@
 <?php
 /**
- * Flow handler
- * Main flow control handler for all application request/process handling
+ * Flow handlers
+ * Main flow handling for all request processing/handling
  *
  * @author Jonathan Davis
  * @version 1.0
@@ -41,15 +41,119 @@ class Flow {
 		define("SHOPP_CHECKOUTURL",$this->Settings->get('checkout_url'));
 		define("SHOPP_CONFIRMURL",$this->Settings->get('confirm_url'));
 		define("SHOPP_RECEIPTURL",$this->Settings->get('receipt_url'));
+		define("SHOPP_DBSCHEMA",$this->basepath."/core/model/schema.sql");
 	}
 
 	/**
 	 * Catalog flow handlers
 	 **/
 	function catalog () {
+		global $wp_rewrite,$Shopp;
 		$db =& DB::get();
+		require_once("{$this->basepath}/core/model/Product.php");
+
+		if ($category = get_query_var('category')) $page = "category";
+		if ($productid = get_query_var('productid')) $page = "product";
+		if ($productname = get_query_var('productname')) $page = "product";
+
+		// echo "<p>category: $category</p>";
+		// echo "<p>productid: $productid</p>";
+		// echo "<p>productname: $productname</p>";
+
+		// Find product by given ID
+		if ($productid = get_query_var('productid')) {
+			$Shopp->Product = new Product($productid);
+			$Shopp->Product->load_prices();
+		}
+			
+		// Find product by category name and product name
+		if ($productname = get_query_var('productname')) {
+			$productname = preg_replace("/[\-]/"," ",strtolower($productname));
+			$result = $db->query("SELECT p.id FROM shopp_product AS p LEFT JOIN shopp_catalog AS log ON p.id=log.product LEFT JOIN shopp_category AS c ON log.category=c.id WHERE LCASE(p.name) = '$productname' AND LCASE(c.name)='$category'");
+			$Shopp->Product = new Product($result->id);
+			$Shopp->Product->load_prices();
+		}
 		
-		echo "Catalog goes here.";
+		
+		ob_start();
+		
+		switch ($page) {
+			case "category":
+				break;
+			case "product":
+				include("{$this->basepath}/templates/product.html");
+				break;
+			default:
+				include("{$this->basepath}/templates/catalog.html");
+				break;
+		}
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		return $content;
+		
+	}
+	
+	function producttag ($property,$options=array()) {
+		global $Shopp;
+		
+		switch ($property) {
+			case "found": if (!empty($Shopp->Product->id)) return true; else return false; break;
+			case "name": return $Shopp->Product->name; break;
+			case "description": return $Shopp->Product->description; break;
+			case "details": return $Shopp->Product->details; break;
+			case "brand": return $Shopp->Product->brand; break;
+			case "price":
+				if ($Shopp->Product->options > 1) {
+
+					$min = $max = -1;
+					foreach($Shopp->Product->prices as $pricetag) {
+						if ($min == -1 || $pricetag->price < $min) $min = $pricetag->price;
+						if ($max == -1 || $pricetag->price > $max) $max = $pricetag->price;
+					}
+					
+					if ($min == $max) return money($min);
+					else return money($min)." &mdash; ".money($max);
+					
+				} else return money($Shopp->Product->prices[0]->price);
+				break;
+			case "onsale":
+				if ($Shopp->Product->options > 1) {
+					foreach($Shopp->Product->prices as $pricetag) {
+						if ($pricetag->sale == "on") return true;
+					}
+				} else return ($Shopp->Product->prices[0]->sale == "on");
+				break;
+			case "saleprice":
+				if ($Shopp->Product->options > 1) {
+					
+					$min = $max = -1;
+					foreach($Shopp->Product->prices as $pricetag) {
+						if ($min == -1 || $pricetag->saleprice < $min) $min = $pricetag->saleprice;
+						if ($max == -1 || $pricetag->saleprice > $max) $max = $pricetag->saleprice;
+					}
+					
+					if ($min == $max) return money($min);
+					else return money($min)." &mdash; ".money($max);
+					
+				} else return money($Shopp->Product->prices[0]->saleprice);
+				break;
+			case "hasoptions": if (count($Shopp->Product->price) > 1) return true; else return false; break;
+			case "photo":
+				$Shopp->Product->load_images();
+				$img = $Shopp->Product->images[0];
+				$string .= '<img src="/?lookup=asset&id='.$img->id.'" alt="" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+				return $string;
+				break;
+			case "addtocart":
+				$string = "";
+				$string .= '<input type="hidden" name="product" value="'.$Shopp->Product->id.'" />';
+				$string .= '<input type="hidden" name="price" value="'.$Shopp->Product->prices[0]->id.'" />';
+				$string .= '<input type="hidden" name="cart" value="add" />';
+				$string .= '<input type="button" name="addtocart" value="Add to Cart" class="addtocart" />';
+				return $string;
+		}
+		
 		
 	}
 	
@@ -161,7 +265,7 @@ class Flow {
 		global $Cart;
 
 		ob_start();
-		include("{$this->basepath}/core/ui/cart/cart.html");
+		include("{$this->basepath}/templates/cart.html");
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -172,7 +276,7 @@ class Flow {
 		global $Cart;
 
 		ob_start();
-		include("{$this->basepath}/core/ui/cart/shipping.html");
+		include("{$this->basepath}/templates/shipping.html");
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -192,8 +296,8 @@ class Flow {
 		foreach ($markets as $iso => $country) $countries[$iso] = $country;
 		$states = $regions[$base['country']];
 		
-		if (isset($Cart->data->OrderError)) include("{$this->basepath}/core/ui/checkout/errors.html");
-		include("{$this->basepath}/core/ui/checkout/checkout.html");
+		if (isset($Cart->data->OrderError)) include("{$this->basepath}/templates/errors.html");
+		include("{$this->basepath}/templates/checkout.html");
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -205,7 +309,7 @@ class Flow {
 		global $Cart;
 
 		ob_start();
-		include("{$this->basepath}/core/ui/checkout/summary.html");
+		include("{$this->basepath}/templates/summary.html");
 		$content = ob_get_contents();
 		ob_end_clean();
 		
@@ -215,7 +319,7 @@ class Flow {
 	function order_confirmation () {
 		global $Cart;
 		ob_start();
-		include("{$this->basepath}/core/ui/checkout/confirm.html");
+		include("{$this->basepath}/templates/confirm.html");
 		$content = ob_get_contents();
 		ob_end_clean();
 		return $content;
@@ -231,10 +335,10 @@ class Flow {
 		$Purchase = new Purchase($Cart->data->Purchase);
 		$Purchase->load_purchased();
 		ob_start();
-		if (!empty($Purchase->id)) include("{$this->basepath}/core/ui/checkout/receipt.html");
+		if (!empty($Purchase->id)) include("{$this->basepath}/templates/receipt.html");
 		else echo '<p class="error">There was a problem retrieving your order, although the transaction was successful.</p>';
 		$content = ob_get_contents();
-		ob_end_clean();		
+		ob_end_clean();
 		return $content;
 	}
 	
@@ -336,7 +440,7 @@ class Flow {
 		$pt = new Price();
 		$cat = new Category();
 		$clog = new Catalog();
-		$Products = $db->query("SELECT pd.id,pd.name,pd.brand,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd->_table AS pd LEFT JOIN $pt->_table AS pt ON pd.id=pt.product LEFT JOIN $clog->_table AS clog ON pd.id=clog.product LEFT JOIN $cat->_table AS cat ON cat.id=clog.category GROUP BY pd.id",AS_ARRAY);
+		$Products = $db->query("SELECT pd.id,pd.name,pd.brand,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd->_table AS pd LEFT JOIN $pt->_table AS pt ON pd.id=pt.product LEFT JOIN $clog->_table AS clog ON pd.id=clog.product LEFT JOIN $cat->_table AS cat ON cat.id=clog.category GROUP BY pd.id",AS_ARRAY);
 		unset($pd,$pt,$cat,$clog);
 		
 		include("{$this->basepath}/core/ui/products/products.html");
@@ -391,7 +495,7 @@ class Flow {
 		unset($Assets);
 
 		$shiprates = $this->Settings->get('shipping_rates');
-		ksort($shiprates);
+		if (!empty($shiprates)) ksort($shiprates);
 
 		include("{$this->basepath}/core/ui/products/editor.html");
 
@@ -612,7 +716,7 @@ class Flow {
 		unset($countries,$regions);
 
 		$rates = $this->Settings->get('shipping_rates');
-		ksort($rates);
+		if (!empty($rates)) ksort($rates);
 		
 		// print "<pre>";
 		// print_r($rates);
@@ -703,15 +807,15 @@ class Flow {
 	/**
 	 * Setup - set up all the lists
 	 */
-	function development_setup () {
+	function setup () {
 		$this->setup_regions();
 		$this->setup_countries();
 		$this->setup_zones();
 		$this->setup_areas();
-		$this->setup_currencies();
+		$this->setup_currencies();		
 		$this->Settings->save('shipping','on');	
 		$this->Settings->save('order_status',array('Pending','Completed'));	
-		$this->Settings->save('shopp_setup','completed');	
+		$this->Settings->save('shopp_setup','completed');
 	}
 
 	function setup_regions () {

@@ -166,12 +166,11 @@ class DB extends Singleton {
 	
 	/**
 	 * Send a large set of queries to the database. */
-	function batch ($queries) {
-		$db =& DB::get();
-		if (!empty($query)) {
-			if ($db->query($queries)) return true;
-		}
-		return false;
+	function loaddata ($queries) {
+		$queries = explode(";\n", $queries);
+		array_pop($queries);
+		foreach ($queries as $query) if (!empty($query)) $this->query($query);
+		return true;
 	}
 	
 	
@@ -210,7 +209,8 @@ class DatabaseObject {
 			}
 		}
 		
-		$r = $db->query("SHOW COLUMNS FROM $this->_table");
+		if (!$r = $db->query("SHOW COLUMNS FROM $this->_table",true,false)) return false;
+		
 
 		// Map out the table definition into our data structure
 		foreach($r as $object) {	
@@ -245,6 +245,15 @@ class DatabaseObject {
 		
 		if (!empty($this->id)) return true;
 		return false;
+	}
+
+	/**
+	 * Processes a bulk string of semi-colon separated SQL queries */
+	function loaddata ($queries) {
+		$queries = explode(";\n", $queries);
+		array_pop($queries);
+		foreach ($queries as $query) if (!empty($query)) $this->query($query);
+		return true;
 	}
 	
 	/**
