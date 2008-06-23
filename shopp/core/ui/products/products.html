@@ -21,6 +21,7 @@
 	        <th scope="col">Brand</th>
 	        <th scope="col">Category</th>
 	        <th scope="col">Price</th>
+	        <th scope="col" class="num">Featured</th>
 		</tr>
 		</thead>
 		<tbody id="products" class="list products">
@@ -34,6 +35,8 @@
 				if ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
 				else echo money($Product->minprice)."&mdash;".money($Product->maxprice);
 			?></td>
+			<td class="num"><input type="hidden" name="featured[<?php echo $Product->id; ?>]" value="off" /><input type="checkbox" name="featured[<?php echo $Product->id; ?>]" value="on" id="featured" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /></td> 
+		
 		</tr>
 		<?php endforeach; ?>
 		</tbody>

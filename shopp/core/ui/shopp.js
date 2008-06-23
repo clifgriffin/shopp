@@ -118,7 +118,7 @@ function quickSelects () {
  * 
  * Add notation to an integer to display it as money.
  **/
-var asMoney = function(number,digits,currency,separator,decimal) {
+function asMoney (number,digits,currency,separator,decimal) {
 	if (digits == null) var digits = 2;
 	if (!currency) var currency = "$";
 	if (!separator) var separator = ",";
@@ -145,13 +145,56 @@ var asNumber = function(number) {
 	return new Number(number);
 }
 
+var CallbackRegistry = function() {
+	this.callbacks = new Array();
+
+	this.register = function (name,callback) {
+		this.callbacks[name] = callback;
+	}
+
+	this.call = function(name,arg1,arg2,arg3) {
+		this.callbacks[name](arg1,arg2,arg3);
+	}	
+}
+
+function addEvent( obj, type, fn ) {
+	if ( obj.addEventListener ) {
+		obj.addEventListener( type, fn, false );
+	}
+	else if ( obj.attachEvent ) {
+		var eProp = type + fn;
+		obj["e"+eProp] = fn;
+		obj[eProp] = function() { obj["e"+eProp]( window.event ); };
+		obj.attachEvent( "on"+type, obj[eProp] );
+	}
+	else {
+		obj['on'+type] = fn;
+	}
+};
+
+
+function removeEvent( obj, type, fn ) {
+	if ( obj.removeEventListener ) {
+		obj.removeEventListener( type, fn, false );
+	}
+	else if ( obj.detachEvent ) {
+		var eProp = type + fn;
+		obj.detachEvent( "on"+type, obj[eProp] );
+		obj['e'+eProp] = null;
+		obj[eProp] = null;
+	}
+	else {
+		obj['on'+type] = null;
+	}
+};
+
 /**
  * formatFields ()
  * 
  * Find fields that need display formatting and 
  * run the approriate formatting.
  */
-var formatFields = function () {
+function formatFields () {
 	(function($) {
 	var f = $('input');
 	for (i = 0; i < f.elements.length; i++) {
@@ -159,3 +202,22 @@ var formatFields = function () {
 	}
 	})(jQuery)
 }
+
+
+function addtocart () {
+	this.form.action = "/shop/cart";
+	this.form.submit();
+}
+
+function buttonHandlers () {
+	var inputs = document.getElementsByTagName('input');
+	for (var i = 0; i < inputs.length; i++) {
+		var input = inputs[i];
+		if (input.className.indexOf('addtocart') != -1) input.onclick = addtocart;
+	}
+}
+
+
+addEvent(window,'load',function () {
+	buttonHandlers();	
+});

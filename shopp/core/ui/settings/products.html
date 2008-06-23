@@ -87,34 +87,33 @@
 	</form>
 </div>
 <script type="text/javascript">
-$j=jQuery.noConflict();
-
-$j('#gallery-feature-sizing').change(function() {
+(function($){
+$('#gallery-feature-sizing').change(function() {
 	if (this.selectedIndex == 0) {
-		$j('#gallery-feature-width-input').show();	
-		$j('#gallery-feature-height-input').hide();	
+		$('#gallery-feature-width-input').show();	
+		$('#gallery-feature-height-input').hide();	
 	} else if (this.selectedIndex == 1) {
-		$j('#gallery-feature-width-input').hide();	
-		$j('#gallery-feature-height-input').show();	
+		$('#gallery-feature-width-input').hide();	
+		$('#gallery-feature-height-input').show();	
 	} else {
-		$j('#gallery-feature-width-input').show();	
-		$j('#gallery-feature-height-input').show();	
+		$('#gallery-feature-width-input').show();	
+		$('#gallery-feature-height-input').show();	
 	}
 	
 }).change();
 
-$j('#gallery-thumbnail-sizing').change(function() {
+$('#gallery-thumbnail-sizing').change(function() {
 	if (this.selectedIndex == 0) {
-		$j('#gallery-thumbnail-width-input').show();	
-		$j('#gallery-thumbnail-height-input').hide();	
+		$('#gallery-thumbnail-width-input').show();	
+		$('#gallery-thumbnail-height-input').hide();	
 	} else if (this.selectedIndex == 1) {
-		$j('#gallery-thumbnail-width-input').hide();	
-		$j('#gallery-thumbnail-height-input').show();	
+		$('#gallery-thumbnail-width-input').hide();	
+		$('#gallery-thumbnail-height-input').show();	
 	} else {
-		$j('#gallery-thumbnail-width-input').show();	
-		$j('#gallery-thumbnail-height-input').show();	
+		$('#gallery-thumbnail-width-input').show();	
+		$('#gallery-thumbnail-height-input').show();	
 	}
 	
 }).change();
-
+})(jQuery);
 </script>

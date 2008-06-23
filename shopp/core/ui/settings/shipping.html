@@ -142,20 +142,7 @@ var addShippingRate = function (r) {
 	
 }
 
-var MethodTableCalls = function() {
-	this.callbacks = new Array();
-
-	this.register = function (name,callback) {
-		this.callbacks[name] = callback;
-	}
-
-	this.call = function(name,method,table,rates) {
-		this.callbacks[name](method,table,rates);
-	}
-	
-}
-
-var methodHandlers = new MethodTableCalls();
+var methodHandlers = new CallbackRegistry();
 
 <?php $this->ShipCalcs->ui(); ?>
 
