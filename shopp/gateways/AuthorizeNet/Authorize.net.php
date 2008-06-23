@@ -211,7 +211,7 @@ class AuthorizeNet {
 							 "Enabled");
 			}
 			
-			settings_callback['<?php echo __FILE__; ?>'] = authorize_net_settings;
+			gatewayHandlers.register('<?php echo __FILE__; ?>',authorize_net_settings);
 
 		<?
 	}
