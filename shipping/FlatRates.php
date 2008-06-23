@@ -16,10 +16,21 @@ class FlatRates {
 	
 	function methods (&$ShipCalc) {
 		$ShipCalc->methods[get_class($this).'::order'] = "Flat Rate on order";
+		$ShipCalc->methods[get_class($this).'::item'] = "Flat Rate per item";
 	}
 	
 	function calculate (&$Cart,$rate,$column) {
-		return $rate[$column][0];
+		list($ShipCalcClass,$process) = split("::",$rate['method']);
+		switch($process) {
+			case "item":
+				$shipping = 0;
+				foreach($Cart->contents as $item)
+					$shipping += $item->quantity * $rate[$column][0];
+				return $shipping;
+				break;
+			default:
+				return $rate[$column][0];
+		}
 	}
 	
 	function ui () {
@@ -72,6 +83,7 @@ var FlatRates = function (methodid,table,rates) {
 }
 
 methodHandlers.register('<?php echo get_class($this); ?>::order',FlatRates);
+methodHandlers.register('<?php echo get_class($this); ?>::item',FlatRates);
 
 		<?php		
 	}
