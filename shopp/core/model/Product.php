@@ -38,7 +38,19 @@ class Product extends DatabaseObject {
 		$this->categories = $db->query("SELECT * FROM $catalogtable WHERE product=$this->id",AS_ARRAY);
 		return true;
 	}
-	
+
+	function load_images () {
+		$db =& DB::get();
+		
+		$assettable = DBPREFIX."asset";
+		if (empty($this->id)) return false;
+		$images = $db->query("SELECT id,properties,datatype FROM $assettable WHERE parent=$this->id AND type='product' AND (datatype='image' OR datatype='feature' OR datatype='thumbnail') ORDER BY sortorder",AS_ARRAY);
+		foreach ($images as $image) 
+			$image->properties = unserialize($image->properties);
+		$this->images = $images;
+		return true;
+	}
+		
 	function save_categories ($new) {
 		$db =& DB::get();
 		

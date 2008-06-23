@@ -3,6 +3,7 @@ CREATE TABLE `shopp_setting` (
 	`id` bigint(20) unsigned NOT NULL auto_increment,
 	`name` varchar(255) NOT NULL default '',
 	`value` longtext NOT NULL default '',
+	`autoload` enum('on','off') NOT NULL,
 	`created` datetime NOT NULL default '0000-00-00 00:00:00',
 	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY(`id`)
@@ -17,10 +18,10 @@ CREATE TABLE `shopp_product` (
 	`details` longtext NOT NULL default '',
 	`brand` varchar(255) NOT NULL default '',
 	`options` tinyint(3) unsigned NOT NULL default '1',
+	`featured` enum('off','on') NOT NULL,
 	`created` datetime NOT NULL default '0000-00-00 00:00:00',
 	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY(`id`),
-	KEY (`category`),
 	KEY (`slug`),
 	KEY (`brand`),
 	FULLTEXT (`name`,`brand`,`description`,`details`)
