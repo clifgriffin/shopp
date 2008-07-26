@@ -95,9 +95,11 @@ function stripe () {
 // 
 // }
 
-function quickSelects () {
+function quickSelects (target) {
 	(function($) {
-	$('.selectall').each(function(input) {
+	if (!target) target = $('.selectall');
+	else target = $(target).find('.selectall');
+	$(target).each(function(input) {
 		$(this).mouseup(function (e) {
 			this.select();
 		});
