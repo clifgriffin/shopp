@@ -2,25 +2,46 @@
 
 <h2>Product Editor</h2> 
 
+<!-- <ul class="subsubsub">
+	<li><a href="#options">Options</a> |</li>
+	<li><a href="#pricing">Pricing</a></li>
+</ul> -->
+
 <div id="ajax-response"></div> 
 
 <form name="product" id="product" action="?page=<?php echo $this->Admin->products; ?>&amp;edit=<?php echo $_GET['edit']; ?>" method="post" enctype="multipart/form-data">
 	<table class="form-table"> 
+	<tbody>
 		<tr class="form-field form-required"> 
 			<th scope="row" valign="top"><label for="name">Product Name</label></th> 
 			<td><input name="name" id="name" type="text" value="<? echo $Product->name ?>" size="40" tabindex="1" /><br /> 
             The name of the product to be displayed in the catalog, shopping cart and order reciept.</td> 
 		</tr>
 		<tr class="form-field"> 
-			<th scope="row" valign="top"><label for="description">Description</label></th> 
-			<td><textarea name="description" id="description" rows="2" cols="50" tabindex="2" style="width: 97%;"><? echo $Product->description ?></textarea><br /> 
+			<th scope="row" valign="top"><label for="summary">Summary</label></th> 
+			<td><textarea name="summary" id="summary" rows="2" cols="50" tabindex="2" style="width: 97%;"><? echo $Product->summary ?></textarea><br /> 
             A brief description of the product to draw the customer's attention.</td> 
 		</tr> 
 		<tr class="form-field"> 
-			<th scope="row" valign="top"><label for="details">Details</label></th> 
-			<td><textarea name="details" id="details" rows="8" cols="50" tabindex="3" style="width: 97%;"><? echo $Product->details ?></textarea><br /> 
-            Provide in-depth information about the product to be used on its product page.</td> 
+			<th scope="row" valign="top"><label for="description">Description</label></th> 
+			<td><textarea name="description" id="description" rows="8" cols="50" tabindex="3" style="width: 97%;"><? echo $Product->description ?></textarea><br /> 
+            Provide in-depth information about the product to be displayed on the product page.</td> 
 		</tr> 
+		<tr class="form-field">
+			<th>Details &amp; Specs</th>
+			<td>
+				<ul class="details multipane">
+					<li><input type="hidden" name="deletedSpecs" id="deletedSpecs" value="" />
+						<div id="details-menu" class="multiple-select menu"><ul></ul></div>
+					<div class="controls">
+						<button type="button" id="addDetail" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> Add Detail</small></button>
+					</div></li>
+					
+					<li><div id="details-list" class="list"><ul></ul></div></li>
+				</ul>
+				
+			</td>
+		</tr>		
 		<tr class="form-field"> 
 			<th scope="row" valign="top"><label for="brand">Brand</label></th> 
 			<td><select name="brand-menu" id="brand-menu" tabindex="4">
@@ -38,7 +59,7 @@
 				</div>
 				</th> 
 			<td> 
-				<div id="category-menu" class="multiple-select">
+				<div id="category-menu" class="multiple-select short">
 					<ul>
 						<?php $depth = 0; foreach ($categories as $category): 
 						if ($category->depth > $depth) echo "<li><ul>"; ?>
@@ -56,17 +77,6 @@
 				</div><br />
                 You can organize your products into categories for display in your catalog.</td> 
 		</tr>
-		<tr class="form-field"> 
-			<th scope="row" valign="top"><label for="featured">Settings</label></th> 
-			<td><p><input type="hidden" name="featured" value="off" /><input type="checkbox" name="featured" value="on" id="featured" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /><label for="featured"> Featured Product</label></p>
-				<p>
-				<select name="">
-					<option>Single</option>
-					<option>Compound Product (Variations)</option>
-					<option>Build To Order (Components)</option>
-				</select><br /><label>Pricing Options</label></p>
-				</td> 
-		</tr>
 		<tr id="product-images" class="form-field form-required"> 
 			<th scope="row" valign="top"><label>Product Images</label>
 				<input type="hidden" name="product" value="<?php echo $_GET['edit']; ?>" id="image-product-id" />
@@ -81,18 +91,79 @@
 				</ul>
 			</td> 
 		</tr>
+		<tr class="form-field"> 
+			<th scope="row" valign="top"><label for="featured">Settings</label></th> 
+			<td><p><input type="hidden" name="featured" value="off" /><input type="checkbox" name="featured" value="on" id="featured" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /><label for="featured"> Featured Product</label></p>
+				<ul>
+					<li><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting"<?php if ($Product->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> Variations &mdash; Selectable product options</label></li>
+					<li><input type="hidden" name="addons" value="off" /><input type="checkbox" name="addons" value="on" id="addons-setting"<?php if ($Product->addons == "on") echo ' checked="checked"'?> /><label for="addons-setting"> Add-ons &mdash; Build-to-order product additions</label></li>
+				</ul>
+				</td>
+		</tr>
+	</tbody>
+	<tbody id="product-pricing">
+	</tbody>
 	</table>
 	
-	<h3>Pricing &amp; Product Options</h3>
+	<div id="variations">
+	<h3>Variations</h3>
+	<table class="form-table pricing">
+	<tbody>
+		<tr>
+			<th>Options</th>
+			<td>
+				<ul class="multipane">
+					<li><div id="variations-menu" class="multiple-select options menu"><ul></ul></div>
+					<div class="controls">
+						<button type="button" id="addVariationMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> Add Option Menu</small></button>
+					</div>
+				</li>
+				
+				<li>
+					<div id="variations-list" class="multiple-select options"></div><br />
+					<div class="controls right">
+					<button type="button" id="addVariationOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> Add Option</small></button>
+					</div>
+				</li>
+				</ul>
+			</td>
+		</tr>
+	</tbody>
+	<tbody id="variations-pricing"></tbody>
+	</table>
+	</div>
+	
+	<div id="addons">
+	<h3>Add-ons</h3>
+	<table class="form-table pricing">
+	<tbody>
+		<tr>
+			<th>Options</th>
+			<td>
+				<ul class="multipane">
+					<li><div id="addons-menu" class="multiple-select options menu"><ul></ul></div>
+					<div class="controls">
+						<button type="button" id="addAddonMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> Add Option Menu</small></button>
+					</div></li>
+					
+					<li>	
+					<div id="addons-list" class="multiple-select options"></div><br />
+					<div class="controls right">
+					<button type="button" id="addAddonOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> Add Option</small></button>
+					</div>
+					</li>
+				</ul>
+				
+			</td>
+		</tr>		
+	</tbody>
+	<tbody id="addons-pricing"></tbody>
+	</table>
+	</div>
 	
 	<div><input type="hidden" name="deletePrices" id="deletePrices" value="" />
-		<input type="hidden" name="options" value="" id="options" /></div>
-	
-	<table id="pricing" class="form-table" onselectstart="return false"></table>
-	
-	<div class="tablenav">
-		<div class="alignright"><button type="button" id="addProductOption" class="button-secondary">Add A Product Option</button></div>
-	</div>
+		<input type="hidden" name="prices" value="" id="prices" /></div>
+		
 	
 	<p class="submit"><input type="submit" class="button" name="save" value="Save Product" /></p>
 </form>
@@ -101,8 +172,9 @@
 
 <script type="text/javascript">
 var prices = <?php echo json_encode($Product->prices) ?>;
-var optionGroups = <?php echo json_encode($optionGroups) ?>;
-var optionTypes = <?php echo json_encode($optionTypes) ?>;
+var specs = <?php echo json_encode($Product->specs) ?>;
+var options = <?php echo json_encode($Product->options) ?>;
+var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var shiprates = <?php echo json_encode($shiprates); ?>;
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 var siteurl = '<?php echo get_option('siteurl'); ?>';
