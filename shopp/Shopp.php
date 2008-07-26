@@ -98,17 +98,15 @@ class Shopp {
 		add_action("admin_print_scripts-$orders", array(&$this, 'admin_header'));
 		add_action("admin_print_scripts-$products", array(&$this, 'admin_header'));
 		add_action("admin_print_scripts-$settings", array(&$this, 'admin_header'));
-		
 	}
 
 	function admin_header () {
 		if ($_GET['page'] == $this->Flow->Admin->products && isset($_GET['edit']))
 			wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js");
-			wp_enqueue_script('jquery.tablednd',"{$this->uri}/core/ui/jquery/jquery.tablednd.js",array('jquery'),'');
-			wp_enqueue_script('jquery.ui.sortable',"{$this->uri}/core/ui/jquery/ui.sort.js",array('jquery'),'');
+			//wp_enqueue_script('jquery.tablednd',"{$this->uri}/core/ui/jquery/jquery.tablednd.js",array('jquery'),'');
+			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery-ui-core'), '1.5');
 			wp_enqueue_script('swfupload');
 			wp_enqueue_script('swfupload-degrade');
-			
 		?>
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/admin.css' type='text/css' />
 		<?php
@@ -376,8 +374,8 @@ class Shopp {
 				// Save the source image
 				$Image = new Asset();
 				$Image->parent = $_POST['product'];
-				$Image->type = "product";
-				$Image->datatype = "image";
+				$Image->context = "product";
+				$Image->type = "image";
 				$Image->name = $_FILES['Filedata']['name'];
 				list($width, $height, $mimetype, $attr) = getimagesize($_FILES['Filedata']['tmp_name']);
 				$Image->properties = array("width" => $width,"height" => $height, "mimetype" => image_type_to_mime_type($mimetype), "attr" => $attr);
@@ -393,8 +391,8 @@ class Shopp {
 
 				$Thumbnail = new Asset();
 				$Thumbnail->parent = $_POST['product'];
-				$Thumbnail->type = "product";
-				$Thumbnail->datatype = "thumbnail";
+				$Thumbnail->context = "product";
+				$Thumbnail->type = "thumbnail";
 				$Thumbnail->src = $Image->id;
 				$Thumbnail->name = "thumbnail_".$Image->name;
 				
@@ -476,7 +474,7 @@ function shopp () {
 		case "cart": $result = $Cart->tag($property,$options); break;
 		case "cartitem": $result = $Cart->itemtag($property,$options); break;
 		case "shipestimate": $result = $Cart->shipestimatetag($property,$options); break;
-		case "product": $result = $Shopp->Flow->producttag($property,$options); break;
+		case "product": $result = $Shopp->Product->tag($property,$options); break;
 	}
 
 	// Force boolean result
