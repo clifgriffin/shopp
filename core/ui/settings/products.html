@@ -49,7 +49,7 @@
 			</tr>
 		<tbody id="gallery-settings">
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="gallery-feature-width">Featured Image Size</label></th> 
+				<th scope="row" valign="top"><label for="gallery-feature-width">Gallery Image Size</label></th> 
 				<td><span id="gallery-feature-width-input"><input type="text" name="settings[gallery_feature_width]" value="<?php echo $this->Settings->get('gallery_feature_width'); ?>" id="gallery-feature-width" size="5" /><label for="gallery-feature-width"> width</label></span> <span id="gallery-feature-height-input"><input type="text" name="settings[gallery_feature_height]" value="<?php echo $this->Settings->get('gallery_feature_height'); ?>" id="gallery-feature-height" size="5" /><label for="gallery-feature-height"> height</label></span>
 					<p><select name="settings[gallery_feature_sizing]" id="gallery-feature-sizing">
 						<?php echo menuoptions($sizingOptions, $this->Settings->get('gallery_feature_sizing'),true); ?>
