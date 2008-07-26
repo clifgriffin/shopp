@@ -14,17 +14,57 @@ CREATE TABLE `shopp_product` (
 	`id` bigint(20) unsigned NOT NULL auto_increment,
 	`name` varchar(255) NOT NULL default '',
 	`slug` varchar(255) NOT NULL default '',
-	`description` text NOT NULL default '',
-	`details` longtext NOT NULL default '',
+	`summary` text NOT NULL default '',
+	`description` longtext NOT NULL default '',
 	`brand` varchar(255) NOT NULL default '',
-	`options` tinyint(3) unsigned NOT NULL default '1',
-	`featured` enum('off','on') NOT NULL,
+	`featured` enum('off','on') NOT NULL default 'off',
+	`variations` enum('off','on') NOT NULL default 'off',
+	`addons` enum('off','on') NOT NULL default 'off',
+	`specs` text NOT NULL default '',	
+	`options` text NOT NULL default '',
 	`created` datetime NOT NULL default '0000-00-00 00:00:00',
 	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY(`id`),
 	KEY (`slug`),
 	KEY (`brand`),
-	FULLTEXT (`name`,`brand`,`description`,`details`)
+	FULLTEXT (`name`,`brand`,`summary`,`description`)
+) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `shopp_price`;
+CREATE TABLE `shopp_price` (
+	`id` bigint(20) unsigned NOT NULL auto_increment,
+	`product` bigint(20) unsigned NOT NULL default '0',
+	`options` text NOT NULL default '',
+	`label` varchar(100) NOT NULL default '',
+	`context` enum('product','variation','addon') NOT NULL default 'product',
+	`type` enum('Shipped','Download','Donation') NOT NULL default 'Shipped',
+	`sku` varchar(100) NOT NULL default '',
+	`price` float(20,2) NOT NULL default '0.00',
+	`saleprice` float(20,2) NOT NULL default '0.00',
+	`shipfee` int(10) NOT NULL default '0',
+	`stock` int(10) NOT NULL default '0',
+	`inventory` enum('off','on') NOT NULL default 'off',
+	`sale` enum('off','on') NOT NULL default 'off',
+	`shipping` enum('off','on') NOT NULL default 'on',
+	`tax` enum('off','on') NOT NULL default 'on',
+	`sortorder` int(10) unsigned NOT NULL default '0',
+	`created` datetime NOT NULL default '0000-00-00 00:00:00',
+	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY(`id`),
+	KEY (`product`),
+	KEY (`context`)
+) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `shopp_spec`;
+CREATE TABLE `shopp_spec` (
+	`id` bigint(20) unsigned NOT NULL auto_increment,
+	`product` bigint(20) unsigned NOT NULL default '0',
+	`name` varchar(255) NOT NULL default '',
+	`content` text NOT NULL default '',
+	`sortorder` int(10) unsigned NOT NULL default '0',
+	PRIMARY KEY(`id`),
+	KEY (`product`,`name`),
+	FULLTEXT (`name`,`content`)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `shopp_category`;
@@ -37,7 +77,7 @@ CREATE TABLE `shopp_category` (
   `created` datetime NOT NULL default '0000-00-00 00:00:00',
   `modified` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`),
-  KEY `parent` (`parent`)
+  KEY (`parent`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `shopp_tag`;
@@ -62,48 +102,24 @@ CREATE TABLE `shopp_catalog` (
 	KEY (`tag`)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS `shopp_price`;
-CREATE TABLE `shopp_price` (
-	`id` bigint(20) unsigned NOT NULL auto_increment,
-	`product` bigint(20) unsigned NOT NULL default '0',
-	`label` varchar(100) NOT NULL default '',
-	`grouping` varchar(100) NOT NULL default '',
-	`type` enum('Shipped','Download','Donation') NOT NULL default 'Shipped',
-	`sku` varchar(100) NOT NULL default '',
-	`price` float(20,2) NOT NULL default '0.00',
-	`saleprice` float(20,2) NOT NULL default '0.00',
-	`shipfee` int(10) NOT NULL default '0',
-	`stock` int(10) NOT NULL default '0',
-	`inventory` enum('off','on') NOT NULL default 'off',
-	`sale` enum('off','on') NOT NULL default 'off',
-	`shipping` enum('off','on') NOT NULL default 'on',
-	`tax` enum('off','on') NOT NULL default 'on',
-	`sortorder` int(10) unsigned NOT NULL default '0',
-	`created` datetime NOT NULL default '0000-00-00 00:00:00',
-	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY(`id`),
-	KEY (`product`),
-	KEY (`grouping`)
-) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
-
 DROP TABLE IF EXISTS `shopp_asset`;
 CREATE TABLE `shopp_asset` (
 	`id` bigint(20) unsigned NOT NULL auto_increment,
 	`parent` bigint(20) unsigned NOT NULL default '0',
-	`type` enum('product','price','category') NOT NULL default 'product',
+	`context` enum('product','category') NOT NULL default 'product',
 	`src` bigint(20) unsigned NOT NULL default '0',
 	`name` varchar(255) NOT NULL default '',
 	`value` varchar(255) NOT NULL default '',
 	`properties` text NOT NULL default '',
 	`size` bigint(20) unsigned NOT NULL default '0',
 	`data` longblob NOT NULL default '',
-	`datatype` enum('metadata','image','feature','thumbnail','download') NOT NULL default 'metadata',
+	`datatype` enum('metadata','image','gallery','thumbnail','download') NOT NULL default 'metadata',
 	`sortorder` int(10) unsigned NOT NULL default '0',
 	`created` datetime NOT NULL default '0000-00-00 00:00:00',
 	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY(`id`),
-	KEY `attached` (`parent`,`type`),
-	KEY `original` (`src`)
+	KEY (`parent`,`context`),
+	KEY (`src`)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `shopp_cart`;
@@ -116,7 +132,7 @@ CREATE TABLE `shopp_cart` (
 	`created` datetime NOT NULL default '0000-00-00 00:00:00',
 	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY(`session`),
-	KEY `customer` (`customer`)
+	KEY (`customer`)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `shopp_item`;

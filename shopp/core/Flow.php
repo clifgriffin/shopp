@@ -92,71 +92,7 @@ class Flow {
 
 		return $content;
 		
-	}
-	
-	function producttag ($property,$options=array()) {
-		global $Shopp;
-		
-		switch ($property) {
-			case "found": if (!empty($Shopp->Product->id)) return true; else return false; break;
-			case "name": return $Shopp->Product->name; break;
-			case "description": return $Shopp->Product->description; break;
-			case "details": return $Shopp->Product->details; break;
-			case "brand": return $Shopp->Product->brand; break;
-			case "price":
-				if ($Shopp->Product->options > 1) {
-
-					$min = $max = -1;
-					foreach($Shopp->Product->prices as $pricetag) {
-						if ($min == -1 || $pricetag->price < $min) $min = $pricetag->price;
-						if ($max == -1 || $pricetag->price > $max) $max = $pricetag->price;
-					}
-					
-					if ($min == $max) return money($min);
-					else return money($min)." &mdash; ".money($max);
-					
-				} else return money($Shopp->Product->prices[0]->price);
-				break;
-			case "onsale":
-				if ($Shopp->Product->options > 1) {
-					foreach($Shopp->Product->prices as $pricetag) {
-						if ($pricetag->sale == "on") return true;
-					}
-				} else return ($Shopp->Product->prices[0]->sale == "on");
-				break;
-			case "saleprice":
-				if ($Shopp->Product->options > 1) {
-					
-					$min = $max = -1;
-					foreach($Shopp->Product->prices as $pricetag) {
-						if ($min == -1 || $pricetag->saleprice < $min) $min = $pricetag->saleprice;
-						if ($max == -1 || $pricetag->saleprice > $max) $max = $pricetag->saleprice;
-					}
-					
-					if ($min == $max) return money($min);
-					else return money($min)." &mdash; ".money($max);
-					
-				} else return money($Shopp->Product->prices[0]->saleprice);
-				break;
-			case "hasoptions": if (count($Shopp->Product->price) > 1) return true; else return false; break;
-			case "photo":
-				$Shopp->Product->load_images();
-				$img = $Shopp->Product->images[0];
-				$string .= '<img src="/?lookup=asset&id='.$img->id.'" alt="" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
-				return $string;
-				break;
-			case "addtocart":
-				$string = "";
-				$string .= '<input type="hidden" name="product" value="'.$Shopp->Product->id.'" />';
-				$string .= '<input type="hidden" name="price" value="'.$Shopp->Product->prices[0]->id.'" />';
-				$string .= '<input type="hidden" name="cart" value="add" />';
-				$string .= '<input type="button" name="addtocart" value="Add to Cart" class="addtocart" />';
-				return $string;
-		}
-		
-		
-	}
-	
+	}	
 	
 	/**
 	 * Shopping Cart flow handlers
@@ -453,10 +389,12 @@ class Flow {
 		if ($_GET['edit'] != "new") {
 			$Product = new Product($_GET['edit']);
 			$Product->load_prices();
+			$Product->load_specs();
 			$Product->load_categories();
 		} else $Product = new Product();
 
 		if (!empty($_POST['save'])) {
+			// print_r($_POST);
 			$this->save_product($Product);	
 			return true;
 		}
@@ -469,17 +407,18 @@ class Flow {
 		foreach($brandnames as $name) $brands[] = $name->brand;
 
 		$Price = new Price();
-		$optionTypes = $Price->_lists['type'];
-		$optionGroups = array('');
-		$optionGroupNames = $db->query("SELECT grouping FROM $Price->_table WHERE grouping <> '' GROUP BY grouping",AS_ARRAY);
-		foreach($optionGroupNames as $name) $optionGroups[] = $name->grouping;
-		unset($Price,$optionGroupNames);
+		$priceTypes = $Price->_lists['type'];
+		// $optionGroups = array('');
+		// $optionGroupNames = $db->query("SELECT grouping FROM $Price->_table WHERE grouping <> '' GROUP BY grouping",AS_ARRAY);
+		// foreach($optionGroupNames as $name) $optionGroups[] = $name->grouping;
+		// unset($Price,$optionGroupNames);
+		
 		
 		$Category = new Category();
 		$categories = $db->query("SELECT id,name,parent FROM $Category->_table ORDER BY parent,name",AS_ARRAY);
 		unset($Category);
 		$categories = sort_tree($categories);
-		if (empty($categories)) $categories = array('');
+		if (empty($categories)) $categories = array();
 		
 		$categories_menu = '<option value="0" rel="-1,-1">Parent Category&hellip;</option>';
 		foreach ($categories as $category) {
@@ -513,16 +452,16 @@ class Flow {
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 
 			// Delete prices that were marked for removal
-			if (!empty($_POST['deletePrices'])) {
-				$deletes = array();
-				if (strpos($_POST['deletePrices'],","))	$deletes = split(',',$_POST['deletePrices']);
-				else $deletes = array($_POST['deletePrices']);
-
-				foreach($deletes as $option) {
-					$Price = new Price($option);
-					$Price->delete();
-				}
-			}
+			// if (!empty($_POST['deletePrices'])) {
+			// 	$deletes = array();
+			// 	if (strpos($_POST['deletePrices'],","))	$deletes = split(',',$_POST['deletePrices']);
+			// 	else $deletes = array($_POST['deletePrices']);
+			// 
+			// 	foreach($deletes as $option) {
+			// 		$Price = new Price($option);
+			// 		$Price->delete();
+			// 	}
+			// }
 
 			// Save prices that there are updates for
 			foreach($_POST['price'] as $i => $option) {
@@ -536,6 +475,31 @@ class Flow {
 				$Price->save();
 			}
 			unset($Price);
+		}
+				
+		if (!empty($_POST['details']) && is_array($_POST['details'])) {
+			if (!empty($_POST['deletedSpecs'])) {
+				$deletes = array();
+				if (strpos($_POST['deletedSpecs'],","))	$deletes = split(',',$_POST['deletedSpecs']);
+				else $deletes = array($_POST['deletedSpecs']);
+			
+				foreach($deletes as $option) {
+					$Spec = new Spec($option);
+					$Spec->delete();
+				}
+				unset($Spec);
+			}
+			
+			foreach ($_POST['details'] as $i => $spec) {
+				if (empty($spec['id'])) {
+					$Spec = new Spec();
+					$spec['product'] = $Product->id;
+				} else $Spec = new Spec($spec['id']);
+				$spec['sortorder'] = array_search($i,$_POST['detailsorder'])+1;
+				
+				$Spec->updates($spec);
+				$Spec->save();
+			}
 		}
 		
 		if (!empty($_POST['deleteImages'])) {			
@@ -816,6 +780,7 @@ class Flow {
 		$this->Settings->save('shipping','on');	
 		$this->Settings->save('order_status',array('Pending','Completed'));	
 		$this->Settings->save('shopp_setup','completed');
+
 	}
 
 	function setup_regions () {
