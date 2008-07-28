@@ -41,6 +41,7 @@ CREATE TABLE `shopp_price` (
 	`sku` varchar(100) NOT NULL default '',
 	`price` float(20,2) NOT NULL default '0.00',
 	`saleprice` float(20,2) NOT NULL default '0.00',
+	`weight` int(10) NOT NULL default '0',
 	`shipfee` int(10) NOT NULL default '0',
 	`stock` int(10) NOT NULL default '0',
 	`inventory` enum('off','on') NOT NULL default 'off',
