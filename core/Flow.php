@@ -430,7 +430,7 @@ class Flow {
 		foreach ($Product->categories as $catalog) $selectedCategories[] = $catalog->category;
 
 		$Assets = new Asset();
-		$Images = $db->query("SELECT id,src FROM $Assets->_table WHERE type='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
+		$Images = $db->query("SELECT id,src FROM $Assets->_table WHERE context='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
 		unset($Assets);
 
 		$shiprates = $this->Settings->get('shipping_rates');

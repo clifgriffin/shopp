@@ -116,7 +116,7 @@ class DB extends Singleton {
 					case "string":
 						// Escape characters in strings as needed
 						if (is_array($value)) $value = serialize($value);
-						$data[$property] = "'".$this->escape($value)."'";
+						$data[$property] = "'".$value."'";
 						break;
 						
 					case "date":

@@ -192,7 +192,6 @@ function addDetail (data) {
 	});
 	
 	if (data) {
-		console.log(data);
 		specId.val(data.id);
 		label.val(data.name);		
 		content.val(data.content);
@@ -882,7 +881,7 @@ function imageUploadProgress (file, loaded, total) {
 }
 
 function imageUploadError (file, error, message) {
-
+	console.log(error+": "+message);
 }
 
 function imageUploadSuccess (file, results) {
