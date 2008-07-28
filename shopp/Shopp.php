@@ -375,12 +375,17 @@ class Shopp {
 				$Image = new Asset();
 				$Image->parent = $_POST['product'];
 				$Image->context = "product";
-				$Image->type = "image";
+				$Image->datatype = "image";
 				$Image->name = $_FILES['Filedata']['name'];
 				list($width, $height, $mimetype, $attr) = getimagesize($_FILES['Filedata']['tmp_name']);
-				$Image->properties = array("width" => $width,"height" => $height, "mimetype" => image_type_to_mime_type($mimetype), "attr" => $attr);
-				$Image->data = file_get_contents($_FILES['Filedata']['tmp_name']);
+				$Image->properties = array(
+					"width" => $width,
+					"height" => $height,
+					"mimetype" => image_type_to_mime_type($mimetype),
+					"attr" => $attr);
+				$Image->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
 				$Image->save();
+				unset($Image->data); // Save memory for thumbnail processing
 				
 				// Generate Thumbnail
 				$ThumbnailSettings = array();
@@ -390,14 +395,13 @@ class Shopp {
 				$ThumbnailSettings['quality'] = $this->Settings->get('gallery_thumbnail_quality');
 
 				$Thumbnail = new Asset();
-				$Thumbnail->parent = $_POST['product'];
+				$Thumbnail->parent = $Image->parent;
 				$Thumbnail->context = "product";
-				$Thumbnail->type = "thumbnail";
+				$Thumbnail->datatype = "thumbnail";
 				$Thumbnail->src = $Image->id;
 				$Thumbnail->name = "thumbnail_".$Image->name;
-				
-				$ThumbnailSizing = new ImageProcessor($Image->data,$width,$height);
-				unset($Image->data); // Save memory for thumbnail processing
+				$Thumbnail->data = file_get_contents($_FILES['Filedata']['tmp_name']);
+				$ThumbnailSizing = new ImageProcessor($Thumbnail->data,$width,$height);
 				
 				switch ($ThumbnailSettings['sizing']) {
 					case "0": $ThumbnailSizing->scaleToWidth($ThumbnailSettings['width']); break;
@@ -406,7 +410,7 @@ class Shopp {
 					case "3": $ThumbnailSizing->scaleCrop($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
 				}
 				$ThumbnailSizing->UnsharpMask();
-				$Thumbnail->data = $ThumbnailSizing->imagefile($ThumbnailSettings['quality']);
+				$Thumbnail->data = addslashes($ThumbnailSizing->imagefile($ThumbnailSettings['quality']));
 				$Thumbnail->properties = array();
 				$Thumbnail->properties['width'] = $ThumbnailSizing->Processed->width;
 				$Thumbnail->properties['height'] = $ThumbnailSizing->Processed->height;
@@ -414,7 +418,6 @@ class Shopp {
 				unset($ThumbnailSizing);
 				$Thumbnail->save();
 				unset($Thumbnail->data);
-
 				echo json_encode(array("id"=>$Thumbnail->id,"src"=>$Thumbnail->src));
 				exit();
 				break;
@@ -431,7 +434,7 @@ class Shopp {
 				$File->datatype = "download";
 				$File->size = filesize($_FILES['Filedata']['tmp_name']);
 				$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name']));
-				$File->data = file_get_contents($_FILES['Filedata']['tmp_name']);
+				$File->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
 				$File->save();
 				unset($File->data); // Remove file contents from memory
 				
