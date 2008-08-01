@@ -47,6 +47,15 @@
 .shopp span label,
 .shopp div label { font-size: 11px; clear: both; font-weight: normal; padding-bottom: 8px; }
 
+form.shopp { text-align: left; }
+form.shopp.product ul.options { list-style: none; }
+form.shopp ul label,form.shopp ul select { display: inline; }
+
+#shopp ul.products  { list-style: none; padding: 0; }
+#shopp ul.products li:before { content: ""; }
+#shopp ul.products li { display: inline-block; width: 30%; }
+#shopp ul.products img { display: block; }
+
 /**
  * Products
  **/
