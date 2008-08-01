@@ -20,6 +20,7 @@ class Flow {
 	function Flow (&$Core) {
 		$this->Settings =& $Core->Settings;
 		$this->ShipCalcs =& $Core->ShipCalcs;
+		$this->Cart =& $Core->Cart;
 
 		$this->basepath = dirname(dirname(__FILE__));
 		$this->uri = ((!empty($_SERVER['HTTPS']))?"https://":"http://").
@@ -50,41 +51,46 @@ class Flow {
 	function catalog () {
 		global $wp_rewrite,$Shopp;
 		$db =& DB::get();
-		require_once("{$this->basepath}/core/model/Product.php");
+		// require_once("{$this->basepath}/core/model/Catalog.php");
+		// require_once("{$this->basepath}/core/model/Category.php");
+		// require_once("{$this->basepath}/core/model/Product.php");
 
-		if ($category = get_query_var('category')) $page = "category";
-		if ($productid = get_query_var('productid')) $page = "product";
-		if ($productname = get_query_var('productname')) $page = "product";
+		if ($category = get_query_var('shopp_category')) $page = "category";
+		if ($productid = get_query_var('shopp_product_id')) $page = "product";
+		if ($productname = get_query_var('shopp_product_name')) $page = "product";
 
 		// echo "<p>category: $category</p>";
 		// echo "<p>productid: $productid</p>";
 		// echo "<p>productname: $productname</p>";
 
 		// Find product by given ID
-		if ($productid = get_query_var('productid')) {
+		if (!empty($productid) && empty($Shopp->Product->id)) {
+			require_once("{$this->basepath}/core/model/Product.php");
 			$Shopp->Product = new Product($productid);
-			$Shopp->Product->load_prices();
+		}
+		
+		if (!empty($category)) {
+			require_once("{$this->basepath}/core/model/Category.php");
+			$Shopp->Category = new Category($category,"slug");
 		}
 			
 		// Find product by category name and product name
-		if ($productname = get_query_var('productname')) {
-			$productname = preg_replace("/[\-]/"," ",strtolower($productname));
-			$result = $db->query("SELECT p.id FROM shopp_product AS p LEFT JOIN shopp_catalog AS log ON p.id=log.product LEFT JOIN shopp_category AS c ON log.category=c.id WHERE LCASE(p.name) = '$productname' AND LCASE(c.name)='$category'");
-			$Shopp->Product = new Product($result->id);
-			$Shopp->Product->load_prices();
+		if (!empty($productname) && empty($Shopp->Product->id)) {
+			require_once("{$this->basepath}/core/model/Product.php");
+			$Shopp->Product = new Product($productname,"slug");
 		}
-		
 		
 		ob_start();
 		
 		switch ($page) {
-			case "category":
-				break;
 			case "product":
 				include("{$this->basepath}/templates/product.html");
 				break;
+			case "category":
+				include("{$this->basepath}/templates/category.php");
+				break;
 			default:
-				include("{$this->basepath}/templates/catalog.html");
+				include("{$this->basepath}/templates/catalog.php");
 				break;
 		}
 		$content = ob_get_contents();
@@ -99,7 +105,7 @@ class Flow {
 	 **/
 	
 	function cart_post () {
-		global $Cart;
+		$Cart =& $this->Cart;
 		
 		if (isset($_POST['checkout'])) {
 			header("Location: ".SHOPP_CHECKOUTURL);
@@ -361,11 +367,6 @@ class Flow {
 				&& is_array($_GET['delete'])) {
 			foreach($_GET['delete'] as $deletion) {
 				$Product = new Product($deletion);
-				$Product->load_prices();
-				foreach ($Product->prices as $price) {
-					$Price = new Price($price->id);
-					$Price->delete();
-				}
 				$Product->delete();
 			}
 		}
@@ -376,7 +377,7 @@ class Flow {
 		$pt = new Price();
 		$cat = new Category();
 		$clog = new Catalog();
-		$Products = $db->query("SELECT pd.id,pd.name,pd.brand,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd->_table AS pd LEFT JOIN $pt->_table AS pt ON pd.id=pt.product LEFT JOIN $clog->_table AS clog ON pd.id=clog.product LEFT JOIN $cat->_table AS cat ON cat.id=clog.category GROUP BY pd.id",AS_ARRAY);
+		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd->_table AS pd LEFT JOIN $pt->_table AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog->_table AS clog ON pd.id=clog.product LEFT JOIN $cat->_table AS cat ON cat.id=clog.category GROUP BY pd.id",AS_ARRAY);
 		unset($pd,$pt,$cat,$clog);
 		
 		include("{$this->basepath}/core/ui/products/products.html");
@@ -402,17 +403,8 @@ class Flow {
 		require_once("{$this->basepath}/core/model/Asset.php");
 		require_once("{$this->basepath}/core/model/Category.php");
 
-		$brands = array('');
-		$brandnames = $db->query("SELECT brand FROM $Product->_table WHERE brand <> '' GROUP BY brand",AS_ARRAY);
-		foreach($brandnames as $name) $brands[] = $name->brand;
-
 		$Price = new Price();
 		$priceTypes = $Price->_lists['type'];
-		// $optionGroups = array('');
-		// $optionGroupNames = $db->query("SELECT grouping FROM $Price->_table WHERE grouping <> '' GROUP BY grouping",AS_ARRAY);
-		// foreach($optionGroupNames as $name) $optionGroups[] = $name->grouping;
-		// unset($Price,$optionGroupNames);
-		
 		
 		$Category = new Category();
 		$categories = $db->query("SELECT id,name,parent FROM $Category->_table ORDER BY parent,name",AS_ARRAY);
@@ -443,25 +435,26 @@ class Flow {
 	function save_product($Product) {
 		$db =& DB::get();
 		
+		if (!$_POST['options']) $Product->options = array();
+		$_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
 		$Product->updates($_POST,array('categories'));
 		$Product->save();
 
-		if (is_array($_POST['categories'])) 
-			$Product->save_categories($_POST['categories']);
-			
+		$Product->save_categories($_POST['categories']);
+		
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 
 			// Delete prices that were marked for removal
-			// if (!empty($_POST['deletePrices'])) {
-			// 	$deletes = array();
-			// 	if (strpos($_POST['deletePrices'],","))	$deletes = split(',',$_POST['deletePrices']);
-			// 	else $deletes = array($_POST['deletePrices']);
-			// 
-			// 	foreach($deletes as $option) {
-			// 		$Price = new Price($option);
-			// 		$Price->delete();
-			// 	}
-			// }
+			if (!empty($_POST['deletePrices'])) {
+				$deletes = array();
+				if (strpos($_POST['deletePrices'],","))	$deletes = split(',',$_POST['deletePrices']);
+				else $deletes = array($_POST['deletePrices']);
+			
+				foreach($deletes as $option) {
+					$Price = new Price($option);
+					$Price->delete();
+				}
+			}
 
 			// Save prices that there are updates for
 			foreach($_POST['price'] as $i => $option) {
@@ -516,6 +509,97 @@ class Flow {
 
 		$this->products_list();
 	}
+	
+	function product_images () {
+			require("{$this->basepath}/core/model/Asset.php");
+			require("{$this->basepath}/core/model/Image.php");
+			
+			// TODO: add some error handling here
+			
+			// Save the source image
+			$Image = new Asset();
+			$Image->parent = $_POST['product'];
+			$Image->context = "product";
+			$Image->datatype = "image";
+			$Image->name = $_FILES['Filedata']['name'];
+			list($width, $height, $mimetype, $attr) = getimagesize($_FILES['Filedata']['tmp_name']);
+			$Image->properties = array(
+				"width" => $width,
+				"height" => $height,
+				"mimetype" => image_type_to_mime_type($mimetype),
+				"attr" => $attr);
+			$Image->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
+			$Image->save();
+			unset($Image->data); // Save memory for small image & thumbnail processing
+
+			// Generate Small Size
+			$SmallSettings = array();
+			$SmallSettings['width'] = $this->Settings->get('gallery_small_width');
+			$SmallSettings['height'] = $this->Settings->get('gallery_small_height');
+			$SmallSettings['sizing'] = $this->Settings->get('gallery_small_sizing');
+			$SmallSettings['quality'] = $this->Settings->get('gallery_small_quality');
+			
+			$Small = new Asset();
+			$Small->parent = $Image->parent;
+			$Small->context = "product";
+			$Small->datatype = "small";
+			$Small->src = $Image->id;
+			$Small->name = "small_".$Image->name;
+			$Small->data = file_get_contents($_FILES['Filedata']['tmp_name']);
+			$SmallSizing = new ImageProcessor($Small->data,$width,$height);
+			
+			switch ($SmallSettings['sizing']) {
+				case "0": $SmallSizing->scaleToWidth($SmallSettings['width']); break;
+				case "1": $SmallSizing->scaleToHeight($SmallSettings['height']); break;
+				case "2": $SmallSizing->scaleToFit($SmallSettings['width'],$SmallSettings['height']); break;
+				case "3": $SmallSizing->scaleCrop($SmallSettings['width'],$SmallSettings['height']); break;
+			}
+			$SmallSizing->UnsharpMask();
+			$Small->data = addslashes($SmallSizing->imagefile($SmallSettings['quality']));
+			$Small->properties = array();
+			$Small->properties['width'] = $SmallSizing->Processed->width;
+			$Small->properties['height'] = $SmallSizing->Processed->height;
+			$Small->properties['mimetype'] = "image/jpeg";
+			unset($SmallSizing);
+			$Small->save();
+			unset($Small);
+			
+			// Generate Thumbnail
+			$ThumbnailSettings = array();
+			$ThumbnailSettings['width'] = $this->Settings->get('gallery_thumbnail_width');
+			$ThumbnailSettings['height'] = $this->Settings->get('gallery_thumbnail_height');
+			$ThumbnailSettings['sizing'] = $this->Settings->get('gallery_thumbnail_sizing');
+			$ThumbnailSettings['quality'] = $this->Settings->get('gallery_thumbnail_quality');
+
+			$Thumbnail = new Asset();
+			$Thumbnail->parent = $Image->parent;
+			$Thumbnail->context = "product";
+			$Thumbnail->datatype = "thumbnail";
+			$Thumbnail->src = $Image->id;
+			$Thumbnail->name = "thumbnail_".$Image->name;
+			$Thumbnail->data = file_get_contents($_FILES['Filedata']['tmp_name']);
+			$ThumbnailSizing = new ImageProcessor($Thumbnail->data,$width,$height);
+			
+			switch ($ThumbnailSettings['sizing']) {
+				case "0": $ThumbnailSizing->scaleToWidth($ThumbnailSettings['width']); break;
+				case "1": $ThumbnailSizing->scaleToHeight($ThumbnailSettings['height']); break;
+				case "2": $ThumbnailSizing->scaleToFit($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
+				case "3": $ThumbnailSizing->scaleCrop($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
+			}
+			$ThumbnailSizing->UnsharpMask();
+			$Thumbnail->data = addslashes($ThumbnailSizing->imagefile($ThumbnailSettings['quality']));
+			$Thumbnail->properties = array();
+			$Thumbnail->properties['width'] = $ThumbnailSizing->Processed->width;
+			$Thumbnail->properties['height'] = $ThumbnailSizing->Processed->height;
+			$Thumbnail->properties['mimetype'] = "image/jpeg";
+			unset($ThumbnailSizing);
+			$Thumbnail->save();
+			unset($Thumbnail->data);
+			
+			echo json_encode(array("id"=>$Thumbnail->id,"src"=>$Thumbnail->src));
+	}
+	
+	
 	
 	/**
 	 * Category flow handlers

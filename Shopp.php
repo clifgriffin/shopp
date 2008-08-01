@@ -54,12 +54,13 @@ class Shopp {
 		$this->ShipCalcs = new ShipCalcs($this->Settings,$this->path);
 		setlocale(LC_MONETARY, 'en_US'); // Move to settings manager ??
 
-		add_action('init', array(&$this, 'lookups'));
 		add_action('init', array(&$this, 'ajax'));
-		add_action('init', array(&$this, 'cart'));
-		add_action('init', array(&$this, 'checkout'));
-		add_action('init', array(&$this, 'shortcodes'));
+		add_action('parse_query', array(&$this, 'lookups'));
+		add_action('parse_query', array(&$this, 'shortcodes'));
+		add_action('parse_query', array(&$this, 'cart'));
+		add_action('parse_query', array(&$this, 'checkout'));
 
+		add_action('admin_menu', array(&$this, 'lookups'));
 		add_action('admin_menu', array(&$this, 'add_menus'));
 		add_action('wp_head', array(&$this, 'page_headers'));
 
@@ -68,7 +69,10 @@ class Shopp {
 		add_filter('query_vars', array(&$this,'queryvars'));
 
 		wp_enqueue_script('shopp',"{$this->uri}/core/ui/shopp.js");
-
+		
+		// $db = DB::get();
+		// print count($db->queries)." queries total";
+		// print_r($db->queries);
 	}
 	
 	function install () {
@@ -125,19 +129,22 @@ class Shopp {
 			'(shop/checkout)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
 			'(shop/receipt)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
 			'(shop/confirm-order)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
-			'(shop)/images/(\d+)?$' => 'index.php?lookup=image&id='.$wp_rewrite->preg_index(2),
-			'(shop)/(\d+(,\d+)?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&productid='. $wp_rewrite->preg_index(2),
-			'(shop)/([a-zA-Z0-9_\-]+?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&category='. $wp_rewrite->preg_index(2),
-			'(shop)/([a-zA-Z0-9_\-]+?)/(.*?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&category='. $wp_rewrite->preg_index(2).'&productname='. $wp_rewrite->preg_index(3),			
+			'(shop)/images/(\d+)/?$' => 'index.php?shopp_lookup=asset&shopp_file='.$wp_rewrite->preg_index(2),
+			'(shop)/(\d+(,\d+)?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_product_id='. $wp_rewrite->preg_index(2),
+			'(shop)/category/([a-zA-Z0-9_\-]+?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_category='. $wp_rewrite->preg_index(2),
+			'(shop)/([a-zA-Z0-9_\-]+?)/(.*?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_category='. $wp_rewrite->preg_index(2).'&shopp_product_name='. $wp_rewrite->preg_index(3),			
 		);
 		
 		$wp_rewrite->rules = $rules + $wp_rewrite->rules;
 	}
 	
 	function queryvars ($vars) {
-		$vars[] = 'category';
-		$vars[] = 'productid';
-		$vars[] = 'productname';
+		$vars[] = 'shopp_category';
+		$vars[] = 'shopp_product_id';
+		$vars[] = 'shopp_product_name';
+		$vars[] = 'shopp_file';
+		$vars[] = 'shopp_lookup';
+
 		return $vars;
 	}
 		
@@ -177,7 +184,7 @@ class Shopp {
 		if (empty($_POST['cart']) && empty($_GET['cart'])) return true;
 		require("core/model/Product.php");
 
-		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax();
+		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax(); 
 		else if (!empty($_GET['cart'])) $this->Flow->cart_request();
 		else $this->Flow->cart_post();
 
@@ -310,8 +317,8 @@ class Shopp {
 	}
 	
 	function shortcodes () {
-		remove_filter('the_content', 'wpautop');
-		add_filter('the_content', 'wpautop',8);
+		// remove_filter('the_content', 'wpautop');
+		// add_filter('the_content', 'wpautop',8);
 		
 		add_shortcode('catalog',array(&$this->Flow,'catalog'));
 		add_shortcode('cart',array(&$this->Flow,'cart_default'));
@@ -327,7 +334,11 @@ class Shopp {
 	 */
 	function lookups() {
 		$db =& DB::get();
-		switch($_GET['lookup']) {
+
+		$lookup = get_query_var('shopp_lookup');
+		if (empty($lookup)) $lookup = $_GET['lookup'];
+
+		switch($lookup) {
 			case "zones":
 				$zones = $this->Settings->get('zones');
 				if (isset($_GET['country']))
@@ -335,9 +346,12 @@ class Shopp {
 				exit();
 				break;
 			case "asset":
-				if (isset($_GET['id'])) {
+				$id = get_query_var('shopp_file');
+				if (empty($id)) $id = $_GET['id'];
+			
+				if (!empty($id)) {
 					require("core/model/Asset.php");
-					$Asset = new Asset($_GET['id']);
+					$Asset = new Asset($id);
 					header ("Content-type: ".$Asset->properties['mimetype']); 
 					header ("Content-length: ".strlen($Asset->data)); 
 					header ("Content-Disposition: inline; filename='".$Asset->name."'"); 
@@ -350,7 +364,6 @@ class Shopp {
 	}
 
 	function ajax() {
-		$db =& DB::get();
 		
 		// TODO: Move processing code to Flow
 		switch($_GET['shopp']) {
@@ -366,59 +379,7 @@ class Shopp {
 				exit();
 				break;
 			case "add-image":
-				require("core/model/Asset.php");
-				require("core/model/Image.php");
-				
-				// TODO: add some error handling here
-				
-				// Save the source image
-				$Image = new Asset();
-				$Image->parent = $_POST['product'];
-				$Image->context = "product";
-				$Image->datatype = "image";
-				$Image->name = $_FILES['Filedata']['name'];
-				list($width, $height, $mimetype, $attr) = getimagesize($_FILES['Filedata']['tmp_name']);
-				$Image->properties = array(
-					"width" => $width,
-					"height" => $height,
-					"mimetype" => image_type_to_mime_type($mimetype),
-					"attr" => $attr);
-				$Image->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
-				$Image->save();
-				unset($Image->data); // Save memory for thumbnail processing
-				
-				// Generate Thumbnail
-				$ThumbnailSettings = array();
-				$ThumbnailSettings['width'] = $this->Settings->get('gallery_thumbnail_width');
-				$ThumbnailSettings['height'] = $this->Settings->get('gallery_thumbnail_height');
-				$ThumbnailSettings['sizing'] = $this->Settings->get('gallery_thumbnail_sizing');
-				$ThumbnailSettings['quality'] = $this->Settings->get('gallery_thumbnail_quality');
-
-				$Thumbnail = new Asset();
-				$Thumbnail->parent = $Image->parent;
-				$Thumbnail->context = "product";
-				$Thumbnail->datatype = "thumbnail";
-				$Thumbnail->src = $Image->id;
-				$Thumbnail->name = "thumbnail_".$Image->name;
-				$Thumbnail->data = file_get_contents($_FILES['Filedata']['tmp_name']);
-				$ThumbnailSizing = new ImageProcessor($Thumbnail->data,$width,$height);
-				
-				switch ($ThumbnailSettings['sizing']) {
-					case "0": $ThumbnailSizing->scaleToWidth($ThumbnailSettings['width']); break;
-					case "1": $ThumbnailSizing->scaleToHeight($ThumbnailSettings['height']); break;
-					case "2": $ThumbnailSizing->scaleToFit($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
-					case "3": $ThumbnailSizing->scaleCrop($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
-				}
-				$ThumbnailSizing->UnsharpMask();
-				$Thumbnail->data = addslashes($ThumbnailSizing->imagefile($ThumbnailSettings['quality']));
-				$Thumbnail->properties = array();
-				$Thumbnail->properties['width'] = $ThumbnailSizing->Processed->width;
-				$Thumbnail->properties['height'] = $ThumbnailSizing->Processed->height;
-				$Thumbnail->properties['mimetype'] = "image/jpeg";
-				unset($ThumbnailSizing);
-				$Thumbnail->save();
-				unset($Thumbnail->data);
-				echo json_encode(array("id"=>$Thumbnail->id,"src"=>$Thumbnail->src));
+				$this->Flow->product_images();
 				exit();
 				break;
 			case "add-download":
@@ -426,7 +387,7 @@ class Shopp {
 
 				// TODO: Error handling
 				// TODO: Security - anti-virus scan?
-				
+
 				// Save the source image
 				$File = new Asset();
 				$File->parent = 0;
@@ -437,12 +398,11 @@ class Shopp {
 				$File->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
 				$File->save();
 				unset($File->data); // Remove file contents from memory
-				
+
 				echo json_encode(array("id"=>$File->id,"name"=>$File->name,"type"=>$File->properties['mimetype'],"size"=>$File->size));
 				exit();
 				break;
 		}
-		
 		
 	}
 
@@ -458,7 +418,7 @@ class Shopp {
  * @param $options - Custom options for the property result in query form (option1=value&option2=value&...)
  */
 function shopp () {
-	global $Cart,$Shopp;
+	global $Shopp;
 	$args = func_get_args();
 
 	$object = strtolower($args[0]);
@@ -474,9 +434,10 @@ function shopp () {
 
 	$result = "";
 	switch (strtolower($object)) {
-		case "cart": $result = $Cart->tag($property,$options); break;
-		case "cartitem": $result = $Cart->itemtag($property,$options); break;
-		case "shipestimate": $result = $Cart->shipestimatetag($property,$options); break;
+		case "cart": $result = $Shopp->Cart->tag($property,$options); break;
+		case "cartitem": $result = $Shopp->Cart->itemtag($property,$options); break;
+		case "shipestimate": $result = $Shopp->Cart->shipestimatetag($property,$options); break;
+		case "category": $result = $Shopp->Category->tag($property,$options); break;
 		case "product": $result = $Shopp->Product->tag($property,$options); break;
 	}
 
