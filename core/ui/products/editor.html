@@ -28,28 +28,21 @@
             Provide in-depth information about the product to be displayed on the product page.</td> 
 		</tr> 
 		<tr class="form-field">
-			<th>Details &amp; Specs</th>
+			<th><label>Details &amp; Specs</label>
+				<div id="new-detail">
+				<button type="button" id="addDetail" class="button-secondary"><small>Add Product Detail</small></button>
+				</div>
+			</th>
 			<td>
 				<ul class="details multipane">
 					<li><input type="hidden" name="deletedSpecs" id="deletedSpecs" value="" />
-						<div id="details-menu" class="multiple-select menu"><ul></ul></div>
-					<div class="controls">
-						<button type="button" id="addDetail" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> Add Detail</small></button>
-					</div></li>
-					
+						<div id="details-menu" class="multiple-select menu"><ul></ul></div></li>
 					<li><div id="details-list" class="list"><ul></ul></div></li>
 				</ul>
-				
+				<div class="clear"></div>
+				Build a list of detailed information or such as dimensions or features of the product.
 			</td>
 		</tr>		
-		<tr class="form-field"> 
-			<th scope="row" valign="top"><label for="brand">Brand</label></th> 
-			<td><select name="brand-menu" id="brand-menu" tabindex="4">
-				<?php if (count($brands) > 1) echo menuoptions($brands,$Product->brand); ?>
-				<option value="new">New Brand&hellip;</option>
-			</select><input name="brand" id="brand" value="<?php echo $brands[$Product->brand]; ?>" type="text" size="30" tabindex="5" /><br />
-			The name of the brand or manufacturer of this product.</td> 
-		</tr>
 		<tr class="form-field">
 			<th scope="row" valign="top"><label for="category-menu">Categories</label>
 				<div id="new-category">
@@ -75,20 +68,23 @@
 						<?php endfor; ?>
 					</ul>
 				</div><br />
-                You can organize your products into categories for display in your catalog.</td> 
+                You can organize products into categories for display in your catalog.</td> 
 		</tr>
 		<tr id="product-images" class="form-field form-required"> 
 			<th scope="row" valign="top"><label>Product Images</label>
+				<div>
 				<input type="hidden" name="product" value="<?php echo $_GET['edit']; ?>" id="image-product-id" />
 				<input type="hidden" name="deleteImages" id="deleteImages" value="" />
-				<button type="button" class="button-secondary" name="add-image" id="add-product-image" tabindex="6"><small>Add New Image</small></button></th> 
+				<button type="button" class="button-secondary" name="add-image" id="add-product-image" tabindex="6"><small>Add New Image</small></button></div></th> 
 			<td>
 				<ul id="lightbox">
 				<?php foreach ($Images as $thumbnail): ?>
-					<li id="image-<?php echo $thumbnail->src; ?>"><input type="hidden" name="images[]" value="<?php echo $thumbnail->src; ?>" /><img src="<?php echo get_option('siteurl'); ?>/wp-admin/admin.php?lookup=asset&amp;id=<?php echo $thumbnail->id; ?>" width="128" height="96" />
+					<li id="image-<?php echo $thumbnail->src; ?>"><input type="hidden" name="images[]" value="<?php echo $thumbnail->src; ?>" /><img src="<?php echo get_option('siteurl'); ?>/wp-admin/admin.php?lookup=asset&amp;id=<?php echo $thumbnail->id; ?>" width="96" height="96" />
 						<button type="button" name="deleteImage" value="<?php echo $thumbnail->src; ?>" title="Delete product image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
 				<?php endforeach; ?>
 				</ul>
+				<div class="clear"></div>
+				Images shown here will be out of proportion, but will be correctly sized for shoppers.
 			</td> 
 		</tr>
 		<tr class="form-field"> 
