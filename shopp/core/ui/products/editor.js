@@ -28,7 +28,6 @@ function init () {
 	if (specs) for (s in specs) addDetail(specs[s]);
 	$('#addDetail').click(function() { addDetail(); });
 
-
 	$('#variations-setting').click(variationsToggle);
 	variationsToggle();
 
@@ -47,17 +46,6 @@ function init () {
 			if (price.context == "variation") addPriceLine('#variations-pricing',price.options.split(","),price);
 		});
 	}
-
-
-	if ($('#brand-menu').val() == "new") $('#brand-menu').hide();
-	else $('#brand').hide();
-
-	$('#brand-menu').change(function () {
-		if (this.value == "new") {
-			$(this).hide();
-			$('#brand').val('').show().focus();
-		} else $('#brand').val($(this).val());
-	});
 
 	$('#new-category input, #new-category select').hide();
 
@@ -83,7 +71,7 @@ function init () {
 	});
 
 	quickSelects();
-	if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'handle':'> img.handle','opacity':0.8});
+	if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
 
 	// Initialize image uploader
 	var swfu = new SWFUpload({
@@ -119,7 +107,6 @@ function init () {
 		enableDeleteButton(this);
 	});
 
-
 	// Initialize image uploader
 	uploader = new SWFUpload({
 		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
@@ -145,9 +132,6 @@ function init () {
 		upload_complete_handler : uploadComplete,
 		queue_complete_handler : queueComplete
 	});
-	
-
-	
 	
 }
 
@@ -315,23 +299,27 @@ function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 	var options = $('<ul></ul>').appendTo(lists).hide();
 	optionSets[menusidx++] = options;
 	
-	e.addOption = function (id,label) {
+	e.addOption = function (evt,id,label) {
 		var j = $(options).contents().length;
+		
+		if (!id) id = optionsidx;
+		else if (id > optionsidx) optionsidx = id;
 
 		var option = $('<li></li>').appendTo(options);
 		var optionMove = $('<div class="move"></div>').appendTo(option);
-		var optionId = $('<input type="hidden" name="options['+fieldname+']['+i+'][id][]" value="'+optionsidx+'" class="id" />').appendTo(option);
-		var optionLabel = $('<input type="text" name="options['+fieldname+']['+i+'][label][]" id="'+fieldname+'-menu-'+i+'-option-'+j+'" />').appendTo(option);
+		var optionId = $('<input type="hidden" name="options['+fieldname+']['+i+'][id][]" value="'+id+'" class="id" />').appendTo(option);
+		var optionLabel = $('<input type="text" name="options['+fieldname+']['+i+'][label][]" />').appendTo(option);
 		var optionDelete = $('<button type="button" class="delete"><img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="delete" width="16" height="16" /></button>').appendTo(option);
-		productOptions[optionsidx++] = optionLabel;
+		productOptions[id] = optionLabel;
+		optionsidx++;
 		
 		option.hover(function () {
 			option.addClass('hover');
 		},function () {
 			option.removeClass('hover');
 		});
-
-		if (data) optionLabel.val(label);
+		
+		if (label) optionLabel.val(label);
 		else optionLabel.val('New Option '+(j+1));
 		
 		optionLabel.click(function () { this.select(); });
@@ -349,7 +337,8 @@ function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 			});
 
 			options.sortable({'axis':'y','update':function(){orderVariationPrices()}});
-			addVariationPrices(id);
+			if (label) addVariationPrices(optionId.val());
+			else addVariationPrices();
 		}
 
 		if (type == "addon") {
@@ -410,7 +399,7 @@ function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 		label.val(data.menu);
 		if (data.id) {
 			$(data.id).each(function (key,entry) {
-				e.addOption(data.id[key],data.label[key]);
+				e.addOption(null,data.id[key],data.label[key]);
 			});
 		}
 	} else {
@@ -473,9 +462,7 @@ function buildVariations () {
 }
 
 function addVariationPrices (data) {
-	if (data) {
-
-	} else {
+	if (!data) {
 		var updated = buildVariations();
 		var variationPricing = $('#variations-pricing');
 		var pricelines = $(variationPricing).children();
@@ -490,6 +477,7 @@ function addVariationPrices (data) {
 					pricingOptions[key] = pricingOptions[preKey];
 					delete pricingOptions[preKey];
 					pricingOptions[key].options = options;
+					pricingOptions[key].updateKey();
 					pricingOptions[key].updateLabel();
 				} else {
 					if (pricelines.length == 0) {
@@ -505,13 +493,13 @@ function addVariationPrices (data) {
 
 function deleteVariationPrices (optionids,reduce) {
 	var updated = buildVariations();
-
+		
 	$(updated).each(function(id,options) {
 		var key = xorkey(options);
 
 		for (var i = 0; i < optionids.length; i++)  {
 			if (options.indexOf(optionids[i]) != -1) {
-			
+
 				var modOptions = new Array();
 				$(options).each(function(index,option) {
 					if (option != optionids[i]) modOptions.push(option);
@@ -523,9 +511,19 @@ function deleteVariationPrices (optionids,reduce) {
 					delete pricingOptions[key];
 					pricingOptions[newkey].options = modOptions;
 					pricingOptions[newkey].updateLabel();
+					pricingOptions[newkey].updateKey();
 				} else {
-					pricingOptions[key].row.remove();
-					delete pricingOptions[key];
+					if (pricingOptions[key]) {
+						
+						// Mark priceline for removal from db
+						var dbPriceId = $('#id\\['+pricingOptions[key].id+'\\]').val();
+						if ($('#deletePrices').val() == "") $('#deletePrices').val(dbPriceId);
+						else $('#deletePrices').val($('#deletePrices').val()+","+dbPriceId);
+
+						// Remove the priceline row from the ui/dom
+						pricingOptions[key].row.remove();
+						delete pricingOptions[key];
+					}
 				}
 			
 			}
@@ -567,7 +565,7 @@ function orderVariationPrices () {
 	
 	$(updated).each(function (id,options) {
 		var key = xorkey(options);
-		if (pricingOptions[key]) {
+		if (key > 0 && pricingOptions[key]) {
 			pricingOptions[key].row.appendTo('#variations-pricing');
 			pricingOptions[key].options = options;
 			pricingOptions[key].updateLabel();
@@ -613,6 +611,7 @@ function addPriceLine (target,options,data,attachment) {
 	var myid = $('<input type="hidden" name="price['+i+'][id]" id="id['+i+']" />').appendTo(heading);
 	var productid = $('<input type="hidden" name="price['+i+'][product]" id="product['+i+']" />').appendTo(heading);
 	var context = $('<input type="hidden" name="price['+i+'][context]" />').appendTo(heading);
+	var optionkey = $('<input type="hidden" name="price['+i+'][optionkey]" />').appendTo(heading);
 	var optionids = $('<input type="hidden" name="price['+i+'][options]" />').appendTo(heading);
 	var sortorder = $('<input type="hidden" name="sortorder[]" value="'+i+'" />').appendTo(heading);
 
@@ -683,6 +682,8 @@ function addPriceLine (target,options,data,attachment) {
 	Pricing.data = data;
 	Pricing.row = row;
 	Pricing.label = label;
+	Pricing.disable = function () { type.val('N/A').change(); }
+	Pricing.updateKey = function () { optionkey.val(xorkey(this.options)); }
 	Pricing.updateLabel = function () {
 		var string = "Pricing & Delivery";
 		var ids = "";
@@ -697,11 +698,14 @@ function addPriceLine (target,options,data,attachment) {
 		}
 		this.label.val(string).change();
 		optionids.val(ids);
-	};
+	}
+	Pricing.updateKey();
 	Pricing.updateLabel();
 	
 	// Utility function to hide all of the optional fields
 	var hideAllFields = function () {
+		priceHeading.hide();
+		priceCell.hide()
 		salepriceHeading.hide();
 		salepriceCell.hide();
 		shippingHeading.hide();
@@ -719,6 +723,8 @@ function addPriceLine (target,options,data,attachment) {
 	type.change(function () {
 		hideAllFields();
 		if (type.val() == "Shipped") {
+			priceHeading.show();
+			priceCell.show();
 			salepriceHeading.show();
 			salepriceCell.show();
 			shippingHeading.show();
@@ -727,6 +733,8 @@ function addPriceLine (target,options,data,attachment) {
 			inventoryCell.show();
 		}
 		if (type.val() == "Download") {
+			priceHeading.show();
+			priceCell.show();
 			salepriceHeading.show();
 			salepriceCell.show();
 			downloadHeading.show();
@@ -734,6 +742,8 @@ function addPriceLine (target,options,data,attachment) {
 			uploadHeading.show();
 		}
 		if (type.val() == "Donation") {
+			priceHeading.show();
+			priceCell.show();
 			priceLabel.html("Amount");
 			donationSpacingCell.show();
 			tax.attr('checked','true').change();
@@ -823,6 +833,7 @@ function xorkey (ids) {
 
 function variationsToggle () {
 	if ($('#variations-setting').attr('checked')) {
+		pricingOptions[0].disable();
 		$('#product-pricing').hide();
 		$('#variations').show();
 	} else {
