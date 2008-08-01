@@ -15,11 +15,29 @@ require("Price.php");
 class Product extends DatabaseObject {
 	var $prices = array();
 	var $categories = array();
+	var $images = array();
+	var $specs = array();
 	
-	function Product ($id=false) {
+	function Product ($id=false,$key="id") {
 		$this->init('product');
-		if ($this->load($id)) return true;
-		else return false;
+		switch ($key) {
+			case "slug": if ($this->loadby_slug($id)) return true;
+			default: if ($this->load($id)) return true;
+		}
+		return false;
+	}
+	
+	
+	/**
+	 * Load a single record by a slug name */
+	function loadby_slug ($slug) {
+		$db =& DB::get();
+		
+		$r = $db->query("SELECT * FROM $this->_table WHERE slug='$slug'");
+		$this->populate($r);
+
+		if (!empty($this->id)) return true;
+		return false;
 	}
 	
 	function load_prices () {
@@ -28,6 +46,12 @@ class Product extends DatabaseObject {
 		$table = DBPREFIX."price";
 		if (empty($this->id)) return false;
 		$this->prices = $db->query("SELECT * FROM $table WHERE product=$this->id ORDER BY sortorder ASC",AS_ARRAY);
+		
+		foreach ($this->prices as &$price) {
+			$this->pricekey[$this->xorkey($price->options)] = &$price;
+		}
+		
+		
 		return true;
 	}
 	
@@ -49,27 +73,17 @@ class Product extends DatabaseObject {
 		return true;
 	}
 
-	function load_images () {
+	function save_categories ($updates) {
 		$db =& DB::get();
 		
-		$table = DBPREFIX."asset";
-		if (empty($this->id)) return false;
-		$images = $db->query("SELECT id,properties,datatype FROM $table WHERE parent=$this->id AND type='product' AND (datatype='image' OR datatype='feature' OR datatype='thumbnail') ORDER BY sortorder",AS_ARRAY);
-		foreach ($images as $image) 
-			$image->properties = unserialize($image->properties);
-		$this->images = $images;
-		return true;
-	}
-		
-	function save_categories ($new) {
-		$db =& DB::get();
+		if (empty($updates)) $updates = array();
 		
 		$current = array();
 		foreach ($this->categories as $catalog) $current[] = $catalog->category;
 
-		$added = array_diff($new,$current);
-		$removed = array_diff($current,$new);
-
+		$added = array_diff($updates,$current);
+		$removed = array_diff($current,$updates);
+		
 		$table = DBPREFIX."catalog";
 		
 		foreach ($added as $id) {
@@ -80,6 +94,28 @@ class Product extends DatabaseObject {
 			$db->query("DELETE LOW_PRIORITY FROM $table WHERE category='$id' AND product='$this->id'"); 
 		}
 		
+	}
+	
+	function load_images () {
+		$db =& DB::get();
+		
+		$table = DBPREFIX."asset";
+		if (empty($this->id)) return false;
+		$images = $db->query("SELECT id,properties,datatype,src FROM $table WHERE parent=$this->id AND context='product' AND (datatype='image' OR datatype='feature' OR datatype='thumbnail') ORDER BY datatype,sortorder",AS_ARRAY);
+		foreach ($images as $image) 
+			$image->properties = unserialize($image->properties);
+		$this->images = $images;
+		return true;
+	}
+		
+	
+	/**
+	 * xorkey
+	 * There is no Zul only XOR! */
+	function xorkey ($ids) {
+		for ($key = 0,$i = 0; $i < count($ids); $i++) 
+			$key = $key ^ ($ids[i]*101);  // Use a prime for variation
+		return $key;
 	}
 	
 	/**
@@ -105,22 +141,54 @@ class Product extends DatabaseObject {
 			$db->query("DELETE LOW_PRIORITY FROM $table WHERE id='$id' OR src='$id'");
 		return true;
 	}
+	
+	/**
+	 * Deletes the record associated with this object */
+	function delete () {
+		$db =& DB::get();
+		
+		// Delete record
+		$id = $this->{$this->_key};
+		if (!empty($id)) $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
+		
+		// Delete from categories
+		$table = DBPREFIX."catalog";
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
+
+		// Delete prices
+		$table = DBPREFIX."price";
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
+
+		// Delete specs
+		$table = DBPREFIX."spec";
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
+
+		// Delete images/files
+		$table = DBPREFIX."asset";
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='product'");
+
+	}
+	
+	
 
 	function tag ($property,$options=array()) {
-		
+
 		switch ($property) {
 			case "found": if (!empty($this->id)) return true; else return false; break;
 			case "name": return $this->name; break;
-			case "description": return $this->description; break;
-			case "details": return $this->details; break;
+			case "summary": return $this->summary; break;
+			case "description": return wpautop($this->description); break;
 			case "brand": return $this->brand; break;
 			case "price":
+				if (empty($this->prices)) $this->load_prices();
 				if ($this->options > 1) {
 
 					$min = $max = -1;
 					foreach($this->prices as $pricetag) {
-						if ($min == -1 || $pricetag->price < $min) $min = $pricetag->price;
-						if ($max == -1 || $pricetag->price > $max) $max = $pricetag->price;
+						if ($pricetag->type != "N/A") {
+							if ($min == -1 || $pricetag->price < $min) $min = $pricetag->price;
+							if ($max == -1 || $pricetag->price > $max) $max = $pricetag->price;
+						}
 					}
 					
 					if ($min == $max) return money($min);
@@ -129,19 +197,24 @@ class Product extends DatabaseObject {
 				} else return money($this->prices[0]->price);
 				break;
 			case "onsale":
-				if ($this->options > 1) {
+				if (empty($this->prices)) $this->load_prices();
+				if (count($this->prices) > 1) {
 					foreach($this->prices as $pricetag) {
-						if ($pricetag->sale == "on") return true;
+						if ($pricetag->sale == "on" && $pricetag->type != "N/A") return true;
 					}
-				} else return ($this->prices[0]->sale == "on");
+					return false;
+				} else return ($this->prices[0]->sale == "on" && $this->prices[0]->type != "N/A");
 				break;
 			case "saleprice":
+				if (empty($this->prices)) $this->load_prices();
 				if ($this->options > 1) {
 					
 					$min = $max = -1;
 					foreach($this->prices as $pricetag) {
-						if ($min == -1 || $pricetag->saleprice < $min) $min = $pricetag->saleprice;
-						if ($max == -1 || $pricetag->saleprice > $max) $max = $pricetag->saleprice;
+						if ($pricetag->type != "N/A") {
+							if ($min == -1 || $pricetag->saleprice < $min) $min = $pricetag->saleprice;
+							if ($max == -1 || $pricetag->saleprice > $max) $max = $pricetag->saleprice;
+						}
 					}
 					
 					if ($min == $max) return money($min);
@@ -149,11 +222,76 @@ class Product extends DatabaseObject {
 					
 				} else return money($this->prices[0]->saleprice);
 				break;
-			case "hasoptions": if (count($this->price) > 1) return true; else return false; break;
-			case "photo":
-				$this->load_images();
+			case "image":
+				if (empty($this->images)) $this->load_images();
 				$img = $this->images[0];
-				$string .= '<img src="/?lookup=asset&id='.$img->id.'" alt="" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+				$string .= '<img src="/shop/images/'.$img->id.'" alt="" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+				return $string;
+				break;
+			case "thumbnails":
+				if (empty($this->images)) $this->load_images();
+				$string = "";
+				foreach ($this->images as $img) 
+					if ($img->datatype == "thumbnail") $string .= '<img src="/shop/images/'.$img->id.'" alt="" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+				return $string;
+				break;
+
+			case "hasspecs": 
+				if (empty($this->specs)) $this->load_specs();
+				if (count($this->specs) > 0) return true; else return false; break;
+			case "specs":			
+				if (!$this->specloop) {
+					reset($this->specs);
+					$this->specloop = true;
+				} else next($this->specs);
+
+				if (current($this->specs)) return true;
+				else {
+					$this->specloop = false;
+					return false;
+				}
+				break;
+			case "spec":
+				$spec = current($this->specs);
+				$string = "";
+				$separator = ": ";
+				if (isset($options['separator'])) $separator = $options['separator'];
+				if (array_key_exists('name',$options) && array_key_exists('content',$options))
+					$string = "{$spec->name}{$separator}{$spec->content}";
+				else if (array_key_exists('name',$options)) $string = $spec->name;
+				else if (array_key_exists('content',$options)) $string = $spec->content;
+				else $string = "{$spec->name}{$separator}{$spec->content}";
+				return $string;
+				break;
+			case "hasoptions":
+				if (isset($this->options['variations']) || isset($this->options['addons'])) return true; else return false; break;
+			case "options":
+				if (array_key_exists('variations',$options)) {
+					if (!$this->optionloop) {
+						reset($this->options['variations']);
+						$this->optionloop = true;
+					} else next($this->options['variations']);
+
+					$this->option = current($this->options['variations']);
+
+					if (current($this->options['variations'])) return true;
+					else {
+						$this->optionloop = false;
+						return false;
+					}
+				}
+				return false;
+				break;
+			case "option":
+				$optionset = $this->option;
+				$string = "";
+				if (array_key_exists('label',$options)) $string .= $optionset['menu'];
+				else {
+					$string .= '<select name="options[]">';
+					if (isset($options['default'])) $string .= '<option value="">'.$options['default'].'</option>';
+					foreach ($optionset['label'] as $menuoption) $string .= '<option value="">'.$menuoption.'</option>';
+					$string .= '</select>';
+				}
 				return $string;
 				break;
 			case "addtocart":
