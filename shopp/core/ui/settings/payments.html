@@ -35,7 +35,7 @@ var addSetting = function (label,field,help) {
 
 	var row = $('<tr></tr>').addClass('form-field').appendTo('#payment-settings');
 	var heading = $('<th scope="row" valign="top"></th>').appendTo(row);
-	var fieldLabel = $('<label/>').attr('for',field.id).html(label).appendTo(heading);
+	var fieldLabel = $('<label></label>').attr('for',field.id).html(label).appendTo(heading);
 	var dataCell = $('<td></td>').html(' '+help).appendTo(row);
 
 	var input = $('<input type="'+fieldtype+'" />').attr(field).prependTo(dataCell);
