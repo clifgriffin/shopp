@@ -44,8 +44,7 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 
 #product-images table.form-table td { margin: 0; padding: 10px 0 0 10px; }
 #product-images #lightbox { list-style-type: none; margin: 0; padding: 0; }
-#product-images #lightbox li { position: relative; display: block; float: left; background: #ffffff; border: none; margin: 0 10px 10px 0; padding: 5px; cursor: move; width: 128px; height: 96px; border: 1px solid #cee1ef; z-index: 1;}
-#product-images button { margin-top: 20px; width: 100%; }
+#product-images #lightbox li { position: relative; display: block; float: left; background: #ffffff; border: none; margin: 0 10px 10px 0; padding: 5px; cursor: move; width: 96px; height: 96px; border: 1px solid #cee1ef; z-index: 1;}
 #product-images #lightbox li button.deleteButton { margin: 0; width: auto; position: absolute; top: -4px; right: -5px; z-index: 10; }
 
 #product-images #lightbox div.progress { margin: 40px 0 0 14px; }
@@ -58,7 +57,7 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 .form-table .details .controls { text-align: right; }
 
 .form-table .multiple-select { overflow-x: hidden; overflow-y: auto; height: 120px; width: 250px; display: inline-block; border: 1px solid #c6d9e9; background: #ffffff; }
-.form-table .multiple-select ul { list-style-type: none; margin: 0; padding: 0; line-height: 1; width: inherit; }
+.form-table .multiple-select ul { list-style-type: none; margin: 0; padding: 0; line-height: 1; width: auto; }
 .form-table .multiple-select ul li { margin: 0; padding:  2px 2px 0 0; }
 .form-table .multiple-select ul li input { margin: 0 5px; }
 .form-table .multiple-select ul li.odd { background: #f9f9f9; }
@@ -66,7 +65,7 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 
 .form-table .multipane ul li { position: relative; padding: 0 2px; background: none; width: 100%; }
 .form-table .multipane .menu ul li,
-.form-table .multipane .menu ul li.hover { padding: 0 2px; background-image: url('/wp-content/plugins/shopp/core/ui/icons/more_arrow.png'); background-repeat: no-repeat; background-position: 234px 5px; }
+.form-table .multipane .menu ul li.hover { padding: 0 2px; background-image: url('/wp-content/plugins/shopp/core/ui/icons/more_arrow.png'); background-repeat: no-repeat; background-position: 96% 5px; }
 
 .form-table .multipane ul li.hover { background-color: #eaf3fa; }
 .form-table .multipane ul li.selected { background-color: #cee1ef; }
@@ -79,10 +78,11 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 .form-table .multipane ul li div { width: 19px; height: 22px; float: left; }
 .form-table .multipane ul li.hover div { background: url('/wp-content/plugins/shopp/core/ui/icons/move.png') no-repeat  3px top; }
 
-
-
 .form-table .details .list li textarea { width: 250px; height: 114px; margin: 0; }
 .form-table .details .list li button { border: none; background: none; position: absolute; top: 0; right: 0; visibility: hidden; }
+
+.form-table th div { margin-top: 10px; }
+.form-table th div button { width: 100%; }
 
 #new-category, 
 #new-category input, 
@@ -90,6 +90,8 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 #new-category button { width: 100%; }
 #new-category { margin-top: 5px; }
 #category-menu { width: 250px; }
+
+
 
 form { position: relative; }
 p.controls { position: absolute; top: 0; right: 0; margin: 0; }
