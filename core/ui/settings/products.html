@@ -49,13 +49,13 @@
 			</tr>
 		<tbody id="gallery-settings">
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="gallery-feature-width">Gallery Image Size</label></th> 
-				<td><span id="gallery-feature-width-input"><input type="text" name="settings[gallery_feature_width]" value="<?php echo $this->Settings->get('gallery_feature_width'); ?>" id="gallery-feature-width" size="5" /><label for="gallery-feature-width"> width</label></span> <span id="gallery-feature-height-input"><input type="text" name="settings[gallery_feature_height]" value="<?php echo $this->Settings->get('gallery_feature_height'); ?>" id="gallery-feature-height" size="5" /><label for="gallery-feature-height"> height</label></span>
-					<p><select name="settings[gallery_feature_sizing]" id="gallery-feature-sizing">
-						<?php echo menuoptions($sizingOptions, $this->Settings->get('gallery_feature_sizing'),true); ?>
+				<th scope="row" valign="top"><label for="gallery-small-width">Gallery Image Size</label></th> 
+				<td><span id="gallery-small-width-input"><input type="text" name="settings[gallery_small_width]" value="<?php echo $this->Settings->get('gallery_small_width'); ?>" id="gallery-small-width" size="5" /><label for="gallery-small-width"> width</label></span> <span id="gallery-small-height-input"><input type="text" name="settings[gallery_small_height]" value="<?php echo $this->Settings->get('gallery_small_height'); ?>" id="gallery-small-height" size="5" /><label for="gallery-small-height"> height</label></span>
+					<p><select name="settings[gallery_small_sizing]" id="gallery-small-sizing">
+						<?php echo menuoptions($sizingOptions, $this->Settings->get('gallery_small_sizing'),true); ?>
 					</select></p>
-					<p><select name="settings[gallery_feature_quality]" id="gallery-feature-quality">
-						<?php echo menuoptions($qualityOptions, $this->Settings->get('gallery_feature_quality'),true); ?>
+					<p><select name="settings[gallery_small_quality]" id="gallery-small-quality">
+						<?php echo menuoptions($qualityOptions, $this->Settings->get('gallery_small_quality'),true); ?>
 					</select></p>
 					</td>
 			</tr>
@@ -88,16 +88,16 @@
 </div>
 <script type="text/javascript">
 (function($){
-$('#gallery-feature-sizing').change(function() {
+$('#gallery-small-sizing').change(function() {
 	if (this.selectedIndex == 0) {
-		$('#gallery-feature-width-input').show();	
-		$('#gallery-feature-height-input').hide();	
+		$('#gallery-small-width-input').show();	
+		$('#gallery-small-height-input').hide();	
 	} else if (this.selectedIndex == 1) {
-		$('#gallery-feature-width-input').hide();	
-		$('#gallery-feature-height-input').show();	
+		$('#gallery-small-width-input').hide();	
+		$('#gallery-small-height-input').show();	
 	} else {
-		$('#gallery-feature-width-input').show();	
-		$('#gallery-feature-height-input').show();	
+		$('#gallery-small-width-input').show();	
+		$('#gallery-small-height-input').show();	
 	}
 	
 }).change();
