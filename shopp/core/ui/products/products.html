@@ -18,7 +18,6 @@
 		<tr>
 			<th scope="col" class="check-column"><input type="checkbox" id="selectall" /></th>
 	        <th scope="col">Name</th>
-	        <th scope="col">Brand</th>
 	        <th scope="col">Category</th>
 	        <th scope="col">Price</th>
 	        <th scope="col" class="num">Featured</th>
@@ -29,7 +28,6 @@
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
 			<td><a class='row-title' href='?page=<?php echo $this->Admin->products; ?>&amp;edit=<?php echo $Product->id; ?>' title='Edit &quot;<?php echo $Product->name; ?>&quot;'><?php echo $Product->name; ?></a></td>
-			<td><?php echo $Product->brand; ?></td>
 			<td><?php echo $Product->categories; ?></td>
 			<td><?php
 				if ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
