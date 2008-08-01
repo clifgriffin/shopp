@@ -12,14 +12,16 @@
 class Settings extends DatabaseObject {
 	var $registry = array();
 	var $unavailable = false;
+	var $_table = "";
 	
 	function Settings () {
-		if (!$this->init('setting')) {
-			$this->unavailable = true;
-			return true;
+		$this->_table = DBPREFIX."setting";
+		if (!$this->load()) {
+			if (!$this->init('setting')) {
+				$this->unavailable = true;
+				return true;
+			}
 		}
-		
-		if (!$this->load()) $this->unavailable = true;
 	}
 	
 	/**
