@@ -8,7 +8,7 @@
 		<button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary">Delete</button>
 	</div>
 	<br class="clear" />
-	<?php if (sizeof($Orders) > 0): ?>
+
 	<table class="widefat">
 		<thead>
 		<tr>
@@ -20,6 +20,7 @@
 	        <th scope="col">Status</th>
 		</tr>
 		</thead>
+	<?php if (sizeof($Orders) > 0): ?>
 		<tbody id="orders" class="list orders">
 		<?php $even = false; foreach ($Orders as $Order): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
@@ -32,10 +33,10 @@
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
-	</table>
 	<?php else: ?>
-		<p>No<?php if (isset($_GET['status'])) echo ' '.strtolower($statusLabels[$_GET['status']]); ?> orders, yet.</p>
+		<tbody><tr><td colspan="6">No<?php if (isset($_GET['status'])) echo ' '.strtolower($statusLabels[$_GET['status']]); ?> orders, yet.</td></tr></tbody>
 	<?php endif; ?>
+	</table>
 	
 	</form>
 </div>

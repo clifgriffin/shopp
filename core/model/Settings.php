@@ -10,16 +10,17 @@
  **/
 
 class Settings extends DatabaseObject {
+	static $table = "setting";
 	var $registry = array();
 	var $unavailable = false;
 	var $_table = "";
 	
 	function Settings () {
-		$this->_table = DBPREFIX."setting";
+		$this->_table = $this->tablename(self::$table);
 		if (!$this->load()) {
 			if (!$this->init('setting')) {
 				$this->unavailable = true;
-				return true;
+				return false;
 			}
 		}
 	}
@@ -52,7 +53,7 @@ class Settings extends DatabaseObject {
 		$Setting->name = $name;
 		$Setting->value = $value;
 		$Setting->autoload = ($autoload)?'on':'off';
-		
+
 		$data = $db->prepare($Setting);
 		$dataset = DatabaseObject::dataset($data);
 		$this->registry[$name] = $value;
@@ -88,9 +89,9 @@ class Settings extends DatabaseObject {
 		return true;
 	}
 	
-	function save ($name,$value) {
+	function save ($name,$value,$autoload=true) {
 		// Update or Insert as needed
-		if ($this->get($name) === false) $this->add($name,$value);
+		if ($this->get($name) === false) $this->add($name,$value,$autoload);
 		else $this->update($name,$value);
 	}
 	

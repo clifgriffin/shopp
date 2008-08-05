@@ -10,9 +10,10 @@
  **/
 
 class Shipping extends DatabaseObject {
+	static $table = "shipping";
 	
 	function Shipping ($id=false) {
-		$this->init('shipping');
+		$this->init(self::$table);
 		if ($this->load($id)) return true;
 		else return false;
 	}

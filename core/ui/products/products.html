@@ -12,7 +12,6 @@
 		<div class="alignright"></div>
 	</div>
 	<br class="clear" />
-	<?php if (sizeof($Products) > 0): ?>
 	<table class="widefat">
 		<thead>
 		<tr>
@@ -23,6 +22,7 @@
 	        <th scope="col" class="num">Featured</th>
 		</tr>
 		</thead>
+	<?php if (sizeof($Products) > 0): ?>
 		<tbody id="products" class="list products">
 		<?php $even = false; foreach ($Products as $Product): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
@@ -38,10 +38,10 @@
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
-	</table>
 	<?php else: ?>
-		<p>No products found.</p>
+		<tbody><tr><td colspan="5">No products found.</td></tr></tbody>
 	<?php endif; ?>
+	</table>
 	</form>
 </div>
 <script type="text/javascript">

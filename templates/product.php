@@ -1,8 +1,11 @@
+<div id="shopp">
+<?php shopp('catalog','breadcrumb')?>
 <?php if (shopp('product','found')): ?>
-	<?php shopp('product','gallery'); ?>
 
 	<h3><?php shopp('product','name'); ?></h3>
 	<p class="headline"><?php shopp('product','summary'); ?></p>
+
+	<?php shopp('product','gallery'); ?>
 
 	<?php if (shopp('product','onsale')): ?>
 		<h4 class="original price"><?php shopp('product','price'); ?></h4>
@@ -10,8 +13,6 @@
 	<?php else: ?>
 		<h4><?php shopp('product','price'); ?></h4>
 	<?php endif; ?>
-
-	<?php shopp('product','thumbnails'); ?>
 
 	<div class="description"><?php shopp('product','description'); ?></div>
 
@@ -41,3 +42,4 @@
 <h3>Product Not Found</h3>
 <p>Sorry!  The product you requested is not found in our catalog!</p>
 <?php endif; ?>
+</div>

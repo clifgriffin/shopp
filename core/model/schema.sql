@@ -19,14 +19,12 @@ CREATE TABLE `shopp_product` (
 	`featured` enum('off','on') NOT NULL default 'off',
 	`variations` enum('off','on') NOT NULL default 'off',
 	`addons` enum('off','on') NOT NULL default 'off',
-	`specs` text NOT NULL default '',	
 	`options` text NOT NULL default '',
 	`created` datetime NOT NULL default '0000-00-00 00:00:00',
 	`modified` datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY(`id`),
 	KEY (`slug`),
-	KEY (`brand`),
-	FULLTEXT (`name`,`brand`,`summary`,`description`)
+	FULLTEXT (`name`,`summary`,`description`)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 DROP TABLE IF EXISTS `shopp_price`;
@@ -74,6 +72,7 @@ CREATE TABLE `shopp_category` (
   `parent` bigint(20) unsigned NOT NULL default '0',
   `name` varchar(255) NOT NULL default '',
   `slug` varchar(64) NOT NULL default '',
+  `uri` varchar(255) NOT NULL default '',
   `description` text NOT NULL,
   `created` datetime NOT NULL default '0000-00-00 00:00:00',
   `modified` datetime NOT NULL default '0000-00-00 00:00:00',

@@ -10,9 +10,10 @@
  **/
 
 class Price extends DatabaseObject {
-
+	static $table = "price";
+	
 	function Price ($id=false) {
-		$this->init('price');
+		$this->init(self::$table);
 		if ($this->load($id)) return true;
 		else return false;
 	}

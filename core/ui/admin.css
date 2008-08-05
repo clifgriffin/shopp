@@ -38,7 +38,7 @@ input.right { text-align: right; }
 .pricing div.file.x-tar
 { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_zip.png'); }
 
-div.progress { position: relative; width: 100px; height: 10px; background: #ffffff; border: 1px solid #dddddd;}
+div.progress { position: relative; width: 76px; height: 10px; background: #ffffff; border: 1px solid #dddddd;}
 div.progress div.bar { position: absolute; height: 10px; background: #85ec3d;  }
 div.progress div.gloss { position: absolute; width: 100%; height: 10px; background: url('/wp-content/plugins/shopp/core/ui/icons/gloss.png') repeat-x; }
 
@@ -47,7 +47,7 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 #product-images #lightbox li { position: relative; display: block; float: left; background: #ffffff; border: none; margin: 0 10px 10px 0; padding: 5px; cursor: move; width: 96px; height: 96px; border: 1px solid #cee1ef; z-index: 1;}
 #product-images #lightbox li button.deleteButton { margin: 0; width: auto; position: absolute; top: -4px; right: -5px; z-index: 10; }
 
-#product-images #lightbox div.progress { margin: 40px 0 0 14px; }
+#product-images #lightbox div.progress { margin: 40px 0 0 10px; }
 
 #wpcontent .form-table select.scrolling { height: auto; }
 
@@ -139,3 +139,11 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #shipping-rates table.rate td.rowctrl { vertical-align: middle; white-space: nowrap;}
 #shipping-rates select.methods { width: 150px; }
 #shipping-rates button.disabled { opacity: 0.3; }
+
+/**
+ * Debug Console
+ **/
+
+#debug.shopp { position: absolute; left: 25%; top: 100px; width: 50%; margin: 0 auto; height: 300px; overflow-y: auto; background: #fff; border: 5px solid #999; text-align: left; padding: 0 10px; font: 12px/1 "Lucida Grande",monospace; }
+#debug.shopp.overlay { position: absolute; width: 100%; height: 100%; background: #000; top: 0; left: 0; padding: 0; opacity: 0.8; border: none; }
+#debug.shopp h3 { font: bold 15px/1 "Lucida Grande",monospace;  }

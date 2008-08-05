@@ -327,15 +327,16 @@ if (!function_exists('property_exists')) {
 /**
  * sort_tree
  * Sorts a heirarchical tree of data */
-function sort_tree ($items,$parent=0,$depth=-1) {
+function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 	$depth++;
 	$result = array();
 	if ($items) { 
 		foreach ($items as $item) {
 			if ($item->parent == $parent) {
+				$item->parentkey = $key;
 				$item->depth = $depth;
 				$result[] = $item;
-				$children = sort_tree($items, $item->id,$depth);
+				$children = sort_tree($items, $item->id, count($result)-1, $depth);
 				$result = array_merge($result,$children); // Add children in as they are found
 			}
 		}

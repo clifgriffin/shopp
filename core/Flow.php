@@ -33,35 +33,26 @@ class Flow {
 		$this->Admin->settings = $Core->directory."/settings";
 		$this->Admin->products = $Core->directory."/products";
 		
-		
+		define("SHOPP_PERMALINKS",(get_option('permalink_structure') == "")?false:true);
 		define("SHOPP_BASEURI",$this->uri);
 		define("SHOPP_SECUREURI",$this->uri);	
 		define("SHOPP_PLUGINURI",$Core->uri);
-		define("SHOPP_CATALOGURL",$this->Settings->get('catalog_url'));
-		define("SHOPP_CARTURL",$this->Settings->get('cart_url'));
-		define("SHOPP_CHECKOUTURL",$this->Settings->get('checkout_url'));
-		define("SHOPP_CONFIRMURL",$this->Settings->get('confirm_url'));
-		define("SHOPP_RECEIPTURL",$this->Settings->get('receipt_url'));
 		define("SHOPP_DBSCHEMA",$this->basepath."/core/model/schema.sql");
+		define("SHOPP_LOOKUP",(strpos($_SERVER['REQUEST_URI'],"images/") !== false || 
+								strpos($_SERVER['REQUEST_URI'],"lookup=") !== false)?true:false);
 	}
 
 	/**
 	 * Catalog flow handlers
 	 **/
 	function catalog () {
-		global $wp_rewrite,$Shopp;
+		global $Shopp;
 		$db =& DB::get();
-		// require_once("{$this->basepath}/core/model/Catalog.php");
-		// require_once("{$this->basepath}/core/model/Category.php");
-		// require_once("{$this->basepath}/core/model/Product.php");
+		require_once("{$this->basepath}/core/model/Catalog.php");
 
 		if ($category = get_query_var('shopp_category')) $page = "category";
-		if ($productid = get_query_var('shopp_product_id')) $page = "product";
-		if ($productname = get_query_var('shopp_product_name')) $page = "product";
-
-		// echo "<p>category: $category</p>";
-		// echo "<p>productid: $productid</p>";
-		// echo "<p>productname: $productname</p>";
+		if ($productid = get_query_var('shopp_pid')) $page = "product";
+		if ($productname = get_query_var('shopp_product')) $page = "product";
 
 		// Find product by given ID
 		if (!empty($productid) && empty($Shopp->Product->id)) {
@@ -71,7 +62,12 @@ class Flow {
 		
 		if (!empty($category)) {
 			require_once("{$this->basepath}/core/model/Category.php");
-			$Shopp->Category = new Category($category,"slug");
+			$categories = split("/",$category);
+			$category = end($categories);
+			
+			$key = "id";
+			if (!preg_match("/\d+/",$category)) $key = "slug";
+			$Shopp->Category = new Category($category,$key);
 		}
 			
 		// Find product by category name and product name
@@ -80,11 +76,13 @@ class Flow {
 			$Shopp->Product = new Product($productname,"slug");
 		}
 		
+		$Shopp->Catalog = new Catalog();
+		
 		ob_start();
 		
 		switch ($page) {
 			case "product":
-				include("{$this->basepath}/templates/product.html");
+				include("{$this->basepath}/templates/product.php");
 				break;
 			case "category":
 				include("{$this->basepath}/templates/category.php");
@@ -108,7 +106,8 @@ class Flow {
 		$Cart =& $this->Cart;
 		
 		if (isset($_POST['checkout'])) {
-			header("Location: ".SHOPP_CHECKOUTURL);
+			$pages = $this->Settings->get('pages');
+			header("Location: ".$pages[2]['permalink']);
 			exit();
 		}
 
@@ -159,7 +158,7 @@ class Flow {
 	}
 
 	function cart_request () {
-		global $Cart;
+		$Cart =& $this->Cart;
 		
 		if (isset($_POST['checkout'])) {
 			header("Location: ".SHOPP_CHECKOUTURL);
@@ -204,7 +203,7 @@ class Flow {
 	}
 
 	function cart_default ($attrs) {
-		global $Cart;
+		$Cart =& $this->Cart;
 
 		ob_start();
 		include("{$this->basepath}/templates/cart.html");
@@ -214,8 +213,21 @@ class Flow {
 		return $content;
 	}
 
+	function init_cart_widget () {
+		// Check for required functions
+		if (!function_exists('register_sidebar_widget'))
+			return;
+		
+		register_sidebar_widget("Shopp Cart",array(&$this,'cart_widget'),'shopp cart');
+	}
+
+	function cart_widget ($args) {
+		extract($args);
+		include("{$this->basepath}/templates/cartwidget.php");		
+	}
+
 	function shipping_estimate ($attrs) {
-		global $Cart;
+		$Cart =& $this->Cart;
 
 		ob_start();
 		include("{$this->basepath}/templates/shipping.html");
@@ -228,27 +240,34 @@ class Flow {
 	/**
 	 * Checkout flow handlers
 	 **/
-	function checkout_onestep () {
-		global $Cart;
+	function checkout () {
+		$Cart =& $this->Cart;
 
-		ob_start();
-		$base = $this->Settings->get('base_operations');
-		$markets = $this->Settings->get('target_markets');
-		$regions = $this->Settings->get('regions');
-		foreach ($markets as $iso => $country) $countries[$iso] = $country;
-		$states = $regions[$base['country']];
+		$process = get_query_var('shopp_proc');
 		
-		if (isset($Cart->data->OrderError)) include("{$this->basepath}/templates/errors.html");
-		include("{$this->basepath}/templates/checkout.html");
-		$content = ob_get_contents();
-		ob_end_clean();
+		switch ($process) {
+			// case "receipt": $content = order_receipt(); break;
+			case "confirm-order": $content = order_confirmation(); break;
+			default:
+				ob_start();
+				$base = $this->Settings->get('base_operations');
+				$markets = $this->Settings->get('target_markets');
+				$regions = $this->Settings->get('regions');
+				foreach ($markets as $iso => $country) $countries[$iso] = $country;
+				$states = $regions[$base['country']];
 
-		unset($Cart->data->OrderError);
+				if (isset($Cart->data->OrderError)) include("{$this->basepath}/templates/errors.html");
+				include("{$this->basepath}/templates/checkout.html");
+				$content = ob_get_contents();
+				ob_end_clean();
+
+				unset($Cart->data->OrderError);
+		}
 		return $content;
 	}
 	
 	function checkout_order_summary () {
-		global $Cart;
+		$Cart =& $this->Cart;
 
 		ob_start();
 		include("{$this->basepath}/templates/summary.html");
@@ -259,7 +278,7 @@ class Flow {
 	}
 	
 	function order_confirmation () {
-		global $Cart;
+		$Cart =& $this->Cart;
 		ob_start();
 		include("{$this->basepath}/templates/confirm.html");
 		$content = ob_get_contents();
@@ -272,7 +291,7 @@ class Flow {
 	 * Transaction flow handlers
 	 **/
 	function order_receipt () {
-		global $Cart;
+		$Cart =& $this->Cart;
 		require_once("{$this->basepath}/core/model/Purchase.php");
 		$Purchase = new Purchase($Cart->data->Purchase);
 		$Purchase->load_purchased();
@@ -342,12 +361,12 @@ class Flow {
 		$db =& DB::get();
 		
 		include_once("{$this->basepath}/core/model/Purchase.php");
-		$p = new Purchase();
+		$purchase_table = DatabaseObject::tablename(Purchase::$table);
 		$labels = $this->Settings->get('order_status');
 		
 		if (empty($labels)) return false;
 
-		$r = $db->query("SELECT status,COUNT(status) AS total FROM {$p->_table} GROUP BY status ORDER BY status ASC",AS_ARRAY);
+		$r = $db->query("SELECT status,COUNT(status) AS total FROM $purchase_table GROUP BY status ORDER BY status ASC",AS_ARRAY);
 
 		$status = array();
 		foreach ($r as $count) $status[$count->status] = $count->total;
@@ -373,12 +392,11 @@ class Flow {
 		
 		if (empty($categories)) $categories = array('');
 		
-		$pd = new Product();
-		$pt = new Price();
-		$cat = new Category();
-		$clog = new Catalog();
-		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd->_table AS pd LEFT JOIN $pt->_table AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog->_table AS clog ON pd.id=clog.product LEFT JOIN $cat->_table AS cat ON cat.id=clog.category GROUP BY pd.id",AS_ARRAY);
-		unset($pd,$pt,$cat,$clog);
+		$pd = DatabaseObject::tablename(Product::$table);
+		$pt = DatabaseObject::tablename(Price::$table);
+		$cat = DatabaseObject::tablename(Category::$table);
+		$clog = DatabaseObject::tablename(Catalog::$table);
+		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category GROUP BY pd.id",AS_ARRAY);
 		
 		include("{$this->basepath}/core/ui/products/products.html");
 	}
@@ -406,9 +424,8 @@ class Flow {
 		$Price = new Price();
 		$priceTypes = $Price->_lists['type'];
 		
-		$Category = new Category();
-		$categories = $db->query("SELECT id,name,parent FROM $Category->_table ORDER BY parent,name",AS_ARRAY);
-		unset($Category);
+		$category_table = DatabaseObject::tablename(Category::$table);
+		$categories = $db->query("SELECT id,name,parent FROM $category_table ORDER BY parent,name",AS_ARRAY);
 		$categories = sort_tree($categories);
 		if (empty($categories)) $categories = array();
 		
@@ -469,7 +486,7 @@ class Flow {
 			}
 			unset($Price);
 		}
-				
+						
 		if (!empty($_POST['details']) && is_array($_POST['details'])) {
 			if (!empty($_POST['deletedSpecs'])) {
 				$deletes = array();
@@ -502,9 +519,11 @@ class Flow {
 			$Product->delete_images($deletes);
 		}
 		
-		if (!empty($_POST['images']) && is_array($_POST['images'])) 
+		if (!empty($_POST['images']) && is_array($_POST['images'])) {
+			$Product->link_images($_POST['images']);
 			$Product->save_imageorder($_POST['images']);
-
+		}
+		
 		unset($Product);
 
 		$this->products_list();
@@ -606,7 +625,6 @@ class Flow {
 	 **/
 	function categories_list () {
 		$db =& DB::get();
-		require_once("{$this->basepath}/core/model/Category.php");
 		require_once("{$this->basepath}/core/model/Catalog.php");
 
 		if ($_GET['deleting'] == "category"
@@ -619,21 +637,46 @@ class Flow {
 			}
 		}
 
-		$Category = new Category();
 		$Catalog = new Catalog();
+		$Catalog->load_categories();
+		$Categories = $Catalog->categories;
 		
-		$Categories = $db->query("select cat.*,count(sc.product) as products from $Category->_table as cat left join $Catalog->_table as sc on sc.category=cat.id group by cat.id order by parent,name",AS_ARRAY);
-		$Categories = sort_tree($Categories);
-		
-		unset($Category,$Catalog);
-
 		include("{$this->basepath}/core/ui/products/categories.html");
 	}
 	
 	function category_editor () {
+		global $Shopp;
 		$db =& DB::get();
-		require_once("{$this->basepath}/core/model/Category.php");
+		require_once("{$this->basepath}/core/model/Catalog.php");
 		
+		$Shopp->Catalog = new Catalog();
+		$Shopp->Catalog->load_categories();
+		
+		if (empty($_POST['slug'])) $_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
+		else $_POST['slug'] = sanitize_title_with_dashes($_POST['slug']);
+		
+		// Work out pathing
+		$uri = $_POST['slug'];
+	
+		// If we're saving a new category, lookup the parent
+		if ($_GET['category'] == "new") {
+			for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
+				if ($_POST['parent'] == $Shopp->Catalog->categories[$i]->id) break;
+			$uri = $Shopp->Catalog->categories[$i]->slug."/".$uri;
+		} else {
+			for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
+				if ($_GET['category'] == $Shopp->Catalog->categories[$i]->id) break;
+		}
+		
+		$parentkey = $Shopp->Catalog->categories[$i]->parentkey;
+		while ($parentkey > -1) {
+			$tree_category = $Shopp->Catalog->categories[$parentkey];
+			$uri = $tree_category->slug."/".$uri;
+			$parentkey = $tree_category->parentkey;
+		}
+		
+		$_POST['uri'] = $uri;
+
 		if ($_GET['category'] != "new") {
 			$Category = new Category($_GET['category']);
 		} else $Category = new Category();
@@ -689,10 +732,10 @@ class Flow {
 		$targets = $this->Settings->get('target_markets');
 		if (!$targets) $targets = array();
 		
-		$currencies = array('');
-		$currencylist = $this->Settings->get('currencies');
-		foreach($currencylist as $id => $currency) 
-			$currencies[$id] = $currency['name'];
+		// $currencies = array('');
+		// $currencylist = $this->Settings->get('currencies');
+		// foreach($currencylist as $id => $currency) 
+		// 	$currencies[$id] = $currency['name'];
 		
 		$statusLabels = $this->Settings->get('order_status');
 		if ($statusLabels) ksort($statusLabels);
@@ -856,14 +899,28 @@ class Flow {
 	 * Setup - set up all the lists
 	 */
 	function setup () {
+		
 		$this->setup_regions();
 		$this->setup_countries();
 		$this->setup_zones();
 		$this->setup_areas();
-		$this->setup_currencies();		
+		$this->setup_currencies();
+		
+		// General Settings
+		$this->Settings->save('version',SHOPP_VERSION);
 		$this->Settings->save('shipping','on');	
 		$this->Settings->save('order_status',array('Pending','Completed'));	
 		$this->Settings->save('shopp_setup','completed');
+
+		// Presentation Settings
+		$this->Settings->save('gallery_small_width','240');
+		$this->Settings->save('gallery_small_height','240');
+		$this->Settings->save('gallery_small_sizing','3');
+		$this->Settings->save('gallery_small_quality','0');
+		$this->Settings->save('gallery_thumbnail_width','96');
+		$this->Settings->save('gallery_thumbnail_height','96');
+		$this->Settings->save('gallery_thumbnail_sizing','3');
+		$this->Settings->save('gallery_thumbnail_quality','0');
 
 	}
 

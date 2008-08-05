@@ -12,10 +12,11 @@
 require("Purchased.php");
 
 class Purchase extends DatabaseObject {
+	static $table = "purchase";
 	var $purchased = array();
 
 	function Purchase ($id=false) {
-		$this->init('purchase');
+		$this->init(self::$table);
 		if ($this->load($id)) return true;
 		else return false;
 	}
@@ -23,7 +24,7 @@ class Purchase extends DatabaseObject {
 	function load_purchased () {
 		$db =& DB::get();
 
-		$table = DBPREFIX."purchased";
+		$table = DatabaseObject::tablename(Purchased::$table);
 		if (empty($this->id)) return false;
 		$this->purchased = $db->query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
 		return true;

@@ -13,7 +13,7 @@
 		<button type="submit" id="delete-button" name="deleting" value="category" class="button-secondary">Delete</button>
 	</div>
 	<br class="clear" />
-	<?php if (sizeof($Categories) > 0): ?>
+
 	<table class="widefat">
 		<thead>
 		<tr>
@@ -23,6 +23,7 @@
 	        <th scope="col" class="num">Products</th>
 		</tr>
 		</thead>
+	<?php if (sizeof($Categories) > 0): ?>
 		<tbody id="categories" class="list categories">
 		<?php $even = false; foreach ($Categories as $Category): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
@@ -33,10 +34,10 @@
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
-	</table>
 	<?php else: ?>
-		<p>No categories found.</p>
+		<tbody><tr><td colspan="4">No categories found.</td></tr></tbody>
 	<?php endif; ?>
+	</table>
 	</form>
 </div>
 <script type="text/javascript">

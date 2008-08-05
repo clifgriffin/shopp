@@ -2,7 +2,7 @@
 <script type="text/javascript">
 var regions = <?php echo json_encode($regions); ?>;
 </script>
-<form action="<?php echo SHOPP_CHECKOUTURL; ?>" method="post" class="shopp" id="checkout-form">
+<form action="<?php echo SHOPP_CHECKOUTURL; ?>" method="post" class="shopp" id="checkout">
 	<div><input type="hidden" name="checkout" value="process" /></div>
 	<ul>
 		<li>
@@ -29,7 +29,7 @@ var regions = <?php echo json_encode($regions); ?>;
 				<?php echo menuoptions($countries,$base['country'],true); ?>
 			</select><label for="shipping-country">Country</label></div>
 		</li>
-		<li class="address right">
+		<li class="address">
 			<label for="billing-address" class="inline">Billing Address</label><div class="inline right"><label for="useshipping"><input type="checkbox" name="useshipping" value="" id="useshipping" /> Same As Shipping</label></div>
 			<div><input type="text" name="billing[address]" value="" class="required" id="billing-address" title="Billing street address" /><label for="billing-address">Street Address</label></div>
 			<div><input type="text" name="billing[xaddress]" value="" id="billing-xaddress" title="Billing address line 2" /><label for="billing-xaddress">Address Line 2</label></div>

@@ -9,10 +9,13 @@
  * @package shopp
  **/
 
+require_once("Product.php");
+
 class Category extends DatabaseObject {
+	static $table = "category";
 	
 	function Category ($id=false,$key="id") {
-		$this->init('category');
+		$this->init(self::$table);
 		switch($key) {
 			case "id": if ($this->load($id)) return true; break;
 			case "slug": if ($this->loadby_slug($id)) return true; break;
@@ -35,16 +38,26 @@ class Category extends DatabaseObject {
 	function load_products () {
 		$db =& DB::get();
 		
-		$catalog_table = DBPREFIX."catalog";
-		$product_table = DBPREFIX."product";
-		$price_table = DBPREFIX."price";
-		$asset_table = DBPREFIX."asset";
-		$query = "SELECT p.id,p.name,p.summary,img.id AS thumbnail,MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,IF(pd.sale='on',1,0) AS onsale,MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice FROM $catalog_table AS catalog LEFT JOIN $product_table AS p ON catalog.product=p.id LEFT JOIN $price_table AS pd ON pd.product=p.id AND pd.type != 'N/A' LEFT JOIN $asset_table AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' GROUP BY p.id ORDER BY img.sortorder";
+		$catalog_table = DatabaseObject::tablename(Catalog::$table);
+		$product_table = DatabaseObject::tablename(Product::$table);
+		$price_table = DatabaseObject::tablename(Price::$table);
+		$asset_table = DatabaseObject::tablename(Asset::$table);
+		$query = "SELECT p.id,p.name,p.summary,img.id AS thumbnail,MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,IF(pd.sale='on',1,0) AS onsale,MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice FROM $catalog_table AS catalog LEFT JOIN $product_table AS p ON catalog.product=p.id LEFT JOIN $price_table AS pd ON pd.product=p.id AND pd.type != 'N/A' LEFT JOIN $asset_table AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 WHERE catalog.category=$this->id GROUP BY p.id";
 		$this->products = $db->query($query,AS_ARRAY);
 		
 	}
 	
 	function tag ($property,$options=array()) {
+		global $Shopp;
+		$pages = $Shopp->Settings->get('pages');
+		if (SHOPP_PERMALINKS) {
+			$path = "/{$pages[0]['name']}/category";
+			$imagepath = "/{$pages[0]['name']}/images/";
+		} else {
+			$page = "?page_id={$pages[0]['id']}";
+			$imagepath = "?shopp_image=";
+		}
+		
 		switch ($property) {
 			case "name": return $this->name; break;
 			case "slug": return $this->slug; break;
@@ -65,9 +78,12 @@ class Category extends DatabaseObject {
 				break;
 			case "product":
 				$product = current($this->products);
+				if (SHOPP_PERMALINKS) $link = $path.'/'.$this->uri.'/'.sanitize_title_with_dashes($product->name);
+				else $link = $page.'&shopp_category='.$this->id.'&shopp_pid='.$product->id;
+				
 				$string = "";
-				if (array_key_exists('link',$options)) $string .= '<a href="/shop/'.$this->slug.'/'.sanitize_title_with_dashes($product->name).'">';
-				if (array_key_exists('thumbnail',$options) && !empty($product->thumbnail)) $string .= '<img src="/shop/images/'.$product->thumbnail.'" />';
+				if (array_key_exists('link',$options)) $string .= '<a href="'.$link.'">';
+				if (array_key_exists('thumbnail',$options) && !empty($product->thumbnail)) $string .= '<img src="'.$imagepath.$product->thumbnail.'" />';
 				if (array_key_exists('name',$options)) $string .= $product->name;
 				if (array_key_exists('link',$options)) $string .= "</a>";
 				return $string;

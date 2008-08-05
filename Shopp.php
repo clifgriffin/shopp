@@ -2,7 +2,7 @@
 /*
 Plugin Name: Shopp
 Version: 1.0
-Description: E-Commerce catalog, shopping cart & payment processing plugin
+Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
 Author URI: http://ingenesis.net
@@ -10,6 +10,7 @@ Author URI: http://ingenesis.net
 
 define("SHOPP_VERSION","1.0");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
+define("SHOPP_DEBUG",true);
 
 require("core/functions.php");
 require("core/DB.php");
@@ -28,55 +29,65 @@ class Shopp {
 	var $ShipCalcs;
 	var $Product;
 	var $Category;
+	var $Catalog;
 	
 	function Shopp () {
 		$this->path = dirname(__FILE__);
 		$this->file = basename(__FILE__);
 		$this->directory = basename($this->path);
 		$this->uri = get_bloginfo('wpurl')."/wp-content/plugins/".$this->directory;
-		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";
+		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";		
 		
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
-		
-		// Change "shopp/Shopp.php" to __FILE__ at release
-		// __FILE__ doesn't work because of the development environment pathing
-		//register_deactivation_hook(__FILE__, array(&$this, 'deactivate'));
+				
+		// register_deactivation_hook(__FILE__, array(&$this, 'deactivate'));
 		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
 
 		// Initialize defaults if they have not been entered
-		if (!$this->Settings->get('shopp_setup')) 
+		if (!$this->Settings->get('shopp_setup')) {
 			$this->Flow->setup();
+		}
+		
+		if (!SHOPP_LOOKUP) {
+			$this->Cart = new Cart();
+			session_start();
 
-		$this->Cart = new Cart();
-		session_start();
-
-		$this->ShipCalcs = new ShipCalcs($this->Settings,$this->path);
-		setlocale(LC_MONETARY, 'en_US'); // Move to settings manager ??
+			$this->ShipCalcs = new ShipCalcs($this->Settings,$this->path);
+			setlocale(LC_MONETARY, 'en_US'); // Move to settings manager ??		
+		}
 
 		add_action('init', array(&$this, 'ajax'));
-		add_action('parse_query', array(&$this, 'lookups'));
+		add_action('parse_query', array(&$this, 'lookups') );
 		add_action('parse_query', array(&$this, 'shortcodes'));
 		add_action('parse_query', array(&$this, 'cart'));
 		add_action('parse_query', array(&$this, 'checkout'));
 
+		add_action('wp_ajax_shopp_add_category', array(&$this, 'ajax') );
+		add_action('wp_ajax_shopp_add_image', array(&$this, 'ajax') );
+		add_action('wp_ajax_shopp_add_download', array(&$this, 'ajax') );
+
 		add_action('admin_menu', array(&$this, 'lookups'));
 		add_action('admin_menu', array(&$this, 'add_menus'));
 		add_action('wp_head', array(&$this, 'page_headers'));
+		add_action('wp_footer', array(&$this, 'footer'));
+		add_action('admin_footer', array(&$this, 'footer'));
+		add_action('save_post', array(&$this, 'page_updates'),10,2);
+
+		add_action('widgets_init', array(&$this->Flow, 'init_cart_widget'));
 
 		update_option('rewrite_rules', '');
 		add_filter('generate_rewrite_rules',array(&$this,'rewrites'));
 		add_filter('query_vars', array(&$this,'queryvars'));
 
+		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp',"{$this->uri}/core/ui/shopp.js");
-		
-		// $db = DB::get();
-		// print count($db->queries)." queries total";
-		// print_r($db->queries);
+
+	
 	}
 	
 	function install () {
-		
+
 		if ($this->Settings->unavailable) 
 			include("core/install.php");
 				
@@ -85,7 +96,7 @@ class Shopp {
 		// Useful when table schemas change so we can
 		// force the in memory data model to get rebuilt
 		if ($this->Settings->get('shopp_setup'))
-			$this->Settings->save('datatype_model','');
+			$this->Settings->save('data_model','');
 		
 	}
 	
@@ -117,37 +128,43 @@ class Shopp {
 	}
 	
 	function page_headers () {
-		wp_enqueue_script('jquery');
 		?>
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/shopp.css' type='text/css' />
 		<?php
 	}
 	
 	function rewrites ($wp_rewrite) {
-		$rules = array(
-			'(shop/cart)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
-			'(shop/checkout)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
-			'(shop/receipt)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
-			'(shop/confirm-order)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
-			'(shop)/images/(\d+)/?$' => 'index.php?shopp_lookup=asset&shopp_file='.$wp_rewrite->preg_index(2),
-			'(shop)/(\d+(,\d+)?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_product_id='. $wp_rewrite->preg_index(2),
-			'(shop)/category/([a-zA-Z0-9_\-]+?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_category='. $wp_rewrite->preg_index(2),
-			'(shop)/([a-zA-Z0-9_\-]+?)/(.*?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_category='. $wp_rewrite->preg_index(2).'&shopp_product_name='. $wp_rewrite->preg_index(3),			
-		);
+		$pages = $this->Settings->get('pages');
+		$shop = $pages[0]['name'];
+		$cart = $pages[1]['name'];
+		$checkout = $pages[2]['name'];
 		
+		$rules = array(
+			'('.$shop.'/'.$cart.')/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
+			'('.$shop.'/'.$checkout.')/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
+			$shop.'/receipt/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=receipt',
+			$shop.'/confirm-order/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=confirm',
+			$shop.'/images/(\d+)/?$' => 'index.php?shopp_image='.$wp_rewrite->preg_index(1),
+			'('.$shop.')/(\d+(,\d+)?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_pid='. $wp_rewrite->preg_index(2),
+			'('.$shop.')/category/([a-zA-Z0-9_\-\/]+?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_category='. $wp_rewrite->preg_index(2),
+			'('.$shop.')/([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_category='. $wp_rewrite->preg_index(2).'&shopp_product='. $wp_rewrite->preg_index(3),			
+		);
+
 		$wp_rewrite->rules = $rules + $wp_rewrite->rules;
 	}
 	
 	function queryvars ($vars) {
+		$vars[] = 'shopp_proc';
 		$vars[] = 'shopp_category';
-		$vars[] = 'shopp_product_id';
-		$vars[] = 'shopp_product_name';
+		$vars[] = 'shopp_pid';
+		$vars[] = 'shopp_product';
 		$vars[] = 'shopp_file';
 		$vars[] = 'shopp_lookup';
+		$vars[] = 'shopp_image';
 
 		return $vars;
 	}
-		
+			
 	function orders () {
 		if (isset($_GET['manage'])) $this->Flow->order_manager();
 		else $this->Flow->orders_list();
@@ -165,7 +182,7 @@ class Shopp {
 	}
 
 	function settings () {
-		
+
 		switch($_GET['edit']) {
 			case "products": 	$this->Flow->settings_product_page(); break;
 			case "catalog": 	$this->Flow->settings_catalog(); break;
@@ -179,6 +196,33 @@ class Shopp {
 		
 	}
 	
+	function footer () {
+		if (!SHOPP_DEBUG) return true;
+		$db = DB::get();
+		global $wpdb;
+		
+		echo '<script type="text/javascript">';
+		echo 'var peakmem = '.memory_get_usage(true).';';
+		echo 'var wpquerytotal = '.$wpdb->num_queries.';';
+		echo 'var shoppquerytotal = '.count($db->queries).';';
+		echo 'var shoppqueries = '.json_encode($db->queries).';';
+		echo '</script>';
+		
+	}
+	
+	function page_updates ($update_id,$updates) {
+		$pages = $this->Settings->get('pages');
+		foreach ($pages as &$page) {
+			if ($page['id'] == $update_id) {
+				$page['title'] = $updates->post_title;
+				$page['name'] = $updates->post_name;
+				$page['permalink'] = get_permalink($update_id);
+				break;
+			}
+		}
+		$this->Settings->save('pages',$pages);
+	}
+		
 	function cart () {
 		global $Cart;
 		if (empty($_POST['cart']) && empty($_GET['cart'])) return true;
@@ -187,7 +231,7 @@ class Shopp {
 		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax(); 
 		else if (!empty($_GET['cart'])) $this->Flow->cart_request();
 		else $this->Flow->cart_post();
-
+										
 	}
 	
 	function checkout () {
@@ -323,7 +367,7 @@ class Shopp {
 		add_shortcode('catalog',array(&$this->Flow,'catalog'));
 		add_shortcode('cart',array(&$this->Flow,'cart_default'));
 		add_shortcode('shipping-estimate',array(&$this->Flow,'shipping_estimate'));
-		add_shortcode('checkout',array(&$this->Flow,'checkout_onestep'));
+		add_shortcode('checkout',array(&$this->Flow,'checkout'));
 		add_shortcode('order-summary',array(&$this->Flow,'checkout_order_summary'));
 		add_shortcode('confirmation-summary',array(&$this->Flow,'order_confirmation'));
 		add_shortcode('receipt',array(&$this->Flow,'order_receipt'));
@@ -335,9 +379,11 @@ class Shopp {
 	function lookups() {
 		$db =& DB::get();
 
+		$image = get_query_var('shopp_image');
 		$lookup = get_query_var('shopp_lookup');
 		if (empty($lookup)) $lookup = $_GET['lookup'];
-
+		if (!empty($image)) $lookup = "asset";
+		
 		switch($lookup) {
 			case "zones":
 				$zones = $this->Settings->get('zones');
@@ -346,12 +392,13 @@ class Shopp {
 				exit();
 				break;
 			case "asset":
-				$id = get_query_var('shopp_file');
+				$id = $image;
+				if (empty($id))	$id = get_query_var('shopp_file');
 				if (empty($id)) $id = $_GET['id'];
 			
 				if (!empty($id)) {
 					require("core/model/Asset.php");
-					$Asset = new Asset($id);
+					$Asset = new Asset($id);					
 					header ("Content-type: ".$Asset->properties['mimetype']); 
 					header ("Content-length: ".strlen($Asset->data)); 
 					header ("Content-Disposition: inline; filename='".$Asset->name."'"); 
@@ -365,30 +412,30 @@ class Shopp {
 
 	function ajax() {
 		
-		// TODO: Move processing code to Flow
-		switch($_GET['shopp']) {
-			case "add-category":
+		switch($_GET['action']) {
+			case "wp_ajax_shopp_add_category":
 				if (!empty($_GET['name'])) {
 					require("core/model/Category.php");
 					$Category = new Category();
 					$Category->name = $_GET['name'];
+					$Category->slug = sanitize_title_with_dashes($Category->name);
 					$Category->parent = $_GET['parent'];
 					$Category->save();
 					echo json_encode($Category);
 				}
 				exit();
 				break;
-			case "add-image":
+			case "wp_ajax_shopp_add_image":
 				$this->Flow->product_images();
 				exit();
 				break;
-			case "add-download":
+			case "wp_ajax_shopp_add_download":
 				require("core/model/Asset.php");
-
+		
 				// TODO: Error handling
 				// TODO: Security - anti-virus scan?
-
-				// Save the source image
+		
+				// Save the uploaded file
 				$File = new Asset();
 				$File->parent = 0;
 				$File->name = $_FILES['Filedata']['name'];
@@ -398,12 +445,12 @@ class Shopp {
 				$File->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
 				$File->save();
 				unset($File->data); // Remove file contents from memory
-
+		
 				echo json_encode(array("id"=>$File->id,"name"=>$File->name,"type"=>$File->properties['mimetype'],"size"=>$File->size));
 				exit();
 				break;
 		}
-		
+				
 	}
 
 } // end Shopp
@@ -438,6 +485,7 @@ function shopp () {
 		case "cartitem": $result = $Shopp->Cart->itemtag($property,$options); break;
 		case "shipestimate": $result = $Shopp->Cart->shipestimatetag($property,$options); break;
 		case "category": $result = $Shopp->Category->tag($property,$options); break;
+		case "catalog": $result = $Shopp->Catalog->tag($property,$options); break;
 		case "product": $result = $Shopp->Product->tag($property,$options); break;
 	}
 

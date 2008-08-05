@@ -9,11 +9,6 @@
 				<td><input type="hidden" name="settings[catalog]" value="off" /><input type="checkbox" name="settings[catalog]" value="on" id="catalog-toggle"<?php if ($this->Settings->get('catalog') == "on") echo ' checked="checked"'?> /><label for="catalog-toggle"> Enabled</label><br /> 
 	            Check this to use a catalog to display your products. Leave unchecked if you are designing custom product pages.</td>
 			</tr>
-			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="catalog_url">Catalog Permalink</label></th> 
-				<td><input type="text" name="settings[catalog_url]" value="<?php echo $this->Settings->get('catalog_url'); ?>" id="catalog_url" size="40" /><br /> 
-	            This is the full web address (URL) of your main catalog page found in Manage &gt; Pages</td>
-			</tr>
 		</table>
 		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
 	</form>
