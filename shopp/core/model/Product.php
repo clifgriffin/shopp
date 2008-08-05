@@ -9,17 +9,19 @@
  * @package shopp
  **/
 
+require("Asset.php");
 require("Spec.php");
 require("Price.php");
 
 class Product extends DatabaseObject {
+	static $table = "product";
 	var $prices = array();
 	var $categories = array();
 	var $images = array();
 	var $specs = array();
 	
 	function Product ($id=false,$key="id") {
-		$this->init('product');
+		$this->init(self::$table);
 		switch ($key) {
 			case "slug": if ($this->loadby_slug($id)) return true;
 			default: if ($this->load($id)) return true;
@@ -43,7 +45,7 @@ class Product extends DatabaseObject {
 	function load_prices () {
 		$db =& DB::get();
 		
-		$table = DBPREFIX."price";
+		$table = DatabaseObject::tablename(Price::$table);
 		if (empty($this->id)) return false;
 		$this->prices = $db->query("SELECT * FROM $table WHERE product=$this->id ORDER BY sortorder ASC",AS_ARRAY);
 		
@@ -58,7 +60,7 @@ class Product extends DatabaseObject {
 	function load_specs () {
 		$db =& DB::get();
 		
-		$table = DBPREFIX."spec";
+		$table = DatabaseObject::tablename(Spec::$table);
 		if (empty($this->id)) return false;
 		$this->specs = $db->query("SELECT * FROM $table WHERE product=$this->id ORDER BY sortorder ASC",AS_ARRAY);
 		return true;
@@ -67,7 +69,7 @@ class Product extends DatabaseObject {
 	function load_categories () {
 		$db =& DB::get();
 		
-		$table = DBPREFIX."catalog";
+		$table = DatabaseObject::tablename(Catalog::$table);
 		if (empty($this->id)) return false;
 		$this->categories = $db->query("SELECT * FROM $table WHERE product=$this->id",AS_ARRAY);
 		return true;
@@ -84,7 +86,7 @@ class Product extends DatabaseObject {
 		$added = array_diff($updates,$current);
 		$removed = array_diff($current,$updates);
 		
-		$table = DBPREFIX."catalog";
+		$table = DatabaseObject::tablename(Catalog::$table);
 		
 		foreach ($added as $id) {
 			$db->query("INSERT $table SET category='$id',product='$this->id',created=now(),modified=now()");
@@ -99,9 +101,9 @@ class Product extends DatabaseObject {
 	function load_images () {
 		$db =& DB::get();
 		
-		$table = DBPREFIX."asset";
+		$table = DatabaseObject::tablename(Asset::$table);
 		if (empty($this->id)) return false;
-		$images = $db->query("SELECT id,properties,datatype,src FROM $table WHERE parent=$this->id AND context='product' AND (datatype='image' OR datatype='feature' OR datatype='thumbnail') ORDER BY datatype,sortorder",AS_ARRAY);
+		$images = $db->query("SELECT id,properties,datatype,src FROM $table WHERE parent=$this->id AND context='product' AND (datatype='image' OR datatype='small' OR datatype='thumbnail') ORDER BY datatype,sortorder",AS_ARRAY);
 		foreach ($images as $image) 
 			$image->properties = unserialize($image->properties);
 		$this->images = $images;
@@ -124,11 +126,29 @@ class Product extends DatabaseObject {
 	 * based on the provided array of image ids */
 	function save_imageorder ($ordering) {
 		$db =& DB::get();
-		$table = DBPREFIX."asset";
+		$table = DatabaseObject::tablename(Asset::$table);
 		foreach ($ordering as $i => $id) 
 			$db->query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE id='$id' OR src='$id'");
 		return true;
 	}
+	
+	/**
+	 * link_images()
+	 * Updates the product id of the images to link to the product 
+	 * when the product being saved is new (has no previous id assigned) */
+	function link_images ($images) {
+		$db =& DB::get();
+		$table = DatabaseObject::tablename(Asset::$table);
+		
+		$query = "UPDATE $table SET parent='$this->id',context='product' WHERE ";
+		foreach ($images as $i => $id) {
+			if ($i > 0) $query .= " OR ";
+			$query .= "id=$id OR src=$id";
+		}
+		$db->query($query);
+		return true;
+	}
+	
 	
 	/**
 	 * delete_images()
@@ -136,9 +156,14 @@ class Product extends DatabaseObject {
 	 * all related images (featured and thumbnails) */
 	function delete_images ($images) {
 		$db =& DB::get();
-		$table = DBPREFIX."asset";
-		foreach($images as $i => $id)
-			$db->query("DELETE LOW_PRIORITY FROM $table WHERE id='$id' OR src='$id'");
+		$table = DatabaseObject::tablename(Asset::$table);
+		
+		$query = "DELETE LOW_PRIORITY FROM $table WHERE ";
+		foreach ($images as $i => $id) {
+			if ($i > 0) $query .= " OR ";
+			$query .= "id=$id OR src=$id";
+		}
+		$db->query($query);
 		return true;
 	}
 	
@@ -152,19 +177,19 @@ class Product extends DatabaseObject {
 		if (!empty($id)) $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
 		
 		// Delete from categories
-		$table = DBPREFIX."catalog";
+		$table = DatabaseObject::tablename(Catalog::$table);
 		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
 
 		// Delete prices
-		$table = DBPREFIX."price";
+		$table = DatabaseObject::tablename(Price::$table);
 		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
 
 		// Delete specs
-		$table = DBPREFIX."spec";
+		$table = DatabaseObject::tablename(Spec::$table);
 		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
 
 		// Delete images/files
-		$table = DBPREFIX."asset";
+		$table = DatabaseObject::tablename(Asset::$table);
 		$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='product'");
 
 	}
@@ -172,7 +197,11 @@ class Product extends DatabaseObject {
 	
 
 	function tag ($property,$options=array()) {
-
+		global $Shopp;
+		$pages = $Shopp->Settings->get('pages');
+		if (SHOPP_PERMALINKS) $imagepath = "/{$pages[0]['name']}/images/";
+		else $imagepath = "?shopp_image=";
+		
 		switch ($property) {
 			case "found": if (!empty($this->id)) return true; else return false; break;
 			case "name": return $this->name; break;
@@ -222,20 +251,53 @@ class Product extends DatabaseObject {
 					
 				} else return money($this->prices[0]->saleprice);
 				break;
-			case "image":
-				if (empty($this->images)) $this->load_images();
-				$img = $this->images[0];
-				$string .= '<img src="/shop/images/'.$img->id.'" alt="" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
-				return $string;
-				break;
+			// case "image":
+			// 	if (empty($this->images)) $this->load_images();
+			// 	$img = $this->images[0];
+			// 	$string .= '<img src="'.$imagepath.$img->id.'" alt="" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+			// 	return $string;
+			// 	break;
 			case "thumbnails":
 				if (empty($this->images)) $this->load_images();
 				$string = "";
-				foreach ($this->images as $img) 
-					if ($img->datatype == "thumbnail") $string .= '<img src="/shop/images/'.$img->id.'" alt="" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+				foreach ($this->images as $img) {
+					if ($img->datatype == "thumbnail") $string .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+				}
 				return $string;
 				break;
-
+			case "gallery":
+				if (empty($this->images)) $this->load_images();
+				$string = '<div id="gallery">';
+				$previews = '<ul class="previews">';
+				$firstPreview = true;
+				$thumbs = '<ul class="thumbnails">';
+				$firstThumb = true;
+				foreach ($this->images as $img) {
+					if ($img->datatype == "small") {
+						if ($firstPreview) {
+							$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="fill"':'').'>';
+							$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+							$previews .= '</li>';
+						}
+						
+						$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="first"':'').'>';
+						$previews .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+						$previews .= '</li>';
+						$firstPreview = false;
+					}
+					if ($img->datatype == "thumbnail") {
+						$thumbs .= '<li id="thumbnail-'.$img->id.'"'.(($firstThumb)?' class="first"':'').'>';
+						$thumbs .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+						$thumbs .= '</li>';
+						$firstThumb = false;
+					}
+					
+				}
+				$thumbs .= '</ul>';
+				$previews .= '</ul>';
+				$string .= $previews.$thumbs."</div>";
+				return $string;
+				break;
 			case "hasspecs": 
 				if (empty($this->specs)) $this->load_specs();
 				if (count($this->specs) > 0) return true; else return false; break;

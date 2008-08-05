@@ -26,38 +26,62 @@
 /**
  * Checkout 
  **/
-.shopp ul { list-style-type: none; padding: 0; margin: 0; width: 100%; clear: both; line-height: 1; }
-.shopp ul li { clear: both; display: block; padding: 4px 0; }
-.shopp label { font-size: 14px; clear: both; display: block; font-weight: bold; padding-bottom: 3px; }
-.shopp ul li label.inline { display: inline; clear: none; }
-.shopp span { float: left; padding: 0 5px 0 0; }
-.shopp ul li div.inline.right { width: auto;  }
-.shopp ul li div.inline.right input { width: auto;  }
-.shopp ul li div.inline label { clear: none; display: inline; margin-left: 10px; }
-.shopp ul li span input { margin: 0 0 5px 0; }
-.shopp ul li div input,
-.shopp ul li div select { width: 100%; }
-.shopp ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
-.shopp ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
+#checkout.shopp ul { list-style-type: none; padding: 0; margin: 0; width: 100%; clear: both; line-height: 1; }
+#checkout.shopp ul li { clear: both; display: block; padding: 4px 0; }
+#checkout.shopp label { font-size: 14px; clear: both; display: block; font-weight: bold; padding-bottom: 3px; }
+#checkout.shopp ul li label.inline { display: inline; clear: none; }
+#checkout.shopp span { float: left; padding: 0 5px 0 0; }
+#checkout.shopp ul li:before { content: ""; }
+#checkout.shopp ul li div.inline.right { width: auto;  }
+#checkout.shopp ul li div.inline.right input { width: auto;  }
+#checkout.shopp ul li div.inline label { clear: none; display: inline; margin-left: 10px; }
+#checkout.shopp ul li span input { margin: 0 0 5px 0; }
+#checkout.shopp ul li div input,
+#checkout.shopp ul li div select { width: 100%; }
+#checkout.shopp ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
+#checkout.shopp ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
 
-
-.shopp ul li.address { display: inline; width: 48%; float: left; clear: none; }
-.shopp ul li.address.right { display: inline; float: right; }
-.shopp span { display: inline-block; text-align: left; }
-.shopp span label,
-.shopp div label { font-size: 11px; clear: both; font-weight: normal; padding-bottom: 8px; }
+#checkout.shopp ul li.address { display: inline; width: 48%; float: left; clear: none; }
+#checkout.shopp ul li.address.right { display: inline; float: right; }
+#checkout.shopp span { display: inline-block; text-align: left; }
+#checkout.shopp span label,
+#checkout.shopp div label { font-size: 11px; clear: both; font-weight: normal; padding-bottom: 8px; }
 
 form.shopp { text-align: left; }
 form.shopp.product ul.options { list-style: none; }
 form.shopp ul label,form.shopp ul select { display: inline; }
 
-#shopp ul.products  { list-style: none; padding: 0; }
+#shopp ul.products  { list-style: none;  }
 #shopp ul.products li:before { content: ""; }
 #shopp ul.products li { display: inline-block; width: 30%; }
 #shopp ul.products img { display: block; }
+
+#gallery { float: left; margin: 5px 10px 5px 0;}
+#gallery ul { margin: 0; padding: 0; position: relative; list-style: none; }
+#gallery ul li:before { content: ""; }
+#gallery ul.previews { position: relative; }
+#gallery ul.previews li { position: absolute; visibility: hidden; top: 0; left: 0; }
+#gallery ul.previews li.fill { position: relative; visibility: visible; }
+#gallery ul.previews li.first { visibility: visible; }
+#gallery ul.thumbnails { clear: both; }
+#gallery ul.thumbnails li { display: inline; }
+
+#shopp ul.breadcrumb { text-indent: 0; padding: 0; }
+#shopp ul.breadcrumb li:before { content: ""; }
+#shopp ul.breadcrumb li { display: inline; margin-left: 0; text-indent: none; }
 
 /**
  * Products
  **/
 
 .shopp .original.price { text-decoration: line-through; }
+
+
+
+/**
+ * Debug Console
+ **/
+
+#debug.shopp { position: absolute; left: 25%; top: 100px; width: 50%; margin: 0 auto; height: 300px; overflow-y: auto; background: #fff; border: 5px solid #999; text-align: left; padding: 0 10px; font: 12px/1 "Lucida Grande",monospace; }
+#debug.shopp.overlay { position: absolute; width: 100%; height: 100%; background: #000; top: 0; left: 0; padding: 0; opacity: 0.8; border: none; }
+#debug.shopp h3 { font: bold 15px/1 "Lucida Grande",monospace;  }

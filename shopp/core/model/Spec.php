@@ -10,9 +10,10 @@
  **/
 
 class Spec extends DatabaseObject {
-
+	static $table = "spec";
+	
 	function Spec ($id=false) {
-		$this->init('Spec');
+		$this->init(self::$table);
 		if ($this->load($id)) return true;
 		else return false;
 	}

@@ -10,9 +10,10 @@
  **/
 
 class Customer extends DatabaseObject {
+	static $table = "customer";
 
 	function Customer ($id=false) {
-		$this->init('customer');
+		$this->init(self::$table);
 		if ($this->load($id)) return true;
 		else return false;
 	}

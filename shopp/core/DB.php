@@ -189,16 +189,16 @@ class DatabaseObject {
 	/**
 	 * Initializes the db object by grabbing table schema
 	 * so we know how to work with this table */
-	function init ($table,$key='id') {
+	function init ($table,$key="id") {
 		$db =& DB::get();
 		global $Shopp;
 		
-		$this->_table = DBPREFIX.$table;// So we know what the table name is
+		$this->_table = $this->tablename($table); // So we know what the table name is
 		$this->_key = $key;				// So we know what the primary key is
 		$this->_datatypes = array();	// So we know the format of the table
 		$this->_lists = array();		// So we know the options for each list
 		$this->_defaults = array();		// So we know the default values for each field
-		
+				
 		if (isset($Shopp->Settings)) {
 			$Tables = $Shopp->Settings->get('data_model');
 			if (isset($Tables[$this->_table])) {
@@ -240,6 +240,8 @@ class DatabaseObject {
 	function load ($id) {
 		$db =& DB::get();
 		
+		if (empty($id)) return false; 
+		
 		$r = $db->query("SELECT * FROM $this->_table WHERE $this->_key='$id'");
 		$this->populate($r);
 		
@@ -254,6 +256,10 @@ class DatabaseObject {
 		array_pop($queries);
 		foreach ($queries as $query) if (!empty($query)) $this->query($query);
 		return true;
+	}
+	
+	function tablename ($table) {
+		return DBPREFIX.$table;
 	}
 	
 	/**

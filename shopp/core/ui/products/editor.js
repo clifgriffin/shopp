@@ -23,7 +23,7 @@ function init () {
 	
 	var basePrice = $(prices).get(0);
 	if (basePrice && basePrice.context == "product") addPriceLine('#product-pricing',[],basePrice);
-	else addPriceLine('#product-pricing');
+	else addPriceLine('#product-pricing',[]);
 
 	if (specs) for (s in specs) addDetail(specs[s]);
 	$('#addDetail').click(function() { addDetail(); });
@@ -58,7 +58,8 @@ function init () {
 		var parent = $('#new-category select').val();
 		if (name != "") {
 			url = window.location.href.substr(0,window.location.href.indexOf('?'));
-			$.getJSON(url+"?shopp=add-category&name="+name+"&parent="+parent,function(Category) {
+			$.getJSON(url+"/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_category&name="+name+"&parent="+parent,function(Category) {
+				console.log(Category);
 				addCategoryMenuItem(Category);
 				addCategoryParentMenuOption(Category);
 
@@ -76,7 +77,7 @@ function init () {
 	// Initialize image uploader
 	var swfu = new SWFUpload({
 		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
-		upload_url: siteurl+'/wp-admin/admin.php?shopp=add-image',
+		upload_url: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_image',
 		post_params: {"product" : $('#image-product-id').val()},
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
@@ -110,7 +111,7 @@ function init () {
 	// Initialize image uploader
 	uploader = new SWFUpload({
 		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
-		upload_url: siteurl+'/wp-admin/admin.php?shopp=add-download',
+		upload_url: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
 		file_types : "*.*",
@@ -685,7 +686,7 @@ function addPriceLine (target,options,data,attachment) {
 	Pricing.disable = function () { type.val('N/A').change(); }
 	Pricing.updateKey = function () { optionkey.val(xorkey(this.options)); }
 	Pricing.updateLabel = function () {
-		var string = "Pricing & Delivery";
+		var string = "";
 		var ids = "";
 		if (this.options) {
 			string = "";
@@ -696,6 +697,7 @@ function addPriceLine (target,options,data,attachment) {
 				else ids += ","+id;
 			});
 		}
+		if (string == "") string = "Price & Delivery";
 		this.label.val(string).change();
 		optionids.val(ids);
 	}
@@ -887,7 +889,7 @@ function startImageUpload (file) {
 }
 
 function imageUploadProgress (file, loaded, total) {
-	var progress = Math.ceil((loaded/total)*100);
+	var progress = Math.ceil((loaded/total)*76);
 	$(this.progressBar).animate({'width':progress+'px'},100);
 }
 
@@ -899,11 +901,11 @@ function imageUploadSuccess (file, results) {
 	var image = eval('('+results+')');
 	$(this.targetHolder).attr({'id':'image-'+image.src});
 	$(this.sorting).val(image.src);
-	var img = $('<img src="'+siteurl+'/wp-admin/admin.php?lookup=asset&id='+image.id+'" width="128" height="96" class="handle" />').appendTo(this.targetHolder).hide();
+	var img = $('<img src="'+siteurl+'/wp-admin/admin.php?lookup=asset&id='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 	var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
 	var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
 	
-	$(this.progressBar).animate({'width':'100px'},250,function () { 
+	$(this.progressBar).animate({'width':'76px'},250,function () { 
 		$(this).parent().fadeOut(500,function() {
 			$(this).remove(); 
 			$(img).fadeIn('500');

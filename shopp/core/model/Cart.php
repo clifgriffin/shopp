@@ -32,7 +32,7 @@ class Cart {
 	/* Cart()
 	 * Constructor that creates a new shopping Cart runtime object */
 	function Cart () {
-		$this->_table = DBPREFIX."cart";
+		$this->_table = DatabaseObject::tablename('cart');
 		
 		session_set_save_handler(
 			array( &$this, 'open' ),	// Open
@@ -78,9 +78,9 @@ class Cart {
 	 * objects into the User from the loaded data. */
 	function load () {
 		$db =& DB::get();
-
+		
 		if (is_robot()) return true;
-				
+		
 		if ($result = $db->query("SELECT * FROM $this->_table WHERE session='$this->session'")) {
 			$this->ip = $result->ip;
 			$this->data = unserialize($result->data);
@@ -111,13 +111,16 @@ class Cart {
 	/* save() 
 	 * Save the session data to our session table in the database. */
 	function save () {
+		global $Shopp;
 		$db =& DB::get();
 		
-		$data = serialize($this->data);
-		$contents = serialize($this->contents);
-		if (!$db->query("UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'")) 
-			trigger_error("Could not save session updates to the database.");
-		return true;
+		if (!$Shopp->Settings->unavailable) {
+			$data = serialize($this->data);
+			$contents = serialize($this->contents);
+			if (!$db->query("UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'")) 
+				trigger_error("Could not save session updates to the database.");
+			return true;
+		}
 	}
 
 	/* trash()
@@ -125,6 +128,7 @@ class Cart {
 	 * sessions. */
 	function trash () {
 		$db =& DB::get();
+				
 		// 1800 seconds = 30 minutes, 3600 seconds = 1 hour
 		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified) > 7200")) 
 			trigger_error("Could not delete cached session data.");
@@ -290,9 +294,11 @@ class Cart {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		
+		$pages = $Shopp->Settings->get('pages');
+		
 		// Return strings with no options
 		switch ($property) {
-			case "url": return SHOPP_CARTURL; break;
+			case "url": return $pages[1]['permalink']; break;
 			case "free-shipping-text": return $Shopp->Settings->get('free_shipping_text'); break;
 			case "totalitems": return count($this->contents); break;
 			case "hasitems": if (count($this->contents) > 0) return true; else return false; break;

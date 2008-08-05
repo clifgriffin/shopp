@@ -219,6 +219,28 @@ function buttonHandlers () {
 	}
 }
 
+function shopp_debug () {
+	(function($) {
+		var overlay = $('<div id="debug" class="shopp overlay"></div>').appendTo(document.body);
+		var debug = $('<div id="debug" class="shopp"></div>').appendTo(document.body);
+		$('<h3>Shopp Debug Console</h3>').appendTo(debug);
+		$('<p></p>').html('Peak Memory: '+wpquerytotal+' bytes').appendTo(debug);
+		$('<p></p>').html('WP Total Queries: '+wpquerytotal).appendTo(debug);
+		$('<p></p>').html('Shopp Total Queries: '+shoppquerytotal).appendTo(debug);
+		$('<p></p>').html('Shopp Queries:').appendTo(debug);
+		var querylist = $('<ul></ul>').appendTo(debug);
+		for (var q in shoppqueries) {
+			$("<li></li>").html(shoppqueries[q]).appendTo(querylist);
+		}
+		
+		debug.click(function () {
+			overlay.remove();
+			debug.remove();
+		});
+		
+		return true;
+	})(jQuery)
+}
 
 addEvent(window,'load',function () {
 	buttonHandlers();	

@@ -10,9 +10,10 @@
  **/
 
 class Asset extends DatabaseObject {
-
+	static $table = "asset";
+	
 	function Asset ($id=false) {
-		$this->init('asset');
+		$this->init(self::$table);
 		if ($this->load($id)) return true;
 		else return false;
 	}	
