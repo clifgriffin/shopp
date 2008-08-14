@@ -1,3 +1,4 @@
+<div id="receipt" class="shopp">
 <table class="transaction">
 	<tr><th>Order Num:</th><td><?php echo $Purchase->id; ?></td></tr>	
 	<tr><th>Order Date:</th><td><?php echo date('F j, Y', $Purchase->created); ?></td></tr>	
@@ -41,12 +42,12 @@
 	</tr>
 	<?php if ($Purchase->freight > 0): ?>
 	<tr class="totals">
-		<th scope="row" colspan="3" class="total">Shipping</td>
+		<th scope="row" colspan="3" class="total">Shipping</th>
 		<td class="money"><?php echo money($Purchase->freight); ?></td>
 	</tr>
 	<?php else: ?>
 	<tr class="totals">
-		<th scope="row" colspan="4" class="total"><?php echo $this->Core->Settings->get('free_shipping_text'); ?></th>
+		<th scope="row" colspan="4" class="total"><?php //echo $this->Core->Settings->get('free_shipping_text'); ?></th>
 	</tr>
 	<?php endif; ?>
 	<?php if ($Purchase->tax > 0): ?>
@@ -63,3 +64,4 @@
 <?php else: ?>
 	<p class="warning">There were no items found for this purchase.</p>
 <?php endif; ?>
+</div>
