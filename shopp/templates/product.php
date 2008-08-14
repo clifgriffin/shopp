@@ -14,17 +14,7 @@
 		<h4><?php shopp('product','price'); ?></h4>
 	<?php endif; ?>
 
-	<div class="description"><?php shopp('product','description'); ?></div>
-
-	<?php if(shopp('product','hasspecs')): ?>
-	<ul class="details">
-		<?php while(shopp('product','specs')): ?>
-		<li><?php shopp('product','spec','name&content'); ?></li>
-		<?php endwhile; ?>
-	</ul>
-	<?php endif; ?>
-	
-	<form action="" method="post" class="shopp product">
+	<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
 		<?php if(shopp('product','hasoptions')): ?>
 		<ul class="options">
 			<?php while(shopp('product','options','variations')): ?>
@@ -38,6 +28,17 @@
 		<?php shopp('product','addtocart'); ?>
 	
 	</form>
+
+	<div class="description"><?php shopp('product','description'); ?></div>
+
+	<?php if(shopp('product','hasspecs')): ?>
+	<ul class="details">
+		<?php while(shopp('product','specs')): ?>
+		<li><?php shopp('product','spec','name&content'); ?></li>
+		<?php endwhile; ?>
+	</ul>
+	<?php endif; ?>
+	
 <?php else: ?>
 <h3>Product Not Found</h3>
 <p>Sorry!  The product you requested is not found in our catalog!</p>

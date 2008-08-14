@@ -1,3 +1,7 @@
-<ul class="categories">
-<?php shopp('catalog','category-list')?>
-</ul>
+<div id="shopp">
+
+<div id="new" class="shopp">
+<?php shopp('catalog','new-products'); ?>
+</div>
+
+</div>
