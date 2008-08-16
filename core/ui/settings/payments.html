@@ -7,7 +7,7 @@
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="payment-gateway">Payment Gateway</label></th> 
 				<td><select name="settings[payment_gateway]" id="payment-gateway">
-					<option>Select One&hellip;</option>
+					<option value="">Select One&hellip;</option>
 					<?php echo menuoptions($gateways,$this->Settings->get('payment_gateway'),true)?>
 					</select><br /> 
 	            Select the payment gateway processor you will be using to process credit card transactions.</td>
@@ -26,20 +26,20 @@ var gatewayHandlers = new CallbackRegistry();
 
 var addSetting = function (label,field,help) {
 	fieldtype = field.type;
-	field.type = null;
+	delete field.type;
 	if (fieldtype == "text" || fieldtype == "password" || fieldtype == "select")
 		help = '<br />'+help;
 		
 	if (fieldtype == "checkbox" || fieldtype == "radio")
 		help = '<label for="'+field.id+'"> '+help+'</label>';
-
+	
 	var row = $('<tr></tr>').addClass('form-field').appendTo('#payment-settings');
 	var heading = $('<th scope="row" valign="top"></th>').appendTo(row);
 	var fieldLabel = $('<label></label>').attr('for',field.id).html(label).appendTo(heading);
 	var dataCell = $('<td></td>').html(' '+help).appendTo(row);
-
+	
 	var input = $('<input type="'+fieldtype+'" />').attr(field).prependTo(dataCell);
-
+	
 	if (fieldtype == "checkbox")
 		var hidden = $('<input type="hidden" name="'+field.name+'" value="'+field.unchecked+'" />').prependTo(dataCell);
 	
