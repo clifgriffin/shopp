@@ -4,7 +4,76 @@
 	<?php include("navigation.html"); ?>
 	
 	<div id="order">
-	<?php include("{$this->basepath}/ui/checkout/receipt.html"); ?>
+
+		<div id="receipt" class="shopp">
+		<table class="transaction">
+			<tr><th>Order Num:</th><td><?php echo $Purchase->id; ?></td></tr>	
+			<tr><th>Order Date:</th><td><?php echo date('F j, Y', $Purchase->created); ?></td></tr>	
+			<tr><th>Billed To:</th><td><?php printf("%'X16d",$Purchase->card); ?> (<?php echo $Purchase->cardtype; ?>)</td></tr>	
+			<tr><th>Transaction:</th><td><?php echo $Purchase->transactionid; ?></td></tr>	
+		</table>
+
+		<fieldset>
+			<legend>Ship To</legend>
+			<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
+			<?php echo $Purchase->shipaddress; ?><br />
+			<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
+			<?php echo "{$Purchase->shipcity}, {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
+			<?php echo $Purchase->shipcountry ?></address>
+		</fieldset>
+
+		<?php if (sizeof($Purchase->purchased) > 0): ?>
+		<table class="cart widefat">
+			<thead>
+			<tr>
+				<th scope="col" class="item">Items Ordered</th>
+				<th scope="col">Quantity</th>
+				<th scope="col" class="money">Item Price</th>
+				<th scope="col" class="money">Item Total</th>
+			</tr>
+			</thead>
+			<?php $even = false; foreach ($Purchase->purchased as $id => $Item): ?>
+				<tr<?php if (!even) echo 'class="alternate"'; $even = !$even; ?>>
+					<td>
+						<?php echo $Item->name; ?>
+						<?php if (!empty($Item->optionname)) echo "({$Item->optionname})"; ?>
+					</td>
+					<td><?php echo $Item->quantity; ?></td>
+					<td class="money"><?php echo money($Item->unitprice); ?></td>
+					<td class="money total"><?php echo money($Item->total); ?></td>
+				</tr>
+			<?php endforeach; ?>
+			<tr class="totals">
+				<th scope="row" colspan="3" class="total">Subtotal</th>
+				<td class="money"><?php echo money($Purchase->subtotal); ?></td>
+			</tr>
+			<?php if ($Purchase->freight > 0): ?>
+			<tr class="totals">
+				<th scope="row" colspan="3" class="total">Shipping</th>
+				<td class="money"><?php echo money($Purchase->freight); ?></td>
+			</tr>
+			<?php else: ?>
+			<tr class="totals">
+				<th scope="row" colspan="4" class="total"><?php //echo $this->Core->Settings->get('free_shipping_text'); ?></th>
+			</tr>
+			<?php endif; ?>
+			<?php if ($Purchase->tax > 0): ?>
+			<tr class="totals">
+				<th scope="row" colspan="3" class="total">Tax</th>
+				<td class="money"><?php echo money($Purchase->tax); ?></td>
+			</tr>
+			<?php endif; ?>
+			<tr class="totals total">
+				<th scope="row" colspan="3" class="total">Total</th>
+				<td class="money"><?php echo money($Purchase->total); ?></td>
+			</tr>
+		</table>
+		<?php else: ?>
+			<p class="warning">There were no items found for this purchase.</p>
+		<?php endif; ?>
+		</div>
+		
+		
 		<div class="tablenav">
 		<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post" id="order-status">
 			<p class="alignright"><label for="order_status_menu">Order Status:</label>

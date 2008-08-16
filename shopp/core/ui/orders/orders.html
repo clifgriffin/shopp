@@ -26,7 +26,7 @@
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Order->id; ?>' /></th>
 			<td><?php echo date("Y/m/d",mktimestamp($Order->created)); ?></td>
-			<td><a class='row-title' href='?page=<?php echo $this->Core->path; ?>/Shopp.php&amp;manage=<?php echo $Order->id; ?>' title='View &quot;<?php echo $Order->id; ?>&quot;'><?php echo "{$Order->firstname} {$Order->lastname}"; ?></a></td>
+			<td><a class='row-title' href='?page=<?php echo $this->Admin->default; ?>&amp;manage=<?php echo $Order->id; ?>' title='View &quot;<?php echo $Order->id; ?>&quot;'><?php echo "{$Order->firstname} {$Order->lastname}"; ?></a></td>
 			<td><?php echo "{$Order->shipcity}, {$Order->shipstate} &mdash; {$Order->shipcountry}"; ?></td>
 			<td><?php echo money($Order->total); ?></td>
 			<td><?php echo $statusLabels[$Order->status]; ?></td>
