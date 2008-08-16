@@ -50,6 +50,7 @@ class Cart {
 		$this->data->Totals->tax = 0;
 		$this->data->Totals->taxrate = 0;
 		$this->data->Totals->total = 0;
+		$this->data->Estimates = false;
 
 		$this->data->Order = new stdClass();
 		$this->data->ShipCosts = array();
@@ -77,7 +78,7 @@ class Cart {
 	 * Gets data from the session data table and loads Member 
 	 * objects into the User from the loaded data. */
 	function load () {
-		$db =& DB::get();
+		$db = DB::get();
 		
 		if (is_robot()) return true;
 		
@@ -101,7 +102,7 @@ class Cart {
 	 * Deletes the session data from the database, unregisters the 
 	 * session and releases all the objects. */
 	function unload () {
-		$db =& DB::get();		
+		$db = DB::get();		
 		if (!$db->query("DELETE FROM $this->_table WHERE session='$this->session'")) 
 			trigger_error("Could not clear session data.");
 		unset($this->session,$this->ip,$this->data,$this->contents);
@@ -112,7 +113,7 @@ class Cart {
 	 * Save the session data to our session table in the database. */
 	function save () {
 		global $Shopp;
-		$db =& DB::get();
+		$db = DB::get();
 		
 		if (!$Shopp->Settings->unavailable) {
 			$data = serialize($this->data);
@@ -127,7 +128,7 @@ class Cart {
 	 * Garbage collection routine for cleaning up old and expired
 	 * sessions. */
 	function trash () {
-		$db =& DB::get();
+		$db = DB::get();
 				
 		// 1800 seconds = 30 minutes, 3600 seconds = 1 hour
 		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified) > 7200")) 
@@ -228,11 +229,14 @@ class Cart {
 		if (!$this->data->Order->Shipping) return false;
 
 		global $Shopp;
-		$ShipCosts =& $this->data->ShipCosts;
-		$Shipping =& $this->data->Order->Shipping;
+		$ShipCosts = $this->data->ShipCosts;
+		$Shipping = $this->data->Order->Shipping;
 		$base = $Shopp->Settings->get('base_operations');
 		$methods = $Shopp->Settings->get('shipping_rates');
-
+		
+		if (!is_array($methods)) return 0;
+		
+		$estimate = false;
 		foreach ($methods as $id => $rate) {
 			$shipping = 0;
 			// Match region
@@ -258,10 +262,12 @@ class Cart {
 				if ($Item->shipfee > 0) $shipping += ($Item->quantity * $Item->shipfee);
 			}
 			
+			if (!$estimate) $estimate = $shipping;
+			if ($shipping < $estimate) $estimate = $shipping;
 			$ShipCosts[$rate['name']] = $shipping;
-			
 		}
 		
+		return $estimate;
 	}
 	
 	/**
@@ -270,7 +276,7 @@ class Cart {
 	 * order total amounts */
 	function totals () {
 		global $Shopp;
-		$Totals =& $this->data->Totals;
+		$Totals = $this->data->Totals;
 		$Totals->subtotal = 0;
 		$Totals->shipping = 0;
 		$Totals->tax = 0;
@@ -285,21 +291,44 @@ class Cart {
 		}
 		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
 		
-		//$Totals->shipping = $this->shipping();
+		$Totals->shipping = $this->shipping();
 		
 		$Totals->total = $Totals->subtotal + 
 			$Totals->shipping + $Totals->tax;		
 	}
 	
+	function inputattrs ($options,$allowed=array()) {
+		if (empty($allowed)) {
+			$allowed = array("accesskey","alt","checked","class","disabled","format",
+				"minlength","maxlength","readonly","required","size","src","tabindex",
+				"title","value");
+		}
+		$string = "";
+		$classes = "";
+		foreach ($options as $key => $value) {
+			if (!in_array($key,$allowed)) continue;
+			switch($key) {
+				case "class": $classes .= " $value"; break;
+				case "disabled": $classes .= " disabled"; $string .= ' disabled="disabled"'; break;
+				case "readonly": $classes .= " readonly"; $string .= ' readonly="readonly"'; break;
+				case "required": $classes .= " required"; break;
+				case "minlength": $classes .= " min$value"; break;
+				case "format": $classes .= " $value"; break;
+				default:
+					$string .= ' '.$key.'="'.$value.'"';
+			}
+		}
+		if (!empty($classes)) $string .= ' class="'.ltrim($classes).'"';
+		return $string;
+	}
+	
+	
 	function tag ($property,$options=array()) {
 		global $Shopp;
-		
-		$pages = $Shopp->Settings->get('pages');
-		
+				
 		// Return strings with no options
 		switch ($property) {
-			case "url": return $pages[1]['permalink']; break;
-			case "free-shipping-text": return $Shopp->Settings->get('free_shipping_text'); break;
+			case "url": return $Shopp->link('cart'); break;
 			case "totalitems": return count($this->contents); break;
 			case "hasitems": if (count($this->contents) > 0) return true; else return false; break;
 			case "items":
@@ -314,34 +343,53 @@ class Cart {
 					reset($this->contents);
 					return false;
 				}
+			case "function": return '<div><input type="hidden" id="cart-action" name="cart" value="true" /></div>'; break;
+			case "empty-button": 
+				if (empty($options['value'])) $options['value'] = "Empty Cart";
+				return '<input type="submit" name="empty" id="empty-button"'.$this->inputattrs($options,$submit_attrs).' />';
+				break;
+			case "update-button": 
+				if (empty($options['value'])) $options['value'] = "Update Subtotal";
+				return '<input type="submit" name="update" id="update-button"'.$this->inputattrs($options,$submit_attrs).' />';
+				break;
 		}
 		
 		$result = "";
 		switch ($property) {
 			case "shipping-estimates":
-				if (!empty($this->data->Order->Shipping->postcode)) break;
 				$base = $Shopp->Settings->get('base_operations');
 				$markets = $Shopp->Settings->get('target_markets');
 				foreach ($markets as $iso => $country) $countries[$iso] = $country;
-				$result .= '<form id="shipping-estimates" action="" method="post">';
-				$result .= '<p>';
-				$result .= '<input type="text" name="postcode" size="6" />';
-				$result .= '<select name="country">';
-				$result .= menuoptions($countries,$base['country'],true);
+				if (!empty($this->data->Order->Shipping->country)) $selected = $this->data->Order->Shipping->country;
+				else $selected = $base['country'];
+				$result .= '<select name="shipping[country]" id="shipping-country">';
+				$result .= menuoptions($countries,$selected,true);
 				$result .= '</select>';
-				$result .= '</p>';
-				$result .= '<p class="submit"><input type="submit" name="cart" value="Estimate Shipping" /></p>';
 				return $result;
 				break;
 		}
 		
-		
 		$result = "";
 		switch ($property) {
 			case "subtotal": $result = $this->data->Totals->subtotal; break;
-			case "shipping": $result = $this->data->Totals->shipping; break;
-			case "tax": $result = $this->data->Totals->tax; break;
-			case "total": $result = $this->data->Totals->total; break;
+			case "shipping": 
+				if (isset($options['label'])) {
+					$options['currency'] = "false";
+					if ($this->data->Totals->shipping > 0) $result = $options['label'];
+					else $result = $Shopp->Settings->get('free_shipping_text');
+				} else $result = $this->data->Totals->shipping;
+				break;
+			case "tax": 
+				if ($this->data->Totals->tax > 0) {
+					if (isset($options['label'])) {
+						$options['currency'] = "false";
+						$result = $options['label'];
+					} else $result = $this->data->Totals->tax;
+				} else	$options['currency'] = "false";
+				break;
+			case "total": 
+				$result = $this->data->Totals->total; 
+				break;
 		}
 		
 		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
@@ -422,6 +470,182 @@ class Cart {
 				$result .= '<button type="submit" name="shipestimate" id="submit-shipestimate" value="'.$label.'" />'.$label.'</button>';
 				return $result;
 				break;
+		}
+	}
+	
+	function checkouttag ($property,$options=array()) {
+		global $Shopp;
+		
+		$pages = $Shopp->Settings->get('pages');
+		$base = $Shopp->Settings->get('base_operations');
+		$countries = $Shopp->Settings->get('target_markets');
+		$secureuri = str_replace("http://","https://",get_bloginfo('wpurl'));
+
+		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
+		$submit_attrs = array('title','value','disabled','tabindex','accesskey');
+
+		switch ($property) {
+			case "url": return $Shopp->link('checkout','',true); break;
+			case "function":
+				$regions = $Shopp->Settings->get('zones');
+				$output = '<script type="text/javascript">var regions = '.json_encode($regions).';</script>';
+				if (!empty($options['value'])) $value = $options['value'];
+				else $value = "process";
+				$output .= '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>'; 
+				return $output;
+				break;
+			case "error":
+				if (isset($options['show']) && $options['show'] == "code") return $this->data->OrderError->code;
+				return $this->data->OrderError->message;
+				break;
+			case "cart-summary":
+				ob_start();
+				include("{$Shopp->path}/templates/summary.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+				return $content;
+				break;
+			case "firstname": 
+				if (!empty($this->data->Order->Customer->firstname))
+					$options['value'] = $this->data->Order->Customer->firstname; 
+				return '<input type="text" name="firstname" id="firstname"'.$this->inputattrs($options).' />';
+				break;
+			case "lastname":
+				if (!empty($this->data->Order->Customer->lastname))
+					$options['value'] = $this->data->Order->Customer->lastname; 
+				return '<input type="text" name="lastname" id="lastname"'.$this->inputattrs($options).' />'; 
+				break;
+			case "email":
+				if (!empty($this->data->Order->Customer->email))
+					$options['value'] = $this->data->Order->Customer->email; 
+				return '<input type="text" name="email" id="email"'.$this->inputattrs($options).' />';
+				break;
+			case "phone": 
+			if (!empty($this->data->Order->Customer->phone))
+				$options['value'] = $this->data->Order->Customer->phone; 
+				return '<input type="text" name="phone" id="phone"'.$this->inputattrs($options).' />'; 
+				break;
+
+			// SHIPPING TAGS
+			case "shipping-address": 
+			if (!empty($this->data->Order->Shipping->address))
+				$options['value'] = $this->data->Order->Shipping->address; 
+				return '<input type="text" name="shipping[address]" id="shipping-address"'.$this->inputattrs($options).' />';
+				break;
+			case "shipping-xaddress":
+			if (!empty($this->data->Order->Shipping->xaddress))
+				$options['value'] = $this->data->Order->Shipping->xaddress; 
+				return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress"'.$this->inputattrs($options).' />';
+				break;
+			case "shipping-city":
+				if (!empty($this->data->Order->Shipping->city))
+					$options['value'] = $this->data->Order->Shipping->city; 
+				return '<input type="text" name="shipping[city]" id="shipping-city"'.$this->inputattrs($options).' />';
+				break;
+			case "shipping-state":
+				if (!empty($this->data->Order->Shipping->state))
+					$options['selected'] = $this->data->Order->Shipping->state; 				
+				$regions = $Shopp->Settings->get('zones');
+				$states = $regions[$base['country']];
+				$label = (!empty($options['label']))?$options['label']:'';
+				$output = '<select name="shipping[state]" id="shipping-state"'.$this->inputattrs($options,$select_attrs).'>';
+				$output .= '<option value="" selected="selected">'.$label.'</option>';
+			 	$output .= menuoptions($states,$options['selected'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "shipping-postcode":
+				if (!empty($this->data->Order->Shipping->postcode))
+					$options['value'] = $this->data->Order->Shipping->postcode; 				
+				return '<input type="text" name="shipping[postcode]" id="shipping-postcode"'.$this->inputattrs($options).' />'; break;
+			case "shipping-country": 
+				if (!empty($this->data->Order->Shipping->country))
+					$options['selected'] = $this->data->Order->Shipping->country;
+				else if (empty($options['selected'])) $options['selected'] = $base['country'];
+				$output = '<select name="shipping[country]" id="shipping-country"'.$this->inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($countries,$options['selected'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+				
+			// BILLING TAGS
+			case "billing-address":
+				if (!empty($this->data->Order->Billing->address))
+					$options['value'] = $this->data->Order->Billing->address;			
+				return '<input type="text" name="billing[address]" id="billing-address"'.$this->inputattrs($options).' />';
+				break;
+			case "billing-xaddress":
+				if (!empty($this->data->Order->Billing->xaddress))
+					$options['value'] = $this->data->Order->Billing->xaddress;			
+				return '<input type="text" name="billing[xaddress]" id="billing-xaddress"'.$this->inputattrs($options).' />';
+				break;
+			case "billing-city":
+				if (!empty($this->data->Order->Billing->city))
+					$options['value'] = $this->data->Order->Billing->city;			
+				return '<input type="text" name="billing[city]" id="billing-city"'.$this->inputattrs($options).' />'; 
+				break;
+			case "billing-state": 
+				if (!empty($this->data->Order->Billing->state))
+					$options['selected'] = $this->data->Order->Billing->state;			
+				$regions = $Shopp->Settings->get('zones');
+				$states = $regions[$base['country']];
+				$label = (!empty($options['label']))?$options['label']:'';
+				$output = '<select name="billing[state]" id="billing-state"'.$this->inputattrs($options,$select_attrs).'>';
+				$output .= '<option value="" selected="selected">'.$label.'</option>';
+			 	$output .= menuoptions($states,$options['selected'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "billing-postcode":
+				if (!empty($this->data->Order->Billing->postcode))
+					$options['value'] = $this->data->Order->Billing->postcode;			
+				return '<input type="text" name="billing[postcode]" id="billing-postcode"'.$this->inputattrs($options).' />';
+				break;
+			case "billing-country": 
+				if (!empty($this->data->Order->Billing->country))
+					$options['selected'] = $this->data->Order->Billing->country;
+				else if (empty($options['selected'])) $options['selected'] = $base['country'];			
+				$output = '<select name="billing[country]" id="billing-country"'.$this->inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($countries,$base['country'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "billing-card":
+				if (!empty($this->data->Order->Billing->card))
+					$options['value'] = $this->data->Order->Billing->card;			
+				return '<input type="text" name="billing[card]" id="billing-card"'.$this->inputattrs($options).' />';
+				break;
+			case "billing-cardexpires-mm":
+				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm"'.$this->inputattrs($options).' />'; break;
+			case "billing-cardexpires-yy": return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy"'.$this->inputattrs($options).' />'; break;
+			case "billing-cardtype":
+				if (!empty($this->data->Order->Billing->cardtype))
+					$options['selected'] = $this->data->Order->Billing->cardtype;			
+				$cards = array("MasterCard","Visa","American Express",'Novus/Discover');
+				$label = (!empty($options['label']))?$options['label']:'';
+				$output = '<select name="billing[cardtype]" id="billing-cardtype"'.$this->inputattrs($options,$select_attrs).'>';
+				$output .= '<option value="" selected="selected">'.$label.'</option>';
+			 	$output .= menuoptions($cards,$options['selected']);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "billing-cardholder":
+				if (!empty($this->data->Order->Billing->cardholder))
+					$options['value'] = $this->data->Order->Billing->cardholder;			
+				return '<input type="text" name="billing[cardholder]" id="billing-cardholder"'.$this->inputattrs($options).' />';
+				break;
+			case "billing-cvv":
+				if (!empty($this->data->Order->Billing->cardholder))
+					$options['value'] = $_POST['billing']['cvv'];
+				return '<input type="text" name="billing[cvv]" id="billing-cvv"'.$this->inputattrs($options).' />';
+				break;
+			case "submit": 
+				if (empty($options['value'])) $options['value'] = "Submit Order";
+				return '<input type="submit" name="process" id="checkout-button"'.$this->inputattrs($options,$submit_attrs).' />'; break;
+			case "confirm-button": 
+				if (empty($options['value'])) $options['value'] = "Confirm Order";
+				return '<input type="submit" name="confirmed" id="confirm-button"'.$this->inputattrs($options,$submit_attrs).' />'; break;
+
 		}
 	}
 		
