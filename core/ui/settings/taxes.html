@@ -28,51 +28,51 @@
 
 <script type="text/javascript">
 //<![CDATA[
-$j=jQuery.noConflict();
+(function($) {
 
 var disableZonesInUse = function () {
-	$j('#taxrates-table tr select.zone option').each (function () {
-		if ($j.inArray($j(this).val(),zonesInUse) != -1 && !this.selected)
-			$j(this).attr({'disabled':'disabled'});
+	$('#taxrates-table tr select.zone option').each (function () {
+		if ($.inArray($(this).val(),zonesInUse) != -1 && !this.selected)
+			$(this).attr({'disabled':'disabled'});
 	});
 }
 
 var addTaxRate = function (r) {
 	i = taxrates.length;
-	var row = $j('<tr/>').appendTo('#taxrates-table');
+	var row = $('<tr/>').appendTo('#taxrates-table');
 	
-	var rateCell = $j('<td></td>').html(' %').appendTo(row);
-	var rate = $j('<input type="text" name="settings[taxrates]['+i+'][rate]" value="" id="settings[taxrates]['+i+'][rate]" size="4" class="selectall right" />').prependTo(rateCell);
-	var deleteButton = $j('<button id="deleteButton['+i+']" class="deleteButton" type="button" title="Delete product option"></button>').prependTo(rateCell).hide();
-	var deleteIcon = $j('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteButton);
+	var rateCell = $('<td></td>').html(' %').appendTo(row);
+	var rate = $('<input type="text" name="settings[taxrates]['+i+'][rate]" value="" id="settings-taxrates-'+i+'-rate" size="4" class="selectall right" />').prependTo(rateCell);
+	var deleteButton = $('<button id="deleteButton-'+i+'" class="deleteButton" type="button" title="Delete product option"></button>').prependTo(rateCell).hide();
+	var deleteIcon = $('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteButton);
 	
-	var countryCell = $j('<td></td>').appendTo(row);
-	var countryMenu = $j('<select name="settings[taxrates]['+i+'][country]" id="country['+i+']"></select>').appendTo(countryCell);
+	var countryCell = $('<td></td>').appendTo(row);
+	var countryMenu = $('<select name="settings[taxrates]['+i+'][country]" id="country-'+i+'"></select>').appendTo(countryCell);
 	
-	$j.each(countries, function(value,label) {
-		option = $j('<option></option>').val(value).html(label).appendTo(countryMenu);
+	$.each(countries, function(value,label) {
+		option = $('<option></option>').val(value).html(label).appendTo(countryMenu);
 	});
 	
-	var zoneCell = $j('<td></td>').appendTo(row);
-	var zoneMenu = $j('<select name="settings[taxrates]['+i+'][zone]" id="zone['+i+']" class="zone"></select>').appendTo(zoneCell);
+	var zoneCell = $('<td></td>').appendTo(row);
+	var zoneMenu = $('<select name="settings[taxrates]['+i+'][zone]" id="zone-'+i+'" class="zone"></select>').appendTo(zoneCell);
 
 	var updateZoneMenu = function () {
 		zoneMenu.empty();
-		if (zones[$j(countryMenu).val()]) {
-			$j.each(zones[$j(countryMenu).val()], function(value,label) {
-				if ($j.inArray(value,zonesInUse) != -1) option = $j('<option disabled="disabled"></option>').val(value).html(label).appendTo(zoneMenu);				
-				else option = $j('<option></option>').val(value).html(label).appendTo(zoneMenu);
+		if (zones[$(countryMenu).val()]) {
+			$.each(zones[$(countryMenu).val()], function(value,label) {
+				if ($.inArray(value,zonesInUse) != -1) option = $('<option disabled="disabled"></option>').val(value).html(label).appendTo(zoneMenu);				
+				else option = $('<option></option>').val(value).html(label).appendTo(zoneMenu);
 			});
 		}
 	}
 	
-	$j(row).hover(function() {
+	$(row).hover(function() {
 			if (i > 0) deleteButton.show();
 		},function() {
 			deleteButton.hide();
 	});
 	
-	$j(deleteButton).click(function () {
+	$(deleteButton).click(function () {
 		if (taxrates.length > 1) {
 			if (confirm("Are you sure you want to delete this tax rate?")) {
 				row.remove();
@@ -81,15 +81,14 @@ var addTaxRate = function (r) {
 		}
 	});
 	
-	
-	$j(countryMenu).change(function () {
+	$(countryMenu).change(function () {
 		updateZoneMenu();
 	}).change();
 	
-	$j(zoneMenu).change(function () {
-		if ($j.inArray(currentZone,zonesInUse) != -1)
-			zonesInUse.splice($j.inArray(currentZone,zonesInUse),1);
-		currentZone = $j(zoneMenu).val();
+	$(zoneMenu).change(function () {
+		if ($.inArray(currentZone,zonesInUse) != -1)
+			zonesInUse.splice($.inArray(currentZone,zonesInUse),1);
+		currentZone = $(zoneMenu).val();
 		zonesInUse.push(currentZone);
 		disableZonesInUse();
 	});
@@ -100,19 +99,20 @@ var addTaxRate = function (r) {
 		zoneMenu.val(r.zone).change();
 	} else {
 		countryMenu.val(base.country).change();
-		if ($j.inArray(base.zone,zonesInUse) == -1)
+		if ($.inArray(base.zone,zonesInUse) == -1)
 			zoneMenu.val(base.zone).change();
 		else zoneMenu.change();
 	}
-
+	
 	var currentZone = zoneMenu.val();
+	console.log($(zoneMenu).attr('selected'));
 
 	taxrates.push(row);
 	quickSelects();
 	
 }
 
-if ($j('#taxrates-table')) {
+if ($('#taxrates-table')) {
 	var rates = <?php echo json_encode($rates); ?>;
 	var base = <?php echo json_encode($base); ?>;
 	var countries = <?php echo json_encode($countries); ?>;
@@ -121,13 +121,18 @@ if ($j('#taxrates-table')) {
 	var zonesInUse = new Array();
 
 
-	$j('#add-taxrate').click(function() {
+	$('#add-taxrate').click(function() {
 		addTaxRate();
 	});
 
-	$j('#taxrates-table').empty();
-	if (rates.length > 0) for(i = 0; i < rates.length; i++) addTaxRate(rates[i]);
-	else addTaxRate();	
+	$('#taxrates-table').empty();
+	if (rates) {
+		for (i in rates) {
+			addTaxRate(rates[i]);
+		}
+	} else addTaxRate();	
 }
+})(jQuery)
+
 //]]>
 </script>
