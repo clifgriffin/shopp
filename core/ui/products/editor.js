@@ -81,7 +81,7 @@ function init () {
 		post_params: {"product" : $('#image-product-id').val()},
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
-		file_types : "*.jpg;*.gif",
+		file_types : "*.jpg;*.png;*.gif",
 		file_types_description : "Web-compatible Image Files",
 		file_upload_limit : filesizeLimit,
 		custom_settings : {
@@ -901,7 +901,7 @@ function imageUploadSuccess (file, results) {
 	var image = eval('('+results+')');
 	$(this.targetHolder).attr({'id':'image-'+image.src});
 	$(this.sorting).val(image.src);
-	var img = $('<img src="'+siteurl+'/wp-admin/admin.php?lookup=asset&id='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
+	var img = $('<img src="'+siteurl+'/wp-admin/admin.php?page=shopp/lookup&id='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 	var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
 	var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
 	
