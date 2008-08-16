@@ -21,20 +21,20 @@ class TestMode {
 	}
 	
 	function process () {
-		if ($this->settigns['response'] == "error") return false;
+		if ($this->settings['response'] == "error") return false;
 		return true;
 	}
 	
 	function transactionid () {
-		if ($this->settigns['response'] == "error") return "";
+		if ($this->settings['response'] == "error") return "";
 		return "TESTMODE";
 	}
 	
 	function error () {
-		if (!empty($this->Response)) {
+		if (!$this->Response) {
 			$Error = new stdClass();
-			$Error->code = $this->Response->reasoncode;
-			$Error->message = $this->Response->reason;
+			$Error->code = "000";
+			$Error->message = "This is an example error message triggered by the Test Mode error setting.";
 			return $Error;
 		}
 	}
