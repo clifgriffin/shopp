@@ -19,8 +19,9 @@ require("core/Flow.php");
 require("core/model/Settings.php");
 require("core/model/Cart.php");
 require("core/model/ShipCalcs.php");
+require("core/model/Catalog.php");
 
-$Shopp =& new Shopp();
+$Shopp = new Shopp();
 
 class Shopp {
 	var $Cart;
@@ -30,13 +31,20 @@ class Shopp {
 	var $Product;
 	var $Category;
 	var $Catalog;
+	var $_debug;
 	
 	function Shopp () {
+		if (SHOPP_DEBUG) {
+			$this->_debug = new StdClass();
+			$this->_debug->memory = "Initial: ".number_format(memory_get_usage()/1024, 2, '.', ',') . " KB<br />";
+		}
+		
 		$this->path = dirname(__FILE__);
 		$this->file = basename(__FILE__);
 		$this->directory = basename($this->path);
 		$this->uri = get_bloginfo('wpurl')."/wp-content/plugins/".$this->directory;
-		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";		
+		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";
+		
 		
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
@@ -52,16 +60,19 @@ class Shopp {
 		if (!SHOPP_LOOKUP) {
 			$this->Cart = new Cart();
 			session_start();
+			
+			$this->Catalog = new Catalog();
 
 			$this->ShipCalcs = new ShipCalcs($this->Settings,$this->path);
 			setlocale(LC_MONETARY, 'en_US'); // Move to settings manager ??		
 		}
 
 		add_action('init', array(&$this, 'ajax'));
-		add_action('parse_query', array(&$this, 'lookups') );
-		add_action('parse_query', array(&$this, 'shortcodes'));
-		add_action('parse_query', array(&$this, 'cart'));
-		add_action('parse_query', array(&$this, 'checkout'));
+		add_action('parse_request', array(&$this, 'lookups') );
+		add_action('parse_request', array(&$this, 'cart'));
+		add_action('parse_request', array(&$this, 'checkout'));
+		add_action('wp', array(&$this, 'behaviors'));
+		add_action('wp', array(&$this, 'shortcodes'));
 
 		add_action('wp_ajax_shopp_add_category', array(&$this, 'ajax') );
 		add_action('wp_ajax_shopp_add_image', array(&$this, 'ajax') );
@@ -69,20 +80,16 @@ class Shopp {
 
 		add_action('admin_menu', array(&$this, 'lookups'));
 		add_action('admin_menu', array(&$this, 'add_menus'));
-		add_action('wp_head', array(&$this, 'page_headers'));
-		add_action('wp_footer', array(&$this, 'footer'));
 		add_action('admin_footer', array(&$this, 'footer'));
 		add_action('save_post', array(&$this, 'page_updates'),10,2);
 
 		add_action('widgets_init', array(&$this->Flow, 'init_cart_widget'));
 
 		update_option('rewrite_rules', '');
-		add_filter('generate_rewrite_rules',array(&$this,'rewrites'));
+		add_filter('mod_rewrite_rules', array(&$this,'page_updates'));
+		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_filter('query_vars', array(&$this,'queryvars'));
-
-		wp_enqueue_script('jquery');
-		wp_enqueue_script('shopp',"{$this->uri}/core/ui/shopp.js");
-
+		add_filter('wp_list_categories',array(&$this->Flow,'catalog_categories'));
 	
 	}
 	
@@ -116,6 +123,9 @@ class Shopp {
 	}
 
 	function admin_header () {
+		wp_enqueue_script('jquery');
+		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js");
+
 		if ($_GET['page'] == $this->Flow->Admin->products && isset($_GET['edit']))
 			wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js");
 			//wp_enqueue_script('jquery.tablednd',"{$this->uri}/core/ui/jquery/jquery.tablednd.js",array('jquery'),'');
@@ -128,29 +138,51 @@ class Shopp {
 	}
 	
 	function page_headers () {
-		?>
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/shopp.css' type='text/css' />
+		
+		?><link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/shopp.css' type='text/css' />
+		<link rel='stylesheet' href='<?php bloginfo('wpurl') ?>/wp-includes/js/thickbox/thickbox.css' type='text/css' />
 		<?php
 	}
 	
-	function rewrites ($wp_rewrite) {
+	function behaviors () {
+		global $wp_query;
 		$pages = $this->Settings->get('pages');
-		$shop = $pages[0]['name'];
-		$cart = $pages[1]['name'];
-		$checkout = $pages[2]['name'];
+
+		$page_id = $wp_query->get_queried_object_id();
+
+		$in_shopp = false;
+		$load_checkout = false;
+		foreach ($pages as $page) {
+			if ($page_id == $page['id']) {
+				add_action('wp_head', array(&$this, 'page_headers'));
+				add_action('wp_footer', array(&$this, 'footer'));
+				wp_enqueue_script('jquery');
+				wp_enqueue_script('thickbox');
+				wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js");
+				break;
+			}
+		}
+		
+		if ($page_id == $pages['checkout']['id']) 
+			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js");		
+	}
+	
+	function rewrites ($wp_rewrite_rules) {
+		$pages = $this->Settings->get('pages');
+		$shop = $pages['catalog']['name'];
+		$cart = $pages['cart']['name'];
+		$checkout = $pages['checkout']['name'];
 		
 		$rules = array(
-			'('.$shop.'/'.$cart.')/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
-			'('.$shop.'/'.$checkout.')/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1),
 			$shop.'/receipt/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=receipt',
 			$shop.'/confirm-order/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=confirm',
-			$shop.'/images/(\d+)/?$' => 'index.php?shopp_image='.$wp_rewrite->preg_index(1),
-			'('.$shop.')/(\d+(,\d+)?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_pid='. $wp_rewrite->preg_index(2),
-			'('.$shop.')/category/([a-zA-Z0-9_\-\/]+?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_category='. $wp_rewrite->preg_index(2),
-			'('.$shop.')/([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$' => 'index.php?pagename='. $wp_rewrite->preg_index(1).'&shopp_category='. $wp_rewrite->preg_index(2).'&shopp_product='. $wp_rewrite->preg_index(3),			
+			$shop.'/images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]',
+			'('.$shop.')/(\d+(,\d+)?)/?$' => 'index.php?pagename=$matches[1]&shopp_pid=$matches[2]',
+			'('.$shop.')/category/([a-zA-Z0-9_\-\/]+?)/?$' => 'index.php?pagename=$matches[1]&shopp_category=$matches[2]',
+			'('.$shop.')/([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$' => 'index.php?pagename=$matches[1]&shopp_category=$matches[2]&shopp_product=$matches[3]'
 		);
 
-		$wp_rewrite->rules = $rules + $wp_rewrite->rules;
+		return $rules + $wp_rewrite_rules;
 	}
 	
 	function queryvars ($vars) {
@@ -171,9 +203,6 @@ class Shopp {
 	}
 
 	function products () {
-		require("core/model/Product.php");
-		require("core/model/Category.php");
-		require("core/model/Catalog.php");
 		
 		if (isset($_GET['edit'])) $this->Flow->product_editor();
 		elseif (isset($_GET['categories'])) $this->Flow->categories_list();
@@ -201,32 +230,49 @@ class Shopp {
 		$db = DB::get();
 		global $wpdb;
 		
-		echo '<script type="text/javascript">';
-		echo 'var peakmem = '.memory_get_usage(true).';';
+		shopp_debug($this);
+		
+		$this->_debug->memory .= "Peak: ".number_format(memory_get_peak_usage()/1024, 2, '.', ',') . " KB<br />";
+		$this->_debug->memory .= "End: ".number_format(memory_get_usage()/1024, 2, '.', ',') . " KB";
+		
+		echo '<script type="text/javascript">'."\n";
+		echo '//<![CDATA['."\n";
+		echo 'var memory_profile = "'.$this->_debug->memory.'";';
 		echo 'var wpquerytotal = '.$wpdb->num_queries.';';
 		echo 'var shoppquerytotal = '.count($db->queries).';';
 		echo 'var shoppqueries = '.json_encode($db->queries).';';
-		echo '</script>';
+		// echo 'var shoppobjectdump = "";';
+		// if (isset($this->_debug->objects)) echo 'shoppobjectdump = "'.addslashes($this->_debug->objects).'";';
+		echo '//]]>'."\n";
+		echo '</script>'."\n";
 		
 	}
 	
-	function page_updates ($update_id,$updates) {
+	function page_updates ($update_id=false,$updates=false) {
 		$pages = $this->Settings->get('pages');
-		foreach ($pages as &$page) {
-			if ($page['id'] == $update_id) {
-				$page['title'] = $updates->post_title;
-				$page['name'] = $updates->post_name;
-				$page['permalink'] = get_permalink($update_id);
-				break;
+
+		if (!$updates) {
+			foreach ($pages as $key => &$page) {
+				$permalink = get_permalink($page['id']);
+				if ($key == "checkout") $permalink = str_replace("http://","https://",$permalink);
+				if (!empty($permalink)) $page['permalink'] = $permalink;
+			}
+		} else {
+			foreach ($pages as $key => &$page) {
+				if ($page['id'] == $update_id) {
+					$page['title'] = $updates->post_title;
+					$page['name'] = $updates->post_name;
+					$page['permalink'] = get_permalink($page['id']);
+					if ($key == "checkout") $page['permalink'] =  str_replace("http://","https://",$page['permalink']);
+					break;
+				}
 			}
 		}
 		$this->Settings->save('pages',$pages);
 	}
 		
 	function cart () {
-		global $Cart;
 		if (empty($_POST['cart']) && empty($_GET['cart'])) return true;
-		require("core/model/Product.php");
 
 		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax(); 
 		else if (!empty($_GET['cart'])) $this->Flow->cart_request();
@@ -235,15 +281,14 @@ class Shopp {
 	}
 	
 	function checkout () {
-		global $Cart;
-		
+		// print_r($_POST);
 		if (empty($_POST['checkout'])) return true;
 		if ($_POST['checkout'] == "confirmed") {
 			$this->order();
 			return true;
 		};
 		if ($_POST['checkout'] != "process") return true;
-		
+				
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
 		
 		$Order = new stdClass();
@@ -256,48 +301,50 @@ class Shopp {
 
 		$Order->Billing = new Billing();
 		$Order->Billing->updates($_POST['billing']);
+		$Order->Billing->cardexpires = mktime(0,0,0,$_POST['billing']['cardexpires-mm'],($_POST['billing']['cardexpires-yy'])+2000);
 		
-		$Cart->data->Order = $Order;
+		$this->Cart->data->Order = $Order;
 		
 		// Check for taxes, or process order
 		if ($this->Settings->get('taxes') == "on") {
 			$taxrates = $this->Settings->get('taxrates');
 			foreach($taxrates as $setting) {
-				if ($Order->Shipping->state == $setting['region']) {
-					$Cart->data->Totals->taxrate = $setting['rate'];
+				if ($Order->Shipping->state == $setting['zone']) {
+					$this->Cart->data->Totals->taxrate = $setting['rate'];
 					break;					
 				}
 			}
-			
-			$Cart->totals();
-			if ($Cart->data->Totals->tax > 0) {
-				header("Location: ".SHOPP_CONFIRMURL);
+
+			$this->Cart->totals();
+
+			if ($this->Cart->data->Totals->tax > 0) {
+				header("Location: ".$this->link('confirm-order','',true));
 				exit();
 			} else $this->order();
 		} elseif ($this->Settings->get('order_confirmation') == "always") {
-			header("Location: ".SHOPP_CONFIRMURL);
+			header("Location: ".$this->link('confirm-order','',true));
 			exit();
 		} else $this->order();
 	}
 		
 	function order() {
-		global $Cart;
+
 		$processor_file = $this->Settings->get('payment_gateway');
 
 		if (!$processor_file) return true;
 		if (!file_exists($processor_file)) return true;
 		
 		require_once("core/model/Purchase.php");
-		
+				
 		// Dynamically the payment processing gateway
 		$processor_data = $this->Flow->scan_gateway_meta($processor_file);
 		$ProcessorClass = $processor_data->tags['class'];
 		include($processor_file);
 		
-		$Order =& $Cart->data->Order;
-		$Order->Totals =& $Cart->data->Totals;
-		$Order->Items =& $Cart->contents;
-		$Order->Cart =& $Cart->session;
+		$Order = $this->Cart->data->Order;
+		$Order->Totals = $this->Cart->data->Totals;
+		$Order->Items = $this->Cart->contents;
+		$Order->Cart = $this->Cart->session;
 		
 		$Payment = new $ProcessorClass($Order);
 		if ($Payment->process()) {
@@ -315,13 +362,13 @@ class Shopp {
 			$Purchase->copydata($Order->Customer);
 			$Purchase->copydata($Order->Billing);
 			$Purchase->copydata($Order->Shipping,'ship');
-			$Purchase->copydata($Cart->data->Totals);
-			$Purchase->freight = $Cart->data->Totals->shipping;
+			$Purchase->copydata($this->Cart->data->Totals);
+			$Purchase->freight = $this->Cart->data->Totals->shipping;
 			$Purchase->gateway = $processor_data->name;
 			$Purchase->transactionid = $Payment->transactionid();
 			$Purchase->save();
 
-			foreach($Cart->contents as $Item) {
+			foreach($this->Cart->contents as $Item) {
 				$Purchased = new Purchased();
 				$Purchased->copydata($Item);
 				$Purchased->purchase = $Purchase->id;
@@ -329,34 +376,35 @@ class Shopp {
 			}
 			
 			// Empty cart on successful order
-			$Cart->unload();
+			$this->Cart->unload();
 			session_destroy();
 
 			// Start new cart session
-			$Cart =& new Cart();
+			$this->Cart = new Cart();
 			session_start();
 			
 			// Save the purchase ID for later lookup
-			$Cart->data->Purchase = $Purchase->id;
+			$this->Cart->data->Purchase = $Purchase->id;
 
 			// Send the e-mail receipt
 			$receipt = array();
 			$receipt['from'] = $this->Settings->get('shopowner_email');
 			$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
-			$receipt['subject'] = "KMXUS.com Order Receipt";
+			$receipt['subject'] = "Order Receipt";
 			$receipt['receipt'] = $this->Flow->order_receipt();
 			$receipt['url'] = $_SERVER['SERVER_NAME'];
-			send_email("{$this->path}/vanilla/email.html",$receipt);
+			// send_email("{$this->path}/templates/email.html",$receipt);
 			
 			if ($this->Settings->get('receipt_copy') == 1) {
 				$receipt['to'] = $this->Settings->get('shopowner_email');
-				send_email("{$this->path}/vanilla/email.html",$receipt);
+				$receipt['subject'] = "New Order";
+				// send_email("{$this->path}/templates/email.html",$receipt);
 			}
 
-			header("Location: ".SHOPP_RECEIPTURL);
+			header("Location: ".$this->link('receipt','',true));
 			exit();
 		} else {
-			$Cart->data->OrderError = $Payment->error();
+			$this->Cart->data->OrderError = $Payment->error();
 		}
 	}
 	
@@ -366,22 +414,49 @@ class Shopp {
 		
 		add_shortcode('catalog',array(&$this->Flow,'catalog'));
 		add_shortcode('cart',array(&$this->Flow,'cart_default'));
-		add_shortcode('shipping-estimate',array(&$this->Flow,'shipping_estimate'));
 		add_shortcode('checkout',array(&$this->Flow,'checkout'));
-		add_shortcode('order-summary',array(&$this->Flow,'checkout_order_summary'));
-		add_shortcode('confirmation-summary',array(&$this->Flow,'order_confirmation'));
-		add_shortcode('receipt',array(&$this->Flow,'order_receipt'));
 	}
+	
+	/**
+	 * link ()
+	 * Builds a full URL for a specific Shopp-related resource */
+	function link ($target,$path="",$secure=false) {
+		$pages = $this->Settings->get('pages');
+		
+		$uri = ($secure)?str_replace('http://','https://',get_bloginfo('wpurl')):get_bloginfo('wpurl');
+		if ($path == "") $path = '/'.$pages['catalog']['name'].'/';
+		
+		if (array_key_exists($target,$pages)) $page = $pages[$target];
+		else {
+			if (SHOPP_PERMALINKS) $page['name'] = $target;
+			else {
+				$page['id'] = $pages['checkout']['id']."&shopp_proc=".$target;	
+			}
+			
+		}
+		if (SHOPP_PERMALINKS) return $uri.$path.$page['name'];
+		else return $uri.'?page_id='.$page['id'];
+	}
+	
 	
 	/**
 	 * AJAX Responses
 	 */
-	function lookups() {
-		$db =& DB::get();
+	function lookups($wp) {
+		
+		// Grab query requests from permalink rewriting query vars
+		$image = $wp->query_vars['shopp_image'];
+		$lookup = $wp->query_vars['shopp_lookup'];
 
-		$image = get_query_var('shopp_image');
-		$lookup = get_query_var('shopp_lookup');
-		if (empty($lookup)) $lookup = $_GET['lookup'];
+		// Special handler to ensure thickbox will load db images
+		if (empty($image)) {
+			$requests = split("/",trim($_SERVER['REQUEST_URI'],'/'));
+			if ($requests[0] == "shopp_image") $image = $requests[1];
+		}
+		
+		// Admin Lookups
+		if ($_GET['page'] == "shopp/lookup") $image = $_GET['id'];
+		
 		if (!empty($image)) $lookup = "asset";
 		
 		switch($lookup) {
@@ -393,11 +468,10 @@ class Shopp {
 				break;
 			case "asset":
 				$id = $image;
-				if (empty($id))	$id = get_query_var('shopp_file');
+				if (empty($id))	$id = $wp->query_vars['shopp_file'];
 				if (empty($id)) $id = $_GET['id'];
 			
 				if (!empty($id)) {
-					require("core/model/Asset.php");
 					$Asset = new Asset($id);					
 					header ("Content-type: ".$Asset->properties['mimetype']); 
 					header ("Content-length: ".strlen($Asset->data)); 
@@ -411,15 +485,33 @@ class Shopp {
 	}
 
 	function ajax() {
-		
 		switch($_GET['action']) {
 			case "wp_ajax_shopp_add_category":
 				if (!empty($_GET['name'])) {
-					require("core/model/Category.php");
+					$Catalog = new Catalog();
+					$Catalog->load_categories();
+					
 					$Category = new Category();
 					$Category->name = $_GET['name'];
 					$Category->slug = sanitize_title_with_dashes($Category->name);
 					$Category->parent = $_GET['parent'];
+
+					// Work out pathing
+					$Category->uri = $Category->slug;
+					
+					for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
+						if ($Category->parent == $Shopp->Catalog->categories[$i]->id) break;
+					$Category->uri = $Shopp->Catalog->categories[$i]->slug."/".$Category->uri;
+
+					$parentkey = $Shopp->Catalog->categories[$i]->parentkey;
+					while ($parentkey > -1) {
+						$tree_category = $Shopp->Catalog->categories[$parentkey];
+						$uri = $tree_category->slug."/".$uri;
+						$parentkey = $tree_category->parentkey;
+					}
+
+					$_POST['uri'] = $uri;
+										
 					$Category->save();
 					echo json_encode($Category);
 				}
@@ -484,9 +576,11 @@ function shopp () {
 		case "cart": $result = $Shopp->Cart->tag($property,$options); break;
 		case "cartitem": $result = $Shopp->Cart->itemtag($property,$options); break;
 		case "shipestimate": $result = $Shopp->Cart->shipestimatetag($property,$options); break;
+		case "checkout": $result = $Shopp->Cart->checkouttag($property,$options); break;
 		case "category": $result = $Shopp->Category->tag($property,$options); break;
 		case "catalog": $result = $Shopp->Catalog->tag($property,$options); break;
 		case "product": $result = $Shopp->Product->tag($property,$options); break;
+		case "purchase": $result = $Shopp->Cart->Purchase->tag($property,$options); break;
 	}
 
 	// Force boolean result
