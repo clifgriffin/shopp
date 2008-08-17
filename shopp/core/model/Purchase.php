@@ -17,12 +17,13 @@ class Purchase extends DatabaseObject {
 
 	function Purchase ($id=false) {
 		$this->init(self::$table);
+		if (!$id) return true;
 		if ($this->load($id)) return true;
 		else return false;
 	}
 
 	function load_purchased () {
-		$db =& DB::get();
+		$db = DB::get();
 
 		$table = DatabaseObject::tablename(Purchased::$table);
 		if (empty($this->id)) return false;
@@ -37,6 +38,30 @@ class Purchase extends DatabaseObject {
 			if (property_exists($this,$property) && 
 				!in_array($property,$ignores)) 
 				$this->{$property} = $value;
+		}
+	}
+	
+	function tag ($property,$options=array()) {
+		global $Shopp;
+				
+		// Return strings with no options
+		switch ($property) {
+			case "url": return $Shopp->link('cart'); break;
+			case "totalitems": return count($this->purchased); break;
+			case "hasitems": if (count($this->purchased) > 0) return true; else return false; break;
+			case "items":
+				if (!$this->looping) {
+					reset($this->purchased);
+					$this->looping = true;
+				} else next($this->purchased);
+				
+				if (current($this->purchased)) return true;
+				else {
+					$this->looping = false;
+					reset($this->purchased);
+					return false;
+				}
+			case "id": return $this->id;
 		}
 	}
 	
