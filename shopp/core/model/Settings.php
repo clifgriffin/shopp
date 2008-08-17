@@ -28,7 +28,7 @@ class Settings extends DatabaseObject {
 	/**
 	 * Load all settings from the database */
 	function load ($name="") {
-		$db =& DB::get();
+		$db = DB::get();
 		if (!empty($name)) $results = $db->query("SELECT * FROM $this->_table WHERE name='$name'",AS_ARRAY,false);
 		else $results = $db->query("SELECT * FROM $this->_table WHERE autoload='on'",AS_ARRAY,false);
 		
@@ -48,7 +48,7 @@ class Settings extends DatabaseObject {
 	/**
 	 * Add a new setting to the registry and store it in the database */
 	function add ($name, $value,$autoload = true) {
-		$db =& DB::get();
+		$db = DB::get();
 		$Setting = $this->setting();
 		$Setting->name = $name;
 		$Setting->value = $value;
@@ -64,7 +64,7 @@ class Settings extends DatabaseObject {
 	/**
 	 * Remove a setting from the registry and the database */
 	function delete ($name) {
-		$db =& DB::get();
+		$db = DB::get();
 		unset($this->registry[$name]);
 		if (!$db->query("DELETE FROM $this->_table WHERE name='$name'")) return false;
 		return true;
@@ -73,7 +73,7 @@ class Settings extends DatabaseObject {
 	/**
 	 * Updates the setting in the registry and the database */
 	function update ($name,$value) {
-		$db =& DB::get();
+		$db = DB::get();
 
 		if ($this->get($name) == $value) return true;
 
