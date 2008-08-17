@@ -33,7 +33,7 @@ class Product extends DatabaseObject {
 	/**
 	 * Load a single record by a slug name */
 	function loadby_slug ($slug) {
-		$db =& DB::get();
+		$db = DB::get();
 		
 		$r = $db->query("SELECT * FROM $this->_table WHERE slug='$slug'");
 		$this->populate($r);
@@ -43,7 +43,7 @@ class Product extends DatabaseObject {
 	}
 	
 	function load_prices () {
-		$db =& DB::get();
+		$db = DB::get();
 		
 		$table = DatabaseObject::tablename(Price::$table);
 		if (empty($this->id)) return false;
@@ -58,7 +58,7 @@ class Product extends DatabaseObject {
 	}
 	
 	function load_specs () {
-		$db =& DB::get();
+		$db = DB::get();
 		
 		$table = DatabaseObject::tablename(Spec::$table);
 		if (empty($this->id)) return false;
@@ -67,7 +67,7 @@ class Product extends DatabaseObject {
 	}
 
 	function load_categories () {
-		$db =& DB::get();
+		$db = DB::get();
 		
 		$table = DatabaseObject::tablename(Catalog::$table);
 		if (empty($this->id)) return false;
@@ -76,7 +76,7 @@ class Product extends DatabaseObject {
 	}
 
 	function save_categories ($updates) {
-		$db =& DB::get();
+		$db = DB::get();
 		
 		if (empty($updates)) $updates = array();
 		
@@ -99,11 +99,11 @@ class Product extends DatabaseObject {
 	}
 	
 	function load_images () {
-		$db =& DB::get();
+		$db = DB::get();
 		
 		$table = DatabaseObject::tablename(Asset::$table);
 		if (empty($this->id)) return false;
-		$images = $db->query("SELECT id,properties,datatype,src FROM $table WHERE parent=$this->id AND context='product' AND (datatype='image' OR datatype='small' OR datatype='thumbnail') ORDER BY datatype,sortorder",AS_ARRAY);
+		$images = $db->query("SELECT id,name,properties,datatype,src FROM $table WHERE parent=$this->id AND context='product' AND (datatype='image' OR datatype='small' OR datatype='thumbnail') ORDER BY datatype,sortorder",AS_ARRAY);
 		foreach ($images as $image) 
 			$image->properties = unserialize($image->properties);
 		$this->images = $images;
@@ -125,7 +125,7 @@ class Product extends DatabaseObject {
 	 * Updates the sortorder of image assets (source, featured and thumbnails)
 	 * based on the provided array of image ids */
 	function save_imageorder ($ordering) {
-		$db =& DB::get();
+		$db = DB::get();
 		$table = DatabaseObject::tablename(Asset::$table);
 		foreach ($ordering as $i => $id) 
 			$db->query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE id='$id' OR src='$id'");
@@ -137,7 +137,7 @@ class Product extends DatabaseObject {
 	 * Updates the product id of the images to link to the product 
 	 * when the product being saved is new (has no previous id assigned) */
 	function link_images ($images) {
-		$db =& DB::get();
+		$db = DB::get();
 		$table = DatabaseObject::tablename(Asset::$table);
 		
 		$query = "UPDATE $table SET parent='$this->id',context='product' WHERE ";
@@ -155,7 +155,7 @@ class Product extends DatabaseObject {
 	 * Delete provided array of image ids, removing the source image and
 	 * all related images (featured and thumbnails) */
 	function delete_images ($images) {
-		$db =& DB::get();
+		$db = DB::get();
 		$table = DatabaseObject::tablename(Asset::$table);
 		
 		$query = "DELETE LOW_PRIORITY FROM $table WHERE ";
@@ -170,7 +170,7 @@ class Product extends DatabaseObject {
 	/**
 	 * Deletes the record associated with this object */
 	function delete () {
-		$db =& DB::get();
+		$db = DB::get();
 		
 		// Delete record
 		$id = $this->{$this->_key};
@@ -199,8 +199,8 @@ class Product extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		$pages = $Shopp->Settings->get('pages');
-		if (SHOPP_PERMALINKS) $imagepath = "/{$pages[0]['name']}/images/";
-		else $imagepath = "?shopp_image=";
+		if (SHOPP_PERMALINKS) $imagepath = "/{$pages['catalog']['name']}/images/";
+		else $imagepath = "/shopp_image/";
 		
 		switch ($property) {
 			case "found": if (!empty($this->id)) return true; else return false; break;
@@ -251,12 +251,6 @@ class Product extends DatabaseObject {
 					
 				} else return money($this->prices[0]->saleprice);
 				break;
-			// case "image":
-			// 	if (empty($this->images)) $this->load_images();
-			// 	$img = $this->images[0];
-			// 	$string .= '<img src="'.$imagepath.$img->id.'" alt="" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
-			// 	return $string;
-			// 	break;
 			case "thumbnails":
 				if (empty($this->images)) $this->load_images();
 				$string = "";
@@ -267,35 +261,39 @@ class Product extends DatabaseObject {
 				break;
 			case "gallery":
 				if (empty($this->images)) $this->load_images();
+				$thumbsize = 30;
 				$string = '<div id="gallery">';
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
-				$thumbs = '<ul class="thumbnails">';
+				$thumbs = '<ul>';
 				$firstThumb = true;
 				foreach ($this->images as $img) {
 					if ($img->datatype == "small") {
 						if ($firstPreview) {
-							$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="fill"':'').'>';
+							$previews .= '<li id="preview-fill"'.(($firstPreview)?' class="fill"':'').'>';
 							$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
 							$previews .= '</li>';
 						}
 						
-						$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="first"':'').'>';
+						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
+						$previews .= '<a href="'.$imagepath.$img->src.'/'.str_replace('small_','',$img->name).'" class="thickbox" rel="product-gallery">';
 						$previews .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+						$previews .= '</a>';
 						$previews .= '</li>';
 						$firstPreview = false;
 					}
 					if ($img->datatype == "thumbnail") {
-						$thumbs .= '<li id="thumbnail-'.$img->id.'"'.(($firstThumb)?' class="first"':'').'>';
-						$thumbs .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+						$thumbs .= '<li id="thumbnail-'.$img->src.'"'.(($firstThumb)?' class="first"':'').'>';
+						$thumbs .= '<a href="javascript:shopp_preview('.$img->src.');"><img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$thumbsize.'" height="'.$thumbsize.'" /></a>';
 						$thumbs .= '</li>';
 						$firstThumb = false;
 					}
 					
 				}
 				$thumbs .= '</ul>';
+				$previews .= '<li class="thumbnails">'.$thumbs.'</li>';
 				$previews .= '</ul>';
-				$string .= $previews.$thumbs."</div>";
+				$string .= $previews."</div>";
 				return $string;
 				break;
 			case "hasspecs": 
