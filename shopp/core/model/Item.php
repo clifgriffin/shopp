@@ -47,7 +47,7 @@ class Item {
 			$this->options = $Product->prices;
 		}
 
-		if ($Price->shipping == "on") {
+		if ($Price->shipping == "on" && $Price->type == "Shipped") {
 			$this->shipping = true;
 			$this->weight = $Price->weight;
 			$this->shipfee = $Price->shipfee;
@@ -69,8 +69,11 @@ class Item {
 	function options ($selected = "") {
 		$string = "";
 		foreach($this->options as $option) {
-			if ($selected == $option->id) $string .= "<option value=\"$option->id\" selected=\"\">$option->label</option>";
-			else $string .= "<option value=\"$option->id\">$option->label</option>";
+			if ($option->type != "N/A") {
+				$price = money(($option->sale == "on")?$option->saleprice:$option->price);
+				if ($selected == $option->id) $string .= "<option value=\"$option->id\" selected=\"\">$option->label ($price)</option>";
+				else $string .= "<option value=\"$option->id\">$option->label ($price)</option>";
+			}
 		}
 		return $string;
 	}
@@ -81,9 +84,14 @@ class Item {
 	}
 	
 	function tag ($id,$property,$options=array()) {
+		global $Shopp;
+		
+		$uri = (SHOPP_PERMALINK)?$this->product:'&amp;shopp_pid='.$this->product;
+		
 		// Return strings with no options
 		switch ($property) {
 			case "name": return $this->name;
+			case "url": return $Shopp->link('').$uri;
 			case "brand": return $this->brand;
 			case "sku": return $this->sku;
 		}
@@ -105,29 +113,37 @@ class Item {
 		// Handle values with complex options
 		switch ($property) {
 			case "quantity": 
-				$size = 3;
+				$size = 5;
 				$class = "";
 				$result = $this->quantity;
 				$title = "";
-				if (isset($options['size'])) $size = $options['size'];
-				if (isset($options['class'])) $class = ' class="'.$options['class'].'"';
-				if (isset($options['title'])) $class = ' class="'.$options['title'].'"';
-				if (isset($options['input']) && valid_input($options['input']))
-					$result = '<input type="'.$options['input'].'" name="items['.$id.']['.$property.']" id="items['.$id.']['.$property.']" title="'.$title.'" value="'.$this->quantity.'" size="'.$size.'"'.$class.' />';
+				if (isset($options['input']) && valid_input($options['input'])) {
+					if (isset($options['size'])) $size = $options['size'];
+					if (isset($options['class'])) $class = ' class="'.$options['class'].'"';
+					if (isset($options['title'])) $class = ' class="'.$options['title'].'"';
+					$result = '<input type="'.$options['input'].'" name="items['.$id.']['.$property.']" id="items-'.$id.'-'.$property.'" title="'.$title.'" value="'.$this->quantity.'" size="'.$size.'"'.$class.' />';
+				} else $result = $this->quantity;
 				break;
 			case "remove":
 				$label = "Remove";
 				if (isset($options['label'])) $label = $options['label'];
+				if (isset($options['input'])) {
+					switch ($options['input']) {
+						case "button":
+							$result = '<button type="submit" name="remove" value="remove" class="remove">'.$label.'</button>';
+					}
+				} else {
+					$result = '<a href="'.SHOPP_CARTURL.'?cart=update&amp;item='.$id.'&amp;quantity=0">'.$label.'</a>';
+				}
 				
-				
-				$result = '<a href="'.SHOPP_CARTURL.'?cart=update&amp;item='.$id.'&amp;quantity=0">'.$label.'</a>';
 				
 				break;
 			case "options":
 				$class = "";
 				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
 				if (!empty($this->optionname)) {
-					$result .= '&nbsp;<select name="items['.$id.'][price]" id="items['.$id.'][price]"'.$class.'>';
+					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';
+					$result .= ' <select name="items['.$id.'][price]" id="items-'.$id.'-price"'.$class.'>';
 					$result .= $this->options($this->price);
 					$result .= '</select>';
 				}
