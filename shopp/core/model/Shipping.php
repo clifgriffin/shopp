@@ -14,7 +14,7 @@ class Shipping extends DatabaseObject {
 	
 	function Shipping ($id=false) {
 		$this->init(self::$table);
-		if ($this->load($id)) return true;
+		if ($id && $this->load($id)) return true;
 		else return false;
 	}
 	
@@ -24,7 +24,7 @@ class Shipping extends DatabaseObject {
 	 * U.S. zip code or Canadian postal code */
 	function postarea () {
 		if (empty($this->postcode)) return false;
-
+		
 		global $Shopp;
 		$code = $this->postcode;
 		$areas = $Shopp->Settings->get('areas');
