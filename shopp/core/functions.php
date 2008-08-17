@@ -224,6 +224,15 @@ function is_robot() {
 }
 
 
+function shopp_debug ($object) {
+	global $Shopp;
+	ob_start();
+	print_r($object);
+	$result = ob_get_contents();
+	ob_end_clean();
+	$Shopp->_debug->objects .= "<br/><br/>".str_replace("\n","<br/>",$result);
+}
+
 /**
  * parse_xml
  * Parses a string of XML data into a organizable data structure */
@@ -374,6 +383,7 @@ function file_mimetype ($file) {
 /**
  * Returns a list marked-up as drop-down menu options */
 function menuoptions ($list,$selected=null,$values=false) {
+	if (!is_array($list)) return "";
 	$string = "";
 	foreach ($list as $value => $text) {
 		if ($values) {
