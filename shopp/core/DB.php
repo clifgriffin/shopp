@@ -117,8 +117,13 @@ class DB extends Singleton {
 						// Escape characters in strings as needed
 						if (is_array($value)) $value = serialize($value);
 						$data[$property] = "'".$value."'";
+						break;	
+					case "list":
+						// If value is empty, skip setting the field
+						// so it inherits the default value in the db
+						if (!empty($value)) 
+							$data[$property] = "'$value'";
 						break;
-						
 					case "date":
 						// If the date is an integer, convert it to an
 						// sql YYYY-MM-DD HH:MM:SS format
@@ -190,7 +195,7 @@ class DatabaseObject {
 	 * Initializes the db object by grabbing table schema
 	 * so we know how to work with this table */
 	function init ($table,$key="id") {
-		$db =& DB::get();
+		$db = DB::get();
 		global $Shopp;
 		
 		$this->_table = $this->tablename($table); // So we know what the table name is
@@ -238,7 +243,7 @@ class DatabaseObject {
 	/**
 	 * Load a single record by the primary key */
 	function load ($id) {
-		$db =& DB::get();
+		$db = DB::get();
 		
 		if (empty($id)) return false; 
 		
@@ -266,7 +271,7 @@ class DatabaseObject {
 	 * Save a record, updating when we have a value for the primary key,
 	 * inserting a new record when we don't */
 	function save () {
-		$db =& DB::get();
+		$db = DB::get();
 		
 		$data = $db->prepare($this);
 		$id = $this->{$this->_key};
@@ -291,7 +296,7 @@ class DatabaseObject {
 	/**
 	 * Deletes the record associated with this object */
 	function delete () {
-		$db =& DB::get();
+		$db = DB::get();
 		// Delete record
 		$id = $this->{$this->_key};
 		if (!empty($id)) $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
