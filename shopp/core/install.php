@@ -1,6 +1,6 @@
 <?php
 global $wpdb,$wp_rewrite,$wp_version;
-$db =& DB::get();
+$db = DB::get();
 
 
 // Check Pre-Requisites
@@ -17,14 +17,14 @@ $db->loaddata(file_get_contents(SHOPP_DBSCHEMA));
 
 // Auto-Generate pages
 $pages = array();
-$pages[] = array('name'=>'shop','title'=>'Shop','content'=>'[catalog]');
-$pages[] = array('name'=>'cart','title'=>'Cart','content'=>'[cart]');
-$pages[] = array('name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
-$pages[] = array('name'=>'account','title'=>'Your Account','content'=>'[account]');
+$pages['catalog'] = array('name'=>'shop','title'=>'Shop','content'=>'[catalog]');
+$pages['cart'] = array('name'=>'cart','title'=>'Cart','content'=>'[cart]');
+$pages['checkout'] = array('name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
+$pages['account'] = array('name'=>'account','title'=>'Your Account','content'=>'[account]');
 
 $parent = 0;
-foreach ($pages as $i => &$page) {	
-	if (!empty($pages[0]['id'])) $parent = $pages[0]['id'];
+foreach ($pages as $key => &$page) {	
+	if (!empty($pages['catalog']['id'])) $parent = $pages['catalog']['id'];
 	$query = "INSERT $wpdb->posts SET post_title='{$page['title']}',
 										post_name='{$page['name']}',
 										post_content='{$page['content']}',
@@ -43,6 +43,7 @@ foreach ($pages as $i => &$page) {
 	$wpdb->query($query);
 	$page['id'] = $wpdb->insert_id;
 	$page['permalink'] = get_permalink($page['id']);
+	if ($key == "checkout") $page['permalink'] = str_replace("http://","https://",$page['permalink']);
 	$wpdb->query("UPDATE $wpdb->posts SET guid='{$page['permalink']}' WHERE ID={$page['id']}");		
 }
 
