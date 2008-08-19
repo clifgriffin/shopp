@@ -46,7 +46,7 @@ class AuthorizeNet {
 		$_ = array();
 		
 		// Options
-		$_['x_test_request']		= $this->settings['testmode'];; // Set while testing
+		$_['x_test_request']		= $this->settings['testmode']; // Set "TRUE" while testing
 		$_['x_login'] 				= $this->settings['login'];
 		$_['x_password'] 			= $this->settings['password'];
 		$_['x_Delim_Data'] 			= "TRUE"; 
@@ -75,6 +75,7 @@ class AuthorizeNet {
 		// Billing
 		$_['x_card_num']			= $Order->Billing->card;
 		$_['x_exp_date']			= $Order->Billing->cardexpires;
+		$_['x_card_code']			= $Order->Billing->cvv;
 		$_['x_address']				= $Order->Billing->address;
 		$_['x_city']				= $Order->Billing->city;
 		$_['x_state']				= $Order->Billing->state;
@@ -181,7 +182,9 @@ class AuthorizeNet {
 	
 	function settings () {
 		global $Shopp;
+		$Shopp->Settings->save('gateway_cardtypes',array("Visa", "MasterCard", "American Express", "Discover", "JCB", "Diner’s Club", "EnRoute"));
 		$settings = $Shopp->Settings->get('Authorize.Net');
+		
 		?>
 				
 		var authorize_net_settings = function () {
