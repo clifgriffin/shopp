@@ -16,32 +16,18 @@ require("Price.php");
 class Product extends DatabaseObject {
 	static $table = "product";
 	var $prices = array();
+	var $pricekey = array();
 	var $categories = array();
 	var $images = array();
 	var $specs = array();
+	var $ranges = array('max'=>array(),'min'=>array());
 	
-	function Product ($id=false,$key="id") {
+	function Product ($id=false,$key=false) {
 		$this->init(self::$table);
-		switch ($key) {
-			case "slug": if ($this->loadby_slug($id)) return true;
-			default: if ($this->load($id)) return true;
-		}
+		if ($this->load($id,$key)) return true;
 		return false;
 	}
-	
-	
-	/**
-	 * Load a single record by a slug name */
-	function loadby_slug ($slug) {
-		$db = DB::get();
 		
-		$r = $db->query("SELECT * FROM $this->_table WHERE slug='$slug'");
-		$this->populate($r);
-
-		if (!empty($this->id)) return true;
-		return false;
-	}
-	
 	function load_prices () {
 		$db = DB::get();
 		
@@ -49,8 +35,27 @@ class Product extends DatabaseObject {
 		if (empty($this->id)) return false;
 		$this->prices = $db->query("SELECT * FROM $table WHERE product=$this->id ORDER BY sortorder ASC",AS_ARRAY);
 		
+		// Build secondary lookup table using the combined optionkey
 		foreach ($this->prices as &$price) {
-			$this->pricekey[$this->xorkey($price->options)] = &$price;
+			$this->pricekey[$price->optionkey] = $price;
+
+			// While were at it, grab price and saleprice ranges
+			if ($price->type != "N/A") {
+				if (empty($this->ranges['min']['price'])) 
+					$this->ranges['min']['price'] = $this->ranges['max']['price'] = $price->price;
+				if ($this->ranges['min']['price'] > $price->price) 
+					$this->ranges['min']['price'] = $price->price;
+				if ($this->ranges['max']['price'] < $price->price) 
+					$this->ranges['max']['price'] = $price->price;
+
+				if (empty($this->ranges['min']['saleprice'])) 
+					$this->ranges['min']['saleprice'] = $this->ranges['max']['saleprice'] = $price->saleprice;
+				if ($this->ranges['min']['saleprice'] > $price->saleprice) 
+					$this->ranges['min']['saleprice'] = $price->saleprice;
+				if ($this->ranges['max']['saleprice'] < $price->saleprice) 
+					$this->ranges['max']['saleprice'] = $price->saleprice;
+				
+			}
 		}
 		
 		
@@ -104,19 +109,23 @@ class Product extends DatabaseObject {
 		$table = DatabaseObject::tablename(Asset::$table);
 		if (empty($this->id)) return false;
 		$images = $db->query("SELECT id,name,properties,datatype,src FROM $table WHERE parent=$this->id AND context='product' AND (datatype='image' OR datatype='small' OR datatype='thumbnail') ORDER BY datatype,sortorder",AS_ARRAY);
-		foreach ($images as $image) 
+		$total = 0;
+		foreach ($images as $image) {
 			$image->properties = unserialize($image->properties);
+			if ($image->datatype == "image") $total++;
+		}
 		$this->images = $images;
+		$this->images['total'] = $total;
 		return true;
 	}
 		
-	
 	/**
-	 * xorkey
+	 * optionkey
 	 * There is no Zul only XOR! */
-	function xorkey ($ids) {
-		for ($key = 0,$i = 0; $i < count($ids); $i++) 
-			$key = $key ^ ($ids[i]*101);  // Use a prime for variation
+	function optionkey ($ids=array()) {
+		if (empty($ids)) return 0;
+		foreach ($ids as $set => $id) 
+			$key = $key ^ ($id*101);
 		return $key;
 	}
 	
@@ -194,8 +203,6 @@ class Product extends DatabaseObject {
 
 	}
 	
-	
-
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		$pages = $Shopp->Settings->get('pages');
@@ -211,18 +218,9 @@ class Product extends DatabaseObject {
 			case "price":
 				if (empty($this->prices)) $this->load_prices();
 				if ($this->options > 1) {
-
-					$min = $max = -1;
-					foreach($this->prices as $pricetag) {
-						if ($pricetag->type != "N/A") {
-							if ($min == -1 || $pricetag->price < $min) $min = $pricetag->price;
-							if ($max == -1 || $pricetag->price > $max) $max = $pricetag->price;
-						}
-					}
-					
-					if ($min == $max) return money($min);
-					else return money($min)." &mdash; ".money($max);
-					
+					if ($this->ranges['min']['price'] == $this->ranges['max']['price'])
+						return money($this->ranges['min']['price']);
+					else return money($this->ranges['min']['price'])." &mdash; ".money($this->ranges['max']['price']);
 				} else return money($this->prices[0]->price);
 				break;
 			case "onsale":
@@ -237,18 +235,9 @@ class Product extends DatabaseObject {
 			case "saleprice":
 				if (empty($this->prices)) $this->load_prices();
 				if ($this->options > 1) {
-					
-					$min = $max = -1;
-					foreach($this->prices as $pricetag) {
-						if ($pricetag->type != "N/A") {
-							if ($min == -1 || $pricetag->saleprice < $min) $min = $pricetag->saleprice;
-							if ($max == -1 || $pricetag->saleprice > $max) $max = $pricetag->saleprice;
-						}
-					}
-					
-					if ($min == $max) return money($min);
-					else return money($min)." &mdash; ".money($max);
-					
+					if ($this->ranges['min']['saleprice'] == $this->ranges['max']['saleprice']) 
+						return money($this->ranges['min']['saleprice']);
+					else return money($this->ranges['min']['saleprice'])." &mdash; ".money($this->ranges['max']['saleprice']);
 				} else return money($this->prices[0]->saleprice);
 				break;
 			case "thumbnails":
@@ -282,7 +271,7 @@ class Product extends DatabaseObject {
 						$previews .= '</li>';
 						$firstPreview = false;
 					}
-					if ($img->datatype == "thumbnail") {
+					if ($img->datatype == "thumbnail" && $this->images['total'] > 1) {
 						$thumbs .= '<li id="thumbnail-'.$img->src.'"'.(($firstThumb)?' class="first"':'').'>';
 						$thumbs .= '<a href="javascript:shopp_preview('.$img->src.');"><img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$thumbsize.'" height="'.$thumbsize.'" /></a>';
 						$thumbs .= '</li>';
@@ -296,7 +285,7 @@ class Product extends DatabaseObject {
 				$string .= $previews."</div>";
 				return $string;
 				break;
-			case "hasspecs": 
+			case "has-specs": 
 				if (empty($this->specs)) $this->load_specs();
 				if (count($this->specs) > 0) return true; else return false; break;
 			case "specs":			
@@ -323,43 +312,119 @@ class Product extends DatabaseObject {
 				else $string = "{$spec->name}{$separator}{$spec->content}";
 				return $string;
 				break;
-			case "hasoptions":
-				if (isset($this->options['variations']) || isset($this->options['addons'])) return true; else return false; break;
-			case "options":
-				if (array_key_exists('variations',$options)) {
-					if (!$this->optionloop) {
-						reset($this->options['variations']);
-						$this->optionloop = true;
-					} else next($this->options['variations']);
-
-					$this->option = current($this->options['variations']);
-
-					if (current($this->options['variations'])) return true;
-					else {
-						$this->optionloop = false;
-						return false;
-					}
-				}
-				return false;
+			case "has-variations":
+				if (isset($this->options['variations'])) return true; else return false; break;
 				break;
-			case "option":
-				$optionset = $this->option;
+			case "variations":
 				$string = "";
-				if (array_key_exists('label',$options)) $string .= $optionset['menu'];
-				else {
-					$string .= '<select name="options[]">';
-					if (isset($options['default'])) $string .= '<option value="">'.$options['default'].'</option>';
-					foreach ($optionset['label'] as $menuoption) $string .= '<option value="">'.$menuoption.'</option>';
+
+				if (empty($options['label'])) $options['label'] = "on";
+				if (empty($options['mode'])) $options['mode'] = "";
+
+				if ($options['mode'] == "single") {
+					if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
+					if (value_is_true($options['label'])) $string .= '<label for="product-options">Options: </label> '."\n";
+
+					$string .= '<select name="price" id="product-options">';
+					if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
+					
+					foreach ($this->prices as $option) {
+						$currently = ($option->sale == "on")?$option->saleprice:$option->price;
+						
+						$price = '  ('.money($currently).')';
+						if ($option->type != "N/A")
+							$string .= '<option value="">'.$option->label.$price.'</option>'."\n";
+					}
+
 					$string .= '</select>';
+					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
+					
+				} else {
+					foreach ($this->options['variations'] as $id => $menu) {
+						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
+						if (value_is_true($options['label'])) $string .= '<label for="options-'.$id.'">'.$menu['menu'].'</label> '."\n";
+
+						$string .= '<select name="options['.$id.']" id="options-'.$id.'" class="options">';
+						if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
+						foreach ($menu['label'] as $key => $option)
+							$string .= '<option value="'.$menu['id'][$key].'">'.$option.'</option>'."\n";
+
+						$string .= '</select>';
+						if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
+					}
+					?>
+					<script type="text/javascript">
+					//<![CDATA[
+					(function($) {
+						var pricing = <?php echo json_encode($this->pricekey); ?>;	// price lookup table
+						
+						$(document).ready(function () {
+							var i = 0;
+							var previous = false;
+							var current = false;
+							var menus = $('select.options');
+							menus.each(function () {
+								current = $(this);
+								if (menus.length == 1) {
+									optionPriceTags();
+								} else if (i > 0) {
+									previous.change(function () {
+										if (menus.index(current) == menus.length-1) optionPriceTags();
+										if (this.selectedIndex == 0) current.attr('disabled',true);
+										else current.removeAttr('disabled');
+									}).change();
+								}
+								
+								previous = $(this);
+								i++;
+							});
+							
+							// Last menu needs pricing
+							function optionPriceTags() {
+								// Grab selections
+								var selected = new Array();
+								menus.not(current).each(function () {
+									if ($(this).val() != "") selected.push($(this).val());
+								});
+								var keys = new Array();
+								$(current).children().each(function () {
+									if ($(this).val() != "") {
+										var keys = selected.slice();
+										keys.push($(this).val());
+										var price = pricing[xorkey(keys)];
+										if (price) {
+											var pricetag = asMoney((price.sale == "on")?price.saleprice:price.price);
+											$(this).attr('text',$(this).attr('text')+"  ("+pricetag+")");
+										}
+									}
+								});
+							}
+						}); // document.ready
+						
+						// Magic key generator
+						function xorkey (ids) {
+							for (var key=0,i=0; i < ids.length; i++) 
+								key = key ^ (ids[i]*101);
+							return key;
+						}
+						
+					})(jQuery)
+					//]]>
+					</script>
+					<?php
 				}
+				
 				return $string;
+				break;
+			case "has-addons":
+				if (isset($this->options['addons'])) return true; else return false; break;
 				break;
 			case "addtocart":
 				$string = "";
 				$string .= '<input type="hidden" name="product" value="'.$this->id.'" />';
 				$string .= '<input type="hidden" name="price" value="'.$this->prices[0]->id.'" />';
 				$string .= '<input type="hidden" name="cart" value="add" />';
-				$string .= '<input type="button" name="addtocart" value="Add to Cart" class="addtocart" />';
+				$string .= '<input type="submit" name="addtocart" value="Add to Cart" class="addtocart" />';
 				return $string;
 		}
 		
