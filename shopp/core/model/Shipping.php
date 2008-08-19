@@ -23,11 +23,12 @@ class Shipping extends DatabaseObject {
 	 * Determines the domestic area name from a 
 	 * U.S. zip code or Canadian postal code */
 	function postarea () {
-		if (empty($this->postcode)) return false;
-		
 		global $Shopp;
 		$code = $this->postcode;
 		$areas = $Shopp->Settings->get('areas');
+		
+		// If no postcode is provided, return the first regional column
+		if (empty($this->postcode)) return key($areas[$this->country]);
 		
 		// Lookup US area name
 		if (preg_match("/\d{5}(\-\d{4})?/",$code)) {
@@ -37,7 +38,6 @@ class Shipping extends DatabaseObject {
 					if ($code > $coderange[0] && $code < $coderange[1]) return $name;
 				}
 			}
-			
 		}
 		
 		// Lookup Canadian area name
@@ -48,6 +48,7 @@ class Shipping extends DatabaseObject {
 					if (in_array(substr($code,0,1),$fsas)) return $name;
 				}
 			}
+			return $name;
 			
 		}
 		
