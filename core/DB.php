@@ -109,7 +109,7 @@ class DB extends Singleton {
 			// it belongs in the database and needs
 			// to be prepared
 			
-			if (isset($object->_datatypes[$property])) {
+			if (isset($object->_datatypes[$property])) {				
 				
 				// Process the data
 				switch ($object->_datatypes[$property]) {
@@ -242,12 +242,13 @@ class DatabaseObject {
 	
 	/**
 	 * Load a single record by the primary key */
-	function load ($id) {
+	function load ($id=false,$key=false) {
 		$db = DB::get();
-		
-		if (empty($id)) return false; 
-		
-		$r = $db->query("SELECT * FROM $this->_table WHERE $this->_key='$id'");
+
+		if (!$id) return false;
+		if (!$key) $key = $this->_key;
+
+		$r = $db->query("SELECT * FROM $this->_table WHERE $key='$id'");
 		$this->populate($r);
 		
 		if (!empty($this->id)) return true;
