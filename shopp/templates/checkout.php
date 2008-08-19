@@ -14,6 +14,8 @@
 				<label for="email">Email</label></span>
 			<span><?php shopp('checkout','phone','format=phone&size=15&title=Phone'); ?><label for="phone">Phone</label></span>
 		</li>
+		<li></li>
+		<?php if (shopp('checkout','shipping')): ?>
 		<li class="half">
 			<label for="shipping-address">Shipping Address</label>
 			<div><?php shopp('checkout','shipping-address','required=true&Title=Shipping street address'); ?><label for="shipping-address">Street Address</label></div>
@@ -25,6 +27,9 @@
 			<div class="inline"><label for="useshipping"><input type="checkbox" name="useshipping" value="" id="useshipping" /> Use this for the Billing Address</label></div>
 		</li>
 		<li class="half right">
+		<?php else: ?>
+			<li>
+		<?php endif; ?>
 			<label for="billing-address">Billing Address</label>
 			<div><?php shopp('checkout','billing-address','required=true&title=Billing street address'); ?><label for="billing-address">Street Address</label></div>
 			<div><?php shopp('checkout','billing-xaddress','title=Billing address line 2'); ?><label for="billing-xaddress">Address Line 2</label></div>

@@ -26,8 +26,10 @@
 
 	<tr class="totals">
 		<td colspan="2" rowspan="4">
+			<?php if (shopp('cart','needs-shipped')): ?>
 			<small>Select shipping country to calculate shipping and tax:</small>
 			<?php shopp('cart','shipping-estimates'); ?>
+			<?php endif; ?>
 		</td>
 		<th scope="row">Subtotal</th>
 		<td class="money"><?php shopp('cart','subtotal'); ?></td>
@@ -37,7 +39,7 @@
 		<td class="money"><?php shopp('cart','shipping'); ?></td>
 	</tr>
 	<tr class="totals">
-		<th scope="row""><?php shopp('cart','tax','label=Tax'); ?></th>
+		<th scope="row"><?php shopp('cart','tax','label=Tax'); ?></th>
 		<td class="money"><?php shopp('cart','tax'); ?></td>
 	</tr>
 	<tr class="totals total">

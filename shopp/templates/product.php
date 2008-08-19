@@ -3,7 +3,7 @@
 <?php if (shopp('product','found')): ?>
 
 	<h3><?php shopp('product','name'); ?></h3>
-	<p class="headline"><?php shopp('product','summary'); ?></p>
+	<p class="headline"><big><?php shopp('product','summary'); ?></big></p>
 
 	<?php shopp('product','gallery'); ?>
 
@@ -15,23 +15,26 @@
 	<?php endif; ?>
 
 	<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
-		<?php if(shopp('product','hasoptions')): ?>
-		<ul class="options">
-			<?php while(shopp('product','options','variations')): ?>
-				<li><label><?php shopp('product','option','label'); ?></label>
-				<?php shopp('product','option','menu&default=Select an option...'); ?></li>
-			<?php endwhile; ?>
+		<?php if(shopp('product','has-variations')): ?>
+		<ul class="variations">
+			<?php shopp('product','variations','label=true&defaults=Select an option&before_menu=<li>&after_menu=</li>'); ?>
 		</ul>
 		<?php endif; ?>
 
-		<?php shopp('product','buynow'); ?>
+		<?php if(shopp('product','has-addons')): ?>
+		<ul class="options">
+			<?php shopp('product','addons','mode=single&label=true&default=Select an option&before_menu=<li>&after_menu=</li>'); ?>
+		</ul>
+		<?php endif; ?>
+
+
 		<?php shopp('product','addtocart'); ?>
 	
 	</form>
 
 	<div class="description"><?php shopp('product','description'); ?></div>
 
-	<?php if(shopp('product','hasspecs')): ?>
+	<?php if(shopp('product','has-specs')): ?>
 	<ul class="details">
 		<?php while(shopp('product','specs')): ?>
 		<li><?php shopp('product','spec','name&content'); ?></li>

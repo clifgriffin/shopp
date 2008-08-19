@@ -1,21 +1,21 @@
 <div id="receipt" class="shopp">
 <table class="transaction">
-	<tr><th>Order Num:</th><td><?php echo $Purchase->id; ?></td></tr>	
-	<tr><th>Order Date:</th><td><?php echo date('F j, Y', $Purchase->created); ?></td></tr>	
-	<tr><th>Billed To:</th><td><?php printf("%'X16d",$Purchase->card); ?> (<?php echo $Purchase->cardtype; ?>)</td></tr>	
-	<tr><th>Transaction:</th><td><?php echo $Purchase->transactionid; ?></td></tr>	
+	<tr><th>Order Num:</th><td><?php shopp('purchase','id'); ?></td></tr>	
+	<tr><th>Order Date:</th><td><?php shopp('purchase','date','format=F j, Y'); ?></td></tr>	
+	<tr><th>Billed To:</th><td><?php shopp('purchase','card'); ?> (<?php shopp('purchase','cardtype'); ?>)</td></tr>	
+	<tr><th>Transaction:</th><td><?php shopp('purchase','transactionid'); ?></td></tr>	
 </table>
 
 <fieldset>
-	<legend>Ship To</legend>
-	<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
-	<?php echo $Purchase->shipaddress; ?><br />
-	<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
-	<?php echo "{$Purchase->shipcity}, {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
-	<?php echo $Purchase->shipcountry ?></address>
+	<legend><?php shopp('purchase','label'); ?></legend>
+	<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
+	<?php shopp('purchase','address'); ?><br />
+	<?php shopp('purchase','xaddress'); ?>
+	<?php shopp('purchase','city'); ?>, <?php shopp('purchase','state'); ?> <?php shopp('purchase','postcode'); ?><br />
+	<?php shopp('purchase','country'); ?></address>
 </fieldset>
 
-<?php if (sizeof($Purchase->purchased) > 0): ?>
+<?php if (shopp('purchase','hasitems')): ?>
 <table class="cart widefat">
 	<thead>
 	<tr>
@@ -25,40 +25,39 @@
 		<th scope="col" class="money">Item Total</th>
 	</tr>
 	</thead>
-	<?php $even = false; foreach ($Purchase->purchased as $id => $Item): ?>
-		<tr<?php if (!even) echo 'class="alternate"'; $even = !$even; ?>>
-			<td>
-				<?php echo $Item->name; ?>
-				<?php if (!empty($Item->optionname)) echo "({$Item->optionname})"; ?>
-			</td>
-			<td><?php echo $Item->quantity; ?></td>
-			<td class="money"><?php echo money($Item->unitprice); ?></td>
-			<td class="money total"><?php echo money($Item->total); ?></td>
+
+	<?php while(shopp('purchase','items')): ?>
+		<tr>
+			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options'); ?></td>
+			<td><?php shopp('purchase','item-quantity'); ?></td>
+			<td class="money"><?php shopp('purchase','item-unitprice'); ?></td>
+			<td class="money"><?php shopp('purchase','item-total'); ?></td>
 		</tr>
-	<?php endforeach; ?>
+	<?php endwhile; ?>
+
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Subtotal</th>
-		<td class="money"><?php echo money($Purchase->subtotal); ?></td>
+		<td class="money"><?php shopp('purchase','subtotal'); ?></td>
 	</tr>
-	<?php if ($Purchase->freight > 0): ?>
+	<?php if (shopp('purchase','hasfrieght')): ?>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Shipping</th>
-		<td class="money"><?php echo money($Purchase->freight); ?></td>
+		<td class="money"><?php shopp('purchase','freight'); ?></td>
 	</tr>
 	<?php else: ?>
 	<tr class="totals">
 		<th scope="row" colspan="4" class="total"><?php //echo $this->Core->Settings->get('free_shipping_text'); ?></th>
 	</tr>
 	<?php endif; ?>
-	<?php if ($Purchase->tax > 0): ?>
+	<?php if (shopp('purchase','hastax')): ?>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Tax</th>
-		<td class="money"><?php echo money($Purchase->tax); ?></td>
+		<td class="money"><?php shopp('purchase','tax'); ?></td>
 	</tr>
 	<?php endif; ?>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Total</th>
-		<td class="money"><?php echo money($Purchase->total); ?></td>
+		<td class="money"><?php shopp('purchase','total'); ?></td>
 	</tr>
 </table>
 <?php else: ?>
