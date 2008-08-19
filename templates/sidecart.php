@@ -1,9 +1,10 @@
 <?php if (shopp('cart','hasitems')): ?>
-<li>
-	<h3><a href="<?php shopp('cart','url'); ?>">Your Cart</a></h3>
 	<ul>
-		<li><?php shopp('cart','totalitems'); ?> <strong>Items</strong></li>
-		<li><strong>Total</strong> <span class="money"><?php shopp('cart','total'); ?></span></li>
+		<li><a href="<?php shopp('cart','url'); ?>"><?php shopp('cart','totalitems'); ?> <strong>Items</strong></a></li>
+		<li><a href="<?php shopp('cart','url'); ?>"><strong>Total</strong> <span class="money"><?php shopp('cart','total'); ?></span></a></li>
 	</ul>
-</li>	
+<?php else: ?>
+	<ul>
+		<li>Your cart is empty.</li>
+	</ul>
 <?php endif; ?>
