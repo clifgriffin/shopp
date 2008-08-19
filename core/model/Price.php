@@ -12,10 +12,22 @@
 class Price extends DatabaseObject {
 	static $table = "price";
 	
-	function Price ($id=false) {
+	function Price ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id)) return true;
+		if ($this->load($id,$key)) return true;
 		else return false;
+	}
+	
+	/**
+	 * Load a single record by a slug name */
+	function loadby_optionkey ($product,$key) {
+		$db = DB::get();
+		
+		$r = $db->query("SELECT * FROM $this->_table WHERE product='$product' AND optionkey='$key'");
+		$this->populate($r);
+
+		if (!empty($this->id)) return true;
+		return false;
 	}
 
 } // end Price class
