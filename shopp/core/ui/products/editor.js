@@ -108,7 +108,7 @@ function init () {
 		enableDeleteButton(this);
 	});
 
-	// Initialize image uploader
+	// Initialize file uploader
 	uploader = new SWFUpload({
 		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
 		upload_url: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
@@ -635,11 +635,14 @@ function addPriceLine (target,options,data,attachment) {
 	var priceCell = $('<td/>').appendTo(inputsRow);
 	var price = $('<input type="text" name="price['+i+'][price]" id="price['+i+']" value="0" size="10" class="selectall right" tabindex="'+(i+1)+'03" />').appendTo(priceCell);
 	$('<br />').appendTo(priceCell);
-	var tax = $('<input type="checkbox" name="price['+i+'][tax]" id="tax['+i+']" tabindex="'+(i+1)+'04" />').appendTo(priceCell);
+	$('<input type="hidden" name="price['+i+'][tax]" tabindex="'+(i+1)+'04" value="on" />').appendTo(priceCell);
+	var tax = $('<input type="checkbox" name="price['+i+'][tax]" id="tax['+i+']" tabindex="'+(i+1)+'04" value="off" />').appendTo(priceCell);
 	var taxLabel = $('<label for="tax['+i+']"> Not Taxable</label><br />').appendTo(priceCell);
 
 	var salepriceHeading = $('<th><label for="sale['+i+']"> Sale Price</label></th>').appendTo(headingsRow);
 	var salepriceToggle = $('<input type="checkbox" name="price['+i+'][sale]" id="sale['+i+']" tabindex="'+(i+1)+'05" />').prependTo(salepriceHeading);
+	$('<input type="hidden" name="price['+i+'][sale]" value="off" />').prependTo(salepriceHeading);
+	
 	var salepriceCell = $('<td/>').appendTo(inputsRow);
 	var salepriceStatus = $('<span id="test['+i+']">Not on Sale</span>').addClass('status').appendTo(salepriceCell);
 	var salepriceField = $('<span/>').addClass('fields').appendTo(salepriceCell).hide();
@@ -649,6 +652,8 @@ function addPriceLine (target,options,data,attachment) {
 	
 	var shippingHeading = $('<th><label for="shipping['+i+']"> Shipping</label></th>').appendTo(headingsRow);
 	var shippingToggle = $('<input type="checkbox" name="price['+i+'][shipping]" id="shipping['+i+']" tabindex="'+(i+1)+'07" />').prependTo(shippingHeading);
+	$('<input type="hidden" name="price['+i+'][shipping]" value="off" />').prependTo(shippingHeading);
+	
 	var shippingCell = $('<td/>').appendTo(inputsRow);
 	var shippingStatus = $('<span>Free Shipping</span>').addClass('status').appendTo(shippingCell);
 	var shippingFields = $('<span/>').addClass('fields').appendTo(shippingCell).hide();
