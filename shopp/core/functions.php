@@ -223,6 +223,41 @@ function is_robot() {
 	return false;
 }
 
+function shopp_prereqs () {
+	$errors = array();
+	// Check PHP version
+	if (!version_compare(PHP_VERSION, '5.0.0', '>')) 
+		$errors[] = "Shopp requires PHP version 5+.  You are using PHP version ".PHP_VERSION;
+		
+	// Check WordPress version
+	if (!version_compare(get_bloginfo('version'),'2.4.0','>'))
+		$errors[] = "Shopp requires WordPress version 2.5+.  You are using WordPress version ".get_bloginfo('version');
+	
+	// Check for cURL
+	if( !function_exists("curl_init") &&
+	      !function_exists("curl_setopt") &&
+	      !function_exists("curl_exec") &&
+	      !function_exists("curl_close") ) $errors[] = "Shopp requires the cURL library for processing transactions securely. Your web hosting environment does not currently have cURL installed (or built into PHP).";
+	
+	// Check for GD
+	if (!function_exists("gd_info")) $errors[] = "Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.  Your web hosting environment does not currently have GD installed (or built into PHP).";
+	else {
+		$gd = gd_info();
+		if (!$gd['JPG Support']) $errors[] = "Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.";
+	}
+	
+	if (!empty($errors)) {
+		foreach ($errors as $error) {
+			echo '<style type="text/css">body { font: 13px "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, sans-serif;
+			}</style>';
+			echo "<p>$error</p>";
+		}
+		echo '<p>Sorry! You will not be able to use Shopp.  For more information, see the <a href="http://docs.shopplugin.net/Installation">online Shopp documentation.</p>';
+		exit();
+	}
+	return true;
+}
+
 
 function shopp_debug ($object) {
 	global $Shopp;
@@ -413,5 +448,7 @@ function valid_input ($type) {
 	if (in_array($type,$inputs) !== false) return true;
 	return false;
 }
+
+shopp_prereqs();  // Run by default at include
 
 ?>
