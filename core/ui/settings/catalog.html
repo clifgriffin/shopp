@@ -9,17 +9,6 @@
 				<td><input type="hidden" name="settings[catalog]" value="off" /><input type="checkbox" name="settings[catalog]" value="on" id="catalog-toggle"<?php if ($this->Settings->get('catalog') == "on") echo ' checked="checked"'?> /><label for="catalog-toggle"> Enabled</label><br /> 
 	            Leave checked to use an automatically generated catalog to display your products.<br />Uncheck if you are designing custom product pages.</td>
 			</tr>
-			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="category-menu-title">Category Menu Title</label></th> 
-				<td><input type="text" name="settings[category_menu_title]" value="<?php echo $this->Settings->get('category_menu_title'); ?>" id="category-menu-title"><br /> 
-	            The title text for the catalog category menu. Supports basic HTML (for example: &lt;h2&gt;, &lt;h3&gt;)</td>
-			</tr>
-			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="catalog-toggle">Category Menu</label></th> 
-				<td><input type="radio" name="settings[category_display]" value="before" id="category_menu_display_before"<?php if($this->Settings->get('category_display') == "before") echo ' checked="checked"' ?> /> <label for="category_menu_display_before">Shop categories before WordPress category list</label><br />
-					<input type="radio" name="settings[category_display]" value="after" id="category_menu_display_after"<?php if($this->Settings->get('category_display') == "after") echo ' checked="checked"' ?> /> <label for="category_menu_display_after">Shop categories after WordPress category list</label><br />
-					<input type="radio" name="settings[category_display]" value="disabled" id="category_menu_display_disabled"<?php if($this->Settings->get('category_display') == "disabled") echo ' checked="checked"' ?> /> <label for="category_menu_display_disabled">Shop categories display disabled</label></td>
-			</tr>
 		</table>
 		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
 	</form>
