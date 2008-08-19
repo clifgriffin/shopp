@@ -15,8 +15,8 @@ class Item {
 	var $sku;
 	var $type;
 	var $name;
-	var $brand;
-	var $optionname;
+	var $optionlabel;
+	var $options;
 	var $description;
 	var $discount = 0;
 	var $quantity = 0;
@@ -34,18 +34,15 @@ class Item {
 		$this->product = $Product->id;
 		$this->price = $Price->id;
 		$this->name = $Product->name;
-		$this->brand = $Product->brand;
+		// $this->description = $Product->summary;
+		$this->options = count($Product->prices);
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
 		$this->discount = 0; // Not implemented yet
 		$this->quantity = $qty;
 		$this->unitprice = (($Price->sale == "on")?$Price->saleprice:$Price->price);
 		$this->total = $this->quantity * $this->unitprice;
-
-		if (count($Product->prices) > 1) {
-			$this->optionname = $Price->label;
-			$this->options = $Product->prices;
-		}
+		$this->optionlabel = $Price->label;
 
 		if ($Price->shipping == "on" && $Price->type == "Shipped") {
 			$this->shipping = true;
@@ -67,12 +64,24 @@ class Item {
 	}
 	
 	function options ($selected = "") {
+		$db = DB::get();
+		$table = DatabaseObject::tablename(Price::$table);
+		$options = $db->query("SELECT id,label,price,saleprice,sale FROM $table WHERE product='$this->product' AND type <> 'N/A'");
+		
+		if (!is_array($options)) return "";
 		$string = "";
-		foreach($this->options as $option) {
+		foreach($options as $option) {
 			if ($option->type != "N/A") {
-				$price = money(($option->sale == "on")?$option->saleprice:$option->price);
-				if ($selected == $option->id) $string .= "<option value=\"$option->id\" selected=\"\">$option->label ($price)</option>";
-				else $string .= "<option value=\"$option->id\">$option->label ($price)</option>";
+				$currently = ($option->sale == "on")?$option->saleprice:$option->price;
+
+				$difference = $currently-$this->unitprice;
+
+				$price = '';
+				if ($difference > 0) $price = '  (+'.money($difference).')';
+				if ($difference < 0) $price = '  ('.money($difference).')';
+				
+				if ($selected == $option->id) $string .= '<option value="'.$option->id.'" selected="selected">'.$option->label.'</option>';
+				else $string .= '<option value="'.$option->id.'">'.$option->label.$price.'</option>';
 			}
 		}
 		return $string;
@@ -92,7 +101,6 @@ class Item {
 		switch ($property) {
 			case "name": return $this->name;
 			case "url": return $Shopp->link('').$uri;
-			case "brand": return $this->brand;
 			case "sku": return $this->sku;
 		}
 		
@@ -130,18 +138,16 @@ class Item {
 				if (isset($options['input'])) {
 					switch ($options['input']) {
 						case "button":
-							$result = '<button type="submit" name="remove" value="remove" class="remove">'.$label.'</button>';
+							$result = '<button type="submit" name="remove" value="'.$id.'" class="remove">'.$label.'</button>';
 					}
 				} else {
 					$result = '<a href="'.SHOPP_CARTURL.'?cart=update&amp;item='.$id.'&amp;quantity=0">'.$label.'</a>';
 				}
-				
-				
 				break;
 			case "options":
 				$class = "";
 				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
-				if (!empty($this->optionname)) {
+				if ($this->options > 1) {
 					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';
 					$result .= ' <select name="items['.$id.'][price]" id="items-'.$id.'-price"'.$class.'>';
 					$result .= $this->options($this->price);
