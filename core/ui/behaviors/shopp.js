@@ -221,23 +221,13 @@ function buttonHandlers () {
 function cartHandlers () {
 	var form = document.getElementById('cart');
 	if (form) {
-		var action = document.getElementById('cart-action');
-		var buttons = form.getElementsByTagName('input');
-		for (var i in buttons) {
-			if (buttons[i].type == "submit") {
-				buttons[i].onclick = function () {
-					action.value = this.name;
-					form.submit();
-				}
+		var shipcountry = document.getElementById('shipping-country');
+		if (shipcountry) {
+			shipcountry.onchange = function () {
+				action.value = "estimates";
+				form.submit();
 			}
 		}
-		
-		var shipcountry = document.getElementById('shipping-country');
-		shipcountry.onchange = function () {
-			action.value = "estimates";
-			form.submit();
-		}
-		
 	}
 }
 
