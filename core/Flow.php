@@ -19,7 +19,6 @@ class Flow {
 	
 	function Flow (&$Core) {
 		$this->Settings = $Core->Settings;
-		$this->ShipCalcs = $Core->ShipCalcs;
 		$this->Cart = $Core->Cart;
 
 		$this->basepath = dirname(dirname(__FILE__));
@@ -62,9 +61,14 @@ class Flow {
 			$categories = split("/",$category);
 			$category = end($categories);
 			
-			$key = "id";
-			if (!preg_match("/\d+/",$category)) $key = "slug";
-			$Shopp->Category = new Category($category,$key);
+			if ($category == "new") $Shopp->Category = new NewProducts();
+			if ($category == "featured") $Shopp->Category = new FeaturedProducts();
+			else {
+				$key = "id";
+				if (!preg_match("/\d+/",$category)) $key = "slug";
+
+				$Shopp->Category = new Category($category,$key);
+			}
 		}
 			
 		// Find product by category name and product name
@@ -94,19 +98,43 @@ class Flow {
 		
 	}	
 	
-	function catalog_categories ($input) {
-		$display = $this->Settings->get('category_display');
-		if ($display == "disabled") return $input;
+	function categories_widget ($args=null) {
+		global $Shopp;
+		extract($args);
 
-		$db = DB::get();
+		$options = array();
+		$options = $Shopp->Settings->get('categories_widget_options');
+		
+		$options['title'] = $before_title.$options['title'].$after_title;
 		
 		$Catalog = new Catalog();
-		$menu = $Catalog->tag('category-list');
+		$menu = $Catalog->tag('category-list',$options);
+		echo $before_widget.$menu.$after_widget;
 		
-		switch($display) {
-			case "before": return $menu.$input;
-			case "after": return $input.$menu;
+	}
+	
+	function categories_widget_options ($args=null) {
+		global $Shopp;
+		
+		if (isset($_POST['categories_widget_options'])) {
+			$options = $_POST['shopp_categories_options'];
+			$Shopp->Settings->save('categories_widget_options',$options);
 		}
+
+		$options = $Shopp->Settings->get('categories_widget_options');
+		
+		echo '<p><label>Title<input name="shopp_categories_options[title]" class="widefat" value="'.$options['title'].'"></label></p>';
+		echo '<p>';
+		echo '<label><input type="hidden" name="shopp_categories_options[dropdown]" value="off" /><input type="checkbox" name="shopp_categories_options[dropdown]" value="on"'.(($options['dropdown'] == "on")?' checked="checked"':'').' /> Show as dropdown</label><br />';
+		echo '<label><input type="hidden" name="shopp_categories_options[products]" value="off" /><input type="checkbox" name="shopp_categories_options[products]" value="on"'.(($options['products'] == "on")?' checked="checked"':'').' /> Show product counts</label><br />';
+		echo '<label><input type="hidden" name="shopp_categories_options[hierarchy]" value="off" /><input type="checkbox" name="shopp_categories_options[hierarchy]" value="on"'.(($options['hierarchy'] == "on")?' checked="checked"':'').' /> Show hierarchy</label>';
+		echo '</p>';
+		echo '<div><input type="hidden" name="categories_widget_options" value="1" /></div>';
+	}
+	
+	function init_categories_widget () {
+		register_sidebar_widget("Shopp Categories",array(&$this,'categories_widget'),'shopp categories');
+		register_widget_control('Shopp Categories',array(&$this,'categories_widget_options'));
 	}
 	
 	/**
@@ -117,7 +145,6 @@ class Flow {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
 
-		
 		if (isset($_POST['checkout'])) {
 			$pages = $this->Settings->get('pages');
 			header("Location: ".$Shopp->link('checkout','',true));
@@ -129,26 +156,46 @@ class Flow {
 			header("Location: ".$Shopp->link('catalog'));
 			exit();
 		}
+		
+		if (isset($_POST['shipping'])) {
+			$countries = $this->Settings->get('countries');
+			$regions = $this->Settings->get('regions');
+			$_POST['shipping']['region'] = $regions[$countries[$_POST['shipping']['country']]['region']];
+			unset($countries,$regions);
+			
+			$Cart->shipzone($_POST['shipping']);
+		}
+		
+		if (isset($_POST['remove'])) $_POST['cart'] = "remove";
+		if (isset($_POST['update'])) $_POST['cart'] = "update";
+		if (isset($_POST['empty'])) $_POST['cart'] = "empty";
 
 		switch($_POST['cart']) {
 			case "add":
-				if (isset($_POST['product']) && isset($_POST['price'])) {
+				if (isset($_POST['product']) && (isset($_POST['price']) || isset($_POST['options']))) {
 					$Product = new Product($_POST['product']);
-					$Price = new Price($_POST['price']);
-					$quantity = (!empty($_POST['quantity']))?$_POST['quantity']:1;
-			
-					if (isset($_POST['item'])) $Cart->change($_POST['item'],$Product,$Price);
+					if (!empty($_POST['options'])) {
+						$key = $Product->optionkey($_POST['options']);
+						$Price = new Price();
+						$Price->loadby_optionkey($Product->id,$key);
+					} else $Price = new Price($_POST['price']); // Load by id
+					
+					$quantity = (!empty($_POST['quantity']))?$_POST['quantity']:1; // Add 1 by default
+					if (isset($_POST['item'])) $Cart->change($_POST['item'],$Product,$Price);						
 					else $Cart->add($quantity,$Product,$Price);
 				}
+				if (!empty($_POST['shipping'])) $Cart->shipping($_POST['shipping']);
+				break;
+			case "remove":
+				if (!empty($Cart->contents)) $Cart->remove($_POST['remove']);
 				break;
 			case "empty":
 				$Cart->clear();
 				break;
-			case "update":
-				if (!empty($_POST['shipping'])) $Cart->shipping($_POST['shipping']);
-			
+			case "update":			
 				if (!empty($_POST['item']) && isset($_POST['quantity'])) {
 					$Cart->update($_POST['item'],$_POST['quantity']);
+					
 				} elseif (!empty($_POST['items'])) {
 					foreach ($_POST['items'] as $id => $item) {
 						if (isset($item['quantity'])) {
@@ -160,21 +207,12 @@ class Flow {
 							$Cart->change($id,$Product,$Price);
 						}
 					}
-
+					$Cart->shipping();
 				}
 			
 				break;
-			case "estimates":
-				$countries = $this->Settings->get('countries');
-				$regions = $this->Settings->get('regions');
-				$_POST['shipping']['region'] = $regions[$countries[$_POST['shipping']['country']]['region']];
-				unset($countries,$regions);
-				
-				$Cart->shipzone($_POST['shipping']);
-				$Cart->shipping();
-				break;
 		}
-						
+					
 	}
 
 	function cart_request () {
@@ -193,12 +231,14 @@ class Flow {
 					$Product = new Product($product_id);
 					$Price = new Price($price_id);
 					$quantity = (!empty($_GET['quantity']))?$_GET['quantity']:1;
-					$Cart->add($quantity,$Product,$Price);				
+					$Cart->add($quantity,$Product,$Price);
 				}
 				break;
 			case "empty": $Cart->clear(); break;
+			case "remove":
+				if (!empty($Cart->contents)) $Cart->remove($_POST['remove']);
+				break;
 			case "update":  // Received an update request
-
 				// Update quantity
 				if (isset($_GET['item']) && isset($_GET['quantity'])) 
 					$Cart->update($_GET['item'],$_GET['quantity']);
@@ -220,31 +260,50 @@ class Flow {
 	}
 
 	function cart_ajax () {
-		// Not implemented
+		// TODO: Not implemented yet
 	}
 
-	function cart_default ($attrs=array()) {
+	function cart ($attrs=array()) {
 		$Cart = $this->Cart;
-
 		ob_start();
 		include("{$this->basepath}/templates/cart.php");
 		$content = ob_get_contents();
 		ob_end_clean();
 
-		return $content;
+		return '<div id="shopp">'.$content.'</div>';
 	}
 
 	function init_cart_widget () {
-		// Check for required functions
-		if (!function_exists('register_sidebar_widget'))
-			return;
-		
 		register_sidebar_widget("Shopp Cart",array(&$this,'cart_widget'),'shopp cart');
+		register_widget_control('Shopp Cart',array(&$this,'cart_widget_options'));
+	}
+	
+	function cart_widget_options ($args=null) {
+		global $Shopp;
+
+		if (isset($_POST['shopp_cart_widget_options'])) {
+			$options = $_POST['shopp_cart_options'];
+			$Shopp->Settings->save('cart_widget_options',$options);
+		}
+
+		$options = $Shopp->Settings->get('cart_widget_options');
+
+		echo '<p><label>Title<input name="shopp_cart_options[title]" class="widefat" value="'.$options['title'].'"></label></p>';
+		echo '<div><input type="hidden" name="shopp_cart_widget_options" value="1" /></div>';
 	}
 
-	function cart_widget ($args) {
+	function cart_widget ($args=null) {
+		global $Shopp;
 		extract($args);
-		include("{$this->basepath}/templates/sidecart.php");		
+		
+		$options = $Shopp->Settings->get('cart_widget_options');
+		
+		if (empty($options['title'])) $options['title'] = "Your Cart";
+		$options['title'] = $before_title.'<a href="'.$Shopp->link('cart').'">'.$options['title'].'</a>'.$after_title;
+		
+		$sidecart = $Shopp->Cart->tag('sidecart',$options);
+		echo $before_widget.$options['title'].$sidecart.$after_widget;
+		
 	}
 
 	function shipping_estimate ($attrs) {
@@ -266,7 +325,6 @@ class Flow {
 		$Cart = $Shopp->Cart;
 
 		$process = get_query_var('shopp_proc');
-		
 		switch ($process) {
 			// case "receipt": $content = order_receipt(); break;
 			case "confirm-order": $content = $this->order_confirmation(); break;
@@ -280,7 +338,7 @@ class Flow {
 
 				unset($Cart->data->OrderError);
 		}
-		return $content;
+		return '<div id="shopp">'.$content.'</div>';
 	}
 	
 	function checkout_order_summary () {
@@ -300,7 +358,7 @@ class Flow {
 		include("{$this->basepath}/templates/confirm.php");
 		$content = ob_get_contents();
 		ob_end_clean();
-		return $content;
+		return '<div id="shopp">'.$content.'</div>';
 	}
 	
 
@@ -311,15 +369,11 @@ class Flow {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
 		
-		require_once("{$this->basepath}/core/model/Purchase.php");
-		$Purchase = new Purchase($Cart->data->Purchase);
-		$Purchase->load_purchased();
 		ob_start();
-		if (!empty($Purchase->id)) include("{$this->basepath}/templates/receipt.php");
-		else echo '<p class="error">There was a problem retrieving your order, although the transaction was successful.</p>';
+		include("{$this->basepath}/templates/receipt.php");
 		$content = ob_get_contents();
 		ob_end_clean();
-		return $content;
+		return '<div id="shopp">'.$content.'</div>';
 	}
 	
 	
@@ -471,7 +525,7 @@ class Flow {
 
 	function save_product($Product) {
 		$db = DB::get();
-		
+
 		if (!$_POST['options']) $Product->options = array();
 		$_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
 		$Product->updates($_POST,array('categories'));
@@ -550,7 +604,6 @@ class Flow {
 	}
 	
 	function product_images () {
-			require("{$this->basepath}/core/model/Asset.php");
 			require("{$this->basepath}/core/model/Image.php");
 			
 			// TODO: add some error handling here
@@ -674,13 +727,13 @@ class Flow {
 		else $_POST['slug'] = sanitize_title_with_dashes($_POST['slug']);
 		
 		// Work out pathing
-		$uri = $_POST['slug'];
+		$uri = "/".$_POST['slug'];
 	
 		// If we're saving a new category, lookup the parent
 		if ($_GET['category'] == "new") {
 			for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
 				if ($_POST['parent'] == $Shopp->Catalog->categories[$i]->id) break;
-			$uri = $Shopp->Catalog->categories[$i]->slug."/".$uri;
+			$uri = "/".$Shopp->Catalog->categories[$i]->slug.$uri;
 		} else {
 			for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
 				if ($_GET['category'] == $Shopp->Catalog->categories[$i]->id) break;
@@ -689,7 +742,7 @@ class Flow {
 		$parentkey = $Shopp->Catalog->categories[$i]->parentkey;
 		while ($parentkey > -1) {
 			$tree_category = $Shopp->Catalog->categories[$parentkey];
-			$uri = $tree_category->slug."/".$uri;
+			$uri = "/".$tree_category->slug.$uri;
 			$parentkey = $tree_category->parentkey;
 		}
 		
@@ -796,6 +849,7 @@ class Flow {
 	}
 
 	function settings_shipping () {
+		global $Shopp;
 		
 		if (!empty($_POST['save'])) {
 			// Sterilize $values
@@ -811,7 +865,7 @@ class Flow {
 	 		$this->settings_save();			
 		}
 
-		$methods = $this->ShipCalcs->methods;
+		$methods = $Shopp->ShipCalcs->methods;
 
 		$base = $this->Settings->get('base_operations');
 		$regions = $this->Settings->get('regions');
