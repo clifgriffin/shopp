@@ -14,14 +14,15 @@ require_once("Product.php");
 class Category extends DatabaseObject {
 	static $table = "category";
 	
-	function Category ($id=false,$key="id") {
+	function Category ($id=false,$key=false) {
 		$this->init(self::$table);
-		switch($key) {
-			case "new": $this->newest(); return true; break;
-			case "slug": if ($this->loadby_slug($id)) return true; break;
-			default: if ($this->load($id)) return true;
-		}
+		if ($this->load($id,$key)) return true;
 		return false;
+	}
+	
+	function Smart ($slug) {
+		$categories = array("new");
+		if (in_array($slug,$categories)) return true;
 	}
 	
 	/**
@@ -51,16 +52,7 @@ class Category extends DatabaseObject {
 		$query = "SELECT p.id,p.name,p.summary,img.id AS thumbnail,img.properties AS thumbnail_properties,MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,IF(pd.sale='on',1,0) AS onsale,MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice FROM $catalog_table AS catalog LEFT JOIN $product_table AS p ON catalog.product=p.id LEFT JOIN $price_table AS pd ON pd.product=p.id AND pd.type != 'N/A' LEFT JOIN $asset_table AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 WHERE {$filtering['where']} GROUP BY p.id ORDER BY {$filtering['order']} LIMIT {$filtering['limit']}";
 		$this->products = $db->query($query,AS_ARRAY);
 	}
-	
-	function newest () {
-		$this->name = "New Additions";
-		$this->parent = 0;
-		$this->slug = "new";
-		$this->uri = "new";
-		$this->description = "New Additions";
-		$this->load_products(array('where'=>'1','order'=>'p.created ASC'));
-	}
-	
+		
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		$pages = $Shopp->Settings->get('pages');
@@ -96,7 +88,7 @@ class Category extends DatabaseObject {
 				break;
 			case "product":
 				$product = current($this->products);
-				if (SHOPP_PERMALINKS) $link = $path.'/'.$this->uri.'/'.sanitize_title_with_dashes($product->name);
+				if (SHOPP_PERMALINKS) $link = $path.$this->uri.'/'.sanitize_title_with_dashes($product->name);
 				else $link = $page.'&shopp_category='.$this->id.'&shopp_pid='.$product->id;
 				
 				$thumbprops = unserialize($product->thumbnail_properties);
@@ -121,5 +113,36 @@ class Category extends DatabaseObject {
 	}
 	
 } // end Category class
+
+class NewProducts extends Category {
+	
+	function NewProducts ($options=array()) {
+		$this->name = "New Products";
+		$this->parent = 0;
+		$this->slug = "new";
+		$this->uri = "/$this->slug";
+		$this->description = "New Additions";
+		if (isset($options['show']))
+			$this->load_products(array('where'=>"1",'order'=>'p.created DESC','limit'=>$options['show']));
+		else $this->load_products(array('where'=>"1",'order'=>'p.created DESC'));
+	}
+	
+}
+
+class FeaturedProducts extends Category {
+	
+	function FeaturedProducts ($options=array()) {
+		$this->name = "Featured Products";
+		$this->parent = 0;
+		$this->slug = "featured";
+		$this->uri = "/$this->slug";
+		$this->description = "Featured Products";
+		if (isset($options['show']))
+			$this->load_products(array('where'=>"featured='on'",'order'=>'p.modified ASC','limit'=>$options['show']));
+		else $this->load_products(array('where'=>"featured='on'",'order'=>'p.modified ASC'));
+	}
+	
+}
+
 
 ?>
