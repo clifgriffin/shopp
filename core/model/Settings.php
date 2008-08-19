@@ -29,8 +29,8 @@ class Settings extends DatabaseObject {
 	 * Load all settings from the database */
 	function load ($name="") {
 		$db = DB::get();
-		if (!empty($name)) $results = $db->query("SELECT * FROM $this->_table WHERE name='$name'",AS_ARRAY,false);
-		else $results = $db->query("SELECT * FROM $this->_table WHERE autoload='on'",AS_ARRAY,false);
+		if (!empty($name)) $results = $db->query("SELECT name,value FROM $this->_table WHERE name='$name'",AS_ARRAY,false);
+		else $results = $db->query("SELECT name,value FROM $this->_table WHERE autoload='on'",AS_ARRAY,false);
 		
 		if (!is_array($results) || sizeof($results) == 0) return false;
 		while(list($key,$entry) = each($results)) {
