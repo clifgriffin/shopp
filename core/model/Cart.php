@@ -50,6 +50,7 @@ class Cart {
 		$this->data->Totals->tax = 0;
 		$this->data->Totals->taxrate = 0;
 		$this->data->Totals->total = 0;
+		$this->data->Shipping = false;
 		$this->data->Estimates = false;
 
 		$this->data->Order = new stdClass();
@@ -146,6 +147,7 @@ class Cart {
 		} else {
 			$Item = new Item($quantity,$Product,$Price);
 			$this->contents[] = $Item;
+			if ($Item->shipping) $this->data->Shipping = true;
 		}
 		$this->totals();
 		$this->save();
@@ -227,7 +229,6 @@ class Cart {
 	 * location set with shipzone() */
 	function shipping () {
 		if (!$this->data->Order->Shipping) return false;
-
 		global $Shopp;
 		$ShipCosts = $this->data->ShipCosts;
 		$Shipping = $this->data->Order->Shipping;
@@ -241,8 +242,9 @@ class Cart {
 			$shipping = 0;
 			// Match region
 			if ($Shipping->country == $base['country']) {
-				if (isset($rate[$base['country']])) $column = $base['country'];  // Use the country rate
+				if (isset($rate[$base['country']]))	$column = $base['country'];  // Use the country rate
 				else $column = $Shipping->postarea(); // Try to get domestic regional rate
+
 			} else if (isset($rate[$Shipping->region])) {
 				// Global region rate
 				$column = $Shipping->region;
@@ -258,9 +260,13 @@ class Cart {
 			}
 
 			// Calculate any product-specific shipping fee markups
-			foreach($this->contents as $Item){
+			$shipflag = false;
+			foreach ($this->contents as $Item) {
+				if ($Item->shipping) $shipflag = true;
 				if ($Item->shipfee > 0) $shipping += ($Item->quantity * $Item->shipfee);
 			}
+			if ($shipflag) $this->data->Shipping = true;
+			else $this->data->Shipping = false;
 			
 			if (!$estimate) $estimate = $shipping;
 			if ($shipping < $estimate) $estimate = $shipping;
@@ -291,7 +297,7 @@ class Cart {
 		}
 		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
 		
-		$Totals->shipping = $this->shipping();
+		if ($this->data->Shipping) $Totals->shipping = $this->shipping();
 		
 		$Totals->total = $Totals->subtotal + 
 			$Totals->shipping + $Totals->tax;		
@@ -325,12 +331,12 @@ class Cart {
 	
 	function tag ($property,$options=array()) {
 		global $Shopp;
-				
+		
 		// Return strings with no options
 		switch ($property) {
 			case "url": return $Shopp->link('cart'); break;
 			case "totalitems": return count($this->contents); break;
-			case "hasitems": if (count($this->contents) > 0) return true; else return false; break;
+			case "hasitems": return (count($this->contents) > 0)?true:false; break;
 			case "items":
 				if (!$this->looping) {
 					reset($this->contents);
@@ -352,11 +358,20 @@ class Cart {
 				if (empty($options['value'])) $options['value'] = "Update Subtotal";
 				return '<input type="submit" name="update" id="update-button"'.$this->inputattrs($options,$submit_attrs).' />';
 				break;
+			case "sidecart":
+				ob_start();
+				include("{$Shopp->Flow->basepath}/templates/sidecart.php");		
+				$content = ob_get_contents();
+				ob_end_clean();
+				return $content;
+				break;
 		}
 		
 		$result = "";
 		switch ($property) {
+			case "needs-shipped": return $this->data->Shipping; break;
 			case "shipping-estimates":
+				if (!$this->data->Shipping) return "";
 				$base = $Shopp->Settings->get('base_operations');
 				$markets = $Shopp->Settings->get('target_markets');
 				foreach ($markets as $iso => $country) $countries[$iso] = $country;
@@ -373,6 +388,7 @@ class Cart {
 		switch ($property) {
 			case "subtotal": $result = $this->data->Totals->subtotal; break;
 			case "shipping": 
+				if (!$this->data->Shipping) return "";
 				if (isset($options['label'])) {
 					$options['currency'] = "false";
 					if ($this->data->Totals->shipping > 0) $result = $options['label'];
@@ -527,6 +543,7 @@ class Cart {
 				break;
 
 			// SHIPPING TAGS
+			case "shipping": return $this->data->Shipping;
 			case "shipping-address": 
 			if (!empty($this->data->Order->Shipping->address))
 				$options['value'] = $this->data->Order->Shipping->address; 
@@ -616,12 +633,17 @@ class Cart {
 				return '<input type="text" name="billing[card]" id="billing-card"'.$this->inputattrs($options).' />';
 				break;
 			case "billing-cardexpires-mm":
+				if (!empty($this->data->Order->Billing->cardexpires))
+					$options['value'] = date("m",$this->data->Order->Billing->cardexpires);				
 				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm"'.$this->inputattrs($options).' />'; break;
-			case "billing-cardexpires-yy": return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy"'.$this->inputattrs($options).' />'; break;
+			case "billing-cardexpires-yy": 
+				if (!empty($this->data->Order->Billing->cardexpires))
+					$options['value'] = date("y",$this->data->Order->Billing->cardexpires);							
+				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy"'.$this->inputattrs($options).' />'; break;
 			case "billing-cardtype":
 				if (!empty($this->data->Order->Billing->cardtype))
-					$options['selected'] = $this->data->Order->Billing->cardtype;			
-				$cards = array("MasterCard","Visa","American Express",'Novus/Discover');
+					$options['selected'] = $this->data->Order->Billing->cardtype;	
+				$cards = $Shopp->Settings->get('gateway_cardtypes');
 				$label = (!empty($options['label']))?$options['label']:'';
 				$output = '<select name="billing[cardtype]" id="billing-cardtype"'.$this->inputattrs($options,$select_attrs).'>';
 				$output .= '<option value="" selected="selected">'.$label.'</option>';
