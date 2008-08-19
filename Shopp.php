@@ -20,6 +20,7 @@ require("core/model/Settings.php");
 require("core/model/Cart.php");
 require("core/model/ShipCalcs.php");
 require("core/model/Catalog.php");
+require("core/model/Purchase.php");
 
 $Shopp = new Shopp();
 
@@ -84,15 +85,19 @@ class Shopp {
 		add_action('save_post', array(&$this, 'page_updates'),10,2);
 
 		add_action('widgets_init', array(&$this->Flow, 'init_cart_widget'));
+		add_action('widgets_init', array(&$this->Flow, 'init_categories_widget'));
 
 		update_option('rewrite_rules', '');
 		add_filter('mod_rewrite_rules', array(&$this,'page_updates'));
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_filter('query_vars', array(&$this,'queryvars'));
-		add_filter('wp_list_categories',array(&$this->Flow,'catalog_categories'));
+		// add_filter('wp_list_categories',array(&$this->Flow,'catalog_categories'));
 	
 	}
-	
+		
+	/**
+	 * install()
+	 * Installs the tables and initializes settings */
 	function install () {
 
 		if ($this->Settings->unavailable) 
@@ -107,25 +112,36 @@ class Shopp {
 		
 	}
 	
+	/**
+	 * deactivate()
+	 * Resets the data_model to prepare for potential upgrades/changes to the table schema */
 	function deactivate() {
+		$this->Settings->save('data_model','');  // Clear the data model cache
 		return true;
 	}
 	
+	/**
+	 * add_menus()
+	 * Adds the WordPress admin menus */
 	function add_menus () {
 		$main = add_menu_page('Shop', 'Shop', 8, $this->Flow->Admin->default, array(&$this,'orders'));
 		$orders = add_submenu_page($this->Flow->Admin->default,'Orders', 'Orders', 8, $this->Flow->Admin->orders, array(&$this,'orders'));
 		$products = add_submenu_page($this->Flow->Admin->default,'Products', 'Products', 8, $this->Flow->Admin->products, array(&$this,'products'));
 		$settings = add_submenu_page($this->Flow->Admin->default,'Settings', 'Settings', 8, $this->Flow->Admin->settings, array(&$this,'settings'));
-		add_action("admin_print_scripts-$main", array(&$this, 'admin_header'));
-		add_action("admin_print_scripts-$orders", array(&$this, 'admin_header'));
-		add_action("admin_print_scripts-$products", array(&$this, 'admin_header'));
-		add_action("admin_print_scripts-$settings", array(&$this, 'admin_header'));
+		add_action("admin_print_scripts-$main", array(&$this, 'admin_behaviors'));
+		add_action("admin_print_scripts-$orders", array(&$this, 'admin_behaviors'));
+		add_action("admin_print_scripts-$products", array(&$this, 'admin_behaviors'));
+		add_action("admin_print_scripts-$settings", array(&$this, 'admin_behaviors'));
 	}
 
-	function admin_header () {
+	/**
+	 * admin_behaviors()
+	 * Dynamically includes necessary JavaScript and stylesheets for the admin */
+	function admin_behaviors () {
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js");
-
+		
+		// Load only for the product editor to keep other admin screens snappy
 		if ($_GET['page'] == $this->Flow->Admin->products && isset($_GET['edit']))
 			wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js");
 			//wp_enqueue_script('jquery.tablednd',"{$this->uri}/core/ui/jquery/jquery.tablednd.js",array('jquery'),'');
@@ -137,13 +153,10 @@ class Shopp {
 		<?php
 	}
 	
-	function page_headers () {
-		
-		?><link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/shopp.css' type='text/css' />
-		<link rel='stylesheet' href='<?php bloginfo('wpurl') ?>/wp-includes/js/thickbox/thickbox.css' type='text/css' />
-		<?php
-	}
-	
+	/**
+	 * behaviors()
+	 * Dynamically includes necessary JavaScript and stylesheets as needed in 
+	 * public shopping pages handled by Shopp */
 	function behaviors () {
 		global $wp_query;
 		$pages = $this->Settings->get('pages');
@@ -154,7 +167,7 @@ class Shopp {
 		$load_checkout = false;
 		foreach ($pages as $page) {
 			if ($page_id == $page['id']) {
-				add_action('wp_head', array(&$this, 'page_headers'));
+				add_action('wp_head', array(&$this, 'page_styles'));
 				add_action('wp_footer', array(&$this, 'footer'));
 				wp_enqueue_script('jquery');
 				wp_enqueue_script('thickbox');
@@ -166,7 +179,20 @@ class Shopp {
 		if ($page_id == $pages['checkout']['id']) 
 			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js");		
 	}
+
+	/**
+	 * page_styles()
+	 * Adds stylesheets necessary for Shopp public shopping pages */
+	function page_styles () {
+		
+		?><link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/shopp.css' type='text/css' />
+		<link rel='stylesheet' href='<?php bloginfo('wpurl') ?>/wp-includes/js/thickbox/thickbox.css' type='text/css' />
+		<?php
+	}
 	
+	/**
+	 * rewrites()
+	 * Adds Shopp-specific pretty-url rewrite rules to the WordPress rewrite rules */
 	function rewrites ($wp_rewrite_rules) {
 		$pages = $this->Settings->get('pages');
 		$shop = $pages['catalog']['name'];
@@ -185,6 +211,9 @@ class Shopp {
 		return $rules + $wp_rewrite_rules;
 	}
 	
+	/**
+	 * queryvars()
+	 * Registers the query variables used by Shopp */
 	function queryvars ($vars) {
 		$vars[] = 'shopp_proc';
 		$vars[] = 'shopp_category';
@@ -197,19 +226,27 @@ class Shopp {
 		return $vars;
 	}
 			
+	/**
+	 * orders()
+	 * Handles order administration screens */
 	function orders () {
 		if (isset($_GET['manage'])) $this->Flow->order_manager();
 		else $this->Flow->orders_list();
 	}
 
+	/**
+	 * products()
+	 * Handles product administration screens */
 	function products () {
-		
 		if (isset($_GET['edit'])) $this->Flow->product_editor();
 		elseif (isset($_GET['categories'])) $this->Flow->categories_list();
 		elseif (isset($_GET['category'])) $this->Flow->category_editor();
 		else $this->Flow->products_list();
 	}
 
+	/**
+	 * settings()
+	 * Handles settings administration screens */
 	function settings () {
 
 		switch($_GET['edit']) {
@@ -225,6 +262,9 @@ class Shopp {
 		
 	}
 	
+	/**
+	 * footer()
+	 * Adds report information and custom debugging tools to the public and admin footers */
 	function footer () {
 		if (!SHOPP_DEBUG) return true;
 		$db = DB::get();
@@ -241,13 +281,16 @@ class Shopp {
 		echo 'var wpquerytotal = '.$wpdb->num_queries.';';
 		echo 'var shoppquerytotal = '.count($db->queries).';';
 		echo 'var shoppqueries = '.json_encode($db->queries).';';
-		// echo 'var shoppobjectdump = "";';
+		echo 'var shoppobjectdump = "";';
 		// if (isset($this->_debug->objects)) echo 'shoppobjectdump = "'.addslashes($this->_debug->objects).'";';
 		echo '//]]>'."\n";
 		echo '</script>'."\n";
 		
 	}
 	
+	/**
+	 * page_updates()
+	 * Handles changes to Shopp-installed pages that may affect 'pretty' urls */
 	function page_updates ($update_id=false,$updates=false) {
 		$pages = $this->Settings->get('pages');
 
@@ -271,6 +314,9 @@ class Shopp {
 		$this->Settings->save('pages',$pages);
 	}
 		
+	/**
+	 * cart()
+	 * Handles shopping cart requests */
 	function cart () {
 		if (empty($_POST['cart']) && empty($_GET['cart'])) return true;
 
@@ -280,6 +326,9 @@ class Shopp {
 										
 	}
 	
+	/**
+	 * checkout()
+	 * Handles checkout process */
 	function checkout () {
 		// print_r($_POST);
 		if (empty($_POST['checkout'])) return true;
@@ -295,13 +344,14 @@ class Shopp {
 		
 		$Order->Customer = new Customer();
 		$Order->Customer->updates($_POST);
-		
+
 		$Order->Shipping = new Shipping();
-		$Order->Shipping->updates($_POST['shipping']);
+		if ($_POST['shipping']) $Order->Shipping->updates($_POST['shipping']);
 
 		$Order->Billing = new Billing();
 		$Order->Billing->updates($_POST['billing']);
-		$Order->Billing->cardexpires = mktime(0,0,0,$_POST['billing']['cardexpires-mm'],($_POST['billing']['cardexpires-yy'])+2000);
+		$Order->Billing->cardexpires = mktime(0,0,0,$_POST['billing']['cardexpires-mm'],1,($_POST['billing']['cardexpires-yy'])+2000);
+		$Order->Billing->cvv = $_POST['billing']['cvv'];
 		
 		$this->Cart->data->Order = $Order;
 		
@@ -327,6 +377,10 @@ class Shopp {
 		} else $this->order();
 	}
 		
+	/**
+	 * order()
+	 * Processes orders by passing transaction information to the active
+	 * payment gateway */
 	function order() {
 
 		$processor_file = $this->Settings->get('payment_gateway');
@@ -349,8 +403,12 @@ class Shopp {
 		$Payment = new $ProcessorClass($Order);
 		if ($Payment->process()) {
 			$Order->Customer->save();
-			$Order->Shipping->customer = $Order->Customer->id;
-			$Order->Shipping->save();
+
+			if (!empty($Order->Shipping->address)) {
+				$Order->Shipping->customer = $Order->Customer->id;
+				$Order->Shipping->save();
+			}
+
 			$Order->Billing->customer = $Order->Customer->id;
 			$Order->Billing->card = substr($Order->Billing->card,-4);
 			$Order->Billing->save();
@@ -384,7 +442,8 @@ class Shopp {
 			session_start();
 			
 			// Save the purchase ID for later lookup
-			$this->Cart->data->Purchase = $Purchase->id;
+			$this->Cart->data->Purchase = new Purchase($Purchase->id);
+			$this->Cart->data->Purchase->load_purchased();
 
 			// Send the e-mail receipt
 			$receipt = array();
@@ -408,13 +467,18 @@ class Shopp {
 		}
 	}
 	
+	/**
+	 * shortcodes()
+	 * Handles shortcodes used on Shopp-installed pages */
 	function shortcodes () {
 		// remove_filter('the_content', 'wpautop');
 		// add_filter('the_content', 'wpautop',8);
 		
 		add_shortcode('catalog',array(&$this->Flow,'catalog'));
-		add_shortcode('cart',array(&$this->Flow,'cart_default'));
+		add_shortcode('cart',array(&$this->Flow,'cart'));
 		add_shortcode('checkout',array(&$this->Flow,'checkout'));
+		
+		// TODO: Add product and category shortcodes for manual use on posts and pages
 	}
 	
 	/**
@@ -440,8 +504,11 @@ class Shopp {
 	
 	
 	/**
-	 * AJAX Responses
-	 */
+	 * AJAX Responses */
+	
+	/**
+	 * lookups ()
+	 * Provides fast db lookups with as little overhead as possible */
 	function lookups($wp) {
 		
 		// Grab query requests from permalink rewriting query vars
@@ -484,6 +551,9 @@ class Shopp {
 		}
 	}
 
+	/**
+	 * ajax ()
+	 * Handles AJAX request processing */
 	function ajax() {
 		switch($_GET['action']) {
 			case "wp_ajax_shopp_add_category":
@@ -522,7 +592,6 @@ class Shopp {
 				exit();
 				break;
 			case "wp_ajax_shopp_add_download":
-				require("core/model/Asset.php");
 		
 				// TODO: Error handling
 				// TODO: Security - anti-virus scan?
@@ -580,7 +649,7 @@ function shopp () {
 		case "category": $result = $Shopp->Category->tag($property,$options); break;
 		case "catalog": $result = $Shopp->Catalog->tag($property,$options); break;
 		case "product": $result = $Shopp->Product->tag($property,$options); break;
-		case "purchase": $result = $Shopp->Cart->Purchase->tag($property,$options); break;
+		case "purchase": $result = $Shopp->Cart->data->Purchase->tag($property,$options); break;
 	}
 
 	// Force boolean result
