@@ -47,6 +47,7 @@ class TestMode {
 	
 	function settings () {
 		global $Shopp;
+		$Shopp->Settings->save('gateway_cardtypes',array("Visa","MasterCard","Discover","American Express"));
 		$settings = $Shopp->Settings->get('TestMode');
 		?>
 				
