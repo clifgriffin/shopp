@@ -33,33 +33,76 @@ class Catalog extends DatabaseObject {
 		else $page = "?page_id={$pages['catalog']['id']}";
 				
 		switch ($property) {
-			case "url": return $Shopp->link('catalog');
+			case "url": return $Shopp->link('');
 			case "category-list":
 				if (empty($this->categories)) $this->load_categories();
 				$string = "";
 				$depth = 0;
 				$parent = false;
-				$title = $Shopp->Settings->get('category_menu_title');
-				if (empty($title)) $title = "";
-				$string .= '<li class="shopp categories">'.$title.'<ul>';
-				foreach ($this->categories as &$category) {
-					if ($category->depth > $depth) {
-						$parent = &$previous;
-						if (!isset($parent->path)) $parent->path = $parent->slug;
-						$string .= '<ul>';
-					}
-					if ($category->depth < $depth) $string .= '</ul>';
-					
-					if (SHOPP_PERMALINKS) $link = $path.'/category'.$category->uri;
-					else $link = $page.'&amp;shopp_category='.$category->id;
-					
-					$string .= '<li><a href="'.$link.'">'.$category->name.'</a></li>';
 
-					$previous = &$category;
-					$depth = $category->depth;
+				$title = $options['title'];
+				if (empty($title)) $title = "";
+				if (value_is_true($options['dropdown'])) {
+					$string .= $title;
+					$string .= '<select name="shopp_cats" id="shopp-categories">';
+					$string .= '<option value="">Select category&hellip;</option>';
+					foreach ($this->categories as &$category) {
+						if ($category->products > 0) // Only show categories with products
+							if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
+								$parent = &$previous;
+								if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
+							}
+							
+							
+							$padding = str_repeat("&nbsp;",$category->depth*3);
+
+							if (SHOPP_PERMALINKS) $link = $path.'/category'.$category->uri;
+							else $link = $page.'&amp;shopp_category='.$category->id;
+
+							$products = '';
+							if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->products.')';
+
+							$string .= '<option value="'.$link.'">'.$padding.$category->name.$products.'</option>';
+							$previous = &$category;
+							$depth = $category->depth;
+						
+					}
+					$string .= '</select>';
+					$string .= '<script type="text/javascript">';
+					$string .= 'var menu = document.getElementById(\'shopp-categories\');';
+					$string .= 'if (menu)';
+					$string .= '	menu.onchange = function () {';
+					$string .= '		document.location.href = this.options[this.selectedIndex].value;';
+					$string .= '	}';
+					$string .= '</script>';
+					
+				} else {
+					
+					$string .= $title.'<ul>';
+					foreach ($this->categories as &$category) {
+						if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
+							$parent = &$previous;
+							if (!isset($parent->path)) $parent->path = $parent->slug;
+							$string .= '<ul class="children">';
+						}
+						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul>';
+					
+						if (SHOPP_PERMALINKS) $link = $path.'/category'.$category->uri;
+						else $link = $page.'&amp;shopp_category='.$category->id;
+					
+						$products = '';
+						if (value_is_true($options['products'])) $products = ' ('.$category->products.')';
+					
+						if ($category->products > 0) // Only show categories with products
+							$string .= '<li><a href="'.$link.'">'.$category->name.'</a>'.$products.'</li>';
+
+						$previous = &$category;
+						$depth = $category->depth;
+					}
+					if (value_is_true($options['hierarchy']))
+						for ($i = 0; $i < $depth; $i++) $string .= "</ul>";
+					$string .= '</ul>';
 				}
-				for ($i = 0; $i < $depth; $i++) $string .= "</ul>";
-				$string .= '</ul></li>';
 				return $string;
 				break;
 			case "breadcrumb":
@@ -72,7 +115,7 @@ class Catalog extends DatabaseObject {
 					for ($i = count($this->categories); $i > 0; $i--)
 						if ($Shopp->Category->id == $this->categories[$i]->id) break;
 					
-					if (SHOPP_PERMALINKS) $link = $path.'/category'.'/'.$Shopp->Category->uri;
+					if (SHOPP_PERMALINKS) $link = $path.'/category'.$Shopp->Category->uri;
 					else $link = $page.'&shopp_category='.$Shopp->Category->id;
 
 					if (!empty($Shopp->Product)) $trail = '<li><a href="'.$link.'">'.$Shopp->Category->name.'</a></li>';
@@ -82,7 +125,7 @@ class Catalog extends DatabaseObject {
 					$parentkey = $this->categories[$i]->parentkey;
 					while ($parentkey > -1) {
 						$tree_category = $this->categories[$parentkey];
-						if (SHOPP_PERMALINKS) $link = $path.'/category'.'/'.$tree_category->uri;
+						if (SHOPP_PERMALINKS) $link = $path.'/category'.$tree_category->uri;
 						else $link = $page.'&shopp_category='.$tree_category->id;
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
 						$parentkey = $tree_category->parentkey;
@@ -93,14 +136,22 @@ class Catalog extends DatabaseObject {
 				break;
 				
 			case "new-products":
-				$Shopp->Category = new Category();
-				$Shopp->Category->newest();
+				$Shopp->Category = new NewProducts($options);
 				ob_start();
 				include("{$Shopp->Flow->basepath}/templates/category.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;
 				break;
+			case "featured-products":
+				$Shopp->Category = new FeaturedProducts($options);
+				ob_start();
+				include("{$Shopp->Flow->basepath}/templates/category.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+				return $content;
+				break;
+
 		}
 	}
 
