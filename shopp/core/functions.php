@@ -349,14 +349,17 @@ function find_files ($extension, $directory, $root, &$found) {
 if(!function_exists('scandir')) {
 	function scandir($dir, $sortorder = 0) {
 		if(is_dir($dir) && $dirlist = @opendir($dir)) {
-			while(($file = readdir($dirlist)) !== false) {
-				$files[] = $file;
-			}
+			$files = array();
+			while(($file = readdir($dirlist)) !== false) $files[] = $file;
 			closedir($dirlist);
 			($sortorder == 0) ? asort($files) : rsort($files);
 			return $files;
 		} else return false;
 	}
+}
+
+function filter_dotfiles ($name) {
+	return (substr($name,0,1) != ".");
 }
 
 /**
