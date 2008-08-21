@@ -31,12 +31,18 @@ class Flow {
 		$this->Admin->orders = $this->Admin->default;
 		$this->Admin->settings = $Core->directory."/settings";
 		$this->Admin->products = $Core->directory."/products";
-				
-		define("SHOPP_BASEURI",$this->uri);
-		define("SHOPP_SECUREURI",$this->uri);	
+		
+		define("SHOPP_ADMINPATH",$this->basepath."/core/ui");
 		define("SHOPP_PLUGINURI",$Core->uri);
 		define("SHOPP_DBSCHEMA",$this->basepath."/core/model/schema.sql");
+
+		define("SHOPP_TEMPLATES",($Core->Settings->get('theme_templates') != "off" && 
+		 							is_dir($Core->Settings->get('theme_templates')))?
+									$Core->Settings->get('theme_templates'):
+									$this->basepath."/templates");
+
 		define("SHOPP_PERMALINKS",(get_option('permalink_structure') == "")?false:true);
+
 		define("SHOPP_LOOKUP",(strpos($_SERVER['REQUEST_URI'],"images/") !== false || 
 								strpos($_SERVER['REQUEST_URI'],"lookup=") !== false)?true:false);
 	}
@@ -58,17 +64,21 @@ class Flow {
 		}
 		
 		if (!empty($category)) {
-			$categories = split("/",$category);
-			$category = end($categories);
-			
-			if ($category == "new") $Shopp->Category = new NewProducts();
-			if ($category == "featured") $Shopp->Category = new FeaturedProducts();
-			else {
-				$key = "id";
-				if (!preg_match("/\d+/",$category)) $key = "slug";
-
-				$Shopp->Category = new Category($category,$key);
+			if (strpos($category,"/") !== false) {
+				$categories = split("/",$category);
+				$category = end($categories);
 			}
+			
+			switch ($category) {
+				case NewProducts::$slug: $Shopp->Category = new NewProducts(); break;
+				case FeaturedProducts::$slug: $Shopp->Category = new FeaturedProducts(); break;
+				case OnSaleProducts::$slug: $Shopp->Category = new OnSaleProducts(); break;
+				default:
+					$key = "id";
+					if (!preg_match("/\d+/",$category)) $key = "slug";
+					$Shopp->Category = new Category($category,$key);
+			}
+
 		}
 			
 		// Find product by category name and product name
@@ -79,22 +89,21 @@ class Flow {
 		$Shopp->Catalog = new Catalog();
 		
 		ob_start();
-		
 		switch ($page) {
 			case "product":
-				include("{$this->basepath}/templates/product.php");
+				include(SHOPP_TEMPLATES."/product.php");
 				break;
 			case "category":
-				include("{$this->basepath}/templates/category.php");
+				include(SHOPP_TEMPLATES."/category.php");
 				break;
 			default:
-				include("{$this->basepath}/templates/catalog.php");
+				include(SHOPP_TEMPLATES."/catalog.php");
 				break;
 		}
 		$content = ob_get_contents();
 		ob_end_clean();
 
-		return $content;
+		return '<div id="shopp">'.$content.'<div id="clear"></div></div>';
 		
 	}	
 	
@@ -144,7 +153,7 @@ class Flow {
 	function cart_post () {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
-
+		
 		if (isset($_POST['checkout'])) {
 			$pages = $this->Settings->get('pages');
 			header("Location: ".$Shopp->link('checkout','',true));
@@ -266,7 +275,7 @@ class Flow {
 	function cart ($attrs=array()) {
 		$Cart = $this->Cart;
 		ob_start();
-		include("{$this->basepath}/templates/cart.php");
+		include(SHOPP_TEMPLATES."/cart.php");
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -310,7 +319,7 @@ class Flow {
 		$Cart = $this->Cart;
 
 		ob_start();
-		include("{$this->basepath}/templates/shipping.html");
+		include(SHOPP_TEMPLATES."/shipping.html");
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -331,8 +340,8 @@ class Flow {
 			case "receipt": $content = $this->order_receipt(); break;
 			default:
 				ob_start();
-				if (isset($Cart->data->OrderError)) include("{$this->basepath}/templates/errors.php");
-				include("{$this->basepath}/templates/checkout.php");
+				if (isset($Cart->data->OrderError)) include(SHOPP_TEMPLATES."/errors.php");
+				include(SHOPP_TEMPLATES."/checkout.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 
@@ -342,20 +351,121 @@ class Flow {
 	}
 	
 	function checkout_order_summary () {
-		$Cart = $this->Cart;
+		global $Shopp;
+		$Cart = $Shopp->Cart;
 
 		ob_start();
-		include("{$this->basepath}/templates/summary.php");
+		include(SHOPP_TEMPLATES."/summary.php");
 		$content = ob_get_contents();
 		ob_end_clean();
 		
 		return $content;
 	}
 	
+	/**
+	 * order()
+	 * Processes orders by passing transaction information to the active
+	 * payment gateway */
+	function order () {
+		global $Shopp;
+		$Cart = $Shopp->Cart;
+		
+		$processor_file = $Shopp->Settings->get('payment_gateway');
+
+		if (!$processor_file) return true;
+		if (!file_exists($processor_file)) return true;
+			
+		// Dynamically the payment processing gateway
+		$processor_data = $this->scan_gateway_meta($processor_file);
+		$ProcessorClass = $processor_data->tags['class'];
+		include($processor_file);
+		
+		$Order = $Shopp->Cart->data->Order;
+		$Order->Totals = $Shopp->Cart->data->Totals;
+		$Order->Items = $Shopp->Cart->contents;
+		$Order->Cart = $Shopp->Cart->session;
+		
+		$Payment = new $ProcessorClass($Order);
+
+		if ($Payment->process()) {
+			// Transaction successful, save the order
+			$Order->Customer->save();
+
+			if (!empty($Order->Shipping->address)) {
+				$Order->Shipping->customer = $Order->Customer->id;
+				$Order->Shipping->save();
+			}
+
+			$Order->Billing->customer = $Order->Customer->id;
+			$Order->Billing->card = substr($Order->Billing->card,-4);
+			$Order->Billing->save();
+			
+			$Purchase = new Purchase();
+			$Purchase->customer = $Order->Customer->id;
+			$Purchase->billing = $Order->Billing->id;
+			$Purchase->shipping = $Order->Shipping->id;
+			$Purchase->copydata($Order->Customer);
+			$Purchase->copydata($Order->Billing);
+			$Purchase->copydata($Order->Shipping,'ship');
+			$Purchase->copydata($Shopp->Cart->data->Totals);
+			$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
+			$Purchase->gateway = $processor_data->name;
+			$Purchase->transactionid = $Payment->transactionid();
+			$Purchase->save();
+
+			foreach($Shopp->Cart->contents as $Item) {
+				$Purchased = new Purchased();
+				$Purchased->copydata($Item);
+				$Purchased->purchase = $Purchase->id;
+				$Purchased->save();
+				if ($Item->inventory) $Item->unstock();
+			}
+			
+			// Empty cart on successful order
+			$Shopp->Cart->unload();
+			session_destroy();
+
+			// Start new cart session
+			$Shopp->Cart = new Cart();
+			session_start();
+			
+			// Save the purchase ID for later lookup
+			$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
+			$Shopp->Cart->data->Purchase->load_purchased();
+
+			// Send the e-mail receipt
+			$receipt = array();
+			$receipt['from'] = $Shopp->Settings->get('shopowner_email');
+			$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
+			$receipt['subject'] = "Order Receipt";
+			$receipt['receipt'] = $this->order_receipt();
+			$receipt['url'] = $_SERVER['SERVER_NAME'];
+			// send_email(SHOPP_TEMPLATES."/order.html",$receipt);
+			
+			if ($Shopp->Settings->get('receipt_copy') == 1) {
+				$receipt['to'] = $Shopp->Settings->get('shopowner_email');
+				$receipt['subject'] = "New Order";
+				// send_email(SHOPP_TEMPLATES."/email.html",$receipt);
+			}
+
+			header("Location: ".$Shopp->link('receipt','',true));
+			exit();
+		} else {
+			// Transaction failed, get the error from the payment gateway
+			$Shopp->Cart->data->OrderError = $Payment->error();
+		}
+	}
+	
+	
+	
+	
+	
 	function order_confirmation () {
-		$Cart = $this->Cart;
+		global $Shopp;
+		$Cart = $Shopp->Cart;
+		
 		ob_start();
-		include("{$this->basepath}/templates/confirm.php");
+		include(SHOPP_TEMPLATES."/confirm.php");
 		$content = ob_get_contents();
 		ob_end_clean();
 		return '<div id="shopp">'.$content.'</div>';
@@ -370,7 +480,7 @@ class Flow {
 		$Cart = $Shopp->Cart;
 		
 		ob_start();
-		include("{$this->basepath}/templates/receipt.php");
+		include(SHOPP_TEMPLATES."/receipt.php");
 		$content = ob_get_contents();
 		ob_end_clean();
 		return '<div id="shopp">'.$content.'</div>';
@@ -383,8 +493,6 @@ class Flow {
 	function orders_list() {
 		global $Orders;
 		$db = DB::get();
-
-		require_once("{$this->basepath}/core/model/Purchase.php");
 
 		if ($_GET['deleting'] == "order"
 						&& !empty($_GET['delete']) 
@@ -413,7 +521,6 @@ class Flow {
 	
 	function order_manager () {
 		global $Purchase;
-		require("{$this->basepath}/core/model/Purchase.php");
 		if (preg_match("/\d+/",$_GET['manage'])) {
 			$Purchase = new Purchase($_GET['manage']);
 			$Purchase->load_purchased();
@@ -434,7 +541,6 @@ class Flow {
 	function order_status_counts () {
 		$db = DB::get();
 		
-		include_once("{$this->basepath}/core/model/Purchase.php");
 		$purchase_table = DatabaseObject::tablename(Purchase::$table);
 		$labels = $this->Settings->get('order_status');
 		
@@ -811,12 +917,41 @@ class Flow {
 		$statusLabels = $this->Settings->get('order_status');
 		if ($statusLabels) ksort($statusLabels);
 		
-		include("{$this->basepath}/core/ui/settings/settings.html");
+		include(SHOPP_ADMINPATH."/settings/settings.html");
 	}
 
 
-	function settings_product_page () {
+	function settings_presentation () {
+		if (isset($_POST['settings']['theme_templates']) && $_POST['settings']['theme_templates'] == "on") 
+			$_POST['settings']['theme_templates'] = TEMPLATEPATH."/shopp";
 		if (!empty($_POST['save'])) $this->settings_save();
+		
+		$builtin_path = $this->basepath."/templates";
+		$theme_path = TEMPLATEPATH."/shopp";
+		
+		// Copy templates to the current WordPress theme
+		if (!empty($_POST['install'])) {
+			$builtin = array_filter(scandir($builtin_path),"filter_dotfiles");
+			foreach ($builtin as $template) {
+				if (!file_exists($theme_path.$template))
+					copy("$builtin_path/$template","$theme_path/$template");
+			}
+		}
+		
+		$status = "available";
+		if (!is_dir($theme_path)) $status = "directory";
+		else {
+			if (!is_writable($theme_path)) $status = "permissions";
+			else {
+				$builtin = array_filter(scandir($builtin_path),"filter_dotfiles");
+				$theme = array_filter(scandir($theme_path),"filter_dotfiles");
+				if (empty($theme)) $status = "ready";
+				else if (array_diff($builtin,$theme)) $status = "incomplete";
+			}
+		}
+
+
+		
 		
 		$sizingOptions = array(	"Scale to width",
 								"Scale to height",
@@ -830,22 +965,22 @@ class Flow {
 								"Lowest quality, smallest file size");
 		
 		
-		include("{$this->basepath}/core/ui/settings/products.html");
+		include(SHOPP_ADMINPATH."/settings/presentation.html");
 	}
 
 	function settings_catalog () {
 		if (!empty($_POST['save'])) $this->settings_save();
-		include("{$this->basepath}/core/ui/settings/catalog.html");
+		include(SHOPP_ADMINPATH."/settings/catalog.html");
 	}
 
 	function settings_cart () {
 		if (!empty($_POST['save'])) $this->settings_save();
-		include("{$this->basepath}/core/ui/settings/cart.html");
+		include(SHOPP_ADMINPATH."/settings/cart.html");
 	}
 
 	function settings_checkout () {
 		if (!empty($_POST['save'])) $this->settings_save();
-		include("{$this->basepath}/core/ui/settings/checkout.html");
+		include(SHOPP_ADMINPATH."/settings/checkout.html");
 	}
 
 	function settings_shipping () {
@@ -885,7 +1020,7 @@ class Flow {
 		// print_r($rates);
 		// print "</pre>";
 		
-		include("{$this->basepath}/core/ui/settings/shipping.html");
+		include(SHOPP_ADMINPATH."/settings/shipping.html");
 	}
 
 	function settings_taxes () {
@@ -896,7 +1031,7 @@ class Flow {
 		$countries = $this->Settings->get('target_markets');
 		$zones = $this->Settings->get('zones');
 		
-		include("{$this->basepath}/core/ui/settings/taxes.html");
+		include(SHOPP_ADMINPATH."/settings/taxes.html");
 	}	
 
 	function settings_payments () {
@@ -913,7 +1048,7 @@ class Flow {
 			$Processors[] = new $ProcessorClass();
 		}
 		
-		include("{$this->basepath}/core/ui/settings/payments.html");
+		include(SHOPP_ADMINPATH."/settings/payments.html");
 	}
 
 	function settings_get_gateways () {
