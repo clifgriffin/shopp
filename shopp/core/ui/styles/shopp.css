@@ -17,7 +17,7 @@
 #shopp { clear: both; }
 #shopp ul { list-style: none; text-indent: 0; text-align: left; padding: 0; margin: 0; }
 #shopp li { background: none; padding: 0; margin: 0; }
-
+#shopp li:before { content: ""; }
 
 /**
  * Shopping Cart 
@@ -68,8 +68,7 @@ form.shopp { text-align: left; }
 form.shopp.product ul.options { list-style: none; }
 form.shopp ul label,form.shopp ul select { display: inline; }
 
-#shopp ul.products, #shopp ul.products ul { clear: both; width: 100%; }
-#shopp ul.products li:before { content: ""; }
+#shopp ul.products, #shopp ul.products ul { clear: both; width: 100%; margin: 0; padding: 0;}
 #shopp ul.products ul li { display: block; float: left; }
 #shopp ul.products li.row { clear: both; display: block; width: 100%; }
 #shopp ul.products li.product { width: 33%; }
@@ -77,9 +76,11 @@ form.shopp ul label,form.shopp ul select { display: inline; }
 #shopp ul.products li .name { margin-bottom: 0; }
 #shopp ul.products img { display: block; }
 #shopp div.description { clear: both; }
-#shopp .price { font-weight: bold; line-height: 1.5; margin: 0; }
+#shopp .price { font-weight: bold; line-height: 1.5; margin: 0 0 20px 0; }
 #shopp .original { text-decoration: line-through; }
 #shopp .price.sale { font-size: 150%; }
+
+#shopp ul.variations label { display: block;}
 
 #shopp { clear: both; }
 #shopp ul.breadcrumb { margin: 10px 0; }
@@ -130,6 +131,13 @@ form.shopp ul label,form.shopp ul select { display: inline; }
 #receipt.shopp .cart .totals.total th,
 #receipt.shopp .cart .totals.total td { font-size: 130%; }
 #receipt.shopp .cart .remove { font-size: 12px; }
+
+
+/**
+ * Showcase - lightweight lightbox styles
+ **/
+#overlay { position: absolute; left: 0; width: 100%; opacity: 0.6; background-color: #000; margin: 0; }
+
 
 
 /**
