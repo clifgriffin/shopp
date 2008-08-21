@@ -1,5 +1,6 @@
 <?php shopp('checkout','cart-summary'); ?>
 
+<?php if (shopp('cart','hasitems')): ?>
 <form action="<?php shopp('checkout','url'); ?>" method="post" class="shopp" id="checkout">
 	<?php shopp('checkout','function'); ?>
 	<ul>
@@ -54,4 +55,4 @@
 	<p class="submit"><?php shopp('checkout','submit','value=Submit Order'); ?></p>
 
 </form>
-
+<?php endif; ?>
