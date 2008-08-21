@@ -279,5 +279,5 @@ addEvent(window,'load',function () {
 });
 
 // Fix for ThickBox
-var tb_pathToImage = "/wp-includes/js/thickbox/loadingAnimation.gif";
+var tb_pathToImage = "/wp-content/plugins/shopp/icons/loading.gif";
 var tb_closeImage = "/wp-includes/js/thickbox/tb-close.png";
