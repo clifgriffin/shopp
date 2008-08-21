@@ -106,6 +106,7 @@ class Catalog extends DatabaseObject {
 				return $string;
 				break;
 			case "breadcrumb":
+				if (isset($Shopp->Category->breadcrumb)) return "";
 				if (empty($this->categories)) $this->load_categories();
 				$separator = "&nbsp;&raquo; ";
 				if (isset($options['separator'])) $separator = $options['separator'];
@@ -116,7 +117,10 @@ class Catalog extends DatabaseObject {
 						if ($Shopp->Category->id == $this->categories[$i]->id) break;
 					
 					if (SHOPP_PERMALINKS) $link = $path.'/category'.$Shopp->Category->uri;
-					else $link = $page.'&shopp_category='.$Shopp->Category->id;
+					else {
+						if (isset($Shopp->Category->smart)) $link = $page.'&shopp_category='.$Shopp->Category->slug;
+						else $link = $page.'&shopp_category='.$Shopp->Category->id;
+					}
 
 					if (!empty($Shopp->Product)) $trail = '<li><a href="'.$link.'">'.$Shopp->Category->name.'</a></li>';
 					else if (!empty($Shopp->Category->name)) $trail = '<li>'.$Shopp->Category->name.'</li>';
@@ -134,9 +138,21 @@ class Catalog extends DatabaseObject {
 				$trail = '<li><a href="'.((SHOPP_PERMALINKS)?$path:$page).'">'.$pages['catalog']['title'].'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
 				return '<ul class="breadcrumb">'.$trail.'</ul>';
 				break;
-				
+			case "category":
+				if (isset($options['name'])) $Shopp->Category = new Category($options['name'],'name');
+				else if (isset($options['id'])) $Shopp->Category = new Category($options['id']);
+				if (isset($options['breadcrumb']) && !value_is_true($options['breadcrumb'])) 
+					$Shopp->Category->breadcrumb = false;
+				ob_start();
+				include("{$Shopp->Flow->basepath}/templates/category.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+				return $content;
+				break;
 			case "new-products":
 				$Shopp->Category = new NewProducts($options);
+				if (isset($options['breadcrumb']) && !value_is_true($options['breadcrumb'])) 
+					$Shopp->Category->breadcrumb = false;
 				ob_start();
 				include("{$Shopp->Flow->basepath}/templates/category.php");
 				$content = ob_get_contents();
@@ -145,6 +161,18 @@ class Catalog extends DatabaseObject {
 				break;
 			case "featured-products":
 				$Shopp->Category = new FeaturedProducts($options);
+				if (isset($options['breadcrumb']) && !value_is_true($options['breadcrumb'])) 
+					$Shopp->Category->breadcrumb = false;
+				ob_start();
+				include("{$Shopp->Flow->basepath}/templates/category.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+				return $content;
+				break;
+			case "onsale-products":
+				$Shopp->Category = new OnSaleProducts($options);
+				if (isset($options['breadcrumb']) && !value_is_true($options['breadcrumb'])) 
+					$Shopp->Category->breadcrumb = false;
 				ob_start();
 				include("{$Shopp->Flow->basepath}/templates/category.php");
 				$content = ob_get_contents();
