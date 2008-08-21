@@ -1,35 +1,48 @@
 <div class="wrap">
-	<h2>Product Page Settings</h2>
+	<h2>Presentation Settings</h2>
 	<?php include("navigation.html"); ?>
 
 	<form name="settings" id="general" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="productpages-toggle">Product Pages</label></th> 
-				<td><input type="hidden" name="settings[product_pages]" value="off" /><input type="checkbox" name="settings[product_pages]" value="on" id="productpages-toggle"<?php if ($this->Settings->get('product_pages') == "on") echo ' checked="checked"'?> /><label for="productpages-toggle"> Enabled</label><br /> 
-	            Enables built-in product pages &amp; themed product pages.  Disable if you are using custom product pages.</td>
-			</tr>
-			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="outofstock-text">Out-of-stock Notice</label></th> 
-				<td><input type="text" name="settings[outofstock_text]" value="<?php echo $this->Settings->get('outofstock_text'); ?>" id="outofstock-text"><br /> 
-	            Text used to notify the customer the product is out-of-stock or on backorder.</td>
-			</tr>
-			
-		</table>
-		<h3>Images Presentaton</h3>
-		<table class="form-table"> 
-			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="gallery-showcase">Type</label></th> 
-				<td><input type="radio" name="settings[product_showcase_type]" value="gallery" id="gallery-showcase"/><label for="gallery-showcase"> Thumbnail Gallery</label><br />
-<input type="radio" name="settings[product_showcase_type]" value="slideshow" id="slideshow-showcase"/><label for="slideshow-showcase"> Slideshow</label><br />
-	            Select a thumbnail gallery, or slideshow to showcase product images.</td>
-			</tr>
-			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="embedded-integration">Integration</label></th> 
-				<td><input type="radio" name="settings[product_showcase_integration]" value="embedded" id="embedded-integration"/><label for="embedded-integration"> Embedded in product page</label><br />
-<input type="radio" name="settings[product_showcase_integration]" value="windowed" id="windowed-integration"/><label for="windowed-integration"> Launch in a new window</label><br />
-	            Determines how the gallery or slideshow is displayed.</td>
-			</tr>
+				<th scope="row" valign="top"><label for="showcase-order">Theme Templates</label></th> 
+				<td>
+				<?php switch ($status) {
+					case "directory":?>
+					<input type="button" name="template_instructions" id="show-instructions" value="Learn How" class="button-secondary" />
+					<div id="template-instructions">
+					<p>To customize shopping templates for your current WordPress theme: (<a href="http://docs.shopplugin.net/Customizing_Shopping_Templates">Click here for more help</a>)</p>
+					<ol>
+						<li>Create a directory in your active theme named <code>shopp</code></li>
+						<li>Give your web server access to write to the <code>shopp</code> directory</li>
+						<li>Refresh this page for more instructions</li>
+					</ol>
+					</div>
+						<?php
+						break;
+					case "permissions":?>
+					<p>The <code>shopp</code> directory exists in your current WordPress theme, but is not writable.</p>
+					<p>You need to give <code>write</code> permissions to the <code>shopp</code> directory to continue. (<a href="http://docs.shopplugin.net/Changing_File_Permissions">Click here for more help</a>)</p>
+						<?php
+						break;
+					case "incomplete":?>
+						<input type="submit" name="install" value="Reinstall Missing Templates" class="button-secondary" /><br />
+						<p>Some of the shopping templates for your current theme are missing.</p>
+						<?php
+						break;
+					case "ready":?>
+						<input type="submit" name="install" value="Install Theme Templates" class="button-secondary" /><br />
+						<p>Click this button to copy Shopp's builtin templates into your theme as a starting point for customization.</p>
+						<?php
+						break;
+					default:?>
+					<input type="hidden" name="settings[theme_templates]" value="off" /><input type="checkbox" name="settings[theme_templates]" value="on" id="theme-templates"<?php if ($this->Settings->get('theme_templates') != "off") echo ' checked="checked"'?> /><label for="theme-templates"> Enable theme templates</label><br />
+					Check this to use the templates installed in your currently active WordPress theme.
+						<?php
+				}
+				?>
+	            </td>
+			</tr>			
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order">Image Order</label></th> 
 				<td><select name="settings[product_showcase_order]" id="showcase-order">
@@ -115,5 +128,11 @@ $('#gallery-thumbnail-sizing').change(function() {
 	}
 	
 }).change();
+
+$('#template-instructions').hide();
+$('#show-instructions').click(function () {
+	$('#template-instructions').slideToggle(500);
+});
+
 })(jQuery);
 </script>
