@@ -346,7 +346,7 @@ class DatabaseObject {
 	 * form post inputs  */
 	function updates($data,$ignores = array()) {
 		foreach ($data as $key => $value) {
-			if (!empty($value) && 
+			if (!is_null($value) && 
 				!in_array($key,$ignores) && 
 				property_exists($this, $key) ) {
 				$this->{$key} = $value;
