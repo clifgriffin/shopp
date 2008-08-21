@@ -56,8 +56,8 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 .form-table .multipane .controls,
 .form-table .details .controls { text-align: right; }
 
-.form-table .multiple-select { overflow-x: hidden; overflow-y: auto; height: 120px; width: 250px; display: inline-block; border: 1px solid #c6d9e9; background: #ffffff; }
-.form-table .multiple-select ul { list-style-type: none; margin: 0; padding: 0; line-height: 1; width: auto; }
+.form-table .multiple-select { position: relative; overflow-x: hidden; overflow-y: auto; height: 120px; width: 250px; display: inline-block; border: 1px solid #c6d9e9; background: #ffffff; padding: 0; margin: 0;}
+.form-table .multiple-select ul { list-style-type: none; position: absolute; left: 0; right: 0; line-height: 1; width: auto; margin: 0; padding: 0;}
 .form-table .multiple-select ul li { margin: 0; padding:  2px 2px 0 0; }
 .form-table .multiple-select ul li input { margin: 0 5px; }
 .form-table .multiple-select ul li.odd { background: #f9f9f9; }
@@ -75,6 +75,9 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 .form-table .multipane .options ul li.hover button { visibility: visible; }
 
 .form-table .multipane .multiple-select ul li input { border: none; background: none; width: 80%; margin-left: 0; }
+.form-table .multipane .multiple-select ul li input:focus,
+.form-table .multiple-select ul li input:focus { background: #fff; outline: 2px solid #c6d9e9;  -moz-outline-radius: 3px; }
+
 .form-table .multipane ul li div { width: 19px; height: 22px; float: left; }
 .form-table .multipane ul li.hover div { background: url('/wp-content/plugins/shopp/core/ui/icons/move.png') no-repeat  3px top; }
 
