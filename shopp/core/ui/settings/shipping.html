@@ -9,12 +9,6 @@
 				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if ($this->Settings->get('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> Enabled</label><br /> 
 	            Check this to use shipping. Leave un-checked to disable shipping - helpful if you are only selling subscriptions or downloads.</td>
 			</tr>
-			<!-- <tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="shipping_base_domship">Base Shipping Fees</label></th> 
-				<td><input type="text" name="settings[shipping_base_domship]" value="<?php echo $this->Settings->get('shipping_base_domship'); ?>" id="shipping_base_domship" size="5" /><label for="shipping_base_domship"> For Domestic Orders</label><br />
-					<input type="text" name="settings[shipping_base_intlship]" value="<?php echo $this->Settings->get('shipping_base_intlship'); ?>" id="shipping_base_intlship" size="5" /><label for="shipping_base_intlship"> For International Orders</label><br />
-	            Enter a dollar amount (5.00) or a percentage (5%).  These charges are assessed only once for an entire order.</td>
-			</tr> -->
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="weight-units">Weight Unit</label></th> 
 				<td>
@@ -39,6 +33,11 @@
 				<th scope="row" valign="top"><label for="free_shipping_text">Free Shipping Text</label></th> 
 				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo $this->Settings->get('free_shipping_text'); ?>" id="free_shipping_text"><br /> 
 	            Text used to highlight no shipping costs (examples: Free shipping! or Shipping Included)</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="outofstock-text">Out-of-stock Notice</label></th> 
+				<td><input type="text" name="settings[outofstock_text]" value="<?php echo $this->Settings->get('outofstock_text'); ?>" id="outofstock-text"><br /> 
+	            Text used to notify the customer the product is out-of-stock or on backorder.</td>
 			</tr>
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="regional_rates">Domestic Regions</label></th> 
