@@ -81,7 +81,7 @@ function init () {
 		post_params: {"product" : $('#image-product-id').val()},
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
-		file_types : "*.jpg;*.png;*.gif",
+		file_types : "*.jpg;*.jpeg;*.png;*.gif",
 		file_types_description : "Web-compatible Image Files",
 		file_upload_limit : filesizeLimit,
 		custom_settings : {
@@ -670,7 +670,7 @@ function addPriceLine (target,options,data,attachment) {
 	var stock = $('<input type="text" name="price['+i+'][stock]" id="stock['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'11" />').appendTo(inventoryField);
 	var inventoryLabel =$('<label for="stock['+i+']"> In Stock</label>').appendTo(inventoryField);
 	var inventoryBr = $('<br/>').appendTo(inventoryField);
-	var sku = $('<input type="text" name="price['+i+'][sku]" id="sku['+i+']" size="8" title="Enter a unique tracking number for this product option." class="selectall" tabindex="'+(i+1)+'01" />').appendTo(inventoryField);
+	var sku = $('<input type="text" name="price['+i+'][sku]" id="sku['+i+']" size="8" title="Enter a unique tracking number for this product option." class="selectall" tabindex="'+(i+1)+'12" />').appendTo(inventoryField);
 	var skuLabel =$('<label for="sku['+i+']" title="Stock Keeping Unit"> SKU</label>').appendTo(inventoryField);
 		
 	var downloadHeading = $('<th><label for="download['+i+']">Product Download</label></th>').appendTo(headingsRow);
@@ -678,7 +678,7 @@ function addPriceLine (target,options,data,attachment) {
 	var downloadFile = $('<span>No product download.</span>').appendTo(downloadCell);
 
 	var uploadHeading = $('<td rowspan="2" class="controls" width="75" />').appendTo(headingsRow);
-	var uploadButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'12"><small>Upload File</small></button>').appendTo(uploadHeading);
+	var uploadButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'13"><small>Upload File</small></button>').appendTo(uploadHeading);
 	uploadButton.click(function () { uploader.targetCell = downloadFile; uploader.selectFiles(); });
 	
 	// Build an object to reference and control/update this entry
@@ -762,22 +762,37 @@ function addPriceLine (target,options,data,attachment) {
 	salepriceToggle.change(function () {
 		salepriceStatus.toggle();
 		salepriceField.toggle();
-		saleprice.focus();
-		saleprice.select();
+	});
+
+	salepriceToggle.click(function () {
+		if (this.checked) {
+			saleprice.focus();
+			saleprice.select();
+		}
 	});
 
 	shippingToggle.change(function () {
 		shippingStatus.toggle();
 		shippingFields.toggle();
-		weight.focus();
-		weight.select();
+	});
+	
+	shippingToggle.click(function () {
+		if (this.checked) {
+			weight.focus();
+			weight.select();
+		}
 	});
 	
 	inventoryToggle.change(function () {
 		inventoryStatus.toggle();
 		inventoryField.toggle();
-		stock.focus();
-		stock.select();
+	});
+	
+	inventoryToggle.click(function () {
+		if (this.checked) {
+			stock.focus();
+			stock.select();
+		}
 	});
 	
 	// Auto-format prices to a money format
@@ -811,6 +826,8 @@ function addPriceLine (target,options,data,attachment) {
 		stock.val(data.stock);
 
 		if (data.tax == "off") tax.attr('checked','true');
+	} else {
+		if (type.val() == "Shipped") shippingToggle.attr('checked','true').change();
 	}
 
 	// Improve usability for quick data entry by
