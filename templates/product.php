@@ -8,16 +8,16 @@
 	<?php shopp('product','gallery'); ?>
 
 	<?php if (shopp('product','onsale')): ?>
-		<h4 class="original price"><?php shopp('product','price'); ?></h4>
-		<h4 class="sale price"><?php shopp('product','saleprice'); ?></h4>		
+		<h3 class="original price"><?php shopp('product','price'); ?></h3>
+		<h3 class="sale price"><?php shopp('product','saleprice'); ?></h3>
 	<?php else: ?>
-		<h4><?php shopp('product','price'); ?></h4>
+		<h3 class="price"><?php shopp('product','price'); ?></h3>
 	<?php endif; ?>
 
 	<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
 		<?php if(shopp('product','has-variations')): ?>
 		<ul class="variations">
-			<?php shopp('product','variations','label=true&defaults=Select an option&before_menu=<li>&after_menu=</li>'); ?>
+			<?php shopp('product','variations','mode=multiple&label=true&defaults=Select an option&before_menu=<li>&after_menu=</li>'); ?>
 		</ul>
 		<?php endif; ?>
 
@@ -27,17 +27,16 @@
 		</ul>
 		<?php endif; ?>
 
-
-		<?php shopp('product','addtocart'); ?>
+		<p><?php shopp('product','addtocart'); ?></p>
 	
 	</form>
 
-	<div class="description"><?php shopp('product','description'); ?></div>
+	<?php shopp('product','description'); ?>
 
 	<?php if(shopp('product','has-specs')): ?>
 	<ul class="details">
 		<?php while(shopp('product','specs')): ?>
-		<li><?php shopp('product','spec','name&content'); ?></li>
+		<li><strong><?php shopp('product','spec','name'); ?>:</strong> <?php shopp('product','spec','content'); ?></li>
 		<?php endwhile; ?>
 	</ul>
 	<?php endif; ?>
