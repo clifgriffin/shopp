@@ -89,7 +89,10 @@ class Category extends DatabaseObject {
 			case "product":
 				$product = current($this->products);
 				if (SHOPP_PERMALINKS) $link = $path.$this->uri.'/'.sanitize_title_with_dashes($product->name);
-				else $link = $page.'&shopp_category='.$this->id.'&shopp_pid='.$product->id;
+				else {
+					if (isset($Shopp->Category->smart)) $link = $page.'&shopp_category='.$this->slug.'&shopp_pid='.$product->id;
+					else $link = $page.'&shopp_category='.$this->id.'&shopp_pid='.$product->id;
+				}
 				
 				$thumbprops = unserialize($product->thumbnail_properties);
 				
@@ -115,13 +118,15 @@ class Category extends DatabaseObject {
 } // end Category class
 
 class NewProducts extends Category {
+	static $slug = "new";
 	
 	function NewProducts ($options=array()) {
 		$this->name = "New Products";
 		$this->parent = 0;
-		$this->slug = "new";
+		$this->slug = NewProducts::$slug;
 		$this->uri = "/$this->slug";
-		$this->description = "New Additions";
+		$this->description = "New additions to the store";
+		$this->smart = true;
 		if (isset($options['show']))
 			$this->load_products(array('where'=>"1",'order'=>'p.created DESC','limit'=>$options['show']));
 		else $this->load_products(array('where'=>"1",'order'=>'p.created DESC'));
@@ -130,19 +135,37 @@ class NewProducts extends Category {
 }
 
 class FeaturedProducts extends Category {
+	static $slug = "featured";
 	
 	function FeaturedProducts ($options=array()) {
 		$this->name = "Featured Products";
 		$this->parent = 0;
-		$this->slug = "featured";
+		$this->slug = FeaturedProducts::$slug;
 		$this->uri = "/$this->slug";
-		$this->description = "Featured Products";
+		$this->description = "Featured products";
+		$this->smart = true;
 		if (isset($options['show']))
-			$this->load_products(array('where'=>"featured='on'",'order'=>'p.modified ASC','limit'=>$options['show']));
-		else $this->load_products(array('where'=>"featured='on'",'order'=>'p.modified ASC'));
+			$this->load_products(array('where'=>"p.featured='on'",'order'=>'p.modified DESC','limit'=>$options['show']));
+		else $this->load_products(array('where'=>"p.featured='on'",'order'=>'p.modified DESC'));
 	}
 	
 }
 
+class OnSaleProducts extends Category {
+	static $slug = "onsale";
+	
+	function OnSaleProducts ($options=array()) {
+		$this->name = "On Sale";
+		$this->parent = 0;
+		$this->slug = OnSaleProducts::$slug;
+		$this->uri = "/$this->slug";
+		$this->description = "On sale products";
+		$this->smart = true;
+		if (isset($options['show']))
+			$this->load_products(array('where'=>"pd.sale='on'",'order'=>'p.modified DESC','limit'=>$options['show']));
+		else $this->load_products(array('where'=>"pd.sale='on'",'order'=>'p.modified DESC'));
+	}
+	
+}
 
 ?>
