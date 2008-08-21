@@ -149,7 +149,7 @@ class Shopp {
 			wp_enqueue_script('swfupload');
 			wp_enqueue_script('swfupload-degrade');
 		?>
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/admin.css' type='text/css' />
+		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css' type='text/css' />
 		<?php
 	}
 	
@@ -170,8 +170,8 @@ class Shopp {
 				add_action('wp_head', array(&$this, 'page_styles'));
 				add_action('wp_footer', array(&$this, 'footer'));
 				wp_enqueue_script('jquery');
-				wp_enqueue_script('thickbox');
-				wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js");
+				wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
+				wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js");
 				break;
 			}
 		}
@@ -185,8 +185,8 @@ class Shopp {
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function page_styles () {
 		
-		?><link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/shopp.css' type='text/css' />
-		<link rel='stylesheet' href='<?php bloginfo('wpurl') ?>/wp-includes/js/thickbox/thickbox.css' type='text/css' />
+		?><link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/shopp.css' type='text/css' />
+		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css' type='text/css' />
 		<?php
 	}
 	
@@ -250,14 +250,14 @@ class Shopp {
 	function settings () {
 
 		switch($_GET['edit']) {
-			case "products": 	$this->Flow->settings_product_page(); break;
-			case "catalog": 	$this->Flow->settings_catalog(); break;
-			case "cart": 		$this->Flow->settings_cart(); break;
-			case "checkout": 	$this->Flow->settings_checkout(); break;
-			case "payments": 	$this->Flow->settings_payments(); break;
-			case "shipping": 	$this->Flow->settings_shipping(); break;
-			case "taxes": 		$this->Flow->settings_taxes(); break;
-			default: 			$this->Flow->settings_general();
+			case "catalog": 		$this->Flow->settings_catalog(); break;
+			case "cart": 			$this->Flow->settings_cart(); break;
+			case "checkout": 		$this->Flow->settings_checkout(); break;
+			case "payments": 		$this->Flow->settings_payments(); break;
+			case "shipping": 		$this->Flow->settings_shipping(); break;
+			case "taxes": 			$this->Flow->settings_taxes(); break;
+			case "presentation":	$this->Flow->settings_presentation(); break;
+			default: 				$this->Flow->settings_general();
 		}
 		
 	}
@@ -323,7 +323,6 @@ class Shopp {
 		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax(); 
 		else if (!empty($_GET['cart'])) $this->Flow->cart_request();
 		else $this->Flow->cart_post();
-										
 	}
 	
 	/**
@@ -333,7 +332,7 @@ class Shopp {
 		// print_r($_POST);
 		if (empty($_POST['checkout'])) return true;
 		if ($_POST['checkout'] == "confirmed") {
-			$this->order();
+			$this->Flow->order();
 			return true;
 		};
 		if ($_POST['checkout'] != "process") return true;
@@ -370,109 +369,22 @@ class Shopp {
 			if ($this->Cart->data->Totals->tax > 0) {
 				header("Location: ".$this->link('confirm-order','',true));
 				exit();
-			} else $this->order();
+			} else $this->Flow->order();
 		} elseif ($this->Settings->get('order_confirmation') == "always") {
 			header("Location: ".$this->link('confirm-order','',true));
 			exit();
-		} else $this->order();
+		} else $this->Flow->order();
 	}
-		
-	/**
-	 * order()
-	 * Processes orders by passing transaction information to the active
-	 * payment gateway */
-	function order() {
-
-		$processor_file = $this->Settings->get('payment_gateway');
-
-		if (!$processor_file) return true;
-		if (!file_exists($processor_file)) return true;
-		
-		require_once("core/model/Purchase.php");
-				
-		// Dynamically the payment processing gateway
-		$processor_data = $this->Flow->scan_gateway_meta($processor_file);
-		$ProcessorClass = $processor_data->tags['class'];
-		include($processor_file);
-		
-		$Order = $this->Cart->data->Order;
-		$Order->Totals = $this->Cart->data->Totals;
-		$Order->Items = $this->Cart->contents;
-		$Order->Cart = $this->Cart->session;
-		
-		$Payment = new $ProcessorClass($Order);
-		if ($Payment->process()) {
-			$Order->Customer->save();
-
-			if (!empty($Order->Shipping->address)) {
-				$Order->Shipping->customer = $Order->Customer->id;
-				$Order->Shipping->save();
-			}
-
-			$Order->Billing->customer = $Order->Customer->id;
-			$Order->Billing->card = substr($Order->Billing->card,-4);
-			$Order->Billing->save();
 			
-			$Purchase = new Purchase();
-			$Purchase->customer = $Order->Customer->id;
-			$Purchase->billing = $Order->Billing->id;
-			$Purchase->shipping = $Order->Shipping->id;
-			$Purchase->copydata($Order->Customer);
-			$Purchase->copydata($Order->Billing);
-			$Purchase->copydata($Order->Shipping,'ship');
-			$Purchase->copydata($this->Cart->data->Totals);
-			$Purchase->freight = $this->Cart->data->Totals->shipping;
-			$Purchase->gateway = $processor_data->name;
-			$Purchase->transactionid = $Payment->transactionid();
-			$Purchase->save();
-
-			foreach($this->Cart->contents as $Item) {
-				$Purchased = new Purchased();
-				$Purchased->copydata($Item);
-				$Purchased->purchase = $Purchase->id;
-				$Purchased->save();
-			}
-			
-			// Empty cart on successful order
-			$this->Cart->unload();
-			session_destroy();
-
-			// Start new cart session
-			$this->Cart = new Cart();
-			session_start();
-			
-			// Save the purchase ID for later lookup
-			$this->Cart->data->Purchase = new Purchase($Purchase->id);
-			$this->Cart->data->Purchase->load_purchased();
-
-			// Send the e-mail receipt
-			$receipt = array();
-			$receipt['from'] = $this->Settings->get('shopowner_email');
-			$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
-			$receipt['subject'] = "Order Receipt";
-			$receipt['receipt'] = $this->Flow->order_receipt();
-			$receipt['url'] = $_SERVER['SERVER_NAME'];
-			// send_email("{$this->path}/templates/email.html",$receipt);
-			
-			if ($this->Settings->get('receipt_copy') == 1) {
-				$receipt['to'] = $this->Settings->get('shopowner_email');
-				$receipt['subject'] = "New Order";
-				// send_email("{$this->path}/templates/email.html",$receipt);
-			}
-
-			header("Location: ".$this->link('receipt','',true));
-			exit();
-		} else {
-			$this->Cart->data->OrderError = $Payment->error();
-		}
-	}
-	
 	/**
 	 * shortcodes()
 	 * Handles shortcodes used on Shopp-installed pages */
 	function shortcodes () {
-		// remove_filter('the_content', 'wpautop');
-		// add_filter('the_content', 'wpautop',8);
+		// Move wpautop priority to run before shortcodes are processed
+		if (version_compare(get_bloginfo('version'),'2.5','==')) {
+			remove_filter('the_content', 'wpautop');
+			add_filter('the_content', 'wpautop',8);
+		}
 		
 		add_shortcode('catalog',array(&$this->Flow,'catalog'));
 		add_shortcode('cart',array(&$this->Flow,'cart'));
