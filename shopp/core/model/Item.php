@@ -25,6 +25,7 @@ class Item {
 	var $weight = 0;
 	var $shipfee = 0;
 	var $shipping = false;
+	var $inventory = false;
 	var $tax = false;
 
 	function Item ($qty,&$Product,&$Price) {
@@ -49,7 +50,8 @@ class Item {
 			$this->weight = $Price->weight;
 			$this->shipfee = $Price->shipfee;
 		}
-
+		
+		$this->inventory = ($Price->inventory == "on")?true:false;
 		$this->tax = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
 	}
 	
@@ -85,6 +87,12 @@ class Item {
 			}
 		}
 		return $string;
+	}
+	
+	function unstock () {
+		$db = DB::get();
+		$table = DatabaseObject::tablename(Price::$table);
+		$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$this->price}'");
 	}
 	
 	function shipping (&$Shipping) {
