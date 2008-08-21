@@ -41,19 +41,23 @@ class Product extends DatabaseObject {
 
 			// While were at it, grab price and saleprice ranges
 			if ($price->type != "N/A") {
-				if (empty($this->ranges['min']['price'])) 
-					$this->ranges['min']['price'] = $this->ranges['max']['price'] = $price->price;
-				if ($this->ranges['min']['price'] > $price->price) 
-					$this->ranges['min']['price'] = $price->price;
-				if ($this->ranges['max']['price'] < $price->price) 
-					$this->ranges['max']['price'] = $price->price;
+				if ($price->price > 0) {
+					if (empty($this->ranges['min']['price'])) 
+						$this->ranges['min']['price'] = $this->ranges['max']['price'] = $price->price;
+					if ($this->ranges['min']['price'] > $price->price) 
+						$this->ranges['min']['price'] = $price->price;
+					if ($this->ranges['max']['price'] < $price->price) 
+						$this->ranges['max']['price'] = $price->price;
+				}
 
-				if (empty($this->ranges['min']['saleprice'])) 
-					$this->ranges['min']['saleprice'] = $this->ranges['max']['saleprice'] = $price->saleprice;
-				if ($this->ranges['min']['saleprice'] > $price->saleprice) 
-					$this->ranges['min']['saleprice'] = $price->saleprice;
-				if ($this->ranges['max']['saleprice'] < $price->saleprice) 
-					$this->ranges['max']['saleprice'] = $price->saleprice;
+				if ($price->saleprice > 0) {
+					if (empty($this->ranges['min']['saleprice'])) 
+						$this->ranges['min']['saleprice'] = $this->ranges['max']['saleprice'] = $price->saleprice;
+					if ($this->ranges['min']['saleprice'] > $price->saleprice) 
+						$this->ranges['min']['saleprice'] = $price->saleprice;
+					if ($this->ranges['max']['saleprice'] < $price->saleprice) 
+						$this->ranges['max']['saleprice'] = $price->saleprice;
+				}
 				
 			}
 		}
@@ -207,7 +211,7 @@ class Product extends DatabaseObject {
 		global $Shopp;
 		$pages = $Shopp->Settings->get('pages');
 		if (SHOPP_PERMALINKS) $imagepath = "/{$pages['catalog']['name']}/images/";
-		else $imagepath = "/shopp_image/";
+		else $imagepath = "?shopp_image=";
 		
 		switch ($property) {
 			case "found": if (!empty($this->id)) return true; else return false; break;
@@ -330,10 +334,11 @@ class Product extends DatabaseObject {
 					
 					foreach ($this->prices as $option) {
 						$currently = ($option->sale == "on")?$option->saleprice:$option->price;
+						$disabled = ($option->inventory == "on" && $option->stock == 0)?' disabled="disabled"':'';
 						
 						$price = '  ('.money($currently).')';
 						if ($option->type != "N/A")
-							$string .= '<option value="">'.$option->label.$price.'</option>'."\n";
+							$string .= '<option value="'.$option->id.'"'.$disabled.'>'.$option->label.$price.'</option>'."\n";
 					}
 
 					$string .= '</select>';
@@ -395,6 +400,8 @@ class Product extends DatabaseObject {
 										if (price) {
 											var pricetag = asMoney((price.sale == "on")?price.saleprice:price.price);
 											$(this).attr('text',$(this).attr('text')+"  ("+pricetag+")");
+											if (price.inventory == "on" && price.stock == 0) 
+												$(this).attr('disabled',true);
 										}
 									}
 								});
@@ -422,7 +429,8 @@ class Product extends DatabaseObject {
 			case "addtocart":
 				$string = "";
 				$string .= '<input type="hidden" name="product" value="'.$this->id.'" />';
-				$string .= '<input type="hidden" name="price" value="'.$this->prices[0]->id.'" />';
+				if ($this->prices[0]->type != "N/A")
+					$string .= '<input type="hidden" name="price" value="'.$this->prices[0]->id.'" />';
 				$string .= '<input type="hidden" name="cart" value="add" />';
 				$string .= '<input type="submit" name="addtocart" value="Add to Cart" class="addtocart" />';
 				return $string;
