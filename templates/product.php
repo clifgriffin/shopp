@@ -1,4 +1,3 @@
-<div id="shopp">
 <?php shopp('catalog','breadcrumb')?>
 <?php if (shopp('product','found')): ?>
 
@@ -34,15 +33,14 @@
 	<?php shopp('product','description'); ?>
 
 	<?php if(shopp('product','has-specs')): ?>
-	<ul class="details">
+	<dl class="details">
 		<?php while(shopp('product','specs')): ?>
-		<li><strong><?php shopp('product','spec','name'); ?>:</strong> <?php shopp('product','spec','content'); ?></li>
+		<dt><?php shopp('product','spec','name'); ?>:</dt><dd><?php shopp('product','spec','content'); ?></dd>
 		<?php endwhile; ?>
-	</ul>
+	</dl>
 	<?php endif; ?>
 	
 <?php else: ?>
 <h3>Product Not Found</h3>
 <p>Sorry!  The product you requested is not found in our catalog!</p>
 <?php endif; ?>
-</div>
