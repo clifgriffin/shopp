@@ -18,11 +18,14 @@ class Catalog extends DatabaseObject {
 		$this->init(self::$table);
 	}
 	
-	function load_categories () {
+	function load_categories ($limits=false) {
 		$db = DB::get();
 		
+		if ($limits) $limit = " LIMIT {$limits[0]},{$limits[1]}";
+		else $limit = "";
+		
 		$category_table = DatabaseObject::tablename(Category::$table);
-		$this->categories = $db->query("select cat.*,count(sc.product) as products from $category_table as cat left join $this->_table as sc on sc.category=cat.id group by cat.id order by parent,name",AS_ARRAY);
+		$this->categories = $db->query("select cat.*,count(sc.product) as products from $category_table as cat left join $this->_table as sc on sc.category=cat.id group by cat.id order by parent DESC,name ASC$limit",AS_ARRAY);
 		$this->categories = sort_tree($this->categories);
 	}
 	
