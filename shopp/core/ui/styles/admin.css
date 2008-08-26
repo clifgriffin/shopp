@@ -25,17 +25,17 @@ input.right { text-align: right; }
 
 .pricing tbody th, .pricing tbody td { padding-bottom: 1px; border-bottom-width: 3px;}
 
-.pricing div.file { background: url('/wp-content/plugins/shopp/core/ui/icons/page_white.png') no-repeat left 2px; padding-left: 20px; }
-.pricing div.file.image { background-image: url('/wp-content/plugins/shopp/core/ui/icons/image.png'); }
-.pricing div.file.audio { background-image: url('/wp-content/plugins/shopp/core/ui/icons/music.png'); }
-.pricing div.file.video { background-image: url('/wp-content/plugins/shopp/core/ui/icons/film.png'); }
-.pricing div.file.pdf { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_acrobat.png'); }
-.pricing div.file.msword { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_word.png'); }
-.pricing div.file.excel { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_excel.png'); }
+.pricing-table div.file { background: url('/wp-content/plugins/shopp/core/ui/icons/page_white.png') no-repeat left 2px; padding-left: 20px; }
+.pricing-table div.file.image { background-image: url('/wp-content/plugins/shopp/core/ui/icons/image.png'); }
+.pricing-table div.file.audio { background-image: url('/wp-content/plugins/shopp/core/ui/icons/music.png'); }
+.pricing-table div.file.video { background-image: url('/wp-content/plugins/shopp/core/ui/icons/film.png'); }
+.pricing-table div.file.pdf { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_acrobat.png'); }
+.pricing-table div.file.msword { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_word.png'); }
+.pricing-table div.file.excel { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_excel.png'); }
 
-.pricing div.file.x-zip,
-.pricing div.file.x-stuffit,
-.pricing div.file.x-tar
+.pricing-table div.file.x-zip,
+.pricing-table div.file.x-stuffit,
+.pricing-table div.file.x-tar
 { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_zip.png'); }
 
 div.progress { position: relative; width: 76px; height: 10px; background: #ffffff; border: 1px solid #dddddd;}
@@ -58,7 +58,7 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 
 .form-table .multiple-select { position: relative; overflow-x: hidden; overflow-y: auto; height: 120px; width: 250px; display: inline-block; border: 1px solid #c6d9e9; background: #ffffff; padding: 0; margin: 0;}
 .form-table .multiple-select ul { list-style-type: none; position: absolute; left: 0; right: 0; line-height: 1; width: auto; margin: 0; padding: 0;}
-.form-table .multiple-select ul li { margin: 0; padding:  2px 2px 0 0; }
+.form-table .multiple-select ul li { margin: 0; padding: 2px 2px 0 0; }
 .form-table .multiple-select ul li input { margin: 0 5px; }
 .form-table .multiple-select ul li.odd { background: #f9f9f9; }
 .form-table .multiple-select ul ul { padding-left: 20px; }
@@ -93,8 +93,7 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 #new-category button { width: 100%; }
 #new-category { margin-top: 5px; }
 #category-menu { width: 250px; }
-
-
+#category-menu ul { position: relative; }
 
 form { position: relative; }
 p.controls { position: absolute; top: 0; right: 0; margin: 0; }
@@ -142,6 +141,10 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #shipping-rates table.rate td.rowctrl { vertical-align: middle; white-space: nowrap;}
 #shipping-rates select.methods { width: 150px; }
 #shipping-rates button.disabled { opacity: 0.3; }
+
+#help { list-style-type: none; padding: 0; }
+#help h3 { margin-bottom: 0; }
+#help p { margin-top: 0; margin-bottom: 15px; }
 
 /**
  * Debug Console

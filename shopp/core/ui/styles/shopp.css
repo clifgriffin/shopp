@@ -41,26 +41,26 @@
 /**
  * Checkout 
  **/
-#checkout.shopp ul { width: 100%; clear: both; line-height: 1; }
-#checkout.shopp ul li { text-indent: 0; clear: both; display: block; padding: 4px 0; margin: 0; }
-#checkout.shopp label { font-size: 14px; clear: both; display: block; font-weight: bold; padding-bottom: 3px; }
-#checkout.shopp ul li label.inline { display: inline; clear: none; }
-#checkout.shopp span { float: left; padding: 0 5px 0 0; }
-#checkout.shopp ul li:before { content: ""; }
-#checkout.shopp ul li div.inline { width: auto; clear: both; }
-#checkout.shopp ul li div.inline input { width: auto;  }
-#checkout.shopp ul li div.inline label { clear: none; display: inline; }
-#checkout.shopp ul li span input { margin: 0 0 5px 0; }
-#checkout.shopp ul li div input,
-#checkout.shopp ul li div select { width: 100%; }
-#checkout.shopp ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
-#checkout.shopp ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
+#shopp form ul { width: 100%; clear: both; line-height: 1; }
+#shopp form ul li { text-indent: 0; clear: both; display: block; padding: 4px 0; margin: 0; }
+#shopp form label { font-size: 14px; clear: both; display: block; font-weight: bold; padding-bottom: 3px; }
+#shopp form ul li label.inline { display: inline; clear: none; }
+#shopp form span { float: left; padding: 0 5px 0 0; }
+#shopp form ul li:before { content: ""; }
+#shopp form ul li div.inline { width: auto; clear: both; }
+#shopp form ul li div.inline input { width: auto;  }
+#shopp form ul li div.inline label { clear: none; display: inline; }
+#shopp form ul li span input { margin: 0 0 5px 0; }
+#shopp form ul li div input,
+#shopp form ul li div select { width: 100%; }
+#shopp form ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
+#shopp form ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
 
-#checkout.shopp ul li.half { display: inline; width: 47%; float: left; clear: none; }
-#checkout.shopp ul li.half.right { display: inline; float: right; }
-#checkout.shopp span { display: inline-block; text-align: left; }
-#checkout.shopp span label,
-#checkout.shopp div label { font-size: 11px; clear: both; font-weight: normal; padding-bottom: 8px; }
+#shopp form ul li.half { display: inline; width: 47%; float: left; clear: none; }
+#shopp form ul li.half.right { display: inline; float: right; }
+#shopp form span { display: inline-block; text-align: left; }
+#shopp form span label,
+#shopp form div label { font-size: 11px; clear: both; font-weight: normal; padding-bottom: 8px; }
 
 #errors.shopp { color: #900;}
 
