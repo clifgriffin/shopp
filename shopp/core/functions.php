@@ -117,7 +117,7 @@ function duration ($start,$end) {
  * for variables appearing in the template as a bracketed
  * [variable] with data from the coinciding $data['variable']
  * or $_POST['variable'] */
-function send_email ($template,$data=array()) {
+function shopp_email ($template,$data=array()) {
 	
 	if ( file_exists($template) ) $f = file($template);
 	else die("Could not open the email template because the file does not exist or is not readable. ($template)");
@@ -266,40 +266,6 @@ function shopp_debug ($object) {
 	$result = ob_get_contents();
 	ob_end_clean();
 	$Shopp->_debug->objects .= "<br/><br/>".str_replace("\n","<br/>",$result);
-}
-
-/**
- * parse_xml
- * Parses a string of XML data into a organizable data structure */
-function parse_xml ($xml) {
-
-	$parser = xml_parser_create();
-	xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
-	xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
-	xml_parse_into_struct($parser, $xml, $tags);
-	xml_parser_free($parser);
-
-	$elements = array();	// the currently filling [child] XML element list
-	$stack = array();		// our worskspace stack
-	foreach ($tags as $tag) {
-		$index = count($elements);
-		if ($tag['type'] == "complete" || $tag['type'] == "open") {
-			$elements[$index] = new XML();
-			$elements[$index]->name = $tag['tag'];
-			$elements[$index]->attributes = (isset($tag['attributes']))?$tag['attributes']:'';
-			$elements[$index]->content = (isset($tag['value']))?$tag['value']:'';
-			if ($tag['type'] == "open") {  // push
-				$elements[$index]->children = array();
-				$stack[count($stack)] = &$elements;
-				$elements = &$elements[$index]->children;
-			}
-		}
-		if ($tag['type'] == "close") {  // remove close tag elements from the list
-			$elements = &$stack[count($stack) - 1];
-			unset($stack[count($stack) - 1]);
-		}
-	}
-	return $elements[0];  // the single top-level element
 }
 
 function get_filemeta ($file) {
