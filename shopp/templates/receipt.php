@@ -28,7 +28,10 @@
 
 	<?php while(shopp('purchase','items')): ?>
 		<tr>
-			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options'); ?></td>
+			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options'); ?><br />
+				<?php shopp('purchase','item-sku')."<br />"; ?>
+				<?php shopp('purchase','item-download'); ?>
+				</td>
 			<td><?php shopp('purchase','item-quantity'); ?></td>
 			<td class="money"><?php shopp('purchase','item-unitprice'); ?></td>
 			<td class="money"><?php shopp('purchase','item-total'); ?></td>
