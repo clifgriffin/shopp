@@ -98,7 +98,11 @@ class Category extends DatabaseObject {
 				
 				$string = "";
 				if (array_key_exists('link',$options)) $string .= '<a href="'.$link.'">';
-				if (array_key_exists('thumbnail',$options) && !empty($product->thumbnail)) $string .= '<img src="'.$imagepath.$product->thumbnail.'" alt="'.$product->name.' (thumbnail)" width="'.$thumbprops['width'].'" height="'.$thumbprops['height'].'" />';
+				if (array_key_exists('thumbnail',$options)) {
+					if (!empty($product->thumbnail)) {
+						$string .= '<img src="'.$imagepath.$product->thumbnail.'" alt="'.$product->name.' (thumbnail)" width="'.$thumbprops['width'].'" height="'.$thumbprops['height'].'" />';
+					}
+				}
 				if (array_key_exists('name',$options)) $string .= $product->name;
 				if (array_key_exists('link',$options)) $string .= "</a>";
 				if (array_key_exists('price',$options)) {
