@@ -15,6 +15,30 @@
 					<input type="radio" name="settings[receipt_copy]" value="1" id="receipt_copy_both"<?php if ($this->Settings->get('receipt_copy') == "1") echo ' checked="checked"'; ?> /> <label for="receipt_copy_both">Send to Customer &amp; Shop Owner Email</label> (see <a href="?page=settings&amp;edit=general">General Settings</a>)</td>
 			</tr>
 		</table>
+		<h3>Digtal Product Downloads</h3>
+		<table class="form-table"> 
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="download-limit">Download Limit</label></th> 
+				<td><select name="settings[download_limit]" id="download-limit">
+					<option value="">&infin;</option>
+					<?php echo menuoptions($downloads,$this->Settings->get('download_limit')); ?>
+					</select>
+				</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="download-timelimit">Time Limit</label></th> 
+				<td><select name="settings[download_timelimit]" id="download-timelimit">
+					<option value="">No Limit</option>
+					<?php echo menuoptions($time,$this->Settings->get('download_timelimit')); ?>
+						</select>
+				</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="receipt_copy_both">Restriction</label></th> 
+				<td><input type="hidden" name="settings[download_restriction]" value="off" />
+					<label for="download-restriction"><input type="checkbox" name="settings[download_restriction]" id="download-restriction" value="ip" <?php echo ($this->Settings->get('download_restriction') == "ip")?'checked="checked" ':'';?> /> Restrict to the computer the product is purchased from</label></td> 
+			</tr>
+		</table>
 		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
 	</form>
 </div>
