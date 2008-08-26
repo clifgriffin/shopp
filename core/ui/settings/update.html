@@ -1,0 +1,27 @@
+<div class="wrap">
+	<h2>Upgrade Settings</h2>
+	<?php include("navigation.html"); ?>
+
+	<form name="settings" id="general" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+		<table class="form-table"> 
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="showcase-order">Upgrade Key</label></th> 
+				<td><input type="text" name="settings[upgrade_key]" id="upgrade-key" size="48" /><br />
+					Enter your Shopp upgrade key to enable easy, automatic upgrades.							
+	            </td>
+			</tr>			
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="showcase-order">FTP Settings</label></th> 
+				<td>
+					<p><input type="text" name="settings[ftp_host]" id="upgrade-key" size="40" /><br />
+					Enter the FTP server name for this WordPress installation.</p>
+					<p><input type="text" name="settings[ftp_login]" id="upgrade-key" size="20" /><br />
+					Enter your FTP username</p>
+					<p><input type="password" name="settings[ftp_password]" id="upgrade-key" size="20" /><br />
+					Enter the password for your FTP login</p>
+	            </td>
+			</tr>			
+		</table>
+		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
+	</form>
+</div>
