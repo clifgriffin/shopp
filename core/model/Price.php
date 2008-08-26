@@ -14,7 +14,10 @@ class Price extends DatabaseObject {
 	
 	function Price ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id,$key)) return true;
+		if ($this->load($id,$key)) {
+			$this->load_download();
+			return true;
+		}
 		else return false;
 	}
 	
@@ -29,6 +32,18 @@ class Price extends DatabaseObject {
 		if (!empty($this->id)) return true;
 		return false;
 	}
+	
+	function load_download () {
+		if ($this->type != "Download") return false;
+		$db = DB::get();
+		
+		$table = DatabaseObject::tablename(Asset::$table);
+		$this->download = $db->query("SELECT id,name,properties,size FROM $table WHERE parent='$this->id' AND context='price' AND datatype='download'");
+		$this->download->properties = unserialize($this->download->properties);
+		if (!empty($this->download)) return true;
+		return false;
+	}
+	
 
 } // end Price class
 

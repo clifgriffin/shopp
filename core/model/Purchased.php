@@ -12,20 +12,17 @@
 class Purchased extends DatabaseObject {
 	static $table = "purchased";
 
-	function Purchased ($id=false) {
+	function Purchased ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id)) return true;
+		if ($this->load($id,$key)) return true;
 		else return false;
 	}
-
-	function copydata ($Object,$prefix="") {
-		$ignores = array("_datatypes","_table","_key","_lists","id","created","modified");
-		foreach(get_object_vars($Object) as $property => $value) {
-			$property = $prefix.$property;
-			if (property_exists($this,$property) && 
-				!in_array($property,$ignores)) 
-				$this->{$property} = $value;
-		}
+	
+	function keygen() {
+		$message = $this->name.$this->purchase.$this->product.$this->price.$this->download;
+		$key = sha1($message);
+		if (empty($key)) $key = md5($message);
+		$this->dkey = $key;
 	}
 
 } // end Purchased class

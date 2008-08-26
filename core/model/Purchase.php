@@ -100,6 +100,15 @@ class Purchase extends DatabaseObject {
 			case "item-options":
 				$item = current($this->purchased);
 				return $item->optionname; break;
+			case "item-sku":
+				$item = current($this->purchased);
+				return $item->sku; break;
+			case "item-download":
+				$item = current($this->purchased);
+				if (empty($options['label'])) $options['label'] = "Download Now";
+				if (SHOPP_PERMALINKS) $url = $Shopp->link('')."download/".$item->dkey;
+				else $url = get_bloginfo('wpurl')."?shopp_download=".$item->dkey;
+				return '<a href="'.$url.'">'.$options['label'].'</a>'; break;
 			case "item-quantity":
 				$item = current($this->purchased);
 				return $item->quantity; break;
@@ -117,7 +126,7 @@ class Purchase extends DatabaseObject {
 			case "tax": return money($this->tax); break;
 			case "total": return money($this->total); break;
 			
-
+			
 
 		}
 	}
