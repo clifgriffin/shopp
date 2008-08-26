@@ -2,11 +2,7 @@
 global $wpdb,$wp_rewrite,$wp_version;
 $db = DB::get();
 
-
-// Check Pre-Requisites
-if ($wp_version < 2.5) trigger_error("Sorry! Shopp is not designed to work with WordPress $wp_version.  You'll need to upgrade to version 2.5 or higher.");
-
-// Install/Upgrade tables
+// Install tables
 
 if (!file_exists(SHOPP_DBSCHEMA)) {
  	trigger_error("Could not install the shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
@@ -20,7 +16,7 @@ $pages = array();
 $pages['catalog'] = array('name'=>'shop','title'=>'Shop','content'=>'[catalog]');
 $pages['cart'] = array('name'=>'cart','title'=>'Cart','content'=>'[cart]');
 $pages['checkout'] = array('name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
-$pages['account'] = array('name'=>'account','title'=>'Your Account','content'=>'[account]');
+$pages['account'] = array('name'=>'account','title'=>'Your Orders','content'=>'[account]');
 
 $parent = 0;
 foreach ($pages as $key => &$page) {	
