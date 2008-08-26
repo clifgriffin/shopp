@@ -675,7 +675,7 @@ function addPriceLine (target,options,data,attachment) {
 		
 	var downloadHeading = $('<th><label for="download['+i+']">Product Download</label></th>').appendTo(headingsRow);
 	var downloadCell = $('<td width="31%" />').appendTo(inputsRow);
-	var downloadFile = $('<span>No product download.</span>').appendTo(downloadCell);
+	var downloadFile = $('<div>No product download.</div>').appendTo(downloadCell);
 
 	var uploadHeading = $('<td rowspan="2" class="controls" width="75" />').appendTo(headingsRow);
 	var uploadButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'13"><small>Upload File</small></button>').appendTo(uploadHeading);
@@ -824,6 +824,12 @@ function addPriceLine (target,options,data,attachment) {
 		shippingfee.val(asMoney(data.shipfee));
 		weight.val(data.weight);
 		stock.val(data.stock);
+		
+		if (data.download) {
+			data.filedata.mimetype = data.filedata.mimetype.replace(/\//gi," ");
+			
+			downloadFile.replaceWith('<div class="file '+data.filedata.mimetype+'">'+data.filename+'<br /><small>'+Math.round((data.filesize/1024)*10)/10+' KB</small></div>');
+		}
 
 		if (data.tax == "off") tax.attr('checked','true');
 	} else {
