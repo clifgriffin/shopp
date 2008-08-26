@@ -72,8 +72,8 @@ class Shopp {
 		add_action('parse_request', array(&$this, 'lookups') );
 		add_action('parse_request', array(&$this, 'cart'));
 		add_action('parse_request', array(&$this, 'checkout'));
-		add_action('wp', array(&$this, 'behaviors'));
 		add_action('wp', array(&$this, 'shortcodes'));
+		add_action('wp', array(&$this, 'behaviors'));
 
 		add_action('wp_ajax_shopp_add_category', array(&$this, 'ajax') );
 		add_action('wp_ajax_shopp_add_image', array(&$this, 'ajax') );
@@ -100,8 +100,14 @@ class Shopp {
 	 * Installs the tables and initializes settings */
 	function install () {
 
+		// If no settings are available,
+		// no tables exist, so this is a
+		// new install
 		if ($this->Settings->unavailable) 
 			include("core/install.php");
+		
+		if ($this->Settings->get('version') != SHOPP_VERSION)
+			$this->Flow->upgrade();
 				
 		// If the plugin has been previously setup
 		// dump the datatype model cache so it can be rebuilt
@@ -128,10 +134,12 @@ class Shopp {
 		$orders = add_submenu_page($this->Flow->Admin->default,'Orders', 'Orders', 8, $this->Flow->Admin->orders, array(&$this,'orders'));
 		$products = add_submenu_page($this->Flow->Admin->default,'Products', 'Products', 8, $this->Flow->Admin->products, array(&$this,'products'));
 		$settings = add_submenu_page($this->Flow->Admin->default,'Settings', 'Settings', 8, $this->Flow->Admin->settings, array(&$this,'settings'));
+		$help = add_submenu_page($this->Flow->Admin->default,'Help', 'Help', 8, $this->Flow->Admin->help, array(&$this,'help'));
 		add_action("admin_print_scripts-$main", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$orders", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$products", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$settings", array(&$this, 'admin_behaviors'));
+		add_action("admin_print_scripts-$help", array(&$this, 'admin_behaviors'));
 	}
 
 	/**
@@ -159,25 +167,28 @@ class Shopp {
 	 * public shopping pages handled by Shopp */
 	function behaviors () {
 		global $wp_query;
-		$pages = $this->Settings->get('pages');
+		$object = $wp_query->get_queried_object();
+		
+		// Determine which tag is getting used in the current post/page
+		$tag = false;
+		$tagregexp = join( '|', array_keys($this->shortcodes) );
+		foreach ($wp_query->posts as &$post) {
+			if (preg_match('/\[('.$tagregexp.')\b(.*?)(?:(\/))?\](?:(.+?)\[\/\1\])?/',$post->post_content,$matches))
+				$tag = $matches[1];
+		}
 
-		$page_id = $wp_query->get_queried_object_id();
-
-		$in_shopp = false;
-		$load_checkout = false;
-		foreach ($pages as $page) {
-			if ($page_id == $page['id']) {
-				add_action('wp_head', array(&$this, 'page_styles'));
-				add_action('wp_footer', array(&$this, 'footer'));
-				wp_enqueue_script('jquery');
-				wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
-				wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js");
-				break;
-			}
+		// Include stylesheets and javascript based on whether shopp shortcodes are used
+		if ($tag) {
+			add_action('wp_head', array(&$this, 'page_styles'));
+			add_action('wp_footer', array(&$this, 'footer'));
+			wp_enqueue_script('jquery');
+			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
+			wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js");
 		}
 		
-		if ($page_id == $pages['checkout']['id']) 
+		if ($tag == "checkout")
 			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js");		
+			
 	}
 
 	/**
@@ -191,6 +202,30 @@ class Shopp {
 	}
 	
 	/**
+	 * shortcodes()
+	 * Handles shortcodes used on Shopp-installed pages and used by
+	 * site owner for including categories/products in posts and pages */
+	function shortcodes () {
+		// Move wpautop priority to run before shortcodes are processed
+		if (version_compare(get_bloginfo('version'),'2.5','==')) {
+			remove_filter('the_content', 'wpautop');
+			add_filter('the_content', 'wpautop',8);
+		}
+		
+		$this->shortcodes = array();
+		$this->shortcodes['catalog'] = array(&$this->Flow,'catalog');
+		$this->shortcodes['cart'] = array(&$this->Flow,'cart');
+		$this->shortcodes['checkout'] = array(&$this->Flow,'checkout');
+		$this->shortcodes['account'] = array(&$this->Flow,'account');
+		$this->shortcodes['product'] = array(&$this->Flow,'product_shortcode');
+		$this->shortcodes['category'] = array(&$this->Flow,'category_shortcode');
+		
+		foreach ($this->shortcodes as $name => &$callback)
+			add_shortcode($name,&$callback);
+					
+	}
+		
+	/**
 	 * rewrites()
 	 * Adds Shopp-specific pretty-url rewrite rules to the WordPress rewrite rules */
 	function rewrites ($wp_rewrite_rules) {
@@ -202,6 +237,7 @@ class Shopp {
 		$rules = array(
 			$shop.'/receipt/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=receipt',
 			$shop.'/confirm-order/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=confirm',
+			$shop.'/download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
 			$shop.'/images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]',
 			'('.$shop.')/(\d+(,\d+)?)/?$' => 'index.php?pagename=$matches[1]&shopp_pid=$matches[2]',
 			'('.$shop.')/category/([a-zA-Z0-9_\-\/]+?)/?$' => 'index.php?pagename=$matches[1]&shopp_category=$matches[2]',
@@ -219,9 +255,9 @@ class Shopp {
 		$vars[] = 'shopp_category';
 		$vars[] = 'shopp_pid';
 		$vars[] = 'shopp_product';
-		$vars[] = 'shopp_file';
 		$vars[] = 'shopp_lookup';
 		$vars[] = 'shopp_image';
+		$vars[] = 'shopp_download';
 
 		return $vars;
 	}
@@ -257,6 +293,7 @@ class Shopp {
 			case "shipping": 		$this->Flow->settings_shipping(); break;
 			case "taxes": 			$this->Flow->settings_taxes(); break;
 			case "presentation":	$this->Flow->settings_presentation(); break;
+			case "update":			$this->Flow->settings_update(); break;
 			default: 				$this->Flow->settings_general();
 		}
 		
@@ -375,23 +412,6 @@ class Shopp {
 			exit();
 		} else $this->Flow->order();
 	}
-			
-	/**
-	 * shortcodes()
-	 * Handles shortcodes used on Shopp-installed pages */
-	function shortcodes () {
-		// Move wpautop priority to run before shortcodes are processed
-		if (version_compare(get_bloginfo('version'),'2.5','==')) {
-			remove_filter('the_content', 'wpautop');
-			add_filter('the_content', 'wpautop',8);
-		}
-		
-		add_shortcode('catalog',array(&$this->Flow,'catalog'));
-		add_shortcode('cart',array(&$this->Flow,'cart'));
-		add_shortcode('checkout',array(&$this->Flow,'checkout'));
-		
-		// TODO: Add product and category shortcodes for manual use on posts and pages
-	}
 	
 	/**
 	 * link ()
@@ -405,15 +425,21 @@ class Shopp {
 		if (array_key_exists($target,$pages)) $page = $pages[$target];
 		else {
 			if (SHOPP_PERMALINKS) $page['name'] = $target;
-			else {
-				$page['id'] = $pages['checkout']['id']."&shopp_proc=".$target;	
-			}
-			
+			else $page['id'] = $pages['checkout']['id']."&shopp_proc=".$target;	
 		}
 		if (SHOPP_PERMALINKS) return $uri.$path.$page['name'];
 		else return $uri.'?page_id='.$page['id'];
 	}
 	
+	/**
+	 * help()
+	 * This function provides graceful degradation when the 
+	 * contextual javascript behavior isn't working, this
+	 * provides the default behavior of showing a help gateway
+	 * page with instructions on where to find help on Shopp. */
+	function help () {
+		include(SHOPP_ADMINPATH."/help/help.html");
+	}
 	
 	/**
 	 * AJAX Responses */
@@ -425,8 +451,9 @@ class Shopp {
 		
 		// Grab query requests from permalink rewriting query vars
 		$image = $wp->query_vars['shopp_image'];
+		$download = $wp->query_vars['shopp_download'];
 		$lookup = $wp->query_vars['shopp_lookup'];
-
+		
 		// Special handler to ensure thickbox will load db images
 		if (empty($image)) {
 			$requests = split("/",trim($_SERVER['REQUEST_URI'],'/'));
@@ -436,7 +463,8 @@ class Shopp {
 		// Admin Lookups
 		if ($_GET['page'] == "shopp/lookup") $image = $_GET['id'];
 		
-		if (!empty($image)) $lookup = "asset";
+		if (!empty($image)) $lookup = "image";
+		if (!empty($download)) $lookup = "download";
 		
 		switch($lookup) {
 			case "zones":
@@ -445,19 +473,46 @@ class Shopp {
 					echo json_encode($zones[$_GET['country']]);
 				exit();
 				break;
-			case "asset":
-				$id = $image;
-				if (empty($id))	$id = $wp->query_vars['shopp_file'];
-				if (empty($id)) $id = $_GET['id'];
+			case "image":
+				if (empty($image)) break;
+				$Asset = new Asset($image);					
+				header ("Content-type: ".$Asset->properties['mimetype']); 
+				header ("Content-length: ".strlen($Asset->data)); 
+				header ("Content-Disposition: inline; filename='".$Asset->name."'"); 
+				header ("Content-Description: Delivered by WordPress/Shopp");
+				echo $Asset->data;
+				exit();
+				break;
+			case "download":
+				if (empty($download)) break;
+				require_once("core/model/Purchased.php");
+				$Purchased = new Purchased($download,"dkey");
+				$Asset = new Asset($Purchased->download);
+				
+				$forbidden = false;
+				// Download limit checking
+				if (!($Purchased->downloads < $this->Settings->get('download_limit') &&  // Has download credits available
+						$Purchased->created < mktime()+$this->Settings->get('download_timelimit') ))
+							$forbidden = true;
 			
-				if (!empty($id)) {
-					$Asset = new Asset($id);					
-					header ("Content-type: ".$Asset->properties['mimetype']); 
-					header ("Content-length: ".strlen($Asset->data)); 
-					header ("Content-Disposition: inline; filename='".$Asset->name."'"); 
-					header ("Content-Description: Delivered by WordPress/Shopp");
-					echo $Asset->data;
+				if ($this->Settings->get('download_restriction') == "ip") {
+					$Purchase = new Purchase($Purchased->purchase);
+					if ($Purchase->ip != $_SERVER['REMOTE_ADDR']) $forbidden = true;
 				}
+				
+				if ($forbidden) {
+					header("Status: 403 Forbidden");
+					header("Location: ".$this->link(''));
+					exit();
+				}
+				
+				header ("Content-type: ".$Asset->properties['mimetype']); 
+				header ("Content-length: ".strlen($Asset->data)); 
+				header ("Content-Disposition: inline; filename=".$Asset->name); 
+				header ("Content-Description: Delivered by WordPress/Shopp");
+				echo $Asset->data;
+				$Purchased->downloads++;
+				$Purchased->save();
 				exit();
 				break;
 		}
@@ -512,6 +567,7 @@ class Shopp {
 				$File = new Asset();
 				$File->parent = 0;
 				$File->name = $_FILES['Filedata']['name'];
+				$File->context = "price";
 				$File->datatype = "download";
 				$File->size = filesize($_FILES['Filedata']['tmp_name']);
 				$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name']));
