@@ -92,7 +92,6 @@
 			<td><p><input type="hidden" name="featured" value="off" /><input type="checkbox" name="featured" value="on" id="featured" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /><label for="featured"> Featured Product</label></p>
 				<ul>
 					<li><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting"<?php if ($Product->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> Variations &mdash; Selectable product options</label></li>
-					<li><input type="hidden" name="addons" value="off" /><input type="checkbox" name="addons" value="on" id="addons-setting"<?php if ($Product->addons == "on") echo ' checked="checked"'?> /><label for="addons-setting"> Add-ons &mdash; Build-to-order product additions</label></li>
 				</ul>
 				</td>
 		</tr>
@@ -126,34 +125,6 @@
 		</tr>
 	</tbody>
 	<tbody id="variations-pricing"></tbody>
-	</table>
-	</div>
-	
-	<div id="addons">
-	<h3>Add-ons</h3>
-	<table class="form-table pricing">
-	<tbody>
-		<tr>
-			<th>Options</th>
-			<td>
-				<ul class="multipane">
-					<li><div id="addons-menu" class="multiple-select options menu"><ul></ul></div>
-					<div class="controls">
-						<button type="button" id="addAddonMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> Add Option Menu</small></button>
-					</div></li>
-					
-					<li>	
-					<div id="addons-list" class="multiple-select options"></div><br />
-					<div class="controls right">
-					<button type="button" id="addAddonOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> Add Option</small></button>
-					</div>
-					</li>
-				</ul>
-				
-			</td>
-		</tr>		
-	</tbody>
-	<tbody id="addons-pricing"></tbody>
 	</table>
 	</div>
 	
