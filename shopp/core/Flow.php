@@ -31,7 +31,9 @@ class Flow {
 		$this->Admin->orders = $this->Admin->default;
 		$this->Admin->settings = $Core->directory."/settings";
 		$this->Admin->products = $Core->directory."/products";
+		$this->Admin->help = $Core->directory."/help";
 		
+		define("SHOPP_PATH",$this->basepath);
 		define("SHOPP_ADMINPATH",$this->basepath."/core/ui");
 		define("SHOPP_PLUGINURI",$Core->uri);
 		define("SHOPP_DBSCHEMA",$this->basepath."/core/model/schema.sql");
@@ -193,7 +195,7 @@ class Flow {
 					if (isset($_POST['item'])) $Cart->change($_POST['item'],$Product,$Price);						
 					else $Cart->add($quantity,$Product,$Price);
 				}
-				if (!empty($_POST['shipping'])) $Cart->shipping($_POST['shipping']);
+				$Cart->shipping($_POST['shipping']);
 				break;
 			case "remove":
 				if (!empty($Cart->contents)) $Cart->remove($_POST['remove']);
@@ -335,7 +337,6 @@ class Flow {
 
 		$process = get_query_var('shopp_proc');
 		switch ($process) {
-			// case "receipt": $content = order_receipt(); break;
 			case "confirm-order": $content = $this->order_confirmation(); break;
 			case "receipt": $content = $this->order_receipt(); break;
 			default:
@@ -417,6 +418,7 @@ class Flow {
 				$Purchased = new Purchased();
 				$Purchased->copydata($Item);
 				$Purchased->purchase = $Purchase->id;
+				if (!empty($Purchased->download)) $Purchased->keygen();
 				$Purchased->save();
 				if ($Item->inventory) $Item->unstock();
 			}
@@ -458,6 +460,28 @@ class Flow {
 	
 	
 	
+	function account () {
+		global $Shopp;
+		
+		if (!empty($_POST['vieworder'])) {
+			$Purchase = new Purchase($_POST['purchaseid']);
+			if ($Purchase->email == $_POST['email']) {
+				$Shopp->Cart->data->Purchase = $Purchase;
+				$Purchase->load_purchased();
+				ob_start();
+				include(SHOPP_TEMPLATES."/receipt.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+				return $content;
+			}
+		}
+		
+		ob_start();
+		include(SHOPP_ADMINPATH."/orders/account.html");
+		$content = ob_get_contents();
+		ob_end_clean();
+		return '<div id="shopp">'.$content.'</div>';
+	}
 	
 	
 	function order_confirmation () {
@@ -513,9 +537,26 @@ class Flow {
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
 		else ksort($statusLabels); 
-
+		
+		$pagenum = absint( $_GET['pagenum'] );
+		if ( empty($pagenum) )
+			$pagenum = 1;
+		if( !$per_page || $per_page < 0 )
+			$per_page = 20;
+		$start = ($per_page * ($pagenum-1)); 
+		
 		if (isset($_GET['status'])) $filter = "WHERE status='{$_GET['status']}'";
-		$Orders = $db->query("SELECT * FROM $Purchase->_table $filter ORDER BY created DESC",AS_ARRAY);
+		$ordercount = $db->query("SELECT count(*) as total FROM $Purchase->_table $filter ORDER BY created DESC");
+		$Orders = $db->query("SELECT * FROM $Purchase->_table $filter ORDER BY created DESC LIMIT $start,$per_page",AS_ARRAY);
+
+		$num_pages = ceil($ordercount->total / $per_page);
+		$page_links = paginate_links( array(
+			'base' => add_query_arg( 'pagenum', '%#%' ),
+			'format' => '',
+			'total' => $num_pages,
+			'current' => $pagenum
+		));
+
 		include("{$this->basepath}/core/ui/orders/orders.html");
 	}
 	
@@ -572,14 +613,77 @@ class Flow {
 		
 		if (empty($categories)) $categories = array('');
 		
+		$pagenum = absint( $_GET['pagenum'] );
+		if ( empty($pagenum) )
+			$pagenum = 1;
+		if( !$per_page || $per_page < 0 )
+			$per_page = 20;
+		$start = ($per_page * ($pagenum-1)); 
+		
 		$pd = DatabaseObject::tablename(Product::$table);
 		$pt = DatabaseObject::tablename(Price::$table);
 		$cat = DatabaseObject::tablename(Category::$table);
 		$clog = DatabaseObject::tablename(Catalog::$table);
-		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category GROUP BY pd.id",AS_ARRAY);
+
+		$productcount = $db->query("SELECT count(*) as total FROM $pd");
+		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category GROUP BY pd.id LIMIT $start,$per_page",AS_ARRAY);
+
+		$num_pages = ceil($productcount->total / $per_page);
+		$page_links = paginate_links( array(
+			'base' => add_query_arg( 'pagenum', '%#%' ),
+			'format' => '',
+			'total' => $num_pages,
+			'current' => $pagenum
+		));
 		
 		include("{$this->basepath}/core/ui/products/products.html");
 	}
+	
+	
+	function product_shortcode ($atts) {
+		global $Shopp;
+		
+		if (isset($atts['name'])) {
+			$Shopp->Product = new Product($atts['name'],'name');
+		} elseif (isset($atts['slug'])) {
+			$Shopp->Product = new Product($atts['slug'],'slug');
+		} elseif (isset($atts['id'])) {
+			$Shopp->Product = new Product($atts['id']);
+		} else return "";
+				
+		ob_start();
+		include(SHOPP_TEMPLATES."/related.php");
+		$content = ob_get_contents();
+		ob_end_clean();
+		
+		return '<div id="shopp">'.$content.'<div class="clear"></div></div>';
+	}
+	
+	function category_shortcode ($atts) {
+		global $Shopp;
+		
+		if (isset($atts['name'])) {
+			$Shopp->Category = new Category($atts['name'],'name');
+		} elseif (isset($atts['slug'])) {
+			switch ($atts['slug']) {
+				case NewProducts::$slug: $Shopp->Category = new NewProducts(); break;
+				case FeaturedProducts::$slug: $Shopp->Category = new FeaturedProducts(); break;
+				case OnSaleProducts::$slug: $Shopp->Category = new OnSaleProducts(); break;
+				default:
+					$Shopp->Category = new Category($atts['slug'],'slug');
+			}
+		} elseif (isset($atts['id'])) {
+			$Shopp->Category = new Category($atts['id']);
+		} else return "";
+		
+		ob_start();
+		include(SHOPP_TEMPLATES."/category.php");
+		$content = ob_get_contents();
+		ob_end_clean();
+		
+		return '<div id="shopp">'.$content.'<div class="clear"></div></div>';
+	}
+	
 		
 	function product_editor() {
 		global $Product;
@@ -815,9 +919,26 @@ class Flow {
 			}
 		}
 
+		$pagenum = absint( $_GET['pagenum'] );
+		if ( empty($pagenum) )
+			$pagenum = 1;
+		if( !$per_page || $per_page < 0 )
+			$per_page = 20;
+		$start = ($per_page * ($pagenum-1)); 
+
+		$table = DatabaseObject::tablename(Category::$table);
 		$Catalog = new Catalog();
-		$Catalog->load_categories();
+		$Catalog->load_categories(array($start,$per_page));
 		$Categories = $Catalog->categories;
+
+		$count = $db->query("SELECT count(*) AS total FROM $table");
+		$num_pages = ceil($count->total / $per_page);
+		$page_links = paginate_links( array(
+			'base' => add_query_arg( 'pagenum', '%#%' ),
+			'format' => '',
+			'total' => $num_pages,
+			'current' => $pagenum
+		));
 		
 		include("{$this->basepath}/core/ui/products/categories.html");
 	}
@@ -881,22 +1002,34 @@ class Flow {
 	}
 	
 	
+	function update () {
+		// Backup database
+		// Archive Files+DB Backup into zip and FTP to location
+		// Download update file
+		// Put site in maintenance mode
+		// Psuedo-deactivate - use ShoppUpdate() in maintenance mode don't load Shopp()
+		// 
+		
+	}
+	
 	
 	/**
 	 * Settings flow handlers
 	 **/
 	
 	function settings_general () {
+		$country = $_POST['settings']['base_operations']['country'];
 		$countries = array();
-		foreach ($this->Settings->get('countries') as $iso => $country) {
+		$countrydata = $this->Settings->get('countries');
+		foreach ($countrydata as $iso => $c) {
 			if ($_POST['settings']['base_operations']['country'] == $iso) 
-				$base_region = $country['region'];
-			$countries[$iso] = $country['name'];
+				$base_region = $c['region'];
+			$countries[$iso] = $c['name'];
 		}
 
 		if (!empty($_POST['save'])) {
-			$_POST['settings']['base_operations']['name'] = $countries[$_POST['settings']['base_operations']['country']];
-			$_POST['settings']['base_operations']['region'] = $base_region;
+			$_POST['settings']['base_operations'] = $countrydata[$_POST['settings']['base_operations']['country']];
+			$_POST['settings']['base_operations']['country'] = $country;
 			ksort($_POST['settings']['order_status']);
 			$this->settings_save();
 		}
@@ -948,10 +1081,7 @@ class Flow {
 				if (empty($theme)) $status = "ready";
 				else if (array_diff($builtin,$theme)) $status = "incomplete";
 			}
-		}
-
-
-		
+		}		
 		
 		$sizingOptions = array(	"Scale to width",
 								"Scale to height",
@@ -980,6 +1110,10 @@ class Flow {
 
 	function settings_checkout () {
 		if (!empty($_POST['save'])) $this->settings_save();
+		
+		$downloads = array("1","2","3","5","10","15","25","100");
+		$time = array("30 minutes","1 hour","2 hours","3 hours","6 hours","12 hours","1 day","3 days","1 week","1 month","3 months","6 months","1 year");
+								
 		include(SHOPP_ADMINPATH."/settings/checkout.html");
 	}
 
@@ -1050,6 +1184,14 @@ class Flow {
 		
 		include(SHOPP_ADMINPATH."/settings/payments.html");
 	}
+	
+	function settings_update () {
+		if (!empty($_POST['save'])) $this->settings_save();
+		
+		
+		include(SHOPP_ADMINPATH."/settings/update.html");
+	}
+	
 
 	function settings_get_gateways () {
 		$gateway_path = $this->basepath."/gateways";
@@ -1101,10 +1243,33 @@ class Flow {
 			$this->Settings->save($setting,$value);
 		}
 	}
-		
+	
 	/**
-	 * Setup - set up all the lists
+	 * Installation, upgrade and initialization functions
 	 */
+	
+	function upgrade () {
+		$db = DB::get();
+		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
+		
+		// Check for the schema definition file
+		if (!file_exists(SHOPP_DBSCHEMA)) {
+		 	trigger_error("Could not upgrade the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
+			exit();
+		}
+		
+		// Update the table schema
+		$tables = preg_replace('/;\s+/',';',file_get_contents(SHOPP_DBSCHEMA));
+		$updates = dbDelta($tables);
+		
+		// Update the version number
+		$settings = DatabaseObject::tablename(Settings::$table);
+		$db->query("UPDATE $settings SET value='".SHOPP_VERSION." WHERE name='version'");
+	}
+
+	/**
+	 * setup()
+	 * Initialize default install settings and lists */
 	function setup () {
 		
 		$this->setup_regions();
