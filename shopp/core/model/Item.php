@@ -24,6 +24,7 @@ class Item {
 	var $total = 0;
 	var $weight = 0;
 	var $shipfee = 0;
+	var $download = false;
 	var $shipping = false;
 	var $inventory = false;
 	var $tax = false;
@@ -35,7 +36,7 @@ class Item {
 		$this->product = $Product->id;
 		$this->price = $Price->id;
 		$this->name = $Product->name;
-		// $this->description = $Product->summary;
+		$this->description = $Product->summary;
 		$this->options = count($Product->prices);
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
@@ -45,6 +46,8 @@ class Item {
 		$this->total = $this->quantity * $this->unitprice;
 		$this->optionlabel = $Price->label;
 
+		if (!empty($Price->download)) $this->download = $Price->download->id;
+		
 		if ($Price->shipping == "on" && $Price->type == "Shipped") {
 			$this->shipping = true;
 			$this->weight = $Price->weight;
@@ -96,8 +99,6 @@ class Item {
 	}
 	
 	function shipping (&$Shipping) {
-		
-		
 	}
 	
 	function tag ($id,$property,$options=array()) {

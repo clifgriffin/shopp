@@ -31,12 +31,14 @@ class Product extends DatabaseObject {
 	function load_prices () {
 		$db = DB::get();
 		
-		$table = DatabaseObject::tablename(Price::$table);
+		$pricetable = DatabaseObject::tablename(Price::$table);
+		$assettable = DatabaseObject::tablename(Asset::$table);
 		if (empty($this->id)) return false;
-		$this->prices = $db->query("SELECT * FROM $table WHERE product=$this->id ORDER BY sortorder ASC",AS_ARRAY);
+		$this->prices = $db->query("SELECT p.*,d.id AS download,d.name AS filename,d.properties AS filedata,d.size AS filesize FROM $pricetable AS p LEFT JOIN $assettable AS d ON p.id=d.parent AND d.context='price' WHERE p.product=$this->id ORDER BY p.sortorder ASC",AS_ARRAY);
 		
 		// Build secondary lookup table using the combined optionkey
 		foreach ($this->prices as &$price) {
+			$price->filedata = unserialize($price->filedata);
 			$this->pricekey[$price->optionkey] = $price;
 
 			// While were at it, grab price and saleprice ranges
@@ -244,11 +246,13 @@ class Product extends DatabaseObject {
 					else return money($this->ranges['min']['saleprice'])." &mdash; ".money($this->ranges['max']['saleprice']);
 				} else return money($this->prices[0]->saleprice);
 				break;
-			case "thumbnails":
+			case "thumbnail":
 				if (empty($this->images)) $this->load_images();
 				$string = "";
 				foreach ($this->images as $img) {
-					if ($img->datatype == "thumbnail") $string .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+					if ($img->datatype == "thumbnail") {
+						$string .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />'; break;
+					}
 				}
 				return $string;
 				break;
