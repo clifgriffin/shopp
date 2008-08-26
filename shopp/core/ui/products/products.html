@@ -9,7 +9,7 @@
 
 	<div class="tablenav">
 		<button type="submit" id="delete-button" name="deleting" value="product" class="button-secondary">Delete</button>
-		<div class="alignright"></div>
+		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 	</div>
 	<br class="clear" />
 	<table class="widefat">
