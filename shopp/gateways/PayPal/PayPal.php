@@ -177,7 +177,7 @@ class PayPal {
 		$settings = $Shopp->Settings->get('PayPal');
 		?>
 				
-		var authorize_net_settings = function () {
+		var paypal_settings = function () {
 			addSetting("PayPal Login",
 							{'name':'settings[PayPal][username]',
 							 'id':'gateway_username',
@@ -213,7 +213,7 @@ class PayPal {
 							 "Enabled");
 			}
 			
-			gatewayHandlers.register('<?php echo __FILE__; ?>',authorize_net_settings);
+			gatewayHandlers.register('<?php echo __FILE__; ?>',paypal_settings);
 
 		<?
 	}
