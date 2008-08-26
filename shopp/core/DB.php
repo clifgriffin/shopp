@@ -353,6 +353,19 @@ class DatabaseObject {
 			}	
 		}
 	}
+	
+	/**
+	 * Copy property values from a given (like) object to this object
+	 * where the property names match */
+	function copydata ($Object,$prefix="") {
+		$ignores = array("_datatypes","_table","_key","_lists","id","created","modified");
+		foreach(get_object_vars($Object) as $property => $value) {
+			$property = $prefix.$property;
+			if (property_exists($this,$property) && 
+				!in_array($property,$ignores)) 
+				$this->{$property} = $value;
+		}
+	}
 
 }  // END class DatabaseObject
 
