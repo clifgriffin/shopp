@@ -14,16 +14,10 @@
 				<td>
 				<select name="settings[weight_unit]" id="weight-unit">
 					<option></option>
-					<optgroup label="Metric Units">
 						<?php
-							$metric = array("g"=>"gram (g)","kg"=>"kilogram (kg)");
-							echo menuoptions($metric,$this->Settings->get('weight_unit'),true);
-						?>
-					</optgroup>
-					<optgroup label="Standard Units">
-						<?php
-							$standard = array("oz" => "ounces (oz)","lb" => "pounds (lbs)");
-							echo menuoptions($standard,$this->Settings->get('weight_unit'),true);
+							if ($base['units'] == "imperial") $units = array("oz" => "ounces (oz)","lb" => "pounds (lbs)");
+							else $units = array("g"=>"gram (g)","kg"=>"kilogram (kg)");
+							echo menuoptions($units,$this->Settings->get('weight_unit'),true);
 						?>
 					</optgroup>
 				</select><br />
