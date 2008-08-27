@@ -216,6 +216,7 @@ CREATE TABLE shopp_purchase (
 	tax float(20,2) NOT NULL default '0.00',
 	total float(20,2) NOT NULL default '0.00',
 	discount float(20,2) NOT NULL default '0.00',
+	fees float(20,2) NOT NULL default '0.00',
 	transactionid varchar(64) NOT NULL default '',
 	gateway varchar(64) NOT NULL default '',
 	shiptrack varchar(100) NOT NULL default '',
