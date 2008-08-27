@@ -52,13 +52,13 @@ class Purchase extends DatabaseObject {
 				if (empty($options['format'])) $options['format'] = "F j, Y";
 				return date($options['format'],$this->created);
 				break;
-			case "card": return sprintf("%'X16d",$this->card); break;
+			case "card": return (!empty($this->card))?sprintf("%'X16d",$this->card):''; break;
 			case "cardtype": return $this->cardtype; break;
 			case "transactionid": return $this->transactionid; break;
 			case "firstname": return $this->firstname; break;
 			case "lastname": return $this->lastname; break;
 			case "label":
-				if (empty($this->shipaddress)) return "Bill to";
+				if (empty($this->shipaddress)) return "Billed to";
 				else return "Ship to"; break;
 			case "address":
 				if (empty($this->shipaddress)) return $this->address;
@@ -99,12 +99,13 @@ class Purchase extends DatabaseObject {
 				return $item->name; break;
 			case "item-options":
 				$item = current($this->purchased);
-				return $item->optionname; break;
+				return (!empty($item->optionlabel))?$options['before'].$item->optionlabel.$options['after']:''; break;
 			case "item-sku":
 				$item = current($this->purchased);
 				return $item->sku; break;
 			case "item-download":
 				$item = current($this->purchased);
+				if (empty($item->download)) return "";
 				if (empty($options['label'])) $options['label'] = "Download Now";
 				if (SHOPP_PERMALINKS) $url = $Shopp->link('')."download/".$item->dkey;
 				else $url = get_bloginfo('wpurl')."?shopp_download=".$item->dkey;
