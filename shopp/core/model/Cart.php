@@ -115,10 +115,10 @@ class Cart {
 	function save () {
 		global $Shopp;
 		$db = DB::get();
-		
+
 		if (!$Shopp->Settings->unavailable) {
-			$data = serialize($this->data);
-			$contents = serialize($this->contents);
+			$data = $db->escape(serialize($this->data));
+			$contents = $db->escape(serialize($this->contents));
 			if (!$db->query("UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'")) 
 				trigger_error("Could not save session updates to the database.");
 			return true;
@@ -501,7 +501,10 @@ class Cart {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey');
 
 		switch ($property) {
-			case "url": return $Shopp->link('checkout','',true); break;
+			case "url": return (SHOPP_PERMALINKS)?
+					$Shopp->link('checkout','',true).'?'.$_SERVER['QUERY_STRING']:
+					$Shopp->link('','',true).$_SERVER['QUERY_STRING'];
+				break;
 			case "function":
 				$regions = $Shopp->Settings->get('zones');
 				$output = '<script type="text/javascript">var regions = '.json_encode($regions).';</script>';
@@ -667,7 +670,19 @@ class Cart {
 			case "confirm-button": 
 				if (empty($options['value'])) $options['value'] = "Confirm Order";
 				return '<input type="submit" name="confirmed" id="confirm-button"'.$this->inputattrs($options,$submit_attrs).' />'; break;
-
+			case "xco-buttons": 
+				$PPX = $Shopp->Settings->get('PayPalExpress');
+				if ($PPX['enabled'] == "on") $gateway = "{$Shopp->path}/gateways/PayPal/PayPalExpress.php";
+				if (!empty($gateway)) {
+					$gateway_meta = $Shopp->Flow->scan_gateway_meta($gateway);
+					$ProcessorClass = $gateway_meta->tags['class'];
+					if (!empty($ProcessorClass)) {
+						include_once($gateway);					
+						$Payment = new $ProcessorClass();
+						return $Payment->tag('button');
+					}
+				}
+				break;
 		}
 	}
 		

@@ -57,7 +57,7 @@ class Item {
 		$this->inventory = ($Price->inventory == "on")?true:false;
 		$this->tax = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
 	}
-	
+		
 	function quantity ($qty) {
 		$this->quantity = $qty;
 		$this->total = $this->quantity * $this->unitprice;
@@ -155,6 +155,9 @@ class Item {
 				break;
 			case "options":
 				$class = "";
+				if (strtolower($options['show']) == "selected") 
+					return (!empty($this->optionlabel))?$options['before'].$this->optionlabel.$options['after']:'';
+					
 				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
 				if ($this->options > 1) {
 					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';

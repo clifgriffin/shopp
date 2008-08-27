@@ -54,6 +54,7 @@
 <big>
 	<a href="<?php shopp('catalog','url'); ?>">&laquo; Continue Shopping</a>
 	<a href="<?php shopp('checkout','url'); ?>" class="right">Proceed to Checkout &raquo;</a>
+	<?php shopp('checkout','xco-buttons'); ?>
 </big>
 
 

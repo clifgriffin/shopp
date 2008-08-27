@@ -1,7 +1,7 @@
 <?php
 /**
- * PayPal
- * @class PayPal
+ * PayPal Pro
+ * @class PayPalPro
  *
  * @author Jonathan Davis
  * @version 1.0
@@ -9,14 +9,14 @@
  * @package Shopp
  **/
 
-class PayPal {
+class PayPalPro {
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
 
-	function PayPal (&$Order="") {
+	function PayPalPro (&$Order="") {
 		global $Shopp;
-		$this->settings = $Shopp->Settings->get('PayPal');
+		$this->settings = $Shopp->Settings->get('PayPalPro');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		
 		if (!empty($Order)) $this->build($Order);
@@ -174,46 +174,45 @@ class PayPal {
 	function settings () {
 		global $Shopp;
 		$Shopp->Settings->save('gateway_cardtypes',array("Visa","MasterCard","Discover","American Express"));
-		$settings = $Shopp->Settings->get('PayPal');
 		?>
 				
-		var paypal_settings = function () {
-			addSetting("PayPal Login",
-							{'name':'settings[PayPal][username]',
+		var paypalpro_settings = function () {
+			addSetting("PayPal Pro Login",
+							{'name':'settings[PayPalPro][username]',
 							 'id':'gateway_username',
 							 'type':'text',
 							 'size':'30',
-							 'value':'<?php echo $settings['username']; ?>'},
+							 'value':'<?php echo $this->settings['username']; ?>'},
 							 "Enter your PayPal API Username.");
 
-			addSetting("PayPal Password",
-							{'name':'settings[PayPal][password]',
+			addSetting("PayPal Pro Password",
+							{'name':'settings[PayPalPro][password]',
 							 'id':'gateway_password',
 							 'type':'text',
 							 'size':'16',
-							 'value':'<?php echo $settings['password']; ?>'},
+							 'value':'<?php echo $this->settings['password']; ?>'},
 							 "Enter your PayPal API Password.");
 
-			addSetting("PayPal Signature",
-							{'name':'settings[PayPal][signature]',
+			addSetting("PayPal Pro Signature",
+							{'name':'settings[PayPalPro][signature]',
 							 'id':'gateway_signature',
 							 'type':'text',
 							 'size':'48',
-							 'value':'<?php echo $settings['signature']; ?>'},
+							 'value':'<?php echo $this->settings['signature']; ?>'},
 							 "Enter your PayPal API Signature.");
 
 
-			addSetting("PayPal Test Mode",
-							{'name':'settings[PayPal][testmode]',
+			addSetting("PayPal Pro Test Mode",
+							{'name':'settings[PayPalPro][testmode]',
 							 'id':'gateway_testmode',
 							 'type':'checkbox',
 							 'value':'on',
 							 'unchecked':'off',
-							 'checked':<?php echo ($settings['testmode'] == "on")?'true':'false'; ?>},
+							 'checked':<?php echo ($this->settings['testmode'] == "on")?'true':'false'; ?>},
 							 "Enabled");
 			}
 			
-			gatewayHandlers.register('<?php echo __FILE__; ?>',paypal_settings);
+			gatewayHandlers.register('<?php echo __FILE__; ?>',paypalpro_settings);
 
 		<?
 	}
