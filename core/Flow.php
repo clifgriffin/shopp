@@ -336,13 +336,23 @@ class Flow {
 		$Cart = $Shopp->Cart;
 
 		$process = get_query_var('shopp_proc');
+		$xco = get_query_var('shopp_xco');
 		switch ($process) {
 			case "confirm-order": $content = $this->order_confirmation(); break;
 			case "receipt": $content = $this->order_receipt(); break;
 			default:
 				ob_start();
 				if (isset($Cart->data->OrderError)) include(SHOPP_TEMPLATES."/errors.php");
-				include(SHOPP_TEMPLATES."/checkout.php");
+				if (!empty($xco)) {
+					include(SHOPP_TEMPLATES."/summary.php");
+					$gateway = "{$this->basepath}/gateways/$xco.php";
+					if (file_exists($gateway)) {
+						$gateway_meta = $this->scan_gateway_meta($gateway);
+						$ProcessorClass = $gateway_meta->tags['class'];
+						$Payment = new $ProcessorClass();
+						echo $Payment->tag('button');
+					}
+				} else include(SHOPP_TEMPLATES."/checkout.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 
@@ -367,28 +377,62 @@ class Flow {
 	 * order()
 	 * Processes orders by passing transaction information to the active
 	 * payment gateway */
-	function order () {
+	function order ($gateway = false) {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
 		
-		$processor_file = $Shopp->Settings->get('payment_gateway');
-
-		if (!$processor_file) return true;
-		if (!file_exists($processor_file)) return true;
+		$PaymentGatewayError = new stdClass();
+		$PaymentGatewayError->code = "404";
+		$PaymentGatewayError->message = "There was a problem with the payment processor. The store owner has been contacted and made aware of this issue.";
+		
+		if ($gateway) {
 			
-		// Dynamically the payment processing gateway
-		$processor_data = $this->scan_gateway_meta($processor_file);
-		$ProcessorClass = $processor_data->tags['class'];
-		include($processor_file);
-		
-		$Order = $Shopp->Cart->data->Order;
-		$Order->Totals = $Shopp->Cart->data->Totals;
-		$Order->Items = $Shopp->Cart->contents;
-		$Order->Cart = $Shopp->Cart->session;
-		
-		$Payment = new $ProcessorClass($Order);
+			if (!file_exists($gateway)) {
+				$Shopp->Cart->data->OrderError = $PaymentGatewayError;
+				return false;
+			}
+			
+			// Use an external checkout payment gateway
+			$gateway_meta = $this->scan_gateway_meta($gateway);
+			$ProcessorClass = $gateway_meta->tags['class'];
+			$Payment = new $ProcessorClass();
+			$Purchase = $Payment->process();
+			
+			if (!$Purchase) {
+				$Shopp->Cart->data->OrderError = $Payment->error();
+				return false;
+			}
+			
+		} else {
+			// Use payment gateway set in payment settings
+			$gateway = $Shopp->Settings->get('payment_gateway');
 
-		if ($Payment->process()) {
+			if (!$gateway || !file_exists($gateway)) {
+				$Shopp->Cart->data->OrderError = $PaymentGatewayError;
+				return false;
+			}
+
+			// Dynamically the payment processing gateway
+			$processor_data = $this->scan_gateway_meta($gateway);
+			$ProcessorClass = $processor_data->tags['class'];
+			include($gateway);
+
+			$Order = $Shopp->Cart->data->Order;
+			$Order->Totals = $Shopp->Cart->data->Totals;
+			$Order->Items = $Shopp->Cart->contents;
+			$Order->Cart = $Shopp->Cart->session;
+
+			$Payment = new $ProcessorClass($Order);
+
+			// Process the transaction through the payment gateway
+			$processed = $Payment->process();
+			
+			// There was a problem processing the transaction, 
+			// grab the error response from the gateway so we can report it
+			if (!$processed) {
+				$Shopp->Cart->data->OrderError = $Payment->error();
+				return false;
+			}
 			// Transaction successful, save the order
 			$Order->Customer->save();
 
@@ -400,7 +444,7 @@ class Flow {
 			$Order->Billing->customer = $Order->Customer->id;
 			$Order->Billing->card = substr($Order->Billing->card,-4);
 			$Order->Billing->save();
-			
+
 			$Purchase = new Purchase();
 			$Purchase->customer = $Order->Customer->id;
 			$Purchase->billing = $Order->Billing->id;
@@ -422,42 +466,38 @@ class Flow {
 				$Purchased->save();
 				if ($Item->inventory) $Item->unstock();
 			}
-			
-			// Empty cart on successful order
-			$Shopp->Cart->unload();
-			session_destroy();
-
-			// Start new cart session
-			$Shopp->Cart = new Cart();
-			session_start();
-			
-			// Save the purchase ID for later lookup
-			$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
-			$Shopp->Cart->data->Purchase->load_purchased();
-
-			// Send the e-mail receipt
-			$receipt = array();
-			$receipt['from'] = $Shopp->Settings->get('shopowner_email');
-			$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
-			$receipt['subject'] = "Order Receipt";
-			$receipt['receipt'] = $this->order_receipt();
-			$receipt['url'] = $_SERVER['SERVER_NAME'];
-			// send_email(SHOPP_TEMPLATES."/order.html",$receipt);
-			
-			if ($Shopp->Settings->get('receipt_copy') == 1) {
-				$receipt['to'] = $Shopp->Settings->get('shopowner_email');
-				$receipt['subject'] = "New Order";
-				// send_email(SHOPP_TEMPLATES."/email.html",$receipt);
-			}
-
-			header("Location: ".$Shopp->link('receipt','',true));
-			exit();
-		} else {
-			// Transaction failed, get the error from the payment gateway
-			$Shopp->Cart->data->OrderError = $Payment->error();
 		}
+		
+		// Empty cart on successful order
+		$Shopp->Cart->unload();
+		session_destroy();
+
+		// Start new cart session
+		$Shopp->Cart = new Cart();
+		session_start();
+		
+		// Save the purchase ID for later lookup
+		$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
+		$Shopp->Cart->data->Purchase->load_purchased();
+
+		// Send the e-mail receipt
+		$receipt = array();
+		$receipt['from'] = $Shopp->Settings->get('shopowner_email');
+		$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
+		$receipt['subject'] = "Order Receipt";
+		$receipt['receipt'] = $this->order_receipt();
+		$receipt['url'] = $_SERVER['SERVER_NAME'];
+		// send_email(SHOPP_TEMPLATES."/order.html",$receipt);
+		
+		if ($Shopp->Settings->get('receipt_copy') == 1) {
+			$receipt['to'] = $Shopp->Settings->get('shopowner_email');
+			$receipt['subject'] = "New Order";
+			// send_email(SHOPP_TEMPLATES."/email.html",$receipt);
+		}
+
+		header("Location: ".$Shopp->link('receipt','',true));
+		exit();
 	}
-	
 	
 	
 	function account () {
@@ -1176,11 +1216,18 @@ class Flow {
 		$gateways = array();
 		$Processors = array();
 		foreach ($data as $gateway) {
+			// Treat PayPal Express and Google Checkout differently
+			if ($gateway->name == "PayPal Express" || 
+				$gateway->name == "Google Checkout") continue;
+				
 			$gateways[$gateway->file] = $gateway->name;
 			$ProcessorClass = $gateway->tags['class'];
 			include($gateway->file);
 			$Processors[] = new $ProcessorClass();
 		}
+		
+		include("{$this->basepath}/gateways/PayPal/PayPalExpress.php");
+		$PayPalExpress = new PayPalExpress();
 		
 		include(SHOPP_ADMINPATH."/settings/payments.html");
 	}

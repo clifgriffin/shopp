@@ -235,8 +235,9 @@ class Shopp {
 		$checkout = $pages['checkout']['name'];
 		
 		$rules = array(
+			$shop.'/'.$checkout.'/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=checkout',
 			$shop.'/receipt/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=receipt',
-			$shop.'/confirm-order/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=confirm',
+			$shop.'/confirm-order/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=confirm-order',
 			$shop.'/download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
 			$shop.'/images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]',
 			'('.$shop.')/(\d+(,\d+)?)/?$' => 'index.php?pagename=$matches[1]&shopp_pid=$matches[2]',
@@ -258,6 +259,7 @@ class Shopp {
 		$vars[] = 'shopp_lookup';
 		$vars[] = 'shopp_image';
 		$vars[] = 'shopp_download';
+		$vars[] = 'shopp_xco';
 
 		return $vars;
 	}
@@ -365,13 +367,27 @@ class Shopp {
 	/**
 	 * checkout()
 	 * Handles checkout process */
-	function checkout () {
-		// print_r($_POST);
+	function checkout ($wp) {
+
+		$gateway = false;
+		// Intercept external checkout processing
+		if (!empty($wp->query_vars['shopp_xco'])) {
+			$gateway = "{$this->path}/gateways/{$wp->query_vars['shopp_xco']}.php";
+			if (file_exists($gateway)) {
+				$gateway_meta = $this->Flow->scan_gateway_meta($gateway);
+				$ProcessorClass = $gateway_meta->tags['class'];
+				include($gateway);
+				$Payment = new $ProcessorClass();
+				if ($wp->query_vars['shopp_proc'] != "confirm-order" && 
+						empty($_POST['checkout'])) $Payment->checkout();
+			}
+		}
+		
 		if (empty($_POST['checkout'])) return true;
 		if ($_POST['checkout'] == "confirmed") {
-			$this->Flow->order();
+			$this->Flow->order($gateway);
 			return true;
-		};
+		}
 		if ($_POST['checkout'] != "process") return true;
 				
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
