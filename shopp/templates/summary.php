@@ -10,7 +10,7 @@
 
 	<?php while(shopp('cart','items')): ?>
 		<tr>
-			<td><a href="<?php shopp('cartitem','url'); ?>"><?php shopp('cartitem','name'); ?></a><?php shopp('cartitem','options'); ?></td>
+			<td><a href="<?php shopp('cartitem','url'); ?>"><?php shopp('cartitem','name'); ?></a><?php shopp('cartitem','options','show=selected&before= (&after=)'); ?></td>
 			<td><?php shopp('cartitem','quantity'); ?></td>
 			<td class="money"><?php shopp('cartitem','unitprice'); ?></td>
 			<td class="money"><?php shopp('cartitem','total'); ?></td>
