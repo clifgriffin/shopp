@@ -1,7 +1,7 @@
 <?php
 
 define("AS_ARRAY",false);
-define("DBPREFIX","shopp_");
+define("SHOPP_DBPREFIX","shopp_");
 
 
 class Singleton {
@@ -265,7 +265,7 @@ class DatabaseObject {
 	}
 	
 	function tablename ($table) {
-		return DBPREFIX.$table;
+		return SHOPP_DBPREFIX.$table;
 	}
 	
 	/**
@@ -368,64 +368,5 @@ class DatabaseObject {
 	}
 
 }  // END class DatabaseObject
-
-/**
- * Compiles a set of arguments into useable SQL syntax fragments
- * that make selecting data from a DB table easier and more flexible when 
- * developing dynamic interfaces. */
-class DBfilter {
-	var $all;
-	var $and_all;
-	var $conditions;
-	var $conditionals = array();
-	var $and_conditions;
-	var $order;
-	var $limit;
-
-	function DBfilter ($args) {
-		
-		foreach($args as $arg) {
-			if (strpos($arg,"(") === false && strpos($arg,")") === false) {
-				list($key,$value) = split("=",$arg);
-				if (strpos($value,",")) $values = split(",",$value);
-			
-				switch($key) {
-					case "limit":
-						if (isset($values)) $this->limit = "LIMIT $values";
-						else $this->limit = "LIMIT $value";
-						break;
-					case "orderby":
-						$this->order = "ORDER BY $value";
-						break;
-					case "order":
-						if (!empty($this->order)) {
-							if (strpos(strtoupper($value),"DESC") !== false)
-								$this->order .= " DESC";
-						}
-						break;
-					default:
-						if (!empty($value))	$this->conditionals[$key] = "$key='".addslashes($value)."'";
-				}
-			} else {
-				$this->conditionals[] = $arg;
-			}
-		}
-		
-		$string = "";
-		foreach($this->conditionals as $condition) $string .= (empty($string))?"$condition":" AND $condition";
-		$this->conditions = (!empty($string))?"$string":"true";
-		$this->and_conditions = (!empty($string))?" AND $string":"";
-		
-		if (!empty($this->order)) $string .= " {$this->order}";
-		if (!empty($this->limit)) $string .= " {$this->limit}";
-		
-		$this->all = $string;
-		$this->and_all = (sizeof($this->conditionals))?"AND $string":"$string";
-		
-		return $this;
-
-	}
-
-}
 
 ?>
