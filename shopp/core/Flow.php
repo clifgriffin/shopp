@@ -724,6 +724,9 @@ class Flow {
 		return '<div id="shopp">'.$content.'<div class="clear"></div></div>';
 	}
 	
+	function maintenance_shortcode ($atts) {
+		return '<div id="shopp" class="update"><p>The store is currently down for maintenance.  We\'ll be back soon!</p><div class="clear"></div></div>';
+	}
 		
 	function product_editor() {
 		global $Product;
@@ -1039,19 +1042,7 @@ class Flow {
 
 
 		include("{$this->basepath}/core/ui/products/category.html");
-	}
-	
-	
-	function update () {
-		// Backup database
-		// Archive Files+DB Backup into zip and FTP to location
-		// Download update file
-		// Put site in maintenance mode
-		// Psuedo-deactivate - use ShoppUpdate() in maintenance mode don't load Shopp()
-		// 
-		
-	}
-	
+	}	
 	
 	/**
 	 * Settings flow handlers
@@ -1233,7 +1224,9 @@ class Flow {
 	}
 	
 	function settings_update () {
-		if (!empty($_POST['save'])) $this->settings_save();
+		if (!empty($_POST['update'])) $this->settings_save();
+		
+		
 		
 		
 		include(SHOPP_ADMINPATH."/settings/update.html");
@@ -1294,6 +1287,86 @@ class Flow {
 	/**
 	 * Installation, upgrade and initialization functions
 	 */
+	
+	function update () {
+		global $Shopp;
+		$db = DB::get();
+		
+		// Put site in maintenance mode
+		// $Shopp->Settings->save("maintenance","on");
+		$tablelist = array();
+		$results = $db->query("SHOW TABLES LIKE '".SHOPP_DBPREFIX."%'",AS_ARRAY);
+		foreach ($results as $value) {
+			foreach ($value as $key => $table)
+				$tablelist[] = $table;
+		}
+		$tables = join(" ",$tablelist);
+		
+		// Backups
+		$tmpdir = sys_get_temp_dir();
+		
+		// Backup database
+		$dbBackup = SHOPP_DBPREFIX.DB_NAME."-db-".date("YmdHi").'.zip';
+		$command = "mysqldump --opt -h ".DB_HOST." -u ".DB_USER." -p ".DB_PASSWORD." ".DB_NAME." $tables | zip $dbBackup -";
+		exec($command);
+		
+		// Backup files
+		$filesBackup = SHOPP_DBPREFIX.SHOPP_VERSION."-".date("YmdHi").'.zip';
+		$cwd = getcwd();
+		chdir(dirname($Shopp->path));
+		$command = "zip -r -9 $filesBackup ".basename($Shopp->path);
+		exec($command);
+		chdir($cwd);
+
+		// Download update file
+		$update_url = "http://shopplugin.net/shopp.zip";
+		$updatefile = tempnam($tmpdir,"shopp_update_");
+		if (($downloading = fopen($update_url, 'rb')) === false) return false; // fopen() handles
+		if (($saving = fopen($updatefile, 'wb')) === false) return false; // error messages.
+		
+		while (!feof($downloading)) {
+			// unable to write to file, possibly because the harddrive has filled up
+			if (fwrite($saving, fread($downloading, 1024)) === false) { 
+				fclose($downloading); fclose($saving); return false; 
+			}
+		}
+		
+		// Finished without errors
+		fclose($downloading);
+		fclose($saving);
+		
+		// $command = "unzip shopp_update_15fZLu.zip -d shopp_updates";
+		// system($command);
+		
+		// Get zip functions from WP Admin
+		require_once(ABSPATH.'wp-admin/includes/class-pclzip.php');
+		$archive = new PclZip($updatefile);
+		
+		// Extract data
+		$files = $archive->extract(PCLZIP_OPT_EXTRACT_AS_STRING);
+		$target = $tmpdir;
+		
+		// Create file structure in working path target
+		foreach ($files as $file) {
+			$path = dirname($file['filename']);
+			if (!is_dir($target.$path)) {
+				if (!mkdir($target.$path,0755,true)) 
+					die("Couldn't create directory $target$path");
+			}
+			
+			if (!$file['folder'] ) {
+				if (file_put_contents($target.$file['filename'], $file['content']))
+					@chmod($target.$file['filename'], 0644);
+			}
+		}
+		
+		// FTP files to make it "easier" than dealing with permissions
+		$ftp = new FTPClient("127.0.0.1","jond",'j0lantru');
+		$ftp->update($tmpdir."shopp",$Shopp->path);
+		$ftp->put($tmpdir.$dbBackup,$Shopp->path."/backups"."/$dbBackup");
+		$ftp->put($tmpdir.$filesBackup,$Shopp->path."/backups"."/$filesBackup");
+		
+	}
 	
 	function upgrade () {
 		$db = DB::get();
