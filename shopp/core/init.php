@@ -1,26 +1,5 @@
 <?php
 
-/* DROP ALL TABLES SQL for install/init testing
-
-DROP TABLE IF EXISTS `shopp_setting`;
-DROP TABLE IF EXISTS `shopp_product`;
-DROP TABLE IF EXISTS `shopp_category`;
-DROP TABLE IF EXISTS `shopp_tag`;
-DROP TABLE IF EXISTS `shopp_catalog`;
-DROP TABLE IF EXISTS `shopp_price`;
-DROP TABLE IF EXISTS `shopp_meta`;
-DROP TABLE IF EXISTS `shopp_asset`;
-DROP TABLE IF EXISTS `shopp_spec`;
-DROP TABLE IF EXISTS `shopp_cart`;
-DROP TABLE IF EXISTS `shopp_item`;
-DROP TABLE IF EXISTS `shopp_customer`;
-DROP TABLE IF EXISTS `shopp_shipping`;
-DROP TABLE IF EXISTS `shopp_billing`;
-DROP TABLE IF EXISTS `shopp_purchase`;
-DROP TABLE IF EXISTS `shopp_purchased`;
-
-*/
-
 /**
  * Index of global region names */
 function get_global_regions () {
