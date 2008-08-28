@@ -8,7 +8,7 @@ Author: Ingenesis Limited
 Author URI: http://ingenesis.net
 */
 
-define("SHOPP_VERSION","1.0");
+define("SHOPP_VERSION","1.0dev116");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_DEBUG",true);
 
@@ -46,10 +46,16 @@ class Shopp {
 		$this->uri = get_bloginfo('wpurl')."/wp-content/plugins/".$this->directory;
 		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";
 		
-		
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
-				
+
+		// Keep any DB operations from occuring while in 
+		// maintenance mode
+		if ($this->Settings->get('maintenance') == "on") {
+			add_action('wp', array(&$this, 'shortcodes'));
+			return true;
+		}
+		
 		// register_deactivation_hook(__FILE__, array(&$this, 'deactivate'));
 		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
 
@@ -221,8 +227,9 @@ class Shopp {
 		$this->shortcodes['category'] = array(&$this->Flow,'category_shortcode');
 		
 		foreach ($this->shortcodes as $name => &$callback)
-			add_shortcode($name,&$callback);
-					
+			if ($this->Settings->get("maintenance") == "on")
+				add_shortcode($name,array(&$this->Flow,'maintenance_shortcode'));
+			else add_shortcode($name,&$callback);
 	}
 		
 	/**
