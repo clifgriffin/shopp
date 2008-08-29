@@ -44,6 +44,16 @@ class Price extends DatabaseObject {
 		return false;
 	}
 	
+	function attach_download ($id) {
+		if (!$id) return false;
+		$db = DB::get();
+
+		$table = DatabaseObject::tablename(Asset::$table);
+		$db->query("DELETE FROM $table WHERE parent='$this->id' AND context='price' AND datatype='download'");
+		$db->query("UPDATE $table SET parent='$this->id',context='price',datatype='download' WHERE id='$id'");
+		return true;
+	}
+	
 
 } // end Price class
 

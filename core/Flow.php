@@ -807,9 +807,9 @@ class Flow {
 					$option['product'] = $Product->id;
 				} else $Price = new Price($option['id']);
 				$option['sortorder'] = array_search($i,$_POST['sortorder'])+1;
-				
 				$Price->updates($option);
 				$Price->save();
+				if (!empty($option['download'])) $Price->attach_download($option['download']);
 			}
 			unset($Price);
 		}
@@ -1293,7 +1293,7 @@ class Flow {
 		$db = DB::get();
 		
 		// Put site in maintenance mode
-		// $Shopp->Settings->save("maintenance","on");
+		$Shopp->Settings->save("maintenance","on");
 		$tablelist = array();
 		$results = $db->query("SHOW TABLES LIKE '".SHOPP_DBPREFIX."%'",AS_ARRAY);
 		foreach ($results as $value) {

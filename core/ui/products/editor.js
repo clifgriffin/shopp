@@ -119,6 +119,7 @@ function init () {
 		file_upload_limit : filesizeLimit,
 		custom_settings : {
 			targetCell : false,
+			targetLine : false,
 			progressBar : false,
 		},
 		debug: false,
@@ -675,11 +676,11 @@ function addPriceLine (target,options,data,attachment) {
 		
 	var downloadHeading = $('<th><label for="download['+i+']">Product Download</label></th>').appendTo(headingsRow);
 	var downloadCell = $('<td width="31%" />').appendTo(inputsRow);
-	var downloadFile = $('<div>No product download.</div>').appendTo(downloadCell);
+	var downloadFile = $('<div></div>').html('No product download.').appendTo(downloadCell);
 
 	var uploadHeading = $('<td rowspan="2" class="controls" width="75" />').appendTo(headingsRow);
 	var uploadButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'13"><small>Upload File</small></button>').appendTo(uploadHeading);
-	uploadButton.click(function () { uploader.targetCell = downloadFile; uploader.selectFiles(); });
+	uploadButton.click(function () { uploader.targetCell = downloadFile; uploader.targetLine = i; uploader.selectFiles(); });
 	
 	// Build an object to reference and control/update this entry
 	var Pricing = new Object();
@@ -828,8 +829,9 @@ function addPriceLine (target,options,data,attachment) {
 		if (data.download) {
 			data.filedata.mimetype = data.filedata.mimetype.replace(/\//gi," ");
 			
-			downloadFile.replaceWith('<div class="file '+data.filedata.mimetype+'">'+data.filename+'<br /><small>'+Math.round((data.filesize/1024)*10)/10+' KB</small></div>');
+			downloadFile.attr('class','file '+data.filedata.mimetype).html(data.filename+'<br /><small>'+Math.round((data.filesize/1024)*10)/10+' KB</small>');
 		}
+		
 
 		if (data.tax == "off") tax.attr('checked','true');
 	} else {
@@ -994,7 +996,7 @@ function fileDialogComplete (selected, queued) {
 }
 
 function startUpload (file) {
-	this.targetCell.html('');
+	this.targetCell.attr('class','').html('');
 	var progress = $('<div class="progress"></div>').appendTo(this.targetCell);
 	var bar = $('<div class="bar"></div>').appendTo(progress);
 	var art = $('<div class="gloss"></div>').appendTo(progress);
@@ -1005,7 +1007,7 @@ function startUpload (file) {
 }
 
 function uploadProgress (file, loaded, total) {
-	var progress = Math.ceil((loaded/total)*100);
+	var progress = Math.ceil((loaded/total)*76);
 	$(this.progressBar).animate({'width':progress+'px'},100);
 }
 
@@ -1016,12 +1018,13 @@ function uploadError (file, error, message) {
 function uploadSuccess (file, results) {
 	var filedata = eval('('+results+')');
 	var targetCell = this.targetCell;
+	var i = this.targetLine;
+	console.log(filedata.id);
 	filedata.type = filedata.type.replace(/\//gi," ");
-	$(this.progressBar).animate({'width':'100px'},250,function () { 
+	$(this.progressBar).animate({'width':'76px'},250,function () { 
 		$(this).parent().fadeOut(500,function() {
 			$(this).remove(); 
-			$(targetCell).html('<div class="file '+filedata.type+'">'+filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small></div>');
-			
+			$(targetCell).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small><input type="hidden" name="price['+i+'][download]" value="'+filedata.id+'" />');
 		});
 	});
 	
