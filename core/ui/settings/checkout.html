@@ -12,7 +12,7 @@
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="receipt_copy_both">Receipt Emails</label></th> 
 				<td><input type="radio" name="settings[receipt_copy]" value="0" id="receipt_copy_customer_only" /> <label for="receipt_copy_customer_only"<?php if ($this->Settings->get('receipt_copy') == "0") echo ' checked="checked"'; ?>>Send to Customer Only</label><br />
-					<input type="radio" name="settings[receipt_copy]" value="1" id="receipt_copy_both"<?php if ($this->Settings->get('receipt_copy') == "1") echo ' checked="checked"'; ?> /> <label for="receipt_copy_both">Send to Customer &amp; Shop Owner Email</label> (see <a href="?page=settings&amp;edit=general">General Settings</a>)</td>
+					<input type="radio" name="settings[receipt_copy]" value="1" id="receipt_copy_both"<?php if ($this->Settings->get('receipt_copy') == "1") echo ' checked="checked"'; ?> /> <label for="receipt_copy_both">Send to Customer &amp; Shop Owner Email</label> (see <a href="?page=shopp/settings&amp;edit=general">General Settings</a>)</td>
 			</tr>
 		</table>
 		<h3>Digtal Product Downloads</h3>
@@ -34,7 +34,7 @@
 				</td>
 			</tr>
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="receipt_copy_both">Restriction</label></th> 
+				<th scope="row" valign="top"><label for="receipt_copy_both">IP Restriction</label></th> 
 				<td><input type="hidden" name="settings[download_restriction]" value="off" />
 					<label for="download-restriction"><input type="checkbox" name="settings[download_restriction]" id="download-restriction" value="ip" <?php echo ($this->Settings->get('download_restriction') == "ip")?'checked="checked" ':'';?> /> Restrict to the computer the product is purchased from</label></td> 
 			</tr>
