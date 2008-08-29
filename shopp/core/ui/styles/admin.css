@@ -4,6 +4,8 @@ button.deleteButton { background: none; border: none; padding: 0; width: 16px; h
 button img { display: inline-block; vertical-align: middle; }
 input.right { text-align: right; }
 
+table td.featured { background: url('/wp-content/plugins/shopp/core/ui/icons/featured.png') no-repeat center center; }
+
 .form-table input.toggle { margin-left: -13px; }
 .form-table { position: relative; }
 .form-table td { position: relative; }
