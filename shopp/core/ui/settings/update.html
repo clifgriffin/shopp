@@ -1,16 +1,20 @@
 <div class="wrap">
 	<h2>Upgrade Settings</h2>
 	<?php include("navigation.html"); ?>
-	<div class="tablenav">
 		<button type="submit" id="updates" name="update" value="update" class="button-secondary">Check for Updates</button>
-	</div>
 
 	<form name="settings" id="general" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order">Upgrade Key</label></th> 
-				<td><input type="text" name="settings[upgrade_key]" id="upgrade-key" size="48" /><br />
-					Enter your Shopp upgrade key to enable easy, automatic upgrades.							
+				<td><input type="text" name="settings[upgrade_key]" id="upgrade-key" size="48" />
+					<?php if ($this->Settings->get('updatekey_status') == "activated"): ?>
+					<button type="submit" id="activate" name="activation" value="activate" class="button-secondary">De-activate</button>
+					<br />Your key is currently activated. Deactivate it to use this key on another Shopp installation.
+					<?php else: ?>
+					<button type="submit" id="activate" name="activation" value="activate" class="button-secondary">Activate</button>
+					<br />Enter your Shopp upgrade key and activate it to enable easy, automatic upgrades.
+					<?php endif; ?>
 	            </td>
 			</tr>			
 			<tr class="form-field form-required"> 
