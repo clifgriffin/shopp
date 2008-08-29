@@ -418,6 +418,61 @@ function valid_input ($type) {
 	return false;
 }
 
+
+class FTPClient {
+	var $connected = false;
+	
+	function FTPClient ($host, $user, $password) {
+		$this->connect($host, $user, $password);
+		if ($this->conntected) ftp_pasv($this->connection,true);
+	}
+	
+	/** 
+	 * Connects to the FTP server */
+	function connect($host, $user, $password) {
+		$this->connection = @ftp_connect($host);
+		$this->connected = @ftp_login($this->connection,$user,$password);
+		if (!$this->connected) trigger_error("Could not connect to the FTP server '$host'.");
+		return true;
+	}
+	
+	/**
+	 * update()
+	 * Recursively copies files from a src $path to the $remote path */
+	function update ($path,$remote) {
+		$path = trailingslashit($path);
+		$remote = trailingslashit($remote);
+		$files = scandir($path);
+		$excludes = array(".","..");
+		foreach ($files as $file) {
+			if (in_array($file,$excludes)) continue;
+			if (is_dir($path.$file)) {
+				if (@ftp_chdir($this->connection,$remote.$file)) {
+					$this->update($path.$file,$remote.$file);
+				} else $this->mkdir($remote.$file);
+			} else $this->put($path.$file,$remote.$file);
+		}
+	}
+	
+	/**
+	 * put()
+	 * Copies the target file to the remote location */
+	function put ($file,$remote) {
+		return ftp_put($this->connection,$remote,$file,0644);
+	}
+	
+	/**
+	 * mkdir()
+	 * Makes a new remote directory with correct permissions */
+	function mkdir ($path) {
+		if (ftp_mkdir($this->connection,$path)) 
+			ftp_chmod($this->connection,0755,$path);
+		else return false;
+		return true;
+	}
+	
+}
+
 shopp_prereqs();  // Run by default at include
 
 ?>
