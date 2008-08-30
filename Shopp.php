@@ -52,9 +52,10 @@ class Shopp {
 
 		// Keep any DB operations from occuring while in 
 		// maintenance mode
-		if ($this->Settings->get('maintenance') == "on") {
+		if (!empty($_GET['updated']) && $this->Settings->get('maintenance') == "on"){
+			if ($this->Flow->upgrade()) $this->Settings->save("maintenance","off");
+		} elseif ($this->Settings->get('maintenance') == "on") {
 			add_action('wp', array(&$this, 'shortcodes'));
-			if ($_GET['action'] == "wp_ajax_shopp_update_result") $this->Flow->update_result();
 			return true;
 		}
 		
@@ -305,6 +306,7 @@ class Shopp {
 			case "taxes": 			$this->Flow->settings_taxes(); break;
 			case "presentation":	$this->Flow->settings_presentation(); break;
 			case "update":			$this->Flow->settings_update(); break;
+			case "ftp":				$this->Flow->settings_ftp(); break;
 			default: 				$this->Flow->settings_general();
 		}
 		

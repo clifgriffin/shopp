@@ -7,7 +7,7 @@
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order">Shopp Updates</label>
 				</th> 
-				<td>You are currently running Shopp <?php echo SHOPP_VERSION; ?>
+				<td>Currently running Shopp <?php echo SHOPP_VERSION; ?>
 					<div id="update-info">
 					<p><button type="button" id="check-update" name="check-update" class="button-secondary">Check for Updates</button></p>	
 					</div>
@@ -17,7 +17,7 @@
 				<th scope="row" valign="top"><label for="Update Key">Update Key</label></th> 
 				<td>
 					<?php if ($this->Settings->get('updatekey_status') == "activated"): ?>
-					<input type="text" name="settings[update_key]" id="update-key" size="40" value="<?php echo $this->Settings->get('update_key'); ?>" readonly="readonly" />
+						<input type="text" name="settings[update_key]" id="update-key" size="40" value="<?php echo $this->Settings->get('update_key'); ?>" readonly="readonly" />
 					<input type="submit" id="deactivate-button" name="activation" value="De-activate Key" class="button" />
 					<?php else: ?>
 					<input type="text" name="settings[update_key]" id="update-key" size="40" value="<?php echo $this->Settings->get('update_key'); ?>" />
@@ -26,28 +26,18 @@
 					<br /><?php echo $activation; ?>
 	            </td>
 			</tr>			
-			<!-- <tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="showcase-order">FTP Settings</label></th> 
-				<td>
-					<p><input type="text" name="settings[ftp_host]" id="upgrade-key" size="40" /><br />
-					Enter the FTP server name for this WordPress installation.</p>
-					<p><input type="text" name="settings[ftp_login]" id="upgrade-key" size="20" /><br />
-					Enter your FTP username</p>
-					<p><input type="password" name="settings[ftp_password]" id="upgrade-key" size="20" /><br />
-					Enter the password for your FTP login</p>
-	            </td>
-			</tr>-->
 		</table>
 	</form>
 </div>
 
 <script type="text/javascript">
 (function($) {
-	var url = '<?php bloginfo('siteurl'); ?>/wp-admin/admin-ajax.php';
+	var ajaxurl = '<?php bloginfo('siteurl'); ?>/wp-admin/admin-ajax.php';
+	var adminurl = '<?php bloginfo('siteurl'); ?>/wp-admin/admin.php';
 
 	$('#check-update').click(function () {
 		var target = $('#update-info')
-		$.getJSON(url+"?action=wp_ajax_shopp_version_check",function (result) {
+		$.getJSON(ajaxurl+"?action=wp_ajax_shopp_version_check",function (result) {
 			var data = eval(result);
 			if (data.update) {
 				target.html('<strong>Shopp '+data.version+' is available!</strong>');
@@ -65,16 +55,14 @@
 	});
 
 	function startupdate () {
-		$.getJSON(url+"?action=wp_ajax_shopp_update",function (results) {
-			var result = eval(results);
-			if (result.status) {
-				$.get(url+"?action=wp_ajax_shopp_update_result", function (results) {
-					$('#update-info').html('<strong>Update Complete!</strong>');
-					var wrap = $('<p></p>').appendTo('#update-info');
-					var reload = $('<button type="button" name="reload" value="reload" class="button-secondary">Continue&hellip;</button>').appendTo('#update-info');
-					reload.click(function() {
-						window.location.reload();
-					});
+		$.get(ajaxurl+"?action=wp_ajax_shopp_update",function (result) {
+			if (result == "ftp-failed") window.location.href = adminurl+"?page=shopp/settings&edit=ftp";
+			if (result == "updated") {
+				$('#update-info').html('<strong>Update Complete!</strong><br />Click continue to upgrade the Shopp database.');
+				var wrap = $('<p></p>').appendTo('#update-info');
+				var reload = $('<button type="button" name="reload" value="reload" class="button-secondary">Continue&hellip;</button>').appendTo('#update-info');
+				reload.click(function () {
+					window.location.href = adminurl+'?page=shopp/settings&edit=update&updated=true';
 				});
 			}
 		});
