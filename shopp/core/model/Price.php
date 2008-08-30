@@ -39,9 +39,11 @@ class Price extends DatabaseObject {
 		
 		$table = DatabaseObject::tablename(Asset::$table);
 		$this->download = $db->query("SELECT id,name,properties,size FROM $table WHERE parent='$this->id' AND context='price' AND datatype='download'");
+
+		if (empty($this->download)) return false;
+
 		$this->download->properties = unserialize($this->download->properties);
-		if (!empty($this->download)) return true;
-		return false;
+		return true;
 	}
 	
 	function attach_download ($id) {
