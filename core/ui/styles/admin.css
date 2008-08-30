@@ -6,6 +6,9 @@ input.right { text-align: right; }
 
 table td.featured { background: url('/wp-content/plugins/shopp/core/ui/icons/featured.png') no-repeat center center; }
 
+#status { padding-left: 20px; font-weight: bold; }
+#status.updating { background: url('/wp-content/plugins/shopp/core/ui/icons/updating.gif') no-repeat left center; }
+
 .form-table input.toggle { margin-left: -13px; }
 .form-table { position: relative; }
 .form-table td { position: relative; }

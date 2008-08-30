@@ -10,6 +10,7 @@ Author URI: http://ingenesis.net
 
 define("SHOPP_VERSION","1.0dev116");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
+define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DEBUG",true);
 
 require("core/functions.php");
@@ -53,6 +54,7 @@ class Shopp {
 		// maintenance mode
 		if ($this->Settings->get('maintenance') == "on") {
 			add_action('wp', array(&$this, 'shortcodes'));
+			if ($_GET['action'] == "wp_ajax_shopp_update_result") $this->Flow->update_result();
 			return true;
 		}
 		
@@ -546,6 +548,8 @@ class Shopp {
 	 * Handles AJAX request processing */
 	function ajax() {
 		switch($_GET['action']) {
+			
+			// Add a category in the product editor
 			case "wp_ajax_shopp_add_category":
 				if (!empty($_GET['name'])) {
 					$Catalog = new Catalog();
@@ -577,10 +581,14 @@ class Shopp {
 				}
 				exit();
 				break;
+				
+			// Upload an image in the product editor
 			case "wp_ajax_shopp_add_image":
 				$this->Flow->product_images();
 				exit();
 				break;
+				
+			// Upload a product download file in the product editor
 			case "wp_ajax_shopp_add_download":
 		
 				// TODO: Error handling
@@ -601,6 +609,20 @@ class Shopp {
 				echo json_encode(array("id"=>$File->id,"name"=>$File->name,"type"=>$File->properties['mimetype'],"size"=>$File->size));
 				exit();
 				break;
+				
+			// Perform a version check for any updates
+			case "wp_ajax_shopp_version_check":
+				$request = array(
+					"ShoppServerRequest" => "version-check",
+					"v" => SHOPP_VERSION					
+				);
+				echo $this->Flow->callhome($request);
+				exit();
+
+			// Perform an update process
+			case "wp_ajax_shopp_update":
+				echo $this->Flow->update();
+				exit();
 		}
 				
 	}

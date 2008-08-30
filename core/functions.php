@@ -418,6 +418,15 @@ function valid_input ($type) {
 	return false;
 }
 
+function build_query_request ($request=array()) {
+	$query = "";
+	foreach ($request as $name => $value) {
+		if (strlen($query) > 0) $query .= "&";
+		$query .= "$name=$value";
+	}
+	return $query;
+}
+
 
 class FTPClient {
 	var $connected = false;
