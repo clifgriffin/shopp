@@ -1224,10 +1224,38 @@ class Flow {
 	}
 	
 	function settings_update () {
-		if (!empty($_POST['update'])) $this->settings_save();
-		
-		
-		
+		if (!empty($_POST['activation'])) {
+			$this->settings_save();	
+			
+			if ($_POST['activation'] == "Activate Key") $process = "activate-key";
+			else $process = "deactivate-key";
+			
+			$request = array(
+				"ShoppServerRequest" => $process,
+				"v" => SHOPP_VERSION,
+				"key" => $_POST['settings']['update_key'],
+				"site" => get_bloginfo('siteurl')
+			);
+			
+			$activation = $this->callhome($request);
+			
+			if ($activation != "1")
+				$activation = '<span class="shopp error">'.$activation.'</span>';
+			
+			if ($process == "activate-key" && $activation == "1") {
+				$this->Settings->save('updatekey_status','activated');
+				$activation = "This key has been successfully activated.";
+			}
+			
+			if ($process == "deactivate-key" && $activation == "1") {
+				$this->Settings->save('updatekey_status','deactivated');
+				$activation = "This key has been successfully de-activated.";
+			}
+		} else {
+			if ($this->Settings->get('updatekey_status') == "activated") 
+				$activation = "This key has been successfully activated.";
+			else $activation = "Enter your Shopp upgrade key and activate it to enable easy, automatic upgrades.";
+		}
 		
 		include(SHOPP_ADMINPATH."/settings/update.html");
 	}
@@ -1293,7 +1321,7 @@ class Flow {
 		$db = DB::get();
 		
 		// Put site in maintenance mode
-		$Shopp->Settings->save("maintenance","on");
+		$this->Settings->save("maintenance","on");
 		$tablelist = array();
 		$results = $db->query("SHOW TABLES LIKE '".SHOPP_DBPREFIX."%'",AS_ARRAY);
 		foreach ($results as $value) {
@@ -1318,25 +1346,26 @@ class Flow {
 		exec($command);
 		chdir($cwd);
 
-		// Download update file
-		$update_url = "http://shopplugin.net/shopp.zip";
+		// Download the new version of Shopp
 		$updatefile = tempnam($tmpdir,"shopp_update_");
-		if (($downloading = fopen($update_url, 'rb')) === false) return false; // fopen() handles
-		if (($saving = fopen($updatefile, 'wb')) === false) return false; // error messages.
+		if (($download = fopen($updatefile, 'wb')) === false) die("Cannot save the Shopp update."); // error messages.
 		
-		while (!feof($downloading)) {
-			// unable to write to file, possibly because the harddrive has filled up
-			if (fwrite($saving, fread($downloading, 1024)) === false) { 
-				fclose($downloading); fclose($saving); return false; 
-			}
-		}
-		
+		$query = build_query_request(array(
+			"ShoppServerRequest" => "download-update",
+			"v" => SHOPP_VERSION,
+			"key" => $this->Settings->get('update_key'),
+			"site" => get_bloginfo('siteurl')
+		));
+
+		$connection = curl_init(); 
+		curl_setopt($connection, CURLOPT_URL, SHOPP_HOME."?".$query); 
+		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
+		curl_setopt($connection, CURLOPT_HEADER, 0); 
+	    curl_setopt($connection, CURLOPT_FILE, $download); 
+		curl_exec($connection); 
+		curl_close($connection);		
 		// Finished without errors
-		fclose($downloading);
-		fclose($saving);
-		
-		// $command = "unzip shopp_update_15fZLu.zip -d shopp_updates";
-		// system($command);
+		fclose($download);
 		
 		// Get zip functions from WP Admin
 		require_once(ABSPATH.'wp-admin/includes/class-pclzip.php');
@@ -1344,6 +1373,7 @@ class Flow {
 		
 		// Extract data
 		$files = $archive->extract(PCLZIP_OPT_EXTRACT_AS_STRING);
+		if (!is_array($files)) die("Download is corrupted.");
 		$target = $tmpdir;
 		
 		// Create file structure in working path target
@@ -1366,6 +1396,17 @@ class Flow {
 		$ftp->put($tmpdir.$dbBackup,$Shopp->path."/backups"."/$dbBackup");
 		$ftp->put($tmpdir.$filesBackup,$Shopp->path."/backups"."/$filesBackup");
 		
+		echo json_encode(array("status" => true,"version" => SHOPP_VERSION));
+		exit();
+	}
+	
+	function update_result () {
+		$db = DB::get();
+		if ($this->upgrade()) {
+			$this->Settings->save("maintenance","off");
+			echo json_encode(array("status" => true,"version" => SHOPP_VERSION));
+		} else echo json_encode(array("status" => false,"version" => SHOPP_VERSION));
+		exit();
 	}
 	
 	function upgrade () {
@@ -1373,19 +1414,34 @@ class Flow {
 		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
 		
 		// Check for the schema definition file
-		if (!file_exists(SHOPP_DBSCHEMA)) {
-		 	trigger_error("Could not upgrade the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
-			exit();
-		}
+		if (!file_exists(SHOPP_DBSCHEMA))
+		 	die("Could not upgrade the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
 		
 		// Update the table schema
 		$tables = preg_replace('/;\s+/',';',file_get_contents(SHOPP_DBSCHEMA));
-		$updates = dbDelta($tables);
+		dbDelta($tables);
 		
 		// Update the version number
 		$settings = DatabaseObject::tablename(Settings::$table);
 		$db->query("UPDATE $settings SET value='".SHOPP_VERSION." WHERE name='version'");
+		
+		return true;
 	}
+
+	function callhome ($request=array()) {
+		$query = build_query_request($request);
+		
+		$connection = curl_init(); 
+		curl_setopt ($connection, CURLOPT_URL, SHOPP_HOME."?".$query); 
+		curl_setopt ($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
+		curl_setopt ($connection, CURLOPT_HEADER, 0); 
+		curl_setopt ($connection, CURLOPT_RETURNTRANSFER, 1); 
+		$result = curl_exec($connection); 
+		curl_close ($connection);
+		
+		return $result;
+	}
+
 
 	/**
 	 * setup()
