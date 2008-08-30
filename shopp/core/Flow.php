@@ -1224,6 +1224,7 @@ class Flow {
 	}
 	
 	function settings_update () {
+		if (!empty($_POST['save'])) $this->settings_save();
 		if (!empty($_POST['activation'])) {
 			$this->settings_save();	
 			
@@ -1260,6 +1261,13 @@ class Flow {
 		include(SHOPP_ADMINPATH."/settings/update.html");
 	}
 	
+	function settings_ftp () {
+		if (!empty($_POST['save'])) $this->settings_save();
+		
+		$credentials = $this->Settings->get('ftp_credentials');
+		
+		include(SHOPP_ADMINPATH."/settings/ftp.html");
+	}
 
 	function settings_get_gateways () {
 		$gateway_path = $this->basepath."/gateways";
@@ -1320,6 +1328,20 @@ class Flow {
 		global $Shopp;
 		$db = DB::get();
 		
+		$credentials = $this->Settings->get('ftp_credentials');
+		if (empty($credentials)) {
+			// Try to load from WordPress settings
+			$credentials = get_option('ftp_credentials');
+			if (!$credentials) $credentials = array();
+		}
+		
+		// Make sure we can connect to FTP
+		$ftp = new FTPClient($credentials['hostname'],$credentials['username'],$credentials['password']);
+		if (!$ftp->connected) die("ftp-failed");
+		
+		// Get zip functions from WP Admin
+		require_once(ABSPATH.'wp-admin/includes/class-pclzip.php');
+		
 		// Put site in maintenance mode
 		$this->Settings->save("maintenance","on");
 		$tablelist = array();
@@ -1334,17 +1356,19 @@ class Flow {
 		$tmpdir = sys_get_temp_dir();
 		
 		// Backup database
-		$dbBackup = SHOPP_DBPREFIX.DB_NAME."-db-".date("YmdHi").'.zip';
-		$command = "mysqldump --opt -h ".DB_HOST." -u ".DB_USER." -p ".DB_PASSWORD." ".DB_NAME." $tables | zip $dbBackup -";
-		exec($command);
+		// $dbBackup = SHOPP_DBPREFIX.DB_NAME."-db-".date("YmdHi");
+		// $command = "mysqldump --opt -h ".DB_HOST." -u".DB_USER." -p".DB_PASSWORD." ".DB_NAME." $tables > $tmpdir$dbBackup.sql";
+		// exec($command);
+		// 
+		// if (file_exists($tmpdir.$dbBackup.".sql")) {
+		// 	$dbarchive = new PclZip($tmpdir.$dbBackup.'.zip');
+		// 	$dbarchive->create($tmpdir.$dbBackup.'.sql');
+		// }
 		
 		// Backup files
-		$filesBackup = SHOPP_DBPREFIX.SHOPP_VERSION."-".date("YmdHi").'.zip';
-		$cwd = getcwd();
-		chdir(dirname($Shopp->path));
-		$command = "zip -r -9 $filesBackup ".basename($Shopp->path);
-		exec($command);
-		chdir($cwd);
+		// $filesBackup = SHOPP_DBPREFIX.SHOPP_VERSION."-".date("YmdHi").'.zip';
+		// $filesArchive = new PclZip($tmpdir.$filesBackup);
+		// $filesArchive->create(basename($Shopp->path));
 
 		// Download the new version of Shopp
 		$updatefile = tempnam($tmpdir,"shopp_update_");
@@ -1367,13 +1391,11 @@ class Flow {
 		// Finished without errors
 		fclose($download);
 		
-		// Get zip functions from WP Admin
-		require_once(ABSPATH.'wp-admin/includes/class-pclzip.php');
-		$archive = new PclZip($updatefile);
-		
 		// Extract data
+		$archive = new PclZip($updatefile);
 		$files = $archive->extract(PCLZIP_OPT_EXTRACT_AS_STRING);
 		if (!is_array($files)) die("Download is corrupted.");
+		else unlink($updatefile);
 		$target = $tmpdir;
 		
 		// Create file structure in working path target
@@ -1391,24 +1413,14 @@ class Flow {
 		}
 		
 		// FTP files to make it "easier" than dealing with permissions
-		$ftp = new FTPClient("127.0.0.1","jond",'j0lantru');
 		$ftp->update($tmpdir."shopp",$Shopp->path);
-		$ftp->put($tmpdir.$dbBackup,$Shopp->path."/backups"."/$dbBackup");
-		$ftp->put($tmpdir.$filesBackup,$Shopp->path."/backups"."/$filesBackup");
+		// $ftp->put($tmpdir.$dbBackup,$Shopp->path."/backups"."/$dbBackup");
+		// $ftp->put($tmpdir.$filesBackup,$Shopp->path."/backups"."/$filesBackup");
 		
-		echo json_encode(array("status" => true,"version" => SHOPP_VERSION));
+		echo "updated";
 		exit();
 	}
-	
-	function update_result () {
-		$db = DB::get();
-		if ($this->upgrade()) {
-			$this->Settings->save("maintenance","off");
-			echo json_encode(array("status" => true,"version" => SHOPP_VERSION));
-		} else echo json_encode(array("status" => false,"version" => SHOPP_VERSION));
-		exit();
-	}
-	
+		
 	function upgrade () {
 		$db = DB::get();
 		require_once(ABSPATH.'wp-admin/includes/upgrade.php');

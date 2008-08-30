@@ -433,7 +433,9 @@ class FTPClient {
 	
 	function FTPClient ($host, $user, $password) {
 		$this->connect($host, $user, $password);
-		if ($this->conntected) ftp_pasv($this->connection,true);
+		if ($this->connected) ftp_pasv($this->connection,true);
+		else return false;
+		return true;
 	}
 	
 	/** 
@@ -441,7 +443,7 @@ class FTPClient {
 	function connect($host, $user, $password) {
 		$this->connection = @ftp_connect($host);
 		$this->connected = @ftp_login($this->connection,$user,$password);
-		if (!$this->connected) trigger_error("Could not connect to the FTP server '$host'.");
+		if (!$this->connected) return false;
 		return true;
 	}
 	
@@ -467,7 +469,8 @@ class FTPClient {
 	 * put()
 	 * Copies the target file to the remote location */
 	function put ($file,$remote) {
-		return ftp_put($this->connection,$remote,$file,0644);
+		if (ftp_put($this->connection,$remote,$file,FTP_BINARY))
+			return ftp_chmod($this->connection, 0644, $remote);
 	}
 	
 	/**
