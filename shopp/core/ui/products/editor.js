@@ -59,7 +59,6 @@ function init () {
 		if (name != "") {
 			url = window.location.href.substr(0,window.location.href.indexOf('?'));
 			$.getJSON(url+"/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_category&name="+name+"&parent="+parent,function(Category) {
-				console.log(Category);
 				addCategoryMenuItem(Category);
 				addCategoryParentMenuOption(Category);
 
@@ -69,6 +68,23 @@ function init () {
 			});
 
 		}
+	});
+	
+	$('#category-menu input.category-toggle').change(function () {
+		if (!this.checked) return true;
+		
+		// Build current list of spec labels
+		var details = new Array();
+		$('#details-menu').children().children().find('input.label').each(function(id,item) {
+			details.push($(item).val());
+		});
+		
+		var id = $(this).attr('id').substr($(this).attr('id').indexOf("-")+1);
+		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=spectemplate&cat="+id,function (speclist) {
+			for (id in speclist) {
+				if (details.toString().search(speclist[id]['name']) == -1) addDetail(speclist[id]);
+			}
+		});
 	});
 
 	quickSelects();
@@ -146,7 +162,7 @@ function addDetail (data) {
 	var moveHandle = $('<div class="move"></div>').appendTo(e);
 	var detailsorder = $('<input type="hidden" name="detailsorder[]" value="'+i+'" />').appendTo(e);
 	var specId = $('<input type="hidden" name="details['+i+'][id]" />').appendTo(e);
-	var label = $('<input type="text" name="details['+i+'][name]" />').appendTo(e);
+	var label = $('<input type="text" name="details['+i+'][name]" class="label" />').appendTo(e);
 	var deleteButton = $('<button type="button" class="delete"><img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="delete" width="16" height="16" /></button>').appendTo(e);
 
 	var detailEntry = $('<li></li>').appendTo(entries).hide();
