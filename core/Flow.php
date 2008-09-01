@@ -33,6 +33,15 @@ class Flow {
 		$this->Admin->products = $Core->directory."/products";
 		$this->Admin->help = $Core->directory."/help";
 		
+		$this->Pages = $this->Settings->get('pages');
+		if (empty($this->Pages)) {
+			$this->Pages = array();
+			$this->Pages['catalog'] = array('name'=>'shop','title'=>'Shop','content'=>'[catalog]');
+			$this->Pages['cart'] = array('name'=>'cart','title'=>'Cart','content'=>'[cart]');
+			$this->Pages['checkout'] = array('name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
+			$this->Pages['account'] = array('name'=>'account','title'=>'Your Orders','content'=>'[account]');
+		}
+		
 		define("SHOPP_PATH",$this->basepath);
 		define("SHOPP_ADMINPATH",$this->basepath."/core/ui");
 		define("SHOPP_PLUGINURI",$Core->uri);
@@ -576,7 +585,6 @@ class Flow {
 
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
-		else ksort($statusLabels); 
 		
 		$pagenum = absint( $_GET['pagenum'] );
 		if ( empty($pagenum) )
@@ -614,7 +622,6 @@ class Flow {
 
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
-		else ksort($statusLabels); 
 		
 		include("{$this->basepath}/core/ui/orders/order.html");
 	}
@@ -653,6 +660,18 @@ class Flow {
 		
 		if (empty($categories)) $categories = array('');
 		
+		$category_table = DatabaseObject::tablename(Category::$table);
+		$categories = $db->query("SELECT id,name,parent FROM $category_table ORDER BY parent,name",AS_ARRAY);
+		$categories = sort_tree($categories);
+		if (empty($categories)) $categories = array();
+		
+		$categories_menu = '<option value="">View all categories</option>';
+		foreach ($categories as $category) {
+			$padding = str_repeat("&nbsp;",$category->depth*3);
+			if ($_GET['cat'] == $category->id) $categories_menu .= '<option value="'.$category->id.'" selected="selected">'.$padding.$category->name.'</option>';
+			else $categories_menu .= '<option value="'.$category->id.'">'.$padding.$category->name.'</option>';
+		}
+		
 		$pagenum = absint( $_GET['pagenum'] );
 		if ( empty($pagenum) )
 			$pagenum = 1;
@@ -664,9 +683,12 @@ class Flow {
 		$pt = DatabaseObject::tablename(Price::$table);
 		$cat = DatabaseObject::tablename(Category::$table);
 		$clog = DatabaseObject::tablename(Catalog::$table);
+		
+		$where = "";
+		if (!empty($_GET['cat'])) $where = " WHERE cat.id='{$_GET['cat']}'";
 
 		$productcount = $db->query("SELECT count(*) as total FROM $pd");
-		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category GROUP BY pd.id LIMIT $start,$per_page",AS_ARRAY);
+		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id LIMIT $start,$per_page",AS_ARRAY);
 
 		$num_pages = ceil($productcount->total / $per_page);
 		$page_links = paginate_links( array(
@@ -1040,7 +1062,6 @@ class Flow {
 			if ($Category->id != $category->id) $categories_menu .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'"'.$selected.'>'.$padding.$category->name.'</option>';
 		}
 
-
 		include("{$this->basepath}/core/ui/products/category.html");
 	}	
 	
@@ -1059,9 +1080,12 @@ class Flow {
 		}
 
 		if (!empty($_POST['save'])) {
+			$zone = $_POST['settings']['base_operations']['zone'];
 			$_POST['settings']['base_operations'] = $countrydata[$_POST['settings']['base_operations']['country']];
 			$_POST['settings']['base_operations']['country'] = $country;
-			ksort($_POST['settings']['order_status']);
+			$_POST['settings']['base_operations']['zone'] = $zone;
+			$_POST['settings']['base_operations']['currency']['format'] = 
+				scan_money_format($_POST['settings']['base_operations']['currency']['format']);
 			$this->settings_save();
 		}
 
@@ -1073,14 +1097,7 @@ class Flow {
 		$targets = $this->Settings->get('target_markets');
 		if (!$targets) $targets = array();
 		
-		// $currencies = array('');
-		// $currencylist = $this->Settings->get('currencies');
-		// foreach($currencylist as $id => $currency) 
-		// 	$currencies[$id] = $currency['name'];
-		
 		$statusLabels = $this->Settings->get('order_status');
-		if ($statusLabels) ksort($statusLabels);
-		
 		include(SHOPP_ADMINPATH."/settings/settings.html");
 	}
 
@@ -1314,10 +1331,8 @@ class Flow {
 	
 	function settings_save () {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
-		foreach ($_POST['settings'] as $setting => $value) {
-			if (is_array($value)) asort($value);
+		foreach ($_POST['settings'] as $setting => $value)
 			$this->Settings->save($setting,$value);
-		}
 	}
 	
 	/**
@@ -1464,7 +1479,6 @@ class Flow {
 		$this->setup_countries();
 		$this->setup_zones();
 		$this->setup_areas();
-		$this->setup_currencies();
 		
 		// General Settings
 		$this->Settings->save('version',SHOPP_VERSION);
@@ -1493,7 +1507,7 @@ class Flow {
 	function setup_countries () {
 		global $Shopp;
 		include_once("init.php");
-		$this->Settings->save('countries',get_countries(),false);
+		$this->Settings->save('countries',addslashes(serialize(get_countries())),false);
 	}
 	
 	function setup_zones () {
@@ -1506,12 +1520,6 @@ class Flow {
 		global $Shopp;
 		include_once("init.php");
 		$this->Settings->save('areas',get_country_areas(),false);
-	}
-
-	function setup_currencies () {
-		global $Shopp;
-		include_once("init.php");
-		$this->Settings->save('currencies',get_currencies(),false);
 	}
 	
 }

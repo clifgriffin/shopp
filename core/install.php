@@ -11,16 +11,9 @@ if (!file_exists(SHOPP_DBSCHEMA)) {
 
 $db->loaddata(file_get_contents(SHOPP_DBSCHEMA));
 
-// Auto-Generate pages
-$pages = array();
-$pages['catalog'] = array('name'=>'shop','title'=>'Shop','content'=>'[catalog]');
-$pages['cart'] = array('name'=>'cart','title'=>'Cart','content'=>'[cart]');
-$pages['checkout'] = array('name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
-$pages['account'] = array('name'=>'account','title'=>'Your Orders','content'=>'[account]');
-
 $parent = 0;
-foreach ($pages as $key => &$page) {	
-	if (!empty($pages['catalog']['id'])) $parent = $pages['catalog']['id'];
+foreach ($this->Flow->pages as $key => &$page) {	
+	if (!empty($this->Flow->pages['catalog']['id'])) $parent = $this->Flow->pages['catalog']['id'];
 	$query = "INSERT $wpdb->posts SET post_title='{$page['title']}',
 										post_name='{$page['name']}',
 										post_content='{$page['content']}',
@@ -43,6 +36,6 @@ foreach ($pages as $key => &$page) {
 	$wpdb->query("UPDATE $wpdb->posts SET guid='{$page['permalink']}' WHERE ID={$page['id']}");		
 }
 
-$this->Settings->add("pages",$pages);
+$this->Settings->add("pages",$this->Flow->pages);
 
 ?>

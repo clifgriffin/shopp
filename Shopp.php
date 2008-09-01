@@ -1,14 +1,14 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0
+Version: 1.0dev179
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
 Author URI: http://ingenesis.net
 */
 
-define("SHOPP_VERSION","1.0dev116");
+define("SHOPP_VERSION","1.0dev187");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DEBUG",true);
@@ -343,6 +343,7 @@ class Shopp {
 	 * Handles changes to Shopp-installed pages that may affect 'pretty' urls */
 	function page_updates ($update_id=false,$updates=false) {
 		$pages = $this->Settings->get('pages');
+		if (empty($pages)) $pages = $this->Flow->Pages;
 
 		if (!$updates) {
 			foreach ($pages as $key => &$page) {
@@ -492,12 +493,20 @@ class Shopp {
 		
 		if (!empty($image)) $lookup = "image";
 		if (!empty($download)) $lookup = "download";
+		if (empty($lookup)) $lookup = $_GET['lookup'];
 		
 		switch($lookup) {
 			case "zones":
 				$zones = $this->Settings->get('zones');
 				if (isset($_GET['country']))
 					echo json_encode($zones[$_GET['country']]);
+				exit();
+				break;
+			case "spectemplate":
+				$db = DB::get();
+				$table = DatabaseObject::tablename(Category::$table);			
+				$result = $db->query("SELECT specs FROM $table WHERE id='{$_GET['cat']}'");
+				echo json_encode(unserialize($result->specs));
 				exit();
 				break;
 			case "image":
