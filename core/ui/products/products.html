@@ -8,7 +8,14 @@
 	<p class="controls"><button type="submit" name="edit" value="new" class="button">New Product</button></p>
 
 	<div class="tablenav">
-		<button type="submit" id="delete-button" name="deleting" value="product" class="button-secondary">Delete</button>
+		<div class="alignleft">
+		<button type="submit" id="delete-button" name="deleting" value="product" class="button-secondary delete">Delete</button>
+		<select name='cat'>
+		<?php echo $categories_menu; ?>
+		</select>
+		<input type="submit" id="filter-button" value="Filter" class="button-secondary">
+		</div>
+		
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 	</div>
 	<br class="clear" />
