@@ -40,7 +40,7 @@
 					<li><div id="details-list" class="list"><ul></ul></div></li>
 				</ul>
 				<div class="clear"></div>
-				Build a list of detailed information or such as dimensions or features of the product.
+				Build a list of detailed information such as dimensions or features of the product.
 			</td>
 		</tr>		
 		<tr class="form-field">
@@ -61,7 +61,7 @@
 								</ul></li>
 							<?php endfor; ?>
 						<?php endif; ?>
-						<li id="category-element-<?php echo $category->id; ?>"><input type="checkbox" name="categories[]" value="<?php echo $category->id; ?>" id="category-<?php echo $category->id; ?>" tabindex="4"<?php if (in_array($category->id,$selectedCategories)) echo ' checked="checked"'; ?> /><label for="category-<?php echo $category->id; ?>"><?php echo $category->name; ?></label></li>
+						<li id="category-element-<?php echo $category->id; ?>"><input type="checkbox" name="categories[]" value="<?php echo $category->id; ?>" id="category-<?php echo $category->id; ?>" tabindex="4"<?php if (in_array($category->id,$selectedCategories)) echo ' checked="checked"'; ?> class="category-toggle" /><label for="category-<?php echo $category->id; ?>"><?php echo $category->name; ?></label></li>
 						<?php $depth = $category->depth; endforeach; ?>
 						<?php for ($i = 0; $i < $depth; $i++): ?>
 							</ul></li>
@@ -105,8 +105,9 @@
 	<table class="form-table pricing">
 	<tbody>
 		<tr>
-			<th>Options</th>
+			<th>Option Menus</th>
 			<td>
+				Create the menus and menu options for the product's variations.<br />
 				<ul class="multipane">
 					<li><div id="variations-menu" class="multiple-select options menu"><ul></ul></div>
 					<div class="controls">
@@ -147,5 +148,7 @@ var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 var siteurl = '<?php echo get_option('siteurl'); ?>';
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
+var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
+
 init();
 </script>
