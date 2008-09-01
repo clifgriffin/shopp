@@ -41,7 +41,7 @@ class Category extends DatabaseObject {
 		$db = DB::get();
 				
 		if (!$filtering) $filtering = array();
-		if (empty($filtering['where'])) $filtering['where'] = "catalog.category=$this->id";
+		if (empty($filtering['where'])) $filtering['where'] = "catalog.category=$this->id AND (pd.inventory='off' OR (pd.inventory='on' && pd.stock > 0))";
 		if (empty($filtering['order'])) $filtering['order'] = "p.name ASC";
 		if (empty($filtering['limit'])) $filtering['limit'] = "25";
 		
