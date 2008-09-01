@@ -401,8 +401,54 @@ function menuoptions ($list,$selected=null,$values=false) {
 	return $string;
 }
 
-function money($number) {
-	return money_format("%.2n",$number);
+function scan_money_format ($format) {
+	$f = array(
+		"cpos" => true,
+		"currency" => "",
+		"precision" => 0,
+		"decimals" => "",
+		"thousands" => ""
+	);
+	
+	$ds = strpos($format,'#'); $de = strrpos($format,'#')+1;
+	$df = substr($format,$ds,($de-$ds));
+	
+	$f['cpos'] = true;
+	if ($de == strlen($format)) $f['currency'] = substr($format,0,$ds);
+	else {
+		$f['currency'] = substr($format,$de);
+		$f['cpos'] = false;
+	}
+
+	$dd = 0;
+	$dl = array();
+	while($i < strlen($df)) {
+		$c = substr($df,$i++,1);
+		if ($c != "#") {
+			$dl[] = $c;
+			$dd = 0;
+		} else $dd++;
+	}
+	$f['precision'] = $dd;
+	
+	if (isset($dl[1])) {
+		$f['decimals'] = $dl[1];
+		$f['thousands'] = $dl[0];
+	} else $f['decimals'] = $dl[0];
+
+	return $f;
+}
+
+function money ($amount,$format=false) {
+	global $Shopp;
+	
+	$locale = $Shopp->Settings->get('base_operations');
+	if (!$format) $format = $locale['currency']['format'];
+	if (!$format) $format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
+	
+	$number = number_format($amount, $format['precision'], $format['decimals'], $format['thousands']);
+	if ($format['cpos']) return $format['currency'].$number;
+	else return $number.$format['currency'];
 }
 
 function value_is_true ($value) {
