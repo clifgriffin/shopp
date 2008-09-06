@@ -66,9 +66,17 @@ class ImageProcessor {
 	function scaleToFit($width,$height) {
 
 		$this->Processed = new StdClass();
-		$this->Processed->width = $width;
-		$this->Processed->height = $height;
 		
+		if ($this->src->width > $this->src->height) { // Scale to width
+			$scale = $width / $this->src->width;
+			$this->Processed->width = $width;
+			$this->Processed->height = ceil($this->src->height * $scale);
+		} else { // Scale to height
+			$scale = $height / $this->src->height;
+			$this->Processed->height = $height;
+			$this->Processed->width = ceil($this->src->width * $scale);
+		}
+				
 		$this->Processed->image = ImageCreateTrueColor($this->Processed->width,$this->Processed->height);
 		ImageCopyResampled($this->Processed->image, $this->src->image, 
 			0, 0, 0, 0, 
@@ -113,7 +121,7 @@ class ImageProcessor {
 	/**
 	 * Return the processed image
 	 */
-	function imagefile ($quality=65) {
+	function imagefile ($quality=50) {
 		if (!isset($this->Processed->image)) return false;
 		imageinterlace($this->Processed->image, true); // For progressive loading
 		ob_start();  						// Start capturing output buffer stream
