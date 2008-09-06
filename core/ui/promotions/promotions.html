@@ -1,0 +1,62 @@
+<div class="wrap shopp">
+	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="categories" method="get">
+	<div>
+		<input type="hidden" name="page" value="<?php echo $this->Admin->promotions; ?>" />
+	</div>
+	<h2>Promotions</h2>
+
+	<p class="controls"><button type="submit" name="promotion" value="new" class="button">New Promotion</button></p>
+
+	<div class="tablenav">
+		<button type="submit" id="delete-button" name="deleting" value="promotion" class="button-secondary">Delete</button>
+		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
+	</div>
+	<br class="clear" />
+
+	<table class="widefat">
+		<thead>
+		<tr>
+			<th scope="col" class="check-column"><input type="checkbox" id="selectall" /></th>
+	        <th scope="col">Name</th>
+	        <th scope="col">Effective</th>
+	        <th scope="col">Status</th>
+		</tr>
+		</thead>
+	<?php if (sizeof($Promotions) > 0): ?>
+		<tbody id="promotions" class="list promotions">
+		<?php $even = false; foreach ($Promotions as $Promotion): ?>
+		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
+			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Promotion->id; ?>' /></th>
+			<td><a class='row-title' href='?page=<?php echo $this->Admin->promotions; ?>&amp;promotion=<?php echo $Promotion->id; ?>' title='Edit &quot;<?php echo $Promotion->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Promotion->depth).$Promotion->name; ?></a></td>
+			<td><?php
+				if (mktimestamp($Promotion->starts > 1) && mktimestamp($Promotion->ends) > 1)
+					echo date(get_option(date_format),mktimestamp($Promotion->starts))." &mdash; ".date(get_option(date_format),mktimestamp($Promotion->ends));
+				else echo date(get_option(date_format),mktimestamp($Promotion->created)).", does not expire";
+			?></td>
+			<td><?php echo ucfirst($Promotion->status); ?></td>
+		</tr>
+		<?php endforeach; ?>
+		</tbody>
+	<?php else: ?>
+		<tbody><tr><td colspan="4">No promotions found.</td></tr></tbody>
+	<?php endif; ?>
+	</table>
+	</form>
+</div>
+<script type="text/javascript">
+	$=jQuery.noConflict();
+	$('#selectall').change( function() {
+		$('#promotions th input').each( function () {
+			if (this.checked) this.checked = false;
+			else this.checked = true;
+		});
+	});
+
+	$('#delete-button').click(function() {
+		if (confirm("Are you sure you want to delete the selected categories?")) {
+			$('<input type="hidden" name="promotions" value="list" />').appendTo($('#promotions'));
+			return true;
+		} else return false;
+	});
+	
+</script>

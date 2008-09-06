@@ -1,0 +1,209 @@
+<div class="wrap shopp">
+	<h2>Promotion Editor</h2>
+	
+	<form name="promotion" id="promotion" method="post" action="">
+		<table class="form-table"> 
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="promotion-name">Description</label></th> 
+				<td><input type="text" name="name" value="<?php echo $Promotion->name; ?>" id="promotion-name" size="40" /><br /> 
+	            The name is used to describe the promotion on order receipts.</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="discount-status">Status</label></th> 
+				<td>
+					<label for="discount-status"><input type="hidden" name="status" value="disabled" /><input type="checkbox" name="status" id="discount-status" value="enabled"<?php echo ($Promotion->status == "enabled")?' checked="checked"':''; ?> /> &nbsp;Enabled</label>
+
+					<p></p>
+					
+					<div class="calendar-wrap"><div id="starts-calendar" class="calendar"></div><input type="text" name="starts[month]" id="starts-month" size="3" value="<?php echo ($Promotion->starts>1)?date("n",$Promotion->starts):''; ?>" />/<input type="text" name="starts[date]" id="starts-date" size="3"  value="<?php echo ($Promotion->starts>1)?date("j",$Promotion->starts):''; ?>" />/<input type="text" name="starts[year]" id="starts-year" size="5" value="<?php echo ($Promotion->starts>1)?date("Y",$Promotion->starts):''; ?>" /></div> &mdash; <div class="calendar-wrap"><div id="ends-calendar" class="calendar"></div><input type="text" name="ends[month]" id="ends-month" size="3" value="<?php echo ($Promotion->ends>1)?date("n",$Promotion->ends):''; ?>" />/<input type="text" name="ends[date]" id="ends-date" size="3" value="<?php echo ($Promotion->ends>1)?date("j",$Promotion->ends):''; ?>" />/<input type="text" name="ends[year]" id="ends-year" size="5" value="<?php echo ($Promotion->ends>1)?date("Y",$Promotion->ends):''; ?>" /></div>
+					<p>Enter the date range this promotion will be in effect for.</p>
+					
+	            </td>
+			</tr>			
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="promotion-scope">Applied To</label></th> 
+				<td><select name="scope" id="promotion-scope">
+					<?php echo menuoptions($Promotion->_lists['scope'],$Promotion->scope); ?>
+					</select><br />
+	            Apply the discount to individual catalog items, or to an entire order.</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="discount-type">Discount Type</label></th> 
+				<td><select name="type" id="discount-type">
+					<?php echo menuoptions($Promotion->_lists['type'],$Promotion->type); ?>
+					</select><br />
+	            Select how the discount will be applied.</td>
+			</tr>
+			<tr id="discount-row" class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="discount-amount">Discount Amount</label></th> 
+				<td><input type="text" name="discount" id="discount-amount" value="<?php echo $Promotion->discount; ?>" size="10" /><br />
+	            Enter the amount of this discount.</td>
+			</tr>
+			<tr id="beyget-row" class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="discount-amount">Item Quantities</label></th> 
+				<td>Buy <input type="text" name="buyqty" id="buy-x" value="<?php echo $Promotion->buyqty; ?>" size="5" /> Get <input type="text" name="getqty" id="get-y" value="<?php echo $Promotion->getqty; ?>" size="5" /><br />
+	            Enter the number of items that must be purchased and how many will be gifted.</td>
+			</tr>
+			
+		</table>
+		<br class="clear" />
+		<h3>For products where <select name="search" class="small">
+			<?php echo menuoptions(array('any','all'),$Promotion->logic); ?>
+			</select> of these conditions are met:</h3>
+		<table class="form-table" id="rules"> 
+		</table>
+		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
+	</form>
+</div>
+
+<script type="text/javascript">
+$=jQuery.noConflict();
+
+var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
+var rules = <?php echo json_encode($Promotion->rules); ?>;
+var ruleidx = 1;
+var StartsCalendar = new PopupCalendar($('#starts-calendar'));
+StartsCalendar.render();
+var EndsCalendar = new PopupCalendar($('#ends-calendar'));
+EndsCalendar.render();
+
+
+var product_conditions = {
+	"Name":{"logic":["boolean","fuzzy"],"value":"text"},
+	"Category":{"logic":["boolean","fuzzy"],"value":"text"},
+	"Variation":{"logic":["boolean","fuzzy"],"value":"text"},
+	"Price":{"logic":["boolean","amount"],"value":"price"},
+	"Sale price":{"logic":["boolean","amount"],"value":"price"},
+	"Type":{"logic":["boolean"],"value":"text"},
+	"In stock":{"logic":["boolean","amount"],"value":"text"}
+}
+
+var order_conditions = {
+	"Item quantity":{"logic":["boolean","fuzzy"],"value":"text"},
+	"Total order items":{"logic":["boolean","fuzzy"],"value":"text"},
+	"Shipping amount":{"logic":["boolean","fuzzy"],"value":"price"},
+	"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
+	"Coupon Code":{"logic":["boolean"],"value":"text"}
+}
+
+var logic = {
+	"boolean":["Is equal to","Is not equal to"],
+	"fuzzy":["Contains","Does not contain","Begins with","Ends with"],
+	"amount":["Is greater than","Is greater than or equal to","Is less than","Is less than or equal to"]
+}
+
+function add_condition (rule,location) {
+	
+	var i = ruleidx;
+	
+	if (!location) var row = $('<tr></tr>').appendTo('#rules');
+	else var row = $('<tr></tr>').insertAfter(location);
+	
+	var cell = $('<td></td>').appendTo(row);
+	var deleteButton = $('<button type="button" class="delete"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="Delete" width="16" height="16" />').appendTo(cell);
+
+	var properties = $('<select name="rules['+i+'][property]" id=""></select>').appendTo(cell);
+
+	var productProps = $('<optgroup label="Product Attributes"></optgroup>').appendTo(properties);
+	for (var label in product_conditions)
+		$('<option></option>').html(label).val(label).attr('rel','product').appendTo(productProps);
+
+	var orderProps = $('<optgroup label="Order Attributes"></optgroup>').appendTo(properties);
+	for (var label in order_conditions)
+		$('<option></option>').html(label).val(label).attr('rel','order').appendTo(orderProps);
+
+	
+	var operation = $('<select name="rules['+i+'][logic]" id="logic"></select>').appendTo(cell);
+	var value = $('<span></span>').appendTo(cell);
+	
+	var addspan = $('<span></span>').appendTo(cell);
+	var addButton = $('<button type="button" class="add"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="Add" width="16" height="16" />').appendTo(addspan);
+
+	addButton.click(function () { add_condition(false,row); });
+	
+	deleteButton.click(function () { $(row).remove(); });
+	
+	cell.hover(function () {
+		deleteButton.css('visibility','visible');
+	},function () {
+		deleteButton.css('visibility','hidden');
+	});
+
+	var valuefield = function (type) {
+		value.empty();
+		field = $('<input type="text" name="rules['+i+'][value]" />').appendTo(value);
+		if (type == "price") field.change(function () { this.value = asMoney(this.value); });
+	}
+	
+	// Generate logic operation menu
+	properties.change(function () {
+		operation.empty();
+		
+		if ($(this.options[this.selectedIndex]).attr('rel') == "product") var conditions = product_conditions[$(this).val()];
+		if ($(this.options[this.selectedIndex]).attr('rel') == "order") var conditions = order_conditions[$(this).val()];
+
+		if (conditions['logic'].length > 0) {
+			operation.show();
+			for (var l in conditions['logic']) {
+				var lop = conditions['logic'][l];
+					for (var op in logic[lop])
+						$('<option></option>').html(logic[lop][op]).val(logic[lop][op]).attr('rel','product').appendTo(operation);
+			}
+		} else operation.hide();
+		
+		valuefield(conditions['value']);
+	}).change();
+	
+	// Load up existing conditional rule
+	if (rule) {
+		properties.val(rule.property);
+		operation.val(rule.logic);
+		if (field) field.val(rule.value);
+		
+	}
+	
+	ruleidx++;
+	
+}
+
+$('#discount-type').change(function () {
+	$('#discount-row').hide();
+	$('#beyget-row').hide();
+	var type = $(this).val();
+	
+	if (type == "Percentage Off" || type == "Amount Off") $('#discount-row').show();
+	if (type == "Buy X Get Y Free") $('#beyget-row').show();
+	
+	$('#discount-amount').change(function () {
+		if (type == "Percentage Off") this.value = asPercent(this.value);
+		if (type == "Amount Off") this.value = asMoney(this.value);
+	}).change();
+	
+}).change();
+
+if (rules) for (var r in rules) add_condition(rules[r]);
+else add_condition();
+
+$('#starts-calendar').hide();
+$('#starts-month').click(function (e) {
+	$('#ends-calendar').hide();
+	$('#starts-calendar').toggle();
+	$(StartsCalendar).change(function () {
+		$('#starts-month').val(StartsCalendar.selection.getMonth()+1);
+		$('#starts-date').val(StartsCalendar.selection.getDate());
+		$('#starts-year').val(StartsCalendar.selection.getFullYear());
+	});
+});
+
+$('#ends-calendar').hide();
+$('#ends-month').click(function (e) {
+	$('#starts-calendar').hide();
+	$('#ends-calendar').toggle();
+	$(EndsCalendar).change(function () {
+		$('#ends-month').val(EndsCalendar.selection.getMonth()+1);
+		$('#ends-date').val(EndsCalendar.selection.getDate());
+		$('#ends-year').val(EndsCalendar.selection.getFullYear());
+	});
+});
+
+</script>
