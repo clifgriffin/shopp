@@ -20,7 +20,7 @@ class OrderWeight {
 	
 	function calculate (&$Cart,$rate,$column) {
 		$weight = 0;
-		foreach($Cart->contents as $Item) $weight += ($Item->weight * $Item->quantity);
+		foreach($Cart->shipped as $Item) $weight += ($Item->weight * $Item->quantity);
 		foreach ($rate['max'] as $id => $value) {
 			if ($weight <= $value) {
 				$shipping = $rate[$column][$id];
