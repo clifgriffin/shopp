@@ -20,7 +20,7 @@ class ItemQuantity {
 	
 	function calculate (&$Cart,$rate,$column) {
 		$items = 0;
-		foreach($Cart->contents as $Item) $items += $Item->quantity;
+		foreach($Cart->shipped as $Item) $items += $Item->quantity;
 		foreach ($rate['max'] as $id => $value) {
 			if ($items <= $value) {
 				$shipping = $rate[$column][$id];

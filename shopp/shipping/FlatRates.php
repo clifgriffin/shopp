@@ -24,12 +24,13 @@ class FlatRates {
 		switch($process) {
 			case "item":
 				$shipping = 0;
-				foreach($Cart->contents as $item)
-					$shipping += $item->quantity * $rate[$column][0];
+				foreach($Cart->shipped as $Item)
+ 					$shipping += $Item->quantity * $rate[$column][0];
 				return $shipping;
 				break;
 			default:
-				return $rate[$column][0];
+				if ($Cart->freeshipping) return 0;
+				else return $rate[$column][0];
 		}
 	}
 	
