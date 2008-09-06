@@ -1,14 +1,32 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev179
+Version: 1.0dev207
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
 Author URI: http://ingenesis.net
+
+	Copyright 2008 Ingenesis Limited
+
+	This file is part of Shopp.
+
+	Shopp is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	Shopp is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with Shopp.  If not, see <http://www.gnu.org/licenses/>.
+
 */
 
-define("SHOPP_VERSION","1.0dev187");
+define("SHOPP_VERSION","1.0dev203");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DEBUG",true);

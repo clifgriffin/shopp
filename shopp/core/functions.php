@@ -1,7 +1,13 @@
 <?php
-
-/* functions.php
- * Library of global utility functions */
+/**
+ * functions.php
+ * Library of global utility functions
+ *
+ * @author Jonathan Davis
+ * @version 1.0
+ * @copyright Ingenesis Limited, 28 March, 2008
+ * @package Shopp
+ **/
 
 /**
  * Calculate the time based on a repeating interval in a given 
