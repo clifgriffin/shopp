@@ -1,4 +1,4 @@
-<div class="wrap">
+<div class="wrap shopp">
 	<h2>Shipping Settings</h2>
 	<?php include("navigation.html"); ?>
 
@@ -19,7 +19,6 @@
 							else $units = array("g"=>"gram (g)","kg"=>"kilogram (kg)");
 							echo menuoptions($units,$this->Settings->get('weight_unit'),true);
 						?>
-					</optgroup>
 				</select><br />
 				Used as unit of weight for all products.</td>
 			</tr>
@@ -54,7 +53,9 @@
 </div>
 
 <script type="text/javascript">
+var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 (function($) {
+	
 var addShippingRate = function (r) {
 	if (!r) r = false;
 	var i = shippingRates.length;
@@ -89,7 +90,7 @@ var addShippingRate = function (r) {
 		}
 	});	
 	var rateTableCell = $('<td/>').appendTo(row);
-	var deleteRateButton = $('<button type="button" name="deleteRate" class="deleteButton deleteRate"></button>').appendTo(rateTableCell).hide();
+	var deleteRateButton = $('<button type="button" name="deleteRate" class="delete deleteRate"></button>').appendTo(rateTableCell).hide();
 	$('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteRateButton);
 	
 
