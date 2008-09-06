@@ -41,7 +41,7 @@ class Settings extends DatabaseObject {
 			$settings[$entry->name] = $entry->value;
 		}
 
-		if (!empty($settings)) $this->registry = $settings;
+		if (!empty($settings)) $this->registry = array_merge($this->registry,$settings);
 		return true;
 	}
 	
@@ -98,12 +98,24 @@ class Settings extends DatabaseObject {
 	/**
 	 * Get a specific setting from the registry */
 	function get ($name) {
+		global $Shopp;
+		// $backtrace = debug_backtrace();
+		// echo "<p>".$backtrace[3]['class']."->".$backtrace[3]['function']."() called ".$backtrace[2]['class']."->".$backtrace[2]['function']."() called ".$backtrace[1]['class']."->".$backtrace[1]['function']."() requesting setting '$name'</p>";
+
 		$value = false;
 		if (isset($this->registry[$name])) {
-			$value = $this->registry[$name];
-		} else if ($this->load($name)) {
+			return $this->registry[$name];
+		} else if ($this->load($name)) {			
 			$value = $this->registry[$name];
 		}
+		
+		// Return false and add an entry to the registry
+		// to avoid repeat database queries
+		if (!isset($this->registry[$name])) {
+			$this->registry[$name] = false;
+			return false;
+		}
+		
 		return $value;
 	}
 	
