@@ -1,10 +1,11 @@
 body { position: relative; }
-button { cursor: pointer; }
-button.deleteButton { background: none; border: none; padding: 0; width: 16px; height: 16px; }
-button img { display: inline-block; vertical-align: middle; }
-input.right { text-align: right; }
+.shopp button { cursor: pointer; }
+.shopp button.deleteButton { background: none; border: none; padding: 0; width: 16px; height: 16px; }
+.shopp button.delete,.shopp button.add {  display: inline-block; background: none; border: none; padding: 3px; margin: 1px; }
+.shopp button img { display: inline; }
+.shopp input.right { text-align: right; }
 
-table td.featured { background: url('/wp-content/plugins/shopp/core/ui/icons/featured.png') no-repeat center center; }
+.shopp table td.featured { background: url('/wp-content/plugins/shopp/core/ui/icons/featured.png') no-repeat center center; }
 
 #status { padding-left: 20px; font-weight: bold; }
 #status.updating { background: url('/wp-content/plugins/shopp/core/ui/icons/updating.gif') no-repeat left center; }
@@ -92,6 +93,7 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 .form-table th div { margin-top: 10px; }
 .form-table th div button { width: 100%; }
 
+
 #new-category, 
 #new-category input, 
 #new-category select,
@@ -146,6 +148,10 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #shipping-rates table.rate td.rowctrl { vertical-align: middle; white-space: nowrap;}
 #shipping-rates select.methods { width: 150px; }
 #shipping-rates button.disabled { opacity: 0.3; }
+#shipping-rates button.delete { background: none; border: none; padding: 0; margin: 0; width: 16px; height: 16px; }
+
+#promotion #rules tr td { border-bottom-width: 2px; }
+#promotion #rules button.delete { visibility: hidden; }
 
 #help { list-style-type: none; padding: 0; }
 #help h3 { margin-bottom: 0; }
@@ -158,3 +164,19 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #debug.shopp { position: absolute; left: 25%; top: 100px; width: 50%; margin: 0 auto; height: 300px; overflow-y: auto; background: #fff; border: 5px solid #999; text-align: left; padding: 0 10px; font: 12px/1 "Lucida Grande",monospace; }
 #debug.shopp.overlay { position: absolute; width: 100%; height: 100%; background: #000; top: 0; left: 0; padding: 0; opacity: 0.8; border: none; }
 #debug.shopp h3 { font: bold 15px/1 "Lucida Grande",monospace;  }
+
+.calendar-wrap { display: inline; position: relative; overflow: visible; }
+.calendar { position: absolute; top: 18px; left: 0; width: 185px; background: white; border: 1px solid #cee1ef; padding: 5px; z-index: 20; }
+.calendar h3 { width: 100%; margin: 0; text-align: center; }
+.calendar h3 .month { margin-right: 5px; }
+.calendar span.back { display: block; position: absolute; left: 5px; top: 5px; padding: 0 10px; cursor: pointer; }
+.calendar span.next { display: block; position: absolute; right: 5px; top: 5px; padding: 0 10px;  cursor: pointer; }
+.calendar div.week { display: block; width: 100%; }
+.calendar div.week div { display: inline-block; width: 26px; height: 19px; text-align: center; cursor: pointer; }
+.calendar div.week div.label { font-weight: bold; color: #777777; }
+.calendar div.week div.disabled { color: #aaaaaa; }
+.calendar div.week div.hover { background-color: #E9F3FA; }
+.calendar div.week div.today { background-color: #E5E5E5; }
+.calendar div.week div.selected,
+.calendar div.week div.active { background-color: #1A8ED2; color: #ffffff; }
+
