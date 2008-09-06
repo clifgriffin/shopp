@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev209
+Version: 1.0dev210
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0dev209");
+define("SHOPP_VERSION","1.0dev210");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DEBUG",true);
@@ -259,6 +259,7 @@ class Shopp {
 	 * Adds Shopp-specific pretty-url rewrite rules to the WordPress rewrite rules */
 	function rewrites ($wp_rewrite_rules) {
 		$pages = $this->Settings->get('pages');
+		if (!$pages) $pages = $this->Flow->Pages;
 		$shop = $pages['catalog']['name'];
 		$cart = $pages['cart']['name'];
 		$checkout = $pages['checkout']['name'];
