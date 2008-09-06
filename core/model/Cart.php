@@ -24,6 +24,8 @@ class Cart {
 	var $ip;
 	var $data;
 	var $contents = array();
+	var $shipped = array();
+	var $freeshipping = false;
 	var $looping = false;
 	var $runaway = 0;
 	
@@ -42,7 +44,7 @@ class Cart {
 			array( &$this, 'unload' ),	// Destroy
 			array( &$this, 'trash' )	// Garbage Collection
 		);
-		
+				
 		$this->data = new stdClass();
 		$this->data->Totals = new stdClass();
 		$this->data->Totals->subtotal = 0;
@@ -57,6 +59,7 @@ class Cart {
 		$this->data->ShipCosts = array();
 		$this->data->Purchase = false;
 
+		return true;
 	}
 		
 	/* open()
@@ -141,7 +144,6 @@ class Cart {
 	 * add()
 	 * Adds a product as an item to the cart */
 	function add ($quantity,&$Product,&$Price) {
-		if ($Price->product != $Product->id) return false;
 		if (($item = $this->hasproduct($Product->id,$Price->id)) !== false) {
 			$this->contents[$item]->add($quantity);
 		} else {
@@ -189,8 +191,11 @@ class Cart {
 	/**
 	 * change()
 	 * Changes an item to a different product/price variation */
-	function change ($item,&$Product,&$Price) {
-		$this->contents[$item] = new Item($this->contents[$item]->quantity,$Product,$Price);
+	function change ($item,$Product,$pricing) {
+		// Don't change anything if everything is the same
+		if ($this->contents[$item]->product == $Product->id &&
+				$this->contents[$item]->price == $pricing) return true;
+		$this->contents[$item] = new Item($this->contents[$item]->quantity,$Product,$pricing);
 		$this->totals();
 		$this->save();
 		return true;
@@ -215,8 +220,6 @@ class Cart {
 	 * Sets the shipping address location 
 	 * for calculating shipping estimates */
 	function shipzone ($data) {
-		global $Shopp;
-		
 		$this->data->Order->Shipping = new Shipping();
 		$this->data->Order->Shipping->updates($data);
 		$this->totals();
@@ -230,6 +233,7 @@ class Cart {
 	function shipping () {
 		if (!$this->data->Order->Shipping) return false;
 		global $Shopp;
+		// print_r($Shopp->Settings->registry);
 		$ShipCosts = $this->data->ShipCosts;
 		$Shipping = $this->data->Order->Shipping;
 		$base = $Shopp->Settings->get('base_operations');
@@ -253,10 +257,12 @@ class Cart {
 				end($rate);
 				$column = key($rate);
 			}
-		
-			list($ShipCalcClass,$process) = split("::",$rate['method']);
-			if ($Shopp->ShipCalcs->modules[$ShipCalcClass]) {
-				$shipping += $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate($this,$rate,$column);
+			
+			if (!$Cart->freeshipping) {
+				list($ShipCalcClass,$process) = split("::",$rate['method']);
+				if ($Shopp->ShipCalcs->modules[$ShipCalcClass]) {
+					$shipping += $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate($this,$rate,$column);
+				}
 			}
 
 			// Calculate any product-specific shipping fee markups
@@ -281,14 +287,18 @@ class Cart {
 	 * Calculates subtotal, shipping, tax and 
 	 * order total amounts */
 	function totals () {
-		global $Shopp;
 		$Totals = $this->data->Totals;
 		$Totals->subtotal = 0;
 		$Totals->shipping = 0;
 		$Totals->tax = 0;
 		$Totals->total = 0;
 
-		foreach ($this->contents as $Item) {
+		$freeshipping = true;
+		foreach ($this->contents as $key => $Item) {
+
+			if ($Item->shipping && !$Item->freeshipping) $this->shipping[$key] = $Item;
+			if (!$Item->freeshipping) $freeshipping = false;
+			
 			$Totals->subtotal +=  $Item->total;
 			
 			if ($Item->tax && $Totals->taxrate > 0)
@@ -296,6 +306,7 @@ class Cart {
 				
 		}
 		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
+		$this->freeshipping = $freeshipping;
 		
 		if ($this->data->Shipping) $Totals->shipping = $this->shipping();
 		

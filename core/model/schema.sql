@@ -250,3 +250,34 @@ CREATE TABLE shopp_purchased (
 	KEY purchase (purchase),
 	KEY dkey (dkey(8))
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS shopp_promo;
+CREATE TABLE shopp_promo (
+	id bigint(20) unsigned NOT NULL auto_increment,
+	name varchar(255) NOT NULL default '',
+	status enum('disabled','enabled') default 'disabled',
+	type enum('Percentage Off','Amount Off','Free Shipping','Buy X Get Y Free') default 'Percentage Off',
+	scope enum('Item','Order') default 'Item',
+	discount float(20,2) NOT NULL default '0.00',
+	buyqty int(10) NOT NULL default '0',
+	getqty int(10) NOT NULL default '0',
+	search enum('all','any') default 'all',
+	code varchar(255) NOT NULL default '',
+	rules text NOT NULL,
+	starts datetime NOT NULL default '0000-00-00 00:00:00',
+	ends datetime NOT NULL default '0000-00-00 00:00:00',
+	created datetime NOT NULL default '0000-00-00 00:00:00',
+	modified datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY id (id)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS shopp_discount;
+CREATE TABLE shopp_discount (
+	id bigint(20) unsigned NOT NULL auto_increment,
+	promo bigint(20) unsigned NOT NULL default '0',
+	product bigint(20) unsigned NOT NULL default '0',
+	price bigint(20) unsigned NOT NULL default '0',
+	PRIMARY KEY id (id),
+	KEY lookup (product,price)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
