@@ -5,6 +5,10 @@ define("SHOPP_DBPREFIX","shopp_");
 
 
 class Singleton {
+	private static $instance;
+	private function Singleton() {}
+	function __clone() { trigger_error('Clone is not allowed.', E_USER_ERROR); }
+
 	static function &get() {
 		static $me;
 		if (!isset($me)) $me = new DB();
