@@ -1,4 +1,14 @@
 <?php
+/**
+ * install.php
+ * Performs the initial database setup
+ *
+ * @author Jonathan Davis
+ * @version 1.0
+ * @copyright Ingenesis Limited, 4 April, 2008
+ * @package Shopp
+ **/
+
 global $wpdb,$wp_rewrite,$wp_version;
 $db = DB::get();
 

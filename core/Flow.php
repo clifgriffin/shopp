@@ -5,7 +5,7 @@
  *
  * @author Jonathan Davis
  * @version 1.0
- * @copyright Ingenesis Limited, 31 March, 2008
+ * @copyright Ingenesis Limited, 2 April, 2008
  * @package Shopp
  **/
 

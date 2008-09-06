@@ -1,4 +1,13 @@
 <?php
+/**
+ * init.php
+ * Holds the initial datasets for location based information
+ *
+ * @author Jonathan Davis
+ * @version 1.0
+ * @copyright Ingenesis Limited, 4 April, 2008
+ * @package Shopp
+ **/
 
 /**
  * Index of global region names */
