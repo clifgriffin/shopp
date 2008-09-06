@@ -50,8 +50,7 @@ class Shopp {
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
 
-		// Keep any DB operations from occuring while in 
-		// maintenance mode
+		// Keep any DB operations from occuring while in maintenance mode
 		if (!empty($_GET['updated']) && $this->Settings->get('maintenance') == "on"){
 			if ($this->Flow->upgrade()) $this->Settings->save("maintenance","off");
 		} elseif ($this->Settings->get('maintenance') == "on") {
@@ -67,15 +66,7 @@ class Shopp {
 			$this->Flow->setup();
 		}
 		
-		if (!SHOPP_LOOKUP) {
-			$this->Cart = new Cart();
-			session_start();
-			
-			$this->Catalog = new Catalog();
-
-			$this->ShipCalcs = new ShipCalcs($this->Settings,$this->path);
-			setlocale(LC_MONETARY, 'en_US'); // Move to settings manager ??		
-		}
+		if (!SHOPP_LOOKUP) add_action('init',array(&$this,'init'));
 
 		add_action('init', array(&$this, 'ajax'));
 		add_action('parse_request', array(&$this, 'lookups') );
@@ -101,9 +92,17 @@ class Shopp {
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_filter('query_vars', array(&$this,'queryvars'));
 		// add_filter('wp_list_categories',array(&$this->Flow,'catalog_categories'));
-	
+		return true;
 	}
+	
+	function init() {
+		$this->Cart = new Cart();
+		session_start();
 		
+		$this->Catalog = new Catalog();
+		$this->ShipCalcs = new ShipCalcs($this->Settings,$this->path);
+	}
+
 	/**
 	 * install()
 	 * Installs the tables and initializes settings */
@@ -142,11 +141,13 @@ class Shopp {
 		$main = add_menu_page('Shop', 'Shop', 8, $this->Flow->Admin->default, array(&$this,'orders'));
 		$orders = add_submenu_page($this->Flow->Admin->default,'Orders', 'Orders', 8, $this->Flow->Admin->orders, array(&$this,'orders'));
 		$products = add_submenu_page($this->Flow->Admin->default,'Products', 'Products', 8, $this->Flow->Admin->products, array(&$this,'products'));
+		$promotions = add_submenu_page($this->Flow->Admin->default,'Promotions', 'Promotions', 8, $this->Flow->Admin->promotions, array(&$this,'promotions'));
 		$settings = add_submenu_page($this->Flow->Admin->default,'Settings', 'Settings', 8, $this->Flow->Admin->settings, array(&$this,'settings'));
 		$help = add_submenu_page($this->Flow->Admin->default,'Help', 'Help', 8, $this->Flow->Admin->help, array(&$this,'help'));
 		add_action("admin_print_scripts-$main", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$orders", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$products", array(&$this, 'admin_behaviors'));
+		add_action("admin_print_scripts-$promotions", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$settings", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$help", array(&$this, 'admin_behaviors'));
 	}
@@ -205,7 +206,7 @@ class Shopp {
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function page_styles () {
 		
-		?><link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/shopp.css' type='text/css' />
+		?><link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css' type='text/css' />
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css' type='text/css' />
 		<?php
 	}
@@ -293,6 +294,14 @@ class Shopp {
 	}
 
 	/**
+	 * promotions()
+	 * Handles product administration screens */
+	function promotions () {
+		if (isset($_GET['promotion'])) $this->Flow->promotion_editor();
+		else $this->Flow->promotions_list();
+	}
+
+	/**
 	 * settings()
 	 * Handles settings administration screens */
 	function settings () {
@@ -320,7 +329,7 @@ class Shopp {
 		$db = DB::get();
 		global $wpdb;
 		
-		shopp_debug($this);
+		//shopp_debug($this);
 		
 		$this->_debug->memory .= "Peak: ".number_format(memory_get_peak_usage()/1024, 2, '.', ',') . " KB<br />";
 		$this->_debug->memory .= "End: ".number_format(memory_get_usage()/1024, 2, '.', ',') . " KB";
@@ -332,6 +341,7 @@ class Shopp {
 		echo 'var shoppquerytotal = '.count($db->queries).';';
 		echo 'var shoppqueries = '.json_encode($db->queries).';';
 		echo 'var shoppobjectdump = "";';
+ 		echo 'shoppobjectdump = "'.addslashes(shopp_debug($this->_debug->backtrace)).'";';
 		// if (isset($this->_debug->objects)) echo 'shoppobjectdump = "'.addslashes($this->_debug->objects).'";';
 		echo '//]]>'."\n";
 		echo '</script>'."\n";
@@ -372,8 +382,7 @@ class Shopp {
 		if (empty($_POST['cart']) && empty($_GET['cart'])) return true;
 
 		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax(); 
-		else if (!empty($_GET['cart'])) $this->Flow->cart_request();
-		else $this->Flow->cart_post();
+		else $this->Flow->cart_request();
 	}
 	
 	/**
@@ -515,7 +524,7 @@ class Shopp {
 				header ("Content-type: ".$Asset->properties['mimetype']); 
 				header ("Content-length: ".strlen($Asset->data)); 
 				header ("Content-Disposition: inline; filename='".$Asset->name."'"); 
-				header ("Content-Description: Delivered by WordPress/Shopp");
+				header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
 				echo $Asset->data;
 				exit();
 				break;
@@ -545,7 +554,7 @@ class Shopp {
 				header ("Content-type: ".$Asset->properties['mimetype']); 
 				header ("Content-length: ".strlen($Asset->data)); 
 				header ("Content-Disposition: inline; filename=".$Asset->name); 
-				header ("Content-Description: Delivered by WordPress/Shopp");
+				header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
 				echo $Asset->data;
 				$Purchased->downloads++;
 				$Purchased->save();
