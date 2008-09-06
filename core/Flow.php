@@ -31,15 +31,16 @@ class Flow {
 		$this->Admin->orders = $this->Admin->default;
 		$this->Admin->settings = $Core->directory."/settings";
 		$this->Admin->products = $Core->directory."/products";
+		$this->Admin->promotions = $Core->directory."/promotions";
 		$this->Admin->help = $Core->directory."/help";
 		
-		$this->Pages = $this->Settings->get('pages');
+		$this->Pages = $Core->Settings->get('pages');
 		if (empty($this->Pages)) {
 			$this->Pages = array();
-			$this->Pages['catalog'] = array('name'=>'shop','title'=>'Shop','content'=>'[catalog]');
-			$this->Pages['cart'] = array('name'=>'cart','title'=>'Cart','content'=>'[cart]');
-			$this->Pages['checkout'] = array('name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
-			$this->Pages['account'] = array('name'=>'account','title'=>'Your Orders','content'=>'[account]');
+			$this->Pages['catalog'] = array('id'=>3,'name'=>'shop','title'=>'Shop','content'=>'[catalog]');
+			$this->Pages['cart'] = array('id'=>4,'name'=>'cart','title'=>'Cart','content'=>'[cart]');
+			$this->Pages['checkout'] = array('id'=>5,'name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
+			$this->Pages['account'] = array('id'=>6,'name'=>'account','title'=>'Your Orders','content'=>'[account]');
 		}
 		
 		define("SHOPP_PATH",$this->basepath);
@@ -51,6 +52,10 @@ class Flow {
 		 							is_dir($Core->Settings->get('theme_templates')))?
 									$Core->Settings->get('theme_templates'):
 									$this->basepath."/templates");
+		define("SHOPP_TEMPLATES_URI",($Core->Settings->get('theme_templates') != "off" && 
+			 							is_dir($Core->Settings->get('theme_templates')))?
+										get_bloginfo('stylesheet_directory')."/shopp":
+										$Core->uri."/templates");
 
 		define("SHOPP_PERMALINKS",(get_option('permalink_structure') == "")?false:true);
 
@@ -108,13 +113,14 @@ class Flow {
 				include(SHOPP_TEMPLATES."/category.php");
 				break;
 			default:
+				$page = "catalog";
 				include(SHOPP_TEMPLATES."/catalog.php");
 				break;
 		}
 		$content = ob_get_contents();
 		ob_end_clean();
 
-		return '<div id="shopp">'.$content.'<div id="clear"></div></div>';
+		return '<div id="shopp" class="$page">'.$content.'<div id="clear"></div></div>';
 		
 	}	
 	
@@ -161,70 +167,70 @@ class Flow {
 	 * Shopping Cart flow handlers
 	 **/
 	
-	function cart_post () {
+	function cart_request () {
 		global $Shopp;
-		$Cart = $Shopp->Cart;
-		
-		if (isset($_POST['checkout'])) {
-			$pages = $this->Settings->get('pages');
+		$Cart =& $Shopp->Cart;
+				
+		$Request = array();
+		if (!empty($_GET['cart'])) $Request = $_GET;
+		if (!empty($_POST['cart'])) $Request = $_POST;
+
+		if (isset($Request['checkout'])) {
+			$pages = $this->Pages;
 			header("Location: ".$Shopp->link('checkout','',true));
 			exit();
 		}
 		
-		if (isset($_POST['shopping'])) {
-			$pages = $this->Settings->get('pages');
+		if (isset($Request['shopping'])) {
+			$pages = $this->Pages;
 			header("Location: ".$Shopp->link('catalog'));
 			exit();
 		}
 		
-		if (isset($_POST['shipping'])) {
-			$countries = $this->Settings->get('countries');
-			$regions = $this->Settings->get('regions');
-			$_POST['shipping']['region'] = $regions[$countries[$_POST['shipping']['country']]['region']];
+		if (isset($Request['shipping'])) {
+			$countries = $Shopp->Settings->get('countries');
+			$regions = $Shopp->Settings->get('regions');
+			$Request['shipping']['region'] = $regions[$countries[$Request['shipping']['country']]['region']];
 			unset($countries,$regions);
 			
-			$Cart->shipzone($_POST['shipping']);
+			$Cart->shipzone($Request['shipping']);
 		}
 		
-		if (isset($_POST['remove'])) $_POST['cart'] = "remove";
-		if (isset($_POST['update'])) $_POST['cart'] = "update";
-		if (isset($_POST['empty'])) $_POST['cart'] = "empty";
-
-		switch($_POST['cart']) {
+		if (isset($Request['remove'])) $Request['cart'] = "remove";
+		if (isset($Request['update'])) $Request['cart'] = "update";
+		if (isset($Request['empty'])) $Request['cart'] = "empty";
+		
+		switch($Request['cart']) {
 			case "add":
-				if (isset($_POST['product']) && (isset($_POST['price']) || isset($_POST['options']))) {
-					$Product = new Product($_POST['product']);
-					if (!empty($_POST['options'])) {
-						$key = $Product->optionkey($_POST['options']);
-						$Price = new Price();
-						$Price->loadby_optionkey($Product->id,$key);
-					} else $Price = new Price($_POST['price']); // Load by id
+				if (isset($Request['product']) && (isset($Request['price']) || isset($Request['options']))) {
+					$quantity = (!empty($Request['quantity']))?$Request['quantity']:1; // Add 1 by default
+
+					$Product = new Product($Request['product']);
+					if (!empty($Request['options'])) $pricing = $Request['options'];
+					else $pricing = $Request['price'];
 					
-					$quantity = (!empty($_POST['quantity']))?$_POST['quantity']:1; // Add 1 by default
-					if (isset($_POST['item'])) $Cart->change($_POST['item'],$Product,$Price);						
-					else $Cart->add($quantity,$Product,$Price);
+					if (isset($Request['item'])) $result = $Cart->change($Request['item'],$Product,$pricing);
+					else $result = $Cart->add($quantity,$Product,$pricing);
+					
 				}
-				$Cart->shipping($_POST['shipping']);
+				$Cart->shipping($Request['shipping']);
 				break;
 			case "remove":
-				if (!empty($Cart->contents)) $Cart->remove($_POST['remove']);
+				if (!empty($Cart->contents)) $Cart->remove($Request['remove']);
 				break;
 			case "empty":
 				$Cart->clear();
 				break;
 			case "update":			
-				if (!empty($_POST['item']) && isset($_POST['quantity'])) {
-					$Cart->update($_POST['item'],$_POST['quantity']);
+				if (!empty($Request['item']) && isset($Request['quantity'])) {
+					$Cart->update($Request['item'],$Request['quantity']);
 					
-				} elseif (!empty($_POST['items'])) {
-					foreach ($_POST['items'] as $id => $item) {
-						if (isset($item['quantity'])) {
-							$Cart->update($id,$item['quantity']);	
-						}
+				} elseif (!empty($Request['items'])) {
+					foreach ($Request['items'] as $id => $item) {
+						if (isset($item['quantity'])) $Cart->update($id,$item['quantity']);	
 						if (isset($item['product']) && isset($item['price'])) {
 							$Product = new Product($item['product']);
-							$Price = new Price($item['price']);
-							$Cart->change($id,$Product,$Price);
+							$Cart->change($id,$Product,$item['price']);
 						}
 					}
 					$Cart->shipping();
@@ -235,52 +241,12 @@ class Flow {
 					
 	}
 
-	function cart_request () {
-		global $Shopp;
-		$Cart = $this->Cart;
-		
-		if (isset($_POST['checkout'])) {
-			header("Location: ".$Shopp->link('checkout','',true));
-			exit();
-		}
-		
-		switch ($_GET['cart']) {
-			case "add":		// Received an add product request, add a new item the cart
-				if (!empty($_GET['product']) && strpos($_GET['product'],",") !== false) {
-					list($product_id,$price_id) = split(",",$_GET['product']);
-					$Product = new Product($product_id);
-					$Price = new Price($price_id);
-					$quantity = (!empty($_GET['quantity']))?$_GET['quantity']:1;
-					$Cart->add($quantity,$Product,$Price);
-				}
-				break;
-			case "empty": $Cart->clear(); break;
-			case "remove":
-				if (!empty($Cart->contents)) $Cart->remove($_POST['remove']);
-				break;
-			case "update":  // Received an update request
-				// Update quantity
-				if (isset($_GET['item']) && isset($_GET['quantity'])) 
-					$Cart->update($_GET['item'],$_GET['quantity']);
-
-				// Update product/pricing
-				if (isset($_GET['item']) && 
-						!empty($_GET['product']) && 
-						strpos($_GET['product'],",") !== false) {
-
-					list($product_id,$price_id) = split(",",$_GET['product']);
-					$Product = new Product($product_id);
-					$Price = new Price($price_id);
-					$Cart->change($_GET['item'],$Product,$Price);
-				}
-
-				break;
-		}		
-
-	}
-
 	function cart_ajax () {
-		// TODO: Not implemented yet
+		$this->cart_request();
+		$cart = array();
+		$cart['contents'] = $this->Cart->contents;
+		$cart['totals'] = $this->Cart->data->Totals;
+		echo json_encode($cart);
 	}
 
 	function cart ($attrs=array()) {
@@ -966,8 +932,6 @@ class Flow {
 			echo json_encode(array("id"=>$Thumbnail->id,"src"=>$Thumbnail->src));
 	}
 	
-	
-	
 	/**
 	 * Category flow handlers
 	 **/
@@ -1065,6 +1029,61 @@ class Flow {
 		include("{$this->basepath}/core/ui/products/category.html");
 	}	
 	
+	function promotions_list () {
+		$db = DB::get();
+		require_once("{$this->basepath}/core/model/Promotion.php");
+		
+		if ($_GET['deleting'] == "promotion"
+				&& !empty($_GET['delete']) 
+				&& is_array($_GET['delete'])) {
+			foreach($_GET['delete'] as $deletion) {
+				$Promotion = new Promotion($deletion);
+				$Promotion->delete();
+			}
+		}
+		
+		$pagenum = absint( $_GET['pagenum'] );
+		if ( empty($pagenum) )
+			$pagenum = 1;
+		if( !$per_page || $per_page < 0 )
+			$per_page = 20;
+		$start = ($per_page * ($pagenum-1)); 
+		
+		$table = DatabaseObject::tablename(Promotion::$table);
+		$Promotions = $db->query("SELECT * FROM $table",AS_ARRAY);
+		include("{$this->basepath}/core/ui/promotions/promotions.html");
+	}
+	
+	function promotion_editor () {
+		require_once("{$this->basepath}/core/model/Promotion.php");
+
+		if ($_GET['promotion'] != "new") {
+			$Promotion = new Promotion($_GET['promotion']);
+		} else $Promotion = new Promotion();
+		
+		if (!empty($_POST['save'])) {
+			
+			if (!empty($_POST['starts']['month']) && !empty($_POST['starts']['date']) && !empty($_POST['starts']['year']))
+				$_POST['starts'] = mktime(0,0,0,$_POST['starts']['month'],$_POST['starts']['date'],$_POST['starts']['year']);
+			else $_POST['starts'] = 1;
+			
+			if (!empty($_POST['ends']['month']) && !empty($_POST['ends']['date']) && !empty($_POST['ends']['year']))
+				$_POST['ends'] = mktime(0,0,0,$_POST['ends']['month'],$_POST['ends']['date'],$_POST['ends']['year']);
+			else $_POST['ends'] = 1;
+			
+			$Promotion->updates($_POST);
+			
+			$Promotion->save();
+			$Promotion->build_discounts();
+			
+			$this->promotions_list();
+			return true;
+		}
+		
+		include("{$this->basepath}/core/ui/promotions/editor.html");
+	}
+	
+	
 	/**
 	 * Settings flow handlers
 	 **/
@@ -1131,9 +1150,7 @@ class Flow {
 			}
 		}		
 		
-		$sizingOptions = array(	"Scale to width",
-								"Scale to height",
-								"Scale to fit",
+		$sizingOptions = array(	"Scale to fit",
 								"Scale &amp; crop");
 								
 		$qualityOptions = array("Highest quality, largest file size",
@@ -1485,8 +1502,10 @@ class Flow {
 		$this->Settings->save('shipping','on');	
 		$this->Settings->save('order_status',array('Pending','Completed'));	
 		$this->Settings->save('shopp_setup','completed');
+		$this->Settings->save('maintenance','off');
 
 		// Presentation Settings
+		$this->Settings->save('theme_templates','off');
 		$this->Settings->save('gallery_small_width','240');
 		$this->Settings->save('gallery_small_height','240');
 		$this->Settings->save('gallery_small_sizing','3');
@@ -1496,12 +1515,14 @@ class Flow {
 		$this->Settings->save('gallery_thumbnail_sizing','3');
 		$this->Settings->save('gallery_thumbnail_quality','0');
 
+		// Payment Gateway Settings
+		$this->Settings->save('PayPalExpress',array('enabled'=>'off'));
 	}
 
 	function setup_regions () {
 		global $Shopp;
 		include_once("init.php");
-		$this->Settings->save('regions',get_global_regions(),false);
+		$this->Settings->save('regions',get_global_regions());
 	}
 	
 	function setup_countries () {
