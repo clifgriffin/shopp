@@ -9,8 +9,13 @@
 	<?php if (shopp('product','onsale')): ?>
 		<h3 class="original price"><?php shopp('product','price'); ?></h3>
 		<h3 class="sale price"><?php shopp('product','saleprice'); ?></h3>
+		<p class="savings">You save <?php shopp('product','savings'); ?> (<?php shopp('product','savings','show=%'); ?>)!</p>
 	<?php else: ?>
 		<h3 class="price"><?php shopp('product','price'); ?></h3>
+	<?php endif; ?>
+	
+	<?php if (shopp('product','freeshipping')): ?>
+	<p class="freeshipping">Free Shipping!</p>
 	<?php endif; ?>
 
 	<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
