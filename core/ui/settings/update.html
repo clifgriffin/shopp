@@ -64,6 +64,9 @@
 				reload.click(function () {
 					window.location.href = adminurl+'?page=shopp/settings&edit=update&updated=true';
 				});
+			} else {
+				alert("An error occurred while trying to update.  The update failed.  This is what Shopp says happened:\n"+result);
+				window.location.href = adminurl+'?page=shopp/settings&edit=update&updated=true';
 			}
 		});
 	}

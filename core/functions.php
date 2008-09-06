@@ -1,13 +1,7 @@
 <?php
-/**
- * functions.php
- * Library of global utility functions
- *
- * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, 28 March, 2008
- * @package Shopp
- **/
+
+/* functions.php
+ * Library of global utility functions */
 
 /**
  * Calculate the time based on a repeating interval in a given 
@@ -457,19 +451,6 @@ function money ($amount,$format=false) {
 	else return $number.$format['currency'];
 }
 
-function percentage ($amount,$format=false) {
-	global $Shopp;
-	
-	$locale = $Shopp->Settings->get('base_operations');
-	if (!$format) {
-		$format = $locale['currency']['format'];
-		$format['precision'] = 0;
-	}
-	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
-	
-	return number_format(round($amount), $format['precision'], $format['decimals'], $format['thousands']).'%';
-}
-
 function value_is_true ($value) {
 	switch (strtolower($value)) {
 		case "yes": case "true": case "1": case "on": return true;
@@ -518,6 +499,8 @@ class FTPClient {
 	function update ($path,$remote) {
 		$path = trailingslashit($path);
 		$remote = trailingslashit($remote);
+		$remote = $this->remappath($remote);
+		
 		$files = scandir($path);
 		$excludes = array(".","..");
 		foreach ($files as $file) {
@@ -548,6 +531,45 @@ class FTPClient {
 		return true;
 	}
 	
+	/**
+	 * mkdir()
+	 * Gets the current directory */
+	function pwd () {
+		return ftp_pwd($this->connection);
+	}
+	
+	/**
+	 * scan()
+	 * Gets a list of files in a directory/current directory */
+	function scan ($path=false) {
+		if (!$path) $path = $this->pwd();
+		return ftp_nlist($this->connection,$path);
+	}
+	
+	/**
+	 * isdir()
+	 * Determines if the file is a directory or a file */
+	function isdir ($file=false) {
+		if (!$file) $file = $this->pwd();
+	    if (ftp_size($this->connection, $file) == '-1')
+	        return true; // Directory
+	    else return false; // File
+	}
+	
+	/**
+	 * remappath()
+	 * Remap a given path to the root path of the FTP server 
+	 * to take into account root jails common in FTP setups */
+	function remappath ($path) {
+		$files = $this->scan();
+		foreach ($files as $file) {
+			$filepath = $this->pwd().$file;
+			if (!$this->isdir($this->pwd().$file)) continue;
+			$index = strrpos($path,$filepath);
+			if ($index != -1) return substr($path,$index);
+		}
+	}
+
 }
 
 shopp_prereqs();  // Run by default at include
