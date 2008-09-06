@@ -12,6 +12,7 @@
 require("Asset.php");
 require("Spec.php");
 require("Price.php");
+require("Promotion.php");
 
 class Product extends DatabaseObject {
 	static $table = "product";
@@ -21,6 +22,7 @@ class Product extends DatabaseObject {
 	var $images = array();
 	var $specs = array();
 	var $ranges = array('max'=>array(),'min'=>array());
+	var $freeshipping = false;
 	
 	function Product ($id=false,$key=false) {
 		$this->init(self::$table);
@@ -32,16 +34,50 @@ class Product extends DatabaseObject {
 		$db = DB::get();
 		
 		$pricetable = DatabaseObject::tablename(Price::$table);
+		$discounttable = DatabaseObject::tablename(Discount::$table);
+		$promotable = DatabaseObject::tablename(Promotion::$table);
 		$assettable = DatabaseObject::tablename(Asset::$table);
 		if (empty($this->id)) return false;
-		$this->prices = $db->query("SELECT p.*,d.id AS download,d.name AS filename,d.properties AS filedata,d.size AS filesize FROM $pricetable AS p LEFT JOIN $assettable AS d ON p.id=d.parent AND d.context='price' WHERE p.product=$this->id ORDER BY p.sortorder ASC",AS_ARRAY);
 		
-		// Build secondary lookup table using the combined optionkey
-		foreach ($this->prices as &$price) {
-			$price->filedata = unserialize($price->filedata);
-			$this->pricekey[$price->optionkey] = $price;
+		$query = "SELECT p.*,
+					group_concat(pr.name) AS promotions, 
+						SUM(if (pr.type='Percentage Off',pr.discount,0)) AS percentoff,
+						SUM(if (pr.type='Amount Off',pr.discount,0)) AS amountoff,
+						SUM(if (pr.type='Free Shipping',1,0)) AS freeshipping,
+						if (pr.type='Buy X Get Y Free',pr.buyqty,0) AS buyqty,
+						if (pr.type='Buy X Get Y Free',pr.getqty,0) AS getqty,
+					d.id AS download,d.name AS filename,d.properties AS filedata,d.size AS filesize
+					FROM $pricetable AS p 
+					LEFT JOIN $discounttable AS dc ON dc.product=p.product AND dc.price=p.id
+					LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
+					LEFT JOIN $assettable AS d ON p.id=d.parent AND d.context='price' 
+					WHERE p.product=$this->id GROUP BY p.id ORDER BY sortorder ASC";
+		$this->prices = $db->query($query,AS_ARRAY);
 
-			// While were at it, grab price and saleprice ranges
+		$freeshipping = true;
+		foreach ($this->prices as &$price) {
+			$this->pricekey[$price->optionkey] = $price;		// Build secondary lookup table using the combined optionkey
+			$this->priceid[$price->id] = $price;				// Build third lookup table using the price id as the key
+
+			$price->filedata = unserialize($price->filedata);
+
+			if ($price->sale == "on" && $price->type != "N/A") $price->onsale = true;
+
+			if ($price->freeshipping == 0) $freeshipping = false;
+
+			// While were at it, calculate promotional discounts
+			$price->promoprice = $price->saleprice;
+			if ($price->promoprice == "0.00") $price->promoprice = $price->price;
+			if (!empty($price->percentoff)) {
+				$price->promoprice = $price->promoprice - ($price->promoprice * ($price->percentoff/100));
+				$price->onsale = true;
+			}
+			if (!empty($price->amountoff)) {
+				$price->promoprice = $price->promoprice - $price->amountoff;
+				$price->onsale = true;
+			}
+
+			// Grab price and saleprice ranges (minimum - maximum)
 			if ($price->type != "N/A") {
 				if ($price->price > 0) {
 					if (empty($this->ranges['min']['price'])) 
@@ -52,18 +88,46 @@ class Product extends DatabaseObject {
 						$this->ranges['max']['price'] = $price->price;
 				}
 
-				if ($price->saleprice > 0) {
+				if ($price->promoprice > 0) {
 					if (empty($this->ranges['min']['saleprice'])) 
-						$this->ranges['min']['saleprice'] = $this->ranges['max']['saleprice'] = $price->saleprice;
-					if ($this->ranges['min']['saleprice'] > $price->saleprice) 
-						$this->ranges['min']['saleprice'] = $price->saleprice;
-					if ($this->ranges['max']['saleprice'] < $price->saleprice) 
-						$this->ranges['max']['saleprice'] = $price->saleprice;
+						$this->ranges['min']['saleprice'] = $this->ranges['max']['saleprice'] = $price->promoprice;
+					if ($this->ranges['min']['saleprice'] > $price->promoprice) 
+						$this->ranges['min']['saleprice'] = $price->promoprice;
+					if ($this->ranges['max']['saleprice'] < $price->promoprice) 
+						$this->ranges['max']['saleprice'] = $price->promoprice;
 				}
 				
 			}
 		}
 		
+		// Determine savings ranges
+		if (!empty($this->ranges['min']['price']) && !empty($this->ranges['min']['saleprice'])) {
+			$this->ranges['min']['saved'] = array(); $this->ranges['min']['savings'] = array();
+			$this->ranges['max']['saved'] = array(); $this->ranges['max']['savings'] = array();
+			
+			if (empty($this->ranges['min']['saved'])) {
+				$this->ranges['min']['saved'] = $price->price;
+				$this->ranges['min']['savings'] = 100;
+				$this->ranges['max']['saved'] = 0;
+				$this->ranges['max']['savings'] = 0;
+			}
+			
+			if ($this->ranges['min']['saved'] > $price->price - $price->promoprice) {
+					$this->ranges['min']['saved'] =
+						$price->price - $price->promoprice;
+					$this->ranges['min']['savings'] =
+						($this->ranges['min']['saved']/$price->price)*100;
+			}
+
+			if ($this->ranges['max']['saved'] < $price->price - $price->promoprice) {
+					$this->ranges['max']['saved'] =
+						$price->price - $price->promoprice;
+					$this->ranges['max']['savings'] =
+						($this->ranges['max']['saved']/$price->price)*100;
+			}
+			
+		}
+		if ($freeshipping) $this->freeshipping = true;
 		
 		return true;
 	}
@@ -232,20 +296,37 @@ class Product extends DatabaseObject {
 			case "onsale":
 				if (empty($this->prices)) $this->load_prices();
 				if (count($this->prices) > 1) {
-					foreach($this->prices as $pricetag) {
-						if ($pricetag->sale == "on" && $pricetag->type != "N/A") return true;
-					}
+					foreach($this->prices as $pricetag) return $pricetag->onsale;
 					return false;
-				} else return ($this->prices[0]->sale == "on" && $this->prices[0]->type != "N/A");
+				} else return $this->prices[0]->onsale;
 				break;
 			case "saleprice":
 				if (empty($this->prices)) $this->load_prices();
 				if ($this->options > 1) {
-					if ($this->ranges['min']['saleprice'] == $this->ranges['max']['saleprice']) 
-						return money($this->ranges['min']['saleprice']);
+					if ($this->ranges['min']['saleprice'] == $this->ranges['max']['saleprice'])
+						return money($this->ranges['min']['saleprice']); // No price range
 					else return money($this->ranges['min']['saleprice'])." &mdash; ".money($this->ranges['max']['saleprice']);
-				} else return money($this->prices[0]->saleprice);
+				} else return money($this->prices[0]->promoprice);
 				break;
+			case "savings":
+				if (empty($this->prices)) $this->load_prices();
+				if ($options['show'] == "%" || $options['show'] == "percent") {
+					if ($this->options > 1) {
+						if ($this->ranges['min']['savings'] == $this->ranges['max']['savings'])
+							return percentage($this->ranges['min']['savings']); // No price range
+						else return percentage($this->ranges['min']['savings'])." &mdash; ".percentage($this->ranges['max']['savings']);
+					} else return percentage($this->ranges['max']['savings']);
+				} else {
+					if ($this->options > 1) {
+						if ($this->ranges['min']['saved'] == $this->ranges['max']['saved'])
+							return money($this->ranges['min']['saved']); // No price range
+						else return money($this->ranges['min']['saved'])." &mdash; ".money($this->ranges['max']['saved']);
+					} else return money($this->ranges['max']['saved']);
+				}
+				break;
+			case "freeshipping":
+				if (empty($this->prices)) $this->load_prices();
+				return $this->freeshipping;
 			case "thumbnail":
 				if (empty($this->images)) $this->load_images();
 				$string = "";
@@ -337,7 +418,7 @@ class Product extends DatabaseObject {
 					if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 					
 					foreach ($this->prices as $option) {
-						$currently = ($option->sale == "on")?$option->saleprice:$option->price;
+						$currently = ($option->sale == "on")?$option->promoprice:$option->price;
 						$disabled = ($option->inventory == "on" && $option->stock == 0)?' disabled="disabled"':'';
 						
 						$price = '  ('.money($currently).')';
@@ -364,8 +445,10 @@ class Product extends DatabaseObject {
 					?>
 					<script type="text/javascript">
 					//<![CDATA[
+					var currencyFormat = <?php $base = $Shopp->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
+					var pricing = <?php echo json_encode($this->pricekey); ?>;	// price lookup table
+
 					(function($) {
-						var pricing = <?php echo json_encode($this->pricekey); ?>;	// price lookup table
 						
 						$(document).ready(function () {
 							var i = 0;
@@ -402,8 +485,11 @@ class Product extends DatabaseObject {
 										keys.push($(this).val());
 										var price = pricing[xorkey(keys)];
 										if (price) {
-											var pricetag = asMoney((price.sale == "on")?price.saleprice:price.price);
-											$(this).attr('text',$(this).attr('text')+"  ("+pricetag+")");
+											var pricetag = asMoney((price.onsale)?price.promoprice:price.price);
+											var optiontext = $(this).attr('text');
+											var previoustag = optiontext.lastIndexOf("(");
+											if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
+											$(this).attr('text',optiontext+"  ("+pricetag+")");
 											if (price.inventory == "on" && price.stock == 0) 
 												$(this).attr('disabled',true);
 										}

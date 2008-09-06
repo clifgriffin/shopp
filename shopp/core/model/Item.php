@@ -16,9 +16,10 @@ class Item {
 	var $type;
 	var $name;
 	var $optionlabel;
-	var $options;
 	var $description;
-	var $discount = 0;
+	var $options = array();
+	var $saved = 0;
+	var $savings = 0;
 	var $quantity = 0;
 	var $unitprice = 0;
 	var $total = 0;
@@ -29,20 +30,27 @@ class Item {
 	var $inventory = false;
 	var $tax = false;
 
-	function Item ($qty,&$Product,&$Price) {
+	function Item ($qty,$Product,$pricing) {
 		global $Shopp; // To access settings
 
 		$Product->load_prices();
+
+		// If option ids are passed, lookup by option key, otherwise by id
+		if (is_array($pricing)) $Price = $Product->pricekey[$Product->optionkey($pricing)];
+		else $Price = $Product->priceid[$pricing];
+		
 		$this->product = $Product->id;
 		$this->price = $Price->id;
 		$this->name = $Product->name;
 		$this->description = $Product->summary;
-		$this->options = count($Product->prices);
+		$this->options = $Product->prices;
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
-		$this->discount = 0; // Not implemented yet
+		$this->saved = ($Price->price - $Price->promoprice);
+		$this->savings = percentage($this->saved/$Price->price)*100;
+		$this->freeshipping = ($Price->freeshipping || $Product->freeshipping);
 		$this->quantity = $qty;
-		$this->unitprice = (($Price->sale == "on")?$Price->saleprice:$Price->price);
+		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
 		$this->total = $this->quantity * $this->unitprice;
 		$this->optionlabel = $Price->label;
 
@@ -69,21 +77,18 @@ class Item {
 	}
 	
 	function options ($selected = "") {
-		$db = DB::get();
-		$table = DatabaseObject::tablename(Price::$table);
-		$options = $db->query("SELECT id,label,price,saleprice,sale FROM $table WHERE product='$this->product' AND type <> 'N/A'");
-		
-		if (!is_array($options)) return "";
+		if (empty($this->options)) return "";
+
 		$string = "";
-		foreach($options as $option) {
+		foreach($this->options as $option) {
 			if ($option->type != "N/A") {
-				$currently = ($option->sale == "on")?$option->saleprice:$option->price;
+				$currently = ($option->onsale)?$option->promoprice:$option->price;
 
 				$difference = $currently-$this->unitprice;
 
 				$price = '';
 				if ($difference > 0) $price = '  (+'.money($difference).')';
-				if ($difference < 0) $price = '  ('.money($difference).')';
+				if ($difference < 0) $price = '  (-'.money(abs($difference)).')';
 				
 				if ($selected == $option->id) $string .= '<option value="'.$option->id.'" selected="selected">'.$option->label.'</option>';
 				else $string .= '<option value="'.$option->id.'">'.$option->label.$price.'</option>';
