@@ -56,8 +56,10 @@
 
 	function startupdate () {
 		$.get(ajaxurl+"?action=wp_ajax_shopp_update",function (result) {
-			if (result == "ftp-failed") window.location.href = adminurl+"?page=shopp/settings&edit=ftp";
-			if (result == "updated") {
+			console.log(result);
+			if (result == "ftp-failed") {
+				window.location.href = adminurl+"?page=shopp/settings&edit=ftp";
+			} else if (result == "updated") {
 				$('#update-info').html('<strong>Update Complete!</strong><br />Click continue to upgrade the Shopp database.');
 				var wrap = $('<p></p>').appendTo('#update-info');
 				var reload = $('<button type="button" name="reload" value="reload" class="button-secondary">Continue&hellip;</button>').appendTo('#update-info');
