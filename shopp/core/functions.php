@@ -451,6 +451,19 @@ function money ($amount,$format=false) {
 	else return $number.$format['currency'];
 }
 
+function percentage ($amount,$format=false) {
+	global $Shopp;
+	
+	$locale = $Shopp->Settings->get('base_operations');
+	if (!$format) {
+		$format = $locale['currency']['format'];
+		$format['precision'] = 0;
+	}
+	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
+	
+	return number_format(round($amount), $format['precision'], $format['decimals'], $format['thousands']).'%';
+}
+
 function value_is_true ($value) {
 	switch (strtolower($value)) {
 		case "yes": case "true": case "1": case "on": return true;
