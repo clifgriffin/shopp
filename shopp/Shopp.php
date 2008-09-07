@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev210
+Version: 1.0dev211
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0dev210");
+define("SHOPP_VERSION","1.0dev211");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DEBUG",true);
@@ -371,26 +371,41 @@ class Shopp {
 	 * page_updates()
 	 * Handles changes to Shopp-installed pages that may affect 'pretty' urls */
 	function page_updates ($update_id=false,$updates=false) {
+		global $wpdb;
 		$pages = $this->Settings->get('pages');
-		if (empty($pages)) $pages = $this->Flow->Pages;
-
-		if (!$updates) {
-			foreach ($pages as $key => &$page) {
-				$permalink = get_permalink($page['id']);
-				if ($key == "checkout") $permalink = str_replace("http://","https://",$permalink);
-				if (!empty($permalink)) $page['permalink'] = $permalink;
-			}
-		} else {
-			foreach ($pages as $key => &$page) {
-				if ($page['id'] == $update_id) {
-					$page['title'] = $updates->post_title;
-					$page['name'] = $updates->post_name;
-					$page['permalink'] = get_permalink($page['id']);
-					if ($key == "checkout") $page['permalink'] =  str_replace("http://","https://",$page['permalink']);
-					break;
-				}
-			}
+		
+		if (!empty($pages)) {
+			$update = false;
+			foreach($pages as $page) if ($page['id'] == $update_id) $update = true;
 		}
+		
+		// No pages setting, rebuild it
+		if (empty($pages) || $update) {
+			$pages = $this->Flow->Pages;
+			
+			// Find pages with Shopp-related main shortcodes
+			$codes = array();
+			$search = "";
+			foreach ($pages as $page) $codes[] = $page['content'];
+			foreach ($codes as $code) $search .= ((!empty($search))?" OR ":"")."post_content LIKE '%$code%'";
+			$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE post_status='publish' AND ($search)";
+			$results = $wpdb->get_results($query);
+
+			// Match updates from the found results to our pages index
+			foreach ($pages as $key => &$page) {
+				foreach ($results as $index => $post) {
+					echo strpos($post->content,$page->content);
+					if (strpos($post->post_content,$page['content']) !== false) {
+						$page['id'] = $post->ID;
+						$page['title'] = $post->post_title;
+						$page['name'] = $post->post_name;
+						$page['permalink'] = get_permalink($page['id']);
+						if ($key == "checkout") $page['permalink'] =  str_replace("http://","https://",$page['permalink']);
+						break;
+					}
+				}
+			}			
+		} else return true;Å
 		$this->Settings->save('pages',$pages);
 	}
 		
