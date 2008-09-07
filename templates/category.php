@@ -12,7 +12,6 @@
 				<?php shopp('category','product','thumbnail&link'); ?>
 				<h4 class="name"><?php shopp('category','product','name&link'); ?></h4>
 				<p class="price"><?php shopp('category','product','price'); ?></p>
-				<p class="savings">Save <?php shopp('category','product','saved&savings'); ?></p>
 				</div>
 			</li>
 		<?php endwhile; ?>
