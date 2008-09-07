@@ -1404,7 +1404,7 @@ class Flow {
 
 		// Download the new version of Shopp
 		$updatefile = tempnam($tmpdir,"shopp_update_");
-		if (($download = fopen($updatefile, 'wb')) === false) die("Cannot save the Shopp update."); // error messages.
+		if (($download = fopen($updatefile, 'wb')) === false) die("Cannot save the Shopp update to the temporary workspace because of a write permission error."); // error messages.
 		
 		$query = build_query_request(array(
 			"ShoppServerRequest" => "download-update",
@@ -1413,43 +1413,42 @@ class Flow {
 			"site" => get_bloginfo('siteurl')
 		));
 
-		$connection = curl_init(); 
+		$connection = curl_init();
 		curl_setopt($connection, CURLOPT_URL, SHOPP_HOME."?".$query); 
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
 		curl_setopt($connection, CURLOPT_HEADER, 0); 
 	    curl_setopt($connection, CURLOPT_FILE, $download); 
 		curl_exec($connection); 
-		curl_close($connection);		
-		// Finished without errors
+		curl_close($connection);
 		fclose($download);
 		
 		// Extract data
 		$archive = new PclZip($updatefile);
 		$files = $archive->extract(PCLZIP_OPT_EXTRACT_AS_STRING);
-		if (!is_array($files)) die("Download is corrupted.");
+		if (!is_array($files)) die("The downloaded update did not complete or is corrupted and cannot be used.");
 		else unlink($updatefile);
-		$target = $tmpdir;
+		$target = trailingslashit($tmpdir);
 		
 		// Create file structure in working path target
 		foreach ($files as $file) {
-			$path = dirname($file['filename']);
-			if (!is_dir($target.$path)) {
-				if (!mkdir($target.$path,0755,true)) 
-					die("Couldn't create directory $target$path");
-			}
-			
+		
 			if (!$file['folder'] ) {
 				if (file_put_contents($target.$file['filename'], $file['content']))
 					@chmod($target.$file['filename'], 0644);
+			} else {
+				if (!is_dir($target.$file['filename'])) {
+					if (!mkdir($target.$file['filename'],0755,true)) 
+						die("Couldn't create directory $target{$file['filename']}");
+				}				
 			}
 		}
 		
 		// FTP files to make it "easier" than dealing with permissions
-		$ftp->update($tmpdir."shopp",$Shopp->path);
+		$ftp->update($target."shopp",$Shopp->path);
 		// $ftp->put($tmpdir.$dbBackup,$Shopp->path."/backups"."/$dbBackup");
 		// $ftp->put($tmpdir.$filesBackup,$Shopp->path."/backups"."/$filesBackup");
 		
-		echo "updated";
+		echo "updated"; // Report success!
 		exit();
 	}
 		
