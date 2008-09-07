@@ -37,10 +37,10 @@ class Flow {
 		$this->Pages = $Core->Settings->get('pages');
 		if (empty($this->Pages)) {
 			$this->Pages = array();
-			$this->Pages['catalog'] = array('id'=>3,'name'=>'shop','title'=>'Shop','content'=>'[catalog]');
-			$this->Pages['cart'] = array('id'=>4,'name'=>'cart','title'=>'Cart','content'=>'[cart]');
-			$this->Pages['checkout'] = array('id'=>5,'name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
-			$this->Pages['account'] = array('id'=>6,'name'=>'account','title'=>'Your Orders','content'=>'[account]');
+			$this->Pages['catalog'] = array('name'=>'shop','title'=>'Shop','content'=>'[catalog]');
+			$this->Pages['cart'] = array('name'=>'cart','title'=>'Cart','content'=>'[cart]');
+			$this->Pages['checkout'] = array('name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
+			$this->Pages['account'] = array('name'=>'account','title'=>'Your Orders','content'=>'[account]');
 		}
 		
 		define("SHOPP_PATH",$this->basepath);

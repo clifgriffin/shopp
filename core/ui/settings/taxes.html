@@ -64,6 +64,8 @@ var addTaxRate = function (r) {
 				else option = $('<option></option>').val(value).html(label).appendTo(zoneMenu);
 			});
 		}
+		if (zoneMenu.children().length == 0) zoneMenu.hide();
+		else zoneMenu.show();
 	}
 	
 	$(row).hover(function() {

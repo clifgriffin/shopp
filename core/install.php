@@ -22,8 +22,8 @@ if (!file_exists(SHOPP_DBSCHEMA)) {
 $db->loaddata(file_get_contents(SHOPP_DBSCHEMA));
 
 $parent = 0;
-foreach ($this->Flow->pages as $key => &$page) {	
-	if (!empty($this->Flow->pages['catalog']['id'])) $parent = $this->Flow->pages['catalog']['id'];
+foreach ($this->Flow->Pages as $key => &$page) {
+	if (!empty($this->Flow->Pages['catalog']['id'])) $parent = $this->Flow->Pages['catalog']['id'];
 	$query = "INSERT $wpdb->posts SET post_title='{$page['title']}',
 										post_name='{$page['name']}',
 										post_content='{$page['content']}',
@@ -46,6 +46,6 @@ foreach ($this->Flow->pages as $key => &$page) {
 	$wpdb->query("UPDATE $wpdb->posts SET guid='{$page['permalink']}' WHERE ID={$page['id']}");		
 }
 
-$this->Settings->add("pages",$this->Flow->pages);
+$this->Settings->add("pages",$this->Flow->Pages);
 
 ?>
