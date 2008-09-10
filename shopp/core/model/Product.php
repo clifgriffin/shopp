@@ -60,7 +60,8 @@ class Product extends DatabaseObject {
 			$this->priceid[$price->id] = $price;				// Build third lookup table using the price id as the key
 
 			$price->filedata = unserialize($price->filedata);
-
+			
+			$price->onsale = false;
 			if ($price->sale == "on" && $price->type != "N/A") $price->onsale = true;
 
 			if ($price->freeshipping == 0) $freeshipping = false;
@@ -68,11 +69,11 @@ class Product extends DatabaseObject {
 			// While were at it, calculate promotional discounts
 			$price->promoprice = $price->saleprice;
 			if ($price->promoprice == "0.00") $price->promoprice = $price->price;
-			if (!empty($price->percentoff)) {
+			if ($price->percentoff > 0) {
 				$price->promoprice = $price->promoprice - ($price->promoprice * ($price->percentoff/100));
 				$price->onsale = true;
 			}
-			if (!empty($price->amountoff)) {
+			if ($price->amountoff > 0) {
 				$price->promoprice = $price->promoprice - $price->amountoff;
 				$price->onsale = true;
 			}
@@ -295,10 +296,11 @@ class Product extends DatabaseObject {
 				break;
 			case "onsale":
 				if (empty($this->prices)) $this->load_prices();
+				$sale = false;
 				if (count($this->prices) > 1) {
-					foreach($this->prices as $pricetag) return $pricetag->onsale;
-					return false;
-				} else return $this->prices[0]->onsale;
+					foreach($this->prices as $pricetag) if ($pricetag->onsale == "on") $sale = true;
+					return $sale;
+				} else return ($this->prices[0]->onsale == "on")?true:false;
 				break;
 			case "saleprice":
 				if (empty($this->prices)) $this->load_prices();
@@ -308,6 +310,7 @@ class Product extends DatabaseObject {
 					else return money($this->ranges['min']['saleprice'])." &mdash; ".money($this->ranges['max']['saleprice']);
 				} else return money($this->prices[0]->promoprice);
 				break;
+			case "has-savings": return ($this->ranges['min']['saved'] > 0)?true:false; break;
 			case "savings":
 				if (empty($this->prices)) $this->load_prices();
 				if ($options['show'] == "%" || $options['show'] == "percent") {
@@ -447,7 +450,8 @@ class Product extends DatabaseObject {
 					//<![CDATA[
 					var currencyFormat = <?php $base = $Shopp->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 					var pricing = <?php echo json_encode($this->pricekey); ?>;	// price lookup table
-
+					var hideDisabled = <?php echo ($options['disabled'] == "hide")?"true":"false"; ?>;
+					
 					(function($) {
 						
 						$(document).ready(function () {
@@ -490,8 +494,9 @@ class Product extends DatabaseObject {
 											var previoustag = optiontext.lastIndexOf("(");
 											if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
 											$(this).attr('text',optiontext+"  ("+pricetag+")");
-											if (price.inventory == "on" && price.stock == 0) 
+											if ((price.inventory == "on" && price.stock == 0) || (price.type == "N/A" && !hideDisabled)) 
 												$(this).attr('disabled',true);
+											if (price.type == "N/A" && hideDisabled) $(this).remove();
 										}
 									}
 								});

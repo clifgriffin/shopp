@@ -2,7 +2,7 @@ body { position: relative; }
 .shopp button { cursor: pointer; }
 .shopp button.deleteButton { background: none; border: none; padding: 0; width: 16px; height: 16px; }
 .shopp button.delete,.shopp button.add {  display: inline-block; background: none; border: none; padding: 3px; margin: 1px; }
-.shopp button img { display: inline; }
+.shopp button img { display: inline; vertical-align: middle; }
 .shopp input.right { text-align: right; }
 
 .shopp table td.featured { background: url('/wp-content/plugins/shopp/core/ui/icons/featured.png') no-repeat center center; }
@@ -75,7 +75,7 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 
 .form-table .multipane ul li.hover { background-color: #eaf3fa; }
 .form-table .multipane ul li.selected { background-color: #cee1ef; }
-.form-table .multipane ul li button { border: none; background: none; position: absolute; top: 0; right: 0; visibility: hidden; }
+.form-table .multipane ul li button { border: none; background: none; position: absolute; top: 0; right: 4px; visibility: hidden; }
 .form-table .multipane .menu ul li.hover button { visibility: hidden; }
 .form-table .multipane .menu ul li.selected.hover button { visibility: visible; }
 .form-table .multipane .options ul li.hover button { visibility: visible; }
@@ -125,16 +125,18 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 
 #taxrates-table th, 
 #taxrates-table td{ position: relative; text-align: left; border: none; padding: 0 5px 5px 0; }
-#taxrates-table button.deleteButton { margin-left: -16px; }
+#taxrates-table button.deleteButton { position: relative; width: 20px; margin-left: -20px; top: 3px; }
 
 #order-status p { margin: 0; padding: 0; }
 #order-status span { margin: 0 10px; }
 #order-status label { display: inline-block; padding-top: 3px; font-weight: bold; }
 
 #order-statuslabels li { position: relative; }
-#order-statuslabels li input { padding-right: 20px; margin-right: 5px; }
-#order-statuslabels button { position: relative; background: none; border: none; padding: 0; width: 16px; height: 16px; }
-#order-statuslabels button.delete { position: absolute; left: 120px; top: 6px; }
+#order-statuslabels li input { width: 120px; padding-right: 20px; margin-right: 5px;}
+
+#order-statuslabels button { display: inline-block; background: none; margin: 0; border: none; padding: 0; width: 18px; height: 22px; margin-top: -4px; vertical-align: middle; }
+#order-statuslabels button img { margin-left: -2px; }
+#order-statuslabels button.delete { position: absolute; left: 126px; top: 6px; }
 
 #shipping-rates table.rate, #shipping-rates table.rate tr { background: none; }
 #shipping-rates table.rate tr.headings th { vertical-align: bottom; line-height: 1; }
@@ -148,7 +150,7 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #shipping-rates table.rate td.rowctrl { vertical-align: middle; white-space: nowrap;}
 #shipping-rates select.methods { width: 150px; }
 #shipping-rates button.disabled { opacity: 0.3; }
-#shipping-rates button.delete { background: none; border: none; padding: 0; margin: 0; width: 16px; height: 16px; }
+#shipping-rates button.delete { background: none; border: none; padding: 0; margin: 0; width: auto; height: 16px; }
 
 #promotion #rules tr td { border-bottom-width: 2px; }
 #promotion #rules button.delete { visibility: hidden; }

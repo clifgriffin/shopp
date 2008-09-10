@@ -9,7 +9,9 @@
 	<?php if (shopp('product','onsale')): ?>
 		<h3 class="original price"><?php shopp('product','price'); ?></h3>
 		<h3 class="sale price"><?php shopp('product','saleprice'); ?></h3>
-		<p class="savings">You save <?php shopp('product','savings'); ?> (<?php shopp('product','savings','show=%'); ?>)!</p>
+		<?php if (shopp('product','has-savings')): ?>
+			<p class="savings">You save <?php shopp('product','savings'); ?> (<?php shopp('product','savings','show=%'); ?>)!</p>
+		<?php endif; ?>
 	<?php else: ?>
 		<h3 class="price"><?php shopp('product','price'); ?></h3>
 	<?php endif; ?>
@@ -22,12 +24,6 @@
 		<?php if(shopp('product','has-variations')): ?>
 		<ul class="variations">
 			<?php shopp('product','variations','mode=multiple&label=true&defaults=Select an option&before_menu=<li>&after_menu=</li>'); ?>
-		</ul>
-		<?php endif; ?>
-
-		<?php if(shopp('product','has-addons')): ?>
-		<ul class="options">
-			<?php shopp('product','addons','mode=single&label=true&default=Select an option&before_menu=<li>&after_menu=</li>'); ?>
 		</ul>
 		<?php endif; ?>
 

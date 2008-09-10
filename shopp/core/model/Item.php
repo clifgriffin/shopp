@@ -164,7 +164,7 @@ class Item {
 					return (!empty($this->optionlabel))?$options['before'].$this->optionlabel.$options['after']:'';
 					
 				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
-				if ($this->options > 1) {
+				if (count($this->options) > 1) {
 					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';
 					$result .= ' <select name="items['.$id.'][price]" id="items-'.$id.'-price"'.$class.'>';
 					$result .= $this->options($this->price);

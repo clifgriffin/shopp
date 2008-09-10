@@ -61,8 +61,8 @@ class Category extends DatabaseObject {
 					MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
 					IF(pd.sale='on',1,IF (pr.discount > 0,1,0)) AS onsale,
 					MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice 
-					FROM $catalogtable AS catalog 
-					LEFT JOIN $producttable AS p ON catalog.product=p.id 
+					FROM $producttable AS p 
+					LEFT JOIN $catalogtable AS catalog ON catalog.product=p.id
 					LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' 
 					LEFT JOIN $discounttable AS dc ON dc.product=p.id AND dc.price=pd.id
 					LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
@@ -176,7 +176,7 @@ class NewProducts extends Category {
 		$this->uri = "/$this->slug";
 		$this->description = "New additions to the store";
 		$this->smart = true;
-		$loading = array('where'=>"1",'order'=>'p.created DESC');
+		$loading = array('where'=>"p.id IS NOT NULL",'order'=>'p.created DESC');
 		if (isset($options['show'])) $loading['limit'] = $options['show'];
 		$this->load_products($loading);
 	}

@@ -102,7 +102,9 @@ form.shopp ul label,form.shopp ul select { display: inline; }
 #shopp form.product ul,
 #shopp form.product ul li,
 #shopp form.product ul li label { clear: none; }
-
+#shopp dl { clear: both; }
+#shopp dl dt { font-weight: bold; float: left; margin-right: 10px; clear: left; }
+#shopp dl dd { display: block; clear: right; }
 
 #gallery { float: left; margin: 5px 10px 5px 0;}
 #gallery ul { margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }

@@ -70,6 +70,7 @@
 					<p><select name="settings[gallery_small_quality]" id="gallery-small-quality">
 						<?php echo menuoptions($qualityOptions, $this->Settings->get('gallery_small_quality'),true); ?>
 					</select></p>
+					<p>Changes to these settings will only affect new images.</p>
 					</td>
 			</tr>
 			<tr class="form-field form-required"> 
@@ -81,6 +82,7 @@
 					<p><select name="settings[gallery_thumbnail_quality]" id="gallery-thumbnail-quality">
 						<?php echo menuoptions($qualityOptions, $this->Settings->get('gallery_thumbnail_quality'),true); ?>
 					</select></p>
+					<p>Changes to these settings will only affect new images.</p>
 					</td>
 			</tr>
 
@@ -91,33 +93,6 @@
 </div>
 <script type="text/javascript">
 (function($){
-$('#gallery-small-sizing').change(function() {
-	if (this.selectedIndex == 0) {
-		$('#gallery-small-width-input').show();	
-		$('#gallery-small-height-input').hide();	
-	} else if (this.selectedIndex == 1) {
-		$('#gallery-small-width-input').hide();	
-		$('#gallery-small-height-input').show();	
-	} else {
-		$('#gallery-small-width-input').show();	
-		$('#gallery-small-height-input').show();	
-	}
-	
-}).change();
-
-$('#gallery-thumbnail-sizing').change(function() {
-	if (this.selectedIndex == 0) {
-		$('#gallery-thumbnail-width-input').show();	
-		$('#gallery-thumbnail-height-input').hide();	
-	} else if (this.selectedIndex == 1) {
-		$('#gallery-thumbnail-width-input').hide();	
-		$('#gallery-thumbnail-height-input').show();	
-	} else {
-		$('#gallery-thumbnail-width-input').show();	
-		$('#gallery-thumbnail-height-input').show();	
-	}
-	
-}).change();
 
 $('#template-instructions').hide();
 $('#show-instructions').click(function () {

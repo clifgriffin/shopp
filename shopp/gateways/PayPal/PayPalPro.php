@@ -188,7 +188,7 @@ class PayPalPro {
 			addSetting("PayPal Pro Password",
 							{'name':'settings[PayPalPro][password]',
 							 'id':'gateway_password',
-							 'type':'text',
+							 'type':'password',
 							 'size':'16',
 							 'value':'<?php echo $this->settings['password']; ?>'},
 							 "Enter your PayPal API Password.");
