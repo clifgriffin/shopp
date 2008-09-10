@@ -282,7 +282,7 @@ class PayPalExpress {
 		?>
 		<p><input type="text" name="settings[PayPalExpress][username]" id="gateway_username" size="30" value="<?php echo $this->settings['username']; ?>"/><br />
 		Enter your PayPal Express API Username.</p>
-		<p><input type="text" name="settings[PayPalExpress][password]" id="gateway_password" size="16" value="<?php echo $this->settings['password']; ?>" /><br />
+		<p><input type="password" name="settings[PayPalExpress][password]" id="gateway_password" size="16" value="<?php echo $this->settings['password']; ?>" /><br />
 		Enter your PayPal Express API Password.</p>
 		<p><input type="text" name="settings[PayPalExpress][signature]" id="gateway_signature" size="48" value="<?php echo $this->settings['signature']; ?>" /><br />
 		Enter your PayPal Express API Signature.</p>

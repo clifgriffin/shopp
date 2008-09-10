@@ -43,7 +43,7 @@ var addTaxRate = function (r) {
 	
 	var rateCell = $('<td></td>').html(' %').appendTo(row);
 	var rate = $('<input type="text" name="settings[taxrates]['+i+'][rate]" value="" id="settings-taxrates-'+i+'-rate" size="4" class="selectall right" />').prependTo(rateCell);
-	var deleteButton = $('<button id="deleteButton-'+i+'" class="deleteButton" type="button" title="Delete product option"></button>').prependTo(rateCell).hide();
+	var deleteButton = $('<button id="deleteButton-'+i+'" class="deleteButton" type="button" title="Delete tax rate"></button>').prependTo(rateCell).hide();
 	var deleteIcon = $('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteButton);
 	
 	var countryCell = $('<td></td>').appendTo(row);

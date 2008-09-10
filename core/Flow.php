@@ -1133,8 +1133,11 @@ class Flow {
 		if (!empty($_POST['install'])) {
 			$builtin = array_filter(scandir($builtin_path),"filter_dotfiles");
 			foreach ($builtin as $template) {
-				if (!file_exists($theme_path.$template))
+				if (!file_exists($theme_path.$template)) {
 					copy("$builtin_path/$template","$theme_path/$template");
+					chmod("$theme_path/$template",0666);
+				}
+					
 			}
 		}
 		
