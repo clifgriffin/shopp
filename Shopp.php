@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev215
+Version: 1.0dev216
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,9 +26,10 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0dev215");
+define("SHOPP_VERSION","1.0dev216");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
+define("SHOPP_DOCS","http://docs.shopplugin.net/");
 define("SHOPP_DEBUG",true);
 
 require("core/functions.php");
@@ -156,7 +157,7 @@ class Shopp {
 	 * add_menus()
 	 * Adds the WordPress admin menus */
 	function add_menus () {
-		$main = add_menu_page('Shop', 'Shop', 8, $this->Flow->Admin->default, array(&$this,'orders'));
+		$main = add_menu_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'));
 		$orders = add_submenu_page($this->Flow->Admin->default,'Orders', 'Orders', 8, $this->Flow->Admin->orders, array(&$this,'orders'));
 		$products = add_submenu_page($this->Flow->Admin->default,'Products', 'Products', 8, $this->Flow->Admin->products, array(&$this,'products'));
 		$promotions = add_submenu_page($this->Flow->Admin->default,'Promotions', 'Promotions', 8, $this->Flow->Admin->promotions, array(&$this,'promotions'));
@@ -200,7 +201,7 @@ class Shopp {
 		// Determine which tag is getting used in the current post/page
 		$tag = false;
 		$tagregexp = join( '|', array_keys($this->shortcodes) );
-		foreach ($wp_query->posts as &$post) {
+		foreach ($wp_query->posts as $post) {
 			if (preg_match('/\[('.$tagregexp.')\b(.*?)(?:(\/))?\](?:(.+?)\[\/\1\])?/',$post->post_content,$matches))
 				$tag = $matches[1];
 		}
@@ -224,7 +225,8 @@ class Shopp {
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function page_styles () {
 		
-		?><link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css' type='text/css' />
+		?><link rel='stylesheet' href='<?php echo get_bloginfo('siteurl'); ?>?shopp_lookup=catalog.css' type='text/css' />
+		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css' type='text/css' />
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css' type='text/css' />
 		<?php
 	}
@@ -251,7 +253,7 @@ class Shopp {
 		foreach ($this->shortcodes as $name => &$callback)
 			if ($this->Settings->get("maintenance") == "on")
 				add_shortcode($name,array(&$this->Flow,'maintenance_shortcode'));
-			else add_shortcode($name,&$callback);
+			else add_shortcode($name,$callback);
 	}
 		
 	/**
@@ -560,6 +562,15 @@ class Shopp {
 				header ("Content-Disposition: inline; filename='".$Asset->name."'"); 
 				header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
 				echo $Asset->data;
+				exit();
+				break;
+			case "catalog.css":
+				$stylesheet = $this->Flow->catalog_css();
+				header ("Content-length: ".strlen($stylesheet)); 
+				header ("Content-type: text/css"); 
+				header ("Content-Disposition: inline; filename='catalog.css'"); 
+				header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+				echo $stylesheet;
 				exit();
 				break;
 			case "download":

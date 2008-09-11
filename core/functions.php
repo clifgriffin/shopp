@@ -489,6 +489,7 @@ function build_query_request ($request=array()) {
 
 class FTPClient {
 	var $connected = false;
+	var $log = array();
 	
 	function FTPClient ($host, $user, $password) {
 		$this->connect($host, $user, $password);
@@ -524,24 +525,25 @@ class FTPClient {
 				} else $this->mkdir($remote.$file);
 			} else $this->put($path.$file,$remote.$file);
 		}
+		return $log;
 	}
 	
 	/**
 	 * put()
 	 * Copies the target file to the remote location */
 	function put ($file,$remote) {
-		if (ftp_put($this->connection,$remote,$file,FTP_BINARY))
-			return ftp_chmod($this->connection, 0644, $remote);
+		if (@ftp_put($this->connection,$remote,$file,FTP_BINARY))
+			return @ftp_chmod($this->connection, 0644, $remote);
+		else $this->log[] = "Could not move the file from $file to $remote";
 	}
 	
 	/**
 	 * mkdir()
 	 * Makes a new remote directory with correct permissions */
 	function mkdir ($path) {
-		if (ftp_mkdir($this->connection,$path)) 
-			ftp_chmod($this->connection,0755,$path);
-		else return false;
-		return true;
+		if (@ftp_mkdir($this->connection,$path)) 
+			@ftp_chmod($this->connection,0755,$path);
+		else $this->log[] = "Could not create the directory $path";
 	}
 	
 	/**
@@ -576,10 +578,10 @@ class FTPClient {
 	function remappath ($path) {
 		$files = $this->scan();
 		foreach ($files as $file) {
-			$filepath = $this->pwd().$file;
+			$filepath = trailingslashit($this->pwd()).$file;
 			if (!$this->isdir($this->pwd().$file)) continue;
 			$index = strrpos($path,$filepath);
-			if ($index != -1) return substr($path,$index);
+			if ($index !== false) return substr($path,$index);
 		}
 	}
 

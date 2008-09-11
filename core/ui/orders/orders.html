@@ -44,9 +44,11 @@
 	</form>
 </div>
 <script type="text/javascript">
-$j=jQuery.noConflict();
+helpurl = "<?php echo SHOPP_DOCS; ?>Managing Orders";
 
-$j('#delete-button').click(function() {
+$=jQuery.noConflict();
+
+$('#delete-button').click(function() {
 	if (confirm("Are you sure you want to delete the selected orders?")) return true;
 	else return false;
 });

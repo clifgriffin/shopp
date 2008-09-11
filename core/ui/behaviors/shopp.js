@@ -177,6 +177,24 @@ function cartHandlers () {
 	}
 }
 
+function helpHandler () {
+	var submenu = document.getElementById("submenu");
+	if (!submenu) return true;
+
+	(function($) {
+		var links = $(submenu).children().find("a");
+		var helplink = links[links.length-1];
+		if (helpurl) {
+			$(helplink).click(function (e) {
+				e.stopPropagation();
+				window.open(helpurl);
+				return false;
+			});
+		}
+	
+	})(jQuery)
+}
+
 function shopp_debug () {
 	(function($) {
 		var overlay = $('<div id="debug" class="shopp overlay"></div>').appendTo(document.body);
@@ -197,7 +215,6 @@ function shopp_debug () {
 			$('<pre></pre>').html(shoppobjectdump).appendTo(debug);
 		}
 		
-		
 		debug.click(function () {
 			overlay.remove();
 			debug.remove();
@@ -211,10 +228,12 @@ function shopp_preview(id) {
 	(function($) {
 		var target = $('#preview-'+id);
 		if (!target.hasClass('active')) {
+			previous = $('#gallery ul.previews li.active');
 			target.addClass('active').hide();
-			target.appendTo('#gallery ul.previews').fadeIn(500,function() {
-					$('#gallery ul.previews li').not('li:last').removeClass('active');
+			previous.fadeOut(800,function() {
+				$(this).removeClass('active');
 			});
+			target.appendTo('#gallery ul.previews').fadeIn(500);
 		}
 	})(jQuery)
 }
@@ -447,8 +466,10 @@ function PopupCalendar (target,month,year) {
 addEvent(window,'load',function () {
 	buttonHandlers();
 	cartHandlers();
+	helpHandler();
 });
 
+var helpurl;
 // Fix for ThickBox
 var tb_pathToImage = "/wp-content/plugins/shopp/core/ui/icons/loading.gif";
 var tb_closeImage = "/wp-includes/js/thickbox/tb-close.png";

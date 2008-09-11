@@ -342,7 +342,7 @@ class Product extends DatabaseObject {
 				break;
 			case "gallery":
 				if (empty($this->images)) $this->load_images();
-				$thumbsize = 30;
+				$thumbsize = 32;
 				$string = '<div id="gallery">';
 				$previews = '<ul class="previews">';
 				$firstPreview = true;

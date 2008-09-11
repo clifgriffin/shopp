@@ -57,6 +57,8 @@
 </div>
 
 <script type="text/javascript">
+helpurl = "<?php echo SHOPP_DOCS; ?>Promotions";
+
 $=jQuery.noConflict();
 
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;

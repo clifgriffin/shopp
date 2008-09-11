@@ -122,8 +122,18 @@ class Flow {
 
 		return '<div id="shopp" class="$page">'.$content.'<div id="clear"></div></div>';
 		
-	}	
-	
+	}
+
+	function catalog_css () {
+		
+		ob_start();
+		include("{$this->basepath}/core/ui/styles/catalog.css");
+		$stylesheet = ob_get_contents();
+		ob_end_clean();
+		return $stylesheet;
+		
+	}
+
 	function categories_widget ($args=null) {
 		global $Shopp;
 		extract($args);
@@ -584,6 +594,7 @@ class Flow {
 		if (!empty($_POST)) {
 			$Purchase->updates($_POST);
 			$Purchase->save();
+			$updated = 'Order status updated.';
 		}
 
 		$statusLabels = $this->Settings->get('order_status');
@@ -882,10 +893,10 @@ class Flow {
 			$SmallSizing = new ImageProcessor($Small->data,$width,$height);
 			
 			switch ($SmallSettings['sizing']) {
-				case "0": $SmallSizing->scaleToWidth($SmallSettings['width']); break;
-				case "1": $SmallSizing->scaleToHeight($SmallSettings['height']); break;
-				case "2": $SmallSizing->scaleToFit($SmallSettings['width'],$SmallSettings['height']); break;
-				case "3": $SmallSizing->scaleCrop($SmallSettings['width'],$SmallSettings['height']); break;
+				// case "0": $SmallSizing->scaleToWidth($SmallSettings['width']); break;
+				// case "1": $SmallSizing->scaleToHeight($SmallSettings['height']); break;
+				case "0": $SmallSizing->scaleToFit($SmallSettings['width'],$SmallSettings['height']); break;
+				case "1": $SmallSizing->scaleCrop($SmallSettings['width'],$SmallSettings['height']); break;
 			}
 			$SmallSizing->UnsharpMask();
 			$Small->data = addslashes($SmallSizing->imagefile($SmallSettings['quality']));
@@ -1106,6 +1117,7 @@ class Flow {
 			$_POST['settings']['base_operations']['currency']['format'] = 
 				scan_money_format($_POST['settings']['base_operations']['currency']['format']);
 			$this->settings_save();
+			$updated = 'Shopp settings saved.';
 		}
 
 		$operations = $this->Settings->get('base_operations');
@@ -1124,7 +1136,10 @@ class Flow {
 	function settings_presentation () {
 		if (isset($_POST['settings']['theme_templates']) && $_POST['settings']['theme_templates'] == "on") 
 			$_POST['settings']['theme_templates'] = TEMPLATEPATH."/shopp";
-		if (!empty($_POST['save'])) $this->settings_save();
+		if (!empty($_POST['save'])) {
+			$this->settings_save();
+			$updated = 'Shopp presentation settings saved.';
+		}
 		
 		$builtin_path = $this->basepath."/templates";
 		$theme_path = TEMPLATEPATH."/shopp";
@@ -1177,7 +1192,10 @@ class Flow {
 	}
 
 	function settings_checkout () {
-		if (!empty($_POST['save'])) $this->settings_save();
+		if (!empty($_POST['save'])) {
+			$this->settings_save();
+			$updated = 'Shopp checkout settings saved.';
+		}
 		
 		$downloads = array("1","2","3","5","10","15","25","100");
 		$time = array("30 minutes","1 hour","2 hours","3 hours","6 hours","12 hours","1 day","3 days","1 week","1 month","3 months","6 months","1 year");
@@ -1199,7 +1217,8 @@ class Flow {
 					}
 				}
 			}
-	 		$this->settings_save();			
+	 		$this->settings_save();
+			$updated = 'Shopp shipping settings saved.';
 		}
 
 		$methods = $Shopp->ShipCalcs->methods;
@@ -1226,7 +1245,10 @@ class Flow {
 	}
 
 	function settings_taxes () {
-		if (!empty($_POST['save'])) $this->settings_save();
+		if (!empty($_POST['save'])) {
+			$this->settings_save();
+			$updated = 'Shopp taxes settings saved.';
+		}
 		
 		$rates = $this->Settings->get('taxrates');
 		$base = $this->Settings->get('base_operations');
@@ -1237,7 +1259,10 @@ class Flow {
 	}	
 
 	function settings_payments () {
-		if (!empty($_POST['save'])) $this->settings_save();
+		if (!empty($_POST['save'])) {
+			$this->settings_save();
+			$updated = 'Shopp payments settings saved.';
+		}
 		
 		$data = $this->settings_get_gateways();
 		
@@ -1363,6 +1388,8 @@ class Flow {
 		global $Shopp;
 		$db = DB::get();
 		
+		$log = array();
+		
 		$credentials = $this->Settings->get('ftp_credentials');
 		if (empty($credentials)) {
 			// Try to load from WordPress settings
@@ -1373,22 +1400,30 @@ class Flow {
 		// Make sure we can connect to FTP
 		$ftp = new FTPClient($credentials['hostname'],$credentials['username'],$credentials['password']);
 		if (!$ftp->connected) die("ftp-failed");
+		else $log[] = "Connected with FTP successfully.";
 		
 		// Get zip functions from WP Admin
-		require_once(ABSPATH.'wp-admin/includes/class-pclzip.php');
+		if (class_exists('PclZip')) $log[] = "ZIP library available.";
+		else {
+			require_once(ABSPATH.'wp-admin/includes/class-pclzip.php');
+			$log[] = "ZIP library loaded.";
+		}
 		
 		// Put site in maintenance mode
 		$this->Settings->save("maintenance","on");
-		$tablelist = array();
-		$results = $db->query("SHOW TABLES LIKE '".SHOPP_DBPREFIX."%'",AS_ARRAY);
-		foreach ($results as $value) {
-			foreach ($value as $key => $table)
-				$tablelist[] = $table;
-		}
-		$tables = join(" ",$tablelist);
+		$log[] = "Enabled maintenance mode.";
+		
+		// $tablelist = array();
+		// $results = $db->query("SHOW TABLES LIKE '".SHOPP_DBPREFIX."%'",AS_ARRAY);
+		// foreach ($results as $value) {
+		// 	foreach ($value as $key => $table)
+		// 		$tablelist[] = $table;
+		// }
+		// $tables = join(" ",$tablelist);
 		
 		// Backups
 		$tmpdir = sys_get_temp_dir();
+		$log[] = "Found temp directory: $tmpdir";
 		
 		// Backup database
 		// $dbBackup = SHOPP_DBPREFIX.DB_NAME."-db-".date("YmdHi");
@@ -1407,7 +1442,8 @@ class Flow {
 
 		// Download the new version of Shopp
 		$updatefile = tempnam($tmpdir,"shopp_update_");
-		if (($download = fopen($updatefile, 'wb')) === false) die("Cannot save the Shopp update to the temporary workspace because of a write permission error."); // error messages.
+		if (($download = fopen($updatefile, 'wb')) === false) 
+			die(join("\n\n",$log)."\n\nUpdate Failed: Cannot save the Shopp update to the temporary workspace because of a write permission error.");
 		
 		$query = build_query_request(array(
 			"ShoppServerRequest" => "download-update",
@@ -1425,32 +1461,38 @@ class Flow {
 		curl_close($connection);
 		fclose($download);
 		
+		$downloadsize = filesize($updatefile);
+		if (filesize($updatefile) == 0) die(join("\n\n",$log)."\n\Update Failed: The download did not complete succesfully.");
+		
 		// Extract data
+		$log[] = "Unpacking updates...";
 		$archive = new PclZip($updatefile);
 		$files = $archive->extract(PCLZIP_OPT_EXTRACT_AS_STRING);
-		if (!is_array($files)) die("The downloaded update did not complete or is corrupted and cannot be used.");
+		if (!is_array($files)) die(join("\n\n",$log)."\n\nUpdate Failed: The downloaded update did not complete or is corrupted and cannot be used.");
 		else unlink($updatefile);
 		$target = trailingslashit($tmpdir);
 		
 		// Create file structure in working path target
 		foreach ($files as $file) {
-		
 			if (!$file['folder'] ) {
 				if (file_put_contents($target.$file['filename'], $file['content']))
 					@chmod($target.$file['filename'], 0644);
 			} else {
 				if (!is_dir($target.$file['filename'])) {
-					if (!mkdir($target.$file['filename'],0755,true)) 
-						die("Couldn't create directory $target{$file['filename']}");
+					if (!@mkdir($target.$file['filename'],0755,true)) 
+						die(join("\n\n",$log)."\n\nUpdate Failed: Couldn't create directory $target{$file['filename']}");
 				}				
 			}
 		}
+		$log[] = "Successfully unpacked the update.";
 		
 		// FTP files to make it "easier" than dealing with permissions
-		$ftp->update($target."shopp",$Shopp->path);
+		$log[] = "Updating files via FTP connection";
+		$results = $ftp->update($target."shopp",$Shopp->path);
+		if (!empty($results)) die(join("\n\n",$log).join("\n\nUpdate Failed: ",$results));
 		// $ftp->put($tmpdir.$dbBackup,$Shopp->path."/backups"."/$dbBackup");
 		// $ftp->put($tmpdir.$filesBackup,$Shopp->path."/backups"."/$filesBackup");
-		
+				
 		echo "updated"; // Report success!
 		exit();
 	}
