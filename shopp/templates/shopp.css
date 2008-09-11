@@ -106,19 +106,9 @@ form.shopp ul label,form.shopp ul select { display: inline; }
 #shopp dl dt { font-weight: bold; float: left; margin-right: 10px; clear: left; }
 #shopp dl dd { display: block; clear: right; }
 
-#gallery { float: left; margin: 5px 10px 5px 0;}
-#gallery ul { margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
-#gallery ul li:before { content: ""; }
-#gallery ul.previews { margin: 0 !important;}
-#gallery ul.previews { position: relative; }
-#gallery ul.previews li { position: absolute; visibility: hidden; top: 0; left: 0; margin: 0; }
-#gallery ul.previews li img { display: block; }
-#gallery ul.previews li.fill { position: relative; }
-#gallery ul.previews li.active { visibility: visible; }
-#gallery ul.previews li.thumbnails { position: relative; top: auto; left: auto; clear: both; width: 100%; text-align: center;  }
-#gallery ul.previews li.thumbnails ul { padding: 0; margin: 20px 0; }
-#gallery ul.previews li.thumbnails li { position: relative; display: inline-block; visibility: visible;  top: auto; left: auto;  margin: 0; }
-
+#gallery { margin: 5px 10px 5px 0; }
+#gallery ul.previews li.thumbnails ul { margin: 10px 0; }
+#gallery ul.previews li.thumbnails li { margin: 0 5px 0 0; }
 
 /**
  * Order Receipt

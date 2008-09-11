@@ -11,7 +11,8 @@
 
 class PayPalExpress {
 	var $button = 'https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif';
-	var $checkout_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout';
+	var $sandbox_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout';
+	var $checkout_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout';
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
@@ -71,7 +72,8 @@ class PayPalExpress {
 		$result = $this->send();
 		
 		if (!empty($result) && isset($result->token)){
-			header("Location: {$this->checkout_url}&token=".$result->token);
+			if ($this->settings['testmode'] == "on") header("Location: {$this->sandbox_url}&token=".$result->token);
+			else header("Location: {$this->checkbox_url}&token=".$result->token);
 			exit();
 		}
 			
@@ -205,9 +207,9 @@ class PayPalExpress {
 		
 	function send () {
 		$connection = curl_init();
-		//if ($this->settings['testmode'] == "on")
+		if ($this->settings['testmode'] == "on")
 			curl_setopt($connection,CURLOPT_URL,"https://api-3t.sandbox.paypal.com/nvp"); // Sandbox testing
-		//else curl_setopt($connection,CURLOPT_URL,"https://api-3t.paypal.com/nvpasd"); // Live		
+		else curl_setopt($connection,CURLOPT_URL,"https://api-3t.paypal.com/nvp"); // Live		
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
 		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0); 
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
@@ -280,12 +282,13 @@ class PayPalExpress {
 		$Shopp->Settings->save('gateway_cardtypes',array("Visa","MasterCard","Discover","American Express"));
 		$settings = $Shopp->Settings->get('PayPalPro');
 		?>
-		<p><input type="text" name="settings[PayPalExpress][username]" id="gateway_username" size="30" value="<?php echo $this->settings['username']; ?>"/><br />
+		<p><input type="text" name="settings[PayPalExpress][username]" id="paypalxp-username" size="30" value="<?php echo $this->settings['username']; ?>"/><br />
 		Enter your PayPal Express API Username.</p>
-		<p><input type="password" name="settings[PayPalExpress][password]" id="gateway_password" size="16" value="<?php echo $this->settings['password']; ?>" /><br />
+		<p><input type="password" name="settings[PayPalExpress][password]" id="paypalxp-password" size="16" value="<?php echo $this->settings['password']; ?>" /><br />
 		Enter your PayPal Express API Password.</p>
-		<p><input type="text" name="settings[PayPalExpress][signature]" id="gateway_signature" size="48" value="<?php echo $this->settings['signature']; ?>" /><br />
+		<p><input type="text" name="settings[PayPalExpress][signature]" id="paypalxp-signature" size="48" value="<?php echo $this->settings['signature']; ?>" /><br />
 		Enter your PayPal Express API Signature.</p>
+		<p><label for="paypalxp-testmode"><input type="hidden" name="settings[PayPalExpress][testmode]" value="off" /><input type="checkbox" name="settings[PayPalExpress][testmode]" id="paypalxp-testmode" size="48" value="on"<?php echo ($this->settings['testmode'])?' checked="checked"':''; ?> /> Enable test mode</label></p>
 		<?php
 	}
 

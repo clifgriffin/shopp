@@ -28,7 +28,7 @@
 		<?php $even = false; foreach ($Promotions as $Promotion): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Promotion->id; ?>' /></th>
-			<td><a class='row-title' href='?page=<?php echo $this->Admin->promotions; ?>&amp;promotion=<?php echo $Promotion->id; ?>' title='Edit &quot;<?php echo $Promotion->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Promotion->depth).$Promotion->name; ?></a></td>
+			<td><a class='row-title' href='?page=<?php echo $this->Admin->promotions; ?>&amp;promotion=<?php echo $Promotion->id; ?>' title='Edit &quot;<?php echo $Promotion->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Promotion->depth).(!empty($Promotion->name))?$Promotion->name:'(no promotion name)'; ?></a></td>
 			<td><?php
 				if (mktimestamp($Promotion->starts > 1) && mktimestamp($Promotion->ends) > 1)
 					echo date(get_option(date_format),mktimestamp($Promotion->starts))." &mdash; ".date(get_option(date_format),mktimestamp($Promotion->ends));
@@ -45,6 +45,8 @@
 	</form>
 </div>
 <script type="text/javascript">
+	helpurl = "<?php echo SHOPP_DOCS; ?>Promotions";
+
 	$=jQuery.noConflict();
 	$('#selectall').change( function() {
 		$('#promotions th input').each( function () {

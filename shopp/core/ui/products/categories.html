@@ -31,7 +31,7 @@
 		<?php $even = false; foreach ($Categories as $Category): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Category->id; ?>' /></th>
-			<td><a class='row-title' href='?page=<?php echo $this->Admin->products; ?>&amp;category=<?php echo $Category->id; ?>' title='Edit &quot;<?php echo $Category->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->depth).$Category->name; ?></a></td>
+			<td><a class='row-title' href='?page=<?php echo $this->Admin->products; ?>&amp;category=<?php echo $Category->id; ?>' title='Edit &quot;<?php echo $Category->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->depth).(!empty($Category->name))?$Category->name:'(no category name)'; ?></a></td>
 			<td><?php echo $Category->description; ?></td>
 			<td class="num"><?php echo $Category->products; ?></td>
 		</tr>
@@ -44,17 +44,19 @@
 	</form>
 </div>
 <script type="text/javascript">
-	$j=jQuery.noConflict();
-	$j('#selectall').change( function() {
-		$j('#categories th input').each( function () {
+	helpurl = "<?php echo SHOPP_DOCS; ?>Categories";
+
+	$=jQuery.noConflict();
+	$('#selectall').change( function() {
+		$('#categories th input').each( function () {
 			if (this.checked) this.checked = false;
 			else this.checked = true;
 		});
 	});
 
-	$j('#delete-button').click(function() {
+	$('#delete-button').click(function() {
 		if (confirm("Are you sure you want to delete the selected categories?")) {
-			$j('<input type="hidden" name="categories" value="list" />').appendTo($j('#categories'));
+			$('<input type="hidden" name="categories" value="list" />').appendTo($('#categories'));
 			return true;
 		} else return false;
 	});

@@ -32,9 +32,10 @@
 
 <script type="text/javascript">
 (function($) {
+	helpurl = "<?php echo SHOPP_DOCS; ?>Update_Settings";
 	var ajaxurl = '<?php bloginfo('siteurl'); ?>/wp-admin/admin-ajax.php';
 	var adminurl = '<?php bloginfo('siteurl'); ?>/wp-admin/admin.php';
-
+	
 	$('#check-update').click(function () {
 		var target = $('#update-info')
 		$.getJSON(ajaxurl+"?action=wp_ajax_shopp_version_check",function (result) {
