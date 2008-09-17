@@ -15,8 +15,9 @@ class Item {
 	var $sku;
 	var $type;
 	var $name;
-	var $optionlabel;
 	var $description;
+	var $optionlabel;
+	var $option = false;
 	var $options = array();
 	var $saved = 0;
 	var $savings = 0;
@@ -41,18 +42,19 @@ class Item {
 		
 		$this->product = $Product->id;
 		$this->price = $Price->id;
+		$this->option = $Price;
 		$this->name = $Product->name;
 		$this->description = $Product->summary;
 		$this->options = $Product->prices;
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
 		$this->saved = ($Price->price - $Price->promoprice);
-		$this->savings = percentage($this->saved/$Price->price)*100;
+		$this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
 		$this->freeshipping = ($Price->freeshipping || $Product->freeshipping);
 		$this->quantity = $qty;
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
 		$this->total = $this->quantity * $this->unitprice;
-		$this->optionlabel = $Price->label;
+		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
 
 		if (!empty($Price->download)) $this->download = $Price->download->id;
 		
@@ -67,12 +69,20 @@ class Item {
 	}
 		
 	function quantity ($qty) {
-		$this->quantity = $qty;
+		if ($this->inventory) {
+			if ($this->quantity + $qty > $this->option->stock) 
+				$this->quantity = $this->option->stock;
+			else $this->quantity = $qty;
+		} else $this->quantity = $qty;
 		$this->total = $this->quantity * $this->unitprice;
 	}
 	
 	function add ($qty) {
-		$this->quantity += $qty;
+		if ($this->inventory) {
+			if ($this->quantity + $qty > $this->option->stock) 
+				$this->quantity = $this->option->stock;
+			else $this->quantity += $qty;
+		} else $this->quantity += $qty;
 		$this->total = $this->quantity * $this->unitprice;
 	}
 	
@@ -109,12 +119,17 @@ class Item {
 	function tag ($id,$property,$options=array()) {
 		global $Shopp;
 		
-		$uri = (SHOPP_PERMALINK)?$this->product:'&amp;shopp_pid='.$this->product;
+		$pages = $Shopp->Settings->get('pages');
+		if ($Shopp->link('catalog') == get_bloginfo('siteurl')."/")
+			$page =  $pages['catalog']['name']."/".$this->product;
+		else $page = "/".$this->product;
+
+		$uri = (SHOPP_PERMALINK)?$page:'&amp;shopp_pid='.$this->product;
 		
 		// Return strings with no options
 		switch ($property) {
 			case "name": return $this->name;
-			case "url": return $Shopp->link('').$uri;
+			case "url": return $Shopp->link('catalog').$uri;
 			case "sku": return $this->sku;
 		}
 		

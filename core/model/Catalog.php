@@ -36,7 +36,7 @@ class Catalog extends DatabaseObject {
 		else $page = "?page_id={$pages['catalog']['id']}";
 				
 		switch ($property) {
-			case "url": return $Shopp->link('');
+			case "url": return $Shopp->link('catalog');
 			case "category-list":
 				if (empty($this->categories)) $this->load_categories();
 				$string = "";

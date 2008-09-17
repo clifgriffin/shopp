@@ -13,7 +13,8 @@
 class XMLdata {
 	var $data = array();
 
-	function XMLdata () {
+	function XMLdata ($data=false) {
+		if ($data) $this->parse($data);
 		return true;
 	}
 
@@ -121,6 +122,14 @@ class XMLdata {
 	}
 	
 	/**
+	 * getRootElement()
+	 * Returns the root element of the tree */
+	function getRootElement () {
+		reset($this->data);
+		return current($this->data);
+	}
+	
+	/**
 	 * getElementContent()
 	 * Searches the tree for the target $element and returns 
 	 * the contents (the value between the tags) */
@@ -137,6 +146,16 @@ class XMLdata {
 	function getElementAttrs ($element) {
 		$found = $this->search($element);
 		if (!empty($found)) return $found[0]['ATTRS'];
+		else return false;
+	}
+
+	/**
+	 * getElementAttr()
+	 * Searches the tree for the target $element and returns 
+	 * value of a specific attribute for a specific element tag (<tag attribute="value">) */
+	function getElementAttr ($element,$attr) {
+		$found = $this->search($element);
+		if (!empty($found)) return $found[0]['ATTRS'][$attr];
 		else return false;
 	}
 	

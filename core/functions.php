@@ -157,7 +157,9 @@ function shopp_email ($template,$data=array()) {
 	if (!$debug) mail($to,$subject,$message,$headers);
 	else {
 		echo "TO: $to<BR>SUBJECT: $subject<BR>MESSAGE:<BR>$message<BR><BR>HEADERS:<BR>";
+		echo "<pre>";
 		print_r($headers);
+		echo "<pre>";
 		exit();		
 	}
 }

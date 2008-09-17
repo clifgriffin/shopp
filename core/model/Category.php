@@ -53,7 +53,7 @@ class Category extends DatabaseObject {
 		$assettable = DatabaseObject::tablename(Asset::$table);
 		$query = "SELECT p.id,p.name,p.summary,
 					img.id AS thumbnail,img.properties AS thumbnail_properties,
-					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0)) AS percentoff,
+					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0))AS percentoff,
 					SUM(DISTINCT IF(pr.type='Amount Off',pr.discount,0)) AS amountoff,
 					if (pr.type='Free Shipping',1,0) AS freeshipping,
 					if (pr.type='Buy X Get Y Free',pr.buyqty,0) AS buyqty,
@@ -92,14 +92,16 @@ class Category extends DatabaseObject {
 		
 	function tag ($property,$options=array()) {
 		global $Shopp;
-		$pages = $Shopp->Settings->get('pages');
+		
+		$page = $Shopp->link('catalog');
 		if (SHOPP_PERMALINKS) {
-			$path = "/{$pages['catalog']['name']}";
-			$imagepath = "/{$pages['catalog']['name']}/images/";
-		} else {
-			$page = "?page_id={$pages['catalog']['id']}";
-			$imagepath = "?shopp_image=";
+			if ($page == get_bloginfo('siteurl')."/") {
+				$pages = $Shopp->Settings->get('pages');
+				$page .= $pages['catalog']['name']."/";
+			}
+			$imagepath = $Shopp->link('catalog')."images/";
 		}
+		else $imagepath = "?shopp_image=";
 		
 		switch ($property) {
 			case "name": return $this->name; break;
@@ -125,7 +127,8 @@ class Category extends DatabaseObject {
 				break;
 			case "product":
 				$product = current($this->products);
-				if (SHOPP_PERMALINKS) $link = $path.$this->uri.'/'.sanitize_title_with_dashes($product->name);
+
+				if (SHOPP_PERMALINKS) $link = $page.$this->uri.'/'.sanitize_title_with_dashes($product->name);
 				else {
 					if (isset($Shopp->Category->smart)) $link = $page.'&shopp_category='.$this->slug.'&shopp_pid='.$product->id;
 					else $link = $page.'&shopp_category='.$this->id.'&shopp_pid='.$product->id;
@@ -173,7 +176,7 @@ class NewProducts extends Category {
 		$this->name = "New Products";
 		$this->parent = 0;
 		$this->slug = NewProducts::$slug;
-		$this->uri = "/$this->slug";
+		$this->uri = $this->slug;
 		$this->description = "New additions to the store";
 		$this->smart = true;
 		$loading = array('where'=>"p.id IS NOT NULL",'order'=>'p.created DESC');
@@ -190,7 +193,7 @@ class FeaturedProducts extends Category {
 		$this->name = "Featured Products";
 		$this->parent = 0;
 		$this->slug = FeaturedProducts::$slug;
-		$this->uri = "/$this->slug";
+		$this->uri = $this->slug;
 		$this->description = "Featured products";
 		$this->smart = true;
 		$loading = array('where'=>"p.featured='on'",'order'=>'p.modified DESC');
@@ -206,7 +209,7 @@ class OnSaleProducts extends Category {
 		$this->name = "On Sale";
 		$this->parent = 0;
 		$this->slug = OnSaleProducts::$slug;
-		$this->uri = "/$this->slug";
+		$this->uri = $this->slug;
 		$this->description = "On sale products";
 		$this->smart = true;
 		$loading = array('where'=>"pd.sale='on' OR pr.discount > 0",'order'=>'p.modified DESC');

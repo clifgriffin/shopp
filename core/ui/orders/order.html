@@ -10,10 +10,14 @@
 		<table class="transaction">
 			<tr><th>Order Num:</th><td><?php echo $Purchase->id; ?></td></tr>	
 			<tr><th>Order Date:</th><td><?php echo date('F j, Y', $Purchase->created); ?></td></tr>	
-			<tr><th>Billed To:</th><td><?php printf("%'X16d",$Purchase->card); ?> (<?php echo $Purchase->cardtype; ?>)</td></tr>	
+			<?php if (!empty($Purchase->card) && !empty($Purchase->cardtype)): ?><tr><th>Billed To:</th><td><?php (!empty($Purchase->card))?printf("%'X16d",$Purchase->card):''; ?> <?php echo (!empty($Purchase->cardtype))?'('.$Purchase->cardtype.')':''; ?></td></tr><?php endif; ?>
 			<tr><th>Transaction:</th><td><?php echo $Purchase->transactionid; ?></td></tr>	
+			<?php if ($Purchase->gateway == "Google Checkout"):?>
+				<tr><th>Status:</th><td><?php echo $Purchase->transtatus; ?></td></tr>	
+			<?php endif; ?>
 		</table>
 
+		<?php if (!empty($Purchase->shipaddress)): ?>
 		<fieldset>
 			<legend>Ship To</legend>
 			<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
@@ -22,7 +26,17 @@
 			<?php echo "{$Purchase->shipcity}, {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
 			<?php echo $Purchase->shipcountry ?></address>
 		</fieldset>
-
+		<?php else: ?>
+			<fieldset>
+				<legend>Customer</legend>
+				<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
+				<?php echo $Purchase->address; ?><br />
+				<?php if (!empty($Purchase->xaddress)) echo $Purchase->xaddress."<br />"; ?>
+				<?php echo "{$Purchase->city}, {$Purchase->state} {$Purchase->postcode}" ?><br />
+				<?php echo $Purchase->country ?></address>
+			</fieldset>
+		<?php endif; ?>
+		
 		<?php if (sizeof($Purchase->purchased) > 0): ?>
 		<table class="cart widefat">
 			<thead>
@@ -74,18 +88,33 @@
 		<?php endif; ?>
 		</div>
 		
-		
-		<div class="tablenav">
 		<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post" id="order-status">
+		<div id="notification">
+		<div class="tablenav"><p class="alignright"><input type="hidden" name="receipt" value="no" /><input type="checkbox" name="receipt" value="yes" id="include-order" checked="checked" /><label for="include-order">&nbsp;Include a copy of the order in the message</label></p>
+		</div>
+		<br class="clear" />
+		<p><textarea name="message" id="message" cols="50" rows="10" ></textarea></p>
+		</div>
+		<div class="tablenav">
 			<p class="alignright"><label for="order_status_menu">Order Status:</label>
 				<select name="status" id="order_status_menu">
 				<?php echo menuoptions($statusLabels,$Purchase->status,true); ?>
 				</select>
-				<span class="middle"><input type="checkbox" name="notify_customer" value="customer_notification" id="notify_customer" /><label for="notify_customer">&nbsp;Send customer notification</label></span>
+				<span class="middle"><input type="hidden" name="notify" value="no" /><input type="checkbox" name="notify" value="yes" id="notify-customer" /><label for="notify-customer">&nbsp;Send customer notification</label></span>
 				<button type="submit" name="update" value="status" class="button-secondary">Update Status</button></p>
-		</form>
 		</div>
+		</form>
 	</div>
 	
 </div>
+
+<script type="text/javascript">
+$=jQuery.noConflict();
+
+$('#notification').hide();
+$('#notify-customer').click(function () {
+	$('#notification').slideToggle(500);
+});
+
+</script>
 

@@ -1,7 +1,7 @@
+<form action="<?php shopp('checkout','url'); ?>" method="post" class="shopp" id="checkout">
 <?php shopp('checkout','cart-summary'); ?>
 
 <?php if (shopp('cart','hasitems')): ?>
-<form action="<?php shopp('checkout','url'); ?>" method="post" class="shopp" id="checkout">
 	<?php shopp('checkout','function'); ?>
 	<ul>
 		<li>
@@ -17,17 +17,7 @@
 		</li>
 		<li></li>
 		<?php if (shopp('checkout','shipping')): ?>
-		<li class="half">
-			<label for="shipping-address">Shipping Address</label>
-			<div><?php shopp('checkout','shipping-address','required=true&Title=Shipping street address'); ?><label for="shipping-address">Street Address</label></div>
-			<div><?php shopp('checkout','shipping-xaddress','Title=Shipping address line 2'); ?><label for="shipping-xaddress">Address Line 2</label></div>
-			<div class="left"><?php shopp('checkout','shipping-city','required=true&Title=City shipping address'); ?><label for="shipping-city">City</label></div>
-			<div class="right"><?php shopp('checkout','shipping-state','required=true&Title=State/Provice/Region shipping address'); ?><label for="shipping-state">State / Province</label></div>
-			<div class="left"><?php shopp('checkout','shipping-postcode','required=true&Title=Postal/Zip Code shipping address'); ?><label for="shipping-postcode">Postal / Zip Code</label></div>
-			<div class="right"><?php shopp('checkout','shipping-country','required=true&Title=Country shipping address'); ?><label for="shipping-country">Country</label></div>
-			<div class="inline"><label for="useshipping"><input type="checkbox" name="useshipping" value="" id="useshipping" /> Use this for the Billing Address</label></div>
-		</li>
-		<li class="half right">
+			<li class="half" id="billing-address-fields">
 		<?php else: ?>
 			<li>
 		<?php endif; ?>
@@ -38,7 +28,22 @@
 			<div class="right"><?php shopp('checkout','billing-state','required=true&title=State/Provice/Region billing address'); ?><label for="billing-state">State / Province</label></div>
 			<div class="left"><?php shopp('checkout','billing-postcode','required=true&title=Postal/Zip Code billing address'); ?><label for="billing-postcode">Postal / Zip Code</label></div>
 			<div class="right"><?php shopp('checkout','billing-country','required=true&title=Country billing address'); ?><label for="billing-country">Country</label></div>
-		</li>
+		<?php if (shopp('checkout','shipping')): ?>
+			<div class="inline"><?php shopp('checkout','same-shipping-address'); ?></div>
+			</li>
+			<li class="half right" id="shipping-address-fields">
+				<label for="shipping-address">Shipping Address</label>
+				<div><?php shopp('checkout','shipping-address','required=true&Title=Shipping street address'); ?><label for="shipping-address">Street Address</label></div>
+				<div><?php shopp('checkout','shipping-xaddress','Title=Shipping address line 2'); ?><label for="shipping-xaddress">Address Line 2</label></div>
+				<div class="left"><?php shopp('checkout','shipping-city','required=true&Title=City shipping address'); ?><label for="shipping-city">City</label></div>
+				<div class="right"><?php shopp('checkout','shipping-state','required=true&Title=State/Provice/Region shipping address'); ?><label for="shipping-state">State / Province</label></div>
+				<div class="left"><?php shopp('checkout','shipping-postcode','required=true&Title=Postal/Zip Code shipping address'); ?><label for="shipping-postcode">Postal / Zip Code</label></div>
+				<div class="right"><?php shopp('checkout','shipping-country','required=true&Title=Country shipping address'); ?><label for="shipping-country">Country</label></div>
+			</li>
+		<?php else: ?>
+			</li>
+		<?php endif; ?>
+		<li></li>
 		<li>
 			<label for="billing-card">Payment Information</label>
 			<span><?php shopp('checkout','billing-card','required=true&size=30&title=Credit/Debit Card Number'); ?><label for="billing-card">Credit/Debit Card Number</label></span>
@@ -51,8 +56,8 @@
 			<span><?php shopp('checkout','billing-cvv','size=7&minlength=3&maxlength=4&title=Card\'s security code (3-4 digits on the back of the card)'); ?><label for="billing-cvv">Security ID</label></span>
 		</li>	
 	</ul>
-	<div class="clear"></div>
+	<br class="clear" />
 	<p class="submit"><?php shopp('checkout','submit','value=Submit Order'); ?></p>
 
-</form>
 <?php endif; ?>
+</form>

@@ -18,25 +18,26 @@
 #shopp ul { list-style: none; text-indent: 0; text-align: left; padding: 0; margin: 0; }
 #shopp li { background: none; padding: 0; margin: 0; }
 #shopp li:before { content: ""; }
+#shopp br.clear { clear: both; }
 
 /**
  * Shopping Cart 
  **/
-#cart.shopp { width: 100%; clear: both; }
-#cart.shopp table { padding: 10px 0; width: 100%; }
-#cart.shopp th { text-align: left; font-weight: bold; }
-#cart.shopp th, #cart.shopp td { padding: 3px 0; }
-#cart.shopp .item { width: 50%; }
-#cart.shopp .money, 
-#cart.shopp .totals th,
-#cart.shopp .buttons td { text-align: right; white-space: nowrap; }
-#cart.shopp .totals.total th,
-#cart.shopp .totals.total td { font-size: 130%; }
-#cart.shopp .remove { font-size: 9px; }
+#shopp #cart { width: 100%; clear: both; }
+#shopp #cart table { padding: 10px 0; width: 100%; }
+#shopp #cart th { text-align: left; font-weight: bold; }
+#shopp #cart th, #shopp #cart td { padding: 3px 0; }
+#shopp #cart .item { width: 50%; }
+#shopp #cart .money, 
+#shopp #cart .totals th,
+#shopp #cart .buttons td { text-align: right; white-space: nowrap; }
+#shopp #cart .totals.total th,
+#shopp #cart .totals.total td { font-size: 130%; }
+#shopp #cart .remove { font-size: 9px; }
 
-#cart.shopp address { font-style: normal; }
-#cart.shopp big { display: block; margin: 10px 0; }
-#cart.shopp big a.right { float: right; }
+#shopp #cart address { font-style: normal; }
+#shopp #cart big { display: block; margin: 10px 0; }
+#shopp #cart big a.right { float: right; }
 
 /**
  * Checkout 
@@ -45,7 +46,6 @@
 #shopp form ul li { text-indent: 0; clear: both; display: block; padding: 4px 0; margin: 0; }
 #shopp form label { font-size: 14px; clear: both; display: block; font-weight: bold; padding-bottom: 3px; }
 #shopp form ul li label.inline { display: inline; clear: none; }
-#shopp form span { float: left; padding: 0 5px 0 0; }
 #shopp form ul li:before { content: ""; }
 #shopp form ul li div.inline { width: auto; clear: both; }
 #shopp form ul li div.inline input { width: auto;  }
@@ -57,9 +57,13 @@
 #shopp form ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
 #shopp form ul li.half { display: inline; width: 47%; float: left; clear: none; }
 #shopp form ul li.half.right { display: inline; float: right; }
-#shopp form span { display: inline-block; text-align: left; }
-#shopp form span label,
+#shopp form ul li span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
+#shopp form ul li span label,
 #shopp form div label { font-size: 11px; clear: both; font-weight: normal; padding-bottom: 8px; }
+
+#shopp #shipping-methods { padding-left: 30px; }
+#shopp #shipping-methods li { margin-top: 5px; }
+#shopp #shipping-methods input { margin-left: -16px; }
 
 #errors.shopp { color: #900;}
 
@@ -87,7 +91,6 @@ form.shopp ul label,form.shopp ul select { display: inline; }
 
 #shopp ul.variations label { display: block;}
 
-#shopp { clear: both; }
 #shopp ul.breadcrumb { margin: 10px 0; }
 #shopp ul.breadcrumb li:before { content: ""; }
 #shopp ul.breadcrumb li { background: none; padding: 0; display: inline; margin-left: 0; text-indent: 0; }
@@ -116,13 +119,13 @@ form.shopp ul label,form.shopp ul select { display: inline; }
 #receipt.shopp { position: relative; margin: 20px 0; }
 #receipt.shopp address { font-style: normal; }
 #receipt.shopp fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
-#receipt.shopp table.transaction { float: right; }
+#receipt.shopp table.transaction { float: right; width: auto; }
 #receipt.shopp table.transaction th { text-align: right; }
 
 #receipt.shopp .cart { width: 100%; clear: both; border: none; }
 #receipt.shopp .cart td { border: none; }
 #receipt.shopp .cart th { font-weight: bold; text-align: left; border: none; }
-#receipt.shopp th, #cart.shopp td { padding: 3px 0; }
+#receipt.shopp th, #shopp #cart td { padding: 3px 0; }
 #receipt.shopp .cart .item { width: 50%; }
 #receipt.shopp .cart .money, 
 #receipt.shopp .cart .total,

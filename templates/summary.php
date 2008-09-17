@@ -18,19 +18,35 @@
 	<?php endwhile; ?>
 
 	<tr class="totals">
-		<th scope="row" colspan="3">Subtotal</th>
+		<td colspan="2" rowspan="5">
+			<?php if (shopp('cart','needs-shipped')): ?>
+			<small>Select a shipping method:</small>
+
+			<ul id="shipping-methods">
+			<?php while(shopp('shipping','methods')): ?>
+				<li><label><?php shopp('shipping','method-selector'); ?>
+				<?php shopp('shipping','method-name'); ?> &mdash;
+				<strong><?php shopp('shipping','method-cost'); ?></strong><br />
+				<small><?php shopp('shipping','method-delivery'); ?></small></label>
+				</li>
+			<?php endwhile; ?>
+			</ul>
+			
+			<?php endif; ?>
+		</td>
+		<th scope="row">Subtotal</th>
 		<td class="money"><?php shopp('cart','subtotal'); ?></td>
 	</tr>
 	<tr class="totals">
-		<th scope="row" colspan="3"><?php shopp('cart','shipping','label=Shipping'); ?></th>
+		<th scope="row"><?php shopp('cart','shipping','label=Shipping'); ?></th>
 		<td class="money"><?php shopp('cart','shipping'); ?></td>
 	</tr>
 	<tr class="totals">
-		<th scope="row" colspan="3"><?php shopp('cart','tax','label=Taxes'); ?></th>
+		<th scope="row"><?php shopp('cart','tax','label=Taxes'); ?></th>
 		<td class="money"><?php shopp('cart','tax'); ?></td>
 	</tr>
 	<tr class="totals total">
-		<th scope="row" colspan="3">Total</th>
+		<th scope="row">Total</th>
 		<td class="money"><?php shopp('cart','total'); ?></td>
 	</tr>
 </table>

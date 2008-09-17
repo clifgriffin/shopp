@@ -1,5 +1,5 @@
 <?php if (shopp('cart','hasitems')): ?>
-<form id="cart" action="<?php shopp('cart','url'); ?>" method="post" class="shopp">
+<form id="cart" action="<?php shopp('cart','url'); ?>" method="post">
 <big>
 	<a href="<?php shopp('catalog','url'); ?>">&laquo; Continue Shopping</a>
 	<a href="<?php shopp('checkout','url'); ?>" class="right">Proceed to Checkout &raquo;</a>
@@ -27,17 +27,19 @@
 	<tr class="totals">
 		<td colspan="2" rowspan="4">
 			<?php if (shopp('cart','needs-shipped')): ?>
-			<small>Select shipping country to calculate shipping and tax:</small>
+			<small>Select shipping country for shipping &amp; tax:</small>
 			<?php shopp('cart','shipping-estimates'); ?>
 			<?php endif; ?>
 		</td>
 		<th scope="row">Subtotal</th>
 		<td class="money"><?php shopp('cart','subtotal'); ?></td>
 	</tr>
+	<?php if (shopp('cart','needs-shipped')): ?>
 	<tr class="totals">
 		<th scope="row"><?php shopp('cart','shipping','label=Shipping'); ?></th>
 		<td class="money"><?php shopp('cart','shipping'); ?></td>
 	</tr>
+	<?php endif; ?>
 	<tr class="totals">
 		<th scope="row"><?php shopp('cart','tax','label=Tax'); ?></th>
 		<td class="money"><?php shopp('cart','tax'); ?></td>

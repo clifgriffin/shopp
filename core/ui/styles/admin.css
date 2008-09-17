@@ -123,6 +123,8 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #order .cart .remove { font-size: 12px; }
 #order .cart tr.totals th,.cart tr.totals td { padding: 7px 15px 9px 10px; }
 
+#order #message { width: 99%; margin: 0 auto; }
+
 #taxrates-table th, 
 #taxrates-table td{ position: relative; text-align: left; border: none; padding: 0 5px 5px 0; }
 #taxrates-table button.deleteButton { position: relative; width: 20px; margin-left: -20px; top: 3px; }

@@ -1,7 +1,7 @@
 (function($) {
 
 	var validate = function (form) {
-		console.log(form)
+
 		var passed = true;
 		var inputs = form.getElementsByTagName('input');
 		var selects = form.getElementsByTagName('select');
@@ -45,24 +45,20 @@
 	}
 
 	$(window).ready(function () {
-		$('#useshipping').click(function() {
-			if(this.checked) {
-		 		$('#billing-address').val($('#shipping-address').val()).attr('readonly','readonly');
-		 		$('#billing-xaddress').val($('#shipping-xaddress').val()).attr('readonly','readonly');
-		 		$('#billing-city').val($('#shipping-city').val()).attr('readonly','readonly');
-		 		$('#billing-postcode').val($('#shipping-postcode').val()).attr('readonly','readonly');
-		 		$('#billing-country').val($('#shipping-country').val()).attr('readonly','readonly').change();
-		 		$('#billing-state').val($('#shipping-state').val()).attr('readonly','readonly');
-			} else {
-				$('#billing-address').removeAttr('readonly');
-		 		$('#billing-xaddress').removeAttr('readonly');
-		 		$('#billing-city').removeAttr('readonly');
-		 		$('#billing-state').removeAttr('readonly');
-		 		$('#billing-postcode').removeAttr('readonly');
-		 		$('#billing-country').removeAttr('readonly');
-			}
-		});
 
+		$('#same-shipping').change(function() {
+			if ($('#same-shipping').attr('checked')) {
+				$('#billing-address-fields').removeClass('half');
+				$('#shipping-address-fields').hide();
+				$('#shipping-address-fields .required').removeClass('required');
+			} else {
+				$('#billing-address-fields').addClass('half');
+				$('#shipping-address-fields input').addClass('required');
+				$('#shipping-address-fields select').addClass('required');
+				$('#shipping-address-fields').show();
+			}
+		}).change();
+				
 		$('#checkout.shopp').submit(function () {
 			if (validate(this)) return true;
 			else return false;
@@ -83,6 +79,16 @@
 					option = $('<option></option>').val(value).html(label).appendTo('#billing-state');
 			});
 		});	
+		
+		$('input.shipmethod').click(function () {
+			console.log($('#shopp form').attr('action'));
+			$.getJSON($('#shopp form').attr('action')+"?shopp_lookup=shipcost&method="+$(this).val(),
+				function (result) {
+					var totals = eval(result);
+					$('#shipping').html(asMoney(totals.shipping));
+					$('#total').html(asMoney(totals.total));
+			});
+		});
 
 	});
 })(jQuery)

@@ -16,3 +16,5 @@
 #gallery .previews li.thumbnails ul { padding: 0; }
 #gallery .previews li.thumbnails li { position: relative; display: inline-block; visibility: visible; height: auto; top: auto; left: auto;  }
 #shopp #gallery .previews li.thumbnails ul li { width: auto; height: auto; line-height: 1; }
+
+#shopp .category { clear: both; }
