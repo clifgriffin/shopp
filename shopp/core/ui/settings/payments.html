@@ -21,8 +21,14 @@
 					<div id="paypalexpress-settings">
 						<?php echo $PayPalExpress->settings(); ?>
 					</div>
-					
-					
+				</td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="googlecheckout-enabled">Google Checkout</label></th> 
+				<td><input type="hidden" name="settings[GoogleCheckout][enabled]" value="off" id="googlecheckout-disabled"/><input type="checkbox" name="settings[GoogleCheckout][enabled]" value="on" id="googlecheckout-enabled"<?php echo ($GoogleCheckout->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="googlecheckout-enabled"> Enable Google Checkout</label>
+					<div id="googlecheckout-settings">
+						<?php echo $GoogleCheckout->settings(); ?>
+					</div>
 				</td>
 			</tr>
 		</table>
@@ -34,6 +40,7 @@
 helpurl = "<?php echo SHOPP_DOCS; ?>Payments_Settings";
 (function($) {
 if (!$('#paypalexpress-enabled').attr('checked')) $('#paypalexpress-settings').hide();
+if (!$('#googlecheckout-enabled').attr('checked')) $('#googlecheckout-settings').hide();
 
 var gatewayHandlers = new CallbackRegistry();
 
@@ -69,6 +76,10 @@ if ($('#payment-gateway').val() != '') gatewayHandlers.call($('#payment-gateway'
 
 $('#paypalexpress-enabled').change(function () {
 	$('#paypalexpress-settings').slideToggle(250);
+});
+
+$('#googlecheckout-enabled').change(function () {
+	$('#googlecheckout-settings').slideToggle(250);
 });
 
 })(jQuery);

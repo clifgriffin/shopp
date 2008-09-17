@@ -120,7 +120,7 @@ class Flow {
 		$content = ob_get_contents();
 		ob_end_clean();
 
-		return '<div id="shopp" class="$page">'.$content.'<div id="clear"></div></div>';
+		return '<div id="shopp" class="'.$page.'">'.$content.'<div id="clear"></div></div>';
 		
 	}
 
@@ -179,7 +179,7 @@ class Flow {
 	
 	function cart_request () {
 		global $Shopp;
-		$Cart =& $Shopp->Cart;
+		$Cart = $Shopp->Cart;
 				
 		$Request = array();
 		if (!empty($_GET['cart'])) $Request = $_GET;
@@ -187,7 +187,7 @@ class Flow {
 
 		if (isset($Request['checkout'])) {
 			$pages = $this->Pages;
-			header("Location: ".$Shopp->link('checkout','',true));
+			header("Location: ".$Shopp->link('checkout',true));
 			exit();
 		}
 		
@@ -202,7 +202,10 @@ class Flow {
 			$regions = $Shopp->Settings->get('regions');
 			$Request['shipping']['region'] = $regions[$countries[$Request['shipping']['country']]['region']];
 			unset($countries,$regions);
-			
+			$Cart->shipzone($Request['shipping']);
+		} else {
+			$base = $Shopp->Settings->get('base_operations');
+			$Request['shipping']['country'] = $base['country'];
 			$Cart->shipzone($Request['shipping']);
 		}
 		
@@ -223,7 +226,7 @@ class Flow {
 					else $result = $Cart->add($quantity,$Product,$pricing);
 					
 				}
-				$Cart->shipping($Request['shipping']);
+				$Cart->shipping();
 				break;
 			case "remove":
 				if (!empty($Cart->contents)) $Cart->remove($Request['remove']);
@@ -358,6 +361,17 @@ class Flow {
 		return $content;
 	}
 	
+	function secure_checkout_link ($linklist) {
+		global $Shopp;
+		$gateway = $Shopp->Settings->get('payment_gateway');
+		if (strpos($gateway,"TestMode.php") !== false) return $linklist;
+		$cart_href = $Shopp->link('cart');
+		$checkout_href = $Shopp->link('checkout');
+		if (empty($gateway)) return str_replace($checkout_href,$cart_href,$linklist);
+		$secured_href = str_replace("http://","https://",$checkout_href);
+		return str_replace($checkout_href,$secured_href,$linklist);
+	}
+	
 	/**
 	 * order()
 	 * Processes orders by passing transaction information to the active
@@ -365,6 +379,7 @@ class Flow {
 	function order ($gateway = false) {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
+		$db = DB::get();
 		
 		$PaymentGatewayError = new stdClass();
 		$PaymentGatewayError->code = "404";
@@ -418,17 +433,18 @@ class Flow {
 				$Shopp->Cart->data->OrderError = $Payment->error();
 				return false;
 			}
+
 			// Transaction successful, save the order
 			$Order->Customer->save();
+
+			$Order->Billing->customer = $Order->Customer->id;
+			$Order->Billing->card = substr($Order->Billing->card,-4);
+			$Order->Billing->save();
 
 			if (!empty($Order->Shipping->address)) {
 				$Order->Shipping->customer = $Order->Customer->id;
 				$Order->Shipping->save();
 			}
-
-			$Order->Billing->customer = $Order->Customer->id;
-			$Order->Billing->card = substr($Order->Billing->card,-4);
-			$Order->Billing->save();
 
 			$Purchase = new Purchase();
 			$Purchase->customer = $Order->Customer->id;
@@ -441,6 +457,7 @@ class Flow {
 			$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
 			$Purchase->gateway = $processor_data->name;
 			$Purchase->transactionid = $Payment->transactionid();
+			$Purchase->transtatus = "CHARGED";
 			$Purchase->save();
 
 			foreach($Shopp->Cart->contents as $Item) {
@@ -464,51 +481,33 @@ class Flow {
 		// Save the purchase ID for later lookup
 		$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
 		$Shopp->Cart->data->Purchase->load_purchased();
+		$Shopp->Cart->save();
 
 		// Send the e-mail receipt
 		$receipt = array();
-		$receipt['from'] = $Shopp->Settings->get('shopowner_email');
+		$receipt['from'] = '"'.get_bloginfo("name").'"';
+		if ($Shopp->Settings->get('shopowner_email')) 
+			$receipt['from'] .= ' <'.$Shopp->Settings->get('shopowner_email').'>';
 		$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
 		$receipt['subject'] = "Order Receipt";
 		$receipt['receipt'] = $this->order_receipt();
-		$receipt['url'] = $_SERVER['SERVER_NAME'];
-		// send_email(SHOPP_TEMPLATES."/order.html",$receipt);
+		$receipt['url'] = get_bloginfo('siteurl');
+		$receipt['sitename'] = get_bloginfo('name');
+		shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
 		
 		if ($Shopp->Settings->get('receipt_copy') == 1) {
 			$receipt['to'] = $Shopp->Settings->get('shopowner_email');
 			$receipt['subject'] = "New Order";
-			// send_email(SHOPP_TEMPLATES."/email.html",$receipt);
+			shopp_email(SHOPP_TEMPLATES."/email.html",$receipt);
 		}
 
-		header("Location: ".$Shopp->link('receipt','',true));
+		// Test Mode will not require encrypted checkout
+		if (strpos($gateway,"TestMode.php") !== false) $link = $Shopp->link('receipt');
+		else $link = $Shopp->link('receipt',true);
+		header("Location: $link");
 		exit();
 	}
-	
-	
-	function account () {
-		global $Shopp;
 		
-		if (!empty($_POST['vieworder'])) {
-			$Purchase = new Purchase($_POST['purchaseid']);
-			if ($Purchase->email == $_POST['email']) {
-				$Shopp->Cart->data->Purchase = $Purchase;
-				$Purchase->load_purchased();
-				ob_start();
-				include(SHOPP_TEMPLATES."/receipt.php");
-				$content = ob_get_contents();
-				ob_end_clean();
-				return $content;
-			}
-		}
-		
-		ob_start();
-		include(SHOPP_ADMINPATH."/orders/account.html");
-		$content = ob_get_contents();
-		ob_end_clean();
-		return '<div id="shopp">'.$content.'</div>';
-	}
-	
-	
 	function order_confirmation () {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
@@ -585,14 +584,40 @@ class Flow {
 	}
 	
 	function order_manager () {
-		global $Purchase;
+		global $Shopp;
+				
 		if (preg_match("/\d+/",$_GET['manage'])) {
 			$Purchase = new Purchase($_GET['manage']);
 			$Purchase->load_purchased();
 		} else $Purchase = new Purchase();
-		
+
+		if (empty($Shopp->Cart->data->Purchase)) 
+			$Shopp->Cart->data->Purchase = $Purchase;
+
 		if (!empty($_POST)) {
 			$Purchase->updates($_POST);
+			if ($_POST['notify'] == "yes") {
+				$labels = $this->Settings->get('order_status');
+				
+				// Send the e-mail notification
+				$notification = array();
+				$notification['from'] = $Shopp->Settings->get('merchant_email');
+				$notification['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
+				$notification['subject'] = "Order Updated";
+				$notification['url'] = get_bloginfo('siteurl');
+				$notification['sitename'] = get_bloginfo('name');
+
+				if ($_POST['receipt'] == "yes")
+					$notification['receipt'] = $this->order_receipt();
+				
+				$notification['status'] = strtoupper($labels[$Purchase->status]);
+				$notification['message'] = wpautop($_POST['message']);
+
+				shopp_email(SHOPP_TEMPLATES."/notification.html",$notification);
+				
+			}
+			
+			
 			$Purchase->save();
 			$updated = 'Order status updated.';
 		}
@@ -617,6 +642,29 @@ class Flow {
 		foreach ($r as $count) $status[$count->status] = $count->total;
 		foreach ($labels as $id => $label) if (empty($status[$id])) $status[$id] = 0;
 		return $status;
+	}
+	
+	function account () {
+		global $Shopp;
+		
+		if (!empty($_POST['vieworder'])) {
+			$Purchase = new Purchase($_POST['purchaseid']);
+			if ($Purchase->email == $_POST['email']) {
+				$Shopp->Cart->data->Purchase = $Purchase;
+				$Purchase->load_purchased();
+				ob_start();
+				include(SHOPP_TEMPLATES."/receipt.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+				return $content;
+			}
+		}
+		
+		ob_start();
+		include(SHOPP_ADMINPATH."/orders/account.html");
+		$content = ob_get_contents();
+		ob_end_clean();
+		return '<div id="shopp">'.$content.'</div>';
 	}
 	
 	/**
@@ -945,7 +993,7 @@ class Flow {
 	
 	/**
 	 * Category flow handlers
-	 **/
+	 **/	
 	function categories_list () {
 		$db = DB::get();
 
@@ -994,12 +1042,14 @@ class Flow {
 		else $_POST['slug'] = sanitize_title_with_dashes($_POST['slug']);
 		
 		// Work out pathing
+		$paths = array($_POST['slug']);
 		$uri = "/".$_POST['slug'];
 	
 		// If we're saving a new category, lookup the parent
 		if ($_GET['category'] == "new") {
 			for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
 				if ($_POST['parent'] == $Shopp->Catalog->categories[$i]->id) break;
+			$paths = array_push($Shopp->Catalog->categories[$i]->slug,$paths);
 			$uri = "/".$Shopp->Catalog->categories[$i]->slug.$uri;
 		} else {
 			for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
@@ -1009,11 +1059,12 @@ class Flow {
 		$parentkey = $Shopp->Catalog->categories[$i]->parentkey;
 		while ($parentkey > -1) {
 			$tree_category = $Shopp->Catalog->categories[$parentkey];
+			$paths = array_push($tree_category->slug,$paths);
 			$uri = "/".$tree_category->slug.$uri;
 			$parentkey = $tree_category->parentkey;
 		}
 		
-		$_POST['uri'] = $uri;
+		$_POST['uri'] = join("/",$paths);
 
 		if ($_GET['category'] != "new") {
 			$Category = new Category($_GET['category']);
@@ -1259,7 +1310,22 @@ class Flow {
 	}	
 
 	function settings_payments () {
+		global $Shopp;
+		include("{$this->basepath}/gateways/PayPal/PayPalExpress.php");
+		$PayPalExpress = new PayPalExpress();
+		include("{$this->basepath}/gateways/GoogleCheckout/GoogleCheckout.php");
+		$GoogleCheckout = new GoogleCheckout();
+
 		if (!empty($_POST['save'])) {
+			if (!empty($_POST['settings']['GoogleCheckout']['id']) && !empty($_POST['settings']['GoogleCheckout']['key'])) {
+				$url = $Shopp->link('catalog',true);
+				$url .= "?shopp_xorder=GoogleCheckout";
+				$url .= "&merc=".$GoogleCheckout->authcode(
+										$_POST['settings']['GoogleCheckout']['id'],
+										$_POST['settings']['GoogleCheckout']['key']);
+				$_POST['settings']['GoogleCheckout']['apiurl'] = $url;
+			}
+			
 			$this->settings_save();
 			$updated = 'Shopp payments settings saved.';
 		}
@@ -1279,8 +1345,6 @@ class Flow {
 			$Processors[] = new $ProcessorClass();
 		}
 		
-		include("{$this->basepath}/gateways/PayPal/PayPalExpress.php");
-		$PayPalExpress = new PayPalExpress();
 		
 		include(SHOPP_ADMINPATH."/settings/payments.html");
 	}
@@ -1512,6 +1576,7 @@ class Flow {
 		// Update the version number
 		$settings = DatabaseObject::tablename(Settings::$table);
 		$db->query("UPDATE $settings SET value='".SHOPP_VERSION." WHERE name='version'");
+		$db->query("DELETE FROM $settings WHERE name='data_model'");
 		
 		return true;
 	}

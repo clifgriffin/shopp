@@ -277,7 +277,7 @@ class Product extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		$pages = $Shopp->Settings->get('pages');
-		if (SHOPP_PERMALINKS) $imagepath = "/{$pages['catalog']['name']}/images/";
+		if (SHOPP_PERMALINKS) $imagepath = "/{$pages['catalog']['permalink']}images/";
 		else $imagepath = "?shopp_image=";
 		
 		switch ($property) {

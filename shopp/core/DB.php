@@ -127,8 +127,8 @@ class DB extends Singleton {
 				switch ($object->_datatypes[$property]) {
 					case "string":
 						// Escape characters in strings as needed
-						if (is_array($value)) $value = serialize($value);
-						$data[$property] = "'".$value."'";
+						if (is_array($value)) $value = $this->escape(serialize($value));
+						$data[$property] = "'".$this->escape($value)."'";
 						break;	
 					case "list":
 						// If value is empty, skip setting the field

@@ -1,5 +1,5 @@
 <?php if(shopp('category','hasproducts')): ?>
-
+	<div class="category">
 	<?php shopp('catalog','breadcrumb'); ?>
 	<h3><?php shopp('category','name'); ?></h3>
 
@@ -19,4 +19,5 @@
 	</ul>
 	
 	<div class="clear"></div>
+	</div>
 <?php endif; ?>

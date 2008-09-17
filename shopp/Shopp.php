@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev216
+Version: 1.0dev217
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0dev216");
+define("SHOPP_VERSION","1.0dev217");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -43,7 +43,7 @@ require("core/model/Catalog.php");
 require("core/model/Purchase.php");
 
 $Shopp = new Shopp();
-
+print_r($Shopp->Settings->get('data_model'));
 class Shopp {
 	var $Cart;
 	var $Flow;
@@ -88,6 +88,7 @@ class Shopp {
 		if (!SHOPP_LOOKUP) add_action('init',array(&$this,'init'));
 
 		add_action('init', array(&$this, 'ajax'));
+		add_action('init', array(&$this, 'xorder'));
 		add_action('parse_request', array(&$this, 'lookups') );
 		add_action('parse_request', array(&$this, 'cart'));
 		add_action('parse_request', array(&$this, 'checkout'));
@@ -105,12 +106,11 @@ class Shopp {
 
 		add_action('widgets_init', array(&$this->Flow, 'init_cart_widget'));
 		add_action('widgets_init', array(&$this->Flow, 'init_categories_widget'));
+		add_filter('wp_list_pages',array(&$this->Flow,'secure_checkout_link'));
 
-		update_option('rewrite_rules', '');
-		add_filter('mod_rewrite_rules', array(&$this,'page_updates'));
+		add_action('rewrite_rules', array(&$this,'page_updates'));
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_filter('query_vars', array(&$this,'queryvars'));
-		// add_filter('wp_list_categories',array(&$this->Flow,'catalog_categories'));
 		return true;
 	}
 	
@@ -255,28 +255,79 @@ class Shopp {
 				add_shortcode($name,array(&$this->Flow,'maintenance_shortcode'));
 			else add_shortcode($name,$callback);
 	}
+
+	/**
+	 * page_updates()
+	 * Handles changes to Shopp-installed pages that may affect 'pretty' urls */
+	function page_updates ($update=false,$updates=false) {
+		global $wpdb;
+		$pages = $this->Settings->get('pages');
 		
+		if (!empty($pages)) {
+			$updates = false;
+			foreach($pages as $page) if ($page['id'] == $update_id) $updates = true;
+		}
+		
+		// No pages setting, rebuild it
+		if (empty($pages) || $updates || $update) {
+			$pages = $this->Flow->Pages;
+			
+			// Find pages with Shopp-related main shortcodes
+			$codes = array();
+			$search = "";
+			foreach ($pages as $page) $codes[] = $page['content'];
+			foreach ($codes as $code) $search .= ((!empty($search))?" OR ":"")."post_content LIKE '%$code%'";
+			$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE post_status='publish' AND ($search)";
+			$results = $wpdb->get_results($query);
+
+			// Match updates from the found results to our pages index
+			foreach ($pages as $key => &$page) {
+				foreach ($results as $index => $post) {
+					echo strpos($post->content,$page->content);
+					if (strpos($post->post_content,$page['content']) !== false) {
+						$page['id'] = $post->ID;
+						$page['title'] = $post->post_title;
+						$page['name'] = $post->post_name;
+						$page['permalink'] = preg_replace('|https?://[^/]+/|i','',get_permalink($page['id']));
+						if ($page['permalink'] == get_bloginfo('siteurl')) $page['permalink'] = "";
+						break;
+					}
+				}
+			}
+			
+			$this->Settings->save('pages',$pages);
+
+		}
+		return $update;
+	}
+			
 	/**
 	 * rewrites()
 	 * Adds Shopp-specific pretty-url rewrite rules to the WordPress rewrite rules */
 	function rewrites ($wp_rewrite_rules) {
 		$pages = $this->Settings->get('pages');
 		if (!$pages) $pages = $this->Flow->Pages;
-		$shop = $pages['catalog']['name'];
-		$cart = $pages['cart']['name'];
-		$checkout = $pages['checkout']['name'];
+		$shop = $pages['catalog']['permalink'];
+		$cart = $pages['cart']['permalink'];
+		$checkout = $pages['checkout']['permalink'];
 		
 		$rules = array(
-			$shop.'/'.$checkout.'/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=checkout',
-			$shop.'/receipt/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=receipt',
-			$shop.'/confirm-order/?$' => 'index.php?pagename='.$shop.'/'.$checkout.'&shopp_proc=confirm-order',
-			$shop.'/download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
-			$shop.'/images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]',
-			'('.$shop.')/(\d+(,\d+)?)/?$' => 'index.php?pagename=$matches[1]&shopp_pid=$matches[2]',
-			'('.$shop.')/category/([a-zA-Z0-9_\-\/]+?)/?$' => 'index.php?pagename=$matches[1]&shopp_category=$matches[2]',
-			'('.$shop.')/([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$' => 'index.php?pagename=$matches[1]&shopp_category=$matches[2]&shopp_product=$matches[3]'
+			$checkout.'?$' => 'index.php?pagename='.$checkout.'&shopp_proc=checkout',
+			$shop.'receipt/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=receipt',
+			$shop.'confirm-order/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=confirm-order',
+			$shop.'download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
+			$shop.'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]',
+			$shop.'category/([a-zA-Z0-9_\-\/]+?)/?$' => 'index.php?pagename='.$shop.'&shopp_category=$matches[1]'
 		);
 
+		// catalog/productid
+		if (empty($shop)) $rules[$pages['catalog']['name'].'/(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$pages['catalog']['name'].'&shopp_pid=$matches[1]';
+		else $rules[$shop.'(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$shop.'&shopp_pid=$matches[1]';
+
+		// catalog/category/product-slug
+		if (empty($shop)) $rules[$pages['catalog']['name'].'/([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$'] = 'index.php?pagename='.$pages['catalog']['name'].'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
+		else $rules[$shop.'([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
+		
 		return $rules + $wp_rewrite_rules;
 	}
 	
@@ -368,48 +419,6 @@ class Shopp {
 		echo '</script>'."\n";
 		
 	}
-	
-	/**
-	 * page_updates()
-	 * Handles changes to Shopp-installed pages that may affect 'pretty' urls */
-	function page_updates ($update_id=false,$updates=false) {
-		global $wpdb;
-		$pages = $this->Settings->get('pages');
-		
-		if (!empty($pages)) {
-			$update = false;
-			foreach($pages as $page) if ($page['id'] == $update_id) $update = true;
-		}
-		
-		// No pages setting, rebuild it
-		if (empty($pages) || $update) {
-			$pages = $this->Flow->Pages;
-			
-			// Find pages with Shopp-related main shortcodes
-			$codes = array();
-			$search = "";
-			foreach ($pages as $page) $codes[] = $page['content'];
-			foreach ($codes as $code) $search .= ((!empty($search))?" OR ":"")."post_content LIKE '%$code%'";
-			$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE post_status='publish' AND ($search)";
-			$results = $wpdb->get_results($query);
-
-			// Match updates from the found results to our pages index
-			foreach ($pages as $key => &$page) {
-				foreach ($results as $index => $post) {
-					echo strpos($post->content,$page->content);
-					if (strpos($post->post_content,$page['content']) !== false) {
-						$page['id'] = $post->ID;
-						$page['title'] = $post->post_title;
-						$page['name'] = $post->post_name;
-						$page['permalink'] = get_permalink($page['id']);
-						if ($key == "checkout") $page['permalink'] =  str_replace("http://","https://",$page['permalink']);
-						break;
-					}
-				}
-			}			
-		} else return true;
-		$this->Settings->save('pages',$pages);
-	}
 		
 	/**
 	 * cart()
@@ -454,13 +463,19 @@ class Shopp {
 		$Order->Customer = new Customer();
 		$Order->Customer->updates($_POST);
 
-		$Order->Shipping = new Shipping();
-		if ($_POST['shipping']) $Order->Shipping->updates($_POST['shipping']);
-
 		$Order->Billing = new Billing();
 		$Order->Billing->updates($_POST['billing']);
 		$Order->Billing->cardexpires = mktime(0,0,0,$_POST['billing']['cardexpires-mm'],1,($_POST['billing']['cardexpires-yy'])+2000);
 		$Order->Billing->cvv = $_POST['billing']['cvv'];
+
+		$Order->Shipping = new Shipping();
+		if ($_POST['shipping']) $Order->Shipping->updates($_POST['shipping']);
+		if (!empty($_POST['shipmethod'])) $Order->Shipping->method = $_POST['shipmethod'];
+						
+		// Override posted shipping updates with billing address
+		if ($_POST['sameshipaddress'] == "on")
+			$Order->Shipping->updates($Order->Billing,
+				array("_datatypes","_table","_key","_lists","id","created","modified"));
 		
 		$this->Cart->data->Order = $Order;
 		
@@ -485,22 +500,45 @@ class Shopp {
 			exit();
 		} else $this->Flow->order();
 	}
+
+	/**
+	 * xorder ()
+	 * Handle external checkout system order notifications */
+	function xorder () {
+		$gateway = false;
+		if (!empty($_GET['shopp_xorder'])) {
+			$gateway = "{$this->path}/gateways/{$_GET['shopp_xorder']}/{$_GET['shopp_xorder']}.php";
+			if (file_exists($gateway)) {
+				$gateway_meta = $this->Flow->scan_gateway_meta($gateway);
+				$ProcessorClass = $gateway_meta->tags['class'];
+				include($gateway);
+				$Payment = new $ProcessorClass();
+				$Payment->process();
+			}
+		}
+	}
 	
 	/**
 	 * link ()
 	 * Builds a full URL for a specific Shopp-related resource */
-	function link ($target,$path="",$secure=false) {
+	function link ($target,$secure=false) {
+		$internals = array("receipt","confirm-order");
 		$pages = $this->Settings->get('pages');
 		
 		$uri = ($secure)?str_replace('http://','https://',get_bloginfo('wpurl')):get_bloginfo('wpurl');
-		if ($path == "") $path = '/'.$pages['catalog']['name'].'/';
 		
 		if (array_key_exists($target,$pages)) $page = $pages[$target];
 		else {
-			if (SHOPP_PERMALINKS) $page['name'] = $target;
-			else $page['id'] = $pages['checkout']['id']."&shopp_proc=".$target;	
-		}
-		if (SHOPP_PERMALINKS) return $uri.$path.$page['name'];
+			if (in_array($target,$internals)) {
+				$page = $pages['checkout'];
+				if (SHOPP_PERMALINKS) 
+					$page['permalink'] = $pages['catalog']['permalink'].trailingslashit($target);
+				else $page['id'] .= "&shopp_proc=$target";
+			}
+			else $page = $pages['catalog'];
+ 		}
+		
+		if (SHOPP_PERMALINKS) return $uri."/".$page['permalink'];
 		else return $uri.'?page_id='.$page['id'];
 	}
 	
@@ -521,7 +559,7 @@ class Shopp {
 	 * lookups ()
 	 * Provides fast db lookups with as little overhead as possible */
 	function lookups($wp) {
-		
+ 
 		// Grab query requests from permalink rewriting query vars
 		$image = $wp->query_vars['shopp_image'];
 		$download = $wp->query_vars['shopp_download'];
@@ -545,6 +583,15 @@ class Shopp {
 				$zones = $this->Settings->get('zones');
 				if (isset($_GET['country']))
 					echo json_encode($zones[$_GET['country']]);
+				exit();
+				break;
+			case "shipcost":
+				$this->init();
+				if (isset($_GET['method'])) {
+					$this->Cart->data->Order->Shipping->shipmethod = $_GET['method'];
+					$this->Cart->totals();
+					echo json_encode($this->Cart->data->Totals);
+				}
 				exit();
 				break;
 			case "spectemplate":
@@ -722,7 +769,7 @@ function shopp () {
 	switch (strtolower($object)) {
 		case "cart": $result = $Shopp->Cart->tag($property,$options); break;
 		case "cartitem": $result = $Shopp->Cart->itemtag($property,$options); break;
-		case "shipestimate": $result = $Shopp->Cart->shipestimatetag($property,$options); break;
+		case "shipping": $result = $Shopp->Cart->shippingtag($property,$options); break;
 		case "checkout": $result = $Shopp->Cart->checkouttag($property,$options); break;
 		case "category": $result = $Shopp->Category->tag($property,$options); break;
 		case "catalog": $result = $Shopp->Catalog->tag($property,$options); break;

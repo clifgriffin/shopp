@@ -17,7 +17,7 @@ class PayPalExpress {
 	var $settings = array();
 	var $Response = false;
 
-	function PayPalExpress (&$Order="") {
+	function PayPalExpress () {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('PayPalExpress');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
@@ -63,10 +63,10 @@ class PayPalExpress {
 			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,2);
 		}
 
-		$_['RETURNURL']				= $Shopp->link('confirm-order','',true).
+		$_['RETURNURL']				= $Shopp->link('confirm-order',true).
 										((SHOPP_PERMALINKS)?'?':'&').
 										"shopp_xco=PayPal/PayPalExpress";
-		$_['CANCELURL']				= $Shopp->link('cart','',true);
+		$_['CANCELURL']				= $Shopp->link('cart',true);
 		
 		$this->transaction = $this->encode($_);
 		$result = $this->send();
@@ -279,8 +279,6 @@ class PayPalExpress {
 	
 	function settings () {
 		global $Shopp;
-		$Shopp->Settings->save('gateway_cardtypes',array("Visa","MasterCard","Discover","American Express"));
-		$settings = $Shopp->Settings->get('PayPalPro');
 		?>
 		<p><input type="text" name="settings[PayPalExpress][username]" id="paypalxp-username" size="30" value="<?php echo $this->settings['username']; ?>"/><br />
 		Enter your PayPal Express API Username.</p>
@@ -292,6 +290,6 @@ class PayPalExpress {
 		<?php
 	}
 
-} // end AuthorizeNet class
+} // end PayPalExpress class
 
 ?>

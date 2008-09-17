@@ -42,14 +42,10 @@
 		<th scope="row" colspan="3" class="total">Subtotal</th>
 		<td class="money"><?php shopp('purchase','subtotal'); ?></td>
 	</tr>
-	<?php if (shopp('purchase','hasfrieght')): ?>
+	<?php if (shopp('purchase','hasfreight')): ?>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Shipping</th>
 		<td class="money"><?php shopp('purchase','freight'); ?></td>
-	</tr>
-	<?php else: ?>
-	<tr class="totals">
-		<th scope="row" colspan="4" class="total"><?php //echo $this->Core->Settings->get('free_shipping_text'); ?></th>
 	</tr>
 	<?php endif; ?>
 	<?php if (shopp('purchase','hastax')): ?>
@@ -63,6 +59,10 @@
 		<td class="money"><?php shopp('purchase','total'); ?></td>
 	</tr>
 </table>
+
+<?php if (shopp('purchase','hasfreight')): ?>
+<p>Order shipping: <?php shopp('purchase','shipmethod'); ?>
+<?php endif; ?>
 <?php else: ?>
 	<p class="warning">There were no items found for this purchase.</p>
 <?php endif; ?>

@@ -15,10 +15,10 @@ class Purchase extends DatabaseObject {
 	static $table = "purchase";
 	var $purchased = array();
 
-	function Purchase ($id=false) {
+	function Purchase ($id=false,$key=false) {
 		$this->init(self::$table);
 		if (!$id) return true;
-		if ($this->load($id)) return true;
+		if ($this->load($id,$key)) return true;
 		else return false;
 	}
 
@@ -40,7 +40,7 @@ class Purchase extends DatabaseObject {
 				$this->{$property} = $value;
 		}
 	}
-	
+		
 	function tag ($property,$options=array()) {
 		global $Shopp;
 				
@@ -78,8 +78,6 @@ class Purchase extends DatabaseObject {
 			case "country":
 				if (empty($this->shipaddress)) return $this->country;
 				else return $this->shipcountry; break;
-				
-
 			case "totalitems": return count($this->purchased); break;
 			case "hasitems": if (count($this->purchased) > 0) return true; else return false; break;
 			case "items":
@@ -107,7 +105,7 @@ class Purchase extends DatabaseObject {
 				$item = current($this->purchased);
 				if (empty($item->download)) return "";
 				if (empty($options['label'])) $options['label'] = "Download Now";
-				if (SHOPP_PERMALINKS) $url = $Shopp->link('')."download/".$item->dkey;
+				if (SHOPP_PERMALINKS) $url = $Shopp->link('catalog')."download/".$item->dkey;
 				else $url = get_bloginfo('wpurl')."?shopp_download=".$item->dkey;
 				return '<a href="'.$url.'">'.$options['label'].'</a>'; break;
 			case "item-quantity":
@@ -119,20 +117,15 @@ class Purchase extends DatabaseObject {
 			case "item-total":
 				$item = current($this->purchased);
 				return $item->total; break;
-
 			case "subtotal": return money($this->subtotal); break;
-			case "hasfrieght": return ($this->frieght > 0)?true:false;
-			case "frieght": return money($this->frieght); break;
+			case "hasfreight": return ($this->freight > 0)?true:false;
+			case "freight": return money($this->freight); break;
+			case "shipmethod": return $this->shipmethod; break;
 			case "hastax": return ($this->tax > 0)?true:false;
 			case "tax": return money($this->tax); break;
 			case "total": return money($this->total); break;
-			
-			
-
 		}
 	}
-	
-	
 
 } // end Purchase class
 

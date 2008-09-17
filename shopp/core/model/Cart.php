@@ -222,6 +222,8 @@ class Cart {
 	function shipzone ($data) {
 		$this->data->Order->Shipping = new Shipping();
 		$this->data->Order->Shipping->updates($data);
+		if (isset($data['region'])) 
+			$this->data->Order->Shipping->region = $data['region'];
 		$this->totals();
 	}
 	
@@ -233,19 +235,20 @@ class Cart {
 	function shipping () {
 		if (!$this->data->Order->Shipping) return false;
 		global $Shopp;
-		// print_r($Shopp->Settings->registry);
-		$ShipCosts = $this->data->ShipCosts;
+
+		$ShipCosts = &$this->data->ShipCosts;
 		$Shipping = $this->data->Order->Shipping;
 		$base = $Shopp->Settings->get('base_operations');
 		$methods = $Shopp->Settings->get('shipping_rates');
-		
+
 		if (!is_array($methods)) return 0;
-		
+
 		$estimate = false;
 		foreach ($methods as $id => $rate) {
 			$shipping = 0;
-			// Match region
+
 			if ($Shipping->country == $base['country']) {
+				// Use country/domestic region
 				if (isset($rate[$base['country']]))	$column = $base['country'];  // Use the country rate
 				else $column = $Shipping->postarea(); // Try to get domestic regional rate
 
@@ -273,12 +276,14 @@ class Cart {
 			}
 			if ($shipflag) $this->data->Shipping = true;
 			else $this->data->Shipping = false;
-			
+
 			if (!$estimate) $estimate = $shipping;
 			if ($shipping < $estimate) $estimate = $shipping;
-			$ShipCosts[$rate['name']] = $shipping;
+			$rate['cost'] = $shipping;
+			$ShipCosts[$rate['name']] = $rate;
 		}
-		
+				
+		if (!empty($this->data->Order->Shipping->shipmethod)) return $ShipCosts[$this->data->Order->Shipping->shipmethod]['cost'];
 		return $estimate;
 	}
 	
@@ -420,7 +425,7 @@ class Cart {
 		}
 		
 		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
-		else return money($result);
+		else return '<span id="'.$property.'">'.money($result).'</span>';
 		
 		return false;
 	}
@@ -436,17 +441,14 @@ class Cart {
 		} else return false;
 	}
 	
-	function shipestimatetag ($property,$options=array()) {
+	function shippingtag ($property,$options=array()) {
 		global $Shopp;
-		$ShipCosts = $this->data->ShipCosts;
-		$base = $Shopp->Settings->get('base_operations');
-		$markets = $Shopp->Settings->get('target_markets');
-		foreach ($markets as $iso => $country) $countries[$iso] = $country;
+		$ShipCosts =& $this->data->ShipCosts;
 		$result = "";
-		
+			
 		switch ($property) {
 			case "hasestimates": if (count($ShipCosts) > 0) return true; else return false; break;
-			case "costs":			
+			case "methods":			
 				if (!$this->looping) {
 					reset($ShipCosts);
 					$this->looping = true;
@@ -458,51 +460,44 @@ class Cart {
 					return false;
 				}
 				break;
-			case "methodname": 
+			case "method-name": 
 				return key($ShipCosts);
 				break;
-			case "methodcost": 
-				return money(current($ShipCosts));
+			case "method-cost": 
+				$method = current($ShipCosts);
+				return money($method['cost']);
 				break;
-			case "methodinput":
-			 	if (isset($options['id'])) {
-					if ($options['id'] == "{methodname}") $options['id'] = key($ShipCosts);
-					$id = ' id="'.$options['id'].'"';	
-				}
-				$result .= '<input type="radio" name="shipmethod" value="'.key($ShipCosts).'" '.$id.'/>';
+			case "method-selector":
+				$method = current($ShipCosts);
+
+				$checked = '';
+				if ($this->data->Order->Shipping->shipmethod == $method['name'] ||
+					($method['cost'] == $this->data->Totals->shipping))
+						$checked = ' checked="checked"';
+
+				$result .= '<input type="radio" name="shipmethod" value="'.$method['name'].'" '.$id.' class="shipmethod" '.$checked.' />';
 				return $result;
+				
 				break;
-			case "postcode":
-				if (isset($options['size'])) $size = ' size="'.$options['size'].'"';
-				$result .= '<input type="text" name="shipping[postcode]" id="shipping-postcode" value="'.$this->data->Order->Shipping->postcode.'" title="Shipping destination postal/zip Code" '.$size.' />';
-				if (isset($options['label'])) 
-					$result .= '<label for="shipping-postcode">'.$options['label'].'</label>';
+			case "method-delivery":
+				$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
+				$method = current($ShipCosts);
+				$estimates = split("-",$method['delivery']);
+				$format = get_option('date_format');
+				if ($estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
+				$result = "";
+				for ($i = 0; $i < count($estimates); $i++){
+					list($interval,$p) = sscanf($estimates[$i],'%d%s');
+					if (!empty($result)) $result .= "&mdash;";
+					$result .= date($format,mktime()+($interval*$periods[$p]));
+				}				
 				return $result;
-				break;
-			case "country":
-				if (isset($this->data->Order->Shipping->country)) $country = $this->data->Order->Shipping->country;
-				else $country = $base['country'];
-				$result .= '<select name="shipping[country]" id="shipping-country" title="Shipping destination country">';
-				$result .= '<option value=""></option>';
-				$result .= menuoptions($countries,$country,true);
-				$result .= '</select>';
-				if (isset($options['label'])) 
-					$result .= '<label for="shipping-country">'.$options['label'].'</label>';
-				return $result;
-				break;
-			case "button":
-				if (isset($options['label'])) $label = $options['label'];
-				else $label = "Get Shipping Estimate";
-				$result .= '<input type="hidden" name="cart" value="shipestimate" />';
-				$result .= '<button type="submit" name="shipestimate" id="submit-shipestimate" value="'.$label.'" />'.$label.'</button>';
-				return $result;
-				break;
 		}
 	}
 	
 	function checkouttag ($property,$options=array()) {
 		global $Shopp;
-		
+		$gateway = $Shopp->Settings->get('payment_gateway');
 		$pages = $Shopp->Settings->get('pages');
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
@@ -512,13 +507,23 @@ class Cart {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey');
 
 		switch ($property) {
-			case "url": return (SHOPP_PERMALINKS)?
-					$Shopp->link('checkout','',true).'?'.$_SERVER['QUERY_STRING']:
-					$Shopp->link('','',true).$_SERVER['QUERY_STRING'];
+			case "url": 
+				// Test Mode will not require encrypted checkout
+				if (strpos($gateway,"TestMode.php") !== false) $link = $Shopp->link('checkout');
+				else $link = $Shopp->link('checkout',true);
+				$query = $_SERVER['QUERY_STRING'];
+				if (SHOPP_PERMALINKS && !empty($query)) $query = "?$query";
+				return $link.$query;
 				break;
 			case "function":
 				$regions = $Shopp->Settings->get('zones');
-				$output = '<script type="text/javascript">var regions = '.json_encode($regions).';</script>';
+				$base = $Shopp->Settings->get('base_operations');
+				$output = '<script type="text/javascript">'."\n";
+				$output .= '//<![CDATA['."\n";
+				$output .= 'var currencyFormat = '.json_encode($base['currency']['format']).';'."\n";
+				$output .= 'var regions = '.json_encode($regions).';'."\n";
+				$output .= '//]]>'."\n";
+				$output .= '</script>'."\n";
 				if (!empty($options['value'])) $value = $options['value'];
 				else $value = "process";
 				$output .= '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>'; 
@@ -596,6 +601,12 @@ class Cart {
 				$output = '<select name="shipping[country]" id="shipping-country"'.$this->inputattrs($options,$select_attrs).'>';
 			 	$output .= menuoptions($countries,$options['selected'],true);
 				$output .= '</select>';
+				return $output;
+				break;
+			case "same-shipping-address":
+				$label = "Same shipping address";
+				if (isset($options['label'])) $label = $options['label'];
+				$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" checked="checked" /> '.$label.'</label>';
 				return $output;
 				break;
 				
@@ -682,17 +693,25 @@ class Cart {
 				if (empty($options['value'])) $options['value'] = "Confirm Order";
 				return '<input type="submit" name="confirmed" id="confirm-button"'.$this->inputattrs($options,$submit_attrs).' />'; break;
 			case "xco-buttons": 
+				$gateways = array();
 				$PPX = $Shopp->Settings->get('PayPalExpress');
-				if ($PPX['enabled'] == "on") $gateway = "{$Shopp->path}/gateways/PayPal/PayPalExpress.php";
-				if (!empty($gateway)) {
-					$gateway_meta = $Shopp->Flow->scan_gateway_meta($gateway);
-					$ProcessorClass = $gateway_meta->tags['class'];
-					if (!empty($ProcessorClass)) {
-						include_once($gateway);					
-						$Payment = new $ProcessorClass();
-						return $Payment->tag('button');
+				if ($PPX['enabled'] == "on") $gateways[] = "{$Shopp->path}/gateways/PayPal/PayPalExpress.php";
+				$GC = $Shopp->Settings->get('GoogleCheckout');
+				if ($GC['enabled'] == "on") $gateways[] = "{$Shopp->path}/gateways/GoogleCheckout/GoogleCheckout.php";
+
+				if (!empty($gateways)) {
+					foreach ($gateways as $gateway) {
+						$gateway_meta = $Shopp->Flow->scan_gateway_meta($gateway);
+						$ProcessorClass = $gateway_meta->tags['class'];
+						if (!empty($ProcessorClass)) {
+							include_once($gateway);					
+							$Payment = new $ProcessorClass();
+							$button .= $Payment->tag('button');
+						}
 					}
+					return $button;
 				}
+
 				break;
 		}
 	}
