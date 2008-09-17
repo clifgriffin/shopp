@@ -843,8 +843,7 @@ function addPriceLine (target,options,data,attachment) {
 		stock.val(data.stock);
 		
 		if (data.download) {
-			data.filedata.mimetype = data.filedata.mimetype.replace(/\//gi," ");
-			
+			if (data.filedata.mimetype)	data.filedata.mimetype = data.filedata.mimetype.replace(/\//gi," ");
 			downloadFile.attr('class','file '+data.filedata.mimetype).html(data.filename+'<br /><small>'+Math.round((data.filesize/1024)*10)/10+' KB</small>');
 		}
 		
