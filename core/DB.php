@@ -61,7 +61,8 @@ class DB extends Singleton {
 	/**
 	 * Escape contents of the string for safe insertion into the db */
 	function escape($string) {
-		return addslashes($string);
+		// Prevent double escaping by stripping any existing escapes out
+		return addslashes(stripslashes($string));
 	}
 	
 	/**
