@@ -1042,7 +1042,8 @@ class Flow {
 		else $_POST['slug'] = sanitize_title_with_dashes($_POST['slug']);
 		
 		// Work out pathing
-		$paths = array($_POST['slug']);
+		$paths = array();
+		if (!empty($_POST['slug'])) $paths = array($_POST['slug']);
 		$uri = "/".$_POST['slug'];
 	
 		// If we're saving a new category, lookup the parent
@@ -1059,11 +1060,11 @@ class Flow {
 		$parentkey = $Shopp->Catalog->categories[$i]->parentkey;
 		while ($parentkey > -1) {
 			$tree_category = $Shopp->Catalog->categories[$parentkey];
-			$paths = array_push($tree_category->slug,$paths);
+			array_unshift($paths,$tree_category->slug);
 			$uri = "/".$tree_category->slug.$uri;
 			$parentkey = $tree_category->parentkey;
 		}
-		
+
 		$_POST['uri'] = join("/",$paths);
 
 		if ($_GET['category'] != "new") {
@@ -1136,7 +1137,9 @@ class Flow {
 			$Promotion->updates($_POST);
 			
 			$Promotion->save();
-			$Promotion->build_discounts();
+
+			if ($Promotion->scope == "Item")
+				$Promotion->build_discounts();
 			
 			$this->promotions_list();
 			return true;
@@ -1527,6 +1530,7 @@ class Flow {
 		
 		$downloadsize = filesize($updatefile);
 		if (filesize($updatefile) == 0) die(join("\n\n",$log)."\n\Update Failed: The download did not complete succesfully.");
+		$log[] = "Downloaded update of $downloadsize bytes";
 		
 		// Extract data
 		$log[] = "Unpacking updates...";
@@ -1618,11 +1622,11 @@ class Flow {
 		$this->Settings->save('gallery_small_width','240');
 		$this->Settings->save('gallery_small_height','240');
 		$this->Settings->save('gallery_small_sizing','3');
-		$this->Settings->save('gallery_small_quality','0');
+		$this->Settings->save('gallery_small_quality','2');
 		$this->Settings->save('gallery_thumbnail_width','96');
 		$this->Settings->save('gallery_thumbnail_height','96');
 		$this->Settings->save('gallery_thumbnail_sizing','3');
-		$this->Settings->save('gallery_thumbnail_quality','0');
+		$this->Settings->save('gallery_thumbnail_quality','3');
 
 		// Payment Gateway Settings
 		$this->Settings->save('PayPalExpress',array('enabled'=>'off'));

@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev218
+Version: 1.0dev219
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0dev218");
+define("SHOPP_VERSION","1.0dev219");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -224,8 +224,14 @@ class Shopp {
 	 * page_styles()
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function page_styles () {
+		if (SHOPP_PERMALINKS) {
+			$pages = $this->Settings->get('pages');
+			$shoppage = $this->link('catalog');
+			if ($shoppage == get_bloginfo('siteurl')."/")
+				$shoppage = $pages['catalog']['name'];
+		} else $shoppage = get_bloginfo('siteurl');
 		
-		?><link rel='stylesheet' href='<?php echo get_bloginfo('siteurl'); ?>?shopp_lookup=catalog.css' type='text/css' />
+		?><link rel='stylesheet' href='<?php echo $shoppage; ?>?shopp_lookup=catalog.css' type='text/css' />
 		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css' type='text/css' />
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css' type='text/css' />
 		<?php
@@ -236,11 +242,6 @@ class Shopp {
 	 * Handles shortcodes used on Shopp-installed pages and used by
 	 * site owner for including categories/products in posts and pages */
 	function shortcodes () {
-		// Move wpautop priority to run before shortcodes are processed
-		if (version_compare(get_bloginfo('version'),'2.5','==')) {
-			remove_filter('the_content', 'wpautop');
-			add_filter('the_content', 'wpautop',8);
-		}
 		
 		$this->shortcodes = array();
 		$this->shortcodes['catalog'] = array(&$this->Flow,'catalog');
@@ -308,6 +309,7 @@ class Shopp {
 		$pages = $this->Settings->get('pages');
 		if (!$pages) $pages = $this->Flow->Pages;
 		$shop = $pages['catalog']['permalink'];
+		$catalog = $pages['catalog']['name'];
 		$cart = $pages['cart']['permalink'];
 		$checkout = $pages['checkout']['permalink'];
 		
@@ -316,16 +318,19 @@ class Shopp {
 			$shop.'receipt/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=receipt',
 			$shop.'confirm-order/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=confirm-order',
 			$shop.'download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
-			$shop.'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]',
-			$shop.'category/([a-zA-Z0-9_\-\/]+?)/?$' => 'index.php?pagename='.$shop.'&shopp_category=$matches[1]'
+			$shop.'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]'
 		);
 
+		// catalog/category/category-slug
+		if (empty($shop)) $rules[$catalog.'/category/([a-zA-Z0-9_\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]';
+		else $rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
+
 		// catalog/productid
-		if (empty($shop)) $rules[$pages['catalog']['name'].'/(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$pages['catalog']['name'].'&shopp_pid=$matches[1]';
+		if (empty($shop)) $rules[$catalog.'/(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_pid=$matches[1]';
 		else $rules[$shop.'(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$shop.'&shopp_pid=$matches[1]';
 
 		// catalog/category/product-slug
-		if (empty($shop)) $rules[$pages['catalog']['name'].'/([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$'] = 'index.php?pagename='.$pages['catalog']['name'].'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
+		if (empty($shop)) $rules[$catalog.'/([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
 		else $rules[$shop.'([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
 		
 		return $rules + $wp_rewrite_rules;
@@ -559,7 +564,14 @@ class Shopp {
 	 * lookups ()
 	 * Provides fast db lookups with as little overhead as possible */
 	function lookups($wp) {
- 
+		//  		global $wp_rewrite;
+		// echo "<pre>";
+		// print_r($wp);
+		// echo "</pre>";
+		// echo "<pre>";
+		// print_r($wp_rewrite);
+		// echo "</pre>";
+
 		// Grab query requests from permalink rewriting query vars
 		$image = $wp->query_vars['shopp_image'];
 		$download = $wp->query_vars['shopp_download'];

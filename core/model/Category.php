@@ -51,6 +51,7 @@ class Category extends DatabaseObject {
 		$discounttable = DatabaseObject::tablename(Discount::$table);
 		$promotable = DatabaseObject::tablename(Promotion::$table);
 		$assettable = DatabaseObject::tablename(Asset::$table);
+
 		$query = "SELECT p.id,p.name,p.summary,
 					img.id AS thumbnail,img.properties AS thumbnail_properties,
 					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0))AS percentoff,
@@ -70,6 +71,23 @@ class Category extends DatabaseObject {
 					WHERE {$filtering['where']} 
 					GROUP BY p.id 
 					ORDER BY {$filtering['order']} LIMIT {$filtering['limit']}";
+		
+		// Query without promotions for MySQL servers prior to 5
+		if (version_compare($db->version,'5.0','<')) {
+			$query = "SELECT p.id,p.name,p.summary,
+						img.id AS thumbnail,img.properties AS thumbnail_properties,
+						MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
+						IF(pd.sale='on',1,0) AS onsale,
+						MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice 
+						FROM $producttable AS p 
+						LEFT JOIN $catalogtable AS catalog ON catalog.product=p.id
+						LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' 
+						LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
+						WHERE {$filtering['where']} 
+						GROUP BY p.id 
+						ORDER BY {$filtering['order']} LIMIT {$filtering['limit']}";
+		} 
+
 		$this->products = $db->query($query,AS_ARRAY);
 		
 		foreach ($this->products as &$product) {

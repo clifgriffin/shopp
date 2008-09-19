@@ -119,17 +119,18 @@ class Item {
 	function tag ($id,$property,$options=array()) {
 		global $Shopp;
 		
-		$pages = $Shopp->Settings->get('pages');
-		if ($Shopp->link('catalog') == get_bloginfo('siteurl')."/")
-			$page =  $pages['catalog']['name']."/".$this->product;
-		else $page = "/".$this->product;
-
-		$uri = (SHOPP_PERMALINK)?$page:'&amp;shopp_pid='.$this->product;
+		$url = "&amp;shopp_pid=".$this->product;
+		if (SHOPP_PERMALINKS) {
+			$pages = $Shopp->Settings->get('pages');
+			if ($Shopp->link('catalog') == get_bloginfo('siteurl')."/")
+				$url =  $pages['catalog']['name']."/".$this->product;
+			else $url = $this->product;
+		}
 		
 		// Return strings with no options
 		switch ($property) {
 			case "name": return $this->name;
-			case "url": return $Shopp->link('catalog').$uri;
+			case "url": return $Shopp->link('catalog').$url;
 			case "sku": return $this->sku;
 		}
 		

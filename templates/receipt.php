@@ -42,6 +42,12 @@
 		<th scope="row" colspan="3" class="total">Subtotal</th>
 		<td class="money"><?php shopp('purchase','subtotal'); ?></td>
 	</tr>
+	<?php if (shopp('purchase','hasdiscount')): ?>
+	<tr class="totals">
+		<th scope="row" colspan="3" class="total">Discount</th>
+		<td class="money">-<?php shopp('purchase','discount'); ?></td>
+	</tr>
+	<?php endif; ?>
 	<?php if (shopp('purchase','hasfreight')): ?>
 	<tr class="totals">
 		<th scope="row" colspan="3" class="total">Shipping</th>

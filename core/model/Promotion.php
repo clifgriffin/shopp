@@ -76,6 +76,33 @@ class Promotion extends DatabaseObject {
 		
 	}
 
+	/**
+	 * match_rule ()
+	 * Determines if the value of a given subject matches the rule based 
+	 * on the specified operation */
+	function match_rule ($subject,$op,$value) {
+
+		switch($op) {
+			// String or Numeric operations
+			case "Is equal to": return ($subject == $value || $subject == floatval(preg_replace("/[^\d\.]/","",$value))); break;
+			case "Is not equal to": return ($subject != $value  || $subject != floatval(preg_replace("/[^\d\.]/","",$value))); break;
+
+			// String operations
+			case "Contains": return (strpos($subject,$value) !== false); break;
+			case "Does not contain": return (strpos($subject,$value) === false); break;
+			case "Begins with": return (strpos($subject,$value) === 0); break;
+			case "Ends with": return  (strpos($subject,$value) === strlen($subject) - strlen($value)); break;
+			
+			// Numeric operations
+			case "Is greater than": return ($subject > floatval(preg_replace("/[^\d\.]/","",$value))); break;
+			case "Is greater than or equal to": return ($subject >= floatval(preg_replace("/[^\d\.]/","",$value))); break;
+			case "Is less than": return ($subject < floatval(preg_replace("/[^\d\.]/","",$value))); break;
+			case "Is less than or equal to": return ($subject <= floatval(preg_replace("/[^\d\.]/","",$value))); break;
+		}
+		
+		return false;
+	}
+
 } // end Promotion class
 
 
@@ -86,6 +113,19 @@ class Discount extends DatabaseObject {
 	function Promotion ($id=false) {
 		$this->init(self::$table);
 		if ($this->load($id)) return true;
+		else return false;
+	}
+	
+	function delete () {
+		$db = DB::get();
+		// Delete record
+		$id = $this->{$this->_key};
+
+		// Delete related discounts
+		$discount_table = DatabaseObject::tablename(Discount::$table);
+		if (!empty($id)) $db->query("DELETE LOW_PRIORITY FROM $discount_table WHERE promo='$id'");
+		
+		if (!empty($id)) $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
 		else return false;
 	}
 

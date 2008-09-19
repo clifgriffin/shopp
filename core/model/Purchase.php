@@ -118,9 +118,11 @@ class Purchase extends DatabaseObject {
 				$item = current($this->purchased);
 				return $item->total; break;
 			case "subtotal": return money($this->subtotal); break;
-			case "hasfreight": return ($this->freight > 0)?true:false;
+			case "hasfreight": return ($this->freight > 0);
 			case "freight": return money($this->freight); break;
 			case "shipmethod": return $this->shipmethod; break;
+			case "hasdiscount": return ($this->discount > 0);
+			case "discount": return money($this->discount); break;
 			case "hastax": return ($this->tax > 0)?true:false;
 			case "tax": return money($this->tax); break;
 			case "total": return money($this->total); break;

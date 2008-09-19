@@ -48,7 +48,10 @@
 		</table>
 		<br class="clear" />
 		<h3>For products where <select name="search" class="small">
-			<?php echo menuoptions(array('any','all'),$Promotion->logic); ?>
+			<?php 
+				if (empty($Promotion->logic)) $Promotion->logic = "all";
+				echo menuoptions(array('any','all'),$Promotion->logic); 
+			?>
 			</select> of these conditions are met:</h3>
 		<table class="form-table" id="rules"> 
 		</table>
@@ -81,9 +84,9 @@ var product_conditions = {
 }
 
 var order_conditions = {
-	"Item quantity":{"logic":["boolean","fuzzy"],"value":"text"},
-	"Total order items":{"logic":["boolean","fuzzy"],"value":"text"},
-	"Shipping amount":{"logic":["boolean","fuzzy"],"value":"price"},
+	"Item name":{"logic":["boolean","fuzzy"],"value":"text"},
+	"Item quantity":{"logic":["boolean","amount"],"value":"text"},
+	"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
 	"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
 	"Coupon Code":{"logic":["boolean"],"value":"text"}
 }
@@ -104,18 +107,18 @@ function add_condition (rule,location) {
 	var cell = $('<td></td>').appendTo(row);
 	var deleteButton = $('<button type="button" class="delete"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="Delete" width="16" height="16" />').appendTo(cell);
 
-	var properties = $('<select name="rules['+i+'][property]" id=""></select>').appendTo(cell);
+	var properties = $('<select name="rules['+i+'][property]" class="ruleprops"></select>').appendTo(cell);
 
-	var productProps = $('<optgroup label="Product Attributes"></optgroup>').appendTo(properties);
-	for (var label in product_conditions)
-		$('<option></option>').html(label).val(label).attr('rel','product').appendTo(productProps);
+	if ($('#promotion-scope').val() == "Order") {
+		for (var label in order_conditions)
+			$('<option></option>').html(label).val(label).attr('rel','order').appendTo(properties);
+		
+	} else {
+		for (var label in product_conditions)
+			$('<option></option>').html(label).val(label).attr('rel','product').appendTo(properties);
+	}
 
-	var orderProps = $('<optgroup label="Order Attributes"></optgroup>').appendTo(properties);
-	for (var label in order_conditions)
-		$('<option></option>').html(label).val(label).attr('rel','order').appendTo(orderProps);
-
-	
-	var operation = $('<select name="rules['+i+'][logic]" id="logic"></select>').appendTo(cell);
+	var operation = $('<select name="rules['+i+'][logic]" ></select>').appendTo(cell);
 	var value = $('<span></span>').appendTo(cell);
 	
 	var addspan = $('<span></span>').appendTo(cell);
@@ -140,7 +143,7 @@ function add_condition (rule,location) {
 	// Generate logic operation menu
 	properties.change(function () {
 		operation.empty();
-		
+
 		if ($(this.options[this.selectedIndex]).attr('rel') == "product") var conditions = product_conditions[$(this).val()];
 		if ($(this.options[this.selectedIndex]).attr('rel') == "order") var conditions = order_conditions[$(this).val()];
 
@@ -149,7 +152,7 @@ function add_condition (rule,location) {
 			for (var l in conditions['logic']) {
 				var lop = conditions['logic'][l];
 					for (var op in logic[lop])
-						$('<option></option>').html(logic[lop][op]).val(logic[lop][op]).attr('rel','product').appendTo(operation);
+						$('<option></option>').html(logic[lop][op]).val(logic[lop][op]).appendTo(operation);
 			}
 		} else operation.hide();
 		
@@ -158,7 +161,7 @@ function add_condition (rule,location) {
 	
 	// Load up existing conditional rule
 	if (rule) {
-		properties.val(rule.property);
+		properties.val(rule.property).change();
 		operation.val(rule.logic);
 		if (field) field.val(rule.value);
 		
@@ -185,6 +188,22 @@ $('#discount-type').change(function () {
 
 if (rules) for (var r in rules) add_condition(rules[r]);
 else add_condition();
+
+$('#promotion-scope').change(function () {
+	var scope = $(this).val();
+	var menus = $('#rules select.ruleprops');
+	$(menus).empty();
+	$(menus).each(function (id,menu) {
+		if (scope == "Order") {
+			for (var label in order_conditions)
+				$('<option></option>').html(label).val(label).attr('rel','order').appendTo($(menu));
+		} else {
+			for (var label in product_conditions)
+				$('<option></option>').html(label).val(label).attr('rel','product').appendTo($(menu));
+		}
+	});
+
+});
 
 $('#starts-calendar').hide();
 $('#starts-month').click(function (e) {
