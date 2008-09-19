@@ -62,6 +62,12 @@
 				<th scope="row" colspan="3" class="total">Subtotal</th>
 				<td class="money"><?php echo money($Purchase->subtotal); ?></td>
 			</tr>
+			<?php if ($Purchase->discount > 0): ?>
+			<tr class="totals">
+				<th scope="row" colspan="3" class="total">Discount</th>
+				<td class="money">-<?php echo money($Purchase->discount); ?></td>
+			</tr>
+			<?php endif; ?>
 			<?php if ($Purchase->freight > 0): ?>
 			<tr class="totals">
 				<th scope="row" colspan="3" class="total">Shipping</th>

@@ -24,8 +24,12 @@
 		</tr>
 	<?php endwhile; ?>
 
+	<?php while(shopp('cart','promos')): ?>
+		<tr><td colspan="4" class="money"><?php shopp('cart','promo-name'); ?> &mdash; <strong><?php shopp('cart','promo-discount'); ?></strong></td></tr>
+	<?php endwhile; ?>
+	
 	<tr class="totals">
-		<td colspan="2" rowspan="4">
+		<td colspan="2" rowspan="5">
 			<?php if (shopp('cart','needs-shipped')): ?>
 			<small>Select shipping country for shipping &amp; tax:</small>
 			<?php shopp('cart','shipping-estimates'); ?>
@@ -34,6 +38,12 @@
 		<th scope="row">Subtotal</th>
 		<td class="money"><?php shopp('cart','subtotal'); ?></td>
 	</tr>
+	<?php if (shopp('cart','hasdiscount')): ?>
+	<tr class="totals">
+		<th scope="row">Discount</th>
+		<td class="money">-<?php shopp('cart','discount'); ?></td>
+	</tr>
+	<?php endif; ?>
 	<?php if (shopp('cart','needs-shipped')): ?>
 	<tr class="totals">
 		<th scope="row"><?php shopp('cart','shipping','label=Shipping'); ?></th>

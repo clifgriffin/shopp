@@ -514,8 +514,11 @@ class FTPClient {
 	 * Recursively copies files from a src $path to the $remote path */
 	function update ($path,$remote) {
 		$path = trailingslashit($path);
+		// $this->log[] = "The source path is $path";
 		$remote = trailingslashit($remote);
+		// $this->log[] = "The destination path is $remote";
 		$remote = $this->remappath($remote);
+		// $this->log[] = "The remapped destination path is $remote";
 		
 		$files = scandir($path);
 		$excludes = array(".","..");
@@ -527,7 +530,7 @@ class FTPClient {
 				} else $this->mkdir($remote.$file);
 			} else $this->put($path.$file,$remote.$file);
 		}
-		return $log;
+		return $this->log;
 	}
 	
 	/**
@@ -580,11 +583,13 @@ class FTPClient {
 	function remappath ($path) {
 		$files = $this->scan();
 		foreach ($files as $file) {
-			$filepath = trailingslashit($this->pwd()).$file;
-			if (!$this->isdir($this->pwd().$file)) continue;
+			$filepath = trailingslashit($this->pwd()).basename($file);
+			if (!$this->isdir($filepath)) continue;
 			$index = strrpos($path,$filepath);
 			if ($index !== false) return substr($path,$index);
 		}
+		$this->log[] = "Failed to map realpath to FTP path";
+		return false;
 	}
 
 }

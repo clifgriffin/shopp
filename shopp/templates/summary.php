@@ -19,7 +19,7 @@
 
 	<tr class="totals">
 		<td colspan="2" rowspan="5">
-			<?php if (shopp('cart','needs-shipped')): ?>
+			<?php if ((shopp('cart','needs-shipped')) && (shopp('cart','hasshipcosts'))): ?>
 			<small>Select a shipping method:</small>
 
 			<ul id="shipping-methods">
@@ -37,6 +37,12 @@
 		<th scope="row">Subtotal</th>
 		<td class="money"><?php shopp('cart','subtotal'); ?></td>
 	</tr>
+	<?php if (shopp('cart','hasdiscount')): ?>
+	<tr class="totals">
+		<th scope="row">Discount</th>
+		<td class="money">-<?php shopp('cart','discount'); ?></td>
+	</tr>
+	<?php endif; ?>
 	<tr class="totals">
 		<th scope="row"><?php shopp('cart','shipping','label=Shipping'); ?></th>
 		<td class="money"><?php shopp('cart','shipping'); ?></td>

@@ -48,6 +48,8 @@ class Cart {
 		$this->data = new stdClass();
 		$this->data->Totals = new stdClass();
 		$this->data->Totals->subtotal = 0;
+		$this->data->Totals->quantity = 0;
+		$this->data->Totals->discount = 0;
 		$this->data->Totals->shipping = 0;
 		$this->data->Totals->tax = 0;
 		$this->data->Totals->taxrate = 0;
@@ -56,6 +58,8 @@ class Cart {
 		$this->data->Estimates = false;
 
 		$this->data->Order = new stdClass();
+		$this->data->Promotions = array();
+		$this->data->PromosApplied = array();
 		$this->data->ShipCosts = array();
 		$this->data->Purchase = false;
 
@@ -287,13 +291,74 @@ class Cart {
 		return $estimate;
 	}
 	
+	function promotions () {
+		$db = DB::get();
+		
+		// Load promotions if they've not yet been loaded
+		if (empty($this->data->Promotions)) {
+			$promo_table = DatabaseObject::tablename(Promotion::$table);
+			// Add date-based lookup too
+			$this->data->Promotions = $db->query("SELECT * FROM $promo_table WHERE scope='Order' AND ((status='enabled' AND UNIX_TIMESTAMP(starts) > 0 AND UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP() AND UNIX_TIMESTAMP(ends) > UNIX_TIMESTAMP()) OR status='enabled')",AS_ARRAY);
+		}
+		
+		$this->data->PromosApplied = array();
+
+		foreach ($this->data->Promotions as &$promo) {
+			if (!is_array($promo->rules))
+				$promo->rules = unserialize($promo->rules);
+				
+			$match = false;
+			$rulematches = 0;
+			foreach ($promo->rules as $rule) {
+				$rulematch = false;
+				
+				switch($rule['property']) {
+					case "Item quantity": 
+						if (Promotion::match_rule($this->data->Totals->quantity,$rule['logic'],$rule['value']))
+							$rulematch = true;
+						break;
+					case "Shipping amount": 
+						if (Promotion::match_rule($this->data->Totals->shipping,$rule['logic'],$rule['value']))
+							$rulematch = true;
+						break;
+					case "Subtotal amount": 
+						if (Promotion::match_rule($this->data->Totals->subtotal,$rule['logic'],$rule['value']))
+							$rulematch = true;
+						break;
+					case "Coupon code": 
+						break;
+				}
+				
+				if ($rulematch && $promo->search == "all") $rulematches++;
+				if ($rulematch) $match = true;
+			}
+			if ($promo->search == "all" && $rulematches == count($promo->rules))
+				$match = true;
+				
+			// Everything matches up, apply the promotion
+			if ($match) {
+				switch ($promo->type) {
+					case "Percentage Off": $this->data->Totals->discount += $this->data->Totals->subtotal*($promo->discount/100); break;
+					case "Amount Off": $this->data->Totals->discount += $promo->discount; break;
+					case "Free Shipping": $this->data->Totals->shipping = 0; break;
+				}
+				$this->data->PromosApplied[] = $promo;
+			}
+			
+			if ($match && $promo->exclusive == "on") break;
+		}
+		
+	}
+	
 	/**
 	 * totals()
 	 * Calculates subtotal, shipping, tax and 
 	 * order total amounts */
 	function totals () {
-		$Totals = $this->data->Totals;
+		$Totals =& $this->data->Totals;
+		$Totals->quantity = 0;
 		$Totals->subtotal = 0;
+		$Totals->discount = 0;
 		$Totals->shipping = 0;
 		$Totals->tax = 0;
 		$Totals->total = 0;
@@ -304,8 +369,9 @@ class Cart {
 			if ($Item->shipping && !$Item->freeshipping) $this->shipping[$key] = $Item;
 			if (!$Item->freeshipping) $freeshipping = false;
 			
+			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
-			
+
 			if ($Item->tax && $Totals->taxrate > 0)
 				$Totals->tax += $Item->total * ($Totals->taxrate/100);
 				
@@ -315,8 +381,10 @@ class Cart {
 		
 		if ($this->data->Shipping) $Totals->shipping = $this->shipping();
 		
-		$Totals->total = $Totals->subtotal + 
-			$Totals->shipping + $Totals->tax;		
+		$this->promotions();
+
+		$Totals->total = $Totals->subtotal - $Totals->discount + 
+			$Totals->shipping + $Totals->tax;
 	}
 	
 	function inputattrs ($options,$allowed=array()) {
@@ -352,7 +420,7 @@ class Cart {
 		switch ($property) {
 			case "url": return $Shopp->link('cart'); break;
 			case "totalitems": return count($this->contents); break;
-			case "hasitems": return (count($this->contents) > 0)?true:false; break;
+			case "hasitems": return (count($this->contents) > 0); break;
 			case "items":
 				if (!$this->looping) {
 					reset($this->contents);
@@ -365,6 +433,33 @@ class Cart {
 					reset($this->contents);
 					return false;
 				}
+			case "totalpromos": return count($this->data->PromosApplied); break;
+			case "haspromos": return (count($this->data->PromosApplied) > 0); break;
+			case "promos":
+				if (!$this->looping) {
+					reset($this->data->PromosApplied);
+					$this->looping = true;
+				} else next($this->data->PromosApplied);
+
+				if (current($this->data->PromosApplied)) return true;
+				else {
+					$this->looping = false;
+					reset($this->data->PromosApplied);
+					return false;
+				}
+			case "promo-name":
+				$promo = current($this->data->PromosApplied);
+				return $promo->name;
+				break;
+			case "promo-discount":
+				$promo = current($this->data->PromosApplied);
+				if (empty($options['label'])) $options['label'] = "Off!";
+				switch($promo->type) {
+					case "Free Shipping": return $Shopp->Settings->get('free_shipping_text');
+					case "Percentage Off": return percentage($promo->discount)." ".$options['label'];
+					case "Amount Off": return money($promo->discount)." ".$options['label'];
+				}
+				break;
 			case "function": return '<div><input type="hidden" id="cart-action" name="cart" value="true" /></div>'; break;
 			case "empty-button": 
 				if (empty($options['value'])) $options['value'] = "Empty Cart";
@@ -381,11 +476,15 @@ class Cart {
 				ob_end_clean();
 				return $content;
 				break;
+			case "hasdiscount": return ($this->data->Totals->discount > 0); break;
+			case "discount": return money($this->data->Totals->discount); break;
+				
 		}
 		
 		$result = "";
 		switch ($property) {
 			case "needs-shipped": return $this->data->Shipping; break;
+			case "hasshipcosts": return ($this->data->Totals->shipping > 0); break;
 			case "shipping-estimates":
 				if (!$this->data->Shipping) return "";
 				$base = $Shopp->Settings->get('base_operations');
@@ -417,7 +516,7 @@ class Cart {
 						$options['currency'] = "false";
 						$result = $options['label'];
 					} else $result = $this->data->Totals->tax;
-				} else	$options['currency'] = "false";
+				} else $options['currency'] = "false";
 				break;
 			case "total": 
 				$result = $this->data->Totals->total; 
@@ -447,7 +546,7 @@ class Cart {
 		$result = "";
 			
 		switch ($property) {
-			case "hasestimates": if (count($ShipCosts) > 0) return true; else return false; break;
+			case "hasestimates": return (count($ShipCosts) > 0); break;
 			case "methods":			
 				if (!$this->looping) {
 					reset($ShipCosts);

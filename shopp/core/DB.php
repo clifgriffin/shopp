@@ -40,6 +40,7 @@ class DB extends Singleton {
 	function DB () {
 		global $wpdb;
 		$this->dbh = $wpdb->dbh;
+		$this->version = mysql_get_server_info();
 	}
 
 	

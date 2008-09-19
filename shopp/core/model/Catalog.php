@@ -59,7 +59,7 @@ class Catalog extends DatabaseObject {
 							
 							$padding = str_repeat("&nbsp;",$category->depth*3);
 
-							if (SHOPP_PERMALINKS) $link = $path.'/category'.$category->uri;
+							if (SHOPP_PERMALINKS) $link = $path.'/category/'.$category->uri;
 							else $link = $page.'&amp;shopp_category='.$category->id;
 
 							$products = '';
@@ -90,7 +90,7 @@ class Catalog extends DatabaseObject {
 						}
 						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul>';
 					
-						if (SHOPP_PERMALINKS) $link = $path.'/category'.$category->uri;
+						if (SHOPP_PERMALINKS) $link = $path.'/category/'.$category->uri;
 						else $link = $page.'&amp;shopp_category='.$category->id;
 					
 						$products = '';
@@ -119,7 +119,7 @@ class Catalog extends DatabaseObject {
 					for ($i = count($this->categories); $i > 0; $i--)
 						if ($Shopp->Category->id == $this->categories[$i]->id) break;
 					
-					if (SHOPP_PERMALINKS) $link = $path.'/category'.$Shopp->Category->uri;
+					if (SHOPP_PERMALINKS) $link = $path.'/category/'.$Shopp->Category->uri;
 					else {
 						if (isset($Shopp->Category->smart)) $link = $page.'&shopp_category='.$Shopp->Category->slug;
 						else $link = $page.'&shopp_category='.$Shopp->Category->id;
@@ -132,7 +132,7 @@ class Catalog extends DatabaseObject {
 					$parentkey = $this->categories[$i]->parentkey;
 					while ($parentkey > -1) {
 						$tree_category = $this->categories[$parentkey];
-						if (SHOPP_PERMALINKS) $link = $path.'/category'.$tree_category->uri;
+						if (SHOPP_PERMALINKS) $link = $path.'/category/'.$tree_category->uri;
 						else $link = $page.'&shopp_category='.$tree_category->id;
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
 						$parentkey = $tree_category->parentkey;
