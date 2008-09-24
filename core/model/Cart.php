@@ -479,7 +479,6 @@ class Cart {
 				break;
 			case "hasdiscount": return ($this->data->Totals->discount > 0); break;
 			case "discount": return money($this->data->Totals->discount); break;
-				
 		}
 		
 		$result = "";

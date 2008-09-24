@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev220
+Version: 1.0dev221
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0dev220");
+define("SHOPP_VERSION","1.0dev221");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -220,7 +220,7 @@ class Shopp {
 			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js");		
 			
 	}
-
+	
 	function titles ($title) {
 		if (isset($this->Product)) $title = $this->Product->name;
 		if (isset($this->Category)) $title .= " &mdash; ".$this->Category->name;
@@ -622,13 +622,6 @@ class Shopp {
 	 * lookups ()
 	 * Provides fast db lookups with as little overhead as possible */
 	function lookups($wp) {
-		//  		global $wp_rewrite;
-		// echo "<pre>";
-		// print_r($wp);
-		// echo "</pre>";
-		// echo "<pre>";
-		// print_r($wp_rewrite);
-		// echo "</pre>";
 
 		// Grab query requests from permalink rewriting query vars
 		$image = $wp->query_vars['shopp_image'];

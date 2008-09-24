@@ -81,7 +81,7 @@
 		});	
 		
 		$('input.shipmethod').click(function () {
-			console.log($('#shopp form').attr('action'));
+			// console.log($('#shopp form').attr('action'));
 			$.getJSON($('#shopp form').attr('action')+"?shopp_lookup=shipcost&method="+$(this).val(),
 				function (result) {
 					var totals = eval(result);
