@@ -44,6 +44,7 @@ class Category extends DatabaseObject {
 		if (empty($filtering['where'])) $filtering['where'] = "catalog.category=$this->id AND (pd.inventory='off' OR (pd.inventory='on' && pd.stock > 0))";
 		if (empty($filtering['order'])) $filtering['order'] = "p.name ASC";
 		if (empty($filtering['limit'])) $filtering['limit'] = "25";
+		if (!empty($filtering['columns'])) $filtering['columns'] = ", ".$filtering['columns'];
 		
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 		$producttable = DatabaseObject::tablename(Product::$table);
@@ -62,12 +63,14 @@ class Category extends DatabaseObject {
 					MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
 					IF(pd.sale='on',1,IF (pr.discount > 0,1,0)) AS onsale,
 					MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice 
+					{$filtering['columns']}
 					FROM $producttable AS p 
 					LEFT JOIN $catalogtable AS catalog ON catalog.product=p.id
 					LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' 
 					LEFT JOIN $discounttable AS dc ON dc.product=p.id AND dc.price=pd.id
 					LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
 					LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
+					{$filtering['joins']}
 					WHERE {$filtering['where']} 
 					GROUP BY p.id 
 					ORDER BY {$filtering['order']} LIMIT {$filtering['limit']}";
@@ -79,10 +82,12 @@ class Category extends DatabaseObject {
 						MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
 						IF(pd.sale='on',1,0) AS onsale,
 						MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice 
+						{$filtering['columns']}
 						FROM $producttable AS p 
 						LEFT JOIN $catalogtable AS catalog ON catalog.product=p.id
 						LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' 
 						LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
+						{$filtering['joins']}
 						WHERE {$filtering['where']} 
 						GROUP BY p.id 
 						ORDER BY {$filtering['order']} LIMIT {$filtering['limit']}";
@@ -103,7 +108,6 @@ class Category extends DatabaseObject {
 				$product->minsaleprice = $product->minsaleprice - $product->amountoff;
 			}
 				
-			
 		}
 		
 	}
@@ -215,6 +219,7 @@ class FeaturedProducts extends Category {
 		$this->description = "Featured products";
 		$this->smart = true;
 		$loading = array('where'=>"p.featured='on'",'order'=>'p.modified DESC');
+		if (isset($options['show'])) $loading['limit'] = $options['show'];
 		$this->load_products($loading);
 	}
 	
@@ -236,5 +241,50 @@ class OnSaleProducts extends Category {
 	}
 	
 }
+
+class BestSellerProducts extends Category {
+	static $slug = "bestsellers";
+	
+	function BestSellerProducts ($options=array()) {
+		$this->name = "Best Sellers";
+		$this->parent = 0;
+		$this->slug = OnSaleProducts::$slug;
+		$this->uri = $this->slug;
+		$this->description = "Best selling products";
+		$this->smart = true;
+		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
+		
+		$loading = array(
+			'columns'=>'count(DISTINCT pur.id) AS sold',
+			'joins'=>"LEFT JOIN $purchasedtable AS pur ON p.id=pur.product",
+			'where'=>"TRUE",
+			'order'=>'sold DESC');
+		if (isset($options['show'])) $loading['limit'] = $options['show'];
+		$this->load_products($loading);
+	}
+	
+}
+
+class SearchResults extends Category {
+	static $slug = "search-results";
+	
+	function SearchResults ($options=array()) {
+		if (empty($options['search'])) $options['search'] = "(no search terms)";
+		$this->name = "Search Results for &quot;".$options['search']."&quot;";
+		$this->parent = 0;
+		$this->slug = SearchResults::$slug;
+		$this->uri = $this->slug;
+		$this->description = "Results for &quot;".$options['search']."&quot;";
+		$this->smart = true;
+		$loading = array(
+			'columns'=> "MATCH(p.name,p.summary,p.description) AGAINST ('{$options['search']}' IN BOOLEAN MODE) AS score",
+			'where'=>"MATCH(p.name,p.summary,p.description) AGAINST ('{$options['search']}' IN BOOLEAN MODE)",
+			'order'=>'score DESC');
+		if (isset($options['show'])) $loading['limit'] = $options['show'];
+		$this->load_products($loading);
+	}
+	
+}
+
 
 ?>

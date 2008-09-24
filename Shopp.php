@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev219
+Version: 1.0dev220
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0dev219");
+define("SHOPP_VERSION","1.0dev220");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -92,6 +92,7 @@ class Shopp {
 		add_action('parse_request', array(&$this, 'lookups') );
 		add_action('parse_request', array(&$this, 'cart'));
 		add_action('parse_request', array(&$this, 'checkout'));
+		add_action('parse_request', array(&$this, 'catalog') );
 		add_action('wp', array(&$this, 'shortcodes'));
 		add_action('wp', array(&$this, 'behaviors'));
 
@@ -218,6 +219,13 @@ class Shopp {
 		if ($tag == "checkout")
 			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js");		
 			
+	}
+
+	function titles ($title) {
+		if (isset($this->Product)) $title = $this->Product->name;
+		if (isset($this->Category)) $title .= " &mdash; ".$this->Category->name;
+		
+		return $title;
 	}
 
 	/**
@@ -521,6 +529,56 @@ class Shopp {
 				$Payment->process();
 			}
 		}
+	}
+	
+	function catalog ($wp) {
+		$pages = $this->Settings->get('pages');
+		
+		$type = "catalog";
+		if ($category = $wp->query_vars['shopp_category']) $type = "category";
+		if ($productid = $wp->query_vars['shopp_pid']) $type = "product";
+		if ($productname = $wp->query_vars['shopp_product']) $type = "product";
+		if ($search = $wp->query_vars['s']) {
+			$wp->query_vars['s'] = "";
+			$wp->query_vars['pagename'] = $pages['catalog']['name'];
+			$type = "category"; 
+			$category = "search-results";
+		}
+		
+		// Find product by given ID
+		if (!empty($productid) && empty($this->Product->id)) {
+			$this->Product = new Product($productid);
+		}
+		
+		if (!empty($category)) {
+			if (strpos($category,"/") !== false) {
+				$categories = split("/",$category);
+				$category = end($categories);
+			}
+			
+			switch ($category) {
+				case SearchResults::$slug: 
+					$this->Category = new SearchResults(array('search'=>$search)); break;
+				case BestSellerProducts::$slug: $this->Category = new BestSellerProducts(); break;
+				case NewProducts::$slug: $this->Category = new NewProducts(); break;
+				case FeaturedProducts::$slug: $this->Category = new FeaturedProducts(); break;
+				case OnSaleProducts::$slug: $this->Category = new OnSaleProducts(); break;
+				default:
+					$key = "id";
+					if (!preg_match("/\d+/",$category)) $key = "slug";
+					$this->Category = new Category($category,$key);
+			}
+
+		}
+			
+		// Find product by category name and product name
+		if (!empty($productname) && empty($this->Product->id)) {
+			$this->Product = new Product($productname,"slug");
+		}
+		
+		$this->Catalog = new Catalog($type);
+		add_filter('single_post_title', array(&$this, 'titles'));
+
 	}
 	
 	/**

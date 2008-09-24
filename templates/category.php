@@ -18,6 +18,6 @@
 		</ul></li>
 	</ul>
 	
-	<div class="clear"></div>
+	<br class="clear" />
 	</div>
 <?php endif; ?>

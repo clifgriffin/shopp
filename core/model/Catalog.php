@@ -14,8 +14,9 @@ require_once("Category.php");
 class Catalog extends DatabaseObject {
 	static $table = "catalog";
 	
-	function Catalog () {
+	function Catalog ($type="catalog") {
 		$this->init(self::$table);
+		$this->type = $type;
 	}
 	
 	function load_categories ($limits=false) {
@@ -182,7 +183,16 @@ class Catalog extends DatabaseObject {
 				ob_end_clean();
 				return $content;
 				break;
-
+			case "bestseller-products":
+				$Shopp->Category = new BestSellerProducts($options);
+				if (isset($options['breadcrumb']) && !value_is_true($options['breadcrumb'])) 
+					$Shopp->Category->breadcrumb = false;
+				ob_start();
+				include("{$Shopp->Flow->basepath}/templates/category.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+				return $content;
+				break;
 		}
 	}
 

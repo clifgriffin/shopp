@@ -18,3 +18,5 @@
 #shopp #gallery .previews li.thumbnails ul li { width: auto; height: auto; line-height: 1; }
 
 #shopp .category { clear: both; }
+
+br.clear { clear: both; }
