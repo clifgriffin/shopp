@@ -57,7 +57,7 @@
 
 	function startupdate () {
 		$.get(ajaxurl+"?action=wp_ajax_shopp_update",function (result) {
-			console.log(result);
+			// console.log(result);
 			if (result == "ftp-failed") {
 				window.location.href = adminurl+"?page=shopp/settings&edit=ftp";
 			} else if (result == "updated") {

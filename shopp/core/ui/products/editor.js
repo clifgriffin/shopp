@@ -939,7 +939,7 @@ function imageUploadProgress (file, loaded, total) {
 }
 
 function imageUploadError (file, error, message) {
-	console.log(error+": "+message);
+	// console.log(error+": "+message);
 }
 
 function imageUploadSuccess (file, results) {
@@ -1034,7 +1034,7 @@ function uploadSuccess (file, results) {
 	var filedata = eval('('+results+')');
 	var targetCell = this.targetCell;
 	var i = this.targetLine;
-	console.log(filedata.id);
+	// console.log(filedata.id);
 	filedata.type = filedata.type.replace(/\//gi," ");
 	$(this.progressBar).animate({'width':'76px'},250,function () { 
 		$(this).parent().fadeOut(500,function() {

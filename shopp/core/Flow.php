@@ -199,7 +199,9 @@ class Flow {
 				} elseif (!empty($Request['items'])) {
 					foreach ($Request['items'] as $id => $item) {
 						if (isset($item['quantity'])) $Cart->update($id,$item['quantity']);	
-						if (isset($item['product']) && isset($item['price'])) {
+						if (isset($item['product']) && isset($item['price']) && 
+							$item['product'] == $Cart->contents[$id]->product &&
+							$item['price'] != $Cart->contents[$id]->price) {
 							$Product = new Product($item['product']);
 							$Cart->change($id,$Product,$item['price']);
 						}
@@ -1134,7 +1136,6 @@ class Flow {
 		
 		include("{$this->basepath}/core/ui/promotions/editor.html");
 	}
-	
 	
 	/**
 	 * Settings flow handlers
