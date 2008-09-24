@@ -93,7 +93,7 @@ class PayPalPro {
 		
 		// Line Items
 		foreach($Order->Items as $i => $Item) {
-			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->option))?' '.$Item->option:'');
+			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
 			$_['L_AMT'.$i]			= $Item->unitprice;
 			$_['L_NUMBER'.$i]		= $i;
 			$_['L_QTY'.$i]			= $Item->quantity;

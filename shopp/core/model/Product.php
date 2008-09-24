@@ -285,7 +285,6 @@ class Product extends DatabaseObject {
 			case "name": return $this->name; break;
 			case "summary": return $this->summary; break;
 			case "description": return wpautop($this->description); break;
-			case "brand": return $this->brand; break;
 			case "price":
 				if (empty($this->prices)) $this->load_prices();
 				if ($this->options > 1) {
@@ -522,12 +521,13 @@ class Product extends DatabaseObject {
 				if (isset($this->options['addons'])) return true; else return false; break;
 				break;
 			case "addtocart":
+				if (empty($options['label'])) $options['label'] = "Add to Cart";
 				$string = "";
 				$string .= '<input type="hidden" name="product" value="'.$this->id.'" />';
 				if ($this->prices[0]->type != "N/A")
 					$string .= '<input type="hidden" name="price" value="'.$this->prices[0]->id.'" />';
 				$string .= '<input type="hidden" name="cart" value="add" />';
-				$string .= '<input type="submit" name="addtocart" value="Add to Cart" class="addtocart" />';
+				$string .= '<input type="submit" name="addtocart" value="'.$options['label'].'" class="addtocart" />';
 				return $string;
 		}
 		

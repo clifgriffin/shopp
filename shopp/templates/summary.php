@@ -19,7 +19,7 @@
 
 	<tr class="totals">
 		<td colspan="2" rowspan="5">
-			<?php if ((shopp('cart','needs-shipped')) && (shopp('cart','hasshipcosts'))): ?>
+			<?php if ((shopp('cart','has-shipping-methods'))): ?>
 			<small>Select a shipping method:</small>
 
 			<ul id="shipping-methods">

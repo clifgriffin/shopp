@@ -148,12 +148,12 @@ class Cart {
 	 * add()
 	 * Adds a product as an item to the cart */
 	function add ($quantity,&$Product,&$Price) {
-		if (($item = $this->hasproduct($Product->id,$Price->id)) !== false) {
+		$NewItem = new Item($quantity,$Product,$Price);
+		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
 		} else {
-			$Item = new Item($quantity,$Product,$Price);
-			$this->contents[] = $Item;
-			if ($Item->shipping) $this->data->Shipping = true;
+			$this->contents[] = $NewItem;
+			if ($NewItem->shipping) $this->data->Shipping = true;
 		}
 		$this->totals();
 		$this->save();
@@ -206,14 +206,13 @@ class Cart {
 	}
 	
 	/**
-	 * hasproduct()
-	 * Determines if a specified product/price variation is 
-	 * currently in this cart */
-	function hasproduct($product,$price) {
+	 * hasitem()
+	 * Determines if a specified item is already in this cart */
+	function hasitem($NewItem) {
 		$i = 0;
 		foreach ($this->contents as $Item) {
-			if ($Item->product == $product && 
-					$Item->price == $price) return $i;
+			if ($Item->product == $NewItem->product && 
+					$Item->price == $NewItem->price) return $i;
 			$i++;
 		}
 		return false;
@@ -326,6 +325,8 @@ class Cart {
 							$rulematch = true;
 						break;
 					case "Coupon code": 
+						if (Promotion::match_rule($this->data->Coupon,$rule['logic'],$rule['value']))
+							$rulematch = true;
 						break;
 				}
 				
@@ -483,6 +484,14 @@ class Cart {
 		
 		$result = "";
 		switch ($property) {
+			case "coupon-code": 
+				$result .= '<input type="text" name="coupon" value="" size="10" /> ';
+				$result .= '<input type="submit" name="apply-coupon" value="Apply Coupon" />';
+				return $result;
+			case "has-shipping-methods": 
+				return (count($this->data->ShipCosts) > 1 &&
+						$this->data->Totals->shipping > 0 &&
+						$this->data->Shipping); break;				
 			case "needs-shipped": return $this->data->Shipping; break;
 			case "hasshipcosts": return ($this->data->Totals->shipping > 0); break;
 			case "shipping-estimates":

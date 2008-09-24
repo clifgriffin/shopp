@@ -68,59 +68,17 @@ class Flow {
 	 **/
 	function catalog () {
 		global $Shopp;
-		$db = DB::get();
 
-		if ($category = get_query_var('shopp_category')) $page = "category";
-		if ($productid = get_query_var('shopp_pid')) $page = "product";
-		if ($productname = get_query_var('shopp_product')) $page = "product";
-
-		// Find product by given ID
-		if (!empty($productid) && empty($Shopp->Product->id)) {
-			$Shopp->Product = new Product($productid);
-		}
-		
-		if (!empty($category)) {
-			if (strpos($category,"/") !== false) {
-				$categories = split("/",$category);
-				$category = end($categories);
-			}
-			
-			switch ($category) {
-				case NewProducts::$slug: $Shopp->Category = new NewProducts(); break;
-				case FeaturedProducts::$slug: $Shopp->Category = new FeaturedProducts(); break;
-				case OnSaleProducts::$slug: $Shopp->Category = new OnSaleProducts(); break;
-				default:
-					$key = "id";
-					if (!preg_match("/\d+/",$category)) $key = "slug";
-					$Shopp->Category = new Category($category,$key);
-			}
-
-		}
-			
-		// Find product by category name and product name
-		if (!empty($productname) && empty($Shopp->Product->id)) {
-			$Shopp->Product = new Product($productname,"slug");
-		}
-		
-		$Shopp->Catalog = new Catalog();
-		
 		ob_start();
-		switch ($page) {
-			case "product":
-				include(SHOPP_TEMPLATES."/product.php");
-				break;
-			case "category":
-				include(SHOPP_TEMPLATES."/category.php");
-				break;
-			default:
-				$page = "catalog";
-				include(SHOPP_TEMPLATES."/catalog.php");
-				break;
+		switch ($Shopp->Catalog->type) {
+			case "product": include(SHOPP_TEMPLATES."/product.php"); break;
+			case "category": include(SHOPP_TEMPLATES."/category.php"); break;
+			default: include(SHOPP_TEMPLATES."/catalog.php"); break;
 		}
 		$content = ob_get_contents();
 		ob_end_clean();
 
-		return '<div id="shopp" class="'.$page.'">'.$content.'<div id="clear"></div></div>';
+		return '<div id="shopp" class="'.$Shopp->Catalog->type.'">'.$content.'<div id="clear"></div></div>';
 		
 	}
 
@@ -542,6 +500,9 @@ class Flow {
 		global $Orders;
 		$db = DB::get();
 
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		if ($_GET['deleting'] == "order"
 						&& !empty($_GET['delete']) 
 						&& is_array($_GET['delete'])) {
@@ -585,6 +546,9 @@ class Flow {
 	
 	function order_manager () {
 		global $Shopp;
+
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
 				
 		if (preg_match("/\d+/",$_GET['manage'])) {
 			$Purchase = new Purchase($_GET['manage']);
@@ -673,6 +637,9 @@ class Flow {
 	function products_list() {
 		global $Products;
 		$db = DB::get();
+
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if ($_GET['deleting'] == "product"
 				&& !empty($_GET['delete']) 
@@ -779,6 +746,9 @@ class Flow {
 		global $Product;
 		$db = DB::get();
 
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		if ($_GET['edit'] != "new") {
 			$Product = new Product($_GET['edit']);
 			$Product->load_prices();
@@ -825,6 +795,9 @@ class Flow {
 
 	function save_product($Product) {
 		$db = DB::get();
+
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (!$_POST['options']) $Product->options = array();
 		$_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
@@ -997,6 +970,9 @@ class Flow {
 	function categories_list () {
 		$db = DB::get();
 
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		if ($_GET['deleting'] == "category"
 				&& !empty($_GET['delete']) 
 				&& is_array($_GET['delete'])) {
@@ -1035,6 +1011,9 @@ class Flow {
 		global $Shopp;
 		$db = DB::get();
 		
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		$Shopp->Catalog = new Catalog();
 		$Shopp->Catalog->load_categories();
 		
@@ -1094,6 +1073,10 @@ class Flow {
 	
 	function promotions_list () {
 		$db = DB::get();
+
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		require_once("{$this->basepath}/core/model/Promotion.php");
 		
 		if ($_GET['deleting'] == "promotion"
@@ -1118,6 +1101,10 @@ class Flow {
 	}
 	
 	function promotion_editor () {
+
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		require_once("{$this->basepath}/core/model/Promotion.php");
 
 		if ($_GET['promotion'] != "new") {
@@ -1154,6 +1141,9 @@ class Flow {
 	 **/
 	
 	function settings_general () {
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		$country = $_POST['settings']['base_operations']['country'];
 		$countries = array();
 		$countrydata = $this->Settings->get('countries');
@@ -1188,6 +1178,9 @@ class Flow {
 
 
 	function settings_presentation () {
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		if (isset($_POST['settings']['theme_templates']) && $_POST['settings']['theme_templates'] == "on") 
 			$_POST['settings']['theme_templates'] = TEMPLATEPATH."/shopp";
 		if (!empty($_POST['save'])) {
@@ -1236,16 +1229,25 @@ class Flow {
 	}
 
 	function settings_catalog () {
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		if (!empty($_POST['save'])) $this->settings_save();
 		include(SHOPP_ADMINPATH."/settings/catalog.html");
 	}
 
 	function settings_cart () {
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		if (!empty($_POST['save'])) $this->settings_save();
 		include(SHOPP_ADMINPATH."/settings/cart.html");
 	}
 
 	function settings_checkout () {
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		if (!empty($_POST['save'])) {
 			$this->settings_save();
 			$updated = 'Shopp checkout settings saved.';
@@ -1259,6 +1261,9 @@ class Flow {
 
 	function settings_shipping () {
 		global $Shopp;
+
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
 		
 		if (!empty($_POST['save'])) {
 			// Sterilize $values
@@ -1299,6 +1304,9 @@ class Flow {
 	}
 
 	function settings_taxes () {
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		if (!empty($_POST['save'])) {
 			$this->settings_save();
 			$updated = 'Shopp taxes settings saved.';
@@ -1314,6 +1322,10 @@ class Flow {
 
 	function settings_payments () {
 		global $Shopp;
+
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		include("{$this->basepath}/gateways/PayPal/PayPalExpress.php");
 		$PayPalExpress = new PayPalExpress();
 		include("{$this->basepath}/gateways/GoogleCheckout/GoogleCheckout.php");
@@ -1353,6 +1365,9 @@ class Flow {
 	}
 	
 	function settings_update () {
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		if (!empty($_POST['save'])) $this->settings_save();
 		if (!empty($_POST['activation'])) {
 			$this->settings_save();	
@@ -1391,6 +1406,9 @@ class Flow {
 	}
 	
 	function settings_ftp () {
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
 		if (!empty($_POST['save'])) $this->settings_save();
 		
 		$credentials = $this->Settings->get('ftp_credentials');
