@@ -29,7 +29,7 @@ class Catalog extends DatabaseObject {
 		$this->categories = $db->query("select cat.*,count(sc.product) as products from $category_table as cat left join $this->_table as sc on sc.category=cat.id group by cat.id order by parent DESC,name ASC$limit",AS_ARRAY);
 		$this->categories = sort_tree($this->categories);
 	}
-	
+		
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		$pages = $Shopp->Settings->get('pages');
@@ -148,7 +148,7 @@ class Catalog extends DatabaseObject {
 				if (isset($options['breadcrumb']) && !value_is_true($options['breadcrumb'])) 
 					$Shopp->Category->breadcrumb = false;
 				ob_start();
-				include("{$Shopp->Flow->basepath}/templates/category.php");
+				include(SHOPP_TEMPLATES."/category.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;
@@ -158,7 +158,7 @@ class Catalog extends DatabaseObject {
 				if (isset($options['breadcrumb']) && !value_is_true($options['breadcrumb'])) 
 					$Shopp->Category->breadcrumb = false;
 				ob_start();
-				include("{$Shopp->Flow->basepath}/templates/category.php");
+				include(SHOPP_TEMPLATES."/category.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;
@@ -168,7 +168,7 @@ class Catalog extends DatabaseObject {
 				if (isset($options['breadcrumb']) && !value_is_true($options['breadcrumb'])) 
 					$Shopp->Category->breadcrumb = false;
 				ob_start();
-				include("{$Shopp->Flow->basepath}/templates/category.php");
+				include(SHOPP_TEMPLATES."/category.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;
@@ -178,17 +178,17 @@ class Catalog extends DatabaseObject {
 				if (isset($options['breadcrumb']) && !value_is_true($options['breadcrumb'])) 
 					$Shopp->Category->breadcrumb = false;
 				ob_start();
-				include("{$Shopp->Flow->basepath}/templates/category.php");
+				include(SHOPP_TEMPLATES."/category.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;
 				break;
 			case "bestseller-products":
-				$Shopp->Category = new BestSellerProducts($options);
+				$Shopp->Category = new BestsellerProducts($options);
 				if (isset($options['breadcrumb']) && !value_is_true($options['breadcrumb'])) 
 					$Shopp->Category->breadcrumb = false;
 				ob_start();
-				include("{$Shopp->Flow->basepath}/templates/category.php");
+				include(SHOPP_TEMPLATES."/category.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;

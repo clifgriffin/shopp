@@ -27,12 +27,12 @@ class Flow {
 		$this->secureuri = 'https://'.$_SERVER['SERVER_NAME'].$this->uri;
 		
 		$this->Admin = new stdClass();
-		$this->Admin->default = $Core->directory."/".$this->Core->file;
-		$this->Admin->orders = $this->Admin->default;
+		$this->Admin->orders = $Core->directory."/orders";
 		$this->Admin->settings = $Core->directory."/settings";
 		$this->Admin->products = $Core->directory."/products";
 		$this->Admin->promotions = $Core->directory."/promotions";
 		$this->Admin->help = $Core->directory."/help";
+		$this->Admin->default = $this->Admin->orders;
 		
 		$this->Pages = $Core->Settings->get('pages');
 		if (empty($this->Pages)) {
@@ -138,7 +138,8 @@ class Flow {
 	function cart_request () {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
-				
+		// print_r($Cart->data->Promotions);
+
 		$Request = array();
 		if (!empty($_GET['cart'])) $Request = $_GET;
 		if (!empty($_POST['cart'])) $Request = $_POST;
@@ -166,6 +167,14 @@ class Flow {
 			$Request['shipping']['country'] = $base['country'];
 			$Cart->shipzone($Request['shipping']);
 		}
+
+		if (isset($Request['apply-code']) && !empty($Request['promocode'])) {
+			if (!in_array($Request['promocode'],$Cart->data->PromoCodes)) {
+				$Cart->data->PromoCode = $Request['promocode'];
+				$Cart->data->PromoCodes[] = $Request['promocode'];
+				$Request['update'] = true;
+			}
+		}
 		
 		if (isset($Request['remove'])) $Request['cart'] = "remove";
 		if (isset($Request['update'])) $Request['cart'] = "update";
@@ -182,9 +191,7 @@ class Flow {
 					
 					if (isset($Request['item'])) $result = $Cart->change($Request['item'],$Product,$pricing);
 					else $result = $Cart->add($quantity,$Product,$pricing);
-					
 				}
-				$Cart->shipping();
 				break;
 			case "remove":
 				if (!empty($Cart->contents)) $Cart->remove($Request['remove']);
@@ -206,7 +213,6 @@ class Flow {
 							$Cart->change($id,$Product,$item['price']);
 						}
 					}
-					$Cart->shipping();
 				}
 			
 				break;
@@ -410,6 +416,7 @@ class Flow {
 			$Purchase->customer = $Order->Customer->id;
 			$Purchase->billing = $Order->Billing->id;
 			$Purchase->shipping = $Order->Shipping->id;
+			$Purchase->data = $Order->data;
 			$Purchase->copydata($Order->Customer);
 			$Purchase->copydata($Order->Billing);
 			$Purchase->copydata($Order->Shipping,'ship');
@@ -698,7 +705,7 @@ class Flow {
 	
 	function product_shortcode ($atts) {
 		global $Shopp;
-		
+
 		if (isset($atts['name'])) {
 			$Shopp->Product = new Product($atts['name'],'name');
 		} elseif (isset($atts['slug'])) {
@@ -706,7 +713,7 @@ class Flow {
 		} elseif (isset($atts['id'])) {
 			$Shopp->Product = new Product($atts['id']);
 		} else return "";
-				
+
 		ob_start();
 		include(SHOPP_TEMPLATES."/related.php");
 		$content = ob_get_contents();
@@ -722,6 +729,9 @@ class Flow {
 			$Shopp->Category = new Category($atts['name'],'name');
 		} elseif (isset($atts['slug'])) {
 			switch ($atts['slug']) {
+				case SearchResults::$slug: 
+					$Shopp->Category = new SearchResults(array('search'=>$atts['search'])); break;
+				case BestsellerProducts::$slug: $Shopp->Category = new BestsellerProducts(); break;
 				case NewProducts::$slug: $Shopp->Category = new NewProducts(); break;
 				case FeaturedProducts::$slug: $Shopp->Category = new FeaturedProducts(); break;
 				case OnSaleProducts::$slug: $Shopp->Category = new OnSaleProducts(); break;
@@ -1138,6 +1148,116 @@ class Flow {
 	}
 	
 	/**
+	 * Dashboard Widgets
+	 */
+	function dashboard_stats ($args) {
+		$db = DB::get();
+		extract( $args, EXTR_SKIP );
+
+		echo $before_widget;
+
+		echo $before_title;
+		echo $widget_name;
+		echo $after_title;
+		
+		$purchasetable = DatabaseObject::tablename(Purchased::$table);
+		
+		$results = $db->query("SELECT count(id) AS orders, SUM(total) AS sales, AVG(total) AS average,
+		 						SUM(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),1,0)) AS wkorders,
+								SUM(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,0)) AS wksales,
+								AVG(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,null)) AS wkavg
+		 						FROM $purchasetable");
+
+		echo '<h3 class="reallynow">Last 30 Days</h3>';
+		echo '<ul>';
+		echo "<li><strong>Orders:</strong> $results->wkorders</li>";
+		echo "<li><strong>Sales:</strong> ".money($results->wksales)."</li>";
+		echo "<li><strong>Order Average:</strong> ".money($results->wkavg)."</li>";
+		echo '</ul>';
+		
+		echo '<h3>Lifetime</h3>';
+		echo '<ul>';
+		echo "<li><strong>Orders:</strong> $results->orders</li>";
+		echo "<li><strong>Sales:</strong> ".money($results->sales)."</li>";
+		echo "<li><strong>Order Average:</strong> ".money($results->average)."</li>";
+		echo '</ul>';
+
+		echo $after_widget;
+		
+	}
+	
+	function dashboard_orders ($args) {
+		$db = DB::get();
+		extract( $args, EXTR_SKIP );
+		$statusLabels = $this->Settings->get('order_status');
+		
+		echo $before_widget;
+
+		echo $before_title;
+		echo $widget_name;
+		echo $after_title;
+		
+		$purchasetable = DatabaseObject::tablename(Purchase::$table);
+		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
+		
+		$Orders = $db->query("SELECT p.*,count(i.id) as items FROM $purchasetable AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY i.purchase ORDER BY created DESC LIMIT 6",AS_ARRAY);
+
+		if (!empty($Orders)) {
+		echo '<table class="widefat">';
+		echo '<tr><th scope="col">Name</th><th scope="col">Date</th><th scope="col" class="num">Items</th><th scope="col" class="num">Total</th><th scope="col" class="num">Status</th></tr>';
+		echo '<tbody id="orders" class="list orders">';
+		$even = false; 
+		foreach ($Orders as $Order) {
+			echo '<tr'.((!$even)?' class="alternate"':'').'>';
+			$even = !$even;
+			echo '<td><a class="row-title" href="admin.php?page='.$this->Admin->default.'&amp;manage='.$Order->id.'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
+			echo '<td>'.date("Y/m/d",mktimestamp($Order->created)).'</td>';
+			echo '<td class="num">'.$Order->items.'</td>';
+			echo '<td class="num">'.money($Order->total).'</td>';
+			echo '<td class="num">'.$statusLabels[$Order->status].'</td>';
+			echo '</tr>';
+		}
+		echo '</tbody></table>';
+		} else {
+			echo '<p>No orders, yet.</p>';
+		}
+
+		echo $after_widget;
+		
+	}
+	
+	function dashboard_products ($args) {
+		$db = DB::get();
+		extract( $args, EXTR_SKIP );
+
+		echo $before_widget;
+
+		echo $before_title;
+		echo $widget_name;
+		echo $after_title;
+
+		$RecentBestsellers = new BestsellerProducts(array('where'=>'UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)','show'=>3));
+		echo '<h3>Recent Bestsellers</h3>';
+		echo '<ul>';
+		foreach ($RecentBestsellers->products as $product) 
+			echo '<li><a href="admin.php?page='.$this->Admin->products.'&edit='.$product->id.'">'.$product->name.'</a></li>';
+		echo '</ul>';
+		
+
+		$LifetimeBestsellers = new BestsellerProducts(array('show'=>3));
+		echo '<h3>Lifetime Bestsellers</h3>';
+		echo '<ul>';
+		foreach ($LifetimeBestsellers->products as $product) 
+			echo '<li><a href="admin.php?page='.$this->Admin->products.'&edit='.$product->id.'">'.$product->name.'</a></li>';
+		echo '</ul>';
+
+		echo $after_widget;
+		
+	}
+	
+	
+	
+	/**
 	 * Settings flow handlers
 	 **/
 	
@@ -1176,8 +1296,7 @@ class Flow {
 		$statusLabels = $this->Settings->get('order_status');
 		include(SHOPP_ADMINPATH."/settings/settings.html");
 	}
-
-
+	
 	function settings_presentation () {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -1635,16 +1754,17 @@ class Flow {
 		$this->Settings->save('order_status',array('Pending','Completed'));	
 		$this->Settings->save('shopp_setup','completed');
 		$this->Settings->save('maintenance','off');
+		$this->Settings->save('dashboard','on');
 
 		// Presentation Settings
 		$this->Settings->save('theme_templates','off');
 		$this->Settings->save('gallery_small_width','240');
 		$this->Settings->save('gallery_small_height','240');
-		$this->Settings->save('gallery_small_sizing','3');
+		$this->Settings->save('gallery_small_sizing','1');
 		$this->Settings->save('gallery_small_quality','2');
 		$this->Settings->save('gallery_thumbnail_width','96');
 		$this->Settings->save('gallery_thumbnail_height','96');
-		$this->Settings->save('gallery_thumbnail_sizing','3');
+		$this->Settings->save('gallery_thumbnail_sizing','1');
 		$this->Settings->save('gallery_thumbnail_quality','3');
 
 		// Payment Gateway Settings

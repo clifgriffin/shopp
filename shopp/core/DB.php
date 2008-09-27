@@ -262,7 +262,7 @@ class DatabaseObject {
 		if (!$id) return false;
 		if (!$key) $key = $this->_key;
 
-		$r = $db->query("SELECT * FROM $this->_table WHERE $key='$id'");
+		$r = $db->query("SELECT * FROM $this->_table WHERE $key='$id' LIMIT 1");
 		$this->populate($r);
 		
 		if (!empty($this->id)) return true;

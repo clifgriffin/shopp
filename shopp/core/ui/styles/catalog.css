@@ -1,6 +1,32 @@
+/**
+ * Shopp style resets
+ * These styles override the theme's styles for shopp-specific shopping pages
+ **/
+#shopp,
+#shopp br.clear,
+#shopp div.description,
+#shopp .products, 
+#shopp .products ul,
+#shopp .products li.row,
+#shopp .category,
+#shopp #cart,
+#shopp #cart table { clear: both; }
+#shopp ul { list-style: none; text-indent: 0; text-align: left; padding: 0; margin: 0; }
+#shopp li { background: none; padding: 0; margin: 0; }
+#shopp li:before { content: ""; }
+#shopp ul.breadcrumb li:before { content: ""; }
+
+#shopp .products, #shopp .products ul { width: 100%; margin: 0; padding: 0;}
+#shopp .products ul li { display: block; float: left; }
+#shopp .products li.row { display: block; width: 100%; }
+
 #shopp .products .frame { width: <?php echo $this->Settings->get('gallery_thumbnail_width'); ?>px; text-align: center; }
 #shopp .products .frame img { display: inline; }
 
+
+/**
+ * Product Page Gallery
+ **/
 #gallery { float: left; }
 #gallery ul { margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
 #gallery ul li:before { content: ""; }
@@ -17,6 +43,35 @@
 #gallery .previews li.thumbnails li { position: relative; display: inline-block; visibility: visible; height: auto; top: auto; left: auto;  }
 #shopp #gallery .previews li.thumbnails ul li { width: auto; height: auto; line-height: 1; }
 
-#shopp .category { clear: both; }
+/**
+ * Shopp Forms
+ **/
+#shopp form ul { width: 100%; clear: both; line-height: 1; }
+#shopp form ul li { text-indent: 0; clear: both; display: block; padding: 4px 0; margin: 0; }
+#shopp form label { clear: both; display: block; }
+#shopp form ul li label.inline { display: inline; clear: none; }
+#shopp form ul li:before { content: ""; }
+#shopp form ul li div.inline { width: auto; clear: both; }
+#shopp form ul li div.inline input { width: auto;  }
+#shopp form ul li div.inline label { clear: none; display: inline; }
+#shopp form ul li span input { margin: 0 0 5px 0; }
+#shopp form ul li div input,
+#shopp form ul li div select { width: 100%; }
+#shopp form ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
+#shopp form ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
+#shopp form ul li.half { display: inline; width: 47%; float: left; clear: none; }
+#shopp form ul li.half.right { display: inline; float: right; }
+#shopp form ul li span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
+#shopp form ul li span label,
+#shopp form div label { clear: both; }
 
-br.clear { clear: both; }
+
+/**
+ * Debug Console
+ **/
+#overlay { position: absolute; left: 0; width: 100%; opacity: 0.6; background-color: #000; margin: 0; }
+html,body { height: 100%; }
+#debug.shopp { position: absolute; left: 25%; top: 100px; width: 50%; margin: 0 auto; height: 300px; overflow-y: auto; background: #fff; border: 5px solid #999; text-align: left; padding: 10px; font: 12px/1 "Lucida Grande",monospace; }
+#debug.shopp.overlay { position: absolute; width: 100%; height: 100%; background: #000; top: 0; left: 0; padding: 0; opacity: 0.8; border: none; }
+#debug.shopp h3 { font: bold 15px/1 "Lucida Grande",monospace;  margin-top: 0; }
+#debug.shopp li { margin-bottom: 6px; }

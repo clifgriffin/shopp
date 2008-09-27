@@ -1,29 +1,86 @@
 /**
  * shopp.css
- * Generic layout styles for Shopp pages
+ * Generic layout & styles for Shopp pages
  *
  * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, 31 March, 2008
  * @package shopp
  **/
 
-.submit { text-align: right; }
+/* Generic Shopp Styles */
+
+#shopp .submit { text-align: right; }
+#shopp form { text-align: left; }
+#shopp form.product ul.options { list-style: none; }
+#shopp form ul label,
+#shopp form ul select { display: inline; }
+#shopp form ul { line-height: 1; }
+#shopp form label { font-size: 14px; font-weight: bold; padding-bottom: 3px; }
+#shopp form div label { font-size: 11px; font-weight: normal; padding-bottom: 8px; }
 
 /**
- * Shopp style resets
- * These styles override the theme-styles for shopp-specific interfaces
+ * Catalog/Category
  **/
-#shopp { clear: both; }
-#shopp ul { list-style: none; text-indent: 0; text-align: left; padding: 0; margin: 0; }
-#shopp li { background: none; padding: 0; margin: 0; }
-#shopp li:before { content: ""; }
-#shopp br.clear { clear: both; }
+
+/* Product Grid (Default View) */
+
+/* 5 products per row */
+#shopp ul.products li.product { width: 20%; }
+/* 4 products per row */
+#shopp ul.products li.product { width: 25%; }
+/* 2 products per row */
+#shopp ul.products li.product { width: 33%; }
+/* 3 products per row (DEFAULT) */
+#shopp ul.products li.product { width: 33%; }
+
+/* Each product in a category has a containing frame */
+#shopp ul.products li.product div.frame { padding: 10px; }
+
+#shopp ul.products li .name,
+#shopp ul.products li .summary,
+#shopp ul.products li .savings,
+#shopp ul.products li .price { margin-top: 0; margin-bottom: 0; }
+
+/* Hide the product summary in the grid view */
+#shopp ul.products li .summary { display: none; }
+
+#shopp ul.products img { display: block; }
+
+#shopp .price { font-weight: bold; line-height: 1.5; margin: 0; }
+#shopp .original { text-decoration: line-through; }
+#shopp .price.sale { font-size: 150%; }
+
+/* Product List View */
+#shopp ul.products.list li { float: none; width: 100%; clear: both; padding-bottom: 10px;}
+#shopp ul.products.list li div.frame { width: 100%;  text-align: left; }
+#shopp ul.products.list li img { float: left; margin-right: 10px; }
+#shopp ul.products.list li .summary { display: block; }
+
+#shopp ul.breadcrumb { margin: 10px 0; }
+#shopp ul.breadcrumb li { background: none; padding: 0; display: inline; margin-left: 0; text-indent: 0; }
+
+#shopp ul.categories { float: left; margin-right: 20px; }
+#shopp #new { float: left; width: 75%; }
+
+/**
+ * Product Pages
+ **/
+#shopp .original.price { text-decoration: line-through; }
+#shopp form.product ul,
+#shopp form.product ul li,
+#shopp form.product ul li label { clear: none; }
+#shopp ul.variations label { display: block; }
+#shopp dl { clear: both; }
+#shopp dl dt { font-weight: bold; float: left; margin-right: 10px; clear: left; }
+#shopp dl dd { display: block; clear: right; }
+
+#shopp #gallery { margin: 5px 10px 5px 0; }
+#shopp #gallery ul.previews li.thumbnails ul { margin: 10px 0; }
+#shopp #gallery ul.previews li.thumbnails li { margin: 0 5px 0 0; }
 
 /**
  * Shopping Cart 
  **/
-#shopp #cart { width: 100%; clear: both; }
+#shopp #cart { width: 100%; }
 #shopp #cart table { padding: 10px 0; width: 100%; }
 #shopp #cart th { text-align: left; font-weight: bold; }
 #shopp #cart th, #shopp #cart td { padding: 3px 0; }
@@ -42,104 +99,29 @@
 /**
  * Checkout 
  **/
-#shopp form ul { width: 100%; clear: both; line-height: 1; }
-#shopp form ul li { text-indent: 0; clear: both; display: block; padding: 4px 0; margin: 0; }
-#shopp form label { font-size: 14px; clear: both; display: block; font-weight: bold; padding-bottom: 3px; }
-#shopp form ul li label.inline { display: inline; clear: none; }
-#shopp form ul li:before { content: ""; }
-#shopp form ul li div.inline { width: auto; clear: both; }
-#shopp form ul li div.inline input { width: auto;  }
-#shopp form ul li div.inline label { clear: none; display: inline; }
-#shopp form ul li span input { margin: 0 0 5px 0; }
-#shopp form ul li div input,
-#shopp form ul li div select { width: 100%; }
-#shopp form ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }
-#shopp form ul li div.right { display: inline; width: 47%; float: right; margin: 0; clear: right; }
-#shopp form ul li.half { display: inline; width: 47%; float: left; clear: none; }
-#shopp form ul li.half.right { display: inline; float: right; }
-#shopp form ul li span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
-#shopp form ul li span label,
-#shopp form div label { font-size: 11px; clear: both; font-weight: normal; padding-bottom: 8px; }
-
 #shopp #shipping-methods { padding-left: 30px; }
 #shopp #shipping-methods li { margin-top: 5px; }
 #shopp #shipping-methods input { margin-left: -16px; }
 
-#errors.shopp { color: #900;}
-
-
-/**
- * Catalog/Category
- **/
-form.shopp { text-align: left; }
-form.shopp.product ul.options { list-style: none; }
-form.shopp ul label,form.shopp ul select { display: inline; }
-
-#shopp ul.products, #shopp ul.products ul { clear: both; width: 100%; margin: 0; padding: 0;}
-#shopp ul.products ul li { display: block; float: left; }
-#shopp ul.products li.row { clear: both; display: block; width: 100%; }
-#shopp ul.products li.product { width: 33%; }
-#shopp ul.products li.product div.frame { padding: 10px; }
-#shopp ul.products li .name,
-#shopp ul.products li .savings,
-#shopp ul.products li .price { margin-top: 0; margin-bottom: 0; }
-#shopp ul.products img { display: block; }
-#shopp div.description { clear: both; }
-#shopp .price { font-weight: bold; line-height: 1.5; margin: 0; }
-#shopp .original { text-decoration: line-through; }
-#shopp .price.sale { font-size: 150%; }
-
-#shopp ul.variations label { display: block;}
-
-#shopp ul.breadcrumb { margin: 10px 0; }
-#shopp ul.breadcrumb li:before { content: ""; }
-#shopp ul.breadcrumb li { background: none; padding: 0; display: inline; margin-left: 0; text-indent: 0; }
-
-#shopp ul.categories { float: left; margin-right: 20px; }
-#shopp #new { float: left; width: 75%; }
-
-/**
- * Product Pages
- **/
-#shopp .original.price { text-decoration: line-through; }
-#shopp form.product ul,
-#shopp form.product ul li,
-#shopp form.product ul li label { clear: none; }
-#shopp dl { clear: both; }
-#shopp dl dt { font-weight: bold; float: left; margin-right: 10px; clear: left; }
-#shopp dl dd { display: block; clear: right; }
-
-#gallery { margin: 5px 10px 5px 0; }
-#gallery ul.previews li.thumbnails ul { margin: 10px 0; }
-#gallery ul.previews li.thumbnails li { margin: 0 5px 0 0; }
+#shopp #errors { color: #990000; }
 
 /**
  * Order Receipt
  **/
-#receipt.shopp { position: relative; margin: 20px 0; }
-#receipt.shopp address { font-style: normal; }
-#receipt.shopp fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
-#receipt.shopp table.transaction { float: right; width: auto; }
-#receipt.shopp table.transaction th { text-align: right; }
+#shopp #receipt { position: relative; margin: 20px 0; }
+#shopp #receipt address { font-style: normal; }
+#shopp #receipt fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
+#shopp #receipt table.transaction { float: right; width: auto; }
+#shopp #receipt table.transaction th { text-align: right; }
 
-#receipt.shopp .cart { width: 100%; clear: both; border: none; }
-#receipt.shopp .cart td { border: none; }
-#receipt.shopp .cart th { font-weight: bold; text-align: left; border: none; }
-#receipt.shopp th, #shopp #cart td { padding: 3px 0; }
-#receipt.shopp .cart .item { width: 50%; }
-#receipt.shopp .cart .money, 
-#receipt.shopp .cart .total,
-#receipt.shopp .cart .buttons td { text-align: right; }
-#receipt.shopp .cart .totals.total th,
-#receipt.shopp .cart .totals.total td { font-size: 130%; }
-#receipt.shopp .cart .remove { font-size: 12px; }
-
-/**
- * Debug Console
- **/
-#overlay { position: absolute; left: 0; width: 100%; opacity: 0.6; background-color: #000; margin: 0; }
-html,body { height: 100%; }
-#debug.shopp { position: absolute; left: 25%; top: 100px; width: 50%; margin: 0 auto; height: 300px; overflow-y: auto; background: #fff; border: 5px solid #999; text-align: left; padding: 10px; font: 12px/1 "Lucida Grande",monospace; }
-#debug.shopp.overlay { position: absolute; width: 100%; height: 100%; background: #000; top: 0; left: 0; padding: 0; opacity: 0.8; border: none; }
-#debug.shopp h3 { font: bold 15px/1 "Lucida Grande",monospace;  margin-top: 0; }
-#debug.shopp li { margin-bottom: 6px; }
+#shopp #receipt .cart { width: 100%; clear: both; border: none; }
+#shopp #receipt .cart td { border: none; }
+#shopp #receipt .cart th { font-weight: bold; text-align: left; border: none; }
+#shopp #receipt th, 
+#shopp #receipt td { padding: 3px 0; }
+#shopp #receipt .cart .item { width: 50%; }
+#shopp #receipt .cart .money, 
+#shopp #receipt .cart .total,
+#shopp #receipt .cart .buttons td { text-align: right; }
+#shopp #receipt .cart .totals.total th,
+#shopp #receipt .cart .totals.total td { font-size: 130%; }

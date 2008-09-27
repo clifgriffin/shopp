@@ -143,6 +143,7 @@ CREATE TABLE shopp_customer (
 	lastname varchar(32) NOT NULL default '',
 	email varchar(96) NOT NULL default '',
 	phone varchar(24) NOT NULL default '',
+	info longtext default '',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id)
@@ -224,6 +225,7 @@ CREATE TABLE shopp_purchase (
 	shipmethod varchar(100) NOT NULL default '',
 	shiptrack varchar(100) NOT NULL default '',
 	status tinyint(3) unsigned NOT NULL default '0',
+	data longtext default '',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id)
@@ -259,7 +261,7 @@ CREATE TABLE shopp_promo (
 	name varchar(255) NOT NULL default '',
 	status enum('disabled','enabled') default 'disabled',
 	type enum('Percentage Off','Amount Off','Free Shipping','Buy X Get Y Free') default 'Percentage Off',
-	scope enum('Item','Order') default 'Item',
+	scope enum('Catalog','Order') default 'Catalog',
 	discount float(20,2) NOT NULL default '0.00',
 	buyqty int(10) NOT NULL default '0',
 	getqty int(10) NOT NULL default '0',

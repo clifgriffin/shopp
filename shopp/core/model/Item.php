@@ -70,7 +70,7 @@ class Item {
 		
 	function quantity ($qty) {
 		if ($this->inventory) {
-			if ($this->quantity + $qty > $this->option->stock) 
+			if ($qty > $this->option->stock) 
 				$this->quantity = $this->option->stock;
 			else $this->quantity = $qty;
 		} else $this->quantity = $qty;
