@@ -167,25 +167,27 @@ function shopp_email ($template,$data=array()) {
 /**
  * Generates an RSS-compliant string from an associative 
  * array ($data) with a specific RSS-structure. */
-function build_rss ($data) {
-	$xml = "";
-	$xml .= "<?xml version=\"1.0\""."?".">\n";
-	$xml .= "<rss version=\"2.0\">\n";
+function shopp_rss ($data) {
+	$xml = "<?xml version=\"1.0\""."?>\n";
+	$xml .= "<rss version=\"2.0\" xmlns:base=\"".htmlentities($data['link'])."\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n";
 	$xml .= "<channel>\n";
-	
+
+	$xml .= '<atom:link href="'.htmlentities($data['link']).'" rel="self" type="application/rss+xml" />'."\n";
 	$xml .= "<title>".$data['title']."</title>\n";
 	$xml .= "<description>".$data['description']."</description>\n";
-	$xml .= "<link>".$data['link']."</link>\n";
+	$xml .= "<link>".htmlentities($data['link'])."</link>\n";
 	$xml .= "<language>en-us</language>\n";
-	$xml .= "<copyright>Copyright ".date('Y').", gochampaign.com</copyright>\n";
+	$xml .= "<copyright>Copyright ".date('Y').", ".$data['sitename']."</copyright>\n";
 	
-	foreach($data['items'] as $item) {
-		$xml .= "<item>\n";
-		$xml .= "<title>".$item['title']."</title>\n";
-		$xml .= "<description>".$item['description']."</description>\n";
-		$xml .= "<link>".$item['link']."</link>\n";
-		$xml .= "<pubDate>".$item['pubDate']."</pubDate>\n";
-		$xml .= "</item>\n";
+	if (is_array($data['items'])) {
+		foreach($data['items'] as $item) {
+			$xml .= "<item>\n";
+			$xml .= "<title>".$item['title']."</title>\n";
+			$xml .= "<link>".$item['link']."</link>\n";
+			$xml .= "<description>".$item['description']."</description>\n";
+			$xml .= "<pubDate>".$item['pubDate']."</pubDate>\n";
+			$xml .= "</item>\n";
+		}
 	}
 	
 	$xml .= "</channel>\n";

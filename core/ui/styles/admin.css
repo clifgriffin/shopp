@@ -184,3 +184,15 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 .calendar div.week div.selected,
 .calendar div.week div.active { background-color: #1A8ED2; color: #ffffff; }
 
+
+/**
+ * Dashboard Widgets
+ **/
+#dashboard_shopp_stats h3,
+#dashboard_shopp_products h3 { font-size: 14px; }
+#dashboard_shopp_stats ul,
+#dashboard_shopp_products ul { list-style: none; padding: 0; line-height: 1; font-size: 12px; margin-bottom: 25px;}
+#dashboard_shopp_stats ul li,
+#dashboard_shopp_products ul li { list-style: none; padding: 0; line-height: 1; }
+
+#dashboard_shopp_orders table.widefat { margin-top: 10px; }

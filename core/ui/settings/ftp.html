@@ -2,6 +2,8 @@
 	<h2>FTP Upgrade Settings</h2>
 
 	<form name="settings" id="ftp" action="?page=<?php echo $this->Admin->settings; ?>&amp;edit=update" method="post">
+		<?php wp_nonce_field('shopp-settings-ftp'); ?>
+		
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order">FTP Settings</label></th> 

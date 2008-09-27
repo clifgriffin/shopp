@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev221
+Version: 1.0dev222
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0dev221");
+define("SHOPP_VERSION","1.0dev222");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -103,6 +103,9 @@ class Shopp {
 		add_action('admin_menu', array(&$this, 'lookups'));
 		add_action('admin_menu', array(&$this, 'add_menus'));
 		add_action('admin_footer', array(&$this, 'footer'));
+		add_action('wp_dashboard_setup', array(&$this, 'dashboard_init'));
+		add_action('wp_dashboard_widgets', array(&$this, 'dashboard'));
+		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
 		add_action('save_post', array(&$this, 'page_updates'),10,2);
 
 		add_action('widgets_init', array(&$this->Flow, 'init_cart_widget'));
@@ -192,6 +195,54 @@ class Shopp {
 	}
 	
 	/**
+	 * dashbaord_css()
+	 * Loads only the Shopp Admin CSS on the WordPress dashboard for widget styles */
+	function dashboard_css () {
+		?><link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css' type='text/css' />
+<?php
+	}
+	
+	/**
+	 * dashboard_init()
+	 * Initializes the Shopp dashboard widgets */
+	function dashboard_init () {
+		
+		wp_register_sidebar_widget('dashboard_shopp_stats', 'Shopp Stats', array(&$this->Flow,'dashboard_stats'),
+			array('all_link' => '','feed_link' => '','width' => 'fourth','height' => 'single')
+		);
+
+		wp_register_sidebar_widget('dashboard_shopp_orders', 'Shopp Orders', array(&$this->Flow,'dashboard_orders'),
+			array('all_link' => 'admin.php?page='.$this->Flow->Admin->orders,'feed_link' => '','width' => 'half','height' => 'single')
+		);
+
+		wp_register_sidebar_widget('dashboard_shopp_products', 'Shopp Products', array(&$this->Flow,'dashboard_products'),
+			array('all_link' => 'admin.php?page='.$this->Flow->Admin->products,'feed_link' => '','width' => 'fourth','height' => 'single')
+		);
+
+		// optional: if you want users to be able to edit the settings of your widget, you need to register a widget_control
+		// wp_register_widget_control( $widget_id, $widget_control_title, $control_output_callback,
+		// 	array(), // leave an empty array here: oddity in widget code
+		// 	array(
+		// 		'widget_id' => $widget_id, // Yes - again.  This is required: oddity in widget code
+		// 		'arg'       => an arg to pass to the $control_output_callback,
+		// 		'another'   => another arg to pass to the $control_output_callback,
+		// 		...
+		// 	)
+		// );
+		
+	}
+
+	/**
+	 * dashboard ()
+	 * Adds the Shopp dashboard widgets to the WordPress Dashboard */
+	function dashboard ($widgets) {
+		$dashboard = $this->Settings->get('dashboard');
+		if (current_user_can('manage_options') && $dashboard == "on")
+			array_unshift($widgets,'dashboard_shopp_stats','dashboard_shopp_orders','dashboard_shopp_products');
+		return $widgets;
+	}
+	
+	/**
 	 * behaviors()
 	 * Dynamically includes necessary JavaScript and stylesheets as needed in 
 	 * public shopping pages handled by Shopp */
@@ -209,7 +260,7 @@ class Shopp {
 
 		// Include stylesheets and javascript based on whether shopp shortcodes are used
 		if ($tag) {
-			add_action('wp_head', array(&$this, 'page_styles'));
+			add_action('wp_head', array(&$this, 'header'));
 			add_action('wp_footer', array(&$this, 'footer'));
 			wp_enqueue_script('jquery');
 			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
@@ -220,31 +271,7 @@ class Shopp {
 			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js");		
 			
 	}
-	
-	function titles ($title) {
-		if (isset($this->Product)) $title = $this->Product->name;
-		if (isset($this->Category)) $title .= " &mdash; ".$this->Category->name;
 		
-		return $title;
-	}
-
-	/**
-	 * page_styles()
-	 * Adds stylesheets necessary for Shopp public shopping pages */
-	function page_styles () {
-		if (SHOPP_PERMALINKS) {
-			$pages = $this->Settings->get('pages');
-			$shoppage = $this->link('catalog');
-			if ($shoppage == get_bloginfo('siteurl')."/")
-				$shoppage = $pages['catalog']['name'];
-		} else $shoppage = get_bloginfo('siteurl');
-		
-		?><link rel='stylesheet' href='<?php echo $shoppage; ?>?shopp_lookup=catalog.css' type='text/css' />
-		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css' type='text/css' />
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css' type='text/css' />
-		<?php
-	}
-	
 	/**
 	 * shortcodes()
 	 * Handles shortcodes used on Shopp-installed pages and used by
@@ -318,11 +345,11 @@ class Shopp {
 		if (!$pages) $pages = $this->Flow->Pages;
 		$shop = $pages['catalog']['permalink'];
 		$catalog = $pages['catalog']['name'];
-		$cart = $pages['cart']['permalink'];
 		$checkout = $pages['checkout']['permalink'];
 		
 		$rules = array(
 			$checkout.'?$' => 'index.php?pagename='.$checkout.'&shopp_proc=checkout',
+			(empty($shop)?"$catalog/":$shop).'feed/?$' => 'index.php?shopp_lookup=newproducts-rss',
 			$shop.'receipt/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=receipt',
 			$shop.'confirm-order/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=confirm-order',
 			$shop.'download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
@@ -330,8 +357,13 @@ class Shopp {
 		);
 
 		// catalog/category/category-slug
-		if (empty($shop)) $rules[$catalog.'/category/([a-zA-Z0-9_\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]';
-		else $rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
+		if (empty($shop)) {
+			$rules[$catalog.'/category/([a-zA-Z0-9_\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$catalog.'/category/([a-zA-Z0-9_\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]';
+		} else {
+			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
+		}
 
 		// catalog/productid
 		if (empty($shop)) $rules[$catalog.'/(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_pid=$matches[1]';
@@ -405,6 +437,51 @@ class Shopp {
 		}
 		
 	}
+
+	/**
+	 * titles ()
+	 * Changes the Shopp catalog page titles to include the product
+	 * name and category (when available) */
+	function titles ($title) {
+		if (isset($this->Product)) $title = $this->Product->name;
+		if (isset($this->Category)) $title .= " &mdash; ".$this->Category->name;
+		
+		return $title;
+	}
+
+	function feeds () {
+		if (SHOPP_PERMALINKS) {
+			$pages = $this->Settings->get('pages');
+			$shoppage = $this->link('catalog');
+			if ($shoppage == get_bloginfo('siteurl')."/")
+				$shoppage .= $pages['catalog']['name'];
+		} else $shoppage = get_bloginfo('siteurl');
+
+		if (empty($this->Category)):?>
+	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> New Products RSS Feed" href="<?php echo $shoppage.((SHOPP_PERMALINKS)?'/feed/':'?shopp_lookup=newproducts-rss'); ?>" />
+	<?php
+			else:?>
+	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> <?php echo $this->Category->name; ?> RSS Feed" href="<?php echo $shoppage.((SHOPP_PERMALINKS)?'/category/'.$this->Category->uri.'/feed/':'?shopp_category='.$this->Category->id.'&shopp_lookup=category-rss'); ?>" />
+	<?php
+		endif;
+	}
+
+	/**
+	 * header()
+	 * Adds stylesheets necessary for Shopp public shopping pages */
+	function header () {
+		if (SHOPP_PERMALINKS) {
+			$pages = $this->Settings->get('pages');
+			$shoppage = $this->link('catalog');
+			if ($shoppage == get_bloginfo('siteurl')."/")
+				$shoppage .= $pages['catalog']['name'];
+		} else $shoppage = get_bloginfo('siteurl');
+		
+		?><link rel='stylesheet' href='<?php echo $shoppage; ?>?shopp_lookup=catalog.css' type='text/css' />
+		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css' type='text/css' />
+		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css' type='text/css' />
+		<?php
+	}
 	
 	/**
 	 * footer()
@@ -472,7 +549,7 @@ class Shopp {
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
 		
 		$Order = new stdClass();
-		
+		if (isset($_POST['data'])) $Order->data = $_POST['data'];
 		$Order->Customer = new Customer();
 		$Order->Customer->updates($_POST);
 
@@ -559,7 +636,7 @@ class Shopp {
 			switch ($category) {
 				case SearchResults::$slug: 
 					$this->Category = new SearchResults(array('search'=>$search)); break;
-				case BestSellerProducts::$slug: $this->Category = new BestSellerProducts(); break;
+				case BestsellerProducts::$slug: $this->Category = new BestsellerProducts(); break;
 				case NewProducts::$slug: $this->Category = new NewProducts(); break;
 				case FeaturedProducts::$slug: $this->Category = new FeaturedProducts(); break;
 				case OnSaleProducts::$slug: $this->Category = new OnSaleProducts(); break;
@@ -578,6 +655,7 @@ class Shopp {
 		
 		$this->Catalog = new Catalog($type);
 		add_filter('single_post_title', array(&$this, 'titles'));
+		add_action('wp_head', array(&$this, 'feeds'));
 
 	}
 	
@@ -622,6 +700,9 @@ class Shopp {
 	 * lookups ()
 	 * Provides fast db lookups with as little overhead as possible */
 	function lookups($wp) {
+		// echo "<pre>";
+		// print_r($wp);
+		// echo "</pre>";
 
 		// Grab query requests from permalink rewriting query vars
 		$image = $wp->query_vars['shopp_image'];
@@ -681,6 +762,16 @@ class Shopp {
 				header ("Content-Disposition: inline; filename='catalog.css'"); 
 				header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
 				echo $stylesheet;
+				exit();
+				break;
+			case "newproducts-rss":
+				$NewProducts = new NewProducts();
+				echo shopp_rss($NewProducts->rss());
+				exit();
+				break;
+			case "category-rss":
+				$this->catalog($wp);
+				echo shopp_rss($this->Category->rss());
 				exit();
 				break;
 			case "download":

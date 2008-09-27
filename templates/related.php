@@ -2,7 +2,7 @@
 
 	<h3><?php shopp('product','name'); ?></h3>
 
-	<?php shopp('product','thumbnail'); ?>
+	<?php shopp('product','thumbnail','class=alignleft'); ?>
 
 	<p class="headline"><big><?php shopp('product','summary'); ?></big></p>
 	<?php if (shopp('product','onsale')): ?>
@@ -17,5 +17,5 @@
 		<?php shopp('product','addtocart'); ?></p>
 	
 	</form>
-	
+	<br class="clear" />
 <?php endif; ?>

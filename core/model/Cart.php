@@ -58,8 +58,12 @@ class Cart {
 		$this->data->Estimates = false;
 
 		$this->data->Order = new stdClass();
+		$this->data->Order->data = array();
 		$this->data->Promotions = array();
 		$this->data->PromosApplied = array();
+		$this->data->PromoCode = false;
+		$this->data->PromoCodes = array();
+		$this->data->Purchase = false;
 		$this->data->ShipCosts = array();
 		$this->data->Purchase = false;
 
@@ -299,19 +303,40 @@ class Cart {
 			// Add date-based lookup too
 			$this->data->Promotions = $db->query("SELECT * FROM $promo_table WHERE scope='Order' AND ((status='enabled' AND UNIX_TIMESTAMP(starts) > 0 AND UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP() AND UNIX_TIMESTAMP(ends) > UNIX_TIMESTAMP()) OR status='enabled')",AS_ARRAY);
 		}
-		
-		$this->data->PromosApplied = array();
 
+		$this->data->PromosApplied = array();
 		foreach ($this->data->Promotions as &$promo) {
 			if (!is_array($promo->rules))
 				$promo->rules = unserialize($promo->rules);
-				
+			
+			// Add quantity rule automatically for buy x get y promos
+			if ($promo->type == "Buy X Get Y Free") {
+				$promo->search = "all";
+				if ($promo->rules[count($promo->rules)-1]['property'] != "Item quantity") {
+					$qtyrule = array(
+						'property' => 'Item quantity',
+						'logic' => "Is greater than",
+						'value' => $promo->buyqty);
+					$promo->rules[] = $qtyrule;
+				}
+			}
+
+			$items = array();
+
 			$match = false;
 			$rulematches = 0;
 			foreach ($promo->rules as $rule) {
 				$rulematch = false;
-				
+
 				switch($rule['property']) {
+					case "Item name": 
+						foreach ($this->contents as &$Item) {
+							if (Promotion::match_rule($Item->name,$rule['logic'],$rule['value'])) {
+								$items[] = &$Item;
+								$rulematch = true;
+							}
+						}
+						break;
 					case "Item quantity": 
 						if (Promotion::match_rule($this->data->Totals->quantity,$rule['logic'],$rule['value']))
 							$rulematch = true;
@@ -324,26 +349,51 @@ class Cart {
 						if (Promotion::match_rule($this->data->Totals->subtotal,$rule['logic'],$rule['value']))
 							$rulematch = true;
 						break;
-					case "Coupon code": 
-						if (Promotion::match_rule($this->data->Coupon,$rule['logic'],$rule['value']))
-							$rulematch = true;
+					case "Promo code":
+						foreach ($this->data->PromoCodes as $code) {
+							if (Promotion::match_rule($code,$rule['logic'],$rule['value']))
+								$rulematch = true;
+						}
 						break;
 				}
 				
 				if ($rulematch && $promo->search == "all") $rulematches++;
-				if ($rulematch) $match = true;
+				if ($rulematch && $promo->search == "any") {
+					$match = true;
+					break; // One matched, no need to match any more
+				}
 			}
+
 			if ($promo->search == "all" && $rulematches == count($promo->rules))
 				$match = true;
 				
 			// Everything matches up, apply the promotion
 			if ($match) {
-				switch ($promo->type) {
-					case "Percentage Off": $this->data->Totals->discount += $this->data->Totals->subtotal*($promo->discount/100); break;
-					case "Amount Off": $this->data->Totals->discount += $promo->discount; break;
-					case "Free Shipping": $this->data->Totals->shipping = 0; break;
+
+				if (!empty($items)) {
+					// Apply promo calculation to specific cart items
+					foreach ($items as $item) {
+						switch ($promo->type) {
+							case "Percentage Off": $this->data->Totals->discount += $item->unitprice*($promo->discount/100); break;
+							case "Amount Off": $this->data->Totals->discount += $promo->discount; break;
+							case "Buy X Get Y Free": $this->data->Totals->discount += floor($item->quantity / ($promo->buyqty + $promo->getqty))*($item->unitprice);
+							// TODO: Need to find a way to let the shipping
+							// calculators know about individual item shipping discounts
+							// case "Free Shipping": $this->data->Totals->shipping = 0; break;
+						}
+					}
+				} else {
+					// Apply promo calculation to entire order
+					switch ($promo->type) {
+						case "Percentage Off": $this->data->Totals->discount += $this->data->Totals->subtotal*($promo->discount/100); break;
+						case "Amount Off": $this->data->Totals->discount += $promo->discount; break;
+						case "Free Shipping": $this->data->Totals->shipping = 0; break;
+					}
 				}
 				$this->data->PromosApplied[] = $promo;
+			} else {
+				// No match
+				if (!empty($this->data->PromoCode)) array_pop($this->data->PromoCodes);
 			}
 			
 			if ($match && $promo->exclusive == "on") break;
@@ -379,10 +429,10 @@ class Cart {
 		}
 		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
 		$this->freeshipping = $freeshipping;
+
+		$this->promotions();
 		
 		if ($this->data->Shipping) $Totals->shipping = $this->shipping();
-		
-		$this->promotions();
 
 		$Totals->total = $Totals->subtotal - $Totals->discount + 
 			$Totals->shipping + $Totals->tax;
@@ -455,11 +505,16 @@ class Cart {
 			case "promo-discount":
 				$promo = current($this->data->PromosApplied);
 				if (empty($options['label'])) $options['label'] = "Off!";
+				if (!empty($options['before'])) $string = $options['before'];
 				switch($promo->type) {
-					case "Free Shipping": return $Shopp->Settings->get('free_shipping_text');
-					case "Percentage Off": return percentage($promo->discount)." ".$options['label'];
-					case "Amount Off": return money($promo->discount)." ".$options['label'];
+					case "Free Shipping": $string .= $Shopp->Settings->get('free_shipping_text');
+					case "Percentage Off": $string .= percentage($promo->discount)." ".$options['label'];
+					case "Amount Off": $string .= money($promo->discount)." ".$options['label'];
+					case "Buy X Get Y Free": return "";
 				}
+				if (!empty($options['after'])) $string = $options['after'];
+				return $string;
+				
 				break;
 			case "function": return '<div><input type="hidden" id="cart-action" name="cart" value="true" /></div>'; break;
 			case "empty-button": 
@@ -472,7 +527,7 @@ class Cart {
 				break;
 			case "sidecart":
 				ob_start();
-				include("{$Shopp->Flow->basepath}/templates/sidecart.php");		
+				include(SHOPP_TEMPLATES."/sidecart.php");		
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;
@@ -483,9 +538,9 @@ class Cart {
 		
 		$result = "";
 		switch ($property) {
-			case "coupon-code": 
-				$result .= '<input type="text" name="coupon" value="" size="10" /> ';
-				$result .= '<input type="submit" name="apply-coupon" value="Apply Coupon" />';
+			case "promo-code": 
+				$result .= '<p><input type="text" name="promocode" value="" size="10" /> ';
+				$result .= '<input type="submit" name="apply-code" value="Apply Promo Code" /></p>';
 				return $result;
 			case "has-shipping-methods": 
 				return (count($this->data->ShipCosts) > 1 &&
@@ -667,6 +722,15 @@ class Cart {
 				$options['value'] = $this->data->Order->Customer->phone; 
 				return '<input type="text" name="phone" id="phone"'.$this->inputattrs($options).' />'; 
 				break;
+			case "customer-info":
+				$allowed_types = array("text","hidden");
+				if (empty($options['type'])) $options['type'] = "hidden";
+				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
+					if (isset($this->data->Order->Customer->info[$options['name']])) 
+						$options['value'] = $this->data->Order->Customer->info[$options['name']]; 
+					return '<input type="text" name="info['.$options['name'].']" id="customer-info-'.$options['name'].'"'.$this->inputattrs($options).' />'; 
+				}
+				break;
 
 			// SHIPPING TAGS
 			case "shipping": return $this->data->Shipping;
@@ -793,6 +857,17 @@ class Cart {
 					$options['value'] = $_POST['billing']['cvv'];
 				return '<input type="text" name="billing[cvv]" id="billing-cvv"'.$this->inputattrs($options).' />';
 				break;
+				
+			case "order-data":
+				$allowed_types = array("text","hidden");
+				if (empty($options['type'])) $options['type'] = "hidden";
+				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
+					if (isset($this->data->Order->data[$options['name']])) 
+						$options['value'] = $this->data->Order->data[$options['name']];
+					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'"'.$this->inputattrs($options).' />'; 
+				}
+				break;
+
 			case "submit": 
 				if (empty($options['value'])) $options['value'] = "Submit Order";
 				return '<input type="submit" name="process" id="checkout-button"'.$this->inputattrs($options,$submit_attrs).' />'; break;

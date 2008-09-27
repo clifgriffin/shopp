@@ -3,7 +3,9 @@
 	<h2>Presentation Settings</h2>
 	<?php include("navigation.html"); ?>
 
-	<form name="settings" id="general" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+	<form name="settings" id="presentation" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+		<?php wp_nonce_field('shopp-settings-presentation'); ?>
+		
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order">Theme Templates</label></th> 

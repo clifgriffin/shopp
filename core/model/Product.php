@@ -331,10 +331,11 @@ class Product extends DatabaseObject {
 				return $this->freeshipping;
 			case "thumbnail":
 				if (empty($this->images)) $this->load_images();
+				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
 				$string = "";
 				foreach ($this->images as $img) {
 					if ($img->datatype == "thumbnail") {
-						$string .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />'; break;
+						$string .= '<img src="'.$imagepath.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
 					}
 				}
 				return $string;

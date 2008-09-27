@@ -3,7 +3,9 @@
 	<h2>Payments Settings</h2>
 	<?php include("navigation.html"); ?>
 
-	<form name="settings" id="general" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+	<form name="settings" id="payments" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+		<?php wp_nonce_field('shopp-settings-payments'); ?>
+		
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="payment-gateway">Payment Gateway</label></th> 

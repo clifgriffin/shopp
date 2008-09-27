@@ -53,7 +53,7 @@ class Category extends DatabaseObject {
 		$promotable = DatabaseObject::tablename(Promotion::$table);
 		$assettable = DatabaseObject::tablename(Asset::$table);
 
-		$query = "SELECT p.id,p.name,p.summary,
+		$query = "SELECT p.id,p.name,p.summary,p.description,
 					img.id AS thumbnail,img.properties AS thumbnail_properties,
 					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0))AS percentoff,
 					SUM(DISTINCT IF(pr.type='Amount Off',pr.discount,0)) AS amountoff,
@@ -112,6 +112,61 @@ class Category extends DatabaseObject {
 		
 	}
 		
+	function rss () {
+		global $Shopp;
+		$db = DB::get();
+
+		if (!$this->products) $this->load_products();
+
+		$baseurl = $Shopp->link('catalog');
+		if (SHOPP_PERMALINKS) {
+			if ($baseurl == get_bloginfo('siteurl')."/") {
+				$pages = $Shopp->Settings->get('pages');
+				$baseurl .= $pages['catalog']['name']."/";
+			}
+			$imagepath = $Shopp->link('catalog')."images/";
+		}
+		else $imagepath = "?shopp_image=";
+		
+		$rssurl = $baseurl.((SHOPP_PERMALINKS)?'feed':'&shopp_lookup=products-rss');
+		$imageurl = $baseurl."/".((SHOPP_PERMALINKS)?'?shopp_image=':'&shopp_image=');
+		$rss = array('title' => get_bloginfo('name')." ".$this->name,
+			 			'link' => $rssurl,
+					 	'description' => $this->description,
+						'sitename' => get_bloginfo('name').' ('.get_bloginfo('siteurl').')');
+		$items = array();
+		foreach ($this->products as $product) {
+			$product->thumbnail_properties = unserialize($product->thumbnail_properties);
+			$item = array();
+			$item['title'] = $product->name;
+			$item['link'] = htmlentities($baseurl.((SHOPP_PERMALINKS)?$product->id:'&shopp_pid='.$product->id));
+			$item['description'] = "<![CDATA[";
+			if (!empty($product->thumbnail)) {
+				$item['description'] .= '<a href="'.$item['link'].'">';
+				$item['description'] .= '<img src="'.$imageurl.$product->thumbnail.'" alt="'.$product->name.'" width="'.$product->thumbnail_properties['width'].'" height="'.$product->thumbnail_properties['height'].'" style="float: left; margin: 0 10px 0 0;" />';
+				$item['description'] .= '</a>';
+			}
+
+			$pricing = "";
+			if ($product->onsale) {
+				if ($product->minsaleprice != $product->maxsaleprice) $pricing .= "from ";
+				$pricing .= money($product->minsaleprice);
+			} else {
+				if ($product->minprice != $product->maxprice) $pricing .= "from ";
+				$pricing .= money($product->minprice);
+			}
+
+			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
+			$item['description'] .= "<p>$product->description</p>";
+			$item['description'] .= "]]>";
+			$items[] = $item;
+		}
+		$rss['items'] = $items;
+
+		return $rss;
+	}	
+	
+	
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		
@@ -166,6 +221,7 @@ class Category extends DatabaseObject {
 					}
 				}
 				if (array_key_exists('name',$options)) $string .= $product->name;
+				if (array_key_exists('summary',$options)) $string .= $product->summary;
 				if (array_key_exists('link',$options)) $string .= "</a>";
 				if (array_key_exists('price',$options)) {
 					if ($product->onsale) {
@@ -202,6 +258,7 @@ class NewProducts extends Category {
 		$this->description = "New additions to the store";
 		$this->smart = true;
 		$loading = array('where'=>"p.id IS NOT NULL",'order'=>'p.created DESC');
+		if (isset($options['columns'])) $loading['columns'] = $options['columns'];
 		if (isset($options['show'])) $loading['limit'] = $options['show'];
 		$this->load_products($loading);
 	}
@@ -242,13 +299,13 @@ class OnSaleProducts extends Category {
 	
 }
 
-class BestSellerProducts extends Category {
+class BestsellerProducts extends Category {
 	static $slug = "bestsellers";
 	
-	function BestSellerProducts ($options=array()) {
-		$this->name = "Best Sellers";
+	function BestsellerProducts ($options=array()) {
+		$this->name = "Bestsellers";
 		$this->parent = 0;
-		$this->slug = OnSaleProducts::$slug;
+		$this->slug = BestsellerProducts::$slug;
 		$this->uri = $this->slug;
 		$this->description = "Best selling products";
 		$this->smart = true;
@@ -259,6 +316,7 @@ class BestSellerProducts extends Category {
 			'joins'=>"LEFT JOIN $purchasedtable AS pur ON p.id=pur.product",
 			'where'=>"TRUE",
 			'order'=>'sold DESC');
+		if (isset($options['where'])) $loading['where'] = $options['where'];
 		if (isset($options['show'])) $loading['limit'] = $options['show'];
 		$this->load_products($loading);
 	}
