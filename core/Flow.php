@@ -61,6 +61,9 @@ class Flow {
 
 		define("SHOPP_LOOKUP",(strpos($_SERVER['REQUEST_URI'],"images/") !== false || 
 								strpos($_SERVER['REQUEST_URI'],"lookup=") !== false)?true:false);
+								
+								
+		load_plugin_textdomain('Shopp',PLUGINDIR.'/'.$Core->directory.'/lang');
 	}
 
 	/**
@@ -1392,6 +1395,8 @@ class Flow {
 			$_POST['settings']['theme_templates'] = TEMPLATEPATH."/shopp";
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-presentation');
+			if (empty($_POST['settings']['catalog_pagination']))
+				$_POST['settings']['catalog_pagination'] = 0;
 			$this->settings_save();
 			$updated = 'Shopp presentation settings saved.';
 		}
@@ -1423,6 +1428,8 @@ class Flow {
 				else if (array_diff($builtin,$theme)) $status = "incomplete";
 			}
 		}		
+
+		$row_products = array(2,3,4,5,6,7);
 		
 		$sizingOptions = array(	"Scale to fit",
 								"Scale &amp; crop");
@@ -1859,6 +1866,8 @@ class Flow {
 
 		// Presentation Settings
 		$this->Settings->save('theme_templates','off');
+		$this->Settings->save('row_products','3');
+		$this->Settings->save('catalog_pagination','25');
 		$this->Settings->save('gallery_small_width','240');
 		$this->Settings->save('gallery_small_height','240');
 		$this->Settings->save('gallery_small_sizing','1');

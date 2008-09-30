@@ -47,6 +47,18 @@
 	            </td>
 			</tr>			
 			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="row-products"><?php _e('Grid Rows','Shopp'); ?></label></th> 
+				<td><select name="settings[row_products]" id="row-products">
+					<?php echo menuoptions($row_products,$this->Settings->get('row_products')); ?>
+				</select>
+	            <label for="row-products"><?php _e('products per row','Shopp'); ?></label></td>
+			</tr>
+			<tr class="form-field form-required"> 
+				<th scope="row" valign="top"><label for="catalog-pagination"><?php _e('Pagination','Shopp'); ?></label></th> 
+				<td><input type="text" name="settings[catalog_pagination]" id="catalog-pagination" value="<?php echo $this->Settings->get('catalog_pagination'); ?>" size="4" />
+	            <label for="catalog-pagination"><?php _e('products per page','Shopp'); ?></label></td>
+			</tr>
+			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order"><?php _e('Image Order','Shopp'); ?></label></th> 
 				<td><select name="settings[product_showcase_order]" id="showcase-order">
 					<option>Order</option>
