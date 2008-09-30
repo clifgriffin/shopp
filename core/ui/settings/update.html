@@ -1,5 +1,5 @@
 <div class="wrap shopp">
-	<h2>Upgrade Settings</h2>
+	<h2><?php _e('Upgrade Settings','Shopp'); ?></h2>
 	<?php include("navigation.html"); ?>
 
 	<form name="settings" id="update" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
@@ -9,21 +9,21 @@
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order">Shopp Updates</label>
 				</th> 
-				<td>Currently running Shopp <?php echo SHOPP_VERSION; ?>
+				<td><?php _e('Currently running Shopp','Shopp'); ?> <?php echo SHOPP_VERSION; ?>
 					<div id="update-info">
-					<p><button type="button" id="check-update" name="check-update" class="button-secondary">Check for Updates</button></p>	
+					<p><button type="button" id="check-update" name="check-update" class="button-secondary"><?php _e('Check for Updates','Shopp'); ?></button></p>	
 					</div>
 					</td>
 			</tr>			
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="Update Key">Update Key</label></th> 
+				<th scope="row" valign="top"><label for="Update Key"><?php _e('Update Key','Shopp'); ?></label></th> 
 				<td>
 					<?php if ($this->Settings->get('updatekey_status') == "activated"): ?>
 						<input type="text" name="settings[update_key]" id="update-key" size="40" value="<?php echo $this->Settings->get('update_key'); ?>" readonly="readonly" />
-					<input type="submit" id="deactivate-button" name="activation" value="De-activate Key" class="button" />
+					<input type="submit" id="deactivate-button" name="activation" value="<?php _e('De-activate Key','Shopp'); ?>" class="button" />
 					<?php else: ?>
 					<input type="text" name="settings[update_key]" id="update-key" size="40" value="<?php echo $this->Settings->get('update_key'); ?>" />
-					<input type="submit" id="activate-button" name="activation" value="Activate Key" class="button" />
+					<input type="submit" id="activate-button" name="activation" value="<?php _e('Activate Key','Shopp'); ?>" class="button" />
 					<?php endif; ?>
 					<br /><?php echo $activation; ?>
 	            </td>
@@ -46,9 +46,9 @@
 				target.html('<strong>Shopp '+data.version+' is available!</strong>');
 				<?php if ($this->Settings->get('updatekey_status') == "activated"): ?>
 				var wrap = $('<p></p>').appendTo(target);
-				var update = $('<button type="button" name="update" id="update" class="button-secondary">Update Shopp</button>').appendTo(wrap);
+				var update = $('<button type="button" name="update" id="update" class="button-secondary"><?php _e('Update Shopp','Shopp'); ?></button>').appendTo(wrap);
 				update.click(function () {
-					target.html('<div id="status" class="updating">Updating Shopp&hellip; be patient!</div>');
+					target.html('<div id="status" class="updating"><?php _e('Updating Shopp&hellip; be patient!','Shopp'); ?></div>');
 					startupdate();
 				});				
 				<?php endif; ?>
@@ -63,14 +63,14 @@
 			if (result == "ftp-failed") {
 				window.location.href = adminurl+"?page=shopp/settings&edit=ftp";
 			} else if (result == "updated") {
-				$('#update-info').html('<strong>Update Complete!</strong><br />Click continue to upgrade the Shopp database.');
+				$('#update-info').html('<strong><?php _e('Update Complete!','Shopp'); ?></strong><br /><?php _e('Click continue to upgrade the Shopp database.','Shopp'); ?>');
 				var wrap = $('<p></p>').appendTo('#update-info');
-				var reload = $('<button type="button" name="reload" value="reload" class="button-secondary">Continue&hellip;</button>').appendTo('#update-info');
+				var reload = $('<button type="button" name="reload" value="reload" class="button-secondary"><?php _e('Continue','Shopp'); ?>&hellip;</button>').appendTo('#update-info');
 				reload.click(function () {
 					window.location.href = adminurl+'?page=shopp/settings&edit=update&updated=true';
 				});
 			} else {
-				alert("An error occurred while trying to update.  The update failed.  This is what Shopp says happened:\n"+result);
+				alert("<?php _e('An error occurred while trying to update.  The update failed.  This is what Shopp says happened:','Shopp'); ?>\n"+result);
 				window.location.href = adminurl+'?page=shopp/settings&edit=update&updated=true';
 			}
 		});

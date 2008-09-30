@@ -57,27 +57,19 @@ class Purchase extends DatabaseObject {
 			case "transactionid": return $this->transactionid; break;
 			case "firstname": return $this->firstname; break;
 			case "lastname": return $this->lastname; break;
-			case "label":
-				if (empty($this->shipaddress)) return "Billed to";
-				else return "Ship to"; break;
-			case "address":
-				if (empty($this->shipaddress)) return $this->address;
-				else return $this->shipaddress; break;
-			case "xaddress":
-				if (empty($this->shipaddress)) return $this->xaddress;
-				else return $this->shipxaddress; break;
-			case "city":
-				if (empty($this->shipaddress)) return $this->city;
-				else return $this->shipcity; break;
-			case "state":
-				if (empty($this->shipaddress)) return $this->state;
-				else return $this->shipstate; break;
-			case "postcode":
-				if (empty($this->shipaddress)) return $this->postcode;
-				else return $this->shippostcode; break;
-			case "country":
-				if (empty($this->shipaddress)) return $this->country;
-				else return $this->shipcountry; break;
+			case "address": return $this->address; break;
+			case "xaddress": return $this->xaddress; break;
+			case "city": return $this->city; break;
+			case "state": return $this->state; break;
+			case "postcode": return $this->postcode; break;
+			case "country": return $this->country; break;
+			case "shipaddress": return $this->shipaddress; break;
+			case "shipxaddress": return $this->shipxaddress; break;
+			case "shipcity": return $this->shipcity; break;
+			case "shipstate": return $this->shipstate; break;
+			case "shippostcode": return $this->shippostcode; break;
+			case "shipcountry": return $this->shipcountry; break;
+			case "shipmethod": return $this->shipmethod; break;
 			case "totalitems": return count($this->purchased); break;
 			case "hasitems": if (count($this->purchased) > 0) return true; else return false; break;
 			case "items":
@@ -120,7 +112,6 @@ class Purchase extends DatabaseObject {
 			case "subtotal": return money($this->subtotal); break;
 			case "hasfreight": return ($this->freight > 0);
 			case "freight": return money($this->freight); break;
-			case "shipmethod": return $this->shipmethod; break;
 			case "hasdiscount": return ($this->discount > 0);
 			case "discount": return money($this->discount); break;
 			case "hastax": return ($this->tax > 0)?true:false;

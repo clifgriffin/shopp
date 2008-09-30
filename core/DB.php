@@ -363,7 +363,7 @@ class DatabaseObject {
 			if (!is_null($value) && 
 				!in_array($key,$ignores) && 
 				property_exists($this, $key) ) {
-				$this->{$key} = $value;
+				$this->{$key} = attribute_escape($value);
 			}	
 		}
 	}

@@ -7,7 +7,7 @@
 </table>
 
 <fieldset>
-	<legend><?php shopp('purchase','label'); ?></legend>
+	<legend>Billed to</legend>
 	<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
 	<?php shopp('purchase','address'); ?><br />
 	<?php shopp('purchase','xaddress'); ?>
@@ -67,8 +67,18 @@
 </table>
 
 <?php if (shopp('purchase','hasfreight')): ?>
-<p>Order shipping: <?php shopp('purchase','shipmethod'); ?>
+	<fieldset class="shipping">
+		<legend>Ship to</legend>
+		<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
+		<?php shopp('purchase','shipaddress'); ?><br />
+		<?php shopp('purchase','shipxaddress'); ?>
+		<?php shopp('purchase','shipcity'); ?>, <?php shopp('purchase','shipstate'); ?> <?php shopp('purchase','shippostcode'); ?><br />
+		<?php shopp('purchase','shipcountry'); ?></address>
+		
+		<p>Shipping: <?php shopp('purchase','shipmethod'); ?></p>
+	</fieldset>	
 <?php endif; ?>
+
 <?php else: ?>
 	<p class="warning">There were no items found for this purchase.</p>
 <?php endif; ?>

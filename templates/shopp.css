@@ -11,10 +11,11 @@
 #shopp .submit { text-align: right; }
 #shopp form { text-align: left; }
 #shopp form.product ul.options { list-style: none; }
-#shopp form ul label,
-#shopp form ul select { display: inline; }
+/*#shopp form ul label,
+#shopp form ul select { display: inline; }*/
 #shopp form ul { line-height: 1; }
 #shopp form label { font-size: 14px; font-weight: bold; padding-bottom: 3px; }
+#shopp form ul li span label,
 #shopp form div label { font-size: 11px; font-weight: normal; padding-bottom: 8px; }
 
 /**
@@ -111,6 +112,8 @@
 #shopp #receipt { position: relative; margin: 20px 0; }
 #shopp #receipt address { font-style: normal; }
 #shopp #receipt fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
+#shopp #receipt fieldset.shipping {float: right; width: 50%; margin-top: 20px; }
+#shopp #receipt fieldset legend { display: block; }
 #shopp #receipt table.transaction { float: right; width: auto; }
 #shopp #receipt table.transaction th { text-align: right; }
 

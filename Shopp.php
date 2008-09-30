@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev222
+Version: 1.0dev223
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0dev222");
+define("SHOPP_VERSION","1.0dev223");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -162,11 +162,11 @@ class Shopp {
 	 * Adds the WordPress admin menus */
 	function add_menus () {
 		$main = add_menu_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'));
-		$orders = add_submenu_page($this->Flow->Admin->default,'Orders', 'Orders', 8, $this->Flow->Admin->orders, array(&$this,'orders'));
-		$products = add_submenu_page($this->Flow->Admin->default,'Products', 'Products', 8, $this->Flow->Admin->products, array(&$this,'products'));
-		$promotions = add_submenu_page($this->Flow->Admin->default,'Promotions', 'Promotions', 8, $this->Flow->Admin->promotions, array(&$this,'promotions'));
-		$settings = add_submenu_page($this->Flow->Admin->default,'Settings', 'Settings', 8, $this->Flow->Admin->settings, array(&$this,'settings'));
-		$help = add_submenu_page($this->Flow->Admin->default,'Help', 'Help', 8, $this->Flow->Admin->help, array(&$this,'help'));
+		$orders = add_submenu_page($this->Flow->Admin->default,__('Orders','Shopp'), __('Orders','Shopp'), 8, $this->Flow->Admin->orders, array(&$this,'orders'));
+		$products = add_submenu_page($this->Flow->Admin->default,__('Products','Shopp'), __('Products','Shopp'), 8, $this->Flow->Admin->products, array(&$this,'products'));
+		$promotions = add_submenu_page($this->Flow->Admin->default,__('Promotions','Shopp'), __('Promotions','Shopp'), 8, $this->Flow->Admin->promotions, array(&$this,'promotions'));
+		$settings = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), 8, $this->Flow->Admin->settings, array(&$this,'settings'));
+		$help = add_submenu_page($this->Flow->Admin->default,__('Help','Shopp'), __('Help','Shopp'), 8, $this->Flow->Admin->help, array(&$this,'help'));
 		add_action("admin_print_scripts-$main", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$orders", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$products", array(&$this, 'admin_behaviors'));
@@ -491,23 +491,24 @@ class Shopp {
 		$db = DB::get();
 		global $wpdb;
 		
-		//shopp_debug($this);
-		
-		$this->_debug->memory .= "Peak: ".number_format(memory_get_peak_usage()/1024, 2, '.', ',') . " KB<br />";
-		$this->_debug->memory .= "End: ".number_format(memory_get_usage()/1024, 2, '.', ',') . " KB";
-		
-		echo '<script type="text/javascript">'."\n";
-		echo '//<![CDATA['."\n";
-		echo 'var memory_profile = "'.$this->_debug->memory.'";';
-		echo 'var wpquerytotal = '.$wpdb->num_queries.';';
-		echo 'var shoppquerytotal = '.count($db->queries).';';
-		echo 'var shoppqueries = '.json_encode($db->queries).';';
-		echo 'var shoppobjectdump = "";';
- 		echo 'shoppobjectdump = "'.addslashes(shopp_debug($this->_debug->backtrace)).'";';
-		// if (isset($this->_debug->objects)) echo 'shoppobjectdump = "'.addslashes($this->_debug->objects).'";';
-		echo '//]]>'."\n";
-		echo '</script>'."\n";
-		
+		if (current_user_can('manage_options')) {
+			$this->_debug->memory .= "Peak: ".number_format(memory_get_peak_usage()/1024, 2, '.', ',') . " KB<br />";
+			$this->_debug->memory .= "End: ".number_format(memory_get_usage()/1024, 2, '.', ',') . " KB";
+
+
+			echo '<script type="text/javascript">'."\n";
+			echo '//<![CDATA['."\n";
+			echo 'var memory_profile = "'.$this->_debug->memory.'";';
+			echo 'var wpquerytotal = '.$wpdb->num_queries.';';
+			echo 'var shoppquerytotal = '.count($db->queries).';';
+			echo 'var shoppqueries = '.json_encode($db->queries).';';
+			echo 'var shoppobjectdump = "";';
+	 		echo 'shoppobjectdump = "'.addslashes(shopp_debug($this->_debug->backtrace)).'";';
+			// if (isset($this->_debug->objects)) echo 'shoppobjectdump = "'.addslashes($this->_debug->objects).'";';
+			echo '//]]>'."\n";
+			echo '</script>'."\n";
+		}
+
 	}
 		
 	/**
@@ -524,6 +525,7 @@ class Shopp {
 	 * checkout()
 	 * Handles checkout process */
 	function checkout ($wp) {
+		$Order = $this->Cart->data->Order;
 
 		$gateway = false;
 		// Intercept external checkout processing
@@ -545,29 +547,37 @@ class Shopp {
 			return true;
 		}
 		if ($_POST['checkout'] != "process") return true;
-				
+
+		if (!empty($_POST['submit-login'])) {
+			$this->Flow->login($_POST['email-login'],$_POST['password-login']);
+			return true;
+		}
+		
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
 		
-		$Order = new stdClass();
 		if (isset($_POST['data'])) $Order->data = $_POST['data'];
-		$Order->Customer = new Customer();
+		if (empty($Order->Customer))
+			$Order->Customer = new Customer();
 		$Order->Customer->updates($_POST);
+		$Order->Customer->confirm_password = $_POST['confirm-password'];
 
-		$Order->Billing = new Billing();
+		if (empty($Order->Billing))
+			$Order->Billing = new Billing();
 		$Order->Billing->updates($_POST['billing']);
 		$Order->Billing->cardexpires = mktime(0,0,0,$_POST['billing']['cardexpires-mm'],1,($_POST['billing']['cardexpires-yy'])+2000);
 		$Order->Billing->cvv = $_POST['billing']['cvv'];
 
-		$Order->Shipping = new Shipping();
+		if (empty($Order->Shipping))
+			$Order->Shipping = new Shipping();
+			
 		if ($_POST['shipping']) $Order->Shipping->updates($_POST['shipping']);
 		if (!empty($_POST['shipmethod'])) $Order->Shipping->method = $_POST['shipmethod'];
-						
+		else $Order->Shipping->method = key($this->Cart->data->ShipCosts);
+
 		// Override posted shipping updates with billing address
 		if ($_POST['sameshipaddress'] == "on")
 			$Order->Shipping->updates($Order->Billing,
 				array("_datatypes","_table","_key","_lists","id","created","modified"));
-		
-		$this->Cart->data->Order = $Order;
 		
 		// Check for taxes, or process order
 		if ($this->Settings->get('taxes') == "on") {
@@ -700,9 +710,7 @@ class Shopp {
 	 * lookups ()
 	 * Provides fast db lookups with as little overhead as possible */
 	function lookups($wp) {
-		// echo "<pre>";
-		// print_r($wp);
-		// echo "</pre>";
+		// echo "<pre>"; print_r($wp); echo "</pre>";
 
 		// Grab query requests from permalink rewriting query vars
 		$image = $wp->query_vars['shopp_image'];
@@ -813,6 +821,8 @@ class Shopp {
 	 * ajax ()
 	 * Handles AJAX request processing */
 	function ajax() {
+		if (!current_user_can('manage_options')) exit();
+
 		switch($_GET['action']) {
 			
 			// Add a category in the product editor
@@ -827,21 +837,26 @@ class Shopp {
 					$Category->parent = $_GET['parent'];
 
 					// Work out pathing
-					$Category->uri = $Category->slug;
-					
-					for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
-						if ($Category->parent == $Shopp->Catalog->categories[$i]->id) break;
-					$Category->uri = $Shopp->Catalog->categories[$i]->slug."/".$Category->uri;
+					$paths = array();
+					if (!empty($Category->slug)) $paths = array($Category->slug);
+					$uri = "/".$Category->slug;
 
-					$parentkey = $Shopp->Catalog->categories[$i]->parentkey;
+					// If we're saving a new category, lookup the parent
+					for ($i = count($this->Catalog->categories); $i > 0; $i--)
+						if ($Category->parent == $this->Catalog->categories[$i]->id) break;
+					$paths = array_push($this->Catalog->categories[$i]->slug,$paths);
+					$uri = "/".$this->Catalog->categories[$i]->slug.$uri;
+
+					$parentkey = $this->Catalog->categories[$i]->parentkey;
 					while ($parentkey > -1) {
-						$tree_category = $Shopp->Catalog->categories[$parentkey];
-						$uri = $tree_category->slug."/".$uri;
+						$tree_category = $this->Catalog->categories[$parentkey];
+						array_unshift($paths,$tree_category->slug);
+						$uri = "/".$tree_category->slug.$uri;
 						$parentkey = $tree_category->parentkey;
 					}
 
-					$_POST['uri'] = $uri;
-										
+					$Category->uri = join("/",$paths);
+					
 					$Category->save();
 					echo json_encode($Category);
 				}
@@ -856,7 +871,6 @@ class Shopp {
 				
 			// Upload a product download file in the product editor
 			case "wp_ajax_shopp_add_download":
-		
 				// TODO: Error handling
 				// TODO: Security - anti-virus scan?
 		

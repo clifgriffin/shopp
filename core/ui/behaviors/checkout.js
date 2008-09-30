@@ -5,6 +5,7 @@
 		var passed = true;
 		var inputs = form.getElementsByTagName('input');
 		var selects = form.getElementsByTagName('select');
+		var passwords = new Array();
 		var error = new Array();
 
 		for (var i = selects.length-1; i >= 0; i--) {
@@ -33,7 +34,14 @@
 				if (inputs[i].value.length < chars[1])
 					error = new Array("The "+inputs[i].title+" you entered is too short. It must be at least "+chars[1]+" characters long.",inputs[i]);
 			}
-				
+
+			// Validate minumum lengths
+			if (inputs[i].className.match(new RegExp('passwords'))) {
+				passwords.push(inputs[i]);
+				if (passwords.length == 2 && passwords[0].value != passwords[1].value)
+					error = new Array("The passwords you entered do not match. They must match in order to confirm you are correctly entering the password you want to use.",passwords[1]);
+					
+			}
 		}
 	
 		if (error.length > 0) {
@@ -60,6 +68,7 @@
 		}).change();
 				
 		$('#checkout.shopp').submit(function () {
+			return true;
 			if (validate(this)) return true;
 			else return false;
 		});
