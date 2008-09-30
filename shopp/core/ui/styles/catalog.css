@@ -23,6 +23,14 @@
 #shopp .products .frame { width: <?php echo $this->Settings->get('gallery_thumbnail_width'); ?>px; text-align: center; }
 #shopp .products .frame img { display: inline; }
 
+#shopp ul.paging { clear: none; display: inline-block; }
+#shopp ul.paging li { display: inline-block; margin-left: 5px;}
+
+/* Product Grid (Default View) */
+<?php $products = $this->Settings->get('row_products');
+		if (empty($products)) $products = 3; ?>
+#shopp ul.products li.product { width: <?php echo floor((100/$products)); ?>%; }
+
 /**
  * Shopp Forms
  **/

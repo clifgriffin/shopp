@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev224
+Version: 1.0b1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0dev224");
+define("SHOPP_VERSION","1.0b1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -359,9 +359,11 @@ class Shopp {
 		// catalog/category/category-slug
 		if (empty($shop)) {
 			$rules[$catalog.'/category/([a-zA-Z0-9_\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$catalog.'/category/([a-zA-Z0-9_\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&paged=$matches[2]';
 			$rules[$catalog.'/category/([a-zA-Z0-9_\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]';
 		} else {
 			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&paged=$matches[2]';
 			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
 		}
 
@@ -371,8 +373,8 @@ class Shopp {
 
 		// catalog/category/product-slug
 		if (empty($shop)) $rules[$catalog.'/([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
-		else $rules[$shop.'([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
-		
+		else $rules[$shop.'([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
+
 		return $rules + $wp_rewrite_rules;
 	}
 	
@@ -710,7 +712,9 @@ class Shopp {
 	 * lookups ()
 	 * Provides fast db lookups with as little overhead as possible */
 	function lookups($wp) {
+		// global $wp_rewrite;
 		// echo "<pre>"; print_r($wp); echo "</pre>";
+		// echo "<pre>"; print_r($wp_rewrite); echo "</pre>";
 
 		// Grab query requests from permalink rewriting query vars
 		$image = $wp->query_vars['shopp_image'];
@@ -821,12 +825,12 @@ class Shopp {
 	 * ajax ()
 	 * Handles AJAX request processing */
 	function ajax() {
-		if (!current_user_can('manage_options')) exit();
 
 		switch($_GET['action']) {
 			
 			// Add a category in the product editor
 			case "wp_ajax_shopp_add_category":
+				if (!current_user_can('manage_options')) exit();
 				if (!empty($_GET['name'])) {
 					$Catalog = new Catalog();
 					$Catalog->load_categories();
@@ -865,12 +869,14 @@ class Shopp {
 				
 			// Upload an image in the product editor
 			case "wp_ajax_shopp_add_image":
+				if (!current_user_can('manage_options')) exit();
 				$this->Flow->product_images();
 				exit();
 				break;
 				
 			// Upload a product download file in the product editor
 			case "wp_ajax_shopp_add_download":
+				if (!current_user_can('manage_options')) exit();
 				// TODO: Error handling
 				// TODO: Security - anti-virus scan?
 		
@@ -892,6 +898,8 @@ class Shopp {
 				
 			// Perform a version check for any updates
 			case "wp_ajax_shopp_version_check":
+				if (!current_user_can('manage_options')) exit();
+				
 				$request = array(
 					"ShoppServerRequest" => "version-check",
 					"v" => SHOPP_VERSION					
@@ -901,6 +909,7 @@ class Shopp {
 
 			// Perform an update process
 			case "wp_ajax_shopp_update":
+				if (!current_user_can('manage_options')) exit();
 				echo $this->Flow->update();
 				exit();
 		}

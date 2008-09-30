@@ -22,17 +22,6 @@
  * Catalog/Category
  **/
 
-/* Product Grid (Default View) */
-
-/* 5 products per row */
-#shopp ul.products li.product { width: 20%; }
-/* 4 products per row */
-#shopp ul.products li.product { width: 25%; }
-/* 2 products per row */
-#shopp ul.products li.product { width: 33%; }
-/* 3 products per row (DEFAULT) */
-#shopp ul.products li.product { width: 33%; }
-
 /* Each product in a category has a containing frame */
 #shopp ul.products li.product div.frame { padding: 10px; }
 

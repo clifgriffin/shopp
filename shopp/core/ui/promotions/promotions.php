@@ -32,7 +32,7 @@
 			<td><?php
 				if (mktimestamp($Promotion->starts > 1) && mktimestamp($Promotion->ends) > 1)
 					echo date(get_option(date_format),mktimestamp($Promotion->starts))." &mdash; ".date(get_option(date_format),mktimestamp($Promotion->ends));
-				else echo date(get_option(date_format),mktimestamp($Promotion->created)).", <?php _e('does not expire','Shopp'); ?>";
+				else echo date(get_option(date_format),mktimestamp($Promotion->created)).", ".__('does not expire','Shopp');
 			?></td>
 			<td><?php echo ucfirst($Promotion->status); ?></td>
 		</tr>
