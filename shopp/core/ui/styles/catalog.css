@@ -23,26 +23,6 @@
 #shopp .products .frame { width: <?php echo $this->Settings->get('gallery_thumbnail_width'); ?>px; text-align: center; }
 #shopp .products .frame img { display: inline; }
 
-
-/**
- * Product Page Gallery
- **/
-#gallery { float: left; }
-#gallery ul { margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
-#gallery ul li:before { content: ""; }
-#gallery .previews { margin: 0 !important;}
-#gallery .previews { position: relative; }
-#gallery .previews li { position: absolute; width: <?php echo $this->Settings->get('gallery_small_width'); ?>px; height: <?php echo $this->Settings->get('gallery_small_height'); ?>px; line-height: <?php echo $this->Settings->get('gallery_small_height'); ?>px; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; }
-
-#gallery .previews li img { display: inline; vertical-align: middle; margin-top: -3px; }
-
-#gallery .previews li.fill { position: relative; }
-#gallery .previews li.active { visibility: visible; }
-#gallery .previews li.thumbnails { position: relative; top: auto; left: auto; clear: both; height: auto; text-align: center;  }
-#gallery .previews li.thumbnails ul { padding: 0; }
-#gallery .previews li.thumbnails li { position: relative; display: inline-block; visibility: visible; height: auto; top: auto; left: auto;  }
-#shopp #gallery .previews li.thumbnails ul li { width: auto; height: auto; line-height: 1; }
-
 /**
  * Shopp Forms
  **/
@@ -65,6 +45,25 @@
 #shopp form ul li span label,
 #shopp form div label { clear: both; }
 
+
+/**
+ * Product Page Gallery
+ **/
+#gallery { float: left; }
+#gallery ul { margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
+#gallery ul li:before { content: ""; }
+#gallery .previews { margin: 0 !important;}
+#gallery .previews { position: relative; }
+#gallery .previews li { position: absolute; width: <?php echo $this->Settings->get('gallery_small_width'); ?>px; height: <?php echo $this->Settings->get('gallery_small_height'); ?>px; line-height: <?php echo $this->Settings->get('gallery_small_height'); ?>px; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; }
+
+#gallery .previews li img { display: inline; vertical-align: middle; margin-top: -3px; }
+
+#gallery .previews li.fill { position: relative; }
+#gallery .previews li.active { visibility: visible; }
+#gallery .previews li.thumbnails { position: relative; top: auto; left: auto; clear: both; height: auto; text-align: center;  }
+#gallery .previews li.thumbnails ul { padding: 0; }
+#gallery .previews li.thumbnails li { position: relative; display: inline-block; visibility: visible; height: auto; top: auto; left: auto;  }
+#shopp #gallery .previews li.thumbnails ul li { width: auto; height: auto; line-height: 1; }
 
 /**
  * Debug Console

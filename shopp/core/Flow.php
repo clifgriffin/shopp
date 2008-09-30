@@ -350,9 +350,8 @@ class Flow {
 		$PaymentGatewayError = new stdClass();
 		$PaymentGatewayError->code = "404";
 		$PaymentGatewayError->message = "There was a problem with the payment processor. The store owner has been contacted and made aware of this issue.";
-		
+
 		if ($gateway) {
-			
 			if (!file_exists($gateway)) {
 				$Shopp->Cart->data->OrderError = $PaymentGatewayError;
 				return false;
@@ -372,6 +371,7 @@ class Flow {
 		} else {
 			// Use payment gateway set in payment settings
 			$gateway = $Shopp->Settings->get('payment_gateway');
+			$authentication = $Shopp->Settings->get('account_system');
 
 			if (!$gateway || !file_exists($gateway)) {
 				$Shopp->Cart->data->OrderError = $PaymentGatewayError;
@@ -401,6 +401,39 @@ class Flow {
 			}
 
 			// Transaction successful, save the order
+
+			// Create WordPress account (if necessary)
+			if ($authentication == "wordpress" && 
+				!$user = get_user_by_email($Order->Customer->email)) {
+				require_once(ABSPATH."/wp-includes/registration.php");
+				
+				list($handle,$domain) = split("@",$Order->Customer->email);
+
+				// The email handle exists, so use first name initial + lastname
+				if (username_exists($handle)) 
+					$handle = substr($Order->Customer->firstname,0,1).$Order->Customer->lastname;
+				
+				// That exists too *bangs head on wall*, ok add a random number too :P
+				if (username_exists($handle)) 
+					$handle .= rand(1000,9999);
+				
+				// Create the WordPress account
+				$wpuser = wp_insert_user(array(
+					'user_login' => $handle,
+					'user_pass' => $Order->Customer->password,
+					'user_email' => $Order->Customer->email,
+					'display_name' => $Order->Customer->firstname.' '.$Order->Customer->lastname,
+					'nickname' => $handle,
+					'first_name' => $Order->Customer->firstname,
+					'last_name' => $Order->Customer->lastname
+				));
+				
+				// Keep record of it in Shopp's customer records
+				$Order->Customer->wpuser = $wpuser;
+			}
+
+			// Create a WP-compatible password hash to go in the db
+			$Order->Customer->password = wp_hash_password($Order->Customer->password);
 			$Order->Customer->save();
 
 			$Order->Billing->customer = $Order->Customer->id;
@@ -426,6 +459,7 @@ class Flow {
 			$Purchase->transactionid = $Payment->transactionid();
 			$Purchase->transtatus = "CHARGED";
 			$Purchase->save();
+			// echo "<pre>"; print_r($Purchase); echo "</pre>";
 
 			foreach($Shopp->Cart->contents as $Item) {
 				$Purchased = new Purchased();
@@ -448,18 +482,19 @@ class Flow {
 		// Save the purchase ID for later lookup
 		$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
 		$Shopp->Cart->data->Purchase->load_purchased();
-		$Shopp->Cart->save();
+		// $Shopp->Cart->save();
 
 		// Send the e-mail receipt
 		$receipt = array();
 		$receipt['from'] = '"'.get_bloginfo("name").'"';
-		if ($Shopp->Settings->get('shopowner_email')) 
-			$receipt['from'] .= ' <'.$Shopp->Settings->get('shopowner_email').'>';
+		if ($Shopp->Settings->get('merchant_email')) 
+			$receipt['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
 		$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
-		$receipt['subject'] = "Order Receipt";
+		$receipt['subject'] = __('Order Receipt','Shopp');
 		$receipt['receipt'] = $this->order_receipt();
 		$receipt['url'] = get_bloginfo('siteurl');
 		$receipt['sitename'] = get_bloginfo('name');
+		// echo "<PRE>"; print_r($receipt); echo "</PRE>";
 		shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
 		
 		if ($Shopp->Settings->get('receipt_copy') == 1) {
@@ -485,7 +520,57 @@ class Flow {
 		ob_end_clean();
 		return '<div id="shopp">'.$content.'</div>';
 	}
-	
+
+	function login ($email,$password) {
+		global $Shopp;
+		$Cart = $Shopp->Cart;
+		$db = DB::get();
+		$authentication = $Shopp->Settings->get('account_system');
+		
+		switch($authentication) {
+			case "shopp":
+				$Account = new Customer($email,'email');
+
+				if (empty($Account)) {
+					$Cart->data->OrderError->message = "No customer account was found with that email.";
+					return false;
+				} 
+
+				if (!wp_check_password($password,$Account->password)) {
+					$Cart->data->OrderError->message = "The password is incorrect.";
+					return false;
+				}			
+				break;
+				
+			case "wordpress":
+				global $wpdb;
+				$Account = new Customer($email,'email');
+				if ( !$user = get_user_by_email($Account->email)) {
+					$Cart->data->OrderError->message = "No customer account was found with that email.";
+					return false;
+				}
+				
+				if (!wp_check_password($password,$user->user_pass)) {
+					$Cart->data->OrderError->message = "The password is incorrect.";
+					return false;
+				}
+
+				break;
+			default: return false; break;
+		}
+		
+		// Login successful
+		$Cart->data->login = true;
+		$Account->password = "";
+		$Cart->data->Order->Customer = $Account;
+		$Cart->data->Order->Billing = new Billing($Account->id);
+		$Cart->data->Order->Billing->card = "";
+		$Cart->data->Order->Billing->cardexpires = "";
+		$Cart->data->Order->Billing->cardholder = "";
+		$Cart->data->Order->Billing->cardtype = "";
+		$Cart->data->Order->Shipping = new Shipping($Account->id);
+
+	}
 
 	/**
 	 * Transaction flow handlers
@@ -568,6 +653,7 @@ class Flow {
 			$Shopp->Cart->data->Purchase = $Purchase;
 
 		if (!empty($_POST)) {
+			check_admin_referer('shopp-save-order');
 			$Purchase->updates($_POST);
 			if ($_POST['notify'] == "yes") {
 				$labels = $this->Settings->get('order_status');
@@ -807,6 +893,7 @@ class Flow {
 
 	function save_product($Product) {
 		$db = DB::get();
+		check_admin_referer('shopp-save-product');
 
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -1043,9 +1130,6 @@ class Flow {
 				if ($_POST['parent'] == $Shopp->Catalog->categories[$i]->id) break;
 			$paths = array_push($Shopp->Catalog->categories[$i]->slug,$paths);
 			$uri = "/".$Shopp->Catalog->categories[$i]->slug.$uri;
-		} else {
-			for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
-				if ($_GET['category'] == $Shopp->Catalog->categories[$i]->id) break;
 		}
 		
 		$parentkey = $Shopp->Catalog->categories[$i]->parentkey;
@@ -1063,6 +1147,7 @@ class Flow {
 		} else $Category = new Category();
 		
 		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-save-category');
 			$Category->updates($_POST);
 			$Category->save();
 			$this->categories_list();
@@ -1124,6 +1209,7 @@ class Flow {
 		} else $Promotion = new Promotion();
 		
 		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-save-promotion');
 			
 			if (!empty($_POST['starts']['month']) && !empty($_POST['starts']['date']) && !empty($_POST['starts']['year']))
 				$_POST['starts'] = mktime(0,0,0,$_POST['starts']['month'],$_POST['starts']['date'],$_POST['starts']['year']);
@@ -1275,6 +1361,7 @@ class Flow {
 		}
 
 		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-settings-general');
 			$zone = $_POST['settings']['base_operations']['zone'];
 			$_POST['settings']['base_operations'] = $countrydata[$_POST['settings']['base_operations']['country']];
 			$_POST['settings']['base_operations']['country'] = $country;
@@ -1304,6 +1391,7 @@ class Flow {
 		if (isset($_POST['settings']['theme_templates']) && $_POST['settings']['theme_templates'] == "on") 
 			$_POST['settings']['theme_templates'] = TEMPLATEPATH."/shopp";
 		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-settings-presentation');
 			$this->settings_save();
 			$updated = 'Shopp presentation settings saved.';
 		}
@@ -1313,6 +1401,7 @@ class Flow {
 		
 		// Copy templates to the current WordPress theme
 		if (!empty($_POST['install'])) {
+			check_admin_referer('shopp-settings-presentation');
 			$builtin = array_filter(scandir($builtin_path),"filter_dotfiles");
 			foreach ($builtin as $template) {
 				if (!file_exists($theme_path.$template)) {
@@ -1349,6 +1438,7 @@ class Flow {
 	}
 
 	function settings_catalog () {
+		// check_admin_referer('shopp-settings-catalog');
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
@@ -1369,6 +1459,7 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-settings-checkout');
 			$this->settings_save();
 			$updated = 'Shopp checkout settings saved.';
 		}
@@ -1381,11 +1472,12 @@ class Flow {
 
 	function settings_shipping () {
 		global $Shopp;
-
+		
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 		
 		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-settings-shipping');
 			// Sterilize $values
 			foreach ($_POST['settings']['shipping_rates'] as $i => $method) {
 				foreach ($method as $key => $rates) {
@@ -1428,6 +1520,7 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-settings-taxes');
 			$this->settings_save();
 			$updated = 'Shopp taxes settings saved.';
 		}
@@ -1452,6 +1545,7 @@ class Flow {
 		$GoogleCheckout = new GoogleCheckout();
 
 		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-settings-payments');
 			if (!empty($_POST['settings']['GoogleCheckout']['id']) && !empty($_POST['settings']['GoogleCheckout']['key'])) {
 				$url = $Shopp->link('catalog',true);
 				$url .= "?shopp_xorder=GoogleCheckout";
@@ -1488,9 +1582,13 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if (!empty($_POST['save'])) $this->settings_save();
+		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-settings-update');
+			$this->settings_save();
+		}
 		if (!empty($_POST['activation'])) {
 			$this->settings_save();	
+			check_admin_referer('shopp-settings-update');
 			
 			if ($_POST['activation'] == "Activate Key") $process = "activate-key";
 			else $process = "deactivate-key";
@@ -1529,7 +1627,10 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if (!empty($_POST['save'])) $this->settings_save();
+		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-settings-ftp');
+			$this->settings_save();
+		}
 		
 		$credentials = $this->Settings->get('ftp_credentials');
 		

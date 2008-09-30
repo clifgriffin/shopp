@@ -4,17 +4,34 @@
 <?php if (shopp('cart','hasitems')): ?>
 	<?php shopp('checkout','function'); ?>
 	<ul>
+		<?php if (shopp('checkout','notloggedin')): ?>
 		<li>
-			<label for="firstname">Name</label>
+			<label for="login">Your Account</label>
+			<span><?php shopp('checkout','email-login','size=20&title=Login'); ?><label for="login">Email</label></span>
+			<span><?php shopp('checkout','password-login','size=20&title=Password'); ?><label for="password">Password</label></span>
+			<span><?php shopp('checkout','submit-login','value=Login'); ?></span>
+		</li>
+		<li></li>
+		<?php endif; ?>
+		<li>
+			<label for="firstname">Contact Information</label>
 			<span><?php shopp('checkout','firstname','required=true&minlength=2&size=8&title=First Name'); ?><label for="firstname">First</label></span>
 			<span><?php shopp('checkout','lastname','required=true&minlength=3&size=14&title=Last Name'); ?><label for="lastname">Last</label></span>
+			<span><?php shopp('checkout','phone','format=phone&size=15&title=Phone'); ?><label for="phone">Phone</label></span>
+
 		</li>
 		<li>
-			<label for="email">Contact Information</label>
 			<span><?php shopp('checkout','email','required=true&format=email&size=30&title=Email'); ?>
-				<label for="email">Email</label></span>
-			<span><?php shopp('checkout','phone','format=phone&size=15&title=Phone'); ?><label for="phone">Phone</label></span>
+			<label for="email">Email</label></span>
 		</li>
+		<?php if (shopp('checkout','notloggedin')): ?>
+		<li>
+			<span><?php shopp('checkout','password','required=true&format=passwords&size=16&title=Password'); ?>
+			<label for="email">Password</label></span>
+			<span><?php shopp('checkout','confirm-password','required=true&format=passwords&size=16&title=Password Confirmation'); ?>
+			<label for="email">Confirm Password</label></span>
+		</li>
+		<?php endif; ?>
 		<li></li>
 		<?php if (shopp('checkout','shipping')): ?>
 			<li class="half" id="billing-address-fields">

@@ -184,6 +184,7 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 .calendar div.week div.selected,
 .calendar div.week div.active { background-color: #1A8ED2; color: #ffffff; }
 
+.subsubsub.right { float: right; }
 
 /**
  * Dashboard Widgets

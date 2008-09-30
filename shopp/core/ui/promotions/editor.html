@@ -1,58 +1,60 @@
 <div class="wrap shopp">
-	<h2>Promotion Editor</h2>
+	<h2><?php _e('Promotion Editor','Shopp'); ?></h2>
 	
-	<form name="promotion" id="promotion" method="post" action="">
+	<form name="promotion" id="promotion" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+		<?php wp_nonce_field('shopp-save-promotion'); ?>
+		
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="promotion-name">Description</label></th> 
+				<th scope="row" valign="top"><label for="promotion-name"><?php _e('Description','Shopp'); ?></label></th> 
 				<td><input type="text" name="name" value="<?php echo $Promotion->name; ?>" id="promotion-name" size="40" /><br /> 
-	            The name is used to describe the promotion on order receipts.</td>
+	            <?php _e('The name is used to describe the promotion on order receipts.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="discount-status">Status</label></th> 
+				<th scope="row" valign="top"><label for="discount-status"><?php _e('Status','Shopp'); ?></label></th> 
 				<td>
-					<label for="discount-status"><input type="hidden" name="status" value="disabled" /><input type="checkbox" name="status" id="discount-status" value="enabled"<?php echo ($Promotion->status == "enabled")?' checked="checked"':''; ?> /> &nbsp;Enabled</label>
+					<label for="discount-status"><input type="hidden" name="status" value="disabled" /><input type="checkbox" name="status" id="discount-status" value="enabled"<?php echo ($Promotion->status == "enabled")?' checked="checked"':''; ?> /> &nbsp;<?php _e('Enabled','Shopp'); ?></label>
 
 					<p></p>
 					
 					<div class="calendar-wrap"><div id="starts-calendar" class="calendar"></div><input type="text" name="starts[month]" id="starts-month" size="3" value="<?php echo ($Promotion->starts>1)?date("n",$Promotion->starts):''; ?>" />/<input type="text" name="starts[date]" id="starts-date" size="3"  value="<?php echo ($Promotion->starts>1)?date("j",$Promotion->starts):''; ?>" />/<input type="text" name="starts[year]" id="starts-year" size="5" value="<?php echo ($Promotion->starts>1)?date("Y",$Promotion->starts):''; ?>" /></div> &mdash; <div class="calendar-wrap"><div id="ends-calendar" class="calendar"></div><input type="text" name="ends[month]" id="ends-month" size="3" value="<?php echo ($Promotion->ends>1)?date("n",$Promotion->ends):''; ?>" />/<input type="text" name="ends[date]" id="ends-date" size="3" value="<?php echo ($Promotion->ends>1)?date("j",$Promotion->ends):''; ?>" />/<input type="text" name="ends[year]" id="ends-year" size="5" value="<?php echo ($Promotion->ends>1)?date("Y",$Promotion->ends):''; ?>" /></div>
-					<p>Enter the date range this promotion will be in effect for.</p>
+					<p><?php _e('Enter the date range this promotion will be in effect for.','Shopp'); ?></p>
 					
 	            </td>
 			</tr>			
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="promotion-scope">Applied To</label></th> 
+				<th scope="row" valign="top"><label for="promotion-scope"><?php _e('Applied To','Shopp'); ?></label></th> 
 				<td><select name="scope" id="promotion-scope">
 					<?php echo menuoptions($Promotion->_lists['scope'],$Promotion->scope); ?>
 					</select><br />
-	            Apply the discount to individual catalog items, or to an entire order.</td>
+	            <?php _e('Apply the discount to individual catalog items, or to an entire order.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="discount-type">Discount Type</label></th> 
+				<th scope="row" valign="top"><label for="discount-type"><?php _e('Discount Type','Shopp'); ?></label></th> 
 				<td><select name="type" id="discount-type">
 					<?php echo menuoptions($Promotion->_lists['type'],$Promotion->type); ?>
 					</select><br />
-	            Select how the discount will be applied.</td>
+	            <?php _e('Select how the discount will be applied.','Shopp'); ?></td>
 			</tr>
 			<tr id="discount-row" class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="discount-amount">Discount Amount</label></th> 
+				<th scope="row" valign="top"><label for="discount-amount"><?php _e('Discount Amount','Shopp'); ?></label></th> 
 				<td><input type="text" name="discount" id="discount-amount" value="<?php echo $Promotion->discount; ?>" size="10" /><br />
-	            Enter the amount of this discount.</td>
+	            <?php _e('Enter the amount of this discount.','Shopp'); ?></td>
 			</tr>
 			<tr id="beyget-row" class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="discount-amount">Item Quantities</label></th> 
-				<td>Buy <input type="text" name="buyqty" id="buy-x" value="<?php echo $Promotion->buyqty; ?>" size="5" /> Get <input type="text" name="getqty" id="get-y" value="<?php echo $Promotion->getqty; ?>" size="5" /><br />
-	            Enter the number of items that must be purchased and how many will be gifted.</td>
+				<th scope="row" valign="top"><label for="discount-amount"><?php _e('Item Quantities','Shopp'); ?></label></th> 
+				<td><?php _e('Buy','Shopp'); ?> <input type="text" name="buyqty" id="buy-x" value="<?php echo $Promotion->buyqty; ?>" size="5" /> <?php _e('Get','Shopp'); ?> <input type="text" name="getqty" id="get-y" value="<?php echo $Promotion->getqty; ?>" size="5" /><br />
+	            <?php _e('Enter the number of items that must be purchased and how many will be gifted.','Shopp'); ?></td>
 			</tr>
 			
 		</table>
 		<br class="clear" />
-		<h3>For products where <select name="search" class="small">
+		<h3><?php _e('For products where','Shopp'); ?> <select name="search" class="small">
 			<?php 
 				if (empty($Promotion->logic)) $Promotion->logic = "all";
 				echo menuoptions(array('any','all'),$Promotion->logic); 
 			?>
-			</select> of these conditions are met:</h3>
+			</select> <?php _e('of these conditions are met:','Shopp'); ?></h3>
 		<table class="form-table" id="rules"> 
 		</table>
 		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
@@ -60,7 +62,7 @@
 </div>
 
 <script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>Promotions";
+helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
 
 $=jQuery.noConflict();
 

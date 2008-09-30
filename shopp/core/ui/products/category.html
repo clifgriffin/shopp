@@ -1,33 +1,35 @@
 <div class="wrap shopp">
-	<h2>Category Editor</h2>
+	<h2><?php _e('Category Editor','Shopp'); ?></h2>
 	<?php include("navigation.html"); ?>
 
-	<form name="category" id="category" method="post" action="">
+	<form name="category" id="category" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+		<?php wp_nonce_field('shopp-save-category'); ?>
+		
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="category_name">Category Name</label></th> 
+				<th scope="row" valign="top"><label for="category_name"><?php _e('Category Name','Shopp'); ?></label></th> 
 				<td><input type="text" name="name" value="<?php echo $Category->name; ?>" id="category_name" size="40" /><br /> 
-	            The name is used to identify the category in your catalog.</td>
+	            <?php _e('The name is used to identify the category in your catalog.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="slug">Category Slug</label></th> 
+				<th scope="row" valign="top"><label for="slug"><?php _e('Category Slug','Shopp'); ?></label></th> 
 				<td><input type="text" name="slug" value="<?php echo $Category->slug; ?>" id="category_slug" size="40" /><br /> 
-	            The name is used to identify the category in your catalog.</td>
+	            <?php _e('The name is used to identify the category in your catalog.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="category_parent">Category Parent</label></th> 
+				<th scope="row" valign="top"><label for="category_parent"><?php _e('Category Parent','Shopp'); ?></label></th> 
 				<td><select name="parent" id="category_parent"><?php echo $categories_menu; ?></select><br /> 
-	            Categories, unlike tags, can be or have nested sub-categories.</td>
+	            <?php _e('Categories, unlike tags, can be or have nested sub-categories.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-field form-required"> 
-				<th scope="row" valign="top"><label for="category_description">Description</label></th> 
+				<th scope="row" valign="top"><label for="category_description"><?php _e('Description','Shopp'); ?></label></th> 
 				<td><textarea name="description" id="category_description" rows="5" cols="50" style="width: 97%;"><?php echo $Category->description; ?></textarea><br /> 
-	            The description is not prominent by default, however some themes may show it.</td>
+	            <?php _e('The description is not prominent by default, however some themes may show it.','Shopp'); ?></td>
 		</tr>
 		<tr class="form-field">
-			<th><label>Details Template</label>
+			<th><label><?php _e('Details Template','Shopp'); ?></label>
 				<div id="new-detail">
-				<button type="button" id="addDetail" class="button-secondary"><small>Add Detail</small></button>
+				<button type="button" id="addDetail" class="button-secondary"><small><?php _e('Add Detail','Shopp'); ?></small></button>
 				</div>
 			</th>
 			<td>
@@ -36,31 +38,31 @@
 						<div id="details-menu" class="multiple-select options"><ul></ul></div></li>
 				</ul>
 				<div class="clear"></div>
-				Create a predefined set of details for products in this category.
+				<?php _e('Create a predefined set of details for products in this category.','Shopp'); ?>
 			</td>
 		</tr>
 		<tr>
-			<th>Option Menu Templates</th>
+			<th><?php _e('Option Menu Templates','Shopp'); ?></th>
 			<td>
-				Create a predefined set of variation options for products in this category.<br />
+				<?php _e('Create a predefined set of variation options for products in this category.','Shopp'); ?><br />
 				<ul class="multipane">
 					<li><div id="variations-menu" class="multiple-select options menu"><ul></ul></div>
 					<div class="controls">
-						<button type="button" id="addVariationMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> Add Option Menu</small></button>
+						<button type="button" id="addVariationMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
 					</div>
 				</li>
 				
 				<li>
 					<div id="variations-list" class="multiple-select options"></div><br />
 					<div class="controls right">
-					<button type="button" id="addVariationOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> Add Option</small></button>
+					<button type="button" id="addVariationOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
 					</div>
 				</li>
 				</ul>
 				
 			</td>
 		</tr>		</table>
-		<p class="submit"><input type="submit" class="button" name="save" value="Save Changes" /></p>
+		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
 

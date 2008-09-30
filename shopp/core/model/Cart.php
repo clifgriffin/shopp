@@ -697,10 +697,27 @@ class Cart {
 				break;
 			case "cart-summary":
 				ob_start();
-				include("{$Shopp->path}/templates/summary.php");
+				include(SHOPP_TEMPLATES."/summary.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;
+				break;
+			case "loggedin": return $this->data->login; break;
+			case "notloggedin": return (!$this->data->login); break;
+			case "email-login": 
+				if (!empty($_POST['email-login']))
+					$options['value'] = $_POST['email-login']; 
+				return '<input type="text" name="email-login" id="email-login"'.$this->inputattrs($options).' />';
+				break;
+			case "password-login": 
+				if (!empty($_POST['password-login']))
+					$options['value'] = $_POST['password-login']; 
+				return '<input type="password" name="password-login" id="password-login"'.$this->inputattrs($options).' />';
+				break;
+			case "submit-login": 
+				if (!empty($_POST['submit-login']))
+					$options['value'] = $_POST['submit-login']; 
+				return '<input type="submit" name="submit-login" id="submit-login"'.$this->inputattrs($options).' />';
 				break;
 			case "firstname": 
 				if (!empty($this->data->Order->Customer->firstname))
@@ -716,6 +733,16 @@ class Cart {
 				if (!empty($this->data->Order->Customer->email))
 					$options['value'] = $this->data->Order->Customer->email; 
 				return '<input type="text" name="email" id="email"'.$this->inputattrs($options).' />';
+				break;
+			case "password":
+				if (!empty($this->data->Order->Customer->password))
+					$options['value'] = $this->data->Order->Customer->password; 
+				return '<input type="password" name="password" id="password"'.$this->inputattrs($options).' />';
+				break;
+			case "confirm-password":
+				if (!empty($this->data->Order->Customer->confirm_password))
+					$options['value'] = $this->data->Order->Customer->confirm_password; 
+				return '<input type="password" name="confirm-password" id="confirm-password"'.$this->inputattrs($options).' />';
 				break;
 			case "phone": 
 			if (!empty($this->data->Order->Customer->phone))

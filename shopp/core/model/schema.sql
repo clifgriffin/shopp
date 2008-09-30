@@ -139,6 +139,8 @@ CREATE TABLE shopp_cart (
 DROP TABLE IF EXISTS shopp_customer;
 CREATE TABLE shopp_customer (
 	id bigint(20) unsigned NOT NULL auto_increment,
+	wpuser bigint(20) unsigned NOT NULL default '0',
+	password varchar(64) NOT NULL default '',
 	firstname varchar(32) NOT NULL default '',
 	lastname varchar(32) NOT NULL default '',
 	email varchar(96) NOT NULL default '',
