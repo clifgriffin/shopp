@@ -5,7 +5,7 @@
 	</div>
 	<h2><?php _e('Categories','Shopp'); ?></h2>
 	
-	<?php include("navigation.html"); ?>
+	<?php include("navigation.php"); ?>
 
 	<p class="controls"><button type="submit" name="category" value="new" class="button"><?php _e('New Category','Shopp'); ?></button></p>
 

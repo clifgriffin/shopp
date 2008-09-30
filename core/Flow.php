@@ -275,7 +275,7 @@ class Flow {
 		$Cart = $this->Cart;
 
 		ob_start();
-		include(SHOPP_TEMPLATES."/shipping.html");
+		include(SHOPP_TEMPLATES."/shipping.php");
 		$content = ob_get_contents();
 		ob_end_clean();
 
@@ -635,7 +635,7 @@ class Flow {
 			'current' => $pagenum
 		));
 
-		include("{$this->basepath}/core/ui/orders/orders.html");
+		include("{$this->basepath}/core/ui/orders/orders.php");
 	}
 	
 	function order_manager () {
@@ -684,7 +684,7 @@ class Flow {
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
 		
-		include("{$this->basepath}/core/ui/orders/order.html");
+		include("{$this->basepath}/core/ui/orders/order.php");
 	}
 	
 	function order_status_counts () {
@@ -720,7 +720,7 @@ class Flow {
 		}
 		
 		ob_start();
-		include(SHOPP_ADMINPATH."/orders/account.html");
+		include(SHOPP_ADMINPATH."/orders/account.php");
 		$content = ob_get_contents();
 		ob_end_clean();
 		return '<div id="shopp">'.$content.'</div>';
@@ -785,7 +785,7 @@ class Flow {
 			'current' => $pagenum
 		));
 		
-		include("{$this->basepath}/core/ui/products/products.html");
+		include("{$this->basepath}/core/ui/products/products.php");
 	}
 	
 	
@@ -887,7 +887,7 @@ class Flow {
 		$shiprates = $this->Settings->get('shipping_rates');
 		if (!empty($shiprates)) ksort($shiprates);
 
-		include("{$this->basepath}/core/ui/products/editor.html");
+		include("{$this->basepath}/core/ui/products/editor.php");
 
 	}
 
@@ -1103,7 +1103,7 @@ class Flow {
 			'current' => $pagenum
 		));
 		
-		include("{$this->basepath}/core/ui/products/categories.html");
+		include("{$this->basepath}/core/ui/products/categories.php");
 	}
 	
 	function category_editor () {
@@ -1165,7 +1165,7 @@ class Flow {
 			if ($Category->id != $category->id) $categories_menu .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'"'.$selected.'>'.$padding.$category->name.'</option>';
 		}
 
-		include("{$this->basepath}/core/ui/products/category.html");
+		include("{$this->basepath}/core/ui/products/category.php");
 	}	
 	
 	function promotions_list () {
@@ -1194,7 +1194,7 @@ class Flow {
 		
 		$table = DatabaseObject::tablename(Promotion::$table);
 		$Promotions = $db->query("SELECT * FROM $table",AS_ARRAY);
-		include("{$this->basepath}/core/ui/promotions/promotions.html");
+		include("{$this->basepath}/core/ui/promotions/promotions.php");
 	}
 	
 	function promotion_editor () {
@@ -1230,7 +1230,7 @@ class Flow {
 			return true;
 		}
 		
-		include("{$this->basepath}/core/ui/promotions/editor.html");
+		include("{$this->basepath}/core/ui/promotions/editor.php");
 	}
 	
 	/**
@@ -1381,7 +1381,7 @@ class Flow {
 		if (!$targets) $targets = array();
 		
 		$statusLabels = $this->Settings->get('order_status');
-		include(SHOPP_ADMINPATH."/settings/settings.html");
+		include(SHOPP_ADMINPATH."/settings/settings.php");
 	}
 	
 	function settings_presentation () {
@@ -1434,7 +1434,7 @@ class Flow {
 								"Lowest quality, smallest file size");
 		
 		
-		include(SHOPP_ADMINPATH."/settings/presentation.html");
+		include(SHOPP_ADMINPATH."/settings/presentation.php");
 	}
 
 	function settings_catalog () {
@@ -1443,7 +1443,7 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (!empty($_POST['save'])) $this->settings_save();
-		include(SHOPP_ADMINPATH."/settings/catalog.html");
+		include(SHOPP_ADMINPATH."/settings/catalog.php");
 	}
 
 	function settings_cart () {
@@ -1451,7 +1451,7 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (!empty($_POST['save'])) $this->settings_save();
-		include(SHOPP_ADMINPATH."/settings/cart.html");
+		include(SHOPP_ADMINPATH."/settings/cart.php");
 	}
 
 	function settings_checkout () {
@@ -1467,7 +1467,7 @@ class Flow {
 		$downloads = array("1","2","3","5","10","15","25","100");
 		$time = array("30 minutes","1 hour","2 hours","3 hours","6 hours","12 hours","1 day","3 days","1 week","1 month","3 months","6 months","1 year");
 								
-		include(SHOPP_ADMINPATH."/settings/checkout.html");
+		include(SHOPP_ADMINPATH."/settings/checkout.php");
 	}
 
 	function settings_shipping () {
@@ -1512,7 +1512,7 @@ class Flow {
 		// print_r($rates);
 		// print "</pre>";
 		
-		include(SHOPP_ADMINPATH."/settings/shipping.html");
+		include(SHOPP_ADMINPATH."/settings/shipping.php");
 	}
 
 	function settings_taxes () {
@@ -1530,7 +1530,7 @@ class Flow {
 		$countries = $this->Settings->get('target_markets');
 		$zones = $this->Settings->get('zones');
 		
-		include(SHOPP_ADMINPATH."/settings/taxes.html");
+		include(SHOPP_ADMINPATH."/settings/taxes.php");
 	}	
 
 	function settings_payments () {
@@ -1575,7 +1575,7 @@ class Flow {
 		}
 		
 		
-		include(SHOPP_ADMINPATH."/settings/payments.html");
+		include(SHOPP_ADMINPATH."/settings/payments.php");
 	}
 	
 	function settings_update () {
@@ -1620,7 +1620,7 @@ class Flow {
 			else $activation = "Enter your Shopp upgrade key and activate it to enable easy, automatic upgrades.";
 		}
 		
-		include(SHOPP_ADMINPATH."/settings/update.html");
+		include(SHOPP_ADMINPATH."/settings/update.php");
 	}
 	
 	function settings_ftp () {
@@ -1634,7 +1634,7 @@ class Flow {
 		
 		$credentials = $this->Settings->get('ftp_credentials');
 		
-		include(SHOPP_ADMINPATH."/settings/ftp.html");
+		include(SHOPP_ADMINPATH."/settings/ftp.php");
 	}
 
 	function settings_get_gateways () {

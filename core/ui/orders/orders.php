@@ -3,7 +3,7 @@
 	<div><input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" /></div>
 	<h2><?php _e('Orders','Shopp'); ?></h2>
 
-	<?php include("navigation.html"); ?>
+	<?php include("navigation.php"); ?>
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="alignleft"><button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary"><?php _e('Delete','Shopp'); ?></button></div>

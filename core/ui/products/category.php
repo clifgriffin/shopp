@@ -1,6 +1,6 @@
 <div class="wrap shopp">
 	<h2><?php _e('Category Editor','Shopp'); ?></h2>
-	<?php include("navigation.html"); ?>
+	<?php include("navigation.php"); ?>
 
 	<form name="category" id="category" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
 		<?php wp_nonce_field('shopp-save-category'); ?>
