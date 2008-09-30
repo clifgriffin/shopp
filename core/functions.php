@@ -493,6 +493,7 @@ function build_query_request ($request=array()) {
 class FTPClient {
 	var $connected = false;
 	var $log = array();
+	var $remapped = false;
 	
 	function FTPClient ($host, $user, $password) {
 		$this->connect($host, $user, $password);
@@ -518,7 +519,7 @@ class FTPClient {
 		// $this->log[] = "The source path is $path";
 		$remote = trailingslashit($remote);
 		// $this->log[] = "The destination path is $remote";
-		$remote = $this->remappath($remote);
+		if (!$this->remapped) $remote = $this->remappath($remote);
 		// $this->log[] = "The remapped destination path is $remote";
 		
 		$files = scandir($path);
@@ -587,10 +588,13 @@ class FTPClient {
 			$filepath = trailingslashit($this->pwd()).basename($file);
 			if (!$this->isdir($filepath)) continue;
 			$index = strrpos($path,$filepath);
-			if ($index !== false) return substr($path,$index);
+			if ($index !== false) {
+				$this->remapped = true;
+				return substr($path,$index);
+			}
 		}
 		$this->log[] = "Failed to map realpath to FTP path";
-		return false;
+		return $path;
 	}
 
 }

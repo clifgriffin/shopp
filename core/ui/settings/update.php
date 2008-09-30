@@ -35,43 +35,63 @@
 <script type="text/javascript">
 (function($) {
 	helpurl = "<?php echo SHOPP_DOCS; ?>Update_Settings";
-	var ajaxurl = '<?php bloginfo('siteurl'); ?>/wp-admin/admin-ajax.php';
-	var adminurl = '<?php bloginfo('siteurl'); ?>/wp-admin/admin.php';
+	var ajaxurl = '<?php echo wp_nonce_url(get_bloginfo("siteurl")."/wp-admin/admin-ajax.php", "shopp-wp_ajax_shopp_update"); ?>';
+	var adminurl = '<?php echo wp_nonce_url(get_bloginfo("siteurl")."/wp-admin/admin.php", "shopp-wp_ajax_shopp_update"); ?>';
 	
 	$('#check-update').click(function () {
-		var target = $('#update-info')
-		$.getJSON(ajaxurl+"?action=wp_ajax_shopp_version_check",function (result) {
-			var data = eval(result);
-			if (data.update) {
-				target.html('<strong>Shopp '+data.version+' is available!</strong>');
-				<?php if ($this->Settings->get('updatekey_status') == "activated"): ?>
-				var wrap = $('<p></p>').appendTo(target);
-				var update = $('<button type="button" name="update" id="update" class="button-secondary"><?php _e('Update Shopp','Shopp'); ?></button>').appendTo(wrap);
-				update.click(function () {
-					target.html('<div id="status" class="updating"><?php _e('Updating Shopp&hellip; be patient!','Shopp'); ?></div>');
-					startupdate();
-				});				
-				<?php endif; ?>
-			}
-			else target.html("<strong>Shopp is up-to-date!</strong>");
+
+		var target = $('#update-info');
+		$('<div id="status" class="updating"><?php _e("Checking"); ?>&hellip;</div>').appendTo(target);
+		$.ajax({
+			type:"GET",
+			url:ajaxurl+"&action=wp_ajax_shopp_version_check",
+			timeout:10000,
+			dataType:'json',
+			success:function (data) {
+				if (data.update) {
+					$('#status').remove();
+					target.html('<strong>Shopp '+data.version+' is available!</strong>');
+					<?php if ($this->Settings->get('updatekey_status') == "activated"): ?>
+					var wrap = $('<p></p>').appendTo(target);
+					var update = $('<button type="button" name="update" id="update" class="button-secondary"><?php _e("Update Shopp","Shopp"); ?></button>').appendTo(wrap);
+					update.click(function () {
+						target.html('<div id="status" class="updating"><?php _e("Updating Shopp&hellip; be patient!","Shopp"); ?></div>');
+						startupdate();
+					});				
+					<?php endif; ?>
+				}
+				else target.html("<strong><?php _e('Shopp is up-to-date!','Shopp'); ?></strong>");
+			},
+			error:function () {	$('#status').remove(); }
 		});
+		
 	});
 
 	function startupdate () {
-		$.get(ajaxurl+"?action=wp_ajax_shopp_update",function (result) {
-			// console.log(result);
-			if (result == "ftp-failed") {
-				window.location.href = adminurl+"?page=shopp/settings&edit=ftp";
-			} else if (result == "updated") {
-				$('#update-info').html('<strong><?php _e('Update Complete!','Shopp'); ?></strong><br /><?php _e('Click continue to upgrade the Shopp database.','Shopp'); ?>');
-				var wrap = $('<p></p>').appendTo('#update-info');
-				var reload = $('<button type="button" name="reload" value="reload" class="button-secondary"><?php _e('Continue','Shopp'); ?>&hellip;</button>').appendTo('#update-info');
-				reload.click(function () {
-					window.location.href = adminurl+'?page=shopp/settings&edit=update&updated=true';
-				});
-			} else {
-				alert("<?php _e('An error occurred while trying to update.  The update failed.  This is what Shopp says happened:','Shopp'); ?>\n"+result);
-				window.location.href = adminurl+'?page=shopp/settings&edit=update&updated=true';
+		$.ajax({
+			type:"GET",
+			url:ajaxurl+"&action=wp_ajax_shopp_update",
+			timeout:30000,
+			datatype:'text',
+			success:function (result) {
+				// console.log(result);
+				if (result == "ftp-failed") {
+					window.location.href = adminurl+"&page=shopp/settings&edit=ftp";
+				} else if (result == "updated") {
+					$('#update-info').html('<strong><?php _e("Update Complete!","Shopp"); ?></strong><br /><?php _e("Click continue to upgrade the Shopp database.","Shopp"); ?>');
+					var wrap = $('<p></p>').appendTo('#update-info');
+					var reload = $('<button type="button" name="reload" value="reload" class="button-secondary"><?php _e('Continue','Shopp'); ?>&hellip;</button>').appendTo('#update-info');
+					reload.click(function () {
+						window.location.href = adminurl+'&page=shopp/settings&edit=update&updated=true';
+					});
+				} else {
+					alert("<?php _e('An error occurred while trying to update.  The update failed.  This is what Shopp says happened:','Shopp'); ?>\n"+result);
+					window.location.href = adminurl+'&page=shopp/settings&edit=update&updated=true';
+				}
+			},
+			error:function () {
+				alert("<?php _e('The update timed out and was not successful.','Shopp'); ?>\n"+result);
+				window.location.href = adminurl+'&page=shopp/settings&edit=update&updated=true';
 			}
 		});
 	}

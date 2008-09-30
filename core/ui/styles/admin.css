@@ -9,6 +9,7 @@ body { position: relative; }
 
 #status { padding-left: 20px; font-weight: bold; }
 #status.updating { background: url('/wp-content/plugins/shopp/core/ui/icons/updating.gif') no-repeat left center; }
+#check-update.updating { background: url('/wp-content/plugins/shopp/core/ui/icons/updating.gif') no-repeat 4px center; padding-left: 25px; }
 
 .form-table input.toggle { margin-left: -13px; }
 .form-table { position: relative; }
