@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0dev223
+Version: 1.0dev224
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0dev223");
+define("SHOPP_VERSION","1.0dev224");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -700,7 +700,7 @@ class Shopp {
 	 * provides the default behavior of showing a help gateway
 	 * page with instructions on where to find help on Shopp. */
 	function help () {
-		include(SHOPP_ADMINPATH."/help/help.html");
+		include(SHOPP_ADMINPATH."/help/help.php");
 	}
 	
 	/**

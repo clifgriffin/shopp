@@ -3,7 +3,7 @@
 	<div><input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" /></div>
 	<h2><?php _e('Products','Shopp'); ?></h2>
 	
-	<?php include("navigation.html"); ?>
+	<?php include("navigation.php"); ?>
 
 	<p class="controls"><button type="submit" name="edit" value="new" class="button"><?php _e('New Product','Shopp'); ?></button></p>
 

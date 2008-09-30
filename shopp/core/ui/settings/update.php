@@ -1,6 +1,6 @@
 <div class="wrap shopp">
 	<h2><?php _e('Upgrade Settings','Shopp'); ?></h2>
-	<?php include("navigation.html"); ?>
+	<?php include("navigation.php"); ?>
 
 	<form name="settings" id="update" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-update'); ?>
