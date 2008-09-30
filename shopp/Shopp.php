@@ -70,8 +70,9 @@ class Shopp {
 		$this->Flow = new Flow($this);
 
 		// Keep any DB operations from occuring while in maintenance mode
-		if (!empty($_GET['updated']) && $this->Settings->get('maintenance') == "on"){
-			if ($this->Flow->upgrade()) $this->Settings->save("maintenance","off");
+		if (!empty($_GET['updated']) && $this->Settings->get('maintenance') == "on") {
+			$this->Flow->upgrade();
+			$this->Settings->save("maintenance","off");
 		} elseif ($this->Settings->get('maintenance') == "on") {
 			add_action('wp', array(&$this, 'shortcodes'));
 			return true;
@@ -830,7 +831,6 @@ class Shopp {
 			
 			// Add a category in the product editor
 			case "wp_ajax_shopp_add_category":
-				if (!current_user_can('manage_options')) exit();
 				if (!empty($_GET['name'])) {
 					$Catalog = new Catalog();
 					$Catalog->load_categories();
@@ -869,14 +869,12 @@ class Shopp {
 				
 			// Upload an image in the product editor
 			case "wp_ajax_shopp_add_image":
-				if (!current_user_can('manage_options')) exit();
 				$this->Flow->product_images();
 				exit();
 				break;
 				
 			// Upload a product download file in the product editor
 			case "wp_ajax_shopp_add_download":
-				if (!current_user_can('manage_options')) exit();
 				// TODO: Error handling
 				// TODO: Security - anti-virus scan?
 		
@@ -897,9 +895,8 @@ class Shopp {
 				break;
 				
 			// Perform a version check for any updates
-			case "wp_ajax_shopp_version_check":
-				if (!current_user_can('manage_options')) exit();
-				
+			case "wp_ajax_shopp_version_check":	
+				check_admin_referer('shopp-wp_ajax_shopp_update');
 				$request = array(
 					"ShoppServerRequest" => "version-check",
 					"v" => SHOPP_VERSION					
@@ -909,7 +906,7 @@ class Shopp {
 
 			// Perform an update process
 			case "wp_ajax_shopp_update":
-				if (!current_user_can('manage_options')) exit();
+				check_admin_referer('shopp-wp_ajax_shopp_update');
 				echo $this->Flow->update();
 				exit();
 		}
