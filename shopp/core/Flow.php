@@ -879,7 +879,7 @@ class Flow {
 			$padding = str_repeat("&nbsp;",$category->depth*3);
 			$categories_menu .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'">'.$padding.$category->name.'</option>';
 		}		
-		
+
 		$selectedCategories = array();
 		foreach ($Product->categories as $catalog) $selectedCategories[] = $catalog->category;
 
@@ -936,12 +936,11 @@ class Flow {
 			unset($Price);
 		}
 						
-		if (!empty($_POST['details']) && is_array($_POST['details'])) {
+		if (!empty($_POST['details']) || !empty($_POST['deletedSpecs'])) {
+			$deletes = array();
 			if (!empty($_POST['deletedSpecs'])) {
-				$deletes = array();
 				if (strpos($_POST['deletedSpecs'],","))	$deletes = split(',',$_POST['deletedSpecs']);
 				else $deletes = array($_POST['deletedSpecs']);
-			
 				foreach($deletes as $option) {
 					$Spec = new Spec($option);
 					$Spec->delete();
@@ -949,15 +948,18 @@ class Flow {
 				unset($Spec);
 			}
 			
-			foreach ($_POST['details'] as $i => $spec) {
-				if (empty($spec['id'])) {
-					$Spec = new Spec();
-					$spec['product'] = $Product->id;
-				} else $Spec = new Spec($spec['id']);
-				$spec['sortorder'] = array_search($i,$_POST['detailsorder'])+1;
+			if (is_array($_POST['details'])) {
+				foreach ($_POST['details'] as $i => $spec) {
+					if (in_array($spec['id'],$deletes)) continue;
+					if (empty($spec['id'])) {
+						$Spec = new Spec();
+						$spec['product'] = $Product->id;
+					} else $Spec = new Spec($spec['id']);
+					$spec['sortorder'] = array_search($i,$_POST['detailsorder'])+1;
 				
-				$Spec->updates($spec);
-				$Spec->save();
+					$Spec->updates($spec);
+					$Spec->save();
+				}
 			}
 		}
 		
@@ -1116,50 +1118,50 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		$Shopp->Catalog = new Catalog();
-		$Shopp->Catalog->load_categories();
-		
-		if (empty($_POST['slug'])) $_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
-		else $_POST['slug'] = sanitize_title_with_dashes($_POST['slug']);
-		
-		// Work out pathing
-		$paths = array();
-		if (!empty($_POST['slug'])) $paths = array($_POST['slug']);
-		$uri = "/".$_POST['slug'];
-	
-		// If we're saving a new category, lookup the parent
-		if ($_GET['category'] == "new") {
-			for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
-				if ($_POST['parent'] == $Shopp->Catalog->categories[$i]->id) break;
-			$paths = array_push($Shopp->Catalog->categories[$i]->slug,$paths);
-			$uri = "/".$Shopp->Catalog->categories[$i]->slug.$uri;
-		}
-		
-		$parentkey = $Shopp->Catalog->categories[$i]->parentkey;
-		while ($parentkey > -1) {
-			$tree_category = $Shopp->Catalog->categories[$parentkey];
-			array_unshift($paths,$tree_category->slug);
-			$uri = "/".$tree_category->slug.$uri;
-			$parentkey = $tree_category->parentkey;
-		}
-
-		$_POST['uri'] = join("/",$paths);
 
 		if ($_GET['category'] != "new") {
 			$Category = new Category($_GET['category']);
 		} else $Category = new Category();
-		
+
+		$Shopp->Catalog = new Catalog();
+		$Shopp->Catalog->load_categories();
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-save-category');
+			
+			if (empty($_POST['slug'])) $_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
+			else $_POST['slug'] = sanitize_title_with_dashes($_POST['slug']);
+
+			// Work out pathing
+			$paths = array();
+			if (!empty($_POST['slug'])) $paths = array($_POST['slug']);  // Include self
+			
+			$parentkey = -1;
+			// If we're saving a new category, lookup the parent
+			if ($_POST['parent'] > 0) {
+				for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
+					if ($_POST['parent'] == $Shopp->Catalog->categories[$i]->id) break;
+				array_unshift($paths,$Shopp->Catalog->categories[$i]->slug);
+				$parentkey = $Shopp->Catalog->categories[$i]->parentkey;
+			}
+
+			while ($parentkey > -1) {
+				$category_tree = $Shopp->Catalog->categories[$parentkey];
+				array_unshift($paths,$category_tree->slug);
+				$parentkey = $category_tree->parentkey;
+			}
+
+			$_POST['uri'] = join("/",$paths);
+			
 			$Category->updates($_POST);
 			$Category->save();
 			$this->categories_list();
 			return true;
-		}		
+		}
 		
 		$categories = $db->query("SELECT id,name,parent FROM $Category->_table ORDER BY parent,name",AS_ARRAY);
 		$categories = sort_tree($categories);
-
+		
 		$categories_menu = '<option value="0" rel="-1,-1">Parent Category&hellip;</option>';
 		foreach ($categories as $category) {
 			$padding = str_repeat("&nbsp;",$category->depth*3);
@@ -1213,17 +1215,16 @@ class Flow {
 		
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-save-promotion');
-			
+
 			if (!empty($_POST['starts']['month']) && !empty($_POST['starts']['date']) && !empty($_POST['starts']['year']))
 				$_POST['starts'] = mktime(0,0,0,$_POST['starts']['month'],$_POST['starts']['date'],$_POST['starts']['year']);
 			else $_POST['starts'] = 1;
-			
+
 			if (!empty($_POST['ends']['month']) && !empty($_POST['ends']['date']) && !empty($_POST['ends']['year']))
-				$_POST['ends'] = mktime(0,0,0,$_POST['ends']['month'],$_POST['ends']['date'],$_POST['ends']['year']);
+				$_POST['ends'] = mktime(23,59,59,$_POST['ends']['month'],$_POST['ends']['date'],$_POST['ends']['year']);
 			else $_POST['ends'] = 1;
-			
+
 			$Promotion->updates($_POST);
-			
 			$Promotion->save();
 
 			if ($Promotion->scope == "Item")

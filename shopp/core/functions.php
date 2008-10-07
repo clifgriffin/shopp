@@ -341,6 +341,15 @@ if (!function_exists('property_exists')) {
 	}
 }
 
+if (!function_exists('attribute_escape_deep')) {
+	function attribute_escape_deep($value) {
+		 $value = is_array($value) ?
+			 array_map('attribute_escape_deep', $value) :
+			 attribute_escape($value);
+		 return $value;
+	}
+}
+
 /**
  * sort_tree
  * Sorts a heirarchical tree of data */

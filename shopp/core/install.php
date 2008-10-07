@@ -43,9 +43,11 @@ foreach ($this->Flow->Pages as $key => &$page) {
 	$page['id'] = $wpdb->insert_id;
 	$page['permalink'] = get_permalink($page['id']);
 	if ($key == "checkout") $page['permalink'] = str_replace("http://","https://",$page['permalink']);
-	$wpdb->query("UPDATE $wpdb->posts SET guid='{$page['permalink']}' WHERE ID={$page['id']}");		
+	$wpdb->query("UPDATE $wpdb->posts SET guid='{$page['permalink']}' WHERE ID={$page['id']}");
+	$page['permalink'] = preg_replace('|https?://[^/]+/|i','',$page['permalink']);
 }
 
+$wp_rewrite->flush_rules();
 $this->Settings->add("pages",$this->Flow->Pages);
 
 ?>
