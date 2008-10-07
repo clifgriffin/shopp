@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0b1
+Version: 1.0b2
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0b1");
+define("SHOPP_VERSION","1.0b2");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -173,7 +173,7 @@ class Shopp {
 		add_action("admin_print_scripts-$products", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$promotions", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$settings", array(&$this, 'admin_behaviors'));
-		add_action("admin_print_scripts-$help", array(&$this, 'admin_behaviors'));
+		add_action("admin_print_scripts-$help", array(&$this, 'admin_behaviors'));		
 	}
 
 	/**
@@ -292,7 +292,7 @@ class Shopp {
 				add_shortcode($name,array(&$this->Flow,'maintenance_shortcode'));
 			else add_shortcode($name,$callback);
 	}
-
+	
 	/**
 	 * page_updates()
 	 * Handles changes to Shopp-installed pages that may affect 'pretty' urls */
@@ -307,6 +307,7 @@ class Shopp {
 		
 		// No pages setting, rebuild it
 		if (empty($pages) || $updates || $update) {
+			echo "<br />Processing Page Updates...<br />";
 			$pages = $this->Flow->Pages;
 			
 			// Find pages with Shopp-related main shortcodes
@@ -342,11 +343,13 @@ class Shopp {
 	 * rewrites()
 	 * Adds Shopp-specific pretty-url rewrite rules to the WordPress rewrite rules */
 	function rewrites ($wp_rewrite_rules) {
+		$this->page_updates(true);
 		$pages = $this->Settings->get('pages');
 		if (!$pages) $pages = $this->Flow->Pages;
 		$shop = $pages['catalog']['permalink'];
 		$catalog = $pages['catalog']['name'];
 		$checkout = $pages['checkout']['permalink'];
+		echo "<pre>"; print_r($pages); echo "</pre>";
 		
 		$rules = array(
 			$checkout.'?$' => 'index.php?pagename='.$checkout.'&shopp_proc=checkout',

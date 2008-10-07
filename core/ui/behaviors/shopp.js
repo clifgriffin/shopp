@@ -178,20 +178,21 @@ function cartHandlers () {
 }
 
 function helpHandler () {
-	var submenu = document.getElementById("submenu");
-	if (!submenu) return true;
+	var wpwrap = document.getElementById("wpwrap");
+	if (!wpwrap) return true;
 
 	(function($) {
-		var links = $(submenu).children().find("a");
-		var helplink = links[links.length-1];
-		if (helpurl) {
-			$(helplink).click(function (e) {
-				e.stopPropagation();
-				window.open(helpurl);
-				return false;
+		if (helpurl) {			
+			var links = $(wpwrap).find("a");
+			links.each(function (index,link) {
+				var href = $(link).attr('href');
+				if (href.match(new RegExp(/(.*?)=shopp\/help$/))) {
+					href = href.replace(new RegExp(/(.*?)=shopp\/help$/),helpurl);
+					$(link).attr('href',href);
+					$(link).attr('target','_blank');
+				}
 			});
 		}
-	
 	})(jQuery)
 }
 

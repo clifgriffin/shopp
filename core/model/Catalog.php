@@ -26,7 +26,7 @@ class Catalog extends DatabaseObject {
 		else $limit = "";
 		
 		$category_table = DatabaseObject::tablename(Category::$table);
-		$this->categories = $db->query("select cat.*,count(sc.product) as products from $category_table as cat left join $this->_table as sc on sc.category=cat.id group by cat.id order by parent DESC,name ASC$limit",AS_ARRAY);
+		$this->categories = $db->query("SELECT cat.*,count(sc.product) AS products FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id GROUP BY cat.id ORDER BY parent DESC,name ASC$limit",AS_ARRAY);
 		$this->categories = sort_tree($this->categories);
 	}
 		

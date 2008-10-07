@@ -141,7 +141,7 @@ class DB extends Singleton {
 					case "date":
 						// If the date is an integer, convert it to an
 						// sql YYYY-MM-DD HH:MM:SS format
-						if (is_int($value)) {
+						if (is_int(intval($value))) {
 							$data[$property] = "'".mkdatetime($value)."'";
 						// If it's an empty date, set it to now()'s timestamp
 						} else if (empty($value)) {
@@ -363,7 +363,7 @@ class DatabaseObject {
 			if (!is_null($value) && 
 				!in_array($key,$ignores) && 
 				property_exists($this, $key) ) {
-				$this->{$key} = attribute_escape($value);
+				$this->{$key} = attribute_escape_deep($value);
 			}	
 		}
 	}
