@@ -10,6 +10,7 @@
  **/
 
 require_once("Category.php");
+require_once("Tag.php");
 
 class Catalog extends DatabaseObject {
 	static $table = "catalog";
@@ -28,7 +29,20 @@ class Catalog extends DatabaseObject {
 		$category_table = DatabaseObject::tablename(Category::$table);
 		$this->categories = $db->query("SELECT cat.*,count(sc.product) AS products FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id GROUP BY cat.id ORDER BY parent DESC,name ASC$limit",AS_ARRAY);
 		$this->categories = sort_tree($this->categories);
+		return true;
 	}
+	
+	function load_tags ($limits=false) {
+		$db = DB::get();
+		
+		if ($limits) $limit = " LIMIT {$limits[0]},{$limits[1]}";
+		else $limit = "";
+		
+		$tagtable = DatabaseObject::tablename(Tag::$table);
+		$this->tags = $db->query("SELECT t.*,count(sc.product) AS products FROM $tagtable AS t LEFT JOIN $this->_table AS sc ON sc.tag=t.id GROUP BY t.id ORDER BY t.name ASC$limit",AS_ARRAY);
+		return true;
+	}
+	
 		
 	function tag ($property,$options=array()) {
 		global $Shopp;
@@ -38,6 +52,25 @@ class Catalog extends DatabaseObject {
 				
 		switch ($property) {
 			case "url": return $Shopp->link('catalog');
+			case "tagcloud":
+				if (!empty($options['levels'])) $levels = $options['levels'];
+				else $levels = 7;
+				if (empty($this->tags)) $this->load_tags();
+				$min = -1; $max = -1;
+				foreach ($this->tags as $tag) {
+					if ($min == -1 || $tag->products < $min) $min = $tag->products;
+					if ($max == -1 || $tag->products > $max) $max = $tag->products;
+				}
+				$string = '<ul class="shopp tagcloud">';
+				foreach ($this->tags as $tag) {
+					$level = round((1-$tag->products/$max)*$levels)+1;
+					if (SHOPP_PERMALINKS) $link = $path.'/tag/'.str_replace(" ","+",$tag->name).'/';
+					else $link = $page.'&amp;shopp_tag='.str_replace(" ","+",$tag->name);
+					$string .= '<li class="level-'.$level.'"><a href="'.$link.'">'.$tag->name.'</a></li>';
+				}
+				$string .= '</ul>';
+				return $string;
+				break;
 			case "category-list":
 				if (empty($this->categories)) $this->load_categories();
 				$string = "";

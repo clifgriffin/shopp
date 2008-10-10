@@ -48,7 +48,9 @@ function init () {
 	}
 
 	$('#new-category input, #new-category select').hide();
-
+	
+	tags();
+	
 	$('#add-new-category').click(function () {
 		$('#new-category input, #new-category select').toggle();
 		$('#new-category input').focus();
@@ -57,8 +59,10 @@ function init () {
 		var name = $('#new-category input').val();
 		var parent = $('#new-category select').val();
 		if (name != "") {
+			$(this).addClass('updating');
 			url = window.location.href.substr(0,window.location.href.indexOf('?'));
 			$.getJSON(url+"/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_category&name="+name+"&parent="+parent,function(Category) {
+				$('#add-new-category').removeClass('updating');
 				addCategoryMenuItem(Category);
 				addCategoryParentMenuOption(Category);
 
@@ -85,6 +89,13 @@ function init () {
 				if (details.toString().search(speclist[id]['name']) == -1) addDetail(speclist[id]);
 			}
 		});
+
+		// $.getJSON(siteurl+"/wp-admin/admin.php?lookup=optionstemplate&cat="+id,function (options) {
+		// 	for (id in speclist) {
+		// 		if (details.toString().search(speclist[id]['name']) == -1) addDetail(speclist[id]);
+		// 	}
+		// });
+
 	});
 
 	quickSelects();
@@ -153,6 +164,57 @@ function init () {
 	
 }
 
+function tags () {
+	function updateTagList () {
+		$('#tagchecklist').empty();
+		var tags = $('#tags').val().split(',');
+		if (tags[0].length > 0) {
+			$(tags).each(function (id,tag) {
+				var entry = $('<span></span>').html(tag).appendTo('#tagchecklist');
+				var deleteButton = $('<a></a>').html('X').addClass('ntdelbutton').prependTo(entry);
+				deleteButton.click(function () {
+					var tags = $('#tags').val();
+					tags = tags.replace(new RegExp('(^'+tag+',?|,'+tag+'\\b)'),'');
+					$('#tags').val(tags);
+					updateTagList();
+				});
+			});
+		}
+	}
+	
+	$('#newtags').focus(function () {
+		if ($(this).val() == $(this).attr('title')) {
+			$(this).val('');
+			$(this).toggleClass('form-input-tip');
+		}
+			
+	});
+	
+	$('#newtags').blur(function () {
+		if ($(this).val() == '') {
+			$(this).val($(this).attr('title'));
+			$(this).toggleClass('form-input-tip');
+		}
+	});
+	
+	$('#add-tags').click(function () {
+		if ($('#newtags').val() == $('#newtags').attr('title')) return true;
+		newtags = $('#newtags').val().split(',');
+		
+		$(newtags).each(function(id,tag) { 
+			var tags = $('#tags').val();
+			tag = $.trim(tag);
+			if (tags == '') $('#tags').val(tag);
+			else if (tags != tag && tags.indexOf(tag+',') == -1 && tags.indexOf(','+tag) == -1) 
+				$('#tags').val(tags+','+tag);
+		});
+		updateTagList();
+		$('#newtags').val('').blur();
+	});
+	
+	updateTagList();
+}
+
 function addDetail (data) {
 	var menu = $('#details-menu');
 	var entries = $('#details-list');
@@ -162,11 +224,11 @@ function addDetail (data) {
 	var moveHandle = $('<div class="move"></div>').appendTo(e);
 	var detailsorder = $('<input type="hidden" name="detailsorder[]" value="'+i+'" />').appendTo(e);
 	var specId = $('<input type="hidden" name="details['+i+'][id]" />').appendTo(e);
-	var label = $('<input type="text" name="details['+i+'][name]" class="label" />').appendTo(e);
+	var label = $('<input type="text" name="details['+i+'][name]" class="label" tabindex="9" />').appendTo(e);
 	var deleteButton = $('<button type="button" class="delete"><img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="delete" width="16" height="16" /></button>').appendTo(e);
 
 	var detailEntry = $('<li></li>').appendTo(entries).hide();
-	var content = $('<textarea name="details['+i+'][content]" cols="40" rows="7"></textarea>').appendTo(detailEntry);
+	var content = $('<textarea name="details['+i+'][content]" cols="40" rows="7" tabindex="9"></textarea>').appendTo(detailEntry);
 
 	e.click(function () {
 		var details = $(menu).children().children();
@@ -311,7 +373,7 @@ function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 	var e = $('<li>').appendTo($(menu).children('ul'));
 	var moveHandle = $('<div class="move"></div>').appendTo(e);
 	var menuId = $('<input type="hidden" name="options['+fieldname+']['+i+'][menuid]" id="menuid-'+i+'" value="'+menusidx+'" class="id" />').appendTo(e);
-	var label = $('<input type="text" name="options['+fieldname+']['+i+'][menu]" id="'+fieldname+'-menu-'+i+'" />').appendTo(e);
+	var label = $('<input type="text" name="options['+fieldname+']['+i+'][menu]" id="'+fieldname+'-menu-'+i+'" tabindex="13" />').appendTo(e);
 	var deleteButton = $('<button type="button" class="delete"><img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="delete" width="16" height="16" /></button>').appendTo(e);
 
 	var options = $('<ul></ul>').appendTo(lists).hide();
@@ -326,7 +388,7 @@ function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 		var option = $('<li></li>').appendTo(options);
 		var optionMove = $('<div class="move"></div>').appendTo(option);
 		var optionId = $('<input type="hidden" name="options['+fieldname+']['+i+'][id][]" value="'+id+'" class="id" />').appendTo(option);
-		var optionLabel = $('<input type="text" name="options['+fieldname+']['+i+'][label][]" />').appendTo(option);
+		var optionLabel = $('<input type="text" name="options['+fieldname+']['+i+'][label][]" tabindex="13" />').appendTo(option);
 		var optionDelete = $('<button type="button" class="delete"><img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="delete" width="16" height="16" /></button>').appendTo(option);
 		productOptions[id] = optionLabel;
 		optionsidx++;

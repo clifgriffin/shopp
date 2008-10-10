@@ -88,10 +88,10 @@ class Promotion extends DatabaseObject {
 			case "Is not equal to": return ($subject != $value  || $subject != floatval(preg_replace("/[^\d\.]/","",$value))); break;
 
 			// String operations
-			case "Contains": return (strpos($subject,$value) !== false); break;
-			case "Does not contain": return (strpos($subject,$value) === false); break;
-			case "Begins with": return (strpos($subject,$value) === 0); break;
-			case "Ends with": return  (strpos($subject,$value) === strlen($subject) - strlen($value)); break;
+			case "Contains": return (stripos($subject,$value) !== false); break;
+			case "Does not contain": return (stripos($subject,$value) === false); break;
+			case "Begins with": return (stripos($subject,$value) === 0); break;
+			case "Ends with": return  (stripos($subject,$value) === strlen($subject) - strlen($value)); break;
 			
 			// Numeric operations
 			case "Is greater than": return ($subject > floatval(preg_replace("/[^\d\.]/","",$value))); break;

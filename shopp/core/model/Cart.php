@@ -337,9 +337,13 @@ class Cart {
 							}
 						}
 						break;
-					case "Item quantity": 
-						if (Promotion::match_rule($this->data->Totals->quantity,$rule['logic'],$rule['value']))
-							$rulematch = true;
+					case "Item quantity":
+						foreach ($this->contents as &$Item) {
+							if (Promotion::match_rule($Item->quantity,$rule['logic'],$rule['value'])) {
+								$items[] = &$Item;
+								$rulematch = true;
+							}
+						}
 						break;
 					case "Shipping amount": 
 						if (Promotion::match_rule($this->data->Totals->shipping,$rule['logic'],$rule['value']))
@@ -387,7 +391,7 @@ class Cart {
 					switch ($promo->type) {
 						case "Percentage Off": $this->data->Totals->discount += $this->data->Totals->subtotal*($promo->discount/100); break;
 						case "Amount Off": $this->data->Totals->discount += $promo->discount; break;
-						case "Free Shipping": $this->data->Totals->shipping = 0; break;
+						case "Free Shipping": $this->freeshipping = true; break;
 					}
 				}
 				$this->data->PromosApplied[] = $promo;
@@ -431,10 +435,11 @@ class Cart {
 		$this->freeshipping = $freeshipping;
 
 		$this->promotions();
+		$discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
 		
 		if ($this->data->Shipping) $Totals->shipping = $this->shipping();
 
-		$Totals->total = $Totals->subtotal - $Totals->discount + 
+		$Totals->total = $Totals->subtotal - $discount + 
 			$Totals->shipping + $Totals->tax;
 	}
 	
@@ -733,6 +738,11 @@ class Cart {
 				if (!empty($this->data->Order->Customer->email))
 					$options['value'] = $this->data->Order->Customer->email; 
 				return '<input type="text" name="email" id="email"'.$this->inputattrs($options).' />';
+				break;
+			case "loginname":
+				if (!empty($this->data->Order->Customer->login))
+					$options['value'] = $this->data->Order->Customer->login; 
+				return '<input type="text" name="login" id="login"'.$this->inputattrs($options).' />';
 				break;
 			case "password":
 				if (!empty($this->data->Order->Customer->password))

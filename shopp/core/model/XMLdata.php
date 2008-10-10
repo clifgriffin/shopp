@@ -183,16 +183,16 @@ class XMLdata {
 	 * search()
 	 * Helper function to perform recursive searches in the tree 
 	 * for a $target and returns the structure */
-	private function &search ($target,$dom=false,$ref=false) {
+	private function search ($target,&$dom=false,$ref=false) {
 		if (!$dom) $dom = &$this->data;
 		if (!is_array($dom)) $dom = array($dom);
 
 		$results = array();
 		foreach($dom as $key => &$element) {
 			if (is_array($element) && $key == $target && $ref) return $element;
-			if (is_array($element) && $key == $target) array_push($results,&$element);
+			if (is_array($element) && $key == $target) array_push($results,$element);
 			if (isset($element['CHILDREN'])) {
-				$found = &$this->search($target,&$element['CHILDREN'],$ref);
+				$found = &$this->search($target,$element['CHILDREN'],$ref);
 				if ($ref) return $found;
 				else $results += $found;
 			}

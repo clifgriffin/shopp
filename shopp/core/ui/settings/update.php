@@ -1,4 +1,5 @@
 <div class="wrap shopp">
+	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 	<h2><?php _e('Upgrade Settings','Shopp'); ?></h2>
 	<?php include("navigation.php"); ?>
 

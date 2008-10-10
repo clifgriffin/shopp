@@ -134,6 +134,39 @@ class Flow {
 		register_widget_control('Shopp Categories',array(&$this,'categories_widget_options'));
 	}
 	
+	
+	function init_tagcloud_widget () {
+		register_sidebar_widget("Shopp Tag Cloud",array(&$this,'tagcloud_widget'),'shopp tagcloud');
+		register_widget_control('Shopp Tag Cloud',array(&$this,'tagcloud_widget_options'));
+	}
+	
+	function tagcloud_widget_options ($args=null) {
+		global $Shopp;
+
+		if (isset($_POST['shopp_tagcloud_widget_options'])) {
+			$options = $_POST['tagcloud_widget_options'];
+			$Shopp->Settings->save('tagcloud_widget_options',$options);
+		}
+
+		$options = $Shopp->Settings->get('tagcloud_widget_options');
+
+		echo '<p><label>Title<input name="tagcloud_widget_options[title]" class="widefat" value="'.$options['title'].'"></label></p>';
+		echo '<div><input type="hidden" name="shopp_tagcloud_widget_options" value="1" /></div>';
+	}
+
+	function tagcloud_widget ($args=null) {
+		global $Shopp;
+		extract($args);
+		
+		$options = $Shopp->Settings->get('tagcloud_widget_options');
+		
+		if (empty($options['title'])) $options['title'] = "Product Tags";
+		$options['title'] = $before_title.$options['title'].$after_title;
+		
+		$tagcloud = $Shopp->Catalog->tag('tagcloud',$options);
+		echo $before_widget.$options['title'].$tagcloud.$after_widget;
+		
+	}
 	/**
 	 * Shopping Cart flow handlers
 	 **/
@@ -409,16 +442,26 @@ class Flow {
 			if ($authentication == "wordpress" && 
 				!$user = get_user_by_email($Order->Customer->email)) {
 				require_once(ABSPATH."/wp-includes/registration.php");
-				
-				list($handle,$domain) = split("@",$Order->Customer->email);
 
-				// The email handle exists, so use first name initial + lastname
-				if (username_exists($handle)) 
-					$handle = substr($Order->Customer->firstname,0,1).$Order->Customer->lastname;
+				if (!empty($Order->Customer->login)) $handle = $Order->Customer->login;
+				else {
+					// No login provided, auto-generate login handle
+					list($handle,$domain) = split("@",$Order->Customer->email);
+
+					// The email handle exists, so use first name initial + lastname
+					if (username_exists($handle)) 
+						$handle = substr($Order->Customer->firstname,0,1).$Order->Customer->lastname;
+
+					// That exists too *bangs head on wall*, ok add a random number too :P
+					if (username_exists($handle)) 
+						$handle .= rand(1000,9999);
+				}
 				
-				// That exists too *bangs head on wall*, ok add a random number too :P
-				if (username_exists($handle)) 
-					$handle .= rand(1000,9999);
+				if (username_exists($handle)) {
+					$Shopp->Cart->data->OrderError = new StdClass();
+					$Shopp->Cart->data->OrderError->code = "0600";
+					$Shopp->Cart->data->OrderError->message = __('The login name you provided is already in use.  Please choose another login name.');
+				}
 				
 				// Create the WordPress account
 				$wpuser = wp_insert_user(array(
@@ -681,7 +724,7 @@ class Flow {
 			
 			
 			$Purchase->save();
-			$updated = 'Order status updated.';
+			$updated = __('Order status updated.');
 		}
 
 		$statusLabels = $this->Settings->get('order_status');
@@ -820,6 +863,8 @@ class Flow {
 			switch ($atts['slug']) {
 				case SearchResults::$slug: 
 					$Shopp->Category = new SearchResults(array('search'=>$atts['search'])); break;
+				case TagProducts::$slug: 
+					$Shopp->Category = new TagProducts(array('tag'=>$atts['tag'])); break;
 				case BestsellerProducts::$slug: $Shopp->Category = new BestsellerProducts(); break;
 				case NewProducts::$slug: $Shopp->Category = new NewProducts(); break;
 				case FeaturedProducts::$slug: $Shopp->Category = new FeaturedProducts(); break;
@@ -855,6 +900,7 @@ class Flow {
 			$Product->load_prices();
 			$Product->load_specs();
 			$Product->load_categories();
+			$Product->load_tags();
 		} else $Product = new Product();
 
 		if (!empty($_POST['save'])) {
@@ -883,6 +929,9 @@ class Flow {
 		$selectedCategories = array();
 		foreach ($Product->categories as $catalog) $selectedCategories[] = $catalog->category;
 
+		$taglist = array();
+		foreach ($Product->tags as $tag) $taglist[] = $tag->name;
+
 		$Assets = new Asset();
 		$Images = $db->query("SELECT id,src FROM $Assets->_table WHERE context='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
 		unset($Assets);
@@ -907,6 +956,7 @@ class Flow {
 		$Product->save();
 
 		$Product->save_categories($_POST['categories']);
+		$Product->save_tags(split(",",$_POST['taglist']));
 		
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 
@@ -935,7 +985,7 @@ class Flow {
 			}
 			unset($Price);
 		}
-						
+			
 		if (!empty($_POST['details']) || !empty($_POST['deletedSpecs'])) {
 			$deletes = array();
 			if (!empty($_POST['deletedSpecs'])) {
@@ -1373,7 +1423,7 @@ class Flow {
 			$_POST['settings']['base_operations']['currency']['format'] = 
 				scan_money_format($_POST['settings']['base_operations']['currency']['format']);
 			$this->settings_save();
-			$updated = 'Shopp settings saved.';
+			$updated = __('Shopp settings saved.');
 		}
 
 		$operations = $this->Settings->get('base_operations');
@@ -1399,7 +1449,7 @@ class Flow {
 			if (empty($_POST['settings']['catalog_pagination']))
 				$_POST['settings']['catalog_pagination'] = 0;
 			$this->settings_save();
-			$updated = 'Shopp presentation settings saved.';
+			$updated = __('Shopp presentation settings saved.');
 		}
 		
 		$builtin_path = $this->basepath."/templates";
@@ -1469,7 +1519,7 @@ class Flow {
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-checkout');
 			$this->settings_save();
-			$updated = 'Shopp checkout settings saved.';
+			$updated = __('Shopp checkout settings saved.');
 		}
 		
 		$downloads = array("1","2","3","5","10","15","25","100");
@@ -1497,7 +1547,7 @@ class Flow {
 				}
 			}
 	 		$this->settings_save();
-			$updated = 'Shopp shipping settings saved.';
+			$updated = __('Shopp shipping settings saved.');
 		}
 
 		$methods = $Shopp->ShipCalcs->methods;
@@ -1530,7 +1580,7 @@ class Flow {
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-taxes');
 			$this->settings_save();
-			$updated = 'Shopp taxes settings saved.';
+			$updated = __('Shopp taxes settings saved.');
 		}
 		
 		$rates = $this->Settings->get('taxrates');
@@ -1564,7 +1614,7 @@ class Flow {
 			}
 			
 			$this->settings_save();
-			$updated = 'Shopp payments settings saved.';
+			$updated = __('Shopp payments settings saved.');
 		}
 		
 		$data = $this->settings_get_gateways();
@@ -1593,10 +1643,13 @@ class Flow {
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-update');
 			$this->settings_save();
+			if (isset($_POST['settings']['ftp_credentials']))
+				$updated = __('FTP settings saved.  Click the <b>Check for Updates</b> button to start the update process again.');
 		}
+		
 		if (!empty($_POST['activation'])) {
-			$this->settings_save();	
 			check_admin_referer('shopp-settings-update');
+			$this->settings_save();	
 			
 			if ($_POST['activation'] == "Activate Key") $process = "activate-key";
 			else $process = "deactivate-key";
@@ -1615,17 +1668,17 @@ class Flow {
 			
 			if ($process == "activate-key" && $activation == "1") {
 				$this->Settings->save('updatekey_status','activated');
-				$activation = "This key has been successfully activated.";
+				$activation = __('This key has been successfully activated.');
 			}
 			
 			if ($process == "deactivate-key" && $activation == "1") {
 				$this->Settings->save('updatekey_status','deactivated');
-				$activation = "This key has been successfully de-activated.";
+				$activation = __('This key has been successfully de-activated.');
 			}
 		} else {
 			if ($this->Settings->get('updatekey_status') == "activated") 
-				$activation = "This key has been successfully activated.";
-			else $activation = "Enter your Shopp upgrade key and activate it to enable easy, automatic upgrades.";
+				$activation = __('This key has been successfully activated.');
+			else $activation = __('Enter your Shopp upgrade key and activate it to enable easy, automatic upgrades.');
 		}
 		
 		include(SHOPP_ADMINPATH."/settings/update.php");
@@ -1634,14 +1687,8 @@ class Flow {
 	function settings_ftp () {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
-
-		if (!empty($_POST['save'])) {
-			check_admin_referer('shopp-settings-ftp');
-			$this->settings_save();
-		}
-		
-		$credentials = $this->Settings->get('ftp_credentials');
-		
+		check_admin_referer('shopp-wp_ajax_shopp_update');
+		$credentials = $this->Settings->get('ftp_credentials');		
 		include(SHOPP_ADMINPATH."/settings/ftp.php");
 	}
 
@@ -1776,8 +1823,14 @@ class Flow {
 		fclose($download);
 		
 		$downloadsize = filesize($updatefile);
+		// Report error message returned by the server request
+		if (filesize($updatefile) < 256) die(join("\n\n",$log)."\nUpdate Failed: ".file_get_contents($updatefile));
+		
+		// Nothing downloaded... couldn't reach the server?
 		if (filesize($updatefile) == 0) die(join("\n\n",$log)."\n\Update Failed: The download did not complete succesfully.");
-		$log[] = "Downloaded update of $downloadsize bytes";
+		
+		// Download successful, log the size
+		$log[] = "Downloaded update of ".number_format($downloadsize)." bytes";
 		
 		// Extract data
 		$log[] = "Unpacking updates...";
@@ -1804,7 +1857,7 @@ class Flow {
 		// FTP files to make it "easier" than dealing with permissions
 		$log[] = "Updating files via FTP connection";
 		$results = $ftp->update($target."shopp",$Shopp->path);
-		if (!empty($results)) die(join("\n\n",$log).join("\n\nUpdate Failed: ",$results));
+		if (!empty($results)) die(join("\n\n",$log).join("\n\n",$results)."\n\nFTP transfer failed.");
 		// $ftp->put($tmpdir.$dbBackup,$Shopp->path."/backups"."/$dbBackup");
 		// $ftp->put($tmpdir.$filesBackup,$Shopp->path."/backups"."/$filesBackup");
 				
