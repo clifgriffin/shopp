@@ -16,6 +16,7 @@
 	            <?php _e('Select the payment gateway processor you will be using to process credit card transactions.','Shopp'); ?></td>
 			</tr>
 			<tbody id="payment-settings">
+				<?php foreach ($Processors as $Processor) $Processor->settings(); ?>
 			</tbody>
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="paypalexpress-enabled">PayPal Express</label></th> 
@@ -46,35 +47,13 @@ if (!$('#googlecheckout-enabled').attr('checked')) $('#googlecheckout-settings')
 
 var gatewayHandlers = new CallbackRegistry();
 
-var addSetting = function (label,field,help) {
-	fieldtype = field.type;
-	delete field.type;
-	if (fieldtype == "text" || fieldtype == "password" || fieldtype == "select")
-		help = '<br />'+help;
-		
-	if (fieldtype == "checkbox" || fieldtype == "radio")
-		help = '<label for="'+field.id+'"> '+help+'</label>';
-	
-	var row = $('<tr></tr>').addClass('form-field').appendTo('#payment-settings');
-	var heading = $('<th scope="row" valign="top"></th>').appendTo(row);
-	var fieldLabel = $('<label></label>').attr('for',field.id).html(label).appendTo(heading);
-	var dataCell = $('<td></td>').html(' '+help).appendTo(row);
-	
-	var input = $('<input type="'+fieldtype+'" />').attr(field).prependTo(dataCell);
-	
-	if (fieldtype == "checkbox")
-		var hidden = $('<input type="hidden" name="'+field.name+'" value="'+field.unchecked+'" />').prependTo(dataCell);
-	
-}
-
-<?php foreach ($Processors as $Processor) $Processor->settings(); ?>
+<?php foreach ($Processors as $Processor) $Processor->registerSettings(); ?>
 
 $('#payment-gateway').change(function () {
-	$('#payment-settings').empty();
-	if (this.value.length > 0) gatewayHandlers.call(this.value);
-});
-
-if ($('#payment-gateway').val() != '') gatewayHandlers.call($('#payment-gateway').val());
+	$('#payment-settings tr').hide();
+	var target = '#'+gatewayHandlers.get(this.value);
+	if (this.value.length > 0) $(target).show();
+}).change();
 
 $('#paypalexpress-enabled').change(function () {
 	$('#paypalexpress-settings').slideToggle(250);

@@ -50,23 +50,21 @@ class TestMode {
 		$Shopp->Settings->save('gateway_cardtypes',array("Visa","MasterCard","Discover","American Express"));
 		$settings = $Shopp->Settings->get('TestMode');
 		?>
-				
-		var testmode_settings = function () {
-
-			addSetting("Test Mode Response",
-							{'name':'settings[TestMode][response]',
-							 'id':'gateway_testmode',
-							 'type':'checkbox',
-							 'value':'error',
-							 'unchecked':'success',
-							 'checked':<?php echo ($settings['response'] == "error")?'true':'false'; ?>},
-							 "Test Error Response");
-			}
-			
-			gatewayHandlers.register('<?php echo __FILE__; ?>',testmode_settings);
-
-		<?
+		<tr id="testmode-settings" class="form-field">
+			<th scope="row" valign="top">Test Mode</th>
+			<td>
+				<input type="hidden" name="settings[TestMode][response]" value="success"><input type="checkbox" name="settings[TestMode][response]" id="testmode_response" value="error"<?php echo ($settings['response'] == "error")?' checked="checked"':''; ?> /><label for="testmode_response"> <?php _e('Test error response'); ?></label>
+			</td>
+		</tr>
+		<?php
 	}
+	
+	function registerSettings () {
+		?>
+		gatewayHandlers.register('<?php echo __FILE__; ?>','testmode-settings');
+		<?php
+	}
+	
 
 } // end AuthorizeNet class
 

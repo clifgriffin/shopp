@@ -331,7 +331,7 @@ class GoogleCheckout {
 		
 		<?php if (!empty($this->settings['apiurl'])): ?>
 		<p><input type="text" name="settings[GoogleCheckout][apiurl]" id="googlecheckout-apiurl" size="48" value="<?php echo $this->settings['apiurl']; ?>" readonly="readonly" class="select" /><br />
-		<strong>Copy this URL to your Google Checkout integration settings API callback URL.</p>
+		<strong>Copy this URL to your Google Checkout integration settings API callback URL.</strong></p>
 		<?php endif;?>
 
 		<p><select name="settings[GoogleCheckout][button]">

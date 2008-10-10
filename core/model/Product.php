@@ -19,6 +19,7 @@ class Product extends DatabaseObject {
 	var $prices = array();
 	var $pricekey = array();
 	var $categories = array();
+	var $tags = array();
 	var $images = array();
 	var $specs = array();
 	var $ranges = array('max'=>array(),'min'=>array());
@@ -147,7 +148,7 @@ class Product extends DatabaseObject {
 		
 		$table = DatabaseObject::tablename(Catalog::$table);
 		if (empty($this->id)) return false;
-		$this->categories = $db->query("SELECT * FROM $table WHERE product=$this->id",AS_ARRAY);
+		$this->categories = $db->query("SELECT * FROM $table WHERE product=$this->id AND category > 0",AS_ARRAY);
 		return true;
 	}
 
@@ -173,20 +174,76 @@ class Product extends DatabaseObject {
 		}
 		
 	}
+
+	function load_tags () {
+		$db = DB::get();
+		
+		$catalog = DatabaseObject::tablename(Catalog::$table);
+		$tag = DatabaseObject::tablename(Tag::$table);
+		if (empty($this->id)) return false;
+		$this->tags = $db->query("SELECT c.id,t.id,t.name FROM $catalog AS c LEFT JOIN $tag AS t ON c.tag=t.id WHERE c.product=$this->id AND c.tag > 0",AS_ARRAY);
+		
+		return true;
+	}
+	
+	function save_tags ($updates) {
+		$db = DB::get();
+		
+		if (empty($updates)) $updates = array();
+		
+		$current = array();
+		foreach ($this->tags as $tag) $current[] = $tag->name;
+		
+		$added = array_diff($updates,$current);
+		$removed = array_diff($current,$updates);
+
+		if (!empty($added)) {
+			$catalog = DatabaseObject::tablename(Catalog::$table);
+			$tagtable = DatabaseObject::tablename(Tag::$table);
+			$where = "";
+			foreach ($added as $tag) $where .= ($where == "")?"name='$tag'":" OR name='$tag'";
+			$results = $db->query("SELECT id,name FROM $tagtable WHERE $where",AS_ARRAY);
+			$exists = array();
+			foreach ($results as $tag) $exists[$tag->id] = $tag->name;
+
+			foreach ($added as $tag) {
+				$tagid = array_search($tag,$exists);
+			
+				if (!$tagid) {
+					$Tag = new Tag();
+					$Tag->name = $tag;
+					$Tag->save();
+					$tagid = $Tag->id;
+				}
+				
+				$db->query("INSERT $catalog SET tag='$tagid',product='$this->id',created=now(),modified=now()");
+			}
+		}
+
+		if (!empty($removed)) {
+			$catalog = DatabaseObject::tablename(Catalog::$table);
+			foreach ($removed as $tag) {
+				$Tag = new Tag($tag,'name');
+				$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE tag='$Tag->id' AND product='$this->id'"); 
+			}
+		}
+
+	}
 	
 	function load_images () {
 		$db = DB::get();
 		
 		$table = DatabaseObject::tablename(Asset::$table);
 		if (empty($this->id)) return false;
-		$images = $db->query("SELECT id,name,properties,datatype,src FROM $table WHERE parent=$this->id AND context='product' AND (datatype='image' OR datatype='small' OR datatype='thumbnail') ORDER BY datatype,sortorder",AS_ARRAY);
-		$total = 0;
-		foreach ($images as $image) {
+		$images = $db->query("SELECT id,name,properties,datatype,src FROM $table WHERE parent=$this->id AND context='product' AND (datatype='image' OR datatype='small' OR datatype='thumbnail') ORDER BY sortorder",AS_ARRAY);
+
+		$this->images = array();
+		// Organize images into groupings by type
+		foreach ($images as $key => &$image) {
+			if (empty($this->images[$image->datatype])) $this->images[$image->datatype] = array();
 			$image->properties = unserialize($image->properties);
-			if ($image->datatype == "image") $total++;
+			$this->images[$image->datatype][] = $image;
 		}
-		$this->images = $images;
-		$this->images['total'] = $total;
 		return true;
 	}
 		
@@ -332,46 +389,70 @@ class Product extends DatabaseObject {
 			case "thumbnail":
 				if (empty($this->images)) $this->load_images();
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
-				$string = "";
-				foreach ($this->images as $img) {
-					if ($img->datatype == "thumbnail") {
-						$string .= '<img src="'.$imagepath.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
-					}
+				$img = current($this->images['thumbnail']);
+				return '<img src="'.$imagepath.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
+				break;
+			case "has-images": 
+				if (empty($options['type'])) $options['type'] = "thumbnail";
+				if (empty($this->images)) $this->load_images();
+				return (count($this->images[$options['type']]) > 0); break;
+			case "images":
+				if (empty($options['type'])) $options['type'] = "thumbnail";
+				if (!$this->imageloop) {
+					reset($this->images[$options['type']]);
+					$this->imageloop = true;
+				} else next($this->images[$options['type']]);
+
+				if (current($this->images[$options['type']])) return true;
+				else {
+					$this->imageloop = false;
+					return false;
 				}
+				break;
+			case "image":			
+				if (empty($options['type'])) $options['type'] = "thumbnail";
+				$img = current($this->images[$options['type']]);
+				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+				$string = "";
+				if (!empty($options['zoom'])) $string .= '<a href="'.$imagepath.$img->src.'/'.str_replace('small_','',$img->name).'" class="thickbox" rel="product-gallery">';
+				$string .= '<img src="'.$imagepath.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />';
+				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;
 			case "gallery":
 				if (empty($this->images)) $this->load_images();
-				$thumbsize = 32;
 				$string = '<div id="gallery">';
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
-				$thumbs = '<ul>';
-				$firstThumb = true;
-				foreach ($this->images as $img) {
-					if ($img->datatype == "small") {
-						if ($firstPreview) {
-							$previews .= '<li id="preview-fill"'.(($firstPreview)?' class="fill"':'').'>';
-							$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
-							$previews .= '</li>';
-						}
-						
-						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
-						$previews .= '<a href="'.$imagepath.$img->src.'/'.str_replace('small_','',$img->name).'" class="thickbox" rel="product-gallery">';
-						$previews .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
-						$previews .= '</a>';
+				foreach ($this->images['small'] as $img) {
+					if ($firstPreview) {
+						$previews .= '<li id="preview-fill"'.(($firstPreview)?' class="fill"':'').'>';
+						$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
 						$previews .= '</li>';
-						$firstPreview = false;
 					}
-					if ($img->datatype == "thumbnail" && $this->images['total'] > 1) {
+					
+					$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
+					$previews .= '<a href="'.$imagepath.$img->src.'/'.str_replace('small_','',$img->name).'" class="thickbox" rel="product-gallery">';
+					$previews .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+					$previews .= '</a>';
+					$previews .= '</li>';
+					$firstPreview = false;
+				}
+					
+				if (count($this->images['thumbnail']) > 1) {
+					$thumbsize = 32;
+					if (!empty($options['thumbsize'])) $thumbsize = $options['thumbsize'];
+					$firstThumb = true;
+					$thumbs = '<ul>';
+					foreach ($this->images['thumbnail'] as $img) {
 						$thumbs .= '<li id="thumbnail-'.$img->src.'"'.(($firstThumb)?' class="first"':'').'>';
 						$thumbs .= '<a href="javascript:shopp_preview('.$img->src.');"><img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$thumbsize.'" height="'.$thumbsize.'" /></a>';
 						$thumbs .= '</li>';
-						$firstThumb = false;
+						$firstThumb = false;						
 					}
-					
+					$thumbs .= '</ul>';
 				}
-				$thumbs .= '</ul>';
+				
 				$previews .= '<li class="thumbnails">'.$thumbs.'</li>';
 				$previews .= '</ul>';
 				$string .= $previews."</div>";

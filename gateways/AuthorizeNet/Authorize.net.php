@@ -186,37 +186,22 @@ class AuthorizeNet {
 		$settings = $Shopp->Settings->get('Authorize.Net');
 		
 		?>
+		<tr id="authorize-net-settings" class="form-field">
+			<th scope="row" valign="top">Authorize.Net</th>
+			<td>
+				<div><input type="text" name="settings[Authorize.Net][login]" id="authorize_net_login" value="<?php echo $settings['login']; ?>" size="16" /><br /><label for="authorize_net_login"><?php _e('Enter your Authorize.net Login ID.'); ?></label></div>
+				<p><input type="password" name="settings[Authorize.Net][password]" id="authorize_net_password" value="<?php echo $settings['password']; ?>" size="24" /><br /><label for="authorize_net_password"><?php _e('Enter your Authorize.net Password or Transaction Key.'); ?></label></p>
+				<p><input type="hidden" name="settings[Authorize.Net][testmode]" value="off"><input type="checkbox" name="settings[Authorize.Net][testmode]" id="authorize_net_testmode" value="on"<?php echo ($settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="authorize_net_testmode"> <?php _e('Enabled'); ?></label></p>
 				
-		var authorize_net_settings = function () {
-			addSetting("Authorize.Net Login",
-							{'name':'settings[Authorize.Net][login]',
-							 'id':'gateway_login',
-							 'type':'text',
-							 'size':'16',
-							 'value':'<?php echo $settings['login']; ?>'},
-							 "Enter your Authorize.net Login ID.");
-
-			addSetting("Authorize.Net Password",
-							{'name':'settings[Authorize.Net][password]',
-							 'id':'gateway_password',
-							 'type':'text',
-							 'size':'24',
-							 'value':'<?php echo $settings['password']; ?>'},
-							 "Enter your Authorize.net Password or Transaction Key.");
-
-			addSetting("Authorize.Net Test Mode",
-							{'name':'settings[Authorize.Net][testmode]',
-							 'id':'gateway_testmode',
-							 'type':'checkbox',
-							 'value':'on',
-							 'unchecked':'off',
-							 'checked':<?php echo ($settings['testmode'] == "on")?'true':'false'; ?>},
-							 "Enabled");
-			}
-			
-			gatewayHandlers.register('<?php echo __FILE__; ?>',authorize_net_settings);
-
+			</td>
+		</tr>
 		<?
+	}
+	
+	function registerSettings () {
+		?>
+		gatewayHandlers.register('<?php echo __FILE__; ?>','authorize-net-settings');
+		<?php
 	}
 
 } // end AuthorizeNet class

@@ -445,5 +445,26 @@ class SearchResults extends Category {
 	
 }
 
+class TagProducts extends Category {
+	static $slug = "tag";
+	
+	function TagProducts ($options=array()) {
+		$this->tag = $options['tag'];
+		$this->name = "Products tagged &quot;".$options['tag']."&quot;";
+		$this->parent = 0;
+		$this->slug = TagProducts::$slug;
+		$this->uri = $options['tag'];
+		$this->description = "Products tagged &quot;".$options['tag']."&quot;";
+		$this->smart = true;
+		$tagtable = DatabaseObject::tablename(Tag::$table);
+		$loading = array(
+			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
+			'where'=>"catalog.tag=t.id AND t.name='{$options['tag']}'");
+		if (isset($options['show'])) $loading['limit'] = $options['show'];
+		$this->load_products($loading);
+	}
+	
+}
+
 
 ?>

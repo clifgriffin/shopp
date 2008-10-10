@@ -55,6 +55,24 @@
 
 
 /**
+ * Shopp Catalog Tag Cloud
+ **/
+
+#shopp .shopp.tagcloud,
+.shopp.tagcloud { padding: 0; }
+
+#shopp .shopp.tagcloud li,
+.shopp.tagcloud li { display: inline-block; margin-right: 10px; line-height: 1.2; padding: 0; background-image: none; }
+.shopp.tagcloud li.level-1 { font-size: 30px; }
+.shopp.tagcloud li.level-2 { font-size: 24px; }
+.shopp.tagcloud li.level-3 { font-size: 20px; }
+.shopp.tagcloud li.level-4 { font-size: 18px; }
+.shopp.tagcloud li.level-5 { font-size: 14px; }
+.shopp.tagcloud li.level-6 { font-size: 12px; }
+.shopp.tagcloud li.level-7 { font-size: 11px; }
+
+
+/**
  * Product Page Gallery
  **/
 #gallery { float: left; }

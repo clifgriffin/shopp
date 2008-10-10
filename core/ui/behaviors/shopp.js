@@ -103,7 +103,11 @@ var CallbackRegistry = function() {
 
 	this.call = function(name,arg1,arg2,arg3) {
 		this.callbacks[name](arg1,arg2,arg3);
-	}	
+	}
+	
+	this.get = function(name) {
+		return this.callbacks[name];
+	}
 }
 
 function addEvent( obj, type, fn ) {

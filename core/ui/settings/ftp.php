@@ -2,13 +2,13 @@
 	<h2><?php _e('FTP Upgrade Settings</h2>','Shopp'); ?>
 
 	<form name="settings" id="ftp" action="?page=<?php echo $this->Admin->settings; ?>&amp;edit=update" method="post">
-		<?php wp_nonce_field('shopp-settings-ftp'); ?>
+		<?php wp_nonce_field('shopp-settings-update'); ?>
 		
 		<table class="form-table"> 
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order"><?php _e('FTP Settings','Shopp'); ?></label></th> 
 				<td>
-					<p><input type="text" name="settings[ftp_credentials][hostname]" id="ftp-host" size="40" value="<?php echo $credentials['host']; ?>" /><br />
+					<p><input type="text" name="settings[ftp_credentials][hostname]" id="ftp-host" size="40" value="<?php echo $credentials['hostname']; ?>" /><br />
 					<?php _e('Enter the FTP server/host name for this WordPress installation.','Shopp'); ?></p>
 					<p><input type="text" name="settings[ftp_credentials][username]" id="ftp-username" size="20"  value="<?php echo $credentials['username']; ?>"/><br />
 					<?php _e('Enter your FTP username','Shopp'); ?></p>

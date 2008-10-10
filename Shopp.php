@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0b2
+Version: 1.0b3
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0b2");
+define("SHOPP_VERSION","1.0b3");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -111,6 +111,7 @@ class Shopp {
 
 		add_action('widgets_init', array(&$this->Flow, 'init_cart_widget'));
 		add_action('widgets_init', array(&$this->Flow, 'init_categories_widget'));
+		add_action('widgets_init', array(&$this->Flow, 'init_tagcloud_widget'));
 		add_filter('wp_list_pages',array(&$this->Flow,'secure_checkout_link'));
 
 		add_action('rewrite_rules', array(&$this,'page_updates'));
@@ -307,7 +308,6 @@ class Shopp {
 		
 		// No pages setting, rebuild it
 		if (empty($pages) || $updates || $update) {
-			echo "<br />Processing Page Updates...<br />";
 			$pages = $this->Flow->Pages;
 			
 			// Find pages with Shopp-related main shortcodes
@@ -349,7 +349,6 @@ class Shopp {
 		$shop = $pages['catalog']['permalink'];
 		$catalog = $pages['catalog']['name'];
 		$checkout = $pages['checkout']['permalink'];
-		echo "<pre>"; print_r($pages); echo "</pre>";
 		
 		$rules = array(
 			$checkout.'?$' => 'index.php?pagename='.$checkout.'&shopp_proc=checkout',
@@ -371,6 +370,17 @@ class Shopp {
 			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
 		}
 
+		// tags
+		if (empty($shop)) {
+			$rules[$catalog.'/tag/([a-zA-Z0-9%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
+			$rules[$catalog.'/tag/([a-zA-Z0-9%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_tag=$matches[1]&paged=$matches[2]';
+			$rules[$catalog.'/tag/([a-zA-Z0-9%_\+\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_tag=$matches[1]';
+		} else {
+			$rules[$shop.'tag/([a-zA-Z0-9%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
+			$rules[$shop.'tag/([a-zA-Z0-9%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_tag=$matches[1]&paged=$matches[2]';
+			$rules[$shop.'tag/([a-zA-Z0-9%_\+\-\/]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_tag=$matches[1]';
+		}
+
 		// catalog/productid
 		if (empty($shop)) $rules[$catalog.'/(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_pid=$matches[1]';
 		else $rules[$shop.'(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$shop.'&shopp_pid=$matches[1]';
@@ -388,6 +398,7 @@ class Shopp {
 	function queryvars ($vars) {
 		$vars[] = 'shopp_proc';
 		$vars[] = 'shopp_category';
+		$vars[] = 'shopp_tag';
 		$vars[] = 'shopp_pid';
 		$vars[] = 'shopp_product';
 		$vars[] = 'shopp_lookup';
@@ -466,8 +477,12 @@ class Shopp {
 		if (empty($this->Category)):?>
 	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> New Products RSS Feed" href="<?php echo $shoppage.((SHOPP_PERMALINKS)?'/feed/':'?shopp_lookup=newproducts-rss'); ?>" />
 	<?php
-			else:?>
-	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> <?php echo $this->Category->name; ?> RSS Feed" href="<?php echo $shoppage.((SHOPP_PERMALINKS)?'/category/'.$this->Category->uri.'/feed/':'?shopp_category='.$this->Category->id.'&shopp_lookup=category-rss'); ?>" />
+			else:
+			$uri = 'category/'.$this->Category->uri;
+			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
+			$link = $shoppage.((SHOPP_PERMALINKS)?'/'.$uri.'/feed/':'?shopp_category='.$this->Category->id.'&shopp_lookup=category-rss')
+			?>
+	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> <?php echo $this->Category->name; ?> RSS Feed" href="<?php echo $link; ?>" />
 	<?php
 		endif;
 	}
@@ -631,6 +646,10 @@ class Shopp {
 		if ($category = $wp->query_vars['shopp_category']) $type = "category";
 		if ($productid = $wp->query_vars['shopp_pid']) $type = "product";
 		if ($productname = $wp->query_vars['shopp_product']) $type = "product";
+		if ($tag = $wp->query_vars['shopp_tag']) {
+			$type = "category";
+			$category = "tag";
+		}
 		if ($search = $wp->query_vars['s']) {
 			$wp->query_vars['s'] = "";
 			$wp->query_vars['pagename'] = $pages['catalog']['name'];
@@ -642,8 +661,8 @@ class Shopp {
 		if (!empty($productid) && empty($this->Product->id)) {
 			$this->Product = new Product($productid);
 		}
-		
-		if (!empty($category)) {
+
+		if (!empty($category) || !empty($tag)) {
 			if (strpos($category,"/") !== false) {
 				$categories = split("/",$category);
 				$category = end($categories);
@@ -652,6 +671,8 @@ class Shopp {
 			switch ($category) {
 				case SearchResults::$slug: 
 					$this->Category = new SearchResults(array('search'=>$search)); break;
+				case TagProducts::$slug: 
+					$this->Category = new TagProducts(array('tag'=>$tag)); break;
 				case BestsellerProducts::$slug: $this->Category = new BestsellerProducts(); break;
 				case NewProducts::$slug: $this->Category = new NewProducts(); break;
 				case FeaturedProducts::$slug: $this->Category = new FeaturedProducts(); break;
@@ -761,6 +782,13 @@ class Shopp {
 				echo json_encode(unserialize($result->specs));
 				exit();
 				break;
+			case "optionstemplate":
+				$db = DB::get();
+				$table = DatabaseObject::tablename(Category::$table);			
+				$result = $db->query("SELECT options FROM $table WHERE id='{$_GET['cat']}'");
+				echo json_encode(unserialize($result->options));
+				exit();
+				break;
 			case "image":
 				if (empty($image)) break;
 				$Asset = new Asset($image);					
@@ -851,7 +879,7 @@ class Shopp {
 					// If we're saving a new category, lookup the parent
 					for ($i = count($this->Catalog->categories); $i > 0; $i--)
 						if ($Category->parent == $this->Catalog->categories[$i]->id) break;
-					$paths = array_push($this->Catalog->categories[$i]->slug,$paths);
+						array_unshift($paths,$this->Catalog->categories[$i]->slug);
 					$uri = "/".$this->Catalog->categories[$i]->slug.$uri;
 
 					$parentkey = $this->Catalog->categories[$i]->parentkey;

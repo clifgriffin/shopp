@@ -149,9 +149,6 @@ class PayPalPro {
 				$r[$matches[1]][$matches[2]] = urldecode($value);
 			} else $r[$key] = urldecode($value);
 		}
-		echo $this->transaction;
-		print_r($r);
-		
 		
 		$_->ack = $r['ACK'];
 		$_->errorcodes = $r['L_ERRORCODE'];
@@ -175,8 +172,18 @@ class PayPalPro {
 		global $Shopp;
 		$Shopp->Settings->save('gateway_cardtypes',array("Visa","MasterCard","Discover","American Express"));
 		?>
+		<tr id="paypalpro-settings" class="form-field">
+			<th scope="row" valign="top">PayPal Pro</th>
+			<td>
+				<div><input type="text" name="settings[PayPalPro][username]" id="paypal_pro_username" value="<?php echo $settings['username']; ?>" size="30" /><br /><label for="paypal_pro_username"><?php _e('Enter your PayPal API Username.'); ?></label></div>
+				<p><input type="password" name="settings[PayPalPro][password]" id="paypal_pro_password" value="<?php echo $settings['password']; ?>" size="16" /><br /><label for="paypal_pro_password"><?php _e('Enter your PayPal API Password.'); ?></label></p>
+				<p><input type="text" name="settings[PayPalPro][signature]" id="paypal_pro_signature" value="<?php echo $settings['signature']; ?>" size="16" /><br /><label for="paypal_pro_signature"><?php _e('Enter your PayPal API Signature.'); ?></label></p>
+				<p><input type="hidden" name="settings[PayPalPro][testmode]" value="off"><input type="checkbox" name="settings[PayPalPro][testmode]" id="paypal_pro_testmode" value="on"<?php echo ($settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="paypal_pro_testmode"> <?php _e('Test Mode Enabled'); ?></label></p>
 				
-		var paypalpro_settings = function () {
+			</td>
+		</tr>
+				
+		<!-- var paypalpro_settings = function () {
 			addSetting("PayPal Pro Login",
 							{'name':'settings[PayPalPro][username]',
 							 'id':'gateway_username',
@@ -212,9 +219,15 @@ class PayPalPro {
 							 "Enabled");
 			}
 			
-			gatewayHandlers.register('<?php echo __FILE__; ?>',paypalpro_settings);
+			gatewayHandlers.register('<?php echo __FILE__; ?>',paypalpro_settings); -->
 
 		<?
+	}
+	
+	function registerSettings () {
+		?>
+		gatewayHandlers.register('<?php echo __FILE__; ?>','paypalpro-settings');
+		<?php
 	}
 
 } // end AuthorizeNet class
