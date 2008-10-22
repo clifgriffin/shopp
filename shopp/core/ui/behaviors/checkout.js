@@ -1,10 +1,12 @@
 (function($) {
 
 	var validate = function (form) {
-
-		var passed = true;
+		if (!form) return false;
+		
 		var inputs = form.getElementsByTagName('input');
 		var selects = form.getElementsByTagName('select');
+
+		var passed = true;
 		var passwords = new Array();
 		var error = new Array();
 
@@ -68,7 +70,6 @@
 		}).change();
 				
 		$('#checkout.shopp').submit(function () {
-			return true;
 			if (validate(this)) return true;
 			else return false;
 		});

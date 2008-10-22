@@ -158,6 +158,18 @@ function formatFields () {
 
 
 function addtocart () {
+	var options = this.form.getElementsByTagName('select');
+	if (options_default) {
+		var selections = true;		
+		for (menu in options) 
+			if (options[menu].selectedIndex == 0) selections = false;
+		
+		if (!selections) {
+			if (!options_required) options_required = "You must select the options for this item before you can add it to your shopping cart.";
+			alert(options_required);
+			return false;
+		}
+	}
 	this.form.submit();
 }
 
@@ -474,7 +486,11 @@ addEvent(window,'load',function () {
 	helpHandler();
 });
 
+// Initialize placehoder variables
 var helpurl;
+var options_required;
+var options_default;
+
 // Fix for ThickBox
 var tb_pathToImage = "/wp-content/plugins/shopp/core/ui/icons/loading.gif";
 var tb_closeImage = "/wp-includes/js/thickbox/tb-close.png";
