@@ -174,8 +174,10 @@ class Flow {
 	function cart_request () {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
-		// print_r($Cart->data->Promotions);
-
+		
+		if (!isset($_POST['shopp-addtocart']) || !wp_verify_nonce($_POST['shopp-addtocart'],'shopp-addtocart')) 		
+			return false;		
+		
 		$Request = array();
 		if (!empty($_GET['cart'])) $Request = $_GET;
 		if (!empty($_POST['cart'])) $Request = $_POST;
@@ -222,7 +224,9 @@ class Flow {
 					$quantity = (!empty($Request['quantity']))?$Request['quantity']:1; // Add 1 by default
 
 					$Product = new Product($Request['product']);
-					if (!empty($Request['options'])) $pricing = $Request['options'];
+					$pricing = false;
+					if (!empty($Request['options']) && !empty($Request['options'][0])) 
+						$pricing = $Request['options'];
 					else $pricing = $Request['price'];
 					
 					if (isset($Request['item'])) $result = $Cart->change($Request['item'],$Product,$pricing);

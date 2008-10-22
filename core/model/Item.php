@@ -36,9 +36,14 @@ class Item {
 
 		$Product->load_prices();
 
+		// If product variations are enabled, disregard the first priceline
+		if ($Product->variations == "on") array_shift($Product->prices);
+
 		// If option ids are passed, lookup by option key, otherwise by id
 		if (is_array($pricing)) $Price = $Product->pricekey[$Product->optionkey($pricing)];
 		else $Price = $Product->priceid[$pricing];
+		
+		if (!$pricing) $Price = current($Product->prices);
 		
 		$this->product = $Product->id;
 		$this->price = $Price->id;
