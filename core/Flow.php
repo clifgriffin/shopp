@@ -174,10 +174,7 @@ class Flow {
 	function cart_request () {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
-		
-		if (!isset($_POST['shopp-addtocart']) || !wp_verify_nonce($_POST['shopp-addtocart'],'shopp-addtocart')) 		
-			return false;		
-		
+				
 		$Request = array();
 		if (!empty($_GET['cart'])) $Request = $_GET;
 		if (!empty($_POST['cart'])) $Request = $_POST;
@@ -220,6 +217,10 @@ class Flow {
 		
 		switch($Request['cart']) {
 			case "add":
+				if (!isset($Request['_wpnonce']) ||
+				 	!wp_verify_nonce($Request['_wpnonce'],'shopp-addtocart')) 		
+					return false;		
+			
 				if (isset($Request['product']) && (isset($Request['price']) || isset($Request['options']))) {
 					$quantity = (!empty($Request['quantity']))?$Request['quantity']:1; // Add 1 by default
 
