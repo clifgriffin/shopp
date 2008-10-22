@@ -551,7 +551,7 @@ class Flow {
 		if ($Shopp->Settings->get('receipt_copy') == 1) {
 			$receipt['to'] = $Shopp->Settings->get('shopowner_email');
 			$receipt['subject'] = "New Order";
-			shopp_email(SHOPP_TEMPLATES."/email.html",$receipt);
+			shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
 		}
 
 		// Test Mode will not require encrypted checkout
