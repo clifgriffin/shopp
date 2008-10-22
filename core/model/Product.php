@@ -424,19 +424,21 @@ class Product extends DatabaseObject {
 				$string = '<div id="gallery">';
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
-				foreach ($this->images['small'] as $img) {
-					if ($firstPreview) {
-						$previews .= '<li id="preview-fill"'.(($firstPreview)?' class="fill"':'').'>';
-						$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
-						$previews .= '</li>';
-					}
+				if (!empty($this->images['small'])) {
+					foreach ($this->images['small'] as $img) {
+						if ($firstPreview) {
+							$previews .= '<li id="preview-fill"'.(($firstPreview)?' class="fill"':'').'>';
+							$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+							$previews .= '</li>';
+						}
 					
-					$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
-					$previews .= '<a href="'.$imagepath.$img->src.'/'.str_replace('small_','',$img->name).'" class="thickbox" rel="product-gallery">';
-					$previews .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
-					$previews .= '</a>';
-					$previews .= '</li>';
-					$firstPreview = false;
+						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
+						$previews .= '<a href="'.$imagepath.$img->src.'/'.str_replace('small_','',$img->name).'" class="thickbox" rel="product-gallery">';
+						$previews .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+						$previews .= '</a>';
+						$previews .= '</li>';
+						$firstPreview = false;
+					}
 				}
 					
 				if (count($this->images['thumbnail']) > 1) {
@@ -532,6 +534,8 @@ class Product extends DatabaseObject {
 					var currencyFormat = <?php $base = $Shopp->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 					var pricing = <?php echo json_encode($this->pricekey); ?>;	// price lookup table
 					var hideDisabled = <?php echo ($options['disabled'] == "hide")?"true":"false"; ?>;
+					options_required = "<?php _e('You must select the options for this item before you can add it to your shopping cart.'); ?>";
+					options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
 					
 					(function($) {
 						
@@ -540,19 +544,18 @@ class Product extends DatabaseObject {
 							var previous = false;
 							var current = false;
 							var menus = $('select.options');
-							menus.each(function () {
-								current = $(this);
+							menus.each(function (id,menu) {
+								if (id > 0)	previous = menus[id-1];
 								if (menus.length == 1) {
 									optionPriceTags();
-								} else if (i > 0) {
-									previous.change(function () {
+								} else if (previous) {
+									$(previous).change(function () {
 										if (menus.index(current) == menus.length-1) optionPriceTags();
-										if (this.selectedIndex == 0) current.attr('disabled',true);
-										else current.removeAttr('disabled');
+										if (this.selectedIndex == 0) $(menu).attr('disabled',true);
+										else $(menu).removeAttr('disabled');
 									}).change();
 								}
 								
-								previous = $(this);
 								i++;
 							});
 							
@@ -605,6 +608,7 @@ class Product extends DatabaseObject {
 			case "addtocart":
 				if (empty($options['label'])) $options['label'] = "Add to Cart";
 				$string = "";
+				$string .= wp_nonce_field('shopp-addtocart','_wpnonce',true,false);
 				$string .= '<input type="hidden" name="product" value="'.$this->id.'" />';
 				if ($this->prices[0]->type != "N/A")
 					$string .= '<input type="hidden" name="price" value="'.$this->prices[0]->id.'" />';

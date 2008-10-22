@@ -30,23 +30,14 @@ function init () {
 
 	$('#variations-setting').click(variationsToggle);
 	variationsToggle();
-
-	$('#addons-setting').click(addonsToggle);
-	addonsToggle();
+	loadVariations(options);
+	
+	// $('#addons-setting').click(addonsToggle);
+	// addonsToggle();
 
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
-	$('#addAddonMenu').click(function() { addAddonOptionsMenu(); });
-
-	if (options && options.variations) {
-		for (key in options.variations) {
-			addVariationOptionsMenu(options.variations[key]);	
-		}
-
-		$(prices).each(function(index,price) {
-			if (price.context == "variation") addPriceLine('#variations-pricing',price.options.split(","),price);
-		});
-	}
-
+	// $('#addAddonMenu').click(function() { addAddonOptionsMenu(); });
+	
 	$('#new-category input, #new-category select').hide();
 	
 	tags();
@@ -85,16 +76,21 @@ function init () {
 		
 		var id = $(this).attr('id').substr($(this).attr('id').indexOf("-")+1);
 		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=spectemplate&cat="+id,function (speclist) {
+			if (!speclist) return true;
 			for (id in speclist) {
 				if (details.toString().search(speclist[id]['name']) == -1) addDetail(speclist[id]);
 			}
 		});
 
-		// $.getJSON(siteurl+"/wp-admin/admin.php?lookup=optionstemplate&cat="+id,function (options) {
-		// 	for (id in speclist) {
-		// 		if (details.toString().search(speclist[id]['name']) == -1) addDetail(speclist[id]);
-		// 	}
-		// });
+		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=optionstemplate&cat="+id,function (options) {
+			if (!options) return true;
+			
+			if (!$('#variations-setting').attr('checked')) {
+				$('#variations-setting').click();
+				variationsToggle();
+			}
+			loadVariations(options);
+		});
 
 	});
 
@@ -343,6 +339,19 @@ function addCategoryParentMenuOption (c) {
 	else var option = $('<option value="'+c.id+'" rel="'+parentRel[0]+','+(new Number(parentRel[1])+1)+'"></option>').html(label).insertBefore(insertionPoint);
 }
 
+function loadVariations (options) {
+	if (options && options.variations) {
+		for (key in options.variations) {
+			addVariationOptionsMenu(options.variations[key]);	
+		}
+
+		$(prices).each(function(index,price) {
+			if (price.context == "variation") addPriceLine('#variations-pricing',price.options.split(","),price);
+		});
+		addVariationPrices();
+	}
+}
+
 function addVariationOptionsMenu (data) {
 	addOptionMenu(
 		'variation',			// Type of option
@@ -417,6 +426,7 @@ function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 			});
 
 			options.sortable({'axis':'y','update':function(){orderVariationPrices()}});
+			
 			if (label) addVariationPrices(optionId.val());
 			else addVariationPrices();
 		}
@@ -906,7 +916,7 @@ function addPriceLine (target,options,data,attachment) {
 		
 		if (data.download) {
 			if (data.filedata.mimetype)	data.filedata.mimetype = data.filedata.mimetype.replace(/\//gi," ");
-			downloadFile.attr('class','file '+data.filedata.mimetype).html(data.filename+'<br /><small>'+Math.round((data.filesize/1024)*10)/10+' KB</small>');
+			downloadFile.attr('class','file '+data.filedata.mimetype).html('<a href="">'+data.filename+'</a><br /><small>'+Math.round((data.filesize/1024)*10)/10+' KB</small>');
 		}
 		
 
@@ -951,10 +961,10 @@ function variationsToggle () {
 	}
 }
 
-function addonsToggle () {
-	if ($('#addons-setting').attr('checked')) $('#addons').show();
-	else $('#addons').hide();
-}
+// function addonsToggle () {
+// 	if ($('#addons-setting').attr('checked')) $('#addons').show();
+// 	else $('#addons').hide();
+// }
 
 
 

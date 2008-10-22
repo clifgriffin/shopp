@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0b3
+Version: 1.0b4
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0b3");
+define("SHOPP_VERSION","1.0b4");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -585,7 +585,15 @@ class Shopp {
 		if (empty($Order->Billing))
 			$Order->Billing = new Billing();
 		$Order->Billing->updates($_POST['billing']);
-		$Order->Billing->cardexpires = mktime(0,0,0,$_POST['billing']['cardexpires-mm'],1,($_POST['billing']['cardexpires-yy'])+2000);
+		
+		if (!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy'])) {
+			$Order->Billing->cardexpires = mktime(0,0,0,
+					$_POST['billing']['cardexpires-mm'],
+					1,
+					($_POST['billing']['cardexpires-yy'])+2000
+				);
+		}
+		
 		$Order->Billing->cvv = $_POST['billing']['cvv'];
 
 		if (empty($Order->Shipping))
