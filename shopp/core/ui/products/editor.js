@@ -18,9 +18,12 @@ var menusidx = 1;
 var optionsidx = 1;
 var pricingidx = 1;
 var uploader = false;
+var changes = false;
 
 function init () {
-	
+	window.onbeforeunload = function () { if (changes) return false; }	
+	$('#product').change(function () { changes = true; });
+
 	var basePrice = $(prices).get(0);
 	if (basePrice && basePrice.context == "product") addPriceLine('#product-pricing',[],basePrice);
 	else addPriceLine('#product-pricing',[]);
@@ -32,15 +35,81 @@ function init () {
 	variationsToggle();
 	loadVariations(options);
 	
-	// $('#addons-setting').click(addonsToggle);
-	// addonsToggle();
-
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
-	// $('#addAddonMenu').click(function() { addAddonOptionsMenu(); });
-	
-	$('#new-category input, #new-category select').hide();
-	
+		
+	categories();
 	tags();
+	quickSelects();
+	
+	// Initialize image uploader
+	var swfu = new SWFUpload({
+		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
+		upload_url: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_image',
+		post_params: {"product" : $('#image-product-id').val()},
+		file_queue_limit : 1,
+		file_size_limit : filesizeLimit+'b',
+		file_types : "*.jpg;*.jpeg;*.png;*.gif",
+		file_types_description : "Web-compatible Image Files",
+		file_upload_limit : filesizeLimit,
+		custom_settings : {
+			targetHolder : false,
+			progressBar : false,
+			sorting : false
+		},
+		debug: false,
+
+		swfupload_element_id : "swf-uploader",
+		degraded_element_id : "browser-uploader",
+
+		file_queued_handler : imageFileQueued,
+		file_queue_error_handler : imageFileQueueError,
+		file_dialog_complete_handler : imageFileDialogComplete,
+		upload_start_handler : startImageUpload,
+		upload_progress_handler : imageUploadProgress,
+		upload_error_handler : imageUploadError,
+		upload_success_handler : imageUploadSuccess,
+		upload_complete_handler : imageUploadComplete,
+		queue_complete_handler : imageQueueComplete
+	});
+
+	$("#add-product-image").click(function(){ swfu.selectFiles(); });
+
+	if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
+	$('#product-images ul li button.deleteButton').each(function () {
+		enableDeleteButton(this);
+	});
+
+	// Initialize file uploader
+	uploader = new SWFUpload({
+		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
+		upload_url: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
+		file_queue_limit : 1,
+		file_size_limit : filesizeLimit+'b',
+		file_types : "*.*",
+		file_types_description : "All Files",
+		file_upload_limit : filesizeLimit,
+		custom_settings : {
+			targetCell : false,
+			targetLine : false,
+			progressBar : false,
+		},
+		debug: false,
+
+		file_queued_handler : fileQueued,
+		file_queue_error_handler : fileQueueError,
+		file_dialog_complete_handler : fileDialogComplete,
+		upload_start_handler : startUpload,
+		upload_progress_handler : uploadProgress,
+		upload_error_handler : uploadError,
+		upload_success_handler : uploadSuccess,
+		upload_complete_handler : uploadComplete,
+		queue_complete_handler : queueComplete
+	});
+	
+}
+
+function categories () {
+	$('#new-category input, #new-category select').hide();
 	
 	$('#add-new-category').click(function () {
 		$('#new-category input, #new-category select').toggle();
@@ -75,6 +144,7 @@ function init () {
 		});
 		
 		var id = $(this).attr('id').substr($(this).attr('id').indexOf("-")+1);
+		// Load category spec templates
 		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=spectemplate&cat="+id,function (speclist) {
 			if (!speclist) return true;
 			for (id in speclist) {
@@ -82,6 +152,7 @@ function init () {
 			}
 		});
 
+		// Load category variation option templates
 		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=optionstemplate&cat="+id,function (options) {
 			if (!options) return true;
 			
@@ -89,73 +160,23 @@ function init () {
 				$('#variations-setting').click();
 				variationsToggle();
 			}
-			loadVariations(options);
+			
+			var menus = $('#variations-menu input[type=text]');
+			var templates = new Object();
+			templates.variations = new Array();
+			for (i in options.variations) {
+				var exists = false;
+				menus.each(function (id,label) {
+					if (options.variations[i].menu == $(label).val()) exists = true;
+				});
+				if (!exists) {
+					options.variations[i].id = new Array();
+					templates.variations.push(options.variations[i]);
+				}
+			}
+			loadVariations(templates);
 		});
 
-	});
-
-	quickSelects();
-	if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
-
-	// Initialize image uploader
-	var swfu = new SWFUpload({
-		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
-		upload_url: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_image',
-		post_params: {"product" : $('#image-product-id').val()},
-		file_queue_limit : 1,
-		file_size_limit : filesizeLimit+'b',
-		file_types : "*.jpg;*.jpeg;*.png;*.gif",
-		file_types_description : "Web-compatible Image Files",
-		file_upload_limit : filesizeLimit,
-		custom_settings : {
-			targetHolder : false,
-			progressBar : false,
-			sorting : false
-		},
-		debug: false,
-
-		file_queued_handler : imageFileQueued,
-		file_queue_error_handler : imageFileQueueError,
-		file_dialog_complete_handler : imageFileDialogComplete,
-		upload_start_handler : startImageUpload,
-		upload_progress_handler : imageUploadProgress,
-		upload_error_handler : imageUploadError,
-		upload_success_handler : imageUploadSuccess,
-		upload_complete_handler : imageUploadComplete,
-		queue_complete_handler : imageQueueComplete
-	});
-
-	$("#add-product-image").click(function(){ swfu.selectFiles(); });
-
-	$('#product-images ul li button.deleteButton').each(function () {
-		enableDeleteButton(this);
-	});
-
-	// Initialize file uploader
-	uploader = new SWFUpload({
-		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
-		upload_url: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
-		file_queue_limit : 1,
-		file_size_limit : filesizeLimit+'b',
-		file_types : "*.*",
-		file_types_description : "All Files",
-		file_upload_limit : filesizeLimit,
-		custom_settings : {
-			targetCell : false,
-			targetLine : false,
-			progressBar : false,
-		},
-		debug: false,
-
-		file_queued_handler : fileQueued,
-		file_queue_error_handler : fileQueueError,
-		file_dialog_complete_handler : fileDialogComplete,
-		upload_start_handler : startUpload,
-		upload_progress_handler : uploadProgress,
-		upload_error_handler : uploadError,
-		upload_success_handler : uploadSuccess,
-		upload_complete_handler : uploadComplete,
-		queue_complete_handler : queueComplete
 	});
 	
 }
@@ -209,6 +230,7 @@ function tags () {
 	});
 	
 	updateTagList();
+	
 }
 
 function addDetail (data) {
@@ -240,6 +262,16 @@ function addDetail (data) {
 	label.mouseup(function (e) {
 		this.select();
 	});
+	label.contents = content;
+	label.focus(function () {
+		$(this).keydown(function (e) {
+			e.stopPropagation();
+			if (e.keyCode == 13) {
+				$(this).blur();
+				$(this).unbind('keydown');
+			}
+		});
+	});
 
 	deleteButton.click(function () {
 		var deletes = $('#deletedSpecs');
@@ -253,8 +285,8 @@ function addDetail (data) {
 	
 	if (data) {
 		specId.val(data.id);
-		label.val(data.name);		
-		content.val(data.content);
+		label.val(htmlentities(data.name));
+		content.val(htmlentities(data.content));
 	} else {
 		label.val("Detail Name "+i);		
 	}
@@ -364,18 +396,6 @@ function addVariationOptionsMenu (data) {
 	);
 }
 
-function addAddonOptionsMenu (data) {
-	addOptionMenu(
-		'addon',			// Type of option
-		'#addons-menu', 	// Menus container element
-		'#addons-list',		// Option lists container element
-		'#addAddonOption',	// Add option button element
-		'#addons-pricing',	// Pricing container
-		'addons',			// Fieldname
-		data				// Data
-	);
-}
-
 function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 	var i = $(menu+" > ul li").length;
 
@@ -390,9 +410,12 @@ function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 	
 	e.addOption = function (evt,id,label) {
 		var j = $(options).contents().length;
+		var init = false;
 		
-		if (!id) id = optionsidx;
-		else if (id > optionsidx) optionsidx = id;
+		if (!id) {
+			init = true;
+ 			id = optionsidx;
+		} else if (id > optionsidx) optionsidx = id;
 
 		var option = $('<li></li>').appendTo(options);
 		var optionMove = $('<div class="move"></div>').appendTo(option);
@@ -408,10 +431,19 @@ function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 			option.removeClass('hover');
 		});
 		
-		if (label) optionLabel.val(label);
+		if (label) optionLabel.val(htmlentities(label));
 		else optionLabel.val('New Option '+(j+1));
 		
 		optionLabel.click(function () { this.select(); });
+		optionLabel.focus(function () {
+			$(this).keydown(function (e) {
+				e.stopPropagation();
+				if (e.keyCode == 13) {
+					$(this).blur();
+					$(this).unbind('keydown');
+				}
+			});
+		});
 		if (type == "variation") {
 
 			optionLabel.blur(function () { updateVariationLabels(); });
@@ -427,26 +459,9 @@ function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 
 			options.sortable({'axis':'y','update':function(){orderVariationPrices()}});
 			
-			if (label) addVariationPrices(optionId.val());
+			if (!init) addVariationPrices(optionId.val());
 			else addVariationPrices();
 		}
-
-		if (type == "addon") {
-			optionLabel.blur(function () { pricingOptions[xorkey([optionId.val()])].updateLabel(); });
-
-			optionDelete.click(function () {
-				if (options.children().length == 1) {
-					deleteAddonPrices([optionId.val()]);
-					options.remove();
-					e.remove();
-				} else deleteAddonPrices([optionId.val()]);
-				option.remove();
-			});
-
-			addPriceLine(pricing,new Array(optionId.val()),{context:'addon'});
-			options.sortable({'axis':'y','update':function(){orderAddonPrices()}});
-		}
-		
 		
 	}
 	
@@ -472,6 +487,15 @@ function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 	label.mouseup(function (e) {
 		this.select();
 	});
+	label.focus(function () {
+		$(this).keydown(function (e) {
+			e.stopPropagation();
+			if (e.keyCode == 13) {
+				$(this).blur();
+				$(this).unbind('keydown');
+			}
+		});
+	});
 
 	deleteButton.click(function () {
 		var deletedOptions = new Array();
@@ -479,19 +503,23 @@ function addOptionMenu (type,menu,lists,addoption,pricing,fieldname,data) {
 			deletedOptions.push($(id).val());
 		});
 		if (type == "variation") deleteVariationPrices(deletedOptions,true);
-		if (type == "addon") deleteAddonPrices(deletedOptions);
 		options.remove();
 		e.remove();
 	
 	});
 
 	if (data) {
-		label.val(data.menu);
-		if (data.id) {
+		label.val(htmlentities(data.menu));
+		if (data.id.length > 0) {
 			$(data.id).each(function (key,entry) {
 				e.addOption(null,data.id[key],data.label[key]);
 			});
+		} else if (data.label.length > 0) {
+			$(data.label).each(function (key,entry) {
+				e.addOption(null,data.id[key],data.label[key]);
+			});
 		}
+
 	} else {
 		label.val('New Option Menu '+(i+1));
 		e.addOption();
@@ -623,14 +651,6 @@ function deleteVariationPrices (optionids,reduce) {
 
 }
 
-function deleteAddonPrices (optionids) {
-	$(optionids).each(function(id,options) {
-		var key = xorkey(options);
-		pricingOptions[key].row.remove();
-		delete pricingOptions[key];
-	});
-}
-
 
 function updateVariationLabels () {
 	var updated = buildVariations();
@@ -640,14 +660,12 @@ function updateVariationLabels () {
 	});
 }
 
-
 function orderOptions (menus,lists) {
 	var menus = $(menus+" ul li").not('.ui-sortable-helper').children('input.id');
 	$(menus).each(function (id,menu) {
 		optionSets[$(menu).val()].appendTo(lists);
 	});
 	if (lists == "#variations-list") orderVariationPrices();
-	if (lists == "#addons-list") orderAddonPrices();
 }
 
 function orderVariationPrices () {
@@ -661,22 +679,6 @@ function orderVariationPrices () {
 			pricingOptions[key].updateLabel();
 		}
 			
-	});
-	
-}
-
-function orderAddonPrices () {
-	var options = $('#addons-list ul li').not('.ui-sortable-helper').children("input.id");
-	
-	$(options).each(function(index,option) {
-		var key = xorkey($(option).val());
-		
-		if (pricingOptions[key]) {
-			pricingOptions[key].row.appendTo('#addons-pricing');
-			pricingOptions[key].options = new Array($(option).val());
-			pricingOptions[key].updateLabel();
-		}
-		
 	});
 	
 }
@@ -739,8 +741,8 @@ function addPriceLine (target,options,data,attachment) {
 	
 	var donationSpacingCell = $('<td rowspan="2" width="58%" />').appendTo(headingsRow);
 	
-	var shippingHeading = $('<th><label for="shipping['+i+']"> Shipping</label></th>').appendTo(headingsRow);
-	var shippingToggle = $('<input type="checkbox" name="price['+i+'][shipping]" id="shipping['+i+']" tabindex="'+(i+1)+'07" />').prependTo(shippingHeading);
+	var shippingHeading = $('<th><label for="shipping-'+i+'"> Shipping</label></th>').appendTo(headingsRow);
+	var shippingToggle = $('<input type="checkbox" name="price['+i+'][shipping]" id="shipping-'+i+'" tabindex="'+(i+1)+'07" />').prependTo(shippingHeading);
 	$('<input type="hidden" name="price['+i+'][shipping]" value="off" />').prependTo(shippingHeading);
 	
 	var shippingCell = $('<td/>').appendTo(inputsRow);
@@ -792,7 +794,7 @@ function addPriceLine (target,options,data,attachment) {
 			});
 		}
 		if (string == "") string = "Price & Delivery";
-		this.label.val(string).change();
+		this.label.val(htmlentities(string)).change();
 		optionids.val(ids);
 	}
 	Pricing.updateKey();
@@ -897,7 +899,7 @@ function addPriceLine (target,options,data,attachment) {
 	// Set field values if we are rebuilding a priceline from 
 	// database data
 	if (data && data.id) {
-		label.val(data.label).change();
+		label.val(htmlentities(data.label)).change();
 		type.val(data.type);
 		myid.val(data.id);
 		
@@ -916,10 +918,12 @@ function addPriceLine (target,options,data,attachment) {
 		
 		if (data.download) {
 			if (data.filedata.mimetype)	data.filedata.mimetype = data.filedata.mimetype.replace(/\//gi," ");
-			downloadFile.attr('class','file '+data.filedata.mimetype).html('<a href="">'+data.filename+'</a><br /><small>'+Math.round((data.filesize/1024)*10)/10+' KB</small>');
+			downloadFile.attr('class','file '+data.filedata.mimetype).html(data.filename+'<br /><small>'+Math.round((data.filesize/1024)*10)/10+' KB</small>').click(function () {
+				window.location.href = siteurl+"/wp-admin/admin.php?page=shopp/lookup&download="+data.download;
+			});
+
 		}
 		
-
 		if (data.tax == "off") tax.attr('checked','true');
 	} else {
 		if (type.val() == "Shipped") shippingToggle.attr('checked','true').change();
@@ -941,14 +945,12 @@ function addPriceLine (target,options,data,attachment) {
 	return row;
 }
 
-
 // Magic key generator
 function xorkey (ids) {
 	for (var key=0,i=0; i < ids.length; i++) 
 		key = key ^ (ids[i]*101);
 	return key;
 }
-
 
 function variationsToggle () {
 	if ($('#variations-setting').attr('checked')) {
@@ -961,20 +963,12 @@ function variationsToggle () {
 	}
 }
 
-// function addonsToggle () {
-// 	if ($('#addons-setting').attr('checked')) $('#addons').show();
-// 	else $('#addons').hide();
-// }
-
-
 
 /**
  * SWFUpload Image Uploading events
  **/
 
-function imageFileQueued (file) {
-
-}
+function imageFileQueued (file) {}
 
 function imageFileQueueError (file, error, message) {
 	if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
@@ -1036,9 +1030,7 @@ function imageUploadComplete (file) {
 	else $('#lightbox').sortable();
 }
 
-function imageQueueComplete (uploads) {
-
-}
+function imageQueueComplete (uploads) {}
 
 function enableDeleteButton (button) {
 	$(button).hide();
@@ -1098,9 +1090,7 @@ function uploadProgress (file, loaded, total) {
 	$(this.progressBar).animate({'width':progress+'px'},100);
 }
 
-function uploadError (file, error, message) {
-
-}
+function uploadError (file, error, message) { }
 
 function uploadSuccess (file, results) {
 	var filedata = eval('('+results+')');
@@ -1114,13 +1104,8 @@ function uploadSuccess (file, results) {
 			$(targetCell).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small><input type="hidden" name="price['+i+'][download]" value="'+filedata.id+'" />');
 		});
 	});
-	
-	
 }
 
-function uploadComplete (file) {
-}
+function uploadComplete (file) {}
 
-function queueComplete (uploads) {
-
-}
+function queueComplete (uploads) {}

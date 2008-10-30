@@ -255,6 +255,14 @@ function shopp_preview(id) {
 	})(jQuery)
 }
 
+function htmlentities (string) {
+	if (!string) return "";
+	string = string.replace(new RegExp(/&#(\d+);/g), function() {
+		return String.fromCharCode(RegExp.$1);
+	});
+	return string;
+}
+
 function PopupCalendar (target,month,year) {
 	
 	var _self = this;

@@ -3,6 +3,7 @@
 	<h2><?php _e('Presentation Settings','Shopp'); ?></h2>
 	<?php include("navigation.php"); ?>
 
+	<br class="clear" />
 	<form name="settings" id="presentation" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-presentation'); ?>
 		
@@ -103,6 +104,7 @@
 
 		</tbody>
 		</table>
+		<br class="clear" />
 		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>

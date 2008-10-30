@@ -13,7 +13,7 @@
 		for (var i = selects.length-1; i >= 0; i--) {
 			// Validate required fields
 			if (selects[i].className.match(new RegExp('required'))) {
-				if (selects[i].options[selects[i].selectedIndex].value == "")
+				if (selects[i].selectedIndex == 0 && selects[i].options[selects[i].selectedIndex].text == "")
 					error = new Array("Your "+selects[i].title+" is required.",selects[i]);
 			}
 		}
@@ -68,7 +68,25 @@
 				$('#shipping-address-fields').show();
 			}
 		}).change();
-				
+		
+		$('#submit-login').click(function () {
+			$('#checkout.shopp').unbind('submit');
+			$('#checkout.shopp').submit(function () {
+				if ($('#email-login').val() == "") {
+					alert("You did not enter an email address to login with.");
+					$('#email-login').focus();
+					return false;
+				}
+				if ($('#password-login').val() == "") {
+					alert("You did not enter a password to login with.");
+					$('#password-login').focus();
+					return false;
+				}
+				$('#process-login').val('login');
+				return true;
+			}).submit();
+		});
+		
 		$('#checkout.shopp').submit(function () {
 			if (validate(this)) return true;
 			else return false;

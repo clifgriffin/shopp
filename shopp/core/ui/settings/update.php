@@ -3,6 +3,7 @@
 	<h2><?php _e('Upgrade Settings','Shopp'); ?></h2>
 	<?php include("navigation.php"); ?>
 
+	<br class="clear" />
 	<form name="settings" id="update" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-update'); ?>
 		
@@ -30,6 +31,7 @@
 	            </td>
 			</tr>			
 		</table>
+		<br class="clear" />
 	</form>
 </div>
 
@@ -75,6 +77,7 @@
 			timeout:30000,
 			datatype:'text',
 			success:function (result) {
+				result = $.trim(result);
 				// console.log(result);
 				if (result == "ftp-failed") {
 					window.location.href = adminurl+"&page=shopp/settings&edit=ftp";

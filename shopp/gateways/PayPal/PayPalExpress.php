@@ -73,7 +73,7 @@ class PayPalExpress {
 		
 		if (!empty($result) && isset($result->token)){
 			if ($this->settings['testmode'] == "on") header("Location: {$this->sandbox_url}&token=".$result->token);
-			else header("Location: {$this->checkbox_url}&token=".$result->token);
+			else header("Location: {$this->checkout_url}&token=".$result->token);
 			exit();
 		}
 			
@@ -286,7 +286,7 @@ class PayPalExpress {
 		Enter your PayPal Express API Password.</p>
 		<p><input type="text" name="settings[PayPalExpress][signature]" id="paypalxp-signature" size="48" value="<?php echo $this->settings['signature']; ?>" /><br />
 		Enter your PayPal Express API Signature.</p>
-		<p><label for="paypalxp-testmode"><input type="hidden" name="settings[PayPalExpress][testmode]" value="off" /><input type="checkbox" name="settings[PayPalExpress][testmode]" id="paypalxp-testmode" size="48" value="on"<?php echo ($this->settings['testmode'])?' checked="checked"':''; ?> /> Enable test mode</label></p>
+		<p><label for="paypalxp-testmode"><input type="hidden" name="settings[PayPalExpress][testmode]" value="off" /><input type="checkbox" name="settings[PayPalExpress][testmode]" id="paypalxp-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Enable test mode</label></p>
 		<?php
 	}
 

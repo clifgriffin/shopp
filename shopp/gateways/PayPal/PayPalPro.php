@@ -76,14 +76,20 @@ class PayPalPro {
 		$_['COUNTRYCODE']			= $Order->Billing->country;
 		
 		// Shipping
-		$_['SHOPTONAME'] 			= $Order->Customer->firstname.' '.$Order->Customer->lastname;
-		$_['SHIPTOSTREET']			= $Order->Shipping->address;
-		$_['SHIPTOSTREET2']			= $Order->Shipping->xaddress;
-		$_['SHIPTOCITY']			= $Order->Shipping->city;
-		$_['SHIPTOSTATE']			= $Order->Shipping->state;
-		$_['SHIPTOZIP']				= $Order->Shipping->postcode;
-		$_['SHIPTOCOUNTRYCODE']		= $Order->Shipping->country;
-		$_['SHIPTOPHONENUM']		= $Order->Customer->phone;
+		if (!empty($Order->Shipping->address) &&
+				!empty($Order->Shipping->city) &&
+				!empty($Order->Shipping->state) && 
+				!empty($Order->Shipping->postcode) && 
+				!empty($Order->Shipping->country)) {		
+			$_['SHIPTONAME'] 			= $Order->Customer->firstname.' '.$Order->Customer->lastname;
+			$_['SHIPTOSTREET']			= $Order->Shipping->address;
+			$_['SHIPTOSTREET2']			= $Order->Shipping->xaddress;
+			$_['SHIPTOCITY']			= $Order->Shipping->city;
+			$_['SHIPTOSTATE']			= $Order->Shipping->state;
+			$_['SHIPTOZIP']				= $Order->Shipping->postcode;
+			$_['SHIPTOCOUNTRYCODE']		= $Order->Shipping->country;
+			$_['SHIPTOPHONENUM']		= $Order->Customer->phone;
+		}
 		
 		// Transaction
 		$_['AMT']					= $Order->Totals->total;
@@ -118,7 +124,7 @@ class PayPalPro {
 		$connection = curl_init();
 		if ($this->settings['testmode'] == "on")
 			curl_setopt($connection,CURLOPT_URL,"https://api-3t.sandbox.paypal.com/nvp"); // Sandbox testing
-		else curl_setopt($connection,CURLOPT_URL,"https://api-3t.paypal.com/nvpasd"); // Live		
+		else curl_setopt($connection,CURLOPT_URL,"https://api-3t.paypal.com/nvp"); // Live		
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
 		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0); 
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
@@ -175,52 +181,13 @@ class PayPalPro {
 		<tr id="paypalpro-settings" class="form-field">
 			<th scope="row" valign="top">PayPal Pro</th>
 			<td>
-				<div><input type="text" name="settings[PayPalPro][username]" id="paypal_pro_username" value="<?php echo $settings['username']; ?>" size="30" /><br /><label for="paypal_pro_username"><?php _e('Enter your PayPal API Username.'); ?></label></div>
-				<p><input type="password" name="settings[PayPalPro][password]" id="paypal_pro_password" value="<?php echo $settings['password']; ?>" size="16" /><br /><label for="paypal_pro_password"><?php _e('Enter your PayPal API Password.'); ?></label></p>
-				<p><input type="text" name="settings[PayPalPro][signature]" id="paypal_pro_signature" value="<?php echo $settings['signature']; ?>" size="16" /><br /><label for="paypal_pro_signature"><?php _e('Enter your PayPal API Signature.'); ?></label></p>
-				<p><input type="hidden" name="settings[PayPalPro][testmode]" value="off"><input type="checkbox" name="settings[PayPalPro][testmode]" id="paypal_pro_testmode" value="on"<?php echo ($settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="paypal_pro_testmode"> <?php _e('Test Mode Enabled'); ?></label></p>
+				<div><input type="text" name="settings[PayPalPro][username]" id="paypal_pro_username" value="<?php echo $this->settings['username']; ?>" size="30" /><br /><label for="paypal_pro_username"><?php _e('Enter your PayPal API Username.'); ?></label></div>
+				<p><input type="password" name="settings[PayPalPro][password]" id="paypal_pro_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="paypal_pro_password"><?php _e('Enter your PayPal API Password.'); ?></label></p>
+				<p><input type="text" name="settings[PayPalPro][signature]" id="paypal_pro_signature" value="<?php echo $this->settings['signature']; ?>" size="16" /><br /><label for="paypal_pro_signature"><?php _e('Enter your PayPal API Signature.'); ?></label></p>
+				<p><input type="hidden" name="settings[PayPalPro][testmode]" value="off" /><input type="checkbox" name="settings[PayPalPro][testmode]" id="paypal_pro_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="paypal_pro_testmode"> <?php _e('Test Mode Enabled'); ?></label></p>
 				
 			</td>
 		</tr>
-				
-		<!-- var paypalpro_settings = function () {
-			addSetting("PayPal Pro Login",
-							{'name':'settings[PayPalPro][username]',
-							 'id':'gateway_username',
-							 'type':'text',
-							 'size':'30',
-							 'value':'<?php echo $this->settings['username']; ?>'},
-							 "Enter your PayPal API Username.");
-
-			addSetting("PayPal Pro Password",
-							{'name':'settings[PayPalPro][password]',
-							 'id':'gateway_password',
-							 'type':'password',
-							 'size':'16',
-							 'value':'<?php echo $this->settings['password']; ?>'},
-							 "Enter your PayPal API Password.");
-
-			addSetting("PayPal Pro Signature",
-							{'name':'settings[PayPalPro][signature]',
-							 'id':'gateway_signature',
-							 'type':'text',
-							 'size':'48',
-							 'value':'<?php echo $this->settings['signature']; ?>'},
-							 "Enter your PayPal API Signature.");
-
-
-			addSetting("PayPal Pro Test Mode",
-							{'name':'settings[PayPalPro][testmode]',
-							 'id':'gateway_testmode',
-							 'type':'checkbox',
-							 'value':'on',
-							 'unchecked':'off',
-							 'checked':<?php echo ($this->settings['testmode'] == "on")?'true':'false'; ?>},
-							 "Enabled");
-			}
-			
-			gatewayHandlers.register('<?php echo __FILE__; ?>',paypalpro_settings); -->
-
 		<?
 	}
 	

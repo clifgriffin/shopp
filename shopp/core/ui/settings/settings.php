@@ -3,6 +3,7 @@
 	<h2><?php _e('Settings','Shopp'); ?></h2>
 	<?php include("navigation.php"); ?>
 
+	<br class="clear" />
 	<form name="settings" id="general" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-general'); ?>
 		
@@ -56,6 +57,7 @@
 				<?php _e('Add your own order processing status labels. Be sure to click','Shopp'); ?> <strong><?php _e('Save Changes','Shopp'); ?></strong> <?php _e('below!','Shopp'); ?></td>
 			</tr>
 		</table>
+		<br class="clear" />
 
 		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>

@@ -47,8 +47,8 @@ class Catalog extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		$pages = $Shopp->Settings->get('pages');
-		if (SHOPP_PERMALINKS) $path = "/{$pages['catalog']['name']}";
-		else $page = "?page_id={$pages['catalog']['id']}";
+		if (SHOPP_PERMALINKS) $path = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['name']}";
+		else $page = trailingslashit(get_bloginfo('wpurl'))."?page_id={$pages['catalog']['id']}";
 				
 		switch ($property) {
 			case "url": return $Shopp->link('catalog');
@@ -76,6 +76,8 @@ class Catalog extends DatabaseObject {
 				$string = "";
 				$depth = 0;
 				$parent = false;
+				$showall = false;
+				if (isset($options['showall'])) $showall = $options['showall'];
 
 				$title = $options['title'];
 				if (empty($title)) $title = "";
@@ -130,7 +132,7 @@ class Catalog extends DatabaseObject {
 						$products = '';
 						if (value_is_true($options['products'])) $products = ' ('.$category->products.')';
 					
-						if ($category->products > 0) // Only show categories with products
+						if (value_is_true($showall) || $category->products > 0) // Only show categories with products
 							$string .= '<li><a href="'.$link.'">'.$category->name.'</a>'.$products.'</li>';
 
 						$previous = &$category;

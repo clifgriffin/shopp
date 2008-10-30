@@ -52,7 +52,7 @@
 				<tr<?php if (!even) echo 'class="alternate"'; $even = !$even; ?>>
 					<td>
 						<?php echo $Item->name; ?>
-						<?php if (!empty($Item->optionname)) echo "({$Item->optionname})"; ?>
+						<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?>
 					</td>
 					<td><?php echo $Item->quantity; ?></td>
 					<td class="money"><?php echo money($Item->unitprice); ?></td>

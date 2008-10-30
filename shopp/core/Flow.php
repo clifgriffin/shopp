@@ -218,8 +218,8 @@ class Flow {
 		switch($Request['cart']) {
 			case "add":
 				if (!isset($Request['_wpnonce']) ||
-				 	!wp_verify_nonce($Request['_wpnonce'],'shopp-addtocart')) 		
-					return false;		
+				 	!wp_verify_nonce($Request['_wpnonce'],'shopp-addtocart'))
+					return false;
 			
 				if (isset($Request['product']) && (isset($Request['price']) || isset($Request['options']))) {
 					$quantity = (!empty($Request['quantity']))?$Request['quantity']:1; // Add 1 by default
@@ -534,7 +534,11 @@ class Flow {
 		$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
 		$Shopp->Cart->data->Purchase->load_purchased();
 		// $Shopp->Cart->save();
-
+		
+		// Allow other WordPress plugins access to Purchase data to extend
+		// what Shopp does after a successful transaction
+		do_action('shopp_order',$Purchase);
+		
 		// Send the e-mail receipt
 		$receipt = array();
 		$receipt['from'] = '"'.get_bloginfo("name").'"';
@@ -545,6 +549,9 @@ class Flow {
 		$receipt['receipt'] = $this->order_receipt();
 		$receipt['url'] = get_bloginfo('siteurl');
 		$receipt['sitename'] = get_bloginfo('name');
+		
+		$receipt = apply_filters('shopp_email_receipt_data',$receipt);
+		
 		// echo "<PRE>"; print_r($receipt); echo "</PRE>";
 		shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
 		
@@ -962,7 +969,7 @@ class Flow {
 
 		$Product->save_categories($_POST['categories']);
 		$Product->save_tags(split(",",$_POST['taglist']));
-		
+				
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 
 			// Delete prices that were marked for removal
@@ -1603,13 +1610,12 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		include("{$this->basepath}/gateways/PayPal/PayPalExpress.php");
-		$PayPalExpress = new PayPalExpress();
 		include("{$this->basepath}/gateways/GoogleCheckout/GoogleCheckout.php");
-		$GoogleCheckout = new GoogleCheckout();
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-payments');
 			if (!empty($_POST['settings']['GoogleCheckout']['id']) && !empty($_POST['settings']['GoogleCheckout']['key'])) {
+				$GoogleCheckout = new GoogleCheckout();
 				$url = $Shopp->link('catalog',true);
 				$url .= "?shopp_xorder=GoogleCheckout";
 				$url .= "&merc=".$GoogleCheckout->authcode(
@@ -1623,6 +1629,8 @@ class Flow {
 		}
 		
 		$data = $this->settings_get_gateways();
+		$PayPalExpress = new PayPalExpress();
+		$GoogleCheckout = new GoogleCheckout();
 		
 		$gateways = array();
 		$Processors = array();
