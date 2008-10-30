@@ -19,10 +19,12 @@ var optionsidx = 1;
 var pricingidx = 1;
 var uploader = false;
 var changes = false;
+var saving = false;
 
 function init () {
-	window.onbeforeunload = function () { if (changes) return false; }	
+	window.onbeforeunload = function () { if (changes && !saving) return false; }	
 	$('#product').change(function () { changes = true; });
+	$('#product').submit(function() { saving = true; });
 
 	var basePrice = $(prices).get(0);
 	if (basePrice && basePrice.context == "product") addPriceLine('#product-pricing',[],basePrice);
