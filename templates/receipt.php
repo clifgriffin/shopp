@@ -28,7 +28,7 @@
 
 	<?php while(shopp('purchase','items')): ?>
 		<tr>
-			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options','before= (&after=)'); ?><br />
+			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options','before=&after='); ?><br />
 				<?php shopp('purchase','item-sku')."<br />"; ?>
 				<?php shopp('purchase','item-download'); ?>
 				</td>
