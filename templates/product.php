@@ -20,7 +20,7 @@
 	<p class="freeshipping">Free Shipping!</p>
 	<?php endif; ?>
 
-	<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
+	<form action="" method="post" class="shopp product">
 		<?php if(shopp('product','has-variations')): ?>
 		<ul class="variations">
 			<?php shopp('product','variations','mode=multiple&label=true&defaults=Select an option&before_menu=<li>&after_menu=</li>'); ?>

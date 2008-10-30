@@ -3,6 +3,7 @@
 	<h2><?php _e('Checkout Settings','Shopp'); ?></h2>
 	<?php include("navigation.php"); ?>
 
+	<br class="clear" />
 	<form name="settings" id="checkout" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-checkout'); ?>
 		
@@ -49,6 +50,7 @@
 					<label for="download-restriction"><input type="checkbox" name="settings[download_restriction]" id="download-restriction" value="ip" <?php echo ($this->Settings->get('download_restriction') == "ip")?'checked="checked" ':'';?> /> <?php _e('Restrict to the computer the product is purchased from','Shopp'); ?></label></td> 
 			</tr>
 		</table>
+		<br class="clear" />
 		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>

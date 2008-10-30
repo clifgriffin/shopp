@@ -229,34 +229,36 @@ function is_robot() {
 
 function shopp_prereqs () {
 	$errors = array();
-	// Check PHP version
-	if (!version_compare(PHP_VERSION, '5.0.0', '>')) 
-		$errors[] = "Shopp requires PHP version 5+.  You are using PHP version ".PHP_VERSION;
+	// Check PHP version, this won't appear much since syntax errors in earlier
+	// PHP releases will cause this code to never be executed
+	if (!version_compare(PHP_VERSION, '5.1.2', '>')) 
+		$errors[] = __("Shopp requires PHP version 5.1.2+.  You are using PHP version ").PHP_VERSION;
 		
 	// Check WordPress version
-	if (!version_compare(get_bloginfo('version'),'2.4.0','>'))
-		$errors[] = "Shopp requires WordPress version 2.5+.  You are using WordPress version ".get_bloginfo('version');
+	if (!version_compare(get_bloginfo('version'),'2.6.0','>='))
+		$errors[] = __("Shopp requires WordPress version 2.6+.  You are using WordPress version ").get_bloginfo('version');
 	
 	// Check for cURL
 	if( !function_exists("curl_init") &&
 	      !function_exists("curl_setopt") &&
 	      !function_exists("curl_exec") &&
-	      !function_exists("curl_close") ) $errors[] = "Shopp requires the cURL library for processing transactions securely. Your web hosting environment does not currently have cURL installed (or built into PHP).";
+	      !function_exists("curl_close") ) $errors[] = __("Shopp requires the cURL library for processing transactions securely. Your web hosting environment does not currently have cURL installed (or built into PHP).");
 	
 	// Check for GD
-	if (!function_exists("gd_info")) $errors[] = "Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.  Your web hosting environment does not currently have GD installed (or built into PHP).";
+	if (!function_exists("gd_info")) $errors[] = __("Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.  Your web hosting environment does not currently have GD installed (or built into PHP).");
 	else {
 		$gd = gd_info();
-		if (!$gd['JPG Support']) $errors[] = "Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.";
+		if (!$gd['JPG Support']) $errors[] = __("Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.");
 	}
 	
 	if (!empty($errors)) {
-		foreach ($errors as $error) {
-			echo '<style type="text/css">body { font: 13px "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, sans-serif;
-			}</style>';
-			echo "<p>$error</p>";
-		}
-		echo '<p>Sorry! You will not be able to use Shopp.  For more information, see the <a href="http://docs.shopplugin.net/Installation">online Shopp documentation.</p>';
+		$string .= '<style type="text/css">body { font: 13px/1 "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, sans-serif; } p { margin: 10px; }</style>';
+		
+		foreach ($errors as $error) $string .= "<p>$error</p>";
+
+		$string .= '<p>'.__('Sorry! You will not be able to use Shopp.  For more information, see the <a href="http://docs.shopplugin.net/Installation" target="_blank">online Shopp documentation.</a>').'</p>';
+		
+		trigger_error($string,E_USER_ERROR);
 		exit();
 	}
 	return true;
@@ -313,6 +315,43 @@ function find_files ($extension, $directory, $root, &$found) {
 	}
 	return false;
 }
+
+if (!function_exists('json_encode')) {
+	function json_encode ($a = false) {
+		if (is_null($a)) return 'null';
+		if ($a === false) return 'false';
+		if ($a === true) return 'true';
+		if (is_scalar($a)) {
+			if (is_float($a)) {
+				// Always use "." for floats.
+				return floatval(str_replace(",", ".", strval($a)));
+			}
+
+			if (is_string($a)) {
+				static $jsonReplaces = array(array("\\", "/", "\n", "\t", "\r", "\b", "\f", '"'), array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', '\"'));
+				return '"' . str_replace($jsonReplaces[0], $jsonReplaces[1], $a) . '"';
+			} else return $a;
+		}
+
+		$isList = true;
+		for ($i = 0, reset($a); $i < count($a); $i++, next($a)) {
+			if (key($a) !== $i) {
+				$isList = false;
+				break;
+			}
+		}
+
+		$result = array();
+		if ($isList) {
+			foreach ($a as $v) $result[] = json_encode($v);
+			return '[' . join(',', $result) . ']';
+		} else {
+			foreach ($a as $k => $v) $result[] = json_encode($k).':'.json_encode($v);
+			return '{' . join(',', $result) . '}';
+		}
+	}
+}
+
 
 /**
  * List files and directories inside the specified path */

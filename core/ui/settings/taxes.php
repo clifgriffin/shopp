@@ -3,6 +3,7 @@
 	<h2><?php _e('Tax Settings','Shopp'); ?></h2>
 	<?php include("navigation.php"); ?>
 
+	<br class="clear" />
 	<form name="settings" id="taxes" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-taxes'); ?>
 		
@@ -25,6 +26,8 @@
 			</tr>
 
 		</table>
+		<br class="clear" />
+				
 		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
@@ -35,10 +38,21 @@ helpurl = "<?php echo SHOPP_DOCS; ?>Taxes_Settings";
 
 (function($) {
 
+var disableCountriesInUse = function () {
+	$('#taxrates-table tr select.country option').each (function () {
+		$(this).attr('disabled',false);
+		if ($.inArray($(this).val(),countriesInUse) != -1 && !this.selected)
+			$(this).attr('disabled',true);
+		if ($.inArray($(this).val(),allCountryZonesInUse) != -1 && !this.selected)
+			$(this).attr('disabled',true);
+	});
+}
+
 var disableZonesInUse = function () {
 	$('#taxrates-table tr select.zone option').each (function () {
 		if ($.inArray($(this).val(),zonesInUse) != -1 && !this.selected)
-			$(this).attr({'disabled':'disabled'});
+			$(this).attr('disabled',true);
+		else $(this).attr('disabled',false);
 	});
 }
 
@@ -52,7 +66,7 @@ var addTaxRate = function (r) {
 	var deleteIcon = $('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteButton);
 	
 	var countryCell = $('<td></td>').appendTo(row);
-	var countryMenu = $('<select name="settings[taxrates]['+i+'][country]" id="country-'+i+'"></select>').appendTo(countryCell);
+	var countryMenu = $('<select name="settings[taxrates]['+i+'][country]" id="country-'+i+'" class="country"></select>').appendTo(countryCell);
 	
 	$.each(countries, function(value,label) {
 		option = $('<option></option>').val(value).html(label).appendTo(countryMenu);
@@ -62,15 +76,32 @@ var addTaxRate = function (r) {
 	var zoneMenu = $('<select name="settings[taxrates]['+i+'][zone]" id="zone-'+i+'" class="zone"></select>').appendTo(zoneCell);
 
 	var updateZoneMenu = function () {
-		zoneMenu.empty();
+		zoneMenu.empty(); // Clear out the zone menu to start from scratch
 		if (zones[$(countryMenu).val()]) {
+			var selectNext = false;
+			// Add country zones to the zone menu
 			$.each(zones[$(countryMenu).val()], function(value,label) {
-				if ($.inArray(value,zonesInUse) != -1) option = $('<option disabled="disabled"></option>').val(value).html(label).appendTo(zoneMenu);				
+				if ($.inArray(value,zonesInUse) != -1) option = $('<option></option>').attr('disabled',true).val(value).html(label).appendTo(zoneMenu);				
 				else option = $('<option></option>').val(value).html(label).appendTo(zoneMenu);
+				if (selectNext) { // If the previous option was disabled, select this one in the menu
+					selectNext = false;
+					option.attr('selected',true);
+				}
+				// This option is seleted but disabled, we need to select the next option
+				if (option.attr('selected') && option.attr('disabled')) selectNext = true;
 			});
+			// All of the zones have been selected, disable the country in the country menu
+			if (selectNext) {
+				allCountryZonesInUse.push($(countryMenu).val());
+				disableCountriesInUse();
+				countryMenu.attr('selectedIndex',countryMenu.attr('selectedIndex')+1).change();
+			}
 		}
-		if (zoneMenu.children().length == 0) zoneMenu.hide();
-		else zoneMenu.show();
+		// Hide the zone menu if there are no zones for the selected country
+		if (zoneMenu.children().length == 0) {
+			zoneMenu.hide();
+		} else zoneMenu.show(); // Show the zone menu when there are zones
+		zoneMenu.change();
 	}
 	
 	$(row).hover(function() {
@@ -89,14 +120,21 @@ var addTaxRate = function (r) {
 	});
 	
 	$(countryMenu).change(function () {
+		if (!this.currentCountry) this.currentCountry = $(countryMenu).val();
+		if ($.inArray(this.currentCountry,countriesInUse) != -1)
+			countriesInUse.splice($.inArray(this.currentCountry,countriesInUse),1);
+		this.currentCountry = $(this).val();
+		if (!zones[this.currentCountry]) countriesInUse.push(this.currentCountry);
+		disableCountriesInUse();
 		updateZoneMenu();
-	}).change();
+	});
 	
 	$(zoneMenu).change(function () {
-		if ($.inArray(currentZone,zonesInUse) != -1)
-			zonesInUse.splice($.inArray(currentZone,zonesInUse),1);
-		currentZone = $(zoneMenu).val();
-		zonesInUse.push(currentZone);
+		if (!this.currentZone) this.currentZone = $(this).val();
+		if ($.inArray(this.currentZone,zonesInUse) != -1)
+			zonesInUse.splice($.inArray(this.currentZone,zonesInUse),1);
+		this.currentZone = $(this).val();
+		zonesInUse.push(this.currentZone);
 		disableZonesInUse();
 	});
 	
@@ -105,14 +143,16 @@ var addTaxRate = function (r) {
 		countryMenu.val(r.country).change();
 		zoneMenu.val(r.zone).change();
 	} else {
-		countryMenu.val(base.country).change();
-		if ($.inArray(base.zone,zonesInUse) == -1)
-			zoneMenu.val(base.zone).change();
-		else zoneMenu.change();
+		if ($.inArray(base.country,countriesInUse) == -1) {
+			countryMenu.val(base.country).change();
+			if (base.zone) {
+				if ($.inArray(base.zone,zonesInUse) == -1)
+					zoneMenu.val(base.zone).change();
+				else zoneMenu.change();
+			} else zoneMenu.change();
+		} else countryMenu.change();
 	}
 	
-	var currentZone = zoneMenu.val();
-
 	taxrates.push(row);
 	quickSelects();
 	
@@ -124,20 +164,17 @@ if ($('#taxrates-table')) {
 	var countries = <?php echo json_encode($countries); ?>;
 	var zones = <?php echo json_encode($zones); ?>;
 	var taxrates = new Array();
+	var countriesInUse = new Array();
 	var zonesInUse = new Array();
+	var allCountryZonesInUse = new Array();
 
-
-	$('#add-taxrate').click(function() {
-		addTaxRate();
-	});
+	$('#add-taxrate').click(function() { addTaxRate(); });
 
 	$('#taxrates-table').empty();
-	if (rates) {
-		for (i in rates) {
-			addTaxRate(rates[i]);
-		}
-	} else addTaxRate();	
+	if (rates) for (i in rates) addTaxRate(rates[i]);
+	else addTaxRate();	
 }
+
 })(jQuery)
 
 //]]>

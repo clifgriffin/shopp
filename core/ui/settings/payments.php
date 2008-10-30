@@ -3,6 +3,7 @@
 	<h2><?php _e('Payments Settings','Shopp'); ?></h2>
 	<?php include("navigation.php"); ?>
 
+	<br class="clear" />
 	<form name="settings" id="payments" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-payments'); ?>
 		
@@ -35,6 +36,8 @@
 				</td>
 			</tr>
 		</table>
+		<br class="clear" />
+		
 		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>

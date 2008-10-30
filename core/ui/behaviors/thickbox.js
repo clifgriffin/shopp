@@ -9,12 +9,12 @@
 
 //on page load call tb_init
 $(document).ready(function(){   
-	tb_init('a.thickbox, area.thickbox, input.thickbox');//pass where to apply thickbox
+	tb_init('a.shopp-thickbox, area.shopp-thickbox, input.shopp-thickbox');//pass where to apply thickbox
 	imgLoader = new Image();// preload image
 	imgLoader.src = tb_pathToImage;
 });
 
-//add thickbox to href & area elements that have a class of .thickbox
+//add thickbox to href & area elements that have a class of .shopp-thickbox
 function tb_init(domChunk){
 	$(domChunk).click(function(){
 	var t = this.title || this.name || null;
@@ -234,7 +234,7 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 					$("#TB_ajaxContent").load(url += "&random=" + (new Date().getTime()),function(){//to do a post change this load method
 						tb_position();
 						$("#TB_load").remove();
-						tb_init("#TB_ajaxContent a.thickbox");
+						tb_init("#TB_ajaxContent a.shopp-thickbox");
 						$("#TB_window").css({display:"block"});
 					});
 				}

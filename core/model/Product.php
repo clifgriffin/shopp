@@ -334,8 +334,8 @@ class Product extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		$pages = $Shopp->Settings->get('pages');
-		if (SHOPP_PERMALINKS) $imagepath = "/{$pages['catalog']['permalink']}images/";
-		else $imagepath = "?shopp_image=";
+		if (SHOPP_PERMALINKS) $imageuri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
+		else $imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
 		
 		switch ($property) {
 			case "found": if (!empty($this->id)) return true; else return false; break;
@@ -390,7 +390,7 @@ class Product extends DatabaseObject {
 				if (empty($this->images)) $this->load_images();
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
 				$img = current($this->images['thumbnail']);
-				return '<img src="'.$imagepath.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
+				return '<img src="'.$imageuri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
 				break;
 			case "has-images": 
 				if (empty($options['type'])) $options['type'] = "thumbnail";
@@ -414,8 +414,8 @@ class Product extends DatabaseObject {
 				$img = current($this->images[$options['type']]);
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
 				$string = "";
-				if (!empty($options['zoom'])) $string .= '<a href="'.$imagepath.$img->src.'/'.str_replace('small_','',$img->name).'" class="thickbox" rel="product-gallery">';
-				$string .= '<img src="'.$imagepath.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />';
+				if (!empty($options['zoom'])) $string .= '<a href="'.$imageuri.$img->src.'/'.str_replace('small_','',$img->name).'" class="shopp-thickbox" rel="product-gallery">';
+				$string .= '<img src="'.$imageuri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;
@@ -433,8 +433,8 @@ class Product extends DatabaseObject {
 						}
 					
 						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
-						$previews .= '<a href="'.$imagepath.$img->src.'/'.str_replace('small_','',$img->name).'" class="thickbox" rel="product-gallery">';
-						$previews .= '<img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+						$previews .= '<a href="'.$imageuri.$img->src.'/'.str_replace('small_','',$img->name).'" class="shopp-thickbox" rel="product-gallery">';
+						$previews .= '<img src="'.$imageuri.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
 						$previews .= '</a>';
 						$previews .= '</li>';
 						$firstPreview = false;
@@ -448,7 +448,7 @@ class Product extends DatabaseObject {
 					$thumbs = '<ul>';
 					foreach ($this->images['thumbnail'] as $img) {
 						$thumbs .= '<li id="thumbnail-'.$img->src.'"'.(($firstThumb)?' class="first"':'').'>';
-						$thumbs .= '<a href="javascript:shopp_preview('.$img->src.');"><img src="'.$imagepath.$img->id.'" alt="'.$img->datatype.'" width="'.$thumbsize.'" height="'.$thumbsize.'" /></a>';
+						$thumbs .= '<a href="javascript:shopp_preview('.$img->src.');"><img src="'.$imageuri.$img->id.'" alt="'.$img->datatype.'" width="'.$thumbsize.'" height="'.$thumbsize.'" /></a>';
 						$thumbs .= '</li>';
 						$firstThumb = false;						
 					}

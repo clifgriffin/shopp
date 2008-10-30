@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0b4
+Version: 1.0b5
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,14 +26,14 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0b4");
+define("SHOPP_VERSION","1.0b5");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
 define("SHOPP_DEBUG",true);
 
 require("core/functions.php");
-require("core/DB.php");
+require_once("core/DB.php");
 require("core/Flow.php");
 
 require("core/model/Settings.php");
@@ -78,7 +78,7 @@ class Shopp {
 			return true;
 		}
 		
-		// register_deactivation_hook(__FILE__, array(&$this, 'deactivate'));
+		register_deactivation_hook("shopp/Shopp.php", array(&$this, 'deactivate'));
 		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
 
 		// Initialize defaults if they have not been entered
@@ -132,6 +132,7 @@ class Shopp {
 	 * install()
 	 * Installs the tables and initializes settings */
 	function install () {
+		global $wpdb;
 
 		// If no settings are available,
 		// no tables exist, so this is a
@@ -146,8 +147,17 @@ class Shopp {
 		// dump the datatype model cache so it can be rebuilt
 		// Useful when table schemas change so we can
 		// force the in memory data model to get rebuilt
-		if ($this->Settings->get('shopp_setup'))
+		if ($this->Settings->get('shopp_setup')) {
 			$this->Settings->save('data_model','');
+
+			// Publish/re-enable Shopp pages
+			$filter = "";
+			$pages = $this->Settings->get('pages');
+			foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
+			if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='publish' WHERE $filter");
+			
+		}
+			
 
 	}
 	
@@ -155,7 +165,14 @@ class Shopp {
 	 * deactivate()
 	 * Resets the data_model to prepare for potential upgrades/changes to the table schema */
 	function deactivate() {
-		$this->Settings->save('data_model','');  // Clear the data model cache
+		global $wpdb;
+
+		// Unpublish/disable Shopp pages
+		$filter = "";
+		$pages = $this->Settings->get('pages');
+		foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
+		if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='draft' WHERE $filter");
+
 		return true;
 	}
 	
@@ -321,13 +338,13 @@ class Shopp {
 			// Match updates from the found results to our pages index
 			foreach ($pages as $key => &$page) {
 				foreach ($results as $index => $post) {
-					echo strpos($post->content,$page->content);
 					if (strpos($post->post_content,$page['content']) !== false) {
 						$page['id'] = $post->ID;
 						$page['title'] = $post->post_title;
 						$page['name'] = $post->post_name;
-						$page['permalink'] = preg_replace('|https?://[^/]+/|i','',get_permalink($page['id']));
-						if ($page['permalink'] == get_bloginfo('siteurl')) $page['permalink'] = "";
+						$page['permalink'] = str_replace(trailingslashit(get_bloginfo('wpurl')),'',get_permalink($page['id']));
+						// trailingslashit(preg_replace('|https?://[^/]+/|i','',get_permalink($page['id'])));
+						if ($page['permalink'] == get_bloginfo('wpurl')) $page['permalink'] = "";
 						break;
 					}
 				}
@@ -513,9 +530,10 @@ class Shopp {
 		global $wpdb;
 		
 		if (current_user_can('manage_options')) {
-			$this->_debug->memory .= "Peak: ".number_format(memory_get_peak_usage()/1024, 2, '.', ',') . " KB<br />";
-			$this->_debug->memory .= "End: ".number_format(memory_get_usage()/1024, 2, '.', ',') . " KB";
-
+			if (function_exists('memory_get_peak_usage'))
+				$this->_debug->memory .= "Peak: ".number_format(memory_get_peak_usage()/1024, 2, '.', ',') . " KB<br />";
+			if (function_exists('memory_get_usage'))
+				$this->_debug->memory .= "End: ".number_format(memory_get_usage()/1024, 2, '.', ',') . " KB";
 
 			echo '<script type="text/javascript">'."\n";
 			echo '//<![CDATA['."\n";
@@ -538,8 +556,12 @@ class Shopp {
 	function cart () {
 		if (empty($_POST['cart']) && empty($_GET['cart'])) return true;
 
-		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax(); 
-		else $this->Flow->cart_request();
+		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax();
+		else {
+			$this->Flow->cart_request();	
+			header("Location: ".$this->link('cart'));
+			exit();
+		}
 	}
 	
 	/**
@@ -569,7 +591,7 @@ class Shopp {
 		}
 		if ($_POST['checkout'] != "process") return true;
 
-		if (!empty($_POST['submit-login'])) {
+		if ($_POST['process-login'] == "login") {
 			$this->Flow->login($_POST['email-login'],$_POST['password-login']);
 			return true;
 		}
@@ -746,10 +768,14 @@ class Shopp {
 	 * Provides fast db lookups with as little overhead as possible */
 	function lookups($wp) {
 		// global $wp_rewrite;
+		// $pages = $this->Settings->get('pages');
 		// echo "<pre>"; print_r($wp); echo "</pre>";
 		// echo "<pre>"; print_r($wp_rewrite); echo "</pre>";
+		// echo "<pre>"; print_r($pages); echo "</pre>";
+
 
 		// Grab query requests from permalink rewriting query vars
+		$admin = false;
 		$image = $wp->query_vars['shopp_image'];
 		$download = $wp->query_vars['shopp_download'];
 		$lookup = $wp->query_vars['shopp_lookup'];
@@ -761,7 +787,11 @@ class Shopp {
 		}
 		
 		// Admin Lookups
-		if ($_GET['page'] == "shopp/lookup") $image = $_GET['id'];
+		if ($_GET['page'] == "shopp/lookup") {
+			$admin = true;
+			$image = $_GET['id'];
+			$download = $_GET['download'];
+		}
 		
 		if (!empty($image)) $lookup = "image";
 		if (!empty($download)) $lookup = "download";
@@ -828,19 +858,23 @@ class Shopp {
 				break;
 			case "download":
 				if (empty($download)) break;
-				require_once("core/model/Purchased.php");
-				$Purchased = new Purchased($download,"dkey");
-				$Asset = new Asset($Purchased->download);
-				
-				$forbidden = false;
-				// Download limit checking
-				if (!($Purchased->downloads < $this->Settings->get('download_limit') &&  // Has download credits available
-						$Purchased->created < mktime()+$this->Settings->get('download_timelimit') ))
-							$forbidden = true;
-			
-				if ($this->Settings->get('download_restriction') == "ip") {
-					$Purchase = new Purchase($Purchased->purchase);
-					if ($Purchase->ip != $_SERVER['REMOTE_ADDR']) $forbidden = true;
+				if ($admin) {
+					$Asset = new Asset($download);
+				} else {
+					require_once("core/model/Purchased.php");
+					$Purchased = new Purchased($download,"dkey");
+					$Asset = new Asset($Purchased->download);
+
+					$forbidden = false;
+					// Download limit checking
+					if (!($Purchased->downloads < $this->Settings->get('download_limit') &&  // Has download credits available
+							$Purchased->created < mktime()+$this->Settings->get('download_timelimit') ))
+								$forbidden = true;
+
+					if ($this->Settings->get('download_restriction') == "ip") {
+						$Purchase = new Purchase($Purchased->purchase);
+						if ($Purchase->ip != $_SERVER['REMOTE_ADDR']) $forbidden = true;
+					}
 				}
 				
 				if ($forbidden) {

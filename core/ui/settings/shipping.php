@@ -3,6 +3,7 @@
 	<h2><?php _e('Shipping Settings','Shopp'); ?></h2>
 	<?php include("navigation.php"); ?>
 
+	<br class="clear" />
 	<form name="settings" id="shipping" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-shipping'); ?>
 		
@@ -47,10 +48,13 @@
 		<p><small><?php _e('Shipping rates based on the order amount are calculated once against the order subtotal (which does not include tax).  Shipping rates based on weight are calculated once against the total order weight.  Shipping rates based on item quantity are calculated against the total quantity of each different item ordered.','Shopp'); ?></small></p>
 		<?php $base = $this->Settings->get('base_operations'); if (!empty($base['country'])): ?>
 		<table id="shipping-rates" class="form-table"><tr><td></td></tr></table>
+		<br class="clear" />
 		<div class="tablenav"><div class="alignright"><button type="button" name="add-shippingrate" id="add-shippingrate" class="button-secondary" tabindex="9999"><?php _e('Add Shipping Method Rates','Shopp'); ?></button></div></div>
 		<?php else: ?>
 			<p class="tablenav"><small><strong>Note:</strong> <?php _e('You must select a Base of Operations location under','Shopp'); ?> <a href="?page=<?php echo $this->Admin->settings ?>&amp;edit=general"><?php _e('General settings','Shopp'); ?></a> <?php _e('before you can configure shipping rates.','Shopp'); ?></small></p>
 		<?php endif; ?>
+
+		<br class="clear" />
 		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>

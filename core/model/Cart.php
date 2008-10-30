@@ -354,9 +354,11 @@ class Cart {
 							$rulematch = true;
 						break;
 					case "Promo code":
-						foreach ($this->data->PromoCodes as $code) {
-							if (Promotion::match_rule($code,$rule['logic'],$rule['value']))
-								$rulematch = true;
+						if (!empty($this->data->PromoCodes)) {
+							foreach ($this->data->PromoCodes as $code) {
+								if (Promotion::match_rule($code,$rule['logic'],$rule['value']))
+									$rulematch = true;
+							}
 						}
 						break;
 				}
@@ -708,7 +710,7 @@ class Cart {
 				return $content;
 				break;
 			case "loggedin": return $this->data->login; break;
-			case "notloggedin": return (!$this->data->login); break;
+			case "notloggedin": return (!$this->data->login && $Shopp->Settings->get('account_system') != "none"); break;
 			case "email-login": 
 				if (!empty($_POST['email-login']))
 					$options['value'] = $_POST['email-login']; 
@@ -719,11 +721,13 @@ class Cart {
 					$options['value'] = $_POST['password-login']; 
 				return '<input type="password" name="password-login" id="password-login"'.$this->inputattrs($options).' />';
 				break;
-			case "submit-login": 
-				if (!empty($_POST['submit-login']))
-					$options['value'] = $_POST['submit-login']; 
-				return '<input type="submit" name="submit-login" id="submit-login"'.$this->inputattrs($options).' />';
+			case "submit-login": // Deprecating
+			case "login-button":
+				$string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
+				$string .= '<input type="button" name="submit-login" id="submit-login"'.$this->inputattrs($options).' />';
+				return $string;
 				break;
+
 			case "firstname": 
 				if (!empty($this->data->Order->Customer->firstname))
 					$options['value'] = $this->data->Order->Customer->firstname; 

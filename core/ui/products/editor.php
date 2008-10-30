@@ -79,7 +79,7 @@
 		</tr>		
 		<tr id="product-images" class="form-field form-required"> 
 			<th scope="row" valign="top"><label><?php _e('Product Images','Shopp'); ?></label>
-				<div>
+				<div id="swf-uploader">
 				<input type="hidden" name="product" value="<?php echo $_GET['edit']; ?>" id="image-product-id" />
 				<input type="hidden" name="deleteImages" id="deleteImages" value="" />
 				<button type="button" class="button-secondary" name="add-image" id="add-product-image" tabindex="10"><small><?php _e('Add New Image','Shopp'); ?></small></button></div></th> 
@@ -115,8 +115,8 @@
 			<th><?php _e('Option Menus','Shopp'); ?></th>
 			<td>
 				<?php _e('Create the menus and menu options for the product\'s variations.','Shopp'); ?><br />
-				<ul class="multipane">
-					<li><div id="variations-menu" class="multiple-select options menu"><ul></ul></div>
+				<ul class="multipane options">
+					<li><div id="variations-menu" class="multiple-select menu"><ul></ul></div>
 					<div class="controls">
 						<button type="button" id="addVariationMenu" class="button-secondary" tabindex="14"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
 					</div>
