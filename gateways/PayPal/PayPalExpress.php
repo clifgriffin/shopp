@@ -110,7 +110,7 @@ class PayPalExpress {
 
 		// Line Items
 		foreach($Shopp->Cart->contents as $i => $Item) {
-			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->option))?' '.$Item->option:'');
+			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
 			$_['L_AMT'.$i]			= number_format($Item->unitprice,2);
 			$_['L_NUMBER'.$i]		= $i;
 			$_['L_QTY'.$i]			= $Item->quantity;
