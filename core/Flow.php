@@ -556,7 +556,7 @@ class Flow {
 		shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
 		
 		if ($Shopp->Settings->get('receipt_copy') == 1) {
-			$receipt['to'] = $Shopp->Settings->get('shopowner_email');
+			$receipt['to'] = $Shopp->Settings->get('merchant_email');
 			$receipt['subject'] = "New Order";
 			shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
 		}
