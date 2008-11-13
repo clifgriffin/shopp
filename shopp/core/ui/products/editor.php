@@ -1,10 +1,11 @@
 <div class="wrap shopp"> 
+	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
 <h2><?php _e('Product Editor','Shopp'); ?></h2> 
 
 <div id="ajax-response"></div> 
-
-<form name="product" id="product" action="?page=<?php echo $this->Admin->products; ?>&amp;edit=<?php echo $_GET['edit']; ?>" method="post" enctype="multipart/form-data">
+<?php $action = (!empty($Product->id)?$Product->id:'new'); ?>
+<form name="product" id="product" action="<?php echo admin_url("admin.php?page=".$this->Admin->products."&edit=$action"); ?>" method="post">
 	<?php wp_nonce_field('shopp-save-product'); ?>
 	
 	<table class="form-table"> 

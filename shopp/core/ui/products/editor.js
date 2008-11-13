@@ -30,15 +30,15 @@ function init () {
 	if (specs) for (s in specs) addDetail(specs[s]);
 	$('#addDetail').click(function() { addDetail(); });
 
+	var basePrice = $(prices).get(0);
+	if (basePrice && basePrice.context == "product") addPriceLine('#product-pricing',[],basePrice);
+	else addPriceLine('#product-pricing',[]);
+
 	$('#variations-setting').click(variationsToggle);
 	variationsToggle();
 	loadVariations(options);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
-
-	var basePrice = $(prices).get(0);
-	if (basePrice && basePrice.context == "product") addPriceLine('#product-pricing',[],basePrice);
-	else addPriceLine('#product-pricing',[]);
 		
 	categories();
 	tags();
@@ -742,7 +742,7 @@ function addPriceLine (target,options,data,attachment) {
 					this.progressBar = bar;
 				},
 				onComplete: function(results) {
-					console.log(results);
+					// console.log(results);
 					var filedata = eval('('+results+')');
 					if (filedata.error) {
 						$(this.targetHolder).html("No download file.");
@@ -1165,7 +1165,7 @@ function FileUploads () {
 	function uploadError (file, error, message) { }
 
 	function uploadSuccess (file, results) {
-		console.log(results);
+		// console.log(results);
 		var filedata = eval('('+results+')');
 		if (filedata.error) {
 			$(this.targetHolder).html("No download file.")

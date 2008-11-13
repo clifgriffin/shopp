@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0b6
+Version: 1.0b6.1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0b6");
+define("SHOPP_VERSION","1.0b6.1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -442,8 +442,8 @@ class Shopp {
 	 * Handles product administration screens */
 	function products () {
 		if (isset($_GET['edit'])) $this->Flow->product_editor();
-		elseif (isset($_GET['categories'])) $this->Flow->categories_list();
 		elseif (isset($_GET['category'])) $this->Flow->category_editor();
+		elseif (isset($_GET['categories'])) $this->Flow->categories_list();
 		else $this->Flow->products_list();
 	}
 

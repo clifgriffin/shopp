@@ -926,8 +926,14 @@ class Flow {
 
 		if (!empty($_POST['save'])) {
 			// print_r($_POST);
-			$this->save_product($Product);	
-			return true;
+			$this->save_product($Product);
+			
+			$Product = new Product($Product->id);
+			$Product->load_prices();
+			$Product->load_specs();
+			$Product->load_categories();
+			$Product->load_tags();
+			$updated = '<strong>'.$Product->name.'</strong> '.__('has been saved.','Shopp');
 		}
 
 		require_once("{$this->basepath}/core/model/Asset.php");
@@ -971,7 +977,7 @@ class Flow {
 
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
-
+			
 		if (!$_POST['options']) $Product->options = array();
 		$_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
 		$Product->updates($_POST,array('categories'));
@@ -1065,8 +1071,7 @@ class Flow {
 		}
 		
 		unset($Product);
-
-		$this->products_list();
+		return true;
 	}
 	
 	function product_images () {
@@ -1229,7 +1234,6 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-
 		if ($_GET['category'] != "new") {
 			$Category = new Category($_GET['category']);
 		} else $Category = new Category();
@@ -1266,8 +1270,7 @@ class Flow {
 			
 			$Category->updates($_POST);
 			$Category->save();
-			$this->categories_list();
-			return true;
+			$updated = __($Category->name.' category saved.','Shopp');
 		}
 		
 		$categories = $db->query("SELECT id,name,parent FROM $Category->_table ORDER BY parent,name",AS_ARRAY);
