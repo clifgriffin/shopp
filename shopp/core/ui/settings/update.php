@@ -8,7 +8,7 @@
 		<?php wp_nonce_field('shopp-settings-update'); ?>
 		
 		<table class="form-table"> 
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order">Shopp Updates</label>
 				</th> 
 				<td><?php _e('Currently running Shopp','Shopp'); ?> <?php echo SHOPP_VERSION; ?>
@@ -17,15 +17,15 @@
 					</div>
 					</td>
 			</tr>			
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="Update Key"><?php _e('Update Key','Shopp'); ?></label></th> 
 				<td>
 					<?php if ($this->Settings->get('updatekey_status') == "activated"): ?>
 						<input type="text" name="settings[update_key]" id="update-key" size="40" value="<?php echo $this->Settings->get('update_key'); ?>" readonly="readonly" />
-					<input type="submit" id="deactivate-button" name="activation" value="<?php _e('De-activate Key','Shopp'); ?>" class="button" />
+					<input type="submit" id="deactivate-button" name="activation" value="<?php _e('De-activate Key','Shopp'); ?>" class="button-secondary" />
 					<?php else: ?>
 					<input type="text" name="settings[update_key]" id="update-key" size="40" value="<?php echo $this->Settings->get('update_key'); ?>" />
-					<input type="submit" id="activate-button" name="activation" value="<?php _e('Activate Key','Shopp'); ?>" class="button" />
+					<input type="submit" id="activate-button" name="activation" value="<?php _e('Activate Key','Shopp'); ?>" class="button-secondary" />
 					<?php endif; ?>
 					<br /><?php echo $activation; ?>
 	            </td>

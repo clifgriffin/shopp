@@ -1,4 +1,5 @@
 body { position: relative; }
+
 .shopp button { cursor: pointer; }
 .shopp button.deleteButton { background: none; border: none; padding: 0; width: 16px; height: 16px; }
 .shopp button.delete,.shopp button.add {  display: inline-block; background: none; border: none; padding: 3px; margin: 1px; }
@@ -54,6 +55,7 @@ div.progress div.bar { position: absolute; height: 10px; background: #85ec3d;  }
 div.progress div.gloss { position: absolute; width: 100%; height: 10px; background: url('/wp-content/plugins/shopp/core/ui/icons/gloss.png') repeat-x; }
 
 #swf-uploader { display: none; }
+
 #product-images table.form-table td { margin: 0; padding: 10px 0 0 10px; }
 #product-images #lightbox { list-style-type: none; margin: 0; padding: 0; }
 #product-images #lightbox li { position: relative; display: block; float: left; background: #ffffff; border: none; margin: 0 10px 10px 0; padding: 5px; cursor: move; width: 96px; height: 96px; border: 1px solid #cee1ef; z-index: 1;}

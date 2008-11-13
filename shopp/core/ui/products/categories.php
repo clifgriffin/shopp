@@ -7,13 +7,11 @@
 	
 	<?php include("navigation.php"); ?>
 
-	<p class="controls"><button type="submit" name="category" value="new" class="button"><?php _e('New Category','Shopp'); ?></button></p>
+	<p class="search-box"><button type="submit" name="category" value="new" class="button"><?php _e('New Category','Shopp'); ?></button></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-		<div class="alignleft"><button type="submit" id="delete-button" name="deleting" value="category" class="button-secondary"><?php _e('Delete','Shopp'); ?></button></div>
-		<br class="clear" />
-		
+		<div class="alignleft actions"><button type="submit" id="delete-button" name="deleting" value="category" class="button-secondary"><?php _e('Delete','Shopp'); ?></button></div>
 	</div>
 	<br class="clear" />
 

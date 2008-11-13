@@ -22,6 +22,9 @@
  * Catalog/Category
  **/
 
+#shopp .category { position: relative; }
+#shopp .category .view { position: absolute; right: 0;  top:0; }
+
 /* Each product in a category has a containing frame */
 #shopp ul.products li.product div.frame { padding: 10px; }
 
@@ -29,9 +32,11 @@
 #shopp ul.products li .summary,
 #shopp ul.products li .savings,
 #shopp ul.products li .price { margin-top: 0; margin-bottom: 0; }
+#shopp ul.products li .details { float: none; }
 
 /* Hide the product summary in the grid view */
 #shopp ul.products li .summary { display: none; }
+#shopp ul.products li .listview { display: none; }
 
 #shopp ul.products img { display: block; }
 
@@ -40,10 +45,12 @@
 #shopp .price.sale { font-size: 150%; }
 
 /* Product List View */
-#shopp ul.products.list li { float: none; width: 100%; clear: both; padding-bottom: 10px;}
-#shopp ul.products.list li div.frame { width: 100%;  text-align: left; }
-#shopp ul.products.list li img { float: left; margin-right: 10px; }
-#shopp ul.products.list li .summary { display: block; }
+#shopp.list ul.products li { float: none; width: 100%; clear: both; padding-bottom: 10px;}
+#shopp.list ul.products li.product {  border-bottom: 1px solid #ddd; }
+#shopp.list ul.products li div.frame { width: 100%;  text-align: left; }
+#shopp.list ul.products li img { float: left; margin-right: 10px; }
+#shopp.list ul.products li .details { float: left; }
+#shopp.list ul.products li .listview { display: block; }
 
 #shopp ul.breadcrumb { margin: 10px 0; }
 #shopp ul.breadcrumb li { background: none; padding: 0; display: inline; margin-left: 0; text-indent: 0; }
@@ -64,7 +71,7 @@
 #shopp dl dd { display: block; clear: right; }
 
 #shopp #gallery { margin: 5px 10px 5px 0; }
-#shopp #gallery ul.previews li.thumbnails ul { margin: 10px 0; }
+#shopp #gallery ul.previews li.thumbnails ul { margin: 10px 0 10px 0; }
 #shopp #gallery ul.previews li.thumbnails li { margin: 0 5px 0 0; }
 
 /**
@@ -100,11 +107,11 @@
  **/
 #shopp #receipt { position: relative; margin: 20px 0; }
 #shopp #receipt address { font-style: normal; }
-#shopp #receipt fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
-#shopp #receipt fieldset.shipping {float: right; width: 50%; margin-top: 20px; }
+#shopp #receipt fieldset { float: left; width: auto; width: 42%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
+#shopp #receipt fieldset.shipping { width: 42%; float: right; }
 #shopp #receipt fieldset legend { display: block; }
-#shopp #receipt table.transaction { float: right; width: auto; }
-#shopp #receipt table.transaction th { text-align: right; }
+#shopp #receipt table.transaction { clear: both; width: 100%; margin-bottom: 10px; }
+#shopp #receipt table.transaction th { text-align: right; width: 80px; padding-right: 10px;}
 
 #shopp #receipt .cart { width: 100%; clear: both; border: none; }
 #shopp #receipt .cart td { border: none; }

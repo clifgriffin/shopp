@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0b5
+Version: 1.0b6
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0b5");
+define("SHOPP_VERSION","1.0b6");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -180,7 +180,7 @@ class Shopp {
 	 * add_menus()
 	 * Adds the WordPress admin menus */
 	function add_menus () {
-		$main = add_menu_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'));
+		$main = add_menu_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
 		$orders = add_submenu_page($this->Flow->Admin->default,__('Orders','Shopp'), __('Orders','Shopp'), 8, $this->Flow->Admin->orders, array(&$this,'orders'));
 		$products = add_submenu_page($this->Flow->Admin->default,__('Products','Shopp'), __('Products','Shopp'), 8, $this->Flow->Admin->products, array(&$this,'products'));
 		$promotions = add_submenu_page($this->Flow->Admin->default,__('Promotions','Shopp'), __('Promotions','Shopp'), 8, $this->Flow->Admin->promotions, array(&$this,'promotions'));
@@ -202,12 +202,15 @@ class Shopp {
 		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js");
 		
 		// Load only for the product editor to keep other admin screens snappy
-		if ($_GET['page'] == $this->Flow->Admin->products && isset($_GET['edit']))
+		if ($_GET['page'] == $this->Flow->Admin->products && isset($_GET['edit'])) {
 			wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js");
 			//wp_enqueue_script('jquery.tablednd',"{$this->uri}/core/ui/jquery/jquery.tablednd.js",array('jquery'),'');
+			wp_enqueue_script('shopp.ocupload',"{$this->uri}/core/ui/behaviors/ocupload.js");
 			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery-ui-core'), '1.5');
+			
 			wp_enqueue_script('swfupload');
-			wp_enqueue_script('swfupload-degrade');
+			wp_enqueue_script('swfupload-degrade');			
+		}
 		?>
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css' type='text/css' />
 		<?php
@@ -465,6 +468,7 @@ class Shopp {
 			case "shipping": 		$this->Flow->settings_shipping(); break;
 			case "taxes": 			$this->Flow->settings_taxes(); break;
 			case "presentation":	$this->Flow->settings_presentation(); break;
+			case "system":			$this->Flow->settings_system(); break;
 			case "update":			$this->Flow->settings_update(); break;
 			case "ftp":				$this->Flow->settings_ftp(); break;
 			default: 				$this->Flow->settings_general();
@@ -503,6 +507,27 @@ class Shopp {
 	<?php
 		endif;
 	}
+
+	function metadata () {
+		if (SHOPP_PERMALINKS) {
+			$pages = $this->Settings->get('pages');
+			$shoppage = $this->link('catalog');
+			if ($shoppage == get_bloginfo('siteurl')."/")
+				$shoppage .= $pages['catalog']['name'];
+		} else $shoppage = get_bloginfo('siteurl');
+
+		if (!empty($this->Product)): 
+			$tags = "";
+			if (empty($this->Product->tags)) $this->Product->load_tags();
+			foreach($this->Product->tags as $tag)
+				$tags .= (!empty($tags))?", {$tag->name}":$tag->name;
+		?>
+		<meta name="keywords" content="<?php echo $tags; ?>" />
+		<meta name="description" content="<?php echo $this->Product->summary; ?>" />
+	<?php
+		endif;
+	}
+
 
 	/**
 	 * header()
@@ -558,7 +583,7 @@ class Shopp {
 
 		if ($_POST['cart'] == "ajax") $this->Flow->cart_ajax();
 		else {
-			$this->Flow->cart_request();	
+			$this->Flow->cart_request();
 			header("Location: ".$this->link('cart'));
 			exit();
 		}
@@ -721,6 +746,7 @@ class Shopp {
 		}
 		
 		$this->Catalog = new Catalog($type);
+		add_action('wp_head', array(&$this, 'metadata'));
 		add_filter('single_post_title', array(&$this, 'titles'));
 		add_action('wp_head', array(&$this, 'feeds'));
 
@@ -829,12 +855,19 @@ class Shopp {
 				break;
 			case "image":
 				if (empty($image)) break;
-				$Asset = new Asset($image);					
-				header ("Content-type: ".$Asset->properties['mimetype']); 
-				header ("Content-length: ".strlen($Asset->data)); 
+				$storage = $this->Settings->get('image_storage');
+				$path = trailingslashit($this->Settings->get('image_path'));
+				$Asset = new Asset($image);
+				header ("Content-type: ".$Asset->properties['mimetype']);
 				header ("Content-Disposition: inline; filename='".$Asset->name."'"); 
 				header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-				echo $Asset->data;
+				if ($storage == "fs") {
+					header ("Content-length: ".@filesize($path.$Asset->name)); 
+					readfile($path.$Asset->name);
+				} else {
+					header ("Content-length: ".strlen($Asset->data)); 
+					echo $Asset->data;
+				} 
 				exit();
 				break;
 			case "catalog.css":
@@ -847,7 +880,7 @@ class Shopp {
 				exit();
 				break;
 			case "newproducts-rss":
-				$NewProducts = new NewProducts();
+				$NewProducts = new NewProducts(array('show' => 5000));
 				echo shopp_rss($NewProducts->rss());
 				exit();
 				break;
@@ -858,6 +891,9 @@ class Shopp {
 				break;
 			case "download":
 				if (empty($download)) break;
+				$storage = $this->Settings->get('product_storage');
+				$path = rtrim($this->Settings->get('products_path'),"/");
+				
 				if ($admin) {
 					$Asset = new Asset($download);
 				} else {
@@ -884,10 +920,17 @@ class Shopp {
 				}
 				
 				header ("Content-type: ".$Asset->properties['mimetype']); 
-				header ("Content-length: ".strlen($Asset->data)); 
 				header ("Content-Disposition: inline; filename=".$Asset->name); 
 				header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-				echo $Asset->data;
+				if ($storage == "fs") {
+					$filepath = join("/",array($path,$Asset->value,$Asset->name));
+					header ("Content-length: ".@filesize($filepath)); 
+					readfile($filepath);
+				} else {
+					header ("Content-length: ".strlen($Asset->data)); 
+					echo $Asset->data;
+				}
+				
 				$Purchased->downloads++;
 				$Purchased->save();
 				exit();
@@ -899,7 +942,7 @@ class Shopp {
 	 * ajax ()
 	 * Handles AJAX request processing */
 	function ajax() {
-
+		
 		switch($_GET['action']) {
 			
 			// Add a category in the product editor
@@ -948,22 +991,7 @@ class Shopp {
 				
 			// Upload a product download file in the product editor
 			case "wp_ajax_shopp_add_download":
-				// TODO: Error handling
-				// TODO: Security - anti-virus scan?
-		
-				// Save the uploaded file
-				$File = new Asset();
-				$File->parent = 0;
-				$File->name = $_FILES['Filedata']['name'];
-				$File->context = "price";
-				$File->datatype = "download";
-				$File->size = filesize($_FILES['Filedata']['tmp_name']);
-				$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name']));
-				$File->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
-				$File->save();
-				unset($File->data); // Remove file contents from memory
-		
-				echo json_encode(array("id"=>$File->id,"name"=>$File->name,"type"=>$File->properties['mimetype'],"size"=>$File->size));
+				$this->Flow->product_downloads();
 				exit();
 				break;
 				
@@ -1016,7 +1044,6 @@ function shopp () {
 	switch (strtolower($object)) {
 		case "cart": $result = $Shopp->Cart->tag($property,$options); break;
 		case "cartitem": $result = $Shopp->Cart->itemtag($property,$options); break;
-		case "shipping": $result = $Shopp->Cart->shippingtag($property,$options); break;
 		case "checkout": $result = $Shopp->Cart->checkouttag($property,$options); break;
 		case "category": $result = $Shopp->Category->tag($property,$options); break;
 		case "catalog": $result = $Shopp->Catalog->tag($property,$options); break;

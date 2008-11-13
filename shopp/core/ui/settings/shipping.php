@@ -8,12 +8,12 @@
 		<?php wp_nonce_field('shopp-settings-shipping'); ?>
 		
 		<table class="form-table"> 
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Calculate Shipping','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if ($this->Settings->get('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> <?php _e('Enabled','Shopp'); ?></label><br /> 
 	            <?php _e('Check this to use shipping. Leave un-checked to disable shipping &mdash; helpful if you are only selling subscriptions or downloads.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="weight-units"><?php _e('Weight Unit','Shopp'); ?></label></th> 
 				<td>
 				<select name="settings[weight_unit]" id="weight-unit">
@@ -26,17 +26,17 @@
 				</select><br />
 				<?php _e('Used as unit of weight for all products.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="free_shipping_text"><?php _e('Free Shipping Text','Shopp'); ?></label></th> 
 				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo $this->Settings->get('free_shipping_text'); ?>" id="free_shipping_text"><br /> 
 	            <?php _e('Text used to highlight no shipping costs (examples: Free shipping! or Shipping Included)','Shopp'); ?></td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="outofstock-text"><?php _e('Out-of-stock Notice','Shopp'); ?></label></th> 
 				<td><input type="text" name="settings[outofstock_text]" value="<?php echo $this->Settings->get('outofstock_text'); ?>" id="outofstock-text"><br /> 
 	            <?php _e('Text used to notify the customer the product is out-of-stock or on backorder.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="regional_rates"><?php _e('Domestic Regions','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[shipping_regions]" value="off" /><input type="checkbox" name="settings[shipping_regions]" value="on" id="regional_rates"<?php echo ($this->Settings->get('shipping_regions') == "on")?' checked="checked"':''; ?>><label for="regional_rates"> <?php _e('Enabled','Shopp'); ?></label><br /> 
 	            <?php _e('Used for domestic regional shipping rates (only applies to operations based in the U.S. &amp; Canada)','Shopp'); ?><br />
@@ -48,14 +48,12 @@
 		<p><small><?php _e('Shipping rates based on the order amount are calculated once against the order subtotal (which does not include tax).  Shipping rates based on weight are calculated once against the total order weight.  Shipping rates based on item quantity are calculated against the total quantity of each different item ordered.','Shopp'); ?></small></p>
 		<?php $base = $this->Settings->get('base_operations'); if (!empty($base['country'])): ?>
 		<table id="shipping-rates" class="form-table"><tr><td></td></tr></table>
-		<br class="clear" />
-		<div class="tablenav"><div class="alignright"><button type="button" name="add-shippingrate" id="add-shippingrate" class="button-secondary" tabindex="9999"><?php _e('Add Shipping Method Rates','Shopp'); ?></button></div></div>
+		<div class="tablenav"><div class="alignright actions"><button type="button" name="add-shippingrate" id="add-shippingrate" class="button-secondary" tabindex="9999"><?php _e('Add Shipping Method Rates','Shopp'); ?></button></div></div>
 		<?php else: ?>
 			<p class="tablenav"><small><strong>Note:</strong> <?php _e('You must select a Base of Operations location under','Shopp'); ?> <a href="?page=<?php echo $this->Admin->settings ?>&amp;edit=general"><?php _e('General settings','Shopp'); ?></a> <?php _e('before you can configure shipping rates.','Shopp'); ?></small></p>
 		<?php endif; ?>
 
-		<br class="clear" />
-		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
+		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
 
@@ -68,7 +66,7 @@ var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo
 var addShippingRate = function (r) {
 	if (!r) r = false;
 	var i = shippingRates.length;
-	var row = $('<tr class="form-field form-required"></tr>').appendTo($('#shipping-rates'));
+	var row = $('<tr class="form-required"></tr>').appendTo($('#shipping-rates'));
 	var heading = $('<th scope="row" valign="top"><label for="name['+i+']"><?php _e('Option Name','Shopp'); ?></label></th>').appendTo(row);
 	$('<br />').appendTo(heading);
 	var name = $('<input type="text" name="settings[shipping_rates]['+i+'][name]" value="" id="name['+i+']" size="16" tabindex="'+(i+1)+'00" class="selectall" />').appendTo(heading);

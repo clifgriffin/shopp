@@ -8,27 +8,36 @@
 		<?php wp_nonce_field('shopp-settings-checkout'); ?>
 		
 		<table class="form-table"> 
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="confirm_url"><?php _e('Order Confirmation','Shopp'); ?></label></th> 
 				<td><input type="radio" name="settings[order_confirmation]" value="ontax" id="order_confirmation_ontax"<?php if($this->Settings->get('order_confirmation') == "ontax") echo ' checked="checked"' ?> /> <label for="order_confirmation_ontax"><?php _e('Show for taxed orders only','Shopp'); ?></label><br />
 					<input type="radio" name="settings[order_confirmation]" value="always" id="order_confirmation_always"<?php if($this->Settings->get('order_confirmation') == "always") echo ' checked="checked"' ?> /> <label for="order_confirmation_always"><?php _e('Show for all orders') ?></label></td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="receipt_copy_both"><?php _e('Receipt Emails','Shopp'); ?></label></th> 
 				<td><input type="radio" name="settings[receipt_copy]" value="0" id="receipt_copy_customer_only"<?php if ($this->Settings->get('receipt_copy') == "0") echo ' checked="checked"'; ?> /> <label for="receipt_copy_customer_only"><?php _e('Send to Customer Only','Shopp'); ?></label><br />
 					<input type="radio" name="settings[receipt_copy]" value="1" id="receipt_copy_both"<?php if ($this->Settings->get('receipt_copy') == "1") echo ' checked="checked"'; ?> /> <label for="receipt_copy_both"><?php _e('Send to Customer &amp; Shop Owner Email','Shopp'); ?></label> (see <a href="?page=shopp/settings&amp;edit=general"><?php _e('General Settings','Shopp'); ?></a>)</td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="account-system-none"><?php _e('Customer Accounts','Shopp'); ?></label></th> 
 				<td><input type="radio" name="settings[account_system]" value="none" id="account-system-none"<?php if($this->Settings->get('account_system') == "none") echo ' checked="checked"' ?> /> <label for="account-system-none"><?php _e('No Accounts','Shopp'); ?></label><br />
 					<input type="radio" name="settings[account_system]" value="shopp" id="account-system-shopp"<?php if($this->Settings->get('account_system') == "shopp") echo ' checked="checked"' ?> /> <label for="account-system-shopp"><?php _e('Enable Account Logins','Shopp'); ?></label><br />
 					<input type="radio" name="settings[account_system]" value="wordpress" id="account-system-wp"<?php if($this->Settings->get('account_system') == "wordpress") echo ' checked="checked"' ?> /> <label for="account-system-wp"><?php _e('Enable Account Logins integrated with WordPress Accounts','Shopp'); ?></label></td>
 			</tr>
+			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="accounting-serial"><?php _e('Next Order Number','Shopp'); ?></label></th> 
+				<td><input type="text" name="next_order_id" value="<?php echo $next->id; ?>" size="7" /><br />
+					<?php _e('Set the next order number to sync with your accounting systems.','Shopp'); ?></td>
+					<!-- 
+						ALTER TABLE shopp_purchase auto_increment=1234
+						SELECT auto_increment FROM information_schema.tables WHERE table_name='shopp_purchase';
+					-->
+			</tr>
 
 		</table>
 		<h3>Digtal Product Downloads</h3>
 		<table class="form-table"> 
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="download-limit"><?php _e('Download Limit','Shopp'); ?></label></th> 
 				<td><select name="settings[download_limit]" id="download-limit">
 					<option value="">&infin;</option>
@@ -36,7 +45,7 @@
 					</select>
 				</td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="download-timelimit"><?php _e('Time Limit','Shopp'); ?></label></th> 
 				<td><select name="settings[download_timelimit]" id="download-timelimit">
 					<option value=""><?php _e('No Limit','Shopp'); ?></option>
@@ -44,14 +53,13 @@
 						</select>
 				</td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="receipt_copy_both"><?php _e('IP Restriction','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[download_restriction]" value="off" />
 					<label for="download-restriction"><input type="checkbox" name="settings[download_restriction]" id="download-restriction" value="ip" <?php echo ($this->Settings->get('download_restriction') == "ip")?'checked="checked" ':'';?> /> <?php _e('Restrict to the computer the product is purchased from','Shopp'); ?></label></td> 
 			</tr>
 		</table>
-		<br class="clear" />
-		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
+		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
 <script type="text/javascript">

@@ -11,10 +11,12 @@
 #shopp .category,
 #shopp #cart,
 #shopp #cart table { clear: both; }
+#shopp { position: relative; }
 #shopp ul { list-style: none; text-indent: 0; text-align: left; padding: 0; margin: 0; }
 #shopp li { background: none; padding: 0; margin: 0; }
 #shopp li:before { content: ""; }
 #shopp ul.breadcrumb li:before { content: ""; }
+#shopp div.hidden { display: none; }
 
 #shopp .products, #shopp .products ul { width: 100%; margin: 0; padding: 0;}
 #shopp .products ul li { display: block; float: left; }
@@ -71,6 +73,18 @@
 .shopp.tagcloud li.level-6 { font-size: 12px; }
 .shopp.tagcloud li.level-7 { font-size: 11px; }
 
+/**
+ * Categories
+ **/
+
+#shopp .category { position: relative; }
+#shopp .views { display: inline; position: absolute; right: 0; top:0; }
+#shopp .views button { border: none; background: none; width: 16px; height: 16px; padding: 4px; cursor: pointer; }
+#shopp .views button:hover { background-color: #ebebeb;}
+#shopp .views li { display: inline;  padding: 2px; }
+#shopp .views .grid { background: url('<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/grid.png') no-repeat; }
+#shopp .views .list { background: url('<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/list.png') no-repeat; }
+
 
 /**
  * Product Page Gallery
@@ -87,8 +101,7 @@
 #gallery .previews li.active { visibility: visible; }
 #gallery .previews li.thumbnails { position: relative; top: auto; left: auto; clear: both; height: auto; text-align: center; }
 #gallery .previews li.thumbnails ul { padding: 0; }
-#gallery .previews li.thumbnails li { position: relative; display: inline; visibility: visible; height: auto; top: auto; left: auto; }
-#shopp #gallery .previews li.thumbnails ul li { width: auto; height: auto; line-height: 1; }
+#gallery .previews li.thumbnails li { position: relative; display: inline; visibility: visible; height: auto; line-height: 1; top: auto; left: auto; }
 
 /**
  * Debug Console

@@ -17,18 +17,15 @@ var detailsidx = 1;
 var menusidx = 1;
 var optionsidx = 1;
 var pricingidx = 1;
-var uploader = false;
+var fileUploader = false;
 var changes = false;
 var saving = false;
+var flashUploader = false;
 
 function init () {
 	window.onbeforeunload = function () { if (changes && !saving) return false; }	
 	$('#product').change(function () { changes = true; });
 	$('#product').submit(function() { saving = true; });
-
-	var basePrice = $(prices).get(0);
-	if (basePrice && basePrice.context == "product") addPriceLine('#product-pricing',[],basePrice);
-	else addPriceLine('#product-pricing',[]);
 
 	if (specs) for (s in specs) addDetail(specs[s]);
 	$('#addDetail').click(function() { addDetail(); });
@@ -38,76 +35,17 @@ function init () {
 	loadVariations(options);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
+
+	var basePrice = $(prices).get(0);
+	if (basePrice && basePrice.context == "product") addPriceLine('#product-pricing',[],basePrice);
+	else addPriceLine('#product-pricing',[]);
 		
 	categories();
 	tags();
 	quickSelects();
-	
-	// Initialize image uploader
-	var swfu = new SWFUpload({
-		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
-		upload_url: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_image',
-		post_params: {"product" : $('#image-product-id').val()},
-		file_queue_limit : 1,
-		file_size_limit : filesizeLimit+'b',
-		file_types : "*.jpg;*.jpeg;*.png;*.gif",
-		file_types_description : "Web-compatible Image Files",
-		file_upload_limit : filesizeLimit,
-		custom_settings : {
-			targetHolder : false,
-			progressBar : false,
-			sorting : false
-		},
-		debug: false,
-
-		swfupload_element_id : "swf-uploader",
-		degraded_element_id : "browser-uploader",
-
-		file_queued_handler : imageFileQueued,
-		file_queue_error_handler : imageFileQueueError,
-		file_dialog_complete_handler : imageFileDialogComplete,
-		upload_start_handler : startImageUpload,
-		upload_progress_handler : imageUploadProgress,
-		upload_error_handler : imageUploadError,
-		upload_success_handler : imageUploadSuccess,
-		upload_complete_handler : imageUploadComplete,
-		queue_complete_handler : imageQueueComplete
-	});
-
-	$("#add-product-image").click(function(){ swfu.selectFiles(); });
-
-	if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
-	$('#product-images ul li button.deleteButton').each(function () {
-		enableDeleteButton(this);
-	});
-
-	// Initialize file uploader
-	uploader = new SWFUpload({
-		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
-		upload_url: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
-		file_queue_limit : 1,
-		file_size_limit : filesizeLimit+'b',
-		file_types : "*.*",
-		file_types_description : "All Files",
-		file_upload_limit : filesizeLimit,
-		custom_settings : {
-			targetCell : false,
-			targetLine : false,
-			progressBar : false,
-		},
-		debug: false,
-
-		file_queued_handler : fileQueued,
-		file_queue_error_handler : fileQueueError,
-		file_dialog_complete_handler : fileDialogComplete,
-		upload_start_handler : startUpload,
-		upload_progress_handler : uploadProgress,
-		upload_error_handler : uploadError,
-		upload_success_handler : uploadSuccess,
-		upload_complete_handler : uploadComplete,
-		queue_complete_handler : queueComplete
-	});
-	
+		
+	imageUploads = new ImageUploads();
+	fileUploader = new FileUploads();	
 }
 
 function categories () {
@@ -691,7 +629,7 @@ function addPriceLine (target,options,data,attachment) {
 	var i = pricingidx;
 	
 	// Build the interface
-	var row = $('<tr id="row['+i+']"></tr>').addClass('form-field');
+	var row = $('<tr id="row['+i+']"></tr>');
 	if (attachment == "after") row.insertAfter(target);
 	else if (attachment == "before") row.insertBefore(target);
 	else row.appendTo(target);
@@ -757,6 +695,7 @@ function addPriceLine (target,options,data,attachment) {
 	
 	var inventoryHeading = $('<th><label for="inventory['+i+']"> Inventory</label></th>').appendTo(headingsRow);
 	var inventoryToggle = $('<input type="checkbox" name="price['+i+'][inventory]" id="inventory['+i+']" tabindex="'+(i+1)+'10" />').prependTo(inventoryHeading);
+	$('<input type="hidden" name="price['+i+'][inventory]" value="off" />').prependTo(salepriceHeading);
 	var inventoryCell = $('<td/>').appendTo(inputsRow);
 	var inventoryStatus = $('<span>Not Tracked</span>').addClass('status').appendTo(inventoryCell);
 	var inventoryField = $('<span/>').addClass('fields').appendTo(inventoryCell).hide();
@@ -771,9 +710,59 @@ function addPriceLine (target,options,data,attachment) {
 	var downloadFile = $('<div></div>').html('No product download.').appendTo(downloadCell);
 
 	var uploadHeading = $('<td rowspan="2" class="controls" width="75" />').appendTo(headingsRow);
+	if (storage == "fs") {
+		var filePathCell = $('<div></div>').prependTo(downloadCell).hide();
+		var filePath = $('<input type="text" name="price['+i+'][downloadpath]" value="" title="Enter file path relative to: '+productspath+'">').appendTo(filePathCell);
+		var filePathButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'14"><small>By File Path</small></button>').appendTo(uploadHeading).click(function () {
+			filePathCell.slideToggle();
+		});
+		
+	}
 	var uploadButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'13"><small>Upload File</small></button>').appendTo(uploadHeading);
-	uploadButton.click(function () { uploader.targetCell = downloadFile; uploader.targetLine = i; uploader.selectFiles(); });
 	
+	// Handle file uploads depending on whether the Flash uploader loads or not
+	$(window).load(function() {
+		if (fileUploader.swfu.loaded) {
+			uploadButton.click(function () { fileUploader.swfu.targetCell = downloadFile; fileUploader.swfu.targetLine = i; fileUploader.swfu.selectFiles(); });			
+		} else {
+			// Browser-based AJAX uploads
+			uploadButton.upload({
+				name: 'Filedata',
+				action: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
+				enctype: 'multipart/form-data',
+				params: {},
+				autoSubmit: true,
+				onSubmit: function() {
+					downloadFile.attr('class','').html('');
+					var progress = $('<div class="progress"></div>').appendTo(downloadFile);
+					var bar = $('<div class="bar"></div>').appendTo(progress);
+					var art = $('<div class="gloss"></div>').appendTo(progress);
+
+					this.targetHolder = downloadFile;
+					this.progressBar = bar;
+				},
+				onComplete: function(results) {
+					console.log(results);
+					var filedata = eval('('+results+')');
+					if (filedata.error) {
+						$(this.targetHolder).html("No download file.");
+						alert(filedata.error);
+						return true;
+					}
+					var targetHolder = this.targetHolder;
+					filedata.type = filedata.type.replace(/\//gi," ");
+					$(this.progressBar).animate({'width':'76px'},250,function () { 
+						$(this).parent().fadeOut(500,function() {
+							$(targetHolder).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small><input type="hidden" name="price['+i+'][download]" value="'+filedata.id+'" />');
+							$(this).remove(); 
+						});
+					});
+				}
+			});			
+		}
+
+	});
+		
 	// Build an object to reference and control/update this entry
 	var Pricing = new Object();
 	Pricing.id = pricingidx;
@@ -801,63 +790,31 @@ function addPriceLine (target,options,data,attachment) {
 	}
 	Pricing.updateKey();
 	Pricing.updateLabel();
-	
-	// Utility function to hide all of the optional fields
-	var hideAllFields = function () {
-		priceHeading.hide();
-		priceCell.hide()
-		salepriceHeading.hide();
-		salepriceCell.hide();
-		shippingHeading.hide();
-		shippingCell.hide();
-		inventoryHeading.hide();
-		inventoryCell.hide();
-		downloadHeading.hide();
-		downloadCell.hide();
-		uploadHeading.hide();
-		donationSpacingCell.hide();
-		priceLabel.html("Price");
-	}
+		
+	var interfaces = new Object();
+	interfaces['All'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, shippingHeading, shippingCell, inventoryHeading, inventoryCell, downloadHeading, downloadCell, uploadHeading, donationSpacingCell);
+	interfaces['Shipped'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, shippingHeading, shippingCell, inventoryHeading, inventoryCell);
+	interfaces['Download'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, downloadHeading, downloadCell, uploadHeading);
+	interfaces['Donation'] = new Array(priceHeading, priceCell, donationSpacingCell);
 	
 	// Alter the interface depending on the type of price line
 	type.change(function () {
-		hideAllFields();
-		if (type.val() == "Shipped") {
-			priceHeading.show();
-			priceCell.show();
-			salepriceHeading.show();
-			salepriceCell.show();
-			shippingHeading.show();
-			shippingCell.show();
-			inventoryHeading.show();
-			inventoryCell.show();
-		}
-		if (type.val() == "Download") {
-			priceHeading.show();
-			priceCell.show();
-			salepriceHeading.show();
-			salepriceCell.show();
-			downloadHeading.show();
-			downloadCell.show();
-			uploadHeading.show();
-		}
+		var ui = type.val();
+		for (var e in interfaces['All']) $(interfaces['All'][e]).hide();
+		priceLabel.html("Price");
+		if (interfaces[ui])
+			for (var e in interfaces[ui]) $(interfaces[ui][e]).show();
 		if (type.val() == "Donation") {
-			priceHeading.show();
-			priceCell.show();
 			priceLabel.html("Amount");
-			donationSpacingCell.show();
 			tax.attr('checked','true').change();
 		}
-		
 	});
 	
 	// Optional input's checkbox toggle behavior
 	salepriceToggle.change(function () {
 		salepriceStatus.toggle();
 		salepriceField.toggle();
-	});
-
-	salepriceToggle.click(function () {
+	}).click(function () {
 		if (this.checked) {
 			saleprice.focus();
 			saleprice.select();
@@ -867,9 +824,7 @@ function addPriceLine (target,options,data,attachment) {
 	shippingToggle.change(function () {
 		shippingStatus.toggle();
 		shippingFields.toggle();
-	});
-	
-	shippingToggle.click(function () {
+	}).click(function () {
 		if (this.checked) {
 			weight.focus();
 			weight.select();
@@ -879,17 +834,13 @@ function addPriceLine (target,options,data,attachment) {
 	inventoryToggle.change(function () {
 		inventoryStatus.toggle();
 		inventoryField.toggle();
-	});
-	
-	inventoryToggle.click(function () {
+	}).click(function () {
 		if (this.checked) {
 			stock.focus();
 			stock.select();
 		}
 	});
 	
-	// Auto-format prices to a money format
-	// TODO: Need to handle currency formatting
 	price.change(function() { this.value = asMoney(this.value); }).change();
 	saleprice.change(function() { this.value = asMoney(this.value); }).change();
 	shippingfee.change(function() { this.value = asMoney(this.value); }).change();
@@ -925,7 +876,6 @@ function addPriceLine (target,options,data,attachment) {
 			});
 
 		}
-		
 		if (data.tax == "off") tax.attr('checked','true');
 	} else {
 		if (type.val() == "Shipped") shippingToggle.attr('checked','true').change();
@@ -967,147 +917,274 @@ function variationsToggle () {
 
 
 /**
- * SWFUpload Image Uploading events
+ * Image Uploads using SWFUpload or the jQuery plugin One Click Upload
  **/
-
-function imageFileQueued (file) {}
-
-function imageFileQueueError (file, error, message) {
-	if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
-		alert("You selected too many files to upload at one time. " + (message === 0 ? "You have reached the upload limit." : "You may upload " + (message > 1 ? "up to " + message + " files." : "only one file.")));
-		return;
-	}
-
-}
-
-function imageFileDialogComplete (selected, queued) {
-	try {
-		this.startUpload();
-	} catch (ex) {
-		this.debug(ex);
-	}
-}
-
-function startImageUpload (file) {
-	var cell = $('<li id="image-uploading"></li>').appendTo($('#lightbox'));
-	var sorting = $('<input type="hidden" name="images[]" value="" />').appendTo(cell);
-	var progress = $('<div class="progress"></div>').appendTo(cell);
-	var bar = $('<div class="bar"></div>').appendTo(progress);
-	var art = $('<div class="gloss"></div>').appendTo(progress);
-
-	this.targetHolder = cell;
-	this.progressBar = bar;
-	this.sorting = sorting;
-	return true;
-}
-
-function imageUploadProgress (file, loaded, total) {
-	var progress = Math.ceil((loaded/total)*76);
-	$(this.progressBar).animate({'width':progress+'px'},100);
-}
-
-function imageUploadError (file, error, message) {
-	// console.log(error+": "+message);
-}
-
-function imageUploadSuccess (file, results) {
-	var image = eval('('+results+')');
-	$(this.targetHolder).attr({'id':'image-'+image.src});
-	$(this.sorting).val(image.src);
-	var img = $('<img src="'+siteurl+'/wp-admin/admin.php?page=shopp/lookup&id='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
-	var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
-	var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
+function ImageUploads () {
 	
-	$(this.progressBar).animate({'width':'76px'},250,function () { 
-		$(this).parent().fadeOut(500,function() {
-			$(this).remove(); 
-			$(img).fadeIn('500');
-			enableDeleteButton(deleteButton);
-		});
+	// Initialize image uploader
+	var swfu = new SWFUpload({
+		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
+		upload_url: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_image',
+		post_params: {"product" : $('#image-product-id').val()},
+		file_queue_limit : 1,
+		file_size_limit : filesizeLimit+'b',
+		file_types : "*.jpg;*.jpeg;*.png;*.gif",
+		file_types_description : "Web-compatible Image Files",
+		file_upload_limit : filesizeLimit,
+		custom_settings : {
+			targetHolder : false,
+			progressBar : false,
+			sorting : false
+		},
+		debug: false,
+
+		swfupload_element_id : "swf-uploader",
+		degraded_element_id : "browser-uploader",
+
+		file_queued_handler : imageFileQueued,
+		file_queue_error_handler : imageFileQueueError,
+		file_dialog_complete_handler : imageFileDialogComplete,
+		upload_start_handler : startImageUpload,
+		upload_progress_handler : imageUploadProgress,
+		upload_error_handler : imageUploadError,
+		upload_success_handler : imageUploadSuccess,
+		upload_complete_handler : imageUploadComplete,
+		queue_complete_handler : imageQueueComplete
 	});
-}
 
-function imageUploadComplete (file) {
-	if ($('#lightbox li').size() > 1) $('#lightbox').sortable('refresh');
-	else $('#lightbox').sortable();
-}
+	var browserImageUploader = $('#image-upload').upload({
+		name: 'Filedata',
+		action: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_image',
+		enctype: 'multipart/form-data',
+		params: {},
+		autoSubmit: true,
+		onSubmit: function() {
+			var cell = $('<li id="image-uploading"></li>').appendTo($('#lightbox'));
+			var sorting = $('<input type="hidden" name="images[]" value="" />').appendTo(cell);
+			var progress = $('<div class="progress"></div>').appendTo(cell);
+			var bar = $('<div class="bar"></div>').appendTo(progress);
+			var art = $('<div class="gloss"></div>').appendTo(progress);
 
-function imageQueueComplete (uploads) {}
+			this.targetHolder = cell;
+			this.progressBar = bar;
+			this.sorting = sorting;			
+		},
+		onComplete: function(results) {
+			var image = eval('('+results+')');
+			if (image.error) {
+				$(this.targetHolder).remove();
+				alert(image.error);
+				return true;
+			}
+			$(this.targetHolder).attr({'id':'image-'+image.src});
+			$(this.sorting).val(image.src);
+			var img = $('<img src="'+siteurl+'/wp-admin/admin.php?page=shopp/lookup&id='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
+			var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
+			var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
 
-function enableDeleteButton (button) {
-	$(button).hide();
-
-	$(button).parent().hover(function() {
-		$(button).show();
-	},function () {
-		$(button).hide();
-	});
-	
-	$(button).click(function() {
-		if (confirm("Are you sure you want to delete this product image?")) {
-			$('#deleteImages').val(($('#deleteImages').val() == "")?$(button).val():$('#deleteImages').val()+','+$(button).val());
-			$(button).parent().fadeOut(500,function() {
-				$(this).remove();
+			$(this.progressBar).animate({'width':'76px'},250,function () { 
+				$(this).parent().fadeOut(500,function() {
+					$(this).remove(); 
+					$(img).fadeIn('500');
+					enableDeleteButton(deleteButton);
+				});
 			});
 		}
 	});
+	
+	$("#add-product-image").click(function(){ swfu.selectFiles(); });
+
+	if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
+	$('#product-images ul li button.deleteButton').each(function () {
+		enableDeleteButton(this);
+	});
+
+	function imageFileQueued (file) {}
+
+	function imageFileQueueError (file, error, message) {
+
+		if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
+			alert("You selected too many files to upload at one time. " + (message === 0 ? "You have reached the upload limit." : "You may upload " + (message > 1 ? "up to " + message + " files." : "only one file.")));
+			return;
+		} else alert(message);
+	
+	}
+
+	function imageFileDialogComplete (selected, queued) {
+		try {
+			this.startUpload();
+		} catch (ex) {
+			this.debug(ex);
+		}
+	}
+
+	function startImageUpload (file) {
+		var cell = $('<li id="image-uploading"></li>').appendTo($('#lightbox'));
+		var sorting = $('<input type="hidden" name="images[]" value="" />').appendTo(cell);
+		var progress = $('<div class="progress"></div>').appendTo(cell);
+		var bar = $('<div class="bar"></div>').appendTo(progress);
+		var art = $('<div class="gloss"></div>').appendTo(progress);
+
+		this.targetHolder = cell;
+		this.progressBar = bar;
+		this.sorting = sorting;
+		return true;
+	}
+
+	function imageUploadProgress (file, loaded, total) {
+		var progress = Math.ceil((loaded/total)*76);
+		$(this.progressBar).animate({'width':progress+'px'},100);
+	}
+
+	function imageUploadError (file, error, message) {
+		// console.log(error+": "+message);
+	}
+
+	function imageUploadSuccess (file, results) {
+		var image = eval('('+results+')');
+		if (image.error) {
+			$(this.targetHolder).remove();
+			alert(image.error);
+			return true;
+		}
+	
+		$(this.targetHolder).attr({'id':'image-'+image.src});
+		$(this.sorting).val(image.src);
+		var img = $('<img src="'+siteurl+'/wp-admin/admin.php?page=shopp/lookup&id='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
+		var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
+		var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
+	
+		$(this.progressBar).animate({'width':'76px'},250,function () { 
+			$(this).parent().fadeOut(500,function() {
+				$(this).remove(); 
+				$(img).fadeIn('500');
+				enableDeleteButton(deleteButton);
+			});
+		});
+	}
+
+	function imageUploadComplete (file) {}
+
+	function imageQueueComplete (uploads) {
+		if ($('#lightbox li').size() > 1) $('#lightbox').sortable('refresh');
+		else $('#lightbox').sortable();
+	}
+
+	function enableDeleteButton (button) {
+		$(button).hide();
+
+		$(button).parent().hover(function() {
+			$(button).show();
+		},function () {
+			$(button).hide();
+		});
+	
+		$(button).click(function() {
+			if (confirm("Are you sure you want to delete this product image?")) {
+				$('#deleteImages').val(($('#deleteImages').val() == "")?$(button).val():$('#deleteImages').val()+','+$(button).val());
+				$(button).parent().fadeOut(500,function() {
+					$(this).remove();
+				});
+			}
+		});
+	}
+
 }
 
 /**
- * SWFUpload pricing option upload file event handlers
+ * File upload handlers for product download files using SWFupload
  **/
-function fileQueued (file) {
-
-}
-
-function fileQueueError (file, error, message) {
-	if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
-		alert("You selected too many files to upload at one time. " + (message === 0 ? "You have reached the upload limit." : "You may upload " + (message > 1 ? "up to " + message + " files." : "only one file.")));
-		return;
-	}
-
-}
-
-function fileDialogComplete (selected, queued) {
-	try {
-		this.startUpload();
-	} catch (ex) {
-		this.debug(ex);
-	}
-}
-
-function startUpload (file) {
-	this.targetCell.attr('class','').html('');
-	var progress = $('<div class="progress"></div>').appendTo(this.targetCell);
-	var bar = $('<div class="bar"></div>').appendTo(progress);
-	var art = $('<div class="gloss"></div>').appendTo(progress);
+function FileUploads () {
 	
-	this.progressBar = bar;
-	
-	return true;
-}
-
-function uploadProgress (file, loaded, total) {
-	var progress = Math.ceil((loaded/total)*76);
-	$(this.progressBar).animate({'width':progress+'px'},100);
-}
-
-function uploadError (file, error, message) { }
-
-function uploadSuccess (file, results) {
-	var filedata = eval('('+results+')');
-	var targetCell = this.targetCell;
-	var i = this.targetLine;
-	// console.log(filedata.id);
-	filedata.type = filedata.type.replace(/\//gi," ");
-	$(this.progressBar).animate({'width':'76px'},250,function () { 
-		$(this).parent().fadeOut(500,function() {
-			$(this).remove(); 
-			$(targetCell).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small><input type="hidden" name="price['+i+'][download]" value="'+filedata.id+'" />');
-		});
+	// Initialize file uploader
+	this.swfu = new SWFUpload({
+		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
+		upload_url : siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
+		file_queue_limit : 1,
+		file_size_limit : filesizeLimit+'b',
+		file_types : "*.*",
+		file_types_description : "All Files",
+		file_upload_limit : filesizeLimit,
+		debug: false,
+		
+		swfupload_loaded_handler : swfuLoaded,
+		file_queue_error_handler : fileQueueError,
+		file_dialog_complete_handler : fileDialogComplete,
+		upload_start_handler : startUpload,
+		upload_progress_handler : uploadProgress,
+		upload_error_handler : uploadError,
+		upload_success_handler : uploadSuccess,
+		upload_complete_handler : uploadComplete,
+		
+		custom_settings : {
+			loaded : false,
+			targetCell : false,
+			targetLine : false,
+			progressBar : false,
+		}
 	});
+	
+	function swfuLoaded () {
+		this.loaded = true;
+	}
+	
+	function fileQueueError (file, error, message) {
+		if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
+			alert("You selected too many files to upload at one time. " + (message === 0 ? "You have reached the upload limit." : "You may upload " + (message > 1 ? "up to " + message + " files." : "only one file.")));
+			return;
+		} else {
+			alert(message);
+		}
+
+	}
+
+	function fileDialogComplete (selected, queued) {
+		try {
+			this.startUpload();
+		} catch (ex) {
+			this.debug(ex);
+		}
+	}
+
+	function startUpload (file) {
+		this.targetCell.attr('class','').html('');
+		var progress = $('<div class="progress"></div>').appendTo(this.targetCell);
+		var bar = $('<div class="bar"></div>').appendTo(progress);
+		var art = $('<div class="gloss"></div>').appendTo(progress);
+
+		this.progressBar = bar;
+
+		return true;
+	}
+
+	function uploadProgress (file, loaded, total) {
+		var progress = Math.ceil((loaded/total)*76);
+		$(this.progressBar).animate({'width':progress+'px'},100);
+	}
+
+	function uploadError (file, error, message) { }
+
+	function uploadSuccess (file, results) {
+		console.log(results);
+		var filedata = eval('('+results+')');
+		if (filedata.error) {
+			$(this.targetHolder).html("No download file.")
+			alert(filedata.error);
+			return true;
+		}
+
+		var targetCell = this.targetCell;
+		var i = this.targetLine;
+		filedata.type = filedata.type.replace(/\//gi," ");
+		$(this.progressBar).animate({'width':'76px'},250,function () { 
+			$(this).parent().fadeOut(500,function() {
+				$(this).remove(); 
+				$(targetCell).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small><input type="hidden" name="price['+i+'][download]" value="'+filedata.id+'" />');
+			});
+		});
+	}
+
+	function uploadComplete (file) {}
+	
 }
 
-function uploadComplete (file) {}
-
-function queueComplete (uploads) {}

@@ -61,8 +61,17 @@ class Flow {
 
 		define("SHOPP_LOOKUP",(strpos($_SERVER['REQUEST_URI'],"images/") !== false || 
 								strpos($_SERVER['REQUEST_URI'],"lookup=") !== false)?true:false);
-								
-								
+
+		$this->uploadErrors = array(
+			UPLOAD_ERR_INI_SIZE => __('The uploaded file exceeds the upload_max_filesize directive in PHP\'s configuration file','Shopp'),
+			UPLOAD_ERR_FORM_SIZE => __('The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.','Shopp'),
+			UPLOAD_ERR_PARTIAL => __('The uploaded file was only partially uploaded.','Shopp'),
+			UPLOAD_ERR_NO_FILE => __('No file was uploaded.','Shopp'),
+			UPLOAD_ERR_NO_TMP_DIR => __('The server\'s temporary folder is missing.','Shopp'),
+			UPLOAD_ERR_CANT_WRITE => __('Failed to write the file to disk.','Shopp'),
+			UPLOAD_ERR_EXTENSION => __('File upload stopped by extension.','Shopp'),
+		);
+									
 		load_plugin_textdomain('Shopp',PLUGINDIR.'/'.$Core->directory.'/lang');
 	}
 
@@ -80,8 +89,11 @@ class Flow {
 		}
 		$content = ob_get_contents();
 		ob_end_clean();
-
-		return '<div id="shopp" class="'.$Shopp->Catalog->type.'">'.$content.'<div id="clear"></div></div>';
+		
+		$classes = $Shopp->Catalog->type;
+		if ($_COOKIE['shopp_catalog_view'] == "list") $classes .= " list";
+		
+		return '<div id="shopp" class="'.$classes.'">'.$content.'<div id="clear"></div></div>';
 		
 	}
 
@@ -101,7 +113,7 @@ class Flow {
 
 		$options = array();
 		$options = $Shopp->Settings->get('categories_widget_options');
-		
+
 		$options['title'] = $before_title.$options['title'].$after_title;
 		
 		$Catalog = new Catalog();
@@ -124,8 +136,9 @@ class Flow {
 		echo '<p>';
 		echo '<label><input type="hidden" name="shopp_categories_options[dropdown]" value="off" /><input type="checkbox" name="shopp_categories_options[dropdown]" value="on"'.(($options['dropdown'] == "on")?' checked="checked"':'').' /> Show as dropdown</label><br />';
 		echo '<label><input type="hidden" name="shopp_categories_options[products]" value="off" /><input type="checkbox" name="shopp_categories_options[products]" value="on"'.(($options['products'] == "on")?' checked="checked"':'').' /> Show product counts</label><br />';
-		echo '<label><input type="hidden" name="shopp_categories_options[hierarchy]" value="off" /><input type="checkbox" name="shopp_categories_options[hierarchy]" value="on"'.(($options['hierarchy'] == "on")?' checked="checked"':'').' /> Show hierarchy</label>';
+		echo '<label><input type="hidden" name="shopp_categories_options[hierarchy]" value="off" /><input type="checkbox" name="shopp_categories_options[hierarchy]" value="on"'.(($options['hierarchy'] == "on")?' checked="checked"':'').' /> Show hierarchy</label><br />';
 		echo '</p>';
+		echo '<p><label for="pages-sortby">Smart Categories:<select name="shopp_categories_options[showsmart]" class="widefat"><option value="false">Hide</option><option value="before"'.(($options['showsmart'] == "before")?' selected="selected"':'').'>Include before custom categories</option><option value="after"'.(($options['showsmart'] == "after")?' selected="selected"':'').'>Include after custom categories</option></select></label></p>';
 		echo '<div><input type="hidden" name="categories_widget_options" value="1" /></div>';
 	}
 	
@@ -156,7 +169,7 @@ class Flow {
 
 	function tagcloud_widget ($args=null) {
 		global $Shopp;
-		extract($args);
+		if (!empty($args)) extract($args);
 		
 		$options = $Shopp->Settings->get('tagcloud_widget_options');
 		
@@ -203,12 +216,12 @@ class Flow {
 			$Cart->shipzone($Request['shipping']);
 		}
 
-		if (isset($Request['apply-code']) && !empty($Request['promocode'])) {
+		if (!empty($Request['promocode'])) {
 			if (!in_array($Request['promocode'],$Cart->data->PromoCodes)) {
-				$Cart->data->PromoCode = $Request['promocode'];
-				$Cart->data->PromoCodes[] = $Request['promocode'];
+				$Cart->data->PromoCode = attribute_escape($Request['promocode']);
+				$Cart->data->PromoCodes[] = attribute_escape($Request['promocode']);
 				$Request['update'] = true;
-			}
+			} else $Cart->data->PromoCodeResult = __("That code has already been applied.","Shopp");
 		}
 		
 		if (isset($Request['remove'])) $Request['cart'] = "remove";
@@ -216,12 +229,8 @@ class Flow {
 		if (isset($Request['empty'])) $Request['cart'] = "empty";
 		
 		switch($Request['cart']) {
-			case "add":
-				if (!isset($Request['_wpnonce']) ||
-				 	!wp_verify_nonce($Request['_wpnonce'],'shopp-addtocart'))
-					return false;
-			
-				if (isset($Request['product']) && (isset($Request['price']) || isset($Request['options']))) {
+			case "add":			
+				if (isset($Request['product'])) {
 					$quantity = (!empty($Request['quantity']))?$Request['quantity']:1; // Add 1 by default
 
 					$Product = new Product($Request['product']);
@@ -300,7 +309,7 @@ class Flow {
 
 	function cart_widget ($args=null) {
 		global $Shopp;
-		extract($args);
+		if (!empty($args)) extract($args);
 		
 		$options = $Shopp->Settings->get('cart_widget_options');
 		
@@ -465,7 +474,7 @@ class Flow {
 				if (username_exists($handle)) {
 					$Shopp->Cart->data->OrderError = new StdClass();
 					$Shopp->Cart->data->OrderError->code = "0600";
-					$Shopp->Cart->data->OrderError->message = __('The login name you provided is already in use.  Please choose another login name.');
+					$Shopp->Cart->data->OrderError->message = __('The login name you provided is already in use.  Please choose another login name.','Shopp');
 				}
 				
 				// Create the WordPress account
@@ -653,7 +662,7 @@ class Flow {
 		$db = DB::get();
 
 		if ( !current_user_can('manage_options') )
-			wp_die(__('You do not have sufficient permissions to access this page.'));
+			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
 		if ($_GET['deleting'] == "order"
 						&& !empty($_GET['delete']) 
@@ -700,7 +709,7 @@ class Flow {
 		global $Shopp;
 
 		if ( !current_user_can('manage_options') )
-			wp_die(__('You do not have sufficient permissions to access this page.'));
+			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 				
 		if (preg_match("/\d+/",$_GET['manage'])) {
 			$Purchase = new Purchase($_GET['manage']);
@@ -736,7 +745,7 @@ class Flow {
 			
 			
 			$Purchase->save();
-			$updated = __('Order status updated.');
+			$updated = __('Order status updated.','Shopp');
 		}
 
 		$statusLabels = $this->Settings->get('order_status');
@@ -773,7 +782,7 @@ class Flow {
 				include(SHOPP_TEMPLATES."/receipt.php");
 				$content = ob_get_contents();
 				ob_end_clean();
-				return $content;
+				return '<div id="shopp">'.$content.'</div>';
 			}
 		}
 		
@@ -956,6 +965,7 @@ class Flow {
 	}
 
 	function save_product($Product) {
+		global $Shopp;
 		$db = DB::get();
 		check_admin_referer('shopp-save-product');
 
@@ -994,6 +1004,23 @@ class Flow {
 				$Price->updates($option);
 				$Price->save();
 				if (!empty($option['download'])) $Price->attach_download($option['download']);
+				if (!empty($option['downloadpath'])) {
+					$basepath = trailingslashit($Shopp->Settings->get('products_path'));
+					$download = $basepath.ltrim($option['downloadpath'],"/");
+					if (file_exists($download)) {
+						$File = new Asset();
+						$File->parent = 0;
+						$File->context = "price";
+						$File->datatype = "download";
+						$File->name = basename($download);
+						$File->value = substr(dirname($download),strlen($basepath));
+						$File->size = filesize($download);
+						$File->properties = array("mimetype" => file_mimetype($download));
+						$File->save();
+						$Price->attach_download($File->id);
+					}
+					
+				}
 			}
 			unset($Price);
 		}
@@ -1043,9 +1070,11 @@ class Flow {
 	}
 	
 	function product_images () {
+			$error = false;
+			if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
+			if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
+
 			require("{$this->basepath}/core/model/Image.php");
-			
-			// TODO: add some error handling here
 			
 			// Save the source image
 			$Image = new Asset();
@@ -1128,6 +1157,26 @@ class Flow {
 			unset($Thumbnail->data);
 			
 			echo json_encode(array("id"=>$Thumbnail->id,"src"=>$Thumbnail->src));
+	}
+	
+	function product_downloads () {
+		$error = false;
+		if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
+		if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
+		
+		// Save the uploaded file
+		$File = new Asset();
+		$File->parent = 0;
+		$File->context = "price";
+		$File->datatype = "download";
+		$File->name = $_FILES['Filedata']['name'];
+		$File->size = filesize($_FILES['Filedata']['tmp_name']);
+		$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name']));
+		$File->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
+		$File->save();
+		unset($File->data); // Remove file contents from memory
+		
+		echo json_encode(array("id"=>$File->id,"name"=>$File->name,"type"=>$File->properties['mimetype'],"size"=>$File->size));
 	}
 	
 	/**
@@ -1289,7 +1338,7 @@ class Flow {
 			$Promotion->updates($_POST);
 			$Promotion->save();
 
-			if ($Promotion->scope == "Item")
+			if ($Promotion->scope == "Catalog")
 				$Promotion->build_discounts();
 			
 			$this->promotions_list();
@@ -1302,9 +1351,9 @@ class Flow {
 	/**
 	 * Dashboard Widgets
 	 */
-	function dashboard_stats ($args) {
+	function dashboard_stats ($args=null) {
 		$db = DB::get();
-		extract( $args, EXTR_SKIP );
+		if (!empty($args)) extract( $args, EXTR_SKIP );
 
 		echo $before_widget;
 
@@ -1338,9 +1387,9 @@ class Flow {
 		
 	}
 	
-	function dashboard_orders ($args) {
+	function dashboard_orders ($args=null) {
 		$db = DB::get();
-		extract( $args, EXTR_SKIP );
+		if (!empty($args)) extract( $args, EXTR_SKIP );
 		$statusLabels = $this->Settings->get('order_status');
 		
 		echo $before_widget;
@@ -1378,9 +1427,9 @@ class Flow {
 		
 	}
 	
-	function dashboard_products ($args) {
+	function dashboard_products ($args=null) {
 		$db = DB::get();
-		extract( $args, EXTR_SKIP );
+		if (!empty($args)) extract( $args, EXTR_SKIP );
 
 		echo $before_widget;
 
@@ -1525,14 +1574,24 @@ class Flow {
 	}
 
 	function settings_checkout () {
+		$db =& DB::get();
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
+		$purchasetable = DatabaseObject::tablename(Purchase::$table);
+		$next = $db->query("SELECT auto_increment as id FROM information_schema.tables WHERE table_name='$purchasetable'");
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-checkout');
+			if ($_POST['next_order_id'] != $next->id) {
+				if ($db->query("ALTER TABLE $purchasetable AUTO_INCREMENT={$_POST['next_order_id']}"))
+					$next->id = $_POST['next_order_id'];
+			} 
+				
 			$this->settings_save();
-			$updated = __('Shopp checkout settings saved.');
+			$updated = __('Shopp checkout settings saved.','Shopp');
 		}
+		
 		
 		$downloads = array("1","2","3","5","10","15","25","100");
 		$time = array("30 minutes","1 hour","2 hours","3 hours","6 hours","12 hours","1 day","3 days","1 week","1 month","3 months","6 months","1 year");
@@ -1559,7 +1618,7 @@ class Flow {
 				}
 			}
 	 		$this->settings_save();
-			$updated = __('Shopp shipping settings saved.');
+			$updated = __('Shopp shipping settings saved.','Shopp');
 		}
 
 		$methods = $Shopp->ShipCalcs->methods;
@@ -1592,7 +1651,7 @@ class Flow {
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-taxes');
 			$this->settings_save();
-			$updated = __('Shopp taxes settings saved.');
+			$updated = __('Shopp taxes settings saved.','Shopp');
 		}
 		
 		$rates = $this->Settings->get('taxrates');
@@ -1614,6 +1673,17 @@ class Flow {
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-payments');
+			
+			// Update the accepted credit card payment methods
+			if (!empty($_POST['settings']['payment_gateway'])) {
+				$gateway = $this->scan_gateway_meta($_POST['settings']['payment_gateway']);
+				$ProcessorClass = $gateway->tags['class'];
+				include_once($gateway->file);
+				$Processor = new $ProcessorClass();
+				$_POST['settings']['gateway_cardtypes'] = $Processor->cards;
+			}
+			
+			// Build the Google Checkout API URL if Google Checkout is enabled
 			if (!empty($_POST['settings']['GoogleCheckout']['id']) && !empty($_POST['settings']['GoogleCheckout']['key'])) {
 				$GoogleCheckout = new GoogleCheckout();
 				$url = $Shopp->link('catalog',true);
@@ -1625,9 +1695,10 @@ class Flow {
 			}
 			
 			$this->settings_save();
-			$updated = __('Shopp payments settings saved.');
+			$updated = __('Shopp payments settings saved.','Shopp');
 		}
 		
+		// Get all of the installed gateways
 		$data = $this->settings_get_gateways();
 		$PayPalExpress = new PayPalExpress();
 		$GoogleCheckout = new GoogleCheckout();
@@ -1641,11 +1712,10 @@ class Flow {
 				
 			$gateways[$gateway->file] = $gateway->name;
 			$ProcessorClass = $gateway->tags['class'];
-			include($gateway->file);
+			include_once($gateway->file);
 			$Processors[] = new $ProcessorClass();
 		}
-		
-		
+
 		include(SHOPP_ADMINPATH."/settings/payments.php");
 	}
 	
@@ -1657,7 +1727,7 @@ class Flow {
 			check_admin_referer('shopp-settings-update');
 			$this->settings_save();
 			if (isset($_POST['settings']['ftp_credentials']))
-				$updated = __('FTP settings saved.  Click the <b>Check for Updates</b> button to start the update process again.');
+				$updated = __('FTP settings saved.  Click the <b>Check for Updates</b> button to start the update process again.','Shopp');
 		}
 		
 		if (!empty($_POST['activation'])) {
@@ -1681,22 +1751,64 @@ class Flow {
 			
 			if ($process == "activate-key" && $activation == "1") {
 				$this->Settings->save('updatekey_status','activated');
-				$activation = __('This key has been successfully activated.');
+				$activation = __('This key has been successfully activated.','Shopp');
 			}
 			
 			if ($process == "deactivate-key" && $activation == "1") {
 				$this->Settings->save('updatekey_status','deactivated');
-				$activation = __('This key has been successfully de-activated.');
+				$activation = __('This key has been successfully de-activated.','Shopp');
 			}
 		} else {
 			if ($this->Settings->get('updatekey_status') == "activated") 
-				$activation = __('This key has been successfully activated.');
-			else $activation = __('Enter your Shopp upgrade key and activate it to enable easy, automatic upgrades.');
+				$activation = __('This key has been successfully activated.','Shopp');
+			else $activation = __('Enter your Shopp upgrade key and activate it to enable easy, automatic upgrades.','Shopp');
 		}
 		
 		include(SHOPP_ADMINPATH."/settings/update.php");
 	}
 	
+	function settings_system () {
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
+		// Image path processing
+		$_POST['settings']['image_storage'] = $_POST['settings']['image_storage_pref'];
+		$imagepath = $this->Settings->get('image_path');
+		$imagepath_status = __("File system image hosting is enabled and working.","Shopp");
+		if (!file_exists($imagepath)) $error = __("The current path does not exist. Using database instead.","Shopp");
+		if (!is_dir($imagepath)) $error = __("The file path supplied is not a directory. Using database instead.","Shopp");
+		if (!is_writable($imagepath) || !is_readable($imagepath)) 
+			$error = __("Permissions error. This path must be writable by the web server. Using database instead.","Shopp");
+		if ($error) {
+			$_POST['settings']['image_storage'] = 'db';
+			$imagepath_status = '<span class="shopp error">'.$error.'</span>';
+		}
+
+		// Product path processing
+		$_POST['settings']['product_storage'] = $_POST['settings']['product_storage_pref'];
+		$productspath = $this->Settings->get('products_path');
+		$productspath_status = __("File system product file hosting is enabled and working.","Shopp");
+		if (!file_exists($productspath)) $error = __("The current path does not exist. Using database instead.","Shopp");
+		if (!is_dir($productspath)) $error = __("The file path supplied is not a directory. Using database instead.","Shopp");
+		if (!is_writable($productspath) || !is_readable($productspath)) 
+			$error = __("Permissions error. This path must be writable by the web server. Using database instead.","Shopp");
+		if ($error) {
+			$_POST['settings']['product_storage'] = 'db';
+			$productspath_status = '<span class="shopp error">'.$error.'</span>';
+		}
+
+		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-settings-system');
+			$this->settings_save();
+			$updated = __('Shopp system settings saved.','Shopp');
+		}
+		
+		$filesystems = array("db" => __("Database","Shopp"),"fs" => __("File System","Shopp"));
+		
+		include(SHOPP_ADMINPATH."/settings/system.php");
+	}	
+	
+
 	function settings_ftp () {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -1931,6 +2043,11 @@ class Flow {
 		$this->Settings->save('maintenance','off');
 		$this->Settings->save('dashboard','on');
 
+		// Checkout Settings
+		$this->Settings->save('order_confirmation','ontax');	
+		$this->Settings->save('receipt_copy','ontax');	
+		$this->Settings->save('account_system','none');	
+
 		// Presentation Settings
 		$this->Settings->save('theme_templates','off');
 		$this->Settings->save('row_products','3');
@@ -1946,6 +2063,7 @@ class Flow {
 
 		// Payment Gateway Settings
 		$this->Settings->save('PayPalExpress',array('enabled'=>'off'));
+		$this->Settings->save('GoogleCheckout',array('enabled'=>'off'));
 	}
 
 	function setup_regions () {

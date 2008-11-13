@@ -8,7 +8,7 @@
 		<?php wp_nonce_field('shopp-settings-payments'); ?>
 		
 		<table class="form-table"> 
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="payment-gateway"><?php _e('Payment Gateway','Shopp'); ?></label></th> 
 				<td><select name="settings[payment_gateway]" id="payment-gateway">
 					<option value=""><?php _e('Select One','Shopp'); ?>&hellip;</option>
@@ -19,7 +19,7 @@
 			<tbody id="payment-settings">
 				<?php foreach ($Processors as $Processor) $Processor->settings(); ?>
 			</tbody>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="paypalexpress-enabled">PayPal Express</label></th> 
 				<td><input type="hidden" name="settings[PayPalExpress][enabled]" value="off" id="paypalexpress-disabled"/><input type="checkbox" name="settings[PayPalExpress][enabled]" value="on" id="paypalexpress-enabled"<?php echo ($PayPalExpress->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="paypalexpress-enabled"> <?php _e('Enable','Shopp'); ?> PayPal Express</label>
 					<div id="paypalexpress-settings">
@@ -27,7 +27,7 @@
 					</div>
 				</td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="googlecheckout-enabled">Google Checkout</label></th> 
 				<td><input type="hidden" name="settings[GoogleCheckout][enabled]" value="off" id="googlecheckout-disabled"/><input type="checkbox" name="settings[GoogleCheckout][enabled]" value="on" id="googlecheckout-enabled"<?php echo ($GoogleCheckout->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="googlecheckout-enabled"> <?php _e('Enable','Shopp'); ?> Google Checkout</label>
 					<div id="googlecheckout-settings">
@@ -36,9 +36,8 @@
 				</td>
 			</tr>
 		</table>
-		<br class="clear" />
 		
-		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
+		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
 

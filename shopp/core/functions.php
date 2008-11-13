@@ -169,7 +169,7 @@ function shopp_email ($template,$data=array()) {
  * array ($data) with a specific RSS-structure. */
 function shopp_rss ($data) {
 	$xml = "<?xml version=\"1.0\""."?>\n";
-	$xml .= "<rss version=\"2.0\" xmlns:base=\"".htmlentities($data['link'])."\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n";
+	$xml .= "<rss version=\"2.0\" xmlns:base=\"".htmlentities($data['link'])."\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:g=\"http://base.google.com/ns/1.0\">\n";
 	$xml .= "<channel>\n";
 
 	$xml .= '<atom:link href="'.htmlentities($data['link']).'" rel="self" type="application/rss+xml" />'."\n";
@@ -182,10 +182,8 @@ function shopp_rss ($data) {
 	if (is_array($data['items'])) {
 		foreach($data['items'] as $item) {
 			$xml .= "<item>\n";
-			$xml .= "<title>".$item['title']."</title>\n";
-			$xml .= "<link>".$item['link']."</link>\n";
-			$xml .= "<description>".$item['description']."</description>\n";
-			$xml .= "<pubDate>".$item['pubDate']."</pubDate>\n";
+			foreach ($item as $key => $value) 
+				$xml .= "<$key>$value</$key>\n";
 			$xml .= "</item>\n";
 		}
 	}
