@@ -1,9 +1,12 @@
 <div class="wrap shopp">
+	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
+
 	<h2><?php _e('Category Editor','Shopp'); ?></h2>
 	<?php include("navigation.php"); ?>
 	<br class="clear" />
 	
-	<form name="category" id="category" method="post" action="<?php echo admin_url("admin.php?page=".$this->Admin->products."&categories=list"); ?>">
+	<?php $action = (!empty($Category->id))?$Category->id:'edit'; ?>
+	<form name="category" id="category" method="post" action="<?php echo admin_url("admin.php?page=".$this->Admin->products."&category=$action"); ?>">
 		<?php wp_nonce_field('shopp-save-category'); ?>
 		
 		<table class="form-table"> 
