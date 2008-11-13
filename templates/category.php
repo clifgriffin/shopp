@@ -2,7 +2,9 @@
 	<div class="category">
 	<?php shopp('catalog','breadcrumb'); ?>
 	<h3><?php shopp('category','name'); ?></h3>
+	<?php shopp('catalog','views','label=Views: '); ?>
 	<br class="clear" />
+	
 	<div class="alignright"><?php shopp('category','pagination'); ?></div>
 	<br class="clear" />
 	
@@ -13,8 +15,16 @@
 			<li class="product">
 				<div class="frame">
 				<?php shopp('category','product','thumbnail&link'); ?>
-				<h4 class="name"><?php shopp('category','product','name&link'); ?></h4>
-				<p class="price"><?php shopp('category','product','price'); ?></p>
+					<div class="details">
+					<h4 class="name"><?php shopp('category','product','name&link'); ?></h4>
+					<p class="price"><?php shopp('category','product','price'); ?></p>
+						<div class="listview">
+						<p><?php shopp('category','product','summary'); ?></p>
+						<?php shopp('category','product','addtocart'); ?>
+						</div>
+					</div>
+					<br class="clear" />
+					
 				</div>
 			</li>
 		<?php endwhile; ?>

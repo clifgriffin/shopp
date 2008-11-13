@@ -15,6 +15,19 @@
 	<?php shopp('purchase','country'); ?></address>
 </fieldset>
 
+<?php if (shopp('purchase','hasfreight')): ?>
+	<fieldset class="shipping">
+		<legend>Ship to</legend>
+		<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
+		<?php shopp('purchase','shipaddress'); ?><br />
+		<?php shopp('purchase','shipxaddress'); ?>
+		<?php shopp('purchase','shipcity'); ?>, <?php shopp('purchase','shipstate'); ?> <?php shopp('purchase','shippostcode'); ?><br />
+		<?php shopp('purchase','shipcountry'); ?></address>
+		
+		<p>Shipping: <?php shopp('purchase','shipmethod'); ?></p>
+	</fieldset>	
+<?php endif; ?>
+
 <?php if (shopp('purchase','hasitems')): ?>
 <table class="cart widefat">
 	<thead>
@@ -65,19 +78,6 @@
 		<td class="money"><?php shopp('purchase','total'); ?></td>
 	</tr>
 </table>
-
-<?php if (shopp('purchase','hasfreight')): ?>
-	<fieldset class="shipping">
-		<legend>Ship to</legend>
-		<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
-		<?php shopp('purchase','shipaddress'); ?><br />
-		<?php shopp('purchase','shipxaddress'); ?>
-		<?php shopp('purchase','shipcity'); ?>, <?php shopp('purchase','shipstate'); ?> <?php shopp('purchase','shippostcode'); ?><br />
-		<?php shopp('purchase','shipcountry'); ?></address>
-		
-		<p>Shipping: <?php shopp('purchase','shipmethod'); ?></p>
-	</fieldset>	
-<?php endif; ?>
 
 <?php else: ?>
 	<p class="warning">There were no items found for this purchase.</p>

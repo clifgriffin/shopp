@@ -605,13 +605,21 @@ class Product extends DatabaseObject {
 			case "has-addons":
 				if (isset($this->options['addons'])) return true; else return false; break;
 				break;
+			case "buynow":
+				if (!isset($options['label'])) $options['label'] = "Buy Now";
 			case "addtocart":
-				if (empty($options['label'])) $options['label'] = "Add to Cart";
+				if (!isset($options['label'])) $options['label'] = "Add to Cart";
 				$string = "";
-				$string .= wp_nonce_field('shopp-addtocart','_wpnonce',true,false);
 				$string .= '<input type="hidden" name="product" value="'.$this->id.'" />';
-				if ($this->prices[0]->type != "N/A")
+
+				if ($this->prices[0]->type != "N/A") {
+					if ($this->prices[0]->inventory == "on" && $this->prices[0]->stock == 0) {
+						$string .= '<p class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</p>';
+						return $string;
+					}
 					$string .= '<input type="hidden" name="price" value="'.$this->prices[0]->id.'" />';
+				}
+				
 				$string .= '<input type="hidden" name="cart" value="add" />';
 				$string .= '<input type="submit" name="addtocart" value="'.$options['label'].'" class="addtocart" />';
 				return $string;

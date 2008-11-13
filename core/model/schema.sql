@@ -16,6 +16,7 @@ CREATE TABLE shopp_product (
 	slug varchar(255) NOT NULL default '',
 	summary text NOT NULL default '',
 	description longtext NOT NULL default '',
+	published enum('off','on') NOT NULL default 'on',
 	featured enum('off','on') NOT NULL default 'off',
 	variations enum('off','on') NOT NULL default 'off',
 	options text NOT NULL default '',

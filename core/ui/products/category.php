@@ -1,32 +1,33 @@
 <div class="wrap shopp">
 	<h2><?php _e('Category Editor','Shopp'); ?></h2>
 	<?php include("navigation.php"); ?>
-
-	<form name="category" id="category" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+	<br class="clear" />
+	
+	<form name="category" id="category" method="post" action="<?php echo admin_url("admin.php?page=".$this->Admin->products."&categories=list"); ?>">
 		<?php wp_nonce_field('shopp-save-category'); ?>
 		
 		<table class="form-table"> 
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="category_name"><?php _e('Category Name','Shopp'); ?></label></th> 
 				<td><input type="text" name="name" value="<?php echo $Category->name; ?>" id="category_name" size="40" /><br /> 
 	            <?php _e('The name is used to identify the category in your catalog.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="slug"><?php _e('Category Slug','Shopp'); ?></label></th> 
 				<td><input type="text" name="slug" value="<?php echo $Category->slug; ?>" id="category_slug" size="40" /><br /> 
 	            <?php _e('The name is used to identify the category in your catalog.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="category_parent"><?php _e('Category Parent','Shopp'); ?></label></th> 
 				<td><select name="parent" id="category_parent"><?php echo $categories_menu; ?></select><br /> 
 	            <?php _e('Categories, unlike tags, can be or have nested sub-categories.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="category_description"><?php _e('Description','Shopp'); ?></label></th> 
 				<td><textarea name="description" id="category_description" rows="5" cols="50" style="width: 97%;"><?php echo $Category->description; ?></textarea><br /> 
 	            <?php _e('The description is not prominent by default, however some themes may show it.','Shopp'); ?></td>
 		</tr>
-		<tr class="form-field">
+		<tr class="">
 			<th><label><?php _e('Details Template','Shopp'); ?></label>
 				<div id="new-detail">
 				<button type="button" id="addDetail" class="button-secondary"><small><?php _e('Add Detail','Shopp'); ?></small></button>

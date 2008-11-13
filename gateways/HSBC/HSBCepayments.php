@@ -15,13 +15,13 @@ class HSBCepayments {
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
-	// var $url = "https://www.secure-epayments.apixml.hsbc.com/";
-	var $url = "https://www.uat.apixml.netq.hsbc.com/";
+	var $cards = array("Visa", "MasterCard", "Electron","UK Maestro","Solo");
+	var $url = "https://www.secure-epayments.apixml.hsbc.com/";
+	// var $url = "https://www.uat.apixml.netq.hsbc.com/";
 	
 	function HSBCepayments (&$Order="") {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('HSBCepayments');
-		$this->settings['merchant_email'] = $Shopp->Settings->get('HSBCepayments');
 		
 		if (!empty($Order)) $this->build($Order);
 		return true;
@@ -45,6 +45,7 @@ class HSBCepayments {
 			$Error = new stdClass();
 			$Error->code = $this->Response->getElementContent('CcErrCode');
 			$Error->message = $this->Response->getElementContent('CcReturnMsg');
+			if (empty($Error->message)) $Error->message = __("A configuration error occurred while processing this transaction.  Please contact the site administrator.");
 			return $Error;
 		}
 	}
@@ -181,18 +182,15 @@ class HSBCepayments {
 	
 	function settings () {
 		global $Shopp;
-		$Shopp->Settings->save('gateway_cardtypes',array("Visa", "MasterCard", "Electron","UK Maestro","Solo"));
-		$settings = $Shopp->Settings->get('HSBCepayments');
 		
 		?>
 		<tr id="hsbcepayments-settings" class="form-field">
 			<th scope="row" valign="top">HSBC ePayments</th>
 			<td>
-				<div><input type="text" name="settings[HSBCepayments][username]" id="hsbcepayments_username" value="<?php echo $settings['username']; ?>" size="16" /><br /><label for="hsbcepayments_username"><?php _e('Enter your HSBC ePayments username.'); ?></label></div>
-				<p><input type="password" name="settings[HSBCepayments][password]" id="hsbcepayments_password" value="<?php echo $settings['password']; ?>" size="24" /><br /><label for="hsbcepayments_password"><?php _e('Enter your HSBC ePayments password.'); ?></label></p>
-				<p><input type="text" name="settings[HSBCepayments][clientid]" id="hsbcepayments_clientid" value="<?php echo $settings['clientid']; ?>" size="7" /><br /><label for="hsbcepayments_clientid"><?php _e('HSBC ePayments Client ID'); ?></label></p>
-				<p><input type="hidden" name="settings[HSBCepayments][testmode]" value="off"><input type="checkbox" name="settings[HSBCepayments][testmode]" id="hsbcepayments_testmode" value="on"<?php echo ($settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="hsbcepayments_testmode"> <?php _e('Enable test mode'); ?></label></p>
-				
+				<div><input type="text" name="settings[HSBCepayments][username]" id="hsbcepayments_username" value="<?php echo $this->settings['username']; ?>" size="16" /><br /><label for="hsbcepayments_username"><?php _e('Enter your HSBC ePayments username.'); ?></label></div>
+				<p><input type="password" name="settings[HSBCepayments][password]" id="hsbcepayments_password" value="<?php echo $this->settings['password']; ?>" size="24" /><br /><label for="hsbcepayments_password"><?php _e('Enter your HSBC ePayments password.'); ?></label></p>
+				<p><input type="text" name="settings[HSBCepayments][clientid]" id="hsbcepayments_clientid" value="<?php echo $this->settings['clientid']; ?>" size="7" /><br /><label for="hsbcepayments_clientid"><?php _e('HSBC ePayments Client ID'); ?></label></p>
+				<p><input type="hidden" name="settings[HSBCepayments][testmode]" value="off" /><input type="checkbox" name="settings[HSBCepayments][testmode]" id="hsbcepayments_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="hsbcepayments_testmode"> <?php _e('Enable test mode'); ?></label></p>
 			</td>
 		</tr>
 		<?

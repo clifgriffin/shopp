@@ -13,6 +13,7 @@ class PayPalPro {
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
+	var $cards = array("Visa","MasterCard","Discover","American Express");
 
 	function PayPalPro (&$Order="") {
 		global $Shopp;
@@ -175,12 +176,11 @@ class PayPalPro {
 	}
 	
 	function settings () {
-		global $Shopp;
-		$Shopp->Settings->save('gateway_cardtypes',array("Visa","MasterCard","Discover","American Express"));
 		?>
 		<tr id="paypalpro-settings" class="form-field">
 			<th scope="row" valign="top">PayPal Pro</th>
 			<td>
+				<input type="hidden" name="settings[PayPalPro][cards]" value="<?php echo join(",",$this->cards); ?>" />
 				<div><input type="text" name="settings[PayPalPro][username]" id="paypal_pro_username" value="<?php echo $this->settings['username']; ?>" size="30" /><br /><label for="paypal_pro_username"><?php _e('Enter your PayPal API Username.'); ?></label></div>
 				<p><input type="password" name="settings[PayPalPro][password]" id="paypal_pro_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="paypal_pro_password"><?php _e('Enter your PayPal API Password.'); ?></label></p>
 				<p><input type="text" name="settings[PayPalPro][signature]" id="paypal_pro_signature" value="<?php echo $this->settings['signature']; ?>" size="16" /><br /><label for="paypal_pro_signature"><?php _e('Enter your PayPal API Signature.'); ?></label></p>

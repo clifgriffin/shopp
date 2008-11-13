@@ -29,8 +29,7 @@ class FlatRates {
 				return $shipping;
 				break;
 			default:
-				if ($Cart->freeshipping) return 0;
-				else return $rate[$column][0];
+				return $rate[$column][0];
 		}
 	}
 	

@@ -5,18 +5,17 @@
 	
 	<?php include("navigation.php"); ?>
 
-	<p class="controls"><button type="submit" name="edit" value="new" class="button"><?php _e('New Product','Shopp'); ?></button></p>
+	<p class="search-box"><button type="submit" name="edit" value="new" class="button"><?php _e('New Product','Shopp'); ?></button></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-		<div class="alignleft">
+		<div class="alignleft actions">
 		<button type="submit" id="delete-button" name="deleting" value="product" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
 		<select name='cat'>
 		<?php echo $categories_menu; ?>
 		</select>
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary">
 		</div>
-		<br class="clear" />
 	</div>
 	<br class="clear" />
 	

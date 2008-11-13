@@ -17,7 +17,7 @@
 	            </td>
 			</tr>
 		</table>
-		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Continue','Shopp'); ?>&hellip;" /></p>
+		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Continue','Shopp'); ?>&hellip;" /></p>
 	</form>
 </div>
 <script type="text/javascript">

@@ -9,12 +9,12 @@
 	
 	<table class="form-table"> 
 	<tbody>
-		<tr class="form-field form-required"> 
+		<tr class="form-required"> 
 			<th scope="row" valign="top"><label for="name"><?php _e('Product Name','Shopp'); ?></label></th> 
 			<td><input name="name" id="name" type="text" value="<? echo $Product->name ?>" size="40" tabindex="1" /><br /> 
             <?php _e('The name of the product to be displayed in the catalog, shopping cart and order reciept.','Shopp'); ?></td> 
 		</tr>
-		<tr class="form-field">
+		<tr class="">
 			<th scope="row" valign="top"><label for="category-menu"><?php _e('Categories','Shopp'); ?></label>
 				<div id="new-category">
 				<input type="text" name="new-category" value="" size="15" id="new-category" /><br />
@@ -41,7 +41,7 @@
 				</div><br />
                 <?php _e('Use categories to organize the products in your catalog.','Shopp'); ?></td> 
 		</tr>
-		<tr class="form-field form-required"> 
+		<tr class="form-required"> 
 			<th scope="row" valign="top"><label for="name"><?php _e('Tags','Shopp'); ?></label></th> 
 			<td><input name="newtags" id="newtags" type="text" size="16" tabindex="4" autocomplete="off" value="enter, new, tags…" title="enter, new, tags…" class="form-input-tip" />
 				<button type="button" name="addtags" id="add-tags" class="button-secondary" tabindex="5"><small>Add</small></button><input type="hidden" name="taglist" id="tags" value="<?php echo join(",",$taglist); ?>"><br />
@@ -51,17 +51,17 @@
 				<div id="tagchecklist"></div>
 			</div>
 			</td> 
-		<tr class="form-field"> 
+		<tr class=""> 
 			<th scope="row" valign="top"><label for="summary"><?php _e('Summary','Shopp'); ?></label></th> 
 			<td><textarea name="summary" id="summary" rows="2" cols="50" tabindex="6" style="width: 97%;"><? echo $Product->summary ?></textarea><br /> 
             <?php _e('A brief description of the product to draw the customer\'s attention.','Shopp'); ?></td> 
 		</tr> 
-		<tr class="form-field"> 
+		<tr class=""> 
 			<th scope="row" valign="top"><label for="description"><?php _e('Description','Shopp'); ?></label></th> 
 			<td><textarea name="description" id="description" rows="8" cols="50" tabindex="7" style="width: 97%;"><? echo $Product->description ?></textarea><br /> 
             <?php _e('Provide in-depth information about the product to be displayed on the product page.','Shopp'); ?></td> 
 		</tr> 
-		<tr class="form-field">
+		<tr class="">
 			<th><label><?php _e('Details &amp; Specs','Shopp'); ?></label>
 				<div id="new-detail">
 				<button type="button" id="addDetail" class="button-secondary" tabindex="8"><small><?php _e('Add Product Detail','Shopp'); ?></small></button>
@@ -77,12 +77,16 @@
 				<?php _e('Build a list of detailed information such as dimensions or features of the product.','Shopp'); ?>
 			</td>
 		</tr>		
-		<tr id="product-images" class="form-field form-required"> 
+		<tr id="product-images" class="form-required"> 
 			<th scope="row" valign="top"><label><?php _e('Product Images','Shopp'); ?></label>
-				<div id="swf-uploader">
 				<input type="hidden" name="product" value="<?php echo $_GET['edit']; ?>" id="image-product-id" />
 				<input type="hidden" name="deleteImages" id="deleteImages" value="" />
-				<button type="button" class="button-secondary" name="add-image" id="add-product-image" tabindex="10"><small><?php _e('Add New Image','Shopp'); ?></small></button></div></th> 
+				<div id="swf-uploader">
+				<button type="button" class="button-secondary" name="add-image" id="add-product-image" tabindex="10"><small><?php _e('Add New Image','Shopp'); ?></small></button></div>
+				<div id="browser-uploader">
+					<button type="button" name="image_upload" id="image-upload" class="button-secondary"><small>Add New Image</small></button><br class="clear"/>
+				</div>
+				</th> 
 			<td>
 				<ul id="lightbox">
 				<?php foreach ($Images as $thumbnail): ?>
@@ -94,11 +98,12 @@
 				<?php _e('Images shown here will be out of proportion, but will be correctly sized for shoppers.','Shopp'); ?>
 			</td> 
 		</tr>
-		<tr class="form-field"> 
-			<th scope="row" valign="top"><label for="featured"><?php _e('Settings','Shopp'); ?></label></th> 
-			<td><p><input type="hidden" name="featured" value="off" /><input type="checkbox" name="featured" value="on" id="featured" tabindex="11" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /><label for="featured"> <?php _e('Featured Product','Shopp'); ?></label></p>
+		<tr class=""> 
+			<th scope="row" valign="top"><label for="published"><?php _e('Settings','Shopp'); ?></label></th> 
+			<td><p><input type="hidden" name="published" value="off" /><input type="checkbox" name="published" value="on" id="published" tabindex="11" <?php if ($Product->published == "on") echo ' checked="checked"'?> /><label for="published"> <?php _e('Published','Shopp'); ?></label></p>
+				<p><input type="hidden" name="featured" value="off" /><input type="checkbox" name="featured" value="on" id="featured" tabindex="12" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /><label for="featured"> <?php _e('Featured Product','Shopp'); ?></label></p>
 				<ul>
-					<li><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="12"<?php if ($Product->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations &mdash; Selectable product options','Shopp'); ?></label></li>
+					<li><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if ($Product->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations &mdash; Selectable product options','Shopp'); ?></label></li>
 				</ul>
 				</td>
 		</tr>
@@ -155,6 +160,8 @@ var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 var siteurl = '<?php echo get_option('siteurl'); ?>';
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
+var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
+var productspath = '<?php echo trailingslashit($this->Settings->get('products_path')); ?>';
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 
 init();

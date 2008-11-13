@@ -13,6 +13,7 @@ class TestMode {
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
+	var $cards = array("Visa","MasterCard","Discover","American Express");
 
 	function TestMode (&$Order="") {
 		global $Shopp;
@@ -46,14 +47,11 @@ class TestMode {
 	}
 	
 	function settings () {
-		global $Shopp;
-		$Shopp->Settings->save('gateway_cardtypes',array("Visa","MasterCard","Discover","American Express"));
-		$settings = $Shopp->Settings->get('TestMode');
 		?>
 		<tr id="testmode-settings" class="form-field">
 			<th scope="row" valign="top">Test Mode</th>
 			<td>
-				<input type="hidden" name="settings[TestMode][response]" value="success"><input type="checkbox" name="settings[TestMode][response]" id="testmode_response" value="error"<?php echo ($settings['response'] == "error")?' checked="checked"':''; ?> /><label for="testmode_response"> <?php _e('Test error response'); ?></label>
+				<input type="hidden" name="settings[TestMode][response]" value="success" /><input type="checkbox" name="settings[TestMode][response]" id="testmode_response" value="error"<?php echo ($this->settings['response'] == "error")?' checked="checked"':''; ?> /><label for="testmode_response"> <?php _e('Test error response'); ?></label>
 			</td>
 		</tr>
 		<?php

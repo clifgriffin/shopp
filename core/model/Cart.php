@@ -63,6 +63,7 @@ class Cart {
 		$this->data->PromosApplied = array();
 		$this->data->PromoCode = false;
 		$this->data->PromoCodes = array();
+		$this->data->PromoCodeResult = false;
 		$this->data->Purchase = false;
 		$this->data->ShipCosts = array();
 		$this->data->Purchase = false;
@@ -253,7 +254,12 @@ class Cart {
 		$estimate = false;
 		foreach ($methods as $id => $rate) {
 			$shipping = 0;
-
+			
+			if ($this->freeshipping) {
+				$ShipCosts[$rate['name']] = 0;
+				return 0;
+			}
+			
 			if ($Shipping->country == $base['country']) {
 				// Use country/domestic region
 				if (isset($rate[$base['country']]))	$column = $base['country'];  // Use the country rate
@@ -268,11 +274,9 @@ class Cart {
 				$column = key($rate);
 			}
 			
-			if (!$Cart->freeshipping) {
-				list($ShipCalcClass,$process) = split("::",$rate['method']);
-				if ($Shopp->ShipCalcs->modules[$ShipCalcClass]) {
-					$shipping += $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate($this,$rate,$column);
-				}
+			list($ShipCalcClass,$process) = split("::",$rate['method']);
+			if ($Shopp->ShipCalcs->modules[$ShipCalcClass]) {
+				$shipping += $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate($this,$rate,$column);
 			}
 
 			// Calculate any product-specific shipping fee markups
@@ -290,12 +294,14 @@ class Cart {
 			$ShipCosts[$rate['name']] = $rate;
 		}
 				
-		if (!empty($this->data->Order->Shipping->shipmethod)) return $ShipCosts[$this->data->Order->Shipping->shipmethod]['cost'];
+		if (!empty($this->data->Order->Shipping->shipmethod)) 
+			return $ShipCosts[$this->data->Order->Shipping->shipmethod]['cost'];
 		return $estimate;
 	}
 	
 	function promotions () {
 		$db = DB::get();
+		
 		
 		// Load promotions if they've not yet been loaded
 		if (empty($this->data->Promotions)) {
@@ -303,7 +309,8 @@ class Cart {
 			// Add date-based lookup too
 			$this->data->Promotions = $db->query("SELECT * FROM $promo_table WHERE scope='Order' AND ((status='enabled' AND UNIX_TIMESTAMP(starts) > 0 AND UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP() AND UNIX_TIMESTAMP(ends) > UNIX_TIMESTAMP()) OR status='enabled')",AS_ARRAY);
 		}
-
+		
+		$PromoCodeFound = false;
 		$this->data->PromosApplied = array();
 		foreach ($this->data->Promotions as &$promo) {
 			if (!is_array($promo->rules))
@@ -320,9 +327,9 @@ class Cart {
 					$promo->rules[] = $qtyrule;
 				}
 			}
-
+			
 			$items = array();
-
+			
 			$match = false;
 			$rulematches = 0;
 			foreach ($promo->rules as $rule) {
@@ -356,8 +363,10 @@ class Cart {
 					case "Promo code":
 						if (!empty($this->data->PromoCodes)) {
 							foreach ($this->data->PromoCodes as $code) {
-								if (Promotion::match_rule($code,$rule['logic'],$rule['value']))
+								if (Promotion::match_rule($code,$rule['logic'],$rule['value'])) {
+									if ($code == $this->data->PromoCode) $PromoCodeFound = true;
 									$rulematch = true;
+								}
 							}
 						}
 						break;
@@ -368,7 +377,7 @@ class Cart {
 					$match = true;
 					break; // One matched, no need to match any more
 				}
-			}
+			} // end foreach ($promo->rules)
 
 			if ($promo->search == "all" && $rulematches == count($promo->rules))
 				$match = true;
@@ -377,17 +386,18 @@ class Cart {
 			if ($match) {
 
 				if (!empty($items)) {
+					$freeshipping = 0;
 					// Apply promo calculation to specific cart items
 					foreach ($items as $item) {
 						switch ($promo->type) {
 							case "Percentage Off": $this->data->Totals->discount += $item->unitprice*($promo->discount/100); break;
 							case "Amount Off": $this->data->Totals->discount += $promo->discount; break;
 							case "Buy X Get Y Free": $this->data->Totals->discount += floor($item->quantity / ($promo->buyqty + $promo->getqty))*($item->unitprice);
-							// TODO: Need to find a way to let the shipping
-							// calculators know about individual item shipping discounts
-							// case "Free Shipping": $this->data->Totals->shipping = 0; break;
+							case "Free Shipping": $freeshipping++; break;
 						}
 					}
+					if ($freeshipping == count($this->contents) || $promo->scope == "Order") $this->freeshipping = true;
+					else $this->freeshipping = false;
 				} else {
 					// Apply promo calculation to entire order
 					switch ($promo->type) {
@@ -397,13 +407,17 @@ class Cart {
 					}
 				}
 				$this->data->PromosApplied[] = $promo;
-			} else {
-				// No match
-				if (!empty($this->data->PromoCode)) array_pop($this->data->PromoCodes);
 			}
 			
 			if ($match && $promo->exclusive == "on") break;
+			
+		} // end foreach ($Promotions)
+		
+		if (!empty($this->data->PromoCode) && !$PromoCodeFound) {
+			$this->data->PromoCodeResult = $this->data->PromoCode.__(" is not a valid code.");
+			if (!empty($this->data->PromoCode)) array_pop($this->data->PromoCodes);
 		}
+			
 		
 	}
 	
@@ -420,10 +434,11 @@ class Cart {
 		$Totals->tax = 0;
 		$Totals->total = 0;
 
-		$freeshipping = true;
+		$freeshipping = true;	// Assume free shipping unless proven wrong
 		foreach ($this->contents as $key => $Item) {
 
-			if ($Item->shipping && !$Item->freeshipping) $this->shipping[$key] = $Item;
+			// Add the item to the shipped list
+			if ($Item->shipping && !$Item->freeshipping) $this->shipped[$key] = $Item;
 			if (!$Item->freeshipping) $freeshipping = false;
 			
 			$Totals->quantity += $Item->quantity;
@@ -435,6 +450,7 @@ class Cart {
 		}
 		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
 		$this->freeshipping = $freeshipping;
+		
 
 		$this->promotions();
 		$discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
@@ -523,7 +539,7 @@ class Cart {
 				return $string;
 				
 				break;
-			case "function": return '<div><input type="hidden" id="cart-action" name="cart" value="true" /></div>'; break;
+			case "function": return '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /><input type="submit" name="update" id="hidden-update" /></div>'; break;
 			case "empty-button": 
 				if (empty($options['value'])) $options['value'] = "Empty Cart";
 				return '<input type="submit" name="empty" id="empty-button"'.$this->inputattrs($options,$submit_attrs).' />';
@@ -546,8 +562,11 @@ class Cart {
 		$result = "";
 		switch ($property) {
 			case "promo-code": 
-				$result .= '<p><input type="text" name="promocode" value="" size="10" /> ';
-				$result .= '<input type="submit" name="apply-code" value="Apply Promo Code" /></p>';
+				if (empty($options['value'])) $options['value'] = __("Apply Promo Code");
+				if ($this->data->PromoCodeResult !== false)
+					$result .= '<p class="error">'.$this->data->PromoCodeResult.'</p>';
+				$result .= '<p><input type="text" id="promocode" name="promocode" value="" size="10" /> ';
+				$result .= '<input type="submit" id="apply-code" name="update"'.$this->inputattrs($options,$submit_attrs).' /></p>';
 				return $result;
 			case "has-shipping-methods": 
 				return (count($this->data->ShipCosts) > 1 &&
@@ -610,59 +629,59 @@ class Cart {
 		} else return false;
 	}
 	
-	function shippingtag ($property,$options=array()) {
-		global $Shopp;
-		$ShipCosts =& $this->data->ShipCosts;
-		$result = "";
-			
-		switch ($property) {
-			case "hasestimates": return (count($ShipCosts) > 0); break;
-			case "methods":			
-				if (!$this->looping) {
-					reset($ShipCosts);
-					$this->looping = true;
-				} else next($ShipCosts);
-				
-				if (current($ShipCosts)) return true;
-				else {
-					$this->looping = false;
-					return false;
-				}
-				break;
-			case "method-name": 
-				return key($ShipCosts);
-				break;
-			case "method-cost": 
-				$method = current($ShipCosts);
-				return money($method['cost']);
-				break;
-			case "method-selector":
-				$method = current($ShipCosts);
-
-				$checked = '';
-				if ($this->data->Order->Shipping->shipmethod == $method['name'] ||
-					($method['cost'] == $this->data->Totals->shipping))
-						$checked = ' checked="checked"';
-
-				$result .= '<input type="radio" name="shipmethod" value="'.$method['name'].'" '.$id.' class="shipmethod" '.$checked.' />';
-				return $result;
-				
-				break;
-			case "method-delivery":
-				$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
-				$method = current($ShipCosts);
-				$estimates = split("-",$method['delivery']);
-				$format = get_option('date_format');
-				if ($estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
-				$result = "";
-				for ($i = 0; $i < count($estimates); $i++){
-					list($interval,$p) = sscanf($estimates[$i],'%d%s');
-					if (!empty($result)) $result .= "&mdash;";
-					$result .= date($format,mktime()+($interval*$periods[$p]));
-				}				
-				return $result;
-		}
-	}
+	// function shippingtag ($property,$options=array()) {
+	// 	global $Shopp;
+	// 	$ShipCosts =& $this->data->ShipCosts;
+	// 	$result = "";
+	// 		
+	// 	switch ($property) {
+	// 		case "hasestimates": return (count($ShipCosts) > 0); break;
+	// 		case "methods":			
+	// 			if (!$this->looping) {
+	// 				reset($ShipCosts);
+	// 				$this->looping = true;
+	// 			} else next($ShipCosts);
+	// 			
+	// 			if (current($ShipCosts)) return true;
+	// 			else {
+	// 				$this->looping = false;
+	// 				return false;
+	// 			}
+	// 			break;
+	// 		case "method-name": 
+	// 			return key($ShipCosts);
+	// 			break;
+	// 		case "method-cost": 
+	// 			$method = current($ShipCosts);
+	// 			return money($method['cost']);
+	// 			break;
+	// 		case "method-selector":
+	// 			$method = current($ShipCosts);
+	// 
+	// 			$checked = '';
+	// 			if ($this->data->Order->Shipping->shipmethod == $method['name'] ||
+	// 				($method['cost'] == $this->data->Totals->shipping))
+	// 					$checked = ' checked="checked"';
+	// 
+	// 			$result .= '<input type="radio" name="shipmethod" value="'.$method['name'].'" '.$id.' class="shipmethod" '.$checked.' />';
+	// 			return $result;
+	// 			
+	// 			break;
+	// 		case "method-delivery":
+	// 			$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
+	// 			$method = current($ShipCosts);
+	// 			$estimates = split("-",$method['delivery']);
+	// 			$format = get_option('date_format');
+	// 			if ($estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
+	// 			$result = "";
+	// 			for ($i = 0; $i < count($estimates); $i++){
+	// 				list($interval,$p) = sscanf($estimates[$i],'%d%s');
+	// 				if (!empty($result)) $result .= "&mdash;";
+	// 				$result .= date($format,mktime()+($interval*$periods[$p]));
+	// 			}				
+	// 			return $result;
+	// 	}
+	// }
 	
 	function checkouttag ($property,$options=array()) {
 		global $Shopp;

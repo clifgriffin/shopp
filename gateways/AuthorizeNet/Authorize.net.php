@@ -13,6 +13,7 @@ class AuthorizeNet {
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
+	var $cards = array("Visa", "MasterCard", "American Express", "Discover", "JCB", "Diner’s Club", "EnRoute");
 
 	function AuthorizeNet (&$Order="") {
 		global $Shopp;
@@ -183,7 +184,6 @@ class AuthorizeNet {
 	
 	function settings () {
 		global $Shopp;
-		$Shopp->Settings->save('gateway_cardtypes',array("Visa", "MasterCard", "American Express", "Discover", "JCB", "Diner’s Club", "EnRoute"));
 		$settings = $Shopp->Settings->get('Authorize.Net');
 		?>
 		<tr id="authorize-net-settings" class="form-field">

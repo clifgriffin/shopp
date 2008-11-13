@@ -8,12 +8,12 @@
 		<?php wp_nonce_field('shopp-settings-taxes'); ?>
 		
 		<table class="form-table"> 
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="taxes-toggle"><?php _e('Calculate Taxes','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[taxes]" value="off" /><input type="checkbox" name="settings[taxes]" value="on" id="taxes-toggle"<?php if ($this->Settings->get('taxes') == "on") echo ' checked="checked"'?> /><label for="taxes-toggle"> <?php _e('Enabled','Shopp'); ?></label><br /> 
 	            <?php _e('Enables tax calculations.  Disable if you are exclusively selling non-taxable items.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="taxrate[i]"><?php _e('Tax Rates','Shopp'); ?></label></th> 
 				<td>
 					<?php if ($this->Settings->get('target_markets')): ?>
@@ -26,9 +26,8 @@
 			</tr>
 
 		</table>
-		<br class="clear" />
 				
-		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
+		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
 

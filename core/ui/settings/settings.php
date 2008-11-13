@@ -8,17 +8,17 @@
 		<?php wp_nonce_field('shopp-settings-general'); ?>
 		
 		<table class="form-table"> 
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="dashboard-toggle"><?php _e('Dashboard Widgets','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[dashboard]" value="off" /><input type="checkbox" name="settings[dashboard]" value="on" id="dashboard-toggle"<?php if ($this->Settings->get('dashboard') == "on") echo ' checked="checked"'?> /><label for="dashboard-toggle"> <?php _e('Enabled','Shopp'); ?></label><br /> 
 	            <?php _e('Check this to display store performance metrics and more on the WordPress Dashboard.','Shopp'); ?></td>
 			</tr>			
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="merchant_email"><?php _e('Merchant Email','Shopp'); ?></label></th> 
 				<td><input type="text" name="settings[merchant_email]" value="<?php echo $this->Settings->get('merchant_email'); ?>" id="merchant_email" size="30" /><br /> 
 	            <?php _e('Enter the email address for the owner of this shop to receive e-mail notifications.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="base_operations"><?php _e('Base of Operations','Shopp'); ?></label></th> 
 				<td><select name="settings[base_operations][country]" id="base_operations">
 					<option></option>
@@ -30,7 +30,7 @@
 					<br /> 
 	            <?php _e('Select your primary business location.','Shopp'); ?></td> 
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="target_markets"><?php _e('Target Markets','Shopp'); ?></label></th> 
 				<td>
 					<div class="multiple-select">
@@ -49,7 +49,7 @@
 					<br /> 
 	            <?php _e('Select the markets you are selling products to.','Shopp'); ?></td> 
 			</tr>
-			<tr class="form-field form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="cart-toggle"><?php _e('Order Status Labels','Shopp'); ?></label></th> 
 				<td>
 				<ol id="order-statuslabels">
@@ -57,9 +57,8 @@
 				<?php _e('Add your own order processing status labels. Be sure to click','Shopp'); ?> <strong><?php _e('Save Changes','Shopp'); ?></strong> <?php _e('below!','Shopp'); ?></td>
 			</tr>
 		</table>
-		<br class="clear" />
-
-		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
+		
+		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
 <script type="text/javascript">

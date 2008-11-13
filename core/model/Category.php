@@ -78,7 +78,9 @@ class Category extends DatabaseObject {
 					if (pr.type='Buy X Get Y Free',pr.getqty,0) AS getqty,
 					MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
 					IF(pd.sale='on',1,IF (pr.discount > 0,1,0)) AS onsale,
-					MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice";
+					MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice,
+					IF(pd.inventory='on',1,0) AS inventory,
+					SUM(pd.stock) as stock";
 
 		// Query without promotions for MySQL servers prior to 5
 		if (version_compare($db->version,'5.0','<')) {
@@ -86,7 +88,9 @@ class Category extends DatabaseObject {
 						img.id AS thumbnail,img.properties AS thumbnail_properties,
 						MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
 						IF(pd.sale='on',1,0) AS onsale,
-						MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice";
+						MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice,
+						IF(pd.inventory='on',1,0) AS inventory,
+						SUM(pd.stock) as stock";
 		} 
 
 		$query = "SELECT $columns{$filtering['columns']}
@@ -97,7 +101,7 @@ class Category extends DatabaseObject {
 					LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
 					LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
 					{$filtering['joins']}
-					WHERE {$filtering['where']} 
+					WHERE {$filtering['where']} AND p.published='on'
 					GROUP BY p.id 
 					ORDER BY {$filtering['order']} LIMIT {$filtering['limit']}";
 		
@@ -110,7 +114,7 @@ class Category extends DatabaseObject {
 						LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
 						LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
 						{$filtering['joins']}
-						WHERE {$filtering['where']}";
+						WHERE {$filtering['where']} AND p.published='on";
 
 			$total = $db->query($count);
 			$this->total = $total->count;
@@ -171,9 +175,10 @@ class Category extends DatabaseObject {
 			$item['link'] = htmlentities($baseurl.((SHOPP_PERMALINKS)?$product->id:'&shopp_pid='.$product->id));
 			$item['description'] = "<![CDATA[";
 			if (!empty($product->thumbnail)) {
-				$item['description'] .= '<a href="'.$item['link'].'">';
+				$item['description'] .= '<a href="'.$item['link'].'" title="'.$product->name.'">';
 				$item['description'] .= '<img src="'.$imageurl.$product->thumbnail.'" alt="'.$product->name.'" width="'.$product->thumbnail_properties['width'].'" height="'.$product->thumbnail_properties['height'].'" style="float: left; margin: 0 10px 0 0;" />';
 				$item['description'] .= '</a>';
+				$item['g:image_link'] = $imageurl.$product->thumbnail;
 			}
 
 			$pricing = "";
@@ -184,10 +189,14 @@ class Category extends DatabaseObject {
 				if ($product->minprice != $product->maxprice) $pricing .= "from ";
 				$pricing .= money($product->minprice);
 			}
+			$item['g:price'] = number_format(($product->onsale)?$product->minsaleprice:$product->minprice,2);
+			$item['g:price_type'] = "starting";
 
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
 			$item['description'] .= "<p>$product->description</p>";
 			$item['description'] .= "]]>";
+			$item['g:quantity'] = $product->stock;
+			
 			$items[] = $item;
 		}
 		$rss['items'] = $items;
@@ -212,6 +221,7 @@ class Category extends DatabaseObject {
 		switch ($property) {
 			case "name": return $this->name; break;
 			case "slug": return $this->slug; break;
+			case "description": return wpautop($this->description); break;
 			case "link": return (SHOPP_PERMALINKS)?"$page"."category/$this->uri":"$page&shopp_category=$this->id"; break;
 			case "total": return $this->total; break;
 			case "hasproducts": 
@@ -315,7 +325,7 @@ class Category extends DatabaseObject {
 				$thumbprops = unserialize($product->thumbnail_properties);
 				
 				$string = "";
-				if (array_key_exists('link',$options)) $string .= '<a href="'.$link.'">';
+				if (array_key_exists('link',$options)) $string .= '<a href="'.$link.'" title="'.$product->name.'">';
 				if (array_key_exists('thumbnail',$options)) {
 					if (!empty($product->thumbnail)) {
 						$string .= '<img src="'.$imagepath.$product->thumbnail.'" alt="'.$product->name.' (thumbnail)" width="'.$thumbprops['width'].'" height="'.$thumbprops['height'].'" />';
@@ -340,6 +350,19 @@ class Category extends DatabaseObject {
 						$string .= " (".percentage(100-(($product->minsaleprice/$product->minprice)*100)).")";
 						
 				}
+				if (array_key_exists('addtocart',$options) || array_key_exists('buynow',$options)) {
+					if (!isset($options['label'])) $options['label'] = "Add to Cart";
+					
+					if ($product->inventory == "1" && $product->stock == 0) {
+						$string .= $Shopp->Settings->get('outofstock_text');
+					} else {
+						$string .= '<form action="" method="post">';
+						$string .= '<input type="hidden" name="product" value="'.$product->id.'" />';
+						$string .= '<input type="hidden" name="cart" value="add" />';
+						$string .= '<input type="submit" name="addtocart" value="'.$options['label'].'" class="addtocart" />';
+						$string .= '</form>';
+					}
+				}
 				
 				return $string;
 				break;				
@@ -361,7 +384,7 @@ class NewProducts extends Category {
 		$loading = array('where'=>"p.id IS NOT NULL",'order'=>'p.created DESC');
 		if (isset($options['columns'])) $loading['columns'] = $options['columns'];
 		if (isset($options['show'])) $loading['limit'] = $options['show'];
-		$this->load_products($loading);
+		if (!isset($options['noload'])) $this->load_products($loading);
 	}
 	
 }
@@ -378,7 +401,7 @@ class FeaturedProducts extends Category {
 		$this->smart = true;
 		$loading = array('where'=>"p.featured='on'",'order'=>'p.modified DESC');
 		if (isset($options['show'])) $loading['limit'] = $options['show'];
-		$this->load_products($loading);
+		if (!isset($options['noload'])) $this->load_products($loading);
 	}
 	
 }
@@ -395,7 +418,7 @@ class OnSaleProducts extends Category {
 		$this->smart = true;
 		$loading = array('where'=>"pd.sale='on' OR pr.discount > 0",'order'=>'p.modified DESC');
 		if (isset($options['show'])) $loading['limit'] = $options['show'];
-		$this->load_products($loading);
+		if (!isset($options['noload'])) $this->load_products($loading);
 	}
 	
 }
@@ -419,7 +442,7 @@ class BestsellerProducts extends Category {
 			'order'=>'sold DESC');
 		if (isset($options['where'])) $loading['where'] = $options['where'];
 		if (isset($options['show'])) $loading['limit'] = $options['show'];
-		$this->load_products($loading);
+		if (!isset($options['noload'])) $this->load_products($loading);
 	}
 	
 }
@@ -440,7 +463,7 @@ class SearchResults extends Category {
 			'where'=>"MATCH(p.name,p.summary,p.description) AGAINST ('{$options['search']}' IN BOOLEAN MODE)",
 			'order'=>'score DESC');
 		if (isset($options['show'])) $loading['limit'] = $options['show'];
-		$this->load_products($loading);
+		if (!isset($options['noload'])) $this->load_products($loading);
 	}
 	
 }
@@ -461,7 +484,7 @@ class TagProducts extends Category {
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
 			'where'=>"catalog.tag=t.id AND t.name='{$options['tag']}'");
 		if (isset($options['show'])) $loading['limit'] = $options['show'];
-		$this->load_products($loading);
+		if (!isset($options['noload'])) $this->load_products($loading);
 	}
 	
 }

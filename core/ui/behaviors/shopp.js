@@ -11,7 +11,9 @@ function quickSelects (target) {
 }
 
 function copyOf (src) {
-	for (v in src) this[v] = src[v];
+	var target = new Object();
+	for (v in src) target[v] = src[v];
+	return target;
 }
 
 /**
@@ -180,6 +182,26 @@ function buttonHandlers () {
 		if (input.className.indexOf('addtocart') != -1) input.onclick = addtocart;
 	}
 }
+
+function categoryControlHandlers () {
+	(function($) {
+		var display = $('#shopp');
+		var expires = new Date();
+		expires.setTime(expires.getTime()+(30*86400000));
+
+		var category = $(this);
+		$(display).find('ul.views li button.list').click(function () {
+			$(display).addClass('list');
+			document.cookie = 'shopp_catalog_view=list; expires='+expires+'; path=/';
+		});
+		$(display).find('ul.views li button.grid').click(function () {
+			$(display).removeClass('list');
+			document.cookie = 'shopp_catalog_view=grid; expires='+expires+'; path=/';
+		});
+
+	})(jQuery)
+}
+
 
 function cartHandlers () {
 	var form = document.getElementById('cart');
@@ -491,6 +513,7 @@ function PopupCalendar (target,month,year) {
 addEvent(window,'load',function () {
 	buttonHandlers();
 	cartHandlers();
+	categoryControlHandlers();
 	helpHandler();
 });
 

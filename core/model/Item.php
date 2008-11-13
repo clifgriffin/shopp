@@ -144,9 +144,7 @@ class Item {
 		switch ($property) {
 			case "unitprice": $result = $this->unitprice; break;
 			case "total": $result = $this->total; break;
-			case "tax": $result = $this->tax; break;
-			case "total": $result = $this->data->Totals->total; break;
-			
+			case "tax": $result = $this->tax; break;			
 		}
 		if (!empty($result)) {
 			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
@@ -168,15 +166,17 @@ class Item {
 				} else $result = $this->quantity;
 				break;
 			case "remove":
-				$label = "Remove";
+				$label = __("Remove");
 				if (isset($options['label'])) $label = $options['label'];
+				if (isset($options['class'])) $class = ' class="'.$options['class'].'"';
+				else $class = ' class="remove"';
 				if (isset($options['input'])) {
 					switch ($options['input']) {
 						case "button":
-							$result = '<button type="submit" name="remove" value="'.$id.'" class="remove">'.$label.'</button>';
+							$result = '<button type="submit" name="remove" value="'.$id.'"'.$class.' tabindex="">'.$label.'</button>';
 					}
 				} else {
-					$result = '<a href="'.SHOPP_CARTURL.'?cart=update&amp;item='.$id.'&amp;quantity=0">'.$label.'</a>';
+					$result = '<a href="'.SHOPP_CARTURL.'?cart=update&amp;item='.$id.'&amp;quantity=0"'.$class.'>'.$label.'</a>';
 				}
 				break;
 			case "options":
@@ -186,10 +186,12 @@ class Item {
 					
 				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
 				if (count($this->options) > 1) {
+					$result .= $options['before'];
 					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';
 					$result .= ' <select name="items['.$id.'][price]" id="items-'.$id.'-price"'.$class.'>';
 					$result .= $this->options($this->price);
 					$result .= '</select>';
+					$result .= $options['after'];
 				}
 		}
 		if (!empty($result)) return $result;
