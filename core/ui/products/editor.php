@@ -12,7 +12,7 @@
 	<tbody>
 		<tr class="form-required"> 
 			<th scope="row" valign="top"><label for="name"><?php _e('Product Name','Shopp'); ?></label></th> 
-			<td><input name="name" id="name" type="text" value="<? echo $Product->name ?>" size="40" tabindex="1" /><br /> 
+			<td><input name="name" id="name" type="text" value="<?php echo attribute_escape($Product->name); ?>" size="40" tabindex="1" /><br /> 
             <?php _e('The name of the product to be displayed in the catalog, shopping cart and order reciept.','Shopp'); ?></td> 
 		</tr>
 		<tr class="">
@@ -70,8 +70,12 @@
 			</th>
 			<td>
 				<ul class="details multipane">
-					<li><input type="hidden" name="deletedSpecs" id="deletedSpecs" value="" />
-						<div id="details-menu" class="multiple-select menu"><ul></ul></div></li>
+					<li>
+						<div id="details-menu" class="multiple-select menu">
+						<input type="hidden" name="deletedSpecs" id="test" class="deletes" value="" />
+						<ul></ul>
+						</div>
+					</li>
 					<li><div id="details-list" class="list"><ul></ul></div></li>
 				</ul>
 				<div class="clear"></div>
@@ -99,7 +103,7 @@
 				<?php _e('Images shown here will be out of proportion, but will be correctly sized for shoppers.','Shopp'); ?>
 			</td> 
 		</tr>
-		<tr class=""> 
+		<tr> 
 			<th scope="row" valign="top"><label for="published"><?php _e('Settings','Shopp'); ?></label></th> 
 			<td><p><input type="hidden" name="published" value="off" /><input type="checkbox" name="published" value="on" id="published" tabindex="11" <?php if ($Product->published == "on") echo ' checked="checked"'?> /><label for="published"> <?php _e('Published','Shopp'); ?></label></p>
 				<p><input type="hidden" name="featured" value="off" /><input type="checkbox" name="featured" value="on" id="featured" tabindex="12" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /><label for="featured"> <?php _e('Featured Product','Shopp'); ?></label></p>
@@ -146,7 +150,7 @@
 		<input type="hidden" name="prices" value="" id="prices" /></div>
 		
 	
-	<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Product','Shopp'); ?>" /></p>
+	<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save &amp; Continue Editing','Shopp'); ?>" /> &nbsp; <input type="submit" class="button" name="save-products" value="<?php _e('Save Product','Shopp'); ?>" /></p>
 </form>
 
 </div>

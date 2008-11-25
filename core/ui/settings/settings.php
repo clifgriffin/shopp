@@ -15,7 +15,7 @@
 			</tr>			
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="merchant_email"><?php _e('Merchant Email','Shopp'); ?></label></th> 
-				<td><input type="text" name="settings[merchant_email]" value="<?php echo $this->Settings->get('merchant_email'); ?>" id="merchant_email" size="30" /><br /> 
+				<td><input type="text" name="settings[merchant_email]" value="<?php echo attribute_escape($this->Settings->get('merchant_email')); ?>" id="merchant_email" size="30" /><br /> 
 	            <?php _e('Enter the email address for the owner of this shop to receive e-mail notifications.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 

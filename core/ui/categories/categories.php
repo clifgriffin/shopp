@@ -1,13 +1,11 @@
 <div class="wrap shopp">
 	<form action="" id="categories" method="get">
 	<div>
-		<input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" />
+		<input type="hidden" name="page" value="<?php echo $this->Admin->categories; ?>" />
 	</div>
 	<h2><?php _e('Categories','Shopp'); ?></h2>
 	
-	<?php include("navigation.php"); ?>
-
-	<p class="search-box"><button type="submit" name="category" value="new" class="button"><?php _e('New Category','Shopp'); ?></button></p>
+	<p class="search-box"><button type="submit" name="edit" value="new" class="button"><?php _e('New Category','Shopp'); ?></button></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
@@ -29,7 +27,7 @@
 		<?php $even = false; foreach ($Categories as $Category): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Category->id; ?>' /></th>
-			<td><a class='row-title' href='?page=<?php echo $this->Admin->products; ?>&amp;category=<?php echo $Category->id; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Category->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->depth); echo (!empty($Category->name))?$Category->name:'(no category name)'; ?></a></td>
+			<td><a class='row-title' href='?page=<?php echo $this->Admin->categories; ?>&amp;edit=<?php echo $Category->id; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Category->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->depth); echo (!empty($Category->name))?$Category->name:'(no category name)'; ?></a></td>
 			<td><?php echo $Category->description; ?></td>
 			<td class="num"><?php echo $Category->products; ?></td>
 		</tr>

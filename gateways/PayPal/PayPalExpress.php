@@ -242,6 +242,7 @@ class PayPalExpress {
 
 		// Remap array to object
 		foreach ($r as $key => $value) {
+			if (empty($key)) continue;
 			$key = strtolower($key);
 			$_->{$key} = $value;
 		}

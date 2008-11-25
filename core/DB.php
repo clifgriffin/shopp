@@ -153,7 +153,10 @@ class DB extends Singleton {
 						break;
 					case "int":
 					case "float":
-						$value = preg_replace("/[^0-9\.]/","", $value);
+						
+						$value = preg_replace("/,/",".",$value); // Replace commas with periods
+						$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
+						$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
 						$data[$property] = "'$value'";
 						break;
 					default:
@@ -363,7 +366,7 @@ class DatabaseObject {
 			if (!is_null($value) && 
 				!in_array($key,$ignores) && 
 				property_exists($this, $key) ) {
-				$this->{$key} = $value;
+				$this->{$key} = stripslashes_deep($value);
 			}	
 		}
 	}
@@ -377,7 +380,7 @@ class DatabaseObject {
 			$property = $prefix.$property;
 			if (property_exists($this,$property) && 
 				!in_array($property,$ignores)) 
-				$this->{$property} = $value;
+				$this->{$property} = stripslashes_deep($value);
 		}
 	}
 

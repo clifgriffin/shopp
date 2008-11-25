@@ -44,6 +44,10 @@
 #shopp .original { text-decoration: line-through; }
 #shopp .price.sale { font-size: 150%; }
 
+.filters.enabled a.cancel:before { content: "["; }
+.filters.enabled a.cancel { font-weight: bold; }
+.filters.enabled a.cancel:after { content: "]"; }
+
 /* Product List View */
 #shopp.list ul.products li { float: none; width: 100%; clear: both; padding-bottom: 10px;}
 #shopp.list ul.products li.product {  border-bottom: 1px solid #ddd; }

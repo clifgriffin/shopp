@@ -28,12 +28,12 @@
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="free_shipping_text"><?php _e('Free Shipping Text','Shopp'); ?></label></th> 
-				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo $this->Settings->get('free_shipping_text'); ?>" id="free_shipping_text"><br /> 
+				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo attribute_escape($this->Settings->get('free_shipping_text')); ?>" id="free_shipping_text"><br /> 
 	            <?php _e('Text used to highlight no shipping costs (examples: Free shipping! or Shipping Included)','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="outofstock-text"><?php _e('Out-of-stock Notice','Shopp'); ?></label></th> 
-				<td><input type="text" name="settings[outofstock_text]" value="<?php echo $this->Settings->get('outofstock_text'); ?>" id="outofstock-text"><br /> 
+				<td><input type="text" name="settings[outofstock_text]" value="<?php echo attribute_escape($this->Settings->get('outofstock_text')); ?>" id="outofstock-text"><br /> 
 	            <?php _e('Text used to notify the customer the product is out-of-stock or on backorder.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 

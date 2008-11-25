@@ -67,6 +67,7 @@ class Cart {
 		$this->data->Purchase = false;
 		$this->data->ShipCosts = array();
 		$this->data->Purchase = false;
+		$this->data->Category = array();
 
 		return true;
 	}
@@ -83,9 +84,7 @@ class Cart {
 	/* close()
 	 * Placeholder function as we are working with a persistant 
 	 * database as opposed to file handlers. */
-	function close () {
-		return true;
-	}
+	function close () { return true; }
 
 	/* load()
 	 * Gets data from the session data table and loads Member 
@@ -156,8 +155,11 @@ class Cart {
 		$NewItem = new Item($quantity,$Product,$Price);
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
+			$this->added = $this->contents[$item];
 		} else {
+			$NewItem->quantity($quantity);
 			$this->contents[] = $NewItem;
+			$this->added = $this->contents[count($this->contents)-1];
 			if ($NewItem->shipping) $this->data->Shipping = true;
 		}
 		$this->totals();
@@ -183,6 +185,7 @@ class Cart {
 		if ($quantity == 0) return $this->remove($item);
 		elseif (isset($this->contents[$item])) {
 			$this->contents[$item]->quantity($quantity);
+			if ($this->contents[$item]->quantity == 0) $this->remove($item);
 			$this->totals();
 			$this->save();
 		}
@@ -462,6 +465,7 @@ class Cart {
 	}
 	
 	function inputattrs ($options,$allowed=array()) {
+		if (!is_array($options)) return "";
 		if (empty($allowed)) {
 			$allowed = array("accesskey","alt","checked","class","disabled","format",
 				"minlength","maxlength","readonly","required","size","src","tabindex",
@@ -493,8 +497,8 @@ class Cart {
 		// Return strings with no options
 		switch ($property) {
 			case "url": return $Shopp->link('cart'); break;
-			case "totalitems": return count($this->contents); break;
 			case "hasitems": return (count($this->contents) > 0); break;
+			case "totalitems": return $this->data->Totals->quantity; break;
 			case "items":
 				if (!$this->looping) {
 					reset($this->contents);
@@ -578,6 +582,7 @@ class Cart {
 				if (!$this->data->Shipping) return "";
 				$base = $Shopp->Settings->get('base_operations');
 				$markets = $Shopp->Settings->get('target_markets');
+				if (empty($markets)) return "";
 				foreach ($markets as $iso => $country) $countries[$iso] = $country;
 				if (!empty($this->data->Order->Shipping->country)) $selected = $this->data->Order->Shipping->country;
 				else $selected = $base['country'];
@@ -628,60 +633,66 @@ class Cart {
 			}
 		} else return false;
 	}
+
+
+	/**
+	 * shippingtag()
+	 * shopp('shipping','...')
+	 * Used primarily in the summary.php template
+	 **/
+	function shippingtag ($property,$options=array()) {
+		global $Shopp;
+		$ShipCosts =& $this->data->ShipCosts;
+		$result = "";
+			
+		switch ($property) {
+			case "hasestimates": return (count($ShipCosts) > 0); break;
+			case "methods":			
+				if (!$this->looping) {
+					reset($ShipCosts);
+					$this->looping = true;
+				} else next($ShipCosts);
+				
+				if (current($ShipCosts)) return true;
+				else {
+					$this->looping = false;
+					return false;
+				}
+				break;
+			case "method-name": 
+				return key($ShipCosts);
+				break;
+			case "method-cost": 
+				$method = current($ShipCosts);
+				return money($method['cost']);
+				break;
+			case "method-selector":
+				$method = current($ShipCosts);
 	
-	// function shippingtag ($property,$options=array()) {
-	// 	global $Shopp;
-	// 	$ShipCosts =& $this->data->ShipCosts;
-	// 	$result = "";
-	// 		
-	// 	switch ($property) {
-	// 		case "hasestimates": return (count($ShipCosts) > 0); break;
-	// 		case "methods":			
-	// 			if (!$this->looping) {
-	// 				reset($ShipCosts);
-	// 				$this->looping = true;
-	// 			} else next($ShipCosts);
-	// 			
-	// 			if (current($ShipCosts)) return true;
-	// 			else {
-	// 				$this->looping = false;
-	// 				return false;
-	// 			}
-	// 			break;
-	// 		case "method-name": 
-	// 			return key($ShipCosts);
-	// 			break;
-	// 		case "method-cost": 
-	// 			$method = current($ShipCosts);
-	// 			return money($method['cost']);
-	// 			break;
-	// 		case "method-selector":
-	// 			$method = current($ShipCosts);
-	// 
-	// 			$checked = '';
-	// 			if ($this->data->Order->Shipping->shipmethod == $method['name'] ||
-	// 				($method['cost'] == $this->data->Totals->shipping))
-	// 					$checked = ' checked="checked"';
-	// 
-	// 			$result .= '<input type="radio" name="shipmethod" value="'.$method['name'].'" '.$id.' class="shipmethod" '.$checked.' />';
-	// 			return $result;
-	// 			
-	// 			break;
-	// 		case "method-delivery":
-	// 			$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
-	// 			$method = current($ShipCosts);
-	// 			$estimates = split("-",$method['delivery']);
-	// 			$format = get_option('date_format');
-	// 			if ($estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
-	// 			$result = "";
-	// 			for ($i = 0; $i < count($estimates); $i++){
-	// 				list($interval,$p) = sscanf($estimates[$i],'%d%s');
-	// 				if (!empty($result)) $result .= "&mdash;";
-	// 				$result .= date($format,mktime()+($interval*$periods[$p]));
-	// 			}				
-	// 			return $result;
-	// 	}
-	// }
+				$checked = '';
+				if ($this->data->Order->Shipping->shipmethod == $method['name'] ||
+					($method['cost'] == $this->data->Totals->shipping))
+						$checked = ' checked="checked"';
+	
+				$result .= '<input type="radio" name="shipmethod" value="'.$method['name'].'" '.$id.' class="shipmethod" '.$checked.' />';
+				return $result;
+				
+				break;
+			case "method-delivery":
+				$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
+				$method = current($ShipCosts);
+				$estimates = split("-",$method['delivery']);
+				$format = get_option('date_format');
+				if ($estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
+				$result = "";
+				for ($i = 0; $i < count($estimates); $i++){
+					list($interval,$p) = sscanf($estimates[$i],'%d%s');
+					if (!empty($result)) $result .= "&mdash;";
+					$result .= date($format,mktime()+($interval*$periods[$p]));
+				}				
+				return $result;
+		}
+	}
 	
 	function checkouttag ($property,$options=array()) {
 		global $Shopp;
@@ -783,7 +794,7 @@ class Cart {
 				return '<input type="text" name="phone" id="phone"'.$this->inputattrs($options).' />'; 
 				break;
 			case "customer-info":
-				$allowed_types = array("text","hidden");
+				$allowed_types = array("text","password","hidden","checkbox","radio");
 				if (empty($options['type'])) $options['type'] = "hidden";
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
 					if (isset($this->data->Order->Customer->info[$options['name']])) 
@@ -835,7 +846,7 @@ class Cart {
 				return $output;
 				break;
 			case "same-shipping-address":
-				$label = "Same shipping address";
+				$label = __("Same shipping address");
 				if (isset($options['label'])) $label = $options['label'];
 				$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" checked="checked" /> '.$label.'</label>';
 				return $output;
@@ -919,7 +930,7 @@ class Cart {
 				break;
 				
 			case "order-data":
-				$allowed_types = array("text","hidden");
+				$allowed_types = array("text","hidden",'password','checkbox','radio');
 				if (empty($options['type'])) $options['type'] = "hidden";
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
 					if (isset($this->data->Order->data[$options['name']])) 
@@ -934,6 +945,9 @@ class Cart {
 			case "confirm-button": 
 				if (empty($options['value'])) $options['value'] = "Confirm Order";
 				return '<input type="submit" name="confirmed" id="confirm-button"'.$this->inputattrs($options,$submit_attrs).' />'; break;
+			case "local-payment": 
+				$gateway = $Shopp->Settings->get('payment_gateway'); 
+				return (!empty($gateway)); break;
 			case "xco-buttons": 
 				$gateways = array();
 				$PPX = $Shopp->Settings->get('PayPalExpress');
