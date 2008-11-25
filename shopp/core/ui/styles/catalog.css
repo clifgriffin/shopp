@@ -3,7 +3,8 @@
  * These styles override the theme's styles for shopp-specific shopping pages
  **/
 #shopp,
-#shopp br.clear,
+br.clear,
+div.clear,
 #shopp div.description,
 #shopp .products, 
 #shopp .products ul,
@@ -14,7 +15,10 @@
 #shopp { position: relative; }
 #shopp ul { list-style: none; text-indent: 0; text-align: left; padding: 0; margin: 0; }
 #shopp li { background: none; padding: 0; margin: 0; }
-#shopp li:before { content: ""; }
+#shopp li:before,
+#shopp-cart,
+#shopp-cart ul li:before,
+#shopp-cart #shopp-cart-ajax ul li:before,
 #shopp ul.breadcrumb li:before { content: ""; }
 #shopp div.hidden { display: none; }
 
@@ -85,7 +89,6 @@
 #shopp .views .grid { background: url('<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/grid.png') no-repeat; }
 #shopp .views .list { background: url('<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/list.png') no-repeat; }
 
-
 /**
  * Product Page Gallery
  **/
@@ -99,9 +102,8 @@
 
 #gallery .previews li.fill { position: relative; }
 #gallery .previews li.active { visibility: visible; }
-#gallery .previews li.thumbnails { position: relative; top: auto; left: auto; clear: both; height: auto; text-align: center; }
-#gallery .previews li.thumbnails ul { padding: 0; }
-#gallery .previews li.thumbnails li { position: relative; display: inline; visibility: visible; height: auto; line-height: 1; top: auto; left: auto; }
+#gallery .thumbnails ul { padding: 0; }
+#gallery .thumbnails li { position: relative; display: inline; visibility: visible; height: auto; line-height: 1; top: auto; left: auto; }
 
 /**
  * Debug Console

@@ -37,12 +37,14 @@ class ShipCalcs {
 			$modfiles = $Settings->get('shipcalc_modules');
 		}
 		
-		foreach ($modfiles as $ShipCalcClass => $file) {
-			include($file);
-			$this->modules[$ShipCalcClass] = new $ShipCalcClass();
-			$this->modules[$ShipCalcClass]->methods($this);
+		if (!empty($modfiles)) {
+			foreach ($modfiles as $ShipCalcClass => $file) {
+				include($file);
+				$this->modules[$ShipCalcClass] = new $ShipCalcClass();
+				$this->modules[$ShipCalcClass]->methods($this);
+			}
 		}
-				
+						
 	}
 	
 	function readmeta ($modfile) {

@@ -26,7 +26,7 @@
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="accounting-serial"><?php _e('Next Order Number','Shopp'); ?></label></th> 
-				<td><input type="text" name="next_order_id" value="<?php echo $next->id; ?>" size="7" /><br />
+				<td><input type="text" name="next_order_id" value="<?php echo attribute_escape($next->id); ?>" size="7" /><br />
 					<?php _e('Set the next order number to sync with your accounting systems.','Shopp'); ?></td>
 			</tr>
 

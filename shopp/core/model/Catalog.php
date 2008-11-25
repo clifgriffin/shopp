@@ -99,7 +99,7 @@ class Catalog extends DatabaseObject {
 				if (empty($title)) $title = "";
 				if (value_is_true($options['dropdown'])) {
 					$string .= $title;
-					$string .= '<select name="shopp_cats" id="shopp-categories-menu">';
+					$string .= '<form><select name="shopp_cats" id="shopp-categories-menu">';
 					$string .= '<option value="">Select category&hellip;</option>';
 					foreach ($this->categories as &$category) {
 						if ($category->products > 0) // Only show categories with products
@@ -122,13 +122,14 @@ class Catalog extends DatabaseObject {
 							$depth = $category->depth;
 						
 					}
-					$string .= '</select>';
+					$string .= '</select></form>';
 					$string .= '<script type="text/javascript">';
 					$string .= 'var menu = document.getElementById(\'shopp-categories-menu\');';
-					$string .= 'if (menu)';
+					$string .= 'if (menu) {';
 					$string .= '	menu.onchange = function () {';
 					$string .= '		document.location.href = this.options[this.selectedIndex].value;';
 					$string .= '	}';
+					$string .= '}';
 					$string .= '</script>';
 					
 				} else {

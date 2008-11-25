@@ -1,10 +1,10 @@
 <div class="wrap shopp">
+	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
+
 	<form action="" method="get">
 	<div><input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" /></div>
 	<h2><?php _e('Products','Shopp'); ?></h2>
 	
-	<?php include("navigation.php"); ?>
-
 	<p class="search-box"><button type="submit" name="edit" value="new" class="button"><?php _e('New Product','Shopp'); ?></button></p>
 
 	<div class="tablenav">

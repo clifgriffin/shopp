@@ -4,6 +4,7 @@
 	<h3><?php shopp('category','name'); ?></h3>
 	<?php shopp('catalog','views','label=Views: '); ?>
 	<br class="clear" />
+	<?php shopp('category','subcategory-list','hierarchy=true&showall=true'); ?>
 	
 	<div class="alignright"><?php shopp('category','pagination'); ?></div>
 	<br class="clear" />

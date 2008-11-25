@@ -27,7 +27,18 @@ class Product extends DatabaseObject {
 	
 	function Product ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id,$key)) return true;
+		if ($this->load($id,$key)) {
+			add_filter('shopp_product_description', 'wptexturize');
+			add_filter('shopp_product_description', 'convert_chars');
+			add_filter('shopp_product_description', 'wpautop');
+			add_filter('shopp_product_description', 'do_shortcode', 11); // AFTER wpautop()	
+
+			add_filter('shopp_product_spec', 'wptexturize');
+			add_filter('shopp_product_spec', 'convert_chars');
+			add_filter('shopp_product_spec', 'do_shortcode', 11); // AFTER wpautop()	
+
+			return true;
+		}
 		return false;
 	}
 		
@@ -231,7 +242,14 @@ class Product extends DatabaseObject {
 	}
 	
 	function load_images () {
+		global $Shopp;
 		$db = DB::get();
+		
+		$uri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
+		if (SHOPP_PERMALINKS) {
+			$pages = $Shopp->Settings->get('pages');
+			$uri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
+		}
 		
 		$table = DatabaseObject::tablename(Asset::$table);
 		if (empty($this->id)) return false;
@@ -242,8 +260,10 @@ class Product extends DatabaseObject {
 		foreach ($images as $key => &$image) {
 			if (empty($this->images[$image->datatype])) $this->images[$image->datatype] = array();
 			$image->properties = unserialize($image->properties);
+			$image->uri = $uri.$image->id;
 			$this->images[$image->datatype][] = $image;
 		}
+		$this->thumbnail = $this->images['thumbnail'][0];
 		return true;
 	}
 		
@@ -336,12 +356,12 @@ class Product extends DatabaseObject {
 		$pages = $Shopp->Settings->get('pages');
 		if (SHOPP_PERMALINKS) $imageuri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
 		else $imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
-		
+				
 		switch ($property) {
 			case "found": if (!empty($this->id)) return true; else return false; break;
 			case "name": return $this->name; break;
 			case "summary": return $this->summary; break;
-			case "description": return wpautop($this->description); break;
+			case "description": return apply_filters('shopp_product_description',$this->description); break;
 			case "price":
 				if (empty($this->prices)) $this->load_prices();
 				if ($this->options > 1) {
@@ -389,8 +409,10 @@ class Product extends DatabaseObject {
 			case "thumbnail":
 				if (empty($this->images)) $this->load_images();
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
-				$img = current($this->images['thumbnail']);
-				return '<img src="'.$imageuri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
+				if (isset($this->thumbnail)) {
+					$img = $this->thumbnail;
+					return '<img src="'.$imageuri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
+				}
 				break;
 			case "has-images": 
 				if (empty($options['type'])) $options['type'] = "thumbnail";
@@ -421,7 +443,6 @@ class Product extends DatabaseObject {
 				break;
 			case "gallery":
 				if (empty($this->images)) $this->load_images();
-				$string = '<div id="gallery">';
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
 				if (!empty($this->images['small'])) {
@@ -440,12 +461,13 @@ class Product extends DatabaseObject {
 						$firstPreview = false;
 					}
 				}
-					
+				$previews .= '</ul>';
+				
 				if (count($this->images['thumbnail']) > 1) {
 					$thumbsize = 32;
 					if (!empty($options['thumbsize'])) $thumbsize = $options['thumbsize'];
 					$firstThumb = true;
-					$thumbs = '<ul>';
+					$thumbs = '<ul class="thumbnails">';
 					foreach ($this->images['thumbnail'] as $img) {
 						$thumbs .= '<li id="thumbnail-'.$img->src.'"'.(($firstThumb)?' class="first"':'').'>';
 						$thumbs .= '<a href="javascript:shopp_preview('.$img->src.');"><img src="'.$imageuri.$img->id.'" alt="'.$img->datatype.'" width="'.$thumbsize.'" height="'.$thumbsize.'" /></a>';
@@ -455,10 +477,7 @@ class Product extends DatabaseObject {
 					$thumbs .= '</ul>';
 				}
 				
-				$previews .= '<li class="thumbnails">'.$thumbs.'</li>';
-				$previews .= '</ul>';
-				$string .= $previews."</div>";
-				return $string;
+				return '<div id="gallery">'.$previews.$thumbs.'</div>';
 				break;
 			case "has-specs": 
 				if (empty($this->specs)) $this->load_specs();
@@ -481,21 +500,21 @@ class Product extends DatabaseObject {
 				$separator = ": ";
 				if (isset($options['separator'])) $separator = $options['separator'];
 				if (array_key_exists('name',$options) && array_key_exists('content',$options))
-					$string = "{$spec->name}{$separator}{$spec->content}";
+					$string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->content);
 				else if (array_key_exists('name',$options)) $string = $spec->name;
-				else if (array_key_exists('content',$options)) $string = $spec->content;
-				else $string = "{$spec->name}{$separator}{$spec->content}";
+				else if (array_key_exists('content',$options)) $string = apply_filters('shopp_product_spec',$spec->content);
+				else $string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->content);
 				return $string;
 				break;
 			case "has-variations":
-				if (isset($this->options['variations'])) return true; else return false; break;
+				if (!empty($this->options)) return true; else return false; break;
 				break;
 			case "variations":
 				$string = "";
 
 				if (empty($options['label'])) $options['label'] = "on";
 				if (empty($options['mode'])) $options['mode'] = "";
-
+				
 				if ($options['mode'] == "single") {
 					if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 					if (value_is_true($options['label'])) $string .= '<label for="product-options">Options: </label> '."\n";
@@ -516,22 +535,36 @@ class Product extends DatabaseObject {
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 					
 				} else {
-					foreach ($this->options['variations'] as $id => $menu) {
-						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-						if (value_is_true($options['label'])) $string .= '<label for="options-'.$id.'">'.$menu['menu'].'</label> '."\n";
+					if (isset($this->options['variations'])) {
+						foreach ($this->options['variations'] as $id => $menu) {
+							if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
+							if (value_is_true($options['label'])) $string .= '<label for="options-'.$id.'">'.$menu['menu'].'</label> '."\n";
 
-						$string .= '<select name="options['.$id.']" id="options-'.$id.'" class="options">';
-						if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
-						foreach ($menu['label'] as $key => $option)
-							$string .= '<option value="'.$menu['id'][$key].'">'.$option.'</option>'."\n";
+							$string .= '<select name="options[]" id="options-'.$id.'" class="options">';
+							if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
+							foreach ($menu['label'] as $key => $option)
+								$string .= '<option value="'.$menu['id'][$key].'">'.$option.'</option>'."\n";
 
-						$string .= '</select>';
-						if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
+							$string .= '</select>';
+							if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
+						}
+					} else {
+						foreach ($this->options as $id => $menu) {
+							if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
+							if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['menu'].'</label> '."\n";
+
+							$string .= '<select name="options[]" id="options-'.$menu['id'].'" class="options">';
+							if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
+							foreach ($menu['options'] as $key => $option)
+								$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
+
+							$string .= '</select>';
+							if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
+						}
 					}
 					?>
 					<script type="text/javascript">
 					//<![CDATA[
-					var currencyFormat = <?php $base = $Shopp->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 					var pricing = <?php echo json_encode($this->pricekey); ?>;	// price lookup table
 					var hideDisabled = <?php echo ($options['disabled'] == "hide")?"true":"false"; ?>;
 					options_required = "<?php _e('You must select the options for this item before you can add it to your shopping cart.'); ?>";
@@ -544,7 +577,10 @@ class Product extends DatabaseObject {
 							var previous = false;
 							var current = false;
 							var menus = $('select.options');
+							var menucache = new Array();
 							menus.each(function (id,menu) {
+								current = menu;
+								menucache[id] = $(menu).children();
 								if (id > 0)	previous = menus[id-1];
 								if (menus.length == 1) {
 									optionPriceTags();
@@ -555,7 +591,6 @@ class Product extends DatabaseObject {
 										else $(menu).removeAttr('disabled');
 									}).change();
 								}
-								
 								i++;
 							});
 							
@@ -566,8 +601,14 @@ class Product extends DatabaseObject {
 								menus.not(current).each(function () {
 									if ($(this).val() != "") selected.push($(this).val());
 								});
+								var currentSelection = $(current).val();
+								$(current).empty();
+								menucache[menus.index(current)].each(function (id,option) {
+									$(option).appendTo($(current));
+								});
+								$(current).val(currentSelection);
 								var keys = new Array();
-								$(current).children().each(function () {
+								$(current).children('option').each(function () {
 									if ($(this).val() != "") {
 										var keys = selected.slice();
 										keys.push($(this).val());
@@ -578,8 +619,13 @@ class Product extends DatabaseObject {
 											var previoustag = optiontext.lastIndexOf("(");
 											if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
 											$(this).attr('text',optiontext+"  ("+pricetag+")");
-											if ((price.inventory == "on" && price.stock == 0) || (price.type == "N/A" && !hideDisabled)) 
-												$(this).attr('disabled',true);
+											if ((price.inventory == "on" && price.stock == 0) || price.type == "N/A") {
+												if ($(this).attr('selected')) 
+													$(this).parent().attr('selectedIndex',0);
+												if (hideDisabled) $(this).remove();
+												else $(this).attr('disabled',true);
+												
+											} else $(this).removeAttr('disabled').show();
 											if (price.type == "N/A" && hideDisabled) $(this).remove();
 										}
 									}
@@ -619,9 +665,14 @@ class Product extends DatabaseObject {
 					}
 					$string .= '<input type="hidden" name="price" value="'.$this->prices[0]->id.'" />';
 				}
-				
 				$string .= '<input type="hidden" name="cart" value="add" />';
-				$string .= '<input type="submit" name="addtocart" value="'.$options['label'].'" class="addtocart" />';
+				if (isset($options['ajax'])) {
+					$string .= '<input type="hidden" name="ajax" value="true" />';
+					$string .= '<input type="button" name="addtocart" id="addtocart" value="'.$options['label'].'" class="addtocart ajax" />';					
+				} else {
+					$string .= '<input type="submit" name="addtocart" value="'.$options['label'].'" class="addtocart" />';					
+				}
+					
 				return $string;
 		}
 		

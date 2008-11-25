@@ -28,9 +28,10 @@ class Flow {
 		
 		$this->Admin = new stdClass();
 		$this->Admin->orders = $Core->directory."/orders";
-		$this->Admin->settings = $Core->directory."/settings";
+		$this->Admin->categories = $Core->directory."/categories";
 		$this->Admin->products = $Core->directory."/products";
 		$this->Admin->promotions = $Core->directory."/promotions";
+		$this->Admin->settings = $Core->directory."/settings";
 		$this->Admin->help = $Core->directory."/help";
 		$this->Admin->default = $this->Admin->orders;
 		
@@ -90,11 +91,23 @@ class Flow {
 		$content = ob_get_contents();
 		ob_end_clean();
 		
+		// Disable faceted menus if not in a Shopp category
+		// or the category does not have faceted menus enabled
+		if ($Shopp->Catalog->type != 'category' || 
+			!isset($Shopp->Category->facetedmenus) || 
+			$Shopp->Category->facetedmenus == 'off') 
+			unregister_sidebar_widget('shopp-faceted-menu');
+		
 		$classes = $Shopp->Catalog->type;
+		// Get catalog view preference from cookie
 		if ($_COOKIE['shopp_catalog_view'] == "list") $classes .= " list";
+		if (!isset($_COOKIE['shopp_catalog_view'])) {
+			// No cookie preference exists, use shopp default setting
+			$view = $Shopp->Settings->get('default_catalog_view');
+			if ($view == "list") $classes .= " list";
+		}
 		
-		return '<div id="shopp" class="'.$classes.'">'.$content.'<div id="clear"></div></div>';
-		
+		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'<div id="clear"></div></div>');
 	}
 
 	function catalog_css () {
@@ -104,6 +117,16 @@ class Flow {
 		$stylesheet = ob_get_contents();
 		ob_end_clean();
 		return $stylesheet;
+		
+	}
+
+	function settings_js () {
+		
+		ob_start();
+		include("{$this->basepath}/core/ui/behaviors/settings.js");
+		$script = ob_get_contents();
+		ob_end_clean();
+		return $script;
 		
 	}
 
@@ -180,6 +203,44 @@ class Flow {
 		echo $before_widget.$options['title'].$tagcloud.$after_widget;
 		
 	}
+	
+	
+	function init_facetedmenu_widget () {
+		register_sidebar_widget("Shopp Faceted Menu",array(&$this,'facetedmenu_widget'),'shopp facetedmenu');
+		register_widget_control('Shopp Faceted Menu',array(&$this,'facetedmenu_widget_options'));
+	}
+	
+	function facetedmenu_widget_options ($args=null) {
+		global $Shopp;
+
+		if (isset($_POST['shopp_facetedmenu_widget_options'])) {
+			$options = $_POST['facetedmenu_widget_options'];
+			$Shopp->Settings->save('facetedmenu_widget_options',$options);
+		}
+
+		$options = $Shopp->Settings->get('facetedmenu_widget_options');
+
+		// echo '<p><label>Title<input name="tagcloud_widget_options[title]" class="widefat" value="'.$options['title'].'"></label></p>';
+		// echo '<div><input type="hidden" name="shopp_tagcloud_widget_options" value="1" /></div>';
+	}
+
+	function facetedmenu_widget ($args=null) {
+		global $Shopp;
+		if (!empty($args)) extract($args);
+		
+		$options = $Shopp->Settings->get('facetedmenu_widget_options');
+		
+		if (empty($options['title'])) $options['title'] = __('Product Filters','Shopp');
+		$options['title'] = $before_title.$options['title'].$after_title;
+		global $wp_registered_widgets;
+		
+		if (!empty($Shopp->Category)) {
+			$menu = $Shopp->Category->tag('faceted-menu',$options);
+			echo $before_widget.$options['title'].$menu.$after_widget;			
+		}
+	}
+	
+	
 	/**
 	 * Shopping Cart flow handlers
 	 **/
@@ -187,6 +248,7 @@ class Flow {
 	function cart_request () {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
+		do_action('shopp_cart_request');
 				
 		$Request = array();
 		if (!empty($_GET['cart'])) $Request = $_GET;
@@ -250,7 +312,7 @@ class Flow {
 				$Cart->clear();
 				break;
 			case "update":			
-				if (!empty($Request['item']) && isset($Request['quantity'])) {
+				if (isset($Request['item']) && isset($Request['quantity'])) {
 					$Cart->update($Request['item'],$Request['quantity']);
 					
 				} elseif (!empty($Request['items'])) {
@@ -267,15 +329,27 @@ class Flow {
 			
 				break;
 		}
-					
+		do_action('shopp_cart_updated',$Cart);
 	}
 
 	function cart_ajax () {
-		$this->cart_request();
-		$cart = array();
-		$cart['contents'] = $this->Cart->contents;
-		$cart['totals'] = $this->Cart->data->Totals;
-		echo json_encode($cart);
+		global $Shopp;
+		if ($_REQUEST['response'] == "html") {
+			echo $Shopp->Cart->tag('sidecart');
+			exit();
+		}
+		$AjaxCart = new StdClass();
+		$AjaxCart->url = $Shopp->link('cart');
+		$AjaxCart->Totals = clone($Shopp->Cart->data->Totals);
+		if (isset($Shopp->Cart->added));
+			$AjaxCart->Item = clone($Shopp->Cart->added);
+		unset($AjaxCart->Item->options);
+		$AjaxCart->Contents = array();
+		foreach($Shopp->Cart->contents as $item) {
+			unset($item->options);
+			$AjaxCart->Contents[] = $item;
+		}
+		echo json_encode($AjaxCart);
 	}
 
 	function cart ($attrs=array()) {
@@ -284,8 +358,8 @@ class Flow {
 		include(SHOPP_TEMPLATES."/cart.php");
 		$content = ob_get_contents();
 		ob_end_clean();
-
-		return '<div id="shopp">'.$content.'</div>';
+		
+		return apply_filters('shopp_cart_template','<div id="shopp">'.$content.'</div>');
 	}
 
 	function init_cart_widget () {
@@ -362,7 +436,7 @@ class Flow {
 
 				unset($Cart->data->OrderError);
 		}
-		return '<div id="shopp">'.$content.'</div>';
+		return apply_filters('shopp_checkout','<div id="shopp">'.$content.'</div>');
 	}
 	
 	function checkout_order_summary () {
@@ -374,7 +448,7 @@ class Flow {
 		$content = ob_get_contents();
 		ob_end_clean();
 		
-		return $content;
+		return apply_filters('shopp_order_summary',$content);
 	}
 	
 	function secure_checkout_link ($linklist) {
@@ -396,6 +470,8 @@ class Flow {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
 		$db = DB::get();
+		
+		do_action('shopp_order_preprocessing');
 		
 		$PaymentGatewayError = new stdClass();
 		$PaymentGatewayError->code = "404";
@@ -546,7 +622,7 @@ class Flow {
 		
 		// Allow other WordPress plugins access to Purchase data to extend
 		// what Shopp does after a successful transaction
-		do_action('shopp_order',$Purchase);
+		do_action('shopp_order_success',$Purchase);
 		
 		// Send the e-mail receipt
 		$receipt = array();
@@ -585,7 +661,7 @@ class Flow {
 		include(SHOPP_TEMPLATES."/confirm.php");
 		$content = ob_get_contents();
 		ob_end_clean();
-		return '<div id="shopp">'.$content.'</div>';
+		return apply_filters('shopp_order_confirmation','<div id="shopp">'.$content.'</div>');
 	}
 
 	function login ($email,$password) {
@@ -639,9 +715,6 @@ class Flow {
 
 	}
 
-	/**
-	 * Transaction flow handlers
-	 **/
 	function order_receipt () {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
@@ -650,7 +723,7 @@ class Flow {
 		include(SHOPP_TEMPLATES."/receipt.php");
 		$content = ob_get_contents();
 		ob_end_clean();
-		return '<div id="shopp">'.$content.'</div>';
+		return apply_filters('shopp_order_receipt','<div id="shopp">'.$content.'</div>');
 	}
 	
 	
@@ -796,7 +869,7 @@ class Flow {
 	/**
 	 * Products admin flow handlers
 	 **/
-	function products_list() {
+	function products_list($updated=false) {
 		global $Products;
 		$db = DB::get();
 
@@ -924,8 +997,7 @@ class Flow {
 			$Product->load_tags();
 		} else $Product = new Product();
 
-		if (!empty($_POST['save'])) {
-			// print_r($_POST);
+		if (!empty($_POST['save']) || !empty($_POST['save-products'])) {
 			$this->save_product($Product);
 			
 			$Product = new Product($Product->id);
@@ -934,6 +1006,10 @@ class Flow {
 			$Product->load_categories();
 			$Product->load_tags();
 			$updated = '<strong>'.$Product->name.'</strong> '.__('has been saved.','Shopp');
+			if (!empty($_POST['save-products'])) {
+				$this->products_list($updated); 
+				exit();
+			}
 		}
 
 		require_once("{$this->basepath}/core/model/Asset.php");
@@ -1034,6 +1110,7 @@ class Flow {
 		if (!empty($_POST['details']) || !empty($_POST['deletedSpecs'])) {
 			$deletes = array();
 			if (!empty($_POST['deletedSpecs'])) {
+				print_r($_POST['deletedSpecs']);
 				if (strpos($_POST['deletedSpecs'],","))	$deletes = split(',',$_POST['deletedSpecs']);
 				else $deletes = array($_POST['deletedSpecs']);
 				foreach($deletes as $option) {
@@ -1042,7 +1119,6 @@ class Flow {
 				}
 				unset($Spec);
 			}
-			
 			if (is_array($_POST['details'])) {
 				foreach ($_POST['details'] as $i => $spec) {
 					if (in_array($spec['id'],$deletes)) continue;
@@ -1050,9 +1126,10 @@ class Flow {
 						$Spec = new Spec();
 						$spec['product'] = $Product->id;
 					} else $Spec = new Spec($spec['id']);
-					$spec['sortorder'] = array_search($i,$_POST['detailsorder'])+1;
-				
+					$spec['sortorder'] = array_search($i,$_POST['details-sortorder'])+1;
+					
 					$Spec->updates($spec);
+					$Spec->numeral = preg_replace('/^.*?(\d+[\.\,\d]*).*$/','$1',$spec['content']);
 					$Spec->save();
 				}
 			}
@@ -1224,7 +1301,7 @@ class Flow {
 			'current' => $pagenum
 		));
 		
-		include("{$this->basepath}/core/ui/products/categories.php");
+		include("{$this->basepath}/core/ui/categories/categories.php");
 	}
 	
 	function category_editor () {
@@ -1234,12 +1311,15 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if ($_GET['category'] != "new") {
-			$Category = new Category($_GET['category']);
+		if ($_GET['edit'] != "new") {
+			$Category = new Category($_GET['edit']);
 		} else $Category = new Category();
 
 		$Shopp->Catalog = new Catalog();
 		$Shopp->Catalog->load_categories();
+
+		$Price = new Price();
+		$priceTypes = $Price->_lists['type'];
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-save-category');
@@ -1270,13 +1350,19 @@ class Flow {
 			
 			$Category->updates($_POST);
 			$Category->save();
-			$updated = __($Category->name.' category saved.','Shopp');
+			$updated = '<strong>'.$Category->name.'</strong> '.__('category saved.','Shopp');
 		}
 		
 		$categories = $db->query("SELECT id,name,parent FROM $Category->_table ORDER BY parent,name",AS_ARRAY);
 		$categories = sort_tree($categories);
 		
-		$categories_menu = '<option value="0" rel="-1,-1">Parent Category&hellip;</option>';
+		$pricerange_menu = array(
+			"disabled" => __('Price ranges disabled','Shopp'),
+			"auto" => __('Build price ranges automatically','Shopp'),
+			"custom" => __('Use custom price ranges','Shopp'),
+		);
+		
+		$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>';
 		foreach ($categories as $category) {
 			$padding = str_repeat("&nbsp;",$category->depth*3);
 			if ($Category->parent == $category->id) $selected = ' selected="selected"';
@@ -1284,7 +1370,7 @@ class Flow {
 			if ($Category->id != $category->id) $categories_menu .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'"'.$selected.'>'.$padding.$category->name.'</option>';
 		}
 
-		include("{$this->basepath}/core/ui/products/category.php");
+		include("{$this->basepath}/core/ui/categories/category.php");
 	}	
 	
 	function promotions_list () {
@@ -1544,10 +1630,11 @@ class Flow {
 			}
 		}		
 
+		$category_views = array("grid" => __('Grid','Shopp'),"list" => __('List','Shopp'));
 		$row_products = array(2,3,4,5,6,7);
 		
-		$sizingOptions = array(	"Scale to fit",
-								"Scale &amp; crop");
+		$sizingOptions = array(	__('Scale to fit','Shopp'),
+								__('Scale &amp; crop','Shopp'));
 								
 		$qualityOptions = array("Highest quality, largest file size",
 								"Higher quality, larger file size",
@@ -1676,7 +1763,7 @@ class Flow {
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-payments');
-			
+
 			// Update the accepted credit card payment methods
 			if (!empty($_POST['settings']['payment_gateway'])) {
 				$gateway = $this->scan_gateway_meta($_POST['settings']['payment_gateway']);
@@ -1705,7 +1792,7 @@ class Flow {
 		$data = $this->settings_get_gateways();
 		$PayPalExpress = new PayPalExpress();
 		$GoogleCheckout = new GoogleCheckout();
-		
+
 		$gateways = array();
 		$Processors = array();
 		foreach ($data as $gateway) {
@@ -1743,7 +1830,7 @@ class Flow {
 			$request = array(
 				"ShoppServerRequest" => $process,
 				"v" => SHOPP_VERSION,
-				"key" => $_POST['settings']['update_key'],
+				"key" => trim($_POST['settings']['update_key']),
 				"site" => get_bloginfo('siteurl')
 			);
 			

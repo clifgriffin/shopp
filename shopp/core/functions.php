@@ -229,8 +229,8 @@ function shopp_prereqs () {
 	$errors = array();
 	// Check PHP version, this won't appear much since syntax errors in earlier
 	// PHP releases will cause this code to never be executed
-	if (!version_compare(PHP_VERSION, '5.1.2', '>')) 
-		$errors[] = __("Shopp requires PHP version 5.1.2+.  You are using PHP version ").PHP_VERSION;
+	if (!version_compare(PHP_VERSION, '5.0.0', '>')) 
+		$errors[] = __("Shopp requires PHP version 5.0+.  You are using PHP version ").PHP_VERSION;
 		
 	// Check WordPress version
 	if (!version_compare(get_bloginfo('version'),'2.6.0','>='))
@@ -387,6 +387,42 @@ if (!function_exists('attribute_escape_deep')) {
 	}
 }
 
+function auto_ranges ($avg,$max,$min) {
+	$ranges = array();
+	if ($avg == 0 || $max == 0) return $ranges;
+	$power = floor(log10($avg));
+	$scale = pow(10,$power);
+	$median = round($avg/$scale)*$scale;
+	$range = $max-$min;
+	
+	if ($range == 0) return $ranges;
+	
+	$steps = floor($range/$scale);
+	if ($steps > 7) $steps = 7;
+	elseif ($steps < 2) {
+		$scale = $scale/2;
+		$steps = ceil($range/$scale);
+		if ($steps > 7) $steps = 7;
+		elseif ($steps < 2) $steps = 2;
+	}
+		
+	$base = $median-($scale*floor(($steps-1)/2));
+	for ($i = 0; $i < $steps; $i++) {
+		$range = array("min" => 0,"max" => 0);
+		if ($i == 0) $range['max'] = $base;
+		else if ($i+1 >= $steps) $range['min'] = $base;
+		else $range = array("min" => $base, "max" => $base+$scale);
+		$ranges[] = $range;
+		if ($i > 0) $base += $scale;
+	}
+	return $ranges;
+}
+
+function floatvalue($value) {
+    $value = preg_replace('#^([-]*[0-9\.,\' ]+?)((\.|,){1}([0-9-]{1,2}))*$#e', "str_replace(array('.', ',', \"'\", ' '), '', '\\1') . '.' . sprintf('%02d','\\4')", $value);
+    return floatval($value);
+}
+
 /**
  * sort_tree
  * Sorts a heirarchical tree of data */
@@ -462,6 +498,8 @@ function scan_money_format ($format) {
 	
 	$ds = strpos($format,'#'); $de = strrpos($format,'#')+1;
 	$df = substr($format,$ds,($de-$ds));
+
+	if ($df == "#,##,###.##") $f['indian'] = true;
 	
 	$f['cpos'] = true;
 	if ($de == strlen($format)) $f['currency'] = substr($format,0,$ds);
@@ -481,11 +519,11 @@ function scan_money_format ($format) {
 	}
 	$f['precision'] = $dd;
 	
-	if (isset($dl[1])) {
-		$f['decimals'] = $dl[1];
+	if (count($dl) > 1) {
+		$f['decimals'] = $dl[count($dl)-1];
 		$f['thousands'] = $dl[0];
 	} else $f['decimals'] = $dl[0];
-
+	
 	return $f;
 }
 
@@ -495,7 +533,8 @@ function money ($amount,$format=false) {
 	if (!$format) $format = $locale['currency']['format'];
 	if (!$format) $format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
 
-	$number = number_format($amount, $format['precision'], $format['decimals'], $format['thousands']);
+	if ($format['indian']) $number = indian_number($amount,$format);
+	else $number = number_format($amount, $format['precision'], $format['decimals'], $format['thousands']);
 	if ($format['cpos']) return $format['currency'].$number;
 	else return $number.$format['currency'];
 }
@@ -509,8 +548,26 @@ function percentage ($amount,$format=false) {
 		$format['precision'] = 0;
 	}
 	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
-	
+	if ($format['indian']) return indian_number($amount,$format);
 	return number_format(round($amount), $format['precision'], $format['decimals'], $format['thousands']).'%';
+}
+
+function indian_number ($number,$format=false) {
+	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
+
+	$d = explode(".",$number);
+	$number = "";
+	$digits = substr($d[0],0,-3); // Get rid of the last 3
+	
+	if (strlen($d[0]) > 3) $number = substr($d[0],-3);
+	else $number = $d[0];
+	
+	for ($i = 0; $i < (strlen($digits) / 2); $i++)
+		$number = substr($digits,(-2*($i+1)),2).((strlen($number) > 0)?$format['thousands'].$number:$number);
+	if ($format['precision'] > 0) 
+		$number = $number.$format['decimals'].substr(number_format('0.'.$d[1],$format['precision']),2);
+	return $number;
+	
 }
 
 function value_is_true ($value) {

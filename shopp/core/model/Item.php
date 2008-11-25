@@ -35,30 +35,29 @@ class Item {
 		global $Shopp; // To access settings
 
 		$Product->load_prices();
+		$Product->load_images();
 
 		// If product variations are enabled, disregard the first priceline
 		if ($Product->variations == "on") array_shift($Product->prices);
 
 		// If option ids are passed, lookup by option key, otherwise by id
 		if (is_array($pricing)) $Price = $Product->pricekey[$Product->optionkey($pricing)];
-		else $Price = $Product->priceid[$pricing];
-		
-		if (!$pricing) $Price = current($Product->prices);
-		
+		else if ($pricing) $Price = $Product->priceid[$pricing];
+		else $Price = $Product->prices[0];
+				
 		$this->product = $Product->id;
 		$this->price = $Price->id;
 		$this->option = $Price;
 		$this->name = $Product->name;
 		$this->description = $Product->summary;
+		$this->thumbnail = $Product->thumbnail;
 		$this->options = $Product->prices;
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
 		$this->saved = ($Price->price - $Price->promoprice);
 		$this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
 		$this->freeshipping = ($Price->freeshipping || $Product->freeshipping);
-		$this->quantity = $qty;
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
-		$this->total = $this->quantity * $this->unitprice;
 		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
 
 		if (!empty($Price->download)) $this->download = $Price->download->id;
@@ -83,12 +82,7 @@ class Item {
 	}
 	
 	function add ($qty) {
-		if ($this->inventory) {
-			if ($this->quantity + $qty > $this->option->stock) 
-				$this->quantity = $this->option->stock;
-			else $this->quantity += $qty;
-		} else $this->quantity += $qty;
-		$this->total = $this->quantity * $this->unitprice;
+		$this->quantity($this->quantity+$qty);
 	}
 	
 	function options ($selected = "") {
@@ -125,15 +119,18 @@ class Item {
 		global $Shopp;
 		
 		$url = "&amp;shopp_pid=".$this->product;
+		$imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
 		if (SHOPP_PERMALINKS) {
 			$pages = $Shopp->Settings->get('pages');
-			if ($Shopp->link('catalog') == get_bloginfo('siteurl')."/")
+			if ($Shopp->link('catalog') == get_bloginfo('wpurl')."/")
 				$url =  $pages['catalog']['name']."/".$this->product;
 			else $url = $this->product;
-		}
+			$imageuri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
+		}		
 		
 		// Return strings with no options
 		switch ($property) {
+			case "id": return $id;
 			case "name": return $this->name;
 			case "url": return $Shopp->link('catalog').$url;
 			case "sku": return $this->sku;
@@ -179,6 +176,7 @@ class Item {
 					$result = '<a href="'.SHOPP_CARTURL.'?cart=update&amp;item='.$id.'&amp;quantity=0"'.$class.'>'.$label.'</a>';
 				}
 				break;
+			case "optionlabel": $result = $this->optionlabel; break;
 			case "options":
 				$class = "";
 				if (strtolower($options['show']) == "selected") 
@@ -193,6 +191,17 @@ class Item {
 					$result .= '</select>';
 					$result .= $options['after'];
 				}
+				break;
+			case "thumbnail":
+				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+				if (isset($this->thumbnail)) {
+					$img = $this->thumbnail;
+					$width = (isset($options['width']))?$options['width']:$img->properties['height'];
+					$height = (isset($options['height']))?$options['height']:$img->properties['height'];
+					
+					return '<img src="'.$imageuri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />'; break;
+				}
+			
 		}
 		if (!empty($result)) return $result;
 		

@@ -72,14 +72,20 @@ function formatNumber (number,format) {
 	number = asNumber(number);
 	var d = number.toFixed(format['precision']).toString().split(".");
 	var number = "";
-	for (var i = 0; i < (d[0].length / 3); i++) 
-		number = d[0].slice(-3*(i+1),d[0].length+(-3 * i)) + ((number.length > 0)?format['thousands'] + number:number);
+	if (format['indian']) {
+		var digits = d[0].slice(0,-3);
+		number = d[0].slice(-3,d[0].length) + ((number.length > 0)?format['thousands'] + number:number);
+		for (var i = 0; i < (digits.length / 2); i++) 
+			number = digits.slice(-2*(i+1),digits.length+(-2 * i)) + ((number.length > 0)?format['thousands'] + number:number);
+	} else {
+		for (var i = 0; i < (d[0].length / 3); i++) 
+			number = d[0].slice(-3*(i+1),d[0].length+(-3 * i)) + ((number.length > 0)?format['thousands'] + number:number);
+	}
+
 	if (format['precision'] > 0) number += format['decimals'] + d[1];
 	return number;
-	
+
 }
-
-
 /**
  * asNumber ()
  * 
@@ -160,7 +166,10 @@ function formatFields () {
 
 
 function addtocart () {
-	var options = this.form.getElementsByTagName('select');
+	var button = this;
+	(function($) {
+
+	var options = button.form.getElementsByTagName('select');
 	if (options_default) {
 		var selections = true;		
 		for (menu in options) 
@@ -172,8 +181,55 @@ function addtocart () {
 			return false;
 		}
 	}
-	this.form.submit();
+
+	if ($(button).hasClass('ajax')) {
+		cartajax(button.form.action,$(button.form).serialize());
+	} else {
+		button.form.submit();
+	}
+	
+	})(jQuery)	
 }
+
+function cartajax (url,data,response) {
+	(function($) {
+	if (!response) response = "json";
+	var datatype = ((response == 'json')?'json':'string');
+	$.ajax({
+		type:"POST",
+		url:url,
+		data:data+"&response="+response+'&ajax=true',
+		timeout:10000,
+		dataType:datatype,
+		success:function (cart) {
+			ShoppCartAjaxHandler(cart);
+		},
+		error:function () { }
+	});
+	})(jQuery)
+}
+
+var ShoppCartAjaxHandler = function (cart) {
+	(function($) {
+		var display = $('#shopp-cart-ajax');
+		display.empty().hide(); // clear any previous additions
+		var item = $('<ul></ul>').appendTo(display);
+		$('<li><img src="'+cart.Item.thumbnail.uri+'" alt="" width="'+cart.Item.thumbnail.width+'"  height="'+cart.Item.thumbnail.height+'" /></li>').appendTo(item);
+		$('<li></li>').html('<strong>'+cart.Item.name+'</strong>').appendTo(item);
+		if (cart.Item.optionlabel.length > 0)
+			$('<li></li>').html(cart.Item.optionlabel).appendTo(item);
+		$('<li></li>').html(asMoney(cart.Item.unitprice)).appendTo(item);
+		
+		if ($('#shopp-cart-items').length > 0) {
+			$('#shopp-cart-items').html(cart.Totals.quantity);
+			$('#shopp-cart-total').html(asMoney(cart.Totals.total));			
+		} else {
+			$('#shopp-cart p.status').html('<a href="'+cart.url+'"><span id="shopp-cart-items">'+cart.Totals.quantity+'</span> <strong>Items</strong> &mdash; <strong>Total</strong> <span id="shopp-cart-total">'+asMoney(cart.Totals.total)+'</span></a>');
+		}
+		display.slideDown();
+	})(jQuery)	
+}
+
 
 function buttonHandlers () {
 	var inputs = document.getElementsByTagName('input');
@@ -524,4 +580,3 @@ var options_default;
 
 // Fix for ThickBox
 var tb_pathToImage = "/wp-content/plugins/shopp/core/ui/icons/loading.gif";
-var tb_closeImage = "/wp-includes/js/thickbox/tb-close.png";

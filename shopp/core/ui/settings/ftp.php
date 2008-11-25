@@ -8,11 +8,11 @@
 			<tr class="form-field form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order"><?php _e('FTP Settings','Shopp'); ?></label></th> 
 				<td>
-					<p><input type="text" name="settings[ftp_credentials][hostname]" id="ftp-host" size="40" value="<?php echo $credentials['hostname']; ?>" /><br />
+					<p><input type="text" name="settings[ftp_credentials][hostname]" id="ftp-host" size="40" value="<?php echo attribute_escape($credentials['hostname']); ?>" /><br />
 					<?php _e('Enter the FTP server/host name for this WordPress installation.','Shopp'); ?></p>
-					<p><input type="text" name="settings[ftp_credentials][username]" id="ftp-username" size="20"  value="<?php echo $credentials['username']; ?>"/><br />
+					<p><input type="text" name="settings[ftp_credentials][username]" id="ftp-username" size="20"  value="<?php echo attribute_escape($credentials['username']); ?>"/><br />
 					<?php _e('Enter your FTP username','Shopp'); ?></p>
-					<p><input type="password" name="settings[ftp_credentials][password]" id="ftp-password" size="20" value="<?php echo $credentials['password']; ?>" /><br />
+					<p><input type="password" name="settings[ftp_credentials][password]" id="ftp-password" size="20" value="<?php echo attribute_escape($credentials['password']); ?>" /><br />
 					<?php _e('Enter the password for your FTP login','Shopp'); ?></p>
 	            </td>
 			</tr>

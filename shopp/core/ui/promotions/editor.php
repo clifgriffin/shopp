@@ -7,7 +7,7 @@
 		<table class="form-table"> 
 			<tr class=" form-required"> 
 				<th scope="row" valign="top"><label for="promotion-name"><?php _e('Description','Shopp'); ?></label></th> 
-				<td><input type="text" name="name" value="<?php echo $Promotion->name; ?>" id="promotion-name" size="40" /><br /> 
+				<td><input type="text" name="name" value="<?php echo attribute_escape($Promotion->name); ?>" id="promotion-name" size="40" /><br /> 
 	            <?php _e('The name is used to describe the promotion on order receipts.','Shopp'); ?></td>
 			</tr>
 			<tr class=" form-required"> 
