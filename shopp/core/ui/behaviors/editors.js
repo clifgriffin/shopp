@@ -458,11 +458,11 @@ function addPriceLine (target,options,data,attachment) {
 		});
 		
 	}
-	var uploadButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'13"><small>Upload File</small></button>').appendTo(uploadHeading);
+	var uploadButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'13"><small>Upload&nbsp;File</small></button>').appendTo(uploadHeading);
 	
 	// Handle file uploads depending on whether the Flash uploader loads or not
 	$(window).load(function() {
-		if (fileUploader.swfu.loaded) {
+		if (fileUploader && fileUploader.swfu.loaded) {
 			uploadButton.click(function () { fileUploader.swfu.targetCell = downloadFile; fileUploader.swfu.targetLine = i; fileUploader.swfu.selectFiles(); });			
 		} else {
 			// Browser-based AJAX uploads
@@ -922,4 +922,64 @@ function FileUploads () {
 
 	function uploadComplete (file) {}
 	
+}
+
+function SlugEditor (id,type) {
+	
+	var _self = this;
+	
+	this.edit_permalink = function () {
+			var i, c = 0;
+			var editor = $('#editable-slug');
+			var revert_editor = editor.html();
+			var real_slug = $('#slug_input');
+			var revert_slug = real_slug.html();
+			var buttons = $('#edit-slug-buttons');
+			var revert_buttons = buttons.html();
+			var full = $('#editable-slug-full').html();
+		
+			buttons.html('<button type="button" class="save button">Save</button> <button type="button" class="cancel button">Cancel</button>');
+			buttons.children('.save').click(function() {
+				var slug = editor.children('input').val();
+				$.post(siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_edit_slug', 
+					{ 'id':id, 'type':type, 'slug':slug },
+					function (data) {
+						editor.html(revert_editor);
+						buttons.html(revert_buttons);
+						if (data != -1) {
+							editor.html(data);
+							$('#editable-slug-full').html(data);
+							real_slug.val(data);
+						}
+						_self.enable();
+					},'text');
+			});
+			$('#edit-slug-buttons .cancel').click(function() {
+				editor.html(revert_editor);
+				buttons.html(revert_buttons);
+				real_slug.attr('value', revert_slug);
+				_self.enable();
+			});
+			
+			for(i=0; i < full.length; ++i) if ('%' == full.charAt(i)) c++;
+			slug_value = (c > full.length/4)? '' : full;
+			
+			editor.html('<input type="text" id="new-post-slug" value="'+slug_value+'" />').children('input').keypress(function(e) {
+				// on enter, just save the new slug, don't save the post
+				var key = e.which;
+				if (key == 13 || key == 27) e.preventDefault();
+				if (13 == key) buttons.children('.save').click();
+				if (27 == key) buttons.children('.cancel').click();
+				real_slug.val(this.value)
+			}).focus();
+
+	}
+	
+	this.enable = function () {
+		$('#edit-slug-buttons').children('.edit-slug').click(function () { _self.edit_permalink() });
+		$('#editable-slug').click(function() { $('#edit-slug-buttons').children('.edit-slug').click(); });		
+	}
+	
+	this.enable();
+
 }

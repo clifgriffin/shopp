@@ -152,7 +152,7 @@ class Cart {
 	 * add()
 	 * Adds a product as an item to the cart */
 	function add ($quantity,&$Product,&$Price) {
-		$NewItem = new Item($quantity,$Product,$Price);
+		$NewItem = new Item($Product,$Price);
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
 			$this->added = $this->contents[$item];
@@ -203,11 +203,28 @@ class Cart {
 	/**
 	 * change()
 	 * Changes an item to a different product/price variation */
-	function change ($item,$Product,$pricing) {
+	function change ($item,&$Product,$pricing) {
 		// Don't change anything if everything is the same
 		if ($this->contents[$item]->product == $Product->id &&
 				$this->contents[$item]->price == $pricing) return true;
-		$this->contents[$item] = new Item($this->contents[$item]->quantity,$Product,$pricing);
+
+		// If the updated product and price variation match
+		// add the updated quantity of this item to the other item
+		// and remove this one
+		foreach ($this->contents as $id => $cartitem) {
+			if ($cartitem->product == $Product->id && $cartitem->price == $pricing) {
+				$this->update($id,$cartitem->quantity+$this->contents[$item]->quantity);
+				$this->remove($item);
+				$this->totals();
+				$this->save();
+				return true;
+			}
+		}
+
+		// No existing item, so change this one
+		$qty = $this->contents[$item]->quantity;
+		$this->contents[$item] = new Item($Product,$pricing);
+		$this->contents[$item]->quantity($qty);
 		$this->totals();
 		$this->save();
 		return true;

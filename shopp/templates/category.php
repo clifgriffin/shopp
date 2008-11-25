@@ -1,11 +1,12 @@
 <?php if(shopp('category','hasproducts')): ?>
 	<div class="category">
 	<?php shopp('catalog','breadcrumb'); ?>
+
 	<h3><?php shopp('category','name'); ?></h3>
 	<?php shopp('catalog','views','label=Views: '); ?>
 	<br class="clear" />
 	<?php shopp('category','subcategory-list','hierarchy=true&showall=true'); ?>
-	
+	<?php shopp('catalog','orderby-list','dropdown=on'); ?>
 	<div class="alignright"><?php shopp('category','pagination'); ?></div>
 	<br class="clear" />
 	

@@ -67,17 +67,11 @@
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order"><?php _e('Image Order','Shopp'); ?></label></th> 
-				<td><select name="settings[product_showcase_order]" id="showcase-order">
-					<option>Order</option>
-					<option>Reverse Order</option>
-					<option>Shuffle</option>
+				<td><select name="settings[product_image_order]" id="showcase-order">
+					<?php echo menuoptions($orderOptions,$this->Settings->get('product_image_order'),true); ?>
 				</select> by
-				<select name="settings[product_showcase_order]" id="showcase-order">
-					<option>Custom arrangement</option>
-					<option>File name</option>
-					<option>Description</option>
-					<option>Alt/Title</option>
-					<option>Upload date</option>
+				<select name="settings[product_image_orderby]" id="showcase-order">
+					<?php echo menuoptions($orderBy,$this->Settings->get('product_image_orderby'),true); ?>
 				</select>
 				<br />
 	            <?php _e('Set how to organize the presentation of product images.','Shopp'); ?></td>

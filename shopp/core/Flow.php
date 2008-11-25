@@ -763,9 +763,11 @@ class Flow {
 			$per_page = 20;
 		$start = ($per_page * ($pagenum-1)); 
 		
-		if (isset($_GET['status'])) $filter = "WHERE status='{$_GET['status']}'";
-		$ordercount = $db->query("SELECT count(*) as total FROM $Purchase->_table $filter ORDER BY created DESC");
-		$Orders = $db->query("SELECT * FROM $Purchase->_table $filter ORDER BY created DESC LIMIT $start,$per_page",AS_ARRAY);
+		if (isset($_GET['status'])) $where = "WHERE status='{$_GET['status']}'";
+		if (isset($_GET['s'])) $where .= ((empty($where))?"WHERE ":" AND ")." (id='{$_GET['s']}' OR firstname LIKE '%{$_GET['s']}%' OR lastname LIKE '%{$_GET['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$_GET['s']}%' OR transactionid LIKE '%{$_GET['s']}%')";
+		
+		$ordercount = $db->query("SELECT count(*) as total FROM $Purchase->_table $where ORDER BY created DESC");
+		$Orders = $db->query("SELECT * FROM $Purchase->_table $where ORDER BY created DESC LIMIT $start,$per_page",AS_ARRAY);
 
 		$num_pages = ceil($ordercount->total / $per_page);
 		$page_links = paginate_links( array(
@@ -910,12 +912,20 @@ class Flow {
 		$pt = DatabaseObject::tablename(Price::$table);
 		$cat = DatabaseObject::tablename(Category::$table);
 		$clog = DatabaseObject::tablename(Catalog::$table);
+
+		$orderby = "pd.created DESC";
 		
 		$where = "";
-		if (!empty($_GET['cat'])) $where = " WHERE cat.id='{$_GET['cat']}'";
+		if (!empty($_GET['cat'])) $where = "WHERE cat.id='{$_GET['cat']}'";
+		if (!empty($_GET['s'])) {
+			$match = "MATCH(pd.name,pd.summary,pd.description) AGAINST ('{$_GET['s']}' IN BOOLEAN MODE)";
+			$where .= ((empty($where))?"WHERE ":" AND ").$match;
+			$matchcol = ", $match  AS score";
+			$orderby = "score DESC";
+		}
 
-		$productcount = $db->query("SELECT count(*) as total FROM $pd");
-		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id LIMIT $start,$per_page",AS_ARRAY);
+		$productcount = $db->query("SELECT count(*) as total $matchcol FROM $pd $where");
+		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page",AS_ARRAY);
 
 		$num_pages = ceil($productcount->total / $per_page);
 		$page_links = paginate_links( array(
@@ -983,7 +993,7 @@ class Flow {
 	}
 		
 	function product_editor() {
-		global $Product;
+		global $Product,$Shopp;
 		$db = DB::get();
 
 		if ( !current_user_can('manage_options') )
@@ -1011,6 +1021,10 @@ class Flow {
 				exit();
 			}
 		}
+		
+		if ($Shopp->link('catalog') == trailingslashit(get_bloginfo('wpurl')))
+			$permalink = trailingslashit($Shopp->link('catalog'))."shop/new/";
+		else $permalink = trailingslashit($Shopp->link('catalog'))."new/";
 
 		require_once("{$this->basepath}/core/model/Asset.php");
 		require_once("{$this->basepath}/core/model/Category.php");
@@ -1151,17 +1165,47 @@ class Flow {
 		return true;
 	}
 	
-	function product_images () {
+	function product_downloads () {
+		$error = false;
+		if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
+		if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
+		
+		// Save the uploaded file
+		$File = new Asset();
+		$File->parent = 0;
+		$File->context = "price";
+		$File->datatype = "download";
+		$File->name = $_FILES['Filedata']['name'];
+		$File->size = filesize($_FILES['Filedata']['tmp_name']);
+		$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name']));
+		$File->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
+		$File->save();
+		unset($File->data); // Remove file contents from memory
+		
+		echo json_encode(array("id"=>$File->id,"name"=>$File->name,"type"=>$File->properties['mimetype'],"size"=>$File->size));
+	}
+	
+	function add_images () {
 			$error = false;
 			if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
 			if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
 
 			require("{$this->basepath}/core/model/Image.php");
 			
+			if (isset($_POST['product'])) {
+				$parent = $_POST['product'];
+				$context = "product";
+			}
+
+			if (isset($_POST['category'])) {
+				$parent = $_POST['category'];
+				$context = "category";
+			}
+			
 			// Save the source image
 			$Image = new Asset();
-			$Image->parent = $_POST['product'];
-			$Image->context = "product";
+			$Image->parent = $parent;
+			$Image->context = $context;
 			$Image->datatype = "image";
 			$Image->name = $_FILES['Filedata']['name'];
 			list($width, $height, $mimetype, $attr) = getimagesize($_FILES['Filedata']['tmp_name']);
@@ -1183,7 +1227,7 @@ class Flow {
 			
 			$Small = new Asset();
 			$Small->parent = $Image->parent;
-			$Small->context = "product";
+			$Small->context = $context;
 			$Small->datatype = "small";
 			$Small->src = $Image->id;
 			$Small->name = "small_".$Image->name;
@@ -1215,7 +1259,7 @@ class Flow {
 
 			$Thumbnail = new Asset();
 			$Thumbnail->parent = $Image->parent;
-			$Thumbnail->context = "product";
+			$Thumbnail->context = $context;
 			$Thumbnail->datatype = "thumbnail";
 			$Thumbnail->src = $Image->id;
 			$Thumbnail->name = "thumbnail_".$Image->name;
@@ -1240,27 +1284,7 @@ class Flow {
 			
 			echo json_encode(array("id"=>$Thumbnail->id,"src"=>$Thumbnail->src));
 	}
-	
-	function product_downloads () {
-		$error = false;
-		if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
-		if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
 		
-		// Save the uploaded file
-		$File = new Asset();
-		$File->parent = 0;
-		$File->context = "price";
-		$File->datatype = "download";
-		$File->name = $_FILES['Filedata']['name'];
-		$File->size = filesize($_FILES['Filedata']['tmp_name']);
-		$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name']));
-		$File->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
-		$File->save();
-		unset($File->data); // Remove file contents from memory
-		
-		echo json_encode(array("id"=>$File->id,"name"=>$File->name,"type"=>$File->properties['mimetype'],"size"=>$File->size));
-	}
-	
 	/**
 	 * Category flow handlers
 	 **/	
@@ -1286,10 +1310,14 @@ class Flow {
 		if( !$per_page || $per_page < 0 )
 			$per_page = 20;
 		$start = ($per_page * ($pagenum-1)); 
+		
+		$filters = array();
+		$filters['limit'] = "$start,$per_page";
+		if (isset($_GET['s'])) $filters['where'] = "name LIKE '%{$_GET['s']}%'";
 
 		$table = DatabaseObject::tablename(Category::$table);
 		$Catalog = new Catalog();
-		$Catalog->load_categories(array($start,$per_page));
+		$Catalog->load_categories($filters);
 		$Categories = $Catalog->categories;
 
 		$count = $db->query("SELECT count(*) AS total FROM $table");
@@ -1348,13 +1376,24 @@ class Flow {
 
 			$_POST['uri'] = join("/",$paths);
 			
+			if (!empty($_POST['deleteImages'])) {			
+				$deletes = array();
+				if (strpos($_POST['deleteImages'],","))	$deletes = split(',',$_POST['deleteImages']);
+				else $deletes = array($_POST['deleteImages']);
+				$Category->delete_images($deletes);
+			}
+
+			if (!empty($_POST['images']) && is_array($_POST['images'])) {
+				$Category->link_images($_POST['images']);
+				$Category->save_imageorder($_POST['images']);
+			}
+			
 			$Category->updates($_POST);
 			$Category->save();
 			$updated = '<strong>'.$Category->name.'</strong> '.__('category saved.','Shopp');
 		}
 		
-		$categories = $db->query("SELECT id,name,parent FROM $Category->_table ORDER BY parent,name",AS_ARRAY);
-		$categories = sort_tree($categories);
+		$permalink = trailingslashit($Shopp->link('catalog'))."category/";
 		
 		$pricerange_menu = array(
 			"disabled" => __('Price ranges disabled','Shopp'),
@@ -1362,16 +1401,31 @@ class Flow {
 			"custom" => __('Use custom price ranges','Shopp'),
 		);
 		
-		$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>';
+		$Assets = new Asset();
+		$Images = $db->query("SELECT id,src FROM $Assets->_table WHERE context='category' AND parent=$Category->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
+		unset($Assets);
+		
+		$categories_menu = $this->category_menu();
+		$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
+		
+		include("{$this->basepath}/core/ui/categories/category.php");
+	}	
+	
+	function category_menu () {
+		$db = DB::get();
+		$table = DatabaseObject::tablename(Category::$table);			
+
+		$categories = $db->query("SELECT id,name,parent FROM $table ORDER BY parent,name",AS_ARRAY);
+		$categories = sort_tree($categories);
+		
 		foreach ($categories as $category) {
 			$padding = str_repeat("&nbsp;",$category->depth*3);
 			if ($Category->parent == $category->id) $selected = ' selected="selected"';
 			else $selected = "";
-			if ($Category->id != $category->id) $categories_menu .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'"'.$selected.'>'.$padding.$category->name.'</option>';
+			if ($Category->id != $category->id) $options .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'"'.$selected.'>'.$padding.$category->name.'</option>';
 		}
-
-		include("{$this->basepath}/core/ui/categories/category.php");
-	}	
+		return $options;
+	}
 	
 	function promotions_list () {
 		$db = DB::get();
@@ -1397,8 +1451,22 @@ class Flow {
 			$per_page = 20;
 		$start = ($per_page * ($pagenum-1)); 
 		
+		
+		$where = "";
+		if (!empty($_GET['s'])) $where = "WHERE name LIKE '%{$_GET['s']}%'";
+		
 		$table = DatabaseObject::tablename(Promotion::$table);
-		$Promotions = $db->query("SELECT * FROM $table",AS_ARRAY);
+		$promocount = $db->query("SELECT count(*) as total FROM $table $where");
+		$Promotions = $db->query("SELECT * FROM $table $where",AS_ARRAY);
+		
+		$num_pages = ceil($promocount->total / $per_page);
+		$page_links = paginate_links( array(
+			'base' => add_query_arg( 'pagenum', '%#%' ),
+			'format' => '',
+			'total' => $num_pages,
+			'current' => $pagenum
+		));
+		
 		include("{$this->basepath}/core/ui/promotions/promotions.php");
 	}
 	
@@ -1633,6 +1701,14 @@ class Flow {
 		$category_views = array("grid" => __('Grid','Shopp'),"list" => __('List','Shopp'));
 		$row_products = array(2,3,4,5,6,7);
 		
+		$orderOptions = array("ASC" => __('Order','Shopp'),
+							  "DESC" => __('Reverse Order','Shopp'),
+							  "RAND()" => __('Shuffle','Shopp'));
+
+		$orderBy = array("sortorder" => __('Custom arrangement','Shopp'),
+						 "name" => __('File name','Shopp'),
+						 "created" => __('Upload date','Shopp'));
+		
 		$sizingOptions = array(	__('Scale to fit','Shopp'),
 								__('Scale &amp; crop','Shopp'));
 								
@@ -1641,7 +1717,6 @@ class Flow {
 								"Balanced quality &amp; file size",
 								"Lower quality, smaller file size",
 								"Lowest quality, smallest file size");
-		
 		
 		include(SHOPP_ADMINPATH."/settings/presentation.php");
 	}

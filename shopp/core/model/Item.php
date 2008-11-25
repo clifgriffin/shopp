@@ -31,7 +31,7 @@ class Item {
 	var $inventory = false;
 	var $tax = false;
 
-	function Item ($qty,$Product,$pricing) {
+	function Item ($Product,$pricing) {
 		global $Shopp; // To access settings
 
 		$Product->load_prices();
