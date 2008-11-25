@@ -5,6 +5,12 @@
 	</div>
 	<h2><?php _e('Promotions','Shopp'); ?></h2>
 
+	<p id="post-search" class="search-box">
+		<label class="hidden" for="post-search-input">Search Promotions:</label>
+		<input type="text" id="promotions-search-input" name="s" class="search-input" value="<?php echo attribute_escape($_GET['s']); ?>" />
+		<input type="submit" value="Search Promotions" class="button" />
+	</p>
+
 	<p class="search-box"><button type="submit" name="promotion" value="new" class="button"><?php _e('New Promotion','Shopp'); ?></button></p>
 
 	<div class="tablenav">

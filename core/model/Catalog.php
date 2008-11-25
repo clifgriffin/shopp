@@ -22,15 +22,15 @@ class Catalog extends DatabaseObject {
 		$this->type = $type;
 	}
 	
-	function load_categories ($limits=false,$showsmarts=false) {
+	function load_categories ($filtering=false) {
 		$db = DB::get();
-		
-		if ($limits) $limit = " LIMIT {$limits[0]},{$limits[1]}";
-		else $limit = "";
+
+		if (!empty($filtering['limit'])) $filtering['limit'] = "LIMIT ".$filtering['limit'];
+		if (empty($filtering['where'])) $filtering['where'] = "true";
 		
 		$category_table = DatabaseObject::tablename(Category::$table);
-		$this->categories = $db->query("SELECT cat.*,count(sc.product) AS products FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id GROUP BY cat.id ORDER BY parent DESC,name ASC$limit",AS_ARRAY);
-		$this->categories = sort_tree($this->categories);
+		$this->categories = $db->query("SELECT cat.*,count(sc.product) AS products FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id WHERE {$filtering['where']} GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
+		if (count($this->categories) > 1) $this->categories = sort_tree($this->categories);
 		
 		if ($showsmarts == "before" || $showsmarts == "after")
 			$this->smart_categories($showsmarts);
@@ -168,6 +168,49 @@ class Catalog extends DatabaseObject {
 				$string .= '<li><button type="button" class="list"></button></li>';
 				$string .= '</ul>';
 				return $string;
+			case "orderby-list":
+				if (isset($Shopp->Category->controls)) return false;
+				if ($Shopp->Category->smart) return false;
+				$menuoptions = array(
+					"title" => __('Title','Shopp'),
+					"bestselling" => __('Bestselling','Shopp'),
+					"price-desc" => __('Price High to Low','Shopp'),
+					"price-asc" => __('Price Low to High','Shopp'),
+				);
+				$default = "title";
+				$title = $options['title'];
+				if (empty($title)) $title = "";
+				if (value_is_true($options['dropdown'])) {
+					if (isset($Shopp->Cart->data->Category['orderby'])) 
+						$default = $Shopp->Cart->data->Category['orderby'];
+
+					$string .= $title;
+					$string .= '<form action="'.$_SERVER['REQUEST_URI'].'" method="GET">';
+					$string .= '<select name="shopp_orderby" id="shopp-'.$this->slug.'-orderby-menu" class="shopp-orderby-menu">';
+					$string .= menuoptions($menuoptions,$default,true);
+					$string .= '</select>';
+					$string .= '</form>';
+					$string .= '<script type="text/javascript">';
+					$string .= 'var menu = document.getElementById(\'shopp-'.$this->slug.'-orderby-menu\');';
+					$string .= 'if (menu) menu.onchange = function () { menu.form.submit(); }';
+					$string .= '</script>';
+				} else {
+					if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
+						list($link,$query) = split("\?",$_SERVER['REQUEST_URI']);
+					$query = $_GET;
+					unset($query['shopp_orderby']);
+ 					$query = http_build_query($query);
+					if (!empty($query)) $query .= '&';
+					
+					foreach($menuoptions as $value => $option) {
+						$label = $option;
+						$href = $link.'?'.$query.'shopp_orderby='.$value;
+						$string .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+					}
+					
+				}
+				return $string;
+				break;
 			case "breadcrumb":
 				if (isset($Shopp->Category->controls)) return false;
 				if (empty($this->categories)) $this->load_categories();

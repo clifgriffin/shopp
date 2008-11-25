@@ -68,11 +68,14 @@
 			element.after(form);
 			element.after(iframe);
 	
+		elementHeight = element.outerHeight();
+		elementWidth = element.outerWidth();
+		
 		/** Find the container and make it nice and snug */
 		var container = element.parent().css({
 			position: 'relative',
-			height: (element.outerHeight()+10)+'px',
-			width: (element.outerWidth()+10)+'px',
+			height: (elementHeight+10)+'px',
+			width: (elementWidth+10)+'px',
 			overflow: 'hidden',
 			cursor: 'pointer',
 			margin: 0,

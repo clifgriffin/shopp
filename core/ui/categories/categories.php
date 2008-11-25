@@ -6,6 +6,11 @@
 	<h2><?php _e('Categories','Shopp'); ?></h2>
 	
 	<p class="search-box"><button type="submit" name="edit" value="new" class="button"><?php _e('New Category','Shopp'); ?></button></p>
+	<p id="post-search" class="search-box">
+		<label class="hidden" for="post-search-input">Search Categories:</label>
+		<input type="text" id="categories-search-input" class="search-input" name="s" value="<?php echo attribute_escape($_GET['s']); ?>" />
+		<input type="submit" value="Search Categories" class="button" />
+	</p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>

@@ -4,6 +4,13 @@
 	<h2><?php _e('Orders','Shopp'); ?></h2>
 
 	<?php include("navigation.php"); ?>
+	
+	<p id="post-search" class="search-box">
+		<label class="hidden" for="orders-search-input">Search Orders:</label>
+		<input type="text" id="orders-search-input" class="search-input" name="s" value="<?php echo attribute_escape($_GET['s']); ?>" />
+		<input type="submit" value="Search Orders" class="button" />
+	</p>
+	
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="alignleft actions"><button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary"><?php _e('Delete','Shopp'); ?></button></div>

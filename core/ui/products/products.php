@@ -4,6 +4,12 @@
 	<form action="" method="get">
 	<div><input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" /></div>
 	<h2><?php _e('Products','Shopp'); ?></h2>
+
+	<p id="post-search" class="search-box">
+		<label class="hidden" for="post-search-input">Search Products:</label>
+		<input type="text" id="products-search-input" class="search-input" name="s" value="<?php echo attribute_escape($_GET['s']); ?>" />
+		<input type="submit" value="Search Products" class="button" />
+	</p>
 	
 	<p class="search-box"><button type="submit" name="edit" value="new" class="button"><?php _e('New Product','Shopp'); ?></button></p>
 

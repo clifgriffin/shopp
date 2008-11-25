@@ -90,6 +90,7 @@ class Shopp {
 
 		add_action('init', array(&$this, 'ajax'));
 		add_action('init', array(&$this, 'xorder'));
+		add_action('init', array(&$this, 'tinymce'));
 		add_action('parse_request', array(&$this, 'lookups') );
 		add_action('parse_request', array(&$this, 'cart'));
 		add_action('parse_request', array(&$this, 'checkout'));
@@ -215,7 +216,7 @@ class Shopp {
 			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery-ui-core'), '1.5');
 			
 			wp_enqueue_script('swfupload');
-			wp_enqueue_script('swfupload-degrade');			
+			// wp_enqueue_script('swfupload-degrade');			
 		}
 		
 		
@@ -312,6 +313,38 @@ class Shopp {
 				add_shortcode($name,array(&$this->Flow,'maintenance_shortcode'));
 			else add_shortcode($name,$callback);
 	}
+	
+	function tinymce () {
+		if (!current_user_can('edit_posts') && !current_user_can('edit_pages')) return;
+
+		// Add TinyMCE buttons when using rich editor
+		if (get_user_option('rich_editing') == 'true') {
+			add_filter('tiny_mce_version', array(&$this,'mceupdate')); // Move to plugin activation
+			add_filter('mce_external_plugins', array(&$this,'mceplugin'),5);
+			add_filter('mce_buttons', array(&$this,'mcebutton'),5);
+		}
+	}
+
+	function mceplugin ($plugins) {
+		$plugins['Shopp'] = $this->uri.'/core/ui/behaviors/tinymce/editor_plugin.js';
+		return $plugins;
+	}
+
+	function mcebutton ($buttons) {
+		array_push($buttons, "separator", "Shopp");
+		return $buttons;
+	}
+
+	function my_change_mce_settings( $init_array ) {
+	    $init_array['disk_cache'] = false; // disable caching
+	    $init_array['compress'] = false; // disable gzip compression
+	    $init_array['old_cache_max'] = 3; // keep 3 different TinyMCE configurations cached (when switching between several configurations regularly)
+	}
+
+	function mceupdate($ver) {
+	  return ++$ver;
+	}
+	
 	
 	/**
 	 * page_updates()
@@ -424,7 +457,6 @@ class Shopp {
 		$vars[] = 'shopp_image';
 		$vars[] = 'shopp_download';
 		$vars[] = 'shopp_xco';
-		$vars[] = 'shopp_catfilters';
 
 		return $vars;
 	}
@@ -630,6 +662,7 @@ class Shopp {
 
 		}
 		
+		
 		// Category Filters
 		if (!empty($this->Category->slug)) {
 			if (empty($this->Cart->data->Category[$this->Category->slug]))
@@ -637,6 +670,11 @@ class Shopp {
 			$CategoryFilters =& $this->Cart->data->Category[$this->Category->slug];
 			if (is_array($_GET['shopp_catfilters']))
 				$CategoryFilters = array_merge($CategoryFilters,$_GET['shopp_catfilters']);
+		}
+		
+		// Catalog sort order setting
+		if (isset($_GET['shopp_orderby'])) {
+			$this->Cart->data->Category['orderby'] = $_GET['shopp_orderby'];
 		}
 			
 		// Find product by category name and product name
@@ -855,6 +893,15 @@ class Shopp {
 				}
 				exit();
 				break;
+			case "category-menu":
+				echo $this->Flow->category_menu();
+				exit();
+				break;
+			case "category-products-menu":
+				
+				
+				exit();
+				break;
 			case "spectemplate":
 				$db = DB::get();
 				$table = DatabaseObject::tablename(Category::$table);			
@@ -1007,10 +1054,29 @@ class Shopp {
 				}
 				exit();
 				break;
+
+			case "wp_ajax_shopp_edit_slug":
+				
+				switch ($_REQUEST['type']) {
+					case "category":
+						$Category = new Category($_REQUEST['id']);
+						$Category->slug = sanitize_title_with_dashes($_REQUEST['slug']);
+						if ($Category->save()) echo $Category->slug;
+						else echo '-1';
+						break;
+					case "product":
+						$Product = new Product($_REQUEST['id']);
+						$Product->slug = sanitize_title_with_dashes($_REQUEST['slug']);
+						if ($Product->save()) echo $Product->slug;
+						else echo '-1';
+						break;
+				}
+				exit();
+				break;
 				
 			// Upload an image in the product editor
 			case "wp_ajax_shopp_add_image":
-				$this->Flow->product_images();
+				$this->Flow->add_images();
 				exit();
 				break;
 				

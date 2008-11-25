@@ -12,8 +12,14 @@
 	<tbody>
 		<tr class="form-required"> 
 			<th scope="row" valign="top"><label for="name"><?php _e('Product Name','Shopp'); ?></label></th> 
-			<td><input name="name" id="name" type="text" value="<?php echo attribute_escape($Product->name); ?>" size="40" tabindex="1" /><br /> 
-            <?php _e('The name of the product to be displayed in the catalog, shopping cart and order reciept.','Shopp'); ?></td> 
+			<td><input name="name" id="name" type="text" value="<?php echo attribute_escape($Product->name); ?>" size="40" tabindex="1" /><br />
+				<?php if (SHOPP_PERMALINKS && !empty($Product->id)): ?>
+				<div id="edit-slug-box"><strong>Permalink:</strong>
+				<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="Click to edit this part of the permalink"><?php echo attribute_escape($Product->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Product->slug); ?></span>/</span>
+				<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>
+				</div>
+				<?php endif; ?>
+				
 		</tr>
 		<tr class="">
 			<th scope="row" valign="top"><label for="category-menu"><?php _e('Categories','Shopp'); ?></label>
@@ -89,7 +95,7 @@
 				<div id="swf-uploader">
 				<button type="button" class="button-secondary" name="add-image" id="add-product-image" tabindex="10"><small><?php _e('Add New Image','Shopp'); ?></small></button></div>
 				<div id="browser-uploader">
-					<button type="button" name="image_upload" id="image-upload" class="button-secondary"><small>Add New Image</small></button><br class="clear"/>
+					<button type="button" name="image_upload" id="image-upload" class="button-secondary"><small><?php _e('Add New Image','Shopp'); ?></small></button><br class="clear"/>
 				</div>
 				</th> 
 			<td>
@@ -156,11 +162,13 @@
 </div>
 
 <script type="text/javascript">
+var product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>;
 var prices = <?php echo json_encode($Product->prices) ?>;
 var specs = <?php echo json_encode($Product->specs) ?>;
 var options = <?php echo json_encode($Product->options) ?>;
 var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var shiprates = <?php echo json_encode($shiprates); ?>;
+var buttonrsrc = '<?php echo includes_url('images/upload.png'); ?>';
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 var siteurl = '<?php echo get_option('siteurl'); ?>';
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;

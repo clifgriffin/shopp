@@ -17,6 +17,7 @@ class Category extends DatabaseObject {
 	var $children = false;
 	var $prices = array();
 	var $filters = array();
+	var $images = array();
 	
 	function Category ($id=false,$key=false) {
 		$this->init(self::$table);
@@ -49,6 +50,84 @@ class Category extends DatabaseObject {
 		
 		if (!empty($this->children)) return true;
 		return false;
+	}
+	
+	function load_images () {
+		global $Shopp;
+		$db = DB::get();
+		
+		$uri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
+		if (SHOPP_PERMALINKS) {
+			$pages = $Shopp->Settings->get('pages');
+			$uri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
+		}
+		
+		$ordering = $Shopp->Settings->get('product_image_order');
+		$orderby = $Shopp->Settings->get('product_image_orderby');
+		
+		if ($ordering == "RAND()") $orderby = $ordering;
+		else $orderby .= ' '.$ordering;
+		$table = DatabaseObject::tablename(Asset::$table);
+		if (empty($this->id)) return false;
+		$images = $db->query("SELECT id,name,properties,datatype,src FROM $table WHERE parent=$this->id AND context='category' AND (datatype='image' OR datatype='small' OR datatype='thumbnail') ORDER BY $orderby",AS_ARRAY);
+
+		$this->images = array();
+		// Organize images into groupings by type
+		foreach ($images as $key => &$image) {
+			if (empty($this->images[$image->datatype])) $this->images[$image->datatype] = array();
+			$image->properties = unserialize($image->properties);
+			$image->uri = $uri.$image->id;
+			$this->images[$image->datatype][] = $image;
+		}
+		$this->thumbnail = $this->images['thumbnail'][0];
+		return true;
+	}
+	
+	/**
+	 * save_imageorder()
+	 * Updates the sortorder of image assets (source, featured and thumbnails)
+	 * based on the provided array of image ids */
+	function save_imageorder ($ordering) {
+		$db = DB::get();
+		$table = DatabaseObject::tablename(Asset::$table);
+		foreach ($ordering as $i => $id) 
+			$db->query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE id='$id' OR src='$id'");
+		return true;
+	}
+	
+	/**
+	 * link_images()
+	 * Updates the product id of the images to link to the product 
+	 * when the product being saved is new (has no previous id assigned) */
+	function link_images ($images) {
+		$db = DB::get();
+		$table = DatabaseObject::tablename(Asset::$table);
+		
+		$query = "UPDATE $table SET parent='$this->id',context='category' WHERE ";
+		foreach ($images as $i => $id) {
+			if ($i > 0) $query .= " OR ";
+			$query .= "id=$id OR src=$id";
+		}
+		$db->query($query);
+		return true;
+	}
+	
+	
+	/**
+	 * delete_images()
+	 * Delete provided array of image ids, removing the source image and
+	 * all related images (featured and thumbnails) */
+	function delete_images ($images) {
+		$db = DB::get();
+		$table = DatabaseObject::tablename(Asset::$table);
+		
+		$query = "DELETE LOW_PRIORITY FROM $table WHERE ";
+		foreach ($images as $i => $id) {
+			if ($i > 0) $query .= " OR ";
+			$query .= "id=$id OR src=$id";
+		}
+		$db->query($query);
+		return true;
 	}
 	
 	function load_products ($filtering=false) {
@@ -102,7 +181,20 @@ class Category extends DatabaseObject {
 			
 		}
 		
-		if (empty($filtering['order'])) $filtering['order'] = "p.name ASC";
+		if (empty($filtering['order'])) {
+			switch ($Shopp->Cart->data->Category['orderby']) {
+				case "bestselling":
+					$purchasedtable = DatabaseObject::tablename(Purchased::$table);
+					$filtering['columns'] .= ',count(DISTINCT pur.id) AS sold';
+					$filtering['joins'] .= "LEFT JOIN $purchasedtable AS pur ON p.id=pur.product";
+					$filtering['order'] = "sold DESC"; 
+					break;
+				case "price-desc": $filtering['order'] = "pd.price DESC"; break;
+				case "price-asc": $filtering['order'] = "pd.price ASC"; break;
+				default: $filtering['order'] = "p.name ASC";
+			}
+		}
+		
 		if (empty($filtering['limit'])) {
 			if ($this->pagination > 0) {
 				if( !$this->pagination || $this->pagination < 0 )
@@ -271,6 +363,11 @@ class Category extends DatabaseObject {
 		global $Shopp;
 		$db = DB::get();
 		
+		$pages = $Shopp->Settings->get('pages');
+		if (SHOPP_PERMALINKS) $imageuri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
+		else $imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
+		
+		
 		$page = $Shopp->link('catalog');
 		if (SHOPP_PERMALINKS) {
 			$pages = $Shopp->Settings->get('pages');
@@ -308,6 +405,7 @@ class Category extends DatabaseObject {
 				if (key($this->products) % $options['products'] == 0) return true;
 				else return false;
 				break;
+				
 			case "subcategory-list":
 				if (isset($Shopp->Category->controls)) return false;
 				if (empty($this->children)) $this->load_children();
@@ -463,7 +561,7 @@ class Category extends DatabaseObject {
 				$list = "";
 				foreach($CategoryFilters AS $facet => $filter) {
 					$href = $link.'?'.$query.'shopp_catfilters['.$facet.']=';
-					if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',$filter,$matches)) {
+					if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',stripslashes($filter),$matches)) {
 						$label = $matches[1].' &mdash; '.$matches[3];
 						if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
 						if ($matches[4] == 0) $label = $matches[1].__(' and up','Shopp');
@@ -517,7 +615,37 @@ class Category extends DatabaseObject {
 							$list .= '<li><a href="'.$href.'">'.$option['name'].'</a></li>';
 						}
 						$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
-					} else if ($spec['facetedmenu'] == "auto" && isset($specdata[$spec['name']])) {
+					} elseif ($spec['facetedmenu'] == "ranges" && !empty($spec['options'])) {
+						foreach ($spec['options'] as $i => $option) {
+							$matches = array();
+							$format = '%s';
+							$next = 0;
+							if (isset($spec['options'][$i+1])) {
+								if (preg_match('/(\d+[\.\,\d]*)/',$spec['options'][$i+1]['name'],$matches))
+									$next = $matches[0];
+							}
+							$matches = array();
+							$range = array("min" => 0,"max" => 0);
+							if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$option['name'],$matches)) {
+								$base = $matches[2];
+								$format = $matches[1].'%s'.$matches[3];
+								if (!isset($spec['options'][$i+1])) $range['min'] = $base;
+								else $range = array("min" => $base, "max" => ($next-1));
+							}
+							if ($i == 1) {
+								$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode(sprintf($format,'0').'-'.sprintf($format,$range['min']));
+								$label = __('Under ','Shopp').sprintf($format,$range['min']);
+								$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+							}
+
+							$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode(sprintf($format,$range['min']).'-'.sprintf($format,$range['max']));
+							$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
+							if ($range['max'] == 0) $label = sprintf($format,$range['min']).__(' and up','Shopp');
+							$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+						}
+						$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
+						
+					} elseif ($spec['facetedmenu'] == "auto" && isset($specdata[$spec['name']])) {
 						
 						if (is_array($specdata[$spec['name']])) { // Generate from text values
 							foreach ($specdata[$spec['name']] as $option) {
@@ -547,6 +675,43 @@ class Category extends DatabaseObject {
 				
 				return $output;
 				break;
+
+			case "thumbnail":
+				if (empty($this->images)) $this->load_images();
+				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+				if (isset($this->thumbnail)) {
+					$img = $this->thumbnail;
+					return '<img src="'.$imageuri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
+				}
+				break;
+			case "has-images": 
+				if (empty($options['type'])) $options['type'] = "thumbnail";
+				if (empty($this->images)) $this->load_images();
+				return (count($this->images[$options['type']]) > 0); break;
+			case "images":
+				if (empty($options['type'])) $options['type'] = "thumbnail";
+				if (!$this->imageloop) {
+					reset($this->images[$options['type']]);
+					$this->imageloop = true;
+				} else next($this->images[$options['type']]);
+
+				if (current($this->images[$options['type']])) return true;
+				else {
+					$this->imageloop = false;
+					return false;
+				}
+				break;
+			case "image":			
+				if (empty($options['type'])) $options['type'] = "thumbnail";
+				$img = current($this->images[$options['type']]);
+				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+				$string = "";
+				if (!empty($options['zoom'])) $string .= '<a href="'.$imageuri.$img->src.'/'.str_replace('small_','',$img->name).'" class="shopp-thickbox" rel="product-gallery">';
+				$string .= '<img src="'.$imageuri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />';
+				if (!empty($options['zoom'])) $string .= "</a>";
+				return $string;
+				break;
+
 			case "product":
 				$product = current($this->products);
 

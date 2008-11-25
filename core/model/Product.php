@@ -251,9 +251,14 @@ class Product extends DatabaseObject {
 			$uri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
 		}
 		
+		$ordering = $Shopp->Settings->get('product_image_order');
+		$orderby = $Shopp->Settings->get('product_image_orderby');
+		
+		if ($ordering == "RAND()") $orderby = $ordering;
+		else $orderby .= ' '.$ordering;
 		$table = DatabaseObject::tablename(Asset::$table);
 		if (empty($this->id)) return false;
-		$images = $db->query("SELECT id,name,properties,datatype,src FROM $table WHERE parent=$this->id AND context='product' AND (datatype='image' OR datatype='small' OR datatype='thumbnail') ORDER BY sortorder",AS_ARRAY);
+		$images = $db->query("SELECT id,name,properties,datatype,src FROM $table WHERE parent=$this->id AND context='product' AND (datatype='image' OR datatype='small' OR datatype='thumbnail') ORDER BY $orderby",AS_ARRAY);
 
 		$this->images = array();
 		// Organize images into groupings by type

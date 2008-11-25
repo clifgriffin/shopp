@@ -82,10 +82,6 @@ div.clear,
  **/
 
 #shopp .category { position: relative; }
-#shopp .views { display: inline; position: absolute; right: 0; top:0; }
-#shopp .views button { border: none; background: none; width: 16px; height: 16px; padding: 4px; cursor: pointer; }
-#shopp .views button:hover { background-color: #ebebeb;}
-#shopp .views li { display: inline;  padding: 2px; }
 #shopp .views .grid { background: url('<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/grid.png') no-repeat; }
 #shopp .views .list { background: url('<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/list.png') no-repeat; }
 

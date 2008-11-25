@@ -11,8 +11,6 @@
 #shopp .submit { text-align: right; }
 #shopp form { text-align: left; }
 #shopp form.product ul.options { list-style: none; }
-/*#shopp form ul label,
-#shopp form ul select { display: inline; }*/
 #shopp form ul { line-height: 1; }
 #shopp form label { font-size: 14px; font-weight: bold; padding-bottom: 3px; }
 #shopp form ul li span label,
@@ -23,7 +21,11 @@
  **/
 
 #shopp .category { position: relative; }
-#shopp .category .view { position: absolute; right: 0;  top:0; }
+#shopp .views { display: inline; position: absolute; right: 0; top: 0; }
+#shopp .views button { border: none; background: none; width: 16px; height: 16px; padding: 4px; cursor: pointer; }
+#shopp .views button:hover { background-color: #ebebeb;}
+#shopp .views li { display: inline;  padding: 2px; }
+#shopp .orderby { float: right; }
 
 /* Each product in a category has a containing frame */
 #shopp ul.products li.product div.frame { padding: 10px; }

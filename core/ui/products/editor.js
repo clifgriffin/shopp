@@ -28,6 +28,8 @@ function init () {
 	$('#product').change(function () { changes = true; });
 	$('#product').submit(function() { saving = true; });
 
+	var editslug = new SlugEditor(product,'product');
+
 	if (specs) for (s in specs) addDetail(specs[s]);
 	$('#addDetail').click(function() { addDetail(); });
 
@@ -45,7 +47,7 @@ function init () {
 	tags();
 	quickSelects();
 		
-	imageUploads = new ImageUploads();
+	imageUploads = new ImageUploads({"product" : $('#image-product-id').val()});
 	fileUploader = new FileUploads();	
 }
 
@@ -63,20 +65,26 @@ function categories () {
 		var parent = $('#new-category select').val();
 		if (name != "") {
 			$(this).addClass('updating');
-			url = window.location.href.substr(0,window.location.href.indexOf('?'));
-			$.getJSON(url+"/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_category&name="+name+"&parent="+parent,function(Category) {
+			$.getJSON(siteurl+"/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_category&name="+name+"&parent="+parent,function(Category) {
 				$('#add-new-category').removeClass('updating');
 				addCategoryMenuItem(Category);
-				addCategoryParentMenuOption(Category);
+
+				// Update the parent category menu selector
+				$.get(siteurl+'/wp-admin/admin.php?lookup=category-menu',false,function (menu) {
+					var defaultOption = $('#new-category select option').eq(0).clone();
+					$('#new-category select').empty().html(menu);
+					defaultOption.prependTo('#new-category select');
+					$('#new-category select').attr('selectedIndex',0);
+				},'html');
 
 				// Reset the add new category inputs
 				$('#new-category input').val('');
-				$('#new-category select').each(function() { this.selectedIndex = 0; });
 			});
 
 		}
 	});
 	
+	// Handles toggling a category on/off when the category is pre-existing
 	$('#category-menu input.category-toggle').change(function () {
 		if (!this.checked) return true;
 		
@@ -121,7 +129,7 @@ function categories () {
 		});
 
 	});
-	
+		
 	// Add to selection menu
 	function  addCategoryMenuItem (c) {
 		var parent = false;
@@ -154,47 +162,6 @@ function categories () {
 		else var li = $('<li id="category-element-'+c.id+'"></li>').insertBefore(insertionPoint);
 		var checkbox = $('<input type="checkbox" name="categories[]" value="'+c.id+'" id="category-'+c.id+'" checked="checked" />').appendTo(li);
 		var label = $('<label for="category-'+c.id+'"></label>').html(name).appendTo(li);
-	}
-
-
-	// Add this to new category drop-down menu
-	function addCategoryParentMenuOption (c) {
-		var name = $('#new-category input').val();
-		var parent = $('#new-category select').val();
-
-		parent = $('#new-category select');
-		parentRel = $('#new-category select option:selected').attr('rel').split(',');
-		children = new Array();
-		insertionPoint = false;
-
-		$('#new-category select').each(function() { 
-			selected = this.selectedIndex;
-			var hasChildren = false;
-			for (var i = selected+1; i < this.options.length; i++) {
-				var rel = $(this.options[i]).attr('rel').split(',');
-				if (new Number(parentRel[1])+1 == rel[1] && !hasChildren) hasChildren = true;
-				if (hasChildren && new Number(parentRel[1])+1 != rel[1]) hasChildren = false;
-				if (hasChildren) children.push(this.options[i]);
-			}
-			if (selected == 0) children = this.options;
-			if (selected > 0 && children.length == 0) insertionPoint = $(this.options[selected+1]);
-
-		});
-
-		$(children).each(function () {
-			if (name < $(this).text() && $(this).val() != "0") {
-				insertionPoint = this;
-				return false;
-			}
-		});
-
-		// Pad the label
-		var label = name;
-		for (i = 0; i < (new Number(parentRel[1])+1); i++) label = "&nbsp;&nbsp;&nbsp;"+label;			
-
-		// Add our option
-		if (!insertionPoint) var option = $('<option value="'+c.id+'" rel="'+parentRel[0]+','+(new Number(parentRel[1])+1)+'"></option>').html(label).appendTo(parent);
-		else var option = $('<option value="'+c.id+'" rel="'+parentRel[0]+','+(new Number(parentRel[1])+1)+'"></option>').html(label).insertBefore(insertionPoint);
 	}
 	
 }
@@ -245,4 +212,3 @@ function tags () {
 	updateTagList();
 	
 }
-
