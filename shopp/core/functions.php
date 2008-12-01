@@ -419,6 +419,9 @@ function auto_ranges ($avg,$max,$min) {
 }
 
 function floatvalue($value) {
+	$value = preg_replace("/,/",".",$value); // Replace commas with periods
+	$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
+	$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
     $value = preg_replace('#^([-]*[0-9\.,\' ]+?)((\.|,){1}([0-9-]{1,2}))*$#e', "str_replace(array('.', ',', \"'\", ' '), '', '\\1') . '.' . sprintf('%02d','\\4')", $value);
     return floatval($value);
 }
@@ -592,6 +595,19 @@ function build_query_request ($request=array()) {
 	return $query;
 }
 
+if ( !function_exists('sys_get_temp_dir')) {
+	// For PHP 5 (pre-5.2.1)
+	function sys_get_temp_dir() {
+		if (!empty($_ENV['TMP'])) return realpath($_ENV['TMP']);
+		if (!empty($_ENV['TMPDIR'])) return realpath( $_ENV['TMPDIR']);
+		if (!empty($_ENV['TEMP'])) return realpath( $_ENV['TEMP']);
+		$tempfile = tempnam(uniqid(rand(),TRUE),'');
+		if (file_exists($tempfile)) {
+			unlink($tempfile);
+			return realpath(dirname($tempfile));
+		}
+	}
+}
 
 class FTPClient {
 	var $connected = false;
@@ -630,9 +646,9 @@ class FTPClient {
 		foreach ($files as $file) {
 			if (in_array($file,$excludes)) continue;
 			if (is_dir($path.$file)) {
-				if (@ftp_chdir($this->connection,$remote.$file)) {
-					$this->update($path.$file,$remote.$file);
-				} else $this->mkdir($remote.$file);
+				if (!@ftp_chdir($this->connection,$remote.$file)) 
+					$this->mkdir($remote.$file);
+				$this->update($path.$file,$remote.$file);				
 			} else $this->put($path.$file,$remote.$file);
 		}
 		return $this->log;

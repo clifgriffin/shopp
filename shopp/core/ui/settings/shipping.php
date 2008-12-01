@@ -61,7 +61,13 @@
 helpurl = "<?php echo SHOPP_DOCS; ?>Shipping_Settings";
 
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
+var weight_units = '<?php echo $Shopp->Settings->get("weight_unit"); ?>';
 (function($) {
+	
+$('#weight-unit').change(function () {
+	weight_units = $(this).val();
+	$('#shipping-rates table.rate td.units span.weightunit').html(weight_units+' = ');
+});
 	
 var addShippingRate = function (r) {
 	if (!r) r = false;
@@ -168,6 +174,7 @@ if ($('#shipping-rates')) {
 		});	
 	}
 }
+
 
 })(jQuery)
 

@@ -253,9 +253,11 @@ class Product extends DatabaseObject {
 		
 		$ordering = $Shopp->Settings->get('product_image_order');
 		$orderby = $Shopp->Settings->get('product_image_orderby');
+		if (empty($orderby)) $ordering = "sortorder";
 		
 		if ($ordering == "RAND()") $orderby = $ordering;
 		else $orderby .= ' '.$ordering;
+		
 		$table = DatabaseObject::tablename(Asset::$table);
 		if (empty($this->id)) return false;
 		$images = $db->query("SELECT id,name,properties,datatype,src FROM $table WHERE parent=$this->id AND context='product' AND (datatype='image' OR datatype='small' OR datatype='thumbnail') ORDER BY $orderby",AS_ARRAY);

@@ -82,6 +82,7 @@ CREATE TABLE shopp_category (
 	priceranges text NOT NULL,
 	specs text NOT NULL,
 	options text NOT NULL,
+	prices text NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),

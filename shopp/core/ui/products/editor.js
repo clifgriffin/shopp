@@ -39,7 +39,7 @@ function init () {
 
 	$('#variations-setting').click(variationsToggle);
 	variationsToggle();
-	loadVariations(options);
+	loadVariations(options,prices);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
 		
@@ -104,28 +104,15 @@ function categories () {
 		});
 
 		// Load category variation option templates
-		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=optionstemplate&cat="+id,function (options) {
-			if (!options) return true;
+		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=optionstemplate&cat="+id,function (template) {
+			if (!template) return true;
 			
 			if (!$('#variations-setting').attr('checked')) {
 				$('#variations-setting').click();
 				variationsToggle();
 			}
 			
-			var menus = $('#variations-menu input[type=text]');
-			var templates = new Object();
-			templates.variations = new Array();
-			for (i in options.variations) {
-				var exists = false;
-				menus.each(function (id,label) {
-					if (options.variations[i].menu == $(label).val()) exists = true;
-				});
-				if (!exists) {
-					options.variations[i].id = new Array();
-					templates.variations.push(options.variations[i]);
-				}
-			}
-			loadVariations(templates);
+			loadVariations(template.options,template.prices);
 		});
 
 	});

@@ -281,7 +281,6 @@ class Flow {
 		if (!empty($Request['promocode'])) {
 			if (!in_array($Request['promocode'],$Cart->data->PromoCodes)) {
 				$Cart->data->PromoCode = attribute_escape($Request['promocode']);
-				$Cart->data->PromoCodes[] = attribute_escape($Request['promocode']);
 				$Request['update'] = true;
 			} else $Cart->data->PromoCodeResult = __("That code has already been applied.","Shopp");
 		}
@@ -311,7 +310,7 @@ class Flow {
 			case "empty":
 				$Cart->clear();
 				break;
-			case "update":			
+			default:			
 				if (isset($Request['item']) && isset($Request['quantity'])) {
 					$Cart->update($Request['item'],$Request['quantity']);
 					
@@ -326,8 +325,6 @@ class Flow {
 						}
 					}
 				}
-			
-				break;
 		}
 		do_action('shopp_cart_updated',$Cart);
 	}
@@ -646,9 +643,11 @@ class Flow {
 			shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
 		}
 
+		$ssl = true;
 		// Test Mode will not require encrypted checkout
-		if (strpos($gateway,"TestMode.php") !== false) $link = $Shopp->link('receipt');
-		else $link = $Shopp->link('receipt',true);
+		if (strpos($gateway,"TestMode.php") !== false ||
+			$_GET['shopp_xco'] == "PayPal/PayPalExpress") $ssl = false;
+		$link = $Shopp->link('receipt',$ssl);
 		header("Location: $link");
 		exit();
 	}
@@ -1115,7 +1114,6 @@ class Flow {
 						$File->save();
 						$Price->attach_download($File->id);
 					}
-					
 				}
 			}
 			unset($Price);
@@ -1387,6 +1385,17 @@ class Flow {
 				$Category->link_images($_POST['images']);
 				$Category->save_imageorder($_POST['images']);
 			}
+
+			// Variation price templates
+			if (!empty($_POST['price']) && is_array($_POST['price'])) {
+				foreach ($_POST['price'] as &$pricing) {
+					$pricing['price'] = floatvalue($pricing['price']);
+					$pricing['saleprice'] = floatvalue($pricing['saleprice']);
+					$pricing['shipfee'] = floatvalue($pricing['shipfee']);
+				}
+				$Category->prices = $_POST['price'];
+			}
+			if (empty($_POST['options'])) $Category->options = array();
 			
 			$Category->updates($_POST);
 			$Category->save();
@@ -1407,7 +1416,7 @@ class Flow {
 		
 		$categories_menu = $this->category_menu();
 		$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
-		
+				
 		include("{$this->basepath}/core/ui/categories/category.php");
 	}	
 	
@@ -1952,6 +1961,7 @@ class Flow {
 		// Product path processing
 		$_POST['settings']['product_storage'] = $_POST['settings']['product_storage_pref'];
 		$productspath = $this->Settings->get('products_path');
+		$error = ""; // Reset the error tracker
 		$productspath_status = __("File system product file hosting is enabled and working.","Shopp");
 		if (!file_exists($productspath)) $error = __("The current path does not exist. Using database instead.","Shopp");
 		if (!is_dir($productspath)) $error = __("The file path supplied is not a directory. Using database instead.","Shopp");
@@ -2063,34 +2073,11 @@ class Flow {
 		// Put site in maintenance mode
 		$this->Settings->save("maintenance","on");
 		$log[] = "Enabled maintenance mode.";
-		
-		// $tablelist = array();
-		// $results = $db->query("SHOW TABLES LIKE '".SHOPP_DBPREFIX."%'",AS_ARRAY);
-		// foreach ($results as $value) {
-		// 	foreach ($value as $key => $table)
-		// 		$tablelist[] = $table;
-		// }
-		// $tables = join(" ",$tablelist);
-		
-		// Backups
+				
+		// Find our temporary filesystem workspace
 		$tmpdir = sys_get_temp_dir();
 		$log[] = "Found temp directory: $tmpdir";
 		
-		// Backup database
-		// $dbBackup = SHOPP_DBPREFIX.DB_NAME."-db-".date("YmdHi");
-		// $command = "mysqldump --opt -h ".DB_HOST." -u".DB_USER." -p".DB_PASSWORD." ".DB_NAME." $tables > $tmpdir$dbBackup.sql";
-		// exec($command);
-		// 
-		// if (file_exists($tmpdir.$dbBackup.".sql")) {
-		// 	$dbarchive = new PclZip($tmpdir.$dbBackup.'.zip');
-		// 	$dbarchive->create($tmpdir.$dbBackup.'.sql');
-		// }
-		
-		// Backup files
-		// $filesBackup = SHOPP_DBPREFIX.SHOPP_VERSION."-".date("YmdHi").'.zip';
-		// $filesArchive = new PclZip($tmpdir.$filesBackup);
-		// $filesArchive->create(basename($Shopp->path));
-
 		// Download the new version of Shopp
 		$updatefile = tempnam($tmpdir,"shopp_update_");
 		if (($download = fopen($updatefile, 'wb')) === false) 
@@ -2217,6 +2204,8 @@ class Flow {
 		$this->Settings->save('theme_templates','off');
 		$this->Settings->save('row_products','3');
 		$this->Settings->save('catalog_pagination','25');
+		$this->Settings->save('product_image_order','ASC');
+		$this->Settings->save('product_image_orderby','sortorder');
 		$this->Settings->save('gallery_small_width','240');
 		$this->Settings->save('gallery_small_height','240');
 		$this->Settings->save('gallery_small_sizing','1');
