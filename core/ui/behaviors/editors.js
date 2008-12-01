@@ -48,6 +48,7 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 	}
 	this.deleteButton.click(this.remove);
 	
+	this.id.val(this.index);
 	if (data && data.id) this.id.val(data.id);
 	if (data && data.name) this.label.val(htmlentities(data.name));
 	else this.label.val(defaultlabel+' '+this.index);
@@ -91,7 +92,7 @@ function NestedMenuOption (i,target,dataname,defaultlabel,data) {
 	this.id.val(this.index);
 	if (data.id) this.id.val(data.id);
 	if (data.name) this.label.val(htmlentities(data.name));
-	if (!data.name) this.label.val(defaultlabel+' '+this.index);
+	if (!data.name) this.label.val(defaultlabel+' '+(this.index+1));
 		
 }
 
@@ -108,17 +109,18 @@ function addDetail (data) {
 	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);
 }
 
-function loadVariations (options) {
+function loadVariations (options,prices) {
 	if (options) {
 		if (options.variations) {
 			for (key in options.variations) addVariationOptionsMenu(options.variations[key]);	
 		} else {
 			for (key in options) addVariationOptionsMenu(options[key]);
 		}
-
-		$(prices).each(function(index,price) {
-			if (price.context == "variation") addPriceLine('#variations-pricing',price.options.split(","),price);
-		});
+		
+		for (key in prices) {
+			if (prices[key].context == "variation")
+				addPriceLine('#variations-pricing',prices[key].options.split(","),prices[key]);
+		}
 		addVariationPrices();
 	}
 }
@@ -310,9 +312,11 @@ function deleteVariationPrices (optionids,reduce) {
 				if (reduce && !pricingOptions[newkey]) {
 					pricingOptions[newkey] = pricingOptions[key];
 					delete pricingOptions[key];
-					pricingOptions[newkey].options = modOptions;
-					pricingOptions[newkey].updateLabel();
-					pricingOptions[newkey].updateKey();
+					if (pricingOptions[newkey]) {
+						pricingOptions[newkey].options = modOptions;
+						pricingOptions[newkey].updateLabel();
+						pricingOptions[newkey].updateKey();
+					}
 				} else {
 					if (pricingOptions[key]) {
 						
@@ -587,7 +591,7 @@ function addPriceLine (target,options,data,attachment) {
 	
 	// Set field values if we are rebuilding a priceline from 
 	// database data
-	if (data && data.id) {
+	if (data && data.label) {
 		label.val(htmlentities(data.label)).change();
 		type.val(data.type);
 		myid.val(data.id);
@@ -706,6 +710,11 @@ function ImageUploads () {
 			this.sorting = sorting;			
 		},
 		onComplete: function(results) {
+			if (results == "") {
+				$(this.targetHolder).remove();
+				alert("There was an error communicating with the server.");
+				return true;
+			}
 			var image = eval('('+results+')');
 			if (image.error) {
 				$(this.targetHolder).remove();

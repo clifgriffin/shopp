@@ -74,7 +74,7 @@ function AddOrderWeightRange (methodid,table,rates) {
 		if (!(this.value == "+" || this.value == ">")) this.value = asNumber(this.value);
 	}).val(value).appendTo(unitCell).change();
 	
-	$('<span><?php echo $Shopp->Settings->get('weight_unit'); ?> = </span>').appendTo(unitCell);
+	$('<span class="weightunit"></span>').html(weight_units+' = ').appendTo(unitCell);
 	
 	$.each(domesticAreas,function(key,area) {
 		var inputCell = $('<td/>').appendTo(row);

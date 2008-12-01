@@ -324,13 +324,14 @@ class Cart {
 		
 		
 		// Load promotions if they've not yet been loaded
-		if (empty($this->data->Promotions)) {
+		if (empty($this->data->Promotions) || true) {
 			$promo_table = DatabaseObject::tablename(Promotion::$table);
 			// Add date-based lookup too
 			$this->data->Promotions = $db->query("SELECT * FROM $promo_table WHERE scope='Order' AND ((status='enabled' AND UNIX_TIMESTAMP(starts) > 0 AND UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP() AND UNIX_TIMESTAMP(ends) > UNIX_TIMESTAMP()) OR status='enabled')",AS_ARRAY);
 		}
-		
-		$PromoCodeFound = false;
+
+		// echo "<pre>"; print_r($this->data->Promotions); echo "</pre>";
+		$PromoCodeFound = false; $PromoCodeExists = false;
 		$this->data->PromosApplied = array();
 		foreach ($this->data->Promotions as &$promo) {
 			if (!is_array($promo->rules))
@@ -350,11 +351,11 @@ class Cart {
 			
 			$items = array();
 			
+			// echo $promo->name.": ";
 			$match = false;
 			$rulematches = 0;
 			foreach ($promo->rules as $rule) {
 				$rulematch = false;
-
 				switch($rule['property']) {
 					case "Item name": 
 						foreach ($this->contents as &$Item) {
@@ -373,20 +374,31 @@ class Cart {
 						}
 						break;
 					case "Shipping amount": 
-						if (Promotion::match_rule($this->data->Totals->shipping,$rule['logic'],$rule['value']))
+						if (Promotion::match_rule($this->data->Totals->shipping,$rule['logic'],$rule['value'])) {
 							$rulematch = true;
+						}
+							
 						break;
 					case "Subtotal amount": 
-						if (Promotion::match_rule($this->data->Totals->subtotal,$rule['logic'],$rule['value']))
+						if (Promotion::match_rule($this->data->Totals->subtotal,$rule['logic'],$rule['value'])) {
 							$rulematch = true;
+							$rulematch = true;
+							
+						}
 						break;
 					case "Promo code":
-						if (!empty($this->data->PromoCodes)) {
-							foreach ($this->data->PromoCodes as $code) {
-								if (Promotion::match_rule($code,$rule['logic'],$rule['value'])) {
-									if ($code == $this->data->PromoCode) $PromoCodeFound = true;
-									$rulematch = true;
-								}
+						if (in_array($rule['value'],$this->data->PromoCodes)) {							
+							$rulematch = true;
+							break;
+						}
+						if (!empty($this->data->PromoCode)) {
+							if (Promotion::match_rule($this->data->PromoCode,$rule['logic'],$rule['value'])) {
+ 								if (!in_array($this->data->PromoCode, $this->data->PromoCodes)) {
+									$this->data->PromoCodes[] = $this->data->PromoCode;
+									$PromoCodeFound = $this->data->PromoCode;
+								} else $PromoCodeExists = true;
+								$this->data->PromoCode = false;
+								$rulematch = true;
 							}
 						}
 						break;
@@ -398,7 +410,7 @@ class Cart {
 					break; // One matched, no need to match any more
 				}
 			} // end foreach ($promo->rules)
-
+			// echo "<br />".$promo->name." ".$rulematches." matched out of ".count($promo->rules)." total<br />";
 			if ($promo->search == "all" && $rulematches == count($promo->rules))
 				$match = true;
 				
@@ -433,11 +445,10 @@ class Cart {
 			
 		} // end foreach ($Promotions)
 		
-		if (!empty($this->data->PromoCode) && !$PromoCodeFound) {
-			$this->data->PromoCodeResult = $this->data->PromoCode.__(" is not a valid code.");
-			if (!empty($this->data->PromoCode)) array_pop($this->data->PromoCodes);
+		if (!empty($this->data->PromoCode) && !$PromoCodeFound && !$PromoCodeExists) {
+			$this->data->PromoCodeResult = $this->data->PromoCode.__(" is not a valid code.","Shopp");
+			$this->data->PromoCode = false;
 		}
-			
 		
 	}
 	
@@ -717,16 +728,17 @@ class Cart {
 		$pages = $Shopp->Settings->get('pages');
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
-		$secureuri = str_replace("http://","https://",get_bloginfo('wpurl'));
 
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey');
 
 		switch ($property) {
 			case "url": 
+				$ssl = true;
 				// Test Mode will not require encrypted checkout
-				if (strpos($gateway,"TestMode.php") !== false) $link = $Shopp->link('checkout');
-				else $link = $Shopp->link('checkout',true);
+				if (strpos($gateway,"TestMode.php") !== false || 
+					$_GET['shopp_xco'] == "PayPal/PayPalExpress") $ssl = false;
+				$link = $Shopp->link('checkout',$ssl);
 				$query = $_SERVER['QUERY_STRING'];
 				if (SHOPP_PERMALINKS && !empty($query)) $query = "?$query";
 				return $link.$query;

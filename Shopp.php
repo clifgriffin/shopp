@@ -270,6 +270,13 @@ class Shopp {
 	function behaviors () {
 		global $wp_query;
 		$object = $wp_query->get_queried_object();
+
+		if (SHOPP_PERMALINKS) {
+			$pages = $this->Settings->get('pages');
+			$shoppage = $this->link('catalog');
+			if ($shoppage == get_bloginfo('wpurl')."/")
+				$shoppage .= $pages['catalog']['name'];
+		} else $shoppage = get_bloginfo('wpurl');
 		
 		// Determine which tag is getting used in the current post/page
 		$tag = false;
@@ -284,7 +291,7 @@ class Shopp {
 			add_action('wp_head', array(&$this, 'header'));
 			add_action('wp_footer', array(&$this, 'footer'));
 			wp_enqueue_script('jquery');
-			wp_enqueue_script('shopp-settings',get_bloginfo('wpurl')."?shopp_lookup=settings.js");
+			wp_enqueue_script('shopp-settings',"$shoppage?shopp_lookup=settings.js");
 			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
 			wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js");
 		}
@@ -576,9 +583,9 @@ class Shopp {
 		if (SHOPP_PERMALINKS) {
 			$pages = $this->Settings->get('pages');
 			$shoppage = $this->link('catalog');
-			if ($shoppage == get_bloginfo('siteurl')."/")
+			if ($shoppage == get_bloginfo('wpurl')."/")
 				$shoppage .= $pages['catalog']['name'];
-		} else $shoppage = get_bloginfo('siteurl');
+		} else $shoppage = get_bloginfo('wpurl');
 		
 		?><link rel='stylesheet' href='<?php echo $shoppage; ?>?shopp_lookup=catalog.css' type='text/css' />
 		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css' type='text/css' />
@@ -905,15 +912,27 @@ class Shopp {
 			case "spectemplate":
 				$db = DB::get();
 				$table = DatabaseObject::tablename(Category::$table);			
-				$result = $db->query("SELECT specs FROM $table WHERE id='{$_GET['cat']}'");
+				$result = $db->query("SELECT specs FROM $table WHERE id='{$_GET['cat']}' AND spectemplate='on'");
 				echo json_encode(unserialize($result->specs));
 				exit();
 				break;
 			case "optionstemplate":
 				$db = DB::get();
 				$table = DatabaseObject::tablename(Category::$table);			
-				$result = $db->query("SELECT options FROM $table WHERE id='{$_GET['cat']}'");
-				echo json_encode(unserialize($result->options));
+				$result = $db->query("SELECT options,prices FROM $table WHERE id='{$_GET['cat']}' AND variations='on'");
+				$result->options = unserialize($result->options);
+				$result->prices = unserialize($result->prices);
+				foreach ($result->options as &$menu) {
+					foreach ($menu['options'] as &$option) $option['id'] += $_GET['cat'];
+				}
+				foreach ($result->prices as &$price) {
+					$optionids = split(",",$price['options']);
+					foreach ($optionids as &$id) $id += $_GET['cat'];
+					$price['options'] = join(",",$optionids);
+					$price['optionkey'] = "";
+				}
+				
+				echo json_encode($result);
 				exit();
 				break;
 			case "image":

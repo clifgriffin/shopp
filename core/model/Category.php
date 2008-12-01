@@ -15,7 +15,7 @@ class Category extends DatabaseObject {
 	static $table = "category";
 	var $loaded = false;
 	var $children = false;
-	var $prices = array();
+	var $pricing = array();
 	var $filters = array();
 	var $images = array();
 	
@@ -261,7 +261,7 @@ class Category extends DatabaseObject {
 
 			$total = $db->query($count);
 			$this->total = $total->count;
-			$this->prices['average'] = $total->avgprice;
+			$this->pricing['average'] = $total->avgprice;
 			$this->pages = ceil($this->total / $this->pagination);
 			if ($this->pages > 1) $this->paged = true;			
 		}
@@ -270,8 +270,8 @@ class Category extends DatabaseObject {
 		if ($this->pagination == 0 || $limit < $this->pagination) 
 			$this->total = count($this->products);
 		
-		$this->prices['min'] = 0;
-		$this->prices['max'] = 0;
+		$this->pricing['min'] = 0;
+		$this->pricing['max'] = 0;
 		
 		foreach ($this->products as &$product) {
 			if ($product->maxsaleprice == 0) $product->maxsaleprice = $product->maxprice;
@@ -287,11 +287,11 @@ class Category extends DatabaseObject {
 				$product->minsaleprice = $product->minsaleprice - $product->amountoff;
 			}
 			
-			if ($this->prices['max'] == 0 || $product->maxsaleprice > $this->prices['max'])
-				$this->prices['max'] = $product->maxsaleprice;
+			if ($this->pricing['max'] == 0 || $product->maxsaleprice > $this->pricing['max'])
+				$this->pricing['max'] = $product->maxsaleprice;
 
-			if ($this->prices['min'] == 0 || $product->minsaleprice < $this->prices['min'])
-				$this->prices['min'] = $product->minsaleprice;
+			if ($this->pricing['min'] == 0 || $product->minsaleprice < $this->pricing['min'])
+				$this->pricing['min'] = $product->minsaleprice;
 
 		}
 
@@ -573,7 +573,7 @@ class Category extends DatabaseObject {
 				if ($this->pricerange == "auto" && empty($CategoryFilters['Price'])) {
 					if (!$this->loaded) $this->load_products();
 					$list = "";
-					$this->priceranges = auto_ranges($this->prices['average'],$this->prices['max'],$this->prices['min']);
+					$this->priceranges = auto_ranges($this->pricing['average'],$this->pricing['max'],$this->pricing['min']);
 					foreach ($this->priceranges as $range) {
 						$href = $link.'?'.$query.'shopp_catfilters[Price]='.urlencode(money($range['min']).'-'.money($range['max']));
 						$label = money($range['min']).' &mdash; '.money($range['max']-0.01);

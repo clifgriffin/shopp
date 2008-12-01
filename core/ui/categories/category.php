@@ -142,6 +142,7 @@ var category = <?php echo (!empty($Category->id))?$Category->id:'false'; ?>;
 var details = <?php echo json_encode($Category->specs) ?>;
 var priceranges = <?php echo json_encode($Category->priceranges) ?>;
 var options = <?php echo json_encode($Category->options) ?>;
+var prices = <?php echo json_encode($Category->prices) ?>;
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 var siteurl = '<?php echo get_option('siteurl'); ?>';
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
@@ -201,21 +202,14 @@ $(window).ready(function () {
 	$('#addPriceLevel').click(function() { addPriceLevel(); });	
 	$('#addDetail').click(function() { addDetail(); });	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
-
+	
 	$('#pricerange-facetedmenu').change(function () {
 		if ($(this).val() == "custom") $('#pricerange-menu, #addPriceLevel').show();
 		else $('#pricerange-menu, #addPriceLevel').hide();
 	}).change();
 
-	if (options && options.variations) {
-		for (key in options.variations) addVariationOptionsMenu(options.variations[key]);	
-	}
-
-	if (priceranges) {
-		for (key in priceranges) addPriceLevel(priceranges[key]);	
-	}
-	
-	
+	if (priceranges) for (key in priceranges) addPriceLevel(priceranges[key]);	
+	if (options) loadVariations(options,prices);
 	
 	function addPriceLevel (data) {
 		var menus = $('#pricerange-menu');
