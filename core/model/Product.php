@@ -558,7 +558,7 @@ class Product extends DatabaseObject {
 					} else {
 						foreach ($this->options as $id => $menu) {
 							if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-							if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['menu'].'</label> '."\n";
+							if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
 
 							$string .= '<select name="options[]" id="options-'.$menu['id'].'" class="options">';
 							if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";

@@ -23,7 +23,7 @@
 				ed.windowManager.open({
 					file : url + '/dialog.php',
 					width : 320,
-					height : 100,
+					height : 200,
 					inline : 1
 				}, {
 					plugin_url : url // Plugin absolute URL

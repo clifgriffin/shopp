@@ -101,12 +101,15 @@ function addDetail (data) {
 	var entries = $('#details-list');
 	var id = detailsidx++;
 	var menu = new NestedMenu(id,menus,'details','Detail Name',data,{target:entries});
-	
+
 	if (data && data.options) {
 		var optionsmenu = $('<select name="details['+menu.index+'][content]"></select>').appendTo(menu.itemsElement);
 		for (var i in data.options) $('<option>'+data.options[i]['name']+'</option>').appendTo(optionsmenu);		
 		if (data && data.content) optionsmenu.val(htmlentities(data.content));	
-	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);
+	} else {
+		menu.add = $('<input type="hidden" name="details['+menu.index+'][new]" value="true" />').appendTo(menu.element);
+		menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);	
+	} 
 }
 
 function loadVariations (options,prices) {
@@ -462,51 +465,12 @@ function addPriceLine (target,options,data,attachment) {
 		});
 		
 	}
+	
+	var uploadHolder = $('<div id="flash-product-uploader-'+i+'"></div>').appendTo(uploadHeading);
 	var uploadButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'13"><small>Upload&nbsp;File</small></button>').appendTo(uploadHeading);
 	
-	// Handle file uploads depending on whether the Flash uploader loads or not
-	$(window).load(function() {
-		if (fileUploader && fileUploader.swfu.loaded) {
-			uploadButton.click(function () { fileUploader.swfu.targetCell = downloadFile; fileUploader.swfu.targetLine = i; fileUploader.swfu.selectFiles(); });			
-		} else {
-			// Browser-based AJAX uploads
-			uploadButton.upload({
-				name: 'Filedata',
-				action: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
-				enctype: 'multipart/form-data',
-				params: {},
-				autoSubmit: true,
-				onSubmit: function() {
-					downloadFile.attr('class','').html('');
-					var progress = $('<div class="progress"></div>').appendTo(downloadFile);
-					var bar = $('<div class="bar"></div>').appendTo(progress);
-					var art = $('<div class="gloss"></div>').appendTo(progress);
-
-					this.targetHolder = downloadFile;
-					this.progressBar = bar;
-				},
-				onComplete: function(results) {
-					// console.log(results);
-					var filedata = eval('('+results+')');
-					if (filedata.error) {
-						$(this.targetHolder).html("No download file.");
-						alert(filedata.error);
-						return true;
-					}
-					var targetHolder = this.targetHolder;
-					filedata.type = filedata.type.replace(/\//gi," ");
-					$(this.progressBar).animate({'width':'76px'},250,function () { 
-						$(this).parent().fadeOut(500,function() {
-							$(targetHolder).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small><input type="hidden" name="price['+i+'][download]" value="'+filedata.id+'" />');
-							$(this).remove(); 
-						});
-					});
-				}
-			});			
-		}
-
-	});
-		
+	var uploader = new FileUploader($(uploadHolder).attr('id'),uploadButton,i,downloadFile);
+			
 	// Build an object to reference and control/update this entry
 	var Pricing = new Object();
 	Pricing.id = pricingidx;
@@ -660,27 +624,29 @@ function variationsToggle () {
  * Image Uploads using SWFUpload or the jQuery plugin One Click Upload
  **/
 function ImageUploads () {
+	var swfu;
 	
-	// Initialize image uploader
-	var swfu = new SWFUpload({
-		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
-		upload_url: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_image',
-		post_params: {"product" : $('#image-product-id').val()},
+	var settings = {
+		button_text: '<span class="button">Add New Image</span>',
+		button_text_style: '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 9px; color: #333333; }',
+		button_text_top_padding: 4,
+		button_height: "24",
+		button_width: "132",
+		button_image_url: siteurl+'/wp-includes/images/upload.png',
+		button_placeholder_id: "swf-uploader-button",
+		upload_url : siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_image',
+		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload.swf',
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
 		file_types : "*.jpg;*.jpeg;*.png;*.gif",
 		file_types_description : "Web-compatible Image Files",
 		file_upload_limit : filesizeLimit,
-		custom_settings : {
-			targetHolder : false,
-			progressBar : false,
-			sorting : false
-		},
-		debug: false,
+		post_params : {"product" : $('#image-product-id').val()},
 
 		swfupload_element_id : "swf-uploader",
 		degraded_element_id : "browser-uploader",
 
+		swfupload_loaded_handler : swfuLoaded,
 		file_queued_handler : imageFileQueued,
 		file_queue_error_handler : imageFileQueueError,
 		file_dialog_complete_handler : imageFileDialogComplete,
@@ -689,8 +655,21 @@ function ImageUploads () {
 		upload_error_handler : imageUploadError,
 		upload_success_handler : imageUploadSuccess,
 		upload_complete_handler : imageUploadComplete,
-		queue_complete_handler : imageQueueComplete
-	});
+		queue_complete_handler : imageQueueComplete,
+
+		custom_settings : { 
+			targetHolder : false,
+			progressBar : false,
+			sorting : false
+			
+		},
+		debug: false
+		
+	}
+	
+	// Initialize image uploader
+	if (flash9) settings.flash_url = siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf';
+	swfu = new SWFUpload(settings);
 
 	var browserImageUploader = $('#image-upload').upload({
 		name: 'Filedata',
@@ -704,7 +683,7 @@ function ImageUploads () {
 			var progress = $('<div class="progress"></div>').appendTo(cell);
 			var bar = $('<div class="bar"></div>').appendTo(progress);
 			var art = $('<div class="gloss"></div>').appendTo(progress);
-
+	
 			this.targetHolder = cell;
 			this.progressBar = bar;
 			this.sorting = sorting;			
@@ -726,7 +705,7 @@ function ImageUploads () {
 			var img = $('<img src="'+siteurl+'/wp-admin/admin.php?page=shopp/lookup&id='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 			var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
 			var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
-
+	
 			$(this.progressBar).animate({'width':'76px'},250,function () { 
 				$(this).parent().fadeOut(500,function() {
 					$(this).remove(); 
@@ -737,12 +716,24 @@ function ImageUploads () {
 		}
 	});
 	
-	$("#add-product-image").click(function(){ swfu.selectFiles(); });
+	$(window).load(function() {
+		if (!swfu.loaded) {
+			$('#product-images .swfupload').remove();
+		}
+	});
+	
+	if (flash9) $("#add-product-image").click(function(){ swfu.selectFiles(); });
 
 	if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
 	$('#product-images ul li button.deleteButton').each(function () {
 		enableDeleteButton(this);
 	});
+
+
+	function swfuLoaded () {
+		$('#image-upload').hide();
+		this.loaded = true;
+	}
 
 	function imageFileQueued (file) {}
 
@@ -839,11 +830,18 @@ function ImageUploads () {
 /**
  * File upload handlers for product download files using SWFupload
  **/
-function FileUploads () {
-	
-	// Initialize file uploader
-	this.swfu = new SWFUpload({
-		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf',
+function FileUploader (button,defaultButton,linenum,updates) {
+	var _self = this;
+
+	_self.settings = {
+		button_text: '<span class="button">Upload File</span>',
+		button_text_style: '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 9px; color: #333333; }',
+		button_text_top_padding: 4,
+		button_height: "24",
+		button_width: "132",
+		button_image_url: siteurl+'/wp-includes/images/upload.png',
+		button_placeholder_id: button,
+		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload.swf',
 		upload_url : siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
@@ -851,6 +849,9 @@ function FileUploads () {
 		file_types_description : "All Files",
 		file_upload_limit : filesizeLimit,
 		debug: false,
+		
+		// swfupload_element_id : $(defaultButton).attr('id'),
+		// degraded_element_id : $(defaultButton).attr('id'),
 		
 		swfupload_loaded_handler : swfuLoaded,
 		file_queue_error_handler : fileQueueError,
@@ -867,9 +868,60 @@ function FileUploads () {
 			targetLine : false,
 			progressBar : false,
 		}
+	}
+	
+	// Initialize file uploader
+	if (flash9) _self.settings.flash_url = siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf';
+	_self.swfu = new SWFUpload(_self.settings);
+	_self.swfu.targetCell = updates;
+	_self.swfu.targetLine = linenum;
+	if (flash9) defaultButton.click(function() { _self.swfu.selectFiles(); });
+	
+	// Handle file uploads depending on whether the Flash uploader loads or not
+	$(window).load(function() {
+		if (!_self.swfu.loaded) {
+			$('.swfupload').remove();
+			
+			// Browser-based AJAX uploads
+			defaultButton.upload({
+				name: 'Filedata',
+				action: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
+				enctype: 'multipart/form-data',
+				params: {},
+				autoSubmit: true,
+				onSubmit: function() {
+					updates.attr('class','').html('');
+					var progress = $('<div class="progress"></div>').appendTo(updates);
+					var bar = $('<div class="bar"></div>').appendTo(progress);
+					var art = $('<div class="gloss"></div>').appendTo(progress);
+
+					this.targetHolder = updates;
+					this.progressBar = bar;
+				},
+				onComplete: function(results) {
+					// console.log(results);
+					var filedata = eval('('+results+')');
+					if (filedata.error) {
+						$(this.targetHolder).html("No download file.");
+						alert(filedata.error);
+						return true;
+					}
+					var targetHolder = this.targetHolder;
+					filedata.type = filedata.type.replace(/\//gi," ");
+					$(this.progressBar).animate({'width':'76px'},250,function () { 
+						$(this).parent().fadeOut(500,function() {
+							$(targetHolder).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small><input type="hidden" name="price['+i+'][download]" value="'+filedata.id+'" />');
+							$(this).remove(); 
+						});
+					});
+				}
+			});
+		}	
 	});
 	
+	
 	function swfuLoaded () {
+		if (!flash9) $(defaultButton).hide();
 		this.loaded = true;
 	}
 	

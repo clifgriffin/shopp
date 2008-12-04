@@ -1074,7 +1074,7 @@ class Flow {
 
 		$Product->save_categories($_POST['categories']);
 		$Product->save_tags(split(",",$_POST['taglist']));
-				
+
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 
 			// Delete prices that were marked for removal
@@ -1122,7 +1122,6 @@ class Flow {
 		if (!empty($_POST['details']) || !empty($_POST['deletedSpecs'])) {
 			$deletes = array();
 			if (!empty($_POST['deletedSpecs'])) {
-				print_r($_POST['deletedSpecs']);
 				if (strpos($_POST['deletedSpecs'],","))	$deletes = split(',',$_POST['deletedSpecs']);
 				else $deletes = array($_POST['deletedSpecs']);
 				foreach($deletes as $option) {
@@ -1131,17 +1130,21 @@ class Flow {
 				}
 				unset($Spec);
 			}
+
 			if (is_array($_POST['details'])) {
 				foreach ($_POST['details'] as $i => $spec) {
 					if (in_array($spec['id'],$deletes)) continue;
-					if (empty($spec['id'])) {
+					if (isset($spec['new'])) {
 						$Spec = new Spec();
+						$spec['id'] = '';
 						$spec['product'] = $Product->id;
 					} else $Spec = new Spec($spec['id']);
 					$spec['sortorder'] = array_search($i,$_POST['details-sortorder'])+1;
 					
 					$Spec->updates($spec);
-					$Spec->numeral = preg_replace('/^.*?(\d+[\.\,\d]*).*$/','$1',$spec['content']);
+					if (preg_match('/^.*?(\d+[\.\,\d]*).*$/',$spec['content']))
+						$Spec->numeral = preg_replace('/^.*?(\d+[\.\,\d]*).*$/','$1',$spec['content']);
+					
 					$Spec->save();
 				}
 			}
@@ -1310,14 +1313,14 @@ class Flow {
 		$start = ($per_page * ($pagenum-1)); 
 		
 		$filters = array();
-		$filters['limit'] = "$start,$per_page";
+		// $filters['limit'] = "$start,$per_page";
 		if (isset($_GET['s'])) $filters['where'] = "name LIKE '%{$_GET['s']}%'";
 
 		$table = DatabaseObject::tablename(Category::$table);
 		$Catalog = new Catalog();
 		$Catalog->load_categories($filters);
-		$Categories = $Catalog->categories;
-
+		$Categories = array_slice($Catalog->categories,$start,$per_page);
+		
 		$count = $db->query("SELECT count(*) AS total FROM $table");
 		$num_pages = ceil($count->total / $per_page);
 		$page_links = paginate_links( array(
@@ -1436,6 +1439,20 @@ class Flow {
 		return $options;
 	}
 	
+	function category_products () {
+		$db = DB::get();
+		$catalog = DatabaseObject::tablename(Catalog::$table);
+		$category = DatabaseObject::tablename(Category::$table);
+		$products = DatabaseObject::tablename(Product::$table);
+		$results = $db->query("SELECT p.id,p.name FROM $catalog AS catalog LEFT JOIN $category AS cat ON cat.id = catalog.category LEFT JOIN $products AS p ON p.id=catalog.product WHERE cat.id={$_GET['category']} ORDER BY p.name ASC",AS_ARRAY);
+		$products = array();
+		
+		$products[0] = "Select a product&hellip;";
+		foreach ($results as $result) $products[$result->id] = $result->name;
+		return menuoptions($products,0,true);
+		
+	}
+	
 	function promotions_list () {
 		$db = DB::get();
 
@@ -1528,27 +1545,28 @@ class Flow {
 		echo $after_title;
 		
 		$purchasetable = DatabaseObject::tablename(Purchased::$table);
-		
+
 		$results = $db->query("SELECT count(id) AS orders, SUM(total) AS sales, AVG(total) AS average,
 		 						SUM(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),1,0)) AS wkorders,
 								SUM(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,0)) AS wksales,
 								AVG(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,null)) AS wkavg
 		 						FROM $purchasetable");
 
-		echo '<h3 class="reallynow">Last 30 Days</h3>';
-		echo '<ul>';
-		echo "<li><strong>Orders:</strong> $results->wkorders</li>";
-		echo "<li><strong>Sales:</strong> ".money($results->wksales)."</li>";
-		echo "<li><strong>Order Average:</strong> ".money($results->wkavg)."</li>";
-		echo '</ul>';
-		
-		echo '<h3>Lifetime</h3>';
-		echo '<ul>';
-		echo "<li><strong>Orders:</strong> $results->orders</li>";
-		echo "<li><strong>Sales:</strong> ".money($results->sales)."</li>";
-		echo "<li><strong>Order Average:</strong> ".money($results->average)."</li>";
-		echo '</ul>';
+		$orderscreen = get_bloginfo('wpurl').'/wp-admin/admin.php?page='.$this->Admin->orders;
+		echo '<div class="table"><table><tbody>';
+		echo '<tr><th colspan="2">Last 30 Days</th><th colspan="2">Lifetime</th></tr>';
 
+		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.$results->wkorders.'</a></td><td>'.__('Orders','Shopp').'</td>';
+		echo '<td class="amount"><a href="'.$orderscreen.'">'.$results->orders.'</a></td><td>'.__('Orders','Shopp').'</td></tr>';
+
+		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.money($results->wksales).'</a></td><td>'.__('Sales','Shopp').'</td>';
+		echo '<td class="amount"><a href="'.$orderscreen.'">'.money($results->sales).'</a></td><td>'.__('Sales','Shopp').'</td></tr>';
+
+		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.money($results->wkavg).'</a></td><td>'.__('Average Order','Shopp').'</td>';
+		echo '<td class="amount"><a href="'.$orderscreen.'">'.money($results->average).'</a></td><td>'.__('Average Order','Shopp').'</td></tr>';
+
+		echo '</tbody></table></div>';
+		
 		echo $after_widget;
 		
 	}
@@ -1604,20 +1622,22 @@ class Flow {
 		echo $after_title;
 
 		$RecentBestsellers = new BestsellerProducts(array('where'=>'UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)','show'=>3));
-		echo '<h3>Recent Bestsellers</h3>';
+		
+		echo '<table><tbody><tr>';
+		echo '<td><h4>Recent Bestsellers</h4>';
 		echo '<ul>';
 		foreach ($RecentBestsellers->products as $product) 
-			echo '<li><a href="admin.php?page='.$this->Admin->products.'&edit='.$product->id.'">'.$product->name.'</a></li>';
-		echo '</ul>';
+			echo '<li><a href="admin.php?page='.$this->Admin->products.'&edit='.$product->id.'">'.$product->name.'</a> ('.$product->sold.')</li>';
+		echo '</ul></td>';
 		
-
+		
 		$LifetimeBestsellers = new BestsellerProducts(array('show'=>3));
-		echo '<h3>Lifetime Bestsellers</h3>';
+		echo '<td><h4>Lifetime Bestsellers</h4>';
 		echo '<ul>';
 		foreach ($LifetimeBestsellers->products as $product) 
-			echo '<li><a href="admin.php?page='.$this->Admin->products.'&edit='.$product->id.'">'.$product->name.'</a></li>';
-		echo '</ul>';
-
+			echo '<li><a href="admin.php?page='.$this->Admin->products.'&edit='.$product->id.'">'.$product->name.'</a> ('.$product->sold.')</li>';
+		echo '</ul></td>';
+		echo '</tr></tbody></table>';
 		echo $after_widget;
 		
 	}

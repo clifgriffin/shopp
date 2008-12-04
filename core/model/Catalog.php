@@ -22,7 +22,7 @@ class Catalog extends DatabaseObject {
 		$this->type = $type;
 	}
 	
-	function load_categories ($filtering=false) {
+	function load_categories ($filtering=false,$showsmarts=false) {
 		$db = DB::get();
 
 		if (!empty($filtering['limit'])) $filtering['limit'] = "LIMIT ".$filtering['limit'];

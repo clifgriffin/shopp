@@ -1,15 +1,11 @@
-function quickSelects (target) {
-	(function($) {
-	if (!target) target = $('.selectall');
-	else target = $(target).find('.selectall');
-	$(target).each(function(input) {
-		$(this).mouseup(function (e) {
-			this.select();
-		});
-	});
-	})(jQuery)
-}
+//
+// Utility functions
+//
 
+/**
+ * copyOf ()
+ * Returns a copy/clone of an object
+ **/
 function copyOf (src) {
 	var target = new Object();
 	for (v in src) target[v] = src[v];
@@ -18,7 +14,6 @@ function copyOf (src) {
 
 /**
  * asMoney ()
- * 
  * Add notation to an integer to display it as money.
  **/
 function asMoney (number,format) {
@@ -40,7 +35,6 @@ function asMoney (number,format) {
 
 /**
  * asPercent ()
- * 
  * Add notation to an integer to display it as a percentage.
  **/
 function asPercent (number,format) {
@@ -57,7 +51,6 @@ function asPercent (number,format) {
 
 /**
  * formatNumber ()
- * 
  * Formats a number to denote thousands with decimal precision.
  **/
 function formatNumber (number,format) {
@@ -86,9 +79,9 @@ function formatNumber (number,format) {
 	return number;
 
 }
+
 /**
  * asNumber ()
- * 
  * Convert a field with numeric and non-numeric characters
  * to a true integer for calculations.
  **/
@@ -102,6 +95,11 @@ var asNumber = function(number) {
 	return new Number(number);
 }
 
+/**
+ * CallbackRegistry ()
+ * Utility class to build a list of functions (callbacks) 
+ * to be executed as needed
+ **/
 var CallbackRegistry = function() {
 	this.callbacks = new Array();
 
@@ -118,6 +116,11 @@ var CallbackRegistry = function() {
 	}
 }
 
+/**
+ * addEvent ()
+ * Adds/binds an event listener to an element in the DOM
+ * Cross-browser compatible
+ **/
 function addEvent( obj, type, fn ) {
 	if ( obj.addEventListener ) {
 		obj.addEventListener( type, fn, false );
@@ -133,7 +136,11 @@ function addEvent( obj, type, fn ) {
 	}
 };
 
-
+/**
+ * removeEvent ()
+ * Removes/unbinds an event listener from an element in the DOM
+ * Cross-browser compatible
+ **/
 function removeEvent( obj, type, fn ) {
 	if ( obj.removeEventListener ) {
 		obj.removeEventListener( type, fn, false );
@@ -151,7 +158,6 @@ function removeEvent( obj, type, fn ) {
 
 /**
  * formatFields ()
- * 
  * Find fields that need display formatting and 
  * run the approriate formatting.
  */
@@ -165,6 +171,17 @@ function formatFields () {
 }
 
 
+
+//
+// Cart Behaviors
+//
+
+
+/**
+ * addtocart ()
+ * Makes a request to add the selected product/product variation
+ * to the shopper's cart
+ **/
 function addtocart () {
 	var button = this;
 	(function($) {
@@ -183,7 +200,7 @@ function addtocart () {
 	}
 
 	if ($(button).hasClass('ajax')) {
-		cartajax(button.form.action,$(button.form).serialize());
+		ShoppCartAjaxRequest(button.form.action,$(button.form).serialize());
 	} else {
 		button.form.submit();
 	}
@@ -191,6 +208,10 @@ function addtocart () {
 	})(jQuery)	
 }
 
+/**
+ * cartajax ()
+ * Makes an asyncronous request to the cart
+ **/
 function cartajax (url,data,response) {
 	(function($) {
 	if (!response) response = "json";
@@ -209,6 +230,23 @@ function cartajax (url,data,response) {
 	})(jQuery)
 }
 
+/**
+ * ShoppCartAjaxRequest ()
+ * Overridable wrapper function to call cartajax.
+ * Developers can recreate this function in their own
+ * custom JS libraries to change the way cartajax is called.
+ **/
+var ShoppCartAjaxRequest = function (url,data,response) {
+	cartajax(url,data,response);
+}
+
+/**
+ * ShoppCartAjaxHandler ()
+ * Overridable wrapper function to handle cartajax responses.
+ * Developers can recreate this function in their own
+ * custom JS libraries to change the way the cart response
+ * is processed and displayed to the shopper.
+ **/
 var ShoppCartAjaxHandler = function (cart) {
 	(function($) {
 		var display = $('#shopp-cart-ajax');
@@ -231,6 +269,29 @@ var ShoppCartAjaxHandler = function (cart) {
 }
 
 
+//
+// Generic behaviors
+//
+
+/**
+ * quickSelects ()
+ * Usability behavior to add automatic select-all to a field 
+ * when activating the field by mouse click
+ **/
+function quickSelects (target) {
+	(function($) {
+		if (!target) target = $('.selectall');
+		else target = $(target).find('.selectall');
+		$(target).each(function(input) {
+			$(this).mouseup(function (e) { this.select(); });
+		});
+	})(jQuery)
+}
+
+/**
+ * buttonHandlers ()
+ * Hooks callbacks to button events
+ **/
 function buttonHandlers () {
 	var inputs = document.getElementsByTagName('input');
 	for (var i = 0; i < inputs.length; i++) {
@@ -239,7 +300,11 @@ function buttonHandlers () {
 	}
 }
 
-function categoryControlHandlers () {
+/**
+ * catalogViewHandler ()
+ * Handles catalog view changes
+ **/
+function catalogViewHandler () {
 	(function($) {
 		var display = $('#shopp');
 		var expires = new Date();
@@ -258,19 +323,23 @@ function categoryControlHandlers () {
 	})(jQuery)
 }
 
-
+/**
+ * cartHandlers ()
+ * Adds behaviors to shopping cart controls
+ **/
 function cartHandlers () {
-	var form = document.getElementById('cart');
-	if (form) {
-		var shipcountry = document.getElementById('shipping-country');
-		if (shipcountry) {
-			shipcountry.onchange = function () {
-				form.submit();
-			}
-		}
-	}
+	(function($) {
+		$('#cart #shipping-country').change(function () {
+			this.form.submit();
+		});
+	})(jQuery)
 }
 
+/**
+ * helpHandler ()
+ * Adds contextual help linking to the Help link in 
+ * the Shopp admin screens
+ **/
 function helpHandler () {
 	var wpwrap = document.getElementById("wpwrap");
 	if (!wpwrap) return true;
@@ -280,7 +349,7 @@ function helpHandler () {
 			var links = $(wpwrap).find("a");
 			links.each(function (index,link) {
 				var href = $(link).attr('href');
-				if (href.match(new RegExp(/(.*?)=shopp\/help$/))) {
+				if (href && href.match(new RegExp(/(.*?)=shopp\/help$/))) {
 					href = href.replace(new RegExp(/(.*?)=shopp\/help$/),helpurl);
 					$(link).attr('href',href);
 					$(link).attr('target','_blank');
@@ -482,12 +551,13 @@ function PopupCalendar (target,month,year) {
 		}
 	}
 	
-	/* getDayMap() -- 
+	/**
+	 * getDayMap()
 	 * Fill in an array of 42 integers with a calendar.  Assume for a moment 
 	 * that you took the (maximum) 6 rows in a calendar and stretched them 
 	 * out end to end.  You would have 42 numbers or spaces.  This routine 
-	 * builds that array for any month from Jan. 1 through Dec. 9999. */ 
-
+	 * builds that array for any month from Jan. 1 through Dec. 9999. 
+	 **/ 
 	this.getDayMap = function (month, year, start_week, all) {
 		var day = 1;
 		var c = 0;
@@ -516,7 +586,7 @@ function PopupCalendar (target,month,year) {
 	} 
 
 	/* dayInYear() -- 
-	 * return the day of the year */ 
+	 * Return the day of the year */ 
 	this.dayInYear = function (day, month, year) {
 	    var leap = (this.is_leapyear( year ))?1:0; 
 	    for(var i = 1; i < month; i++) {
@@ -562,14 +632,13 @@ function PopupCalendar (target,month,year) {
 	this.leapYearsSinceBC = function (yr) {
 		return (Math.floor(yr / 4) - this.centuriesSince1700(yr) + this.quadCenturiesSince1700(yr));
 	}
-
 	
 }
 
 addEvent(window,'load',function () {
 	buttonHandlers();
 	cartHandlers();
-	categoryControlHandlers();
+	catalogViewHandler();
 	helpHandler();
 });
 

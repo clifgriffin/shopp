@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0b7.1
+Version: 1.0b7.2
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0b7.1");
+define("SHOPP_VERSION","1.0b7.2");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -157,7 +157,7 @@ class Shopp {
 			$pages = $this->Settings->get('pages');
 			foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
 			if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='publish' WHERE $filter");
-			
+			$this->page_updates(true);
 		}
 			
 
@@ -182,13 +182,16 @@ class Shopp {
 	 * add_menus()
 	 * Adds the WordPress admin menus */
 	function add_menus () {
-		$main = add_menu_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
+		
+		if (function_exists('add_object_page')) $main = add_object_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
+		else $main = add_menu_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
 		$orders = add_submenu_page($this->Flow->Admin->default,__('Orders','Shopp'), __('Orders','Shopp'), 8, $this->Flow->Admin->orders, array(&$this,'orders'));
 		$promotions = add_submenu_page($this->Flow->Admin->default,__('Promotions','Shopp'), __('Promotions','Shopp'), 8, $this->Flow->Admin->promotions, array(&$this,'promotions'));
 		$products = add_submenu_page($this->Flow->Admin->default,__('Products','Shopp'), __('Products','Shopp'), 8, $this->Flow->Admin->products, array(&$this,'products'));
 		$categories = add_submenu_page($this->Flow->Admin->default,__('Categories','Shopp'), __('Categories','Shopp'), 8, $this->Flow->Admin->categories, array(&$this,'categories'));
 		$settings = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), 8, $this->Flow->Admin->settings, array(&$this,'settings'));
 		$help = add_submenu_page($this->Flow->Admin->default,__('Help','Shopp'), __('Help','Shopp'), 8, $this->Flow->Admin->help, array(&$this,'help'));
+
 		add_action("admin_print_scripts-$main", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$orders", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$categories", array(&$this, 'admin_behaviors'));
@@ -196,12 +199,17 @@ class Shopp {
 		add_action("admin_print_scripts-$promotions", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$settings", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$help", array(&$this, 'admin_behaviors'));		
+
+		// if (function_exists('add_contextual_help')) {
+		// 	add_contextual_help($main, array(&$this, 'help'));
+		// }
 	}
 
 	/**
 	 * admin_behaviors()
 	 * Dynamically includes necessary JavaScript and stylesheets for the admin */
 	function admin_behaviors () {
+		global $wp_version;
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js");
 		
@@ -216,10 +224,9 @@ class Shopp {
 			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery-ui-core'), '1.5');
 			
 			wp_enqueue_script('swfupload');
-			// wp_enqueue_script('swfupload-degrade');			
+			if (version_compare($wp_version,"2.6.9","<")) wp_enqueue_script('swfupload-degrade');
+			else wp_enqueue_script('swfupload-swfobject');
 		}
-		
-		
 		
 		?>
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css' type='text/css' />
@@ -240,7 +247,7 @@ class Shopp {
 	function dashboard_init () {
 		
 		wp_register_sidebar_widget('dashboard_shopp_stats', 'Shopp Stats', array(&$this->Flow,'dashboard_stats'),
-			array('all_link' => '','feed_link' => '','width' => 'fourth','height' => 'single')
+			array('all_link' => '','feed_link' => '','width' => 'half','height' => 'single')
 		);
 
 		wp_register_sidebar_widget('dashboard_shopp_orders', 'Shopp Orders', array(&$this->Flow,'dashboard_orders'),
@@ -248,7 +255,7 @@ class Shopp {
 		);
 
 		wp_register_sidebar_widget('dashboard_shopp_products', 'Shopp Products', array(&$this->Flow,'dashboard_products'),
-			array('all_link' => 'admin.php?page='.$this->Flow->Admin->products,'feed_link' => '','width' => 'fourth','height' => 'single')
+			array('all_link' => 'admin.php?page='.$this->Flow->Admin->products,'feed_link' => '','width' => 'half','height' => 'single')
 		);
 		
 	}
@@ -777,10 +784,12 @@ class Shopp {
 		// Check for taxes, or process order
 		if ($this->Settings->get('taxes') == "on") {
 			$taxrates = $this->Settings->get('taxrates');
-			foreach($taxrates as $setting) {
-				if ($Order->Shipping->state == $setting['zone']) {
-					$this->Cart->data->Totals->taxrate = $setting['rate'];
-					break;					
+			if (!empty($taxrates)) {
+				foreach($taxrates as $setting) {
+					if ($Order->Shipping->state == $setting['zone']) {
+						$this->Cart->data->Totals->taxrate = $setting['rate'];
+						break;					
+					}
 				}
 			}
 
@@ -905,8 +914,7 @@ class Shopp {
 				exit();
 				break;
 			case "category-products-menu":
-				
-				
+				echo $this->Flow->category_products();
 				exit();
 				break;
 			case "spectemplate":
