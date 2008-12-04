@@ -48,7 +48,6 @@ function init () {
 	quickSelects();
 		
 	imageUploads = new ImageUploads({"product" : $('#image-product-id').val()});
-	fileUploader = new FileUploads();	
 }
 
 function categories () {

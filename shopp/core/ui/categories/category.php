@@ -137,6 +137,7 @@
 </div>
 
 <script type="text/javascript">
+helpurl = "<?php echo SHOPP_DOCS; ?>Category_Editor";
 
 var category = <?php echo (!empty($Category->id))?$Category->id:'false'; ?>;
 var details = <?php echo json_encode($Category->specs) ?>;

@@ -1,7 +1,7 @@
 <?php
 
-$root = dirname(__FILE__);
-$root = "/Users/jond/Sites/wordpress";
+$root = __FILE__;
+for ($i = 0; $i < 8; $i++) $root = dirname($root);
 require_once($root.'/wp-load.php');
 require_once(ABSPATH.'/wp-admin/admin.php');
 if(!current_user_can('edit_posts')) die;
@@ -21,10 +21,9 @@ do_action('admin_init');
 	<script language="javascript" type="text/javascript" src="<?php echo get_option('siteurl') ?>/wp-includes/js/jquery/jquery.js"></script>
 	<script language="javascript" type="text/javascript">
 	
+	var _self = tinyMCEPopup;
 	function init () {
-		jQuery('#product-selector').hide();
-		var category_menu = jQuery('#category-menu');
-		var product_menu = jQuery('#product-menu');
+		changeCategory();
 	}
 	
 	function insertTag () {
@@ -45,13 +44,22 @@ do_action('admin_init');
 	function closePopup () {
 		tinyMCEPopup.close();
 	}
-	
+
+	function changeCategory () {
+		var menu = jQuery('#category-menu');
+		var products = jQuery('#product-menu');
+		jQuery.get("<?php echo get_option('siteurl') ?>?shopp_lookup=category-products-menu",{category:menu.val()},function (results) {
+			products.empty().html(results);
+		},'string');
+	}
+		
 	</script>
 	
 	<style type="text/css">
 		table th { vertical-align: top; }
 		.panel_wrapper { border-top: 1px solid #909B9C; }
 		.panel_wrapper div.current { height:auto !important; }
+		#product-menu { width: 180px; }
 	</style>
 	
 </head>
@@ -59,12 +67,11 @@ do_action('admin_init');
 
 <div id="wpwrap">
 <form onsubmit="insertTag();return false;" action="#">
-	
 	<div class="panel_wrapper">
 		<table border="0" cellpadding="4" cellspacing="0">
 		<tr>
 		<th nowrap="nowrap"><label for="category-menu"><?php _e("Category", 'Shopp'); ?></label></th>
-		<td><select id="category-menu" name="category"><?php echo $Shopp->Flow->category_menu(); ?></select></td>
+		<td><select id="category-menu" name="category" onchange="changeCategory()"><?php echo $Shopp->Flow->category_menu(); ?></select></td>
 		</tr>
 		<tr id="product-selector">
 		<th nowrap="nowrap"><label for="product-menu"><?php _e("Product", 'Shopp'); ?></label></th>
@@ -75,7 +82,7 @@ do_action('admin_init');
 	
 	<div class="mceActionPanel">
 		<div style="float: left">
-			<input type="button" id="cancel" name="cancel" value="{#cancel}" onclick="closePopup()" />
+			<input type="button" id="cancel" name="cancel" value="{#cancel}" onclick="closePopup()"/>
 		</div>
 
 		<div style="float: right">
