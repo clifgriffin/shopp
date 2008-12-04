@@ -106,10 +106,10 @@ function addDetail (data) {
 		var optionsmenu = $('<select name="details['+menu.index+'][content]"></select>').appendTo(menu.itemsElement);
 		for (var i in data.options) $('<option>'+data.options[i]['name']+'</option>').appendTo(optionsmenu);		
 		if (data && data.content) optionsmenu.val(htmlentities(data.content));	
-	} else {
-		menu.add = $('<input type="hidden" name="details['+menu.index+'][new]" value="true" />').appendTo(menu.element);
-		menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);	
-	} 
+	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);	
+	
+	if (!data) menu.add = $('<input type="hidden" name="details['+menu.index+'][new]" value="true" />').appendTo(menu.element);
+	
 }
 
 function loadVariations (options,prices) {
@@ -657,7 +657,8 @@ function ImageUploads () {
 		upload_complete_handler : imageUploadComplete,
 		queue_complete_handler : imageQueueComplete,
 
-		custom_settings : { 
+		custom_settings : {
+			loaded: false,
 			targetHolder : false,
 			progressBar : false,
 			sorting : false
@@ -717,9 +718,7 @@ function ImageUploads () {
 	});
 	
 	$(window).load(function() {
-		if (!swfu.loaded) {
-			$('#product-images .swfupload').remove();
-		}
+		if (!swfu.loaded && !flash9) $('#product-images .swfupload').remove();
 	});
 	
 	if (flash9) $("#add-product-image").click(function(){ swfu.selectFiles(); });
@@ -849,10 +848,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		file_types_description : "All Files",
 		file_upload_limit : filesizeLimit,
 		debug: false,
-		
-		// swfupload_element_id : $(defaultButton).attr('id'),
-		// degraded_element_id : $(defaultButton).attr('id'),
-		
+				
 		swfupload_loaded_handler : swfuLoaded,
 		file_queue_error_handler : fileQueueError,
 		file_dialog_complete_handler : fileDialogComplete,
@@ -880,7 +876,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 	// Handle file uploads depending on whether the Flash uploader loads or not
 	$(window).load(function() {
 		if (!_self.swfu.loaded) {
-			$('.swfupload').remove();
+			$(defaultButton).parent().parent().find('.swfupload').remove();
 			
 			// Browser-based AJAX uploads
 			defaultButton.upload({
