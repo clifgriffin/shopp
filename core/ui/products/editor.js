@@ -98,6 +98,7 @@ function categories () {
 		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=spectemplate&cat="+id,function (speclist) {
 			if (!speclist) return true;
 			for (id in speclist) {
+				speclist[id].add = true;
 				if (details.toString().search(speclist[id]['name']) == -1) addDetail(speclist[id]);
 			}
 		});

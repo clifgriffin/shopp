@@ -223,7 +223,7 @@ class Product extends DatabaseObject {
 				if (!$tagid) {
 					$Tag = new Tag();
 					$Tag->name = $tag;
-					$Tag->save();
+					if (!empty($Tag->name)) $Tag->save();
 					$tagid = $Tag->id;
 				}
 				

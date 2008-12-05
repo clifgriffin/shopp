@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0b7.2
+Version: 1.0b7.3
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0b7.2");
+define("SHOPP_VERSION","1.0b7.3");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -1157,7 +1157,7 @@ function shopp () {
 		list($key,$value) = split("=",$paramset);
 		$options[strtolower($key)] = $value;
 	}
-
+	
 	$result = "";
 	switch (strtolower($object)) {
 		case "cart": $result = $Shopp->Cart->tag($property,$options); break;

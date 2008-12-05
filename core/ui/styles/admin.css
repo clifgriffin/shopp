@@ -13,7 +13,8 @@ body { position: relative; }
 #check-update.updating { background: url('/wp-content/plugins/shopp/core/ui/icons/updating.gif') no-repeat 4px center; padding-left: 25px; }
 #add-new-category.updating { background: url('/wp-content/plugins/shopp/core/ui/icons/updating.gif') no-repeat 4px center; }
 
-#product #tagchecklist span { background: #fff; padding: 1px 5px 1px 18px; margin-right: 5px;}
+#product #tagchecklist { margin-left: 0; }
+#product #tagchecklist span { background: #fff; padding: 1px 5px 1px 18px; margin-right: 5px; margin-top: 5px; border: 1px solid #dfdfdf; }
 #product #tagchecklist span a { margin-left: -13px;  }
 
 .form-table input.toggle { margin-left: -13px; }

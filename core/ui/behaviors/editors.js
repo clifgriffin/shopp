@@ -108,7 +108,7 @@ function addDetail (data) {
 		if (data && data.content) optionsmenu.val(htmlentities(data.content));	
 	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);	
 	
-	if (!data) menu.add = $('<input type="hidden" name="details['+menu.index+'][new]" value="true" />').appendTo(menu.element);
+	if (!data || data.add) menu.add = $('<input type="hidden" name="details['+menu.index+'][new]" value="true" />').appendTo(menu.element);
 	
 }
 
@@ -623,7 +623,7 @@ function variationsToggle () {
 /**
  * Image Uploads using SWFUpload or the jQuery plugin One Click Upload
  **/
-function ImageUploads () {
+function ImageUploads (params) {
 	var swfu;
 	
 	var settings = {
@@ -641,7 +641,7 @@ function ImageUploads () {
 		file_types : "*.jpg;*.jpeg;*.png;*.gif",
 		file_types_description : "Web-compatible Image Files",
 		file_upload_limit : filesizeLimit,
-		post_params : {"product" : $('#image-product-id').val()},
+		post_params : params,
 
 		swfupload_element_id : "swf-uploader",
 		degraded_element_id : "browser-uploader",
@@ -721,10 +721,10 @@ function ImageUploads () {
 		if (!swfu.loaded && !flash9) $('#product-images .swfupload').remove();
 	});
 	
-	if (flash9) $("#add-product-image").click(function(){ swfu.selectFiles(); });
+	if (flash9) $("#add-image").click(function(){ swfu.selectFiles(); });
 
 	if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
-	$('#product-images ul li button.deleteButton').each(function () {
+	$('#lightbox li button.deleteButton').each(function () {
 		enableDeleteButton(this);
 	});
 

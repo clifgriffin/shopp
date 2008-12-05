@@ -34,6 +34,7 @@
 				<th scope="row" valign="top"><label><?php _e('Category Images','Shopp'); ?></label>
 					<input type="hidden" name="category" value="<?php echo $_GET['edit']; ?>" id="image-category-id" />
 					<input type="hidden" name="deleteImages" id="deleteImages" value="" />
+					<div id="swf-uploader-button"></div>
 					<div id="swf-uploader">
 					<button type="button" class="button-secondary" name="add-image" id="add-image" tabindex="10"><small><?php _e('Add New Image','Shopp'); ?></small></button></div>
 					<div id="browser-uploader">
@@ -139,6 +140,7 @@
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Category_Editor";
 
+var flash9 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
 var category = <?php echo (!empty($Category->id))?$Category->id:'false'; ?>;
 var details = <?php echo json_encode($Category->specs) ?>;
 var priceranges = <?php echo json_encode($Category->priceranges) ?>;
