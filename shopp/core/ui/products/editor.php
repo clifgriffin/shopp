@@ -4,8 +4,7 @@
 <h2><?php _e('Product Editor','Shopp'); ?></h2> 
 
 <div id="ajax-response"></div> 
-<?php $action = (!empty($Product->id)?$Product->id:'new'); ?>
-<form name="product" id="product" action="<?php echo admin_url("admin.php?page=".$this->Admin->products."&edit=$action"); ?>" method="post">
+<form name="product" id="product" action="<?php echo $action; ?>" method="post">
 	<?php wp_nonce_field('shopp-save-product'); ?>
 	
 	<table class="form-table"> 
@@ -94,7 +93,7 @@
 				<input type="hidden" name="deleteImages" id="deleteImages" value="" />
 				<div id="swf-uploader-button"></div>
 				<div id="swf-uploader">
-				<button type="button" class="button-secondary" name="add-image" id="add-product-image" tabindex="10"><small><?php _e('Add New Image','Shopp'); ?></small></button></div>
+				<button type="button" class="button-secondary" name="add-image" id="add-image" tabindex="10"><small><?php _e('Add New Image','Shopp'); ?></small></button></div>
 				<div id="browser-uploader">
 					<button type="button" name="image_upload" id="image-upload" class="button-secondary"><small><?php _e('Add New Image','Shopp'); ?></small></button><br class="clear"/>
 				</div>

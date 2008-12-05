@@ -191,7 +191,7 @@ function addtocart () {
 		var selections = true;		
 		for (menu in options) 
 			if (options[menu].selectedIndex == 0) selections = false;
-		
+
 		if (!selections) {
 			if (!options_required) options_required = "You must select the options for this item before you can add it to your shopping cart.";
 			alert(options_required);
@@ -204,8 +204,9 @@ function addtocart () {
 	} else {
 		button.form.submit();
 	}
-	
-	})(jQuery)	
+
+	})(jQuery)
+	return false;
 }
 
 /**

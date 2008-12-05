@@ -93,6 +93,7 @@ class Catalog extends DatabaseObject {
 				$depth = 0;
 				$parent = false;
 				$showall = false;
+				
 				if (isset($options['showall'])) $showall = $options['showall'];
 
 				$title = $options['title'];
@@ -255,12 +256,25 @@ class Catalog extends DatabaseObject {
 			case "category":
 				if ($property == "category") {
 					if (isset($options['name'])) $Shopp->Category = new Category($options['name'],'name');
+					else if (isset($options['slug'])) $Shopp->Category = new Category($options['slug'],'slug');
 					else if (isset($options['id'])) $Shopp->Category = new Category($options['id']);
 				}
+				if (isset($options['load'])) return true;
 				if (isset($options['controls']) && !value_is_true($options['controls'])) 
 					$Shopp->Category->controls = false;
 				ob_start();
 				include(SHOPP_TEMPLATES."/category.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+				return $content;
+				break;
+			case "product":
+				if (isset($options['name'])) $Shopp->Product = new Product($options['name'],'name');
+				else if (isset($options['slug'])) $Shopp->Product = new Product($options['slug'],'slug');
+				else if (isset($options['id'])) $Shopp->Product = new Product($options['id']);
+				if (isset($options['load'])) return true;
+				ob_start();
+				include(SHOPP_TEMPLATES."/product.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;

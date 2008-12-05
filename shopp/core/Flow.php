@@ -279,6 +279,7 @@ class Flow {
 		}
 
 		if (!empty($Request['promocode'])) {
+			$Cart->data->PromoCodeResult = "";
 			if (!in_array($Request['promocode'],$Cart->data->PromoCodes)) {
 				$Cart->data->PromoCode = attribute_escape($Request['promocode']);
 				$Request['update'] = true;
@@ -922,16 +923,21 @@ class Flow {
 			$matchcol = ", $match  AS score";
 			$orderby = "score DESC";
 		}
-
-		$productcount = $db->query("SELECT count(*) as total $matchcol FROM $pd $where");
+		
+		// Get total product count, taking into consideration for filtering
+		if (!empty($_GET['s'])) $productcount = $db->query("SELECT count($match) as total FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where");
+		elseif (!empty($_GET['cat'])) $productcount = $db->query("SELECT count(*) as total $matchcol FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where");
+		else $productcount = $db->query("SELECT count(*) as total $matchcol FROM $pd $where");
+		
+		// Load the products
 		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page",AS_ARRAY);
 
 		$num_pages = ceil($productcount->total / $per_page);
 		$page_links = paginate_links( array(
-			'base' => add_query_arg( 'pagenum', '%#%' ),
+			'base' => add_query_arg(array("edit"=>null,'pagenum' => '%#%')),
 			'format' => '',
 			'total' => $num_pages,
-			'current' => $pagenum
+			'current' => $pagenum,
 		));
 		
 		include("{$this->basepath}/core/ui/products/products.php");
@@ -1055,6 +1061,11 @@ class Flow {
 		$shiprates = $this->Settings->get('shipping_rates');
 		if (!empty($shiprates)) ksort($shiprates);
 
+		$process = (!empty($Product->id)?$Product->id:'new');
+		$action = wp_get_referer();
+		if (empty($action)) $action = admin_url("admin.php?page=".$this->Admin->products);
+		$action = add_query_arg('edit',$process,$action);
+
 		include("{$this->basepath}/core/ui/products/editor.php");
 
 	}
@@ -1161,7 +1172,7 @@ class Flow {
 			$Product->link_images($_POST['images']);
 			$Product->save_imageorder($_POST['images']);
 		}
-		
+				
 		unset($Product);
 		return true;
 	}
@@ -1241,7 +1252,7 @@ class Flow {
 				case "0": $SmallSizing->scaleToFit($SmallSettings['width'],$SmallSettings['height']); break;
 				case "1": $SmallSizing->scaleCrop($SmallSettings['width'],$SmallSettings['height']); break;
 			}
-			$SmallSizing->UnsharpMask();
+			$SmallSizing->UnsharpMask(80);
 			$Small->data = addslashes($SmallSizing->imagefile($SmallSettings['quality']));
 			$Small->properties = array();
 			$Small->properties['width'] = $SmallSizing->Processed->width;
@@ -1324,7 +1335,7 @@ class Flow {
 		$count = $db->query("SELECT count(*) AS total FROM $table");
 		$num_pages = ceil($count->total / $per_page);
 		$page_links = paginate_links( array(
-			'base' => add_query_arg( 'pagenum', '%#%' ),
+			'base' => add_query_arg( array('edit'=>null,'pagenum' => '%#%' )),
 			'format' => '',
 			'total' => $num_pages,
 			'current' => $pagenum
