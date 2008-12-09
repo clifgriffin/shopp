@@ -201,6 +201,7 @@ class Product extends DatabaseObject {
 		$db = DB::get();
 		
 		if (empty($updates)) $updates = array();
+		$updates = stripslashes_deep($updates);
 		
 		$current = array();
 		foreach ($this->tags as $tag) $current[] = $tag->name;
@@ -360,11 +361,18 @@ class Product extends DatabaseObject {
 	
 	function tag ($property,$options=array()) {
 		global $Shopp;
-		$pages = $Shopp->Settings->get('pages');
-		if (SHOPP_PERMALINKS) $imageuri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
-		else $imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
+
+		$baseurl = $Shopp->link('catalog');
+		if (SHOPP_PERMALINKS) $imageuri = $baseurl .= "images/";
+		else $imageuri = add_query_arg('shopp_image','=',$baseurl);
 				
 		switch ($property) {
+			case "url": 
+				$url = $Shopp->link('catalog');
+				if (SHOPP_PERMALINKS) $url .= "new/$this->slug/";
+				else $url = add_query_arg('shopp_pid',$this->id,$url);
+				return $url;
+				break;
 			case "found": if (!empty($this->id)) return true; else return false; break;
 			case "name": return $this->name; break;
 			case "summary": return $this->summary; break;

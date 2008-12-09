@@ -138,9 +138,9 @@
 </div>
 
 <script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>Category_Editor";
+helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Category";
 
-var flash9 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
+var swfu20 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
 var category = <?php echo (!empty($Category->id))?$Category->id:'false'; ?>;
 var details = <?php echo json_encode($Category->specs) ?>;
 var priceranges = <?php echo json_encode($Category->priceranges) ?>;
@@ -167,6 +167,7 @@ var changes = false;
 var saving = false;
 var flashUploader = false;
 var pricesPayload = false;
+var flash = flashua();
 
 $=jQuery.noConflict();
 
@@ -248,7 +249,7 @@ $(window).ready(function () {
 		$('<option value="disabled">Faceted menu disabled</option>').appendTo(facetedMenu);
 		$('<option value="auto">Build faceted menu automatically</option>').appendTo(facetedMenu);
 		$('<option value="ranges">Build as custom number ranges</option>').appendTo(facetedMenu);
-		$('<option value="custom">Build from custom text options</option>').appendTo(facetedMenu);
+		$('<option value="custom">Build from preset options</option>').appendTo(facetedMenu);
 		
 		if (data && data.facetedmenu) facetedMenu.val(data.facetedmenu);
 		

@@ -212,7 +212,7 @@ class Category extends DatabaseObject {
 		$promotable = DatabaseObject::tablename(Promotion::$table);
 		$assettable = DatabaseObject::tablename(Asset::$table);
 
-		$columns = "p.id,p.name,p.summary,p.description,
+		$columns = "p.id,p.name,p.slug,p.summary,p.description,
 					img.id AS thumbnail,img.properties AS thumbnail_properties,
 					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0))AS percentoff,
 					SUM(DISTINCT IF(pr.type='Amount Off',pr.discount,0)) AS amountoff,
@@ -362,22 +362,16 @@ class Category extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		$db = DB::get();
-		
-		$pages = $Shopp->Settings->get('pages');
-		if (SHOPP_PERMALINKS) $imageuri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
-		else $imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
-		
-		
+
 		$page = $Shopp->link('catalog');
+		if (SHOPP_PERMALINKS) $imageuri = $page."images/";
+		else $imageuri = add_query_arg('shopp_image','=',$page);
+		
 		if (SHOPP_PERMALINKS) {
 			$pages = $Shopp->Settings->get('pages');
-			$path = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['name']}";
-			if ($page == get_bloginfo('wpurl')."/") {
+			if ($page == get_bloginfo('wpurl')."/")
 				$page .= $pages['catalog']['name']."/";
-			}
-			$imagepath = $Shopp->link('catalog')."images/";
 		}
-		else $imagepath = "?shopp_image=";
 		
 		switch ($property) {
 			case "name": return $this->name; break;
@@ -609,12 +603,16 @@ class Category extends DatabaseObject {
 				foreach ($this->specs as $spec) {
 					$list = "";
 					if (!empty($CategoryFilters[$spec['name']])) continue;
+					
+					// For custom menu presets
 					if ($spec['facetedmenu'] == "custom" && !empty($spec['options'])) {
 						foreach ($spec['options'] as $option) {
 							$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($option['name']);
 							$list .= '<li><a href="'.$href.'">'.$option['name'].'</a></li>';
 						}
 						$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
+						
+					// For preset ranges
 					} elseif ($spec['facetedmenu'] == "ranges" && !empty($spec['options'])) {
 						foreach ($spec['options'] as $i => $option) {
 							$matches = array();
@@ -644,7 +642,8 @@ class Category extends DatabaseObject {
 							$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 						}
 						$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
-						
+
+					// For automatically building the menu options
 					} elseif ($spec['facetedmenu'] == "auto" && isset($specdata[$spec['name']])) {
 						
 						if (is_array($specdata[$spec['name']])) { // Generate from text values
@@ -715,7 +714,7 @@ class Category extends DatabaseObject {
 			case "product":
 				$product = current($this->products);
 
-				if (SHOPP_PERMALINKS) $link = $page.$this->uri.'/'.sanitize_title_with_dashes($product->name);
+				if (SHOPP_PERMALINKS) $link = $page.$this->uri.'/'.$product->slug.'/';
 				else {
 					if (isset($Shopp->Category->smart)) $link = $page.'&shopp_category='.$this->slug.'&shopp_pid='.$product->id;
 					else $link = $page.'&shopp_category='.$this->id.'&shopp_pid='.$product->id;
@@ -727,7 +726,7 @@ class Category extends DatabaseObject {
 				if (array_key_exists('link',$options)) $string .= '<a href="'.$link.'" title="'.$product->name.'">';
 				if (array_key_exists('thumbnail',$options)) {
 					if (!empty($product->thumbnail)) {
-						$string .= '<img src="'.$imagepath.$product->thumbnail.'" alt="'.$product->name.' (thumbnail)" width="'.$thumbprops['width'].'" height="'.$thumbprops['height'].'" />';
+						$string .= '<img src="'.$imageuri.$product->thumbnail.'" alt="'.$product->name.' (thumbnail)" width="'.$thumbprops['width'].'" height="'.$thumbprops['height'].'" />';
 					}
 				}
 				if (array_key_exists('name',$options)) $string .= $product->name;

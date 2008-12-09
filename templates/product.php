@@ -3,7 +3,7 @@
 
 	<h3><?php shopp('product','name'); ?></h3>
 	<p class="headline"><big><?php shopp('product','summary'); ?></big></p>
-
+			
 	<?php shopp('product','gallery'); ?>
 
 	<?php if (shopp('product','onsale')): ?>

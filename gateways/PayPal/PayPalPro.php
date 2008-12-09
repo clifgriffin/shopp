@@ -177,7 +177,7 @@ class PayPalPro {
 	
 	function settings () {
 		?>
-		<tr id="paypalpro-settings" class="form-field">
+		<tr id="paypalpro-settings">
 			<th scope="row" valign="top">PayPal Pro</th>
 			<td>
 				<input type="hidden" name="settings[PayPalPro][cards]" value="<?php echo join(",",$this->cards); ?>" />
@@ -193,7 +193,7 @@ class PayPalPro {
 	
 	function registerSettings () {
 		?>
-		gatewayHandlers.register('<?php echo __FILE__; ?>','paypalpro-settings');
+		gatewayHandlers.register('<?php echo addslashes(__FILE__); ?>','paypalpro-settings');
 		<?php
 	}
 

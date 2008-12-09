@@ -51,6 +51,8 @@ var gatewayHandlers = new CallbackRegistry();
 
 <?php foreach ($Processors as $Processor) $Processor->registerSettings(); ?>
 
+
+
 $('#payment-gateway').change(function () {
 	$('#payment-settings tr').hide();
 	var target = '#'+gatewayHandlers.get(this.value);

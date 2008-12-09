@@ -30,13 +30,13 @@ body { position: relative; }
 .pricing-table span.status { display: block; padding-top: 4px; }
 
 .pricing tr.dragging th,
-.pricing tr.dragging td { background-color: #cee1ef;}
+.pricing tr.dragging td { background-color: #cee1ef; }
 .pricing tr td button { padding: 1px 5px; }
 .pricing tr td button.deleteButton { position: absolute; right: 5px; padding: 0; }
 .pricing tr .controls { text-align: right; vertical-align: bottom; }
 .pricing select.shiprate { width: 100px; }
 
-.pricing tbody th, .pricing tbody td { padding-bottom: 1px; border-bottom-width: 3px;}
+.pricing tbody th, .pricing tbody td { padding-bottom: 1px; border-bottom-width: 3px; }
 
 .pricing-table div.file { background: url('/wp-content/plugins/shopp/core/ui/icons/page_white.png') no-repeat left 2px; padding-left: 20px; cursor: pointer; }
 .pricing-table div.file.image { background-image: url('/wp-content/plugins/shopp/core/ui/icons/image.png'); }
@@ -50,6 +50,9 @@ body { position: relative; }
 .pricing-table div.file.x-stuffit,
 .pricing-table div.file.x-tar
 { background-image: url('/wp-content/plugins/shopp/core/ui/icons/page_white_zip.png'); }
+
+#variations-pricing > tr > th, #variations-pricing > tr > td { border-top: 1px solid #dfdfdf; }
+.form-table.pricing { border-bottom: 1px solid #dfdfdf; }
 
 div.progress { position: relative; width: 76px; height: 10px; background: #ffffff; border: 1px solid #dddddd;}
 div.progress div.bar { position: absolute; height: 10px; background: #85ec3d;  }

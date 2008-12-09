@@ -184,7 +184,7 @@ class HSBCepayments {
 		global $Shopp;
 		
 		?>
-		<tr id="hsbcepayments-settings" class="form-field">
+		<tr id="hsbcepayments-settings">
 			<th scope="row" valign="top">HSBC ePayments</th>
 			<td>
 				<div><input type="text" name="settings[HSBCepayments][username]" id="hsbcepayments_username" value="<?php echo $this->settings['username']; ?>" size="16" /><br /><label for="hsbcepayments_username"><?php _e('Enter your HSBC ePayments username.'); ?></label></div>
@@ -198,7 +198,7 @@ class HSBCepayments {
 	
 	function registerSettings () {
 		?>
-		gatewayHandlers.register('<?php echo __FILE__; ?>','hsbcepayments-settings');
+		gatewayHandlers.register('<?php echo addslashes(__FILE__); ?>','hsbcepayments-settings');
 		<?php
 	}
 

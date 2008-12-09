@@ -15,7 +15,7 @@ class ShipCalcs {
 	
 	function ShipCalcs (&$Settings,$basepath) {
 
-		$shipcalcs_path = $basepath."/shipping";
+		$shipcalcs_path = $basepath.DIRECTORY_SEPARATOR."shipping";
 		$lastscan = $Settings->get('shipcalc_lastscan');
 		$lastupdate = filemtime($shipcalcs_path);
 

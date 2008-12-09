@@ -200,7 +200,7 @@ class AuthorizeNet {
 	
 	function registerSettings () {
 		?>
-		gatewayHandlers.register('<?php echo __FILE__; ?>','authorize-net-settings');
+		gatewayHandlers.register('<?php echo addslashes(__FILE__); ?>','authorize-net-settings');
 		<?php
 	}
 

@@ -93,19 +93,27 @@
 		});
 
 		$('#shipping-country').change(function() {
-			$('#shipping-state').empty();
+			if ($('#shipping-state').attr('type') == "text") return true;
+			$('#shipping-state').empty().attr('disabled',true);
 			$('<option></option>').val('').html('').appendTo('#shipping-state');
-			$.each(regions[this.value], function (value,label) {
-					option = $('<option></option>').val(value).html(label).appendTo('#shipping-state');
-			});
+			if (regions[this.value]) {
+				$.each(regions[this.value], function (value,label) {
+						option = $('<option></option>').val(value).html(label).appendTo('#shipping-state');
+				});
+				$('#shipping-state').attr('disabled',false);
+			}
 		});
 
 		$('#billing-country').change(function() {
-			$('#billing-state').empty();
+			if ($('#billing-state').attr('type') == "text") return true;
+			$('#billing-state').empty().attr('disabled',true);
 			$('<option></option>').val('').html('').appendTo('#billing-state');
-			$.each(regions[this.value], function (value,label) {
-					option = $('<option></option>').val(value).html(label).appendTo('#billing-state');
-			});
+			if (regions[this.value]) {
+				$.each(regions[this.value], function (value,label) {
+						option = $('<option></option>').val(value).html(label).appendTo('#billing-state');
+				});
+				$('#billing-state').attr('disabled',false);
+			}
 		});	
 		
 		$('input.shipmethod').click(function () {

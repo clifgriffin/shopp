@@ -849,16 +849,22 @@ class Cart {
 					$options['value'] = $this->data->Order->Shipping->city; 
 				return '<input type="text" name="shipping[city]" id="shipping-city"'.$this->inputattrs($options).' />';
 				break;
+			case "shipping-province":
 			case "shipping-state":
-				if (!empty($this->data->Order->Shipping->state))
-					$options['selected'] = $this->data->Order->Shipping->state; 				
+				if (!empty($this->data->Order->Shipping->state)) {
+					$options['selected'] = $this->data->Order->Shipping->state;
+					$options['value'] = $this->data->Order->Shipping->state;
+				}
+				if (empty($options['type'])) $options['type'] = "menu";
 				$regions = $Shopp->Settings->get('zones');
 				$states = $regions[$base['country']];
-				$label = (!empty($options['label']))?$options['label']:'';
-				$output = '<select name="shipping[state]" id="shipping-state"'.$this->inputattrs($options,$select_attrs).'>';
-				$output .= '<option value="" selected="selected">'.$label.'</option>';
-			 	$output .= menuoptions($states,$options['selected'],true);
-				$output .= '</select>';
+				if (is_array($states) && $options['type'] == "menu") {
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="shipping[state]" id="shipping-state"'.$this->inputattrs($options,$select_attrs).'>';
+					$output .= '<option value="" selected="selected">'.$label.'</option>';
+				 	$output .= menuoptions($states,$options['selected'],true);
+					$output .= '</select>';
+				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" value=""'.$this->inputattrs($options).'/>';
 				return $output;
 				break;
 			case "shipping-postcode":
@@ -897,16 +903,23 @@ class Cart {
 					$options['value'] = $this->data->Order->Billing->city;			
 				return '<input type="text" name="billing[city]" id="billing-city"'.$this->inputattrs($options).' />'; 
 				break;
+			case "billing-province": 
 			case "billing-state": 
-				if (!empty($this->data->Order->Billing->state))
-					$options['selected'] = $this->data->Order->Billing->state;			
+				if (!empty($this->data->Order->Billing->state)) {
+					$options['selected'] = $this->data->Order->Billing->state;
+					$options['value'] = $this->data->Order->Billing->state;
+				}
+				if (empty($options['type'])) $options['type'] = "menu";
+				
 				$regions = $Shopp->Settings->get('zones');
 				$states = $regions[$base['country']];
-				$label = (!empty($options['label']))?$options['label']:'';
-				$output = '<select name="billing[state]" id="billing-state"'.$this->inputattrs($options,$select_attrs).'>';
-				$output .= '<option value="" selected="selected">'.$label.'</option>';
-			 	$output .= menuoptions($states,$options['selected'],true);
-				$output .= '</select>';
+				if (is_array($states) && $options['type'] == "menu") {
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="billing[state]" id="billing-state"'.$this->inputattrs($options,$select_attrs).'>';
+					$output .= '<option value="" selected="selected">'.$label.'</option>';
+				 	$output .= menuoptions($states,$options['selected'],true);
+					$output .= '</select>';
+				} else $output .= '<input type="text" name="billing[state]" id="billing-state" value=""'.$this->inputattrs($options).'/>';
 				return $output;
 				break;
 			case "billing-postcode":
