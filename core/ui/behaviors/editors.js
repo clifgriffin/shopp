@@ -913,7 +913,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 					filedata.type = filedata.type.replace(/\//gi," ");
 					$(this.progressBar).animate({'width':'76px'},250,function () { 
 						$(this).parent().fadeOut(500,function() {
-							$(targetHolder).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small><input type="hidden" name="price['+i+'][download]" value="'+filedata.id+'" />');
+							$(targetHolder).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small><input type="hidden" name="price['+linenum+'][download]" value="'+filedata.id+'" />');
 							$(this).remove(); 
 						});
 					});

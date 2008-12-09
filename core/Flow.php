@@ -52,7 +52,7 @@ class Flow {
 		define("SHOPP_TEMPLATES",($Core->Settings->get('theme_templates') != "off" && 
 		 							is_dir($Core->Settings->get('theme_templates')))?
 									$Core->Settings->get('theme_templates'):
-									$this->basepath."/templates");
+									$this->basepath.DIRECTORY_SEPARATOR."templates");
 		define("SHOPP_TEMPLATES_URI",($Core->Settings->get('theme_templates') != "off" && 
 			 							is_dir($Core->Settings->get('theme_templates')))?
 										get_bloginfo('stylesheet_directory')."/shopp":
@@ -73,7 +73,7 @@ class Flow {
 			UPLOAD_ERR_EXTENSION => __('File upload stopped by extension.','Shopp'),
 		);
 									
-		load_plugin_textdomain('Shopp',PLUGINDIR.'/'.$Core->directory.'/lang');
+		load_plugin_textdomain('Shopp',PLUGINDIR.DIRECTORY_SEPARATOR.$Core->directory.DIRECTORY_SEPARATOR.'lang');
 	}
 
 	/**
@@ -113,7 +113,7 @@ class Flow {
 	function catalog_css () {
 		
 		ob_start();
-		include("{$this->basepath}/core/ui/styles/catalog.css");
+		include(template_path("{$this->basepath}/core/ui/styles/catalog.css"));
 		$stylesheet = ob_get_contents();
 		ob_end_clean();
 		return $stylesheet;
@@ -123,7 +123,7 @@ class Flow {
 	function settings_js () {
 		
 		ob_start();
-		include("{$this->basepath}/core/ui/behaviors/settings.js");
+		include(template_path("{$this->basepath}/core/ui/behaviors/settings.js"));
 		$script = ob_get_contents();
 		ob_end_clean();
 		return $script;
@@ -647,7 +647,7 @@ class Flow {
 		$ssl = true;
 		// Test Mode will not require encrypted checkout
 		if (strpos($gateway,"TestMode.php") !== false ||
-			$_GET['shopp_xco'] == "PayPal/PayPalExpress") $ssl = false;
+			$_GET['shopp_xco'] == "PayPal".DIRECTORY_SEPARATOR."PayPalExpress") $ssl = false;
 		$link = $Shopp->link('receipt',$ssl);
 		header("Location: $link");
 		exit();
@@ -1701,7 +1701,7 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (isset($_POST['settings']['theme_templates']) && $_POST['settings']['theme_templates'] == "on") 
-			$_POST['settings']['theme_templates'] = TEMPLATEPATH."/shopp";
+			$_POST['settings']['theme_templates'] = addslashes(template_path(TEMPLATEPATH.DIRECTORY_SEPARATOR."shopp"));
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-presentation');
 			if (empty($_POST['settings']['catalog_pagination']))
@@ -1710,8 +1710,8 @@ class Flow {
 			$updated = __('Shopp presentation settings saved.');
 		}
 		
-		$builtin_path = $this->basepath."/templates";
-		$theme_path = TEMPLATEPATH."/shopp";
+		$builtin_path = $this->basepath.DIRECTORY_SEPARATOR."templates";
+		$theme_path = template_path(TEMPLATEPATH.DIRECTORY_SEPARATOR."shopp");
 		
 		// Copy templates to the current WordPress theme
 		if (!empty($_POST['install'])) {
@@ -1719,8 +1719,8 @@ class Flow {
 			$builtin = array_filter(scandir($builtin_path),"filter_dotfiles");
 			foreach ($builtin as $template) {
 				if (!file_exists($theme_path.$template)) {
-					copy("$builtin_path/$template","$theme_path/$template");
-					chmod("$theme_path/$template",0666);
+					copy($builtin_path.DIRECTORY_SEPARATOR.$template,$theme_path.DIRECTORY_SEPARATOR.$template);
+					chmod($theme_path.DIRECTORY_SEPARATOR.$template,0666);
 				}
 					
 			}
