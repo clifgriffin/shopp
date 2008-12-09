@@ -27,6 +27,8 @@
 #shopp .views li { display: inline;  padding: 2px; }
 #shopp .orderby { float: right; }
 
+#shopp .subcategories { padding: 10px 0; margin-bottom: 10px;}
+
 /* Each product in a category has a containing frame */
 #shopp ul.products li.product div.frame { padding: 10px; }
 
@@ -67,7 +69,11 @@
 /**
  * Product Pages
  **/
-#shopp .original.price { text-decoration: line-through; }
+#shopp .column { float: left; }
+#shopp .column.first { width: 65%; }
+#shopp .column.second { float: right; width: 35%; }
+
+#shopp .original { text-decoration: line-through; }
 #shopp form.product ul,
 #shopp form.product ul li,
 #shopp form.product ul li label { clear: none; }

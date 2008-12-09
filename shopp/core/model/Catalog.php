@@ -147,7 +147,7 @@ class Catalog extends DatabaseObject {
 						else $link = $page.'&amp;shopp_category='.$category->id;
 					
 						$products = '';
-						if (value_is_true($options['products'])) $products = ' ('.$category->products.')';
+						if (value_is_true($options['products']) && $category->products > 0) $products = ' ('.$category->products.')';
 					
 						if (value_is_true($showall) || $category->products > 0 || $category->smart) // Only show categories with products
 							$string .= '<li><a href="'.$link.'">'.$category->name.'</a>'.$products.'</li>';

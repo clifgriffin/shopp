@@ -1079,7 +1079,7 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 			
 		if (!$_POST['options']) $Product->options = array();
-		$_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
+		if (empty($Product->slug)) $_POST['slug'] = sanitize_title_with_dashes($_POST['slug']);
 		$Product->updates($_POST,array('categories'));
 		$Product->save();
 
@@ -1428,13 +1428,13 @@ class Flow {
 		$Images = $db->query("SELECT id,src FROM $Assets->_table WHERE context='category' AND parent=$Category->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
 		unset($Assets);
 		
-		$categories_menu = $this->category_menu();
+		$categories_menu = $this->category_menu($Category->parent,$Category->id);
 		$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
 				
 		include("{$this->basepath}/core/ui/categories/category.php");
 	}	
 	
-	function category_menu () {
+	function category_menu ($selection=false,$current=false) {
 		$db = DB::get();
 		$table = DatabaseObject::tablename(Category::$table);			
 
@@ -1443,9 +1443,9 @@ class Flow {
 		
 		foreach ($categories as $category) {
 			$padding = str_repeat("&nbsp;",$category->depth*3);
-			if ($Category->parent == $category->id) $selected = ' selected="selected"';
-			else $selected = "";
-			if ($Category->id != $category->id) $options .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'"'.$selected.'>'.$padding.$category->name.'</option>';
+			$selected = ($category->id == $selection)?' selected="selected"':'';
+			if ($current && $category->id != $current) 
+				$options .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'"'.$selected.'>'.$padding.$category->name.'</option>';
 		}
 		return $options;
 	}
@@ -1914,7 +1914,7 @@ class Flow {
 			// Treat PayPal Express and Google Checkout differently
 			if ($gateway->name == "PayPal Express" || 
 				$gateway->name == "Google Checkout") continue;
-				
+
 			$gateways[$gateway->file] = $gateway->name;
 			$ProcessorClass = $gateway->tags['class'];
 			include_once($gateway->file);
@@ -2024,7 +2024,7 @@ class Flow {
 	}
 
 	function settings_get_gateways () {
-		$gateway_path = $this->basepath."/gateways";
+		$gateway_path = $this->basepath.DIRECTORY_SEPARATOR."gateways";
 		
 		$gateways = array();
 		$gwfiles = array();
@@ -2044,7 +2044,7 @@ class Flow {
 		$metadata = array();
 		
 		$meta = get_filemeta($file);
-		
+
 		if ($meta) {
 			$lines = split("\n",substr($meta,1));
 			foreach($lines as $line) {
@@ -2228,7 +2228,7 @@ class Flow {
 
 		// Checkout Settings
 		$this->Settings->save('order_confirmation','ontax');	
-		$this->Settings->save('receipt_copy','ontax');	
+		$this->Settings->save('receipt_copy','1');	
 		$this->Settings->save('account_system','none');	
 
 		// Presentation Settings

@@ -669,7 +669,7 @@ function ImageUploads (params) {
 	}
 	
 	// Initialize image uploader
-	if (flash9) settings.flash_url = siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf';
+	if (swfu20) settings.flash_url = siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf';
 	swfu = new SWFUpload(settings);
 
 	var browserImageUploader = $('#image-upload').upload({
@@ -718,19 +718,25 @@ function ImageUploads (params) {
 	});
 	
 	$(window).load(function() {
-		if (!swfu.loaded && !flash9) $('#product-images .swfupload').remove();
+		if (!swfu.loaded && !swfu20) $('#product-images .swfupload').remove();
 	});
 	
-	if (flash9) $("#add-image").click(function(){ swfu.selectFiles(); });
-
+	if (swfu20) $("#add-image").click(function(){ swfu.selectFiles(); });
+	
 	if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
 	$('#lightbox li button.deleteButton').each(function () {
 		enableDeleteButton(this);
 	});
 
-
 	function swfuLoaded () {
-		$('#image-upload').hide();
+		if (swfu20 && flash.pv[0] == 10) {
+			$('#browser-uploader').show();
+			$('#swf-uploader').hide();
+		}
+		if (!swfu20) {
+			$('#browser-uploader').hide();	
+			$('#swf-uploader').hide();
+		} 
 		this.loaded = true;
 	}
 
@@ -847,7 +853,6 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		file_types : "*.*",
 		file_types_description : "All Files",
 		file_upload_limit : filesizeLimit,
-		debug: false,
 				
 		swfupload_loaded_handler : swfuLoaded,
 		file_queue_error_handler : fileQueueError,
@@ -863,19 +868,21 @@ function FileUploader (button,defaultButton,linenum,updates) {
 			targetCell : false,
 			targetLine : false,
 			progressBar : false,
-		}
+		},
+		debug: false
+		
 	}
 	
 	// Initialize file uploader
-	if (flash9) _self.settings.flash_url = siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf';
+	if (swfu20) _self.settings.flash_url = siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf';
 	_self.swfu = new SWFUpload(_self.settings);
 	_self.swfu.targetCell = updates;
 	_self.swfu.targetLine = linenum;
-	if (flash9) defaultButton.click(function() { _self.swfu.selectFiles(); });
+	if (swfu20) defaultButton.click(function() { _self.swfu.selectFiles(); });
 	
 	// Handle file uploads depending on whether the Flash uploader loads or not
 	$(window).load(function() {
-		if (!_self.swfu.loaded) {
+		if (!_self.swfu.loaded || (swfu20 && flash.pv[0] == 10)) {
 			$(defaultButton).parent().parent().find('.swfupload').remove();
 			
 			// Browser-based AJAX uploads
@@ -917,7 +924,11 @@ function FileUploader (button,defaultButton,linenum,updates) {
 	
 	
 	function swfuLoaded () {
-		if (!flash9) $(defaultButton).hide();
+		if (swfu20 && flash.pv[0] == 10) {
+			$(defaultButton).show();
+		} else {
+			$(defaultButton).hide();
+		}
 		this.loaded = true;
 	}
 	
@@ -1040,3 +1051,94 @@ function SlugEditor (id,type) {
 	this.enable();
 
 }
+
+/* Centralized function for browser feature detection
+	- Proprietary feature detection (conditional compiling) is used to detect Internet Explorer's features
+	- User agent string detection is only used when no alternative is possible
+	- Is executed directly for optimal performance
+*/	
+var flashua = function() {
+	var UNDEF = "undefined",
+		OBJECT = "object",
+		SHOCKWAVE_FLASH = "Shockwave Flash",
+		SHOCKWAVE_FLASH_AX = "ShockwaveFlash.ShockwaveFlash",
+		FLASH_MIME_TYPE = "application/x-shockwave-flash",
+		EXPRESS_INSTALL_ID = "SWFObjectExprInst",
+		
+		win = window,
+		doc = document,
+		nav = navigator,
+		
+		domLoadFnArr = [],
+		regObjArr = [],
+		objIdArr = [],
+		listenersArr = [],
+		script,
+		timer = null,
+		storedAltContent = null,
+		storedAltContentId = null,
+		isDomLoaded = false,
+		isExpressInstallActive = false;
+
+	var w3cdom = typeof doc.getElementById != UNDEF && typeof doc.getElementsByTagName != UNDEF && typeof doc.createElement != UNDEF,
+		playerVersion = [0,0,0],
+		d = null;
+	if (typeof nav.plugins != UNDEF && typeof nav.plugins[SHOCKWAVE_FLASH] == OBJECT) {
+		d = nav.plugins[SHOCKWAVE_FLASH].description;
+		if (d && !(typeof nav.mimeTypes != UNDEF && nav.mimeTypes[FLASH_MIME_TYPE] && !nav.mimeTypes[FLASH_MIME_TYPE].enabledPlugin)) { // navigator.mimeTypes["application/x-shockwave-flash"].enabledPlugin indicates whether plug-ins are enabled or disabled in Safari 3+
+			d = d.replace(/^.*\s+(\S+\s+\S+$)/, "$1");
+			playerVersion[0] = parseInt(d.replace(/^(.*)\..*$/, "$1"), 10);
+			playerVersion[1] = parseInt(d.replace(/^.*\.(.*)\s.*$/, "$1"), 10);
+			playerVersion[2] = /r/.test(d) ? parseInt(d.replace(/^.*r(.*)$/, "$1"), 10) : 0;
+		}
+	}
+	else if (typeof win.ActiveXObject != UNDEF) {
+		var a = null, fp6Crash = false;
+		try {
+			a = new ActiveXObject(SHOCKWAVE_FLASH_AX + ".7");
+		}
+		catch(e) {
+			try { 
+				a = new ActiveXObject(SHOCKWAVE_FLASH_AX + ".6");
+				playerVersion = [6,0,21];
+				a.AllowScriptAccess = "always";	 // Introduced in fp6.0.47
+			}
+			catch(e) {
+				if (playerVersion[0] == 6) {
+					fp6Crash = true;
+				}
+			}
+			if (!fp6Crash) {
+				try {
+					a = new ActiveXObject(SHOCKWAVE_FLASH_AX);
+				}
+				catch(e) {}
+			}
+		}
+		if (!fp6Crash && a) { // a will return null when ActiveX is disabled
+			try {
+				d = a.GetVariable("$version");	// Will crash fp6.0.21/23/29
+				if (d) {
+					d = d.split(" ")[1].split(",");
+					playerVersion = [parseInt(d[0], 10), parseInt(d[1], 10), parseInt(d[2], 10)];
+				}
+			}
+			catch(e) {}
+		}
+	}
+	var u = nav.userAgent.toLowerCase(),
+		p = nav.platform.toLowerCase(),
+		webkit = /webkit/.test(u) ? parseFloat(u.replace(/^.*webkit\/(\d+(\.\d+)?).*$/, "$1")) : false, // returns either the webkit version or false if not webkit
+		ie = false,
+		windows = p ? /win/.test(p) : /win/.test(u),
+		mac = p ? /mac/.test(p) : /mac/.test(u);
+	/*@cc_on
+		ie = true;
+		@if (@_win32)
+			windows = true;
+		@elif (@_mac)
+			mac = true;
+		@end
+	@*/
+	return { w3cdom:w3cdom, pv:playerVersion, webkit:webkit, ie:ie, win:windows, mac:mac };
+};

@@ -258,14 +258,32 @@ class DatabaseObject {
 	}
 	
 	/**
-	 * Load a single record by the primary key */
-	function load ($id=false,$key=false) {
+	 * Load a single record by the primary key or a custom query 
+	 * @param $where - An array of key/values to be built into an SQL where clause
+	 * or
+	 * @param $id - A string containing the id for db object's predefined primary key
+	 * or
+	 * @param $id - A string containing the object's id value
+	 * @param $key - A string of the name of the db object's primary key
+	 **/
+	function load () {
 		$db = DB::get();
 
-		if (!$id) return false;
-		if (!$key) $key = $this->_key;
+		$args = func_get_args();
+		if (empty($args[0])) return false;
+		
+		$where = "";
+		if (is_array($args[0])) 
+			foreach ($args[0] as $key => $id) 
+				$where .= ($where == "")?"$key='$id'":" AND $key='$id'";
+		else {
+			$id = $args[0];
+			$key = $this->_key;
+			if (!empty($args[1])) $key = $args[1];
+			$where = $key."='$id'";
+		}
 
-		$r = $db->query("SELECT * FROM $this->_table WHERE $key='$id' LIMIT 1");
+		$r = $db->query("SELECT * FROM $this->_table WHERE $where LIMIT 1");
 		$this->populate($r);
 		
 		if (!empty($this->id)) return true;

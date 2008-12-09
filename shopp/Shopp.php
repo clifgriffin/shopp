@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0b7.3
+Version: 1.0b7.4
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0b7.3");
+define("SHOPP_VERSION","1.0b7.4");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -294,14 +294,12 @@ class Shopp {
 		}
 
 		// Include stylesheets and javascript based on whether shopp shortcodes are used
-		if ($tag) {
-			add_action('wp_head', array(&$this, 'header'));
-			add_action('wp_footer', array(&$this, 'footer'));
-			wp_enqueue_script('jquery');
-			wp_enqueue_script('shopp-settings',"$shoppage?shopp_lookup=settings.js");
-			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
-			wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js");
-		}
+		add_action('wp_head', array(&$this, 'header'));
+		add_action('wp_footer', array(&$this, 'footer'));
+		wp_enqueue_script('jquery');
+		wp_enqueue_script('shopp-settings',"$shoppage?shopp_lookup=settings.js");
+		wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
+		wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js");
 		
 		if ($tag == "checkout")
 			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js");		
@@ -1087,12 +1085,14 @@ class Shopp {
 				switch ($_REQUEST['type']) {
 					case "category":
 						$Category = new Category($_REQUEST['id']);
+						if (empty($_REQUEST['slug'])) $_REQUEST['slug'] = $Category->name;
 						$Category->slug = sanitize_title_with_dashes($_REQUEST['slug']);
 						if ($Category->save()) echo $Category->slug;
 						else echo '-1';
 						break;
 					case "product":
 						$Product = new Product($_REQUEST['id']);
+						if (empty($_REQUEST['slug'])) $_REQUEST['slug'] = $Product->name;
 						$Product->slug = sanitize_title_with_dashes($_REQUEST['slug']);
 						if ($Product->save()) echo $Product->slug;
 						else echo '-1';

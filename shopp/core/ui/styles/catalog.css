@@ -88,8 +88,8 @@ div.clear,
 /**
  * Product Page Gallery
  **/
-#gallery { float: left; }
-#gallery ul { margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
+#gallery { float: left; display: block; }
+#gallery ul { display: block; margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
 #gallery ul li:before { content: ""; }
 #gallery .previews { position: relative; margin: 0 !important; }
 #gallery .previews li { position: absolute; width: <?php echo $this->Settings->get('gallery_small_width'); ?>px; height: <?php echo $this->Settings->get('gallery_small_height'); ?>px; line-height: <?php echo $this->Settings->get('gallery_small_height'); ?>px; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; }
@@ -99,7 +99,8 @@ div.clear,
 #gallery .previews li.fill { position: relative; }
 #gallery .previews li.active { visibility: visible; }
 #gallery .thumbnails ul { padding: 0; }
-#gallery .thumbnails li { position: relative; display: inline; visibility: visible; height: auto; line-height: 1; top: auto; left: auto; }
+#gallery .thumbnails li { position: relative; display: inline; visibility: visible; height: auto; line-height: 1; top: auto; left: auto; margin: 0 0 0 10px; }
+#gallery .thumbnails li.first { margin-left: 0; }
 
 /**
  * Debug Console
