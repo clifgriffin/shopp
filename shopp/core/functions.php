@@ -596,6 +596,11 @@ function build_query_request ($request=array()) {
 	return $query;
 }
 
+function template_path ($path) {
+	if (DIRECTORY_SEPARATOR == "\\") $path = str_replace("/","\\",$path);
+	return $path;
+}
+
 if ( !function_exists('sys_get_temp_dir')) {
 	// For PHP 5 (pre-5.2.1)
 	function sys_get_temp_dir() {
