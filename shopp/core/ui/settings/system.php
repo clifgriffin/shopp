@@ -16,7 +16,7 @@
 					<?php echo menuoptions($filesystems,$this->Settings->get('image_storage_pref'),true); ?>
 					</select>
 					<p id="image-path-settings">
-						<input type="text" name="settings[image_path]" id="image-path" value="<?php echo attribute_escape($this->Settings->get('image_path')); ?>" size="40" /><br />
+						<input type="text" name="settings[image_path]" id="image-path" value="<?php echo attribute_escape($this->Settings->get('image_path')); ?>" size="40" /><br class="clear" />
 						<label for="image-path"><?php echo $imagepath_status; ?></label>
 					</p>
 	            </td>
@@ -26,7 +26,7 @@
 				<td><select name="settings[product_storage_pref]" id="product-storage">
 					<?php echo menuoptions($filesystems,$this->Settings->get('product_storage_pref'),true); ?>
 					</select>
-					<p id="products-path-settings"><input type="text" name="settings[products_path]" id="products-path" value="<?php echo attribute_escape($this->Settings->get('products_path')); ?>" size="40" /><br />
+					<p id="products-path-settings"><input type="text" name="settings[products_path]" id="products-path" value="<?php echo attribute_escape($this->Settings->get('products_path')); ?>" size="40" /><br class="clear" />
 						<label for="products-path"><?php echo $productspath_status; ?></label>
 						</p>
 	            </td>

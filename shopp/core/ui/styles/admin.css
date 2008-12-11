@@ -5,6 +5,7 @@ body { position: relative; }
 .shopp button.delete,.shopp button.add {  display: inline-block; background: none; border: none; padding: 3px; margin: 1px; }
 .shopp button img { display: inline; vertical-align: middle; }
 .shopp input.right { text-align: right; }
+.shopp label .error { display: inline-block; margin-top: 5px; padding: 0 0.6em; }
 
 .shopp table td.featured { background: url('/wp-content/plugins/shopp/core/ui/icons/featured.png') no-repeat center center; }
 

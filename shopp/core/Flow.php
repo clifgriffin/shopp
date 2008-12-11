@@ -1081,7 +1081,7 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 			
 		if (!$_POST['options']) $Product->options = array();
-		if (empty($Product->slug)) $_POST['slug'] = sanitize_title_with_dashes($_POST['slug']);
+		if (empty($Product->slug)) $_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
 		$Product->updates($_POST,array('categories'));
 		$Product->save();
 

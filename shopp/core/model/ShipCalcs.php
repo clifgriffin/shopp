@@ -21,7 +21,7 @@ class ShipCalcs {
 		$lastupdate = filemtime($shipcalcs_path);
 		
 		$modfiles = array();
-		if (true || $lastupdate > $lastscan) $modfiles = $this->scanmodules($shipcalcs_path);
+		if ($lastupdate > $lastscan) $modfiles = $this->scanmodules($shipcalcs_path);
 		else {
 			$modfiles = $Shopp->Settings->get('shipcalc_modules');
 			if (empty($modfiles)) $modfiles = $this->scanmodules($shipcalcs_path);
