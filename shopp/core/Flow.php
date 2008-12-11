@@ -101,10 +101,12 @@ class Flow {
 		$classes = $Shopp->Catalog->type;
 		// Get catalog view preference from cookie
 		if ($_COOKIE['shopp_catalog_view'] == "list") $classes .= " list";
+		if ($_COOKIE['shopp_catalog_view'] == "grid") $classes .= " grid";
 		if (!isset($_COOKIE['shopp_catalog_view'])) {
 			// No cookie preference exists, use shopp default setting
 			$view = $Shopp->Settings->get('default_catalog_view');
 			if ($view == "list") $classes .= " list";
+			if ($view == "grid") $classes .= " grid";
 		}
 		
 		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'<div id="clear"></div></div>');
@@ -1437,15 +1439,14 @@ class Flow {
 	function category_menu ($selection=false,$current=false) {
 		$db = DB::get();
 		$table = DatabaseObject::tablename(Category::$table);			
-
 		$categories = $db->query("SELECT id,name,parent FROM $table ORDER BY parent,name",AS_ARRAY);
 		$categories = sort_tree($categories);
-		
+
 		foreach ($categories as $category) {
 			$padding = str_repeat("&nbsp;",$category->depth*3);
 			$selected = ($category->id == $selection)?' selected="selected"':'';
-			if ($current && $category->id != $current) 
-				$options .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'"'.$selected.'>'.$padding.$category->name.'</option>';
+			$disabled = ($current && $category->id == $current)?' disabled="disabled"':'';
+			$options .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'"'.$selected.$disabled.'>'.$padding.$category->name.'</option>';
 		}
 		return $options;
 	}
@@ -1827,25 +1828,20 @@ class Flow {
 		}
 
 		$methods = $Shopp->ShipCalcs->methods;
-
-		$base = $this->Settings->get('base_operations');
-		$regions = $this->Settings->get('regions');
+		$base = $Shopp->Settings->get('base_operations');
+		$regions = $Shopp->Settings->get('regions');
 		$region = $regions[$base['region']];
-		$useRegions = $this->Settings->get('shipping_regions');
+		$useRegions = $Shopp->Settings->get('shipping_regions');
 
-		$areas = $this->Settings->get('areas');
+		$areas = $Shopp->Settings->get('areas');
 		if (is_array($areas[$base['country']]) && $useRegions == "on") 
 			$areas = array_keys($areas[$base['country']]);
 		else $areas = array($base['country'] => $base['name']);
 		unset($countries,$regions);
 
-		$rates = $this->Settings->get('shipping_rates');
+		$rates = $Shopp->Settings->get('shipping_rates');
 		if (!empty($rates)) ksort($rates);
-		
-		// print "<pre>";
-		// print_r($rates);
-		// print "</pre>";
-		
+				
 		include(SHOPP_ADMINPATH."/settings/shipping.php");
 	}
 
@@ -1881,6 +1877,7 @@ class Flow {
 
 			// Update the accepted credit card payment methods
 			if (!empty($_POST['settings']['payment_gateway'])) {
+				$_POST['settings']['payment_gateway'] = stripslashes($_POST['settings']['payment_gateway']);
 				$gateway = $this->scan_gateway_meta($_POST['settings']['payment_gateway']);
 				$ProcessorClass = $gateway->tags['class'];
 				include_once($gateway->file);
@@ -1984,9 +1981,10 @@ class Flow {
 		if (!is_dir($imagepath)) $error = __("The file path supplied is not a directory. Using database instead.","Shopp");
 		if (!is_writable($imagepath) || !is_readable($imagepath)) 
 			$error = __("Permissions error. This path must be writable by the web server. Using database instead.","Shopp");
+		if (empty($imagepath)) $error = __("Enter the absolute path starting from server root to your image storage directory.","Shopp");
 		if ($error) {
 			$_POST['settings']['image_storage'] = 'db';
-			$imagepath_status = '<span class="shopp error">'.$error.'</span>';
+			$imagepath_status = '<span class="error">'.$error.'</span>';
 		}
 
 		// Product path processing
@@ -1998,9 +1996,10 @@ class Flow {
 		if (!is_dir($productspath)) $error = __("The file path supplied is not a directory. Using database instead.","Shopp");
 		if (!is_writable($productspath) || !is_readable($productspath)) 
 			$error = __("Permissions error. This path must be writable by the web server. Using database instead.","Shopp");
+		if (empty($productspath)) $error = __("Enter the absolute path starting from server root to your product file storage directory.","Shopp");
 		if ($error) {
 			$_POST['settings']['product_storage'] = 'db';
-			$productspath_status = '<span class="shopp error">'.$error.'</span>';
+			$productspath_status = '<span class="error">'.$error.'</span>';
 		}
 
 		if (!empty($_POST['save'])) {

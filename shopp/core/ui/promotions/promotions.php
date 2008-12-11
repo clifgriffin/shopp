@@ -1,9 +1,10 @@
 <div class="wrap shopp">
+	<h2><?php _e('Promotions','Shopp'); ?></h2>
+
 	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="categories" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->promotions; ?>" />
 	</div>
-	<h2><?php _e('Promotions','Shopp'); ?></h2>
 
 	<p id="post-search" class="search-box">
 		<label class="hidden" for="post-search-input">Search Promotions:</label>

@@ -1,9 +1,10 @@
 <div class="wrap shopp">
+	<h2><?php _e('Products','Shopp'); ?></h2>
+
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
 	<form action="" method="get">
 	<div><input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" /></div>
-	<h2><?php _e('Products','Shopp'); ?></h2>
 
 	<p id="post-search" class="search-box">
 		<label class="hidden" for="post-search-input">Search Products:</label>

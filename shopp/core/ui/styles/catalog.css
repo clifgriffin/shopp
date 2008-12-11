@@ -64,11 +64,11 @@ div.clear,
  * Shopp Catalog Tag Cloud
  **/
 
-#shopp .shopp.tagcloud,
-.shopp.tagcloud { padding: 0; }
+#shopp .tagcloud,
+.shopp.tagcloud { padding: 0; width: 100%; }
 
-#shopp .shopp.tagcloud li,
-.shopp.tagcloud li { display: inline-block; margin-right: 10px; line-height: 1.2; padding: 0; background-image: none; }
+#shopp .tagcloud li,
+.shopp.tagcloud li { display: inline; margin-right: 10px; line-height: 1.2; padding: 0; background-image: none; }
 .shopp.tagcloud li.level-1 { font-size: 30px; }
 .shopp.tagcloud li.level-2 { font-size: 24px; }
 .shopp.tagcloud li.level-3 { font-size: 20px; }
@@ -106,7 +106,6 @@ div.clear,
  * Debug Console
  **/
 #overlay { position: absolute; left: 0; width: 100%; opacity: 0.6; background-color: #000; margin: 0; }
-html,body { height: 100%; }
 #debug.shopp { position: absolute; left: 25%; top: 100px; width: 50%; margin: 0 auto; height: 300px; overflow-y: auto; background: #fff; border: 5px solid #999; text-align: left; padding: 10px; font: 12px/1 "Lucida Grande",monospace; }
 #debug.shopp.overlay { position: absolute; width: 100%; height: 100%; background: #000; top: 0; left: 0; padding: 0; opacity: 0.8; border: none; }
 #debug.shopp h3 { font: bold 15px/1 "Lucida Grande",monospace;  margin-top: 0; }

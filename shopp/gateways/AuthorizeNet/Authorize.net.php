@@ -186,7 +186,7 @@ class AuthorizeNet {
 		global $Shopp;
 		$settings = $Shopp->Settings->get('Authorize.Net');
 		?>
-		<tr id="authorize-net-settings" class="form-field">
+		<tr id="authorize-net-settings">
 			<th scope="row" valign="top">Authorize.Net</th>
 			<td>
 				<div><input type="text" name="settings[Authorize.Net][login]" id="authorize_net_login" value="<?php echo $settings['login']; ?>" size="16" /><br /><label for="authorize_net_login"><?php _e('Enter your Authorize.net Login ID.'); ?></label></div>

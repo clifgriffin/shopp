@@ -1,10 +1,10 @@
 <div class="wrap shopp">
-	<form action="" method="get">
-	<div><input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" /></div>
 	<h2><?php _e('Orders','Shopp'); ?></h2>
 
 	<?php include("navigation.php"); ?>
 	
+	<form action="" method="get">
+	<div><input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" /></div>
 	<p id="post-search" class="search-box">
 		<label class="hidden" for="orders-search-input">Search Orders:</label>
 		<input type="text" id="orders-search-input" class="search-input" name="s" value="<?php echo attribute_escape($_GET['s']); ?>" />

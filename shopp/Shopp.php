@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0b7.4
+Version: 1.0b7.5
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0b7.4");
+define("SHOPP_VERSION","1.0b7.5");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -57,7 +57,10 @@ class Shopp {
 	function Shopp () {
 		if (SHOPP_DEBUG) {
 			$this->_debug = new StdClass();
-			$this->_debug->memory = "Initial: ".number_format(memory_get_usage()/1024, 2, '.', ',') . " KB<br />";
+			if (function_exists('memory_get_peak_usage'))
+				$this->_debug->memory = "Initial: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
+			if (function_exists('memory_get_usage'))
+				$this->_debug->memory = "Initial: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
 		}
 		
 		$this->path = dirname(__FILE__);
@@ -104,6 +107,8 @@ class Shopp {
 
 		add_action('admin_menu', array(&$this, 'lookups'));
 		add_action('admin_menu', array(&$this, 'add_menus'));
+		add_filter('favorite_actions', array(&$this, 'favorites'));
+
 		add_action('admin_footer', array(&$this, 'footer'));
 		add_action('wp_dashboard_setup', array(&$this, 'dashboard_init'));
 		add_action('wp_dashboard_widgets', array(&$this, 'dashboard'));
@@ -127,7 +132,7 @@ class Shopp {
 		session_start();
 		
 		$this->Catalog = new Catalog();
-		$this->ShipCalcs = new ShipCalcs($this->Settings,$this->path);
+		$this->ShipCalcs = new ShipCalcs($this->path);
 	}
 
 	/**
@@ -190,8 +195,17 @@ class Shopp {
 		$products = add_submenu_page($this->Flow->Admin->default,__('Products','Shopp'), __('Products','Shopp'), 8, $this->Flow->Admin->products, array(&$this,'products'));
 		$categories = add_submenu_page($this->Flow->Admin->default,__('Categories','Shopp'), __('Categories','Shopp'), 8, $this->Flow->Admin->categories, array(&$this,'categories'));
 		$settings = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), 8, $this->Flow->Admin->settings, array(&$this,'settings'));
-		$help = add_submenu_page($this->Flow->Admin->default,__('Help','Shopp'), __('Help','Shopp'), 8, $this->Flow->Admin->help, array(&$this,'help'));
 
+		if (function_exists('add_contextual_help')) {
+			add_contextual_help($orders,'<a href="'.SHOPP_DOCS.'Managing_Orders" target="_blank">Managing Orders</a>');
+			add_contextual_help($promotions,'<a href="'.SHOPP_DOCS.'Running_Sales_%26_Promotions" target="_blank">Running Sales &amp; Promotions</a>');
+			add_contextual_help($products,'<a href="'.SHOPP_DOCS.'Editing_a_Product" target="_blank">Editing a Product</a>');
+			add_contextual_help($categories,'<a href="'.SHOPP_DOCS.'Editing_a_Category" target="_blank">Editing a Category</a>');
+
+			add_contextual_help($settings,'<a href="'.SHOPP_DOCS.'General_Settings" target="_blank">General Settings</a> | <a href="'.SHOPP_DOCS.'Checkout_Settings" target="_blank">Checkout Settings</a> | <a href="'.SHOPP_DOCS.'Payments_Settings" target="_blank">Payments Settings</a> | <a href="'.SHOPP_DOCS.'Shipping_Settings" target="_blank">Shipping Settings</a> | <a href="'.SHOPP_DOCS.'Taxes_Settings" target="_blank">Taxes Settings</a> | <a href="'.SHOPP_DOCS.'Presentation_Settings" target="_blank">Presetation Settings</a> | <a href="'.SHOPP_DOCS.'System_Settings" target="_blank">System Settings</a> | <a href="'.SHOPP_DOCS.'Update_Settings" target="_blank">Update Settings</a>');
+			
+		} else $help = add_submenu_page($this->Flow->Admin->default,__('Help','Shopp'), __('Help','Shopp'), 8, $this->Flow->Admin->help, array(&$this,'help'));
+		
 		add_action("admin_print_scripts-$main", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$orders", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$categories", array(&$this, 'admin_behaviors'));
@@ -200,11 +214,14 @@ class Shopp {
 		add_action("admin_print_scripts-$settings", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$help", array(&$this, 'admin_behaviors'));		
 
-		// if (function_exists('add_contextual_help')) {
-		// 	add_contextual_help($main, array(&$this, 'help'));
-		// }
 	}
 
+	function favorites ($actions) {
+		$key = 'admin.php?page='.$this->Flow->Admin->products.'&edit=new';
+	    $actions[$key] = array('New Shopp Product',8);
+		return $actions;
+	}
+		
 	/**
 	 * admin_behaviors()
 	 * Dynamically includes necessary JavaScript and stylesheets for the admin */
@@ -608,19 +625,15 @@ class Shopp {
 		
 		if (current_user_can('manage_options')) {
 			if (function_exists('memory_get_peak_usage'))
-				$this->_debug->memory .= "Peak: ".number_format(memory_get_peak_usage()/1024, 2, '.', ',') . " KB<br />";
-			if (function_exists('memory_get_usage'))
-				$this->_debug->memory .= "End: ".number_format(memory_get_usage()/1024, 2, '.', ',') . " KB";
+				$this->_debug->memory .= "End: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
+			elseif (function_exists('memory_get_usage'))
+				$this->_debug->memory .= "End: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB";
 
 			echo '<script type="text/javascript">'."\n";
 			echo '//<![CDATA['."\n";
 			echo 'var memory_profile = "'.$this->_debug->memory.'";';
 			echo 'var wpquerytotal = '.$wpdb->num_queries.';';
 			echo 'var shoppquerytotal = '.count($db->queries).';';
-			echo 'var shoppqueries = '.json_encode($db->queries).';';
-			echo 'var shoppobjectdump = "";';
-	 		echo 'shoppobjectdump = "'.addslashes(shopp_debug($this->_debug->backtrace)).'";';
-			// if (isset($this->_debug->objects)) echo 'shoppobjectdump = "'.addslashes($this->_debug->objects).'";';
 			echo '//]]>'."\n";
 			echo '</script>'."\n";
 		}
