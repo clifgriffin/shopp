@@ -82,7 +82,7 @@ class Catalog extends DatabaseObject {
 					$level = round((1-$tag->products/$max)*$levels)+1;
 					if (SHOPP_PERMALINKS) $link = $path.'/tag/'.str_replace(" ","+",$tag->name).'/';
 					else $link = $page.'&amp;shopp_tag='.str_replace(" ","+",$tag->name);
-					$string .= '<li class="level-'.$level.'"><a href="'.$link.'">'.$tag->name.'</a></li>';
+					$string .= '<li class="level-'.$level.'"><a href="'.$link.'">'.$tag->name.'</a></li> ';
 				}
 				$string .= '</ul>';
 				return $string;

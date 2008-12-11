@@ -1,10 +1,11 @@
 <div class="wrap shopp">
+	<h2><?php _e('Categories','Shopp'); ?></h2>
+	
 	<form action="" id="categories" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->categories; ?>" />
 	</div>
-	<h2><?php _e('Categories','Shopp'); ?></h2>
-	
+
 	<p class="search-box"><button type="submit" name="edit" value="new" class="button"><?php _e('New Category','Shopp'); ?></button></p>
 	<p id="post-search" class="search-box">
 		<label class="hidden" for="post-search-input">Search Categories:</label>

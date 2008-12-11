@@ -575,7 +575,7 @@ function addPriceLine (target,options,data,attachment) {
 		
 		if (data.download) {
 			if (data.filedata.mimetype)	data.filedata.mimetype = data.filedata.mimetype.replace(/\//gi," ");
-			downloadFile.attr('class','file '+data.filedata.mimetype).html(data.filename+'<br /><small>'+Math.round((data.filesize/1024)*10)/10+' KB</small>').click(function () {
+			downloadFile.attr('class','file '+data.filedata.mimetype).html(data.filename+'<br /><small>'+readableFileSize(data.filesize)+'</small>').click(function () {
 				window.location.href = siteurl+"/wp-admin/admin.php?page=shopp/lookup&download="+data.download;
 			});
 
@@ -617,6 +617,18 @@ function variationsToggle () {
 		$('#variations').hide();
 		$('#product-pricing').show();
 	}
+}
+
+function readableFileSize (size) {
+	var units = new Array("bytes","KB","MB","GB");
+	var sized = size;
+	if (sized == 0) return sized;
+	var unit = 0;
+	while (sized > 1000) {
+		sized = sized/1024;
+		unit++;
+	}
+	return sized.toFixed(2)+" "+units[unit];
 }
 
 
@@ -913,7 +925,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 					filedata.type = filedata.type.replace(/\//gi," ");
 					$(this.progressBar).animate({'width':'76px'},250,function () { 
 						$(this).parent().fadeOut(500,function() {
-							$(targetHolder).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small><input type="hidden" name="price['+linenum+'][download]" value="'+filedata.id+'" />');
+							$(targetHolder).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+readableFileSize(filedata.size)+'</small><input type="hidden" name="price['+linenum+'][download]" value="'+filedata.id+'" />');
 							$(this).remove(); 
 						});
 					});
@@ -983,7 +995,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		$(this.progressBar).animate({'width':'76px'},250,function () { 
 			$(this).parent().fadeOut(500,function() {
 				$(this).remove(); 
-				$(targetCell).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+Math.round((filedata.size/1024)*10)/10+' KB</small><input type="hidden" name="price['+i+'][download]" value="'+filedata.id+'" />');
+				$(targetCell).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+readableFileSize(filedata.size)+'</small><input type="hidden" name="price['+i+'][download]" value="'+filedata.id+'" />');
 			});
 		});
 	}

@@ -313,11 +313,11 @@ function catalogViewHandler () {
 
 		var category = $(this);
 		$(display).find('ul.views li button.list').click(function () {
-			$(display).addClass('list');
+			$(display).removeClass('grid').addClass('list');
 			document.cookie = 'shopp_catalog_view=list; expires='+expires+'; path=/';
 		});
 		$(display).find('ul.views li button.grid').click(function () {
-			$(display).removeClass('list');
+			$(display).removeClass('list').addClass('grid');
 			document.cookie = 'shopp_catalog_view=grid; expires='+expires+'; path=/';
 		});
 
@@ -369,16 +369,6 @@ function shopp_debug () {
 		$('<p></p>').html(memory_profile).appendTo(debug);
 		$('<h4></h4>').html('Queries:').appendTo(debug);
 		$('<p></p>').html('WP Total: '+wpquerytotal+'<br />Shopp Total: '+shoppquerytotal).appendTo(debug);
-		$('<h4></h4>').html('Query Statements:').appendTo(debug);
-		var querylist = $('<ul></ul>').appendTo(debug);
-		for (var q in shoppqueries) {
-			$("<li></li>").html(shoppqueries[q]).appendTo(querylist);
-		}
-
-		if (shoppobjectdump) {
-			$('<h4></h4>').html('Objects:').appendTo(debug);
-			$('<pre></pre>').html(shoppobjectdump).appendTo(debug);
-		}
 		
 		debug.click(function () {
 			overlay.remove();

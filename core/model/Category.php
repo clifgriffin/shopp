@@ -227,7 +227,7 @@ class Category extends DatabaseObject {
 
 		// Query without promotions for MySQL servers prior to 5
 		if (version_compare($db->version,'5.0','<')) {
-			$columns = "p.id,p.name,p.summary,
+			$columns = "p.id,p.name,p.slug,p.summary,
 						img.id AS thumbnail,img.properties AS thumbnail_properties,
 						MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
 						IF(pd.sale='on',1,0) AS onsale,
@@ -396,7 +396,8 @@ class Category extends DatabaseObject {
 				break;
 			case "row":
 				if (empty($options['products'])) $options['products'] = $Shopp->Settings->get('row_products');
-				if (key($this->products) % $options['products'] == 0) return true;
+				if (key($this->products) > 0 && 
+					key($this->products) % $options['products'] == 0) return true;
 				else return false;
 				break;
 				
