@@ -112,26 +112,6 @@ class Flow {
 		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'<div id="clear"></div></div>');
 	}
 
-	function catalog_css () {
-		
-		ob_start();
-		include(template_path("{$this->basepath}/core/ui/styles/catalog.css"));
-		$stylesheet = ob_get_contents();
-		ob_end_clean();
-		return $stylesheet;
-		
-	}
-
-	function settings_js () {
-		
-		ob_start();
-		include(template_path("{$this->basepath}/core/ui/behaviors/settings.js"));
-		$script = ob_get_contents();
-		ob_end_clean();
-		return $script;
-		
-	}
-
 	function categories_widget ($args=null) {
 		global $Shopp;
 		extract($args);
@@ -1248,7 +1228,7 @@ class Flow {
 				case "0": $SmallSizing->scaleToFit($SmallSettings['width'],$SmallSettings['height']); break;
 				case "1": $SmallSizing->scaleCrop($SmallSettings['width'],$SmallSettings['height']); break;
 			}
-			$SmallSizing->UnsharpMask(80);
+			$SmallSizing->UnsharpMask(75);
 			$Small->data = addslashes($SmallSizing->imagefile($SmallSettings['quality']));
 			$Small->properties = array();
 			$Small->properties['width'] = $SmallSizing->Processed->width;

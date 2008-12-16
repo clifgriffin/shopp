@@ -248,10 +248,19 @@ class Cart {
 	 * Sets the shipping address location 
 	 * for calculating shipping estimates */
 	function shipzone ($data) {
-		$this->data->Order->Shipping = new Shipping();
+		if (!isset($this->data->Order->Shipping))
+			$this->data->Order->Shipping = new Shipping();
 		$this->data->Order->Shipping->updates($data);
-		if (isset($data['region'])) 
+
+		if (!isset($this->data->Order->Billing))
+			$this->data->Order->Billing = new Billing();
+		$this->data->Order->Billing->updates($data);
+
+		if (isset($data['region'])) {
 			$this->data->Order->Shipping->region = $data['region'];
+			$this->data->Order->Billing->region = $data['region'];
+		}
+			
 		$this->totals();
 	}
 	

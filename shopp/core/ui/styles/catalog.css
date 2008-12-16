@@ -26,16 +26,14 @@ div.clear,
 #shopp .products ul li { display: block; float: left; }
 #shopp .products li.row { display: block; width: 100%; }
 
-#shopp .products .frame { width: <?php echo $this->Settings->get('gallery_thumbnail_width'); ?>px; text-align: center; }
+#shopp .products .frame { width: <?php echo $gallery_thumbnail_width; ?>px; text-align: center; }
 #shopp .products .frame img { display: inline; }
 
 #shopp ul.paging { clear: none; display: inline-block; }
 #shopp ul.paging li { display: inline-block; margin-left: 5px;}
 
 /* Product Grid (Default View) */
-<?php $products = $this->Settings->get('row_products');
-		if (empty($products)) $products = 3; ?>
-#shopp ul.products li.product { width: <?php echo floor((100/$products)); ?>%; }
+#shopp ul.products li.product { width: <?php echo $products_per_row; ?>%; }
 
 /**
  * Shopp Forms
@@ -82,8 +80,8 @@ div.clear,
  **/
 
 #shopp .category { position: relative; }
-#shopp .views .grid { background: url('<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/grid.png') no-repeat; }
-#shopp .views .list { background: url('<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/list.png') no-repeat; }
+#shopp .views .grid { background: url('<?php echo $pluginuri; ?>core/ui/icons/grid.png') no-repeat; }
+#shopp .views .list { background: url('<?php echo $pluginuri; ?>core/ui/icons/list.png') no-repeat; }
 
 /**
  * Product Page Gallery
@@ -94,7 +92,7 @@ div.clear,
 #gallery ul { display: block; margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
 #gallery ul li:before { content: ""; }
 #gallery .previews { position: relative; margin: 0 !important; }
-#gallery .previews li { position: absolute; width: <?php echo $this->Settings->get('gallery_small_width'); ?>px; height: <?php echo $this->Settings->get('gallery_small_height'); ?>px; line-height: <?php echo $this->Settings->get('gallery_small_height'); ?>px; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; }
+#gallery .previews li { position: absolute; width: <?php echo $gallery_small_width; ?>px; height: <?php echo $gallery_small_height; ?>px; line-height: <?php echo $gallery_small_height; ?>px; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; }
 
 #gallery .previews li img { display: inline; vertical-align: middle; margin-top: -3px; }
 

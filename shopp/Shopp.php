@@ -34,9 +34,16 @@ define("SHOPP_DEBUG",true);
 
 require("core/functions.php");
 require_once("core/DB.php");
-require("core/Flow.php");
-
 require("core/model/Settings.php");
+
+if ($_GET['shopp_image'] || 
+		preg_match('/images\/\d+/',$_SERVER['REQUEST_URI'])) 
+		shopp_image();
+
+if ($_GET['shopp_lookup'] == 'catalog.css') shopp_catalog_css();
+if ($_GET['shopp_lookup'] == 'settings.js') shopp_settings_js();
+
+require("core/Flow.php");
 require("core/model/Cart.php");
 require("core/model/ShipCalcs.php");
 require("core/model/Catalog.php");
@@ -66,7 +73,7 @@ class Shopp {
 		$this->path = dirname(__FILE__);
 		$this->file = basename(__FILE__);
 		$this->directory = basename($this->path);
-		$this->uri = get_bloginfo('wpurl')."/wp-content/plugins/".$this->directory;
+		$this->uri = WP_PLUGIN_URL."/".$this->directory;
 		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";
 		
 		$this->Settings = new Settings();
@@ -894,15 +901,8 @@ class Shopp {
 
 		// Grab query requests from permalink rewriting query vars
 		$admin = false;
-		$image = $wp->query_vars['shopp_image'];
 		$download = $wp->query_vars['shopp_download'];
 		$lookup = $wp->query_vars['shopp_lookup'];
-		
-		// Special handler to ensure thickbox will load db images
-		if (empty($image)) {
-			$requests = split("/",trim($_SERVER['REQUEST_URI'],'/'));
-			if ($requests[0] == "shopp_image") $image = $requests[1];
-		}
 		
 		// Admin Lookups
 		if ($_GET['page'] == "shopp/lookup") {
@@ -911,7 +911,6 @@ class Shopp {
 			$download = $_GET['download'];
 		}
 		
-		if (!empty($image)) $lookup = "image";
 		if (!empty($download)) $lookup = "download";
 		if (empty($lookup)) $lookup = $_GET['lookup'];
 		
@@ -963,41 +962,6 @@ class Shopp {
 				}
 				
 				echo json_encode($result);
-				exit();
-				break;
-			case "image":
-				if (empty($image)) break;
-				$storage = $this->Settings->get('image_storage');
-				$path = trailingslashit($this->Settings->get('image_path'));
-				$Asset = new Asset($image);
-				header ("Content-type: ".$Asset->properties['mimetype']);
-				header ("Content-Disposition: inline; filename='".$Asset->name."'"); 
-				header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-				if ($storage == "fs") {
-					header ("Content-length: ".@filesize($path.$Asset->name)); 
-					readfile($path.$Asset->name);
-				} else {
-					header ("Content-length: ".strlen($Asset->data)); 
-					echo $Asset->data;
-				} 
-				exit();
-				break;
-			case "catalog.css":
-				$stylesheet = $this->Flow->catalog_css();
-				header ("Content-length: ".strlen($stylesheet)); 
-				header ("Content-type: text/css"); 
-				header ("Content-Disposition: inline; filename='catalog.css'"); 
-				header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-				echo $stylesheet;
-				exit();
-				break;
-			case "settings.js":
-				$script = $this->Flow->settings_js();
-				header ("Content-length: ".strlen($script)); 
-				header ("Content-type: text/css"); 
-				header ("Content-Disposition: inline; filename='settings.js'"); 
-				header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-				echo $script;
 				exit();
 				break;
 			case "newproducts-rss":
