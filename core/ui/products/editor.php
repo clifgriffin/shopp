@@ -101,7 +101,7 @@
 			<td>
 				<ul id="lightbox">
 				<?php foreach ($Images as $thumbnail): ?>
-					<li id="image-<?php echo $thumbnail->src; ?>"><input type="hidden" name="images[]" value="<?php echo $thumbnail->src; ?>" /><img src="<?php echo get_option('siteurl'); ?>/wp-admin/admin.php?page=shopp/lookup&amp;id=<?php echo $thumbnail->id; ?>" width="96" height="96" />
+					<li id="image-<?php echo $thumbnail->src; ?>"><input type="hidden" name="images[]" value="<?php echo $thumbnail->src; ?>" /><img src="?shopp_image=<?php echo $thumbnail->id; ?>" width="96" height="96" />
 						<button type="button" name="deleteImage" value="<?php echo $thumbnail->src; ?>" title="Delete product image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
 				<?php endforeach; ?>
 				</ul>

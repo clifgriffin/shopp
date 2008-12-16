@@ -194,6 +194,72 @@ function shopp_rss ($data) {
 	return $xml;
 }
 
+function shopp_image () {
+	$db =& DB::get();
+	require("model/Asset.php");
+	$table = DatabaseObject::tablename(Settings::$table);
+	$settings = $db->query("SELECT name,value FROM $table WHERE name='image_storage' OR name='image_path'",AS_ARRAY);
+	foreach ($settings as $setting) ${$setting->name} = $setting->value;
+
+	if (isset($_GET['shopp_image'])) $image = $_GET['shopp_image'];
+	elseif (preg_match('/\/images\/(\d+).*$/',$_SERVER['REQUEST_URI'],$matches)) 
+		$image = $matches[1];
+
+	if (empty($image)) die();
+	$Asset = new Asset($image);
+	header ("Content-type: ".$Asset->properties['mimetype']);
+	header ("Content-Disposition: inline; filename=".$Asset->name.""); 
+	header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+	if ($image_storage == "fs") {
+		header ("Content-length: ".@filesize($image_path.$Asset->name)); 
+		readfile($image_path.$Asset->name);
+	} else {
+		header ("Content-length: ".strlen($Asset->data)); 
+		echo $Asset->data;
+	} 
+	exit();
+}
+
+function shopp_catalog_css () {
+	$db =& DB::get();
+	$table = DatabaseObject::tablename(Settings::$table);
+	$settings = $db->query("SELECT name,value FROM $table WHERE name='gallery_thumbnail_width' OR name='row_products' OR name='row_products' OR name='gallery_small_width' OR name='gallery_small_height'",AS_ARRAY);
+	foreach ($settings as $setting) ${$setting->name} = $setting->value;
+	$pluginuri = WP_PLUGIN_URL."/".basename(dirname(dirname(__FILE__)))."/";
+	if (!isset($row_products)) $row_products = 3;
+	$products_per_row = floor((100/$row_products));
+	
+	ob_start();
+	include("ui/styles/catalog.css");
+	$file = ob_get_contents();
+	ob_end_clean();
+	header ("Content-type: text/css");
+	header ("Content-Disposition: inline; filename=catalog.css"); 
+	header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+	header ("Content-length: ".strlen($file)); 
+	echo $file;
+	exit();
+}
+
+function shopp_settings_js () {
+	$db =& DB::get();
+	$table = DatabaseObject::tablename(Settings::$table);
+	$settings = $db->query("SELECT name,value FROM $table WHERE name='base_operations'",AS_ARRAY);
+	foreach ($settings as $setting) ${$setting->name} = $setting->value;
+	$base_operations = unserialize($base_operations);
+	
+	ob_start();
+	include("ui/behaviors/settings.js");
+	$file = ob_get_contents();
+	ob_end_clean();
+	header ("Content-type: text/javascript");
+	header ("Content-Disposition: inline; filename=settings.js"); 
+	header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+	header ("Content-length: ".strlen($file)); 
+	echo $file;
+	exit();
+}
+
 /**
  * Formats a number into a standardized telephone number format */
 function phone ($num) {
