@@ -88,6 +88,8 @@ div.clear,
 /**
  * Product Page Gallery
  **/
+#shopp form.product label { clear: none; display: inline; }
+
 #gallery { float: left; display: block; }
 #gallery ul { display: block; margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
 #gallery ul li:before { content: ""; }

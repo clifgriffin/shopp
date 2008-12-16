@@ -34,8 +34,7 @@ class Item {
 	function Item ($Product,$pricing) {
 		global $Shopp; // To access settings
 
-		$Product->load_prices();
-		$Product->load_images();
+		$Product->load_data(array('prices','images'));
 
 		// If product variations are enabled, disregard the first priceline
 		if ($Product->variations == "on") array_shift($Product->prices);
@@ -85,23 +84,27 @@ class Item {
 		$this->quantity($this->quantity+$qty);
 	}
 	
-	function options ($selected = "") {
+	function options ($selection = "") {
 		if (empty($this->options)) return "";
 
 		$string = "";
 		foreach($this->options as $option) {
-			if ($option->type != "N/A") {
-				$currently = ($option->onsale)?$option->promoprice:$option->price;
+			if ($option->type == "N/A") continue;
+			$currently = ($option->onsale)?$option->promoprice:$option->price;
+		
+			$difference = $currently-$this->unitprice;
 
-				$difference = $currently-$this->unitprice;
-
-				$price = '';
-				if ($difference > 0) $price = '  (+'.money($difference).')';
-				if ($difference < 0) $price = '  (-'.money(abs($difference)).')';
-				
-				if ($selected == $option->id) $string .= '<option value="'.$option->id.'" selected="selected">'.$option->label.'</option>';
-				else $string .= '<option value="'.$option->id.'">'.$option->label.$price.'</option>';
-			}
+			$price = '';
+			if ($difference > 0) $price = '  (+'.money($difference).')';
+			if ($difference < 0) $price = '  (-'.money(abs($difference)).')';
+			
+			$selected = "";
+			if ($selection == $option->id) $selected = ' selected="Selected"';
+			$disabled = "";
+			if ($option->inventory == "on" && $option->stock < $this->quantity)
+				$disabled = ' disabled="disabled"';
+			
+			$string .= '<option value="'.$option->id.'"'.$selected.$disabled.'>'.$option->label.$price.'</option>';
 		}
 		return $string;
 	}

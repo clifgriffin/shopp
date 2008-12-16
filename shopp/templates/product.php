@@ -26,8 +26,8 @@
 			<?php shopp('product','variations','mode=multiple&label=true&defaults=Select an option&before_menu=<li>&after_menu=</li>'); ?>
 		</ul>
 		<?php endif; ?>
-
-		<p><?php shopp('product','addtocart'); ?></p>
+		<p><?php shopp('product','quantity','class=selectall'); ?>
+		<?php shopp('product','addtocart'); ?></p>
 	
 	</form>
 

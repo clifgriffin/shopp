@@ -170,6 +170,82 @@ function formatFields () {
 	})(jQuery)
 }
 
+//
+// Catalog Behaviors
+//
+var ProductOptionsMenus;
+(function($) {
+	ProductOptionsMenus = function (target,hideDisabled,pricing) {
+		var _self = this;
+		var i = 0;
+		var previous = false;
+		var current = false;
+		var menucache = new Array();
+		var menus = $(target);
+		
+		menus.each(function (id,menu) {
+			current = menu;
+			menucache[id] = $(menu).children();
+			if (id > 0)	previous = menus[id-1];
+			if (menus.length == 1) {
+				optionPriceTags();
+			} else if (previous) {
+				$(previous).change(function () {
+					if (menus.index(current) == menus.length-1) optionPriceTags();
+					if (this.selectedIndex == 0) $(menu).attr('disabled',true);
+					else $(menu).removeAttr('disabled');
+				}).change();
+			}
+			i++;
+		});
+	
+		// Last menu needs pricing
+		function optionPriceTags () {
+			// Grab selections
+			var selected = new Array();
+			menus.not(current).each(function () {
+				if ($(this).val() != "") selected.push($(this).val());
+			});
+			var currentSelection = $(current).val();
+			$(current).empty();
+			menucache[menus.index(current)].each(function (id,option) {
+				$(option).appendTo($(current));
+			});
+			$(current).val(currentSelection);
+			var keys = new Array();
+			$(current).children('option').each(function () {
+				if ($(this).val() != "") {
+					var keys = selected.slice();
+					keys.push($(this).val());
+					var price = pricing[xorkey(keys)];
+					if (price) {
+						var pricetag = asMoney((price.onsale)?price.promoprice:price.price);
+						var optiontext = $(this).attr('text');
+						var previoustag = optiontext.lastIndexOf("(");
+						if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
+						$(this).attr('text',optiontext+"  ("+pricetag+")");
+						if ((price.inventory == "on" && price.stock == 0) || price.type == "N/A") {
+							if ($(this).attr('selected')) 
+								$(this).parent().attr('selectedIndex',0);
+							if (hideDisabled) $(this).remove();
+							else $(this).attr('disabled',true);
+						
+						} else $(this).removeAttr('disabled').show();
+						if (price.type == "N/A" && hideDisabled) $(this).remove();
+					}
+				}
+			});
+		}
+	
+		// Magic key generator
+		function xorkey (ids) {
+			for (var key=0,i=0; i < ids.length; i++) 
+				key = key ^ (ids[i]*101);
+			return key;
+		}
+	}
+})(jQuery)
+
 
 
 //
@@ -187,7 +263,7 @@ function addtocart () {
 	(function($) {
 
 	var options = button.form.getElementsByTagName('select');
-	if (options_default) {
+	if (options && options_default) {
 		var selections = true;		
 		for (menu in options) 
 			if (options[menu].selectedIndex == 0) selections = false;
@@ -631,12 +707,14 @@ addEvent(window,'load',function () {
 	cartHandlers();
 	catalogViewHandler();
 	helpHandler();
+	quickSelects();
 });
 
 // Initialize placehoder variables
 var helpurl;
 var options_required;
 var options_default;
+var productOptions = new Array();
 
 // Fix for ThickBox
 var tb_pathToImage = "/wp-content/plugins/shopp/core/ui/icons/loading.gif";
