@@ -39,7 +39,6 @@ require("core/model/Settings.php");
 if ($_GET['shopp_image'] || 
 		preg_match('/images\/\d+/',$_SERVER['REQUEST_URI'])) 
 		shopp_image();
-
 if ($_GET['shopp_lookup'] == 'catalog.css') shopp_catalog_css();
 if ($_GET['shopp_lookup'] == 'settings.js') shopp_settings_js();
 
