@@ -939,7 +939,7 @@ class Cart {
 					$options['selected'] = $this->data->Order->Billing->country;
 				else if (empty($options['selected'])) $options['selected'] = $base['country'];			
 				$output = '<select name="billing[country]" id="billing-country"'.$this->inputattrs($options,$select_attrs).'>';
-			 	$output .= menuoptions($countries,$base['country'],true);
+			 	$output .= menuoptions($countries,$options['selected'],true);
 				$output .= '</select>';
 				return $output;
 				break;
