@@ -715,7 +715,7 @@ function ImageUploads (params) {
 			}
 			$(this.targetHolder).attr({'id':'image-'+image.src});
 			$(this.sorting).val(image.src);
-			var img = $('<img src="'+siteurl+'/wp-admin/admin.php?page=shopp/lookup&id='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
+			var img = $('<img src="?shopp_image='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 			var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
 			var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
 	
@@ -803,7 +803,7 @@ function ImageUploads (params) {
 	
 		$(this.targetHolder).attr({'id':'image-'+image.src});
 		$(this.sorting).val(image.src);
-		var img = $('<img src="'+siteurl+'/wp-admin/admin.php?page=shopp/lookup&id='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
+		var img = $('<img src="?shopp_image='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 		var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
 		var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
 	
