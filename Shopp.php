@@ -127,7 +127,18 @@ class Shopp {
 		return true;
 	}
 	
-	function init() {		
+	function init() {
+		$pages = $this->Settings->get('pages');
+		if (SHOPP_PERMALINKS) {
+			$pages = $this->Settings->get('pages');
+			$this->shopuri = $this->link('catalog');
+			if ($this->shopuri == trailingslashit(get_bloginfo('wpurl'))) $this->shopuri .= "{$pages['catalog']['name']}/";
+			$this->imguri = $this->shopuri."images/";
+		} else {
+			$this->shopuri = get_bloginfo('wpurl');
+			$this->imguri = add_query_arg('shopp_image','=',get_bloginfo('wpurl'));
+		} 
+		
 		$this->Cart = new Cart();
 		session_start();
 		
@@ -434,10 +445,10 @@ class Shopp {
 		$rules = array(
 			$checkout.'?$' => 'index.php?pagename='.$checkout.'&shopp_proc=checkout',
 			(empty($shop)?"$catalog/":$shop).'feed/?$' => 'index.php?shopp_lookup=newproducts-rss',
-			$shop.'receipt/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=receipt',
-			$shop.'confirm-order/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=confirm-order',
-			$shop.'download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
-			$shop.'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]'
+			(empty($shop)?"$catalog/":$shop).'receipt/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=receipt',
+			(empty($shop)?"$catalog/":$shop).'confirm-order/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=confirm-order',
+			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
+			(empty($shop)?"$catalog/":$shop).'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]'
 		);
 
 		// catalog/category/category-slug
@@ -587,7 +598,7 @@ class Shopp {
 
 		if (!empty($this->Product)): 
 			$tags = "";
-			if (empty($this->Product->tags)) $this->Product->load_tags();
+			if (empty($this->Product->tags)) $this->Product->load_data(array('tags'));
 			foreach($this->Product->tags as $tag)
 				$tags .= (!empty($tags))?", {$tag->name}":$tag->name;
 		?>

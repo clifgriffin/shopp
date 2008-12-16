@@ -29,7 +29,7 @@ class Catalog extends DatabaseObject {
 		if (empty($filtering['where'])) $filtering['where'] = "true";
 		
 		$category_table = DatabaseObject::tablename(Category::$table);
-		$this->categories = $db->query("SELECT cat.*,count(sc.product) AS products FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id WHERE {$filtering['where']} GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
+		$this->categories = $db->query("SELECT cat.*,count(sc.product) AS total FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id WHERE {$filtering['where']} GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
 		if (count($this->categories) > 1) $this->categories = sort_tree($this->categories);
 		
 		if ($showsmarts == "before" || $showsmarts == "after")
@@ -62,6 +62,7 @@ class Catalog extends DatabaseObject {
 		
 	function tag ($property,$options=array()) {
 		global $Shopp;
+
 		$pages = $Shopp->Settings->get('pages');
 		if (SHOPP_PERMALINKS) $path = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['name']}";
 		else $page = trailingslashit(get_bloginfo('wpurl'))."?page_id={$pages['catalog']['id']}";
@@ -103,7 +104,7 @@ class Catalog extends DatabaseObject {
 					$string .= '<form><select name="shopp_cats" id="shopp-categories-menu">';
 					$string .= '<option value="">Select category&hellip;</option>';
 					foreach ($this->categories as &$category) {
-						if ($category->products > 0) // Only show categories with products
+						if ($category->total > 0) // Only show categories with products
 							if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
 								$parent = &$previous;
 								if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
@@ -116,7 +117,7 @@ class Catalog extends DatabaseObject {
 							else $link = $page.'&amp;shopp_category='.$category->id;
 
 							$products = '';
-							if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->products.')';
+							if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->total.')';
 
 							$string .= '<option value="'.$link.'">'.$padding.$category->name.$products.'</option>';
 							$previous = &$category;
@@ -147,9 +148,9 @@ class Catalog extends DatabaseObject {
 						else $link = $page.'&amp;shopp_category='.$category->id;
 					
 						$products = '';
-						if (value_is_true($options['products']) && $category->products > 0) $products = ' ('.$category->products.')';
+						if (value_is_true($options['products']) && $category->total > 0) $products = ' ('.$category->total.')';
 					
-						if (value_is_true($showall) || $category->products > 0 || $category->smart) // Only show categories with products
+						if (value_is_true($showall) || $category->total > 0 || $category->smart) // Only show categories with products
 							$string .= '<li><a href="'.$link.'">'.$category->name.'</a>'.$products.'</li>';
 
 						$previous = &$category;

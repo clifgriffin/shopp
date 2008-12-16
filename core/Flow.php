@@ -1008,20 +1008,14 @@ class Flow {
 
 		if ($_GET['edit'] != "new") {
 			$Product = new Product($_GET['edit']);
-			$Product->load_prices();
-			$Product->load_specs();
-			$Product->load_categories();
-			$Product->load_tags();
+			$Product->load_data(array('prices','specs','categories','tags'));
 		} else $Product = new Product();
 
 		if (!empty($_POST['save']) || !empty($_POST['save-products'])) {
 			$this->save_product($Product);
 			
 			$Product = new Product($Product->id);
-			$Product->load_prices();
-			$Product->load_specs();
-			$Product->load_categories();
-			$Product->load_tags();
+			$Product->load_data(array('prices','specs','categories','tags'));
 			$updated = '<strong>'.$Product->name.'</strong> '.__('has been saved.','Shopp');
 			if (!empty($_POST['save-products'])) {
 				$this->products_list($updated); 
@@ -1051,11 +1045,11 @@ class Flow {
 		}		
 
 		$selectedCategories = array();
-		foreach ($Product->categories as $catalog) $selectedCategories[] = $catalog->category;
+		foreach ($Product->categories as $category) $selectedCategories[] = $category->id;
 
 		$taglist = array();
 		foreach ($Product->tags as $tag) $taglist[] = $tag->name;
-
+		
 		$Assets = new Asset();
 		$Images = $db->query("SELECT id,src FROM $Assets->_table WHERE context='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
 		unset($Assets);

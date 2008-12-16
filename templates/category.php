@@ -18,13 +18,19 @@
 		<?php if(shopp('category','row')): ?></ul></li><li class="row"><ul><?php endif; ?>
 			<li class="product">
 				<div class="frame">
-				<?php shopp('category','product','thumbnail&link'); ?>
+				<a href="<?php shopp('product','url'); ?>"><?php shopp('product','thumbnail'); ?></a>
 					<div class="details">
-					<h4 class="name"><?php shopp('category','product','name&link'); ?></h4>
-					<p class="price"><?php shopp('category','product','price'); ?></p>
+					<h4 class="name"><a href="<?php shopp('product','url'); ?>"><?php shopp('product','name'); ?></a></h4>
+					<p class="price"><?php shopp('product','saleprice','starting=from'); ?> </p>
+					<?php if (shopp('product','has-savings')): ?>
+						<p class="savings">Save <?php shopp('product','savings','show=percent'); ?></p>
+					<?php endif; ?>
+					
 						<div class="listview">
-						<p><?php shopp('category','product','summary'); ?></p>
-						<?php shopp('category','product','addtocart'); ?>
+						<p><?php shopp('product','summary'); ?></p>
+						<form action="" method="post" class="shopp product">
+						<?php shopp('product','addtocart'); ?>
+						</form>
 						</div>
 					</div>
 					<br class="clear" />

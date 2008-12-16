@@ -46,7 +46,7 @@
 
 #shopp .price { font-weight: bold; line-height: 1.5; margin: 0; }
 #shopp .original { text-decoration: line-through; }
-#shopp .price.sale { font-size: 150%; }
+#shopp .sale { font-size: 150%; }
 
 .filters.enabled a.cancel:before { content: "["; }
 .filters.enabled a.cancel { font-weight: bold; }
@@ -57,7 +57,7 @@
 #shopp.list ul.products li.product {  border-bottom: 1px solid #ddd; }
 #shopp.list ul.products li div.frame { width: 100%;  text-align: left; }
 #shopp.list ul.products li img { float: left; margin-right: 10px; }
-#shopp.list ul.products li .details { float: left; }
+#shopp.list ul.products li .details { float: left; width: 65%;}
 #shopp.list ul.products li .listview { display: block; }
 
 #shopp ul.breadcrumb { margin: 10px 0; }

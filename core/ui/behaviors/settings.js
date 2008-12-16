@@ -1,1 +1,2 @@
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
+var options_required = "<?php _e('You must select the options for this item before you can add it to your shopping cart.'); ?>";

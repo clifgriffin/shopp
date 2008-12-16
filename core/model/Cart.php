@@ -330,7 +330,6 @@ class Cart {
 			$this->data->Promotions = $db->query("SELECT * FROM $promo_table WHERE scope='Order' AND ((status='enabled' AND UNIX_TIMESTAMP(starts) > 0 AND UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP() AND UNIX_TIMESTAMP(ends) > UNIX_TIMESTAMP()) OR status='enabled')",AS_ARRAY);
 		}
 
-		// echo "<pre>"; print_r($this->data->Promotions); echo "</pre>";
 		$PromoCodeFound = false; $PromoCodeExists = false;
 		$this->data->PromosApplied = array();
 		foreach ($this->data->Promotions as &$promo) {
@@ -351,7 +350,6 @@ class Cart {
 			
 			$items = array();
 			
-			// echo $promo->name.": ";
 			$match = false;
 			$rulematches = 0;
 			foreach ($promo->rules as $rule) {
@@ -410,7 +408,7 @@ class Cart {
 					break; // One matched, no need to match any more
 				}
 			} // end foreach ($promo->rules)
-			// echo "<br />".$promo->name." ".$rulematches." matched out of ".count($promo->rules)." total<br />";
+
 			if ($promo->search == "all" && $rulematches == count($promo->rules))
 				$match = true;
 				
