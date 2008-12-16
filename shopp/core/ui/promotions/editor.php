@@ -88,6 +88,7 @@ var product_conditions = {
 var order_conditions = {
 	"Item name":{"logic":["boolean","fuzzy"],"value":"text"},
 	"Item quantity":{"logic":["boolean","amount"],"value":"text"},
+	"Total quantity":{"logic":["boolean","amount"],"value":"text"},
 	"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
 	"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
 	"Promo code":{"logic":["boolean"],"value":"text"}

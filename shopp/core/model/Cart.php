@@ -380,17 +380,19 @@ class Cart {
 							}
 						}
 						break;
+					case "Total quantity":
+						if (Promotion::match_rule($this->data->Totals->quantity,$rule['logic'],$rule['value'])) {
+							$rulematch = true;
+						}
+						break;
 					case "Shipping amount": 
 						if (Promotion::match_rule($this->data->Totals->shipping,$rule['logic'],$rule['value'])) {
 							$rulematch = true;
 						}
-							
 						break;
 					case "Subtotal amount": 
 						if (Promotion::match_rule($this->data->Totals->subtotal,$rule['logic'],$rule['value'])) {
 							$rulematch = true;
-							$rulematch = true;
-							
 						}
 						break;
 					case "Promo code":
