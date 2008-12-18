@@ -10,18 +10,36 @@
  **/
 
 class PayPalExpress {
-	var $button = 'https://www.paypal.com/en_US/i/btn/btn_xpressCheckout.gif';
+	var $button = 'https://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
 	var $sandbox_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout';
 	var $checkout_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout';
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
+	var $currencies = array("USD", "AUD", "CAD", "CHF", "CZK", "DKK", "EUR", "GBP", 
+							"HKD", "HUF", "JPY", "NOK", "NZD", "PLN", "SEK", "SGD");
+	var $locales = array("AT" => "de_DE", "AU" => "en_AU", "BE" => "en_US", "C2" => "en_US",
+							"CH" => "de_DE", "CN" => "zh_CN", "DE" => "de_DE", "ES" => "es_ES",
+							"FR" => "fr_FR", "GB" => "en_GB", "GF" => "fr_FR", "GI" => "en_US",
+							"GP" => "fr_FR", "IE" => "en_US", "IT" => "it_IT", "JP" => "ja_JP",
+							"MQ" => "fr_FR", "NL" => "nl_NL", "PL" => "pl_PL", "RE" => "fr_FR",
+							"US" => "en_US");
 
 	function PayPalExpress () {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('PayPalExpress');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
+		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
+		$this->settings['currency_code'] = $this->currencies[0];
+		if (in_array($this->settings['base_operations']['currency']['code'],$this->currencies))
+			$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];
 
+		$this->settings['locale'] = $this->locales["US"];
+		if (array_key_exists($this->settings['base_operations']['country'],$this->locales));
+			$this->settings['locale'] = $this->locales[$this->settings['base_operations']['country']];
+
+		$this->button = sprintf($this->button, $this->settings['locale']);
+		
 		// Capture PayPal Express transaction information as it becomes available
 		if (!isset($Shopp->Cart->data->PayPalExpress)) $Shopp->Cart->data->PayPalExpress = new stdClass();
 		if (!empty($_GET['token'])) $Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
@@ -45,7 +63,7 @@ class PayPalExpress {
 		$_['PAYMENTACTION']			= "Sale";
 		
 		// Transaction
-		$_['CURRENCYCODE']			= "USD";
+		$_['CURRENCYCODE']			= $this->settings['currency_code'];
 		$_['AMT']					= number_format($Shopp->Cart->data->Totals->total,2);
 		$_['ITEMAMT']				= number_format($Shopp->Cart->data->Totals->subtotal,2);
 		$_['SHIPPINGAMT']			= number_format($Shopp->Cart->data->Totals->shipping,2);
@@ -99,7 +117,7 @@ class PayPalExpress {
 		$_['PAYERID'] 				= $Shopp->Cart->data->PayPalExpress->payerid;
 
 		// Transaction
-		$_['CURRENCYCODE']			= "USD";
+		$_['CURRENCYCODE']			= $this->settings['currency_code'];
 		$_['AMT']					= number_format($Shopp->Cart->data->Totals->total,2);
 		$_['ITEMAMT']				= number_format($Shopp->Cart->data->Totals->subtotal,2);
 		$_['SHIPPINGAMT']			= number_format($Shopp->Cart->data->Totals->shipping,2);

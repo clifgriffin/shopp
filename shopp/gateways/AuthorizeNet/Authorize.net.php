@@ -99,7 +99,7 @@ class AuthorizeNet {
 		// Line Items
 		$i = 1;
 		foreach($Order->Items as $Item) {
-			$_['x_line_item'][] = ($i++)."<|>".$Item->name.((sizeof($Item->options) > 1)?" (".$Item->optionlabel.")":"")."<|><|>".$Item->quantity."<|>".$Item->unitprice."<|>".(($Item->tax)?"Y":"N");
+			$_['x_line_item'][] = ($i++)."<|>".substr($Item->name,0,31)."<|>".((sizeof($Item->options) > 1)?" (".substr($Item->optionlabel,0,253).")":"")."<|>".number_format($Item->quantity,2)."<|>".number_format($Item->unitprice,2)."<|>".(($Item->tax)?"Y":"N");
 		}
 
 		$this->transaction = "";
@@ -118,7 +118,7 @@ class AuthorizeNet {
 	
 	function send () {
 		$connection = curl_init();
-		curl_setopt($connection,CURLOPT_URL,"https://secure.authorize.net/gateway/transact.dll");
+		curl_setopt($connection, CURLOPT_URL,"https://secure.authorize.net/gateway/transact.dll");
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
 		curl_setopt($connection, CURLOPT_VERBOSE, 1); 

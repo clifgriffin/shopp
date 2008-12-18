@@ -13,7 +13,7 @@
 			<th scope="row" valign="top"><label for="name"><?php _e('Product Name','Shopp'); ?></label></th> 
 			<td><input name="name" id="name" type="text" value="<?php echo attribute_escape($Product->name); ?>" size="40" tabindex="1" /><br />
 				<?php if (SHOPP_PERMALINKS && !empty($Product->id)): ?>
-				<div id="edit-slug-box"><strong>Permalink:</strong>
+				<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
 				<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="Click to edit this part of the permalink"><?php echo attribute_escape($Product->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Product->slug); ?></span>/</span>
 				<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>
 				</div>
@@ -178,6 +178,17 @@ var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
 var productspath = '<?php echo trailingslashit($this->Settings->get('products_path')); ?>';
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
+
+// Warning/Error Dialogs
+var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this product image?','Shopp'); ?>";
+var SERVER_COMM_ERROR = "<?php _e('There was an error communicating with the server.','Shopp'); ?>";
+
+// Dynamic interface label translations
+var NO_DOWNLOAD = "<?php _e('No download file.','Shopp'); ?>";
+var ADD_IMAGE_BUTTON_TEXT = "<?php _e('Add New Image','Shopp'); ?>";
+var UPLOAD_FILE_BUTTON_TEXT = "<?php _e('Upload File','Shopp'); ?>";
+var SAVE_BUTTON_TEXT = "<?php _e('Save','Shopp'); ?>";
+var CANCEL_BUTTON_TEXT = "<?php _e('Cancel','Shopp'); ?>";
 
 init();
 </script>

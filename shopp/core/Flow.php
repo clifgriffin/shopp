@@ -1950,6 +1950,7 @@ class Flow {
 		// Image path processing
 		$_POST['settings']['image_storage'] = $_POST['settings']['image_storage_pref'];
 		$imagepath = $this->Settings->get('image_path');
+		if (isset($_POST['settings']['products_path'])) $imagepath = $_POST['settings']['image_path'];
 		$imagepath_status = __("File system image hosting is enabled and working.","Shopp");
 		if (!file_exists($imagepath)) $error = __("The current path does not exist. Using database instead.","Shopp");
 		if (!is_dir($imagepath)) $error = __("The file path supplied is not a directory. Using database instead.","Shopp");
@@ -1964,6 +1965,7 @@ class Flow {
 		// Product path processing
 		$_POST['settings']['product_storage'] = $_POST['settings']['product_storage_pref'];
 		$productspath = $this->Settings->get('products_path');
+		if (isset($_POST['settings']['products_path'])) $productspath = $_POST['settings']['products_path'];
 		$error = ""; // Reset the error tracker
 		$productspath_status = __("File system product file hosting is enabled and working.","Shopp");
 		if (!file_exists($productspath)) $error = __("The current path does not exist. Using database instead.","Shopp");
@@ -2139,8 +2141,6 @@ class Flow {
 		$log[] = "Updating files via FTP connection";
 		$results = $ftp->update($target."shopp",$Shopp->path);
 		if (!empty($results)) die(join("\n\n",$log).join("\n\n",$results)."\n\nFTP transfer failed.");
-		// $ftp->put($tmpdir.$dbBackup,$Shopp->path."/backups"."/$dbBackup");
-		// $ftp->put($tmpdir.$filesBackup,$Shopp->path."/backups"."/$filesBackup");
 				
 		echo "updated"; // Report success!
 		exit();

@@ -40,7 +40,7 @@ CREATE TABLE shopp_price (
 	price float(20,2) NOT NULL default '0.00',
 	saleprice float(20,2) NOT NULL default '0.00',
 	weight int(10) NOT NULL default '0',
-	shipfee int(10) NOT NULL default '0',
+	shipfee float(20,2) NOT NULL default '0',
 	stock int(10) NOT NULL default '0',
 	inventory enum('off','on') NOT NULL,
 	sale enum('off','on') NOT NULL,

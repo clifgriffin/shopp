@@ -211,8 +211,8 @@ function shopp_image () {
 	header ("Content-Disposition: inline; filename=".$Asset->name.""); 
 	header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
 	if ($image_storage == "fs") {
-		header ("Content-length: ".@filesize($image_path.$Asset->name)); 
-		readfile($image_path.$Asset->name);
+		header ("Content-length: ".@filesize(trailingslashit($image_path).$Asset->name)); 
+		readfile(trailingslashit($image_path).$Asset->name);
 	} else {
 		header ("Content-length: ".strlen($Asset->data)); 
 		echo $Asset->data;

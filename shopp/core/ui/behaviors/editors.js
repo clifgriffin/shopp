@@ -639,7 +639,7 @@ function ImageUploads (params) {
 	var swfu;
 	
 	var settings = {
-		button_text: '<span class="button">Add New Image</span>',
+		button_text: '<span class="button">'+ADD_IMAGE_BUTTON_TEXT+'</span>',
 		button_text_style: '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 9px; color: #333333; }',
 		button_text_top_padding: 4,
 		button_height: "24",
@@ -704,7 +704,7 @@ function ImageUploads (params) {
 		onComplete: function(results) {
 			if (results == "") {
 				$(this.targetHolder).remove();
-				alert("There was an error communicating with the server.");
+				alert(SERVER_COMM_ERROR);
 				return true;
 			}
 			var image = eval('('+results+')');
@@ -833,7 +833,7 @@ function ImageUploads (params) {
 		});
 	
 		$(button).click(function() {
-			if (confirm("Are you sure you want to delete this product image?")) {
+			if (confirm(DELETE_IMAGE_WARNING)) {
 				$('#deleteImages').val(($('#deleteImages').val() == "")?$(button).val():$('#deleteImages').val()+','+$(button).val());
 				$(button).parent().fadeOut(500,function() {
 					$(this).remove();
@@ -851,7 +851,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 	var _self = this;
 
 	_self.settings = {
-		button_text: '<span class="button">Upload File</span>',
+		button_text: '<span class="button">'+UPLOAD_FILE_BUTTON_TEXT+'</span>',
 		button_text_style: '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 9px; color: #333333; }',
 		button_text_top_padding: 4,
 		button_height: "24",
@@ -984,7 +984,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		// console.log(results);
 		var filedata = eval('('+results+')');
 		if (filedata.error) {
-			$(this.targetHolder).html("No download file.")
+			$(this.targetHolder).html(no_download)
 			alert(filedata.error);
 			return true;
 		}
@@ -1018,7 +1018,7 @@ function SlugEditor (id,type) {
 			var revert_buttons = buttons.html();
 			var full = $('#editable-slug-full').html();
 		
-			buttons.html('<button type="button" class="save button">Save</button> <button type="button" class="cancel button">Cancel</button>');
+			buttons.html('<button type="button" class="save button">'+SAVE_BUTTON_TEXT+'</button> <button type="button" class="cancel button">'+CANCEL_BUTTON_TEXT+'</button>');
 			buttons.children('.save').click(function() {
 				var slug = editor.children('input').val();
 				$.post(siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_edit_slug', 
