@@ -13,7 +13,7 @@
 				<th scope="row" valign="top"><label for="category_name"><?php _e('Category Name','Shopp'); ?></label></th> 
 				<td><input type="text" name="name" value="<?php echo attribute_escape($Category->name); ?>" id="category_name" size="40" /><br /> 
 					<?php if (SHOPP_PERMALINKS && !empty($Category->id)): ?>
-					<div id="edit-slug-box"><strong>Permalink:</strong>
+					<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp')?>:</strong>
 					<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="Click to edit this part of the permalink"><?php echo attribute_escape($Category->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Category->slug); ?></span>/</span>
 					<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>
 					</div>
@@ -154,6 +154,21 @@ var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 
+// Warning/Error Dialogs
+var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this category image?','Shopp'); ?>";
+var SERVER_COMM_ERROR = "<?php _e('There was an error communicating with the server.','Shopp'); ?>";
+
+// Translatable dynamic interface labels
+var NEW_DETAIL_DEFAULT = "<?php _e('Detail Name','Shopp'); ?>";
+var NEW_OPTION_DEFAULT = "<?php _e('New Option','Shopp'); ?>";
+var FACETED_DISABLED = "<?php _e('Faceted menu disabled','Shopp'); ?>";
+var FACETED_AUTO = "<?php _e('Build faceted menu automatically','Shopp'); ?>";
+var FACETED_RANGES = "<?php _e('Build as custom number ranges','Shopp'); ?>";
+var FACETED_CUSTOM = "<?php _e('Build from preset options','Shopp'); ?>";
+var ADD_IMAGE_BUTTON_TEXT = "<?php _e('Add New Image','Shopp'); ?>";
+var SAVE_BUTTON_TEXT = "<?php _e('Save','Shopp'); ?>";
+var CANCEL_BUTTON_TEXT = "<?php _e('Cancel','Shopp'); ?>";
+
 var productOptions = new Array();
 var optionMenus = new Array();
 var pricingOptions = new Object();
@@ -233,23 +248,23 @@ $(window).ready(function () {
 		var menu = new NestedMenu(
 				id,menus,
 				'specs',
-				'Detail Name',
+				NEW_DETAIL_DEFAULT,
 				data,
 				{target:entries,type:'list'}
 		);
 
 		menu.items = new Array();
 		menu.addOption = function (data) {
-		 	var option = new NestedMenuOption(menu.index,menu.itemsElement,menu.dataname,'New Option',data,true);
+		 	var option = new NestedMenuOption(menu.index,menu.itemsElement,menu.dataname,NEW_OPTION_DEFAULT,data,true);
 			menu.items.push(option);
 		}
 
 		var facetedSetting = $('<li class="setting"></li>').appendTo(menu.itemsElement);
 		var facetedMenu = $('<select name="specs['+menu.index+'][facetedmenu]"></select>').appendTo(facetedSetting);
-		$('<option value="disabled">Faceted menu disabled</option>').appendTo(facetedMenu);
-		$('<option value="auto">Build faceted menu automatically</option>').appendTo(facetedMenu);
-		$('<option value="ranges">Build as custom number ranges</option>').appendTo(facetedMenu);
-		$('<option value="custom">Build from preset options</option>').appendTo(facetedMenu);
+		$('<option value="disabled">'+FACETED_DISABLED+'</option>').appendTo(facetedMenu);
+		$('<option value="auto">'+FACETED_AUTO+'</option>').appendTo(facetedMenu);
+		$('<option value="ranges">'+FACETED_RANGES+'</option>').appendTo(facetedMenu);
+		$('<option value="custom">'+FACETED_CUSTOM+'</option>').appendTo(facetedMenu);
 		
 		if (data && data.facetedmenu) facetedMenu.val(data.facetedmenu);
 		

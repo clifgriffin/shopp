@@ -105,10 +105,10 @@ class Purchase extends DatabaseObject {
 				return $item->quantity; break;
 			case "item-unitprice":
 				$item = current($this->purchased);
-				return $item->unitprice; break;
+				return money($item->unitprice); break;
 			case "item-total":
 				$item = current($this->purchased);
-				return $item->total; break;
+				return money($item->total); break;
 			case "subtotal": return money($this->subtotal); break;
 			case "hasfreight": return ($this->freight > 0);
 			case "freight": return money($this->freight); break;

@@ -582,11 +582,11 @@ class Cart {
 				break;
 			case "function": return '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /><input type="submit" name="update" id="hidden-update" /></div>'; break;
 			case "empty-button": 
-				if (empty($options['value'])) $options['value'] = "Empty Cart";
+				if (!isset($options['value'])) $options['value'] = "Empty Cart";
 				return '<input type="submit" name="empty" id="empty-button"'.$this->inputattrs($options,$submit_attrs).' />';
 				break;
 			case "update-button": 
-				if (empty($options['value'])) $options['value'] = "Update Subtotal";
+				if (!isset($options['value'])) $options['value'] = "Update Subtotal";
 				return '<input type="submit" name="update" id="update-button"'.$this->inputattrs($options,$submit_attrs).' />';
 				break;
 			case "sidecart":
@@ -603,7 +603,7 @@ class Cart {
 		$result = "";
 		switch ($property) {
 			case "promo-code": 
-				if (empty($options['value'])) $options['value'] = __("Apply Promo Code");
+				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code");
 				if ($this->data->PromoCodeResult !== false)
 					$result .= '<p class="error">'.$this->data->PromoCodeResult.'</p>';
 				$result .= '<p><input type="text" id="promocode" name="promocode" value="" size="10" /> ';
@@ -991,10 +991,10 @@ class Cart {
 				break;
 
 			case "submit": 
-				if (empty($options['value'])) $options['value'] = "Submit Order";
+				if (!isset($options['value'])) $options['value'] = "Submit Order";
 				return '<input type="submit" name="process" id="checkout-button"'.$this->inputattrs($options,$submit_attrs).' />'; break;
 			case "confirm-button": 
-				if (empty($options['value'])) $options['value'] = "Confirm Order";
+				if (!isset($options['value'])) $options['value'] = "Confirm Order";
 				return '<input type="submit" name="confirmed" id="confirm-button"'.$this->inputattrs($options,$submit_attrs).' />'; break;
 			case "local-payment": 
 				$gateway = $Shopp->Settings->get('payment_gateway'); 

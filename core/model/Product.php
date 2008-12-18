@@ -141,7 +141,7 @@ class Product extends DatabaseObject {
 				case "categories":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."catalog.product=$id";
 					$where = "($where) AND catalog.category > 0";
-					$query .= "(SELECT catalog.product AS product,'$rtype' AS rtype,$cols FROM {$Shopp->Catalog->_table} AS catalog LEFT JOIN $set->_table ON catalog.category=$set->_table.id WHERE $where ORDER BY category.name)";
+					$query .= "(SELECT catalog.product AS product,'$rtype' AS rtype,$cols FROM {$Shopp->Catalog->_table} AS catalog LEFT JOIN $set->_table ON catalog.category=$set->_table.id WHERE $where ORDER BY $set->_table.name)";
 					break;
 				case "tags":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."catalog.product=$id";
@@ -172,8 +172,10 @@ class Product extends DatabaseObject {
 					$products[$row->product]->{$row->rtype}[] = $record;
 				}
 			}
+			
 			foreach ($products as $product) if (!empty($product->prices)) $product->pricing();
-			foreach ($products as $product) if (!empty($product->images) && empty($product->imagesets)) $product->imageset();
+			foreach ($products as $product) if (count($product->images) >= 3 && count($product->imagesets) <= 1)
+					$product->imageset();
 
 		} else {
 			// Load into this object
@@ -193,7 +195,7 @@ class Product extends DatabaseObject {
 				}
 			}
 			if (!empty($this->prices)) $this->pricing();
-			if (!empty($this->images) && empty($this->imagesets)) $this->imageset();
+			if (count($this->images) >= 3 && count($this->imagesets) <= 1) $this->imageset();
 		
 		}
 
@@ -288,6 +290,7 @@ class Product extends DatabaseObject {
 	function imageset () {
 		global $Shopp;
 		// Organize images into groupings by type
+		$this->imagesets = array();
 		foreach ($this->images as $key => &$image) {
 			if (empty($this->imagesets[$image->datatype])) $this->imagesets[$image->datatype] = array();
 			if ($image->id) $image->uri = $Shopp->imguri.$image->id;
@@ -409,17 +412,10 @@ class Product extends DatabaseObject {
 	/**
 	 * delete_images()
 	 * Delete provided array of image ids, removing the source image and
-	 * all related images (featured and thumbnails) */
+	 * all related images (small and thumbnails) */
 	function delete_images ($images) {
-		$db = DB::get();
-		$table = DatabaseObject::tablename(Asset::$table);
-		
-		$query = "DELETE LOW_PRIORITY FROM $table WHERE ";
-		foreach ($images as $i => $id) {
-			if ($i > 0) $query .= " OR ";
-			$query .= "id=$id OR src=$id";
-		}
-		$db->query($query);
+		$Images = new Asset();
+		$Images->deleteset($images,'image');
 		return true;
 	}
 	
@@ -455,7 +451,7 @@ class Product extends DatabaseObject {
 				
 		switch ($property) {
 			case "url": 
-				$url = $Shopp->shopuri;
+				$url = trailingslashit($Shopp->shopuri);
 				if (isset($Shopp->Category->uri)) $category = $Shopp->Category->uri;
 				else $category = "new";
 				if (SHOPP_PERMALINKS) $url .= "$category/$this->slug/";
@@ -547,7 +543,7 @@ class Product extends DatabaseObject {
 				}
 				break;
 			case "image":			
-				if (empty($optionset['type'])) $options['type'] = "thumbnail";
+				if (empty($options['type'])) $options['type'] = "thumbnail";
 				$img = current($this->imagesets[$options['type']]);
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
 				$string = "";
@@ -593,6 +589,36 @@ class Product extends DatabaseObject {
 				}
 				
 				return '<div id="gallery">'.$previews.$thumbs.'</div>';
+				break;
+			case "has-categories": 
+				if (empty($this->categories)) $this->load_data(array('categories'));
+				if (count($this->categories) > 0) return true; else return false; break;
+			case "categories":			
+				if (!$this->categoryloop) {
+					reset($this->categories);
+					$this->categoryloop = true;
+				} else next($this->categories);
+
+				if (current($this->categories)) return true;
+				else {
+					$this->categoryloop = false;
+					return false;
+				}
+				break;
+			case "in-category": 
+				if (isset($options['id'])) $field = "id";
+				if (isset($options['name'])) $field = "name";
+				if (isset($options['slug'])) $field = "slug";
+				foreach ($this->categories as $category)
+					if ($category->{$field} == $options[$field]) return true;
+				return false;
+			case "category":
+				$category = current($this->categories);
+				if (isset($options['show'])) {
+					if ($options['show'] == "id") return $category->id;
+					if ($options['show'] == "slug") return $category->slug;
+				}
+				return $category->name;
 				break;
 			case "has-specs": 
 				if (empty($this->specs)) $this->load_data(array('specs'));

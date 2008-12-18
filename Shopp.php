@@ -72,9 +72,11 @@ class Shopp {
 		$this->path = dirname(__FILE__);
 		$this->file = basename(__FILE__);
 		$this->directory = basename($this->path);
+		$this->secure = (!empty($_SERVER['HTTPS']));
 		$this->uri = WP_PLUGIN_URL."/".$this->directory;
 		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";
-		
+		if ($this->secure) $this->uri = str_replace('http://','https://',$this->uri);
+
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
 
@@ -134,12 +136,12 @@ class Shopp {
 	}
 	
 	function init() {
-		$pages = $this->Settings->get('pages');
 		if (SHOPP_PERMALINKS) {
 			$pages = $this->Settings->get('pages');
 			$this->shopuri = $this->link('catalog');
 			if ($this->shopuri == trailingslashit(get_bloginfo('wpurl'))) $this->shopuri .= "{$pages['catalog']['name']}/";
-			$this->imguri = $this->shopuri."images/";
+			if ($this->secure) $this->shopuri = str_replace('http://','https://',$this->shopuri);
+			$this->imguri = trailingslashit($this->shopuri)."images/";
 		} else {
 			$this->shopuri = get_bloginfo('wpurl');
 			$this->imguri = add_query_arg('shopp_image','=',get_bloginfo('wpurl'));
@@ -331,7 +333,7 @@ class Shopp {
 		add_action('wp_head', array(&$this, 'header'));
 		add_action('wp_footer', array(&$this, 'footer'));
 		wp_enqueue_script('jquery');
-		wp_enqueue_script('shopp-settings',"$shoppage?shopp_lookup=settings.js");
+		wp_enqueue_script('shopp-settings',"$this->shopuri?shopp_lookup=settings.js");
 		wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
 		wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js");
 		
@@ -445,9 +447,10 @@ class Shopp {
 		$pages = $this->Settings->get('pages');
 		if (!$pages) $pages = $this->Flow->Pages;
 		$shop = $pages['catalog']['permalink'];
+		if (!empty($shop)) $shop = trailingslashit($shop);
 		$catalog = $pages['catalog']['name'];
 		$checkout = $pages['checkout']['permalink'];
-		
+
 		$rules = array(
 			$checkout.'?$' => 'index.php?pagename='.$checkout.'&shopp_proc=checkout',
 			(empty($shop)?"$catalog/":$shop).'feed/?$' => 'index.php?shopp_lookup=newproducts-rss',
@@ -465,7 +468,7 @@ class Shopp {
 		} else {
 			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
 			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
+			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
 		}
 
 		// tags
@@ -567,27 +570,19 @@ class Shopp {
 	 * Changes the Shopp catalog page titles to include the product
 	 * name and category (when available) */
 	function titles ($title) {
-		if (isset($this->Product)) $title = $this->Product->name;
+		if (isset($this->Product)) $title .= $this->Product->name;
 		if (isset($this->Category)) $title .= " &mdash; ".$this->Category->name;
-		
 		return $title;
 	}
 
 	function feeds () {
-		if (SHOPP_PERMALINKS) {
-			$pages = $this->Settings->get('pages');
-			$shoppage = $this->link('catalog');
-			if ($shoppage == get_bloginfo('siteurl')."/")
-				$shoppage .= $pages['catalog']['name'];
-		} else $shoppage = get_bloginfo('siteurl');
-
 		if (empty($this->Category)):?>
-	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> New Products RSS Feed" href="<?php echo $shoppage.((SHOPP_PERMALINKS)?'/feed/':'?shopp_lookup=newproducts-rss'); ?>" />
+	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'/feed/':'?shopp_lookup=newproducts-rss'); ?>" />
 	<?php
 			else:
 			$uri = 'category/'.$this->Category->uri;
 			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
-			$link = $shoppage.((SHOPP_PERMALINKS)?'/'.$uri.'/feed/':'?shopp_category='.$this->Category->id.'&shopp_lookup=category-rss')
+			$link = $this->shopuri.((SHOPP_PERMALINKS)?'/'.$uri.'/feed/':'?shopp_category='.$this->Category->id.'&shopp_lookup=category-rss')
 			?>
 	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> <?php echo $this->Category->name; ?> RSS Feed" href="<?php echo $link; ?>" />
 	<?php
@@ -595,21 +590,14 @@ class Shopp {
 	}
 
 	function metadata () {
-		if (SHOPP_PERMALINKS) {
-			$pages = $this->Settings->get('pages');
-			$shoppage = $this->link('catalog');
-			if ($shoppage == get_bloginfo('siteurl')."/")
-				$shoppage .= $pages['catalog']['name'];
-		} else $shoppage = get_bloginfo('siteurl');
-
 		if (!empty($this->Product)): 
 			$tags = "";
 			if (empty($this->Product->tags)) $this->Product->load_data(array('tags'));
 			foreach($this->Product->tags as $tag)
 				$tags .= (!empty($tags))?", {$tag->name}":$tag->name;
 		?>
-		<meta name="keywords" content="<?php echo $tags; ?>" />
-		<meta name="description" content="<?php echo $this->Product->summary; ?>" />
+		<meta name="keywords" content="<?php echo attribute_escape($tags); ?>" />
+		<meta name="description" content="<?php echo attribute_escape($this->Product->summary); ?>" />
 	<?php
 		endif;
 	}
@@ -618,15 +606,8 @@ class Shopp {
 	/**
 	 * header()
 	 * Adds stylesheets necessary for Shopp public shopping pages */
-	function header () {
-		if (SHOPP_PERMALINKS) {
-			$pages = $this->Settings->get('pages');
-			$shoppage = $this->link('catalog');
-			if ($shoppage == get_bloginfo('wpurl')."/")
-				$shoppage .= $pages['catalog']['name'];
-		} else $shoppage = get_bloginfo('wpurl');
-		
-		?><link rel='stylesheet' href='<?php echo $shoppage; ?>?shopp_lookup=catalog.css' type='text/css' />
+	function header () {		
+		?><link rel='stylesheet' href='<?php echo $this->shopuri; ?>?shopp_lookup=catalog.css' type='text/css' />
 		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css' type='text/css' />
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css' type='text/css' />
 		<?php
@@ -664,7 +645,7 @@ class Shopp {
 		if ($category = $wp->query_vars['shopp_category']) $type = "category";
 		if ($productid = $wp->query_vars['shopp_pid']) $type = "product";
 		if ($productname = $wp->query_vars['shopp_product']) $type = "product";
-		
+
 		if ($tag = $wp->query_vars['shopp_tag']) {
 			$type = "category";
 			$category = "tag";
@@ -725,8 +706,8 @@ class Shopp {
 		}
 		
 		$this->Catalog = new Catalog($type);
+		add_filter('wp_title', array(&$this, 'titles'));
 		add_action('wp_head', array(&$this, 'metadata'));
-		add_filter('single_post_title', array(&$this, 'titles'));
 		add_action('wp_head', array(&$this, 'feeds'));
 
 	}
@@ -858,7 +839,7 @@ class Shopp {
 		$pages = $this->Settings->get('pages');
 		
 		$uri = ($secure)?str_replace('http://','https://',get_bloginfo('wpurl')):get_bloginfo('wpurl');
-		
+
 		if (array_key_exists($target,$pages)) $page = $pages[$target];
 		else {
 			if (in_array($target,$internals)) {
@@ -896,7 +877,6 @@ class Shopp {
 		// echo "<pre>"; print_r($wp); echo "</pre>";
 		// echo "<pre>"; print_r($wp_rewrite); echo "</pre>";
 		// echo "<pre>"; print_r($pages); echo "</pre>";
-
 
 		// Grab query requests from permalink rewriting query vars
 		$admin = false;
