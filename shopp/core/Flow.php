@@ -43,6 +43,10 @@ class Flow {
 			$this->Pages['checkout'] = array('name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
 			$this->Pages['account'] = array('name'=>'account','title'=>'Your Orders','content'=>'[account]');
 		}
+
+		$this->coremods = array("GoogleCheckout.php", "PayPalExpress.php", 
+									"TestMode.php", "FlatRates.php", "ItemQuantity.php", 
+									"OrderAmount.php", "OrderWeight.php");
 		
 		define("SHOPP_PATH",$this->basepath);
 		define("SHOPP_ADMINPATH",$this->basepath."/core/ui");
@@ -1170,6 +1174,8 @@ class Flow {
 		$File->save();
 		unset($File->data); // Remove file contents from memory
 		
+		do_action('add_product_download',$File,$_FILES['Filedata']);
+		
 		echo json_encode(array("id"=>$File->id,"name"=>$File->name,"type"=>$File->properties['mimetype'],"size"=>$File->size));
 	}
 	
@@ -2013,6 +2019,25 @@ class Flow {
 		}
 
 		return $gateways;
+	}
+	
+	function validate_addons () {
+		$addons = array();
+
+		$gateway_path = $this->basepath.DIRECTORY_SEPARATOR."gateways";		
+		find_files(".php",$gateway_path,$gateway_path,$gateways);
+		foreach ($gateways as $file) {
+			if (in_array(basename($file),$this->coremods)) continue;
+			$addons[] = md5_file($gateway_path.$file);
+		}
+
+		$shipping_path = $this->basepath.DIRECTORY_SEPARATOR."shipping";
+		find_files(".php",$shipping_path,$shipping_path,$shipmods);
+		foreach ($shipmods as $file) {
+			if (in_array(basename($file),$this->coremods)) continue;
+			$addons[] = md5_file($shipping_path.$file);
+		}
+		return $addons;
 	}
 
 	function scan_gateway_meta ($file) {
