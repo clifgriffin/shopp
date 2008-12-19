@@ -15,9 +15,9 @@ class Asset extends DatabaseObject {
 	var $storage = "db";
 	var $path = "";
 	
-	function Asset ($id=false) {
+	function Asset ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id)) return true;
+		if ($this->load($id,$key)) return true;
 		else return false;
 	}
 	
