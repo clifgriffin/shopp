@@ -53,6 +53,9 @@ class Price extends DatabaseObject {
 		$table = DatabaseObject::tablename(Asset::$table);
 		$db->query("DELETE FROM $table WHERE parent='$this->id' AND context='price' AND datatype='download'");
 		$db->query("UPDATE $table SET parent='$this->id',context='price',datatype='download' WHERE id='$id'");
+		
+		do_action('attach_product_download',$id,$this->id);
+		
 		return true;
 	}
 	
