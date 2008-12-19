@@ -118,7 +118,7 @@ class Product extends DatabaseObject {
 				case "prices":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."$set->_table.product=$id";
 					$query .= "(SELECT $set->_table.product AS product,'$rtype' AS rtype,$cols FROM $set->_table 
-								LEFT JOIN $assettable AS download ON $set->_table.id=download.parent AND download.context='price' 
+								LEFT JOIN $assettable AS download ON $set->_table.id=download.parent AND download.context='price' AND download.datatype='download' 
 								LEFT JOIN $discounttable AS discount ON discount.product=$set->_table.product AND discount.price=$set->_table.id
 								LEFT JOIN $promotable AS promo ON promo.id=discount.promo
 								WHERE $where GROUP BY $set->_table.id ORDER BY $set->_table.sortorder)";					
