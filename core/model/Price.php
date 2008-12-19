@@ -38,7 +38,7 @@ class Price extends DatabaseObject {
 		$db = DB::get();
 		
 		$table = DatabaseObject::tablename(Asset::$table);
-		$this->download = $db->query("SELECT id,name,properties,size FROM $table WHERE parent='$this->id' AND context='price' AND datatype='download'");
+		$this->download = $db->query("SELECT id,name,properties,size FROM $table WHERE parent='$this->id' AND context='price' AND datatype='download' LIMIT 1");
 
 		if (empty($this->download)) return false;
 
