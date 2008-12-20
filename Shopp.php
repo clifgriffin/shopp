@@ -85,6 +85,7 @@ class Shopp {
 			$this->Flow->upgrade();
 			$this->Settings->save("maintenance","off");
 		} elseif ($this->Settings->get('maintenance') == "on") {
+			add_action('init', array(&$this, 'ajax'));
 			add_action('wp', array(&$this, 'shortcodes'));
 			return true;
 		}
@@ -559,7 +560,6 @@ class Shopp {
 			case "presentation":	$this->Flow->settings_presentation(); break;
 			case "system":			$this->Flow->settings_system(); break;
 			case "update":			$this->Flow->settings_update(); break;
-			case "ftp":				$this->Flow->settings_ftp(); break;
 			default: 				$this->Flow->settings_general();
 		}
 		
@@ -1085,15 +1085,24 @@ class Shopp {
 				check_admin_referer('shopp-wp_ajax_shopp_update');
 				$request = array(
 					"ShoppServerRequest" => "version-check",
-					"v" => SHOPP_VERSION					
+					"ver" => '1.0'
 				);
-				echo $this->Flow->callhome($request);
+				$data = array(
+					'core' => SHOPP_VERSION,
+					'addons' => join("-",$this->Flow->validate_addons())
+				);
+				echo $this->Flow->callhome($request,$data);
 				exit();
 
 			// Perform an update process
 			case "wp_ajax_shopp_update":
 				check_admin_referer('shopp-wp_ajax_shopp_update');
-				echo $this->Flow->update();
+				$this->Flow->update();
+				exit();
+			case "wp_ajax_shopp_setftp":
+				check_admin_referer('shopp-wp_ajax_shopp_update');
+				$this->Flow->settings_save();
+				$updates = $this->Settings->get('ftp_credentials');
 				exit();
 		}
 				
