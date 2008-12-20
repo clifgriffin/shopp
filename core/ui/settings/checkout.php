@@ -11,12 +11,12 @@
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="confirm_url"><?php _e('Order Confirmation','Shopp'); ?></label></th> 
 				<td><input type="radio" name="settings[order_confirmation]" value="ontax" id="order_confirmation_ontax"<?php if($this->Settings->get('order_confirmation') == "ontax") echo ' checked="checked"' ?> /> <label for="order_confirmation_ontax"><?php _e('Show for taxed orders only','Shopp'); ?></label><br />
-					<input type="radio" name="settings[order_confirmation]" value="always" id="order_confirmation_always"<?php if($this->Settings->get('order_confirmation') == "always") echo ' checked="checked"' ?> /> <label for="order_confirmation_always"><?php _e('Show for all orders') ?></label></td>
+					<input type="radio" name="settings[order_confirmation]" value="always" id="order_confirmation_always"<?php if($this->Settings->get('order_confirmation') == "always") echo ' checked="checked"' ?> /> <label for="order_confirmation_always"><?php _e('Show for all orders','Shopp') ?></label></td>
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="receipt_copy_both"><?php _e('Receipt Emails','Shopp'); ?></label></th> 
 				<td><input type="radio" name="settings[receipt_copy]" value="0" id="receipt_copy_customer_only"<?php if ($this->Settings->get('receipt_copy') == "0") echo ' checked="checked"'; ?> /> <label for="receipt_copy_customer_only"><?php _e('Send to Customer Only','Shopp'); ?></label><br />
-					<input type="radio" name="settings[receipt_copy]" value="1" id="receipt_copy_both"<?php if ($this->Settings->get('receipt_copy') == "1") echo ' checked="checked"'; ?> /> <label for="receipt_copy_both"><?php _e('Send to Customer &amp; Shop Owner Email','Shopp'); ?></label> (see <a href="?page=shopp/settings&amp;edit=general"><?php _e('General Settings','Shopp'); ?></a>)</td>
+					<input type="radio" name="settings[receipt_copy]" value="1" id="receipt_copy_both"<?php if ($this->Settings->get('receipt_copy') == "1") echo ' checked="checked"'; ?> /> <label for="receipt_copy_both"><?php _e('Send to Customer &amp; Shop Owner Email','Shopp'); ?></label> (<?php _e('see','Shopp'); ?> <a href="?page=shopp/settings&amp;edit=general"><?php _e('General Settings','Shopp'); ?></a>)</td>
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="account-system-none"><?php _e('Customer Accounts','Shopp'); ?></label></th> 
@@ -26,12 +26,12 @@
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="accounting-serial"><?php _e('Next Order Number','Shopp'); ?></label></th> 
-				<td><input type="text" name="next_order_id" value="<?php echo attribute_escape($next->id); ?>" size="7" /><br />
+				<td><input type="text" name="next_order_id" value="<?php echo attribute_escape($next->id); ?>" size="7" class="selectall" /><br />
 					<?php _e('Set the next order number to sync with your accounting systems.','Shopp'); ?></td>
 			</tr>
 
 		</table>
-		<h3>Digtal Product Downloads</h3>
+		<h3><?php _e('Digtal Product Downloads','Shopp')?></h3>
 		<table class="form-table"> 
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="download-limit"><?php _e('Download Limit','Shopp'); ?></label></th> 

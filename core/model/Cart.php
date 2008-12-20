@@ -501,33 +501,6 @@ class Cart {
 			$Totals->shipping + $Totals->tax;
 	}
 	
-	function inputattrs ($options,$allowed=array()) {
-		if (!is_array($options)) return "";
-		if (empty($allowed)) {
-			$allowed = array("accesskey","alt","checked","class","disabled","format",
-				"minlength","maxlength","readonly","required","size","src","tabindex",
-				"title","value");
-		}
-		$string = "";
-		$classes = "";
-		foreach ($options as $key => $value) {
-			if (!in_array($key,$allowed)) continue;
-			switch($key) {
-				case "class": $classes .= " $value"; break;
-				case "disabled": $classes .= " disabled"; $string .= ' disabled="disabled"'; break;
-				case "readonly": $classes .= " readonly"; $string .= ' readonly="readonly"'; break;
-				case "required": $classes .= " required"; break;
-				case "minlength": $classes .= " min$value"; break;
-				case "format": $classes .= " $value"; break;
-				default:
-					$string .= ' '.$key.'="'.$value.'"';
-			}
-		}
-		if (!empty($classes)) $string .= ' class="'.ltrim($classes).'"';
-		return $string;
-	}
-	
-	
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		
@@ -583,11 +556,11 @@ class Cart {
 			case "function": return '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /><input type="submit" name="update" id="hidden-update" /></div>'; break;
 			case "empty-button": 
 				if (!isset($options['value'])) $options['value'] = "Empty Cart";
-				return '<input type="submit" name="empty" id="empty-button"'.$this->inputattrs($options,$submit_attrs).' />';
+				return '<input type="submit" name="empty" id="empty-button"'.inputattrs($options,$submit_attrs).' />';
 				break;
 			case "update-button": 
 				if (!isset($options['value'])) $options['value'] = "Update Subtotal";
-				return '<input type="submit" name="update" id="update-button"'.$this->inputattrs($options,$submit_attrs).' />';
+				return '<input type="submit" name="update" id="update-button"'.inputattrs($options,$submit_attrs).' />';
 				break;
 			case "sidecart":
 				ob_start();
@@ -607,7 +580,7 @@ class Cart {
 				if ($this->data->PromoCodeResult !== false)
 					$result .= '<p class="error">'.$this->data->PromoCodeResult.'</p>';
 				$result .= '<p><input type="text" id="promocode" name="promocode" value="" size="10" /> ';
-				$result .= '<input type="submit" id="apply-code" name="update"'.$this->inputattrs($options,$submit_attrs).' /></p>';
+				$result .= '<input type="submit" id="apply-code" name="update"'.inputattrs($options,$submit_attrs).' /></p>';
 				return $result;
 			case "has-shipping-methods": 
 				return (count($this->data->ShipCosts) > 1 &&
@@ -782,54 +755,54 @@ class Cart {
 			case "email-login": 
 				if (!empty($_POST['email-login']))
 					$options['value'] = $_POST['email-login']; 
-				return '<input type="text" name="email-login" id="email-login"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="email-login" id="email-login"'.inputattrs($options).' />';
 				break;
 			case "password-login": 
 				if (!empty($_POST['password-login']))
 					$options['value'] = $_POST['password-login']; 
-				return '<input type="password" name="password-login" id="password-login"'.$this->inputattrs($options).' />';
+				return '<input type="password" name="password-login" id="password-login"'.inputattrs($options).' />';
 				break;
 			case "submit-login": // Deprecating
 			case "login-button":
 				$string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
-				$string .= '<input type="button" name="submit-login" id="submit-login"'.$this->inputattrs($options).' />';
+				$string .= '<input type="button" name="submit-login" id="submit-login"'.inputattrs($options).' />';
 				return $string;
 				break;
 
 			case "firstname": 
 				if (!empty($this->data->Order->Customer->firstname))
 					$options['value'] = $this->data->Order->Customer->firstname; 
-				return '<input type="text" name="firstname" id="firstname"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="firstname" id="firstname"'.inputattrs($options).' />';
 				break;
 			case "lastname":
 				if (!empty($this->data->Order->Customer->lastname))
 					$options['value'] = $this->data->Order->Customer->lastname; 
-				return '<input type="text" name="lastname" id="lastname"'.$this->inputattrs($options).' />'; 
+				return '<input type="text" name="lastname" id="lastname"'.inputattrs($options).' />'; 
 				break;
 			case "email":
 				if (!empty($this->data->Order->Customer->email))
 					$options['value'] = $this->data->Order->Customer->email; 
-				return '<input type="text" name="email" id="email"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="email" id="email"'.inputattrs($options).' />';
 				break;
 			case "loginname":
 				if (!empty($this->data->Order->Customer->login))
 					$options['value'] = $this->data->Order->Customer->login; 
-				return '<input type="text" name="login" id="login"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="login" id="login"'.inputattrs($options).' />';
 				break;
 			case "password":
 				if (!empty($this->data->Order->Customer->password))
 					$options['value'] = $this->data->Order->Customer->password; 
-				return '<input type="password" name="password" id="password"'.$this->inputattrs($options).' />';
+				return '<input type="password" name="password" id="password"'.inputattrs($options).' />';
 				break;
 			case "confirm-password":
 				if (!empty($this->data->Order->Customer->confirm_password))
 					$options['value'] = $this->data->Order->Customer->confirm_password; 
-				return '<input type="password" name="confirm-password" id="confirm-password"'.$this->inputattrs($options).' />';
+				return '<input type="password" name="confirm-password" id="confirm-password"'.inputattrs($options).' />';
 				break;
 			case "phone": 
 			if (!empty($this->data->Order->Customer->phone))
 				$options['value'] = $this->data->Order->Customer->phone; 
-				return '<input type="text" name="phone" id="phone"'.$this->inputattrs($options).' />'; 
+				return '<input type="text" name="phone" id="phone"'.inputattrs($options).' />'; 
 				break;
 			case "customer-info":
 				$allowed_types = array("text","password","hidden","checkbox","radio");
@@ -837,7 +810,7 @@ class Cart {
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
 					if (isset($this->data->Order->Customer->info[$options['name']])) 
 						$options['value'] = $this->data->Order->Customer->info[$options['name']]; 
-					return '<input type="text" name="info['.$options['name'].']" id="customer-info-'.$options['name'].'"'.$this->inputattrs($options).' />'; 
+					return '<input type="text" name="info['.$options['name'].']" id="customer-info-'.$options['name'].'"'.inputattrs($options).' />'; 
 				}
 				break;
 
@@ -846,17 +819,17 @@ class Cart {
 			case "shipping-address": 
 			if (!empty($this->data->Order->Shipping->address))
 				$options['value'] = $this->data->Order->Shipping->address; 
-				return '<input type="text" name="shipping[address]" id="shipping-address"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="shipping[address]" id="shipping-address"'.inputattrs($options).' />';
 				break;
 			case "shipping-xaddress":
 			if (!empty($this->data->Order->Shipping->xaddress))
 				$options['value'] = $this->data->Order->Shipping->xaddress; 
-				return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress"'.inputattrs($options).' />';
 				break;
 			case "shipping-city":
 				if (!empty($this->data->Order->Shipping->city))
 					$options['value'] = $this->data->Order->Shipping->city; 
-				return '<input type="text" name="shipping[city]" id="shipping-city"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="shipping[city]" id="shipping-city"'.inputattrs($options).' />';
 				break;
 			case "shipping-province":
 			case "shipping-state":
@@ -869,22 +842,22 @@ class Cart {
 				$states = $regions[$base['country']];
 				if (is_array($states) && $options['type'] == "menu") {
 					$label = (!empty($options['label']))?$options['label']:'';
-					$output = '<select name="shipping[state]" id="shipping-state"'.$this->inputattrs($options,$select_attrs).'>';
+					$output = '<select name="shipping[state]" id="shipping-state"'.inputattrs($options,$select_attrs).'>';
 					$output .= '<option value="" selected="selected">'.$label.'</option>';
 				 	$output .= menuoptions($states,$options['selected'],true);
 					$output .= '</select>';
-				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" value=""'.$this->inputattrs($options).'/>';
+				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" value=""'.inputattrs($options).'/>';
 				return $output;
 				break;
 			case "shipping-postcode":
 				if (!empty($this->data->Order->Shipping->postcode))
 					$options['value'] = $this->data->Order->Shipping->postcode; 				
-				return '<input type="text" name="shipping[postcode]" id="shipping-postcode"'.$this->inputattrs($options).' />'; break;
+				return '<input type="text" name="shipping[postcode]" id="shipping-postcode"'.inputattrs($options).' />'; break;
 			case "shipping-country": 
 				if (!empty($this->data->Order->Shipping->country))
 					$options['selected'] = $this->data->Order->Shipping->country;
 				else if (empty($options['selected'])) $options['selected'] = $base['country'];
-				$output = '<select name="shipping[country]" id="shipping-country"'.$this->inputattrs($options,$select_attrs).'>';
+				$output = '<select name="shipping[country]" id="shipping-country"'.inputattrs($options,$select_attrs).'>';
 			 	$output .= menuoptions($countries,$options['selected'],true);
 				$output .= '</select>';
 				return $output;
@@ -900,17 +873,17 @@ class Cart {
 			case "billing-address":
 				if (!empty($this->data->Order->Billing->address))
 					$options['value'] = $this->data->Order->Billing->address;			
-				return '<input type="text" name="billing[address]" id="billing-address"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="billing[address]" id="billing-address"'.inputattrs($options).' />';
 				break;
 			case "billing-xaddress":
 				if (!empty($this->data->Order->Billing->xaddress))
 					$options['value'] = $this->data->Order->Billing->xaddress;			
-				return '<input type="text" name="billing[xaddress]" id="billing-xaddress"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="billing[xaddress]" id="billing-xaddress"'.inputattrs($options).' />';
 				break;
 			case "billing-city":
 				if (!empty($this->data->Order->Billing->city))
 					$options['value'] = $this->data->Order->Billing->city;			
-				return '<input type="text" name="billing[city]" id="billing-city"'.$this->inputattrs($options).' />'; 
+				return '<input type="text" name="billing[city]" id="billing-city"'.inputattrs($options).' />'; 
 				break;
 			case "billing-province": 
 			case "billing-state": 
@@ -924,23 +897,23 @@ class Cart {
 				$states = $regions[$base['country']];
 				if (is_array($states) && $options['type'] == "menu") {
 					$label = (!empty($options['label']))?$options['label']:'';
-					$output = '<select name="billing[state]" id="billing-state"'.$this->inputattrs($options,$select_attrs).'>';
+					$output = '<select name="billing[state]" id="billing-state"'.inputattrs($options,$select_attrs).'>';
 					$output .= '<option value="" selected="selected">'.$label.'</option>';
 				 	$output .= menuoptions($states,$options['selected'],true);
 					$output .= '</select>';
-				} else $output .= '<input type="text" name="billing[state]" id="billing-state" value=""'.$this->inputattrs($options).'/>';
+				} else $output .= '<input type="text" name="billing[state]" id="billing-state" value=""'.inputattrs($options).'/>';
 				return $output;
 				break;
 			case "billing-postcode":
 				if (!empty($this->data->Order->Billing->postcode))
 					$options['value'] = $this->data->Order->Billing->postcode;			
-				return '<input type="text" name="billing[postcode]" id="billing-postcode"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="billing[postcode]" id="billing-postcode"'.inputattrs($options).' />';
 				break;
 			case "billing-country": 
 				if (!empty($this->data->Order->Billing->country))
 					$options['selected'] = $this->data->Order->Billing->country;
 				else if (empty($options['selected'])) $options['selected'] = $base['country'];			
-				$output = '<select name="billing[country]" id="billing-country"'.$this->inputattrs($options,$select_attrs).'>';
+				$output = '<select name="billing[country]" id="billing-country"'.inputattrs($options,$select_attrs).'>';
 			 	$output .= menuoptions($countries,$options['selected'],true);
 				$output .= '</select>';
 				return $output;
@@ -948,22 +921,22 @@ class Cart {
 			case "billing-card":
 				if (!empty($this->data->Order->Billing->card))
 					$options['value'] = $this->data->Order->Billing->card;			
-				return '<input type="text" name="billing[card]" id="billing-card"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="billing[card]" id="billing-card"'.inputattrs($options).' />';
 				break;
 			case "billing-cardexpires-mm":
 				if (!empty($this->data->Order->Billing->cardexpires))
 					$options['value'] = date("m",$this->data->Order->Billing->cardexpires);				
-				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm"'.$this->inputattrs($options).' />'; break;
+				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm"'.inputattrs($options).' />'; break;
 			case "billing-cardexpires-yy": 
 				if (!empty($this->data->Order->Billing->cardexpires))
 					$options['value'] = date("y",$this->data->Order->Billing->cardexpires);							
-				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy"'.$this->inputattrs($options).' />'; break;
+				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy"'.inputattrs($options).' />'; break;
 			case "billing-cardtype":
 				if (!empty($this->data->Order->Billing->cardtype))
 					$options['selected'] = $this->data->Order->Billing->cardtype;	
 				$cards = $Shopp->Settings->get('gateway_cardtypes');
 				$label = (!empty($options['label']))?$options['label']:'';
-				$output = '<select name="billing[cardtype]" id="billing-cardtype"'.$this->inputattrs($options,$select_attrs).'>';
+				$output = '<select name="billing[cardtype]" id="billing-cardtype"'.inputattrs($options,$select_attrs).'>';
 				$output .= '<option value="" selected="selected">'.$label.'</option>';
 			 	$output .= menuoptions($cards,$options['selected']);
 				$output .= '</select>';
@@ -972,12 +945,12 @@ class Cart {
 			case "billing-cardholder":
 				if (!empty($this->data->Order->Billing->cardholder))
 					$options['value'] = $this->data->Order->Billing->cardholder;			
-				return '<input type="text" name="billing[cardholder]" id="billing-cardholder"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="billing[cardholder]" id="billing-cardholder"'.inputattrs($options).' />';
 				break;
 			case "billing-cvv":
 				if (!empty($this->data->Order->Billing->cardholder))
 					$options['value'] = $_POST['billing']['cvv'];
-				return '<input type="text" name="billing[cvv]" id="billing-cvv"'.$this->inputattrs($options).' />';
+				return '<input type="text" name="billing[cvv]" id="billing-cvv"'.inputattrs($options).' />';
 				break;
 				
 			case "order-data":
@@ -986,16 +959,16 @@ class Cart {
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
 					if (isset($this->data->Order->data[$options['name']])) 
 						$options['value'] = $this->data->Order->data[$options['name']];
-					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'"'.$this->inputattrs($options).' />'; 
+					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'"'.inputattrs($options).' />'; 
 				}
 				break;
 
 			case "submit": 
 				if (!isset($options['value'])) $options['value'] = "Submit Order";
-				return '<input type="submit" name="process" id="checkout-button"'.$this->inputattrs($options,$submit_attrs).' />'; break;
+				return '<input type="submit" name="process" id="checkout-button"'.inputattrs($options,$submit_attrs).' />'; break;
 			case "confirm-button": 
 				if (!isset($options['value'])) $options['value'] = "Confirm Order";
-				return '<input type="submit" name="confirmed" id="confirm-button"'.$this->inputattrs($options,$submit_attrs).' />'; break;
+				return '<input type="submit" name="confirmed" id="confirm-button"'.inputattrs($options,$submit_attrs).' />'; break;
 			case "local-payment": 
 				$gateway = $Shopp->Settings->get('payment_gateway'); 
 				return (!empty($gateway)); break;

@@ -401,56 +401,56 @@ function addPriceLine (target,options,data,attachment) {
 	var headingsRow = $('<tr/>').appendTo(pricingTable);	
 	var inputsRow = $('<tr/>').appendTo(pricingTable);
 
-	var typeHeading = $('<th><label for="">Type</label></th>').appendTo(headingsRow);
+	var typeHeading = $('<th><label for="type-'+i+'">'+TYPE_LABEL+'</label></th>').appendTo(headingsRow);
 	var typeCell = $('<td></td>').appendTo(inputsRow);
-	var type = $('<select name="price['+i+'][type]" id="type['+i+']" tabindex="'+(i+1)+'02"></select>').appendTo(typeCell);
-	$(priceTypes).each(function (t,name) {
-		var typeOption = $('<option>'+name+'</option>').appendTo(type);
+	var type = $('<select name="price['+i+'][type]" id="type-'+i+'" tabindex="'+(i+1)+'02"></select>').appendTo(typeCell);
+	$(priceTypes).each(function (t,option) {
+		var typeOption = $('<option></option>').html(option.label).val(option.value).appendTo(type);
 	});
 	
 	var priceHeading = $('<th></th>').appendTo(headingsRow);
-	var priceLabel = $('<label for="price['+i+']">Price</label>').appendTo(priceHeading);
+	var priceLabel = $('<label for="price['+i+']">'+PRICE_LABEL+'</label>').appendTo(priceHeading);
 	var priceCell = $('<td/>').appendTo(inputsRow);
 	var price = $('<input type="text" name="price['+i+'][price]" id="price['+i+']" value="0" size="10" class="selectall right" tabindex="'+(i+1)+'03" />').appendTo(priceCell);
 	$('<br />').appendTo(priceCell);
 	$('<input type="hidden" name="price['+i+'][tax]" tabindex="'+(i+1)+'04" value="on" />').appendTo(priceCell);
 	var tax = $('<input type="checkbox" name="price['+i+'][tax]" id="tax['+i+']" tabindex="'+(i+1)+'04" value="off" />').appendTo(priceCell);
-	var taxLabel = $('<label for="tax['+i+']"> Not Taxable</label><br />').appendTo(priceCell);
+	var taxLabel = $('<label for="tax['+i+']"> '+NOTAX_LABEL+'</label><br />').appendTo(priceCell);
 
-	var salepriceHeading = $('<th><label for="sale['+i+']"> Sale Price</label></th>').appendTo(headingsRow);
+	var salepriceHeading = $('<th><label for="sale['+i+']"> '+SALE_PRICE_LABEL+'</label></th>').appendTo(headingsRow);
 	var salepriceToggle = $('<input type="checkbox" name="price['+i+'][sale]" id="sale['+i+']" tabindex="'+(i+1)+'05" />').prependTo(salepriceHeading);
 	$('<input type="hidden" name="price['+i+'][sale]" value="off" />').prependTo(salepriceHeading);
 	
 	var salepriceCell = $('<td/>').appendTo(inputsRow);
-	var salepriceStatus = $('<span id="test['+i+']">Not on Sale</span>').addClass('status').appendTo(salepriceCell);
+	var salepriceStatus = $('<span>'+NOT_ON_SALE_TEXT+'</span>').addClass('status').appendTo(salepriceCell);
 	var salepriceField = $('<span/>').addClass('fields').appendTo(salepriceCell).hide();
 	var saleprice = $('<input type="text" name="price['+i+'][saleprice]" id="saleprice['+i+']" size="10" class="selectall right" tabindex="'+(i+1)+'06" />').appendTo(salepriceField);
 	
 	var donationSpacingCell = $('<td rowspan="2" width="58%" />').appendTo(headingsRow);
 	
-	var shippingHeading = $('<th><label for="shipping-'+i+'"> Shipping</label></th>').appendTo(headingsRow);
+	var shippingHeading = $('<th><label for="shipping-'+i+'"> '+SHIPPING_LABEL+'</label></th>').appendTo(headingsRow);
 	var shippingToggle = $('<input type="checkbox" name="price['+i+'][shipping]" id="shipping-'+i+'" tabindex="'+(i+1)+'07" />').prependTo(shippingHeading);
 	$('<input type="hidden" name="price['+i+'][shipping]" value="off" />').prependTo(shippingHeading);
 	
 	var shippingCell = $('<td/>').appendTo(inputsRow);
-	var shippingStatus = $('<span>Free Shipping</span>').addClass('status').appendTo(shippingCell);
+	var shippingStatus = $('<span>'+FREE_SHIPPING_TEXT+'</span>').addClass('status').appendTo(shippingCell);
 	var shippingFields = $('<span/>').addClass('fields').appendTo(shippingCell).hide();
 	var weight = $('<input type="text" name="price['+i+'][weight]" id="weight['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'08" />').appendTo(shippingFields);
-	var shippingWeightLabel = $('<label for="weight['+i+']" title="Weight"> Weight'+((weightUnit)?' ('+weightUnit+')':'')+'</label><br />').appendTo(shippingFields);
+	var shippingWeightLabel = $('<label for="weight['+i+']" title="Weight"> '+WEIGHT_LABEL+((weightUnit)?' ('+weightUnit+')':'')+'</label><br />').appendTo(shippingFields);
 	var shippingfee = $('<input type="text" name="price['+i+'][shipfee]" id="shipfee['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'08" />').appendTo(shippingFields);
-	var shippingFeeLabel = $('<label for="shipfee['+i+']" title="Additional shipping fee calculated per quantity ordered (for handling costs, etc)"> Handling Fee</label><br />').appendTo(shippingFields);
+	var shippingFeeLabel = $('<label for="shipfee['+i+']" title="Additional shipping fee calculated per quantity ordered (for handling costs, etc)"> '+SHIPFEE_LABEL+'</label><br />').appendTo(shippingFields);
 	
-	var inventoryHeading = $('<th><label for="inventory['+i+']"> Inventory</label></th>').appendTo(headingsRow);
+	var inventoryHeading = $('<th><label for="inventory['+i+']"> '+INVENTORY_LABEL+'</label></th>').appendTo(headingsRow);
 	var inventoryToggle = $('<input type="checkbox" name="price['+i+'][inventory]" id="inventory['+i+']" tabindex="'+(i+1)+'10" />').prependTo(inventoryHeading);
 	$('<input type="hidden" name="price['+i+'][inventory]" value="off" />').prependTo(salepriceHeading);
 	var inventoryCell = $('<td/>').appendTo(inputsRow);
-	var inventoryStatus = $('<span>Not Tracked</span>').addClass('status').appendTo(inventoryCell);
+	var inventoryStatus = $('<span>'+NOT_TRACKED_TEXT+'</span>').addClass('status').appendTo(inventoryCell);
 	var inventoryField = $('<span/>').addClass('fields').appendTo(inventoryCell).hide();
 	var stock = $('<input type="text" name="price['+i+'][stock]" id="stock['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'11" />').appendTo(inventoryField);
-	var inventoryLabel =$('<label for="stock['+i+']"> In Stock</label>').appendTo(inventoryField);
+	var inventoryLabel =$('<label for="stock['+i+']"> '+IN_STOCK_LABEL+'</label>').appendTo(inventoryField);
 	var inventoryBr = $('<br/>').appendTo(inventoryField);
 	var sku = $('<input type="text" name="price['+i+'][sku]" id="sku['+i+']" size="8" title="Enter a unique tracking number for this product option." class="selectall" tabindex="'+(i+1)+'12" />').appendTo(inventoryField);
-	var skuLabel =$('<label for="sku['+i+']" title="Stock Keeping Unit"> SKU</label>').appendTo(inventoryField);
+	var skuLabel =$('<label for="sku['+i+']" title="'+SKU_LABEL_HELP+'"> '+SKU_LABEL+'</label>').appendTo(inventoryField);
 		
 	var downloadHeading = $('<th><label for="download['+i+']">Product Download</label></th>').appendTo(headingsRow);
 	var downloadCell = $('<td width="31%" />').appendTo(inputsRow);
@@ -467,7 +467,7 @@ function addPriceLine (target,options,data,attachment) {
 	}
 	
 	var uploadHolder = $('<div id="flash-product-uploader-'+i+'"></div>').appendTo(uploadHeading);
-	var uploadButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'13"><small>Upload&nbsp;File</small></button>').appendTo(uploadHeading);
+	var uploadButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'13"><small>'+UPLOAD_FILE_BUTTON_TEXT+'</small></button>').appendTo(uploadHeading);
 	
 	var uploader = new FileUploader($(uploadHolder).attr('id'),uploadButton,i,downloadFile);
 			
@@ -492,7 +492,7 @@ function addPriceLine (target,options,data,attachment) {
 				else ids += ","+id;
 			});
 		}
-		if (string == "") string = "Price & Delivery";
+		if (string == "") string = DEFAULT_PRICELINE_LABEL;
 		this.label.val(htmlentities(string)).change();
 		optionids.val(ids);
 	}
@@ -514,11 +514,11 @@ function addPriceLine (target,options,data,attachment) {
 	type.change(function () {
 		var ui = type.val();
 		for (var e in interfaces['All']) $(interfaces['All'][e]).hide();
-		priceLabel.html("Price");
+		priceLabel.html(PRICE_LABEL);
 		if (interfaces[ui])
 			for (var e in interfaces[ui]) $(interfaces[ui][e]).show();
 		if (type.val() == "Donation") {
-			priceLabel.html("Amount");
+			priceLabel.html(AMOUNT_LABEL);
 			tax.attr('checked','true').change();
 		}
 	});

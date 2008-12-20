@@ -14,7 +14,7 @@
 			<td><input name="name" id="name" type="text" value="<?php echo attribute_escape($Product->name); ?>" size="40" tabindex="1" /><br />
 				<?php if (SHOPP_PERMALINKS && !empty($Product->id)): ?>
 				<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
-				<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="Click to edit this part of the permalink"><?php echo attribute_escape($Product->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Product->slug); ?></span>/</span>
+				<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo attribute_escape($Product->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Product->slug); ?></span>/</span>
 				<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>
 				</div>
 				<?php endif; ?>
@@ -184,11 +184,29 @@ var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this produ
 var SERVER_COMM_ERROR = "<?php _e('There was an error communicating with the server.','Shopp'); ?>";
 
 // Dynamic interface label translations
-var NO_DOWNLOAD = "<?php _e('No download file.','Shopp'); ?>";
 var ADD_IMAGE_BUTTON_TEXT = "<?php _e('Add New Image','Shopp'); ?>";
-var UPLOAD_FILE_BUTTON_TEXT = "<?php _e('Upload File','Shopp'); ?>";
+var UPLOAD_FILE_BUTTON_TEXT = "<?php _e('Upload&nbsp;File','Shopp'); ?>";
 var SAVE_BUTTON_TEXT = "<?php _e('Save','Shopp'); ?>";
 var CANCEL_BUTTON_TEXT = "<?php _e('Cancel','Shopp'); ?>";
+var TYPE_LABEL = "<?php _e('Type','Shopp'); ?>";
+var PRICE_LABEL = "<?php _e('Price','Shopp'); ?>";
+var AMOUNT_LABEL = "<?php _e('Amount','Shopp'); ?>";
+var SALE_PRICE_LABEL = "<?php _e('Sale Price','Shopp'); ?>";
+var NOT_ON_SALE_TEXT = "<?php _e('Not on Sale','Shopp'); ?>";
+var NOTAX_LABEL = "<?php _e('Not Taxed','Shopp'); ?>";
+var SHIPPING_LABEL = "<?php _e('Shipping','Shopp'); ?>";
+var FREE_SHIPPING_TEXT = "<?php _e('Free Shipping','Shopp'); ?>";
+var WEIGHT_LABEL = "<?php _e('Weight','Shopp'); ?>";
+var SHIPFEE_LABEL = "<?php _e('Handling Fee','Shopp'); ?>";
+var INVENTORY_LABEL = "<?php _e('Inventory','Shopp'); ?>";
+var NOT_TRACKED_TEXT = "<?php _e('Not Tracked','Shopp'); ?>";
+var IN_STOCK_LABEL = "<?php _e('In Stock','Shopp'); ?>";
+var SKU_LABEL = "<?php _e('SKU','Shopp'); ?>";
+var SKU_LABEL_HELP = "<?php _e('Stock Keeping Unit','Shopp'); ?>";
+var PRODUCT_DOWNLOAD_LABEL = "<?php _e('Product Download','Shopp'); ?>";
+var NO_PRODUCT_DOWNLOAD_TEXT = "<?php _e('No product download.','Shopp'); ?>";
+var NO_DOWNLOAD = "<?php _e('No download file.','Shopp'); ?>";
+var DEFAULT_PRICELINE_LABEL = "<?php _e('Price &amp; Delivery','Shopp'); ?>";
 
 init();
 </script>

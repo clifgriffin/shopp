@@ -793,6 +793,7 @@ class Shopp {
 		// Check for taxes, or process order
 		if ($this->Settings->get('taxes') == "on") {
 			$taxrates = $this->Settings->get('taxrates');
+			$this->Cart->data->Totals->taxrate = 0;
 			if (!empty($taxrates)) {
 				foreach($taxrates as $setting) {
 					if ($Order->Shipping->state == $setting['zone']) {
@@ -804,7 +805,8 @@ class Shopp {
 
 			$this->Cart->totals();
 
-			if ($this->Cart->data->Totals->tax > 0) {
+			if ($this->Cart->data->Totals->tax > 0 || 
+					$this->Settings->get('order_confirmation') == "always") {
 				header("Location: ".$this->link('confirm-order','',true));
 				exit();
 			} else $this->Flow->order();

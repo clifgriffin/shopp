@@ -32,7 +32,7 @@
 			<tr class=" form-required"> 
 				<th scope="row" valign="top"><label for="discount-type"><?php _e('Discount Type','Shopp'); ?></label></th> 
 				<td><select name="type" id="discount-type">
-					<?php echo menuoptions($Promotion->_lists['type'],$Promotion->type); ?>
+					<?php echo menuoptions($types,$Promotion->type,true); ?>
 					</select><br />
 	            <?php _e('Select how the discount will be applied.','Shopp'); ?></td>
 			</tr>
@@ -52,7 +52,7 @@
 		<h3><?php _e('For products where','Shopp'); ?> <select name="search" class="small">
 			<?php 
 				if (empty($Promotion->logic)) $Promotion->logic = "all";
-				echo menuoptions(array('any','all'),$Promotion->logic); 
+				echo menuoptions(array('any'=>__('any','Shopp'),'all' => __('all','Shopp')),$Promotion->logic,true); 
 			?>
 			</select> <?php _e('of these conditions are met:','Shopp'); ?></h3>
 		<table class="form-table" id="rules"> 
@@ -74,6 +74,35 @@ StartsCalendar.render();
 var EndsCalendar = new PopupCalendar($('#ends-calendar'));
 EndsCalendar.render();
 
+var RULES_LANG = {
+	"Name":"<?php _e('Name','Shopp'); ?>",
+	"Category":"<?php _e('Category','Shopp'); ?>",
+	"Variation":"<?php _e('Variation','Shopp'); ?>",
+	"Price":"<?php _e('Price','Shopp'); ?>",
+	"Sale price":"<?php _e('Sale price','Shopp'); ?>",
+	"Type":"<?php _e('Type','Shopp'); ?>",
+	"In stock":"<?php _e('In stock','Shopp'); ?>",
+
+	"Item name":"<?php _e('Item name','Shopp'); ?>",
+	"Item quantity":"<?php _e('Item quantity','Shopp'); ?>",
+	"Total quantity":"<?php _e('Total quantity','Shopp'); ?>",
+	"Shipping amount":"<?php _e('Shipping amount','Shopp'); ?>",
+	"Subtotal amount":"<?php _e('Subtotal amount','Shopp'); ?>",
+	"Promo code":"<?php _e('Promo code','Shopp'); ?>",
+	
+	"Is equal to":"<?php _e('Is equal to','Shopp'); ?>",
+	"Is not equal to":"<?php _e('Is not equal to','Shopp'); ?>",
+	"Contains":"<?php _e('Contains','Shopp'); ?>",
+	"Does not contain":"<?php _e('Does not contain','Shopp'); ?>",
+	"Begins with":"<?php _e('Begins with','Shopp'); ?>",
+	"Ends with":"<?php _e('Ends with','Shopp'); ?>",
+	"Is greater than":"<?php _e('Is greater than','Shopp'); ?>",
+	"Is greater than or equal to":"<?php _e('Is greater than or equal to','Shopp'); ?>",
+	"Is less than":"<?php _e('Is less than','Shopp'); ?>",
+	"Is less than or equal to":"<?php _e('Is less than or equal to','Shopp'); ?>",
+	
+	
+}
 
 var product_conditions = {
 	"Name":{"logic":["boolean","fuzzy"],"value":"text"},
@@ -155,7 +184,7 @@ function add_condition (rule,location) {
 			for (var l in conditions['logic']) {
 				var lop = conditions['logic'][l];
 					for (var op in logic[lop])
-						$('<option></option>').html(logic[lop][op]).val(logic[lop][op]).appendTo(operation);
+						$('<option></option>').html(RULES_LANG[logic[lop][op]]).val(logic[lop][op]).appendTo(operation);
 			}
 		} else operation.hide();
 		
@@ -199,10 +228,10 @@ $('#promotion-scope').change(function () {
 	$(menus).each(function (id,menu) {
 		if (scope == "Order") {
 			for (var label in order_conditions)
-				$('<option></option>').html(label).val(label).attr('rel','order').appendTo($(menu));
+				$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel','order').appendTo($(menu));
 		} else {
 			for (var label in product_conditions)
-				$('<option></option>').html(label).val(label).attr('rel','product').appendTo($(menu));
+				$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel','product').appendTo($(menu));
 		}
 	});
 

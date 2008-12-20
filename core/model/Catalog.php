@@ -29,8 +29,13 @@ class Catalog extends DatabaseObject {
 		if (empty($filtering['where'])) $filtering['where'] = "true";
 		
 		$category_table = DatabaseObject::tablename(Category::$table);
-		$this->categories = $db->query("SELECT cat.*,count(sc.product) AS total FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id WHERE {$filtering['where']} GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
-		if (count($this->categories) > 1) $this->categories = sort_tree($this->categories);
+		$categories = $db->query("SELECT cat.*,count(sc.product) AS total FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id WHERE {$filtering['where']} GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
+		if (count($categories) > 1) $categories = sort_tree($categories);
+		foreach ($categories as $category) {
+			$this->categories[$category->id] = new Category();
+			$this->categories[$category->id]->populate($category);
+			$this->categories[$category->id]->total = $category->total;
+		}
 		
 		if ($showsmarts == "before" || $showsmarts == "after")
 			$this->smart_categories($showsmarts);
@@ -87,6 +92,34 @@ class Catalog extends DatabaseObject {
 				}
 				$string .= '</ul>';
 				return $string;
+				break;
+			case "has-categories": 
+				if (empty($this->categories)) $this->load_categories(false,$options['showsmart']);
+				if (count($this->categories) > 0) return true; else return false; break;
+			case "categories":			
+				if (!$this->categoryloop) {
+					reset($this->categories);
+					$Shopp->Category = current($this->categories);
+					$this->categoryloop = true;
+				} else {
+					$Shopp->Category = next($this->categories);
+				}
+
+				if (current($this->categories)) {
+					$Shopp->Category = current($this->categories);
+					return true;
+				} else {
+					$this->categoryloop = false;
+					return false;
+				}
+				break;
+			case "category":
+				$category = current($this->categories);
+				if (isset($options['show'])) {
+					if ($options['show'] == "id") return $category->id;
+					if ($options['show'] == "slug") return $category->slug;
+				}
+				return $category->name;
 				break;
 			case "category-list":
 				if (empty($this->categories)) $this->load_categories(false,$options['showsmart']);

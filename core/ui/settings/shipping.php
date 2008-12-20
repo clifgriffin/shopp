@@ -19,8 +19,8 @@
 				<select name="settings[weight_unit]" id="weight-unit">
 					<option></option>
 						<?php
-							if ($base['units'] == "imperial") $units = array("oz" => "ounces (oz)","lb" => "pounds (lbs)");
-							else $units = array("g"=>"gram (g)","kg"=>"kilogram (kg)");
+							if ($base['units'] == "imperial") $units = array("oz" => __("ounces (oz)","Shopp"),"lb" => __("pounds (lbs)","Shopp"));
+							else $units = array("g"=>__("gram (g)","Shopp"),"kg"=>__("kilogram (kg)","Shopp"));
 							echo menuoptions($units,$this->Settings->get('weight_unit'),true);
 						?>
 				</select><br />
