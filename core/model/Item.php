@@ -154,15 +154,31 @@ class Item {
 		// Handle values with complex options
 		switch ($property) {
 			case "quantity": 
-				$size = 5;
-				$class = "";
 				$result = $this->quantity;
-				$title = "";
-				if (isset($options['input']) && valid_input($options['input'])) {
-					if (isset($options['size'])) $size = $options['size'];
-					if (isset($options['class'])) $class = ' class="'.$options['class'].'"';
-					if (isset($options['title'])) $class = ' class="'.$options['title'].'"';
-					$result = '<input type="'.$options['input'].'" name="items['.$id.']['.$property.']" id="items-'.$id.'-'.$property.'" title="'.$title.'" value="'.$this->quantity.'" size="'.$size.'"'.$class.' />';
+				if (isset($options['input']) && $options['input'] == "menu") {
+					if (!isset($options['value'])) $options['value'] = $this->quantity;
+					if (!isset($options['options'])) 
+						$values = "1-15,20,25,30,35,40,45,50,60,70,80,90,100";
+					else $values = $options['options'];
+					
+					if (strpos($values,",") !== false) $values = split(",",$values);
+					else $values = array($values);
+					$qtys = array();
+					foreach ($values as $value) {
+						if (strpos($value,"-") !== false) {
+							$value = split("-",$value);
+							if ($value[0] >= $value[1]) $qtys[] = $value[0];
+							else for ($i = $value[0]; $i < $value[1]+1; $i++) $qtys[] = $i;
+						} else $qtys[] = $value;
+					}
+					$result = '<select name="items['.$id.']['.$property.']">';
+					foreach ($qtys as $qty) 
+						$result .= '<option'.(($qty == $this->quantity)?' selected="selected"':'').' value="'.$qty.'">'.$qty.'</option>';
+					$result .= '</select>';
+				} elseif (isset($options['input']) && valid_input($options['input'])) {
+					if (!isset($options['size'])) $options['size'] = 5;
+					if (!isset($options['value'])) $options['value'] = $this->quantity;
+					$result = '<input type="'.$options['input'].'" name="items['.$id.']['.$property.']" id="items-'.$id.'-'.$property.'" '.inputattrs($options).'/>';
 				} else $result = $this->quantity;
 				break;
 			case "remove":
@@ -173,7 +189,7 @@ class Item {
 				if (isset($options['input'])) {
 					switch ($options['input']) {
 						case "button":
-							$result = '<button type="submit" name="remove" value="'.$id.'"'.$class.' tabindex="">'.$label.'</button>';
+							$result = '<button type="submit" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="">'.$label.'</button>';
 					}
 				} else {
 					$result = '<a href="'.SHOPP_CARTURL.'?cart=update&amp;item='.$id.'&amp;quantity=0"'.$class.'>'.$label.'</a>';

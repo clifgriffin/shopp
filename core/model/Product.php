@@ -567,7 +567,7 @@ class Product extends DatabaseObject {
 						}
 					
 						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
-						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="shopp-thickbox" rel="product-gallery">';
+						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="shopp-thickbox" rel="product-'.$this->id.'-gallery">';
 						$previews .= '<img src="'.$Shopp->imguri.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
 						$previews .= '</a>';
 						$previews .= '</li>';
@@ -582,15 +582,17 @@ class Product extends DatabaseObject {
 					$firstThumb = true;
 					$thumbs = '<ul class="thumbnails">';
 					foreach ($this->imagesets['thumbnail'] as $img) {
-						$thumbs .= '<li id="thumbnail-'.$img->src.'"'.(($firstThumb)?' class="first"':'').'>';
-						$thumbs .= '<a href="javascript:shopp_preview('.$img->src.');"><img src="'.$Shopp->imguri.$img->id.'" alt="'.$img->datatype.'" width="'.$thumbsize.'" height="'.$thumbsize.'" /></a>';
+						$thumbs .= '<li id="thumbnail-'.$img->src.'"'.(($firstThumb)?' class="first"':'').' rel="preview-'.$img->src.'">';
+						$thumbs .= '<img src="'.$Shopp->imguri.$img->id.'" alt="'.$img->datatype.'" width="'.$thumbsize.'" height="'.$thumbsize.'" />';
 						$thumbs .= '</li>';
 						$firstThumb = false;						
 					}
 					$thumbs .= '</ul>';
 				}
 				
-				return '<div id="gallery">'.$previews.$thumbs.'</div>';
+				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
+				$result .= '<script type="text/javascript">(function($) { shopp_gallery("#gallery-'.$this->id.'"); })(jQuery)</script>';
+				return $result;
 				break;
 			case "has-categories": 
 				if (empty($this->categories)) $this->load_data(array('categories'));
@@ -655,9 +657,9 @@ class Product extends DatabaseObject {
 			case "variations":
 				$string = "";
 
-				if (empty($options['label'])) $options['label'] = "on";
-				if (empty($options['mode'])) $options['mode'] = "";
-				
+				if (!isset($options['label'])) $options['label'] = "on";
+				if (!isset($options['mode'])) $options['mode'] = "";
+				if (!isset($options['required'])) $options['required'] = __('You must select the options for this item before you can add it to your shopping cart.','Shopp');
 				if ($options['mode'] == "single") {
 					if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 					if (value_is_true($options['label'])) $string .= '<label for="product-options'.$this->id.'">Options: </label> '."\n";
@@ -713,6 +715,7 @@ class Product extends DatabaseObject {
 							productOptions[<?php echo $this->id; ?>] = new Array();
 							productOptions[<?php echo $this->id; ?>]['pricing'] = <?php echo json_encode($this->pricekey); ?>;
 							options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
+							options_required = "<?php echo $options['required']; ?>";
 							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing']);
 						});
 					})(jQuery)
@@ -728,12 +731,39 @@ class Product extends DatabaseObject {
 				break;
 			case "quantity":
 				if (!isset($options['value'])) $options['value'] = 1;
-				if (!isset($options['size'])) $options['size'] = 3;
+				if (!isset($options['input'])) $options['input'] = "text";
+				
 				if (isset($options['label'])) $label = '<label for="quantity'.$this->id.'">'.$options['label'].'</label>';
-				if (!isset($options['labelpos']) || $options['labelpos'] == "before") $string .= "$label ";
-				$string .= '<input type="text" name="quantity" id="quantity'.$this->id.'" '.inputattrs($options).'/>';
-				if ($options['labelpos'] == "after") $string .= " $label";
-				return $string;
+				if (!isset($options['labelpos']) || $options['labelpos'] == "before") $result .= "$label ";
+
+				if (isset($options['input']) && $options['input'] == "menu") {
+					if (!isset($options['options'])) 
+						$values = "1-15,20,25,30,35,40,45,50,60,70,80,90,100";
+					else $values = $options['options'];
+				
+					if (strpos($values,",") !== false) $values = split(",",$values);
+					else $values = array($values);
+					$qtys = array();
+					foreach ($values as $value) {
+						if (strpos($value,"-") !== false) {
+							$value = split("-",$value);
+							if ($value[0] >= $value[1]) $qtys[] = $value[0];
+							else for ($i = $value[0]; $i < $value[1]+1; $i++) $qtys[] = $i;
+						} else $qtys[] = $value;
+					}
+					$result .= '<select name="quantity" id="quantity-'.$this->id.'">';
+					foreach ($qtys as $qty) 
+						$result .= '<option'.(($qty == $this->quantity)?' selected="selected"':'').' value="'.$qty.'">'.$qty.'</option>';
+					$result .= '</select>';
+					if ($options['labelpos'] == "after") $result .= " $label";
+					return $result;
+				}
+				if (valid_input($options['input'])) {
+					if (!isset($options['size'])) $options['size'] = 3;
+					$result = '<input type="'.$options['input'].'" name="quantity" id="quantity-'.$this->id.'"'.inputattrs($options).' />';
+				}
+				if ($options['labelpos'] == "after") $result .= " $label";
+				return $result;
 				break;
 			case "buynow":
 				if (!isset($options['value'])) $options['value'] = "Buy Now";
