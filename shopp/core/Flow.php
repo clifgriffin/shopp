@@ -1905,6 +1905,8 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
+		$credentials = $this->Settings->get('ftp_credentials');		
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-update');
 			$this->settings_save();
@@ -1921,7 +1923,7 @@ class Flow {
 			
 			$request = array(
 				"ShoppServerRequest" => $process,
-				"v" => SHOPP_VERSION,
+				"ver" => '1.0',
 				"key" => trim($_POST['settings']['update_key']),
 				"site" => get_bloginfo('siteurl')
 			);
@@ -1995,15 +1997,6 @@ class Flow {
 		include(SHOPP_ADMINPATH."/settings/system.php");
 	}	
 	
-
-	function settings_ftp () {
-		if ( !current_user_can('manage_options') )
-			wp_die(__('You do not have sufficient permissions to access this page.'));
-		check_admin_referer('shopp-wp_ajax_shopp_update');
-		$credentials = $this->Settings->get('ftp_credentials');		
-		include(SHOPP_ADMINPATH."/settings/ftp.php");
-	}
-
 	function settings_get_gateways () {
 		$gateway_path = $this->basepath.DIRECTORY_SEPARATOR."gateways";
 		
@@ -2079,8 +2072,11 @@ class Flow {
 	function update () {
 		global $Shopp;
 		$db = DB::get();
-		
 		$log = array();
+
+		if (!isset($_POST['update'])) die("Update Failed: Update request is invalid.  No update specified.");
+		if (!isset($_POST['type'])) die("Update Failed: Update request is invalid. Update type not specified");
+		if (!isset($_POST['password'])) die("Update Failed: Update request is invalid. No FTP password provided.");
 		
 		$credentials = $this->Settings->get('ftp_credentials');
 		if (empty($credentials)) {
@@ -2090,21 +2086,23 @@ class Flow {
 		}
 		
 		// Make sure we can connect to FTP
-		$ftp = new FTPClient($credentials['hostname'],$credentials['username'],$credentials['password']);
+		$ftp = new FTPClient($credentials['hostname'],$credentials['username'],$_POST['password']);
 		if (!$ftp->connected) die("ftp-failed");
 		else $log[] = "Connected with FTP successfully.";
 		
 		// Get zip functions from WP Admin
 		if (class_exists('PclZip')) $log[] = "ZIP library available.";
 		else {
-			require_once(ABSPATH.'wp-admin/includes/class-pclzip.php');
+			@require_once(ABSPATH.'wp-admin/includes/class-pclzip.php');
 			$log[] = "ZIP library loaded.";
 		}
 		
 		// Put site in maintenance mode
-		$this->Settings->save("maintenance","on");
-		$log[] = "Enabled maintenance mode.";
-				
+		if ($this->Settings->get('maintenance') != "on") {
+			$this->Settings->save("maintenance","on");
+			$log[] = "Enabled maintenance mode.";
+		}
+		
 		// Find our temporary filesystem workspace
 		$tmpdir = sys_get_temp_dir();
 		$log[] = "Found temp directory: $tmpdir";
@@ -2116,20 +2114,28 @@ class Flow {
 		
 		$query = build_query_request(array(
 			"ShoppServerRequest" => "download-update",
-			"v" => SHOPP_VERSION,
-			"key" => $this->Settings->get('update_key'),
-			"site" => get_bloginfo('siteurl')
+			"ver" => "1.0",
 		));
-
+		
+		$data = build_query_request(array(
+			"key" => $this->Settings->get('update_key'),
+			"core" => SHOPP_VERSION,
+			"site" => get_bloginfo('siteurl'),
+			"update" => $_POST['update']
+		));
+		
 		$connection = curl_init();
 		curl_setopt($connection, CURLOPT_URL, SHOPP_HOME."?".$query); 
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		curl_setopt($connection, CURLOPT_HEADER, 0); 
+		curl_setopt($connection, CURLOPT_HEADER, 0);
+		curl_setopt($connection, CURLOPT_POST, 1); 
+		curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($connection, CURLOPT_TIMEOUT, 20); 
 	    curl_setopt($connection, CURLOPT_FILE, $download); 
 		curl_exec($connection); 
 		curl_close($connection);
 		fclose($download);
-		
+
 		$downloadsize = filesize($updatefile);
 		// Report error message returned by the server request
 		if (filesize($updatefile) < 256) die(join("\n\n",$log)."\nUpdate Failed: ".file_get_contents($updatefile));
@@ -2164,8 +2170,22 @@ class Flow {
 		
 		// FTP files to make it "easier" than dealing with permissions
 		$log[] = "Updating files via FTP connection";
-		$results = $ftp->update($target."shopp",$Shopp->path);
-		if (!empty($results)) die(join("\n\n",$log).join("\n\n",$results)."\n\nFTP transfer failed.");
+		switch($_POST['type']) {
+			case "core":
+				$results = $ftp->update($target.$files[0]['filename'],$Shopp->path);
+				if (!empty($results)) die(join("\n\n",$log).join("\n\n",$results)."\n\nFTP transfer failed.");
+				break;
+			case "Payment Gateway":
+				$results = $ftp->update($target.$files[0]['filename'],
+							$Shopp->path.DIRECTORY_SEPARATOR."gateways".DIRECTORY_SEPARATOR.$files[0]['filename']);
+				if (!empty($results)) die(join("\n\n",$log).join("\n\n",$results)."\n\nFTP transfer failed.");
+				break;
+			case "Shipping Module":
+				$results = $ftp->update($target.$files[0]['filename'],
+							$Shopp->path.DIRECTORY_SEPARATOR."shipping".DIRECTORY_SEPARATOR.$files[0]['filename']);
+				if (!empty($results)) die(join("\n\n",$log).join("\n\n",$results)."\n\nFTP transfer failed.");
+				break;
+		}
 				
 		echo "updated"; // Report success!
 		exit();
@@ -2191,14 +2211,18 @@ class Flow {
 		return true;
 	}
 
-	function callhome ($request=array()) {
+	function callhome ($request=array(),$data=array()) {
 		$query = build_query_request($request);
+		$data = build_query_request($data);
 		
 		$connection = curl_init(); 
-		curl_setopt ($connection, CURLOPT_URL, SHOPP_HOME."?".$query); 
-		curl_setopt ($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		curl_setopt ($connection, CURLOPT_HEADER, 0); 
-		curl_setopt ($connection, CURLOPT_RETURNTRANSFER, 1); 
+		curl_setopt($connection, CURLOPT_URL, SHOPP_HOME."?".$query); 
+		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
+		curl_setopt($connection, CURLOPT_HEADER, 0);
+		curl_setopt($connection, CURLOPT_POST, 1); 
+		curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($connection, CURLOPT_TIMEOUT, 20); 
+		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1); 
 		$result = curl_exec($connection); 
 		curl_close ($connection);
 		

@@ -696,7 +696,8 @@ class FTPClient {
 	/** 
 	 * Connects to the FTP server */
 	function connect($host, $user, $password) {
-		$this->connection = @ftp_connect($host);
+		$this->connection = @ftp_connect($host,0,20);
+		if (!$this->connection) return false;
 		$this->connected = @ftp_login($this->connection,$user,$password);
 		if (!$this->connected) return false;
 		return true;
