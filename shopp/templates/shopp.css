@@ -82,9 +82,9 @@
 #shopp dl dt { font-weight: bold; float: left; margin-right: 10px; clear: left; }
 #shopp dl dd { display: block; clear: right; }
 
-#shopp #gallery { margin: 5px 10px 5px 0; }
-#shopp #gallery ul.previews li.thumbnails ul { margin: 10px 0 10px 0; }
-#shopp #gallery ul.previews li.thumbnails li { margin: 0 5px 0 0; }
+#shopp .gallery { margin: 5px 10px 5px 0; }
+#shopp .gallery ul.previews li.thumbnails ul { margin: 10px 0 10px 0; }
+#shopp .gallery ul.previews li.thumbnails li { margin: 0 5px 0 0; }
 
 /**
  * Shopping Cart 

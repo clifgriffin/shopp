@@ -28,7 +28,7 @@
 		<?php endif; ?>
 		<p><?php shopp('product','quantity','class=selectall'); ?>
 		<?php shopp('product','addtocart'); ?></p>
-	
+
 	</form>
 
 	<?php shopp('product','description'); ?>

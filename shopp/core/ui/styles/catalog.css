@@ -57,6 +57,8 @@ div.clear,
 #shopp form ul li span label,
 #shopp form div label { clear: both; }
 
+/* Positions the cart's "default button" way off the screen to hide it, but keep it active */
+#hidden-update { position: absolute; left: -999em; }
 
 /**
  * Shopp Catalog Tag Cloud
@@ -88,19 +90,19 @@ div.clear,
  **/
 #shopp form.product label { clear: none; display: inline; }
 
-#gallery { float: left; display: block; }
-#gallery ul { display: block; margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
-#gallery ul li:before { content: ""; }
-#gallery .previews { position: relative; margin: 0 !important; }
-#gallery .previews li { position: absolute; width: <?php echo $gallery_small_width; ?>px; height: <?php echo $gallery_small_height; ?>px; line-height: <?php echo $gallery_small_height; ?>px; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; }
+#shopp .gallery { float: left; display: block; }
+#shopp .gallery ul { display: block; margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
+#shopp .gallery ul li:before { content: ""; }
+#shopp .gallery .previews { position: relative; margin: 0 !important; }
+#shopp .gallery .previews li { position: absolute; width: <?php echo $gallery_small_width; ?>px; height: <?php echo $gallery_small_height; ?>px; line-height: <?php echo $gallery_small_height; ?>px; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; }
 
-#gallery .previews li img { display: inline; vertical-align: middle; margin-top: -3px; }
+#shopp .gallery .previews li img { display: inline; vertical-align: middle; margin-top: -3px; }
 
-#gallery .previews li.fill { position: relative; }
-#gallery .previews li.active { visibility: visible; }
-#gallery .thumbnails ul { padding: 0; }
-#gallery .thumbnails li { position: relative; display: inline; visibility: visible; height: auto; line-height: 1; top: auto; left: auto; margin: 0 0 0 10px; }
-#gallery .thumbnails li.first { margin-left: 0; }
+#shopp .gallery .previews li.fill { position: relative; }
+#shopp .gallery .previews li.active { visibility: visible; }
+#shopp .gallery .thumbnails ul { padding: 0; }
+#shopp .gallery .thumbnails li { position: relative; display: inline; visibility: visible; height: auto; line-height: 1; top: auto; left: auto; margin: 0 0 0 10px; }
+#shopp .gallery .thumbnails li.first { margin-left: 0; }
 
 /**
  * Debug Console

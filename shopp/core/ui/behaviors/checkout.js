@@ -68,6 +68,9 @@
 				$('#shipping-address-fields').show();
 			}
 		}).change();
+
+		// For IE compatibility
+		$('#same-shipping').click(function () { $(this).change(); }); 
 		
 		$('#submit-login').click(function () {
 			$('#checkout.shopp').unbind('submit');

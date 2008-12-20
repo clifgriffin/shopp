@@ -276,11 +276,16 @@ class Flow {
 		if (isset($Request['update'])) $Request['cart'] = "update";
 		if (isset($Request['empty'])) $Request['cart'] = "empty";
 		
+		if (isset($Request['quantity'])) {
+			$Request['quantity'] = preg_replace('/[^\d+]/','',$Request['quantity']);
+			if (empty($Request['quantity'])) $Request['quantity'] = 1;
+		}
+		
 		switch($Request['cart']) {
 			case "add":			
 				if (isset($Request['product'])) {
 					$quantity = (!empty($Request['quantity']))?$Request['quantity']:1; // Add 1 by default
-
+					
 					$Product = new Product($Request['product']);
 					$pricing = false;
 					if (!empty($Request['options']) && !empty($Request['options'][0])) 
@@ -292,7 +297,7 @@ class Flow {
 				}
 				break;
 			case "remove":
-				if (!empty($Cart->contents)) $Cart->remove($Request['remove']);
+				if (!empty($Cart->contents)) $Cart->remove(current($Request['remove']));
 				break;
 			case "empty":
 				$Cart->clear();
@@ -303,7 +308,11 @@ class Flow {
 					
 				} elseif (!empty($Request['items'])) {
 					foreach ($Request['items'] as $id => $item) {
-						if (isset($item['quantity'])) $Cart->update($id,$item['quantity']);	
+						if (isset($item['quantity'])) {
+							$item['quantity'] = ceil(preg_replace('/[^\d\.]+/','',$item['quantity']));
+							if (!empty($item['quantity'])) $Cart->update($id,$item['quantity']);
+						}
+						// if (isset($item['quantity'])) $Cart->update($id,$item['quantity']);	
 						if (isset($item['product']) && isset($item['price']) && 
 							$item['product'] == $Cart->contents[$id]->product &&
 							$item['price'] != $Cart->contents[$id]->price) {

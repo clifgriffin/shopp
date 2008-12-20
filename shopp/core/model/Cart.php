@@ -553,14 +553,14 @@ class Cart {
 				return $string;
 				
 				break;
-			case "function": return '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /><input type="submit" name="update" id="hidden-update" /></div>'; break;
+			case "function": return '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />'; break;
 			case "empty-button": 
 				if (!isset($options['value'])) $options['value'] = "Empty Cart";
 				return '<input type="submit" name="empty" id="empty-button"'.inputattrs($options,$submit_attrs).' />';
 				break;
 			case "update-button": 
 				if (!isset($options['value'])) $options['value'] = "Update Subtotal";
-				return '<input type="submit" name="update" id="update-button"'.inputattrs($options,$submit_attrs).' />';
+				return '<input type="submit" name="update" class="update-button"'.inputattrs($options,$submit_attrs).' />';
 				break;
 			case "sidecart":
 				ob_start();
@@ -588,6 +588,10 @@ class Cart {
 						$this->data->Shipping); break;				
 			case "needs-shipped": return $this->data->Shipping; break;
 			case "hasshipcosts": return ($this->data->Totals->shipping > 0); break;
+			case "needs-shipping-estimates":
+				$markets = $Shopp->Settings->get('target_markets');
+				return ($this->data->Shipping && count($markets) > 1);
+				break;
 			case "shipping-estimates":
 				if (!$this->data->Shipping) return "";
 				$base = $Shopp->Settings->get('base_operations');
@@ -865,7 +869,9 @@ class Cart {
 			case "same-shipping-address":
 				$label = __("Same shipping address");
 				if (isset($options['label'])) $label = $options['label'];
-				$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" checked="checked" /> '.$label.'</label>';
+				$checked = ' checked="checked"';
+				if (isset($options['checked']) && !value_is_true($options['checked'])) $checked = '';
+				$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" '.$checked.' /> '.$label.'</label>';
 				return $output;
 				break;
 				
@@ -919,8 +925,10 @@ class Cart {
 				return $output;
 				break;
 			case "billing-card":
-				if (!empty($this->data->Order->Billing->card))
-					$options['value'] = $this->data->Order->Billing->card;			
+				if (!empty($this->data->Order->Billing->card)) {
+					$options['value'] = $this->data->Order->Billing->card;
+					$this->data->Order->Billing->card = "";
+				}
 				return '<input type="text" name="billing[card]" id="billing-card"'.inputattrs($options).' />';
 				break;
 			case "billing-cardexpires-mm":
