@@ -653,6 +653,33 @@ function valid_input ($type) {
 	return false;
 }
 
+function inputattrs ($options,$allowed=array()) {
+	if (!is_array($options)) return "";
+	if (empty($allowed)) {
+		$allowed = array("accesskey","alt","checked","class","disabled","format",
+			"minlength","maxlength","readonly","required","size","src","tabindex",
+			"title","value");
+	}
+	$string = "";
+	$classes = "";
+	if (isset($options['label'])) $options['value'] = $options['label'];
+	foreach ($options as $key => $value) {
+		if (!in_array($key,$allowed)) continue;
+		switch($key) {
+			case "class": $classes .= " $value"; break;
+			case "disabled": $classes .= " disabled"; $string .= ' disabled="disabled"'; break;
+			case "readonly": $classes .= " readonly"; $string .= ' readonly="readonly"'; break;
+			case "required": $classes .= " required"; break;
+			case "minlength": $classes .= " min$value"; break;
+			case "format": $classes .= " $value"; break;
+			default:
+				$string .= ' '.$key.'="'.$value.'"';
+		}
+	}
+	if (!empty($classes)) $string .= ' class="'.ltrim($classes).'"';
+	return $string;
+}
+
 function build_query_request ($request=array()) {
 	$query = "";
 	foreach ($request as $name => $value) {

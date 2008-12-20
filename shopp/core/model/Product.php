@@ -459,7 +459,9 @@ class Product extends DatabaseObject {
 				return $url;
 				break;
 			case "found": if (!empty($this->id)) return true; else return false; break;
+			case "id": return $this->id; break;
 			case "name": return $this->name; break;
+			case "slug": return $this->slug; break;
 			case "summary": return $this->summary; break;
 			case "description": return apply_filters('shopp_product_description',$this->description); break;
 			case "price":
@@ -729,14 +731,15 @@ class Product extends DatabaseObject {
 				if (!isset($options['size'])) $options['size'] = 3;
 				if (isset($options['label'])) $label = '<label for="quantity'.$this->id.'">'.$options['label'].'</label>';
 				if (!isset($options['labelpos']) || $options['labelpos'] == "before") $string .= "$label ";
-				$string .= '<input type="text" name="quantity" id="quantity'.$this->id.'" '.$Shopp->Cart->inputattrs($options).'/>';
+				$string .= '<input type="text" name="quantity" id="quantity'.$this->id.'" '.inputattrs($options).'/>';
 				if ($options['labelpos'] == "after") $string .= " $label";
 				return $string;
 				break;
 			case "buynow":
-				if (!isset($options['label'])) $options['label'] = "Buy Now";
+				if (!isset($options['value'])) $options['value'] = "Buy Now";
 			case "addtocart":
-				if (!isset($options['label'])) $options['label'] = "Add to Cart";
+				if (!isset($options['class'])) $options['class'] = "addtocart";
+				if (!isset($options['value'])) $options['value'] = "Add to Cart";
 				$string = "";
 				$string .= '<input type="hidden" name="product" value="'.$this->id.'" />';
 
@@ -749,10 +752,11 @@ class Product extends DatabaseObject {
 				}
 				$string .= '<input type="hidden" name="cart" value="add" />';
 				if (isset($options['ajax'])) {
+					$options['class'] .= " ajax";
 					$string .= '<input type="hidden" name="ajax" value="true" />';
-					$string .= '<input type="button" name="addtocart" id="addtocart" value="'.$options['label'].'" class="addtocart ajax" />';					
+					$string .= '<input type="button" name="addtocart" id="addtocart" '.inputattrs($options).' />';					
 				} else {
-					$string .= '<input type="submit" name="addtocart" value="'.$options['label'].'" class="addtocart" />';					
+					$string .= '<input type="submit" name="addtocart" '.inputattrs($options).' />';					
 				}
 					
 				return $string;

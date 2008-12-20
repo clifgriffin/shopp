@@ -15,7 +15,7 @@ class OrderWeight {
 	}
 	
 	function methods (&$ShipCalc) {
-		$ShipCalc->methods[get_class($this).'::range'] = "Order Weight Tiers";
+		$ShipCalc->methods[get_class($this).'::range'] = __("Order Weight Tiers","Shopp");
 	}
 	
 	function calculate (&$Cart,$rate,$column) {
@@ -66,7 +66,7 @@ function AddOrderWeightRange (methodid,table,rates) {
 	var row = $('<tr/>');
 
 	var unitCell = $('<td class="units"></td>').appendTo(row);
-	$('<label for="max-'+methodid+'-'+id+'">Up to <label>').appendTo(unitCell);
+	$('<label for="max-'+methodid+'-'+id+'"><?php _e("Up to","Shopp"); ?> <label>').appendTo(unitCell);
 	if (rates && rates['max'] && rates['max'][id] !== false) value = rates['max'][id];
 	else if (id > 1) value = "+";
 	else value = 1;

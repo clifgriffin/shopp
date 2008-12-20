@@ -411,8 +411,7 @@ class Category extends DatabaseObject {
 					$this->productsidx = 0;
 					$this->productloop = true;
 				} else {
-					next($this->products);
-					$Shopp->Product = current($this->products);
+					$Shopp->Product = next($this->products);
 					$this->productsidx++;
 				}
 

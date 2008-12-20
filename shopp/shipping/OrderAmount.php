@@ -15,7 +15,7 @@ class OrderAmount {
 	}
 	
 	function methods (&$ShipCalc) {
-		$ShipCalc->methods[get_class($this).'::range'] = "Order Amount Tiers";
+		$ShipCalc->methods[get_class($this).'::range'] = __("Order Amount Tiers","Shopp");
 	}
 	
 	function calculate (&$Cart,$rate,$column) {
@@ -36,12 +36,12 @@ var OrderAmountRange = function (methodid,table,rates) {
 	table.empty();
 	var headingsRow = $('<tr class="headings"/>').appendTo(table);
 
-	$('<th scope="col" class="units"><label for="max-'+methodid+'-0">By Order Amount</label></th>').appendTo(headingsRow);
+	$('<th scope="col" class="units"><label for="max-'+methodid+'-0"><?php _e('By Order Amount','Shopp'); ?></label></th>').appendTo(headingsRow);
 	$.each(domesticAreas,function(key,area) {
 		$('<th scope="col"><label for="'+area+'-'+methodid+'-0">'+area+'</label></th>').appendTo(headingsRow);
 	});
 	$('<th scope="col"><label for="'+region+'-'+methodid+'-0">'+region+'</label></th>').appendTo(headingsRow);
-	$('<th scope="col"><label for="worldwide-'+methodid+'-0">Worldwide</label></th>').appendTo(headingsRow);
+	$('<th scope="col"><label for="worldwide-'+methodid+'-0"><?php _e('Worldwide','Shopp'); ?></label></th>').appendTo(headingsRow);
 	$('<th scope="col">').appendTo(headingsRow);
 	
 	if (rates && rates['max']) {
@@ -64,7 +64,7 @@ function AddOrderAmountRangeRow(methodid,table,rates) {
 	var row = $('<tr/>');
 
 	var unitCell = $('<td class="units"></td>').appendTo(row);
-	$('<label for="max-'+methodid+'-'+id+'">Up to <label>').appendTo(unitCell);
+	$('<label for="max-'+methodid+'-'+id+'"><?php _e("Up to","Shopp"); ?> <label>').appendTo(unitCell);
 	if (rates && rates['max'] && rates['max'][id] !== false) value = rates['max'][id];
 	else if (id > 1) value = "+";
 	else value = 1;

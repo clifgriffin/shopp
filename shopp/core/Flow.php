@@ -1015,7 +1015,12 @@ class Flow {
 		require_once("{$this->basepath}/core/model/Category.php");
 
 		$Price = new Price();
-		$priceTypes = $Price->_lists['type'];
+		$priceTypes = array(
+			array('value'=>'Shipped','label'=>__('Shipped','Shopp')),
+			array('value'=>'Download','label'=>__('Download','Shopp')),
+			array('value'=>'Donation','label'=>__('Donation','Shopp')),
+			array('value'=>'N/A','label'=>__('N/A','Shopp')),
+		);
 		
 		$category_table = DatabaseObject::tablename(Category::$table);
 		$categories = $db->query("SELECT id,name,parent FROM $category_table ORDER BY parent,name",AS_ARRAY);
@@ -1341,7 +1346,12 @@ class Flow {
 		$Shopp->Catalog->load_categories();
 
 		$Price = new Price();
-		$priceTypes = $Price->_lists['type'];
+		$priceTypes = array(
+			array('value'=>'Shipped','label'=>__('Shipped','Shopp')),
+			array('value'=>'Download','label'=>__('Download','Shopp')),
+			array('value'=>'Donation','label'=>__('Donation','Shopp')),
+			array('value'=>'N/A','label'=>__('N/A','Shopp')),
+		);
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-save-category');
@@ -1513,12 +1523,27 @@ class Flow {
 			$Promotion->updates($_POST);
 			$Promotion->save();
 
+
 			if ($Promotion->scope == "Catalog")
 				$Promotion->build_discounts();
 			
 			$this->promotions_list();
 			return true;
 		}
+		
+		$scopes = array(
+			'Catalog' => __('Catalog','Shopp'),
+			'Order' => __('Order','Shopp')
+		);
+		
+		$types = array(
+			'Percentage Off' => __('Percentage Off','Shopp'),
+			'Amount Off' => __('Amount Off','Shopp'),
+			'Free Shipping' => __('Free Shipping','Shopp'),
+			'Buy X Get Y Free' => __('Buy X Get Y Free','Shopp')			
+		);
+		
+		
 		
 		include("{$this->basepath}/core/ui/promotions/editor.php");
 	}
@@ -1596,7 +1621,7 @@ class Flow {
 		}
 		echo '</tbody></table>';
 		} else {
-			echo '<p>No orders, yet.</p>';
+			echo '<p>'.__('No orders, yet.','Shopp').'</p>';
 		}
 
 		echo $after_widget;
@@ -1733,11 +1758,11 @@ class Flow {
 		$sizingOptions = array(	__('Scale to fit','Shopp'),
 								__('Scale &amp; crop','Shopp'));
 								
-		$qualityOptions = array("Highest quality, largest file size",
-								"Higher quality, larger file size",
-								"Balanced quality &amp; file size",
-								"Lower quality, smaller file size",
-								"Lowest quality, smallest file size");
+		$qualityOptions = array(__('Highest quality, largest file size','Shopp'),
+								__('Higher quality, larger file size','Shopp'),
+								__('Balanced quality &amp; file size','Shopp'),
+								__('Lower quality, smaller file size','Shopp'),
+								__('Lowest quality, smallest file size','Shopp'));
 		
 		include(SHOPP_ADMINPATH."/settings/presentation.php");
 	}
@@ -1780,7 +1805,15 @@ class Flow {
 		
 		
 		$downloads = array("1","2","3","5","10","15","25","100");
-		$time = array("30 minutes","1 hour","2 hours","3 hours","6 hours","12 hours","1 day","3 days","1 week","1 month","3 months","6 months","1 year");
+		$time = array(
+			__('30 minutes','Shopp'), __('1 hour','Shopp'),
+			__('2 hours','Shopp'),	__('3 hours','Shopp'),
+			__('6 hours','Shopp'), __('12 hours','Shopp'),
+			__('1 day','Shopp'), __('3 days','Shopp'),
+			__('1 week','Shopp'), __('1 month','Shopp'),
+			__('3 months','Shopp'),	__('6 months','Shopp'),
+			__('1 year','Shopp'),
+			);
 								
 		include(SHOPP_ADMINPATH."/settings/checkout.php");
 	}
