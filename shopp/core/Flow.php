@@ -33,6 +33,7 @@ class Flow {
 		$this->Admin->promotions = $Core->directory."/promotions";
 		$this->Admin->settings = $Core->directory."/settings";
 		$this->Admin->help = $Core->directory."/help";
+		$this->Admin->welcome = $Core->directory."/welcome";
 		$this->Admin->default = $this->Admin->orders;
 		
 		$this->Pages = $Core->Settings->get('pages');
@@ -708,6 +709,21 @@ class Flow {
 		$Cart->data->Order->Billing->cardtype = "";
 		$Cart->data->Order->Shipping = new Shipping($Account->id);
 
+	}
+	
+	function loggedin ($Account) {
+		global $Shopp;
+		$Cart = $Shopp->Cart;
+		
+		$Cart->data->login = true;
+		$Account->password = "";
+		$Cart->data->Order->Customer = $Account;
+		$Cart->data->Order->Billing = new Billing($Account->id);
+		$Cart->data->Order->Billing->card = "";
+		$Cart->data->Order->Billing->cardexpires = "";
+		$Cart->data->Order->Billing->cardholder = "";
+		$Cart->data->Order->Billing->cardtype = "";
+		$Cart->data->Order->Shipping = new Shipping($Account->id);
 	}
 
 	function order_receipt () {
@@ -1686,7 +1702,11 @@ class Flow {
 				$base_region = $c['region'];
 			$countries[$iso] = $c['name'];
 		}
-
+		if (!empty($_POST['setup'])) {
+			$_POST['settings']['display_welcome'] = "off";
+			$this->settings_save();
+		}
+		
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-general');
 			$zone = $_POST['settings']['base_operations']['zone'];
@@ -2281,6 +2301,8 @@ class Flow {
 		$this->setup_countries();
 		$this->setup_zones();
 		$this->setup_areas();
+
+		$this->Settings->save('show_welcome','on');	
 		
 		// General Settings
 		$this->Settings->save('version',SHOPP_VERSION);

@@ -6,9 +6,9 @@
 	<form action="" method="get">
 	<div><input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" /></div>
 	<p id="post-search" class="search-box">
-		<label class="hidden" for="orders-search-input">Search Orders:</label>
+		<label class="hidden" for="orders-search-input"><?php _e('Search Orders','Shopp'); ?>:</label>
 		<input type="text" id="orders-search-input" class="search-input" name="s" value="<?php echo attribute_escape($_GET['s']); ?>" />
-		<input type="submit" value="Search Orders" class="button" />
+		<input type="submit" value="<?php _e('Search Orders','Shopp'); ?>" class="button" />
 	</p>
 	
 	<div class="tablenav">

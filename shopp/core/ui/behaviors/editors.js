@@ -459,7 +459,22 @@ function addPriceLine (target,options,data,attachment) {
 	var uploadHeading = $('<td rowspan="2" class="controls" width="75" />').appendTo(headingsRow);
 	if (storage == "fs") {
 		var filePathCell = $('<div></div>').prependTo(downloadCell).hide();
-		var filePath = $('<input type="text" name="price['+i+'][downloadpath]" value="" title="Enter file path relative to: '+productspath+'">').appendTo(filePathCell);
+		var filePath = $('<input type="text" name="price['+i+'][downloadpath]" value="" title="Enter file path relative to: '+productspath+'" class="filepath" />').appendTo(filePathCell).change(function () {
+			$(this).removeClass('warning').addClass('verifying');
+			$.ajax({url:siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_verify_file',
+					type:"POST",
+					data:'filepath='+$(this).val(),
+					timeout:10000,
+					dataType:'text',
+					success:function (results) {
+						filePath.removeClass('verifying');
+						if (results == "OK") return;
+						if (results == "NULL") filePath.addClass("warning").attr('title',FILE_NOT_FOUND_TEXT);
+						if (results == "ISDIR") filePath.addClass("warning").attr('title',FILE_ISDIR_TEXT);
+						if (results == "READ") filePath.addClass("warning").attr('title',FILE_NOT_READ_TEXT);
+					}
+			});
+		});
 		var filePathButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'14"><small>By File Path</small></button>').appendTo(uploadHeading).click(function () {
 			filePathCell.slideToggle();
 		});
@@ -621,7 +636,7 @@ function variationsToggle () {
 
 function readableFileSize (size) {
 	var units = new Array("bytes","KB","MB","GB");
-	var sized = size;
+	var sized = size*1;
 	if (sized == 0) return sized;
 	var unit = 0;
 	while (sized > 1000) {
