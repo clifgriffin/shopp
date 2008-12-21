@@ -34,6 +34,7 @@ class Catalog extends DatabaseObject {
 		foreach ($categories as $category) {
 			$this->categories[$category->id] = new Category();
 			$this->categories[$category->id]->populate($category);
+			$this->categories[$category->id]->depth = $category->depth;
 			$this->categories[$category->id]->total = $category->total;
 			$this->categories[$category->id]->children = false;
 			if ($category->total > 1 && isset($this->categories[$category->parent])) 
