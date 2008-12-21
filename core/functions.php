@@ -169,7 +169,7 @@ function shopp_email ($template,$data=array()) {
  * array ($data) with a specific RSS-structure. */
 function shopp_rss ($data) {
 	$xml = "<?xml version=\"1.0\""."?>\n";
-	$xml .= "<rss version=\"2.0\" xmlns:base=\"".htmlentities($data['link'])."\" xmlns:atom=\"http://www.w3.org/2005/Atom\">\n";
+	$xml .= "<rss version=\"2.0\" xmlns:base=\"".htmlentities($data['link'])."\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:g=\"http://base.google.com/ns/1.0\">\n";
 	$xml .= "<channel>\n";
 
 	$xml .= '<atom:link href="'.htmlentities($data['link']).'" rel="self" type="application/rss+xml" />'."\n";
@@ -182,10 +182,8 @@ function shopp_rss ($data) {
 	if (is_array($data['items'])) {
 		foreach($data['items'] as $item) {
 			$xml .= "<item>\n";
-			$xml .= "<title>".$item['title']."</title>\n";
-			$xml .= "<link>".$item['link']."</link>\n";
-			$xml .= "<description>".$item['description']."</description>\n";
-			$xml .= "<pubDate>".$item['pubDate']."</pubDate>\n";
+			foreach ($item as $key => $value) 
+				$xml .= "<$key>$value</$key>\n";
 			$xml .= "</item>\n";
 		}
 	}
@@ -194,6 +192,72 @@ function shopp_rss ($data) {
 	$xml .= "</rss>\n";
 	
 	return $xml;
+}
+
+function shopp_image () {
+	$db =& DB::get();
+	require("model/Asset.php");
+	$table = DatabaseObject::tablename(Settings::$table);
+	$settings = $db->query("SELECT name,value FROM $table WHERE name='image_storage' OR name='image_path'",AS_ARRAY);
+	foreach ($settings as $setting) ${$setting->name} = $setting->value;
+
+	if (isset($_GET['shopp_image'])) $image = $_GET['shopp_image'];
+	elseif (preg_match('/\/images\/(\d+).*$/',$_SERVER['REQUEST_URI'],$matches)) 
+		$image = $matches[1];
+
+	if (empty($image)) die();
+	$Asset = new Asset($image);
+	header ("Content-type: ".$Asset->properties['mimetype']);
+	header ("Content-Disposition: inline; filename=".$Asset->name.""); 
+	header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+	if ($image_storage == "fs") {
+		header ("Content-length: ".@filesize(trailingslashit($image_path).$Asset->name)); 
+		readfile(trailingslashit($image_path).$Asset->name);
+	} else {
+		header ("Content-length: ".strlen($Asset->data)); 
+		echo $Asset->data;
+	} 
+	exit();
+}
+
+function shopp_catalog_css () {
+	$db =& DB::get();
+	$table = DatabaseObject::tablename(Settings::$table);
+	$settings = $db->query("SELECT name,value FROM $table WHERE name='gallery_thumbnail_width' OR name='row_products' OR name='row_products' OR name='gallery_small_width' OR name='gallery_small_height'",AS_ARRAY);
+	foreach ($settings as $setting) ${$setting->name} = $setting->value;
+	$pluginuri = WP_PLUGIN_URL."/".basename(dirname(dirname(__FILE__)))."/";
+	if (!isset($row_products)) $row_products = 3;
+	$products_per_row = floor((100/$row_products));
+	
+	ob_start();
+	include("ui/styles/catalog.css");
+	$file = ob_get_contents();
+	ob_end_clean();
+	header ("Content-type: text/css");
+	header ("Content-Disposition: inline; filename=catalog.css"); 
+	header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+	header ("Content-length: ".strlen($file)); 
+	echo $file;
+	exit();
+}
+
+function shopp_settings_js () {
+	$db =& DB::get();
+	$table = DatabaseObject::tablename(Settings::$table);
+	$settings = $db->query("SELECT name,value FROM $table WHERE name='base_operations'",AS_ARRAY);
+	foreach ($settings as $setting) ${$setting->name} = $setting->value;
+	$base_operations = unserialize($base_operations);
+	
+	ob_start();
+	include("ui/behaviors/settings.js");
+	$file = ob_get_contents();
+	ob_end_clean();
+	header ("Content-type: text/javascript");
+	header ("Content-Disposition: inline; filename=settings.js"); 
+	header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+	header ("Content-length: ".strlen($file)); 
+	echo $file;
+	exit();
 }
 
 /**
@@ -229,34 +293,36 @@ function is_robot() {
 
 function shopp_prereqs () {
 	$errors = array();
-	// Check PHP version
+	// Check PHP version, this won't appear much since syntax errors in earlier
+	// PHP releases will cause this code to never be executed
 	if (!version_compare(PHP_VERSION, '5.0.0', '>')) 
-		$errors[] = "Shopp requires PHP version 5+.  You are using PHP version ".PHP_VERSION;
+		$errors[] = __("Shopp requires PHP version 5.0+.  You are using PHP version ").PHP_VERSION;
 		
 	// Check WordPress version
-	if (!version_compare(get_bloginfo('version'),'2.4.0','>'))
-		$errors[] = "Shopp requires WordPress version 2.5+.  You are using WordPress version ".get_bloginfo('version');
+	if (!version_compare(get_bloginfo('version'),'2.6.0','>='))
+		$errors[] = __("Shopp requires WordPress version 2.6+.  You are using WordPress version ").get_bloginfo('version');
 	
 	// Check for cURL
 	if( !function_exists("curl_init") &&
 	      !function_exists("curl_setopt") &&
 	      !function_exists("curl_exec") &&
-	      !function_exists("curl_close") ) $errors[] = "Shopp requires the cURL library for processing transactions securely. Your web hosting environment does not currently have cURL installed (or built into PHP).";
+	      !function_exists("curl_close") ) $errors[] = __("Shopp requires the cURL library for processing transactions securely. Your web hosting environment does not currently have cURL installed (or built into PHP).");
 	
 	// Check for GD
-	if (!function_exists("gd_info")) $errors[] = "Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.  Your web hosting environment does not currently have GD installed (or built into PHP).";
+	if (!function_exists("gd_info")) $errors[] = __("Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.  Your web hosting environment does not currently have GD installed (or built into PHP).");
 	else {
 		$gd = gd_info();
-		if (!$gd['JPG Support']) $errors[] = "Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.";
+		if (!$gd['JPG Support']) $errors[] = __("Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.");
 	}
 	
 	if (!empty($errors)) {
-		foreach ($errors as $error) {
-			echo '<style type="text/css">body { font: 13px "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, sans-serif;
-			}</style>';
-			echo "<p>$error</p>";
-		}
-		echo '<p>Sorry! You will not be able to use Shopp.  For more information, see the <a href="http://docs.shopplugin.net/Installation">online Shopp documentation.</p>';
+		$string .= '<style type="text/css">body { font: 13px/1 "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, sans-serif; } p { margin: 10px; }</style>';
+		
+		foreach ($errors as $error) $string .= "<p>$error</p>";
+
+		$string .= '<p>'.__('Sorry! You will not be able to use Shopp.  For more information, see the <a href="http://docs.shopplugin.net/Installation" target="_blank">online Shopp documentation.</a>').'</p>';
+		
+		trigger_error($string,E_USER_ERROR);
 		exit();
 	}
 	return true;
@@ -299,20 +365,58 @@ function get_filemeta ($file) {
  * an array passed by reference, not a returned value */
 function find_files ($extension, $directory, $root, &$found) {
 	if (is_dir($directory)) {
+		
 		$Directory = @dir($directory);
 		if ($Directory) {
 			while (( $file = $Directory->read() ) !== false) {
 				if (substr($file, 0, 1) == ".") continue; 					 // Ignore .dot files
-				if (is_dir("$directory/$file") && $directory == $root)		 // Scan one deep more than root
-					find_files($extension,"$directory/$file",$root, $found); // but avoid recursive scans
+				if (is_dir($directory.DIRECTORY_SEPARATOR.$file) && $directory == $root)		 // Scan one deep more than root
+					find_files($extension,$directory.DIRECTORY_SEPARATOR.$file,$root, $found); // but avoid recursive scans
 				if (substr($file,strlen($extension)*-1) == $extension)
-					$found[] = substr($directory,strlen($root))."/$file";	 // Add the file to the found list
+					$found[] = substr($directory,strlen($root)).DIRECTORY_SEPARATOR.$file; // Add the file to the found list
 			}
 			return true;
 		}
 	}
 	return false;
 }
+
+if (!function_exists('json_encode')) {
+	function json_encode ($a = false) {
+		if (is_null($a)) return 'null';
+		if ($a === false) return 'false';
+		if ($a === true) return 'true';
+		if (is_scalar($a)) {
+			if (is_float($a)) {
+				// Always use "." for floats.
+				return floatval(str_replace(",", ".", strval($a)));
+			}
+
+			if (is_string($a)) {
+				static $jsonReplaces = array(array("\\", "/", "\n", "\t", "\r", "\b", "\f", '"'), array('\\\\', '\\/', '\\n', '\\t', '\\r', '\\b', '\\f', '\"'));
+				return '"' . str_replace($jsonReplaces[0], $jsonReplaces[1], $a) . '"';
+			} else return $a;
+		}
+
+		$isList = true;
+		for ($i = 0, reset($a); $i < count($a); $i++, next($a)) {
+			if (key($a) !== $i) {
+				$isList = false;
+				break;
+			}
+		}
+
+		$result = array();
+		if ($isList) {
+			foreach ($a as $v) $result[] = json_encode($v);
+			return '[' . join(',', $result) . ']';
+		} else {
+			foreach ($a as $k => $v) $result[] = json_encode($k).':'.json_encode($v);
+			return '{' . join(',', $result) . '}';
+		}
+	}
+}
+
 
 /**
  * List files and directories inside the specified path */
@@ -348,6 +452,45 @@ if (!function_exists('attribute_escape_deep')) {
 			 attribute_escape($value);
 		 return $value;
 	}
+}
+
+function auto_ranges ($avg,$max,$min) {
+	$ranges = array();
+	if ($avg == 0 || $max == 0) return $ranges;
+	$power = floor(log10($avg));
+	$scale = pow(10,$power);
+	$median = round($avg/$scale)*$scale;
+	$range = $max-$min;
+	
+	if ($range == 0) return $ranges;
+	
+	$steps = floor($range/$scale);
+	if ($steps > 7) $steps = 7;
+	elseif ($steps < 2) {
+		$scale = $scale/2;
+		$steps = ceil($range/$scale);
+		if ($steps > 7) $steps = 7;
+		elseif ($steps < 2) $steps = 2;
+	}
+		
+	$base = $median-($scale*floor(($steps-1)/2));
+	for ($i = 0; $i < $steps; $i++) {
+		$range = array("min" => 0,"max" => 0);
+		if ($i == 0) $range['max'] = $base;
+		else if ($i+1 >= $steps) $range['min'] = $base;
+		else $range = array("min" => $base, "max" => $base+$scale);
+		$ranges[] = $range;
+		if ($i > 0) $base += $scale;
+	}
+	return $ranges;
+}
+
+function floatvalue($value) {
+	$value = preg_replace("/,/",".",$value); // Replace commas with periods
+	$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
+	$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
+    $value = preg_replace('#^([-]*[0-9\.,\' ]+?)((\.|,){1}([0-9-]{1,2}))*$#e', "str_replace(array('.', ',', \"'\", ' '), '', '\\1') . '.' . sprintf('%02d','\\4')", $value);
+    return floatval($value);
 }
 
 /**
@@ -425,6 +568,8 @@ function scan_money_format ($format) {
 	
 	$ds = strpos($format,'#'); $de = strrpos($format,'#')+1;
 	$df = substr($format,$ds,($de-$ds));
+
+	if ($df == "#,##,###.##") $f['indian'] = true;
 	
 	$f['cpos'] = true;
 	if ($de == strlen($format)) $f['currency'] = substr($format,0,$ds);
@@ -444,11 +589,11 @@ function scan_money_format ($format) {
 	}
 	$f['precision'] = $dd;
 	
-	if (isset($dl[1])) {
-		$f['decimals'] = $dl[1];
+	if (count($dl) > 1) {
+		$f['decimals'] = $dl[count($dl)-1];
 		$f['thousands'] = $dl[0];
 	} else $f['decimals'] = $dl[0];
-
+	
 	return $f;
 }
 
@@ -458,7 +603,8 @@ function money ($amount,$format=false) {
 	if (!$format) $format = $locale['currency']['format'];
 	if (!$format) $format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
 
-	$number = number_format($amount, $format['precision'], $format['decimals'], $format['thousands']);
+	if ($format['indian']) $number = indian_number($amount,$format);
+	else $number = number_format($amount, $format['precision'], $format['decimals'], $format['thousands']);
 	if ($format['cpos']) return $format['currency'].$number;
 	else return $number.$format['currency'];
 }
@@ -472,8 +618,26 @@ function percentage ($amount,$format=false) {
 		$format['precision'] = 0;
 	}
 	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
-	
+	if ($format['indian']) return indian_number($amount,$format);
 	return number_format(round($amount), $format['precision'], $format['decimals'], $format['thousands']).'%';
+}
+
+function indian_number ($number,$format=false) {
+	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
+
+	$d = explode(".",$number);
+	$number = "";
+	$digits = substr($d[0],0,-3); // Get rid of the last 3
+	
+	if (strlen($d[0]) > 3) $number = substr($d[0],-3);
+	else $number = $d[0];
+	
+	for ($i = 0; $i < (strlen($digits) / 2); $i++)
+		$number = substr($digits,(-2*($i+1)),2).((strlen($number) > 0)?$format['thousands'].$number:$number);
+	if ($format['precision'] > 0) 
+		$number = $number.$format['decimals'].substr(number_format('0.'.$d[1],$format['precision']),2);
+	return $number;
+	
 }
 
 function value_is_true ($value) {
@@ -489,6 +653,33 @@ function valid_input ($type) {
 	return false;
 }
 
+function inputattrs ($options,$allowed=array()) {
+	if (!is_array($options)) return "";
+	if (empty($allowed)) {
+		$allowed = array("accesskey","alt","checked","class","disabled","format",
+			"minlength","maxlength","readonly","required","size","src","tabindex",
+			"title","value");
+	}
+	$string = "";
+	$classes = "";
+	if (isset($options['label'])) $options['value'] = $options['label'];
+	foreach ($options as $key => $value) {
+		if (!in_array($key,$allowed)) continue;
+		switch($key) {
+			case "class": $classes .= " $value"; break;
+			case "disabled": $classes .= " disabled"; $string .= ' disabled="disabled"'; break;
+			case "readonly": $classes .= " readonly"; $string .= ' readonly="readonly"'; break;
+			case "required": $classes .= " required"; break;
+			case "minlength": $classes .= " min$value"; break;
+			case "format": $classes .= " $value"; break;
+			default:
+				$string .= ' '.$key.'="'.$value.'"';
+		}
+	}
+	if (!empty($classes)) $string .= ' class="'.ltrim($classes).'"';
+	return $string;
+}
+
 function build_query_request ($request=array()) {
 	$query = "";
 	foreach ($request as $name => $value) {
@@ -498,6 +689,24 @@ function build_query_request ($request=array()) {
 	return $query;
 }
 
+function template_path ($path) {
+	if (DIRECTORY_SEPARATOR == "\\") $path = str_replace("/","\\",$path);
+	return $path;
+}
+
+if ( !function_exists('sys_get_temp_dir')) {
+	// For PHP 5 (pre-5.2.1)
+	function sys_get_temp_dir() {
+		if (!empty($_ENV['TMP'])) return realpath($_ENV['TMP']);
+		if (!empty($_ENV['TMPDIR'])) return realpath( $_ENV['TMPDIR']);
+		if (!empty($_ENV['TEMP'])) return realpath( $_ENV['TEMP']);
+		$tempfile = tempnam(uniqid(rand(),TRUE),'');
+		if (file_exists($tempfile)) {
+			unlink($tempfile);
+			return realpath(dirname($tempfile));
+		}
+	}
+}
 
 class FTPClient {
 	var $connected = false;
@@ -514,7 +723,8 @@ class FTPClient {
 	/** 
 	 * Connects to the FTP server */
 	function connect($host, $user, $password) {
-		$this->connection = @ftp_connect($host);
+		$this->connection = @ftp_connect($host,0,20);
+		if (!$this->connection) return false;
 		$this->connected = @ftp_login($this->connection,$user,$password);
 		if (!$this->connected) return false;
 		return true;
@@ -536,9 +746,9 @@ class FTPClient {
 		foreach ($files as $file) {
 			if (in_array($file,$excludes)) continue;
 			if (is_dir($path.$file)) {
-				if (@ftp_chdir($this->connection,$remote.$file)) {
-					$this->update($path.$file,$remote.$file);
-				} else $this->mkdir($remote.$file);
+				if (!@ftp_chdir($this->connection,$remote.$file)) 
+					$this->mkdir($remote.$file);
+				$this->update($path.$file,$remote.$file);				
 			} else $this->put($path.$file,$remote.$file);
 		}
 		return $this->log;

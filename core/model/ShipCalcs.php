@@ -13,36 +13,28 @@ class ShipCalcs {
 	var $modules = array();
 	var $methods = array();
 	
-	function ShipCalcs (&$Settings,$basepath) {
+	function ShipCalcs ($basepath) {
+		global $Shopp;
 
-		$shipcalcs_path = $basepath."/shipping";
-		$lastscan = $Settings->get('shipcalc_lastscan');
+		$shipcalcs_path = $basepath.DIRECTORY_SEPARATOR."shipping";
+		$lastscan = $Shopp->Settings->get('shipcalc_lastscan');
 		$lastupdate = filemtime($shipcalcs_path);
-
+		
 		$modfiles = array();
-		
-		if ($lastupdate > $lastscan) {
-			$modfilescan = array();
-			find_files(".php",$shipcalcs_path,$shipcalcs_path,$modfilescan);
-
-			if (empty($modfilescan)) return $modfilescan;
-			foreach ($modfilescan as $file) {
-				if (! is_readable($shipcalcs_path.$file)) continue;
-				$ShipCalcClass = substr(basename($file),0,-4);
-				$modfiles[$ShipCalcClass] = $shipcalcs_path.$file;
+		if ($lastupdate > $lastscan) $modfiles = $this->scanmodules($shipcalcs_path);
+		else {
+			$modfiles = $Shopp->Settings->get('shipcalc_modules');
+			if (empty($modfiles)) $modfiles = $this->scanmodules($shipcalcs_path);
+		}
+	
+		if (!empty($modfiles)) {
+			foreach ($modfiles as $ShipCalcClass => $file) {
+				include($file);
+				$this->modules[$ShipCalcClass] = new $ShipCalcClass();
+				$this->modules[$ShipCalcClass]->methods($this);
 			}
-			$Settings->save('shipcalc_modules',$modfiles);
-			$Settings->save('shipcalc_lastscan',mktime());
-		} else {
-			$modfiles = $Settings->get('shipcalc_modules');
 		}
-		
-		foreach ($modfiles as $ShipCalcClass => $file) {
-			include($file);
-			$this->modules[$ShipCalcClass] = new $ShipCalcClass();
-			$this->modules[$ShipCalcClass]->methods($this);
-		}
-				
+						
 	}
 	
 	function readmeta ($modfile) {
@@ -67,6 +59,24 @@ class ShipCalcs {
 			return $module;
 		}
 		return false;
+	}
+	
+	function scanmodules ($path) {
+		global $Shopp;
+		$modfilescan = array();
+		find_files(".php",$path,$path,$modfilescan);
+
+		if (empty($modfilescan)) return $modfilescan;
+		foreach ($modfilescan as $file) {
+			if (! is_readable($path.$file)) continue;
+			$ShipCalcClass = substr(basename($file),0,-4);
+			$modfiles[$ShipCalcClass] = $path.$file;
+		}
+		
+		$Shopp->Settings->save('shipcalc_modules',addslashes(serialize($modfiles)));
+		$Shopp->Settings->save('shipcalc_lastscan',mktime());
+
+		return $modfiles;
 	}
 		
 	function ui () {

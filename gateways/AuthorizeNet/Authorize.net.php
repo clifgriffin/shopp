@@ -13,6 +13,7 @@ class AuthorizeNet {
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
+	var $cards = array("Visa", "MasterCard", "American Express", "Discover", "JCB", "Diner’s Club", "EnRoute");
 
 	function AuthorizeNet (&$Order="") {
 		global $Shopp;
@@ -44,7 +45,7 @@ class AuthorizeNet {
 	
 	function build (&$Order) {
 		$_ = array();
-		
+
 		// Options
 		$_['x_test_request']		= $this->settings['testmode']; // Set "TRUE" while testing
 		$_['x_login'] 				= $this->settings['login'];
@@ -74,7 +75,7 @@ class AuthorizeNet {
 		
 		// Billing
 		$_['x_card_num']			= $Order->Billing->card;
-		$_['x_exp_date']			= $Order->Billing->cardexpires;
+		$_['x_exp_date']			= date("my",$Order->Billing->cardexpires);
 		$_['x_card_code']			= $Order->Billing->cvv;
 		$_['x_address']				= $Order->Billing->address;
 		$_['x_city']				= $Order->Billing->city;
@@ -98,7 +99,7 @@ class AuthorizeNet {
 		// Line Items
 		$i = 1;
 		foreach($Order->Items as $Item) {
-			$_['x_line_item'][] = ($i++)."<|>".$Item->name.((sizeof($Item->options) > 1)?" ".$Item->option:"")."<|><|>".$Item->quantity."<|>".$Item->unitprice."<|>".(($Item->tax)?"Y":"N");
+			$_['x_line_item'][] = ($i++)."<|>".substr($Item->name,0,31)."<|>".((sizeof($Item->options) > 1)?" (".substr($Item->optionlabel,0,253).")":"")."<|>".number_format($Item->quantity,2)."<|>".number_format($Item->unitprice,2)."<|>".(($Item->tax)?"Y":"N");
 		}
 
 		$this->transaction = "";
@@ -117,7 +118,7 @@ class AuthorizeNet {
 	
 	function send () {
 		$connection = curl_init();
-		curl_setopt($connection,CURLOPT_URL,"https://secure.authorize.net/gateway/transact.dll");
+		curl_setopt($connection, CURLOPT_URL,"https://secure.authorize.net/gateway/transact.dll");
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
 		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
@@ -137,6 +138,7 @@ class AuthorizeNet {
 	
 	function response ($buffer) {
 		$_ = new stdClass();
+
 		list($_->code,
 			 $_->subcode,
 			 $_->reasoncode,
@@ -182,16 +184,14 @@ class AuthorizeNet {
 	
 	function settings () {
 		global $Shopp;
-		$Shopp->Settings->save('gateway_cardtypes',array("Visa", "MasterCard", "American Express", "Discover", "JCB", "Diner’s Club", "EnRoute"));
 		$settings = $Shopp->Settings->get('Authorize.Net');
-		
 		?>
-		<tr id="authorize-net-settings" class="form-field">
+		<tr id="authorize-net-settings">
 			<th scope="row" valign="top">Authorize.Net</th>
 			<td>
 				<div><input type="text" name="settings[Authorize.Net][login]" id="authorize_net_login" value="<?php echo $settings['login']; ?>" size="16" /><br /><label for="authorize_net_login"><?php _e('Enter your Authorize.net Login ID.'); ?></label></div>
 				<p><input type="password" name="settings[Authorize.Net][password]" id="authorize_net_password" value="<?php echo $settings['password']; ?>" size="24" /><br /><label for="authorize_net_password"><?php _e('Enter your Authorize.net Password or Transaction Key.'); ?></label></p>
-				<p><input type="hidden" name="settings[Authorize.Net][testmode]" value="off"><input type="checkbox" name="settings[Authorize.Net][testmode]" id="authorize_net_testmode" value="on"<?php echo ($settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="authorize_net_testmode"> <?php _e('Enabled'); ?></label></p>
+				<p><input type="hidden" name="settings[Authorize.Net][testmode]" value="off"><input type="checkbox" name="settings[Authorize.Net][testmode]" id="authorize_net_testmode" value="on"<?php echo ($settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="authorize_net_testmode"> <?php _e('Enable test mode'); ?></label></p>
 				
 			</td>
 		</tr>
@@ -200,7 +200,7 @@ class AuthorizeNet {
 	
 	function registerSettings () {
 		?>
-		gatewayHandlers.register('<?php echo __FILE__; ?>','authorize-net-settings');
+		gatewayHandlers.register('<?php echo addslashes(__FILE__); ?>','authorize-net-settings');
 		<?php
 	}
 

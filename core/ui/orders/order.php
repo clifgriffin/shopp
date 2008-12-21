@@ -1,11 +1,12 @@
 <div class="wrap shopp">
-	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 	<h2><?php _e('Order','Shopp'); ?></h2>
+
+	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
 	<?php include("navigation.php"); ?>
 	
 	<div id="order">
-
+		<br class="clear" />
 		<div id="receipt" class="shopp">
 		<table class="transaction">
 			<tr><th><?php _e('Order Num','Shopp'); ?>:</th><td><?php echo $Purchase->id; ?></td></tr>	
@@ -13,19 +14,27 @@
 			<?php if (!empty($Purchase->card) && !empty($Purchase->cardtype)): ?><tr><th><?php _e('Billed To','Shopp'); ?>:</th><td><?php (!empty($Purchase->card))?printf("%'X16d",$Purchase->card):''; ?> <?php echo (!empty($Purchase->cardtype))?'('.$Purchase->cardtype.')':''; ?></td></tr><?php endif; ?>
 			<tr><th><?php _e('Transaction','Shopp'); ?>:</th><td><?php echo $Purchase->transactionid; ?></td></tr>	
 			<?php if ($Purchase->gateway == "Google Checkout"):?>
-				<tr><th><?php _e('Status','Shopp'); ?>:</th><td><?php echo $Purchase->transtatus; ?></td></tr>	
+				<tr><th><?php _e('Status','Shopp'); ?>:</th><td><?php echo $Purchase->transtatus; ?></td></tr>
 			<?php endif; ?>
+			<tr><td colspan="2"><br class="clear" /></td></tr>
+			<?php if (!empty($Purchase->phone)):?>
+				<tr><th><?php _e('Phone','Shopp'); ?>:</th><td><?php echo $Purchase->phone; ?></td></tr>
+			<?php endif; ?>
+			<?php if (!empty($Purchase->email)):?>
+				<tr><th><?php _e('Email','Shopp'); ?>:</th><td><?php echo '<a href="mailto:'.$Purchase->email.'">'.$Purchase->email.'</a>'; ?></td></tr>
+			<?php endif; ?>
+
 		</table>
 
 		<?php if (!empty($Purchase->shipaddress)): ?>
 		<fieldset>
-			<legend>Ship To</legend>
+			<legend><?php _e('Ship To','Shopp'); ?></legend>
 			<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
 			<?php echo $Purchase->shipaddress; ?><br />
 			<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
 			<?php echo "{$Purchase->shipcity}, {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
 			<?php echo $Purchase->shipcountry ?></address>
-			<p>Shipping: <?php echo $Purchase->shipmethod; ?></p>
+			<p><strong>Shipping:</strong> <?php echo $Purchase->shipmethod; ?></p>
 		</fieldset>
 		<?php else: ?>
 			<fieldset>
@@ -52,7 +61,7 @@
 				<tr<?php if (!even) echo 'class="alternate"'; $even = !$even; ?>>
 					<td>
 						<?php echo $Item->name; ?>
-						<?php if (!empty($Item->optionname)) echo "({$Item->optionname})"; ?>
+						<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?>
 					</td>
 					<td><?php echo $Item->quantity; ?></td>
 					<td class="money"><?php echo money($Item->unitprice); ?></td>

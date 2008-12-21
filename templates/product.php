@@ -3,7 +3,7 @@
 
 	<h3><?php shopp('product','name'); ?></h3>
 	<p class="headline"><big><?php shopp('product','summary'); ?></big></p>
-
+			
 	<?php shopp('product','gallery'); ?>
 
 	<?php if (shopp('product','onsale')): ?>
@@ -20,15 +20,15 @@
 	<p class="freeshipping">Free Shipping!</p>
 	<?php endif; ?>
 
-	<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
+	<form action="" method="post" class="shopp product">
 		<?php if(shopp('product','has-variations')): ?>
 		<ul class="variations">
 			<?php shopp('product','variations','mode=multiple&label=true&defaults=Select an option&before_menu=<li>&after_menu=</li>'); ?>
 		</ul>
 		<?php endif; ?>
+		<p><?php shopp('product','quantity','class=selectall'); ?>
+		<?php shopp('product','addtocart'); ?></p>
 
-		<p><?php shopp('product','addtocart'); ?></p>
-	
 	</form>
 
 	<?php shopp('product','description'); ?>

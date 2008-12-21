@@ -84,8 +84,8 @@ class Promotion extends DatabaseObject {
 
 		switch($op) {
 			// String or Numeric operations
-			case "Is equal to": return ($subject == $value || $subject == floatval(preg_replace("/[^\d\.]/","",$value))); break;
-			case "Is not equal to": return ($subject != $value  || $subject != floatval(preg_replace("/[^\d\.]/","",$value))); break;
+			case "Is equal to": return ($subject === $value || $subject === floatvalue(preg_replace("/[^\d\.,]/","",$value))); break;
+			case "Is not equal to": return ($subject !== $value  || $subject !== floatvalue(preg_replace("/[^\d\.,]/","",$value))); break;
 
 			// String operations
 			case "Contains": return (stripos($subject,$value) !== false); break;
@@ -94,10 +94,10 @@ class Promotion extends DatabaseObject {
 			case "Ends with": return  (stripos($subject,$value) === strlen($subject) - strlen($value)); break;
 			
 			// Numeric operations
-			case "Is greater than": return ($subject > floatval(preg_replace("/[^\d\.]/","",$value))); break;
-			case "Is greater than or equal to": return ($subject >= floatval(preg_replace("/[^\d\.]/","",$value))); break;
-			case "Is less than": return ($subject < floatval(preg_replace("/[^\d\.]/","",$value))); break;
-			case "Is less than or equal to": return ($subject <= floatval(preg_replace("/[^\d\.]/","",$value))); break;
+			case "Is greater than": return ($subject > floatvalue(preg_replace("/[^\d\.]/","",$value))); break;
+			case "Is greater than or equal to": return ($subject >= floatvalue(preg_replace("/[^\d\.]/","",$value))); break;
+			case "Is less than": return ($subject < floatvalue(preg_replace("/[^\d\.]/","",$value))); break;
+			case "Is less than or equal to": return ($subject <= floatvalue(preg_replace("/[^\d\.]/","",$value))); break;
 		}
 		
 		return false;

@@ -11,8 +11,6 @@
 #shopp .submit { text-align: right; }
 #shopp form { text-align: left; }
 #shopp form.product ul.options { list-style: none; }
-/*#shopp form ul label,
-#shopp form ul select { display: inline; }*/
 #shopp form ul { line-height: 1; }
 #shopp form label { font-size: 14px; font-weight: bold; padding-bottom: 3px; }
 #shopp form ul li span label,
@@ -22,6 +20,15 @@
  * Catalog/Category
  **/
 
+#shopp .category { position: relative; }
+#shopp .views { display: inline; position: absolute; right: 0; top: 0; }
+#shopp .views button { border: none; background: none; width: 16px; height: 16px; padding: 4px; cursor: pointer; }
+#shopp .views button:hover { background-color: #ebebeb;}
+#shopp .views li { display: inline;  padding: 2px; }
+#shopp .orderby { float: right; }
+
+#shopp .subcategories { padding: 10px 0; margin-bottom: 10px;}
+
 /* Each product in a category has a containing frame */
 #shopp ul.products li.product div.frame { padding: 10px; }
 
@@ -29,21 +36,29 @@
 #shopp ul.products li .summary,
 #shopp ul.products li .savings,
 #shopp ul.products li .price { margin-top: 0; margin-bottom: 0; }
+#shopp ul.products li .details { float: none; }
 
 /* Hide the product summary in the grid view */
 #shopp ul.products li .summary { display: none; }
+#shopp ul.products li .listview { display: none; }
 
 #shopp ul.products img { display: block; }
 
 #shopp .price { font-weight: bold; line-height: 1.5; margin: 0; }
 #shopp .original { text-decoration: line-through; }
-#shopp .price.sale { font-size: 150%; }
+#shopp .sale { font-size: 150%; }
+
+.filters.enabled a.cancel:before { content: "["; }
+.filters.enabled a.cancel { font-weight: bold; }
+.filters.enabled a.cancel:after { content: "]"; }
 
 /* Product List View */
-#shopp ul.products.list li { float: none; width: 100%; clear: both; padding-bottom: 10px;}
-#shopp ul.products.list li div.frame { width: 100%;  text-align: left; }
-#shopp ul.products.list li img { float: left; margin-right: 10px; }
-#shopp ul.products.list li .summary { display: block; }
+#shopp.list ul.products li { float: none; width: 100%; clear: both; padding-bottom: 10px;}
+#shopp.list ul.products li.product {  border-bottom: 1px solid #ddd; }
+#shopp.list ul.products li div.frame { width: 100%;  text-align: left; }
+#shopp.list ul.products li img { float: left; margin-right: 10px; }
+#shopp.list ul.products li .details { float: left; width: 65%;}
+#shopp.list ul.products li .listview { display: block; }
 
 #shopp ul.breadcrumb { margin: 10px 0; }
 #shopp ul.breadcrumb li { background: none; padding: 0; display: inline; margin-left: 0; text-indent: 0; }
@@ -54,7 +69,11 @@
 /**
  * Product Pages
  **/
-#shopp .original.price { text-decoration: line-through; }
+#shopp .column { float: left; }
+#shopp .column.first { width: 65%; }
+#shopp .column.second { float: right; width: 35%; }
+
+#shopp .original { text-decoration: line-through; }
 #shopp form.product ul,
 #shopp form.product ul li,
 #shopp form.product ul li label { clear: none; }
@@ -63,9 +82,9 @@
 #shopp dl dt { font-weight: bold; float: left; margin-right: 10px; clear: left; }
 #shopp dl dd { display: block; clear: right; }
 
-#shopp #gallery { margin: 5px 10px 5px 0; }
-#shopp #gallery ul.previews li.thumbnails ul { margin: 10px 0; }
-#shopp #gallery ul.previews li.thumbnails li { margin: 0 5px 0 0; }
+#shopp .gallery { margin: 5px 10px 5px 0; }
+#shopp .gallery ul.previews li.thumbnails ul { margin: 10px 0 10px 0; }
+#shopp .gallery ul.previews li.thumbnails li { margin: 0 5px 0 0; }
 
 /**
  * Shopping Cart 
@@ -100,11 +119,11 @@
  **/
 #shopp #receipt { position: relative; margin: 20px 0; }
 #shopp #receipt address { font-style: normal; }
-#shopp #receipt fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
-#shopp #receipt fieldset.shipping {float: right; width: 50%; margin-top: 20px; }
+#shopp #receipt fieldset { float: left; width: auto; width: 42%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
+#shopp #receipt fieldset.shipping { width: 42%; float: right; }
 #shopp #receipt fieldset legend { display: block; }
-#shopp #receipt table.transaction { float: right; width: auto; }
-#shopp #receipt table.transaction th { text-align: right; }
+#shopp #receipt table.transaction { clear: both; width: 100%; margin-bottom: 10px; }
+#shopp #receipt table.transaction th { text-align: right; width: 80px; padding-right: 10px;}
 
 #shopp #receipt .cart { width: 100%; clear: both; border: none; }
 #shopp #receipt .cart td { border: none; }
