@@ -227,7 +227,7 @@ class Shopp {
 			
 		} else $help = add_submenu_page($this->Flow->Admin->default,__('Help','Shopp'), __('Help','Shopp'), 8, $this->Flow->Admin->help, array(&$this,'help'));
 		
-		$welcome = add_submenu_page($this->Flow->Admin->default,__('Welcome','Shopp'), __('Welcome','Shopp'), 8, $this->Flow->Admin->welcome, array(&$this,'welcome'));
+		// $welcome = add_submenu_page($this->Flow->Admin->default,__('Welcome','Shopp'), __('Welcome','Shopp'), 8, $this->Flow->Admin->welcome, array(&$this,'welcome'));
 		
 		add_action("admin_print_scripts-$main", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$orders", array(&$this, 'admin_behaviors'));
