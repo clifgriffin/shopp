@@ -33,7 +33,7 @@ class Asset extends DatabaseObject {
 				break;
 			case "download":
 				$this->storage = $Shopp->Settings->get('product_storage');
-				$this->path = trailingslashit($Shopp->Settings->get('product_path'));
+				$this->path = trailingslashit($Shopp->Settings->get('products_path'));
 				break;
 		}
 	}

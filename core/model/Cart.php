@@ -68,7 +68,7 @@ class Cart {
 		$this->data->ShipCosts = array();
 		$this->data->Purchase = false;
 		$this->data->Category = array();
-
+		$this->data->Search = false;
 		return true;
 	}
 		

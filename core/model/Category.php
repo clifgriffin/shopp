@@ -454,8 +454,8 @@ class Category extends DatabaseObject {
 							}
 							$padding = str_repeat("&nbsp;",$category->depth*3);
 
-							if (SHOPP_PERMALINKS) $link = $path.'/category/'.$category->uri;
-							else $link = $page.'&amp;shopp_category='.$category->id;
+							if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+							else $link = $Shopp->shopuri.'&amp;shopp_category='.$category->id;
 
 							$products = '';
 							if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->products.')';

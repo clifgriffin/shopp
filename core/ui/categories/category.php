@@ -189,6 +189,9 @@ var PRODUCT_DOWNLOAD_LABEL = "<?php _e('Product Download','Shopp'); ?>";
 var NO_PRODUCT_DOWNLOAD_TEXT = "<?php _e('No product download.','Shopp'); ?>";
 var NO_DOWNLOAD = "<?php _e('No download file.','Shopp'); ?>";
 var DEFAULT_PRICELINE_LABEL = "<?php _e('Price &amp; Delivery','Shopp'); ?>";
+var FILE_NOT_FOUND_TEXT = "<?php _e('The file you specified could not be found.','Shopp'); ?>";
+var FILE_NOT_READ_TEXT = "<?php _e('The file you specified is not readable and cannot be used.','Shopp'); ?>";
+var FILE_ISDIR_TEXT = "<?php _e('The file you specified is a directory and cannot be used.','Shopp'); ?>";
 
 var productOptions = new Array();
 var optionMenus = new Array();

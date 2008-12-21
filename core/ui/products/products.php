@@ -7,9 +7,9 @@
 	<div><input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" /></div>
 
 	<p id="post-search" class="search-box">
-		<label class="hidden" for="post-search-input">Search Products:</label>
+		<label class="hidden" for="post-search-input"><?php _e('Search Products','Shopp'); ?>:</label>
 		<input type="text" id="products-search-input" class="search-input" name="s" value="<?php echo attribute_escape($_GET['s']); ?>" />
-		<input type="submit" value="Search Products" class="button" />
+		<input type="submit" value="<?php _e('Search Products','Shopp'); ?>" class="button" />
 	</p>
 	
 	<p class="search-box"><button type="submit" name="edit" value="new" class="button"><?php _e('New Product','Shopp'); ?></button></p>

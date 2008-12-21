@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0b7.7
+Version: 1.0RC1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0b7.7");
+define("SHOPP_VERSION","1.0RC1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -184,8 +184,9 @@ class Shopp {
 			if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='publish' WHERE $filter");
 			$this->page_updates(true);
 		}
-			
-
+		
+		if ($this->Settings->get('show_welcome') == "on")
+			$this->Settings->save('display_welcome','on');
 	}
 	
 	/**
@@ -207,7 +208,7 @@ class Shopp {
 	 * add_menus()
 	 * Adds the WordPress admin menus */
 	function add_menus () {
-		
+
 		if (function_exists('add_object_page')) $main = add_object_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
 		else $main = add_menu_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
 		$orders = add_submenu_page($this->Flow->Admin->default,__('Orders','Shopp'), __('Orders','Shopp'), 8, $this->Flow->Admin->orders, array(&$this,'orders'));
@@ -226,6 +227,8 @@ class Shopp {
 			
 		} else $help = add_submenu_page($this->Flow->Admin->default,__('Help','Shopp'), __('Help','Shopp'), 8, $this->Flow->Admin->help, array(&$this,'help'));
 		
+		$welcome = add_submenu_page($this->Flow->Admin->default,__('Welcome','Shopp'), __('Welcome','Shopp'), 8, $this->Flow->Admin->welcome, array(&$this,'welcome'));
+		
 		add_action("admin_print_scripts-$main", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$orders", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$categories", array(&$this, 'admin_behaviors'));
@@ -233,6 +236,7 @@ class Shopp {
 		add_action("admin_print_scripts-$promotions", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$settings", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$help", array(&$this, 'admin_behaviors'));		
+		add_action("admin_print_scripts-$welcome", array(&$this, 'admin_behaviors'));		
 
 	}
 
@@ -510,11 +514,14 @@ class Shopp {
 
 		return $vars;
 	}
-			
+	
 	/**
 	 * orders()
 	 * Handles order administration screens */
 	function orders () {
+		if ($this->Settings->get('display_welcome') == "on") {
+			$this->welcome(); return;
+		}
 		if (isset($_GET['manage'])) $this->Flow->order_manager();
 		else $this->Flow->orders_list();
 	}
@@ -523,6 +530,9 @@ class Shopp {
 	 * categories()
 	 * Handles category administration screens */
 	function categories () {
+		if ($this->Settings->get('display_welcome') == "on") {
+			$this->welcome(); return;
+		}
 		if (isset($_GET['edit'])) $this->Flow->category_editor();
 		else $this->Flow->categories_list();
 	}
@@ -531,6 +541,9 @@ class Shopp {
 	 * products()
 	 * Handles product administration screens */
 	function products () {
+		if ($this->Settings->get('display_welcome') == "on") {
+			$this->welcome(); return;
+		}
 		if (isset($_GET['edit'])) $this->Flow->product_editor();
 		elseif (isset($_GET['category'])) $this->Flow->category_editor();
 		elseif (isset($_GET['categories'])) $this->Flow->categories_list();
@@ -541,6 +554,9 @@ class Shopp {
 	 * promotions()
 	 * Handles product administration screens */
 	function promotions () {
+		if ($this->Settings->get('display_welcome') == "on") {
+			$this->welcome(); return;
+		}
 		if (isset($_GET['promotion'])) $this->Flow->promotion_editor();
 		else $this->Flow->promotions_list();
 	}
@@ -549,6 +565,9 @@ class Shopp {
 	 * settings()
 	 * Handles settings administration screens */
 	function settings () {
+		if ($this->Settings->get('display_welcome') == "on" && empty($_POST['setup'])) {
+			$this->welcome(); return;
+		}
 
 		switch($_GET['edit']) {
 			case "catalog": 		$this->Flow->settings_catalog(); break;
@@ -589,6 +608,13 @@ class Shopp {
 		endif;
 	}
 
+	function updatesearch () {
+		global $wp_query;
+		$wp_query->query_vars['s'] = $this->Cart->data->Search;
+		// $wp->is_search = false;
+		//echo "<pre>"; print_r($wp); echo "</pre>";
+	}
+
 	function metadata () {
 		if (!empty($this->Product)): 
 			$tags = "";
@@ -601,7 +627,6 @@ class Shopp {
 	<?php
 		endif;
 	}
-
 
 	/**
 	 * header()
@@ -640,6 +665,8 @@ class Shopp {
 	
 	function catalog ($wp) {
 		$pages = $this->Settings->get('pages');
+		// echo "<pre>"; print_r($wp->query_vars); echo "</pre>";
+		
 		
 		$type = "catalog";
 		if ($category = $wp->query_vars['shopp_category']) $type = "category";
@@ -650,9 +677,22 @@ class Shopp {
 			$type = "category";
 			$category = "tag";
 		}
-		if ($search = $wp->query_vars['s']) {
+
+		$referer = wp_get_referer();
+		if (!empty($wp->query_vars['s']) && // Search query is present and...
+			// The referering page is includes a Shopp catalog page path
+			(strpos($referer,$this->link('catalog')) !== false || 
+				// Or the referer was a search that matches the last recorded Shopp search
+				substr($referer,-1*(strlen($this->Cart->data->Search))) == $this->Cart->data->Search || 
+				// Or the blog URL matches the Shopp catalog URL (Takes over search for store-only search)
+				trailingslashit(get_bloginfo('wpurl')) == $this->link('catalog') || 
+				// Or the referer is one of the Shopp cart, checkout or account pages
+				$referer == $this->link('cart') || $referer == $this->link('checkout') || 
+				$referer == $this->link('account'))) {
+			$this->Cart->data->Search = $wp->query_vars['s'];
 			$wp->query_vars['s'] = "";
 			$wp->query_vars['pagename'] = $pages['catalog']['name'];
+			add_action('wp_head', array(&$this, 'updatesearch'));
 			$type = "category"; 
 			$category = "search-results";
 		}
@@ -670,7 +710,7 @@ class Shopp {
 			
 			switch ($category) {
 				case SearchResults::$slug: 
-					$this->Category = new SearchResults(array('search'=>$search)); break;
+					$this->Category = new SearchResults(array('search'=>$this->Cart->data->Search)); break;
 				case TagProducts::$slug: 
 					$this->Category = new TagProducts(array('tag'=>$tag)); break;
 				case BestsellerProducts::$slug: $this->Category = new BestsellerProducts(); break;
@@ -744,13 +784,23 @@ class Shopp {
 			}
 		}
 		
+		// Handle WordPress pre-logins
+		$authentication = $this->Settings->get('account_system');
+		if ($authentication == "wordpress") {
+			// See if the wordpress user is already logged in
+			get_currentuserinfo();
+			global $user_email;
+			$Account = new Customer($user_email,'email');
+			if (!empty($Account->id)) $this->Flow->loggedin($Account);
+		}
+		
 		if (empty($_POST['checkout'])) return true;
 		if ($_POST['checkout'] == "confirmed") {
 			$this->Flow->order($gateway);
 			return true;
 		}
 		if ($_POST['checkout'] != "process") return true;
-
+		
 		if ($_POST['process-login'] == "login") {
 			$this->Flow->login($_POST['email-login'],$_POST['password-login']);
 			return true;
@@ -866,6 +916,10 @@ class Shopp {
 	function help () {
 		include(SHOPP_ADMINPATH."/help/help.php");
 	}
+
+	function welcome () {
+		include(SHOPP_ADMINPATH."/help/welcome.php");
+	}
 	
 	/**
 	 * AJAX Responses */
@@ -884,7 +938,7 @@ class Shopp {
 		$admin = false;
 		$download = $wp->query_vars['shopp_download'];
 		$lookup = $wp->query_vars['shopp_lookup'];
-		
+				
 		// Admin Lookups
 		if ($_GET['page'] == "shopp/lookup") {
 			$admin = true;
@@ -1080,6 +1134,15 @@ class Shopp {
 			case "wp_ajax_shopp_add_download":
 				$this->Flow->product_downloads();
 				exit();
+				break;
+
+			// Upload a product download file in the product editor
+			case "wp_ajax_shopp_verify_file":
+				$basepath = trailingslashit($this->Settings->get('products_path'));
+				if (!file_exists($basepath.$_POST['filepath'])) die("NULL");
+				if (is_dir($basepath.$_POST['filepath'])) die("ISDIR");
+				if (!is_readable($basepath.$_POST['filepath'])) die("READ");
+				die("OK");
 				break;
 				
 			// Perform a version check for any updates

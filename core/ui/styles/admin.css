@@ -9,6 +9,8 @@ body { position: relative; }
 
 .shopp table td.featured { background: url('/wp-content/plugins/shopp/core/ui/icons/featured.png') no-repeat center center; }
 
+#welcome ul { padding-left: 20px; list-style-type: square; }
+#welcome ul li { margin-top: 18px; }
 #status { padding-left: 20px; font-weight: bold; }
 #status.updating { background: url('/wp-content/plugins/shopp/core/ui/icons/updating.gif') no-repeat left center; }
 #check-update.updating { background: url('/wp-content/plugins/shopp/core/ui/icons/updating.gif') no-repeat 4px center; padding-left: 25px; }
@@ -17,6 +19,9 @@ body { position: relative; }
 #product #tagchecklist { margin-left: 0; }
 #product #tagchecklist span { background: #fff; padding: 1px 5px 1px 18px; margin-right: 5px; margin-top: 5px; border: 1px solid #dfdfdf; }
 #product #tagchecklist span a { margin-left: -13px;  }
+#product input.filepath { padding-right: 16px; width: 90%; }
+#product input.verifying { background: url('/wp-content/plugins/shopp/core/ui/icons/updating.gif') no-repeat right center; }
+#product input.warning { background: url('/wp-content/plugins/shopp/core/ui/icons/error.png') no-repeat right center; }
 
 .form-table input.toggle { margin-left: -13px; }
 .form-table { position: relative; }

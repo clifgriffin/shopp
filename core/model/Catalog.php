@@ -35,6 +35,9 @@ class Catalog extends DatabaseObject {
 			$this->categories[$category->id] = new Category();
 			$this->categories[$category->id]->populate($category);
 			$this->categories[$category->id]->total = $category->total;
+			$this->categories[$category->id]->children = false;
+			if ($category->total > 1 && isset($this->categories[$category->parent])) 
+				$this->categories[$category->parent]->children = true;
 		}
 		
 		if ($showsmarts == "before" || $showsmarts == "after")
@@ -143,11 +146,10 @@ class Catalog extends DatabaseObject {
 								if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
 							}
 							
-							
 							$padding = str_repeat("&nbsp;",$category->depth*3);
 
-							if (SHOPP_PERMALINKS) $link = $path.'/category/'.$category->uri;
-							else $link = $page.'&amp;shopp_category='.$category->id;
+							if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+							else $link = $Shopp->shopuri.'&amp;shopp_category='.$category->id;
 
 							$products = '';
 							if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->total.')';
@@ -177,13 +179,13 @@ class Catalog extends DatabaseObject {
 						}
 						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul>';
 					
-						if (SHOPP_PERMALINKS) $link = $path.'/category/'.$category->uri;
-						else $link = $page.'&amp;shopp_category='.$category->id;
+						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+						else $link = $Shopp->shopuri.'&amp;shopp_category='.$category->id;
 					
 						$products = '';
 						if (value_is_true($options['products']) && $category->total > 0) $products = ' ('.$category->total.')';
 					
-						if (value_is_true($showall) || $category->total > 0 || $category->smart) // Only show categories with products
+						if (value_is_true($showall) || $category->total > 0 || $category->smart || $category->children) // Only show categories with products
 							$string .= '<li><a href="'.$link.'">'.$category->name.'</a>'.$products.'</li>';
 
 						$previous = &$category;
@@ -253,25 +255,21 @@ class Catalog extends DatabaseObject {
 				if (isset($options['separator'])) $separator = $options['separator'];
 				if (!empty($Shopp->Category)) {
 					
-					// Find current category in tree
-					for ($i = count($this->categories); $i > 0; $i--)
-						if ($Shopp->Category->id == $this->categories[$i]->id) break;
-					
-					if (SHOPP_PERMALINKS) $link = $path.'/category/'.$Shopp->Category->uri;
+					if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$Shopp->Category->uri;
 					else {
-						if (isset($Shopp->Category->smart)) $link = $page.'&shopp_category='.$Shopp->Category->slug;
-						else $link = $page.'&shopp_category='.$Shopp->Category->id;
+						if (isset($Shopp->Category->smart)) $link = $Shopp->shopuri.'&shopp_category='.$Shopp->Category->slug;
+						else $link = $Shopp->shopuri.'&shopp_category='.$Shopp->Category->id;
 					}
 
 					if (!empty($Shopp->Product)) $trail = '<li><a href="'.$link.'">'.$Shopp->Category->name.'</a></li>';
 					else if (!empty($Shopp->Category->name)) $trail = '<li>'.$Shopp->Category->name.'</li>';
 					
 					// Build category names path by going from the target category up the parent chain
-					$parentkey = $this->categories[$i]->parentkey;
-					while ($parentkey > -1) {
+					$parentkey = $this->categories[$Shopp->Category->id]->parent;
+					while ($parentkey != 0) {
 						$tree_category = $this->categories[$parentkey];
-						if (SHOPP_PERMALINKS) $link = $path.'/category/'.$tree_category->uri;
-						else $link = $page.'&shopp_category='.$tree_category->id;
+						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$tree_category->uri;
+						else $Shopp->shopuri = $page.'&shopp_category='.$tree_category->id;
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
 						$parentkey = $tree_category->parentkey;
 					}
