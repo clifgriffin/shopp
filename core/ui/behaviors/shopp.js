@@ -182,10 +182,11 @@ var ProductOptionsMenus;
 		var current = false;
 		var menucache = new Array();
 		var menus = $(target);
-		
+
 		menus.each(function (id,menu) {
 			current = menu;
-			menucache[id] = $(menu).children();
+			menucache[id] = $(menu).children();			
+			if ($.browser.msie) disabledHandler(menu);
 			if (id > 0)	previous = menus[id-1];
 			if (menus.length == 1) {
 				optionPriceTags();
@@ -198,7 +199,7 @@ var ProductOptionsMenus;
 			}
 			i++;
 		});
-	
+			
 		// Last menu needs pricing
 		function optionPriceTags () {
 			// Grab selections
@@ -228,7 +229,7 @@ var ProductOptionsMenus;
 							if ($(this).attr('selected')) 
 								$(this).parent().attr('selectedIndex',0);
 							if (hideDisabled) $(this).remove();
-							else $(this).attr('disabled',true);
+							else optionDisable(this);
 						
 						} else $(this).removeAttr('disabled').show();
 						if (price.type == "N/A" && hideDisabled) $(this).remove();
@@ -243,9 +244,29 @@ var ProductOptionsMenus;
 				key = key ^ (ids[i]*101);
 			return key;
 		}
+		
+		function optionDisable (option) {
+			$(option).attr('disabled',true);
+			if (!$.browser.msie) return;
+			$(option).css('color','#ccc');
+		}
+		
+		function disabledHandler (menu) {
+			$(menu).change(function () {
+				if (!this.options[this.selectedIndex].disabled) {
+					this.lastSelected = this.selectedIndex;
+					return true;
+				}
+				if (this.lastSelected) this.selectedIndex = this.lastSelected;
+				else {
+					var firstEnabled = $(this).children('option:not(:disabled)').get(0);
+					this.selectedIndex = firstEnabled?firstEnabled.index:0;
+				}				
+			});
+		}		
+		
 	}
 })(jQuery)
-
 
 
 //
@@ -262,9 +283,9 @@ function addtocart () {
 	var button = this;
 	(function($) {
 
-	var options = button.form.getElementsByTagName('select');
+	var options = $(button.form).find('select.options');
 	if (options && options_default) {
-		var selections = true;		
+		var selections = true;
 		for (menu in options) 
 			if (options[menu].selectedIndex == 0) selections = false;
 

@@ -484,8 +484,8 @@ class Category extends DatabaseObject {
 						}
 						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul>';
 					
-						if (SHOPP_PERMALINKS) $link = $path.'/category/'.$category->uri;
-						else $link = $page.'&amp;shopp_category='.$category->id;
+						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+						else $link = $Shopp->shopuri.'&amp;shopp_category='.$category->id;
 					
 						$products = '';
 						if (value_is_true($options['products'])) $products = ' ('.$category->products.')';
@@ -741,63 +741,6 @@ class Category extends DatabaseObject {
 				return $string;
 				break;
 
-			case "product":
-				$Product = current($this->products);
-
-				if (SHOPP_PERMALINKS) $link = $page.$this->uri.'/'.$Product->slug.'/';
-				else {
-					if (isset($Shopp->Category->smart)) $link = $page.'&shopp_category='.$this->slug.'&shopp_pid='.$Product->id;
-					else $link = $page.'&shopp_category='.$this->id.'&shopp_pid='.$Product->id;
-				}
-								
-				$string = "";
-				if (array_key_exists('link',$options)) $string .= '<a href="'.$link.'" title="'.$Product->name.'">';
-				if (array_key_exists('thumbnail',$options)) {
-					if (!empty($Product->thumbnail)) {
-						$string .= '<img src="'.$Product->thumbnail->uri.'" alt="'.$Product->name.' (thumbnail)" width="'.$Product->thumbnail->properties['width'].'" height="'.$Product->thumbnail->properties['height'].'" />';
-					}
-				}
-				if (array_key_exists('name',$options)) $string .= $Product->name;
-				if (array_key_exists('summary',$options)) $string .= $Product->summary;
-				if (array_key_exists('description',$options)) $string .= $Product->description;
-				if (array_key_exists('link',$options)) $string .= "</a>";
-				if (array_key_exists('price',$options)) {
-					if ($Product->onsale) {
-						if ($Product->pricerange['min']['saleprice'] != $Product->pricerange['max']['saleprice']) $string .= "from ";
-						$string .= money($Product->pricerange['min']['saleprice']);
-					} else {
-						if ($Product->pricerange['min']['price'] != $Product->pricerange['max']['price']) $string .= "from ";
-						$string .= money($Product->pricerange['min']['price']);
-					}
-				}
-				if ($Product->onsale) {
-					if (array_key_exists('saved',$options))
-						$string .= money($Product->pricerange['max']['saved']);
-					if (array_key_exists('savings',$options))
-						$string .= " (".percentage($Product->pricerange['max']['savings']).")";
-						
-				}
-				if (array_key_exists('addtocart',$options) || array_key_exists('buynow',$options)) {
-					if (!isset($options['label'])) $options['label'] = "Add to Cart";
-					
-					if ($Product->inventory == "1" && $Product->stock == 0) {
-						$string .= $Shopp->Settings->get('outofstock_text');
-					} else {
-						$string .= '<form action="'.$Shopp->link('cart').'" method="post">';
-						$string .= '<input type="hidden" name="product" value="'.$Product->id.'" />';
-						$string .= '<input type="hidden" name="cart" value="add" />';
-						if (array_key_exists('ajax',$options)) {
-							$string .= '<input type="hidden" name="ajax" value="true" />';
-							$string .= '<input type="button" name="addtocart" id="addtocart" value="'.$options['label'].'" class="addtocart ajax" />';					
-						} else {
-							$string .= '<input type="submit" name="addtocart" value="'.$options['label'].'" class="addtocart" />';					
-						}
-						$string .= '</form>';
-					}
-				}
-				
-				return $string;
-				break;				
 		}
 	}
 	

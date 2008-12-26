@@ -84,9 +84,21 @@ class Purchase extends DatabaseObject {
 					reset($this->purchased);
 					return false;
 				}
+			case "item-id":
+				$item = current($this->purchased);
+				return $item->id; break;
+			case "item-product":
+				$item = current($this->purchased);
+				return $item->product; break;
+			case "item-price":
+				$item = current($this->purchased);
+				return $item->price; break;
 			case "item-name":
 				$item = current($this->purchased);
 				return $item->name; break;
+			case "item-description":
+				$item = current($this->purchased);
+				return $item->description; break;
 			case "item-options":
 				$item = current($this->purchased);
 				return (!empty($item->optionlabel))?$options['before'].$item->optionlabel.$options['after']:''; break;
@@ -96,10 +108,11 @@ class Purchase extends DatabaseObject {
 			case "item-download":
 				$item = current($this->purchased);
 				if (empty($item->download)) return "";
-				if (empty($options['label'])) $options['label'] = "Download Now";
-				if (SHOPP_PERMALINKS) $url = $Shopp->link('catalog')."download/".$item->dkey;
+				if (!isset($options['label'])) $options['label'] = "Download Now";
+				if (isset($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+				if (SHOPP_PERMALINKS) $url = $Shopp->shopuri."download/".$item->dkey;
 				else $url = get_bloginfo('wpurl')."?shopp_download=".$item->dkey;
-				return '<a href="'.$url.'">'.$options['label'].'</a>'; break;
+				return '<a href="'.$url.'"'.$options['class'].'>'.$options['label'].'</a>'; break;
 			case "item-quantity":
 				$item = current($this->purchased);
 				return $item->quantity; break;

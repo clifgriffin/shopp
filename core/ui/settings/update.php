@@ -30,11 +30,11 @@
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="Update Key"><?php _e('Update Key','Shopp'); ?></label></th> 
 				<td>
-					<?php if ($this->Settings->get('updatekey_status') == "activated"): ?>
-						<input type="text" name="settings[update_key]" id="update-key" size="40" value="<?php echo $this->Settings->get('update_key'); ?>" readonly="readonly" />
+					<?php if ($updatekey['status'] == "activated"): ?>
+						<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="40" value="<?php echo $updatekey['key']; ?>" readonly="readonly" />
 					<input type="submit" id="deactivate-button" name="activation" value="<?php _e('De-activate Key','Shopp'); ?>" class="button-secondary" />
 					<?php else: ?>
-					<input type="text" name="settings[update_key]" id="update-key" size="40" value="<?php echo $this->Settings->get('update_key'); ?>" />
+					<input type="text" name="updatekey" id="update-key" size="40" value="<?php echo $updatekey['key']; ?>" />
 					<input type="submit" id="activate-button" name="activation" value="<?php _e('Activate Key','Shopp'); ?>" class="button-secondary" />
 					<?php endif; ?>
 					<br /><?php echo $activation; ?>
@@ -48,6 +48,7 @@
 <script type="text/javascript">
 (function($) {
 	helpurl = "<?php echo SHOPP_DOCS; ?>Update_Settings";
+	var purchase_url = '<?php echo SHOPP_HOME; ?>?buynow=true';
 	var ajaxurl = '<?php echo wp_nonce_url(get_bloginfo("siteurl")."/wp-admin/admin-ajax.php", "shopp-wp_ajax_shopp_update"); ?>';
 	var adminurl = '<?php echo wp_nonce_url(get_bloginfo("siteurl")."/wp-admin/admin.php", "shopp-wp_ajax_shopp_update"); ?>';
 	var INSTALLING_MESSAGE = "<?php _e('Installing update %d of %d&hellip;','Shopp'); ?>";
@@ -149,8 +150,10 @@
 		});
 		markup += '</ul>';
 		
-		<?php if ($this->Settings->get('updatekey_status') != "activated"): ?>
+		<?php if ($this->Settings->get('updatekey_status') == "activated"): ?>
 		markup += '<p><button type="button" name="update" id="update-button" class="button-secondary"><?php _e("Install Updates","Shopp"); ?></button></p>';
+		<?php else: ?>
+		markup += '<p><button type="button" name="buykey" id="buykey-button" class="button-secondary"><?php _e("Buy an Update Key","Shopp"); ?></button></p>';
 		<?php endif; ?>
 		
 		target.html(markup);
@@ -164,6 +167,13 @@
 				startupdates();
 			});
 		}
+		
+		if ($('#buykey-button').length) {
+			$('#buykey-button').click(function () { 
+				window.location.href = purchase_url;
+			});
+		}
+		
 	}
 	
 	function ftpfailure () {

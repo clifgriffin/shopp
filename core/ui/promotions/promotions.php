@@ -1,7 +1,7 @@
 <div class="wrap shopp">
 	<h2><?php _e('Promotions','Shopp'); ?></h2>
 
-	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="categories" method="get">
+	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="promotions" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->promotions; ?>" />
 	</div>
@@ -22,7 +22,7 @@
 
 	<br class="clear" />
 
-	<table class="widefat">
+	<table class="widefat" cellspacing="0">
 		<thead>
 		<tr>
 			<th scope="col" class="check-column"><input type="checkbox" id="selectall" /></th>

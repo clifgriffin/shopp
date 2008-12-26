@@ -236,7 +236,7 @@ class Flow {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
 		do_action('shopp_cart_request');
-				
+		
 		$Request = array();
 		if (!empty($_GET['cart'])) $Request = $_GET;
 		if (!empty($_POST['cart'])) $Request = $_POST;
@@ -281,10 +281,11 @@ class Flow {
 			$Request['quantity'] = preg_replace('/[^\d+]/','',$Request['quantity']);
 			if (empty($Request['quantity'])) $Request['quantity'] = 1;
 		}
-		
+
 		switch($Request['cart']) {
 			case "add":			
 				if (isset($Request['product'])) {
+					
 					$quantity = (!empty($Request['quantity']))?$Request['quantity']:1; // Add 1 by default
 					
 					$Product = new Product($Request['product']);
@@ -295,6 +296,24 @@ class Flow {
 					
 					if (isset($Request['item'])) $result = $Cart->change($Request['item'],$Product,$pricing);
 					else $result = $Cart->add($quantity,$Product,$pricing);
+				}
+				
+				if (isset($Request['products']) && is_array($Request['products'])) {
+					
+					foreach ($Request['products'] as $id => $product) {
+						$quantity = (!empty($product['quantity']))?$product['quantity']:1; // Add 1 by default
+						$Product = new Product($id);
+						$pricing = false;
+						if (!empty($product['options']) && !empty($product['options'][0])) 
+							$pricing = $product['options'];
+						else $pricing = $product['price'];
+						
+						if (!empty($Product->id)) {
+							if (isset($product['item'])) $result = $Cart->change($product['item'],$Product,$pricing);
+							else $result = $Cart->add($quantity,$Product,$pricing);
+						}
+					}
+					
 				}
 				break;
 			case "remove":
@@ -616,8 +635,8 @@ class Flow {
 		
 		// Allow other WordPress plugins access to Purchase data to extend
 		// what Shopp does after a successful transaction
-		do_action('shopp_order_success',$Purchase);
-		
+		do_action_ref_array('shopp_order_success',array(&$Shopp->Cart->data->Purchase));
+
 		// Send the e-mail receipt
 		$receipt = array();
 		$receipt['from'] = '"'.get_bloginfo("name").'"';
@@ -1924,7 +1943,9 @@ class Flow {
 				$ProcessorClass = $gateway->tags['class'];
 				include_once($gateway->file);
 				$Processor = new $ProcessorClass();
-				$_POST['settings']['gateway_cardtypes'] = $Processor->cards;
+				//$_POST['settings']['gateway_cardtypes'] = $Processor->cards;
+				$gateway_settings = $_POST['module'][basename($gateway->file)];
+				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$gateway_settings]['cards'];
 			}
 			
 			// Build the Google Checkout API URL if Google Checkout is enabled
@@ -1968,16 +1989,20 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$credentials = $this->Settings->get('ftp_credentials');		
+		$updatekey = $this->Settings->get('updatekey');
+		if (empty($updatekey)) 
+			$updatekey = array('key' => '','type' => 'single','status' => 'deactivated');
 
 		if (!empty($_POST['save'])) {
-			check_admin_referer('shopp-settings-update');
+			$updatekey['key'] = $_POST['updatekey'];
+			$_POST['settings']['updatekey'] = $updatekey;
 			$this->settings_save();
-			if (isset($_POST['settings']['ftp_credentials']))
-				$updated = __('FTP settings saved.  Click the <b>Check for Updates</b> button to start the update process again.','Shopp');
 		}
-		
+
 		if (!empty($_POST['activation'])) {
 			check_admin_referer('shopp-settings-update');
+			$updatekey['key'] = trim($_POST['updatekey']);
+			$_POST['settings']['updatekey'] = $updatekey;
 			$this->settings_save();	
 			
 			if ($_POST['activation'] == "Activate Key") $process = "activate-key";
@@ -1986,29 +2011,40 @@ class Flow {
 			$request = array(
 				"ShoppServerRequest" => $process,
 				"ver" => '1.0',
-				"key" => trim($_POST['settings']['update_key']),
+				"key" => $updatekey['key'],
+				"type" => $updatekey['type'],
 				"site" => get_bloginfo('siteurl')
 			);
 			
-			$activation = $this->callhome($request);
+			$response = $this->callhome($request);
+			$response = split("::",$response);
 			
-			if ($activation != "1")
-				$activation = '<span class="shopp error">'.$activation.'</span>';
+			if (count($response) == 1)
+				$activation = '<span class="shopp error">'.$response[0].'</span>';
 			
-			if ($process == "activate-key" && $activation == "1") {
-				$this->Settings->save('updatekey_status','activated');
+			if ($process == "activate-key" && $response[0] == "1") {
+				$updatekey['type'] = $response[1];
+				$type = $updatekey['type'];
+				$updatekey['key'] = $response[2];
+				$updatekey['status'] = 'activated';
+				$this->Settings->save('updatekey',$updatekey);
 				$activation = __('This key has been successfully activated.','Shopp');
 			}
 			
-			if ($process == "deactivate-key" && $activation == "1") {
-				$this->Settings->save('updatekey_status','deactivated');
+			if ($process == "deactivate-key" && $response[0] == "1") {
+				$updatekey['status'] = 'deactivated';
+				if ($updatekey['type'] == "dev") $updatekey['key'] = '';
+				$this->Settings->save('updatekey',$updatekey);
 				$activation = __('This key has been successfully de-activated.','Shopp');
 			}
 		} else {
-			if ($this->Settings->get('updatekey_status') == "activated") 
+			if ($updatekey['status'] == "activated") 
 				$activation = __('This key has been successfully activated.','Shopp');
 			else $activation = __('Enter your Shopp upgrade key and activate it to enable easy, automatic upgrades.','Shopp');
 		}
+		
+		$type = "text";
+		if ($updatekey['status'] == "activated" && $updatekey['type'] == "dev") $type = "password";
 		
 		include(SHOPP_ADMINPATH."/settings/update.php");
 	}
@@ -2290,7 +2326,6 @@ class Flow {
 		
 		return $result;
 	}
-
 
 	/**
 	 * setup()

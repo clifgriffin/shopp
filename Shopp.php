@@ -153,6 +153,20 @@ class Shopp {
 		
 		$this->Catalog = new Catalog();
 		$this->ShipCalcs = new ShipCalcs($this->path);
+		
+		// Handle WordPress pre-logins
+		$authentication = $this->Settings->get('account_system');
+		if ($authentication == "wordpress") {
+			// See if the wordpress user is already logged in
+			get_currentuserinfo();
+			global $user_ID;
+
+			if (!empty($user_ID)) {
+				$Account = new Customer($user_ID,'wpuser');
+				if (!$Cart->data->login) $this->Flow->loggedin($Account);
+			}
+		}
+		
 	}
 
 	/**
@@ -318,13 +332,6 @@ class Shopp {
 	function behaviors () {
 		global $wp_query;
 		$object = $wp_query->get_queried_object();
-
-		if (SHOPP_PERMALINKS) {
-			$pages = $this->Settings->get('pages');
-			$shoppage = $this->link('catalog');
-			if ($shoppage == get_bloginfo('wpurl')."/")
-				$shoppage .= $pages['catalog']['name'];
-		} else $shoppage = get_bloginfo('wpurl');
 		
 		// Determine which tag is getting used in the current post/page
 		$tag = false;
@@ -341,7 +348,7 @@ class Shopp {
 		wp_enqueue_script('shopp-settings',"$this->shopuri?shopp_lookup=settings.js");
 		wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
 		wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js");
-		
+
 		if ($tag == "checkout")
 			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js");		
 			
@@ -461,7 +468,7 @@ class Shopp {
 			(empty($shop)?"$catalog/":$shop).'feed/?$' => 'index.php?shopp_lookup=newproducts-rss',
 			(empty($shop)?"$catalog/":$shop).'receipt/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=receipt',
 			(empty($shop)?"$catalog/":$shop).'confirm-order/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=confirm-order',
-			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
+			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{ 40})/?$' => 'index.php?shopp_download=$matches[1]',
 			(empty($shop)?"$catalog/":$shop).'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]'
 		);
 
@@ -588,9 +595,15 @@ class Shopp {
 	 * titles ()
 	 * Changes the Shopp catalog page titles to include the product
 	 * name and category (when available) */
-	function titles ($title) {
-		if (isset($this->Product)) $title .= $this->Product->name;
-		if (isset($this->Category)) $title .= " &mdash; ".$this->Category->name;
+	function titles ($title,$sep,$placement) {
+		if ($placement == "right") {
+			if (isset($this->Product)) $title =  $this->Product->name." $sep ".$title;
+			if (isset($this->Category)) $title = $this->Category->name." $sep ".$title;
+			
+		} else {
+			if (isset($this->Product)) $title .=  " $sep ".$this->Product->name;
+			if (isset($this->Category)) $title .= " $sep ".$this->Category->name;
+		}
 		return $title;
 	}
 
@@ -746,7 +759,7 @@ class Shopp {
 		}
 		
 		$this->Catalog = new Catalog($type);
-		add_filter('wp_title', array(&$this, 'titles'));
+		add_filter('wp_title', array(&$this, 'titles'),10,3);
 		add_action('wp_head', array(&$this, 'metadata'));
 		add_action('wp_head', array(&$this, 'feeds'));
 
@@ -760,7 +773,13 @@ class Shopp {
 
 		$this->Flow->cart_request();
 		if (isset($_REQUEST['ajax'])) $this->Flow->cart_ajax();
-		else header("Location: ".$this->link('cart'));
+		switch ($_REQUEST['redirect']) {
+			case "checkout": header("Location: ".$this->link($_REQUEST['redirect'],true)); break;
+			default: 
+				if (!empty($_REQUEST['redirect']))
+					header("Location: ".$this->link($_REQUEST['redirect']));
+				else header("Location: ".$this->link('cart'));
+		}
 		exit();
 	}
 	
@@ -782,16 +801,6 @@ class Shopp {
 				if ($wp->query_vars['shopp_proc'] != "confirm-order" && 
 						empty($_POST['checkout'])) $Payment->checkout();
 			}
-		}
-		
-		// Handle WordPress pre-logins
-		$authentication = $this->Settings->get('account_system');
-		if ($authentication == "wordpress") {
-			// See if the wordpress user is already logged in
-			get_currentuserinfo();
-			global $user_email;
-			$Account = new Customer($user_email,'email');
-			if (!empty($Account->id)) $this->Flow->loggedin($Account);
 		}
 		
 		if (empty($_POST['checkout'])) return true;
@@ -1014,17 +1023,18 @@ class Shopp {
 				$storage = $this->Settings->get('product_storage');
 				$path = rtrim($this->Settings->get('products_path'),"/");
 				
+				
 				if ($admin) {
 					$Asset = new Asset($download);
 				} else {
 					require_once("core/model/Purchased.php");
 					$Purchased = new Purchased($download,"dkey");
 					$Asset = new Asset($Purchased->download);
-
+										
 					$forbidden = false;
 					// Download limit checking
-					if (!($Purchased->downloads < $this->Settings->get('download_limit') &&  // Has download credits available
-							$Purchased->created < mktime()+$this->Settings->get('download_timelimit') ))
+					if (($this->Settings->get('download_limit') && !($Purchased->downloads < $this->Settings->get('download_limit'))) &&  // Has download credits available
+						($this->Settings->get('download_timelimit') && $Purchased->created < mktime()+$this->Settings->get('download_timelimit') ))
 								$forbidden = true;
 
 					if ($this->Settings->get('download_restriction') == "ip") {
@@ -1157,6 +1167,9 @@ class Shopp {
 					'addons' => join("-",$this->Flow->validate_addons())
 				);
 				echo $this->Flow->callhome($request,$data);
+				exit();
+			case "wp_ajax_shopp_verify":
+				if ($this->Settings->get('maintenance') == "on") return "1";
 				exit();
 
 			// Perform an update process

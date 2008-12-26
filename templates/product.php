@@ -20,13 +20,13 @@
 	<p class="freeshipping">Free Shipping!</p>
 	<?php endif; ?>
 
-	<form action="" method="post" class="shopp product">
+	<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
 		<?php if(shopp('product','has-variations')): ?>
 		<ul class="variations">
-			<?php shopp('product','variations','mode=multiple&label=true&defaults=Select an option&before_menu=<li>&after_menu=</li>'); ?>
+			<?php shopp('product','variations','mode=multiple&label=true&defaults=Select an option&before_menu=<li>&after_menu=</li>'); ?>			
 		</ul>
 		<?php endif; ?>
-		<p><?php shopp('product','quantity','class=selectall'); ?>
+		<p><?php shopp('product','quantity','class=selectall&input=menu'); ?>
 		<?php shopp('product','addtocart'); ?></p>
 
 	</form>

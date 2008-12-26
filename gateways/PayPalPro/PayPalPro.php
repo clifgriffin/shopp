@@ -19,6 +19,7 @@ class PayPalPro {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('PayPalPro');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
+		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
 		
 		if (!empty($Order)) $this->build($Order);
 		return true;
@@ -177,15 +178,22 @@ class PayPalPro {
 	
 	function settings () {
 		?>
-		<tr id="paypalpro-settings">
+		<tr id="paypalpro-settings" class="addon">
 			<th scope="row" valign="top">PayPal Pro</th>
 			<td>
 				<input type="hidden" name="settings[PayPalPro][cards]" value="<?php echo join(",",$this->cards); ?>" />
 				<div><input type="text" name="settings[PayPalPro][username]" id="paypal_pro_username" value="<?php echo $this->settings['username']; ?>" size="30" /><br /><label for="paypal_pro_username"><?php _e('Enter your PayPal API Username.'); ?></label></div>
-				<p><input type="password" name="settings[PayPalPro][password]" id="paypal_pro_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="paypal_pro_password"><?php _e('Enter your PayPal API Password.'); ?></label></p>
-				<p><input type="text" name="settings[PayPalPro][signature]" id="paypal_pro_signature" value="<?php echo $this->settings['signature']; ?>" size="16" /><br /><label for="paypal_pro_signature"><?php _e('Enter your PayPal API Signature.'); ?></label></p>
-				<p><input type="hidden" name="settings[PayPalPro][testmode]" value="off" /><input type="checkbox" name="settings[PayPalPro][testmode]" id="paypal_pro_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="paypal_pro_testmode"> <?php _e('Test Mode Enabled'); ?></label></p>
-				
+				<div><input type="password" name="settings[PayPalPro][password]" id="paypal_pro_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="paypal_pro_password"><?php _e('Enter your PayPal API Password.'); ?></label></div>
+				<div><input type="text" name="settings[PayPalPro][signature]" id="paypal_pro_signature" value="<?php echo $this->settings['signature']; ?>" size="16" /><br /><label for="paypal_pro_signature"><?php _e('Enter your PayPal API Signature.'); ?></label></div>
+				<div><input type="hidden" name="settings[PayPalPro][testmode]" value="off" /><input type="checkbox" name="settings[PayPalPro][testmode]" id="paypal_pro_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="paypal_pro_testmode"> <?php _e('Test Mode Enabled'); ?></label></div>
+				<div><strong>Accept these cards:</strong>
+				<ul class="cards"><?php foreach($this->cards as $id => $card): 
+					$checked = "";
+					if (in_array($card,$this->settings['cards'])) $checked = ' checked="checked"';
+				?>
+					<li><input type="checkbox" name="settings[PayPalPro][cards][]" id="paypal_pro_cards_<?php echo $id; ?>" value="<?php echo $card; ?>" <?php echo $checked; ?> /><label for="paypal_pro_cards_<?php echo $id; ?>"> <?php echo $card; ?></label></li>
+				<?php endforeach; ?></ul></div>
+				<input type="hidden" name="module[<?php echo basename(__FILE__); ?>]" value="PayPalPro" />
 			</td>
 		</tr>
 		<?
