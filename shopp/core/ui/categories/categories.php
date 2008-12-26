@@ -19,7 +19,7 @@
 	</div>
 	<br class="clear" />
 
-	<table class="widefat">
+	<table class="widefat" cellspacing="0">
 		<thead>
 		<tr>
 			<th scope="col" class="check-column"><input type="checkbox" id="selectall" /></th>
@@ -34,7 +34,7 @@
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Category->id; ?>' /></th>
 			<td><a class='row-title' href='?page=<?php echo $this->Admin->categories; ?>&amp;edit=<?php echo $Category->id; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Category->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->depth); echo (!empty($Category->name))?$Category->name:'(no category name)'; ?></a></td>
-			<td><?php echo $Category->description; ?></td>
+			<td><?php echo $Category->description; ?>&nbsp;</td>
 			<td class="num"><?php echo $Category->total; ?></td>
 		</tr>
 		<?php endforeach; ?>

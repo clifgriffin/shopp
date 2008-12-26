@@ -22,6 +22,7 @@ class HSBCepayments {
 	function HSBCepayments (&$Order="") {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('HSBCepayments');
+		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
 		
 		if (!empty($Order)) $this->build($Order);
 		return true;
@@ -184,13 +185,23 @@ class HSBCepayments {
 		global $Shopp;
 		
 		?>
-		<tr id="hsbcepayments-settings">
+		<tr id="hsbcepayments-settings" class="addon">
 			<th scope="row" valign="top">HSBC ePayments</th>
 			<td>
 				<div><input type="text" name="settings[HSBCepayments][username]" id="hsbcepayments_username" value="<?php echo $this->settings['username']; ?>" size="16" /><br /><label for="hsbcepayments_username"><?php _e('Enter your HSBC ePayments username.'); ?></label></div>
-				<p><input type="password" name="settings[HSBCepayments][password]" id="hsbcepayments_password" value="<?php echo $this->settings['password']; ?>" size="24" /><br /><label for="hsbcepayments_password"><?php _e('Enter your HSBC ePayments password.'); ?></label></p>
-				<p><input type="text" name="settings[HSBCepayments][clientid]" id="hsbcepayments_clientid" value="<?php echo $this->settings['clientid']; ?>" size="7" /><br /><label for="hsbcepayments_clientid"><?php _e('HSBC ePayments Client ID'); ?></label></p>
-				<p><input type="hidden" name="settings[HSBCepayments][testmode]" value="off" /><input type="checkbox" name="settings[HSBCepayments][testmode]" id="hsbcepayments_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="hsbcepayments_testmode"> <?php _e('Enable test mode'); ?></label></p>
+				<div><input type="password" name="settings[HSBCepayments][password]" id="hsbcepayments_password" value="<?php echo $this->settings['password']; ?>" size="24" /><br /><label for="hsbcepayments_password"><?php _e('Enter your HSBC ePayments password.'); ?></label></div>
+				<div><input type="text" name="settings[HSBCepayments][clientid]" id="hsbcepayments_clientid" value="<?php echo $this->settings['clientid']; ?>" size="7" /><br /><label for="hsbcepayments_clientid"><?php _e('HSBC ePayments Client ID'); ?></label></div>
+				<div><input type="hidden" name="settings[HSBCepayments][testmode]" value="off" /><input type="checkbox" name="settings[HSBCepayments][testmode]" id="hsbcepayments_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="hsbcepayments_testmode"> <?php _e('Enable test mode'); ?></label></div>
+				<div><strong>Accept these cards:</strong>
+				<ul class="cards"><?php foreach($this->cards as $id => $card): 
+					$checked = "";
+					if (in_array($card,$this->settings['cards'])) $checked = ' checked="checked"';
+				?>
+					<li><input type="checkbox" name="settings[HSBCepayments][cards][]" id="hsbcepayments_cards_<?php echo $id; ?>" value="<?php echo $card; ?>" <?php echo $checked; ?> /><label for="hsbcepayments_cards_<?php echo $id; ?>"> <?php echo $card; ?></label></li>
+				<?php endforeach; ?></ul></div>
+				
+				<input type="hidden" name="module[<?php echo basename(__FILE__); ?>]" value="HSBCepayments" />
+				
 			</td>
 		</tr>
 		<?

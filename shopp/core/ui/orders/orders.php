@@ -2,11 +2,12 @@
 	<h2><?php _e('Orders','Shopp'); ?></h2>
 
 	<?php include("navigation.php"); ?>
-	
-	<form action="" method="get">
-	<div><input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" /></div>
+
+	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="get">
+	<div>
+		<input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" />
+	</div>
 	<p id="post-search" class="search-box">
-		<label class="hidden" for="orders-search-input"><?php _e('Search Orders','Shopp'); ?>:</label>
 		<input type="text" id="orders-search-input" class="search-input" name="s" value="<?php echo attribute_escape($_GET['s']); ?>" />
 		<input type="submit" value="<?php _e('Search Orders','Shopp'); ?>" class="button" />
 	</p>
@@ -18,7 +19,7 @@
 	</div>
 	<br class="clear" />
 
-	<table class="widefat">
+	<table class="widefat" cellspacing="0">
 		<thead>
 		<tr>
 			<th scope="col" class="check-column"></th>

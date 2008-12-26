@@ -632,7 +632,7 @@ class Product extends DatabaseObject {
 					reset($this->specs);
 					$this->specloop = true;
 				} else next($this->specs);
-
+				
 				if (current($this->specs)) return true;
 				else {
 					$this->specloop = false;
@@ -657,14 +657,31 @@ class Product extends DatabaseObject {
 			case "variations":
 				$string = "";
 
+				if (!isset($options['mode'])) {
+					if (!$this->priceloop) {
+						reset($this->prices);
+						$this->priceloop = true;
+					} else next($this->prices);
+					$thisprice = current($this->prices);
+
+					if ($thisprice && $thisprice->type == "N/A")
+						next($this->prices);
+
+					if (current($this->prices)) return true;
+					else {
+						$this->priceloop = false;
+						return false;
+					}
+					return true;
+				}
+				
 				if (!isset($options['label'])) $options['label'] = "on";
-				if (!isset($options['mode'])) $options['mode'] = "";
 				if (!isset($options['required'])) $options['required'] = __('You must select the options for this item before you can add it to your shopping cart.','Shopp');
 				if ($options['mode'] == "single") {
 					if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 					if (value_is_true($options['label'])) $string .= '<label for="product-options'.$this->id.'">Options: </label> '."\n";
 
-					$string .= '<select name="price" id="product-options'.$this->id.'">';
+					$string .= '<select name="products['.$this->id.'][price]" id="product-options'.$this->id.'">';
 					if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 					
 					foreach ($this->prices as $option) {
@@ -685,7 +702,7 @@ class Product extends DatabaseObject {
 							if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 							if (value_is_true($options['label'])) $string .= '<label for="options-'.$id.'">'.$menu['menu'].'</label> '."\n";
 
-							$string .= '<select name="options[]" id="options-'.$id.'" class="product'.$this->id.' options">';
+							$string .= '<select name="products['.$this->id.'][options][]" id="options-'.$id.'" class="product'.$this->id.' options">';
 							if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 							foreach ($menu['label'] as $key => $option)
 								$string .= '<option value="'.$menu['id'][$key].'">'.$option.'</option>'."\n";
@@ -698,7 +715,7 @@ class Product extends DatabaseObject {
 							if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 							if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
 
-							$string .= '<select name="options[]" id="options-'.$menu['id'].'" class="product'.$this->id.' options">';
+							$string .= '<select name="products['.$this->id.'][options][]" id="options-'.$menu['id'].'" class="product'.$this->id.' options">';
 							if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 							foreach ($menu['options'] as $key => $option)
 								$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
@@ -726,6 +743,24 @@ class Product extends DatabaseObject {
 				
 				return $string;
 				break;
+			case "variation":
+				$variation = current($this->prices);
+				$string = '';
+				if (array_key_exists('id',$options)) $string .= $variation->id;
+				if (array_key_exists('label',$options)) $string .= $variation->label;
+				if (array_key_exists('type',$options)) $string .= $variation->type;
+				if (array_key_exists('sku',$options)) $string .= $variation->sku;
+				if (array_key_exists('price',$options)) $string .= money($variation->price);
+				if (array_key_exists('saleprice',$options)) $string .= money($variation->saleprice);
+				if (array_key_exists('stock',$options)) $string .= $variation->stock;
+				if (array_key_exists('weight',$options)) $string .= $variation->weight;
+				if (array_key_exists('shipfee',$options)) $string .= money($variation->shipfee);
+				if (array_key_exists('sale',$options)) return ($variation->sale == "on");
+				if (array_key_exists('shipping',$options)) return ($variation->shipping == "on");
+				if (array_key_exists('tax',$options)) return ($variation->tax == "on");
+				if (array_key_exists('inventory',$options)) return ($variation->inventory == "on");
+				return $string;
+				break;
 			case "has-addons":
 				if (isset($this->options['addons'])) return true; else return false; break;
 				break;
@@ -751,7 +786,7 @@ class Product extends DatabaseObject {
 							else for ($i = $value[0]; $i < $value[1]+1; $i++) $qtys[] = $i;
 						} else $qtys[] = $value;
 					}
-					$result .= '<select name="quantity" id="quantity-'.$this->id.'">';
+					$result .= '<select name="products['.$this->id.'][quantity]" id="quantity-'.$this->id.'">';
 					foreach ($qtys as $qty) 
 						$result .= '<option'.(($qty == $this->quantity)?' selected="selected"':'').' value="'.$qty.'">'.$qty.'</option>';
 					$result .= '</select>';
@@ -760,7 +795,7 @@ class Product extends DatabaseObject {
 				}
 				if (valid_input($options['input'])) {
 					if (!isset($options['size'])) $options['size'] = 3;
-					$result = '<input type="'.$options['input'].'" name="quantity" id="quantity-'.$this->id.'"'.inputattrs($options).' />';
+					$result = '<input type="'.$options['input'].'" name="products['.$this->id.'][quantity]" id="quantity-'.$this->id.'"'.inputattrs($options).' />';
 				}
 				if ($options['labelpos'] == "after") $result .= " $label";
 				return $result;
@@ -771,14 +806,14 @@ class Product extends DatabaseObject {
 				if (!isset($options['class'])) $options['class'] = "addtocart";
 				if (!isset($options['value'])) $options['value'] = "Add to Cart";
 				$string = "";
-				$string .= '<input type="hidden" name="product" value="'.$this->id.'" />';
+				$string .= '<input type="hidden" name="products['.$this->id.'][product]" value="'.$this->id.'" />';
 
 				if ($this->prices[0]->type != "N/A") {
 					if ($this->prices[0]->inventory == "on" && $this->prices[0]->stock == 0) {
 						$string .= '<p class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</p>';
 						return $string;
 					}
-					if (!empty($this->prices[0])) $string .= '<input type="hidden" name="price" value="'.$this->prices[0]->id.'" />';
+					if (!empty($this->prices[0])) $string .= '<input type="hidden" name="products['.$this->id.'][price]" value="'.$this->prices[0]->id.'" />';
 				}
 				$string .= '<input type="hidden" name="cart" value="add" />';
 				if (isset($options['ajax'])) {

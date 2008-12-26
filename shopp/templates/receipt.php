@@ -29,7 +29,7 @@
 <?php endif; ?>
 
 <?php if (shopp('purchase','hasitems')): ?>
-<table class="cart widefat">
+<table class="order widefat">
 	<thead>
 	<tr>
 		<th scope="col" class="item">Items Ordered</th>
@@ -41,7 +41,7 @@
 
 	<?php while(shopp('purchase','items')): ?>
 		<tr>
-			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options','before=&after='); ?><br />
+			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options','before= – '); ?><br />
 				<?php shopp('purchase','item-sku')."<br />"; ?>
 				<?php shopp('purchase','item-download'); ?>
 				</td>

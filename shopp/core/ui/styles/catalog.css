@@ -103,7 +103,7 @@ div.clear,
 #shopp .gallery .thumbnails ul { padding: 0; }
 #shopp .gallery .thumbnails li { position: relative; display: inline; visibility: visible; height: auto; line-height: 1; top: auto; left: auto; margin: 0 0 0 10px; }
 #shopp .gallery .thumbnails li.first { margin-left: 0; }
-
+#shopp .gallery .thumbnails li img { cursor: pointer; }
 /**
  * Debug Console
  **/

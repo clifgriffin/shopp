@@ -19,7 +19,8 @@ class AuthorizeNet {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('Authorize.Net');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
-		
+		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
+
 		if (!empty($Order)) $this->build($Order);
 		return true;
 	}
@@ -184,15 +185,22 @@ class AuthorizeNet {
 	
 	function settings () {
 		global $Shopp;
-		$settings = $Shopp->Settings->get('Authorize.Net');
 		?>
-		<tr id="authorize-net-settings">
+		<tr id="authorize-net-settings" class="addon">
 			<th scope="row" valign="top">Authorize.Net</th>
 			<td>
-				<div><input type="text" name="settings[Authorize.Net][login]" id="authorize_net_login" value="<?php echo $settings['login']; ?>" size="16" /><br /><label for="authorize_net_login"><?php _e('Enter your Authorize.net Login ID.'); ?></label></div>
-				<p><input type="password" name="settings[Authorize.Net][password]" id="authorize_net_password" value="<?php echo $settings['password']; ?>" size="24" /><br /><label for="authorize_net_password"><?php _e('Enter your Authorize.net Password or Transaction Key.'); ?></label></p>
-				<p><input type="hidden" name="settings[Authorize.Net][testmode]" value="off"><input type="checkbox" name="settings[Authorize.Net][testmode]" id="authorize_net_testmode" value="on"<?php echo ($settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="authorize_net_testmode"> <?php _e('Enable test mode'); ?></label></p>
+				<div><input type="text" name="settings[Authorize.Net][login]" id="authorize_net_login" value="<?php echo $this->settings['login']; ?>" size="16" /><br /><label for="authorize_net_login"><?php _e('Enter your Authorize.net Login ID.'); ?></label></div>
+				<div><input type="password" name="settings[Authorize.Net][password]" id="authorize_net_password" value="<?php echo $this->settings['password']; ?>" size="24" /><br /><label for="authorize_net_password"><?php _e('Enter your Authorize.net Password or Transaction Key.'); ?></label></div>
+				<div><input type="hidden" name="settings[Authorize.Net][testmode]" value="off"><input type="checkbox" name="settings[Authorize.Net][testmode]" id="authorize_net_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="authorize_net_testmode"> <?php _e('Enable test mode'); ?></label></div>
+				<div><strong>Accept these cards:</strong>
+				<ul class="cards"><?php foreach($this->cards as $id => $card): 
+					$checked = "";
+					if (in_array($card,$this->settings['cards'])) $checked = ' checked="checked"';
+				?>
+					<li><input type="checkbox" name="settings[Authorize.Net][cards][]" id="authorize_net_cards_<?php echo $id; ?>" value="<?php echo $card; ?>" <?php echo $checked; ?> /><label for="authorize_net_cards_<?php echo $id; ?>"> <?php echo $card; ?></label></li>
+				<?php endforeach; ?></ul></div>
 				
+				<input type="hidden" name="module[<?php echo basename(__FILE__); ?>]" value="Authorize.Net" />
 			</td>
 		</tr>
 		<?

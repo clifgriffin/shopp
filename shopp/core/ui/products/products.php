@@ -4,7 +4,9 @@
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
 	<form action="" method="get">
-	<div><input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" /></div>
+	<div>
+		<input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" />
+	</div>
 
 	<p id="post-search" class="search-box">
 		<label class="hidden" for="post-search-input"><?php _e('Search Products','Shopp'); ?>:</label>
@@ -26,7 +28,7 @@
 	</div>
 	<br class="clear" />
 	
-	<table class="widefat">
+	<table class="widefat" cellspacing="0">
 		<thead>
 		<tr>
 			<th scope="col" class="check-column"><input type="checkbox" id="selectall" /></th>

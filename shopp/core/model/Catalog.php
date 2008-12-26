@@ -16,6 +16,7 @@ class Catalog extends DatabaseObject {
 	static $table = "catalog";
 
 	var $smarts = array("FeaturedProducts","BestsellerProducts","NewProducts","OnSaleProducts");
+	var $categories = array();
 	
 	function Catalog ($type="catalog") {
 		$this->init(self::$table);
@@ -116,14 +117,6 @@ class Catalog extends DatabaseObject {
 					$this->categoryloop = false;
 					return false;
 				}
-				break;
-			case "category":
-				$category = current($this->categories);
-				if (isset($options['show'])) {
-					if ($options['show'] == "id") return $category->id;
-					if ($options['show'] == "slug") return $category->slug;
-				}
-				return $category->name;
 				break;
 			case "category-list":
 				if (empty($this->categories)) $this->load_categories(false,$options['showsmart']);

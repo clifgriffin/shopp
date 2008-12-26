@@ -756,6 +756,11 @@ class Cart {
 				break;
 			case "loggedin": return $this->data->login; break;
 			case "notloggedin": return (!$this->data->login && $Shopp->Settings->get('account_system') != "none"); break;
+			case "loginname-login": 
+				if (!empty($_POST['loginname-login']))
+					$options['value'] = $_POST['loginname-login']; 
+				return '<input type="text" name="loginname-login" id="loginname-login"'.inputattrs($options).' />';
+				break;
 			case "email-login": 
 				if (!empty($_POST['email-login']))
 					$options['value'] = $_POST['email-login']; 

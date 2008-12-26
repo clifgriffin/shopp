@@ -125,14 +125,14 @@
 #shopp #receipt table.transaction { clear: both; width: 100%; margin-bottom: 10px; }
 #shopp #receipt table.transaction th { text-align: right; width: 80px; padding-right: 10px;}
 
-#shopp #receipt .cart { width: 100%; clear: both; border: none; }
-#shopp #receipt .cart td { border: none; }
-#shopp #receipt .cart th { font-weight: bold; text-align: left; border: none; }
+#shopp #receipt .order { width: 100%; clear: both; border: none; }
+#shopp #receipt td { border: none; }
+#shopp #receipt th { font-weight: bold; text-align: left; border: none; }
 #shopp #receipt th, 
 #shopp #receipt td { padding: 3px 0; }
-#shopp #receipt .cart .item { width: 50%; }
-#shopp #receipt .cart .money, 
-#shopp #receipt .cart .total,
-#shopp #receipt .cart .buttons td { text-align: right; }
-#shopp #receipt .cart .totals.total th,
-#shopp #receipt .cart .totals.total td { font-size: 130%; }
+#shopp #receipt .order .item { width: 50%; }
+#shopp #receipt .order .money, 
+#shopp #receipt .order .total,
+#shopp #receipt .order .buttons td { text-align: right; }
+#shopp #receipt .order .totals.total th,
+#shopp #receipt .order .totals.total td { font-size: 130%; }

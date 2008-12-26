@@ -59,7 +59,7 @@ class Item {
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
 		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
 
-		if (!empty($Price->download)) $this->download = $Price->download->id;
+		if (!empty($Price->download)) $this->download = $Price->download;
 		
 		if ($Price->shipping == "on" && $Price->type == "Shipped") {
 			$this->shipping = true;
