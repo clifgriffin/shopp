@@ -15,8 +15,21 @@
 	<?php shopp('purchase','country'); ?></address>
 </fieldset>
 
+<?php if (shopp('purchase','hasfreight')): ?>
+	<fieldset class="shipping">
+		<legend>Ship to</legend>
+		<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
+		<?php shopp('purchase','shipaddress'); ?><br />
+		<?php shopp('purchase','shipxaddress'); ?>
+		<?php shopp('purchase','shipcity'); ?>, <?php shopp('purchase','shipstate'); ?> <?php shopp('purchase','shippostcode'); ?><br />
+		<?php shopp('purchase','shipcountry'); ?></address>
+		
+		<p>Shipping: <?php shopp('purchase','shipmethod'); ?></p>
+	</fieldset>	
+<?php endif; ?>
+
 <?php if (shopp('purchase','hasitems')): ?>
-<table class="cart widefat">
+<table class="order widefat">
 	<thead>
 	<tr>
 		<th scope="col" class="item">Items Ordered</th>
@@ -28,7 +41,7 @@
 
 	<?php while(shopp('purchase','items')): ?>
 		<tr>
-			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options','before= (&after=)'); ?><br />
+			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options','before= – '); ?><br />
 				<?php shopp('purchase','item-sku')."<br />"; ?>
 				<?php shopp('purchase','item-download'); ?>
 				</td>
@@ -65,19 +78,6 @@
 		<td class="money"><?php shopp('purchase','total'); ?></td>
 	</tr>
 </table>
-
-<?php if (shopp('purchase','hasfreight')): ?>
-	<fieldset class="shipping">
-		<legend>Ship to</legend>
-		<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
-		<?php shopp('purchase','shipaddress'); ?><br />
-		<?php shopp('purchase','shipxaddress'); ?>
-		<?php shopp('purchase','shipcity'); ?>, <?php shopp('purchase','shipstate'); ?> <?php shopp('purchase','shippostcode'); ?><br />
-		<?php shopp('purchase','shipcountry'); ?></address>
-		
-		<p>Shipping: <?php shopp('purchase','shipmethod'); ?></p>
-	</fieldset>	
-<?php endif; ?>
 
 <?php else: ?>
 	<p class="warning">There were no items found for this purchase.</p>

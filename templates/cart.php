@@ -2,7 +2,9 @@
 <form id="cart" action="<?php shopp('cart','url'); ?>" method="post">
 <big>
 	<a href="<?php shopp('catalog','url'); ?>">&laquo; Continue Shopping</a>
+	<?php if (shopp('checkout','local-payment')): ?>
 	<a href="<?php shopp('checkout','url'); ?>" class="right">Proceed to Checkout &raquo;</a>
+	<?php endif; ?>
 </big>
 
 <?php shopp('cart','function'); ?>
@@ -30,7 +32,7 @@
 	
 	<tr class="totals">
 		<td colspan="2" rowspan="5">
-			<?php if (shopp('cart','needs-shipped')): ?>
+			<?php if (shopp('cart','needs-shipping-estimates')): ?>
 			<small>Select shipping country for shipping &amp; tax:</small>
 			<?php shopp('cart','shipping-estimates'); ?>
 			<?php endif; ?>
@@ -66,7 +68,9 @@
 
 <big>
 	<a href="<?php shopp('catalog','url'); ?>">&laquo; Continue Shopping</a>
+	<?php if (shopp('checkout','local-payment')): ?>
 	<a href="<?php shopp('checkout','url'); ?>" class="right">Proceed to Checkout &raquo;</a>
+	<?php endif; ?>
 	<?php shopp('checkout','xco-buttons'); ?>
 </big>
 

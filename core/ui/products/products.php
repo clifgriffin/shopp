@@ -1,26 +1,34 @@
 <div class="wrap shopp">
-	<form action="" method="get">
-	<div><input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" /></div>
 	<h2><?php _e('Products','Shopp'); ?></h2>
-	
-	<?php include("navigation.php"); ?>
 
-	<p class="controls"><button type="submit" name="edit" value="new" class="button"><?php _e('New Product','Shopp'); ?></button></p>
+	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
+
+	<form action="" method="get">
+	<div>
+		<input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" />
+	</div>
+
+	<p id="post-search" class="search-box">
+		<label class="hidden" for="post-search-input"><?php _e('Search Products','Shopp'); ?>:</label>
+		<input type="text" id="products-search-input" class="search-input" name="s" value="<?php echo attribute_escape($_GET['s']); ?>" />
+		<input type="submit" value="<?php _e('Search Products','Shopp'); ?>" class="button" />
+	</p>
+	
+	<p class="search-box"><button type="submit" name="edit" value="new" class="button"><?php _e('New Product','Shopp'); ?></button></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-		<div class="alignleft">
+		<div class="alignleft actions">
 		<button type="submit" id="delete-button" name="deleting" value="product" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
 		<select name='cat'>
 		<?php echo $categories_menu; ?>
 		</select>
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary">
 		</div>
-		<br class="clear" />
 	</div>
 	<br class="clear" />
 	
-	<table class="widefat">
+	<table class="widefat" cellspacing="0">
 		<thead>
 		<tr>
 			<th scope="col" class="check-column"><input type="checkbox" id="selectall" /></th>

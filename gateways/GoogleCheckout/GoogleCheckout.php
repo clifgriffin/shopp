@@ -149,16 +149,41 @@ class GoogleCheckout {
 					if (!empty($Item->sku)) $_[] = '<merchant-item-id>'.$Item->sku.'</merchant-item-id>';
 					$_[] = '</item>';
 				}
+				
+				// Include any discounts
+				if ($Cart->data->Totals->discount > 0) {
+					foreach($Cart->data->PromosApplied as $promo) $discounts[] = $promo->name;
+					$_[] = '<item>';
+						$_[] = '<item-name>Discounts</item-name>';
+						$_[] = '<item-description>'.join(", ",$discounts).'</item-description>';
+						$_[] = '<unit-price currency="USD">'.number_format($Cart->data->Totals->discount*-1,2).'</unit-price>';
+						$_[] = '<quantity>1</quantity>';
+					$_[] = '</item>';
+				}
 				$_[] = '</items>';
 			$_[] = '</shopping-cart>';
-			
+						
 			// Build the flow support request
 			$_[] = '<checkout-flow-support>';
-			$_[] = '<merchant-checkout-flow-support />';
+				$_[] = '<merchant-checkout-flow-support>';
+
+				// Shipping Methods
+				if (!empty($Cart->data->ShipCosts)) {
+					$_[] = '<shipping-methods>';
+						foreach ($Cart->data->ShipCosts as $shipping) {
+							$_[] = '<flat-rate-shipping name="'.$shipping['name'].'">';
+							$_[] = '<price currency="USD">'.number_format($shipping['cost'],2).'</price>';
+							$_[] = '</flat-rate-shipping>';
+						}
+					$_[] = '</shipping-methods>';
+				}
+			
+				$_[] = '</merchant-checkout-flow-support>';
 			$_[] = '</checkout-flow-support>';
 			
 			
 		$_[] = '</checkout-shopping-cart>';
+		// echo "<pre>"; print_r($_); echo "</pre>";
 		return join("\n",$_);
 	}
 	
@@ -244,6 +269,7 @@ class GoogleCheckout {
 			$Purchased->total = $Purchased->quantity*$Purchased->unitprice;
 			$Purchased->save();
 		}
+		
 		
 	}
 	
@@ -340,7 +366,7 @@ class GoogleCheckout {
 			<select name="settings[GoogleCheckout][buttonstyle]">
 				<?php echo menuoptions($styles,$this->settings['buttonstyle'],true); ?>
 				</select><br />Select the preferred size and style of the Google Checkout button.</p>
-				<p><label for="googlecheckout-autocharge"><input type="hidden" name="settings[GoogleCheckout][autocharge]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][autocharge]" id="googlecheckout-autocharge" size="48" value="on"<?php echo ($this->settings['autocharge'])?' checked="checked"':''; ?> /> Automatically charge orders</label></p>
+				<p><label for="googlecheckout-autocharge"><input type="hidden" name="settings[GoogleCheckout][autocharge]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][autocharge]" id="googlecheckout-autocharge" size="48" value="on"<?php echo ($this->settings['autocharge'] == 'on')?' checked="checked"':''; ?> /> Automatically charge orders</label></p>
 		<p><label for="googlecheckout-testmode"><input type="hidden" name="settings[GoogleCheckout][testmode]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][testmode]" id="googlecheckout-testmode" size="48" value="on"<?php echo ($this->settings['testmode'])?' checked="checked"':''; ?> /> Enable test mode</label></p>
 		<?php
 	}
