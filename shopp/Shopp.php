@@ -1171,7 +1171,7 @@ class Shopp {
 				echo $this->Flow->callhome($request,$data);
 				exit();
 			case "wp_ajax_shopp_verify":
-				if ($this->Settings->get('maintenance') == "on") return "1";
+				if ($this->Settings->get('maintenance') == "on") echo "1";
 				exit();
 
 			// Perform an update process
