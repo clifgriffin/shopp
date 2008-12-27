@@ -164,6 +164,7 @@ class Shopp {
 			if (!empty($user_ID)) {
 				$Account = new Customer($user_ID,'wpuser');
 				if (!$Cart->data->login) $this->Flow->loggedin($Account);
+				$Cart->data->Order->Customer->wpuser = $user_ID;
 			}
 		}
 		
@@ -468,7 +469,7 @@ class Shopp {
 			(empty($shop)?"$catalog/":$shop).'feed/?$' => 'index.php?shopp_lookup=newproducts-rss',
 			(empty($shop)?"$catalog/":$shop).'receipt/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=receipt',
 			(empty($shop)?"$catalog/":$shop).'confirm-order/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=confirm-order',
-			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{ 40})/?$' => 'index.php?shopp_download=$matches[1]',
+			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
 			(empty($shop)?"$catalog/":$shop).'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]'
 		);
 
@@ -811,7 +812,8 @@ class Shopp {
 		if ($_POST['checkout'] != "process") return true;
 		
 		if ($_POST['process-login'] == "login") {
-			$this->Flow->login($_POST['email-login'],$_POST['password-login']);
+			if (isset($_POST['email-login'])) $this->Flow->login($_POST['email-login'],$_POST['password-login'],'email');
+			else if (isset($_POST['loginname-login'])) $this->Flow->login($_POST['loginname-login'],$_POST['password-login'],'loginname');
 			return true;
 		}
 		
