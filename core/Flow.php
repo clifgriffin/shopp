@@ -517,7 +517,7 @@ class Flow {
 				return false;
 			}
 
-			// Dynamically the payment processing gateway
+			// Dynamically load the payment processing gateway
 			$processor_data = $this->scan_gateway_meta($gateway);
 			$ProcessorClass = $processor_data->tags['class'];
 			include($gateway);
@@ -532,6 +532,7 @@ class Flow {
 			// Process the transaction through the payment gateway
 			$processed = $Payment->process();
 			
+			// exit();
 			// There was a problem processing the transaction, 
 			// grab the error response from the gateway so we can report it
 			if (!$processed) {
@@ -579,6 +580,13 @@ class Flow {
 				
 				// Keep record of it in Shopp's customer records
 				$Order->Customer->wpuser = $wpuser;
+			}
+			
+			// If the shopper is already logged-in, save their updated customer info
+			if ($Shopp->Cart->data->login && $authentication == "wordpress") {
+				get_currentuserinfo();
+				global $user_ID;
+				$Order->Customer->wpuser = $user_ID;
 			}
 
 			// Create a WP-compatible password hash to go in the db
@@ -679,7 +687,7 @@ class Flow {
 		return apply_filters('shopp_order_confirmation','<div id="shopp">'.$content.'</div>');
 	}
 
-	function login ($email,$password) {
+	function login ($id,$password,$type='email') {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
 		$db = DB::get();
@@ -687,29 +695,38 @@ class Flow {
 		
 		switch($authentication) {
 			case "shopp":
-				$Account = new Customer($email,'email');
+				$Account = new Customer($id,'email');
 
 				if (empty($Account)) {
-					$Cart->data->OrderError->message = "No customer account was found with that email.";
+					$Cart->data->OrderError->message = __("No customer account was found with that email.","Shopp");
 					return false;
 				} 
 
 				if (!wp_check_password($password,$Account->password)) {
-					$Cart->data->OrderError->message = "The password is incorrect.";
+					$Cart->data->OrderError->message = __("The password is incorrect.","Shopp");
 					return false;
 				}			
 				break;
 				
 			case "wordpress":
 				global $wpdb;
-				$Account = new Customer($email,'email');
-				if ( !$user = get_user_by_email($Account->email)) {
-					$Cart->data->OrderError->message = "No customer account was found with that email.";
-					return false;
+				if ($type == 'loginname') {
+					if ( !$user = get_userdatabylogin($id)) {
+						$Cart->data->OrderError->message = __("No customer account was found with that login name.","Shopp");
+						return false;
+					}
+					$Account = new Customer($user->user_ID,'wpuser');
+					
+				} else {
+					$Account = new Customer($id,'email');
+					if ( !$user = get_user_by_email($Account->email)) {
+						$Cart->data->OrderError->message = __("No customer account was found with that email.","Shopp");
+						return false;
+					}
 				}
 				
 				if (!wp_check_password($password,$user->user_pass)) {
-					$Cart->data->OrderError->message = "The password is incorrect.";
+					$Cart->data->OrderError->message = __("The password is incorrect.","Shopp");
 					return false;
 				}
 
@@ -1943,9 +1960,7 @@ class Flow {
 				$ProcessorClass = $gateway->tags['class'];
 				include_once($gateway->file);
 				$Processor = new $ProcessorClass();
-				//$_POST['settings']['gateway_cardtypes'] = $Processor->cards;
-				$gateway_settings = $_POST['module'][basename($gateway->file)];
-				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$gateway_settings]['cards'];
+				$_POST['settings']['gateway_cardtypes'] = $Processor->cards;
 			}
 			
 			// Build the Google Checkout API URL if Google Checkout is enabled
@@ -1989,20 +2004,16 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$credentials = $this->Settings->get('ftp_credentials');		
-		$updatekey = $this->Settings->get('updatekey');
-		if (empty($updatekey)) 
-			$updatekey = array('key' => '','type' => 'single','status' => 'deactivated');
 
 		if (!empty($_POST['save'])) {
-			$updatekey['key'] = $_POST['updatekey'];
-			$_POST['settings']['updatekey'] = $updatekey;
+			check_admin_referer('shopp-settings-update');
 			$this->settings_save();
+			if (isset($_POST['settings']['ftp_credentials']))
+				$updated = __('FTP settings saved.  Click the <b>Check for Updates</b> button to start the update process again.','Shopp');
 		}
-
+		
 		if (!empty($_POST['activation'])) {
 			check_admin_referer('shopp-settings-update');
-			$updatekey['key'] = trim($_POST['updatekey']);
-			$_POST['settings']['updatekey'] = $updatekey;
 			$this->settings_save();	
 			
 			if ($_POST['activation'] == "Activate Key") $process = "activate-key";
@@ -2011,40 +2022,29 @@ class Flow {
 			$request = array(
 				"ShoppServerRequest" => $process,
 				"ver" => '1.0',
-				"key" => $updatekey['key'],
-				"type" => $updatekey['type'],
+				"key" => trim($_POST['settings']['update_key']),
 				"site" => get_bloginfo('siteurl')
 			);
 			
-			$response = $this->callhome($request);
-			$response = split("::",$response);
+			$activation = $this->callhome($request);
 			
-			if (count($response) == 1)
-				$activation = '<span class="shopp error">'.$response[0].'</span>';
+			if ($activation != "1")
+				$activation = '<span class="shopp error">'.$activation.'</span>';
 			
-			if ($process == "activate-key" && $response[0] == "1") {
-				$updatekey['type'] = $response[1];
-				$type = $updatekey['type'];
-				$updatekey['key'] = $response[2];
-				$updatekey['status'] = 'activated';
-				$this->Settings->save('updatekey',$updatekey);
+			if ($process == "activate-key" && $activation == "1") {
+				$this->Settings->save('updatekey_status','activated');
 				$activation = __('This key has been successfully activated.','Shopp');
 			}
 			
-			if ($process == "deactivate-key" && $response[0] == "1") {
-				$updatekey['status'] = 'deactivated';
-				if ($updatekey['type'] == "dev") $updatekey['key'] = '';
-				$this->Settings->save('updatekey',$updatekey);
+			if ($process == "deactivate-key" && $activation == "1") {
+				$this->Settings->save('updatekey_status','deactivated');
 				$activation = __('This key has been successfully de-activated.','Shopp');
 			}
 		} else {
-			if ($updatekey['status'] == "activated") 
+			if ($this->Settings->get('updatekey_status') == "activated") 
 				$activation = __('This key has been successfully activated.','Shopp');
 			else $activation = __('Enter your Shopp upgrade key and activate it to enable easy, automatic upgrades.','Shopp');
 		}
-		
-		$type = "text";
-		if ($updatekey['status'] == "activated" && $updatekey['type'] == "dev") $type = "password";
 		
 		include(SHOPP_ADMINPATH."/settings/update.php");
 	}
@@ -2326,6 +2326,7 @@ class Flow {
 		
 		return $result;
 	}
+
 
 	/**
 	 * setup()
