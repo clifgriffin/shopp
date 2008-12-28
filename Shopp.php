@@ -596,7 +596,7 @@ class Shopp {
 	 * titles ()
 	 * Changes the Shopp catalog page titles to include the product
 	 * name and category (when available) */
-	function titles ($title,$sep,$placement) {
+	function titles ($title,$sep=" &mdash; ",$placement="left") {
 		if ($placement == "right") {
 			if (isset($this->Product)) $title =  $this->Product->name." $sep ".$title;
 			if (isset($this->Category)) $title = $this->Category->name." $sep ".$title;
