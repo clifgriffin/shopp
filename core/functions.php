@@ -295,11 +295,11 @@ function shopp_prereqs () {
 	$errors = array();
 	// Check PHP version, this won't appear much since syntax errors in earlier
 	// PHP releases will cause this code to never be executed
-	if (!version_compare(PHP_VERSION, '5.0.0', '>')) 
+	if (!version_compare(PHP_VERSION, '5.0','>=')) 
 		$errors[] = __("Shopp requires PHP version 5.0+.  You are using PHP version ").PHP_VERSION;
 		
 	// Check WordPress version
-	if (!version_compare(get_bloginfo('version'),'2.6.0','>='))
+	if (!version_compare(get_bloginfo('version'),'2.6','>='))
 		$errors[] = __("Shopp requires WordPress version 2.6+.  You are using WordPress version ").get_bloginfo('version');
 	
 	// Check for cURL
