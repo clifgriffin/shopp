@@ -2184,13 +2184,15 @@ class Flow {
 	 */
 	
 	function update () {
-		global $Shopp;
+		global $Shopp,$wp_version;
 		$db = DB::get();
 		$log = array();
 
 		if (!isset($_POST['update'])) die("Update Failed: Update request is invalid.  No update specified.");
 		if (!isset($_POST['type'])) die("Update Failed: Update request is invalid. Update type not specified");
 		if (!isset($_POST['password'])) die("Update Failed: Update request is invalid. No FTP password provided.");
+
+		$updatekey = $this->Settings->get('updatekey');
 		
 		$credentials = $this->Settings->get('ftp_credentials');
 		if (empty($credentials)) {
@@ -2232,8 +2234,9 @@ class Flow {
 		));
 		
 		$data = build_query_request(array(
-			"key" => $this->Settings->get('update_key'),
+			"key" => $updatekey['key'],
 			"core" => SHOPP_VERSION,
+			"wp" => $wp_version,
 			"site" => get_bloginfo('siteurl'),
 			"update" => $_POST['update']
 		));
@@ -2306,6 +2309,7 @@ class Flow {
 	}
 		
 	function upgrade () {
+		global $table_prefix;
 		$db = DB::get();
 		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
 		
@@ -2313,8 +2317,24 @@ class Flow {
 		if (!file_exists(SHOPP_DBSCHEMA))
 		 	die("Could not upgrade the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
 		
+		// Check if development version tables exist without the WP $table_prefix
+		// Remove this transitionary code in official release
+		$setting = substr(DatabaseObject::tablename('setting'),strlen($table_prefix));
+		$devtable = $db->query("SHOW CREATE TABLE `$setting`");
+		if ($devtable->Table == $setting) {
+			$devtables = array('shopp_asset', 'shopp_billing', 'shopp_cart', 'shopp_catalog', 'shopp_category', 'shopp_customer', 'shopp_discount', 'shopp_price', 'shopp_product', 'shopp_promo', 'shopp_purchase', 'shopp_purchased', 'shopp_setting', 'shopp_shipping', 'shopp_spec', 'shopp_tag');
+			$renaming = "";
+			foreach ($devtables as $oldtable) $renaming .= ((empty($renaming))?"":", ")."$oldtable TO $table_prefix$oldtable";
+			$db->query("RENAME TABLE $renaming");
+		}
+
+		ob_start();
+		include(SHOPP_DBSCHEMA);
+		$schema = ob_get_contents();
+		ob_end_clean();
+		
 		// Update the table schema
-		$tables = preg_replace('/;\s+/',';',file_get_contents(SHOPP_DBSCHEMA));
+		$tables = preg_replace('/;\s+/',';',$schema);
 		dbDelta($tables);
 		
 		// Update the version number
