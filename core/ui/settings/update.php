@@ -150,7 +150,7 @@
 		});
 		markup += '</ul>';
 		
-		<?php if ($this->Settings->get('updatekey_status') == "activated"): ?>
+		<?php if ($updatekey['status'] == "activated"): ?>
 		markup += '<p><button type="button" name="update" id="update-button" class="button-secondary"><?php _e("Install Updates","Shopp"); ?></button></p>';
 		<?php else: ?>
 		markup += '<p><button type="button" name="buykey" id="buykey-button" class="button-secondary"><?php _e("Buy an Update Key","Shopp"); ?></button></p>';

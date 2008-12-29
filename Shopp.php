@@ -95,6 +95,7 @@ class Shopp {
 
 		// Initialize defaults if they have not been entered
 		if (!$this->Settings->get('shopp_setup')) {
+			if ($this->Settings->unavailable) return true;
 			$this->Flow->setup();
 		}
 		
@@ -185,13 +186,7 @@ class Shopp {
 		if ($this->Settings->get('version') != SHOPP_VERSION)
 			$this->Flow->upgrade();
 				
-		// If the plugin has been previously setup
-		// dump the datatype model cache so it can be rebuilt
-		// Useful when table schemas change so we can
-		// force the in memory data model to get rebuilt
 		if ($this->Settings->get('shopp_setup')) {
-			$this->Settings->save('data_model','');
-
 			// Publish/re-enable Shopp pages
 			$filter = "";
 			$pages = $this->Settings->get('pages');
@@ -210,9 +205,12 @@ class Shopp {
 	function deactivate() {
 		global $wpdb;
 
+		$this->Settings->save('data_model','');
+
 		// Unpublish/disable Shopp pages
 		$filter = "";
 		$pages = $this->Settings->get('pages');
+		if (!is_array($pages)) return true;
 		foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
 		if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='draft' WHERE $filter");
 
@@ -900,6 +898,7 @@ class Shopp {
 	function link ($target,$secure=false) {
 		$internals = array("receipt","confirm-order");
 		$pages = $this->Settings->get('pages');
+		if (!is_array($pages)) $pages = $this->Flow->Pages;
 		
 		$uri = ($secure)?str_replace('http://','https://',get_bloginfo('wpurl')):get_bloginfo('wpurl');
 

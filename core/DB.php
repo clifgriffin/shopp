@@ -300,7 +300,8 @@ class DatabaseObject {
 	}
 	
 	function tablename ($table) {
-		return SHOPP_DBPREFIX.$table;
+		global $table_prefix;
+		return $table_prefix.SHOPP_DBPREFIX.$table;
 	}
 	
 	/**
