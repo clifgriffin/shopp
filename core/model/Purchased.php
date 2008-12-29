@@ -23,6 +23,7 @@ class Purchased extends DatabaseObject {
 		$key = sha1($message);
 		if (empty($key)) $key = md5($message);
 		$this->dkey = $key;
+		do_action_ref_array('shopp_download_keygen',array(&$this));
 	}
 
 } // end Purchased class

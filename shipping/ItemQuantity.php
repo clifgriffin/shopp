@@ -15,7 +15,7 @@ class ItemQuantity {
 	}
 	
 	function methods (&$ShipCalc) {
-		$ShipCalc->methods[get_class($this).'::range'] = "Item Quantity Tiers";
+		$ShipCalc->methods[get_class($this).'::range'] = __("Item Quantity Tiers","Shopp");
 	}
 	
 	function calculate (&$Cart,$rate,$column) {
@@ -66,7 +66,7 @@ function AddItemQuantityRangeRow(methodid,table,rates) {
 	var row = $('<tr/>');
 
 	var unitCell = $('<td class="units"></td>').appendTo(row);
-	$('<label for="max-'+methodid+'-'+id+'">Up to <label>').appendTo(unitCell);
+	$('<label for="max-'+methodid+'-'+id+'"><?php _e("Up to","Shopp"); ?> <label>').appendTo(unitCell);
 	if (rates && rates['max'] && rates['max'][id] !== false) value = rates['max'][id];
 	else if (id > 1) value = "+";
 	else value = 1;

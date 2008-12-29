@@ -1,24 +1,27 @@
-DROP TABLE IF EXISTS shopp_setting;
-CREATE TABLE shopp_setting (
+<?php $setting = DatabaseObject::tablename('setting'); ?>
+DROP TABLE IF EXISTS <?php echo $setting; ?>;
+CREATE TABLE <?php echo $setting; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	name varchar(255) NOT NULL default '',
-	value longtext NOT NULL default '',
+	value longtext default '',
 	autoload enum('on','off') NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_product;
-CREATE TABLE shopp_product (
+<?php $product = DatabaseObject::tablename('product'); ?>
+DROP TABLE IF EXISTS <?php echo $product; ?>;
+CREATE TABLE <?php echo $product; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	name varchar(255) NOT NULL default '',
 	slug varchar(255) NOT NULL default '',
-	summary text NOT NULL default '',
-	description longtext NOT NULL default '',
-	featured enum('off','on') NOT NULL default 'off',
-	variations enum('off','on') NOT NULL default 'off',
-	options text NOT NULL default '',
+	summary text NOT NULL,
+	description longtext NOT NULL,
+	published enum('on','off') NOT NULL,
+	featured enum('off','on') NOT NULL,
+	variations enum('off','on') NOT NULL,
+	options text NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
@@ -26,25 +29,26 @@ CREATE TABLE shopp_product (
 	FULLTEXT search (name,summary,description)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_price;
-CREATE TABLE shopp_price (
+<?php $price = DatabaseObject::tablename('price'); ?>
+DROP TABLE IF EXISTS <?php echo $price; ?>;
+CREATE TABLE <?php echo $price; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	product bigint(20) unsigned NOT NULL default '0',
-	options text NOT NULL default '',
+	options text NOT NULL,
 	optionkey bigint(20) unsigned NOT NULL default '0',
 	label varchar(100) NOT NULL default '',
-	context enum('product','variation','addon') NOT NULL default 'product',
-	type enum('Shipped','Download','Donation','N/A') NOT NULL default 'Shipped',
+	context enum('product','variation','addon') NOT NULL,
+	type enum('Shipped','Download','Donation','N/A') NOT NULL,
 	sku varchar(100) NOT NULL default '',
 	price float(20,2) NOT NULL default '0.00',
 	saleprice float(20,2) NOT NULL default '0.00',
 	weight int(10) NOT NULL default '0',
-	shipfee int(10) NOT NULL default '0',
+	shipfee float(20,2) NOT NULL default '0',
 	stock int(10) NOT NULL default '0',
-	inventory enum('off','on') NOT NULL default 'off',
-	sale enum('off','on') NOT NULL default 'off',
-	shipping enum('off','on') NOT NULL default 'on',
-	tax enum('off','on') NOT NULL default 'on',
+	inventory enum('off','on') NOT NULL,
+	sale enum('off','on') NOT NULL,
+	shipping enum('on','off') NOT NULL,
+	tax enum('on','off') NOT NULL,
 	sortorder int(10) unsigned NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
@@ -53,36 +57,46 @@ CREATE TABLE shopp_price (
 	KEY context (context)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_spec;
-CREATE TABLE shopp_spec (
+<?php $spec = DatabaseObject::tablename('spec'); ?>
+DROP TABLE IF EXISTS <?php echo $spec; ?>;
+CREATE TABLE <?php echo $spec; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	product bigint(20) unsigned NOT NULL default '0',
 	name varchar(255) NOT NULL default '',
-	content text NOT NULL default '',
+	content text NOT NULL,
+	numeral float(20,4) NOT NULL default '0.0000',
 	sortorder int(10) unsigned NOT NULL default '0',
 	PRIMARY KEY id (id),
 	KEY product (product,name),
 	FULLTEXT name (name,content)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_category;
-CREATE TABLE shopp_category (
+<?php $category = DatabaseObject::tablename('category'); ?>
+DROP TABLE IF EXISTS <?php echo $category; ?>;
+CREATE TABLE <?php echo $category; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	parent bigint(20) unsigned NOT NULL default '0',
 	name varchar(255) NOT NULL default '',
 	slug varchar(64) NOT NULL default '',
 	uri varchar(255) NOT NULL default '',
 	description text NOT NULL,
+	spectemplate enum('off','on') NOT NULL,
+	facetedmenus enum('off','on') NOT NULL,
+	variations enum('off','on') NOT NULL,
+	pricerange enum('disabled','auto','custom') NOT NULL,
+	priceranges text NOT NULL,
 	specs text NOT NULL,
 	options text NOT NULL,
+	prices text NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
 	KEY parent (parent)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_tag;
-CREATE TABLE shopp_tag (
+<?php $tag = DatabaseObject::tablename('tag'); ?>
+DROP TABLE IF EXISTS <?php echo $tag; ?>;
+CREATE TABLE <?php echo $tag; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	name varchar(255) NOT NULL default '',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
@@ -90,8 +104,9 @@ CREATE TABLE shopp_tag (
 	PRIMARY KEY id (id)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_catalog;
-CREATE TABLE shopp_catalog (
+<?php $catalog = DatabaseObject::tablename('catalog'); ?>
+DROP TABLE IF EXISTS <?php echo $catalog; ?>;
+CREATE TABLE <?php echo $catalog; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	product bigint(20) unsigned NOT NULL default '0',
 	category bigint(20) unsigned NOT NULL default '0',
@@ -103,17 +118,18 @@ CREATE TABLE shopp_catalog (
 	KEY tag (tag)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_asset;
-CREATE TABLE shopp_asset (
+<?php $asset = DatabaseObject::tablename('asset'); ?>
+DROP TABLE IF EXISTS <?php echo $asset; ?>;
+CREATE TABLE <?php echo $asset; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	parent bigint(20) unsigned NOT NULL default '0',
 	context enum('product','price','category') NOT NULL default 'product',
 	src bigint(20) unsigned NOT NULL default '0',
 	name varchar(255) NOT NULL default '',
 	value varchar(255) NOT NULL default '',
-	properties text NOT NULL default '',
+	properties text NOT NULL,
 	size bigint(20) unsigned NOT NULL default '0',
-	data longblob NOT NULL default '',
+	data longblob NOT NULL,
 	datatype enum('metadata','image','small','thumbnail','download') NOT NULL default 'metadata',
 	sortorder int(10) unsigned NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
@@ -123,21 +139,23 @@ CREATE TABLE shopp_asset (
 	KEY src (src)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_cart;
-CREATE TABLE shopp_cart (
+<?php $cart = DatabaseObject::tablename('cart'); ?>
+DROP TABLE IF EXISTS <?php echo $cart; ?>;
+CREATE TABLE <?php echo $cart; ?> (
 	session varchar(32) NOT NULL,
 	customer bigint(20) unsigned NOT NULL default '0',
 	ip varchar(15) NOT NULL default '0.0.0.0',
-	data longtext NOT NULL default '',
-	contents longtext NOT NULL default '',
+	data longtext NOT NULL,
+	contents longtext NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY session (session),
 	KEY customer (customer)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_customer;
-CREATE TABLE shopp_customer (
+<?php $customer = DatabaseObject::tablename('customer'); ?>
+DROP TABLE IF EXISTS <?php echo $customer; ?>;
+CREATE TABLE <?php echo $customer; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	wpuser bigint(20) unsigned NOT NULL default '0',
 	password varchar(64) NOT NULL default '',
@@ -151,8 +169,9 @@ CREATE TABLE shopp_customer (
 	PRIMARY KEY id (id)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_shipping;
-CREATE TABLE shopp_shipping (
+<?php $shipping = DatabaseObject::tablename('shipping'); ?>
+DROP TABLE IF EXISTS <?php echo $shipping; ?>;
+CREATE TABLE <?php echo $shipping; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	customer bigint(20) unsigned NOT NULL default '0',
 	address varchar(100) NOT NULL default '',
@@ -167,8 +186,9 @@ CREATE TABLE shopp_shipping (
 	PRIMARY KEY id (id)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_billing;
-CREATE TABLE shopp_billing (
+<?php $billing = DatabaseObject::tablename('billing'); ?>
+DROP TABLE IF EXISTS <?php echo $billing; ?>;
+CREATE TABLE <?php echo $billing; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	customer bigint(20) unsigned NOT NULL default '0',
 	card varchar(4) NOT NULL default '',
@@ -186,8 +206,9 @@ CREATE TABLE shopp_billing (
 	PRIMARY KEY id (id)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_purchase;
-CREATE TABLE shopp_purchase (
+<?php $purchase = DatabaseObject::tablename('purchase'); ?>
+DROP TABLE IF EXISTS <?php echo $purchase; ?>;
+CREATE TABLE <?php echo $purchase; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	customer bigint(20) unsigned NOT NULL default '0',
 	shipping bigint(20) unsigned NOT NULL default '0',
@@ -227,14 +248,15 @@ CREATE TABLE shopp_purchase (
 	shipmethod varchar(100) NOT NULL default '',
 	shiptrack varchar(100) NOT NULL default '',
 	status tinyint(3) unsigned NOT NULL default '0',
-	data longtext default '',
+	data longtext NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_purchased;
-CREATE TABLE shopp_purchased (
+<?php $purchased = DatabaseObject::tablename('purchased'); ?>
+DROP TABLE IF EXISTS <?php echo $purchased; ?>;
+CREATE TABLE <?php echo $purchased; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	purchase bigint(20) unsigned NOT NULL default '0',
 	product bigint(20) unsigned NOT NULL default '0',
@@ -242,7 +264,7 @@ CREATE TABLE shopp_purchased (
 	download bigint(20) unsigned NOT NULL default '0',
 	dkey varchar(255) NOT NULL default '',
 	name varchar(255) NOT NULL default '',
-	description text NOT NULL default '',
+	description text NOT NULL,
 	optionlabel varchar(255) NOT NULL default '',
 	sku varchar(100) NOT NULL default '',
 	quantity int(10) unsigned NOT NULL default '0',
@@ -257,8 +279,9 @@ CREATE TABLE shopp_purchased (
 	KEY dkey (dkey(8))
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_promo;
-CREATE TABLE shopp_promo (
+<?php $promo = DatabaseObject::tablename('promo'); ?>
+DROP TABLE IF EXISTS <?php echo $promo; ?>;
+CREATE TABLE <?php echo $promo; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	name varchar(255) NOT NULL default '',
 	status enum('disabled','enabled') default 'disabled',
@@ -269,7 +292,7 @@ CREATE TABLE shopp_promo (
 	getqty int(10) NOT NULL default '0',
 	search enum('all','any') default 'all',
 	code varchar(255) NOT NULL default '',
-	rules text NOT NULL,
+	rules text default '',
 	starts datetime NOT NULL default '0000-00-00 00:00:00',
 	ends datetime NOT NULL default '0000-00-00 00:00:00',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
@@ -277,8 +300,9 @@ CREATE TABLE shopp_promo (
 	PRIMARY KEY id (id)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
-DROP TABLE IF EXISTS shopp_discount;
-CREATE TABLE shopp_discount (
+<?php $discount = DatabaseObject::tablename('discount'); ?>
+DROP TABLE IF EXISTS <?php echo $discount; ?>;
+CREATE TABLE <?php echo $discount; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	promo bigint(20) unsigned NOT NULL default '0',
 	product bigint(20) unsigned NOT NULL default '0',

@@ -1,22 +1,19 @@
-function quickSelects (target) {
-	(function($) {
-	if (!target) target = $('.selectall');
-	else target = $(target).find('.selectall');
-	$(target).each(function(input) {
-		$(this).mouseup(function (e) {
-			this.select();
-		});
-	});
-	})(jQuery)
-}
+//
+// Utility functions
+//
 
+/**
+ * copyOf ()
+ * Returns a copy/clone of an object
+ **/
 function copyOf (src) {
-	for (v in src) this[v] = src[v];
+	var target = new Object();
+	for (v in src) target[v] = src[v];
+	return target;
 }
 
 /**
  * asMoney ()
- * 
  * Add notation to an integer to display it as money.
  **/
 function asMoney (number,format) {
@@ -38,7 +35,6 @@ function asMoney (number,format) {
 
 /**
  * asPercent ()
- * 
  * Add notation to an integer to display it as a percentage.
  **/
 function asPercent (number,format) {
@@ -55,7 +51,6 @@ function asPercent (number,format) {
 
 /**
  * formatNumber ()
- * 
  * Formats a number to denote thousands with decimal precision.
  **/
 function formatNumber (number,format) {
@@ -70,17 +65,23 @@ function formatNumber (number,format) {
 	number = asNumber(number);
 	var d = number.toFixed(format['precision']).toString().split(".");
 	var number = "";
-	for (var i = 0; i < (d[0].length / 3); i++) 
-		number = d[0].slice(-3*(i+1),d[0].length+(-3 * i)) + ((number.length > 0)?format['thousands'] + number:number);
+	if (format['indian']) {
+		var digits = d[0].slice(0,-3);
+		number = d[0].slice(-3,d[0].length) + ((number.length > 0)?format['thousands'] + number:number);
+		for (var i = 0; i < (digits.length / 2); i++) 
+			number = digits.slice(-2*(i+1),digits.length+(-2 * i)) + ((number.length > 0)?format['thousands'] + number:number);
+	} else {
+		for (var i = 0; i < (d[0].length / 3); i++) 
+			number = d[0].slice(-3*(i+1),d[0].length+(-3 * i)) + ((number.length > 0)?format['thousands'] + number:number);
+	}
+
 	if (format['precision'] > 0) number += format['decimals'] + d[1];
 	return number;
-	
-}
 
+}
 
 /**
  * asNumber ()
- * 
  * Convert a field with numeric and non-numeric characters
  * to a true integer for calculations.
  **/
@@ -94,6 +95,11 @@ var asNumber = function(number) {
 	return new Number(number);
 }
 
+/**
+ * CallbackRegistry ()
+ * Utility class to build a list of functions (callbacks) 
+ * to be executed as needed
+ **/
 var CallbackRegistry = function() {
 	this.callbacks = new Array();
 
@@ -110,6 +116,11 @@ var CallbackRegistry = function() {
 	}
 }
 
+/**
+ * addEvent ()
+ * Adds/binds an event listener to an element in the DOM
+ * Cross-browser compatible
+ **/
 function addEvent( obj, type, fn ) {
 	if ( obj.addEventListener ) {
 		obj.addEventListener( type, fn, false );
@@ -125,7 +136,11 @@ function addEvent( obj, type, fn ) {
 	}
 };
 
-
+/**
+ * removeEvent ()
+ * Removes/unbinds an event listener from an element in the DOM
+ * Cross-browser compatible
+ **/
 function removeEvent( obj, type, fn ) {
 	if ( obj.removeEventListener ) {
 		obj.removeEventListener( type, fn, false );
@@ -143,7 +158,6 @@ function removeEvent( obj, type, fn ) {
 
 /**
  * formatFields ()
- * 
  * Find fields that need display formatting and 
  * run the approriate formatting.
  */
@@ -156,11 +170,226 @@ function formatFields () {
 	})(jQuery)
 }
 
+//
+// Catalog Behaviors
+//
+var ProductOptionsMenus;
+(function($) {
+	ProductOptionsMenus = function (target,hideDisabled,pricing) {
+		var _self = this;
+		var i = 0;
+		var previous = false;
+		var current = false;
+		var menucache = new Array();
+		var menus = $(target);
 
+		menus.each(function (id,menu) {
+			current = menu;
+			menucache[id] = $(menu).children();			
+			if ($.browser.msie) disabledHandler(menu);
+			if (id > 0)	previous = menus[id-1];
+			if (menus.length == 1) {
+				optionPriceTags();
+			} else if (previous) {
+				$(previous).change(function () {
+					if (menus.index(current) == menus.length-1) optionPriceTags();
+					if (this.selectedIndex == 0) $(menu).attr('disabled',true);
+					else $(menu).removeAttr('disabled');
+				}).change();
+			}
+			i++;
+		});
+			
+		// Last menu needs pricing
+		function optionPriceTags () {
+			// Grab selections
+			var selected = new Array();
+			menus.not(current).each(function () {
+				if ($(this).val() != "") selected.push($(this).val());
+			});
+			var currentSelection = $(current).val();
+			$(current).empty();
+			menucache[menus.index(current)].each(function (id,option) {
+				$(option).appendTo($(current));
+			});
+			$(current).val(currentSelection);
+			var keys = new Array();
+			$(current).children('option').each(function () {
+				if ($(this).val() != "") {
+					var keys = selected.slice();
+					keys.push($(this).val());
+					var price = pricing[xorkey(keys)];
+					if (price) {
+						var pricetag = asMoney((price.onsale)?price.promoprice:price.price);
+						var optiontext = $(this).attr('text');
+						var previoustag = optiontext.lastIndexOf("(");
+						if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
+						$(this).attr('text',optiontext+"  ("+pricetag+")");
+						if ((price.inventory == "on" && price.stock == 0) || price.type == "N/A") {
+							if ($(this).attr('selected')) 
+								$(this).parent().attr('selectedIndex',0);
+							if (hideDisabled) $(this).remove();
+							else optionDisable(this);
+						
+						} else $(this).removeAttr('disabled').show();
+						if (price.type == "N/A" && hideDisabled) $(this).remove();
+					}
+				}
+			});
+		}
+	
+		// Magic key generator
+		function xorkey (ids) {
+			for (var key=0,i=0; i < ids.length; i++) 
+				key = key ^ (ids[i]*101);
+			return key;
+		}
+		
+		function optionDisable (option) {
+			$(option).attr('disabled',true);
+			if (!$.browser.msie) return;
+			$(option).css('color','#ccc');
+		}
+		
+		function disabledHandler (menu) {
+			$(menu).change(function () {
+				if (!this.options[this.selectedIndex].disabled) {
+					this.lastSelected = this.selectedIndex;
+					return true;
+				}
+				if (this.lastSelected) this.selectedIndex = this.lastSelected;
+				else {
+					var firstEnabled = $(this).children('option:not(:disabled)').get(0);
+					this.selectedIndex = firstEnabled?firstEnabled.index:0;
+				}				
+			});
+		}		
+		
+	}
+})(jQuery)
+
+
+//
+// Cart Behaviors
+//
+
+
+/**
+ * addtocart ()
+ * Makes a request to add the selected product/product variation
+ * to the shopper's cart
+ **/
 function addtocart () {
-	this.form.submit();
+	var button = this;
+	(function($) {
+
+	var options = $(button.form).find('select.options');
+	if (options && options_default) {
+		var selections = true;
+		for (menu in options) 
+			if (options[menu].selectedIndex == 0) selections = false;
+
+		if (!selections) {
+			if (!options_required) options_required = "You must select the options for this item before you can add it to your shopping cart.";
+			alert(options_required);
+			return false;
+		}
+	}
+
+	if ($(button).hasClass('ajax')) {
+		ShoppCartAjaxRequest(button.form.action,$(button.form).serialize());
+	} else {
+		button.form.submit();
+	}
+
+	})(jQuery)
+	return false;
 }
 
+/**
+ * cartajax ()
+ * Makes an asyncronous request to the cart
+ **/
+function cartajax (url,data,response) {
+	(function($) {
+	if (!response) response = "json";
+	var datatype = ((response == 'json')?'json':'string');
+	$.ajax({
+		type:"POST",
+		url:url,
+		data:data+"&response="+response+'&ajax=true',
+		timeout:10000,
+		dataType:datatype,
+		success:function (cart) {
+			ShoppCartAjaxHandler(cart);
+		},
+		error:function () { }
+	});
+	})(jQuery)
+}
+
+/**
+ * ShoppCartAjaxRequest ()
+ * Overridable wrapper function to call cartajax.
+ * Developers can recreate this function in their own
+ * custom JS libraries to change the way cartajax is called.
+ **/
+var ShoppCartAjaxRequest = function (url,data,response) {
+	cartajax(url,data,response);
+}
+
+/**
+ * ShoppCartAjaxHandler ()
+ * Overridable wrapper function to handle cartajax responses.
+ * Developers can recreate this function in their own
+ * custom JS libraries to change the way the cart response
+ * is processed and displayed to the shopper.
+ **/
+var ShoppCartAjaxHandler = function (cart) {
+	(function($) {
+		var display = $('#shopp-cart-ajax');
+		display.empty().hide(); // clear any previous additions
+		var item = $('<ul></ul>').appendTo(display);
+		$('<li><img src="'+cart.Item.thumbnail.uri+'" alt="" width="'+cart.Item.thumbnail.width+'"  height="'+cart.Item.thumbnail.height+'" /></li>').appendTo(item);
+		$('<li></li>').html('<strong>'+cart.Item.name+'</strong>').appendTo(item);
+		if (cart.Item.optionlabel.length > 0)
+			$('<li></li>').html(cart.Item.optionlabel).appendTo(item);
+		$('<li></li>').html(asMoney(cart.Item.unitprice)).appendTo(item);
+		
+		if ($('#shopp-cart-items').length > 0) {
+			$('#shopp-cart-items').html(cart.Totals.quantity);
+			$('#shopp-cart-total').html(asMoney(cart.Totals.total));			
+		} else {
+			$('#shopp-cart p.status').html('<a href="'+cart.url+'"><span id="shopp-cart-items">'+cart.Totals.quantity+'</span> <strong>Items</strong> &mdash; <strong>Total</strong> <span id="shopp-cart-total">'+asMoney(cart.Totals.total)+'</span></a>');
+		}
+		display.slideDown();
+	})(jQuery)	
+}
+
+
+//
+// Generic behaviors
+//
+
+/**
+ * quickSelects ()
+ * Usability behavior to add automatic select-all to a field 
+ * when activating the field by mouse click
+ **/
+function quickSelects (target) {
+	(function($) {
+		if (!target) target = $('.selectall');
+		else target = $(target).find('.selectall');
+		$(target).each(function(input) {
+			$(this).mouseup(function (e) { this.select(); });
+		});
+	})(jQuery)
+}
+
+/**
+ * buttonHandlers ()
+ * Hooks callbacks to button events
+ **/
 function buttonHandlers () {
 	var inputs = document.getElementsByTagName('input');
 	for (var i = 0; i < inputs.length; i++) {
@@ -169,18 +398,46 @@ function buttonHandlers () {
 	}
 }
 
-function cartHandlers () {
-	var form = document.getElementById('cart');
-	if (form) {
-		var shipcountry = document.getElementById('shipping-country');
-		if (shipcountry) {
-			shipcountry.onchange = function () {
-				form.submit();
-			}
-		}
-	}
+/**
+ * catalogViewHandler ()
+ * Handles catalog view changes
+ **/
+function catalogViewHandler () {
+	(function($) {
+		var display = $('#shopp');
+		var expires = new Date();
+		expires.setTime(expires.getTime()+(30*86400000));
+
+		var category = $(this);
+		$(display).find('ul.views li button.list').click(function () {
+			$(display).removeClass('grid').addClass('list');
+			document.cookie = 'shopp_catalog_view=list; expires='+expires+'; path=/';
+		});
+		$(display).find('ul.views li button.grid').click(function () {
+			$(display).removeClass('list').addClass('grid');
+			document.cookie = 'shopp_catalog_view=grid; expires='+expires+'; path=/';
+		});
+
+	})(jQuery)
 }
 
+/**
+ * cartHandlers ()
+ * Adds behaviors to shopping cart controls
+ **/
+function cartHandlers () {
+	(function($) {
+		$('#cart #shipping-country').change(function () {
+			this.form.submit();
+		});
+	})(jQuery)
+}
+
+/**
+ * helpHandler ()
+ * Adds contextual help linking to the Help link in 
+ * the Shopp admin screens
+ **/
 function helpHandler () {
 	var wpwrap = document.getElementById("wpwrap");
 	if (!wpwrap) return true;
@@ -190,7 +447,7 @@ function helpHandler () {
 			var links = $(wpwrap).find("a");
 			links.each(function (index,link) {
 				var href = $(link).attr('href');
-				if (href.match(new RegExp(/(.*?)=shopp\/help$/))) {
+				if (href && href.match(new RegExp(/(.*?)=shopp\/help$/))) {
 					href = href.replace(new RegExp(/(.*?)=shopp\/help$/),helpurl);
 					$(link).attr('href',href);
 					$(link).attr('target','_blank');
@@ -209,16 +466,6 @@ function shopp_debug () {
 		$('<p></p>').html(memory_profile).appendTo(debug);
 		$('<h4></h4>').html('Queries:').appendTo(debug);
 		$('<p></p>').html('WP Total: '+wpquerytotal+'<br />Shopp Total: '+shoppquerytotal).appendTo(debug);
-		$('<h4></h4>').html('Query Statements:').appendTo(debug);
-		var querylist = $('<ul></ul>').appendTo(debug);
-		for (var q in shoppqueries) {
-			$("<li></li>").html(shoppqueries[q]).appendTo(querylist);
-		}
-
-		if (shoppobjectdump) {
-			$('<h4></h4>').html('Objects:').appendTo(debug);
-			$('<pre></pre>').html(shoppobjectdump).appendTo(debug);
-		}
 		
 		debug.click(function () {
 			overlay.remove();
@@ -229,18 +476,36 @@ function shopp_debug () {
 	})(jQuery)
 }
 
-function shopp_preview(id) {
+function shopp_gallery(id) {
 	(function($) {
-		var target = $('#preview-'+id);
-		if (!target.hasClass('active')) {
-			previous = $('#gallery ul.previews li.active');
-			target.addClass('active').hide();
-			previous.fadeOut(800,function() {
-				$(this).removeClass('active');
-			});
-			target.appendTo('#gallery ul.previews').fadeIn(500);
-		}
+		var gallery = $(id);
+		var thumbnails = gallery.find('ul.thumbnails li');
+		var previews = gallery.find('ul.previews');
+	
+		thumbnails.click(function () {
+			var target = $('#'+$(this).attr('rel'));
+			if (!target.hasClass('active')) {
+				var previous = gallery.find('ul.previews li.active');
+				target.addClass('active').hide();
+				if (previous.length) {
+					previous.fadeOut(800,function() {
+						$(this).removeClass('active');
+					});
+				}
+				target.appendTo(previews).fadeIn(500);
+			}
+		});
+		
 	})(jQuery)
+}
+
+
+function htmlentities (string) {
+	if (!string) return "";
+	string = string.replace(new RegExp(/&#(\d+);/g), function() {
+		return String.fromCharCode(RegExp.$1);
+	});
+	return string;
 }
 
 function PopupCalendar (target,month,year) {
@@ -384,12 +649,13 @@ function PopupCalendar (target,month,year) {
 		}
 	}
 	
-	/* getDayMap() -- 
+	/**
+	 * getDayMap()
 	 * Fill in an array of 42 integers with a calendar.  Assume for a moment 
 	 * that you took the (maximum) 6 rows in a calendar and stretched them 
 	 * out end to end.  You would have 42 numbers or spaces.  This routine 
-	 * builds that array for any month from Jan. 1 through Dec. 9999. */ 
-
+	 * builds that array for any month from Jan. 1 through Dec. 9999. 
+	 **/ 
 	this.getDayMap = function (month, year, start_week, all) {
 		var day = 1;
 		var c = 0;
@@ -418,7 +684,7 @@ function PopupCalendar (target,month,year) {
 	} 
 
 	/* dayInYear() -- 
-	 * return the day of the year */ 
+	 * Return the day of the year */ 
 	this.dayInYear = function (day, month, year) {
 	    var leap = (this.is_leapyear( year ))?1:0; 
 	    for(var i = 1; i < month; i++) {
@@ -464,17 +730,22 @@ function PopupCalendar (target,month,year) {
 	this.leapYearsSinceBC = function (yr) {
 		return (Math.floor(yr / 4) - this.centuriesSince1700(yr) + this.quadCenturiesSince1700(yr));
 	}
-
 	
 }
 
 addEvent(window,'load',function () {
 	buttonHandlers();
 	cartHandlers();
+	catalogViewHandler();
 	helpHandler();
+	quickSelects();
 });
 
+// Initialize placehoder variables
 var helpurl;
+var options_required;
+var options_default;
+var productOptions = new Array();
+
 // Fix for ThickBox
 var tb_pathToImage = "/wp-content/plugins/shopp/core/ui/icons/loading.gif";
-var tb_closeImage = "/wp-includes/js/thickbox/tb-close.png";

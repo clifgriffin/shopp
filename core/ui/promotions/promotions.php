@@ -1,20 +1,28 @@
 <div class="wrap shopp">
-	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="categories" method="get">
+	<h2><?php _e('Promotions','Shopp'); ?></h2>
+
+	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="promotions" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->promotions; ?>" />
 	</div>
-	<h2><?php _e('Promotions','Shopp'); ?></h2>
 
-	<p class="controls"><button type="submit" name="promotion" value="new" class="button"><?php _e('New Promotion','Shopp'); ?></button></p>
+	<p id="post-search" class="search-box">
+		<label class="hidden" for="post-search-input"><?php _e('Search Promotions','Shopp'); ?>:</label>
+		<input type="text" id="promotions-search-input" name="s" class="search-input" value="<?php echo attribute_escape($_GET['s']); ?>" />
+		<input type="submit" value="<?php _e('Search Promotions','Shopp'); ?>" class="button" />
+	</p>
+
+	<p class="search-box"><button type="submit" name="promotion" value="new" class="button"><?php _e('New Promotion','Shopp'); ?></button></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-		<div class="alignleft"><button type="submit" id="delete-button" name="deleting" value="promotion" class="button-secondary"><?php _e('Delete','Shopp'); ?></button></div>
+		<div class="alignleft actions"><button type="submit" id="delete-button" name="deleting" value="promotion" class="button-secondary"><?php _e('Delete','Shopp'); ?></button></div>
 		<br class="clear" />
 	</div>
+
 	<br class="clear" />
 
-	<table class="widefat">
+	<table class="widefat" cellspacing="0">
 		<thead>
 		<tr>
 			<th scope="col" class="check-column"><input type="checkbox" id="selectall" /></th>

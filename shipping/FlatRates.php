@@ -15,8 +15,8 @@ class FlatRates {
 	}
 	
 	function methods (&$ShipCalc) {
-		$ShipCalc->methods[get_class($this).'::order'] = "Flat Rate on order";
-		$ShipCalc->methods[get_class($this).'::item'] = "Flat Rate per item";
+		$ShipCalc->methods[get_class($this).'::order'] = __("Flat Rate on order","Shopp");
+		$ShipCalc->methods[get_class($this).'::item'] = __("Flat Rate per item","Shopp");
 	}
 	
 	function calculate (&$Cart,$rate,$column) {
@@ -29,8 +29,7 @@ class FlatRates {
 				return $shipping;
 				break;
 			default:
-				if ($Cart->freeshipping) return 0;
-				else return $rate[$column][0];
+				return $rate[$column][0];
 		}
 	}
 	

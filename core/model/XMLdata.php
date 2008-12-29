@@ -14,7 +14,8 @@ class XMLdata {
 	var $data = array();
 
 	function XMLdata ($data=false) {
-		if ($data) $this->parse($data);
+		if (!is_array($data)) $this->parse($data);
+		else $this->data = $data;
 		return true;
 	}
 
