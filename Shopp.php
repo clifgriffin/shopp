@@ -80,6 +80,10 @@ class Shopp {
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
 
+
+		register_deactivation_hook("shopp/Shopp.php", array(&$this, 'deactivate'));
+		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
+
 		// Keep any DB operations from occuring while in maintenance mode
 		if (!empty($_GET['updated']) && $this->Settings->get('maintenance') == "on") {
 			$this->Flow->upgrade();
@@ -90,9 +94,6 @@ class Shopp {
 			return true;
 		}
 		
-		register_deactivation_hook("shopp/Shopp.php", array(&$this, 'deactivate'));
-		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
-
 		// Initialize defaults if they have not been entered
 		if (!$this->Settings->get('shopp_setup')) {
 			if ($this->Settings->unavailable) return true;
