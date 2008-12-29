@@ -2322,10 +2322,12 @@ class Flow {
 		$setting = substr(DatabaseObject::tablename('setting'),strlen($table_prefix));
 		$devtable = $db->query("SHOW CREATE TABLE `$setting`");
 		if ($devtable->Table == $setting) {
+			$this->Settings->save('data_model','');
 			$devtables = array('shopp_asset', 'shopp_billing', 'shopp_cart', 'shopp_catalog', 'shopp_category', 'shopp_customer', 'shopp_discount', 'shopp_price', 'shopp_product', 'shopp_promo', 'shopp_purchase', 'shopp_purchased', 'shopp_setting', 'shopp_shipping', 'shopp_spec', 'shopp_tag');
 			$renaming = "";
 			foreach ($devtables as $oldtable) $renaming .= ((empty($renaming))?"":", ")."$oldtable TO $table_prefix$oldtable";
 			$db->query("RENAME TABLE $renaming");
+			$this->Settings = new Settings();
 		}
 
 		ob_start();
