@@ -2271,6 +2271,11 @@ class Flow {
 		else unlink($updatefile);
 		$target = trailingslashit($tmpdir);
 		
+		// Move old updates that still exist in $tmpdir to a new location
+		if (file_exists($target.$files[0]['filename']) 
+			&& is_dir($target.$files[0]['filename']))
+			rename($target.$files[0]['filename'],$updatefile.'_old_update');
+		
 		// Create file structure in working path target
 		foreach ($files as $file) {
 			if (!$file['folder'] ) {
