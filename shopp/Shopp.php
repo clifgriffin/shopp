@@ -187,6 +187,8 @@ class Shopp {
 			$this->Flow->upgrade();
 				
 		if ($this->Settings->get('shopp_setup')) {
+			$this->Settings->save('maintenance','off');
+			
 			// Publish/re-enable Shopp pages
 			$filter = "";
 			$pages = $this->Settings->get('pages');
@@ -205,14 +207,14 @@ class Shopp {
 	function deactivate() {
 		global $wpdb;
 
-		$this->Settings->save('data_model','');
-
 		// Unpublish/disable Shopp pages
 		$filter = "";
 		$pages = $this->Settings->get('pages');
 		if (!is_array($pages)) return true;
 		foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
 		if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='draft' WHERE $filter");
+
+		$this->Settings->save('data_model','');
 
 		return true;
 	}
