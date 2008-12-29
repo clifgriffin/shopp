@@ -80,7 +80,6 @@ class Shopp {
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
 
-
 		register_deactivation_hook("shopp/Shopp.php", array(&$this, 'deactivate'));
 		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
 
