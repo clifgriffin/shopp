@@ -84,7 +84,8 @@ class Shopp {
 		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
 
 		// Keep any DB operations from occuring while in maintenance mode
-		if (!empty($_GET['updated']) && $this->Settings->get('maintenance') == "on") {
+		if (!empty($_GET['updated']) && 
+				($this->Settings->get('maintenance') == "on" || $this->Settings->unavailable)) {
 			$this->Flow->upgrade();
 			$this->Settings->save("maintenance","off");
 		} elseif ($this->Settings->get('maintenance') == "on") {
