@@ -7,12 +7,11 @@
 	</div>
 
 	<p id="post-search" class="search-box">
-		<label class="hidden" for="post-search-input"><?php _e('Search Promotions','Shopp'); ?>:</label>
 		<input type="text" id="promotions-search-input" name="s" class="search-input" value="<?php echo attribute_escape($_GET['s']); ?>" />
 		<input type="submit" value="<?php _e('Search Promotions','Shopp'); ?>" class="button" />
 	</p>
 
-	<p class="search-box"><button type="submit" name="promotion" value="new" class="button"><?php _e('New Promotion','Shopp'); ?></button></p>
+	<p><button type="submit" name="promotion" value="new" class="button"><?php _e('New Promotion','Shopp'); ?></button></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>

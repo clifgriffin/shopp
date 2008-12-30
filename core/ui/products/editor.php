@@ -139,7 +139,7 @@
 				</li>
 				
 				<li>
-					<div id="variations-list" class="multiple-select options"></div><br />
+					<div id="variations-list" class="multiple-select options"></div>
 					<div class="controls right">
 					<button type="button" id="addVariationOption" class="button-secondary" tabindex="15"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
 					</div>
