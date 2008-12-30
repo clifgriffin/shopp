@@ -131,7 +131,6 @@
 				} else {
 					target.html('<div id="status" class="updating">'+CANCELLING_MESSAGE+'</div>');
 					alert("<?php _e('An error occurred while trying to update.  The update failed.  This is what Shopp says happened:','Shopp'); ?>\n"+result);
-					alert(adminurl+'&page=shopp/settings&edit=update&updated=true');
 					window.location.href = adminurl+'&page=shopp/settings&edit=update&updated=true';
 				}
 			},
