@@ -80,8 +80,12 @@ class Shopp {
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
 
+		register_deactivation_hook("shopp/Shopp.php", array(&$this, 'deactivate'));
+		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
+
 		// Keep any DB operations from occuring while in maintenance mode
-		if (!empty($_GET['updated']) && $this->Settings->get('maintenance') == "on") {
+		if (!empty($_GET['updated']) && 
+				($this->Settings->get('maintenance') == "on" || $this->Settings->unavailable)) {
 			$this->Flow->upgrade();
 			$this->Settings->save("maintenance","off");
 		} elseif ($this->Settings->get('maintenance') == "on") {
@@ -90,9 +94,6 @@ class Shopp {
 			return true;
 		}
 		
-		register_deactivation_hook("shopp/Shopp.php", array(&$this, 'deactivate'));
-		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
-
 		// Initialize defaults if they have not been entered
 		if (!$this->Settings->get('shopp_setup')) {
 			if ($this->Settings->unavailable) return true;
@@ -187,6 +188,8 @@ class Shopp {
 			$this->Flow->upgrade();
 				
 		if ($this->Settings->get('shopp_setup')) {
+			$this->Settings->save('maintenance','off');
+			
 			// Publish/re-enable Shopp pages
 			$filter = "";
 			$pages = $this->Settings->get('pages');
@@ -205,14 +208,14 @@ class Shopp {
 	function deactivate() {
 		global $wpdb;
 
-		$this->Settings->save('data_model','');
-
 		// Unpublish/disable Shopp pages
 		$filter = "";
 		$pages = $this->Settings->get('pages');
 		if (!is_array($pages)) return true;
 		foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
 		if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='draft' WHERE $filter");
+
+		$this->Settings->save('data_model','');
 
 		return true;
 	}

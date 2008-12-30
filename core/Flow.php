@@ -2271,6 +2271,11 @@ class Flow {
 		else unlink($updatefile);
 		$target = trailingslashit($tmpdir);
 		
+		// Move old updates that still exist in $tmpdir to a new location
+		if (file_exists($target.$files[0]['filename']) 
+			&& is_dir($target.$files[0]['filename']))
+			rename($target.$files[0]['filename'],$updatefile.'_old_update');
+		
 		// Create file structure in working path target
 		foreach ($files as $file) {
 			if (!$file['folder'] ) {
@@ -2309,7 +2314,7 @@ class Flow {
 	}
 		
 	function upgrade () {
-		global $table_prefix;
+		global $Shopp,$table_prefix;
 		$db = DB::get();
 		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
 		
@@ -2322,10 +2327,12 @@ class Flow {
 		$setting = substr(DatabaseObject::tablename('setting'),strlen($table_prefix));
 		$devtable = $db->query("SHOW CREATE TABLE `$setting`");
 		if ($devtable->Table == $setting) {
+			$this->Settings->save('data_model','');
 			$devtables = array('shopp_asset', 'shopp_billing', 'shopp_cart', 'shopp_catalog', 'shopp_category', 'shopp_customer', 'shopp_discount', 'shopp_price', 'shopp_product', 'shopp_promo', 'shopp_purchase', 'shopp_purchased', 'shopp_setting', 'shopp_shipping', 'shopp_spec', 'shopp_tag');
 			$renaming = "";
 			foreach ($devtables as $oldtable) $renaming .= ((empty($renaming))?"":", ")."$oldtable TO $table_prefix$oldtable";
 			$db->query("RENAME TABLE $renaming");
+			$Shopp->Settings = new Settings();
 		}
 
 		ob_start();
