@@ -6,12 +6,11 @@
 		<input type="hidden" name="page" value="<?php echo $this->Admin->categories; ?>" />
 	</div>
 
-	<p class="search-box"><button type="submit" name="edit" value="new" class="button"><?php _e('New Category','Shopp'); ?></button></p>
 	<p id="post-search" class="search-box">
-		<label class="hidden" for="post-search-input"><?php _e('Search Categories','Shopp'); ?>:</label>
 		<input type="text" id="categories-search-input" class="search-input" name="s" value="<?php echo attribute_escape($_GET['s']); ?>" />
 		<input type="submit" value="<?php _e('Search Categories','Shopp'); ?>" class="button" />
 	</p>
+	<p><button type="submit" name="edit" value="new" class="button"><?php _e('New Category','Shopp'); ?></button></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>

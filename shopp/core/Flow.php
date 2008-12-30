@@ -1054,6 +1054,7 @@ class Flow {
 		if ($_GET['edit'] != "new") {
 			$Product = new Product($_GET['edit']);
 			$Product->load_data(array('prices','specs','categories','tags'));
+			$Product->published = "on";
 		} else $Product = new Product();
 
 		if (!empty($_POST['save']) || !empty($_POST['save-products'])) {

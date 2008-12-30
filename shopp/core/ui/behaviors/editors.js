@@ -542,21 +542,28 @@ function addPriceLine (target,options,data,attachment) {
 	salepriceToggle.change(function () {
 		salepriceStatus.toggle();
 		salepriceField.toggle();
+		if ($.browser.msie) $(this).blur();
 	}).click(function () {
+		if ($.browser.msie) $(this).change();
 		if (this.checked) saleprice.focus().select();
+		
 	});
 
 	shippingToggle.change(function () {
 		shippingStatus.toggle();
 		shippingFields.toggle();
+		if ($.browser.msie) $(this).blur();
 	}).click(function () {
+		if ($.browser.msie) $(this).change();
 		if (this.checked) weight.focus().select();
 	});
 	
 	inventoryToggle.change(function () {
 		inventoryStatus.toggle();
 		inventoryField.toggle();
+		if ($.browser.msie) $(this).blur();
 	}).click(function () {
+		if ($.browser.msie) $(this).change();
 		if (this.checked) stock.focus().select();
 	});
 	
@@ -894,7 +901,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 			loaded : false,
 			targetCell : false,
 			targetLine : false,
-			progressBar : false,
+			progressBar : false
 		},
 		debug: false
 		

@@ -23,7 +23,7 @@
 						<label for="ftp-username"><?php _e('Enter your FTP username','Shopp'); ?></label></div>
 						<div><input type="password" name="password" id="ftp-password" size="20" value="<?php echo attribute_escape($credentials['password']); ?>" /><br />
 						<label for="ftp-password"><?php _e('Enter your FTP password','Shopp'); ?></label></div><br />
-						<div><input type="button" name="ftp-settings" id="ftp-continue" value="<?php _e('Continue Updates&hellip;','Shopp'); ?>" class="button-secondary" /></div>
+						<div><input type="submit" name="ftp-settings" id="ftp-continue" value="<?php _e('Continue Updates&hellip;','Shopp'); ?>" class="button-secondary" /></div>
 					</div>
 					</td>
 			</tr>			
@@ -178,7 +178,7 @@
 	
 	function ftpfailure () {
 		$('#status').hide();
-		$('#ftp-continue').click(function () { setftp(); });
+		$('#ftp-continue').click(function () { setftp(); return false; });
 		$('#ftp-credentials').show();
 	}
 	
