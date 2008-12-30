@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0RC3
+Version: 1.0
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0RC3");
+define("SHOPP_VERSION","1.0");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -84,7 +84,8 @@ class Shopp {
 		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
 
 		// Keep any DB operations from occuring while in maintenance mode
-		if (!empty($_GET['updated']) && $this->Settings->get('maintenance') == "on") {
+		if (!empty($_GET['updated']) && 
+				($this->Settings->get('maintenance') == "on" || $this->Settings->unavailable)) {
 			$this->Flow->upgrade();
 			$this->Settings->save("maintenance","off");
 		} elseif ($this->Settings->get('maintenance') == "on") {

@@ -2314,7 +2314,7 @@ class Flow {
 	}
 		
 	function upgrade () {
-		global $table_prefix;
+		global $Shopp,$table_prefix;
 		$db = DB::get();
 		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
 		
@@ -2332,7 +2332,7 @@ class Flow {
 			$renaming = "";
 			foreach ($devtables as $oldtable) $renaming .= ((empty($renaming))?"":", ")."$oldtable TO $table_prefix$oldtable";
 			$db->query("RENAME TABLE $renaming");
-			$this->Settings = new Settings();
+			$Shopp->Settings = new Settings();
 		}
 
 		ob_start();
