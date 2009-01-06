@@ -236,6 +236,7 @@ CREATE TABLE <?php echo $purchase; ?> (
 	shipcountry varchar(2) NOT NULL default '',
 	shippostcode varchar(10) NOT NULL default '',
 	geocode varchar(16) NOT NULL default '',
+	promos varchar(255) NOT NULL default '',
 	subtotal float(20,2) NOT NULL default '0.00',
 	freight float(20,2) NOT NULL default '0.00',
 	tax float(20,2) NOT NULL default '0.00',

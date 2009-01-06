@@ -3,6 +3,7 @@
 
 	<?php include("navigation.php"); ?>
 
+	<br class="clear" />
 	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" />

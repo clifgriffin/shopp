@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0
+Version: 1.0.1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0");
+define("SHOPP_VERSION","1.0.1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -139,14 +139,14 @@ class Shopp {
 	}
 	
 	function init() {
+		$pages = $this->Settings->get('pages');
 		if (SHOPP_PERMALINKS) {
-			$pages = $this->Settings->get('pages');
 			$this->shopuri = $this->link('catalog');
 			if ($this->shopuri == trailingslashit(get_bloginfo('wpurl'))) $this->shopuri .= "{$pages['catalog']['name']}/";
 			if ($this->secure) $this->shopuri = str_replace('http://','https://',$this->shopuri);
 			$this->imguri = trailingslashit($this->shopuri)."images/";
 		} else {
-			$this->shopuri = get_bloginfo('wpurl');
+			$this->shopuri = add_query_arg('page_id',$pages['catalog']['id'],get_bloginfo('wpurl'));
 			$this->imguri = add_query_arg('shopp_image','=',get_bloginfo('wpurl'));
 		} 
 		
@@ -276,13 +276,13 @@ class Shopp {
 			 isset($_GET['edit'])) {
 			wp_enqueue_script('shopp.editor.lib',"{$this->uri}/core/ui/behaviors/editors.js");
 			wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js");
-			//wp_enqueue_script('jquery.tablednd',"{$this->uri}/core/ui/jquery/jquery.tablednd.js",array('jquery'),'');
 			wp_enqueue_script('shopp.ocupload',"{$this->uri}/core/ui/behaviors/ocupload.js");
 			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery-ui-core'), '1.5');
 			
-			wp_enqueue_script('swfupload');
-			if (version_compare($wp_version,"2.6.9","<")) wp_enqueue_script('swfupload-degrade');
-			else wp_enqueue_script('swfupload-swfobject');
+			wp_enqueue_script('shopp.swfupload',"{$this->uri}/core/ui/behaviors/swfupload/swfupload.js");
+			wp_enqueue_script('shopp.swfupload.swfobject',"{$this->uri}/core/ui/behaviors/swfupload/plugins/swfupload.swfobject.js");
+			// if (version_compare($wp_version,"2.6.9","<")) wp_enqueue_script('swfupload-degrade');
+			// else wp_enqueue_script('swfupload-swfobject');
 		}
 		
 		?>
@@ -334,6 +334,16 @@ class Shopp {
 	function behaviors () {
 		global $wp_query;
 		$object = $wp_query->get_queried_object();
+
+		if($_SERVER["HTTPS"] == "on") {
+			add_filter('option_siteurl', 'force_ssl');
+			add_filter('option_home', 'force_ssl');
+			add_filter('option_url', 'force_ssl');
+			add_filter('option_wpurl', 'force_ssl');
+			add_filter('option_stylesheet_url', 'force_ssl');
+			add_filter('option_template_url', 'force_ssl');
+			add_filter('script_loader_src', 'force_ssl');
+		}
 		
 		// Determine which tag is getting used in the current post/page
 		$tag = false;
@@ -347,12 +357,13 @@ class Shopp {
 		add_action('wp_head', array(&$this, 'header'));
 		add_action('wp_footer', array(&$this, 'footer'));
 		wp_enqueue_script('jquery');
-		wp_enqueue_script('shopp-settings',"$this->shopuri?shopp_lookup=settings.js");
+		wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',$this->shopuri));
 		wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
 		wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js");
 
 		if ($tag == "checkout")
 			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js");		
+		
 			
 	}
 		
@@ -476,24 +487,24 @@ class Shopp {
 
 		// catalog/category/category-slug
 		if (empty($shop)) {
-			$rules[$catalog.'/category/([a-zA-Z0-9_\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$catalog.'/category/([a-zA-Z0-9_\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$catalog.'/category/([a-zA-Z0-9_\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]';
+			$rules[$catalog.'/category/([\w_\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$catalog.'/category/([\w_\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$catalog.'/category/([\w_\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]';
 		} else {
-			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'category/([a-zA-Z0-9_\-\/]+?)?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
+			$rules[$shop.'category/([\w_\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$shop.'category/([\w_\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$shop.'category/([\w_\-\/]+?)?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
 		}
 
 		// tags
 		if (empty($shop)) {
-			$rules[$catalog.'/tag/([a-zA-Z0-9%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
-			$rules[$catalog.'/tag/([a-zA-Z0-9%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_tag=$matches[1]&paged=$matches[2]';
-			$rules[$catalog.'/tag/([a-zA-Z0-9%_\+\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_tag=$matches[1]';
+			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
+			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_tag=$matches[1]&paged=$matches[2]';
+			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_tag=$matches[1]';
 		} else {
-			$rules[$shop.'tag/([a-zA-Z0-9%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
-			$rules[$shop.'tag/([a-zA-Z0-9%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_tag=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'tag/([a-zA-Z0-9%_\+\-\/]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_tag=$matches[1]';
+			$rules[$shop.'tag/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
+			$rules[$shop.'tag/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_tag=$matches[1]&paged=$matches[2]';
+			$rules[$shop.'tag/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_tag=$matches[1]';
 		}
 
 		// catalog/productid
@@ -501,8 +512,8 @@ class Shopp {
 		else $rules[$shop.'(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$shop.'&shopp_pid=$matches[1]';
 
 		// catalog/category/product-slug
-		if (empty($shop)) $rules[$catalog.'/([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
-		else $rules[$shop.'([a-zA-Z0-9_\-\/]+?)/([a-zA-Z0-9_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
+		if (empty($shop)) $rules[$catalog.'/([\w_\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
+		else $rules[$shop.'([\w_\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
 
 		return $rules + $wp_rewrite_rules;
 	}
@@ -611,12 +622,12 @@ class Shopp {
 
 	function feeds () {
 		if (empty($this->Category)):?>
-	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'/feed/':'?shopp_lookup=newproducts-rss'); ?>" />
+	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'/feed/':'&shopp_lookup=newproducts-rss'); ?>" />
 	<?php
 			else:
 			$uri = 'category/'.$this->Category->uri;
 			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
-			$link = $this->shopuri.((SHOPP_PERMALINKS)?'/'.$uri.'/feed/':'?shopp_category='.$this->Category->id.'&shopp_lookup=category-rss')
+			$link = $this->shopuri.((SHOPP_PERMALINKS)?'/'.$uri.'/feed/':'&shopp_category='.$this->Category->id.'&shopp_lookup=category-rss')
 			?>
 	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> <?php echo $this->Category->name; ?> RSS Feed" href="<?php echo $link; ?>" />
 	<?php
@@ -647,7 +658,7 @@ class Shopp {
 	 * header()
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function header () {		
-		?><link rel='stylesheet' href='<?php echo $this->shopuri; ?>?shopp_lookup=catalog.css' type='text/css' />
+		?><link rel='stylesheet' href='<?php echo add_query_arg('shopp_lookup','catalog.css',$this->shopuri); ?>' type='text/css' />
 		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css' type='text/css' />
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css' type='text/css' />
 		<?php
@@ -682,7 +693,6 @@ class Shopp {
 		$pages = $this->Settings->get('pages');
 		// echo "<pre>"; print_r($wp->query_vars); echo "</pre>";
 		
-		
 		$type = "catalog";
 		if ($category = $wp->query_vars['shopp_category']) $type = "category";
 		if ($productid = $wp->query_vars['shopp_pid']) $type = "product";
@@ -697,6 +707,7 @@ class Shopp {
 		if (!empty($wp->query_vars['s']) && // Search query is present and...
 			// The referering page is includes a Shopp catalog page path
 			(strpos($referer,$this->link('catalog')) !== false || 
+				strpos($referer,'page_id='.$pages['catalog']['id']) !== false || 
 				// Or the referer was a search that matches the last recorded Shopp search
 				substr($referer,-1*(strlen($this->Cart->data->Search))) == $this->Cart->data->Search || 
 				// Or the blog URL matches the Shopp catalog URL (Takes over search for store-only search)
@@ -718,10 +729,6 @@ class Shopp {
 		}
 
 		if (!empty($category) || !empty($tag)) {
-			if (strpos($category,"/") !== false) {
-				$categories = split("/",$category);
-				$category = end($categories);
-			}
 			
 			switch ($category) {
 				case SearchResults::$slug: 
@@ -734,12 +741,11 @@ class Shopp {
 				case OnSaleProducts::$slug: $this->Category = new OnSaleProducts(); break;
 				default:
 					$key = "id";
-					if (!preg_match("/\d+/",$category)) $key = "slug";
+					if (!preg_match("/^\d+$/",$category)) $key = "uri";
 					$this->Category = new Category($category,$key);
 			}
 
 		}
-		
 		
 		// Category Filters
 		if (!empty($this->Category->slug)) {
@@ -942,7 +948,6 @@ class Shopp {
 	 * Provides fast db lookups with as little overhead as possible */
 	function lookups($wp) {
 		// global $wp_rewrite;
-		// $pages = $this->Settings->get('pages');
 		// echo "<pre>"; print_r($wp); echo "</pre>";
 		// echo "<pre>"; print_r($wp_rewrite); echo "</pre>";
 		// echo "<pre>"; print_r($pages); echo "</pre>";
@@ -1053,9 +1058,11 @@ class Shopp {
 					exit();
 				}
 				
-				header ("Content-type: ".$Asset->properties['mimetype']); 
-				header ("Content-Disposition: inline; filename=".$Asset->name); 
-				header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+				header("Content-type: ".$Asset->properties['mimetype']); 
+				header("Content-Disposition: inline; filename=\"".$Asset->name."\""); 
+				header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+				header("Cache-Control: maxage=1");
+				header("Pragma: public");
 				if ($storage == "fs") {
 					$filepath = join("/",array($path,$Asset->value,$Asset->name));
 					header ("Content-length: ".@filesize($filepath)); 
@@ -1084,32 +1091,30 @@ class Shopp {
 				if (!empty($_GET['name'])) {
 					$Catalog = new Catalog();
 					$Catalog->load_categories();
-					
+
 					$Category = new Category();
 					$Category->name = $_GET['name'];
 					$Category->slug = sanitize_title_with_dashes($Category->name);
 					$Category->parent = $_GET['parent'];
-
+										
 					// Work out pathing
 					$paths = array();
-					if (!empty($Category->slug)) $paths = array($Category->slug);
-					$uri = "/".$Category->slug;
+					if (!empty($Category->slug)) $paths = array($Category->slug);  // Include self
 
+					$parentkey = -1;
 					// If we're saving a new category, lookup the parent
-					for ($i = count($this->Catalog->categories); $i > 0; $i--)
-						if ($Category->parent == $this->Catalog->categories[$i]->id) break;
-						array_unshift($paths,$this->Catalog->categories[$i]->slug);
-					$uri = "/".$this->Catalog->categories[$i]->slug.$uri;
-
-					$parentkey = $this->Catalog->categories[$i]->parentkey;
-					while ($parentkey > -1) {
-						$tree_category = $this->Catalog->categories[$parentkey];
-						array_unshift($paths,$tree_category->slug);
-						$uri = "/".$tree_category->slug.$uri;
-						$parentkey = $tree_category->parentkey;
+					if ($Category->parent > 0) {
+						array_unshift($paths,$Catalog->categories[$Category->parent]->slug);
+						$parentkey = $Catalog->categories[$Category->parent]->parent;
 					}
 
-					$Category->uri = join("/",$paths);
+					while ($category_tree = $Catalog->categories[$parentkey]) {
+						array_unshift($paths,$category_tree->slug);
+						$parentkey = $category_tree->parent;
+					}
+
+					if (count($paths) > 1) $Category->uri = join("/",$paths);
+					else $Category->uri = $paths[0];
 					
 					$Category->save();
 					echo json_encode($Category);
@@ -1220,6 +1225,7 @@ function shopp () {
 	switch (strtolower($object)) {
 		case "cart": $result = $Shopp->Cart->tag($property,$options); break;
 		case "cartitem": $result = $Shopp->Cart->itemtag($property,$options); break;
+		case "shipping": $result = $Shopp->Cart->shippingtag($property,$options); break;
 		case "checkout": $result = $Shopp->Cart->checkouttag($property,$options); break;
 		case "category": $result = $Shopp->Category->tag($property,$options); break;
 		case "catalog": $result = $Shopp->Catalog->tag($property,$options); break;
