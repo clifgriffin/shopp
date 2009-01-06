@@ -1447,7 +1447,7 @@ class Flow {
 			}
 			
 			if (count($paths) > 1) $_POST['uri'] = join("/",$paths);
-			else $_POST['uri'] = $paths;
+			else $_POST['uri'] = $paths[0];
 			
 			if (!empty($_POST['deleteImages'])) {			
 				$deletes = array();
