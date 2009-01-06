@@ -117,43 +117,63 @@ class Product extends DatabaseObject {
 			switch($rtype) {
 				case "prices":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."$set->_table.product=$id";
-					$query .= "(SELECT $set->_table.product AS product,'$rtype' AS rtype,$cols FROM $set->_table 
+					$query .= "(SELECT '$set->_table' as dataset,$set->_table.product AS product,'$rtype' AS rtype,'' AS alphaorder,$set->_table.sortorder AS sortorder,$cols FROM $set->_table 
 								LEFT JOIN $assettable AS download ON $set->_table.id=download.parent AND download.context='price' AND download.datatype='download' 
 								LEFT JOIN $discounttable AS discount ON discount.product=$set->_table.product AND discount.price=$set->_table.id
 								LEFT JOIN $promotable AS promo ON promo.id=discount.promo
-								WHERE $where GROUP BY $set->_table.id ORDER BY $set->_table.sortorder)";					
+								WHERE $where GROUP BY $set->_table.id)";
 					break;
 				case "images":
 					$ordering = $Shopp->Settings->get('product_image_order');
+					if (empty($ordering)) $ordering = "ASC";
 					$orderby = $Shopp->Settings->get('product_image_orderby');
-					if (empty($orderby)) $ordering = "sortorder";
-					if ($ordering == "RAND()") $orderby = $ordering;
-					else $orderby .= ' '.$ordering;
-					
+
+					$sortorder = "0";
+					if ($orderby == "sortorder" || $orderby == "created") {
+						if ($orderby == "created") $orderby = "UNIX_TIMESTAMP(created)";
+						switch ($ordering) {
+							case "DESC": $sortorder = "$orderby*-1"; break;
+							case "RAND": $sortorder = "RAND()"; break;
+							default: $sortorder = "$orderby";
+						}
+					}
+
+					$alphaorder = "''";
+					if ($orderby == "name") {
+						switch ($ordering) {
+							case "DESC": $alphaorder = "$orderby"; break;
+							case "RAND": $alphaorder = "RAND()"; break;
+							default: $alphaorder = "$orderby";
+						}
+					}
+
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."parent=$id";
 					$where = "($where) AND context='product'";
-					$query .= "(SELECT parent AS product,'$rtype' AS rtype,$cols FROM $set->_table WHERE $where ORDER BY $orderby)";
+					$query .= "(SELECT '$set->_table' as dataset,parent AS product,'$rtype' AS rtype,$alphaorder AS alphaorder,$sortorder AS sortorder,$cols FROM $set->_table WHERE $where ORDER BY $orderby)";
 					break;
 				case "specs":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."product=$id";
-					$query .= "(SELECT product,'$rtype' AS rtype,$cols FROM $set->_table WHERE $where ORDER BY sortorder)";
+					$query .= "(SELECT '$set->_table' as dataset,product,'$rtype' AS rtype,'' AS alphaorder,sortorder AS sortorder,$cols FROM $set->_table WHERE $where)";
 					break;
 				case "categories":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."catalog.product=$id";
 					$where = "($where) AND catalog.category > 0";
-					$query .= "(SELECT catalog.product AS product,'$rtype' AS rtype,$cols FROM {$Shopp->Catalog->_table} AS catalog LEFT JOIN $set->_table ON catalog.category=$set->_table.id WHERE $where ORDER BY $set->_table.name)";
+					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM {$Shopp->Catalog->_table} AS catalog LEFT JOIN $set->_table ON catalog.category=$set->_table.id WHERE $where)";
 					break;
 				case "tags":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."catalog.product=$id";
 					$where = "($where) AND catalog.tag > 0";
-					$query .= "(SELECT catalog.product AS product,'$rtype' AS rtype,$cols FROM {$Shopp->Catalog->_table} AS catalog LEFT JOIN $set->_table ON catalog.tag=$set->_table.id WHERE $where ORDER BY tag.name)";
+					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM {$Shopp->Catalog->_table} AS catalog LEFT JOIN $set->_table ON catalog.tag=$set->_table.id WHERE $where)";
 					break;
 			}
 		}
-
+		
+		// Add order by columns
+		$query .= " ORDER BY sortorder";
+		
 		// Execute the query
 		$data = $db->query($query,AS_ARRAY);
-
+		
 		// Process the results into specific product object data in a product set
 		if (is_array($products)) {
 			// Load into passed product set
@@ -450,15 +470,24 @@ class Product extends DatabaseObject {
 		global $Shopp;
 				
 		switch ($property) {
+			case "link": 
 			case "url": 
-				$url = trailingslashit($Shopp->shopuri);
+				$url = $Shopp->shopuri;
 				if (isset($Shopp->Category->uri)) $category = $Shopp->Category->uri;
 				else $category = "new";
 				if (SHOPP_PERMALINKS) $url .= "$category/$this->slug/";
-				else $url = add_query_arg('shopp_pid',$this->id,$url);
+				else $url = add_query_arg(
+						array('shopp_category' => $Shopp->Category->id, 
+							  'shopp_pid' => $this->id),$url);
 				return $url;
 				break;
-			case "found": if (!empty($this->id)) return true; else return false; break;
+			case "found": 
+				if (empty($this->id)) return false;
+				$load = array('prices','images','specs');
+				if (isset($options['load'])) $load = split(",",$options['load']);
+				$this->load_data($load);
+				return true;
+				break;
 			case "id": return $this->id; break;
 			case "name": return $this->name; break;
 			case "slug": return $this->slug; break;
@@ -816,6 +845,14 @@ class Product extends DatabaseObject {
 					if (!empty($this->prices[0])) $string .= '<input type="hidden" name="products['.$this->id.'][price]" value="'.$this->prices[0]->id.'" />';
 				}
 				$string .= '<input type="hidden" name="cart" value="add" />';
+				if (!empty($Shopp->Category)) {
+					if (SHOPP_PERMALINKS)
+						$string .= '<input type="hidden" name="products['.$this->id.'][category]" value="'.$Shopp->Category->uri.'" />';
+					else
+						$string .= '<input type="hidden" name="products['.$this->id.'][category]" value="'.$Shopp->Category->id.'" />';
+					
+					
+				}
 				if (isset($options['ajax'])) {
 					$options['class'] .= " ajax";
 					$string .= '<input type="hidden" name="ajax" value="true" />';

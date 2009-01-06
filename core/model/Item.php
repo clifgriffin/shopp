@@ -12,6 +12,7 @@
 class Item {
 	var $product;
 	var $price;
+	var $category;
 	var $sku;
 	var $type;
 	var $name;
@@ -31,7 +32,7 @@ class Item {
 	var $inventory = false;
 	var $tax = false;
 
-	function Item ($Product,$pricing) {
+	function Item ($Product,$pricing,$category) {
 		global $Shopp; // To access settings
 
 		$Product->load_data(array('prices','images'));
@@ -46,8 +47,10 @@ class Item {
 				
 		$this->product = $Product->id;
 		$this->price = $Price->id;
+		$this->category = $category;
 		$this->option = $Price;
 		$this->name = $Product->name;
+		$this->slug = $Product->slug;
 		$this->description = $Product->summary;
 		$this->thumbnail = $Product->thumbnail;
 		$this->options = $Product->prices;
@@ -121,6 +124,7 @@ class Item {
 	function tag ($id,$property,$options=array()) {
 		global $Shopp;
 		
+		
 		$url = "&amp;shopp_pid=".$this->product;
 		$imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
 		if (SHOPP_PERMALINKS) {
@@ -135,7 +139,12 @@ class Item {
 		switch ($property) {
 			case "id": return $id;
 			case "name": return $this->name;
-			case "url": return $Shopp->link('catalog').$url;
+			case "link":
+			case "url": 
+				return (SHOPP_PERMALINKS)?
+					$Shopp->shopuri.$this->category."/".$this->slug:
+						add_query_arg(array('shopp_category' => $this->category,
+											'shopp_pid' => $this->product),$Shopp->shopuri);
 			case "sku": return $this->sku;
 		}
 		

@@ -294,8 +294,11 @@ class Flow {
 						$pricing = $Request['options'];
 					else $pricing = $Request['price'];
 					
+					$category = false;
+					if (!empty($Request['category'])) $category = $Request['category'];
+					
 					if (isset($Request['item'])) $result = $Cart->change($Request['item'],$Product,$pricing);
-					else $result = $Cart->add($quantity,$Product,$pricing);
+					else $result = $Cart->add($quantity,$Product,$pricing,$category);
 				}
 				
 				if (isset($Request['products']) && is_array($Request['products'])) {
@@ -308,9 +311,12 @@ class Flow {
 							$pricing = $product['options'];
 						else $pricing = $product['price'];
 						
+						$category = false;
+						if (!empty($product['category'])) $category = $product['category'];
+						
 						if (!empty($Product->id)) {
 							if (isset($product['item'])) $result = $Cart->change($product['item'],$Product,$pricing);
-							else $result = $Cart->add($quantity,$Product,$pricing);
+							else $result = $Cart->add($quantity,$Product,$pricing,$category);
 						}
 					}
 					
@@ -363,6 +369,7 @@ class Flow {
 			$AjaxCart->Contents[] = $item;
 		}
 		echo json_encode($AjaxCart);
+		exit();
 	}
 
 	function cart ($attrs=array()) {
@@ -607,6 +614,7 @@ class Flow {
 			$Purchase->billing = $Order->Billing->id;
 			$Purchase->shipping = $Order->Shipping->id;
 			$Purchase->data = $Order->data;
+			$Purchase->promos = $Shopp->Cart->data->PromosApplied;
 			$Purchase->copydata($Order->Customer);
 			$Purchase->copydata($Order->Billing);
 			$Purchase->copydata($Order->Shipping,'ship');
@@ -1054,6 +1062,7 @@ class Flow {
 		if ($_GET['edit'] != "new") {
 			$Product = new Product($_GET['edit']);
 			$Product->load_data(array('prices','specs','categories','tags'));
+			
 			$Product->published = "on";
 		} else $Product = new Product();
 
@@ -1428,19 +1437,17 @@ class Flow {
 			$parentkey = -1;
 			// If we're saving a new category, lookup the parent
 			if ($_POST['parent'] > 0) {
-				for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
-					if ($_POST['parent'] == $Shopp->Catalog->categories[$i]->id) break;
-				array_unshift($paths,$Shopp->Catalog->categories[$i]->slug);
-				$parentkey = $Shopp->Catalog->categories[$i]->parentkey;
+				array_unshift($paths,$Shopp->Catalog->categories[$_POST['parent']]->slug);
+				$parentkey = $Shopp->Catalog->categories[$_POST['parent']]->parent;
 			}
 
-			while ($parentkey > -1) {
-				$category_tree = $Shopp->Catalog->categories[$parentkey];
+			while ($category_tree = $Shopp->Catalog->categories[$parentkey]) {
 				array_unshift($paths,$category_tree->slug);
-				$parentkey = $category_tree->parentkey;
+				$parentkey = $category_tree->parent;
 			}
-
-			$_POST['uri'] = join("/",$paths);
+			
+			if (count($paths) > 1) $_POST['uri'] = join("/",$paths);
+			else $_POST['uri'] = $paths;
 			
 			if (!empty($_POST['deleteImages'])) {			
 				$deletes = array();
@@ -1486,8 +1493,8 @@ class Flow {
 		$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
 				
 		include("{$this->basepath}/core/ui/categories/category.php");
-	}	
-	
+	}
+		
 	function category_menu ($selection=false,$current=false) {
 		$db = DB::get();
 		$table = DatabaseObject::tablename(Category::$table);			
@@ -1815,7 +1822,7 @@ class Flow {
 		
 		$orderOptions = array("ASC" => __('Order','Shopp'),
 							  "DESC" => __('Reverse Order','Shopp'),
-							  "RAND()" => __('Shuffle','Shopp'));
+							  "RAND" => __('Shuffle','Shopp'));
 
 		$orderBy = array("sortorder" => __('Custom arrangement','Shopp'),
 						 "name" => __('File name','Shopp'),
@@ -2004,6 +2011,8 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
+		$ftpsupport = (function_exists('ftp_connect'))?true:false;
+		
 		$credentials = $this->Settings->get('ftp_credentials');		
 		$updatekey = $this->Settings->get('updatekey');
 		if (empty($updatekey)) 
@@ -2344,6 +2353,11 @@ class Flow {
 		// Update the table schema
 		$tables = preg_replace('/;\s+/',';',$schema);
 		dbDelta($tables);
+		
+		$this->setup_regions();
+		$this->setup_countries();
+		$this->setup_zones();
+		$this->setup_areas();
 		
 		// Update the version number
 		$settings = DatabaseObject::tablename(Settings::$table);

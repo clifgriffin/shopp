@@ -389,10 +389,11 @@ class Category extends DatabaseObject {
 		}
 		
 		switch ($property) {
+			case "link": 
+			case "url": return (SHOPP_PERMALINKS)?$Shopp->shopuri."category/$this->uri":add_query_arg('shopp_category',$this->id,$Shopp->shopuri); break;
 			case "name": return $this->name; break;
 			case "slug": return $this->slug; break;
 			case "description": return wpautop($this->description); break;
-			case "link": return (SHOPP_PERMALINKS)?"$page"."category/$this->uri":"$page&shopp_category=$this->id"; break;
 			case "total": return $this->total; break;
 			case "hasproducts": 
 				if (isset($options['load'])) {

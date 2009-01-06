@@ -151,8 +151,8 @@ class Cart {
 	/**
 	 * add()
 	 * Adds a product as an item to the cart */
-	function add ($quantity,&$Product,&$Price) {
-		$NewItem = new Item($Product,$Price);
+	function add ($quantity,&$Product,&$Price,$category) {
+		$NewItem = new Item($Product,$Price,$category);
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
 			$this->added = $this->contents[$item];
@@ -658,18 +658,19 @@ class Cart {
 		global $Shopp;
 		$ShipCosts =& $this->data->ShipCosts;
 		$result = "";
-			
+		
 		switch ($property) {
 			case "hasestimates": return (count($ShipCosts) > 0); break;
 			case "methods":			
-				if (!$this->looping) {
+				if (!$this->sclooping) {
 					reset($ShipCosts);
-					$this->looping = true;
+					$this->sclooping = true;
 				} else next($ShipCosts);
 				
 				if (current($ShipCosts)) return true;
 				else {
-					$this->looping = false;
+					$this->sclooping = false;
+					reset($ShipCosts);
 					return false;
 				}
 				break;

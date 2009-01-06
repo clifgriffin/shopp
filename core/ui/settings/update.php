@@ -150,7 +150,11 @@
 		markup += '</ul>';
 		
 		<?php if ($updatekey['status'] == "activated"): ?>
-		markup += '<p><button type="button" name="update" id="update-button" class="button-secondary"><?php _e("Install Updates","Shopp"); ?></button></p>';
+			<?php if (!$ftpsupport): ?>
+			markup += '<p class="shopp error"><?php _e("Your server does not have FTP support enabled. Automatic update not available.","Shopp"); ?></p>';
+			<?php else: ?>
+			markup += '<p><button type="button" name="update" id="update-button" class="button-secondary"><?php _e("Install Updates","Shopp"); ?></button></p>';
+			<?php endif; ?>
 		<?php else: ?>
 		markup += '<p><button type="button" name="buykey" id="buykey-button" class="button-secondary"><?php _e("Buy an Update Key","Shopp"); ?></button></p>';
 		<?php endif; ?>
@@ -163,7 +167,7 @@
 				$('#update-queue input').each(function() {
 					if ($(this).attr('checked')) queue.push($(this).val());
 				});
-				startupdates();
+				if (queue.length > 0) startupdates();
 			});
 		}
 		

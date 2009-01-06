@@ -669,7 +669,7 @@ function ImageUploads (params) {
 		button_image_url: siteurl+'/wp-includes/images/upload.png',
 		button_placeholder_id: "swf-uploader-button",
 		upload_url : siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_image',
-		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload.swf',
+		flash_url : rsrcdir+'/core/ui/behaviors/swfupload/swfupload.swf',
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
 		file_types : "*.jpg;*.jpeg;*.png;*.gif",
@@ -703,7 +703,13 @@ function ImageUploads (params) {
 	}
 	
 	// Initialize image uploader
-	if (swfu20) settings.flash_url = siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf';
+	if (wp26) {
+		settings.button_image_url = rsrcdir+'/core/ui/icons/wp26button.png';
+		settings.button_height = "26";
+		settings.button_width = "100";
+		settings.button_text_style = '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 11px; color: #284464; }',
+	}
+	
 	swfu = new SWFUpload(settings);
 
 	var browserImageUploader = $('#image-upload').upload({
@@ -752,25 +758,17 @@ function ImageUploads (params) {
 	});
 	
 	$(window).load(function() {
-		if (!swfu.loaded && !swfu20) $('#product-images .swfupload').remove();
+		if (!swfu.loaded) $('#product-images .swfupload').remove();
 	});
-	
-	if (swfu20) $("#add-image").click(function(){ swfu.selectFiles(); });
-	
+		
 	if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
 	$('#lightbox li button.deleteButton').each(function () {
 		enableDeleteButton(this);
 	});
 
 	function swfuLoaded () {
-		if (swfu20 && flash.pv[0] == 10) {
-			$('#browser-uploader').show();
-			$('#swf-uploader').hide();
-		}
-		if (!swfu20) {
-			$('#browser-uploader').hide();	
-			$('#swf-uploader').hide();
-		} 
+		$('#browser-uploader').hide();	
+		$('#swf-uploader').hide();
 		this.loaded = true;
 	}
 
@@ -880,7 +878,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		button_width: "132",
 		button_image_url: siteurl+'/wp-includes/images/upload.png',
 		button_placeholder_id: button,
-		flash_url : siteurl+'/wp-includes/js/swfupload/swfupload.swf',
+		flash_url : rsrcdir+'/core/ui/behaviors/swfupload/swfupload.swf',
 		upload_url : siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
@@ -908,61 +906,58 @@ function FileUploader (button,defaultButton,linenum,updates) {
 	}
 	
 	// Initialize file uploader
-	if (swfu20) _self.settings.flash_url = siteurl+'/wp-includes/js/swfupload/swfupload_f9.swf';
+	if (wp26) {
+		_self.settings.button_image_url = rsrcdir+'/core/ui/icons/wp26button.png';
+		_self.settings.button_height = "26";
+		_self.settings.button_width = "100";
+		_self.settings.button_text_style = '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 11px; color: #284464; }',
+	}
+	
 	_self.swfu = new SWFUpload(_self.settings);
 	_self.swfu.targetCell = updates;
 	_self.swfu.targetLine = linenum;
-	if (swfu20) defaultButton.click(function() { _self.swfu.selectFiles(); });
 	
-	// Handle file uploads depending on whether the Flash uploader loads or not
-	$(window).load(function() {
-		if (!_self.swfu.loaded || (swfu20 && flash.pv[0] == 10)) {
-			$(defaultButton).parent().parent().find('.swfupload').remove();
-			
-			// Browser-based AJAX uploads
-			defaultButton.upload({
-				name: 'Filedata',
-				action: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
-				enctype: 'multipart/form-data',
-				params: {},
-				autoSubmit: true,
-				onSubmit: function() {
-					updates.attr('class','').html('');
-					var progress = $('<div class="progress"></div>').appendTo(updates);
-					var bar = $('<div class="bar"></div>').appendTo(progress);
-					var art = $('<div class="gloss"></div>').appendTo(progress);
+	// Browser-based AJAX uploads
+	defaultButton.upload({
+		name: 'Filedata',
+		action: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
+		enctype: 'multipart/form-data',
+		params: {},
+		autoSubmit: true,
+		onSubmit: function() {
+			updates.attr('class','').html('');
+			var progress = $('<div class="progress"></div>').appendTo(updates);
+			var bar = $('<div class="bar"></div>').appendTo(progress);
+			var art = $('<div class="gloss"></div>').appendTo(progress);
 
-					this.targetHolder = updates;
-					this.progressBar = bar;
-				},
-				onComplete: function(results) {
-					// console.log(results);
-					var filedata = eval('('+results+')');
-					if (filedata.error) {
-						$(this.targetHolder).html("No download file.");
-						alert(filedata.error);
-						return true;
-					}
-					var targetHolder = this.targetHolder;
-					filedata.type = filedata.type.replace(/\//gi," ");
-					$(this.progressBar).animate({'width':'76px'},250,function () { 
-						$(this).parent().fadeOut(500,function() {
-							$(targetHolder).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+readableFileSize(filedata.size)+'</small><input type="hidden" name="price['+linenum+'][download]" value="'+filedata.id+'" />');
-							$(this).remove(); 
-						});
-					});
-				}
+			this.targetHolder = updates;
+			this.progressBar = bar;
+		},
+		onComplete: function(results) {
+			// console.log(results);
+			var filedata = eval('('+results+')');
+			if (filedata.error) {
+				$(this.targetHolder).html("No download file.");
+				alert(filedata.error);
+				return true;
+			}
+			var targetHolder = this.targetHolder;
+			filedata.type = filedata.type.replace(/\//gi," ");
+			$(this.progressBar).animate({'width':'76px'},250,function () { 
+				$(this).parent().fadeOut(500,function() {
+					$(targetHolder).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+readableFileSize(filedata.size)+'</small><input type="hidden" name="price['+linenum+'][download]" value="'+filedata.id+'" />');
+					$(this).remove(); 
+				});
 			});
-		}	
+		}
+	});
+
+	$(_self).load(function () {
+		if (!_self.swfu.loaded) $(defaultButton).parent().parent().find('.swfupload').remove();
 	});
 	
-	
 	function swfuLoaded () {
-		if (swfu20 && flash.pv[0] == 10) {
-			$(defaultButton).show();
-		} else {
-			$(defaultButton).hide();
-		}
+		$(defaultButton).hide();
 		this.loaded = true;
 	}
 	
@@ -1085,94 +1080,3 @@ function SlugEditor (id,type) {
 	this.enable();
 
 }
-
-/* Centralized function for browser feature detection
-	- Proprietary feature detection (conditional compiling) is used to detect Internet Explorer's features
-	- User agent string detection is only used when no alternative is possible
-	- Is executed directly for optimal performance
-*/	
-var flashua = function() {
-	var UNDEF = "undefined",
-		OBJECT = "object",
-		SHOCKWAVE_FLASH = "Shockwave Flash",
-		SHOCKWAVE_FLASH_AX = "ShockwaveFlash.ShockwaveFlash",
-		FLASH_MIME_TYPE = "application/x-shockwave-flash",
-		EXPRESS_INSTALL_ID = "SWFObjectExprInst",
-		
-		win = window,
-		doc = document,
-		nav = navigator,
-		
-		domLoadFnArr = [],
-		regObjArr = [],
-		objIdArr = [],
-		listenersArr = [],
-		script,
-		timer = null,
-		storedAltContent = null,
-		storedAltContentId = null,
-		isDomLoaded = false,
-		isExpressInstallActive = false;
-
-	var w3cdom = typeof doc.getElementById != UNDEF && typeof doc.getElementsByTagName != UNDEF && typeof doc.createElement != UNDEF,
-		playerVersion = [0,0,0],
-		d = null;
-	if (typeof nav.plugins != UNDEF && typeof nav.plugins[SHOCKWAVE_FLASH] == OBJECT) {
-		d = nav.plugins[SHOCKWAVE_FLASH].description;
-		if (d && !(typeof nav.mimeTypes != UNDEF && nav.mimeTypes[FLASH_MIME_TYPE] && !nav.mimeTypes[FLASH_MIME_TYPE].enabledPlugin)) { // navigator.mimeTypes["application/x-shockwave-flash"].enabledPlugin indicates whether plug-ins are enabled or disabled in Safari 3+
-			d = d.replace(/^.*\s+(\S+\s+\S+$)/, "$1");
-			playerVersion[0] = parseInt(d.replace(/^(.*)\..*$/, "$1"), 10);
-			playerVersion[1] = parseInt(d.replace(/^.*\.(.*)\s.*$/, "$1"), 10);
-			playerVersion[2] = /r/.test(d) ? parseInt(d.replace(/^.*r(.*)$/, "$1"), 10) : 0;
-		}
-	}
-	else if (typeof win.ActiveXObject != UNDEF) {
-		var a = null, fp6Crash = false;
-		try {
-			a = new ActiveXObject(SHOCKWAVE_FLASH_AX + ".7");
-		}
-		catch(e) {
-			try { 
-				a = new ActiveXObject(SHOCKWAVE_FLASH_AX + ".6");
-				playerVersion = [6,0,21];
-				a.AllowScriptAccess = "always";	 // Introduced in fp6.0.47
-			}
-			catch(e) {
-				if (playerVersion[0] == 6) {
-					fp6Crash = true;
-				}
-			}
-			if (!fp6Crash) {
-				try {
-					a = new ActiveXObject(SHOCKWAVE_FLASH_AX);
-				}
-				catch(e) {}
-			}
-		}
-		if (!fp6Crash && a) { // a will return null when ActiveX is disabled
-			try {
-				d = a.GetVariable("$version");	// Will crash fp6.0.21/23/29
-				if (d) {
-					d = d.split(" ")[1].split(",");
-					playerVersion = [parseInt(d[0], 10), parseInt(d[1], 10), parseInt(d[2], 10)];
-				}
-			}
-			catch(e) {}
-		}
-	}
-	var u = nav.userAgent.toLowerCase(),
-		p = nav.platform.toLowerCase(),
-		webkit = /webkit/.test(u) ? parseFloat(u.replace(/^.*webkit\/(\d+(\.\d+)?).*$/, "$1")) : false, // returns either the webkit version or false if not webkit
-		ie = false,
-		windows = p ? /win/.test(p) : /win/.test(u),
-		mac = p ? /mac/.test(p) : /mac/.test(u);
-	/*@cc_on
-		ie = true;
-		@if (@_win32)
-			windows = true;
-		@elif (@_mac)
-			mac = true;
-		@end
-	@*/
-	return { w3cdom:w3cdom, pv:playerVersion, webkit:webkit, ie:ie, win:windows, mac:mac };
-};
