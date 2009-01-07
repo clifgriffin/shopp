@@ -1256,6 +1256,8 @@ class Flow {
 	}
 	
 	function add_images () {
+			$QualityValue = array(100,92,80,70,60);
+			
 			$error = false;
 			if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
 			if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
@@ -1311,7 +1313,7 @@ class Flow {
 				case "1": $SmallSizing->scaleCrop($SmallSettings['width'],$SmallSettings['height']); break;
 			}
 			$SmallSizing->UnsharpMask(75);
-			$Small->data = addslashes($SmallSizing->imagefile($SmallSettings['quality']));
+			$Small->data = addslashes($SmallSizing->imagefile($QualityValue[$SmallSettings['quality']]));
 			$Small->properties = array();
 			$Small->properties['width'] = $SmallSizing->Processed->width;
 			$Small->properties['height'] = $SmallSizing->Processed->height;
@@ -1343,7 +1345,7 @@ class Flow {
 				case "3": $ThumbnailSizing->scaleCrop($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
 			}
 			$ThumbnailSizing->UnsharpMask();
-			$Thumbnail->data = addslashes($ThumbnailSizing->imagefile($ThumbnailSettings['quality']));
+			$Thumbnail->data = addslashes($ThumbnailSizing->imagefile($QualityValue[$ThumbnailSettings['quality']]));
 			$Thumbnail->properties = array();
 			$Thumbnail->properties['width'] = $ThumbnailSizing->Processed->width;
 			$Thumbnail->properties['height'] = $ThumbnailSizing->Processed->height;
