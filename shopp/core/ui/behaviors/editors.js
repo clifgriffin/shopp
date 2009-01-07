@@ -707,7 +707,7 @@ function ImageUploads (params) {
 		settings.button_image_url = rsrcdir+'/core/ui/icons/wp26button.png';
 		settings.button_height = "26";
 		settings.button_width = "100";
-		settings.button_text_style = '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 11px; color: #284464; }',
+		settings.button_text_style = '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 11px; color: #284464; }';
 	}
 	
 	swfu = new SWFUpload(settings);
@@ -910,7 +910,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		_self.settings.button_image_url = rsrcdir+'/core/ui/icons/wp26button.png';
 		_self.settings.button_height = "26";
 		_self.settings.button_width = "100";
-		_self.settings.button_text_style = '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 11px; color: #284464; }',
+		_self.settings.button_text_style = '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 11px; color: #284464; }';
 	}
 	
 	_self.swfu = new SWFUpload(_self.settings);
