@@ -189,6 +189,7 @@ class Shopp {
 				
 		if ($this->Settings->get('shopp_setup')) {
 			$this->Settings->save('maintenance','off');
+			$this->Settings->save('shipcalc_lastscan','');
 			
 			// Publish/re-enable Shopp pages
 			$filter = "";
