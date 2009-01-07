@@ -121,11 +121,11 @@ class ImageProcessor {
 	/**
 	 * Return the processed image
 	 */
-	function imagefile ($quality=50) {
+	function imagefile ($quality=80) {
 		if (!isset($this->Processed->image)) return false;
 		imageinterlace($this->Processed->image, true);		// For progressive loading
 		ob_start();  										// Start capturing output buffer stream
-		imagejpeg($this->Processed->image,null,$quality);	// Output the image to the stream
+		imagejpeg($this->Processed->image,NULL,$quality);	// Output the image to the stream
 		$buffer = ob_get_contents(); 						// Get the bugger
 		ob_end_clean(); 									// Clear the buffer
 		return $buffer;										// Send it back
