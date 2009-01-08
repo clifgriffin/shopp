@@ -223,7 +223,8 @@ class Cart {
 
 		// No existing item, so change this one
 		$qty = $this->contents[$item]->quantity;
-		$this->contents[$item] = new Item($Product,$pricing);
+		$category = $this->contents[$item]->category;
+		$this->contents[$item] = new Item($Product,$pricing,$category);
 		$this->contents[$item]->quantity($qty);
 		$this->totals();
 		$this->save();
@@ -856,7 +857,7 @@ class Cart {
 					$output .= '<option value="" selected="selected">'.$label.'</option>';
 				 	$output .= menuoptions($states,$options['selected'],true);
 					$output .= '</select>';
-				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" value=""'.inputattrs($options).'/>';
+				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
 				return $output;
 				break;
 			case "shipping-postcode":
@@ -913,7 +914,7 @@ class Cart {
 					$output .= '<option value="" selected="selected">'.$label.'</option>';
 				 	$output .= menuoptions($states,$options['selected'],true);
 					$output .= '</select>';
-				} else $output .= '<input type="text" name="billing[state]" id="billing-state" value=""'.inputattrs($options).'/>';
+				} else $output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
 				return $output;
 				break;
 			case "billing-postcode":
