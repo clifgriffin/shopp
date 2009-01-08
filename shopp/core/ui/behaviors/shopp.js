@@ -317,7 +317,7 @@ function cartajax (url,data,response) {
 	$.ajax({
 		type:"POST",
 		url:url,
-		data:data+"&response="+response+'&ajax=true',
+		data:data,
 		timeout:10000,
 		dataType:datatype,
 		success:function (cart) {

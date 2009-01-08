@@ -135,6 +135,7 @@ class Shopp {
 		add_action('rewrite_rules', array(&$this,'page_updates'));
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_filter('query_vars', array(&$this,'queryvars'));
+
 		return true;
 	}
 	
@@ -908,6 +909,7 @@ class Shopp {
 	function link ($target,$secure=false) {
 		$internals = array("receipt","confirm-order");
 		$pages = $this->Settings->get('pages');
+
 		if (!is_array($pages)) $pages = $this->Flow->Pages;
 		
 		$uri = ($secure)?str_replace('http://','https://',get_bloginfo('wpurl')):get_bloginfo('wpurl');
@@ -916,11 +918,12 @@ class Shopp {
 		else {
 			if (in_array($target,$internals)) {
 				$page = $pages['checkout'];
-				if (SHOPP_PERMALINKS) 
-					$page['permalink'] = $pages['catalog']['permalink'].trailingslashit($target);
-				else $page['id'] .= "&shopp_proc=$target";
-			}
-			else $page = $pages['catalog'];
+				if (SHOPP_PERMALINKS) {
+					$catalog = $pages['catalog']['permalink'];
+					if (empty($catalog)) $catalog = $pages['catalog']['name'];
+					$page['permalink'] = trailingslashit($catalog).$target;
+				} else $page['id'] .= "&shopp_proc=$target";
+			} else $page = $pages['catalog'];
  		}
 		
 		if (SHOPP_PERMALINKS) return $uri."/".$page['permalink'];
@@ -1032,15 +1035,14 @@ class Shopp {
 				if (empty($download)) break;
 				$storage = $this->Settings->get('product_storage');
 				$path = rtrim($this->Settings->get('products_path'),"/");
-				
-				
+			
 				if ($admin) {
 					$Asset = new Asset($download);
 				} else {
 					require_once("core/model/Purchased.php");
 					$Purchased = new Purchased($download,"dkey");
-					$Asset = new Asset($Purchased->download);
-										
+					$Asset = new Asset($Purchased->price,"parent");
+
 					$forbidden = false;
 					// Download limit checking
 					if (($this->Settings->get('download_limit') && !($Purchased->downloads < $this->Settings->get('download_limit'))) &&  // Has download credits available
@@ -1052,13 +1054,13 @@ class Shopp {
 						if ($Purchase->ip != $_SERVER['REMOTE_ADDR']) $forbidden = true;
 					}
 				}
-				
+			
 				if ($forbidden) {
 					header("Status: 403 Forbidden");
 					header("Location: ".$this->link(''));
 					exit();
 				}
-				
+			
 				header("Content-type: ".$Asset->properties['mimetype']); 
 				header("Content-Disposition: inline; filename=\"".$Asset->name."\""); 
 				header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
@@ -1072,7 +1074,7 @@ class Shopp {
 					header ("Content-length: ".strlen($Asset->data)); 
 					echo $Asset->data;
 				}
-				
+			
 				$Purchased->downloads++;
 				$Purchased->save();
 				exit();

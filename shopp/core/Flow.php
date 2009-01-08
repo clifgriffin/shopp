@@ -1970,7 +1970,7 @@ class Flow {
 				$ProcessorClass = $gateway->tags['class'];
 				include_once($gateway->file);
 				$Processor = new $ProcessorClass();
-				$_POST['settings']['gateway_cardtypes'] = $Processor->cards;
+				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
 			}
 			
 			// Build the Google Checkout API URL if Google Checkout is enabled
