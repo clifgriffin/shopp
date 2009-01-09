@@ -827,7 +827,10 @@ class Shopp {
 		}
 		
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
-		
+
+		// Sanitize the card number to ensure it only contains numbers
+		$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
+
 		if (isset($_POST['data'])) $Order->data = $_POST['data'];
 		if (empty($Order->Customer))
 			$Order->Customer = new Customer();
@@ -1039,9 +1042,16 @@ class Shopp {
 				if ($admin) {
 					$Asset = new Asset($download);
 				} else {
+					$db = DB::get();
+					$pricetable = DatabaseObject::tablename(Purchase::$table);			
+					$pricetable = DatabaseObject::tablename(Price::$table);			
+					$assettable = DatabaseObject::tablename(Asset::$table);			
+					
 					require_once("core/model/Purchased.php");
 					$Purchased = new Purchased($download,"dkey");
-					$Asset = new Asset($Purchased->price,"parent");
+					$target = $db->query("SELECT target.* FROM $assettable AS target LEFT JOIN $pricetable AS pricing ON pricing.id=target.parent AND target.context='price' WHERE pricing.id=$Purchased->price AND target.datatype='download'");
+					$Asset = new Asset();
+					$Asset->populate($target);
 
 					$forbidden = false;
 					// Download limit checking

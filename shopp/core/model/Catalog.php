@@ -172,7 +172,7 @@ class Catalog extends DatabaseObject {
 							$string = substr($string,0,-5);
 							$string .= '<ul class="children">';
 						}
-						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul>';
+						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul></li>';
 					
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
 						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
@@ -186,8 +186,6 @@ class Catalog extends DatabaseObject {
 						$previous = &$category;
 						$depth = $category->depth;
 					}
-					if (value_is_true($options['hierarchy']))
-						for ($i = 0; $i < $depth; $i++) $string .= "</ul></li>";
 					$string .= '</ul>';
 				}
 				return $string;
