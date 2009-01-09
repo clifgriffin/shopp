@@ -848,9 +848,12 @@ class Cart {
 					$options['selected'] = $this->data->Order->Shipping->state;
 					$options['value'] = $this->data->Order->Shipping->state;
 				}
+				if (!empty($this->data->Order->Shipping->country))
+					$selectedCountry = $this->data->Order->Shipping->country;
+				else $selectedCountry = $base['country'];
 				if (empty($options['type'])) $options['type'] = "menu";
 				$regions = $Shopp->Settings->get('zones');
-				$states = $regions[$base['country']];
+				$states = $regions[$selectedCountry];
 				if (is_array($states) && $options['type'] == "menu") {
 					$label = (!empty($options['label']))?$options['label']:'';
 					$output = '<select name="shipping[state]" id="shipping-state"'.inputattrs($options,$select_attrs).'>';

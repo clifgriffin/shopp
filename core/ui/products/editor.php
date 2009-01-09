@@ -59,12 +59,12 @@
 			</td> 
 		<tr class=""> 
 			<th scope="row" valign="top"><label for="summary"><?php _e('Summary','Shopp'); ?></label></th> 
-			<td><textarea name="summary" id="summary" rows="2" cols="50" tabindex="6" style="width: 97%;"><? echo $Product->summary ?></textarea><br /> 
+			<td><textarea name="summary" id="summary" rows="2" cols="50" tabindex="6" style="width: 97%;"><?php echo $Product->summary ?></textarea><br /> 
             <?php _e('A brief description of the product to draw the customer\'s attention.','Shopp'); ?></td> 
 		</tr> 
 		<tr class=""> 
 			<th scope="row" valign="top"><label for="description"><?php _e('Description','Shopp'); ?></label></th> 
-			<td><textarea name="description" id="description" rows="8" cols="50" tabindex="7" style="width: 97%;"><? echo $Product->description ?></textarea><br /> 
+			<td><textarea name="description" id="description" rows="8" cols="50" tabindex="7" style="width: 97%;"><?php echo $Product->description ?></textarea><br /> 
             <?php _e('Provide in-depth information about the product to be displayed on the product page.','Shopp'); ?></td> 
 		</tr> 
 		<tr class="">
