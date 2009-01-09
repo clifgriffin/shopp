@@ -101,6 +101,9 @@ class PayPalPro {
 		$_['SHIPPINGAMT']			= number_format($Order->Totals->shipping,2);
 		$_['TAXAMT']				= number_format($Order->Totals->tax);
 		
+		if (isset($Order->data['paypal-custom']))
+			$_['CUSTOM'] = htmlentities($Order->data['paypal-custom']);
+		
 		// Line Items
 		foreach($Order->Items as $i => $Item) {
 			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
