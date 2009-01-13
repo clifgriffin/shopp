@@ -49,7 +49,11 @@
 			</tr>
 		</table>
 		
-		<div id="service-settings"></div>
+		<div id="service-settings">
+			<table class="form-table"> 
+			<?php do_action('shipping_service_settings'); ?>
+			</table>
+		</div>
 
 		<h3><?php _e('Shipping Methods &amp; Rates','Shopp'); ?></h3>
 		<p><small><?php _e('Shipping rates based on the order amount are calculated once against the order subtotal (which does not include tax).  Shipping rates based on weight are calculated once against the total order weight.  Shipping rates based on item quantity are calculated against the total quantity of each different item ordered.','Shopp'); ?></small></p>
