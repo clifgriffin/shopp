@@ -54,9 +54,9 @@ class Cart {
 		$this->data->Totals->tax = 0;
 		$this->data->Totals->taxrate = 0;
 		$this->data->Totals->total = 0;
+
 		$this->data->Shipping = false;
 		$this->data->Estimates = false;
-
 		$this->data->Order = new stdClass();
 		$this->data->Order->data = array();
 		$this->data->Promotions = array();
@@ -66,6 +66,7 @@ class Cart {
 		$this->data->PromoCodeResult = false;
 		$this->data->Purchase = false;
 		$this->data->ShipCosts = array();
+		$this->data->ShippingPostcode = false;
 		$this->data->Purchase = false;
 		$this->data->Category = array();
 		$this->data->Search = false;
@@ -285,6 +286,7 @@ class Cart {
 		$estimate = false;
 		foreach ($methods as $id => $rate) {
 			$shipping = 0;
+			if (isset($rate['postcode-required'])) $this->data->ShippingPostcode = true;
 			
 			if ($this->freeshipping) {
 				$ShipCosts[$rate['name']] = 0;
@@ -609,9 +611,11 @@ class Cart {
 				if (!empty($this->data->Order->Shipping->country)) $selected = $this->data->Order->Shipping->country;
 				else $selected = $base['country'];
 				$result .= '<ul><li>';
-				$result .= '<span>';
-				$result .= '<input name="shipping[postcode]" id="shipping-postcode" size="6" />&nbsp;';
-				$result .= '</span>';
+				if (value_is_true($options['postcode']) || $this->data->ShippingPostcode) {
+					$result .= '<span>';
+					$result .= '<input name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$this->data->Order->Shipping->postcode.'" />&nbsp;';
+					$result .= '</span>';
+				}
 				$result .= '<span>';
 				$result .= '<select name="shipping[country]" id="shipping-country">';
 				$result .= menuoptions($countries,$selected,true);
