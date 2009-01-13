@@ -69,6 +69,9 @@ class PayPalExpress {
 		$_['SHIPPINGAMT']			= number_format($Shopp->Cart->data->Totals->shipping,2);
 		$_['TAXAMT']				= number_format($Shopp->Cart->data->Totals->tax,2);
 
+		if (isset($Order->data['paypal-custom']))
+			$_['CUSTOM'] = htmlentities($Order->data['paypal-custom']);
+
 		// Disable shipping fields if no shipped items in cart
 		if (!$Shopp->Cart->data->Shipping) $_['NOSHIPPING'] = 1;
 
