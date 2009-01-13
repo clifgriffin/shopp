@@ -582,10 +582,13 @@ class Cart {
 		switch ($property) {
 			case "promo-code": 
 				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code");
+				$result .= '<ul><li>';
+				
 				if ($this->data->PromoCodeResult !== false)
 					$result .= '<p class="error">'.$this->data->PromoCodeResult.'</p>';
-				$result .= '<p><input type="text" id="promocode" name="promocode" value="" size="10" /> ';
-				$result .= '<input type="submit" id="apply-code" name="update"'.inputattrs($options,$submit_attrs).' /></p>';
+				$result .= '<span><input type="text" id="promocode" name="promocode" value="" size="10" /></span>';
+				$result .= '<span><input type="submit" id="apply-code" name="update"'.inputattrs($options,$submit_attrs).' /></span>';
+				$result .= '</li></ul>';
 				return $result;
 			case "has-shipping-methods": 
 				return (count($this->data->ShipCosts) > 1 &&
@@ -605,9 +608,16 @@ class Cart {
 				foreach ($markets as $iso => $country) $countries[$iso] = $country;
 				if (!empty($this->data->Order->Shipping->country)) $selected = $this->data->Order->Shipping->country;
 				else $selected = $base['country'];
+				$result .= '<ul><li>';
+				$result .= '<span>';
+				$result .= '<input name="shipping[postcode]" id="shipping-postcode" size="6" />&nbsp;';
+				$result .= '</span>';
+				$result .= '<span>';
 				$result .= '<select name="shipping[country]" id="shipping-country">';
 				$result .= menuoptions($countries,$selected,true);
 				$result .= '</select>';
+				$result .= '</span>';
+				$result .= '</li></ul>';
 				return $result;
 				break;
 		}
