@@ -54,9 +54,9 @@ class Cart {
 		$this->data->Totals->tax = 0;
 		$this->data->Totals->taxrate = 0;
 		$this->data->Totals->total = 0;
+
 		$this->data->Shipping = false;
 		$this->data->Estimates = false;
-
 		$this->data->Order = new stdClass();
 		$this->data->Order->data = array();
 		$this->data->Promotions = array();
@@ -66,6 +66,7 @@ class Cart {
 		$this->data->PromoCodeResult = false;
 		$this->data->Purchase = false;
 		$this->data->ShipCosts = array();
+		$this->data->ShippingPostcode = false;
 		$this->data->Purchase = false;
 		$this->data->Category = array();
 		$this->data->Search = false;
@@ -151,8 +152,8 @@ class Cart {
 	/**
 	 * add()
 	 * Adds a product as an item to the cart */
-	function add ($quantity,&$Product,&$Price) {
-		$NewItem = new Item($Product,$Price);
+	function add ($quantity,&$Product,&$Price,$category) {
+		$NewItem = new Item($Product,$Price,$category);
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
 			$this->added = $this->contents[$item];
@@ -223,7 +224,8 @@ class Cart {
 
 		// No existing item, so change this one
 		$qty = $this->contents[$item]->quantity;
-		$this->contents[$item] = new Item($Product,$pricing);
+		$category = $this->contents[$item]->category;
+		$this->contents[$item] = new Item($Product,$pricing,$category);
 		$this->contents[$item]->quantity($qty);
 		$this->totals();
 		$this->save();
@@ -277,12 +279,14 @@ class Cart {
 		$Shipping = $this->data->Order->Shipping;
 		$base = $Shopp->Settings->get('base_operations');
 		$methods = $Shopp->Settings->get('shipping_rates');
+		$handling = $Shopp->Settings->get('order_shipfee');
 
 		if (!is_array($methods)) return 0;
 
 		$estimate = false;
 		foreach ($methods as $id => $rate) {
 			$shipping = 0;
+			if (isset($rate['postcode-required'])) $this->data->ShippingPostcode = true;
 			
 			if ($this->freeshipping) {
 				$ShipCosts[$rate['name']] = 0;
@@ -316,7 +320,10 @@ class Cart {
 			}
 			if ($shipflag) $this->data->Shipping = true;
 			else $this->data->Shipping = false;
-
+			
+			// Add order handling fee
+			if ($handling > 0) $shipping += $handling;
+			
 			if (!$estimate) $estimate = $shipping;
 			if ($shipping < $estimate) $estimate = $shipping;
 			$rate['cost'] = $shipping;
@@ -396,13 +403,14 @@ class Cart {
 						}
 						break;
 					case "Promo code":
-						if (in_array($rule['value'],$this->data->PromoCodes)) {							
+						if (is_array($this->data->PromoCodes) && in_array($rule['value'],$this->data->PromoCodes)) {							
 							$rulematch = true;
 							break;
 						}
 						if (!empty($this->data->PromoCode)) {
 							if (Promotion::match_rule($this->data->PromoCode,$rule['logic'],$rule['value'])) {
- 								if (!in_array($this->data->PromoCode, $this->data->PromoCodes)) {
+ 								if (is_array($this->data->PromoCodes) && 
+									!in_array($this->data->PromoCode, $this->data->PromoCodes)) {
 									$this->data->PromoCodes[] = $this->data->PromoCode;
 									$PromoCodeFound = $this->data->PromoCode;
 								} else $PromoCodeExists = true;
@@ -577,10 +585,13 @@ class Cart {
 		switch ($property) {
 			case "promo-code": 
 				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code");
+				$result .= '<ul><li>';
+				
 				if ($this->data->PromoCodeResult !== false)
 					$result .= '<p class="error">'.$this->data->PromoCodeResult.'</p>';
-				$result .= '<p><input type="text" id="promocode" name="promocode" value="" size="10" /> ';
-				$result .= '<input type="submit" id="apply-code" name="update"'.inputattrs($options,$submit_attrs).' /></p>';
+				$result .= '<span><input type="text" id="promocode" name="promocode" value="" size="10" /></span>';
+				$result .= '<span><input type="submit" id="apply-code" name="update"'.inputattrs($options,$submit_attrs).' /></span>';
+				$result .= '</li></ul>';
 				return $result;
 			case "has-shipping-methods": 
 				return (count($this->data->ShipCosts) > 1 &&
@@ -600,9 +611,18 @@ class Cart {
 				foreach ($markets as $iso => $country) $countries[$iso] = $country;
 				if (!empty($this->data->Order->Shipping->country)) $selected = $this->data->Order->Shipping->country;
 				else $selected = $base['country'];
+				$result .= '<ul><li>';
+				if (value_is_true($options['postcode']) || $this->data->ShippingPostcode) {
+					$result .= '<span>';
+					$result .= '<input name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$this->data->Order->Shipping->postcode.'" />&nbsp;';
+					$result .= '</span>';
+				}
+				$result .= '<span>';
 				$result .= '<select name="shipping[country]" id="shipping-country">';
 				$result .= menuoptions($countries,$selected,true);
 				$result .= '</select>';
+				$result .= '</span>';
+				$result .= '</li></ul>';
 				return $result;
 				break;
 		}
@@ -658,18 +678,19 @@ class Cart {
 		global $Shopp;
 		$ShipCosts =& $this->data->ShipCosts;
 		$result = "";
-			
+		
 		switch ($property) {
 			case "hasestimates": return (count($ShipCosts) > 0); break;
 			case "methods":			
-				if (!$this->looping) {
+				if (!$this->sclooping) {
 					reset($ShipCosts);
-					$this->looping = true;
+					$this->sclooping = true;
 				} else next($ShipCosts);
 				
 				if (current($ShipCosts)) return true;
 				else {
-					$this->looping = false;
+					$this->sclooping = false;
+					reset($ShipCosts);
 					return false;
 				}
 				break;
@@ -846,16 +867,19 @@ class Cart {
 					$options['selected'] = $this->data->Order->Shipping->state;
 					$options['value'] = $this->data->Order->Shipping->state;
 				}
+				if (!empty($this->data->Order->Shipping->country))
+					$selectedCountry = $this->data->Order->Shipping->country;
+				else $selectedCountry = $base['country'];
 				if (empty($options['type'])) $options['type'] = "menu";
 				$regions = $Shopp->Settings->get('zones');
-				$states = $regions[$base['country']];
+				$states = $regions[$selectedCountry];
 				if (is_array($states) && $options['type'] == "menu") {
 					$label = (!empty($options['label']))?$options['label']:'';
 					$output = '<select name="shipping[state]" id="shipping-state"'.inputattrs($options,$select_attrs).'>';
 					$output .= '<option value="" selected="selected">'.$label.'</option>';
 				 	$output .= menuoptions($states,$options['selected'],true);
 					$output .= '</select>';
-				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" value=""'.inputattrs($options).'/>';
+				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
 				return $output;
 				break;
 			case "shipping-postcode":
@@ -912,7 +936,7 @@ class Cart {
 					$output .= '<option value="" selected="selected">'.$label.'</option>';
 				 	$output .= menuoptions($states,$options['selected'],true);
 					$output .= '</select>';
-				} else $output .= '<input type="text" name="billing[state]" id="billing-state" value=""'.inputattrs($options).'/>';
+				} else $output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
 				return $output;
 				break;
 			case "billing-postcode":

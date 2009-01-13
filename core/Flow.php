@@ -294,8 +294,11 @@ class Flow {
 						$pricing = $Request['options'];
 					else $pricing = $Request['price'];
 					
+					$category = false;
+					if (!empty($Request['category'])) $category = $Request['category'];
+					
 					if (isset($Request['item'])) $result = $Cart->change($Request['item'],$Product,$pricing);
-					else $result = $Cart->add($quantity,$Product,$pricing);
+					else $result = $Cart->add($quantity,$Product,$pricing,$category);
 				}
 				
 				if (isset($Request['products']) && is_array($Request['products'])) {
@@ -308,9 +311,12 @@ class Flow {
 							$pricing = $product['options'];
 						else $pricing = $product['price'];
 						
+						$category = false;
+						if (!empty($product['category'])) $category = $product['category'];
+						
 						if (!empty($Product->id)) {
 							if (isset($product['item'])) $result = $Cart->change($product['item'],$Product,$pricing);
-							else $result = $Cart->add($quantity,$Product,$pricing);
+							else $result = $Cart->add($quantity,$Product,$pricing,$category);
 						}
 					}
 					
@@ -363,6 +369,7 @@ class Flow {
 			$AjaxCart->Contents[] = $item;
 		}
 		echo json_encode($AjaxCart);
+		exit();
 	}
 
 	function cart ($attrs=array()) {
@@ -607,6 +614,7 @@ class Flow {
 			$Purchase->billing = $Order->Billing->id;
 			$Purchase->shipping = $Order->Shipping->id;
 			$Purchase->data = $Order->data;
+			$Purchase->promos = $Shopp->Cart->data->PromosApplied;
 			$Purchase->copydata($Order->Customer);
 			$Purchase->copydata($Order->Billing);
 			$Purchase->copydata($Order->Shipping,'ship');
@@ -895,7 +903,8 @@ class Flow {
 	function account () {
 		global $Shopp;
 		
-		if (!empty($_POST['vieworder'])) {
+		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
+			
 			$Purchase = new Purchase($_POST['purchaseid']);
 			if ($Purchase->email == $_POST['email']) {
 				$Shopp->Cart->data->Purchase = $Purchase;
@@ -1054,6 +1063,8 @@ class Flow {
 		if ($_GET['edit'] != "new") {
 			$Product = new Product($_GET['edit']);
 			$Product->load_data(array('prices','specs','categories','tags'));
+			
+			$Product->published = "on";
 		} else $Product = new Product();
 
 		if (!empty($_POST['save']) || !empty($_POST['save-products'])) {
@@ -1246,6 +1257,8 @@ class Flow {
 	}
 	
 	function add_images () {
+			$QualityValue = array(100,92,80,70,60);
+			
 			$error = false;
 			if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
 			if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
@@ -1301,7 +1314,7 @@ class Flow {
 				case "1": $SmallSizing->scaleCrop($SmallSettings['width'],$SmallSettings['height']); break;
 			}
 			$SmallSizing->UnsharpMask(75);
-			$Small->data = addslashes($SmallSizing->imagefile($SmallSettings['quality']));
+			$Small->data = addslashes($SmallSizing->imagefile($QualityValue[$SmallSettings['quality']]));
 			$Small->properties = array();
 			$Small->properties['width'] = $SmallSizing->Processed->width;
 			$Small->properties['height'] = $SmallSizing->Processed->height;
@@ -1333,7 +1346,7 @@ class Flow {
 				case "3": $ThumbnailSizing->scaleCrop($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
 			}
 			$ThumbnailSizing->UnsharpMask();
-			$Thumbnail->data = addslashes($ThumbnailSizing->imagefile($ThumbnailSettings['quality']));
+			$Thumbnail->data = addslashes($ThumbnailSizing->imagefile($QualityValue[$ThumbnailSettings['quality']]));
 			$Thumbnail->properties = array();
 			$Thumbnail->properties['width'] = $ThumbnailSizing->Processed->width;
 			$Thumbnail->properties['height'] = $ThumbnailSizing->Processed->height;
@@ -1348,7 +1361,7 @@ class Flow {
 	/**
 	 * Category flow handlers
 	 **/	
-	function categories_list () {
+	function categories_list ($updated=false) {
 		$db = DB::get();
 
 		if ( !current_user_can('manage_options') )
@@ -1414,7 +1427,7 @@ class Flow {
 			array('value'=>'N/A','label'=>__('N/A','Shopp')),
 		);
 
-		if (!empty($_POST['save'])) {
+		if (!empty($_POST['save']) || !empty($_POST['save-categories'])) {
 			check_admin_referer('shopp-save-category');
 			
 			if (empty($_POST['slug'])) $_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
@@ -1427,19 +1440,17 @@ class Flow {
 			$parentkey = -1;
 			// If we're saving a new category, lookup the parent
 			if ($_POST['parent'] > 0) {
-				for ($i = count($Shopp->Catalog->categories); $i > 0; $i--)
-					if ($_POST['parent'] == $Shopp->Catalog->categories[$i]->id) break;
-				array_unshift($paths,$Shopp->Catalog->categories[$i]->slug);
-				$parentkey = $Shopp->Catalog->categories[$i]->parentkey;
+				array_unshift($paths,$Shopp->Catalog->categories[$_POST['parent']]->slug);
+				$parentkey = $Shopp->Catalog->categories[$_POST['parent']]->parent;
 			}
 
-			while ($parentkey > -1) {
-				$category_tree = $Shopp->Catalog->categories[$parentkey];
+			while ($category_tree = $Shopp->Catalog->categories[$parentkey]) {
 				array_unshift($paths,$category_tree->slug);
-				$parentkey = $category_tree->parentkey;
+				$parentkey = $category_tree->parent;
 			}
-
-			$_POST['uri'] = join("/",$paths);
+			
+			if (count($paths) > 1) $_POST['uri'] = join("/",$paths);
+			else $_POST['uri'] = $paths[0];
 			
 			if (!empty($_POST['deleteImages'])) {			
 				$deletes = array();
@@ -1467,6 +1478,10 @@ class Flow {
 			$Category->updates($_POST);
 			$Category->save();
 			$updated = '<strong>'.$Category->name.'</strong> '.__('category saved.','Shopp');
+			if (!empty($_POST['save-categories'])) {
+				$this->categories_list($updated); 
+				exit();
+			}
 		}
 		
 		$permalink = trailingslashit($Shopp->link('catalog'))."category/";
@@ -1485,8 +1500,8 @@ class Flow {
 		$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
 				
 		include("{$this->basepath}/core/ui/categories/category.php");
-	}	
-	
+	}
+		
 	function category_menu ($selection=false,$current=false) {
 		$db = DB::get();
 		$table = DatabaseObject::tablename(Category::$table);			
@@ -1814,7 +1829,7 @@ class Flow {
 		
 		$orderOptions = array("ASC" => __('Order','Shopp'),
 							  "DESC" => __('Reverse Order','Shopp'),
-							  "RAND()" => __('Shuffle','Shopp'));
+							  "RAND" => __('Shuffle','Shopp'));
 
 		$orderBy = array("sortorder" => __('Custom arrangement','Shopp'),
 						 "name" => __('File name','Shopp'),
@@ -1901,6 +1916,8 @@ class Flow {
 					}
 				}
 			}
+			$_POST['settings']['order_shipfee'] = preg_replace("/[^0-9\.\+]/","",$_POST['settings']['order_shipfee']);
+			
 	 		$this->settings_save();
 			$updated = __('Shopp shipping settings saved.','Shopp');
 		}
@@ -1960,7 +1977,7 @@ class Flow {
 				$ProcessorClass = $gateway->tags['class'];
 				include_once($gateway->file);
 				$Processor = new $ProcessorClass();
-				$_POST['settings']['gateway_cardtypes'] = $Processor->cards;
+				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
 			}
 			
 			// Build the Google Checkout API URL if Google Checkout is enabled
@@ -2003,6 +2020,8 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
+		$ftpsupport = (function_exists('ftp_connect'))?true:false;
+		
 		$credentials = $this->Settings->get('ftp_credentials');		
 		$updatekey = $this->Settings->get('updatekey');
 		if (empty($updatekey)) 
@@ -2314,7 +2333,7 @@ class Flow {
 	}
 		
 	function upgrade () {
-		global $table_prefix;
+		global $Shopp,$table_prefix;
 		$db = DB::get();
 		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
 		
@@ -2332,7 +2351,7 @@ class Flow {
 			$renaming = "";
 			foreach ($devtables as $oldtable) $renaming .= ((empty($renaming))?"":", ")."$oldtable TO $table_prefix$oldtable";
 			$db->query("RENAME TABLE $renaming");
-			$this->Settings = new Settings();
+			$Shopp->Settings = new Settings();
 		}
 
 		ob_start();
@@ -2343,6 +2362,11 @@ class Flow {
 		// Update the table schema
 		$tables = preg_replace('/;\s+/',';',$schema);
 		dbDelta($tables);
+		
+		$this->setup_regions();
+		$this->setup_countries();
+		$this->setup_zones();
+		$this->setup_areas();
 		
 		// Update the version number
 		$settings = DatabaseObject::tablename(Settings::$table);

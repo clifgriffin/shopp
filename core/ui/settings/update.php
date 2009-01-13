@@ -23,7 +23,7 @@
 						<label for="ftp-username"><?php _e('Enter your FTP username','Shopp'); ?></label></div>
 						<div><input type="password" name="password" id="ftp-password" size="20" value="<?php echo attribute_escape($credentials['password']); ?>" /><br />
 						<label for="ftp-password"><?php _e('Enter your FTP password','Shopp'); ?></label></div><br />
-						<div><input type="button" name="ftp-settings" id="ftp-continue" value="<?php _e('Continue Updates&hellip;','Shopp'); ?>" class="button-secondary" /></div>
+						<div><input type="submit" name="ftp-settings" id="ftp-continue" value="<?php _e('Continue Updates&hellip;','Shopp'); ?>" class="button-secondary" /></div>
 					</div>
 					</td>
 			</tr>			
@@ -131,7 +131,6 @@
 				} else {
 					target.html('<div id="status" class="updating">'+CANCELLING_MESSAGE+'</div>');
 					alert("<?php _e('An error occurred while trying to update.  The update failed.  This is what Shopp says happened:','Shopp'); ?>\n"+result);
-					alert(adminurl+'&page=shopp/settings&edit=update&updated=true');
 					window.location.href = adminurl+'&page=shopp/settings&edit=update&updated=true';
 				}
 			},
@@ -151,7 +150,11 @@
 		markup += '</ul>';
 		
 		<?php if ($updatekey['status'] == "activated"): ?>
-		markup += '<p><button type="button" name="update" id="update-button" class="button-secondary"><?php _e("Install Updates","Shopp"); ?></button></p>';
+			<?php if (!$ftpsupport): ?>
+			markup += '<p class="shopp error"><?php _e("Your server does not have FTP support enabled. Automatic update not available.","Shopp"); ?></p>';
+			<?php else: ?>
+			markup += '<p><button type="button" name="update" id="update-button" class="button-secondary"><?php _e("Install Updates","Shopp"); ?></button></p>';
+			<?php endif; ?>
 		<?php else: ?>
 		markup += '<p><button type="button" name="buykey" id="buykey-button" class="button-secondary"><?php _e("Buy an Update Key","Shopp"); ?></button></p>';
 		<?php endif; ?>
@@ -164,7 +167,7 @@
 				$('#update-queue input').each(function() {
 					if ($(this).attr('checked')) queue.push($(this).val());
 				});
-				startupdates();
+				if (queue.length > 0) startupdates();
 			});
 		}
 		
@@ -178,7 +181,7 @@
 	
 	function ftpfailure () {
 		$('#status').hide();
-		$('#ftp-continue').click(function () { setftp(); });
+		$('#ftp-continue').click(function () { setftp(); return false; });
 		$('#ftp-credentials').show();
 	}
 	

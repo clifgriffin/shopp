@@ -92,7 +92,7 @@
 #shopp #cart { width: 100%; }
 #shopp #cart table { padding: 10px 0; width: 100%; }
 #shopp #cart th { text-align: left; font-weight: bold; }
-#shopp #cart th, #shopp #cart td { padding: 3px 0; }
+#shopp #cart th, #shopp #cart td { padding: 3px; }
 #shopp #cart .item { width: 50%; }
 #shopp #cart .money, 
 #shopp #cart .totals th,

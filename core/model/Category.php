@@ -305,7 +305,8 @@ class Category extends DatabaseObject {
 			if (!empty($product->thumbnail)) {
 				$image = new stdClass();
 				$image->properties = unserialize($product->thumbnail_properties);
-				$image->uri = $Shopp->imguri.$product->thumbnail;
+				if (SHOPP_PERMALINKS) $image->uri = $Shopp->imguri.$product->thumbnail;
+				else $image->uri = add_query_arg('shopp_image',$product->thumbnail,$Shopp->imguri);
 				$this->products[$product->id]->imagesets['thumbnail'] = array();
 				$this->products[$product->id]->imagesets['thumbnail'][] = $image;
 				$this->products[$product->id]->thumbnail =& $this->products[$product->id]->imagesets['thumbnail'][0];
@@ -328,9 +329,9 @@ class Category extends DatabaseObject {
 
 		if (!$this->products) $this->load_products();
 
-		$baseurl = $Shopp->shopuri;
-		
-		$rssurl = $baseurl.((SHOPP_PERMALINKS)?'feed':'&shopp_lookup=products-rss');
+		if (SHOPP_PERMALINKS) $rssurl = $Shopp->shopuri.'feed';
+		else $rssurl = add_query_arg('shopp_lookup','products-rss',$Shopp->shopuri);
+
 		$rss = array('title' => get_bloginfo('name')." ".$this->name,
 			 			'link' => $rssurl,
 					 	'description' => $this->description,
@@ -340,7 +341,7 @@ class Category extends DatabaseObject {
 			$product->thumbnail_properties = unserialize($product->thumbnail_properties);
 			$item = array();
 			$item['title'] = $product->name;
-			$item['link'] = htmlentities($baseurl.((SHOPP_PERMALINKS)?$product->id:'&shopp_pid='.$product->id));
+			$item['link'] = htmlentities($Shopp->shopuri.((SHOPP_PERMALINKS)?$product->id:'&shopp_pid='.$product->id));
 			$item['description'] = "<![CDATA[";
 			if (!empty($product->thumbnail)) {
 				$item['description'] .= '<a href="'.$item['link'].'" title="'.$product->name.'">';
@@ -389,10 +390,11 @@ class Category extends DatabaseObject {
 		}
 		
 		switch ($property) {
+			case "link": 
+			case "url": return (SHOPP_PERMALINKS)?$Shopp->shopuri."category/$this->uri":add_query_arg('shopp_category',$this->id,$Shopp->shopuri); break;
 			case "name": return $this->name; break;
 			case "slug": return $this->slug; break;
 			case "description": return wpautop($this->description); break;
-			case "link": return (SHOPP_PERMALINKS)?"$page"."category/$this->uri":"$page&shopp_category=$this->id"; break;
 			case "total": return $this->total; break;
 			case "hasproducts": 
 				if (isset($options['load'])) {

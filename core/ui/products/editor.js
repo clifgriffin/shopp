@@ -22,7 +22,7 @@ var changes = false;
 var saving = false;
 var flashUploader = false;
 var pricesPayload = true;
-var flash = flashua();
+// var flash = flashua();
 
 function init () {
 	window.onbeforeunload = function () { if (changes && !saving) return false; }	

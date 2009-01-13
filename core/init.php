@@ -107,6 +107,7 @@ function get_country_zones() {
 	$zones['AU']['NSW'] = 'New South Wales';
 	$zones['AU']['NT'] = 'Northern Territory';
 	$zones['AU']['QLD'] = 'Queensland';
+	$zones['AU']['SA'] = 'South Australia';
 	$zones['AU']['TAS'] = 'Tasmania';
 	$zones['AU']['VIC'] = 'Victoria';
 	$zones['AU']['WA'] = 'Western Australia';

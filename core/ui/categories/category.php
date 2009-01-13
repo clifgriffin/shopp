@@ -93,7 +93,7 @@
 							<ul></ul>
 						</div>
 						<div class="controls">
-						<button type="button" id="addDetail" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Detail','Shopp'); ?></small></button>
+						<button type="button" id="addDetail" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Detail','Shopp'); ?></small></button>
 						</div>
 					</li>
 					<li id="details-facetedmenu">
@@ -101,7 +101,7 @@
 							<ul></ul>
 						</div>
 						<div class="controls">
-						<button type="button" id="addDetailOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+						<button type="button" id="addDetailOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
 						</div>
 					</li>
 				</ul>
@@ -115,14 +115,14 @@
 				<ul class="multipane">
 					<li><div id="variations-menu" class="multiple-select options menu"><ul></ul></div>
 						<div class="controls">
-							<button type="button" id="addVariationMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
+							<button type="button" id="addVariationMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
 						</div>
 					</li>
 				
 					<li>
-						<div id="variations-list" class="multiple-select options"></div><br />
-						<div class="controls right">
-						<button type="button" id="addVariationOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+						<div id="variations-list" class="multiple-select options"></div>
+						<div class="controls">
+						<button type="button" id="addVariationOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
 						</div>
 					</li>
 				</ul>
@@ -133,14 +133,16 @@
 		<tbody id="variations-pricing"></tbody>
 		</table>
 		</div>
-		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
+		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save &amp; Continue Editing','Shopp'); ?>" /> &nbsp; <input type="submit" class="button" name="save-categories" value="<?php _e('Save Category','Shopp'); ?>" /></p>
+		
 	</form>
 </div>
 
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Category";
 
-var swfu20 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
+var flashuploader = <?php echo (false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security'))?'false':'true'; ?>;
+var wp26 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
 var category = <?php echo (!empty($Category->id))?$Category->id:'false'; ?>;
 var details = <?php echo json_encode($Category->specs) ?>;
 var priceranges = <?php echo json_encode($Category->priceranges) ?>;
@@ -206,7 +208,6 @@ var changes = false;
 var saving = false;
 var flashUploader = false;
 var pricesPayload = false;
-var flash = flashua();
 
 $=jQuery.noConflict();
 

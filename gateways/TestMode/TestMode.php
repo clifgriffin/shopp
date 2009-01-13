@@ -51,6 +51,9 @@ class TestMode {
 		<tr id="testmode-settings" class="addon">
 			<th scope="row" valign="top">Test Mode</th>
 			<td>
+				<?php foreach ($this->cards as $card): ?>
+				<input type="hidden" name="settings[TestMode][cards][]" value="<?php echo $card; ?>" />
+				<?php endforeach; ?>
 				<input type="hidden" name="settings[TestMode][response]" value="success" /><input type="checkbox" name="settings[TestMode][response]" id="testmode_response" value="error"<?php echo ($this->settings['response'] == "error")?' checked="checked"':''; ?> /><label for="testmode_response"> <?php _e('Test error response'); ?></label>
 			</td>
 		</tr>

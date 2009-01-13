@@ -143,7 +143,7 @@ class Catalog extends DatabaseObject {
 							$padding = str_repeat("&nbsp;",$category->depth*3);
 
 							if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
-							else $link = $Shopp->shopuri.'&amp;shopp_category='.$category->id;
+							else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 
 							$products = '';
 							if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->total.')';
@@ -169,12 +169,13 @@ class Catalog extends DatabaseObject {
 						if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = $parent->slug;
+							$string = substr($string,0,-5);
 							$string .= '<ul class="children">';
 						}
-						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul>';
+						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul></li>';
 					
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
-						else $link = $Shopp->shopuri.'&amp;shopp_category='.$category->id;
+						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 					
 						$products = '';
 						if (value_is_true($options['products']) && $category->total > 0) $products = ' ('.$category->total.')';
@@ -185,8 +186,6 @@ class Catalog extends DatabaseObject {
 						$previous = &$category;
 						$depth = $category->depth;
 					}
-					if (value_is_true($options['hierarchy']))
-						for ($i = 0; $i < $depth; $i++) $string .= "</ul>";
 					$string .= '</ul>';
 				}
 				return $string;
@@ -217,6 +216,10 @@ class Catalog extends DatabaseObject {
 
 					$string .= $title;
 					$string .= '<form action="'.$_SERVER['REQUEST_URI'].'" method="GET">';
+					if (!SHOPP_PERMALINKS) {
+						foreach ($_GET as $key => $value)
+							if ($key != 'shopp_orderby') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
+					}
 					$string .= '<select name="shopp_orderby" id="shopp-'.$this->slug.'-orderby-menu" class="shopp-orderby-menu">';
 					$string .= menuoptions($menuoptions,$default,true);
 					$string .= '</select>';
@@ -252,7 +255,7 @@ class Catalog extends DatabaseObject {
 					if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$Shopp->Category->uri;
 					else {
 						if (isset($Shopp->Category->smart)) $link = $Shopp->shopuri.'&shopp_category='.$Shopp->Category->slug;
-						else $link = $Shopp->shopuri.'&shopp_category='.$Shopp->Category->id;
+						else $link = add_query_arg('shopp_category', $Shopp->Category->id, $Shopp->shopuri);
 					}
 
 					if (!empty($Shopp->Product)) $trail = '<li><a href="'.$link.'">'.$Shopp->Category->name.'</a></li>';

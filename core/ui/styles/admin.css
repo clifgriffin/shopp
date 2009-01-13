@@ -23,6 +23,8 @@ body { position: relative; }
 #product input.verifying { background: url('/wp-content/plugins/shopp/core/ui/icons/updating.gif') no-repeat right center; }
 #product input.warning { background: url('/wp-content/plugins/shopp/core/ui/icons/error.png') no-repeat right center; }
 
+#product #variations { display: none; }
+
 .form-table input.toggle { margin-left: -13px; }
 .form-table { position: relative; }
 .form-table td { position: relative; }
@@ -84,6 +86,8 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 .form-table .details .controls { text-align: right; }
 .form-table .options .setting select { width: 97%; }
 
+.shopp .form-table input[type=checkbox] { vertical-align: middle; border-style: none !important; }
+
 .form-table .multiple-select { position: relative; overflow-x: hidden; overflow-y: auto; height: 120px; width: 250px; display: inline-block; border: 1px solid #dfdfdf; background: #ffffff; padding: 0; margin: 0;}
 .form-table .multiple-select ul { list-style-type: none; position: absolute; left: 0; right: 0; line-height: 1; width: auto; margin: 0; padding: 0;}
 .form-table .multiple-select ul li { margin: 0; padding: 2px 2px 0 0; }
@@ -91,13 +95,14 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 .form-table .multiple-select ul li.odd { background: #f9f9f9; }
 .form-table .multiple-select ul ul { padding-left: 20px; }
 
-.form-table .multipane ul li { position: relative; padding: 0 2px; background: none; width: 100%; }
+.form-table .multipane ul li { position: relative; padding: 0 2px; background: none; width: 99%; }
 .form-table .multipane .menu ul li,
 .form-table .multipane .menu ul li.hover { padding: 0 2px; background-image: url('/wp-content/plugins/shopp/core/ui/icons/more_arrow.png'); background-repeat: no-repeat; background-position: 96% 5px; }
 
 .form-table .multipane ul li.hover { background-color: #eaf3fa; }
 .form-table .multipane ul li.selected { background-color: #cee1ef; }
-.form-table .multipane ul li button { border: none; background: none; position: absolute; top: 0; right: 4px; visibility: hidden; }
+.form-table .multipane ul li button { width: 24px; border: none; background: none; position: absolute; top: 0; right: 4px; visibility: hidden; }
+
 .form-table .multipane .menu ul li.hover button { visibility: hidden; }
 .form-table .multipane .menu ul li.selected.hover button { visibility: visible; }
 .form-table .multipane .options ul li.hover button { visibility: visible; }
@@ -109,7 +114,7 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 .form-table .multipane ul li div { width: 19px; height: 22px; float: left; }
 .form-table .multipane ul li.hover div { background: url('/wp-content/plugins/shopp/core/ui/icons/move.png') no-repeat  3px top; }
 
-.form-table .details .list li textarea { width: 250px; height: 120px; margin: 0; }
+.form-table .details .list li textarea { width: 250px; height: 122px; margin: 0; }
 .form-table .details .list li button { border: none; background: none; position: absolute; top: 0; right: 0; visibility: hidden; }
 
 .form-table th div { margin-top: 10px; }

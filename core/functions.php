@@ -225,7 +225,10 @@ function shopp_catalog_css () {
 	$table = DatabaseObject::tablename(Settings::$table);
 	$settings = $db->query("SELECT name,value FROM $table WHERE name='gallery_thumbnail_width' OR name='row_products' OR name='row_products' OR name='gallery_small_width' OR name='gallery_small_height'",AS_ARRAY);
 	foreach ($settings as $setting) ${$setting->name} = $setting->value;
+
 	$pluginuri = WP_PLUGIN_URL."/".basename(dirname(dirname(__FILE__)))."/";
+	if ($_SERVER['HTTPS'] == "on") $pluginuri = force_ssl($pluginuri);
+
 	if (!isset($row_products)) $row_products = 3;
 	$products_per_row = floor((100/$row_products));
 	
@@ -692,6 +695,12 @@ function build_query_request ($request=array()) {
 function template_path ($path) {
 	if (DIRECTORY_SEPARATOR == "\\") $path = str_replace("/","\\",$path);
 	return $path;
+}
+
+function force_ssl ($url) {
+	if($_SERVER["HTTPS"] == "on")
+		$url = str_replace('http://', 'https://', $url);
+	return $url;
 }
 
 if ( !function_exists('sys_get_temp_dir')) {
