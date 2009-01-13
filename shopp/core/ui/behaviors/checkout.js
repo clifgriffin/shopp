@@ -12,8 +12,8 @@
 
 		for (var i = selects.length-1; i >= 0; i--) {
 			// Validate required fields
-			if (selects[i].className.match(new RegExp('required'))) {
-				if (selects[i].selectedIndex == 0 && selects[i].options[selects[i].selectedIndex].text == "")
+			if (selects[i].className.match(new RegExp('required')) && !selects[i].disabled) {
+				if (selects[i].selectedIndex == 0 && selects[i].options[0].value == "")
 					error = new Array("Your "+selects[i].title+" is required.",selects[i]);
 			}
 		}
