@@ -133,13 +133,15 @@
 		<tbody id="variations-pricing"></tbody>
 		</table>
 		</div>
-		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
+		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save &amp; Continue Editing','Shopp'); ?>" /> &nbsp; <input type="submit" class="button" name="save-categories" value="<?php _e('Save Category','Shopp'); ?>" /></p>
+		
 	</form>
 </div>
 
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Category";
 
+var flashuploader = <?php echo (false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security'))?'false':'true'; ?>;
 var wp26 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
 var category = <?php echo (!empty($Category->id))?$Category->id:'false'; ?>;
 var details = <?php echo json_encode($Category->specs) ?>;

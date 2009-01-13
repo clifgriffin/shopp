@@ -278,6 +278,7 @@ class Cart {
 		$Shipping = $this->data->Order->Shipping;
 		$base = $Shopp->Settings->get('base_operations');
 		$methods = $Shopp->Settings->get('shipping_rates');
+		$handling = $Shopp->Settings->get('order_shipfee');
 
 		if (!is_array($methods)) return 0;
 
@@ -317,7 +318,10 @@ class Cart {
 			}
 			if ($shipflag) $this->data->Shipping = true;
 			else $this->data->Shipping = false;
-
+			
+			// Add order handling fee
+			if ($handling > 0) $shipping += $handling;
+			
 			if (!$estimate) $estimate = $shipping;
 			if ($shipping < $estimate) $estimate = $shipping;
 			$rate['cost'] = $shipping;

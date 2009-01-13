@@ -27,18 +27,23 @@
 				<?php _e('Used as unit of weight for all products.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="order_handling_fee"><?php _e('Order Handling Fee','Shopp'); ?></label></th> 
+				<td><input type="text" name="settings[order_shipfee]" value="<?php echo money($this->Settings->get('order_shipfee')); ?>" id="order_handling_fee" size="7" class="right selectall" /><br /> 
+	            <?php _e('Handling fee applied once to each order with shipped products.','Shopp'); ?></td>
+			</tr>
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="free_shipping_text"><?php _e('Free Shipping Text','Shopp'); ?></label></th> 
-				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo attribute_escape($this->Settings->get('free_shipping_text')); ?>" id="free_shipping_text"><br /> 
+				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo attribute_escape($this->Settings->get('free_shipping_text')); ?>" id="free_shipping_text" /><br /> 
 	            <?php _e('Text used to highlight no shipping costs (examples: Free shipping! or Shipping Included)','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="outofstock-text"><?php _e('Out-of-stock Notice','Shopp'); ?></label></th> 
-				<td><input type="text" name="settings[outofstock_text]" value="<?php echo attribute_escape($this->Settings->get('outofstock_text')); ?>" id="outofstock-text"><br /> 
+				<td><input type="text" name="settings[outofstock_text]" value="<?php echo attribute_escape($this->Settings->get('outofstock_text')); ?>" id="outofstock-text" /><br /> 
 	            <?php _e('Text used to notify the customer the product is out-of-stock or on backorder.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="regional_rates"><?php _e('Domestic Regions','Shopp'); ?></label></th> 
-				<td><input type="hidden" name="settings[shipping_regions]" value="off" /><input type="checkbox" name="settings[shipping_regions]" value="on" id="regional_rates"<?php echo ($this->Settings->get('shipping_regions') == "on")?' checked="checked"':''; ?>><label for="regional_rates"> <?php _e('Enabled','Shopp'); ?></label><br /> 
+				<td><input type="hidden" name="settings[shipping_regions]" value="off" /><input type="checkbox" name="settings[shipping_regions]" value="on" id="regional_rates"<?php echo ($this->Settings->get('shipping_regions') == "on")?' checked="checked"':''; ?> /><label for="regional_rates"> <?php _e('Enabled','Shopp'); ?></label><br /> 
 	            <?php _e('Used for domestic regional shipping rates (only applies to operations based in the U.S. &amp; Canada)','Shopp'); ?><br />
 				<strong><?php _e('Note:','Shopp'); ?></strong> <?php _e('You must click the "Save Changes" button for changes to take effect.','Shopp'); ?></td>
 			</tr>
@@ -66,6 +71,9 @@ var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo
 var weight_units = '<?php echo $Shopp->Settings->get("weight_unit"); ?>';
 (function($) {
 	
+	
+$('#order_handling_fee').change(function() { this.value = asMoney(this.value); });
+
 $('#weight-unit').change(function () {
 	weight_units = $(this).val();
 	$('#shipping-rates table.rate td.units span.weightunit').html(weight_units+' = ');

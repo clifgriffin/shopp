@@ -903,7 +903,8 @@ class Flow {
 	function account () {
 		global $Shopp;
 		
-		if (!empty($_POST['vieworder'])) {
+		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
+			
 			$Purchase = new Purchase($_POST['purchaseid']);
 			if ($Purchase->email == $_POST['email']) {
 				$Shopp->Cart->data->Purchase = $Purchase;
@@ -1360,7 +1361,7 @@ class Flow {
 	/**
 	 * Category flow handlers
 	 **/	
-	function categories_list () {
+	function categories_list ($updated=false) {
 		$db = DB::get();
 
 		if ( !current_user_can('manage_options') )
@@ -1426,7 +1427,7 @@ class Flow {
 			array('value'=>'N/A','label'=>__('N/A','Shopp')),
 		);
 
-		if (!empty($_POST['save'])) {
+		if (!empty($_POST['save']) || !empty($_POST['save-categories'])) {
 			check_admin_referer('shopp-save-category');
 			
 			if (empty($_POST['slug'])) $_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
@@ -1477,6 +1478,10 @@ class Flow {
 			$Category->updates($_POST);
 			$Category->save();
 			$updated = '<strong>'.$Category->name.'</strong> '.__('category saved.','Shopp');
+			if (!empty($_POST['save-categories'])) {
+				$this->categories_list($updated); 
+				exit();
+			}
 		}
 		
 		$permalink = trailingslashit($Shopp->link('catalog'))."category/";
@@ -1911,6 +1916,8 @@ class Flow {
 					}
 				}
 			}
+			$_POST['settings']['order_shipfee'] = preg_replace("/[^0-9\.\+]/","",$_POST['settings']['order_shipfee']);
+			
 	 		$this->settings_save();
 			$updated = __('Shopp shipping settings saved.','Shopp');
 		}

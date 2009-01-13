@@ -170,7 +170,7 @@ class Product extends DatabaseObject {
 		
 		// Add order by columns
 		$query .= " ORDER BY sortorder";
-		
+
 		// Execute the query
 		$data = $db->query($query,AS_ARRAY);
 		
@@ -313,7 +313,10 @@ class Product extends DatabaseObject {
 		$this->imagesets = array();
 		foreach ($this->images as $key => &$image) {
 			if (empty($this->imagesets[$image->datatype])) $this->imagesets[$image->datatype] = array();
-			if ($image->id) $image->uri = $Shopp->imguri.$image->id;
+			if ($image->id) {
+				if (SHOPP_PERMALINKS) $image->uri = $Shopp->imguri.$image->id;
+				else $image->uri = add_query_arg('shopp_image',$image->id,$Shopp->imguri);
+			}
 			$this->imagesets[$image->datatype][] = $image;
 		}
 		$this->thumbnail = $this->imagesets['thumbnail'][0];

@@ -161,6 +161,8 @@
 
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Product";
+
+var flashuploader = <?php echo (false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security'))?'false':'true'; ?>;
 var wp26 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
 var product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>;
 var prices = <?php echo json_encode($Product->prices) ?>;
