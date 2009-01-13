@@ -403,13 +403,14 @@ class Cart {
 						}
 						break;
 					case "Promo code":
-						if (in_array($rule['value'],$this->data->PromoCodes)) {							
+						if (is_array($this->data->PromoCodes) && in_array($rule['value'],$this->data->PromoCodes)) {							
 							$rulematch = true;
 							break;
 						}
 						if (!empty($this->data->PromoCode)) {
 							if (Promotion::match_rule($this->data->PromoCode,$rule['logic'],$rule['value'])) {
- 								if (!in_array($this->data->PromoCode, $this->data->PromoCodes)) {
+ 								if (is_array($this->data->PromoCodes) && 
+									!in_array($this->data->PromoCode, $this->data->PromoCodes)) {
 									$this->data->PromoCodes[] = $this->data->PromoCode;
 									$PromoCodeFound = $this->data->PromoCode;
 								} else $PromoCodeExists = true;
