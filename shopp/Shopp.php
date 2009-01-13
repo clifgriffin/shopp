@@ -124,7 +124,7 @@ class Shopp {
 		add_action('wp_dashboard_setup', array(&$this, 'dashboard_init'));
 		add_action('wp_dashboard_widgets', array(&$this, 'dashboard'));
 		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
-		add_action('save_post', array(&$this, 'page_updates'),10,2);
+		add_action('save_post', array(&$this, 'pages_index'),10,2);
 
 		add_action('widgets_init', array(&$this->Flow, 'init_cart_widget'));
 		add_action('widgets_init', array(&$this->Flow, 'init_categories_widget'));
@@ -132,7 +132,8 @@ class Shopp {
 		add_action('widgets_init', array(&$this->Flow, 'init_facetedmenu_widget'));
 		add_filter('wp_list_pages',array(&$this->Flow,'secure_checkout_link'));
 
-		add_action('rewrite_rules', array(&$this,'page_updates'));
+		add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
+		add_action('generate_rewrite_rules',array(&$this,'pages_index'));
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_filter('query_vars', array(&$this,'queryvars'));
 
@@ -142,14 +143,15 @@ class Shopp {
 	function init() {
 		$pages = $this->Settings->get('pages');
 		if (SHOPP_PERMALINKS) {
-			$this->shopuri = $this->link('catalog');
+			$this->shopuri = trailingslashit($this->link('catalog'));
+			// echo $this->shopuri;
 			if ($this->shopuri == trailingslashit(get_bloginfo('wpurl'))) $this->shopuri .= "{$pages['catalog']['name']}/";
 			if ($this->secure) $this->shopuri = str_replace('http://','https://',$this->shopuri);
 			$this->imguri = trailingslashit($this->shopuri)."images/";
 		} else {
 			$this->shopuri = add_query_arg('page_id',$pages['catalog']['id'],get_bloginfo('wpurl'));
 			$this->imguri = add_query_arg('shopp_image','=',get_bloginfo('wpurl'));
-		} 
+		}
 		
 		$this->Cart = new Cart();
 		session_start();
@@ -197,7 +199,7 @@ class Shopp {
 			$pages = $this->Settings->get('pages');
 			foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
 			if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='publish' WHERE $filter");
-			$this->page_updates(true);
+			$this->pages_index(true);
 		}
 		
 		if ($this->Settings->get('show_welcome') == "on")
@@ -422,55 +424,48 @@ class Shopp {
 	
 	
 	/**
-	 * page_updates()
+	 * pages_index()
 	 * Handles changes to Shopp-installed pages that may affect 'pretty' urls */
-	function page_updates ($update=false,$updates=false) {
+	function pages_index ($update=false,$updates=false) {
 		global $wpdb;
 		$pages = $this->Settings->get('pages');
 		
-		if (!empty($pages)) {
-			$updates = false;
-			foreach($pages as $page) if ($page['id'] == $update_id) $updates = true;
-		}
+		// No pages setting, use defaults
+		$pages = $this->Flow->Pages;
 		
-		// No pages setting, rebuild it
-		if (empty($pages) || $updates || $update) {
-			$pages = $this->Flow->Pages;
-			
-			// Find pages with Shopp-related main shortcodes
-			$codes = array();
-			$search = "";
-			foreach ($pages as $page) $codes[] = $page['content'];
-			foreach ($codes as $code) $search .= ((!empty($search))?" OR ":"")."post_content LIKE '%$code%'";
-			$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE post_status='publish' AND ($search)";
-			$results = $wpdb->get_results($query);
+		// Find pages with Shopp-related main shortcodes
+		$codes = array();
+		$search = "";
+		foreach ($pages as $page) $codes[] = $page['content'];
+		foreach ($codes as $code) $search .= ((!empty($search))?" OR ":"")."post_content LIKE '%$code%'";
+		$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE post_status='publish' AND ($search)";
+		$results = $wpdb->get_results($query);
 
-			// Match updates from the found results to our pages index
-			foreach ($pages as $key => &$page) {
-				foreach ($results as $index => $post) {
-					if (strpos($post->post_content,$page['content']) !== false) {
-						$page['id'] = $post->ID;
-						$page['title'] = $post->post_title;
-						$page['name'] = $post->post_name;
-						$page['permalink'] = str_replace(trailingslashit(get_bloginfo('wpurl')),'',get_permalink($page['id']));
-						// trailingslashit(preg_replace('|https?://[^/]+/|i','',get_permalink($page['id'])));
-						if ($page['permalink'] == get_bloginfo('wpurl')) $page['permalink'] = "";
-						break;
-					}
+		// Match updates from the found results to our pages index
+		foreach ($pages as $key => &$page) {
+			foreach ($results as $index => $post) {
+				if (strpos($post->post_content,$page['content']) !== false) {
+					$page['id'] = $post->ID;
+					$page['title'] = $post->post_title;
+					$page['name'] = $post->post_name;
+					$page['permalink'] = str_replace(trailingslashit(get_bloginfo('wpurl')),'',get_permalink($page['id']));
+					// trailingslashit(preg_replace('|https?://[^/]+/|i','',get_permalink($page['id'])));
+					if ($page['permalink'] == get_bloginfo('wpurl')) $page['permalink'] = "";
+					break;
 				}
 			}
-			
-			$this->Settings->save('pages',$pages);
-
 		}
-		return $update;
+		
+		$this->Settings->save('pages',$pages);
+
+		if ($update) return $update;
 	}
 			
 	/**
 	 * rewrites()
 	 * Adds Shopp-specific pretty-url rewrite rules to the WordPress rewrite rules */
 	function rewrites ($wp_rewrite_rules) {
-		$this->page_updates(true);
+		$this->pages_index(true);
 		$pages = $this->Settings->get('pages');
 		if (!$pages) $pages = $this->Flow->Pages;
 		$shop = $pages['catalog']['permalink'];
@@ -624,12 +619,14 @@ class Shopp {
 
 	function feeds () {
 		if (empty($this->Category)):?>
-	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'/feed/':'&shopp_lookup=newproducts-rss'); ?>" />
+	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
 	<?php
 			else:
 			$uri = 'category/'.$this->Category->uri;
 			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
-			$link = $this->shopuri.((SHOPP_PERMALINKS)?'/'.$uri.'/feed/':'&shopp_category='.$this->Category->id.'&shopp_lookup=category-rss')
+
+			if (SHOPP_PERMALINKS) $link = $this->shopuri.$uri.'/feed/';
+			else $link = add_query_arg(array('shopp_category'=>$this->Categoryid,'shopp_lookup'=>'category-rss'),$this->shopuri);
 			?>
 	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> <?php echo $this->Category->name; ?> RSS Feed" href="<?php echo $link; ?>" />
 	<?php
