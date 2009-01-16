@@ -4,7 +4,7 @@
  * @class PayPalPro
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  **/
@@ -13,7 +13,7 @@ class PayPalPro {
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
-	var $cards = array("Visa","MasterCard","Discover","American Express");
+	var $cards = array("Visa","MasterCard","Discover","Amex");
 	var $sandboxurl = "https://api-3t.sandbox.paypal.com/nvp";
 	var $liveurl = "https://api-3t.paypal.com/nvp";
 	
