@@ -4,7 +4,7 @@
  * @class AuthorizeNet
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
  **/
