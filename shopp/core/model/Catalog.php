@@ -186,6 +186,8 @@ class Catalog extends DatabaseObject {
 						$previous = &$category;
 						$depth = $category->depth;
 					}
+					if (value_is_true($options['hierarchy']) && $depth > 0) 
+						for ($i = $depth; $i > 0; $i--) $string .= '</ul></li>';
 					$string .= '</ul>';
 				}
 				return $string;

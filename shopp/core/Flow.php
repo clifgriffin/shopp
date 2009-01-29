@@ -89,8 +89,16 @@ class Flow {
 
 		ob_start();
 		switch ($Shopp->Catalog->type) {
-			case "product": include(SHOPP_TEMPLATES."/product.php"); break;
-			case "category": include(SHOPP_TEMPLATES."/category.php"); break;
+			case "product": 
+				if (file_exists(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php"))
+					include(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php");
+				else include(SHOPP_TEMPLATES."/product.php"); break;
+
+			case "category":
+				if (file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
+					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
+				else include(SHOPP_TEMPLATES."/category.php"); break;
+
 			default: include(SHOPP_TEMPLATES."/catalog.php"); break;
 		}
 		$content = ob_get_contents();
@@ -259,7 +267,7 @@ class Flow {
 			$Request['shipping']['region'] = $regions[$countries[$Request['shipping']['country']]['region']];
 			unset($countries,$regions);
 			$Cart->shipzone($Request['shipping']);
-		} else {
+		} else if (!isset($this->data->Order->Shipping)) {
 			$base = $Shopp->Settings->get('base_operations');
 			$Request['shipping']['country'] = $base['country'];
 			$Cart->shipzone($Request['shipping']);
@@ -297,8 +305,11 @@ class Flow {
 					$category = false;
 					if (!empty($Request['category'])) $category = $Request['category'];
 					
+					if (isset($Request['data'])) $data = $Request['data'];
+					else $data = array();
+					
 					if (isset($Request['item'])) $result = $Cart->change($Request['item'],$Product,$pricing);
-					else $result = $Cart->add($quantity,$Product,$pricing,$category);
+					else $result = $Cart->add($quantity,$Product,$pricing,$category,$data);
 				}
 				
 				if (isset($Request['products']) && is_array($Request['products'])) {
@@ -313,10 +324,13 @@ class Flow {
 						
 						$category = false;
 						if (!empty($product['category'])) $category = $product['category'];
-						
+
+						if (!empty($product['data'])) $data = $product['data'];
+						else $data = array();
+
 						if (!empty($Product->id)) {
 							if (isset($product['item'])) $result = $Cart->change($product['item'],$Product,$pricing);
-							else $result = $Cart->add($quantity,$Product,$pricing,$category);
+							else $result = $Cart->add($quantity,$Product,$pricing,$category,$data);
 						}
 					}
 					
@@ -348,6 +362,7 @@ class Flow {
 					}
 				}
 		}
+
 		do_action('shopp_cart_updated',$Cart);
 	}
 
@@ -515,6 +530,11 @@ class Flow {
 			}
 			
 		} else {
+			$Order = $Shopp->Cart->data->Order;
+			$Order->Totals = $Shopp->Cart->data->Totals;
+			$Order->Items = $Shopp->Cart->contents;
+			$Order->Cart = $Shopp->Cart->session;
+
 			// Use payment gateway set in payment settings
 			$gateway = $Shopp->Settings->get('payment_gateway');
 			$authentication = $Shopp->Settings->get('account_system');
@@ -524,27 +544,30 @@ class Flow {
 				return false;
 			}
 
-			// Dynamically load the payment processing gateway
-			$processor_data = $this->scan_gateway_meta($gateway);
-			$ProcessorClass = $processor_data->tags['class'];
-			include($gateway);
+			// Process a transaction if the order has a cost (is not free)
+			if ($Order->Totals->total > 0) {
+				// Dynamically load the payment processing gateway
+				$processor_data = $this->scan_gateway_meta($gateway);
+				$ProcessorClass = $processor_data->tags['class'];
+				include($gateway);
 
-			$Order = $Shopp->Cart->data->Order;
-			$Order->Totals = $Shopp->Cart->data->Totals;
-			$Order->Items = $Shopp->Cart->contents;
-			$Order->Cart = $Shopp->Cart->session;
+				$Payment = new $ProcessorClass($Order);
 
-			$Payment = new $ProcessorClass($Order);
+				// Process the transaction through the payment gateway
+				$processed = $Payment->process();
 
-			// Process the transaction through the payment gateway
-			$processed = $Payment->process();
-			
-			// exit();
-			// There was a problem processing the transaction, 
-			// grab the error response from the gateway so we can report it
-			if (!$processed) {
-				$Shopp->Cart->data->OrderError = $Payment->error();
-				return false;
+				// exit();
+				// There was a problem processing the transaction, 
+				// grab the error response from the gateway so we can report it
+				if (!$processed) {
+					$Shopp->Cart->data->OrderError = $Payment->error();
+					return false;
+				}				
+				$gatewayname = $processor_data->name;
+				$transactionid = $Payment->transactionid();
+			} else {
+				$gatewayname = __('N/A','Shopp');
+				$transactionid = __('(Free Order)','Shopp');
 			}
 
 			// Transaction successful, save the order
@@ -620,8 +643,8 @@ class Flow {
 			$Purchase->copydata($Order->Shipping,'ship');
 			$Purchase->copydata($Shopp->Cart->data->Totals);
 			$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
-			$Purchase->gateway = $processor_data->name;
-			$Purchase->transactionid = $Payment->transactionid();
+			$Purchase->gateway = $gatewayname;
+			$Purchase->transactionid = $transactionid;
 			$Purchase->transtatus = "CHARGED";
 			$Purchase->save();
 			// echo "<pre>"; print_r($Purchase); echo "</pre>";
@@ -768,6 +791,20 @@ class Flow {
 		$Cart->data->Order->Billing->cardholder = "";
 		$Cart->data->Order->Billing->cardtype = "";
 		$Cart->data->Order->Shipping = new Shipping($Account->id);
+	}
+	
+	function logout () {
+		global $Shopp;
+		$Cart = $Shopp->Cart;
+		
+		$Cart->data->login = false;
+		$Cart->data->Order->wpuser = false;
+		$Cart->data->Order->Customer->id = false;
+		$Cart->data->Order->Billing->id = false;
+		$Cart->data->Order->Billing->customer = false;
+		$Cart->data->Order->Shipping->id = false;
+		$Cart->data->Order->Shipping->customer = false;
+		
 	}
 
 	function order_receipt () {
@@ -1340,10 +1377,10 @@ class Flow {
 			$ThumbnailSizing = new ImageProcessor($Thumbnail->data,$width,$height);
 			
 			switch ($ThumbnailSettings['sizing']) {
-				case "0": $ThumbnailSizing->scaleToWidth($ThumbnailSettings['width']); break;
-				case "1": $ThumbnailSizing->scaleToHeight($ThumbnailSettings['height']); break;
-				case "2": $ThumbnailSizing->scaleToFit($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
-				case "3": $ThumbnailSizing->scaleCrop($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
+				// case "0": $ThumbnailSizing->scaleToWidth($ThumbnailSettings['width']); break;
+				// case "1": $ThumbnailSizing->scaleToHeight($ThumbnailSettings['height']); break;
+				case "0": $ThumbnailSizing->scaleToFit($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
+				case "1": $ThumbnailSizing->scaleCrop($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
 			}
 			$ThumbnailSizing->UnsharpMask();
 			$Thumbnail->data = addslashes($ThumbnailSizing->imagefile($QualityValue[$ThumbnailSettings['quality']]));
@@ -1471,11 +1508,12 @@ class Flow {
 					$pricing['saleprice'] = floatvalue($pricing['saleprice']);
 					$pricing['shipfee'] = floatvalue($pricing['shipfee']);
 				}
-				$Category->prices = $_POST['price'];
+				$Category->prices = stripslashes_deep($_POST['price']);
 			}
 			if (empty($_POST['options'])) $Category->options = array();
 			
 			$Category->updates($_POST);
+			
 			$Category->save();
 			$updated = '<strong>'.$Category->name.'</strong> '.__('category saved.','Shopp');
 			if (!empty($_POST['save-categories'])) {
@@ -1715,7 +1753,8 @@ class Flow {
 		echo $after_title;
 
 		$RecentBestsellers = new BestsellerProducts(array('where'=>'UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)','show'=>3));
-		
+		$RecentBestsellers->load_products();
+
 		echo '<table><tbody><tr>';
 		echo '<td><h4>Recent Bestsellers</h4>';
 		echo '<ul>';
@@ -1725,6 +1764,7 @@ class Flow {
 		
 		
 		$LifetimeBestsellers = new BestsellerProducts(array('show'=>3));
+		$LifetimeBestsellers->load_products();
 		echo '<td><h4>Lifetime Bestsellers</h4>';
 		echo '<ul>';
 		foreach ($LifetimeBestsellers->products as $product) 
@@ -1900,7 +1940,7 @@ class Flow {
 
 	function settings_shipping () {
 		global $Shopp;
-		
+
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 		
@@ -1911,15 +1951,19 @@ class Flow {
 				foreach ($method as $key => $rates) {
 					if (is_array($rates)) {
 						foreach ($rates as $id => $value) {
-							$_POST['settings']['shipping_rates'][$i][$key][$id] = preg_replace("/[^0-9\.\+]/","",$_POST['settings']['shipping_rates'][$i][$key][$id]);
+							if ($key != "services")
+								$_POST['settings']['shipping_rates'][$i][$key][$id] =
+									preg_replace("/[^0-9\.\+]/","",$_POST['settings']['shipping_rates'][$i][$key][$id]);
 						}
 					}
 				}
 			}
+
 			$_POST['settings']['order_shipfee'] = preg_replace("/[^0-9\.\+]/","",$_POST['settings']['order_shipfee']);
 			
 	 		$this->settings_save();
 			$updated = __('Shopp shipping settings saved.','Shopp');
+			$Shopp->ShipCalcs = new ShipCalcs($Shopp->path);
 		}
 
 		$methods = $Shopp->ShipCalcs->methods;
@@ -1983,11 +2027,12 @@ class Flow {
 			// Build the Google Checkout API URL if Google Checkout is enabled
 			if (!empty($_POST['settings']['GoogleCheckout']['id']) && !empty($_POST['settings']['GoogleCheckout']['key'])) {
 				$GoogleCheckout = new GoogleCheckout();
-				$url = $Shopp->link('catalog',true);
-				$url .= "?shopp_xorder=GoogleCheckout";
-				$url .= "&merc=".$GoogleCheckout->authcode(
-										$_POST['settings']['GoogleCheckout']['id'],
-										$_POST['settings']['GoogleCheckout']['key']);
+				$url = add_query_arg(array(
+					'shopp_xorder' => 'GoogleCheckout',
+					'merc' => $GoogleCheckout->authcode(
+											$_POST['settings']['GoogleCheckout']['id'],
+											$_POST['settings']['GoogleCheckout']['key'])
+					),$Shopp->link('catalog',true));
 				$_POST['settings']['GoogleCheckout']['apiurl'] = $url;
 			}
 			

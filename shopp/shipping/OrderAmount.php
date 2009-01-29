@@ -18,7 +18,8 @@ class OrderAmount {
 		$ShipCalc->methods[get_class($this).'::range'] = __("Order Amount Tiers","Shopp");
 	}
 	
-	function calculate (&$Cart,$rate,$column) {
+	function calculate (&$Cart,$fees,$rate,$column) {
+		$ShipCosts = &$Cart->data->ShipCosts;
 		$shipping = 0;
 		foreach ($rate['max'] as $id => $value) {
 			if ($Cart->data->Totals->subtotal <= $value) {
@@ -27,7 +28,10 @@ class OrderAmount {
 			}
 		}
 		if ($shipping == 0) $shipping = $rate[$column][$id];
-		return $shipping;
+		
+		$rate['cost'] = $shipping+$fees;
+		$ShipCosts[$rate['name']] = $rate;
+		return $rate['cost'];
 	}
 	
 	function ui () {

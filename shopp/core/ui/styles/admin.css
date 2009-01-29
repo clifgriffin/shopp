@@ -137,17 +137,19 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #order address { font-style: normal; }
 #order fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
 #order table.transaction { float: right; }
-#order table.transaction th { text-align: right; }
+#order table.transaction th { text-align: right; padding-right: 7px; }
 
 #order .cart { width: 100%; clear: both; border: none; }
 #order .cart td { border: none; }
+#order .cart td * { font-size: 11px; }
+#order .cart td ul { list-style: square; padding-left: 20px; margin-top: 5px; }
 #order .cart th { font-weight: bold; text-align: left; border: none; }
 #order .cart .item { width: 50%; }
 #order .cart .money, 
 #order .cart .total,
 #order .cart .buttons td { text-align: right; }
 #order .cart .remove { font-size: 12px; }
-#order .cart tr.totals th,.cart tr.totals td { padding: 7px 15px 9px 10px; }
+#order .cart tr.totals th,.cart tr.totals td { padding: 7px 7px 5px; }
 
 #order #message { width: 99%; margin: 0 auto; }
 
@@ -177,12 +179,18 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #shipping-rates table.rate td.rowctrl button { display: inline-block; margin: 0 10px 0 0; padding: 0; border: none; background: none; width: auto; height: auto; }
 #shipping-rates table.rate td.rowctrl { vertical-align: middle; white-space: nowrap;}
 #shipping-rates select.methods { width: 150px; }
+#shipping-rates table.rate select { height: auto; }
+#shipping-rates table.services { width: 100%; }
 #shipping-rates button.disabled { opacity: 0.3; }
 #shipping-rates button.delete { background: none; border: none; padding: 0; margin: 0; width: auto; height: 16px; }
-
+#shipping-rates.form-table tr th,
+#shipping-rates.form-table tr td { border-bottom: 1px solid #dfdfdf; }
+#shipping-rates.form-table tr td table th,
+#shipping-rates.form-table tr td table td { border-bottom: none; }
 #promotion #rules tr td { border-bottom-width: 2px; }
 #promotion #rules button.delete { visibility: hidden; }
-
+#shipping-rates .services div.multiple-select { height: 100px; }
+#shipping-rates .services div.multiple-select ul li { padding: 2px; }
 #payments .addon { display: none; }
 #payments ul.cards li { width: 30%; display: inline-block;}
 

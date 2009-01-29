@@ -140,7 +140,7 @@ var addTaxRate = function (r) {
 	if (r) {
 		rate.val(r.rate);
 		countryMenu.val(r.country).change();
-		zoneMenu.val(r.zone).change();
+		if (r.zone)	zoneMenu.val(r.zone).change();
 	} else {
 		if ($.inArray(base.country,countriesInUse) == -1) {
 			countryMenu.val(base.country).change();

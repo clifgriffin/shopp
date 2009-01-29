@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.2
+Version: 1.0.3
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.2");
+define("SHOPP_VERSION","1.0.3");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -72,7 +72,7 @@ class Shopp {
 		$this->path = dirname(__FILE__);
 		$this->file = basename(__FILE__);
 		$this->directory = basename($this->path);
-		$this->secure = (!empty($_SERVER['HTTPS']));
+		$this->secure = ($_SERVER['HTTPS'] == "on");
 		$this->uri = WP_PLUGIN_URL."/".$this->directory;
 		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";
 		if ($this->secure) $this->uri = str_replace('http://','https://',$this->uri);
@@ -165,11 +165,13 @@ class Shopp {
 			// See if the wordpress user is already logged in
 			get_currentuserinfo();
 			global $user_ID;
-
-			if (!empty($user_ID)) {
-				$Account = new Customer($user_ID,'wpuser');
-				if (!$Cart->data->login) $this->Flow->loggedin($Account);
-				$Cart->data->Order->Customer->wpuser = $user_ID;
+			
+			if (!empty($user_ID) && !$this->Cart->data->login) {
+				if ($Account = new Customer($user_ID,'wpuser')) {
+					$this->Flow->loggedin($Account);
+					$this->Cart->data->Order->Customer->wpuser = $user_ID;
+					add_action('wp_logout',array(&$this->Flow,'logout'));
+				}
 			}
 		}
 		
@@ -607,12 +609,12 @@ class Shopp {
 	 * name and category (when available) */
 	function titles ($title,$sep=" &mdash; ",$placement="left") {
 		if ($placement == "right") {
-			if (isset($this->Product)) $title =  $this->Product->name." $sep ".$title;
+			if (isset($this->Product)) $title = $this->Product->name." $sep ".$title;
 			if (isset($this->Category)) $title = $this->Category->name." $sep ".$title;
 			
 		} else {
-			if (isset($this->Product)) $title .=  " $sep ".$this->Product->name;
 			if (isset($this->Category)) $title .= " $sep ".$this->Category->name;
+			if (isset($this->Product)) $title .=  " $sep ".$this->Product->name;
 		}
 		return $title;
 	}
@@ -668,23 +670,23 @@ class Shopp {
 	 * Adds report information and custom debugging tools to the public and admin footers */
 	function footer () {
 		if (!SHOPP_DEBUG) return true;
+		if (!current_user_can('manage_options')) return true;
 		$db = DB::get();
 		global $wpdb;
 		
-		if (current_user_can('manage_options')) {
-			if (function_exists('memory_get_peak_usage'))
-				$this->_debug->memory .= "End: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
-			elseif (function_exists('memory_get_usage'))
-				$this->_debug->memory .= "End: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB";
+		echo "<pre>"; print_r($this->Cart->contents); echo "</pre>";
+		if (function_exists('memory_get_peak_usage'))
+			$this->_debug->memory .= "End: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
+		elseif (function_exists('memory_get_usage'))
+			$this->_debug->memory .= "End: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB";
 
-			echo '<script type="text/javascript">'."\n";
-			echo '//<![CDATA['."\n";
-			echo 'var memory_profile = "'.$this->_debug->memory.'";';
-			echo 'var wpquerytotal = '.$wpdb->num_queries.';';
-			echo 'var shoppquerytotal = '.count($db->queries).';';
-			echo '//]]>'."\n";
-			echo '</script>'."\n";
-		}
+		echo '<script type="text/javascript">'."\n";
+		echo '//<![CDATA['."\n";
+		echo 'var memory_profile = "'.$this->_debug->memory.'";';
+		echo 'var wpquerytotal = '.$wpdb->num_queries.';';
+		echo 'var shoppquerytotal = '.count($db->queries).';';
+		echo '//]]>'."\n";
+		echo '</script>'."\n";
 
 	}
 	
@@ -780,6 +782,7 @@ class Shopp {
 
 		$this->Flow->cart_request();
 		if (isset($_REQUEST['ajax'])) $this->Flow->cart_ajax();
+		$this->Cart->totals();
 		switch ($_REQUEST['redirect']) {
 			case "checkout": header("Location: ".$this->link($_REQUEST['redirect'],true)); break;
 			default: 
@@ -806,7 +809,11 @@ class Shopp {
 				include($gateway);
 				$Payment = new $ProcessorClass();
 				if ($wp->query_vars['shopp_proc'] != "confirm-order" && 
-						empty($_POST['checkout'])) $Payment->checkout();
+						empty($_POST['checkout'])) {
+					$Payment->checkout();	
+					$Shopp->Cart->data->OrderError = $Payment->error();
+					// echo "<pre>"; print_r($Shopp->Cart->data->OrderError); echo "</pre>";
+				}
 			}
 		}
 		
@@ -877,11 +884,11 @@ class Shopp {
 
 			if ($this->Cart->data->Totals->tax > 0 || 
 					$this->Settings->get('order_confirmation') == "always") {
-				header("Location: ".$this->link('confirm-order','',true));
+				header("Location: ".$this->link('confirm-order',true));
 				exit();
 			} else $this->Flow->order();
 		} elseif ($this->Settings->get('order_confirmation') == "always") {
-			header("Location: ".$this->link('confirm-order','',true));
+			header("Location: ".$this->link('confirm-order',true));
 			exit();
 		} else $this->Flow->order();
 	}
@@ -927,7 +934,7 @@ class Shopp {
  		}
 		
 		if (SHOPP_PERMALINKS) return $uri."/".$page['permalink'];
-		else return $uri.'?page_id='.$page['id'];
+		else return add_query_arg('page_id',$page['id'],trailingslashit($uri));
 	}
 	
 	/**
@@ -982,6 +989,7 @@ class Shopp {
 				$this->init();
 				if (isset($_GET['method'])) {
 					$this->Cart->data->Order->Shipping->shipmethod = $_GET['method'];
+					$this->Cart->updated();
 					$this->Cart->totals();
 					echo json_encode($this->Cart->data->Totals);
 				}
@@ -1238,6 +1246,7 @@ function shopp () {
 		case "shipping": $result = $Shopp->Cart->shippingtag($property,$options); break;
 		case "checkout": $result = $Shopp->Cart->checkouttag($property,$options); break;
 		case "category": $result = $Shopp->Category->tag($property,$options); break;
+		case "subcategory": $result = $Shopp->Category->child->tag($property,$options); break;
 		case "catalog": $result = $Shopp->Catalog->tag($property,$options); break;
 		case "product": $result = $Shopp->Product->tag($property,$options); break;
 		case "purchase": $result = $Shopp->Cart->data->Purchase->tag($property,$options); break;

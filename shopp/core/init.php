@@ -31,7 +31,7 @@ function get_countries () {
 	$countries = array();
 	$countries['CA'] = array('name'=>'Canada','currency'=>array('code'=>'CAD','format'=>'$#,###.##'),'units'=>'metric','region'=>0); 
 	$countries['US'] = array('name'=>'USA','currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'imperial','region'=>0); 
-	$countries['UK'] = array('name'=>'United Kingdom','currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'imperial','region'=>3); 
+	$countries['UK'] = array('name'=>'United Kingdom','currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['AR'] = array('name'=>'Argentina','currency'=>array('code'=>'ARS','format'=>'$#.###,##'),'units'=>'metric','region'=>7); 
 	$countries['AU'] = array('name'=>'Australia','currency'=>array('code'=>'AUD','format'=>'$# ###.##'),'units'=>'metric','region'=>7); 
 	$countries['AT'] = array('name'=>'Austria','currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
@@ -80,7 +80,7 @@ function get_countries () {
 	$countries['RU'] = array('name'=>'Russia','currency'=>array('code'=>'RUB','format'=>'RUB#.###,##'),'units'=>'metric','region'=>6); 
 	$countries['SG'] = array('name'=>'Singapore','currency'=>array('code'=>'SGD','format'=>'$#,###.##'),'units'=>'metric','region'=>6); 
 	$countries['SK'] = array('name'=>'Slovakia','currency'=>array('code'=>'SKK','format'=>'# ###,## Sk'),'units'=>'metric','region'=>3); 
-	$countries['SI'] = array('name'=>'Slovenia','currency'=>array('code'=>'SIT','format'=>'#.###,## SIT'),'units'=>'metric','region'=>3); 
+	$countries['SI'] = array('name'=>'Slovenia','currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['ZA'] = array('name'=>'South Africa','currency'=>array('code'=>'ZAR','format'=>'R # ###.##'),'units'=>'metric','region'=>5); 
 	$countries['KR'] = array('name'=>'South Korea','currency'=>array('code'=>'KRW','format'=>'\\#,###'),'units'=>'metric','region'=>6); 
 	$countries['ES'] = array('name'=>'Spain','currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 

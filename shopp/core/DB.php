@@ -158,6 +158,12 @@ class DB extends Singleton {
 						$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
 						$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
 						$data[$property] = "'$value'";
+						
+						if (empty($value)) $data[$property] = "'0'";
+
+						// Special exception for id fields
+						if ($property == "id" && empty($value)) $data[$property] = "NULL";
+						
 						break;
 					default:
 						// Anything not needing processing

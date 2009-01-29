@@ -15,6 +15,7 @@ class Category extends DatabaseObject {
 	static $table = "category";
 	var $loaded = false;
 	var $children = false;
+	var $child = false;
 	var $imguri = "";
 	var $productidx = 0;
 	var $products = array();
@@ -52,8 +53,13 @@ class Category extends DatabaseObject {
 	function load_children() {
 		$db = DB::get();
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
-		$this->children = $db->query("SELECT cat.*,count(sc.product) AS products FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.category=cat.id WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY parent DESC,name ASC",AS_ARRAY);
-		$this->children = sort_tree($this->children,$this->id);
+		$children = $db->query("SELECT cat.*,count(sc.product) AS products FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.category=cat.id WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY parent DESC,name ASC",AS_ARRAY);
+		$children = sort_tree($children,$this->id);
+		foreach ($children as &$child) {
+			$this->children[$child->id] = new Category();
+			$this->children[$child->id]->populate($child);
+			$this->children[$child->id]->products = $child->products;			
+		}
 		
 		if (!empty($this->children)) return true;
 		return false;
@@ -228,7 +234,7 @@ class Category extends DatabaseObject {
 					MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice,
 					IF(pd.inventory='on',1,0) AS inventory,
 					SUM(pd.stock) as stock";
-		
+
 		// Query without promotions for MySQL servers prior to 5
 		if (version_compare($db->version,'5.0','<')) {
 			$columns = "p.*,
@@ -269,10 +275,10 @@ class Category extends DatabaseObject {
 			$this->pages = ceil($this->total / $this->pagination);
 			if ($this->pages > 1) $this->paged = true;			
 		}
-		
+
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
-		
+
 		if ($this->pagination == 0 || $limit < $this->pagination) 
 			$this->total = count($this->products);
 		
@@ -301,6 +307,9 @@ class Category extends DatabaseObject {
 			
 			$this->products[$product->id] = new Product();
 			$this->products[$product->id]->populate($product);
+			
+			// Special field for Bestseller category
+			if ($product->sold) $this->products[$product->id]->sold = $product->sold;
 
 			if (!empty($product->thumbnail)) {
 				$image = new stdClass();
@@ -431,7 +440,29 @@ class Category extends DatabaseObject {
 				if ($this->productsidx > 0 && $this->productsidx % $options['products'] == 0) return true;
 				else return false;
 				break;
-				
+			case "has-categories":
+				if (empty($this->children)) $this->load_children();
+				return (!empty($this->children));
+				break;
+			case "subcategories":			
+				if (!$this->childloop) {
+					reset($this->children);
+					$this->child = current($this->children);
+					$this->childidx = 0;
+					$this->childloop = true;
+				} else {
+					$this->child = next($this->children);
+					$this->childidx++;
+				}
+
+				if (current($this->children)) {
+					$this->child = current($this->children);
+					return true;
+				} else {
+					$this->childloop = false;
+					return false;
+				}
+				break;				
 			case "subcategory-list":
 				if (isset($Shopp->Category->controls)) return false;
 				if (empty($this->children)) $this->load_children();
@@ -507,10 +538,15 @@ class Category extends DatabaseObject {
 			case "pagination":
 				if (!$this->paged) return "";
 				
+				// Set options
+				if (!isset($options['label'])) $options['label'] = __("Pages:","Shopp");
+				if (!isset($options['next'])) $options['next'] = __("next","Shopp");
+				if (!isset($options['previous'])) $options['previous'] = __("previous","Shopp");
+				
 				$navlimit = 1000;
 				if (!empty($options['show'])) $navlimit = $options['show'];
 
-				$before = "<div>".__('Pages: ');
+				$before = "<div>".$options['label']; // Set the label
 				if (!empty($options['before'])) $before = $options['before'];
 
 				$after = "</div>";
@@ -547,11 +583,21 @@ class Category extends DatabaseObject {
 						}
 					}
 
+					// Add previous button
+					if (!value_is_true($options['previous']) && $this->page > 1) {
+						$prev = $this->page-1;
+						$link = (SHOPP_PERMALINKS)?
+							"$page"."category/$this->uri/page/$prev/":
+							"$page&shopp_category=$this->slug&paged=$prev";
+						$string .= '<li class="previous"><a href="'.$link.'">'.$options['previous'].'</a></li>';
+					} else $string .= '<li class="previous disabled">'.$options['previous'].'</li>';
+					// end previous button
+
 					while ($i < $visible_pages) {
 						$link = (SHOPP_PERMALINKS)?
 							"$page"."category/$this->uri/page/$i/":
 							"$page&shopp_category=$this->slug&paged=$i";
-						if ( $i == $this->page ) $string .= '<li><span>'.$i.'</span></li>';
+						if ( $i == $this->page ) $string .= '<li class="active">'.$i.'</li>';
 						else $string .= '<li><a href="'.$link.'">'.$i.'</a></li>';
 						$i++;
 					}
@@ -568,6 +614,16 @@ class Category extends DatabaseObject {
 							"$page&shopp_category=$this->slug&paged=$this->pages";
 						$string .= '<li><a href="'.$link.'">'.$this->pages.'</a></li>';	
 					}
+					
+					// Add next button
+					if (!value_is_true($options['next']) && $this->page < $this->pages) {						
+						$next = $this->page+1;
+						$link = (SHOPP_PERMALINKS)?
+							"$page"."category/$this->uri/page/$next/":
+							"$page&shopp_category=$this->slug&paged=$next";
+						$string .= '<li class="next"><a href="'.$link.'">'.$options['next'].'</a></li>';
+					} else $string .= '<li class="next disabled">'.$options['next'].'</li>';
+					
 					$string .= '</ul>';
 					$string .= $after;
 				}

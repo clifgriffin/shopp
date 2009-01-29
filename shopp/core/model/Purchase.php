@@ -28,6 +28,7 @@ class Purchase extends DatabaseObject {
 		$table = DatabaseObject::tablename(Purchased::$table);
 		if (empty($this->id)) return false;
 		$this->purchased = $db->query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
+		foreach ($this->purchased as &$purchase) $purchase->data = unserialize($purchase->data);
 		return true;
 	}
 	

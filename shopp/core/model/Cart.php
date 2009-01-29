@@ -28,6 +28,7 @@ class Cart {
 	var $freeshipping = false;
 	var $looping = false;
 	var $runaway = 0;
+	var $updated = false;
 	
 	// methods
 	
@@ -70,6 +71,10 @@ class Cart {
 		$this->data->Purchase = false;
 		$this->data->Category = array();
 		$this->data->Search = false;
+		
+		// Total the cart once, and only if there are changes
+		add_action('parse_request',array(&$this,'totals'),99);
+		
 		return true;
 	}
 		
@@ -98,14 +103,14 @@ class Cart {
 		if ($result = $db->query("SELECT * FROM $this->_table WHERE session='$this->session'")) {
 			$this->ip = $result->ip;
 			$this->data = unserialize($result->data);
-			$this->contents = unserialize($result->contents);
+			if (empty($result->contents)) $this->contents = array();
+			else $this->contents = unserialize($result->contents);
 			$this->created = mktimestamp($result->created);
 			$this->modified = mktimestamp($result->modified);
-			//reset($this->contents);
 			
 		} else {
-			$db->query("INSERT INTO $this->_table (session, ip, created, modified) 
-							VALUES ('$this->session','$this->ip',now(),now())");
+			$db->query("INSERT INTO $this->_table (session, ip, data, contents, created, modified) 
+							VALUES ('$this->session','$this->ip','','',now(),now())");
 		}
 
 		return true;
@@ -127,7 +132,7 @@ class Cart {
 	function save () {
 		global $Shopp;
 		$db = DB::get();
-
+				
 		if (!$Shopp->Settings->unavailable) {
 			$data = $db->escape(serialize($this->data));
 			$contents = $db->escape(serialize($this->contents));
@@ -152,8 +157,8 @@ class Cart {
 	/**
 	 * add()
 	 * Adds a product as an item to the cart */
-	function add ($quantity,&$Product,&$Price,$category) {
-		$NewItem = new Item($Product,$Price,$category);
+	function add ($quantity,&$Product,&$Price,$category,$data=array()) {
+		$NewItem = new Item($Product,$Price,$category,$data);
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
 			$this->added = $this->contents[$item];
@@ -163,8 +168,7 @@ class Cart {
 			$this->added = $this->contents[count($this->contents)-1];
 			if ($NewItem->shipping) $this->data->Shipping = true;
 		}
-		$this->totals();
-		$this->save();
+		$this->updated();
 		return true;
 	}
 	
@@ -173,9 +177,7 @@ class Cart {
 	 * Removes an item from the cart */
 	function remove ($item) {
 		array_splice($this->contents,$item,1);
-		$this->totals();
-		$this->save();
-		return true;
+		$this->updated();		return true;
 	}
 	
 	/**
@@ -187,10 +189,16 @@ class Cart {
 		elseif (isset($this->contents[$item])) {
 			$this->contents[$item]->quantity($quantity);
 			if ($this->contents[$item]->quantity == 0) $this->remove($item);
-			$this->totals();
-			$this->save();
+			$this->updated();
 		}
 		return true;
+	}
+	
+	/**
+	 * updated()
+	 * Changes the quantity of an item in the cart */
+	function updated () {
+		$this->updated = true;
 	}
 	
 	/**
@@ -216,8 +224,7 @@ class Cart {
 			if ($cartitem->product == $Product->id && $cartitem->price == $pricing) {
 				$this->update($id,$cartitem->quantity+$this->contents[$item]->quantity);
 				$this->remove($item);
-				$this->totals();
-				$this->save();
+				$this->updated();
 				return true;
 			}
 		}
@@ -227,8 +234,7 @@ class Cart {
 		$category = $this->contents[$item]->category;
 		$this->contents[$item] = new Item($Product,$pricing,$category);
 		$this->contents[$item]->quantity($qty);
-		$this->totals();
-		$this->save();
+		$this->updated();
 		return true;
 	}
 	
@@ -262,8 +268,8 @@ class Cart {
 			$this->data->Order->Shipping->region = $data['region'];
 			$this->data->Order->Billing->region = $data['region'];
 		}
-			
-		$this->totals();
+
+		if (!empty($data)) $this->updated();
 	}
 	
 	/**
@@ -282,62 +288,58 @@ class Cart {
 		$handling = $Shopp->Settings->get('order_shipfee');
 
 		if (!is_array($methods)) return 0;
+		if ($this->freeshipping) return 0;
+
+		// Calculate any product-specific shipping fee markups
+		$shipflag = false;
+		foreach ($this->contents as $Item) {
+			if ($Item->shipping) $shipflag = true;
+			if ($Item->shipfee > 0) $fees += ($Item->quantity * $Item->shipfee);
+		}
+		if ($shipflag) $this->data->Shipping = true;
+		else $this->data->Shipping = false;
+		
+		// Add order handling fee
+		if ($handling > 0) $fees += $handling;
 
 		$estimate = false;
-		foreach ($methods as $id => $rate) {
+		foreach ($methods as $id => $option) {
 			$shipping = 0;
-			if (isset($rate['postcode-required'])) $this->data->ShippingPostcode = true;
-			
-			if ($this->freeshipping) {
-				$ShipCosts[$rate['name']] = 0;
-				return 0;
-			}
+			if (isset($option['postcode-required'])) $this->data->ShippingPostcode = true;
 			
 			if ($Shipping->country == $base['country']) {
 				// Use country/domestic region
-				if (isset($rate[$base['country']]))	$column = $base['country'];  // Use the country rate
+				if (isset($option[$base['country']]))	$column = $base['country'];  // Use the country rate
 				else $column = $Shipping->postarea(); // Try to get domestic regional rate
-
-			} else if (isset($rate[$Shipping->region])) {
+			} else if (isset($option[$Shipping->region])) {
 				// Global region rate
 				$column = $Shipping->region;
 			} else {
 				// Worldwide shipping rate, last rate entry
-				end($rate);
-				$column = key($rate);
-			}
-			
-			list($ShipCalcClass,$process) = split("::",$rate['method']);
-			if ($Shopp->ShipCalcs->modules[$ShipCalcClass]) {
-				$shipping += $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate($this,$rate,$column);
+				end($option);
+				$column = key($option);
 			}
 
-			// Calculate any product-specific shipping fee markups
-			$shipflag = false;
-			foreach ($this->contents as $Item) {
-				if ($Item->shipping) $shipflag = true;
-				if ($Item->shipfee > 0) $shipping += ($Item->quantity * $Item->shipfee);
-			}
-			if ($shipflag) $this->data->Shipping = true;
-			else $this->data->Shipping = false;
+			list($ShipCalcClass,$process) = split("::",$option['method']);
+			if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]))
+				$estimated = $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate(
+					$this, $fees, $option, $column);
 			
-			// Add order handling fee
-			if ($handling > 0) $shipping += $handling;
-			
-			if (!$estimate) $estimate = $shipping;
-			if ($shipping < $estimate) $estimate = $shipping;
-			$rate['cost'] = $shipping;
-			$ShipCosts[$rate['name']] = $rate;
+			if (!$estimate) $estimate = $estimated;
+			if ($estimated !== false && $estimated < $estimate) $estimate = $estimated; // Get lowest estimate
 		}
-				
-		if (!empty($this->data->Order->Shipping->shipmethod)) 
+
+		if (!isset($ShipCosts[$this->data->Order->Shipping->shipmethod]))
+			$this->data->Order->Shipping->shipmethod = false;
+		
+		if (!empty($this->data->Order->Shipping->shipmethod))
 			return $ShipCosts[$this->data->Order->Shipping->shipmethod]['cost'];
+
 		return $estimate;
 	}
 	
 	function promotions () {
 		$db = DB::get();
-		
 		
 		// Load promotions if they've not yet been loaded
 		if (empty($this->data->Promotions) || true) {
@@ -372,17 +374,17 @@ class Cart {
 				$rulematch = false;
 				switch($rule['property']) {
 					case "Item name": 
-						foreach ($this->contents as &$Item) {
+						foreach ($this->contents as $id => &$Item) {
 							if (Promotion::match_rule($Item->name,$rule['logic'],$rule['value'])) {
-								$items[] = &$Item;
+								$items[$id] = &$Item;
 								$rulematch = true;
 							}
 						}
 						break;
 					case "Item quantity":
-						foreach ($this->contents as &$Item) {
+						foreach ($this->contents as $id => &$Item) {
 							if (Promotion::match_rule($Item->quantity,$rule['logic'],$rule['value'])) {
-								$items[] = &$Item;
+								$items[$id] = &$Item;
 								$rulematch = true;
 							}
 						}
@@ -474,6 +476,8 @@ class Cart {
 	 * Calculates subtotal, shipping, tax and 
 	 * order total amounts */
 	function totals () {
+		if (!$this->updated) return true;
+		
 		$Totals =& $this->data->Totals;
 		$Totals->quantity = 0;
 		$Totals->subtotal = 0;
@@ -507,6 +511,7 @@ class Cart {
 
 		$Totals->total = $Totals->subtotal - $discount + 
 			$Totals->shipping + $Totals->tax;
+
 	}
 	
 	function tag ($property,$options=array()) {
@@ -709,7 +714,7 @@ class Cart {
 					($method['cost'] == $this->data->Totals->shipping))
 						$checked = ' checked="checked"';
 	
-				$result .= '<input type="radio" name="shipmethod" value="'.$method['name'].'" '.$id.' class="shipmethod" '.$checked.' />';
+				$result .= '<input type="radio" name="shipmethod" value="'.$method['name'].'" '.$id.' class="shipmethod" '.$checked.' rel="'.$method['cost'].'" />';
 				return $result;
 				
 				break;
@@ -905,6 +910,7 @@ class Cart {
 				break;
 				
 			// BILLING TAGS
+			case "billing-required": return ($this->data->Totals->total > 0); break;
 			case "billing-address":
 				if (!empty($this->data->Order->Billing->address))
 					$options['value'] = $this->data->Order->Billing->address;			
@@ -1023,7 +1029,7 @@ class Cart {
 						if (!empty($ProcessorClass)) {
 							include_once($gateway);					
 							$Payment = new $ProcessorClass();
-							$button .= $Payment->tag('button');
+							$button .= $Payment->tag('button',$options);
 						}
 					}
 					return $button;

@@ -32,7 +32,7 @@ class Item {
 	var $inventory = false;
 	var $tax = false;
 
-	function Item ($Product,$pricing,$category) {
+	function Item ($Product,$pricing,$category,$data=array()) {
 		global $Shopp; // To access settings
 
 		$Product->load_data(array('prices','images'));
@@ -56,11 +56,13 @@ class Item {
 		$this->options = $Product->prices;
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
+		$this->sale = $Price->onsale;
 		$this->saved = ($Price->price - $Price->promoprice);
 		$this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
 		$this->freeshipping = ($Price->freeshipping || $Product->freeshipping);
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
 		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
+		$this->data = $data;
 
 		if (!empty($Price->download)) $this->download = $Price->download;
 		
