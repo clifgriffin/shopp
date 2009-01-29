@@ -4,6 +4,7 @@
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
 	<?php include("navigation.php"); ?>
+	<br class="clear" />
 	
 	<div id="order">
 		<br class="clear" />
@@ -62,6 +63,12 @@
 					<td>
 						<?php echo $Item->name; ?>
 						<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?>
+						<?php if (is_array($Item->data)): ?>
+							<ul>
+						<?php foreach ($Item->data as $key => $value): ?>
+							<li><?php echo $key; ?>: <strong><?php echo $value; ?></strong></li>
+						<?php endforeach; endif; ?>
+						</ul>
 					</td>
 					<td><?php echo $Item->quantity; ?></td>
 					<td class="money"><?php echo money($Item->unitprice); ?></td>

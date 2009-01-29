@@ -66,6 +66,17 @@
 #shopp ul.categories { float: left; margin-right: 20px; }
 #shopp #new { float: left; width: 75%; }
 
+/* Category Pagination */
+#shopp ul.paging { /* placeholder for your styles - inherited defaults: clear: none; display: inline-block; */ }
+#shopp ul.paging li { /* placeholder for your styles - inherited defaults: display: inline-block; margin-left: 5px; */ }
+#shopp ul.paging li a { /* page links default styling */ }
+#shopp ul.paging li a:hover { /* page links hover styling */ }
+#shopp ul.paging li.active { /* currrent page style */ }
+#shopp ul.paging li.disabled a { /* style for disabled previous/next links */ }
+#shopp ul.paging li.previous a,
+#shopp ul.paging li.next a { /* previous/next link style */ }
+
+
 /**
  * Product Pages
  **/

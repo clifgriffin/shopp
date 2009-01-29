@@ -139,7 +139,7 @@ function shopp_email ($template,$data=array()) {
 		}
 
 		// Header parse
-		if ( preg_match("/^(.+?):\s(.+)\n$/",$line,$found) && !$in_body ) {
+		if ( preg_match("/^(.+?):\s(.+)[\n|\r\n]$/",$line,$found) && !$in_body ) {
 			$header = $found[1];
 			$string = $found[2];
 			if (in_array(strtolower($header),$protected)) // Protect against header injection
@@ -150,7 +150,7 @@ function shopp_email ($template,$data=array()) {
 		}
 		
 		// Catches the first blank line to begin capturing message body
-		if ( $line == "\n" ) $in_body = true;
+		if ( $line == "\n" || $line == "\r\n" ) $in_body = true;
 		if ( $in_body ) $message .= $line;
 	}
 
@@ -679,8 +679,8 @@ function inputattrs ($options,$allowed=array()) {
 				$string .= ' '.$key.'="'.$value.'"';
 		}
 	}
-	if (!empty($classes)) $string .= ' class="'.ltrim($classes).'"';
-	return $string;
+	$string .= 'class="'.$classes.'"';
+ 	return $string;
 }
 
 function build_query_request ($request=array()) {

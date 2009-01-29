@@ -55,22 +55,25 @@
 	}
 
 	$(window).ready(function () {
+		var sameshipping = $('#same-shipping');
+		
+		if (sameshipping.length > 0) {
+			sameshipping.change(function() {
+				if ($('#same-shipping').attr('checked')) {
+					$('#billing-address-fields').removeClass('half');
+					$('#shipping-address-fields').hide();
+					$('#shipping-address-fields .required').removeClass('required');
+				} else {
+					$('#billing-address-fields').addClass('half');
+					$('#shipping-address-fields input').not('#shipping-xaddress').addClass('required');
+					$('#shipping-address-fields select').addClass('required');
+					$('#shipping-address-fields').show();
+				}
+			}).change();
 
-		$('#same-shipping').change(function() {
-			if ($('#same-shipping').attr('checked')) {
-				$('#billing-address-fields').removeClass('half');
-				$('#shipping-address-fields').hide();
-				$('#shipping-address-fields .required').removeClass('required');
-			} else {
-				$('#billing-address-fields').addClass('half');
-				$('#shipping-address-fields input').addClass('required');
-				$('#shipping-address-fields select').addClass('required');
-				$('#shipping-address-fields').show();
-			}
-		}).change();
-
-		// For IE compatibility
-		$('#same-shipping').click(function () { $(this).change(); }); 
+			// For IE compatibility
+			sameshipping.click(function () { $(this).change(); }); 
+		}
 		
 		$('#submit-login').click(function () {
 			$('#checkout.shopp').unbind('submit');

@@ -4,7 +4,7 @@
  * @class PayPalExpress
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 26 August, 2008
  * @package Shopp
  **/
@@ -34,9 +34,9 @@ class PayPalExpress {
 		if (in_array($this->settings['base_operations']['currency']['code'],$this->currencies))
 			$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];
 
-		$this->settings['locale'] = $this->locales["US"];
-		if (array_key_exists($this->settings['base_operations']['country'],$this->locales));
+		if (array_key_exists($this->settings['base_operations']['country'],$this->locales))
 			$this->settings['locale'] = $this->locales[$this->settings['base_operations']['country']];
+		else $this->settings['locale'] = $this->locales["US"];
 
 		$this->button = sprintf($this->button, $this->settings['locale']);
 		
@@ -61,6 +61,9 @@ class PayPalExpress {
 		$_['VERSION']				= "52.0";
 		$_['METHOD']				= "SetExpressCheckout";
 		$_['PAYMENTACTION']			= "Sale";
+
+		// Include page style option, if provided
+		if (isset($_GET['pagestyle'])) $_['PAGESTYLE'] = $_GET['pagestyle'];
 		
 		// Transaction
 		$_['CURRENCYCODE']			= $this->settings['currency_code'];
@@ -69,8 +72,8 @@ class PayPalExpress {
 		$_['SHIPPINGAMT']			= number_format($Shopp->Cart->data->Totals->shipping,2);
 		$_['TAXAMT']				= number_format($Shopp->Cart->data->Totals->tax,2);
 
-		if (isset($Order->data['paypal-custom']))
-			$_['CUSTOM'] = htmlentities($Order->data['paypal-custom']);
+		if (isset($Shopp->Cart->data->Order->data['paypal-custom']))
+			$_['CUSTOM'] = htmlentities($Shopp->Cart->data->Order->data['paypal-custom']);
 
 		// Disable shipping fields if no shipped items in cart
 		if (!$Shopp->Cart->data->Shipping) $_['NOSHIPPING'] = 1;
@@ -88,17 +91,17 @@ class PayPalExpress {
 										((SHOPP_PERMALINKS)?'?':'&').
 										"shopp_xco=PayPal/PayPalExpress";
 		$_['CANCELURL']				= $Shopp->link('cart');
-		
+				
 		$this->transaction = $this->encode($_);
 		$result = $this->send();
-		
 		if (!empty($result) && isset($result->token)){
 			if ($this->settings['testmode'] == "on") header("Location: {$this->sandbox_url}&token=".$result->token);
 			else header("Location: {$this->checkout_url}&token=".$result->token);
 			exit();
 		}
-			
-
+		
+		if ($result->ack == "Failure") $this->Response = &$result;
+		
 		return false;	
 	}
 	
@@ -292,9 +295,11 @@ class PayPalExpress {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		switch ($property) {
-			case "button": 
-				if (SHOPP_PERMALINKS) $url = $Shopp->link('checkout')."?shopp_xco=PayPal/PayPalExpress";
-				else $url = $Shopp->link('checkout')."&shopp_xco=PayPal/PayPalExpress";
+			case "button":
+				$args = array();
+				$args['shopp_xco'] = 'PayPal/PayPalExpress';
+				if (isset($options['pagestyle'])) $args['pagestyle'] = $options['pagestyle'];
+				$url = add_query_arg($args,$Shopp->link('checkout'));
 				return '<p class="submit"><a href="'.$url.'"><img src="'.$this->button.'" alt="Checkout with PayPal" /></a></p>';
 		}
 	}

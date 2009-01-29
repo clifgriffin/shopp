@@ -42,6 +42,10 @@ class GoogleCheckout {
 		$base = $Shopp->Settings->get('base_operations');
 		if ($base['country'] == "UK") $this->settings['location'] = "en_GB";
 		
+		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
+		$this->settings['currency'] = $this->settings['base_operations']['currency']['code'];
+		if (empty($this->settings['currency'])) $this->settings['currency'] = "USD";
+		
 		return true;
 	}
 	
@@ -144,7 +148,7 @@ class GoogleCheckout {
 					$_[] = '<item>';
 					$_[] = '<item-name>'.htmlspecialchars($Item->name).htmlspecialchars((!empty($Item->optionlabel))?' ('.$Item->optionlabel.')':'').'</item-name>';
 					$_[] = '<item-description>'.htmlspecialchars($Item->description).'</item-description>';
-					$_[] = '<unit-price currency="USD">'.$Item->unitprice.'</unit-price>';
+					$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.$Item->unitprice.'</unit-price>';
 					$_[] = '<quantity>'.$Item->quantity.'</quantity>';
 					if (!empty($Item->sku)) $_[] = '<merchant-item-id>'.$Item->sku.'</merchant-item-id>';
 					$_[] = '</item>';
@@ -156,11 +160,17 @@ class GoogleCheckout {
 					$_[] = '<item>';
 						$_[] = '<item-name>Discounts</item-name>';
 						$_[] = '<item-description>'.join(", ",$discounts).'</item-description>';
-						$_[] = '<unit-price currency="USD">'.number_format($Cart->data->Totals->discount*-1,2).'</unit-price>';
+						$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Cart->data->Totals->discount*-1,2).'</unit-price>';
 						$_[] = '<quantity>1</quantity>';
 					$_[] = '</item>';
 				}
 				$_[] = '</items>';
+				
+				// Include notification that the order originated from Shopp
+				$_[] = '<merchant-private-data>';
+					$_[] = '<shopping-cart-agent>'.SHOPP_GATEWAY_USERAGENT.'</shopping-cart-agent>';
+				$_[] = '</merchant-private-data>';
+				
 			$_[] = '</shopping-cart>';
 						
 			// Build the flow support request
@@ -172,7 +182,7 @@ class GoogleCheckout {
 					$_[] = '<shipping-methods>';
 						foreach ($Cart->data->ShipCosts as $shipping) {
 							$_[] = '<flat-rate-shipping name="'.$shipping['name'].'">';
-							$_[] = '<price currency="USD">'.number_format($shipping['cost'],2).'</price>';
+							$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping['cost'],2).'</price>';
 							$_[] = '</flat-rate-shipping>';
 						}
 					$_[] = '</shipping-methods>';
@@ -194,6 +204,13 @@ class GoogleCheckout {
 	function order ($XML) {
 		global $Shopp;
 		$db = DB::get();
+		
+		// Check if this is a Shopp order or not
+		$origin = $XML->getElementContent('shopping-cart-agent');
+		if (empty($origin) || 
+			substr($origin,0,strpos("/",SHOPP_GATEWAY_USERAGENT)) == 
+			substr(SHOPP_GATEWAY_USERAGENT,0,strpos("/",SHOPP_GATEWAY_USERAGENT))) 
+				return true;
 
 		$buyer = $XML->getElement('buyer-billing-address');
 		$buyer = $buyer['CHILDREN'];
@@ -291,7 +308,7 @@ class GoogleCheckout {
 		if (strtoupper($state) == "CHARGEABLE" && $this->settings['autocharge'] == "on") {
 			$_ = array('<?xml version="1.0" encoding="utf-8"?>'."\n");
 			$_[] = '<charge-order xmlns="'.$this->urls['schema'].'" google-order-number="'.$id.'">';
-			$_[] = '<amount currency="USD">'.$Purchase->total.'</amount>';
+			$_[] = '<amount currency="'.$this->settings['currency'].'">'.$Purchase->total.'</amount>';
 			$_[] = '</charge-order>';
 			$this->transaction = join("\n",$_);
 			$Reponse = $this->send($this->urls['order']);
@@ -338,7 +355,7 @@ class GoogleCheckout {
 				$buttonuri .= '&variant=text';
 				$buttonuri .= '&loc='.$this->settings['location'];
 				if (SHOPP_PERMALINKS) $url = $Shopp->link('checkout')."?shopp_xco=GoogleCheckout/GoogleCheckout";
-				else $url = $Shopp->link('checkout')."&shopp_xco=GoogleCheckout/GoogleCheckout";
+				else $url = add_query_arg('shopp_xco','GoogleCheckout/GoogleCheckout',$Shopp->link('checkout'));
 				return '<p class="submit"><a href="'.$url.'"><img src="'.$buttonuri.'" alt="Checkout with Google Checkout" /></a></p>';
 		}
 	}

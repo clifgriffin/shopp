@@ -19,18 +19,21 @@ class FlatRates {
 		$ShipCalc->methods[get_class($this).'::item'] = __("Flat Rate per item","Shopp");
 	}
 	
-	function calculate (&$Cart,$rate,$column) {
+	function calculate (&$Cart,$fees,$rate,$column) {
+		$ShipCosts = &$Cart->data->ShipCosts;
 		list($ShipCalcClass,$process) = split("::",$rate['method']);
 		switch($process) {
 			case "item":
 				$shipping = 0;
 				foreach($Cart->shipped as $Item)
  					$shipping += $Item->quantity * $rate[$column][0];
-				return $shipping;
+				$rate['cost'] = $shipping+$fees;
 				break;
 			default:
-				return $rate[$column][0];
+				$rate['cost'] = $rate[$column][0]+$fees;
 		}
+		$ShipCosts[$rate['name']] = $rate;
+		return $rate['cost'];
 	}
 	
 	function ui () {
@@ -71,7 +74,7 @@ var FlatRates = function (methodid,table,rates) {
 	}).val(value).appendTo(inputCell).change();
 	
 	var inputCell = $('<td/>').appendTo(row);
-	if (rates && rates['Worldwide'][0]) value = rates['Worldwide'][0];
+	if (rates && rates['Worldwide'] && rates['Worldwide'][0]) value = rates['Worldwide'][0];
 	else value = 0;
 	intlInput = $('<input name="settings[shipping_rates]['+methodid+'][Worldwide][]" id="worldwide['+methodid+']" class="selectall right" size="7" tabindex="'+(methodid+1)+'06" />').change(function() {
 		this.value = asMoney(this.value);

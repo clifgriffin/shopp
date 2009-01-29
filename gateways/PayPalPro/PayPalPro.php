@@ -203,7 +203,7 @@ class PayPalPro {
 				
 			</td>
 		</tr>
-		<?
+		<?php
 	}
 	
 	function registerSettings () {
