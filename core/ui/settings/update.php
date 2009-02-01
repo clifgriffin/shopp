@@ -49,8 +49,8 @@
 (function($) {
 	helpurl = "<?php echo SHOPP_DOCS; ?>Update_Settings";
 	var purchase_url = '<?php echo SHOPP_HOME; ?>?buynow=true';
-	var ajaxurl = '<?php echo wp_nonce_url(get_bloginfo("siteurl")."/wp-admin/admin-ajax.php", "shopp-wp_ajax_shopp_update"); ?>';
-	var adminurl = '<?php echo wp_nonce_url(get_bloginfo("siteurl")."/wp-admin/admin.php", "shopp-wp_ajax_shopp_update"); ?>';
+	var ajaxurl = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin-ajax.php", "shopp-wp_ajax_shopp_update"); ?>';
+	var adminurl = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin.php", "shopp-wp_ajax_shopp_update"); ?>';
 	var INSTALLING_MESSAGE = "<?php _e('Installing update %d of %d&hellip;','Shopp'); ?>";
 	var CANCELLING_MESSAGE = "<?php _e('Cancelling updates&hellip;','Shopp'); ?>";
 	

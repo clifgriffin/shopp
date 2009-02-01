@@ -7,6 +7,12 @@
 
 (function($) {
 
+// fixes the fact that ie7 now reports itself as MSIE 6.0 compatible
+$.browser.msie6 = 
+        $.browser.msie 
+        && /MSIE 6\.0/i.test(window.navigator.userAgent) 
+        && !/MSIE 7\.0/i.test(window.navigator.userAgent);
+
 //on page load call tb_init
 $(document).ready(function(){   
 	tb_init('a.shopp-thickbox, area.shopp-thickbox, input.shopp-thickbox');//pass where to apply thickbox
@@ -281,7 +287,7 @@ function tb_remove() {
 
 function tb_position() {
 $("#TB_window").css({marginLeft: '-' + parseInt((TB_WIDTH / 2),10) + 'px', width: TB_WIDTH + 'px'});
-	if ( !(jQuery.browser.msie && jQuery.browser.version < 7)) { // take away IE6
+	if ( !(jQuery.browser.msie6)) { // take away IE6
 		$("#TB_window").css({marginTop: '-' + parseInt((TB_HEIGHT / 2),10) + 'px'});
 	}
 }

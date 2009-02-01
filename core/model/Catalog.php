@@ -65,7 +65,7 @@ class Catalog extends DatabaseObject {
 		else $limit = "";
 		
 		$tagtable = DatabaseObject::tablename(Tag::$table);
-		$this->tags = $db->query("SELECT t.*,count(sc.product) AS products FROM $tagtable AS t LEFT JOIN $this->_table AS sc ON sc.tag=t.id GROUP BY t.id ORDER BY t.name ASC$limit",AS_ARRAY);
+		$this->tags = $db->query("SELECT t.*,count(sc.product) AS products FROM $tagtable AS t LEFT JOIN $this->_table AS sc ON sc.tag=t.id GROUP BY t.id HAVING products > 0 ORDER BY t.name ASC$limit",AS_ARRAY);
 		return true;
 	}
 	
@@ -74,8 +74,8 @@ class Catalog extends DatabaseObject {
 		global $Shopp;
 
 		$pages = $Shopp->Settings->get('pages');
-		if (SHOPP_PERMALINKS) $path = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['name']}";
-		else $page = trailingslashit(get_bloginfo('wpurl'))."?page_id={$pages['catalog']['id']}";
+		if (SHOPP_PERMALINKS) $path = $Shopp->shopuri;
+		else $page = add_query_arg('page_id',$pages['catalog']['id'],$Shopp->shopuri);
 				
 		switch ($property) {
 			case "url": return $Shopp->link('catalog');
@@ -91,8 +91,8 @@ class Catalog extends DatabaseObject {
 				$string = '<ul class="shopp tagcloud">';
 				foreach ($this->tags as $tag) {
 					$level = round((1-$tag->products/$max)*$levels)+1;
-					if (SHOPP_PERMALINKS) $link = $path.'/tag/'.str_replace(" ","+",$tag->name).'/';
-					else $link = $page.'&amp;shopp_tag='.str_replace(" ","+",$tag->name);
+					if (SHOPP_PERMALINKS) $link = $path.'tag/'.urlencode($tag->name).'/';
+					else $link = add_query_arg('shopp_tag',urlencode($tag->name),$page);
 					$string .= '<li class="level-'.$level.'"><a href="'.$link.'">'.$tag->name.'</a></li> ';
 				}
 				$string .= '</ul>';
@@ -175,7 +175,7 @@ class Catalog extends DatabaseObject {
 						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul></li>';
 					
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
-						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
+						else $link = add_query_arg('shopp_category',$category->uri,$Shopp->shopuri);
 					
 						$products = '';
 						if (value_is_true($options['products']) && $category->total > 0) $products = ' ('.$category->total.')';
@@ -256,8 +256,10 @@ class Catalog extends DatabaseObject {
 					
 					if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$Shopp->Category->uri;
 					else {
-						if (isset($Shopp->Category->smart)) $link = $Shopp->shopuri.'&shopp_category='.$Shopp->Category->slug;
-						else $link = add_query_arg('shopp_category', $Shopp->Category->id, $Shopp->shopuri);
+						if (isset($Shopp->Category->smart)) 
+							$link = add_query_arg('shopp_category',$Shopp->Category->slug,$Shopp->shopuri);
+						else 
+							$link = add_query_arg('shopp_category', $Shopp->Category->id, $Shopp->shopuri);
 					}
 
 					if (!empty($Shopp->Product)) $trail = '<li><a href="'.$link.'">'.$Shopp->Category->name.'</a></li>';
@@ -268,12 +270,12 @@ class Catalog extends DatabaseObject {
 					while ($parentkey != 0) {
 						$tree_category = $this->categories[$parentkey];
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$tree_category->uri;
-						else $Shopp->shopuri = $page.'&shopp_category='.$tree_category->id;
+						else $link = add_query_arg('shopp_category',$tree_category->id,$page);
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
 						$parentkey = $tree_category->parentkey;
 					}
 				}
-				$trail = '<li><a href="'.((SHOPP_PERMALINKS)?$path:$page).'">'.$pages['catalog']['title'].'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
+				$trail = '<li><a href="'.$Shopp->shopuri.'">'.$pages['catalog']['title'].'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
 				return '<ul class="breadcrumb">'.$trail.'</ul>';
 				break;
 			case "new-products":

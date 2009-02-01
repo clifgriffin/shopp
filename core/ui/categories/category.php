@@ -149,11 +149,15 @@ var priceranges = <?php echo json_encode($Category->priceranges) ?>;
 var options = <?php echo json_encode($Category->options) ?>;
 var prices = <?php echo json_encode($Category->prices) ?>;
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
-var siteurl = '<?php echo get_option('siteurl'); ?>';
+var siteurl = '<?php echo $Shopp->siteurl; ?>';
+var ajaxurl = siteurl+'/wp-admin/admin-ajax.php';
+var editslug_url = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
+
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
+var productspath = '<?php echo trailingslashit($this->Settings->get('products_path')); ?>';
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 
 // Warning/Error Dialogs

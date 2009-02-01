@@ -350,7 +350,8 @@ class Category extends DatabaseObject {
 			$product->thumbnail_properties = unserialize($product->thumbnail_properties);
 			$item = array();
 			$item['title'] = $product->name;
-			$item['link'] = htmlentities($Shopp->shopuri.((SHOPP_PERMALINKS)?$product->id:'&shopp_pid='.$product->id));
+			if (SHOPP_PERMALINKS) $item['link'] = $Shopp->shopuri.$product->id;
+			else $item['link'] = add_query_arg('shopp_pid',$product->id,$Shopp->shopuri);
 			$item['description'] = "<![CDATA[";
 			if (!empty($product->thumbnail)) {
 				$item['description'] .= '<a href="'.$item['link'].'" title="'.$product->name.'">';
@@ -394,13 +395,13 @@ class Category extends DatabaseObject {
 		
 		if (SHOPP_PERMALINKS) {
 			$pages = $Shopp->Settings->get('pages');
-			if ($page == get_bloginfo('wpurl')."/")
+			if ($page == trailingslashit(get_option('siteurl')))
 				$page .= $pages['catalog']['name']."/";
 		}
 		
 		switch ($property) {
 			case "link": 
-			case "url": return (SHOPP_PERMALINKS)?$Shopp->shopuri."category/$this->uri":add_query_arg('shopp_category',$this->id,$Shopp->shopuri); break;
+			case "url": return  (SHOPP_PERMALINKS)?$Shopp->shopuri."category/$this->uri":add_query_arg('shopp_category',$this->uri,$Shopp->shopuri); break;
 			case "name": return $this->name; break;
 			case "slug": return $this->slug; break;
 			case "description": return wpautop($this->description); break;
@@ -488,12 +489,12 @@ class Category extends DatabaseObject {
 							$padding = str_repeat("&nbsp;",$category->depth*3);
 
 							if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
-							else $link = $Shopp->shopuri.'&amp;shopp_category='.$category->id;
+							else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 
 							$products = '';
 							if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->products.')';
 
-							$string .= '<option value="'.$link.'">'.$padding.$category->name.$products.'</option>';
+							$string .= '<option value="'.htmlentities($link).'">'.$padding.$category->name.$products.'</option>';
 							$previous = &$category;
 							$depth = $category->depth;
 						
@@ -518,7 +519,7 @@ class Category extends DatabaseObject {
 						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul>';
 					
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
-						else $link = $Shopp->shopuri.'&amp;shopp_category='.$category->id;
+						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 					
 						$products = '';
 						if (value_is_true($options['products'])) $products = ' ('.$category->products.')';
@@ -570,14 +571,14 @@ class Category extends DatabaseObject {
 						if ($i > 1) {
 							$link = (SHOPP_PERMALINKS)?
 								"$page"."category/$this->uri/page/$i/":
-								"$page&shopp_category=$this->slug&paged=$i";
+								"$page&shopp_category=$this->uri&paged=$i";
 							$string .= '<li><a href="'.$link.'">1</a></li>';
 
 							$pagenum = ($this->page - $jumps);
 							if ($pagenum < 1) $pagenum = 1;
 							$link = (SHOPP_PERMALINKS)?
 								"$page"."category/$this->uri/page/$pagenum/":
-								"$page&shopp_category=$this->slug&paged=$pagenum";
+								"$page&shopp_category=$this->uri&paged=$pagenum";
 								
 							$string .= '<li><a href="'.$link.'">&laquo;</a></li>';
 						}
@@ -588,7 +589,7 @@ class Category extends DatabaseObject {
 						$prev = $this->page-1;
 						$link = (SHOPP_PERMALINKS)?
 							"$page"."category/$this->uri/page/$prev/":
-							"$page&shopp_category=$this->slug&paged=$prev";
+							"$page&shopp_category=$this->uri&paged=$prev";
 						$string .= '<li class="previous"><a href="'.$link.'">'.$options['previous'].'</a></li>';
 					} else $string .= '<li class="previous disabled">'.$options['previous'].'</li>';
 					// end previous button
@@ -596,7 +597,7 @@ class Category extends DatabaseObject {
 					while ($i < $visible_pages) {
 						$link = (SHOPP_PERMALINKS)?
 							"$page"."category/$this->uri/page/$i/":
-							"$page&shopp_category=$this->slug&paged=$i";
+							"$page&shopp_category=$this->uri&paged=$i";
 						if ( $i == $this->page ) $string .= '<li class="active">'.$i.'</li>';
 						else $string .= '<li><a href="'.$link.'">'.$i.'</a></li>';
 						$i++;
@@ -606,12 +607,12 @@ class Category extends DatabaseObject {
 						if ($pagenum > $this->pages) $pagenum = $this->pages;
 						$link = (SHOPP_PERMALINKS)?
 							"$page"."category/$this->uri/page/$pagenum/":
-							"$page&shopp_category=$this->slug&paged=$pagenum";
+							"$page&shopp_category=$this->uri&paged=$pagenum";
 						$string .= '<li><a href="'.$link.'">&raquo;</a></li>';
 
 						$link = (SHOPP_PERMALINKS)?
 							"$page"."category/$this->uri/page/$this->pages/":
-							"$page&shopp_category=$this->slug&paged=$this->pages";
+							"$page&shopp_category=$this->uri&paged=$this->pages";
 						$string .= '<li><a href="'.$link.'">'.$this->pages.'</a></li>';	
 					}
 					
@@ -620,7 +621,7 @@ class Category extends DatabaseObject {
 						$next = $this->page+1;
 						$link = (SHOPP_PERMALINKS)?
 							"$page"."category/$this->uri/page/$next/":
-							"$page&shopp_category=$this->slug&paged=$next";
+							"$page&shopp_category=$this->uri&paged=$next";
 						$string .= '<li class="next"><a href="'.$link.'">'.$options['next'].'</a></li>';
 					} else $string .= '<li class="next disabled">'.$options['next'].'</li>';
 					
@@ -641,16 +642,18 @@ class Category extends DatabaseObject {
 				if (!empty($query)) $query .= '&';
 				
 				$list = "";
-				foreach($CategoryFilters AS $facet => $filter) {
-					$href = $link.'?'.$query.'shopp_catfilters['.$facet.']=';
-					if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',stripslashes($filter),$matches)) {
-						$label = $matches[1].' &mdash; '.$matches[3];
-						if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
-						if ($matches[4] == 0) $label = $matches[1].__(' and up','Shopp');
-					} else $label = $filter;
-					if (!empty($filter)) $list .= '<li><strong>'.$facet.'</strong>: '.$label.' <a href="'.$href.'" class="cancel">X</a></li>';
+				if (is_array($CategoryFilters)) {
+					foreach($CategoryFilters AS $facet => $filter) {
+						$href = $link.'?'.$query.'shopp_catfilters['.$facet.']=';
+						if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',stripslashes($filter),$matches)) {
+							$label = $matches[1].' &mdash; '.$matches[3];
+							if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
+							if ($matches[4] == 0) $label = $matches[1].__(' and up','Shopp');
+						} else $label = $filter;
+						if (!empty($filter)) $list .= '<li><strong>'.$facet.'</strong>: '.$label.' <a href="'.$href.'" class="cancel">X</a></li>';
+					}
+					$output .= '<ul class="filters enabled">'.$list.'</ul>';
 				}
-				$output .= '<ul class="filters enabled">'.$list.'</ul>';
 
 				if ($this->pricerange == "auto" && empty($CategoryFilters['Price'])) {
 					if (!$this->loaded) $this->load_products();
@@ -687,78 +690,81 @@ class Category extends DatabaseObject {
 						$specdata[$data->name][] = $data;
 					} else $specdata[$data->name] = $data;
 				}
-										
-				foreach ($this->specs as $spec) {
-					$list = "";
-					if (!empty($CategoryFilters[$spec['name']])) continue;
-					
-					// For custom menu presets
-					if ($spec['facetedmenu'] == "custom" && !empty($spec['options'])) {
-						foreach ($spec['options'] as $option) {
-							$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($option['name']);
-							$list .= '<li><a href="'.$href.'">'.$option['name'].'</a></li>';
-						}
-						$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
-						
-					// For preset ranges
-					} elseif ($spec['facetedmenu'] == "ranges" && !empty($spec['options'])) {
-						foreach ($spec['options'] as $i => $option) {
-							$matches = array();
-							$format = '%s';
-							$next = 0;
-							if (isset($spec['options'][$i+1])) {
-								if (preg_match('/(\d+[\.\,\d]*)/',$spec['options'][$i+1]['name'],$matches))
-									$next = $matches[0];
-							}
-							$matches = array();
-							$range = array("min" => 0,"max" => 0);
-							if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$option['name'],$matches)) {
-								$base = $matches[2];
-								$format = $matches[1].'%s'.$matches[3];
-								if (!isset($spec['options'][$i+1])) $range['min'] = $base;
-								else $range = array("min" => $base, "max" => ($next-1));
-							}
-							if ($i == 1) {
-								$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode(sprintf($format,'0').'-'.sprintf($format,$range['min']));
-								$label = __('Under ','Shopp').sprintf($format,$range['min']);
-								$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
-							}
+				
+				if (is_array($this->specs)) {
+					foreach ($this->specs as $spec) {
+						$list = "";
+						if (!empty($CategoryFilters[$spec['name']])) continue;
 
-							$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode(sprintf($format,$range['min']).'-'.sprintf($format,$range['max']));
-							$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
-							if ($range['max'] == 0) $label = sprintf($format,$range['min']).__(' and up','Shopp');
-							$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
-						}
-						$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
-
-					// For automatically building the menu options
-					} elseif ($spec['facetedmenu'] == "auto" && isset($specdata[$spec['name']])) {
-						
-						if (is_array($specdata[$spec['name']])) { // Generate from text values
-							foreach ($specdata[$spec['name']] as $option) {
-								$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($option->content);
-								$list .= '<li><a href="'.$href.'">'.$option->content.'</a></li>';
+						// For custom menu presets
+						if ($spec['facetedmenu'] == "custom" && !empty($spec['options'])) {
+							foreach ($spec['options'] as $option) {
+								$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($option['name']);
+								$list .= '<li><a href="'.$href.'">'.$option['name'].'</a></li>';
 							}
 							$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
-						} else { // Generate number ranges
-							$format = '%s';
-							if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$specdata[$spec['name']]->content,$matches))
-								$format = $matches[1].'%s'.$matches[3];
-							
-							$ranges = auto_ranges($specdata[$spec['name']]->avg,$specdata[$spec['name']]->max,$specdata[$spec['name']]->min);
-							foreach ($ranges as $range) {
-								$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($range['min'].'-'.$range['max']);
+
+						// For preset ranges
+						} elseif ($spec['facetedmenu'] == "ranges" && !empty($spec['options'])) {
+							foreach ($spec['options'] as $i => $option) {
+								$matches = array();
+								$format = '%s';
+								$next = 0;
+								if (isset($spec['options'][$i+1])) {
+									if (preg_match('/(\d+[\.\,\d]*)/',$spec['options'][$i+1]['name'],$matches))
+										$next = $matches[0];
+								}
+								$matches = array();
+								$range = array("min" => 0,"max" => 0);
+								if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$option['name'],$matches)) {
+									$base = $matches[2];
+									$format = $matches[1].'%s'.$matches[3];
+									if (!isset($spec['options'][$i+1])) $range['min'] = $base;
+									else $range = array("min" => $base, "max" => ($next-1));
+								}
+								if ($i == 1) {
+									$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode(sprintf($format,'0').'-'.sprintf($format,$range['min']));
+									$label = __('Under ','Shopp').sprintf($format,$range['min']);
+									$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+								}
+
+								$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode(sprintf($format,$range['min']).'-'.sprintf($format,$range['max']));
 								$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
-								if ($range['min'] == 0) $label = __('Under ','Shopp').sprintf($format,$range['max']);
-								elseif ($range['max'] == 0) $label = sprintf($format,$range['min']).__(' and up','Shopp');
+								if ($range['max'] == 0) $label = sprintf($format,$range['min']).__(' and up','Shopp');
 								$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 							}
-							if (!empty($list)) $output .= '<h4>'.$spec['name'].'</h4>';
-							$output .= '<ul>'.$list.'</ul>';
-							
+							$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
+
+						// For automatically building the menu options
+						} elseif ($spec['facetedmenu'] == "auto" && isset($specdata[$spec['name']])) {
+
+							if (is_array($specdata[$spec['name']])) { // Generate from text values
+								foreach ($specdata[$spec['name']] as $option) {
+									$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($option->content);
+									$list .= '<li><a href="'.$href.'">'.$option->content.'</a></li>';
+								}
+								$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
+							} else { // Generate number ranges
+								$format = '%s';
+								if (preg_match('/^(.*?)(\d+[\.\,\d]*)(.*)$/',$specdata[$spec['name']]->content,$matches))
+									$format = $matches[1].'%s'.$matches[3];
+
+								$ranges = auto_ranges($specdata[$spec['name']]->avg,$specdata[$spec['name']]->max,$specdata[$spec['name']]->min);
+								foreach ($ranges as $range) {
+									$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($range['min'].'-'.$range['max']);
+									$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
+									if ($range['min'] == 0) $label = __('Under ','Shopp').sprintf($format,$range['max']);
+									elseif ($range['max'] == 0) $label = sprintf($format,$range['min']).__(' and up','Shopp');
+									$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
+								}
+								if (!empty($list)) $output .= '<h4>'.$spec['name'].'</h4>';
+								$output .= '<ul>'.$list.'</ul>';
+
+							}
 						}
 					}
 				}
+
 				
 				return $output;
 				break;

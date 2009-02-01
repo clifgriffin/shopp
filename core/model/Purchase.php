@@ -126,7 +126,7 @@ class Purchase extends DatabaseObject {
 				if (!isset($options['label'])) $options['label'] = "Download Now";
 				if (isset($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
 				if (SHOPP_PERMALINKS) $url = $Shopp->shopuri."download/".$item->dkey;
-				else $url = get_bloginfo('wpurl')."?shopp_download=".$item->dkey;
+				else $url = add_query_arg('shopp_download',$item->dkey,$Shopp->shopuri);
 				return '<a href="'.$url.'"'.$options['class'].'>'.$options['label'].'</a>'; break;
 			case "item-quantity":
 				$item = current($this->purchased);

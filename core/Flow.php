@@ -760,6 +760,8 @@ class Flow {
 					$Cart->data->OrderError->message = __("The password is incorrect.","Shopp");
 					return false;
 				}
+				
+				wp_set_auth_cookie($user->ID, false, true);
 
 				break;
 			default: return false; break;
@@ -785,12 +787,12 @@ class Flow {
 		$Cart->data->login = true;
 		$Account->password = "";
 		$Cart->data->Order->Customer = $Account;
-		$Cart->data->Order->Billing = new Billing($Account->id);
+		$Cart->data->Order->Billing = new Billing($Account->id,'customer');
 		$Cart->data->Order->Billing->card = "";
 		$Cart->data->Order->Billing->cardexpires = "";
 		$Cart->data->Order->Billing->cardholder = "";
 		$Cart->data->Order->Billing->cardtype = "";
-		$Cart->data->Order->Shipping = new Shipping($Account->id);
+		$Cart->data->Order->Shipping = new Shipping($Account->id,'customer');
 	}
 	
 	function logout () {
@@ -1510,6 +1512,8 @@ class Flow {
 				}
 				$Category->prices = stripslashes_deep($_POST['price']);
 			}
+
+			if (empty($_POST['specs'])) $Category->specs = array();
 			if (empty($_POST['options'])) $Category->options = array();
 			
 			$Category->updates($_POST);

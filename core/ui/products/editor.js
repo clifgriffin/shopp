@@ -65,7 +65,8 @@ function categories () {
 		var parent = $('#new-category select').val();
 		if (name != "") {
 			$(this).addClass('updating');
-			$.getJSON(siteurl+"/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_category&name="+name+"&parent="+parent,function(Category) {
+			$.getJSON(addcategory_url+"&action=wp_ajax_shopp_add_category&name="+name+"&parent="+parent,
+				function(Category) {
 				$('#add-new-category').removeClass('updating');
 				addCategoryMenuItem(Category);
 

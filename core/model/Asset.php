@@ -83,13 +83,13 @@ class Asset extends DatabaseObject {
 		if ($type == "image") $this->setstorage('image');
 		if ($type == "download") $this->setstorage('download');
 
+		if ($this->storage == "fs")	$this->deletefiles($keys);
+
 		$selection = "";
 		foreach ($keys as $value) 
-			$selection .= ((!empty($selection))?" OR ":"")."f.{$this->_key}=$value OR f.src=$value";
+			$selection .= ((!empty($selection))?" OR ":"")."{$this->_key}=$value OR src=$value";
 
-		if ($this->storage == "fs") $this->deletefiles($selection);
-
-		$query = "DELETE LOW_PRIORITY FROM $this->_table AS f WHERE $selection";
+		$query = "DELETE LOW_PRIORITY FROM $this->_table WHERE $selection";
 		$db->query($query);
 	}
 
@@ -97,8 +97,12 @@ class Asset extends DatabaseObject {
 	 * deletefiles ()
 	 * Remove files from the file system only when 1 reference to the file exists
 	 * in file references in the database, otherwise, leave them **/
-	function deletefiles ($selection) {
+	function deletefiles ($keys) {
 		$db =& DB::get();
+		
+		$selection = "";
+		foreach ($keys as $value) 
+			$selection .= ((!empty($selection))?" OR ":"")."f.{$this->_key}=$value OR f.src=$value";
 		
 		$files = $db->query("SELECT f.name,count(DISTINCT links.id) AS refs FROM $this->_table AS f LEFT JOIN $this->_table AS links ON f.name=links.name WHERE $selection GROUP BY links.name",AS_ARRAY);
 		foreach ($files as $file)

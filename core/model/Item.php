@@ -131,10 +131,10 @@ class Item {
 		$imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
 		if (SHOPP_PERMALINKS) {
 			$pages = $Shopp->Settings->get('pages');
-			if ($Shopp->link('catalog') == get_bloginfo('wpurl')."/")
+			if ($Shopp->link('catalog') == trailingslashit(get_option('siteurl')))
 				$url =  $pages['catalog']['name']."/".$this->product;
 			else $url = $this->product;
-			$imageuri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
+			$imageuri = $Shopp->shopuri."{$pages['catalog']['permalink']}images/";
 		}		
 		
 		// Return strings with no options
