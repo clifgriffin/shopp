@@ -74,10 +74,8 @@ class DB extends Singleton {
 		// echo "<pre>QUERY: $query</pre>";
 	
 		// Error handling
-		if ($this->dbh &&  $error = mysql_error($this->dbh)) {
-			if ($errors) trigger_error("Query failed.<br /><br />$error<br /><tt>$query</tt>");
-			else return false;
-		}
+		if ($this->dbh && $error = mysql_error($this->dbh)) 
+			trigger_error("Query failed.<br /><br />$error<br /><tt>$query</tt>");
 				
 		// Results handling
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i",$query) ) {

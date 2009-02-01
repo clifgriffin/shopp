@@ -12,9 +12,9 @@
 class Shipping extends DatabaseObject {
 	static $table = "shipping";
 	
-	function Shipping ($id=false) {
+	function Shipping ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($id && $this->load($id)) return true;
+		if ($id && $this->load($id,$key)) return true;
 		else return false;
 	}
 	

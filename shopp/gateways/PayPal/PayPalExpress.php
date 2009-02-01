@@ -87,9 +87,11 @@ class PayPalExpress {
 			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,2);
 		}
 
-		$_['RETURNURL']				= $Shopp->link('confirm-order').
-										((SHOPP_PERMALINKS)?'?':'&').
-										"shopp_xco=PayPal/PayPalExpress";
+		if (SHOPP_PERMALINKS)
+			$_['RETURNURL']			= $Shopp->link('confirm-order').'?shopp_xco=PayPal/PayPalExpress';
+		else
+			$_['RETURNURL']			= add_query_arg('shopp_xco','PayPal/PayPalExpress',$Shopp->link('confirm-order'));
+
 		$_['CANCELURL']				= $Shopp->link('cart');
 				
 		$this->transaction = $this->encode($_);

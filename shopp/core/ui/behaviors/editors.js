@@ -461,7 +461,7 @@ function addPriceLine (target,options,data,attachment) {
 		var filePathCell = $('<div></div>').prependTo(downloadCell).hide();
 		var filePath = $('<input type="text" name="price['+i+'][downloadpath]" value="" title="Enter file path relative to: '+productspath+'" class="filepath" />').appendTo(filePathCell).change(function () {
 			$(this).removeClass('warning').addClass('verifying');
-			$.ajax({url:siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_verify_file',
+			$.ajax({url:fileverify_url+'&action=wp_ajax_shopp_verify_file',
 					type:"POST",
 					data:'filepath='+$(this).val(),
 					timeout:10000,
@@ -668,7 +668,7 @@ function ImageUploads (params) {
 		button_width: "100",
 		button_image_url: rsrcdir+'/core/ui/icons/buttons.png',
 		button_placeholder_id: "swf-uploader-button",
-		upload_url : siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_image',
+		upload_url : ajaxurl+'?action=wp_ajax_shopp_add_image',
 		flash_url : rsrcdir+'/core/ui/behaviors/swfupload/swfupload.swf',
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
@@ -715,7 +715,7 @@ function ImageUploads (params) {
 
 	var browserImageUploader = $('#image-upload').upload({
 		name: 'Filedata',
-		action: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_image',
+		action: ajaxurl+'?action=wp_ajax_shopp_add_image',
 		enctype: 'multipart/form-data',
 		params: {},
 		autoSubmit: true,
@@ -880,7 +880,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		button_image_url: rsrcdir+'/core/ui/icons/buttons.png',
 		button_placeholder_id: button,
 		flash_url : rsrcdir+'/core/ui/behaviors/swfupload/swfupload.swf',
-		upload_url : siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
+		upload_url : ajaxurl+'?action=wp_ajax_shopp_add_download',
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
 		file_types : "*.*",
@@ -923,7 +923,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 	// Browser-based AJAX uploads
 	defaultButton.upload({
 		name: 'Filedata',
-		action: siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_download',
+		action: ajaxurl+'?action=wp_ajax_shopp_add_download',
 		enctype: 'multipart/form-data',
 		params: {},
 		autoSubmit: true,
@@ -1041,7 +1041,7 @@ function SlugEditor (id,type) {
 			buttons.html('<button type="button" class="save button">'+SAVE_BUTTON_TEXT+'</button> <button type="button" class="cancel button">'+CANCEL_BUTTON_TEXT+'</button>');
 			buttons.children('.save').click(function() {
 				var slug = editor.children('input').val();
-				$.post(siteurl+'/wp-admin/admin-ajax.php?action=wp_ajax_shopp_edit_slug', 
+				$.post(editslug_url+'&action=wp_ajax_shopp_edit_slug', 
 					{ 'id':id, 'type':type, 'slug':slug },
 					function (data) {
 						editor.html(revert_editor);

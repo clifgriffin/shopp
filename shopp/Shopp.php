@@ -7,7 +7,7 @@ Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
 Author URI: http://ingenesis.net
 
-	Copyright 2008 Ingenesis Limited
+	Copyright 2009 Ingenesis Limited
 
 	This file is part of Shopp.
 
@@ -72,10 +72,17 @@ class Shopp {
 		$this->path = dirname(__FILE__);
 		$this->file = basename(__FILE__);
 		$this->directory = basename($this->path);
-		$this->secure = ($_SERVER['HTTPS'] == "on");
+
 		$this->uri = WP_PLUGIN_URL."/".$this->directory;
+		$this->siteurl = get_option('siteurl');
 		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";
-		if ($this->secure) $this->uri = str_replace('http://','https://',$this->uri);
+
+		$this->secure = ($_SERVER['HTTPS'] == "on");
+		if ($this->secure) {
+			$this->uri = str_replace('http://','https://',$this->uri);
+			$this->siteurl = str_replace('http://','https://',$this->siteurl);
+			$this->wpadminurl = str_replace('http://','https://',$this->wpadminurl);
+		}
 
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
@@ -165,16 +172,17 @@ class Shopp {
 			// See if the wordpress user is already logged in
 			get_currentuserinfo();
 			global $user_ID;
-			
+
 			if (!empty($user_ID) && !$this->Cart->data->login) {
 				if ($Account = new Customer($user_ID,'wpuser')) {
 					$this->Flow->loggedin($Account);
 					$this->Cart->data->Order->Customer->wpuser = $user_ID;
-					add_action('wp_logout',array(&$this->Flow,'logout'));
 				}
 			}
+			if ($this->Cart->data->login)
+				add_action('wp_logout',array(&$this->Flow,'logout'));
 		}
-		
+				
 	}
 
 	/**
@@ -628,7 +636,7 @@ class Shopp {
 			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
 
 			if (SHOPP_PERMALINKS) $link = $this->shopuri.$uri.'/feed/';
-			else $link = add_query_arg(array('shopp_category'=>$this->Categoryid,'shopp_lookup'=>'category-rss'),$this->shopuri);
+			else $link = add_query_arg(array('shopp_category'=>$this->Category->uri,'shopp_lookup'=>'category-rss'),$this->shopuri);
 			?>
 	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> <?php echo $this->Category->name; ?> RSS Feed" href="<?php echo $link; ?>" />
 	<?php
@@ -674,7 +682,6 @@ class Shopp {
 		$db = DB::get();
 		global $wpdb;
 		
-		echo "<pre>"; print_r($this->Cart->contents); echo "</pre>";
 		if (function_exists('memory_get_peak_usage'))
 			$this->_debug->memory .= "End: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
 		elseif (function_exists('memory_get_usage'))
@@ -823,7 +830,6 @@ class Shopp {
 			return true;
 		}
 		if ($_POST['checkout'] != "process") return true;
-		
 		if ($_POST['process-login'] == "login") {
 			if (isset($_POST['email-login'])) $this->Flow->login($_POST['email-login'],$_POST['password-login'],'email');
 			else if (isset($_POST['loginname-login'])) $this->Flow->login($_POST['loginname-login'],$_POST['password-login'],'loginname');
@@ -919,7 +925,7 @@ class Shopp {
 
 		if (!is_array($pages)) $pages = $this->Flow->Pages;
 		
-		$uri = ($secure)?str_replace('http://','https://',get_bloginfo('wpurl')):get_bloginfo('wpurl');
+		$uri = ($secure)?str_replace('http://','https://',get_option('siteurl')):get_option('siteurl');
 
 		if (array_key_exists($target,$pages)) $page = $pages[$target];
 		else {
@@ -1106,6 +1112,9 @@ class Shopp {
 			
 			// Add a category in the product editor
 			case "wp_ajax_shopp_add_category":
+				check_admin_referer('shopp-ajax_add_category');
+				if ( !current_user_can('manage_options') ) exit();
+			
 				if (!empty($_GET['name'])) {
 					$Catalog = new Catalog();
 					$Catalog->load_categories();
@@ -1141,7 +1150,9 @@ class Shopp {
 				break;
 
 			case "wp_ajax_shopp_edit_slug":
-				
+				check_admin_referer('shopp-ajax_edit_slug');
+				if ( !current_user_can('manage_options') ) die("-1");
+								
 				switch ($_REQUEST['type']) {
 					case "category":
 						$Category = new Category($_REQUEST['id']);
@@ -1163,22 +1174,26 @@ class Shopp {
 				
 			// Upload an image in the product editor
 			case "wp_ajax_shopp_add_image":
+				if (!defined('DOING_AJAX') || !defined('WP_ADMIN')) exit();
 				$this->Flow->add_images();
 				exit();
 				break;
 				
 			// Upload a product download file in the product editor
 			case "wp_ajax_shopp_add_download":
+				if (!defined('DOING_AJAX') || !defined('WP_ADMIN')) exit();
 				$this->Flow->product_downloads();
 				exit();
 				break;
 
 			// Upload a product download file in the product editor
 			case "wp_ajax_shopp_verify_file":
-				$basepath = trailingslashit($this->Settings->get('products_path'));
-				if (!file_exists($basepath.$_POST['filepath'])) die("NULL");
-				if (is_dir($basepath.$_POST['filepath'])) die("ISDIR");
-				if (!is_readable($basepath.$_POST['filepath'])) die("READ");
+				check_admin_referer('shopp-ajax_verify_file');
+				if ( !current_user_can('manage_options') ) exit();
+				$target = trailingslashit($this->Settings->get('products_path')).$_POST['filepath'];
+				if (!file_exists($target)) die("NULL");
+				if (is_dir($target)) die("ISDIR");
+				if (!is_readable($target)) die("READ");
 				die("OK");
 				break;
 				

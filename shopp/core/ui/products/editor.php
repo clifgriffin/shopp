@@ -172,7 +172,12 @@ var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var shiprates = <?php echo json_encode($shiprates); ?>;
 var buttonrsrc = '<?php echo includes_url('images/upload.png'); ?>';
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
-var siteurl = '<?php echo get_option('siteurl'); ?>';
+var siteurl = '<?php echo $Shopp->siteurl; ?>';
+var ajaxurl = siteurl+'/wp-admin/admin-ajax.php';
+var addcategory_url = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin-ajax.php", "shopp-ajax_add_category"); ?>';
+var editslug_url = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
+var fileverify_url = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin-ajax.php", "shopp-ajax_verify_file"); ?>';
+
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';

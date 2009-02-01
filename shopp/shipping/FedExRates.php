@@ -110,6 +110,7 @@ class FedExRates {
 	}
 	
 	function calculate (&$Cart,$fees,$rate,$column) {
+		if (empty($Cart->data->Order->Shipping->postcode)) return false;
 		$ShipCosts = &$Cart->data->ShipCosts;
 		$weight = 0;
 		foreach($Cart->shipped as $Item) $weight += ($Item->weight * $Item->quantity);

@@ -12,9 +12,9 @@
 class Billing extends DatabaseObject {
 	static $table = "billing";
 
-	function Billing ($id=false) {
+	function Billing ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id)) return true;
+		if ($this->load($id,$key)) return true;
 		else return false;
 	}
 
