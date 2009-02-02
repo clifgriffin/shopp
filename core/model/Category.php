@@ -814,7 +814,7 @@ class NewProducts extends Category {
 	static $slug = "new";
 	
 	function NewProducts ($options=array()) {
-		$this->name = "New Products";
+		$this->name = __("New Products","Shopp");
 		$this->parent = 0;
 		$this->slug = NewProducts::$slug;
 		$this->uri = $this->slug;
@@ -832,7 +832,7 @@ class FeaturedProducts extends Category {
 	static $slug = "featured";
 	
 	function FeaturedProducts ($options=array()) {
-		$this->name = "Featured Products";
+		$this->name = __("Featured Products","Shopp");
 		$this->parent = 0;
 		$this->slug = FeaturedProducts::$slug;
 		$this->uri = $this->slug;
@@ -849,7 +849,7 @@ class OnSaleProducts extends Category {
 	static $slug = "onsale";
 	
 	function OnSaleProducts ($options=array()) {
-		$this->name = "On Sale";
+		$this->name = __("On Sale","Shopp");
 		$this->parent = 0;
 		$this->slug = OnSaleProducts::$slug;
 		$this->uri = $this->slug;
@@ -866,7 +866,7 @@ class BestsellerProducts extends Category {
 	static $slug = "bestsellers";
 	
 	function BestsellerProducts ($options=array()) {
-		$this->name = "Bestsellers";
+		$this->name = __("Bestsellers","Shopp");
 		$this->parent = 0;
 		$this->slug = BestsellerProducts::$slug;
 		$this->uri = $this->slug;
@@ -891,7 +891,7 @@ class SearchResults extends Category {
 	
 	function SearchResults ($options=array()) {
 		if (empty($options['search'])) $options['search'] = "(no search terms)";
-		$this->name = "Search Results for &quot;".$options['search']."&quot;";
+		$this->name = __("Search Results for","Shopp")." &quot;".$options['search']."&quot;";
 		$this->parent = 0;
 		$this->slug = SearchResults::$slug;
 		$this->uri = $this->slug;
@@ -914,7 +914,7 @@ class TagProducts extends Category {
 		$tagtable = DatabaseObject::tablename(Tag::$table);
 
 		$this->tag = $options['tag'];
-		$this->name = "Products tagged &quot;".$options['tag']."&quot;";
+		$this->name = __("Products tagged","Shopp")." &quot;".$options['tag']."&quot;";
 		$this->parent = 0;
 		$this->slug = TagProducts::$slug;
 		$this->uri = $options['tag'];
