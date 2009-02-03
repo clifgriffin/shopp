@@ -395,7 +395,7 @@ class Category extends DatabaseObject {
 		
 		if (SHOPP_PERMALINKS) {
 			$pages = $Shopp->Settings->get('pages');
-			if ($page == trailingslashit(get_option('siteurl')))
+			if ($page == trailingslashit(get_bloginfo('url')))
 				$page .= $pages['catalog']['name']."/";
 		}
 		
