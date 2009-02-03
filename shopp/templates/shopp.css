@@ -72,7 +72,7 @@
 #shopp ul.paging li a { /* page links default styling */ }
 #shopp ul.paging li a:hover { /* page links hover styling */ }
 #shopp ul.paging li.active { /* currrent page style */ }
-#shopp ul.paging li.disabled a { /* style for disabled previous/next links */ }
+#shopp ul.paging li.disabled { /* style for disabled previous/next links */ }
 #shopp ul.paging li.previous a,
 #shopp ul.paging li.next a { /* previous/next link style */ }
 

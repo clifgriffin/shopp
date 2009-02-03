@@ -520,7 +520,7 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 /**
  * file_mimetype
  * Tries a variety of methods to determine a file's mimetype */
-function file_mimetype ($file) {
+function file_mimetype ($file,$name) {
 	if (function_exists('finfo_open')) {
 		// Try using PECL module
 		$f = finfo_open(FILEINFO_MIME);
@@ -537,9 +537,63 @@ function file_mimetype ($file) {
 	} elseif (strlen($mime=@shell_exec("file -bi ".escapeshellarg($file)))!=0) {
 		// Use shell if allowed
 		return trim($mime);
-	} elseif (function_exists('mime_content_type')) {
+	} elseif (function_exists('mime_content_type') && $mime = mime_content_type($file)) {
 		// Try with magic-mime if available
-		return mime_content_type($file);
+		return $mime;
+	} else {
+		if (!preg_match('/\.([a-z0-9]{2,4})$/i', $name, $extension)) return false;
+				
+		switch (strtolower($extension[1])) {
+			// misc files
+			case 'txt':	return 'text/plain';
+			case 'htm': case 'html': case 'php': return 'text/html';
+			case 'css': return 'text/css';
+			case 'js': return 'application/javascript';
+			case 'json': return 'application/json';
+			case 'xml': return 'application/xml';
+			case 'swf':	return 'application/x-shockwave-flash';
+		
+			// images
+			case 'jpg': case 'jpeg': case 'jpe': return 'image/jpg';
+			case 'png': case 'gif': case 'bmp': case 'tiff': return 'image/'.strtolower($matches[1]);
+			case 'tif': return 'image/tif';
+			case 'svg': case 'svgz': return 'image/svg+xml';
+		
+			// archives
+			case 'zip':	return 'application/zip';
+			case 'rar':	return 'application/x-rar-compressed';
+			case 'exe':	case 'msi':	return 'application/x-msdownload';
+			case 'tar':	return 'application/x-tar';
+			case 'cab': return 'application/vnd.ms-cab-compressed';
+		
+			// audio/video
+			case 'flv':	return 'video/x-flv';
+			case 'mpeg': case 'mpg':	case 'mpe': return 'video/mpeg';
+			case 'mp4s': return 'application/mp4';
+			case 'mp3': return 'audio/mpeg3';
+			case 'wav':	return 'audio/wav';
+			case 'aiff': case 'aif': return 'audio/aiff';
+			case 'avi':	return 'video/msvideo';
+			case 'wmv':	return 'video/x-ms-wmv';
+			case 'mov':	case 'qt': return 'video/quicktime';
+		
+			// ms office
+			case 'doc':	case 'docx': return 'application/msword';
+			case 'xls':	case 'xlt':	case 'xlm':	case 'xld':	case 'xla':	case 'xlc':	case 'xlw':	case 'xll':	return 'application/vnd.ms-excel';
+			case 'ppt':	case 'pps':	return 'application/vnd.ms-powerpoint';
+			case 'rtf':	return 'application/rtf';
+		
+			// adobe
+			case 'pdf':	return 'application/pdf';
+			case 'psd': return 'image/vnd.adobe.photoshop';
+		    case 'ai': case 'eps': case 'ps': return 'application/postscript';
+		
+			// open office
+		    case 'odt': return 'application/vnd.oasis.opendocument.text';
+		    case 'ods': return 'application/vnd.oasis.opendocument.spreadsheet';
+		}
+
+		return false;
 	}
 }
 

@@ -131,7 +131,7 @@ class Item {
 		$imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
 		if (SHOPP_PERMALINKS) {
 			$pages = $Shopp->Settings->get('pages');
-			if ($Shopp->link('catalog') == trailingslashit(get_option('siteurl')))
+			if ($Shopp->link('catalog') == trailingslashit(get_bloginfo('url')))
 				$url =  $pages['catalog']['name']."/".$this->product;
 			else $url = $this->product;
 			$imageuri = $Shopp->shopuri."{$pages['catalog']['permalink']}images/";

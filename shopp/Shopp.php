@@ -74,7 +74,7 @@ class Shopp {
 		$this->directory = basename($this->path);
 
 		$this->uri = WP_PLUGIN_URL."/".$this->directory;
-		$this->siteurl = get_option('siteurl');
+		$this->siteurl = get_bloginfo('url');
 		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";
 
 		$this->secure = ($_SERVER['HTTPS'] == "on");
@@ -922,10 +922,11 @@ class Shopp {
 	function link ($target,$secure=false) {
 		$internals = array("receipt","confirm-order");
 		$pages = $this->Settings->get('pages');
-
+		
 		if (!is_array($pages)) $pages = $this->Flow->Pages;
 		
-		$uri = ($secure)?str_replace('http://','https://',get_option('siteurl')):get_option('siteurl');
+		$uri = get_bloginfo('url');
+		if ($secure) $uri = str_replace('http://','https://',$uri);
 
 		if (array_key_exists($target,$pages)) $page = $pages[$target];
 		else {

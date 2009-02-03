@@ -1285,7 +1285,7 @@ class Flow {
 		$File->datatype = "download";
 		$File->name = $_FILES['Filedata']['name'];
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
-		$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name']));
+		$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name'],$File->name));
 		$File->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
 		$File->save();
 		unset($File->data); // Remove file contents from memory
