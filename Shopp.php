@@ -107,8 +107,7 @@ class Shopp {
 			$this->Flow->setup();
 		}
 		
-		if (!SHOPP_LOOKUP) add_action('init',array(&$this,'init'));
-
+		add_action('init', array(&$this,'init'));
 		add_action('init', array(&$this, 'ajax'));
 		add_action('init', array(&$this, 'xorder'));
 		add_action('init', array(&$this, 'tinymce'));
@@ -159,6 +158,8 @@ class Shopp {
 			$this->shopuri = add_query_arg('page_id',$pages['catalog']['id'],get_bloginfo('wpurl'));
 			$this->imguri = add_query_arg('shopp_image','=',get_bloginfo('wpurl'));
 		}
+
+		if (SHOPP_LOOKUP) return true;
 		
 		$this->Cart = new Cart();
 		session_start();
@@ -760,8 +761,13 @@ class Shopp {
 			if (empty($this->Cart->data->Category[$this->Category->slug]))
 				$this->Cart->data->Category[$this->Category->slug] = array();
 			$CategoryFilters =& $this->Cart->data->Category[$this->Category->slug];
-			if (is_array($_GET['shopp_catfilters']))
+			
+			// Add new filters
+			if (is_array($_GET['shopp_catfilters'])) {
 				$CategoryFilters = array_merge($CategoryFilters,$_GET['shopp_catfilters']);
+				if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
+			}
+				
 		}
 		
 		// Catalog sort order setting

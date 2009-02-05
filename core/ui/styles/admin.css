@@ -180,7 +180,7 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #shipping-rates table.rate td.rowctrl { vertical-align: middle; white-space: nowrap;}
 #shipping-rates select.methods { width: 150px; }
 #shipping-rates table.rate select { height: auto; }
-#shipping-rates table.services { width: 100%; }
+#shipping-rates table.services { width: 100%; margin-top: 16px; }
 #shipping-rates button.disabled { opacity: 0.3; }
 #shipping-rates button.delete { background: none; border: none; padding: 0; margin: 0; width: auto; height: 16px; }
 #shipping-rates.form-table tr th,

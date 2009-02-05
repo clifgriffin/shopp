@@ -305,7 +305,10 @@ class Cart {
 		$estimate = false;
 		foreach ($methods as $id => $option) {
 			$shipping = 0;
-			if (isset($option['postcode-required'])) $this->data->ShippingPostcode = true;
+			if (isset($option['postcode-required'])) {
+				$this->data->ShippingPostcode = true;
+				if (empty($Shipping->postcode)) return null;
+			}
 			
 			if ($Shipping->country == $base['country']) {
 				// Use country/domestic region
@@ -326,7 +329,8 @@ class Cart {
 					$this, $fees, $option, $column);
 			
 			if (!$estimate) $estimate = $estimated;
-			if ($estimated !== false && $estimated < $estimate) $estimate = $estimated; // Get lowest estimate
+			if ($estimated !== false && $estimated < $estimate) 
+				$estimate = $estimated; // Get lowest estimate
 		}
 
 		if (!isset($ShipCosts[$this->data->Order->Shipping->shipmethod]))
@@ -477,7 +481,7 @@ class Cart {
 	 * order total amounts */
 	function totals () {
 		if (!$this->updated) return true;
-		
+
 		$Totals =& $this->data->Totals;
 		$Totals->quantity = 0;
 		$Totals->subtotal = 0;
@@ -639,9 +643,14 @@ class Cart {
 				if (!$this->data->Shipping) return "";
 				if (isset($options['label'])) {
 					$options['currency'] = "false";
-					if ($this->data->Totals->shipping > 0) $result = $options['label'];
-					else $result = $Shopp->Settings->get('free_shipping_text');
-				} else $result = $this->data->Totals->shipping;
+					if ($this->data->Totals->shipping === 0) 
+						$result = $Shopp->Settings->get('free_shipping_text');
+					else $result = $options['label'];
+				} else {
+					if ($this->data->Totals->shipping === null) 
+						return __("Needs Estimated","Shopp");
+					else $result = $this->data->Totals->shipping;
+				}
 				break;
 			case "tax": 
 				if ($this->data->Totals->tax > 0) {
@@ -751,17 +760,24 @@ class Cart {
 				if (strpos($gateway,"TestMode.php") !== false || 
 					$_GET['shopp_xco'] == "PayPal/PayPalExpress") $ssl = false;
 				$link = $Shopp->link('checkout',$ssl);
-				$query = $_SERVER['QUERY_STRING'];
-				if (SHOPP_PERMALINKS && !empty($query)) $query = "?$query";
-				return $link.$query;
+				
+				// Pass any arguments along
+				$args = $_GET;
+				if (isset($args['page_id'])) unset($args['page_id']);
+				$link = add_query_arg($args,$link);
+				// $query = $_SERVER['QUERY_STRING'];
+				// if (SHOPP_PERMALINKS && !empty($query)) $query = "?$query";
+				return $link;
 				break;
 			case "function":
+				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_PLUGINURI.'/core/ui/icons/updating.gif" width="16" height="16" />';
 				$regions = $Shopp->Settings->get('zones');
 				$base = $Shopp->Settings->get('base_operations');
 				$output = '<script type="text/javascript">'."\n";
 				$output .= '//<![CDATA['."\n";
 				$output .= 'var currencyFormat = '.json_encode($base['currency']['format']).';'."\n";
 				$output .= 'var regions = '.json_encode($regions).';'."\n";
+				$output .= 'var SHIPCALC_STATUS = \''.$options['shipcalc'].'\'';
 				$output .= '//]]>'."\n";
 				$output .= '</script>'."\n";
 				if (!empty($options['value'])) $value = $options['value'];

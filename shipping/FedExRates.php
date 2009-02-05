@@ -18,22 +18,22 @@ class FedExRates {
 	var $Response = false;
 	
 	var $services = array(
-		'FEDEX_1_DAY_FREIGHT' => 'FedEx 1Day Freight',
-		'FEDEX_2_DAY' => 'FedEx 2Day',
-		'FEDEX_2_DAY_FREIGHT' => 'FedEx 2Day Freight',
-		'FEDEX_3_DAY_FREIGHT' => 'FedEx 3Day Freight',
-		'FEDEX_EXPRESS_SAVER' => 'FedEx Express Saver',
 		'FEDEX_GROUND' => 'FedEx Ground',
-		'FIRST_OVERNIGHT' => 'FedEx First Overnight',
 		'GROUND_HOME_DELIVERY' => 'FedEx Home Delivery',
+		'FEDEX_EXPRESS_SAVER' => 'FedEx Express Saver',
+		'FEDEX_2_DAY' => 'FedEx 2Day',
+		'STANDARD_OVERNIGHT' => 'FedEx Standard Overnight',
+		'PRIORITY_OVERNIGHT' => 'FedEx Priority Overnight',
+		'FIRST_OVERNIGHT' => 'FedEx First Overnight',
 		'INTERNATIONAL_ECONOMY' => 'FedEx International Economy',
-		'INTERNATIONAL_ECONOMY_FREIGHT' => 'FedEx Economy Freight',
 		'INTERNATIONAL_FIRST' => 'FedEx International First',
 		'INTERNATIONAL_PRIORITY' => 'FedEx International Priority',
-		'INTERNATIONAL_PRIORITY_FREIGHT' => 'FedEx Priority Freight',
-		'PRIORITY_OVERNIGHT' => 'FedEx Priority Overnight',
-		'STANDARD_OVERNIGHT' => 'FedEx Standard Overnight',
-		'EUROPE_FIRST_INTERNTIONAL_PRIORITY' => 'FedEx Europe First International Priority'		
+		'EUROPE_FIRST_INTERNTIONAL_PRIORITY' => 'FedEx Europe First International Priority',
+		'FEDEX_1_DAY_FREIGHT' => 'FedEx 1Day Freight',
+		'FEDEX_2_DAY_FREIGHT' => 'FedEx 2Day Freight',
+		'FEDEX_3_DAY_FREIGHT' => 'FedEx 3Day Freight',
+		'INTERNATIONAL_ECONOMY_FREIGHT' => 'FedEx Economy Freight',
+		'INTERNATIONAL_PRIORITY_FREIGHT' => 'FedEx Priority Freight'
 		);
 	
 	function FedExRates () {

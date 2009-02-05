@@ -88,6 +88,7 @@ class Catalog extends DatabaseObject {
 					if ($min == -1 || $tag->products < $min) $min = $tag->products;
 					if ($max == -1 || $tag->products > $max) $max = $tag->products;
 				}
+				if ($max == 0) $max = 1;
 				$string = '<ul class="shopp tagcloud">';
 				foreach ($this->tags as $tag) {
 					$level = round((1-$tag->products/$max)*$levels)+1;

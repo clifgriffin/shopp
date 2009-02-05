@@ -121,6 +121,15 @@ function shopp_email ($template,$data=array()) {
 	
 	if ( file_exists($template) ) $f = file($template);
 	else die("Could not open the email template because the file does not exist or is not readable. ($template)");
+	
+	$replacements = array(
+		"$" => "\\\$",		// Treat $ signs as literals
+		"€" => "&euro;",	// Fix euro symbols
+		"¥" => "&yen;",		// Fix yen symbols
+		"£" => "&pound;",	// Fix pound symbols
+		"¤" => "&curren;"	// Fix generic currency symbols
+	);
+
 	$debug = false;
 	$in_body = false;
 	$headers = "";
@@ -133,7 +142,9 @@ function shopp_email ($template,$data=array()) {
 				$code = $label[1];
 				if (empty($data)) $string = $_POST[$code];
 				else $string = $data[$code];
-				$string = str_replace("$","\\\$",$string); // Treat $ signs as literals
+
+				$string = str_replace(array_keys($replacements),array_values($replacements),$string); 
+
 				if (isset($string) && !is_array($string)) $line = preg_replace("/\[".$code."\]/",$string,$line);
 			}
 		}
@@ -168,7 +179,7 @@ function shopp_email ($template,$data=array()) {
  * Generates an RSS-compliant string from an associative 
  * array ($data) with a specific RSS-structure. */
 function shopp_rss ($data) {
-	$xml = "<?xml version=\"1.0\""."?>\n";
+	$xml = "<?xml version=\"1.0\""." encoding=\"utf-8\"?>\n";
 	$xml .= "<rss version=\"2.0\" xmlns:base=\"".htmlentities($data['link'])."\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:g=\"http://base.google.com/ns/1.0\">\n";
 	$xml .= "<channel>\n";
 

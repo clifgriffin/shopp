@@ -290,15 +290,17 @@ class Product extends DatabaseObject {
 				if ($price->price - $price->promoprice < $this->pricerange['min']['saved']) {
 						$this->pricerange['min']['saved'] =
 							$price->price - $price->promoprice;
-						$this->pricerange['min']['savings'] =
-							($this->pricerange['min']['saved']/$price->price)*100;
+						if ($price->price > 0)
+							$this->pricerange['min']['savings'] =
+								($this->pricerange['min']['saved']/$price->price)*100;
 				}
 
 				if ($price->price - $price->promoprice > $this->pricerange['max']['saved']) {
 						$this->pricerange['max']['saved'] =
 							$price->price - $price->promoprice;
-						$this->pricerange['max']['savings'] =
-							($this->pricerange['max']['saved']/$price->price)*100;
+						if ($price->price > 0)
+							$this->pricerange['max']['savings'] =
+								($this->pricerange['max']['saved']/$price->price)*100;
 				}
 
 			}

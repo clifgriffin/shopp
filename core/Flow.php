@@ -1469,12 +1469,13 @@ class Flow {
 		if (!empty($_POST['save']) || !empty($_POST['save-categories'])) {
 			check_admin_referer('shopp-save-category');
 			
-			if (empty($_POST['slug'])) $_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
-			else $_POST['slug'] = sanitize_title_with_dashes($_POST['slug']);
+			if (!isset($_POST['slug']) && empty($Category->slug))
+				$Category->slug = sanitize_title_with_dashes($_POST['name']);
+			if (isset($_POST['slug'])) unset($_POST['slug']);
 
 			// Work out pathing
 			$paths = array();
-			if (!empty($_POST['slug'])) $paths = array($_POST['slug']);  // Include self
+			if (!empty($Category->slug)) $paths = array($Category->slug);  // Include self
 			
 			$parentkey = -1;
 			// If we're saving a new category, lookup the parent
@@ -1526,7 +1527,9 @@ class Flow {
 			}
 		}
 		
+		// Build permalink for slug editor
 		$permalink = trailingslashit($Shopp->link('catalog'))."category/";
+		$permalink .= substr($Category->uri,0,strpos($Category->uri,$Category->slug));
 		
 		$pricerange_menu = array(
 			"disabled" => __('Price ranges disabled','Shopp'),
