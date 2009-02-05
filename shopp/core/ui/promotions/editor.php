@@ -99,8 +99,7 @@ var RULES_LANG = {
 	"Is greater than":"<?php _e('Is greater than','Shopp'); ?>",
 	"Is greater than or equal to":"<?php _e('Is greater than or equal to','Shopp'); ?>",
 	"Is less than":"<?php _e('Is less than','Shopp'); ?>",
-	"Is less than or equal to":"<?php _e('Is less than or equal to','Shopp'); ?>",
-	
+	"Is less than or equal to":"<?php _e('Is less than or equal to','Shopp'); ?>"
 	
 }
 

@@ -124,7 +124,11 @@
 		
 		$('input.shipmethod').click(function () {
 			// console.log($('#shopp form').attr('action'));
-			$.getJSON($('#shopp form').attr('action')+"?shopp_lookup=shipcost&method="+$(this).val(),
+			$('#shipping, #total').html(SHIPCALC_STATUS);
+			
+			var url = $('#shopp form').attr('action');
+			url += (url.indexOf("?") == -1)?"?":"&";
+			$.getJSON(url+"shopp_lookup=shipcost&method="+$(this).val(),
 				function (result) {
 					var totals = eval(result);
 					$('#shipping').html(asMoney(totals.shipping));

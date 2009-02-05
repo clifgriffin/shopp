@@ -23,6 +23,7 @@ class Category extends DatabaseObject {
 	var $filters = array();
 	var $loading = array();
 	var $images = array();
+	var $facetedmenus = "off";
 	
 	function Category ($id=false,$key=false) {
 		global $Shopp;
@@ -165,7 +166,8 @@ class Category extends DatabaseObject {
 		
 				// Handle Number Range filtering
 				$match = "";
-				if (preg_match('/^.*?(\d+[\.\,\d]*).*?\-.*?(\d+[\.\,\d]*).*$/',$value,$matches)) {
+				if (!is_array($value) && 
+						preg_match('/^.*?(\d+[\.\,\d]*).*?\-.*?(\d+[\.\,\d]*).*$/',$value,$matches)) {
 					if ($facet == "Price") { // Prices require complex matching on price line entries
 						$min = floatvalue($matches[1]);
 						$max = floatvalue($matches[2]);
@@ -344,14 +346,14 @@ class Category extends DatabaseObject {
 		$rss = array('title' => get_bloginfo('name')." ".$this->name,
 			 			'link' => $rssurl,
 					 	'description' => $this->description,
-						'sitename' => get_bloginfo('name').' ('.get_bloginfo('siteurl').')');
+						'sitename' => get_bloginfo('name').' ('.get_bloginfo('url').')');
 		$items = array();
 		foreach ($this->products as $product) {
 			$product->thumbnail_properties = unserialize($product->thumbnail_properties);
 			$item = array();
 			$item['title'] = $product->name;
 			if (SHOPP_PERMALINKS) $item['link'] = $Shopp->shopuri.$product->id;
-			else $item['link'] = add_query_arg('shopp_pid',$product->id,$Shopp->shopuri);
+			else $item['link'] = htmlentities(add_query_arg('shopp_pid',$product->id,$Shopp->shopuri));
 			$item['description'] = "<![CDATA[";
 			if (!empty($product->thumbnail)) {
 				$item['description'] .= '<a href="'.$item['link'].'" title="'.$product->name.'">';
@@ -373,7 +375,7 @@ class Category extends DatabaseObject {
 			$item['g:price_type'] = "starting";
 
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
-			$item['description'] .= "<p>$product->description</p>";
+			$item['description'] .= "<p>".attribute_escape($product->description)."</p>";
 			$item['description'] .= "]]>";
 			$item['g:quantity'] = $product->stock;
 			
@@ -630,6 +632,7 @@ class Category extends DatabaseObject {
 				}
 				return $string;
 				break;
+			case "has-faceted-menu": return ($this->facetedmenus == "on"); break;
 			case "faceted-menu":
 				if ($this->facetedmenus == "off") return;
 				$output = "";

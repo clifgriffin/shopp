@@ -116,7 +116,7 @@ var addShippingRate = function (r) {
 	});	
 	var rateTableCell = $('<td/>').appendTo(row);
 	var deleteRateButton = $('<button type="button" name="deleteRate" class="delete deleteRate"></button>').appendTo(rateTableCell).hide();
-	$('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" width="16" height="16" />').appendTo(deleteRateButton);
+	$('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" width="16" height="16"  />').appendTo(deleteRateButton);
 	
 
 	var rowBG = row.css("background-color");
