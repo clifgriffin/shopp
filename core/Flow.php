@@ -1013,17 +1013,25 @@ class Flow {
 		$where = "";
 		if (!empty($_GET['cat'])) $where = "WHERE cat.id='{$_GET['cat']}'";
 		if (!empty($_GET['s'])) {
-			$match = "MATCH(pd.name,pd.summary,pd.description) AGAINST ('{$_GET['s']}' IN BOOLEAN MODE)";
-			$where .= ((empty($where))?"WHERE ":" AND ").$match;
-			$matchcol = ", $match  AS score";
-			$orderby = "score DESC";
+			if (strpos($_GET['s'],"sku:") !== false) { // SKU search
+				$where = 'WHERE pt.sku="'.substr($_GET['s'],4).'"';
+				$orderby = "pd.name";
+			} else {                                   // keyword search
+				$search = preg_replace('/(\s?)(\w+)(\s?)/','\1*\2*\3',$_GET['s']);
+				$match = "MATCH(pd.name,pd.summary,pd.description) AGAINST ('$search' IN BOOLEAN MODE)";
+				$where .= ((empty($where))?"WHERE ":" AND ").$match;
+				$matchcol = ", $match  AS score";
+				$orderby = "score DESC";                   				
+			}
+				
+			echo $search;
 		}
 		
 		// Get total product count, taking into consideration for filtering
-		if (!empty($_GET['s'])) $productcount = $db->query("SELECT count($match) as total FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where");
-		elseif (!empty($_GET['cat'])) $productcount = $db->query("SELECT count(*) as total $matchcol FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where");
+		if (!empty($_GET['s'])) $productcount = $db->query("SELECT count($match) as total FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where");
+		elseif (!empty($_GET['cat'])) $productcount = $db->query("SELECT count(*) as total $matchcol FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id");
 		else $productcount = $db->query("SELECT count(*) as total $matchcol FROM $pd $where");
-		
+
 		// Load the products
 		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page",AS_ARRAY);
 

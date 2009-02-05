@@ -24,7 +24,11 @@
 			<?php if (!empty($Purchase->email)):?>
 				<tr><th><?php _e('Email','Shopp'); ?>:</th><td><?php echo '<a href="mailto:'.$Purchase->email.'">'.$Purchase->email.'</a>'; ?></td></tr>
 			<?php endif; ?>
-
+			<tr><td colspan="2"><br class="clear" /></td></tr>
+			<?php if (!empty($Purchase->data) && is_array($Purchase->data)): 
+				foreach ($Purchase->data as $name => $value): ?>
+				<tr><th><?php echo $name; ?>:</th><td><?php echo $value; ?></td></tr>
+			<?php endforeach; endif; ?>
 		</table>
 
 		<?php if (!empty($Purchase->shipaddress)): ?>
@@ -64,7 +68,7 @@
 						<?php echo $Item->name; ?>
 						<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?>
 						<?php if (is_array($Item->data)): ?>
-							<ul>
+						<ul>
 						<?php foreach ($Item->data as $key => $value): ?>
 							<li><?php echo $key; ?>: <strong><?php echo $value; ?></strong></li>
 						<?php endforeach; endif; ?>
