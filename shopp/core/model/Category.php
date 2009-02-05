@@ -154,7 +154,14 @@ class Category extends DatabaseObject {
 		else $loading = array_merge($this->loading,$loading);
 		
 		if (!empty($loading['columns'])) $loading['columns'] = ", ".$loading['columns'];
-		if (empty($loading['where'])) $loading['where'] = "catalog.category=$this->id AND (pd.inventory='off' OR (pd.inventory='on' && pd.stock > 0))";
+		
+		// Handle default WHERE clause
+		if (empty($loading['where'])) $loading['where'] = "catalog.category=$this->id";
+
+		// Always hide inventory tracked products with no inventory
+		if (!isset($loading['nostock']))
+			$loading['having'] = "HAVING (inventory=0 OR (inventory=1 AND stock > 0))";
+
 		if (!empty($Shopp->Cart->data->Category[$this->slug])) {
 			$spectable = DatabaseObject::tablename(Spec::$table);
 			
@@ -182,7 +189,7 @@ class Category extends DatabaseObject {
 				// Use HAVING clause for filtering by pricing information 
 				// because of data aggregation
 				if ($facet == "Price") { 
-					$loading['having'] .= "HAVING $match";
+					$loading['having'] .= "AND $match";
 					continue;
 				}
 				
@@ -203,6 +210,8 @@ class Category extends DatabaseObject {
 					break;
 				case "price-desc": $loading['order'] = "pd.price DESC"; break;
 				case "price-asc": $loading['order'] = "pd.price ASC"; break;
+				case "date-newest": $loading['order'] = "pd.created DESC"; break;
+				case "date-oldest": $loading['order'] = "pd.created ASC"; break;
 				default: $loading['order'] = "p.name ASC";
 			}
 		}
@@ -408,6 +417,7 @@ class Category extends DatabaseObject {
 			case "slug": return $this->slug; break;
 			case "description": return wpautop($this->description); break;
 			case "total": return $this->total; break;
+			case "has-products": 
 			case "hasproducts": 
 				if (isset($options['load'])) {
 					$dataset = split(",",$options['load']);
