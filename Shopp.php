@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.3 RC2
+Version: 1.0.3 RC3
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.3 RC2");
+define("SHOPP_VERSION","1.0.3 RC3");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -150,7 +150,6 @@ class Shopp {
 		$pages = $this->Settings->get('pages');
 		if (SHOPP_PERMALINKS) {
 			$this->shopuri = trailingslashit($this->link('catalog'));
-			// echo $this->shopuri;
 			if ($this->shopuri == trailingslashit(get_bloginfo('wpurl'))) $this->shopuri .= "{$pages['catalog']['name']}/";
 			if ($this->secure) $this->shopuri = str_replace('http://','https://',$this->shopuri);
 			$this->imguri = trailingslashit($this->shopuri)."images/";
@@ -793,9 +792,9 @@ class Shopp {
 	function cart () {
 		if (empty($_REQUEST['cart'])) return true;
 
-		$this->Flow->cart_request();
-		if (isset($_REQUEST['ajax'])) $this->Flow->cart_ajax();
-		$this->Cart->totals();
+		$this->Cart->request();
+		if ($this->Cart->updated) $this->Cart->totals();
+		if (isset($_REQUEST['ajax'])) $this->Cart->ajax();
 		switch ($_REQUEST['redirect']) {
 			case "checkout": header("Location: ".$this->link($_REQUEST['redirect'],true)); break;
 			default: 
@@ -859,11 +858,10 @@ class Shopp {
 		
 		if (!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy'])) {
 			$Order->Billing->cardexpires = mktime(0,0,0,
-					$_POST['billing']['cardexpires-mm'],
-					1,
+					$_POST['billing']['cardexpires-mm'],1,
 					($_POST['billing']['cardexpires-yy'])+2000
 				);
-		}
+		} else $Order->Billing->cardexpires = 0;
 		
 		$Order->Billing->cvv = $_POST['billing']['cvv'];
 
@@ -878,31 +876,18 @@ class Shopp {
 		if ($_POST['sameshipaddress'] == "on")
 			$Order->Shipping->updates($Order->Billing,
 				array("_datatypes","_table","_key","_lists","id","created","modified"));
-		
-		// Check for taxes, or process order
-		if ($this->Settings->get('taxes') == "on") {
-			$taxrates = $this->Settings->get('taxrates');
-			$this->Cart->data->Totals->taxrate = 0;
-			if (!empty($taxrates)) {
-				foreach($taxrates as $setting) {
-					if ($Order->Shipping->state == $setting['zone']) {
-						$this->Cart->data->Totals->taxrate = $setting['rate'];
-						break;					
-					}
-				}
-			}
 
-			$this->Cart->totals();
+		$estimatedTotal = $this->Cart->data->Totals->total;
+		$this->Cart->updated();
+		$this->Cart->totals();
 
-			if ($this->Cart->data->Totals->tax > 0 || 
-					$this->Settings->get('order_confirmation') == "always") {
-				header("Location: ".$this->link('confirm-order',true));
-				exit();
-			} else $this->Flow->order();
-		} elseif ($this->Settings->get('order_confirmation') == "always") {
+		// If the cart's total changes at all, confirm the order
+		if ($estimatedTotal != $this->Cart->data->Totals->total || 
+				$this->Settings->get('order_confirmation') == "always") {
 			header("Location: ".$this->link('confirm-order',true));
 			exit();
 		} else $this->Flow->order();
+
 	}
 
 	/**
@@ -999,10 +984,12 @@ class Shopp {
 				exit();
 				break;
 			case "shipcost":
-				$this->init();
+				$this->Cart = new Cart();
+				session_start();
+				$this->ShipCalcs = new ShipCalcs($this->path);
 				if (isset($_GET['method'])) {
 					$this->Cart->data->Order->Shipping->shipmethod = $_GET['method'];
-					$this->Cart->updated();
+					$this->Cart->retotal = true;
 					$this->Cart->totals();
 					echo json_encode($this->Cart->data->Totals);
 				}

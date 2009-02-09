@@ -35,6 +35,29 @@ class FedExRates {
 		'INTERNATIONAL_ECONOMY_FREIGHT' => 'FedEx Economy Freight',
 		'INTERNATIONAL_PRIORITY_FREIGHT' => 'FedEx Priority Freight'
 		);
+	var $deliverytimes = array(
+		'ONE_DAY' => '1d',
+		'TWO_DAYS' => '2d',
+		'THREE_DAYS' => '3d',
+		'FOUR_DAYS' => '4d',
+		'FIVE_DAYS' => '5d',
+		'SIX_DAYS' => '6d',
+		'SEVEN_DAYS' => '7d',
+		'EIGHT_DAYS' => '8d',
+		'NINE_DAYS' => '9d',
+		'TEN_DAYS' => '10d',
+		'ELEVEN_DAYS' => '11d',
+		'TWELVE_DAYS' => '12d',
+		'THIRTEEN_DAYS' => '13d',
+		'FOURTEEN_DAYS' => '14d',
+		'FIFTEEN_DAYS' => '15d',
+		'SIXTEEN_DAYS' => '16d',
+		'SEVENTEEN_DAYS' => '17d',
+		'EIGHTEEN_DAYS' => '18d',
+		'NINETEEN_DAYS' => '19d',
+		'TWENTY_DAYS' => '20d',
+		'UNKNOWN' => '30d'
+		);
 	
 	function FedExRates () {
 		global $Shopp;
@@ -125,12 +148,19 @@ class FedExRates {
 		$RatedReply = &$this->Response->RateReplyDetails;
 		if (!is_array($RatedReply)) return false;
 		foreach ($RatedReply as $quote) {
+			if (!in_array($quote->ServiceType,$rate['services'])) continue;
+			
 			$name = $this->services[$quote->ServiceType];
-			// echo "<pre>"; print_r($quote); echo "</pre>";
 			if (is_array($quote->RatedShipmentDetails)) 
 				$details = &$quote->RatedShipmentDetails[0];
 			else $details = &$quote->RatedShipmentDetails;
-
+			
+			if (isset($quote->DeliveryTimestamp)) 
+				$DeliveryEstimate = $this->timestamp_delivery($quote->DeliveryTimestamp);
+			elseif(isset($quote->TransitTime))
+				$DeliveryEstimate = $this->deliverytimes[$quote->TransitTime];
+			else $DeliveryEstimate = '5d-7d';
+			
 			$total = $details->ShipmentRateDetail->TotalNetCharge->Amount;
 
 			$rate['cost'] = $total+$fees;
@@ -139,12 +169,17 @@ class FedExRates {
 			$ShipCosts[$name] = $rate;
 			$ShipCosts[$name]['name'] = $name;
 			$ShipCosts[$name]['module'] = get_class($this);
-			// $ShipCosts[$name]['delivery'] = $DeliveryEstimate;
+			$ShipCosts[$name]['delivery'] = $DeliveryEstimate;
 
 		}
 		return $estimate;
 	}
 	
+	function timestamp_delivery ($datetime) {
+		list($year,$month,$day,$hour,$min,$sec) = sscanf($datetime,"%4d-%2d-%2dT%2d:%2d:%2d");
+		$days = ceil((mktime($hour,$min,$sec,$month,$day,$year) - mktime())/86400);
+		return $days.'d';
+	}
 	
 	function build ($cart,$description,$weight,$postcode,$country) {
 

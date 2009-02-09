@@ -17,12 +17,13 @@
 
 					<p></p>
 					
-					<div class="calendar-wrap"><div id="starts-calendar" class="calendar"></div><input type="text" name="starts[month]" id="starts-month" size="3" value="<?php echo ($Promotion->starts>1)?date("n",$Promotion->starts):''; ?>" />/<input type="text" name="starts[date]" id="starts-date" size="3"  value="<?php echo ($Promotion->starts>1)?date("j",$Promotion->starts):''; ?>" />/<input type="text" name="starts[year]" id="starts-year" size="5" value="<?php echo ($Promotion->starts>1)?date("Y",$Promotion->starts):''; ?>" /></div> &mdash; <div class="calendar-wrap"><div id="ends-calendar" class="calendar"></div><input type="text" name="ends[month]" id="ends-month" size="3" value="<?php echo ($Promotion->ends>1)?date("n",$Promotion->ends):''; ?>" />/<input type="text" name="ends[date]" id="ends-date" size="3" value="<?php echo ($Promotion->ends>1)?date("j",$Promotion->ends):''; ?>" />/<input type="text" name="ends[year]" id="ends-year" size="5" value="<?php echo ($Promotion->ends>1)?date("Y",$Promotion->ends):''; ?>" /></div>
-					<p><?php _e('Enter the date range this promotion will be in effect for.','Shopp'); ?></p>
+					<div id="start-position" class="calendar-wrap"><input type="text" name="starts[month]" id="starts-month" size="3" value="<?php echo ($Promotion->starts>1)?date("n",$Promotion->starts):''; ?>" />/<input type="text" name="starts[date]" id="starts-date" size="3"  value="<?php echo ($Promotion->starts>1)?date("j",$Promotion->starts):''; ?>" />/<input type="text" name="starts[year]" id="starts-year" size="5" value="<?php echo ($Promotion->starts>1)?date("Y",$Promotion->starts):''; ?>" /></div> &mdash; <div id="end-position" class="calendar-wrap"><input type="text" name="ends[month]" id="ends-month" size="3" value="<?php echo ($Promotion->ends>1)?date("n",$Promotion->ends):''; ?>" />/<input type="text" name="ends[date]" id="ends-date" size="3" value="<?php echo ($Promotion->ends>1)?date("j",$Promotion->ends):''; ?>" />/<input type="text" name="ends[year]" id="ends-year" size="5" value="<?php echo ($Promotion->ends>1)?date("Y",$Promotion->ends):''; ?>" /></div>
+					<br />
+					<?php _e('Enter the date range this promotion will be in effect for.','Shopp'); ?>
 					
 	            </td>
 			</tr>			
-			<tr class=" form-required"> 
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="promotion-scope"><?php _e('Applied To','Shopp'); ?></label></th> 
 				<td><select name="scope" id="promotion-scope">
 					<?php echo menuoptions($Promotion->_lists['scope'],$Promotion->scope); ?>
@@ -60,7 +61,8 @@
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="Save Changes" /></p>
 	</form>
 </div>
-
+<div id="starts-calendar" class="calendar"></div>
+<div id="ends-calendar" class="calendar"></div>
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
 
@@ -236,7 +238,12 @@ $('#promotion-scope').change(function () {
 
 });
 
-$('#starts-calendar').hide();
+
+
+var scpos = $('#start-position').offset();
+$('#starts-calendar').hide()
+	.css({left:scpos.left,
+		   top:scpos.top+$('#start-position input:first').height()});
 $('#starts-month').click(function (e) {
 	$('#ends-calendar').hide();
 	$('#starts-calendar').toggle();
@@ -247,7 +254,11 @@ $('#starts-month').click(function (e) {
 	});
 });
 
-$('#ends-calendar').hide();
+var ecpos = $('#end-position').offset();
+$('#ends-calendar').hide()
+	.css({left:ecpos.left,
+		   top:ecpos.top+$('#end-position input:first').height()});
+		
 $('#ends-month').click(function (e) {
 	$('#starts-calendar').hide();
 	$('#ends-calendar').toggle();

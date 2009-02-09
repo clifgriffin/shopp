@@ -27,10 +27,11 @@ class Item {
 	var $total = 0;
 	var $weight = 0;
 	var $shipfee = 0;
+	var $tax = 0;
 	var $download = false;
 	var $shipping = false;
 	var $inventory = false;
-	var $tax = false;
+	var $taxable = false;
 
 	function Item ($Product,$pricing,$category,$data=array()) {
 		global $Shopp; // To access settings
@@ -73,7 +74,7 @@ class Item {
 		}
 		
 		$this->inventory = ($Price->inventory == "on")?true:false;
-		$this->tax = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
+		$this->taxable = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
 	}
 		
 	function quantity ($qty) {

@@ -29,8 +29,8 @@ div.clear,
 #shopp .products .frame { width: <?php echo $gallery_thumbnail_width; ?>px; text-align: center; }
 #shopp .products .frame img { display: inline; }
 
-#shopp ul.paging { clear: none; display: inline-block; }
-#shopp ul.paging li { display: inline-block; margin-left: 5px; }
+#shopp ul.paging { clear: none; display: inline; }
+#shopp ul.paging li { display: inline; margin-left: 5px;}
 
 /* Product Grid (Default View) */
 #shopp ul.products li.product { width: <?php echo $products_per_row; ?>%; }
