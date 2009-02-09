@@ -856,9 +856,30 @@ class Product extends DatabaseObject {
 				return $result;
 				break;
 			case "input":
-				if (!isset($options['input']) || !valid_input($options['input'])) $options['input'] = "text";
+				if (!isset($options['type']) || 
+					($options['type'] != "menu" && $options['type'] != "textarea" && !valid_input($options['type']))) $options['type'] = "text";
 				if (!isset($options['name'])) return "";
-				$result = '<input type="'.$options['input'].'" name="products['.$this->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$this->id.'"'.inputattrs($options).' />';
+				if ($options['type'] == "menu") {
+					$result = '<select name="products['.$this->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$this->id.'">';
+					if (isset($options['options'])) 
+						$menuoptions = preg_split('/,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/',$options['options']);
+					if (is_array($menuoptions)) {
+						foreach($menuoptions as $option) {
+							$selected = "";
+							$option = trim($option,'"');
+							if (isset($options['default']) && $options['default'] == $option) 
+								$selected = ' selected="selected"';
+							$result .= '<option value="'.$option.'"'.$selected.'>'.$option.'</option>';
+						}
+					}
+					$result .= '</select>';
+				} elseif ($options['type'] == "textarea") {
+					if (isset($options['cols'])) $cols = ' cols="'.$options['cols'].'"';
+					if (isset($options['rows'])) $rows = ' rows="'.$options['rows'].'"';
+					$result .= '<textarea  name="products['.$this->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$this->id.'"'.$cols.$rows.'>'.$options['value'].'</textarea>';
+				} else {
+					$result = '<input type="'.$options['type'].'" name="products['.$this->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$this->id.'"'.inputattrs($options).' />';
+				}
 				
 				return $result;
 				break;

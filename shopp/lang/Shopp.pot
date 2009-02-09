@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Shopp 1.0b7.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-05 09:47-0500\n"
+"POT-Creation-Date: 2009-02-09 16:15-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jonathan Davis <jond@ingenesis.net>\n"
 "Language-Team: \n"
@@ -13,29 +13,29 @@ msgstr ""
 "X-Poedit-KeywordsList: _e;__\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: Shopp.php:245
-#: core/Flow.php:1705
-#: core/Flow.php:1706
+#: Shopp.php:244
+#: core/Flow.php:1561
+#: core/Flow.php:1562
 msgid "Orders"
 msgstr ""
 
-#: Shopp.php:246
+#: Shopp.php:245
 msgid "Promotions"
 msgstr ""
 
-#: Shopp.php:247
+#: Shopp.php:246
 msgid "Products"
 msgstr ""
 
-#: Shopp.php:248
+#: Shopp.php:247
 msgid "Categories"
 msgstr ""
 
-#: Shopp.php:249
+#: Shopp.php:248
 msgid "Settings"
 msgstr ""
 
-#: Shopp.php:259
+#: Shopp.php:258
 msgid "Help"
 msgstr ""
 
@@ -67,335 +67,331 @@ msgstr ""
 msgid "File upload stopped by extension."
 msgstr ""
 
-#: core/Flow.php:228
+#: core/Flow.php:231
 msgid "Product Filters"
 msgstr ""
 
-#: core/Flow.php:281
-msgid "That code has already been applied."
-msgstr ""
-
-#: core/Flow.php:569
-#: core/Flow.php:1141
-#: core/Flow.php:1474
+#: core/Flow.php:424
+#: core/Flow.php:997
+#: core/Flow.php:1330
 msgid "N/A"
 msgstr ""
 
-#: core/Flow.php:570
+#: core/Flow.php:425
 msgid "(Free Order)"
 msgstr ""
 
-#: core/Flow.php:597
+#: core/Flow.php:452
 msgid "The login name you provided is already in use.  Please choose another login name."
 msgstr ""
 
-#: core/Flow.php:685
+#: core/Flow.php:540
 msgid "Order Receipt"
 msgstr ""
 
-#: core/Flow.php:732
-#: core/Flow.php:754
+#: core/Flow.php:587
+#: core/Flow.php:609
 msgid "No customer account was found with that email."
 msgstr ""
 
-#: core/Flow.php:737
-#: core/Flow.php:760
+#: core/Flow.php:592
+#: core/Flow.php:615
 msgid "The password is incorrect."
 msgstr ""
 
-#: core/Flow.php:746
+#: core/Flow.php:601
 msgid "No customer account was found with that login name."
 msgstr ""
 
-#: core/Flow.php:832
-#: core/Flow.php:881
-#: core/Flow.php:974
-#: core/Flow.php:1108
-#: core/Flow.php:1183
-#: core/Flow.php:1415
-#: core/Flow.php:1460
-#: core/Flow.php:1591
-#: core/Flow.php:1633
-#: core/Flow.php:1801
-#: core/Flow.php:1842
-#: core/Flow.php:1908
-#: core/Flow.php:1916
-#: core/Flow.php:1925
-#: core/Flow.php:1960
-#: core/Flow.php:2004
-#: core/Flow.php:2024
-#: core/Flow.php:2081
-#: core/Flow.php:2149
+#: core/Flow.php:687
+#: core/Flow.php:736
+#: core/Flow.php:829
+#: core/Flow.php:963
+#: core/Flow.php:1039
+#: core/Flow.php:1271
+#: core/Flow.php:1316
+#: core/Flow.php:1447
+#: core/Flow.php:1489
+#: core/Flow.php:1657
+#: core/Flow.php:1698
+#: core/Flow.php:1764
+#: core/Flow.php:1772
+#: core/Flow.php:1781
+#: core/Flow.php:1816
+#: core/Flow.php:1860
+#: core/Flow.php:1880
+#: core/Flow.php:1937
+#: core/Flow.php:2005
 msgid "You do not have sufficient permissions to access this page."
 msgstr ""
 
-#: core/Flow.php:917
+#: core/Flow.php:771
 msgid "Order status updated."
 msgstr ""
 
-#: core/Flow.php:1122
+#: core/Flow.php:978
 msgid "has been saved."
 msgstr ""
 
-#: core/Flow.php:1138
-#: core/Flow.php:1471
+#: core/Flow.php:994
+#: core/Flow.php:1327
 msgid "Shipped"
 msgstr ""
 
-#: core/Flow.php:1139
-#: core/Flow.php:1472
+#: core/Flow.php:995
+#: core/Flow.php:1328
 msgid "Download"
 msgstr ""
 
-#: core/Flow.php:1140
-#: core/Flow.php:1473
+#: core/Flow.php:996
+#: core/Flow.php:1329
 msgid "Donation"
 msgstr ""
 
-#: core/Flow.php:1531
+#: core/Flow.php:1387
 msgid "category saved."
 msgstr ""
 
-#: core/Flow.php:1543
+#: core/Flow.php:1399
 msgid "Price ranges disabled"
 msgstr ""
 
-#: core/Flow.php:1544
+#: core/Flow.php:1400
 msgid "Build price ranges automatically"
 msgstr ""
 
-#: core/Flow.php:1545
+#: core/Flow.php:1401
 msgid "Use custom price ranges"
 msgstr ""
 
-#: core/Flow.php:1553
+#: core/Flow.php:1409
 msgid "Parent Category"
 msgstr ""
 
-#: core/Flow.php:1664
+#: core/Flow.php:1520
 msgid "Catalog"
 msgstr ""
 
-#: core/Flow.php:1665
-#: core/Flow.php:1885
+#: core/Flow.php:1521
+#: core/Flow.php:1741
 msgid "Order"
 msgstr ""
 
-#: core/Flow.php:1669
+#: core/Flow.php:1525
 msgid "Percentage Off"
 msgstr ""
 
-#: core/Flow.php:1670
+#: core/Flow.php:1526
 msgid "Amount Off"
 msgstr ""
 
-#: core/Flow.php:1671
+#: core/Flow.php:1527
 msgid "Free Shipping"
 msgstr ""
 
-#: core/Flow.php:1672
+#: core/Flow.php:1528
 msgid "Buy X Get Y Free"
 msgstr ""
 
-#: core/Flow.php:1708
-#: core/Flow.php:1709
+#: core/Flow.php:1564
+#: core/Flow.php:1565
 msgid "Sales"
 msgstr ""
 
-#: core/Flow.php:1711
-#: core/Flow.php:1712
+#: core/Flow.php:1567
+#: core/Flow.php:1568
 msgid "Average Order"
 msgstr ""
 
-#: core/Flow.php:1753
+#: core/Flow.php:1609
 msgid "No orders, yet."
 msgstr ""
 
-#: core/Flow.php:1825
+#: core/Flow.php:1681
 msgid "Shopp settings saved."
 msgstr ""
 
-#: core/Flow.php:1851
+#: core/Flow.php:1707
 msgid "Shopp presentation settings saved."
 msgstr ""
 
-#: core/Flow.php:1882
+#: core/Flow.php:1738
 msgid "Grid"
 msgstr ""
 
-#: core/Flow.php:1882
+#: core/Flow.php:1738
 msgid "List"
 msgstr ""
 
-#: core/Flow.php:1886
+#: core/Flow.php:1742
 msgid "Reverse Order"
 msgstr ""
 
-#: core/Flow.php:1887
+#: core/Flow.php:1743
 msgid "Shuffle"
 msgstr ""
 
-#: core/Flow.php:1889
+#: core/Flow.php:1745
 msgid "Custom arrangement"
 msgstr ""
 
-#: core/Flow.php:1890
+#: core/Flow.php:1746
 msgid "File name"
 msgstr ""
 
-#: core/Flow.php:1891
+#: core/Flow.php:1747
 msgid "Upload date"
 msgstr ""
 
-#: core/Flow.php:1893
+#: core/Flow.php:1749
 msgid "Scale to fit"
 msgstr ""
 
-#: core/Flow.php:1894
+#: core/Flow.php:1750
 msgid "Scale &amp; crop"
 msgstr ""
 
-#: core/Flow.php:1896
+#: core/Flow.php:1752
 msgid "Highest quality, largest file size"
 msgstr ""
 
-#: core/Flow.php:1897
+#: core/Flow.php:1753
 msgid "Higher quality, larger file size"
 msgstr ""
 
-#: core/Flow.php:1898
+#: core/Flow.php:1754
 msgid "Balanced quality &amp; file size"
 msgstr ""
 
-#: core/Flow.php:1899
+#: core/Flow.php:1755
 msgid "Lower quality, smaller file size"
 msgstr ""
 
-#: core/Flow.php:1900
+#: core/Flow.php:1756
 msgid "Lowest quality, smallest file size"
 msgstr ""
 
-#: core/Flow.php:1938
+#: core/Flow.php:1794
 msgid "Shopp checkout settings saved."
 msgstr ""
 
-#: core/Flow.php:1944
+#: core/Flow.php:1800
 msgid "30 minutes"
 msgstr ""
 
-#: core/Flow.php:1944
+#: core/Flow.php:1800
 msgid "1 hour"
 msgstr ""
 
-#: core/Flow.php:1945
+#: core/Flow.php:1801
 msgid "2 hours"
 msgstr ""
 
-#: core/Flow.php:1945
+#: core/Flow.php:1801
 msgid "3 hours"
 msgstr ""
 
-#: core/Flow.php:1946
+#: core/Flow.php:1802
 msgid "6 hours"
 msgstr ""
 
-#: core/Flow.php:1946
+#: core/Flow.php:1802
 msgid "12 hours"
 msgstr ""
 
-#: core/Flow.php:1947
+#: core/Flow.php:1803
 msgid "1 day"
 msgstr ""
 
-#: core/Flow.php:1947
+#: core/Flow.php:1803
 msgid "3 days"
 msgstr ""
 
-#: core/Flow.php:1948
+#: core/Flow.php:1804
 msgid "1 week"
 msgstr ""
 
-#: core/Flow.php:1948
+#: core/Flow.php:1804
 msgid "1 month"
 msgstr ""
 
-#: core/Flow.php:1949
+#: core/Flow.php:1805
 msgid "3 months"
 msgstr ""
 
-#: core/Flow.php:1949
+#: core/Flow.php:1805
 msgid "6 months"
 msgstr ""
 
-#: core/Flow.php:1950
+#: core/Flow.php:1806
 msgid "1 year"
 msgstr ""
 
-#: core/Flow.php:1980
+#: core/Flow.php:1836
 msgid "Shopp shipping settings saved."
 msgstr ""
 
-#: core/Flow.php:2009
+#: core/Flow.php:1865
 msgid "Shopp taxes settings saved."
 msgstr ""
 
-#: core/Flow.php:2055
+#: core/Flow.php:1911
 msgid "Shopp payments settings saved."
 msgstr ""
 
-#: core/Flow.php:2126
-#: core/Flow.php:2137
+#: core/Flow.php:1982
+#: core/Flow.php:1993
 msgid "This key has been successfully activated."
 msgstr ""
 
-#: core/Flow.php:2133
+#: core/Flow.php:1989
 msgid "This key has been successfully de-activated."
 msgstr ""
 
-#: core/Flow.php:2138
+#: core/Flow.php:1994
 msgid "Enter your Shopp upgrade key and activate it to enable easy, automatic upgrades."
 msgstr ""
 
-#: core/Flow.php:2155
+#: core/Flow.php:2011
 msgid "File system image hosting is enabled and working."
 msgstr ""
 
-#: core/Flow.php:2156
-#: core/Flow.php:2172
+#: core/Flow.php:2012
+#: core/Flow.php:2028
 msgid "The current path does not exist. Using database instead."
 msgstr ""
 
-#: core/Flow.php:2157
-#: core/Flow.php:2173
+#: core/Flow.php:2013
+#: core/Flow.php:2029
 msgid "The file path supplied is not a directory. Using database instead."
 msgstr ""
 
-#: core/Flow.php:2159
-#: core/Flow.php:2175
+#: core/Flow.php:2015
+#: core/Flow.php:2031
 msgid "Permissions error. This path must be writable by the web server. Using database instead."
 msgstr ""
 
-#: core/Flow.php:2160
+#: core/Flow.php:2016
 msgid "Enter the absolute path starting from server root to your image storage directory."
 msgstr ""
 
-#: core/Flow.php:2171
+#: core/Flow.php:2027
 msgid "File system product file hosting is enabled and working."
 msgstr ""
 
-#: core/Flow.php:2176
+#: core/Flow.php:2032
 msgid "Enter the absolute path starting from server root to your product file storage directory."
 msgstr ""
 
-#: core/Flow.php:2185
+#: core/Flow.php:2041
 msgid "Shopp system settings saved."
 msgstr ""
 
-#: core/Flow.php:2188
+#: core/Flow.php:2044
 msgid "Database"
 msgstr ""
 
-#: core/Flow.php:2188
+#: core/Flow.php:2044
 msgid "File System"
 msgstr ""
 
@@ -423,69 +419,85 @@ msgstr ""
 msgid "Sorry! You will not be able to use Shopp.  For more information, see the <a href=\"http://docs.shopplugin.net/Installation\" target=\"_blank\">online Shopp documentation.</a>"
 msgstr ""
 
-#: core/model/Cart.php:472
+#: core/model/Cart.php:478
 msgid " is not a valid code."
 msgstr ""
 
-#: core/model/Cart.php:596
+#: core/model/Cart.php:601
+msgid "That code has already been applied."
+msgstr ""
+
+#: core/model/Cart.php:789
 msgid "Apply Promo Code"
 msgstr ""
 
-#: core/model/Cart.php:651
+#: core/model/Cart.php:844
 msgid "Needs Estimated"
 msgstr ""
 
-#: core/model/Cart.php:920
+#: core/model/Cart.php:1113
 msgid "Same shipping address"
 msgstr ""
 
-#: core/model/Catalog.php:208
+#: core/model/Catalog.php:210
 msgid "Title"
 msgstr ""
 
-#: core/model/Catalog.php:209
+#: core/model/Catalog.php:211
 msgid "Bestselling"
 msgstr ""
 
-#: core/model/Catalog.php:210
+#: core/model/Catalog.php:212
 msgid "Price High to Low"
 msgstr ""
 
-#: core/model/Catalog.php:211
+#: core/model/Catalog.php:213
 msgid "Price Low to High"
 msgstr ""
 
-#: core/model/Category.php:555
-msgid "Pages:"
+#: core/model/Catalog.php:214
+msgid "Newest to Oldest"
 msgstr ""
 
-#: core/model/Category.php:556
-msgid "next"
+#: core/model/Catalog.php:215
+msgid "Oldest to Newest"
+msgstr ""
+
+#: core/model/Catalog.php:216
+msgid "Random"
 msgstr ""
 
 #: core/model/Category.php:557
+msgid "Pages:"
+msgstr ""
+
+#: core/model/Category.php:558
+msgid "next"
+msgstr ""
+
+#: core/model/Category.php:559
 msgid "previous"
 msgstr ""
 
-#: core/model/Category.php:663
-#: core/model/Category.php:678
-#: core/model/Category.php:740
-#: core/model/Category.php:769
+#: core/model/Category.php:665
+#: core/model/Category.php:680
+#: core/model/Category.php:742
+#: core/model/Category.php:771
 msgid "Under "
 msgstr ""
 
-#: core/model/Category.php:664
-#: core/model/Category.php:679
-#: core/model/Category.php:746
-#: core/model/Category.php:770
+#: core/model/Category.php:666
+#: core/model/Category.php:681
+#: core/model/Category.php:748
+#: core/model/Category.php:772
 msgid " and up"
 msgstr ""
 
-#: core/model/Category.php:682
+#: core/model/Category.php:684
 msgid "Price Range"
 msgstr ""
 
-#: core/model/Category.php:830
+#: core/model/Category.php:832
 msgid "New Products"
 msgstr ""
 
@@ -493,23 +505,27 @@ msgstr ""
 msgid "Featured Products"
 msgstr ""
 
-#: core/model/Category.php:865
+#: core/model/Category.php:863
 msgid "On Sale"
 msgstr ""
 
-#: core/model/Category.php:882
+#: core/model/Category.php:878
 msgid "Bestsellers"
 msgstr ""
 
-#: core/model/Category.php:907
+#: core/model/Category.php:901
 msgid "Search Results for"
 msgstr ""
 
-#: core/model/Category.php:930
+#: core/model/Category.php:925
 msgid "Products tagged"
 msgstr ""
 
-#: core/model/Item.php:196
+#: core/model/Category.php:942
+msgid "Random Products"
+msgstr ""
+
+#: core/model/Item.php:197
 msgid "Remove"
 msgstr ""
 
@@ -1013,15 +1029,15 @@ msgstr ""
 msgid "no contact name"
 msgstr ""
 
-#: core/ui/orders/orders.php:49
+#: core/ui/orders/orders.php:57
 msgid "No"
 msgstr ""
 
-#: core/ui/orders/orders.php:49
+#: core/ui/orders/orders.php:57
 msgid "orders, yet."
 msgstr ""
 
-#: core/ui/orders/orders.php:61
+#: core/ui/orders/orders.php:69
 msgid "Are you sure you want to delete the selected orders?"
 msgstr ""
 
@@ -1165,139 +1181,139 @@ msgstr ""
 msgid "Enabled"
 msgstr ""
 
-#: core/ui/promotions/editor.php:21
+#: core/ui/promotions/editor.php:22
 msgid "Enter the date range this promotion will be in effect for."
 msgstr ""
 
-#: core/ui/promotions/editor.php:26
+#: core/ui/promotions/editor.php:27
 msgid "Applied To"
 msgstr ""
 
-#: core/ui/promotions/editor.php:30
+#: core/ui/promotions/editor.php:31
 msgid "Apply the discount to individual catalog items, or to an entire order."
 msgstr ""
 
-#: core/ui/promotions/editor.php:33
+#: core/ui/promotions/editor.php:34
 msgid "Discount Type"
 msgstr ""
 
-#: core/ui/promotions/editor.php:37
+#: core/ui/promotions/editor.php:38
 msgid "Select how the discount will be applied."
 msgstr ""
 
-#: core/ui/promotions/editor.php:40
+#: core/ui/promotions/editor.php:41
 msgid "Discount Amount"
 msgstr ""
 
-#: core/ui/promotions/editor.php:42
+#: core/ui/promotions/editor.php:43
 msgid "Enter the amount of this discount."
 msgstr ""
 
-#: core/ui/promotions/editor.php:45
+#: core/ui/promotions/editor.php:46
 msgid "Item Quantities"
 msgstr ""
 
-#: core/ui/promotions/editor.php:46
+#: core/ui/promotions/editor.php:47
 msgid "Buy"
 msgstr ""
 
-#: core/ui/promotions/editor.php:46
+#: core/ui/promotions/editor.php:47
 msgid "Get"
 msgstr ""
 
-#: core/ui/promotions/editor.php:47
+#: core/ui/promotions/editor.php:48
 msgid "Enter the number of items that must be purchased and how many will be gifted."
 msgstr ""
 
-#: core/ui/promotions/editor.php:52
+#: core/ui/promotions/editor.php:53
 msgid "For products where"
 msgstr ""
 
-#: core/ui/promotions/editor.php:55
+#: core/ui/promotions/editor.php:56
 msgid "any"
 msgstr ""
 
-#: core/ui/promotions/editor.php:55
+#: core/ui/promotions/editor.php:56
 msgid "all"
 msgstr ""
 
-#: core/ui/promotions/editor.php:57
+#: core/ui/promotions/editor.php:58
 msgid "of these conditions are met:"
 msgstr ""
 
-#: core/ui/promotions/editor.php:80
+#: core/ui/promotions/editor.php:82
 msgid "Variation"
 msgstr ""
 
-#: core/ui/promotions/editor.php:82
+#: core/ui/promotions/editor.php:84
 msgid "Sale price"
 msgstr ""
 
-#: core/ui/promotions/editor.php:84
+#: core/ui/promotions/editor.php:86
 msgid "In stock"
 msgstr ""
 
-#: core/ui/promotions/editor.php:86
+#: core/ui/promotions/editor.php:88
 msgid "Item name"
 msgstr ""
 
-#: core/ui/promotions/editor.php:87
+#: core/ui/promotions/editor.php:89
 msgid "Item quantity"
 msgstr ""
 
-#: core/ui/promotions/editor.php:88
+#: core/ui/promotions/editor.php:90
 msgid "Total quantity"
 msgstr ""
 
-#: core/ui/promotions/editor.php:89
+#: core/ui/promotions/editor.php:91
 msgid "Shipping amount"
 msgstr ""
 
-#: core/ui/promotions/editor.php:90
+#: core/ui/promotions/editor.php:92
 msgid "Subtotal amount"
 msgstr ""
 
-#: core/ui/promotions/editor.php:91
+#: core/ui/promotions/editor.php:93
 msgid "Promo code"
 msgstr ""
 
-#: core/ui/promotions/editor.php:93
+#: core/ui/promotions/editor.php:95
 msgid "Is equal to"
 msgstr ""
 
-#: core/ui/promotions/editor.php:94
+#: core/ui/promotions/editor.php:96
 msgid "Is not equal to"
 msgstr ""
 
-#: core/ui/promotions/editor.php:95
+#: core/ui/promotions/editor.php:97
 msgid "Contains"
 msgstr ""
 
-#: core/ui/promotions/editor.php:96
+#: core/ui/promotions/editor.php:98
 msgid "Does not contain"
 msgstr ""
 
-#: core/ui/promotions/editor.php:97
+#: core/ui/promotions/editor.php:99
 msgid "Begins with"
 msgstr ""
 
-#: core/ui/promotions/editor.php:98
+#: core/ui/promotions/editor.php:100
 msgid "Ends with"
 msgstr ""
 
-#: core/ui/promotions/editor.php:99
+#: core/ui/promotions/editor.php:101
 msgid "Is greater than"
 msgstr ""
 
-#: core/ui/promotions/editor.php:100
+#: core/ui/promotions/editor.php:102
 msgid "Is greater than or equal to"
 msgstr ""
 
-#: core/ui/promotions/editor.php:101
+#: core/ui/promotions/editor.php:103
 msgid "Is less than"
 msgstr ""
 
-#: core/ui/promotions/editor.php:102
+#: core/ui/promotions/editor.php:104
 msgid "Is less than or equal to"
 msgstr ""
 
@@ -1958,36 +1974,40 @@ msgid "Test Mode Enabled"
 msgstr ""
 
 #: gateways/TestMode/TestMode.php:57
-msgid "Test error response"
+msgid "Always show an error"
 msgstr ""
 
-#: shipping/FedExRates.php:54
+#: gateways/TestMode/TestMode.php:58
+msgid "Use to test and style error messages"
+msgstr ""
+
+#: shipping/FedExRates.php:77
 msgid "FedEx Rates"
 msgstr ""
 
-#: shipping/FedExRates.php:71
+#: shipping/FedExRates.php:94
 #: shipping/UPSServiceRates.php:88
 msgid "Select All"
 msgstr ""
 
-#: shipping/FedExRates.php:85
+#: shipping/FedExRates.php:108
 msgid "Account Number"
 msgstr ""
 
-#: shipping/FedExRates.php:86
+#: shipping/FedExRates.php:109
 msgid "Meter Number"
 msgstr ""
 
-#: shipping/FedExRates.php:87
+#: shipping/FedExRates.php:110
 #: shipping/UPSServiceRates.php:104
 msgid "Your postal code"
 msgstr ""
 
-#: shipping/FedExRates.php:91
+#: shipping/FedExRates.php:114
 msgid "FedEx web services key"
 msgstr ""
 
-#: shipping/FedExRates.php:92
+#: shipping/FedExRates.php:115
 msgid "FedEx web services password"
 msgstr ""
 

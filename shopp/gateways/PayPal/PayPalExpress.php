@@ -42,25 +42,36 @@ class PayPalExpress {
 		
 		// Capture PayPal Express transaction information as it becomes available
 		if (!isset($Shopp->Cart->data->PayPalExpress)) $Shopp->Cart->data->PayPalExpress = new stdClass();
-		if (!empty($_GET['token'])) $Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
 		if (!empty($_GET['PayerID'])) $Shopp->Cart->data->PayPalExpress->payerid = $_GET['PayerID'];
+		if (!empty($_GET['token'])) {
+			if (!empty($Shopp->Cart->data->PayPalExpress->token))
+				$this->details();
+			$Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
+		}
 
 		return true;
+	}
+	
+	function headers () {
+		$_ = array();
+
+		$_['USER'] 					= $this->settings['username'];
+		$_['PWD'] 					= $this->settings['password'];
+		$_['SIGNATURE']				= $this->settings['signature'];
+		$_['VERSION']				= "53.0";
+
+		return $_;
 	}
 		
 	function checkout () {
 		global $Shopp;
 		
-		$_ = array();
+		$_ = $this->headers();
 
 		// Options
-		$_['USER'] 					= $this->settings['username'];
-		$_['PWD'] 					= $this->settings['password'];
-		$_['SIGNATURE']				= $this->settings['signature'];
-
-		$_['VERSION']				= "52.0";
 		$_['METHOD']				= "SetExpressCheckout";
 		$_['PAYMENTACTION']			= "Sale";
+		$_['LANDINGPAGE']			= "Billing";
 
 		// Include page style option, if provided
 		if (isset($_GET['pagestyle'])) $_['PAGESTYLE'] = $_GET['pagestyle'];
@@ -80,9 +91,9 @@ class PayPalExpress {
 
 		// Line Items
 		foreach($Shopp->Cart->contents as $i => $Item) {
+			$_['L_NUMBER'.$i]		= $i;
 			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
 			$_['L_AMT'.$i]			= number_format($Item->unitprice,2);
-			$_['L_NUMBER'.$i]		= $i;
 			$_['L_QTY'.$i]			= $Item->quantity;
 			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,2);
 		}
@@ -107,17 +118,52 @@ class PayPalExpress {
 		return false;	
 	}
 	
+	function details () {
+		global $Shopp;
+		if (!isset($Shopp->Cart->data->PayPalExpress->token) && 
+			!isset($Shopp->Cart->data->PayPalExpress->payerid)) return false;
+
+		$_ = $this->headers();
+
+   		$_['METHOD'] 				= "GetExpressCheckoutDetails";
+		$_['TOKEN'] 				= $Shopp->Cart->data->PayPalExpress->token;  
+
+		$this->transaction = $this->encode($_);
+		$result = $this->send();               
+		
+		$Customer = $Shopp->Cart->data->Order->Customer;
+		$Customer->firstname = $result->firstname;
+		$Customer->lastname = $result->lastname;
+		$Customer->email = $result->email;
+		$Customer->phone = $result->phonenum;
+		
+		$Shipping = $Shopp->Cart->data->Order->Shipping;
+		$Shipping->address = $result->shiptostreet;
+		$Shipping->xaddress = $result->shiptostreet2;
+		$Shipping->city = $result->shiptocity;
+		$Shipping->state = $result->shiptostate;
+		$Shipping->country = $result->shiptocountrycode;
+		$Shipping->postcode = $result->shiptozip;
+
+		$Billing = $Shopp->Cart->data->Order->Billing;
+		$Billing->cardtype = "PayPal";
+		$Billing->address = $Shipping->address;
+		$Billing->xaddress = $Shipping->xaddress;
+		$Billing->city = $Shipping->city;
+		$Billing->state = $Shipping->state;
+		$Billing->country = $Shipping->country;
+		$Billing->postcode = $Shipping->postcode;
+		
+		$Shopp->Cart->updated();
+		
+	} 
+	
 	function process () {
 		global $Shopp;
 		if (!isset($Shopp->Cart->data->PayPalExpress->token) && 
 			!isset($Shopp->Cart->data->PayPalExpress->payerid)) return false;
 			
-		// Options
-		$_['USER'] 					= $this->settings['username'];
-		$_['PWD'] 					= $this->settings['password'];
-		$_['SIGNATURE']				= $this->settings['signature'];
-
-		$_['VERSION']				= "52.0";
+		$_ = $this->headers();
 
 		$_['METHOD'] 				= "DoExpressCheckoutPayment";
 		$_['PAYMENTACTION']			= "Sale";
@@ -149,20 +195,14 @@ class PayPalExpress {
 		// If the transaction is a success, get the transaction details, 
 		// build the purchase receipt, save it and return it
 		if (strtolower($result->ack) == "success") {
-			$_ = array();
-			// Options
-			$_['USER'] 					= $this->settings['username'];
-			$_['PWD'] 					= $this->settings['password'];
-			$_['SIGNATURE']				= $this->settings['signature'];
-
-			$_['VERSION']				= "52.0";
+			$_ = $this->headers();
 			
 			$_['METHOD'] 				= "GetTransactionDetails";
 			$_['TRANSACTIONID']			= $result->transactionid;
 			
 			$this->transaction = $this->encode($_);
 			$result = $this->send();
-			
+
 			$Customer = new Customer();
 			$Customer->firstname = $result->firstname;
 			$Customer->lastname = $result->lastname;
@@ -221,7 +261,7 @@ class PayPalExpress {
 		// Fail by default
 		return false;
 	}
-		
+	
 	function error () {
 		if (!empty($this->Response)) {
 			$Error = new stdClass();
@@ -247,7 +287,10 @@ class PayPalExpress {
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
-		$buffer = curl_exec($connection);
+		$buffer = curl_exec($connection);   
+		if (curl_errno($connection))
+			echo 'Error: ' . curl_error($connection);
+
 		curl_close($connection);
 
 		$Response = $this->response($buffer);

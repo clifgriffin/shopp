@@ -38,8 +38,16 @@
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Order->id; ?>' /></th>
 			<td><?php echo date("Y/m/d",mktimestamp($Order->created)); ?></td>
 			<td><a class='row-title' href='?page=<?php echo $this->Admin->default; ?>&amp;manage=<?php echo $Order->id; ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo (empty($Order->firstname) && empty($Order->lastname))?"("._e('no contact name').")":"{$Order->firstname} {$Order->lastname}"; ?></a></td>
-			<td><?php echo (!empty($Order->shipcity) && !empty($Order->shipstate))?"{$Order->shipcity}, {$Order->shipstate}":"{$Order->shipcity}{$Order->shipstate}"; ?>
-				<?php echo (!empty($Order->shipcountry))?" &mdash; {$Order->shipcountry}":""; ?></td>
+			<td><?php 
+				$location = '';
+				$location = $Order->shipcity;
+				if (!empty($location) && !empty($Order->shipstate)) $location .= ', ';
+				$location .= $Order->shipstate;
+				if (!empty($location) && !empty($Order->shipcountry))
+					$location .= ' &mdash; ';
+				$location .= $Order->shipcountry;
+				echo $location;
+				 ?></td>
 			<td><?php echo money($Order->total); ?></td>
 			<td><?php echo $statusLabels[$Order->status]; ?></td>
 		</tr>

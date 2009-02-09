@@ -29,6 +29,7 @@ class Cart {
 	var $looping = false;
 	var $runaway = 0;
 	var $updated = false;
+	var $retotal = false;
 	
 	// methods
 	
@@ -220,9 +221,9 @@ class Cart {
 		// If the updated product and price variation match
 		// add the updated quantity of this item to the other item
 		// and remove this one
-		foreach ($this->contents as $id => $cartitem) {
-			if ($cartitem->product == $Product->id && $cartitem->price == $pricing) {
-				$this->update($id,$cartitem->quantity+$this->contents[$item]->quantity);
+		foreach ($this->contents as $id => $thisitem) {
+			if ($thisitem->product == $Product->id && $thisitem->price == $pricing) {
+				$this->update($id,$thisitem->quantity+$this->contents[$item]->quantity);
 				$this->remove($item);
 				$this->updated();
 				return true;
@@ -279,59 +280,64 @@ class Cart {
 	 * location set with shipzone() */
 	function shipping () {
 		if (!$this->data->Order->Shipping) return false;
+		if ($this->freeshipping) return 0;
+         
 		global $Shopp;
-
+        
 		$ShipCosts = &$this->data->ShipCosts;
 		$Shipping = $this->data->Order->Shipping;
 		$base = $Shopp->Settings->get('base_operations');
-		$methods = $Shopp->Settings->get('shipping_rates');
 		$handling = $Shopp->Settings->get('order_shipfee');
 
+		$methods = $Shopp->Settings->get('shipping_rates');
 		if (!is_array($methods)) return 0;
-		if ($this->freeshipping) return 0;
 
-		// Calculate any product-specific shipping fee markups
-		$shipflag = false;
-		foreach ($this->contents as $Item) {
-			if ($Item->shipping) $shipflag = true;
-			if ($Item->shipfee > 0) $fees += ($Item->quantity * $Item->shipfee);
-		}
-		if ($shipflag) $this->data->Shipping = true;
-		else $this->data->Shipping = false;
+		if (!$this->retotal) {
+			
+			// Calculate any product-specific shipping fee markups
+			$shipflag = false;
+			foreach ($this->contents as $Item) {
+				if ($Item->shipping) $shipflag = true;
+				if ($Item->shipfee > 0) $fees += ($Item->quantity * $Item->shipfee);
+			}
+			if ($shipflag) $this->data->Shipping = true;
+			else $this->data->Shipping = false;
 		
-		// Add order handling fee
-		if ($handling > 0) $fees += $handling;
+			// Add order handling fee
+			if ($handling > 0) $fees += $handling;
 
-		$estimate = false;
-		foreach ($methods as $id => $option) {
-			$shipping = 0;
-			if (isset($option['postcode-required'])) {
-				$this->data->ShippingPostcode = true;
-				if (empty($Shipping->postcode)) return null;
-			}
+			$estimate = false;
+			foreach ($methods as $id => $option) {
+				$shipping = 0;
+				if (isset($option['postcode-required'])) {
+					$this->data->ShippingPostcode = true;
+					if (empty($Shipping->postcode)) return null;
+				}
 			
-			if ($Shipping->country == $base['country']) {
-				// Use country/domestic region
-				if (isset($option[$base['country']]))	$column = $base['country'];  // Use the country rate
-				else $column = $Shipping->postarea(); // Try to get domestic regional rate
-			} else if (isset($option[$Shipping->region])) {
-				// Global region rate
-				$column = $Shipping->region;
-			} else {
-				// Worldwide shipping rate, last rate entry
-				end($option);
-				$column = key($option);
-			}
+				if ($Shipping->country == $base['country']) {
+					// Use country/domestic region
+					if (isset($option[$base['country']]))	$column = $base['country'];  // Use the country rate
+					else $column = $Shipping->postarea(); // Try to get domestic regional rate
+				} else if (isset($option[$Shipping->region])) {
+					// Global region rate
+					$column = $Shipping->region;
+				} else {
+					// Worldwide shipping rate, last rate entry
+					end($option);
+					$column = key($option);
+				}
 
-			list($ShipCalcClass,$process) = split("::",$option['method']);
-			if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]))
-				$estimated = $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate(
-					$this, $fees, $option, $column);
+				list($ShipCalcClass,$process) = split("::",$option['method']);
+				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]))
+					$estimated = $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate(
+						$this, $fees, $option, $column);
 			
-			if (!$estimate) $estimate = $estimated;
-			if ($estimated !== false && $estimated < $estimate) 
-				$estimate = $estimated; // Get lowest estimate
-		}
+				if (!$estimate) $estimate = $estimated;
+				if ($estimated !== false && $estimated < $estimate) 
+					$estimate = $estimated; // Get lowest estimate
+			} // end foreach ($methods)         
+
+        } // end if (!$this->retotal)
 
 		if (!isset($ShipCosts[$this->data->Order->Shipping->shipmethod]))
 			$this->data->Order->Shipping->shipmethod = false;
@@ -474,13 +480,42 @@ class Cart {
 		}
 		
 	}
+
+	/**
+	 * taxrate()
+	 * Determines the taxrate based on the currently
+	 * available shipping information set by shipzone() */
+	function taxrate () {
+		global $Shopp;
+		if ($Shopp->Settings->get('taxes') == "off") return false;
+
+		$taxrates = $Shopp->Settings->get('taxrates');
+		if (!is_array($taxrates)) return false;
+
+		$country = $this->data->Order->Shipping->country;
+		if (!empty($this->data->Order->Shipping->postcode))
+			$area = $this->data->Order->Shipping->postarea();
+		$zone = $this->data->Order->Shipping->state;
+
+		foreach($taxrates as $setting) {
+			if (isset($setting['zone'])) {
+				if ($country == $setting['country'] &&
+					$zone == $setting['zone'])
+						return $setting['rate']/100;
+			} else {
+				if ($country == $setting['country'])
+					return $setting['rate']/100;
+			}
+		}
+		
+	}   
 	
 	/**
 	 * totals()
 	 * Calculates subtotal, shipping, tax and 
 	 * order total amounts */
 	function totals () {
-		if (!$this->updated) return true;
+		if (!$this->retotal && !$this->updated) return true;
 
 		$Totals =& $this->data->Totals;
 		$Totals->quantity = 0;
@@ -489,7 +524,9 @@ class Cart {
 		$Totals->shipping = 0;
 		$Totals->tax = 0;
 		$Totals->total = 0;
-
+        
+	    $Totals->taxrate = $this->taxrate();
+		            
 		$freeshipping = true;	// Assume free shipping unless proven wrong
 		foreach ($this->contents as $key => $Item) {
 
@@ -500,13 +537,15 @@ class Cart {
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
 
-			if ($Item->tax && $Totals->taxrate > 0)
-				$Totals->tax += $Item->total * ($Totals->taxrate/100);
+			if ($Item->taxable && $Totals->taxrate > 0) {
+				$Item->tax = round($Item->total * $Totals->taxrate,2);
+				$Totals->tax += $Item->tax;
+			}
+				
 				
 		}
 		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
 		$this->freeshipping = $freeshipping;
-		
 
 		$this->promotions();
 		$discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
@@ -516,6 +555,160 @@ class Cart {
 		$Totals->total = $Totals->subtotal - $discount + 
 			$Totals->shipping + $Totals->tax;
 
+	}
+
+	/**
+	 * request()
+	 * Processes cart requests and updates the cart
+	 * accordingly */
+	function request () {
+		global $Shopp;
+		do_action('shopp_cart_request');
+		
+		$Request = array();
+		if (!empty($_GET['cart'])) $Request = $_GET;
+		if (!empty($_POST['cart'])) $Request = $_POST;
+
+		if (isset($Request['checkout'])) {
+			$pages = $this->Pages;
+			header("Location: ".$Shopp->link('checkout',true));
+			exit();
+		}
+		
+		if (isset($Request['shopping'])) {
+			$pages = $this->Pages;
+			header("Location: ".$Shopp->link('catalog'));
+			exit();
+		}
+		
+		if (isset($Request['shipping'])) {
+			$countries = $Shopp->Settings->get('countries');
+			$regions = $Shopp->Settings->get('regions');
+			$Request['shipping']['region'] = $regions[$countries[$Request['shipping']['country']]['region']];
+			unset($countries,$regions);
+			$this->shipzone($Request['shipping']);
+		} else if (!isset($this->data->Order->Shipping)) {
+			$base = $Shopp->Settings->get('base_operations');
+			$Request['shipping']['country'] = $base['country'];
+			$this->shipzone($Request['shipping']);
+		}
+
+		if (!empty($Request['promocode'])) {
+			$this->data->PromoCodeResult = "";
+			if (!in_array($Request['promocode'],$this->data->PromoCodes)) {
+				$this->data->PromoCode = attribute_escape($Request['promocode']);
+				$Request['update'] = true;
+			} else $this->data->PromoCodeResult = __("That code has already been applied.","Shopp");
+		}
+		
+		if (isset($Request['remove'])) $Request['cart'] = "remove";
+		if (isset($Request['update'])) $Request['cart'] = "update";
+		if (isset($Request['empty'])) $Request['cart'] = "empty";
+		
+		if (isset($Request['quantity'])) {
+			$Request['quantity'] = preg_replace('/[^\d+]/','',$Request['quantity']);
+			if (empty($Request['quantity'])) $Request['quantity'] = 1;
+		}
+
+		switch($Request['cart']) {
+			case "add":			
+				if (isset($Request['product'])) {
+					
+					$quantity = (!empty($Request['quantity']))?$Request['quantity']:1; // Add 1 by default
+					
+					$Product = new Product($Request['product']);
+					$pricing = false;
+					if (!empty($Request['options']) && !empty($Request['options'][0])) 
+						$pricing = $Request['options'];
+					else $pricing = $Request['price'];
+					
+					$category = false;
+					if (!empty($Request['category'])) $category = $Request['category'];
+					
+					if (isset($Request['data'])) $data = $Request['data'];
+					else $data = array();
+					
+					if (isset($Request['item'])) $result = $this->change($Request['item'],$Product,$pricing);
+					else $result = $this->add($quantity,$Product,$pricing,$category,$data);
+				}
+				
+				if (isset($Request['products']) && is_array($Request['products'])) {
+					
+					foreach ($Request['products'] as $id => $product) {
+						$quantity = (!empty($product['quantity']))?$product['quantity']:1; // Add 1 by default
+						$Product = new Product($id);
+						$pricing = false;
+						if (!empty($product['options']) && !empty($product['options'][0])) 
+							$pricing = $product['options'];
+						else $pricing = $product['price'];
+						
+						$category = false;
+						if (!empty($product['category'])) $category = $product['category'];
+
+						if (!empty($product['data'])) $data = $product['data'];
+						else $data = array();
+
+						if (!empty($Product->id)) {
+							if (isset($product['item'])) $result = $this->change($product['item'],$Product,$pricing);
+							else $result = $this->add($quantity,$Product,$pricing,$category,$data);
+						}
+					}
+					
+				}
+				break;
+			case "remove":
+				if (!empty($this->contents)) $this->remove(current($Request['remove']));
+				break;
+			case "empty":
+				$this->clear();
+				break;
+			default:			
+				if (isset($Request['item']) && isset($Request['quantity'])) {
+					$this->update($Request['item'],$Request['quantity']);
+					
+				} elseif (!empty($Request['items'])) {
+					foreach ($Request['items'] as $id => $item) {
+						if (isset($item['quantity'])) {
+							$item['quantity'] = ceil(preg_replace('/[^\d\.]+/','',$item['quantity']));
+							if (!empty($item['quantity'])) $this->update($id,$item['quantity']);
+						}
+						// if (isset($item['quantity'])) $this->update($id,$item['quantity']);	
+						if (isset($item['product']) && isset($item['price']) && 
+							$item['product'] == $this->contents[$id]->product &&
+							$item['price'] != $this->contents[$id]->price) {
+							$Product = new Product($item['product']);
+							$this->change($id,$Product,$item['price']);
+						}
+					}
+				}
+		}
+
+		do_action('shopp_cart_updated',$this);
+	}
+
+	/**
+	 * ajax()
+	 * Handles AJAX-based cart request responses */
+	function ajax () { 
+		global $Shopp;
+		
+		if ($_REQUEST['response'] == "html") {
+			echo $this->tag('sidecart');
+			exit();
+		}
+		$AjaxCart = new StdClass();
+		$AjaxCart->url = $Shopp->link('cart');
+		$AjaxCart->Totals = clone($this->data->Totals);
+		if (isset($this->added));
+			$AjaxCart->Item = clone($this->added);
+		unset($AjaxCart->Item->options);
+		$AjaxCart->Contents = array();
+		foreach($this->contents as $item) {
+			unset($item->options);
+			$AjaxCart->Contents[] = $item;
+		}
+		echo json_encode($AjaxCart);
+		exit();
 	}
 	
 	function tag ($property,$options=array()) {
@@ -581,7 +774,7 @@ class Cart {
 				break;
 			case "sidecart":
 				ob_start();
-				include(SHOPP_TEMPLATES."/sidecart.php");		
+				include(SHOPP_TEMPLATES."/sidecart.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;

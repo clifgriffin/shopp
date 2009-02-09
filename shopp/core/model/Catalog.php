@@ -27,10 +27,11 @@ class Catalog extends DatabaseObject {
 		$db = DB::get();
 
 		if (!empty($filtering['limit'])) $filtering['limit'] = "LIMIT ".$filtering['limit'];
-		if (empty($filtering['where'])) $filtering['where'] = "true";
+		if (empty($filtering['where'])) $filtering['where'] = "true"; // No filtering, get them all
 		
 		$category_table = DatabaseObject::tablename(Category::$table);
-		$categories = $db->query("SELECT cat.*,count(sc.product) AS total FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id WHERE {$filtering['where']} GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
+		$product_table = DatabaseObject::tablename(Product::$table);
+		$categories = $db->query("SELECT cat.*,count(pd.id) AS total FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id WHERE {$filtering['where']} GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
 		if (count($categories) > 1) $categories = sort_tree($categories);
 		foreach ($categories as $category) {
 			$this->categories[$category->id] = new Category();
@@ -120,7 +121,7 @@ class Catalog extends DatabaseObject {
 				}
 				break;
 			case "category-list":
-				if (empty($this->categories)) $this->load_categories(false,$options['showsmart']);
+				if (empty($this->categories)) $this->load_categories(array("where"=>"pd.published='on'"),$options['showsmart']);
 				$string = "";
 				$depth = 0;
 				$parent = false;
@@ -165,7 +166,8 @@ class Catalog extends DatabaseObject {
 					$string .= '</script>';
 					
 				} else {
-					$string .= $title.'<ul>';
+					if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
+					$string .= $title.'<ul'.$classes.'>';
 					foreach ($this->categories as &$category) {
 						if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
 							$parent = &$previous;
@@ -207,8 +209,11 @@ class Catalog extends DatabaseObject {
 				$menuoptions = array(
 					"title" => __('Title','Shopp'),
 					"bestselling" => __('Bestselling','Shopp'),
-					"price-desc" => __('Price High to Low','Shopp'),
-					"price-asc" => __('Price Low to High','Shopp'),
+					"highprice" => __('Price High to Low','Shopp'),
+					"lowprice" => __('Price Low to High','Shopp'),
+					"newest" => __('Newest to Oldest','Shopp'),
+					"oldest" => __('Oldest to Newest','Shopp'),
+					"random" => __('Random','Shopp')
 				);
 				$default = "title";
 				$title = $options['title'];
@@ -271,7 +276,7 @@ class Catalog extends DatabaseObject {
 					while ($parentkey != 0) {
 						$tree_category = $this->categories[$parentkey];
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$tree_category->uri;
-						else $link = add_query_arg('shopp_category',$tree_category->id,$page);
+						else $link = add_query_arg('shopp_category',$tree_category->id,$Shopp->shopuri);
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
 						$parentkey = $tree_category->parentkey;
 					}
@@ -287,6 +292,8 @@ class Catalog extends DatabaseObject {
 				if ($property == "onsale-products") $Shopp->Category = new OnSaleProducts($options);
 			case "bestseller-products":
 				if ($property == "bestseller-products") $Shopp->Category = new BestsellerProducts($options);
+			case "random-products":
+				if ($property == "random-products") $Shopp->Category = new RandomProducts($options);
 			case "category":
 				if ($property == "category") {
 					if (isset($options['name'])) $Shopp->Category = new Category($options['name'],'name');

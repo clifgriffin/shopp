@@ -37,8 +37,8 @@
 			<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
 			<?php echo $Purchase->shipaddress; ?><br />
 			<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
-			<?php echo "{$Purchase->shipcity}, {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
-			<?php echo $Purchase->shipcountry ?></address>
+			<?php echo "{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
+			<?php echo $targets[$Purchase->shipcountry]; ?></address>
 			<p><strong>Shipping:</strong> <?php echo $Purchase->shipmethod; ?></p>
 		</fieldset>
 		<?php else: ?>
@@ -47,8 +47,8 @@
 				<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
 				<?php echo $Purchase->address; ?><br />
 				<?php if (!empty($Purchase->xaddress)) echo $Purchase->xaddress."<br />"; ?>
-				<?php echo "{$Purchase->city}, {$Purchase->state} {$Purchase->postcode}" ?><br />
-				<?php echo $Purchase->country ?></address>
+				<?php echo "{$Purchase->city}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->state} {$Purchase->postcode}" ?><br />
+				<?php echo $targets[$Purchase->country]; ?></address>
 			</fieldset>
 		<?php endif; ?>
 		

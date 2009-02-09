@@ -202,18 +202,20 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
  * Debug Console
  **/
 
-#debug.shopp { position: absolute; left: 25%; top: 100px; width: 50%; margin: 0 auto; height: 300px; overflow-y: auto; background: #fff; border: 5px solid #999; text-align: left; padding: 0 10px; font: 12px/1 "Lucida Grande",monospace; }
+#debug.shopp { position: absolute; left: 25%; top: 100px; width: 50%; margin: 0 auto; height: 300px; overflow-y: auto; background: #fff; border: 5px solid #999; text-align: left; padding: 0 10px; font: 12px/1 "Lucida Grande",monospace; z-index: 100; }
 #debug.shopp.overlay { position: absolute; width: 100%; height: 100%; background: #000; top: 0; left: 0; padding: 0; opacity: 0.8; border: none; }
 #debug.shopp h3 { font: bold 15px/1 "Lucida Grande",monospace;  }
 
+/** Calendar **/
+
 .calendar-wrap { display: inline; position: relative; overflow: visible; }
-.calendar { position: absolute; top: 18px; left: 0; width: 185px; background: white; border: 1px solid #cee1ef; padding: 5px; z-index: 20; }
+.calendar { position: absolute; z-index: 10; top: 18px; left: 0; width: 185px; background: white; border: 1px solid #cee1ef; padding: 5px; font-size: 11px; }
 .calendar h3 { width: 100%; margin: 0; text-align: center; }
 .calendar h3 .month { margin-right: 5px; }
 .calendar span.back { display: block; position: absolute; left: 5px; top: 5px; padding: 0 10px; cursor: pointer; }
 .calendar span.next { display: block; position: absolute; right: 5px; top: 5px; padding: 0 10px;  cursor: pointer; }
 .calendar div.week { display: block; width: 100%; }
-.calendar div.week div { display: inline-block; width: 26px; height: 19px; text-align: center; cursor: pointer; }
+.calendar div.week div { display: block; float: left; width: 26px; height: 19px; text-align: center; cursor: pointer; line-height: 19px; }
 .calendar div.week div.label { font-weight: bold; color: #777777; }
 .calendar div.week div.disabled { color: #aaaaaa; }
 .calendar div.week div.hover { background-color: #E9F3FA; }

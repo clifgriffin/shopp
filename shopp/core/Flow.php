@@ -95,7 +95,10 @@ class Flow {
 				else include(SHOPP_TEMPLATES."/product.php"); break;
 
 			case "category":
-				if (file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
+				if ($Shopp->Category->smart && 
+						file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
+					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
+				elseif (file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
 					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
 				else include(SHOPP_TEMPLATES."/category.php"); break;
 
@@ -239,154 +242,6 @@ class Flow {
 	/**
 	 * Shopping Cart flow handlers
 	 **/
-	
-	function cart_request () {
-		global $Shopp;
-		$Cart = $Shopp->Cart;
-		do_action('shopp_cart_request');
-		
-		$Request = array();
-		if (!empty($_GET['cart'])) $Request = $_GET;
-		if (!empty($_POST['cart'])) $Request = $_POST;
-
-		if (isset($Request['checkout'])) {
-			$pages = $this->Pages;
-			header("Location: ".$Shopp->link('checkout',true));
-			exit();
-		}
-		
-		if (isset($Request['shopping'])) {
-			$pages = $this->Pages;
-			header("Location: ".$Shopp->link('catalog'));
-			exit();
-		}
-		
-		if (isset($Request['shipping'])) {
-			$countries = $Shopp->Settings->get('countries');
-			$regions = $Shopp->Settings->get('regions');
-			$Request['shipping']['region'] = $regions[$countries[$Request['shipping']['country']]['region']];
-			unset($countries,$regions);
-			$Cart->shipzone($Request['shipping']);
-		} else if (!isset($this->data->Order->Shipping)) {
-			$base = $Shopp->Settings->get('base_operations');
-			$Request['shipping']['country'] = $base['country'];
-			$Cart->shipzone($Request['shipping']);
-		}
-
-		if (!empty($Request['promocode'])) {
-			$Cart->data->PromoCodeResult = "";
-			if (!in_array($Request['promocode'],$Cart->data->PromoCodes)) {
-				$Cart->data->PromoCode = attribute_escape($Request['promocode']);
-				$Request['update'] = true;
-			} else $Cart->data->PromoCodeResult = __("That code has already been applied.","Shopp");
-		}
-		
-		if (isset($Request['remove'])) $Request['cart'] = "remove";
-		if (isset($Request['update'])) $Request['cart'] = "update";
-		if (isset($Request['empty'])) $Request['cart'] = "empty";
-		
-		if (isset($Request['quantity'])) {
-			$Request['quantity'] = preg_replace('/[^\d+]/','',$Request['quantity']);
-			if (empty($Request['quantity'])) $Request['quantity'] = 1;
-		}
-
-		switch($Request['cart']) {
-			case "add":			
-				if (isset($Request['product'])) {
-					
-					$quantity = (!empty($Request['quantity']))?$Request['quantity']:1; // Add 1 by default
-					
-					$Product = new Product($Request['product']);
-					$pricing = false;
-					if (!empty($Request['options']) && !empty($Request['options'][0])) 
-						$pricing = $Request['options'];
-					else $pricing = $Request['price'];
-					
-					$category = false;
-					if (!empty($Request['category'])) $category = $Request['category'];
-					
-					if (isset($Request['data'])) $data = $Request['data'];
-					else $data = array();
-					
-					if (isset($Request['item'])) $result = $Cart->change($Request['item'],$Product,$pricing);
-					else $result = $Cart->add($quantity,$Product,$pricing,$category,$data);
-				}
-				
-				if (isset($Request['products']) && is_array($Request['products'])) {
-					
-					foreach ($Request['products'] as $id => $product) {
-						$quantity = (!empty($product['quantity']))?$product['quantity']:1; // Add 1 by default
-						$Product = new Product($id);
-						$pricing = false;
-						if (!empty($product['options']) && !empty($product['options'][0])) 
-							$pricing = $product['options'];
-						else $pricing = $product['price'];
-						
-						$category = false;
-						if (!empty($product['category'])) $category = $product['category'];
-
-						if (!empty($product['data'])) $data = $product['data'];
-						else $data = array();
-
-						if (!empty($Product->id)) {
-							if (isset($product['item'])) $result = $Cart->change($product['item'],$Product,$pricing);
-							else $result = $Cart->add($quantity,$Product,$pricing,$category,$data);
-						}
-					}
-					
-				}
-				break;
-			case "remove":
-				if (!empty($Cart->contents)) $Cart->remove(current($Request['remove']));
-				break;
-			case "empty":
-				$Cart->clear();
-				break;
-			default:			
-				if (isset($Request['item']) && isset($Request['quantity'])) {
-					$Cart->update($Request['item'],$Request['quantity']);
-					
-				} elseif (!empty($Request['items'])) {
-					foreach ($Request['items'] as $id => $item) {
-						if (isset($item['quantity'])) {
-							$item['quantity'] = ceil(preg_replace('/[^\d\.]+/','',$item['quantity']));
-							if (!empty($item['quantity'])) $Cart->update($id,$item['quantity']);
-						}
-						// if (isset($item['quantity'])) $Cart->update($id,$item['quantity']);	
-						if (isset($item['product']) && isset($item['price']) && 
-							$item['product'] == $Cart->contents[$id]->product &&
-							$item['price'] != $Cart->contents[$id]->price) {
-							$Product = new Product($item['product']);
-							$Cart->change($id,$Product,$item['price']);
-						}
-					}
-				}
-		}
-
-		do_action('shopp_cart_updated',$Cart);
-	}
-
-	function cart_ajax () {
-		global $Shopp;
-		if ($_REQUEST['response'] == "html") {
-			echo $Shopp->Cart->tag('sidecart');
-			exit();
-		}
-		$AjaxCart = new StdClass();
-		$AjaxCart->url = $Shopp->link('cart');
-		$AjaxCart->Totals = clone($Shopp->Cart->data->Totals);
-		if (isset($Shopp->Cart->added));
-			$AjaxCart->Item = clone($Shopp->Cart->added);
-		unset($AjaxCart->Item->options);
-		$AjaxCart->Contents = array();
-		foreach($Shopp->Cart->contents as $item) {
-			unset($item->options);
-			$AjaxCart->Contents[] = $item;
-		}
-		echo json_encode($AjaxCart);
-		exit();
-	}
-
 	function cart ($attrs=array()) {
 		$Cart = $this->Cart;
 		ob_start();
@@ -912,11 +767,11 @@ class Flow {
 				
 			}
 			
-			
 			$Purchase->save();
 			$updated = __('Order status updated.','Shopp');
 		}
 
+		$targets = $this->Settings->get('target_markets');
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
 		
@@ -1110,9 +965,10 @@ class Flow {
 		if ($_GET['edit'] != "new") {
 			$Product = new Product($_GET['edit']);
 			$Product->load_data(array('prices','specs','categories','tags'));
-			
-			$Product->published = "on";
-		} else $Product = new Product();
+		} else {
+			$Product = new Product();
+			$Product->published = "on";  
+		}
 
 		if (!empty($_POST['save']) || !empty($_POST['save-products'])) {
 			$this->save_product($Product);
