@@ -9,7 +9,8 @@
  * @package Shopp
  **/
 
-class PayPalExpress {
+class PayPalExpress {          
+	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
 	var $button = 'https://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
 	var $sandbox_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout';
 	var $checkout_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout';
@@ -339,15 +340,29 @@ class PayPalExpress {
 	}
 	
 	function settings () {
-		global $Shopp;
 		?>
-		<p><input type="text" name="settings[PayPalExpress][username]" id="paypalxp-username" size="30" value="<?php echo $this->settings['username']; ?>"/><br />
-		Enter your PayPal Express API Username.</p>
-		<p><input type="password" name="settings[PayPalExpress][password]" id="paypalxp-password" size="16" value="<?php echo $this->settings['password']; ?>" /><br />
-		Enter your PayPal Express API Password.</p>
-		<p><input type="text" name="settings[PayPalExpress][signature]" id="paypalxp-signature" size="48" value="<?php echo $this->settings['signature']; ?>" /><br />
-		Enter your PayPal Express API Signature.</p>
-		<p><label for="paypalxp-testmode"><input type="hidden" name="settings[PayPalExpress][testmode]" value="off" /><input type="checkbox" name="settings[PayPalExpress][testmode]" id="paypalxp-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Enable test mode</label></p>
+			<th scope="row" valign="top"><label for="paypalexpress-enabled">PayPal Express</label></th> 
+			<td><input type="hidden" name="settings[PayPalExpress][enabled]" value="off" /><input type="checkbox" name="settings[PayPalExpress][enabled]" value="on" id="paypalexpress-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="paypalexpress-enabled"> <?php _e('Enable','Shopp'); ?> PayPal Express</label>
+				<div id="paypalexpress-settings">
+		
+				<p><input type="text" name="settings[PayPalExpress][username]" id="paypalxp-username" size="30" value="<?php echo $this->settings['username']; ?>"/><br />
+				Enter your PayPal Express API Username.</p>
+				<p><input type="password" name="settings[PayPalExpress][password]" id="paypalxp-password" size="16" value="<?php echo $this->settings['password']; ?>" /><br />
+				Enter your PayPal Express API Password.</p>
+				<p><input type="text" name="settings[PayPalExpress][signature]" id="paypalxp-signature" size="48" value="<?php echo $this->settings['signature']; ?>" /><br />
+				Enter your PayPal Express API Signature.</p>
+				<p><label for="paypalxp-testmode"><input type="hidden" name="settings[PayPalExpress][testmode]" value="off" /><input type="checkbox" name="settings[PayPalExpress][testmode]" id="paypalxp-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Enable test mode</label></p>
+				
+				<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
+				
+				</div>
+			</td>
+		<?php
+	}
+	
+	function registerSettings () {
+		?>
+		xcosettings('#paypalexpress-enabled','#paypalexpress-settings');
 		<?php
 	}
 

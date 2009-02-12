@@ -12,6 +12,7 @@
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
 
 class GoogleCheckout {
+	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
 	var $urls = array();
 	var $settings = array();
 	var $Response = false;
@@ -46,6 +47,7 @@ class GoogleCheckout {
 		$this->settings['currency'] = $this->settings['base_operations']['currency']['code'];
 		if (empty($this->settings['currency'])) $this->settings['currency'] = "USD";
 		
+		add_action('shopp_save_payment_settings',array(&$this,'saveSettings'));
 		return true;
 	}
 	
@@ -367,25 +369,54 @@ class GoogleCheckout {
 		$styles = array("white"=>"On White Background","trans"=>"With Transparent Background");
 		
 		?>
-		<p><input type="text" name="settings[GoogleCheckout][id]" id="googlecheckout-id" size="18" value="<?php echo $this->settings['id']; ?>"/><br />
-		Enter your Google Checkout merchant ID.</p>
-		<p><input type="text" name="settings[GoogleCheckout][key]" id="googlecheckout-key" size="24" value="<?php echo $this->settings['key']; ?>" /><br />
-		Enter your Google Checkout merchant key.</p>
+		<th scope="row" valign="top"><label for="googlecheckout-enabled">Google Checkout</label></th> 
+		<td><input type="hidden" name="settings[GoogleCheckout][enabled]" value="off" id="googlecheckout-disabled"/><input type="checkbox" name="settings[GoogleCheckout][enabled]" value="on" id="googlecheckout-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="googlecheckout-enabled"> <?php _e('Enable','Shopp'); ?> Google Checkout</label>
+			<div id="googlecheckout-settings">
 		
-		<?php if (!empty($this->settings['apiurl'])): ?>
-		<p><input type="text" name="settings[GoogleCheckout][apiurl]" id="googlecheckout-apiurl" size="48" value="<?php echo $this->settings['apiurl']; ?>" readonly="readonly" class="select" /><br />
-		<strong>Copy this URL to your Google Checkout integration settings API callback URL.</strong></p>
-		<?php endif;?>
+			<p><input type="text" name="settings[GoogleCheckout][id]" id="googlecheckout-id" size="18" value="<?php echo $this->settings['id']; ?>"/><br />
+			Enter your Google Checkout merchant ID.</p>
+			<p><input type="text" name="settings[GoogleCheckout][key]" id="googlecheckout-key" size="24" value="<?php echo $this->settings['key']; ?>" /><br />
+			Enter your Google Checkout merchant key.</p>
+		
+			<?php if (!empty($this->settings['apiurl'])): ?>
+			<p><input type="text" name="settings[GoogleCheckout][apiurl]" id="googlecheckout-apiurl" size="48" value="<?php echo $this->settings['apiurl']; ?>" readonly="readonly" class="select" /><br />
+			<strong>Copy this URL to your Google Checkout integration settings API callback URL.</strong></p>
+			<?php endif;?>
 
-		<p><select name="settings[GoogleCheckout][button]">
-			<?php echo menuoptions($buttons,$this->settings['button'],true); ?>
-			</select>
-			<select name="settings[GoogleCheckout][buttonstyle]">
-				<?php echo menuoptions($styles,$this->settings['buttonstyle'],true); ?>
-				</select><br />Select the preferred size and style of the Google Checkout button.</p>
-				<p><label for="googlecheckout-autocharge"><input type="hidden" name="settings[GoogleCheckout][autocharge]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][autocharge]" id="googlecheckout-autocharge" size="48" value="on"<?php echo ($this->settings['autocharge'] == 'on')?' checked="checked"':''; ?> /> Automatically charge orders</label></p>
-		<p><label for="googlecheckout-testmode"><input type="hidden" name="settings[GoogleCheckout][testmode]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][testmode]" id="googlecheckout-testmode" size="48" value="on"<?php echo ($this->settings['testmode'])?' checked="checked"':''; ?> /> Enable test mode</label></p>
+			<p><select name="settings[GoogleCheckout][button]">
+				<?php echo menuoptions($buttons,$this->settings['button'],true); ?>
+				</select>
+				<select name="settings[GoogleCheckout][buttonstyle]">
+					<?php echo menuoptions($styles,$this->settings['buttonstyle'],true); ?>
+					</select><br />Select the preferred size and style of the Google Checkout button.</p>
+					<p><label for="googlecheckout-autocharge"><input type="hidden" name="settings[GoogleCheckout][autocharge]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][autocharge]" id="googlecheckout-autocharge" size="48" value="on"<?php echo ($this->settings['autocharge'] == 'on')?' checked="checked"':''; ?> /> Automatically charge orders</label></p>
+			<p><label for="googlecheckout-testmode"><input type="hidden" name="settings[GoogleCheckout][testmode]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][testmode]" id="googlecheckout-testmode" size="48" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Enable test mode</label></p>
+			
+			<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
+			
+			</div>
+		</td>
 		<?php
+	}
+
+	function registerSettings () {
+		?>
+		xcosettings('#googlecheckout-enabled','#googlecheckout-settings');
+		<?php
+	}
+	
+	function saveSettings () {
+		// Build the Google Checkout API URL if Google Checkout is enabled
+		if (!empty($_POST['settings']['GoogleCheckout']['id']) && !empty($_POST['settings']['GoogleCheckout']['key'])) {
+			$GoogleCheckout = new GoogleCheckout();
+			$url = add_query_arg(array(
+				'shopp_xorder' => 'GoogleCheckout',
+				'merc' => $GoogleCheckout->authcode(
+										$_POST['settings']['GoogleCheckout']['id'],
+										$_POST['settings']['GoogleCheckout']['key'])
+				),$Shopp->link('catalog',true));
+			$_POST['settings']['GoogleCheckout']['apiurl'] = $url;
+		}
 	}
 
 } // end GoogleCheckout class

@@ -148,7 +148,6 @@ class FedExRates {
 		if (!$this->Response) return false;
 		if ($this->Response->HighestSeverity == 'FAILURE' || 
 		 		$this->Response->HighestSeverity == 'ERROR') {
-			print_r($this->Response);
 			$Cart->data->Errors[] = $this->Response->Notifications->Message;
 			exit();
 			return false;

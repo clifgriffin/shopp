@@ -18,25 +18,12 @@
 	            <?php _e('Select the payment gateway processor you will be using to process credit card transactions.','Shopp'); ?></td>
 			</tr>
 			<tbody id="payment-settings">
-				<?php foreach ($Processors as $Processor) $Processor->settings(); ?>
+				<?php if (is_array($LocalProcessors)) foreach ($LocalProcessors as &$Processor) $Processor->settings(); ?>
 			</tbody>
-			<tr class="form-required"> 
-				<th scope="row" valign="top"><label for="paypalexpress-enabled">PayPal Express</label></th> 
-				<td><input type="hidden" name="settings[PayPalExpress][enabled]" value="off" id="paypalexpress-disabled"/><input type="checkbox" name="settings[PayPalExpress][enabled]" value="on" id="paypalexpress-enabled"<?php echo ($PayPalExpress->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="paypalexpress-enabled"> <?php _e('Enable','Shopp'); ?> PayPal Express</label>
-					<div id="paypalexpress-settings">
-						<?php echo $PayPalExpress->settings(); ?>
-					</div>
-				</td>
-			</tr>
-			<tr class="form-required"> 
-				<th scope="row" valign="top"><label for="googlecheckout-enabled">Google Checkout</label></th> 
-				<td><input type="hidden" name="settings[GoogleCheckout][enabled]" value="off" id="googlecheckout-disabled"/><input type="checkbox" name="settings[GoogleCheckout][enabled]" value="on" id="googlecheckout-enabled"<?php echo ($GoogleCheckout->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="googlecheckout-enabled"> <?php _e('Enable','Shopp'); ?> Google Checkout</label>
-					<div id="googlecheckout-settings">
-						<?php echo $GoogleCheckout->settings(); ?>
-					</div>
-				</td>
-			</tr>
-		</table>
+			<?php  if (is_array($XcoProcessors)): foreach ($XcoProcessors as &$Processor): ?>
+				<tr><?php $Processor->settings(); ?></tr>
+			<?php endforeach; endif; ?>
+ 		</table>
 		
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
@@ -44,29 +31,27 @@
 
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Payments_Settings";
-(function($) {
-if (!$('#paypalexpress-enabled').attr('checked')) $('#paypalexpress-settings').hide();
-if (!$('#googlecheckout-enabled').attr('checked')) $('#googlecheckout-settings').hide();
 
+function xcosettings (toggle,settings) {
+  	(function($) {
+	toggle = $(toggle);
+	settings = $(settings);
+	if (!toggle.attr('checked')) settings.hide();
+	toggle.change(function () { settings.slideToggle(250); });
+	})(jQuery);
+}
+
+(function($) {
 var gatewayHandlers = new CallbackRegistry();
 
-<?php foreach ($Processors as $Processor) $Processor->registerSettings(); ?>
-
-
+<?php foreach ($LocalProcessors as &$Processor) $Processor->registerSettings(); ?>
+<?php foreach ($XcoProcessors as &$Processor) $Processor->registerSettings(); ?>
 
 $('#payment-gateway').change(function () {
 	$('#payment-settings tr').hide();
 	var target = '#'+gatewayHandlers.get(this.value);
 	if (this.value.length > 0) $(target).show();
 }).change();
-
-$('#paypalexpress-enabled').change(function () {
-	$('#paypalexpress-settings').slideToggle(250);
-});
-
-$('#googlecheckout-enabled').change(function () {
-	$('#googlecheckout-settings').slideToggle(250);
-});
 
 })(jQuery);
 </script>

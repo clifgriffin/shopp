@@ -218,9 +218,10 @@ function shopp_image () {
 
 	if (empty($image)) die();
 	$Asset = new Asset($image);
-	header ("Content-type: ".$Asset->properties['mimetype']);
-	header ("Content-Disposition: inline; filename=".$Asset->name.""); 
-	header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+	header('Last-Modified: '.date('D, d M Y H:i:s', $Asset->created).' GMT'); 
+	header("Content-type: ".$Asset->properties['mimetype']);
+	header("Content-Disposition: inline; filename=".$Asset->name.""); 
+	header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
 	if ($image_storage == "fs") {
 		header ("Content-length: ".@filesize(trailingslashit($image_path).$Asset->name)); 
 		readfile(trailingslashit($image_path).$Asset->name);
@@ -821,6 +822,10 @@ function shopp_get_column_headers($page) {
 function template_path ($path) {
 	if (DIRECTORY_SEPARATOR == "\\") $path = str_replace("/","\\",$path);
 	return $path;
+}
+
+function gateway_path ($file) {
+	return basename(dirname($file)).DIRECTORY_SEPARATOR.basename($file);
 }
 
 function force_ssl ($url) {
