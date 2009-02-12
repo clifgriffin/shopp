@@ -29,8 +29,8 @@ div.clear,
 #shopp .products .frame { width: <?php echo $gallery_thumbnail_width; ?>px; text-align: center; }
 #shopp .products .frame img { display: inline; }
 
-#shopp ul.paging { clear: none; display: inline-block; }
-#shopp ul.paging li { display: inline-block; margin-left: 5px;}
+#shopp ul.paging { clear: none; display: inline; }
+#shopp ul.paging li { display: inline; margin-left: 5px;}
 
 /* Product Grid (Default View) */
 #shopp ul.products li.product { width: <?php echo $products_per_row; ?>%; }
@@ -82,8 +82,8 @@ div.clear,
  **/
 
 #shopp .category { position: relative; }
-#shopp .views .grid { background: url('<?php echo $pluginuri; ?>core/ui/icons/grid.png') no-repeat; }
-#shopp .views .list { background: url('<?php echo $pluginuri; ?>core/ui/icons/list.png') no-repeat; }
+#shopp .views .grid { width: 15px; height: 15px; background: url('<?php echo $pluginuri; ?>core/ui/icons/grid.png') no-repeat 50% 50%; }
+#shopp .views .list { width: 15px; height: 15px; background: url('<?php echo $pluginuri; ?>core/ui/icons/list.png') no-repeat 50% 50%; }
 
 /**
  * Product Page Gallery
@@ -100,10 +100,12 @@ div.clear,
 
 #shopp .gallery .previews li.fill { position: relative; }
 #shopp .gallery .previews li.active { visibility: visible; }
+#shopp .gallery .thumbnails { margin-top: 10px; }
 #shopp .gallery .thumbnails ul { padding: 0; }
 #shopp .gallery .thumbnails li { position: relative; display: inline; visibility: visible; height: auto; line-height: 1; top: auto; left: auto; margin: 0 0 0 10px; }
 #shopp .gallery .thumbnails li.first { margin-left: 0; }
 #shopp .gallery .thumbnails li img { cursor: pointer; }
+
 /**
  * Debug Console
  **/

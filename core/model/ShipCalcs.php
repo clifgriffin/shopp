@@ -29,7 +29,7 @@ class ShipCalcs {
 	
 		if (!empty($modfiles)) {
 			foreach ($modfiles as $ShipCalcClass => $file) {
-				include($file);
+				include_once($file);
 				$this->modules[$ShipCalcClass] = new $ShipCalcClass();
 				$this->modules[$ShipCalcClass]->methods($this);
 			}

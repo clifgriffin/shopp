@@ -59,12 +59,12 @@
 			</td> 
 		<tr class=""> 
 			<th scope="row" valign="top"><label for="summary"><?php _e('Summary','Shopp'); ?></label></th> 
-			<td><textarea name="summary" id="summary" rows="2" cols="50" tabindex="6" style="width: 97%;"><? echo $Product->summary ?></textarea><br /> 
+			<td><textarea name="summary" id="summary" rows="2" cols="50" tabindex="6" style="width: 97%;"><?php echo $Product->summary ?></textarea><br /> 
             <?php _e('A brief description of the product to draw the customer\'s attention.','Shopp'); ?></td> 
 		</tr> 
 		<tr class=""> 
 			<th scope="row" valign="top"><label for="description"><?php _e('Description','Shopp'); ?></label></th> 
-			<td><textarea name="description" id="description" rows="8" cols="50" tabindex="7" style="width: 97%;"><? echo $Product->description ?></textarea><br /> 
+			<td><textarea name="description" id="description" rows="8" cols="50" tabindex="7" style="width: 97%;"><?php echo $Product->description ?></textarea><br /> 
             <?php _e('Provide in-depth information about the product to be displayed on the product page.','Shopp'); ?></td> 
 		</tr> 
 		<tr class="">
@@ -92,8 +92,6 @@
 				<input type="hidden" name="product" value="<?php echo $_GET['edit']; ?>" id="image-product-id" />
 				<input type="hidden" name="deleteImages" id="deleteImages" value="" />
 				<div id="swf-uploader-button"></div>
-				<div id="swf-uploader">
-				<button type="button" class="button-secondary" name="add-image" id="add-image" tabindex="10"><small><?php _e('Add New Image','Shopp'); ?></small></button></div>
 				<div id="browser-uploader">
 					<button type="button" name="image_upload" id="image-upload" class="button-secondary"><small><?php _e('Add New Image','Shopp'); ?></small></button><br class="clear"/>
 				</div>
@@ -139,7 +137,7 @@
 				</li>
 				
 				<li>
-					<div id="variations-list" class="multiple-select options"></div><br />
+					<div id="variations-list" class="multiple-select options"></div>
 					<div class="controls right">
 					<button type="button" id="addVariationOption" class="button-secondary" tabindex="15"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
 					</div>
@@ -163,7 +161,9 @@
 
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Product";
-var swfu20 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
+
+var flashuploader = <?php echo (false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security'))?'false':'true'; ?>;
+var wp26 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
 var product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>;
 var prices = <?php echo json_encode($Product->prices) ?>;
 var specs = <?php echo json_encode($Product->specs) ?>;
@@ -172,7 +172,12 @@ var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var shiprates = <?php echo json_encode($shiprates); ?>;
 var buttonrsrc = '<?php echo includes_url('images/upload.png'); ?>';
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
-var siteurl = '<?php echo get_option('siteurl'); ?>';
+var siteurl = '<?php echo $Shopp->siteurl; ?>';
+var ajaxurl = siteurl+'/wp-admin/admin-ajax.php';
+var addcategory_url = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin-ajax.php", "shopp-ajax_add_category"); ?>';
+var editslug_url = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
+var fileverify_url = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin-ajax.php", "shopp-ajax_verify_file"); ?>';
+
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
@@ -206,7 +211,7 @@ var SKU_LABEL_HELP = "<?php _e('Stock Keeping Unit','Shopp'); ?>";
 var PRODUCT_DOWNLOAD_LABEL = "<?php _e('Product Download','Shopp'); ?>";
 var NO_PRODUCT_DOWNLOAD_TEXT = "<?php _e('No product download.','Shopp'); ?>";
 var NO_DOWNLOAD = "<?php _e('No download file.','Shopp'); ?>";
-var DEFAULT_PRICELINE_LABEL = "<?php _e('Price &amp; Delivery','Shopp'); ?>";
+var DEFAULT_PRICELINE_LABEL = "<?php _e('Price & Delivery','Shopp'); ?>";
 var FILE_NOT_FOUND_TEXT = "<?php _e('The file you specified could not be found.','Shopp'); ?>";
 var FILE_NOT_READ_TEXT = "<?php _e('The file you specified is not readable and cannot be used.','Shopp'); ?>";
 var FILE_ISDIR_TEXT = "<?php _e('The file you specified is a directory and cannot be used.','Shopp'); ?>";

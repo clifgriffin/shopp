@@ -23,20 +23,8 @@ include(SHOPP_DBSCHEMA);
 $schema = ob_get_contents();
 ob_end_clean();
 
-// Check if development version tables exist without the WP $table_prefix
-// Remove this transitionary code in official release
-$setting = substr(DatabaseObject::tablename('setting'),strlen($table_prefix));
-$devtable = $db->query("SHOW CREATE TABLE `$setting`");
-if ($devtable->Table == $setting) {
-	$devtables = array('shopp_asset', 'shopp_billing', 'shopp_cart', 'shopp_catalog', 'shopp_category', 'shopp_customer', 'shopp_discount', 'shopp_price', 'shopp_product', 'shopp_promo', 'shopp_purchase', 'shopp_purchased', 'shopp_setting', 'shopp_shipping', 'shopp_spec', 'shopp_tag');
-	
-	$renaming = "";
-	foreach ($devtables as $oldtable) $renaming .= ((empty($renaming))?"":", ")."$oldtable TO $table_prefix$oldtable";
-	$db->query("RENAME TABLE $renaming");
-} else {
-	$db->loaddata($schema);
-	unset($schema);
-}
+$db->loaddata($schema);
+unset($schema);
 
 $parent = 0;
 foreach ($this->Flow->Pages as $key => &$page) {
@@ -54,7 +42,12 @@ foreach ($this->Flow->Pages as $key => &$page) {
 										post_modified_gmt=utc_timestamp(),
 										comment_status='closed',
 										ping_status='closed',
-										menu_order='$i'";
+										post_excerpt='',
+										to_ping='',     
+										pinged='',      
+										post_content_filtered='',
+										menu_order=0";
+
 										
 	$wpdb->query($query);
 	$page['id'] = $wpdb->insert_id;
@@ -64,7 +57,6 @@ foreach ($this->Flow->Pages as $key => &$page) {
 	$page['permalink'] = preg_replace('|https?://[^/]+/|i','',$page['permalink']);
 }
 
-$wp_rewrite->flush_rules();
 $this->Settings->save("pages",$this->Flow->Pages);
 
 ?>

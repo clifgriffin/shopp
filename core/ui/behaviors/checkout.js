@@ -12,8 +12,8 @@
 
 		for (var i = selects.length-1; i >= 0; i--) {
 			// Validate required fields
-			if (selects[i].className.match(new RegExp('required'))) {
-				if (selects[i].selectedIndex == 0 && selects[i].options[selects[i].selectedIndex].text == "")
+			if (selects[i].className.match(new RegExp('required')) && !selects[i].disabled) {
+				if (selects[i].selectedIndex == 0 && selects[i].options[0].value == "")
 					error = new Array("Your "+selects[i].title+" is required.",selects[i]);
 			}
 		}
@@ -55,22 +55,25 @@
 	}
 
 	$(window).ready(function () {
+		var sameshipping = $('#same-shipping');
+		
+		if (sameshipping.length > 0) {
+			sameshipping.change(function() {
+				if ($('#same-shipping').attr('checked')) {
+					$('#billing-address-fields').removeClass('half');
+					$('#shipping-address-fields').hide();
+					$('#shipping-address-fields .required').removeClass('required');
+				} else {
+					$('#billing-address-fields').addClass('half');
+					$('#shipping-address-fields input').not('#shipping-xaddress').addClass('required');
+					$('#shipping-address-fields select').addClass('required');
+					$('#shipping-address-fields').show();
+				}
+			}).change();
 
-		$('#same-shipping').change(function() {
-			if ($('#same-shipping').attr('checked')) {
-				$('#billing-address-fields').removeClass('half');
-				$('#shipping-address-fields').hide();
-				$('#shipping-address-fields .required').removeClass('required');
-			} else {
-				$('#billing-address-fields').addClass('half');
-				$('#shipping-address-fields input').addClass('required');
-				$('#shipping-address-fields select').addClass('required');
-				$('#shipping-address-fields').show();
-			}
-		}).change();
-
-		// For IE compatibility
-		$('#same-shipping').click(function () { $(this).change(); }); 
+			// For IE compatibility
+			sameshipping.click(function () { $(this).change(); }); 
+		}
 		
 		$('#submit-login').click(function () {
 			$('#checkout.shopp').unbind('submit');
@@ -121,7 +124,11 @@
 		
 		$('input.shipmethod').click(function () {
 			// console.log($('#shopp form').attr('action'));
-			$.getJSON($('#shopp form').attr('action')+"?shopp_lookup=shipcost&method="+$(this).val(),
+			$('#shipping, #total').html(SHIPCALC_STATUS);
+			
+			var url = $('#shopp form').attr('action');
+			url += (url.indexOf("?") == -1)?"?":"&";
+			$.getJSON(url+"shopp_lookup=shipcost&method="+$(this).val(),
 				function (result) {
 					var totals = eval(result);
 					$('#shipping').html(asMoney(totals.shipping));

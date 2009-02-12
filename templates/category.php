@@ -28,7 +28,7 @@
 					
 						<div class="listview">
 						<p><?php shopp('product','summary'); ?></p>
-						<form action="" method="post" class="shopp product">
+						<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
 						<?php shopp('product','addtocart'); ?>
 						</form>
 						</div>

@@ -14,11 +14,11 @@ do_action('admin_init');
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<title>{#Shopp.title}</title>
-	<script language="javascript" type="text/javascript" src="<?php echo get_option('siteurl') ?>/wp-includes/js/tinymce/tiny_mce_popup.js"></script>
-	<script language="javascript" type="text/javascript" src="<?php echo get_option('siteurl') ?>/wp-includes/js/tinymce/utils/mctabs.js"></script>
-	<script language="javascript" type="text/javascript" src="<?php echo get_option('siteurl') ?>/wp-includes/js/tinymce/utils/form_utils.js"></script>
-	<script language="javascript" type="text/javascript" src="<?php echo get_option('siteurl') ?>/wp-includes/js/tinymce/utils/form_utils.js"></script>
-	<script language="javascript" type="text/javascript" src="<?php echo get_option('siteurl') ?>/wp-includes/js/jquery/jquery.js"></script>
+	<script language="javascript" type="text/javascript" src="<?php echo $Shopp->siteurl; ?>/wp-includes/js/tinymce/tiny_mce_popup.js"></script>
+	<script language="javascript" type="text/javascript" src="<?php echo $Shopp->siteurl; ?>/wp-includes/js/tinymce/utils/mctabs.js"></script>
+	<script language="javascript" type="text/javascript" src="<?php echo $Shopp->siteurl; ?>/wp-includes/js/tinymce/utils/form_utils.js"></script>
+	<script language="javascript" type="text/javascript" src="<?php echo $Shopp->siteurl; ?>/wp-includes/js/tinymce/utils/form_utils.js"></script>
+	<script language="javascript" type="text/javascript" src="<?php echo $Shopp->siteurl; ?>/wp-includes/js/jquery/jquery.js"></script>
 	<script language="javascript" type="text/javascript">
 	
 	var _self = tinyMCEPopup;
@@ -31,7 +31,7 @@ do_action('admin_init');
 		var tag = '[category id="'+jQuery('#category-menu').val()+'"]';
 
 		var productid = jQuery('#product-menu').val();
-		if (productid) tag = '[product id="'+productid+'"]';
+		if (productid != 0) tag = '[product id="'+productid+'"]';
 		
 		if(window.tinyMCE) {
 			window.tinyMCE.execInstanceCommand('content', 'mceInsertContent', false, tag);
@@ -48,7 +48,7 @@ do_action('admin_init');
 	function changeCategory () {
 		var menu = jQuery('#category-menu');
 		var products = jQuery('#product-menu');
-		jQuery.get("<?php echo get_option('siteurl') ?>?shopp_lookup=category-products-menu",{category:menu.val()},function (results) {
+		jQuery.get("<?php echo $Shopp->siteurl; ?>?shopp_lookup=category-products-menu",{category:menu.val()},function (results) {
 			products.empty().html(results);
 		},'string');
 	}

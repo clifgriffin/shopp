@@ -93,7 +93,7 @@
 							<ul></ul>
 						</div>
 						<div class="controls">
-						<button type="button" id="addDetail" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Detail','Shopp'); ?></small></button>
+						<button type="button" id="addDetail" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Detail','Shopp'); ?></small></button>
 						</div>
 					</li>
 					<li id="details-facetedmenu">
@@ -101,7 +101,7 @@
 							<ul></ul>
 						</div>
 						<div class="controls">
-						<button type="button" id="addDetailOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+						<button type="button" id="addDetailOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
 						</div>
 					</li>
 				</ul>
@@ -115,14 +115,14 @@
 				<ul class="multipane">
 					<li><div id="variations-menu" class="multiple-select options menu"><ul></ul></div>
 						<div class="controls">
-							<button type="button" id="addVariationMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
+							<button type="button" id="addVariationMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
 						</div>
 					</li>
 				
 					<li>
-						<div id="variations-list" class="multiple-select options"></div><br />
-						<div class="controls right">
-						<button type="button" id="addVariationOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+						<div id="variations-list" class="multiple-select options"></div>
+						<div class="controls">
+						<button type="button" id="addVariationOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
 						</div>
 					</li>
 				</ul>
@@ -133,25 +133,31 @@
 		<tbody id="variations-pricing"></tbody>
 		</table>
 		</div>
-		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
+		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save &amp; Continue Editing','Shopp'); ?>" /> &nbsp; <input type="submit" class="button" name="save-categories" value="<?php _e('Save Category','Shopp'); ?>" /></p>
+		
 	</form>
 </div>
 
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Category";
 
-var swfu20 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
+var flashuploader = <?php echo (false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security'))?'false':'true'; ?>;
+var wp26 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
 var category = <?php echo (!empty($Category->id))?$Category->id:'false'; ?>;
 var details = <?php echo json_encode($Category->specs) ?>;
 var priceranges = <?php echo json_encode($Category->priceranges) ?>;
 var options = <?php echo json_encode($Category->options) ?>;
 var prices = <?php echo json_encode($Category->prices) ?>;
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
-var siteurl = '<?php echo get_option('siteurl'); ?>';
+var siteurl = '<?php echo $Shopp->siteurl; ?>';
+var ajaxurl = siteurl+'/wp-admin/admin-ajax.php';
+var editslug_url = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
+
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
+var productspath = '<?php echo trailingslashit($this->Settings->get('products_path')); ?>';
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 
 // Warning/Error Dialogs
@@ -206,7 +212,6 @@ var changes = false;
 var saving = false;
 var flashUploader = false;
 var pricesPayload = false;
-var flash = flashua();
 
 $=jQuery.noConflict();
 
