@@ -53,7 +53,7 @@
 		<?php endif; ?>
 		
 		<?php if (sizeof($Purchase->purchased) > 0): ?>
-		<table class="cart widefat" cellspacing="0">
+		<table class="widefat" cellspacing="0">
 			<thead>
 			<tr>
 				<th scope="col" class="item"><?php _e('Items Ordered','Shopp'); ?></th>
@@ -62,8 +62,9 @@
 				<th scope="col" class="money"><?php _e('Item Total','Shopp'); ?></th>
 			</tr>
 			</thead>
+			<tbody>
 			<?php $even = false; foreach ($Purchase->purchased as $id => $Item): ?>
-				<tr<?php if (!even) echo 'class="alternate"'; $even = !$even; ?>>
+				<tr<?php if ($even) echo ' class="alternate"'; $even = !$even; ?>>
 					<td>
 						<?php echo $Item->name; ?>
 						<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?>
@@ -109,6 +110,7 @@
 				<th scope="row" colspan="3" class="total"><?php _e('Total','Shopp'); ?></th>
 				<td class="money"><?php echo money($Purchase->total); ?></td>
 			</tr>
+			</tbody>
 		</table>
 		<?php else: ?>
 			<p class="warning"><?php _e('There were no items found for this purchase.','Shopp'); ?></p>

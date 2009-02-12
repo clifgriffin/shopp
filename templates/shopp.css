@@ -22,9 +22,9 @@
 
 #shopp .category { position: relative; }
 #shopp .views { display: inline; position: absolute; right: 0; top: 0; }
-#shopp .views button { border: none; background: none; width: 16px; height: 16px; padding: 4px; cursor: pointer; }
-#shopp .views button:hover { background-color: #ebebeb;}
-#shopp .views li { display: inline;  padding: 2px; }
+#shopp .views button { border: none; background: none; cursor: pointer; padding: 2px; }
+#shopp .views button:hover { background-color: #ebebeb; border: 1px solid #777; }
+#shopp .views li { display: inline; }
 #shopp .orderby { float: right; }
 
 #shopp .subcategories { padding: 10px 0; margin-bottom: 10px;}

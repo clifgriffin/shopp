@@ -128,15 +128,8 @@ class Item {
 		global $Shopp;
 		
 		
-		$url = "&amp;shopp_pid=".$this->product;
-		$imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
-		if (SHOPP_PERMALINKS) {
-			$pages = $Shopp->Settings->get('pages');
-			if ($Shopp->link('catalog') == trailingslashit(get_bloginfo('url')))
-				$url =  $pages['catalog']['name']."/".$this->product;
-			else $url = $this->product;
-			$imageuri = $Shopp->shopuri."{$pages['catalog']['permalink']}images/";
-		}		
+		if (SHOPP_PERMALINKS) $imageuri = $Shopp->shopuri."images/";
+		$imageuri =  $Shopp->shopuri."?shopp_image=";
 		
 		// Return strings with no options
 		switch ($property) {

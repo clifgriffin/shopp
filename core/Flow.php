@@ -727,6 +727,17 @@ class Flow {
 		));
 
 		include("{$this->basepath}/core/ui/orders/orders.php");
+	}      
+	
+	function orders_list_columns () {
+		shopp_register_column_headers('toplevel_page_shopp/orders', array(
+			'selections'=>'',
+			'order'=>__('Order','Shopp'),
+			'name'=>__('Name','Shopp'),
+			'destination'=>__('Destination','Shopp'),
+			'total'=>__('Total','Shopp'),
+			'date'=>__('Date','Shopp'))
+		);
 	}
 	
 	function order_manager () {
@@ -888,7 +899,7 @@ class Flow {
 		else $productcount = $db->query("SELECT count(*) as total $matchcol FROM $pd $where");
 
 		// Load the products
-		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page",AS_ARRAY);
+		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,SUM(DISTINCT pt.stock) AS stock $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page",AS_ARRAY);
 
 		$num_pages = ceil($productcount->total / $per_page);
 		$page_links = paginate_links( array(
@@ -900,7 +911,17 @@ class Flow {
 		
 		include("{$this->basepath}/core/ui/products/products.php");
 	}
-	
+
+	function products_list_columns () {
+		shopp_register_column_headers('shopp_page_shopp/products', array(
+			'cb'=>'<input type="checkbox" />',
+			'name'=>__('Name','Shopp'),
+			'category'=>__('Category','Shopp'),
+			'price'=>__('Price','Shopp'),
+			'inventory'=>__('Inventory','Shopp'),
+			'featured'=>__('Featured','Shopp'))
+		);
+	}	
 	
 	function product_shortcode ($atts) {
 		global $Shopp;
@@ -982,9 +1003,7 @@ class Flow {
 			}
 		}
 		
-		if ($Shopp->link('catalog') == trailingslashit(get_bloginfo('wpurl')))
-			$permalink = trailingslashit($Shopp->link('catalog'))."shop/new/";
-		else $permalink = trailingslashit($Shopp->link('catalog'))."new/";
+		$permalink = $Shopp->shopuri."new/";
 
 		require_once("{$this->basepath}/core/model/Asset.php");
 		require_once("{$this->basepath}/core/model/Category.php");
@@ -1307,6 +1326,17 @@ class Flow {
 		
 		include("{$this->basepath}/core/ui/categories/categories.php");
 	}
+
+	function categories_list_columns () {
+		shopp_register_column_headers('shopp_page_shopp/categories', array(
+			'cb'=>'<input type="checkbox" />',
+			'name'=>__('Name','Shopp'),
+			'description'=>__('Description','Shopp'),
+			'links'=>__('Products','Shopp'),
+			'templates'=>__('Templates','Shopp'),
+			'menus'=>__('Menus','Shopp'))
+		);
+	}
 	
 	function category_editor () {
 		global $Shopp;
@@ -1482,6 +1512,16 @@ class Flow {
 		
 		include("{$this->basepath}/core/ui/promotions/promotions.php");
 	}
+
+	function promotions_list_columns () {
+		shopp_register_column_headers('shopp_page_shopp/promotions', array(
+			'cb'=>'<input type="checkbox" />',
+			'name'=>__('Name','Shopp'),
+			'discount'=>__('Discount','Shopp'),
+			'applied'=>__('Applied To','Shopp'),
+			'eff'=>__('Status','Shopp'))
+		);
+	}
 	
 	function promotion_editor () {
 
@@ -1507,7 +1547,6 @@ class Flow {
 
 			$Promotion->updates($_POST);
 			$Promotion->save();
-
 
 			if ($Promotion->scope == "Catalog")
 				$Promotion->build_discounts();
@@ -1537,6 +1576,7 @@ class Flow {
 	 * Dashboard Widgets
 	 */
 	function dashboard_stats ($args=null) {
+		global $Shopp;
 		$db = DB::get();
 		if (!empty($args)) extract( $args, EXTR_SKIP );
 
@@ -1554,7 +1594,7 @@ class Flow {
 								AVG(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,null)) AS wkavg
 		 						FROM $purchasetable");
 
-		$orderscreen = get_bloginfo('wpurl').'/wp-admin/admin.php?page='.$this->Admin->orders;
+		$orderscreen = add_query_arg('page',$this->Admin->orders,$Shopp->wpadminurl);
 		echo '<div class="table"><table><tbody>';
 		echo '<tr><th colspan="2">Last 30 Days</th><th colspan="2">Lifetime</th></tr>';
 
@@ -1833,8 +1873,26 @@ class Flow {
 			$_POST['settings']['order_shipfee'] = preg_replace("/[^0-9\.\+]/","",$_POST['settings']['order_shipfee']);
 			
 	 		$this->settings_save();
-			$updated = __('Shopp shipping settings saved.','Shopp');
+			$updated = __('Shipping settings saved.','Shopp');
 			$Shopp->ShipCalcs = new ShipCalcs($Shopp->path);
+			$rates = $Shopp->Settings->get('shipping_rates');
+
+			$autherrors = array();
+			foreach ($rates as $method) {  
+				list($ShipCalcClass,$process) = split("::",$method['method']);    
+				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass])
+					&& $Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth) {
+						$response = $Shopp->ShipCalcs->modules[$ShipCalcClass]->verifyauth();
+						if (!empty($response)) $autherrors[] = $ShipCalcClass.": ".$response;
+					}
+					
+					
+			}
+			if (!empty($autherrors)) {
+				$updated = __('Shipping settings saved but there were errors: ','Shopp');
+				foreach ($autherrors as $error) $updated .= '<p>'.$error.'</p>';
+			}
+			
 		}
 
 		$methods = $Shopp->ShipCalcs->methods;

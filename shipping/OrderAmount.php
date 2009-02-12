@@ -31,7 +31,7 @@ class OrderAmount {
 		
 		$rate['cost'] = $shipping+$fees;
 		$ShipCosts[$rate['name']] = $rate;
-		return $rate['cost'];
+		return $rate;
 	}
 	
 	function ui () {

@@ -9,13 +9,13 @@
  * @package shopp
  **/
 
-// require_once(SHOPP_PATH."/core/model/XMLdata.php");
-
 class FedExRates {
 	var $wsdl = "FedExRateService_v5.wsdl";
 	var $request = false;
 	var $weight = 0;
+	var $conversion = 1;
 	var $Response = false;
+	var $requiresauth = true;
 	
 	var $services = array(
 		'FEDEX_GROUND' => 'FedEx Ground',
@@ -66,9 +66,12 @@ class FedExRates {
 		$this->settings = $Shopp->Settings->get('FedExRates');
 		$base = $Shopp->Settings->get('base_operations');
 		$this->settings['country'] = $base['country'];
+   		$storeunits = $Shopp->Settings->get('weight_unit');
 
 		$units = array("imperial" => "LB","metric"=>"KG");
 		$this->settings['units'] = $units[$base['units']];
+		if ($storeunits == 'oz') $this->conversion = 0.0625;
+		if ($storeunits == 'g') $this->conversion = 0.001;
 		
 		add_action('shipping_service_settings',array(&$this,'settings'));
 	}
@@ -136,12 +139,20 @@ class FedExRates {
 		if (empty($Cart->data->Order->Shipping->postcode)) return false;
 		$ShipCosts = &$Cart->data->ShipCosts;
 		$weight = 0;
-		foreach($Cart->shipped as $Item) $weight += ($Item->weight * $Item->quantity);
+		foreach($Cart->shipped as $Item) $weight += (($Item->weight * $this->conversion) * $Item->quantity);
 
 		$this->request = $this->build($Cart->session, $rate['name'], $weight, 
 			$Cart->data->Order->Shipping->postcode, $Cart->data->Order->Shipping->country);
 		
 		$this->Response = $this->send();
+		if (!$this->Response) return false;
+		if ($this->Response->HighestSeverity == 'FAILURE' || 
+		 		$this->Response->HighestSeverity == 'ERROR') {
+			print_r($this->Response);
+			$Cart->data->Errors[] = $this->Response->Notifications->Message;
+			exit();
+			return false;
+		}
 
 		$estimate = false;
 		
@@ -164,12 +175,11 @@ class FedExRates {
 			$total = $details->ShipmentRateDetail->TotalNetCharge->Amount;
 
 			$rate['cost'] = $total+$fees;
-			if (!$estimate) $estimate = $rate['cost'];
-			if ($rate['cost'] < $estimate) $estimate = $rate['cost'];
 			$ShipCosts[$name] = $rate;
 			$ShipCosts[$name]['name'] = $name;
 			$ShipCosts[$name]['module'] = get_class($this);
 			$ShipCosts[$name]['delivery'] = $DeliveryEstimate;
+			if (!$estimate || $rate['cost'] < $estimate['cost']) $estimate = &$ShipCosts[$name];
 
 		}
 		return $estimate;
@@ -239,29 +249,42 @@ class FedExRates {
 						'Units' => $this->settings['units']));
 		
 		return $_;
-	}
+	} 
+	
+	function verifyauth () {         
+		$this->request = $this->build('1','Authentication test',1,'10012','US');
+		$response = $this->send();       
+		if ($response->HighestSeverity == 'FAILURE' || 
+		 	$response->HighestSeverity == 'ERROR') return $response->Notifications->Message;
+	}   
 	
 	function send () {
+   		global $Shopp;
 
 		ini_set("soap.wsdl_cache_enabled", "0");
-		$client = new SoapClient($this->wsdl, array('trace' => 1));
-		$response = $client->getRates($this->request);
-	    
-	    if ($response->HighestSeverity == 'FAILURE' && 
-			$response->HighestSeverity == 'ERROR') {
-
-	        echo 'Error in processing transaction.'. $newline. $newline; 
-	        foreach ($response->Notifications as $notification) {           
-	            if(is_array($response->Notifications)) {              
-	               echo $notification->Severity;
-	               echo ': ';           
-	               echo $notification->Message . $newline;
-	            } else {
-	                echo $notification . $newline;
-	            }
-	        } 
-				
+		try {
+			$client = new SoapClient($this->wsdl, array('trace' => 1));
+			$response = $client->getRates($this->request);
+		} catch (Exception $e) {
+			$Shopp->Cart->data->Errors[] = __("FedEx could not be reached for realtime rates.");
+			return false;
 		}
+	    
+		// 	    if ($response->HighestSeverity == 'FAILURE' && 
+		// 	$response->HighestSeverity == 'ERROR') {
+		// 
+		// 	        echo 'Error in processing transaction.'. $newline. $newline; 
+		// 	        foreach ($response->Notifications as $notification) {           
+		// 	            if(is_array($response->Notifications)) {              
+		// 	               echo $notification->Severity;
+		// 	               echo ': ';           
+		// 	               echo $notification->Message . $newline;
+		// 	            } else {
+		// 	                echo $notification . $newline;
+		// 	            }
+		// 	        } 
+		// 		
+		// }
 		
 		return $response;
 

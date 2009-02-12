@@ -44,9 +44,10 @@ class PayPalExpress {
 		if (!isset($Shopp->Cart->data->PayPalExpress)) $Shopp->Cart->data->PayPalExpress = new stdClass();
 		if (!empty($_GET['PayerID'])) $Shopp->Cart->data->PayPalExpress->payerid = $_GET['PayerID'];
 		if (!empty($_GET['token'])) {
-			if (!empty($Shopp->Cart->data->PayPalExpress->token))
+			if (empty($Shopp->Cart->data->PayPalExpress->token)) {
+				$Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
 				$this->details();
-			$Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
+			} else $Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
 		}
 
 		return true;
@@ -130,14 +131,14 @@ class PayPalExpress {
 
 		$this->transaction = $this->encode($_);
 		$result = $this->send();               
-		
+
 		$Customer = $Shopp->Cart->data->Order->Customer;
 		$Customer->firstname = $result->firstname;
 		$Customer->lastname = $result->lastname;
 		$Customer->email = $result->email;
 		$Customer->phone = $result->phonenum;
 		
-		$Shipping = $Shopp->Cart->data->Order->Shipping;
+		$Shipping = $Shopp->Cart->data->Order->Shipping;		
 		$Shipping->address = $result->shiptostreet;
 		$Shipping->xaddress = $result->shiptostreet2;
 		$Shipping->city = $result->shiptocity;
@@ -162,7 +163,7 @@ class PayPalExpress {
 		global $Shopp;
 		if (!isset($Shopp->Cart->data->PayPalExpress->token) && 
 			!isset($Shopp->Cart->data->PayPalExpress->payerid)) return false;
-			
+		
 		$_ = $this->headers();
 
 		$_['METHOD'] 				= "DoExpressCheckoutPayment";
@@ -191,6 +192,7 @@ class PayPalExpress {
 
 		$this->transaction = $this->encode($_);
 		$result = $this->send();
+		if (!$result) return false;
 		
 		// If the transaction is a success, get the transaction details, 
 		// build the purchase receipt, save it and return it
@@ -202,49 +204,36 @@ class PayPalExpress {
 			
 			$this->transaction = $this->encode($_);
 			$result = $this->send();
+			if (!$result) return false;
+			       
 
-			$Customer = new Customer();
-			$Customer->firstname = $result->firstname;
-			$Customer->lastname = $result->lastname;
-			$Customer->email = $result->email;
-			$Customer->phone = $result->phonenum;
-			$Customer->save();
-			
-			$Shipping = new Shipping();
-			$Shipping->customer = $Customer->id;
-			$Shipping->address = $result->shiptostreet;
-			$Shipping->xaddress = $result->shiptostreet2;
-			$Shipping->city = $result->shiptocity;
-			$Shipping->state = $result->shiptostate;
-			$Shipping->country = $result->shiptocountrycode;
-			$Shipping->postcode = $result->shiptozip;
-			$Shipping->save();
+			$Order = $Shopp->Cart->data->Order;
+			$Order->Totals = $Shopp->Cart->data->Totals;
+			$Order->Items = $Shopp->Cart->contents;
+			$Order->Cart = $Shopp->Cart->session;
 
-			$Billing = new Billing();
-			$Billing->customer = $Customer->id;
-			$Billing->cardtype = "PayPal";
-			$Billing->address = $Shipping->address;
-			$Billing->xaddress = $Shipping->xaddress;
-			$Billing->city = $Shipping->city;
-			$Billing->state = $Shipping->state;
-			$Billing->country = $Shipping->country;
-			$Billing->postcode = $Shipping->postcode;
-			$Billing->save();
+			$Order->Customer->save();
+
+			$Order->Billing->customer = $Order->Customer->id;
+			$Order->Billing->cardtype = "PayPal";
+			$Order->Billing->save();
+
+			$Order->Shipping->customer = $Order->Customer->id;
+			$Order->Shipping->save();
 			
 			$Purchase = new Purchase();
-			$Purchase->customer = $Customer->id;
-			$Purchase->billing = $Billing->id;
+			$Purchase->customer = $Order->Customer->id;
+			$Purchase->billing = $Order->Billing->id;
 			$Purchase->shipping = $Order->Shipping->id;
-			$Purchase->copydata($Customer);
-			$Purchase->copydata($Billing);
-			$Purchase->copydata($Shipping,'ship');
-			$Purchase->copydata($Shopp->Cart->data->Totals);
-			$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
+			$Purchase->copydata($Order->Customer);
+			$Purchase->copydata($Order->Billing);
+			$Purchase->copydata($Order->Shipping,'ship');
+			$Purchase->copydata($Order->Totals);
+			$Purchase->freight = $Order->Totals->shipping;
 			$Purchase->gateway = "PayPal Express";
 			$Purchase->transactionid = $result->transactionid;
 			$Purchase->fees = $result->feeamt;
 			$Purchase->save();
-
 
 			foreach($Shopp->Cart->contents as $Item) {
 				$Purchased = new Purchased();
