@@ -956,6 +956,7 @@ class Cart {
 	function checkouttag ($property,$options=array()) {
 		global $Shopp;
 		$gateway = $Shopp->Settings->get('payment_gateway');
+		$xcos = $Shopp->Settings->get('xco_gateways');
 		$pages = $Shopp->Settings->get('pages');
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
@@ -1136,7 +1137,17 @@ class Cart {
 				break;
 				
 			// BILLING TAGS
-			case "billing-required": return ($this->data->Totals->total > 0); break;
+			case "billing-required": 
+				if (isset($_GET['shopp_xco'])) {
+					if ($this->data->Totals->total == 0) return false;
+					$xco = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
+					if (file_exists($xco)) {
+						$meta = $Shopp->Flow->scan_gateway_meta($xco);
+						$PaymentSettings = $Shopp->Settings->get($meta->tags['class']);
+						return ($PaymentSettings['billing-required'] == "on");
+					}
+				}
+				return ($this->data->Totals->total > 0); break;
 			case "billing-address":
 				if (!empty($this->data->Order->Billing->address))
 					$options['value'] = $this->data->Order->Billing->address;			
@@ -1239,28 +1250,25 @@ class Cart {
 				if (!isset($options['value'])) $options['value'] = "Confirm Order";
 				return '<input type="submit" name="confirmed" id="confirm-button"'.inputattrs($options,$submit_attrs).' />'; break;
 			case "local-payment": 
-				$gateway = $Shopp->Settings->get('payment_gateway'); 
 				return (!empty($gateway)); break;
-			case "xco-buttons": 
-				$gateways = array();
-				$PPX = $Shopp->Settings->get('PayPalExpress');
-				if ($PPX['enabled'] == "on") $gateways[] = "{$Shopp->path}/gateways/PayPal/PayPalExpress.php";
-				$GC = $Shopp->Settings->get('GoogleCheckout');
-				if ($GC['enabled'] == "on") $gateways[] = "{$Shopp->path}/gateways/GoogleCheckout/GoogleCheckout.php";
+			case "xco-buttons":     
+				if (!is_array($xcos)) return false;
 
-				if (!empty($gateways)) {
-					foreach ($gateways as $gateway) {
-						$gateway_meta = $Shopp->Flow->scan_gateway_meta($gateway);
-						$ProcessorClass = $gateway_meta->tags['class'];
-						if (!empty($ProcessorClass)) {
-							include_once($gateway);					
-							$Payment = new $ProcessorClass();
-							$button .= $Payment->tag('button',$options);
-						}
+				$buttons = "";
+				foreach ($xcos as $xco) {
+					$xcopath = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$xco));
+					if (!file_exists($xcopath)) continue;
+					$meta = $Shopp->Flow->scan_gateway_meta($xcopath);
+					$ProcessorClass = $meta->tags['class'];
+					if (!empty($ProcessorClass)) {
+						include_once($xcopath);					
+						$Payment = new $ProcessorClass();
+						$PaymentSettings = $Shopp->Settings->get($ProcessorClass);
+						if ($PaymentSettings['enabled'] == "on") 
+							$buttons .= $Payment->tag('button',$options);
 					}
-					return $button;
 				}
-
+				return $buttons;
 				break;
 		}
 	}

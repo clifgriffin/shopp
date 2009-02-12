@@ -185,7 +185,8 @@ class PayPalPro {
 		?>
 		<tr id="paypalpro-settings">
 			<th scope="row" valign="top">PayPal Pro</th>
-			<td>
+			<td>                                        
+				
 				<div><input type="text" name="settings[PayPalPro][username]" id="paypal_pro_username" value="<?php echo $this->settings['username']; ?>" size="30" /><br /><label for="paypal_pro_username"><?php _e('Enter your PayPal API Username.'); ?></label></div>
 				<div><input type="password" name="settings[PayPalPro][password]" id="paypal_pro_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="paypal_pro_password"><?php _e('Enter your PayPal API Password.'); ?></label></div>
 				<div><input type="text" name="settings[PayPalPro][signature]" id="paypal_pro_signature" value="<?php echo $this->settings['signature']; ?>" size="48" /><br /><label for="paypal_pro_signature"><?php _e('Enter your PayPal API Signature.'); ?></label></div>
@@ -200,7 +201,6 @@ class PayPalPro {
 				<?php endforeach; ?></ul></div>
 				
 				<input type="hidden" name="module[<?php echo basename(__FILE__); ?>]" value="PayPalPro" />
-				
 			</td>
 		</tr>
 		<?php

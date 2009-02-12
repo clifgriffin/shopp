@@ -312,14 +312,17 @@ class Flow {
 				ob_start();
 				if (isset($Cart->data->OrderError)) include(SHOPP_TEMPLATES."/errors.php");
 				if (!empty($xco)) {
-					include(SHOPP_TEMPLATES."/summary.php");
 					$gateway = "{$this->basepath}/gateways/$xco.php";
 					if (file_exists($gateway)) {
 						$gateway_meta = $this->scan_gateway_meta($gateway);
 						$ProcessorClass = $gateway_meta->tags['class'];
 						$Payment = new $ProcessorClass();
-						echo $Payment->tag('button');
-					}
+						if ($Payment->checkout) include(SHOPP_TEMPLATES."/checkout.php");
+						else {
+							include(SHOPP_TEMPLATES."/summary.php");
+							echo $Payment->tag('button');
+						}
+					} else include(SHOPP_TEMPLATES."/summary.php");
 				} else include(SHOPP_TEMPLATES."/checkout.php");
 				$content = ob_get_contents();
 				ob_end_clean();
@@ -1937,9 +1940,6 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		include("{$this->basepath}/gateways/PayPal/PayPalExpress.php");
-		include("{$this->basepath}/gateways/GoogleCheckout/GoogleCheckout.php");
-
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-payments');
 
@@ -1952,18 +1952,7 @@ class Flow {
 				$Processor = new $ProcessorClass();
 				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
 			}
-			
-			// Build the Google Checkout API URL if Google Checkout is enabled
-			if (!empty($_POST['settings']['GoogleCheckout']['id']) && !empty($_POST['settings']['GoogleCheckout']['key'])) {
-				$GoogleCheckout = new GoogleCheckout();
-				$url = add_query_arg(array(
-					'shopp_xorder' => 'GoogleCheckout',
-					'merc' => $GoogleCheckout->authcode(
-											$_POST['settings']['GoogleCheckout']['id'],
-											$_POST['settings']['GoogleCheckout']['key'])
-					),$Shopp->link('catalog',true));
-				$_POST['settings']['GoogleCheckout']['apiurl'] = $url;
-			}
+			do_action('shopp_save_payment_settings');
 			
 			$this->settings_save();
 			$updated = __('Shopp payments settings saved.','Shopp');
@@ -1971,20 +1960,20 @@ class Flow {
 		
 		// Get all of the installed gateways
 		$data = $this->settings_get_gateways();
-		$PayPalExpress = new PayPalExpress();
-		$GoogleCheckout = new GoogleCheckout();
 
 		$gateways = array();
-		$Processors = array();
+		$LocalProcessors = array();
+		$XcoProcessors = array();
 		foreach ($data as $gateway) {
-			// Treat PayPal Express and Google Checkout differently
-			if ($gateway->name == "PayPal Express" || 
-				$gateway->name == "Google Checkout") continue;
-
-			$gateways[$gateway->file] = $gateway->name;
 			$ProcessorClass = $gateway->tags['class'];
 			include_once($gateway->file);
-			$Processors[] = new $ProcessorClass();
+			$processor = new $ProcessorClass();
+			if (isset($processor->type) && strtolower($processor->type) == "xco") {
+				$XcoProcessors[] = $processor;
+			} else {
+				$gateways[$gateway->file] = $gateway->name;
+				$LocalProcessors[] = $processor;
+			}
 		}
 
 		include(SHOPP_ADMINPATH."/settings/payments.php");

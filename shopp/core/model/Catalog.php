@@ -92,7 +92,7 @@ class Catalog extends DatabaseObject {
 				if ($max == 0) $max = 1;
 				$string = '<ul class="shopp tagcloud">';
 				foreach ($this->tags as $tag) {
-					$level = round((1-$tag->products/$max)*$levels)+1;
+					$level = floor((1-$tag->products/$max)*$levels)+1;
 					if (SHOPP_PERMALINKS) $link = $path.'tag/'.urlencode($tag->name).'/';
 					else $link = add_query_arg('shopp_tag',urlencode($tag->name),$page);
 					$string .= '<li class="level-'.$level.'"><a href="'.$link.'">'.$tag->name.'</a></li> ';
