@@ -2,6 +2,8 @@
 /**
  * UPSServiceRates
  * Uses UPS Online Tools to get live shipping rates based on product weight
+ * INSTALLATION INSTRUCTIONS: Upload UPSServiceRates.php to 
+ * your Shopp install under: .../wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
  * @version 1.0
