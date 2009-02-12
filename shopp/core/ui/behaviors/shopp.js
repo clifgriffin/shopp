@@ -748,6 +748,3 @@ var helpurl;
 var options_required;
 var options_default;
 var productOptions = new Array();
-
-// Fix for ThickBox
-var tb_pathToImage = "/wp-content/plugins/shopp/core/ui/icons/loading.gif";

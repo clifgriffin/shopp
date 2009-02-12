@@ -42,7 +42,12 @@ foreach ($this->Flow->Pages as $key => &$page) {
 										post_modified_gmt=utc_timestamp(),
 										comment_status='closed',
 										ping_status='closed',
-										menu_order='$i'";
+										post_excerpt='',
+										to_ping='',     
+										pinged='',      
+										post_content_filtered='',
+										menu_order=0";
+
 										
 	$wpdb->query($query);
 	$page['id'] = $wpdb->insert_id;
@@ -52,7 +57,6 @@ foreach ($this->Flow->Pages as $key => &$page) {
 	$page['permalink'] = preg_replace('|https?://[^/]+/|i','',$page['permalink']);
 }
 
-$wp_rewrite->flush_rules();
 $this->Settings->save("pages",$this->Flow->Pages);
 
 ?>

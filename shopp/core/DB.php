@@ -137,13 +137,13 @@ class DB extends Singleton {
 							$data[$property] = "'$value'";
 						break;
 					case "date":
+						// If it's an empty date, set it to now()'s timestamp
+						if (is_null($value)) {
+							$data[$property] = "now()";
 						// If the date is an integer, convert it to an
 						// sql YYYY-MM-DD HH:MM:SS format
-						if (is_int(intval($value))) {
+						} elseif (is_int(intval($value))) {
 							$data[$property] = "'".mkdatetime($value)."'";
-						// If it's an empty date, set it to now()'s timestamp
-						} else if (empty($value)) {
-							$data[$property] = "now()";
 						// Otherwise it's already ready, so pass it through
 						} else {
 							$data[$property] = "'$value'";

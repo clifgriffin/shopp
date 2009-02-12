@@ -82,8 +82,8 @@ div.clear,
  **/
 
 #shopp .category { position: relative; }
-#shopp .views .grid { background: url('<?php echo $pluginuri; ?>core/ui/icons/grid.png') no-repeat; }
-#shopp .views .list { background: url('<?php echo $pluginuri; ?>core/ui/icons/list.png') no-repeat; }
+#shopp .views .grid { width: 15px; height: 15px; background: url('<?php echo $pluginuri; ?>core/ui/icons/grid.png') no-repeat 50% 50%; }
+#shopp .views .list { width: 15px; height: 15px; background: url('<?php echo $pluginuri; ?>core/ui/icons/list.png') no-repeat 50% 50%; }
 
 /**
  * Product Page Gallery

@@ -1,11 +1,12 @@
 <div class="wrap shopp">
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
-	<h2><?php _e('Presentation Settings','Shopp'); ?></h2>
-	<?php include("navigation.php"); ?>
 
-	<br class="clear" />
+	<h2><?php _e('Presentation Settings','Shopp'); ?></h2>
+
 	<form name="settings" id="presentation" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-presentation'); ?>
+
+		<?php include("navigation.php"); ?>
 		
 		<table class="form-table"> 
 			<tr class="form-required"> 

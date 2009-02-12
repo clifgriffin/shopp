@@ -33,7 +33,7 @@ class FlatRates {
 				$rate['cost'] = $rate[$column][0]+$fees;
 		}
 		$ShipCosts[$rate['name']] = $rate;
-		return $rate['cost'];
+		return $rate;
 	}
 	
 	function ui () {

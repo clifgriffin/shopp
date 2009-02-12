@@ -16,7 +16,10 @@ class UPSServiceRates {
 	var $liveurl = 'https://www.ups.com/ups.app/xml/Rate';
 	var $request = false;
 	var $weight = 0;
+	var $conversion = 1;
 	var $Response = false;
+	var $requiresauth = true;
+	var $errors = array();
 	
 	var $codes = array(
 		"01" => "UPS Next Day Air",
@@ -49,10 +52,13 @@ class UPSServiceRates {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('UPSServiceRates');
 		$base = $Shopp->Settings->get('base_operations');
+		$storeunits = $Shopp->Settings->get('weight_unit');
 		$this->settings['country'] = $base['country'];
 
 		$units = array("imperial" => "LBS","metric"=>"KGS");
 		$this->settings['units'] = $units[$base['units']];
+		if ($storeunits == 'oz') $this->conversion = 0.0625;
+		if ($storeunits == 'g') $this->conversion = 0.001;
 
 		// Select service options using base country
 		if (array_key_exists($this->settings['country'],$this->services)) 
@@ -130,12 +136,17 @@ class UPSServiceRates {
 		if (empty($Cart->data->Order->Shipping->postcode)) return false;
 		$ShipCosts = &$Cart->data->ShipCosts;
 		$weight = 0;
-		foreach($Cart->shipped as $Item) $weight += ($Item->weight * $Item->quantity);
+		foreach($Cart->shipped as $Item) $weight += (($Item->weight*$this->conversion) * $Item->quantity);
 
 		$this->request = $this->build($Cart->session, $rate['name'], $weight, 
 			$Cart->data->Order->Shipping->postcode, $Cart->data->Order->Shipping->country);
 		
 		$this->Response = $this->send();
+		if (!$this->Response) return false;
+		if ($this->Response->getElement('Error')) {
+			$Cart->data->Errors[] = get_class($this).": ".$this->Response->getElementContent('ErrorDescription');
+			return false;
+		}
 
 		$estimate = false;
 		$RatedShipment = $this->Response->getElement('RatedShipment');
@@ -146,30 +157,26 @@ class UPSServiceRates {
 			$DeliveryEstimate = $rated['CHILDREN']['GuaranteedDaysToDelivery']['CONTENT'];
 			if (empty($DeliveryEstimate)) $DeliveryEstimate = "1d-5d";
 			else $DeliveryEstimate .= "d";
-			if (in_array($ServiceCode,$rate['services'])) {
+			if (is_array($rate['services']) && in_array($ServiceCode,$rate['services'])) {
 				$rate['cost'] = $TotalCharges+$fees;
-				if (!$estimate) $estimate = $rate['cost'];
-				if ($rate['cost'] < $estimate) $estimate = $rate['cost'];
 				$ShipCosts[$this->codes[$ServiceCode]] = $rate;
 				$ShipCosts[$this->codes[$ServiceCode]]['name'] = $this->codes[$ServiceCode];
 				$ShipCosts[$this->codes[$ServiceCode]]['delivery'] = $DeliveryEstimate;
-				
-				
+				if (!$estimate || $rate['cost'] < $estimate['cost']) $estimate = &$ShipCosts[$this->codes[$ServiceCode]];
 			}
 		}
 		return $estimate;
 	}
 	
-	
 	function build ($cart,$description,$weight,$postcode,$country) {
-		
+
 		$_ = array('<?xml version="1.0" encoding="utf-8"?>');
 		$_[] = '<AccessRequest xml:lang="en-US">';
 			$_[] = '<AccessLicenseNumber>'.$this->settings['license'].'</AccessLicenseNumber>';
 			$_[] = '<UserId>'.$this->settings['userid'].'</UserId>';
 			$_[] = '<Password>'.$this->settings['password'].'</Password>';
 		$_[] = '</AccessRequest>';
-		$_[] = '<?xml version="1.0" ?>';
+		$_[] = '<?xml version="1.0" encoding="utf-8"?>';
 		$_[] = '<RatingServiceSelectionRequest xml:lang="en-US">';
 		$_[] = '<Request>';
 			$_[] = '<TransactionReference>';
@@ -210,9 +217,16 @@ class UPSServiceRates {
 		$_[] = '</RatingServiceSelectionRequest>';
 		
 		return join("\n",$_);
-	}
+	}  
+	     
+	function verifyauth () {         
+		$this->request = $this->build('1','Authentication test',1,'10012','US');
+		$Response = $this->send();
+		if ($Response->getElement('Error')) return $Response->getElementContent('ErrorDescription');
+	}   
 	
-	function send () {
+	function send () {   
+		global $Shopp;
 		$connection = curl_init();
 		curl_setopt($connection,CURLOPT_URL,$this->testurl);
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
@@ -226,10 +240,10 @@ class UPSServiceRates {
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);
-		if ($error = curl_error($connection)) { echo '<pre>ERROR: '; print_r($error); echo '</pre>'; } 
+		if ($error = curl_error($connection)) $Shopp->Cart->data->Errors[] = get_class($this).": ".$error;
 		curl_close($connection);
 
-	    // echo '<!-- '. $buffer. ' -->';		
+		// echo '<!-- '. $buffer. ' -->';		
 		// echo "<pre>".htmlentities($this->request)."</pre>";
 		// echo "<pre>".htmlentities($buffer)."</pre>";
 		

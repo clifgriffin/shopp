@@ -29,7 +29,7 @@ class Cart {
 	var $looping = false;
 	var $runaway = 0;
 	var $updated = false;
-	var $retotal = false;
+	var $retotal = false;   
 	
 	// methods
 	
@@ -59,8 +59,12 @@ class Cart {
 
 		$this->data->Shipping = false;
 		$this->data->Estimates = false;
+		$this->data->Errors = array();
 		$this->data->Order = new stdClass();
 		$this->data->Order->data = array();
+		$this->data->Order->Customer = new Customer();
+		$this->data->Order->Billing = new Billing();
+		$this->data->Order->Shipping = new Shipping();
 		$this->data->Promotions = array();
 		$this->data->PromosApplied = array();
 		$this->data->PromoCode = false;
@@ -331,21 +335,23 @@ class Cart {
 				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]))
 					$estimated = $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate(
 						$this, $fees, $option, $column);
-			
-				if (!$estimate) $estimate = $estimated;
-				if ($estimated !== false && $estimated < $estimate) 
-					$estimate = $estimated; // Get lowest estimate
+
+				if ($estimated === false) return false;
+				if (!$estimate || $estimated['cost'] < $estimate['cost'])
+					$estimate = &$estimated; // Get lowest estimate
+
 			} // end foreach ($methods)         
 
         } // end if (!$this->retotal)
 
-		if (!isset($ShipCosts[$this->data->Order->Shipping->shipmethod]))
-			$this->data->Order->Shipping->shipmethod = false;
+		if (!isset($ShipCosts[$this->data->Order->Shipping->method]))
+			$this->data->Order->Shipping->method = false;
 		
-		if (!empty($this->data->Order->Shipping->shipmethod))
-			return $ShipCosts[$this->data->Order->Shipping->shipmethod]['cost'];
-
-		return $estimate;
+		if (!empty($this->data->Order->Shipping->method))
+			return $ShipCosts[$this->data->Order->Shipping->method]['cost'];
+		
+		$this->data->Order->Shipping->method = $estimate['name'];
+		return $estimate['cost'];
 	}
 	
 	function promotions () {
@@ -526,7 +532,7 @@ class Cart {
 		$Totals->total = 0;
         
 	    $Totals->taxrate = $this->taxrate();
-		            
+
 		$freeshipping = true;	// Assume free shipping unless proven wrong
 		foreach ($this->contents as $key => $Item) {
 
@@ -541,7 +547,6 @@ class Cart {
 				$Item->tax = round($Item->total * $Totals->taxrate,2);
 				$Totals->tax += $Item->tax;
 			}
-				
 				
 		}
 		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
@@ -763,7 +768,14 @@ class Cart {
 				return $string;
 				
 				break;
-			case "function": return '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />'; break;
+			case "function": 
+				$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
+				if (is_array($this->data->Errors)) {
+					foreach ($this->data->Errors as $error) if (!empty($error)) $result .= '<p class="error">'.$error.'</p>';
+					$this->data->Errors = array();
+				}
+   				return $result;
+				break;
 			case "empty-button": 
 				if (!isset($options['value'])) $options['value'] = "Empty Cart";
 				return '<input type="submit" name="empty" id="empty-button"'.inputattrs($options,$submit_attrs).' />';
@@ -789,7 +801,7 @@ class Cart {
 				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code");
 				$result .= '<ul><li>';
 				
-				if ($this->data->PromoCodeResult !== false)
+				if (!empty($this->data->PromoCodeResult))
 					$result .= '<p class="error">'.$this->data->PromoCodeResult.'</p>';
 				$result .= '<span><input type="text" id="promocode" name="promocode" value="" size="10" /></span>';
 				$result .= '<span><input type="submit" id="apply-code" name="update"'.inputattrs($options,$submit_attrs).' /></span>';
@@ -836,12 +848,17 @@ class Cart {
 				if (!$this->data->Shipping) return "";
 				if (isset($options['label'])) {
 					$options['currency'] = "false";
-					if ($this->data->Totals->shipping === 0) 
+					if ($this->data->Totals->shipping === 0) {
 						$result = $Shopp->Settings->get('free_shipping_text');
+						if (empty($result)) $result = __('Free Shipping!','Shopp');
+					}
+						
 					else $result = $options['label'];
 				} else {
 					if ($this->data->Totals->shipping === null) 
-						return __("Needs Estimated","Shopp");
+						return __("Enter Postal Code","Shopp");
+					elseif ($this->data->Totals->shipping === false) 
+						return __("Not Available","Shopp");
 					else $result = $this->data->Totals->shipping;
 				}
 				break;
@@ -912,7 +929,7 @@ class Cart {
 				$method = current($ShipCosts);
 	
 				$checked = '';
-				if ($this->data->Order->Shipping->shipmethod == $method['name'] ||
+				if ($this->data->Order->Shipping->method == $method['name'] ||
 					($method['cost'] == $this->data->Totals->shipping))
 						$checked = ' checked="checked"';
 	

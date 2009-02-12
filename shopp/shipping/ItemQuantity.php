@@ -31,7 +31,7 @@ class ItemQuantity {
 		if ($shipping == 0) $shipping = $rate[$column][$id];
 		$rate['cost'] = $shipping+$fees;
 		$ShipCosts[$rate['name']] = $rate;
-		return $rate['cost'];
+		return $rate;
 	}
 	
 	function ui () {

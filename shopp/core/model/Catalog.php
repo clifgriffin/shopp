@@ -124,6 +124,7 @@ class Catalog extends DatabaseObject {
 				if (empty($this->categories)) $this->load_categories(array("where"=>"pd.published='on'"),$options['showsmart']);
 				$string = "";
 				$depth = 0;
+				$depthlimit = 0;
 				$parent = false;
 				$showall = false;
 				
@@ -136,23 +137,26 @@ class Catalog extends DatabaseObject {
 					$string .= '<form><select name="shopp_cats" id="shopp-categories-menu">';
 					$string .= '<option value="">Select category&hellip;</option>';
 					foreach ($this->categories as &$category) {
-						if ($category->total > 0) // Only show categories with products
-							if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
-								$parent = &$previous;
-								if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
-							}
-							
-							$padding = str_repeat("&nbsp;",$category->depth*3);
+						if ($category->total > 0) continue; // Only show categories with products
+						if (value_is_true($options['hierarchy']) && $depthlimit && 
+							$category->depth >= $depthlimit) continue;
 
-							if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
-							else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
+						if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
+							$parent = &$previous;
+							if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
+						}
+						
+						$padding = str_repeat("&nbsp;",$category->depth*3);
 
-							$products = '';
-							if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->total.')';
+						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 
-							$string .= '<option value="'.$link.'">'.$padding.$category->name.$products.'</option>';
-							$previous = &$category;
-							$depth = $category->depth;
+						$products = '';
+						if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->total.')';
+
+						$string .= '<option value="'.$link.'">'.$padding.$category->name.$products.'</option>';
+						$previous = &$category;
+						$depth = $category->depth;
 						
 					}
 					$string .= '</select></form>';
@@ -169,6 +173,8 @@ class Catalog extends DatabaseObject {
 					if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
 					$string .= $title.'<ul'.$classes.'>';
 					foreach ($this->categories as &$category) {
+						if (value_is_true($options['hierarchy']) && $depthlimit && 
+							$category->depth >= $depthlimit) continue;
 						if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = $parent->slug;

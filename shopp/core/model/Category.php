@@ -483,9 +483,11 @@ class Category extends DatabaseObject {
 				if (empty($this->children)) return;
 				$string = "";
 				$depth = 0;
+				$depthlimit = 0;
 				$parent = false;
 				$showall = false;
 				if (isset($options['showall'])) $showall = $options['showall'];
+				if (isset($options['depth'])) $depthlimit = $options['depth'];
 
 				$title = $options['title'];
 				if (empty($title)) $title = "";
@@ -494,22 +496,23 @@ class Category extends DatabaseObject {
 					$string .= '<select name="shopp_cats" id="shopp-'.$this->slug.'-subcategories-menu" class="shopp-categories-menu">';
 					$string .= '<option value="">Select a sub-category&hellip;</option>';
 					foreach ($this->children as &$category) {
-						if ($category->products > 0) // Only show categories with products
-							if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
-								$parent = &$previous;
-								if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
-							}
-							$padding = str_repeat("&nbsp;",$category->depth*3);
+						if (value_is_true($options['hierarchy']) && $depthlimit && $category->depth >= $depthlimit) continue;
+						if ($category->products == 0) continue; // Only show categories with products
+						if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
+							$parent = &$previous;
+							if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
+						}
+						$padding = str_repeat("&nbsp;",$category->depth*3);
 
-							if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
-							else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
+						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 
-							$products = '';
-							if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->products.')';
+						$products = '';
+						if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->products.')';
 
-							$string .= '<option value="'.htmlentities($link).'">'.$padding.$category->name.$products.'</option>';
-							$previous = &$category;
-							$depth = $category->depth;
+						$string .= '<option value="'.htmlentities($link).'">'.$padding.$category->name.$products.'</option>';
+						$previous = &$category;
+						$depth = $category->depth;
 						
 					}
 					$string .= '</select>';
@@ -525,6 +528,8 @@ class Category extends DatabaseObject {
 					if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
 					$string .= $title.'<ul'.$classes.'>';
 					foreach ($this->children as &$category) {
+						if (value_is_true($options['hierarchy']) && $depthlimit && 
+							$category->depth >= $depthlimit) continue;
 						if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = $parent->slug;
