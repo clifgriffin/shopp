@@ -4,7 +4,7 @@
  * @class PayPalPro
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  **/
@@ -78,6 +78,9 @@ class PayPalPro {
 		$_['STATE']					= $Order->Billing->state;
 		$_['ZIP']					= $Order->Billing->postcode;
 		$_['COUNTRYCODE']			= $Order->Billing->country;
+
+		if ($Order->Billing->country == "UK") // PayPal uses ISO 3361-1
+			$_['COUNTRYCODE'] = "GB";
 		
 		// Shipping
 		if (!empty($Order->Shipping->address) &&
@@ -86,13 +89,16 @@ class PayPalPro {
 				!empty($Order->Shipping->postcode) && 
 				!empty($Order->Shipping->country)) {		
 			$_['SHIPTONAME'] 			= $Order->Customer->firstname.' '.$Order->Customer->lastname;
+			$_['SHIPTOPHONENUM']		= $Order->Customer->phone;
 			$_['SHIPTOSTREET']			= $Order->Shipping->address;
 			$_['SHIPTOSTREET2']			= $Order->Shipping->xaddress;
 			$_['SHIPTOCITY']			= $Order->Shipping->city;
 			$_['SHIPTOSTATE']			= $Order->Shipping->state;
 			$_['SHIPTOZIP']				= $Order->Shipping->postcode;
 			$_['SHIPTOCOUNTRYCODE']		= $Order->Shipping->country;
-			$_['SHIPTOPHONENUM']		= $Order->Customer->phone;
+			if ($Order->Shipping->country == "UK") // PayPal uses ISO 3361-1
+				$_['SHIPTOCOUNTRYCODE'] = "GB";
+
 		}
 		
 		// Transaction
