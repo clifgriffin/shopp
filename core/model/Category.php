@@ -455,6 +455,7 @@ class Category extends DatabaseObject {
 				else return false;
 				break;
 			case "has-categories":
+			case "hascategories":
 				if (empty($this->children)) $this->load_children();
 				return (!empty($this->children));
 				break;
@@ -930,7 +931,7 @@ class TagProducts extends Category {
 		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($options['tag'])."&quot;";
 		$this->parent = 0;
 		$this->slug = TagProducts::$slug;
-		$this->uri = $options['tag'];
+		$this->uri = urlencode($options['tag']);
 		$this->smart = true;
 		$this->loading = array(
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",

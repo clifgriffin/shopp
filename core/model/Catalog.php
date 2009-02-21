@@ -31,7 +31,8 @@ class Catalog extends DatabaseObject {
 		
 		$category_table = DatabaseObject::tablename(Category::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
-		$categories = $db->query("SELECT cat.*,count(pd.id) AS total FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id WHERE {$filtering['where']} GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
+		$price_table = DatabaseObject::tablename(Price::$table);
+		$categories = $db->query("SELECT cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} AND (pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0)) GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
 		if (count($categories) > 1) $categories = sort_tree($categories);
 		foreach ($categories as $category) {
 			$this->categories[$category->id] = new Category();
@@ -133,11 +134,12 @@ class Catalog extends DatabaseObject {
 				$title = $options['title'];
 				if (empty($title)) $title = "";
 				if (value_is_true($options['dropdown'])) {
+					if (!isset($options['default'])) $options['default'] = __('Select category&hellip;','Shopp');
 					$string .= $title;
 					$string .= '<form><select name="shopp_cats" id="shopp-categories-menu">';
-					$string .= '<option value="">Select category&hellip;</option>';
+					$string .= '<option value="">'.$options['default'].'</option>';
 					foreach ($this->categories as &$category) {
-						if ($category->total > 0) continue; // Only show categories with products
+						if ($category->total == 0) continue; // Only show categories with products
 						if (value_is_true($options['hierarchy']) && $depthlimit && 
 							$category->depth >= $depthlimit) continue;
 
@@ -146,13 +148,14 @@ class Catalog extends DatabaseObject {
 							if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
 						}
 						
-						$padding = str_repeat("&nbsp;",$category->depth*3);
+						if (value_is_true($options['hierarchy']))
+							$padding = str_repeat("&nbsp;",$category->depth*3);
 
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
 						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 
 						$products = '';
-						if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->total.')';
+						if (value_is_true($options['products']) && $category->total > 0) $products = ' ('.$category->total.')';
 
 						$string .= '<option value="'.$link.'">'.$padding.$category->name.$products.'</option>';
 						$previous = &$category;

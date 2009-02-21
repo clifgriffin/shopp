@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.3
+Version: 1.0.4
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.3");
+define("SHOPP_VERSION","1.0.4");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -75,7 +75,7 @@ class Shopp {
 
 		$this->uri = WP_PLUGIN_URL."/".$this->directory;
 		$this->siteurl = get_bloginfo('url');
-		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin/admin.php";
+		$this->wpadminurl = get_bloginfo('wpurl')."/wp-admin";
 
 		$this->secure = ($_SERVER['HTTPS'] == "on");
 		if ($this->secure) {
@@ -500,13 +500,13 @@ class Shopp {
 
 		// catalog/category/category-slug
 		if (empty($shop)) {
-			$rules[$catalog.'/category/([\w_\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$catalog.'/category/([\w_\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$catalog.'/category/([\w_\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]';
+			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]';
 		} else {
-			$rules[$shop.'category/([\w_\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$shop.'category/([\w_\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'category/([\w_\-\/]+?)?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
+			$rules[$shop.'category/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$shop.'category/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$shop.'category/([\w%_\+\-\/]+?)?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
 		}
 
 		// tags
@@ -525,8 +525,8 @@ class Shopp {
 		else $rules[$shop.'(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$shop.'&shopp_pid=$matches[1]';
 
 		// catalog/category/product-slug
-		if (empty($shop)) $rules[$catalog.'/([\w_\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
-		else $rules[$shop.'([\w_\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
+		if (empty($shop)) $rules[$catalog.'/([\w%_\\+-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
+		else $rules[$shop.'([\w%_\+\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
 
 		return $rules + $wp_rewrite_rules;
 	}
@@ -783,6 +783,7 @@ class Shopp {
 		// Find product by category name and product name
 		if (!empty($productname) && empty($this->Product->id)) {
 			$this->Product = new Product($productname,"slug");
+			if ($this->Product->published == "off") $this->Product = false;
 		}
 		
 		$this->Catalog = new Catalog($type);
@@ -1092,7 +1093,7 @@ class Shopp {
 					header ("Content-length: ".@filesize($filepath)); 
 					readfile($filepath);
 				} else {
-					header ("Content-length: ".strlen($Asset->data)); 
+					header ("Content-length: ".$Asset->size); 
 					echo $Asset->data;
 				}
 			

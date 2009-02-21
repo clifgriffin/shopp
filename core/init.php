@@ -31,7 +31,7 @@ function get_countries () {
 	$countries = array();
 	$countries['CA'] = array('name'=>'Canada','currency'=>array('code'=>'CAD','format'=>'$#,###.##'),'units'=>'metric','region'=>0); 
 	$countries['US'] = array('name'=>'USA','currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'imperial','region'=>0); 
-	$countries['UK'] = array('name'=>'United Kingdom','currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>3); 
+	$countries['GB'] = array('name'=>'United Kingdom','currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['AR'] = array('name'=>'Argentina','currency'=>array('code'=>'ARS','format'=>'$#.###,##'),'units'=>'metric','region'=>7); 
 	$countries['AU'] = array('name'=>'Australia','currency'=>array('code'=>'AUD','format'=>'$# ###.##'),'units'=>'metric','region'=>7); 
 	$countries['AT'] = array('name'=>'Austria','currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 

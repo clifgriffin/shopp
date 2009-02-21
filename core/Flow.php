@@ -544,6 +544,7 @@ class Flow {
 		$receipt['receipt'] = $this->order_receipt();
 		$receipt['url'] = get_bloginfo('siteurl');
 		$receipt['sitename'] = get_bloginfo('name');
+		$receipt['orderid'] = $Purchase->id;
 		
 		$receipt = apply_filters('shopp_email_receipt_data',$receipt);
 		
@@ -902,7 +903,7 @@ class Flow {
 		else $productcount = $db->query("SELECT count(*) as total $matchcol FROM $pd $where");
 
 		// Load the products
-		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,SUM(DISTINCT pt.stock) AS stock $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page",AS_ARRAY);
+		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page",AS_ARRAY);
 
 		$num_pages = ceil($productcount->total / $per_page);
 		$page_links = paginate_links( array(
@@ -1426,7 +1427,8 @@ class Flow {
 		
 		// Build permalink for slug editor
 		$permalink = trailingslashit($Shopp->link('catalog'))."category/";
-		$permalink .= substr($Category->uri,0,strpos($Category->uri,$Category->slug));
+		if (!empty($Category->slug))
+			$permalink .= substr($Category->uri,0,strpos($Category->uri,$Category->slug));
 		
 		$pricerange_menu = array(
 			"disabled" => __('Price ranges disabled','Shopp'),
@@ -1467,7 +1469,7 @@ class Flow {
 		$results = $db->query("SELECT p.id,p.name FROM $catalog AS catalog LEFT JOIN $category AS cat ON cat.id = catalog.category LEFT JOIN $products AS p ON p.id=catalog.product WHERE cat.id={$_GET['category']} ORDER BY p.name ASC",AS_ARRAY);
 		$products = array();
 		
-		$products[0] = "Select a product&hellip;";
+		$products[0] = __("Select a product&hellip;","Shopp");
 		foreach ($results as $result) $products[$result->id] = $result->name;
 		return menuoptions($products,0,true);
 		
@@ -1597,7 +1599,7 @@ class Flow {
 								AVG(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,null)) AS wkavg
 		 						FROM $purchasetable");
 
-		$orderscreen = add_query_arg('page',$this->Admin->orders,$Shopp->wpadminurl);
+		$orderscreen = add_query_arg('page',$this->Admin->orders,$Shopp->wpadminurl."/admin.php");
 		echo '<div class="table"><table><tbody>';
 		echo '<tr><th colspan="2">Last 30 Days</th><th colspan="2">Lifetime</th></tr>';
 

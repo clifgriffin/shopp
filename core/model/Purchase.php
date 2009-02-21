@@ -137,6 +137,50 @@ class Purchase extends DatabaseObject {
 			case "item-total":
 				$item = current($this->purchased);
 				return money($item->total); break;
+			case "item-has-inputs":
+			case "item-hasinputs": 
+				$item = current($this->purchased);
+				return (count($item->data) > 0); break;
+			case "item-inputs":
+				$item = current($this->purchased);
+				if (!$this->itemdataloop) {
+					reset($item->data);
+					$this->itemdataloop = true;
+				} else next($item->data);
+
+				if (current($item->data)) return true;
+				else {
+					$this->itemdataloop = false;
+					return false;
+				}
+				break;
+			case "item-input":
+				$item = current($this->purchased);
+				$data = current($item->data);
+				$name = key($item->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
+			case "has-data":
+			case "hasdata": return (count($this->data) > 0); break;
+			case "orderdata":
+				if (!$this->dataloop) {
+					reset($this->data);
+					$this->dataloop = true;
+				} else next($this->data);
+
+				if (current($this->data)) return true;
+				else {
+					$this->dataloop = false;
+					return false;
+				}
+				break;
+			case "data":
+				$data = current($this->data);
+				$name = key($this->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
 			case "subtotal": return money($this->subtotal); break;
 			case "hasfreight": return ($this->freight > 0);
 			case "freight": return money($this->freight); break;

@@ -150,7 +150,8 @@ var options = <?php echo json_encode($Category->options) ?>;
 var prices = <?php echo json_encode($Category->prices) ?>;
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 var siteurl = '<?php echo $Shopp->siteurl; ?>';
-var ajaxurl = siteurl+'/wp-admin/admin-ajax.php';
+var adminurl = '<?php echo $Shopp->wpadminurl; ?>';
+var ajaxurl = adminurl+'/admin-ajax.php';
 var editslug_url = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
 
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
