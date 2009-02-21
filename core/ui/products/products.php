@@ -9,12 +9,11 @@
 	</div>
 
 	<p id="post-search" class="search-box">
-		<label class="hidden" for="post-search-input"><?php _e('Search Products','Shopp'); ?>:</label>
 		<input type="text" id="products-search-input" class="search-input" name="s" value="<?php echo attribute_escape($_GET['s']); ?>" />
 		<input type="submit" value="<?php _e('Search Products','Shopp'); ?>" class="button" />
 	</p>
 	
-	<p class="search-box"><button type="submit" name="edit" value="new" class="button"><?php _e('New Product','Shopp'); ?></button></p>
+	<p><button type="submit" name="edit" value="new" class="button"><?php _e('New Product','Shopp'); ?></button></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
@@ -25,41 +24,45 @@
 		</select>
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary">
 		</div>
+		<div class="clear"></div>
 	</div>
-	<br class="clear" />
+	<div class="clear"></div>
 	
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr>
-			<th scope="col" class="check-column"><input type="checkbox" id="selectall" /></th>
-	        <th scope="col"><?php _e('Name','Shopp'); ?></th>
-	        <th scope="col"><?php _e('Category','Shopp'); ?></th>
-	        <th scope="col"><?php _e('Price','Shopp'); ?></th>
-	        <th scope="col" class="num"><?php _e('Featured','Shopp'); ?></th>
-		</tr>
+		<tr><?php shopp_print_column_headers('shopp_page_shopp/products'); ?></tr>
 		</thead>
+		<tfoot>
+		<tr><?php shopp_print_column_headers('shopp_page_shopp/products',false); ?></tr>
+		</tfoot>
 	<?php if (sizeof($Products) > 0): ?>
 		<tbody id="products" class="list products">
 		<?php $even = false; foreach ($Products as $Product): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
-			<td><a class='row-title' href='?page=<?php echo $this->Admin->products; ?>&amp;edit=<?php echo $Product->id; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Product->name; ?>&quot;'><?php echo (!empty($Product->name))?$Product->name:'(no product name)'; ?></a></td>
-			<td><?php echo $Product->categories; ?></td>
-			<td><?php
+			<td class="name column-name"><a class='row-title' href='?page=<?php echo $this->Admin->products; ?>&amp;edit=<?php echo $Product->id; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Product->name; ?>&quot;'><?php echo (!empty($Product->name))?$Product->name:'(no product name)'; ?></a></td>
+			<td class="category column-category"><?php echo $Product->categories; ?></td>
+			<td class="price column-price"><?php
 				if ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
 				else echo money($Product->minprice)."&mdash;".money($Product->maxprice);
 			?></td>
-			<td<?php echo ($Product->featured == "on")?' class="featured"':''; ?>>&nbsp;</td> 
+			<td class="inventory column-inventory"><?php if ($Product->inventory == "on") echo $Product->stock; ?></td> 
+			<td<?php echo ($Product->featured == "on")?' class="featured column-featured"':' class="column-featured"'; ?>>&nbsp;</td> 
 		
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
 	<?php else: ?>
-		<tbody><tr><td colspan="5"><?php _e('No products found.','Shopp'); ?></td></tr></tbody>
+		<tbody><tr><td colspan="6"><?php _e('No products found.','Shopp'); ?></td></tr></tbody>
 	<?php endif; ?>
 	</table>
 	</form>
+</div>    
+<div class="tablenav">
+	<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
+	<div class="clear"></div>
 </div>
+
 <script type="text/javascript">
 	helpurl = "<?php echo SHOPP_DOCS; ?>Products";
 
@@ -75,4 +78,6 @@
 		if (confirm("<?php _e('Are you sure you want to delete the selected products?','Shopp'); ?>")) return true;
 		else return false;
 	});
+	columns.init('shopp_page_shopp/products');
+	
 </script>

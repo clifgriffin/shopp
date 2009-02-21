@@ -193,7 +193,8 @@ var ProductOptionsMenus;
 			} else if (previous) {
 				$(previous).change(function () {
 					if (menus.index(current) == menus.length-1) optionPriceTags();
-					if (this.selectedIndex == 0) $(menu).attr('disabled',true);
+					if (this.selectedIndex == 0 && 
+						this.options[0].value == "") $(menu).attr('disabled',true);
 					else $(menu).removeAttr('disabled');
 				}).change();
 			}
@@ -287,7 +288,7 @@ function addtocart () {
 	if (options && options_default) {
 		var selections = true;
 		for (menu in options) 
-			if (options[menu].selectedIndex == 0) selections = false;
+			if (options[menu].selectedIndex == 0 && options[menu][0].value == "") selections = false;
 
 		if (!selections) {
 			if (!options_required) options_required = "You must select the options for this item before you can add it to your shopping cart.";
@@ -317,7 +318,7 @@ function cartajax (url,data,response) {
 	$.ajax({
 		type:"POST",
 		url:url,
-		data:data+"&response="+response+'&ajax=true',
+		data:data+"&response="+response,
 		timeout:10000,
 		dataType:datatype,
 		success:function (cart) {
@@ -350,7 +351,8 @@ var ShoppCartAjaxHandler = function (cart) {
 		var display = $('#shopp-cart-ajax');
 		display.empty().hide(); // clear any previous additions
 		var item = $('<ul></ul>').appendTo(display);
-		$('<li><img src="'+cart.Item.thumbnail.uri+'" alt="" width="'+cart.Item.thumbnail.width+'"  height="'+cart.Item.thumbnail.height+'" /></li>').appendTo(item);
+		if (cart.Item.thumbnail)
+			$('<li><img src="'+cart.Item.thumbnail.uri+'" alt="" width="'+cart.Item.thumbnail.width+'"  height="'+cart.Item.thumbnail.height+'" /></li>').appendTo(item);
 		$('<li></li>').html('<strong>'+cart.Item.name+'</strong>').appendTo(item);
 		if (cart.Item.optionlabel.length > 0)
 			$('<li></li>').html(cart.Item.optionlabel).appendTo(item);
@@ -746,6 +748,3 @@ var helpurl;
 var options_required;
 var options_default;
 var productOptions = new Array();
-
-// Fix for ThickBox
-var tb_pathToImage = "/wp-content/plugins/shopp/core/ui/icons/loading.gif";

@@ -22,9 +22,9 @@
 
 #shopp .category { position: relative; }
 #shopp .views { display: inline; position: absolute; right: 0; top: 0; }
-#shopp .views button { border: none; background: none; width: 16px; height: 16px; padding: 4px; cursor: pointer; }
-#shopp .views button:hover { background-color: #ebebeb;}
-#shopp .views li { display: inline;  padding: 2px; }
+#shopp .views button { border: none; background: none; cursor: pointer; padding: 2px; }
+#shopp .views button:hover { background-color: #ebebeb; border: 1px solid #777; }
+#shopp .views li { display: inline; }
 #shopp .orderby { float: right; }
 
 #shopp .subcategories { padding: 10px 0; margin-bottom: 10px;}
@@ -66,6 +66,17 @@
 #shopp ul.categories { float: left; margin-right: 20px; }
 #shopp #new { float: left; width: 75%; }
 
+/* Category Pagination */
+#shopp ul.paging { /* placeholder for your styles - inherited defaults: clear: none; display: inline-block; */ }
+#shopp ul.paging li { /* placeholder for your styles - inherited defaults: display: inline-block; margin-left: 5px; */ }
+#shopp ul.paging li a { /* page links default styling */ }
+#shopp ul.paging li a:hover { /* page links hover styling */ }
+#shopp ul.paging li.active { /* currrent page style */ }
+#shopp ul.paging li.disabled { /* style for disabled previous/next links */ }
+#shopp ul.paging li.previous a,
+#shopp ul.paging li.next a { /* previous/next link style */ }
+
+
 /**
  * Product Pages
  **/
@@ -92,7 +103,7 @@
 #shopp #cart { width: 100%; }
 #shopp #cart table { padding: 10px 0; width: 100%; }
 #shopp #cart th { text-align: left; font-weight: bold; }
-#shopp #cart th, #shopp #cart td { padding: 3px 0; }
+#shopp #cart th, #shopp #cart td { padding: 3px; }
 #shopp #cart .item { width: 50%; }
 #shopp #cart .money, 
 #shopp #cart .totals th,

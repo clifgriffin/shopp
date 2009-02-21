@@ -4,6 +4,7 @@
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
 	<?php include("navigation.php"); ?>
+	<br class="clear" />
 	
 	<div id="order">
 		<br class="clear" />
@@ -23,7 +24,11 @@
 			<?php if (!empty($Purchase->email)):?>
 				<tr><th><?php _e('Email','Shopp'); ?>:</th><td><?php echo '<a href="mailto:'.$Purchase->email.'">'.$Purchase->email.'</a>'; ?></td></tr>
 			<?php endif; ?>
-
+			<tr><td colspan="2"><br class="clear" /></td></tr>
+			<?php if (!empty($Purchase->data) && is_array($Purchase->data)): 
+				foreach ($Purchase->data as $name => $value): ?>
+				<tr><th><?php echo $name; ?>:</th><td><?php echo $value; ?></td></tr>
+			<?php endforeach; endif; ?>
 		</table>
 
 		<?php if (!empty($Purchase->shipaddress)): ?>
@@ -32,8 +37,8 @@
 			<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
 			<?php echo $Purchase->shipaddress; ?><br />
 			<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
-			<?php echo "{$Purchase->shipcity}, {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
-			<?php echo $Purchase->shipcountry ?></address>
+			<?php echo "{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
+			<?php echo $targets[$Purchase->shipcountry]; ?></address>
 			<p><strong>Shipping:</strong> <?php echo $Purchase->shipmethod; ?></p>
 		</fieldset>
 		<?php else: ?>
@@ -42,13 +47,13 @@
 				<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
 				<?php echo $Purchase->address; ?><br />
 				<?php if (!empty($Purchase->xaddress)) echo $Purchase->xaddress."<br />"; ?>
-				<?php echo "{$Purchase->city}, {$Purchase->state} {$Purchase->postcode}" ?><br />
-				<?php echo $Purchase->country ?></address>
+				<?php echo "{$Purchase->city}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->state} {$Purchase->postcode}" ?><br />
+				<?php echo $targets[$Purchase->country]; ?></address>
 			</fieldset>
 		<?php endif; ?>
 		
 		<?php if (sizeof($Purchase->purchased) > 0): ?>
-		<table class="cart widefat" cellspacing="0">
+		<table class="widefat" cellspacing="0">
 			<thead>
 			<tr>
 				<th scope="col" class="item"><?php _e('Items Ordered','Shopp'); ?></th>
@@ -57,11 +62,18 @@
 				<th scope="col" class="money"><?php _e('Item Total','Shopp'); ?></th>
 			</tr>
 			</thead>
+			<tbody>
 			<?php $even = false; foreach ($Purchase->purchased as $id => $Item): ?>
-				<tr<?php if (!even) echo 'class="alternate"'; $even = !$even; ?>>
+				<tr<?php if ($even) echo ' class="alternate"'; $even = !$even; ?>>
 					<td>
 						<?php echo $Item->name; ?>
 						<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?>
+						<?php if (is_array($Item->data)): ?>
+						<ul>
+						<?php foreach ($Item->data as $key => $value): ?>
+							<li><?php echo $key; ?>: <strong><?php echo $value; ?></strong></li>
+						<?php endforeach; endif; ?>
+						</ul>
 					</td>
 					<td><?php echo $Item->quantity; ?></td>
 					<td class="money"><?php echo money($Item->unitprice); ?></td>
@@ -98,6 +110,7 @@
 				<th scope="row" colspan="3" class="total"><?php _e('Total','Shopp'); ?></th>
 				<td class="money"><?php echo money($Purchase->total); ?></td>
 			</tr>
+			</tbody>
 		</table>
 		<?php else: ?>
 			<p class="warning"><?php _e('There were no items found for this purchase.','Shopp'); ?></p>

@@ -12,6 +12,7 @@
 class Item {
 	var $product;
 	var $price;
+	var $category;
 	var $sku;
 	var $type;
 	var $name;
@@ -26,12 +27,13 @@ class Item {
 	var $total = 0;
 	var $weight = 0;
 	var $shipfee = 0;
+	var $tax = 0;
 	var $download = false;
 	var $shipping = false;
 	var $inventory = false;
-	var $tax = false;
+	var $taxable = false;
 
-	function Item ($Product,$pricing) {
+	function Item ($Product,$pricing,$category,$data=array()) {
 		global $Shopp; // To access settings
 
 		$Product->load_data(array('prices','images'));
@@ -46,18 +48,22 @@ class Item {
 				
 		$this->product = $Product->id;
 		$this->price = $Price->id;
+		$this->category = $category;
 		$this->option = $Price;
 		$this->name = $Product->name;
+		$this->slug = $Product->slug;
 		$this->description = $Product->summary;
 		$this->thumbnail = $Product->thumbnail;
 		$this->options = $Product->prices;
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
+		$this->sale = $Price->onsale;
 		$this->saved = ($Price->price - $Price->promoprice);
 		$this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
 		$this->freeshipping = ($Price->freeshipping || $Product->freeshipping);
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
 		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
+		$this->data = $data;
 
 		if (!empty($Price->download)) $this->download = $Price->download;
 		
@@ -68,7 +74,7 @@ class Item {
 		}
 		
 		$this->inventory = ($Price->inventory == "on")?true:false;
-		$this->tax = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
+		$this->taxable = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
 	}
 		
 	function quantity ($qty) {
@@ -121,21 +127,20 @@ class Item {
 	function tag ($id,$property,$options=array()) {
 		global $Shopp;
 		
-		$url = "&amp;shopp_pid=".$this->product;
-		$imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
-		if (SHOPP_PERMALINKS) {
-			$pages = $Shopp->Settings->get('pages');
-			if ($Shopp->link('catalog') == get_bloginfo('wpurl')."/")
-				$url =  $pages['catalog']['name']."/".$this->product;
-			else $url = $this->product;
-			$imageuri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
-		}		
+		
+		if (SHOPP_PERMALINKS) $imageuri = $Shopp->shopuri."images/";
+		$imageuri =  $Shopp->shopuri."?shopp_image=";
 		
 		// Return strings with no options
 		switch ($property) {
 			case "id": return $id;
 			case "name": return $this->name;
-			case "url": return $Shopp->link('catalog').$url;
+			case "link":
+			case "url": 
+				return (SHOPP_PERMALINKS)?
+					$Shopp->shopuri.$this->category."/".$this->slug:
+						add_query_arg(array('shopp_category' => $this->category,
+											'shopp_pid' => $this->product),$Shopp->shopuri);
 			case "sku": return $this->sku;
 		}
 		
@@ -210,6 +215,26 @@ class Item {
 					$result .= '</select>';
 					$result .= $options['after'];
 				}
+				break;
+			case "hasinputs": 
+			case "has-inputs": return (count($this->data) > 0); break;
+			case "inputs":			
+				if (!$this->dataloop) {
+					reset($this->data);
+					$this->dataloop = true;
+				} else next($this->data);
+
+				if (current($this->data)) return true;
+				else {
+					$this->dataloop = false;
+					return false;
+				}
+				break;
+			case "input":
+				$data = current($this->data);
+				$name = key($this->data);
+				if (isset($options['name'])) return $name;
+				return $data;
 				break;
 			case "thumbnail":
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';

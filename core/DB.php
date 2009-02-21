@@ -74,10 +74,8 @@ class DB extends Singleton {
 		// echo "<pre>QUERY: $query</pre>";
 	
 		// Error handling
-		if ($this->dbh &&  $error = mysql_error($this->dbh)) {
-			if ($errors) trigger_error("Query failed.<br /><br />$error<br /><tt>$query</tt>");
-			else return false;
-		}
+		if ($this->dbh && $error = mysql_error($this->dbh)) 
+			trigger_error("Query failed.<br /><br />$error<br /><tt>$query</tt>");
 				
 		// Results handling
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i",$query) ) {
@@ -139,13 +137,13 @@ class DB extends Singleton {
 							$data[$property] = "'$value'";
 						break;
 					case "date":
+						// If it's an empty date, set it to now()'s timestamp
+						if (is_null($value)) {
+							$data[$property] = "now()";
 						// If the date is an integer, convert it to an
 						// sql YYYY-MM-DD HH:MM:SS format
-						if (is_int(intval($value))) {
+						} elseif (is_int(intval($value))) {
 							$data[$property] = "'".mkdatetime($value)."'";
-						// If it's an empty date, set it to now()'s timestamp
-						} else if (empty($value)) {
-							$data[$property] = "now()";
 						// Otherwise it's already ready, so pass it through
 						} else {
 							$data[$property] = "'$value'";
@@ -158,6 +156,12 @@ class DB extends Singleton {
 						$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
 						$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
 						$data[$property] = "'$value'";
+						
+						if (empty($value)) $data[$property] = "'0'";
+
+						// Special exception for id fields
+						if ($property == "id" && empty($value)) $data[$property] = "NULL";
+						
 						break;
 					default:
 						// Anything not needing processing

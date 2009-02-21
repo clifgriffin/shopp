@@ -1,11 +1,12 @@
 <div class="wrap shopp">
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
-	<h2><?php _e('Tax Settings','Shopp'); ?></h2>
-	<?php include("navigation.php"); ?>
 
-	<br class="clear" />
+	<h2><?php _e('Tax Settings','Shopp'); ?></h2>
+
 	<form name="settings" id="taxes" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-taxes'); ?>
+
+		<?php include("navigation.php"); ?>
 		
 		<table class="form-table"> 
 			<tr class="form-required"> 
@@ -140,7 +141,7 @@ var addTaxRate = function (r) {
 	if (r) {
 		rate.val(r.rate);
 		countryMenu.val(r.country).change();
-		zoneMenu.val(r.zone).change();
+		if (r.zone)	zoneMenu.val(r.zone).change();
 	} else {
 		if ($.inArray(base.country,countriesInUse) == -1) {
 			countryMenu.val(base.country).change();

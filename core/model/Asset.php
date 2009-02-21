@@ -71,6 +71,21 @@ class Asset extends DatabaseObject {
 		}
 	}
 	
+	function savedata ($file) {
+		$db =& DB::get();
+
+		$id = $this->{$this->_key};
+		if (!$id) return false;
+		
+		$handle = fopen($file, "r");
+		while (!feof($handle)) {
+			$buffer = mysql_real_escape_string(fread($handle, 65535));
+			$query = "UPDATE $this->_table SET data=CONCAT(data,'$buffer') WHERE $this->_key=$id";
+			$db->query($query);
+		}
+		fclose($handle);
+	}
+	
 	function savefile () {
 		if (empty($this->data)) return true;
 		if (file_put_contents($this->path.$this->name,stripslashes($this->data)) > 0) return true;
@@ -83,22 +98,31 @@ class Asset extends DatabaseObject {
 		if ($type == "image") $this->setstorage('image');
 		if ($type == "download") $this->setstorage('download');
 
+		if ($this->storage == "fs")	$this->deletefiles($keys);
+
 		$selection = "";
 		foreach ($keys as $value) 
 			$selection .= ((!empty($selection))?" OR ":"")."{$this->_key}=$value OR src=$value";
 
-		if ($this->storage == "fs") $this->deletefiles($selection);
-
 		$query = "DELETE LOW_PRIORITY FROM $this->_table WHERE $selection";
 		$db->query($query);
 	}
-	
-	function deletefiles ($selection) {
+
+	/** 
+	 * deletefiles ()
+	 * Remove files from the file system only when 1 reference to the file exists
+	 * in file references in the database, otherwise, leave them **/
+	function deletefiles ($keys) {
 		$db =& DB::get();
 		
-		$files = $db->query("SELECT name FROM $this->_table WHERE $selection",AS_ARRAY);
-		foreach ($files as $file) 
-			unlink($this->path.$file->name);
+		$selection = "";
+		foreach ($keys as $value) 
+			$selection .= ((!empty($selection))?" OR ":"")."f.{$this->_key}=$value OR f.src=$value";
+		
+		$files = $db->query("SELECT f.name,count(DISTINCT links.id) AS refs FROM $this->_table AS f LEFT JOIN $this->_table AS links ON f.name=links.name WHERE $selection GROUP BY links.name",AS_ARRAY);
+		foreach ($files as $file)
+			if ($file->refs == 1 && file_exists($this->path.$file->name))
+				unlink($this->path.$file->name);
 
 		return true;
 	}

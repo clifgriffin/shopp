@@ -33,7 +33,7 @@
 	<tr class="totals">
 		<td colspan="2" rowspan="5">
 			<?php if (shopp('cart','needs-shipping-estimates')): ?>
-			<small>Select shipping country for shipping &amp; tax:</small>
+			<small>Estimate shipping &amp; taxes for:</small>
 			<?php shopp('cart','shipping-estimates'); ?>
 			<?php endif; ?>
 			<?php shopp('cart','promo-code'); ?>

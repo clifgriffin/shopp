@@ -1,11 +1,12 @@
 <div class="wrap shopp">
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
-	<h2><?php _e('Presentation Settings','Shopp'); ?></h2>
-	<?php include("navigation.php"); ?>
 
-	<br class="clear" />
+	<h2><?php _e('Presentation Settings','Shopp'); ?></h2>
+
 	<form name="settings" id="presentation" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-presentation'); ?>
+
+		<?php include("navigation.php"); ?>
 		
 		<table class="form-table"> 
 			<tr class="form-required"> 
@@ -62,7 +63,7 @@
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="catalog-pagination"><?php _e('Pagination','Shopp'); ?></label></th> 
-				<td><input type="text" name="settings[catalog_pagination]" id="catalog-pagination" value="<?php echo attribute_escape($this->Settings->get('catalog_pagination')); ?>" size="4" />
+				<td><input type="text" name="settings[catalog_pagination]" id="catalog-pagination" value="<?php echo attribute_escape($this->Settings->get('catalog_pagination')); ?>" size="4" class="selectall" />
 	            <label for="catalog-pagination"><?php _e('products per page','Shopp'); ?></label></td>
 			</tr>
 			<tr class="form-required"> 
@@ -79,7 +80,7 @@
 		<tbody id="gallery-settings">
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="gallery-small-width"><?php _e('Gallery Image Size','Shopp'); ?></label></th> 
-				<td><span id="gallery-small-width-input"><input type="text" name="settings[gallery_small_width]" value="<?php echo attribute_escape($this->Settings->get('gallery_small_width')); ?>" id="gallery-small-width" size="5" /><label for="gallery-small-width"> <?php _e('width','Shopp'); ?></label></span> <span id="gallery-small-height-input"><input type="text" name="settings[gallery_small_height]" value="<?php echo attribute_escape($this->Settings->get('gallery_small_height')); ?>" id="gallery-small-height" size="5" /><label for="gallery-small-height"> <?php _e('height','Shopp'); ?></label></span>
+				<td><span id="gallery-small-width-input"><input type="text" name="settings[gallery_small_width]" value="<?php echo attribute_escape($this->Settings->get('gallery_small_width')); ?>" id="gallery-small-width" size="5" class="selectall" /><label for="gallery-small-width"> <?php _e('width','Shopp'); ?></label></span> <span id="gallery-small-height-input"><input type="text" name="settings[gallery_small_height]" value="<?php echo attribute_escape($this->Settings->get('gallery_small_height')); ?>" id="gallery-small-height" size="5" class="selectall" /><label for="gallery-small-height"> <?php _e('height','Shopp'); ?></label></span>
 					<p><select name="settings[gallery_small_sizing]" id="gallery-small-sizing">
 						<?php echo menuoptions($sizingOptions, $this->Settings->get('gallery_small_sizing'),true); ?>
 					</select></p>
@@ -91,7 +92,7 @@
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="gallery-thumbnail-width"><?php _e('Thumbnails','Shopp'); ?></label></th> 
-				<td><span id="gallery-thumbnail-width-input"><input type="text" name="settings[gallery_thumbnail_width]" value="<?php echo attribute_escape($this->Settings->get('gallery_thumbnail_width')); ?>" id="gallery-thumbnail-width" size="5" /><label for="gallery-thumbnail-width"> <?php _e('width','Shopp'); ?></label></span> <span id="gallery-thumbnail-height-input"><input type="text" name="settings[gallery_thumbnail_height]" value="<?php echo attribute_escape($this->Settings->get('gallery_thumbnail_height')); ?>" id="gallery-thumbnail-height" size="5" /><label for="gallery-thumbnail-height"> <?php _e('height','Shopp'); ?></label></span>
+				<td><span id="gallery-thumbnail-width-input"><input type="text" name="settings[gallery_thumbnail_width]" value="<?php echo attribute_escape($this->Settings->get('gallery_thumbnail_width')); ?>" id="gallery-thumbnail-width" size="5" class="selectall" /><label for="gallery-thumbnail-width"> <?php _e('width','Shopp'); ?></label></span> <span id="gallery-thumbnail-height-input"><input type="text" name="settings[gallery_thumbnail_height]" value="<?php echo attribute_escape($this->Settings->get('gallery_thumbnail_height')); ?>" id="gallery-thumbnail-height" size="5" class="selectall" /><label for="gallery-thumbnail-height"> <?php _e('height','Shopp'); ?></label></span>
 					<p><select name="settings[gallery_thumbnail_sizing]" id="gallery-thumbnail-sizing">
 						<?php echo menuoptions($sizingOptions, $this->Settings->get('gallery_thumbnail_sizing'),true); ?>
 					</select></p>

@@ -28,6 +28,7 @@ class Purchase extends DatabaseObject {
 		$table = DatabaseObject::tablename(Purchased::$table);
 		if (empty($this->id)) return false;
 		$this->purchased = $db->query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
+		foreach ($this->purchased as &$purchase) $purchase->data = unserialize($purchase->data);
 		return true;
 	}
 	
@@ -60,15 +61,29 @@ class Purchase extends DatabaseObject {
 			case "address": return $this->address; break;
 			case "xaddress": return $this->xaddress; break;
 			case "city": return $this->city; break;
-			case "state": return $this->state; break;
+			case "state": 
+				if (strlen($this->state > 2)) return $this->state;
+				$regions = $Shopp->Settings->get('zones');
+				$states = $regions[$this->country];
+				return $states[$this->state];
+				break;
 			case "postcode": return $this->postcode; break;
-			case "country": return $this->country; break;
+			case "country": 
+				$countries = $Shopp->Settings->get('target_markets');
+				return $countries[$this->country]; break;
 			case "shipaddress": return $this->shipaddress; break;
 			case "shipxaddress": return $this->shipxaddress; break;
 			case "shipcity": return $this->shipcity; break;
-			case "shipstate": return $this->shipstate; break;
+			case "shipstate":
+				if (strlen($this->shipstate > 2)) return $this->shipstate;
+				$regions = $Shopp->Settings->get('zones');
+				$states = $regions[$this->country];
+				return $states[$this->shipstate];
+				break;
 			case "shippostcode": return $this->shippostcode; break;
-			case "shipcountry": return $this->shipcountry; break;
+			case "shipcountry": 
+				$countries = $Shopp->Settings->get('target_markets');
+				return $countries[$this->shipcountry]; break;
 			case "shipmethod": return $this->shipmethod; break;
 			case "totalitems": return count($this->purchased); break;
 			case "hasitems": if (count($this->purchased) > 0) return true; else return false; break;
@@ -111,7 +126,7 @@ class Purchase extends DatabaseObject {
 				if (!isset($options['label'])) $options['label'] = "Download Now";
 				if (isset($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
 				if (SHOPP_PERMALINKS) $url = $Shopp->shopuri."download/".$item->dkey;
-				else $url = get_bloginfo('wpurl')."?shopp_download=".$item->dkey;
+				else $url = add_query_arg('shopp_download',$item->dkey,$Shopp->shopuri);
 				return '<a href="'.$url.'"'.$options['class'].'>'.$options['label'].'</a>'; break;
 			case "item-quantity":
 				$item = current($this->purchased);
@@ -122,6 +137,50 @@ class Purchase extends DatabaseObject {
 			case "item-total":
 				$item = current($this->purchased);
 				return money($item->total); break;
+			case "item-has-inputs":
+			case "item-hasinputs": 
+				$item = current($this->purchased);
+				return (count($item->data) > 0); break;
+			case "item-inputs":
+				$item = current($this->purchased);
+				if (!$this->itemdataloop) {
+					reset($item->data);
+					$this->itemdataloop = true;
+				} else next($item->data);
+
+				if (current($item->data)) return true;
+				else {
+					$this->itemdataloop = false;
+					return false;
+				}
+				break;
+			case "item-input":
+				$item = current($this->purchased);
+				$data = current($item->data);
+				$name = key($item->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
+			case "has-data":
+			case "hasdata": return (count($this->data) > 0); break;
+			case "orderdata":
+				if (!$this->dataloop) {
+					reset($this->data);
+					$this->dataloop = true;
+				} else next($this->data);
+
+				if (current($this->data)) return true;
+				else {
+					$this->dataloop = false;
+					return false;
+				}
+				break;
+			case "data":
+				$data = current($this->data);
+				$name = key($this->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
 			case "subtotal": return money($this->subtotal); break;
 			case "hasfreight": return ($this->freight > 0);
 			case "freight": return money($this->freight); break;

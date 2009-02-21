@@ -18,7 +18,8 @@ class OrderWeight {
 		$ShipCalc->methods[get_class($this).'::range'] = __("Order Weight Tiers","Shopp");
 	}
 	
-	function calculate (&$Cart,$rate,$column) {
+	function calculate (&$Cart,$fees,$rate,$column) {
+		$ShipCosts = &$Cart->data->ShipCosts;
 		$weight = 0;
 		foreach($Cart->shipped as $Item) $weight += ($Item->weight * $Item->quantity);
 		foreach ($rate['max'] as $id => $value) {
@@ -28,7 +29,9 @@ class OrderWeight {
 			}
 		}
 		if ($shipping == 0) $shipping = $rate[$column][$id];
-		return $shipping;
+		$rate['cost'] = $shipping+$fees;
+		$ShipCosts[$rate['name']] = $rate;
+		return $rate;
 	}
 	
 	function ui () {
