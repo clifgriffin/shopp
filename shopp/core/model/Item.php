@@ -216,6 +216,26 @@ class Item {
 					$result .= $options['after'];
 				}
 				break;
+			case "hasinputs": 
+			case "has-inputs": return (count($this->data) > 0); break;
+			case "inputs":			
+				if (!$this->dataloop) {
+					reset($this->data);
+					$this->dataloop = true;
+				} else next($this->data);
+
+				if (current($this->data)) return true;
+				else {
+					$this->dataloop = false;
+					return false;
+				}
+				break;
+			case "input":
+				$data = current($this->data);
+				$name = key($this->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
 			case "thumbnail":
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
 				if (isset($this->thumbnail)) {

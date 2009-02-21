@@ -499,6 +499,9 @@ class Product extends DatabaseObject {
 			case "slug": return $this->slug; break;
 			case "summary": return $this->summary; break;
 			case "description": return apply_filters('shopp_product_description',$this->description); break;
+			case "isfeatured": 
+			case "is-featured":
+				return ($this->featured == "on"); break;
 			case "price":
 				if (empty($this->prices)) $this->load_data(array('prices'));
 				// if (empty($this->prices)) $this->load_prices();
@@ -562,6 +565,7 @@ class Product extends DatabaseObject {
 					return '<img src="'.$img->uri.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
 				}
 				break;
+			case "hasimages": 
 			case "has-images": 
 				if (empty($options['type'])) $options['type'] = "thumbnail";
 				if (empty($this->images)) $this->load_data(array('images'));

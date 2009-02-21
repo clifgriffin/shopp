@@ -71,6 +71,21 @@ class Asset extends DatabaseObject {
 		}
 	}
 	
+	function savedata ($file) {
+		$db =& DB::get();
+
+		$id = $this->{$this->_key};
+		if (!$id) return false;
+		
+		$handle = fopen($file, "r");
+		while (!feof($handle)) {
+			$buffer = mysql_real_escape_string(fread($handle, 65535));
+			$query = "UPDATE $this->_table SET data=CONCAT(data,'$buffer') WHERE $this->_key=$id";
+			$db->query($query);
+		}
+		fclose($handle);
+	}
+	
 	function savefile () {
 		if (empty($this->data)) return true;
 		if (file_put_contents($this->path.$this->name,stripslashes($this->data)) > 0) return true;

@@ -250,7 +250,10 @@ class Cart {
 		$i = 0;
 		foreach ($this->contents as $Item) {
 			if ($Item->product == $NewItem->product && 
-					$Item->price == $NewItem->price) return $i;
+					$Item->price == $NewItem->price && 
+					(empty($NewItem->data) || 
+					(serialize($Item->data) == serialize($NewItem->data)))) 
+				return $i;
 			$i++;
 		}
 		return false;
@@ -337,6 +340,7 @@ class Cart {
 						$this, $fees, $option, $column);
 
 				if ($estimated === false) return false;
+
 				if (!$estimate || $estimated['cost'] < $estimate['cost'])
 					$estimate = &$estimated; // Get lowest estimate
 
@@ -592,7 +596,7 @@ class Cart {
 			$Request['shipping']['region'] = $regions[$countries[$Request['shipping']['country']]['region']];
 			unset($countries,$regions);
 			$this->shipzone($Request['shipping']);
-		} else if (!isset($this->data->Order->Shipping)) {
+		} else if (!isset($this->data->Order->Shipping->country)) {
 			$base = $Shopp->Settings->get('base_operations');
 			$Request['shipping']['country'] = $base['country'];
 			$this->shipzone($Request['shipping']);
@@ -812,7 +816,8 @@ class Cart {
 						$this->data->Totals->shipping > 0 &&
 						$this->data->Shipping); break;				
 			case "needs-shipped": return $this->data->Shipping; break;
-			case "hasshipcosts": return ($this->data->Totals->shipping > 0); break;
+			case "hasshipcosts":
+			case "has-ship-costs": return ($this->data->Totals->shipping > 0); break;
 			case "needs-shipping-estimates":
 				$markets = $Shopp->Settings->get('target_markets');
 				return ($this->data->Shipping && count($markets) > 1);
@@ -1234,11 +1239,15 @@ class Cart {
 				break;
 				
 			case "order-data":
-				$allowed_types = array("text","hidden",'password','checkbox','radio');
+				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
 				if (empty($options['type'])) $options['type'] = "hidden";
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
 					if (isset($this->data->Order->data[$options['name']])) 
 						$options['value'] = $this->data->Order->data[$options['name']];
+					if (!isset($options['cols'])) $options['cols'] = "30";
+					if (!isset($options['rows'])) $options['rows'] = "3";
+					if ($options['type'] == "textarea") 
+						return '<textarea name="data['.$options['name'].']" cols="'.$options['cols'].'" rows="'.$options['rows'].'" id="order-data-'.$options['name'].'"'.inputattrs($options).'></textarea>';
 					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'"'.inputattrs($options).' />'; 
 				}
 				break;

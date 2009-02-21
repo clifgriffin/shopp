@@ -105,7 +105,7 @@ class PayPalPro {
 		$_['AMT']					= number_format($Order->Totals->total,2);
 		$_['ITEMAMT']				= number_format($Order->Totals->subtotal,2);
 		$_['SHIPPINGAMT']			= number_format($Order->Totals->shipping,2);
-		$_['TAXAMT']				= number_format($Order->Totals->tax);
+		$_['TAXAMT']				= number_format($Order->Totals->tax,2);
 		
 		if (isset($Order->data['paypal-custom']))
 			$_['CUSTOM'] = htmlentities($Order->data['paypal-custom']);
@@ -116,9 +116,9 @@ class PayPalPro {
 			$_['L_AMT'.$i]			= number_format($Item->unitprice,2);
 			$_['L_NUMBER'.$i]		= $i;
 			$_['L_QTY'.$i]			= $Item->quantity;
-			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,2);
+			$_['L_TAXAMT'.$i]		= number_format($Item->tax,2);
 		}
-		
+
 		$this->transaction = "";
 		foreach($_ as $key => $value) {
 			if (is_array($value)) {
