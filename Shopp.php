@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.4
+Version: 1.0.5 RC1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.4");
+define("SHOPP_VERSION","1.0.5 RC1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -393,7 +393,7 @@ class Shopp {
 	 * Handles shortcodes used on Shopp-installed pages and used by
 	 * site owner for including categories/products in posts and pages */
 	function shortcodes () {
-		
+
 		$this->shortcodes = array();
 		$this->shortcodes['catalog'] = array(&$this->Flow,'catalog');
 		$this->shortcodes['cart'] = array(&$this->Flow,'cart');
@@ -821,17 +821,16 @@ class Shopp {
 		$gateway = false;
 		// Intercept external checkout processing
 		if (!empty($wp->query_vars['shopp_xco'])) {
-			$gateway = "{$this->path}/gateways/{$wp->query_vars['shopp_xco']}.php";
+			$gateway = join(DIRECTORY_SEPARATOR,array($this->path,'gateways',$wp->query_vars['shopp_xco'].".php"));
 			if (file_exists($gateway)) {
 				$gateway_meta = $this->Flow->scan_gateway_meta($gateway);
 				$ProcessorClass = $gateway_meta->tags['class'];
 				include($gateway);
 				$Payment = new $ProcessorClass();
-				if ($wp->query_vars['shopp_proc'] != "confirm-order" && 
-						empty($_POST['checkout'])) {
+				if ($wp->query_vars['shopp_proc'] != "confirm-order") {
 					$Payment->checkout();
-					$Shopp->Cart->data->OrderError = $Payment->error();
-					// echo "<pre>"; print_r($Shopp->Cart->data->OrderError); echo "</pre>";
+					$this->Cart->data->OrderError = $Payment->error();
+					// echo "<pre>"; print_r($this->Cart->data->OrderError); echo "</pre>";
 				}
 			}
 		}

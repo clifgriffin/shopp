@@ -326,6 +326,19 @@ class Product extends DatabaseObject {
 		return true;
 	}
 	
+	function merge_specs () {
+		$merged = array();
+		foreach ($this->specs as $key => $spec) {
+			if (!isset($merged[$spec->name])) $merged[$spec->name] = $spec;
+			else {
+				if (!is_array($merged[$spec->name]->content)) 
+					$merged[$spec->name]->content = array($merged[$spec->name]->content);
+				$merged[$spec->name]->content[] = $spec->content;
+			}
+		}
+		$this->specs = $merged;
+	}
+	
 	function save_categories ($updates) {
 		$db = DB::get();
 		
@@ -685,7 +698,10 @@ class Product extends DatabaseObject {
 				break;
 			case "has-specs": 
 				if (empty($this->specs)) $this->load_data(array('specs'));
-				if (count($this->specs) > 0) return true; else return false; break;
+				if (count($this->specs) > 0) {
+					$this->merge_specs();
+					return true;
+				} else return false; break;
 			case "specs":			
 				if (!$this->specloop) {
 					reset($this->specs);
@@ -699,10 +715,15 @@ class Product extends DatabaseObject {
 				}
 				break;
 			case "spec":
-				$spec = current($this->specs);
 				$string = "";
 				$separator = ": ";
+				$delimiter = ", ";
 				if (isset($options['separator'])) $separator = $options['separator'];
+				if (isset($options['delimiter'])) $separator = $options['delimiter'];
+
+				$spec = current($this->specs);
+				if (is_array($spec->content)) $spec->content = join($delimiter,$spec->content);
+				
 				if (array_key_exists('name',$options) && array_key_exists('content',$options))
 					$string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->content);
 				else if (array_key_exists('name',$options)) $string = $spec->name;
@@ -823,16 +844,21 @@ class Product extends DatabaseObject {
 			case "has-addons":
 				if (isset($this->options['addons'])) return true; else return false; break;
 				break;
+			case "donation":
+			case "amount":
 			case "quantity":
 				if (!isset($options['value'])) $options['value'] = 1;
 				if (!isset($options['input'])) $options['input'] = "text";
 				
 				if (isset($options['label'])) $label = '<label for="quantity'.$this->id.'">'.$options['label'].'</label>';
 				if (!isset($options['labelpos']) || $options['labelpos'] == "before") $result .= "$label ";
+				
+				if (!$this->priceloop) reset($this->prices);
+				$variation = current($this->prices);
 
 				if (isset($options['input']) && $options['input'] == "menu") {
 					if (!isset($options['options'])) 
-						$values = "1-15,20,25,30,35,40,45,50,60,70,80,90,100";
+						$values = "1-15,20,25,30,40,50,75,100";
 					else $values = $options['options'];
 				
 					if (strpos($values,",") !== false) $values = split(",",$values);
@@ -846,14 +872,26 @@ class Product extends DatabaseObject {
 						} else $qtys[] = $value;
 					}
 					$result .= '<select name="products['.$this->id.'][quantity]" id="quantity-'.$this->id.'">';
-					foreach ($qtys as $qty) 
-						$result .= '<option'.(($qty == $this->quantity)?' selected="selected"':'').' value="'.$qty.'">'.$qty.'</option>';
+					foreach ($qtys as $qty) {
+						$amount = $qty;
+						$selected = $this->quantity;
+						if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
+							if ($variation->donation['min'] == "on" && $amount < $variation->price) continue;
+							$amount = money($amount);
+							$selected = $variation->price;
+						}
+						$result .= '<option'.(($qty == $selected)?' selected="selected"':'').' value="'.$qty.'">'.$amount.'</option>';
+					}
 					$result .= '</select>';
 					if ($options['labelpos'] == "after") $result .= " $label";
 					return $result;
 				}
 				if (valid_input($options['input'])) {
 					if (!isset($options['size'])) $options['size'] = 3;
+					if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
+						if ($variation->donation['min']) $options['value'] = $variation->price;
+						$options['class'] .= " currency";
+					}
 					$result = '<input type="'.$options['input'].'" name="products['.$this->id.'][quantity]" id="quantity-'.$this->id.'"'.inputattrs($options).' />';
 				}
 				if ($options['labelpos'] == "after") $result .= " $label";

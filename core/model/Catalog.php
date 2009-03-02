@@ -27,12 +27,12 @@ class Catalog extends DatabaseObject {
 		$db = DB::get();
 
 		if (!empty($filtering['limit'])) $filtering['limit'] = "LIMIT ".$filtering['limit'];
-		if (empty($filtering['where'])) $filtering['where'] = "true"; // No filtering, get them all
+		if (empty($filtering['where'])) $filtering['where'] = "(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))"; // No filtering, get them all
 		
 		$category_table = DatabaseObject::tablename(Category::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
-		$categories = $db->query("SELECT cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} AND (pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0)) GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
+		$categories = $db->query("SELECT cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
 		if (count($categories) > 1) $categories = sort_tree($categories);
 		foreach ($categories as $category) {
 			$this->categories[$category->id] = new Category();
@@ -71,7 +71,6 @@ class Catalog extends DatabaseObject {
 		return true;
 	}
 	
-		
 	function tag ($property,$options=array()) {
 		global $Shopp;
 
@@ -129,6 +128,7 @@ class Catalog extends DatabaseObject {
 				$parent = false;
 				$showall = false;
 				
+				if (isset($options['depth'])) $depthlimit = $options['depth'];
 				if (isset($options['showall'])) $showall = $options['showall'];
 
 				$title = $options['title'];
@@ -290,7 +290,7 @@ class Catalog extends DatabaseObject {
 						$parentkey = $tree_category->parentkey;
 					}
 				}
-				$trail = '<li><a href="'.$Shopp->shopuri.'">'.$pages['catalog']['title'].'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
+				$trail = '<li><a href="'.$Shopp->link('catalog').'">'.$pages['catalog']['title'].'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
 				return '<ul class="breadcrumb">'.$trail.'</ul>';
 				break;
 			case "new-products":

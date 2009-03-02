@@ -614,10 +614,7 @@ class Cart {
 		if (isset($Request['update'])) $Request['cart'] = "update";
 		if (isset($Request['empty'])) $Request['cart'] = "empty";
 		
-		if (isset($Request['quantity'])) {
-			$Request['quantity'] = preg_replace('/[^\d+]/','',$Request['quantity']);
-			if (empty($Request['quantity'])) $Request['quantity'] = 1;
-		}
+		if (empty($Request['quantity'])) $Request['quantity'] = 1;
 
 		switch($Request['cart']) {
 			case "add":			
@@ -642,7 +639,6 @@ class Cart {
 				}
 				
 				if (isset($Request['products']) && is_array($Request['products'])) {
-					
 					foreach ($Request['products'] as $id => $product) {
 						$quantity = (!empty($product['quantity']))?$product['quantity']:1; // Add 1 by default
 						$Product = new Product($id);
@@ -973,8 +969,8 @@ class Cart {
 			case "url": 
 				$ssl = true;
 				// Test Mode will not require encrypted checkout
-				if (strpos($gateway,"TestMode.php") !== false || 
-					$_GET['shopp_xco'] == "PayPal/PayPalExpress") $ssl = false;
+				if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco'])) 
+					$ssl = false;
 				$link = $Shopp->link('checkout',$ssl);
 				
 				// Pass any arguments along
@@ -1149,7 +1145,7 @@ class Cart {
 					if (file_exists($xco)) {
 						$meta = $Shopp->Flow->scan_gateway_meta($xco);
 						$PaymentSettings = $Shopp->Settings->get($meta->tags['class']);
-						return ($PaymentSettings['billing-required'] == "on");
+						return ($PaymentSettings['billing-required'] != "off");
 					}
 				}
 				return ($this->data->Totals->total > 0); break;
@@ -1236,6 +1232,19 @@ class Cart {
 				if (!empty($this->data->Order->Billing->cardholder))
 					$options['value'] = $_POST['billing']['cvv'];
 				return '<input type="text" name="billing[cvv]" id="billing-cvv"'.inputattrs($options).' />';
+				break;
+			case "billing-xco":     
+				if (isset($_GET['shopp_xco'])) {
+					if ($this->data->Totals->total == 0) return false;
+					$xco = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
+					if (file_exists($xco)) {
+						$meta = $Shopp->Flow->scan_gateway_meta($xco);
+						$ProcessorClass = $meta->tags['class'];
+						include_once($xco);
+						$Payment = new $ProcessorClass();
+						if (method_exists($Payment,'billing')) return $Payment->billing($options);
+					}
+				}
 				break;
 				
 			case "order-data":

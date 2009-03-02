@@ -163,10 +163,15 @@ function removeEvent( obj, type, fn ) {
  */
 function formatFields () {
 	(function($) {
-	var f = $('input');
-	for (i = 0; i < f.elements.length; i++) {
-		if (f.elements[i].className.match("currency")) f.elements[i].value = asMoney(f.elements[i].value);
-	}
+		var f = $('input');
+		f.each(function (i,e) {
+			var e = $(e);
+			if (e.hasClass('currency')) {
+				e.change(function() {
+					$(e).val(asMoney($(e).val()));
+				}).change();
+			}
+		});
 	})(jQuery)
 }
 
@@ -736,6 +741,7 @@ function PopupCalendar (target,month,year) {
 }
 
 addEvent(window,'load',function () {
+	formatFields();
 	buttonHandlers();
 	cartHandlers();
 	catalogViewHandler();
