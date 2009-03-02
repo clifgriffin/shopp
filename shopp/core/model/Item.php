@@ -63,6 +63,7 @@ class Item {
 		$this->freeshipping = ($Price->freeshipping || $Product->freeshipping);
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
 		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
+		$this->donation = $Price->donation;
 		$this->data = $data;
 
 		if (!empty($Price->download)) $this->download = $Price->download;
@@ -78,15 +79,30 @@ class Item {
 	}
 		
 	function quantity ($qty) {
+
+		if ($this->type == "Donation" && $this->donation['var'] == "on") {
+			if ($this->donation['min'] == "on" && floatnum($qty) < $this->unitprice) 
+				$this->unitprice = $this->unitprice;
+			else $this->unitprice = floatnum($qty);
+			$this->quantity = 1;
+			$qty = 1;
+		}
+
+		$qty = preg_replace('/[^\d+]/','',$qty);
 		if ($this->inventory) {
 			if ($qty > $this->option->stock) 
 				$this->quantity = $this->option->stock;
 			else $this->quantity = $qty;
 		} else $this->quantity = $qty;
+		
 		$this->total = $this->quantity * $this->unitprice;
 	}
 	
 	function add ($qty) {
+		if ($this->type == "Donation" && $this->donation['var'] == "on") {
+			$qty = floatnum($qty);
+			$this->quantity = $this->unitprice;
+		}
 		$this->quantity($this->quantity+$qty);
 	}
 	
@@ -160,6 +176,7 @@ class Item {
 		switch ($property) {
 			case "quantity": 
 				$result = $this->quantity;
+				if ($this->type == "Donation" && $this->donation['var'] == "on") return $result;
 				if (isset($options['input']) && $options['input'] == "menu") {
 					if (!isset($options['value'])) $options['value'] = $this->quantity;
 					if (!isset($options['options'])) 

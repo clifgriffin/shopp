@@ -310,12 +310,13 @@ class Flow {
 			case "receipt": $content = $this->order_receipt(); break;
 			default:
 				ob_start();
-				if (isset($Cart->data->OrderError)) include(SHOPP_TEMPLATES."/errors.php");
+				if (!empty($Cart->data->OrderError)) include(SHOPP_TEMPLATES."/errors.php");
 				if (!empty($xco)) {
-					$gateway = "{$this->basepath}/gateways/$xco.php";
+					$gateway = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$xco.".php"));
 					if (file_exists($gateway)) {
 						$gateway_meta = $this->scan_gateway_meta($gateway);
 						$ProcessorClass = $gateway_meta->tags['class'];
+						include_once($gateway);
 						$Payment = new $ProcessorClass();
 						if ($Payment->checkout) include(SHOPP_TEMPLATES."/checkout.php");
 						else {
@@ -375,7 +376,7 @@ class Flow {
 				$Shopp->Cart->data->OrderError = $PaymentGatewayError;
 				return false;
 			}
-			
+
 			// Use an external checkout payment gateway
 			$gateway_meta = $this->scan_gateway_meta($gateway);
 			$ProcessorClass = $gateway_meta->tags['class'];
@@ -559,8 +560,7 @@ class Flow {
 
 		$ssl = true;
 		// Test Mode will not require encrypted checkout
-		if (strpos($gateway,"TestMode.php") !== false ||
-			$_GET['shopp_xco'] == "PayPal".DIRECTORY_SEPARATOR."PayPalExpress") $ssl = false;
+		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco'])) $ssl = false;
 		$link = $Shopp->link('receipt',$ssl);
 		header("Location: $link");
 		exit();
@@ -1313,7 +1313,8 @@ class Flow {
 		$filters = array();
 		// $filters['limit'] = "$start,$per_page";
 		if (isset($_GET['s'])) $filters['where'] = "name LIKE '%{$_GET['s']}%'";
-
+		else $filters['where'] = "true";
+		
 		$table = DatabaseObject::tablename(Category::$table);
 		$Catalog = new Catalog();
 		$Catalog->load_categories($filters);
@@ -1709,6 +1710,7 @@ class Flow {
 				$base_region = $c['region'];
 			$countries[$iso] = $c['name'];
 		}
+		
 		if (!empty($_POST['setup'])) {
 			$_POST['settings']['display_welcome'] = "off";
 			$this->settings_save();

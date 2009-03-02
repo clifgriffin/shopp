@@ -85,7 +85,7 @@ function get_countries () {
 	$countries['KR'] = array('name'=>'South Korea','currency'=>array('code'=>'KRW','format'=>'\\#,###'),'units'=>'metric','region'=>6); 
 	$countries['ES'] = array('name'=>'Spain','currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['VC'] = array('name'=>'St. Vincent','currency'=>array('code'=>'XCD','format'=>'$#,###.##'),'units'=>'metric','region'=>6); 
-	$countries['SE'] = array('name'=>'Sweden','currency'=>array('code'=>'SEK','#.###,## kr'),'units'=>'metric','region'=>3); 
+	$countries['SE'] = array('name'=>'Sweden','currency'=>array('code'=>'SEK','format'=>'#.###,## kr'),'units'=>'metric','region'=>3); 
 	$countries['CH'] = array('name'=>'Switzerland','currency'=>array('code'=>'CHF','format'=>'SFr. #\'###.##'),'units'=>'metric','region'=>3); 
 	$countries['SY'] = array('name'=>'Syria','currency'=>array('code'=>'SYP','format'=>'#,###.## SYP'),'units'=>'metric','region'=>4); 
 	$countries['TW'] = array('name'=>'Taiwan','currency'=>array('code'=>'TWD','format'=>'$#,###.##'),'units'=>'metric','region'=>6); 

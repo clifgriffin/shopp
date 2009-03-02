@@ -662,7 +662,7 @@ function scan_money_format ($format) {
 		$f['decimals'] = $dl[count($dl)-1];
 		$f['thousands'] = $dl[0];
 	} else $f['decimals'] = $dl[0];
-	
+
 	return $f;
 }
 
@@ -707,6 +707,13 @@ function indian_number ($number,$format=false) {
 		$number = $number.$format['decimals'].substr(number_format('0.'.$d[1],$format['precision']),2);
 	return $number;
 	
+}
+
+function floatnum ($number) {
+	$number = preg_replace("/,/",".",$number); // Replace commas with periods
+	$number = preg_replace("/[^0-9\.]/","", $number); // Get rid of everything but numbers and periods
+	$number = preg_replace("/\.(?=.*\..*$)/s","",$number); // Replace all but the last period
+	return $number;
 }
 
 function value_is_true ($value) {
