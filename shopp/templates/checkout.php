@@ -74,6 +74,7 @@
 			<span><?php shopp('checkout','billing-cvv','size=7&minlength=3&maxlength=4&title=Card\'s security code (3-4 digits on the back of the card)'); ?><label for="billing-cvv">Security ID</label></span>
 		</li>	
 		<?php endif; ?>
+		<?php shopp('checkout','billing-xco'); ?>
 	</ul>
 	<br class="clear" />
 	<p class="submit"><?php shopp('checkout','submit','value=Submit Order'); ?></p>
