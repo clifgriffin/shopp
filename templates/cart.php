@@ -71,11 +71,14 @@
 	<?php if (shopp('checkout','local-payment')): ?>
 	<a href="<?php shopp('checkout','url'); ?>" class="right">Proceed to Checkout &raquo;</a>
 	<?php endif; ?>
-	<?php shopp('checkout','xco-buttons'); ?>
 </big>
 
-
 </form>
+
+<div class="xcheckout">
+<?php shopp('checkout','xco-buttons'); ?>
+</div>
+
 <?php else: ?>
 	<p class="warning">There are currently no items in your shopping cart.</p>
 <?php endif; ?>
