@@ -7,13 +7,13 @@
 		<?php wp_nonce_field('shopp-settings-payments'); ?>
 
 		<?php include("navigation.php"); ?>
-		
+
 		<table class="form-table"> 
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="payment-gateway"><?php _e('Payment Gateway','Shopp'); ?></label></th> 
 				<td><select name="settings[payment_gateway]" id="payment-gateway">
 					<option value=""><?php _e('Select One','Shopp'); ?>&hellip;</option>
-					<?php echo menuoptions($gateways,$this->Settings->get('payment_gateway'),true)?>
+					<?php echo menuoptions($gateways,$payment_gateway,true); ?>
 					</select><br /> 
 	            <?php _e('Select the payment gateway processor you will be using to process credit card transactions.','Shopp'); ?></td>
 			</tr>

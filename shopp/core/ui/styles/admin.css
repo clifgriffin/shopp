@@ -154,6 +154,8 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #order .totals th { text-align: right; }
 
 #order #message { width: 99%; margin: 0 auto; }
+#order ul.promos { list-style: square; padding-left: 20px; }
+#order ul.promos li { text-indent: -5px; }
 
 #taxrates-table th, 
 #taxrates-table td{ position: relative; text-align: left; border: none; padding: 0 5px 5px 0; }
@@ -253,3 +255,8 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #dashboard_shopp_stats table td { border-top: #ececec 1px solid; padding: 6px 0 3px 0; white-space: nowrap; color: #777;
  }
 #dashboard_shopp_stats table td.amount { width: 10%; padding: 3px 6px 3px 0; text-align: right; font-family: Georgia, "Times New Roman", "Bitstream Charter", Times, serif; font-size: 18px; }
+
+#errorlog { font-family: monospace; font-size: 1em; line-height: 1em; background: white; height: 300px; overflow: scroll;border: 1px solid #dfdfdf; padding: 1px; }
+#errorlog ol { list-style: decimal; padding-left: 50px; background: #ececec; }
+#errorlog ol li { background: white; margin: 0; padding: 5px; }
+#error_notify li { width: 200px; display: inline-block; }

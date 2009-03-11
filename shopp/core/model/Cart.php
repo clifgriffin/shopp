@@ -9,6 +9,7 @@
  * @package shopp
  **/
 
+require("Error.php");
 require("Item.php");
 require("Customer.php");
 require("Billing.php");
@@ -57,9 +58,9 @@ class Cart {
 		$this->data->Totals->taxrate = 0;
 		$this->data->Totals->total = 0;
 
+		$this->data->Errors = new ShoppErrors();
 		$this->data->Shipping = false;
 		$this->data->Estimates = false;
-		$this->data->Errors = array();
 		$this->data->Order = new stdClass();
 		$this->data->Order->data = array();
 		$this->data->Order->Customer = new Customer();
@@ -76,10 +77,10 @@ class Cart {
 		$this->data->Purchase = false;
 		$this->data->Category = array();
 		$this->data->Search = false;
-		
+
 		// Total the cart once, and only if there are changes
 		add_action('parse_request',array(&$this,'totals'),99);
-		
+
 		return true;
 	}
 		
@@ -117,6 +118,8 @@ class Cart {
 			$db->query("INSERT INTO $this->_table (session, ip, data, contents, created, modified) 
 							VALUES ('$this->session','$this->ip','','',now(),now())");
 		}
+		
+		if (empty($this->data->Errors)) $this->data->Errors = new ShoppErrors();
 
 		return true;
 	}
@@ -158,7 +161,7 @@ class Cart {
 			trigger_error("Could not delete cached session data.");
 		return true;
 	}
-	
+		
 	/**
 	 * add()
 	 * Adds a product as an item to the cart */
@@ -295,7 +298,6 @@ class Cart {
 		$Shipping = $this->data->Order->Shipping;
 		$base = $Shopp->Settings->get('base_operations');
 		$handling = $Shopp->Settings->get('order_shipfee');
-
 		$methods = $Shopp->Settings->get('shipping_rates');
 		if (!is_array($methods)) return 0;
 
@@ -323,7 +325,8 @@ class Cart {
 			
 				if ($Shipping->country == $base['country']) {
 					// Use country/domestic region
-					if (isset($option[$base['country']]))	$column = $base['country'];  // Use the country rate
+					if (isset($option[$base['country']]))
+						$column = $base['country'];  // Use the country rate
 					else $column = $Shipping->postarea(); // Try to get domestic regional rate
 				} else if (isset($option[$Shipping->region])) {
 					// Global region rate
@@ -340,9 +343,8 @@ class Cart {
 						$this, $fees, $option, $column);
 
 				if ($estimated === false) return false;
-
 				if (!$estimate || $estimated['cost'] < $estimate['cost'])
-					$estimate = &$estimated; // Get lowest estimate
+					$estimate = $estimated; // Get lowest estimate
 
 			} // end foreach ($methods)         
 
@@ -358,6 +360,9 @@ class Cart {
 		return $estimate['cost'];
 	}
 	
+	/**
+	 * promotions()
+	 * Matches, calculates and applies promotion discounts */
 	function promotions () {
 		$db = DB::get();
 		
@@ -565,6 +570,122 @@ class Cart {
 			$Totals->shipping + $Totals->tax;
 
 	}
+	
+	/**
+	 * logins ()
+	 * Handle login processing */
+	function logins () {
+		global $Shopp;
+		$authentication = $Shopp->Settings->get('account_system');
+
+		switch ($authentication) {
+			case "wordpress":
+				// See if the wordpress user is already logged in
+				get_currentuserinfo();
+				global $user_ID;
+
+				if (!empty($user_ID) && !$this->data->login) {
+					if ($Account = new Customer($user_ID,'wpuser')) {
+						$this->loggedin($Account);
+						$this->data->Order->Customer->wpuser = $user_ID;
+					}
+				}
+				break;
+			case "shopp":
+				if (empty($_POST['process-login'])) return false;
+				if (isset($_POST['email-login']))
+				 	$this->auth($_POST['email-login'],$_POST['password-login'],'email');
+				else if (isset($_POST['loginname-login'])) 
+					$this->auth($_POST['loginname-login'],$_POST['password-login'],'loginname');
+				break;
+		}
+			
+		if ($this->data->login) add_action('wp_logout',array(&$this,'logout'));
+	}
+	
+	/**
+	 * auth ()
+	 * Authorize login credentials */
+	function auth ($id,$password,$type='email') {
+		global $Shopp;
+		$db = DB::get();
+		$authentication = $Shopp->Settings->get('account_system');
+		
+		switch($authentication) {
+			case "shopp":
+				$Account = new Customer($id,'email');
+
+				if (empty($Account)) {
+					new ShoppError(__("No customer account was found with that email.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
+					return false;
+				} 
+
+				if (!wp_check_password($password,$Account->password)) {
+					new ShoppError(__("The password is incorrect.","Shopp"),'invalid_password',SHOPP_AUTH_ERR);
+					return false;
+				}	
+						
+				break;
+				
+			case "wordpress":
+				global $wpdb;
+				if ($type == 'loginname') {
+					if ( !$user = get_userdatabylogin($id)) {
+						new ShoppError(__("No customer account was found with that login.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
+						return false;
+					}
+					$Account = new Customer($user->user_ID,'wpuser');
+					
+				} else {
+					$Account = new Customer($id,'email');
+					if ( !$user = get_user_by_email($Account->email)) {
+						new ShoppError(__("No customer account was found with that email.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
+						return false;
+					}
+				}
+				
+				if (!wp_check_password($password,$user->user_pass)) {
+					new ShoppError(__("The password is incorrect.","Shopp"),'invalid_password',SHOPP_AUTH_ERR);
+					return false;
+				}
+				
+				wp_set_auth_cookie($user->ID, false, true);
+
+				break;
+			default: return false;
+		}
+
+		$this->loggedin($Account);
+		
+	}
+	
+	/**
+	 * loggedin()
+	 * Initialize login data */
+	function loggedin ($Account) {
+		$this->data->login = true;
+		$this->data->Order->Customer = $Account;
+		unset($this->data->Order->Customer->password);
+		$this->data->Order->Billing = new Billing($Account->id,'customer');
+		$this->data->Order->Billing->card = "";
+		$this->data->Order->Billing->cardexpires = "";
+		$this->data->Order->Billing->cardholder = "";
+		$this->data->Order->Billing->cardtype = "";
+		$this->data->Order->Shipping = new Shipping($Account->id,'customer');
+	}
+	
+	/**
+	 * logout()
+	 * Clear the session account data */
+	function logout () {
+		$this->data->login = false;
+		$this->data->Order->wpuser = false;
+		$this->data->Order->Customer->id = false;
+		$this->data->Order->Billing->id = false;
+		$this->data->Order->Billing->customer = false;
+		$this->data->Order->Shipping->id = false;
+		$this->data->Order->Shipping->customer = false;
+	}
 
 	/**
 	 * request()
@@ -573,73 +694,67 @@ class Cart {
 	function request () {
 		global $Shopp;
 		do_action('shopp_cart_request');
-		
-		$Request = array();
-		if (!empty($_GET['cart'])) $Request = $_GET;
-		if (!empty($_POST['cart'])) $Request = $_POST;
 
-		if (isset($Request['checkout'])) {
-			$pages = $this->Pages;
+		if (isset($_REQUEST['checkout'])) {
 			header("Location: ".$Shopp->link('checkout',true));
 			exit();
 		}
 		
-		if (isset($Request['shopping'])) {
-			$pages = $this->Pages;
+		if (isset($_REQUEST['shopping'])) {
 			header("Location: ".$Shopp->link('catalog'));
 			exit();
 		}
 		
-		if (isset($Request['shipping'])) {
+		if (isset($_REQUEST['shipping'])) {
 			$countries = $Shopp->Settings->get('countries');
 			$regions = $Shopp->Settings->get('regions');
-			$Request['shipping']['region'] = $regions[$countries[$Request['shipping']['country']]['region']];
+			$_REQUEST['shipping']['region'] = $regions[$countries[$_REQUEST['shipping']['country']]['region']];
 			unset($countries,$regions);
-			$this->shipzone($Request['shipping']);
+			$this->shipzone($_REQUEST['shipping']);
 		} else if (!isset($this->data->Order->Shipping->country)) {
 			$base = $Shopp->Settings->get('base_operations');
-			$Request['shipping']['country'] = $base['country'];
-			$this->shipzone($Request['shipping']);
+			$_REQUEST['shipping']['country'] = $base['country'];
+			$this->shipzone($_REQUEST['shipping']);
 		}
 
-		if (!empty($Request['promocode'])) {
+		if (!empty($_REQUEST['promocode'])) {
 			$this->data->PromoCodeResult = "";
-			if (!in_array($Request['promocode'],$this->data->PromoCodes)) {
-				$this->data->PromoCode = attribute_escape($Request['promocode']);
-				$Request['update'] = true;
+			if (!in_array($_REQUEST['promocode'],$this->data->PromoCodes)) {
+				$this->data->PromoCode = attribute_escape($_REQUEST['promocode']);
+				$_REQUEST['update'] = true;
 			} else $this->data->PromoCodeResult = __("That code has already been applied.","Shopp");
 		}
 		
-		if (isset($Request['remove'])) $Request['cart'] = "remove";
-		if (isset($Request['update'])) $Request['cart'] = "update";
-		if (isset($Request['empty'])) $Request['cart'] = "empty";
+		if (isset($_REQUEST['remove'])) $_REQUEST['cart'] = "remove";
+		if (isset($_REQUEST['update'])) $_REQUEST['cart'] = "update";
+		if (isset($_REQUEST['empty'])) $_REQUEST['cart'] = "empty";
 		
-		if (empty($Request['quantity'])) $Request['quantity'] = 1;
+		if (empty($_REQUEST['quantity'])) $_REQUEST['quantity'] = 1;
 
-		switch($Request['cart']) {
+		switch($_REQUEST['cart']) {
 			case "add":			
-				if (isset($Request['product'])) {
+				if (isset($_REQUEST['product'])) {
 					
-					$quantity = (!empty($Request['quantity']))?$Request['quantity']:1; // Add 1 by default
-					
-					$Product = new Product($Request['product']);
+					$quantity = (!empty($_REQUEST['quantity']))?$_REQUEST['quantity']:1; // Add 1 by default
+					$Product = new Product($_REQUEST['product']);
 					$pricing = false;
-					if (!empty($Request['options']) && !empty($Request['options'][0])) 
-						$pricing = $Request['options'];
-					else $pricing = $Request['price'];
+					if (!empty($_REQUEST['options']) && !empty($_REQUEST['options'][0])) 
+						$pricing = $_REQUEST['options'];
+					else $pricing = $_REQUEST['price'];
 					
 					$category = false;
-					if (!empty($Request['category'])) $category = $Request['category'];
+					if (!empty($_REQUEST['category'])) $category = $_REQUEST['category'];
 					
-					if (isset($Request['data'])) $data = $Request['data'];
+					if (isset($_REQUEST['data'])) $data = $_REQUEST['data'];
 					else $data = array();
-					
-					if (isset($Request['item'])) $result = $this->change($Request['item'],$Product,$pricing);
+
+					if (isset($_REQUEST['item'])) $result = $this->change($_REQUEST['item'],$Product,$pricing);
 					else $result = $this->add($quantity,$Product,$pricing,$category,$data);
+					
 				}
 				
-				if (isset($Request['products']) && is_array($Request['products'])) {
-					foreach ($Request['products'] as $id => $product) {
+				if (isset($_REQUEST['products']) && is_array($_REQUEST['products'])) {
+					foreach ($_REQUEST['products'] as $id => $product) {
 						$quantity = (!empty($product['quantity']))?$product['quantity']:1; // Add 1 by default
 						$Product = new Product($id);
 						$pricing = false;
@@ -662,17 +777,17 @@ class Cart {
 				}
 				break;
 			case "remove":
-				if (!empty($this->contents)) $this->remove(current($Request['remove']));
+				if (!empty($this->contents)) $this->remove(current($_REQUEST['remove']));
 				break;
 			case "empty":
 				$this->clear();
 				break;
 			default:			
-				if (isset($Request['item']) && isset($Request['quantity'])) {
-					$this->update($Request['item'],$Request['quantity']);
+				if (isset($_REQUEST['item']) && isset($_REQUEST['quantity'])) {
+					$this->update($_REQUEST['item'],$_REQUEST['quantity']);
 					
-				} elseif (!empty($Request['items'])) {
-					foreach ($Request['items'] as $id => $item) {
+				} elseif (!empty($_REQUEST['items'])) {
+					foreach ($_REQUEST['items'] as $id => $item) {
 						if (isset($item['quantity'])) {
 							$item['quantity'] = ceil(preg_replace('/[^\d\.]+/','',$item['quantity']));
 							if (!empty($item['quantity'])) $this->update($id,$item['quantity']);
@@ -770,11 +885,11 @@ class Cart {
 				break;
 			case "function": 
 				$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
-				if (is_array($this->data->Errors)) {
-					foreach ($this->data->Errors as $error) if (!empty($error)) $result .= '<p class="error">'.$error.'</p>';
-					$this->data->Errors = array();
-				}
-   				return $result;
+				if ($this->data->Errors->exist())
+					$errors = $this->data->Errors->get();
+					foreach ((array)$errors as $error) if (!empty($error)) $result .= '<p class="error">'.$error->message().'</p>';
+					$this->data->Errors->reset(); // Reset after display
+				return $result;
 				break;
 			case "empty-button": 
 				if (!isset($options['value'])) $options['value'] = "Empty Cart";
@@ -998,8 +1113,13 @@ class Cart {
 				return $output;
 				break;
 			case "error":
-				if (isset($options['show']) && $options['show'] == "code") return $this->data->OrderError->code;
-				return $this->data->OrderError->message;
+				$result = "";
+				if (!$this->data->Errors->exist()) return false;
+				$errors = $this->data->Errors->get();
+				foreach ((array)$errors as $error) if (!empty($error)) $result .= $error->message();
+				return $result;
+				// if (isset($options['show']) && $options['show'] == "code") return $this->data->OrderError->code;
+				// return $this->data->OrderError->message;
 				break;
 			case "cart-summary":
 				ob_start();

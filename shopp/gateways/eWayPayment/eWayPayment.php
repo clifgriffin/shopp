@@ -4,7 +4,7 @@
  * @class eWayPayment
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.2
  * @copyright Ingenesis Limited, 7 January, 2009
  * @package Shopp
  **/
@@ -48,11 +48,9 @@ class eWayPayment {
 	
 	function error () {
 		if (!empty($this->Response)) {
-			$Error = new stdClass();
-			$Error->code = '';
-			$Error->message = $this->Response->getElementContent('ewayTrxnError');
-			if (empty($Error->message)) $Error->message = __("A configuration error occurred while processing this transaction.  Please contact the site administrator.");
-			return $Error;
+			$message = $this->Response->getElementContent('ewayTrxnError');
+			if (empty($message)) return new ShoppError(__("A configuration error occurred while processing this transaction.  Please contact the site administrator.","Shopp"),'eway_trxn_error',SHOPP_TRXN_ERR);
+			return new ShoppError($message,'eway_trxn_error',SHOPP_TRXN_ERR);
 		}
 	}
 	
@@ -104,6 +102,8 @@ class eWayPayment {
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);
+		if ($error = curl_error($connection)) 
+			new ShoppError($error,'eway_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 
 		$Response = new XMLdata($buffer);
@@ -133,7 +133,7 @@ class eWayPayment {
 				
 			</td>
 		</tr>
-		<?
+		<?php
 	}
 	
 	function registerSettings () {

@@ -44,14 +44,14 @@ class Purchase extends DatabaseObject {
 		
 	function tag ($property,$options=array()) {
 		global $Shopp;
-				
+
 		// Return strings with no options
 		switch ($property) {
 			case "url": return $Shopp->link('cart'); break;
 			case "id": return $this->id; break;
 			case "date": 
-				if (empty($options['format'])) $options['format'] = "F j, Y";
-				return date($options['format'],$this->created);
+				if (empty($options['format'])) $options['format'] = get_option('date_format');
+				return date($options['format'],((is_int($this->created))?$this->created:mktimestamp($this->created)));
 				break;
 			case "card": return (!empty($this->card))?sprintf("%'X16d",$this->card):''; break;
 			case "cardtype": return $this->cardtype; break;
@@ -189,6 +189,12 @@ class Purchase extends DatabaseObject {
 			case "hastax": return ($this->tax > 0)?true:false;
 			case "tax": return money($this->tax); break;
 			case "total": return money($this->total); break;
+			case "status": 
+				$labels = $Shopp->Settings->get('order_status');
+				if (empty($labels)) $labels = array('');
+				return $labels[$this->status];
+				break;
+				
 		}
 	}
 

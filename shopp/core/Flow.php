@@ -64,7 +64,7 @@ class Flow {
 										$Core->uri."/templates");
 
 		define("SHOPP_PERMALINKS",(get_option('permalink_structure') == "")?false:true);
-
+		
 		define("SHOPP_LOOKUP",(strpos($_SERVER['REQUEST_URI'],"images/") !== false || 
 								strpos($_SERVER['REQUEST_URI'],"lookup=") !== false)?true:false);
 
@@ -116,13 +116,14 @@ class Flow {
 		
 		$classes = $Shopp->Catalog->type;
 		// Get catalog view preference from cookie
-		if ($_COOKIE['shopp_catalog_view'] == "list") $classes .= " list";
-		if ($_COOKIE['shopp_catalog_view'] == "grid") $classes .= " grid";
 		if (!isset($_COOKIE['shopp_catalog_view'])) {
 			// No cookie preference exists, use shopp default setting
 			$view = $Shopp->Settings->get('default_catalog_view');
 			if ($view == "list") $classes .= " list";
 			if ($view == "grid") $classes .= " grid";
+		} else {
+			if ($_COOKIE['shopp_catalog_view'] == "list") $classes .= " list";
+			if ($_COOKIE['shopp_catalog_view'] == "grid") $classes .= " grid";
 		}
 		
 		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'<div id="clear"></div></div>');
@@ -310,7 +311,10 @@ class Flow {
 			case "receipt": $content = $this->order_receipt(); break;
 			default:
 				ob_start();
-				if (!empty($Cart->data->OrderError)) include(SHOPP_TEMPLATES."/errors.php");
+				if ($Cart->data->Errors->exist()) {
+					include(SHOPP_TEMPLATES."/errors.php");
+					$Cart->data->Errors->reset();
+				}
 				if (!empty($xco)) {
 					$gateway = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$xco.".php"));
 					if (file_exists($gateway)) {
@@ -320,6 +324,8 @@ class Flow {
 						$Payment = new $ProcessorClass();
 						if ($Payment->checkout) include(SHOPP_TEMPLATES."/checkout.php");
 						else {
+							if (!empty($Shopp->Errors))
+								include(SHOPP_TEMPLATES."/errors.php");
 							include(SHOPP_TEMPLATES."/summary.php");
 							echo $Payment->tag('button');
 						}
@@ -367,13 +373,9 @@ class Flow {
 		
 		do_action('shopp_order_preprocessing');
 		
-		$PaymentGatewayError = new stdClass();
-		$PaymentGatewayError->code = "404";
-		$PaymentGatewayError->message = "There was a problem with the payment processor. The store owner has been contacted and made aware of this issue.";
-
 		if ($gateway) {
 			if (!file_exists($gateway)) {
-				$Shopp->Cart->data->OrderError = $PaymentGatewayError;
+				new ShoppError(__("There was a problem loading the payment processor to complete this transaction.",'gateway_load',SHOPP_TRXN_ERR));
 				return false;
 			}
 
@@ -384,7 +386,7 @@ class Flow {
 			$Purchase = $Payment->process();
 			
 			if (!$Purchase) {
-				$Shopp->Cart->data->OrderError = $Payment->error();
+				$Payment->error();
 				return false;
 			}
 			
@@ -399,7 +401,7 @@ class Flow {
 			$authentication = $Shopp->Settings->get('account_system');
 
 			if (!$gateway || !file_exists($gateway)) {
-				$Shopp->Cart->data->OrderError = $PaymentGatewayError;
+				new ShoppError(__("There was a problem loading the payment processor to complete this transaction.",'gateway_load',SHOPP_TRXN_ERR));
 				return false;
 			}
 
@@ -419,7 +421,7 @@ class Flow {
 				// There was a problem processing the transaction, 
 				// grab the error response from the gateway so we can report it
 				if (!$processed) {
-					$Shopp->Cart->data->OrderError = $Payment->error();
+					$Payment->error();
 					return false;
 				}				
 				$gatewayname = $processor_data->name;
@@ -450,11 +452,8 @@ class Flow {
 						$handle .= rand(1000,9999);
 				}
 				
-				if (username_exists($handle)) {
-					$Shopp->Cart->data->OrderError = new StdClass();
-					$Shopp->Cart->data->OrderError->code = "0600";
-					$Shopp->Cart->data->OrderError->message = __('The login name you provided is already in use.  Please choose another login name.','Shopp');
-				}
+				if (username_exists($handle))
+					new ShoppError(__('The login name you provided is already in use.  Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
 				
 				// Create the WordPress account
 				$wpuser = wp_insert_user(array(
@@ -479,7 +478,8 @@ class Flow {
 			}
 
 			// Create a WP-compatible password hash to go in the db
-			$Order->Customer->password = wp_hash_password($Order->Customer->password);
+			if (empty($Order->Customer->id))
+				$Order->Customer->password = wp_hash_password($Order->Customer->password);
 			$Order->Customer->save();
 
 			$Order->Billing->customer = $Order->Customer->id;
@@ -490,13 +490,17 @@ class Flow {
 				$Order->Shipping->customer = $Order->Customer->id;
 				$Order->Shipping->save();
 			}
+			
+			$Promos = array();
+			foreach ($Shopp->Cart->data->PromosApplied as $promo)
+				$Promos[$promo->id] = $promo->name;
 
 			$Purchase = new Purchase();
 			$Purchase->customer = $Order->Customer->id;
 			$Purchase->billing = $Order->Billing->id;
 			$Purchase->shipping = $Order->Shipping->id;
 			$Purchase->data = $Order->data;
-			$Purchase->promos = $Shopp->Cart->data->PromosApplied;
+			$Purchase->promos = $Promos;
 			$Purchase->copydata($Order->Customer);
 			$Purchase->copydata($Order->Billing);
 			$Purchase->copydata($Order->Shipping,'ship');
@@ -575,97 +579,6 @@ class Flow {
 		$content = ob_get_contents();
 		ob_end_clean();
 		return apply_filters('shopp_order_confirmation','<div id="shopp">'.$content.'</div>');
-	}
-
-	function login ($id,$password,$type='email') {
-		global $Shopp;
-		$Cart = $Shopp->Cart;
-		$db = DB::get();
-		$authentication = $Shopp->Settings->get('account_system');
-		
-		switch($authentication) {
-			case "shopp":
-				$Account = new Customer($id,'email');
-
-				if (empty($Account)) {
-					$Cart->data->OrderError->message = __("No customer account was found with that email.","Shopp");
-					return false;
-				} 
-
-				if (!wp_check_password($password,$Account->password)) {
-					$Cart->data->OrderError->message = __("The password is incorrect.","Shopp");
-					return false;
-				}			
-				break;
-				
-			case "wordpress":
-				global $wpdb;
-				if ($type == 'loginname') {
-					if ( !$user = get_userdatabylogin($id)) {
-						$Cart->data->OrderError->message = __("No customer account was found with that login name.","Shopp");
-						return false;
-					}
-					$Account = new Customer($user->user_ID,'wpuser');
-					
-				} else {
-					$Account = new Customer($id,'email');
-					if ( !$user = get_user_by_email($Account->email)) {
-						$Cart->data->OrderError->message = __("No customer account was found with that email.","Shopp");
-						return false;
-					}
-				}
-				
-				if (!wp_check_password($password,$user->user_pass)) {
-					$Cart->data->OrderError->message = __("The password is incorrect.","Shopp");
-					return false;
-				}
-				
-				wp_set_auth_cookie($user->ID, false, true);
-
-				break;
-			default: return false; break;
-		}
-		
-		// Login successful
-		$Cart->data->login = true;
-		$Account->password = "";
-		$Cart->data->Order->Customer = $Account;
-		$Cart->data->Order->Billing = new Billing($Account->id);
-		$Cart->data->Order->Billing->card = "";
-		$Cart->data->Order->Billing->cardexpires = "";
-		$Cart->data->Order->Billing->cardholder = "";
-		$Cart->data->Order->Billing->cardtype = "";
-		$Cart->data->Order->Shipping = new Shipping($Account->id);
-
-	}
-	
-	function loggedin ($Account) {
-		global $Shopp;
-		$Cart = $Shopp->Cart;
-		
-		$Cart->data->login = true;
-		$Account->password = "";
-		$Cart->data->Order->Customer = $Account;
-		$Cart->data->Order->Billing = new Billing($Account->id,'customer');
-		$Cart->data->Order->Billing->card = "";
-		$Cart->data->Order->Billing->cardexpires = "";
-		$Cart->data->Order->Billing->cardholder = "";
-		$Cart->data->Order->Billing->cardtype = "";
-		$Cart->data->Order->Shipping = new Shipping($Account->id,'customer');
-	}
-	
-	function logout () {
-		global $Shopp;
-		$Cart = $Shopp->Cart;
-		
-		$Cart->data->login = false;
-		$Cart->data->Order->wpuser = false;
-		$Cart->data->Order->Customer->id = false;
-		$Cart->data->Order->Billing->id = false;
-		$Cart->data->Order->Billing->customer = false;
-		$Cart->data->Order->Shipping->id = false;
-		$Cart->data->Order->Shipping->customer = false;
-		
 	}
 
 	function order_receipt () {
@@ -812,25 +725,17 @@ class Flow {
 	function account () {
 		global $Shopp;
 		
-		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
-			
-			$Purchase = new Purchase($_POST['purchaseid']);
-			if ($Purchase->email == $_POST['email']) {
-				$Shopp->Cart->data->Purchase = $Purchase;
-				$Purchase->load_purchased();
-				ob_start();
-				include(SHOPP_TEMPLATES."/receipt.php");
-				$content = ob_get_contents();
-				ob_end_clean();
-				return '<div id="shopp">'.$content.'</div>';
-			}
-		}
-		
+		if ($Shopp->Cart->data->login) 
+			$Shopp->Cart->data->Order->Customer->management();
+					
 		ob_start();
-		include(SHOPP_ADMINPATH."/orders/account.php");
+		if ($Shopp->Cart->data->login) include(SHOPP_TEMPLATES."/account.php");
+		else include(SHOPP_TEMPLATES."/login.php");
 		$content = ob_get_contents();
 		ob_end_clean();
-		return '<div id="shopp">'.$content.'</div>';
+		
+		return apply_filters('shopp_account_template','<div id="shopp">'.$content.'</div>');
+		
 	}
 	
 	/**
@@ -1884,20 +1789,20 @@ class Flow {
 			$Shopp->ShipCalcs = new ShipCalcs($Shopp->path);
 			$rates = $Shopp->Settings->get('shipping_rates');
 
-			$autherrors = array();
-			foreach ($rates as $method) {  
+			$Errors = &ShoppErrors();
+			foreach ((array)$rates as $method) {  
 				list($ShipCalcClass,$process) = split("::",$method['method']);    
 				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass])
 					&& $Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth) {
-						$response = $Shopp->ShipCalcs->modules[$ShipCalcClass]->verifyauth();
-						if (!empty($response)) $autherrors[] = $ShipCalcClass.": ".$response;
+						$Shopp->ShipCalcs->modules[$ShipCalcClass]->verifyauth();
+						if ($Errors->exist()) $autherrors = $Errors->get();
 					}
-					
-					
 			}
+			
 			if (!empty($autherrors)) {
 				$updated = __('Shipping settings saved but there were errors: ','Shopp');
-				foreach ($autherrors as $error) $updated .= '<p>'.$error.'</p>';
+				foreach ((array)$autherrors as $error) $updated .= '<p>'.$error->message().'</p>';
+				$Errors->reset();
 			}
 			
 		}
@@ -1944,23 +1849,39 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
+		$gateway_dir = SHOPP_PATH.DIRECTORY_SEPARATOR."gateways".DIRECTORY_SEPARATOR;
+		$payment_gateway = $this->Settings->get('payment_gateway');
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-payments');
 
 			// Update the accepted credit card payment methods
 			if (!empty($_POST['settings']['payment_gateway'])) {
-				$_POST['settings']['payment_gateway'] = stripslashes($_POST['settings']['payment_gateway']);
 				$gateway = $this->scan_gateway_meta($_POST['settings']['payment_gateway']);
 				$ProcessorClass = $gateway->tags['class'];
 				include_once($gateway->file);
 				$Processor = new $ProcessorClass();
 				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
 			}
+			if (is_array($_POST['settings']['xco_gateways'])) {
+				foreach($_POST['settings']['xco_gateways'] as $gateway) {
+					if (!file_exists($gateway_dir.$gateway)) continue;
+					$meta = $this->scan_gateway_meta($gateway_dir.$gateway);
+					$ProcessorClass = $meta->tags['class'];
+					include_once($gateway_dir.$gateway);
+					$Processor = new $ProcessorClass();
+				}
+			}
+			
 			do_action('shopp_save_payment_settings');
 			
 			$this->settings_save();
+			$payment_gateway = stripslashes($this->Settings->get('payment_gateway'));
+			
 			$updated = __('Shopp payments settings saved.','Shopp');
 		}
+
+		
 		
 		// Get all of the installed gateways
 		$data = $this->settings_get_gateways();
@@ -1984,6 +1905,8 @@ class Flow {
 	}
 	
 	function settings_update () {
+		global $Shopp;
+		
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
@@ -2052,6 +1975,7 @@ class Flow {
 	}
 	
 	function settings_system () {
+		global $Shopp;
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
@@ -2092,8 +2016,33 @@ class Flow {
 			$updated = __('Shopp system settings saved.','Shopp');
 		}
 		
+		$notifications = $this->Settings->get('error_notifications');
+		if (empty($notifications)) $notifications = array();
+		
+		$notification_errors = array(
+			SHOPP_TRXN_ERR => __("Transaction Errors","Shopp"),
+			SHOPP_AUTH_ERR => __("Login Errors","Shopp"),
+			SHOPP_ADDON_ERR => __("Add-on Errors","Shopp"),
+			SHOPP_COMM_ERR => __("Communication Errors","Shopp")
+			);
+		
+		$errorlog_levels = array(
+			0 => __("Disabled","Shopp"),
+			SHOPP_ERR => __("General Shopp Errors","Shopp"),
+			SHOPP_TRXN_ERR => __("Transaction Errors","Shopp"),
+			SHOPP_AUTH_ERR => __("Login Errors","Shopp"),
+			SHOPP_ADDON_ERR => __("Add-on Errors","Shopp"),
+			SHOPP_COMM_ERR => __("Communication Errors","Shopp"),
+			SHOPP_PHP_ERR => __("PHP Errors","Shopp"),
+			SHOPP_ALL_ERR => __("All Errors","Shopp"),
+			SHOPP_DEBUG_ERR => __("Debugging Messages","Shopp")
+			);
+								
 		$filesystems = array("db" => __("Database","Shopp"),"fs" => __("File System","Shopp"));
 		
+		if ($this->Settings->get('error_logging') > 0) {
+			$recentlog = $Shopp->ErrorLog->tail(500);
+		}
 		include(SHOPP_ADMINPATH."/settings/system.php");
 	}	
 	

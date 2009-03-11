@@ -6,7 +6,7 @@
  * your Shopp install under: .../wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 3 January, 2009
  * @package shopp
  **/
@@ -21,7 +21,6 @@ class UPSServiceRates {
 	var $conversion = 1;
 	var $Response = false;
 	var $requiresauth = true;
-	var $errors = array();
 	
 	var $codes = array(
 		"01" => "UPS Next Day Air",
@@ -146,7 +145,7 @@ class UPSServiceRates {
 		$this->Response = $this->send();
 		if (!$this->Response) return false;
 		if ($this->Response->getElement('Error')) {
-			$Cart->data->Errors[] = get_class($this).": ".$this->Response->getElementContent('ErrorDescription');
+			new ShoppError($this->Response->getElementContent('ErrorDescription'),'ups_rate_error',SHOPP_ADDON_ERR);
 			return false;
 		}
 
@@ -224,7 +223,7 @@ class UPSServiceRates {
 	function verifyauth () {         
 		$this->request = $this->build('1','Authentication test',1,'10012','US');
 		$Response = $this->send();
-		if ($Response->getElement('Error')) return $Response->getElementContent('ErrorDescription');
+		if ($Response->getElement('Error')) new ShoppError($Response->getElementContent('ErrorDescription'),'ups_verify_auth',SHOPP_ADDON_ERR);
 	}   
 	
 	function send () {   
@@ -242,7 +241,8 @@ class UPSServiceRates {
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);
-		if ($error = curl_error($connection)) $Shopp->Cart->data->Errors[] = get_class($this).": ".$error;
+		if ($error = curl_error($connection)) 
+			new ShoppError($error,'ups_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 
 		// echo '<!-- '. $buffer. ' -->';		

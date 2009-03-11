@@ -119,9 +119,12 @@ function duration ($start,$end) {
  * or $_POST['variable'] */
 function shopp_email ($template,$data=array()) {
 	
-	if ( file_exists($template) ) $f = file($template);
-	else die("Could not open the email template because the file does not exist or is not readable. ($template)");
-	
+	if (strpos($template,"\r\n") !== false) $f = split("\r\n",$template);
+	else {
+		if (file_exists($template)) $f = file($template);
+		else new ShoppError(__("Could not open the email template because the file does not exist or is not readable.","Shopp"),'email_template',SHOPP_ERR,array('template'=>$template));
+	}
+
 	$replacements = array(
 		"$" => "\\\$",		// Treat $ signs as literals
 		"€" => "&euro;",	// Fix euro symbols
@@ -136,6 +139,7 @@ function shopp_email ($template,$data=array()) {
 	$message = "";
 	$protected = array("from","to","subject","cc","bcc");
 	while ( list($linenum,$line) = each($f) ) {
+		$line = rtrim($line);
 		// Data parse
 		if ( preg_match_all("/\[(.+?)\]/",$line,$labels,PREG_SET_ORDER) ) {
 			while ( list($i,$label) = each($labels) ) {
@@ -150,7 +154,7 @@ function shopp_email ($template,$data=array()) {
 		}
 
 		// Header parse
-		if ( preg_match("/^(.+?):\s(.+)[\n|\r\n]$/",$line,$found) && !$in_body ) {
+		if ( preg_match("/^(.+?):\s(.+)$/",$line,$found) && !$in_body ) {
 			$header = $found[1];
 			$string = $found[2];
 			if (in_array(strtolower($header),$protected)) // Protect against header injection
@@ -161,14 +165,17 @@ function shopp_email ($template,$data=array()) {
 		}
 		
 		// Catches the first blank line to begin capturing message body
-		if ( $line == "\n" || $line == "\r\n" ) $in_body = true;
-		if ( $in_body ) $message .= $line;
+		if ( empty($line) ) $in_body = true;
+		if ( $in_body ) $message .= $line."\n";
 	}
 
 	if (!$debug) mail($to,$subject,$message,$headers);
 	else {
-		echo "TO: $to<BR>SUBJECT: $subject<BR>MESSAGE:<BR>$message<BR><BR>HEADERS:<BR>";
 		echo "<pre>";
+		echo "To: $to\n";
+		echo "Subject: $subject\n\n";
+		echo "Message:\n$message\n";
+		echo "Headers:\n";
 		print_r($headers);
 		echo "<pre>";
 		exit();		
@@ -672,7 +679,7 @@ function money ($amount,$format=false) {
 	if (!$format) $format = $locale['currency']['format'];
 	if (!$format) $format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
 
-	if ($format['indian']) $number = indian_number($amount,$format);
+	if (isset($format['indian'])) $number = indian_number($amount,$format);
 	else $number = number_format($amount, $format['precision'], $format['decimals'], $format['thousands']);
 	if ($format['cpos']) return $format['currency'].$number;
 	else return $number.$format['currency'];
@@ -687,7 +694,7 @@ function percentage ($amount,$format=false) {
 		$format['precision'] = 0;
 	}
 	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
-	if ($format['indian']) return indian_number($amount,$format);
+	if (isset($format['indian'])) return indian_number($amount,$format);
 	return number_format(round($amount), $format['precision'], $format['decimals'], $format['thousands']).'%';
 }
 
@@ -763,6 +770,15 @@ function build_query_request ($request=array()) {
 		$query .= "$name=$value";
 	}
 	return $query;
+}
+
+function readableFileSize($bytes,$precision=1) {
+	$units = array(__("bytes","Shopp"),"KB","MB","GB","TB","PB");
+	$sized = $bytes*1;
+	if ($sized == 0) return $sized;
+	$unit = 0;
+	while ($sized > 1024 && ++$unit) $sized = $sized/1024;
+	return round($sized,$precision)." ".$units[$unit];
 }
 
 // From WP 2.7.0 for backwards compatibility
