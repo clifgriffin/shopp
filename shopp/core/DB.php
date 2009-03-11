@@ -67,10 +67,9 @@ class DB extends Singleton {
 	}
 
 	function clean($data) {
-		 $data = is_array($data) || is_object($data) ?
-		 			 array_map(array(&$this,'clean'), $data) :
-		 			 stripslashes(rtrim($data));
-		 return $data;
+		if (is_array($data)) array_map(array(&$this,'clean'), $data);
+		if (is_string($data)) stripslashes(rtrim($data));
+		return $data;
 	}
 	
 	/**
@@ -124,58 +123,57 @@ class DB extends Singleton {
 		
 		// Go through each data property of the object
 		foreach(get_object_vars($object) as $property => $value) {
+			if (!isset($object->_datatypes[$property])) continue;				
+
 			// If the property is has a _datatype
 			// it belongs in the database and needs
 			// to be prepared
 			
-			if (isset($object->_datatypes[$property])) {				
 				
-				// Process the data
-				switch ($object->_datatypes[$property]) {
-					case "string":
-						// Escape characters in strings as needed
-						if (is_array($value)) $value = $this->escape(serialize($value));
-						$data[$property] = "'".$this->escape($value)."'";
-						break;	
-					case "list":
-						// If value is empty, skip setting the field
-						// so it inherits the default value in the db
-						if (!empty($value)) 
-							$data[$property] = "'$value'";
-						break;
-					case "date":
-						// If it's an empty date, set it to now()'s timestamp
-						if (is_null($value)) {
-							$data[$property] = "now()";
-						// If the date is an integer, convert it to an
-						// sql YYYY-MM-DD HH:MM:SS format
-						} elseif (is_int(intval($value))) {
-							$data[$property] = "'".mkdatetime($value)."'";
-						// Otherwise it's already ready, so pass it through
-						} else {
-							$data[$property] = "'$value'";
-						}
-						break;
-					case "int":
-					case "float":
-						
-						$value = preg_replace("/,/",".",$value); // Replace commas with periods
-						$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
-						$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
+			// Process the data
+			switch ($object->_datatypes[$property]) {
+				case "string":
+					// Escape characters in strings as needed
+					if (is_array($value)) $value = $this->escape(serialize($value));
+					$data[$property] = "'".$this->escape($value)."'";
+					break;	
+				case "list":
+					// If value is empty, skip setting the field
+					// so it inherits the default value in the db
+					if (!empty($value)) 
 						$data[$property] = "'$value'";
-						
-						if (empty($value)) $data[$property] = "'0'";
+					break;
+				case "date":
+					// If it's an empty date, set it to now()'s timestamp
+					if (is_null($value)) {
+						$data[$property] = "now()";
+					// If the date is an integer, convert it to an
+					// sql YYYY-MM-DD HH:MM:SS format
+					} elseif (is_int(intval($value))) {
+						$data[$property] = "'".mkdatetime($value)."'";
+					// Otherwise it's already ready, so pass it through
+					} else {
+						$data[$property] = "'$value'";
+					}
+					break;
+				case "int":
+				case "float":
+					
+					$value = preg_replace("/,/",".",$value); // Replace commas with periods
+					$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
+					$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
+					$data[$property] = "'$value'";
+					
+					if (empty($value)) $data[$property] = "'0'";
 
-						// Special exception for id fields
-						if ($property == "id" && empty($value)) $data[$property] = "NULL";
-						
-						break;
-					default:
-						// Anything not needing processing
-						// passes through into the object
-						$data[$property] = "'$value'";
-				}
-				
+					// Special exception for id fields
+					if ($property == "id" && empty($value)) $data[$property] = "NULL";
+					
+					break;
+				default:
+					// Anything not needing processing
+					// passes through into the object
+					$data[$property] = "'$value'";
 			}
 			
 		}
