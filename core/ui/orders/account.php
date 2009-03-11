@@ -6,4 +6,5 @@
 		<span><input type="submit" name="vieworder" value="View Order" /></span>
 	</li>
 </ul>
+<br class="clear" />
 </form>

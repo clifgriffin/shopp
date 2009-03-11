@@ -58,6 +58,7 @@ class GoogleCheckout {
 		$Response = $this->send($this->urls['checkout']);
 		
 		if (!empty($Response)) {
+			if ($Response->getElement('error')) return false;
 			$redirect = false;
 			$redirect = $Response->getElementContent('redirect-url');
 			if ($redirect) {
@@ -72,8 +73,6 @@ class GoogleCheckout {
 				header("Location: $redirect");
 				exit();
 			}
-			echo "An error occured";
-			exit();
 		}
 			
 		return false;	
@@ -338,10 +337,18 @@ class GoogleCheckout {
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);
+		if ($error = curl_error($connection)) 
+			new ShoppError($error,'google_checkout_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 
-		$Response = new XMLdata($buffer);
-		return $Response;
+		$this->Response = new XMLdata($buffer);
+		return $this->Response;
+	}
+	
+	function error () {
+		$message = $this->Response->getElementContent('error-message');
+		if (!empty($error->message)) 
+			return new ShoppError($message,'google_checkout_error',SHOPP_TRXN_ERR);
 	}
 		
 	function tag ($property,$options=array()) {
@@ -406,6 +413,7 @@ class GoogleCheckout {
 	}
 	
 	function saveSettings () {
+		global $Shopp;
 		// Build the Google Checkout API URL if Google Checkout is enabled
 		if (!empty($_POST['settings']['GoogleCheckout']['id']) && !empty($_POST['settings']['GoogleCheckout']['key'])) {
 			$GoogleCheckout = new GoogleCheckout();

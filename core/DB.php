@@ -60,16 +60,23 @@ class DB extends Singleton {
 	}
 	
 	/**
-	 * Escape contents of the string for safe insertion into the db */
-	function escape($string) {
+	 * Escape contents of data for safe insertion into the db */
+	function escape($data) {
 		// Prevent double escaping by stripping any existing escapes out
-		return addslashes(stripslashes($string));
+		return addslashes(stripslashes($data));
+	}
+
+	function clean($data) {
+		 $data = is_array($data) || is_object($data) ?
+		 			 array_map(array(&$this,'clean'), $data) :
+		 			 stripslashes(rtrim($data));
+		 return $data;
 	}
 	
 	/**
 	 * Send a query to the database */
 	function query($query, $output=true, $errors=true) {
-		if (_DEBUG_) $this->queries[] = $query;
+		if (SHOPP_DEBUG) $this->queries[] = $query;
 		$result = @mysql_query($query, $this->dbh);
 		// echo "<pre>QUERY: $query</pre>";
 	
@@ -101,8 +108,8 @@ class DB extends Singleton {
 	}
 		
 	function datatype($type) {
-		foreach($this->_datatypes as $datatype => $patterns) {
-			foreach($patterns as $pattern) {				
+		foreach((array)$this->_datatypes as $datatype => $patterns) {
+			foreach((array)$patterns as $pattern) {				
 				if (strpos($type,$pattern) !== false) return $datatype;
 			}
 		}
@@ -230,7 +237,8 @@ class DatabaseObject {
 			if (isset($Tables[$this->_table])) {
 				$this->_datatypes = $Tables[$this->_table]->_datatypes;
 				$this->_lists = $Tables[$this->_table]->_lists;
-				foreach($this->_datatypes as $property => $type) $this->{$property} = $this->_defaults[$property];
+				foreach($this->_datatypes as $property => $type) 
+					$this->{$property} = (isset($this->_defaults[$property]))?$this->_defaults[$property]:'';
 				return true;
 			}
 		}
@@ -385,11 +393,13 @@ class DatabaseObject {
 	 * Populate the object properties from a set of 
 	 * form post inputs  */
 	function updates($data,$ignores = array()) {
+		$db = DB::get();
+		
 		foreach ($data as $key => $value) {
 			if (!is_null($value) && 
 				!in_array($key,$ignores) && 
 				property_exists($this, $key) ) {
-				$this->{$key} = stripslashes_deep($value);
+				$this->{$key} = $db->clean($value);
 			}	
 		}
 	}
@@ -398,12 +408,14 @@ class DatabaseObject {
 	 * Copy property values from a given (like) object to this object
 	 * where the property names match */
 	function copydata ($Object,$prefix="") {
+		$db = DB::get();
+
 		$ignores = array("_datatypes","_table","_key","_lists","id","created","modified");
 		foreach(get_object_vars($Object) as $property => $value) {
 			$property = $prefix.$property;
 			if (property_exists($this,$property) && 
 				!in_array($property,$ignores)) 
-				$this->{$property} = stripslashes_deep($value);
+				$this->{$property} = $db->clean($value);
 		}
 	}
 

@@ -4,7 +4,7 @@
  * @class PayPalExpress
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.2
  * @copyright Ingenesis Limited, 26 August, 2008
  * @package Shopp
  **/
@@ -109,6 +109,7 @@ class PayPalExpress {
 				
 		$this->transaction = $this->encode($_);
 		$result = $this->send();
+		
 		if (!empty($result) && isset($result->token)){
 			if ($this->settings['testmode'] == "on") header("Location: {$this->sandbox_url}&token=".$result->token);
 			else header("Location: {$this->checkout_url}&token=".$result->token);
@@ -254,10 +255,11 @@ class PayPalExpress {
 	
 	function error () {
 		if (!empty($this->Response)) {
-			$Error = new stdClass();
-			$Error->code = $this->Response->l_errorcode[0];
-			$Error->message = $this->Response->l_shortmessage[0];
-			return $Error;
+			$code = $this->Response->l_errorcode[0];
+			$message = $this->Response->l_shortmessage[0];
+			if (empty($message)) return false;
+			return new ShoppError($message,'paypal_express_transacton_error',SHOPP_TRXN_ERR,
+				array('code'=>$code));
 		}
 	}
 		
@@ -278,9 +280,8 @@ class PayPalExpress {
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);   
-		if (curl_errno($connection))
-			echo 'Error: ' . curl_error($connection);
-
+		if ($error = curl_error($connection)) 
+			new ShoppError($error,'paypal_express_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 
 		$Response = $this->response($buffer);

@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.5 RC1
+Version: 1.0.5 b2
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.5 RC1");
+define("SHOPP_VERSION","1.0.5 b2");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -107,7 +107,7 @@ class Shopp {
 			$this->Flow->setup();
 		}
 		
-		add_action('init', array(&$this,'init'));
+		add_action('init', array(&$this,'init'),1);
 		add_action('init', array(&$this, 'ajax'));
 		add_action('init', array(&$this, 'xorder'));
 		add_action('init', array(&$this, 'tinymce'));
@@ -164,26 +164,20 @@ class Shopp {
 		$this->Cart = new Cart();
 		session_start();
 		
+		$Errors = &ShoppErrors();
+		if (SHOPP_ERROR_REPORTING >= SHOPP_PHP_ERR)
+			set_error_handler(array(&$Errors,'phperror'),E_ALL ^ E_NOTICE);
+		
+		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
+		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
+									$this->Settings->get('error_notifications'));
+				
 		$this->Catalog = new Catalog();
 		$this->ShipCalcs = new ShipCalcs($this->path);
 		
-		// Handle WordPress pre-logins
-		$authentication = $this->Settings->get('account_system');
-		if ($authentication == "wordpress") {
-			// See if the wordpress user is already logged in
-			get_currentuserinfo();
-			global $user_ID;
-
-			if (!empty($user_ID) && !$this->Cart->data->login) {
-				if ($Account = new Customer($user_ID,'wpuser')) {
-					$this->Flow->loggedin($Account);
-					$this->Cart->data->Order->Customer->wpuser = $user_ID;
-				}
-			}
-			if ($this->Cart->data->login)
-				add_action('wp_logout',array(&$this->Flow,'logout'));
-		}
-				  	
+		// Handle WordPress-processed logins
+		$this->Cart->logins();
+		
 	}
 
 	/**
@@ -356,7 +350,7 @@ class Shopp {
 		global $wp_query;
 		$object = $wp_query->get_queried_object();
 
-		if($_SERVER["HTTPS"] == "on") {
+		if(isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on") {
 			add_filter('option_siteurl', 'force_ssl');
 			add_filter('option_home', 'force_ssl');
 			add_filter('option_url', 'force_ssl');
@@ -708,11 +702,15 @@ class Shopp {
 		// echo "<pre>"; print_r($wp->query_vars); echo "</pre>";
 		
 		$type = "catalog";
-		if ($category = $wp->query_vars['shopp_category']) $type = "category";
-		if ($productid = $wp->query_vars['shopp_pid']) $type = "product";
-		if ($productname = $wp->query_vars['shopp_product']) $type = "product";
+		if (isset($wp->query_vars['shopp_category']) &&
+			$category = $wp->query_vars['shopp_category']) $type = "category";
+		if (isset($wp->query_vars['shopp_pid']) && 
+			$productid = $wp->query_vars['shopp_pid']) $type = "product";
+		if (isset($wp->query_vars['shopp_product']) && 
+			$productname = $wp->query_vars['shopp_product']) $type = "product";
 
-		if ($tag = $wp->query_vars['shopp_tag']) {
+		if (isset($wp->query_vars['shopp_tag']) && 
+			$tag = $wp->query_vars['shopp_tag']) {
 			$type = "category";
 			$category = "tag";
 		}
@@ -745,14 +743,14 @@ class Shopp {
 		if (!empty($category) || !empty($tag)) {
 			
 			switch ($category) {
-				case SearchResults::$slug: 
+				case SearchResults::$_slug: 
 					$this->Category = new SearchResults(array('search'=>$this->Cart->data->Search)); break;
-				case TagProducts::$slug: 
+				case TagProducts::$_slug: 
 					$this->Category = new TagProducts(array('tag'=>$tag)); break;
-				case BestsellerProducts::$slug: $this->Category = new BestsellerProducts(); break;
-				case NewProducts::$slug: $this->Category = new NewProducts(); break;
-				case FeaturedProducts::$slug: $this->Category = new FeaturedProducts(); break;
-				case OnSaleProducts::$slug: $this->Category = new OnSaleProducts(); break;
+				case BestsellerProducts::$_slug: $this->Category = new BestsellerProducts(); break;
+				case NewProducts::$_slug: $this->Category = new NewProducts(); break;
+				case FeaturedProducts::$_slug: $this->Category = new FeaturedProducts(); break;
+				case OnSaleProducts::$_slug: $this->Category = new OnSaleProducts(); break;
 				default:
 					$key = "id";
 					if (!preg_match("/^\d+$/",$category)) $key = "uri";
@@ -768,7 +766,7 @@ class Shopp {
 			$CategoryFilters =& $this->Cart->data->Category[$this->Category->slug];
 			
 			// Add new filters
-			if (is_array($_GET['shopp_catfilters'])) {
+			if (isset($_GET['shopp_catfilters']) && is_array($_GET['shopp_catfilters'])) {
 				$CategoryFilters = array_merge($CategoryFilters,$_GET['shopp_catfilters']);
 				if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
 			}
@@ -816,6 +814,7 @@ class Shopp {
 	 * checkout()
 	 * Handles checkout process */
 	function checkout ($wp) {
+		if (!isset($this->Cart->data->Order)) return;
 		$Order = $this->Cart->data->Order;
 
 		$gateway = false;
@@ -829,8 +828,8 @@ class Shopp {
 				$Payment = new $ProcessorClass();
 				if ($wp->query_vars['shopp_proc'] != "confirm-order") {
 					$Payment->checkout();
-					$this->Cart->data->OrderError = $Payment->error();
-					// echo "<pre>"; print_r($this->Cart->data->OrderError); echo "</pre>";
+					$this->Cart->data->Errors[] = $Payment->error();
+					// echo "<pre>"; print_r($this->Cart->data->Errors); echo "</pre>";
 				}
 			}
 		}
@@ -841,11 +840,7 @@ class Shopp {
 			return true;
 		}
 		if ($_POST['checkout'] != "process") return true;
-		if ($_POST['process-login'] == "login") {
-			if (isset($_POST['email-login'])) $this->Flow->login($_POST['email-login'],$_POST['password-login'],'email');
-			else if (isset($_POST['loginname-login'])) $this->Flow->login($_POST['loginname-login'],$_POST['password-login'],'loginname');
-			return true;
-		}
+		if ($_POST['process-login'] == "login") return true;
 		
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
 
@@ -890,7 +885,11 @@ class Shopp {
 		// If the cart's total changes at all, confirm the order
 		if ($estimatedTotal != $this->Cart->data->Totals->total || 
 				$this->Settings->get('order_confirmation') == "always") {
-			header("Location: ".$this->link('confirm-order',true));
+			$gateway = $this->Settings->get('payment_gateway');
+			$secure = true;
+			if (strpos($gateway,"TestMode") !== false || isset($wp->query_vars['shopp_xco'])) 
+				$secure = false;
+			header("Location: ".$this->link('confirm-order',$secure));
 			exit();
 		} else $this->Flow->order();
 
@@ -969,18 +968,18 @@ class Shopp {
 
 		// Grab query requests from permalink rewriting query vars
 		$admin = false;
-		$download = $wp->query_vars['shopp_download'];
-		$lookup = $wp->query_vars['shopp_lookup'];
+		$download = (isset($wp->query_vars['shopp_download']))?$wp->query_vars['shopp_download']:'';
+		$lookup = (isset($wp->query_vars['shopp_lookup']))?$wp->query_vars['shopp_lookup']:'';
 				
 		// Admin Lookups
-		if ($_GET['page'] == "shopp/lookup") {
+		if (isset($_GET['page']) && $_GET['page'] == "shopp/lookup") {
 			$admin = true;
 			$image = $_GET['id'];
 			$download = $_GET['download'];
 		}
 		
 		if (!empty($download)) $lookup = "download";
-		if (empty($lookup)) $lookup = $_GET['lookup'];
+		if (empty($lookup)) $lookup = (isset($_GET['lookup']))?$_GET['lookup']:'';
 		
 		switch($lookup) {
 			case "zones":
@@ -1081,7 +1080,7 @@ class Shopp {
 					header("Location: ".$this->link(''));
 					exit();
 				}
-			
+				
 				header("Content-type: ".$Asset->properties['mimetype']); 
 				header("Content-Disposition: inline; filename=\"".$Asset->name."\""); 
 				header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
@@ -1107,6 +1106,7 @@ class Shopp {
 	 * ajax ()
 	 * Handles AJAX request processing */
 	function ajax() {
+		if (!isset($_GET['action'])) return;
 		
 		switch($_GET['action']) {
 			
@@ -1245,12 +1245,16 @@ function shopp () {
 
 	$object = strtolower($args[0]);
 	$property = strtolower($args[1]);
-	$paramsets = $args[2];
+	$paramsets = (isset($args[2]))?$args[2]:'';
 	$paramsets = split("&",$paramsets);
 
 	$options = array();
-	foreach ($paramsets as $paramset) {
-		list($key,$value) = split("=",$paramset);
+	foreach ((array)$paramsets as $paramset) {
+		if (empty($paramset)) continue;
+		$key = $paramset;
+		$value = "";
+		if (strpos($paramset,"=") !== false) 
+			list($key,$value) = split("=",$paramset);
 		$options[strtolower($key)] = $value;
 	}
 	
@@ -1265,6 +1269,7 @@ function shopp () {
 		case "catalog": $result = $Shopp->Catalog->tag($property,$options); break;
 		case "product": $result = $Shopp->Product->tag($property,$options); break;
 		case "purchase": $result = $Shopp->Cart->data->Purchase->tag($property,$options); break;
+		case "customer": $result = $Shopp->Cart->data->Order->Customer->tag($property,$options); break;
 	}
 
 	// Force boolean result

@@ -4,7 +4,7 @@
  * @class AuthorizeNet
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
  **/
@@ -36,12 +36,9 @@ class AuthorizeNet {
 	}
 	
 	function error () {
-		if (!empty($this->Response)) {
-			$Error = new stdClass();
-			$Error->code = $this->Response->reasoncode;
-			$Error->message = $this->Response->reason;
-			return $Error;
-		}
+		if (!empty($this->Response)) 
+			return new ShoppError($this->Response->reason,'authorize_net_error',SHOPP_TRXN_ERR,
+				array('code'=>$this->Response->reasoncode));
 	}
 	
 	function build (&$Order) {
@@ -131,6 +128,8 @@ class AuthorizeNet {
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);
+		if ($error = curl_error($connection)) 
+			new ShoppError($error,'authorize_net_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 
 		$Response = $this->response($buffer);
@@ -203,7 +202,7 @@ class AuthorizeNet {
 				<input type="hidden" name="module[<?php echo basename(__FILE__); ?>]" value="AuthorizeNet" />
 			</td>
 		</tr>
-		<?
+		<?php
 	}
 	
 	function registerSettings () {

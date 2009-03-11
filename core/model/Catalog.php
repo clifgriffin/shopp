@@ -27,6 +27,7 @@ class Catalog extends DatabaseObject {
 		$db = DB::get();
 
 		if (!empty($filtering['limit'])) $filtering['limit'] = "LIMIT ".$filtering['limit'];
+		else $filtering['limit'] = "";
 		if (empty($filtering['where'])) $filtering['where'] = "(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))"; // No filtering, get them all
 		
 		$category_table = DatabaseObject::tablename(Category::$table);
@@ -173,9 +174,14 @@ class Catalog extends DatabaseObject {
 					$string .= '</script>';
 					
 				} else {
-					if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
+					$classes = "";
+					if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
+					if (!isset($options['hierarchy'])) $options['hierarchy'] = false;
+					$string = "";
 					$string .= $title.'<ul'.$classes.'>';
 					foreach ($this->categories as &$category) {
+						if (!isset($category->total)) $category->total = 0;
+						if (!isset($category->depth)) $category->depth = 0;
 						if (value_is_true($options['hierarchy']) && $depthlimit && 
 							$category->depth >= $depthlimit) continue;
 						if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
@@ -206,6 +212,7 @@ class Catalog extends DatabaseObject {
 				break;
 			case "views":
 				if (isset($Shopp->Category->controls)) return false;
+				$string = "";
 				$string .= '<ul class="views">';
 				if (isset($options['label'])) $string .= '<li>'.$options['label'].'</li>';
 				$string .= '<li><button type="button" class="grid"></button></li>';
@@ -281,7 +288,7 @@ class Catalog extends DatabaseObject {
 					else if (!empty($Shopp->Category->name)) $trail = '<li>'.$Shopp->Category->name.'</li>';
 					
 					// Build category names path by going from the target category up the parent chain
-					$parentkey = $this->categories[$Shopp->Category->id]->parent;
+					$parentkey = (!empty($Shopp->Category->id))?$this->categories[$Shopp->Category->id]->parent:0;
 					while ($parentkey != 0) {
 						$tree_category = $this->categories[$parentkey];
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$tree_category->uri;

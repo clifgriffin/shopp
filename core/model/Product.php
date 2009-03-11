@@ -28,6 +28,8 @@ class Product extends DatabaseObject {
 	var $specs = array();
 	var $ranges = array('max'=>array(),'min'=>array());
 	var $freeshipping = false;
+	var $priceloop = false;
+	var $specloop = false;
 	
 	function Product ($id=false,$key=false) {
 		$this->init(self::$table);
@@ -114,7 +116,8 @@ class Product extends DatabaseObject {
 
 			// Build object-specific selects and UNION them
 			$where = "";
-			$query .= (!empty($query))?" UNION ":"";
+			if (isset($query)) $query .= " UNION ";
+			else $query = "";
 			switch($rtype) {
 				case "prices":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."$set->_table.product=$id";
@@ -496,7 +499,7 @@ class Product extends DatabaseObject {
 				else $category = "new";
 				if (SHOPP_PERMALINKS) $url .= "$category/$this->slug/";
 				else $url = add_query_arg(
-						array('shopp_category' => $Shopp->Category->id, 
+						array('shopp_category' => ((!empty($Shopp->Category->id))?$Shopp->Category->id:$Shopp->Category->slug), 
 							  'shopp_pid' => $this->id),$url);
 				return $url;
 				break;
@@ -532,7 +535,8 @@ class Product extends DatabaseObject {
 				// if (empty($this->prices)) $this->load_prices();
 				$sale = false;
 				if (count($this->prices) > 1) {
-					foreach($this->prices as $pricetag) if ($pricetag->onsale == "on") $sale = true;
+					foreach($this->prices as $pricetag) 
+						if (isset($pricetag->onsale) && $pricetag->onsale == "on") $sale = true;
 					return $sale;
 				} else return ($this->prices[0]->onsale == "on")?true:false;
 				break;
@@ -572,7 +576,8 @@ class Product extends DatabaseObject {
 				return $this->freeshipping;
 			case "thumbnail":
 				if (empty($this->imagesets)) $this->load_data(array('images'));
-				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+				if (empty($options['class'])) $options['class'] = '';
+				else $options['class'] = ' class="'.$options['class'].'"';
 				if (isset($this->thumbnail)) {
 					$img = $this->thumbnail;
 					return '<img src="'.$img->uri.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
@@ -632,6 +637,7 @@ class Product extends DatabaseObject {
 				}
 				$previews .= '</ul>';
 				
+				$thumbs = "";
 				if (count($this->imagesets['thumbnail']) > 1) {
 					$thumbsize = 32;
 					if (isset($options['thumbsize'])) $thumbsize = $options['thumbsize'];
@@ -849,9 +855,12 @@ class Product extends DatabaseObject {
 			case "quantity":
 				if (!isset($options['value'])) $options['value'] = 1;
 				if (!isset($options['input'])) $options['input'] = "text";
+				if (!isset($options['labelpos'])) $options['labelpos'] = "before";
+				if (!isset($options['label'])) $label ="";
+				else $label = '<label for="quantity'.$this->id.'">'.$options['label'].'</label>';
 				
-				if (isset($options['label'])) $label = '<label for="quantity'.$this->id.'">'.$options['label'].'</label>';
-				if (!isset($options['labelpos']) || $options['labelpos'] == "before") $result .= "$label ";
+				$result = "";
+				if ($options['labelpos'] == "before") $result .= "$label ";
 				
 				if (!$this->priceloop) reset($this->prices);
 				$variation = current($this->prices);
@@ -874,7 +883,7 @@ class Product extends DatabaseObject {
 					$result .= '<select name="products['.$this->id.'][quantity]" id="quantity-'.$this->id.'">';
 					foreach ($qtys as $qty) {
 						$amount = $qty;
-						$selected = $this->quantity;
+						$selected = (isset($this->quantity))?$this->quantity:1;
 						if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
 							if ($variation->donation['min'] == "on" && $amount < $variation->price) continue;
 							$amount = money($amount);
@@ -926,10 +935,11 @@ class Product extends DatabaseObject {
 				return $result;
 				break;
 			case "buynow":
-				if (!isset($options['value'])) $options['value'] = "Buy Now";
+				if (!isset($options['value'])) $options['value'] = __("Buy Now","Shopp");
 			case "addtocart":
 				if (!isset($options['class'])) $options['class'] = "addtocart";
-				if (!isset($options['value'])) $options['value'] = "Add to Cart";
+				else $options['class'] .= " addtocart";
+				if (!isset($options['value'])) $options['value'] = __("Add to Cart","Shopp");
 				$string = "";
 				$string .= '<input type="hidden" name="products['.$this->id.'][product]" value="'.$this->id.'" />';
 
@@ -944,7 +954,7 @@ class Product extends DatabaseObject {
 					if (SHOPP_PERMALINKS)
 						$string .= '<input type="hidden" name="products['.$this->id.'][category]" value="'.$Shopp->Category->uri.'" />';
 					else
-						$string .= '<input type="hidden" name="products['.$this->id.'][category]" value="'.$Shopp->Category->id.'" />';
+						$string .= '<input type="hidden" name="products['.$this->id.'][category]" value="'.((!empty($Shopp->Category->id))?$Shopp->Category->id:$Shopp->Category->slug).'" />';
 				}
 
 				$string .= '<input type="hidden" name="cart" value="add" />';

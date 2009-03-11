@@ -4,7 +4,7 @@
  * @class PayPalPro
  *
  * @author Jonathan Davis
- * @version 1.0.3
+ * @version 1.0.4
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  **/
@@ -40,10 +40,10 @@ class PayPalPro {
 	
 	function error () {
 		if (!empty($this->Response)) {
-			$Error = new stdClass();
-			$Error->code = $this->Response->errorcodes[0];
-			$Error->message = $this->Response->longerror[0];
-			return $Error;
+			$message = $this->Response->longerror[0];
+			$code = $this->Response->errorcodes[0];
+			if (empty($message)) return false;
+			return new ShoppError($message,'paypal_pro_transaction_error',SHOPP_TRXN_ERR);
 		}
 	}
 	
@@ -150,6 +150,8 @@ class PayPalPro {
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);
+		if ($error = curl_error($connection)) 
+			new ShoppError($error,'paypal_pro_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 
 		$Response = $this->response($buffer);

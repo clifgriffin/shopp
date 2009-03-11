@@ -51,12 +51,12 @@ class Settings extends DatabaseObject {
 		$db = DB::get();
 		$Setting = $this->setting();
 		$Setting->name = $name;
-		$Setting->value = $value;
+		$Setting->value = $db->clean($value);
 		$Setting->autoload = ($autoload)?'on':'off';
 
 		$data = $db->prepare($Setting);
 		$dataset = DatabaseObject::dataset($data);
-		$this->registry[$name] = $value;
+		$this->registry[$name] = $db->clean($value);
 		if (!$db->query("INSERT $this->_table SET $dataset")) return false;
 		return true;
 	}
@@ -79,12 +79,12 @@ class Settings extends DatabaseObject {
 
 		$Setting = $this->setting();
 		$Setting->name = $name;
-		$Setting->value = $value;
+		$Setting->value = $db->clean($value);
 		unset($Setting->autoload);
 		$data = $db->prepare($Setting);				// Prepare the data for db entry
 		$dataset = DatabaseObject::dataset($data);	// Format the data in SQL
 		
-		$this->registry[$name] = $value;			// Update the value in the registry
+		$this->registry[$name] = $db->clean($value);			// Update the value in the registry
 		if (!$db->query("UPDATE $this->_table SET $dataset WHERE name='$Setting->name'")) return false;
 		return true;
 	}

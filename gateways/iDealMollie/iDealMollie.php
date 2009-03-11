@@ -159,12 +159,12 @@ class iDealMollie {
 	
 	function error () {
 		if (empty($this->Response)) return false;
-		if (!$this->Response->getElement('errorcode')) return false;
-
-		$Error = new stdClass();
-		$Error->code = $this->Response->getElementContent('errorcode');
-		$Error->message = $this->Response->getElementContent('message');
-		return $Error;
+		$code = $this->Response->getElement('errorcode');
+		$message = $this->Response->getElementContent('message');
+		if (!$code) return false;
+		
+		return new ShoppError($message,'ideal_mollie_transaction_error',SHOPP_TRXN_ERR,
+			array('code'=>$code));
 	}
 		
 	function send () {
@@ -183,8 +183,7 @@ class iDealMollie {
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);   
 		if (curl_errno($connection))
-			echo 'Error: ' . curl_error($connection);
-
+			new ShoppError(curl_error($connection),'ideal_mollie_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 
 		$this->Response = new XMLdata($buffer);
@@ -258,7 +257,7 @@ class iDealMollie {
 		
 				<p><input type="text" name="settings[iDealMollie][account]" id="idealmollie-account" size="30" value="<?php echo $this->settings['account']; ?>"/><br />
 				<?php _e('Enter your iDeal Mollie account ID.','Shopp'); ?></p>
-				<p><label for="idealmollie-testmode"><input type="hidden" name="settings[iDealMollie][testmode]" value="off" /><input type="checkbox" name="settings[iDealMollie][testmode]" id="idealmollie-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><php _e('Enable test mode','Shopp'); ?></label></p>
+				<p><label for="idealmollie-testmode"><input type="hidden" name="settings[iDealMollie][testmode]" value="off" /><input type="checkbox" name="settings[iDealMollie][testmode]" id="idealmollie-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable test mode','Shopp'); ?></label></p>
 				
 				<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
 				

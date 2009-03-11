@@ -87,7 +87,15 @@
 			<?php if ($Purchase->discount > 0): ?>
 			<tr class="totals">
 				<th scope="row" colspan="3" class="total"><?php _e('Discount','Shopp'); ?></th>
-				<td class="money">-<?php echo money($Purchase->discount); ?></td>
+				<td class="money">-<?php echo money($Purchase->discount); ?>
+					<?php if (!empty($Purchase->promos)): ?>
+					<ul class="promos">
+					<?php foreach ($Purchase->promos as $pid => $promo): ?>
+						<li><small><a href="?page=shopp/promotions&amp;promotion=<?php echo $pid; ?>"><?php echo $promo; ?></a></small></li>
+					<?php endforeach; ?>
+					</ul>
+					<?php endif; ?>
+					</td>
 			</tr>
 			<?php endif; ?>
 			<?php if ($Purchase->freight > 0): ?>

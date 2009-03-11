@@ -4,7 +4,7 @@
  * @class HSBCepayments
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
  **/
@@ -43,11 +43,12 @@ class HSBCepayments {
 	
 	function error () {
 		if (!empty($this->Response)) {
-			$Error = new stdClass();
-			$Error->code = $this->Response->getElementContent('CcErrCode');
-			$Error->message = $this->Response->getElementContent('CcReturnMsg');
-			if (empty($Error->message)) $Error->message = __("A configuration error occurred while processing this transaction.  Please contact the site administrator.");
-			return $Error;
+			$message = $this->Response->getElementContent('CcReturnMsg');
+			$code = $this->Response->getElementContent('CcErrCode');
+			if (empty($message))
+				return new ShoppError(__("A configuration error occurred while processing this transaction. Please contact the site administrator.","Shopp"),'hsbc_transaction_error',SHOPP_TRXN_ERR);			
+			return new ShoppError($message,'hsbc_transaction_error',SHOPP_TRXN_ERR,
+				array('code'=>$code));
 		}
 	}
 	
@@ -130,57 +131,14 @@ class HSBCepayments {
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);
+		if ($error = curl_error($connection)) 
+			new ShoppError($error,'hsbc_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 
 		$Response = new XMLdata($buffer);
 		return $Response;
 	}
-	
-	function response ($buffer) {
-		$_ = new stdClass();
-		list($_->code,
-			 $_->subcode,
-			 $_->reasoncode,
-			 $_->reason,
-			 $_->authcode,
-			 $_->avs,
-			 $_->transactionid,
-			 $_->invoicenum,
-			 $_->description,
-			 $_->amount,
-			 $_->method,
-			 $_->type,
-			 $_->customerid,
-			 $_->firstname,
-			 $_->lastname,
-			 $_->company,
-			 $_->address,
-			 $_->city,
-			 $_->state,
-			 $_->zip,
-			 $_->country,
-			 $_->phone,
-			 $_->fax,
-			 $_->email,
-			 $_->ship_to_first_name,
-			 $_->ship_to_last_name,
-			 $_->ship_to_company,
-			 $_->ship_to_address,
-			 $_->ship_to_city,
-			 $_->ship_to_state,
-			 $_->ship_to_zip,
-			 $_->ship_to_country,
-			 $_->tax,
-			 $_->duty,
-			 $_->freight,
-			 $_->taxexempt,
-			 $_->ponum,
-			 $_->md5hash,
-			 $_->cvv2code,
-			 $_->cvv2response) = split(",",$buffer);
-		return $_;
-	}
-	
+		
 	function settings () {
 		global $Shopp;
 		
@@ -204,7 +162,7 @@ class HSBCepayments {
 				
 			</td>
 		</tr>
-		<?
+		<?php
 	}
 	
 	function registerSettings () {

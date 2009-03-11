@@ -6,7 +6,7 @@
  * to your Shopp install under: .../wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 22 January, 2009
  * @package shopp
  **/
@@ -150,7 +150,7 @@ class FedExRates {
 		if (!$this->Response) return false;
 		if ($this->Response->HighestSeverity == 'FAILURE' || 
 		 		$this->Response->HighestSeverity == 'ERROR') {
-			$Cart->data->Errors[] = $this->Response->Notifications->Message;
+			new ShoppError($this->Response->Notifications->Message,'fedex_rate_error',SHOPP_ADDON_ERR);
 			exit();
 			return false;
 		}
@@ -256,7 +256,8 @@ class FedExRates {
 		$this->request = $this->build('1','Authentication test',1,'10012','US');
 		$response = $this->send();       
 		if ($response->HighestSeverity == 'FAILURE' || 
-		 	$response->HighestSeverity == 'ERROR') return $response->Notifications->Message;
+		 	$response->HighestSeverity == 'ERROR') 
+		 	new ShoppError($response->Notifications->Message,'fedex_verify_auth',SHOPP_ADDON_ERR);
 	}   
 	
 	function send () {
@@ -267,7 +268,7 @@ class FedExRates {
 			$client = new SoapClient($this->wsdl, array('trace' => 1));
 			$response = $client->getRates($this->request);
 		} catch (Exception $e) {
-			$Shopp->Cart->data->Errors[] = __("FedEx could not be reached for realtime rates.");
+			new ShoppError(__("FedEx could not be reached for realtime rates.","Shopp"),'fedex_connection',SHOPP_COMM_ERR);
 			return false;
 		}
 	    

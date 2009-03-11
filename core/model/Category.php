@@ -18,6 +18,7 @@ class Category extends DatabaseObject {
 	var $child = false;
 	var $imguri = "";
 	var $productidx = 0;
+	var $productloop = false;
 	var $products = array();
 	var $pricing = array();
 	var $filters = array();
@@ -144,7 +145,7 @@ class Category extends DatabaseObject {
 		
 		$this->paged = false;
 		$this->pagination = $Shopp->Settings->get('catalog_pagination');
-		$this->page = $wp->query_vars['paged'];
+		$this->page = (isset($wp->query_vars['paged']))?$wp->query_vars['paged']:1;
 		
 		if (empty($this->page)) $this->page = 1;
 		
@@ -154,6 +155,7 @@ class Category extends DatabaseObject {
 		else $loading = array_merge($this->loading,$loading);
 		
 		if (!empty($loading['columns'])) $loading['columns'] = ", ".$loading['columns'];
+		else $loading['columns'] = '';
 		
 		// Handle default WHERE clause
 		if (empty($loading['where'])) $loading['where'] = "catalog.category=$this->id";
@@ -162,6 +164,7 @@ class Category extends DatabaseObject {
 		if (!isset($loading['nostock']))
 			$loading['having'] = "HAVING (inventory=0 OR (inventory=1 AND stock > 0))";
 
+		if (!isset($loading['joins'])) $loading['joins'] = '';
 		if (!empty($Shopp->Cart->data->Category[$this->slug])) {
 			$spectable = DatabaseObject::tablename(Spec::$table);
 			
@@ -200,21 +203,22 @@ class Category extends DatabaseObject {
 			
 		}
 		
-		if (empty($loading['order'])) {
-			switch ($Shopp->Cart->data->Category['orderby']) {
-				case "bestselling":
-					$purchasedtable = DatabaseObject::tablename(Purchased::$table);
-					$loading['columns'] .= ',count(DISTINCT pur.id) AS sold';
-					$loading['joins'] .= "LEFT JOIN $purchasedtable AS pur ON p.id=pur.product";
-					$loading['order'] = "sold DESC"; 
-					break;
-				case "highprice": $loading['order'] = "pd.price DESC"; break;
-				case "lowprice": $loading['order'] = "pd.price ASC"; break;
-				case "newest": $loading['order'] = "pd.created DESC"; break;
-				case "oldest": $loading['order'] = "pd.created ASC"; break;
-				case "random": $loading['order'] = "RAND()"; break;
-				default: $loading['order'] = "p.name ASC";
-			}
+		$ordering = isset($Shopp->Cart->data->Category['orderby'])?
+						$Shopp->Cart->data->Category['orderby']:'';
+		if (!empty($loading['order'])) $ordering = $loading['order'];
+		switch ($ordering) {
+			case "bestselling":
+				$purchasedtable = DatabaseObject::tablename(Purchased::$table);
+				$loading['columns'] .= ',count(DISTINCT pur.id) AS sold';
+				$loading['joins'] .= "LEFT JOIN $purchasedtable AS pur ON p.id=pur.product";
+				$loading['order'] = "sold DESC"; 
+				break;
+			case "highprice": $loading['order'] = "pd.price DESC"; break;
+			case "lowprice": $loading['order'] = "pd.price ASC"; break;
+			case "newest": $loading['order'] = "pd.created DESC"; break;
+			case "oldest": $loading['order'] = "pd.created ASC"; break;
+			case "random": $loading['order'] = "RAND()"; break;
+			default: $loading['order'] = "p.name ASC";
 		}
 		
 		if (empty($loading['limit'])) {
@@ -321,7 +325,8 @@ class Category extends DatabaseObject {
 			$this->products[$product->id]->populate($product);
 			
 			// Special field for Bestseller category
-			if ($product->sold) $this->products[$product->id]->sold = $product->sold;
+			if (isset($product->sold) && $product->sold) 
+				$this->products[$product->id]->sold = $product->sold;
 
 			if (!empty($product->thumbnail)) {
 				$image = new stdClass();
@@ -348,7 +353,7 @@ class Category extends DatabaseObject {
 		global $Shopp;
 		$db = DB::get();
 
-		if (!$this->products) $this->load_products();
+		if (!$this->products) $this->load_products(array('limit'=>500));
 
 		if (SHOPP_PERMALINKS) $rssurl = $Shopp->shopuri.'feed';
 		else $rssurl = add_query_arg('shopp_lookup','products-rss',$Shopp->shopuri);
@@ -832,12 +837,12 @@ class Category extends DatabaseObject {
 } // end Category class
 
 class NewProducts extends Category {
-	static $slug = "new";
+	static $_slug = "new";
 	
 	function NewProducts ($options=array()) {
 		$this->name = __("New Products","Shopp");
 		$this->parent = 0;
-		$this->slug = NewProducts::$slug;
+		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$this->loading = array('where'=>"p.id IS NOT NULL",'order'=>'p.created DESC');
@@ -848,12 +853,12 @@ class NewProducts extends Category {
 }
 
 class FeaturedProducts extends Category {
-	static $slug = "featured";
+	static $_slug = "featured";
 	
 	function FeaturedProducts ($options=array()) {
 		$this->name = __("Featured Products","Shopp");
 		$this->parent = 0;
-		$this->slug = FeaturedProducts::$slug;
+		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$this->loading = array('where'=>"p.featured='on'",'order'=>'p.modified DESC');
@@ -863,12 +868,12 @@ class FeaturedProducts extends Category {
 }
 
 class OnSaleProducts extends Category {
-	static $slug = "onsale";
+	static $_slug = "onsale";
 	
 	function OnSaleProducts ($options=array()) {
 		$this->name = __("On Sale","Shopp");
 		$this->parent = 0;
-		$this->slug = OnSaleProducts::$slug;
+		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$this->loading = array('where'=>"pd.sale='on' OR pr.discount > 0",'order'=>'p.modified DESC');
@@ -878,12 +883,12 @@ class OnSaleProducts extends Category {
 }
 
 class BestsellerProducts extends Category {
-	static $slug = "bestsellers";
+	static $_slug = "bestsellers";
 	
 	function BestsellerProducts ($options=array()) {
 		$this->name = __("Bestsellers","Shopp");
 		$this->parent = 0;
-		$this->slug = BestsellerProducts::$slug;
+		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
@@ -900,13 +905,13 @@ class BestsellerProducts extends Category {
 }
 
 class SearchResults extends Category {
-	static $slug = "search-results";
+	static $_slug = "search-results";
 	
 	function SearchResults ($options=array()) {
 		if (empty($options['search'])) $options['search'] = "(no search terms)";
 		$this->name = __("Search Results for","Shopp")." &quot;".stripslashes($options['search'])."&quot;";
 		$this->parent = 0;
-		$this->slug = SearchResults::$slug;
+		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
 
@@ -922,7 +927,7 @@ class SearchResults extends Category {
 }
 
 class TagProducts extends Category {
-	static $slug = "tag";
+	static $_slug = "tag";
 	
 	function TagProducts ($options=array()) {
 		$tagtable = DatabaseObject::tablename(Tag::$table);
@@ -930,7 +935,7 @@ class TagProducts extends Category {
 		$this->tag = $options['tag'];
 		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($options['tag'])."&quot;";
 		$this->parent = 0;
-		$this->slug = TagProducts::$slug;
+		$this->slug = self::$_slug;
 		$this->uri = urlencode($options['tag']);
 		$this->smart = true;
 		$this->loading = array(
@@ -942,12 +947,12 @@ class TagProducts extends Category {
 }
 
 class RandomProducts extends Category {
-	static $slug = "random";
+	static $_slug = "random";
 	
 	function RandomProducts ($options=array()) {
 		$this->name = __("Random Products","Shopp");
 		$this->parent = 0;
-		$this->slug = RandomProducts::$slug;
+		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$this->loading = array('where'=>'true','order'=>'RAND()');

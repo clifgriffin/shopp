@@ -741,7 +741,6 @@ function ImageUploads (params) {
 			this.sorting = sorting;			
 		},
 		onComplete: function(results) {
-			console.log(results);
 			if (results == "") {
 				$(this.targetHolder).remove();
 				alert(SERVER_COMM_ERROR);
@@ -825,8 +824,7 @@ function ImageUploads (params) {
 	}
 
 	function imageUploadSuccess (file, results) {
-		console.log(results);
-		// var image = eval('('+results+')');
+		var image = eval('('+results+')');
 		if (image.error) {
 			$(this.targetHolder).remove();
 			alert(image.error);
