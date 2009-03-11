@@ -6,7 +6,7 @@
 	<ul>
 		<?php if (shopp('checkout','notloggedin')): ?>
 		<li>
-			<label for="login">Your Account</label>
+			<label for="login">Login to Your Account</label>
 			<span><?php shopp('checkout','email-login','size=20&title=Login'); ?><label for="login">Email</label></span>
 			<span><?php shopp('checkout','password-login','size=20&title=Password'); ?><label for="password">Password</label></span>
 			<span><?php shopp('checkout','submit-login','value=Login'); ?></span>
