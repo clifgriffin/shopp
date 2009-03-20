@@ -1,4 +1,7 @@
 <div class="wrap shopp">
+
+	<div id="shopp-jsconflict" class="error"><p><?php jscrash_error(); ?></p></div>
+
 	<h2><?php _e('Promotion Editor','Shopp'); ?></h2>
 	
 	<form name="promotion" id="promotion" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
@@ -67,6 +70,8 @@
 helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
 
 $=jQuery.noConflict();
+
+$('#shopp-jsconflict').hide();
 
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 var rules = <?php echo json_encode($Promotion->rules); ?>;

@@ -235,6 +235,7 @@ class iDealMollie {
 		$Response = $this->send();
 	
 		if ($banks = $Response->getElement('bank')) {
+			$result .= '<li>';
 			$result .= '<label for="idealmollie-bank">iDeal Payment</label>';
 			$result .= '<span><select name="idealmollie-bank" id="idealmollie-bank">';
 			foreach ($banks as $bank) {
@@ -245,6 +246,7 @@ class iDealMollie {
 			}
 			$result .= '</select>';
 			$result .= '<label for="idealmollie-bank">iDeal Bank</label></span>';
+			$result .= '</li>';
 		}
 		return $result;
 	}

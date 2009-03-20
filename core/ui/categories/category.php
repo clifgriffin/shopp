@@ -2,6 +2,8 @@
 	<h2><?php _e('Category Editor','Shopp'); ?></h2>
 
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
+	<div id="shopp-jsconflict" class="error"><p><?php jscrash_error(); ?></p></div>
+	
 	<br class="clear" />
 
 	<?php $action = (!empty($Category->id))?$Category->id:'new'; ?>
@@ -218,8 +220,9 @@ var pricesPayload = false;
 
 $=jQuery.noConflict();
 
-
 $(window).ready(function () {
+	$('#shopp-jsconflict').hide();
+	
 	var editslug = new SlugEditor(category,'category');
 	var imageUploads = new ImageUploads({"category" : $('#image-category-id').val()});
 	

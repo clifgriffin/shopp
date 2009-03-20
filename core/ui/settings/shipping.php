@@ -179,6 +179,8 @@ function uniqueMethod (methodid,option) {
 	
 	methodMenu.change(function() {
 		if ($(this).val() != option) {
+			$('#name-'+methodid).show();
+			$('#delivery-'+methodid).show();
 			$('#shipping-rates select.methods option[value='+option+']').each(function () {
 				$(this).attr('disabled',false);
 			});

@@ -220,8 +220,10 @@ class Item {
 			case "optionlabel": $result = $this->optionlabel; break;
 			case "options":
 				$class = "";
-				if (strtolower($options['show']) == "selected") 
-					return (!empty($this->optionlabel))?$options['before'].$this->optionlabel.$options['after']:'';
+				if (isset($options['show']) && 
+					strtolower($options['show']) == "selected") 
+					return (!empty($this->optionlabel))?
+						$options['before'].$this->optionlabel.$options['after']:'';
 					
 				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
 				if (count($this->options) > 1) {

@@ -12,9 +12,9 @@
 define("AS_ARRAY",false);
 define("SHOPP_DBPREFIX","shopp_");
 
-class Singleton {
+class DBSingleton {
 	private static $instance;
-	private function Singleton() {}
+	private function DBSingleton() {}
 	function __clone() { trigger_error('Clone is not allowed.', E_USER_ERROR); }
 
 	static function &get() {
@@ -24,7 +24,7 @@ class Singleton {
 	}
 }
 
-class DB extends Singleton {
+class DB extends DBSingleton {
 	// Define datatypes for MySQL
 	var $_datatypes = array("int" => array("int", "bit", "bool", "boolean"),
 							"float" => array("float", "double", "decimal", "real"),
@@ -149,7 +149,7 @@ class DB extends Singleton {
 						$data[$property] = "now()";
 					// If the date is an integer, convert it to an
 					// sql YYYY-MM-DD HH:MM:SS format
-					} elseif (is_int(intval($value))) {
+					} elseif (!empty($value) && is_int(intval($value))) {
 						$data[$property] = "'".mkdatetime($value)."'";
 					// Otherwise it's already ready, so pass it through
 					} else {
@@ -235,8 +235,12 @@ class DatabaseObject {
 			if (isset($Tables[$this->_table])) {
 				$this->_datatypes = $Tables[$this->_table]->_datatypes;
 				$this->_lists = $Tables[$this->_table]->_lists;
-				foreach($this->_datatypes as $property => $type) 
-					$this->{$property} = (isset($this->_defaults[$property]))?$this->_defaults[$property]:'';
+				foreach($this->_datatypes as $property => $type) {
+					$this->{$property} = (isset($this->_defaults[$property]))?
+						$this->_defaults[$property]:'';
+					if (empty($this->{$property}) && $type == "date")
+						$this->{$property} = null;
+				}
 				return true;
 			}
 		}
@@ -250,7 +254,7 @@ class DatabaseObject {
 			$this->{$property} = $object->Default;
 			$this->_datatypes[$property] = $db->datatype($object->Type);
 			$this->_defaults[$property] = $object->Default;
-						
+			
 			// Grab out options from list fields
 			if ($db->datatype($object->Type) == "list") {
 				$values = str_replace("','", ",", substr($object->Type,strpos($object->Type,"'")+1,-2));

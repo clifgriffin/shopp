@@ -79,6 +79,8 @@ helpurl = "<?php echo SHOPP_DOCS; ?>System_Settings";
 	$('#product-storage').ready(function () {
 		if ($('#product-storage').val() == 'db') $('#products-path-settings').hide();
 	});
+	
+	$('#errorlog').scrollTop($('#errorlog').attr('scrollHeight'));
 
 })(jQuery);
 

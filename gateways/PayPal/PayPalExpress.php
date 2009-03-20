@@ -255,8 +255,8 @@ class PayPalExpress {
 	
 	function error () {
 		if (!empty($this->Response)) {
-			$code = $this->Response->l_errorcode[0];
-			$message = $this->Response->l_shortmessage[0];
+			
+			$message = join("; ",$this->Response->l_longmessage);
 			if (empty($message)) return false;
 			return new ShoppError($message,'paypal_express_transacton_error',SHOPP_TRXN_ERR,
 				array('code'=>$code));

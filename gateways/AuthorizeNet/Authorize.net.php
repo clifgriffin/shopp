@@ -97,7 +97,7 @@ class AuthorizeNet {
 		// Line Items
 		$i = 1;
 		foreach($Order->Items as $Item) {
-			$_['x_line_item'][] = ($i++)."<|>".substr($Item->name,0,31)."<|>".((sizeof($Item->options) > 1)?" (".substr($Item->optionlabel,0,253).")":"")."<|>".number_format($Item->quantity,2)."<|>".number_format($Item->unitprice,2)."<|>".(($Item->tax)?"Y":"N");
+			$_['x_line_item'][] = ($i++)."<|>".substr($Item->name,0,31)."<|>".((sizeof($Item->options) > 1)?" (".substr($Item->optionlabel,0,253).")":"")."<|>".number_format($Item->quantity,2)."<|>".number_format($Item->unitprice,2,'.','')."<|>".(($Item->tax)?"Y":"N");
 		}
 
 		$this->transaction = "";

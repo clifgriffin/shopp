@@ -114,12 +114,8 @@ function addDetail (data) {
 
 function loadVariations (options,prices) {
 	if (options) {
-		if (options.variations) {
-			for (key in options.variations) addVariationOptionsMenu(options.variations[key]);	
-		} else {
-			for (key in options) addVariationOptionsMenu(options[key]);
-		}
-		
+		for (key in options) addVariationOptionsMenu(options[key]);
+
 		for (key in prices) {
 			if (prices[key].context == "variation")
 				addPriceLine('#variations-pricing',prices[key].options.split(","),prices[key]);
@@ -133,14 +129,12 @@ function addVariationOptionsMenu (data) {
 	var entries = $('#variations-list');
 	var addOptionButton = $('#addVariationOption');
 	var id = variationsidx;
-
-	if (data && data.menuid) data = convertLegacyOptions(data);
 	
 	var menu = new NestedMenu(id,menus,'options','Option Menu',data,
 		{target:entries,type:'list'},
 		{'axis':'y','update':function() { orderOptions(menus,entries) }}
 	);
-
+	
 	menu.addOption = function (data) {
 		var init = false;
 		
@@ -196,25 +190,6 @@ function addVariationOptionsMenu (data) {
 		menu.remove();
 	});
 	
-}
-
-// Reformat old options data structure to new structure
-function convertLegacyOptions (olddata) {
-	var data = new Array();
-	
-	data.id = olddata.menuid;
-	data.name = olddata.menu;
-	
-	var i = 0;
-	data.options = new Array();
-	for (var o in olddata.id) {
-		data.options[i] = new Object();
-		data.options[i].id = olddata.id[o];
-		data.options[i].name = olddata.label[o];
-		i++;
-	}
-	
-	return data;
 }
 
 /**
@@ -340,6 +315,32 @@ function deleteVariationPrices (optionids,reduce) {
 	});
 
 }
+
+function optionMenuExists (label) {
+	if (!label) return false;
+	var found = false;
+	$.each(optionMenus,function (id,menu) {
+		if (menu && $(menu.label).val() == label) {
+			found = id;
+			return true;
+		}
+	});
+	if (optionMenus[found]) return optionMenus[found];
+	return found;
+}
+
+function optionMenuItemExists (menu,label) {
+	if (!menu || !menu.items || !label) return false;
+	var found = false;
+	$.each(menu.items,function (id,item) {
+		if (item && $(item.label).val() == label) {
+			found = true;
+			return true;
+		}
+	});
+	return found;
+}
+
 
 function updateVariationLabels () {
 	var updated = buildVariations();
