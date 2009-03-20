@@ -119,6 +119,8 @@
 #shopp .xcheckout { display: block; clear: both; text-align: right; }
 #shopp .xcheckout button { border: none; margin: 0; padding: 0; }
 
+#shopp-cart.widget p.status { margin-bottom: 10px; }
+
 /**
  * Checkout 
  **/
