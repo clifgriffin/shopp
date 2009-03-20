@@ -226,6 +226,8 @@ class Product extends DatabaseObject {
 	} // end load_data()
 	
 	function pricing () {
+		global $Shopp;
+				
 		$freeshipping = true;
 		foreach ($this->prices as &$price) {
 			
@@ -309,7 +311,7 @@ class Product extends DatabaseObject {
 			}
 			
 		} // end foreach($price)
-		
+
 		if ($freeshipping) $this->freeshipping = true;
 	}
 	
@@ -520,15 +522,17 @@ class Product extends DatabaseObject {
 				return ($this->featured == "on"); break;
 			case "price":
 				if (empty($this->prices)) $this->load_data(array('prices'));
-				// if (empty($this->prices)) $this->load_prices();
+				$taxrate = 0;
+				if (isset($options['taxes']) && value_is_true($options['taxes'])) 
+					$taxrate = $Shopp->Cart->taxrate();
 				if ($this->options > 1) {
 					if ($this->pricerange['min']['price'] == $this->pricerange['max']['price'])
-						return money($this->pricerange['min']['price']);
+						return money($this->pricerange['min']['price'] + ($this->pricerange['min']['price']*$taxrate));
 					else {
-						if (!empty($options['starting'])) return $options['starting']." ".money($this->pricerange['min']['price']);
-						return money($this->pricerange['min']['price'])." &mdash; ".money($this->pricerange['max']['price']);
+						if (!empty($options['starting'])) return $options['starting']." ".money($this->pricerange['min']['price']+($this->pricerange['min']['price']*$taxrate));
+						return money($this->pricerange['min']['price']+($this->pricerange['min']['price']*$taxrate))." &mdash; ".money($this->pricerange['max']['price'] + ($this->pricerange['max']['price']*$taxrate));
 					}
-				} else return money($this->prices[0]->price);
+				} else return money($this->prices[0]->price + ($this->prices[0]->price*$taxrate));
 				break;
 			case "onsale":
 				if (empty($this->prices)) $this->load_data(array('prices'));

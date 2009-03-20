@@ -22,11 +22,13 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-			<tr><?php shopp_print_column_headers('toplevel_page_shopp/orders'); ?></tr>
+		<tr><?php shopp_print_column_headers('toplevel_page_shopp/orders'); ?></tr>
 		</thead>
+		<?php if (SHOPP_WP27): ?>
 		<tfoot>
-			<tr><?php shopp_print_column_headers('toplevel_page_shopp/orders',false); ?></tr>
+		<tr><?php shopp_print_column_headers('toplevel_page_shopp/orders',false); ?></tr>
 		</tfoot>
+		<?php endif; ?>
 	<?php if (sizeof($Orders) > 0): ?>
 		<tbody id="orders" class="list orders">
 		<?php $even = false; foreach ($Orders as $Order): ?>

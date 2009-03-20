@@ -218,6 +218,13 @@ class Cart {
 	}
 	
 	/**
+	 * reset()
+	 * Resets the entire session */
+	function reset () {
+		
+	}
+	
+	/**
 	 * change()
 	 * Changes an item to a different product/price variation */
 	function change ($item,&$Product,$pricing) {
@@ -503,15 +510,20 @@ class Cart {
 	function taxrate () {
 		global $Shopp;
 		if ($Shopp->Settings->get('taxes') == "off") return false;
-
+		
 		$taxrates = $Shopp->Settings->get('taxrates');
+		$base = $Shopp->Settings->get('base_operations');
 		if (!is_array($taxrates)) return false;
 
 		$country = $this->data->Order->Shipping->country;
+		if (empty($country)) $country = $base['country'];
+
+		$zone = $this->data->Order->Shipping->state;
+		if (empty($zone)) $zone = $base['zone'];
+		
 		if (!empty($this->data->Order->Shipping->postcode))
 			$area = $this->data->Order->Shipping->postarea();
-		$zone = $this->data->Order->Shipping->state;
-
+		
 		foreach($taxrates as $setting) {
 			if (isset($setting['zone'])) {
 				if ($country == $setting['country'] &&
@@ -885,10 +897,12 @@ class Cart {
 				break;
 			case "function": 
 				$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
-				if ($this->data->Errors->exist())
-					$errors = $this->data->Errors->get();
-					foreach ((array)$errors as $error) if (!empty($error)) $result .= '<p class="error">'.$error->message().'</p>';
+				if ($this->data->Errors->exist()) {
+					$errors = $this->data->Errors->get(SHOPP_COMM_ERR);
+					foreach ((array)$errors as $error) 
+						if (!empty($error)) $result .= '<p class="error">'.$error->message().'</p>';
 					$this->data->Errors->reset(); // Reset after display
+				}
 				return $result;
 				break;
 			case "empty-button": 
@@ -942,7 +956,7 @@ class Cart {
 				if (!empty($this->data->Order->Shipping->country)) $selected = $this->data->Order->Shipping->country;
 				else $selected = $base['country'];
 				$result .= '<ul><li>';
-				if (value_is_true($options['postcode']) || $this->data->ShippingPostcode) {
+				if (value_is_true($options['postcode']) || isset($this->data->ShippingPostcode)) {
 					$result .= '<span>';
 					$result .= '<input name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$this->data->Order->Shipping->postcode.'" />&nbsp;';
 					$result .= '</span>';
@@ -1183,9 +1197,15 @@ class Cart {
 				return '<input type="password" name="confirm-password" id="confirm-password"'.inputattrs($options).' />';
 				break;
 			case "phone": 
-			if (!empty($this->data->Order->Customer->phone))
-				$options['value'] = $this->data->Order->Customer->phone; 
+				if (!empty($this->data->Order->Customer->phone))
+					$options['value'] = $this->data->Order->Customer->phone; 
 				return '<input type="text" name="phone" id="phone"'.inputattrs($options).' />'; 
+				break;
+			case "organization": 
+			case "company": 
+				if (!empty($this->data->Order->Customer->company))
+					$options['value'] = $this->data->Order->Customer->company; 
+				return '<input type="text" name="company" id="company"'.inputattrs($options).' />'; 
 				break;
 			case "customer-info":
 				$allowed_types = array("text","password","hidden","checkbox","radio");

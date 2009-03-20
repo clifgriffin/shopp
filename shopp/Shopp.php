@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.5 b2
+Version: 1.0.5 b3
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.5 b2");
+define("SHOPP_VERSION","1.0.5 b3");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -166,7 +166,7 @@ class Shopp {
 		
 		$Errors = &ShoppErrors();
 		if (SHOPP_ERROR_REPORTING >= SHOPP_PHP_ERR)
-			set_error_handler(array(&$Errors,'phperror'),E_ALL ^ E_NOTICE);
+			set_error_handler(array(&$Errors,'phperror'),E_ALL);
 		
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
@@ -260,8 +260,8 @@ class Shopp {
 		add_action("admin_print_scripts-$products", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$promotions", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$settings", array(&$this, 'admin_behaviors'));
-		add_action("admin_print_scripts-$help", array(&$this, 'admin_behaviors'));		
-		add_action("admin_print_scripts-$welcome", array(&$this, 'admin_behaviors'));		
+		if (isset($help)) add_action("admin_print_scripts-$help", array(&$this, 'admin_behaviors'));
+		if (isset($welcome)) add_action("admin_print_scripts-$welcome", array(&$this, 'admin_behaviors'));		
 		
 		add_action("admin_print_scripts-$orders", array(&$this->Flow, 'orders_list_columns'));
 		add_action("admin_print_scripts-$promotions", array(&$this->Flow, 'promotions_list_columns'));
@@ -687,6 +687,8 @@ class Shopp {
 		elseif (function_exists('memory_get_usage'))
 			$this->_debug->memory .= "End: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB";
 
+		// echo "<pre>"; print_r($db->queries); echo "</pre>";
+
 		echo '<script type="text/javascript">'."\n";
 		echo '//<![CDATA['."\n";
 		echo 'var memory_profile = "'.$this->_debug->memory.'";';
@@ -751,6 +753,7 @@ class Shopp {
 				case NewProducts::$_slug: $this->Category = new NewProducts(); break;
 				case FeaturedProducts::$_slug: $this->Category = new FeaturedProducts(); break;
 				case OnSaleProducts::$_slug: $this->Category = new OnSaleProducts(); break;
+				case RandomProducts::$_slug: $this->Category = new RandomProducts(); break;
 				default:
 					$key = "id";
 					if (!preg_match("/^\d+$/",$category)) $key = "uri";
@@ -828,8 +831,7 @@ class Shopp {
 				$Payment = new $ProcessorClass();
 				if ($wp->query_vars['shopp_proc'] != "confirm-order") {
 					$Payment->checkout();
-					$this->Cart->data->Errors[] = $Payment->error();
-					// echo "<pre>"; print_r($this->Cart->data->Errors); echo "</pre>";
+					$Payment->error();
 				}
 			}
 		}

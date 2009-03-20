@@ -35,8 +35,11 @@ class ShoppErrors {
 		$this->notifications->send($ShoppError);
 	}
 	
-	function get () {
-		return $this->errors;
+	function get ($level=SHOPP_DEBUG_ERR) {
+		$errors = array();
+		foreach ($this->errors as &$error) 
+			if ($error->level <= $level) $errors[] = &$error;
+		return $errors;
 	}
 	
 	function exist () {
@@ -75,6 +78,9 @@ class ShoppError {
 		$this->level = $level;
 		$this->data = $data;
 		$this->debug = $debug[1];
+		if (isset($data['file'])) $this->debug['file'] = $data['file'];
+		if (isset($data['line'])) $this->debug['line'] = $data['line'];
+		unset($this->debug['object'],$this->debug['args']);
 		
 		if (isset($this->debug['class'])) $this->source = $this->debug['class'];
 		else $this->source = "Core";

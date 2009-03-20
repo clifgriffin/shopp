@@ -18,6 +18,7 @@ class Flow {
 	var $secureuri;
 	
 	function Flow (&$Core) {
+		global $wp_version;
 		$this->Settings = $Core->Settings;
 		$this->Cart = $Core->Cart;
 
@@ -48,7 +49,8 @@ class Flow {
 		$this->coremods = array("GoogleCheckout.php", "PayPalExpress.php", 
 									"TestMode.php", "FlatRates.php", "ItemQuantity.php", 
 									"OrderAmount.php", "OrderWeight.php");
-		
+		if (!defined('BR')) define('BR','<br />');
+		define("SHOPP_WP27",(!version_compare($wp_version,"2.7","<")));
 		define("SHOPP_PATH",$this->basepath);
 		define("SHOPP_ADMINPATH",$this->basepath."/core/ui");
 		define("SHOPP_PLUGINURI",$Core->uri);
@@ -77,8 +79,9 @@ class Flow {
 			UPLOAD_ERR_CANT_WRITE => __('Failed to write the file to disk.','Shopp'),
 			UPLOAD_ERR_EXTENSION => __('File upload stopped by extension.','Shopp'),
 		);
-									
-		load_plugin_textdomain('Shopp',PLUGINDIR.DIRECTORY_SEPARATOR.$Core->directory.DIRECTORY_SEPARATOR.'lang');
+
+		load_plugin_textdomain('Shopp',
+			PLUGINDIR.DIRECTORY_SEPARATOR.$Core->directory.DIRECTORY_SEPARATOR.'lang');
 	}
 
 	/**
@@ -279,7 +282,7 @@ class Flow {
 		$options = $Shopp->Settings->get('cart_widget_options');
 		
 		if (empty($options['title'])) $options['title'] = "Your Cart";
-		$options['title'] = $before_title.'<a href="'.$Shopp->link('cart').'">'.$options['title'].'</a>'.$after_title;
+		$options['title'] = $before_title.$options['title'].$after_title;
 		
 		$sidecart = $Shopp->Cart->tag('sidecart',$options);
 		echo $before_widget.$options['title'].$sidecart.$after_widget;
@@ -669,7 +672,7 @@ class Flow {
 		} else $Purchase = new Purchase();
 
 		if (empty($Shopp->Cart->data->Purchase)) 
-			$Shopp->Cart->data->Purchase = $Purchase;
+			$Shopp->Cart->data->Purchase =& $Purchase;
 
 		if (!empty($_POST)) {
 			check_admin_referer('shopp-save-order');
@@ -687,7 +690,7 @@ class Flow {
 
 				if ($_POST['receipt'] == "yes")
 					$notification['receipt'] = $this->order_receipt();
-				
+
 				$notification['status'] = strtoupper($labels[$Purchase->status]);
 				$notification['message'] = wpautop($_POST['message']);
 
@@ -702,7 +705,7 @@ class Flow {
 		$targets = $this->Settings->get('target_markets');
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
-		
+				
 		include("{$this->basepath}/core/ui/orders/order.php");
 	}
 	
@@ -760,7 +763,8 @@ class Flow {
 		if (empty($categories)) $categories = array('');
 		
 		$category_table = DatabaseObject::tablename(Category::$table);
-		$categories = $db->query("SELECT id,name,parent FROM $category_table ORDER BY parent,name",AS_ARRAY);
+		$query = "SELECT id,name,parent FROM $category_table ORDER BY parent,name";
+		$categories = $db->query($query,AS_ARRAY);
 		$categories = sort_tree($categories);
 		if (empty($categories)) $categories = array();
 		
@@ -786,29 +790,29 @@ class Flow {
 		$orderby = "pd.created DESC";
 		
 		$where = "";
-		if (!empty($_GET['cat'])) $where = "WHERE cat.id='{$_GET['cat']}'";
+		if (!empty($_GET['cat'])) $where = " AND cat.id='{$_GET['cat']}'";
 		if (!empty($_GET['s'])) {
 			if (strpos($_GET['s'],"sku:") !== false) { // SKU search
-				$where = 'WHERE pt.sku="'.substr($_GET['s'],4).'"';
+				$where = ' AND pt.sku="'.substr($_GET['s'],4).'"';
 				$orderby = "pd.name";
 			} else {                                   // keyword search
 				$search = preg_replace('/(\s?)(\w+)(\s?)/','\1*\2*\3',$_GET['s']);
 				$match = "MATCH(pd.name,pd.summary,pd.description) AGAINST ('$search' IN BOOLEAN MODE)";
-				$where .= ((empty($where))?"WHERE ":" AND ").$match;
+				$where .= " AND $match";
 				$matchcol = ", $match  AS score";
 				$orderby = "score DESC";                   				
 			}
-				
-			echo $search;
 		}
 		
 		// Get total product count, taking into consideration for filtering
-		if (!empty($_GET['s'])) $productcount = $db->query("SELECT count($match) as total FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where");
-		elseif (!empty($_GET['cat'])) $productcount = $db->query("SELECT count(*) as total $matchcol FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id");
-		else $productcount = $db->query("SELECT count(*) as total $matchcol FROM $pd $where");
-
+		if (!empty($_GET['s'])) $query = "SELECT count($match) as total FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE clog.category > 0 $where";
+		elseif (!empty($_GET['cat'])) $query = "SELECT count(*) as total $matchcol FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE clog.category={$_GET['cat']} $where";
+		else $query = "SELECT count(*) as total $matchcol FROM $pd WHERE true $where";
+		$productcount = $db->query($query);
+		
 		// Load the products
-		$Products = $db->query("SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page",AS_ARRAY);
+		$query = "SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE clog.category > 0 $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page";
+		$Products = $db->query($query,AS_ARRAY);
 
 		$num_pages = ceil($productcount->total / $per_page);
 		$page_links = paginate_links( array(
@@ -858,14 +862,15 @@ class Flow {
 			$Shopp->Category = new Category($atts['name'],'name');
 		} elseif (isset($atts['slug'])) {
 			switch ($atts['slug']) {
-				case SearchResults::$slug: 
+				case SearchResults::$_slug: 
 					$Shopp->Category = new SearchResults(array('search'=>$atts['search'])); break;
-				case TagProducts::$slug: 
+				case TagProducts::$_slug: 
 					$Shopp->Category = new TagProducts(array('tag'=>$atts['tag'])); break;
-				case BestsellerProducts::$slug: $Shopp->Category = new BestsellerProducts(); break;
-				case NewProducts::$slug: $Shopp->Category = new NewProducts(); break;
-				case FeaturedProducts::$slug: $Shopp->Category = new FeaturedProducts(); break;
-				case OnSaleProducts::$slug: $Shopp->Category = new OnSaleProducts(); break;
+				case BestsellerProducts::$_slug: $Shopp->Category = new BestsellerProducts(); break;
+				case NewProducts::$_slug: $Shopp->Category = new NewProducts(); break;
+				case FeaturedProducts::$_slug: $Shopp->Category = new FeaturedProducts(); break;
+				case OnSaleProducts::$_slug: $Shopp->Category = new OnSaleProducts(); break;
+				case RandomProducts::$_slug: $Shopp->Category = new RandomProducts(); break;
 				default:
 					$Shopp->Category = new Category($atts['slug'],'slug');
 			}
@@ -953,7 +958,7 @@ class Flow {
 		$action = wp_get_referer();
 		if (empty($action)) $action = admin_url("admin.php?page=".$this->Admin->products);
 		$action = add_query_arg('edit',$process,$action);
-
+		
 		include("{$this->basepath}/core/ui/products/editor.php");
 
 	}
@@ -1217,7 +1222,8 @@ class Flow {
 		
 		$filters = array();
 		// $filters['limit'] = "$start,$per_page";
-		if (isset($_GET['s'])) $filters['where'] = "name LIKE '%{$_GET['s']}%'";
+		if (isset($_GET['s']) && !empty($_GET['s'])) 
+			$filters['where'] = "name LIKE '%{$_GET['s']}%'";
 		else $filters['where'] = "true";
 		
 		$table = DatabaseObject::tablename(Category::$table);
@@ -1260,7 +1266,7 @@ class Flow {
 		} else $Category = new Category();
 
 		$Shopp->Catalog = new Catalog();
-		$Shopp->Catalog->load_categories();
+		$Shopp->Catalog->load_categories(array('where'=>'true'));
 
 		$Price = new Price();
 		$priceTypes = array(
@@ -1295,7 +1301,7 @@ class Flow {
 			
 			if (count($paths) > 1) $_POST['uri'] = join("/",$paths);
 			else $_POST['uri'] = $paths[0];
-			
+						
 			if (!empty($_POST['deleteImages'])) {			
 				$deletes = array();
 				if (strpos($_POST['deleteImages'],","))	$deletes = split(',',$_POST['deleteImages']);
@@ -1321,9 +1327,9 @@ class Flow {
 			if (empty($_POST['specs'])) $Category->specs = array();
 			if (empty($_POST['options'])) $Category->options = array();
 			
-			$Category->updates($_POST);
-			
+			$Category->updates($_POST);			
 			$Category->save();
+			
 			$updated = '<strong>'.$Category->name.'</strong> '.__('category saved.','Shopp');
 			if (!empty($_POST['save-categories'])) {
 				$this->categories_list($updated); 
@@ -1477,9 +1483,7 @@ class Flow {
 			'Free Shipping' => __('Free Shipping','Shopp'),
 			'Buy X Get Y Free' => __('Buy X Get Y Free','Shopp')			
 		);
-		
-		
-		
+				
 		include("{$this->basepath}/core/ui/promotions/editor.php");
 	}
 	
@@ -1845,7 +1849,6 @@ class Flow {
 
 	function settings_payments () {
 		global $Shopp;
-
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
@@ -1979,8 +1982,10 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
+		$error = false;
+		
 		// Image path processing
-		$_POST['settings']['image_storage'] = $_POST['settings']['image_storage_pref'];
+		if (isset($_POST['settings'])) $_POST['settings']['image_storage'] = $_POST['settings']['image_storage_pref'];
 		$imagepath = $this->Settings->get('image_path');
 		if (isset($_POST['settings']['products_path'])) $imagepath = $_POST['settings']['image_path'];
 		$imagepath_status = __("File system image hosting is enabled and working.","Shopp");
@@ -1995,7 +2000,7 @@ class Flow {
 		}
 
 		// Product path processing
-		$_POST['settings']['product_storage'] = $_POST['settings']['product_storage_pref'];
+		if (isset($_POST['settings'])) $_POST['settings']['product_storage'] = $_POST['settings']['product_storage_pref'];
 		$productspath = $this->Settings->get('products_path');
 		if (isset($_POST['settings']['products_path'])) $productspath = $_POST['settings']['products_path'];
 		$error = ""; // Reset the error tracker
@@ -2012,6 +2017,10 @@ class Flow {
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-system');
+			
+			if (!isset($_POST['settings']['error_notifications'])) 
+				$_POST['settings']['error_notifications'] = array();
+			
 			$this->settings_save();
 			$updated = __('Shopp system settings saved.','Shopp');
 		}

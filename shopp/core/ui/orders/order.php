@@ -1,4 +1,7 @@
 <div class="wrap shopp">
+
+	<div id="shopp-jsconflict" class="error"><p><?php jscrash_error(); ?></p></div>
+
 	<h2><?php _e('Order','Shopp'); ?></h2>
 
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
@@ -148,6 +151,8 @@
 
 <script type="text/javascript">
 $=jQuery.noConflict();
+
+$('#shopp-jsconflict').hide();
 
 $('#notification').hide();
 $('#notify-customer').click(function () {

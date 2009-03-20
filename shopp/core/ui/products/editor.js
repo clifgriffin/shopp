@@ -24,6 +24,7 @@ var flashUploader = false;
 var pricesPayload = true;
 
 function init () {
+	$('#shopp-jsconflict').hide();
 	window.onbeforeunload = function () { if (changes && !saving) return false; }	
 	$('#product').change(function () { changes = true; });
 	$('#product').submit(function() { saving = true; });
@@ -46,8 +47,11 @@ function init () {
 	categories();
 	tags();
 	quickSelects();
-		
+
+	optionMenuItemExists(optionMenus[1],'x-small');
+
 	imageUploads = new ImageUploads({"product" : $('#image-product-id').val()});
+
 }
 
 function categories () {
@@ -107,15 +111,33 @@ function categories () {
 		// Load category variation option templates
 		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=optionstemplate&cat="+id,function (template) {
 			if (!template) return true;
+			if (!template.options) return true;
 			
 			if (!$('#variations-setting').attr('checked')) {
 				$('#variations-setting').click();
 				variationsToggle();
 			}
-			
-			loadVariations(template.options,template.prices);
-		});
 
+			if (optionMenus.length > 0) {
+				$.each(template.options,function (tid,tmenu) {
+					if (menu = optionMenuExists(tmenu.name)) {
+						var added = false;
+						$.each(tmenu.options,function (i,option) {
+							if (!optionMenuItemExists(menu,option.name)) {
+								menu.addOption(option);
+								added = true;
+							}
+						});
+						if (added) addVariationPrices();
+					} else {
+						addVariationOptionsMenu(tmenu);
+						addVariationPrices();
+					}
+					
+				});
+			} else loadVariations(template.options,template.prices);
+
+		});
 	});
 		
 	// Add to selection menu

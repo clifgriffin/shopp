@@ -1,5 +1,6 @@
 <div class="wrap shopp"> 
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
+	<div id="shopp-jsconflict" class="error"><p><?php jscrash_error(); ?></p></div>
 
 <h2><?php _e('Product Editor','Shopp'); ?></h2> 
 
@@ -104,7 +105,8 @@
 				<?php endforeach; ?>
 				</ul>
 				<div class="clear"></div>
-				<?php _e('Images shown here will be out of proportion, but will be correctly sized for shoppers.','Shopp'); ?>
+				<?php _e('Images shown here will be out of proportion, but will be correctly sized for shoppers.','Shopp'); ?><br />
+				<?php _e('When deleting images, save the product to confirm their removal.','Shopp'); ?>
 			</td> 
 		</tr>
 		<tr> 

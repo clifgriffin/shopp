@@ -58,6 +58,9 @@ class Purchase extends DatabaseObject {
 			case "transactionid": return $this->transactionid; break;
 			case "firstname": return $this->firstname; break;
 			case "lastname": return $this->lastname; break;
+			case "company": return $this->company; break;
+			case "email": return $this->email; break;
+			case "phone": return $this->phone; break;
 			case "address": return $this->address; break;
 			case "xaddress": return $this->xaddress; break;
 			case "city": return $this->city; break;

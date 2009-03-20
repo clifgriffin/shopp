@@ -25,9 +25,11 @@
 		<thead>
 		<tr><?php shopp_print_column_headers('shopp_page_shopp/promotions'); ?></tr>
 		</thead>
+		<?php if (SHOPP_WP27): ?>
 		<tfoot>
 		<tr><?php shopp_print_column_headers('shopp_page_shopp/promotions',false); ?></tr>
 		</tfoot>
+		<?php endif; ?>
 	<?php if (sizeof($Promotions) > 0): ?>
 		<tbody id="promotions" class="list promotions">
 		<?php $even = false; foreach ($Promotions as $Promotion): ?>
@@ -64,6 +66,7 @@
 	helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
 
 	$=jQuery.noConflict();
+	
 	$('#selectall').change( function() {
 		$('#promotions th input').each( function () {
 			if (this.checked) this.checked = false;

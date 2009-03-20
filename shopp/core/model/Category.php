@@ -60,9 +60,10 @@ class Category extends DatabaseObject {
 		foreach ($children as &$child) {
 			$this->children[$child->id] = new Category();
 			$this->children[$child->id]->populate($child);
-			$this->children[$child->id]->products = $child->products;			
+			$this->children[$child->id]->depth = $child->depth;
+			$this->children[$child->id]->products = $child->products;
 		}
-		
+
 		if (!empty($this->children)) return true;
 		return false;
 	}
@@ -270,8 +271,8 @@ class Category extends DatabaseObject {
 					LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
 					LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
 					{$loading['joins']}
-					WHERE {$loading['where']} AND p.published='on' 
-					GROUP BY p.id {$loading['having']}
+					WHERE ({$loading['where']}) AND catalog.category != 0 AND p.published='on' 
+					GROUP BY p.name {$loading['having']}
 					ORDER BY {$loading['order']} LIMIT {$loading['limit']}";
 		
 		if ($this->pagination > 0 && $limit > $this->pagination) {
@@ -283,7 +284,7 @@ class Category extends DatabaseObject {
 						LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
 						LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
 						{$loading['joins']}
-						WHERE {$loading['where']} AND p.published='on'";
+						WHERE ({$loading['where']}) AND catalog.category != 0 AND p.published='on'";
 		
 			$total = $db->query($count);
 			$this->total = $total->count;
@@ -956,6 +957,13 @@ class RandomProducts extends Category {
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$this->loading = array('where'=>'true','order'=>'RAND()');
+		if (isset($options['exclude'])) {
+			$where = array();
+			$excludes = split(",",$options['exclude']);
+			if (in_array('featured',$excludes)) $where[] = "(p.featured='off')";
+			if (in_array('onsale',$excludes)) $where[] = "(pd.sale='off' OR pr.discount=0)";
+			$this->loading['where'] = join(" AND ",$where);
+		}
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 	}

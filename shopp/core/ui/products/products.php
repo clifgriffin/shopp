@@ -32,9 +32,11 @@
 		<thead>
 		<tr><?php shopp_print_column_headers('shopp_page_shopp/products'); ?></tr>
 		</thead>
+		<?php if (SHOPP_WP27): ?>
 		<tfoot>
 		<tr><?php shopp_print_column_headers('shopp_page_shopp/products',false); ?></tr>
 		</tfoot>
+		<?php endif; ?>
 	<?php if (sizeof($Products) > 0): ?>
 		<tbody id="products" class="list products">
 		<?php $even = false; foreach ($Products as $Product): ?>

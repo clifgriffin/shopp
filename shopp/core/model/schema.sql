@@ -25,6 +25,7 @@ CREATE TABLE <?php echo $product; ?> (
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
+	KEY published (published),
 	KEY slug (slug),
 	FULLTEXT search (name,summary,description)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
@@ -115,6 +116,7 @@ CREATE TABLE <?php echo $catalog; ?> (
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
+	KEY product (product),
 	KEY category (category),
 	KEY tag (tag)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
@@ -164,6 +166,7 @@ CREATE TABLE <?php echo $customer; ?> (
 	lastname varchar(32) NOT NULL default '',
 	email varchar(96) NOT NULL default '',
 	phone varchar(24) NOT NULL default '',
+	company varchar(100) NOT NULL default '',
 	info longtext NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
@@ -220,6 +223,7 @@ CREATE TABLE <?php echo $purchase; ?> (
 	lastname varchar(32) NOT NULL default '',
 	email varchar(96) NOT NULL default '',
 	phone varchar(24) NOT NULL default '',
+	company varchar(100) NOT NULL default '',
 	card varchar(4) NOT NULL default '',
 	cardtype varchar(32) NOT NULL default '',
 	cardexpires date NOT NULL default '0000-00-00',

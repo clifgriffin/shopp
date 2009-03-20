@@ -23,9 +23,11 @@
 		<thead>
 		<tr><?php shopp_print_column_headers('shopp_page_shopp/categories'); ?></tr>
 		</thead>
+		<?php if (SHOPP_WP27): ?>
 		<tfoot>
 		<tr><?php shopp_print_column_headers('shopp_page_shopp/categories',false); ?></tr>
 		</tfoot>
+		<?php endif; ?>
 	<?php if (sizeof($Categories) > 0): ?>
 		<tbody id="categories" class="list categories">
 		<?php $even = false; foreach ($Categories as $Category): ?>

@@ -319,6 +319,9 @@ function shopp_prereqs () {
 	// PHP releases will cause this code to never be executed
 	if (!version_compare(PHP_VERSION, '5.0','>=')) 
 		$errors[] = __("Shopp requires PHP version 5.0+.  You are using PHP version ").PHP_VERSION;
+
+	if (version_compare(PHP_VERSION, '5.1.3','==')) 
+		$errors[] = __("Shopp will not work with PHP version 5.1.3 because of a critical bug in complex POST data structures.  Please upgrade PHP to version 5.1.4 or higher.");
 		
 	// Check WordPress version
 	if (!version_compare(get_bloginfo('version'),'2.6','>='))
@@ -855,6 +858,10 @@ function force_ssl ($url) {
 	if($_SERVER["HTTPS"] == "on")
 		$url = str_replace('http://', 'https://', $url);
 	return $url;
+}
+
+function jscrash_error () {
+	printf(__('An error caused by another plugin has crashed JavaScript and is preventing Shopp from working properly. For details, see the <a href="%s" target="_blank">Shopp Documentation</a>.','Shopp'),SHOPP_DOCS."Plugins_Breaking_JavaScript");
 }
 
 if ( !function_exists('sys_get_temp_dir')) {
