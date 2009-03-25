@@ -21,7 +21,7 @@
 					<table id="taxrates-table"><tr><td></td></tr></table>
 	            <button type="button" id="add-taxrate" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /> <?php _e('Add a Tax Rate','Shopp'); ?></button>
 					<?php else: ?>
-					<p><strong><?php _e('Note:','Shopp'); ?></strong> <?php _e('You must select the target markets you will be selling to under','Shopp'); ?> <a href="?page=<?php echo $this->Admin->settings ?>&amp;edit=general"><?php _e('General settings','Shopp'); ?></a> <?php _e('before you can setup tax rates.','Shopp'); ?></p>
+					<p><strong><?php _e('Note:','Shopp'); ?></strong> <?php _e('You must select the target markets you will be selling to under','Shopp'); ?> <a href="?page=<?php echo $this->Admin->settings['settings'][0] ?>"><?php _e('General settings','Shopp'); ?></a> <?php _e('before you can setup tax rates.','Shopp'); ?></p>
 					<?php endif; ?>
 				</td> 
 			</tr>

@@ -29,10 +29,23 @@ class Flow {
 		
 		$this->Admin = new stdClass();
 		$this->Admin->orders = $Core->directory."/orders";
+		$this->Admin->manageorder = $Core->directory."/orders/manage";
 		$this->Admin->categories = $Core->directory."/categories";
+		$this->Admin->editcategory = $Core->directory."/categories/edit";
 		$this->Admin->products = $Core->directory."/products";
+		$this->Admin->editproduct = $Core->directory."/products/edit";
 		$this->Admin->promotions = $Core->directory."/promotions";
-		$this->Admin->settings = $Core->directory."/settings";
+		$this->Admin->editpromo = $Core->directory."/promotions/edit";
+		$this->Admin->settings = array(
+			'settings' => array($Core->directory."/settings",__('General','Shopp')),
+			'checkout' => array($Core->directory."/settings/checkout",__('Checkout','Shopp')),
+			'payments' => array($Core->directory."/settings/payments",__('Payments','Shopp')),
+			'shipping' => array($Core->directory."/settings/shipping",__('Shipping','Shopp')),
+			'taxes' => array($Core->directory."/settings/taxes",__('Taxes','Shopp')),
+			'presentation' => array($Core->directory."/settings/presentation",__('Presentation','Shopp')),
+			'system' => array($Core->directory."/settings/system",__('System','Shopp')),
+			'update' => array($Core->directory."/settings/update",__('Update','Shopp'))
+		);		
 		$this->Admin->help = $Core->directory."/help";
 		$this->Admin->welcome = $Core->directory."/welcome";
 		$this->Admin->default = $this->Admin->orders;
@@ -83,6 +96,95 @@ class Flow {
 		load_plugin_textdomain('Shopp',
 			PLUGINDIR.DIRECTORY_SEPARATOR.$Core->directory.DIRECTORY_SEPARATOR.'lang');
 	}
+
+	function admin () {
+		global $Shopp;
+		$db =& DB::get();
+		if (!defined('WP_ADMIN')) return;
+		$Admin = $Shopp->Flow->Admin;
+		$adminurl = $Shopp->wpadminurl."/admin.php";
+
+		if (strstr($_GET['page'],$Admin->categories)) {
+			
+			if ($_GET['deleting'] == "category"
+					&& !empty($_GET['delete']) 
+					&& is_array($_GET['delete'])) {
+				foreach($_GET['delete'] as $deletion) {
+					$Category = new Category($deletion);
+					$db->query("UPDATE $Category->_table SET parent=0 WHERE parent=$Category->id");
+					$Category->delete();
+				}
+				header("Location: ".add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl));
+				exit();
+			}
+			
+			if (isset($_REQUEST['id']) && $_REQUEST['id'] != "new")
+				$Shopp->Category = new Category($_REQUEST['id']);
+			else $Shopp->Category = new Category();
+			
+			if (isset($_POST['save'])) {
+				$this->save_category($Shopp->Category);
+				$this->Notice = '<strong>'.stripslashes($Shopp->Category->name).'</strong> '.__('has been saved.','Shopp');
+
+				if (isset($_REQUEST['next'])) {
+					if ($_REQUEST['next'] != "new") 
+						$Shopp->Category = new Category($_REQUEST['next']);
+					else $Shopp->Category = new Category();
+				}
+					
+			}
+			
+		} // end $Admin->categories
+
+
+		if (strstr($_GET['page'],$Admin->products)) {
+			if ($_GET['deleting'] == "product"
+					&& !empty($_GET['delete']) 
+					&& is_array($_GET['delete'])) {
+				foreach($_GET['delete'] as $deletion) {
+					$Product = new Product($deletion);
+					$Product->delete();
+				}
+				header("Location: ".add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl));
+				exit();
+			}
+			
+			if (isset($_GET['duplicate'])) {
+				$Shopp->Product->load($_GET['duplicate']);
+				$Shopp->Product->duplicate();
+				header("Location: ".add_query_arg('page',$Admin->products,$adminurl));
+				exit();
+			}
+
+			if (isset($_REQUEST['id']) && $_REQUEST['id'] != "new") {
+				$Shopp->Product = new Product($_REQUEST['id']);
+				$Shopp->Product->load_data(array('prices','specs','categories','tags'));
+			} else {
+				$Shopp->Product = new Product();
+				$Shopp->Product->published = "on";  
+			}
+			
+			if (isset($_POST['save'])) {
+				$this->save_product($Shopp->Product);
+				$this->Notice = '<strong>'.stripslashes($Shopp->Product->name).'</strong> '.__('has been saved.','Shopp');
+				
+				if (isset($_REQUEST['next'])) {
+					if ($_REQUEST['next'] == "new") {
+						$Shopp->Product = new Product();
+						$Shopp->Product->published = "on";  
+					} else {
+						$Shopp->Product = new Product($_REQUEST['next']);
+						$Shopp->Product->load_data(array('prices','specs','categories','tags'));
+					}
+				} else {
+					$Shopp->Product = new Product($_REQUEST['id']);
+					$Shopp->Product->load_data(array('prices','specs','categories','tags'));					
+				}
+			}
+		} // end $Admin->products
+		
+	}
+
 
 	/**
 	 * Catalog flow handlers
@@ -607,10 +709,10 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
 		if ($_GET['deleting'] == "order"
-						&& !empty($_GET['delete']) 
-						&& is_array($_GET['delete'])) {
-			foreach($_GET['delete'] as $deletion) {
-				$Purchase = new Purchase($deletion);
+						&& !empty($_GET['selected']) 
+						&& is_array($_GET['selected'])) {
+			foreach($_GET['selected'] as $selection) {
+				$Purchase = new Purchase($selection);
 				$Purchase->load_purchased();
 				foreach ($Purchase->purchased as $purchased) {
 					$Purchased = new Purchased($purchased->id);
@@ -620,10 +722,22 @@ class Flow {
 			}
 		}
 
-		$Purchase = new Purchase();
-
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
+
+		if ($_GET['update'] == "order"
+						&& !empty($_GET['selected']) 
+						&& is_array($_GET['selected'])) {
+			foreach($_GET['selected'] as $selection) {
+				$Purchase = new Purchase($selection);
+				$Purchase->status = $_GET['newstatus'];
+				$Purchase->save();
+			}
+		}
+
+
+		$Purchase = new Purchase();
+
 		
 		$pagenum = absint( $_GET['pagenum'] );
 		if ( empty($pagenum) )
@@ -651,7 +765,7 @@ class Flow {
 	
 	function orders_list_columns () {
 		shopp_register_column_headers('toplevel_page_shopp/orders', array(
-			'selections'=>'',
+			'cb'=>'<input type="checkbox" />',
 			'order'=>__('Order','Shopp'),
 			'name'=>__('Name','Shopp'),
 			'destination'=>__('Destination','Shopp'),
@@ -665,14 +779,13 @@ class Flow {
 
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
-				
-		if (preg_match("/\d+/",$_GET['manage'])) {
-			$Purchase = new Purchase($_GET['manage']);
-			$Purchase->load_purchased();
-		} else $Purchase = new Purchase();
 
-		if (empty($Shopp->Cart->data->Purchase)) 
-			$Shopp->Cart->data->Purchase =& $Purchase;
+		if (preg_match("/\d+/",$_GET['id'])) {
+			$Shopp->Cart->data->Purchase = new Purchase($_GET['id']);
+			$Shopp->Cart->data->Purchase->load_purchased();
+		} else $Shopp->Cart->data->Purchase = new Purchase();
+		
+		$Purchase = $Shopp->Cart->data->Purchase;
 
 		if (!empty($_POST)) {
 			check_admin_referer('shopp-save-order');
@@ -744,35 +857,28 @@ class Flow {
 	/**
 	 * Products admin flow handlers
 	 **/
-	function products_list($updated=false) {
-		global $Products;
+	function products_list($workflow=false) {
+		global $Products,$Shopp;
 		$db = DB::get();
 
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if ($_GET['deleting'] == "product"
-				&& !empty($_GET['delete']) 
-				&& is_array($_GET['delete'])) {
-			foreach($_GET['delete'] as $deletion) {
-				$Product = new Product($deletion);
-				$Product->delete();
+		if (!$workflow) {		
+			if (empty($categories)) $categories = array('');
+		
+			$category_table = DatabaseObject::tablename(Category::$table);
+			$query = "SELECT id,name,parent FROM $category_table ORDER BY parent,name";
+			$categories = $db->query($query,AS_ARRAY);
+			$categories = sort_tree($categories);
+			if (empty($categories)) $categories = array();
+		
+			$categories_menu = '<option value="">View all categories</option>';
+			foreach ($categories as $category) {
+				$padding = str_repeat("&nbsp;",$category->depth*3);
+				if ($_GET['cat'] == $category->id) $categories_menu .= '<option value="'.$category->id.'" selected="selected">'.$padding.$category->name.'</option>';
+				else $categories_menu .= '<option value="'.$category->id.'">'.$padding.$category->name.'</option>';
 			}
-		}
-		
-		if (empty($categories)) $categories = array('');
-		
-		$category_table = DatabaseObject::tablename(Category::$table);
-		$query = "SELECT id,name,parent FROM $category_table ORDER BY parent,name";
-		$categories = $db->query($query,AS_ARRAY);
-		$categories = sort_tree($categories);
-		if (empty($categories)) $categories = array();
-		
-		$categories_menu = '<option value="">View all categories</option>';
-		foreach ($categories as $category) {
-			$padding = str_repeat("&nbsp;",$category->depth*3);
-			if ($_GET['cat'] == $category->id) $categories_menu .= '<option value="'.$category->id.'" selected="selected">'.$padding.$category->name.'</option>';
-			else $categories_menu .= '<option value="'.$category->id.'">'.$padding.$category->name.'</option>';
 		}
 		
 		$pagenum = absint( $_GET['pagenum'] );
@@ -796,22 +902,25 @@ class Flow {
 				$where = ' AND pt.sku="'.substr($_GET['s'],4).'"';
 				$orderby = "pd.name";
 			} else {                                   // keyword search
-				$search = preg_replace('/(\s?)(\w+)(\s?)/','\1*\2*\3',$_GET['s']);
+				$interference = array("'s","'",".","\"");
+				$search = preg_replace('/(\s?)(\w+)(\s?)/','\1*\2*\3',str_replace($interference,"", stripslashes($_GET['s'])));
 				$match = "MATCH(pd.name,pd.summary,pd.description) AGAINST ('$search' IN BOOLEAN MODE)";
 				$where .= " AND $match";
 				$matchcol = ", $match  AS score";
-				$orderby = "score DESC";                   				
+				$orderby = "score DESC";         
 			}
 		}
 		
 		// Get total product count, taking into consideration for filtering
-		if (!empty($_GET['s'])) $query = "SELECT count($match) as total FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE clog.category > 0 $where";
+		if (!empty($_GET['s'])) $query = "SELECT count($match) as total FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE (clog.category != 0 OR clog.id IS NULL) $where";
 		elseif (!empty($_GET['cat'])) $query = "SELECT count(*) as total $matchcol FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE clog.category={$_GET['cat']} $where";
-		else $query = "SELECT count(*) as total $matchcol FROM $pd WHERE true $where";
+		else $query = "SELECT count(*) as total $matchcol FROM $pd WHERE (clog.category != 0 OR clog.id IS NULL) $where";
 		$productcount = $db->query($query);
 		
+		$columns = "pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
+		if ($workflow) $columns = "pd.id";
 		// Load the products
-		$query = "SELECT pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE clog.category > 0 $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page";
+		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE (clog.category != 0 OR clog.id IS NULL) $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page";
 		$Products = $db->query($query,AS_ARRAY);
 
 		$num_pages = ceil($productcount->total / $per_page);
@@ -821,6 +930,8 @@ class Flow {
 			'total' => $num_pages,
 			'current' => $pagenum,
 		));
+		
+		if ($workflow) return $Products;
 		
 		include("{$this->basepath}/core/ui/products/products.php");
 	}
@@ -891,32 +1002,17 @@ class Flow {
 	}
 		
 	function product_editor() {
-		global $Product,$Shopp;
+		global $Shopp;
 		$db = DB::get();
 
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if ($_GET['edit'] != "new") {
-			$Product = new Product($_GET['edit']);
-			$Product->load_data(array('prices','specs','categories','tags'));
-		} else {
+		if (empty($Shopp->Product)) {
 			$Product = new Product();
-			$Product->published = "on";  
-		}
+			$Product->published = "on";
+		} else $Product = $Shopp->Product;
 
-		if (!empty($_POST['save']) || !empty($_POST['save-products'])) {
-			$this->save_product($Product);
-			
-			$Product = new Product($Product->id);
-			$Product->load_data(array('prices','specs','categories','tags'));
-			$updated = '<strong>'.$Product->name.'</strong> '.__('has been saved.','Shopp');
-			if (!empty($_POST['save-products'])) {
-				$this->products_list($updated); 
-				exit();
-			}
-		}
-		
 		$permalink = $Shopp->shopuri."new/";
 
 		require_once("{$this->basepath}/core/model/Asset.php");
@@ -927,37 +1023,29 @@ class Flow {
 			array('value'=>'Shipped','label'=>__('Shipped','Shopp')),
 			array('value'=>'Download','label'=>__('Download','Shopp')),
 			array('value'=>'Donation','label'=>__('Donation','Shopp')),
-			array('value'=>'N/A','label'=>__('N/A','Shopp')),
+			array('value'=>'N/A','label'=>__('Disabled','Shopp')),
 		);
 		
-		$category_table = DatabaseObject::tablename(Category::$table);
-		$categories = $db->query("SELECT id,name,parent FROM $category_table ORDER BY parent,name",AS_ARRAY);
-		$categories = sort_tree($categories);
-		if (empty($categories)) $categories = array();
+		$workflows = array(
+			"continue" => __('Continue Editing','Shopp'),
+			"close" => __('Products Manager','Shopp'),
+			"new" => __('New Product','Shopp'),
+			"next" => __('Edit Next','Shopp'),
+			"previous" => __('Edit Previous','Shopp')
+			);
 		
-		$categories_menu = '<option value="0" rel="-1,-1">Parent Category&hellip;</option>';
-		foreach ($categories as $category) {
-			$padding = str_repeat("&nbsp;",$category->depth*3);
-			$categories_menu .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'">'.$padding.$category->name.'</option>';
-		}		
-
-		$selectedCategories = array();
-		foreach ($Product->categories as $category) $selectedCategories[] = $category->id;
-
 		$taglist = array();
 		foreach ($Product->tags as $tag) $taglist[] = $tag->name;
 		
 		$Assets = new Asset();
-		$Images = $db->query("SELECT id,src FROM $Assets->_table WHERE context='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
+		$Images = $db->query("SELECT id,src,properties FROM $Assets->_table WHERE context='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
 		unset($Assets);
 
 		$shiprates = $this->Settings->get('shipping_rates');
 		if (!empty($shiprates)) ksort($shiprates);
 
 		$process = (!empty($Product->id)?$Product->id:'new');
-		$action = wp_get_referer();
-		if (empty($action)) $action = admin_url("admin.php?page=".$this->Admin->products);
-		$action = add_query_arg('edit',$process,$action);
+		$_POST['action'] = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->products)),$this->Core->wpadminurl);
 		
 		include("{$this->basepath}/core/ui/products/editor.php");
 
@@ -970,15 +1058,18 @@ class Flow {
 
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
-			
+
+		$this->settings_save(); // Save workflow setting
+
 		if (!$_POST['options']) $Product->options = array();
 		if (empty($Product->slug)) $_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
+		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 		$Product->updates($_POST,array('categories'));
 		$Product->save();
 
 		$Product->save_categories($_POST['categories']);
 		$Product->save_tags(split(",",$_POST['taglist']));
-
+		
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 
 			// Delete prices that were marked for removal
@@ -1064,6 +1155,14 @@ class Flow {
 		if (!empty($_POST['images']) && is_array($_POST['images'])) {
 			$Product->link_images($_POST['images']);
 			$Product->save_imageorder($_POST['images']);
+			foreach($_POST['imagedetails'] as $i => $data) {
+				$Image = new Asset();
+				unset($Image->_datatypes['data'],$Image->data);
+				$Image->load($data['id']);
+				$Image->properties['title'] = $data['title'];
+				$Image->properties['alt'] = $data['alt'];
+				$Image->save();
+			}
 		}
 				
 		unset($Product);
@@ -1197,21 +1296,12 @@ class Flow {
 	/**
 	 * Category flow handlers
 	 **/	
-	function categories_list ($updated=false) {
+	function categories_list ($workflow=false) {
+		global $Shopp;
 		$db = DB::get();
 
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
-
-		if ($_GET['deleting'] == "category"
-				&& !empty($_GET['delete']) 
-				&& is_array($_GET['delete'])) {
-			foreach($_GET['delete'] as $deletion) {
-				$Category = new Category($deletion);
-				$db->query("UPDATE $Category->_table SET parent=0 WHERE parent=$Category->id");
-				$Category->delete();
-			}
-		}
 
 		$pagenum = absint( $_GET['pagenum'] );
 		if ( empty($pagenum) )
@@ -1228,8 +1318,16 @@ class Flow {
 		
 		$table = DatabaseObject::tablename(Category::$table);
 		$Catalog = new Catalog();
-		$Catalog->load_categories($filters);
-		$Categories = array_slice($Catalog->categories,$start,$per_page);
+		if ($workflow) {
+			$filters['columns'] = "cat.id,cat.parent";
+			$results = $Catalog->load_categories($filters,false,true);
+			return array_slice($results,$start,$per_page);
+		} else {
+			$filters['columns'] = "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,cat.spectemplate,cat.facetedmenus,count(DISTINCT pd.id) AS total";
+			
+			$Catalog->load_categories($filters);
+			$Categories = array_slice($Catalog->categories,$start,$per_page);
+		}
 		
 		$count = $db->query("SELECT count(*) AS total FROM $table");
 		$num_pages = ceil($count->total / $per_page);
@@ -1261,10 +1359,9 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if ($_GET['edit'] != "new") {
-			$Category = new Category($_GET['edit']);
-		} else $Category = new Category();
-
+		if (empty($Shopp->Category)) $Category = new Category();
+		else $Category = $Shopp->Category;
+		
 		$Shopp->Catalog = new Catalog();
 		$Shopp->Catalog->load_categories(array('where'=>'true'));
 
@@ -1276,66 +1373,6 @@ class Flow {
 			array('value'=>'N/A','label'=>__('N/A','Shopp')),
 		);
 
-		if (!empty($_POST['save']) || !empty($_POST['save-categories'])) {
-			check_admin_referer('shopp-save-category');
-			
-			if (!isset($_POST['slug']) && empty($Category->slug))
-				$Category->slug = sanitize_title_with_dashes($_POST['name']);
-			if (isset($_POST['slug'])) unset($_POST['slug']);
-
-			// Work out pathing
-			$paths = array();
-			if (!empty($Category->slug)) $paths = array($Category->slug);  // Include self
-			
-			$parentkey = -1;
-			// If we're saving a new category, lookup the parent
-			if ($_POST['parent'] > 0) {
-				array_unshift($paths,$Shopp->Catalog->categories[$_POST['parent']]->slug);
-				$parentkey = $Shopp->Catalog->categories[$_POST['parent']]->parent;
-			}
-
-			while ($category_tree = $Shopp->Catalog->categories[$parentkey]) {
-				array_unshift($paths,$category_tree->slug);
-				$parentkey = $category_tree->parent;
-			}
-			
-			if (count($paths) > 1) $_POST['uri'] = join("/",$paths);
-			else $_POST['uri'] = $paths[0];
-						
-			if (!empty($_POST['deleteImages'])) {			
-				$deletes = array();
-				if (strpos($_POST['deleteImages'],","))	$deletes = split(',',$_POST['deleteImages']);
-				else $deletes = array($_POST['deleteImages']);
-				$Category->delete_images($deletes);
-			}
-
-			if (!empty($_POST['images']) && is_array($_POST['images'])) {
-				$Category->link_images($_POST['images']);
-				$Category->save_imageorder($_POST['images']);
-			}
-
-			// Variation price templates
-			if (!empty($_POST['price']) && is_array($_POST['price'])) {
-				foreach ($_POST['price'] as &$pricing) {
-					$pricing['price'] = floatvalue($pricing['price']);
-					$pricing['saleprice'] = floatvalue($pricing['saleprice']);
-					$pricing['shipfee'] = floatvalue($pricing['shipfee']);
-				}
-				$Category->prices = stripslashes_deep($_POST['price']);
-			}
-
-			if (empty($_POST['specs'])) $Category->specs = array();
-			if (empty($_POST['options'])) $Category->options = array();
-			
-			$Category->updates($_POST);			
-			$Category->save();
-			
-			$updated = '<strong>'.$Category->name.'</strong> '.__('category saved.','Shopp');
-			if (!empty($_POST['save-categories'])) {
-				$this->categories_list($updated); 
-				exit();
-			}
-		}
 		
 		// Build permalink for slug editor
 		$permalink = trailingslashit($Shopp->link('catalog'))."category/";
@@ -1349,13 +1386,95 @@ class Flow {
 		);
 		
 		$Assets = new Asset();
-		$Images = $db->query("SELECT id,src FROM $Assets->_table WHERE context='category' AND parent=$Category->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
+		$Images = $db->query("SELECT id,src,properties FROM $Assets->_table WHERE context='category' AND parent=$Category->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
 		unset($Assets);
 		
 		$categories_menu = $this->category_menu($Category->parent,$Category->id);
 		$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
-				
+		
+		$workflows = array(
+			"continue" => __('Continue Editing','Shopp'),
+			"close" => __('Categories Manager','Shopp'),
+			"new" => __('New Category','Shopp'),
+			"next" => __('Edit Next','Shopp'),
+			"previous" => __('Edit Previous','Shopp')
+			);
+		
 		include("{$this->basepath}/core/ui/categories/category.php");
+	}
+	
+	function save_category ($Category) {
+		global $Shopp;
+		$db = DB::get();
+		check_admin_referer('shopp-save-category');
+		
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+		
+		$this->settings_save(); // Save workflow setting
+		
+		if (!isset($_POST['slug']) && empty($Category->slug))
+			$Category->slug = sanitize_title_with_dashes($_POST['name']);
+		if (isset($_POST['slug'])) unset($_POST['slug']);
+
+		// Work out pathing
+		$paths = array();
+		if (!empty($Category->slug)) $paths = array($Category->slug);  // Include self
+		
+		$parentkey = -1;
+		// If we're saving a new category, lookup the parent
+		if ($_POST['parent'] > 0) {
+			array_unshift($paths,$Shopp->Catalog->categories[$_POST['parent']]->slug);
+			$parentkey = $Shopp->Catalog->categories[$_POST['parent']]->parent;
+		}
+
+		while ($category_tree = $Shopp->Catalog->categories[$parentkey]) {
+			array_unshift($paths,$category_tree->slug);
+			$parentkey = $category_tree->parent;
+		}
+		
+		if (count($paths) > 1) $_POST['uri'] = join("/",$paths);
+		else $_POST['uri'] = $paths[0];
+					
+		if (!empty($_POST['deleteImages'])) {			
+			$deletes = array();
+			if (strpos($_POST['deleteImages'],","))	$deletes = split(',',$_POST['deleteImages']);
+			else $deletes = array($_POST['deleteImages']);
+			$Category->delete_images($deletes);
+		}
+
+		if (!empty($_POST['images']) && is_array($_POST['images'])) {
+			$Category->link_images($_POST['images']);
+			$Category->save_imageorder($_POST['images']);
+			foreach($_POST['imagedetails'] as $i => $data) {
+				$Image = new Asset();
+				unset($Image->_datatypes['data'],$Image->data);
+				$Image->load($data['id']);
+				$Image->properties['title'] = $data['title'];
+				$Image->properties['alt'] = $data['alt'];
+				$Image->save();
+			}
+		}
+
+		// Variation price templates
+		if (!empty($_POST['price']) && is_array($_POST['price'])) {
+			foreach ($_POST['price'] as &$pricing) {
+				$pricing['price'] = floatvalue($pricing['price']);
+				$pricing['saleprice'] = floatvalue($pricing['saleprice']);
+				$pricing['shipfee'] = floatvalue($pricing['shipfee']);
+			}
+			$Category->prices = stripslashes_deep($_POST['price']);
+		}
+
+		if (empty($_POST['specs'])) $Category->specs = array();
+		if (empty($_POST['options'])) $Category->options = array();
+		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
+		
+		$Category->updates($_POST);			
+		$Category->save();
+		
+		$updated = '<strong>'.$Category->name.'</strong> '.__('category saved.','Shopp');
+		
 	}
 		
 	function category_menu ($selection=false,$current=false) {
@@ -1404,6 +1523,29 @@ class Flow {
 			}
 		}
 		
+		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-save-promotion');
+
+			if ($_GET['id'] != "new") {
+				$Promotion = new Promotion($_GET['id']);
+			} else $Promotion = new Promotion();
+
+			if (!empty($_POST['starts']['month']) && !empty($_POST['starts']['date']) && !empty($_POST['starts']['year']))
+				$_POST['starts'] = mktime(0,0,0,$_POST['starts']['month'],$_POST['starts']['date'],$_POST['starts']['year']);
+			else $_POST['starts'] = 1;
+
+			if (!empty($_POST['ends']['month']) && !empty($_POST['ends']['date']) && !empty($_POST['ends']['year']))
+				$_POST['ends'] = mktime(23,59,59,$_POST['ends']['month'],$_POST['ends']['date'],$_POST['ends']['year']);
+			else $_POST['ends'] = 1;
+
+			$Promotion->updates($_POST);
+			$Promotion->save();
+
+			if ($Promotion->scope == "Catalog")
+				$Promotion->build_discounts();
+			
+		}
+		
 		$pagenum = absint( $_GET['pagenum'] );
 		if ( empty($pagenum) )
 			$pagenum = 1;
@@ -1447,30 +1589,9 @@ class Flow {
 
 		require_once("{$this->basepath}/core/model/Promotion.php");
 
-		if ($_GET['promotion'] != "new") {
-			$Promotion = new Promotion($_GET['promotion']);
+		if ($_GET['id'] != "new") {
+			$Promotion = new Promotion($_GET['id']);
 		} else $Promotion = new Promotion();
-		
-		if (!empty($_POST['save'])) {
-			check_admin_referer('shopp-save-promotion');
-
-			if (!empty($_POST['starts']['month']) && !empty($_POST['starts']['date']) && !empty($_POST['starts']['year']))
-				$_POST['starts'] = mktime(0,0,0,$_POST['starts']['month'],$_POST['starts']['date'],$_POST['starts']['year']);
-			else $_POST['starts'] = 1;
-
-			if (!empty($_POST['ends']['month']) && !empty($_POST['ends']['date']) && !empty($_POST['ends']['year']))
-				$_POST['ends'] = mktime(23,59,59,$_POST['ends']['month'],$_POST['ends']['date'],$_POST['ends']['year']);
-			else $_POST['ends'] = 1;
-
-			$Promotion->updates($_POST);
-			$Promotion->save();
-
-			if ($Promotion->scope == "Catalog")
-				$Promotion->build_discounts();
-			
-			$this->promotions_list();
-			return true;
-		}
 		
 		$scopes = array(
 			'Catalog' => __('Catalog','Shopp'),
@@ -1501,7 +1622,7 @@ class Flow {
 		echo $widget_name;
 		echo $after_title;
 		
-		$purchasetable = DatabaseObject::tablename(Purchased::$table);
+		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 
 		$results = $db->query("SELECT count(id) AS orders, SUM(total) AS sales, AVG(total) AS average,
 		 						SUM(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),1,0)) AS wkorders,
@@ -1552,7 +1673,7 @@ class Flow {
 		foreach ($Orders as $Order) {
 			echo '<tr'.((!$even)?' class="alternate"':'').'>';
 			$even = !$even;
-			echo '<td><a class="row-title" href="admin.php?page='.$this->Admin->default.'&amp;manage='.$Order->id.'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
+			echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>$this->Admin->manageorder,'id'=>$Order->id),$this->Core->wpadminurl).'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
 			echo '<td>'.date("Y/m/d",mktimestamp($Order->created)).'</td>';
 			echo '<td class="num">'.$Order->items.'</td>';
 			echo '<td class="num">'.money($Order->total).'</td>';
@@ -1585,7 +1706,7 @@ class Flow {
 		echo '<td><h4>Recent Bestsellers</h4>';
 		echo '<ul>';
 		foreach ($RecentBestsellers->products as $product) 
-			echo '<li><a href="admin.php?page='.$this->Admin->products.'&edit='.$product->id.'">'.$product->name.'</a> ('.$product->sold.')</li>';
+			echo '<li><a href="'.add_query_arg(array('page'=>$this->Admin->editproduct,'id'=>$product->id),$this->Core->wpadminurl).'">'.$product->name.'</a> ('.$product->sold.')</li>';
 		echo '</ul></td>';
 		
 		
@@ -1594,15 +1715,13 @@ class Flow {
 		echo '<td><h4>Lifetime Bestsellers</h4>';
 		echo '<ul>';
 		foreach ($LifetimeBestsellers->products as $product) 
-			echo '<li><a href="admin.php?page='.$this->Admin->products.'&edit='.$product->id.'">'.$product->name.'</a> ('.$product->sold.')</li>';
+			echo '<li><a href="'.add_query_arg(array('page'=>$this->Admin->editproduct,'id'=>$product->id),$this->Core->wpadminurl).'">'.$product->name.'</a> ('.$product->sold.')</li>';
 		echo '</ul></td>';
 		echo '</tr></tbody></table>';
 		echo $after_widget;
 		
 	}
-	
-	
-	
+		
 	/**
 	 * Settings flow handlers
 	 **/
@@ -1611,11 +1730,11 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		$country = $_POST['settings']['base_operations']['country'];
+		$country = (isset($_POST['settings']))?$_POST['settings']['base_operations']['country']:'';
 		$countries = array();
 		$countrydata = $this->Settings->get('countries');
 		foreach ($countrydata as $iso => $c) {
-			if ($_POST['settings']['base_operations']['country'] == $iso) 
+			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso) 
 				$base_region = $c['region'];
 			$countries[$iso] = $c['name'];
 		}
@@ -1737,7 +1856,7 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
-		$next = $db->query("SELECT auto_increment as id FROM information_schema.tables WHERE table_name='$purchasetable'");
+		$next = $db->query("SELECT auto_increment as id FROM information_schema.tables WHERE table_schema=database() AND table_name='$purchasetable' LIMIT 1");
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-checkout');
@@ -1985,7 +2104,8 @@ class Flow {
 		$error = false;
 		
 		// Image path processing
-		if (isset($_POST['settings'])) $_POST['settings']['image_storage'] = $_POST['settings']['image_storage_pref'];
+		if (isset($_POST['settings']) && isset($_POST['settings']['image_storage_pref'])) 
+			$_POST['settings']['image_storage'] = $_POST['settings']['image_storage_pref'];
 		$imagepath = $this->Settings->get('image_path');
 		if (isset($_POST['settings']['products_path'])) $imagepath = $_POST['settings']['image_path'];
 		$imagepath_status = __("File system image hosting is enabled and working.","Shopp");
@@ -2000,7 +2120,8 @@ class Flow {
 		}
 
 		// Product path processing
-		if (isset($_POST['settings'])) $_POST['settings']['product_storage'] = $_POST['settings']['product_storage_pref'];
+		if (isset($_POST['settings']) && isset($_POST['settings']['product_storage_pref']))
+		 	$_POST['settings']['product_storage'] = $_POST['settings']['product_storage_pref'];
 		$productspath = $this->Settings->get('products_path');
 		if (isset($_POST['settings']['products_path'])) $productspath = $_POST['settings']['products_path'];
 		$error = ""; // Reset the error tracker
@@ -2048,6 +2169,8 @@ class Flow {
 			);
 								
 		$filesystems = array("db" => __("Database","Shopp"),"fs" => __("File System","Shopp"));
+		
+		$loading = array("shopp" => __('Load on Shopp-pages only','Shopp'),"all" => __('Load on entire site','Shopp'));
 		
 		if ($this->Settings->get('error_logging') > 0) {
 			$recentlog = $Shopp->ErrorLog->tail(500);
@@ -2359,6 +2482,9 @@ class Flow {
 		$this->Settings->save('gallery_thumbnail_height','96');
 		$this->Settings->save('gallery_thumbnail_sizing','1');
 		$this->Settings->save('gallery_thumbnail_quality','3');
+		
+		$this->Settings->save('image_storage_pref','db');
+		$this->Settings->save('product_storage_pref','db');
 
 		// Payment Gateway Settings
 		$this->Settings->save('PayPalExpress',array('enabled'=>'off'));

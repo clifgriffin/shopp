@@ -53,7 +53,7 @@ class Item {
 		$this->name = $Product->name;
 		$this->slug = $Product->slug;
 		$this->description = $Product->summary;
-		$this->thumbnail = $Product->thumbnail;
+		if (isset($Product->thumbnail)) $this->thumbnail = $Product->thumbnail;
 		$this->options = $Product->prices;
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;

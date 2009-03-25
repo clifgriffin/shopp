@@ -111,6 +111,7 @@ class Shopp {
 		add_action('init', array(&$this, 'ajax'));
 		add_action('init', array(&$this, 'xorder'));
 		add_action('init', array(&$this, 'tinymce'));
+		add_action('init', array(&$this->Flow, 'admin'));
 		add_action('parse_request', array(&$this, 'lookups') );
 		add_action('parse_request', array(&$this, 'cart'));
 		add_action('parse_request', array(&$this, 'checkout'));
@@ -236,11 +237,31 @@ class Shopp {
 
 		if (function_exists('add_object_page')) $main = add_object_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
 		else $main = add_menu_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
+
 		$orders = add_submenu_page($this->Flow->Admin->default,__('Orders','Shopp'), __('Orders','Shopp'), 8, $this->Flow->Admin->orders, array(&$this,'orders'));
+		if (SHOPP_WP27) $order_parent = $orders;
+		else $order_parent = $this->Flow->Admin->default;
+		$manageorder = add_submenu_page($order_parent,__('Orders','Shopp'), __('Orders','Shopp'), 8, $this->Flow->Admin->manageorder, array(&$this,'orders'));
+
 		$promotions = add_submenu_page($this->Flow->Admin->default,__('Promotions','Shopp'), __('Promotions','Shopp'), 8, $this->Flow->Admin->promotions, array(&$this,'promotions'));
+		$editpromo = add_submenu_page($promotions,__('Edit Promotion','Shopp'), __('Edit Promotion','Shopp'), 8, $this->Flow->Admin->editpromo, array(&$this,'promotions'));
+
 		$products = add_submenu_page($this->Flow->Admin->default,__('Products','Shopp'), __('Products','Shopp'), 8, $this->Flow->Admin->products, array(&$this,'products'));
+		if (SHOPP_WP27) $products_parent = $products;
+		else $products_parent = $this->Flow->Admin->default;
+		$editproduct = add_submenu_page($products_parent,__('Product Editor','Shopp'), false, 8, $this->Flow->Admin->editproduct, array(&$this,'products'));
+		
 		$categories = add_submenu_page($this->Flow->Admin->default,__('Categories','Shopp'), __('Categories','Shopp'), 8, $this->Flow->Admin->categories, array(&$this,'categories'));
-		$settings = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), 8, $this->Flow->Admin->settings, array(&$this,'settings'));
+		if (SHOPP_WP27) $category_parent = $categories;
+		else $category_parent = $this->Flow->Admin->default;
+		$editcategory = add_submenu_page($category_parent,__('Edit Category','Shopp'), false, 8, $this->Flow->Admin->editcategory, array(&$this,'categories'));
+		
+		$settings = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), 8, $this->Flow->Admin->settings['settings'][0], array(&$this,'settings'));
+
+		$settings_screens = array();
+		foreach ($this->Flow->Admin->settings as $key => $screen) {
+			$settings_screens[] = add_submenu_page($settings,$screen[1],$screen[1], 8, $screen[0], array(&$this,'settings'));
+		}
 
 		if (function_exists('add_contextual_help')) {
 			add_contextual_help($orders,'<a href="'.SHOPP_DOCS.'Managing_Orders" target="_blank">Managing Orders</a>');
@@ -256,10 +277,17 @@ class Shopp {
 
 		add_action("admin_print_scripts-$main", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$orders", array(&$this, 'admin_behaviors'));
+		add_action("admin_print_scripts-$manageorder", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$categories", array(&$this, 'admin_behaviors'));
+		add_action("admin_print_scripts-$editcategory", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$products", array(&$this, 'admin_behaviors'));
+		add_action("admin_print_scripts-$editproduct", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$promotions", array(&$this, 'admin_behaviors'));
+		add_action("admin_print_scripts-$editpromo", array(&$this, 'admin_behaviors'));
 		add_action("admin_print_scripts-$settings", array(&$this, 'admin_behaviors'));
+		foreach ($settings_screens as $settings_screen)
+			add_action("admin_print_scripts-$settings_screen", array(&$this, 'admin_behaviors'));
+		
 		if (isset($help)) add_action("admin_print_scripts-$help", array(&$this, 'admin_behaviors'));
 		if (isset($welcome)) add_action("admin_print_scripts-$welcome", array(&$this, 'admin_behaviors'));		
 		
@@ -271,7 +299,7 @@ class Shopp {
 	}
 
 	function favorites ($actions) {
-		$key = 'admin.php?page='.$this->Flow->Admin->products.'&edit=new';
+		$key = add_query_arg(array('page'=>$this->Flow->Admin->editproduct,'id'=>'new'),$this->wpadminurl);
 	    $actions[$key] = array('New Shopp Product',8);
 		return $actions;
 	}
@@ -286,21 +314,35 @@ class Shopp {
 		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js");
 		
 		// Load only for the product editor to keep other admin screens snappy
-		if (($_GET['page'] == $this->Flow->Admin->products || 
-			 $_GET['page'] == $this->Flow->Admin->categories) && 
-			 isset($_GET['edit'])) {
+		if (($_GET['page'] == $this->Flow->Admin->editproduct || 
+			 $_GET['page'] == $this->Flow->Admin->editcategory ||
+			 $_GET['page'] == $this->Flow->Admin->editpromo)) {
+			if (SHOPP_WP27) {
+				add_action( 'admin_head', 'wp_tiny_mce' );
+				if ( user_can_richedit() )
+					wp_enqueue_script('editor');
+				wp_enqueue_script('postbox');
+			}
+				
+			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',$this->shopuri));
+			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
 			wp_enqueue_script('shopp.editor.lib',"{$this->uri}/core/ui/behaviors/editors.js");
-			wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js");
+
+			if ($_GET['page'] == $this->Flow->Admin->editproduct)
+				wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js");
+
+			if (SHOPP_WP27) wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline.js");
+			else wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline-wp26.js");
+			
 			wp_enqueue_script('shopp.ocupload',"{$this->uri}/core/ui/behaviors/ocupload.js");
 			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery-ui-core'), '1.5');
 			
 			wp_enqueue_script('shopp.swfupload',"{$this->uri}/core/ui/behaviors/swfupload/swfupload.js");
 			wp_enqueue_script('shopp.swfupload.swfobject',"{$this->uri}/core/ui/behaviors/swfupload/plugins/swfupload.swfobject.js");
-			// if (version_compare($wp_version,"2.6.9","<")) wp_enqueue_script('swfupload-degrade');
-			// else wp_enqueue_script('swfupload-swfobject');
 		}
 		
 		?>
+		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css' type='text/css' />
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css' type='text/css' />
 		<?php
 	}
@@ -538,10 +580,11 @@ class Shopp {
 		$vars[] = 'shopp_image';
 		$vars[] = 'shopp_download';
 		$vars[] = 'shopp_xco';
+		$vars[] = 'st';
 
 		return $vars;
 	}
-	
+		
 	/**
 	 * orders()
 	 * Handles order administration screens */
@@ -549,7 +592,7 @@ class Shopp {
 		if ($this->Settings->get('display_welcome') == "on") {
 			$this->welcome(); return;
 		}
-		if (isset($_GET['manage'])) $this->Flow->order_manager();
+		if ($_GET['page'] == $this->Flow->Admin->manageorder) $this->Flow->order_manager();
 		else $this->Flow->orders_list();
 	}
 
@@ -560,7 +603,8 @@ class Shopp {
 		if ($this->Settings->get('display_welcome') == "on") {
 			$this->welcome(); return;
 		}
-		if (isset($_GET['edit'])) $this->Flow->category_editor();
+		if ($_GET['page'] == $this->Flow->Admin->editcategory)
+			$this->Flow->category_editor();
 		else $this->Flow->categories_list();
 	}
 
@@ -571,10 +615,11 @@ class Shopp {
 		if ($this->Settings->get('display_welcome') == "on") {
 			$this->welcome(); return;
 		}
-		if (isset($_GET['edit'])) $this->Flow->product_editor();
-		elseif (isset($_GET['category'])) $this->Flow->category_editor();
-		elseif (isset($_GET['categories'])) $this->Flow->categories_list();
+
+		if ($_GET['page'] == $this->Flow->Admin->editproduct) 
+			$this->Flow->product_editor();
 		else $this->Flow->products_list();
+		
 	}
 
 	/**
@@ -584,7 +629,8 @@ class Shopp {
 		if ($this->Settings->get('display_welcome') == "on") {
 			$this->welcome(); return;
 		}
-		if (isset($_GET['promotion'])) $this->Flow->promotion_editor();
+		if ($_GET['page'] == $this->Flow->Admin->editpromo)
+			$this->Flow->promotion_editor();
 		else $this->Flow->promotions_list();
 	}
 
@@ -595,8 +641,10 @@ class Shopp {
 		if ($this->Settings->get('display_welcome') == "on" && empty($_POST['setup'])) {
 			$this->welcome(); return;
 		}
-
-		switch($_GET['edit']) {
+		
+		$pages = split("/",$_GET['page']);
+		$screen = end($pages);
+		switch($screen) {
 			case "catalog": 		$this->Flow->settings_catalog(); break;
 			case "cart": 			$this->Flow->settings_cart(); break;
 			case "checkout": 		$this->Flow->settings_checkout(); break;
@@ -719,8 +767,10 @@ class Shopp {
 
 		$referer = wp_get_referer();
 		if (!empty($wp->query_vars['s']) && // Search query is present and...
-			// The referering page is includes a Shopp catalog page path
-			(strpos($referer,$this->link('catalog')) !== false || 
+			// The search target is set to shopp
+			((isset($wp->query_vars['st']) && $wp->query_vars['st'] == "shopp") 
+				// The referering page includes a Shopp catalog page path
+				|| strpos($referer,$this->link('catalog')) !== false || 
 				strpos($referer,'page_id='.$pages['catalog']['id']) !== false || 
 				// Or the referer was a search that matches the last recorded Shopp search
 				substr($referer,-1*(strlen($this->Cart->data->Search))) == $this->Cart->data->Search || 
@@ -803,7 +853,10 @@ class Shopp {
 		$this->Cart->request();
 		if ($this->Cart->updated) $this->Cart->totals();
 		if (isset($_REQUEST['ajax'])) $this->Cart->ajax();
-		switch ($_REQUEST['redirect']) {
+
+		$redirect = false;
+		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
+		switch ($redirect) {
 			case "checkout": header("Location: ".$this->link($_REQUEST['redirect'],true)); break;
 			default: 
 				if (!empty($_REQUEST['redirect']))
@@ -1021,6 +1074,7 @@ class Shopp {
 				$db = DB::get();
 				$table = DatabaseObject::tablename(Category::$table);			
 				$result = $db->query("SELECT options,prices FROM $table WHERE id='{$_GET['cat']}' AND variations='on'");
+				if (empty($result)) exit();
 				$result->options = unserialize($result->options);
 				$result->prices = unserialize($result->prices);
 				foreach ($result->options as &$menu) {

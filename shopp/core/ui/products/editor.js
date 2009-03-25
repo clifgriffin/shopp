@@ -25,9 +25,21 @@ var pricesPayload = true;
 
 function init () {
 	$('#shopp-jsconflict').hide();
-	window.onbeforeunload = function () { if (changes && !saving) return false; }	
+
+	if (!wp26) {
+		postboxes.add_postbox_toggles('product');
+		// close postboxes that should be closed
+		jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	}
+	
+	if (!product) $('#title').focus();
+		
 	$('#product').change(function () { changes = true; });
-	$('#product').submit(function() { saving = true; });
+	$('#product').submit(function() {
+		this.action = this.action+"?"+$.param(request);
+		saving = true;
+		return true;
+	});
 
 	var editslug = new SlugEditor(product,'product');
 
@@ -47,11 +59,44 @@ function init () {
 	categories();
 	tags();
 	quickSelects();
-
-	optionMenuItemExists(optionMenus[1],'x-small');
-
+	updateWorkflow();
+	
 	imageUploads = new ImageUploads({"product" : $('#image-product-id').val()});
+	window.onbeforeunload = function () { if (changes && !saving) return false; }	
 
+}
+
+function updateWorkflow () {
+	$('#workflow').change(function () {
+		setting = $(this).val();
+		request.page = workflow[setting];
+		request.id = product;
+		if (!request.id) request.id = "new";
+		if (setting == "new") request.next = setting;
+		
+		// Find previous product
+		if (setting == "previous") {
+			$.each(worklist,function (i,entry) {
+				if (entry.id == product) {
+					if (worklist[i-1]) request.next = worklist[i-1].id;
+					else request.page = workflow['close'];
+					return true;
+				}
+			});
+		}
+		
+		// Find next product
+		if (setting == "next") {
+			$.each(worklist,function (i,entry) {
+				if (entry.id == product) {
+					if (worklist[i+1]) request.next = worklist[i+1].id;
+					else request.page = workflow['close'];
+					return true;
+				}
+			});
+		}
+		
+	}).change();
 }
 
 function categories () {

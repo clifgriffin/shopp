@@ -160,6 +160,11 @@ class Category extends DatabaseObject {
 		
 		// Handle default WHERE clause
 		if (empty($loading['where'])) $loading['where'] = "catalog.category=$this->id";
+		if (empty($loading['catalog'])) $loading['catalog'] = "category";
+		switch($loading['catalog']) {
+			case "tags": $loading['catalog'] = ""; break;
+			default: $loading['catalog'] = "AND catalog.category != 0";
+		}
 
 		// Always hide inventory tracked products with no inventory
 		if (!isset($loading['nostock']))
@@ -271,7 +276,7 @@ class Category extends DatabaseObject {
 					LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
 					LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
 					{$loading['joins']}
-					WHERE ({$loading['where']}) AND catalog.category != 0 AND p.published='on' 
+					WHERE ({$loading['where']}) {$loading['catalog']} AND p.published='on' 
 					GROUP BY p.name {$loading['having']}
 					ORDER BY {$loading['order']} LIMIT {$loading['limit']}";
 		
@@ -284,7 +289,7 @@ class Category extends DatabaseObject {
 						LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
 						LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
 						{$loading['joins']}
-						WHERE ({$loading['where']}) AND catalog.category != 0 AND p.published='on'";
+						WHERE ({$loading['where']}) {$loading['catalog']} AND p.published='on'";
 		
 			$total = $db->query($count);
 			$this->total = $total->count;
@@ -343,8 +348,10 @@ class Category extends DatabaseObject {
 
 		if (!isset($loading['load'])) $loading['load'] = array('prices');
 
-		$Processing = new Product();
-		$Processing->load_data($loading['load'],$this->products);
+		if (count($this->products) > 0) {
+			$Processing = new Product();
+			$Processing->load_data($loading['load'],$this->products);
+		}
 
 		$this->loaded = true;
 
@@ -940,6 +947,7 @@ class TagProducts extends Category {
 		$this->uri = urlencode($options['tag']);
 		$this->smart = true;
 		$this->loading = array(
+			'catalog'=>'tags',
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
 			'where'=>"catalog.tag=t.id AND t.name='{$options['tag']}'");
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];

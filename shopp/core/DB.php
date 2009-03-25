@@ -12,19 +12,8 @@
 define("AS_ARRAY",false);
 define("SHOPP_DBPREFIX","shopp_");
 
-class DBSingleton {
+class DB {
 	private static $instance;
-	private function DBSingleton() {}
-	function __clone() { trigger_error('Clone is not allowed.', E_USER_ERROR); }
-
-	static function &get() {
-		static $me;
-		if (!isset($me)) $me = new DB();
-		return $me;
-	}
-}
-
-class DB extends DBSingleton {
 	// Define datatypes for MySQL
 	var $_datatypes = array("int" => array("int", "bit", "bool", "boolean"),
 							"float" => array("float", "double", "decimal", "real"),
@@ -37,10 +26,17 @@ class DB extends DBSingleton {
 	var $dbh = false;
 
 
-	function DB () {
+	protected function DB () {
 		global $wpdb;
 		$this->dbh = $wpdb->dbh;
 		$this->version = mysql_get_server_info();
+	}
+
+	function __clone() { trigger_error('Clone is not allowed.', E_USER_ERROR); }
+	static function &get() {
+		if (!self::$instance instanceof self)
+			self::$instance = new self;
+		return self::$instance;
 	}
 
 	
@@ -343,7 +339,7 @@ class DatabaseObject {
 		}
 
 	}
-	
+		
 	/**
 	 * Deletes the record associated with this object */
 	function delete () {

@@ -15,12 +15,12 @@
 			</ul>
 			</li>
 		<li><strong><?php _e('Easy setup in just a few steps.','Shopp'); ?></strong><br /><?php _e('Setup is simple and takes about 10-15 minutes.  Just jump through each of the settings screens to configure your store.','Shopp'); ?></li>
-		<li><strong><?php _e('Don\'t forget to activate your key!','Shopp'); ?></strong><br /><?php printf(__('Be sure to visit the %sShopp%s &rarr; %sSettings%s &rarr; %sUpdate%s screen and activate your update key so you can get trouble-free, automated updates.','Shopp'),'<strong>','</strong>','<strong>','</strong>','<strong><a href="admin.php?page='.$this->Flow->Admin->settings.'&edit=update">','</a></strong>'); ?></li>
+		<li><strong><?php _e('Don\'t forget to activate your key!','Shopp'); ?></strong><br /><?php printf(__('Be sure to visit the %sShopp%s &rarr; %sSettings%s &rarr; %sUpdate%s screen and activate your update key so you can get trouble-free, automated updates.','Shopp'),'<strong>','</strong>','<strong>','</strong>','<strong><a href="admin.php?page='.$this->Flow->Admin->settings['update'][0].'">','</a></strong>'); ?></li>
 		<li><strong><?php _e('Show It Off','Shopp')?></strong><br /><?php printf(__('Once you\'re up and running, drop by the Shopp website and %ssubmit your site%s to be included in the Shopp-powered website showcase.','Shopp'),'<a href="http://shopplugin.net/showcase">','</a>'); ?></li>
 	</ul>
 	
 	<br />
-	<form action="admin.php?page=<?php echo $this->Flow->Admin->settings; ?>" method="POST">
+	<form action="admin.php?page=<?php echo $this->Flow->Admin->settings['settings'][0]; ?>" method="POST">
 	<div class="alignright"><input type="submit" name="setup" value="<?php _e('Continue to Shopp Setup','Shopp'); ?>&hellip;" class="button-primary" /></div>
 	
 	<p><input type="hidden" name="settings[show_welcome]" value="off" /><input type="checkbox" name="settings[show_welcome]" id="welcome-toggle" value="on" <?php echo ($this->Settings->get('show_welcome') == "on")?' checked="checked"':''; ?> /><label for="welcome-toggle"> <small><?php _e('Show this screen every time after activating Shopp','Shopp'); ?></small></label></p>

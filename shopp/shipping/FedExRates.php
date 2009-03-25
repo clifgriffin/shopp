@@ -66,6 +66,12 @@ class FedExRates {
 		
 		$this->wsdl = dirname(__FILE__).DIRECTORY_SEPARATOR.$this->wsdl;
 		$this->settings = $Shopp->Settings->get('FedExRates');
+		if (!isset($this->settings['account'])) $this->settings['account'] = '';
+		if (!isset($this->settings['meter'])) $this->settings['meter'] = '';
+		if (!isset($this->settings['postcode'])) $this->settings['postcode'] = '';
+		if (!isset($this->settings['key'])) $this->settings['key'] = '';
+		if (!isset($this->settings['password'])) $this->settings['password'] = '';
+		
 		$base = $Shopp->Settings->get('base_operations');
 		$this->settings['country'] = $base['country'];
    		$storeunits = $Shopp->Settings->get('weight_unit');

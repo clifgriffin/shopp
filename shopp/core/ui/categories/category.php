@@ -1,13 +1,242 @@
+<?php 
+if (SHOPP_WP27):
+
+function save_meta_box ($Category) {
+	global $Shopp;
+	
+	$workflows = array(
+		"continue" => __('Continue Editing','Shopp'),
+		"close" => __('Category Manager','Shopp'),
+		"new" => __('New Category','Shopp'),
+		"next" => __('Edit Next','Shopp'),
+		"previous" => __('Edit Previous','Shopp')
+		);
+	
+?>
+	<div id="major-publishing-actions">
+		<select name="settings[workflow]" id="workflow">
+		<?php echo menuoptions($workflows,$Shopp->Settings->get('workflow'),true); ?>
+		</select>
+		<input type="submit" class="button-primary" name="save" value="<?php _e('Save Category','Shopp'); ?>" />
+	</div>
+<?php
+}
+add_meta_box('save-category', __('Save','Shopp'), 'save_meta_box', 'category', 'side', 'core');
+
+function settings_meta_box ($Category) {
+	global $Shopp;
+	$categories_menu = $Shopp->Flow->category_menu($Category->parent,$Category->id);
+	$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
+?>
+	<p><select name="parent" id="category_parent"><?php echo $categories_menu; ?></select><br /> 
+<?php _e('Categories, unlike tags, can be or have nested sub-categories.','Shopp'); ?></p>
+
+	<p><input type="hidden" name="spectemplate" value="off" /><input type="checkbox" name="spectemplate" value="on" id="spectemplates-setting" tabindex="11" <?php if ($Category->spectemplate == "on") echo ' checked="checked"'?> /><label for="spectemplates-setting"> <?php _e('Product Details Template','Shopp'); ?></label><br /><?php _e('Predefined details for products created in this category','Shopp'); ?></p>
+	<p id="facetedmenus-setting"><input type="hidden" name="facetedmenus" value="off" /><input type="checkbox" name="facetedmenus" value="on" id="faceted-setting" tabindex="12" <?php if ($Category->facetedmenus == "on") echo ' checked="checked"'?> /><label for="faceted-setting"> <?php _e('Faceted Menus','Shopp'); ?></label><br /><?php _e('Build drill-down filter menus based on the details template of this category','Shopp'); ?></p>
+	<p><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if ($Category->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations','Shopp'); ?></label><br /><?php _e('Predefined selectable product options for products created in this category','Shopp'); ?></p>
+	<?php
+}
+add_meta_box('settings-tags', __('Settings','Shopp'), 'settings_meta_box', 'category', 'side', 'core');
+
+function images_meta_box ($Category) {
+	$db =& DB::get();
+	$Assets = new Asset();
+	$Images = $db->query("SELECT id,src,properties FROM $Assets->_table WHERE context='category' AND parent=$Category->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
+	unset($Assets);
+?>
+	<ul id="lightbox">
+		<?php foreach ($Images as $i => $thumbnail): $thumbnail->properties = unserialize($thumbnail->properties); ?>
+			<li id="image-<?php echo $thumbnail->src; ?>"><input type="hidden" name="images[]" value="<?php echo $thumbnail->src; ?>" />
+				<div id="image-<?php echo $thumbnail->src; ?>-details">
+				<img src="?shopp_image=<?php echo $thumbnail->id; ?>" width="96" height="96" />
+					<div class="details">
+						<input type="hidden" name="imagedetails[<?php echo $i; ?>][id]" value="<?php echo $thumbnail->id; ?>" />
+						<p><label>Title: </label><input type="text" name="imagedetails[<?php echo $i; ?>][title]" value="<?php echo $thumbnail->properties['title']; ?>" /></p>
+						<p><label>Alt: </label><input type="text" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $thumbnail->properties['alt']; ?>" /></p>
+						<p class="submit"><input type="button" name="close" value="Close" class="button close" /></p>
+					</div>
+				</div>
+				<button type="button" name="deleteImage" value="<?php echo $thumbnail->src; ?>" title="Delete category image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
+		<?php endforeach; ?>
+	</ul>
+	<div class="clear"></div>
+	<input type="hidden" name="category" value="<?php echo $_GET['id']; ?>" id="image-category-id" />
+	<input type="hidden" name="deleteImages" id="deleteImages" value="" />
+	<div id="swf-uploader-button"></div>
+	<div id="swf-uploader">
+	<button type="button" class="button-secondary" name="add-image" id="add-image" tabindex="10"><small><?php _e('Add New Image','Shopp'); ?></small></button></div>
+	<div id="browser-uploader">
+		<button type="button" name="image_upload" id="image-upload" class="button-secondary"><small><?php _e('Add New Image','Shopp'); ?></small></button><br class="clear"/>
+	</div>
+	<p><?php _e('The first image will be the default image. These thumbnails are out of proportion, but will be correctly sized for shoppers.','Shopp'); ?></p>
+<?php
+}
+add_meta_box('product-images', __('Category Images','Shopp'), 'images_meta_box', 'category', 'normal', 'core');
+
+function templates_meta_box ($Category) {
+	$pricerange_menu = array(
+		"disabled" => __('Price ranges disabled','Shopp'),
+		"auto" => __('Build price ranges automatically','Shopp'),
+		"custom" => __('Use custom price ranges','Shopp'),
+	);
+
+?>
+<p><?php _e('Setup template values that will be copied into new products that are created and assigned this category.','Shopp'); ?></p>
+
+<div id="details-template" class="panel">
+	<div class="pricing-label">
+		<label><?php _e('Product Details','Shopp'); ?></label>
+	</div>
+	<div class="pricing-ui">
+
+	<ul class="details multipane">
+		<li><input type="hidden" name="deletedSpecs" id="deletedSpecs" value="" />
+			<div id="details-menu" class="multiple-select options">
+				<ul></ul>
+			</div>
+			<div class="controls">
+			<button type="button" id="addDetail" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Detail','Shopp'); ?></small></button>
+			</div>
+		</li>
+		<li id="details-facetedmenu">
+			<div id="details-list" class="multiple-select options">
+				<ul></ul>
+			</div>
+			<div class="controls">
+			<button type="button" id="addDetailOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+			</div>
+		</li>
+	</ul>
+	<div class="clear"></div>	
+	</div>
+
+<div id="price-ranges" class="panel">
+	<div class="pricing-label">
+		<label><?php _e('Price Range Search','Shopp'); ?></label>
+	</div>
+	<div class="pricing-ui">
+	<select name="pricerange" id="pricerange-facetedmenu">
+		<?php echo menuoptions($pricerange_menu,$Category->pricerange,true); ?>
+	</select>
+	<ul class="details multipane">
+		<li><div id="pricerange-menu" class="multiple-select options"><ul class=""></ul></div>
+			<div class="controls">
+			<button type="button" id="addPriceLevel" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Price Range','Shopp'); ?></small></button>
+			</div>
+		</li>
+	</ul>
+</div>
+<div class="clear"></div>
+<div id="pricerange"></div>
+<p><?php _e('Configure how you want price range options in this category to appear.','Shopp'); ?></p>
+</div>
+
+<div id="variations-template">
+	<div id="variations-menus" class="panel">
+		<div class="pricing-label">
+			<label><?php _e('Variation Option Menus','Shopp'); ?></label>
+		</div>
+		<div class="pricing-ui">
+			<p><?php _e('Create a predefined set of variation options for products in this category.','Shopp'); ?></p>
+			<ul class="multipane">
+				<li><div id="variations-menu" class="multiple-select options menu"><ul></ul></div>
+					<div class="controls">
+						<button type="button" id="addVariationMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
+					</div>
+				</li>
+			
+				<li>
+					<div id="variations-list" class="multiple-select options"></div>
+					<div class="controls">
+					<button type="button" id="addVariationOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+					</div>
+				</li>
+			</ul>
+			<div class="clear"></div>
+		</div>
+	</div>
+<br />
+<div id="variations-pricing"></div>
+</div>
+
+
+<?php
+}
+add_meta_box('variations', __('Product Template Settings','Shopp'), 'templates_meta_box', 'category', 'advanced', 'core');
+
+
+do_action('do_meta_boxes', 'category', 'normal', $Category);
+do_action('do_meta_boxes', 'category', 'advanced', $Category);
+do_action('do_meta_boxes', 'category', 'side', $Category);
+?>
+<div class="wrap shopp"> 
+	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
+	<div id="shopp-jsconflict" class="error"><p><?php jscrash_error(); ?></p></div>
+
+	<h2><?php _e('Category Editor','Shopp'); ?></h2> 
+
+	<div id="ajax-response"></div> 
+	<form name="category" id="category" action="<?php echo $Shopp->wpadminurl; ?>/admin.php" method="post">
+		<?php wp_nonce_field('shopp-save-category'); ?>
+
+		<div id="poststuff" class="metabox-holder">
+
+			<div id="side-info-column" class="inner-sidebar">
+
+			<?php
+
+			do_action('submitpage_box');
+			$side_meta_boxes = do_meta_boxes('category', 'side', $Category);
+
+			?>
+			</div>
+
+			<div id="post-body" class="<?php echo $side_meta_boxes ? 'has-sidebar' : 'has-sidebar'; ?>">
+			<div id="post-body-content" class="has-sidebar-content">
+
+				<div id="titlediv">
+					<div id="titlewrap">
+						<input name="name" id="title" type="text" value="<?php echo attribute_escape($Category->name); ?>" size="30" tabindex="1" autocomplete="off" />
+					</div>
+					<div class="inside">
+						<?php if (SHOPP_PERMALINKS && !empty($Category->id)): ?>
+						<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
+						<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo attribute_escape($Category->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Category->slug); ?></span>/</span>
+						<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>
+						</div>
+						<?php endif; ?>
+					</div>
+				</div>
+				<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
+				<?php the_editor($Category->description,'content','Description', false); ?>
+				<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
+				</div>
+				
+			<?php
+			do_meta_boxes('category', 'normal', $Category);
+			do_meta_boxes('category', 'advanced', $Category);
+			?>
+
+			</div>
+			</div>
+			</div>
+				
+		</div> <!-- #poststuff -->
+	</form>
+
+
+<?php else: ?>
+
 <div class="wrap shopp">
 	<h2><?php _e('Category Editor','Shopp'); ?></h2>
 
-	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
+	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
 	<div id="shopp-jsconflict" class="error"><p><?php jscrash_error(); ?></p></div>
 	
 	<br class="clear" />
 
 	<?php $action = (!empty($Category->id))?$Category->id:'new'; ?>
-	<form name="category" id="category" method="post" action="<?php echo admin_url("admin.php?page=".$this->Admin->categories."&edit=$action"); ?>">
+	<form name="category" id="category" method="post" action="<?php echo $Shopp->wpadminurl; ?>/admin.php">
 		<?php wp_nonce_field('shopp-save-category'); ?>
 		
 		<table class="form-table"> 
@@ -34,7 +263,7 @@
 			</tr>
 			<tr id="category-images" class="form-required"> 
 				<th scope="row" valign="top"><label><?php _e('Category Images','Shopp'); ?></label>
-					<input type="hidden" name="category" value="<?php echo $_GET['edit']; ?>" id="image-category-id" />
+					<input type="hidden" name="category" value="<?php echo $_GET['id']; ?>" id="image-category-id" />
 					<input type="hidden" name="deleteImages" id="deleteImages" value="" />
 					<div id="swf-uploader-button"></div>
 					<div id="swf-uploader">
@@ -45,10 +274,19 @@
 					</th> 
 				<td>
 					<ul id="lightbox">
-					<?php foreach ($Images as $thumbnail): ?>
-						<li id="image-<?php echo $thumbnail->src; ?>"><input type="hidden" name="images[]" value="<?php echo $thumbnail->src; ?>" /><img src="?shopp_image=<?php echo $thumbnail->id; ?>" width="96" height="96" />
-							<button type="button" name="deleteImage" value="<?php echo $thumbnail->src; ?>" title="Delete product image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
-					<?php endforeach; ?>
+						<?php foreach ($Images as $i => $thumbnail): $thumbnail->properties = unserialize($thumbnail->properties); ?>
+							<li id="image-<?php echo $thumbnail->src; ?>"><input type="hidden" name="images[]" value="<?php echo $thumbnail->src; ?>" />
+								<div id="image-<?php echo $thumbnail->src; ?>-details">
+								<img src="?shopp_image=<?php echo $thumbnail->id; ?>" width="96" height="96" />
+									<div class="details">
+										<input type="hidden" name="imagedetails[<?php echo $i; ?>][id]" value="<?php echo $thumbnail->id; ?>" />
+										<p><label>Title: </label><input type="text" name="imagedetails[<?php echo $i; ?>][title]" value="<?php echo $thumbnail->properties['title']; ?>" /></p>
+										<p><label>Alt: </label><input type="text" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $thumbnail->properties['alt']; ?>" /></p>
+										<p class="submit"><input type="button" name="close" value="Close" class="button close" /></p>
+									</div>
+								</div>
+								<button type="button" name="deleteImage" value="<?php echo $thumbnail->src; ?>" title="Delete category image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
+						<?php endforeach; ?>
 					</ul>
 					<div class="clear"></div>
 					<?php _e('The first image will be the default image. These thumbnails are out of proportion, but will be correctly sized for shoppers.','Shopp'); ?>
@@ -135,10 +373,12 @@
 		<tbody id="variations-pricing"></tbody>
 		</table>
 		</div>
-		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save &amp; Continue Editing','Shopp'); ?>" /> &nbsp; <input type="submit" class="button" name="save-categories" value="<?php _e('Save Category','Shopp'); ?>" /></p>
-		
+		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Category','Shopp'); ?>" />	<select name="settings[workflow]" id="workflow">
+			<?php echo menuoptions($workflows,$Shopp->Settings->get('workflow'),true); ?>
+		</select></p>		
 	</form>
 </div>
+<?php endif; ?>
 
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Category";
@@ -154,14 +394,19 @@ var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 var siteurl = '<?php echo $Shopp->siteurl; ?>';
 var adminurl = '<?php echo $Shopp->wpadminurl; ?>';
 var ajaxurl = adminurl+'/admin-ajax.php';
-var editslug_url = '<?php echo wp_nonce_url($Shopp->siteurl."/wp-admin/admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
-
+var addcategory_url = '<?php echo wp_nonce_url("$Shopp->wpadminurl/admin-ajax.php", "shopp-ajax_add_category"); ?>';
+var editslug_url = '<?php echo wp_nonce_url("$Shopp->wpadminurl/admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
+var fileverify_url = '<?php echo wp_nonce_url("$Shopp->wpadminurl/admin-ajax.php", "shopp-ajax_verify_file"); ?>';
+var manager_page = '<?php echo $this->Admin->categories; ?>';
+var editor_page = '<?php echo $this->Admin->editcategory; ?>';
+var request = <?php echo json_encode($_GET); ?>;
+var workflow = {'continue':editor_page, 'close':manager_page, 'new':editor_page, 'next':editor_page, 'previous':editor_page};
+var worklist = <?php echo json_encode($this->categories_list(true)); ?>;
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
 var productspath = '<?php echo trailingslashit($this->Settings->get('products_path')); ?>';
-var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 
 // Warning/Error Dialogs
 var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this category image?','Shopp'); ?>";
@@ -226,6 +471,12 @@ $(window).ready(function () {
 	var editslug = new SlugEditor(category,'category');
 	var imageUploads = new ImageUploads({"category" : $('#image-category-id').val()});
 	
+	updateWorkflow();
+	$('#category').submit(function () {
+		this.action = this.action+"?"+$.param(request);
+		return true;
+	});
+		
 	$('#templates, #details-template, #details-facetedmenu, #variations-template, #variations-pricing, #price-ranges, #facetedmenus-setting').hide();
 	
 	$('#spectemplates-setting').change(function () {
@@ -264,6 +515,8 @@ $(window).ready(function () {
 
 	if (priceranges) for (key in priceranges) addPriceLevel(priceranges[key]);	
 	if (options) loadVariations(options,prices);
+	
+	if (!category) $('#title').focus();
 	
 	function addPriceLevel (data) {
 		var menus = $('#pricerange-menu');
@@ -329,6 +582,38 @@ $(window).ready(function () {
 		});
 
 		detailsidx++;
+	}
+	
+	function updateWorkflow () {
+		$('#workflow').change(function () {
+			setting = $(this).val();
+			request.page = workflow[setting];
+			request.id = category;
+			if (!request.id) request.id = "new";
+			if (setting == "new") request.next = setting;
+
+			// Find previous category
+			if (setting == "previous") {
+				$.each(worklist,function (i,entry) {
+					if (entry.id == category) {
+						if (worklist[i-1]) request.next = worklist[i-1].id;
+						else request.page = workflow['close'];
+						return true;
+					}
+				});
+			}
+
+			// Find next category
+			if (setting == "next") {
+				$.each(worklist,function (i,entry) {
+					if (entry.id == category) {
+						if (worklist[i+1]) request.next = worklist[i+1].id;
+						else request.page = workflow['close'];
+						return true;
+					}
+				});
+			}
+		}).change();
 	}
 	
 });
