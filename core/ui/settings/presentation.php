@@ -102,7 +102,6 @@
 					<p><?php _e('Changes to these settings will only affect new images.','Shopp'); ?></p>
 					</td>
 			</tr>
-
 		</tbody>
 		</table>
 

@@ -23,9 +23,10 @@ class Catalog extends DatabaseObject {
 		$this->type = $type;
 	}
 	
-	function load_categories ($filtering=false,$showsmarts=false) {
+	function load_categories ($filtering=false,$showsmarts=false,$results=false) {
 		$db = DB::get();
 
+		if (empty($filtering['columns'])) $filtering['columns'] = "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total";
 		if (!empty($filtering['limit'])) $filtering['limit'] = "LIMIT ".$filtering['limit'];
 		else $filtering['limit'] = "";
 		if (empty($filtering['where'])) $filtering['where'] = "(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))"; // No filtering, get them all
@@ -33,13 +34,17 @@ class Catalog extends DatabaseObject {
 		$category_table = DatabaseObject::tablename(Category::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
-		$categories = $db->query("SELECT cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY parent DESC,name ASC {$filtering['limit']}",AS_ARRAY);
+		$query = "SELECT {$filtering['columns']} FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY cat.parent DESC,cat.name ASC {$filtering['limit']}";
+		$categories = $db->query($query,AS_ARRAY);
 		if (count($categories) > 1) $categories = sort_tree($categories);
+		if ($results) return $categories;
 		foreach ($categories as $category) {
 			$this->categories[$category->id] = new Category();
 			$this->categories[$category->id]->populate($category);
-			$this->categories[$category->id]->depth = $category->depth;
-			$this->categories[$category->id]->total = $category->total;
+			if (isset($category->depth))
+				$this->categories[$category->id]->depth = $category->depth;
+			if (isset($category->total))
+				$this->categories[$category->id]->total = $category->total;
 			$this->categories[$category->id]->children = false;
 			if ($category->total > 1 && isset($this->categories[$category->parent])) 
 				$this->categories[$category->parent]->children = true;
@@ -102,7 +107,7 @@ class Catalog extends DatabaseObject {
 				return $string;
 				break;
 			case "has-categories": 
-				if (empty($this->categories)) $this->load_categories(false,$options['showsmart']);
+				if (empty($this->categories)) $this->load_categories(array('where'=>'true'),$options['showsmart']);
 				if (count($this->categories) > 0) return true; else return false; break;
 			case "categories":			
 				if (!$this->categoryloop) {
@@ -122,7 +127,7 @@ class Catalog extends DatabaseObject {
 				}
 				break;
 			case "category-list":
-				if (empty($this->categories)) $this->load_categories(array("where"=>"pd.published='on'"),$options['showsmart']);
+				if (empty($this->categories)) $this->load_categories(array("where"=>"(pd.published='on' OR pd.id IS NULL)"),$options['showsmart']);
 				$string = "";
 				$depth = 0;
 				$depthlimit = 0;
@@ -174,11 +179,14 @@ class Catalog extends DatabaseObject {
 					$string .= '</script>';
 					
 				} else {
+					$wraplist = true;
 					$classes = "";
+					if (isset($options['wraplist'])) $wraplist = $options['wraplist'];
 					if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
 					if (!isset($options['hierarchy'])) $options['hierarchy'] = false;
 					$string = "";
-					$string .= $title.'<ul'.$classes.'>';
+					$string .= $title;
+					if ($wraplist) $string .= '<ul'.$classes.'>';
 					foreach ($this->categories as &$category) {
 						if (!isset($category->total)) $category->total = 0;
 						if (!isset($category->depth)) $category->depth = 0;
@@ -206,7 +214,7 @@ class Catalog extends DatabaseObject {
 					}
 					if (value_is_true($options['hierarchy']) && $depth > 0) 
 						for ($i = $depth; $i > 0; $i--) $string .= '</ul></li>';
-					$string .= '</ul>';
+					if ($wraplist) $string .= '</ul>';
 				}
 				return $string;
 				break;
@@ -271,7 +279,7 @@ class Catalog extends DatabaseObject {
 				break;
 			case "breadcrumb":
 				if (isset($Shopp->Category->controls)) return false;
-				if (empty($this->categories)) $this->load_categories();
+				if (empty($this->categories)) $this->load_categories(array('where'=>'true'));
 				$separator = "&nbsp;&raquo; ";
 				if (isset($options['separator'])) $separator = $options['separator'];
 				if (!empty($Shopp->Category)) {
@@ -300,6 +308,18 @@ class Catalog extends DatabaseObject {
 				$trail = '<li><a href="'.$Shopp->link('catalog').'">'.$pages['catalog']['title'].'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
 				return '<ul class="breadcrumb">'.$trail.'</ul>';
 				break;
+			case "search":
+				global $wp;
+				$type = "hidden";
+				if (isset($options['type'])) $type = $options['type'];
+				if ($type == "radio") {
+					$option = "shopp";
+					if (isset($options['option'])) $option = $options['option'];
+					if ($wp->query_vars['st'] == $option) $selected = ' checked="checked"';
+					if ($option == "blog") return '<input type="radio" name="st" value="blog"'.$selected.' />';
+					else return '<input type="radio" name="st" value="shopp"'.$selected.' />';
+				} else return '<input type="hidden" name="st" value="shopp" />';
+				break;
 			case "new-products":
 				if ($property == "new-products") $Shopp->Category = new NewProducts($options);
 			case "featured-products":
@@ -316,6 +336,7 @@ class Catalog extends DatabaseObject {
 					else if (isset($options['slug'])) $Shopp->Category = new Category($options['slug'],'slug');
 					else if (isset($options['id'])) $Shopp->Category = new Category($options['id']);
 				}
+				if (isset($options['title'])) $Shopp->Category->name = $options['title'];
 				if (isset($options['load'])) return true;
 				if (isset($options['controls']) && !value_is_true($options['controls'])) 
 					$Shopp->Category->controls = false;

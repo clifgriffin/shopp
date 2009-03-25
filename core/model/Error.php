@@ -37,7 +37,7 @@ class ShoppErrors {
 	
 	function get ($level=SHOPP_DEBUG_ERR) {
 		$errors = array();
-		foreach ($this->errors as &$error) 
+		foreach ($this->errors as &$error)
 			if ($error->level <= $level) $errors[] = &$error;
 		return $errors;
 	}

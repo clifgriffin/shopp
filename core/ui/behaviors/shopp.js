@@ -18,7 +18,7 @@ function copyOf (src) {
  **/
 function asMoney (number,format) {
 	if (currencyFormat && !format) format = copyOf(currencyFormat);
-	if (!format) {
+	if (!format['currency']) {
 		format = {
 			"cpos":true,
 			"currency":"$",

@@ -56,7 +56,7 @@
 		<table id="shipping-rates" class="form-table"><tr><td></td></tr></table>
 		<div class="tablenav"><div class="alignright actions"><button type="button" name="add-shippingrate" id="add-shippingrate" class="button-secondary" tabindex="9999"><?php _e('Add Shipping Method Rates','Shopp'); ?></button></div></div>
 		<?php else: ?>
-			<p class="tablenav"><small><strong>Note:</strong> <?php _e('You must select a Base of Operations location under','Shopp'); ?> <a href="?page=<?php echo $this->Admin->settings ?>&amp;edit=general"><?php _e('General settings','Shopp'); ?></a> <?php _e('before you can configure shipping rates.','Shopp'); ?></small></p>
+			<p class="tablenav"><small><strong>Note:</strong> <?php _e('You must select a Base of Operations location under','Shopp'); ?> <a href="?page=<?php echo $this->Admin->settings['settings'][0] ?>"><?php _e('General settings','Shopp'); ?></a> <?php _e('before you can configure shipping rates.','Shopp'); ?></small></p>
 		<?php endif; ?>
 
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>

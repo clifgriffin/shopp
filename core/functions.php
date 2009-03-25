@@ -680,7 +680,8 @@ function money ($amount,$format=false) {
 	global $Shopp;
 	$locale = $Shopp->Settings->get('base_operations');
 	if (!$format) $format = $locale['currency']['format'];
-	if (!$format) $format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
+	if (empty($format['currency'])) 
+		$format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
 
 	if (isset($format['indian'])) $number = indian_number($amount,$format);
 	else $number = number_format($amount, $format['precision'], $format['decimals'], $format['thousands']);

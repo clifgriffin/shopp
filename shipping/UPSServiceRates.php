@@ -52,6 +52,11 @@ class UPSServiceRates {
 	function UPSServiceRates () {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('UPSServiceRates');
+		if (!isset($this->settings['license'])) $this->settings['license'] = '';
+		if (!isset($this->settings['postcode'])) $this->settings['postcode'] = '';
+		if (!isset($this->settings['userid'])) $this->settings['userid'] = '';
+		if (!isset($this->settings['password'])) $this->settings['password'] = '';
+		
 		$base = $Shopp->Settings->get('base_operations');
 		$storeunits = $Shopp->Settings->get('weight_unit');
 		$this->settings['country'] = $base['country'];

@@ -356,7 +356,7 @@ class Product extends DatabaseObject {
 		$removed = array_diff($current,$updates);
 
 		$table = DatabaseObject::tablename(Catalog::$table);
-		
+
 		foreach ($added as $id) {
 			$db->query("INSERT $table SET category='$id',product='$this->id',created=now(),modified=now()");
 		}
@@ -490,6 +490,57 @@ class Product extends DatabaseObject {
 
 	}
 	
+	function duplicate () {
+		$db =& DB::get();
+		
+		$this->load_data(array('prices','specs','categories','tags','images'));
+		$this->id = '';
+		$this->name = $this->name.' '.__('copy','Shopp');
+		$this->save();
+		
+		// Copy prices
+		foreach ($this->prices as $price) {
+			$Price = new Price();
+			$Price->updates($price,array('id','product','created','modified'));
+			$Price->product = $this->id;
+			$Price->save();
+		}
+		
+		// Copy sepcs
+		foreach ($this->specs as $spec) {
+			$Spec = new Spec();
+			$Spec->updates($spec,array('id','product','created','modified'));
+			$Spec->product = $this->id;
+			$Spec->save();
+		}
+		
+		// Copy categories
+		$categories = array();
+		foreach ($this->categories as $category) $categories[] = $category->id;
+		$this->categories = array();
+		$this->save_categories($categories);
+
+		// Copy tags
+		$taglist = array();
+		foreach ($this->tags as $tag) $taglist[] = $tag->name;
+		$this->tags = array();
+		$this->save_tags($taglist);
+
+		// // Copy product images
+		$template = new Asset();
+		$columns = array(); $values = array();
+		foreach ($template->_datatypes as $name => $type) {
+			$columns[] = $name;
+			if ($name == "id") $name = "''";
+			if ($name == "parent") $name = "'$this->id'";
+			if ($name == "created" || $name == "modified") $name = "now()";
+			$values[] = $name;
+		}
+		foreach ($this->images as $image)
+			$db->query("INSERT $template->_table (".join(',',$columns).") SELECT ".join(",",$values)." FROM $template->_table WHERE id=$image->id");
+		
+	}
+	
 	function tag ($property,$options=array()) {
 		global $Shopp;
 				
@@ -584,7 +635,9 @@ class Product extends DatabaseObject {
 				else $options['class'] = ' class="'.$options['class'].'"';
 				if (isset($this->thumbnail)) {
 					$img = $this->thumbnail;
-					return '<img src="'.$img->uri.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
+					if (!empty($img->properties['title'])) $title = ' title="'.$img->properties['title'].'"';
+					$alt = (!empty($img->properties['alt'])?$img->properties['alt']:$this->name);
+					return '<img src="'.$img->uri.'"'.$title.' alt="'.attribute_escape($alt).'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
 				}
 				break;
 			case "hasimages": 
@@ -614,13 +667,15 @@ class Product extends DatabaseObject {
 				$img = current($this->imageset);
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
 				$string = "";
-				if (!empty($options['zoom'])) $string .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="shopp-thickbox" rel="product-gallery">';
+				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-thickbox";
+				if (!empty($options['zoom'])) $string .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="'.$options['zoomfx'].'" rel="product-gallery">';
 				$string .= '<img src="'.$Shopp->imguri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;
 			case "gallery":
 				if (empty($this->images)) $this->load_data(array('images'));
+				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-thickbox";
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
 				if (!empty($this->imagesets['small'])) {
@@ -632,7 +687,7 @@ class Product extends DatabaseObject {
 						}
 					
 						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
-						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="shopp-thickbox" rel="product-'.$this->id.'-gallery">';
+						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="'.$options['zoomfx'].'" rel="product-'.$this->id.'-gallery">';
 						$previews .= '<img src="'.$Shopp->imguri.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
 						$previews .= '</a>';
 						$previews .= '</li>';
@@ -642,7 +697,7 @@ class Product extends DatabaseObject {
 				$previews .= '</ul>';
 				
 				$thumbs = "";
-				if (count($this->imagesets['thumbnail']) > 1) {
+				if (isset($this->imagesets['thumbnail']) && count($this->imagesets['thumbnail']) > 1) {
 					$thumbsize = 32;
 					if (isset($options['thumbsize'])) $thumbsize = $options['thumbsize'];
 					$thumbwidth = $thumbsize;

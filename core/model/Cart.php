@@ -77,6 +77,7 @@ class Cart {
 		$this->data->Purchase = false;
 		$this->data->Category = array();
 		$this->data->Search = false;
+		$this->data->login = false;
 
 		// Total the cart once, and only if there are changes
 		add_action('parse_request',array(&$this,'totals'),99);
@@ -309,6 +310,7 @@ class Cart {
 		if (!is_array($methods)) return 0;
 
 		if (!$this->retotal) {
+			$fees = 0;
 			
 			// Calculate any product-specific shipping fee markups
 			$shipflag = false;
@@ -845,6 +847,7 @@ class Cart {
 	
 	function tag ($property,$options=array()) {
 		global $Shopp;
+		$submit_attrs = array('title','value','disabled','tabindex','accesskey');
 		
 		// Return strings with no options
 		switch ($property) {
@@ -900,7 +903,7 @@ class Cart {
 				if ($this->data->Errors->exist()) {
 					$errors = $this->data->Errors->get(SHOPP_COMM_ERR);
 					foreach ((array)$errors as $error) 
-						if (!empty($error)) $result .= '<p class="error">'.$error->message().'</p>';
+						if (!empty($error)) $result .= '<p class="error">'.$error->message().$error->debug['file'].','.$error->debug['line'].'</p>';
 					$this->data->Errors->reset(); // Reset after display
 				}
 				return $result;
@@ -956,7 +959,8 @@ class Cart {
 				if (!empty($this->data->Order->Shipping->country)) $selected = $this->data->Order->Shipping->country;
 				else $selected = $base['country'];
 				$result .= '<ul><li>';
-				if (value_is_true($options['postcode']) || isset($this->data->ShippingPostcode)) {
+				if ((isset($options['postcode']) && value_is_true($options['postcode'])) ||
+				 		isset($this->data->ShippingPostcode)) {
 					$result .= '<span>';
 					$result .= '<input name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$this->data->Order->Shipping->postcode.'" />&nbsp;';
 					$result .= '</span>';
@@ -1129,7 +1133,7 @@ class Cart {
 			case "error":
 				$result = "";
 				if (!$this->data->Errors->exist()) return false;
-				$errors = $this->data->Errors->get();
+				$errors = $this->data->Errors->get(SHOPP_COMM_ERR);
 				foreach ((array)$errors as $error) if (!empty($error)) $result .= $error->message();
 				return $result;
 				// if (isset($options['show']) && $options['show'] == "code") return $this->data->OrderError->code;
@@ -1236,6 +1240,7 @@ class Cart {
 				break;
 			case "shipping-province":
 			case "shipping-state":
+				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->data->Order->Shipping->state)) {
 					$options['selected'] = $this->data->Order->Shipping->state;
 					$options['value'] = $this->data->Order->Shipping->state;
@@ -1306,6 +1311,7 @@ class Cart {
 				break;
 			case "billing-province": 
 			case "billing-state": 
+				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->data->Order->Billing->state)) {
 					$options['selected'] = $this->data->Order->Billing->state;
 					$options['value'] = $this->data->Order->Billing->state;
@@ -1353,6 +1359,7 @@ class Cart {
 					$options['value'] = date("y",$this->data->Order->Billing->cardexpires);							
 				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy"'.inputattrs($options).' />'; break;
 			case "billing-cardtype":
+				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->data->Order->Billing->cardtype))
 					$options['selected'] = $this->data->Order->Billing->cardtype;	
 				$cards = $Shopp->Settings->get('gateway_cardtypes');

@@ -47,6 +47,9 @@ class USPSRates {
 	function USPSRates () {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('USPSRates');
+		if (!isset($this->settings['userid'])) $this->settings['userid'] = '';
+		if (!isset($this->settings['postcode'])) $this->settings['postcode'] = '';
+		
 		$base = $Shopp->Settings->get('base_operations');
 		$this->settings['country'] = $base['country'];
 		$this->settings['units'] = $Shopp->Settings->get('weight_unit');

@@ -1,7 +1,7 @@
 <div class="wrap shopp">
 	<h2><?php _e('Orders','Shopp'); ?></h2>
 
-	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="get">
+	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="orders" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" />
 	</div>
@@ -15,10 +15,16 @@
 	
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-		<div class="alignleft actions"><button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary"><?php _e('Delete','Shopp'); ?></button></div>
+		<div class="alignleft actions">
+			<button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
+			<select name="newstatus">
+				<?php echo menuoptions($statusLabels,false,true); ?>
+			</select>
+			<button type="submit" id="update-button" name="update" value="order" class="button-secondary"><?php _e('Update','Shopp'); ?></button></div>
 		<div class="clear"></div>
 	</div>
-	<div class="clear"></div>
+	<?php if (SHOPP_WP27): ?><div class="clear"></div>
+	<?php else: ?><br class="clear" /><?php endif; ?>
 
 	<table class="widefat" cellspacing="0">
 		<thead>
@@ -30,12 +36,12 @@
 		</tfoot>
 		<?php endif; ?>
 	<?php if (sizeof($Orders) > 0): ?>
-		<tbody id="orders" class="list orders">
+		<tbody id="orders-table" class="list orders">
 		<?php $even = false; foreach ($Orders as $Order): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
-			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Order->id; ?>' /></th>
+			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Order->id; ?>' /></th>
 			<td class="order column-order"><?php echo $Order->id; ?></td>
-			<td class="name column-name"><a class='row-title' href='?page=<?php echo $this->Admin->default; ?>&amp;manage=<?php echo $Order->id; ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo (empty($Order->firstname) && empty($Order->lastname))?"("._e('no contact name').")":"{$Order->firstname} {$Order->lastname}"; ?></a></td>
+			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>$this->Admin->manageorder,'id'=>$Order->id),$Shopp->wpadminurl); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo (empty($Order->firstname) && empty($Order->lastname))?"("._e('no contact name').")":"{$Order->firstname} {$Order->lastname}"; ?></a></td>
 			<td class="destination column-destination"><?php 
 				$location = '';
 				$location = $Order->shipcity;
@@ -58,20 +64,33 @@
 	</table>
 	
 	</form>
+	<div class="tablenav">
+		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
+		<div class="clear"></div>
+	</div>
 </div>        
-<div class="tablenav">
-	<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-	<div class="clear"></div>
-</div>
 
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Managing Orders";
 
 $=jQuery.noConflict();
 
+$('#selectall').change( function() {
+	$('#orders-table th input').each( function () {
+		if (this.checked) this.checked = false;
+		else this.checked = true;
+	});
+});
+
 $('#delete-button').click(function() {
 	if (confirm("<?php _e('Are you sure you want to delete the selected orders?','Shopp'); ?>")) return true;
 	else return false;
-});                       
+});
+
+$('#update-button').click(function() {
+	if (confirm("<?php _e('Are you sure you want to update the status of the selected orders?','Shopp'); ?>")) return true;
+	else return false;
+});
+
 columns.init('toplevel_page_shopp/orders');
 </script>

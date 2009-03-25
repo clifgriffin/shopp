@@ -11,15 +11,15 @@
 		<input type="submit" value="<?php _e('Search Promotions','Shopp'); ?>" class="button" />
 	</p>
 
-	<p><button type="submit" name="promotion" value="new" class="button"><?php _e('New Promotion','Shopp'); ?></button></p>
+	<p><a href="<?php echo add_query_arg(array_merge($_GET,array('page'=>$this->Admin->editpromo,'id'=>'new')),$this->wpadminurl); ?>" class="button"><?php _e('New Promotion','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="alignleft actions"><button type="submit" id="delete-button" name="deleting" value="promotion" class="button-secondary"><?php _e('Delete','Shopp'); ?></button></div>
 		<div class="clear"></div>
 	</div>
-
-	<div class="clear"></div>
+	<?php if (SHOPP_WP27): ?><div class="clear"></div>
+	<?php else: ?><br class="clear" /><?php endif; ?>
 
 	<table class="widefat" cellspacing="0">
 		<thead>
@@ -31,11 +31,20 @@
 		</tfoot>
 		<?php endif; ?>
 	<?php if (sizeof($Promotions) > 0): ?>
-		<tbody id="promotions" class="list promotions">
-		<?php $even = false; foreach ($Promotions as $Promotion): ?>
+		<tbody class="list promotions">
+		<?php 
+			$even = false; foreach ($Promotions as $Promotion): 
+			$editurl = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->editpromo,'id'=>$Promotion->id)),$this->Core->wpadminurl);
+		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Promotion->id; ?>' /></th>
-			<td width="33%" class="name column-name"><a class='row-title' href='?page=<?php echo $this->Admin->promotions; ?>&amp;promotion=<?php echo $Promotion->id; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Promotion->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Promotion->depth).(!empty($Promotion->name))?$Promotion->name:'(no promotion name)'; ?></a></td>
+			<td width="33%" class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Promotion->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Promotion->depth).(!empty($Promotion->name))?$Promotion->name:'(no promotion name)'; ?></a>
+				<div class="row-actions">
+					<span class='edit'><a href="<?php echo $editurl; ?>" title="Edit this promotion"><?php _e('Edit','Shopp'); ?></a> | </span>
+					<span class='delete'><a class='submitdelete' title='Delete this promotion' href='' rel="<?php echo $Promotion->id; ?>">Delete</a></span>
+				</div>				
+				
+			</td>
 			<td class="discount column-discount"><?php 
 				if ($Promotion->type == "Percentage Off") echo percentage($Promotion->discount);
 				if ($Promotion->type == "Amount Off") echo money($Promotion->discount);
@@ -56,11 +65,11 @@
 	<?php endif; ?>
 	</table>
 	</form>
+	<div class="tablenav">
+		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
+		<div class="clear"></div>
+	</div>
 </div>   
-<div class="tablenav">
-	<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-	<div class="clear"></div>
-</div>
 
 <script type="text/javascript">
 	helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
@@ -72,6 +81,15 @@
 			if (this.checked) this.checked = false;
 			else this.checked = true;
 		});
+	});
+	
+	$('a.submitdelete').click(function () {
+		if (confirm("You are about to delete this promotion\n 'Cancel' to stop, 'OK' to delete.")) {
+			$('<input type="hidden" name="delete[]" />').val($(this).attr('rel')).appendTo('#promotions');
+			$('<input type="hidden" name="deleting" />').val('promotion').appendTo('#promotions');
+			$('#promotions').submit();
+			return false;
+		} else return false;
 	});
 
 	$('#delete-button').click(function() {

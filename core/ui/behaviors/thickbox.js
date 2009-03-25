@@ -5,6 +5,9 @@
  * Licensed under the MIT License: http://www.opensource.org/licenses/mit-license.php
 */
 
+var tb_show = false;
+var tb_remove = false;
+
 (function($) {
 
 // fixes the fact that ie7 now reports itself as MSIE 6.0 compatible
@@ -32,7 +35,7 @@ function tb_init(domChunk){
 	});
 }
 
-function tb_show(caption, url, imageGroup) {//function called when the user clicks on a thickbox link
+tb_show = function (caption, url, imageGroup) {//function called when the user clicks on a thickbox link
 
 	try {
 		if (typeof document.body.style.maxHeight === "undefined") {//if IE 6
@@ -271,7 +274,7 @@ function tb_showIframe(){
 	$("#TB_window").css({display:"block"});
 }
 
-function tb_remove() {
+tb_remove = function () {
  	$("#TB_imageOff").unbind("click");
 	$("#TB_closeWindowButton").unbind("click");
 	$("#TB_window").fadeOut("fast",function(){$('#TB_window,#TB_overlay,#TB_HideSelect').trigger("unload").unbind().remove();});
