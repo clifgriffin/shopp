@@ -2454,6 +2454,7 @@ class Flow {
 		$this->setup_areas();
 
 		$this->Settings->save('show_welcome','on');	
+		$this->Settings->save('display_welcome','on');	
 		
 		// General Settings
 		$this->Settings->save('version',SHOPP_VERSION);
