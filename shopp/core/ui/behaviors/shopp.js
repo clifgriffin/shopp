@@ -547,6 +547,8 @@ function PopupCalendar (target,month,year) {
 	_self.selection = selection;
 	var scope = "month";
 	_self.scope = scope;
+	var scheduling = true;
+	_self.scheduling = scheduling;
 
 	this.render = function (month,day,year) {
 		$(target).empty();
@@ -568,7 +570,7 @@ function PopupCalendar (target,month,year) {
 		
 		var backarrow = $('<span class="back">&laquo;</span>').appendTo(target);
 		var previousMonth = new Date(year,month-2,today.getDate());
-		if (previousMonth >= today.getTime()) {
+		if (!_self.scheduling || (_self.scheduling && previousMonth >= today.getTime())) {
 			backarrow.click(function () {
 				_self.scope = "month";
 				_self.selection = new Date(year,month-2);
@@ -606,7 +608,7 @@ function PopupCalendar (target,month,year) {
 				calendar[i].date = thisDate;
 
 				if (thisMonth != month) calendar[i].addClass('disabled');
-				if (thisDate.getTime() < today.getTime()) calendar[i].addClass('disabled');
+				if (_self.scheduling && thisDate.getTime() < today.getTime()) calendar[i].addClass('disabled');
 				if (thisDate.getTime() == today.getTime()) calendar[i].addClass('today');
 
 				calendar[i].hover(function () {
@@ -619,7 +621,7 @@ function PopupCalendar (target,month,year) {
 				calendar[i].mouseup(function () { $(this).removeClass('active'); });
 				
 				
-				if (thisDate.getTime() >= today.getTime()) {
+				if (!_self.scheduling || (_self.scheduling && thisDate.getTime() >= today.getTime())) {
 					calendar[i].click(function () {
 						_self.resetCalendar();
 						if (!$(this).hasClass("disabled")) $(this).addClass("selected");
@@ -643,17 +645,14 @@ function PopupCalendar (target,month,year) {
 	}
 	
 	this.autoselect = function () {
-		for (var i = 0; i < dates.length; i++) {
-			if (dates[i].getTime() == selection.getTime()) {
+		for (var i = 0; i < dates.length; i++) 
+			if (dates[i].getTime() == this.selection.getTime())
 				calendar[i].addClass('selected');
-			}
-		}
 	}
 	
 	this.resetCalendar = function () {
-		for(var i = 0; i < calendar.length; i++) {
+		for(var i = 0; i < calendar.length; i++)
 			$(calendar[i]).removeClass('selected');
-		}
 	}
 	
 	/**

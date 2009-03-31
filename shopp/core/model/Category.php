@@ -53,6 +53,7 @@ class Category extends DatabaseObject {
 	}
 	
 	function load_children() {
+		if (isset($this->smart)) return false;
 		$db = DB::get();
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
 		$children = $db->query("SELECT cat.*,count(sc.product) AS products FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.category=cat.id WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY parent DESC,name ASC",AS_ARRAY);
@@ -493,8 +494,10 @@ class Category extends DatabaseObject {
 				break;				
 			case "subcategory-list":
 				if (isset($Shopp->Category->controls)) return false;
-				if (empty($this->children)) $this->load_children();
-				if (empty($this->children)) return;
+				if (!$this->children) $this->load_children();
+				if (empty($this->children)) return false;
+				$before = "";
+				$after = "";
 				$string = "";
 				$depth = 0;
 				$depthlimit = 0;

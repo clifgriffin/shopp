@@ -14,6 +14,7 @@ require("Purchased.php");
 class Purchase extends DatabaseObject {
 	static $table = "purchase";
 	var $purchased = array();
+	var $columns = array();
 
 	function Purchase ($id=false,$key=false) {
 		$this->init(self::$table);
@@ -40,6 +41,49 @@ class Purchase extends DatabaseObject {
 				!in_array($property,$ignores)) 
 				$this->{$property} = $value;
 		}
+	}
+	
+	function exportcolumns () {
+		return array(
+			'id' => __('Order ID','Shopp'),
+			'ip' => __('Customer\'s IP Address','Shopp'),
+			'firstname' => __('Customer\'s First Name','Shopp'),
+			'lastname' => __('Customer\'s Last Name','Shopp'),
+			'email' => __('Customer\'s Email Address','Shopp'),
+			'phone' => __('Customer\'s Phone Number','Shopp'),
+			'company' => __('Customer\'s Company','Shopp'),
+			'card' => __('Credit Card Number','Shopp'),
+			'cardtype' => __('Credit Card Type','Shopp'),
+			'cardexpires' => __('Credit Card Expiration Date','Shopp'),
+			'cardholder' => __('Credit Card Holder\'s Name','Shopp'),
+			'address' => __('Billing Street Address','Shopp'),
+			'xaddress' => __('Billing Street Address 2','Shopp'),
+			'city' => __('Billing City','Shopp'),
+			'state' => __('Billing State/Province','Shopp'),
+			'country' => __('Billing Country','Shopp'),
+			'postcode' => __('Billing Postal Code','Shopp'),
+			'shipaddress' => __('Shipping Street Address','Shopp'),
+			'shipxaddress' => __('Shipping Street Address 2','Shopp'),
+			'shipcity' => __('Shipping City','Shopp'),
+			'shipstate' => __('Shipping State/Province','Shopp'),
+			'shipcountry' => __('Shipping Country','Shopp'),
+			'shippostcode' => __('Shipping Postal Code','Shopp'),
+			'shipmethod' => __('Shipping Method','Shopp'),
+			'promos' => __('Promotions Applied','Shopp'),
+			'subtotal' => __('Order Subtotal','Shopp'),
+			'discount' => __('Order Discount','Shopp'),
+			'freight' => __('Order Shipping Fees','Shopp'),
+			'tax' => __('Order Taxes','Shopp'),
+			'total' => __('Order Total','Shopp'),
+			'fees' => __('Trasnaction Fees','Shopp'),
+			'transactionid' => __('Trasnaction ID','Shopp'),
+			'transtatus' => __('Trasnaction Status','Shopp'),
+			'gateway' => __('Payment Gateway','Shopp'),
+			'status' => __('Order Status','Shopp'),
+			'data' => __('Order Data','Shopp'),
+			'created' => __('Order Date','Shopp'),
+			'modified' => __('Order Last Updated','Shopp')
+			);
 	}
 		
 	function tag ($property,$options=array()) {

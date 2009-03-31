@@ -28,26 +28,25 @@ class Flow {
 		$this->secureuri = 'https://'.$_SERVER['SERVER_NAME'].$this->uri;
 		
 		$this->Admin = new stdClass();
-		$this->Admin->orders = $Core->directory."/orders";
-		$this->Admin->manageorder = $Core->directory."/orders/manage";
-		$this->Admin->categories = $Core->directory."/categories";
-		$this->Admin->editcategory = $Core->directory."/categories/edit";
-		$this->Admin->products = $Core->directory."/products";
-		$this->Admin->editproduct = $Core->directory."/products/edit";
-		$this->Admin->promotions = $Core->directory."/promotions";
-		$this->Admin->editpromo = $Core->directory."/promotions/edit";
+		$this->Admin->orders = $Core->directory."-orders";
+		$this->Admin->categories = $Core->directory."-categories";
+		$this->Admin->editcategory = $Core->directory."-categories-edit";
+		$this->Admin->products = $Core->directory."-products";
+		$this->Admin->editproduct = $Core->directory."-products-edit";
+		$this->Admin->promotions = $Core->directory."-promotions";
+		$this->Admin->editpromo = $Core->directory."-promotions-edit";
 		$this->Admin->settings = array(
-			'settings' => array($Core->directory."/settings",__('General','Shopp')),
-			'checkout' => array($Core->directory."/settings/checkout",__('Checkout','Shopp')),
-			'payments' => array($Core->directory."/settings/payments",__('Payments','Shopp')),
-			'shipping' => array($Core->directory."/settings/shipping",__('Shipping','Shopp')),
-			'taxes' => array($Core->directory."/settings/taxes",__('Taxes','Shopp')),
-			'presentation' => array($Core->directory."/settings/presentation",__('Presentation','Shopp')),
-			'system' => array($Core->directory."/settings/system",__('System','Shopp')),
-			'update' => array($Core->directory."/settings/update",__('Update','Shopp'))
+			'settings' => array($Core->directory."-settings",__('General','Shopp')),
+			'checkout' => array($Core->directory."-settings-checkout",__('Checkout','Shopp')),
+			'payments' => array($Core->directory."-settings-payments",__('Payments','Shopp')),
+			'shipping' => array($Core->directory."-settings-shipping",__('Shipping','Shopp')),
+			'taxes' => array($Core->directory."-settings-taxes",__('Taxes','Shopp')),
+			'presentation' => array($Core->directory."-settings-presentation",__('Presentation','Shopp')),
+			'system' => array($Core->directory."-settings-system",__('System','Shopp')),
+			'update' => array($Core->directory."-settings-update",__('Update','Shopp'))
 		);		
-		$this->Admin->help = $Core->directory."/help";
-		$this->Admin->welcome = $Core->directory."/welcome";
+		$this->Admin->help = $Core->directory."-help";
+		$this->Admin->welcome = $Core->directory."-welcome";
 		$this->Admin->default = $this->Admin->orders;
 		
 		$this->Pages = $Core->Settings->get('pages');
@@ -102,7 +101,7 @@ class Flow {
 		$db =& DB::get();
 		if (!defined('WP_ADMIN')) return;
 		$Admin = $Shopp->Flow->Admin;
-		$adminurl = $Shopp->wpadminurl."/admin.php";
+		$adminurl = $Shopp->wpadminurl."admin.php";
 
 		if (strstr($_GET['page'],$Admin->categories)) {
 			
@@ -150,8 +149,9 @@ class Flow {
 			}
 			
 			if (isset($_GET['duplicate'])) {
-				$Shopp->Product->load($_GET['duplicate']);
-				$Shopp->Product->duplicate();
+				$Product = new Product();
+				$Product->load($_GET['duplicate']);
+				$Product->duplicate();
 				header("Location: ".add_query_arg('page',$Admin->products,$adminurl));
 				exit();
 			}
@@ -191,7 +191,7 @@ class Flow {
 	 **/
 	function catalog () {
 		global $Shopp;
-
+		
 		ob_start();
 		switch ($Shopp->Catalog->type) {
 			case "product": 
@@ -200,10 +200,11 @@ class Flow {
 				else include(SHOPP_TEMPLATES."/product.php"); break;
 
 			case "category":
-				if ($Shopp->Category->smart && 
+				if (isset($Shopp->Category->smart) && 
 						file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
 					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
-				elseif (file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
+				elseif (isset($Shopp->Category->id) && 
+					file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
 					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
 				else include(SHOPP_TEMPLATES."/category.php"); break;
 
@@ -350,11 +351,12 @@ class Flow {
 	 **/
 	function cart ($attrs=array()) {
 		$Cart = $this->Cart;
+
 		ob_start();
 		include(SHOPP_TEMPLATES."/cart.php");
 		$content = ob_get_contents();
 		ob_end_clean();
-		
+
 		return apply_filters('shopp_cart_template','<div id="shopp">'.$content.'</div>');
 	}
 
@@ -702,7 +704,7 @@ class Flow {
 	 * Orders admin flow handlers
 	 */
 	function orders_list() {
-		global $Orders;
+		global $Shopp,$Orders;
 		$db = DB::get();
 
 		if ( !current_user_can('manage_options') )
@@ -735,10 +737,8 @@ class Flow {
 			}
 		}
 
-
 		$Purchase = new Purchase();
 
-		
 		$pagenum = absint( $_GET['pagenum'] );
 		if ( empty($pagenum) )
 			$pagenum = 1;
@@ -746,11 +746,25 @@ class Flow {
 			$per_page = 20;
 		$start = ($per_page * ($pagenum-1)); 
 		
+		
+		if (!empty($_GET['start'])) {
+			$startdate = $_GET['start'];
+			list($month,$day,$year) = split("/",$startdate);
+			$starts = mktime(0,0,0,$month,$day,$year);
+		}
+		if (!empty($_GET['end'])) {
+			$enddate = $_GET['end'];
+			list($month,$day,$year) = split("/",$enddate);
+			$ends = mktime(0,0,0,$month,$day,$year);
+		}
+		
 		if (isset($_GET['status'])) $where = "WHERE status='{$_GET['status']}'";
-		if (isset($_GET['s'])) $where .= ((empty($where))?"WHERE ":" AND ")." (id='{$_GET['s']}' OR firstname LIKE '%{$_GET['s']}%' OR lastname LIKE '%{$_GET['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$_GET['s']}%' OR transactionid LIKE '%{$_GET['s']}%')";
+		if (isset($_GET['s']) && !empty($_GET['s'])) $where .= ((empty($where))?"WHERE ":" AND ")." (id='{$_GET['s']}' OR firstname LIKE '%{$_GET['s']}%' OR lastname LIKE '%{$_GET['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$_GET['s']}%' OR transactionid LIKE '%{$_GET['s']}%')";
+		if (!empty($_GET['start']) && !empty($_GET['end'])) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
 		
 		$ordercount = $db->query("SELECT count(*) as total FROM $Purchase->_table $where ORDER BY created DESC");
-		$Orders = $db->query("SELECT * FROM $Purchase->_table $where ORDER BY created DESC LIMIT $start,$per_page",AS_ARRAY);
+		$query = "SELECT * FROM $Purchase->_table $where ORDER BY created DESC LIMIT $start,$per_page";
+		$Orders = $db->query($query,AS_ARRAY);
 
 		$num_pages = ceil($ordercount->total / $per_page);
 		$page_links = paginate_links( array(
@@ -759,12 +773,38 @@ class Flow {
 			'total' => $num_pages,
 			'current' => $pagenum
 		));
-
+		
+		$ranges = array(
+			'all' => __('Show All Orders','Shopp'),
+			'today' => __('Today','Shopp'),
+			'week' => __('This Week','Shopp'),
+			'month' => __('This Month','Shopp'),
+			'quarter' => __('This Quarter','Shopp'),
+			'year' => __('This Year','Shopp'),
+			'yesterday' => __('Yesterday','Shopp'),
+			'lastweek' => __('Last Week','Shopp'),
+			'last30' => __('Last 30 Days','Shopp'),
+			'last90' => __('Last 3 Months','Shopp'),
+			'lastmonth' => __('Last Month','Shopp'),
+			'lastquarter' => __('Last Quarter','Shopp'),
+			'lastyear' => __('Last Year','Shopp'),
+			'custom' => __('Custom Dates','Shopp')
+			);
+		
+		$exports = array(
+			'tab' => __('Tab-separated.txt','Shopp'),
+			'csv' => __('Comma-separated.csv','Shopp'),
+			'xls' => __('Microsoft&reg; Excel.xls','Shopp')			
+			);
+		
+		$formatPref = $Shopp->Settings->get('purchaselog_format');
+		if (!$formatPref) $formatPref = 'tab';
+		
 		include("{$this->basepath}/core/ui/orders/orders.php");
 	}      
 	
 	function orders_list_columns () {
-		shopp_register_column_headers('toplevel_page_shopp/orders', array(
+		shopp_register_column_headers('toplevel_page_shopp-orders', array(
 			'cb'=>'<input type="checkbox" />',
 			'order'=>__('Order','Shopp'),
 			'name'=>__('Name','Shopp'),
@@ -838,6 +878,76 @@ class Flow {
 		return $status;
 	}
 	
+	function order_export_tab ($Orders) {
+		global $Shopp;
+		$sitename = get_bloginfo('name');
+		$cols = $Shopp->Settings->get('purchaselog_columns');
+
+		header("Content-type: text/plain");
+		header("Content-Disposition: attachment; filename=\"$sitename - Purchase Log.txt\"");
+		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+		header("Cache-Control: maxage=1");
+		header("Pragma: public");
+		foreach ($Orders as $key => $Order) {
+			foreach($cols as $name) 
+				echo ($cols[0] == $name?"":"\t").$Order->{$name};
+			echo "\n";
+		}
+	}
+
+	function order_export_csv ($Orders) {
+		global $Shopp;
+		$sitename = get_bloginfo('name');
+		$cols = $Shopp->Settings->get('purchaselog_columns');
+
+		header("Content-type: application/vnd.ms-excel");
+		header("Content-Disposition: attachment; filename=\"$sitename Purchase Log.csv\"");
+		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+		header("Cache-Control: maxage=1");
+		header("Pragma: public");
+		foreach ($Orders as $key => $Order) {
+			foreach($cols as $name) {
+				$value = $Order->{$name};
+				$value = str_replace('"','""',$value);
+				if (preg_match('/^\s|[,"\n\r]|\s$/',$value)) $value = '"'.$value.'"';
+				echo ($cols[0] == $name?"":",").$value;
+			}
+			echo "\n";
+		}
+	}
+
+	function order_export_xls ($Orders) {
+		global $Shopp;
+		$sitename = get_bloginfo('name');
+		$cols = $Shopp->Settings->get('purchaselog_columns');
+
+		header("Content-type: application/vnd.ms-excel");
+		header("Content-Disposition: attachment; filename=\"$sitename Purchase Log.xls\"");
+		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+		header("Cache-Control: maxage=1");
+		header("Pragma: public");
+
+		echo pack("ssssss", 0x809, 0x8, 0x0, 0x10, 0x0, 0x0); // BOF packet
+		$r = 0;
+		foreach ($Orders as $key => $Order) {
+			$c = 0;
+			foreach($cols as $name) {
+				$value = $Order->{$name};
+				if (preg_match('/^[\d\.]+$/',$value)) {
+				 	echo pack("sssss", 0x203, 14, $r, $c, 0x0);
+					echo pack("d", $value);
+				} else {
+					$l = strlen($value);
+					echo pack("ssssss", 0x204, 8+$l, $r, $c, 0x0, $l);
+					echo $value;
+				}
+				$c++;
+			}
+			$r++;
+		}
+		echo pack("ss", 0x0A, 0x00); // EOF packet
+	}
+	
 	function account () {
 		global $Shopp;
 		
@@ -906,18 +1016,18 @@ class Flow {
 				$search = preg_replace('/(\s?)(\w+)(\s?)/','\1*\2*\3',str_replace($interference,"", stripslashes($_GET['s'])));
 				$match = "MATCH(pd.name,pd.summary,pd.description) AGAINST ('$search' IN BOOLEAN MODE)";
 				$where .= " AND $match";
-				$matchcol = ", $match  AS score";
+				$matchcol = ", $match AS score";
 				$orderby = "score DESC";         
 			}
 		}
 		
 		// Get total product count, taking into consideration for filtering
 		if (!empty($_GET['s'])) $query = "SELECT count($match) as total FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE (clog.category != 0 OR clog.id IS NULL) $where";
-		elseif (!empty($_GET['cat'])) $query = "SELECT count(*) as total $matchcol FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE clog.category={$_GET['cat']} $where";
+		elseif (!empty($_GET['cat'])) $query = "SELECT count(*) as total $matchcol FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE (clog.category != 0 OR clog.id IS NULL) AND clog.category={$_GET['cat']} $where";
 		else $query = "SELECT count(*) as total $matchcol FROM $pd WHERE (clog.category != 0 OR clog.id IS NULL) $where";
 		$productcount = $db->query($query);
 		
-		$columns = "pd.id,pd.name,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
+		$columns = "pd.id,pd.name,pd.slug,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
 		if ($workflow) $columns = "pd.id";
 		// Load the products
 		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $cat AS cat ON cat.id=clog.category WHERE (clog.category != 0 OR clog.id IS NULL) $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page";
@@ -937,7 +1047,7 @@ class Flow {
 	}
 
 	function products_list_columns () {
-		shopp_register_column_headers('shopp_page_shopp/products', array(
+		shopp_register_column_headers('shopp_page_shopp-products', array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'category'=>__('Category','Shopp'),
@@ -1000,7 +1110,11 @@ class Flow {
 	function maintenance_shortcode ($atts) {
 		return '<div id="shopp" class="update"><p>The store is currently down for maintenance.  We\'ll be back soon!</p><div class="clear"></div></div>';
 	}
-		
+	
+	function product_editor_ui () {
+		include("{$this->basepath}/core/ui/products/ui.php");
+	}
+
 	function product_editor() {
 		global $Shopp;
 		$db = DB::get();
@@ -1045,7 +1159,7 @@ class Flow {
 		if (!empty($shiprates)) ksort($shiprates);
 
 		$process = (!empty($Product->id)?$Product->id:'new');
-		$_POST['action'] = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->products)),$this->Core->wpadminurl);
+		$_POST['action'] = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->products)),$this->Core->wpadminurl."admin.php");
 		
 		include("{$this->basepath}/core/ui/products/editor.php");
 
@@ -1289,7 +1403,7 @@ class Flow {
 			unset($ThumbnailSizing);
 			$Thumbnail->save();
 			unset($Thumbnail->data);
-			
+						
 			echo json_encode(array("id"=>$Thumbnail->id,"src"=>$Thumbnail->src));
 	}
 		
@@ -1342,7 +1456,7 @@ class Flow {
 	}
 
 	function categories_list_columns () {
-		shopp_register_column_headers('shopp_page_shopp/categories', array(
+		shopp_register_column_headers('shopp_page_shopp-categories', array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'description'=>__('Description','Shopp'),
@@ -1350,6 +1464,10 @@ class Flow {
 			'templates'=>__('Templates','Shopp'),
 			'menus'=>__('Menus','Shopp'))
 		);
+	}
+
+	function category_editor_ui () {
+		include("{$this->basepath}/core/ui/categories/ui.php");
 	}
 	
 	function category_editor () {
@@ -1573,7 +1691,7 @@ class Flow {
 	}
 
 	function promotions_list_columns () {
-		shopp_register_column_headers('shopp_page_shopp/promotions', array(
+		shopp_register_column_headers('shopp_page_shopp-promotions', array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'discount'=>__('Discount','Shopp'),
@@ -1673,7 +1791,7 @@ class Flow {
 		foreach ($Orders as $Order) {
 			echo '<tr'.((!$even)?' class="alternate"':'').'>';
 			$even = !$even;
-			echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>$this->Admin->manageorder,'id'=>$Order->id),$this->Core->wpadminurl).'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
+			echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>$this->Admin->orders,'id'=>$Order->id),$this->Core->wpadminurl."admin.php").'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
 			echo '<td>'.date("Y/m/d",mktimestamp($Order->created)).'</td>';
 			echo '<td class="num">'.$Order->items.'</td>';
 			echo '<td class="num">'.money($Order->total).'</td>';
@@ -2384,7 +2502,7 @@ class Flow {
 		global $Shopp,$table_prefix;
 		$db = DB::get();
 		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
-		
+
 		// Check for the schema definition file
 		if (!file_exists(SHOPP_DBSCHEMA))
 		 	die("Could not upgrade the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);

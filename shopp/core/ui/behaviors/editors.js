@@ -405,7 +405,7 @@ function readableFileSize (size) {
 /**
  * Image Uploads using SWFUpload or the jQuery plugin One Click Upload
  **/
-function ImageUploads (params) {
+function ImageUploads (id,type) {
 	var swfu;
 	
 	var settings = {
@@ -416,14 +416,17 @@ function ImageUploads (params) {
 		button_width: "100",
 		button_image_url: rsrcdir+'/core/ui/icons/buttons.png',
 		button_placeholder_id: "swf-uploader-button",
-		upload_url : ajaxurl+'?action=wp_ajax_shopp_add_image',
+		upload_url : ajaxurl,
 		flash_url : rsrcdir+'/core/ui/behaviors/swfupload/swfupload.swf',
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
 		file_types : "*.jpg;*.jpeg;*.png;*.gif",
 		file_types_description : "Web-compatible Image Files",
 		file_upload_limit : filesizeLimit,
-		post_params : params,
+		post_params : {
+			action:'shopp_add_image',
+			type:id
+		},
 
 		// degraded_element_id : "browser-uploader",
 
@@ -462,9 +465,12 @@ function ImageUploads (params) {
 
 	var browserImageUploader = $('#image-upload').upload({
 		name: 'Filedata',
-		action: ajaxurl+'?action=wp_ajax_shopp_add_image',
+		action: ajaxurl,
 		enctype: 'multipart/form-data',
-		params: {},
+		params: {
+			action:'shopp_add_image',
+			type:id
+		},
 		autoSubmit: true,
 		onSubmit: function() {
 			var cell = $('<li id="image-uploading"></li>').appendTo($('#lightbox'));
@@ -632,12 +638,15 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		button_image_url: rsrcdir+'/core/ui/icons/buttons.png',
 		button_placeholder_id: button,
 		flash_url : rsrcdir+'/core/ui/behaviors/swfupload/swfupload.swf',
-		upload_url : ajaxurl+'?action=wp_ajax_shopp_add_download',
+		upload_url : ajaxurl,
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
 		file_types : "*.*",
 		file_types_description : "All Files",
 		file_upload_limit : filesizeLimit,
+		post_params : {
+			action:'shopp_add_download'
+		},
 				
 		swfupload_loaded_handler : swfuLoaded,
 		file_queue_error_handler : fileQueueError,
@@ -666,7 +675,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		_self.settings.button_text_style = '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 11px; color: #284464; }';
 	}
 	
-	if (flashuploader) {
+	if (!flashuploader) {
 		_self.swfu = new SWFUpload(_self.settings);
 		_self.swfu.targetCell = updates;
 		_self.swfu.targetLine = linenum;
@@ -675,9 +684,11 @@ function FileUploader (button,defaultButton,linenum,updates) {
 	// Browser-based AJAX uploads
 	defaultButton.upload({
 		name: 'Filedata',
-		action: ajaxurl+'?action=wp_ajax_shopp_add_download',
+		action: ajaxurl,
 		enctype: 'multipart/form-data',
-		params: {},
+		params: {
+			action:'shopp_add_download'
+		},
 		autoSubmit: true,
 		onSubmit: function() {
 			updates.attr('class','').html('');

@@ -85,7 +85,13 @@ class Catalog extends DatabaseObject {
 		else $page = add_query_arg('page_id',$pages['catalog']['id'],$Shopp->shopuri);
 				
 		switch ($property) {
-			case "url": return $Shopp->link('catalog');
+			case "url": return $Shopp->link('catalog'); break;
+			case "display":
+			case "type": return $this->type; break;
+			case "is-landing": 
+			case "is-catalog": return ($this->type == "catalog"); break;
+			case "is-category": return ($this->type == "category"); break;
+			case "is-product": return ($this->type == "product"); break;
 			case "tagcloud":
 				if (!empty($options['levels'])) $levels = $options['levels'];
 				else $levels = 7;
@@ -206,7 +212,7 @@ class Catalog extends DatabaseObject {
 						$products = '';
 						if (value_is_true($options['products']) && $category->total > 0) $products = ' ('.$category->total.')';
 					
-						if (value_is_true($showall) || $category->total > 0 || $category->smart || $category->children) // Only show categories with products
+						if (value_is_true($showall) || $category->total > 0 || isset($category->smart) || $category->children) // Only show categories with products
 							$string .= '<li><a href="'.$link.'">'.$category->name.'</a>'.$products.'</li>';
 
 						$previous = &$category;

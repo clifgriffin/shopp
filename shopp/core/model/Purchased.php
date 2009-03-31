@@ -25,6 +25,20 @@ class Purchased extends DatabaseObject {
 		$this->dkey = $key;
 		do_action_ref_array('shopp_download_keygen',array(&$this));
 	}
+	
+	function exportcolumns () {
+		return array(
+			'name' => __('Product Name','Shopp'),
+			'optionlabel' => __('Product Variation Name','Shopp'),
+			'description' => __('Product Description','Shopp'),
+			'sku' => __('Product SKU','Shopp'),
+			'quantity' => __('Product Quantity Purchased','Shopp'),
+			'unitprice' => __('Product Unit Price','Shopp'),
+			'total' => __('Product Total Price','Shopp'),
+			'data' => __('Product Data','Shopp'),
+			'downloads' => __('Product Downloads','Shopp')
+			);
+	}
 
 } // end Purchased class
 

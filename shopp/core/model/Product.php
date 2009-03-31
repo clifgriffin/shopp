@@ -587,6 +587,9 @@ class Product extends DatabaseObject {
 				break;
 			case "onsale":
 				if (empty($this->prices)) $this->load_data(array('prices'));
+				if (empty($this->prices)) return false;
+				return $this->onsale;
+				
 				// if (empty($this->prices)) $this->load_prices();
 				$sale = false;
 				if (count($this->prices) > 1) {
@@ -598,19 +601,20 @@ class Product extends DatabaseObject {
 			case "saleprice":
 				if (empty($this->prices)) $this->load_data(array('prices'));
 				// if (empty($this->prices)) $this->load_prices();
+				$pricetag = 'price';
+				if ($this->onsale) $pricetag = 'saleprice';
 				if ($this->options > 1) {
-					if ($this->pricerange['min']['saleprice'] == $this->pricerange['max']['saleprice'])
-						return money($this->pricerange['min']['saleprice']); // No price range
+					if ($this->pricerange['min'][$pricetag] == $this->pricerange['max'][$pricetag])
+						return money($this->pricerange['min'][$pricetag]); // No price range
 					else {
-						if (!empty($options['starting'])) return $options['starting']." ".money($this->pricerange['min']['saleprice']);
-						return money($this->pricerange['min']['saleprice'])." &mdash; ".money($this->pricerange['max']['saleprice']);
+						if (!empty($options['starting'])) return $options['starting']." ".money($this->pricerange['min'][$pricetag]);
+						return money($this->pricerange['min'][$pricetag])." &mdash; ".money($this->pricerange['max'][$pricetag]);
 					}
 				} else return money($this->prices[0]->promoprice);
 				break;
-			case "has-savings": return ($this->pricerange['min']['saved'] > 0)?true:false; break;
+			case "has-savings": return ($this->onsale && $this->pricerange['min']['saved'] > 0)?true:false; break;
 			case "savings":
 				if (empty($this->prices)) $this->load_data(array('prices'));
-				// if (empty($this->prices)) $this->load_prices();
 				if ($options['show'] == "%" || $options['show'] == "percent") {
 					if ($this->options > 1) {
 						if (round($this->pricerange['min']['savings']) == round($this->pricerange['max']['savings']))
@@ -635,7 +639,8 @@ class Product extends DatabaseObject {
 				else $options['class'] = ' class="'.$options['class'].'"';
 				if (isset($this->thumbnail)) {
 					$img = $this->thumbnail;
-					if (!empty($img->properties['title'])) $title = ' title="'.$img->properties['title'].'"';
+					$title = ' title="'.$this->name.'"';
+					$title = ' title="'.attribute_escape(!empty($img->properties['title'])?$img->properties['title']:$this->name);
 					$alt = (!empty($img->properties['alt'])?$img->properties['alt']:$this->name);
 					return '<img src="'.$img->uri.'"'.$title.' alt="'.attribute_escape($alt).'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
 				}

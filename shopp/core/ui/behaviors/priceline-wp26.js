@@ -237,7 +237,7 @@ function addPriceLine (target,options,data,attachment) {
 		if (data.download) {
 			if (data.filedata.mimetype)	data.filedata.mimetype = data.filedata.mimetype.replace(/\//gi," ");
 			downloadFile.attr('class','file '+data.filedata.mimetype).html(data.filename+'<br /><small>'+readableFileSize(data.filesize)+'</small>').click(function () {
-				window.location.href = siteurl+"/wp-admin/admin.php?page=shopp/lookup&download="+data.download;
+				window.location.href = adminurl+"admin.php?page=shopp-lookup&download="+data.download;
 			});
 
 		}

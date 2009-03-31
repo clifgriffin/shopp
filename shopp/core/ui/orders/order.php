@@ -7,8 +7,9 @@
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
 	<?php include("navigation.php"); ?>
+	<input type="submit" id="print-button" value="<?php _e('Print Order','Shopp'); ?>" class="button" />
 	<br class="clear" />
-	
+		
 	<div id="order">
 		<br class="clear" />
 		<div id="receipt" class="shopp">
@@ -38,6 +39,7 @@
 		<fieldset>
 			<legend><?php _e('Ship To','Shopp'); ?></legend>
 			<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
+			<?php echo !empty($Purchase->company)?"$Purchase->company<br />":""; ?>
 			<?php echo $Purchase->shipaddress; ?><br />
 			<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
 			<?php echo "{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
@@ -149,6 +151,8 @@
 	
 </div>
 
+<iframe id="print-receipt" src="?page=shopp-lookup&amp;lookup=receipt&amp;id=<?php echo $Purchase->id; ?>" width="400" height="100" class="hidden"></iframe>
+
 <script type="text/javascript">
 $=jQuery.noConflict();
 
@@ -157,6 +161,12 @@ $('#shopp-jsconflict').hide();
 $('#notification').hide();
 $('#notify-customer').click(function () {
 	$('#notification').slideToggle(500);
+});
+
+$('#print-button').click(function () {
+	frame = $('#print-receipt').get(0);
+	frame.contentWindow.focus();
+	frame.contentWindow.print();
 });
 
 </script>
