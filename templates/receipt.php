@@ -9,6 +9,7 @@
 <fieldset>
 	<legend>Billed to</legend>
 	<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
+	<?php shopp('purchase','company'); ?><br />
 	<?php shopp('purchase','address'); ?><br />
 	<?php shopp('purchase','xaddress'); ?>
 	<?php shopp('purchase','city'); ?>, <?php shopp('purchase','state'); ?> <?php shopp('purchase','postcode'); ?><br />

@@ -18,7 +18,11 @@
 
 	<?php while(shopp('cart','items')): ?>
 		<tr>
-			<td><a href="<?php shopp('cartitem','url'); ?>"><?php shopp('cartitem','name'); ?></a><?php shopp('cartitem','options'); ?></td>
+			<td>
+				<a href="<?php shopp('cartitem','url'); ?>"><?php shopp('cartitem','name'); ?></a>
+				<?php shopp('cartitem','options'); ?>
+				<?php shopp('cartitem','inputs-list'); ?>
+			</td>
 			<td><?php shopp('cartitem','quantity','input=text'); ?>
 				<?php shopp('cartitem','remove','input=button'); ?></td>
 			<td class="money"><?php shopp('cartitem','unitprice'); ?></td>
