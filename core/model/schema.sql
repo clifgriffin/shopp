@@ -278,6 +278,7 @@ CREATE TABLE <?php echo $purchased; ?> (
 	unitprice float(20,2) NOT NULL default '0.00',
 	shipping float(20,2) NOT NULL default '0.00',
 	total float(20,2) NOT NULL default '0.00',
+	variation text NOT NULL,
 	data longtext NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',

@@ -12,6 +12,10 @@
 define("AS_ARRAY",false);
 define("SHOPP_DBPREFIX","shopp_");
 
+// Make sure that compatibility mode is not enabled
+if (ini_get('zend.ze1_compatibility_mode'))
+	ini_set('zend.ze1_compatibility_mode','Off');
+
 class DB {
 	private static $instance;
 	// Define datatypes for MySQL
@@ -77,7 +81,7 @@ class DB {
 	
 		// Error handling
 		if ($this->dbh && $error = mysql_error($this->dbh)) 
-			trigger_error("Query failed.<br /><br />$error<br /><tt>$query</tt>");
+			new ShoppError(sprintf(__('Query failed: %s %s','Shopp'),$error, $query),'shopp_query_error',SHOPP_ERR);
 				
 		// Results handling
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i",$query) ) {
@@ -124,7 +128,6 @@ class DB {
 			// If the property is has a _datatype
 			// it belongs in the database and needs
 			// to be prepared
-			
 				
 			// Process the data
 			switch ($object->_datatypes[$property]) {
@@ -146,7 +149,7 @@ class DB {
 					// If the date is an integer, convert it to an
 					// sql YYYY-MM-DD HH:MM:SS format
 					} elseif (!empty($value) && is_int(intval($value))) {
-						$data[$property] = "'".mkdatetime($value)."'";
+						$data[$property] = "'".mkdatetime(intval($value))."'";
 					// Otherwise it's already ready, so pass it through
 					} else {
 						$data[$property] = "'$value'";

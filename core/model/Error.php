@@ -28,6 +28,12 @@ class ShoppErrors {
 	
 	function ShoppErrors () {
 		$this->notifications = new CallbackSubscription();
+
+		$types = E_ALL ^ E_NOTICE;
+		if (WP_DEBUG) $types = E_ALL;
+		// Handle PHP errors
+		if (SHOPP_ERROR_REPORTING >= SHOPP_PHP_ERR)
+			set_error_handler(array($this,'phperror'),$types);
 	}
 	
 	function add ($ShoppError) {
@@ -53,7 +59,7 @@ class ShoppErrors {
 	function phperror ($number, $message, $file, $line) {
 		if (strpos($file,SHOPP_PATH) !== false)
 			new ShoppError($message,'php_error',SHOPP_PHP_ERR,
-				array('file'=>$file,'line'=>$line,'code'=>$number));
+				array('file'=>$file,'line'=>$line,'phperror'=>$number));
 	}
 	
 	
@@ -66,6 +72,22 @@ class ShoppError {
 	var $messages;
 	var $level;
 	var $data = array();
+	var $php = array(
+		E_ERROR           => 'ERROR',
+		E_WARNING         => 'WARNING',
+		E_PARSE           => 'PARSE ERROR',
+		E_NOTICE          => 'NOTICE',
+		E_CORE_ERROR      => 'CORE ERROR',
+		E_CORE_WARNING    => 'CORE WARNING',
+		E_COMPILE_ERROR   => 'COMPILE ERROR',
+		E_COMPILE_WARNING => 'COMPILE WARNING',
+		E_USER_ERROR      => 'USER ERROR',
+		E_USER_WARNING    => 'USER WARNING',
+		E_USER_NOTICE     => 'USER NOTICE',
+		E_STRICT          => 'STRICT NOTICE',
+		E_RECOVERABLE_ERROR  => 'RECOVERABLE ERROR'
+	);
+    
 		
 	function ShoppError($message='',$code='',$level=SHOPP_ERR,$data='') {
 		if ($level > SHOPP_ERROR_REPORTING) return;
@@ -82,8 +104,10 @@ class ShoppError {
 		if (isset($data['line'])) $this->debug['line'] = $data['line'];
 		unset($this->debug['object'],$this->debug['args']);
 		
+		$this->source = "Shopp";
 		if (isset($this->debug['class'])) $this->source = $this->debug['class'];
-		else $this->source = "Core";
+		if (isset($this->data['phperror'])) $this->source = "PHP ".$this->php[$this->data['phperror']];
+		
 		
 		$Errors = &ShoppErrors();
 		if (!empty($Errors)) $Errors->add($this);
@@ -108,7 +132,7 @@ class ShoppErrorLogging {
 	function ShoppErrorLogging ($loglevel=0) {
 		$this->loglevel = $loglevel;
 		$this->dir = sys_get_temp_dir();
-		$this->logfile = $this->dir.$this->file;
+		$this->logfile = trailingslashit($this->dir).$this->file;
 
 		$Errors = &ShoppErrors();
 		$Errors->notifications->subscribe($this,'log');

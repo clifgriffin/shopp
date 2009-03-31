@@ -7,7 +7,7 @@ body { position: relative; }
 .shopp input.right { text-align: right; }
 .shopp label .error { display: inline-block; margin-top: 5px; padding: 0 0.6em; }
 
-.shopp table td.featured { background: url('../icons/featured.png') no-repeat center center; }
+.shopp table td.is-featured { background: url('../icons/featured.png') no-repeat center center; }
 .shopp table td.spectemplates { background: url('../icons/templates.png') no-repeat center center; }
 .shopp table td.facetedmenus { background: url('../icons/menus.png') no-repeat center center; }
 
@@ -186,8 +186,9 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 form { position: relative; }
 p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 
-/*button img { margin-bottom: -3px; }
-*/
+
+
+/* Order Management */
 #order { position: relative; }
 #order address { font-style: normal; }
 #order fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
@@ -226,7 +227,12 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #order-statuslabels button { display: inline-block; background: none; margin: 0; border: none; padding: 0; width: 18px; height: 22px; margin-top: -4px; vertical-align: middle; }
 #order-statuslabels button img { margin-left: -2px; }
 #order-statuslabels button.delete { position: absolute; left: 126px; top: 6px; }
+#print-button { position: absolute; right: 15px; }
 
+#orders div.actions span.filtering { margin-left: 10px; }
+
+
+/* Shipping Settings */
 #shipping-rates table.rate, #shipping-rates table.rate tr { background: none; }
 #shipping-rates table.rate tr.headings th { vertical-align: bottom; line-height: 1; }
 #shipping-rates, #shipping-rates td { position: relative; padding-left: 0; padding-right: 0; top: 0; }

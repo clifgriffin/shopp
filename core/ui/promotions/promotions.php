@@ -23,16 +23,19 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php shopp_print_column_headers('shopp_page_shopp/promotions'); ?></tr>
+		<tr><?php shopp_print_column_headers('shopp_page_shopp-promotions'); ?></tr>
 		</thead>
 		<?php if (SHOPP_WP27): ?>
 		<tfoot>
-		<tr><?php shopp_print_column_headers('shopp_page_shopp/promotions',false); ?></tr>
+		<tr><?php shopp_print_column_headers('shopp_page_shopp-promotions',false); ?></tr>
 		</tfoot>
 		<?php endif; ?>
 	<?php if (sizeof($Promotions) > 0): ?>
 		<tbody class="list promotions">
 		<?php 
+			$hidden = array();
+			if (SHOPP_WP27) $hidden = get_hidden_columns('shopp_page_shopp-promotions');
+			
 			$even = false; foreach ($Promotions as $Promotion): 
 			$editurl = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->editpromo,'id'=>$Promotion->id)),$this->Core->wpadminurl);
 		?>
@@ -45,14 +48,14 @@
 				</div>				
 				
 			</td>
-			<td class="discount column-discount"><?php 
+			<td class="discount column-discount<?php echo in_array('discount',$hidden)?' hidden':''; ?>"><?php 
 				if ($Promotion->type == "Percentage Off") echo percentage($Promotion->discount);
 				if ($Promotion->type == "Amount Off") echo money($Promotion->discount);
 				if ($Promotion->type == "Free Shipping") echo $this->Settings->get("free_shipping_text");
 				if ($Promotion->type == "Buy X Get Y Free") echo __('Buy','Shopp').' '.$Promotion->buyqty.' '.__('Get','Shopp').' '.$Promotion->getqty.' '.__('Free','Shopp');
 			?></td>
-			<td class="applied column-applied"><?php echo $Promotion->scope; ?></td>
-			<td class="eff column-eff"><strong><?php echo ucfirst($Promotion->status); ?></strong><?php
+			<td class="applied column-applied<?php echo in_array('applied',$hidden)?' hidden':''; ?>"><?php echo $Promotion->scope; ?></td>
+			<td class="eff column-eff<?php echo in_array('eff',$hidden)?' hidden':''; ?>"><strong><?php echo ucfirst($Promotion->status); ?></strong><?php
 				if (mktimestamp($Promotion->starts > 1) && mktimestamp($Promotion->ends) > 1)
 					echo "<br />".date(get_option(date_format),mktimestamp($Promotion->starts))." &mdash; ".date(get_option(date_format),mktimestamp($Promotion->ends));
 				else echo "<br />".date(get_option(date_format),mktimestamp($Promotion->created)).", ".__('does not expire','Shopp');
@@ -98,6 +101,6 @@
 			return true;
 		} else return false;
 	});
- 	columns.init('toplevel_page_shopp/promotions');
-   
+
+	if (columns) columns.init('shopp_page_shopp-promotions');
 </script>

@@ -121,7 +121,7 @@ class Cart {
 		}
 		
 		if (empty($this->data->Errors)) $this->data->Errors = new ShoppErrors();
-
+		
 		return true;
 	}
 	

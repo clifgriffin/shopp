@@ -129,24 +129,24 @@ class PayPalExpress {
 		$_ = $this->headers();
 
    		$_['METHOD'] 				= "GetExpressCheckoutDetails";
-		$_['TOKEN'] 				= $Shopp->Cart->data->PayPalExpress->token;  
+		$_['TOKEN'] 				= $Shopp->Cart->data->PayPalExpress->token;
 
 		$this->transaction = $this->encode($_);
-		$result = $this->send();               
-
+		$this->send();
+		
 		$Customer = $Shopp->Cart->data->Order->Customer;
-		$Customer->firstname = $result->firstname;
-		$Customer->lastname = $result->lastname;
-		$Customer->email = $result->email;
-		$Customer->phone = $result->phonenum;
+		$Customer->firstname = $this->Response->firstname;
+		$Customer->lastname = $this->Response->lastname;
+		$Customer->email = $this->Response->email;
+		$Customer->phone = $this->Response->phonenum;
 		
 		$Shipping = $Shopp->Cart->data->Order->Shipping;		
-		$Shipping->address = $result->shiptostreet;
-		$Shipping->xaddress = $result->shiptostreet2;
-		$Shipping->city = $result->shiptocity;
-		$Shipping->state = $result->shiptostate;
-		$Shipping->country = $result->shiptocountrycode;
-		$Shipping->postcode = $result->shiptozip;
+		$Shipping->address = $this->Response->shiptostreet;
+		$Shipping->xaddress = $this->Response->shiptostreet2;
+		$Shipping->city = $this->Response->shiptocity;
+		$Shipping->state = $this->Response->shiptostate;
+		$Shipping->country = $this->Response->shiptocountrycode;
+		$Shipping->postcode = $this->Response->shiptozip;
 
 		$Billing = $Shopp->Cart->data->Order->Billing;
 		$Billing->cardtype = "PayPal";
@@ -156,7 +156,7 @@ class PayPalExpress {
 		$Billing->state = $Shipping->state;
 		$Billing->country = $Shipping->country;
 		$Billing->postcode = $Shipping->postcode;
-		
+
 		$Shopp->Cart->updated();
 		
 	} 
@@ -194,7 +194,9 @@ class PayPalExpress {
 
 		$this->transaction = $this->encode($_);
 		$result = $this->send();
-		if (!$result) return false;
+		if (!$result) {
+			new ShoppError(__('No response was received from PayPal. The order cannot be processed.','Shopp'),'paypalexpress_noresults',SHOPP_COMM_ERR);
+		}
 		
 		// If the transaction is a success, get the transaction details, 
 		// build the purchase receipt, save it and return it
@@ -202,12 +204,14 @@ class PayPalExpress {
 			$_ = $this->headers();
 			
 			$_['METHOD'] 				= "GetTransactionDetails";
-			$_['TRANSACTIONID']			= $result->transactionid;
+			$_['TRANSACTIONID']			= $this->Response->transactionid;
 			
 			$this->transaction = $this->encode($_);
 			$result = $this->send();
-			if (!$result) return false;
-			       
+			if (!$result) {
+				new ShoppError(__('Details for the order were not provided by PayPal.','Shopp'),'paypalexpress_notrxn_details',SHOPP_COMM_ERR);
+				return false;
+			}
 
 			$Order = $Shopp->Cart->data->Order;
 			$Order->Totals = $Shopp->Cart->data->Totals;
@@ -233,8 +237,8 @@ class PayPalExpress {
 			$Purchase->copydata($Order->Totals);
 			$Purchase->freight = $Order->Totals->shipping;
 			$Purchase->gateway = "PayPal Express";
-			$Purchase->transactionid = $result->transactionid;
-			$Purchase->fees = $result->feeamt;
+			$Purchase->transactionid = $this->Response->transactionid;
+			$Purchase->fees = $this->Response->feeamt;
 			$Purchase->save();
 
 			foreach($Shopp->Cart->contents as $Item) {
@@ -284,8 +288,9 @@ class PayPalExpress {
 			new ShoppError($error,'paypal_express_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 
-		$Response = $this->response($buffer);
-		return $Response;
+		$this->Response = false;
+		$this->Response = $this->response($buffer);
+		return $this->Response;
 	}
 	
 	function response ($buffer) {
@@ -306,8 +311,7 @@ class PayPalExpress {
 			$key = strtolower($key);
 			$_->{$key} = $value;
 		}
-		
-		$this->Response = $_;
+
 		return $_;
 	}
 	

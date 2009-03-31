@@ -23,16 +23,20 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php shopp_print_column_headers('shopp_page_shopp/categories'); ?></tr>
+		<tr><?php shopp_print_column_headers('shopp_page_shopp-categories'); ?></tr>
 		</thead>
 		<?php if (SHOPP_WP27): ?>
 		<tfoot>
-		<tr><?php shopp_print_column_headers('shopp_page_shopp/categories',false); ?></tr>
+		<tr><?php shopp_print_column_headers('shopp_page_shopp-categories',false); ?></tr>
 		</tfoot>
 		<?php endif; ?>
 	<?php if (sizeof($Categories) > 0): ?>
 		<tbody id="categories-table" class="list categories">
-		<?php $even = false; foreach ($Categories as $Category): ?>
+		<?php 
+		$hidden = array();
+		if (SHOPP_WP27) $hidden = get_hidden_columns('shopp_page_shopp-categories');
+		
+		$even = false; foreach ($Categories as $Category): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Category->id; ?>' /></th>
 			<td width="33%"><a class='row-title' href='<?php echo add_query_arg(array_merge($_GET,array('page'=>$this->Admin->editcategory,'id'=>$Category->id)),$this->wpadminurl); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Category->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->depth); echo (!empty($Category->name))?$Category->name:'(no category name)'; ?></a>
@@ -42,10 +46,10 @@
 					<span class='view'><a href="<?php echo (SHOPP_PERMALINKS)?$Shopp->shopuri."category/$Category->uri":add_query_arg('shopp_category',$Category->id,$Shopp->shopuri); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo $Category->name; ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>				
 			</td>
-			<td width="30%" class="description column-description"><?php echo $Category->description; ?>&nbsp;</td>
-			<td class="num links column-links"><?php echo $Category->total; ?></td>
-			<td width="5%" class="templates column-templates<?php echo ($Category->spectemplate == "on")?' spectemplates':''; ?>">&nbsp;</td>
-			<td width="5%" class="menus column-menus<?php echo ($Category->facetedmenus == "on")?' facetedmenus':''; ?>">&nbsp;</td>
+			<td width="30%" class="description column-description<?php echo in_array('description',$hidden)?' hidden':''; ?>"><?php echo $Category->description; ?>&nbsp;</td>
+			<td class="num links column-links<?php echo in_array('links',$hidden)?' hidden':''; ?>"><?php echo $Category->total; ?></td>
+			<td width="5%" class="templates column-templates<?php echo ($Category->spectemplate == "on")?' spectemplates':''; echo in_array('templates',$hidden)?' hidden':''; ?>">&nbsp;</td>
+			<td width="5%" class="menus column-menus<?php echo ($Category->facetedmenus == "on")?' facetedmenus':''; echo in_array('menus',$hidden)?' hidden':''; ?>">&nbsp;</td>
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
@@ -86,5 +90,6 @@
 			return true;
 		} else return false;
 	});
-	columns.init('toplevel_page_shopp/orders');	
+
+	if (columns) columns.init('shopp_page_shopp-categories');
 </script>

@@ -27,9 +27,11 @@ function init () {
 	$('#shopp-jsconflict').hide();
 
 	if (!wp26) {
-		postboxes.add_postbox_toggles('product');
+		jQuery(document).ready( function($) {
+		postboxes.add_postbox_toggles('admin_page_shopp-products-edit');
 		// close postboxes that should be closed
 		jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	});
 	}
 	
 	if (!product) $('#title').focus();
@@ -61,7 +63,7 @@ function init () {
 	quickSelects();
 	updateWorkflow();
 	
-	imageUploads = new ImageUploads({"product" : $('#image-product-id').val()});
+	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
 	window.onbeforeunload = function () { if (changes && !saving) return false; }	
 
 }

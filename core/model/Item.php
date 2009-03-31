@@ -10,15 +10,17 @@
  **/
 
 class Item {
-	var $product;
-	var $price;
-	var $category;
-	var $sku;
-	var $type;
-	var $name;
-	var $description;
-	var $optionlabel;
+	var $product = false;
+	var $price = false;
+	var $category = false;
+	var $sku = false;
+	var $type = false;
+	var $name = false;
+	var $description = false;
+	var $optionlabel = false;
+	var $variation = array();
 	var $option = false;
+	var $menus = array();
 	var $options = array();
 	var $saved = 0;
 	var $savings = 0;
@@ -54,6 +56,7 @@ class Item {
 		$this->slug = $Product->slug;
 		$this->description = $Product->summary;
 		if (isset($Product->thumbnail)) $this->thumbnail = $Product->thumbnail;
+		$this->menus = $Product->options;
 		$this->options = $Product->prices;
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
@@ -65,6 +68,17 @@ class Item {
 		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
 		$this->donation = $Price->donation;
 		$this->data = $data;
+		
+		// Map out the selected menu name and option
+		$selected = split(",",$this->option->options); $s = 0;
+		foreach ($this->menus as $i => $menu) {
+			foreach($menu['options'] as $option) {
+				if ($option['id'] == $selected[$s]) {
+					$this->variation[$menu['name']] = $option['name']; break;
+				}
+			}
+			$s++;
+		}
 
 		if (!empty($Price->download)) $this->download = $Price->download;
 		
@@ -254,6 +268,23 @@ class Item {
 				$name = key($this->data);
 				if (isset($options['name'])) return $name;
 				return $data;
+				break;
+			case "inputs-list":
+			case "inputslist":
+				if (empty($this->data)) return false;
+				$before = ""; $after = ""; $classes = ""; $excludes = array();
+				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
+				if (!empty($options['exclude'])) $excludes = split(",",$options['exclude']);
+				if (!empty($options['before'])) $before = $options['before'];
+				if (!empty($options['after'])) $after = $options['after'];
+				
+				$result .= $before.'<ul'.$classes.'>';
+				foreach ($this->data as $name => $data) {
+					if (in_array($name,$excludes)) continue;
+					$result .= '<li><strong>'.$name.'</strong>: '.$data.'</li>';
+				}
+				$result .= '</ul>'.$after;
+				return $result;
 				break;
 			case "thumbnail":
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
