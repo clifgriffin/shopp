@@ -20,6 +20,8 @@ body { position: relative; }
 tr:hover .row-actions,
 div.comment-item:hover .row-actions { visibility: visible; }
 
+/* Category Editor */
+#category_parent { width: 98%; }
 
 #status { padding-left: 20px; font-weight: bold; }
 #status.updating { background: url('../icons/updating.gif') no-repeat left center; }

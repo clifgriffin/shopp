@@ -123,9 +123,12 @@ add_meta_box('product-details-box', __('Details &amp; Specs','Shopp'), 'details_
 
 function images_meta_box ($Product) {
 	$db =& DB::get();
-	$Assets = new Asset();
-	$Images = $db->query("SELECT id,src,properties FROM $Assets->_table WHERE context='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
-	unset($Assets);
+	if ($Product->id) {
+		$Assets = new Asset();
+		$Images = $db->query("SELECT id,src,properties FROM $Assets->_table WHERE context='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
+		unset($Assets);
+	}
+	if (!isset($Images)) $Images = array();
 ?>
 	<ul id="lightbox">
 	<?php foreach ($Images as $i => $thumbnail): $thumbnail->properties = unserialize($thumbnail->properties); ?>
@@ -194,8 +197,8 @@ function pricing_meta_box ($Product) {
 add_meta_box('product-pricing-box', __('Pricing','Shopp'), 'pricing_meta_box', 'admin_page_shopp-products-edit', 'advanced', 'core');
 
 
-do_action('do_meta_boxes', 'admin_page_shopp-products-edit', 'normal', $Product);
-do_action('do_meta_boxes', 'admin_page_shopp-products-edit', 'advanced', $Product);
-do_action('do_meta_boxes', 'admin_page_shopp-products-edit', 'side', $Product);
+do_action('do_meta_boxes', 'admin_page_shopp-products-edit', 'normal', $Shopp->Product);
+do_action('do_meta_boxes', 'admin_page_shopp-products-edit', 'advanced', $Shopp->Product);
+do_action('do_meta_boxes', 'admin_page_shopp-products-edit', 'side', $Shopp->Product);
 
 ?>

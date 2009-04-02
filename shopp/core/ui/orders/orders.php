@@ -3,14 +3,14 @@
 
 	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="orders" method="get">
 	<div>
-		<input type="hidden" name="page" value="<?php echo $_GET['page']; ?>" />
-		<input type="hidden" name="status" value="<?php echo $_GET['status']; ?>" />
+		<input type="hidden" name="page" value="<?php echo $page; ?>" />
+		<input type="hidden" name="status" value="<?php echo $status; ?>" />
 	</div>
 	<?php include("navigation.php"); ?>
 
 	<br class="clear" />
 	<p id="post-search" class="search-box">
-		<input type="text" id="orders-search-input" class="search-input" name="s" value="<?php echo attribute_escape($_GET['s']); ?>" />
+		<input type="text" id="orders-search-input" class="search-input" name="s" value="<?php echo attribute_escape($s); ?>" />
 		<input type="submit" value="<?php _e('Search Orders','Shopp'); ?>" class="button" />
 	</p>
 	
@@ -23,7 +23,7 @@
 			<button type="submit" id="update-button" name="update" value="order" class="button-secondary"><?php _e('Update','Shopp'); ?></button>
 			<span class="filtering">
 			<select name="range" id="range">
-				<?php echo menuoptions($ranges,$_GET['range'],true); ?>
+				<?php echo menuoptions($ranges,$range,true); ?>
 			</select>
 			<span id="dates">
 			<div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo $startdate; ?>" size="10" class="search-input selectall" /></div>
@@ -292,5 +292,5 @@ $('#selectall_columns').change(function () {
 	else $('#export-columns input').not(this).attr('checked',false); 
 });
 
-if (columns) columns.init('toplevel_page_shopp-orders');
+<?php if (SHOPP_WP27): ?>columns.init('toplevel_page_shopp-orders');<?php endif; ?>
 </script>

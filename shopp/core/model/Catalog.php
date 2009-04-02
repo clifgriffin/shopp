@@ -43,8 +43,10 @@ class Catalog extends DatabaseObject {
 			$this->categories[$category->id]->populate($category);
 			if (isset($category->depth))
 				$this->categories[$category->id]->depth = $category->depth;
+			else $this->categories[$category->id]->depth = 0;
 			if (isset($category->total))
 				$this->categories[$category->id]->total = $category->total;
+			else $this->categories[$category->id]->total = 0;
 			$this->categories[$category->id]->children = false;
 			if ($category->total > 1 && isset($this->categories[$category->parent])) 
 				$this->categories[$category->parent]->children = true;
@@ -290,10 +292,10 @@ class Catalog extends DatabaseObject {
 				if (isset($options['separator'])) $separator = $options['separator'];
 				if (!empty($Shopp->Category)) {
 					
-					if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$Shopp->Category->uri;
+					if (SHOPP_PERMALINKS) $link = add_query_arg($_GET,$Shopp->shopuri.'category/'.$Shopp->Category->uri);
 					else {
 						if (isset($Shopp->Category->smart)) 
-							$link = add_query_arg('shopp_category',$Shopp->Category->slug,$Shopp->shopuri);
+							$link = add_query_arg(array_merge($_GET,array('shopp_category'=>$Shopp->Category->slug)),$Shopp->shopuri);
 						else 
 							$link = add_query_arg('shopp_category', $Shopp->Category->id, $Shopp->shopuri);
 					}
@@ -336,6 +338,10 @@ class Catalog extends DatabaseObject {
 				if ($property == "bestseller-products") $Shopp->Category = new BestsellerProducts($options);
 			case "random-products":
 				if ($property == "random-products") $Shopp->Category = new RandomProducts($options);
+			case "tag-products":
+				if ($property == "tag-products") $Shopp->Category = new TagProducts($options);
+			case "search-products":
+				if ($property == "search-products") $Shopp->Category = new SearchProducts($options);
 			case "category":
 				if ($property == "category") {
 					if (isset($options['name'])) $Shopp->Category = new Category($options['name'],'name');
