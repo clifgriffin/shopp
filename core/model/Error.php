@@ -14,11 +14,12 @@ define('SHOPP_TRXN_ERR',2);
 define('SHOPP_AUTH_ERR',4);
 define('SHOPP_ADDON_ERR',8);
 define('SHOPP_COMM_ERR',16);
-define('SHOPP_PHP_ERR',32);
-define('SHOPP_ALL_ERR',64);
-define('SHOPP_DEBUG_ERR',128);
+define('SHOPP_DB_ERR',32);
+define('SHOPP_PHP_ERR',64);
+define('SHOPP_ALL_ERR',128);
+define('SHOPP_DEBUG_ERR',256);
 
-if (!defined('SHOPP_ERROR_REPORTING') && SHOPP_DEBUG) define('SHOPP_ERROR_REPORTING',SHOPP_DEBUG_ERR);
+if (!defined('SHOPP_ERROR_REPORTING') && WP_DEBUG) define('SHOPP_ERROR_REPORTING',SHOPP_DEBUG_ERR);
 if (!defined('SHOPP_ERROR_REPORTING')) define('SHOPP_ERROR_REPORTING',SHOPP_ALL_ERR);
 
 class ShoppErrors {
@@ -30,7 +31,7 @@ class ShoppErrors {
 		$this->notifications = new CallbackSubscription();
 
 		$types = E_ALL ^ E_NOTICE;
-		if (WP_DEBUG) $types = E_ALL;
+		if (defined('WP_DEBUG') && WP_DEBUG) $types = E_ALL;
 		// Handle PHP errors
 		if (SHOPP_ERROR_REPORTING >= SHOPP_PHP_ERR)
 			set_error_handler(array($this,'phperror'),$types);
@@ -48,8 +49,11 @@ class ShoppErrors {
 		return $errors;
 	}
 	
-	function exist () {
-		return (count($this->errors) > 0);
+	function exist ($level=SHOPP_DEBUG_ERR) {
+		$errors = array();
+		foreach ($this->errors as &$error)
+			if ($error->level <= $level) $errors[] = &$error;
+		return (count($errors) > 0);
 	}
 	
 	function reset () {

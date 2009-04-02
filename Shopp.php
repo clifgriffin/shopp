@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.5 b4
+Version: 1.0.5 RC1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,21 +26,20 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.5 b4");
+define("SHOPP_VERSION","1.0.5 RC1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
-define("SHOPP_DEBUG",true);
 
 require("core/functions.php");
 require_once("core/DB.php");
 require("core/model/Settings.php");
 
-if ($_GET['shopp_image'] || 
+if (isset($_GET['shopp_image']) || 
 		preg_match('/images\/\d+/',$_SERVER['REQUEST_URI'])) 
 		shopp_image();
-if ($_GET['shopp_lookup'] == 'catalog.css') shopp_catalog_css();
-if ($_GET['shopp_lookup'] == 'settings.js') shopp_settings_js();
+if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'catalog.css') shopp_catalog_css();
+if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'settings.js') shopp_settings_js();
 
 require("core/Flow.php");
 require("core/model/Cart.php");
@@ -61,7 +60,7 @@ class Shopp {
 	var $_debug;
 	
 	function Shopp () {
-		if (SHOPP_DEBUG) {
+		if (WP_DEBUG) {
 			$this->_debug = new StdClass();
 			if (function_exists('memory_get_peak_usage'))
 				$this->_debug->memory = "Initial: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
@@ -77,7 +76,7 @@ class Shopp {
 		$this->siteurl = get_bloginfo('url');
 		$this->wpadminurl = admin_url();
 		
-		$this->secure = ($_SERVER['HTTPS'] == "on");
+		$this->secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on");
 		if ($this->secure) {
 			$this->uri = str_replace('http://','https://',$this->uri);
 			$this->siteurl = str_replace('http://','https://',$this->siteurl);
@@ -172,7 +171,6 @@ class Shopp {
 		
 		// Handle WordPress-processed logins
 		$this->Cart->logins();
-		
 	}
 
 	/**
@@ -260,7 +258,7 @@ class Shopp {
 
 		if (function_exists('add_contextual_help')) {
 			add_contextual_help($menus['orders'],'<a href="'.SHOPP_DOCS.'Managing_Orders" target="_blank">Managing Orders</a>');
-			add_contextual_help($menus['promos'],'<a href="'.SHOPP_DOCS.'Running_Sales_%26_Promotions" target="_blank">Running Sales &amp; Promotions</a>');
+			add_contextual_help($menus['promotions'],'<a href="'.SHOPP_DOCS.'Running_Sales_%26_Promotions" target="_blank">Running Sales &amp; Promotions</a>');
 			add_contextual_help($menus['products'],'<a href="'.SHOPP_DOCS.'Editing_a_Product" target="_blank">Editing a Product</a>');
 			add_contextual_help($menus['categories'],'<a href="'.SHOPP_DOCS.'Editing_a_Category" target="_blank">Editing a Category</a>');
 
@@ -775,7 +773,7 @@ class Shopp {
 			$wp->query_vars['s'] = "";
 			$wp->query_vars['pagename'] = $pages['catalog']['name'];
 			add_action('wp_head', array(&$this, 'updatesearch'));
-			$type = "category"; 
+			if ($type != "product") $type = "category"; 
 			$category = "search-results";
 		}
 		
@@ -1360,18 +1358,29 @@ function shopp () {
 		$options[strtolower($key)] = $value;
 	}
 	
-	$result = "";
+	$Object = false; $result = false;
 	switch (strtolower($object)) {
-		case "cart": $result = $Shopp->Cart->tag($property,$options); break;
-		case "cartitem": $result = $Shopp->Cart->itemtag($property,$options); break;
-		case "shipping": $result = $Shopp->Cart->shippingtag($property,$options); break;
-		case "checkout": $result = $Shopp->Cart->checkouttag($property,$options); break;
-		case "category": $result = $Shopp->Category->tag($property,$options); break;
-		case "subcategory": $result = $Shopp->Category->child->tag($property,$options); break;
-		case "catalog": $result = $Shopp->Catalog->tag($property,$options); break;
-		case "product": $result = $Shopp->Product->tag($property,$options); break;
-		case "purchase": $result = $Shopp->Cart->data->Purchase->tag($property,$options); break;
-		case "customer": $result = $Shopp->Cart->data->Order->Customer->tag($property,$options); break;
+		case "cart": if (isset($Shopp->Cart)) $Object =& $Shopp->Cart; break;
+		case "cartitem": if (isset($Shopp->Cart)) $Object =& $Shopp->Cart; break;
+		case "shipping": if (isset($Shopp->Cart)) $Object =& $Shopp->Cart; break;
+		case "checkout": if (isset($Shopp->Cart)) $Object =& $Shopp->Cart; break;
+		case "category": if (isset($Shopp->Category)) $Object =& $Shopp->Category; break;
+		case "subcategory": if (isset($Shopp->Category->child)) $Object =& $Shopp->Category->child; break;
+		case "catalog": if (isset($Shopp->Catalog)) $Object =& $Shopp->Catalog; break;
+		case "product": if (isset($Shopp->Product)) $Object =& $Shopp->Product; break;
+		case "purchase": if (isset($Shopp->Cart->data->Purchase)) $Object =& $Shopp->Cart->data->Purchase; break;
+		case "customer": if (isset($Shopp->Cart->data->Order->Customer)) $Object =& $Shopp->Cart->data->Order->Customer; break;
+		default: $Object = false;
+	}
+	
+	if (!$Object) new ShoppError("The shopp('$object') tag cannot be used in this context because the object responsible for handling it doesn't exist.",'shopp_tag_error',SHOPP_ERR);
+	else {
+		switch (strtolower($object)) {
+			case "cartitem": $result = $Object->itemtag($property,$options); break;
+			case "shipping": $result = $Object->shippingtag($property,$options); break;
+			case "checkout": $result = $Object->checkouttag($property,$options); break;
+			default: $result = $Object->tag($property,$options); break;
+		}
 	}
 
 	// Force boolean result

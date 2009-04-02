@@ -246,7 +246,7 @@ function shopp_catalog_css () {
 	foreach ($settings as $setting) ${$setting->name} = $setting->value;
 
 	$pluginuri = WP_PLUGIN_URL."/".basename(dirname(dirname(__FILE__)))."/";
-	if ($_SERVER['HTTPS'] == "on") $pluginuri = force_ssl($pluginuri);
+	$pluginuri = force_ssl($pluginuri);
 
 	if (!isset($row_products)) $row_products = 3;
 	$products_per_row = floor((100/$row_products));
@@ -856,13 +856,20 @@ function gateway_path ($file) {
 }
 
 function force_ssl ($url) {
-	if($_SERVER["HTTPS"] == "on")
+	if(isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on")
 		$url = str_replace('http://', 'https://', $url);
 	return $url;
 }
 
 function jscrash_error () {
+	echo '<div id="shopp-jsconflict" class="error"><p>';
 	printf(__('An error caused by another plugin has crashed JavaScript and is preventing Shopp from working properly. For details, see the <a href="%s" target="_blank">Shopp Documentation</a>.','Shopp'),SHOPP_DOCS."Plugins_Breaking_JavaScript");
+	echo '</p></div>';
+	?>
+	<script type="text/javascript">
+	(function($) { $(document).ready(function () {$('#shopp-jsconflict').hide();}); })(jQuery)
+	</script>
+	<?php
 }
 
 if ( !function_exists('sys_get_temp_dir')) {

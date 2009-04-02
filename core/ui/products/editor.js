@@ -24,7 +24,7 @@ var flashUploader = false;
 var pricesPayload = true;
 
 function init () {
-	$('#shopp-jsconflict').hide();
+	// $('#shopp-jsconflict').hide();
 
 	if (!wp26) {
 		jQuery(document).ready( function($) {

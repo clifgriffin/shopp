@@ -9,7 +9,7 @@
 	</div>
 
 	<p id="post-search" class="search-box">
-		<input type="text" id="products-search-input" class="search-input" name="s" value="<?php echo stripslashes(attribute_escape($_GET['s'])); ?>" />
+		<input type="text" id="products-search-input" class="search-input" name="s" value="<?php echo stripslashes(attribute_escape($s)); ?>" />
 		<input type="submit" value="<?php _e('Search Products','Shopp'); ?>" class="button" />
 	</p>
 	
@@ -57,8 +57,8 @@
 			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Product->name; ?>&quot;'><?php echo (!empty($Product->name))?$Product->name:'(no product name)'; ?></a>
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo $editurl; ?>" title="Edit this product"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='edit'><a href="<?php echo add_query_arg(array_merge($_GET,array('duplicate'=>$Product->id)),$this->Core->wpadminurl); ?>" title="Duplicate this product"><?php _e('Duplicate','Shopp'); ?></a> | </span>
-					<span class='delete'><a class='submitdelete' title='Delete this product' href='' rel="<?php echo $Product->id; ?>">Delete</a> | </span>
+					<span class='edit'><a href="<?php echo add_query_arg(array_merge($_GET,array('duplicate'=>$Product->id)),$Shopp->wpadminurl); ?>" title="Duplicate this product"><?php _e('Duplicate','Shopp'); ?></a> | </span>
+					<span class='delete'><a class='submitdelete' title='Delete <?php echo (!empty($Product->name))?$Product->name:'(no product name)'; ?>' href='' rel="<?php echo $Product->id; ?>">Delete</a> | </span>
 					<span class='view'><a href="<?php echo (SHOPP_PERMALINKS)?$Shopp->shopuri."new/$Product->slug":add_query_arg('shopp_pid',$Product->id,$Shopp->shopuri); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo $Product->name; ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>
 				</td>
@@ -96,7 +96,8 @@
 	});
 	
 	$('a.submitdelete').click(function () {
-		if ( confirm("You are about to delete this product '<?php echo $Product->name; ?>'\n 'Cancel' to stop, 'OK' to delete.")) {
+		var name = $(this).attr('title');
+		if ( confirm("<?php _e("You are about to delete this product!\\n 'Cancel' to stop, 'OK' to delete.","Shopp"); ?>")) {
 			$('<input type="hidden" name="delete[]" />').val($(this).attr('rel')).appendTo('#products-manager');
 			$('<input type="hidden" name="deleting" />').val('product').appendTo('#products-manager');
 			$('#products-manager').submit();
@@ -108,5 +109,5 @@
 		if (confirm("<?php _e('Are you sure you want to delete the selected products?','Shopp'); ?>")) return true;
 		else return false;
 	});
-	if (columns) columns.init('shopp_page_shopp-products');
+<?php if (SHOPP_WP27): ?>	columns.init('shopp_page_shopp-products');<?php endif; ?>
 </script>

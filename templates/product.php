@@ -40,7 +40,7 @@
 		<?php endwhile; ?>
 	</dl>
 	<?php endif; ?>
-	
+
 <?php else: ?>
 <h3>Product Not Found</h3>
 <p>Sorry!  The product you requested is not found in our catalog!</p>

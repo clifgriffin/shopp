@@ -38,9 +38,11 @@ add_meta_box('settings-tags', __('Settings','Shopp'), 'settings_meta_box', 'admi
 
 function images_meta_box ($Category) {
 	$db =& DB::get();
-	$Assets = new Asset();
-	$Images = $db->query("SELECT id,src,properties FROM $Assets->_table WHERE context='category' AND parent=$Category->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
-	unset($Assets);
+	$Images = array();
+	if (!empty($Category->id)) {
+		$asset_table = DatabaseObject::tablename(Asset::$table);
+		$Images = $db->query("SELECT id,src,properties FROM $asset_table WHERE context='category' AND parent=$Category->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
+	}
 ?>
 	<ul id="lightbox">
 		<?php foreach ($Images as $i => $thumbnail): $thumbnail->properties = unserialize($thumbnail->properties); ?>
@@ -163,7 +165,7 @@ function templates_meta_box ($Category) {
 add_meta_box('variations', __('Product Template Settings','Shopp'), 'templates_meta_box', 'admin_page_shopp-categories-edit', 'advanced', 'core');
 
 
-do_action('do_meta_boxes', 'admin_page_shopp-categories-edit', 'normal', $Category);
-do_action('do_meta_boxes', 'admin_page_shopp-categories-edit', 'advanced', $Category);
-do_action('do_meta_boxes', 'admin_page_shopp-categories-edit', 'side', $Category);
+do_action('do_meta_boxes', 'admin_page_shopp-categories-edit', 'normal', $Shopp->Category);
+do_action('do_meta_boxes', 'admin_page_shopp-categories-edit', 'advanced', $Shopp->Category);
+do_action('do_meta_boxes', 'admin_page_shopp-categories-edit', 'side', $Shopp->Category);
 ?>

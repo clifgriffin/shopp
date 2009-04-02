@@ -75,13 +75,13 @@ class DB {
 	/**
 	 * Send a query to the database */
 	function query($query, $output=true, $errors=true) {
-		if (SHOPP_DEBUG) $this->queries[] = $query;
+		if (WP_DEBUG) $this->queries[] = $query;
 		$result = @mysql_query($query, $this->dbh);
 		// echo "<pre>QUERY: $query</pre>";
-	
+
 		// Error handling
 		if ($this->dbh && $error = mysql_error($this->dbh)) 
-			new ShoppError(sprintf(__('Query failed: %s %s','Shopp'),$error, $query),'shopp_query_error',SHOPP_ERR);
+			new ShoppError(sprintf(__('Query failed: %s - DB Query: %s','Shopp'),$error, str_replace("\n","",$query)),'shopp_query_error',SHOPP_DB_ERR);
 				
 		// Results handling
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i",$query) ) {

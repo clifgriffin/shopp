@@ -57,7 +57,7 @@ class Item {
 		$this->description = $Product->summary;
 		if (isset($Product->thumbnail)) $this->thumbnail = $Product->thumbnail;
 		$this->menus = $Product->options;
-		$this->options = $Product->prices;
+		if ($Product->variations == "on") $this->options = $Product->prices;
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
 		$this->sale = $Price->onsale;
@@ -70,14 +70,16 @@ class Item {
 		$this->data = $data;
 		
 		// Map out the selected menu name and option
-		$selected = split(",",$this->option->options); $s = 0;
-		foreach ($this->menus as $i => $menu) {
-			foreach($menu['options'] as $option) {
-				if ($option['id'] == $selected[$s]) {
-					$this->variation[$menu['name']] = $option['name']; break;
+		if ($Product->variations == "on") {
+			$selected = split(",",$this->option->options); $s = 0;
+			foreach ($this->menus as $i => $menu) {
+				foreach($menu['options'] as $option) {
+					if ($option['id'] == $selected[$s]) {
+						$this->variation[$menu['name']] = $option['name']; break;
+					}
 				}
+				$s++;
 			}
-			$s++;
 		}
 
 		if (!empty($Price->download)) $this->download = $Price->download;

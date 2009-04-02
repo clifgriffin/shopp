@@ -1,7 +1,7 @@
 <?php if (SHOPP_WP27): ?>
 <div class="wrap shopp"> 
 	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
-	<div id="shopp-jsconflict" class="error"><p><?php jscrash_error(); ?></p></div>
+	<?php jscrash_error(); ?>
 
 	<h2><?php _e('Category Editor','Shopp'); ?></h2> 
 
@@ -295,9 +295,7 @@ var pricesPayload = false;
 
 $=jQuery.noConflict();
 
-$(document).ready(function () {
-	$('#shopp-jsconflict').hide();
-	
+$(document).ready(function () {	
 	var editslug = new SlugEditor(category,'category');
 	var imageUploads = new ImageUploads({"category" : $('#image-category-id').val()});
 	

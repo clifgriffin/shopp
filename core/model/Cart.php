@@ -1039,7 +1039,8 @@ class Cart {
 		
 		switch ($property) {
 			case "hasestimates": return (count($ShipCosts) > 0); break;
-			case "methods":			
+			case "methods":
+				if (!isset($this->sclooping)) $this->sclooping = false;
 				if (!$this->sclooping) {
 					reset($ShipCosts);
 					$this->sclooping = true;
@@ -1063,11 +1064,12 @@ class Cart {
 				$method = current($ShipCosts);
 	
 				$checked = '';
-				if ($this->data->Order->Shipping->method == $method['name'] ||
+				if ((isset($this->data->Order->Shipping->method) && 
+					$this->data->Order->Shipping->method == $method['name']) ||
 					($method['cost'] == $this->data->Totals->shipping))
 						$checked = ' checked="checked"';
 	
-				$result .= '<input type="radio" name="shipmethod" value="'.$method['name'].'" '.$id.' class="shipmethod" '.$checked.' rel="'.$method['cost'].'" />';
+				$result .= '<input type="radio" name="shipmethod" value="'.$method['name'].'" class="shipmethod" '.$checked.' rel="'.$method['cost'].'" />';
 				return $result;
 				
 				break;
@@ -1132,7 +1134,7 @@ class Cart {
 				break;
 			case "error":
 				$result = "";
-				if (!$this->data->Errors->exist()) return false;
+				if (!$this->data->Errors->exist(SHOPP_COMM_ERR)) return false;
 				$errors = $this->data->Errors->get(SHOPP_COMM_ERR);
 				foreach ((array)$errors as $error) if (!empty($error)) $result .= $error->message();
 				return $result;

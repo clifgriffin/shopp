@@ -20,6 +20,7 @@ class Product extends DatabaseObject {
 	var $pricekey = array();
 	var $priceid = array();
 	var $pricerange = array('max'=>array(),'min'=>array());
+	var $onsale = false;
 	var $categories = array();
 	var $tags = array();
 	var $images = array();
@@ -229,14 +230,14 @@ class Product extends DatabaseObject {
 		global $Shopp;
 				
 		$freeshipping = true;
-		foreach ($this->prices as &$price) {
+		foreach ($this->prices as $i => &$price) {
 			
 			// Build secondary lookup table using the combined optionkey
 			$this->pricekey[$price->optionkey] = $price;
 			
 			// Build third lookup table using the price id as the key
 			$this->priceid[$price->id] = $price;
-			if ($price->type == "N/A") continue;
+			if ($price->type == "N/A" || ($i > 0 && $this->variations == "off")) continue;
 			
 			// Boolean flag for custom product sales
 			$price->onsale = false;
@@ -550,7 +551,7 @@ class Product extends DatabaseObject {
 				$url = $Shopp->shopuri;
 				if (isset($Shopp->Category->uri)) $category = $Shopp->Category->uri;
 				else $category = "new";
-				if (SHOPP_PERMALINKS) $url .= "$category/$this->slug/";
+				if (SHOPP_PERMALINKS) $url = add_query_arg($_GET,$url."$category/$this->slug/");
 				else $url = add_query_arg(
 						array('shopp_category' => ((!empty($Shopp->Category->id))?$Shopp->Category->id:$Shopp->Category->slug), 
 							  'shopp_pid' => $this->id),$url);
@@ -802,8 +803,7 @@ class Product extends DatabaseObject {
 				return $string;
 				break;
 			case "has-variations":
-				if (!empty($this->options)) return true; else return false; break;
-				break;
+				return ($this->variations == "on" && !empty($this->options)); break;
 			case "variations":
 				$string = "";
 
@@ -824,6 +824,14 @@ class Product extends DatabaseObject {
 					}
 					return true;
 				}
+				
+				$defaults = array(
+					'disabled' => 'show',
+					'before_menu' => '',
+					'after_menu' => ''
+					);
+					
+				$options = array_merge($defaults,$options);
 
 				if (!isset($options['label'])) $options['label'] = "on";
 				if (!isset($options['required'])) $options['required'] = __('You must select the options for this item before you can add it to your shopping cart.','Shopp');
