@@ -488,7 +488,7 @@ class Flow {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
 		$db = DB::get();
-		
+
 		do_action('shopp_order_preprocessing');
 		
 		if ($gateway) {
@@ -1222,6 +1222,7 @@ class Flow {
 		$this->settings_save(); // Save workflow setting
 
 		if (!$_POST['options']) $Product->options = array();
+		else $_POST['options'] = stripslashes_deep($_POST['options']);
 		if (empty($Product->slug)) $_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 		$Product->updates($_POST,array('categories'));

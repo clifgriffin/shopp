@@ -74,7 +74,6 @@
 	?>
 	<div class="wrap shopp"> 
 		<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
-		<div id="shopp-jsconflict" class="error"><p><?php jscrash_error(); ?></p></div>
 
 		<h2><?php _e('Promotion Editor','Shopp'); ?></h2> 
 
@@ -119,8 +118,6 @@
 <?php else: ?>
 	
 <div class="wrap shopp">
-
-	<div id="shopp-jsconflict" class="error"><p><?php jscrash_error(); ?></p></div>
 
 	<h2><?php _e('Promotion Editor','Shopp'); ?></h2>
 	

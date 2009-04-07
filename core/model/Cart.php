@@ -143,7 +143,7 @@ class Cart {
 		$db = DB::get();
 				
 		if (!$Shopp->Settings->unavailable) {
-			$data = $db->escape(serialize($this->data));
+			$data = $db->escape(addslashes(serialize($this->data)));
 			$contents = $db->escape(serialize($this->contents));
 			if (!$db->query("UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'")) 
 				trigger_error("Could not save session updates to the database.");

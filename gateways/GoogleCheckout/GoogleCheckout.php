@@ -46,6 +46,8 @@ class GoogleCheckout {
 		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
 		$this->settings['currency'] = $this->settings['base_operations']['currency']['code'];
 		if (empty($this->settings['currency'])) $this->settings['currency'] = "USD";
+
+		$this->settings['taxes'] = $Shopp->Settings->get('taxrates');
 		
 		add_action('shopp_save_payment_settings',array(&$this,'saveSettings'));
 		return true;
@@ -187,6 +189,31 @@ class GoogleCheckout {
 							$_[] = '</flat-rate-shipping>';
 						}
 					$_[] = '</shipping-methods>';
+				}
+
+				if (is_array($this->settings['taxes'])) {
+					$_[] = '<tax-tables>';
+						$_[] = '<default-tax-table>';
+							$_[] = '<tax-rules>';
+							foreach ($this->settings['taxes'] as $tax) {
+								$_[] = '<default-tax-rule>';
+									$_[] = '<rate>'.number_format($tax['rate']/100,4).'</rate>';
+									$_[] = '<tax-area>';
+										if ($tax['country'] == "US" && !isset($tax['zone'])) {
+											$_[] = '<us-state-area>';
+												$_[] = '<state>'.$tax['zone'].'</state>';
+											$_[] = '</us-state-area>';
+										} else {
+											$_[] = '<postal-area>';
+												$_[] = '<country-code>'.$tax['country'].'</country-code>';
+											$_[] = '</postal-area>';
+										}
+									$_[] = '</tax-area>';
+								$_[] = '</default-tax-rule>';
+							}
+							$_[] = '</tax-rules>';
+						$_[] = '</default-tax-table>';
+					$_[] = '</tax-tables>';
 				}
 			
 				$_[] = '</merchant-checkout-flow-support>';

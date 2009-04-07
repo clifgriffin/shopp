@@ -214,8 +214,11 @@ class Catalog extends DatabaseObject {
 						$products = '';
 						if (value_is_true($options['products']) && $category->total > 0) $products = ' ('.$category->total.')';
 					
+						$active = '';
+						if (isset($Shopp->Category) && $Shopp->Category->slug == $category->slug) 
+							$active = ' class="active"';
 						if (value_is_true($showall) || $category->total > 0 || isset($category->smart) || $category->children) // Only show categories with products
-							$string .= '<li><a href="'.$link.'">'.$category->name.'</a>'.$products.'</li>';
+							$string .= '<li'.$active.'><a href="'.$link.'"'.$active.'>'.$category->name.'</a>'.$products.'</li>';
 
 						$previous = &$category;
 						$depth = $category->depth;

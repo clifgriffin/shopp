@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.5 RC1
+Version: 1.0.5 RC2
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.5 RC1");
+define("SHOPP_VERSION","1.0.5 RC2");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -862,10 +862,10 @@ class Shopp {
 	function checkout ($wp) {
 		if (!isset($this->Cart->data->Order)) return;
 		$Order = $this->Cart->data->Order;
-
+		
 		$gateway = false;
 		// Intercept external checkout processing
-		if (!empty($wp->query_vars['shopp_xco'])) {
+		if (!empty($wp->query_vars['shopp_xco']) && !isset($_POST['checkout'])) {
 			$gateway = join(DIRECTORY_SEPARATOR,array($this->path,'gateways',$wp->query_vars['shopp_xco'].".php"));
 			if (file_exists($gateway)) {
 				$gateway_meta = $this->Flow->scan_gateway_meta($gateway);

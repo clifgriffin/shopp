@@ -1,7 +1,6 @@
 <?php if (SHOPP_WP27): ?>
 <div class="wrap shopp"> 
 	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
-	<?php jscrash_error(); ?>
 
 	<h2><?php _e('Category Editor','Shopp'); ?></h2> 
 
@@ -61,7 +60,6 @@
 	<h2><?php _e('Category Editor','Shopp'); ?></h2>
 
 	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
-	<div id="shopp-jsconflict" class="error"><p><?php jscrash_error(); ?></p></div>
 	
 	<br class="clear" />
 
