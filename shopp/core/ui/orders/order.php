@@ -1,7 +1,5 @@
 <div class="wrap shopp">
 
-	<div id="shopp-jsconflict" class="error"><p><?php jscrash_error(); ?></p></div>
-
 	<h2><?php _e('Order','Shopp'); ?></h2>
 
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
@@ -76,7 +74,7 @@
 						<?php if (is_array($Item->data)): ?>
 						<ul>
 						<?php foreach ($Item->data as $key => $value): ?>
-							<li><?php echo $key; ?>: <strong><?php echo $value; ?></strong></li>
+							<li><small><?php echo $key; ?>: <strong><?php echo $value; ?></strong></small></li>
 						<?php endforeach; endif; ?>
 						</ul>
 					</td>

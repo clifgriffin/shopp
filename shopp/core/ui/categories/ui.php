@@ -82,6 +82,7 @@ function templates_meta_box ($Category) {
 
 ?>
 <p><?php _e('Setup template values that will be copied into new products that are created and assigned this category.','Shopp'); ?></p>
+<div id="templates"></div>
 
 <div id="details-template" class="panel">
 	<div class="pricing-label">
@@ -130,6 +131,7 @@ function templates_meta_box ($Category) {
 <div id="pricerange"></div>
 <p><?php _e('Configure how you want price range options in this category to appear.','Shopp'); ?></p>
 </div>
+</div>
 
 <div id="variations-template">
 	<div id="variations-menus" class="panel">
@@ -162,7 +164,7 @@ function templates_meta_box ($Category) {
 
 <?php
 }
-add_meta_box('variations', __('Product Template Settings','Shopp'), 'templates_meta_box', 'admin_page_shopp-categories-edit', 'advanced', 'core');
+add_meta_box('templates_menus', __('Product Templates &amp; Menus','Shopp'), 'templates_meta_box', 'admin_page_shopp-categories-edit', 'advanced', 'core');
 
 
 do_action('do_meta_boxes', 'admin_page_shopp-categories-edit', 'normal', $Shopp->Category);

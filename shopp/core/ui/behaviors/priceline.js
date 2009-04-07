@@ -160,10 +160,10 @@ function addPriceLine (target,options,data,attachment) {
 	// Alter the interface depending on the type of price line
 	type.change(function () {
 		var ui = type.val();
-		for (var e in interfaces['All']) $(interfaces['All'][e]).hide();
+		$.each(interfaces['All'],function() { $(this).hide(); });
 		priceLabel.html(PRICE_LABEL);
 		if (interfaces[ui])
-			for (var e in interfaces[ui]) $(interfaces[ui][e]).show();
+			$.each(interfaces[ui],function() { $(this).show(); });
 		if (type.val() == "Donation") {
 			priceLabel.html(AMOUNT_LABEL);
 			tax.attr('checked','true').change();

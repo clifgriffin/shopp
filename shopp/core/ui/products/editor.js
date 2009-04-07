@@ -24,8 +24,7 @@ var flashUploader = false;
 var pricesPayload = true;
 
 function init () {
-	// $('#shopp-jsconflict').hide();
-
+	
 	if (!wp26) {
 		jQuery(document).ready( function($) {
 		postboxes.add_postbox_toggles('admin_page_shopp-products-edit');
@@ -45,7 +44,7 @@ function init () {
 
 	var editslug = new SlugEditor(product,'product');
 
-	if (specs) for (s in specs) addDetail(specs[s]);
+	if (specs) $.each(specs,function () { addDetail(this) });
 	$('#addDetail').click(function() { addDetail(); });
 
 	var basePrice = $(prices).get(0);
@@ -57,7 +56,7 @@ function init () {
 	loadVariations(options,prices);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
-		
+	
 	categories();
 	tags();
 	quickSelects();

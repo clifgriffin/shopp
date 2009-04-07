@@ -114,12 +114,15 @@ function addDetail (data) {
 
 function loadVariations (options,prices) {
 	if (options) {
-		for (key in options) addVariationOptionsMenu(options[key]);
+		$.each(options,function (key,option) { 
+			addVariationOptionsMenu(option); 
+		});
 
-		for (key in prices) {
-			if (prices[key].context == "variation")
-				addPriceLine('#variations-pricing',prices[key].options.split(","),prices[key]);
-		}
+		$.each(prices,function (key,price) { 
+			if (this.context == "variation")
+				addPriceLine('#variations-pricing',this.options.split(","),this);
+		});
+		
 		addVariationPrices();
 	}
 }
@@ -166,7 +169,7 @@ function addVariationOptionsMenu (data) {
 	}
 
 	menu.items = new Array();
-	if (data && data.options) for (var option in data.options) menu.addOption(data.options[option]);
+	if (data && data.options) $.each(data.options,function () { menu.addOption(this) });
 	else {
 		menu.addOption();
 		menu.addOption();

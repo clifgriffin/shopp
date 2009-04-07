@@ -233,10 +233,11 @@ class iDealMollie {
 	
 		$this->transaction = $this->encode($_);
 		$Response = $this->send();
-	
+
+		$result = '';
 		if ($banks = $Response->getElement('bank')) {
 			$result .= '<li>';
-			$result .= '<label for="idealmollie-bank">iDeal Payment</label>';
+			$result .= '<label for="idealmollie-bank">'.__('iDeal Payment','Shopp').'</label>';
 			$result .= '<span><select name="idealmollie-bank" id="idealmollie-bank">';
 			foreach ($banks as $bank) {
 				$bank_id = $bank['CHILDREN']['bank_id']['CONTENT'];
@@ -245,7 +246,7 @@ class iDealMollie {
 
 			}
 			$result .= '</select>';
-			$result .= '<label for="idealmollie-bank">iDeal Bank</label></span>';
+			$result .= '<label for="idealmollie-bank">'.__('iDeal Bank','Shopp').'</label></span>';
 			$result .= '</li>';
 		}
 		return $result;

@@ -861,17 +861,6 @@ function force_ssl ($url) {
 	return $url;
 }
 
-function jscrash_error () {
-	echo '<div id="shopp-jsconflict" class="error"><p>';
-	printf(__('An error caused by another plugin has crashed JavaScript and is preventing Shopp from working properly. For details, see the <a href="%s" target="_blank">Shopp Documentation</a>.','Shopp'),SHOPP_DOCS."Plugins_Breaking_JavaScript");
-	echo '</p></div>';
-	?>
-	<script type="text/javascript">
-	(function($) { $(document).ready(function () {$('#shopp-jsconflict').hide();}); })(jQuery)
-	</script>
-	<?php
-}
-
 if ( !function_exists('sys_get_temp_dir')) {
 	// For PHP 5 (pre-5.2.1)
 	function sys_get_temp_dir() {

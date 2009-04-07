@@ -83,7 +83,7 @@ var addShippingRate = function (r) {
 	if (!r) r = false;
 	var i = shippingRates.length;
 	var row = $('<tr class="form-required"></tr>').appendTo($('#shipping-rates'));
-	var heading = $('<th scope="row" valign="top"><label for="name['+i+']"><?php _e('Option Name','Shopp'); ?></label></th>').appendTo(row);
+	var heading = $('<th scope="row" valign="top"><label for="name['+i+']" id="label-'+i+'"><?php _e('Option Name','Shopp'); ?></label></th>').appendTo(row);
 	$('<br />').appendTo(heading);
 	var name = $('<input type="text" name="settings[shipping_rates]['+i+'][name]" value="" id="name-'+i+'" size="16" tabindex="'+(i+1)+'00" class="selectall" />').appendTo(heading);
 	$('<br />').appendTo(heading);
@@ -164,6 +164,7 @@ var addShippingRate = function (r) {
 
 function uniqueMethod (methodid,option) {
 	disabledMethods.push(option);
+	$('#label-'+methodid).hide();
 	$('#name-'+methodid).hide();
 	$('#delivery-'+methodid).hide();
 	
@@ -179,6 +180,7 @@ function uniqueMethod (methodid,option) {
 	
 	methodMenu.change(function() {
 		if ($(this).val() != option) {
+			$('#label-'+methodid).show();
 			$('#name-'+methodid).show();
 			$('#delivery-'+methodid).show();
 			$('#shipping-rates select.methods option[value='+option+']').each(function () {

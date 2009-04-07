@@ -48,6 +48,7 @@ class PayPalExpress {
 			if (empty($Shopp->Cart->data->PayPalExpress->token)) {
 				$Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
 				$this->details();
+				echo "getting details";
 			} else $Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
 		}
 
@@ -64,6 +65,46 @@ class PayPalExpress {
 
 		return $_;
 	}
+	
+	function purchase () {
+		global $Shopp;
+		$_ = array();
+		
+		// Transaction
+		$_['CURRENCYCODE']			= $this->settings['currency_code'];
+		$_['AMT']					= number_format($Shopp->Cart->data->Totals->total,2);
+		$_['ITEMAMT']				= number_format($Shopp->Cart->data->Totals->subtotal - 
+													$Shopp->Cart->data->Totals->discount,2);
+		$_['SHIPPINGAMT']			= number_format($Shopp->Cart->data->Totals->shipping,2);
+		$_['TAXAMT']				= number_format($Shopp->Cart->data->Totals->tax,2);
+
+		// Disable shipping fields if no shipped items in cart
+		if (!$Shopp->Cart->data->Shipping) $_['NOSHIPPING'] = 1;
+
+		// Line Items
+		foreach($Shopp->Cart->contents as $i => $Item) {
+			$_['L_NUMBER'.$i]		= $i;
+			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
+			$_['L_AMT'.$i]			= number_format($Item->unitprice,2);
+			$_['L_QTY'.$i]			= $Item->quantity;
+			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,2);
+		}
+		
+		if ($Shopp->Cart->data->Totals->discount != 0) {
+			$discounts = array();
+			foreach($Shopp->Cart->data->PromosApplied as $promo)
+				$discounts[] = $promo->name;
+			
+			$i++;
+			$_['L_NUMBER'.$i]		= $i;
+			$_['L_NAME'.$i]			= join(", ",$discounts);
+			$_['L_AMT'.$i]			= number_format($Shopp->Cart->data->Totals->discount*-1,2);
+			$_['L_QTY'.$i]			= 1;
+			$_['L_TAXAMT'.$i]		= number_format(0,2);
+		}
+		
+		return $_;
+	}
 		
 	function checkout () {
 		global $Shopp;
@@ -77,28 +118,9 @@ class PayPalExpress {
 
 		// Include page style option, if provided
 		if (isset($_GET['pagestyle'])) $_['PAGESTYLE'] = $_GET['pagestyle'];
-		
-		// Transaction
-		$_['CURRENCYCODE']			= $this->settings['currency_code'];
-		$_['AMT']					= number_format($Shopp->Cart->data->Totals->total,2);
-		$_['ITEMAMT']				= number_format($Shopp->Cart->data->Totals->subtotal,2);
-		$_['SHIPPINGAMT']			= number_format($Shopp->Cart->data->Totals->shipping,2);
-		$_['TAXAMT']				= number_format($Shopp->Cart->data->Totals->tax,2);
 
 		if (isset($Shopp->Cart->data->Order->data['paypal-custom']))
 			$_['CUSTOM'] = htmlentities($Shopp->Cart->data->Order->data['paypal-custom']);
-
-		// Disable shipping fields if no shipped items in cart
-		if (!$Shopp->Cart->data->Shipping) $_['NOSHIPPING'] = 1;
-
-		// Line Items
-		foreach($Shopp->Cart->contents as $i => $Item) {
-			$_['L_NUMBER'.$i]		= $i;
-			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
-			$_['L_AMT'.$i]			= number_format($Item->unitprice,2);
-			$_['L_QTY'.$i]			= $Item->quantity;
-			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,2);
-		}
 
 		if (SHOPP_PERMALINKS)
 			$_['RETURNURL']			= $Shopp->link('confirm-order').'?shopp_xco=PayPal/PayPalExpress';
@@ -106,7 +128,9 @@ class PayPalExpress {
 			$_['RETURNURL']			= add_query_arg('shopp_xco','PayPal/PayPalExpress',$Shopp->link('confirm-order'));
 
 		$_['CANCELURL']				= $Shopp->link('cart');
-				
+		
+		$_ = array_merge($_,$this->purchase());
+		
 		$this->transaction = $this->encode($_);
 		$result = $this->send();
 		
@@ -174,23 +198,7 @@ class PayPalExpress {
 		$_['PAYERID'] 				= $Shopp->Cart->data->PayPalExpress->payerid;
 
 		// Transaction
-		$_['CURRENCYCODE']			= $this->settings['currency_code'];
-		$_['AMT']					= number_format($Shopp->Cart->data->Totals->total,2);
-		$_['ITEMAMT']				= number_format($Shopp->Cart->data->Totals->subtotal,2);
-		$_['SHIPPINGAMT']			= number_format($Shopp->Cart->data->Totals->shipping,2);
-		$_['TAXAMT']				= number_format($Shopp->Cart->data->Totals->tax,2);
-
-		// Disable shipping fields if no shipped items in cart
-		if (!$Shopp->Cart->data->Shipping) $_['NOSHIPPING'] = 1;
-
-		// Line Items
-		foreach($Shopp->Cart->contents as $i => $Item) {
-			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
-			$_['L_AMT'.$i]			= number_format($Item->unitprice,2);
-			$_['L_NUMBER'.$i]		= $i;
-			$_['L_QTY'.$i]			= $Item->quantity;
-			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,2);
-		}
+		$_ = array_merge($_,$this->purchase());
 
 		$this->transaction = $this->encode($_);
 		$result = $this->send();
