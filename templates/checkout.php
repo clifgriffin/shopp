@@ -17,7 +17,7 @@
 			<label for="firstname">Contact Information</label>
 			<span><?php shopp('checkout','firstname','required=true&minlength=2&size=8&title=First Name'); ?><label for="firstname">First</label></span>
 			<span><?php shopp('checkout','lastname','required=true&minlength=3&size=14&title=Last Name'); ?><label for="lastname">Last</label></span>
-			<span><?php shopp('checkout','company','size=22	&title=Company/Organization'); ?><label for="phone">Company/Organization</label></span>
+			<span><?php shopp('checkout','company','size=22	&title=Company/Organization'); ?><label for="company">Company/Organization</label></span>
 		</li>
 		<li>
 		</li>
