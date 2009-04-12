@@ -19,6 +19,9 @@
 			<span><?php shopp('customer','lastname','required=true&minlength=3&size=14&title=Last Name'); ?><label for="lastname">Last</label></span>
 		</li>
 		<li>
+			<span><?php shopp('customer','company','&size=20&title=Company'); ?><label for="company">Company</label></span>
+		</li>
+		<li>
 			<span><?php shopp('customer','phone','format=phone&size=15&title=Phone'); ?><label for="phone">Phone</label></span>
 		</li>
 		<li>
@@ -102,6 +105,35 @@
 	<?php endif; // end 'has-purchases' ?>
 	
 <?php endif; // end history ?>
+
+<?php if (shopp('customer','process','return=true') == "status"): ?>
+	<?php if (shopp('customer','has-purchases','daysago=15')): ?>
+		<p><a href="<?php shopp('customer','url'); ?>">&laquo; Return to Account Management</a></p>
+		<table cellspacing="0" cellpadding="0">
+			<thead>
+				<tr>
+					<th scope="col">Date</th>
+					<th scope="col">Order</th>
+					<th scope="col">Status</th>
+					<th scope="col">Total</th>
+				</tr>
+			</thead>
+			<?php while(shopp('customer','purchases')): ?>
+			<tr>
+				<td><?php shopp('purchase','date'); ?></td>
+				<td><?php shopp('purchase','id'); ?></td>
+				<td><?php shopp('purchase','status'); ?></td>
+				<td><?php shopp('purchase','total'); ?></td>
+				<td><a href="<?php shopp('customer','receipt'); ?>">View Order</a></td>
+			</tr>
+			<?php endwhile; ?>
+		</table>
+		<p><a href="<?php shopp('customer','url'); ?>">&laquo; Return to Account Management</a></p>
+	<?php else: ?>
+	<p>There are no recent orders within the last 15 days.</p>
+	<?php endif; // end 'has-purchases' ?>
+	
+<?php endif; // end status ?>
 
 <br class="clear" />
 </form>
