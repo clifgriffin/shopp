@@ -79,19 +79,21 @@ class Customer extends DatabaseObject {
 		$purchases = DatabaseObject::tablename(Purchased::$table);
 		$pricing = DatabaseObject::tablename(Price::$table);
 		$asset = DatabaseObject::tablename(Asset::$table);
-		$query = "SELECT p.*,f.name as filename,f.size,f.properties FROM $purchases AS p LEFT JOIN $orders AS o ON o.id=p.purchase LEFT JOIN $asset AS f ON f.parent=p.price WHERE o.customer=$this->id";
+		$query = "SELECT p.*,f.name as filename,f.size,f.properties FROM $purchases AS p LEFT JOIN $orders AS o ON o.id=p.purchase LEFT JOIN $asset AS f ON f.parent=p.price WHERE o.customer=$this->id AND f.size > 0";
 		$this->downloads = $db->query($query,AS_ARRAY);
 		
 	}
 
-	function load_orders () {
+	function load_orders ($filters=array()) {
+		global $Shopp;
 		$db =& DB::get();
 		
+		if (isset($filters['where'])) $where = " AND {$filters['where']}";
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
-		$query = "SELECT o.* FROM $orders AS o LEFT JOIN $purchases AS p ON p.purchase=o.id WHERE o.customer=$this->id";
-		$this->purchases = $db->query($query,AS_ARRAY);
-		foreach($this->purchases as &$p) {
+		$query = "SELECT o.* FROM $orders AS o LEFT JOIN $purchases AS p ON p.purchase=o.id WHERE o.customer=$this->id $where ORDER BY created DESC";
+		$Shopp->purchases = $db->query($query,AS_ARRAY);
+		foreach($Shopp->purchases as &$p) {
 			$Purchase = new Purchase();
 			$Purchase->updates($p);
 			$p = $Purchase;
@@ -294,18 +296,24 @@ class Customer extends DatabaseObject {
 				
 			// Downloads UI tags
 			case "haspurchases":
-			case "has-purchases": return (!empty($this->purchases)); break;
+			case "has-purchases": 
+				$filters = array();
+				if (isset($options['daysago'])) 
+					$filters['where'] = "UNIX_TIMESTAMP(o.created) > UNIX_TIMESTAMP()-".($options['daysago']*86400);
+				if (empty($Shopp->purchases)) $this->load_orders($filters);
+				return (!empty($Shopp->purchases));
+				break;
 			case "purchases":
 				if (!$this->looping) {
-					reset($this->purchases);
-					$Shopp->Cart->data->Purchase = current($this->purchases);
+					reset($Shopp->purchases);
+					$Shopp->Cart->data->Purchase = current($Shopp->purchases);
 					$this->looping = true;
 				} else {
-					$Shopp->Cart->data->Purchase = next($this->purchases);
+					$Shopp->Cart->data->Purchase = next($Shopp->purchases);
 				}
 
-				if (current($this->purchases)) {
-					$Shopp->Cart->data->Purchase = current($this->purchases);
+				if (current($Shopp->purchases)) {
+					$Shopp->Cart->data->Purchase = current($Shopp->purchases);
 					return true;
 				}
 				else {

@@ -16,6 +16,8 @@ class Category extends DatabaseObject {
 	var $loaded = false;
 	var $children = false;
 	var $child = false;
+	var $parent = 0;
+	var $description = "";
 	var $imguri = "";
 	var $productidx = 0;
 	var $productloop = false;
@@ -167,8 +169,9 @@ class Category extends DatabaseObject {
 			default: $loading['catalog'] = "AND catalog.category != 0";
 		}
 
+		if (!isset($loading['having'])) $loading['having'] = '';
 		// Always hide inventory tracked products with no inventory
-		if (!isset($loading['nostock']))
+		if (!isset($loading['nostock']) && ($Shopp->Settings->get('outofstock_catalog') == "off"))
 			$loading['having'] = "HAVING (inventory=0 OR (inventory=1 AND stock > 0))";
 
 		if (!isset($loading['joins'])) $loading['joins'] = '';
@@ -180,7 +183,7 @@ class Category extends DatabaseObject {
 			foreach ($Shopp->Cart->data->Category[$this->slug] as $facet => $value) {
 				if (empty($value)) continue;
 				$specalias = "spec".($f++);
-		
+
 				// Handle Number Range filtering
 				$match = "";
 				if (!is_array($value) && 
@@ -199,7 +202,7 @@ class Category extends DatabaseObject {
 				// Use HAVING clause for filtering by pricing information 
 				// because of data aggregation
 				if ($facet == "Price") { 
-					$loading['having'] .= "AND $match";
+					$loading['having'] .= (empty($loading['having'])?'HAVING ':' AND ').$match;
 					continue;
 				}
 				
@@ -270,7 +273,7 @@ class Category extends DatabaseObject {
 						SUM(pd.stock) as stock";
 		} 
 		
-		$query = "SELECT $columns{$loading['columns']}
+		$query = "SELECT SQL_CALC_FOUND_ROWS $columns{$loading['columns']}
 					FROM $producttable AS p 
 					LEFT JOIN $catalogtable AS catalog ON catalog.product=p.id
 					LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' 
@@ -278,41 +281,33 @@ class Category extends DatabaseObject {
 					LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
 					LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
 					{$loading['joins']}
-					WHERE ({$loading['where']}) {$loading['catalog']} AND p.published='on' 
+					WHERE ({$loading['where']}) {$loading['catalog']} AND p.published='on' AND pd.type != 'N/A'
 					GROUP BY p.name {$loading['having']}
 					ORDER BY {$loading['order']} LIMIT {$loading['limit']}";
 		
+		// Execute the main category products query
+		$products = $db->query($query,AS_ARRAY);
+
 		if ($this->pagination > 0 && $limit > $this->pagination) {
-			$count = "SELECT count(DISTINCT p.id) AS count,AVG(IF(pd.sale='on',pd.saleprice,pd.price)) as avgprice 
-						FROM $producttable AS p 
-						LEFT JOIN $catalogtable AS catalog ON catalog.product=p.id
-						LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' 
-						LEFT JOIN $discounttable AS dc ON dc.product=p.id AND dc.price=pd.id
-						LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
-						LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
-						{$loading['joins']}
-						WHERE ({$loading['where']}) {$loading['catalog']} AND p.published='on'";
-		
-			$total = $db->query($count);
+			$total = $db->query("SELECT FOUND_ROWS() as count");
 			$this->total = $total->count;
-			$this->pricing['average'] = $total->avgprice;
 			$this->pages = ceil($this->total / $this->pagination);
 			if ($this->pages > 1) $this->paged = true;			
 		}
-
-		// Execute the main category products query
-		$products = $db->query($query,AS_ARRAY);
 
 		if ($this->pagination == 0 || $limit < $this->pagination) 
 			$this->total = count($this->products);
 		
 		$this->pricing['min'] = 0;
 		$this->pricing['max'] = 0;
-				
+
+		$prices = array();
 		foreach ($products as &$product) {
 			if ($product->maxsaleprice == 0) $product->maxsaleprice = $product->maxprice;
 			if ($product->minsaleprice == 0) $product->minsaleprice = $product->minprice;
 						
+			$prices[] = $product->onsale ? $product->minsaleprice:$product->minprice;
+			
 			if (!empty($product->percentoff)) {
 				$product->maxsaleprice = $product->maxsaleprice - ($product->maxsaleprice * ($product->percentoff/100));
 				$product->minsaleprice = $product->minsaleprice - ($product->minsaleprice * ($product->percentoff/100));
@@ -347,7 +342,8 @@ class Category extends DatabaseObject {
 			}
 			
 		}
-
+		$this->pricing['average'] = array_sum($prices)/count($prices);
+		
 		if (!isset($loading['load'])) $loading['load'] = array('prices');
 
 		if (count($this->products) > 0) {
@@ -374,11 +370,12 @@ class Category extends DatabaseObject {
 						'sitename' => get_bloginfo('name').' ('.get_bloginfo('url').')');
 		$items = array();
 		foreach ($this->products as $product) {
-			$product->thumbnail_properties = unserialize($product->thumbnail_properties);
+			if (isset($product->thumbnail_properties))
+				$product->thumbnail_properties = unserialize($product->thumbnail_properties);
 			$item = array();
-			$item['title'] = $product->name;
+			$item['title'] = attribute_escape($product->name);
 			if (SHOPP_PERMALINKS) $item['link'] = $Shopp->shopuri.$product->id;
-			else $item['link'] = htmlentities(add_query_arg('shopp_pid',$product->id,$Shopp->shopuri));
+			else $item['link'] = urlencode(add_query_arg('shopp_pid',$product->id,$Shopp->shopuri));
 			$item['description'] = "<![CDATA[";
 			if (!empty($product->thumbnail)) {
 				$item['description'] .= '<a href="'.$item['link'].'" title="'.$product->name.'">';
@@ -402,7 +399,7 @@ class Category extends DatabaseObject {
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
 			$item['description'] .= "<p>".attribute_escape($product->description)."</p>";
 			$item['description'] .= "]]>";
-			$item['g:quantity'] = $product->stock;
+			//$item['g:quantity'] = $product->stock;
 			
 			$items[] = $item;
 		}
@@ -501,26 +498,40 @@ class Category extends DatabaseObject {
 				if (isset($Shopp->Category->controls)) return false;
 				if (!$this->children) $this->load_children();
 				if (empty($this->children)) return false;
-				$before = "";
-				$after = "";
-				$string = "";
-				$depth = 0;
-				$depthlimit = 0;
-				$parent = false;
-				$showall = false;
-				if (isset($options['showall'])) $showall = $options['showall'];
-				if (isset($options['depth'])) $depthlimit = $options['depth'];
 
-				$title = $options['title'];
-				if (empty($title)) $title = "";
-				if (value_is_true($options['dropdown'])) {
+				$defaults = array(
+					'title' => '',
+					'before' => '',
+					'after' => '',
+					'class' => '',
+					'depth' => 0,
+					'parent' => false,
+					'showall' => false,
+					'dropdown' => false,
+					'hierarchy' => false,
+					'products' => false
+					);
+					
+				$options = array_merge($defaults,$options);
+				extract($options, EXTR_SKIP);
+
+				$string = "";
+				// $depth = 0;
+				// $depthlimit = 0;
+				// $parent = false;
+				// $showall = false;
+				// if (isset($options['showall'])) $showall = $options['showall'];
+				$depthlimit = $depth;
+				$depth = 0;
+
+				if (value_is_true($dropdown)) {
 					$string .= $title;
 					$string .= '<select name="shopp_cats" id="shopp-'.$this->slug.'-subcategories-menu" class="shopp-categories-menu">';
 					$string .= '<option value="">Select a sub-category&hellip;</option>';
 					foreach ($this->children as &$category) {
-						if (value_is_true($options['hierarchy']) && $depthlimit && $category->depth >= $depthlimit) continue;
+						if (value_is_true($hierarchy) && $depthlimit && $category->depth >= $depthlimit) continue;
 						if ($category->products == 0) continue; // Only show categories with products
-						if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
+						if (value_is_true($hierarchy) && $category->depth > $depth) {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
 						}
@@ -529,10 +540,10 @@ class Category extends DatabaseObject {
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
 						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 
-						$products = '';
-						if (value_is_true($options['products'])) $products = '&nbsp;&nbsp;('.$category->products.')';
+						$total = '';
+						if (value_is_true($products)) $total = '&nbsp;&nbsp;('.$category->products.')';
 
-						$string .= '<option value="'.htmlentities($link).'">'.$padding.$category->name.$products.'</option>';
+						$string .= '<option value="'.htmlentities($link).'">'.$padding.$category->name.$total.'</option>';
 						$previous = &$category;
 						$depth = $category->depth;
 						
@@ -547,36 +558,36 @@ class Category extends DatabaseObject {
 					$string .= '</script>';
 					
 				} else {
-					if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
+					if (!empty($class)) $classes = ' class="'.$class.'"';
 					$string .= $title.'<ul'.$classes.'>';
 					foreach ($this->children as &$category) {
-						if (value_is_true($options['hierarchy']) && $depthlimit && 
+						if (value_is_true($hierarchy) && $depthlimit && 
 							$category->depth >= $depthlimit) continue;
-						if (value_is_true($options['hierarchy']) && $category->depth > $depth) {
+						if (value_is_true($hierarchy) && $category->depth > $depth) {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = $parent->slug;
 							$string .= '<ul class="children">';
 						}
-						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul>';
+						if (value_is_true($hierarchy) && $category->depth < $depth) $string .= '</ul>';
 					
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
 						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 					
-						$products = '';
-						if (value_is_true($options['products'])) $products = ' ('.$category->products.')';
+						$total = '';
+						if (value_is_true($products)) $total = ' ('.$category->products.')';
 					
 						if (value_is_true($showall) || $category->products > 0 || $category->smart) // Only show categories with products
-							$string .= '<li><a href="'.$link.'">'.$category->name.'</a>'.$products.'</li>';
+							$string .= '<li><a href="'.$link.'">'.$category->name.'</a>'.$total.'</li>';
 
 						$previous = &$category;
 						$depth = $category->depth;
 					}
-					if (value_is_true($options['hierarchy']))
+					if (value_is_true($hierarchy))
 						for ($i = 0; $i < $depth; $i++) $string .= "</ul>";
 					$string .= '</ul>';
 				}
 				return $string;
-				break;				break;
+				break;
 			case "pagination":
 				if (!$this->paged) return "";
 				
@@ -676,6 +687,7 @@ class Category extends DatabaseObject {
 				if ($this->facetedmenus == "off") return;
 				$output = "";
 				$CategoryFilters =& $Shopp->Cart->data->Category[$this->slug];
+				
 				if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
 					list($link,$query) = split("\?",$_SERVER['REQUEST_URI']);
 				$query = $_GET;
@@ -690,7 +702,7 @@ class Category extends DatabaseObject {
 						if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',stripslashes($filter),$matches)) {
 							$label = $matches[1].' &mdash; '.$matches[3];
 							if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
-							if ($matches[4] == 0) $label = $matches[1].__(' and up','Shopp');
+							if ($matches[4] == 0) $label = $matches[1].' '.__('and up','Shopp');
 						} else $label = $filter;
 						if (!empty($filter)) $list .= '<li><strong>'.$facet.'</strong>: '.$label.' <a href="'.$href.'" class="cancel">X</a></li>';
 					}
@@ -705,7 +717,7 @@ class Category extends DatabaseObject {
 						$href = $link.'?'.$query.'shopp_catfilters[Price]='.urlencode(money($range['min']).'-'.money($range['max']));
 						$label = money($range['min']).' &mdash; '.money($range['max']-0.01);
 						if ($range['min'] == 0) $label = __('Under ','Shopp').money($range['max']);
-						elseif ($range['max'] == 0) $label = money($range['min']).__(' and up','Shopp');
+						elseif ($range['max'] == 0) $label = money($range['min']).' '.__('and up','Shopp');
 						$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 					}
 					if (!empty($this->priceranges)) $output .= '<h4>'.__('Price Range').'</h4>';
@@ -772,7 +784,7 @@ class Category extends DatabaseObject {
 
 								$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode(sprintf($format,$range['min']).'-'.sprintf($format,$range['max']));
 								$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
-								if ($range['max'] == 0) $label = sprintf($format,$range['min']).__(' and up','Shopp');
+								if ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
 								$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 							}
 							$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
@@ -796,7 +808,7 @@ class Category extends DatabaseObject {
 									$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($range['min'].'-'.$range['max']);
 									$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
 									if ($range['min'] == 0) $label = __('Under ','Shopp').sprintf($format,$range['max']);
-									elseif ($range['max'] == 0) $label = sprintf($format,$range['min']).__(' and up','Shopp');
+									elseif ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
 									$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 								}
 								if (!empty($list)) $output .= '<h4>'.$spec['name'].'</h4>';
@@ -857,7 +869,6 @@ class NewProducts extends Category {
 	
 	function NewProducts ($options=array()) {
 		$this->name = __("New Products","Shopp");
-		$this->parent = 0;
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
@@ -873,7 +884,6 @@ class FeaturedProducts extends Category {
 	
 	function FeaturedProducts ($options=array()) {
 		$this->name = __("Featured Products","Shopp");
-		$this->parent = 0;
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
@@ -888,7 +898,6 @@ class OnSaleProducts extends Category {
 	
 	function OnSaleProducts ($options=array()) {
 		$this->name = __("On Sale","Shopp");
-		$this->parent = 0;
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
@@ -903,7 +912,6 @@ class BestsellerProducts extends Category {
 	
 	function BestsellerProducts ($options=array()) {
 		$this->name = __("Bestsellers","Shopp");
-		$this->parent = 0;
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
@@ -926,7 +934,6 @@ class SearchResults extends Category {
 	function SearchResults ($options=array()) {
 		if (empty($options['search'])) $options['search'] = "(no search terms)";
 		$this->name = __("Search Results for","Shopp")." &quot;".stripslashes($options['search'])."&quot;";
-		$this->parent = 0;
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
@@ -950,7 +957,6 @@ class TagProducts extends Category {
 
 		$this->tag = $options['tag'];
 		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($options['tag'])."&quot;";
-		$this->parent = 0;
 		$this->slug = self::$_slug;
 		$this->uri = urlencode($options['tag']);
 		$this->smart = true;
@@ -968,7 +974,6 @@ class RandomProducts extends Category {
 	
 	function RandomProducts ($options=array()) {
 		$this->name = __("Random Products","Shopp");
-		$this->parent = 0;
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;

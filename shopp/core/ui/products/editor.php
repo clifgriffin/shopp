@@ -137,7 +137,7 @@ foreach ($Product->categories as $category) $selectedCategories[] = $category->i
 		</tr> 
 		<tr class=""> 
 			<th scope="row" valign="top"><label for="description"><?php _e('Description','Shopp'); ?></label></th> 
-			<td><textarea name="description" id="description" rows="8" cols="50" tabindex="7" style="width: 97%;"><?php echo $Product->description ?></textarea><br /> 
+			<td><textarea name="description" id="content" rows="8" cols="50" tabindex="7" style="width: 97%;"><?php echo $Product->description ?></textarea><br /> 
             <?php _e('Provide in-depth information about the product to be displayed on the product page.','Shopp'); ?></td> 
 		</tr> 
 		<tr class="">
@@ -263,12 +263,12 @@ var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 var siteurl = '<?php echo $Shopp->siteurl; ?>';
 var adminurl = '<?php echo $Shopp->wpadminurl; ?>';
 var ajaxurl = adminurl+'admin-ajax.php';
-var addcategory_url = '<?php echo wp_nonce_url("$Shopp->wpadminurl/admin-ajax.php", "shopp-ajax_add_category"); ?>';
-var editslug_url = '<?php echo wp_nonce_url("$Shopp->wpadminurl/admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
-var fileverify_url = '<?php echo wp_nonce_url("$Shopp->wpadminurl/admin-ajax.php", "shopp-ajax_verify_file"); ?>';
+var addcategory_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_add_category"); ?>';
+var editslug_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
+var fileverify_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_verify_file"); ?>';
 var manager_page = '<?php echo $this->Admin->products; ?>';
 var editor_page = '<?php echo $this->Admin->editproduct; ?>';
-var request = <?php echo json_encode($_GET); ?>;
+var request = <?php echo json_encode(stripslashes_deep($_GET)); ?>;
 var workflow = {'continue':editor_page, 'close':manager_page, 'new':editor_page, 'next':editor_page, 'previous':editor_page};
 var worklist = <?php echo json_encode($this->products_list(true)); ?>;
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;

@@ -8,10 +8,10 @@
 	</div>
 
 	<p id="post-search" class="search-box">
-		<input type="text" id="categories-search-input" class="search-input" name="s" value="<?php echo attribute_escape($s); ?>" />
+		<input type="text" id="categories-search-input" class="search-input" name="s" value="<?php echo attribute_escape(stripslashes($s)); ?>" />
 		<input type="submit" value="<?php _e('Search Categories','Shopp'); ?>" class="button" />
 	</p>
-	<p><a href="<?php echo add_query_arg(array_merge($_GET,array('page'=>$this->Admin->editcategory,'id'=>'new')),$Shopp->wpadminurl."admin.php"); ?>" class="button"><?php _e('New Category','Shopp'); ?></a></p>
+	<p><a href="<?php echo add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->editcategory,'id'=>'new')),$Shopp->wpadminurl."admin.php"); ?>" class="button"><?php _e('New Category','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
@@ -35,13 +35,20 @@
 		<?php 
 		$hidden = array();
 		if (SHOPP_WP27) $hidden = get_hidden_columns('shopp_page_shopp-categories');
+				
+		$even = false; foreach ($Categories as $Category): 
 		
-		$even = false; foreach ($Categories as $Category): ?>
+		$editurl = attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
+			array('page'=>$this->Admin->editcategory,
+					'id'=>$Category->id)),
+					$Shopp->wpadminurl."admin.php"));
+		
+		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Category->id; ?>' /></th>
-			<td width="33%"><a class='row-title' href='<?php echo add_query_arg(array_merge($_GET,array('page'=>$this->Admin->editcategory,'id'=>$Category->id)),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Category->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->depth); echo (!empty($Category->name))?$Category->name:'(no category name)'; ?></a>
+			<td width="33%"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Category->name; ?>&quot;'><?php echo str_repeat("&#8212; ",$Category->depth); echo (!empty($Category->name))?$Category->name:'(no category name)'; ?></a>
 				<div class="row-actions">
-					<span class='edit'><a href="<?php echo add_query_arg(array_merge($_GET,array('page'=>$this->Admin->editcategory,'id'=>$Category->id)),$Shopp->wpadminurl."admin.php"); ?>" title="Edit this product"><?php _e('Edit','Shopp'); ?></a> | </span>
+					<span class='edit'><a href="<?php echo $editurl; ?>" title="Edit this product"><?php _e('Edit','Shopp'); ?></a> | </span>
 					<span class='delete'><a class='submitdelete' title='Delete this product' href='' rel="<?php echo $Category->id; ?>">Delete</a> | </span>
 					<span class='view'><a href="<?php echo (SHOPP_PERMALINKS)?$Shopp->shopuri."category/$Category->uri":add_query_arg('shopp_category',$Category->id,$Shopp->shopuri); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo $Category->name; ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>				

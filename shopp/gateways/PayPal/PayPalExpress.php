@@ -189,7 +189,7 @@ class PayPalExpress {
 		global $Shopp;
 		if (!isset($Shopp->Cart->data->PayPalExpress->token) && 
 			!isset($Shopp->Cart->data->PayPalExpress->payerid)) return false;
-		
+				
 		$_ = $this->headers();
 
 		$_['METHOD'] 				= "DoExpressCheckoutPayment";
@@ -348,7 +348,7 @@ class PayPalExpress {
 				$args['shopp_xco'] = 'PayPal/PayPalExpress';
 				if (isset($options['pagestyle'])) $args['pagestyle'] = $options['pagestyle'];
 				$url = add_query_arg($args,$Shopp->link('checkout'));
-				return '<p class="submit"><a href="'.$url.'"><img src="'.$this->button.'" alt="Checkout with PayPal" /></a></p>';
+				return '<p><a href="'.$url.'"><img src="'.$this->button.'" alt="Checkout with PayPal" /></a></p>';
 		}
 	}
 	

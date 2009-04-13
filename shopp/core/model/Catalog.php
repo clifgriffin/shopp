@@ -17,10 +17,13 @@ class Catalog extends DatabaseObject {
 
 	var $smarts = array("FeaturedProducts","BestsellerProducts","NewProducts","OnSaleProducts");
 	var $categories = array();
+	var $outofstock = false;
 	
 	function Catalog ($type="catalog") {
+		global $Shopp;
 		$this->init(self::$table);
 		$this->type = $type;
+		$this->outofstock = ($Shopp->Settings->get('outofstock_catalog') == "on");
 	}
 	
 	function load_categories ($filtering=false,$showsmarts=false,$results=false) {
@@ -29,7 +32,9 @@ class Catalog extends DatabaseObject {
 		if (empty($filtering['columns'])) $filtering['columns'] = "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total";
 		if (!empty($filtering['limit'])) $filtering['limit'] = "LIMIT ".$filtering['limit'];
 		else $filtering['limit'] = "";
-		if (empty($filtering['where'])) $filtering['where'] = "(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))"; // No filtering, get them all
+
+		if (!$this->outofstock) $filtering['where'] .= (empty($filtering['where'])?"":" AND ")."(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))";
+		if (empty($filtering['where'])) $filtering['where'] = "true";
 		
 		$category_table = DatabaseObject::tablename(Category::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
@@ -77,6 +82,22 @@ class Catalog extends DatabaseObject {
 		$tagtable = DatabaseObject::tablename(Tag::$table);
 		$this->tags = $db->query("SELECT t.*,count(sc.product) AS products FROM $tagtable AS t LEFT JOIN $this->_table AS sc ON sc.tag=t.id GROUP BY t.id HAVING products > 0 ORDER BY t.name ASC$limit",AS_ARRAY);
 		return true;
+	}
+	
+	function load_category ($category,$options=array()) {
+		switch ($category) {
+			case SearchResults::$_slug: return new SearchResults($options); break;
+			case TagProducts::$_slug: return new TagProducts($options); break;
+			case BestsellerProducts::$_slug: return new BestsellerProducts(); break;
+			case NewProducts::$_slug: return new NewProducts(); break;
+			case FeaturedProducts::$_slug: return new FeaturedProducts(); break;
+			case OnSaleProducts::$_slug: return new OnSaleProducts(); break;
+			case RandomProducts::$_slug: return new RandomProducts(); break;
+			default:
+				$key = "id";
+				if (!preg_match("/^\d+$/",$category)) $key = "uri";
+				return new Category($category,$key);
+		}
 	}
 	
 	function tag ($property,$options=array()) {
@@ -240,7 +261,7 @@ class Catalog extends DatabaseObject {
 				return $string;
 			case "orderby-list":
 				if (isset($Shopp->Category->controls)) return false;
-				if ($Shopp->Category->smart) return false;
+				if (isset($Shopp->Category->smart)) return false;
 				$menuoptions = array(
 					"title" => __('Title','Shopp'),
 					"bestselling" => __('Bestselling','Shopp'),
@@ -250,25 +271,28 @@ class Catalog extends DatabaseObject {
 					"oldest" => __('Oldest to Newest','Shopp'),
 					"random" => __('Random','Shopp')
 				);
+				$title = "";
+				$string = "";
 				$default = "title";
-				$title = $options['title'];
-				if (empty($title)) $title = "";
+				
+				if (isset($options['default'])) $default = $options['default'];
+				if (isset($options['title'])) $title = $options['title'];
+
 				if (value_is_true($options['dropdown'])) {
 					if (isset($Shopp->Cart->data->Category['orderby'])) 
 						$default = $Shopp->Cart->data->Category['orderby'];
-
 					$string .= $title;
 					$string .= '<form action="'.$_SERVER['REQUEST_URI'].'" method="GET">';
 					if (!SHOPP_PERMALINKS) {
 						foreach ($_GET as $key => $value)
 							if ($key != 'shopp_orderby') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
 					}
-					$string .= '<select name="shopp_orderby" id="shopp-'.$this->slug.'-orderby-menu" class="shopp-orderby-menu">';
+					$string .= '<select name="shopp_orderby" id="shopp-'.$Shopp->Category->slug.'-orderby-menu" class="shopp-orderby-menu">';
 					$string .= menuoptions($menuoptions,$default,true);
 					$string .= '</select>';
 					$string .= '</form>';
 					$string .= '<script type="text/javascript">';
-					$string .= 'var menu = document.getElementById(\'shopp-'.$this->slug.'-orderby-menu\');';
+					$string .= 'var menu = document.getElementById(\'shopp-'.$Shopp->Category->slug.'-orderby-menu\');';
 					$string .= 'if (menu) menu.onchange = function () { menu.form.submit(); }';
 					$string .= '</script>';
 				} else {
@@ -293,30 +317,55 @@ class Catalog extends DatabaseObject {
 				if (empty($this->categories)) $this->load_categories(array('where'=>'true'));
 				$separator = "&nbsp;&raquo; ";
 				if (isset($options['separator'])) $separator = $options['separator'];
-				if (!empty($Shopp->Category)) {
+
+				$category = $Shopp->Cart->data->breadcrumb;
+				$search = array();
+				if (isset($Shopp->Cart->data->Search)) $search = array('search'=>$Shopp->Cart->data->Search);
+				$path = split("/",$category);
+				if ($path[0] == "tag") {
+					$category = "tag";
+					$search = array('tag'=>urldecode($path[1]));
+				}
+				$Category = Catalog::load_category($category,$search);
+				
+				if (!empty($Category->uri)) {
+					$type = "category";
+					if (isset($Category->tag)) $type = "tag";
 					
-					if (SHOPP_PERMALINKS) $link = add_query_arg($_GET,$Shopp->shopuri.'category/'.$Shopp->Category->uri);
+					if (SHOPP_PERMALINKS)
+						$link = add_query_arg($_GET,$Shopp->shopuri.$type.'/'.$Category->uri);
 					else {
-						if (isset($Shopp->Category->smart)) 
-							$link = add_query_arg(array_merge($_GET,array('shopp_category'=>$Shopp->Category->slug)),$Shopp->shopuri);
+						if (isset($Category->smart)) 
+							$link = add_query_arg(
+								array_merge($_GET,array('shopp_category'=>$Category->slug)),
+								$Shopp->shopuri);
 						else 
-							$link = add_query_arg('shopp_category', $Shopp->Category->id, $Shopp->shopuri);
+							$link = add_query_arg(
+								array_merge($_GET,array('shopp_category'=>$Category->id)), 
+								$Shopp->shopuri);
 					}
 
-					if (!empty($Shopp->Product)) $trail = '<li><a href="'.$link.'">'.$Shopp->Category->name.'</a></li>';
-					else if (!empty($Shopp->Category->name)) $trail = '<li>'.$Shopp->Category->name.'</li>';
+					if (!empty($Shopp->Product)) $trail = '<li><a href="'.$link.'">'.$Category->name.'</a></li>';
+					else if (!empty($Category->name)) $trail = '<li>'.$Category->name.'</li>';
 					
 					// Build category names path by going from the target category up the parent chain
-					$parentkey = (!empty($Shopp->Category->id))?$this->categories[$Shopp->Category->id]->parent:0;
+					$parentkey = (!empty($Category->id))?$this->categories[$Category->id]->parent:0;
 					while ($parentkey != 0) {
 						$tree_category = $this->categories[$parentkey];
+					
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$tree_category->uri;
-						else $link = add_query_arg('shopp_category',$tree_category->id,$Shopp->shopuri);
-						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
-						$parentkey = $tree_category->parentkey;
+						else $link = add_query_arg(
+							array_merge($_GET,array('shopp_category'=>$tree_category->id)),
+							$Shopp->shopuri);
+					
+						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.
+							(empty($trail)?'':$separator).'</li>'.$trail;
+					
+						$parentkey = $tree_category->parent;
 					}
 				}
-				$trail = '<li><a href="'.$Shopp->link('catalog').'">'.$pages['catalog']['title'].'</a>'.((empty($trail))?'':$separator).'</li>'.$trail;
+
+				$trail = '<li><a href="'.$Shopp->link('catalog').'">'.$pages['catalog']['title'].'</a>'.(empty($trail)?'':$separator).'</li>'.$trail;
 				return '<ul class="breadcrumb">'.$trail.'</ul>';
 				break;
 			case "search":
@@ -356,7 +405,13 @@ class Catalog extends DatabaseObject {
 				if (isset($options['controls']) && !value_is_true($options['controls'])) 
 					$Shopp->Category->controls = false;
 				ob_start();
-				include(SHOPP_TEMPLATES."/category.php");
+				if (isset($Shopp->Category->smart) && 
+						file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
+					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
+				elseif (isset($Shopp->Category->id) && 
+					file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
+					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
+				else include(SHOPP_TEMPLATES."/category.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;
@@ -367,7 +422,9 @@ class Catalog extends DatabaseObject {
 				else if (isset($options['id'])) $Shopp->Product = new Product($options['id']);
 				if (isset($options['load'])) return true;
 				ob_start();
-				include(SHOPP_TEMPLATES."/product.php");
+				if (file_exists(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php"))
+					include(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php");
+				else include(SHOPP_TEMPLATES."/product.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return $content;

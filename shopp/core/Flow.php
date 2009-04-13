@@ -141,6 +141,8 @@ class Flow {
 					if ($next != "new") 
 						$Shopp->Category = new Category($next);
 					else $Shopp->Category = new Category();
+				} else {
+					$Shopp->Category = new Category($id);
 				}
 					
 			}
@@ -727,7 +729,7 @@ class Flow {
 			'per_page' => false,
 			'start' => '',
 			'end' => '',
-			'status' => '',
+			'status' => false,
 			's' => '',
 			'range' => '',
 			'startdate' => '',
@@ -790,8 +792,8 @@ class Flow {
 		}
 		
 		$where = '';
-		if (isset($status)) $where = "WHERE status='$status'";
-		if (isset($s) && !empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR firstname LIKE '%$s%' OR lastname LIKE '%$s%' OR CONCAT(firstname,' ',lastname) LIKE '%$s%' OR transactionid LIKE '%$s%')";
+		if ($status !== false) $where = "WHERE status='$status'";
+		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR firstname LIKE '%$s%' OR lastname LIKE '%$s%' OR CONCAT(firstname,' ',lastname) LIKE '%$s%' OR transactionid LIKE '%$s%')";
 		if (!empty($start) && !empty($end)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
 		
 		$ordercount = $db->query("SELECT count(*) as total FROM $Purchase->_table $where ORDER BY created DESC");
@@ -831,6 +833,10 @@ class Flow {
 		
 		$formatPref = $Shopp->Settings->get('purchaselog_format');
 		if (!$formatPref) $formatPref = 'tab';
+		
+		$columns = array_merge(Purchase::exportcolumns(),Purchased::exportcolumns());
+		$selected = $Shopp->Settings->get('purchaselog_columns');
+		if (empty($selected)) $selected = array_keys($columns);
 		
 		include("{$this->basepath}/core/ui/orders/orders.php");
 	}      
@@ -909,77 +915,7 @@ class Flow {
 		foreach ($labels as $id => $label) if (empty($status[$id])) $status[$id] = 0;
 		return $status;
 	}
-	
-	function order_export_tab ($Orders) {
-		global $Shopp;
-		$sitename = get_bloginfo('name');
-		$cols = $Shopp->Settings->get('purchaselog_columns');
-
-		header("Content-type: text/plain");
-		header("Content-Disposition: attachment; filename=\"$sitename - Purchase Log.txt\"");
-		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-		header("Cache-Control: maxage=1");
-		header("Pragma: public");
-		foreach ($Orders as $key => $Order) {
-			foreach($cols as $name) 
-				echo ($cols[0] == $name?"":"\t").$Order->{$name};
-			echo "\n";
-		}
-	}
-
-	function order_export_csv ($Orders) {
-		global $Shopp;
-		$sitename = get_bloginfo('name');
-		$cols = $Shopp->Settings->get('purchaselog_columns');
-
-		header("Content-type: application/vnd.ms-excel");
-		header("Content-Disposition: attachment; filename=\"$sitename Purchase Log.csv\"");
-		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-		header("Cache-Control: maxage=1");
-		header("Pragma: public");
-		foreach ($Orders as $key => $Order) {
-			foreach($cols as $name) {
-				$value = $Order->{$name};
-				$value = str_replace('"','""',$value);
-				if (preg_match('/^\s|[,"\n\r]|\s$/',$value)) $value = '"'.$value.'"';
-				echo ($cols[0] == $name?"":",").$value;
-			}
-			echo "\n";
-		}
-	}
-
-	function order_export_xls ($Orders) {
-		global $Shopp;
-		$sitename = get_bloginfo('name');
-		$cols = $Shopp->Settings->get('purchaselog_columns');
-
-		header("Content-type: application/vnd.ms-excel");
-		header("Content-Disposition: attachment; filename=\"$sitename Purchase Log.xls\"");
-		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-		header("Cache-Control: maxage=1");
-		header("Pragma: public");
-
-		echo pack("ssssss", 0x809, 0x8, 0x0, 0x10, 0x0, 0x0); // BOF packet
-		$r = 0;
-		foreach ($Orders as $key => $Order) {
-			$c = 0;
-			foreach($cols as $name) {
-				$value = $Order->{$name};
-				if (preg_match('/^[\d\.]+$/',$value)) {
-				 	echo pack("sssss", 0x203, 14, $r, $c, 0x0);
-					echo pack("d", $value);
-				} else {
-					$l = strlen($value);
-					echo pack("ssssss", 0x204, 8+$l, $r, $c, 0x0, $l);
-					echo $value;
-				}
-				$c++;
-			}
-			$r++;
-		}
-		echo pack("ss", 0x0A, 0x00); // EOF packet
-	}
-	
+		
 	function account () {
 		global $Shopp;
 		
@@ -1110,44 +1046,41 @@ class Flow {
 		} elseif (isset($atts['id'])) {
 			$Shopp->Product = new Product($atts['id']);
 		} else return "";
-
-		ob_start();
-		include(SHOPP_TEMPLATES."/related.php");
-		$content = ob_get_contents();
-		ob_end_clean();
 		
-		return '<div id="shopp">'.$content.'<div class="clear"></div></div>';
+		return '<div id="shopp">'.$Shopp->Catalog->tag('product',$atts).'<div class="clear"></div></div>';
 	}
 	
 	function category_shortcode ($atts) {
 		global $Shopp;
 		
+		$tag = 'category';
 		if (isset($atts['name'])) {
 			$Shopp->Category = new Category($atts['name'],'name');
+			unset($atts['name']);
 		} elseif (isset($atts['slug'])) {
 			switch ($atts['slug']) {
-				case SearchResults::$_slug: 
-					$Shopp->Category = new SearchResults(array('search'=>$atts['search'])); break;
-				case TagProducts::$_slug: 
-					$Shopp->Category = new TagProducts(array('tag'=>$atts['tag'])); break;
-				case BestsellerProducts::$_slug: $Shopp->Category = new BestsellerProducts(); break;
-				case NewProducts::$_slug: $Shopp->Category = new NewProducts(); break;
-				case FeaturedProducts::$_slug: $Shopp->Category = new FeaturedProducts(); break;
-				case OnSaleProducts::$_slug: $Shopp->Category = new OnSaleProducts(); break;
-				case RandomProducts::$_slug: $Shopp->Category = new RandomProducts(); break;
-				default:
-					$Shopp->Category = new Category($atts['slug'],'slug');
+				case SearchResults::$_slug: $tag = 'search-products'; unset($atts['slug']);
+				 break;
+				case TagProducts::$_slug: $tag = 'tag-products'; unset($atts['slug']);
+				 break;
+				case BestsellerProducts::$_slug: $tag = 'bestseller-products'; unset($atts['slug']);
+				 break;
+				case NewProducts::$_slug: $tag = 'new-products'; unset($atts['slug']);
+				 break;
+				case FeaturedProducts::$_slug: $tag = 'featured-products'; unset($atts['slug']);
+				 break;
+				case OnSaleProducts::$_slug: $tag = 'onsale-products'; unset($atts['slug']);
+				 break;
+				case RandomProducts::$_slug: $tag = 'random-products'; unset($atts['slug']);
+				 break;
 			}
 		} elseif (isset($atts['id'])) {
 			$Shopp->Category = new Category($atts['id']);
+			unset($atts['id']);
 		} else return "";
 		
-		ob_start();
-		include(SHOPP_TEMPLATES."/category.php");
-		$content = ob_get_contents();
-		ob_end_clean();
+		return '<div id="shopp">'.$Shopp->Catalog->tag($tag,$atts).'<div class="clear"></div></div>';
 		
-		return '<div id="shopp">'.$content.'<div class="clear"></div></div>';
 	}
 	
 	function maintenance_shortcode ($atts) {
@@ -1171,7 +1104,7 @@ class Flow {
 			$Product->published = "on";
 		} else $Product = $Shopp->Product;
 
-		$permalink = $Shopp->shopuri."new/";
+		$permalink = $Shopp->shopuri;
 
 		require_once("{$this->basepath}/core/model/Asset.php");
 		require_once("{$this->basepath}/core/model/Category.php");
@@ -1224,6 +1157,20 @@ class Flow {
 		if (!$_POST['options']) $Product->options = array();
 		else $_POST['options'] = stripslashes_deep($_POST['options']);
 		if (empty($Product->slug)) $_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
+
+		// Check for an existing product slug
+		$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$Product->slug' AND id != $Product->id LIMIT 1");
+		if ($existing) {
+			$suffix = 2;
+			while($existing) {
+				$altslug = substr($Product->slug, 0, 200-(strlen($suffix)+1)). "-$suffix";
+				$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$altslug' id != $Product->id LIMIT 1");
+				$suffix++;
+			}
+			$Product->slug = $altslug;
+		}
+		
+		
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 		$Product->updates($_POST,array('categories'));
 		$Product->save();
@@ -1497,7 +1444,7 @@ class Flow {
 			$Catalog->load_categories($filters);
 			$Categories = array_slice($Catalog->categories,$start,$per_page);
 		}
-		
+
 		$count = $db->query("SELECT count(*) AS total FROM $table");
 		$num_pages = ceil($count->total / $per_page);
 		$page_links = paginate_links( array(
@@ -1535,9 +1482,6 @@ class Flow {
 
 		if (empty($Shopp->Category)) $Category = new Category();
 		else $Category = $Shopp->Category;
-		
-		$Shopp->Catalog = new Catalog();
-		$Shopp->Catalog->load_categories(array('where'=>'true'));
 
 		$Price = new Price();
 		$priceTypes = array(
@@ -1589,6 +1533,9 @@ class Flow {
 		
 		$this->settings_save(); // Save workflow setting
 		
+		$Shopp->Catalog = new Catalog();
+		$Shopp->Catalog->load_categories(array('where'=>'true'));
+		
 		if (!isset($_POST['slug']) && empty($Category->slug))
 			$Category->slug = sanitize_title_with_dashes($_POST['name']);
 		if (isset($_POST['slug'])) unset($_POST['slug']);
@@ -1608,7 +1555,7 @@ class Flow {
 			array_unshift($paths,$category_tree->slug);
 			$parentkey = $category_tree->parent;
 		}
-		
+
 		if (count($paths) > 1) $_POST['uri'] = join("/",$paths);
 		else $_POST['uri'] = $paths[0];
 					
@@ -2364,8 +2311,17 @@ class Flow {
 				$_POST['settings']['error_notifications'] = array();
 			
 			$this->settings_save();
+
+			// Reinitialize Error System
+			$Shopp->Cart->data->Errors = new ShoppErrors();
+			$Shopp->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
+			$Shopp->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
+										$this->Settings->get('error_notifications'));
+
 			$updated = __('Shopp system settings saved.','Shopp');
 		}
+		
+		if (isset($_POST['resetlog'])) $Shopp->ErrorLog->reset();
 		
 		$notifications = $this->Settings->get('error_notifications');
 		if (empty($notifications)) $notifications = array();

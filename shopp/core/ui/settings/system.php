@@ -52,7 +52,9 @@
 				<th scope="row" valign="top"><label for="error-logging"><?php _e('Error Log','Shopp'); ?></label></th> 
 				<td><div id="errorlog"><ol><?php foreach ($recentlog as $line): ?>
 					<li><?php echo $line; ?></li>
-				<?php endforeach; ?></ol></div></td>
+				<?php endforeach; ?></ol></div>
+				<p class="alignright"><button name="resetlog" id="resetlog" value="resetlog" class="button"><small><?php _e("Reset Log","Shopp"); ?></small></button></p>
+				</td>
 			</tr>			
 			<?php endif; ?>
 		</table>
