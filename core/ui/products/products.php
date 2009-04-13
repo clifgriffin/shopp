@@ -45,11 +45,10 @@
 		if (SHOPP_WP27) $hidden = get_hidden_columns('shopp_page_shopp-products');
 
 		$even = false; foreach ($Products as $key => $Product):
-		$editurl = add_query_arg(array_merge($_GET,
+		$editurl = attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>$this->Admin->editproduct,
 					'id'=>$Product->id)),
-					$Shopp->wpadminurl."admin.php");
-			
+					$Shopp->wpadminurl."admin.php"));
 		
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>

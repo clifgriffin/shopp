@@ -44,45 +44,46 @@ class Purchase extends DatabaseObject {
 	}
 	
 	function exportcolumns () {
+		$prefix = "o.";
 		return array(
-			'id' => __('Order ID','Shopp'),
-			'ip' => __('Customer\'s IP Address','Shopp'),
-			'firstname' => __('Customer\'s First Name','Shopp'),
-			'lastname' => __('Customer\'s Last Name','Shopp'),
-			'email' => __('Customer\'s Email Address','Shopp'),
-			'phone' => __('Customer\'s Phone Number','Shopp'),
-			'company' => __('Customer\'s Company','Shopp'),
-			'card' => __('Credit Card Number','Shopp'),
-			'cardtype' => __('Credit Card Type','Shopp'),
-			'cardexpires' => __('Credit Card Expiration Date','Shopp'),
-			'cardholder' => __('Credit Card Holder\'s Name','Shopp'),
-			'address' => __('Billing Street Address','Shopp'),
-			'xaddress' => __('Billing Street Address 2','Shopp'),
-			'city' => __('Billing City','Shopp'),
-			'state' => __('Billing State/Province','Shopp'),
-			'country' => __('Billing Country','Shopp'),
-			'postcode' => __('Billing Postal Code','Shopp'),
-			'shipaddress' => __('Shipping Street Address','Shopp'),
-			'shipxaddress' => __('Shipping Street Address 2','Shopp'),
-			'shipcity' => __('Shipping City','Shopp'),
-			'shipstate' => __('Shipping State/Province','Shopp'),
-			'shipcountry' => __('Shipping Country','Shopp'),
-			'shippostcode' => __('Shipping Postal Code','Shopp'),
-			'shipmethod' => __('Shipping Method','Shopp'),
-			'promos' => __('Promotions Applied','Shopp'),
-			'subtotal' => __('Order Subtotal','Shopp'),
-			'discount' => __('Order Discount','Shopp'),
-			'freight' => __('Order Shipping Fees','Shopp'),
-			'tax' => __('Order Taxes','Shopp'),
-			'total' => __('Order Total','Shopp'),
-			'fees' => __('Trasnaction Fees','Shopp'),
-			'transactionid' => __('Trasnaction ID','Shopp'),
-			'transtatus' => __('Trasnaction Status','Shopp'),
-			'gateway' => __('Payment Gateway','Shopp'),
-			'status' => __('Order Status','Shopp'),
-			'data' => __('Order Data','Shopp'),
-			'created' => __('Order Date','Shopp'),
-			'modified' => __('Order Last Updated','Shopp')
+			$prefix.'id' => __('Order ID','Shopp'),
+			$prefix.'ip' => __('Customer\'s IP Address','Shopp'),
+			$prefix.'firstname' => __('Customer\'s First Name','Shopp'),
+			$prefix.'lastname' => __('Customer\'s Last Name','Shopp'),
+			$prefix.'email' => __('Customer\'s Email Address','Shopp'),
+			$prefix.'phone' => __('Customer\'s Phone Number','Shopp'),
+			$prefix.'company' => __('Customer\'s Company','Shopp'),
+			$prefix.'card' => __('Credit Card Number','Shopp'),
+			$prefix.'cardtype' => __('Credit Card Type','Shopp'),
+			$prefix.'cardexpires' => __('Credit Card Expiration Date','Shopp'),
+			$prefix.'cardholder' => __('Credit Card Holder\'s Name','Shopp'),
+			$prefix.'address' => __('Billing Street Address','Shopp'),
+			$prefix.'xaddress' => __('Billing Street Address 2','Shopp'),
+			$prefix.'city' => __('Billing City','Shopp'),
+			$prefix.'state' => __('Billing State/Province','Shopp'),
+			$prefix.'country' => __('Billing Country','Shopp'),
+			$prefix.'postcode' => __('Billing Postal Code','Shopp'),
+			$prefix.'shipaddress' => __('Shipping Street Address','Shopp'),
+			$prefix.'shipxaddress' => __('Shipping Street Address 2','Shopp'),
+			$prefix.'shipcity' => __('Shipping City','Shopp'),
+			$prefix.'shipstate' => __('Shipping State/Province','Shopp'),
+			$prefix.'shipcountry' => __('Shipping Country','Shopp'),
+			$prefix.'shippostcode' => __('Shipping Postal Code','Shopp'),
+			$prefix.'shipmethod' => __('Shipping Method','Shopp'),
+			$prefix.'promos' => __('Promotions Applied','Shopp'),
+			$prefix.'subtotal' => __('Order Subtotal','Shopp'),
+			$prefix.'discount' => __('Order Discount','Shopp'),
+			$prefix.'freight' => __('Order Shipping Fees','Shopp'),
+			$prefix.'tax' => __('Order Taxes','Shopp'),
+			$prefix.'total' => __('Order Total','Shopp'),
+			$prefix.'fees' => __('Transaction Fees','Shopp'),
+			$prefix.'transactionid' => __('Transaction ID','Shopp'),
+			$prefix.'transtatus' => __('Transaction Status','Shopp'),
+			$prefix.'gateway' => __('Payment Gateway','Shopp'),
+			$prefix.'status' => __('Order Status','Shopp'),
+			$prefix.'data' => __('Order Data','Shopp'),
+			$prefix.'created' => __('Order Date','Shopp'),
+			$prefix.'modified' => __('Order Last Updated','Shopp')
 			);
 	}
 		
@@ -246,5 +247,164 @@ class Purchase extends DatabaseObject {
 	}
 
 } // end Purchase class
+
+class PurchasesExport {
+	var $sitename = "";
+	var $headings = false;
+	var $data = false;
+	var $defined = array();
+	var $purchase_cols = array();
+	var $purchased_cols = array();
+	var $selected = array();
+	var $recordstart = true;
+	var $content_type = "text/plain";
+	var $extension = "txt";
+	
+	function PurchasesExport () {
+		global $Shopp;
+		
+		$this->purchase_cols = Purchase::exportcolumns();
+		$this->purchased_cols = Purchased::exportcolumns();
+		$this->defined = array_merge($this->purchase_cols,$this->purchased_cols);
+		
+		$this->sitename = get_bloginfo('name');
+		$this->headings = ($Shopp->Settings->get('purchaselog_headers') == "on");
+		$this->selected = $Shopp->Settings->get('purchaselog_columns');
+	}
+	
+	function query ($request=array()) {
+		$db =& DB::get();
+		if (empty($request)) $request = $_GET;
+		
+		if (!empty($request['start'])) {
+			list($month,$day,$year) = split("/",$request['start']);
+			$starts = mktime(0,0,0,$month,$day,$year);
+		}
+		
+		if (!empty($request['end'])) {
+			list($month,$day,$year) = split("/",$request['end']);
+			$ends = mktime(0,0,0,$month,$day,$year);
+		}
+		
+		$where = "WHERE o.id IS NOT NULL AND p.id IS NOT NULL ";
+		if (isset($request['status'])) $where .= "AND status='{$request['status']}'";
+		if (isset($request['s']) && !empty($request['s'])) $where .= " AND (id='{$request['s']}' OR firstname LIKE '%{$request['s']}%' OR lastname LIKE '%{$request['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$request['s']}%' OR transactionid LIKE '%{$request['s']}%')";
+		if (!empty($request['start']) && !empty($request['end'])) $where .= " AND  (UNIX_TIMESTAMP(o.created) >= $starts AND UNIX_TIMESTAMP(o.created) <= $ends)";
+		
+		$purchasetable = DatabaseObject::tablename(Purchase::$table);
+		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
+		
+		$c = 0; $columns = array();
+		foreach ($this->selected as $column) $columns[] = "$column AS col".$c++;
+		$query = "SELECT ".join(",",$columns)." FROM $purchasedtable AS p LEFT JOIN $purchasetable AS o ON o.id=p.purchase $where ORDER BY o.created ASC";
+		$this->data = $db->query($query,AS_ARRAY);
+	}
+
+	// Implement for exporting all the data
+	function output () {
+		if (!$this->data) $this->query();
+		if (!$this->data) return false;
+
+		header("Content-type: $this->content_type; charset=UTF-8");
+		header("Content-Disposition: attachment; filename=\"$this->sitename Purchase Log.$this->extension\"");
+		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+		header("Cache-Control: maxage=1");
+		header("Pragma: public");
+
+		$this->begin();
+		if ($this->headings) $this->heading();
+		$this->records();
+		$this->end();
+	}
+	
+	function begin() {}
+	
+	function heading () {
+		foreach ($this->selected as $name)
+			$this->export($this->defined[$name]);
+		$this->record();
+	}
+	
+	function records () {
+		foreach ($this->data as $key => $record) {
+			foreach(get_object_vars($record) as $column) 
+				$this->export($column);
+			$this->record();
+		}
+	}
+
+	function end() {}
+	
+	// Implement for exporting a single value
+	function export ($value) {
+		echo ($this->recordstart?"":"\t").$value;
+		$this->recordstart = false;
+	}
+	
+	function record () {
+		echo "\n";
+		$this->recordstart = true;
+	}
+	
+}
+
+class PurchasesTabExport extends PurchasesExport {
+	function PurchasesTabExport () {
+		parent::PurchasesExport();
+		$this->output();
+	}
+}
+
+class PurchasesCSVExport extends PurchasesExport {
+	function PurchasesCSVExport () {
+		parent::PurchasesExport();
+		$this->content_type = "text/csv";
+		$this->extension = "csv";
+		$this->output();
+	}
+	
+	function export ($value) {
+		$value = str_replace('"','""',$value);
+		if (preg_match('/^\s|[,"\n\r]|\s$/',$value)) $value = '"'.$value.'"';
+		echo ($this->recordstart?"":",").$value;
+		$this->recordstart = false;
+	}
+	
+}
+
+class PurchasesXLSExport extends PurchasesExport {
+	function PurchasesXLSExport () {
+		parent::PurchasesExport();
+		$this->content_type = "application/vnd.ms-excel";
+		$this->extension = "xls";
+		$this->c = 0; $this->r = 0;
+		$this->output();
+	}
+	
+	function begin () {
+		echo pack("ssssss", 0x809, 0x8, 0x0, 0x10, 0x0, 0x0);
+	}
+	
+	function end () {
+		echo pack("ss", 0x0A, 0x00);
+	}
+	
+	function export ($value) {
+		if (preg_match('/^[\d\.]+$/',$value)) {
+		 	echo pack("sssss", 0x203, 14, $this->r, $this->c, 0x0);
+			echo pack("d", $value);
+		} else {
+			$l = strlen($value);
+			echo pack("ssssss", 0x204, 8+$l, $this->r, $this->c, 0x0, $l);
+			echo $value;
+		}
+		$this->c++;
+	}
+	
+	function record () {
+		$this->c = 0;
+		$this->r++;
+	}
+}
 
 ?>

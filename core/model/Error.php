@@ -136,7 +136,8 @@ class ShoppErrorLogging {
 	function ShoppErrorLogging ($loglevel=0) {
 		$this->loglevel = $loglevel;
 		$this->dir = sys_get_temp_dir();
-		$this->logfile = trailingslashit($this->dir).$this->file;
+		$sitename = sanitize_title_with_dashes(get_bloginfo('sitename'));
+		$this->logfile = trailingslashit($this->dir).$sitename."-".$this->file;
 
 		$Errors = &ShoppErrors();
 		$Errors->notifications->subscribe($this,'log');
@@ -149,6 +150,12 @@ class ShoppErrorLogging {
 		$message = date("Y-m-d H:i:s",mktime())." - ".$error->message().$debug."\n";
 		$this->log = fopen($this->logfile,'at');
 		fwrite($this->log,$message);
+		fclose($this->log);
+	}
+	
+	function reset () {
+		$this->log = fopen($this->logfile,'w');
+		fwrite($this->log,'');
 		fclose($this->log);
 	}
 	
@@ -198,11 +205,11 @@ class ShoppErrorNotification {
 		$_[] = 'To: '.$this->recipients;
 		$_[] = 'Subject: '.__('Shopp Error Notification','Shopp');
 		$_[] = '';
-		$_[] = __('Shopp at '.get_bloginfo('url').' encountered the following error: ','Shopp');
+		$_[] = __('This is an automated message notification generated when the Shopp installation at '.get_bloginfo('url').' encountered the following error: ','Shopp');
 		$_[] = '';
 		$_[] = $error->message();
 		$_[] = '';
-		if (isset($error->debug['file']))
+		if (isset($error->debug['file']) && defined('WP_DEBUG'))
 			$_[] = 'DEBUG: '.basename($error->debug['file']).', line '.$error->debug['line'].'';
 
 		shopp_email(join("\r\n",$_));

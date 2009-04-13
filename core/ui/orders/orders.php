@@ -84,18 +84,13 @@
 	<div class="tablenav">
 		<div class="alignleft actions">
 			<form action="<?php echo add_query_arg(array_merge($_GET,array('lookup'=>'purchaselog')),$Shopp->wpadminurl."admin.php"); ?>" id="log" method="post">
-			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Log Format','Shopp'); ?></button>
+			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Export Options','Shopp'); ?></button>
 			<span id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">
 				<ul>
-					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_columns"  id="selectall_columns" /><label for="selectall_columns"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>							
+					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_columns" id="selectall_columns" /><label for="selectall_columns"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>	
+					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="hidden" name="settings[purchaselog_headers]" value="off" /><input type="checkbox" name="settings[purchaselog_headers]" id="purchaselog_headers" value="on" /><label for="purchaselog_headers"><strong><?php _e('Include column headings','Shopp'); ?></strong></label></li>	
 					
-					<?php
-						$Purchase =  Purchase::exportcolumns();
-						$Purchased =  Purchased::exportcolumns();
-						$columns = array_merge($Purchase,$Purchased);
-						$selected = $Shopp->Settings->get('purchaselog_columns');
-					?>
 					<?php $even = true; foreach ($columns as $name => $label): ?>
 						<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[purchaselog_columns][]" value="<?php echo $name; ?>" id="column-<?php echo $name; ?>" <?php echo in_array($name,$selected)?' checked="checked"':''; ?> /><label for="column-<?php echo $name; ?>" ><?php echo $label; ?></label></li>
 					<?php endforeach; ?>

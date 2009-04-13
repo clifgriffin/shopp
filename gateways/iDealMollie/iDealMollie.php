@@ -217,7 +217,7 @@ class iDealMollie {
 				$args = array();
 				$args['shopp_xco'] = 'iDealMollie/iDealMollie';
 				$url = add_query_arg($args,$Shopp->link('checkout'));				
-				$result .= '<a href="'.$url.'"><img src="'.SHOPP_PLUGINURI.'/gateways/iDealMollie/ideal.gif'.'" alt="iDeal" width="57" height="51" /></a>';
+				$result .= '<p><a href="'.$url.'"><img src="'.SHOPP_PLUGINURI.'/gateways/iDealMollie/ideal.gif'.'" alt="iDeal" width="57" height="51" /></a></p>';
 				return $result;
 		}
 	}

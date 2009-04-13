@@ -228,7 +228,8 @@ class Product extends DatabaseObject {
 	
 	function pricing () {
 		global $Shopp;
-				
+		
+		$variations = ($this->variations == "on");
 		$freeshipping = true;
 		foreach ($this->prices as $i => &$price) {
 			
@@ -237,7 +238,7 @@ class Product extends DatabaseObject {
 			
 			// Build third lookup table using the price id as the key
 			$this->priceid[$price->id] = $price;
-			if ($price->type == "N/A" || ($i > 0 && $this->variations == "off")) continue;
+			if ($price->type == "N/A" || ($i > 0 && !$variations)) continue;
 			
 			// Boolean flag for custom product sales
 			$price->onsale = false;
@@ -245,6 +246,12 @@ class Product extends DatabaseObject {
 				$price->onsale = true;
 				$this->onsale = true;
 			}
+			
+			$this->inventory = false;
+			if ($price->inventory == "on" && $price->type != "N/A") {
+				$price->stocked = true;
+				$this->inventory = true;
+			} else $price->stocked = false;
 			
 			if ($price->freeshipping == 0) $freeshipping = false;
 
@@ -281,6 +288,15 @@ class Product extends DatabaseObject {
 						$this->pricerange['max']['saleprice'] = $price->promoprice;
 				}
 				
+				if ($price->stocked) {
+					if (!isset($this->pricerange['min']['stock']))
+						$this->pricerange['min']['stock'] = $this->pricerange['max']['stock'] = $price->stock;
+					if ($this->pricerange['min']['stock'] > $price->stock) 
+						$this->pricerange['min']['stock'] = $price->stock;
+					if ($this->pricerange['max']['stock'] < $price->stock) 
+						$this->pricerange['max']['stock'] = $price->stock;
+				}
+				
 			}
 
 			// Determine savings ranges
@@ -293,21 +309,25 @@ class Product extends DatabaseObject {
 					$this->pricerange['max']['savings'] = 0;
 				}
 
-				if ($price->price - $price->promoprice < $this->pricerange['min']['saved']) {
+				if ($price->price - $price->promoprice < $this->pricerange['min']['saved'])
 						$this->pricerange['min']['saved'] =
 							$price->price - $price->promoprice;
-						if ($price->price > 0)
-							$this->pricerange['min']['savings'] =
-								($this->pricerange['min']['saved']/$price->price)*100;
-				}
 
-				if ($price->price - $price->promoprice > $this->pricerange['max']['saved']) {
+				if ($price->price - $price->promoprice > $this->pricerange['max']['saved'])
 						$this->pricerange['max']['saved'] =
 							$price->price - $price->promoprice;
-						if ($price->price > 0)
-							$this->pricerange['max']['savings'] =
-								($this->pricerange['max']['saved']/$price->price)*100;
-				}
+				
+				// Find lowest savings percentage
+				if ($this->pricerange['min']['saved']/$price->price < $this->pricerange['min']['savings'])
+					$this->pricerange['min']['savings'] = ($this->pricerange['min']['saved']/$price->price)*100;
+				if ($this->pricerange['max']['saved']/$price->price < $this->pricerange['min']['savings'])
+					$this->pricerange['min']['savings'] = ($this->pricerange['max']['saved']/$price->price)*100;
+				
+				// Find highest savings percentage
+				if ($this->pricerange['min']['saved']/$price->price > $this->pricerange['max']['savings'])
+					$this->pricerange['max']['savings'] = ($this->pricerange['min']['saved']/$price->price)*100;
+				if ($this->pricerange['max']['saved']/$price->price > $this->pricerange['max']['savings'])
+					$this->pricerange['max']['savings'] = ($this->pricerange['max']['saved']/$price->price)*100;
 
 			}
 			
@@ -548,13 +568,8 @@ class Product extends DatabaseObject {
 		switch ($property) {
 			case "link": 
 			case "url": 
-				$url = $Shopp->shopuri;
-				if (isset($Shopp->Category->uri)) $category = $Shopp->Category->uri;
-				else $category = "new";
-				if (SHOPP_PERMALINKS) $url = add_query_arg($_GET,$url."$category/$this->slug/");
-				else $url = add_query_arg(
-						array('shopp_category' => ((!empty($Shopp->Category->id))?$Shopp->Category->id:$Shopp->Category->slug), 
-							  'shopp_pid' => $this->id),$url);
+				if (SHOPP_PERMALINKS) $url = add_query_arg($_GET,"$Shopp->shopuri$this->slug/");
+				else $url = add_query_arg('shopp_pid',$this->id,$Shopp->shopuri);
 				return $url;
 				break;
 			case "found": 
@@ -941,6 +956,7 @@ class Product extends DatabaseObject {
 					if (!isset($options['options'])) 
 						$values = "1-15,20,25,30,40,50,75,100";
 					else $values = $options['options'];
+					if ($this->inventory && $this->pricerange['max']['stock'] == 0) return "";	
 				
 					if (strpos($values,",") !== false) $values = split(",",$values);
 					else $values = array($values);
@@ -960,6 +976,8 @@ class Product extends DatabaseObject {
 							if ($variation->donation['min'] == "on" && $amount < $variation->price) continue;
 							$amount = money($amount);
 							$selected = $variation->price;
+						} else {
+							if ($this->inventory && $amount > $this->pricerange['max']['stock']) continue;	
 						}
 						$result .= '<option'.(($qty == $selected)?' selected="selected"':'').' value="'.$qty.'">'.$amount.'</option>';
 					}

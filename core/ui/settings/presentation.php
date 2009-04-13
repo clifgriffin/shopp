@@ -49,6 +49,11 @@
 	            </td>
 			</tr>			
 			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="outofstock-catalog"><?php _e('Catalog Inventory','Shopp'); ?></label></th> 
+				<td><input type="hidden" name="settings[outofstock_catalog]" value="off" /><input type="checkbox" name="settings[outofstock_catalog]" value="on" id="outofstock-catalog"<?php if ($this->Settings->get('outofstock_catalog') == "on") echo ' checked="checked"'?> /><label for="outofstock-catalog"> <?php _e('Show out-of-stock products in the catalog','Shopp'); ?></label>
+				</td>
+			</tr>
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="default-catalog-view"><?php _e('Catalog View','Shopp'); ?></label></th> 
 				<td><select name="settings[default_catalog_view]" id="default-catalog-view">
 					<?php echo menuoptions($category_views,$this->Settings->get('default_catalog_view'),true); ?>

@@ -392,7 +392,7 @@ class GoogleCheckout {
 				$buttonuri .= '&loc='.$this->settings['location'];
 				if (SHOPP_PERMALINKS) $url = $Shopp->link('checkout')."?shopp_xco=GoogleCheckout/GoogleCheckout";
 				else $url = add_query_arg('shopp_xco','GoogleCheckout/GoogleCheckout',$Shopp->link('checkout'));
-				return '<p class="submit"><a href="'.$url.'"><img src="'.$buttonuri.'" alt="Checkout with Google Checkout" /></a></p>';
+				return '<p><a href="'.$url.'"><img src="'.$buttonuri.'" alt="Checkout with Google Checkout" /></a></p>';
 		}
 	}
 	

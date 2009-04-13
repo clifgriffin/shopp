@@ -27,16 +27,18 @@ class Purchased extends DatabaseObject {
 	}
 	
 	function exportcolumns () {
+		$prefix = "p.";
 		return array(
-			'name' => __('Product Name','Shopp'),
-			'optionlabel' => __('Product Variation Name','Shopp'),
-			'description' => __('Product Description','Shopp'),
-			'sku' => __('Product SKU','Shopp'),
-			'quantity' => __('Product Quantity Purchased','Shopp'),
-			'unitprice' => __('Product Unit Price','Shopp'),
-			'total' => __('Product Total Price','Shopp'),
-			'data' => __('Product Data','Shopp'),
-			'downloads' => __('Product Downloads','Shopp')
+			$prefix.'id' => __('Line Item ID','Shopp'),
+			$prefix.'name' => __('Product Name','Shopp'),
+			$prefix.'optionlabel' => __('Product Variation Name','Shopp'),
+			$prefix.'description' => __('Product Description','Shopp'),
+			$prefix.'sku' => __('Product SKU','Shopp'),
+			$prefix.'quantity' => __('Product Quantity Purchased','Shopp'),
+			$prefix.'unitprice' => __('Product Unit Price','Shopp'),
+			$prefix.'total' => __('Product Total Price','Shopp'),
+			$prefix.'data' => __('Product Data','Shopp'),
+			$prefix.'downloads' => __('Product Downloads','Shopp')
 			);
 	}
 

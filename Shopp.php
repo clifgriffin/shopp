@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.5 RC2
+Version: 1.0.5 RC3
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.5 RC2");
+define("SHOPP_VERSION","1.0.5 RC3");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -301,7 +301,7 @@ class Shopp {
 		global $wp_version;
 		$this->Flow->orders_list_columns();
 		wp_enqueue_script('jquery');
-		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js");
+		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js",array(),SHOPP_VERSION);
 		
 		// Load only for the product editor to keep other admin screens snappy
 		if (($_GET['page'] == $this->Flow->Admin->editproduct || 
@@ -314,26 +314,26 @@ class Shopp {
 					wp_enqueue_script('editor');
 			}
 				
-			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',$this->shopuri));
-			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
-			wp_enqueue_script('shopp.editor.lib',"{$this->uri}/core/ui/behaviors/editors.js");
+			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',$this->shopuri),array(),SHOPP_VERSION);
+			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array(),SHOPP_VERSION);
+			wp_enqueue_script('shopp.editor.lib',"{$this->uri}/core/ui/behaviors/editors.js",array(),SHOPP_VERSION);
 
 			if ($_GET['page'] == $this->Flow->Admin->editproduct)
-				wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js");
+				wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js",array(),SHOPP_VERSION);
 
-			if (SHOPP_WP27) wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline.js");
-			else wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline-wp26.js");
+			if (SHOPP_WP27) wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline.js",array(),SHOPP_VERSION);
+			else wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline-wp26.js",array(),SHOPP_VERSION);
 			
-			wp_enqueue_script('shopp.ocupload',"{$this->uri}/core/ui/behaviors/ocupload.js");
-			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery-ui-core'), '1.5');
+			wp_enqueue_script('shopp.ocupload',"{$this->uri}/core/ui/behaviors/ocupload.js",array(),SHOPP_VERSION);
+			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery-ui-core'));
 			
-			wp_enqueue_script('shopp.swfupload',"{$this->uri}/core/ui/behaviors/swfupload/swfupload.js");
-			wp_enqueue_script('shopp.swfupload.swfobject',"{$this->uri}/core/ui/behaviors/swfupload/plugins/swfupload.swfobject.js");
+			wp_enqueue_script('shopp.swfupload',"{$this->uri}/core/ui/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION);
+			wp_enqueue_script('shopp.swfupload.swfobject',"{$this->uri}/core/ui/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
 		}
 		
 		?>
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css' type='text/css' />
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css' type='text/css' />
+		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
+		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
 		<?php
 	}
 	
@@ -341,7 +341,7 @@ class Shopp {
 	 * dashbaord_css()
 	 * Loads only the Shopp Admin CSS on the WordPress dashboard for widget styles */
 	function dashboard_css () {
-		?><link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css' type='text/css' />
+		?><link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
 <?php
 	}
 	
@@ -513,9 +513,13 @@ class Shopp {
 		$shop = $pages['catalog']['permalink'];
 		if (!empty($shop)) $shop = trailingslashit($shop);
 		$catalog = $pages['catalog']['name'];
+		$cart = $pages['cart']['permalink'];
 		$checkout = $pages['checkout']['permalink'];
+		$account = $pages['account']['permalink'];
 
 		$rules = array(
+			$cart.'?$' => 'index.php?pagename='.$cart,
+			$account.'?$' => 'index.php?pagename='.$account,
 			$checkout.'?$' => 'index.php?pagename='.$checkout.'&shopp_proc=checkout',
 			(empty($shop)?"$catalog/":$shop).'feed/?$' => 'index.php?shopp_lookup=newproducts-rss',
 			(empty($shop)?"$catalog/":$shop).'receipt/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=receipt',
@@ -550,9 +554,13 @@ class Shopp {
 		if (empty($shop)) $rules[$catalog.'/(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_pid=$matches[1]';
 		else $rules[$shop.'(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$shop.'&shopp_pid=$matches[1]';
 
-		// catalog/category/product-slug
-		if (empty($shop)) $rules[$catalog.'/([\w%_\\+-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
-		else $rules[$shop.'([\w%_\+\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
+		// catalog/product-slug
+		if (empty($shop)) $rules[$catalog.'/([\w_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_product=$matches[1]'; // category/product-slug
+		else $rules[$shop.'([\w_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_product=$matches[1]'; // category/product-slug			
+
+
+		// if (empty($shop)) $rules[$catalog.'/([\w%_\\+-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
+		// else $rules[$shop.'([\w%_\+\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
 
 		return $rules + $wp_rewrite_rules;
 	}
@@ -705,9 +713,9 @@ class Shopp {
 	 * header()
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function header () {		
-		?><link rel='stylesheet' href='<?php echo add_query_arg('shopp_lookup','catalog.css',$this->shopuri); ?>' type='text/css' />
-		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css' type='text/css' />
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css' type='text/css' />
+		?><link rel='stylesheet' href='<?php echo  add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),$this->shopuri); ?>' type='text/css' />
+		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
+		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 		<?php
 	}
 	
@@ -777,30 +785,16 @@ class Shopp {
 			$category = "search-results";
 		}
 		
-		// Find product by given ID
-		if (!empty($productid) && empty($this->Product->id)) {
-			$this->Product = new Product($productid);
-		}
-
 		if (!empty($category) || !empty($tag)) {
-			
-			switch ($category) {
-				case SearchResults::$_slug: 
-					$this->Category = new SearchResults(array('search'=>$this->Cart->data->Search)); break;
-				case TagProducts::$_slug: 
-					$this->Category = new TagProducts(array('tag'=>$tag)); break;
-				case BestsellerProducts::$_slug: $this->Category = new BestsellerProducts(); break;
-				case NewProducts::$_slug: $this->Category = new NewProducts(); break;
-				case FeaturedProducts::$_slug: $this->Category = new FeaturedProducts(); break;
-				case OnSaleProducts::$_slug: $this->Category = new OnSaleProducts(); break;
-				case RandomProducts::$_slug: $this->Category = new RandomProducts(); break;
-				default:
-					$key = "id";
-					if (!preg_match("/^\d+$/",$category)) $key = "uri";
-					$this->Category = new Category($category,$key);
-			}
-
-		}
+			if (isset($this->Cart->data->Search)) $options = array('search'=>$this->Cart->data->Search);
+			if (isset($tag)) $options = array('tag'=>$tag);
+			$this->Category = Catalog::load_category($category,$options);			
+			$this->Cart->data->breadcrumb = (isset($tag)?"tag/":"").$this->Category->uri;
+		} 
+		
+		if (empty($category) && empty($tag) && 
+			empty($productid) && empty($productname)) 
+			$this->Cart->data->breadcrumb = "";
 		
 		// Category Filters
 		if (!empty($this->Category->slug)) {
@@ -813,19 +807,23 @@ class Shopp {
 				$CategoryFilters = array_merge($CategoryFilters,$_GET['shopp_catfilters']);
 				if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
 			}
-				
 		}
 		
 		// Catalog sort order setting
-		if (isset($_GET['shopp_orderby'])) {
+		if (isset($_GET['shopp_orderby']))
 			$this->Cart->data->Category['orderby'] = $_GET['shopp_orderby'];
-		}
+
+		// Find product by given ID
+		if (!empty($productid) && empty($this->Product->id))
+			$this->Product = new Product($productid);
 			
-		// Find product by category name and product name
-		if (!empty($productname) && empty($this->Product->id)) {
+		// Find product by product slug
+		if (!empty($productname) && empty($this->Product->id))
 			$this->Product = new Product($productname,"slug");
-			if ($this->Product->published == "off") $this->Product = false;
-		}
+		
+		// Product must be published
+		if (!empty($this->Product->id) && $this->Product->published == "off")
+			$this->Product = false;
 		
 		$this->Catalog = new Catalog($type);
 		add_filter('wp_title', array(&$this, 'titles'),10,3);
@@ -1031,39 +1029,23 @@ class Shopp {
 			case "purchaselog":
 				if (!defined('WP_ADMIN') || !is_user_logged_in() || !current_user_can('manage_options')) die('-1');
 				$db =& DB::get();
+
+				if (!isset($_POST['settings']['purchaselog_columns'])) {
+					$_POST['settings']['purchaselog_columns'] =
+					 	array_keys(array_merge($Purchase,$Purchased));
+					$_POST['settings']['purchaselog_headers'] = "on";
+				}
 				
 				$this->Flow->settings_save();
-				
-				if (!empty($_GET['start'])) {
-					list($month,$day,$year) = split("/",$_GET['start']);
-					$starts = mktime(0,0,0,$month,$day,$year);
-				}
-				
-				if (!empty($_GET['end'])) {
-					list($month,$day,$year) = split("/",$_GET['end']);
-					$ends = mktime(0,0,0,$month,$day,$year);
-				}
-
-				if (isset($_GET['status'])) $where = "WHERE status='{$_GET['status']}'";
-				if (isset($_GET['s']) && !empty($_GET['s'])) $where .= ((empty($where))?"WHERE ":" AND ")." (id='{$_GET['s']}' OR firstname LIKE '%{$_GET['s']}%' OR lastname LIKE '%{$_GET['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$_GET['s']}%' OR transactionid LIKE '%{$_GET['s']}%')";
-				if (!empty($_GET['start']) && !empty($_GET['end'])) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(o.created) >= '.$starts.' AND UNIX_TIMESTAMP(o.created) <= '.$ends.')';
-				
-				$purchasetable = DatabaseObject::tablename(Purchase::$table);
-				$purchasedtable = DatabaseObject::tablename(Purchased::$table);
-				
-				$query = "SELECT o.*,p.* FROM $purchasedtable AS p LEFT JOIN $purchasetable AS o ON o.id=p.purchase $where ORDER BY o.created DESC";
-				$Orders = $db->query($query,AS_ARRAY);
 				
 				$format = $this->Settings->get('purchaselog_format');
 				if (empty($format)) $format = 'tab';
 				
-				$output = "";
 				switch ($format) {
-					case "csv": $this->Flow->order_export_csv($Orders); break;
-					case "xls": $this->Flow->order_export_xls($Orders); break;
-					default: $this->Flow->order_export_tab($Orders);
+					case "csv": new PurchasesCSVExport(); break;
+					case "xls": new PurchasesXLSExport(); break;
+					default: new PurchasesTabExport();
 				}
-				
 				exit();
 				break;
 			case "receipt":
