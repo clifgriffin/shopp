@@ -517,6 +517,20 @@ class Product extends DatabaseObject {
 		$this->load_data(array('prices','specs','categories','tags','images'));
 		$this->id = '';
 		$this->name = $this->name.' '.__('copy','Shopp');
+		$this->slug = sanitize_title_with_dashes($this->name);
+
+		// Check for an existing product slug
+		$existing = $db->query("SELECT slug FROM $this->_table WHERE slug='$this->slug' LIMIT 1");
+		if ($existing) {
+			$suffix = 2;
+			while($existing) {
+				$altslug = substr($this->slug, 0, 200-(strlen($suffix)+1)). "-$suffix";
+				$existing = $db->query("SELECT slug FROM $this->_table WHERE slug='$altslug' LIMIT 1");
+				$suffix++;
+			}
+			$this->slug = $altslug;
+		}
+		
 		$this->save();
 		
 		// Copy prices
@@ -551,14 +565,25 @@ class Product extends DatabaseObject {
 		$template = new Asset();
 		$columns = array(); $values = array();
 		foreach ($template->_datatypes as $name => $type) {
-			$columns[] = $name;
+			$colname = $name;
+			$columns[$colname] = $name;
 			if ($name == "id") $name = "''";
 			if ($name == "parent") $name = "'$this->id'";
 			if ($name == "created" || $name == "modified") $name = "now()";
-			$values[] = $name;
+			$values[$colname] = $name;
 		}
-		foreach ($this->images as $image)
-			$db->query("INSERT $template->_table (".join(',',$columns).") SELECT ".join(",",$values)." FROM $template->_table WHERE id=$image->id");
+		$sets = array('image','small','thumbnail');
+		$images = array();
+		foreach ($sets as $set) {
+			foreach ($this->imagesets[$set] as $image) {
+				if (isset($images[$image->src])) $values['src'] = $images[$image->src];
+				$id = $db->query("INSERT $template->_table (".join(',',$columns).") SELECT ".join(",",$values)." FROM $template->_table WHERE id=$image->id");
+				if ($set == "image") {
+					$images[$image->id] = $id;
+					$db->query("UPDATE $template->_table SET src=$id WHERE id=$id LIMIT 1");
+				}
+			}
+		}
 		
 	}
 	
@@ -697,6 +722,7 @@ class Product extends DatabaseObject {
 			case "gallery":
 				if (empty($this->images)) $this->load_data(array('images'));
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-thickbox";
+				if (!isset($options['preview'])) $options['preview'] = "click";
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
 				if (!empty($this->imagesets['small'])) {
@@ -748,7 +774,7 @@ class Product extends DatabaseObject {
 				}
 				
 				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
-				$result .= '<script type="text/javascript">(function($) { shopp_gallery("#gallery-'.$this->id.'"); })(jQuery)</script>';
+				$result .= '<script type="text/javascript">(function($) { shopp_gallery("#gallery-'.$this->id.'","'.$options['preview'].'"); })(jQuery)</script>';
 				return $result;
 				break;
 			case "has-categories": 

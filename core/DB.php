@@ -68,7 +68,7 @@ class DB {
 
 	function clean($data) {
 		if (is_array($data)) array_map(array(&$this,'clean'), $data);
-		if (is_string($data)) stripslashes(rtrim($data));
+		if (is_string($data)) $data = stripslashes(rtrim($data));
 		return $data;
 	}
 	
@@ -389,7 +389,7 @@ class DatabaseObject {
 		}
 		return $query;
 	}
-
+	
 	/**
 	 * Populate the object properties from a set of 
 	 * form post inputs  */

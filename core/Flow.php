@@ -984,11 +984,11 @@ class Flow {
 
 		$orderby = "pd.created DESC";
 		
-		$where = "";
-		if (!empty($cat)) $where = " AND cat.id='$cat'";
+		$where = "true";
+		if (!empty($cat)) $where .= " AND cat.id='$cat' AND (clog.category != 0 OR clog.id IS NULL)";
 		if (!empty($s)) {
 			if (strpos($s,"sku:") !== false) { // SKU search
-				$where = ' AND pt.sku="'.substr($s,4).'"';
+				$where .= ' AND pt.sku="'.substr($s,4).'"';
 				$orderby = "pd.name";
 			} else {                                   // keyword search
 				$interference = array("'s","'",".","\"");
@@ -1001,15 +1001,15 @@ class Flow {
 		}
 		
 		// Get total product count, taking into consideration for filtering
-		if (!empty($s)) $query = "SELECT count($match) as total FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE (clog.category != 0 OR clog.id IS NULL) $where";
-		elseif (!empty($cat)) $query = "SELECT count(*) as total $matchcol FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE (clog.category != 0 OR clog.id IS NULL) AND clog.category=$cat $where";
-		else $query = "SELECT count(*) as total $matchcol FROM $pd WHERE true $where";
+		if (!empty($s)) $query = "SELECT count($match) as total FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE $where GROUP BY pd.id";
+		elseif (!empty($cat)) $query = "SELECT count(*) as total $matchcol FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE (clog.category != 0 OR clog.id IS NULL) AND $where";
+		else $query = "SELECT count(*) as total $matchcol FROM $pd WHERE $where";
 		$productcount = $db->query($query);
 		
 		$columns = "pd.id,pd.name,pd.slug,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
 		if ($workflow) $columns = "pd.id";
 		// Load the products
-		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE (clog.category != 0 OR clog.id IS NULL) $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page";
+		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page";
 		$Products = $db->query($query,AS_ARRAY);
 
 		$num_pages = ceil($productcount->total / $per_page);
@@ -1103,7 +1103,10 @@ class Flow {
 			$Product = new Product();
 			$Product->published = "on";
 		} else $Product = $Shopp->Product;
-
+		
+		// $Product->load_data(array('images'));
+		// echo "<pre>"; print_r($Product->imagesets); echo "</pre>";
+		
 		$permalink = $Shopp->shopuri;
 
 		require_once("{$this->basepath}/core/model/Asset.php");
@@ -1127,7 +1130,7 @@ class Flow {
 		
 		$taglist = array();
 		foreach ($Product->tags as $tag) $taglist[] = $tag->name;
-		
+
 		if ($Product->id) {
 			$Assets = new Asset();
 			$Images = $db->query("SELECT id,src,properties FROM $Assets->_table WHERE context='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
@@ -1164,12 +1167,11 @@ class Flow {
 			$suffix = 2;
 			while($existing) {
 				$altslug = substr($Product->slug, 0, 200-(strlen($suffix)+1)). "-$suffix";
-				$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$altslug' id != $Product->id LIMIT 1");
+				$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$altslug' AND id != $Product->id LIMIT 1");
 				$suffix++;
 			}
 			$Product->slug = $altslug;
 		}
-		
 		
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 		$Product->updates($_POST,array('categories'));
@@ -1895,12 +1897,13 @@ class Flow {
 	 **/
 	
 	function settings_general () {
+		global $Shopp;
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$country = (isset($_POST['settings']))?$_POST['settings']['base_operations']['country']:'';
 		$countries = array();
-		$countrydata = $this->Settings->get('countries');
+		$countrydata = $Shopp->Settings->get('countries');
 		foreach ($countrydata as $iso => $c) {
 			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso) 
 				$base_region = $c['region'];
@@ -1924,15 +1927,16 @@ class Flow {
 			$updated = __('Shopp settings saved.');
 		}
 
-		$operations = $this->Settings->get('base_operations');
+		$operations = $Shopp->Settings->get('base_operations');
 		if (!empty($operations['zone'])) {
-			$zones = $this->Settings->get('zones');
+			$zones = $Shopp->Settings->get('zones');
 			$zones = $zones[$operations['country']];
 		}
-		$targets = $this->Settings->get('target_markets');
+		
+		$targets = $Shopp->Settings->get('target_markets');
 		if (!$targets) $targets = array();
 		
-		$statusLabels = $this->Settings->get('order_status');
+		$statusLabels = $Shopp->Settings->get('order_status');
 		include(SHOPP_ADMINPATH."/settings/settings.php");
 	}
 	

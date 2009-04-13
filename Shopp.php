@@ -885,6 +885,8 @@ class Shopp {
 		if ($_POST['checkout'] != "process") return true;
 		if ($_POST['process-login'] == "login") return true;
 		
+		$_POST = attribute_escape_deep($_POST);
+		
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
 
 		// Sanitize the card number to ensure it only contains numbers
@@ -907,7 +909,7 @@ class Shopp {
 				);
 		} else $Order->Billing->cardexpires = 0;
 		
-		$Order->Billing->cvv = $_POST['billing']['cvv'];
+		$Order->Billing->cvv = preg_replace('/[^\d]/','',$_POST['billing']['cvv']);
 
 		if (empty($Order->Shipping))
 			$Order->Shipping = new Shipping();
