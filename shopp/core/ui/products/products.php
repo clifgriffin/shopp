@@ -58,7 +58,7 @@
 					<span class='edit'><a href="<?php echo $editurl; ?>" title="Edit this product"><?php _e('Edit','Shopp'); ?></a> | </span>
 					<span class='edit'><a href="<?php echo add_query_arg(array_merge($_GET,array('duplicate'=>$Product->id)),$Shopp->wpadminurl); ?>" title="Duplicate this product"><?php _e('Duplicate','Shopp'); ?></a> | </span>
 					<span class='delete'><a class='submitdelete' title='Delete <?php echo (!empty($Product->name))?$Product->name:'(no product name)'; ?>' href='' rel="<?php echo $Product->id; ?>">Delete</a> | </span>
-					<span class='view'><a href="<?php echo (SHOPP_PERMALINKS)?$Shopp->shopuri."new/$Product->slug":add_query_arg('shopp_pid',$Product->id,$Shopp->shopuri); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo $Product->name; ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
+					<span class='view'><a href="<?php echo (SHOPP_PERMALINKS)?$Shopp->shopuri.$Product->slug:add_query_arg('shopp_pid',$Product->id,$Shopp->shopuri); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo $Product->name; ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>
 				</td>
 			<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo $Product->categories; ?></td>

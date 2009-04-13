@@ -82,11 +82,11 @@ function get_countries () {
 	$countries['SK'] = array('name'=>__('Slovakia','Shopp'),'currency'=>array('code'=>'SKK','format'=>'# ###,## Sk'),'units'=>'metric','region'=>3); 
 	$countries['SI'] = array('name'=>__('Slovenia','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['ZA'] = array('name'=>__('South Africa','Shopp'),'currency'=>array('code'=>'ZAR','format'=>'R # ###.##'),'units'=>'metric','region'=>5); 
-	$countries['KR'] = array('name'=>__('South Korea','Shopp'),'currency'=>array('code'=>'KRW','format'=>'\\#,###'),'units'=>'metric','region'=>6); 
+	$countries['KR'] = array('name'=>__('South Korea','Shopp'),'currency'=>array('code'=>'KRW','format'=>'₩#,###'),'units'=>'metric','region'=>6); 
 	$countries['ES'] = array('name'=>__('Spain','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['VC'] = array('name'=>__('St. Vincent','Shopp'),'currency'=>array('code'=>'XCD','format'=>'$#,###.##'),'units'=>'metric','region'=>6); 
 	$countries['SE'] = array('name'=>__('Sweden','Shopp'),'currency'=>array('code'=>'SEK','format'=>'#.###,## kr'),'units'=>'metric','region'=>3); 
-	$countries['CH'] = array('name'=>__('Switzerland','Shopp'),'currency'=>array('code'=>'CHF','format'=>'SFr. #\'###.##'),'units'=>'metric','region'=>3); 
+	$countries['CH'] = array('name'=>__('Switzerland','Shopp'),'currency'=>array('code'=>'CHF','format'=>"SFr. #'###.##"),'units'=>'metric','region'=>3); 
 	$countries['SY'] = array('name'=>__('Syria','Shopp'),'currency'=>array('code'=>'SYP','format'=>'#,###.## SYP'),'units'=>'metric','region'=>4); 
 	$countries['TW'] = array('name'=>__('Taiwan','Shopp'),'currency'=>array('code'=>'TWD','format'=>'$#,###.##'),'units'=>'metric','region'=>6); 
 	$countries['TH'] = array('name'=>__('Thailand','Shopp'),'currency'=>array('code'=>'THB','format'=>'#,###.## Bt'),'units'=>'metric','region'=>6); 

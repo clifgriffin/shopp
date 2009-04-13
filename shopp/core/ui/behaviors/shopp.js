@@ -483,13 +483,14 @@ function shopp_debug () {
 	})(jQuery)
 }
 
-function shopp_gallery(id) {
+function shopp_gallery(id,evt) {
 	(function($) {
+		if (!evt) evt = 'click';
 		var gallery = $(id);
 		var thumbnails = gallery.find('ul.thumbnails li');
 		var previews = gallery.find('ul.previews');
 	
-		thumbnails.click(function () {
+		thumbnails.bind(evt,function () {
 			var target = $('#'+$(this).attr('rel'));
 			if (!target.hasClass('active')) {
 				var previous = gallery.find('ul.previews li.active');
