@@ -1436,6 +1436,7 @@ class Flow {
 		
 		$table = DatabaseObject::tablename(Category::$table);
 		$Catalog = new Catalog();
+		$Catalog->outofstock = true;
 		if ($workflow) {
 			$filters['columns'] = "cat.id,cat.parent";
 			$results = $Catalog->load_categories($filters,false,true);
