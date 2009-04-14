@@ -342,7 +342,8 @@ class Category extends DatabaseObject {
 			}
 			
 		}
-		$this->pricing['average'] = array_sum($prices)/count($prices);
+		$this->pricing['average'] = 0;
+		if (count($prices) > 0) $this->pricing['average'] = array_sum($prices)/count($prices);
 		
 		if (!isset($loading['load'])) $loading['load'] = array('prices');
 

@@ -25,9 +25,6 @@ class FirstData {
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
 		
-		// Use the test Customer ID in test mode (the only ID that works in test mode)
-		if ($this->settings['testmode'] == "on") $this->settings['customerid'] = $this->testid;		
-		
 		if (!empty($Order)) $this->build($Order);
 		return true;
 	}

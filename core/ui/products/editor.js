@@ -27,10 +27,10 @@ function init () {
 	
 	if (!wp26) {
 		jQuery(document).ready( function($) {
-		postboxes.add_postbox_toggles('admin_page_shopp-products-edit');
-		// close postboxes that should be closed
-		jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-	});
+			postboxes.add_postbox_toggles('admin_page_shopp-products-edit');
+			// close postboxes that should be closed
+			jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+		});
 	}
 	
 	if (!product) $('#title').focus();

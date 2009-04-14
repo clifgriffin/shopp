@@ -68,7 +68,7 @@ class DB {
 
 	function clean($data) {
 		if (is_array($data)) array_map(array(&$this,'clean'), $data);
-		if (is_string($data)) $data = stripslashes(rtrim($data));
+		if (is_string($data)) rtrim($data);
 		return $data;
 	}
 	

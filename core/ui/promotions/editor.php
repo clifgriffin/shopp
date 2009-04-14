@@ -21,7 +21,7 @@
 	</div>
 	<?php
 	}
-	add_meta_box('save-promotion', __('Save','Shopp'), 'save_meta_box', 'promotion', 'side', 'core');
+	add_meta_box('save-promotion', __('Save','Shopp'), 'save_meta_box', 'admin_page_shopp-promotions-edit', 'side', 'core');
 
 	function discount_meta_box ($Promotion) {
 		$types = array(
@@ -48,7 +48,7 @@
 
 	<?php
 	}
-	add_meta_box('promotion-discount', __('Discount','Shopp'), 'discount_meta_box', 'promotion', 'normal', 'core');
+	add_meta_box('promotion-discount', __('Discount','Shopp'), 'discount_meta_box', 'admin_page_shopp-promotions-edit', 'normal', 'core');
 
 	function rules_meta_box ($Promotion) {
 		$scope = '<select name="scope" id="promotion-scope">';
@@ -66,11 +66,11 @@
 	<table class="form-table" id="rules"></table>
 	<?php
 	}
-	add_meta_box('promotion-rules', __('Conditions','Shopp'), 'rules_meta_box', 'promotion', 'normal', 'core');
+	add_meta_box('promotion-rules', __('Conditions','Shopp'), 'rules_meta_box', 'admin_page_shopp-promotions-edit', 'normal', 'core');
 
-	do_action('do_meta_boxes', 'promotion', 'normal', $Promotion);
-	do_action('do_meta_boxes', 'promotion', 'advanced', $Promotion);
-	do_action('do_meta_boxes', 'promotion', 'side', $Promotion);
+	do_action('do_meta_boxes', 'admin_page_shopp-promotions-edit', 'normal', $Promotion);
+	do_action('do_meta_boxes', 'admin_page_shopp-promotions-edit', 'advanced', $Promotion);
+	do_action('do_meta_boxes', 'admin_page_shopp-promotions-edit', 'side', $Promotion);
 	?>
 	<div class="wrap shopp"> 
 		<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
@@ -84,12 +84,9 @@
 			<div id="poststuff" class="metabox-holder">
 
 				<div id="side-info-column" class="inner-sidebar">
-
 				<?php
-
 				do_action('submitpage_box');
-				$side_meta_boxes = do_meta_boxes('promotion', 'side', $Promotion);
-
+				$side_meta_boxes = do_meta_boxes('admin_page_shopp-promotions-edit', 'side', $Promotion);
 				?>
 				</div>
 
@@ -103,8 +100,8 @@
 					</div>
 
 				<?php
-				do_meta_boxes('promotion', 'normal', $Promotion);
-				do_meta_boxes('promotion', 'advanced', $Promotion);
+				do_meta_boxes('admin_page_shopp-promotions-edit', 'normal', $Promotion);
+				do_meta_boxes('admin_page_shopp-promotions-edit', 'advanced', $Promotion);
 				wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
 				?>
 
@@ -396,9 +393,11 @@ $('#ends-month').click(function (e) {
 	});
 });
 if (!wp26) {
-	postboxes.add_postbox_toggles('product');
-	// close postboxes that should be closed
-	jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	jQuery(document).ready( function($) {
+		postboxes.add_postbox_toggles('admin_page_shopp-promotions-edit');
+		// close postboxes that should be closed
+		jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	});
 }
 
 if (!promotion) $('#title').focus();
