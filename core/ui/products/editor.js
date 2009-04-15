@@ -23,14 +23,12 @@ var saving = false;
 var flashUploader = false;
 var pricesPayload = true;
 
-function init () {
-	
+$(document).ready( function($) {
+
 	if (!wp26) {
-		jQuery(document).ready( function($) {
-			postboxes.add_postbox_toggles('admin_page_shopp-products-edit');
-			// close postboxes that should be closed
-			jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-		});
+		postboxes.add_postbox_toggles('admin_page_shopp-products-edit');
+		// close postboxes that should be closed
+		jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	}
 	
 	if (!product) $('#title').focus();
@@ -65,7 +63,7 @@ function init () {
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
 	window.onbeforeunload = function () { if (changes && !saving) return false; }	
 
-}
+});
 
 function updateWorkflow () {
 	$('#workflow').change(function () {

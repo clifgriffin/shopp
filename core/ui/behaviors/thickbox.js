@@ -75,7 +75,7 @@ tb_show = function (caption, url, imageGroup) {//function called when the user c
 	   var urlType = baseURL.toLowerCase().match(urlString);
 
 		if(url.indexOf('?shopp_image=') != -1 || urlType == '.jpg' || urlType == '.jpeg' || urlType == '.png' || urlType == '.gif' || urlType == '.bmp'){//code to show images
-				
+
 			TB_PrevCaption = "";
 			TB_PrevURL = "";
 			TB_PrevHTML = "";
@@ -85,7 +85,7 @@ tb_show = function (caption, url, imageGroup) {//function called when the user c
 			TB_imageCount = "";
 			TB_FoundURL = false;
 			if(imageGroup){
-				TB_TempArray = $("a[@rel="+imageGroup+"]").get();
+				TB_TempArray = $("a[rel="+imageGroup+"]").get();
 				for (TB_Counter = 0; ((TB_Counter < TB_TempArray.length) && (TB_NextHTML === "")); TB_Counter++) {
 					var urlTypeTemp = TB_TempArray[TB_Counter].href.toLowerCase().match(urlString);
 						if (!(TB_TempArray[TB_Counter].href == url)) {						
@@ -103,6 +103,7 @@ tb_show = function (caption, url, imageGroup) {//function called when the user c
 							TB_imageCount = "Image " + (TB_Counter + 1) +" of "+ (TB_TempArray.length);											
 						}
 				}
+				
 			}
 
 			imgPreloader = new Image();
@@ -131,7 +132,7 @@ tb_show = function (caption, url, imageGroup) {//function called when the user c
 				}
 			}
 			// End Resizing
-			
+
 			TB_WIDTH = imageWidth + 30;
 			TB_HEIGHT = imageHeight + 60;
 			$("#TB_window").append("<a href='' id='TB_ImageOff' title='Close'><img id='TB_Image' src='"+url+"' width='"+imageWidth+"' height='"+imageHeight+"' alt='"+caption+"'/></a>" + "<div id='TB_caption'>"+caption+"<div id='TB_secondLine'>" + TB_imageCount + TB_PrevHTML + TB_NextHTML + "</div></div><div id='TB_closeWindow'>Press Esc Key or <a href='#' id='TB_closeWindowButton' title='Close'>X</a></div>"); 		
@@ -180,13 +181,13 @@ tb_show = function (caption, url, imageGroup) {//function called when the user c
 					}
 				}	
 			};
-			
+
 			tb_position();
 			$("#TB_load").remove();
 			$("#TB_ImageOff").click(tb_remove);
 			$("#TB_window").css({display:"block"}); //for safari using css instead of show
 			};
-			
+
 			imgPreloader.src = url;
 		}else{//code to show html
 			

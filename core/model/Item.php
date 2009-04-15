@@ -170,9 +170,8 @@ class Item {
 			case "link":
 			case "url": 
 				return (SHOPP_PERMALINKS)?
-					$Shopp->shopuri.$this->category."/".$this->slug:
-						add_query_arg(array('shopp_category' => $this->category,
-											'shopp_pid' => $this->product),$Shopp->shopuri);
+					$Shopp->shopuri.$this->slug:
+					add_query_arg('shopp_pid',$this->product,$Shopp->shopuri);
 			case "sku": return $this->sku;
 		}
 		

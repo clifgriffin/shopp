@@ -1666,8 +1666,8 @@ class Flow {
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-save-promotion');
 
-			if ($_GET['id'] != "new") {
-				$Promotion = new Promotion($_GET['id']);
+			if ($_POST['id'] != "new") {
+				$Promotion = new Promotion($_POST['id']);
 			} else $Promotion = new Promotion();
 
 			if (!empty($_POST['starts']['month']) && !empty($_POST['starts']['date']) && !empty($_POST['starts']['year']))
@@ -1720,6 +1720,11 @@ class Flow {
 			'applied'=>__('Applied To','Shopp'),
 			'eff'=>__('Status','Shopp'))
 		);
+	}
+
+	function promotion_editor_ui () {
+		global $Shopp;
+		include("{$this->basepath}/core/ui/promotions/ui.php");
 	}
 	
 	function promotion_editor () {

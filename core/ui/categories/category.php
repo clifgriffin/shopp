@@ -8,15 +8,13 @@
 	<form name="category" id="category" action="<?php echo $Shopp->wpadminurl; ?>admin.php" method="post">
 		<?php wp_nonce_field('shopp-save-category'); ?>
 
-		<div id="poststuff" class="metabox-holder">
+		<div id="poststuff" class="metabox-holder has-right-sidebar">
 
 			<div id="side-info-column" class="inner-sidebar">
 
 			<?php
-
 			do_action('submitpage_box');
 			$side_meta_boxes = do_meta_boxes('admin_page_shopp-categories-edit', 'side', $Category);
-
 			?>
 			</div>
 
@@ -353,11 +351,9 @@ $(document).ready(function () {
 	}
 	
 	if (!wp26) {
-		jQuery(document).ready( function($) {
-			postboxes.add_postbox_toggles('admin_page_shopp-categories-edit');
-			// close postboxes that should be closed
-			jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-		});
+		postboxes.add_postbox_toggles('admin_page_shopp-categories-edit');
+		// close postboxes that should be closed
+		jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	}
 	
 	

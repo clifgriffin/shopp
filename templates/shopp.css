@@ -20,7 +20,7 @@
  * Catalog/Category
  **/
 
-.categories ul li a.active { font-weight: bold; }
+.categories ul li a.current { font-weight: bold; }
 #shopp .category { position: relative; }
 #shopp .views { display: inline; position: absolute; right: 0; top: 0; }
 #shopp .views button { border: none; background: none; cursor: pointer; padding: 2px; }
