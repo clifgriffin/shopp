@@ -309,6 +309,8 @@ class Cart {
 		$methods = $Shopp->Settings->get('shipping_rates');
 		if (!is_array($methods)) return 0;
 
+		if (empty($Shipping->country)) $Shipping->country = $base['country'];
+		
 		if (!$this->retotal) {
 			$fees = 0;
 			
@@ -582,7 +584,6 @@ class Cart {
 
 		$Totals->total = $Totals->subtotal - $discount + 
 			$Totals->shipping + $Totals->tax;
-
 	}
 	
 	/**
@@ -961,7 +962,7 @@ class Cart {
 				else $selected = $base['country'];
 				$result .= '<ul><li>';
 				if ((isset($options['postcode']) && value_is_true($options['postcode'])) ||
-				 		isset($this->data->ShippingPostcode)) {
+				 		$this->data->ShippingPostcode) {
 					$result .= '<span>';
 					$result .= '<input name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$this->data->Order->Shipping->postcode.'" />&nbsp;';
 					$result .= '</span>';
@@ -1248,12 +1249,14 @@ class Cart {
 					$options['selected'] = $this->data->Order->Shipping->state;
 					$options['value'] = $this->data->Order->Shipping->state;
 				}
+				
+				$country = $base['country'];
 				if (!empty($this->data->Order->Shipping->country))
-					$selectedCountry = $this->data->Order->Shipping->country;
-				else $selectedCountry = $base['country'];
+					$country = $this->data->Order->Shipping->country;
+
 				if (empty($options['type'])) $options['type'] = "menu";
 				$regions = $Shopp->Settings->get('zones');
-				$states = $regions[$selectedCountry];
+				$states = $regions[$country];
 				if (is_array($states) && $options['type'] == "menu") {
 					$label = (!empty($options['label']))?$options['label']:'';
 					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'>';
@@ -1321,8 +1324,12 @@ class Cart {
 				}
 				if (empty($options['type'])) $options['type'] = "menu";
 				
+				$country = $base['country'];
+				if (!empty($this->data->Order->Billing->country))
+					$country = $this->data->Order->Billing->country;
+				
 				$regions = $Shopp->Settings->get('zones');
-				$states = $regions[$base['country']];
+				$states = $regions[$country];
 				if (is_array($states) && $options['type'] == "menu") {
 					$label = (!empty($options['label']))?$options['label']:'';
 					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'>';

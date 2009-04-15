@@ -11,7 +11,7 @@
 
 class OrderWeight {
 
-	function OrderAmount () {
+	function OrderWeight () {
 	}
 	
 	function methods (&$ShipCalc) {

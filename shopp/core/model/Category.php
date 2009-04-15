@@ -494,7 +494,7 @@ class Category extends DatabaseObject {
 					$this->childloop = false;
 					return false;
 				}
-				break;				
+				break;
 			case "subcategory-list":
 				if (isset($Shopp->Category->controls)) return false;
 				if (!$this->children) $this->load_children();

@@ -310,5 +310,4 @@ var FILE_NOT_FOUND_TEXT = "<?php _e('The file you specified could not be found.'
 var FILE_NOT_READ_TEXT = "<?php _e('The file you specified is not readable and cannot be used.','Shopp'); ?>";
 var FILE_ISDIR_TEXT = "<?php _e('The file you specified is a directory and cannot be used.','Shopp'); ?>";
 
-init();
 </script>

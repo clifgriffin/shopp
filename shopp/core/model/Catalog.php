@@ -225,7 +225,10 @@ class Catalog extends DatabaseObject {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = $parent->slug;
 							$string = substr($string,0,-5);
-							$string .= '<ul class="children">';
+							$active = '';
+							if (isset($Shopp->Category) && strpos($category->uri,$parent->slug) !== false)
+								$active = ' active';
+							$string .= '<ul class="children'.$active.'">';
 						}
 						if (value_is_true($options['hierarchy']) && $category->depth < $depth) $string .= '</ul></li>';
 					
@@ -235,11 +238,11 @@ class Catalog extends DatabaseObject {
 						$products = '';
 						if (value_is_true($options['products']) && $category->total > 0) $products = ' ('.$category->total.')';
 					
-						$active = '';
+						$current = '';
 						if (isset($Shopp->Category) && $Shopp->Category->slug == $category->slug) 
-							$active = ' class="active"';
+							$current = ' class="current"';
 						if (value_is_true($showall) || $category->total > 0 || isset($category->smart) || $category->children) // Only show categories with products
-							$string .= '<li'.$active.'><a href="'.$link.'"'.$active.'>'.$category->name.'</a>'.$products.'</li>';
+							$string .= '<li'.$current.'><a href="'.$link.'"'.$current.'>'.$category->name.'</a>'.$products.'</li>';
 
 						$previous = &$category;
 						$depth = $category->depth;
@@ -375,7 +378,14 @@ class Catalog extends DatabaseObject {
 				if ($type == "radio") {
 					$option = "shopp";
 					if (isset($options['option'])) $option = $options['option'];
-					if ($wp->query_vars['st'] == $option) $selected = ' checked="checked"';
+					$default = false;
+					if (isset($options['default'])) $default = value_is_true($options['default']);
+					$selected = '';
+					if ($default) $selected = ' checked="checked"';
+					if (!empty($wp->query_vars['st'])) {
+						$selected = '';
+						if ($wp->query_vars['st'] == $option) $selected = ' checked="checked"';
+					}
 					if ($option == "blog") return '<input type="radio" name="st" value="blog"'.$selected.' />';
 					else return '<input type="radio" name="st" value="shopp"'.$selected.' />';
 				} else return '<input type="hidden" name="st" value="shopp" />';

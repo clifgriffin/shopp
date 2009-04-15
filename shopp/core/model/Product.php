@@ -318,17 +318,18 @@ class Product extends DatabaseObject {
 							$price->price - $price->promoprice;
 				
 				// Find lowest savings percentage
-				if ($this->pricerange['min']['saved']/$price->price < $this->pricerange['min']['savings'])
-					$this->pricerange['min']['savings'] = ($this->pricerange['min']['saved']/$price->price)*100;
-				if ($this->pricerange['max']['saved']/$price->price < $this->pricerange['min']['savings'])
-					$this->pricerange['min']['savings'] = ($this->pricerange['max']['saved']/$price->price)*100;
+				if ($price->price > 0) {
+					if ($this->pricerange['min']['saved']/$price->price < $this->pricerange['min']['savings'])
+						$this->pricerange['min']['savings'] = ($this->pricerange['min']['saved']/$price->price)*100;
+					if ($this->pricerange['max']['saved']/$price->price < $this->pricerange['min']['savings'])
+						$this->pricerange['min']['savings'] = ($this->pricerange['max']['saved']/$price->price)*100;
 				
-				// Find highest savings percentage
-				if ($this->pricerange['min']['saved']/$price->price > $this->pricerange['max']['savings'])
-					$this->pricerange['max']['savings'] = ($this->pricerange['min']['saved']/$price->price)*100;
-				if ($this->pricerange['max']['saved']/$price->price > $this->pricerange['max']['savings'])
-					$this->pricerange['max']['savings'] = ($this->pricerange['max']['saved']/$price->price)*100;
-
+					// Find highest savings percentage
+					if ($this->pricerange['min']['saved']/$price->price > $this->pricerange['max']['savings'])
+						$this->pricerange['max']['savings'] = ($this->pricerange['min']['saved']/$price->price)*100;
+					if ($this->pricerange['max']['saved']/$price->price > $this->pricerange['max']['savings'])
+						$this->pricerange['max']['savings'] = ($this->pricerange['max']['saved']/$price->price)*100;
+				}
 			}
 			
 		} // end foreach($price)
@@ -656,6 +657,7 @@ class Product extends DatabaseObject {
 			case "has-savings": return ($this->onsale && $this->pricerange['min']['saved'] > 0)?true:false; break;
 			case "savings":
 				if (empty($this->prices)) $this->load_data(array('prices'));
+				if (!isset($options['show'])) $options['show'] = '';
 				if ($options['show'] == "%" || $options['show'] == "percent") {
 					if ($this->options > 1) {
 						if (round($this->pricerange['min']['savings']) == round($this->pricerange['max']['savings']))
@@ -774,7 +776,7 @@ class Product extends DatabaseObject {
 				}
 				
 				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
-				$result .= '<script type="text/javascript">(function($) { shopp_gallery("#gallery-'.$this->id.'","'.$options['preview'].'"); })(jQuery)</script>';
+				$result .= '<script type="text/javascript">jQuery(document).ready( function() {  shopp_gallery("#gallery-'.$this->id.'","'.$options['preview'].'"); }); </script>';
 				return $result;
 				break;
 			case "has-categories": 
@@ -1061,7 +1063,7 @@ class Product extends DatabaseObject {
 
 				if ($this->prices[0]->type != "N/A") {
 					if ($this->prices[0]->inventory == "on" && $this->prices[0]->stock == 0) {
-						$string .= '<p class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</p>';
+						$string .= '<span class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</span>';
 						return $string;
 					}
 					if (!empty($this->prices[0])) $string .= '<input type="hidden" name="products['.$this->id.'][price]" value="'.$this->prices[0]->id.'" />';

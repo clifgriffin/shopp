@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.5 RC4
+Version: 1.0.5 RC5
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.5 RC4");
+define("SHOPP_VERSION","1.0.5 RC5");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -284,6 +284,7 @@ class Shopp {
 		if (SHOPP_WP27)	 {
 			add_action("admin_head-{$menus['editproducts']}", array(&$this->Flow, 'product_editor_ui'));
 			add_action("admin_head-{$menus['editcategory']}", array(&$this->Flow, 'category_editor_ui'));
+			add_action("admin_head-{$menus['editpromos']}", array(&$this->Flow, 'promotion_editor_ui'));
 		}
 
 	}
@@ -301,7 +302,7 @@ class Shopp {
 		global $wp_version;
 		$this->Flow->orders_list_columns();
 		wp_enqueue_script('jquery');
-		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js",array(),SHOPP_VERSION);
+		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		
 		// Load only for the product editor to keep other admin screens snappy
 		if (($_GET['page'] == $this->Flow->Admin->editproduct || 
@@ -315,17 +316,17 @@ class Shopp {
 			}
 				
 			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',$this->shopuri),array(),SHOPP_VERSION);
-			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array(),SHOPP_VERSION);
-			wp_enqueue_script('shopp.editor.lib',"{$this->uri}/core/ui/behaviors/editors.js",array(),SHOPP_VERSION);
+			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
+			wp_enqueue_script('shopp.editor.lib',"{$this->uri}/core/ui/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
 
 			if ($_GET['page'] == $this->Flow->Admin->editproduct)
-				wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js",array(),SHOPP_VERSION);
+				wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js",array('jquery'),SHOPP_VERSION,true);
 
-			if (SHOPP_WP27) wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline.js",array(),SHOPP_VERSION);
-			else wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline-wp26.js",array(),SHOPP_VERSION);
+			if (SHOPP_WP27) wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);
+			else wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline-wp26.js",array('jquery'),SHOPP_VERSION,true);
 			
-			wp_enqueue_script('shopp.ocupload',"{$this->uri}/core/ui/behaviors/ocupload.js",array(),SHOPP_VERSION);
-			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery-ui-core'));
+			wp_enqueue_script('shopp.ocupload',"{$this->uri}/core/ui/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery','jquery-ui-core'),SHOPP_VERSION,true);
 			
 			wp_enqueue_script('shopp.swfupload',"{$this->uri}/core/ui/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION);
 			wp_enqueue_script('shopp.swfupload.swfobject',"{$this->uri}/core/ui/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
@@ -405,11 +406,11 @@ class Shopp {
 		add_action('wp_footer', array(&$this, 'footer'));
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',$this->shopuri));
-		wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js");
-		wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js");
+		wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION,true);
+		wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 
 		if ($tag == "checkout")
-			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js");		
+			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
 		
 			
 	}
@@ -558,9 +559,9 @@ class Shopp {
 		if (empty($shop)) $rules[$catalog.'/([\w_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_product=$matches[1]'; // category/product-slug
 		else $rules[$shop.'([\w_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_product=$matches[1]'; // category/product-slug			
 
-
-		// if (empty($shop)) $rules[$catalog.'/([\w%_\\+-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
-		// else $rules[$shop.'([\w%_\+\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
+		// catalog/categories/path/product-slug
+		if (empty($shop)) $rules[$catalog.'/([\w%_\\+-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
+		else $rules[$shop.'([\w%_\+\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
 
 		return $rules + $wp_rewrite_rules;
 	}
@@ -841,7 +842,6 @@ class Shopp {
 		$this->Cart->request();
 		if ($this->Cart->updated) $this->Cart->totals();
 		if (isset($_REQUEST['ajax'])) $this->Cart->ajax();
-
 		$redirect = false;
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {
