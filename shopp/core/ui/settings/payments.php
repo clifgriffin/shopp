@@ -41,7 +41,9 @@ function xcosettings (toggle,settings) {
 	})(jQuery);
 }
 
-(function($) {
+$=jQuery.noConflict();
+
+$(document).ready( function() {
 var gatewayHandlers = new CallbackRegistry();
 
 <?php foreach ($LocalProcessors as &$Processor) $Processor->registerSettings(); ?>
@@ -53,5 +55,5 @@ $('#payment-gateway').change(function () {
 	if (this.value.length > 0) $(target).show();
 }).change();
 
-})(jQuery);
+});
 </script>
