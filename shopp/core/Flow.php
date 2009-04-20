@@ -114,7 +114,7 @@ class Flow {
 			);
 		$args = array_merge($defaults,$_REQUEST);
 		extract($args,EXTR_SKIP);
-		
+
 		if (strstr($page,$Admin->categories)) {
 			
 			if ($deleting == "category"
@@ -157,7 +157,7 @@ class Flow {
 					$Product = new Product($deletion);
 					$Product->delete();
 				}
-				header("Location: ".add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl));
+				header("Location: ".add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
 				exit();
 			}
 			
@@ -284,14 +284,14 @@ class Flow {
 	}
 	
 	function init_categories_widget () {
-		register_sidebar_widget("Shopp Categories",array(&$this,'categories_widget'),'shopp categories');
-		register_widget_control('Shopp Categories',array(&$this,'categories_widget_options'));
+		wp_register_sidebar_widget('shopp-categories',__('Shopp Categories','Shopp'),array(&$this,'categories_widget'),'shopp categories');
+		wp_register_widget_control('shopp-categories',__('Shopp Categories','Shopp'),array(&$this,'categories_widget_options'));
 	}
 	
 	
 	function init_tagcloud_widget () {
-		register_sidebar_widget("Shopp Tag Cloud",array(&$this,'tagcloud_widget'),'shopp tagcloud');
-		register_widget_control('Shopp Tag Cloud',array(&$this,'tagcloud_widget_options'));
+		wp_register_sidebar_widget('shopp-tagcloud',__('Shopp Tag Cloud','Shopp'),array(&$this,'tagcloud_widget'),'shopp tagcloud');
+		wp_register_widget_control('shopp-tagcloud',__('Shopp Tag Cloud','Shopp'),array(&$this,'tagcloud_widget_options'));
 	}
 	
 	function tagcloud_widget_options ($args=null) {
@@ -311,7 +311,7 @@ class Flow {
 	function tagcloud_widget ($args=null) {
 		global $Shopp;
 		if (!empty($args)) extract($args);
-		
+
 		$options = $Shopp->Settings->get('tagcloud_widget_options');
 		
 		if (empty($options['title'])) $options['title'] = "Product Tags";
@@ -324,8 +324,8 @@ class Flow {
 	
 	
 	function init_facetedmenu_widget () {
-		register_sidebar_widget("Shopp Faceted Menu",array(&$this,'facetedmenu_widget'),'shopp facetedmenu');
-		register_widget_control('Shopp Faceted Menu',array(&$this,'facetedmenu_widget_options'));
+		wp_register_sidebar_widget('shopp-facetedmenu',__('Shopp Faceted Menu','Shopp'),array(&$this,'facetedmenu_widget'),'shopp facetedmenu');
+		wp_register_widget_control('shopp-facetedmenu',__('Shopp Faceted Menu','Shopp'),array(&$this,'facetedmenu_widget_options'));
 	}
 	
 	function facetedmenu_widget_options ($args=null) {
@@ -352,7 +352,7 @@ class Flow {
 		$options['title'] = $before_title.$options['title'].$after_title;
 		global $wp_registered_widgets;
 		
-		if (!empty($Shopp->Category)) {
+		if (!empty($Shopp->Category->id) && $Shopp->Category->facetedmenus == "on") {
 			$menu = $Shopp->Category->tag('faceted-menu',$options);
 			echo $before_widget.$options['title'].$menu.$after_widget;			
 		}
@@ -374,8 +374,8 @@ class Flow {
 	}
 
 	function init_cart_widget () {
-		register_sidebar_widget("Shopp Cart",array(&$this,'cart_widget'),'shopp cart');
-		register_widget_control('Shopp Cart',array(&$this,'cart_widget_options'));
+		wp_register_sidebar_widget('shopp-cart',__('Shopp Cart','Shopp'),array(&$this,'cart_widget'),'shopp cart');
+		wp_register_widget_control('shopp-cart',__('Shopp Cart','Shopp'),array(&$this,'cart_widget_options'));
 	}
 	
 	function cart_widget_options ($args=null) {
@@ -490,7 +490,7 @@ class Flow {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
 		$db = DB::get();
-
+		
 		do_action('shopp_order_preprocessing');
 		
 		if ($gateway) {
@@ -650,6 +650,9 @@ class Flow {
 		$Shopp->Cart = new Cart();
 		session_start();
 		
+		// Keep the user loggedin
+		$Shopp->Cart->loggedin($Order->Customer);
+		
 		// Save the purchase ID for later lookup
 		$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
 		$Shopp->Cart->data->Purchase->load_purchased();
@@ -711,8 +714,7 @@ class Flow {
 		ob_end_clean();
 		return apply_filters('shopp_order_receipt','<div id="shopp">'.$content.'</div>');
 	}
-	
-	
+
 	/**
 	 * Orders admin flow handlers
 	 */
@@ -1990,6 +1992,7 @@ class Flow {
 
 		$category_views = array("grid" => __('Grid','Shopp'),"list" => __('List','Shopp'));
 		$row_products = array(2,3,4,5,6,7);
+		$productOrderOptions = Category::sortoptions();
 		
 		$orderOptions = array("ASC" => __('Order','Shopp'),
 							  "DESC" => __('Reverse Order','Shopp'),

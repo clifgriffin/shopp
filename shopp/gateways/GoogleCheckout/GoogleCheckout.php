@@ -197,6 +197,7 @@ class GoogleCheckout {
 							$_[] = '<tax-rules>';
 							foreach ($this->settings['taxes'] as $tax) {
 								$_[] = '<default-tax-rule>';
+									$_[] = '<shipping-taxed>false</shipping-taxed>';
 									$_[] = '<rate>'.number_format($tax['rate']/100,4).'</rate>';
 									$_[] = '<tax-area>';
 										if ($tax['country'] == "US" && !isset($tax['zone'])) {

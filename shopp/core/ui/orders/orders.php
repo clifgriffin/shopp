@@ -115,6 +115,8 @@ helpurl = "<?php echo SHOPP_DOCS; ?>Managing Orders";
 
 $=jQuery.noConflict();
 
+$(document).ready( function() {
+	
 $('#selectall').change( function() {
 	$('#orders-table th input').each( function () {
 		if (this.checked) this.checked = false;
@@ -288,4 +290,7 @@ $('#selectall_columns').change(function () {
 });
 
 <?php if (SHOPP_WP27): ?>columns.init('toplevel_page_shopp-orders');<?php endif; ?>
+
+});
+
 </script>

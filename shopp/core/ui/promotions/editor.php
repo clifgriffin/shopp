@@ -120,6 +120,8 @@ helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
 
 $=jQuery.noConflict();
 
+$(document).ready( function() {
+
 $('#shopp-jsconflict').hide();
 
 var wp26 = <?php echo (SHOPP_WP27)?'false':'true'; ?>;
@@ -333,5 +335,7 @@ if (!wp26) {
 }
 
 if (!promotion) $('#title').focus();
+
+});
 
 </script>

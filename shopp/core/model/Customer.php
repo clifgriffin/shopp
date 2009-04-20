@@ -137,9 +137,10 @@ class Customer extends DatabaseObject {
 				$Errors =& ShoppErrors();
 				$result = "";
 				if (!$Errors->exist()) return false;
-				$errors = $Errors->get();
-				foreach ((array)$errors as $error) if (!empty($error)) $result .= $error->message();
-				$Errors->reset();
+				$errors = $Errors->get(SHOPP_COMM_ERR);
+				foreach ((array)$errors as $error) 
+					if (!empty($error)) $result .= '<p class="error">'.$error->message().'</p>';
+				$Errors->reset();				
 				return $result;
 				break;
 

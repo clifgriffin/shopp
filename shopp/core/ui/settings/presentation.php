@@ -72,6 +72,14 @@
 	            <label for="catalog-pagination"><?php _e('products per page','Shopp'); ?></label></td>
 			</tr>
 			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="showcase-order"><?php _e('Product Order','Shopp'); ?></label></th> 
+				<td><select name="settings[default_product_order]" id="product-order">
+					<?php echo menuoptions($productOrderOptions,$this->Settings->get('default_product_order'),true); ?>
+				</select>
+				<br />
+	            <?php _e('Set the default display order of products shown in categories.','Shopp'); ?></td>
+			</tr>
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="showcase-order"><?php _e('Image Order','Shopp'); ?></label></th> 
 				<td><select name="settings[product_image_order]" id="showcase-order">
 					<?php echo menuoptions($orderOptions,$this->Settings->get('product_image_order'),true); ?>

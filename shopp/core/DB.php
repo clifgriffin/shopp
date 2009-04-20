@@ -288,12 +288,12 @@ class DatabaseObject {
 		$where = "";
 		if (is_array($args[0])) 
 			foreach ($args[0] as $key => $id) 
-				$where .= ($where == "")?"$key='$id'":" AND $key='$id'";
+				$where .= ($where == ""?"":" AND ")."$key='".$db->escape($id)."'";
 		else {
 			$id = $args[0];
 			$key = $this->_key;
 			if (!empty($args[1])) $key = $args[1];
-			$where = $key."='$id'";
+			$where = $key."='".$db->escape($id)."'";
 		}
 
 		$r = $db->query("SELECT * FROM $this->_table WHERE $where LIMIT 1");

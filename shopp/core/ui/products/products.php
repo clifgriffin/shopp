@@ -52,7 +52,7 @@
 		
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
-			<th scope='row' class='check-column'><input type='checkbox' `name='delete[]' value='<?php echo $Product->id; ?>' /></th>
+			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
 			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Product->name; ?>&quot;'><?php echo (!empty($Product->name))?$Product->name:'(no product name)'; ?></a>
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo $editurl; ?>" title="Edit this product"><?php _e('Edit','Shopp'); ?></a> | </span>
@@ -87,6 +87,7 @@
 	helpurl = "<?php echo SHOPP_DOCS; ?>Products";
 
 	$=jQuery.noConflict();
+	
 	$('#selectall').change( function() {
 		$('#products th input').each( function () {
 			if (this.checked) this.checked = false;
@@ -109,4 +110,5 @@
 		else return false;
 	});
 <?php if (SHOPP_WP27): ?>	columns.init('shopp_page_shopp-products');<?php endif; ?>
+
 </script>

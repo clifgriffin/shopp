@@ -47,7 +47,7 @@ class Cart {
 			array( &$this, 'unload' ),	// Destroy
 			array( &$this, 'trash' )	// Garbage Collection
 		);
-				
+
 		$this->data = new stdClass();
 		$this->data->Totals = new stdClass();
 		$this->data->Totals->subtotal = 0;
@@ -58,14 +58,16 @@ class Cart {
 		$this->data->Totals->taxrate = 0;
 		$this->data->Totals->total = 0;
 
-		$this->data->Errors = new ShoppErrors();
-		$this->data->Shipping = false;
-		$this->data->Estimates = false;
 		$this->data->Order = new stdClass();
 		$this->data->Order->data = array();
 		$this->data->Order->Customer = new Customer();
 		$this->data->Order->Billing = new Billing();
 		$this->data->Order->Shipping = new Shipping();
+		$this->data->login = false;
+
+		$this->data->Errors = new ShoppErrors();
+		$this->data->Shipping = false;
+		$this->data->Estimates = false;
 		$this->data->Promotions = array();
 		$this->data->PromosApplied = array();
 		$this->data->PromoCode = false;
@@ -77,19 +79,21 @@ class Cart {
 		$this->data->Purchase = false;
 		$this->data->Category = array();
 		$this->data->Search = false;
-		$this->data->login = false;
-
+		
 		// Total the cart once, and only if there are changes
 		add_action('parse_request',array(&$this,'totals'),99);
 
 		return true;
+	}
+	
+	function init () {
 	}
 		
 	/* open()
 	 * Initializing routine for the session management. */
 	function open () {
 		$this->trash();	// Clear out any residual session information before loading new data
-		if (!isset($this->session)) $this->session = session_id();	// Grab our session id
+		if (empty($this->session)) $this->session = session_id();	// Grab our session id
 		$this->ip = $_SERVER['REMOTE_ADDR'];						// Save the IP address making the request
 		return true;
 	}
@@ -222,7 +226,7 @@ class Cart {
 	 * reset()
 	 * Resets the entire session */
 	function reset () {
-		
+		$this->unload();
 	}
 	
 	/**
@@ -736,7 +740,7 @@ class Cart {
 			$this->data->PromoCodeResult = "";
 			if (!in_array($_REQUEST['promocode'],$this->data->PromoCodes)) {
 				$this->data->PromoCode = attribute_escape($_REQUEST['promocode']);
-				$_REQUEST['update'] = true;
+				$this->updated();
 			} else $this->data->PromoCodeResult = __("That code has already been applied.","Shopp");
 		}
 		
@@ -902,12 +906,11 @@ class Cart {
 				break;
 			case "function": 
 				$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
-				if ($this->data->Errors->exist()) {
-					$errors = $this->data->Errors->get(SHOPP_COMM_ERR);
-					foreach ((array)$errors as $error) 
-						if (!empty($error)) $result .= '<p class="error">'.$error->message().$error->debug['file'].','.$error->debug['line'].'</p>';
-					$this->data->Errors->reset(); // Reset after display
-				}
+				if (!$this->data->Errors->exist()) return $result;
+				$errors = $this->data->Errors->get(SHOPP_COMM_ERR);
+				foreach ((array)$errors as $error) 
+					if (!empty($error)) $result .= '<p class="error">'.$error->message().'</p>';
+				$this->data->Errors->reset(); // Reset after display
 				return $result;
 				break;
 			case "empty-button": 
@@ -1170,7 +1173,7 @@ class Cart {
 			case "submit-login": // Deprecating
 			case "login-button":
 				$string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
-				$string .= '<input type="button" name="submit-login" id="submit-login" '.inputattrs($options).' />';
+				$string .= '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
 				return $string;
 				break;
 
