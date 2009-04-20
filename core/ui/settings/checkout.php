@@ -17,7 +17,7 @@
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="receipt_copy_both"><?php _e('Receipt Emails','Shopp'); ?></label></th> 
 				<td><input type="radio" name="settings[receipt_copy]" value="0" id="receipt_copy_customer_only"<?php if ($this->Settings->get('receipt_copy') == "0") echo ' checked="checked"'; ?> /> <label for="receipt_copy_customer_only"><?php _e('Send to Customer Only','Shopp'); ?></label><br />
-					<input type="radio" name="settings[receipt_copy]" value="1" id="receipt_copy_both"<?php if ($this->Settings->get('receipt_copy') == "1") echo ' checked="checked"'; ?> /> <label for="receipt_copy_both"><?php _e('Send to Customer &amp; Shop Owner Email','Shopp'); ?></label> (<?php _e('see','Shopp'); ?> <a href="?page=shopp/settings&amp;edit=general"><?php _e('General Settings','Shopp'); ?></a>)</td>
+					<input type="radio" name="settings[receipt_copy]" value="1" id="receipt_copy_both"<?php if ($this->Settings->get('receipt_copy') == "1") echo ' checked="checked"'; ?> /> <label for="receipt_copy_both"><?php _e('Send to Customer &amp; Shop Owner Email','Shopp'); ?></label> (<?php _e('see','Shopp'); ?> <a href="?page=shopp-settings"><?php _e('General Settings','Shopp'); ?></a>)</td>
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="account-system-none"><?php _e('Customer Accounts','Shopp'); ?></label></th> 

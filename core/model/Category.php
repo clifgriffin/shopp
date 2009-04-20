@@ -58,13 +58,13 @@ class Category extends DatabaseObject {
 		if (isset($this->smart)) return false;
 		$db = DB::get();
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
-		$children = $db->query("SELECT cat.*,count(sc.product) AS products FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.category=cat.id WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY parent DESC,name ASC",AS_ARRAY);
+		$children = $db->query("SELECT cat.*,count(sc.product) AS total FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.category=cat.id WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY parent DESC,name ASC",AS_ARRAY);
 		$children = sort_tree($children,$this->id);
 		foreach ($children as &$child) {
 			$this->children[$child->id] = new Category();
 			$this->children[$child->id]->populate($child);
 			$this->children[$child->id]->depth = $child->depth;
-			$this->children[$child->id]->products = $child->products;
+			$this->children[$child->id]->total = $child->total;
 		}
 
 		if (!empty($this->children)) return true;
@@ -213,8 +213,10 @@ class Category extends DatabaseObject {
 			
 		}
 		
+		$defaultOrder = $Shopp->Settings->get('default_product_order');
+		if (empty($defaultOrder)) $defaultOrder = "title";
 		$ordering = isset($Shopp->Cart->data->Category['orderby'])?
-						$Shopp->Cart->data->Category['orderby']:'';
+						$Shopp->Cart->data->Category['orderby']:$defaultOrder;
 		if (!empty($loading['order'])) $ordering = $loading['order'];
 		switch ($ordering) {
 			case "bestselling":
@@ -326,7 +328,7 @@ class Category extends DatabaseObject {
 			
 			$this->products[$product->id] = new Product();
 			$this->products[$product->id]->populate($product);
-			
+
 			// Special field for Bestseller category
 			if (isset($product->sold) && $product->sold) 
 				$this->products[$product->id]->sold = $product->sold;
@@ -409,6 +411,17 @@ class Category extends DatabaseObject {
 		return $rss;
 	}	
 	
+	function sortoptions () {
+		return array(
+			"title" => __('Title','Shopp'),
+			"bestselling" => __('Bestselling','Shopp'),
+			"highprice" => __('Price High to Low','Shopp'),
+			"lowprice" => __('Price Low to High','Shopp'),
+			"newest" => __('Newest to Oldest','Shopp'),
+			"oldest" => __('Oldest to Newest','Shopp'),
+			"random" => __('Random','Shopp')
+		);
+	}
 	
 	function tag ($property,$options=array()) {
 		global $Shopp;
@@ -429,7 +442,7 @@ class Category extends DatabaseObject {
 			case "url": 
 				return (SHOPP_PERMALINKS)?
 					$Shopp->shopuri."category/$this->uri":
-					add_query_arg('shopp_category',$this->uri,$Shopp->shopuri);
+					add_query_arg('shopp_category',$this->id,$Shopp->shopuri);
 				break;
 			case "name": return $this->name; break;
 			case "slug": return $this->slug; break;
@@ -517,11 +530,6 @@ class Category extends DatabaseObject {
 				extract($options, EXTR_SKIP);
 
 				$string = "";
-				// $depth = 0;
-				// $depthlimit = 0;
-				// $parent = false;
-				// $showall = false;
-				// if (isset($options['showall'])) $showall = $options['showall'];
 				$depthlimit = $depth;
 				$depth = 0;
 
@@ -586,6 +594,122 @@ class Category extends DatabaseObject {
 					if (value_is_true($hierarchy))
 						for ($i = 0; $i < $depth; $i++) $string .= "</ul>";
 					$string .= '</ul>';
+				}
+				return $string;
+				break;
+			case "section-list":
+				if (isset($Shopp->Category->controls)) return false;
+				if (empty($Shopp->Catalog->categories)) $Shopp->Catalog->load_categories();
+				if (empty($Shopp->Catalog->categories)) return false;
+				if (!$this->children) $this->load_children();
+			
+				$defaults = array(
+					'title' => '',
+					'before' => '',
+					'after' => '',
+					'class' => '',
+					'exclude' => '',
+					'depth' => 0,
+					'parent' => false,
+					'showall' => false,
+					'dropdown' => false,
+					'hierarchy' => false,
+					'products' => false,
+					'wraplist' => true
+					);
+			
+				$options = array_merge($defaults,$options);
+				extract($options, EXTR_SKIP);
+			
+				$string = "";
+				$depthlimit = $depth;
+				$depth = 0;
+				$wraplist = value_is_true($wraplist);
+				$exclude = split(",",$exclude);
+				$section = array();
+
+				// Identify root parent
+				$parent = $this->id;
+				while($parent != 0) {
+					if ($Shopp->Catalog->categories[$parent]->parent == 0) break;
+					$parent = $Shopp->Catalog->categories[$parent]->parent;
+				}
+				$root = $Shopp->Catalog->categories[$parent];
+				if ($this->id == $parent && empty($this->children)) return false;
+
+				// Build the section
+				$section[] = $root;
+				$in = false;
+				foreach ($Shopp->Catalog->categories as &$c) {
+					if ($in && $c->depth == $root->depth) break; // Done
+					if ($in) $section[] = $c;
+					if (!$in && $c->id == $root->id) $in = true;
+				}
+				
+				if (value_is_true($dropdown)) {
+					$string .= $title;
+					$string .= '<select name="shopp_cats" id="shopp-'.$this->slug.'-subcategories-menu" class="shopp-categories-menu">';
+					$string .= '<option value="">Select a sub-category&hellip;</option>';
+					foreach ($section as &$category) {
+						if (value_is_true($hierarchy) && $depthlimit && $category->depth >= $depthlimit) continue;
+						if (in_array($category->id,$exclude)) continue; // Skip excluded categories
+						if ($category->products == 0) continue; // Only show categories with products
+						if (value_is_true($hierarchy) && $category->depth > $depth) {
+							$parent = &$previous;
+							if (!isset($parent->path)) $parent->path = '/'.$parent->slug;
+						}
+						$padding = str_repeat("&nbsp;",$category->depth*3);
+			
+						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
+			
+						$total = '';
+						if (value_is_true($products)) $total = '&nbsp;&nbsp;('.$category->products.')';
+			
+						$string .= '<option value="'.htmlentities($link).'">'.$padding.$category->name.$total.'</option>';
+						$previous = &$category;
+						$depth = $category->depth;
+			
+					}
+					$string .= '</select>';
+					$string .= '<script type="text/javascript">';
+					$string .= 'var menu = document.getElementById(\'shopp-'.$this->slug.'-subcategories-menu\');';
+					$string .= 'if (menu)';
+					$string .= '	menu.onchange = function () {';
+					$string .= '		document.location.href = this.options[this.selectedIndex].value;';
+					$string .= '	}';
+					$string .= '</script>';
+			
+				} else {
+					if (!empty($class)) $classes = ' class="'.$class.'"';
+					$string .= $title;
+					if ($wraplist) $string .= '<ul'.$classes.'>';
+					foreach ($section as &$category) {
+						if (in_array($category->id,$exclude)) continue; // Skip excluded categories
+						if (value_is_true($hierarchy) && $depthlimit && 
+							$category->depth >= $depthlimit) continue;
+						if (value_is_true($hierarchy) && $category->depth > $depth) {
+							$parent = &$previous;
+							if (!isset($parent->path)) $parent->path = $parent->slug;
+							$string .= '<ul class="children">';
+						}
+						if (value_is_true($hierarchy) && $category->depth < $depth) $string .= '</ul>';
+			
+						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
+			
+						$total = '';
+						if (value_is_true($products)) $total = ' ('.$category->products.')';
+			
+						if (value_is_true($showall) || $category->products > 0 || $category->smart) // Only show categories with products
+							$string .= '<li><a href="'.$link.'">'.$category->name.'</a>'.$total.'</li>';
+			
+						$previous = &$category;
+						$depth = $category->depth;
+					}
+					if (value_is_true($hierarchy))
+						for ($i = 0; $i < $depth; $i++) $string .= "</ul>";
+					if ($wraplist) $string .= '</ul>';
 				}
 				return $string;
 				break;

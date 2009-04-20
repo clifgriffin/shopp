@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.5 RC5
+Version: 1.0.5 RC6
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.5 RC5");
+define("SHOPP_VERSION","1.0.5 RC6");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -580,7 +580,7 @@ class Shopp {
 		$vars[] = 'shopp_download';
 		$vars[] = 'shopp_xco';
 		$vars[] = 'st';
-
+	
 		return $vars;
 	}
 		
@@ -663,13 +663,13 @@ class Shopp {
 	 * Changes the Shopp catalog page titles to include the product
 	 * name and category (when available) */
 	function titles ($title,$sep=" &mdash; ",$placement="left") {
+		if (empty($this->Product->name) && empty($this->Category->name)) return $title;
 		if ($placement == "right") {
-			if (isset($this->Product)) $title = $this->Product->name." $sep ".$title;
-			if (isset($this->Category)) $title = $this->Category->name." $sep ".$title;
-			
+			if (!empty($this->Product->name)) $title = $this->Product->name." $sep ".$title;
+			if (!empty($this->Category->name)) $title = $this->Category->name." $sep ".$title;
 		} else {
-			if (isset($this->Category)) $title .= " $sep ".$this->Category->name;
-			if (isset($this->Product)) $title .=  " $sep ".$this->Product->name;
+			if (!empty($this->Category->name)) $title .= " $sep ".$this->Category->name;
+			if (!empty($this->Product->name)) $title .=  " $sep ".$this->Product->name;
 		}
 		return $title;
 	}
@@ -823,9 +823,13 @@ class Shopp {
 			$this->Product = new Product($productname,"slug");
 		
 		// Product must be published
-		if (!empty($this->Product->id) && $this->Product->published == "off")
+		if (!empty($this->Product->id) && $this->Product->published == "off" || empty($this->Product->id))
 			$this->Product = false;
 		
+		// No product found, try to load a page instead
+		if ($type == "product" && !$this->Product) 
+			$wp->query_vars['pagename'] = $wp->request;
+			
 		$this->Catalog = new Catalog($type);
 		add_filter('wp_title', array(&$this, 'titles'),10,3);
 		add_action('wp_head', array(&$this, 'metadata'));

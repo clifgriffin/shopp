@@ -405,7 +405,7 @@ class Product extends DatabaseObject {
 			$catalog = DatabaseObject::tablename(Catalog::$table);
 			$tagtable = DatabaseObject::tablename(Tag::$table);
 			$where = "";
-			foreach ($added as $tag) $where .= ($where == "")?"name='$tag'":" OR name='$tag'";
+			foreach ($added as $tag) $where .= ($where == ""?"":" OR ")."name='".$db->escape($tag)."'";
 			$results = $db->query("SELECT id,name FROM $tagtable WHERE $where",AS_ARRAY);
 			$exists = array();
 			foreach ($results as $tag) $exists[$tag->id] = $tag->name;
@@ -420,8 +420,9 @@ class Product extends DatabaseObject {
 					$Tag->save();
 					$tagid = $Tag->id;
 				}
-				
-				$db->query("INSERT $catalog SET tag='$tagid',product='$this->id',created=now(),modified=now()");
+
+				if (!empty($tagid))
+					$db->query("INSERT $catalog SET tag='$tagid',product='$this->id',created=now(),modified=now()");
 			}
 		}
 
@@ -429,7 +430,8 @@ class Product extends DatabaseObject {
 			$catalog = DatabaseObject::tablename(Catalog::$table);
 			foreach ($removed as $tag) {
 				$Tag = new Tag($tag,'name');
-				$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE tag='$Tag->id' AND product='$this->id'"); 
+				if (!empty($Tag->id))
+					$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE tag='$Tag->id' AND product='$this->id'"); 
 			}
 		}
 
@@ -682,10 +684,10 @@ class Product extends DatabaseObject {
 				else $options['class'] = ' class="'.$options['class'].'"';
 				if (isset($this->thumbnail)) {
 					$img = $this->thumbnail;
-					$title = ' title="'.$this->name.'"';
-					$title = ' title="'.attribute_escape(!empty($img->properties['title'])?$img->properties['title']:$this->name);
+					$title = ' title="'.attribute_escape(!empty($img->properties['title'])?$img->properties['title']:$this->name).'"';
+					if (!empty($options['title'])) $title = ' title="'.attribute_escape($options['title']).'"';
 					$alt = (!empty($img->properties['alt'])?$img->properties['alt']:$this->name);
-					return '<img src="'.$img->uri.'"'.$title.' alt="'.attribute_escape($alt).'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
+					return '<img src="'.$img->uri.'"'.$title.' alt="'.attribute_escape($alt).'"  width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
 				}
 				break;
 			case "hasimages": 
