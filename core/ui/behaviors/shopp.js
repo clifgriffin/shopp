@@ -18,7 +18,7 @@ function copyOf (src) {
  **/
 function asMoney (number,format) {
 	if (currencyFormat && !format) format = copyOf(currencyFormat);
-	if (!format) {
+	if (!format || !format['currency']) {
 		format = {
 			"cpos":true,
 			"currency":"$",
@@ -163,10 +163,15 @@ function removeEvent( obj, type, fn ) {
  */
 function formatFields () {
 	(function($) {
-	var f = $('input');
-	for (i = 0; i < f.elements.length; i++) {
-		if (f.elements[i].className.match("currency")) f.elements[i].value = asMoney(f.elements[i].value);
-	}
+		var f = $('input');
+		f.each(function (i,e) {
+			var e = $(e);
+			if (e.hasClass('currency')) {
+				e.change(function() {
+					$(e).val(asMoney($(e).val()));
+				}).change();
+			}
+		});
 	})(jQuery)
 }
 
@@ -193,7 +198,8 @@ var ProductOptionsMenus;
 			} else if (previous) {
 				$(previous).change(function () {
 					if (menus.index(current) == menus.length-1) optionPriceTags();
-					if (this.selectedIndex == 0) $(menu).attr('disabled',true);
+					if (this.selectedIndex == 0 && 
+						this.options[0].value == "") $(menu).attr('disabled',true);
 					else $(menu).removeAttr('disabled');
 				}).change();
 			}
@@ -287,7 +293,7 @@ function addtocart () {
 	if (options && options_default) {
 		var selections = true;
 		for (menu in options) 
-			if (options[menu].selectedIndex == 0) selections = false;
+			if (options[menu].selectedIndex == 0 && options[menu][0].value == "") selections = false;
 
 		if (!selections) {
 			if (!options_required) options_required = "You must select the options for this item before you can add it to your shopping cart.";
@@ -317,7 +323,7 @@ function cartajax (url,data,response) {
 	$.ajax({
 		type:"POST",
 		url:url,
-		data:data+"&response="+response+'&ajax=true',
+		data:data+"&response="+response,
 		timeout:10000,
 		dataType:datatype,
 		success:function (cart) {
@@ -350,7 +356,8 @@ var ShoppCartAjaxHandler = function (cart) {
 		var display = $('#shopp-cart-ajax');
 		display.empty().hide(); // clear any previous additions
 		var item = $('<ul></ul>').appendTo(display);
-		$('<li><img src="'+cart.Item.thumbnail.uri+'" alt="" width="'+cart.Item.thumbnail.width+'"  height="'+cart.Item.thumbnail.height+'" /></li>').appendTo(item);
+		if (cart.Item.thumbnail)
+			$('<li><img src="'+cart.Item.thumbnail.uri+'" alt="" width="'+cart.Item.thumbnail.width+'"  height="'+cart.Item.thumbnail.height+'" /></li>').appendTo(item);
 		$('<li></li>').html('<strong>'+cart.Item.name+'</strong>').appendTo(item);
 		if (cart.Item.optionlabel.length > 0)
 			$('<li></li>').html(cart.Item.optionlabel).appendTo(item);
@@ -476,13 +483,14 @@ function shopp_debug () {
 	})(jQuery)
 }
 
-function shopp_gallery(id) {
+function shopp_gallery(id,evt) {
 	(function($) {
+		if (!evt) evt = 'click';
 		var gallery = $(id);
 		var thumbnails = gallery.find('ul.thumbnails li');
 		var previews = gallery.find('ul.previews');
 	
-		thumbnails.click(function () {
+		thumbnails.bind(evt,function () {
 			var target = $('#'+$(this).attr('rel'));
 			if (!target.hasClass('active')) {
 				var previous = gallery.find('ul.previews li.active');
@@ -540,6 +548,8 @@ function PopupCalendar (target,month,year) {
 	_self.selection = selection;
 	var scope = "month";
 	_self.scope = scope;
+	var scheduling = true;
+	_self.scheduling = scheduling;
 
 	this.render = function (month,day,year) {
 		$(target).empty();
@@ -561,7 +571,7 @@ function PopupCalendar (target,month,year) {
 		
 		var backarrow = $('<span class="back">&laquo;</span>').appendTo(target);
 		var previousMonth = new Date(year,month-2,today.getDate());
-		if (previousMonth >= today.getTime()) {
+		if (!_self.scheduling || (_self.scheduling && previousMonth >= today.getTime())) {
 			backarrow.click(function () {
 				_self.scope = "month";
 				_self.selection = new Date(year,month-2);
@@ -599,7 +609,7 @@ function PopupCalendar (target,month,year) {
 				calendar[i].date = thisDate;
 
 				if (thisMonth != month) calendar[i].addClass('disabled');
-				if (thisDate.getTime() < today.getTime()) calendar[i].addClass('disabled');
+				if (_self.scheduling && thisDate.getTime() < today.getTime()) calendar[i].addClass('disabled');
 				if (thisDate.getTime() == today.getTime()) calendar[i].addClass('today');
 
 				calendar[i].hover(function () {
@@ -612,7 +622,7 @@ function PopupCalendar (target,month,year) {
 				calendar[i].mouseup(function () { $(this).removeClass('active'); });
 				
 				
-				if (thisDate.getTime() >= today.getTime()) {
+				if (!_self.scheduling || (_self.scheduling && thisDate.getTime() >= today.getTime())) {
 					calendar[i].click(function () {
 						_self.resetCalendar();
 						if (!$(this).hasClass("disabled")) $(this).addClass("selected");
@@ -636,17 +646,14 @@ function PopupCalendar (target,month,year) {
 	}
 	
 	this.autoselect = function () {
-		for (var i = 0; i < dates.length; i++) {
-			if (dates[i].getTime() == selection.getTime()) {
+		for (var i = 0; i < dates.length; i++) 
+			if (dates[i].getTime() == this.selection.getTime())
 				calendar[i].addClass('selected');
-			}
-		}
 	}
 	
 	this.resetCalendar = function () {
-		for(var i = 0; i < calendar.length; i++) {
+		for(var i = 0; i < calendar.length; i++)
 			$(calendar[i]).removeClass('selected');
-		}
 	}
 	
 	/**
@@ -734,6 +741,7 @@ function PopupCalendar (target,month,year) {
 }
 
 addEvent(window,'load',function () {
+	formatFields();
 	buttonHandlers();
 	cartHandlers();
 	catalogViewHandler();
@@ -746,6 +754,3 @@ var helpurl;
 var options_required;
 var options_default;
 var productOptions = new Array();
-
-// Fix for ThickBox
-var tb_pathToImage = "/wp-content/plugins/shopp/core/ui/icons/loading.gif";

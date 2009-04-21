@@ -12,19 +12,12 @@
 define("AS_ARRAY",false);
 define("SHOPP_DBPREFIX","shopp_");
 
-class Singleton {
+// Make sure that compatibility mode is not enabled
+if (ini_get('zend.ze1_compatibility_mode'))
+	ini_set('zend.ze1_compatibility_mode','Off');
+
+class DB {
 	private static $instance;
-	private function Singleton() {}
-	function __clone() { trigger_error('Clone is not allowed.', E_USER_ERROR); }
-
-	static function &get() {
-		static $me;
-		if (!isset($me)) $me = new DB();
-		return $me;
-	}
-}
-
-class DB extends Singleton {
 	// Define datatypes for MySQL
 	var $_datatypes = array("int" => array("int", "bit", "bool", "boolean"),
 							"float" => array("float", "double", "decimal", "real"),
@@ -37,10 +30,17 @@ class DB extends Singleton {
 	var $dbh = false;
 
 
-	function DB () {
+	protected function DB () {
 		global $wpdb;
 		$this->dbh = $wpdb->dbh;
 		$this->version = mysql_get_server_info();
+	}
+
+	function __clone() { trigger_error('Clone is not allowed.', E_USER_ERROR); }
+	static function &get() {
+		if (!self::$instance instanceof self)
+			self::$instance = new self;
+		return self::$instance;
 	}
 
 	
@@ -60,24 +60,28 @@ class DB extends Singleton {
 	}
 	
 	/**
-	 * Escape contents of the string for safe insertion into the db */
-	function escape($string) {
+	 * Escape contents of data for safe insertion into the db */
+	function escape($data) {
 		// Prevent double escaping by stripping any existing escapes out
-		return addslashes(stripslashes($string));
+		return addslashes(stripslashes($data));
+	}
+
+	function clean($data) {
+		if (is_array($data)) array_map(array(&$this,'clean'), $data);
+		if (is_string($data)) rtrim($data);
+		return $data;
 	}
 	
 	/**
 	 * Send a query to the database */
 	function query($query, $output=true, $errors=true) {
-		if (_DEBUG_) $this->queries[] = $query;
+		if (WP_DEBUG) $this->queries[] = $query;
 		$result = @mysql_query($query, $this->dbh);
 		// echo "<pre>QUERY: $query</pre>";
-	
+
 		// Error handling
-		if ($this->dbh &&  $error = mysql_error($this->dbh)) {
-			if ($errors) trigger_error("Query failed.<br /><br />$error<br /><tt>$query</tt>");
-			else return false;
-		}
+		if ($this->dbh && $error = mysql_error($this->dbh)) 
+			new ShoppError(sprintf(__('Query failed: %s - DB Query: %s','Shopp'),$error, str_replace("\n","",$query)),'shopp_query_error',SHOPP_DB_ERR);
 				
 		// Results handling
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i",$query) ) {
@@ -103,8 +107,8 @@ class DB extends Singleton {
 	}
 		
 	function datatype($type) {
-		foreach($this->_datatypes as $datatype => $patterns) {
-			foreach($patterns as $pattern) {				
+		foreach((array)$this->_datatypes as $datatype => $patterns) {
+			foreach((array)$patterns as $pattern) {				
 				if (strpos($type,$pattern) !== false) return $datatype;
 			}
 		}
@@ -119,52 +123,56 @@ class DB extends Singleton {
 		
 		// Go through each data property of the object
 		foreach(get_object_vars($object) as $property => $value) {
+			if (!isset($object->_datatypes[$property])) continue;				
+
 			// If the property is has a _datatype
 			// it belongs in the database and needs
 			// to be prepared
-			
-			if (isset($object->_datatypes[$property])) {				
 				
-				// Process the data
-				switch ($object->_datatypes[$property]) {
-					case "string":
-						// Escape characters in strings as needed
-						if (is_array($value)) $value = $this->escape(serialize($value));
-						$data[$property] = "'".$this->escape($value)."'";
-						break;	
-					case "list":
-						// If value is empty, skip setting the field
-						// so it inherits the default value in the db
-						if (!empty($value)) 
-							$data[$property] = "'$value'";
-						break;
-					case "date":
-						// If the date is an integer, convert it to an
-						// sql YYYY-MM-DD HH:MM:SS format
-						if (is_int(intval($value))) {
-							$data[$property] = "'".mkdatetime($value)."'";
-						// If it's an empty date, set it to now()'s timestamp
-						} else if (empty($value)) {
-							$data[$property] = "now()";
-						// Otherwise it's already ready, so pass it through
-						} else {
-							$data[$property] = "'$value'";
-						}
-						break;
-					case "int":
-					case "float":
-						
-						$value = preg_replace("/,/",".",$value); // Replace commas with periods
-						$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
-						$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
+			// Process the data
+			switch ($object->_datatypes[$property]) {
+				case "string":
+					// Escape characters in strings as needed
+					if (is_array($value)) $value = $this->escape(serialize($value));
+					$data[$property] = "'".$this->escape($value)."'";
+					break;	
+				case "list":
+					// If value is empty, skip setting the field
+					// so it inherits the default value in the db
+					if (!empty($value)) 
 						$data[$property] = "'$value'";
-						break;
-					default:
-						// Anything not needing processing
-						// passes through into the object
+					break;
+				case "date":
+					// If it's an empty date, set it to now()'s timestamp
+					if (is_null($value)) {
+						$data[$property] = "now()";
+					// If the date is an integer, convert it to an
+					// sql YYYY-MM-DD HH:MM:SS format
+					} elseif (!empty($value) && is_int(intval($value))) {
+						$data[$property] = "'".mkdatetime(intval($value))."'";
+					// Otherwise it's already ready, so pass it through
+					} else {
 						$data[$property] = "'$value'";
-				}
-				
+					}
+					break;
+				case "int":
+				case "float":
+					
+					$value = preg_replace("/,/",".",$value); // Replace commas with periods
+					$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
+					$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
+					$data[$property] = "'$value'";
+					
+					if (empty($value)) $data[$property] = "'0'";
+
+					// Special exception for id fields
+					if ($property == "id" && empty($value)) $data[$property] = "NULL";
+					
+					break;
+				default:
+					// Anything not needing processing
+					// passes through into the object
+					$data[$property] = "'$value'";
 			}
 			
 		}
@@ -226,7 +234,12 @@ class DatabaseObject {
 			if (isset($Tables[$this->_table])) {
 				$this->_datatypes = $Tables[$this->_table]->_datatypes;
 				$this->_lists = $Tables[$this->_table]->_lists;
-				foreach($this->_datatypes as $property => $type) $this->{$property} = $this->_defaults[$property];
+				foreach($this->_datatypes as $property => $type) {
+					$this->{$property} = (isset($this->_defaults[$property]))?
+						$this->_defaults[$property]:'';
+					if (empty($this->{$property}) && $type == "date")
+						$this->{$property} = null;
+				}
 				return true;
 			}
 		}
@@ -240,7 +253,7 @@ class DatabaseObject {
 			$this->{$property} = $object->Default;
 			$this->_datatypes[$property] = $db->datatype($object->Type);
 			$this->_defaults[$property] = $object->Default;
-						
+			
 			// Grab out options from list fields
 			if ($db->datatype($object->Type) == "list") {
 				$values = str_replace("','", ",", substr($object->Type,strpos($object->Type,"'")+1,-2));
@@ -275,12 +288,12 @@ class DatabaseObject {
 		$where = "";
 		if (is_array($args[0])) 
 			foreach ($args[0] as $key => $id) 
-				$where .= ($where == "")?"$key='$id'":" AND $key='$id'";
+				$where .= ($where == ""?"":" AND ")."$key='".$db->escape($id)."'";
 		else {
 			$id = $args[0];
 			$key = $this->_key;
 			if (!empty($args[1])) $key = $args[1];
-			$where = $key."='$id'";
+			$where = $key."='".$db->escape($id)."'";
 		}
 
 		$r = $db->query("SELECT * FROM $this->_table WHERE $where LIMIT 1");
@@ -329,7 +342,7 @@ class DatabaseObject {
 		}
 
 	}
-	
+		
 	/**
 	 * Deletes the record associated with this object */
 	function delete () {
@@ -376,16 +389,18 @@ class DatabaseObject {
 		}
 		return $query;
 	}
-
+	
 	/**
 	 * Populate the object properties from a set of 
 	 * form post inputs  */
 	function updates($data,$ignores = array()) {
+		$db = DB::get();
+		
 		foreach ($data as $key => $value) {
 			if (!is_null($value) && 
 				!in_array($key,$ignores) && 
 				property_exists($this, $key) ) {
-				$this->{$key} = stripslashes_deep($value);
+				$this->{$key} = $db->clean($value);
 			}	
 		}
 	}
@@ -394,12 +409,14 @@ class DatabaseObject {
 	 * Copy property values from a given (like) object to this object
 	 * where the property names match */
 	function copydata ($Object,$prefix="") {
+		$db = DB::get();
+
 		$ignores = array("_datatypes","_table","_key","_lists","id","created","modified");
 		foreach(get_object_vars($Object) as $property => $value) {
 			$property = $prefix.$property;
 			if (property_exists($this,$property) && 
 				!in_array($property,$ignores)) 
-				$this->{$property} = stripslashes_deep($value);
+				$this->{$property} = $db->clean($value);
 		}
 	}
 

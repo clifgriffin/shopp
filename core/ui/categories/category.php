@@ -1,11 +1,68 @@
+<?php if (SHOPP_WP27): ?>
+<div class="wrap shopp"> 
+	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
+
+	<h2><?php _e('Category Editor','Shopp'); ?></h2> 
+
+	<div id="ajax-response"></div> 
+	<form name="category" id="category" action="<?php echo $Shopp->wpadminurl; ?>admin.php" method="post">
+		<?php wp_nonce_field('shopp-save-category'); ?>
+
+		<div id="poststuff" class="metabox-holder has-right-sidebar">
+
+			<div id="side-info-column" class="inner-sidebar">
+
+			<?php
+			do_action('submitpage_box');
+			$side_meta_boxes = do_meta_boxes('admin_page_shopp-categories-edit', 'side', $Category);
+			?>
+			</div>
+
+			<div id="post-body" class="<?php echo $side_meta_boxes ? 'has-sidebar' : 'has-sidebar'; ?>">
+			<div id="post-body-content" class="has-sidebar-content">
+
+				<div id="titlediv">
+					<div id="titlewrap">
+						<input name="name" id="title" type="text" value="<?php echo attribute_escape($Category->name); ?>" size="30" tabindex="1" autocomplete="off" />
+					</div>
+					<div class="inside">
+						<?php if (SHOPP_PERMALINKS && !empty($Category->id)): ?>
+						<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
+						<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo attribute_escape($Category->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Category->slug); ?></span>/</span>
+						<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>
+						</div>
+						<?php endif; ?>
+					</div>
+				</div>
+				<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
+				<?php the_editor($Category->description,'content','Description', false); ?>
+				<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
+				</div>
+				
+			<?php
+			do_meta_boxes('admin_page_shopp-categories-edit', 'normal', $Category);
+			do_meta_boxes('admin_page_shopp-categories-edit', 'advanced', $Category);
+			?>
+
+			</div>
+			</div>
+			</div>
+				
+		</div> <!-- #poststuff -->
+	</form>
+
+
+<?php else: ?>
+
 <div class="wrap shopp">
 	<h2><?php _e('Category Editor','Shopp'); ?></h2>
 
-	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
+	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
+	
 	<br class="clear" />
 
 	<?php $action = (!empty($Category->id))?$Category->id:'new'; ?>
-	<form name="category" id="category" method="post" action="<?php echo admin_url("admin.php?page=".$this->Admin->categories."&edit=$action"); ?>">
+	<form name="category" id="category" method="post" action="<?php echo $Shopp->wpadminurl; ?>admin.php">
 		<?php wp_nonce_field('shopp-save-category'); ?>
 		
 		<table class="form-table"> 
@@ -32,7 +89,7 @@
 			</tr>
 			<tr id="category-images" class="form-required"> 
 				<th scope="row" valign="top"><label><?php _e('Category Images','Shopp'); ?></label>
-					<input type="hidden" name="category" value="<?php echo $_GET['edit']; ?>" id="image-category-id" />
+					<input type="hidden" name="category" value="<?php echo $_GET['id']; ?>" id="image-category-id" />
 					<input type="hidden" name="deleteImages" id="deleteImages" value="" />
 					<div id="swf-uploader-button"></div>
 					<div id="swf-uploader">
@@ -43,10 +100,19 @@
 					</th> 
 				<td>
 					<ul id="lightbox">
-					<?php foreach ($Images as $thumbnail): ?>
-						<li id="image-<?php echo $thumbnail->src; ?>"><input type="hidden" name="images[]" value="<?php echo $thumbnail->src; ?>" /><img src="?shopp_image=<?php echo $thumbnail->id; ?>" width="96" height="96" />
-							<button type="button" name="deleteImage" value="<?php echo $thumbnail->src; ?>" title="Delete product image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
-					<?php endforeach; ?>
+						<?php foreach ($Images as $i => $thumbnail): $thumbnail->properties = unserialize($thumbnail->properties); ?>
+							<li id="image-<?php echo $thumbnail->src; ?>"><input type="hidden" name="images[]" value="<?php echo $thumbnail->src; ?>" />
+								<div id="image-<?php echo $thumbnail->src; ?>-details">
+								<img src="?shopp_image=<?php echo $thumbnail->id; ?>" width="96" height="96" />
+									<div class="details">
+										<input type="hidden" name="imagedetails[<?php echo $i; ?>][id]" value="<?php echo $thumbnail->id; ?>" />
+										<p><label>Title: </label><input type="text" name="imagedetails[<?php echo $i; ?>][title]" value="<?php echo $thumbnail->properties['title']; ?>" /></p>
+										<p><label>Alt: </label><input type="text" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $thumbnail->properties['alt']; ?>" /></p>
+										<p class="submit"><input type="button" name="close" value="Close" class="button close" /></p>
+									</div>
+								</div>
+								<button type="button" name="deleteImage" value="<?php echo $thumbnail->src; ?>" title="Delete category image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
+						<?php endforeach; ?>
 					</ul>
 					<div class="clear"></div>
 					<?php _e('The first image will be the default image. These thumbnails are out of proportion, but will be correctly sized for shoppers.','Shopp'); ?>
@@ -93,7 +159,7 @@
 							<ul></ul>
 						</div>
 						<div class="controls">
-						<button type="button" id="addDetail" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Detail','Shopp'); ?></small></button>
+						<button type="button" id="addDetail" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Detail','Shopp'); ?></small></button>
 						</div>
 					</li>
 					<li id="details-facetedmenu">
@@ -101,7 +167,7 @@
 							<ul></ul>
 						</div>
 						<div class="controls">
-						<button type="button" id="addDetailOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+						<button type="button" id="addDetailOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
 						</div>
 					</li>
 				</ul>
@@ -115,14 +181,14 @@
 				<ul class="multipane">
 					<li><div id="variations-menu" class="multiple-select options menu"><ul></ul></div>
 						<div class="controls">
-							<button type="button" id="addVariationMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
+							<button type="button" id="addVariationMenu" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
 						</div>
 					</li>
 				
 					<li>
-						<div id="variations-list" class="multiple-select options"></div><br />
-						<div class="controls right">
-						<button type="button" id="addVariationOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+						<div id="variations-list" class="multiple-select options"></div>
+						<div class="controls">
+						<button type="button" id="addVariationOption" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
 						</div>
 					</li>
 				</ul>
@@ -133,26 +199,40 @@
 		<tbody id="variations-pricing"></tbody>
 		</table>
 		</div>
-		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
+		<p class="submit"><input type="submit" class="button" name="save" value="<?php _e('Save Category','Shopp'); ?>" />	<select name="settings[workflow]" id="workflow">
+			<?php echo menuoptions($workflows,$Shopp->Settings->get('workflow'),true); ?>
+		</select></p>		
 	</form>
 </div>
+<?php endif; ?>
 
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Category";
 
-var swfu20 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
+var flashuploader = <?php echo (false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security'))?'false':'true'; ?>;
+var wp26 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
 var category = <?php echo (!empty($Category->id))?$Category->id:'false'; ?>;
 var details = <?php echo json_encode($Category->specs) ?>;
 var priceranges = <?php echo json_encode($Category->priceranges) ?>;
 var options = <?php echo json_encode($Category->options) ?>;
 var prices = <?php echo json_encode($Category->prices) ?>;
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
-var siteurl = '<?php echo get_option('siteurl'); ?>';
+var siteurl = '<?php echo $Shopp->siteurl; ?>';
+var adminurl = '<?php echo $Shopp->wpadminurl; ?>';
+var ajaxurl = adminurl+'admin-ajax.php';
+var addcategory_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_add_category"); ?>';
+var editslug_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
+var fileverify_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_verify_file"); ?>';
+var manager_page = '<?php echo $this->Admin->categories; ?>';
+var editor_page = '<?php echo $this->Admin->editcategory; ?>';
+var request = <?php echo json_encode(stripslashes_deep($_GET)); ?>;
+var workflow = {'continue':editor_page, 'close':manager_page, 'new':editor_page, 'next':editor_page, 'previous':editor_page};
+var worklist = <?php echo json_encode($this->categories_list(true)); ?>;
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
-var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
+var productspath = '<?php echo trailingslashit($this->Settings->get('products_path')); ?>';
 
 // Warning/Error Dialogs
 var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this category image?','Shopp'); ?>";
@@ -185,6 +265,8 @@ var NOT_TRACKED_TEXT = "<?php _e('Not Tracked','Shopp'); ?>";
 var IN_STOCK_LABEL = "<?php _e('In Stock','Shopp'); ?>";
 var SKU_LABEL = "<?php _e('SKU','Shopp'); ?>";
 var SKU_LABEL_HELP = "<?php _e('Stock Keeping Unit','Shopp'); ?>";
+var DONATIONS_VAR_LABEL = "<?php _e('Accept variable amounts','Shopp'); ?>";
+var DONATIONS_MIN_LABEL = "<?php _e('Amount required as minimum','Shopp'); ?>";
 var PRODUCT_DOWNLOAD_LABEL = "<?php _e('Product Download','Shopp'); ?>";
 var NO_PRODUCT_DOWNLOAD_TEXT = "<?php _e('No product download.','Shopp'); ?>";
 var NO_DOWNLOAD = "<?php _e('No download file.','Shopp'); ?>";
@@ -206,15 +288,19 @@ var changes = false;
 var saving = false;
 var flashUploader = false;
 var pricesPayload = false;
-var flash = flashua();
 
 $=jQuery.noConflict();
 
-
-$(window).ready(function () {
+$(document).ready(function () {	
 	var editslug = new SlugEditor(category,'category');
 	var imageUploads = new ImageUploads({"category" : $('#image-category-id').val()});
 	
+	updateWorkflow();
+	$('#category').submit(function () {
+		this.action = this.action+"?"+$.param(request);
+		return true;
+	});
+		
 	$('#templates, #details-template, #details-facetedmenu, #variations-template, #variations-pricing, #price-ranges, #facetedmenus-setting').hide();
 	
 	$('#spectemplates-setting').change(function () {
@@ -254,6 +340,8 @@ $(window).ready(function () {
 	if (priceranges) for (key in priceranges) addPriceLevel(priceranges[key]);	
 	if (options) loadVariations(options,prices);
 	
+	if (!category) $('#title').focus();
+	
 	function addPriceLevel (data) {
 		var menus = $('#pricerange-menu');
 		var id = pricelevelsidx++;
@@ -261,6 +349,13 @@ $(window).ready(function () {
 			{'axis':'y','scroll':false});
 		$(menu.label).change(function (){ this.value = asMoney(this.value); }).change();
 	}
+	
+	if (!wp26) {
+		postboxes.add_postbox_toggles('admin_page_shopp-categories-edit');
+		// close postboxes that should be closed
+		jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	}
+	
 	
 	
 	function addDetail (data) {
@@ -318,6 +413,38 @@ $(window).ready(function () {
 		});
 
 		detailsidx++;
+	}
+	
+	function updateWorkflow () {
+		$('#workflow').change(function () {
+			setting = $(this).val();
+			request.page = workflow[setting];
+			request.id = category;
+			if (!request.id) request.id = "new";
+			if (setting == "new") request.next = setting;
+
+			// Find previous category
+			if (setting == "previous") {
+				$.each(worklist,function (i,entry) {
+					if (entry.id == category) {
+						if (worklist[i-1]) request.next = worklist[i-1].id;
+						else request.page = workflow['close'];
+						return true;
+					}
+				});
+			}
+
+			// Find next category
+			if (setting == "next") {
+				$.each(worklist,function (i,entry) {
+					if (entry.id == category) {
+						if (worklist[i+1]) request.next = worklist[i+1].id;
+						else request.page = workflow['close'];
+						return true;
+					}
+				});
+			}
+		}).change();
 	}
 	
 });

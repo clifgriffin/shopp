@@ -20,11 +20,12 @@
  * Catalog/Category
  **/
 
+.categories ul li a.current { font-weight: bold; }
 #shopp .category { position: relative; }
 #shopp .views { display: inline; position: absolute; right: 0; top: 0; }
-#shopp .views button { border: none; background: none; width: 16px; height: 16px; padding: 4px; cursor: pointer; }
-#shopp .views button:hover { background-color: #ebebeb;}
-#shopp .views li { display: inline;  padding: 2px; }
+#shopp .views button { border: none; background: none; cursor: pointer; padding: 2px; }
+#shopp .views button:hover { background-color: #ebebeb; border: 1px solid #777; }
+#shopp .views li { display: inline; }
 #shopp .orderby { float: right; }
 
 #shopp .subcategories { padding: 10px 0; margin-bottom: 10px;}
@@ -48,9 +49,11 @@
 #shopp .original { text-decoration: line-through; }
 #shopp .sale { font-size: 150%; }
 
-.filters.enabled a.cancel:before { content: "["; }
-.filters.enabled a.cancel { font-weight: bold; }
-.filters.enabled a.cancel:after { content: "]"; }
+.filters a.cancel:before { content: "["; }
+.filters a.cancel { font-weight: bold; }
+.filters a.cancel:after { content: "]"; }
+.filters a.cancel:hover { text-decoration: none; }
+
 
 /* Product List View */
 #shopp.list ul.products li { float: none; width: 100%; clear: both; padding-bottom: 10px;}
@@ -65,6 +68,17 @@
 
 #shopp ul.categories { float: left; margin-right: 20px; }
 #shopp #new { float: left; width: 75%; }
+
+/* Category Pagination */
+#shopp ul.paging { /* placeholder for your styles - inherited defaults: clear: none; display: inline-block; */ }
+#shopp ul.paging li { /* placeholder for your styles - inherited defaults: display: inline-block; margin-left: 5px; */ }
+#shopp ul.paging li a { /* page links default styling */ }
+#shopp ul.paging li a:hover { /* page links hover styling */ }
+#shopp ul.paging li.active { /* currrent page style */ }
+#shopp ul.paging li.disabled { /* style for disabled previous/next links */ }
+#shopp ul.paging li.previous a,
+#shopp ul.paging li.next a { /* previous/next link style */ }
+
 
 /**
  * Product Pages
@@ -92,7 +106,7 @@
 #shopp #cart { width: 100%; }
 #shopp #cart table { padding: 10px 0; width: 100%; }
 #shopp #cart th { text-align: left; font-weight: bold; }
-#shopp #cart th, #shopp #cart td { padding: 3px 0; }
+#shopp #cart th, #shopp #cart td { padding: 3px; }
 #shopp #cart .item { width: 50%; }
 #shopp #cart .money, 
 #shopp #cart .totals th,
@@ -104,6 +118,11 @@
 #shopp #cart address { font-style: normal; }
 #shopp #cart big { display: block; margin: 10px 0; }
 #shopp #cart big a.right { float: right; }
+
+#shopp .xcheckout { display: block; clear: both; text-align: right; }
+#shopp .xcheckout button { border: none; margin: 0; padding: 0; }
+
+#shopp-cart.widget p.status { margin-bottom: 10px; }
 
 /**
  * Checkout 

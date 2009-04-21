@@ -119,27 +119,42 @@ function duration ($start,$end) {
  * or $_POST['variable'] */
 function shopp_email ($template,$data=array()) {
 	
-	if ( file_exists($template) ) $f = file($template);
-	else die("Could not open the email template because the file does not exist or is not readable. ($template)");
+	if (strpos($template,"\r\n") !== false) $f = split("\r\n",$template);
+	else {
+		if (file_exists($template)) $f = file($template);
+		else new ShoppError(__("Could not open the email template because the file does not exist or is not readable.","Shopp"),'email_template',SHOPP_ERR,array('template'=>$template));
+	}
+
+	$replacements = array(
+		"$" => "\\\$",		// Treat $ signs as literals
+		"€" => "&euro;",	// Fix euro symbols
+		"¥" => "&yen;",		// Fix yen symbols
+		"£" => "&pound;",	// Fix pound symbols
+		"¤" => "&curren;"	// Fix generic currency symbols
+	);
+
 	$debug = false;
 	$in_body = false;
 	$headers = "";
 	$message = "";
 	$protected = array("from","to","subject","cc","bcc");
 	while ( list($linenum,$line) = each($f) ) {
+		$line = rtrim($line);
 		// Data parse
 		if ( preg_match_all("/\[(.+?)\]/",$line,$labels,PREG_SET_ORDER) ) {
 			while ( list($i,$label) = each($labels) ) {
 				$code = $label[1];
 				if (empty($data)) $string = $_POST[$code];
 				else $string = $data[$code];
-				$string = str_replace("$","\\\$",$string); // Treat $ signs as literals
+
+				$string = str_replace(array_keys($replacements),array_values($replacements),$string); 
+
 				if (isset($string) && !is_array($string)) $line = preg_replace("/\[".$code."\]/",$string,$line);
 			}
 		}
 
 		// Header parse
-		if ( preg_match("/^(.+?):\s(.+)\n$/",$line,$found) && !$in_body ) {
+		if ( preg_match("/^(.+?):\s(.+)$/",$line,$found) && !$in_body ) {
 			$header = $found[1];
 			$string = $found[2];
 			if (in_array(strtolower($header),$protected)) // Protect against header injection
@@ -150,14 +165,17 @@ function shopp_email ($template,$data=array()) {
 		}
 		
 		// Catches the first blank line to begin capturing message body
-		if ( $line == "\n" ) $in_body = true;
-		if ( $in_body ) $message .= $line;
+		if ( empty($line) ) $in_body = true;
+		if ( $in_body ) $message .= $line."\n";
 	}
 
 	if (!$debug) mail($to,$subject,$message,$headers);
 	else {
-		echo "TO: $to<BR>SUBJECT: $subject<BR>MESSAGE:<BR>$message<BR><BR>HEADERS:<BR>";
 		echo "<pre>";
+		echo "To: $to\n";
+		echo "Subject: $subject\n\n";
+		echo "Message:\n$message\n";
+		echo "Headers:\n";
 		print_r($headers);
 		echo "<pre>";
 		exit();		
@@ -168,7 +186,7 @@ function shopp_email ($template,$data=array()) {
  * Generates an RSS-compliant string from an associative 
  * array ($data) with a specific RSS-structure. */
 function shopp_rss ($data) {
-	$xml = "<?xml version=\"1.0\""."?>\n";
+	$xml = "<?xml version=\"1.0\""." encoding=\"utf-8\"?>\n";
 	$xml .= "<rss version=\"2.0\" xmlns:base=\"".htmlentities($data['link'])."\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:g=\"http://base.google.com/ns/1.0\">\n";
 	$xml .= "<channel>\n";
 
@@ -207,9 +225,10 @@ function shopp_image () {
 
 	if (empty($image)) die();
 	$Asset = new Asset($image);
-	header ("Content-type: ".$Asset->properties['mimetype']);
-	header ("Content-Disposition: inline; filename=".$Asset->name.""); 
-	header ("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+	header('Last-Modified: '.date('D, d M Y H:i:s', $Asset->created).' GMT'); 
+	header("Content-type: ".$Asset->properties['mimetype']);
+	header("Content-Disposition: inline; filename=".$Asset->name.""); 
+	header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
 	if ($image_storage == "fs") {
 		header ("Content-length: ".@filesize(trailingslashit($image_path).$Asset->name)); 
 		readfile(trailingslashit($image_path).$Asset->name);
@@ -225,7 +244,10 @@ function shopp_catalog_css () {
 	$table = DatabaseObject::tablename(Settings::$table);
 	$settings = $db->query("SELECT name,value FROM $table WHERE name='gallery_thumbnail_width' OR name='row_products' OR name='row_products' OR name='gallery_small_width' OR name='gallery_small_height'",AS_ARRAY);
 	foreach ($settings as $setting) ${$setting->name} = $setting->value;
+
 	$pluginuri = WP_PLUGIN_URL."/".basename(dirname(dirname(__FILE__)))."/";
+	$pluginuri = force_ssl($pluginuri);
+
 	if (!isset($row_products)) $row_products = 3;
 	$products_per_row = floor((100/$row_products));
 	
@@ -297,6 +319,9 @@ function shopp_prereqs () {
 	// PHP releases will cause this code to never be executed
 	if (!version_compare(PHP_VERSION, '5.0','>=')) 
 		$errors[] = __("Shopp requires PHP version 5.0+.  You are using PHP version ").PHP_VERSION;
+
+	if (version_compare(PHP_VERSION, '5.1.3','==')) 
+		$errors[] = __("Shopp will not work with PHP version 5.1.3 because of a critical bug in complex POST data structures.  Please upgrade PHP to version 5.1.4 or higher.");
 		
 	// Check WordPress version
 	if (!version_compare(get_bloginfo('version'),'2.6','>='))
@@ -517,7 +542,7 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 /**
  * file_mimetype
  * Tries a variety of methods to determine a file's mimetype */
-function file_mimetype ($file) {
+function file_mimetype ($file,$name) {
 	if (function_exists('finfo_open')) {
 		// Try using PECL module
 		$f = finfo_open(FILEINFO_MIME);
@@ -534,9 +559,63 @@ function file_mimetype ($file) {
 	} elseif (strlen($mime=@shell_exec("file -bi ".escapeshellarg($file)))!=0) {
 		// Use shell if allowed
 		return trim($mime);
-	} elseif (function_exists('mime_content_type')) {
+	} elseif (function_exists('mime_content_type') && $mime = mime_content_type($file)) {
 		// Try with magic-mime if available
-		return mime_content_type($file);
+		return $mime;
+	} else {
+		if (!preg_match('/\.([a-z0-9]{2,4})$/i', $name, $extension)) return false;
+				
+		switch (strtolower($extension[1])) {
+			// misc files
+			case 'txt':	return 'text/plain';
+			case 'htm': case 'html': case 'php': return 'text/html';
+			case 'css': return 'text/css';
+			case 'js': return 'application/javascript';
+			case 'json': return 'application/json';
+			case 'xml': return 'application/xml';
+			case 'swf':	return 'application/x-shockwave-flash';
+		
+			// images
+			case 'jpg': case 'jpeg': case 'jpe': return 'image/jpg';
+			case 'png': case 'gif': case 'bmp': case 'tiff': return 'image/'.strtolower($matches[1]);
+			case 'tif': return 'image/tif';
+			case 'svg': case 'svgz': return 'image/svg+xml';
+		
+			// archives
+			case 'zip':	return 'application/zip';
+			case 'rar':	return 'application/x-rar-compressed';
+			case 'exe':	case 'msi':	return 'application/x-msdownload';
+			case 'tar':	return 'application/x-tar';
+			case 'cab': return 'application/vnd.ms-cab-compressed';
+		
+			// audio/video
+			case 'flv':	return 'video/x-flv';
+			case 'mpeg': case 'mpg':	case 'mpe': return 'video/mpeg';
+			case 'mp4s': return 'application/mp4';
+			case 'mp3': return 'audio/mpeg3';
+			case 'wav':	return 'audio/wav';
+			case 'aiff': case 'aif': return 'audio/aiff';
+			case 'avi':	return 'video/msvideo';
+			case 'wmv':	return 'video/x-ms-wmv';
+			case 'mov':	case 'qt': return 'video/quicktime';
+		
+			// ms office
+			case 'doc':	case 'docx': return 'application/msword';
+			case 'xls':	case 'xlt':	case 'xlm':	case 'xld':	case 'xla':	case 'xlc':	case 'xlw':	case 'xll':	return 'application/vnd.ms-excel';
+			case 'ppt':	case 'pps':	return 'application/vnd.ms-powerpoint';
+			case 'rtf':	return 'application/rtf';
+		
+			// adobe
+			case 'pdf':	return 'application/pdf';
+			case 'psd': return 'image/vnd.adobe.photoshop';
+		    case 'ai': case 'eps': case 'ps': return 'application/postscript';
+		
+			// open office
+		    case 'odt': return 'application/vnd.oasis.opendocument.text';
+		    case 'ods': return 'application/vnd.oasis.opendocument.spreadsheet';
+		}
+
+		return false;
 	}
 }
 
@@ -593,7 +672,7 @@ function scan_money_format ($format) {
 		$f['decimals'] = $dl[count($dl)-1];
 		$f['thousands'] = $dl[0];
 	} else $f['decimals'] = $dl[0];
-	
+
 	return $f;
 }
 
@@ -601,9 +680,10 @@ function money ($amount,$format=false) {
 	global $Shopp;
 	$locale = $Shopp->Settings->get('base_operations');
 	if (!$format) $format = $locale['currency']['format'];
-	if (!$format) $format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
+	if (empty($format['currency'])) 
+		$format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
 
-	if ($format['indian']) $number = indian_number($amount,$format);
+	if (isset($format['indian'])) $number = indian_number($amount,$format);
 	else $number = number_format($amount, $format['precision'], $format['decimals'], $format['thousands']);
 	if ($format['cpos']) return $format['currency'].$number;
 	else return $number.$format['currency'];
@@ -618,7 +698,7 @@ function percentage ($amount,$format=false) {
 		$format['precision'] = 0;
 	}
 	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
-	if ($format['indian']) return indian_number($amount,$format);
+	if (isset($format['indian'])) return indian_number($amount,$format);
 	return number_format(round($amount), $format['precision'], $format['decimals'], $format['thousands']).'%';
 }
 
@@ -638,6 +718,13 @@ function indian_number ($number,$format=false) {
 		$number = $number.$format['decimals'].substr(number_format('0.'.$d[1],$format['precision']),2);
 	return $number;
 	
+}
+
+function floatnum ($number) {
+	$number = preg_replace("/,/",".",$number); // Replace commas with periods
+	$number = preg_replace("/[^0-9\.]/","", $number); // Get rid of everything but numbers and periods
+	$number = preg_replace("/\.(?=.*\..*$)/s","",$number); // Replace all but the last period
+	return $number;
 }
 
 function value_is_true ($value) {
@@ -676,8 +763,8 @@ function inputattrs ($options,$allowed=array()) {
 				$string .= ' '.$key.'="'.$value.'"';
 		}
 	}
-	if (!empty($classes)) $string .= ' class="'.ltrim($classes).'"';
-	return $string;
+	$string .= 'class="'.$classes.'"';
+ 	return $string;
 }
 
 function build_query_request ($request=array()) {
@@ -689,9 +776,89 @@ function build_query_request ($request=array()) {
 	return $query;
 }
 
+function readableFileSize($bytes,$precision=1) {
+	$units = array(__("bytes","Shopp"),"KB","MB","GB","TB","PB");
+	$sized = $bytes*1;
+	if ($sized == 0) return $sized;
+	$unit = 0;
+	while ($sized > 1024 && ++$unit) $sized = $sized/1024;
+	return round($sized,$precision)." ".$units[$unit];
+}
+
+// From WP 2.7.0 for backwards compatibility
+function shopp_print_column_headers( $type, $id = true ) {
+	global $wp_version;
+	if (version_compare($wp_version,"2.7.0",">="))
+		return print_column_headers($type,$id);
+
+	$type = str_replace('.php', '', $type);
+	$columns = shopp_get_column_headers( $type );
+	$hidden = array();
+	$styles = array();
+	
+	foreach ( $columns as $column_key => $column_display_name ) {
+		$class = ' class="manage-column';
+		$class .= " column-$column_key";
+
+		if ( 'cb' == $column_key ) $class .= ' check-column';
+		elseif ( in_array($column_key, array('posts', 'comments', 'links')) )
+			$class .= ' num';
+
+		$class .= '"';
+
+		$style = '';
+		if ( in_array($column_key, $hidden) )
+			$style = 'display:none;';
+
+		if ( isset($styles[$type]) && isset($styles[$type][$column_key]) )
+			$style .= ' ' . $styles[$type][$column_key];
+		$style = ' style="' . $style . '"';
+?>
+	<th scope="col" <?php echo $id ? "id=\"$column_key\"" : ""; echo $class; echo $style; ?>><?php echo $column_display_name; ?></th>
+<?php }
+}
+
+// Adapted from WP 2.7.0 for backwards compatibility
+function shopp_register_column_headers($screen, $columns) {
+	global $wp_version;
+	if (version_compare($wp_version,"2.7.0",">="))
+		return register_column_headers($screen,$columns);
+		
+	global $_wp_column_headers;
+
+	if ( !isset($_wp_column_headers) )
+		$_wp_column_headers = array();
+
+	$_wp_column_headers[$screen] = $columns;
+}
+
+// Adapted from WP 2.7.0 for backwards compatibility
+function shopp_get_column_headers($page) {
+	global $_wp_column_headers;
+
+	if ( !isset($_wp_column_headers) )
+		$_wp_column_headers = array();
+
+	// Store in static to avoid running filters on each call
+	if ( isset($_wp_column_headers[$page]) )
+		return $_wp_column_headers[$page];
+
+  	return array();
+}
+
 function template_path ($path) {
 	if (DIRECTORY_SEPARATOR == "\\") $path = str_replace("/","\\",$path);
 	return $path;
+}
+
+function gateway_path ($file) {
+	return basename(dirname($file)).DIRECTORY_SEPARATOR.basename($file);
+}
+
+function force_ssl ($url) {
+	if(isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on")
+		$url = str_replace('http://', 'https://', $url);
+	return $url;
 }
 
 if ( !function_exists('sys_get_temp_dir')) {

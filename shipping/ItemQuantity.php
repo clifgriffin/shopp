@@ -18,7 +18,8 @@ class ItemQuantity {
 		$ShipCalc->methods[get_class($this).'::range'] = __("Item Quantity Tiers","Shopp");
 	}
 	
-	function calculate (&$Cart,$rate,$column) {
+	function calculate (&$Cart,$fees,$rate,$column) {
+		$ShipCosts = &$Cart->data->ShipCosts;
 		$items = 0;
 		foreach($Cart->shipped as $Item) $items += $Item->quantity;
 		foreach ($rate['max'] as $id => $value) {
@@ -28,7 +29,9 @@ class ItemQuantity {
 			}
 		}
 		if ($shipping == 0) $shipping = $rate[$column][$id];
-		return $shipping;
+		$rate['cost'] = $shipping+$fees;
+		$ShipCosts[$rate['name']] = $rate;
+		return $rate;
 	}
 	
 	function ui () {

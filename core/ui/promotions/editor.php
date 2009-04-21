@@ -1,9 +1,57 @@
+<?php if (SHOPP_WP27): ?>
+	<div class="wrap shopp"> 
+		<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
+
+		<h2><?php _e('Promotion Editor','Shopp'); ?></h2> 
+
+		<div id="ajax-response"></div> 
+		<form name="promotion" id="promotion" action="<?php echo add_query_arg('page',$this->Admin->promotions,$Shopp->wpadminurl."admin.php"); ?>" method="post">
+			<?php wp_nonce_field('shopp-save-promotion'); ?>
+
+			<div class="hidden"><input type="hidden" name="id" value="<?php echo $Promotion->id; ?>" /></div>
+
+			<div id="poststuff" class="metabox-holder has-right-sidebar">
+
+				<div id="side-info-column" class="inner-sidebar">
+				<?php
+				do_action('submitpage_box');
+				$side_meta_boxes = do_meta_boxes('admin_page_shopp-promotions-edit', 'side', $Promotion);
+				?>
+				</div>
+
+				<div id="post-body" class="<?php echo $side_meta_boxes ? 'has-sidebar' : 'has-sidebar'; ?>">
+				<div id="post-body-content" class="has-sidebar-content">
+
+					<div id="titlediv">
+						<div id="titlewrap">
+							<input name="name" id="title" type="text" value="<?php echo attribute_escape($Promotion->name); ?>" size="30" tabindex="1" autocomplete="off" />
+						</div>
+					</div>
+
+				<?php
+				do_meta_boxes('admin_page_shopp-promotions-edit', 'normal', $Promotion);
+				do_meta_boxes('admin_page_shopp-promotions-edit', 'advanced', $Promotion);
+				wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
+				?>
+
+				</div>
+				</div>
+				</div>
+
+			</div> <!-- #poststuff -->
+		</form>
+
+<?php else: ?>
+	
 <div class="wrap shopp">
+
 	<h2><?php _e('Promotion Editor','Shopp'); ?></h2>
 	
-	<form name="promotion" id="promotion" method="post" action="<?php echo $_SERVER['REQUEST_URI']; ?>">
+	<form name="promotion" id="promotion" method="post" action="<?php echo add_query_arg('page',$Shopp->Flow->Admin->promotions,$Shopp->wpadminurl."admin.php"); ?>">
 		<?php wp_nonce_field('shopp-save-promotion'); ?>
-		
+
+		<div class="hidden"><input type="hidden" name="id" value="<?php echo $Promotion->id; ?>" /></div>
+
 		<table class="form-table"> 
 			<tr class=" form-required"> 
 				<th scope="row" valign="top"><label for="promotion-name"><?php _e('Description','Shopp'); ?></label></th> 
@@ -17,18 +65,12 @@
 
 					<p></p>
 					
-					<div class="calendar-wrap"><div id="starts-calendar" class="calendar"></div><input type="text" name="starts[month]" id="starts-month" size="3" value="<?php echo ($Promotion->starts>1)?date("n",$Promotion->starts):''; ?>" />/<input type="text" name="starts[date]" id="starts-date" size="3"  value="<?php echo ($Promotion->starts>1)?date("j",$Promotion->starts):''; ?>" />/<input type="text" name="starts[year]" id="starts-year" size="5" value="<?php echo ($Promotion->starts>1)?date("Y",$Promotion->starts):''; ?>" /></div> &mdash; <div class="calendar-wrap"><div id="ends-calendar" class="calendar"></div><input type="text" name="ends[month]" id="ends-month" size="3" value="<?php echo ($Promotion->ends>1)?date("n",$Promotion->ends):''; ?>" />/<input type="text" name="ends[date]" id="ends-date" size="3" value="<?php echo ($Promotion->ends>1)?date("j",$Promotion->ends):''; ?>" />/<input type="text" name="ends[year]" id="ends-year" size="5" value="<?php echo ($Promotion->ends>1)?date("Y",$Promotion->ends):''; ?>" /></div>
-					<p><?php _e('Enter the date range this promotion will be in effect for.','Shopp'); ?></p>
+					<div id="start-position" class="calendar-wrap"><input type="text" name="starts[month]" id="starts-month" size="3" value="<?php echo ($Promotion->starts>1)?date("n",$Promotion->starts):''; ?>" class="selectall" />/<input type="text" name="starts[date]" id="starts-date" size="3" value="<?php echo ($Promotion->starts>1)?date("j",$Promotion->starts):''; ?>" class="selectall" />/<input type="text" name="starts[year]" id="starts-year" size="5" value="<?php echo ($Promotion->starts>1)?date("Y",$Promotion->starts):''; ?>" class="selectall" /></div> &mdash; <div id="end-position" class="calendar-wrap"><input type="text" name="ends[month]" id="ends-month" size="3" value="<?php echo ($Promotion->ends>1)?date("n",$Promotion->ends):''; ?>" class="selectall" />/<input type="text" name="ends[date]" id="ends-date" size="3" value="<?php echo ($Promotion->ends>1)?date("j",$Promotion->ends):''; ?>" class="selectall" />/<input type="text" name="ends[year]" id="ends-year" size="5" value="<?php echo ($Promotion->ends>1)?date("Y",$Promotion->ends):''; ?>" class="selectall" /></div>
+					<br />
+					<?php _e('Enter the date range this promotion will be in effect for.','Shopp'); ?>
 					
 	            </td>
 			</tr>			
-			<tr class=" form-required"> 
-				<th scope="row" valign="top"><label for="promotion-scope"><?php _e('Applied To','Shopp'); ?></label></th> 
-				<td><select name="scope" id="promotion-scope">
-					<?php echo menuoptions($Promotion->_lists['scope'],$Promotion->scope); ?>
-					</select><br />
-	            <?php _e('Apply the discount to individual catalog items, or to an entire order.','Shopp'); ?></td>
-			</tr>
 			<tr class=" form-required"> 
 				<th scope="row" valign="top"><label for="discount-type"><?php _e('Discount Type','Shopp'); ?></label></th> 
 				<td><select name="type" id="discount-type">
@@ -49,26 +91,44 @@
 			
 		</table>
 		<br class="clear" />
-		<h3><?php _e('For products where','Shopp'); ?> <select name="search" class="small">
-			<?php 
-				if (empty($Promotion->logic)) $Promotion->logic = "all";
-				echo menuoptions(array('any'=>__('any','Shopp'),'all' => __('all','Shopp')),$Promotion->logic,true); 
-			?>
-			</select> <?php _e('of these conditions are met:','Shopp'); ?></h3>
+		<?php
+			$scope = '<select name="scope" id="promotion-scope">';
+			$scope .= menuoptions($Promotion->_lists['scope'],$Promotion->scope);
+			$scope .= '</select>';
+	
+			if (empty($Promotion->logic)) $Promotion->logic = "all";
+	
+			$logic = '<select name="search" class="small">';
+			$logic .= menuoptions(array('any'=>__('any','Shopp'),'all' => __('all','Shopp')),$Promotion->logic,true);
+			$logic .= '</select>';
+		?>
+		
+		<h3><strong><?php printf(__('Apply discount to %s products where %s of these conditions are met','Shopp'),$scope,$logic); ?>:</strong></h3>
+		
 		<table class="form-table" id="rules"> 
 		</table>
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="Save Changes" /></p>
 	</form>
 </div>
+<?php endif; ?>
+
+<div id="starts-calendar" class="calendar"></div>
+<div id="ends-calendar" class="calendar"></div>
 
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
 
 $=jQuery.noConflict();
 
+$(document).ready( function() {
+
+$('#shopp-jsconflict').hide();
+
+var wp26 = <?php echo (SHOPP_WP27)?'false':'true'; ?>;
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 var rules = <?php echo json_encode($Promotion->rules); ?>;
 var ruleidx = 1;
+var promotion = <?php echo (!empty($Promotion->id))?$Promotion->id:'false'; ?>;
 var StartsCalendar = new PopupCalendar($('#starts-calendar'));
 StartsCalendar.render();
 var EndsCalendar = new PopupCalendar($('#ends-calendar'));
@@ -99,8 +159,7 @@ var RULES_LANG = {
 	"Is greater than":"<?php _e('Is greater than','Shopp'); ?>",
 	"Is greater than or equal to":"<?php _e('Is greater than or equal to','Shopp'); ?>",
 	"Is less than":"<?php _e('Is less than','Shopp'); ?>",
-	"Is less than or equal to":"<?php _e('Is less than or equal to','Shopp'); ?>",
-	
+	"Is less than or equal to":"<?php _e('Is less than or equal to','Shopp'); ?>"
 	
 }
 
@@ -168,7 +227,7 @@ function add_condition (rule,location) {
 
 	var valuefield = function (type) {
 		value.empty();
-		field = $('<input type="text" name="rules['+i+'][value]" />').appendTo(value);
+		field = $('<input type="text" name="rules['+i+'][value]" class="selectall" />').appendTo(value);
 		if (type == "price") field.change(function () { this.value = asMoney(this.value); });
 	}
 	
@@ -237,7 +296,12 @@ $('#promotion-scope').change(function () {
 
 });
 
-$('#starts-calendar').hide();
+
+
+var scpos = $('#start-position').offset();
+$('#starts-calendar').hide()
+	.css({left:scpos.left,
+		   top:scpos.top+$('#start-position input:first').height()});
 $('#starts-month').click(function (e) {
 	$('#ends-calendar').hide();
 	$('#starts-calendar').toggle();
@@ -248,7 +312,11 @@ $('#starts-month').click(function (e) {
 	});
 });
 
-$('#ends-calendar').hide();
+var ecpos = $('#end-position').offset();
+$('#ends-calendar').hide()
+	.css({left:ecpos.left,
+		   top:ecpos.top+$('#end-position input:first').height()});
+		
 $('#ends-month').click(function (e) {
 	$('#starts-calendar').hide();
 	$('#ends-calendar').toggle();
@@ -257,6 +325,17 @@ $('#ends-month').click(function (e) {
 		$('#ends-date').val(EndsCalendar.selection.getDate());
 		$('#ends-year').val(EndsCalendar.selection.getFullYear());
 	});
+});
+if (!wp26) {
+	jQuery(document).ready( function($) {
+		postboxes.add_postbox_toggles('admin_page_shopp-promotions-edit');
+		// close postboxes that should be closed
+		jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	});
+}
+
+if (!promotion) $('#title').focus();
+
 });
 
 </script>

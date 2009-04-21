@@ -5,13 +5,11 @@
 	<h3><?php shopp('category','name'); ?></h3>
 	<?php shopp('catalog','views','label=Views: '); ?>
 	<br class="clear" />
-	<ul class="subcategories">
-	<?php shopp('category','subcategory-list','hierarchy=true&showall=true'); ?>
-	</ul>
+	<?php shopp('category','subcategory-list','hierarchy=true&showall=true&class=subcategories'); ?>
 	<?php shopp('catalog','orderby-list','dropdown=on'); ?>
 	<div class="alignright"><?php shopp('category','pagination'); ?></div>
 	<br class="clear" />
-	
+
 	<ul class="products">
 		<li class="row"><ul>
 		<?php while(shopp('category','products')): ?>
@@ -28,7 +26,7 @@
 					
 						<div class="listview">
 						<p><?php shopp('product','summary'); ?></p>
-						<form action="" method="post" class="shopp product">
+						<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
 						<?php shopp('product','addtocart'); ?>
 						</form>
 						</div>
@@ -44,4 +42,10 @@
 	<div class="alignright"><?php shopp('category','pagination'); ?></div>
 	<br class="clear" />
 	</div>
+<?php else: ?>
+	<?php if (!shopp('catalog','is-landing')): ?>
+	<?php shopp('catalog','breadcrumb'); ?>
+	<h3><?php shopp('category','name'); ?></h3>
+	<p>No products were found.</p>
+	<?php endif; ?>
 <?php endif; ?>

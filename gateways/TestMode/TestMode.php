@@ -32,12 +32,8 @@ class TestMode {
 	}
 	
 	function error () {
-		if (!$this->Response) {
-			$Error = new stdClass();
-			$Error->code = "000";
-			$Error->message = "This is an example error message triggered by the Test Mode error setting.";
-			return $Error;
-		}
+		if (!$this->Response)
+			return new ShoppError(__("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.","Shopp"),'test_mode_error',SHOPP_TRXN_ERR);
 	}
 	
 	function build (&$Order) {
@@ -51,7 +47,11 @@ class TestMode {
 		<tr id="testmode-settings" class="addon">
 			<th scope="row" valign="top">Test Mode</th>
 			<td>
-				<input type="hidden" name="settings[TestMode][response]" value="success" /><input type="checkbox" name="settings[TestMode][response]" id="testmode_response" value="error"<?php echo ($this->settings['response'] == "error")?' checked="checked"':''; ?> /><label for="testmode_response"> <?php _e('Test error response'); ?></label>
+				<?php foreach ($this->cards as $card): ?>
+				<input type="hidden" name="settings[TestMode][cards][]" value="<?php echo $card; ?>" />
+				<?php endforeach; ?>
+				<input type="hidden" name="settings[TestMode][response]" value="success" /><input type="checkbox" name="settings[TestMode][response]" id="testmode_response" value="error"<?php echo ($this->settings['response'] == "error")?' checked="checked"':''; ?> /><label for="testmode_response"> <?php _e('Always show an error','Shopp'); ?></label><br />
+				<?php _e('Use to test and style error messages','Shopp'); ?>
 			</td>
 		</tr>
 		<?php
@@ -64,6 +64,6 @@ class TestMode {
 	}
 	
 
-} // end AuthorizeNet class
+} // end TestMode class
 
 ?>

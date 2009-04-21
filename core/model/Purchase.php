@@ -14,6 +14,7 @@ require("Purchased.php");
 class Purchase extends DatabaseObject {
 	static $table = "purchase";
 	var $purchased = array();
+	var $columns = array();
 
 	function Purchase ($id=false,$key=false) {
 		$this->init(self::$table);
@@ -28,6 +29,7 @@ class Purchase extends DatabaseObject {
 		$table = DatabaseObject::tablename(Purchased::$table);
 		if (empty($this->id)) return false;
 		$this->purchased = $db->query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
+		foreach ($this->purchased as &$purchase) $purchase->data = unserialize($purchase->data);
 		return true;
 	}
 	
@@ -40,35 +42,96 @@ class Purchase extends DatabaseObject {
 				$this->{$property} = $value;
 		}
 	}
+	
+	function exportcolumns () {
+		$prefix = "o.";
+		return array(
+			$prefix.'id' => __('Order ID','Shopp'),
+			$prefix.'ip' => __('Customer\'s IP Address','Shopp'),
+			$prefix.'firstname' => __('Customer\'s First Name','Shopp'),
+			$prefix.'lastname' => __('Customer\'s Last Name','Shopp'),
+			$prefix.'email' => __('Customer\'s Email Address','Shopp'),
+			$prefix.'phone' => __('Customer\'s Phone Number','Shopp'),
+			$prefix.'company' => __('Customer\'s Company','Shopp'),
+			$prefix.'card' => __('Credit Card Number','Shopp'),
+			$prefix.'cardtype' => __('Credit Card Type','Shopp'),
+			$prefix.'cardexpires' => __('Credit Card Expiration Date','Shopp'),
+			$prefix.'cardholder' => __('Credit Card Holder\'s Name','Shopp'),
+			$prefix.'address' => __('Billing Street Address','Shopp'),
+			$prefix.'xaddress' => __('Billing Street Address 2','Shopp'),
+			$prefix.'city' => __('Billing City','Shopp'),
+			$prefix.'state' => __('Billing State/Province','Shopp'),
+			$prefix.'country' => __('Billing Country','Shopp'),
+			$prefix.'postcode' => __('Billing Postal Code','Shopp'),
+			$prefix.'shipaddress' => __('Shipping Street Address','Shopp'),
+			$prefix.'shipxaddress' => __('Shipping Street Address 2','Shopp'),
+			$prefix.'shipcity' => __('Shipping City','Shopp'),
+			$prefix.'shipstate' => __('Shipping State/Province','Shopp'),
+			$prefix.'shipcountry' => __('Shipping Country','Shopp'),
+			$prefix.'shippostcode' => __('Shipping Postal Code','Shopp'),
+			$prefix.'shipmethod' => __('Shipping Method','Shopp'),
+			$prefix.'promos' => __('Promotions Applied','Shopp'),
+			$prefix.'subtotal' => __('Order Subtotal','Shopp'),
+			$prefix.'discount' => __('Order Discount','Shopp'),
+			$prefix.'freight' => __('Order Shipping Fees','Shopp'),
+			$prefix.'tax' => __('Order Taxes','Shopp'),
+			$prefix.'total' => __('Order Total','Shopp'),
+			$prefix.'fees' => __('Transaction Fees','Shopp'),
+			$prefix.'transactionid' => __('Transaction ID','Shopp'),
+			$prefix.'transtatus' => __('Transaction Status','Shopp'),
+			$prefix.'gateway' => __('Payment Gateway','Shopp'),
+			$prefix.'status' => __('Order Status','Shopp'),
+			$prefix.'data' => __('Order Data','Shopp'),
+			$prefix.'created' => __('Order Date','Shopp'),
+			$prefix.'modified' => __('Order Last Updated','Shopp')
+			);
+	}
 		
 	function tag ($property,$options=array()) {
 		global $Shopp;
-				
+
 		// Return strings with no options
 		switch ($property) {
 			case "url": return $Shopp->link('cart'); break;
 			case "id": return $this->id; break;
 			case "date": 
-				if (empty($options['format'])) $options['format'] = "F j, Y";
-				return date($options['format'],$this->created);
+				if (empty($options['format'])) $options['format'] = get_option('date_format');
+				return date($options['format'],((is_int($this->created))?$this->created:mktimestamp($this->created)));
 				break;
 			case "card": return (!empty($this->card))?sprintf("%'X16d",$this->card):''; break;
 			case "cardtype": return $this->cardtype; break;
 			case "transactionid": return $this->transactionid; break;
 			case "firstname": return $this->firstname; break;
 			case "lastname": return $this->lastname; break;
+			case "company": return $this->company; break;
+			case "email": return $this->email; break;
+			case "phone": return $this->phone; break;
 			case "address": return $this->address; break;
 			case "xaddress": return $this->xaddress; break;
 			case "city": return $this->city; break;
-			case "state": return $this->state; break;
+			case "state": 
+				if (strlen($this->state > 2)) return $this->state;
+				$regions = $Shopp->Settings->get('zones');
+				$states = $regions[$this->country];
+				return $states[$this->state];
+				break;
 			case "postcode": return $this->postcode; break;
-			case "country": return $this->country; break;
+			case "country": 
+				$countries = $Shopp->Settings->get('target_markets');
+				return $countries[$this->country]; break;
 			case "shipaddress": return $this->shipaddress; break;
 			case "shipxaddress": return $this->shipxaddress; break;
 			case "shipcity": return $this->shipcity; break;
-			case "shipstate": return $this->shipstate; break;
+			case "shipstate":
+				if (strlen($this->shipstate > 2)) return $this->shipstate;
+				$regions = $Shopp->Settings->get('zones');
+				$states = $regions[$this->country];
+				return $states[$this->shipstate];
+				break;
 			case "shippostcode": return $this->shippostcode; break;
-			case "shipcountry": return $this->shipcountry; break;
+			case "shipcountry": 
+				$countries = $Shopp->Settings->get('target_markets');
+				return $countries[$this->shipcountry]; break;
 			case "shipmethod": return $this->shipmethod; break;
 			case "totalitems": return count($this->purchased); break;
 			case "hasitems": if (count($this->purchased) > 0) return true; else return false; break;
@@ -111,7 +174,7 @@ class Purchase extends DatabaseObject {
 				if (!isset($options['label'])) $options['label'] = "Download Now";
 				if (isset($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
 				if (SHOPP_PERMALINKS) $url = $Shopp->shopuri."download/".$item->dkey;
-				else $url = get_bloginfo('wpurl')."?shopp_download=".$item->dkey;
+				else $url = add_query_arg('shopp_download',$item->dkey,$Shopp->shopuri);
 				return '<a href="'.$url.'"'.$options['class'].'>'.$options['label'].'</a>'; break;
 			case "item-quantity":
 				$item = current($this->purchased);
@@ -122,6 +185,50 @@ class Purchase extends DatabaseObject {
 			case "item-total":
 				$item = current($this->purchased);
 				return money($item->total); break;
+			case "item-has-inputs":
+			case "item-hasinputs": 
+				$item = current($this->purchased);
+				return (count($item->data) > 0); break;
+			case "item-inputs":
+				$item = current($this->purchased);
+				if (!$this->itemdataloop) {
+					reset($item->data);
+					$this->itemdataloop = true;
+				} else next($item->data);
+
+				if (current($item->data)) return true;
+				else {
+					$this->itemdataloop = false;
+					return false;
+				}
+				break;
+			case "item-input":
+				$item = current($this->purchased);
+				$data = current($item->data);
+				$name = key($item->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
+			case "has-data":
+			case "hasdata": return (count($this->data) > 0); break;
+			case "orderdata":
+				if (!$this->dataloop) {
+					reset($this->data);
+					$this->dataloop = true;
+				} else next($this->data);
+
+				if (current($this->data)) return true;
+				else {
+					$this->dataloop = false;
+					return false;
+				}
+				break;
+			case "data":
+				$data = current($this->data);
+				$name = key($this->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
 			case "subtotal": return money($this->subtotal); break;
 			case "hasfreight": return ($this->freight > 0);
 			case "freight": return money($this->freight); break;
@@ -130,9 +237,174 @@ class Purchase extends DatabaseObject {
 			case "hastax": return ($this->tax > 0)?true:false;
 			case "tax": return money($this->tax); break;
 			case "total": return money($this->total); break;
+			case "status": 
+				$labels = $Shopp->Settings->get('order_status');
+				if (empty($labels)) $labels = array('');
+				return $labels[$this->status];
+				break;
+				
 		}
 	}
 
 } // end Purchase class
+
+class PurchasesExport {
+	var $sitename = "";
+	var $headings = false;
+	var $data = false;
+	var $defined = array();
+	var $purchase_cols = array();
+	var $purchased_cols = array();
+	var $selected = array();
+	var $recordstart = true;
+	var $content_type = "text/plain";
+	var $extension = "txt";
+	
+	function PurchasesExport () {
+		global $Shopp;
+		
+		$this->purchase_cols = Purchase::exportcolumns();
+		$this->purchased_cols = Purchased::exportcolumns();
+		$this->defined = array_merge($this->purchase_cols,$this->purchased_cols);
+		
+		$this->sitename = get_bloginfo('name');
+		$this->headings = ($Shopp->Settings->get('purchaselog_headers') == "on");
+		$this->selected = $Shopp->Settings->get('purchaselog_columns');
+	}
+	
+	function query ($request=array()) {
+		$db =& DB::get();
+		if (empty($request)) $request = $_GET;
+		
+		if (!empty($request['start'])) {
+			list($month,$day,$year) = split("/",$request['start']);
+			$starts = mktime(0,0,0,$month,$day,$year);
+		}
+		
+		if (!empty($request['end'])) {
+			list($month,$day,$year) = split("/",$request['end']);
+			$ends = mktime(0,0,0,$month,$day,$year);
+		}
+		
+		$where = "WHERE o.id IS NOT NULL AND p.id IS NOT NULL ";
+		if (isset($request['status'])) $where .= "AND status='{$request['status']}'";
+		if (isset($request['s']) && !empty($request['s'])) $where .= " AND (id='{$request['s']}' OR firstname LIKE '%{$request['s']}%' OR lastname LIKE '%{$request['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$request['s']}%' OR transactionid LIKE '%{$request['s']}%')";
+		if (!empty($request['start']) && !empty($request['end'])) $where .= " AND  (UNIX_TIMESTAMP(o.created) >= $starts AND UNIX_TIMESTAMP(o.created) <= $ends)";
+		
+		$purchasetable = DatabaseObject::tablename(Purchase::$table);
+		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
+		
+		$c = 0; $columns = array();
+		foreach ($this->selected as $column) $columns[] = "$column AS col".$c++;
+		$query = "SELECT ".join(",",$columns)." FROM $purchasedtable AS p LEFT JOIN $purchasetable AS o ON o.id=p.purchase $where ORDER BY o.created ASC";
+		$this->data = $db->query($query,AS_ARRAY);
+	}
+
+	// Implement for exporting all the data
+	function output () {
+		if (!$this->data) $this->query();
+		if (!$this->data) return false;
+
+		header("Content-type: $this->content_type; charset=UTF-8");
+		header("Content-Disposition: attachment; filename=\"$this->sitename Purchase Log.$this->extension\"");
+		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+		header("Cache-Control: maxage=1");
+		header("Pragma: public");
+
+		$this->begin();
+		if ($this->headings) $this->heading();
+		$this->records();
+		$this->end();
+	}
+	
+	function begin() {}
+	
+	function heading () {
+		foreach ($this->selected as $name)
+			$this->export($this->defined[$name]);
+		$this->record();
+	}
+	
+	function records () {
+		foreach ($this->data as $key => $record) {
+			foreach(get_object_vars($record) as $column) 
+				$this->export($column);
+			$this->record();
+		}
+	}
+
+	function end() {}
+	
+	// Implement for exporting a single value
+	function export ($value) {
+		echo ($this->recordstart?"":"\t").$value;
+		$this->recordstart = false;
+	}
+	
+	function record () {
+		echo "\n";
+		$this->recordstart = true;
+	}
+	
+}
+
+class PurchasesTabExport extends PurchasesExport {
+	function PurchasesTabExport () {
+		parent::PurchasesExport();
+		$this->output();
+	}
+}
+
+class PurchasesCSVExport extends PurchasesExport {
+	function PurchasesCSVExport () {
+		parent::PurchasesExport();
+		$this->content_type = "text/csv";
+		$this->extension = "csv";
+		$this->output();
+	}
+	
+	function export ($value) {
+		$value = str_replace('"','""',$value);
+		if (preg_match('/^\s|[,"\n\r]|\s$/',$value)) $value = '"'.$value.'"';
+		echo ($this->recordstart?"":",").$value;
+		$this->recordstart = false;
+	}
+	
+}
+
+class PurchasesXLSExport extends PurchasesExport {
+	function PurchasesXLSExport () {
+		parent::PurchasesExport();
+		$this->content_type = "application/vnd.ms-excel";
+		$this->extension = "xls";
+		$this->c = 0; $this->r = 0;
+		$this->output();
+	}
+	
+	function begin () {
+		echo pack("ssssss", 0x809, 0x8, 0x0, 0x10, 0x0, 0x0);
+	}
+	
+	function end () {
+		echo pack("ss", 0x0A, 0x00);
+	}
+	
+	function export ($value) {
+		if (preg_match('/^[\d\.]+$/',$value)) {
+		 	echo pack("sssss", 0x203, 14, $this->r, $this->c, 0x0);
+			echo pack("d", $value);
+		} else {
+			$l = strlen($value);
+			echo pack("ssssss", 0x204, 8+$l, $this->r, $this->c, 0x0, $l);
+			echo $value;
+		}
+		$this->c++;
+	}
+	
+	function record () {
+		$this->c = 0;
+		$this->r++;
+	}
+}
 
 ?>

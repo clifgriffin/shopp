@@ -1,12 +1,13 @@
 <div class="wrap shopp">
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
-	<h2><?php _e('Checkout Settings','Shopp'); ?></h2>
-	<?php include("navigation.php"); ?>
 
-	<br class="clear" />
+	<h2><?php _e('Checkout Settings','Shopp'); ?></h2>
+
 	<form name="settings" id="checkout" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-checkout'); ?>
 		
+		<?php include("navigation.php"); ?>
+
 		<table class="form-table"> 
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="confirm_url"><?php _e('Order Confirmation','Shopp'); ?></label></th> 
@@ -16,7 +17,7 @@
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="receipt_copy_both"><?php _e('Receipt Emails','Shopp'); ?></label></th> 
 				<td><input type="radio" name="settings[receipt_copy]" value="0" id="receipt_copy_customer_only"<?php if ($this->Settings->get('receipt_copy') == "0") echo ' checked="checked"'; ?> /> <label for="receipt_copy_customer_only"><?php _e('Send to Customer Only','Shopp'); ?></label><br />
-					<input type="radio" name="settings[receipt_copy]" value="1" id="receipt_copy_both"<?php if ($this->Settings->get('receipt_copy') == "1") echo ' checked="checked"'; ?> /> <label for="receipt_copy_both"><?php _e('Send to Customer &amp; Shop Owner Email','Shopp'); ?></label> (<?php _e('see','Shopp'); ?> <a href="?page=shopp/settings&amp;edit=general"><?php _e('General Settings','Shopp'); ?></a>)</td>
+					<input type="radio" name="settings[receipt_copy]" value="1" id="receipt_copy_both"<?php if ($this->Settings->get('receipt_copy') == "1") echo ' checked="checked"'; ?> /> <label for="receipt_copy_both"><?php _e('Send to Customer &amp; Shop Owner Email','Shopp'); ?></label> (<?php _e('see','Shopp'); ?> <a href="?page=shopp-settings"><?php _e('General Settings','Shopp'); ?></a>)</td>
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="account-system-none"><?php _e('Customer Accounts','Shopp'); ?></label></th> 

@@ -4,7 +4,7 @@
  * @class PayPalPro
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.4
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  **/
@@ -13,7 +13,7 @@ class PayPalPro {
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
-	var $cards = array("Visa","MasterCard","Discover","American Express");
+	var $cards = array("Visa","MasterCard","Discover","Amex");
 	var $sandboxurl = "https://api-3t.sandbox.paypal.com/nvp";
 	var $liveurl = "https://api-3t.paypal.com/nvp";
 	
@@ -21,6 +21,7 @@ class PayPalPro {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('PayPalPro');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
+		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
 		
 		if (!empty($Order)) $this->build($Order);
 		return true;
@@ -39,10 +40,10 @@ class PayPalPro {
 	
 	function error () {
 		if (!empty($this->Response)) {
-			$Error = new stdClass();
-			$Error->code = $this->Response->errorcodes[0];
-			$Error->message = $this->Response->longerror[0];
-			return $Error;
+			$message = $this->Response->longerror[0];
+			$code = $this->Response->errorcodes[0];
+			if (empty($message)) return false;
+			return new ShoppError($message,'paypal_pro_transaction_error',SHOPP_TRXN_ERR);
 		}
 	}
 	
@@ -77,6 +78,9 @@ class PayPalPro {
 		$_['STATE']					= $Order->Billing->state;
 		$_['ZIP']					= $Order->Billing->postcode;
 		$_['COUNTRYCODE']			= $Order->Billing->country;
+
+		if ($Order->Billing->country == "UK") // PayPal uses ISO 3361-1
+			$_['COUNTRYCODE'] = "GB";
 		
 		// Shipping
 		if (!empty($Order->Shipping->address) &&
@@ -85,20 +89,26 @@ class PayPalPro {
 				!empty($Order->Shipping->postcode) && 
 				!empty($Order->Shipping->country)) {		
 			$_['SHIPTONAME'] 			= $Order->Customer->firstname.' '.$Order->Customer->lastname;
+			$_['SHIPTOPHONENUM']		= $Order->Customer->phone;
 			$_['SHIPTOSTREET']			= $Order->Shipping->address;
 			$_['SHIPTOSTREET2']			= $Order->Shipping->xaddress;
 			$_['SHIPTOCITY']			= $Order->Shipping->city;
 			$_['SHIPTOSTATE']			= $Order->Shipping->state;
 			$_['SHIPTOZIP']				= $Order->Shipping->postcode;
 			$_['SHIPTOCOUNTRYCODE']		= $Order->Shipping->country;
-			$_['SHIPTOPHONENUM']		= $Order->Customer->phone;
+			if ($Order->Shipping->country == "UK") // PayPal uses ISO 3361-1
+				$_['SHIPTOCOUNTRYCODE'] = "GB";
+
 		}
 		
 		// Transaction
 		$_['AMT']					= number_format($Order->Totals->total,2);
 		$_['ITEMAMT']				= number_format($Order->Totals->subtotal,2);
 		$_['SHIPPINGAMT']			= number_format($Order->Totals->shipping,2);
-		$_['TAXAMT']				= number_format($Order->Totals->tax);
+		$_['TAXAMT']				= number_format($Order->Totals->tax,2);
+		
+		if (isset($Order->data['paypal-custom']))
+			$_['CUSTOM'] = htmlentities($Order->data['paypal-custom']);
 		
 		// Line Items
 		foreach($Order->Items as $i => $Item) {
@@ -106,9 +116,9 @@ class PayPalPro {
 			$_['L_AMT'.$i]			= number_format($Item->unitprice,2);
 			$_['L_NUMBER'.$i]		= $i;
 			$_['L_QTY'.$i]			= $Item->quantity;
-			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,2);
+			$_['L_TAXAMT'.$i]		= number_format($Item->tax,2);
 		}
-		
+
 		$this->transaction = "";
 		foreach($_ as $key => $value) {
 			if (is_array($value)) {
@@ -140,6 +150,8 @@ class PayPalPro {
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);
+		if ($error = curl_error($connection)) 
+			new ShoppError($error,'paypal_pro_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 
 		$Response = $this->response($buffer);
@@ -181,16 +193,25 @@ class PayPalPro {
 		?>
 		<tr id="paypalpro-settings">
 			<th scope="row" valign="top">PayPal Pro</th>
-			<td>
-				<input type="hidden" name="settings[PayPalPro][cards]" value="<?php echo join(",",$this->cards); ?>" />
-				<div><input type="text" name="settings[PayPalPro][username]" id="paypal_pro_username" value="<?php echo $this->settings['username']; ?>" size="30" /><br /><label for="paypal_pro_username"><?php _e('Enter your PayPal API Username.'); ?></label></div>
-				<p><input type="password" name="settings[PayPalPro][password]" id="paypal_pro_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="paypal_pro_password"><?php _e('Enter your PayPal API Password.'); ?></label></p>
-				<p><input type="text" name="settings[PayPalPro][signature]" id="paypal_pro_signature" value="<?php echo $this->settings['signature']; ?>" size="16" /><br /><label for="paypal_pro_signature"><?php _e('Enter your PayPal API Signature.'); ?></label></p>
-				<p><input type="hidden" name="settings[PayPalPro][testmode]" value="off" /><input type="checkbox" name="settings[PayPalPro][testmode]" id="paypal_pro_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="paypal_pro_testmode"> <?php _e('Test Mode Enabled'); ?></label></p>
+			<td>                                        
 				
+				<div><input type="text" name="settings[PayPalPro][username]" id="paypal_pro_username" value="<?php echo $this->settings['username']; ?>" size="30" /><br /><label for="paypal_pro_username"><?php _e('Enter your PayPal API Username.'); ?></label></div>
+				<div><input type="password" name="settings[PayPalPro][password]" id="paypal_pro_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="paypal_pro_password"><?php _e('Enter your PayPal API Password.'); ?></label></div>
+				<div><input type="text" name="settings[PayPalPro][signature]" id="paypal_pro_signature" value="<?php echo $this->settings['signature']; ?>" size="48" /><br /><label for="paypal_pro_signature"><?php _e('Enter your PayPal API Signature.'); ?></label></div>
+				<div><input type="hidden" name="settings[PayPalPro][testmode]" value="off" /><input type="checkbox" name="settings[PayPalPro][testmode]" id="paypal_pro_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="paypal_pro_testmode"> <?php _e('Test Mode Enabled'); ?></label></div>
+				
+				<div><strong>Accept these cards:</strong>
+				<ul class="cards"><?php foreach($this->cards as $id => $card): 
+					$checked = "";
+					if (in_array($card,$this->settings['cards'])) $checked = ' checked="checked"';
+				?>
+					<li><input type="checkbox" name="settings[PayPalPro][cards][]" id="paypalpro_cards_<?php echo $id; ?>" value="<?php echo $card; ?>" <?php echo $checked; ?> /><label for="paypalpro_cards_<?php echo $id; ?>"> <?php echo $card; ?></label></li>
+				<?php endforeach; ?></ul></div>
+				
+				<input type="hidden" name="module[<?php echo basename(__FILE__); ?>]" value="PayPalPro" />
 			</td>
 		</tr>
-		<?
+		<?php
 	}
 	
 	function registerSettings () {
@@ -199,6 +220,6 @@ class PayPalPro {
 		<?php
 	}
 
-} // end AuthorizeNet class
+} // end PayPalPro class
 
 ?>

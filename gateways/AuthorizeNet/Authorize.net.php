@@ -4,7 +4,7 @@
  * @class AuthorizeNet
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
  **/
@@ -17,7 +17,7 @@ class AuthorizeNet {
 
 	function AuthorizeNet (&$Order="") {
 		global $Shopp;
-		$this->settings = $Shopp->Settings->get('Authorize.Net');
+		$this->settings = $Shopp->Settings->get('AuthorizeNet');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
 
@@ -36,12 +36,9 @@ class AuthorizeNet {
 	}
 	
 	function error () {
-		if (!empty($this->Response)) {
-			$Error = new stdClass();
-			$Error->code = $this->Response->reasoncode;
-			$Error->message = $this->Response->reason;
-			return $Error;
-		}
+		if (!empty($this->Response)) 
+			return new ShoppError($this->Response->reason,'authorize_net_error',SHOPP_TRXN_ERR,
+				array('code'=>$this->Response->reasoncode));
 	}
 	
 	function build (&$Order) {
@@ -100,7 +97,7 @@ class AuthorizeNet {
 		// Line Items
 		$i = 1;
 		foreach($Order->Items as $Item) {
-			$_['x_line_item'][] = ($i++)."<|>".substr($Item->name,0,31)."<|>".((sizeof($Item->options) > 1)?" (".substr($Item->optionlabel,0,253).")":"")."<|>".number_format($Item->quantity,2)."<|>".number_format($Item->unitprice,2)."<|>".(($Item->tax)?"Y":"N");
+			$_['x_line_item'][] = ($i++)."<|>".substr($Item->name,0,31)."<|>".((sizeof($Item->options) > 1)?" (".substr($Item->optionlabel,0,253).")":"")."<|>".number_format($Item->quantity,2)."<|>".number_format($Item->unitprice,2,'.','')."<|>".(($Item->tax)?"Y":"N");
 		}
 
 		$this->transaction = "";
@@ -131,6 +128,8 @@ class AuthorizeNet {
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);
+		if ($error = curl_error($connection)) 
+			new ShoppError($error,'authorize_net_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 
 		$Response = $this->response($buffer);
@@ -189,21 +188,21 @@ class AuthorizeNet {
 		<tr id="authorize-net-settings" class="addon">
 			<th scope="row" valign="top">Authorize.Net</th>
 			<td>
-				<div><input type="text" name="settings[Authorize.Net][login]" id="authorize_net_login" value="<?php echo $this->settings['login']; ?>" size="16" /><br /><label for="authorize_net_login"><?php _e('Enter your Authorize.net Login ID.'); ?></label></div>
-				<div><input type="password" name="settings[Authorize.Net][password]" id="authorize_net_password" value="<?php echo $this->settings['password']; ?>" size="24" /><br /><label for="authorize_net_password"><?php _e('Enter your Authorize.net Password or Transaction Key.'); ?></label></div>
-				<div><input type="hidden" name="settings[Authorize.Net][testmode]" value="off"><input type="checkbox" name="settings[Authorize.Net][testmode]" id="authorize_net_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="authorize_net_testmode"> <?php _e('Enable test mode'); ?></label></div>
+				<div><input type="text" name="settings[AuthorizeNet][login]" id="authorize_net_login" value="<?php echo $this->settings['login']; ?>" size="16" /><br /><label for="authorize_net_login"><?php _e('Enter your AuthorizeNet Login ID.'); ?></label></div>
+				<div><input type="password" name="settings[AuthorizeNet][password]" id="authorize_net_password" value="<?php echo $this->settings['password']; ?>" size="24" /><br /><label for="authorize_net_password"><?php _e('Enter your AuthorizeNet Password or Transaction Key.'); ?></label></div>
+				<div><input type="hidden" name="settings[AuthorizeNet][testmode]" value="off"><input type="checkbox" name="settings[AuthorizeNet][testmode]" id="authorize_net_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="authorize_net_testmode"> <?php _e('Enable test mode'); ?></label></div>
 				<div><strong>Accept these cards:</strong>
 				<ul class="cards"><?php foreach($this->cards as $id => $card): 
 					$checked = "";
 					if (in_array($card,$this->settings['cards'])) $checked = ' checked="checked"';
 				?>
-					<li><input type="checkbox" name="settings[Authorize.Net][cards][]" id="authorize_net_cards_<?php echo $id; ?>" value="<?php echo $card; ?>" <?php echo $checked; ?> /><label for="authorize_net_cards_<?php echo $id; ?>"> <?php echo $card; ?></label></li>
+					<li><input type="checkbox" name="settings[AuthorizeNet][cards][]" id="authorize_net_cards_<?php echo $id; ?>" value="<?php echo $card; ?>" <?php echo $checked; ?> /><label for="authorize_net_cards_<?php echo $id; ?>"> <?php echo $card; ?></label></li>
 				<?php endforeach; ?></ul></div>
 				
-				<input type="hidden" name="module[<?php echo basename(__FILE__); ?>]" value="Authorize.Net" />
+				<input type="hidden" name="module[<?php echo basename(__FILE__); ?>]" value="AuthorizeNet" />
 			</td>
 		</tr>
-		<?
+		<?php
 	}
 	
 	function registerSettings () {

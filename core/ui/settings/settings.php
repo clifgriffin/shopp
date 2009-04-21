@@ -1,11 +1,12 @@
 <div class="wrap shopp">
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
+	
 	<h2><?php _e('Settings','Shopp'); ?></h2>
-	<?php include("navigation.php"); ?>
-
-	<br class="clear" />
+	
 	<form name="settings" id="general" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-general'); ?>
+
+		<?php include("navigation.php"); ?>
 		
 		<table class="form-table"> 
 			<tr class="form-required"> 
@@ -33,13 +34,13 @@
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="target_markets"><?php _e('Target Markets','Shopp'); ?></label></th> 
 				<td>
-					<div class="multiple-select">
+					<div id="target_markets" class="multiple-select">
 						<ul>
 							
 							<?php $even = true; foreach ($targets as $iso => $country): ?>
 								<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" checked="checked" /><label for="market-<?php echo $iso; ?>" accesskey="<?php echo substr($iso,0,1); ?>"><?php echo $country; ?></label></li>
 							<?php endforeach; ?>
-							<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_targetmarkets"  id="selectall_targetmarkets" /><label for="selectall_targetmarkets"><strong>Select All</strong></label></li>							
+							<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_targetmarkets"  id="selectall_targetmarkets" /><label for="selectall_targetmarkets"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>							
 							<?php foreach ($countries as $iso => $country): ?>
 							<?php if (!in_array($country,$targets)): ?>
 							<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[target_markets][<?php echo $iso; ?>]" value="<?php echo $country; ?>" id="market-<?php echo $iso; ?>" /><label for="market-<?php echo $iso; ?>" accesskey="<?php echo substr($iso,0,1); ?>"><?php echo $country; ?></label></li>
@@ -91,13 +92,9 @@ $('#base_operations').change(function() {
 	});
 });
 
-$('#selectall_targetmarkets').change(function() {
-	$('div.multiple-select ul li input').each( function () {
-		if (this.id !== "selectall_targetmarkets") {
-			if (this.checked) this.checked = false;
-			else this.checked = true;
-		}
-	});
+$('#selectall_targetmarkets').change(function () { 
+	if ($(this).attr('checked')) $('#target_markets input').not(this).attr('checked',true); 
+	else $('#target_markets input').not(this).attr('checked',false); 
 });
 
 var addLabel = function (id,label,location) {
@@ -110,10 +107,9 @@ var addLabel = function (id,label,location) {
 
 	var wrap = $('<span></span>').appendTo(li);
 	var input = $('<input type="text" name="settings[order_status]['+id+']" id="label-'+i+'" size="14" />').appendTo(wrap);
-	var deleteButton = $('<button type="button" class="delete"></button>').prependTo(wrap).hide();
+	var deleteButton = $('<button type="button" class="delete"></button>').appendTo(wrap).hide();
 	var deleteIcon = $('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="Delete" width="16" height="16" />').appendTo(deleteButton);
-	var addspan = $('<span></span>').appendTo(li);
-	var addButton = $('<button type="button" class="add"></button>').appendTo(addspan);
+	var addButton = $('<button type="button" class="add"></button>').appendTo(wrap);
 	var addIcon = $('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="Add" width="16" height="16" />').appendTo(addButton);
 	
 	if (i > 0) {

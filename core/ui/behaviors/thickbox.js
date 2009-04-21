@@ -5,7 +5,16 @@
  * Licensed under the MIT License: http://www.opensource.org/licenses/mit-license.php
 */
 
+var tb_show = false;
+var tb_remove = false;
+
 (function($) {
+
+// fixes the fact that ie7 now reports itself as MSIE 6.0 compatible
+$.browser.msie6 = 
+        $.browser.msie 
+        && /MSIE 6\.0/i.test(window.navigator.userAgent) 
+        && !/MSIE 7\.0/i.test(window.navigator.userAgent);
 
 //on page load call tb_init
 $(document).ready(function(){   
@@ -26,7 +35,7 @@ function tb_init(domChunk){
 	});
 }
 
-function tb_show(caption, url, imageGroup) {//function called when the user clicks on a thickbox link
+tb_show = function (caption, url, imageGroup) {//function called when the user clicks on a thickbox link
 
 	try {
 		if (typeof document.body.style.maxHeight === "undefined") {//if IE 6
@@ -66,7 +75,7 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 	   var urlType = baseURL.toLowerCase().match(urlString);
 
 		if(url.indexOf('?shopp_image=') != -1 || urlType == '.jpg' || urlType == '.jpeg' || urlType == '.png' || urlType == '.gif' || urlType == '.bmp'){//code to show images
-				
+
 			TB_PrevCaption = "";
 			TB_PrevURL = "";
 			TB_PrevHTML = "";
@@ -76,7 +85,7 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 			TB_imageCount = "";
 			TB_FoundURL = false;
 			if(imageGroup){
-				TB_TempArray = $("a[@rel="+imageGroup+"]").get();
+				TB_TempArray = $("a[rel="+imageGroup+"]").get();
 				for (TB_Counter = 0; ((TB_Counter < TB_TempArray.length) && (TB_NextHTML === "")); TB_Counter++) {
 					var urlTypeTemp = TB_TempArray[TB_Counter].href.toLowerCase().match(urlString);
 						if (!(TB_TempArray[TB_Counter].href == url)) {						
@@ -94,6 +103,7 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 							TB_imageCount = "Image " + (TB_Counter + 1) +" of "+ (TB_TempArray.length);											
 						}
 				}
+				
 			}
 
 			imgPreloader = new Image();
@@ -122,7 +132,7 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 				}
 			}
 			// End Resizing
-			
+
 			TB_WIDTH = imageWidth + 30;
 			TB_HEIGHT = imageHeight + 60;
 			$("#TB_window").append("<a href='' id='TB_ImageOff' title='Close'><img id='TB_Image' src='"+url+"' width='"+imageWidth+"' height='"+imageHeight+"' alt='"+caption+"'/></a>" + "<div id='TB_caption'>"+caption+"<div id='TB_secondLine'>" + TB_imageCount + TB_PrevHTML + TB_NextHTML + "</div></div><div id='TB_closeWindow'>Press Esc Key or <a href='#' id='TB_closeWindowButton' title='Close'>X</a></div>"); 		
@@ -171,13 +181,13 @@ function tb_show(caption, url, imageGroup) {//function called when the user clic
 					}
 				}	
 			};
-			
+
 			tb_position();
 			$("#TB_load").remove();
 			$("#TB_ImageOff").click(tb_remove);
 			$("#TB_window").css({display:"block"}); //for safari using css instead of show
 			};
-			
+
 			imgPreloader.src = url;
 		}else{//code to show html
 			
@@ -265,7 +275,7 @@ function tb_showIframe(){
 	$("#TB_window").css({display:"block"});
 }
 
-function tb_remove() {
+tb_remove = function () {
  	$("#TB_imageOff").unbind("click");
 	$("#TB_closeWindowButton").unbind("click");
 	$("#TB_window").fadeOut("fast",function(){$('#TB_window,#TB_overlay,#TB_HideSelect').trigger("unload").unbind().remove();});
@@ -281,7 +291,7 @@ function tb_remove() {
 
 function tb_position() {
 $("#TB_window").css({marginLeft: '-' + parseInt((TB_WIDTH / 2),10) + 'px', width: TB_WIDTH + 'px'});
-	if ( !(jQuery.browser.msie && jQuery.browser.version < 7)) { // take away IE6
+	if ( !(jQuery.browser.msie6)) { // take away IE6
 		$("#TB_window").css({marginTop: '-' + parseInt((TB_HEIGHT / 2),10) + 'px'});
 	}
 }

@@ -22,16 +22,27 @@ var changes = false;
 var saving = false;
 var flashUploader = false;
 var pricesPayload = true;
-var flash = flashua();
 
-function init () {
-	window.onbeforeunload = function () { if (changes && !saving) return false; }	
+$(document).ready( function($) {
+
+	if (!wp26) {
+		postboxes.add_postbox_toggles('admin_page_shopp-products-edit');
+		// close postboxes that should be closed
+		jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	}
+	
+	if (!product) $('#title').focus();
+		
 	$('#product').change(function () { changes = true; });
-	$('#product').submit(function() { saving = true; });
+	$('#product').submit(function() {
+		this.action = this.action+"?"+$.param(request);
+		saving = true;
+		return true;
+	});
 
 	var editslug = new SlugEditor(product,'product');
 
-	if (specs) for (s in specs) addDetail(specs[s]);
+	if (specs) $.each(specs,function () { addDetail(this) });
 	$('#addDetail').click(function() { addDetail(); });
 
 	var basePrice = $(prices).get(0);
@@ -43,12 +54,48 @@ function init () {
 	loadVariations(options,prices);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
-		
+	
 	categories();
 	tags();
 	quickSelects();
+	updateWorkflow();
+	
+	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
+	window.onbeforeunload = function () { if (changes && !saving) return false; }	
+
+});
+
+function updateWorkflow () {
+	$('#workflow').change(function () {
+		setting = $(this).val();
+		request.page = workflow[setting];
+		request.id = product;
+		if (!request.id) request.id = "new";
+		if (setting == "new") request.next = setting;
 		
-	imageUploads = new ImageUploads({"product" : $('#image-product-id').val()});
+		// Find previous product
+		if (setting == "previous") {
+			$.each(worklist,function (i,entry) {
+				if (entry.id == product) {
+					if (worklist[i-1]) request.next = worklist[i-1].id;
+					else request.page = workflow['close'];
+					return true;
+				}
+			});
+		}
+		
+		// Find next product
+		if (setting == "next") {
+			$.each(worklist,function (i,entry) {
+				if (entry.id == product) {
+					if (worklist[i+1]) request.next = worklist[i+1].id;
+					else request.page = workflow['close'];
+					return true;
+				}
+			});
+		}
+		
+	}).change();
 }
 
 function categories () {
@@ -65,7 +112,8 @@ function categories () {
 		var parent = $('#new-category select').val();
 		if (name != "") {
 			$(this).addClass('updating');
-			$.getJSON(siteurl+"/wp-admin/admin-ajax.php?action=wp_ajax_shopp_add_category&name="+name+"&parent="+parent,function(Category) {
+			$.getJSON(addcategory_url+"&action=wp_ajax_shopp_add_category&name="+name+"&parent="+parent,
+				function(Category) {
 				$('#add-new-category').removeClass('updating');
 				addCategoryMenuItem(Category);
 
@@ -107,15 +155,33 @@ function categories () {
 		// Load category variation option templates
 		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=optionstemplate&cat="+id,function (template) {
 			if (!template) return true;
+			if (!template.options) return true;
 			
 			if (!$('#variations-setting').attr('checked')) {
 				$('#variations-setting').click();
 				variationsToggle();
 			}
-			
-			loadVariations(template.options,template.prices);
-		});
 
+			if (optionMenus.length > 0) {
+				$.each(template.options,function (tid,tmenu) {
+					if (menu = optionMenuExists(tmenu.name)) {
+						var added = false;
+						$.each(tmenu.options,function (i,option) {
+							if (!optionMenuItemExists(menu,option.name)) {
+								menu.addOption(option);
+								added = true;
+							}
+						});
+						if (added) addVariationPrices();
+					} else {
+						addVariationOptionsMenu(tmenu);
+						addVariationPrices();
+					}
+					
+				});
+			} else loadVariations(template.options,template.prices);
+
+		});
 	});
 		
 	// Add to selection menu

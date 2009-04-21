@@ -10,14 +10,17 @@
  **/
 
 class Item {
-	var $product;
-	var $price;
-	var $sku;
-	var $type;
-	var $name;
-	var $description;
-	var $optionlabel;
+	var $product = false;
+	var $price = false;
+	var $category = false;
+	var $sku = false;
+	var $type = false;
+	var $name = false;
+	var $description = false;
+	var $optionlabel = false;
+	var $variation = array();
 	var $option = false;
+	var $menus = array();
 	var $options = array();
 	var $saved = 0;
 	var $savings = 0;
@@ -26,12 +29,13 @@ class Item {
 	var $total = 0;
 	var $weight = 0;
 	var $shipfee = 0;
+	var $tax = 0;
 	var $download = false;
 	var $shipping = false;
 	var $inventory = false;
-	var $tax = false;
+	var $taxable = false;
 
-	function Item ($Product,$pricing) {
+	function Item ($Product,$pricing,$category,$data=array()) {
 		global $Shopp; // To access settings
 
 		$Product->load_data(array('prices','images'));
@@ -43,21 +47,40 @@ class Item {
 		if (is_array($pricing)) $Price = $Product->pricekey[$Product->optionkey($pricing)];
 		else if ($pricing) $Price = $Product->priceid[$pricing];
 		else $Price = $Product->prices[0];
-				
+		
 		$this->product = $Product->id;
 		$this->price = $Price->id;
+		$this->category = $category;
 		$this->option = $Price;
 		$this->name = $Product->name;
+		$this->slug = $Product->slug;
 		$this->description = $Product->summary;
-		$this->thumbnail = $Product->thumbnail;
-		$this->options = $Product->prices;
+		if (isset($Product->thumbnail)) $this->thumbnail = $Product->thumbnail;
+		$this->menus = $Product->options;
+		if ($Product->variations == "on") $this->options = $Product->prices;
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
+		$this->sale = $Price->onsale;
 		$this->saved = ($Price->price - $Price->promoprice);
 		$this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
 		$this->freeshipping = ($Price->freeshipping || $Product->freeshipping);
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
 		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
+		$this->donation = $Price->donation;
+		$this->data = $data;
+		
+		// Map out the selected menu name and option
+		if ($Product->variations == "on") {
+			$selected = split(",",$this->option->options); $s = 0;
+			foreach ($this->menus as $i => $menu) {
+				foreach($menu['options'] as $option) {
+					if ($option['id'] == $selected[$s]) {
+						$this->variation[$menu['name']] = $option['name']; break;
+					}
+				}
+				$s++;
+			}
+		}
 
 		if (!empty($Price->download)) $this->download = $Price->download;
 		
@@ -68,19 +91,34 @@ class Item {
 		}
 		
 		$this->inventory = ($Price->inventory == "on")?true:false;
-		$this->tax = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
+		$this->taxable = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
 	}
 		
 	function quantity ($qty) {
+
+		if ($this->type == "Donation" && $this->donation['var'] == "on") {
+			if ($this->donation['min'] == "on" && floatnum($qty) < $this->unitprice) 
+				$this->unitprice = $this->unitprice;
+			else $this->unitprice = floatnum($qty);
+			$this->quantity = 1;
+			$qty = 1;
+		}
+
+		$qty = preg_replace('/[^\d+]/','',$qty);
 		if ($this->inventory) {
 			if ($qty > $this->option->stock) 
 				$this->quantity = $this->option->stock;
 			else $this->quantity = $qty;
 		} else $this->quantity = $qty;
+		
 		$this->total = $this->quantity * $this->unitprice;
 	}
 	
 	function add ($qty) {
+		if ($this->type == "Donation" && $this->donation['var'] == "on") {
+			$qty = floatnum($qty);
+			$this->quantity = $this->unitprice;
+		}
 		$this->quantity($this->quantity+$qty);
 	}
 	
@@ -121,32 +159,30 @@ class Item {
 	function tag ($id,$property,$options=array()) {
 		global $Shopp;
 		
-		$url = "&amp;shopp_pid=".$this->product;
-		$imageuri =  trailingslashit(get_bloginfo('wpurl'))."?shopp_image=";
-		if (SHOPP_PERMALINKS) {
-			$pages = $Shopp->Settings->get('pages');
-			if ($Shopp->link('catalog') == get_bloginfo('wpurl')."/")
-				$url =  $pages['catalog']['name']."/".$this->product;
-			else $url = $this->product;
-			$imageuri = trailingslashit(get_bloginfo('wpurl'))."{$pages['catalog']['permalink']}images/";
-		}		
+		
+		if (SHOPP_PERMALINKS) $imageuri = $Shopp->shopuri."images/";
+		$imageuri =  $Shopp->shopuri."?shopp_image=";
 		
 		// Return strings with no options
 		switch ($property) {
 			case "id": return $id;
 			case "name": return $this->name;
-			case "url": return $Shopp->link('catalog').$url;
+			case "link":
+			case "url": 
+				return (SHOPP_PERMALINKS)?
+					$Shopp->shopuri.$this->slug:
+					add_query_arg('shopp_pid',$this->product,$Shopp->shopuri);
 			case "sku": return $this->sku;
 		}
 		
 		// Handle currency values
 		$result = "";
 		switch ($property) {
-			case "unitprice": $result = $this->unitprice; break;
-			case "total": $result = $this->total; break;
-			case "tax": $result = $this->tax; break;			
+			case "unitprice": $result = (float)$this->unitprice; break;
+			case "total": $result = (float)$this->total; break;
+			case "tax": $result = (float)$this->tax; break;			
 		}
-		if (!empty($result)) {
+		if (is_float($result)) {
 			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
 			else return money($result);
 		}
@@ -155,6 +191,7 @@ class Item {
 		switch ($property) {
 			case "quantity": 
 				$result = $this->quantity;
+				if ($this->type == "Donation" && $this->donation['var'] == "on") return $result;
 				if (isset($options['input']) && $options['input'] == "menu") {
 					if (!isset($options['value'])) $options['value'] = $this->quantity;
 					if (!isset($options['options'])) 
@@ -198,8 +235,10 @@ class Item {
 			case "optionlabel": $result = $this->optionlabel; break;
 			case "options":
 				$class = "";
-				if (strtolower($options['show']) == "selected") 
-					return (!empty($this->optionlabel))?$options['before'].$this->optionlabel.$options['after']:'';
+				if (isset($options['show']) && 
+					strtolower($options['show']) == "selected") 
+					return (!empty($this->optionlabel))?
+						$options['before'].$this->optionlabel.$options['after']:'';
 					
 				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
 				if (count($this->options) > 1) {
@@ -210,6 +249,43 @@ class Item {
 					$result .= '</select>';
 					$result .= $options['after'];
 				}
+				break;
+			case "hasinputs": 
+			case "has-inputs": return (count($this->data) > 0); break;
+			case "inputs":			
+				if (!$this->dataloop) {
+					reset($this->data);
+					$this->dataloop = true;
+				} else next($this->data);
+
+				if (current($this->data)) return true;
+				else {
+					$this->dataloop = false;
+					return false;
+				}
+				break;
+			case "input":
+				$data = current($this->data);
+				$name = key($this->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
+			case "inputs-list":
+			case "inputslist":
+				if (empty($this->data)) return false;
+				$before = ""; $after = ""; $classes = ""; $excludes = array();
+				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
+				if (!empty($options['exclude'])) $excludes = split(",",$options['exclude']);
+				if (!empty($options['before'])) $before = $options['before'];
+				if (!empty($options['after'])) $after = $options['after'];
+				
+				$result .= $before.'<ul'.$classes.'>';
+				foreach ($this->data as $name => $data) {
+					if (in_array($name,$excludes)) continue;
+					$result .= '<li><strong>'.$name.'</strong>: '.$data.'</li>';
+				}
+				$result .= '</ul>'.$after;
+				return $result;
 				break;
 			case "thumbnail":
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';

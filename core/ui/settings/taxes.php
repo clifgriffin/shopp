@@ -1,11 +1,12 @@
 <div class="wrap shopp">
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
-	<h2><?php _e('Tax Settings','Shopp'); ?></h2>
-	<?php include("navigation.php"); ?>
 
-	<br class="clear" />
+	<h2><?php _e('Tax Settings','Shopp'); ?></h2>
+
 	<form name="settings" id="taxes" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-taxes'); ?>
+
+		<?php include("navigation.php"); ?>
 		
 		<table class="form-table"> 
 			<tr class="form-required"> 
@@ -20,7 +21,7 @@
 					<table id="taxrates-table"><tr><td></td></tr></table>
 	            <button type="button" id="add-taxrate" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /> <?php _e('Add a Tax Rate','Shopp'); ?></button>
 					<?php else: ?>
-					<p><strong><?php _e('Note:','Shopp'); ?></strong> <?php _e('You must select the target markets you will be selling to under','Shopp'); ?> <a href="?page=<?php echo $this->Admin->settings ?>&amp;edit=general"><?php _e('General settings','Shopp'); ?></a> <?php _e('before you can setup tax rates.','Shopp'); ?></p>
+					<p><strong><?php _e('Note:','Shopp'); ?></strong> <?php _e('You must select the target markets you will be selling to under','Shopp'); ?> <a href="?page=<?php echo $this->Admin->settings['settings'][0] ?>"><?php _e('General settings','Shopp'); ?></a> <?php _e('before you can setup tax rates.','Shopp'); ?></p>
 					<?php endif; ?>
 				</td> 
 			</tr>
@@ -140,7 +141,7 @@ var addTaxRate = function (r) {
 	if (r) {
 		rate.val(r.rate);
 		countryMenu.val(r.country).change();
-		zoneMenu.val(r.zone).change();
+		if (r.zone)	zoneMenu.val(r.zone).change();
 	} else {
 		if ($.inArray(base.country,countriesInUse) == -1) {
 			countryMenu.val(base.country).change();

@@ -1,11 +1,12 @@
 <div class="wrap shopp">
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
-	<h2><?php _e('Upgrade Settings','Shopp'); ?></h2>
-	<?php include("navigation.php"); ?>
 
-	<br class="clear" />
+	<h2><?php _e('Upgrade Settings','Shopp'); ?></h2>
+
 	<form name="settings" id="update" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-update'); ?>
+
+		<?php include("navigation.php"); ?>
 		
 		<table class="form-table"> 
 			<tr class="form-required"> 
@@ -23,7 +24,7 @@
 						<label for="ftp-username"><?php _e('Enter your FTP username','Shopp'); ?></label></div>
 						<div><input type="password" name="password" id="ftp-password" size="20" value="<?php echo attribute_escape($credentials['password']); ?>" /><br />
 						<label for="ftp-password"><?php _e('Enter your FTP password','Shopp'); ?></label></div><br />
-						<div><input type="button" name="ftp-settings" id="ftp-continue" value="<?php _e('Continue Updates&hellip;','Shopp'); ?>" class="button-secondary" /></div>
+						<div><input type="submit" name="ftp-settings" id="ftp-continue" value="<?php _e('Continue Updates&hellip;','Shopp'); ?>" class="button-secondary" /></div>
 					</div>
 					</td>
 			</tr>			
@@ -48,11 +49,16 @@
 <script type="text/javascript">
 (function($) {
 	helpurl = "<?php echo SHOPP_DOCS; ?>Update_Settings";
+	
+	$(document).ready( function() {
+	
 	var purchase_url = '<?php echo SHOPP_HOME; ?>?buynow=true';
-	var ajaxurl = '<?php echo wp_nonce_url(get_bloginfo("siteurl")."/wp-admin/admin-ajax.php", "shopp-wp_ajax_shopp_update"); ?>';
-	var adminurl = '<?php echo wp_nonce_url(get_bloginfo("siteurl")."/wp-admin/admin.php", "shopp-wp_ajax_shopp_update"); ?>';
+	var adminurl = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin.php","shopp-wp_ajax_shopp_update"); ?>';
+	var ajaxurl = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php","shopp-wp_ajax_shopp_update"); ?>';
+	
 	var INSTALLING_MESSAGE = "<?php _e('Installing update %d of %d&hellip;','Shopp'); ?>";
 	var CANCELLING_MESSAGE = "<?php _e('Cancelling updates&hellip;','Shopp'); ?>";
+	
 	
 	var target = $('#update-info');
 	var updating = -1;
@@ -125,19 +131,18 @@
 					var wrap = $('<p></p>').appendTo('#update-info');
 					var reload = $('<button type="button" name="reload" value="reload" class="button-secondary"><?php _e('Continue','Shopp'); ?>&hellip;</button>').appendTo('#update-info');
 					reload.click(function () {
-						window.location.href = adminurl+'&page=shopp/settings&edit=update&updated=true';
+						window.location.href = adminurl+'&page=shopp/settings/update&updated=true';
 					});
 					
 				} else {
 					target.html('<div id="status" class="updating">'+CANCELLING_MESSAGE+'</div>');
 					alert("<?php _e('An error occurred while trying to update.  The update failed.  This is what Shopp says happened:','Shopp'); ?>\n"+result);
-					alert(adminurl+'&page=shopp/settings&edit=update&updated=true');
-					window.location.href = adminurl+'&page=shopp/settings&edit=update&updated=true';
+					window.location.href = adminurl+'&page=shopp/settings/update&updated=true';
 				}
 			},
 			error:function () {
 				alert("<?php _e('The update timed out and was not successful.','Shopp'); ?>\n"+result);
-				window.location.href = adminurl+'&page=shopp/settings&edit=update&updated=true';
+				window.location.href = adminurl+'&page=shopp/settings/update&updated=true';
 			}
 		});
 	}
@@ -151,7 +156,11 @@
 		markup += '</ul>';
 		
 		<?php if ($updatekey['status'] == "activated"): ?>
-		markup += '<p><button type="button" name="update" id="update-button" class="button-secondary"><?php _e("Install Updates","Shopp"); ?></button></p>';
+			<?php if (!$ftpsupport): ?>
+			markup += '<p class="shopp error"><?php _e("Your server does not have FTP support enabled. Automatic update not available.","Shopp"); ?></p>';
+			<?php else: ?>
+			markup += '<p><button type="button" name="update" id="update-button" class="button-secondary"><?php _e("Install Updates","Shopp"); ?></button></p>';
+			<?php endif; ?>
 		<?php else: ?>
 		markup += '<p><button type="button" name="buykey" id="buykey-button" class="button-secondary"><?php _e("Buy an Update Key","Shopp"); ?></button></p>';
 		<?php endif; ?>
@@ -164,7 +173,7 @@
 				$('#update-queue input').each(function() {
 					if ($(this).attr('checked')) queue.push($(this).val());
 				});
-				startupdates();
+				if (queue.length > 0) startupdates();
 			});
 		}
 		
@@ -178,7 +187,7 @@
 	
 	function ftpfailure () {
 		$('#status').hide();
-		$('#ftp-continue').click(function () { setftp(); });
+		$('#ftp-continue').click(function () { setftp(); return false; });
 		$('#ftp-credentials').show();
 	}
 	
@@ -200,5 +209,7 @@
 		});
 	}
 	
+	});
+
 })(jQuery)
 </script>
