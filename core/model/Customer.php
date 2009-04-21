@@ -197,6 +197,11 @@ class Customer extends DatabaseObject {
 					$options['value'] = $this->lastname; 
 				return '<input type="text" name="lastname" id="lastname"'.inputattrs($options).' />'; 
 				break;
+			case "company":
+				if (!empty($this->company))
+					$options['value'] = $this->company; 
+				return '<input type="text" name="company" id="company"'.inputattrs($options).' />'; 
+				break;
 			case "email":
 				if (!empty($this->email))
 					$options['value'] = $this->email; 
