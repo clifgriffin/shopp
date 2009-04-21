@@ -1086,7 +1086,9 @@ class Shopp {
 				header("Content-type: ".$Asset->properties['mimetype']); 
 				header("Content-Disposition: inline; filename=\"".$Asset->name."\""); 
 				header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-				header("Cache-Control: maxage=1");
+			    header('Content-Transfer-Encoding: binary');
+			    header('Cache-Control: maxage=1, must-revalidate, post-check=0, pre-check=0');
+			    header('Expires: 0');
 				header("Pragma: public");
 				if ($storage == "fs") {
 					$filepath = join("/",array($path,$Asset->value,$Asset->name));
