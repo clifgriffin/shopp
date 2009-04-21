@@ -26,14 +26,19 @@ class ShipCalcs {
 		else {
 			$modfiles = $Shopp->Settings->get('shipcalc_modules');
 			if (empty($modfiles)) $modfiles = $this->scanmodules();
-		}
+		}	
 	
 		if (!empty($modfiles)) {
 			foreach ($modfiles as $ShipCalcClass => $file) {
+				if (!file_exists($this->path.$file)) continue;
 				include_once($this->path.$file);
 				$this->modules[$ShipCalcClass] = new $ShipCalcClass();
 				$this->modules[$ShipCalcClass]->methods($this);
 			}
+			
+			if (count($this->modules) != count($modfiles))
+				$modfiles = $this->scanmodules();			
+			
 		}
 						
 	}
