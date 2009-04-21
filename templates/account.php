@@ -19,7 +19,7 @@
 			<span><?php shopp('customer','lastname','required=true&minlength=3&size=14&title=Last Name'); ?><label for="lastname">Last</label></span>
 		</li>
 		<li>
-			<span><?php shopp('customer','company','&size=20&title=Company'); ?><label for="company">Company</label></span>
+			<span><?php shopp('customer','company','size=20&title=Company'); ?><label for="company">Company</label></span>
 		</li>
 		<li>
 			<span><?php shopp('customer','phone','format=phone&size=15&title=Phone'); ?><label for="phone">Phone</label></span>
