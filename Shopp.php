@@ -177,7 +177,7 @@ class Shopp {
 	 * install()
 	 * Installs the tables and initializes settings */
 	function install () {
-		global $wpdb;
+		global $wpdb,$wp_rewrite;
 
 		// If no settings are available,
 		// no tables exist, so this is a
@@ -198,6 +198,11 @@ class Shopp {
 			foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
 			if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='publish' WHERE $filter");
 			$this->pages_index(true);
+			
+			// Update rewrite rules
+			$wp_rewrite->flush_rules();
+			$wp_rewrite->wp_rewrite_rules();
+			
 		}
 		
 		if ($this->Settings->get('show_welcome') == "on")
@@ -208,7 +213,7 @@ class Shopp {
 	 * deactivate()
 	 * Resets the data_model to prepare for potential upgrades/changes to the table schema */
 	function deactivate() {
-		global $wpdb;
+		global $wpdb,$wp_rewrite;
 
 		// Unpublish/disable Shopp pages
 		$filter = "";
@@ -216,6 +221,10 @@ class Shopp {
 		if (!is_array($pages)) return true;
 		foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
 		if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='draft' WHERE $filter");
+
+		// Update rewrite rules
+		$wp_rewrite->flush_rules();
+		$wp_rewrite->wp_rewrite_rules();
 
 		$this->Settings->save('data_model','');
 

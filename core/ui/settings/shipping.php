@@ -72,6 +72,8 @@ var disabledMethods = new Array();
 
 (function($) {
 	
+$(document).ready( function() {
+	
 $('#order_handling_fee').change(function() { this.value = asMoney(this.value); });
 
 $('#weight-unit').change(function () {
@@ -215,6 +217,7 @@ if ($('#shipping-rates')) {
 	}
 }
 
+});
 
 })(jQuery)
 

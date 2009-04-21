@@ -2096,7 +2096,7 @@ class Flow {
 			$Errors = &ShoppErrors();
 			foreach ((array)$rates as $method) {  
 				list($ShipCalcClass,$process) = split("::",$method['method']);    
-				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass])
+				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth)
 					&& $Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth) {
 						$Shopp->ShipCalcs->modules[$ShipCalcClass]->verifyauth();
 						if ($Errors->exist()) $autherrors = $Errors->get();
@@ -2606,6 +2606,7 @@ class Flow {
 		$this->setup_countries();
 		$this->setup_zones();
 		$this->setup_areas();
+		$Shopp->Settings->save('shipcalc_lastscan','');
 		
 		// Update the version number
 		$settings = DatabaseObject::tablename(Settings::$table);

@@ -34,7 +34,7 @@
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="target_markets"><?php _e('Target Markets','Shopp'); ?></label></th> 
 				<td>
-					<div class="multiple-select">
+					<div id="target_markets" class="multiple-select">
 						<ul>
 							
 							<?php $even = true; foreach ($targets as $iso => $country): ?>
@@ -92,13 +92,9 @@ $('#base_operations').change(function() {
 	});
 });
 
-$('#selectall_targetmarkets').change(function() {
-	$('div.multiple-select ul li input').each( function () {
-		if (this.id !== "selectall_targetmarkets") {
-			if (this.checked) this.checked = false;
-			else this.checked = true;
-		}
-	});
+$('#selectall_targetmarkets').change(function () { 
+	if ($(this).attr('checked')) $('#target_markets input').not(this).attr('checked',true); 
+	else $('#target_markets input').not(this).attr('checked',false); 
 });
 
 var addLabel = function (id,label,location) {
