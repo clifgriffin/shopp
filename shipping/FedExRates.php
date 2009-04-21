@@ -87,7 +87,8 @@ class FedExRates {
 	function methods (&$ShipCalc) {
 		if (class_exists('SoapClient'))
 			$ShipCalc->methods[get_class($this)] = __("FedEx Rates","Shopp");
-		else new ShoppError("The SoapClient class is not enabled for PHP. The FedEx Rates add-on cannot be used without the SoapClient class.","fedexrates_nosoap",SHOPP_ALL_ERR);
+		elseif (class_exists('ShoppError'))
+			new ShoppError("The SoapClient class is not enabled for PHP. The FedEx Rates add-on cannot be used without the SoapClient class.","fedexrates_nosoap",SHOPP_ALL_ERR);
 	}
 		
 	function ui () { ?>
