@@ -228,9 +228,9 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #order-statuslabels li { position: relative; }
 #order-statuslabels li input { width: 120px; padding-right: 20px; margin-right: 5px;}
 
-#order-statuslabels button { display: inline-block; background: none; margin: 0; border: none; padding: 0; width: 18px; height: 22px; margin-top: -4px; vertical-align: middle; }
+#order-statuslabels button { display: inline-block; background: none; margin: 0; border: none; padding: 0; width: 18px; height: 22px; margin-top: -3px; vertical-align: middle; }
 #order-statuslabels button img { margin-left: -2px; }
-#order-statuslabels button.delete { position: absolute; left: 103px; top: 5px; }
+#order-statuslabels button.delete { position: relative; left: -25px; margin-right: -18px; }
 #print-button { position: absolute; right: 15px; }
 
 #orders div.actions span.filtering { margin-left: 10px; }

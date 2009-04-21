@@ -107,10 +107,9 @@ var addLabel = function (id,label,location) {
 
 	var wrap = $('<span></span>').appendTo(li);
 	var input = $('<input type="text" name="settings[order_status]['+id+']" id="label-'+i+'" size="14" />').appendTo(wrap);
-	var deleteButton = $('<button type="button" class="delete"></button>').prependTo(wrap).hide();
+	var deleteButton = $('<button type="button" class="delete"></button>').appendTo(wrap).hide();
 	var deleteIcon = $('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="Delete" width="16" height="16" />').appendTo(deleteButton);
-	var addspan = $('<span></span>').appendTo(li);
-	var addButton = $('<button type="button" class="add"></button>').appendTo(addspan);
+	var addButton = $('<button type="button" class="add"></button>').appendTo(wrap);
 	var addIcon = $('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="Add" width="16" height="16" />').appendTo(addButton);
 	
 	if (i > 0) {
