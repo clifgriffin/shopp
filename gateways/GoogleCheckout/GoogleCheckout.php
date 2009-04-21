@@ -200,7 +200,7 @@ class GoogleCheckout {
 									$_[] = '<shipping-taxed>false</shipping-taxed>';
 									$_[] = '<rate>'.number_format($tax['rate']/100,4).'</rate>';
 									$_[] = '<tax-area>';
-										if ($tax['country'] == "US" && !isset($tax['zone'])) {
+										if ($tax['country'] == "US" && isset($tax['zone'])) {
 											$_[] = '<us-state-area>';
 												$_[] = '<state>'.$tax['zone'].'</state>';
 											$_[] = '</us-state-area>';
@@ -237,8 +237,7 @@ class GoogleCheckout {
 		// Check if this is a Shopp order or not
 		$origin = $XML->getElementContent('shopping-cart-agent');
 		if (empty($origin) || 
-			substr($origin,0,strpos("/",SHOPP_GATEWAY_USERAGENT)) == 
-			substr(SHOPP_GATEWAY_USERAGENT,0,strpos("/",SHOPP_GATEWAY_USERAGENT))) 
+			substr($origin,0,strpos("/",SHOPP_GATEWAY_USERAGENT)) == SHOPP_GATEWAY_USERAGENT) 
 				return true;
 
 		$buyer = $XML->getElement('buyer-billing-address');
@@ -296,7 +295,7 @@ class GoogleCheckout {
 		$Purchase->transactionid = $XML->getElementContent('google-order-number');
 		$Purchase->transtatus = $XML->getElementContent('financial-order-state');
 		$Purchase->save();
-
+			
 		$items = $XML->getElement('item');
 		if (key($items) == "CHILDREN") $items = array($items);
 		foreach ($items as $item) {
@@ -315,7 +314,6 @@ class GoogleCheckout {
 			$Purchased->total = $Purchased->quantity*$Purchased->unitprice;
 			$Purchased->save();
 		}
-		
 		
 	}
 	
