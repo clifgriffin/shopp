@@ -47,7 +47,7 @@ class Item {
 		if (is_array($pricing)) $Price = $Product->pricekey[$Product->optionkey($pricing)];
 		else if ($pricing) $Price = $Product->priceid[$pricing];
 		else $Price = $Product->prices[0];
-				
+		
 		$this->product = $Product->id;
 		$this->price = $Price->id;
 		$this->category = $category;
@@ -178,11 +178,11 @@ class Item {
 		// Handle currency values
 		$result = "";
 		switch ($property) {
-			case "unitprice": $result = $this->unitprice; break;
-			case "total": $result = $this->total; break;
-			case "tax": $result = $this->tax; break;			
+			case "unitprice": $result = (float)$this->unitprice; break;
+			case "total": $result = (float)$this->total; break;
+			case "tax": $result = (float)$this->tax; break;			
 		}
-		if (!empty($result)) {
+		if (is_float($result)) {
 			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
 			else return money($result);
 		}

@@ -31,6 +31,8 @@ class Product extends DatabaseObject {
 	var $freeshipping = false;
 	var $priceloop = false;
 	var $specloop = false;
+	var $outofstock = false;
+	var $stock = 0;
 	
 	function Product ($id=false,$key=false) {
 		$this->init(self::$table);
@@ -249,9 +251,11 @@ class Product extends DatabaseObject {
 			
 			$this->inventory = false;
 			if ($price->inventory == "on" && $price->type != "N/A") {
+				$this->stock += $price->stock;
 				$price->stocked = true;
 				$this->inventory = true;
 			} else $price->stocked = false;
+			
 			
 			if ($price->freeshipping == 0) $freeshipping = false;
 
@@ -333,7 +337,7 @@ class Product extends DatabaseObject {
 			}
 			
 		} // end foreach($price)
-
+		if ($this->inventory && $this->stock == 0) $this->outofstock = true;
 		if ($freeshipping) $this->freeshipping = true;
 	}
 	
@@ -1061,15 +1065,17 @@ class Product extends DatabaseObject {
 				else $options['class'] .= " addtocart";
 				if (!isset($options['value'])) $options['value'] = __("Add to Cart","Shopp");
 				$string = "";
+				
+				if ($this->outofstock) {
+					$string .= '<span class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</span>';
+					return $string;
+				}
+				
+				
 				$string .= '<input type="hidden" name="products['.$this->id.'][product]" value="'.$this->id.'" />';
 
-				if ($this->prices[0]->type != "N/A") {
-					if ($this->prices[0]->inventory == "on" && $this->prices[0]->stock == 0) {
-						$string .= '<span class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</span>';
-						return $string;
-					}
-					if (!empty($this->prices[0])) $string .= '<input type="hidden" name="products['.$this->id.'][price]" value="'.$this->prices[0]->id.'" />';
-				}
+				if (!empty($this->prices[0])) $string .= '<input type="hidden" name="products['.$this->id.'][price]" value="'.$this->prices[0]->id.'" />';
+
 				if (!empty($Shopp->Category)) {
 					if (SHOPP_PERMALINKS)
 						$string .= '<input type="hidden" name="products['.$this->id.'][category]" value="'.$Shopp->Category->uri.'" />';

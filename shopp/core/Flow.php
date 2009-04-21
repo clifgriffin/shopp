@@ -2606,12 +2606,11 @@ class Flow {
 		$this->setup_countries();
 		$this->setup_zones();
 		$this->setup_areas();
-		$Shopp->Settings->save('shipcalc_lastscan','');
 		
 		// Update the version number
 		$settings = DatabaseObject::tablename(Settings::$table);
 		$db->query("UPDATE $settings SET value='".SHOPP_VERSION." WHERE name='version'");
-		$db->query("DELETE FROM $settings WHERE name='data_model'");
+		$db->query("DELETE FROM $settings WHERE name='data_model' OR name='shipcalc_lastscan");
 		
 		return true;
 	}
