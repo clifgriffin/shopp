@@ -12,24 +12,25 @@
 class ShipCalcs {
 	var $modules = array();
 	var $methods = array();
+	var $path = "";
 	
 	function ShipCalcs ($basepath) {
 		global $Shopp;
 
-		$shipcalcs_path = $basepath.DIRECTORY_SEPARATOR."shipping";
+		$this->path = $basepath.DIRECTORY_SEPARATOR."shipping";
 		$lastscan = $Shopp->Settings->get('shipcalc_lastscan');
-		$lastupdate = filemtime($shipcalcs_path);
+		$lastupdate = filemtime($this->path);
 		
 		$modfiles = array();
-		if ($lastupdate > $lastscan) $modfiles = $this->scanmodules($shipcalcs_path);
+		if ($lastupdate > $lastscan) $modfiles = $this->scanmodules();
 		else {
 			$modfiles = $Shopp->Settings->get('shipcalc_modules');
-			if (empty($modfiles)) $modfiles = $this->scanmodules($shipcalcs_path);
+			if (empty($modfiles)) $modfiles = $this->scanmodules();
 		}
 	
 		if (!empty($modfiles)) {
 			foreach ($modfiles as $ShipCalcClass => $file) {
-				include_once($file);
+				include_once($this->path.$file);
 				$this->modules[$ShipCalcClass] = new $ShipCalcClass();
 				$this->modules[$ShipCalcClass]->methods($this);
 			}
@@ -40,7 +41,7 @@ class ShipCalcs {
 	function readmeta ($modfile) {
 		$metadata = array();
 
-		$meta = get_filemeta($modfile);
+		$meta = get_filemeta($this->path.$modfile);
 
 		if ($meta) {
 			$lines = split("\n",substr($meta,1));
@@ -61,8 +62,9 @@ class ShipCalcs {
 		return false;
 	}
 	
-	function scanmodules ($path) {
+	function scanmodules ($path=false) {
 		global $Shopp;
+		if (!$path) $path = $this->path;
 		$modfilescan = array();
 		find_files(".php",$path,$path,$modfilescan);
 
@@ -70,7 +72,7 @@ class ShipCalcs {
 		foreach ($modfilescan as $file) {
 			if (! is_readable($path.$file)) continue;
 			$ShipCalcClass = substr(basename($file),0,-4);
-			$modfiles[$ShipCalcClass] = $path.$file;
+			$modfiles[$ShipCalcClass] = $file;
 		}
 		
 		$Shopp->Settings->save('shipcalc_modules',addslashes(serialize($modfiles)));
