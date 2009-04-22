@@ -161,7 +161,7 @@ function shopp_email ($template,$data=array()) {
 				$string = str_replace(array("\r","\n"),"",urldecode($string));
 			if ( strtolower($header) == "to" ) $to = $string;
 			else if ( strtolower($header) == "subject" ) $subject = $string;
-			else $headers .= $line;
+			else $headers .= $line."\n";
 		}
 		
 		// Catches the first blank line to begin capturing message body

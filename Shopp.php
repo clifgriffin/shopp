@@ -876,14 +876,14 @@ class Shopp {
 		
 		$gateway = false;
 		// Intercept external checkout processing
-		if (!empty($wp->query_vars['shopp_xco']) && !isset($_POST['checkout'])) {
+		if (!empty($wp->query_vars['shopp_xco'])) {
 			$gateway = join(DIRECTORY_SEPARATOR,array($this->path,'gateways',$wp->query_vars['shopp_xco'].".php"));
 			if (file_exists($gateway)) {
 				$gateway_meta = $this->Flow->scan_gateway_meta($gateway);
 				$ProcessorClass = $gateway_meta->tags['class'];
 				include($gateway);
 				$Payment = new $ProcessorClass();
-				if ($wp->query_vars['shopp_proc'] != "confirm-order") {
+				if ($wp->query_vars['shopp_proc'] != "confirm-order" && !isset($_POST['checkout'])) {
 					$Payment->checkout();
 					$Payment->error();
 				}

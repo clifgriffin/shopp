@@ -131,18 +131,18 @@
 					var wrap = $('<p></p>').appendTo('#update-info');
 					var reload = $('<button type="button" name="reload" value="reload" class="button-secondary"><?php _e('Continue','Shopp'); ?>&hellip;</button>').appendTo('#update-info');
 					reload.click(function () {
-						window.location.href = adminurl+'&page=shopp/settings/update&updated=true';
+						window.location.href = adminurl+'&page=shopp-settings-update&updated=true';
 					});
 					
 				} else {
 					target.html('<div id="status" class="updating">'+CANCELLING_MESSAGE+'</div>');
 					alert("<?php _e('An error occurred while trying to update.  The update failed.  This is what Shopp says happened:','Shopp'); ?>\n"+result);
-					window.location.href = adminurl+'&page=shopp/settings/update&updated=true';
+					window.location.href = adminurl+'&page=shopp-settings-update&updated=true';
 				}
 			},
 			error:function () {
 				alert("<?php _e('The update timed out and was not successful.','Shopp'); ?>\n"+result);
-				window.location.href = adminurl+'&page=shopp/settings/update&updated=true';
+				window.location.href = adminurl+'&page=shopp-settings-update&updated=true';
 			}
 		});
 	}
@@ -204,7 +204,7 @@
 			},
 			error:function () {
 				alert("<?php _e('The server did not respond. Your FTP settings could not be set.','Shopp'); ?>\n"+result);
-				window.location.href = adminurl+'&page=shopp/settings&edit=update&updated=true';
+				window.location.href = adminurl+'&page=shopp-settings&edit=update&updated=true';
 			}
 		});
 	}
