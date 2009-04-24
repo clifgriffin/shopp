@@ -4,7 +4,7 @@
  * @class PayPalPro
  *
  * @author Jonathan Davis
- * @version 1.0.4
+ * @version 1.0.5
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  **/
@@ -103,7 +103,8 @@ class PayPalPro {
 		
 		// Transaction
 		$_['AMT']					= number_format($Order->Totals->total,2);
-		$_['ITEMAMT']				= number_format($Order->Totals->subtotal,2);
+		$_['ITEMAMT']				= number_format($Order->Totals->subtotal - 
+													$Order->Totals->discount,2);
 		$_['SHIPPINGAMT']			= number_format($Order->Totals->shipping,2);
 		$_['TAXAMT']				= number_format($Order->Totals->tax,2);
 		
@@ -117,6 +118,19 @@ class PayPalPro {
 			$_['L_NUMBER'.$i]		= $i;
 			$_['L_QTY'.$i]			= $Item->quantity;
 			$_['L_TAXAMT'.$i]		= number_format($Item->tax,2);
+		}
+
+		if ($Order->Totals->discount != 0) {
+			$discounts = array();
+			foreach($Shopp->Cart->data->PromosApplied as $promo)
+				$discounts[] = $promo->name;
+			
+			$i++;
+			$_['L_NUMBER'.$i]		= $i;
+			$_['L_NAME'.$i]			= join(", ",$discounts);
+			$_['L_AMT'.$i]			= number_format($Order->Totals->discount*-1,2);
+			$_['L_QTY'.$i]			= 1;
+			$_['L_TAXAMT'.$i]		= number_format(0,2);
 		}
 
 		$this->transaction = "";
