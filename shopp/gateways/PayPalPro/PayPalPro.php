@@ -4,7 +4,7 @@
  * @class PayPalPro
  *
  * @author Jonathan Davis
- * @version 1.0.5
+ * @version 1.0.6
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  **/
@@ -16,12 +16,18 @@ class PayPalPro {
 	var $cards = array("Visa","MasterCard","Discover","Amex");
 	var $sandboxurl = "https://api-3t.sandbox.paypal.com/nvp";
 	var $liveurl = "https://api-3t.paypal.com/nvp";
+	var $currencies = array("USD", "AUD", "CAD", "EUR", "GBP", "JPY");
 	
 	function PayPalPro (&$Order="") {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('PayPalPro');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
+		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
 		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
+		
+		$this->settings['currency_code'] = $this->currencies[0]; // Use USD by default
+		if (in_array($this->settings['base_operations']['currency']['code'],$this->currencies))
+			$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];
 		
 		if (!empty($Order)) $this->build($Order);
 		return true;
@@ -102,6 +108,7 @@ class PayPalPro {
 		}
 		
 		// Transaction
+		$_['CURRENCYCODE']			= $this->settings['currency_code'];
 		$_['AMT']					= number_format($Order->Totals->total,2);
 		$_['ITEMAMT']				= number_format($Order->Totals->subtotal - 
 													$Order->Totals->discount,2);
