@@ -279,22 +279,6 @@ class FedExRates {
 			new ShoppError(__("FedEx could not be reached for realtime rates.","Shopp"),'fedex_connection',SHOPP_COMM_ERR);
 			return false;
 		}
-	    
-		// 	    if ($response->HighestSeverity == 'FAILURE' && 
-		// 	$response->HighestSeverity == 'ERROR') {
-		// 
-		// 	        echo 'Error in processing transaction.'. $newline. $newline; 
-		// 	        foreach ($response->Notifications as $notification) {           
-		// 	            if(is_array($response->Notifications)) {              
-		// 	               echo $notification->Severity;
-		// 	               echo ': ';           
-		// 	               echo $notification->Message . $newline;
-		// 	            } else {
-		// 	                echo $notification . $newline;
-		// 	            }
-		// 	        } 
-		// 		
-		// }
 		
 		return $response;
 

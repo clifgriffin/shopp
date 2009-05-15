@@ -40,6 +40,7 @@ class Catalog extends DatabaseObject {
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
 		$query = "SELECT {$filtering['columns']} FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY cat.parent DESC,cat.name ASC {$filtering['limit']}";
+		
 		$categories = $db->query($query,AS_ARRAY);
 		if (count($categories) > 1) $categories = sort_tree($categories);
 		if ($results) return $categories;
@@ -106,6 +107,7 @@ class Catalog extends DatabaseObject {
 			case SearchResults::$_slug: return new SearchResults($options); break;
 			case TagProducts::$_slug: return new TagProducts($options); break;
 			case BestsellerProducts::$_slug: return new BestsellerProducts(); break;
+			case CatalogProducts::$_slug: return new CatalogProducts(); break;
 			case NewProducts::$_slug: return new NewProducts(); break;
 			case FeaturedProducts::$_slug: return new FeaturedProducts(); break;
 			case OnSaleProducts::$_slug: return new OnSaleProducts(); break;
@@ -155,7 +157,7 @@ class Catalog extends DatabaseObject {
 			case "has-categories": 
 				if (empty($this->categories)) $this->load_categories(array('where'=>'true'),$options['showsmart']);
 				if (count($this->categories) > 0) return true; else return false; break;
-			case "categories":			
+			case "categories":
 				if (!$this->categoryloop) {
 					reset($this->categories);
 					$Shopp->Category = current($this->categories);
@@ -419,6 +421,8 @@ class Catalog extends DatabaseObject {
 					else return '<input type="radio" name="st" value="shopp"'.$selected.' />';
 				} else return '<input type="hidden" name="st" value="shopp" />';
 				break;
+			case "catalog-products":
+				if ($property == "catalog-products") $Shopp->Category = new CatalogProducts($options);
 			case "new-products":
 				if ($property == "new-products") $Shopp->Category = new NewProducts($options);
 			case "featured-products":

@@ -20,10 +20,19 @@ class iDealMollie {
 	var $checkout = true;
 
 	function iDealMollie () {
-		global $Shopp;
+		global $Shopp,$wp;
 		$this->settings = $Shopp->Settings->get('iDealMollie');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
+		
+		$loginproc = (isset($_POST['process-login']))?$_POST['process-login']:false;
+		
+		if (isset($_POST['checkout']) && 
+			$_POST['checkout'] == "process" && 
+			!$loginproc) $this->checkout();
+
+		if (isset($_GET['transaction_id'])) $_POST['checkout'] = "confirmed";
+			
 		return true;
 	}
 		
@@ -70,7 +79,7 @@ class iDealMollie {
 			$_['returnurl']			= $Shopp->link('confirm-order').'?shopp_xco=iDealMollie/iDealMollie';
 		else
 			$_['returnurl']			= add_query_arg('shopp_xco','iDealMollie/iDealMollie',$Shopp->link('confirm-order'));
-		$_['reporturl']				= $Shopp->link('catalog').'?shopp_xco=iDealMollie/iDealMollie';
+		$_['reporturl']				= $Shopp->link('catalog').'shopp_xco=iDealMollie/iDealMollie';
 
 		// Line Items
 		$description = array();
@@ -84,6 +93,7 @@ class iDealMollie {
 				
 		$this->transaction = $this->encode($_);
 		$this->send();
+
 		if (empty($this->Response)) return false;
 		if ($this->error()) return false;
 		
@@ -93,30 +103,36 @@ class iDealMollie {
 			exit();
 		}
 		
-		return false;	
+		return false;
 	}
-	
 	
 	function process () {
 		global $Shopp;
 
-		$_ = array();
-		
-		$_['partnerid']				= $this->settings['account'];
-
-		// Options
 		$_['a'] 					= "check"; // specify fetch mode
+		$_['partnerid']				= $this->settings['account'];
 		$_['transaction_id']		= $_GET['transaction_id'];
+		if ($this->settings['testmode'] == "on")
+			$_['testmode'] = 'true';
 
-		$this->transaction = $this->encode($_);
-		$this->send();
-		if (empty($this->Response)) return false;
-		if ($this->error()) return false;
+		// Try up to 3 times
+		for ($i = 3; $i > 0; $i--) {
+			$this->transaction = $this->encode($_);
+			$this->send();
+
+			if (empty($this->Response)) return false;
+			if ($this->error()) return false;
+			$payment = $this->Response->getElementContent('payed');
+		 	if ($payment == "true") break;
+			
+		}
 		
-		// Don't save the order if they didn't pay
-		$payment = $this->Response->getElementContent('payed');
-		if ($payment == "false") return false; 
-		
+		if ($payment == "false") {
+			new ShoppError(__('Payment could not be confirmed, this order cannot be processed.','Shopp'),'ideal_mollie_transaction_error',SHOPP_TRXN_ERR);
+			header("Location: ".$Shopp->link('cart'));
+			exit();
+		}
+
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
@@ -141,9 +157,9 @@ class iDealMollie {
 		$Purchase->copydata($Order->Totals);
 		$Purchase->freight = $Order->Totals->shipping;
 		$Purchase->gateway = "iDeal Mollie";
-		$Purchase->transactionid = $this->Response->getElementContent('transaction_id');
+		$Purchase->transactionid = $_GET['transaction_id'];
 		$Purchase->save();
-	
+
 		foreach($Shopp->Cart->contents as $Item) {
 			$Purchased = new Purchased();
 			$Purchased->copydata($Item);
@@ -152,9 +168,8 @@ class iDealMollie {
 			$Purchased->save();
 			if ($Item->inventory) $Item->unstock();
 		}
-	
+
 		return $Purchase;
-		
 	}
 	
 	function error () {
@@ -181,6 +196,7 @@ class iDealMollie {
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+
 		$buffer = curl_exec($connection);   
 		if (curl_errno($connection))
 			new ShoppError(curl_error($connection),'ideal_mollie_connection',SHOPP_COMM_ERR);
@@ -230,7 +246,7 @@ class iDealMollie {
 	
 		if ($this->settings['testmode'] == "on")
 			$_['testmode'] = 'true';
-	
+			
 		$this->transaction = $this->encode($_);
 		$Response = $this->send();
 

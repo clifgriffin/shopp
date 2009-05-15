@@ -259,7 +259,9 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #promotion #rules tr td { border-bottom-width: 2px; }
 #promotion #rules button.delete { visibility: hidden; }
 #shipping-rates .services div.multiple-select { height: 100px; }
-#shipping-rates .services div.multiple-select ul li { padding: 2px; }
+#shipping-rates .services div.multiple-select ul li { padding: 2px; padding-left: 22px; }
+#shipping-rates .services div.multiple-select ul li input { margin-left: -17px; }
+
 #payments .addon { display: none; }
 #payments ul.cards li { width: 30%; display: inline-block;}
 

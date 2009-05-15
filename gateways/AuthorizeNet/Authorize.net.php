@@ -188,8 +188,8 @@ class AuthorizeNet {
 		<tr id="authorize-net-settings" class="addon">
 			<th scope="row" valign="top">Authorize.Net</th>
 			<td>
-				<div><input type="text" name="settings[AuthorizeNet][login]" id="authorize_net_login" value="<?php echo $this->settings['login']; ?>" size="16" /><br /><label for="authorize_net_login"><?php _e('Enter your AuthorizeNet Login ID.'); ?></label></div>
-				<div><input type="password" name="settings[AuthorizeNet][password]" id="authorize_net_password" value="<?php echo $this->settings['password']; ?>" size="24" /><br /><label for="authorize_net_password"><?php _e('Enter your AuthorizeNet Password or Transaction Key.'); ?></label></div>
+				<div><input type="text" name="settings[AuthorizeNet][login]" id="authorize_net_loginname" value="<?php echo $this->settings['login']; ?>" size="16" /><br /><label for="authorize_net_loginname"><?php _e('Enter your AuthorizeNet Login ID.'); ?></label></div>
+				<div><input type="password" name="settings[AuthorizeNet][password]" id="authorize_net_pw" value="<?php echo $this->settings['password']; ?>" size="24" /><br /><label for="authorize_net_pw"><?php _e('Enter your AuthorizeNet Password or Transaction Key.'); ?></label></div>
 				<div><input type="hidden" name="settings[AuthorizeNet][testmode]" value="off"><input type="checkbox" name="settings[AuthorizeNet][testmode]" id="authorize_net_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="authorize_net_testmode"> <?php _e('Enable test mode'); ?></label></div>
 				<div><strong>Accept these cards:</strong>
 				<ul class="cards"><?php foreach($this->cards as $id => $card): 

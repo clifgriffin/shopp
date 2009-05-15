@@ -175,6 +175,13 @@ function formatFields () {
 	})(jQuery)
 }
 
+if (!Number.prototype.roundFixed) {
+	Number.prototype.roundFixed = function(precision) {
+		var power = Math.pow(10, precision || 0);
+		return String(Math.round(this * power)/power);
+	}
+}
+
 //
 // Catalog Behaviors
 //

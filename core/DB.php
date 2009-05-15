@@ -128,12 +128,12 @@ class DB {
 			// If the property is has a _datatype
 			// it belongs in the database and needs
 			// to be prepared
-				
+
 			// Process the data
 			switch ($object->_datatypes[$property]) {
 				case "string":
 					// Escape characters in strings as needed
-					if (is_array($value)) $value = $this->escape(serialize($value));
+					if (is_array($value)) $value = serialize($value);
 					$data[$property] = "'".$this->escape($value)."'";
 					break;	
 				case "list":

@@ -1,13 +1,13 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.5
+Version: 1.0.6a1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
 Author URI: http://ingenesis.net
 
-	Copyright 2009 Ingenesis Limited
+	Portions created by Ingenesis Limited are Copyright © 2008-2009 by Ingenesis Limited
 
 	This file is part of Shopp.
 
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.5");
+define("SHOPP_VERSION","1.0.6a1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -147,13 +147,12 @@ class Shopp {
 		if (SHOPP_PERMALINKS) {
 			$this->shopuri = trailingslashit($this->link('catalog'));
 			if ($this->shopuri == trailingslashit(get_bloginfo('url'))) $this->shopuri .= "{$pages['catalog']['name']}/";
-			if ($this->secure) $this->shopuri = str_replace('http://','https://',$this->shopuri);
 			$this->imguri = trailingslashit($this->shopuri)."images/";
-
 		} else {
 			$this->shopuri = add_query_arg('page_id',$pages['catalog']['id'],get_bloginfo('url'));
 			$this->imguri = add_query_arg('shopp_image','=',get_bloginfo('url'));
 		}
+		if ($this->secure) $this->shopuri = str_replace('http://','https://',$this->shopuri);
 		
 		if (SHOPP_LOOKUP) return true;
 		
@@ -541,11 +540,11 @@ class Shopp {
 		// catalog/category/category-slug
 		if (empty($shop)) {
 			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&paged=$matches[2]';
 			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]';
 		} else {
 			$rules[$shop.'category/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$shop.'category/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$shop.'category/([\w%_\+\-\/]+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&paged=$matches[2]';
 			$rules[$shop.'category/([\w%_\+\-\/]+?)?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
 		}
 
@@ -723,7 +722,7 @@ class Shopp {
 	 * header()
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function header () {		
-		?><link rel='stylesheet' href='<?php echo  add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),$this->shopuri); ?>' type='text/css' />
+		?><link rel='stylesheet' href='<?php echo $this->shopuri.htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>SHOPP_VERSION),'')); ?>' type='text/css' />
 		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 		<?php
@@ -873,7 +872,7 @@ class Shopp {
 	function checkout ($wp) {
 		if (!isset($this->Cart->data->Order)) return;
 		$Order = $this->Cart->data->Order;
-		
+
 		$gateway = false;
 		// Intercept external checkout processing
 		if (!empty($wp->query_vars['shopp_xco'])) {
@@ -883,13 +882,14 @@ class Shopp {
 				$ProcessorClass = $gateway_meta->tags['class'];
 				include($gateway);
 				$Payment = new $ProcessorClass();
-				if ($wp->query_vars['shopp_proc'] != "confirm-order" && !isset($_POST['checkout'])) {
+				if ($wp->query_vars['shopp_proc'] != "confirm-order" && 
+						!isset($_POST['checkout'])) {
 					$Payment->checkout();
 					$Payment->error();
 				}
 			}
 		}
-		
+
 		if (empty($_POST['checkout'])) return true;
 		if ($_POST['checkout'] == "confirmed") {
 			$this->Flow->order($gateway);
@@ -1394,7 +1394,8 @@ function shopp () {
 	if (is_bool($result)) return $result;
 
 	// Return the result instead of outputting it
-	if (isset($options['return']) && value_is_true($options['return']))
+	if ((isset($options['return']) && value_is_true($options['return'])) ||
+			isset($options['echo']) && !value_is_true($options['echo'])) 
 		return $result;
 
 	// Output the result

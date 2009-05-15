@@ -88,7 +88,6 @@ class FirstData {
 			$_[] = '<transactiondetails>';
 				$_[] = '<transactionorigin>Eci</transactionorigin>';
 				$_[] = '<taxexempt>N</taxexempt>';
-				$_[] = '<oid>'.$Order->Cart.'</oid>';
 				$_[] = '<ip>'.$_SERVER['REMOTE_ADDR'].'</ip>';
 			$_[] = '</transactiondetails>';
 			$_[] = '<billing>';

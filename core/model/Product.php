@@ -719,11 +719,19 @@ class Product extends DatabaseObject {
 				break;
 			case "image":			
 				$img = current($this->imageset);
+				if (isset($options['property'])) {
+					switch (strtolower($options['property'])) {
+						case "url": return $img->uri;
+						case "width": return $img->properties['width'];
+						case "height": return $img->properties['height'];
+						default: return $img->id;
+					}
+				}
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
 				$string = "";
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-thickbox";
 				if (!empty($options['zoom'])) $string .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="'.$options['zoomfx'].'" rel="product-gallery">';
-				$string .= '<img src="'.$Shopp->imguri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />';
+				$string .= '<img src="'.$img->uri.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;
@@ -1074,7 +1082,8 @@ class Product extends DatabaseObject {
 				
 				$string .= '<input type="hidden" name="products['.$this->id.'][product]" value="'.$this->id.'" />';
 
-				if (!empty($this->prices[0])) $string .= '<input type="hidden" name="products['.$this->id.'][price]" value="'.$this->prices[0]->id.'" />';
+				if (!empty($this->prices[0]) && $this->prices[0]->type != "N/A") 
+					$string .= '<input type="hidden" name="products['.$this->id.'][price]" value="'.$this->prices[0]->id.'" />';
 
 				if (!empty($Shopp->Category)) {
 					if (SHOPP_PERMALINKS)
