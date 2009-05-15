@@ -39,17 +39,21 @@ class Item {
 		global $Shopp; // To access settings
 
 		$Product->load_data(array('prices','images'));
-
 		// If product variations are enabled, disregard the first priceline
 		if ($Product->variations == "on") array_shift($Product->prices);
 
 		// If option ids are passed, lookup by option key, otherwise by id
 		if (is_array($pricing)) $Price = $Product->pricekey[$Product->optionkey($pricing)];
 		else if ($pricing) $Price = $Product->priceid[$pricing];
-		else $Price = $Product->prices[0];
-		
-		$this->product = $Product->id;
-		$this->price = $Price->id;
+		else {
+			foreach ($Product->prices as &$Price)
+				if ($Price->type != "N/A" && 
+					(!$Price->stocked || 
+					($Price->stocked && $Price->stock > 0))) break;
+				
+		}
+		if (isset($Product->id)) $this->product = $Product->id;
+		if (isset($Price->id)) $this->price = $Price->id;
 		$this->category = $category;
 		$this->option = $Price;
 		$this->name = $Product->name;
@@ -93,7 +97,19 @@ class Item {
 		$this->inventory = ($Price->inventory == "on")?true:false;
 		$this->taxable = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
 	}
-		
+	
+	function valid () {
+		if (!$this->product || !$this->price) {
+			new ShoppError(__('The product could not be added to the cart because it could not be found.','cart_item_invalid',SHOPP_ERR));
+			return false;
+		}
+		if ($this->inventory && $this->option->stock == 0) {
+			new ShoppError(__('The product could not be added to the cart because it is not in stock.','cart_item_invalid',SHOPP_ERR));
+			return false;
+		}
+		return true;
+	}
+
 	function quantity ($qty) {
 
 		if ($this->type == "Donation" && $this->donation['var'] == "on") {

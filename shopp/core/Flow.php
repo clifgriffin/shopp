@@ -498,7 +498,7 @@ class Flow {
 				new ShoppError(__("There was a problem loading the payment processor to complete this transaction.",'gateway_load',SHOPP_TRXN_ERR));
 				return false;
 			}
-
+						
 			// Use an external checkout payment gateway
 			$gateway_meta = $this->scan_gateway_meta($gateway);
 			$ProcessorClass = $gateway_meta->tags['class'];
@@ -1066,6 +1066,8 @@ class Flow {
 				case TagProducts::$_slug: $tag = 'tag-products'; unset($atts['slug']);
 				 break;
 				case BestsellerProducts::$_slug: $tag = 'bestseller-products'; unset($atts['slug']);
+				 break;
+				case CatalogProducts::$_slug: $tag = 'catalog-products'; unset($atts['slug']);
 				 break;
 				case NewProducts::$_slug: $tag = 'new-products'; unset($atts['slug']);
 				 break;
@@ -1679,7 +1681,8 @@ class Flow {
 			if (!empty($_POST['ends']['month']) && !empty($_POST['ends']['date']) && !empty($_POST['ends']['year']))
 				$_POST['ends'] = mktime(23,59,59,$_POST['ends']['month'],$_POST['ends']['date'],$_POST['ends']['year']);
 			else $_POST['ends'] = 1;
-
+			if (isset($_POST['rules'])) $_POST['rules'] = stripslashes_deep($_POST['rules']);
+			
 			$Promotion->updates($_POST);
 			$Promotion->save();
 

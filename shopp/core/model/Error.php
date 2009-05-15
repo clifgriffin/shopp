@@ -119,7 +119,9 @@ class ShoppError {
 	
 	function message ($delimiter="\n") {
 		$string = "";
-		if (!empty($this->source)) $string .= "$this->source: ";
+		// Show source if debug is on, or not a general error message
+		if ((WP_DEBUG || $this->level > SHOPP_ERR) && 
+			!empty($this->source)) $string .= "$this->source: ";
 		$string .= join($delimiter,$this->messages);
 		return $string;
 	}

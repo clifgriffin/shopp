@@ -163,6 +163,7 @@ class Category extends DatabaseObject {
 		
 		// Handle default WHERE clause
 		if (empty($loading['where'])) $loading['where'] = "catalog.category=$this->id";
+		
 		if (empty($loading['catalog'])) $loading['catalog'] = "category";
 		switch($loading['catalog']) {
 			case "tags": $loading['catalog'] = ""; break;
@@ -192,10 +193,10 @@ class Category extends DatabaseObject {
 						$min = floatvalue($matches[1]);
 						$max = floatvalue($matches[2]);
 						if ($matches[1] > 0) $match .= " ((onsale=0 AND (minprice >= $min OR maxprice >= $min)) OR (onsale=1 AND (minsaleprice >= $min OR maxsaleprice >= $min)))";
-						if ($matches[2] > 0) $match .= ((empty($match))?"":" AND ")." ((onsale=0 AND (minprice <= $max OR maxprice <= $max)) OR (onsale=1 AND (minsaleprice <= $max OR maxsaleprice <= $max)))";
+						if ($matches[2] > 0) $match .= (empty($match)?"":" AND ")." ((onsale=0 AND (minprice <= $max OR maxprice <= $max)) OR (onsale=1 AND (minsaleprice <= $max OR maxsaleprice <= $max)))";
 					} else { // Spec-based numbers are somewhat more straightforward
 						if ($matches[1] > 0) $match .= "$specalias.numeral >= {$matches[1]}";
-						if ($matches[2] > 0) $match .= ((empty($match))?"":" AND ")."$specalias.numeral <= {$matches[2]}";
+						if ($matches[2] > 0) $match .= (empty($match)?"":" AND ")."$specalias.numeral <= {$matches[2]}";
 					}
 				} else $match = "$specalias.content='$value'"; // No range, direct value match
 		
@@ -231,11 +232,12 @@ class Category extends DatabaseObject {
 			case "oldest": $loading['order'] = "pd.created ASC"; break;
 			case "random": $loading['order'] = "RAND()"; break;
 			case "": 
-			case "title": $loading['order'] = "p.name ASC"; break;
+			case "title": 
+			default: $loading['order'] = "p.name ASC"; break;
 		}
 		
 		if (empty($loading['limit'])) {
-			if ($this->pagination > 0) {
+			if ($this->pagination > 0 && is_numeric($this->page)) {
 				if( !$this->pagination || $this->pagination < 0 )
 					$this->pagination = $limit;
 				$start = ($this->pagination * ($this->page-1)); 
@@ -273,8 +275,62 @@ class Category extends DatabaseObject {
 						MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice,
 						IF(pd.inventory='on',1,0) AS inventory,
 						SUM(pd.stock) as stock";
-		} 
-		
+		}
+
+		// Handle alphabetic page requests
+		if ($Shopp->Category->controls !== false && 
+				((isset($loading['pagination']) && $loading['pagination'] == "alpha") || 
+				!is_numeric($this->page))) {
+
+			$alphanav = range('A','Z');
+			
+			$ac = "SELECT count(DISTINCT p.id) AS total,IF(LEFT(p.name,1) REGEXP '[0-9]',LEFT(p.name,1),LEFT(SOUNDEX(p.name),1)) AS letter,AVG(IF(pd.sale='on',pd.saleprice,pd.price)) as avgprice 
+						FROM $producttable AS p 
+						LEFT JOIN $catalogtable AS catalog ON catalog.product=p.id
+						LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' 
+						LEFT JOIN $discounttable AS dc ON dc.product=p.id AND dc.price=pd.id
+						LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
+						LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
+						{$loading['joins']}
+						WHERE ({$loading['where']}) {$loading['catalog']} AND p.published='on' GROUP BY letter";
+			$alpha = $db->query($ac);
+
+			$existing = current($alpha);
+			if (!isset($this->alpha['0-9'])) {
+				$this->alpha['0-9'] = new stdClass();
+				$this->alpha['0-9']->letter = '0-9';
+				$this->alpha['0-9']->total = 0;
+				$this->alpha['0-9']->avg = 0;
+			}
+			while (is_numeric($existing->letter)) {
+				$this->alpha['0-9']->total += $existing->total;
+				$this->alpha['0-9']->avg = ($this->alpha['0-9']->avg+$existing->avg)/2;
+				$this->alpha['0-9']->letter = '0-9';
+				$existing = next($alpha);
+			}
+
+			foreach ($alphanav as $letter) {
+				if ($existing->letter == $letter) {
+					$this->alpha[$letter] = $existing;
+					$existing = next($alpha);
+				} else {
+					$entry = new stdClass();
+					$entry->letter = $letter;
+					$entry->total = 0;
+					$entry->avg = 0;
+					$this->alpha[$letter] = $entry;
+				}
+			}
+			$this->paged = true;
+			if (!is_numeric($this->page)) {
+				$alphafilter = $this->page == "0-9"?
+					"(LEFT(p.name,1) REGEXP '[0-9]') = 1":
+					"IF(LEFT(p.name,1) REGEXP '[0-9]',LEFT(p.name,1),LEFT(SOUNDEX(p.name),1))='$this->page'";
+				$loading['where'] .= (empty($loading['where'])?"":" AND ").$alphafilter;	
+			}
+			
+		}
+
 		$query = "SELECT SQL_CALC_FOUND_ROWS $columns{$loading['columns']}
 					FROM $producttable AS p 
 					LEFT JOIN $catalogtable AS catalog ON catalog.product=p.id
@@ -286,7 +342,7 @@ class Category extends DatabaseObject {
 					WHERE ({$loading['where']}) {$loading['catalog']} AND p.published='on' AND pd.type != 'N/A'
 					GROUP BY p.name {$loading['having']}
 					ORDER BY {$loading['order']} LIMIT {$loading['limit']}";
-		
+
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
 
@@ -299,7 +355,7 @@ class Category extends DatabaseObject {
 
 		if ($this->pagination == 0 || $limit < $this->pagination) 
 			$this->total = count($this->products);
-		
+	
 		$this->pricing['min'] = 0;
 		$this->pricing['max'] = 0;
 
@@ -715,7 +771,7 @@ class Category extends DatabaseObject {
 				break;
 			case "pagination":
 				if (!$this->paged) return "";
-				
+								
 				// Set options
 				if (!isset($options['label'])) $options['label'] = __("Pages:","Shopp");
 				if (!isset($options['next'])) $options['next'] = __("next","Shopp");
@@ -731,6 +787,21 @@ class Category extends DatabaseObject {
 				if (!empty($options['after'])) $after = $options['after'];
 
 				$string = "";
+				if (isset($this->alpha) && $this->paged) {
+
+					$string .= '<ul class="paging">';
+					foreach ($this->alpha as $alpha) {
+						$link = (SHOPP_PERMALINKS)?
+							"$page"."category/$this->uri/page/$alpha->letter/":
+							"$page&shopp_category=$this->uri&paged=$alpha->letter";
+						if ($alpha->total > 0)
+							$string .= '<li><a href="'.$link.'">'.$alpha->letter.'</a></li>';
+						else $string .= '<li><span>'.$alpha->letter.'</span></li>';
+					}
+					$string .= '</ul>';
+					return $string;
+				}
+				
 				if ($this->pages > 1) {
 
 					if ( $this->pages > $navlimit ) $visible_pages = $navlimit + 1;
@@ -989,6 +1060,22 @@ class Category extends DatabaseObject {
 	
 } // end Category class
 
+class CatalogProducts extends Category {
+	static $_slug = "catalog";
+	
+	function CatalogProducts ($options=array()) {
+		$this->name = __("Catalog Products","Shopp");
+		$this->slug = self::$_slug;
+		$this->uri = $this->slug;
+		$this->smart = true;
+		$this->loading = array('where'=>"true");
+		if (isset($options['order'])) $this->loading['order'] = $options['order'];
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
+	}
+	
+}
+
 class NewProducts extends Category {
 	static $_slug = "new";
 	
@@ -1000,6 +1087,7 @@ class NewProducts extends Category {
 		$this->loading = array('where'=>"p.id IS NOT NULL",'order'=>'p.created DESC');
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1014,6 +1102,7 @@ class FeaturedProducts extends Category {
 		$this->smart = true;
 		$this->loading = array('where'=>"p.featured='on'",'order'=>'p.modified DESC');
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1028,6 +1117,7 @@ class OnSaleProducts extends Category {
 		$this->smart = true;
 		$this->loading = array('where'=>"pd.sale='on' OR pr.discount > 0",'order'=>'p.modified DESC');
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1049,6 +1139,7 @@ class BestsellerProducts extends Category {
 			'order'=>'sold DESC');
 		if (isset($options['where'])) $this->loading['where'] = $options['where'];
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1090,6 +1181,7 @@ class TagProducts extends Category {
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
 			'where'=>"catalog.tag=t.id AND t.name='{$options['tag']}'");
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1112,6 +1204,7 @@ class RandomProducts extends Category {
 		}
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }

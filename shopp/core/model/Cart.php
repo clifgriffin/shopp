@@ -171,7 +171,10 @@ class Cart {
 	 * add()
 	 * Adds a product as an item to the cart */
 	function add ($quantity,&$Product,&$Price,$category,$data=array()) {
+
 		$NewItem = new Item($Product,$Price,$category,$data);
+		if (!$NewItem->valid()) return false;
+		
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
 			$this->added = $this->contents[$item];
@@ -282,6 +285,10 @@ class Cart {
 		if (!isset($this->data->Order->Shipping))
 			$this->data->Order->Shipping = new Shipping();
 		$this->data->Order->Shipping->updates($data);
+
+		// Update state if postcode changes for tax updates
+		if (isset($data['postcode']))
+			$this->data->Order->Shipping->postarea();
 
 		if (!isset($this->data->Order->Billing))
 			$this->data->Order->Billing = new Billing();
@@ -487,7 +494,7 @@ class Cart {
 							case "Free Shipping": $freeshipping++; break;
 						}
 					}
-					if ($freeshipping == count($this->contents) || $promo->scope == "Order") $this->freeshipping = true;
+					if ($freeshipping == count($this->contents) && $promo->scope == "Order") $this->freeshipping = true;
 					else $this->freeshipping = false;
 				} else {
 					// Apply promo calculation to entire order
@@ -754,7 +761,8 @@ class Cart {
 			case "add":			
 				if (isset($_REQUEST['product'])) {
 					
-					$quantity = (!empty($_REQUEST['quantity']))?$_REQUEST['quantity']:1; // Add 1 by default
+					$quantity = (empty($product['quantity']) && 
+						$product['quantity'] !== 0)?1:$product['quantity']; // Add 1 by default
 					$Product = new Product($_REQUEST['product']);
 					$pricing = false;
 					if (!empty($_REQUEST['options']) && !empty($_REQUEST['options'][0])) 
@@ -774,12 +782,13 @@ class Cart {
 				
 				if (isset($_REQUEST['products']) && is_array($_REQUEST['products'])) {
 					foreach ($_REQUEST['products'] as $id => $product) {
-						$quantity = (!empty($product['quantity']))?$product['quantity']:1; // Add 1 by default
-						$Product = new Product($id);
+						$quantity = (empty($product['quantity']) && 
+							$product['quantity'] !== 0)?1:$product['quantity']; // Add 1 by default
+						$Product = new Product($product['product']);
 						$pricing = false;
 						if (!empty($product['options']) && !empty($product['options'][0])) 
 							$pricing = $product['options'];
-						else $pricing = $product['price'];
+						elseif (isset($product['price'])) $pricing = $product['price'];
 						
 						$category = false;
 						if (!empty($product['category'])) $category = $product['category'];
@@ -935,6 +944,7 @@ class Cart {
 		$result = "";
 		switch ($property) {
 			case "promo-code": 
+				if (empty($this->data->Promotions)) return false; // Skip if no promotions exist
 				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code");
 				$result .= '<ul><li>';
 				
@@ -970,11 +980,13 @@ class Cart {
 					$result .= '<input name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$this->data->Order->Shipping->postcode.'" />&nbsp;';
 					$result .= '</span>';
 				}
-				$result .= '<span>';
-				$result .= '<select name="shipping[country]" id="shipping-country">';
-				$result .= menuoptions($countries,$selected,true);
-				$result .= '</select>';
-				$result .= '</span>';
+				if (count($countries) > 1) {
+					$result .= '<span>';
+					$result .= '<select name="shipping[country]" id="shipping-country">';
+					$result .= menuoptions($countries,$selected,true);
+					$result .= '</select>';
+					$result .= '</span>';
+				} else $result .= '<input type="hidden" name="shipping[country]" id="shipping-country" value="'.key($markets).'" />';
 				$result .= '</li></ul>';
 				return $result;
 				break;

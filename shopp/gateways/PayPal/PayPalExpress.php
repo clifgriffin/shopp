@@ -19,7 +19,7 @@ class PayPalExpress {
 	var $Response = false;
 	var $currencies = array("USD", "AUD", "CAD", "CHF", "CZK", "DKK", "EUR", "GBP", 
 							"HKD", "HUF", "JPY", "NOK", "NZD", "PLN", "SEK", "SGD");
-	var $locales = array("AT" => "de_DE", "AU" => "en_AU", "BE" => "en_US", "C2" => "en_US",
+	var $locales = array("AT" => "de_DE", "AU" => "en_AU", "BE" => "en_US", "CA" => "en_US",
 							"CH" => "de_DE", "CN" => "zh_CN", "DE" => "de_DE", "ES" => "es_ES",
 							"FR" => "fr_FR", "GB" => "en_GB", "GF" => "fr_FR", "GI" => "en_US",
 							"GP" => "fr_FR", "IE" => "en_US", "IT" => "it_IT", "JP" => "ja_JP",
@@ -48,7 +48,6 @@ class PayPalExpress {
 			if (empty($Shopp->Cart->data->PayPalExpress->token)) {
 				$Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
 				$this->details();
-				echo "getting details";
 			} else $Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
 		}
 

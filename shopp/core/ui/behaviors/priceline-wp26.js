@@ -204,6 +204,7 @@ function addPriceLine (target,options,data,attachment) {
 	price.change(function() { this.value = asMoney(this.value); }).change();
 	saleprice.change(function() { this.value = asMoney(this.value); }).change();
 	shippingfee.change(function() { this.value = asMoney(this.value); }).change();
+	weight.change(function() { var num = new Number(this.value); this.value = num.roundFixed(3); }).change();
 
 	// Set the context for the db
 	if (data && data.context) context.val(data.context);
@@ -231,7 +232,7 @@ function addPriceLine (target,options,data,attachment) {
 
 		saleprice.val(asMoney(data.saleprice));
 		shippingfee.val(asMoney(data.shipfee));
-		weight.val(data.weight);
+		weight.val(data.weight).change();
 		stock.val(data.stock);
 	
 		if (data.download) {
