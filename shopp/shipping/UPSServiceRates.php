@@ -216,7 +216,7 @@ class UPSServiceRates {
 					$_[] = '<UnitOfMeasurement>';
 						$_[] = '<Code>'.$this->settings['units'].'</Code>';
 					$_[] = '</UnitOfMeasurement>';
-					$_[] = '<Weight>'.$weight.'</Weight>';
+					$_[] = '<Weight>'.number_format(($weight < 1)?1:$weight,1).'</Weight>';
 				$_[] = '</PackageWeight>   ';
 			$_[] = '</Package>';
 		$_[] = '</Shipment>';

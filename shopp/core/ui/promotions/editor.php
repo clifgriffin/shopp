@@ -36,10 +36,10 @@
 
 				</div>
 				</div>
-				</div>
 
 			</div> <!-- #poststuff -->
 		</form>
+	</div>
 
 <?php else: ?>
 	
@@ -118,11 +118,10 @@
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
 
-$=jQuery.noConflict();
 
-$(document).ready( function() {
+jQuery(document).ready( function() {
+	$=jQuery.noConflict();
 
-$('#shopp-jsconflict').hide();
 
 var wp26 = <?php echo (SHOPP_WP27)?'false':'true'; ?>;
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
@@ -240,10 +239,11 @@ function add_condition (rule,location) {
 
 		if (conditions['logic'].length > 0) {
 			operation.show();
-			for (var l in conditions['logic']) {
+			for (var l = 0; l < conditions['logic'].length; l++) {
 				var lop = conditions['logic'][l];
-					for (var op in logic[lop])
-						$('<option></option>').html(RULES_LANG[logic[lop][op]]).val(logic[lop][op]).appendTo(operation);
+				if (!lop) break;
+				for (var op = 0; op < logic[lop].length; op++) 
+					$('<option></option>').html(RULES_LANG[logic[lop][op]]).val(logic[lop][op]).appendTo(operation);
 			}
 		} else operation.hide();
 		
@@ -270,7 +270,7 @@ $('#discount-type').change(function () {
 	if (type == "Percentage Off" || type == "Amount Off") $('#discount-row').show();
 	if (type == "Buy X Get Y Free") $('#beyget-row').show();
 	
-	$('#discount-amount').change(function () {
+	$('#discount-amount').unbind('change').change(function () {
 		if (type == "Percentage Off") this.value = asPercent(this.value);
 		if (type == "Amount Off") this.value = asMoney(this.value);
 	}).change();

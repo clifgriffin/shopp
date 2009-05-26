@@ -389,7 +389,7 @@ class Cart {
 		$db = DB::get();
 		
 		// Load promotions if they've not yet been loaded
-		if (empty($this->data->Promotions) || true) {
+		if (empty($this->data->Promotions)) {
 			$promo_table = DatabaseObject::tablename(Promotion::$table);
 			// Add date-based lookup too
 			$this->data->Promotions = $db->query("SELECT * FROM $promo_table WHERE scope='Order' AND ((status='enabled' AND UNIX_TIMESTAMP(starts) > 0 AND UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP() AND UNIX_TIMESTAMP(ends) > UNIX_TIMESTAMP()) OR status='enabled')",AS_ARRAY);

@@ -456,7 +456,12 @@ class Flow {
 
 				unset($Cart->data->OrderError);
 		}
-		return apply_filters('shopp_checkout','<div id="shopp">'.$content.'</div>');
+		
+		// Wrap with #shopp if not already wrapped
+		if (strpos($content,'<div id="shopp">') === false) 
+			$content = '<div id="shopp">'.$content.'</div>';
+		
+		return apply_filters('shopp_checkout',$content);
 	}
 	
 	function checkout_order_summary () {
@@ -629,6 +634,7 @@ class Flow {
 			$Purchase->gateway = $gatewayname;
 			$Purchase->transactionid = $transactionid;
 			$Purchase->transtatus = "CHARGED";
+			$Purchase->ip = $Shopp->Cart->ip;
 			$Purchase->save();
 			// echo "<pre>"; print_r($Purchase); echo "</pre>";
 
@@ -1144,6 +1150,9 @@ class Flow {
 		$shiprates = $this->Settings->get('shipping_rates');
 		if (!empty($shiprates)) ksort($shiprates);
 
+		$uploader = $Shopp->Settings->get('uploader_pref');
+		if (!$uploader) $uploader = 'flash';
+
 		$process = (!empty($Product->id)?$Product->id:'new');
 		$_POST['action'] = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->products)),$Shopp->wpadminurl."admin.php");
 		
@@ -1518,6 +1527,9 @@ class Flow {
 		
 		$categories_menu = $this->category_menu($Category->parent,$Category->id);
 		$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
+
+		$uploader = $Shopp->Settings->get('uploader_pref');
+		if (!$uploader) $uploader = 'flash';
 		
 		$workflows = array(
 			"continue" => __('Continue Editing','Shopp'),
@@ -1597,6 +1609,7 @@ class Flow {
 		}
 
 		if (empty($_POST['specs'])) $Category->specs = array();
+		else $_POST['specs'] = stripslashes_deep($_POST['specs']);
 		if (empty($_POST['options'])) $Category->options = array();
 		else $_POST['options'] = stripslashes_deep($_POST['options']);
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
@@ -1689,6 +1702,9 @@ class Flow {
 			if ($Promotion->scope == "Catalog")
 				$Promotion->build_discounts();
 			
+			// Reset cart promotions cache
+			// to force reload for these updates
+			$Shopp->Cart->data->Promotions = false;
 		}
 		
 		$pagenum = absint( $pagenum );
@@ -2097,8 +2113,12 @@ class Flow {
 			$rates = $Shopp->Settings->get('shipping_rates');
 
 			$Errors = &ShoppErrors();
-			foreach ((array)$rates as $method) {  
-				list($ShipCalcClass,$process) = split("::",$method['method']);    
+			foreach ((array)$rates as $method) {
+				$process = '';
+				$ShipCalcClass = $method['method'];
+				if (strpos($method['method'],'::'))
+					list($ShipCalcClass,$process) = split("::",$method['method']);
+					
 				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth)
 					&& $Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth) {
 						$Shopp->ShipCalcs->modules[$ShipCalcClass]->verifyauth();
@@ -2678,8 +2698,11 @@ class Flow {
 		$this->Settings->save('gallery_thumbnail_sizing','1');
 		$this->Settings->save('gallery_thumbnail_quality','3');
 		
+		// System Settinggs
 		$this->Settings->save('image_storage_pref','db');
 		$this->Settings->save('product_storage_pref','db');
+		$this->Settings->save('uploader_pref','flash');
+		$this->Settings->save('script_loading','global');
 
 		// Payment Gateway Settings
 		$this->Settings->save('PayPalExpress',array('enabled'=>'off'));

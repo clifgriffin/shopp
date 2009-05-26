@@ -278,7 +278,7 @@ class Category extends DatabaseObject {
 		}
 
 		// Handle alphabetic page requests
-		if ($Shopp->Category->controls !== false && 
+		if ((isset($Shopp->Category->controls) && $Shopp->Category->controls !== false) && 
 				((isset($loading['pagination']) && $loading['pagination'] == "alpha") || 
 				!is_numeric($this->page))) {
 
@@ -685,6 +685,8 @@ class Category extends DatabaseObject {
 				$section = array();
 
 				// Identify root parent
+				if (empty($this->id)) return false;
+				
 				$parent = $this->id;
 				while($parent != 0) {
 					if ($Shopp->Catalog->categories[$parent]->parent == 0) break;
@@ -949,7 +951,7 @@ class Category extends DatabaseObject {
 						// For custom menu presets
 						if ($spec['facetedmenu'] == "custom" && !empty($spec['options'])) {
 							foreach ($spec['options'] as $option) {
-								$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($option['name']);
+								$href = add_query_arg('shopp_catfilters['.$spec['name'].']',urlencode($option['name']),$_SERVER['REQUEST_URI']);
 								$list .= '<li><a href="'.$href.'">'.$option['name'].'</a></li>';
 							}
 							$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';

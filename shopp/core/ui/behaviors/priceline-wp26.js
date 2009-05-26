@@ -1,4 +1,5 @@
 function addPriceLine (target,options,data,attachment) {
+	$=jQuery.noConflict();
 
 	// Give this entry a unique runtime id
 	var i = pricingidx;

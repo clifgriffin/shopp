@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.6a1
+Version: 1.0.6b1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.6a1");
+define("SHOPP_VERSION","1.0.6b1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -412,10 +412,14 @@ class Shopp {
 		// Include stylesheets and javascript based on whether shopp shortcodes are used
 		add_action('wp_head', array(&$this, 'header'));
 		add_action('wp_footer', array(&$this, 'footer'));
-		wp_enqueue_script('jquery');
-		wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',$this->shopuri));
-		wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION,true);
-		wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
+		
+		$loading = $this->Settings->get('script_loading');
+		if (!$loading || $loading == "global" || $tag !== false) {
+			wp_enqueue_script('jquery');
+			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',$this->shopuri));
+			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
+		}
 
 		if ($tag == "checkout")
 			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
