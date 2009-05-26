@@ -104,7 +104,10 @@ class Product extends DatabaseObject {
 		if (isset($products) && is_array($products)) {
 			foreach ($products as $product) $ids[] = $product->id;
 		} else $ids[0] = $this->id;
-
+		
+		// Skip if there are no product ids
+		if (empty($ids) || empty($ids[0])) return false;
+		
 		// Build the mega-query	
 		foreach ($Dataset as $rtype => $set) {
 
@@ -650,15 +653,18 @@ class Product extends DatabaseObject {
 				if (empty($this->prices)) $this->load_data(array('prices'));
 				// if (empty($this->prices)) $this->load_prices();
 				$pricetag = 'price';
+				$taxrate = 0;
+				if (isset($options['taxes']) && value_is_true($options['taxes'])) 
+					$taxrate = $Shopp->Cart->taxrate();
 				if ($this->onsale) $pricetag = 'saleprice';
 				if ($this->options > 1) {
 					if ($this->pricerange['min'][$pricetag] == $this->pricerange['max'][$pricetag])
-						return money($this->pricerange['min'][$pricetag]); // No price range
+						return money($this->pricerange['min'][$pricetag]+($this->pricerange['min'][$pricetag]*$taxrate)); // No price range
 					else {
-						if (!empty($options['starting'])) return $options['starting']." ".money($this->pricerange['min'][$pricetag]);
-						return money($this->pricerange['min'][$pricetag])." &mdash; ".money($this->pricerange['max'][$pricetag]);
+						if (!empty($options['starting'])) return $options['starting']." ".money($this->pricerange['min'][$pricetag]+($this->pricerange['min'][$pricetag]*$taxrate));
+						return money($this->pricerange['min'][$pricetag]+($this->pricerange['min'][$pricetag]*$taxrate))." &mdash; ".money($this->pricerange['max'][$pricetag]+($this->pricerange['max'][$pricetag]*$taxrate));
 					}
-				} else return money($this->prices[0]->promoprice);
+				} else return money($this->prices[0]->promoprice+($this->prices[0]->promoprice*$taxrate));
 				break;
 			case "has-savings": return ($this->onsale && $this->pricerange['min']['saved'] > 0)?true:false; break;
 			case "savings":

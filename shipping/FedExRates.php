@@ -201,7 +201,7 @@ class FedExRates {
 	}
 	
 	function build ($cart,$description,$weight,$postcode,$country) {
-
+		
 		$_ = array();
 
 		$_['WebAuthenticationDetail'] = array(
@@ -214,7 +214,7 @@ class FedExRates {
 			'MeterNumber' => $this->settings['meter']);
 
 		$_['TransactionDetail'] = array(
-			'CustomerTransactionId' => $cart->session);
+			'CustomerTransactionId' => empty($cart->session)?mktime():$cart->session);
 
 		$_['Version'] = array(
 			'ServiceId' => 'crs', 
@@ -254,7 +254,7 @@ class FedExRates {
 		$_['RequestedShipment']['RequestedPackages'] = array(
 				'SequenceNumber' => '1',
 					'Weight' => array(
-						'Value' => number_format($weight,1),
+						'Value' => number_format(($weight < 0.1)?0.1:$weight,1),
 						'Units' => $this->settings['units']));
 		
 		return $_;

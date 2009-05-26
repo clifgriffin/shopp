@@ -12,7 +12,7 @@
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="payment-gateway"><?php _e('Payment Gateway','Shopp'); ?></label></th> 
 				<td><select name="settings[payment_gateway]" id="payment-gateway">
-					<option value=""><?php _e('Select One','Shopp'); ?>&hellip;</option>
+					<option value=""><?php _e('No On-site Checkout','Shopp'); ?></option>
 					<?php echo menuoptions($gateways,$payment_gateway,true); ?>
 					</select><br /> 
 	            <?php _e('Select the payment gateway processor you will be using to process credit card transactions.','Shopp'); ?></td>

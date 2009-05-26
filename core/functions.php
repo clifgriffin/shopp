@@ -657,7 +657,7 @@ function scan_money_format ($format) {
 		$f['cpos'] = false;
 	}
 
-	$dd = 0;
+	$i = 0; $dd = 0;
 	$dl = array();
 	while($i < strlen($df)) {
 		$c = substr($df,$i++,1);

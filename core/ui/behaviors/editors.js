@@ -1,4 +1,5 @@
 function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
+	$=jQuery.noConflict();
 	if (!sortoptions) sortoptions = {'axis':'y'};
 	var _self = this;
 	
@@ -61,11 +62,13 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 }
 
 function NestedMenuContent (i,target,dataname,data) {
+	$=jQuery.noConflict();
 	var content = $('<textarea name="'+dataname+'['+i+'][content]" cols="40" rows="7"></textarea>').appendTo(target);
 	if (data && data.content) content.val(htmlentities(data.content));
 }
 
 function NestedMenuOption (i,target,dataname,defaultlabel,data) {
+	$=jQuery.noConflict();
 	
 	var _self = this;
 	
@@ -97,6 +100,7 @@ function NestedMenuOption (i,target,dataname,defaultlabel,data) {
 }
 
 function addDetail (data) {
+	$=jQuery.noConflict();
 	var menus = $('#details-menu');
 	var entries = $('#details-list');
 	var id = detailsidx++;
@@ -113,6 +117,7 @@ function addDetail (data) {
 }
 
 function loadVariations (options,prices) {
+	$=jQuery.noConflict();
 	if (options) {
 		$.each(options,function (key,option) { 
 			addVariationOptionsMenu(option); 
@@ -128,6 +133,7 @@ function loadVariations (options,prices) {
 }
 
 function addVariationOptionsMenu (data) {
+	$=jQuery.noConflict();
 	var menus = $('#variations-menu');
 	var entries = $('#variations-list');
 	var addOptionButton = $('#addVariationOption');
@@ -199,6 +205,7 @@ function addVariationOptionsMenu (data) {
  * buildVariations()
  * Creates an array of all possible combinations of the product variation options */
 function buildVariations () {
+	$=jQuery.noConflict();
 	var combos = new Array();							// Final list of possible variations
 	var optionSets = $('#variations-list ul');			// Reference to the DOM-stored option set
 	var totalSets = optionSets.length;					// Total number of sets
@@ -246,6 +253,7 @@ function buildVariations () {
 }
 
 function addVariationPrices (data) {
+	$=jQuery.noConflict();
 	if (!data) {
 		var updated = buildVariations();
 		var variationPricing = $('#variations-pricing');
@@ -276,6 +284,7 @@ function addVariationPrices (data) {
 }
 
 function deleteVariationPrices (optionids,reduce) {
+	$=jQuery.noConflict();
 	var updated = buildVariations();
 
 	$(updated).each(function(id,options) {
@@ -320,6 +329,7 @@ function deleteVariationPrices (optionids,reduce) {
 }
 
 function optionMenuExists (label) {
+	$=jQuery.noConflict();
 	if (!label) return false;
 	var found = false;
 	$.each(optionMenus,function (id,menu) {
@@ -333,6 +343,7 @@ function optionMenuExists (label) {
 }
 
 function optionMenuItemExists (menu,label) {
+	$=jQuery.noConflict();
 	if (!menu || !menu.items || !label) return false;
 	var found = false;
 	$.each(menu.items,function (id,item) {
@@ -346,6 +357,7 @@ function optionMenuItemExists (menu,label) {
 
 
 function updateVariationLabels () {
+	$=jQuery.noConflict();
 	var updated = buildVariations();
 	$(updated).each(function(id,options) {
 		var key = xorkey(options);
@@ -354,6 +366,7 @@ function updateVariationLabels () {
 }
 
 function orderOptions (menus,options) {
+	$=jQuery.noConflict();
 	var menuids = $(menus).find("ul li").not('.ui-sortable-helper').find('input.id');
 	$(menuids).each(function (i,menuid) {
 		if (menuid) $(optionMenus[$(menuid).val()].itemsElement).appendTo(options);
@@ -362,6 +375,7 @@ function orderOptions (menus,options) {
 }
 
 function orderVariationPrices () {
+	$=jQuery.noConflict();
 	var updated = buildVariations();
 
 	$(updated).each(function (id,options) {
@@ -382,6 +396,7 @@ function xorkey (ids) {
 }
 
 function variationsToggle () {
+	$=jQuery.noConflict();
 	if ($('#variations-setting').attr('checked')) {
 		pricingOptions[0].disable();
 		$('#product-pricing').hide();
@@ -409,6 +424,7 @@ function readableFileSize (size) {
  * Image Uploads using SWFUpload or the jQuery plugin One Click Upload
  **/
 function ImageUploads (id,type) {
+	(function($) {
 	var swfu;
 	
 	var settings = {
@@ -623,6 +639,7 @@ function ImageUploads (id,type) {
 			}
 		});
 	}
+	})(jQuery)
 
 }
 
@@ -631,6 +648,7 @@ function ImageUploads (id,type) {
  **/
 function FileUploader (button,defaultButton,linenum,updates) {
 	var _self = this;
+	(function($) {
 
 	_self.settings = {
 		button_text: '<span class="button">'+UPLOAD_FILE_BUTTON_TEXT+'</span>',
@@ -787,13 +805,14 @@ function FileUploader (button,defaultButton,linenum,updates) {
 	}
 
 	function uploadComplete (file) {}
+	})(jQuery)
 	
 }
 
 function SlugEditor (id,type) {
-	
 	var _self = this;
-	
+	(function($) {
+		
 	this.edit_permalink = function () {
 			var i, c = 0;
 			var editor = $('#editable-slug');
@@ -847,5 +866,6 @@ function SlugEditor (id,type) {
 	}
 	
 	this.enable();
+	})(jQuery)
 
 }

@@ -46,10 +46,11 @@
 
 			</div>
 			</div>
-			</div>
 				
 		</div> <!-- #poststuff -->
 	</form>
+</div>
+	
 <?php else: ?>
 <?php
 
@@ -250,7 +251,7 @@ foreach ($Product->categories as $category) $selectedCategories[] = $category->i
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Product";
 
-var flashuploader = <?php echo (false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security'))?'false':'true'; ?>;
+var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security')))?'true':'false'; ?>;
 var wp26 = <?php echo (SHOPP_WP27)?'false':'true'; ?>;
 var product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>;
 var prices = <?php echo json_encode($Product->prices) ?>;

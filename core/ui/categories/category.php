@@ -46,11 +46,10 @@
 
 			</div>
 			</div>
-			</div>
 				
 		</div> <!-- #poststuff -->
 	</form>
-
+</div>
 
 <?php else: ?>
 
@@ -209,7 +208,7 @@
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Category";
 
-var flashuploader = <?php echo (false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security'))?'false':'true'; ?>;
+var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security')))?'true':'false'; ?>;
 var wp26 = <?php global $wp_version; echo (version_compare($wp_version,"2.6.9","<"))?'true':'false'; ?>;
 var category = <?php echo (!empty($Category->id))?$Category->id:'false'; ?>;
 var details = <?php echo json_encode($Category->specs) ?>;
