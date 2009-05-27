@@ -669,8 +669,14 @@ function scan_money_format ($format) {
 	$f['precision'] = $dd;
 	
 	if (count($dl) > 1) {
-		$f['decimals'] = $dl[count($dl)-1];
-		$f['thousands'] = $dl[0];
+		if ($dl[0] == "t") {
+			$f['thousands'] = $dl[1];
+			$f['precision'] = 0;
+		}
+		else {
+			$f['decimals'] = $dl[count($dl)-1];
+			$f['thousands'] = $dl[0];			
+		}
 	} else $f['decimals'] = $dl[0];
 
 	return $f;

@@ -54,8 +54,8 @@ function get_countries () {
 	$countries['GR'] = array('name'=>__('Greece','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['GP'] = array('name'=>__('Guadeloupe','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['HK'] = array('name'=>__('Hong Kong','Shopp'),'currency'=>array('code'=>'HKD','format'=>'HK$#,###.##'),'units'=>'metric','region'=>6); 
-	$countries['HU'] = array('name'=>__('Hungary','Shopp'),'currency'=>array('code'=>'HUF','format'=>'#.### Ft'),'units'=>'metric','region'=>3); 
-	$countries['IS'] = array('name'=>__('Iceland','Shopp'),'currency'=>array('code'=>'ISK','format'=>'#.### kr'),'units'=>'metric','region'=>3); 
+	$countries['HU'] = array('name'=>__('Hungary','Shopp'),'currency'=>array('code'=>'HUF','format'=>'#t.### Ft'),'units'=>'metric','region'=>3); 
+	$countries['IS'] = array('name'=>__('Iceland','Shopp'),'currency'=>array('code'=>'ISK','format'=>'#t.### kr.'),'units'=>'metric','region'=>3); 
 	$countries['IN'] = array('name'=>__('India','Shopp'),'currency'=>array('code'=>'INR','format'=>'Rs. #,##,###.##'),'units'=>'metric','region'=>6); 
 	$countries['ID'] = array('name'=>__('Indonesia','Shopp'),'currency'=>array('code'=>'IDR','format'=>'Rp. #.###,##'),'units'=>'metric','region'=>7); 
 	$countries['IE'] = array('name'=>__('Ireland','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 

@@ -1182,7 +1182,7 @@ class Shopp {
 				}
 				
 				header("Content-type: ".$Asset->properties['mimetype']); 
-				header("Content-Disposition: inline; filename=\"".$Asset->name."\""); 
+				header("Content-Disposition: attachment; filename=\"".$Asset->name."\""); 
 				header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
 				header("Cache-Control: maxage=1");
 				header("Pragma: public");
