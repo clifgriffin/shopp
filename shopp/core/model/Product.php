@@ -340,7 +340,7 @@ class Product extends DatabaseObject {
 			}
 			
 		} // end foreach($price)
-		if ($this->inventory && $this->stock == 0) $this->outofstock = true;
+		if ($this->inventory && $this->stock <= 0) $this->outofstock = true;
 		if ($freeshipping) $this->freeshipping = true;
 	}
 	
@@ -474,12 +474,43 @@ class Product extends DatabaseObject {
 		$db = DB::get();
 		$table = DatabaseObject::tablename(Asset::$table);
 		
-		$query = "UPDATE $table SET parent='$this->id',context='product' WHERE ";
+		$query = "";
 		foreach ($images as $i => $id) {
+			if (empty($id)) continue;
 			if ($i > 0) $query .= " OR ";
 			$query .= "id=$id OR src=$id";
 		}
+		
+		if (empty($query)) return false;
+		else $query = "UPDATE $table SET parent='$this->id',context='product' WHERE ".$query;
+		
 		$db->query($query);
+		
+		return true;
+	}
+	
+	/**
+	 * update_images()
+	 * Updates the image details for an entire image set (thumbnail, small, image) */
+	function update_images ($images) {
+		if (!is_array($images)) return false;
+
+		$db = DB::get();
+		$table = DatabaseObject::tablename(Asset::$table);
+
+		foreach($images as $i => $img) {
+			$query = "SELECT imgs.id FROM $table AS thumb LEFT JOIN $table AS imgs ON thumb.src=imgs.src OR thumb.src=imgs.id WHERE thumb.id={$img['id']}";
+			$imageset = $db->query($query);
+			foreach ($imageset as $is) {
+				$Image = new Asset();
+				unset($Image->_datatypes['data'],$Image->data);
+				$Image->load($is->id);
+				$Image->properties['title'] = $img['title'];
+				$Image->properties['alt'] = $img['alt'];
+				$Image->save();
+			}
+		}			
+		
 		return true;
 	}
 	
@@ -694,10 +725,10 @@ class Product extends DatabaseObject {
 				else $options['class'] = ' class="'.$options['class'].'"';
 				if (isset($this->thumbnail)) {
 					$img = $this->thumbnail;
-					$title = ' title="'.attribute_escape(!empty($img->properties['title'])?$img->properties['title']:$this->name).'"';
+					$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
 					if (!empty($options['title'])) $title = ' title="'.attribute_escape($options['title']).'"';
-					$alt = (!empty($img->properties['alt'])?$img->properties['alt']:$this->name);
-					return '<img src="'.$img->uri.'"'.$title.' alt="'.attribute_escape($alt).'"  width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
+					$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$this->name);
+					return '<img src="'.$img->uri.'"'.$title.' alt="'.$alt.'"  width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
 				}
 				break;
 			case "hasimages": 
@@ -730,6 +761,8 @@ class Product extends DatabaseObject {
 						case "url": return $img->uri;
 						case "width": return $img->properties['width'];
 						case "height": return $img->properties['height'];
+						case "title": return attribute_escape($img->properties['title']);
+						case "alt": return attribute_escape($img->properties['alt']);
 						default: return $img->id;
 					}
 				}
@@ -754,10 +787,11 @@ class Product extends DatabaseObject {
 							$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
 							$previews .= '</li>';
 						}
-					
+						$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
+						$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$img->name);
 						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
 						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="'.$options['zoomfx'].'" rel="product-'.$this->id.'-gallery">';
-						$previews .= '<img src="'.$Shopp->imguri.$img->id.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
+						$previews .= '<img src="'.$Shopp->imguri.$img->id.'"'.$title.' alt="'.$alt.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
 						$previews .= '</a>';
 						$previews .= '</li>';
 						$firstPreview = false;
@@ -787,8 +821,11 @@ class Product extends DatabaseObject {
 							$thumbwidth = round($img->properties['width']*$scale);
 						}
 						
+						$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
+						$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$img->name);
+						
 						$thumbs .= '<li id="thumbnail-'.$img->src.'"'.(($firstThumb)?' class="first"':'').' rel="preview-'.$img->src.'">';
-						$thumbs .= '<img src="'.$Shopp->imguri.$img->id.'" alt="'.$img->datatype.'" width="'.$thumbwidth.'" height="'.$thumbheight.'" />';
+						$thumbs .= '<img src="'.$Shopp->imguri.$img->id.'"'.$title.' alt="'.$alt.'" width="'.$thumbwidth.'" height="'.$thumbheight.'" />';
 						$thumbs .= '</li>';
 						$firstThumb = false;						
 					}
@@ -868,6 +905,7 @@ class Product extends DatabaseObject {
 			case "has-variations":
 				return ($this->variations == "on" && !empty($this->options)); break;
 			case "variations":
+				
 				$string = "";
 
 				if (!isset($options['mode'])) {
@@ -887,6 +925,8 @@ class Product extends DatabaseObject {
 					}
 					return true;
 				}
+
+				if ($this->outofstock) return false; // Completely out of stock, hide menus
 				
 				$defaults = array(
 					'disabled' => 'show',
@@ -988,6 +1028,7 @@ class Product extends DatabaseObject {
 			case "donation":
 			case "amount":
 			case "quantity":
+				if ($this->outofstock) return false;
 				if (!isset($options['value'])) $options['value'] = 1;
 				if (!isset($options['input'])) $options['input'] = "text";
 				if (!isset($options['labelpos'])) $options['labelpos'] = "before";
@@ -1084,7 +1125,6 @@ class Product extends DatabaseObject {
 					$string .= '<span class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</span>';
 					return $string;
 				}
-				
 				
 				$string .= '<input type="hidden" name="products['.$this->id.'][product]" value="'.$this->id.'" />';
 

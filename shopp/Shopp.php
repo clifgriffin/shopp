@@ -1338,7 +1338,8 @@ class Shopp {
  *
  * @param $object - The object to get the tag property from
  * @param $property - The property of the object to get/output
- * @param $options - Custom options for the property result in query form (option1=value&option2=value&...)
+ * @param $options - Custom options for the property result in query form 
+ *                   (option1=value&option2=value&...) or alternatively as an associative array
  */
 function shopp () {
 	global $Shopp;
@@ -1346,17 +1347,24 @@ function shopp () {
 
 	$object = strtolower($args[0]);
 	$property = strtolower($args[1]);
-	$paramsets = (isset($args[2]))?$args[2]:'';
-	$paramsets = split("&",$paramsets);
 
-	$options = array();
-	foreach ((array)$paramsets as $paramset) {
-		if (empty($paramset)) continue;
-		$key = $paramset;
-		$value = "";
-		if (strpos($paramset,"=") !== false) 
-			list($key,$value) = split("=",$paramset);
-		$options[strtolower($key)] = $value;
+	if(is_array($args[2]) && count($args[2] > 0)){  // allow for associative array for options
+		foreach(array_keys($argv[2]) as $key){
+			$options[strtolower($key)] = $argv[2][$key];
+		}
+	} else { // parse query form
+		$paramsets = (isset($args[2]))?$args[2]:'';
+		$paramsets = split("&",$paramsets);
+	
+		$options = array();
+		foreach ((array)$paramsets as $paramset) {
+			if (empty($paramset)) continue;
+			$key = $paramset;
+			$value = "";
+			if (strpos($paramset,"=") !== false) 
+				list($key,$value) = split("=",$paramset);
+			$options[strtolower($key)] = $value;
+		}
 	}
 	
 	$Object = false; $result = false;
