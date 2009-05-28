@@ -1278,16 +1278,9 @@ class Flow {
 		if (!empty($_POST['images']) && is_array($_POST['images'])) {
 			$Product->link_images($_POST['images']);
 			$Product->save_imageorder($_POST['images']);
-			foreach($_POST['imagedetails'] as $i => $data) {
-				$Image = new Asset();
-				unset($Image->_datatypes['data'],$Image->data);
-				$Image->load($data['id']);
-				$Image->properties['title'] = $data['title'];
-				$Image->properties['alt'] = $data['alt'];
-				$Image->save();
-			}
+			if (!empty($_POST['imagedetails']))
+				$Product->update_images($_POST['imagedetails']);
 		}
-				
 		unset($Product);
 		return true;
 	}

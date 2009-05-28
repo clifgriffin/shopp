@@ -363,7 +363,7 @@ class PayPalExpress {
 				Enter your PayPal Express API Password.</p>
 				<p><input type="text" name="settings[PayPalExpress][signature]" id="paypalxp-signature" size="48" value="<?php echo $this->settings['signature']; ?>" /><br />
 				Enter your PayPal Express API Signature.</p>
-				<p><label for="paypalxp-testmode"><input type="hidden" name="settings[PayPalExpress][testmode]" value="off" /><input type="checkbox" name="settings[PayPalExpress][testmode]" id="paypalxp-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Enable test mode</label></p>
+				<p><label for="paypalxp-testmode"><input type="hidden" name="settings[PayPalExpress][testmode]" value="off" /><input type="checkbox" name="settings[PayPalExpress][testmode]" id="paypalxp-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Use the <a href="http://docs.shopplugin.net/PayPal_Sandbox" target="shoppdocs">PayPal Sandbox</a></label></p>
 				
 				<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
 				
