@@ -327,10 +327,20 @@ class PurchasesExport {
 	
 	function records () {
 		foreach ($this->data as $key => $record) {
-			foreach(get_object_vars($record) as $column) 
-				$this->export($column);
+			foreach(get_object_vars($record) as $column)
+				$this->export($this->parse($column));
 			$this->record();
 		}
+	}
+	
+	function parse ($column) {
+		if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$column)) {
+			$list = unserialize($column);
+			$column = "";
+			foreach ($list as $name => $value)
+				$column .= (empty($column)?"":";")."$name:$value";
+		}
+		return $column;
 	}
 
 	function end() {}

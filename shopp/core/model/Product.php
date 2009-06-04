@@ -286,7 +286,7 @@ class Product extends DatabaseObject {
 						$this->pricerange['max']['price'] = $price->price;
 				}
 
-				if ($price->promoprice > 0) {
+				if ($price->promoprice > 0 || $price->onsale) {
 					if (empty($this->pricerange['min']['saleprice'])) 
 						$this->pricerange['min']['saleprice'] = $this->pricerange['max']['saleprice'] = $price->promoprice;
 					if ($this->pricerange['min']['saleprice'] > $price->promoprice) 
@@ -325,7 +325,7 @@ class Product extends DatabaseObject {
 							$price->price - $price->promoprice;
 				
 				// Find lowest savings percentage
-				if ($price->price > 0) {
+				if ($price->price > 0 || $price->onsale) {
 					if ($this->pricerange['min']['saved']/$price->price < $this->pricerange['min']['savings'])
 						$this->pricerange['min']['savings'] = ($this->pricerange['min']['saved']/$price->price)*100;
 					if ($this->pricerange['max']['saved']/$price->price < $this->pricerange['min']['savings'])
@@ -649,7 +649,8 @@ class Product extends DatabaseObject {
 			case "name": return $this->name; break;
 			case "slug": return $this->slug; break;
 			case "summary": return $this->summary; break;
-			case "description": return apply_filters('shopp_product_description',$this->description); break;
+			case "description": 
+				return apply_filters('shopp_product_description',$this->description);
 			case "isfeatured": 
 			case "is-featured":
 				return ($this->featured == "on"); break;
@@ -867,6 +868,35 @@ class Product extends DatabaseObject {
 				}
 				return $category->name;
 				break;
+			case "has-tags": 
+				if (empty($this->tags)) $this->load_data(array('tags'));
+				if (count($this->tags) > 0) return true; else return false; break;
+			case "tags":
+				if (!$this->tagloop) {
+					reset($this->tags);
+					$this->tagloop = true;
+				} else next($this->tags);
+
+				if (current($this->tags)) return true;
+				else {
+					$this->tagloop = false;
+					return false;
+				}
+				break;
+			case "tagged": 
+				if (empty($this->tags)) $this->load_data(array('tags'));
+				if (isset($options['id'])) $field = "id";
+				if (isset($options['name'])) $field = "name";
+				foreach ($this->tags as $tag)
+					if ($tag->{$field} == $options[$field]) return true;
+				return false;
+			case "tag":
+				$tag = current($this->tags);
+				if (isset($options['show'])) {
+					if ($options['show'] == "id") return $tag->id;
+				}
+				return $tag->name;
+				break;
 			case "has-specs": 
 				if (empty($this->specs)) $this->load_data(array('specs'));
 				if (count($this->specs) > 0) {
@@ -936,6 +966,10 @@ class Product extends DatabaseObject {
 					
 				$options = array_merge($defaults,$options);
 
+				$taxrate = 0;
+				if (isset($options['taxes']) && value_is_true($options['taxes'])) 
+					$taxrate = $Shopp->Cart->taxrate();
+
 				if (!isset($options['label'])) $options['label'] = "on";
 				if (!isset($options['required'])) $options['required'] = __('You must select the options for this item before you can add it to your shopping cart.','Shopp');
 				if ($options['mode'] == "single") {
@@ -994,7 +1028,7 @@ class Product extends DatabaseObject {
 							productOptions[<?php echo $this->id; ?>]['pricing'] = <?php echo json_encode($this->pricekey); ?>;
 							options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
 							options_required = "<?php echo $options['required']; ?>";
-							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select.category-<?php echo $Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing']);
+							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select.category-<?php echo $Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo $taxrate; ?>);
 						});
 					})(jQuery)
 					//]]>

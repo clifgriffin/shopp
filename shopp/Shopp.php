@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.6b1
+Version: 1.0.6b2
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.6b1");
+define("SHOPP_VERSION","1.0.6b2");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -1347,23 +1347,24 @@ function shopp () {
 
 	$object = strtolower($args[0]);
 	$property = strtolower($args[1]);
-
-	if(is_array($args[2]) && count($args[2] > 0)){  // allow for associative array for options
-		foreach(array_keys($argv[2]) as $key){
-			$options[strtolower($key)] = $argv[2][$key];
-		}
-	} else { // parse query form
-		$paramsets = (isset($args[2]))?$args[2]:'';
-		$paramsets = split("&",$paramsets);
+	$options = array();
 	
-		$options = array();
-		foreach ((array)$paramsets as $paramset) {
-			if (empty($paramset)) continue;
-			$key = $paramset;
-			$value = "";
-			if (strpos($paramset,"=") !== false) 
-				list($key,$value) = split("=",$paramset);
-			$options[strtolower($key)] = $value;
+	if (isset($args[2])) {
+		if (is_array($args[2]) && !empty($args[2])) {
+			// handle associative array for options
+			foreach(array_keys($args[2]) as $key)
+				$options[strtolower($key)] = $args[2][$key];
+		} else {
+			// regular url-compatible arguments
+			$paramsets = split("&",$args[2]);
+			foreach ((array)$paramsets as $paramset) {
+				if (empty($paramset)) continue;
+				$key = $paramset;
+				$value = "";
+				if (strpos($paramset,"=") !== false) 
+					list($key,$value) = split("=",$paramset);
+				$options[strtolower($key)] = $value;
+			}
 		}
 	}
 	

@@ -193,7 +193,8 @@ class Cart {
 	 * Removes an item from the cart */
 	function remove ($item) {
 		array_splice($this->contents,$item,1);
-		$this->updated();		return true;
+		$this->updated();
+		return true;
 	}
 	
 	/**
@@ -323,6 +324,7 @@ class Cart {
 		if (empty($Shipping->country)) $Shipping->country = $base['country'];
 		
 		if (!$this->retotal) {
+			
 			$fees = 0;
 			
 			// Calculate any product-specific shipping fee markups
@@ -332,7 +334,10 @@ class Cart {
 				if ($Item->shipfee > 0) $fees += ($Item->quantity * $Item->shipfee);
 			}
 			if ($shipflag) $this->data->Shipping = true;
-			else $this->data->Shipping = false;
+			else {
+				$this->data->Shipping = false;
+				return 0;
+			}
 		
 			// Add order handling fee
 			if ($handling > 0) $fees += $handling;
@@ -379,6 +384,7 @@ class Cart {
 			return $ShipCosts[$this->data->Order->Shipping->method]['cost'];
 		
 		$this->data->Order->Shipping->method = $estimate['name'];
+
 		return $estimate['cost'];
 	}
 	
@@ -901,7 +907,7 @@ class Cart {
 				break;
 			case "promo-discount":
 				$promo = current($this->data->PromosApplied);
-				if (empty($options['label'])) $options['label'] = "Off!";
+				if (empty($options['label'])) $options['label'] = __('Off!','Shopp');
 				if (!empty($options['before'])) $string = $options['before'];
 				switch($promo->type) {
 					case "Free Shipping": $string .= $Shopp->Settings->get('free_shipping_text');
@@ -923,11 +929,11 @@ class Cart {
 				return $result;
 				break;
 			case "empty-button": 
-				if (!isset($options['value'])) $options['value'] = "Empty Cart";
+				if (!isset($options['value'])) $options['value'] = __('Empty Cart','Shopp');
 				return '<input type="submit" name="empty" id="empty-button" '.inputattrs($options,$submit_attrs).' />';
 				break;
 			case "update-button": 
-				if (!isset($options['value'])) $options['value'] = "Update Subtotal";
+				if (!isset($options['value'])) $options['value'] = __('Update Subtotal','Shopp');
 				return '<input type="submit" name="update" class="update-button" '.inputattrs($options,$submit_attrs).' />';
 				break;
 			case "sidecart":
@@ -1434,10 +1440,10 @@ class Cart {
 				break;
 
 			case "submit": 
-				if (!isset($options['value'])) $options['value'] = "Submit Order";
+				if (!isset($options['value'])) $options['value'] = __('Submit Order','Shopp');
 				return '<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />'; break;
 			case "confirm-button": 
-				if (!isset($options['value'])) $options['value'] = "Confirm Order";
+				if (!isset($options['value'])) $options['value'] = __('Confirm Order','Shopp');
 				return '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />'; break;
 			case "local-payment": 
 				return (!empty($gateway)); break;
