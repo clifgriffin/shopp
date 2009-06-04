@@ -142,6 +142,7 @@ class Flow {
 						$Shopp->Category = new Category($next);
 					else $Shopp->Category = new Category();
 				} else {
+					if (empty($id)) $id = $Shopp->Category->id;
 					$Shopp->Category = new Category($id);
 				}
 					
@@ -190,6 +191,7 @@ class Flow {
 						$Shopp->Product->load_data(array('prices','specs','categories','tags'));
 					}
 				} else {
+					if (empty($id)) $id = $Shopp->Product->id;
 					$Shopp->Product = new Product($id);
 					$Shopp->Product->load_data(array('prices','specs','categories','tags'));					
 				}
@@ -2183,7 +2185,8 @@ class Flow {
 				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
 			}
 			if (is_array($_POST['settings']['xco_gateways'])) {
-				foreach($_POST['settings']['xco_gateways'] as $gateway) {
+				foreach($_POST['settings']['xco_gateways'] as &$gateway) {
+					$gateway = str_replace("\\","/",stripslashes($gateway));
 					if (!file_exists($gateway_dir.$gateway)) continue;
 					$meta = $this->scan_gateway_meta($gateway_dir.$gateway);
 					$ProcessorClass = $meta->tags['class'];

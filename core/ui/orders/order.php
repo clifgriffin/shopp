@@ -149,7 +149,7 @@
 	
 </div>
 
-<iframe id="print-receipt" src="?page=shopp-lookup&amp;lookup=receipt&amp;id=<?php echo $Purchase->id; ?>" width="400" height="100" class="hidden"></iframe>
+<iframe id="print-receipt" name="receipt" src="?page=shopp-lookup&amp;lookup=receipt&amp;id=<?php echo $Purchase->id; ?>" width="400" height="100" class="invisible"></iframe>
 
 <script type="text/javascript">
 $=jQuery.noConflict();

@@ -23,25 +23,41 @@ class USPSRates {
 	var $requiresauth = true;
 	
 	var $services = array(
-		"0" => "First-Class",
-		"1" => "Priority Mail",
-		"2" => "Express Mail Hold for Pickup",
-		"3" => "Express Mail PO to Addressee",
-		"4" => "Parcel Post",
-		"5" => "Bound Printed Matter",
-		"6" => "Media Mail",
-		"7" => "Library",
-		"12" => "First-Class Postcard Stamped",
-		"13" => "Express Mail Flat-Rate Envelope",
-		"16" => "Priority Mail Flat-Rate Envelope",
-		"17" => "Priority Mail Flat-Rate Boxes",
-		"18" => "Priority Mail Keys and IDs",
-		"19" => "First-Class Keys and IDs",
-		"22" => "Priority Mail Flat-Rate Large Box",
-		"23" => "Express Mail Sunday/Holiday",
-		"25" => "Express Mail Flat-Rate Envelope Sunday/Holiday",
-		"27" => "Express Mail Flat-Rate Envelope Hold for Pickup",
-		"28" => "Priority Mail Small Flat-Rate Box"
+		"d0" => "First-Class",
+		"d1" => "Priority Mail",
+		"d2" => "Express Mail Hold for Pickup",
+		"d3" => "Express Mail PO to Addressee",
+		"d4" => "Parcel Post",
+		"d5" => "Bound Printed Matter",
+		"d6" => "Media Mail",
+		"d7" => "Library",
+		"d12" => "First-Class Postcard Stamped",
+		"d13" => "Express Mail Flat-Rate Envelope",
+		"d16" => "Priority Mail Flat-Rate Envelope",
+		"d17" => "Priority Mail Flat-Rate Boxes",
+		"d18" => "Priority Mail Keys and IDs",
+		"d19" => "First-Class Keys and IDs",
+		"d22" => "Priority Mail Flat-Rate Large Box",
+		"d23" => "Express Mail Sunday/Holiday",
+		"d25" => "Express Mail Flat-Rate Envelope Sunday/Holiday",
+		"d27" => "Express Mail Flat-Rate Envelope Hold for Pickup",
+		"d28" => "Priority Mail Small Flat-Rate Box",
+		"i1" => "Express Mail International",
+		"i2" => "Priority Mail International",
+		"i4" => "Global Express Guaranteed",
+		"i5" => "Global Express Guaranteed Document used",
+		"i6" => "Global Express Guaranteed Non-Document Rectangular",
+		"i7" => "Global Express Guaranteed Non-Document Non-Rectangular",
+		"i8" => "Priority Mail International Flat Rate Envelope",
+		"i9" => "Priority Mail International Flat Rate Box",
+		"i10" => "Express Mail International Flat Rate Envelope",
+		"i11" => "Priority Mail International Large Flat Rate Box",
+		"i12" => "Global Express Guaranteed Envelope",
+		"i13" => "First Class Mail International Letters",
+		"i14" => "First Class Mail International Flats",
+		"i15" => "First Class Mail International Package",
+		"i16" => "Priority Mail International Small Flat-Rate Box",
+		"i21" => "International PostCards"
 	);
 				
 	function USPSRates () {
@@ -65,8 +81,8 @@ class USPSRates {
 	}
 	
 	function methods (&$ShipCalc) {
-		$ShipCalc->methods[get_class($this)] = __("USPS Rates","Shopp");
-		
+		if ($this->settings['country'] == "US") // Require base of operations in USA
+			$ShipCalc->methods[get_class($this)] = __("USPS Rates","Shopp");
 	}
 		
 	function ui () {?>
@@ -136,13 +152,29 @@ class USPSRates {
 		}
 
 		$estimate = false;
-		$Postage = $this->Response->getElement('Postage');
-		
-		if (!is_array($Postage)) return false;
-		foreach ($Postage as $rated) {
-			$ServiceCode = $rated['ATTRS']['CLASSID'];
-			$TotalCharges = $rated['CHILDREN']['Rate']['CONTENT'];
-			$DeliveryEstimate = "1d-5d";
+		$type = "domestic";
+		$Estimates = $this->Response->getElement('Postage');
+		if (empty($Estimates)) {
+			$Estimates = $this->Response->getElement('Service');
+			if (!empty($Estimates)) $type = "intl";
+		}
+	
+		if (!is_array($Estimates)) return false;
+		foreach ($Estimates as $rated) {
+			$DeliveryEstimate = "5d-7d";
+			if ($type == "domestic") {
+				$ServiceCode = substr($type,0,1).$rated['ATTRS']['CLASSID'];
+				$TotalCharges = $rated['CHILDREN']['Rate']['CONTENT'];	
+			}
+			
+			if ($type == "intl") {
+				$ServiceCode = substr($type,0,1).$rated['ATTRS']['ID'];
+				$TotalCharges = $rated['CHILDREN']['Postage']['CONTENT'];
+				if (isset($rated['CHILDREN']['SvcCommitments']['CONTENT']))
+					$DeliveryEstimate = $this->delivery_estimate($rated['CHILDREN']['SvcCommitments']['CONTENT']);
+
+			}
+
 			if (is_array($rate['services']) && in_array($ServiceCode,$rate['services'])) {
 				$rate['cost'] = $TotalCharges+$fees;
 				$ShipCosts[$this->services[$ServiceCode]] = $rate;
@@ -160,22 +192,44 @@ class USPSRates {
 			$pounds = $weight/16;
 		list($pounds,$ounces) = split("\.",$weight);
 		$ounces = ceil($ounces*16);
+
+		$type = "RateV3"; // Domestic shipping rates
+		if ($country != $this->settings['country']) {
+			global $Shopp;
+			$type = "IntlRate";	
+			$countries = $Shopp->Settings->get('target_markets');
+		}
 		
-		$_ = array('API=RateV3&XML=<?xml version="1.0" encoding="utf-8"?>');
-		$_[] = '<RateV3Request USERID="'.$this->settings['userid'].'">';
+		$_ = array('API='.$type.'&XML=<?xml version="1.0" encoding="utf-8"?>');
+		$_[] = '<'.$type.'Request USERID="'.$this->settings['userid'].'">';
 			$_[] = '<Package ID="1ST">';
-				$_[] = '<Service>ALL</Service>';
-				$_[] = '<ZipOrigination>'.$this->settings['postcode'].'</ZipOrigination>';
-				$_[] = '<ZipDestination>'.$postcode.'</ZipDestination>';
-				$_[] = '<Pounds>'.$pounds.'</Pounds>';
-				$_[] = '<Ounces>'.$ounces.'</Ounces>';
-				$_[] = '<Size>REGULAR</Size>';
-				$_[] = '<Machinable>TRUE</Machinable>';
+				if ($type == "IntlRate") {
+					$_[] = '<Pounds>'.$pounds.'</Pounds>';
+					$_[] = '<Ounces>'.$ounces.'</Ounces>';
+					$_[] = '<Machinable>TRUE</Machinable>';
+					$_[] = '<MailType>Package</MailType>';
+					$_[] = '<Country>'.$countries[$country].'</Country>';
+				} else {
+					$_[] = '<Service>ALL</Service>';
+					$_[] = '<ZipOrigination>'.$this->settings['postcode'].'</ZipOrigination>';
+					$_[] = '<ZipDestination>'.$postcode.'</ZipDestination>';
+					$_[] = '<Pounds>'.$pounds.'</Pounds>';
+					$_[] = '<Ounces>'.$ounces.'</Ounces>';
+					$_[] = '<Size>REGULAR</Size>';
+					$_[] = '<Machinable>TRUE</Machinable>';
+				}
 			$_[] = '</Package>';
-		$_[] = '</RateV3Request>';
+		$_[] = '</'.$type.'Request>';
 
 		return join("\n",$_);
-	}  
+	} 
+	
+	function delivery_estimate ($timeframe) {
+		list($start,$end) = sscanf($timeframe,"%d - %d Days");
+		$days = $start.'d'.(!empty($end)?'-'.$end.'d':'');
+		if (empty($start)) $days = "5d-15d";
+		return $days;
+	}
 
 	function verifyauth () {         
 		$this->request = $this->build('1','Authentication test',1,'10022','US');
@@ -200,8 +254,9 @@ class USPSRates {
 		curl_close($connection);
 
 		// echo '<!-- '. $buffer. ' -->';		
-		// echo "<pre>".htmlentities($this->request)."</pre>";
-		// echo "<pre>".htmlentities($buffer)."</pre>";
+		// echo "<pre>REQUEST\n".htmlentities($this->request).BR.BR."</pre>";
+		// echo "<pre>RESPONSE\n".htmlentities($buffer)."</pre>";
+		// exit();
 		
 		$Response = new XMLdata($buffer);
 		return $Response;

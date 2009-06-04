@@ -4,7 +4,7 @@
  * @class iDealMollie
  *
  * @author Jonathan Davis
- * @version 1.0.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 24 February, 2009
  * @package Shopp
  **/
@@ -256,8 +256,13 @@ class iDealMollie {
 			$result .= '<label for="idealmollie-bank">'.__('iDeal Payment','Shopp').'</label>';
 			$result .= '<span><select name="idealmollie-bank" id="idealmollie-bank">';
 			foreach ($banks as $bank) {
-				$bank_id = $bank['CHILDREN']['bank_id']['CONTENT'];
-				$bank_name = $bank['CHILDREN']['bank_name']['CONTENT'];
+				if (isset($bank['CHILDREN'])) {
+					$bank_id = $bank['CHILDREN']['bank_id']['CONTENT'];
+					$bank_name = $bank['CHILDREN']['bank_name']['CONTENT'];
+				} else {
+					$bank_id = $bank['bank_id']['CONTENT'];
+					$bank_name = $bank['bank_name']['CONTENT'];
+				}
 				$result .= '<option value="'.$bank_id.'">'.$bank_name.'</option>';
 
 			}

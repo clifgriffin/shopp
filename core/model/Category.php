@@ -417,7 +417,9 @@ class Category extends DatabaseObject {
 	function rss () {
 		global $Shopp;
 		$db = DB::get();
-
+		
+		do_action_ref_array('shopp_category_rss',array(&$this));
+		
 		if (!$this->products) $this->load_products(array('limit'=>500));
 
 		if (SHOPP_PERMALINKS) $rssurl = $Shopp->shopuri.'feed';
@@ -458,6 +460,7 @@ class Category extends DatabaseObject {
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
 			$item['description'] .= "<p>".attribute_escape($product->description)."</p>";
 			$item['description'] .= "]]>";
+			$item = apply_filters('shopp_rss_item',$entry,$product);
 			//$item['g:quantity'] = $product->stock;
 			
 			$items[] = $item;

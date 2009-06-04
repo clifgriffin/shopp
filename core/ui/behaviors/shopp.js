@@ -187,13 +187,14 @@ if (!Number.prototype.roundFixed) {
 //
 var ProductOptionsMenus;
 (function($) {
-	ProductOptionsMenus = function (target,hideDisabled,pricing) {
+	ProductOptionsMenus = function (target,hideDisabled,pricing,taxrate) {
 		var _self = this;
 		var i = 0;
 		var previous = false;
 		var current = false;
 		var menucache = new Array();
 		var menus = $(target);
+		if (!taxrate) taxrate = 0;
 
 		menus.each(function (id,menu) {
 			current = menu;
@@ -233,7 +234,9 @@ var ProductOptionsMenus;
 					keys.push($(this).val());
 					var price = pricing[xorkey(keys)];
 					if (price) {
-						var pricetag = asMoney((price.onsale)?price.promoprice:price.price);
+						var p = asNumber(formatNumber(price.onsale?price.promoprice:price.price));
+						var tax = asNumber(formatNumber(p*taxrate));
+						var pricetag = asMoney(p+tax);
 						var optiontext = $(this).attr('text');
 						var previoustag = optiontext.lastIndexOf("(");
 						if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
