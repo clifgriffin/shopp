@@ -769,7 +769,7 @@ function inputattrs ($options,$allowed=array()) {
 				$string .= ' '.$key.'="'.$value.'"';
 		}
 	}
-	$string .= 'class="'.$classes.'"';
+	$string .= ' class="'.$classes.'"';
  	return $string;
 }
 

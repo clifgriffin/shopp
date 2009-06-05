@@ -499,6 +499,11 @@ class Flow {
 		$db = DB::get();
 		
 		do_action('shopp_order_preprocessing');
+
+		$Order = $Shopp->Cart->data->Order;
+		$Order->Totals = $Shopp->Cart->data->Totals;
+		$Order->Items = $Shopp->Cart->contents;
+		$Order->Cart = $Shopp->Cart->session;
 		
 		if ($gateway) {
 			if (!file_exists($gateway)) {
@@ -518,10 +523,6 @@ class Flow {
 			}
 			
 		} else {
-			$Order = $Shopp->Cart->data->Order;
-			$Order->Totals = $Shopp->Cart->data->Totals;
-			$Order->Items = $Shopp->Cart->contents;
-			$Order->Cart = $Shopp->Cart->session;
 
 			// Use payment gateway set in payment settings
 			$gateway = $Shopp->Settings->get('payment_gateway');
@@ -649,7 +650,7 @@ class Flow {
 				if ($Item->inventory) $Item->unstock();
 			}
 		}
-		
+
 		// Empty cart on successful order
 		$Shopp->Cart->unload();
 		session_destroy();
@@ -659,13 +660,14 @@ class Flow {
 		session_start();
 		
 		// Keep the user loggedin
-		$Shopp->Cart->loggedin($Order->Customer);
+		if ($Shopp->Cart->data->login)
+			$Shopp->Cart->loggedin($Order->Customer);
 		
 		// Save the purchase ID for later lookup
 		$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
 		$Shopp->Cart->data->Purchase->load_purchased();
 		// $Shopp->Cart->save();
-		
+
 		// Allow other WordPress plugins access to Purchase data to extend
 		// what Shopp does after a successful transaction
 		do_action_ref_array('shopp_order_success',array(&$Shopp->Cart->data->Purchase));
