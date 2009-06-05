@@ -157,6 +157,11 @@ class PayPalExpress {
 		$this->transaction = $this->encode($_);
 		$this->send();
 		
+		if (!$this->Response) { // Try one more time
+			$this->transaction = $this->encode($_);
+			$this->send();
+		}
+		
 		$Customer = $Shopp->Cart->data->Order->Customer;
 		$Customer->firstname = $this->Response->firstname;
 		$Customer->lastname = $this->Response->lastname;
