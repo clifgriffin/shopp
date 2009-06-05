@@ -726,7 +726,7 @@ class Shopp {
 	 * header()
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function header () {		
-		?><link rel='stylesheet' href='<?php echo $this->shopuri.htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>SHOPP_VERSION),'')); ?>' type='text/css' />
+		?><link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>SHOPP_VERSION),$this->shopuri)); ?>' type='text/css' />
 		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 		<?php
