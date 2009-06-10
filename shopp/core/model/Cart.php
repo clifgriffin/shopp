@@ -83,12 +83,8 @@ class Cart {
 		// Total the cart once, and only if there are changes
 		add_action('parse_request',array(&$this,'totals'),99);
 
-		return true;
 	}
-	
-	function init () {
-	}
-		
+			
 	/* open()
 	 * Initializing routine for the session management. */
 	function open () {
@@ -392,7 +388,9 @@ class Cart {
 	 * promotions()
 	 * Matches, calculates and applies promotion discounts */
 	function promotions () {
+		global $Shopp;
 		$db = DB::get();
+		$limit = $Shopp->Settings->get('promo_limit');
 		
 		// Load promotions if they've not yet been loaded
 		if (empty($this->data->Promotions)) {
@@ -487,8 +485,7 @@ class Cart {
 				$match = true;
 				
 			// Everything matches up, apply the promotion
-			if ($match) {
-
+			if ($match && count($this->data->PromosApplied) <= $limit) {
 				if (!empty($items)) {
 					$freeshipping = 0;
 					// Apply promo calculation to specific cart items
@@ -1113,12 +1110,14 @@ class Cart {
 	}
 	
 	function checkouttag ($property,$options=array()) {
-		global $Shopp;
+		global $Shopp,$wp;
 		$gateway = $Shopp->Settings->get('payment_gateway');
 		$xcos = $Shopp->Settings->get('xco_gateways');
 		$pages = $Shopp->Settings->get('pages');
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
+		$process = get_query_var('shopp_proc');
+		$xco = get_query_var('shopp_xco');
 
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey');
@@ -1135,8 +1134,8 @@ class Cart {
 				$args = $_GET;
 				if (isset($args['page_id'])) unset($args['page_id']);
 				$link = add_query_arg($args,$link);
-				// $query = $_SERVER['QUERY_STRING'];
-				// if (SHOPP_PERMALINKS && !empty($query)) $query = "?$query";
+				if ($process == "confirm-order") $link = apply_filters('shopp_confirm_url',$link);
+				else $link = apply_filters('shopp_checkout_url',$link);
 				return $link;
 				break;
 			case "function":
@@ -1153,6 +1152,8 @@ class Cart {
 				if (!empty($options['value'])) $value = $options['value'];
 				else $value = "process";
 				$output .= '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>'; 
+				if ($value == "confirmed") $output = apply_filters('shopp_confirm_form',$output);
+				else $output = apply_filters('shopp_checkout_form',$output);
 				return $output;
 				break;
 			case "error":
@@ -1457,7 +1458,7 @@ class Cart {
 					$meta = $Shopp->Flow->scan_gateway_meta($xcopath);
 					$ProcessorClass = $meta->tags['class'];
 					if (!empty($ProcessorClass)) {
-						include_once($xcopath);					
+						include_once($xcopath);
 						$Payment = new $ProcessorClass();
 						$PaymentSettings = $Shopp->Settings->get($ProcessorClass);
 						if ($PaymentSettings['enabled'] == "on") 

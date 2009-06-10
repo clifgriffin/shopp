@@ -209,6 +209,25 @@ class Purchase extends DatabaseObject {
 				if (isset($options['name'])) return $name;
 				return $data;
 				break;
+			case "item-inputs-list":
+			case "item-inputslist":
+			case "item-inputs-list":
+			case "iteminputslist":
+				if (empty($item->data)) return false;
+				$before = ""; $after = ""; $classes = ""; $excludes = array();
+				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
+				if (!empty($options['exclude'])) $excludes = split(",",$options['exclude']);
+				if (!empty($options['before'])) $before = $options['before'];
+				if (!empty($options['after'])) $after = $options['after'];
+
+				$result .= $before.'<ul'.$classes.'>';
+				foreach ($item->data as $name => $data) {
+					if (in_array($name,$excludes)) continue;
+					$result .= '<li><strong>'.$name.'</strong>: '.$data.'</li>';
+				}
+				$result .= '</ul>'.$after;
+				return $result;
+				break;
 			case "has-data":
 			case "hasdata": return (count($this->data) > 0); break;
 			case "orderdata":

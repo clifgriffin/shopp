@@ -223,7 +223,7 @@ class Category extends DatabaseObject {
 			case "bestselling":
 				$purchasedtable = DatabaseObject::tablename(Purchased::$table);
 				$loading['columns'] .= ',count(DISTINCT pur.id) AS sold';
-				$loading['joins'] .= "LEFT JOIN $purchasedtable AS pur ON p.id=pur.product";
+				$loading['joins'] .= " LEFT JOIN $purchasedtable AS pur ON p.id=pur.product";
 				$loading['order'] = "sold DESC"; 
 				break;
 			case "highprice": $loading['order'] = "pd.price DESC"; break;
@@ -235,6 +235,7 @@ class Category extends DatabaseObject {
 			case "title": 
 			default: $loading['order'] = "p.name ASC"; break;
 		}
+		if (!empty($loading['orderby'])) $loading['order'] = $loading['orderby'];
 		
 		if (empty($loading['limit'])) {
 			if ($this->pagination > 0 && is_numeric($this->page)) {
@@ -254,7 +255,7 @@ class Category extends DatabaseObject {
 		$assettable = DatabaseObject::tablename(Asset::$table);
 		
 		$columns = "p.*,
-					img.id AS thumbnail,img.properties AS thumbnail_properties,
+					img.id AS thumbnail,img.properties AS thumbnail_properties,pr.status as promos,
 					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0))AS percentoff,
 					SUM(DISTINCT IF(pr.type='Amount Off',pr.discount,0)) AS amountoff,
 					if (pr.type='Free Shipping',1,0) AS freeshipping,
@@ -294,7 +295,7 @@ class Category extends DatabaseObject {
 						{$loading['joins']}
 						WHERE ({$loading['where']}) {$loading['catalog']} AND p.published='on' GROUP BY letter";
 			$alpha = $db->query($ac);
-
+	
 			$existing = current($alpha);
 			if (!isset($this->alpha['0-9'])) {
 				$this->alpha['0-9'] = new stdClass();
@@ -348,6 +349,17 @@ class Category extends DatabaseObject {
 
 		if ($this->pagination > 0 && $limit > $this->pagination) {
 			$total = $db->query("SELECT FOUND_ROWS() as count");
+			
+			// If an explicit limit is specified,
+			// base paging total off of that
+			// or
+			// use the max found if the max is 
+			// less than the explicit limit
+			if (isset($loading['limit'])) {
+				if ($total->count > $loading['limit'])
+				$total->count = $loading['limit'];
+			}
+			
 			$this->total = $total->count;
 			$this->pages = ceil($this->total / $this->pagination);
 			if ($this->pages > 1) $this->paged = true;			
@@ -385,9 +397,13 @@ class Category extends DatabaseObject {
 			$this->products[$product->id] = new Product();
 			$this->products[$product->id]->populate($product);
 
-			// Special field for Bestseller category
+			// Special property for Bestseller category
 			if (isset($product->sold) && $product->sold) 
 				$this->products[$product->id]->sold = $product->sold;
+				
+			// Special property Promotions
+			if (isset($product->promos))
+				$this->products[$product->id]->promos = $product->promos;
 
 			if (!empty($product->thumbnail)) {
 				$image = new stdClass();
@@ -752,24 +768,32 @@ class Category extends DatabaseObject {
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = $parent->slug;
+							$string = substr($string,0,-5);
 							$string .= '<ul class="children">';
 						}
-						if (value_is_true($hierarchy) && $category->depth < $depth) $string .= '</ul>';
+						if (value_is_true($hierarchy) && $category->depth < $depth) $string .= '</ul></li>';
 			
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
 						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 			
 						$total = '';
-						if (value_is_true($products)) $total = ' ('.$category->products.')';
+						if (value_is_true($products)) $total = ' <span>('.$category->products.')</span>';
 			
-						if (value_is_true($showall) || $category->products > 0 || $category->smart) // Only show categories with products
-							$string .= '<li><a href="'.$link.'">'.$category->name.'</a>'.$total.'</li>';
+						$listing = '';
+						if ($category->total > 0 || isset($category->smart) || $linkall) $listing = '<a href="'.$link.'"'.$current.'>'.$category->name.$total.'</a>';
+						else $listing = $category->name;
+			
+						if (value_is_true($showall) || 
+							$category->total > 0 || 
+							$category->children) 
+							$string .= '<li>'.$listing.'</li>';
 			
 						$previous = &$category;
 						$depth = $category->depth;
 					}
-					if (value_is_true($hierarchy))
-						for ($i = 0; $i < $depth; $i++) $string .= "</ul>";
+					if (value_is_true($hierarchy) && $depth > 0) 
+						for ($i = $depth; $i > 0; $i--) $string .= '</ul></li>';
+						
 					if ($wraplist) $string .= '</ul>';
 				}
 				return $string;
@@ -1120,7 +1144,7 @@ class OnSaleProducts extends Category {
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
-		$this->loading = array('where'=>"pd.sale='on' OR pr.discount > 0",'order'=>'p.modified DESC');
+		$this->loading = array('where'=>"pd.sale='on' OR (pr.status='enabled' AND pr.discount > 0)",'order'=>'p.modified DESC');
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
@@ -1138,10 +1162,8 @@ class BestsellerProducts extends Category {
 		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
 		
 		$this->loading = array(
-			'columns'=>'count(DISTINCT pur.id) AS sold',
-			'joins'=>"LEFT JOIN $purchasedtable AS pur ON p.id=pur.product",
-			'where'=>"TRUE",
-			'order'=>'sold DESC');
+			'where' => 'TRUE',
+			'order'=>'bestselling');
 		if (isset($options['where'])) $this->loading['where'] = $options['where'];
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
@@ -1159,12 +1181,27 @@ class SearchResults extends Category {
 		$this->uri = $this->slug;
 		$this->smart = true;
 
-		$search = str_replace('\\\'','',$options['search']);
-		$search = preg_replace('/(\s?)(\w+)(\s?)/','\1*\2*\3',$options['search']);
+		$keywords = $options['search'];
+		
+		// Strip accents for search
+		$accents = array(' ','á','à','â','ã','ª','Á','À', 
+	    'Â','Ã', 'é','è','ê','É','È','Ê','í','ì','î','Í', 
+	    'Ì','Î','ò','ó','ô', 'õ','º','Ó','Ò','Ô','Õ','ú', 
+	    'ù','û','Ú','Ù','Û','ç','Ç','Ñ','ñ'); 
+	    $alt = array('-','a','a','a','a','a','A','A', 
+	    'A','A','e','e','e','E','E','E','i','i','i','I','I', 
+	    'I','o','o','o','o','o','O','O','O','O','u','u','u', 
+	    'U','U','U','c','C','N','n');
+	    $keywords = trim(str_replace($accents, $alt, $keywords));
+	
+		// Strip non alpha-numerics
+	    $keywords = ereg_replace('[^A-Za-z0-9\_\.\-]', '', $keywords); 
+		$keywords = preg_replace('/(\s?)(\w+)\b(\s?)/','\1*\2*\3',$keywords);
+		
 		$this->loading = array(
-			'columns'=> "MATCH(p.name,p.summary,p.description) AGAINST ('$search' IN BOOLEAN MODE) AS score",
-			'where'=>"MATCH(p.name,p.summary,p.description) AGAINST ('$search' IN BOOLEAN MODE)",
-			'order'=>'score DESC');
+			'columns'=> "MATCH(p.name,p.summary,p.description) AGAINST ('$keywords' IN BOOLEAN MODE) AS score",
+			'where'=>"MATCH(p.name,p.summary,p.description) AGAINST ('$keywords' IN BOOLEAN MODE)",
+			'orderby'=>'score DESC');
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 	}
 	
@@ -1187,6 +1224,55 @@ class TagProducts extends Category {
 			'where'=>"catalog.tag=t.id AND t.name='{$options['tag']}'");
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
+	}
+	
+}
+
+class RelatedProducts extends Category {
+	static $_slug = "related";
+	
+	function RelatedProducts ($options=array()) {
+		global $Shopp;
+		$tagtable = DatabaseObject::tablename(Tag::$table);
+
+		// Use the current product if available
+		if (!empty($Shopp->Product->id)) 
+			$this->product = $Shopp->Product;
+		
+		// Or load a product specified
+		if (isset($options['product'])) {
+			// Load by id or slug
+			if (preg_match('/^[\d+]$/',$options['product'])) 
+				$Shopp->Product = new Product($options['product']);
+			else $Shopp->Product = new Product($options['product'],'slug');
+		}
+			
+		// Load the product's tags if they are not available
+		if (empty($this->product->tags))
+			$this->product->load_data(array('tags'));
+
+		$tagscope = "";
+		foreach ($this->product->tags as $tag)
+			if (!empty($tag->id))
+				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.tag=$tag->id";
+		
+		$this->tag = "product-".$this->product->id;
+		$this->name = __("Products related to","Shopp")." &quot;".stripslashes($this->product->name)."&quot;";
+		$this->slug = self::$_slug;
+		$this->uri = urlencode($this->tag);
+		$this->smart = true;
+		$this->controls = false;
+		
+		$this->loading = array(
+			'catalog'=>'tags',
+			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
+			'where'=>"catalog.tag=t.id AND ($tagscope)");
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
+		if (isset($options['order'])) $this->loading['order'] = $options['order'];
+		else $this->loading['order'] = "bestselling";
+		if (isset($options['controls']) && value_is_true($options['controls']))
+			unset($this->controls);
 	}
 	
 }

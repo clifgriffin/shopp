@@ -186,6 +186,7 @@ class Catalog extends DatabaseObject {
 					'childof' => 0,
 					'parent' => false,
 					'showall' => false,
+					'linkall' => false,
 					'dropdown' => false,
 					'hierarchy' => false,
 					'products' => false,
@@ -266,14 +267,14 @@ class Catalog extends DatabaseObject {
 						else $link = add_query_arg('shopp_category',(!empty($category->id)?$category->id:$category->uri),$Shopp->shopuri);
 					
 						$total = '';
-						if (value_is_true($products) && $category->total > 0) $total = ' ('.$category->total.')';
+						if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
 					
 						$current = '';
 						if (isset($Shopp->Category) && $Shopp->Category->slug == $category->slug) 
 							$current = ' class="current"';
 						
 						$listing = '';
-						if ($category->total > 0 || isset($category->smart)) $listing = '<a href="'.$link.'"'.$current.'>'.$category->name.'</a>'.$total;
+						if ($category->total > 0 || isset($category->smart) || $linkall) $listing = '<a href="'.$link.'"'.$current.'>'.$category->name.$total.'</a>';
 						else $listing = $category->name;
 						
 						if (value_is_true($showall) || 
@@ -389,7 +390,7 @@ class Catalog extends DatabaseObject {
 					
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$tree_category->uri;
 						else $link = add_query_arg(
-							array_merge($_GET,array('shopp_category'=>$tree_category->id)),
+							array_merge($_GET,array('shopp_category'=>$tree_category->id,'shopp_pid'=>null)),
 							$Shopp->shopuri);
 					
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.
@@ -419,6 +420,20 @@ class Catalog extends DatabaseObject {
 					}
 					if ($option == "blog") return '<input type="radio" name="st" value="blog"'.$selected.' />';
 					else return '<input type="radio" name="st" value="shopp"'.$selected.' />';
+				} elseif ($type == "menu") {
+					if (empty($options['store'])) $options['store'] = __('Search the store','Shopp');
+					if (empty($options['blog'])) $options['blog'] = __('Search the blog','Shopp');
+					if (isset($wp->query_vars['st'])) $selected = $wp->query_vars['st'];
+					$menu = '<select name="st">';
+					if (isset($options['default']) && $options['default'] == "blog") {
+						$menu .= '<option value="blog"'.($selected == "blog"?' selected="selected"':'').'>'.$options['blog'].'</option>';
+						$menu .= '<option value="shopp"'.($selected == "shopp"?' selected="selected"':'').'>'.$options['store'].'</option>';
+					} else {
+						$menu .= '<option value="shopp"'.($selected == "shopp"?' selected="selected"':'').'>'.$options['store'].'</option>';
+						$menu .= '<option value="blog"'.($selected == "blog"?' selected="selected"':'').'>'.$options['blog'].'</option>';
+					}
+					$menu .= '</select>';
+					return $menu;
 				} else return '<input type="hidden" name="st" value="shopp" />';
 				break;
 			case "catalog-products":
@@ -435,8 +450,10 @@ class Catalog extends DatabaseObject {
 				if ($property == "random-products") $Shopp->Category = new RandomProducts($options);
 			case "tag-products":
 				if ($property == "tag-products") $Shopp->Category = new TagProducts($options);
+			case "related-products":
+				if ($property == "related-products") $Shopp->Category = new RelatedProducts($options);
 			case "search-products":
-				if ($property == "search-products") $Shopp->Category = new SearchProducts($options);
+				if ($property == "search-products") $Shopp->Category = new SearchResults($options);
 			case "category":
 				if ($property == "category") {
 					if (isset($options['name'])) $Shopp->Category = new Category($options['name'],'name');
@@ -470,6 +487,41 @@ class Catalog extends DatabaseObject {
 				else include(SHOPP_TEMPLATES."/product.php");
 				$content = ob_get_contents();
 				ob_end_clean();
+				return $content;
+				break;
+			case "sideproduct":
+				$source = $options['source'];
+				if ($source == "product" && isset($options['product'])) {
+					if (preg_match('/^[\d+]$/',$options['product'])) 
+						$Shopp->Product = new Product($options['product']);
+					else $Shopp->Product = new Product($options['product'],'slug');
+
+					if (isset($options['load'])) return true;
+					ob_start();
+					if (file_exists(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php"))
+						include(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php");
+					else include(SHOPP_TEMPLATES."/sideproduct.php");
+					$content = ob_get_contents();
+					ob_end_clean();
+				}
+
+				if ($source == "category" && isset($options['category'])) {
+					if (preg_match('/^[\d+]$/',$options['category'])) 
+						$Shopp->Category = new Category($options['category']);
+					else $Shopp->Category = new Category($options['category'],'slug');
+					$Shopp->Category->load_products($options);
+					if (isset($options['load'])) return true;
+					foreach ($Shopp->Category->products as $product) {
+						$Shopp->Product = $product;
+						ob_start();
+						if (file_exists(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php"))
+							include(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php");
+						else include(SHOPP_TEMPLATES."/sideproduct.php");
+						$content .= ob_get_contents();
+						ob_end_clean();
+					}
+				}
+				
 				return $content;
 				break;
 		}

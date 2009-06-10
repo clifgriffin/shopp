@@ -249,117 +249,6 @@ class Flow {
 		
 		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'<div id="clear"></div></div>');
 	}
-
-	function categories_widget ($args=null) {
-		global $Shopp;
-		extract($args);
-
-		$options = array();
-		$options = $Shopp->Settings->get('categories_widget_options');
-
-		$options['title'] = $before_title.$options['title'].$after_title;
-		
-		$Catalog = new Catalog();
-		$menu = $Catalog->tag('category-list',$options);
-		echo $before_widget.$menu.$after_widget;
-		
-	}
-	
-	function categories_widget_options ($args=null) {
-		global $Shopp;
-		
-		if (isset($_POST['categories_widget_options'])) {
-			$options = $_POST['shopp_categories_options'];
-			$Shopp->Settings->save('categories_widget_options',$options);
-		}
-
-		$options = $Shopp->Settings->get('categories_widget_options');
-		
-		echo '<p><label>Title<input name="shopp_categories_options[title]" class="widefat" value="'.$options['title'].'"></label></p>';
-		echo '<p>';
-		echo '<label><input type="hidden" name="shopp_categories_options[dropdown]" value="off" /><input type="checkbox" name="shopp_categories_options[dropdown]" value="on"'.(($options['dropdown'] == "on")?' checked="checked"':'').' /> Show as dropdown</label><br />';
-		echo '<label><input type="hidden" name="shopp_categories_options[products]" value="off" /><input type="checkbox" name="shopp_categories_options[products]" value="on"'.(($options['products'] == "on")?' checked="checked"':'').' /> Show product counts</label><br />';
-		echo '<label><input type="hidden" name="shopp_categories_options[hierarchy]" value="off" /><input type="checkbox" name="shopp_categories_options[hierarchy]" value="on"'.(($options['hierarchy'] == "on")?' checked="checked"':'').' /> Show hierarchy</label><br />';
-		echo '</p>';
-		echo '<p><label for="pages-sortby">Smart Categories:<select name="shopp_categories_options[showsmart]" class="widefat"><option value="false">Hide</option><option value="before"'.(($options['showsmart'] == "before")?' selected="selected"':'').'>Include before custom categories</option><option value="after"'.(($options['showsmart'] == "after")?' selected="selected"':'').'>Include after custom categories</option></select></label></p>';
-		echo '<div><input type="hidden" name="categories_widget_options" value="1" /></div>';
-	}
-	
-	function init_categories_widget () {
-		wp_register_sidebar_widget('shopp-categories',__('Shopp Categories','Shopp'),array(&$this,'categories_widget'),'shopp categories');
-		wp_register_widget_control('shopp-categories',__('Shopp Categories','Shopp'),array(&$this,'categories_widget_options'));
-	}
-	
-	
-	function init_tagcloud_widget () {
-		wp_register_sidebar_widget('shopp-tagcloud',__('Shopp Tag Cloud','Shopp'),array(&$this,'tagcloud_widget'),'shopp tagcloud');
-		wp_register_widget_control('shopp-tagcloud',__('Shopp Tag Cloud','Shopp'),array(&$this,'tagcloud_widget_options'));
-	}
-	
-	function tagcloud_widget_options ($args=null) {
-		global $Shopp;
-
-		if (isset($_POST['shopp_tagcloud_widget_options'])) {
-			$options = $_POST['tagcloud_widget_options'];
-			$Shopp->Settings->save('tagcloud_widget_options',$options);
-		}
-
-		$options = $Shopp->Settings->get('tagcloud_widget_options');
-
-		echo '<p><label>Title<input name="tagcloud_widget_options[title]" class="widefat" value="'.$options['title'].'"></label></p>';
-		echo '<div><input type="hidden" name="shopp_tagcloud_widget_options" value="1" /></div>';
-	}
-
-	function tagcloud_widget ($args=null) {
-		global $Shopp;
-		if (!empty($args)) extract($args);
-
-		$options = $Shopp->Settings->get('tagcloud_widget_options');
-		
-		if (empty($options['title'])) $options['title'] = "Product Tags";
-		$options['title'] = $before_title.$options['title'].$after_title;
-		
-		$tagcloud = $Shopp->Catalog->tag('tagcloud',$options);
-		echo $before_widget.$options['title'].$tagcloud.$after_widget;
-		
-	}
-	
-	
-	function init_facetedmenu_widget () {
-		wp_register_sidebar_widget('shopp-facetedmenu',__('Shopp Faceted Menu','Shopp'),array(&$this,'facetedmenu_widget'),'shopp facetedmenu');
-		wp_register_widget_control('shopp-facetedmenu',__('Shopp Faceted Menu','Shopp'),array(&$this,'facetedmenu_widget_options'));
-	}
-	
-	function facetedmenu_widget_options ($args=null) {
-		global $Shopp;
-
-		if (isset($_POST['shopp_facetedmenu_widget_options'])) {
-			$options = $_POST['facetedmenu_widget_options'];
-			$Shopp->Settings->save('facetedmenu_widget_options',$options);
-		}
-
-		$options = $Shopp->Settings->get('facetedmenu_widget_options');
-
-		// echo '<p><label>Title<input name="tagcloud_widget_options[title]" class="widefat" value="'.$options['title'].'"></label></p>';
-		// echo '<div><input type="hidden" name="shopp_tagcloud_widget_options" value="1" /></div>';
-	}
-
-	function facetedmenu_widget ($args=null) {
-		global $Shopp;
-		if (!empty($args)) extract($args);
-		
-		$options = $Shopp->Settings->get('facetedmenu_widget_options');
-		
-		if (empty($options['title'])) $options['title'] = __('Product Filters','Shopp');
-		$options['title'] = $before_title.$options['title'].$after_title;
-		global $wp_registered_widgets;
-		
-		if (!empty($Shopp->Category->id) && $Shopp->Category->facetedmenus == "on") {
-			$menu = $Shopp->Category->tag('faceted-menu',$options);
-			echo $before_widget.$options['title'].$menu.$after_widget;			
-		}
-	}
-	
 	
 	/**
 	 * Shopping Cart flow handlers
@@ -373,39 +262,6 @@ class Flow {
 		ob_end_clean();
 
 		return apply_filters('shopp_cart_template','<div id="shopp">'.$content.'</div>');
-	}
-
-	function init_cart_widget () {
-		wp_register_sidebar_widget('shopp-cart',__('Shopp Cart','Shopp'),array(&$this,'cart_widget'),'shopp cart');
-		wp_register_widget_control('shopp-cart',__('Shopp Cart','Shopp'),array(&$this,'cart_widget_options'));
-	}
-	
-	function cart_widget_options ($args=null) {
-		global $Shopp;
-
-		if (isset($_POST['shopp_cart_widget_options'])) {
-			$options = $_POST['shopp_cart_options'];
-			$Shopp->Settings->save('cart_widget_options',$options);
-		}
-
-		$options = $Shopp->Settings->get('cart_widget_options');
-
-		echo '<p><label>Title<input name="shopp_cart_options[title]" class="widefat" value="'.$options['title'].'"></label></p>';
-		echo '<div><input type="hidden" name="shopp_cart_widget_options" value="1" /></div>';
-	}
-
-	function cart_widget ($args=null) {
-		global $Shopp;
-		if (!empty($args)) extract($args);
-		
-		$options = $Shopp->Settings->get('cart_widget_options');
-		
-		if (empty($options['title'])) $options['title'] = "Your Cart";
-		$options['title'] = $before_title.$options['title'].$after_title;
-		
-		$sidecart = $Shopp->Cart->tag('sidecart',$options);
-		echo $before_widget.$options['title'].$sidecart.$after_widget;
-		
 	}
 
 	function shipping_estimate ($attrs) {
@@ -428,6 +284,9 @@ class Flow {
 
 		$process = get_query_var('shopp_proc');
 		$xco = get_query_var('shopp_xco');
+		if (!empty($Payment))
+			$Payment = $Shopp->gateway($xco);
+		
 		switch ($process) {
 			case "confirm-order": $content = $this->order_confirmation(); break;
 			case "receipt": $content = $this->order_receipt(); break;
@@ -438,12 +297,8 @@ class Flow {
 					$Cart->data->Errors->reset();
 				}
 				if (!empty($xco)) {
-					$gateway = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$xco.".php"));
-					if (file_exists($gateway)) {
-						$gateway_meta = $this->scan_gateway_meta($gateway);
-						$ProcessorClass = $gateway_meta->tags['class'];
-						include_once($gateway);
-						$Payment = new $ProcessorClass();
+					
+					if (!empty($Payment)) {
 						if ($Payment->checkout) include(SHOPP_TEMPLATES."/checkout.php");
 						else {
 							if ($Cart->data->Errors->exist(SHOPP_COMM_ERR))
@@ -452,6 +307,7 @@ class Flow {
 							echo $Payment->tag('button');
 						}
 					} else include(SHOPP_TEMPLATES."/summary.php");
+					
 				} else include(SHOPP_TEMPLATES."/checkout.php");
 				$content = ob_get_contents();
 				ob_end_clean();
@@ -931,7 +787,8 @@ class Flow {
 	function account () {
 		global $Shopp;
 		
-		if ($Shopp->Cart->data->login) 
+		if ($Shopp->Cart->data->login 
+				&& isset($Shopp->Cart->data->Order->Customer)) 
 			$Shopp->Cart->data->Order->Customer->management();
 					
 		ob_start();
@@ -1176,7 +1033,8 @@ class Flow {
 
 		if (!$_POST['options']) $Product->options = array();
 		else $_POST['options'] = stripslashes_deep($_POST['options']);
-		if (empty($Product->slug)) $_POST['slug'] = sanitize_title_with_dashes($_POST['name']);
+
+		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);	
 
 		// Check for an existing product slug
 		$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$Product->slug' AND id != $Product->id LIMIT 1");
@@ -2068,6 +1926,7 @@ class Flow {
 		
 		
 		$downloads = array("1","2","3","5","10","15","25","100");
+		$promolimit = array("1","2","3","4","5","6","7","8","9","10","15","20","25");
 		$time = array(
 			__('30 minutes','Shopp'), __('1 hour','Shopp'),
 			__('2 hours','Shopp'),	__('3 hours','Shopp'),

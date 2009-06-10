@@ -192,11 +192,7 @@ end.change(formatDate);
 var scpos = $('#start-position').offset();
 $('#start-calendar').hide()
 	.css({left:scpos.left,
-		   top:scpos.top+$('#start-position input').height()});
-
-$('#start-calendar').hide()
-	.css({left:scpos.left,
-		   top:scpos.top+$('#start-position input').height()});
+		   top:scpos.top+$('#start-position').height()+10});
 
 $('#start').click(function (e) {
 	$('#end-calendar').hide();
@@ -211,7 +207,7 @@ $('#start').click(function (e) {
 var ecpos = $('#end-position').offset();
 $('#end-calendar').hide()
 	.css({left:ecpos.left,
-		   top:ecpos.top+$('#end-position input').height()});
+		   top:ecpos.top+$('#end-position input').height()+10});
 		
 $('#end').click(function (e) {
 	$('#start-calendar').hide();

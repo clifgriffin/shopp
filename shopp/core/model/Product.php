@@ -264,15 +264,18 @@ class Product extends DatabaseObject {
 
 			$price->promoprice = $price->saleprice;
 			if ((int)$price->promoprice == 0) $price->promoprice = $price->price;
-			if ($price->percentoff > 0) {
-				$price->promoprice = $price->promoprice - ($price->promoprice * ($price->percentoff/100));
-				$price->onsale = true;
-				$this->onsale = true;
-			}
-			if ($price->amountoff > 0) {
-				$price->promoprice = $price->promoprice - $price->amountoff;
-				$price->onsale = true;
-				$this->onsale = true;
+
+			if ($this->promos == 'enabled') {
+				if ($price->percentoff > 0) {
+					$price->promoprice = $price->promoprice - ($price->promoprice * ($price->percentoff/100));
+					$price->onsale = true;
+					$this->onsale = true;
+				}
+				if ($price->amountoff > 0) {
+					$price->promoprice = $price->promoprice - $price->amountoff;
+					$price->onsale = true;
+					$this->onsale = true;
+				}
 			}
 
 			// Grab price and saleprice ranges (minimum - maximum)
@@ -1040,13 +1043,18 @@ class Product extends DatabaseObject {
 				break;
 			case "variation":
 				$variation = current($this->prices);
+				
+				$taxrate = 0;
+				if (isset($options['taxes']) && value_is_true($options['taxes'])) 
+					$taxrate = $Shopp->Cart->taxrate();
+				
 				$string = '';
 				if (array_key_exists('id',$options)) $string .= $variation->id;
 				if (array_key_exists('label',$options)) $string .= $variation->label;
 				if (array_key_exists('type',$options)) $string .= $variation->type;
 				if (array_key_exists('sku',$options)) $string .= $variation->sku;
-				if (array_key_exists('price',$options)) $string .= money($variation->price);
-				if (array_key_exists('saleprice',$options)) $string .= money($variation->saleprice);
+				if (array_key_exists('price',$options)) $string .= money($variation->price+($variation->price*$taxrate));
+				if (array_key_exists('saleprice',$options)) $string .= money($variation->saleprice+($variation->saleprice*$taxrate));
 				if (array_key_exists('stock',$options)) $string .= $variation->stock;
 				if (array_key_exists('weight',$options)) $string .= $variation->weight;
 				if (array_key_exists('shipfee',$options)) $string .= money($variation->shipfee);

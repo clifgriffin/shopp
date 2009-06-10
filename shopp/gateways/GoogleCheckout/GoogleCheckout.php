@@ -181,10 +181,12 @@ class GoogleCheckout {
 				$_[] = '<merchant-checkout-flow-support>';
 
 				// Shipping Methods
-				if (!empty($Cart->data->ShipCosts)) {
+				if ($Shopp->Cart->data->Shipping && !empty($Cart->data->ShipCosts)) {
 					$_[] = '<shipping-methods>';
-						foreach ($Cart->data->ShipCosts as $shipping) {
-							$_[] = '<flat-rate-shipping name="'.$shipping['name'].'">';
+						foreach ($Cart->data->ShipCosts as $i => $shipping) {
+							$label = __('Shipping Option','Shopp').' '.($i+1);
+							if (!empty($shipping['name'])) $label = $shipping['name'];
+							$_[] = '<flat-rate-shipping name="'.$label.'">';
 							$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping['cost'],2).'</price>';
 							$_[] = '</flat-rate-shipping>';
 						}
@@ -298,21 +300,30 @@ class GoogleCheckout {
 			
 		$items = $XML->getElement('item');
 		if (key($items) == "CHILDREN") $items = array($items);
-		foreach ($items as $item) {
-			$item = $item['CHILDREN'];
+		foreach ($items as $xml) {
+			$xml = $item['CHILDREN'];
+			$Item = new Item($xml['merchant-product-id']['CONTENT'],
+							$xml['merchant-price-id']['CONTENT']);
+			$Item->quantity = $xml['quantity']['CONTENT'];
+			
 			$Purchased = new Purchased();
+			$Purchased->copydata($Item);
 			$Purchased->purchase = $Purchase->id;
-			$Purchased->product = $item['merchant-product-id']['CONTENT'];
-			$Purchased->price = $item['merchant-price-id']['CONTENT'];
-			$Purchased->download = $item['merchant-download-id']['CONTENT'];
 			if (!empty($Purchased->download)) $Purchased->keygen();
-			$Purchased->name = addslashes($item['item-name']['CONTENT']);
-			$Purchased->description = addslashes($item['item-description']['CONTENT']);
-			$Purchased->sku = $item['merchant-item-id']['CONTENT'];
-			$Purchased->quantity = $item['quantity']['CONTENT'];
-			$Purchased->unitprice = $item['unit-price']['CONTENT'];
-			$Purchased->total = $Purchased->quantity*$Purchased->unitprice;
 			$Purchased->save();
+			if ($Item->inventory) $Item->unstock();
+			
+			// $Purchased->product = $item['merchant-product-id']['CONTENT'];
+			// $Purchased->price = $item['merchant-price-id']['CONTENT'];
+			// $Purchased->download = $item['merchant-download-id']['CONTENT'];
+			// if (!empty($Purchased->download)) $Purchased->keygen();
+			// $Purchased->name = addslashes($item['item-name']['CONTENT']);
+			// $Purchased->description = addslashes($item['item-description']['CONTENT']);
+			// $Purchased->sku = $item['merchant-item-id']['CONTENT'];
+			// $Purchased->quantity = $item['quantity']['CONTENT'];
+			// $Purchased->unitprice = $item['unit-price']['CONTENT'];
+			// $Purchased->total = $Purchased->quantity*$Purchased->unitprice;
+			// $Purchased->save();
 		}
 		
 	}

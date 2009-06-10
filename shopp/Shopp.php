@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.6b2
+Version: 1.0.6b3
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.6b2");
+define("SHOPP_VERSION","1.0.6b3");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -129,16 +129,16 @@ class Shopp {
 		add_action('save_post', array(&$this, 'pages_index'),10,2);
 
 		// Theme widgets
-		add_action('widgets_init', array(&$this->Flow, 'init_cart_widget'));
-		add_action('widgets_init', array(&$this->Flow, 'init_categories_widget'));
-		add_action('widgets_init', array(&$this->Flow, 'init_tagcloud_widget'));
-		add_action('widgets_init', array(&$this->Flow, 'init_facetedmenu_widget'));
+		add_action('widgets_init', array(&$this, 'widgets'));
 		add_filter('wp_list_pages',array(&$this->Flow,'secure_checkout_link'));
 
 		add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
 		add_action('generate_rewrite_rules',array(&$this,'pages_index'));
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_filter('query_vars', array(&$this,'queryvars'));
+
+		// Start up the cart
+		$this->Cart = new Cart();
 
 	}
 	
@@ -156,15 +156,18 @@ class Shopp {
 		
 		if (SHOPP_LOOKUP) return true;
 		
-		$this->Cart = new Cart();
-		session_start();
+		// Initialize the session if not already done
+		// by another plugin
+		if(session_id() == "") session_start();
 		
+		// Setup Error handling
 		$Errors = &ShoppErrors();
 		
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
 									$this->Settings->get('error_notifications'));
-				
+		
+		// Initialize the catalog and shipping calculators
 		$this->Catalog = new Catalog();
 		$this->ShipCalcs = new ShipCalcs($this->path);
 		
@@ -425,6 +428,30 @@ class Shopp {
 			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
 		
 			
+	}
+
+	/**
+	 * widgets()
+	 * Initializes theme widgets */
+	function widgets () {
+		global $wp_version;
+
+		include('core/ui/widgets/cart.php');
+		include('core/ui/widgets/categories.php');
+		include('core/ui/widgets/section.php');
+		include('core/ui/widgets/tagcloud.php');
+		include('core/ui/widgets/facetedmenu.php');
+		include('core/ui/widgets/product.php');
+		
+		if (version_compare($wp_version,'2.8-dev','<')) {
+			$ShoppCategories = new LegacyShoppCategoriesWidget();
+			$ShoppSection = new LegacyShoppCategorySectionWidget();
+			$ShoppTagCloud = new LegacyShoppTagCloudWidget();
+			$ShoppFacetedMenu = new LegacyShoppFacetedMenuWidget();
+			$ShoppCart = new LegacyShoppCartWidget();
+			$ShoppProduct = new LegacyShoppProductWidget();
+		}
+		
 	}
 		
 	/**
@@ -777,9 +804,11 @@ class Shopp {
 		}
 
 		$referer = wp_get_referer();
+		$target = "blog";
+		if (isset($wp->query_vars['st'])) $target = $wp->query_vars['st'];
 		if (!empty($wp->query_vars['s']) && // Search query is present and...
 			// The search target is set to shopp
-			((isset($wp->query_vars['st']) && $wp->query_vars['st'] == "shopp") 
+			($target == "shopp" 
 				// The referering page includes a Shopp catalog page path
 				|| strpos($referer,$this->link('catalog')) !== false || 
 				strpos($referer,'page_id='.$pages['catalog']['id']) !== false || 
@@ -874,10 +903,26 @@ class Shopp {
 	 * checkout()
 	 * Handles checkout process */
 	function checkout ($wp) {
+		
+		// Force a secure checkout form for local checkout
+		$pages = $this->Settings->get('pages');
+		if ($wp->query_vars['page_id'] == $pages['checkout']['id']
+		 	&& !isset($wp->query_vars['shopp_proc'])) {
+
+			$secure = true;
+			$gateway = $this->Settings->get('payment_gateway');
+			if (strpos($gateway,"TestMode") !== false || isset($wp->query_vars['shopp_xco'])) 
+				$secure = false;
+
+			if ($secure && !$this->secure) {
+				header('Location: '.$this->link('checkout',$secure));
+				exit();
+			}
+		}
+
 		if (!isset($this->Cart->data->Order)) return;
 		$Order = $this->Cart->data->Order;
 
-		$gateway = false;
 		// Intercept external checkout processing
 		if (!empty($wp->query_vars['shopp_xco'])) {
 			$gateway = join(DIRECTORY_SEPARATOR,array($this->path,'gateways',$wp->query_vars['shopp_xco'].".php"));
@@ -909,7 +954,7 @@ class Shopp {
 		// Sanitize the card number to ensure it only contains numbers
 		$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
 
-		if (isset($_POST['data'])) $Order->data = $_POST['data'];
+		if (isset($_POST['data'])) $Order->data = stripslashes_deep($_POST['data']);
 		if (empty($Order->Customer))
 			$Order->Customer = new Customer();
 		$Order->Customer->updates($_POST);
@@ -973,7 +1018,24 @@ class Shopp {
 			}
 		}
 	}
-		
+	
+	/**
+	 * gateway ()
+	 * Loads a requested gateway */
+	function gateway ($gateway) {
+		$filepath = join(DIRECTORY_SEPARATOR,array($this->path,'gateways',$gateway.".php"));
+		if (!file_exists($filepath)) {
+			new ShoppError(__('The requested payment system does not exist.','Shopp').' '.$filepath,'shopp_load_gateway');
+			return false;
+		}
+		$meta = $this->Flow->scan_gateway_meta($filepath);
+		$ProcessorClass = $meta->tags['class'];
+		include_once($filepath);
+		$Shopp->Gateway = new $ProcessorClass();
+		// if ($Shopp->Gateway->settings['enabled'] != "on")
+		return $Shopp->Gateway;
+	}
+	
 	/**
 	 * link ()
 	 * Builds a full URL for a specific Shopp-related resource */
@@ -1173,6 +1235,8 @@ class Shopp {
 						$Purchase = new Purchase($Purchased->purchase);
 						if ($Purchase->ip != $_SERVER['REMOTE_ADDR']) $forbidden = true;
 					}
+					
+					do_action_ref_array('shopp_download_request',$Purchased);
 				}
 			
 				if ($forbidden) {
