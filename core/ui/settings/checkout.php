@@ -30,6 +30,15 @@
 				<td><input type="text" name="next_order_id" value="<?php echo attribute_escape($next->id); ?>" size="7" class="selectall" /><br />
 					<?php _e('Set the next order number to sync with your accounting systems.','Shopp'); ?></td>
 			</tr>
+			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="promo-limit"><?php _e('Promotions Limit','Shopp'); ?></label></th> 
+				<td><select name="settings[promo_limit]" id="promo-limit">
+					<option value="">&infin;</option>
+					<?php echo menuoptions($promolimit,$this->Settings->get('promo_limit')); ?>
+					</select>
+					<label> <?php _e('per order','Shopp'); ?></label>
+				</td>
+			</tr>
 
 		</table>
 		<h3><?php _e('Digtal Product Downloads','Shopp')?></h3>

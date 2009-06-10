@@ -26,10 +26,14 @@
 					</div>
 					<div class="inside">
 						<?php if (SHOPP_PERMALINKS && !empty($Product->id)): ?>
-						<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
-						<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo attribute_escape($Product->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Product->slug); ?></span>/</span>
-						<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>
-						</div>
+							<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
+							<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo attribute_escape($Product->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Product->slug); ?></span>/</span>
+							<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>
+							</div>
+						<?php else: ?>
+							<div id="edit-slug-box"><strong><?php _e('Product ID','Shopp'); ?>:</strong>
+							<span id="editable-slug"><?php echo $Product->id; ?></span>
+							</div>
 						<?php endif; ?>
 					</div>
 				</div>

@@ -26,6 +26,8 @@ class PayPalExpress {
 							"MQ" => "fr_FR", "NL" => "nl_NL", "PL" => "pl_PL", "RE" => "fr_FR",
 							"US" => "en_US");
 
+	var $shiprequired = array('en_GB');
+
 	function PayPalExpress () {
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('PayPalExpress');
@@ -78,7 +80,8 @@ class PayPalExpress {
 		$_['TAXAMT']				= number_format($Shopp->Cart->data->Totals->tax,2);
 
 		// Disable shipping fields if no shipped items in cart
-		if (!$Shopp->Cart->data->Shipping) $_['NOSHIPPING'] = 1;
+		if (!$Shopp->Cart->data->Shipping && 
+				!in_array($this->settings['locale'],$this->shiprequired)) $_['NOSHIPPING'] = 1;
 
 		// Line Items
 		foreach($Shopp->Cart->contents as $i => $Item) {

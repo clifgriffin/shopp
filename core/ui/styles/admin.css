@@ -280,7 +280,7 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #debug.shopp h3 { font: bold 15px/1 "Lucida Grande",monospace;  }
 
 /** Calendar **/
-
+.calendar { display: none; }
 .calendar-wrap { display: inline; position: relative; overflow: visible; }
 .calendar { position: absolute; z-index: 10; top: 18px; left: 0; width: 185px; background: white; border: 1px solid #cee1ef; padding: 5px; font-size: 11px; }
 .calendar h3 { width: 100%; margin: 0; text-align: center; }

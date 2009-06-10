@@ -166,7 +166,7 @@ class Item {
 	function unstock () {
 		$db = DB::get();
 		$table = DatabaseObject::tablename(Price::$table);
-		$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$this->price}'");
+		$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$this->price}' AND stock > 0");
 	}
 	
 	function shipping (&$Shipping) {
