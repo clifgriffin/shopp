@@ -399,7 +399,7 @@ class Cart {
 			$this->data->Promotions = $db->query("SELECT * FROM $promo_table WHERE scope='Order' AND ((status='enabled' AND UNIX_TIMESTAMP(starts) > 0 AND UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP() AND UNIX_TIMESTAMP(ends) > UNIX_TIMESTAMP()) OR status='enabled')",AS_ARRAY);
 		}
 
-		$PromoCodeFound = false; $PromoCodeExists = false;
+		$PromoCodeFound = false; $PromoCodeExists = false; $PromoLimit = false;
 		$this->data->PromosApplied = array();
 		foreach ($this->data->Promotions as &$promo) {
 			if (!is_array($promo->rules))
@@ -456,10 +456,12 @@ class Cart {
 						}
 						break;
 					case "Promo code":
+						// Match previously applied codes
 						if (is_array($this->data->PromoCodes) && in_array($rule['value'],$this->data->PromoCodes)) {							
 							$rulematch = true;
 							break;
 						}
+						// Match a new code
 						if (!empty($this->data->PromoCode)) {
 							if (Promotion::match_rule($this->data->PromoCode,$rule['logic'],$rule['value'])) {
  								if (is_array($this->data->PromoCodes) && 
@@ -483,15 +485,16 @@ class Cart {
 
 			if ($promo->search == "all" && $rulematches == count($promo->rules))
 				$match = true;
-				
+
 			// Everything matches up, apply the promotion
-			if ($match && count($this->data->PromosApplied) <= $limit) {
+			if ($match && !$PromoLimit) {
+
 				if (!empty($items)) {
 					$freeshipping = 0;
 					// Apply promo calculation to specific cart items
 					foreach ($items as $item) {
 						switch ($promo->type) {
-							case "Percentage Off": $this->data->Totals->discount += $item->unitprice*($promo->discount/100); break;
+							case "Percentage Off": $this->data->Totals->discount += $item->total*($promo->discount/100); break;
 							case "Amount Off": $this->data->Totals->discount += $promo->discount; break;
 							case "Buy X Get Y Free": $this->data->Totals->discount += floor($item->quantity / ($promo->buyqty + $promo->getqty))*($item->unitprice);
 							case "Free Shipping": $freeshipping++; break;
@@ -508,17 +511,30 @@ class Cart {
 					}
 				}
 				$this->data->PromosApplied[] = $promo;
+				if ($limit > 0 && count($this->data->PromosApplied)+1 > $limit) {
+					$PromoLimit = true;					
+					break;
+				}
 			}
 			
 			if ($match && $promo->exclusive == "on") break;
 			
 		} // end foreach ($Promotions)
-		
-		if (!empty($this->data->PromoCode) && !$PromoCodeFound && !$PromoCodeExists) {
-			$this->data->PromoCodeResult = $this->data->PromoCode.' '.__("is not a valid code.","Shopp");
+
+		// Promo code found, but ran into promotion limits
+		if (!empty($this->data->PromoCode) && $PromoLimit) { 
+			$this->data->PromoCodeResult = __("No additional codes can be applied.","Shopp");
+			$this->data->PromoCodes = array_diff($this->data->PromoCodes,array($PromoCodeFound));
 			$this->data->PromoCode = false;
 		}
-		
+
+		// Promo code not found
+		if (!empty($this->data->PromoCode) && !$PromoCodeFound && !$PromoCodeExists) {
+			$this->data->PromoCodeResult = $this->data->PromoCode.' '.__("is not a valid code.","Shopp");
+			$this->data->PromoCodes = array_diff($this->data->PromoCodes,array($this->data->PromoCode));
+			$this->data->PromoCode = false;
+		}
+
 	}
 
 	/**
@@ -951,8 +967,11 @@ class Cart {
 				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code");
 				$result .= '<ul><li>';
 				
-				if (!empty($this->data->PromoCodeResult))
+				if (!empty($this->data->PromoCodeResult)) {
 					$result .= '<p class="error">'.$this->data->PromoCodeResult.'</p>';
+					$this->data->PromoCodeResult = "";
+				}
+					
 				$result .= '<span><input type="text" id="promocode" name="promocode" value="" size="10" /></span>';
 				$result .= '<span><input type="submit" id="apply-code" name="update" '.inputattrs($options,$submit_attrs).' /></span>';
 				$result .= '</li></ul>';

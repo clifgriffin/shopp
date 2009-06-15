@@ -181,7 +181,7 @@ class GoogleCheckout {
 				$_[] = '<merchant-checkout-flow-support>';
 
 				// Shipping Methods
-				if ($Shopp->Cart->data->Shipping && !empty($Cart->data->ShipCosts)) {
+				if ($Cart->data->Shipping && !empty($Cart->data->ShipCosts)) {
 					$_[] = '<shipping-methods>';
 						foreach ($Cart->data->ShipCosts as $i => $shipping) {
 							$label = __('Shipping Option','Shopp').' '.($i+1);
@@ -434,7 +434,7 @@ class GoogleCheckout {
 					<?php echo menuoptions($styles,$this->settings['buttonstyle'],true); ?>
 					</select><br />Select the preferred size and style of the Google Checkout button.</p>
 					<p><label for="googlecheckout-autocharge"><input type="hidden" name="settings[GoogleCheckout][autocharge]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][autocharge]" id="googlecheckout-autocharge" size="48" value="on"<?php echo ($this->settings['autocharge'] == 'on')?' checked="checked"':''; ?> /> Automatically charge orders</label></p>
-			<p><label for="googlecheckout-testmode"><input type="hidden" name="settings[GoogleCheckout][testmode]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][testmode]" id="googlecheckout-testmode" size="48" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Enable test mode</label></p>
+			<p><label for="googlecheckout-testmode"><input type="hidden" name="settings[GoogleCheckout][testmode]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][testmode]" id="googlecheckout-testmode" size="48" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Use the <a href="http://docs.shopplugin.net/Google_Checkout_Sandbox">Google Checkout Sandbox</a></label></p>
 			
 			<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
 			
