@@ -914,9 +914,10 @@ class FTPClient {
 		if (!$this->remapped) $remote = $this->remappath($remote);
 		// $this->log[] = "The remapped destination path is $remote";
 		
-		$files = scandir($path);
+		if (is_dir($path)) $files = scandir($path);
+		else $files = array($path);
 		$excludes = array(".","..");
-		foreach ($files as $file) {
+		foreach ((array)$files as $file) {
 			if (in_array($file,$excludes)) continue;
 			if (is_dir($path.$file)) {
 				if (!@ftp_chdir($this->connection,$remote.$file)) 
