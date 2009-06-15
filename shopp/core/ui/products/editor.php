@@ -31,9 +31,11 @@
 							<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>
 							</div>
 						<?php else: ?>
+							<?php if (!empty($Product->id)): ?>
 							<div id="edit-slug-box"><strong><?php _e('Product ID','Shopp'); ?>:</strong>
 							<span id="editable-slug"><?php echo $Product->id; ?></span>
 							</div>
+							<?php endif; ?>
 						<?php endif; ?>
 					</div>
 				</div>
@@ -95,8 +97,13 @@ foreach ($Product->categories as $category) $selectedCategories[] = $category->i
 				<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo attribute_escape($Product->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Product->slug); ?></span>/</span>
 				<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>
 				</div>
+				<?php else: ?>
+					<?php if (!empty($Product->id)): ?>
+					<div id="edit-slug-box"><strong><?php _e('Product ID','Shopp'); ?>:</strong>
+					<span id="editable-slug"><?php echo $Product->id; ?></span>
+					</div>
+					<?php endif; ?>
 				<?php endif; ?>
-				
 		</tr>
 		<tr class="">
 			<th scope="row" valign="top"><label for="category-menu"><?php _e('Categories','Shopp'); ?></label>

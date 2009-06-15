@@ -243,6 +243,7 @@ class Purchase extends DatabaseObject {
 				}
 				break;
 			case "data":
+				if (!is_array($this->data)) return false;
 				$data = current($this->data);
 				$name = key($this->data);
 				if (isset($options['name'])) return $name;

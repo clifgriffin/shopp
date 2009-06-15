@@ -349,17 +349,6 @@ class Category extends DatabaseObject {
 
 		if ($this->pagination > 0 && $limit > $this->pagination) {
 			$total = $db->query("SELECT FOUND_ROWS() as count");
-			
-			// If an explicit limit is specified,
-			// base paging total off of that
-			// or
-			// use the max found if the max is 
-			// less than the explicit limit
-			if (isset($loading['limit'])) {
-				if ($total->count > $loading['limit'])
-				$total->count = $loading['limit'];
-			}
-			
 			$this->total = $total->count;
 			$this->pages = ceil($this->total / $this->pagination);
 			if ($this->pages > 1) $this->paged = true;			
@@ -1263,10 +1252,13 @@ class RelatedProducts extends Category {
 		$this->smart = true;
 		$this->controls = false;
 		
+		$exclude = "";
+		if (!empty($this->product->id)) $exclude = " AND pd.id != {$this->product->id}";
+		
 		$this->loading = array(
 			'catalog'=>'tags',
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
-			'where'=>"catalog.tag=t.id AND ($tagscope)");
+			'where'=>"catalog.tag=t.id AND ($tagscope)$exclude");
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
