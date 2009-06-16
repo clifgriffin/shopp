@@ -732,7 +732,8 @@ class Flow {
 		} else $Shopp->Cart->data->Purchase = new Purchase();
 		
 		$Purchase = $Shopp->Cart->data->Purchase;
-
+		$Customer = new Customer($Purchase->customer);
+		
 		if (!empty($_POST)) {
 			check_admin_referer('shopp-save-order');
 			$Purchase->updates($_POST);
@@ -1911,7 +1912,7 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
-		$next = $db->query("SELECT auto_increment as id FROM information_schema.tables WHERE table_schema=database() AND table_name='$purchasetable' LIMIT 1");
+		$next = $db->query("SELECT IF ((MAX(id)) > 0,(MAX(id)+1),1) AS id FROM $purchasetable LIMIT 1");
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-checkout');

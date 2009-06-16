@@ -715,7 +715,7 @@ class Shopp {
 
 	function feeds () {
 		if (empty($this->Category)):?>
-	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
+	<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
 	<?php
 			else:
 			$uri = 'category/'.$this->Category->uri;
@@ -724,7 +724,7 @@ class Shopp {
 			if (SHOPP_PERMALINKS) $link = $this->shopuri.$uri.'/feed/';
 			else $link = add_query_arg(array('shopp_category'=>$this->Category->uri,'shopp_lookup'=>'category-rss'),$this->shopuri);
 			?>
-	<link rel='alternate' type="application/rss+xml" title="<?php bloginfo('name'); ?> <?php echo $this->Category->name; ?> RSS Feed" href="<?php echo $link; ?>" />
+	<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo htmlentities($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
 	<?php
 		endif;
 	}

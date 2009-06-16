@@ -33,8 +33,8 @@
 			<?php endforeach; endif; ?>
 		</table>
 
-		<?php if (!empty($Purchase->shipaddress)): ?>
 		<fieldset>
+		<?php if (!empty($Purchase->shipaddress)): ?>
 			<legend><?php _e('Ship To','Shopp'); ?></legend>
 			<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
 			<?php echo !empty($Purchase->company)?"$Purchase->company<br />":""; ?>
@@ -42,18 +42,25 @@
 			<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
 			<?php echo "{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
 			<?php echo $targets[$Purchase->shipcountry]; ?></address>
-			<p><strong>Shipping:</strong> <?php echo $Purchase->shipmethod; ?></p>
-		</fieldset>
+			<?php if (!empty($Purchase->shipmethod)): ?>
+				<p><strong>Shipping:</strong> <?php echo $Purchase->shipmethod; ?></p>
+			<?php endif;?>
 		<?php else: ?>
-			<fieldset>
-				<legend><?php _e('Customer','Shopp'); ?></legend>
-				<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
-				<?php echo $Purchase->address; ?><br />
-				<?php if (!empty($Purchase->xaddress)) echo $Purchase->xaddress."<br />"; ?>
-				<?php echo "{$Purchase->city}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->state} {$Purchase->postcode}" ?><br />
-				<?php echo $targets[$Purchase->country]; ?></address>
-			</fieldset>
+			<legend><?php _e('Customer','Shopp'); ?></legend>
+			<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
+			<?php echo $Purchase->address; ?><br />
+			<?php if (!empty($Purchase->xaddress)) echo $Purchase->xaddress."<br />"; ?>
+			<?php echo "{$Purchase->city}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->state} {$Purchase->postcode}" ?><br />
+			<?php echo $targets[$Purchase->country]; ?></address>
 		<?php endif; ?>
+			<?php if (!empty($Purchase->data) && is_array($Purchase->data)): ?>
+				<ul>
+					<?php foreach ($Customer->info as $name => $value): ?>
+					<li><strong><?php echo $name; ?>:</strong> <?php echo $value; ?></li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
+		</fieldset>
 		
 		<?php if (sizeof($Purchase->purchased) > 0): ?>
 		<table class="widefat" cellspacing="0">
