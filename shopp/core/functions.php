@@ -907,15 +907,23 @@ class FTPClient {
 	 * update()
 	 * Recursively copies files from a src $path to the $remote path */
 	function update ($path,$remote) {
-		$path = trailingslashit($path);
-		// $this->log[] = "The source path is $path";
-		$remote = trailingslashit($remote);
-		// $this->log[] = "The destination path is $remote";
+		if (is_dir($path)){
+			$path = trailingslashit($path);
+			// $this->log[] = "The source path is $path";
+			$files = scandir($path);	
+			$remote = trailingslashit($remote);
+			// $this->log[] = "The destination path is $remote";
+		} else {
+			$files = array(basename($path));
+			$path = trailingslashit(dirname($path));
+			// $this->log[] = "The source path is $path";
+			$remote = trailingslashit(dirname($remote));
+			// $this->log[] = "The destination path is $remote";
+		}
+		
 		if (!$this->remapped) $remote = $this->remappath($remote);
 		// $this->log[] = "The remapped destination path is $remote";
 		
-		if (is_dir($path)) $files = scandir($path);
-		else $files = array($path);
 		$excludes = array(".","..");
 		foreach ((array)$files as $file) {
 			if (in_array($file,$excludes)) continue;
