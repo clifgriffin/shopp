@@ -245,7 +245,7 @@ class Item {
 							$result = '<button type="submit" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="">'.$label.'</button>';
 					}
 				} else {
-					$result = '<a href="'.SHOPP_CARTURL.'?cart=update&amp;item='.$id.'&amp;quantity=0"'.$class.'>'.$label.'</a>';
+					$result = '<a href="'.add_query_arg(array('cart'=>'update','item'=>$id,'quantity'=>0),$Shopp->link('cart')).'"'.$class.'>'.$label.'</a>';
 				}
 				break;
 			case "optionlabel": $result = $this->optionlabel; break;

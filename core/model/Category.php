@@ -553,6 +553,10 @@ class Category extends DatabaseObject {
 				if (empty($this->children)) $this->load_children();
 				return (!empty($this->children));
 				break;
+			case "is-subcategory":
+			case "issubcategory":
+				return ($this->parent != 0);
+				break;
 			case "subcategories":			
 				if (!$this->childloop) {
 					reset($this->children);
