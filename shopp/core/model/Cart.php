@@ -380,7 +380,7 @@ class Cart {
 			return $ShipCosts[$this->data->Order->Shipping->method]['cost'];
 		
 		$this->data->Order->Shipping->method = $estimate['name'];
-
+		
 		return $estimate['cost'];
 	}
 	

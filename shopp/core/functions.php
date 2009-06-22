@@ -553,10 +553,10 @@ function file_mimetype ($file,$name) {
 		// Or class
 		$f = new finfo(FILEINFO_MIME);
 		return $f->file($file);
-	} elseif (strlen($mime=@shell_exec("file -bI ".escapeshellarg($file)))!=0) {
+	} elseif (strlen($mime=trim(@shell_exec('file -bI "'.escapeshellarg($file).'"')))!=0) {
 		// Use shell if allowed
 		return trim($mime);
-	} elseif (strlen($mime=@shell_exec("file -bi ".escapeshellarg($file)))!=0) {
+	} elseif (strlen($mime=trim(@shell_exec('file -bi "'.escapeshellarg($file).'"')))!=0) {
 		// Use shell if allowed
 		return trim($mime);
 	} elseif (function_exists('mime_content_type') && $mime = mime_content_type($file)) {

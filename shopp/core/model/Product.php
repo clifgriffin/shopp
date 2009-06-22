@@ -264,8 +264,8 @@ class Product extends DatabaseObject {
 
 			$price->promoprice = $price->saleprice;
 			if ((int)$price->promoprice == 0) $price->promoprice = $price->price;
-
-			if ($this->promos == 'enabled') {
+			
+			if (isset($this->promos) && $this->promos == 'enabled') {
 				if ($price->percentoff > 0) {
 					$price->promoprice = $price->promoprice - ($price->promoprice * ($price->percentoff/100));
 					$price->onsale = true;
@@ -730,9 +730,22 @@ class Product extends DatabaseObject {
 				if (isset($this->thumbnail)) {
 					$img = $this->thumbnail;
 					$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
+
+					$width = (isset($options['width']))?$options['width']:$img->properties['width'];
+					$height = (isset($options['height']))?$options['height']:$img->properties['height'];
+
+					if (isset($options['width']) && !isset($options['height'])) {
+						$scale = $width/$img->properties['width'];
+						$height = round($img->properties['height']*$scale);
+					}
+					if (isset($options['height']) && !isset($options['width'])) {
+						$scale = $height/$img->properties['height'];
+						$width = round($img->properties['width']*$scale);
+					}
+					
 					if (!empty($options['title'])) $title = ' title="'.attribute_escape($options['title']).'"';
 					$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$this->name);
-					return '<img src="'.$img->uri.'"'.$title.' alt="'.$alt.'"  width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />'; break;
+					return '<img src="'.$img->uri.'"'.$title.' alt="'.$alt.'"  width="'.$width.'" height="'.$height.'" '.$options['class'].' />'; break;
 				}
 				break;
 			case "hasimages": 
@@ -771,10 +784,23 @@ class Product extends DatabaseObject {
 					}
 				}
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+
+				$width = (isset($options['width']))?$options['width']:$img->properties['width'];
+				$height = (isset($options['height']))?$options['height']:$img->properties['height'];
+
+				if (isset($options['width']) && !isset($options['height'])) {
+					$scale = $width/$img->properties['width'];
+					$height = round($img->properties['height']*$scale);
+				}
+				if (isset($options['height']) && !isset($options['width'])) {
+					$scale = $height/$img->properties['height'];
+					$width = round($img->properties['width']*$scale);
+				}
+
 				$string = "";
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-thickbox";
 				if (!empty($options['zoom'])) $string .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="'.$options['zoomfx'].'" rel="product-gallery">';
-				$string .= '<img src="'.$img->uri.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$options['class'].' />';
+				$string .= '<img src="'.$img->uri.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;

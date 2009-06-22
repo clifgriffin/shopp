@@ -4,7 +4,7 @@
  * @class GoogleCheckout
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  **/
@@ -41,7 +41,7 @@ class GoogleCheckout {
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		$this->settings['location'] = "en_US";
 		$base = $Shopp->Settings->get('base_operations');
-		if ($base['country'] == "UK") $this->settings['location'] = "en_GB";
+		if ($base['country'] == "GB") $this->settings['location'] = "en_UK";
 		
 		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
 		$this->settings['currency'] = $this->settings['base_operations']['currency']['code'];
@@ -60,7 +60,7 @@ class GoogleCheckout {
 		$Response = $this->send($this->urls['checkout']);
 		
 		if (!empty($Response)) {
-			if ($Response->getElement('error')) return false;
+			if ($Response->getElement('error')) return $this->error();
 			$redirect = false;
 			$redirect = $Response->getElementContent('redirect-url');
 			if ($redirect) {
@@ -384,7 +384,7 @@ class GoogleCheckout {
 	
 	function error () {
 		$message = $this->Response->getElementContent('error-message');
-		if (!empty($error->message)) 
+		if (!empty($message)) 
 			return new ShoppError($message,'google_checkout_error',SHOPP_TRXN_ERR);
 	}
 		
@@ -436,6 +436,7 @@ class GoogleCheckout {
 					<p><label for="googlecheckout-autocharge"><input type="hidden" name="settings[GoogleCheckout][autocharge]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][autocharge]" id="googlecheckout-autocharge" size="48" value="on"<?php echo ($this->settings['autocharge'] == 'on')?' checked="checked"':''; ?> /> Automatically charge orders</label></p>
 			<p><label for="googlecheckout-testmode"><input type="hidden" name="settings[GoogleCheckout][testmode]" value="off" /><input type="checkbox" name="settings[GoogleCheckout][testmode]" id="googlecheckout-testmode" size="48" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Use the <a href="http://docs.shopplugin.net/Google_Checkout_Sandbox">Google Checkout Sandbox</a></label></p>
 			
+			<input type="hidden" name="settings[GoogleCheckout][path]" value="<?php echo gateway_path(__FILE__); ?>"  />
 			<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
 			
 			</div>

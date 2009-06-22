@@ -247,7 +247,7 @@ class Flow {
 			if ($_COOKIE['shopp_catalog_view'] == "grid") $classes .= " grid";
 		}
 		
-		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'<div id="clear"></div></div>');
+		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'<div class="clear"></div></div>');
 	}
 	
 	/**
@@ -284,9 +284,11 @@ class Flow {
 
 		$process = get_query_var('shopp_proc');
 		$xco = get_query_var('shopp_xco');
-		if (!empty($Payment))
+		if (!empty($xco)) {
 			$Payment = $Shopp->gateway($xco);
-		
+			$Payment->actions();
+		}
+
 		switch ($process) {
 			case "confirm-order": $content = $this->order_confirmation(); break;
 			case "receipt": $content = $this->order_receipt(); break;

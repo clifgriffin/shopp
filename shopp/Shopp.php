@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.6
+Version: 1.0.7b1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.6");
+define("SHOPP_VERSION","1.0.7b1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -903,7 +903,7 @@ class Shopp {
 	 * checkout()
 	 * Handles checkout process */
 	function checkout ($wp) {
-		
+		// echo "<pre>"; print_r($wp); echo "</pre>";
 		// Force a secure checkout form for local checkout
 		$pages = $this->Settings->get('pages');
 		if ($wp->query_vars['page_id'] == $pages['checkout']['id']
@@ -925,12 +925,7 @@ class Shopp {
 
 		// Intercept external checkout processing
 		if (!empty($wp->query_vars['shopp_xco'])) {
-			$gateway = join(DIRECTORY_SEPARATOR,array($this->path,'gateways',$wp->query_vars['shopp_xco'].".php"));
-			if (file_exists($gateway)) {
-				$gateway_meta = $this->Flow->scan_gateway_meta($gateway);
-				$ProcessorClass = $gateway_meta->tags['class'];
-				include($gateway);
-				$Payment = new $ProcessorClass();
+			if ($Payment = $this->gateway($wp->query_vars['shopp_xco'])) {
 				if ($wp->query_vars['shopp_proc'] != "confirm-order" && 
 						!isset($_POST['checkout'])) {
 					$Payment->checkout();
@@ -1006,16 +1001,14 @@ class Shopp {
 	 * xorder ()
 	 * Handle external checkout system order notifications */
 	function xorder () {
-		$gateway = false;
+		$path = false;
 		if (!empty($_GET['shopp_xorder'])) {
-			$gateway = "{$this->path}/gateways/{$_GET['shopp_xorder']}/{$_GET['shopp_xorder']}.php";
-			if (file_exists($gateway)) {
-				$gateway_meta = $this->Flow->scan_gateway_meta($gateway);
-				$ProcessorClass = $gateway_meta->tags['class'];
-				include($gateway);
-				$Payment = new $ProcessorClass();
-				$Payment->process();
-			}
+			$gateway = $this->Settings->get($_GET['shopp_xorder']);
+			if (isset($gateway['path'])) $path = $gateway['path'];
+			// Use the old path support for transition if the new path setting isn't available
+			if (empty($path)) $path = "{$_GET['shopp_xorder']}/{$_GET['shopp_xorder']}.php";
+			$Payment = $this->gateway($path);
+			if ($Payment) $Payment->process();
 		}
 	}
 	
