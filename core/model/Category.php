@@ -734,7 +734,7 @@ class Category extends DatabaseObject {
 						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 			
 						$total = '';
-						if (value_is_true($products)) $total = '&nbsp;&nbsp;('.$category->products.')';
+						if (value_is_true($products)) $total = '&nbsp;&nbsp;('.$category->total.')';
 			
 						$string .= '<option value="'.htmlentities($link).'">'.$padding.$category->name.$total.'</option>';
 						$previous = &$category;

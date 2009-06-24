@@ -882,6 +882,12 @@ class Shopp {
 	 * cart()
 	 * Handles shopping cart requests */
 	function cart () {
+		if (isset($_REQUEST['shopping']) && $_REQUEST['shopping'] == "reset") {
+			$this->Cart->reset();
+			header("Location: ".$this->link());
+			exit();
+		}
+			
 		if (empty($_REQUEST['cart'])) return true;
 
 		$this->Cart->request();
@@ -1009,6 +1015,7 @@ class Shopp {
 			if (empty($path)) $path = "{$_GET['shopp_xorder']}/{$_GET['shopp_xorder']}.php";
 			$Payment = $this->gateway($path);
 			if ($Payment) $Payment->process();
+			exit();
 		}
 	}
 	
@@ -1016,7 +1023,8 @@ class Shopp {
 	 * gateway ()
 	 * Loads a requested gateway */
 	function gateway ($gateway) {
-		$filepath = join(DIRECTORY_SEPARATOR,array($this->path,'gateways',$gateway.".php"));
+		if (substr($gateway,-4) != ".php") $gateway .= ".php";
+		$filepath = join(DIRECTORY_SEPARATOR,array($this->path,'gateways',$gateway));
 		if (!file_exists($filepath)) {
 			new ShoppError(__('The requested payment system does not exist.','Shopp').' '.$filepath,'shopp_load_gateway');
 			return false;
@@ -1025,7 +1033,7 @@ class Shopp {
 		$ProcessorClass = $meta->tags['class'];
 		include_once($filepath);
 		$Shopp->Gateway = new $ProcessorClass();
-		// if ($Shopp->Gateway->settings['enabled'] != "on")
+		//if ($Shopp->Gateway->settings['enabled'] != "on")
 		return $Shopp->Gateway;
 	}
 	

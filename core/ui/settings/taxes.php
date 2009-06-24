@@ -36,8 +36,6 @@
 //<![CDATA[
 helpurl = "<?php echo SHOPP_DOCS; ?>Taxes_Settings";
 
-(function($) {
-
 var disableCountriesInUse = function () {
 	$('#taxrates-table tr select.country option').each (function () {
 		$(this).attr('disabled',false);
@@ -160,7 +158,7 @@ var addTaxRate = function (r) {
 
 if ($('#taxrates-table')) {
 	var rates = <?php echo json_encode($rates); ?>;
-	var base = <?php echo json_encode($base); ?>;
+	// var base = <?php echo json_encode($base); ?>;
 	var countries = <?php echo json_encode($countries); ?>;
 	var zones = <?php echo json_encode($zones); ?>;
 	var taxrates = new Array();
@@ -169,10 +167,12 @@ if ($('#taxrates-table')) {
 	var allCountryZonesInUse = new Array();
 
 	$('#add-taxrate').click(function() { addTaxRate(); });
-
-	$('#taxrates-table').empty();
-	if (rates) for (i in rates) addTaxRate(rates[i]);
-	else addTaxRate();	
+	
+	$(window).ready(function () {
+		$('#taxrates-table').empty();
+		if (rates) for (i in rates) addTaxRate(rates[i]);
+		else addTaxRate();	
+	});
 }
 
 })(jQuery)
