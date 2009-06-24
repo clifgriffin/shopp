@@ -227,6 +227,7 @@ class Cart {
 	 * Resets the entire session */
 	function reset () {
 		$this->unload();
+		$this->session = session_regenerate_id();
 	}
 	
 	/**

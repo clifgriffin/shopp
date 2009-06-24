@@ -104,36 +104,50 @@ class PayPalStandard {
 	 * Builds a hidden form to submit to PayPal when confirming the order for processing */
 	function form ($form) {
 		global $Shopp;
+		$Order = $Shopp->Cart->data->Order;
+		$Order->Totals = $Shopp->Cart->data->Totals;
+		$Order->Items = $Shopp->Cart->contents;
+		$Order->Cart = $Shopp->Cart->session;
 		
 		$_ = array();
 
 		$_['cmd'] 					= "_cart";
 		$_['upload'] 				= 1;
 		$_['business']				= $this->settings['account'];
-
+		$_['invoice']				= $Order->Cart;
+		
 		// Options
-		$_['return']				= $Shopp->link();
+		$_['return']				= add_query_arg('shopping','reset',$Shopp->link());
 		$_['cancel_return']			= $Shopp->link('cart');
-		if (SHOPP_PERMALINKS)
-			$_['notify_url']		= $Shopp->link('confirm-order').'?shopp_xco=PayPal/PayPalStandard';
-		else
-			$_['notify_url']			= add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order'));
-		$_['rm']					= 2; // Return method POST
+		$_['notify_url']			= add_query_arg('shopp_xorder','PayPalStandard',$Shopp->link());
+		$_['rm']					= 1; // Return with no transaction data
+		
+		// Pre-populate PayPal Checkout
+		$_['first_name']			= $Order->Customer->firstname;
+		$_['last_name']				= $Order->Customer->lastname;
+		$_['lc']					= $this->settings['base_operations']['country'];
+		
+		$_['address1']				= $Order->Billing->address;
+		$_['address2']				= $Order->Billing->xaddress;
+		$_['city']					= $Order->Billing->city;
+		$_['state']					= $Order->Billing->state;
+		$_['zip']					= $Order->Billing->postcode;
+		$_['country']				= $Order->Billing->country;
 		
 		// Include page style option, if provided
 		if (isset($_GET['pagestyle'])) $_['pagestyle'] = $_GET['pagestyle'];
 
-		if (isset($Shopp->Cart->data->Order->data['paypal-custom']))
-			$_['custom'] = htmlentities($Shopp->Cart->data->Order->data['paypal-custom']);
+		if (isset($Order->data['paypal-custom']))
+			$_['custom'] = htmlentities($Order->data['paypal-custom']);
 		
 		// Transaction
 		$_['currency_code']			= $this->settings['currency_code'];
 
 		// Disable shipping fields if no shipped items in cart
-		if (!$Shopp->Cart->data->Shipping) $_['no_shipping'] = 1;
+		if (!$Order->Shipping) $_['no_shipping'] = 1;
 
 		// Line Items
-		foreach($Shopp->Cart->contents as $i => $Item) {
+		foreach($Order->Items as $i => $Item) {
 			$id=$i+1;
 			$_['item_number_'.$id]		= $id;
 			$_['item_name_'.$id]		= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
@@ -144,152 +158,220 @@ class PayPalStandard {
 			// $_['handling_'.$id]			= number_format($Item->shipfee,2);
 		}
 		
-		$_['discount_amount_cart'] 		= number_format($Shopp->Cart->data->Totals->discount,2);
-		$_['tax_cart']					= number_format($Shopp->Cart->data->Totals->tax,2);
-		$_['handling_cart']					= number_format($Shopp->Cart->data->Totals->shipping,2);
-		$_['amount']					= number_format($Shopp->Cart->data->Totals->total,2);
+		$_['discount_amount_cart'] 		= number_format($Order->Totals->discount,2);
+		$_['tax_cart']					= number_format($Order->Totals->tax,2);
+		$_['handling_cart']					= number_format($Order->Totals->shipping,2);
+		$_['amount']					= number_format($Order->Totals->total,2);
 		
 				
 		return $form.$this->format($_);
 	}
-	
-	
-	function details () {
-		global $Shopp;
-		if (!isset($Shopp->Cart->data->PayPalStandard->token) && 
-			!isset($Shopp->Cart->data->PayPalStandard->payerid)) return false;
-
-		$_ = $this->headers();
-
-   		$_['METHOD'] 				= "GetExpressCheckoutDetails";
-		$_['TOKEN'] 				= $Shopp->Cart->data->PayPalStandard->token;
-
-		$this->transaction = $this->encode($_);
-		$this->send();
 		
-		$Customer = $Shopp->Cart->data->Order->Customer;
-		$Customer->firstname = $this->Response->firstname;
-		$Customer->lastname = $this->Response->lastname;
-		$Customer->email = $this->Response->email;
-		$Customer->phone = $this->Response->phonenum;
-		
-		$Shipping = $Shopp->Cart->data->Order->Shipping;		
-		$Shipping->address = $this->Response->shiptostreet;
-		$Shipping->xaddress = $this->Response->shiptostreet2;
-		$Shipping->city = $this->Response->shiptocity;
-		$Shipping->state = $this->Response->shiptostate;
-		$Shipping->country = $this->Response->shiptocountrycode;
-		$Shipping->postcode = $this->Response->shiptozip;
-
-		$Billing = $Shopp->Cart->data->Order->Billing;
-		$Billing->cardtype = "PayPal";
-		$Billing->address = $Shipping->address;
-		$Billing->xaddress = $Shipping->xaddress;
-		$Billing->city = $Shipping->city;
-		$Billing->state = $Shipping->state;
-		$Billing->country = $Shipping->country;
-		$Billing->postcode = $Shipping->postcode;
-
-		$Shopp->Cart->updated();
-		
-	} 
-	
-	function ipn () {
-		$_ = array();
-		$_['cmd'] = "_notify-synch";
-		$_['tx'] = $_GET['tx'];
-		$_['at'] = "";
-		
-		$this->transaction = $this->encode($_);
-	}
-	
-	
 	function process () {
 		global $Shopp;
 		
+		// Validate the order notification
+		if (empty($_POST['invoice']) || !$this->validipn())
+			return new ShoppError(__('An unverifiable order notifcation was received from PayPal. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
 		
+		session_unset();
+		session_destroy();
 		
+		// Load the cart for the correct order
+		$Shopp->Cart->session = $_POST['invoice'];
+		$Shopp->Cart->load();
+
+		$Order = $Shopp->Cart->data->Order;
+		$Order->Totals = $Shopp->Cart->data->Totals;
+		$Order->Items = $Shopp->Cart->contents;
+		$Order->Cart = $Shopp->Cart->session;
+
+		// Validate the order data
+		$validation = false;
 		
+		// Check for unique transaction id
+		$Purchase = new Purchase($_POST['txn_id'],'transactionid');
 		
+		if ($this->settings['testmode'] == "on") {
+			if ($_POST['mc_gross'] == number_format($Order->Totals->total,2) 
+				&& empty($Purchase->id) 
+				&& $_POST['residence_country'] == $Order->Billing->country)
+					$validation = true;
+		} else {
+			if ($_POST['mc_gross'] == number_format($Order->Totals->total,2) 
+				&& empty($Purchase->id) 
+				&& $_POST['payer_email'] == $Order->Customer->email
+				&& $_POST['residence_country'] == $Order->Billing->country)
+					$validation = true;
+		}
 		
-		
+		if ($validation) $this->order();
+		else new ShoppError(__('An order was received from PayPal that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'paypal_trxn_validation',SHOPP_TRXN_ERR);
 		
 		exit();
-				
-		$_ = $this->headers();
+	}
+	
+	function validipn () {
+		$_ = array();
+		$_['cmd'] = "_notify-validate";
+		
+		$this->transaction = $this->encode(array_merge($_POST,$_));
+		$Response = $this->send();
+		
+		return ($Response == "VERIFIED");
+	}
+	
+	function order () {
+		global $Shopp;
+		$Order = $Shopp->Cart->data->Order;
+		$Order->Totals = $Shopp->Cart->data->Totals;
+		$Order->Items = $Shopp->Cart->contents;
+		$Order->Cart = $Shopp->Cart->session;
 
-		$_['METHOD'] 				= "DoExpressCheckoutPayment";
-		$_['PAYMENTACTION']			= "Sale";
-		$_['TOKEN'] 				= $Shopp->Cart->data->PayPalStandard->token;
-		$_['PAYERID'] 				= $Shopp->Cart->data->PayPalStandard->payerid;
+		// Transaction successful, save the order
+		
+		// Create WordPress account (if necessary)
+		if ($authentication == "wordpress" && 
+			!$user = get_user_by_email($Order->Customer->email)) {
+			require_once(ABSPATH."/wp-includes/registration.php");
 
-		// Transaction
-		$_ = array_merge($_,$this->purchase());
+			if (!empty($Order->Customer->login)) $handle = $Order->Customer->login;
+			else {
+				// No login provided, auto-generate login handle
+				list($handle,$domain) = split("@",$Order->Customer->email);
 
-		$this->transaction = $this->encode($_);
-		$result = $this->send();
-		if (!$result) {
-			new ShoppError(__('No response was received from PayPal. The order cannot be processed.','Shopp'),'paypalstandard_noresults',SHOPP_COMM_ERR);
+				// The email handle exists, so use first name initial + lastname
+				if (username_exists($handle)) 
+					$handle = substr($Order->Customer->firstname,0,1).$Order->Customer->lastname;
+
+				// That exists too *bangs head on wall*, ok add a random number too :P
+				if (username_exists($handle)) 
+					$handle .= rand(1000,9999);
+			}
+			
+			if (username_exists($handle))
+				new ShoppError(__('The login name you provided is already in use.  Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
+			
+			// Create the WordPress account
+			$wpuser = wp_insert_user(array(
+				'user_login' => $handle,
+				'user_pass' => $Order->Customer->password,
+				'user_email' => $Order->Customer->email,
+				'display_name' => $Order->Customer->firstname.' '.$Order->Customer->lastname,
+				'nickname' => $handle,
+				'first_name' => $Order->Customer->firstname,
+				'last_name' => $Order->Customer->lastname
+			));
+			
+			// Keep record of it in Shopp's customer records
+			$Order->Customer->wpuser = $wpuser;
 		}
 		
-		// If the transaction is a success, get the transaction details, 
-		// build the purchase receipt, save it and return it
-		if (strtolower($result->ack) == "success") {
-			$_ = $this->headers();
-			
-			$_['METHOD'] 				= "GetTransactionDetails";
-			$_['TRANSACTIONID']			= $this->Response->transactionid;
-			
-			$this->transaction = $this->encode($_);
-			$result = $this->send();
-			if (!$result) {
-				new ShoppError(__('Details for the order were not provided by PayPal.','Shopp'),'paypalstandard_notrxn_details',SHOPP_COMM_ERR);
-				return false;
-			}
+		// If the shopper is already logged-in, save their updated customer info
+		if ($Shopp->Cart->data->login && $authentication == "wordpress") {
+			get_currentuserinfo();
+			global $user_ID;
+			$Order->Customer->wpuser = $user_ID;
+		}
 
-			$Order = $Shopp->Cart->data->Order;
-			$Order->Totals = $Shopp->Cart->data->Totals;
-			$Order->Items = $Shopp->Cart->contents;
-			$Order->Cart = $Shopp->Cart->session;
+		// Create a WP-compatible password hash to go in the db
+		if (empty($Order->Customer->id))
+			$Order->Customer->password = wp_hash_password($Order->Customer->password);
+		$Order->Customer->save();
 
-			$Order->Customer->save();
+		$Order->Billing->customer = $Order->Customer->id;
+		$Order->Billing->card = substr($Order->Billing->card,-4);
+		$Order->Billing->save();
 
-			$Order->Billing->customer = $Order->Customer->id;
-			$Order->Billing->cardtype = "PayPal";
-			$Order->Billing->save();
-
+		if (!empty($Order->Shipping->address)) {
 			$Order->Shipping->customer = $Order->Customer->id;
 			$Order->Shipping->save();
-			
-			$Purchase = new Purchase();
-			$Purchase->customer = $Order->Customer->id;
-			$Purchase->billing = $Order->Billing->id;
-			$Purchase->shipping = $Order->Shipping->id;
-			$Purchase->copydata($Order->Customer);
-			$Purchase->copydata($Order->Billing);
-			$Purchase->copydata($Order->Shipping,'ship');
-			$Purchase->copydata($Order->Totals);
-			$Purchase->freight = $Order->Totals->shipping;
-			$Purchase->gateway = "PayPal Express";
-			$Purchase->transactionid = $this->Response->transactionid;
-			$Purchase->fees = $this->Response->feeamt;
-			$Purchase->save();
-
-			foreach($Shopp->Cart->contents as $Item) {
-				$Purchased = new Purchased();
-				$Purchased->copydata($Item);
-				$Purchased->purchase = $Purchase->id;
-				if (!empty($Purchased->download)) $Purchased->keygen();
-				$Purchased->save();
-				if ($Item->inventory) $Item->unstock();
-			}
-
-			return $Purchase;
 		}
 		
-		// Fail by default
-		return false;
+		$Promos = array();
+		foreach ($Shopp->Cart->data->PromosApplied as $promo)
+			$Promos[$promo->id] = $promo->name;
+
+		$Purchase = new Purchase();
+		$Purchase->customer = $Order->Customer->id;
+		$Purchase->billing = $Order->Billing->id;
+		$Purchase->shipping = $Order->Shipping->id;
+		$Purchase->data = $Order->data;
+		$Purchase->promos = $Promos;
+		$Purchase->copydata($Order->Customer);
+		$Purchase->copydata($Order->Billing);
+		$Purchase->copydata($Order->Shipping,'ship');
+		$Purchase->copydata($Shopp->Cart->data->Totals);
+		$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
+		$Purchase->gateway = "PayPal".(isset($_POST['test_ipn']) && $_POST['test_ipn'] == "1"?" Sandbox":"");
+		$Purchase->transactionid = $_POST['txn_id'];
+		$Purchase->transtatus = "CHARGED";
+		$Purchase->ip = $Shopp->Cart->ip;
+		$Purchase->save();
+		// echo "<pre>"; print_r($Purchase); echo "</pre>";
+
+		foreach($Shopp->Cart->contents as $Item) {
+			$Purchased = new Purchased();
+			$Purchased->copydata($Item);
+			$Purchased->purchase = $Purchase->id;
+			if (!empty($Purchased->download)) $Purchased->keygen();
+			$Purchased->save();
+			if ($Item->inventory) $Item->unstock();
+		}
+
+		// Empty cart on successful order
+		$Shopp->Cart->unload();
+		session_destroy();
+
+		// Start new cart session
+		$Shopp->Cart = new Cart();
+		session_start();
+		
+		// Keep the user loggedin
+		if ($Shopp->Cart->data->login)
+			$Shopp->Cart->loggedin($Order->Customer);
+		
+		// Save the purchase ID for later lookup
+		$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
+		$Shopp->Cart->data->Purchase->load_purchased();
+		// $Shopp->Cart->save();
+
+		// Allow other WordPress plugins access to Purchase data to extend
+		// what Shopp does after a successful transaction
+		do_action_ref_array('shopp_order_success',array(&$Shopp->Cart->data->Purchase));
+
+		// Send the e-mail receipt
+		$receipt = array();
+		$receipt['from'] = '"'.get_bloginfo("name").'"';
+		if ($Shopp->Settings->get('merchant_email')) 
+			$receipt['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
+		$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
+		$receipt['subject'] = __('Order Receipt','Shopp');
+		$receipt['receipt'] = $Shopp->Flow->order_receipt();
+		$receipt['url'] = get_bloginfo('siteurl');
+		$receipt['sitename'] = get_bloginfo('name');
+		$receipt['orderid'] = $Purchase->id;
+		
+		$receipt = apply_filters('shopp_email_receipt_data',$receipt);
+		
+		// echo "<PRE>"; print_r($receipt); echo "</PRE>";
+		shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
+		
+		if ($Shopp->Settings->get('receipt_copy') == 1) {
+			$receipt['to'] = $Shopp->Settings->get('merchant_email');
+			$receipt['subject'] = "New Order";
+			shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
+		}
+
+		$ssl = true;
+		// Test Mode will not require encrypted checkout
+		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco'])) $ssl = false;
+		$link = $Shopp->link('receipt',$ssl);
+		header("Location: $link");
+		exit();
+		
 	}
+	
 	
 	function error () {
 		if (!empty($this->Response)) {
@@ -320,36 +402,14 @@ class PayPalStandard {
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);   
 		if ($error = curl_error($connection)) 
-			new ShoppError($error,'paypal_express_connection',SHOPP_COMM_ERR);
+			new ShoppError($error,'paypal_standard_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 		
-		$this->Response = false;
-		$this->Response = $this->response($buffer);
+		$this->Response = $buffer;
 		return $this->Response;
 	}
 	
-	function response ($buffer) {
-		$_ = new stdClass();
-		$r = array();
-		$pairs = split("&",$buffer);
-		foreach($pairs as $pair) {
-			list($key,$value) = split("=",$pair);
-			if (preg_match("/(\w*?)(\d+)/",$key,$matches)) {
-				if (!isset($r[$matches[1]])) $r[$matches[1]] = array();
-				$r[$matches[1]][$matches[2]] = urldecode($value);
-			} else $r[$key] = urldecode($value);
-		}
-
-		// Remap array to object
-		foreach ($r as $key => $value) {
-			if (empty($key)) continue;
-			$key = strtolower($key);
-			$_->{$key} = $value;
-		}
-
-		return $_;
-	}
-	
+	function response () { /* Placeholder */ }
 
 	/**
 	 * encode()

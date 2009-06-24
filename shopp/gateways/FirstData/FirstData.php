@@ -4,7 +4,7 @@
  * @class FirstData
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 12 March, 2009
  * @package Shopp
  **/
@@ -31,6 +31,7 @@ class FirstData {
 	
 	function process () {
 		$this->Response = $this->send();
+		if (!$this->Response) return false;
 		$status = $this->Response->getElementContent('r_approved');
 
 		if ($status == "APPROVED") return true;
@@ -116,7 +117,7 @@ class FirstData {
 				$_[] = '<item>';
 					$_[] = '<description>'.$Item->name.' '.((sizeof($Item->options) > 1)?' ('.$Item->optionlabel.')':'').'</description>';
 					$_[] = '<id>'.$Item->product.'</id>';
-					$_[] = '<price>'.$Item->unitprice.'</price>';
+					$_[] = '<price>'.number_format($Item->unitprice,2,'.','').'</price>';
 					$_[] = '<quantity>'.$Item->quantity.'</quantity>';
 				$_[] = '</item>';
 			}
@@ -128,12 +129,18 @@ class FirstData {
 	}
 	
 	function send () {
+		$certificate = dirname(__FILE__).DIRECTORY_SEPARATOR.$this->settings['storenumber'].'.pem';
+		
+		if (!file_exists($certificate)) {
+			new ShoppError(__('No certificate file is installed for FirstData','Shopp'),'firstdata_certificate',SHOPP_TRXN_ERR);
+			return false;
+		}
+		
 		$connection = curl_init();
-		curl_setopt($connection,CURLOPT_URL,$this->url); // Live		
+		curl_setopt($connection,CURLOPT_URL,$this->url);		
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
 		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0); 
-		curl_setopt($connection, CURLOPT_SSLCERT, 
-				dirname(__FILE__).DIRECTORY_SEPARATOR.$this->settings['storenumber'].'.pem'); 
+		curl_setopt($connection, CURLOPT_SSLCERT, $certificate); 
 		curl_setopt($connection, CURLOPT_PORT, 1129); 
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
 		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
@@ -146,7 +153,8 @@ class FirstData {
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);
 		if ($error = curl_error($connection)) {
-			if (class_exists('ShoppError')) new ShoppError($error,'firstdata_connection',SHOPP_COMM_ERR);
+			if (class_exists('ShoppError'))  new ShoppError($error,'firstdata_connection',SHOPP_COMM_ERR);
+			return false;
 		}
 		curl_close($connection);
 		
