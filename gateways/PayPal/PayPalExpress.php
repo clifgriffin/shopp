@@ -4,7 +4,7 @@
  * @class PayPalExpress
  *
  * @author Jonathan Davis
- * @version 1.0.2
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 26 August, 2008
  * @package Shopp
  **/
@@ -253,6 +253,7 @@ class PayPalExpress {
 			$Purchase->freight = $Order->Totals->shipping;
 			$Purchase->gateway = "PayPal Express";
 			$Purchase->transactionid = $this->Response->transactionid;
+			$Purchase->ip = $Shopp->Cart->ip;
 			$Purchase->fees = $this->Response->feeamt;
 			$Purchase->save();
 

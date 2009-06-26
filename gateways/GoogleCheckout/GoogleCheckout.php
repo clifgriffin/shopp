@@ -172,6 +172,7 @@ class GoogleCheckout {
 				// Include notification that the order originated from Shopp
 				$_[] = '<merchant-private-data>';
 					$_[] = '<shopping-cart-agent>'.SHOPP_GATEWAY_USERAGENT.'</shopping-cart-agent>';
+					$_[] = '<customer-ip>'.$Cart->ip.'</customer-ip>';
 				$_[] = '</merchant-private-data>';
 				
 			$_[] = '</shopping-cart>';
@@ -296,6 +297,7 @@ class GoogleCheckout {
 		$Purchase->gateway = "Google Checkout";
 		$Purchase->transactionid = $XML->getElementContent('google-order-number');
 		$Purchase->transtatus = $XML->getElementContent('financial-order-state');
+		$Purchase->ip = $XML->getElementContent('customer-ip');
 		$Purchase->save();
 			
 		$items = $XML->getElement('item');

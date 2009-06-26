@@ -1236,8 +1236,8 @@ class Shopp {
 						$Purchase = new Purchase($Purchased->purchase);
 						if ($Purchase->ip != $_SERVER['REMOTE_ADDR']) $forbidden = true;
 					}
-					
-					do_action_ref_array('shopp_download_request',$Purchased);
+
+					do_action_ref_array('shopp_download_request',array(&$Purchased));
 				}
 			
 				if ($forbidden) {

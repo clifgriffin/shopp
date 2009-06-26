@@ -485,12 +485,12 @@ class Flow {
 			$Purchase->customer = $Order->Customer->id;
 			$Purchase->billing = $Order->Billing->id;
 			$Purchase->shipping = $Order->Shipping->id;
-			$Purchase->data = $Order->data;
-			$Purchase->promos = $Promos;
 			$Purchase->copydata($Order->Customer);
 			$Purchase->copydata($Order->Billing);
 			$Purchase->copydata($Order->Shipping,'ship');
 			$Purchase->copydata($Shopp->Cart->data->Totals);
+			$Purchase->data = $Order->data;
+			$Purchase->promos = $Promos;
 			$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
 			$Purchase->gateway = $gatewayname;
 			$Purchase->transactionid = $transactionid;
