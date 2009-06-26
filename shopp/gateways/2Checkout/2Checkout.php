@@ -193,6 +193,7 @@ class TwoCheckout {
 		$Purchase->freight = $Order->Totals->shipping;
 		$Purchase->gateway = "2Checkout";
 		$Purchase->transactionid = $_POST['order_number'];
+		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
 
 		foreach($Shopp->Cart->contents as $Item) {

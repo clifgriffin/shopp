@@ -36,6 +36,8 @@
 //<![CDATA[
 helpurl = "<?php echo SHOPP_DOCS; ?>Taxes_Settings";
 
+(function($) {
+
 var disableCountriesInUse = function () {
 	$('#taxrates-table tr select.country option').each (function () {
 		$(this).attr('disabled',false);

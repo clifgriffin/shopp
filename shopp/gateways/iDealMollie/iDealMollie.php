@@ -158,6 +158,7 @@ class iDealMollie {
 		$Purchase->freight = $Order->Totals->shipping;
 		$Purchase->gateway = "iDeal Mollie";
 		$Purchase->transactionid = $_GET['transaction_id'];
+		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
 
 		foreach($Shopp->Cart->contents as $Item) {
