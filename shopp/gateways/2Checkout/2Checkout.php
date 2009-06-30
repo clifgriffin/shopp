@@ -1,7 +1,7 @@
 <?php
 /**
  * 2Checkout.com
- * @class TwoCheckout
+ * @class _2Checkout
  *
  * @author Jonathan Davis
  * @version 1.0
@@ -11,7 +11,7 @@
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
 
-class TwoCheckout {          
+class _2Checkout {          
 	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
 	var $url = 'https://www.2checkout.com/checkout/purchase';
 	var $transaction = array();
@@ -19,7 +19,7 @@ class TwoCheckout {
 	var $Response = false;
 	var $checkout = true;
 
-	function TwoCheckout () {
+	function _2Checkout () {
 		global $Shopp,$wp;
 		$this->settings = $Shopp->Settings->get('TwoCheckout');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
@@ -30,6 +30,9 @@ class TwoCheckout {
 		if (isset($_POST['checkout']) && 
 			$_POST['checkout'] == "process" && 
 			!$loginproc) $this->checkout();
+
+		// Intercept INS messages
+		if (isset($_REQUEST['message_type'])) $this->notification();
 
 		// Capture processed payment
 		if (isset($_POST['order_number'])
@@ -206,6 +209,10 @@ class TwoCheckout {
 		}
 
 		return $Purchase;
+	}
+	
+	function notification () {
+		// Not implemented
 	}
 	
 	function error () {

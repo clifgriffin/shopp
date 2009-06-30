@@ -49,11 +49,6 @@ class PayPalStandard {
 		
 		// Capture processed payment
 		if (isset($_GET['tx'])) $_POST['checkout'] = "confirmed";
-			
-		// Capture processed payment
-		// if (isset($_POST['order_number'])
-		// 	&& isset($_POST['credit_card_processed'])
-		// 	 && $_POST['credit_card_processed'] == "Y") $_POST['checkout'] = "confirmed";
 
 	}
 	
@@ -127,12 +122,15 @@ class PayPalStandard {
 		$_['last_name']				= $Order->Customer->lastname;
 		$_['lc']					= $this->settings['base_operations']['country'];
 		
+		$_['address_override'] 		= 1;
 		$_['address1']				= $Order->Billing->address;
-		$_['address2']				= $Order->Billing->xaddress;
+		if (!empty($Order->Billing->xaddress))
+			$_['address2']			= $Order->Billing->xaddress;
 		$_['city']					= $Order->Billing->city;
 		$_['state']					= $Order->Billing->state;
 		$_['zip']					= $Order->Billing->postcode;
 		$_['country']				= $Order->Billing->country;
+		$_['night_phone_a']			= $Order->Customer->phone;
 		
 		// Include page style option, if provided
 		if (isset($_GET['pagestyle'])) $_['pagestyle'] = $_GET['pagestyle'];
@@ -160,7 +158,7 @@ class PayPalStandard {
 		
 		$_['discount_amount_cart'] 		= number_format($Order->Totals->discount,2);
 		$_['tax_cart']					= number_format($Order->Totals->tax,2);
-		$_['handling_cart']					= number_format($Order->Totals->shipping,2);
+		$_['handling_cart']				= number_format($Order->Totals->shipping,2);
 		$_['amount']					= number_format($Order->Totals->total,2);
 		
 				
