@@ -15,6 +15,7 @@ class Purchase extends DatabaseObject {
 	static $table = "purchase";
 	var $purchased = array();
 	var $columns = array();
+	var $looping = false;
 
 	function Purchase ($id=false,$key=false) {
 		$this->init(self::$table);
@@ -31,6 +32,36 @@ class Purchase extends DatabaseObject {
 		$this->purchased = $db->query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
 		foreach ($this->purchased as &$purchase) $purchase->data = unserialize($purchase->data);
 		return true;
+	}
+	
+	function notification ($addressee,$address,$subject,$template="order.html",$receipt="receipt.php") {
+		global $Shopp;
+		$template = trailingslashit(SHOPP_TEMPLATES).$template;
+		if (!file_exists($template)) 
+			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ERR));
+		
+		// // Send the e-mail receipt
+		$email = array();
+		$email['from'] = '"'.get_bloginfo("name").'"';
+		if ($Shopp->Settings->get('merchant_email')) 
+			$email['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
+		$email['to'] = '"'.$addressee.'" <'.$address.'>';
+		$email['subject'] = $subject;
+		$email['receipt'] = $Shopp->Flow->order_receipt($receipt);
+		$email['url'] = get_bloginfo('siteurl');
+		$email['sitename'] = get_bloginfo('name');
+		$email['orderid'] = $this->id;
+		
+		$email = apply_filters('shopp_email_receipt_data',$email);
+		
+		// echo "<PRE>"; print_r($email); echo "</PRE>";
+		if (shopp_email($template,$email)) {
+			if (WP_DEBUG) new ShoppError(__('A purchase notification was sent to "'.$addressee.'" &lt;'.$address.'&gt;',SHOPP_DEBUG_ERR));
+			return true;
+		}
+		
+		if (WP_DEBUG) new ShoppError(__('A purchase notification FAILED to be sent to "'.$addressee.'" &lt;'.$address.'&gt;',SHOPP_DEBUG_ERR));
+		return false;
 	}
 	
 	function copydata ($Object,$prefix="") {
@@ -171,11 +202,12 @@ class Purchase extends DatabaseObject {
 			case "item-download":
 				$item = current($this->purchased);
 				if (empty($item->download)) return "";
-				if (!isset($options['label'])) $options['label'] = "Download Now";
-				if (isset($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+				if (!isset($options['label'])) $options['label'] = __('Download','Shopp');
+				$classes = "";
+				if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
 				if (SHOPP_PERMALINKS) $url = $Shopp->shopuri."download/".$item->dkey;
 				else $url = add_query_arg('shopp_download',$item->dkey,$Shopp->shopuri);
-				return '<a href="'.$url.'"'.$options['class'].'>'.$options['label'].'</a>'; break;
+				return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>'; break;
 			case "item-quantity":
 				$item = current($this->purchased);
 				return $item->quantity; break;
@@ -279,6 +311,8 @@ class PurchasesExport {
 	var $recordstart = true;
 	var $content_type = "text/plain";
 	var $extension = "txt";
+	var $date_format = 'F j, Y';
+	var $time_format = 'g:i:s a';
 	
 	function PurchasesExport () {
 		global $Shopp;
@@ -290,6 +324,9 @@ class PurchasesExport {
 		$this->sitename = get_bloginfo('name');
 		$this->headings = ($Shopp->Settings->get('purchaselog_headers') == "on");
 		$this->selected = $Shopp->Settings->get('purchaselog_columns');
+		$this->date_format = get_option('date_format');
+		$this->time_format = get_option('time_format');
+		$Shopp->Settings->save('purchaselog_lastexport',mktime());
 	}
 	
 	function query ($request=array()) {

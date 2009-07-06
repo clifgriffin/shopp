@@ -201,7 +201,7 @@ class PayJunction {
 	
 	function registerSettings () {
 		?>
-		gatewayHandlers.register('<?php echo addslashes(__FILE__); ?>','payjunction-settings');
+		gatewayHandlers.register('<?php echo addslashes(gateway_path(__FILE__)); ?>','payjunction-settings');
 		<?php
 	}
 

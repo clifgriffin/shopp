@@ -76,6 +76,7 @@ class Cart {
 		$this->data->Purchase = false;
 		$this->data->ShipCosts = array();
 		$this->data->ShippingPostcode = false;
+		$this->data->ShippingPostcodeError = false;
 		$this->data->Purchase = false;
 		$this->data->Category = array();
 		$this->data->Search = false;
@@ -299,7 +300,7 @@ class Cart {
 
 		if (!empty($data)) $this->updated();
 	}
-	
+			
 	/**
 	 * shipping()
 	 * Calulates shipping costs based on the contents
@@ -344,7 +345,11 @@ class Cart {
 				$shipping = 0;
 				if (isset($option['postcode-required'])) {
 					$this->data->ShippingPostcode = true;
-					if (empty($Shipping->postcode)) return null;
+					if (empty($Shipping->postcode)) {
+						$this->data->ShippingPostcodeError = true;
+						new ShoppError(__('A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout.','Shopp','cart_required_postcode',SHOPP_ERR));
+						return null;
+					}
 				}
 			
 				if ($Shipping->country == $base['country']) {
@@ -559,16 +564,24 @@ class Cart {
 		if (!empty($this->data->Order->Shipping->postcode))
 			$area = $this->data->Order->Shipping->postarea();
 		
+		$global = false;
 		foreach($taxrates as $setting) {
+			// Grab the global setting if found
+			if ($setting['country'] == "*") {
+				$global = $setting;
+				continue;
+			}
+			
 			if (isset($setting['zone'])) {
 				if ($country == $setting['country'] &&
 					$zone == $setting['zone'])
 						return $setting['rate']/100;
-			} else {
-				if ($country == $setting['country'])
-					return $setting['rate']/100;
+			} elseif ($country == $setting['country']) {
+				return $setting['rate']/100;
 			}
 		}
+		
+		if ($global) return $global['rate']/100;
 		
 	}   
 	
@@ -634,8 +647,45 @@ class Cart {
 					if ($Account = new Customer($user_ID,'wpuser')) {
 						$this->loggedin($Account);
 						$this->data->Order->Customer->wpuser = $user_ID;
+						break;
 					}
 				}
+				
+				if (empty($_POST['process-login'])) return false;
+
+				if (!empty($_POST['email-login'])) {
+					$user = get_user_by_email($_POST['email-login']);
+					$loginname = $user->user_login;
+				}
+					
+				if (!empty($_POST['loginname-login'])) 
+					$loginname = $_POST['loginname-login'];
+					
+				if ($loginname) {
+					$user = wp_authenticate($loginname,$_POST['password-login']);
+					
+					if (!is_wp_error($user)) {
+						wp_set_auth_cookie($user->ID, false, $secure_cookie);
+						do_action('wp_login', $credentials['user_login']);
+
+						if ($Account = new Customer($user->ID,'wpuser')) {
+							$this->loggedin($Account);
+							$this->data->Order->Customer->wpuser = $user_ID;
+						}
+					} else {
+						print_r($user);
+						exit();
+					}
+					
+				}
+			
+				break;
+				
+				// Handle WordPress account integration
+				// do_action('user_register',array(&$this,'')); // Handle users added from WP user admin
+				// do_action('profile_update',array(&$this,'')); // Handle users added from WP user admin
+				
+				
 				break;
 			case "shopp":
 				if (empty($_POST['process-login'])) return false;
@@ -1140,7 +1190,7 @@ class Cart {
 		$xco = get_query_var('shopp_xco');
 
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
-		$submit_attrs = array('title','value','disabled','tabindex','accesskey');
+		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
 
 		switch ($property) {
 			case "url": 

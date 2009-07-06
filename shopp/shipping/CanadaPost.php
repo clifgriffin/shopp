@@ -1,6 +1,6 @@
 <?php
 /**
- * CAPostSellOnline
+ * Canada Post
  * Uses the Canada Post Sell Online Webtools to get live shipping rates based on product weight
  * INSTALLATION INSTRUCTIONS: Upload USPSRates.php to 
  * your Shopp install under: .../wp-content/plugins/shopp/shipping/
@@ -13,7 +13,7 @@
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
 
-class CAPostSellOnline {
+class CanadaPost {
 	var $testurl = 'http://sellonline.canadapost.ca';
 	var $url = 'http://sellonline.canadapost.ca';
 	var $request = false;
@@ -21,6 +21,7 @@ class CAPostSellOnline {
 	var $conversion = 1;
 	var $Response = false;
 	var $requiresauth = true;
+	var $maxweight = 30; // 30 kg
 	
 	var $services = array(
 		// Domestic Products
@@ -48,9 +49,9 @@ class CAPostSellOnline {
 		"3050" => "Priority Worldwide Pak International"
 	);
 				
-	function CAPostSellOnline () {
+	function CanadaPost () {
 		global $Shopp;
-		$this->settings = $Shopp->Settings->get('CAPostSellOnline');
+		$this->settings = $Shopp->Settings->get('CanadaPost');
 		if (!isset($this->settings['merchantid'])) $this->settings['merchantid'] = '';
 		if (!isset($this->settings['postcode'])) $this->settings['postcode'] = '';
 		
@@ -70,11 +71,11 @@ class CAPostSellOnline {
 	
 	function methods (&$ShipCalc) {
 		if ($this->settings['country'] == "CA") // Require base of operations in Canada
-			$ShipCalc->methods[get_class($this)] = __("Sell Online","Shopp");
+			$ShipCalc->methods[get_class($this)] = __("Canada Post","Shopp");
 	}
 		
 	function ui () {?>
-		function CAPostSellOnline (methodid,table,rates) {
+		function CanadaPost (methodid,table,rates) {
 			table.addClass('services').empty();
 			
 			uniqueMethod(methodid,'<?php echo get_class($this); ?>');
@@ -101,8 +102,8 @@ class CAPostSellOnline {
 			settings += '</td>';
 			
 			settings += '<td>';
-			settings += '<div><input type="text" name="settings[CAPostSellOnline][merchantid]" id="cpso_merchantid" value="<?php echo $this->settings['merchantid']; ?>" size="16" /><br /><label for="cpso_merchantid"><?php _e('Canada Post merchant ID','Shopp'); ?></label></div>';
-			settings += '<div><input type="text" name="settings[CAPostSellOnline][postcode]" id="cpso_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="cpso_postcode"><?php _e('Your postal code','Shopp'); ?></label></div>';
+			settings += '<div><input type="text" name="settings[CanadaPost][merchantid]" id="cpso_merchantid" value="<?php echo $this->settings['merchantid']; ?>" size="16" /><br /><label for="cpso_merchantid"><?php _e('Canada Post merchant ID','Shopp'); ?></label></div>';
+			settings += '<div><input type="text" name="settings[CanadaPost][postcode]" id="cpso_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="cpso_postcode"><?php _e('Your postal code','Shopp'); ?></label></div>';
 				
 			settings += '</td><td width="33%">&nbsp;</td>';
 			settings += '</tr>';
@@ -118,7 +119,7 @@ class CAPostSellOnline {
 
 		}
 
-		methodHandlers.register('<?php echo get_class($this); ?>',CAPostSellOnline);
+		methodHandlers.register('<?php echo get_class($this); ?>',CanadaPost);
 
 		<?php		
 	}
@@ -166,7 +167,7 @@ class CAPostSellOnline {
 		return $days.'d';
 	}
 	
-	function build (&$cart,$description,$weight,$postcode,$country) {
+	function build ($cart,$description,$weight,$postcode,$country) {
 		
 		$_ = array('<?xml version="1.0"?>');
 		$_[] = '<eparcel>';
@@ -175,22 +176,45 @@ class CAPostSellOnline {
 				$_[] = '<merchantCPCID> '.$this->settings['merchantid'].' </merchantCPCID>';
 				$_[] = '<fromPostalCode> '.$this->settings['postcode'].' </fromPostalCode>';
 				$_[] = '<lineItems>';
-					$_[] = '<item>';
-					if (isset($cart->contents)) {
-						foreach ($cart->contents as $item) {
-							$weight = $item->weight > 0?number_format($item->weight,3):1;
+					if (is_array($cart->contents) && !empty($cart->contents)) {
+						$items = array();
+						$itemid = 0;
+						$items[$itemid] = array('weight'=>0);
+						foreach ($cart->contents as $product) {
+							$weight = ($product->weight*$product->quantity) > 0 ? 
+								($product->weight*$product->quantity):1;
 							if ($this->settings['units'] == "g")
 								$weight = $weight/1000;
-							$_[] = '<quantity>'.$item->quantity.'</quantity>';
-							$_[] = '<weight>'.$weight.'</weight>';
-							$_[] = '<length>50</length>';
-							$_[] = '<width>50</width>';
-							$_[] = '<height>50</height>';
-							$_[] = '<description>'.htmlentities($item->name).'</description>';
-							$_[] = '<readyToShip/>';
+							if ($items[$itemid]['weight'] + $weight > $this->maxweight) {
+								$items[$itemid++] = array('weight'=>$weight);
+							} else $items[$itemid]['weight'] += $weight;
 						}
+						foreach ($items as $id => $item) {
+								$_[] = '<item>';
+								$_[] = '<quantity>1</quantity>';
+								$_[] = '<weight>'.number_format($item['weight'],3).'</weight>';
+								$_[] = '<length>1</length>';
+								$_[] = '<width>1</width>';
+								$_[] = '<height>1</height>';
+								$_[] = '<description>Box '.($id+1).'</description>';
+								$_[] = '<readyToShip/>';
+								$_[] = '</item>';
+						}
+						
+						// foreach ($cart->contents as $item) {
+						// 	$_[] = '<item>';
+						// 	$_[] = '<quantity>1</quantity>';
+						// 	$_[] = '<weight>'.$weight.'</weight>';
+						// 	$_[] = '<length>20</length>';
+						// 	$_[] = '<width>15</width>';
+						// 	$_[] = '<height>5</height>';
+						// 	$_[] = '<description>'.htmlentities($item->name).'</description>';
+						// 	$_[] = '<readyToShip/>';
+						// 	$_[] = '</item>';
+						// }
 					} else {
-						$weight = $weight > 0?number_format($item->weight,3):1;
+						$weight = ($weight*$quantity) > 0?number_format(($weight*$quantity),3):1;
+						$_[] = '<item>';
 						$_[] = '<quantity>1</quantity>';
 						$_[] = '<weight>'.$weight.'</weight>';
 						$_[] = '<length>1</length>';
@@ -198,8 +222,8 @@ class CAPostSellOnline {
 						$_[] = '<height>1</height>';
 						$_[] = '<description>'.htmlentities($description).'</description>';
 						$_[] = '<readyToShip/>';
+						$_[] = '</item>';
 					}
-					$_[] = '</item>';
 				$_[] = '</lineItems>';
 				
 				// $_[] = '<city>'.'</city>';
@@ -209,7 +233,8 @@ class CAPostSellOnline {
 		
 			$_[] = '</ratesAndServicesRequest>';
 		$_[] = '</eparcel>';
-
+		// echo "<pre>"; print_r($_); echo "</pre>";
+		// exit();
 		return join("\n",$_);
 	}  
 
@@ -239,7 +264,8 @@ class CAPostSellOnline {
 		// echo '<!-- '. $buffer. ' -->';		
 		// echo "<pre>REQUEST\n".htmlentities($this->request).BR.BR."</pre>";
 		// echo "<pre>RESPONSE\n".htmlentities($buffer)."</pre>";
-		
+		// exit();
+
 		$Response = new XMLdata($buffer);
 		return $Response;
 	}

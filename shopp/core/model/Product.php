@@ -1021,6 +1021,26 @@ class Product extends DatabaseObject {
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 
 				} else {
+					ob_start();
+					?>
+					<script type="text/javascript">
+					//<![CDATA[
+					(function($) {
+						$(document).ready(function () {
+							productOptions[<?php echo $this->id; ?>] = new Array();
+							productOptions[<?php echo $this->id; ?>]['pricing'] = <?php echo json_encode($this->pricekey); ?>;
+							options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
+							options_required = "<?php echo $options['required']; ?>";
+							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select.category-<?php echo $Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo $taxrate; ?>);
+						});
+					})(jQuery)
+					//]]>
+					</script>
+					<?php
+					$script = ob_get_contents();
+					ob_end_clean();
+					
+					$options['after_menu'] = $script.$options['after_menu'];
 					if (isset($this->options['variations'])) {
 						foreach ($this->options['variations'] as $id => $menu) {
 							if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
@@ -1048,21 +1068,7 @@ class Product extends DatabaseObject {
 							if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 						}
 					}
-					?>
-					<script type="text/javascript">
-					//<![CDATA[
-					(function($) {
-						$(document).ready(function () {
-							productOptions[<?php echo $this->id; ?>] = new Array();
-							productOptions[<?php echo $this->id; ?>]['pricing'] = <?php echo json_encode($this->pricekey); ?>;
-							options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
-							options_required = "<?php echo $options['required']; ?>";
-							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select.category-<?php echo $Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo $taxrate; ?>);
-						});
-					})(jQuery)
-					//]]>
-					</script>
-					<?php
+					
 				}
 
 				return $string;

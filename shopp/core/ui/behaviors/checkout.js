@@ -14,7 +14,7 @@
 			// Validate required fields
 			if (selects[i].className.match(new RegExp('required')) && !selects[i].disabled) {
 				if (selects[i].selectedIndex == 0 && selects[i].options[0].value == "")
-					error = new Array("Your "+selects[i].title+" is required.",selects[i]);
+					error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,inputs[i].title),selects[i]);
 			}
 		}
 
@@ -22,26 +22,26 @@
 			// Validate required fields
 			if (inputs[i].className.match(new RegExp('required'))) {
 				if (inputs[i].value == null || inputs[i].value == "")
-					error = new Array("Your "+inputs[i].title+" is required.",inputs[i]);
+					error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,inputs[i].title),inputs[i]);
 			}
 		
 			// Validate emails
 			if (inputs[i].className.match(new RegExp('email'))) {
 				if (!inputs[i].value.match(new RegExp('^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+\.)+[a-zA-Z0-9.-]{2,4}$'))) 
-					error = new Array("The e-mail address you provided does not appear to be a valid address.",inputs[i]);
+					error = new Array(CHECKOUT_INVALID_EMAIL,inputs[i]);
 			}
 		
 			// Validate minumum lengths
 			if(chars = inputs[i].className.match(new RegExp('min(\\d+)'))) {
 				if (inputs[i].value.length < chars[1])
-					error = new Array("The "+inputs[i].title+" you entered is too short. It must be at least "+chars[1]+" characters long.",inputs[i]);
+					error = new Array(CHECKOUT_MIN_LENGTH.replace(/%s/,inputs[i].title).replace(/%d/,chars[1]),inputs[i]);
 			}
 
 			// Validate minumum lengths
 			if (inputs[i].className.match(new RegExp('passwords'))) {
 				passwords.push(inputs[i]);
 				if (passwords.length == 2 && passwords[0].value != passwords[1].value)
-					error = new Array("The passwords you entered do not match. They must match in order to confirm you are correctly entering the password you want to use.",passwords[1]);
+					error = new Array(CHECKOUT_PASSWORD_MISMATCH,passwords[1]);
 					
 			}
 		}
@@ -138,5 +138,3 @@
 
 	});
 })(jQuery)
-
-

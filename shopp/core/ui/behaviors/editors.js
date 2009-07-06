@@ -811,9 +811,10 @@ function FileUploader (button,defaultButton,linenum,updates) {
 
 function SlugEditor (id,type) {
 	var _self = this;
+	this.test = true;
 	(function($) {
-		
-	this.edit_permalink = function () {
+
+	_self.edit_permalink = function () {
 			var i, c = 0;
 			var editor = $('#editable-slug');
 			var revert_editor = editor.html();
@@ -860,12 +861,14 @@ function SlugEditor (id,type) {
 
 	}
 	
-	this.enable = function () {
-		$('#edit-slug-buttons').children('.edit-slug').click(function () { _self.edit_permalink() });
+	_self.enable = function () {
+		
+		$('#edit-slug-buttons').children('.edit-slug').click(function () { _self.edit_permalink(); });
 		$('#editable-slug').click(function() { $('#edit-slug-buttons').children('.edit-slug').click(); });		
 	}
+
 	
-	this.enable();
+	_self.enable();
 	})(jQuery)
 
 }

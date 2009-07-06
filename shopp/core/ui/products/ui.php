@@ -89,7 +89,7 @@ function settings_meta_box ($Product) {
 	<p><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if ($Product->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations &mdash; Selectable product options','Shopp'); ?></label></p>
 <?php
 }
-add_meta_box('settings-tags', __('Settings','Shopp'), 'settings_meta_box', 'admin_page_shopp-products-edit', 'side', 'core');
+add_meta_box('product-settings', __('Settings','Shopp'), 'settings_meta_box', 'admin_page_shopp-products-edit', 'side', 'core');
 
 
 function summary_meta_box ($Product) {

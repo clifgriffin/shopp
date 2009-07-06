@@ -29,6 +29,8 @@ class Flow {
 		
 		$this->Admin = new stdClass();
 		$this->Admin->orders = $Core->directory."-orders";
+		$this->Admin->customers = $Core->directory."-customers";
+		$this->Admin->editcustomer = $Core->directory."-customers-edit";
 		$this->Admin->categories = $Core->directory."-categories";
 		$this->Admin->editcategory = $Core->directory."-categories-edit";
 		$this->Admin->products = $Core->directory."-products";
@@ -59,24 +61,28 @@ class Flow {
 		}
 
 		$this->coremods = array("GoogleCheckout.php", "PayPalExpress.php", 
-									"TestMode.php", "FlatRates.php", "ItemQuantity.php", 
-									"OrderAmount.php", "OrderWeight.php");
+								"TestMode.php", "FlatRates.php", "ItemQuantity.php", 
+								"OrderAmount.php", "OrderWeight.php");
+
 		if (!defined('BR')) define('BR','<br />');
+		if (!defined('SHOPP_USERLEVEL')) define('SHOPP_USERLEVEL',8);
 		define("SHOPP_WP27",(!version_compare($wp_version,"2.7","<")));
 		define("SHOPP_DEBUG",($Core->Settings->get('error_logging') == 256));
 		define("SHOPP_PATH",$this->basepath);
-		define("SHOPP_ADMINPATH",$this->basepath."/core/ui");
+		define("SHOPP_ADMINPATH",SHOPP_PATH."/core/ui");
 		define("SHOPP_PLUGINURI",$Core->uri);
-		define("SHOPP_DBSCHEMA",$this->basepath."/core/model/schema.sql");
+		define("SHOPP_DBSCHEMA",SHOPP_PATH."/core/model/schema.sql");
 
 		define("SHOPP_TEMPLATES",($Core->Settings->get('theme_templates') != "off" && 
 		 							is_dir($Core->Settings->get('theme_templates')))?
 									$Core->Settings->get('theme_templates'):
-									$this->basepath.DIRECTORY_SEPARATOR."templates");
+									SHOPP_PATH.DIRECTORY_SEPARATOR."templates");
 		define("SHOPP_TEMPLATES_URI",($Core->Settings->get('theme_templates') != "off" && 
 			 							is_dir($Core->Settings->get('theme_templates')))?
 										get_bloginfo('stylesheet_directory')."/shopp":
 										$Core->uri."/templates");
+
+		define("SHOPP_GATEWAYS",SHOPP_PATH.DIRECTORY_SEPARATOR."gateways".DIRECTORY_SEPARATOR);
 
 		define("SHOPP_PERMALINKS",(get_option('permalink_structure') == "")?false:true);
 		
@@ -230,10 +236,10 @@ class Flow {
 		
 		// Disable faceted menus if not in a Shopp category
 		// or the category does not have faceted menus enabled
-		if ($Shopp->Catalog->type != 'category' || 
-			!isset($Shopp->Category->facetedmenus) || 
-			$Shopp->Category->facetedmenus == 'off') 
-			unregister_sidebar_widget('shopp-faceted-menu');
+		// if ($Shopp->Catalog->type != 'category' || 
+		// 	!isset($Shopp->Category->facetedmenus) || 
+		// 	$Shopp->Category->facetedmenus == 'off') 
+		// 	unregister_sidebar_widget('shopp-faceted-menu');
 		
 		$classes = $Shopp->Catalog->type;
 		// Get catalog view preference from cookie
@@ -285,8 +291,8 @@ class Flow {
 		$process = get_query_var('shopp_proc');
 		$xco = get_query_var('shopp_xco');
 		if (!empty($xco)) {
-			$Payment = $Shopp->gateway($xco);
-			$Payment->actions();
+			$Shopp->gateway($xco);
+			$Shopp->Gateway->actions();
 		}
 
 		switch ($process) {
@@ -300,13 +306,13 @@ class Flow {
 				}
 				if (!empty($xco)) {
 					
-					if (!empty($Payment)) {
-						if ($Payment->checkout) include(SHOPP_TEMPLATES."/checkout.php");
+					if (!empty($Shopp->Gateway)) {
+						if ($Shopp->Gateway->checkout) include(SHOPP_TEMPLATES."/checkout.php");
 						else {
 							if ($Cart->data->Errors->exist(SHOPP_COMM_ERR))
 								include(SHOPP_TEMPLATES."/errors.php");
 							include(SHOPP_TEMPLATES."/summary.php");
-							echo $Payment->tag('button');
+							echo $Shopp->Gateway->tag('button');
 						}
 					} else include(SHOPP_TEMPLATES."/summary.php");
 					
@@ -363,104 +369,69 @@ class Flow {
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
 		
-		if ($gateway) {
-			if (!file_exists($gateway)) {
-				new ShoppError(__("There was a problem loading the payment processor to complete this transaction.",'gateway_load',SHOPP_TRXN_ERR));
-				return false;
-			}
-						
+		if ($Shopp->Gateway) {
 			// Use an external checkout payment gateway
-			$gateway_meta = $this->scan_gateway_meta($gateway);
-			$ProcessorClass = $gateway_meta->tags['class'];
-			$Payment = new $ProcessorClass();
-			$Purchase = $Payment->process();
-			
+			if (WP_DEBUG) new ShoppError('Processing order through a remote-payment gateway service.',false,SHOPP_DEBUG_ERR);
+			$Purchase = $Shopp->Gateway->process();
 			if (!$Purchase) {
-				$Payment->error();
+				if (WP_DEBUG) new ShoppError('The remote-payment gateway encountered an error.',false,SHOPP_DEBUG_ERR);
+				$Shopp->Gateway->error();
 				return false;
 			}
-			
+			if (WP_DEBUG) new ShoppError('Transaction successfully processed by remote-payment gateway service.',false,SHOPP_DEBUG_ERR);
 		} else {
-
-			// Use payment gateway set in payment settings
+			// Use local payment gateway set in payment settings
+			
 			$gateway = $Shopp->Settings->get('payment_gateway');
-			$authentication = $Shopp->Settings->get('account_system');
-
-			if (!$gateway || !file_exists($gateway)) {
-				new ShoppError(__("There was a problem loading the payment processor to complete this transaction.",'gateway_load',SHOPP_TRXN_ERR));
-				return false;
-			}
 
 			// Process a transaction if the order has a cost (is not free)
 			if ($Order->Totals->total > 0) {
-				// Dynamically load the payment processing gateway
-				$processor_data = $this->scan_gateway_meta($gateway);
-				$ProcessorClass = $processor_data->tags['class'];
-				include($gateway);
 
-				$Payment = new $ProcessorClass($Order);
+				if (!$Shopp->gateway($gateway)) return false;
 
 				// Process the transaction through the payment gateway
-				$processed = $Payment->process();
+				if (WP_DEBUG) new ShoppError('Processing order through local-payment gateway service.',false,SHOPP_DEBUG_ERR);
+				$processed = $Shopp->Gateway->process();
 
 				// exit();
 				// There was a problem processing the transaction, 
 				// grab the error response from the gateway so we can report it
 				if (!$processed) {
-					$Payment->error();
+					if (WP_DEBUG) new ShoppError('The local-payment gateway encountered an error.',false,SHOPP_DEBUG_ERR);
+					$Shopp->Gateway->error();
 					return false;
-				}				
-				$gatewayname = $processor_data->name;
-				$transactionid = $Payment->transactionid();
+				}
+				
+				$gatewaymeta = $this->scan_gateway_meta(SHOPP_GATEWAYS.$gateway);
+				$gatewayname = $gatewaymeta->name;
+				$transactionid = $Shopp->Gateway->transactionid();
+				
+				if (WP_DEBUG) new ShoppError('Transaction '.$transactionid.' successfully processed by local-payment gateway service '.$gatewayname.'.',false,SHOPP_DEBUG_ERR);
+				
 			} else {
 				$gatewayname = __('N/A','Shopp');
 				$transactionid = __('(Free Order)','Shopp');
 			}
 
+			$authentication = $Shopp->Settings->get('account_system');
+
 			// Transaction successful, save the order
 
-			// Create WordPress account (if necessary)
-			if ($authentication == "wordpress" && 
-				!$user = get_user_by_email($Order->Customer->email)) {
-				require_once(ABSPATH."/wp-includes/registration.php");
-
-				if (!empty($Order->Customer->login)) $handle = $Order->Customer->login;
-				else {
-					// No login provided, auto-generate login handle
-					list($handle,$domain) = split("@",$Order->Customer->email);
-
-					// The email handle exists, so use first name initial + lastname
-					if (username_exists($handle)) 
-						$handle = substr($Order->Customer->firstname,0,1).$Order->Customer->lastname;
-
-					// That exists too *bangs head on wall*, ok add a random number too :P
-					if (username_exists($handle)) 
-						$handle .= rand(1000,9999);
+			if ($authentication == "wordpress") {
+				// Check if they've logged in
+				// If the shopper is already logged-in, save their updated customer info
+				if ($Shopp->Cart->data->login) {
+					if (WP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
+					get_currentuserinfo();
+					global $user_ID;
+					$Order->Customer->wpuser = $user_ID;
 				}
 				
-				if (username_exists($handle))
-					new ShoppError(__('The login name you provided is already in use.  Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
-				
-				// Create the WordPress account
-				$wpuser = wp_insert_user(array(
-					'user_login' => $handle,
-					'user_pass' => $Order->Customer->password,
-					'user_email' => $Order->Customer->email,
-					'display_name' => $Order->Customer->firstname.' '.$Order->Customer->lastname,
-					'nickname' => $handle,
-					'first_name' => $Order->Customer->firstname,
-					'last_name' => $Order->Customer->lastname
-				));
-				
-				// Keep record of it in Shopp's customer records
-				$Order->Customer->wpuser = $wpuser;
-			}
-			
-			// If the shopper is already logged-in, save their updated customer info
-			if ($Shopp->Cart->data->login && $authentication == "wordpress") {
-				get_currentuserinfo();
-				global $user_ID;
-				$Order->Customer->wpuser = $user_ID;
+				// Create WordPress account (if necessary)
+				if (!$Order->Customer->wpuser) {
+					if (WP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
+					$Order->Customer->new_wpuser();
+				}
 			}
 
 			// Create a WP-compatible password hash to go in the db
@@ -507,12 +478,14 @@ class Flow {
 				$Purchased->save();
 				if ($Item->inventory) $Item->unstock();
 			}
+
+			if (WP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
 		}
 
 		// Empty cart on successful order
 		$Shopp->Cart->unload();
 		session_destroy();
-
+		
 		// Start new cart session
 		$Shopp->Cart = new Cart();
 		session_start();
@@ -524,33 +497,26 @@ class Flow {
 		// Save the purchase ID for later lookup
 		$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
 		$Shopp->Cart->data->Purchase->load_purchased();
-		// $Shopp->Cart->save();
-
+		// // $Shopp->Cart->save();
+		
 		// Allow other WordPress plugins access to Purchase data to extend
 		// what Shopp does after a successful transaction
 		do_action_ref_array('shopp_order_success',array(&$Shopp->Cart->data->Purchase));
+		
+		// Send email notifications
+		// notification(addressee name, email, subject, email template, receipt template)
+		$Purchase->notification(
+			"$Purchase->firstname $Purchase->lastname",
+			$Purchase->email,
+			__('Order Receipt','Shopp')
+		);
 
-		// Send the e-mail receipt
-		$receipt = array();
-		$receipt['from'] = '"'.get_bloginfo("name").'"';
-		if ($Shopp->Settings->get('merchant_email')) 
-			$receipt['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
-		$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
-		$receipt['subject'] = __('Order Receipt','Shopp');
-		$receipt['receipt'] = $this->order_receipt();
-		$receipt['url'] = get_bloginfo('siteurl');
-		$receipt['sitename'] = get_bloginfo('name');
-		$receipt['orderid'] = $Purchase->id;
-		
-		$receipt = apply_filters('shopp_email_receipt_data',$receipt);
-		
-		// echo "<PRE>"; print_r($receipt); echo "</PRE>";
-		shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
-		
 		if ($Shopp->Settings->get('receipt_copy') == 1) {
-			$receipt['to'] = $Shopp->Settings->get('merchant_email');
-			$receipt['subject'] = "New Order";
-			shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
+			$Purchase->notification(
+				'',
+				$Shopp->Settings->get('merchant_email'),
+				__('New Order','Shopp')
+			);
 		}
 
 		$ssl = true;
@@ -560,7 +526,8 @@ class Flow {
 		header("Location: $link");
 		exit();
 	}
-		
+	
+	// Display the confirm order screen
 	function order_confirmation () {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
@@ -572,12 +539,13 @@ class Flow {
 		return apply_filters('shopp_order_confirmation','<div id="shopp">'.$content.'</div>');
 	}
 
-	function order_receipt () {
+	// Display a sales receipt
+	function order_receipt ($template="receipt.php") {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
 		
 		ob_start();
-		include(SHOPP_TEMPLATES."/receipt.php");
+		include(trailingslashit(SHOPP_TEMPLATES).$template);
 		$content = ob_get_contents();
 		ob_end_clean();
 		return apply_filters('shopp_order_receipt','<div id="shopp">'.$content.'</div>');
@@ -692,6 +660,7 @@ class Flow {
 			'lastmonth' => __('Last Month','Shopp'),
 			'lastquarter' => __('Last Quarter','Shopp'),
 			'lastyear' => __('Last Year','Shopp'),
+			'lastexport' => __('Last Export','Shopp'),
 			'custom' => __('Custom Dates','Shopp')
 			);
 		
@@ -718,6 +687,7 @@ class Flow {
 			'name'=>__('Name','Shopp'),
 			'destination'=>__('Destination','Shopp'),
 			'total'=>__('Total','Shopp'),
+			'txn'=>__('Transaction','Shopp'),
 			'date'=>__('Date','Shopp'))
 		);
 	}
@@ -802,6 +772,187 @@ class Flow {
 		
 		return apply_filters('shopp_account_template','<div id="shopp">'.$content.'</div>');
 		
+	}
+	
+	function customers_list () {
+		global $Shopp,$Customers;
+		$db = DB::get();
+		
+		$defaults = array(
+			'deleting' => false,
+			'selected' => false,
+			'update' => false,
+			'newstatus' => false,
+			'pagenum' => 1,
+			'per_page' => false,
+			'start' => '',
+			'end' => '',
+			'status' => false,
+			's' => '',
+			'range' => '',
+			'startdate' => '',
+			'enddate' => '',
+		);
+		
+		$args = array_merge($defaults,$_GET);
+		extract($args, EXTR_SKIP);
+		
+		if ($deleting == "customer"
+				&& !empty($selected) 
+				&& is_array($selected)) {
+			foreach($selected as $deletion) {
+				$Customer = new Customer($deletion);
+				$Billing = new Billing($Customer->id,'customer');
+				$Billing->delete();
+				$Shipping = new Shipping($Customer->id,'customer');
+				$Shipping->delete();
+				$Customer->delete();
+			}
+		}
+		
+		if (!empty($_POST['save'])) {
+			check_admin_referer('shopp-save-customer');
+
+			if ($_POST['id'] != "new") {
+				$Customer = new Customer($_POST['id']);
+				$Billing = new Billing($Customer->id,'customer');
+				$Shipping = new Shipping($Customer->id,'customer');
+			} else $Customer = new Customer();
+			
+			$Customer->updates($_POST);
+			
+			if (!empty($_POST['new-password']) && !empty($_POST['confirm-password'])
+				&& $_POST['new-password'] == $_POST['confirm-password'])
+				$Customer->password = wp_hash_password($_POST['new-password']);
+			
+			$Customer->save();
+			
+			$Billing->updates($_POST['billing']);
+			$Billing->save();
+
+			$Shipping->updates($_POST['shipping']);
+			$Shipping->save();
+
+		}
+
+		$pagenum = absint( $pagenum );
+		if ( empty($pagenum) )
+			$pagenum = 1;
+		if( !$per_page || $per_page < 0 )
+			$per_page = 20;
+		$index = ($per_page * ($pagenum-1)); 
+		
+		if (!empty($start)) {
+			$startdate = $start;
+			list($month,$day,$year) = split("/",$startdate);
+			$starts = mktime(0,0,0,$month,$day,$year);
+		}
+		if (!empty($end)) {
+			$enddate = $end;
+			list($month,$day,$year) = split("/",$enddate);
+			$ends = mktime(0,0,0,$month,$day,$year);
+		}
+		
+		$customer_table = DatabaseObject::tablename(Customer::$table);
+		$billing_table = DatabaseObject::tablename(Billing::$table);
+		$purchase_table = DatabaseObject::tablename(Purchase::$table);
+		
+		$where = '';
+		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%' OR c.email LIKE '%$s%')";
+		if (!empty($start) && !empty($end)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
+		
+		$ordercount = $db->query("SELECT count(*) as total FROM $customer_table $where ORDER BY created DESC");
+		$query = "SELECT c.*,b.city,b.state,b.country, SUM(p.total) AS total,count(distinct p.id) AS orders FROM $customer_table AS c LEFT JOIN $purchase_table AS p ON c.id=p.customer LEFT JOIN $billing_table AS b ON c.id=b.customer $where GROUP BY p.customer ORDER BY c.created DESC LIMIT $index,$per_page";
+		$Customers = $db->query($query,AS_ARRAY);
+
+		$num_pages = ceil($ordercount->total / $per_page);
+		$page_links = paginate_links( array(
+			'base' => add_query_arg( 'pagenum', '%#%' ),
+			'format' => '',
+			'total' => $num_pages,
+			'current' => $pagenum
+		));
+		
+		$ranges = array(
+			'all' => __('Show New Customers','Shopp'),
+			'today' => __('Today','Shopp'),
+			'week' => __('This Week','Shopp'),
+			'month' => __('This Month','Shopp'),
+			'quarter' => __('This Quarter','Shopp'),
+			'year' => __('This Year','Shopp'),
+			'yesterday' => __('Yesterday','Shopp'),
+			'lastweek' => __('Last Week','Shopp'),
+			'last30' => __('Last 30 Days','Shopp'),
+			'last90' => __('Last 3 Months','Shopp'),
+			'lastmonth' => __('Last Month','Shopp'),
+			'lastquarter' => __('Last Quarter','Shopp'),
+			'lastyear' => __('Last Year','Shopp'),
+			'lastexport' => __('Last Export','Shopp'),
+			'custom' => __('Custom Dates','Shopp')
+			);
+		
+		$exports = array(
+			'tab' => __('Tab-separated.txt','Shopp'),
+			'csv' => __('Comma-separated.csv','Shopp'),
+			'xls' => __('Microsoft&reg; Excel.xls','Shopp')			
+			);
+		
+		// $formatPref = $Shopp->Settings->get('purchaselog_format');
+		// if (!$formatPref) $formatPref = 'tab';
+		
+		$columns = array_merge(Customer::exportcolumns(),Billing::exportcolumns(),Shipping::exportcolumns());
+		// $selected = $Shopp->Settings->get('purchaselog_columns');
+		// if (empty($selected)) $selected = array_keys($columns);
+		
+		include("{$this->basepath}/core/ui/customers/customers.php");
+		
+	}
+	
+	function customers_list_columns () {
+		shopp_register_column_headers('shopp_page_shopp-customers', array(
+			'cb'=>'<input type="checkbox" />',
+			'name'=>__('Name','Shopp'),
+			'login'=>__('Login','Shopp'),
+			'email'=>__('Email','Shopp'),
+			'location'=>__('Location','Shopp'),
+			'orders'=>__('Orders','Shopp'),
+			'joined'=>__('Joined','Shopp'))
+		);
+	}
+
+	function customer_editor_ui () {
+		global $Shopp;
+		include("{$this->basepath}/core/ui/customers/ui.php");
+	}
+	
+	function customer_editor () {
+		global $Shopp,$Customer;
+		
+		if ( !current_user_can('manage_options') )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
+
+		if ($_GET['id'] != "new") {
+			$Customer = new Customer($_GET['id']);
+			$Customer->Billing = new Billing($Customer->id,'customer');
+			$Customer->Shipping = new Shipping($Customer->id,'customer');
+			
+		} else $Customer = new Customer();
+
+		$countries = array(''=>'');
+		$countrydata = $Shopp->Settings->get('countries');
+		foreach ($countrydata as $iso => $c) {
+			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso) 
+				$base_region = $c['region'];
+			$countries[$iso] = $c['name'];
+		}
+		$Customer->countries = $countries;
+
+		$regions = $Shopp->Settings->get('zones');
+		$Customer->billing_states = $regions[$Customer->Billing->country];
+		$Customer->shipping_states = $regions[$Customer->Shipping->country];
+
+		include("{$this->basepath}/core/ui/customers/editor.php");
 	}
 	
 	/**
@@ -919,7 +1070,9 @@ class Flow {
 			$Shopp->Product = new Product($atts['id']);
 		} else return "";
 		
-		return '<div id="shopp">'.$Shopp->Catalog->tag('product',$atts).'<div class="clear"></div></div>';
+		if (isset($atts['nowrap']) && value_is_true($atts['nowrap']))
+			return $Shopp->Catalog->tag('product',$atts);
+		else return '<div id="shopp">'.$Shopp->Catalog->tag('product',$atts).'<div class="clear"></div></div>';
 	}
 	
 	function category_shortcode ($atts) {
@@ -953,7 +1106,9 @@ class Flow {
 			unset($atts['id']);
 		} else return "";
 		
-		return '<div id="shopp">'.$Shopp->Catalog->tag($tag,$atts).'<div class="clear"></div></div>';
+		if (isset($atts['nowrap']) && value_is_true($atts['nowrap']))
+			return $Shopp->Catalog->tag($tag,$atts);
+		else return '<div id="shopp">'.$Shopp->Catalog->tag($tag,$atts).'<div class="clear"></div></div>';
 		
 	}
 	
@@ -1958,7 +2113,7 @@ class Flow {
 						foreach ($rates as $id => $value) {
 							if ($key != "services")
 								$_POST['settings']['shipping_rates'][$i][$key][$id] =
-									preg_replace("/[^0-9\.\+]/","",$_POST['settings']['shipping_rates'][$i][$key][$id]);
+									floatnum($_POST['settings']['shipping_rates'][$i][$key][$id]);
 						}
 					}
 				}
@@ -2023,7 +2178,11 @@ class Flow {
 		
 		$rates = $this->Settings->get('taxrates');
 		$base = $this->Settings->get('base_operations');
-		$countries = $this->Settings->get('target_markets');
+		
+		$countries = array_merge(array('*' => __('All Markets','Shopp')),
+			$this->Settings->get('target_markets'));
+
+		
 		$zones = $this->Settings->get('zones');
 		
 		include(SHOPP_ADMINPATH."/settings/taxes.php");
@@ -2034,18 +2193,20 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		$gateway_dir = SHOPP_PATH.DIRECTORY_SEPARATOR."gateways".DIRECTORY_SEPARATOR;
-		$payment_gateway = $this->Settings->get('payment_gateway');
+		// $gateway_dir = SHOPP_PATH.DIRECTORY_SEPARATOR."gateways".DIRECTORY_SEPARATOR;
+		$payment_gateway = gateway_path($this->Settings->get('payment_gateway'));
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-payments');
 
 			// Update the accepted credit card payment methods
 			if (!empty($_POST['settings']['payment_gateway'])) {
-				$gateway = $this->scan_gateway_meta($_POST['settings']['payment_gateway']);
+				$gateway = $this->scan_gateway_meta(SHOPP_GATEWAYS.$_POST['settings']['payment_gateway']);
 				$ProcessorClass = $gateway->tags['class'];
-				include_once($gateway->file);
-				$Processor = new $ProcessorClass();
+				// Load the gateway in case there are any save-time processes to be run
+				$Processor = $Shopp->gateway($gateway);
+				// include_once($gateway->file);
+				// $Processor = new $ProcessorClass();
 				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
 			}
 			if (is_array($_POST['settings']['xco_gateways'])) {
@@ -2054,8 +2215,10 @@ class Flow {
 					if (!file_exists($gateway_dir.$gateway)) continue;
 					$meta = $this->scan_gateway_meta($gateway_dir.$gateway);
 					$ProcessorClass = $meta->tags['class'];
-					include_once($gateway_dir.$gateway);
-					$Processor = new $ProcessorClass();
+					// Load the gateway in case there are any save-time processes to be run
+					$Processor = $Shopp->gateway($gateway);
+					// include_once($gateway_dir.$gateway);
+					// $Processor = new $ProcessorClass();
 				}
 			}
 			
@@ -2082,7 +2245,7 @@ class Flow {
 			if (isset($processor->type) && strtolower($processor->type) == "xco") {
 				$XcoProcessors[] = $processor;
 			} else {
-				$gateways[$gateway->file] = $gateway->name;
+				$gateways[gateway_path($gateway->file)] = $gateway->name;
 				$LocalProcessors[] = $processor;
 			}
 		}

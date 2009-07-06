@@ -34,7 +34,7 @@ function settings_meta_box ($Category) {
 	<p><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if ($Category->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations','Shopp'); ?></label><br /><?php _e('Predefined selectable product options for products created in this category','Shopp'); ?></p>
 	<?php
 }
-add_meta_box('settings-tags', __('Settings','Shopp'), 'settings_meta_box', 'admin_page_shopp-categories-edit', 'side', 'core');
+add_meta_box('category-settings', __('Settings','Shopp'), 'settings_meta_box', 'admin_page_shopp-categories-edit', 'side', 'core');
 
 function images_meta_box ($Category) {
 	$db =& DB::get();

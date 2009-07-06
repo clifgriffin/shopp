@@ -4,7 +4,7 @@
  * @class AuthorizeNet
  *
  * @author Jonathan Davis
- * @version 1.0.3
+ * @version 1.0.4
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
  **/
@@ -207,7 +207,7 @@ class AuthorizeNet {
 	
 	function registerSettings () {
 		?>
-		gatewayHandlers.register('<?php echo addslashes(__FILE__); ?>','authorize-net-settings');
+		gatewayHandlers.register('<?php echo addslashes(gateway_path(__FILE__)); ?>','authorize-net-settings');
 		<?php
 	}
 

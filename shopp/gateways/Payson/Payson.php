@@ -1,7 +1,7 @@
 <?php
 /**
- * PayPal Standard
- * @class PayPalStandard
+ * Payson
+ * @class Payson
  *
  * @author Jonathan Davis
  * @version 1.0
@@ -9,46 +9,27 @@
  * @package Shopp
  **/
 
-class PayPalStandard {          
+class Payson {          
 	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
-	var $button = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
-	var $sandbox_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
-	var $checkout_url = 'https://www.paypal.com/cgi-bin/webscr';
+	var $testurl = 'https://www.payson.se/testagent/default.aspx';
+	var $url = 'https://www.payson.se/merchant/default.aspx';
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
 	var $checkout = true;
-	var $currencies = array("USD", "AUD", "CAD", "CHF", "CZK", "DKK", "EUR", "GBP", 
-							"HKD", "HUF", "JPY", "NOK", "NZD", "PLN", "SEK", "SGD");
-	var $locales = array("AT" => "de_DE", "AU" => "en_AU", "BE" => "en_US", "CA" => "en_US",
-							"CH" => "de_DE", "CN" => "zh_CN", "DE" => "de_DE", "ES" => "es_ES",
-							"FR" => "fr_FR", "GB" => "en_GB", "GF" => "fr_FR", "GI" => "en_US",
-							"GP" => "fr_FR", "IE" => "en_US", "IT" => "it_IT", "JP" => "ja_JP",
-							"MQ" => "fr_FR", "NL" => "nl_NL", "PL" => "pl_PL", "RE" => "fr_FR",
-							"US" => "en_US");
 
-	function PayPalStandard () {
+	function Payson () {
 		global $Shopp;
-		$this->settings = $Shopp->Settings->get('PayPalStandard');
+		$this->settings = $Shopp->Settings->get('Payson');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
-		$this->settings['currency_code'] = $this->currencies[0];
-		if (in_array($this->settings['base_operations']['currency']['code'],$this->currencies))
-			$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];
-
-		if (array_key_exists($this->settings['base_operations']['country'],$this->locales))
-			$this->settings['locale'] = $this->locales[$this->settings['base_operations']['country']];
-		else $this->settings['locale'] = $this->locales["US"];
-
-		$this->button = sprintf($this->button, $this->settings['locale']);
-		$this->ipn = add_query_arg('shopp_xorder','PayPalStandard',$Shopp->link('catalog',true));
-			
+		
 		if (isset($_POST['checkout']) && 
 			$_POST['checkout'] == "process" && 
 			!$loginproc) $this->checkout();
 		
 		// Capture processed payment
-		if (isset($_GET['tx'])) $_POST['checkout'] = "confirmed";
+		if (isset($_POST['Paysonref'])) $_POST['checkout'] = "confirmed";
 
 	}
 	
@@ -57,6 +38,7 @@ class PayPalStandard {
 		add_filter('shopp_confirm_form',array(&$this,'form'));
 	}
 	
+	/* Handle the checkout form */
 	function checkout () {
 		global $Shopp;
 		if (empty($_POST['checkout'])) return false;
@@ -90,13 +72,13 @@ class PayPalStandard {
 		$Shopp->Cart->updated();
 		$Shopp->Cart->totals();
 		
-		header("Location: ".add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
+		header("Location: ".add_query_arg('shopp_xco','Payson/Payson',$Shopp->link('confirm-order',false)));
 		exit();
 	}
 	
 	/**
 	 * form()
-	 * Builds a hidden form to submit to PayPal when confirming the order for processing */
+	 * Builds a hidden form to submit to Payson when confirming the order for processing */
 	function form ($form) {
 		global $Shopp;
 		$Order = $Shopp->Cart->data->Order;
@@ -105,62 +87,33 @@ class PayPalStandard {
 		$Order->Cart = $Shopp->Cart->session;
 		
 		$_ = array();
-
-		$_['cmd'] 					= "_cart";
-		$_['upload'] 				= 1;
-		$_['business']				= $this->settings['account'];
-		$_['invoice']				= $Order->Cart;
 		
-		// Options
-		$_['return']				= add_query_arg('shopping','reset',$Shopp->link());
-		$_['cancel_return']			= $Shopp->link('cart');
-		$_['notify_url']			= add_query_arg('shopp_xorder','PayPalStandard',$Shopp->link());
-		$_['rm']					= 1; // Return with no transaction data
+		$_['Agentid']				= $this->settings['agentid'];
+		$_['SellerEmail']			= $this->settings['email'];
+		$_['GuaranteeOffered']		= $this->settings['guarantee'];
+		$_['PaymentMethod']			= $this->settings['payment'];
+		$_['Description']			= $this->settings['description'];
 		
-		// Pre-populate PayPal Checkout
-		$_['first_name']			= $Order->Customer->firstname;
-		$_['last_name']				= $Order->Customer->lastname;
-		$_['lc']					= $this->settings['base_operations']['country'];
+		$_['BuyerEmail']			= $Order->Customer->email;
+		$_['BuyerFirstName']		= $Order->Customer->firstname;
+		$_['BuyerLastname']			= $Order->Customer->lastname;
 		
-		$_['address_override'] 		= 1;
-		$_['address1']				= $Order->Billing->address;
-		if (!empty($Order->Billing->xaddress))
-			$_['address2']			= $Order->Billing->xaddress;
-		$_['city']					= $Order->Billing->city;
-		$_['state']					= $Order->Billing->state;
-		$_['zip']					= $Order->Billing->postcode;
-		$_['country']				= $Order->Billing->country;
-		$_['night_phone_a']			= $Order->Customer->phone;
+		$_['Cost']					= number_format($Order->Totals->subtotal+$Order->Totals->tax,2,",","");
+		$_['ExtraCost']				= number_format($Order->Totals->shipping,2,",","");
 		
-		// Include page style option, if provided
-		if (isset($_GET['pagestyle'])) $_['pagestyle'] = $_GET['pagestyle'];
-
-		if (isset($Order->data['paypal-custom']))
-			$_['custom'] = htmlentities($Order->data['paypal-custom']);
+		$_['RefNr']					= $Order->Cart;
 		
-		// Transaction
-		$_['currency_code']			= $this->settings['currency_code'];
-
-		// Disable shipping fields if no shipped items in cart
-		if (!$Order->Shipping) $_['no_shipping'] = 1;
-
-		// Line Items
-		foreach($Order->Items as $i => $Item) {
-			$id=$i+1;
-			$_['item_number_'.$id]		= $id;
-			$_['item_name_'.$id]		= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
-			$_['amount_'.$id]			= number_format($Item->unitprice,2);
-			$_['quantity_'.$id]			= $Item->quantity;
-			$_['weight_'.$id]			= $Item->quantity;
-			// $_['tax_'.$id]				= number_format($Item->taxes,2);
-			// $_['handling_'.$id]			= number_format($Item->shipfee,2);
-		}
+		$_['OkUrl']					= add_query_arg('shopp_xco','Payson/Payson',$Shopp->link('confirm-order'));
+		$_['CancelUrl']				= $Shopp->link('cart');
 		
-		$_['discount_amount_cart'] 		= number_format($Order->Totals->discount,2);
-		$_['tax_cart']					= number_format($Order->Totals->tax,2);
-		$_['handling_cart']				= number_format($Order->Totals->shipping,2);
-		$_['amount']					= number_format($Order->Totals->total,2);
-		
+		$checkfields = array(
+			$_['SellerEmail'],
+			$_['Cost'],
+			$_['ExtraCost'],
+			$_['OkUrl'],
+			$_['GuaranteeOffered'].$this->settings['key']
+		);
+		$_['MD5']					= md5(join(':',$checkfields));
 				
 		return $form.$this->format($_);
 	}
@@ -168,15 +121,18 @@ class PayPalStandard {
 	function process () {
 		global $Shopp;
 		
+		echo "<pre>"; print_r($_POST); echo "</pre>";
+		exit();
+		
 		// Validate the order notification
 		if (empty($_POST['invoice']) || !$this->validipn())
-			return new ShoppError(__('An unverifiable order notifcation was received from PayPal. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
+			return new ShoppError(__('An unverifiable order notifcation was received from Payson. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
 		
 		session_unset();
 		session_destroy();
 		
 		// Load the cart for the correct order
-		$Shopp->Cart->session = $_POST['invoice'];
+		$Shopp->Cart->session = $_POST['RefNr'];
 		$Shopp->Cart->load();
 
 		$Order = $Shopp->Cart->data->Order;
@@ -188,35 +144,23 @@ class PayPalStandard {
 		$validation = false;
 		
 		// Check for unique transaction id
-		$Purchase = new Purchase($_POST['txn_id'],'transactionid');
+		$Purchase = new Purchase($_POST['Paysonref'],'transactionid');
 		
-		if ($this->settings['testmode'] == "on") {
-			if ($_POST['mc_gross'] == number_format($Order->Totals->total,2) 
-				&& empty($Purchase->id) 
-				&& $_POST['residence_country'] == $Order->Billing->country)
-					$validation = true;
-		} else {
-			if ($_POST['mc_gross'] == number_format($Order->Totals->total,2) 
-				&& empty($Purchase->id) 
-				&& $_POST['payer_email'] == $Order->Customer->email
-				&& $_POST['residence_country'] == $Order->Billing->country)
-					$validation = true;
-		}
 		
+		$checkfields = array(
+			$_POST['OkURL'],
+			$_POST['PaysonRef'],
+			$this->settings['key']
+		);
+		$checksum = md5(join('',$checkfields));
+		
+		if ($checksum == $_POST['MD5'] && empty($Purchase->id)) 
+			$validation = true;
+
 		if ($validation) $this->order();
-		else new ShoppError(__('An order was received from PayPal that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'paypal_trxn_validation',SHOPP_TRXN_ERR);
+		else new ShoppError(__('An order was received from Payson that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'payson_trxn_validation',SHOPP_TRXN_ERR);
 		
 		exit();
-	}
-	
-	function validipn () {
-		$_ = array();
-		$_['cmd'] = "_notify-validate";
-		
-		$this->transaction = $this->encode(array_merge($_POST,$_));
-		$Response = $this->send();
-		
-		return ($Response == "VERIFIED");
 	}
 	
 	function order () {
@@ -301,8 +245,9 @@ class PayPalStandard {
 		$Purchase->copydata($Order->Shipping,'ship');
 		$Purchase->copydata($Shopp->Cart->data->Totals);
 		$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
-		$Purchase->gateway = "PayPal".(isset($_POST['test_ipn']) && $_POST['test_ipn'] == "1"?" Sandbox":"");
-		$Purchase->transactionid = $_POST['txn_id'];
+		$Purchase->gateway = "Payson";
+		$Purchase->transactionid = $_POST['Paysonref'];
+		$Purchase->fees = $_POST['Fee'];
 		$Purchase->transtatus = "CHARGED";
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
@@ -376,7 +321,7 @@ class PayPalStandard {
 			
 			$message = join("; ",$this->Response->l_longmessage);
 			if (empty($message)) return false;
-			return new ShoppError($message,'paypal_express_transacton_error',SHOPP_TRXN_ERR,
+			return new ShoppError($message,'payson_transacton_error',SHOPP_TRXN_ERR,
 				array('code'=>$code));
 		}
 	}
@@ -449,10 +394,10 @@ class PayPalStandard {
 		switch ($property) {
 			case "button":
 				$args = array();
-				$args['shopp_xco'] = 'PayPal/PayPalStandard';
+				$args['shopp_xco'] = 'Payson/Payson';
 				if (isset($options['pagestyle'])) $args['pagestyle'] = $options['pagestyle'];
 				$url = add_query_arg($args,$Shopp->link('checkout'));
-				return '<p><a href="'.$url.'"><img src="'.$this->button.'" alt="Checkout with PayPal" /></a></p>';
+				return '<p><a href="'.$url.'">'.__('Checkout with Payson','Shopp').'</a></p>';
 		}
 	}
 
@@ -460,22 +405,47 @@ class PayPalStandard {
 	function billing () {}
 	
 	function url ($url) {
-		if ($this->settings['testmode'] == "on") return $this->sandbox_url;
-		else return $this->checkout_url;
+		if ($this->settings['testmode'] == "on") return $this->testurl;
+		else return $this->url;
 	}
 	
 	function settings () {
 		?>
-			<th scope="row" valign="top"><label for="paypalstandard-enabled">PayPal Standard</label></th> 
-			<td><input type="hidden" name="settings[PayPalStandard][billing-required]" value="off" /><input type="hidden" name="settings[PayPalStandard][enabled]" value="off" /><input type="checkbox" name="settings[PayPalStandard][enabled]" value="on" id="paypalstandard-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="paypalstandard-enabled"> <?php _e('Enable','Shopp'); ?> PayPal Standard</label>
-				<div id="paypalstandard-settings">
+			<th scope="row" valign="top"><label for="payson-enabled">Payson</label></th> 
+			<td><input type="hidden" name="settings[Payson][billing-required]" value="off" /><input type="hidden" name="settings[Payson][enabled]" value="off" /><input type="checkbox" name="settings[Payson][enabled]" value="on" id="payson-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="payson-enabled"> <?php _e('Enable','Shopp'); ?> Payson</label>
+				<div id="payson-settings">
 		
-				<p><input type="text" name="settings[PayPalStandard][account]" id="paypalstd-account" size="30" value="<?php echo $this->settings['account']; ?>"/><br />
-				<?php __('Enter your PayPal account e-mail.','Shopp'); ?></p>
+				<p><input type="text" name="settings[Payson][agentid]" id="payson-agentid" size="7" value="<?php echo $this->settings['agentid']; ?>"/><br />
+				<?php _e('Enter your Payson Agent ID.','Shopp'); ?></p>
+
+				<p><input type="text" name="settings[Payson][email]" id="payson-email" size="30" value="<?php echo $this->settings['email']; ?>"/><br />
+				<?php _e('Enter your Payson seller email address.','Shopp'); ?></p>
+
+				<p><input type="text" name="settings[Payson][key]" id="payson-key" size="40" value="<?php echo $this->settings['key']; ?>"/><br />
+				<?php _e('Enter your Payson secret key.','Shopp'); ?></p>
+
+				<p><input type="text" name="settings[Payson][description]" id="payson-description" size="40" value="<?php echo $this->settings['description']; ?>"/><br />
+				<?php _e('Enter a name or description for your store.','Shopp'); ?></p>
+
+				<p><select name="settings[Payson][payment]" id="payson-payment">
+					<?php
+						echo menuoptions(array(
+							__('Credit Cards, Internet Banks &amp; Payson','Shopp'),
+							__('Credit Cards Only','Shopp'),
+							__('Internet Banks Only','Shopp'),
+							__('Payson Account Funds Only','Shopp'),
+							__('Internet Banks &amp; Payson Account Funds','Shopp')
+						),$this->settings['payment']);
+					?>
+					</select><br />
+				<?php _e('Choose the payment methods accepted.','Shopp'); ?></label></p>
 								
-				<p><label for="paypalstd-testmode"><input type="hidden" name="settings[PayPalStandard][testmode]" value="off" /><input type="checkbox" name="settings[PayPalStandard][testmode]" id="paypalstd-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Use the <a href="http://docs.shopplugin.net/PayPal_Sandbox" target="shoppdocs">PayPal Sandbox</a></label></p>
+				<p><label for="payson-guarantee"><input type="hidden" name="settings[Payson][guarantee]" value="0" /><input type="checkbox" name="settings[Payson][guarantee]" id="payson-guarantee" value="1"<?php if ($this->settings['guarantee'] == "1") echo ' checked="checked"'; ?> />
+				<?php _e('Offer Payson Guarantee payments.','Shopp'); ?></label></p>
+
+				<p><label for="payson-testmode"><input type="hidden" name="settings[Payson][testmode]" value="off" /><input type="checkbox" name="settings[Payson][testmode]" id="payson-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable Test Mode','Shopp'); ?></label></p>
 				
-				<input type="hidden" name="settings[PayPalStandard][path]" value="<?php echo gateway_path(__FILE__); ?>"  />
+				<input type="hidden" name="settings[Payson][path]" value="<?php echo gateway_path(__FILE__); ?>"  />
 				<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
 				
 				</div>
@@ -485,10 +455,10 @@ class PayPalStandard {
 	
 	function registerSettings () {
 		?>
-		xcosettings('#paypalstandard-enabled','#paypalstandard-settings');
+		xcosettings('#payson-enabled','#payson-settings');
 		<?php
 	}
 
-} // end PayPalStandard class
+} // end Payson class
 
 ?>

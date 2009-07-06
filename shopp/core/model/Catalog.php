@@ -490,6 +490,7 @@ class Catalog extends DatabaseObject {
 				return $content;
 				break;
 			case "sideproduct":
+				$content = false;
 				$source = $options['source'];
 				if ($source == "product" && isset($options['product'])) {
 					if (preg_match('/^[\d+]$/',$options['product'])) 
@@ -504,8 +505,10 @@ class Catalog extends DatabaseObject {
 					$content = ob_get_contents();
 					ob_end_clean();
 				}
-
+				
 				if ($source == "category" && isset($options['category'])) {
+					 // Save original requested category
+					if ($Shopp->Category) $Category = clone($Shopp->Category);
 					if (preg_match('/^[\d+]$/',$options['category'])) 
 						$Shopp->Category = new Category($options['category']);
 					else $Shopp->Category = new Category($options['category'],'slug');
@@ -520,6 +523,8 @@ class Catalog extends DatabaseObject {
 						$content .= ob_get_contents();
 						ob_end_clean();
 					}
+					 // Restore original requested category
+					if (!empty($Category)) $Shopp->Category = $Category;
 				}
 				
 				return $content;

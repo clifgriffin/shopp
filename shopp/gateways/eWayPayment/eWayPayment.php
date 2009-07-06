@@ -4,7 +4,7 @@
  * @class eWayPayment
  *
  * @author Jonathan Davis
- * @version 1.0.2
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 7 January, 2009
  * @package Shopp
  **/
@@ -138,7 +138,7 @@ class eWayPayment {
 	
 	function registerSettings () {
 		?>
-		gatewayHandlers.register('<?php echo addslashes(__FILE__); ?>','ewaypayment-settings');
+		gatewayHandlers.register('<?php echo addslashes(gateway_path(__FILE__)); ?>','ewaypayment-settings');
 		<?php
 	}
 

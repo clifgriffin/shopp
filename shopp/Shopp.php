@@ -56,6 +56,7 @@ class Shopp {
 	var $ShipCalcs;
 	var $Product;
 	var $Category;
+	var $Gateway;
 	var $Catalog;
 	var $_debug;
 	
@@ -152,7 +153,10 @@ class Shopp {
 			$this->shopuri = add_query_arg('page_id',$pages['catalog']['id'],get_bloginfo('url'));
 			$this->imguri = add_query_arg('shopp_image','=',get_bloginfo('url'));
 		}
-		if ($this->secure) $this->shopuri = str_replace('http://','https://',$this->shopuri);
+		if ($this->secure) {
+			$this->shopuri = str_replace('http://','https://',$this->shopuri);	
+			$this->imguri = str_replace('http://','https://',$this->imguri);	
+		}
 		
 		if (SHOPP_LOOKUP) return true;
 		
@@ -238,33 +242,38 @@ class Shopp {
 	 * Adds the WordPress admin menus */
 	function add_menus () {
 		$menus = array();
-		if (function_exists('add_object_page')) $menus['main'] = add_object_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
-		else $menus['main'] = add_menu_page('Shopp', 'Shopp', 8, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
+		if (function_exists('add_object_page')) $menus['main'] = add_object_page('Shopp', 'Shopp', SHOPP_USERLEVEL, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
+		else $menus['main'] = add_menu_page('Shopp', 'Shopp', SHOPP_USERLEVEL, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
 
-		$menus['orders'] = add_submenu_page($this->Flow->Admin->default,__('Orders','Shopp'), __('Orders','Shopp'), 8, $this->Flow->Admin->orders, array(&$this,'orders'));
+		$menus['orders'] = add_submenu_page($this->Flow->Admin->default,__('Orders','Shopp'), __('Orders','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->orders, array(&$this,'orders'));
 
-		$menus['promotions'] = add_submenu_page($this->Flow->Admin->default,__('Promotions','Shopp'), __('Promotions','Shopp'), 8, $this->Flow->Admin->promotions, array(&$this,'promotions'));
+		$menus['customers'] = add_submenu_page($this->Flow->Admin->default,__('Customers','Shopp'), __('Customers','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->customers, array(&$this,'customers'));
+		if (SHOPP_WP27) $customers_parent = $menus['customers'];
+		else $customers_parent = $this->Flow->Admin->default;
+		$menus['editcustomer'] = add_submenu_page($customers_parent,__('Edit Customer','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editcustomer, array(&$this,'customers'));
+
+		$menus['promotions'] = add_submenu_page($this->Flow->Admin->default,__('Promotions','Shopp'), __('Promotions','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->promotions, array(&$this,'promotions'));
 		if (SHOPP_WP27) $promos_parent = $menus['promotions'];
 		else $promos_parent = $this->Flow->Admin->default;
-		$menus['editpromos'] = add_submenu_page($promos_parent,__('Edit Promotion','Shopp'), false, 8, $this->Flow->Admin->editpromo, array(&$this,'promotions'));
+		$menus['editpromos'] = add_submenu_page($promos_parent,__('Edit Promotion','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editpromo, array(&$this,'promotions'));
 
-		$menus['products'] = add_submenu_page($this->Flow->Admin->default,__('Products','Shopp'), __('Products','Shopp'), 8, $this->Flow->Admin->products, array(&$this,'products'));
+		$menus['products'] = add_submenu_page($this->Flow->Admin->default,__('Products','Shopp'), __('Products','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->products, array(&$this,'products'));
 		if (SHOPP_WP27) $products_parent = $menus['products'];
 		else $products_parent = $this->Flow->Admin->default;
-		$menus['editproducts'] = add_submenu_page($products_parent,__('Product Editor','Shopp'), false, 8, $this->Flow->Admin->editproduct, array(&$this,'products'));
+		$menus['editproducts'] = add_submenu_page($products_parent,__('Product Editor','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editproduct, array(&$this,'products'));
 		
-		$menus['categories'] = add_submenu_page($this->Flow->Admin->default,__('Categories','Shopp'), __('Categories','Shopp'), 8, $this->Flow->Admin->categories, array(&$this,'categories'));
+		$menus['categories'] = add_submenu_page($this->Flow->Admin->default,__('Categories','Shopp'), __('Categories','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->categories, array(&$this,'categories'));
 		if (SHOPP_WP27) $category_parent = $menus['categories'];
 		else $category_parent = $this->Flow->Admin->default;
-		$menus['editcategory'] = add_submenu_page($category_parent,__('Edit Category','Shopp'), false, 8, $this->Flow->Admin->editcategory, array(&$this,'categories'));
+		$menus['editcategory'] = add_submenu_page($category_parent,__('Edit Category','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editcategory, array(&$this,'categories'));
 		
-		$menus['settings'] = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), 8, $this->Flow->Admin->settings['settings'][0], array(&$this,'settings'));
+		$menus['settings'] = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->settings['settings'][0], array(&$this,'settings'));
 
 		$settings_screens = array();
 		foreach ($this->Flow->Admin->settings as $key => $screen) {
 			if (SHOPP_WP27) $settings_parent = $menus['settings'];
 			else $settings_parent = $this->Flow->Admin->default;
-			$settings_screens[$key] = add_submenu_page($settings_parent,$screen[1],false, 8, $screen[0], array(&$this,'settings'));
+			$settings_screens[$key] = add_submenu_page($settings_parent,$screen[1],false, SHOPP_USERLEVEL, $screen[0], array(&$this,'settings'));
 		}
 
 		if (function_exists('add_contextual_help')) {
@@ -275,9 +284,9 @@ class Shopp {
 
 			add_contextual_help($menus['settings'],'<a href="'.SHOPP_DOCS.'General_Settings" target="_blank">General Settings</a> | <a href="'.SHOPP_DOCS.'Checkout_Settings" target="_blank">Checkout Settings</a> | <a href="'.SHOPP_DOCS.'Payments_Settings" target="_blank">Payments Settings</a> | <a href="'.SHOPP_DOCS.'Shipping_Settings" target="_blank">Shipping Settings</a> | <a href="'.SHOPP_DOCS.'Taxes_Settings" target="_blank">Taxes Settings</a> | <a href="'.SHOPP_DOCS.'Presentation_Settings" target="_blank">Presetation Settings</a> | <a href="'.SHOPP_DOCS.'System_Settings" target="_blank">System Settings</a> | <a href="'.SHOPP_DOCS.'Update_Settings" target="_blank">Update Settings</a>');
 			
-		} else $menus['help'] = add_submenu_page($this->Flow->Admin->default,__('Help','Shopp'), __('Help','Shopp'), 8, $this->Flow->Admin->help, array(&$this,'help'));
+		} else $menus['help'] = add_submenu_page($this->Flow->Admin->default,__('Help','Shopp'), __('Help','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->help, array(&$this,'help'));
 		
-		// $welcome = add_submenu_page($this->Flow->Admin->default,__('Welcome','Shopp'), __('Welcome','Shopp'), 8, $this->Flow->Admin->welcome, array(&$this,'welcome'));
+		// $welcome = add_submenu_page($this->Flow->Admin->default,__('Welcome','Shopp'), __('Welcome','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->welcome, array(&$this,'welcome'));
 
 		// add_action("admin_head-$editproduct", array(&$this, 'admin_behaviors'));
 		
@@ -288,12 +297,14 @@ class Shopp {
 			add_action("admin_print_scripts-$settings_screen", array(&$this, 'admin_behaviors'));
 		
 		add_action("admin_print_scripts-{$menus['orders']}", array(&$this->Flow, 'orders_list_columns'));
+		add_action("admin_print_scripts-{$menus['customers']}", array(&$this->Flow, 'customers_list_columns'));
 		add_action("admin_print_scripts-{$menus['promotions']}", array(&$this->Flow, 'promotions_list_columns'));
 		add_action("admin_print_scripts-{$menus['products']}", array(&$this->Flow, 'products_list_columns'));
 		add_action("admin_print_scripts-{$menus['categories']}", array(&$this->Flow, 'categories_list_columns'));
 		
 		if (SHOPP_WP27)	 {
 			add_action("admin_head-{$menus['editproducts']}", array(&$this->Flow, 'product_editor_ui'));
+			add_action("admin_head-{$menus['editcustomer']}", array(&$this->Flow, 'customer_editor_ui'));
 			add_action("admin_head-{$menus['editcategory']}", array(&$this->Flow, 'category_editor_ui'));
 			add_action("admin_head-{$menus['editpromos']}", array(&$this->Flow, 'promotion_editor_ui'));
 		}
@@ -317,6 +328,7 @@ class Shopp {
 		
 		// Load only for the product editor to keep other admin screens snappy
 		if (($_GET['page'] == $this->Flow->Admin->editproduct || 
+			 $_GET['page'] == $this->Flow->Admin->editcustomer ||
 			 $_GET['page'] == $this->Flow->Admin->editcategory ||
 			 $_GET['page'] == $this->Flow->Admin->editpromo)) {
 			if (SHOPP_WP27) {
@@ -381,7 +393,7 @@ class Shopp {
 	 * Adds the Shopp dashboard widgets to the WordPress Dashboard */
 	function dashboard ($widgets) {
 		$dashboard = $this->Settings->get('dashboard');
-		if (current_user_can('manage_options') && $dashboard == "on")
+		if (SHOPP_USERLEVEL && $dashboard == "on")
 			array_unshift($widgets,'dashboard_shopp_stats','dashboard_shopp_orders','dashboard_shopp_products');
 		return $widgets;
 	}
@@ -632,6 +644,19 @@ class Shopp {
 		}
 		if (!empty($_GET['id'])) $this->Flow->order_manager();
 		else $this->Flow->orders_list();
+	}
+
+	/**
+	 * customers()
+	 * Handles order administration screens */
+	function customers () {
+		if ($this->Settings->get('display_welcome') == "on") {
+			$this->welcome(); return;
+		}
+		
+		if ($_GET['page'] == $this->Flow->Admin->editcustomer)
+			$this->Flow->customer_editor();
+		else $this->Flow->customers_list();
 	}
 
 	/**
@@ -910,11 +935,22 @@ class Shopp {
 	 * Handles checkout process */
 	function checkout ($wp) {
 		// echo "<pre>"; print_r($wp); echo "</pre>";
-		// Force a secure checkout form for local checkout
-		$pages = $this->Settings->get('pages');
-		if ($wp->query_vars['page_id'] == $pages['checkout']['id']
-		 	&& !isset($wp->query_vars['shopp_proc'])) {
 
+		$pages = $this->Settings->get('pages');
+		// If checkout page requested
+		if (((SHOPP_PERMALINKS && isset($wp->query_vars['pagename']) 
+			&& $wp->query_vars['pagename'] == $pages['checkout']['permalink'])
+			|| (isset($wp->query_vars['page_id']) && $wp->query_vars['page_id'] == $pages['checkout']['id']))
+		 	&& $wp->query_vars['shopp_proc'] == "checkout") {
+			
+			$this->Cart->updated();
+			$this->Cart->totals();
+			if ($this->Cart->data->ShippingPostcodeError) {
+				header('Location: '.$this->link('cart'));
+				exit();
+			}
+
+			// Force secure checkout page if its not already
 			$secure = true;
 			$gateway = $this->Settings->get('payment_gateway');
 			if (strpos($gateway,"TestMode") !== false || isset($wp->query_vars['shopp_xco'])) 
@@ -925,32 +961,36 @@ class Shopp {
 				exit();
 			}
 		}
-
+		
+		// Cancel this process if there is no order data
 		if (!isset($this->Cart->data->Order)) return;
 		$Order = $this->Cart->data->Order;
 
 		// Intercept external checkout processing
 		if (!empty($wp->query_vars['shopp_xco'])) {
-			if ($Payment = $this->gateway($wp->query_vars['shopp_xco'])) {
+			if ($this->gateway($wp->query_vars['shopp_xco'])) {
 				if ($wp->query_vars['shopp_proc'] != "confirm-order" && 
 						!isset($_POST['checkout'])) {
-					$Payment->checkout();
-					$Payment->error();
+					$this->Gateway->checkout();
+					$this->Gateway->error();
 				}
 			}
 		}
 
+		// Cancel if no checkout process detected
 		if (empty($_POST['checkout'])) return true;
-		if ($_POST['checkout'] == "confirmed") {
-			$this->Flow->order($gateway);
-			return true;
-		}
+		// Handoff to order processing
+		if ($_POST['checkout'] == "confirmed") return $this->Flow->order();
+		// Cancel if checkout process is not ready for processing
 		if ($_POST['checkout'] != "process") return true;
-		if ($_POST['process-login'] == "login") return true;
+		// Cancel if processing a login from the checkout form
+		if (isset($_POST['process-login']) 
+			&& $_POST['process-login'] == "login") return true;
 		
+		// Start processing the checkout form
 		$_POST = attribute_escape_deep($_POST);
 		
-		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-m'],$_POST['billing']['cardexpires-y']);
+		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-mm'],$_POST['billing']['cardexpires-yy']);
 
 		// Sanitize the card number to ensure it only contains numbers
 		$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
@@ -959,7 +999,9 @@ class Shopp {
 		if (empty($Order->Customer))
 			$Order->Customer = new Customer();
 		$Order->Customer->updates($_POST);
-		$Order->Customer->confirm_password = $_POST['confirm-password'];
+
+		if (isset($_POST['confirm-password']))
+			$Order->Customer->confirm_password = $_POST['confirm-password'];
 
 		if (empty($Order->Billing))
 			$Order->Billing = new Billing();
@@ -977,7 +1019,7 @@ class Shopp {
 		if (empty($Order->Shipping))
 			$Order->Shipping = new Shipping();
 			
-		if ($_POST['shipping']) $Order->Shipping->updates($_POST['shipping']);
+		if (isset($_POST['shipping'])) $Order->Shipping->updates($_POST['shipping']);
 		if (!empty($_POST['shipmethod'])) $Order->Shipping->method = $_POST['shipmethod'];
 		else $Order->Shipping->method = key($this->Cart->data->ShipCosts);
 
@@ -1013,8 +1055,7 @@ class Shopp {
 			if (isset($gateway['path'])) $path = $gateway['path'];
 			// Use the old path support for transition if the new path setting isn't available
 			if (empty($path)) $path = "{$_GET['shopp_xorder']}/{$_GET['shopp_xorder']}.php";
-			$Payment = $this->gateway($path);
-			if ($Payment) $Payment->process();
+			if ($this->gateway($path)) $this->Gateway->process();
 			exit();
 		}
 	}
@@ -1026,15 +1067,17 @@ class Shopp {
 		if (substr($gateway,-4) != ".php") $gateway .= ".php";
 		$filepath = join(DIRECTORY_SEPARATOR,array($this->path,'gateways',$gateway));
 		if (!file_exists($filepath)) {
-			new ShoppError(__('The requested payment system does not exist.','Shopp').' '.$filepath,'shopp_load_gateway');
+			new ShoppError(__('There was a problem loading the requested payment processor.','Shopp').' ('.$gateway.')','shopp_load_gateway');
 			return false;
 		}
 		$meta = $this->Flow->scan_gateway_meta($filepath);
 		$ProcessorClass = $meta->tags['class'];
 		include_once($filepath);
-		$Shopp->Gateway = new $ProcessorClass();
-		//if ($Shopp->Gateway->settings['enabled'] != "on")
-		return $Shopp->Gateway;
+
+		if (isset($this->Cart->data->Order)) $this->Gateway = new $ProcessorClass($this->Cart->data->Order);
+		else $this->Gateway = new $ProcessorClass();
+
+		return true;
 	}
 	
 	/**
@@ -1127,6 +1170,31 @@ class Shopp {
 					case "csv": new PurchasesCSVExport(); break;
 					case "xls": new PurchasesXLSExport(); break;
 					default: new PurchasesTabExport();
+				}
+				exit();
+				break;
+			case "customerexport":
+				if (!defined('WP_ADMIN') || !is_user_logged_in() || !current_user_can('manage_options')) die('-1');
+				$db =& DB::get();
+
+				if (!isset($_POST['settings']['customerexport_columns'])) {
+					$Customer = Customer::exportcolumns();
+					$Billing = Billing::exportcolumns();
+					$Shipping = Shipping::exportcolumns();
+					$_POST['settings']['customerexport_columns'] =
+					 	array_keys(array_merge($Customer,$Billing,$Shipping));
+					$_POST['settings']['customerexport_headers'] = "on";
+				}
+
+				$this->Flow->settings_save();
+
+				$format = $this->Settings->get('customerexport_format');
+				if (empty($format)) $format = 'tab';
+
+				switch ($format) {
+					case "csv": new CustomersCSVExport(); break;
+					case "xls": new CustomersXLSExport(); break;
+					default: new CustomersTabExport();
 				}
 				exit();
 				break;

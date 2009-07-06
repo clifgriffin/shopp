@@ -23,7 +23,6 @@ class ShoppFacetedMenuWidget extends WP_Widget {
 
 		if (empty($options['title'])) $options['title'] = __('Product Filters','Shopp');
 		$title = $before_title.$options['title'].$after_title;
-		global $wp_registered_widgets;
 
 		if (!empty($Shopp->Category->id) && $Shopp->Category->facetedmenus == "on") {
 			$menu = $Shopp->Category->tag('faceted-menu',$options);

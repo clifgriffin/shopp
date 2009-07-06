@@ -186,7 +186,7 @@ class FirstData {
 	
 	function registerSettings () {
 		?>
-		gatewayHandlers.register('<?php echo addslashes(__FILE__); ?>','FirstData-settings');
+		gatewayHandlers.register('<?php echo addslashes(gateway_path(__FILE__)); ?>','FirstData-settings');
 		<?php
 	}
 

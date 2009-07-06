@@ -479,10 +479,14 @@ function shopp_debug () {
 		var overlay = $('<div id="debug" class="shopp overlay"></div>').appendTo(document.body);
 		var debug = $('<div id="debug" class="shopp"></div>').appendTo(document.body);
 		$('<h3>Shopp Debug Console</h3>').appendTo(debug);
-		$('<h4></h4>').html('Memory:').appendTo(debug);
-		$('<p></p>').html(memory_profile).appendTo(debug);
-		$('<h4></h4>').html('Queries:').appendTo(debug);
-		$('<p></p>').html('WP Total: '+wpquerytotal+'<br />Shopp Total: '+shoppquerytotal).appendTo(debug);
+		if (memory_profile) {
+			$('<h4></h4>').html('Memory:').appendTo(debug);
+			$('<p></p>').html(memory_profile).appendTo(debug);
+		}
+		if (wpquerytotal || shoppquerytotal) {
+			$('<h4></h4>').html('Queries:').appendTo(debug);
+			$('<p></p>').html('WP Total: '+wpquerytotal+'<br />Shopp Total: '+shoppquerytotal).appendTo(debug);
+		}
 		
 		debug.click(function () {
 			overlay.remove();
@@ -493,7 +497,7 @@ function shopp_debug () {
 	})(jQuery)
 }
 
-function shopp_gallery(id,evt) {
+function shopp_gallery (id,evt) {
 	(function($) {
 		if (!evt) evt = 'click';
 		var gallery = $(id);
@@ -507,7 +511,7 @@ function shopp_gallery(id,evt) {
 				target.addClass('active').hide();
 				if (previous.length) {
 					previous.fadeOut(800,function() {
-						$(this).removeClass('active');
+						$(previous).removeClass('active');
 					});
 				}
 				target.appendTo(previews).fadeIn(500);
