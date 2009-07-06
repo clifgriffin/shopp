@@ -18,6 +18,18 @@ class Shipping extends DatabaseObject {
 		else return false;
 	}
 	
+	function exportcolumns () {
+		$prefix = "s.";
+		return array(
+			$prefix.'address' => __('Shipping Street Address','Shopp'),
+			$prefix.'xaddress' => __('Shipping Street Address 2','Shopp'),
+			$prefix.'city' => __('Shipping City','Shopp'),
+			$prefix.'state' => __('Shipping State/Province','Shopp'),
+			$prefix.'country' => __('Shipping Country','Shopp'),
+			$prefix.'postcode' => __('Shipping Postal Code','Shopp'),
+			);
+	}
+	
 	/**
 	 * postarea()
 	 * Determines the domestic area name from a 

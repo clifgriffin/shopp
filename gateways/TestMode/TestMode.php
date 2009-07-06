@@ -59,7 +59,7 @@ class TestMode {
 	
 	function registerSettings () {
 		?>
-		gatewayHandlers.register('<?php echo addslashes(__FILE__); ?>','testmode-settings');
+		gatewayHandlers.register('<?php echo addslashes(gateway_path(__FILE__)); ?>','testmode-settings');
 		<?php
 	}
 	

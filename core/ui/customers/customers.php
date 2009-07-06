@@ -1,26 +1,22 @@
 <div class="wrap shopp">
-	<h2><?php _e('Orders','Shopp'); ?></h2>
+	<h2><?php _e('Customers','Shopp'); ?></h2>
 
 	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="orders" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $page; ?>" />
 		<input type="hidden" name="status" value="<?php echo $status; ?>" />
 	</div>
-	<?php include("navigation.php"); ?>
+	<?php //include("navigation.php"); ?>
 
 	<br class="clear" />
 	<p id="post-search" class="search-box">
-		<input type="text" id="orders-search-input" class="search-input" name="s" value="<?php echo attribute_escape($s); ?>" />
-		<input type="submit" value="<?php _e('Search Orders','Shopp'); ?>" class="button" />
+		<input type="text" id="customers-search-input" class="search-input" name="s" value="<?php echo attribute_escape($s); ?>" />
+		<input type="submit" value="<?php _e('Search','Shopp'); ?>" class="button" />
 	</p>
 	
 	<div class="tablenav">
 		<div class="alignleft actions">
-			<button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
-			<select name="newstatus">
-				<?php echo menuoptions($statusLabels,false,true); ?>
-			</select>
-			<button type="submit" id="update-button" name="update" value="order" class="button-secondary"><?php _e('Update','Shopp'); ?></button>
+			<button type="submit" id="delete-button" name="deleting" value="customer" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
 			<span class="filtering">
 			<select name="range" id="range">
 				<?php echo menuoptions($ranges,$range,true); ?>
@@ -30,7 +26,7 @@
 			<small>to</small>
 			<div id="end-position" class="calendar-wrap"><input type="text" id="end" name="end" value="<?php echo $enddate; ?>" size="10" class="search-input selectall" /></div>
 			</span>
-			<button type="submit" id="filter-button" name="filter" value="order" class="button-secondary"><?php _e('Filter','Shopp'); ?></button>
+			<button type="submit" id="filter-button" name="filter" value="customers" class="button-secondary"><?php _e('Filter','Shopp'); ?></button>
 			</span>
 			</div>
 			<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
@@ -41,64 +37,64 @@
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php shopp_print_column_headers('toplevel_page_shopp-orders'); ?></tr>
+		<tr><?php shopp_print_column_headers('shopp_page_shopp-customers'); ?></tr>
 		</thead>
 		<?php if (SHOPP_WP27): ?>
 		<tfoot>
-		<tr><?php shopp_print_column_headers('toplevel_page_shopp-orders',false); ?></tr>
+		<tr><?php shopp_print_column_headers('shopp_page_shopp-customers',false); ?></tr>
 		</tfoot>
 		<?php endif; ?>
-	<?php if (sizeof($Orders) > 0): ?>
-		<tbody id="orders-table" class="list orders">
+	<?php if (sizeof($Customers) > 0): ?>
+		<tbody id="customers-table" class="list orders">
 		<?php 
-			if (SHOPP_WP27) $hidden = get_hidden_columns('toplevel_page_shopp-orders');
+			if (SHOPP_WP27) $hidden = get_hidden_columns('shopp_page_shopp-customers');
  			else $hidden = array();
 			
-			$even = false; foreach ($Orders as $Order): ?>
+			$even = false; foreach ($Customers as $Customer): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
-			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Order->id; ?>' /></th>
-			<td class="order column-order<?php echo in_array('order',$hidden)?' hidden':''; ?>"><?php echo $Order->id; ?></td>
-			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>$this->Admin->orders,'id'=>$Order->id),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo (empty($Order->firstname) && empty($Order->lastname))?"(".__('no contact name').")":"{$Order->firstname} {$Order->lastname}"; ?></a><?php echo !empty($Order->company)?"<br />$Order->company":""; ?></td>
-			<td class="destination column-destination<?php echo in_array('destination',$hidden)?' hidden':''; ?>"><?php 
+			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Customer->id; ?>' /></th>
+			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>$this->Admin->editcustomer,'id'=>$Customer->id),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Customer->id; ?>&quot;'><?php echo (empty($Customer->firstname) && empty($Customer->lastname))?"(".__('no contact name').")":"{$Customer->firstname} {$Customer->lastname}"; ?></a><?php echo !empty($Customer->company)?"<br />$Customer->company":""; ?></td>
+			<td class="login column-login<?php echo in_array('login',$hidden)?' hidden':''; ?>"><?php echo $Customer->user_login; ?></td>
+			<td class="email column-email<?php echo in_array('email',$hidden)?' hidden':''; ?>"><a href="mailto:<?php echo $Customer->email; ?>"><?php echo $Customer->email; ?></a></td>
+			
+			<td class="location column-location<?php echo in_array('location',$hidden)?' hidden':''; ?>"><?php 
 				$location = '';
-				$location = $Order->shipcity;
-				if (!empty($location) && !empty($Order->shipstate)) $location .= ', ';
-				$location .= $Order->shipstate;
-				if (!empty($location) && !empty($Order->shipcountry))
+				$location = $Customer->city;
+				if (!empty($location) && !empty($Customer->state)) $location .= ', ';
+				$location .= $Customer->state;
+				if (!empty($location) && !empty($Customer->country))
 					$location .= ' &mdash; ';
-				$location .= $Order->shipcountry;
+				$location .= $Customer->country;
 				echo $location;
 				 ?></td>
-			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><?php echo money($Order->total); ?></td>
-			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->transactionid; ?><br /><strong><?php echo $Order->gateway; ?></strong></td>
-			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Order->created)); ?><br />
-				<strong><?php echo $statusLabels[$Order->status]; ?></strong></td>
+			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><?php echo $Customer->orders; ?> &mdash; <?php echo money($Customer->total); ?></td>
+			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Customer->created)); ?></td>
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
 	<?php else: ?>
-		<tbody><tr><td colspan="6"><?php _e('No','Shopp'); ?><?php if (isset($_GET['status'])) echo ' '.strtolower($statusLabels[$_GET['status']]); ?> <?php _e('orders, yet.','Shopp'); ?></td></tr></tbody>
+		<tbody><tr><td colspan="6"><?php _e('No','Shopp'); ?> <?php _e('customers, yet.','Shopp'); ?></td></tr></tbody>
 	<?php endif; ?>
 	</table>
 	
 	</form>
 	<div class="tablenav">
 		<div class="alignleft actions">
-			<form action="<?php echo add_query_arg(array_merge($_GET,array('lookup'=>'purchaselog')),$Shopp->wpadminurl."admin.php"); ?>" id="log" method="post">
+			<form action="<?php echo add_query_arg(array_merge($_GET,array('lookup'=>'customerexport')),$Shopp->wpadminurl."admin.php"); ?>" id="log" method="post">
 			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Export Options','Shopp'); ?></button>
 			<span id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">
 				<ul>
 					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_columns" id="selectall_columns" /><label for="selectall_columns"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>	
-					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="hidden" name="settings[purchaselog_headers]" value="off" /><input type="checkbox" name="settings[purchaselog_headers]" id="purchaselog_headers" value="on" /><label for="purchaselog_headers"><strong><?php _e('Include column headings','Shopp'); ?></strong></label></li>	
+					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="hidden" name="settings[customerexport_headers]" value="off" /><input type="checkbox" name="settings[customerexport_headers]" id="purchaselog_headers" value="on" /><label for="purchaselog_headers"><strong><?php _e('Include column headings','Shopp'); ?></strong></label></li>	
 					
 					<?php $even = true; foreach ($columns as $name => $label): ?>
-						<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[purchaselog_columns][]" value="<?php echo $name; ?>" id="column-<?php echo $name; ?>" <?php echo in_array($name,$selected)?' checked="checked"':''; ?> /><label for="column-<?php echo $name; ?>" ><?php echo $label; ?></label></li>
+						<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[customerexport_columns][]" value="<?php echo $name; ?>" id="column-<?php echo $name; ?>" <?php echo in_array($name,$selected)?' checked="checked"':''; ?> /><label for="column-<?php echo $name; ?>" ><?php echo $label; ?></label></li>
 					<?php endforeach; ?>
 					
 				</ul>
 			</div><br />
-			<select name="settings[purchaselog_format]">
+			<select name="settings[customerexport_format]">
 				<?php echo menuoptions($exports,$formatPref,true); ?>
 			</select></span>
 			<button type="submit" id="download-button" name="download" value="export" class="button-secondary"><?php _e('Download','Shopp'); ?></button>
@@ -113,13 +109,14 @@
 
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Managing Orders";
-var lastexport = new Date(<?php echo date("Y,(n-1),j",$Shopp->Settings->get('purchaselog_lastexport')); ?>);
+var lastexport = new Date(<?php echo date("Y,(n-1),j",$Shopp->Settings->get('customerexport_lastexport')); ?>);
 
-jQuery(document).ready( function() {
-	$=jQuery.noConflict();
+$=jQuery.noConflict();
+
+$(document).ready( function() {
 	
 $('#selectall').change( function() {
-	$('#orders-table th input').each( function () {
+	$('#customers-table th input').each( function () {
 		if (this.checked) this.checked = false;
 		else this.checked = true;
 	});
@@ -127,11 +124,6 @@ $('#selectall').change( function() {
 
 $('#delete-button').click(function() {
 	if (confirm("<?php _e('Are you sure you want to delete the selected orders?','Shopp'); ?>")) return true;
-	else return false;
-});
-
-$('#update-button').click(function() {
-	if (confirm("<?php _e('Are you sure you want to update the status of the selected orders?','Shopp'); ?>")) return true;
 	else return false;
 });
 
@@ -294,7 +286,7 @@ $('#selectall_columns').change(function () {
 	else $('#export-columns input').not(this).attr('checked',false); 
 });
 
-<?php if (SHOPP_WP27): ?>columns.init('toplevel_page_shopp-orders');<?php endif; ?>
+<?php if (SHOPP_WP27): ?>columns.init('shopp_page_shopp-customers');<?php endif; ?>
 
 });
 

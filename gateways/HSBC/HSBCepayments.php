@@ -4,7 +4,7 @@
  * @class HSBCepayments
  *
  * @author Jonathan Davis
- * @version 1.0.3
+ * @version 1.0.4
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
  **/
@@ -167,7 +167,7 @@ class HSBCepayments {
 	
 	function registerSettings () {
 		?>
-		gatewayHandlers.register('<?php echo addslashes(__FILE__); ?>','hsbcepayments-settings');
+		gatewayHandlers.register('<?php echo addslashes(gateway_path(__FILE__)); ?>','hsbcepayments-settings');
 		<?php
 	}
 

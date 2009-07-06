@@ -169,7 +169,7 @@ function shopp_email ($template,$data=array()) {
 		if ( $in_body ) $message .= $line."\n";
 	}
 
-	if (!$debug) mail($to,$subject,$message,$headers);
+	if (!$debug) return mail($to,$subject,$message,$headers);
 	else {
 		echo "<pre>";
 		echo "To: $to\n";

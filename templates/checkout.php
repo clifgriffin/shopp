@@ -4,12 +4,12 @@
 <?php if (shopp('cart','hasitems')): ?>
 	<?php shopp('checkout','function'); ?>
 	<ul>
-		<?php if (shopp('checkout','notloggedin')): ?>
+		<?php if (shopp('customer','notloggedin')): ?>
 		<li>
 			<label for="login">Login to Your Account</label>
-			<span><?php shopp('checkout','email-login','size=20&title=Login'); ?><label for="login">Email</label></span>
-			<span><?php shopp('checkout','password-login','size=20&title=Password'); ?><label for="password">Password</label></span>
-			<span><?php shopp('checkout','submit-login','value=Login'); ?></span>
+			<span><?php shopp('customer','email-login','size=20&title=Login'); ?><label for="login">Email</label></span>
+			<span><?php shopp('customer','password-login','size=20&title=Password'); ?><label for="password">Password</label></span>
+			<span><?php shopp('customer','submit-login','value=Login'); ?></span>
 		</li>
 		<li></li>
 		<?php endif; ?>
@@ -26,7 +26,7 @@
 			<span><?php shopp('checkout','email','required=true&format=email&size=30&title=Email'); ?>
 			<label for="email">Email</label></span>
 		</li>
-		<?php if (shopp('checkout','notloggedin')): ?>
+		<?php if (shopp('customer','notloggedin')): ?>
 		<li>
 			<span><?php shopp('checkout','password','required=true&format=passwords&size=16&title=Password'); ?>
 			<label for="email">Password</label></span>

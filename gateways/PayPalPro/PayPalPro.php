@@ -237,7 +237,7 @@ class PayPalPro {
 	
 	function registerSettings () {
 		?>
-		gatewayHandlers.register('<?php echo addslashes(__FILE__); ?>','paypalpro-settings');
+		gatewayHandlers.register('<?php echo addslashes(gateway_path(__FILE__)); ?>','paypalpro-settings');
 		<?php
 	}
 

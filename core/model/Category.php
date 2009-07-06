@@ -492,7 +492,7 @@ class Category extends DatabaseObject {
 		$db = DB::get();
 
 		$page = $Shopp->link('catalog');
-		if (SHOPP_PERMALINKS) $imageuri = $page."images/";
+		if (SHOPP_PERMALINKS) $imageuri = trailingslashit($page)."images/";
 		else $imageuri = add_query_arg('shopp_image','=',$page);
 		
 		if (SHOPP_PERMALINKS) {
@@ -604,7 +604,7 @@ class Category extends DatabaseObject {
 				if (value_is_true($dropdown)) {
 					$string .= $title;
 					$string .= '<select name="shopp_cats" id="shopp-'.$this->slug.'-subcategories-menu" class="shopp-categories-menu">';
-					$string .= '<option value="">Select a sub-category&hellip;</option>';
+					$string .= '<option value="">'.__('Select a sub-category&hellip;','Shopp').'</option>';
 					foreach ($this->children as &$category) {
 						if (value_is_true($hierarchy) && $depthlimit && $category->depth >= $depthlimit) continue;
 						if ($category->products == 0) continue; // Only show categories with products
@@ -719,7 +719,7 @@ class Category extends DatabaseObject {
 				if (value_is_true($dropdown)) {
 					$string .= $title;
 					$string .= '<select name="shopp_cats" id="shopp-'.$this->slug.'-subcategories-menu" class="shopp-categories-menu">';
-					$string .= '<option value="">Select a sub-category&hellip;</option>';
+					$string .= '<option value="">'.__('Select a sub-category&hellip;','Shopp').'</option>';
 					foreach ($section as &$category) {
 						if (value_is_true($hierarchy) && $depthlimit && $category->depth >= $depthlimit) continue;
 						if (in_array($category->id,$exclude)) continue; // Skip excluded categories
@@ -793,7 +793,8 @@ class Category extends DatabaseObject {
 				break;
 			case "pagination":
 				if (!$this->paged) return "";
-								
+				
+				global $wp;	
 				// Set options
 				if (!isset($options['label'])) $options['label'] = __("Pages:","Shopp");
 				if (!isset($options['next'])) $options['next'] = __("next","Shopp");
@@ -808,14 +809,17 @@ class Category extends DatabaseObject {
 				$after = "</div>";
 				if (!empty($options['after'])) $after = $options['after'];
 
+				$type = "category";
+				if (isset($wp->query_vars['shopp_tag'])) $type = "tag";
+
 				$string = "";
 				if (isset($this->alpha) && $this->paged) {
 
 					$string .= '<ul class="paging">';
 					foreach ($this->alpha as $alpha) {
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."category/$this->uri/page/$alpha->letter/":
-							"$page&shopp_category=$this->uri&paged=$alpha->letter";
+							"$page"."$type/$this->uri/page/$alpha->letter/":
+							"$page&shopp_$type=$this->uri&paged=$alpha->letter";
 						if ($alpha->total > 0)
 							$string .= '<li><a href="'.$link.'">'.$alpha->letter.'</a></li>';
 						else $string .= '<li><span>'.$alpha->letter.'</span></li>';
@@ -840,15 +844,15 @@ class Category extends DatabaseObject {
 						if ($visible_pages > $this->pages) $visible_pages = $this->pages + 1;
 						if ($i > 1) {
 							$link = (SHOPP_PERMALINKS)?
-								"$page"."category/$this->uri/page/$i/":
-								"$page&shopp_category=$this->uri&paged=$i";
+								"$page"."$type/$this->uri/page/$i/":
+								"$page&shopp_$type=$this->uri&paged=$i";
 							$string .= '<li><a href="'.$link.'">1</a></li>';
 
 							$pagenum = ($this->page - $jumps);
 							if ($pagenum < 1) $pagenum = 1;
 							$link = (SHOPP_PERMALINKS)?
-								"$page"."category/$this->uri/page/$pagenum/":
-								"$page&shopp_category=$this->uri&paged=$pagenum";
+								"$page"."$type/$this->uri/page/$pagenum/":
+								"$page&shopp_$type=$this->uri&paged=$pagenum";
 								
 							$string .= '<li><a href="'.$link.'">&laquo;</a></li>';
 						}
@@ -858,16 +862,16 @@ class Category extends DatabaseObject {
 					if (!value_is_true($options['previous']) && $this->page > 1) {
 						$prev = $this->page-1;
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."category/$this->uri/page/$prev/":
-							"$page&shopp_category=$this->uri&paged=$prev";
+							"$page"."$type/$this->uri/page/$prev/":
+							"$page&shopp_$type=$this->uri&paged=$prev";
 						$string .= '<li class="previous"><a href="'.$link.'">'.$options['previous'].'</a></li>';
 					} else $string .= '<li class="previous disabled">'.$options['previous'].'</li>';
 					// end previous button
 
 					while ($i < $visible_pages) {
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."category/$this->uri/page/$i/":
-							"$page&shopp_category=$this->uri&paged=$i";
+							"$page"."$type/$this->uri/page/$i/":
+							"$page&shopp_$type=$this->uri&paged=$i";
 						if ( $i == $this->page ) $string .= '<li class="active">'.$i.'</li>';
 						else $string .= '<li><a href="'.$link.'">'.$i.'</a></li>';
 						$i++;
@@ -876,13 +880,13 @@ class Category extends DatabaseObject {
 						$pagenum = ($this->page + $jumps);
 						if ($pagenum > $this->pages) $pagenum = $this->pages;
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."category/$this->uri/page/$pagenum/":
-							"$page&shopp_category=$this->uri&paged=$pagenum";
+							"$page"."$type/$this->uri/page/$pagenum/":
+							"$page&shopp_$type=$this->uri&paged=$pagenum";
 						$string .= '<li><a href="'.$link.'">&raquo;</a></li>';
 
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."category/$this->uri/page/$this->pages/":
-							"$page&shopp_category=$this->uri&paged=$this->pages";
+							"$page"."$type/$this->uri/page/$this->pages/":
+							"$page&shopp_$type=$this->uri&paged=$this->pages";
 						$string .= '<li><a href="'.$link.'">'.$this->pages.'</a></li>';	
 					}
 					
@@ -890,8 +894,8 @@ class Category extends DatabaseObject {
 					if (!value_is_true($options['next']) && $this->page < $this->pages) {						
 						$next = $this->page+1;
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."category/$this->uri/page/$next/":
-							"$page&shopp_category=$this->uri&paged=$next";
+							"$page"."$type/$this->uri/page/$next/":
+							"$page&shopp_$type=$this->uri&paged=$next";
 						$string .= '<li class="next"><a href="'.$link.'">'.$options['next'].'</a></li>';
 					} else $string .= '<li class="next disabled">'.$options['next'].'</li>';
 					
@@ -1281,7 +1285,7 @@ class RandomProducts extends Category {
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
-		$this->loading = array('where'=>'true','order'=>'RAND()');
+		$this->loading = array('where'=>'true','orderby'=>'RAND()');
 		if (isset($options['exclude'])) {
 			$where = array();
 			$excludes = split(",",$options['exclude']);

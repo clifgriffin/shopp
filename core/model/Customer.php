@@ -12,6 +12,8 @@
 class Customer extends DatabaseObject {
 	static $table = "customer";
 	
+	var $login;
+	
 	var $management = array(
 		"account" => "My Account",
 		"downloads" => "Downloads",
@@ -98,6 +100,62 @@ class Customer extends DatabaseObject {
 			$Purchase->updates($p);
 			$p = $Purchase;
 		}
+	}
+	
+	function new_wpuser () {
+		global $Shopp;
+		require_once(ABSPATH."/wp-includes/registration.php");
+
+		if (!empty($this->login)) $handle = $this->login;
+		else {
+			// No login provided, auto-generate login handle
+			list($handle,$domain) = split("@",$Order->Customer->email);
+
+			if (username_exists($handle)) // The email handle exists, so use first name + last initial
+				$handle = $this->firstname.substr($this->lastname,0,1);
+
+			if (username_exists($handle)) {
+				// The first name+last initial handle exists, so use first initial + last name
+				$handle = substr($this->firstname,0,1).$this->lastname;
+				// That exists too *bangs head on wall*, ok add a random number too :P
+				if (username_exists($handle)) $handle .= rand(1000,9999);
+			}
+		}
+		
+		if (username_exists($handle))
+			new ShoppError(__('The login name you provided is already in use.  Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
+		
+		// Create the WordPress account
+		$wpuser = wp_insert_user(array(
+			'user_login' => $handle,
+			'user_pass' => $this->password,
+			'user_email' => $this->email,
+			'display_name' => $this->firstname.' '.$this->Customer->lastname,
+			'nickname' => $handle,
+			'first_name' => $this->firstname,
+			'last_name' => $this->lastname
+		));
+		
+		if (!$wpuser) return false;
+		
+		// Link the WP user ID to this customer record
+		$this->wpuser = $wpuser;
+		if (WP_DEBUG) new ShoppError('Successfully created the WordPress user for the Shopp account.',false,SHOPP_DEBUG_ERR);
+		return true;
+	}
+	
+	function exportcolumns () {
+		$prefix = "c.";
+		return array(
+			$prefix.'firstname' => __('Customer\'s First Name','Shopp'),
+			$prefix.'lastname' => __('Customer\'s Last Name','Shopp'),
+			$prefix.'email' => __('Customer\'s Email Address','Shopp'),
+			$prefix.'phone' => __('Customer\'s Phone Number','Shopp'),
+			$prefix.'company' => __('Customer\'s Company','Shopp'),
+			$prefix.'info' => __('Customer\'s Custom Information','Shopp'),
+			$prefix.'created' => __('Customer Created Date','Shopp'),
+			$prefix.'modified' => __('Customer Last Updated Date','Shopp'),
+			);
 	}
 	
 	function tag ($property,$options=array()) {
@@ -338,5 +396,178 @@ class Customer extends DatabaseObject {
 	}
 
 } // end Customer class
+
+class CustomersExport {
+	var $sitename = "";
+	var $headings = false;
+	var $data = false;
+	var $defined = array();
+	var $customer_cols = array();
+	var $billing_cols = array();
+	var $shipping_cols = array();
+	var $selected = array();
+	var $recordstart = true;
+	var $content_type = "text/plain";
+	var $extension = "txt";
+	
+	function CustomersExport () {
+		global $Shopp;
+		
+		$this->customer_cols = Customer::exportcolumns();
+		$this->billing_cols = Billing::exportcolumns();
+		$this->shipping_cols = Shipping::exportcolumns();
+		$this->defined = array_merge($this->customer_cols,$this->billing_cols,$this->shipping_cols);
+		
+		$this->sitename = get_bloginfo('name');
+		$this->headings = ($Shopp->Settings->get('customerexport_headers') == "on");
+		$this->selected = $Shopp->Settings->get('customerexport_columns');
+		$Shopp->Settings->save('customerexport_lastexport',mktime());
+	}
+	
+	function query ($request=array()) {
+		$db =& DB::get();
+		if (empty($request)) $request = $_GET;
+		
+		if (!empty($request['start'])) {
+			list($month,$day,$year) = split("/",$request['start']);
+			$starts = mktime(0,0,0,$month,$day,$year);
+		}
+		
+		if (!empty($request['end'])) {
+			list($month,$day,$year) = split("/",$request['end']);
+			$ends = mktime(0,0,0,$month,$day,$year);
+		}
+		
+		$where = "WHERE c.id IS NOT NULL ";
+		if (isset($request['status'])) $where .= "AND status='{$request['status']}'";
+		if (isset($request['s']) && !empty($request['s'])) $where .= " AND (id='{$request['s']}' OR firstname LIKE '%{$request['s']}%' OR lastname LIKE '%{$request['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$request['s']}%' OR transactionid LIKE '%{$request['s']}%')";
+		if (!empty($request['start']) && !empty($request['end'])) $where .= " AND  (UNIX_TIMESTAMP(c.created) >= $starts AND UNIX_TIMESTAMP(c.created) <= $ends)";
+		
+		$customer_table = DatabaseObject::tablename(Customer::$table);
+		$billing_table = DatabaseObject::tablename(Billing::$table);
+		$shipping_table = DatabaseObject::tablename(Shipping::$table);
+		
+		$c = 0; $columns = array();
+		foreach ($this->selected as $column) $columns[] = "$column AS col".$c++;
+		$query = "SELECT ".join(",",$columns)." FROM $customer_table AS c LEFT JOIN $billing_table AS b ON c.id=b.customer LEFT JOIN $shipping_table AS s ON c.id=s.customer $where ORDER BY c.created ASC";
+		$this->data = $db->query($query,AS_ARRAY);
+	}
+
+	// Implement for exporting all the data
+	function output () {
+		if (!$this->data) $this->query();
+		if (!$this->data) return false;
+
+		header("Content-type: $this->content_type; charset=UTF-8");
+		header("Content-Disposition: attachment; filename=\"$this->sitename Customer Export.$this->extension\"");
+		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+		header("Cache-Control: maxage=1");
+		header("Pragma: public");
+
+		$this->begin();
+		if ($this->headings) $this->heading();
+		$this->records();
+		$this->end();
+	}
+	
+	function begin() {}
+	
+	function heading () {
+		foreach ($this->selected as $name)
+			$this->export($this->defined[$name]);
+		$this->record();
+	}
+	
+	function records () {
+		foreach ($this->data as $key => $record) {
+			foreach(get_object_vars($record) as $column)
+				$this->export($this->parse($column));
+			$this->record();
+		}
+	}
+	
+	function parse ($column) {
+		if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$column)) {
+			$list = unserialize($column);
+			$column = "";
+			foreach ($list as $name => $value)
+				$column .= (empty($column)?"":";")."$name:$value";
+		}
+		return $column;
+	}
+
+	function end() {}
+	
+	// Implement for exporting a single value
+	function export ($value) {
+		echo ($this->recordstart?"":"\t").$value;
+		$this->recordstart = false;
+	}
+	
+	function record () {
+		echo "\n";
+		$this->recordstart = true;
+	}
+	
+}
+
+class CustomersTabExport extends CustomersExport {
+	function CustomersTabExport () {
+		parent::CustomersExport();
+		$this->output();
+	}
+}
+
+class CustomersCSVExport extends CustomersExport {
+	function CustomersCSVExport () {
+		parent::CustomersExport();
+		$this->content_type = "text/csv";
+		$this->extension = "csv";
+		$this->output();
+	}
+	
+	function export ($value) {
+		$value = str_replace('"','""',$value);
+		if (preg_match('/^\s|[,"\n\r]|\s$/',$value)) $value = '"'.$value.'"';
+		echo ($this->recordstart?"":",").$value;
+		$this->recordstart = false;
+	}
+	
+}
+
+class CustomersXLSExport extends CustomersExport {
+	function CustomersXLSExport () {
+		parent::CustomersExport();
+		$this->content_type = "application/vnd.ms-excel";
+		$this->extension = "xls";
+		$this->c = 0; $this->r = 0;
+		$this->output();
+	}
+	
+	function begin () {
+		echo pack("ssssss", 0x809, 0x8, 0x0, 0x10, 0x0, 0x0);
+	}
+	
+	function end () {
+		echo pack("ss", 0x0A, 0x00);
+	}
+	
+	function export ($value) {
+		if (preg_match('/^[\d\.]+$/',$value)) {
+		 	echo pack("sssss", 0x203, 14, $this->r, $this->c, 0x0);
+			echo pack("d", $value);
+		} else {
+			$l = strlen($value);
+			echo pack("ssssss", 0x204, 8+$l, $this->r, $this->c, 0x0, $l);
+			echo $value;
+		}
+		$this->c++;
+	}
+	
+	function record () {
+		$this->c = 0;
+		$this->r++;
+	}
+}
 
 ?>

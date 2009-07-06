@@ -174,11 +174,7 @@ class Item {
 	
 	function tag ($id,$property,$options=array()) {
 		global $Shopp;
-		
-		
-		if (SHOPP_PERMALINKS) $imageuri = $Shopp->shopuri."images/";
-		$imageuri =  $Shopp->shopuri."?shopp_image=";
-		
+
 		// Return strings with no options
 		switch ($property) {
 			case "id": return $id;
@@ -309,8 +305,8 @@ class Item {
 					$img = $this->thumbnail;
 					$width = (isset($options['width']))?$options['width']:$img->properties['height'];
 					$height = (isset($options['height']))?$options['height']:$img->properties['height'];
-					
-					return '<img src="'.$imageuri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />'; break;
+
+					return '<img src="'.$Shopp->imguri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />'; break;
 				}
 			
 		}
