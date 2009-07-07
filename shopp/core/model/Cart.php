@@ -1086,6 +1086,9 @@ class Cart {
 					else $result = $this->data->Totals->shipping;
 				}
 				break;
+			case "hastaxes":
+			case "has-taxes":
+				return ($this->data->Totals->tax > 0); break;
 			case "tax": 
 				if ($this->data->Totals->tax > 0) {
 					if (isset($options['label'])) {

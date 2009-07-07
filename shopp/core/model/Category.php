@@ -1285,7 +1285,7 @@ class RandomProducts extends Category {
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
-		$this->loading = array('where'=>'true','orderby'=>'RAND()');
+		$this->loading = array('where'=>'true','order'=>'random');
 		if (isset($options['exclude'])) {
 			$where = array();
 			$excludes = split(",",$options['exclude']);

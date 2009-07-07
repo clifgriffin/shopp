@@ -19,7 +19,7 @@ class Customer extends DatabaseObject {
 		"downloads" => "Downloads",
 		"history" => "Order History",
 		"status" => "Order Status",
-		"logout" => "Logout"
+		"logout" => "Logout",
 		);
 	
 	function Customer ($id=false,$key=false) {
@@ -30,12 +30,16 @@ class Customer extends DatabaseObject {
 	
 	function management () {
 		global $Shopp;
-		
+
 		switch ($_GET['acct']) {
 			case "receipt": break;
 			case "history": $this->load_orders(); break;
 			case "downloads": $this->load_downloads(); break;
-			case "logout": $Shopp->Cart->logout(); break;
+			case "logout": 
+				$Shopp->Cart->logout(); 
+				if ($Shopp->Settings->get('account_system') == "wordpress")
+					wp_logout();
+				break;
 		}
 		
 		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
@@ -72,6 +76,125 @@ class Customer extends DatabaseObject {
 			$this->save();
 		}
 		
+	}
+	
+	function recovery () {
+		global $Shopp;
+		
+		$errors = array();
+		
+		// Check email or login supplied
+		if (empty($_POST['email-login']) && empty($_POST['loginname-login']))
+			$errors[] = new ShoppError(__('Enter an email address or login name','Shopp'));
+		
+		// Check login exists
+		if (isset($_POST['email-login']) && !empty($_POST['email-login'])) {
+			$RecoveryCustomer = new Customer($_POST['email-login'],'email');
+			if (!$RecoveryCustomer->id)
+				$errors[] = new ShoppError(__('There is no user registered with that email address.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);
+		}
+		if (isset($_POST['loginname-login']) && !empty($_POST['loginname-login'])) {
+			$user_data = get_userdatabylogin($login);
+			$RecoveryCustomer->load($user_data->ID,'wpuser');			
+			$errors[] = new ShoppError(__('There is no user registered with that login name.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);
+		}
+		
+		// return errors
+		if (!empty($errors)) {
+			header("Location: ".add_query_arg('acct','recover',$Shopp->link('account')));
+			exit();
+		}
+
+		// Generate new key
+		$RecoveryCustomer->activation = wp_generate_password(20, false);
+		do_action_ref_array('shopp_generate_password_key', array(&$RecoveryCustomer));
+		$RecoveryCustomer->save();
+
+		$subject = apply_filters('shopp_recover_password_subject', sprintf(__('[%s] Password Recovery Request','Shopp'),get_option('blogname')));
+		
+		$_ = array();
+		$_[] = 'From: "'.get_option('blogname').'" <'.$Shopp->Settings->get('merchant_email').'>';
+		$_[] = 'To: '.$RecoveryCustomer->email;
+		$_[] = 'Subject: '.$subject;
+		$_[] = '';
+		$_[] = __('A request has beem made to reset the password for the following site and account:','Shopp');
+		$_[] = get_option('siteurl');
+		$_[] = '';
+		if (isset($_POST['email-login']))
+			$_[] = sprintf(__('Email: %s','Shopp'), $RecoveryCustomer->email);
+		if (isset($_POST['loginname-login']))
+			$_[] = sprintf(__('Login name: %s','Shopp'), $user_data->user_login);
+		$_[] = '';
+		$_[] = __('To reset your password visit the following address, otherwise just ignore this email and nothing will happen.');
+		$_[] = '';
+		$_[] = add_query_arg(array('acct'=>'rp','key'=>$RecoveryCustomer->activation),$Shopp->link('account'));
+		$message = apply_filters('shopp_recover_password_message',join("\r\n",$_));
+		
+		if (!shopp_email($message)) {
+			new ShoppError(__('The e-mail could not be sent.'),'password_recovery_email',SHOPP_ERR);
+			header("Location: ".add_query_arg('acct','recover',$Shopp->link('account')));
+			exit();
+		} else {
+			new ShoppError(__('Check your email address for instructions on resetting the password for your account.','Shopp'),'password_recovery_email',SHOPP_ERR);
+		}
+
+	}
+	
+	function reset_password ($activation) {
+		global $Shopp;
+		$authentication = $Shopp->Settings->get('account_system');
+		
+		$user_data = false;
+		$activation = preg_replace('/[^a-z0-9]/i', '', $activation);
+
+		$errors = array();
+		if (empty($activation))
+			$errors[] = new ShoppError(__('Invalid key'));
+		
+		$RecoveryCustomer = new Customer($activation,'activation');
+		if (empty($RecoveryCustomer->id)) 
+			$errors[] = new ShoppError(__('Invalid key'));
+		
+		if (!empty($errors)) return false;
+
+		// Generate a new random password
+		$password = wp_generate_password();
+		
+		do_action_ref_array('password_reset', array(&$RecoveryCustomer,$password));
+		
+		$RecoveryCustomer->password = wp_hash_password($password);
+		if ($authentication == "wordpress") {
+			$user_data = get_userdata($RecoveryCustomer->wpuser);
+			wp_set_password($password, $user_data->ID);
+		}
+		
+		$RecoveryCustomer->activation = '';
+		$RecoveryCustomer->save();
+		
+		$subject = apply_filters('shopp_recover_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
+		
+		$_ = array();
+		$_[] = 'From: "'.get_option('blogname').'" <'.$Shopp->Settings->get('merchant_email').'>';
+		$_[] = 'To: '.$RecoveryCustomer->email;
+		$_[] = 'Subject: '.$subject;
+		$_[] = '';
+		$_[] = sprintf(__('Your new password for %s:','Shopp'),get_option('siteurl'));
+		$_[] = '';
+		if ($user_data)
+			$_[] = sprintf(__('Login name: %s','Shopp'), $user_data->user_login);
+		$_[] = sprintf(__('Password: %s'), $password) . "\r\n";
+		$_[] = '';
+		$_[] = __('Click here to login:').' '.$Shopp->link('account');
+		$message = apply_filters('shopp_reset_password_message',join("\r\n",$_));
+		
+		if (!shopp_email($message)) {
+			new ShoppError(__('The e-mail could not be sent.'),'password_reset_email',SHOPP_ERR);
+			header("Location: ".add_query_arg('acct','recover',$Shopp->link('account')));
+			exit();
+		} else {
+			new ShoppError(__('Check your email address for your new password.','Shopp'),'password_reset_email',SHOPP_ERR);
+		}
+		unset($_GET['acct']);
 	}
 	
 	function load_downloads () {
@@ -164,6 +287,7 @@ class Customer extends DatabaseObject {
 		// Return strings with no options
 		switch ($property) {
 			case "url": return $Shopp->link('account');
+			case "recover-url": return add_query_arg('acct','recover',$Shopp->link('account'));
 			case "process":
 				if (isset($_GET['acct'])) return $_GET['acct'];
 				return false;
@@ -185,8 +309,14 @@ class Customer extends DatabaseObject {
 					$options['value'] = $_POST['password-login']; 
 				return '<input type="password" name="password-login" id="password-login"'.inputattrs($options).' />';
 				break;
+			case "recover-button":
+				if (!isset($options['value'])) $options['value'] = __('Get New Password','Shopp');
+				$string .= '<input type="submit" name="recover-login" id="recover-button"'.inputattrs($options).' />';
+				return $string;
+				break;
 			case "submit-login": // Deprecating
 			case "login-button":
+				if (!isset($options['value'])) $options['value'] = __('Login','Shopp');
 				$string = '<input type="hidden" name="process-login" id="process-login" value="true" />';
 				$string .= '<input type="submit" name="submit-login" id="submit-login"'.inputattrs($options).' />';
 				return $string;

@@ -29,14 +29,14 @@ function tb_init(domChunk){
 	var t = this.title || this.name || null;
 	var a = this.href || this.alt;
 	var g = this.rel || false;
-	tb_show(t,a,g);
+	tb_show(t,a,g,true);
 	this.blur();
 	return false;
 	});
 }
 
-tb_show = function (caption, url, imageGroup) {//function called when the user clicks on a thickbox link
-
+tb_show = function (caption, url, imageGroup, init) {//function called when the user clicks on a thickbox link
+	
 	try {
 		if (typeof document.body.style.maxHeight === "undefined") {//if IE 6
 			$("body","html").css({height: "100%", width: "100%"});
@@ -52,13 +52,13 @@ tb_show = function (caption, url, imageGroup) {//function called when the user c
 			}
 		}
 		
-		$("#TB_overlay").hide();
+		if (init) $("#TB_overlay").hide();
 		if(tb_detectMacXFF()){
 			$("#TB_overlay").addClass("TB_overlayMacFFBGHack");//use png overlay so hide flash
 		}else{
 			$("#TB_overlay").addClass("TB_overlayBG");//use background and opacity
 		}
-		$("#TB_overlay").fadeIn(500);
+		if (init) $("#TB_overlay").fadeIn(500);
 		
 		if(caption===null){caption="";}
 		$("body").append("<div id='TB_load'><img src='"+imgLoader.src+"' /></div>");//add loader to the page
@@ -92,15 +92,15 @@ tb_show = function (caption, url, imageGroup) {//function called when the user c
 							if (TB_FoundURL) {
 								TB_NextCaption = TB_TempArray[TB_Counter].title;
 								TB_NextURL = TB_TempArray[TB_Counter].href;
-								TB_NextHTML = "<span id='TB_next'>&nbsp;&nbsp;<a href='#'>Next &gt;</a></span>";
+								TB_NextHTML = "<span id='TB_next'>&nbsp;&nbsp;<a href='#'>"+SHOPP_TB_NEXT+" &gt;</a></span>";
 							} else {
 								TB_PrevCaption = TB_TempArray[TB_Counter].title;
 								TB_PrevURL = TB_TempArray[TB_Counter].href;
-								TB_PrevHTML = "<span id='TB_prev'>&nbsp;&nbsp;<a href='#'>&lt; Prev</a></span>";
+								TB_PrevHTML = "<span id='TB_prev'>&nbsp;&nbsp;<a href='#'>&lt; "+SHOPP_TB_BACK+"</a></span>";
 							}
 						} else {
 							TB_FoundURL = true;
-							TB_imageCount = "Image " + (TB_Counter + 1) +" of "+ (TB_TempArray.length);											
+							TB_imageCount = SHOPP_TB_IMAGE.replace(/%d/,(TB_Counter + 1)).replace(/%d/,(TB_TempArray.length));
 						}
 				}
 				
@@ -135,7 +135,7 @@ tb_show = function (caption, url, imageGroup) {//function called when the user c
 
 			TB_WIDTH = imageWidth + 30;
 			TB_HEIGHT = imageHeight + 60;
-			$("#TB_window").append("<a href='' id='TB_ImageOff' title='Close'><img id='TB_Image' src='"+url+"' width='"+imageWidth+"' height='"+imageHeight+"' alt='"+caption+"'/></a>" + "<div id='TB_caption'>"+caption+"<div id='TB_secondLine'>" + TB_imageCount + TB_PrevHTML + TB_NextHTML + "</div></div><div id='TB_closeWindow'>Press Esc Key or <a href='#' id='TB_closeWindowButton' title='Close'>X</a></div>"); 		
+			$("#TB_window").append("<a href='' id='TB_ImageOff' title='Close'><img id='TB_Image' src='"+url+"' width='"+imageWidth+"' height='"+imageHeight+"' alt='"+caption+"'/></a>" + "<div id='TB_caption'>"+caption+"<div id='TB_secondLine'>" + TB_imageCount + TB_PrevHTML + TB_NextHTML + "</div></div><div id='TB_closeWindow'>"+SHOPP_TB_CLOSE+" <a href='#' id='TB_closeWindowButton' title='Close'>X</a></div>"); 		
 			
 			$("#TB_closeWindowButton").click(tb_remove);
 			

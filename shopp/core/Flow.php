@@ -610,14 +610,6 @@ class Flow {
 
 		$Purchase = new Purchase();
 		
-		$pagenum = absint( $pagenum );
-		if ( empty($pagenum) )
-			$pagenum = 1;
-		if( !$per_page || $per_page < 0 )
-			$per_page = 20;
-		$start = ($per_page * ($pagenum-1)); 
-		
-		
 		if (!empty($start)) {
 			$startdate = $start;
 			list($month,$day,$year) = split("/",$startdate);
@@ -628,11 +620,18 @@ class Flow {
 			list($month,$day,$year) = split("/",$enddate);
 			$ends = mktime(0,0,0,$month,$day,$year);
 		}
+
+		$pagenum = absint( $pagenum );
+		if ( empty($pagenum) )
+			$pagenum = 1;
+		if( !$per_page || $per_page < 0 )
+			$per_page = 20;
+		$start = ($per_page * ($pagenum-1)); 
 		
 		$where = '';
-		if ($status !== false) $where = "WHERE status='$status'";
+		if (!empty($status)) $where = "WHERE status='$status'";
 		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR firstname LIKE '%$s%' OR lastname LIKE '%$s%' OR CONCAT(firstname,' ',lastname) LIKE '%$s%' OR transactionid LIKE '%$s%')";
-		if (!empty($start) && !empty($end)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
+		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
 		
 		$ordercount = $db->query("SELECT count(*) as total FROM $Purchase->_table $where ORDER BY created DESC");
 		$query = "SELECT * FROM $Purchase->_table $where ORDER BY created DESC LIMIT $start,$per_page";
@@ -763,7 +762,10 @@ class Flow {
 		if ($Shopp->Cart->data->login 
 				&& isset($Shopp->Cart->data->Order->Customer)) 
 			$Shopp->Cart->data->Order->Customer->management();
-					
+		
+		if (isset($_GET['acct']) && $_GET['acct'] == "rp") $Shopp->Cart->data->Order->Customer->reset_password($_GET['key']);
+		if (isset($_POST['recover-login'])) $Shopp->Cart->data->Order->Customer->recovery();
+		
 		ob_start();
 		if ($Shopp->Cart->data->login) include(SHOPP_TEMPLATES."/account.php");
 		else include(SHOPP_TEMPLATES."/login.php");
@@ -859,7 +861,7 @@ class Flow {
 		
 		$where = '';
 		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%' OR c.email LIKE '%$s%')";
-		if (!empty($start) && !empty($end)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
+		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 		
 		$ordercount = $db->query("SELECT count(*) as total FROM $customer_table $where ORDER BY created DESC");
 		$query = "SELECT c.*,b.city,b.state,b.country, SUM(p.total) AS total,count(distinct p.id) AS orders FROM $customer_table AS c LEFT JOIN $purchase_table AS p ON c.id=p.customer LEFT JOIN $billing_table AS b ON c.id=b.customer $where GROUP BY p.customer ORDER BY c.created DESC LIMIT $index,$per_page";
@@ -985,7 +987,7 @@ class Flow {
 			$categories = sort_tree($categories);
 			if (empty($categories)) $categories = array();
 		
-			$categories_menu = '<option value="">View all categories</option>';
+			$categories_menu = '<option value="">'.__('View all categories','Shopp').'</option>';
 			foreach ($categories as $category) {
 				$padding = str_repeat("&nbsp;",$category->depth*3);
 				if ($cat == $category->id) $categories_menu .= '<option value="'.$category->id.'" selected="selected">'.$padding.$category->name.'</option>';
@@ -1008,7 +1010,7 @@ class Flow {
 		$orderby = "pd.created DESC";
 		
 		$where = "true";
-		if (!empty($cat)) $where .= " AND cat.id='$cat' AND (clog.category != 0 OR clog.id IS NULL)";
+		$having = "";
 		if (!empty($s)) {
 			if (strpos($s,"sku:") !== false) { // SKU search
 				$where .= ' AND pt.sku="'.substr($s,4).'"';
@@ -1022,6 +1024,12 @@ class Flow {
 				$orderby = "score DESC";         
 			}
 		}
+		// if (!empty($cat)) $where .= " AND cat.id='$cat' AND (clog.category != 0 OR clog.id IS NULL)";
+		if (!empty($cat)) {
+			$matchcol .= ", GROUP_CONCAT(DISTINCT cat.id ORDER BY cat.id SEPARATOR ',') AS catids";
+			$where .= " AND (clog.category != 0 OR clog.id IS NULL)";	
+			$having = "HAVING FIND_IN_SET('$cat',catids) > 0";
+		}
 		
 		// Get total product count, taking into consideration for filtering
 		if (!empty($s)) $query = "SELECT count($match) as total FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE $where GROUP BY pd.id";
@@ -1032,7 +1040,7 @@ class Flow {
 		$columns = "pd.id,pd.name,pd.slug,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
 		if ($workflow) $columns = "pd.id";
 		// Load the products
-		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE $where GROUP BY pd.id ORDER BY $orderby LIMIT $start,$per_page";
+		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
 		$Products = $db->query($query,AS_ARRAY);
 
 		$num_pages = ceil($productcount->total / $per_page);
@@ -1255,6 +1263,17 @@ class Flow {
 				}
 			}
 			unset($Price);
+		}
+		
+		// No variation options at all, delete all variation-pricelines
+		if (empty($Product->options)) { 
+			foreach ($Product->prices as $priceline) {
+				// Skip if not tied to variation options
+				if ($priceline->optionkey == 0) continue; 
+				$Price = new Price($priceline->id);
+				$Price->delete();
+			}
+			
 		}
 			
 		if (!empty($_POST['details']) || !empty($_POST['deletedSpecs'])) {
