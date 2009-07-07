@@ -61,7 +61,7 @@ class ShoppProductWidget extends WP_Widget {
 						"oldest" => __('Oldest','Shopp'),
 						"random" => __('Random','Shopp')
 					);
-					echo menuoptions($sortoptions,$options['order']);
+					echo menuoptions($sortoptions,$options['order'],true);
 				?>
 			</select>
 			<label for="<?php echo $this->get_field_id('order'); ?>"><?php _e('products','Shopp'); ?></label>

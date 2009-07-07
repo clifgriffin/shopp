@@ -167,6 +167,7 @@ CREATE TABLE <?php echo $customer; ?> (
 	email varchar(96) NOT NULL default '',
 	phone varchar(24) NOT NULL default '',
 	company varchar(100) NOT NULL default '',
+	activation varchar(20) NOT NULL default '',
 	info longtext NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
