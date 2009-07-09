@@ -72,9 +72,12 @@
 </div>
 
 <script type="text/javascript">
-	helpurl = "<?php echo SHOPP_DOCS; ?>Categories";
+helpurl = "<?php echo SHOPP_DOCS; ?>Categories";
+
+jQuery(document).ready( function() {
 
 	$=jQuery.noConflict();
+
 	$('#selectall').change( function() {
 		$('#categories-table th input').each( function () {
 			if (this.checked) this.checked = false;
@@ -98,5 +101,9 @@
 		} else return false;
 	});
 
-<?php if (SHOPP_WP27): ?>	columns.init('shopp_page_shopp-categories');<?php endif; ?>
+<?php if (SHOPP_WP27): ?>
+	pagenow = 'shopp_page_shopp-categories';
+	columns.init(pagenow);
+<?php endif; ?>
+});
 </script>

@@ -199,19 +199,7 @@ class CanadaPost {
 								$_[] = '<description>Box '.($id+1).'</description>';
 								$_[] = '<readyToShip/>';
 								$_[] = '</item>';
-						}
-						
-						// foreach ($cart->contents as $item) {
-						// 	$_[] = '<item>';
-						// 	$_[] = '<quantity>1</quantity>';
-						// 	$_[] = '<weight>'.$weight.'</weight>';
-						// 	$_[] = '<length>20</length>';
-						// 	$_[] = '<width>15</width>';
-						// 	$_[] = '<height>5</height>';
-						// 	$_[] = '<description>'.htmlentities($item->name).'</description>';
-						// 	$_[] = '<readyToShip/>';
-						// 	$_[] = '</item>';
-						// }
+						}						
 					} else {
 						$weight = ($weight*$quantity) > 0?number_format(($weight*$quantity),3):1;
 						$_[] = '<item>';
@@ -252,7 +240,7 @@ class CanadaPost {
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
 		curl_setopt($connection, CURLOPT_POST, 1); 
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->request); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 60); 
+		curl_setopt($connection, CURLOPT_TIMEOUT, 10); 
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
 		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);

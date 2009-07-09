@@ -97,8 +97,10 @@
 					<?php endforeach; ?>
 					
 				</ul>
-			</div><br />
-			<select name="settings[purchaselog_format]">
+			</div>
+			<?php PurchasesIIFExport::settings(); ?>
+			<br />
+			<select name="settings[purchaselog_format]" id="purchaselog-format">
 				<?php echo menuoptions($exports,$formatPref,true); ?>
 			</select></span>
 			<button type="submit" id="download-button" name="download" value="export" class="button-secondary"><?php _e('Download','Shopp'); ?></button>
@@ -294,7 +296,10 @@ $('#selectall_columns').change(function () {
 	else $('#export-columns input').not(this).attr('checked',false); 
 });
 
-<?php if (SHOPP_WP27): ?>columns.init('toplevel_page_shopp-orders');<?php endif; ?>
+<?php if (SHOPP_WP27): ?>
+pagenow = 'toplevel_page_shopp-orders';
+columns.init(pagenow);
+<?php endif; ?>
 
 });
 

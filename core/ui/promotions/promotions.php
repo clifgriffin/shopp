@@ -102,5 +102,8 @@
 		} else return false;
 	});
 
-<?php if (SHOPP_WP27): ?>	columns.init('shopp_page_shopp-promotions');<?php endif; ?>
+<?php if (SHOPP_WP27): ?>
+	pagenow = 'shopp_page_shopp-promotions'
+	columns.init(pagenow);
+<?php endif; ?>
 </script>

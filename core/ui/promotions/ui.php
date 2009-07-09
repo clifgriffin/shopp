@@ -30,10 +30,10 @@ function discount_meta_box ($Promotion) {
 	);
 	
 ?>
-<p>
+<p><span>
 <select name="type" id="discount-type">
 	<?php echo menuoptions($types,$Promotion->type,true); ?>
-</select>
+</select></span>
 <span id="discount-row"> 
 	&mdash;
 	<input type="text" name="discount" id="discount-amount" value="<?php echo $Promotion->discount; ?>" size="10" class="selectall" />
@@ -49,7 +49,7 @@ function discount_meta_box ($Promotion) {
 add_meta_box('promotion-discount', __('Discount','Shopp'), 'discount_meta_box', 'admin_page_shopp-promotions-edit', 'normal', 'core');
 
 function rules_meta_box ($Promotion) {
-	$scope = '<select name="scope" id="promotion-scope">';
+	$scope = '<select name="scope" id="promotion-scope" class="small">';
 	$scope .= menuoptions($Promotion->_lists['scope'],$Promotion->scope);
 	$scope .= '</select>';
 	

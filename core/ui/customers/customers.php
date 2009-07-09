@@ -286,7 +286,10 @@ $('#selectall_columns').change(function () {
 	else $('#export-columns input').not(this).attr('checked',false); 
 });
 
-<?php if (SHOPP_WP27): ?>columns.init('shopp_page_shopp-customers');<?php endif; ?>
+<?php if (SHOPP_WP27): ?>
+pagenow = 'shopp_page_shopp-customers';
+columns.init(pagenow);
+<?php endif; ?>
 
 });
 

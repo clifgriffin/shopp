@@ -363,6 +363,13 @@ function shopp_debug ($object) {
 	$Shopp->_debug->objects .= "<br/><br/>".str_replace("\n","<br/>",$result);
 }
 
+function shopp_pagename ($page) {
+	global $is_IIS;
+	$prefix = strpos($page,"index.php/");
+	if ($prefix !== false) return substr($page,$prefix+10);
+	else return $page;
+}
+
 function get_filemeta ($file) {
 	if (!file_exists($file)) return false;
 	if (!is_readable($file)) return false;

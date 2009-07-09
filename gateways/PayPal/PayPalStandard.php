@@ -471,7 +471,7 @@ class PayPalStandard {
 				<div id="paypalstandard-settings">
 		
 				<p><input type="text" name="settings[PayPalStandard][account]" id="paypalstd-account" size="30" value="<?php echo $this->settings['account']; ?>"/><br />
-				<?php __('Enter your PayPal account e-mail.','Shopp'); ?></p>
+				<?php _e('Enter your PayPal account e-mail.','Shopp'); ?></p>
 								
 				<p><label for="paypalstd-testmode"><input type="hidden" name="settings[PayPalStandard][testmode]" value="off" /><input type="checkbox" name="settings[PayPalStandard][testmode]" id="paypalstd-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Use the <a href="http://docs.shopplugin.net/PayPal_Sandbox" target="shoppdocs">PayPal Sandbox</a></label></p>
 				

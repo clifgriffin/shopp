@@ -255,13 +255,19 @@ class Catalog extends DatabaseObject {
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = $parent->slug;
-							$string = substr($string,0,-5);
+							$string = substr($string,0,-5); // Remove the previous </li>
 							$active = '';
 							if (isset($Shopp->Category) && strpos($category->uri,$parent->slug) !== false)
 								$active = ' active';
-							$string .= '<ul class="children'.$active.'">';
+							$subcategories = '<ul class="children'.$active.'">';
+							$string .= $subcategories;
 						}
-						if (value_is_true($hierarchy) && $category->depth < $depth) $string .= '</ul></li>';
+						if (value_is_true($hierarchy) && $category->depth < $depth) {
+							if (substr($string,strlen($subcategories)*-1) == $subcategories) {
+								// If the child menu is empty, remove the <ul> to avoid breaking standards
+								$string = substr($string,0,strlen($subcategories)*-1);
+							} else $string .= '</ul></li>';
+						}
 					
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
 						else $link = add_query_arg('shopp_category',(!empty($category->id)?$category->id:$category->uri),$Shopp->shopuri);
@@ -525,6 +531,7 @@ class Catalog extends DatabaseObject {
 					}
 					 // Restore original requested category
 					if (!empty($Category)) $Shopp->Category = $Category;
+					else unset($Shopp->Category);
 				}
 				
 				return $content;

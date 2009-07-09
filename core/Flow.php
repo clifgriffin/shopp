@@ -212,7 +212,7 @@ class Flow {
 	 **/
 	function catalog () {
 		global $Shopp;
-		
+
 		ob_start();
 		switch ($Shopp->Catalog->type) {
 			case "product": 
@@ -577,7 +577,7 @@ class Flow {
 		$args = array_merge($defaults,$_GET);
 		extract($args, EXTR_SKIP);
 		
-		if ( !current_user_can('manage_options') )
+		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
 		if (isset($deleting)
@@ -666,7 +666,8 @@ class Flow {
 		$exports = array(
 			'tab' => __('Tab-separated.txt','Shopp'),
 			'csv' => __('Comma-separated.csv','Shopp'),
-			'xls' => __('Microsoft&reg; Excel.xls','Shopp')			
+			'xls' => __('Microsoft&reg; Excel.xls','Shopp'),
+			'iif' => __('Intuit&reg; QuickBooks.iif','Shopp')
 			);
 		
 		$formatPref = $Shopp->Settings->get('purchaselog_format');
@@ -694,7 +695,7 @@ class Flow {
 	function order_manager () {
 		global $Shopp;
 
-		if ( !current_user_can('manage_options') )
+		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
 		if (preg_match("/\d+/",$_GET['id'])) {
@@ -777,7 +778,7 @@ class Flow {
 	}
 	
 	function customers_list () {
-		global $Shopp,$Customers;
+		global $Shopp,$Customers,$wpdb;
 		$db = DB::get();
 		
 		$defaults = array(
@@ -858,13 +859,14 @@ class Flow {
 		$customer_table = DatabaseObject::tablename(Customer::$table);
 		$billing_table = DatabaseObject::tablename(Billing::$table);
 		$purchase_table = DatabaseObject::tablename(Purchase::$table);
+		$users_table = $wpdb->users;
 		
 		$where = '';
 		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%' OR c.email LIKE '%$s%')";
 		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 		
 		$ordercount = $db->query("SELECT count(*) as total FROM $customer_table $where ORDER BY created DESC");
-		$query = "SELECT c.*,b.city,b.state,b.country, SUM(p.total) AS total,count(distinct p.id) AS orders FROM $customer_table AS c LEFT JOIN $purchase_table AS p ON c.id=p.customer LEFT JOIN $billing_table AS b ON c.id=b.customer $where GROUP BY p.customer ORDER BY c.created DESC LIMIT $index,$per_page";
+		$query = "SELECT c.*,b.city,b.state,b.country, u.user_login, SUM(p.total) AS total,count(distinct p.id) AS orders FROM $customer_table AS c LEFT JOIN $purchase_table AS p ON c.id=p.customer LEFT JOIN $billing_table AS b ON c.id=b.customer LEFT JOIN $users_table AS u ON c.wpuser=u.ID AND c.wpuser != 0 $where GROUP BY p.customer ORDER BY c.created DESC LIMIT $index,$per_page";
 		$Customers = $db->query($query,AS_ARRAY);
 
 		$num_pages = ceil($ordercount->total / $per_page);
@@ -899,12 +901,15 @@ class Flow {
 			'xls' => __('Microsoft&reg; Excel.xls','Shopp')			
 			);
 		
-		// $formatPref = $Shopp->Settings->get('purchaselog_format');
-		// if (!$formatPref) $formatPref = 'tab';
+		
+		$formatPref = $Shopp->Settings->get('customerexport_format');
+		if (!$formatPref) $formatPref = 'tab';
 		
 		$columns = array_merge(Customer::exportcolumns(),Billing::exportcolumns(),Shipping::exportcolumns());
-		// $selected = $Shopp->Settings->get('purchaselog_columns');
-		// if (empty($selected)) $selected = array_keys($columns);
+		$selected = $Shopp->Settings->get('customerexport_columns');
+		if (empty($selected)) $selected = array_keys($columns);
+		
+		$authentication = $Shopp->Settings->get('account_system');
 		
 		include("{$this->basepath}/core/ui/customers/customers.php");
 		
@@ -920,6 +925,7 @@ class Flow {
 			'orders'=>__('Orders','Shopp'),
 			'joined'=>__('Joined','Shopp'))
 		);
+		
 	}
 
 	function customer_editor_ui () {
@@ -930,7 +936,7 @@ class Flow {
 	function customer_editor () {
 		global $Shopp,$Customer;
 		
-		if ( !current_user_can('manage_options') )
+		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 
@@ -964,7 +970,7 @@ class Flow {
 		global $Products,$Shopp;
 		$db = DB::get();
 
-		if ( !current_user_can('manage_options') )
+		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$defaults = array(
@@ -1037,7 +1043,13 @@ class Flow {
 		else $query = "SELECT count(*) as total $matchcol FROM $pd WHERE $where";
 		$productcount = $db->query($query);
 		
-		$columns = "pd.id,pd.name,pd.slug,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price) AS maxprice,MIN(pt.price) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
+		$taxrate = 0;
+		$base = $Shopp->Settings->get('base_operations');
+		if ($base['vat']) {
+			$taxrate = $Shopp->Cart->taxrate();
+		}
+		
+		$columns = "pd.id,pd.name,pd.slug,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price+(pt.price*$taxrate)) AS maxprice,MIN(pt.price+(pt.price*$taxrate)) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
 		if ($workflow) $columns = "pd.id";
 		// Load the products
 		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
@@ -1133,7 +1145,7 @@ class Flow {
 		global $Shopp;
 		$db = DB::get();
 
-		if ( !current_user_can('manage_options') )
+		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (empty($Shopp->Product)) {
@@ -1192,10 +1204,14 @@ class Flow {
 		$db = DB::get();
 		check_admin_referer('shopp-save-product');
 
-		if ( !current_user_can('manage_options') )
+		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$this->settings_save(); // Save workflow setting
+
+		$base = $Shopp->Settings->get('base_operations');
+		$taxrate = 0;
+		if ($base['vat']) $taxrate = $Shopp->Cart->taxrate();
 
 		if (!$_POST['options']) $Product->options = array();
 		else $_POST['options'] = stripslashes_deep($_POST['options']);
@@ -1242,6 +1258,13 @@ class Flow {
 					$option['product'] = $Product->id;
 				} else $Price = new Price($option['id']);
 				$option['sortorder'] = array_search($i,$_POST['sortorder'])+1;
+				
+				// Remove VAT amount to save in DB
+				if ($base['vat']) {
+					$option['price'] = number_format(floatnum($option['price'])/(1+$taxrate),2);
+					$option['saleprice'] = number_format(floatnum($option['saleprice'])/(1+$taxrate),2);
+				}
+				
 				$Price->updates($option);
 				$Price->save();
 				if (!empty($option['download'])) $Price->attach_download($option['download']);
@@ -1455,7 +1478,7 @@ class Flow {
 		global $Shopp;
 		$db = DB::get();
 
-		if ( !current_user_can('manage_options') )
+		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$defaults = array(
@@ -1525,7 +1548,7 @@ class Flow {
 		global $Shopp;
 		$db = DB::get();
 		
-		if ( !current_user_can('manage_options') )
+		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (empty($Shopp->Category)) $Category = new Category();
@@ -1579,7 +1602,7 @@ class Flow {
 		$db = DB::get();
 		check_admin_referer('shopp-save-category');
 		
-		if ( !current_user_can('manage_options') )
+		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 		
 		$this->settings_save(); // Save workflow setting
@@ -1687,7 +1710,7 @@ class Flow {
 		global $Shopp;
 		$db = DB::get();
 
-		if ( !current_user_can('manage_options') )
+		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		require_once("{$this->basepath}/core/model/Promotion.php");
@@ -1783,7 +1806,7 @@ class Flow {
 	function promotion_editor () {
 		global $Shopp;
 
-		if ( !current_user_can('manage_options') )
+		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		require_once("{$this->basepath}/core/model/Promotion.php");
@@ -1976,12 +1999,17 @@ class Flow {
 		
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-general');
+			$vat_countries = $Shopp->Settings->get('vat_countries');
 			$zone = $_POST['settings']['base_operations']['zone'];
 			$_POST['settings']['base_operations'] = $countrydata[$_POST['settings']['base_operations']['country']];
 			$_POST['settings']['base_operations']['country'] = $country;
 			$_POST['settings']['base_operations']['zone'] = $zone;
 			$_POST['settings']['base_operations']['currency']['format'] = 
 				scan_money_format($_POST['settings']['base_operations']['currency']['format']);
+			if (in_array($_POST['settings']['base_operations']['country'],$vat_countries)) 
+				$_POST['settings']['base_operations']['vat'] = true;
+			else $_POST['settings']['base_operations']['vat'] = false;
+			
 			$this->settings_save();
 			$updated = __('Shopp settings saved.');
 		}
@@ -2219,11 +2247,12 @@ class Flow {
 			check_admin_referer('shopp-settings-payments');
 
 			// Update the accepted credit card payment methods
-			if (!empty($_POST['settings']['payment_gateway'])) {
+			if (!empty($_POST['settings']['payment_gateway']) 
+					&& file_exists(SHOPP_GATEWAYS.$_POST['settings']['payment_gateway'])) {
 				$gateway = $this->scan_gateway_meta(SHOPP_GATEWAYS.$_POST['settings']['payment_gateway']);
 				$ProcessorClass = $gateway->tags['class'];
 				// Load the gateway in case there are any save-time processes to be run
-				$Processor = $Shopp->gateway($gateway);
+				$Processor = $Shopp->gateway($_POST['settings']['payment_gateway']);
 				// include_once($gateway->file);
 				// $Processor = new $ProcessorClass();
 				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
@@ -2671,6 +2700,7 @@ class Flow {
 		$this->setup_countries();
 		$this->setup_zones();
 		$this->setup_areas();
+		$this->setup_vat();
 		
 		// Update the version number
 		$settings = DatabaseObject::tablename(Settings::$table);
@@ -2708,6 +2738,7 @@ class Flow {
 		$this->setup_countries();
 		$this->setup_zones();
 		$this->setup_areas();
+		$this->setup_vat();
 
 		$this->Settings->save('show_welcome','on');	
 		$this->Settings->save('display_welcome','on');	
@@ -2773,6 +2804,12 @@ class Flow {
 		global $Shopp;
 		include_once("init.php");
 		$this->Settings->save('areas',get_country_areas(),false);
+	}
+
+	function setup_vat () {
+		global $Shopp;
+		include_once("init.php");
+		$this->Settings->save('vat_countries',get_vat_countries(),false);
 	}
 	
 }
