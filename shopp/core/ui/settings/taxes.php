@@ -98,6 +98,7 @@ var addTaxRate = function (r) {
 			}
 		}
 		// Hide the zone menu if there are no zones for the selected country
+		console.log(zoneMenu.children().length);
 		if (zoneMenu.children().length == 0) {
 			zoneMenu.hide();
 		} else zoneMenu.show(); // Show the zone menu when there are zones
@@ -160,7 +161,7 @@ var addTaxRate = function (r) {
 
 if ($('#taxrates-table')) {
 	var rates = <?php echo json_encode($rates); ?>;
-	// var base = <?php echo json_encode($base); ?>;
+	var base = <?php echo json_encode($base); ?>;
 	var countries = <?php echo json_encode($countries); ?>;
 	var zones = <?php echo json_encode($zones); ?>;
 	var taxrates = new Array();

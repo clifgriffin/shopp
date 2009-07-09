@@ -413,6 +413,8 @@ class PurchasesExport {
 		$this->recordstart = true;
 	}
 	
+	function settings () {}
+	
 }
 
 class PurchasesTabExport extends PurchasesExport {
@@ -473,5 +475,74 @@ class PurchasesXLSExport extends PurchasesExport {
 		$this->r++;
 	}
 }
+
+class PurchasesIIFExport extends PurchasesExport {
+	function PurchasesIIFExport () {
+		global $Shopp;
+		parent::PurchasesExport();
+		$this->content_type = "application/qbooks";
+		$this->extension = "iif";
+		$account = $Shopp->Settings->get('purchaselog_iifaccount');
+		if (empty($account)) $account = "Merchant Account";
+		$this->selected = array(
+			"'\nTRNS'",
+			"DATE_FORMAT(o.created,'\"%m/%d/%Y\"')",
+			"'\"$account\"'",
+			"CONCAT('\"',o.firstname,' ',o.lastname,'\"')",
+			"'\"Shopp Payment Received\"'",
+			"o.total-o.fees",
+			"''",
+			"'\nSPL'",
+			"DATE_FORMAT(o.created,'\"%m/%d/%Y\"')",
+			"'\"Other Income\"'",
+			"CONCAT('\"',o.firstname,' ',o.lastname,'\"')",
+			"o.total*-1",
+			"'\nSPL'",
+			"DATE_FORMAT(o.created,'\"%m/%d/%Y\"')",
+			"'\"Other Expenses\"'",
+			"'Fee'",
+			"o.fees",
+			"''",
+			"'\nENDTRNS'"
+		);
+		$this->output();
+	}
+	
+	function begin () {
+		echo "!TRNS\tDATE\tACCNT\tNAME\tCLASS\tAMOUNT\tMEMO\n!SPL\tDATE\tACCNT\tNAME\tAMOUNT\tMEMO\n!ENDTRNS";
+	}
+	
+	function export ($value) {
+		echo (substr($value,0,1) != "\n")?"\t".$value:$value;
+	}
+	
+	function record () { }
+	
+	function settings () {
+		global $Shopp;
+		?>
+		<div id="iif-settings" class="hidden">
+			<input type="text" id="iif-account" name="settings[purchaselog_iifaccount]" value="<?php echo $Shopp->Settings->get('purchaselog_iifaccount'); ?>" size="30"/><br />
+			<label for="iif-account"><small><?php _e('QuickBooks account name for transactions','Shopp'); ?></small></label>
+		</div>
+		<script type="text/javascript">
+		jQuery(document).ready( function() {
+			$=jQuery.noConflict();
+			$('#purchaselog-format').change(function () {
+				if ($(this).val() == "iif") {
+					$('#export-columns').hide();
+					$('#iif-settings').show();
+					$('#iif-account').focus();
+				} else {
+					$('#export-columns').show();
+					$('#iif-settings').hide();
+				}
+			}).change();
+		});
+		</script>
+		<?php
+	}
+}
+
 
 ?>

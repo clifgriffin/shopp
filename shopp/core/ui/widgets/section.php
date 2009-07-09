@@ -35,13 +35,6 @@ class ShoppCategorySectionWidget extends WP_Widget {
     function form($options) {				
 		global $Shopp;
 		
-		// if (isset($_POST['section_widget_options'])) {
-		// 	$options = $_POST['shopp_section_options'];
-		// 	$Shopp->Settings->save('section_widget_options',$options);
-		// }
-		// 
-		// $options = $Shopp->Settings->get('section_widget_options');
-
 		?>
 		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>
@@ -77,6 +70,7 @@ class LegacyShoppCategorySectionWidget {
 		$title = $before_title.$options['title'].$after_title;
 		unset($options['title']);
 		
+		if (!isset($Shopp->Category->parent) || $Shopp->Category->parent == 0) return false;
 		$menu = $Shopp->Category->tag('section-list',$options);
 		echo $before_widget.$title.$menu.$after_widget;		
 	}

@@ -349,7 +349,7 @@ class Cart {
 						$this->data->ShippingPostcodeError = true;
 						new ShoppError(__('A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout.','Shopp','cart_required_postcode',SHOPP_ERR));
 						return null;
-					}
+					} else $this->data->ShippingPostcodeError = false;
 				}
 			
 				if ($Shipping->country == $base['country']) {
@@ -397,7 +397,7 @@ class Cart {
 		global $Shopp;
 		$db = DB::get();
 		$limit = $Shopp->Settings->get('promo_limit');
-		
+
 		// Load promotions if they've not yet been loaded
 		if (empty($this->data->Promotions)) {
 			$promo_table = DatabaseObject::tablename(Promotion::$table);
@@ -481,7 +481,7 @@ class Cart {
 						}
 						break;
 				}
-				
+
 				if ($rulematch && $promo->search == "all") $rulematches++;
 				if ($rulematch && $promo->search == "any") {
 					$match = true;
@@ -1194,7 +1194,10 @@ class Cart {
 
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
-
+		
+		
+		if (!isset($options['mode'])) $options['mode'] = "input";
+		
 		switch ($property) {
 			case "url": 
 				$ssl = true;
@@ -1249,7 +1252,7 @@ class Cart {
 			case "notloggedin": return (!$this->data->login && $Shopp->Settings->get('account_system') != "none"); break;
 			case "loginname-login": 
 				if (!empty($_POST['loginname-login']))
-					$options['value'] = $_POST['loginname-login']; 
+					$options['value'] = $_POST['loginname-login'];
 				return '<input type="text" name="loginname-login" id="loginname-login" '.inputattrs($options).' />';
 				break;
 			case "email-login": 
@@ -1270,26 +1273,31 @@ class Cart {
 				break;
 
 			case "firstname": 
+				if ($options['mode'] == "value") return $this->data->Order->Customer->firstname;
 				if (!empty($this->data->Order->Customer->firstname))
 					$options['value'] = $this->data->Order->Customer->firstname; 
 				return '<input type="text" name="firstname" id="firstname" '.inputattrs($options).' />';
 				break;
 			case "lastname":
+				if ($options['mode'] == "value") return $this->data->Order->Customer->lastname;
 				if (!empty($this->data->Order->Customer->lastname))
 					$options['value'] = $this->data->Order->Customer->lastname; 
 				return '<input type="text" name="lastname" id="lastname" '.inputattrs($options).' />'; 
 				break;
 			case "email":
+				if ($options['mode'] == "value") return $this->data->Order->Customer->email;
 				if (!empty($this->data->Order->Customer->email))
 					$options['value'] = $this->data->Order->Customer->email; 
 				return '<input type="text" name="email" id="email" '.inputattrs($options).' />';
 				break;
 			case "loginname":
+				if ($options['mode'] == "value") return $this->data->Order->Customer->login;
 				if (!empty($this->data->Order->Customer->login))
 					$options['value'] = $this->data->Order->Customer->login; 
 				return '<input type="text" name="login" id="login" '.inputattrs($options).' />';
 				break;
 			case "password":
+				if ($options['mode'] == "value") return $this->data->Order->Customer->password;
 				if (!empty($this->data->Order->Customer->password))
 					$options['value'] = $this->data->Order->Customer->password; 
 				return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
@@ -1300,12 +1308,14 @@ class Cart {
 				return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
 				break;
 			case "phone": 
+				if ($options['mode'] == "value") return $this->data->Order->Customer->phone;
 				if (!empty($this->data->Order->Customer->phone))
 					$options['value'] = $this->data->Order->Customer->phone; 
 				return '<input type="text" name="phone" id="phone" '.inputattrs($options).' />'; 
 				break;
 			case "organization": 
 			case "company": 
+				if ($options['mode'] == "value") return $this->data->Order->Customer->company;
 				if (!empty($this->data->Order->Customer->company))
 					$options['value'] = $this->data->Order->Customer->company; 
 				return '<input type="text" name="company" id="company" '.inputattrs($options).' />'; 
@@ -1313,6 +1323,8 @@ class Cart {
 			case "customer-info":
 				$allowed_types = array("text","password","hidden","checkbox","radio");
 				if (empty($options['type'])) $options['type'] = "hidden";
+				if (isset($options['name']) && $options['mode'] == "value") 
+					return $this->data->Order->Customer->info[$options['name']];
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
 					if (isset($this->data->Order->Customer->info[$options['name']])) 
 						$options['value'] = $this->data->Order->Customer->info[$options['name']]; 
@@ -1323,22 +1335,26 @@ class Cart {
 			// SHIPPING TAGS
 			case "shipping": return $this->data->Shipping;
 			case "shipping-address": 
-			if (!empty($this->data->Order->Shipping->address))
-				$options['value'] = $this->data->Order->Shipping->address; 
+				if ($options['mode'] == "value") return $this->data->Order->Shipping->address;
+				if (!empty($this->data->Order->Shipping->address))
+					$options['value'] = $this->data->Order->Shipping->address; 
 				return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
 				break;
 			case "shipping-xaddress":
-			if (!empty($this->data->Order->Shipping->xaddress))
-				$options['value'] = $this->data->Order->Shipping->xaddress; 
+				if ($options['mode'] == "value") return $this->data->Order->Shipping->xaddress;
+				if (!empty($this->data->Order->Shipping->xaddress))
+					$options['value'] = $this->data->Order->Shipping->xaddress; 
 				return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
 				break;
 			case "shipping-city":
+				if ($options['mode'] == "value") return $this->data->Order->Shipping->city;
 				if (!empty($this->data->Order->Shipping->city))
 					$options['value'] = $this->data->Order->Shipping->city; 
 				return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
 				break;
 			case "shipping-province":
 			case "shipping-state":
+				if ($options['mode'] == "value") return $this->data->Order->Shipping->state;
 				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->data->Order->Shipping->state)) {
 					$options['selected'] = $this->data->Order->Shipping->state;
@@ -1362,10 +1378,12 @@ class Cart {
 				return $output;
 				break;
 			case "shipping-postcode":
+				if ($options['mode'] == "value") return $this->data->Order->Shipping->postcode;
 				if (!empty($this->data->Order->Shipping->postcode))
 					$options['value'] = $this->data->Order->Shipping->postcode; 				
 				return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />'; break;
 			case "shipping-country": 
+				if ($options['mode'] == "value") return $this->data->Order->Shipping->country;
 				if (!empty($this->data->Order->Shipping->country))
 					$options['selected'] = $this->data->Order->Shipping->country;
 				else if (empty($options['selected'])) $options['selected'] = $base['country'];
@@ -1396,11 +1414,13 @@ class Cart {
 				}
 				return ($this->data->Totals->total > 0); break;
 			case "billing-address":
+				if ($options['mode'] == "value") return $this->data->Order->Billing->address;
 				if (!empty($this->data->Order->Billing->address))
 					$options['value'] = $this->data->Order->Billing->address;			
 				return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
 				break;
 			case "billing-xaddress":
+				if ($options['mode'] == "value") return $this->data->Order->Billing->xaddress;
 				if (!empty($this->data->Order->Billing->xaddress))
 					$options['value'] = $this->data->Order->Billing->xaddress;			
 				return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
@@ -1412,6 +1432,7 @@ class Cart {
 				break;
 			case "billing-province": 
 			case "billing-state": 
+				if ($options['mode'] == "value") return $this->data->Order->Billing->state;
 				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->data->Order->Billing->state)) {
 					$options['selected'] = $this->data->Order->Billing->state;
@@ -1435,11 +1456,13 @@ class Cart {
 				return $output;
 				break;
 			case "billing-postcode":
+				if ($options['mode'] == "value") return $this->data->Order->Billing->postcode;
 				if (!empty($this->data->Order->Billing->postcode))
 					$options['value'] = $this->data->Order->Billing->postcode;			
 				return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
 				break;
 			case "billing-country": 
+				if ($options['mode'] == "value") return $this->data->Order->Billing->country;
 				if (!empty($this->data->Order->Billing->country))
 					$options['selected'] = $this->data->Order->Billing->country;
 				else if (empty($options['selected'])) $options['selected'] = $base['country'];			
@@ -1449,6 +1472,9 @@ class Cart {
 				return $output;
 				break;
 			case "billing-card":
+				if ($options['mode'] == "value") 
+					return str_repeat('X',strlen($this->data->Order->Billing->card)-4)
+						.substr($this->data->Order->Billing->card,-4);
 				if (!empty($this->data->Order->Billing->card)) {
 					$options['value'] = $this->data->Order->Billing->card;
 					$this->data->Order->Billing->card = "";
@@ -1456,14 +1482,19 @@ class Cart {
 				return '<input type="text" name="billing[card]" id="billing-card" '.inputattrs($options).' />';
 				break;
 			case "billing-cardexpires-mm":
+				if ($options['mode'] == "value") return date("m",$this->data->Order->Billing->cardexpires);
 				if (!empty($this->data->Order->Billing->cardexpires))
 					$options['value'] = date("m",$this->data->Order->Billing->cardexpires);				
-				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm" '.inputattrs($options).' />'; break;
+				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm" '.inputattrs($options).' />'; 	
+				break;
 			case "billing-cardexpires-yy": 
+				if ($options['mode'] == "value") return date("y",$this->data->Order->Billing->cardexpires);
 				if (!empty($this->data->Order->Billing->cardexpires))
 					$options['value'] = date("y",$this->data->Order->Billing->cardexpires);							
-				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy" '.inputattrs($options).' />'; break;
+				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy" '.inputattrs($options).' />'; 
+				break;
 			case "billing-cardtype":
+				if ($options['mode'] == "value") return $this->data->Order->Billing->cardtype;
 				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->data->Order->Billing->cardtype))
 					$options['selected'] = $this->data->Order->Billing->cardtype;	
@@ -1476,6 +1507,7 @@ class Cart {
 				return $output;
 				break;
 			case "billing-cardholder":
+				if ($options['mode'] == "value") return $this->data->Order->Billing->cardholder;
 				if (!empty($this->data->Order->Billing->cardholder))
 					$options['value'] = $this->data->Order->Billing->cardholder;			
 				return '<input type="text" name="billing[cardholder]" id="billing-cardholder" '.inputattrs($options).' />';
@@ -1500,6 +1532,8 @@ class Cart {
 				break;
 				
 			case "order-data":
+				if (isset($options['name']) && $options['mode'] == "value") 
+					return $this->data->Order->data[$options['name']];
 				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
 				if (empty($options['type'])) $options['type'] = "hidden";
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {

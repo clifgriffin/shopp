@@ -426,7 +426,7 @@ class Category extends DatabaseObject {
 		do_action_ref_array('shopp_category_rss',array(&$this));
 		
 		if (!$this->products) $this->load_products(array('limit'=>500));
-
+		
 		if (SHOPP_PERMALINKS) $rssurl = $Shopp->shopuri.'feed';
 		else $rssurl = add_query_arg('shopp_lookup','products-rss',$Shopp->shopuri);
 
@@ -465,7 +465,7 @@ class Category extends DatabaseObject {
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
 			$item['description'] .= "<p>".attribute_escape($product->description)."</p>";
 			$item['description'] .= "]]>";
-			$item = apply_filters('shopp_rss_item',$entry,$product);
+			$item = apply_filters('shopp_rss_item',$item,$product);
 			//$item['g:quantity'] = $product->stock;
 			
 			$items[] = $item;
@@ -676,10 +676,15 @@ class Category extends DatabaseObject {
 					'before' => '',
 					'after' => '',
 					'class' => '',
+					'classes' => '',
 					'exclude' => '',
+					'total' => '',
+					'current' => '',
+					'listing' => '',
 					'depth' => 0,
 					'parent' => false,
 					'showall' => false,
+					'linkall' => false,
 					'dropdown' => false,
 					'hierarchy' => false,
 					'products' => false,
@@ -698,10 +703,9 @@ class Category extends DatabaseObject {
 
 				// Identify root parent
 				if (empty($this->id)) return false;
-				
 				$parent = $this->id;
 				while($parent != 0) {
-					if ($Shopp->Catalog->categories[$parent]->parent == 0) break;
+					if ($Shopp->Catalog->categories[$parent]->parent == 0 || $$Shopp->Catalog->categories[$parent]->parent = $parent) break;
 					$parent = $Shopp->Catalog->categories[$parent]->parent;
 				}
 				$root = $Shopp->Catalog->categories[$parent];
@@ -769,10 +773,8 @@ class Category extends DatabaseObject {
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
 						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 			
-						$total = '';
-						if (value_is_true($products)) $total = ' <span>('.$category->products.')</span>';
+						if (value_is_true($products)) $total = ' <span>('.$category->total.')</span>';
 			
-						$listing = '';
 						if ($category->total > 0 || isset($category->smart) || $linkall) $listing = '<a href="'.$link.'"'.$current.'>'.$category->name.$total.'</a>';
 						else $listing = $category->name;
 			

@@ -204,6 +204,7 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 .shopp #category-settings input { width: auto; }
 .shopp #product-settings label,
 .shopp #category-settings label { display: inline; }
+.shopp .postbox p .small { width: auto; }
 
 .shopp #customer #post-body-content .postbox p { width: 66%; }
 .shopp #pass-strength-result { line-height: 20px; width: 94%; }

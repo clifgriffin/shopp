@@ -109,6 +109,9 @@
 		if (confirm("<?php _e('Are you sure you want to delete the selected products?','Shopp'); ?>")) return true;
 		else return false;
 	});
-<?php if (SHOPP_WP27): ?>	columns.init('shopp_page_shopp-products');<?php endif; ?>
+<?php if (SHOPP_WP27): ?>
+	pagenow = 'shopp_page_shopp-products';
+	columns.init(pagenow);
+<?php endif; ?>
 
 </script>

@@ -244,7 +244,7 @@ class USPSRates {
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
 		curl_setopt($connection, CURLOPT_POST, 1); 
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->request); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 60); 
+		curl_setopt($connection, CURLOPT_TIMEOUT, 10); 
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
 		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);

@@ -38,6 +38,7 @@ function get_countries () {
 	$countries['BS'] = array('name'=>__('Bahamas','Shopp'),'currency'=>array('code'=>'BSD','format'=>'$#,###.##'),'units'=>'metric','region'=>0); 
 	$countries['BE'] = array('name'=>__('Belgium','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['BR'] = array('name'=>__('Brazil','Shopp'),'currency'=>array('code'=>'BRL','format'=>'R$ #.###,##'),'units'=>'metric','region'=>2); 
+	$countries['BG'] = array('name'=>__('Bulgaria','Shopp'),'currency'=>array('code'=>'BGN','format'=>'лв #.###,##'),'units'=>'metric','region'=>3); 
 	$countries['CL'] = array('name'=>__('Chile','Shopp'),'currency'=>array('code'=>'CLP','format'=>'$#.###'),'units'=>'metric','region'=>2); 
 	$countries['CN'] = array('name'=>__('China','Shopp'),'currency'=>array('code'=>'CNY','format'=>'¥#,###.##'),'units'=>'metric','region'=>6); 
 	$countries['CO'] = array('name'=>__('Colombia','Shopp'),'currency'=>array('code'=>'COP','format'=>'$#.###,##'),'units'=>'metric','region'=>2); 
@@ -198,6 +199,15 @@ function get_country_areas () {
 	$areas['US']['South US'] =array('DE'=>array('19700','19999'),'DC'=>array('20001','20599'),'MD'=>array('20600','21999'),'VA'=>array('22000','24699'),'WV'=>array('25000','26899'),'NC'=>array('27000','28999'),'SC'=>array('29000','29999'),'GA'=>array('30000','31999'),'FL'=>array('32100','34999'),'AL'=>array('35000','36999'),'TN'=>array('37000','38899'),'MS'=>array('38600','39599'),'KY'=>array('40000','42799'),'LA'=>array('70000','71499'),'AR'=>array('71600','72999'),'OK'=>array('73000','74999'),'TX'=>array('75000','79999'));
 	$areas['US']['West US'] =array('MT'=>array('59000','59999'),'CO'=>array('80000','81699'),'WY'=>array('82000','83199'),'ID'=>array('83200','83899'),'UT'=>array('84000','84799'),'AZ'=>array('85000','86599'),'NM'=>array('87000','88499'),'NV'=>array('89000','89899'),'CA'=>array('90000','96199'),'HI'=>array('96700','96899'),'OR'=>array('97000','97999'),'WA'=>array('98000','99499'),'AK'=>array('99500','99999'));
 	return $areas;	
+}
+
+function get_vat_countries () {
+	$vat = array(
+		'BE','BG','CZ','DK','DE','EE','GR','ES','FR',
+		'IE','IT','CY','LV','LT','LU','HU','MT','NL',
+		'AT','PL','PT','RO','SI','SK','FI','SE','GB'
+	);
+	return $vat;	
 }
 
 ?>

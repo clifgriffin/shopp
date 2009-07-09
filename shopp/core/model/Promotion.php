@@ -84,7 +84,7 @@ class Promotion extends DatabaseObject {
 
 		switch($op) {
 			// String or Numeric operations
-			case "Is equal to": return ($subject === $value || $subject === floatvalue(preg_replace("/[^\d\.,]/","",$value))); break;
+			case "Is equal to": return ($subject === $value || $subject == floatvalue(preg_replace("/[^\d\.,]/","",$value))); break;
 			case "Is not equal to": return ($subject !== $value  || $subject !== floatvalue(preg_replace("/[^\d\.,]/","",$value))); break;
 
 			// String operations

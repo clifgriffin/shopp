@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.7b1
+Version: 1.0.7b2
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.7b1");
+define("SHOPP_VERSION","1.0.7b2");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -267,13 +267,13 @@ class Shopp {
 		else $category_parent = $this->Flow->Admin->default;
 		$menus['editcategory'] = add_submenu_page($category_parent,__('Edit Category','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editcategory, array(&$this,'categories'));
 		
-		$menus['settings'] = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->settings['settings'][0], array(&$this,'settings'));
+		$menus['settings'] = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), 8, $this->Flow->Admin->settings['settings'][0], array(&$this,'settings'));
 
 		$settings_screens = array();
 		foreach ($this->Flow->Admin->settings as $key => $screen) {
 			if (SHOPP_WP27) $settings_parent = $menus['settings'];
 			else $settings_parent = $this->Flow->Admin->default;
-			$settings_screens[$key] = add_submenu_page($settings_parent,$screen[1],false, SHOPP_USERLEVEL, $screen[0], array(&$this,'settings'));
+			$settings_screens[$key] = add_submenu_page($settings_parent,$screen[1],false, 8, $screen[0], array(&$this,'settings'));
 		}
 
 		if (function_exists('add_contextual_help')) {
@@ -570,12 +570,12 @@ class Shopp {
 		$account = $pages['account']['permalink'];
 
 		$rules = array(
-			$cart.'?$' => 'index.php?pagename='.$cart,
-			$account.'?$' => 'index.php?pagename='.$account,
-			$checkout.'?$' => 'index.php?pagename='.$checkout.'&shopp_proc=checkout',
+			$cart.'?$' => 'index.php?pagename='.shopp_pagename($cart),
+			$account.'?$' => 'index.php?pagename='.shopp_pagename($account),
+			$checkout.'?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=checkout',
 			(empty($shop)?"$catalog/":$shop).'feed/?$' => 'index.php?shopp_lookup=newproducts-rss',
-			(empty($shop)?"$catalog/":$shop).'receipt/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=receipt',
-			(empty($shop)?"$catalog/":$shop).'confirm-order/?$' => 'index.php?pagename='.$checkout.'&shopp_proc=confirm-order',
+			(empty($shop)?"$catalog/":$shop).'receipt/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=receipt',
+			(empty($shop)?"$catalog/":$shop).'confirm-order/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=confirm-order',
 			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
 			(empty($shop)?"$catalog/":$shop).'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]'
 		);
@@ -583,36 +583,36 @@ class Shopp {
 		// catalog/category/category-slug
 		if (empty($shop)) {
 			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]';
+			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]';
 		} else {
 			$rules[$shop.'category/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$shop.'category/([\w%_\+\-\/]+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'category/([\w%_\+\-\/]+?)?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]';
+			$rules[$shop.'category/([\w%_\+\-\/]+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$shop.'category/([\w%_\+\-\/]+?)?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]';
 		}
 
 		// tags
 		if (empty($shop)) {
 			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
-			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$catalog.'&shopp_tag=$matches[1]&paged=$matches[2]';
-			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_tag=$matches[1]';
+			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]&paged=$matches[2]';
+			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]';
 		} else {
 			$rules[$shop.'tag/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
-			$rules[$shop.'tag/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.$shop.'&shopp_tag=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'tag/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_tag=$matches[1]';
+			$rules[$shop.'tag/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]&paged=$matches[2]';
+			$rules[$shop.'tag/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]';
 		}
 
 		// catalog/productid
-		if (empty($shop)) $rules[$catalog.'/(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_pid=$matches[1]';
-		else $rules[$shop.'(\d+(,\d+)?)/?$'] = 'index.php?pagename='.$shop.'&shopp_pid=$matches[1]';
+		if (empty($shop)) $rules[$catalog.'/(\d+(,\d+)?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_pid=$matches[1]';
+		else $rules[$shop.'(\d+(,\d+)?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_pid=$matches[1]';
 
 		// catalog/product-slug
-		if (empty($shop)) $rules[$catalog.'/([\w_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_product=$matches[1]'; // category/product-slug
-		else $rules[$shop.'([\w_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_product=$matches[1]'; // category/product-slug			
+		if (empty($shop)) $rules[$catalog.'/([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_product=$matches[1]'; // category/product-slug
+		else $rules[$shop.'([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_product=$matches[1]'; // category/product-slug			
 
 		// catalog/categories/path/product-slug
-		if (empty($shop)) $rules[$catalog.'/([\w%_\\+-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$catalog.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
-		else $rules[$shop.'([\w%_\+\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.$shop.'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
+		if (empty($shop)) $rules[$catalog.'/([\w%_\\+-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
+		else $rules[$shop.'([\w%_\+\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
 
 		return $rules + $wp_rewrite_rules;
 	}
@@ -813,6 +813,8 @@ class Shopp {
 	function catalog ($wp) {
 		$pages = $this->Settings->get('pages');
 		// echo "<pre>"; print_r($wp->query_vars); echo "</pre>";
+		// echo "<pre>"; print_r($wp); echo "</pre>";
+		// exit();
 		
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&
@@ -945,6 +947,7 @@ class Shopp {
 			
 			$this->Cart->updated();
 			$this->Cart->totals();
+
 			if ($this->Cart->data->ShippingPostcodeError) {
 				header('Location: '.$this->link('cart'));
 				exit();
@@ -1169,6 +1172,7 @@ class Shopp {
 				switch ($format) {
 					case "csv": new PurchasesCSVExport(); break;
 					case "xls": new PurchasesXLSExport(); break;
+					case "iif": new PurchasesIIFExport(); break;
 					default: new PurchasesTabExport();
 				}
 				exit();
