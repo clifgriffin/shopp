@@ -88,10 +88,12 @@ class Item {
 
 		if (!empty($Price->download)) $this->download = $Price->download;
 		
-		if ($Price->shipping == "on" && $Price->type == "Shipped") {
+		if ($Price->type == "Shipped") {
 			$this->shipping = true;
-			$this->weight = $Price->weight;
-			$this->shipfee = $Price->shipfee;
+			if ($Price->shipping == "on") {
+				$this->weight = $Price->weight;
+				$this->shipfee = $Price->shipfee;
+			}
 		}
 		
 		$this->inventory = ($Price->inventory == "on")?true:false;
@@ -164,9 +166,15 @@ class Item {
 	}
 	
 	function unstock () {
+		global $Shopp;
 		$db = DB::get();
 		$table = DatabaseObject::tablename(Price::$table);
 		$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$this->price}' AND stock > 0");
+		$product = $this->name.' ('.$this->option->label.')';
+		if ($this->option->stock == 0) 
+			new ShoppError(sprintf(__('The following product is now out-of-stock: %s','Shopp'),$product),'outofstock_warning',SHOPP_STOCK_ERR);
+		elseif ($this->option->stock <= $Shopp->Settings->get('lowstock-level')) 
+			new ShoppError(sprintf(__('The following product has low stock levels and should be re-ordered: %s','Shopp'),$product),'lowstock_warning',SHOPP_STOCK_ERR);
 	}
 	
 	function shipping (&$Shipping) {

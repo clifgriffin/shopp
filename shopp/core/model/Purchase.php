@@ -38,7 +38,7 @@ class Purchase extends DatabaseObject {
 		global $Shopp;
 		$template = trailingslashit(SHOPP_TEMPLATES).$template;
 		if (!file_exists($template)) 
-			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ERR));
+			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ADMIN_ERR));
 		
 		// // Send the e-mail receipt
 		$email = array();

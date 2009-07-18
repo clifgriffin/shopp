@@ -22,6 +22,9 @@
 		<select name='cat'>
 		<?php echo $categories_menu; ?>
 		</select>
+		<select name='sl'>
+		<?php echo $inventory_menu; ?>
+		</select>
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary">
 		</div>
 		<div class="clear"></div>
@@ -86,6 +89,7 @@
 <script type="text/javascript">
 	helpurl = "<?php echo SHOPP_DOCS; ?>Products";
 
+jQuery(document).ready( function() {
 	$=jQuery.noConflict();
 	
 	$('#selectall').change( function() {
@@ -113,5 +117,5 @@
 	pagenow = 'shopp_page_shopp-products';
 	columns.init(pagenow);
 <?php endif; ?>
-
+});
 </script>

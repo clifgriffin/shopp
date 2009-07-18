@@ -167,7 +167,7 @@ class Category extends DatabaseObject {
 		if (empty($loading['catalog'])) $loading['catalog'] = "category";
 		switch($loading['catalog']) {
 			case "tags": $loading['catalog'] = ""; break;
-			default: $loading['catalog'] = "AND catalog.category != 0";
+			default: $loading['catalog'] = "AND (catalog.category != 0 OR catalog.id IS NULL)";
 		}
 
 		if (!isset($loading['having'])) $loading['having'] = '';
@@ -343,7 +343,7 @@ class Category extends DatabaseObject {
 					WHERE ({$loading['where']}) {$loading['catalog']} AND p.published='on' AND pd.type != 'N/A'
 					GROUP BY p.name {$loading['having']}
 					ORDER BY {$loading['order']} LIMIT {$loading['limit']}";
-
+		
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
 
@@ -427,18 +427,21 @@ class Category extends DatabaseObject {
 		
 		if (!$this->products) $this->load_products(array('limit'=>500));
 		
-		if (SHOPP_PERMALINKS) $rssurl = $Shopp->shopuri.'feed';
+		if (SHOPP_PERMALINKS) $rssurl = $Shopp->shopuri.'feed/';
 		else $rssurl = add_query_arg('shopp_lookup','products-rss',$Shopp->shopuri);
 
 		$rss = array('title' => get_bloginfo('name')." ".$this->name,
 			 			'link' => $rssurl,
 					 	'description' => $this->description,
 						'sitename' => get_bloginfo('name').' ('.get_bloginfo('url').')');
+		$rss = apply_filters('shopp_rss_meta',$rss);
+		
 		$items = array();
 		foreach ($this->products as $product) {
 			if (isset($product->thumbnail_properties))
 				$product->thumbnail_properties = unserialize($product->thumbnail_properties);
 			$item = array();
+			$item['guid'] = array($product->id,'isPermaLink'=>'false');
 			$item['title'] = attribute_escape($product->name);
 			if (SHOPP_PERMALINKS) $item['link'] = $Shopp->shopuri.$product->id;
 			else $item['link'] = urlencode(add_query_arg('shopp_pid',$product->id,$Shopp->shopuri));
@@ -450,6 +453,7 @@ class Category extends DatabaseObject {
 				$item['g:image_link'] = $product->thumbnail->uri;
 			}
 
+			$item['g:condition'] = "new";
 			$pricing = "";
 			if ($product->onsale) {
 				if ($product->pricerange['min']['saleprice'] != $product->pricerange['max']['saleprice']) $pricing .= "from ";
@@ -463,8 +467,9 @@ class Category extends DatabaseObject {
 			$item['g:price_type'] = "starting";
 
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
-			$item['description'] .= "<p>".attribute_escape($product->description)."</p>";
+			$item['description'] .= wpautop(attribute_escape($product->description));
 			$item['description'] .= "]]>";
+
 			$item = apply_filters('shopp_rss_item',$item,$product);
 			//$item['g:quantity'] = $product->stock;
 			
@@ -911,7 +916,7 @@ class Category extends DatabaseObject {
 				if ($this->facetedmenus == "off") return;
 				$output = "";
 				$CategoryFilters =& $Shopp->Cart->data->Category[$this->slug];
-				
+				if (!isset($options['cancel'])) $options['cancel'] = "X";
 				if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
 					list($link,$query) = split("\?",$_SERVER['REQUEST_URI']);
 				$query = $_GET;
@@ -923,12 +928,12 @@ class Category extends DatabaseObject {
 				if (is_array($CategoryFilters)) {
 					foreach($CategoryFilters AS $facet => $filter) {
 						$href = $link.'?'.$query.'shopp_catfilters['.$facet.']=';
-						if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',stripslashes($filter),$matches)) {
+						if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',$filter,$matches)) {
 							$label = $matches[1].' &mdash; '.$matches[3];
 							if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
 							if ($matches[4] == 0) $label = $matches[1].' '.__('and up','Shopp');
 						} else $label = $filter;
-						if (!empty($filter)) $list .= '<li><strong>'.$facet.'</strong>: '.$label.' <a href="'.$href.'" class="cancel">X</a></li>';
+						if (!empty($filter)) $list .= '<li><strong>'.$facet.'</strong>: '.stripslashes($label).' <a href="'.$href.'" class="cancel">'.$options['cancel'].'</a></li>';
 					}
 					$output .= '<ul class="filters enabled">'.$list.'</ul>';
 				}
@@ -1112,7 +1117,7 @@ class NewProducts extends Category {
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
-		$this->loading = array('where'=>"p.id IS NOT NULL",'order'=>'p.created DESC');
+		$this->loading = array('where'=>"p.id IS NOT NULL",'order'=>'newest');
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];

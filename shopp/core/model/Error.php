@@ -14,10 +14,12 @@ define('SHOPP_TRXN_ERR',2);
 define('SHOPP_AUTH_ERR',4);
 define('SHOPP_ADDON_ERR',8);
 define('SHOPP_COMM_ERR',16);
-define('SHOPP_DB_ERR',32);
-define('SHOPP_PHP_ERR',64);
-define('SHOPP_ALL_ERR',128);
-define('SHOPP_DEBUG_ERR',256);
+define('SHOPP_STOCK_ERR',32);
+define('SHOPP_ADMIN_ERR',64);
+define('SHOPP_DB_ERR',128);
+define('SHOPP_PHP_ERR',256);
+define('SHOPP_ALL_ERR',1024);
+define('SHOPP_DEBUG_ERR',2048);
 
 if (!defined('SHOPP_ERROR_REPORTING') && WP_DEBUG) define('SHOPP_ERROR_REPORTING',SHOPP_DEBUG_ERR);
 if (!defined('SHOPP_ERROR_REPORTING')) define('SHOPP_ERROR_REPORTING',SHOPP_ALL_ERR);

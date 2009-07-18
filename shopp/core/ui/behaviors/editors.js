@@ -279,7 +279,13 @@ function addVariationPrices (data) {
 					}
 				}
 			}
-		});		
+		});
+		// Update input tab indexes
+		$.each($(variationPricing).children(),function(row,line) {
+			key = $(line).find('div.pricing-label input.optionkey').val();
+			pricingOptions[key].updateTabindex(row);
+		});
+		
 	}
 }
 
@@ -696,7 +702,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		_self.settings.button_text_style = '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 11px; color: #284464; }';
 	}
 	
-	if (!flashuploader) {
+	if (flashuploader) {
 		_self.swfu = new SWFUpload(_self.settings);
 		_self.swfu.targetCell = updates;
 		_self.swfu.targetLine = linenum;

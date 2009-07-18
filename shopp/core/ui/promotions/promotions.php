@@ -77,6 +77,7 @@
 <script type="text/javascript">
 	helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
 
+jQuery(document).ready( function() {
 	$=jQuery.noConflict();
 	
 	$('#selectall').change( function() {
@@ -103,7 +104,9 @@
 	});
 
 <?php if (SHOPP_WP27): ?>
-	pagenow = 'shopp_page_shopp-promotions'
+	pagenow = 'shopp_page_shopp-promotions';
 	columns.init(pagenow);
 <?php endif; ?>
+});
+
 </script>

@@ -4,8 +4,8 @@
  * @class PayJunction
  *
  * @author Jonathan Davis
- * @version 1.0.0
- * @copyright Ingenesis Limited, 28 May, 2008
+ * @version 1.0
+ * @copyright Ingenesis Limited, 28 May, 2009
  * @package Shopp
  **/
 
@@ -117,7 +117,8 @@ class PayJunction {
 		
 		// Transaction
 		// $_['dc_transaction_id']		= $Order->Cart;
-		$_['dc_transaction_amount']	= number_format($Order->Totals->subtotal,2);
+		$_['dc_transaction_amount']	= number_format($Order->Totals->subtotal - 
+													$Order->Totals->discount,2);
 		$_['dc_shipping_amount']	= number_format($Order->Totals->shipping,2);
 		$_['dc_tax_amount']			= number_format($Order->Totals->tax,2);
 		

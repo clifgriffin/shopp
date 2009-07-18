@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.7b2
+Version: 1.0.7b3
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.7b2");
+define("SHOPP_VERSION","1.0.7b3");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -322,7 +322,6 @@ class Shopp {
 	 * Dynamically includes necessary JavaScript and stylesheets for the admin */
 	function admin_behaviors () {
 		global $wp_version;
-		$this->Flow->orders_list_columns();
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		
@@ -872,10 +871,13 @@ class Shopp {
 			$CategoryFilters =& $this->Cart->data->Category[$this->Category->slug];
 			
 			// Add new filters
-			if (isset($_GET['shopp_catfilters']) && is_array($_GET['shopp_catfilters'])) {
-				$CategoryFilters = array_merge($CategoryFilters,$_GET['shopp_catfilters']);
-				if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
+			if (isset($_GET['shopp_catfilters'])) {
+				if (is_array($_GET['shopp_catfilters'])) {
+					$CategoryFilters = array_merge($CategoryFilters,$_GET['shopp_catfilters']);
+					if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
+				} else unset($this->Cart->data->Category[$this->Category->slug]);
 			}
+			
 		}
 		
 		// Catalog sort order setting
@@ -959,7 +961,7 @@ class Shopp {
 			if (strpos($gateway,"TestMode") !== false || isset($wp->query_vars['shopp_xco'])) 
 				$secure = false;
 
-			if ($secure && !$this->secure) {
+			if ($secure && !$this->secure && !SHOPP_NOSSL) {
 				header('Location: '.$this->link('checkout',$secure));
 				exit();
 			}
@@ -1093,7 +1095,7 @@ class Shopp {
 		if (!is_array($pages)) $pages = $this->Flow->Pages;
 		
 		$uri = get_bloginfo('url');
-		if ($secure) $uri = str_replace('http://','https://',$uri);
+		if ($secure && !SHOPP_NOSSL) $uri = str_replace('http://','https://',$uri);
 
 		if (array_key_exists($target,$pages)) $page = $pages[$target];
 		else {
@@ -1271,11 +1273,13 @@ class Shopp {
 				break;
 			case "newproducts-rss":
 				$NewProducts = new NewProducts(array('show' => 5000));
+				header("Content-type: application/rss+xml; charset=utf-8");
 				echo shopp_rss($NewProducts->rss());
 				exit();
 				break;
 			case "category-rss":
 				$this->catalog($wp);
+				header("Content-type: application/rss+xml; charset=utf-8");
 				echo shopp_rss($this->Category->rss());
 				exit();
 				break;
@@ -1520,7 +1524,7 @@ function shopp () {
 		default: $Object = false;
 	}
 	
-	if (!$Object) new ShoppError("The shopp('$object') tag cannot be used in this context because the object responsible for handling it doesn't exist.",'shopp_tag_error',SHOPP_ERR);
+	if (!$Object) new ShoppError("The shopp('$object') tag cannot be used in this context because the object responsible for handling it doesn't exist.",'shopp_tag_error',SHOPP_ADMIN_ERR);
 	else {
 		switch (strtolower($object)) {
 			case "cartitem": $result = $Object->itemtag($property,$options); break;

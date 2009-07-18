@@ -122,11 +122,11 @@ class HSBCepayments {
 		curl_setopt($connection,CURLOPT_URL,$this->url);
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
-		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
+		curl_setopt($connection, CURLOPT_VERBOSE, 0); 
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
 		curl_setopt($connection, CURLOPT_POST, 1); 
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->transaction); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 60); 
+		curl_setopt($connection, CURLOPT_TIMEOUT, 10); 
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);

@@ -98,7 +98,6 @@ var addTaxRate = function (r) {
 			}
 		}
 		// Hide the zone menu if there are no zones for the selected country
-		console.log(zoneMenu.children().length);
 		if (zoneMenu.children().length == 0) {
 			zoneMenu.hide();
 		} else zoneMenu.show(); // Show the zone menu when there are zones

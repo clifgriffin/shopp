@@ -66,6 +66,7 @@ class Flow {
 
 		if (!defined('BR')) define('BR','<br />');
 		if (!defined('SHOPP_USERLEVEL')) define('SHOPP_USERLEVEL',8);
+		if (!defined('SHOPP_NOSSL')) define('SHOPP_NOSSL',false);
 		define("SHOPP_WP27",(!version_compare($wp_version,"2.7","<")));
 		define("SHOPP_DEBUG",($Core->Settings->get('error_logging') == 256));
 		define("SHOPP_PATH",$this->basepath);
@@ -633,7 +634,7 @@ class Flow {
 		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR firstname LIKE '%$s%' OR lastname LIKE '%$s%' OR CONCAT(firstname,' ',lastname) LIKE '%$s%' OR transactionid LIKE '%$s%')";
 		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
 		
-		$ordercount = $db->query("SELECT count(*) as total FROM $Purchase->_table $where ORDER BY created DESC");
+		$ordercount = $db->query("SELECT count(*) as total,SUM(total) AS sales,AVG(total) AS avgsale FROM $Purchase->_table $where ORDER BY created DESC");
 		$query = "SELECT * FROM $Purchase->_table $where ORDER BY created DESC LIMIT $start,$per_page";
 		$Orders = $db->query($query,AS_ARRAY);
 
@@ -864,9 +865,10 @@ class Flow {
 		$where = '';
 		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%' OR c.email LIKE '%$s%')";
 		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
+		// $where .= ((empty($where))?"WHERE ":" AND ").""
 		
 		$ordercount = $db->query("SELECT count(*) as total FROM $customer_table $where ORDER BY created DESC");
-		$query = "SELECT c.*,b.city,b.state,b.country, u.user_login, SUM(p.total) AS total,count(distinct p.id) AS orders FROM $customer_table AS c LEFT JOIN $purchase_table AS p ON c.id=p.customer LEFT JOIN $billing_table AS b ON c.id=b.customer LEFT JOIN $users_table AS u ON c.wpuser=u.ID AND c.wpuser != 0 $where GROUP BY p.customer ORDER BY c.created DESC LIMIT $index,$per_page";
+		$query = "SELECT c.*,b.city,b.state,b.country, u.user_login, SUM(p.total) AS total,count(distinct p.id) AS orders FROM $customer_table AS c LEFT JOIN $purchase_table AS p ON p.customer=c.id LEFT JOIN $billing_table AS b ON b.customer=c.id LEFT JOIN $users_table AS u ON u.ID=c.wpuser AND c.wpuser !=0 $where GROUP BY p.customer ORDER BY c.created DESC LIMIT $index,$per_page";
 		$Customers = $db->query($query,AS_ARRAY);
 
 		$num_pages = ceil($ordercount->total / $per_page);
@@ -994,11 +996,20 @@ class Flow {
 			if (empty($categories)) $categories = array();
 		
 			$categories_menu = '<option value="">'.__('View all categories','Shopp').'</option>';
+			$categories_menu .= '<option value="-">'.__('Uncategorized','Shopp').'</option>';
 			foreach ($categories as $category) {
 				$padding = str_repeat("&nbsp;",$category->depth*3);
 				if ($cat == $category->id) $categories_menu .= '<option value="'.$category->id.'" selected="selected">'.$padding.$category->name.'</option>';
 				else $categories_menu .= '<option value="'.$category->id.'">'.$padding.$category->name.'</option>';
 			}
+			$inventory_filters = array(
+				'all' => __('View all products','Shopp'),
+				'is' => __('In stock','Shopp'),
+				'ls' => __('Low stock','Shopp'),
+				'oos' => __('Out-of-stock','Shopp'),
+				'ns' => __('Not stocked','Shopp')
+			);
+			$inventory_menu = menuoptions($inventory_filters,$_GET['sl'],true);
 		}
 		
 		$pagenum = absint( $pagenum );
@@ -1032,9 +1043,28 @@ class Flow {
 		}
 		// if (!empty($cat)) $where .= " AND cat.id='$cat' AND (clog.category != 0 OR clog.id IS NULL)";
 		if (!empty($cat)) {
-			$matchcol .= ", GROUP_CONCAT(DISTINCT cat.id ORDER BY cat.id SEPARATOR ',') AS catids";
-			$where .= " AND (clog.category != 0 OR clog.id IS NULL)";	
-			$having = "HAVING FIND_IN_SET('$cat',catids) > 0";
+			if ($cat == "-") {
+				$having = "HAVING COUNT(cat.id) = 0";
+			} else {
+				$matchcol .= ", GROUP_CONCAT(DISTINCT cat.id ORDER BY cat.id SEPARATOR ',') AS catids";
+				$where .= " AND (clog.category != 0 OR clog.id IS NULL)";	
+				$having = "HAVING FIND_IN_SET('$cat',catids) > 0";
+			}
+		}
+		if (!empty($sl)) {
+			switch($sl) {
+				case "ns": $where .= " AND inventory='off'"; break;
+				case "oos": 
+					$where .= " AND (inventory='on')"; 
+					$having = (empty($having)?"HAVING ":" AND ")."SUM(stock) = 0";
+					break;
+				case "ls":
+					$ls = $Shopp->Settings->get('lowstock_level');
+					if (empty($ls)) $ls = '0';
+					$where .= " AND (inventory='on' AND stock <= $ls AND stock > 0)"; 
+					break;
+				case "is": $where .= " AND (inventory='on' AND stock > 0)";
+			}
 		}
 		
 		// Get total product count, taking into consideration for filtering
@@ -2047,14 +2077,7 @@ class Flow {
 		// Copy templates to the current WordPress theme
 		if (!empty($_POST['install'])) {
 			check_admin_referer('shopp-settings-presentation');
-			$builtin = array_filter(scandir($builtin_path),"filter_dotfiles");
-			foreach ($builtin as $template) {
-				if (!file_exists($theme_path.DIRECTORY_SEPARATOR.$template)) {
-					copy($builtin_path.DIRECTORY_SEPARATOR.$template,$theme_path.DIRECTORY_SEPARATOR.$template);
-					chmod($theme_path.DIRECTORY_SEPARATOR.$template,0666);
-				}
-					
-			}
+			copy_shopp_templates($builtin_path,$theme_path);
 		}
 		
 		$status = "available";
@@ -2209,6 +2232,9 @@ class Flow {
 
 		$rates = $Shopp->Settings->get('shipping_rates');
 		if (!empty($rates)) ksort($rates);
+		
+		$lowstock = $Shopp->Settings->get('lowstock_level');
+		if (empty($lowstock)) $lowstock = 0;
 				
 		include(SHOPP_ADMINPATH."/settings/shipping.php");
 	}
@@ -2437,7 +2463,8 @@ class Flow {
 			SHOPP_TRXN_ERR => __("Transaction Errors","Shopp"),
 			SHOPP_AUTH_ERR => __("Login Errors","Shopp"),
 			SHOPP_ADDON_ERR => __("Add-on Errors","Shopp"),
-			SHOPP_COMM_ERR => __("Communication Errors","Shopp")
+			SHOPP_COMM_ERR => __("Communication Errors","Shopp"),
+			SHOPP_STOCK_ERR => __("Inventory Warnings","Shopp")
 			);
 		
 		$errorlog_levels = array(
@@ -2447,6 +2474,8 @@ class Flow {
 			SHOPP_AUTH_ERR => __("Login Errors","Shopp"),
 			SHOPP_ADDON_ERR => __("Add-on Errors","Shopp"),
 			SHOPP_COMM_ERR => __("Communication Errors","Shopp"),
+			SHOPP_STOCK_ERR => __("Inventory Warnings","Shopp"),
+			SHOPP_ADMIN_ERR => __("Admin Errors","Shopp"),
 			SHOPP_DB_ERR => __("Database Errors","Shopp"),
 			SHOPP_PHP_ERR => __("PHP Errors","Shopp"),
 			SHOPP_ALL_ERR => __("All Errors","Shopp"),

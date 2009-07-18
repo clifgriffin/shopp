@@ -78,8 +78,9 @@
 					<td>
 						<?php echo $Item->name; ?>
 						<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?>
-						<?php if (is_array($Item->data)): ?>
+						<?php if (is_array($Item->data) || !empty($Item->sku)): ?>
 						<ul>
+						<?php if (!empty($Item->sku)): ?><li><small><?php _e('SKU','Shopp'); ?>: <strong><?php echo $Item->sku; ?></strong></small></li><?php endif; ?>
 						<?php foreach ($Item->data as $key => $value): ?>
 							<li><small><?php echo $key; ?>: <strong><?php echo $value; ?></strong></small></li>
 						<?php endforeach; endif; ?>
@@ -112,10 +113,6 @@
 			<tr class="totals">
 				<th scope="row" colspan="3" class="total"><?php _e('Shipping','Shopp'); ?></th>
 				<td class="money"><?php echo money($Purchase->freight); ?></td>
-			</tr>
-			<?php else: ?>
-			<tr class="totals">
-				<th scope="row" colspan="4" class="total"><?php //echo $this->Core->Settings->get('free_shipping_text'); ?></th>
 			</tr>
 			<?php endif; ?>
 			<?php if ($Purchase->tax > 0): ?>

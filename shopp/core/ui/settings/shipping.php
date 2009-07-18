@@ -43,6 +43,11 @@
 	            <?php _e('Text used to notify the customer the product is out-of-stock or on backorder.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="lowstock-level"><?php _e('Low Inventory','Shopp'); ?></label></th> 
+				<td><input type="text" name="settings[lowstock_level]" value="<?php echo attribute_escape($lowstock); ?>" id="lowstock-level" size="5" /><br /> 
+	            <?php _e('Enter the number for low stock level warnings.','Shopp'); ?></td>
+			</tr>
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="regional_rates"><?php _e('Domestic Regions','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[shipping_regions]" value="off" /><input type="checkbox" name="settings[shipping_regions]" value="on" id="regional_rates"<?php echo ($this->Settings->get('shipping_regions') == "on")?' checked="checked"':''; ?> /><label for="regional_rates"> <?php _e('Enabled','Shopp'); ?></label><br /> 
 	            <?php _e('Used for domestic regional shipping rates (only applies to operations based in the U.S. &amp; Canada)','Shopp'); ?><br />

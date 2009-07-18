@@ -122,7 +122,7 @@ function shopp_email ($template,$data=array()) {
 	if (strpos($template,"\r\n") !== false) $f = split("\r\n",$template);
 	else {
 		if (file_exists($template)) $f = file($template);
-		else new ShoppError(__("Could not open the email template because the file does not exist or is not readable.","Shopp"),'email_template',SHOPP_ERR,array('template'=>$template));
+		else new ShoppError(__("Could not open the email template because the file does not exist or is not readable.","Shopp"),'email_template',SHOPP_ADMIN_ERR,array('template'=>$template));
 	}
 
 	$replacements = array(
@@ -186,8 +186,13 @@ function shopp_email ($template,$data=array()) {
  * Generates an RSS-compliant string from an associative 
  * array ($data) with a specific RSS-structure. */
 function shopp_rss ($data) {
+	$xmlns = '';
+	if (is_array($data['xmlns']))
+		foreach ($data['xmlns'] as $key => $value)
+			$xmlns .= ' xmlns:'.$key.'="'.$value.'"';
+
 	$xml = "<?xml version=\"1.0\""." encoding=\"utf-8\"?>\n";
-	$xml .= "<rss version=\"2.0\" xmlns:base=\"".htmlentities($data['link'])."\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:g=\"http://base.google.com/ns/1.0\">\n";
+	$xml .= "<rss version=\"2.0\" xmlns:content=\"http://purl.org/rss/1.0/modules/content/\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:g=\"http://base.google.com/ns/1.0\"$xmlns>\n";
 	$xml .= "<channel>\n";
 
 	$xml .= '<atom:link href="'.htmlentities($data['link']).'" rel="self" type="application/rss+xml" />'."\n";
@@ -200,8 +205,19 @@ function shopp_rss ($data) {
 	if (is_array($data['items'])) {
 		foreach($data['items'] as $item) {
 			$xml .= "<item>\n";
-			foreach ($item as $key => $value) 
-				$xml .= "<$key>$value</$key>\n";
+			foreach ($item as $key => $value) {
+				$attrs = '';
+				if (is_array($value)) {
+					$data = $value;
+					$value = '';
+					foreach ($data as $name => $content) {
+						if (empty($name)) $value = $content;
+						else $attrs .= ' '.$name.'="'.$content.'"';
+					}
+				}
+				if (!empty($value)) $xml .= "<$key$attrs>$value</$key>\n";
+				else $xml .= "<$key$attrs />\n";
+			}
 			$xml .= "</item>\n";
 		}
 	}
@@ -857,6 +873,21 @@ function shopp_get_column_headers($page) {
 		return $_wp_column_headers[$page];
 
   	return array();
+}
+
+function copy_shopp_templates ($src,$target) {
+	$builtin = array_filter(scandir($src),"filter_dotfiles");
+	foreach ($builtin as $template) {
+		$target_file = $target.DIRECTORY_SEPARATOR.$template;
+		if (!file_exists($target_file)) {
+			$src_file = file_get_contents($src.DIRECTORY_SEPARATOR.$template);
+			$file = fopen($target_file,'w');
+			$src_file = preg_replace('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/','',$src_file);
+			fwrite($file,$src_file);
+			fclose($file);			
+			chmod($target_file,0666);
+		}
+	}
 }
 
 function template_path ($path) {

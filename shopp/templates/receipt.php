@@ -1,3 +1,15 @@
+<?php
+/** 
+ ** WARNING! DO NOT EDIT!
+ **
+ ** These templates are part of the core Shopp file 
+ ** and will be overwritten when upgrading Shopp.
+ **
+ ** For editable templates, setup Shopp theme templates:
+ ** http://docs.shopplugin.net/Setting_Up_Theme_Templates
+ **
+ **/
+?>
 <div id="receipt" class="shopp">
 <table class="transaction">
 	<tr><th>Order Num:</th><td><?php shopp('purchase','id'); ?></td></tr>	
