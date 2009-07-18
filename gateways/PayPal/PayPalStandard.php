@@ -112,9 +112,9 @@ class PayPalStandard {
 		$_['invoice']				= $Order->Cart;
 		
 		// Options
-		$_['return']				= add_query_arg('shopping','reset',$Shopp->link());
+		$_['return']				= add_query_arg('shopping','reset',$Shopp->link('catalog'));
 		$_['cancel_return']			= $Shopp->link('cart');
-		$_['notify_url']			= add_query_arg('shopp_xorder','PayPalStandard',$Shopp->link());
+		$_['notify_url']			= add_query_arg('shopp_xorder','PayPalStandard',$Shopp->link('catalog'));
 		$_['rm']					= 1; // Return with no transaction data
 		
 		// Pre-populate PayPal Checkout

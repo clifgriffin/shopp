@@ -188,7 +188,8 @@ CREATE TABLE <?php echo $shipping; ?> (
 	geocode varchar(16) NOT NULL default '',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY id (id)
+	PRIMARY KEY id (id),
+	KEY customer (customer)	
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $billing = DatabaseObject::tablename('billing'); ?>
@@ -208,7 +209,8 @@ CREATE TABLE <?php echo $billing; ?> (
 	postcode varchar(10) NOT NULL default '',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY id (id)
+	PRIMARY KEY id (id),
+	KEY customer (customer)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $purchase = DatabaseObject::tablename('purchase'); ?>
@@ -258,7 +260,8 @@ CREATE TABLE <?php echo $purchase; ?> (
 	data longtext NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY id (id)
+	PRIMARY KEY id (id),
+	KEY customer (customer)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $purchased = DatabaseObject::tablename('purchased'); ?>

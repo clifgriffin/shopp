@@ -4,7 +4,7 @@
  * @class GoogleCheckout
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.2
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  **/
@@ -154,6 +154,17 @@ class GoogleCheckout {
 					$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.$Item->unitprice.'</unit-price>';
 					$_[] = '<quantity>'.$Item->quantity.'</quantity>';
 					if (!empty($Item->sku)) $_[] = '<merchant-item-id>'.$Item->sku.'</merchant-item-id>';
+					$_[] = '<merchant-private-item-data>';
+						$_[] = '<shopp-product-id>'.$Item->product.'</shopp-product-id>';
+						$_[] = '<shopp-price-id>'.$Item->price.'</shopp-price-id>';
+						if (is_array($Item->data) && count($Item->data) > 0) {
+							$_[] = '<shopp-item-data-list>';
+							foreach ($Item->data AS $name => $data) {
+								$_[] = '<shopp-item-data name="'.attribute_escape($name).'">'.attribute_escape($data).'</shopp-item-data>';
+							}
+							$_[] = '</shopp-item-data-list>';
+						}
+					$_[] = '</merchant-private-item-data>';
 					$_[] = '</item>';
 				}
 				
@@ -173,6 +184,14 @@ class GoogleCheckout {
 				$_[] = '<merchant-private-data>';
 					$_[] = '<shopping-cart-agent>'.SHOPP_GATEWAY_USERAGENT.'</shopping-cart-agent>';
 					$_[] = '<customer-ip>'.$Cart->ip.'</customer-ip>';
+
+					if (is_array($Cart->data->Order->data) && count($Cart->data->Order->data) > 0) {
+						$_[] = '<shopp-order-data-list>';
+						foreach ($Cart->data->Order->data AS $name => $data) {
+							$_[] = '<shopp-order-data name="'.attribute_escape($name).'">'.attribute_escape($data).'</shopp-item-data>';
+						}
+						$_[] = '</shopp-order-data-list>';
+					}
 				$_[] = '</merchant-private-data>';
 				
 			$_[] = '</shopping-cart>';
@@ -242,7 +261,7 @@ class GoogleCheckout {
 		if (empty($origin) || 
 			substr($origin,0,strpos("/",SHOPP_GATEWAY_USERAGENT)) == SHOPP_GATEWAY_USERAGENT) 
 				return true;
-
+		
 		$buyer = $XML->getElement('buyer-billing-address');
 		$buyer = $buyer['CHILDREN'];
 		$Customer = new Customer();
@@ -298,15 +317,32 @@ class GoogleCheckout {
 		$Purchase->transactionid = $XML->getElementContent('google-order-number');
 		$Purchase->transtatus = $XML->getElementContent('financial-order-state');
 		$Purchase->ip = $XML->getElementContent('customer-ip');
+		
+		$orderdata = $XML->getElement('shopp-order-data');
+		$data = array();
+		if (is_array($orderdata) && count($orderdata) > 0)
+			foreach ($orderdata as $input) 
+				$data[$input['ATTRS']['name']] = $input['CONTENT'];		
+		$Purchase->data = $data;
+
 		$Purchase->save();
-			
+		
 		$items = $XML->getElement('item');
-		if (key($items) == "CHILDREN") $items = array($items);
-		foreach ($items as $xml) {
+		if (key($items) === "CHILDREN") $items = array($items);
+		foreach ($items as $item) {
+
 			$xml = $item['CHILDREN'];
-			$Item = new Item($xml['merchant-product-id']['CONTENT'],
-							$xml['merchant-price-id']['CONTENT']);
-			$Item->quantity = $xml['quantity']['CONTENT'];
+			$itemdata = $xml['merchant-private-item-data']['CHILDREN'];
+			
+			$inputdata = $itemdata['shopp-item-data-list']['CHILDREN']['shopp-item-data'];
+			$data = array();
+			if (is_array($inputdata) && count($inputdata) > 0)
+				foreach ($inputdata as $input) 
+					$data[$input['ATTRS']['name']] = $input['CONTENT'];
+
+			$Product = new Product($itemdata['shopp-product-id']['CONTENT']);
+			$Item = new Item($Product,$itemdata['shopp-price-id']['CONTENT'],false,$data);
+			$Item->quantity($xml['quantity']['CONTENT']);
 			
 			$Purchased = new Purchased();
 			$Purchased->copydata($Item);
@@ -315,17 +351,6 @@ class GoogleCheckout {
 			$Purchased->save();
 			if ($Item->inventory) $Item->unstock();
 			
-			// $Purchased->product = $item['merchant-product-id']['CONTENT'];
-			// $Purchased->price = $item['merchant-price-id']['CONTENT'];
-			// $Purchased->download = $item['merchant-download-id']['CONTENT'];
-			// if (!empty($Purchased->download)) $Purchased->keygen();
-			// $Purchased->name = addslashes($item['item-name']['CONTENT']);
-			// $Purchased->description = addslashes($item['item-description']['CONTENT']);
-			// $Purchased->sku = $item['merchant-item-id']['CONTENT'];
-			// $Purchased->quantity = $item['quantity']['CONTENT'];
-			// $Purchased->unitprice = $item['unit-price']['CONTENT'];
-			// $Purchased->total = $Purchased->quantity*$Purchased->unitprice;
-			// $Purchased->save();
 		}
 		
 	}

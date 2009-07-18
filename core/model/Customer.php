@@ -346,7 +346,7 @@ class Customer extends DatabaseObject {
 				}
 				break;
 			case "management":
-				if (array_key_exists('url',$options)) return add_query_arg('acct',key($this->management),$_SERVER['REQUEST_URI']);
+				if (array_key_exists('url',$options)) return add_query_arg('acct',key($this->management),$Shopp->link('account'));
 				if (array_key_exists('action',$options)) return key($this->management);
 				return current($this->management);
 			case "accounts": return $Shopp->Settings->get('account_system'); break;

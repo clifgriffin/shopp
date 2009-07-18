@@ -19,7 +19,7 @@ function addPriceLine (target,options,data,attachment) {
 	var myid = $('<input type="hidden" name="price['+i+'][id]" id="id['+i+']" />').appendTo(heading);
 	var productid = $('<input type="hidden" name="price['+i+'][product]" id="product['+i+']" />').appendTo(heading);
 	var context = $('<input type="hidden" name="price['+i+'][context]" />').appendTo(heading);
-	var optionkey = $('<input type="hidden" name="price['+i+'][optionkey]" />').appendTo(heading);
+	var optionkey = $('<input type="hidden" name="price['+i+'][optionkey]" class="optionkey" />').appendTo(heading);
 	var optionids = $('<input type="hidden" name="price['+i+'][options]" />').appendTo(heading);
 	var sortorder = $('<input type="hidden" name="sortorder[]" value="'+i+'" />').appendTo(heading);
 
@@ -34,58 +34,58 @@ function addPriceLine (target,options,data,attachment) {
 	var typeCell = $('<td/>').appendTo(inputsRow);
 	var typeOptions = "";
 	$(priceTypes).each(function (t,option) { typeOptions += '<option value="'+option.value+'">'+option.label+'</option>'; });
-	var type = $('<select name="price['+i+'][type]" id="type-'+i+'" tabindex="'+(i+1)+'02"></select>').html(typeOptions).appendTo(typeCell);
+	var type = $('<select name="price['+i+'][type]" id="type-'+i+'" ></select>').html(typeOptions).appendTo(typeCell);
 
 	var priceHeading = $('<th/>').appendTo(headingsRow);
 	var priceLabel = $('<label for="price['+i+']">'+PRICE_LABEL+'</label>').appendTo(priceHeading);
 	var priceCell = $('<td/>').appendTo(inputsRow);
-	var price = $('<input type="text" name="price['+i+'][price]" id="price['+i+']" value="0" size="10" class="selectall right" tabindex="'+(i+1)+'03" />').appendTo(priceCell);
+	var price = $('<input type="text" name="price['+i+'][price]" id="price['+i+']" value="0" size="10" class="selectall right" />').appendTo(priceCell);
 	$('<br />').appendTo(priceCell);
 
-	$('<input type="hidden" name="price['+i+'][tax]" tabindex="'+(i+1)+'04" value="on" />').appendTo(priceCell);
-	var tax = $('<input type="checkbox" name="price['+i+'][tax]" id="tax['+i+']" tabindex="'+(i+1)+'04" value="off" />').appendTo(priceCell);
+	$('<input type="hidden" name="price['+i+'][tax]" value="on" />').appendTo(priceCell);
+	var tax = $('<input type="checkbox" name="price['+i+'][tax]" id="tax['+i+']" value="off" />').appendTo(priceCell);
 	var taxLabel = $('<label for="tax['+i+']"> '+NOTAX_LABEL+'</label><br />').appendTo(priceCell);
 
 	var salepriceHeading = $('<th><label for="sale['+i+']"> '+SALE_PRICE_LABEL+'</label></th>').appendTo(headingsRow);
-	var salepriceToggle = $('<input type="checkbox" name="price['+i+'][sale]" id="sale['+i+']" tabindex="'+(i+1)+'05" />').prependTo(salepriceHeading);
+	var salepriceToggle = $('<input type="checkbox" name="price['+i+'][sale]" id="sale['+i+']" />').prependTo(salepriceHeading);
 	$('<input type="hidden" name="price['+i+'][sale]" value="off" />').prependTo(salepriceHeading);
 
 	var salepriceCell = $('<td/>').appendTo(inputsRow);
 	var salepriceStatus = $('<span>'+NOT_ON_SALE_TEXT+'</span>').addClass('status').appendTo(salepriceCell);
 	var salepriceField = $('<span/>').addClass('fields').appendTo(salepriceCell).hide();
-	var saleprice = $('<input type="text" name="price['+i+'][saleprice]" id="saleprice['+i+']" size="10" class="selectall right" tabindex="'+(i+1)+'06" />').appendTo(salepriceField);
+	var saleprice = $('<input type="text" name="price['+i+'][saleprice]" id="saleprice['+i+']" size="10" class="selectall right" />').appendTo(salepriceField);
 
 	var donationHeading = $('<th/>').appendTo(headingsRow);
 	var donationCell = $('<td width="58%" />').appendTo(inputsRow);
 	$('<input type="hidden" name="price['+i+'][donation][var]" value="off" />').appendTo(donationCell);
-	var donationVar = $('<input type="checkbox" name="price['+i+'][donation][var]" id="donation-var['+i+']" tabindex="'+(i+1)+'05" value="on" />').appendTo(donationCell);
+	var donationVar = $('<input type="checkbox" name="price['+i+'][donation][var]" id="donation-var['+i+']" value="on" />').appendTo(donationCell);
 	$('<label for="donation-var['+i+']"> '+DONATIONS_VAR_LABEL+'</label><br />').appendTo(donationCell);
 	$('<input type="hidden" name="price['+i+'][donation][min]" value="off" />').appendTo(donationCell);
-	var donationMin = $('<input type="checkbox" name="price['+i+'][donation][min]" id="donation-min['+i+']" tabindex="'+(i+1)+'06" value="on" />').appendTo(donationCell);
+	var donationMin = $('<input type="checkbox" name="price['+i+'][donation][min]" id="donation-min['+i+']" value="on" />').appendTo(donationCell);
 	$('<label for="donation-min['+i+']"> '+DONATIONS_MIN_LABEL+'</label>').appendTo(donationCell);
 
 	var shippingHeading = $('<th><label for="shipping-'+i+'"> '+SHIPPING_LABEL+'</label></th>').appendTo(headingsRow);
-	var shippingToggle = $('<input type="checkbox" name="price['+i+'][shipping]" id="shipping-'+i+'" tabindex="'+(i+1)+'07" />').prependTo(shippingHeading);
+	var shippingToggle = $('<input type="checkbox" name="price['+i+'][shipping]" id="shipping-'+i+'" />').prependTo(shippingHeading);
 	$('<input type="hidden" name="price['+i+'][shipping]" value="off" />').prependTo(shippingHeading);
 
 	var shippingCell = $('<td/>').appendTo(inputsRow);
 	var shippingStatus = $('<span>'+FREE_SHIPPING_TEXT+'</span>').addClass('status').appendTo(shippingCell);
 	var shippingFields = $('<span/>').addClass('fields').appendTo(shippingCell).hide();
-	var weight = $('<input type="text" name="price['+i+'][weight]" id="weight['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'08" />').appendTo(shippingFields);
+	var weight = $('<input type="text" name="price['+i+'][weight]" id="weight['+i+']" size="8" class="selectall right" />').appendTo(shippingFields);
 	var shippingWeightLabel = $('<label for="weight['+i+']" title="Weight"> '+WEIGHT_LABEL+((weightUnit)?' ('+weightUnit+')':'')+'</label><br />').appendTo(shippingFields);
-	var shippingfee = $('<input type="text" name="price['+i+'][shipfee]" id="shipfee['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'08" />').appendTo(shippingFields);
+	var shippingfee = $('<input type="text" name="price['+i+'][shipfee]" id="shipfee['+i+']" size="8" class="selectall right" />').appendTo(shippingFields);
 	var shippingFeeLabel = $('<label for="shipfee['+i+']" title="Additional shipping fee calculated per quantity ordered (for handling costs, etc)"> '+SHIPFEE_LABEL+'</label><br />').appendTo(shippingFields);
 
 	var inventoryHeading = $('<th><label for="inventory['+i+']"> '+INVENTORY_LABEL+'</label></th>').appendTo(headingsRow);
-	var inventoryToggle = $('<input type="checkbox" name="price['+i+'][inventory]" id="inventory['+i+']" tabindex="'+(i+1)+'10" />').prependTo(inventoryHeading);
+	var inventoryToggle = $('<input type="checkbox" name="price['+i+'][inventory]" id="inventory['+i+']" />').prependTo(inventoryHeading);
 	$('<input type="hidden" name="price['+i+'][inventory]" value="off" />').prependTo(salepriceHeading);
 	var inventoryCell = $('<td/>').appendTo(inputsRow);
 	var inventoryStatus = $('<span>'+NOT_TRACKED_TEXT+'</span>').addClass('status').appendTo(inventoryCell);
 	var inventoryField = $('<span/>').addClass('fields').appendTo(inventoryCell).hide();
-	var stock = $('<input type="text" name="price['+i+'][stock]" id="stock['+i+']" size="8" class="selectall right" tabindex="'+(i+1)+'11" />').appendTo(inventoryField);
+	var stock = $('<input type="text" name="price['+i+'][stock]" id="stock['+i+']" size="8" class="selectall right" />').appendTo(inventoryField);
 	var inventoryLabel =$('<label for="stock['+i+']"> '+IN_STOCK_LABEL+'</label>').appendTo(inventoryField);
 	var inventoryBr = $('<br/>').appendTo(inventoryField);
-	var sku = $('<input type="text" name="price['+i+'][sku]" id="sku['+i+']" size="8" title="Enter a unique tracking number for this product option." class="selectall" tabindex="'+(i+1)+'12" />').appendTo(inventoryField);
+	var sku = $('<input type="text" name="price['+i+'][sku]" id="sku['+i+']" size="8" title="Enter a unique tracking number for this product option." class="selectall" />').appendTo(inventoryField);
 	var skuLabel =$('<label for="sku['+i+']" title="'+SKU_LABEL_HELP+'"> '+SKU_LABEL+'</label>').appendTo(inventoryField);
 	
 	var downloadHeading = $('<th><label for="download['+i+']">Product Download</label></th>').appendTo(headingsRow);
@@ -111,14 +111,14 @@ function addPriceLine (target,options,data,attachment) {
 					}
 			});
 		});
-		var filePathButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'14"><small>By File Path</small></button>').appendTo(uploadHeading).click(function () {
+		var filePathButton = $('<button type="button" class="button-secondary"><small>By File Path</small></button>').appendTo(uploadHeading).click(function () {
 			filePathCell.slideToggle();
 		});
 	
 	}
 
 	var uploadHolder = $('<div id="flash-product-uploader-'+i+'"></div>').appendTo(uploadHeading);
-	var uploadButton = $('<button type="button" class="button-secondary" tabindex="'+(i+1)+'13"><small>'+UPLOAD_FILE_BUTTON_TEXT+'</small></button>').appendTo(uploadHeading);
+	var uploadButton = $('<button type="button" class="button-secondary" ><small>'+UPLOAD_FILE_BUTTON_TEXT+'</small></button>').appendTo(uploadHeading);
 
 	var uploader = new FileUploader($(uploadHolder).attr('id'),uploadButton,i,downloadFile);
 		
@@ -128,7 +128,11 @@ function addPriceLine (target,options,data,attachment) {
 	Pricing.options = options;
 	Pricing.data = data;
 	Pricing.row = row;
+	Pricing.rowid = 0;	
 	Pricing.label = label;
+	Pricing.inputs = new Array(
+		type,price,tax,salepriceToggle,saleprice,donationVar,donationMin,
+		shippingToggle,weight,shippingfee,inventoryToggle,stock,sku,filePathButton,uploadButton);
 	Pricing.disable = function () { type.val('N/A').change(); }
 	Pricing.updateKey = function () { optionkey.val(xorkey(this.options)); }
 	Pricing.updateLabel = function () {
@@ -146,6 +150,11 @@ function addPriceLine (target,options,data,attachment) {
 		this.label.val(htmlentities(string)).change();
 		optionids.val(ids);
 	}
+	Pricing.updateTabindex = function (row) {
+		$.each(this.inputs,function(i,input) {
+			$(input).attr('tabindex',((row+1)*100)+i);
+		});
+	}	
 	Pricing.updateKey();
 	Pricing.updateLabel();
 	

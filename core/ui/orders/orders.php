@@ -2,17 +2,22 @@
 	<h2><?php _e('Orders','Shopp'); ?></h2>
 
 	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="orders" method="get">
+	<?php include("navigation.php"); ?>
 	<div>
 		<input type="hidden" name="page" value="<?php echo $page; ?>" />
 		<input type="hidden" name="status" value="<?php echo $status; ?>" />
 	</div>
-	<?php include("navigation.php"); ?>
+	<div class="clear"></div>
 
-	<br class="clear" />
 	<p id="post-search" class="search-box">
 		<input type="text" id="orders-search-input" class="search-input" name="s" value="<?php echo attribute_escape($s); ?>" />
 		<input type="submit" value="<?php _e('Search Orders','Shopp'); ?>" class="button" />
 	</p>
+	<ul id="report">
+		<li><strong><?php echo $ordercount->total; ?></strong> <span>Orders</span></li>
+		<li><strong><?php echo money($ordercount->sales); ?></strong> <span>Total Sales</span></li>
+		<li><strong><?php echo money($ordercount->avgsale); ?></strong> <span>Average Sale</span></li>
+	</ul>
 	
 	<div class="tablenav">
 		<div class="alignleft actions">
@@ -82,6 +87,7 @@
 	</table>
 	
 	</form>
+	
 	<div class="tablenav">
 		<div class="alignleft actions">
 			<form action="<?php echo add_query_arg(array_merge($_GET,array('lookup'=>'purchaselog')),$Shopp->wpadminurl."admin.php"); ?>" id="log" method="post">

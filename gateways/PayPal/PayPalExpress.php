@@ -49,12 +49,14 @@ class PayPalExpress {
 		if (!empty($_GET['token'])) {
 			if (empty($Shopp->Cart->data->PayPalExpress->token)) {
 				$Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
-				$this->details();
 			} else $Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
+			$this->details();
 		}
 
 		return true;
 	}
+	
+	function actions () {}
 	
 	function headers () {
 		$_ = array();
@@ -151,7 +153,7 @@ class PayPalExpress {
 		global $Shopp;
 		if (!isset($Shopp->Cart->data->PayPalExpress->token) && 
 			!isset($Shopp->Cart->data->PayPalExpress->payerid)) return false;
-
+		
 		$_ = $this->headers();
 
    		$_['METHOD'] 				= "GetExpressCheckoutDetails";
@@ -185,10 +187,17 @@ class PayPalExpress {
 		$Billing->xaddress = $Shipping->xaddress;
 		$Billing->city = $Shipping->city;
 		$Billing->state = $Shipping->state;
-		$Billing->country = $Shipping->country;
+		$Billing->country = $this->Response->countrycode;
 		$Billing->postcode = $Shipping->postcode;
 
 		$Shopp->Cart->updated();
+		
+		$targets = $Shopp->Settings->get('target_markets');
+		if (!in_array($Billing->country,array_keys($targets))) {
+			new ShoppError(__('The location you are purchasing from is outside of our market regions. This transaction cannot be processed.','Shopp'),'paypalexpress_market',SHOPP_TRXN_ERR);
+			header("Location: ".$Shopp->link('cart'));
+			exit();
+		}
 		
 	} 
 	
@@ -291,7 +300,7 @@ class PayPalExpress {
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
 		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0); 
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
-		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
+		curl_setopt($connection, CURLOPT_VERBOSE, 0); 
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
 		curl_setopt($connection, CURLOPT_POST, 1); 
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->transaction); 

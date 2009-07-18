@@ -360,6 +360,7 @@ class Catalog extends DatabaseObject {
 				if (isset($options['separator'])) $separator = $options['separator'];
 
 				$category = $Shopp->Cart->data->breadcrumb;
+				$trail = false;
 				$search = array();
 				if (isset($Shopp->Cart->data->Search)) $search = array('search'=>$Shopp->Cart->data->Search);
 				$path = split("/",$category);
@@ -368,7 +369,7 @@ class Catalog extends DatabaseObject {
 					$search = array('tag'=>urldecode($path[1]));
 				}
 				$Category = Catalog::load_category($category,$search);
-				
+
 				if (!empty($Category->uri)) {
 					$type = "category";
 					if (isset($Category->tag)) $type = "tag";
@@ -386,9 +387,17 @@ class Catalog extends DatabaseObject {
 								$Shopp->shopuri);
 					}
 
-					if (!empty($Shopp->Product)) $trail = '<li><a href="'.$link.'">'.$Category->name.'</a></li>';
-					else if (!empty($Category->name)) $trail = '<li>'.$Category->name.'</li>';
+					$filters = false;
+					if (!empty($Shopp->Cart->data->Category[$Category->slug])) {
+						$filters = ' (<a href="?shopp_catfilters=cancel">'.__('Clear Filters','Shopp').'</a>)';
+					}					
 					
+					if (!empty($Shopp->Product)) 
+						$trail .= '<li><a href="'.$link.'">'.$Category->name.(!$trail?'':$separator).'</a></li>';
+					elseif (!empty($Category->name)) 
+						$trail .= '<li>'.$Category->name.$filters.(!$trail?'':$separator).'</li>';
+					
+
 					// Build category names path by going from the target category up the parent chain
 					$parentkey = (!empty($Category->id))?$this->categories[$Category->id]->parent:0;
 					while ($parentkey != 0) {
@@ -499,17 +508,23 @@ class Catalog extends DatabaseObject {
 				$content = false;
 				$source = $options['source'];
 				if ($source == "product" && isset($options['product'])) {
-					if (preg_match('/^[\d+]$/',$options['product'])) 
-						$Shopp->Product = new Product($options['product']);
-					else $Shopp->Product = new Product($options['product'],'slug');
-
-					if (isset($options['load'])) return true;
-					ob_start();
-					if (file_exists(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php"))
-						include(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php");
-					else include(SHOPP_TEMPLATES."/sideproduct.php");
-					$content = ob_get_contents();
-					ob_end_clean();
+					$products = split(",",$options['product']);
+					if (!is_array($products)) $products = array($products);
+					foreach ($products as $product) {
+						$product = trim($product);
+						if (preg_match('/^[\d+]$/',$product)) 
+							$Shopp->Product = new Product($product);
+						else $Shopp->Product = new Product($product,'slug');
+						
+						if (empty($Shopp->Product->id)) continue;
+						if (isset($options['load'])) return true;
+						ob_start();
+						if (file_exists(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php"))
+							include(SHOPP_TEMPLATES."/sideproduct-{$Shopp->Product->id}.php");
+						else include(SHOPP_TEMPLATES."/sideproduct.php");
+						$content .= ob_get_contents();
+						ob_end_clean();
+					}
 				}
 				
 				if ($source == "category" && isset($options['category'])) {

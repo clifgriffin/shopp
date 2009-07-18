@@ -350,6 +350,9 @@ class Cart {
 						new ShoppError(__('A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout.','Shopp','cart_required_postcode',SHOPP_ERR));
 						return null;
 					} else $this->data->ShippingPostcodeError = false;
+				} else {
+					$this->data->ShippingPostcode = false;
+					$this->data->ShippingPostcodeError = false;	
 				}
 			
 				if ($Shipping->country == $base['country']) {

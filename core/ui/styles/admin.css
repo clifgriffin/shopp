@@ -250,7 +250,8 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #print-button { position: absolute; right: 15px; }
 
 #orders div.actions span.filtering { margin-left: 10px; }
-
+.shopp #report li { display: inline; margin-right: 20px; }
+.shopp #report li span { color: #777; }
 
 /* Shipping Settings */
 #shipping-rates table.rate, #shipping-rates table.rate tr { background: none; }
