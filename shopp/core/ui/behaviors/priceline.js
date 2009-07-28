@@ -1,5 +1,5 @@
 function addPriceLine (target,options,data,attachment) {
-	$=jQuery.noConflict();
+	var $ = jQuery.noConflict();
 	// Give this entry a unique runtime id
 	var i = pricingidx;
 	
@@ -15,7 +15,7 @@ function addPriceLine (target,options,data,attachment) {
 	var label = $('<input type="hidden" name="price['+i+'][label]" id="label['+i+']" />').appendTo(heading);
 	label.change(function () { labelText.text($(this).val()); });
 
-	var myid = $('<input type="hidden" name="price['+i+'][id]" id="id['+i+']" />').appendTo(heading);
+	var myid = $('<input type="hidden" name="price['+i+'][id]" id="priceid-'+i+'" />').appendTo(heading);
 	var productid = $('<input type="hidden" name="price['+i+'][product]" id="product['+i+']" />').appendTo(heading);
 	var context = $('<input type="hidden" name="price['+i+'][context]" />').appendTo(heading);
 	var optionkey = $('<input type="hidden" name="price['+i+'][optionkey]" class="optionkey" />').appendTo(heading);
@@ -127,10 +127,11 @@ function addPriceLine (target,options,data,attachment) {
 	Pricing.row = row;
 	Pricing.rowid = 0;
 	Pricing.label = label;
+	Pricing.links = new Array();
 	Pricing.inputs = new Array(
 		type,price,tax,salepriceToggle,saleprice,donationVar,donationMin,
-		shippingToggle,weight,shippingfee,inventoryToggle,stock,sku,filePathButton,uploadButton);
-	Pricing.disable = function () { type.val('N/A').change(); }
+		shippingToggle,weight,shippingfee,inventoryToggle,stock,sku);
+	Pricing.disable = function () { type.val('N/A').trigger('change.value'); }
 	Pricing.updateKey = function () { optionkey.val(xorkey(this.options)); }
 	Pricing.updateLabel = function () {
 		var string = "";
@@ -152,6 +153,40 @@ function addPriceLine (target,options,data,attachment) {
 			$(input).attr('tabindex',((row+1)*100)+i);
 		});
 	}
+	Pricing.linkInputs = function (option) {
+		Pricing.links.push(option);
+		$.each(Pricing.inputs,function (i,input) {
+			if (!input) return;
+			var type = "change.linkedinputs";
+			if ($(input).attr('type') == "checkbox") type = "click.linkedinputs";
+			$(input).bind(type,function () {
+				var value = $(this).val();
+				var checked = $(this).attr('checked');
+				$.each(Pricing.links,function (l,option) {
+					$.each(linkedPricing[option],function (id,key) {
+						if (key == xorkey(Pricing.options)) return;
+						if (!pricingOptions[key]) return;
+						if ($(input).attr('type') == "checkbox")
+							$(pricingOptions[key].inputs[i]).attr('checked',checked);
+						else $(pricingOptions[key].inputs[i]).val(value);
+						$(pricingOptions[key].inputs[i]).trigger('change.value');
+					});
+				});
+			});
+		});
+	}
+	Pricing.unlinkInputs = function (option) {
+		if (option !== false) {
+			index = $.inArray(option,Pricing.links);
+			Pricing.links.splice(index,1);
+		}
+		$.each(Pricing.inputs,function (i,input) {
+			if (!input) return;
+			var type = "blur.linkedinputs";
+			if ($(input).attr('type') == "checkbox") type = "click.linkedinputs";
+			$(input).unbind(type);
+		});
+	}
 	Pricing.updateKey();
 	Pricing.updateLabel();
 	
@@ -167,7 +202,7 @@ function addPriceLine (target,options,data,attachment) {
 	interfaces['Donation'] = new Array(priceHeading, priceCell, donationHeading, donationCell);	
 
 	// Alter the interface depending on the type of price line
-	type.change(function () {
+	type.bind('change.value',function () {
 		var ui = type.val();
 		$.each(interfaces['All'],function() { $(this).hide(); });
 		priceLabel.html(PRICE_LABEL);
@@ -175,43 +210,43 @@ function addPriceLine (target,options,data,attachment) {
 			$.each(interfaces[ui],function() { $(this).show(); });
 		if (type.val() == "Donation") {
 			priceLabel.html(AMOUNT_LABEL);
-			tax.attr('checked','true').change();
+			tax.attr('checked','true').trigger('change.value');
 		}
 	});
 
 	// Optional input's checkbox toggle behavior
-	salepriceToggle.change(function () {
-		salepriceStatus.toggle();
-		salepriceField.toggle();
+	salepriceToggle.bind('change.value',function () {
+		if (this.checked) { salepriceStatus.hide(); salepriceField.show(); }
+		else { salepriceStatus.show(); salepriceField.hide(); }
 		if ($.browser.msie) $(this).blur();
 	}).click(function () {
-		if ($.browser.msie) $(this).change();
+		if ($.browser.msie) $(this).trigger('change.value');
 		if (this.checked) saleprice.focus().select();
 	
 	});
 
-	shippingToggle.change(function () {
-		shippingStatus.toggle();
-		shippingFields.toggle();
+	shippingToggle.bind('change.value',function () {
+		if (this.checked) { shippingStatus.hide(); shippingFields.show(); }
+		else { shippingStatus.show(); shippingFields.hide(); }
 		if ($.browser.msie) $(this).blur();
 	}).click(function () {
-		if ($.browser.msie) $(this).change();
+		if ($.browser.msie) $(this).trigger('change.value');
 		if (this.checked) weight.focus().select();
 	});
 
-	inventoryToggle.change(function () {
-		inventoryStatus.toggle();
-		inventoryField.toggle();
+	inventoryToggle.bind('change.value',function () {
+		if (this.checked) { inventoryStatus.hide(); inventoryField.show(); }
+		else { inventoryStatus.show(); inventoryField.hide(); }
 		if ($.browser.msie) $(this).blur();
 	}).click(function () {
-		if ($.browser.msie) $(this).change();
+		if ($.browser.msie) $(this).trigger('change.value');
 		if (this.checked) stock.focus().select();
 	});
 
-	price.change(function() { this.value = asMoney(this.value); }).change();
-	saleprice.change(function() { this.value = asMoney(this.value); }).change();
-	shippingfee.change(function() { this.value = asMoney(this.value); }).change();
-	weight.change(function() { var num = new Number(this.value); this.value = num.roundFixed(3); }).change();
+	price.bind('change.value',function() { this.value = asMoney(this.value); }).trigger('change.value');
+	saleprice.bind('change.value',function() { this.value = asMoney(this.value); }).trigger('change.value');
+	shippingfee.bind('change.value',function() { this.value = asMoney(this.value); }).trigger('change.value');
+	weight.bind('change.value',function() { var num = new Number(this.value); this.value = num.roundFixed(3); }).trigger('change.value');
 
 	// Set the context for the db
 	if (data && data.context) context.val(data.context);
@@ -228,9 +263,9 @@ function addPriceLine (target,options,data,attachment) {
 		sku.val(data.sku);
 		price.val(asMoney(data.price));
 
-		if (data.sale == "on") salepriceToggle.attr('checked','true').change();
-		if (data.shipping == "on") shippingToggle.attr('checked','true').change();
-		if (data.inventory == "on") inventoryToggle.attr('checked','true').change();
+		if (data.sale == "on") salepriceToggle.attr('checked','true').trigger('change.value');
+		if (data.shipping == "on") shippingToggle.attr('checked','true').trigger('change.value');
+		if (data.inventory == "on") inventoryToggle.attr('checked','true').trigger('change.value');
 	
 		if (data.donation) {
 			if (data.donation['var'] == "on") donationVar.attr('checked',true);
@@ -239,7 +274,7 @@ function addPriceLine (target,options,data,attachment) {
 
 		saleprice.val(asMoney(data.saleprice));
 		shippingfee.val(asMoney(data.shipfee));
-		weight.val(data.weight).change();
+		weight.val(data.weight).trigger('change.value');
 		stock.val(data.stock);
 	
 		if (data.download) {
@@ -251,7 +286,7 @@ function addPriceLine (target,options,data,attachment) {
 		}
 		if (data.tax == "off") tax.attr('checked','true');
 	} else {
-		if (type.val() == "Shipped") shippingToggle.attr('checked','true').change();
+		if (type.val() == "Shipped") shippingToggle.attr('checked','true').trigger('change.value');
 	}
 
 	// Improve usability for quick data entry by

@@ -13,6 +13,7 @@ class Customer extends DatabaseObject {
 	static $table = "customer";
 	
 	var $login;
+	var $looping = false;
 	
 	var $management = array(
 		"account" => "My Account",
@@ -31,15 +32,17 @@ class Customer extends DatabaseObject {
 	function management () {
 		global $Shopp;
 
-		switch ($_GET['acct']) {
-			case "receipt": break;
-			case "history": $this->load_orders(); break;
-			case "downloads": $this->load_downloads(); break;
-			case "logout": 
-				$Shopp->Cart->logout(); 
-				if ($Shopp->Settings->get('account_system') == "wordpress")
-					wp_logout();
-				break;
+		if (isset($_GET['acct'])) {
+			switch ($_GET['acct']) {
+				case "receipt": break;
+				case "history": $this->load_orders(); break;
+				case "downloads": $this->load_downloads(); break;
+				case "logout": 
+					$Shopp->Cart->logout(); 
+					if ($Shopp->Settings->get('account_system') == "wordpress")
+						wp_logout();
+					break;
+			}
 		}
 		
 		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
@@ -213,6 +216,7 @@ class Customer extends DatabaseObject {
 		global $Shopp;
 		$db =& DB::get();
 		
+		$where = '';
 		if (isset($filters['where'])) $where = " AND {$filters['where']}";
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
@@ -263,7 +267,7 @@ class Customer extends DatabaseObject {
 		
 		// Link the WP user ID to this customer record
 		$this->wpuser = $wpuser;
-		if (WP_DEBUG) new ShoppError('Successfully created the WordPress user for the Shopp account.',false,SHOPP_DEBUG_ERR);
+		if (SHOPP_DEBUG) new ShoppError('Successfully created the WordPress user for the Shopp account.',false,SHOPP_DEBUG_ERR);
 		return true;
 	}
 	
@@ -311,8 +315,7 @@ class Customer extends DatabaseObject {
 				break;
 			case "recover-button":
 				if (!isset($options['value'])) $options['value'] = __('Get New Password','Shopp');
-				$string .= '<input type="submit" name="recover-login" id="recover-button"'.inputattrs($options).' />';
-				return $string;
+ 					return '<input type="submit" name="recover-login" id="recover-button"'.inputattrs($options).' />';
 				break;
 			case "submit-login": // Deprecating
 			case "login-button":

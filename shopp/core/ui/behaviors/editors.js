@@ -1,5 +1,5 @@
 function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	if (!sortoptions) sortoptions = {'axis':'y'};
 	var _self = this;
 	
@@ -62,13 +62,13 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 }
 
 function NestedMenuContent (i,target,dataname,data) {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	var content = $('<textarea name="'+dataname+'['+i+'][content]" cols="40" rows="7"></textarea>').appendTo(target);
 	if (data && data.content) content.val(htmlentities(data.content));
 }
 
 function NestedMenuOption (i,target,dataname,defaultlabel,data) {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	
 	var _self = this;
 	
@@ -100,7 +100,7 @@ function NestedMenuOption (i,target,dataname,defaultlabel,data) {
 }
 
 function addDetail (data) {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	var menus = $('#details-menu');
 	var entries = $('#details-list');
 	var id = detailsidx++;
@@ -117,7 +117,7 @@ function addDetail (data) {
 }
 
 function loadVariations (options,prices) {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	if (options) {
 		$.each(options,function (key,option) { 
 			addVariationOptionsMenu(option); 
@@ -127,16 +127,22 @@ function loadVariations (options,prices) {
 			if (this.context == "variation")
 				addPriceLine('#variations-pricing',this.options.split(","),this);
 		});
+		updateTabIndexes();
 		
-		addVariationPrices();
+		$.each(options,function (key,option) { 
+			$.each(option.options,function(i,data) {
+				if (data.linked == "on") linkVariations(data.id);
+			});
+		});
 	}
 }
 
 function addVariationOptionsMenu (data) {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	var menus = $('#variations-menu');
 	var entries = $('#variations-list');
 	var addOptionButton = $('#addVariationOption');
+	var linkOptionVariations = $('#linkOptionVariations');
 	var id = variationsidx;
 	
 	var menu = new NestedMenu(id,menus,'options','Option Menu',data,
@@ -157,6 +163,28 @@ function addVariationOptionsMenu (data) {
 	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'options','New Option',data);
 		optionsidx++;
 
+		option.linkIcon = $('<img src="'+rsrcdir+'/core/ui/icons/linked.png" alt="linked" width="16" height="16" class="link" />').appendTo(option.moveHandle);
+		option.linked = $('<input type="hidden" name="options['+menu.index+'][options]['+option.index+'][linked]" class="linked" />').appendTo(option.element);
+		option.linked.change(function () {
+			if ($(this).val() == "off")	option.linkIcon.addClass('invisible');
+			if ($(this).val() == "on") option.linkIcon.removeClass('invisible');
+		});
+		if (data.linked) option.linked.val(data.linked).change();
+		else option.linked.val('off').change();
+
+		option.selected = function () {
+			if (option.element.hasClass('selected')) {
+				entries.find('ul li').removeClass('selected');
+				selectedMenuOption = false;
+			} else {
+				entries.find('ul li').removeClass('selected');
+				$(option.element).addClass('selected');
+				selectedMenuOption = option;
+			}
+			linkOptionVariations.change();
+		}
+		option.element.click(option.selected);
+
 		productOptions[option.id.val()] = option.label;
 		option.label.blur(function() { updateVariationLabels(); });
 		option.deleteButton.unbind('click');
@@ -170,17 +198,19 @@ function addVariationOptionsMenu (data) {
 	
 		if (!init) addVariationPrices(option.id.val());
 		else addVariationPrices();
-	
+		
 		menu.items.push(option);
 	}
 
 	menu.items = new Array();
 	if (data && data.options) $.each(data.options,function () { menu.addOption(this) });
+	
 	else {
 		menu.addOption();
 		menu.addOption();
 	}
 	menu.itemsElement.sortable({'axis':'y','update':function(){ orderVariationPrices() }});
+	
 
 	menu.element.unbind('click',menu.click);
 	menu.element.click(function () {
@@ -201,11 +231,42 @@ function addVariationOptionsMenu (data) {
 	
 }
 
+function linkVariations (option) {
+	if (!option) return;
+	var $=jQuery.noConflict();
+	for (var key in pricingOptions) {
+		if ($.inArray(option.toString(),pricingOptions[key].options) != -1) {
+			if (!linkedPricing[option]) linkedPricing[option] = new Array();
+			linkedPricing[option].push(key);
+			pricingOptions[key].linkInputs(option);
+		}
+	}
+}
+
+function unlinkVariations (option) {
+	if (!option) return;
+	var $=jQuery.noConflict();
+	if (!linkedPricing[option]) return;
+	$.each(linkedPricing[option],function (i,key) {
+		pricingOptions[key].unlinkInputs(option);
+	});
+	linkedPricing.splice(option,1);
+}
+
+function updateVariationLinks () {
+	var $=jQuery.noConflict();
+	for (var key in pricingOptions) pricingOptions[key].unlinkInputs();
+	for (var option in linkedPricing) {
+		linkedPricing[option] = false;
+		linkVariations(option);
+	}
+}
+
 /**
  * buildVariations()
  * Creates an array of all possible combinations of the product variation options */
 function buildVariations () {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	var combos = new Array();							// Final list of possible variations
 	var optionSets = $('#variations-list ul');			// Reference to the DOM-stored option set
 	var totalSets = optionSets.length;					// Total number of sets
@@ -253,11 +314,12 @@ function buildVariations () {
 }
 
 function addVariationPrices (data) {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	if (!data) {
 		var updated = buildVariations();
 		var variationPricing = $('#variations-pricing');
 		var pricelines = $(variationPricing).children();
+		var expanded = false;
 
 		$(updated).each(function(id,options) {
 			var key = xorkey(options);
@@ -272,27 +334,36 @@ function addVariationPrices (data) {
 					pricingOptions[key].updateKey();
 					pricingOptions[key].updateLabel();
 				} else {
-					if (pricelines.length == 0) {
+					if (pricelines.length == 0) { // Append new row
 						addPriceLine('#variations-pricing',options,{context:'variation'});
-					} else {
+					} else { // Add after previous variation
 						addPriceLine(pricingOptions[ xorkey(updated[(id-1)]) ].row,options,{context:'variation'},'after');
 					}
+					expanded = true;
 				}
 			}
 		});
-		// Update input tab indexes
-		$.each($(variationPricing).children(),function(row,line) {
-			key = $(line).find('div.pricing-label input.optionkey').val();
-			pricingOptions[key].updateTabindex(row);
-		});
-		
+
+		if (expanded) {
+			updateTabIndexes();
+			updateVariationLinks();
+		}
 	}
 }
 
-function deleteVariationPrices (optionids,reduce) {
-	$=jQuery.noConflict();
-	var updated = buildVariations();
+function updateTabIndexes () {
+	var $=jQuery.noConflict();
+	var pricelines = $('#variations-pricing').children();
+	$.each(pricelines,function(row,line) {
+		key = $(line).find('th.pricing-label input.optionkey').val();
+		pricingOptions[key].updateTabindex(row);
+	});
+}
 
+function deleteVariationPrices (optionids,reduce) {
+	var $=jQuery.noConflict();
+	var updated = buildVariations();
+	var reduced = false;
 	$(updated).each(function(id,options) {
 		var key = xorkey(options);
 
@@ -312,12 +383,13 @@ function deleteVariationPrices (optionids,reduce) {
 						pricingOptions[newkey].options = modOptions;
 						pricingOptions[newkey].updateLabel();
 						pricingOptions[newkey].updateKey();
+						reduced = true;
 					}
 				} else {
 					if (pricingOptions[key]) {
 						
 						// Mark priceline for removal from db
-						var dbPriceId = $('#id\\['+pricingOptions[key].id+'\\]').val();
+						var dbPriceId = $('#priceid-'+pricingOptions[key].id).val();
 						if ($('#deletePrices').val() == "") $('#deletePrices').val(dbPriceId);
 						else $('#deletePrices').val($('#deletePrices').val()+","+dbPriceId);
 
@@ -331,11 +403,13 @@ function deleteVariationPrices (optionids,reduce) {
 		}
 
 	});
+	
+	if (reduced) updateVariationLinks();
 
 }
 
 function optionMenuExists (label) {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	if (!label) return false;
 	var found = false;
 	$.each(optionMenus,function (id,menu) {
@@ -349,7 +423,7 @@ function optionMenuExists (label) {
 }
 
 function optionMenuItemExists (menu,label) {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	if (!menu || !menu.items || !label) return false;
 	var found = false;
 	$.each(menu.items,function (id,item) {
@@ -361,9 +435,8 @@ function optionMenuItemExists (menu,label) {
 	return found;
 }
 
-
 function updateVariationLabels () {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	var updated = buildVariations();
 	$(updated).each(function(id,options) {
 		var key = xorkey(options);
@@ -372,7 +445,7 @@ function updateVariationLabels () {
 }
 
 function orderOptions (menus,options) {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	var menuids = $(menus).find("ul li").not('.ui-sortable-helper').find('input.id');
 	$(menuids).each(function (i,menuid) {
 		if (menuid) $(optionMenus[$(menuid).val()].itemsElement).appendTo(options);
@@ -381,7 +454,7 @@ function orderOptions (menus,options) {
 }
 
 function orderVariationPrices () {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	var updated = buildVariations();
 
 	$(updated).each(function (id,options) {
@@ -402,7 +475,7 @@ function xorkey (ids) {
 }
 
 function variationsToggle () {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	if ($('#variations-setting').attr('checked')) {
 		pricingOptions[0].disable();
 		$('#product-pricing').hide();
@@ -411,6 +484,50 @@ function variationsToggle () {
 		$('#variations').hide();
 		$('#product-pricing').show();
 	}
+}
+
+function linkVariationsButton () {
+	var $=jQuery.noConflict();
+	if (selectedMenuOption) {
+		if (selectedMenuOption.linked.val() == 'off') {
+			// If all are linked, unlink everything first
+			if (linkedPricing[0]) {
+				for (var key in pricingOptions) pricingOptions[key].unlinkInputs(0);
+				linkedPricing.splice(0,1);
+			}
+			selectedMenuOption.linked.val('on').change();
+			linkVariations(selectedMenuOption.id.val());
+		} else {
+			selectedMenuOption.linked.val('off').change();
+			unlinkVariations(selectedMenuOption.id.val());	
+		}
+	} else {
+		// Nothing selected, link/unlink all
+		if (linkedPricing[0]) { // Already linked, unlink all
+			for (var key in pricingOptions) pricingOptions[key].unlinkInputs(0);
+			linkedPricing.splice(0,1);
+		} else { // Link all
+			linkedPricing = new Array();
+			linkedPricing[0] = new Array();
+			for (var key in pricingOptions) {
+				linkedPricing[0].push(key);
+				pricingOptions[key].linkInputs(0);
+			}
+		}
+	}
+	$(this).change();
+}
+
+function linkVariationsButtonLabel () {
+	var $=jQuery.noConflict();
+	if (selectedMenuOption) {
+		if (selectedMenuOption.linked.val() == 'on') $(this).find('small').html(' '+UNLINK_VARIATIONS);
+		else $(this).find('small').html(' '+LINK_VARIATIONS);
+	} else {
+		if (linkedPricing[0]) $(this).find('small').html(' '+UNLINK_ALL_VARIATIONS);
+		else $(this).find('small').html(' '+LINK_ALL_VARIATIONS);
+	}
+	
 }
 
 function readableFileSize (size) {
@@ -817,9 +934,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 
 function SlugEditor (id,type) {
 	var _self = this;
-	this.test = true;
 	(function($) {
-
 	_self.edit_permalink = function () {
 			var i, c = 0;
 			var editor = $('#editable-slug');
@@ -876,5 +991,4 @@ function SlugEditor (id,type) {
 	
 	_self.enable();
 	})(jQuery)
-
 }

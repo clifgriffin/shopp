@@ -26,7 +26,7 @@ class Catalog extends DatabaseObject {
 		$this->outofstock = ($Shopp->Settings->get('outofstock_catalog') == "on");
 	}
 	
-	function load_categories ($filtering=false,$showsmarts=false,$results=false) {
+	function load_categories ($filtering=false,$showsmart=false,$results=false) {
 		$db = DB::get();
 
 		if (empty($filtering['columns'])) $filtering['columns'] = "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total,IF(SUM(IF(pt.inventory='off',1,0) OR pt.inventory IS NULL)>0,'off','on') AS inventory, SUM(pt.stock) AS stock";
@@ -36,21 +36,38 @@ class Catalog extends DatabaseObject {
 		// if (!$this->outofstock) $filtering['where'] .= (empty($filtering['where'])?"":" AND ")."(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))";
 		if (empty($filtering['where'])) $filtering['where'] = "true";
 		
+		if (empty($filtering['orderby'])) $filtering['orderby'] = "name";
+		switch(strtolower($filtering['orderby'])) {
+			case "id": $orderby = "cat.id"; break;
+			case "slug": $orderby = "cat.slug"; break;
+			case "count": $orderby = "total"; break;
+			default: $orderby = "cat.name";
+		}
+
+		if (empty($filtering['order'])) $filtering['order'] = "ASC";
+		switch(strtoupper($filtering['order'])) {
+			case "DESC": $order = "DESC"; break;
+			default: $order = "ASC";
+		}
+		
 		$category_table = DatabaseObject::tablename(Category::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
-		$query = "SELECT {$filtering['columns']} FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY cat.parent DESC,cat.name ASC {$filtering['limit']}";
-		
+		$query = "SELECT {$filtering['columns']} FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY cat.parent DESC,$orderby $order {$filtering['limit']}";
 		$categories = $db->query($query,AS_ARRAY);
-		if (count($categories) > 1) $categories = sort_tree($categories);
+
+		if (count($categories) > 1) $categories = sort_tree($categories);		
 		if ($results) return $categories;
+
 		foreach ($categories as $category) {
 			$category->outofstock = false;
-			if ($category->inventory == "on" && $category->stock == 0)
-				$category->outofstock = true;
+			if (isset($category->inventory)) {
+				if ($category->inventory == "on" && $category->stock == 0)
+					$category->outofstock = true;
 
-			if (!$this->outofstock && $category->outofstock) continue;
-
+				if (!$this->outofstock && $category->outofstock) continue;
+			}
+			
 			$this->categories[$category->id] = new Category();
 			$this->categories[$category->id]->populate($category);
 
@@ -75,8 +92,8 @@ class Catalog extends DatabaseObject {
 				$this->categories[$category->parent]->children = true;
 		}
 
-		if ($showsmarts == "before" || $showsmarts == "after")
-			$this->smart_categories($showsmarts);
+		if ($showsmart == "before" || $showsmart == "after")
+			$this->smart_categories($showsmart);
 			
 		return true;
 	}
@@ -175,27 +192,32 @@ class Catalog extends DatabaseObject {
 				}
 				break;
 			case "category-list":
-				if (empty($this->categories)) $this->load_categories(array("where"=>"(pd.published='on' OR pd.id IS NULL)"),$options['showsmart']);
 				$defaults = array(
 					'title' => '',
 					'before' => '',
 					'after' => '',
 					'class' => '',
 					'exclude' => '',
+					'orderby' => 'name',
+					'order' => 'ASC',
 					'depth' => 0,
 					'childof' => 0,
 					'parent' => false,
 					'showall' => false,
 					'linkall' => false,
+					'linkcount' => false,
 					'dropdown' => false,
 					'hierarchy' => false,
 					'products' => false,
-					'wraplist' => true
+					'wraplist' => true,
+					'showsmart' => false
 					);
 			
 				$options = array_merge($defaults,$options);
 				extract($options, EXTR_SKIP);
-				
+
+				$this->load_categories(array("where"=>"(pd.published='on' OR pd.id IS NULL)","orderby"=>$orderby,"order"=>$order),$showsmart);
+
 				$string = "";
 				$depthlimit = $depth;
 				$depth = 0;
@@ -262,11 +284,14 @@ class Catalog extends DatabaseObject {
 							$subcategories = '<ul class="children'.$active.'">';
 							$string .= $subcategories;
 						}
+
 						if (value_is_true($hierarchy) && $category->depth < $depth) {
-							if (substr($string,strlen($subcategories)*-1) == $subcategories) {
-								// If the child menu is empty, remove the <ul> to avoid breaking standards
-								$string = substr($string,0,strlen($subcategories)*-1);
-							} else $string .= '</ul></li>';
+							for ($i = $depth; $i > $category->depth; $i--) {
+								if (substr($string,strlen($subcategories)*-1) == $subcategories) {
+									// If the child menu is empty, remove the <ul> to avoid breaking standards
+									$string = substr($string,0,strlen($subcategories)*-1).'</li>';
+								} else $string .= '</ul></li>';
+							}
 						}
 					
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
@@ -280,7 +305,8 @@ class Catalog extends DatabaseObject {
 							$current = ' class="current"';
 						
 						$listing = '';
-						if ($category->total > 0 || isset($category->smart) || $linkall) $listing = '<a href="'.$link.'"'.$current.'>'.$category->name.$total.'</a>';
+						if ($category->total > 0 || isset($category->smart) || $linkall) 
+							$listing = '<a href="'.$link.'"'.$current.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
 						else $listing = $category->name;
 						
 						if (value_is_true($showall) || 
@@ -293,7 +319,12 @@ class Catalog extends DatabaseObject {
 						$depth = $category->depth;
 					}
 					if (value_is_true($hierarchy) && $depth > 0) 
-						for ($i = $depth; $i > 0; $i--) $string .= '</ul></li>';
+						for ($i = $depth; $i > 0; $i--) {
+							if (substr($string,strlen($subcategories)*-1) == $subcategories) {
+								// If the child menu is empty, remove the <ul> to avoid breaking standards
+								$string = substr($string,0,strlen($subcategories)*-1).'</li>';
+							} else $string .= '</ul></li>';
+						}
 					if ($wraplist) $string .= '</ul>';
 				}
 				return $string;
@@ -358,8 +389,11 @@ class Catalog extends DatabaseObject {
 				if (empty($this->categories)) $this->load_categories();
 				$separator = "&nbsp;&raquo; ";
 				if (isset($options['separator'])) $separator = $options['separator'];
-
-				$category = $Shopp->Cart->data->breadcrumb;
+				
+				$category = false;
+				if (isset($Shopp->Cart->data->breadcrumb))
+					$category = $Shopp->Cart->data->breadcrumb;
+				
 				$trail = false;
 				$search = array();
 				if (isset($Shopp->Cart->data->Search)) $search = array('search'=>$Shopp->Cart->data->Search);

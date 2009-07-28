@@ -96,10 +96,10 @@
 			$scope .= menuoptions($Promotion->_lists['scope'],$Promotion->scope);
 			$scope .= '</select>';
 	
-			if (empty($Promotion->logic)) $Promotion->logic = "all";
+			if (empty($Promotion->search)) $Promotion->search = "all";
 	
 			$logic = '<select name="search" class="small">';
-			$logic .= menuoptions(array('any'=>__('any','Shopp'),'all' => __('all','Shopp')),$Promotion->logic,true);
+			$logic .= menuoptions(array('any'=>__('any','Shopp'),'all' => __('all','Shopp')),$Promotion->search,true);
 			$logic .= '</select>';
 		?>
 		

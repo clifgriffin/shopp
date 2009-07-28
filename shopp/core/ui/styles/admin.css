@@ -147,7 +147,10 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 
 .shopp .multipane ul li.hover { background-color: #eaf3fa; }
 .shopp .multipane ul li.selected { background-color: #cee1ef; }
-.shopp .multipane ul li button { width: 24px; border: none; background: none; position: absolute; top: 0; right: 4px; visibility: hidden; }
+.shopp .multipane ul li button { width: 24px; border: none; background: none; }
+.shopp .multipane ul li button.delete { position: absolute; top: 0; right: 4px; visibility: hidden; }
+.shopp .multipane ul li img.link { padding: 2px 0 3px; margin: 1px 0 0 3px; }
+.shopp .multipane ul li.hover img.link { visibility: hidden; }
 
 .shopp .multipane .menu ul li.hover button { visibility: hidden; }
 .shopp .multipane .menu ul li.selected.hover button { visibility: visible; }
@@ -158,10 +161,11 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 .shopp .multiple-select ul li input:focus { background: #fff; outline: 2px solid #c6d9e9;  -moz-outline-radius: 3px; }
 
 .shopp .multipane ul li div { width: 19px; height: 22px; float: left; }
-.shopp .multipane ul li.hover div { background: url('../icons/move.png') no-repeat  3px top; }
+.shopp .multipane ul li.hover div.move { background: url('../icons/move.png') no-repeat  3px top; }
 
 .shopp .details .list li textarea { width: 250px; height: 122px; margin: 0; }
 .shopp .details .list li button { border: none; background: none; position: absolute; top: 0; right: 0; visibility: hidden; }
+
 
 .form-table th div { margin-top: 10px; }
 /*.form-table th div button { width: 100%; }

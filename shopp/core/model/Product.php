@@ -64,6 +64,7 @@ class Product extends DatabaseObject {
 			$assettable = DatabaseObject::tablename(Asset::$table);
 
 			$Dataset['prices'] = new Price();
+			$Dataset['prices']->_datatypes['promos'] = "MAX(promo.status)";
 			$Dataset['prices']->_datatypes['promotions'] = "group_concat(promo.name)";
 			$Dataset['prices']->_datatypes['percentoff'] = "SUM(IF (promo.type='Percentage Off',promo.discount,0))";
 			$Dataset['prices']->_datatypes['amountoff'] = "SUM(IF (promo.type='Amount Off',promo.discount,0))";
@@ -130,7 +131,7 @@ class Product extends DatabaseObject {
 					$query .= "(SELECT '$set->_table' as dataset,$set->_table.product AS product,'$rtype' AS rtype,'' AS alphaorder,$set->_table.sortorder AS sortorder,$cols FROM $set->_table 
 								LEFT JOIN $assettable AS download ON $set->_table.id=download.parent AND download.context='price' AND download.datatype='download' 
 								LEFT JOIN $discounttable AS discount ON discount.product=$set->_table.product AND discount.price=$set->_table.id
-								LEFT JOIN $promotable AS promo ON promo.id=discount.promo
+								LEFT JOIN $promotable AS promo ON promo.id=discount.promo AND (promo.status='enabled' AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1) OR (UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(ends)) ))
 								WHERE $where GROUP BY $set->_table.id)";
 					break;
 				case "images":
@@ -180,7 +181,7 @@ class Product extends DatabaseObject {
 		
 		// Add order by columns
 		$query .= " ORDER BY sortorder";
-
+		// echo $query;
 		// Execute the query
 		$data = $db->query($query,AS_ARRAY);
 		
@@ -237,7 +238,7 @@ class Product extends DatabaseObject {
 		$variations = ($this->variations == "on");
 		$freeshipping = true;
 		foreach ($this->prices as $i => &$price) {
-			
+			// echo "<pre>"; print_r($price); echo "</pre>";
 			// Build secondary lookup table using the combined optionkey
 			$this->pricekey[$price->optionkey] = $price;
 			
@@ -259,13 +260,12 @@ class Product extends DatabaseObject {
 				$this->inventory = true;
 			} else $price->stocked = false;
 			
-			
 			if ($price->freeshipping == 0) $freeshipping = false;
 
 			$price->promoprice = $price->saleprice;
 			if ((int)$price->promoprice == 0) $price->promoprice = $price->price;
 			
-			if (isset($this->promos) && $this->promos == 'enabled') {
+			if ((isset($price->promos) && $price->promos == 'enabled')) {
 				if ($price->percentoff > 0) {
 					$price->promoprice = $price->promoprice - ($price->promoprice * ($price->percentoff/100));
 					$price->onsale = true;
@@ -672,10 +672,11 @@ class Product extends DatabaseObject {
 				if (empty($this->prices)) $this->load_data(array('prices'));
 
 				$taxrate = 0;
+				$taxes = false;
 				$base = $Shopp->Settings->get('base_operations');
-				if (isset($options['taxes'])) $options['taxes'] = value_is_true($options['taxes']);
-				elseif ($base['vat']) $options['taxes'] = true;
-				if ($options['taxes']) $taxrate = $Shopp->Cart->taxrate();
+				if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
+				elseif ($base['vat']) $taxes = true;
+				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 				
 				if ($this->options > 1) {
 					if ($this->pricerange['min']['price'] == $this->pricerange['max']['price'])
@@ -704,10 +705,12 @@ class Product extends DatabaseObject {
 				// if (empty($this->prices)) $this->load_prices();
 				$pricetag = 'price';
 
+				$taxrate = 0;
+				$taxes = false;
 				$base = $Shopp->Settings->get('base_operations');
-				if (isset($options['taxes'])) $options['taxes'] = value_is_true($options['taxes']);
-				elseif ($base['vat']) $options['taxes'] = true;
-				if ($options['taxes']) $taxrate = $Shopp->Cart->taxrate();
+				if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
+				elseif ($base['vat']) $taxes = true;
+				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 
 				if ($this->onsale) $pricetag = 'saleprice';
 				if ($this->options > 1) {
@@ -1006,6 +1009,7 @@ class Product extends DatabaseObject {
 				if ($this->outofstock) return false; // Completely out of stock, hide menus
 				
 				$defaults = array(
+					'defaults' => '',
 					'disabled' => 'show',
 					'before_menu' => '',
 					'after_menu' => ''
@@ -1013,10 +1017,12 @@ class Product extends DatabaseObject {
 					
 				$options = array_merge($defaults,$options);
 
+				$taxrate = 0;
+				$taxes = false;
 				$base = $Shopp->Settings->get('base_operations');
-				if (isset($options['taxes'])) $options['taxes'] = value_is_true($options['taxes']);
-				elseif ($base['vat']) $options['taxes'] = true;
-				if ($options['taxes']) $taxrate = $Shopp->Cart->taxrate();
+				if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
+				elseif ($base['vat']) $taxes = true;
+				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 
 				if (!isset($options['label'])) $options['label'] = "on";
 				if (!isset($options['required'])) $options['required'] = __('You must select the options for this item before you can add it to your shopping cart.','Shopp');
@@ -1043,22 +1049,23 @@ class Product extends DatabaseObject {
 					ob_start();
 					?>
 					<script type="text/javascript">
-					//<![CDATA[
+					<!--
 					(function($) {
 						$(document).ready(function () {
 							productOptions[<?php echo $this->id; ?>] = new Array();
 							productOptions[<?php echo $this->id; ?>]['pricing'] = <?php echo json_encode($this->pricekey); ?>;
 							options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
 							options_required = "<?php echo $options['required']; ?>";
-							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select.category-<?php echo $Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo $taxrate; ?>);
+							
+							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (isset($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo $taxrate; ?>);
 						});
 					})(jQuery)
-					//]]>
+					//-->
 					</script>
 					<?php
 					$script = ob_get_contents();
 					ob_end_clean();
-					
+
 					$options['after_menu'] = $script.$options['after_menu'];
 					if (isset($this->options['variations'])) {
 						foreach ($this->options['variations'] as $id => $menu) {
@@ -1077,8 +1084,8 @@ class Product extends DatabaseObject {
 						foreach ($this->options as $id => $menu) {
 							if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 							if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
-
-							$string .= '<select name="products['.$this->id.'][options][]" class="category-'.$Shopp->Category->slug.' product'.$this->id.' options">';
+							$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
+							$string .= '<select name="products['.$this->id.'][options][]" class="'.$category_class.' product'.$this->id.' options" id="options-'.$menu['id'].'">';
 							if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 							foreach ($menu['options'] as $key => $option)
 								$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";

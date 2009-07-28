@@ -8,11 +8,12 @@
  * @package shopp
  **/
 
-$=jQuery.noConflict();
 
 var productOptions = new Array();
 var optionMenus = new Array();
 var pricingOptions = new Object();
+var linkedPricing = new Array();
+var selectedMenuOption = false;
 var detailsidx = 1;
 var variationsidx = 1;
 var optionsidx = 1;
@@ -23,7 +24,8 @@ var saving = false;
 var flashUploader = false;
 var pricesPayload = true;
 
-$(document).ready( function($) {
+jQuery(document).ready(function() {
+	var $=jQuery.noConflict();
 
 	if (!wp26) {
 		postboxes.add_postbox_toggles('admin_page_shopp-products-edit');
@@ -54,18 +56,21 @@ $(document).ready( function($) {
 	loadVariations(options,prices);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
+	$('#linkOptionVariations').click(linkVariationsButton);
+	$('#linkOptionVariations').change(linkVariationsButtonLabel);
 	
 	categories();
 	tags();
 	quickSelects();
 	updateWorkflow();
-	
+
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
 	window.onbeforeunload = function () { if (changes && !saving) return false; }	
 
 });
 
 function updateWorkflow () {
+	var $=jQuery.noConflict();
 	$('#workflow').change(function () {
 		setting = $(this).val();
 		request.page = workflow[setting];
@@ -99,6 +104,8 @@ function updateWorkflow () {
 }
 
 function categories () {
+	var $=jQuery.noConflict();
+	
 	$('#new-category input, #new-category select').hide();
 	
 	// Add New Category button handler
@@ -186,6 +193,8 @@ function categories () {
 		
 	// Add to selection menu
 	function  addCategoryMenuItem (c) {
+		var $=jQuery.noConflict();
+		
 		var parent = false;
 		var name = $('#new-category input').val();
 		var parentid = $('#new-category select').val();
@@ -221,6 +230,8 @@ function categories () {
 }
 
 function tags () {
+	var $=jQuery.noConflict();
+	
 	function updateTagList () {
 		$('#tagchecklist').empty();
 		var tags = $('#tags').val().split(',');

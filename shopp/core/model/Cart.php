@@ -4,8 +4,8 @@
  * Shopping session handling
  *
  * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, 28 March, 2008
+ * @version 1.1
+ * @copyright Ingenesis Limited, 23 July, 2009
  * @package shopp
  **/
 
@@ -24,13 +24,15 @@ class Cart {
 	var $modified;
 	var $ip;
 	var $data;
+	var $path;
 	var $contents = array();
 	var $shipped = array();
 	var $freeshipping = false;
 	var $looping = false;
 	var $runaway = 0;
 	var $updated = false;
-	var $retotal = false;   
+	var $retotal = false;
+	var $handlers = false;
 	
 	// methods
 	
@@ -39,7 +41,7 @@ class Cart {
 	function Cart () {
 		$this->_table = DatabaseObject::tablename('cart');
 		
-		session_set_save_handler(
+		$this->handlers = session_set_save_handler(
 			array( &$this, 'open' ),	// Open
 			array( &$this, 'close' ),	// Close
 			array( &$this, 'load' ),	// Read
@@ -47,7 +49,7 @@ class Cart {
 			array( &$this, 'unload' ),	// Destroy
 			array( &$this, 'trash' )	// Garbage Collection
 		);
-
+		
 		$this->data = new stdClass();
 		$this->data->Totals = new stdClass();
 		$this->data->Totals->subtotal = 0;
@@ -60,9 +62,9 @@ class Cart {
 
 		$this->data->Order = new stdClass();
 		$this->data->Order->data = array();
-		$this->data->Order->Customer = new Customer();
-		$this->data->Order->Billing = new Billing();
-		$this->data->Order->Shipping = new Shipping();
+		$this->data->Order->Customer = false;
+		$this->data->Order->Billing = false;
+		$this->data->Order->Shipping = false;
 		$this->data->login = false;
 
 		$this->data->Errors = new ShoppErrors();
@@ -88,7 +90,9 @@ class Cart {
 			
 	/* open()
 	 * Initializing routine for the session management. */
-	function open () {
+	function open ($path,$name) {
+		$this->path = $path;
+		if (empty($this->path)) $this->path = dirname(realpath(tempnam('','tmp_')));
 		$this->trash();	// Clear out any residual session information before loading new data
 		if (empty($this->session)) $this->session = session_id();	// Grab our session id
 		$this->ip = $_SERVER['REMOTE_ADDR'];						// Save the IP address making the request
@@ -103,7 +107,7 @@ class Cart {
 	/* load()
 	 * Gets data from the session data table and loads Member 
 	 * objects into the User from the loaded data. */
-	function load () {
+	function load ($id) {
 		$db = DB::get();
 		
 		if (is_robot()) return true;
@@ -115,13 +119,16 @@ class Cart {
 			else $this->contents = unserialize($result->contents);
 			$this->created = mktimestamp($result->created);
 			$this->modified = mktimestamp($result->modified);
-			
 		} else {
 			$db->query("INSERT INTO $this->_table (session, ip, data, contents, created, modified) 
 							VALUES ('$this->session','$this->ip','','',now(),now())");
 		}
 		
 		if (empty($this->data->Errors)) $this->data->Errors = new ShoppErrors();
+
+		// Read standard session data
+		if (file_exists("$this->path/sess_$id"))
+			return (string) file_get_contents("$this->path/sess_$id");
 		
 		return true;
 	}
@@ -139,17 +146,26 @@ class Cart {
 	
 	/* save() 
 	 * Save the session data to our session table in the database. */
-	function save () {
+	function save ($id,$session) {
 		global $Shopp;
 		$db = DB::get();
-				
+		
 		if (!$Shopp->Settings->unavailable) {
 			$data = $db->escape(addslashes(serialize($this->data)));
 			$contents = $db->escape(serialize($this->contents));
 			if (!$db->query("UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'")) 
 				trigger_error("Could not save session updates to the database.");
-			return true;
 		}
+
+		// Save standard session data for compatibility
+		if (!empty($session)) {
+			if ($sf = fopen("$this->path/sess_$id","w")) {
+				$result = fwrite($sf, $session);
+				fclose($sf);
+				return $result;
+			} return false;
+		}
+		return true;
 	}
 
 	/* trash()
@@ -257,6 +273,8 @@ class Cart {
 		$this->contents[$item] = new Item($Product,$pricing,$category);
 		$this->contents[$item]->quantity($qty);
 		$this->updated();
+		if ($this->contents[$item]->shipping) $this->data->Shipping = true;
+		
 		return true;
 	}
 	
@@ -521,7 +539,7 @@ class Cart {
 				}
 				$this->data->PromosApplied[] = $promo;
 				if ($limit > 0 && count($this->data->PromosApplied)+1 > $limit) {
-					$PromoLimit = true;					
+					$PromoLimit = true;
 					break;
 				}
 			}
@@ -638,6 +656,12 @@ class Cart {
 	 * Handle login processing */
 	function logins () {
 		global $Shopp;
+		if (!$this->data->Order->Customer) {
+			$this->data->Order->Customer = new Customer();
+			$this->data->Order->Billing = new Billing();
+			$this->data->Order->Shipping = new Shipping();
+		}
+		
 		$authentication = $Shopp->Settings->get('account_system');
 
 		switch ($authentication) {
@@ -658,7 +682,7 @@ class Cart {
 
 				if (!empty($_POST['email-login'])) {
 					$user = get_user_by_email($_POST['email-login']);
-					$loginname = $user->user_login;
+					if (!is_wp_error($user)) $loginname = $user->user_login;
 				}
 					
 				if (!empty($_POST['loginname-login'])) 
@@ -668,8 +692,8 @@ class Cart {
 					$user = wp_authenticate($loginname,$_POST['password-login']);
 					
 					if (!is_wp_error($user)) {
-						wp_set_auth_cookie($user->ID, false, $secure_cookie);
-						do_action('wp_login', $credentials['user_login']);
+						wp_set_auth_cookie($user->ID, false, $Shopp->secure);
+						do_action('wp_login', $loginname);
 
 						if ($Account = new Customer($user->ID,'wpuser')) {
 							$this->loggedin($Account);
@@ -1039,7 +1063,7 @@ class Cart {
 			case "has-ship-costs": return ($this->data->Totals->shipping > 0); break;
 			case "needs-shipping-estimates":
 				$markets = $Shopp->Settings->get('target_markets');
-				return ($this->data->Shipping && count($markets) > 1);
+				return ($this->data->Shipping && ($this->data->ShippingPostcode || count($markets) > 1));
 				break;
 			case "shipping-estimates":
 				if (!$this->data->Shipping) return "";
@@ -1205,7 +1229,9 @@ class Cart {
 			case "url": 
 				$ssl = true;
 				// Test Mode will not require encrypted checkout
-				if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco'])) 
+				if (strpos($gateway,"TestMode.php") !== false 
+					|| isset($_GET['shopp_xco']) 
+					|| defined('SHOPP_NOSSL')) 
 					$ssl = false;
 				$link = $Shopp->link('checkout',$ssl);
 				

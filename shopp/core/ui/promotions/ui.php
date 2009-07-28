@@ -52,11 +52,11 @@ function rules_meta_box ($Promotion) {
 	$scope = '<select name="scope" id="promotion-scope" class="small">';
 	$scope .= menuoptions($Promotion->_lists['scope'],$Promotion->scope);
 	$scope .= '</select>';
-	
-	if (empty($Promotion->logic)) $Promotion->logic = "all";
+
+	if (empty($Promotion->search)) $Promotion->search = "all";
 	
 	$logic = '<select name="search" class="small">';
-	$logic .= menuoptions(array('any'=>__('any','Shopp'),'all' => __('all','Shopp')),$Promotion->logic,true);
+	$logic .= menuoptions(array('any'=>__('any','Shopp'),'all' => __('all','Shopp')),$Promotion->search,true);
 	$logic .= '</select>';
 
 ?>
@@ -66,7 +66,4 @@ function rules_meta_box ($Promotion) {
 }
 add_meta_box('promotion-rules', __('Conditions','Shopp'), 'rules_meta_box', 'admin_page_shopp-promotions-edit', 'normal', 'core');
 
-do_action('do_meta_boxes', 'admin_page_shopp-promotions-edit', 'normal', $Promotion);
-do_action('do_meta_boxes', 'admin_page_shopp-promotions-edit', 'advanced', $Promotion);
-do_action('do_meta_boxes', 'admin_page_shopp-promotions-edit', 'side', $Promotion);
 ?>

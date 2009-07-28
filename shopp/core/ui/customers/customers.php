@@ -6,7 +6,6 @@
 		<input type="hidden" name="page" value="<?php echo $page; ?>" />
 		<input type="hidden" name="status" value="<?php echo $status; ?>" />
 	</div>
-	<?php //include("navigation.php"); ?>
 
 	<br class="clear" />
 	<p id="post-search" class="search-box">
@@ -85,7 +84,7 @@
 			<span id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">
 				<ul>
-					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_columns" id="selectall_columns" /><label for="selectall_columns"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>	
+					<li<?php $even = true; if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_columns" id="selectall_columns" /><label for="selectall_columns"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>	
 					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="hidden" name="settings[customerexport_headers]" value="off" /><input type="checkbox" name="settings[customerexport_headers]" id="purchaselog_headers" value="on" /><label for="purchaselog_headers"><strong><?php _e('Include column headings','Shopp'); ?></strong></label></li>	
 					
 					<?php $even = true; foreach ($columns as $name => $label): ?>
