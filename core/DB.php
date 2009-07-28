@@ -220,15 +220,15 @@ class DatabaseObject {
 	 * Initializes the db object by grabbing table schema
 	 * so we know how to work with this table */
 	function init ($table,$key="id") {
-		$db = DB::get();
 		global $Shopp;
+		$db = DB::get();
 		
 		$this->_table = $this->tablename($table); // So we know what the table name is
 		$this->_key = $key;				// So we know what the primary key is
 		$this->_datatypes = array();	// So we know the format of the table
 		$this->_lists = array();		// So we know the options for each list
 		$this->_defaults = array();		// So we know the default values for each field
-				
+
 		if (isset($Shopp->Settings)) {
 			$Tables = $Shopp->Settings->get('data_model');
 			if (isset($Tables[$this->_table])) {
@@ -243,10 +243,9 @@ class DatabaseObject {
 				return true;
 			}
 		}
-		
+
 		if (!$r = $db->query("SHOW COLUMNS FROM $this->_table",true,false)) return false;
 		
-
 		// Map out the table definition into our data structure
 		foreach($r as $object) {	
 			$property = $object->Field;

@@ -255,7 +255,7 @@ class Category extends DatabaseObject {
 		$assettable = DatabaseObject::tablename(Asset::$table);
 		
 		$columns = "p.*,
-					img.id AS thumbnail,img.properties AS thumbnail_properties,pr.status as promos,
+					img.id AS thumbnail,img.properties AS thumbnail_properties,MAX(pr.status) as promos,
 					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0))AS percentoff,
 					SUM(DISTINCT IF(pr.type='Amount Off',pr.discount,0)) AS amountoff,
 					if (pr.type='Free Shipping',1,0) AS freeshipping,
@@ -710,7 +710,7 @@ class Category extends DatabaseObject {
 				if (empty($this->id)) return false;
 				$parent = $this->id;
 				while($parent != 0) {
-					if ($Shopp->Catalog->categories[$parent]->parent == 0 || $$Shopp->Catalog->categories[$parent]->parent = $parent) break;
+					if ($Shopp->Catalog->categories[$parent]->parent == 0 || $Shopp->Catalog->categories[$parent]->parent = $parent) break;
 					$parent = $Shopp->Catalog->categories[$parent]->parent;
 				}
 				$root = $Shopp->Catalog->categories[$parent];
@@ -722,7 +722,7 @@ class Category extends DatabaseObject {
 				foreach ($Shopp->Catalog->categories as &$c) {
 					if ($in && $c->depth == $root->depth) break; // Done
 					if ($in) $section[] = $c;
-					if (!$in && $c->id == $root->id) $in = true;
+					if (!$in && isset($c->id) && $c->id == $root->id) $in = true;
 				}
 				
 				if (value_is_true($dropdown)) {
@@ -769,7 +769,7 @@ class Category extends DatabaseObject {
 							$category->depth >= $depthlimit) continue;
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
 							$parent = &$previous;
-							if (!isset($parent->path)) $parent->path = $parent->slug;
+							if (!isset($parent->path) && isset($parent->slug)) $parent->path = $parent->slug;
 							$string = substr($string,0,-5);
 							$string .= '<ul class="children">';
 						}
@@ -916,6 +916,7 @@ class Category extends DatabaseObject {
 				if ($this->facetedmenus == "off") return;
 				$output = "";
 				$CategoryFilters =& $Shopp->Cart->data->Category[$this->slug];
+				$link = $_SERVER['REQUEST_URI'];
 				if (!isset($options['cancel'])) $options['cancel'] = "X";
 				if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
 					list($link,$query) = split("\?",$_SERVER['REQUEST_URI']);
@@ -1148,7 +1149,7 @@ class OnSaleProducts extends Category {
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
-		$this->loading = array('where'=>"pd.sale='on' OR (pr.status='enabled' AND pr.discount > 0)",'order'=>'p.modified DESC');
+		$this->loading = array('where'=>"pd.sale='on' OR (pr.status='enabled' AND pr.discount > 0 AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1) OR (UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(ends)) ))",'order'=>'p.modified DESC');
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}

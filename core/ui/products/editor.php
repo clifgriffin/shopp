@@ -234,6 +234,7 @@ foreach ($Product->categories as $category) $selectedCategories[] = $category->i
 				<li>
 					<div id="variations-list" class="multiple-select options"></div>
 					<div class="controls right">
+						<button type="button" id="linkOptionVariations" class="button-secondary" tabindex="17"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/linked.png" alt="link" width="16" height="16" /><small> <?php _e('Link All Variations','Shopp'); ?></small></button>
 					<button type="button" id="addVariationOption" class="button-secondary" tabindex="15"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
 					</div>
 				</li>
@@ -293,6 +294,10 @@ var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this produ
 var SERVER_COMM_ERROR = "<?php _e('There was an error communicating with the server.','Shopp'); ?>";
 
 // Dynamic interface label translations
+var LINK_ALL_VARIATIONS = "<?php _e('Link All Variations','Shopp'); ?>";
+var UNLINK_ALL_VARIATIONS = "<?php _e('Unlink All Variations','Shopp'); ?>";
+var LINK_VARIATIONS = "<?php _e('Link Variations','Shopp'); ?>";
+var UNLINK_VARIATIONS = "<?php _e('Unlink Variations','Shopp'); ?>";
 var ADD_IMAGE_BUTTON_TEXT = "<?php _e('Add New Image','Shopp'); ?>";
 var UPLOAD_FILE_BUTTON_TEXT = "<?php _e('Upload&nbsp;File','Shopp'); ?>";
 var SAVE_BUTTON_TEXT = "<?php _e('Save','Shopp'); ?>";

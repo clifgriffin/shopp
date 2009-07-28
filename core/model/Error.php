@@ -68,6 +68,22 @@ class ShoppErrors {
 				array('file'=>$file,'line'=>$line,'phperror'=>$number));
 	}
 	
+	/* Provides functionality for shopp('error') tags */
+	function tag ($property,$options=array()) {
+		global $Shopp;
+		if (empty($options)) return false;
+		switch ($property) {
+			case "trxn": new ShoppError(key($options),'template_error',SHOPP_TRXN_ERR); break;
+			case "auth": new ShoppError(key($options),'template_error',SHOPP_AUTH_ERR); break;
+			case "addon": new ShoppError(key($options),'template_error',SHOPP_ADDON_ERR); break;
+			case "comm": new ShoppError(key($options),'template_error',SHOPP_COMM_ERR); break;
+			case "stock": new ShoppError(key($options),'template_error',SHOPP_STOCK_ERR); break;
+			case "admin": new ShoppError(key($options),'template_error',SHOPP_ADMIN_ERR); break;
+			case "db": new ShoppError(key($options),'template_error',SHOPP_DB_ERR); break;
+			case "debug": new ShoppError(key($options),'template_error',SHOPP_DEBUG_ERR); break;
+			default: new ShoppError(key($options),'template_error',SHOPP_ERR); break;
+		}
+	}
 	
 }
 
@@ -94,7 +110,6 @@ class ShoppError {
 		E_RECOVERABLE_ERROR  => 'RECOVERABLE ERROR'
 	);
     
-		
 	function ShoppError($message='',$code='',$level=SHOPP_ERR,$data='') {
 		if ($level > SHOPP_ERROR_REPORTING) return;
 		if (empty($message)) return;
@@ -106,6 +121,11 @@ class ShoppError {
 		$this->level = $level;
 		$this->data = $data;
 		$this->debug = $debug[1];
+
+		// Handle template errors
+		if (isset($this->debug['class']) && $this->debug['class'] == "ShoppErrors")
+			$this->debug = $debug[2];
+		
 		if (isset($data['file'])) $this->debug['file'] = $data['file'];
 		if (isset($data['line'])) $this->debug['line'] = $data['line'];
 		unset($this->debug['object'],$this->debug['args']);
@@ -114,7 +134,6 @@ class ShoppError {
 		if (isset($this->debug['class'])) $this->source = $this->debug['class'];
 		if (isset($this->data['phperror'])) $this->source = "PHP ".$this->php[$this->data['phperror']];
 		
-		
 		$Errors = &ShoppErrors();
 		if (!empty($Errors)) $Errors->add($this);
 	}
@@ -122,7 +141,7 @@ class ShoppError {
 	function message ($delimiter="\n") {
 		$string = "";
 		// Show source if debug is on, or not a general error message
-		if ((WP_DEBUG || $this->level > SHOPP_ERR) && 
+		if (((defined('WP_DEBUG') && WP_DEBUG) || $this->level > SHOPP_ERR) && 
 			!empty($this->source)) $string .= "$this->source: ";
 		$string .= join($delimiter,$this->messages);
 		return $string;

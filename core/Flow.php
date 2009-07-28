@@ -22,6 +22,9 @@ class Flow {
 		$this->Settings = $Core->Settings;
 		$this->Cart = $Core->Cart;
 
+		load_plugin_textdomain('Shopp',
+			PLUGINDIR.DIRECTORY_SEPARATOR.$Core->directory.DIRECTORY_SEPARATOR.'lang');
+
 		$this->basepath = dirname(dirname(__FILE__));
 		$this->uri = ((!empty($_SERVER['HTTPS']))?"https://":"http://").
 					$_SERVER['SERVER_NAME'].str_replace("?".$_SERVER['QUERY_STRING'],"",$_SERVER['REQUEST_URI']);
@@ -46,7 +49,7 @@ class Flow {
 			'presentation' => array($Core->directory."-settings-presentation",__('Presentation','Shopp')),
 			'system' => array($Core->directory."-settings-system",__('System','Shopp')),
 			'update' => array($Core->directory."-settings-update",__('Update','Shopp'))
-		);		
+		);
 		$this->Admin->help = $Core->directory."-help";
 		$this->Admin->welcome = $Core->directory."-welcome";
 		$this->Admin->default = $this->Admin->orders;
@@ -59,7 +62,25 @@ class Flow {
 			$this->Pages['checkout'] = array('name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
 			$this->Pages['account'] = array('name'=>'account','title'=>'Your Orders','content'=>'[account]');
 		}
-
+		$this->Docs = array(
+			'orders' => 'Managing Orders',
+			'customers' => 'Managing Customers',
+			'promotions' => 'Running Sales & Promotions',
+			'editpromos' => 'Running Sales & Promotions',
+			'products' => 'Editing a Product',
+			'editproducts' => 'Editing a Product',
+			'categories' => 'Editing a Category',
+			'editcategory' => 'Editing a Category',
+			'settings' => 'General Settings',
+			'checkout' => 'Checkout Settings',
+			'payments' => 'Payments Settings',
+			'shipping' => 'Shipping Settings',
+			'taxes' => 'Taxes Settings',
+			'presentation' => 'Presentation Settings',
+			'system' => 'System Settings',
+			'update' => 'Update Settings'
+		);
+		
 		$this->coremods = array("GoogleCheckout.php", "PayPalExpress.php", 
 								"TestMode.php", "FlatRates.php", "ItemQuantity.php", 
 								"OrderAmount.php", "OrderWeight.php");
@@ -68,7 +89,7 @@ class Flow {
 		if (!defined('SHOPP_USERLEVEL')) define('SHOPP_USERLEVEL',8);
 		if (!defined('SHOPP_NOSSL')) define('SHOPP_NOSSL',false);
 		define("SHOPP_WP27",(!version_compare($wp_version,"2.7","<")));
-		define("SHOPP_DEBUG",($Core->Settings->get('error_logging') == 256));
+		define("SHOPP_DEBUG",($Core->Settings->get('error_logging') == 2048));
 		define("SHOPP_PATH",$this->basepath);
 		define("SHOPP_ADMINPATH",SHOPP_PATH."/core/ui");
 		define("SHOPP_PLUGINURI",$Core->uri);
@@ -100,8 +121,6 @@ class Flow {
 			UPLOAD_ERR_EXTENSION => __('File upload stopped by extension.','Shopp'),
 		);
 
-		load_plugin_textdomain('Shopp',
-			PLUGINDIR.DIRECTORY_SEPARATOR.$Core->directory.DIRECTORY_SEPARATOR.'lang');
 	}
 
 	function admin () {
@@ -207,13 +226,21 @@ class Flow {
 		
 	}
 
+	function helpdoc ($menu,$page) {
+		if (!isset($this->Docs[$menu])) return;
+		$url = SHOPP_DOCS.str_replace("+","_",urlencode($this->Docs[$menu]));
+		$link = htmlspecialchars($this->Docs[$menu]);
+		add_contextual_help($page,'<a href="'.$url.'" target="_blank">'.$link.'</a>');
+	}
 
 	/**
 	 * Catalog flow handlers
 	 **/
 	function catalog () {
 		global $Shopp;
-
+		
+		if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
+		
 		ob_start();
 		switch ($Shopp->Catalog->type) {
 			case "product": 
@@ -372,14 +399,14 @@ class Flow {
 		
 		if ($Shopp->Gateway) {
 			// Use an external checkout payment gateway
-			if (WP_DEBUG) new ShoppError('Processing order through a remote-payment gateway service.',false,SHOPP_DEBUG_ERR);
+			if (SHOPP_DEBUG) new ShoppError('Processing order through a remote-payment gateway service.',false,SHOPP_DEBUG_ERR);
 			$Purchase = $Shopp->Gateway->process();
 			if (!$Purchase) {
-				if (WP_DEBUG) new ShoppError('The remote-payment gateway encountered an error.',false,SHOPP_DEBUG_ERR);
+				if (SHOPP_DEBUG) new ShoppError('The remote-payment gateway encountered an error.',false,SHOPP_DEBUG_ERR);
 				$Shopp->Gateway->error();
 				return false;
 			}
-			if (WP_DEBUG) new ShoppError('Transaction successfully processed by remote-payment gateway service.',false,SHOPP_DEBUG_ERR);
+			if (SHOPP_DEBUG) new ShoppError('Transaction successfully processed by remote-payment gateway service.',false,SHOPP_DEBUG_ERR);
 		} else {
 			// Use local payment gateway set in payment settings
 			
@@ -391,14 +418,14 @@ class Flow {
 				if (!$Shopp->gateway($gateway)) return false;
 
 				// Process the transaction through the payment gateway
-				if (WP_DEBUG) new ShoppError('Processing order through local-payment gateway service.',false,SHOPP_DEBUG_ERR);
+				if (SHOPP_DEBUG) new ShoppError('Processing order through local-payment gateway service.',false,SHOPP_DEBUG_ERR);
 				$processed = $Shopp->Gateway->process();
 
 				// exit();
 				// There was a problem processing the transaction, 
 				// grab the error response from the gateway so we can report it
 				if (!$processed) {
-					if (WP_DEBUG) new ShoppError('The local-payment gateway encountered an error.',false,SHOPP_DEBUG_ERR);
+					if (SHOPP_DEBUG) new ShoppError('The local-payment gateway encountered an error.',false,SHOPP_DEBUG_ERR);
 					$Shopp->Gateway->error();
 					return false;
 				}
@@ -407,7 +434,7 @@ class Flow {
 				$gatewayname = $gatewaymeta->name;
 				$transactionid = $Shopp->Gateway->transactionid();
 				
-				if (WP_DEBUG) new ShoppError('Transaction '.$transactionid.' successfully processed by local-payment gateway service '.$gatewayname.'.',false,SHOPP_DEBUG_ERR);
+				if (SHOPP_DEBUG) new ShoppError('Transaction '.$transactionid.' successfully processed by local-payment gateway service '.$gatewayname.'.',false,SHOPP_DEBUG_ERR);
 				
 			} else {
 				$gatewayname = __('N/A','Shopp');
@@ -422,7 +449,7 @@ class Flow {
 				// Check if they've logged in
 				// If the shopper is already logged-in, save their updated customer info
 				if ($Shopp->Cart->data->login) {
-					if (WP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
+					if (SHOPP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
 					get_currentuserinfo();
 					global $user_ID;
 					$Order->Customer->wpuser = $user_ID;
@@ -430,7 +457,7 @@ class Flow {
 				
 				// Create WordPress account (if necessary)
 				if (!$Order->Customer->wpuser) {
-					if (WP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
+					if (SHOPP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
 					$Order->Customer->new_wpuser();
 				}
 			}
@@ -480,7 +507,7 @@ class Flow {
 				if ($Item->inventory) $Item->unstock();
 			}
 
-			if (WP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
+			if (SHOPP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
 		}
 
 		// Empty cart on successful order
@@ -630,7 +657,7 @@ class Flow {
 		$start = ($per_page * ($pagenum-1)); 
 		
 		$where = '';
-		if (!empty($status)) $where = "WHERE status='$status'";
+		if (!empty($status) || $status === '0') $where = "WHERE status='$status'";
 		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR firstname LIKE '%$s%' OR lastname LIKE '%$s%' OR CONCAT(firstname,' ',lastname) LIKE '%$s%' OR transactionid LIKE '%$s%')";
 		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
 		
@@ -865,13 +892,12 @@ class Flow {
 		$where = '';
 		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%' OR c.email LIKE '%$s%')";
 		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
-		// $where .= ((empty($where))?"WHERE ":" AND ").""
 		
-		$ordercount = $db->query("SELECT count(*) as total FROM $customer_table $where ORDER BY created DESC");
+		$customercount = $db->query("SELECT count(*) as total FROM $customer_table AS c $where");
 		$query = "SELECT c.*,b.city,b.state,b.country, u.user_login, SUM(p.total) AS total,count(distinct p.id) AS orders FROM $customer_table AS c LEFT JOIN $purchase_table AS p ON p.customer=c.id LEFT JOIN $billing_table AS b ON b.customer=c.id LEFT JOIN $users_table AS u ON u.ID=c.wpuser AND c.wpuser !=0 $where GROUP BY p.customer ORDER BY c.created DESC LIMIT $index,$per_page";
 		$Customers = $db->query($query,AS_ARRAY);
 
-		$num_pages = ceil($ordercount->total / $per_page);
+		$num_pages = ceil($customercount->total / $per_page);
 		$page_links = paginate_links( array(
 			'base' => add_query_arg( 'pagenum', '%#%' ),
 			'format' => '',
@@ -980,6 +1006,7 @@ class Flow {
 			'pagenum' => 1,
 			'per_page' => 20,
 			's' => '',
+			'sl' => '',
 			'matchcol' => ''
 			);
 		
@@ -996,7 +1023,7 @@ class Flow {
 			if (empty($categories)) $categories = array();
 		
 			$categories_menu = '<option value="">'.__('View all categories','Shopp').'</option>';
-			$categories_menu .= '<option value="-">'.__('Uncategorized','Shopp').'</option>';
+			$categories_menu .= '<option value="-"'.($cat=='-'?' selected="selected"':'').'>'.__('Uncategorized','Shopp').'</option>';
 			foreach ($categories as $category) {
 				$padding = str_repeat("&nbsp;",$category->depth*3);
 				if ($cat == $category->id) $categories_menu .= '<option value="'.$category->id.'" selected="selected">'.$padding.$category->name.'</option>';
@@ -1009,7 +1036,7 @@ class Flow {
 				'oos' => __('Out-of-stock','Shopp'),
 				'ns' => __('Not stocked','Shopp')
 			);
-			$inventory_menu = menuoptions($inventory_filters,$_GET['sl'],true);
+			$inventory_menu = menuoptions($inventory_filters,$sl,true);
 		}
 		
 		$pagenum = absint( $pagenum );
@@ -1053,25 +1080,19 @@ class Flow {
 		}
 		if (!empty($sl)) {
 			switch($sl) {
-				case "ns": $where .= " AND inventory='off'"; break;
+				case "ns": $where .= " AND pt.inventory='off'"; break;
 				case "oos": 
-					$where .= " AND (inventory='on')"; 
-					$having = (empty($having)?"HAVING ":" AND ")."SUM(stock) = 0";
+					$where .= " AND (pt.inventory='on')"; 
+					$having .= (empty($having)?"HAVING ":" AND ")."SUM(pt.stock) = 0";
 					break;
 				case "ls":
 					$ls = $Shopp->Settings->get('lowstock_level');
 					if (empty($ls)) $ls = '0';
-					$where .= " AND (inventory='on' AND stock <= $ls AND stock > 0)"; 
+					$where .= " AND (pt.inventory='on' AND pt.stock <= $ls AND pt.stock > 0)"; 
 					break;
-				case "is": $where .= " AND (inventory='on' AND stock > 0)";
+				case "is": $where .= " AND (pt.inventory='on' AND pt.stock > 0)";
 			}
 		}
-		
-		// Get total product count, taking into consideration for filtering
-		if (!empty($s)) $query = "SELECT count($match) as total FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE $where GROUP BY pd.id";
-		elseif (!empty($cat)) $query = "SELECT count(*) as total $matchcol FROM $pd AS pd LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE (clog.category != 0 OR clog.id IS NULL) AND $where";
-		else $query = "SELECT count(*) as total $matchcol FROM $pd WHERE $where";
-		$productcount = $db->query($query);
 		
 		$taxrate = 0;
 		$base = $Shopp->Settings->get('base_operations');
@@ -1079,11 +1100,12 @@ class Flow {
 			$taxrate = $Shopp->Cart->taxrate();
 		}
 		
-		$columns = "pd.id,pd.name,pd.slug,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price+(pt.price*$taxrate)) AS maxprice,MIN(pt.price+(pt.price*$taxrate)) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
+		$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price+(pt.price*$taxrate)) AS maxprice,MIN(pt.price+(pt.price*$taxrate)) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
 		if ($workflow) $columns = "pd.id";
 		// Load the products
 		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
 		$Products = $db->query($query,AS_ARRAY);
+		$productcount = $db->query("SELECT FOUND_ROWS() as total");
 
 		$num_pages = ceil($productcount->total / $per_page);
 		$page_links = paginate_links( array(
@@ -1092,7 +1114,7 @@ class Flow {
 			'total' => $num_pages,
 			'current' => $pagenum,
 		));
-		
+
 		if ($workflow) return $Products;
 		
 		include("{$this->basepath}/core/ui/products/products.php");
@@ -2278,7 +2300,7 @@ class Flow {
 				$gateway = $this->scan_gateway_meta(SHOPP_GATEWAYS.$_POST['settings']['payment_gateway']);
 				$ProcessorClass = $gateway->tags['class'];
 				// Load the gateway in case there are any save-time processes to be run
-				$Processor = $Shopp->gateway($_POST['settings']['payment_gateway']);
+				$Processor = $Shopp->gateway($_POST['settings']['payment_gateway'],true);
 				// include_once($gateway->file);
 				// $Processor = new $ProcessorClass();
 				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
@@ -2286,8 +2308,8 @@ class Flow {
 			if (is_array($_POST['settings']['xco_gateways'])) {
 				foreach($_POST['settings']['xco_gateways'] as &$gateway) {
 					$gateway = str_replace("\\","/",stripslashes($gateway));
-					if (!file_exists($gateway_dir.$gateway)) continue;
-					$meta = $this->scan_gateway_meta($gateway_dir.$gateway);
+					if (!file_exists(SHOPP_GATEWAYS.$gateway)) continue;
+					$meta = $this->scan_gateway_meta(SHOPP_GATEWAYS.$gateway);
 					$ProcessorClass = $meta->tags['class'];
 					// Load the gateway in case there are any save-time processes to be run
 					$Processor = $Shopp->gateway($gateway);
@@ -2335,7 +2357,8 @@ class Flow {
 
 		$ftpsupport = (function_exists('ftp_connect'))?true:false;
 		
-		$credentials = $this->Settings->get('ftp_credentials');		
+		$credentials = $this->Settings->get('ftp_credentials');	
+		if (!isset($credentials['password'])) $credentials['password'] = false;
 		$updatekey = $this->Settings->get('updatekey');
 		if (empty($updatekey)) 
 			$updatekey = array('key' => '','type' => 'single','status' => 'deactivated');

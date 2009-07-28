@@ -87,7 +87,6 @@ class Item {
 		}
 
 		if (!empty($Price->download)) $this->download = $Price->download;
-		
 		if ($Price->type == "Shipped") {
 			$this->shipping = true;
 			if ($Price->shipping == "on") {

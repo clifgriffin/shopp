@@ -142,7 +142,4 @@ function shipping_meta_box ($Customer) {
 }
 add_meta_box('customer-shipping', __('Shipping Address','Shopp'), 'shipping_meta_box', 'admin_page_shopp-customers-edit', 'normal', 'core');
 
-do_action('do_meta_boxes', 'admin_page_shopp-customers-edit', 'normal', $Promotion);
-do_action('do_meta_boxes', 'admin_page_shopp-customers-edit', 'advanced', $Promotion);
-do_action('do_meta_boxes', 'admin_page_shopp-customers-edit', 'side', $Promotion);
 ?>

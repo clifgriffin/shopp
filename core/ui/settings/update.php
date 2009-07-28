@@ -105,6 +105,10 @@
 	
 	function runupdate () {
 		updating++;
+		if (updating >= queue.length) {
+			window.location.href = adminurl+'&page=shopp-settings-update&updated=true';
+			return true;
+		}
 		var notice = INSTALLING_MESSAGE.replace('%d',(updating+1)).replace('%d',queue.length);
 		target.html('<div id="status" class="updating">'+notice+'</div>');
 		
@@ -120,7 +124,7 @@
 				result = $.trim(result);
 				if (result == "ftp-failed") {
 					updating--;
-					ftpfailure();
+					return ftpfailure();
 				} else if (result == "updated") {
 					if (updating+1 < queue.length) {
 						runupdate(); // Continue processing more updates if needed
@@ -189,6 +193,7 @@
 		$('#status').hide();
 		$('#ftp-continue').click(function () { setftp(); return false; });
 		$('#ftp-credentials').show();
+		return false;
 	}
 	
 	function setftp () {

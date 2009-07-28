@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.7b3
+Version: 1.0.7 RC1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.7b3");
+define("SHOPP_VERSION","1.0.7 RC1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -137,10 +137,10 @@ class Shopp {
 		add_action('generate_rewrite_rules',array(&$this,'pages_index'));
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_filter('query_vars', array(&$this,'queryvars'));
-
+		
 		// Start up the cart
 		$this->Cart = new Cart();
-
+		
 	}
 	
 	function init() {
@@ -162,7 +162,7 @@ class Shopp {
 		
 		// Initialize the session if not already done
 		// by another plugin
-		if(session_id() == "") session_start();
+		if(session_id() == "") @session_start();
 		
 		// Setup Error handling
 		$Errors = &ShoppErrors();
@@ -170,11 +170,15 @@ class Shopp {
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
 									$this->Settings->get('error_notifications'));
+									
+		if (!$this->Cart->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
+		if (SHOPP_DEBUG && $this->Cart->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
+		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 		
 		// Initialize the catalog and shipping calculators
 		$this->Catalog = new Catalog();
 		$this->ShipCalcs = new ShipCalcs($this->path);
-		
+
 		// Handle WordPress-processed logins
 		$this->Cart->logins();
 	}
@@ -274,16 +278,12 @@ class Shopp {
 			if (SHOPP_WP27) $settings_parent = $menus['settings'];
 			else $settings_parent = $this->Flow->Admin->default;
 			$settings_screens[$key] = add_submenu_page($settings_parent,$screen[1],false, 8, $screen[0], array(&$this,'settings'));
+			// echo $settings_screens[$key].BR;
 		}
 
 		if (function_exists('add_contextual_help')) {
-			add_contextual_help($menus['orders'],'<a href="'.SHOPP_DOCS.'Managing_Orders" target="_blank">Managing Orders</a>');
-			add_contextual_help($menus['promotions'],'<a href="'.SHOPP_DOCS.'Running_Sales_%26_Promotions" target="_blank">Running Sales &amp; Promotions</a>');
-			add_contextual_help($menus['products'],'<a href="'.SHOPP_DOCS.'Editing_a_Product" target="_blank">Editing a Product</a>');
-			add_contextual_help($menus['categories'],'<a href="'.SHOPP_DOCS.'Editing_a_Category" target="_blank">Editing a Category</a>');
-
-			add_contextual_help($menus['settings'],'<a href="'.SHOPP_DOCS.'General_Settings" target="_blank">General Settings</a> | <a href="'.SHOPP_DOCS.'Checkout_Settings" target="_blank">Checkout Settings</a> | <a href="'.SHOPP_DOCS.'Payments_Settings" target="_blank">Payments Settings</a> | <a href="'.SHOPP_DOCS.'Shipping_Settings" target="_blank">Shipping Settings</a> | <a href="'.SHOPP_DOCS.'Taxes_Settings" target="_blank">Taxes Settings</a> | <a href="'.SHOPP_DOCS.'Presentation_Settings" target="_blank">Presetation Settings</a> | <a href="'.SHOPP_DOCS.'System_Settings" target="_blank">System Settings</a> | <a href="'.SHOPP_DOCS.'Update_Settings" target="_blank">Update Settings</a>');
-			
+			foreach ($menus as $menu => $page) $this->Flow->helpdoc($menu,$page);
+			foreach ($settings_screens as $menu => $page) $this->Flow->helpdoc($menu,$page);
 		} else $menus['help'] = add_submenu_page($this->Flow->Admin->default,__('Help','Shopp'), __('Help','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->help, array(&$this,'help'));
 		
 		// $welcome = add_submenu_page($this->Flow->Admin->default,__('Welcome','Shopp'), __('Welcome','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->welcome, array(&$this,'welcome'));
@@ -337,7 +337,7 @@ class Shopp {
 					wp_enqueue_script('editor');
 			}
 				
-			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',$this->shopuri),array(),SHOPP_VERSION);
+			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',get_bloginfo('url')),array(),SHOPP_VERSION);
 			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
 			wp_enqueue_script('shopp.editor.lib',"{$this->uri}/core/ui/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
 
@@ -430,7 +430,7 @@ class Shopp {
 		$loading = $this->Settings->get('script_loading');
 		if (!$loading || $loading == "global" || $tag !== false) {
 			wp_enqueue_script('jquery');
-			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',$this->shopuri));
+			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',get_bloginfo('url')));
 			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION,true);
 			wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		}
@@ -777,7 +777,7 @@ class Shopp {
 	 * header()
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function header () {		
-		?><link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>SHOPP_VERSION),$this->shopuri)); ?>' type='text/css' />
+		?><link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),$this->shopuri)); ?>' type='text/css' />
 		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 		<?php
@@ -787,7 +787,7 @@ class Shopp {
 	 * footer()
 	 * Adds report information and custom debugging tools to the public and admin footers */
 	function footer () {
-		if (!SHOPP_DEBUG) return true;
+		if (!WP_DEBUG) return true;
 		if (!current_user_can('manage_options')) return true;
 		$db = DB::get();
 		global $wpdb;
@@ -1068,7 +1068,7 @@ class Shopp {
 	/**
 	 * gateway ()
 	 * Loads a requested gateway */
-	function gateway ($gateway) {
+	function gateway ($gateway,$load=false) {
 		if (substr($gateway,-4) != ".php") $gateway .= ".php";
 		$filepath = join(DIRECTORY_SEPARATOR,array($this->path,'gateways',$gateway));
 		if (!file_exists($filepath)) {
@@ -1079,7 +1079,7 @@ class Shopp {
 		$ProcessorClass = $meta->tags['class'];
 		include_once($filepath);
 
-		if (isset($this->Cart->data->Order)) $this->Gateway = new $ProcessorClass($this->Cart->data->Order);
+		if (isset($this->Cart->data->Order) && !$load) $this->Gateway = new $ProcessorClass($this->Cart->data->Order);
 		else $this->Gateway = new $ProcessorClass();
 
 		return true;
@@ -1327,6 +1327,7 @@ class Shopp {
 				header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
 				header("Cache-Control: maxage=1");
 				header("Pragma: public");
+				set_time_limit(0);
 				if ($storage == "fs") {
 					$filepath = join("/",array($path,$Asset->value,$Asset->name));
 					header ("Content-length: ".@filesize($filepath)); 
@@ -1349,22 +1350,25 @@ class Shopp {
 	function ajax() {
 		if (!isset($_REQUEST['action']) || !defined('DOING_AJAX')) return;
 		
-		switch($_POST['action']) {
-			// Upload an image in the product editor
-			case "shopp_add_image":
-				$this->Flow->add_images();
-				exit();
-				break;
+		if (isset($_POST['action'])) {			
+			switch($_POST['action']) {
+				// Upload an image in the product editor
+				case "shopp_add_image":
+					$this->Flow->add_images();
+					exit();
+					break;
 				
-			// Upload a product download file in the product editor
-			case "shopp_add_download":
-				$this->Flow->product_downloads();
-				exit();
-				break;
+				// Upload a product download file in the product editor
+				case "shopp_add_download":
+					$this->Flow->product_downloads();
+					exit();
+					break;
+			}
 		}
 		
 		if ( !is_user_logged_in() || !current_user_can('manage_options')) die('-1');
-
+		
+		if (empty($_GET['action'])) return;
 		switch($_GET['action']) {
 			
 			// Add a category in the product editor
@@ -1521,6 +1525,7 @@ function shopp () {
 		case "product": if (isset($Shopp->Product)) $Object =& $Shopp->Product; break;
 		case "purchase": if (isset($Shopp->Cart->data->Purchase)) $Object =& $Shopp->Cart->data->Purchase; break;
 		case "customer": if (isset($Shopp->Cart->data->Order->Customer)) $Object =& $Shopp->Cart->data->Order->Customer; break;
+		case "error": if (isset($Shopp->Cart->data->Errors)) $Object =& $Shopp->Cart->data->Errors; break;
 		default: $Object = false;
 	}
 	

@@ -173,14 +173,15 @@ function pricing_meta_box ($Product) {
 			<ul class="multipane options">
 				<li><div id="variations-menu" class="multiple-select menu"><ul></ul></div>
 					<div class="controls">
-						<button type="button" id="addVariationMenu" class="button-secondary" tabindex="14"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
+						<button type="button" id="addVariationMenu" class="button-secondary" tabindex="14"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option Menu','Shopp'); ?></small></button>
 					</div>
 				</li>
 
 				<li>
 					<div id="variations-list" class="multiple-select options"></div>
 					<div class="controls right">
-					<button type="button" id="addVariationOption" class="button-secondary" tabindex="15"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="-" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+						<button type="button" id="linkOptionVariations" class="button-secondary" tabindex="17"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/linked.png" alt="link" width="16" height="16" /><small> <?php _e('Link All Variations','Shopp'); ?></small></button>
+					<button type="button" id="addVariationOption" class="button-secondary" tabindex="15"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
 					</div>
 				</li>
 			</ul>
@@ -191,6 +192,8 @@ function pricing_meta_box ($Product) {
 <div id="variations-pricing"></div>
 </div>
 
+<div><input type="hidden" name="deletePrices" id="deletePrices" value="" />
+	<input type="hidden" name="prices" value="" id="prices" /></div>
 
 <?php
 }

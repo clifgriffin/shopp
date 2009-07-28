@@ -12,8 +12,8 @@
 class PayPalExpress {          
 	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
 	var $button = 'https://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
-	var $sandbox_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_express-checkout';
-	var $checkout_url = 'https://www.paypal.com/cgi-bin/webscr?cmd=_express-checkout';
+	var $sandbox_url = 'https://www.sandbox.paypal.com/%s/cgi-bin/webscr?cmd=_express-checkout';
+	var $checkout_url = 'https://www.paypal.com/%s/cgi-bin/webscr?cmd=_express-checkout';
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
@@ -34,6 +34,7 @@ class PayPalExpress {
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
 		$this->settings['currency_code'] = $this->currencies[0];
+
 		if (in_array($this->settings['base_operations']['currency']['code'],$this->currencies))
 			$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];
 
@@ -42,7 +43,9 @@ class PayPalExpress {
 		else $this->settings['locale'] = $this->locales["US"];
 
 		$this->button = sprintf($this->button, $this->settings['locale']);
-		
+		$this->sandbox_url = sprintf($this->sandbox_url, strtolower($this->settings['base_operations']['country']));
+		$this->checkout_url = sprintf($this->checkout_url, strtolower($this->settings['base_operations']['country']));
+				
 		// Capture PayPal Express transaction information as it becomes available
 		if (!isset($Shopp->Cart->data->PayPalExpress)) $Shopp->Cart->data->PayPalExpress = new stdClass();
 		if (!empty($_GET['PayerID'])) $Shopp->Cart->data->PayPalExpress->payerid = $_GET['PayerID'];
