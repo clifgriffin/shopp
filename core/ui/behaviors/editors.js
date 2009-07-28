@@ -355,7 +355,7 @@ function updateTabIndexes () {
 	var $=jQuery.noConflict();
 	var pricelines = $('#variations-pricing').children();
 	$.each(pricelines,function(row,line) {
-		key = $(line).find('th.pricing-label input.optionkey').val();
+		key = $(line).find('.pricing-label input.optionkey').val();
 		pricingOptions[key].updateTabindex(row);
 	});
 }
