@@ -69,6 +69,7 @@ class Cart {
 
 		$this->data->Errors = new ShoppErrors();
 		$this->data->Shipping = false;
+		$this->data->ShippingDisabled = false;
 		$this->data->Estimates = false;
 		$this->data->Promotions = array();
 		$this->data->PromosApplied = array();
@@ -108,6 +109,7 @@ class Cart {
 	 * Gets data from the session data table and loads Member 
 	 * objects into the User from the loaded data. */
 	function load ($id) {
+		global $Shopp;
 		$db = DB::get();
 		
 		if (is_robot()) return true;
@@ -125,6 +127,7 @@ class Cart {
 		}
 		
 		if (empty($this->data->Errors)) $this->data->Errors = new ShoppErrors();
+		if ($Shopp->Settings->get('shipping') == "off") $this->data->ShippingDisabled = true;
 
 		// Read standard session data
 		if (file_exists("$this->path/sess_$id"))
@@ -195,8 +198,10 @@ class Cart {
 			$NewItem->quantity($quantity);
 			$this->contents[] = $NewItem;
 			$this->added = $this->contents[count($this->contents)-1];
-			if ($NewItem->shipping) $this->data->Shipping = true;
+			if ($NewItem->shipping && !$this->data->ShippingDisabled) 
+				$this->data->Shipping = true;
 		}
+		do_action_ref_array('shopp_cart_add_item',array(&$NewItem));
 		$this->updated();
 		return true;
 	}
@@ -273,7 +278,8 @@ class Cart {
 		$this->contents[$item] = new Item($Product,$pricing,$category);
 		$this->contents[$item]->quantity($qty);
 		$this->updated();
-		if ($this->contents[$item]->shipping) $this->data->Shipping = true;
+		if ($this->contents[$item]->shipping && !$this->data->ShippingDisabled) 
+			$this->data->Shipping = true;
 		
 		return true;
 	}
@@ -627,7 +633,7 @@ class Cart {
 		foreach ($this->contents as $key => $Item) {
 
 			// Add the item to the shipped list
-			if ($Item->shipping && !$Item->freeshipping) $this->shipped[$key] = $Item;
+			if ($shipping && $Item->shipping && !$Item->freeshipping) $this->shipped[$key] = $Item;
 			if (!$Item->freeshipping) $freeshipping = false;
 			
 			$Totals->quantity += $Item->quantity;
@@ -641,14 +647,18 @@ class Cart {
 		}
 		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
 		$this->freeshipping = $freeshipping;
+		if ($this->data->ShippingDisabled) $this->freeshipping = false;
 
 		$this->promotions();
 		$discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
 		
-		if ($this->data->Shipping) $Totals->shipping = $this->shipping();
+		if (!$this->data->ShippingDisabled && $this->data->Shipping) 
+			$Totals->shipping = $this->shipping();
 
 		$Totals->total = $Totals->subtotal - $discount + 
 			$Totals->shipping + $Totals->tax;
+
+		do_action_ref_array('shopp_cart_retotal',array(&$Totals));
 	}
 	
 	/**
@@ -666,6 +676,10 @@ class Cart {
 
 		switch ($authentication) {
 			case "wordpress":
+				if ($this->data->login) {
+					add_action('wp_logout',array(&$this,'logout'));
+					add_action('shopp_logout','wp_clear_auth_cookie');
+				}
 				// See if the wordpress user is already logged in
 				get_currentuserinfo();
 				global $user_ID;
@@ -680,14 +694,13 @@ class Cart {
 				
 				if (empty($_POST['process-login'])) return false;
 
-				if (!empty($_POST['email-login'])) {
-					$user = get_user_by_email($_POST['email-login']);
-					if (!is_wp_error($user)) $loginname = $user->user_login;
+				if (!empty($_POST['account-login'])) {
+					if (strpos($_POST['account-login'],'@') !== false)  {
+						$user = get_user_by_email($_POST['email-login']);
+						if (!is_wp_error($user)) $loginname = $user->user_login;
+					} else $loginname = $_POST['account-login'];
 				}
-					
-				if (!empty($_POST['loginname-login'])) 
-					$loginname = $_POST['loginname-login'];
-					
+									
 				if ($loginname) {
 					$user = wp_authenticate($loginname,$_POST['password-login']);
 					
@@ -698,32 +711,27 @@ class Cart {
 						if ($Account = new Customer($user->ID,'wpuser')) {
 							$this->loggedin($Account);
 							$this->data->Order->Customer->wpuser = $user_ID;
+							add_action('wp_logout',array(&$this,'logout'));
 						}
-					} else {
-						print_r($user);
-						exit();
 					}
 					
 				}
 			
-				break;
-				
 				// Handle WordPress account integration
 				// do_action('user_register',array(&$this,'')); // Handle users added from WP user admin
 				// do_action('profile_update',array(&$this,'')); // Handle users added from WP user admin
 				
-				
 				break;
 			case "shopp":
-				if (empty($_POST['process-login'])) return false;
-				if (isset($_POST['email-login']))
-				 	$this->auth($_POST['email-login'],$_POST['password-login'],'email');
-				else if (isset($_POST['loginname-login'])) 
-					$this->auth($_POST['loginname-login'],$_POST['password-login'],'loginname');
+				if (!isset($_POST['process-login'])) return false;
+				if ($_POST['process-login'] != "true") return false;
+				$mode = "loginname";
+				if (!empty($_POST['account-login']) && strpos($_POST['account-login'],'@') !== false)
+					$mode = "email";
+				$this->auth($_POST['account-login'],$_POST['password-login'],$mode);
 				break;
 		}
-			
-		if ($this->data->login) add_action('wp_logout',array(&$this,'logout'));
+
 	}
 	
 	/**
@@ -795,12 +803,14 @@ class Cart {
 		$this->data->Order->Billing->cardholder = "";
 		$this->data->Order->Billing->cardtype = "";
 		$this->data->Order->Shipping = new Shipping($Account->id,'customer');
+		do_action_ref_array('shopp_login',array(&$Account));
 	}
 	
 	/**
 	 * logout()
 	 * Clear the session account data */
 	function logout () {
+		// do_action('shopp_logout');
 		$this->data->login = false;
 		$this->data->Order->wpuser = false;
 		$this->data->Order->Customer->id = false;
@@ -808,6 +818,7 @@ class Cart {
 		$this->data->Order->Billing->customer = false;
 		$this->data->Order->Shipping->id = false;
 		$this->data->Order->Shipping->customer = false;
+		session_commit();
 	}
 
 	/**
@@ -1055,7 +1066,8 @@ class Cart {
 				$result .= '</li></ul>';
 				return $result;
 			case "has-shipping-methods": 
-				return (count($this->data->ShipCosts) > 1 &&
+				return (!$this->data->ShippingDisabled &&
+						count($this->data->ShipCosts) > 1 &&
 						$this->data->Totals->shipping > 0 &&
 						$this->data->Shipping); break;				
 			case "needs-shipped": return $this->data->Shipping; break;

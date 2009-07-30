@@ -120,8 +120,7 @@ helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
 
 
 jQuery(document).ready( function() {
-	$=jQuery.noConflict();
-
+var $=jQuery.noConflict();
 
 var wp26 = <?php echo (SHOPP_WP27)?'false':'true'; ?>;
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;

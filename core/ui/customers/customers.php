@@ -110,9 +110,8 @@
 helpurl = "<?php echo SHOPP_DOCS; ?>Managing Orders";
 var lastexport = new Date(<?php echo date("Y,(n-1),j",$Shopp->Settings->get('customerexport_lastexport')); ?>);
 
-$=jQuery.noConflict();
-
-$(document).ready( function() {
+jQuery(document).ready( function() {
+	var $=jQuery.noConflict();
 	
 $('#selectall').change( function() {
 	$('#customers-table th input').each( function () {
@@ -171,6 +170,7 @@ start.change(formatDate);
 var end = $('#end');
 var enddate = getDateInput(end);
 var EndCalendar = new PopupCalendar($('#end-calendar'));
+EndCalendar.scheduling = false;
 if (enddate) {
 	EndCalendar.render(enddate.getMonth()+1,enddate.getDate(),enddate.getFullYear());
 	EndCalendar.selection = enddate;
@@ -278,7 +278,6 @@ $('#range').change(function () {
 	}
 	start.setDate(startdate,StartCalendar); end.setDate(enddate,EndCalendar);
 }).change();
-
 $('#export-settings-button').click(function () { $('#export-settings-button').hide(); $('#export-settings').removeClass('hidden'); });
 $('#selectall_columns').change(function () { 
 	if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true); 

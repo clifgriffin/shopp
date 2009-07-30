@@ -76,7 +76,7 @@ helpurl = "<?php echo SHOPP_DOCS; ?>Categories";
 
 jQuery(document).ready( function() {
 
-	$=jQuery.noConflict();
+	var $ = jQuery.noConflict();
 
 	$('#selectall').change( function() {
 		$('#categories-table th input').each( function () {

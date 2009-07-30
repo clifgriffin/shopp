@@ -14,9 +14,9 @@
 		<input type="submit" value="<?php _e('Search Orders','Shopp'); ?>" class="button" />
 	</p>
 	<ul id="report">
-		<li><strong><?php echo $ordercount->total; ?></strong> <span>Orders</span></li>
-		<li><strong><?php echo money($ordercount->sales); ?></strong> <span>Total Sales</span></li>
-		<li><strong><?php echo money($ordercount->avgsale); ?></strong> <span>Average Sale</span></li>
+		<li><strong><?php echo $ordercount->total; ?></strong> <span><?php _e('Orders','Shopp'); ?></span></li>
+		<li><strong><?php echo money($ordercount->sales); ?></strong> <span><?php _e('Total Sales','Shopp'); ?></span></li>
+		<li><strong><?php echo money($ordercount->avgsale); ?></strong> <span><?php _e('Average Sale','Shopp'); ?></span></li>
 	</ul>
 	
 	<div class="tablenav">
@@ -124,7 +124,7 @@ helpurl = "<?php echo SHOPP_DOCS; ?>Managing Orders";
 var lastexport = new Date(<?php echo date("Y,(n-1),j",$Shopp->Settings->get('purchaselog_lastexport')); ?>);
 
 jQuery(document).ready( function() {
-	$=jQuery.noConflict();
+var $=jQuery.noConflict();
 	
 $('#selectall').change( function() {
 	$('#orders-table th input').each( function () {
@@ -188,6 +188,7 @@ start.change(formatDate);
 var end = $('#end');
 var enddate = getDateInput(end);
 var EndCalendar = new PopupCalendar($('#end-calendar'));
+EndCalendar.scheduling = false;
 if (enddate) {
 	EndCalendar.render(enddate.getMonth()+1,enddate.getDate(),enddate.getFullYear());
 	EndCalendar.selection = enddate;
@@ -208,9 +209,9 @@ $('#start').click(function (e) {
 	$('#end-calendar').hide();
 	$('#start-calendar').toggle();
 	$(StartCalendar).change(function () {
-			$('#start').val((StartCalendar.selection.getMonth()+1)+"/"+
-				StartCalendar.selection.getDate()+"/"+
-				StartCalendar.selection.getFullYear());
+		$('#start').val((StartCalendar.selection.getMonth()+1)+"/"+
+			StartCalendar.selection.getDate()+"/"+
+			StartCalendar.selection.getFullYear());
 	});
 });
 

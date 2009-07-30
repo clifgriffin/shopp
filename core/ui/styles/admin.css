@@ -107,7 +107,7 @@ div.comment-item:hover .row-actions { visibility: visible; }
 .form-table.pricing { border-bottom: 1px solid #dfdfdf; }
 
 div.progress { position: relative; width: 76px; height: 10px; background: #ffffff; border: 1px solid #dddddd;}
-div.progress div.bar { position: absolute; height: 10px; background: #85ec3d;  }
+div.progress div.bar { position: absolute; height: 10px; background: #85ec3d; border: none; }
 div.progress div.gloss { position: absolute; width: 100%; height: 10px; background: url('../icons/gloss.png') repeat-x; }
 
 #editable-slug-full { display: none; }

@@ -90,7 +90,7 @@
 	helpurl = "<?php echo SHOPP_DOCS; ?>Products";
 
 jQuery(document).ready( function() {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	
 	$('#selectall').change( function() {
 		$('#products th input').each( function () {

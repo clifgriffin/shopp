@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.7 RC1
+Version: 1.0.7 RC2
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.7 RC1");
+define("SHOPP_VERSION","1.0.7 RC2");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -324,6 +324,7 @@ class Shopp {
 		global $wp_version;
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
+		wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',get_bloginfo('url')),array(),SHOPP_VERSION);
 		
 		// Load only for the product editor to keep other admin screens snappy
 		if (($_GET['page'] == $this->Flow->Admin->editproduct || 
@@ -337,7 +338,6 @@ class Shopp {
 					wp_enqueue_script('editor');
 			}
 				
-			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',get_bloginfo('url')),array(),SHOPP_VERSION);
 			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
 			wp_enqueue_script('shopp.editor.lib',"{$this->uri}/core/ui/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
 
@@ -373,15 +373,15 @@ class Shopp {
 	 * Initializes the Shopp dashboard widgets */
 	function dashboard_init () {
 		
-		wp_register_sidebar_widget('dashboard_shopp_stats', 'Shopp Stats', array(&$this->Flow,'dashboard_stats'),
+		wp_register_sidebar_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array(&$this->Flow,'dashboard_stats'),
 			array('all_link' => '','feed_link' => '','width' => 'half','height' => 'single')
 		);
 
-		wp_register_sidebar_widget('dashboard_shopp_orders', 'Shopp Orders', array(&$this->Flow,'dashboard_orders'),
+		wp_register_sidebar_widget('dashboard_shopp_orders', __('Shopp Orders','Shopp'), array(&$this->Flow,'dashboard_orders'),
 			array('all_link' => 'admin.php?page='.$this->Flow->Admin->orders,'feed_link' => '','width' => 'half','height' => 'single')
 		);
 
-		wp_register_sidebar_widget('dashboard_shopp_products', 'Shopp Products', array(&$this->Flow,'dashboard_products'),
+		wp_register_sidebar_widget('dashboard_shopp_products', __('Shopp Products','Shopp'), array(&$this->Flow,'dashboard_products'),
 			array('all_link' => 'admin.php?page='.$this->Flow->Admin->products,'feed_link' => '','width' => 'half','height' => 'single')
 		);
 		
@@ -392,7 +392,7 @@ class Shopp {
 	 * Adds the Shopp dashboard widgets to the WordPress Dashboard */
 	function dashboard ($widgets) {
 		$dashboard = $this->Settings->get('dashboard');
-		if (SHOPP_USERLEVEL && $dashboard == "on")
+		if (current_user_can(SHOPP_USERLEVEL) && $dashboard == "on")
 			array_unshift($widgets,'dashboard_shopp_stats','dashboard_shopp_orders','dashboard_shopp_products');
 		return $widgets;
 	}

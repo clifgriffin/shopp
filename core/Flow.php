@@ -549,7 +549,7 @@ class Flow {
 
 		$ssl = true;
 		// Test Mode will not require encrypted checkout
-		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco'])) $ssl = false;
+		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco']) || SHOPP_NOSSL) $ssl = false;
 		$link = $Shopp->link('receipt',$ssl);
 		header("Location: $link");
 		exit();
@@ -892,9 +892,9 @@ class Flow {
 		$where = '';
 		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%' OR c.email LIKE '%$s%')";
 		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
-		
+
 		$customercount = $db->query("SELECT count(*) as total FROM $customer_table AS c $where");
-		$query = "SELECT c.*,b.city,b.state,b.country, u.user_login, SUM(p.total) AS total,count(distinct p.id) AS orders FROM $customer_table AS c LEFT JOIN $purchase_table AS p ON p.customer=c.id LEFT JOIN $billing_table AS b ON b.customer=c.id LEFT JOIN $users_table AS u ON u.ID=c.wpuser AND c.wpuser !=0 $where GROUP BY p.customer ORDER BY c.created DESC LIMIT $index,$per_page";
+		$query = "SELECT c.*,b.city,b.state,b.country, u.user_login, SUM(p.total) AS total,count(distinct p.id) AS orders FROM $customer_table AS c LEFT JOIN $purchase_table AS p ON p.customer=c.id LEFT JOIN $billing_table AS b ON b.customer=c.id LEFT JOIN $users_table AS u ON u.ID=c.wpuser AND (c.wpuser IS NULL OR c.wpuser !=0) $where GROUP BY c.id ORDER BY c.created DESC LIMIT $index,$per_page";
 		$Customers = $db->query($query,AS_ARRAY);
 
 		$num_pages = ceil($customercount->total / $per_page);
@@ -985,8 +985,8 @@ class Flow {
 		$Customer->countries = $countries;
 
 		$regions = $Shopp->Settings->get('zones');
-		$Customer->billing_states = $regions[$Customer->Billing->country];
-		$Customer->shipping_states = $regions[$Customer->Shipping->country];
+		$Customer->billing_states = array_merge('',$regions[$Customer->Billing->country]);
+		$Customer->shipping_states = array_merge('',$regions[$Customer->Shipping->country]);
 
 		include("{$this->basepath}/core/ui/customers/editor.php");
 	}
@@ -1341,14 +1341,13 @@ class Flow {
 		}
 		
 		// No variation options at all, delete all variation-pricelines
-		if (empty($Product->options)) { 
+		if (empty($Product->options) && !empty($Product->prices) && is_array($Product->prices)) { 
 			foreach ($Product->prices as $priceline) {
 				// Skip if not tied to variation options
 				if ($priceline->optionkey == 0) continue; 
 				$Price = new Price($priceline->id);
 				$Price->delete();
 			}
-			
 		}
 			
 		if (!empty($_POST['details']) || !empty($_POST['deletedSpecs'])) {
@@ -1395,6 +1394,9 @@ class Flow {
 			if (!empty($_POST['imagedetails']))
 				$Product->update_images($_POST['imagedetails']);
 		}
+		
+		do_action_ref_array('shopp_product_saved',array(&$Product));
+		
 		unset($Product);
 		return true;
 	}
@@ -1723,6 +1725,8 @@ class Flow {
 		
 		$Category->updates($_POST);
 		$Category->save();
+
+		do_action_ref_array('shopp_category_saved',array(&$Category));
 		
 		$updated = '<strong>'.$Category->name.'</strong> '.__('category saved.','Shopp');
 		
@@ -1805,6 +1809,7 @@ class Flow {
 			
 			$Promotion->updates($_POST);
 			$Promotion->save();
+			do_action_ref_array('shopp_promo_saved',array(&$Promotion));
 
 			if ($Promotion->scope == "Catalog")
 				$Promotion->build_discounts();
@@ -1915,7 +1920,7 @@ class Flow {
 
 		$orderscreen = add_query_arg('page',$this->Admin->orders,$Shopp->wpadminurl."admin.php");
 		echo '<div class="table"><table><tbody>';
-		echo '<tr><th colspan="2">Last 30 Days</th><th colspan="2">Lifetime</th></tr>';
+		echo '<tr><th colspan="2">'.__('Last 30 Days','Shopp').'</th><th colspan="2">'.__('Lifetime','Shopp').'</th></tr>';
 
 		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.$results->wkorders.'</a></td><td>'.__('Orders','Shopp').'</td>';
 		echo '<td class="amount"><a href="'.$orderscreen.'">'.$results->orders.'</a></td><td>'.__('Orders','Shopp').'</td></tr>';
@@ -1960,7 +1965,7 @@ class Flow {
 
 		if (!empty($Orders)) {
 		echo '<table class="widefat">';
-		echo '<tr><th scope="col">Name</th><th scope="col">Date</th><th scope="col" class="num">Items</th><th scope="col" class="num">Total</th><th scope="col" class="num">Status</th></tr>';
+		echo '<tr><th scope="col">'.__('Name','Shopp').'</th><th scope="col">'.__('Date','Shopp').'</th><th scope="col" class="num">'.__('Items','Shopp').'</th><th scope="col" class="num">'.__('Total','Shopp').'</th><th scope="col" class="num">'.__('Status','Shopp').'</th></tr>';
 		echo '<tbody id="orders" class="list orders">';
 		$even = false; 
 		foreach ($Orders as $Order) {
@@ -2007,7 +2012,7 @@ class Flow {
 		$RecentBestsellers->load_products();
 
 		echo '<table><tbody><tr>';
-		echo '<td><h4>Recent Bestsellers</h4>';
+		echo '<td><h4>'.__('Recent Bestsellers','Shopp').'</h4>';
 		echo '<ul>';
 		foreach ($RecentBestsellers->products as $product) 
 			echo '<li><a href="'.add_query_arg(array('page'=>$this->Admin->editproduct,'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a> ('.$product->sold.')</li>';
@@ -2016,7 +2021,7 @@ class Flow {
 		
 		$LifetimeBestsellers = new BestsellerProducts(array('show'=>3));
 		$LifetimeBestsellers->load_products();
-		echo '<td><h4>Lifetime Bestsellers</h4>';
+		echo '<td><h4>'.__('Lifetime Bestsellers','Shopp').'</h4>';
 		echo '<ul>';
 		foreach ($LifetimeBestsellers->products as $product) 
 			echo '<li><a href="'.add_query_arg(array('page'=>$this->Admin->editproduct,'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a> ('.$product->sold.')</li>';

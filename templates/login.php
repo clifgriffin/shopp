@@ -20,15 +20,12 @@
 
 	<ul>
 		<li><h3>Recover your password</h3></li>
-		<?php if (shopp('customer','notloggedin')): ?>
 		<li><?php shopp('customer','login-errors'); ?></li>
 		<li>
-		<span><?php shopp('customer','email-login','size=20&title=Login'); ?><label for="login">Email Address</label></span>
+		<span><?php shopp('customer','account-login','size=20&title=Login'); ?><label for="login"><label for="login"><?php shopp('customer','login-label'); ?></label></label></span>
 		<span><?php shopp('customer','recover-button'); ?></span>
-		
 		</li>
 		<li></li>
-		<?php endif; ?>
 	</ul>
 
 <?php else: ?>
@@ -38,8 +35,10 @@
 	<li><?php shopp('customer','login-errors'); ?></li>
 	<li>
 		<label for="login">Account Login</label>
-		<span><?php shopp('customer','email-login','size=20&title=Login'); ?><label for="login">Email Address</label></span>
-		<span><?php shopp('customer','password-login','size=20&title=Password'); ?><label for="password">Password</label></span>
+		<span><?php shopp('customer','account-login','size=20&title=Login'); ?>
+			<label for="login"><?php shopp('customer','login-label'); ?></label></span>
+		<span><?php shopp('customer','password-login','size=20&title=Password'); ?>
+			<label for="password">Password</label></span>
 		<span><?php shopp('customer','login-button'); ?></span>
 	</li>
 	<li><a href="<?php shopp('customer','recover-url'); ?>">Lost your password?</a></li>

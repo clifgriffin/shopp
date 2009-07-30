@@ -41,9 +41,9 @@ function xcosettings (toggle,settings) {
 	})(jQuery);
 }
 
-$=jQuery.noConflict();
 
-$(document).ready( function() {
+jQuery(document).ready( function() {
+	var $=jQuery.noConflict();
 var gatewayHandlers = new CallbackRegistry();
 
 <?php foreach ($LocalProcessors as &$Processor) $Processor->registerSettings(); ?>
