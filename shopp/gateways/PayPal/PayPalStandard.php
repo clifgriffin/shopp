@@ -177,7 +177,7 @@ class PayPalStandard {
 		
 		// Load the cart for the correct order
 		$Shopp->Cart->session = $_POST['invoice'];
-		$Shopp->Cart->load();
+		$Shopp->Cart->load($Shopp->Cart->session);
 
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
@@ -228,48 +228,21 @@ class PayPalStandard {
 
 		// Transaction successful, save the order
 		
-		// Create WordPress account (if necessary)
-		if ($authentication == "wordpress" && 
-			!$user = get_user_by_email($Order->Customer->email)) {
-			require_once(ABSPATH."/wp-includes/registration.php");
-
-			if (!empty($Order->Customer->login)) $handle = $Order->Customer->login;
-			else {
-				// No login provided, auto-generate login handle
-				list($handle,$domain) = split("@",$Order->Customer->email);
-
-				// The email handle exists, so use first name initial + lastname
-				if (username_exists($handle)) 
-					$handle = substr($Order->Customer->firstname,0,1).$Order->Customer->lastname;
-
-				// That exists too *bangs head on wall*, ok add a random number too :P
-				if (username_exists($handle)) 
-					$handle .= rand(1000,9999);
+		if ($authentication == "wordpress") {
+			// Check if they've logged in
+			// If the shopper is already logged-in, save their updated customer info
+			if ($Shopp->Cart->data->login) {
+				if (SHOPP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
+				get_currentuserinfo();
+				global $user_ID;
+				$Order->Customer->wpuser = $user_ID;
 			}
 			
-			if (username_exists($handle))
-				new ShoppError(__('The login name you provided is already in use.  Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
-			
-			// Create the WordPress account
-			$wpuser = wp_insert_user(array(
-				'user_login' => $handle,
-				'user_pass' => $Order->Customer->password,
-				'user_email' => $Order->Customer->email,
-				'display_name' => $Order->Customer->firstname.' '.$Order->Customer->lastname,
-				'nickname' => $handle,
-				'first_name' => $Order->Customer->firstname,
-				'last_name' => $Order->Customer->lastname
-			));
-			
-			// Keep record of it in Shopp's customer records
-			$Order->Customer->wpuser = $wpuser;
-		}
-		
-		// If the shopper is already logged-in, save their updated customer info
-		if ($Shopp->Cart->data->login && $authentication == "wordpress") {
-			get_currentuserinfo();
-			global $user_ID;
-			$Order->Customer->wpuser = $user_ID;
+			// Create WordPress account (if necessary)
+			if (!$Order->Customer->wpuser) {
+				if (SHOPP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
+				$Order->Customer->new_wpuser();
+			}
 		}
 
 		// Create a WP-compatible password hash to go in the db
@@ -337,33 +310,26 @@ class PayPalStandard {
 		// Allow other WordPress plugins access to Purchase data to extend
 		// what Shopp does after a successful transaction
 		do_action_ref_array('shopp_order_success',array(&$Shopp->Cart->data->Purchase));
+		
+		// Send email notifications
+		// notification(addressee name, email, subject, email template, receipt template)
+		$Purchase->notification(
+			"$Purchase->firstname $Purchase->lastname",
+			$Purchase->email,
+			__('Order Receipt','Shopp')
+		);
 
-		// Send the e-mail receipt
-		$receipt = array();
-		$receipt['from'] = '"'.get_bloginfo("name").'"';
-		if ($Shopp->Settings->get('merchant_email')) 
-			$receipt['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
-		$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
-		$receipt['subject'] = __('Order Receipt','Shopp');
-		$receipt['receipt'] = $Shopp->Flow->order_receipt();
-		$receipt['url'] = get_bloginfo('siteurl');
-		$receipt['sitename'] = get_bloginfo('name');
-		$receipt['orderid'] = $Purchase->id;
-		
-		$receipt = apply_filters('shopp_email_receipt_data',$receipt);
-		
-		// echo "<PRE>"; print_r($receipt); echo "</PRE>";
-		shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
-		
 		if ($Shopp->Settings->get('receipt_copy') == 1) {
-			$receipt['to'] = $Shopp->Settings->get('merchant_email');
-			$receipt['subject'] = "New Order";
-			shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
+			$Purchase->notification(
+				'',
+				$Shopp->Settings->get('merchant_email'),
+				__('New Order','Shopp')
+			);
 		}
 
 		$ssl = true;
 		// Test Mode will not require encrypted checkout
-		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco'])) $ssl = false;
+		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco']) || SHOPP_NOSSL) $ssl = false;
 		$link = $Shopp->link('receipt',$ssl);
 		header("Location: $link");
 		exit();

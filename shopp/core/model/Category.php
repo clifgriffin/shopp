@@ -279,7 +279,8 @@ class Category extends DatabaseObject {
 		}
 
 		// Handle alphabetic page requests
-		if ((isset($Shopp->Category->controls) && $Shopp->Category->controls !== false) && 
+		if ((!isset($Shopp->Category->controls) || 
+				(isset($Shopp->Category->controls) && $Shopp->Category->controls !== false)) && 
 				((isset($loading['pagination']) && $loading['pagination'] == "alpha") || 
 				!is_numeric($this->page))) {
 
@@ -672,7 +673,7 @@ class Category extends DatabaseObject {
 				break;
 			case "section-list":
 				if (isset($Shopp->Category->controls)) return false;
-				if (empty($Shopp->Catalog->categories)) $Shopp->Catalog->load_categories();
+				if (empty($Shopp->Catalog->categories)) $Shopp->Catalog->load_categories(array("where"=>"(pd.published='on' OR pd.id IS NULL)"));
 				if (empty($Shopp->Catalog->categories)) return false;
 				if (!$this->children) $this->load_children();
 			
@@ -710,7 +711,8 @@ class Category extends DatabaseObject {
 				if (empty($this->id)) return false;
 				$parent = $this->id;
 				while($parent != 0) {
-					if ($Shopp->Catalog->categories[$parent]->parent == 0 || $Shopp->Catalog->categories[$parent]->parent = $parent) break;
+					if ($Shopp->Catalog->categories[$parent]->parent == 0 
+						|| $Shopp->Catalog->categories[$parent]->parent == $parent) break;
 					$parent = $Shopp->Catalog->categories[$parent]->parent;
 				}
 				$root = $Shopp->Catalog->categories[$parent];

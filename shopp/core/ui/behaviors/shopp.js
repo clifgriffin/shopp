@@ -63,7 +63,7 @@ function formatNumber (number,format) {
 	}
 
 	number = asNumber(number);
-	var d = number.toFixed(format['precision']).toString().split(".");
+	var d = number.toFixed(format['precision']).toString().split(format['decimals']);
 	var number = "";
 	if (format['indian']) {
 		var digits = d[0].slice(0,-3);
@@ -88,10 +88,10 @@ function formatNumber (number,format) {
 var asNumber = function(number) {
 	if (!number) number = 0;
 	number = number.toString().replace(new RegExp(/[^0-9\.\,]/g),"");
-	if (isNaN(new Number(number))) {
+	number = number.toString().replace(new RegExp(/\,/g),'.');
+	number = number.toString().replace(new RegExp(/\.(?=.*\..*$)/),'');
+	if (isNaN(new Number(number)))
 		number = number.replace(new RegExp(/\./g),"").replace(new RegExp(/\,/),"\.");
-	}
-	
 	return new Number(number);
 }
 
@@ -408,11 +408,7 @@ function quickSelects (target) {
  * Hooks callbacks to button events
  **/
 function buttonHandlers () {
-	var inputs = document.getElementsByTagName('input');
-	for (var i = 0; i < inputs.length; i++) {
-		var input = inputs[i];
-		if (input.className.indexOf('addtocart') != -1) input.onclick = addtocart;
-	}
+	jQuery('input.addtocart').bind('click.addtocart',addtocart);
 }
 
 /**
@@ -533,14 +529,12 @@ function htmlentities (string) {
 function PopupCalendar (target,month,year) {
 	
 	var _self = this;
+	var $=jQuery.noConflict();
+	
 	var DAYS_IN_MONTH = new Array(new Array(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31),
 								  new Array(0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 								 );
-
-
-	var MONTH_NAMES = new Array("","January","February","March","April","May","June","July","August","September","October","November","December");
-	var WEEK_DAYS = new Array("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday");
-
+								
 	/* Date Constants */
 	var K_FirstMissingDays = 639787; /* 3 Sep 1752 */
 	var K_MissingDays = 11; /* 11 day correction */

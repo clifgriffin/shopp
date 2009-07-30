@@ -8,7 +8,6 @@
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  **/
-
 class Payson {          
 	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
 	var $testurl = 'https://www.payson.se/testagent/default.aspx';
@@ -19,6 +18,7 @@ class Payson {
 	var $checkout = true;
 
 	function Payson () {
+		
 		global $Shopp;
 		$this->settings = $Shopp->Settings->get('Payson');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
@@ -29,7 +29,7 @@ class Payson {
 			!$loginproc) $this->checkout();
 		
 		// Capture processed payment
-		if (isset($_POST['Paysonref'])) $_POST['checkout'] = "confirmed";
+		if (isset($_GET['Paysonref'])) $_POST['checkout'] = "confirmed";
 
 	}
 	
@@ -121,45 +121,36 @@ class Payson {
 	function process () {
 		global $Shopp;
 		
-		echo "<pre>"; print_r($_POST); echo "</pre>";
-		exit();
-		
 		// Validate the order notification
-		if (empty($_POST['invoice']) || !$this->validipn())
-			return new ShoppError(__('An unverifiable order notifcation was received from Payson. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
-		
-		session_unset();
-		session_destroy();
-		
-		// Load the cart for the correct order
-		$Shopp->Cart->session = $_POST['RefNr'];
-		$Shopp->Cart->load();
+		$returned = array('Paysonref','OkURL','RefNr','MD5');
+		foreach($returned as $key) {
+			if (!isset($_GET[$key]) || empty($_GET[$key]))
+				return new ShoppError(__('An unverifiable order notifcation was received from Payson. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
+		}
 
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
-
+		
 		// Validate the order data
 		$validation = false;
 		
 		// Check for unique transaction id
-		$Purchase = new Purchase($_POST['Paysonref'],'transactionid');
-		
-		
+		$Purchase = new Purchase($_GET['Paysonref'],'transactionid');
+
 		$checkfields = array(
-			$_POST['OkURL'],
-			$_POST['PaysonRef'],
+			$_GET['OkURL'],
+			$_GET['Paysonref'],
 			$this->settings['key']
 		);
 		$checksum = md5(join('',$checkfields));
-		
-		if ($checksum == $_POST['MD5'] && empty($Purchase->id)) 
+
+		if ($Order->Cart == $_GET['RefNr'] && $checksum == $_GET['MD5'] && empty($Purchase->id)) 
 			$validation = true;
 
 		if ($validation) $this->order();
 		else new ShoppError(__('An order was received from Payson that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'payson_trxn_validation',SHOPP_TRXN_ERR);
-		
 		exit();
 	}
 	
@@ -172,48 +163,21 @@ class Payson {
 
 		// Transaction successful, save the order
 		
-		// Create WordPress account (if necessary)
-		if ($authentication == "wordpress" && 
-			!$user = get_user_by_email($Order->Customer->email)) {
-			require_once(ABSPATH."/wp-includes/registration.php");
-
-			if (!empty($Order->Customer->login)) $handle = $Order->Customer->login;
-			else {
-				// No login provided, auto-generate login handle
-				list($handle,$domain) = split("@",$Order->Customer->email);
-
-				// The email handle exists, so use first name initial + lastname
-				if (username_exists($handle)) 
-					$handle = substr($Order->Customer->firstname,0,1).$Order->Customer->lastname;
-
-				// That exists too *bangs head on wall*, ok add a random number too :P
-				if (username_exists($handle)) 
-					$handle .= rand(1000,9999);
+		if ($authentication == "wordpress") {
+			// Check if they've logged in
+			// If the shopper is already logged-in, save their updated customer info
+			if ($Shopp->Cart->data->login) {
+				if (SHOPP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
+				get_currentuserinfo();
+				global $user_ID;
+				$Order->Customer->wpuser = $user_ID;
 			}
 			
-			if (username_exists($handle))
-				new ShoppError(__('The login name you provided is already in use.  Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
-			
-			// Create the WordPress account
-			$wpuser = wp_insert_user(array(
-				'user_login' => $handle,
-				'user_pass' => $Order->Customer->password,
-				'user_email' => $Order->Customer->email,
-				'display_name' => $Order->Customer->firstname.' '.$Order->Customer->lastname,
-				'nickname' => $handle,
-				'first_name' => $Order->Customer->firstname,
-				'last_name' => $Order->Customer->lastname
-			));
-			
-			// Keep record of it in Shopp's customer records
-			$Order->Customer->wpuser = $wpuser;
-		}
-		
-		// If the shopper is already logged-in, save their updated customer info
-		if ($Shopp->Cart->data->login && $authentication == "wordpress") {
-			get_currentuserinfo();
-			global $user_ID;
-			$Order->Customer->wpuser = $user_ID;
+			// Create WordPress account (if necessary)
+			if (!$Order->Customer->wpuser) {
+				if (SHOPP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
+				$Order->Customer->new_wpuser();
+			}
 		}
 
 		// Create a WP-compatible password hash to go in the db
@@ -246,12 +210,11 @@ class Payson {
 		$Purchase->copydata($Shopp->Cart->data->Totals);
 		$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
 		$Purchase->gateway = "Payson";
-		$Purchase->transactionid = $_POST['Paysonref'];
-		$Purchase->fees = $_POST['Fee'];
+		$Purchase->transactionid = $_GET['Paysonref'];
+		$Purchase->fees = $_GET['Fee'];
 		$Purchase->transtatus = "CHARGED";
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
-		// echo "<pre>"; print_r($Purchase); echo "</pre>";
 
 		foreach($Shopp->Cart->contents as $Item) {
 			$Purchased = new Purchased();
@@ -260,11 +223,12 @@ class Payson {
 			if (!empty($Purchased->download)) $Purchased->keygen();
 			$Purchased->save();
 			if ($Item->inventory) $Item->unstock();
-		}
+		}			
 
 		// Empty cart on successful order
 		$Shopp->Cart->unload();
 		session_destroy();
+		session_unset();
 
 		// Start new cart session
 		$Shopp->Cart = new Cart();
@@ -282,39 +246,31 @@ class Payson {
 		// Allow other WordPress plugins access to Purchase data to extend
 		// what Shopp does after a successful transaction
 		do_action_ref_array('shopp_order_success',array(&$Shopp->Cart->data->Purchase));
+		
+		// Send email notifications
+		// notification(addressee name, email, subject, email template, receipt template)
+		$Purchase->notification(
+			"$Purchase->firstname $Purchase->lastname",
+			$Purchase->email,
+			__('Order Receipt','Shopp')
+		);
 
-		// Send the e-mail receipt
-		$receipt = array();
-		$receipt['from'] = '"'.get_bloginfo("name").'"';
-		if ($Shopp->Settings->get('merchant_email')) 
-			$receipt['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
-		$receipt['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
-		$receipt['subject'] = __('Order Receipt','Shopp');
-		$receipt['receipt'] = $Shopp->Flow->order_receipt();
-		$receipt['url'] = get_bloginfo('siteurl');
-		$receipt['sitename'] = get_bloginfo('name');
-		$receipt['orderid'] = $Purchase->id;
-		
-		$receipt = apply_filters('shopp_email_receipt_data',$receipt);
-		
-		// echo "<PRE>"; print_r($receipt); echo "</PRE>";
-		shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
-		
 		if ($Shopp->Settings->get('receipt_copy') == 1) {
-			$receipt['to'] = $Shopp->Settings->get('merchant_email');
-			$receipt['subject'] = "New Order";
-			shopp_email(SHOPP_TEMPLATES."/order.html",$receipt);
+			$Purchase->notification(
+				'',
+				$Shopp->Settings->get('merchant_email'),
+				__('New Order','Shopp')
+			);
 		}
-
+		
 		$ssl = true;
 		// Test Mode will not require encrypted checkout
-		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco'])) $ssl = false;
+		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco']) || SHOPP_NOSSL) $ssl = false;
 		$link = $Shopp->link('receipt',$ssl);
 		header("Location: $link");
 		exit();
 		
 	}
-	
 	
 	function error () {
 		if (!empty($this->Response)) {
@@ -397,7 +353,7 @@ class Payson {
 				$args['shopp_xco'] = 'Payson/Payson';
 				if (isset($options['pagestyle'])) $args['pagestyle'] = $options['pagestyle'];
 				$url = add_query_arg($args,$Shopp->link('checkout'));
-				return '<p><a href="'.$url.'">'.__('Checkout with Payson','Shopp').'</a></p>';
+				return '<a href="'.$url.'" class="right">'.__('Checkout with Payson','Shopp').' &raquo;</a>';
 		}
 	}
 

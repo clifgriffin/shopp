@@ -120,7 +120,7 @@ var PWD_STRONG = "<?php _e('Strong'); ?>";
 
 jQuery(document).ready( function() {
 
-$=jQuery.noConflict();
+var $=jQuery.noConflict();
 
 var wp26 = <?php echo (SHOPP_WP27)?'false':'true'; ?>;
 var regions = <?php echo json_encode($regions); ?>;

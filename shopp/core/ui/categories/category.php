@@ -288,9 +288,8 @@ var saving = false;
 var flashUploader = false;
 var pricesPayload = false;
 
-$=jQuery.noConflict();
-
-$(document).ready(function () {	
+jQuery(document).ready(function () {	
+	var $=jQuery.noConflict();
 	var editslug = new SlugEditor(category,'category');
 	var imageUploads = new ImageUploads({"category" : $('#image-category-id').val()});
 	

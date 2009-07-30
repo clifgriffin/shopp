@@ -78,7 +78,7 @@
 	helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
 
 jQuery(document).ready( function() {
-	$=jQuery.noConflict();
+	var $=jQuery.noConflict();
 	
 	$('#selectall').change( function() {
 		$('#promotions th input').each( function () {

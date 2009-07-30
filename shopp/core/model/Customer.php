@@ -37,11 +37,7 @@ class Customer extends DatabaseObject {
 				case "receipt": break;
 				case "history": $this->load_orders(); break;
 				case "downloads": $this->load_downloads(); break;
-				case "logout": 
-					$Shopp->Cart->logout(); 
-					if ($Shopp->Settings->get('account_system') == "wordpress")
-						wp_logout();
-					break;
+				case "logout": $Shopp->Cart->logout(); break;
 			}
 		}
 		
@@ -83,23 +79,25 @@ class Customer extends DatabaseObject {
 	
 	function recovery () {
 		global $Shopp;
-		
+		$authentication = $Shopp->Settings->get('account_system');
 		$errors = array();
 		
 		// Check email or login supplied
-		if (empty($_POST['email-login']) && empty($_POST['loginname-login']))
-			$errors[] = new ShoppError(__('Enter an email address or login name','Shopp'));
-		
-		// Check login exists
-		if (isset($_POST['email-login']) && !empty($_POST['email-login'])) {
-			$RecoveryCustomer = new Customer($_POST['email-login'],'email');
-			if (!$RecoveryCustomer->id)
-				$errors[] = new ShoppError(__('There is no user registered with that email address.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);
-		}
-		if (isset($_POST['loginname-login']) && !empty($_POST['loginname-login'])) {
-			$user_data = get_userdatabylogin($login);
-			$RecoveryCustomer->load($user_data->ID,'wpuser');			
-			$errors[] = new ShoppError(__('There is no user registered with that login name.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);
+		if (empty($_POST['account-login'])) {
+			if ($authentication == "wordpress") $errors[] = new ShoppError(__('Enter an email address or login name','Shopp'));
+			else $errors[] = new ShoppError(__('Enter an email address','Shopp'));
+		} else {
+			// Check that the account exists
+			if (strpos($_POST['account_login'],'@') !== false) {
+				$RecoveryCustomer = new Customer($_POST['email-login'],'email');
+				if (!$RecoveryCustomer->id)
+					$errors[] = new ShoppError(__('There is no user registered with that email address.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);
+			} else {
+				$user_data = get_userdatabylogin($_POST['account_login']);
+				$RecoveryCustomer->load($user_data->ID,'wpuser');	
+				if (!$RecoveryCustomer->id)
+					$errors[] = new ShoppError(__('There is no user registered with that login name.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);				
+			}
 		}
 		
 		// return errors
@@ -264,9 +262,12 @@ class Customer extends DatabaseObject {
 		));
 		
 		if (!$wpuser) return false;
-		
+
 		// Link the WP user ID to this customer record
 		$this->wpuser = $wpuser;
+		
+		// Send email notification of the new account
+		wp_new_user_notification( $wpuser, $this->password );
 		if (SHOPP_DEBUG) new ShoppError('Successfully created the WordPress user for the Shopp account.',false,SHOPP_DEBUG_ERR);
 		return true;
 	}
@@ -298,15 +299,19 @@ class Customer extends DatabaseObject {
 
 			case "loggedin": return $Shopp->Cart->data->login; break;
 			case "notloggedin": return (!$Shopp->Cart->data->login && $Shopp->Settings->get('account_system') != "none"); break;
-			case "loginname-login": 
-				if (!empty($_POST['loginname-login']))
-					$options['value'] = $_POST['loginname-login']; 
-				return '<input type="text" name="loginname-login" id="loginname-login"'.inputattrs($options).' />';
-				break;
 			case "email-login": 
-				if (!empty($_POST['email-login']))
-					$options['value'] = $_POST['email-login']; 
-				return '<input type="text" name="email-login" id="email-login"'.inputattrs($options).' />';
+			case "loginname-login": 
+			case "login-label": 
+				$accounts = $Shopp->Settings->get('account_system');
+				$label = __('Email Address','Shopp');
+				if ($accounts == "wordpress") $label = __('Login Name','Shopp');
+				if (isset($options['label'])) $label = $options['label'];
+				return $label;
+				break;
+			case "account-login": 
+				if (!empty($_POST['account-login']))
+					$options['value'] = $_POST['account-login']; 
+				return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
 				break;
 			case "password-login": 
 				if (!empty($_POST['password-login']))
@@ -572,7 +577,6 @@ class CustomersExport {
 		}
 		
 		$where = "WHERE c.id IS NOT NULL ";
-		if (isset($request['status'])) $where .= "AND status='{$request['status']}'";
 		if (isset($request['s']) && !empty($request['s'])) $where .= " AND (id='{$request['s']}' OR firstname LIKE '%{$request['s']}%' OR lastname LIKE '%{$request['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$request['s']}%' OR transactionid LIKE '%{$request['s']}%')";
 		if (!empty($request['start']) && !empty($request['end'])) $where .= " AND  (UNIX_TIMESTAMP(c.created) >= $starts AND UNIX_TIMESTAMP(c.created) <= $ends)";
 		
@@ -590,7 +594,6 @@ class CustomersExport {
 	function output () {
 		if (!$this->data) $this->query();
 		if (!$this->data) return false;
-
 		header("Content-type: $this->content_type; charset=UTF-8");
 		header("Content-Disposition: attachment; filename=\"$this->sitename Customer Export.$this->extension\"");
 		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);

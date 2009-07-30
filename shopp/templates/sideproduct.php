@@ -11,8 +11,8 @@
  **/
 ?>
 <?php if (shopp('product','found')): ?>
-	<div>
-	<a href="<?php shopp('product','url'); ?>"><?php shopp('product','thumbnail','class=alignleft'); ?></a>
+	<div class="sideproduct">
+	<a href="<?php shopp('product','url'); ?>"><?php shopp('product','thumbnail'); ?></a>
 
 	<h3><a href="<?php shopp('product','url'); ?>"><?php shopp('product','name'); ?></a></h3>
 
@@ -22,6 +22,5 @@
 	<?php else: ?>
 		<p class="price"><big><?php shopp('product','price'); ?></big></p>
 	<?php endif; ?>
-	<br class="clear" />
 	</div>
 <?php endif; ?>

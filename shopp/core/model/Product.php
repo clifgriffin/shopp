@@ -1242,7 +1242,7 @@ class Product extends DatabaseObject {
 				if (isset($options['ajax'])) {
 					$options['class'] .= " ajax";
 					$string .= '<input type="hidden" name="ajax" value="true" />';
-					$string .= '<input type="button" name="addtocart" id="addtocart" '.inputattrs($options).' />';					
+					$string .= '<input type="button" name="addtocart" '.inputattrs($options).' />';					
 				} else {
 					$string .= '<input type="submit" name="addtocart" '.inputattrs($options).' />';					
 				}

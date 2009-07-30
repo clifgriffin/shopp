@@ -41,6 +41,8 @@
 	</fieldset>	
 <?php endif; ?>
 
+<br class="clear" />
+
 <?php if (shopp('purchase','hasitems')): ?>
 <table class="order widefat">
 	<thead>
