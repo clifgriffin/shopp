@@ -262,9 +262,10 @@ class Product extends DatabaseObject {
 			
 			if ($price->freeshipping == 0) $freeshipping = false;
 
-			$price->promoprice = $price->saleprice;
-			if ((int)$price->promoprice == 0) $price->promoprice = $price->price;
-			
+			if ($price->onsale) $price->promoprice = (float)$price->saleprice;
+			else $price->promoprice = (float)$price->price;
+			// if ((int)$price->promoprice == 0) $price->promoprice = $price->price;
+
 			if ((isset($price->promos) && $price->promos == 'enabled')) {
 				if ($price->percentoff > 0) {
 					$price->promoprice = $price->promoprice - ($price->promoprice * ($price->percentoff/100));
@@ -280,23 +281,22 @@ class Product extends DatabaseObject {
 
 			// Grab price and saleprice ranges (minimum - maximum)
 			if ($price->type != "N/A") {
-				if ($price->price > 0) {
-					if (empty($this->pricerange['min']['price'])) 
+				if (!$price->price) $price->price = 0;
+				// if ($price->price > 0) {
+					if (!isset($this->pricerange['min']['price'])) 
 						$this->pricerange['min']['price'] = $this->pricerange['max']['price'] = $price->price;
 					if ($this->pricerange['min']['price'] > $price->price) 
 						$this->pricerange['min']['price'] = $price->price;
 					if ($this->pricerange['max']['price'] < $price->price) 
 						$this->pricerange['max']['price'] = $price->price;
-				}
+				// }
 
-				if ($price->promoprice > 0 || $price->onsale) {
-					if (empty($this->pricerange['min']['saleprice'])) 
+					if (!isset($this->pricerange['min']['saleprice'])) 
 						$this->pricerange['min']['saleprice'] = $this->pricerange['max']['saleprice'] = $price->promoprice;
 					if ($this->pricerange['min']['saleprice'] > $price->promoprice) 
 						$this->pricerange['min']['saleprice'] = $price->promoprice;
 					if ($this->pricerange['max']['saleprice'] < $price->promoprice) 
 						$this->pricerange['max']['saleprice'] = $price->promoprice;
-				}
 				
 				if ($price->stocked) {
 					if (!isset($this->pricerange['min']['stock']))
@@ -308,11 +308,13 @@ class Product extends DatabaseObject {
 				}
 				
 			}
-
+			
 			// Determine savings ranges
-			if (!empty($this->pricerange['min']['price']) && !empty($this->pricerange['min']['saleprice'])) {
+			if ($price->onsale 
+				&& isset($this->pricerange['min']['price']) 
+				&& isset($this->pricerange['min']['saleprice'])) {
 
-				if (empty($this->pricerange['min']['saved'])) {
+				if (!isset($this->pricerange['min']['saved'])) {
 					$this->pricerange['min']['saved'] = $price->price;
 					$this->pricerange['min']['savings'] = 100;
 					$this->pricerange['max']['saved'] = 0;
@@ -328,7 +330,7 @@ class Product extends DatabaseObject {
 							$price->price - $price->promoprice;
 				
 				// Find lowest savings percentage
-				if ($price->price > 0 || $price->onsale) {
+				if ($price->onsale) {
 					if ($this->pricerange['min']['saved']/$price->price < $this->pricerange['min']['savings'])
 						$this->pricerange['min']['savings'] = ($this->pricerange['min']['saved']/$price->price)*100;
 					if ($this->pricerange['max']['saved']/$price->price < $this->pricerange['min']['savings'])

@@ -279,12 +279,15 @@ function shopp_catalog_css () {
 	exit();
 }
 
-function shopp_settings_js () {
+function shopp_settings_js ($dir="shopp") {
 	$db =& DB::get();
 	$table = DatabaseObject::tablename(Settings::$table);
 	$settings = $db->query("SELECT name,value FROM $table WHERE name='base_operations'",AS_ARRAY);
 	foreach ($settings as $setting) ${$setting->name} = $setting->value;
 	$base_operations = unserialize($base_operations);
+	
+	$path = array(PLUGINDIR,$dir,'lang');
+	load_plugin_textdomain('Shopp', join(DIRECTORY_SEPARATOR,$path));
 	
 	ob_start();
 	include("ui/behaviors/settings.js");
@@ -534,11 +537,12 @@ function auto_ranges ($avg,$max,$min) {
 }
 
 function floatvalue($value) {
+	$value = preg_replace("/[^\d,\.]/","",$value); // Remove any non-numeric string data
 	$value = preg_replace("/,/",".",$value); // Replace commas with periods
 	$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
 	$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
     $value = preg_replace('#^([-]*[0-9\.,\' ]+?)((\.|,){1}([0-9-]{1,2}))*$#e', "str_replace(array('.', ',', \"'\", ' '), '', '\\1') . '.' . sprintf('%02d','\\4')", $value);
-    return floatval($value);
+    return number_format(floatval($value),2);
 }
 
 /**

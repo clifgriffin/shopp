@@ -462,35 +462,50 @@ class Cart {
 							if (Promotion::match_rule($Item->name,$rule['logic'],$rule['value'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
+								// echo "<pre>"; print_r($rule); echo "</pre>";
 							}
 						}
 						break;
 					case "Item quantity":
 						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule($Item->quantity,$rule['logic'],$rule['value'])) {
+							if (Promotion::match_rule(number_format($Item->quantity,0),$rule['logic'],$rule['value'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
+								// echo "<pre>"; print_r($rule); echo "</pre>";
+							}
+						}
+						break;
+					case "Item amount":
+						foreach ($this->contents as $id => &$Item) {
+							if (Promotion::match_rule(number_format($Item->total,2),$rule['logic'],$rule['value'])) {
+								$items[$id] = &$Item;
+								$rulematch = true;
+								// echo "<pre>"; print_r($rule); echo "</pre>";
 							}
 						}
 						break;
 					case "Total quantity":
-						if (Promotion::match_rule($this->data->Totals->quantity,$rule['logic'],$rule['value'])) {
+						if (Promotion::match_rule(number_format($this->data->Totals->quantity,0),$rule['logic'],$rule['value'])) {
 							$rulematch = true;
+							// echo "<pre>"; print_r($rule); echo "</pre>";
 						}
 						break;
 					case "Shipping amount": 
-						if (Promotion::match_rule($this->data->Totals->shipping,$rule['logic'],$rule['value'])) {
+						if (Promotion::match_rule(number_format($this->data->Totals->shipping,2),$rule['logic'],$rule['value'])) {
 							$rulematch = true;
+							// echo "<pre>"; print_r($rule); echo "</pre>";
 						}
 						break;
 					case "Subtotal amount": 
-						if (Promotion::match_rule($this->data->Totals->subtotal,$rule['logic'],$rule['value'])) {
+						if (Promotion::match_rule(number_format($this->data->Totals->subtotal,2),$rule['logic'],$rule['value'])) {
 							$rulematch = true;
+							// echo "<pre>"; print_r($rule); echo "</pre>";
 						}
 						break;
 					case "Promo code":
 						// Match previously applied codes
 						if (is_array($this->data->PromoCodes) && in_array($rule['value'],$this->data->PromoCodes)) {							
+							echo "<pre>"; print_r($rule); echo "</pre>";
 							$rulematch = true;
 							break;
 						}
@@ -521,7 +536,7 @@ class Cart {
 
 			// Everything matches up, apply the promotion
 			if ($match && !$PromoLimit) {
-
+				// echo "Matched $promo->name".BR;
 				if (!empty($items)) {
 					$freeshipping = 0;
 					// Apply promo calculation to specific cart items
@@ -567,7 +582,6 @@ class Cart {
 			$this->data->PromoCodes = array_diff($this->data->PromoCodes,array($this->data->PromoCode));
 			$this->data->PromoCode = false;
 		}
-
 	}
 
 	/**
@@ -624,6 +638,7 @@ class Cart {
 		$Totals->subtotal = 0;
 		$Totals->discount = 0;
 		$Totals->shipping = 0;
+		$Totals->taxed = 0;
 		$Totals->tax = 0;
 		$Totals->total = 0;
         
@@ -639,19 +654,21 @@ class Cart {
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
 
-			if ($Item->taxable && $Totals->taxrate > 0) {
-				$Item->tax = round($Item->total * $Totals->taxrate,2);
-				$Totals->tax += $Item->tax;
-			}
-				
+			if ($Item->taxable && $Totals->taxrate > 0) 
+				$Totals->taxed += $Item->total;
 		}
-		if ($Totals->tax > 0) $Totals->tax = round($Totals->tax,2);
 		$this->freeshipping = $freeshipping;
 		if ($this->data->ShippingDisabled) $this->freeshipping = false;
-
+		
+		// Calculate discounts
 		$this->promotions();
 		$discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
+
+		// Calculate taxes
+		$Totals->taxed -= $discount;
+		$Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
 		
+		// Calculate shipping
 		if (!$this->data->ShippingDisabled && $this->data->Shipping) 
 			$Totals->shipping = $this->shipping();
 
@@ -863,7 +880,7 @@ class Cart {
 		if (isset($_REQUEST['update'])) $_REQUEST['cart'] = "update";
 		if (isset($_REQUEST['empty'])) $_REQUEST['cart'] = "empty";
 		
-		if (empty($_REQUEST['quantity'])) $_REQUEST['quantity'] = 1;
+		if (!isset($_REQUEST['quantity'])) $_REQUEST['quantity'] = 1;
 
 		switch($_REQUEST['cart']) {
 			case "add":			
@@ -918,10 +935,9 @@ class Cart {
 			case "empty":
 				$this->clear();
 				break;
-			default:			
+			default:
 				if (isset($_REQUEST['item']) && isset($_REQUEST['quantity'])) {
 					$this->update($_REQUEST['item'],$_REQUEST['quantity']);
-					
 				} elseif (!empty($_REQUEST['items'])) {
 					foreach ($_REQUEST['items'] as $id => $item) {
 						if (isset($item['quantity'])) {
@@ -966,6 +982,83 @@ class Cart {
 		}
 		echo json_encode($AjaxCart);
 		exit();
+	}
+	
+	/**
+	 * validate()
+	 * Validate checkout form order data before processing */
+	function validate () {
+
+		if (empty($_POST['firstname']))
+			return new ShoppError(__('You must provide your first name.','Shopp'),'cart_validation');
+
+		if (empty($_POST['lastname']))
+			return new ShoppError(__('You must provide your last name.','Shopp'),'cart_validation');
+
+		$account = "[0-9A-Za-z#%$!&*+/'-=?.^_`{|}~]";
+		$domain = "[0-9A-Za-z#%$!&*+/'-=?^_`{|}~]";
+		if(!ereg("^$account{1,64}@($domain{1,63}\.$domain{1,63}){1,255}$", $_POST['email']))
+			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
+
+		if (empty($_POST['billing']['address']) || strlen($_POST['billing']['address']) < 4) 
+			return new ShoppError(__('You must enter a valid street address for your billing information.','Shopp'),'cart_validation');
+
+		if (empty($_POST['billing']['postcode']) || strlen($_POST['billing']['postcode']) < 3) 
+			return new ShoppError(__('You must enter a valid street address for your billing information.','Shopp'),'cart_validation');
+
+		if (empty($_POST['billing']['country'])) 
+			return new ShoppError(__('You must select a country for your billing information.','Shopp'),'cart_validation');
+
+		if (empty($_POST['billing']['card'])) 
+			return new ShoppError(__('You did not provide a credit card number.','Shopp'),'cart_validation');
+
+		if (empty($_POST['billing']['cardtype'])) 
+			return new ShoppError(__('You did not select a credit card type.','Shopp'),'cart_validation');
+			
+		// credit card validation
+		switch(strtolower($_POST['billing']['cardtype'])) {
+			case "american express":
+			case "amex": $pattern = '/^3[4,7]\d{13}$/'; break;
+			case "diner's club":
+			case "diners club": $pattern = '/^3[0,6,8]\d{12}$/'; break;
+			case "discover": $pattern = '/^6011-?\d{4}-?\d{4}-?\d{4}$/'; break;
+			case "mastercard": $pattern = '/^5[1-5]\d{2}-?\d{4}-?\d{4}-?\d{4}$/'; break;
+			case "visa": $pattern = '/^4\d{3}-?\d{4}-?\d{4}-?\d{4}$/'; break;
+			default: $pattern = false;
+		}
+		if ($pattern && !preg_match($pattern,$_POST['billing']['card'])) 
+			return new ShoppError(__('The credit card number you provided is invalid.','Shopp'),'cart_validation');
+
+		// credit card checksum validation
+		$cs = 0;
+		$cc = str_replace("-","",$_POST['billing']['card']);
+		$code = strrev(str_replace("-","",$_POST['billing']['card']));
+		for ($i = 0; $i < strlen($code); $i++) {
+			$d = intval($code[$i]);
+			if ($i & 1) $d *= 2;
+			$cs += $d % 10;
+			if ($d > 9) $cs += 1;
+		}
+		if ($cs % 10 != 0)
+			return new ShoppError(__('The credit card number you provided is not valid.','Shopp'),'cart_validation');
+			
+		if (empty($_POST['billing']['cardexpires-mm'])) 
+			return new ShoppError(__('You did not enter the month the credit card expires.','Shopp'),'cart_validation');
+
+		if (empty($_POST['billing']['cardexpires-yy'])) 
+			return new ShoppError(__('You did not enter the year the credit card expires.','Shopp'),'cart_validation');
+
+		if (!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy']) 
+		 	&& $_POST['billing']['cardexpires-mm'] < date('n') && $_POST['billing']['cardexpires-yy'] <= date('y')) 
+			return new ShoppError(__('The credit card expiration date you provided has already expired.','Shopp'),'cart_validation');
+		
+		if (strlen($_POST['billing']['cardholder']) < 2) 
+			return new ShoppError(__('You did not enter the name on the credit card you provided.','Shopp'),'cart_validation');
+		
+		if (strlen($_POST['billing']['cvv']) < 3) 
+			return new ShoppError(__('You did not enter a valid security ID for the card you provided. The security ID is a 3 or 4 digit number found on the back of the credit card.','Shopp'),'cart_validation');
+				
+		return apply_filters('shopp_validate_checkout',true);
 	}
 	
 	function tag ($property,$options=array()) {

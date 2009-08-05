@@ -63,7 +63,7 @@ function formatNumber (number,format) {
 	}
 
 	number = asNumber(number);
-	var d = number.toFixed(format['precision']).toString().split(format['decimals']);
+	var d = number.toFixed(format['precision']).toString().split(".");
 	var number = "";
 	if (format['indian']) {
 		var digits = d[0].slice(0,-3);
@@ -377,7 +377,7 @@ var ShoppCartAjaxHandler = function (cart) {
 			$('#shopp-cart-items').html(cart.Totals.quantity);
 			$('#shopp-cart-total').html(asMoney(cart.Totals.total));			
 		} else {
-			$('#shopp-cart p.status').html('<a href="'+cart.url+'"><span id="shopp-cart-items">'+cart.Totals.quantity+'</span> <strong>Items</strong> &mdash; <strong>Total</strong> <span id="shopp-cart-total">'+asMoney(cart.Totals.total)+'</span></a>');
+			$('.widget_shoppcartwidget p.status').html('<a href="'+cart.url+'"><span id="shopp-cart-items">'+cart.Totals.quantity+'</span> <strong>Items</strong> &mdash; <strong>Total</strong> <span id="shopp-cart-total">'+asMoney(cart.Totals.total)+'</span></a>');
 		}
 		display.slideDown();
 	})(jQuery)	

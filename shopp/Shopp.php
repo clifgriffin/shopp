@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.7 RC2
+Version: 1.0.7 RC3
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.7 RC2");
+define("SHOPP_VERSION","1.0.7 RC3");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -39,7 +39,8 @@ if (isset($_GET['shopp_image']) ||
 		preg_match('/images\/\d+/',$_SERVER['REQUEST_URI'])) 
 		shopp_image();
 if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'catalog.css') shopp_catalog_css();
-if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'settings.js') shopp_settings_js();
+if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'settings.js') 
+	shopp_settings_js(basename(dirname(__FILE__)));
 
 require("core/Flow.php");
 require("core/model/Cart.php");
@@ -87,8 +88,8 @@ class Shopp {
 		$this->Settings = new Settings();
 		$this->Flow = new Flow($this);
 		
-		register_deactivation_hook("shopp/Shopp.php", array(&$this, 'deactivate'));
-		register_activation_hook("shopp/Shopp.php", array(&$this, 'install'));
+		register_deactivation_hook($this->directory."/Shopp.php", array(&$this, 'deactivate'));
+		register_activation_hook($this->directory."/Shopp.php", array(&$this, 'install'));
 
 		// Keep any DB operations from occuring while in maintenance mode
 		if (!empty($_GET['updated']) && 
@@ -313,7 +314,7 @@ class Shopp {
 
 	function favorites ($actions) {
 		$key = add_query_arg(array('page'=>$this->Flow->Admin->editproduct,'id'=>'new'),$this->wpadminurl);
-	    $actions[$key] = array('New Shopp Product',8);
+	    $actions[$key] = array(__('New Shopp Product','Shopp'),8);
 		return $actions;
 	}
 		
@@ -435,8 +436,8 @@ class Shopp {
 			wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		}
 
-		if ($tag == "checkout")
-			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
+		// if ($tag == "checkout")
+		// 	wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
 		
 			
 	}
@@ -756,8 +757,6 @@ class Shopp {
 	function updatesearch () {
 		global $wp_query;
 		$wp_query->query_vars['s'] = $this->Cart->data->Search;
-		// $wp->is_search = false;
-		//echo "<pre>"; print_r($wp); echo "</pre>";
 	}
 
 	function metadata () {
@@ -1036,6 +1035,7 @@ class Shopp {
 		$estimatedTotal = $this->Cart->data->Totals->total;
 		$this->Cart->updated();
 		$this->Cart->totals();
+		if ($this->Cart->validate() !== true) return;
 
 		// If the cart's total changes at all, confirm the order
 		if ($estimatedTotal != $this->Cart->data->Totals->total || 
