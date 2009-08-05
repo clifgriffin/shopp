@@ -120,21 +120,21 @@ class Payson {
 		
 	function process () {
 		global $Shopp;
+		new ShoppError('Payson process() called...','payson_process',SHOPP_DEBUG_ERR);
 		
 		// Validate the order notification
 		$returned = array('Paysonref','OkURL','RefNr','MD5');
 		foreach($returned as $key) {
-			if (!isset($_GET[$key]) || empty($_GET[$key]))
-				return new ShoppError(__('An unverifiable order notifcation was received from Payson. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
+			if (!isset($_GET[$key]) || empty($_GET[$key])) {
+				new ShoppError(__('An unverifiable order was received from Payson. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
+				return false;
+			}
 		}
 
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
-		
-		// Validate the order data
-		$validation = false;
 		
 		// Check for unique transaction id
 		$Purchase = new Purchase($_GET['Paysonref'],'transactionid');
@@ -146,21 +146,10 @@ class Payson {
 		);
 		$checksum = md5(join('',$checkfields));
 
-		if ($Order->Cart == $_GET['RefNr'] && $checksum == $_GET['MD5'] && empty($Purchase->id)) 
-			$validation = true;
-
-		if ($validation) $this->order();
-		else new ShoppError(__('An order was received from Payson that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'payson_trxn_validation',SHOPP_TRXN_ERR);
-		exit();
-	}
-	
-	function order () {
-		global $Shopp;
-		$Order = $Shopp->Cart->data->Order;
-		$Order->Totals = $Shopp->Cart->data->Totals;
-		$Order->Items = $Shopp->Cart->contents;
-		$Order->Cart = $Shopp->Cart->session;
-
+		if ($Order->Cart != $_GET['RefNr'] || $checksum != $_GET['MD5'] || !empty($Purchase->id)) {
+			new ShoppError(__('An order was received from Payson that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'payson_trxn_validation',SHOPP_TRXN_ERR);
+			return false;
+		} 
 		// Transaction successful, save the order
 		
 		if ($authentication == "wordpress") {
@@ -223,63 +212,16 @@ class Payson {
 			if (!empty($Purchased->download)) $Purchased->keygen();
 			$Purchased->save();
 			if ($Item->inventory) $Item->unstock();
-		}			
-
-		// Empty cart on successful order
-		$Shopp->Cart->unload();
-		session_destroy();
-		session_unset();
-
-		// Start new cart session
-		$Shopp->Cart = new Cart();
-		session_start();
-		
-		// Keep the user loggedin
-		if ($Shopp->Cart->data->login)
-			$Shopp->Cart->loggedin($Order->Customer);
-		
-		// Save the purchase ID for later lookup
-		$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
-		$Shopp->Cart->data->Purchase->load_purchased();
-		// $Shopp->Cart->save();
-
-		// Allow other WordPress plugins access to Purchase data to extend
-		// what Shopp does after a successful transaction
-		do_action_ref_array('shopp_order_success',array(&$Shopp->Cart->data->Purchase));
-		
-		// Send email notifications
-		// notification(addressee name, email, subject, email template, receipt template)
-		$Purchase->notification(
-			"$Purchase->firstname $Purchase->lastname",
-			$Purchase->email,
-			__('Order Receipt','Shopp')
-		);
-
-		if ($Shopp->Settings->get('receipt_copy') == 1) {
-			$Purchase->notification(
-				'',
-				$Shopp->Settings->get('merchant_email'),
-				__('New Order','Shopp')
-			);
 		}
 		
-		$ssl = true;
-		// Test Mode will not require encrypted checkout
-		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco']) || SHOPP_NOSSL) $ssl = false;
-		$link = $Shopp->link('receipt',$ssl);
-		header("Location: $link");
-		exit();
-		
+		return $Purchase;
+
 	}
+		
+	function error () {}
 	
-	function error () {
-		if (!empty($this->Response)) {
-			
-			$message = join("; ",$this->Response->l_longmessage);
-			if (empty($message)) return false;
-			return new ShoppError($message,'payson_transacton_error',SHOPP_TRXN_ERR,
-				array('code'=>$code));
-		}
+	function transactionid() {
+		return $_GET['Paysonref'];
 	}
 		
 	function send () {

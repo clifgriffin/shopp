@@ -272,8 +272,7 @@ class Catalog extends DatabaseObject {
 						if (!isset($category->total)) $category->total = 0;
 						if (!isset($category->depth)) $category->depth = 0;
 						if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
-						if (value_is_true($hierarchy) && $depthlimit && 
-							$category->depth >= $depthlimit) continue;
+						if ($depthlimit && $category->depth >= $depthlimit) continue;
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = $parent->slug;
@@ -354,18 +353,17 @@ class Catalog extends DatabaseObject {
 					if (isset($Shopp->Cart->data->Category['orderby'])) 
 						$default = $Shopp->Cart->data->Category['orderby'];
 					$string .= $title;
-					$string .= '<form action="'.$_SERVER['REQUEST_URI'].'" method="GET">';
+					$string .= '<form action="'.$_SERVER['REQUEST_URI'].'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
 					if (!SHOPP_PERMALINKS) {
 						foreach ($_GET as $key => $value)
 							if ($key != 'shopp_orderby') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
 					}
-					$string .= '<select name="shopp_orderby" id="shopp-'.$Shopp->Category->slug.'-orderby-menu" class="shopp-orderby-menu">';
+					$string .= '<select name="shopp_orderby" class="shopp-orderby-menu">';
 					$string .= menuoptions($menuoptions,$default,true);
 					$string .= '</select>';
 					$string .= '</form>';
 					$string .= '<script type="text/javascript">';
-					$string .= 'var menu = document.getElementById(\'shopp-'.$Shopp->Category->slug.'-orderby-menu\');';
-					$string .= 'if (menu) menu.onchange = function () { menu.form.submit(); }';
+					$string .= "jQuery('#shopp-".$Shopp->Category->slug."-orderby-menu select.shopp-orderby-menu').change(function () { this.form.submit(); });";
 					$string .= '</script>';
 				} else {
 					if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
@@ -513,6 +511,10 @@ class Catalog extends DatabaseObject {
 				if (isset($options['load'])) return true;
 				if (isset($options['controls']) && !value_is_true($options['controls'])) 
 					$Shopp->Category->controls = false;
+				if (isset($options['view'])) {
+					if ($options['view'] == "grid") $Shopp->Category->view = "grid";
+					else $Shopp->Category->view = "list";
+				} 
 				ob_start();
 				if (isset($Shopp->Category->smart) && 
 						file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))

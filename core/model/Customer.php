@@ -384,31 +384,38 @@ class Customer extends DatabaseObject {
 				break;
 
 			case "firstname": 
+				if ($options['mode'] == "value") return $this->firstname;
 				if (!empty($this->firstname))
 					$options['value'] = $this->firstname; 
 				return '<input type="text" name="firstname" id="firstname"'.inputattrs($options).' />';
 				break;
 			case "lastname":
+				if ($options['mode'] == "value") return $this->lastname;
 				if (!empty($this->lastname))
 					$options['value'] = $this->lastname; 
 				return '<input type="text" name="lastname" id="lastname"'.inputattrs($options).' />'; 
 				break;
 			case "company":
+				if ($options['mode'] == "value") return $this->company;
 				if (!empty($this->company))
 					$options['value'] = $this->company; 
 				return '<input type="text" name="company" id="company"'.inputattrs($options).' />'; 
 				break;
 			case "email":
+				if ($options['mode'] == "value") return $this->email;
 				if (!empty($this->email))
 					$options['value'] = $this->email; 
 				return '<input type="text" name="email" id="email"'.inputattrs($options).' />';
 				break;
 			case "loginname":
+				if ($options['mode'] == "value") return $this->loginname;
 				if (!empty($this->login))
 					$options['value'] = $this->login; 
 				return '<input type="text" name="login" id="login"'.inputattrs($options).' />';
 				break;
 			case "password":
+				if ($options['mode'] == "value") 
+					return strlen($this->password) == 34?str_pad('&bull;',8):$this->password;
 				if (!empty($this->password))
 					$options['value'] = $this->password; 
 				return '<input type="password" name="password" id="password"'.inputattrs($options).' />';
@@ -419,8 +426,9 @@ class Customer extends DatabaseObject {
 				return '<input type="password" name="confirm-password" id="confirm-password"'.inputattrs($options).' />';
 				break;
 			case "phone": 
-			if (!empty($this->phone))
-				$options['value'] = $this->phone; 
+				if ($options['mode'] == "value") return $this->phone;
+				if (!empty($this->phone))
+					$options['value'] = $this->phone; 
 				return '<input type="text" name="phone" id="phone"'.inputattrs($options).' />'; 
 				break;
 			case "hasinfo":
@@ -444,6 +452,8 @@ class Customer extends DatabaseObject {
 				$allowed_types = array("text","password","hidden","checkbox","radio");
 				if (empty($options['type'])) $options['type'] = "hidden";
 				if (in_array($options['type'],$allowed_types)) {
+					if ($options['mode'] == "name") return $name;
+					if ($options['mode'] == "value") return $info;
 					$options['value'] = $info;
 					return '<input type="text" name="info['.$name.']" id="customer-info-'.$name.'"'.inputattrs($options).' />'; 
 				}

@@ -22,8 +22,8 @@ class Flow {
 		$this->Settings = $Core->Settings;
 		$this->Cart = $Core->Cart;
 
-		load_plugin_textdomain('Shopp',
-			PLUGINDIR.DIRECTORY_SEPARATOR.$Core->directory.DIRECTORY_SEPARATOR.'lang');
+		$langpath = array(PLUGINDIR,$Core->directory,'lang');
+		load_plugin_textdomain('Shopp',join(DIRECTORY_SEPARATOR,$langpath));
 
 		$this->basepath = dirname(dirname(__FILE__));
 		$this->uri = ((!empty($_SERVER['HTTPS']))?"https://":"http://").
@@ -268,9 +268,8 @@ class Flow {
 		// 	!isset($Shopp->Category->facetedmenus) || 
 		// 	$Shopp->Category->facetedmenus == 'off') 
 		// 	unregister_sidebar_widget('shopp-faceted-menu');
-		
+
 		$classes = $Shopp->Catalog->type;
-		// Get catalog view preference from cookie
 		if (!isset($_COOKIE['shopp_catalog_view'])) {
 			// No cookie preference exists, use shopp default setting
 			$view = $Shopp->Settings->get('default_catalog_view');
@@ -279,7 +278,7 @@ class Flow {
 		} else {
 			if ($_COOKIE['shopp_catalog_view'] == "list") $classes .= " list";
 			if ($_COOKIE['shopp_catalog_view'] == "grid") $classes .= " grid";
-		}
+		}			
 		
 		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'<div class="clear"></div></div>');
 	}
@@ -1094,11 +1093,9 @@ class Flow {
 			}
 		}
 		
-		$taxrate = 0;
 		$base = $Shopp->Settings->get('base_operations');
-		if ($base['vat']) {
-			$taxrate = $Shopp->Cart->taxrate();
-		}
+		if ($base['vat']) $taxrate = $Shopp->Cart->taxrate();
+		if (empty($taxrate)) $taxrate = 0;
 		
 		$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price+(pt.price*$taxrate)) AS maxprice,MIN(pt.price+(pt.price*$taxrate)) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
 		if ($workflow) $columns = "pd.id";
@@ -2634,8 +2631,14 @@ class Flow {
 		
 		// Download the new version of Shopp
 		$updatefile = tempnam($tmpdir,"shopp_update_");
-		if (($download = fopen($updatefile, 'wb')) === false) 
-			die(join("\n\n",$log)."\n\nUpdate Failed: Cannot save the Shopp update to the temporary workspace because of a write permission error.");
+		if (($download = fopen($updatefile, 'wb')) === false) {
+			$log[] = "A temporary file could not be created under $tmpdir, trying WordPress upload directory instead.";
+			$tmpdir = trailingslashit(WP_CONTENT_DIR."/uploads");
+			$updatefile = tempnam($tmpdir,"shopp_update_");
+			$log[] = "Found temp directory: $tmpdir";
+			if (($download = fopen($updatefile, 'wb')) === false)
+				die(join("\n\n",$log)."\n\nUpdate Failed: Cannot save the Shopp update to the temporary workspace because of a write permission error.");
+		}
 		
 		$query = build_query_request(array(
 			"ShoppServerRequest" => "download-update",
@@ -2731,19 +2734,6 @@ class Flow {
 		if (!file_exists(SHOPP_DBSCHEMA))
 		 	die("Could not upgrade the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
 		
-		// Check if development version tables exist without the WP $table_prefix
-		// Remove this transitionary code in official release
-		$setting = substr(DatabaseObject::tablename('setting'),strlen($table_prefix));
-		$devtable = $db->query("SHOW CREATE TABLE `$setting`");
-		if ($devtable->Table == $setting) {
-			$this->Settings->save('data_model','');
-			$devtables = array('shopp_asset', 'shopp_billing', 'shopp_cart', 'shopp_catalog', 'shopp_category', 'shopp_customer', 'shopp_discount', 'shopp_price', 'shopp_product', 'shopp_promo', 'shopp_purchase', 'shopp_purchased', 'shopp_setting', 'shopp_shipping', 'shopp_spec', 'shopp_tag');
-			$renaming = "";
-			foreach ($devtables as $oldtable) $renaming .= ((empty($renaming))?"":", ")."$oldtable TO $table_prefix$oldtable";
-			$db->query("RENAME TABLE $renaming");
-			$Shopp->Settings = new Settings();
-		}
-
 		ob_start();
 		include(SHOPP_DBSCHEMA);
 		$schema = ob_get_contents();

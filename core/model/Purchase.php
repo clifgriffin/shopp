@@ -527,7 +527,7 @@ class PurchasesIIFExport extends PurchasesExport {
 		</div>
 		<script type="text/javascript">
 		jQuery(document).ready( function() {
-			$=jQuery.noConflict();
+			var $=jQuery.noConflict();
 			$('#purchaselog-format').change(function () {
 				if ($(this).val() == "iif") {
 					$('#export-columns').hide();

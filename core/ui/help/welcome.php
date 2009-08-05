@@ -20,7 +20,7 @@
 	</ul>
 	
 	<br />
-	<form action="admin.php?page=<?php echo $this->Flow->Admin->settings['settings'][0]; ?>" method="POST">
+	<form action="admin.php?page=<?php echo $this->Flow->Admin->settings['settings'][0]; ?>" method="post">
 	<div class="alignright"><input type="submit" name="setup" value="<?php _e('Continue to Shopp Setup','Shopp'); ?>&hellip;" class="button-primary" /></div>
 	
 	<p><input type="hidden" name="settings[show_welcome]" value="off" /><input type="checkbox" name="settings[show_welcome]" id="welcome-toggle" value="on" <?php echo ($this->Settings->get('show_welcome') == "on")?' checked="checked"':''; ?> /><label for="welcome-toggle"> <small><?php _e('Show this screen every time after activating Shopp','Shopp'); ?></small></label></p>

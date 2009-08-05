@@ -123,8 +123,10 @@ class Item {
 
 		$qty = preg_replace('/[^\d+]/','',$qty);
 		if ($this->inventory) {
-			if ($qty > $this->option->stock) 
+			if ($qty > $this->option->stock) {
+				new ShoppError(__('Not enough of the product is available in stock to fulfill your request.','Shopp'),'item_low_stock');
 				$this->quantity = $this->option->stock;
+			}
 			else $this->quantity = $qty;
 		} else $this->quantity = $qty;
 		
