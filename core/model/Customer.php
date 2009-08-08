@@ -37,7 +37,7 @@ class Customer extends DatabaseObject {
 				case "receipt": break;
 				case "history": $this->load_orders(); break;
 				case "downloads": $this->load_downloads(); break;
-				case "logout": $Shopp->Cart->logout(); break;
+				// case "logout": $Shopp->Cart->logout(); break;
 			}
 		}
 		

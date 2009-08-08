@@ -941,10 +941,7 @@ class Shopp {
 
 		$pages = $this->Settings->get('pages');
 		// If checkout page requested
-		if (((SHOPP_PERMALINKS && isset($wp->query_vars['pagename']) 
-			&& $wp->query_vars['pagename'] == $pages['checkout']['permalink'])
-			|| (isset($wp->query_vars['page_id']) && $wp->query_vars['page_id'] == $pages['checkout']['id']))
-		 	&& $wp->query_vars['shopp_proc'] == "checkout") {
+		if (is_shopp_page('checkout') && $wp->query_vars['shopp_proc'] == "checkout") {
 			
 			$this->Cart->updated();
 			$this->Cart->totals();
@@ -1112,7 +1109,7 @@ class Shopp {
 		if (SHOPP_PERMALINKS) return $uri."/".$page['permalink'];
 		else return add_query_arg('page_id',$page['id'],trailingslashit($uri));
 	}
-	
+		
 	/**
 	 * help()
 	 * This function provides graceful degradation when the 

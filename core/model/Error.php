@@ -253,7 +253,7 @@ class CallbackSubscription {
 	function send () {
 		$args = func_get_args();
 		foreach ($this->subscribers as $callback)
-			call_user_func_array($callback,$args);
+			call_user_func_array($callback,&$args);
 	}
 	
 }

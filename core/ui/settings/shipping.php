@@ -15,7 +15,7 @@
 	            <?php _e('Check this to use shipping. Leave un-checked to disable shipping &mdash; helpful if you are only selling subscriptions or downloads.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 
-				<th scope="row" valign="top"><label for="weight-units"><?php _e('Weight Unit','Shopp'); ?></label></th> 
+				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Weight Unit','Shopp'); ?></label></th> 
 				<td>
 				<select name="settings[weight_unit]" id="weight-unit">
 					<option></option>
