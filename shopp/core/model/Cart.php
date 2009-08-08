@@ -152,7 +152,6 @@ class Cart {
 	function save ($id,$session) {
 		global $Shopp;
 		$db = DB::get();
-		
 		if (!$Shopp->Settings->unavailable) {
 			$data = $db->escape(addslashes(serialize($this->data)));
 			$contents = $db->escape(serialize($this->contents));
@@ -544,7 +543,7 @@ class Cart {
 						switch ($promo->type) {
 							case "Percentage Off": $this->data->Totals->discount += $item->total*($promo->discount/100); break;
 							case "Amount Off": $this->data->Totals->discount += $promo->discount; break;
-							case "Buy X Get Y Free": $this->data->Totals->discount += floor($item->quantity / ($promo->buyqty + $promo->getqty))*($item->unitprice);
+							case "Buy X Get Y Free": $this->data->Totals->discount += floor($item->quantity / ($promo->buyqty + $promo->getqty))*($item->unitprice); break;
 							case "Free Shipping": $freeshipping++; break;
 						}
 					}
@@ -616,13 +615,13 @@ class Cart {
 			if (isset($setting['zone'])) {
 				if ($country == $setting['country'] &&
 					$zone == $setting['zone'])
-						return $setting['rate']/100;
+						return apply_filters('shopp_cart_taxrate',$setting['rate']/100);
 			} elseif ($country == $setting['country']) {
-				return $setting['rate']/100;
+				return apply_filters('shopp_cart_taxrate',$setting['rate']/100);
 			}
 		}
 		
-		if ($global) return $global['rate']/100;
+		if ($global) return apply_filters('shopp_cart_taxrate',$global['rate']/100);
 		
 	}   
 	
@@ -689,22 +688,27 @@ class Cart {
 			$this->data->Order->Shipping = new Shipping();
 		}
 		
+		
 		$authentication = $Shopp->Settings->get('account_system');
+
+		if (isset($_GET['acct']) && isset($this->data->Order->Customer) 
+			&& $_GET['acct'] == "logout") {
+				if ($authentication == "wordpress" && $this->data->login)
+					add_action('shopp_logout','wp_clear_auth_cookie');					
+				return $this->logout();
+		}
 
 		switch ($authentication) {
 			case "wordpress":
-				if ($this->data->login) {
-					add_action('wp_logout',array(&$this,'logout'));
-					add_action('shopp_logout','wp_clear_auth_cookie');
-				}
-				// See if the wordpress user is already logged in
-				get_currentuserinfo();
-				global $user_ID;
+				if ($this->data->login) add_action('wp_logout',array(&$this,'logout'));
 
-				if (!empty($user_ID) && !$this->data->login) {
-					if ($Account = new Customer($user_ID,'wpuser')) {
+				// See if the wordpress user is already logged in
+				$user = wp_get_current_user();
+
+				if (!empty($user->ID) && !$this->data->login) {
+					if ($Account = new Customer($user->ID,'wpuser')) {
 						$this->loggedin($Account);
-						$this->data->Order->Customer->wpuser = $user_ID;
+						$this->data->Order->Customer->wpuser = $user->ID;
 						break;
 					}
 				}
@@ -727,7 +731,7 @@ class Cart {
 
 						if ($Account = new Customer($user->ID,'wpuser')) {
 							$this->loggedin($Account);
-							$this->data->Order->Customer->wpuser = $user_ID;
+							$this->data->Order->Customer->wpuser = $user->ID;
 							add_action('wp_logout',array(&$this,'logout'));
 						}
 					}
@@ -758,7 +762,6 @@ class Cart {
 		global $Shopp;
 		$db = DB::get();
 		$authentication = $Shopp->Settings->get('account_system');
-		
 		switch($authentication) {
 			case "shopp":
 				$Account = new Customer($id,'email');
@@ -827,7 +830,7 @@ class Cart {
 	 * logout()
 	 * Clear the session account data */
 	function logout () {
-		// do_action('shopp_logout');
+		do_action('shopp_logout');
 		$this->data->login = false;
 		$this->data->Order->wpuser = false;
 		$this->data->Order->Customer->id = false;

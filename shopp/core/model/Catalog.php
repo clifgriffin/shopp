@@ -141,16 +141,16 @@ class Catalog extends DatabaseObject {
 
 		$pages = $Shopp->Settings->get('pages');
 		if (SHOPP_PERMALINKS) $path = $Shopp->shopuri;
-		else $page = add_query_arg('page_id',$pages['catalog']['id'],$Shopp->shopuri);
-				
+		else $page = add_query_arg('page_id',$pages['catalog']['id'],$Shopp->shopuri);		
+		
 		switch ($property) {
 			case "url": return $Shopp->link('catalog'); break;
 			case "display":
 			case "type": return $this->type; break;
 			case "is-landing": 
-			case "is-catalog": return ($this->type == "catalog"); break;
-			case "is-category": return ($this->type == "category"); break;
-			case "is-product": return ($this->type == "product"); break;
+			case "is-catalog": return (is_shopp_page('catalog') && $this->type == "catalog"); break;
+			case "is-category": return (is_shopp_page('catalog') && $this->type == "category"); break;
+			case "is-product": return (is_shopp_page('catalog') && $this->type == "product"); break;
 			case "tagcloud":
 				if (!empty($options['levels'])) $levels = $options['levels'];
 				else $levels = 7;

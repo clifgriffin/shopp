@@ -196,11 +196,20 @@ class Item {
 			case "sku": return $this->sku;
 		}
 		
+		if ($property == "unitprice" || $property == "total") {
+			$taxrate = 0;
+			$taxes = false;
+			$base = $Shopp->Settings->get('base_operations');
+			if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
+			elseif ($base['vat']) $taxes = true;
+			if ($taxes) $taxrate = $Shopp->Cart->taxrate();
+		}
+		
 		// Handle currency values
 		$result = "";
 		switch ($property) {
-			case "unitprice": $result = (float)$this->unitprice; break;
-			case "total": $result = (float)$this->total; break;
+			case "unitprice": $result = (float)$this->unitprice+($this->unitprice*$taxrate); break;
+			case "total": $result = (float)$this->total+($this->total*$taxrate); break;
 			case "tax": $result = (float)$this->tax; break;			
 		}
 		if (is_float($result)) {

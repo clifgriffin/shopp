@@ -61,6 +61,8 @@ class PayPalExpress {
 	
 	function actions () {}
 	
+	function notax ($rate) { return false; }
+	
 	function headers () {
 		$_ = array();
 
@@ -183,7 +185,10 @@ class PayPalExpress {
 		$Shipping->state = $this->Response->shiptostate;
 		$Shipping->country = $this->Response->shiptocountrycode;
 		$Shipping->postcode = $this->Response->shiptozip;
-
+		
+		if (empty($Shipping->state) && empty($Shipping->country))
+			add_filter('shopp_cart_taxrate',array(&$this,'notax'));
+		
 		$Billing = $Shopp->Cart->data->Order->Billing;
 		$Billing->cardtype = "PayPal";
 		$Billing->address = $Shipping->address;
@@ -192,8 +197,9 @@ class PayPalExpress {
 		$Billing->state = $Shipping->state;
 		$Billing->country = $this->Response->countrycode;
 		$Billing->postcode = $Shipping->postcode;
-
+		
 		$Shopp->Cart->updated();
+		$Shopp->Cart->totals();
 		
 		$targets = $Shopp->Settings->get('target_markets');
 		if (!in_array($Billing->country,array_keys($targets))) {
