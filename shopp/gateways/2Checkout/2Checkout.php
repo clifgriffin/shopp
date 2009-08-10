@@ -57,7 +57,9 @@ class _2Checkout {
 		if (empty($Order->Customer))
 			$Order->Customer = new Customer();
 		$Order->Customer->updates($_POST);
-		$Order->Customer->confirm_password = $_POST['confirm-password'];
+
+		if (isset($_POST['confirm-password']))
+			$Order->Customer->confirm_password = $_POST['confirm-password'];
 
 		if (empty($Order->Billing))
 			$Order->Billing = new Billing();
@@ -103,6 +105,7 @@ class _2Checkout {
 		$_['sid']				= $this->settings['sid'];
 		$_['total']				= number_format($Shopp->Cart->data->Totals->total,2);
 		$_['cart_order_id']		= $Order->_2COcart_order_id;
+		$_['vendor_order_id']	= $Shopp->Cart->session;
 		$_['id_type']			= 1;
 		
 		// Extras
@@ -151,26 +154,29 @@ class _2Checkout {
 	
 	function process () {
 		global $Shopp;
-		$checkout = add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('checkout'));
 		
 		if (empty($_POST)) {
 			new ShoppError(__('Payment could not be confirmed, this order cannot be processed.','Shopp'),'2co_transaction_error',SHOPP_COMM_ERR);
-			header("Location: ".$Shopp->link('cart'));
 			exit();
 		}
+		
+		session_unset();
+		session_destroy();
+		
+		// Load the cart for the correct order
+		$Shopp->Cart->session = $_POST['vendor_order_id'];
+		$Shopp->Cart->load($Shopp->Cart->session);
 
 		if ($this->settings['verify'] == "on" && !$this->validate($_POST['key'])) {
 			new ShoppError(__('The order submitted to 2Checkout could not be verified.','Shopp'),'2co_validation_error',SHOPP_TRXN_ERR);
-			header("Location: $checkout");
 			exit();
 		}			
 		
 		if ($_POST['credit_card_processed'] == "N") {
 			new ShoppError(__('The payment failed. Please try your order again with a different payment method.','Shopp'),'2co_processing_error',SHOPP_TRXN_ERR);
-			header("Location: $checkout");
 			exit();
 		}
-		
+
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;

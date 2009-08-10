@@ -215,10 +215,12 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 /* Order Management */
 #order { position: relative; }
 #order address { font-style: normal; }
-#order fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
+#order fieldset { float: left; width: auto; width: 23%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
 #order table.transaction { float: right; }
 #order table.transaction th { text-align: right; padding-right: 7px; }
 #order table.transaction a { text-decoration: none; }
+#order #customer { margin-right: 10px; }
+#order #customer:hover { cursor: pointer; background-color: #eeeeee; }
 
 #order .cart { width: 100%; clear: both; border: none; }
 #order .cart td { border: none; }

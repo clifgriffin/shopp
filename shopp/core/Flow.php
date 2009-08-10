@@ -583,6 +583,19 @@ class Flow {
 		ob_end_clean();
 		return apply_filters('shopp_order_receipt','<div id="shopp">'.$content.'</div>');
 	}
+	
+	// Display an error page
+	function error_page ($template="errors.php") {
+		global $Shopp;
+		$Cart = $Shopp->Cart;
+		
+		ob_start();
+		include(trailingslashit(SHOPP_TEMPLATES).$template);
+		$content = ob_get_contents();
+		ob_end_clean();
+		return apply_filters('shopp_errors_page','<div id="shopp">'.$content.'</div>');
+	}
+	
 
 	/**
 	 * Orders admin flow handlers
@@ -791,7 +804,7 @@ class Flow {
 	}
 		
 	function account () {
-		global $Shopp;
+		global $Shopp,$wp;
 		
 		if ($Shopp->Cart->data->login 
 				&& isset($Shopp->Cart->data->Order->Customer)) 
@@ -799,9 +812,10 @@ class Flow {
 		
 		if (isset($_GET['acct']) && $_GET['acct'] == "rp") $Shopp->Cart->data->Order->Customer->reset_password($_GET['key']);
 		if (isset($_POST['recover-login'])) $Shopp->Cart->data->Order->Customer->recovery();
-		
+				
 		ob_start();
-		if ($Shopp->Cart->data->login) include(SHOPP_TEMPLATES."/account.php");
+		if (isset($wp->query_vars['shopp_download'])) include(SHOPP_TEMPLATES."/errors.php");
+		elseif ($Shopp->Cart->data->login) include(SHOPP_TEMPLATES."/account.php");
 		else include(SHOPP_TEMPLATES."/login.php");
 		$content = ob_get_contents();
 		ob_end_clean();
@@ -977,7 +991,8 @@ class Flow {
 			$Customer = new Customer($_GET['id']);
 			$Customer->Billing = new Billing($Customer->id,'customer');
 			$Customer->Shipping = new Shipping($Customer->id,'customer');
-			
+			if (empty($Customer->id)) 
+				wp_die(__('The requested customer record does not exist.','Shopp'));
 		} else $Customer = new Customer();
 
 		$countries = array(''=>'');

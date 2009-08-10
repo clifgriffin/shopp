@@ -25,6 +25,9 @@ class PayPalExpress {
 							"GP" => "fr_FR", "IE" => "en_US", "IT" => "it_IT", "JP" => "ja_JP",
 							"MQ" => "fr_FR", "NL" => "nl_NL", "PL" => "pl_PL", "RE" => "fr_FR",
 							"US" => "en_US");
+	var $status = array('' => 'UNKNOWN','Canceled-Reversal' => 'CHARGED','Completed' => 'CHARGED', 
+						'Denied' => 'VOID', 'Expired' => 'VOID','Failed' => 'VOID','Pending' => 'PENDING',
+						'Refunded' => 'VOID','Reversed' => 'VOID','Processed' => 'PENDING','Voided' => 'VOID');
 
 	var $shiprequired = array('en_GB');
 
@@ -271,6 +274,7 @@ class PayPalExpress {
 			$Purchase->freight = $Order->Totals->shipping;
 			$Purchase->gateway = "PayPal Express";
 			$Purchase->transactionid = $this->Response->transactionid;
+			$Purchase->transtatus = $this->status[$this->Response->paymentstatus];
 			$Purchase->ip = $Shopp->Cart->ip;
 			$Purchase->fees = $this->Response->feeamt;
 			$Purchase->save();

@@ -514,6 +514,7 @@ class Category extends DatabaseObject {
 					$Shopp->shopuri."category/$this->uri":
 					add_query_arg('shopp_category',$this->id,$Shopp->shopuri);
 				break;
+			case "id": return $this->id; break;
 			case "name": return $this->name; break;
 			case "slug": return $this->slug; break;
 			case "description": return wpautop($this->description); break;
