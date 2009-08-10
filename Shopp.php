@@ -576,7 +576,7 @@ class Shopp {
 			(empty($shop)?"$catalog/":$shop).'feed/?$' => 'index.php?shopp_lookup=newproducts-rss',
 			(empty($shop)?"$catalog/":$shop).'receipt/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=receipt',
 			(empty($shop)?"$catalog/":$shop).'confirm-order/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=confirm-order',
-			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
+			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{40})/?$' => 'index.php?pagename='.shopp_pagename($account).'&shopp_download=$matches[1]',
 			(empty($shop)?"$catalog/":$shop).'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]'
 		);
 
@@ -1297,28 +1297,54 @@ class Shopp {
 					
 					require_once("core/model/Purchased.php");
 					$Purchased = new Purchased($download,"dkey");
+					$Purchase = new Purchase($Purchased->purchase);
 					$target = $db->query("SELECT target.* FROM $assettable AS target LEFT JOIN $pricetable AS pricing ON pricing.id=target.parent AND target.context='price' WHERE pricing.id=$Purchased->price AND target.datatype='download'");
 					$Asset = new Asset();
 					$Asset->populate($target);
 
 					$forbidden = false;
-					// Download limit checking
-					if (($this->Settings->get('download_limit') && !($Purchased->downloads < $this->Settings->get('download_limit'))) &&  // Has download credits available
-						($this->Settings->get('download_timelimit') && $Purchased->created < mktime()+$this->Settings->get('download_timelimit') ))
-								$forbidden = true;
 
-					if ($this->Settings->get('download_restriction') == "ip") {
-						$Purchase = new Purchase($Purchased->purchase);
-						if ($Purchase->ip != $_SERVER['REMOTE_ADDR']) $forbidden = true;
+					// Purchase Completion check
+					if ($Purchase->transtatus != "CHARGED") {
+						new ShoppError(__('This file cannot be downloaded because payment has not been received yet.','Shopp'),'shopp_download_limit');
+						$forbidden = true;
 					}
+
+					// Account restriction checks
+					if ($this->Settings->get('account_system') != "none"
+						&& !$this->Cart->data->login) {
+							new ShoppError(__('You must login to access this download.','Shopp'),'shopp_download_limit',SHOPP_ERR);
+							header('Location: '.$this->link('account'));
+							exit();
+					}
+
+					// Download limit checking
+					if ($this->Settings->get('download_limit') // Has download credits available
+						&& $Purchased->downloads+1 > $this->Settings->get('download_limit')) {
+							new ShoppError(__('This file can no longer be downloaded because the download limit has been reached.','Shopp'),'shopp_download_limit');
+							$forbidden = true;
+						}
+							
+					// Download expiration checking
+					if ($this->Settings->get('download_timelimit') // Within the timelimit
+						&& $Purchased->created < mktime()+$this->Settings->get('download_timelimit') ) {
+							new ShoppError(__('This file can no longer be downloaded because it has expired.','Shopp'),'shopp_download_limit');
+							$forbidden = true;
+						}
+					
+					// IP restriction checks
+					if ($this->Settings->get('download_restriction') == "ip"
+						&& $Purchase->ip != $_SERVER['REMOTE_ADDR']) {
+							new ShoppError(__('The file cannot be downloaded because this computer could not be verified as the system the file was purchased from.','Shopp'),'shopp_download_limit');
+							$forbidden = true;	
+						}
 
 					do_action_ref_array('shopp_download_request',array(&$Purchased));
 				}
 			
 				if ($forbidden) {
 					header("Status: 403 Forbidden");
-					header("Location: ".$this->link(''));
-					exit();
+					return;
 				}
 				
 				header("Content-type: ".$Asset->properties['mimetype']); 

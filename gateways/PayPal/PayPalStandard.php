@@ -26,6 +26,9 @@ class PayPalStandard {
 							"GP" => "fr_FR", "IE" => "en_US", "IT" => "it_IT", "JP" => "ja_JP",
 							"MQ" => "fr_FR", "NL" => "nl_NL", "PL" => "pl_PL", "RE" => "fr_FR",
 							"US" => "en_US");
+	var $status = array('' => 'UNKNOWN','Canceled-Reversal' => 'CHARGED','Completed' => 'CHARGED', 
+						'Denied' => 'VOID', 'Expired' => 'VOID','Failed' => 'VOID','Pending' => 'PENDING',
+						'Refunded' => 'VOID','Reversed' => 'VOID','Processed' => 'PENDING','Voided' => 'VOID');
 
 	function PayPalStandard () {
 		global $Shopp;
@@ -276,7 +279,7 @@ class PayPalStandard {
 		$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
 		$Purchase->gateway = "PayPal".(isset($_POST['test_ipn']) && $_POST['test_ipn'] == "1"?" Sandbox":"");
 		$Purchase->transactionid = $_POST['txn_id'];
-		$Purchase->transtatus = "CHARGED";
+		$Purchase->transtatus = $this->status[$this->Response->paymentstatus];
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
 		// echo "<pre>"; print_r($Purchase); echo "</pre>";
