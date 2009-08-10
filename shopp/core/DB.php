@@ -191,7 +191,7 @@ class DB {
 		if ( strpos($r[0]->Type,"set('") )
 			$list = substr($r[0]->Type, 5, strlen($r[0]->Type) - 7);
 	
-		return split("','",$list);
+		return explode("','",$list);
 	}
 	
 	/**

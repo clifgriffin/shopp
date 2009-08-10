@@ -369,16 +369,22 @@ class Flow {
 		return apply_filters('shopp_order_summary',$content);
 	}
 	
-	function secure_checkout_link ($linklist) {
+	function secure_page_links ($linklist) {
 		global $Shopp;
 		$gateway = $Shopp->Settings->get('payment_gateway');
 		if (strpos($gateway,"TestMode.php") !== false) return $linklist;
-		$cart_href = $Shopp->link('cart');
-		$checkout_href = $Shopp->link('checkout');
-		if (empty($gateway)) return str_replace($checkout_href,$cart_href,$linklist);
-		$secured_href = str_replace("http://","https://",$checkout_href);
-		return str_replace($checkout_href,$secured_href,$linklist);
-	}
+		$hrefs = array(
+			'checkout' => $Shopp->link('checkout'),
+			'account' => $Shopp->link('account')
+		);
+		if (empty($gateway)) return str_replace($hrefs['checkout'],$Shopp->link('cart'),$linklist);
+
+		foreach ($hrefs as $href) {
+			$secure_href = str_replace("http://","https://",$href);
+			$linklist = str_replace($href,$secure_href,$linklist);
+		}
+		return $linklist;
+	}	
 	
 	/**
 	 * order()
@@ -639,12 +645,12 @@ class Flow {
 		
 		if (!empty($start)) {
 			$startdate = $start;
-			list($month,$day,$year) = split("/",$startdate);
+			list($month,$day,$year) = explode("/",$startdate);
 			$starts = mktime(0,0,0,$month,$day,$year);
 		}
 		if (!empty($end)) {
 			$enddate = $end;
-			list($month,$day,$year) = split("/",$enddate);
+			list($month,$day,$year) = explode("/",$enddate);
 			$ends = mktime(0,0,0,$month,$day,$year);
 		}
 
@@ -874,12 +880,12 @@ class Flow {
 		
 		if (!empty($start)) {
 			$startdate = $start;
-			list($month,$day,$year) = split("/",$startdate);
+			list($month,$day,$year) = explode("/",$startdate);
 			$starts = mktime(0,0,0,$month,$day,$year);
 		}
 		if (!empty($end)) {
 			$enddate = $end;
-			list($month,$day,$year) = split("/",$enddate);
+			list($month,$day,$year) = explode("/",$enddate);
 			$ends = mktime(0,0,0,$month,$day,$year);
 		}
 		
@@ -1291,7 +1297,7 @@ class Flow {
 			// Delete prices that were marked for removal
 			if (!empty($_POST['deletePrices'])) {
 				$deletes = array();
-				if (strpos($_POST['deletePrices'],","))	$deletes = split(',',$_POST['deletePrices']);
+				if (strpos($_POST['deletePrices'],","))	$deletes = explode(',',$_POST['deletePrices']);
 				else $deletes = array($_POST['deletePrices']);
 			
 				foreach($deletes as $option) {
@@ -1350,7 +1356,7 @@ class Flow {
 		if (!empty($_POST['details']) || !empty($_POST['deletedSpecs'])) {
 			$deletes = array();
 			if (!empty($_POST['deletedSpecs'])) {
-				if (strpos($_POST['deletedSpecs'],","))	$deletes = split(',',$_POST['deletedSpecs']);
+				if (strpos($_POST['deletedSpecs'],","))	$deletes = explode(',',$_POST['deletedSpecs']);
 				else $deletes = array($_POST['deletedSpecs']);
 				foreach($deletes as $option) {
 					$Spec = new Spec($option);
@@ -1380,7 +1386,7 @@ class Flow {
 		
 		if (!empty($_POST['deleteImages'])) {			
 			$deletes = array();
-			if (strpos($_POST['deleteImages'],","))	$deletes = split(',',$_POST['deleteImages']);
+			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
 			else $deletes = array($_POST['deleteImages']);
 			$Product->delete_images($deletes);
 		}
@@ -1686,7 +1692,7 @@ class Flow {
 					
 		if (!empty($_POST['deleteImages'])) {			
 			$deletes = array();
-			if (strpos($_POST['deleteImages'],","))	$deletes = split(',',$_POST['deleteImages']);
+			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
 			else $deletes = array($_POST['deleteImages']);
 			$Category->delete_images($deletes);
 		}
@@ -1830,6 +1836,11 @@ class Flow {
 		$table = DatabaseObject::tablename(Promotion::$table);
 		$promocount = $db->query("SELECT count(*) as total FROM $table $where");
 		$Promotions = $db->query("SELECT * FROM $table $where",AS_ARRAY);
+		
+		$status = array(
+			'enabled' => __('Enabled','Shopp'),
+			'disabled' => __('Disabled','Shopp')
+		);
 		
 		$num_pages = ceil($promocount->total / $per_page);
 		$page_links = paginate_links( array(
@@ -2225,7 +2236,7 @@ class Flow {
 				$process = '';
 				$ShipCalcClass = $method['method'];
 				if (strpos($method['method'],'::'))
-					list($ShipCalcClass,$process) = split("::",$method['method']);
+					list($ShipCalcClass,$process) = explode("::",$method['method']);
 					
 				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth)
 					&& $Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth) {
@@ -2390,7 +2401,7 @@ class Flow {
 			);
 			
 			$response = $this->callhome($request);
-			$response = split("::",$response);
+			$response = explode("::",$response);
 
 			if (count($response) == 1)
 				$activation = '<span class="shopp error">'.$response[0].'</span>';
@@ -2559,7 +2570,7 @@ class Flow {
 		$meta = get_filemeta($file);
 
 		if ($meta) {
-			$lines = split("\n",substr($meta,1));
+			$lines = explode("\n",substr($meta,1));
 			foreach($lines as $line) {
 				preg_match("/^(?:[\s\*]*?\b([^@\*\/]*))/",$line,$match);
 				if (!empty($match[1])) $data[] = $match[1];

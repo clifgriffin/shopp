@@ -521,7 +521,7 @@ class Category extends DatabaseObject {
 			case "has-products": 
 			case "hasproducts": 
 				if (isset($options['load'])) {
-					$dataset = split(",",$options['load']);
+					$dataset = explode(",",$options['load']);
 					$options['load'] = array();
 					foreach ($dataset as $name) $options['load'][] = trim($name);
 				 } else {
@@ -704,7 +704,7 @@ class Category extends DatabaseObject {
 				$depthlimit = $depth;
 				$depth = 0;
 				$wraplist = value_is_true($wraplist);
-				$exclude = split(",",$exclude);
+				$exclude = explode(",",$exclude);
 				$section = array();
 
 				// Identify root parent
@@ -921,7 +921,7 @@ class Category extends DatabaseObject {
 				$link = $_SERVER['REQUEST_URI'];
 				if (!isset($options['cancel'])) $options['cancel'] = "X";
 				if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
-					list($link,$query) = split("\?",$_SERVER['REQUEST_URI']);
+					list($link,$query) = explode("\?",$_SERVER['REQUEST_URI']);
 				$query = $_GET;
 				unset($query['shopp_catfilters']);
 				$query = http_build_query($query);
@@ -1298,7 +1298,7 @@ class RandomProducts extends Category {
 		$this->loading = array('where'=>'true','order'=>'random');
 		if (isset($options['exclude'])) {
 			$where = array();
-			$excludes = split(",",$options['exclude']);
+			$excludes = explode(",",$options['exclude']);
 			if (in_array('featured',$excludes)) $where[] = "(p.featured='off')";
 			if (in_array('onsale',$excludes)) $where[] = "(pd.sale='off' OR pr.discount=0)";
 			$this->loading['where'] = join(" AND ",$where);

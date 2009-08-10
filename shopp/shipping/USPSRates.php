@@ -190,7 +190,7 @@ class USPSRates {
 		$weight = number_format($weight,3);
 		if ($this->settings['units'] == "oz")
 			$pounds = $weight/16;
-		list($pounds,$ounces) = split("\.",$weight);
+		list($pounds,$ounces) = explode("\.",$weight);
 		$ounces = ceil($ounces*16);
 
 		$type = "RateV3"; // Domestic shipping rates

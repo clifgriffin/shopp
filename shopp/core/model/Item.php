@@ -75,7 +75,7 @@ class Item {
 		
 		// Map out the selected menu name and option
 		if ($Product->variations == "on") {
-			$selected = split(",",$this->option->options); $s = 0;
+			$selected = explode(",",$this->option->options); $s = 0;
 			foreach ($this->menus as $i => $menu) {
 				foreach($menu['options'] as $option) {
 					if ($option['id'] == $selected[$s]) {
@@ -228,12 +228,12 @@ class Item {
 						$values = "1-15,20,25,30,35,40,45,50,60,70,80,90,100";
 					else $values = $options['options'];
 					
-					if (strpos($values,",") !== false) $values = split(",",$values);
+					if (strpos($values,",") !== false) $values = explode(",",$values);
 					else $values = array($values);
 					$qtys = array();
 					foreach ($values as $value) {
 						if (strpos($value,"-") !== false) {
-							$value = split("-",$value);
+							$value = explode("-",$value);
 							if ($value[0] >= $value[1]) $qtys[] = $value[0];
 							else for ($i = $value[0]; $i < $value[1]+1; $i++) $qtys[] = $i;
 						} else $qtys[] = $value;
@@ -305,7 +305,7 @@ class Item {
 				if (empty($this->data)) return false;
 				$before = ""; $after = ""; $classes = ""; $excludes = array();
 				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
-				if (!empty($options['exclude'])) $excludes = split(",",$options['exclude']);
+				if (!empty($options['exclude'])) $excludes = explode(",",$options['exclude']);
 				if (!empty($options['before'])) $before = $options['before'];
 				if (!empty($options['after'])) $after = $options['after'];
 				

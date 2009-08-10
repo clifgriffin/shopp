@@ -44,7 +44,7 @@
 			<td width="33%" class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Promotion->name; ?>&quot;'><?php echo (!empty($Promotion->name))?$Promotion->name:'(no promotion name)'; ?></a>
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo $editurl; ?>" title="Edit this promotion"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='delete'><a class='submitdelete' title='Delete this promotion' href='' rel="<?php echo $Promotion->id; ?>">Delete</a></span>
+					<span class='delete'><a class='submitdelete' title='Delete this promotion' href='' rel="<?php echo $Promotion->id; ?>"><?php _e('Delete','Shopp'); ?></a></span>
 				</div>				
 				
 			</td>
@@ -55,7 +55,7 @@
 				if ($Promotion->type == "Buy X Get Y Free") echo __('Buy','Shopp').' '.$Promotion->buyqty.' '.__('Get','Shopp').' '.$Promotion->getqty.' '.__('Free','Shopp');
 			?></td>
 			<td class="applied column-applied<?php echo in_array('applied',$hidden)?' hidden':''; ?>"><?php echo $Promotion->scope; ?></td>
-			<td class="eff column-eff<?php echo in_array('eff',$hidden)?' hidden':''; ?>"><strong><?php echo ucfirst($Promotion->status); ?></strong><?php
+			<td class="eff column-eff<?php echo in_array('eff',$hidden)?' hidden':''; ?>"><strong><?php echo $status[$Promotion->status]; ?></strong><?php
 				if (mktimestamp($Promotion->starts > 1) && mktimestamp($Promotion->ends) > 1)
 					echo "<br />".date(get_option('date_format'),mktimestamp($Promotion->starts))." &mdash; ".date(get_option('date_format'),mktimestamp($Promotion->ends));
 				else echo "<br />".date(get_option('date_format'),mktimestamp($Promotion->created)).", ".__('does not expire','Shopp');

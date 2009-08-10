@@ -21,7 +21,7 @@ class _2Checkout {
 
 	function _2Checkout () {
 		global $Shopp,$wp;
-		$this->settings = $Shopp->Settings->get('TwoCheckout');
+		$this->settings = $Shopp->Settings->get('_2Checkout');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
 		
@@ -259,8 +259,7 @@ class _2Checkout {
 			case "button":
 				$args = array('shopp_xco' => '2Checkout/2Checkout');
 				$url = add_query_arg($args,$Shopp->link('checkout'));				
-				$result .= '<p><a href="'.$url.'">'.__('Pay with 2Checkout.com','Shopp').'</a></p>';
-				return $result;
+				return '<p><a href="'.$url.'">'.__('Pay with 2Checkout.com','Shopp').'</a></p>';
 		}
 	}
 	
@@ -270,15 +269,15 @@ class _2Checkout {
 	function settings () {
 		?>
 			<th scope="row" valign="top"><label for="2co-enabled">2Checkout.com</label></th> 
-			<td><input type="hidden" name="settings[TwoCheckout][billing-required]" value="off" /><input type="hidden" name="settings[TwoCheckout][enabled]" value="off" /><input type="checkbox" name="settings[TwoCheckout][enabled]" value="on" id="2co-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="2co-enabled"> <?php _e('Enable','Shopp'); ?> 2Checkout.com</label>
+			<td><input type="hidden" name="settings[_2Checkout][billing-required]" value="off" /><input type="hidden" name="settings[_2Checkout][enabled]" value="off" /><input type="checkbox" name="settings[_2Checkout][enabled]" value="on" id="2co-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="2co-enabled"> <?php _e('Enable','Shopp'); ?> 2Checkout.com</label>
 				<div id="2co-settings">
 		
-				<p><input type="text" name="settings[TwoCheckout][sid]" id="2co-sid" size="10" value="<?php echo $this->settings['sid']; ?>"/><br />
+				<p><input type="text" name="settings[_2Checkout][sid]" id="2co-sid" size="10" value="<?php echo $this->settings['sid']; ?>"/><br />
 				<?php _e('Your 2Checkout vendor account number.','Shopp'); ?></p>
-				<p><label for="2co-verify"><input type="hidden" name="settings[TwoCheckout][verify]" value="off" /><input type="checkbox" name="settings[TwoCheckout][verify]" id="2co-verify" value="on"<?php echo ($this->settings['verify'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable order verification','Shopp'); ?></label></p>
-				<p id="2co-verify-secret" class="hidden"><input type="text" name="settings[TwoCheckout][secret]" id="2co-secret" size="18" value="<?php echo $this->settings['secret']; ?>"/><br />
+				<p><label for="2co-verify"><input type="hidden" name="settings[_2Checkout][verify]" value="off" /><input type="checkbox" name="settings[_2Checkout][verify]" id="2co-verify" value="on"<?php echo ($this->settings['verify'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable order verification','Shopp'); ?></label></p>
+				<p id="2co-verify-secret" class="hidden"><input type="text" name="settings[_2Checkout][secret]" id="2co-secret" size="18" value="<?php echo $this->settings['secret']; ?>"/><br />
 				<?php _e('Your 2Checkout secret word for order verification.','Shopp'); ?></p>				
-				<p><label for="2co-testmode"><input type="hidden" name="settings[TwoCheckout][testmode]" value="off" /><input type="checkbox" name="settings[TwoCheckout][testmode]" id="2co-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable test mode','Shopp'); ?></label></p>
+				<p><label for="2co-testmode"><input type="hidden" name="settings[_2Checkout][testmode]" value="off" /><input type="checkbox" name="settings[_2Checkout][testmode]" id="2co-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable test mode','Shopp'); ?></label></p>
 				
 				<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
 				
@@ -303,6 +302,6 @@ class _2Checkout {
 		<?php
 	}
 
-} // end TwoCheckout class
+} // end _2Checkout class
 
 ?>

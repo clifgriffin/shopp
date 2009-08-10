@@ -365,7 +365,6 @@ class Cart {
 
 			$estimate = false;
 			foreach ($methods as $id => $option) {
-				$shipping = 0;
 				if (isset($option['postcode-required'])) {
 					$this->data->ShippingPostcode = true;
 					if (empty($Shipping->postcode)) {
@@ -392,7 +391,7 @@ class Cart {
 					$column = key($option);
 				}
 
-				list($ShipCalcClass,$process) = split("::",$option['method']);
+				list($ShipCalcClass,$process) = explode("::",$option['method']);
 				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]))
 					$estimated = $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate(
 						$this, $fees, $option, $column);
@@ -642,17 +641,21 @@ class Cart {
 		$Totals->total = 0;
         
 	    $Totals->taxrate = $this->taxrate();
-
-		$freeshipping = true;	// Assume free shipping unless proven wrong
+		
+		$freeshipping = true;	// Assume free shipping for the cart unless proven wrong
 		foreach ($this->contents as $key => $Item) {
 
 			// Add the item to the shipped list
-			if ($shipping && $Item->shipping && !$Item->freeshipping) $this->shipped[$key] = $Item;
+			if ($Item->shipping && !$Item->freeshipping) $this->shipped[$key] = $Item;
+			
+			// Item does not have free shipping, 
+			// so the cart shouldn't have free shipping
 			if (!$Item->freeshipping) $freeshipping = false;
 			
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
-
+			
+			// Tabulate the taxable total to be calculated after discounts
 			if ($Item->taxable && $Totals->taxrate > 0) 
 				$Totals->taxed += $Item->total;
 		}
@@ -671,6 +674,7 @@ class Cart {
 		if (!$this->data->ShippingDisabled && $this->data->Shipping) 
 			$Totals->shipping = $this->shipping();
 
+		// Calculate final total (s
 		$Totals->total = $Totals->subtotal - $discount + 
 			$Totals->shipping + $Totals->tax;
 
@@ -1304,7 +1308,7 @@ class Cart {
 			case "method-delivery":
 				$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
 				$method = current($ShipCosts);
-				$estimates = split("-",$method['delivery']);
+				$estimates = explode("-",$method['delivery']);
 				$format = get_option('date_format');
 				if ($estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
 				$result = "";
@@ -1694,7 +1698,6 @@ class Cart {
 				return (!empty($gateway)); break;
 			case "xco-buttons":     
 				if (!is_array($xcos)) return false;
-
 				$buttons = "";
 				foreach ($xcos as $xco) {
 					$xcopath = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$xco));
@@ -1702,11 +1705,12 @@ class Cart {
 					$meta = $Shopp->Flow->scan_gateway_meta($xcopath);
 					$ProcessorClass = $meta->tags['class'];
 					if (!empty($ProcessorClass)) {
-						include_once($xcopath);
-						$Payment = new $ProcessorClass();
 						$PaymentSettings = $Shopp->Settings->get($ProcessorClass);
-						if ($PaymentSettings['enabled'] == "on") 
+						if ($PaymentSettings['enabled'] == "on") {
+							include_once($xcopath);
+							$Payment = new $ProcessorClass();
 							$buttons .= $Payment->tag('button',$options);
+						}
 					}
 				}
 				return $buttons;

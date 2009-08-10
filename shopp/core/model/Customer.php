@@ -234,7 +234,7 @@ class Customer extends DatabaseObject {
 		if (!empty($this->login)) $handle = $this->login;
 		else {
 			// No login provided, auto-generate login handle
-			list($handle,$domain) = split("@",$Order->Customer->email);
+			list($handle,$domain) = explode("@",$Order->Customer->email);
 
 			if (username_exists($handle)) // The email handle exists, so use first name + last initial
 				$handle = $this->firstname.substr($this->lastname,0,1);
@@ -249,6 +249,8 @@ class Customer extends DatabaseObject {
 		
 		if (username_exists($handle))
 			new ShoppError(__('The login name you provided is already in use.  Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
+		
+		if (empty($this->password)) $this->password = wp_generate_password(12,true);
 		
 		// Create the WordPress account
 		$wpuser = wp_insert_user(array(
@@ -577,12 +579,12 @@ class CustomersExport {
 		if (empty($request)) $request = $_GET;
 		
 		if (!empty($request['start'])) {
-			list($month,$day,$year) = split("/",$request['start']);
+			list($month,$day,$year) = explode("/",$request['start']);
 			$starts = mktime(0,0,0,$month,$day,$year);
 		}
 		
 		if (!empty($request['end'])) {
-			list($month,$day,$year) = split("/",$request['end']);
+			list($month,$day,$year) = explode("/",$request['end']);
 			$ends = mktime(0,0,0,$month,$day,$year);
 		}
 		
