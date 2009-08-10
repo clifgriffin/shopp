@@ -330,9 +330,9 @@ class PayPalExpress {
 	function response ($buffer) {
 		$_ = new stdClass();
 		$r = array();
-		$pairs = split("&",$buffer);
+		$pairs = explode("&",$buffer);
 		foreach($pairs as $pair) {
-			list($key,$value) = split("=",$pair);
+			list($key,$value) = explode("=",$pair);
 			if (preg_match("/(\w*?)(\d+)/",$key,$matches)) {
 				if (!isset($r[$matches[1]])) $r[$matches[1]] = array();
 				$r[$matches[1]][$matches[2]] = urldecode($value);

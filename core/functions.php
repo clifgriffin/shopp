@@ -119,7 +119,7 @@ function duration ($start,$end) {
  * or $_POST['variable'] */
 function shopp_email ($template,$data=array()) {
 	
-	if (strpos($template,"\r\n") !== false) $f = split("\r\n",$template);
+	if (strpos($template,"\r\n") !== false) $f = explode("\r\n",$template);
 	else {
 		if (file_exists($template)) $f = file($template);
 		else new ShoppError(__("Could not open the email template because the file does not exist or is not readable.","Shopp"),'email_template',SHOPP_ADMIN_ERR,array('template'=>$template));

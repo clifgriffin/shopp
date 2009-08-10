@@ -21,7 +21,7 @@ class FlatRates {
 	
 	function calculate (&$Cart,$fees,$rate,$column) {
 		$ShipCosts = &$Cart->data->ShipCosts;
-		list($ShipCalcClass,$process) = split("::",$rate['method']);
+		list($ShipCalcClass,$process) = explode("::",$rate['method']);
 		switch($process) {
 			case "item":
 				$shipping = 0;

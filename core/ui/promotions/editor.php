@@ -142,6 +142,7 @@ var RULES_LANG = {
 	"In stock":"<?php _e('In stock','Shopp'); ?>",
 
 	"Item name":"<?php _e('Item name','Shopp'); ?>",
+	"Item amount":"<?php _e('Item amount','Shopp'); ?>",
 	"Item quantity":"<?php _e('Item quantity','Shopp'); ?>",
 	"Total quantity":"<?php _e('Total quantity','Shopp'); ?>",
 	"Shipping amount":"<?php _e('Shipping amount','Shopp'); ?>",
@@ -174,6 +175,7 @@ var product_conditions = {
 var order_conditions = {
 	"Item name":{"logic":["boolean","fuzzy"],"value":"text"},
 	"Item quantity":{"logic":["boolean","amount"],"value":"text"},
+	"Item amount":{"logic":["boolean","amount"],"value":"price"},
 	"Total quantity":{"logic":["boolean","amount"],"value":"text"},
 	"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
 	"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},

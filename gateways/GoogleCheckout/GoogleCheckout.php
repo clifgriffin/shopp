@@ -271,7 +271,7 @@ class GoogleCheckout {
 		$Customer->lastname = $buyer['structured-name']['CHILDREN']['last-name']['CONTENT'];
 		if (empty($name)) {
 			$name = $buyer['contact-name']['CONTENT'];
-			$names = split(" ",$name);
+			$names = explode(" ",$name);
 			$Customer->firstname = $names[0];
 			$Customer->lastname = $names[count($names)-1];
 		}

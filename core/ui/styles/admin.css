@@ -346,6 +346,6 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #dashboard_shopp_stats table td.amount { width: 10%; padding: 3px 6px 3px 0; text-align: right; font-family: Georgia, "Times New Roman", "Bitstream Charter", Times, serif; font-size: 18px; }
 
 #errorlog { font-family: monospace; font-size: 1em; line-height: 1em; background: white; height: 300px; overflow: scroll;border: 1px solid #dfdfdf; padding: 1px; }
-#errorlog ol { list-style: decimal; padding-left: 50px; background: #ececec; }
+#errorlog ol { list-style: decimal; padding-left: 50px; background: #ececec; margin-left: 0; }
 #errorlog ol li { background: white; margin: 0; padding: 5px; }
 #error_notify li { width: 200px; display: inline-block; }

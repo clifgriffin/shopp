@@ -221,7 +221,7 @@ class Catalog extends DatabaseObject {
 				$string = "";
 				$depthlimit = $depth;
 				$depth = 0;
-				$exclude = split(",",$exclude);
+				$exclude = explode(",",$exclude);
 				$classes = ' class="shopp_categories'.(empty($class)?'':' '.$class).'"';
 				$wraplist = value_is_true($wraplist);
 				
@@ -367,7 +367,7 @@ class Catalog extends DatabaseObject {
 					$string .= '</script>';
 				} else {
 					if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
-						list($link,$query) = split("\?",$_SERVER['REQUEST_URI']);
+						list($link,$query) = explode("\?",$_SERVER['REQUEST_URI']);
 					$query = $_GET;
 					unset($query['shopp_orderby']);
  					$query = http_build_query($query);
@@ -395,7 +395,7 @@ class Catalog extends DatabaseObject {
 				$trail = false;
 				$search = array();
 				if (isset($Shopp->Cart->data->Search)) $search = array('search'=>$Shopp->Cart->data->Search);
-				$path = split("/",$category);
+				$path = explode("/",$category);
 				if ($path[0] == "tag") {
 					$category = "tag";
 					$search = array('tag'=>urldecode($path[1]));
@@ -544,7 +544,7 @@ class Catalog extends DatabaseObject {
 				$content = false;
 				$source = $options['source'];
 				if ($source == "product" && isset($options['product'])) {
-					$products = split(",",$options['product']);
+					$products = explode(",",$options['product']);
 					if (!is_array($products)) $products = array($products);
 					foreach ($products as $product) {
 						$product = trim($product);

@@ -156,18 +156,24 @@
 <iframe id="print-receipt" name="receipt" src="?page=shopp-lookup&amp;lookup=receipt&amp;id=<?php echo $Purchase->id; ?>" width="400" height="100" class="invisible"></iframe>
 
 <script type="text/javascript">
-
 (function($){
-
 $('#notification').hide();
 $('#notify-customer').click(function () {
 	$('#notification').slideToggle(500);
 });
 
 $('#print-button').click(function () {
-	frame = $('#print-receipt').get(0);
-	frame.contentWindow.focus();
-	frame.contentWindow.print();
+	var frame = $('#print-receipt').get(0);
+	if ($.browser.opera) {
+		var preview = window.open(frame.location.href+"&print=auto");
+		$(preview).load(function () {
+			preview.close();
+		});
+	} else {
+		frame.contentWindow.focus();
+		frame.contentWindow.print();
+	}
+
 });
 
 })(jQuery)

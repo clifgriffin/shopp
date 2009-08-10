@@ -248,7 +248,7 @@ class Purchase extends DatabaseObject {
 				if (empty($item->data)) return false;
 				$before = ""; $after = ""; $classes = ""; $excludes = array();
 				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
-				if (!empty($options['exclude'])) $excludes = split(",",$options['exclude']);
+				if (!empty($options['exclude'])) $excludes = explode(",",$options['exclude']);
 				if (!empty($options['before'])) $before = $options['before'];
 				if (!empty($options['after'])) $after = $options['after'];
 
@@ -334,12 +334,12 @@ class PurchasesExport {
 		if (empty($request)) $request = $_GET;
 		
 		if (!empty($request['start'])) {
-			list($month,$day,$year) = split("/",$request['start']);
+			list($month,$day,$year) = explode("/",$request['start']);
 			$starts = mktime(0,0,0,$month,$day,$year);
 		}
 		
 		if (!empty($request['end'])) {
-			list($month,$day,$year) = split("/",$request['end']);
+			list($month,$day,$year) = explode("/",$request['end']);
 			$ends = mktime(0,0,0,$month,$day,$year);
 		}
 		

@@ -132,7 +132,7 @@ class Shopp {
 
 		// Theme widgets
 		add_action('widgets_init', array(&$this, 'widgets'));
-		add_filter('wp_list_pages',array(&$this->Flow,'secure_checkout_link'));
+		add_filter('wp_list_pages',array(&$this->Flow,'secure_page_links'));
 
 		add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
 		add_action('generate_rewrite_rules',array(&$this,'pages_index'));
@@ -436,8 +436,8 @@ class Shopp {
 			wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		}
 
-		// if ($tag == "checkout")
-		// 	wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
+		if ($tag == "checkout")
+			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
 		
 			
 	}
@@ -705,7 +705,7 @@ class Shopp {
 			$this->welcome(); return;
 		}
 		
-		$pages = split("-",$_GET['page']);
+		$pages = explode("-",$_GET['page']);
 		$screen = end($pages);
 		switch($screen) {
 			case "catalog": 		$this->Flow->settings_catalog(); break;
@@ -1212,6 +1212,8 @@ class Shopp {
 					echo "<link rel='stylesheet' href='".SHOPP_TEMPLATES_URI."/shopp.css' type='text/css' />";
 				echo "</head><body>";
 				echo $this->Flow->order_receipt();
+				if (isset($_GET['print']) && $_GET['print'] == 'auto')
+					echo '<script type="text/javascript">window.onload = function () { window.print(); window.close(); }</script>';
 				echo "</body></html>";
 				exit();
 				break;
@@ -1259,7 +1261,7 @@ class Shopp {
 					foreach ($menu['options'] as &$option) $option['id'] += $_GET['cat'];
 				}
 				foreach ($result->prices as &$price) {
-					$optionids = split(",",$price['options']);
+					$optionids = explode(",",$price['options']);
 					foreach ($optionids as &$id) $id += $_GET['cat'];
 					$price['options'] = join(",",$optionids);
 					$price['optionkey'] = "";
@@ -1498,13 +1500,13 @@ function shopp () {
 				$options[strtolower($key)] = $args[2][$key];
 		} else {
 			// regular url-compatible arguments
-			$paramsets = split("&",$args[2]);
+			$paramsets = explode("&",$args[2]);
 			foreach ((array)$paramsets as $paramset) {
 				if (empty($paramset)) continue;
 				$key = $paramset;
 				$value = "";
 				if (strpos($paramset,"=") !== false) 
-					list($key,$value) = split("=",$paramset);
+					list($key,$value) = explode("=",$paramset);
 				$options[strtolower($key)] = $value;
 			}
 		}
