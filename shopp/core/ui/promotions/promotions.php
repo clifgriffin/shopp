@@ -36,15 +36,17 @@
 			$hidden = array();
 			if (SHOPP_WP27) $hidden = get_hidden_columns('shopp_page_shopp-promotions');
 			
-			$even = false; foreach ($Promotions as $Promotion): 
+			$even = false; 
+			foreach ($Promotions as $Promotion): 
 			$editurl = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->editpromo,'id'=>$Promotion->id)),$Shopp->wpadminurl."admin.php");
+			$PromotionName = empty($Promotion->name)?'('.__('no promotion name').')':$Promotion->name;
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Promotion->id; ?>' /></th>
-			<td width="33%" class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Promotion->name; ?>&quot;'><?php echo (!empty($Promotion->name))?$Promotion->name:'(no promotion name)'; ?></a>
+			<td width="33%" class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $PromotionName; ?>&quot;'><?php echo $PromotionName; ?></a>
 				<div class="row-actions">
-					<span class='edit'><a href="<?php echo $editurl; ?>" title="Edit this promotion"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='delete'><a class='submitdelete' title='Delete this promotion' href='' rel="<?php echo $Promotion->id; ?>"><?php _e('Delete','Shopp'); ?></a></span>
+					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo $PromotionName; ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
+					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo $PromotionName; ?>&quot;' href='' rel="<?php echo $Promotion->id; ?>"><?php _e('Delete','Shopp'); ?></a></span>
 				</div>				
 				
 			</td>

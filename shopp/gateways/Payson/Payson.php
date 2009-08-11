@@ -130,15 +130,23 @@ class Payson {
 				return false;
 			}
 		}
+		
+		// Check for unique transaction id
+		$Purchase = new Purchase($_GET['Paysonref'],'transactionid');
+		if (!empty($Purchase->id)) return $Purchase; // Purchase already recorded
+
+		session_unset();
+		session_destroy();
+		
+		// Load the cart for the correct order
+		$Shopp->Cart->session = $_GET['RefNr'];
+		$Shopp->Cart->load($Shopp->Cart->session);
 
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
 		
-		// Check for unique transaction id
-		$Purchase = new Purchase($_GET['Paysonref'],'transactionid');
-
 		$checkfields = array(
 			$_GET['OkURL'],
 			$_GET['Paysonref'],
@@ -146,7 +154,7 @@ class Payson {
 		);
 		$checksum = md5(join('',$checkfields));
 
-		if ($Order->Cart != $_GET['RefNr'] || $checksum != $_GET['MD5'] || !empty($Purchase->id)) {
+		if ($Order->Cart != $_GET['RefNr'] || $checksum != $_GET['MD5']) {
 			new ShoppError(__('An order was received from Payson that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'payson_trxn_validation',SHOPP_TRXN_ERR);
 			return false;
 		} 
@@ -214,7 +222,7 @@ class Payson {
 			if ($Item->inventory) $Item->unstock();
 		}
 		
-		return $Purchase;
+		return true;
 
 	}
 		

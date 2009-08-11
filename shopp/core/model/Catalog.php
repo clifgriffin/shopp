@@ -233,8 +233,7 @@ class Catalog extends DatabaseObject {
 					foreach ($this->categories as &$category) {
 						if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
 						if ($category->total == 0 && !isset($category->smart)) continue; // Only show categories with products
-						if (value_is_true($hierarchy) && $depthlimit && 
-							$category->depth >= $depthlimit) continue;
+						if ($depthlimit && $category->depth >= $depthlimit) continue;
 
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
 							$parent = &$previous;
