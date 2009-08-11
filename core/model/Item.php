@@ -198,10 +198,10 @@ class Item {
 		
 		if ($property == "unitprice" || $property == "total") {
 			$taxrate = 0;
-			$taxes = false;
 			$base = $Shopp->Settings->get('base_operations');
+			if ($base['vat']) $taxes = true;
 			if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
-			elseif ($base['vat']) $taxes = true;
+			else $taxes = false;
 			if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 		}
 		

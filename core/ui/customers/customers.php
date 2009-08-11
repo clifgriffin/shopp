@@ -49,10 +49,13 @@
 			if (SHOPP_WP27) $hidden = get_hidden_columns('shopp_page_shopp-customers');
  			else $hidden = array();
 			
-			$even = false; foreach ($Customers as $Customer): ?>
+			$even = false; 
+			foreach ($Customers as $Customer): 
+			$CustomerName = (empty($Customer->firstname) && empty($Customer->lastname))?'('.__('no contact name','Shopp').')':"{$Customer->firstname} {$Customer->lastname}";
+			?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Customer->id; ?>' /></th>
-			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>$this->Admin->editcustomer,'id'=>$Customer->id),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Customer->id; ?>&quot;'><?php echo (empty($Customer->firstname) && empty($Customer->lastname))?"(".__('no contact name').")":"{$Customer->firstname} {$Customer->lastname}"; ?></a><?php echo !empty($Customer->company)?"<br />$Customer->company":""; ?></td>
+			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>$this->Admin->editcustomer,'id'=>$Customer->id),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $CustomerName; ?>&quot;'><?php echo $CustomerName; ?></a><?php echo !empty($Customer->company)?"<br />$Customer->company":""; ?></td>
 			<td class="login column-login<?php echo in_array('login',$hidden)?' hidden':''; ?>"><?php echo $Customer->user_login; ?></td>
 			<td class="email column-email<?php echo in_array('email',$hidden)?' hidden':''; ?>"><a href="mailto:<?php echo $Customer->email; ?>"><?php echo $Customer->email; ?></a></td>
 			

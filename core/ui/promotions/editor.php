@@ -93,7 +93,7 @@
 		<br class="clear" />
 		<?php
 			$scope = '<select name="scope" id="promotion-scope">';
-			$scope .= menuoptions($Promotion->_lists['scope'],$Promotion->scope);
+			$scope .= menuoptions($scopes,$Promotion->scope,true);
 			$scope .= '</select>';
 	
 			if (empty($Promotion->search)) $Promotion->search = "all";
@@ -202,11 +202,11 @@ function add_condition (rule,location) {
 
 	if ($('#promotion-scope').val() == "Order") {
 		for (var label in order_conditions)
-			$('<option></option>').html(label).val(label).attr('rel','order').appendTo(properties);
+			$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel','order').appendTo(properties);
 		
 	} else {
 		for (var label in product_conditions)
-			$('<option></option>').html(label).val(label).attr('rel','product').appendTo(properties);
+			$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel','product').appendTo(properties);
 	}
 
 	var operation = $('<select name="rules['+i+'][logic]" ></select>').appendTo(cell);

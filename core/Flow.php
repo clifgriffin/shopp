@@ -514,6 +514,9 @@ class Flow {
 
 			if (SHOPP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
 		}
+		
+		// Skip post order if no Purchase ID exists
+		if (empty($Purchase->id)) return true;
 
 		// Empty cart on successful order
 		$Shopp->Cart->unload();
@@ -664,7 +667,7 @@ class Flow {
 		if (!empty($end)) {
 			$enddate = $end;
 			list($month,$day,$year) = explode("/",$enddate);
-			$ends = mktime(0,0,0,$month,$day,$year);
+			$ends = mktime(23,59,59,$month,$day,$year);
 		}
 
 		$pagenum = absint( $pagenum );
@@ -900,7 +903,7 @@ class Flow {
 		if (!empty($end)) {
 			$enddate = $end;
 			list($month,$day,$year) = explode("/",$enddate);
-			$ends = mktime(0,0,0,$month,$day,$year);
+			$ends = mktime(23,59,59,$month,$day,$year);
 		}
 		
 		$customer_table = DatabaseObject::tablename(Customer::$table);
@@ -1005,8 +1008,8 @@ class Flow {
 		$Customer->countries = $countries;
 
 		$regions = $Shopp->Settings->get('zones');
-		$Customer->billing_states = array_merge('',$regions[$Customer->Billing->country]);
-		$Customer->shipping_states = array_merge('',$regions[$Customer->Shipping->country]);
+		$Customer->billing_states = array_merge(array(''),(array)$regions[$Customer->Billing->country]);
+		$Customer->shipping_states = array_merge(array(''),(array)$regions[$Customer->Shipping->country]);
 
 		include("{$this->basepath}/core/ui/customers/editor.php");
 	}
@@ -1234,6 +1237,7 @@ class Flow {
 		$Price = new Price();
 		$priceTypes = array(
 			array('value'=>'Shipped','label'=>__('Shipped','Shopp')),
+			array('value'=>'Virtual','label'=>__('Virtual','Shopp')),
 			array('value'=>'Download','label'=>__('Download','Shopp')),
 			array('value'=>'Donation','label'=>__('Donation','Shopp')),
 			array('value'=>'N/A','label'=>__('Disabled','Shopp')),
@@ -1629,9 +1633,10 @@ class Flow {
 		$Price = new Price();
 		$priceTypes = array(
 			array('value'=>'Shipped','label'=>__('Shipped','Shopp')),
+			array('value'=>'Virtual','label'=>__('Virtual','Shopp')),
 			array('value'=>'Download','label'=>__('Download','Shopp')),
 			array('value'=>'Donation','label'=>__('Donation','Shopp')),
-			array('value'=>'N/A','label'=>__('N/A','Shopp')),
+			array('value'=>'N/A','label'=>__('N/A','Shopp'))
 		);
 
 		

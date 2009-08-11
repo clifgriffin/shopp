@@ -59,7 +59,7 @@
 				<?php echo "{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
 				<?php echo $targets[$Purchase->shipcountry]; ?></address>
 				<?php if (!empty($Purchase->shipmethod)): ?>
-					<p><strong>Shipping:</strong> <?php echo $Purchase->shipmethod; ?></p>
+					<p><strong><?php _e('Shipping','Shopp'); ?>:</strong> <?php echo $Purchase->shipmethod; ?></p>
 				<?php endif;?>
 			</fieldset>
 		<?php endif; ?>

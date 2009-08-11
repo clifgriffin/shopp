@@ -54,11 +54,26 @@ class Category extends DatabaseObject {
 		return false;
 	}
 	
-	function load_children() {
+	function load_children($loading=array()) {
 		if (isset($this->smart)) return false;
 		$db = DB::get();
+		
+		if (empty($loading['orderby'])) $loading['orderby'] = "name";
+		switch(strtolower($loading['orderby'])) {
+			case "id": $orderby = "cat.id"; break;
+			case "slug": $orderby = "cat.slug"; break;
+			case "count": $orderby = "total"; break;
+			default: $orderby = "cat.name";
+		}
+
+		if (empty($loading['order'])) $loading['order'] = "ASC";
+		switch(strtoupper($loading['order'])) {
+			case "DESC": $order = "DESC"; break;
+			default: $order = "ASC";
+		}
+		
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
-		$children = $db->query("SELECT cat.*,count(sc.product) AS total FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.category=cat.id WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY parent DESC,name ASC",AS_ARRAY);
+		$children = $db->query("SELECT cat.*,count(sc.product) AS total FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.category=cat.id WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY cat.parent DESC,$orderby $order,name ASC",AS_ARRAY);
 		$children = sort_tree($children,$this->id);
 		foreach ($children as &$child) {
 			$this->children[$child->id] = new Category();
@@ -585,8 +600,6 @@ class Category extends DatabaseObject {
 				break;
 			case "subcategory-list":
 				if (isset($Shopp->Category->controls)) return false;
-				if (!$this->children) $this->load_children();
-				if (empty($this->children)) return false;
 
 				$defaults = array(
 					'title' => '',
@@ -594,6 +607,8 @@ class Category extends DatabaseObject {
 					'after' => '',
 					'class' => '',
 					'depth' => 0,
+					'orderby' => 'name',
+					'order' => 'ASC',
 					'parent' => false,
 					'showall' => false,
 					'dropdown' => false,
@@ -603,6 +618,9 @@ class Category extends DatabaseObject {
 					
 				$options = array_merge($defaults,$options);
 				extract($options, EXTR_SKIP);
+
+				if (!$this->children) $this->load_children(array('orderby'=>$orderby,'order'=>$order));
+				if (empty($this->children)) return false;
 
 				$string = "";
 				$depthlimit = $depth;
