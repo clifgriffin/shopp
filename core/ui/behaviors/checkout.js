@@ -131,8 +131,8 @@
 			$.getJSON(url+"shopp_lookup=shipcost&method="+$(this).val(),
 				function (result) {
 					var totals = eval(result);
-					$('#shipping').html(asMoney(totals.shipping));
-					$('#total').html(asMoney(totals.total));
+					$('#cart #shipping').html(asMoney(totals.shipping));
+					$('#cart tr.total th,#shopp-cart-total span').html(asMoney(totals.total));
 			});
 		});
 
