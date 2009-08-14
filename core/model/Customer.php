@@ -504,7 +504,7 @@ class Customer extends DatabaseObject {
 				if (array_key_exists('date',$options)) $string .= date($df,mktimestamp($download->created));
 				if (array_key_exists('url',$options)) $string .= (SHOPP_PERMALINKS) ?
 					$Shopp->shopuri."download/".$download->dkey : 
-					add_query_arg('shopp_download',$download->dkey,$Shopp->shopuri);
+					add_query_arg('shopp_download',$download->dkey,$Shopp->link('account'));
 				
 				return $string;
 				break;

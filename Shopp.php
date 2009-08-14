@@ -1305,7 +1305,8 @@ class Shopp {
 					$forbidden = false;
 
 					// Purchase Completion check
-					if ($Purchase->transtatus != "CHARGED") {
+					if ($Purchase->transtatus != "CHARGED" 
+						&& !defined('SHOPP_PREPAYMENT_DOWNLOADS')) {
 						new ShoppError(__('This file cannot be downloaded because payment has not been received yet.','Shopp'),'shopp_download_limit');
 						$forbidden = true;
 					}
@@ -1334,6 +1335,7 @@ class Shopp {
 					
 					// IP restriction checks
 					if ($this->Settings->get('download_restriction') == "ip"
+						&& !empty($Purchase->ip) 
 						&& $Purchase->ip != $_SERVER['REMOTE_ADDR']) {
 							new ShoppError(__('The file cannot be downloaded because this computer could not be verified as the system the file was purchased from.','Shopp'),'shopp_download_limit');
 							$forbidden = true;	
