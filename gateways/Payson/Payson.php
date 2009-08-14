@@ -72,6 +72,11 @@ class Payson {
 		$Shopp->Cart->updated();
 		$Shopp->Cart->totals();
 		
+		if ($Shopp->Cart->validate() !== true) {
+			$_POST['checkout'] = false;
+			return;
+		}
+		
 		header("Location: ".add_query_arg('shopp_xco','Payson/Payson',$Shopp->link('confirm-order',false)));
 		exit();
 	}

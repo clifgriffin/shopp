@@ -1644,7 +1644,8 @@ class Flow {
 		$permalink = trailingslashit($Shopp->link('catalog'))."category/";
 		if (!empty($Category->slug))
 			$permalink .= substr($Category->uri,0,strpos($Category->uri,$Category->slug));
-		
+
+
 		$pricerange_menu = array(
 			"disabled" => __('Price ranges disabled','Shopp'),
 			"auto" => __('Build price ranges automatically','Shopp'),
@@ -2232,7 +2233,8 @@ class Flow {
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-shipping');
 			// Sterilize $values
-			foreach ($_POST['settings']['shipping_rates'] as $i => $method) {
+			foreach ($_POST['settings']['shipping_rates'] as $i => &$method) {
+				$method['name'] = stripslashes($method['name']);
 				foreach ($method as $key => $rates) {
 					if (is_array($rates)) {
 						foreach ($rates as $id => $value) {

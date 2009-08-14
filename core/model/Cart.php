@@ -995,7 +995,9 @@ class Cart {
 	 * validate()
 	 * Validate checkout form order data before processing */
 	function validate () {
-
+		global $Shopp;
+		$authentication = $Shopp->Settings->get('account_system');
+		
 		if (empty($_POST['firstname']))
 			return new ShoppError(__('You must provide your first name.','Shopp'),'cart_validation');
 
@@ -1006,6 +1008,35 @@ class Cart {
 		$domain = "[0-9A-Za-z#%$!&*+/'-=?^_`{|}~]";
 		if(!ereg("^$account{1,64}@($domain{1,63}\.$domain{1,63}){1,255}$", $_POST['email']))
 			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
+			
+		if ($authentication == "wordpress") {
+			require_once(ABSPATH."/wp-includes/registration.php");
+			if (email_exists($_POST['email']))
+				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
+		} elseif ($authentication == "shopp") {
+			$ExistingCustomer = new Customer($_POST['email'],'email');
+			if (!empty($ExistingCustomer->id)) 
+				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account.','Shopp'),'cart_validation');
+		}
+
+		// Validate WP account
+		if (isset($_POST['login']) && empty($_POST['login']))
+			return new ShoppError(__('You must enter a login name for your account.','Shopp'),'cart_validation');
+
+		if (isset($_POST['login'])) {
+			require_once(ABSPATH."/wp-includes/registration.php");
+			if (username_exists($_POST['login']))
+				return new ShoppError(__('The login name you provided is already in use. Try logging in if you previously created that account, or enter another login name for your new account.','Shopp'),'cart_validation');
+		}
+
+		if (isset($_POST['password'])) {
+			if (empty($_POST['password']) || empty($_POST['confirm-password']))
+				return new ShoppError(__('You must provide a password for your account and confirm it to ensure correct spelling.','Shopp'),'cart_validation');
+			if ($_POST['password'] != $_POST['confirm-password']) {
+				$_POST['password'] = ""; $_POST['confirm-password'] = "";
+				return new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'),'cart_validation');				
+			}
+		}
 
 		if (empty($_POST['billing']['address']) || strlen($_POST['billing']['address']) < 4) 
 			return new ShoppError(__('You must enter a valid street address for your billing information.','Shopp'),'cart_validation');
@@ -1015,6 +1046,11 @@ class Cart {
 
 		if (empty($_POST['billing']['country'])) 
 			return new ShoppError(__('You must select a country for your billing information.','Shopp'),'cart_validation');
+
+		// Skip validating billing details for free purchases 
+		// and remote checkout systems
+		if ((int)$this->data->Totals->total == 0
+			|| !empty($_GET['shopp_xco'])) return apply_filters('shopp_validate_checkout',true);
 
 		if (empty($_POST['billing']['card'])) 
 			return new ShoppError(__('You did not provide a credit card number.','Shopp'),'cart_validation');
@@ -1166,10 +1202,9 @@ class Cart {
 				$result .= '</li></ul>';
 				return $result;
 			case "has-shipping-methods": 
-				return (!$this->data->ShippingDisabled &&
-						count($this->data->ShipCosts) > 1 &&
-						$this->data->Totals->shipping > 0 &&
-						$this->data->Shipping); break;				
+				return (!$this->data->ShippingDisabled
+						&& count($this->data->ShipCosts) > 1
+						&& $this->data->Shipping); break;				
 			case "needs-shipped": return $this->data->Shipping; break;
 			case "hasshipcosts":
 			case "has-ship-costs": return ($this->data->Totals->shipping > 0); break;

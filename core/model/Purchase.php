@@ -245,6 +245,7 @@ class Purchase extends DatabaseObject {
 			case "item-inputslist":
 			case "item-inputs-list":
 			case "iteminputslist":
+				$item = current($this->purchased);
 				if (empty($item->data)) return false;
 				$before = ""; $after = ""; $classes = ""; $excludes = array();
 				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
