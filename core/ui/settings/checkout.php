@@ -27,7 +27,7 @@
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="accounting-serial"><?php _e('Next Order Number','Shopp'); ?></label></th> 
-				<td><input type="text" name="next_order_id" value="<?php echo attribute_escape($next->id); ?>" size="7" class="selectall" /><br />
+				<td><input type="text" name="next_order_id" id="accounting-serial" value="<?php echo attribute_escape($next->id); ?>" size="7" class="selectall" /><br />
 					<?php _e('Set the next order number to sync with your accounting systems.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 
@@ -60,7 +60,7 @@
 				</td>
 			</tr>
 			<tr class="form-required"> 
-				<th scope="row" valign="top"><label for="receipt_copy_both"><?php _e('IP Restriction','Shopp'); ?></label></th> 
+				<th scope="row" valign="top"><label for="download-restriction"><?php _e('IP Restriction','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[download_restriction]" value="off" />
 					<label for="download-restriction"><input type="checkbox" name="settings[download_restriction]" id="download-restriction" value="ip" <?php echo ($this->Settings->get('download_restriction') == "ip")?'checked="checked" ':'';?> /> <?php _e('Restrict to the computer the product is purchased from','Shopp'); ?></label></td> 
 			</tr>

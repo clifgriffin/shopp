@@ -63,7 +63,7 @@
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Order->id; ?>' /></th>
 			<td class="order column-order<?php echo in_array('order',$hidden)?' hidden':''; ?>"><?php echo $Order->id; ?></td>
-			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>$this->Admin->orders,'id'=>$Order->id),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo (empty($Order->firstname) && empty($Order->lastname))?"(".__('no contact name').")":"{$Order->firstname} {$Order->lastname}"; ?></a><?php echo !empty($Order->company)?"<br />$Order->company":""; ?></td>
+			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>$this->Admin->orders,'id'=>$Order->id),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo (empty($Order->firstname) && empty($Order->lastname))?"(".__('no contact name','Shopp').")":"{$Order->firstname} {$Order->lastname}"; ?></a><?php echo !empty($Order->company)?"<br />$Order->company":""; ?></td>
 			<td class="destination column-destination<?php echo in_array('destination',$hidden)?' hidden':''; ?>"><?php 
 				$location = '';
 				$location = $Order->shipcity;

@@ -25,6 +25,9 @@ class PayPalExpress {
 							"GP" => "fr_FR", "IE" => "en_US", "IT" => "it_IT", "JP" => "ja_JP",
 							"MQ" => "fr_FR", "NL" => "nl_NL", "PL" => "pl_PL", "RE" => "fr_FR",
 							"US" => "en_US");
+	var $status = array('' => 'UNKNOWN','Canceled-Reversal' => 'CHARGED','Completed' => 'CHARGED', 
+						'Denied' => 'VOID', 'Expired' => 'VOID','Failed' => 'VOID','Pending' => 'PENDING',
+						'Refunded' => 'VOID','Reversed' => 'VOID','Processed' => 'PENDING','Voided' => 'VOID');
 
 	var $shiprequired = array('en_GB');
 
@@ -60,6 +63,8 @@ class PayPalExpress {
 	}
 	
 	function actions () {}
+	
+	function notax ($rate) { return false; }
 	
 	function headers () {
 		$_ = array();
@@ -183,7 +188,10 @@ class PayPalExpress {
 		$Shipping->state = $this->Response->shiptostate;
 		$Shipping->country = $this->Response->shiptocountrycode;
 		$Shipping->postcode = $this->Response->shiptozip;
-
+		
+		if (empty($Shipping->state) && empty($Shipping->country))
+			add_filter('shopp_cart_taxrate',array(&$this,'notax'));
+		
 		$Billing = $Shopp->Cart->data->Order->Billing;
 		$Billing->cardtype = "PayPal";
 		$Billing->address = $Shipping->address;
@@ -192,8 +200,9 @@ class PayPalExpress {
 		$Billing->state = $Shipping->state;
 		$Billing->country = $this->Response->countrycode;
 		$Billing->postcode = $Shipping->postcode;
-
+		
 		$Shopp->Cart->updated();
+		$Shopp->Cart->totals();
 		
 		$targets = $Shopp->Settings->get('target_markets');
 		if (!in_array($Billing->country,array_keys($targets))) {
@@ -245,6 +254,28 @@ class PayPalExpress {
 			$Order->Items = $Shopp->Cart->contents;
 			$Order->Cart = $Shopp->Cart->session;
 
+			$authentication = $Shopp->Settings->get('account_system');
+
+			if ($authentication == "wordpress") {
+				// Check if they've logged in
+				// If the shopper is already logged-in, save their updated customer info
+				if ($Shopp->Cart->data->login) {
+					if (SHOPP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
+					get_currentuserinfo();
+					global $user_ID;
+					$Order->Customer->wpuser = $user_ID;
+				}
+
+				// Create WordPress account (if necessary)
+				if (!$Order->Customer->wpuser) {
+					if (SHOPP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
+					$Order->Customer->new_wpuser();
+				}
+			}
+
+			// Create a WP-compatible password hash to go in the db
+			if (empty($Order->Customer->id))
+				$Order->Customer->password = wp_hash_password($Order->Customer->password);
 			$Order->Customer->save();
 
 			$Order->Billing->customer = $Order->Customer->id;
@@ -265,6 +296,7 @@ class PayPalExpress {
 			$Purchase->freight = $Order->Totals->shipping;
 			$Purchase->gateway = "PayPal Express";
 			$Purchase->transactionid = $this->Response->transactionid;
+			$Purchase->transtatus = $this->status[$this->Response->paymentstatus];
 			$Purchase->ip = $Shopp->Cart->ip;
 			$Purchase->fees = $this->Response->feeamt;
 			$Purchase->save();
@@ -324,9 +356,9 @@ class PayPalExpress {
 	function response ($buffer) {
 		$_ = new stdClass();
 		$r = array();
-		$pairs = split("&",$buffer);
+		$pairs = explode("&",$buffer);
 		foreach($pairs as $pair) {
-			list($key,$value) = split("=",$pair);
+			list($key,$value) = explode("=",$pair);
 			if (preg_match("/(\w*?)(\d+)/",$key,$matches)) {
 				if (!isset($r[$matches[1]])) $r[$matches[1]] = array();
 				$r[$matches[1]][$matches[2]] = urldecode($value);

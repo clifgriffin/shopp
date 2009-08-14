@@ -29,7 +29,7 @@
 					</td>
 			</tr>			
 			<tr class="form-required"> 
-				<th scope="row" valign="top"><label for="Update Key"><?php _e('Update Key','Shopp'); ?></label></th> 
+				<th scope="row" valign="top"><label for="update-key"><?php _e('Update Key','Shopp'); ?></label></th> 
 				<td>
 					<?php if ($updatekey['status'] == "activated"): ?>
 						<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="40" value="<?php echo $updatekey['key']; ?>" readonly="readonly" />

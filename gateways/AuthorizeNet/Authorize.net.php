@@ -178,7 +178,7 @@ class AuthorizeNet {
 			 $_->ponum,
 			 $_->md5hash,
 			 $_->cvv2code,
-			 $_->cvv2response) = split(",",$buffer);
+			 $_->cvv2response) = explode(",",$buffer);
 		return $_;
 	}
 	

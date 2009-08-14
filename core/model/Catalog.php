@@ -141,16 +141,16 @@ class Catalog extends DatabaseObject {
 
 		$pages = $Shopp->Settings->get('pages');
 		if (SHOPP_PERMALINKS) $path = $Shopp->shopuri;
-		else $page = add_query_arg('page_id',$pages['catalog']['id'],$Shopp->shopuri);
-				
+		else $page = add_query_arg('page_id',$pages['catalog']['id'],$Shopp->shopuri);		
+		
 		switch ($property) {
 			case "url": return $Shopp->link('catalog'); break;
 			case "display":
 			case "type": return $this->type; break;
 			case "is-landing": 
-			case "is-catalog": return ($this->type == "catalog"); break;
-			case "is-category": return ($this->type == "category"); break;
-			case "is-product": return ($this->type == "product"); break;
+			case "is-catalog": return (is_shopp_page('catalog') && $this->type == "catalog"); break;
+			case "is-category": return (is_shopp_page('catalog') && $this->type == "category"); break;
+			case "is-product": return (is_shopp_page('catalog') && $this->type == "product"); break;
 			case "tagcloud":
 				if (!empty($options['levels'])) $levels = $options['levels'];
 				else $levels = 7;
@@ -221,7 +221,7 @@ class Catalog extends DatabaseObject {
 				$string = "";
 				$depthlimit = $depth;
 				$depth = 0;
-				$exclude = split(",",$exclude);
+				$exclude = explode(",",$exclude);
 				$classes = ' class="shopp_categories'.(empty($class)?'':' '.$class).'"';
 				$wraplist = value_is_true($wraplist);
 				
@@ -233,8 +233,7 @@ class Catalog extends DatabaseObject {
 					foreach ($this->categories as &$category) {
 						if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
 						if ($category->total == 0 && !isset($category->smart)) continue; // Only show categories with products
-						if (value_is_true($hierarchy) && $depthlimit && 
-							$category->depth >= $depthlimit) continue;
+						if ($depthlimit && $category->depth >= $depthlimit) continue;
 
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
 							$parent = &$previous;
@@ -367,7 +366,7 @@ class Catalog extends DatabaseObject {
 					$string .= '</script>';
 				} else {
 					if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
-						list($link,$query) = split("\?",$_SERVER['REQUEST_URI']);
+						list($link,$query) = explode("\?",$_SERVER['REQUEST_URI']);
 					$query = $_GET;
 					unset($query['shopp_orderby']);
  					$query = http_build_query($query);
@@ -395,7 +394,7 @@ class Catalog extends DatabaseObject {
 				$trail = false;
 				$search = array();
 				if (isset($Shopp->Cart->data->Search)) $search = array('search'=>$Shopp->Cart->data->Search);
-				$path = split("/",$category);
+				$path = explode("/",$category);
 				if ($path[0] == "tag") {
 					$category = "tag";
 					$search = array('tag'=>urldecode($path[1]));
@@ -544,7 +543,7 @@ class Catalog extends DatabaseObject {
 				$content = false;
 				$source = $options['source'];
 				if ($source == "product" && isset($options['product'])) {
-					$products = split(",",$options['product']);
+					$products = explode(",",$options['product']);
 					if (!is_array($products)) $products = array($products);
 					foreach ($products as $product) {
 						$product = trim($product);

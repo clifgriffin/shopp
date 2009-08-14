@@ -657,7 +657,7 @@ class Product extends DatabaseObject {
 			case "found": 
 				if (empty($this->id)) return false;
 				$load = array('prices','images','specs');
-				if (isset($options['load'])) $load = split(",",$options['load']);
+				if (isset($options['load'])) $load = explode(",",$options['load']);
 				$this->load_data($load);
 				return true;
 				break;
@@ -1149,12 +1149,12 @@ class Product extends DatabaseObject {
 					else $values = $options['options'];
 					if ($this->inventory && $this->pricerange['max']['stock'] == 0) return "";	
 				
-					if (strpos($values,",") !== false) $values = split(",",$values);
+					if (strpos($values,",") !== false) $values = explode(",",$values);
 					else $values = array($values);
 					$qtys = array();
 					foreach ($values as $value) {
 						if (strpos($value,"-") !== false) {
-							$value = split("-",$value);
+							$value = explode("-",$value);
 							if ($value[0] >= $value[1]) $qtys[] = $value[0];
 							else for ($i = $value[0]; $i < $value[1]+1; $i++) $qtys[] = $i;
 						} else $qtys[] = $value;

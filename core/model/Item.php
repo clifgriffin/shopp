@@ -75,7 +75,7 @@ class Item {
 		
 		// Map out the selected menu name and option
 		if ($Product->variations == "on") {
-			$selected = split(",",$this->option->options); $s = 0;
+			$selected = explode(",",$this->option->options); $s = 0;
 			foreach ($this->menus as $i => $menu) {
 				foreach($menu['options'] as $option) {
 					if ($option['id'] == $selected[$s]) {
@@ -167,15 +167,25 @@ class Item {
 	}
 	
 	function unstock () {
+		if (!$this->inventory) return;
 		global $Shopp;
 		$db = DB::get();
+		
+		// Update stock in the database
 		$table = DatabaseObject::tablename(Price::$table);
 		$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$this->price}' AND stock > 0");
+		
+		// Update stock in the model
+		$this->option->stock -= $this->quantity;
+
+		// Handle notifications
 		$product = $this->name.' ('.$this->option->label.')';
-		if ($this->option->stock == 0) 
-			new ShoppError(sprintf(__('The following product is now out-of-stock: %s','Shopp'),$product),'outofstock_warning',SHOPP_STOCK_ERR);
-		elseif ($this->option->stock <= $Shopp->Settings->get('lowstock-level')) 
-			new ShoppError(sprintf(__('The following product has low stock levels and should be re-ordered: %s','Shopp'),$product),'lowstock_warning',SHOPP_STOCK_ERR);
+		if ($this->option->stock == 0)
+			return new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product),'outofstock_warning',SHOPP_STOCK_ERR);
+		
+		if ($this->option->stock <= $Shopp->Settings->get('lowstock_level'))
+			return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product),'lowstock_warning',SHOPP_STOCK_ERR);
+
 	}
 	
 	function shipping (&$Shipping) {
@@ -196,11 +206,20 @@ class Item {
 			case "sku": return $this->sku;
 		}
 		
+		if ($property == "unitprice" || $property == "total") {
+			$taxrate = 0;
+			$base = $Shopp->Settings->get('base_operations');
+			if ($base['vat']) $taxes = true;
+			if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
+			else $taxes = false;
+			if ($taxes) $taxrate = $Shopp->Cart->taxrate();
+		}
+		
 		// Handle currency values
 		$result = "";
 		switch ($property) {
-			case "unitprice": $result = (float)$this->unitprice; break;
-			case "total": $result = (float)$this->total; break;
+			case "unitprice": $result = (float)$this->unitprice+($this->unitprice*$taxrate); break;
+			case "total": $result = (float)$this->total+($this->total*$taxrate); break;
 			case "tax": $result = (float)$this->tax; break;			
 		}
 		if (is_float($result)) {
@@ -219,12 +238,12 @@ class Item {
 						$values = "1-15,20,25,30,35,40,45,50,60,70,80,90,100";
 					else $values = $options['options'];
 					
-					if (strpos($values,",") !== false) $values = split(",",$values);
+					if (strpos($values,",") !== false) $values = explode(",",$values);
 					else $values = array($values);
 					$qtys = array();
 					foreach ($values as $value) {
 						if (strpos($value,"-") !== false) {
-							$value = split("-",$value);
+							$value = explode("-",$value);
 							if ($value[0] >= $value[1]) $qtys[] = $value[0];
 							else for ($i = $value[0]; $i < $value[1]+1; $i++) $qtys[] = $i;
 						} else $qtys[] = $value;
@@ -296,7 +315,7 @@ class Item {
 				if (empty($this->data)) return false;
 				$before = ""; $after = ""; $classes = ""; $excludes = array();
 				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
-				if (!empty($options['exclude'])) $excludes = split(",",$options['exclude']);
+				if (!empty($options['exclude'])) $excludes = explode(",",$options['exclude']);
 				if (!empty($options['before'])) $before = $options['before'];
 				if (!empty($options['after'])) $after = $options['after'];
 				

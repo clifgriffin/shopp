@@ -26,6 +26,9 @@ class PayPalStandard {
 							"GP" => "fr_FR", "IE" => "en_US", "IT" => "it_IT", "JP" => "ja_JP",
 							"MQ" => "fr_FR", "NL" => "nl_NL", "PL" => "pl_PL", "RE" => "fr_FR",
 							"US" => "en_US");
+	var $status = array('' => 'UNKNOWN','Canceled-Reversal' => 'CHARGED','Completed' => 'CHARGED', 
+						'Denied' => 'VOID', 'Expired' => 'VOID','Failed' => 'VOID','Pending' => 'PENDING',
+						'Refunded' => 'VOID','Reversed' => 'VOID','Processed' => 'PENDING','Voided' => 'VOID');
 
 	function PayPalStandard () {
 		global $Shopp;
@@ -89,6 +92,11 @@ class PayPalStandard {
 		$estimatedTotal = $Shopp->Cart->data->Totals->total;
 		$Shopp->Cart->updated();
 		$Shopp->Cart->totals();
+
+		if ($Shopp->Cart->validate() !== true) {
+			$_POST['checkout'] = false;
+			return;
+		}
 		
 		header("Location: ".add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
 		exit();
@@ -152,8 +160,6 @@ class PayPalStandard {
 			$_['amount_'.$id]			= number_format($Item->unitprice,2);
 			$_['quantity_'.$id]			= $Item->quantity;
 			$_['weight_'.$id]			= $Item->quantity;
-			// $_['tax_'.$id]				= number_format($Item->taxes,2);
-			// $_['handling_'.$id]			= number_format($Item->shipfee,2);
 		}
 		
 		$_['discount_amount_cart'] 		= number_format($Order->Totals->discount,2);
@@ -167,22 +173,26 @@ class PayPalStandard {
 		
 	function process () {
 		global $Shopp;
-		
+		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification received.',false,SHOPP_DEBUG_ERR);
+
 		// Validate the order notification
 		if (empty($_POST['invoice']) || !$this->validipn())
 			return new ShoppError(__('An unverifiable order notifcation was received from PayPal. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
-		
+
 		session_unset();
 		session_destroy();
 		
 		// Load the cart for the correct order
 		$Shopp->Cart->session = $_POST['invoice'];
 		$Shopp->Cart->load($Shopp->Cart->session);
+		if (SHOPP_DEBUG) new ShoppError('PayPal sucessfully loaded session: '.$Shopp->Cart->session,false,SHOPP_DEBUG_ERR);
 
-		$Order = $Shopp->Cart->data->Order;
-		$Order->Totals = $Shopp->Cart->data->Totals;
-		$Order->Items = $Shopp->Cart->contents;
-		$Order->Cart = $Shopp->Cart->session;
+		if (isset($Shopp->Cart->data)) {
+			$Order = $Shopp->Cart->data->Order;
+			$Order->Totals = $Shopp->Cart->data->Totals;
+			$Order->Items = $Shopp->Cart->contents;
+			$Order->Cart = $Shopp->Cart->session;
+		}
 
 		// Validate the order data
 		$validation = false;
@@ -202,6 +212,8 @@ class PayPalStandard {
 				&& $_POST['residence_country'] == $Order->Billing->country)
 					$validation = true;
 		}
+		if (SHOPP_DEBUG) new ShoppError('IPN notification received and validated.',false,SHOPP_DEBUG_ERR);
+		
 		
 		if ($validation) $this->order();
 		else new ShoppError(__('An order was received from PayPal that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'paypal_trxn_validation',SHOPP_TRXN_ERR);
@@ -215,7 +227,7 @@ class PayPalStandard {
 		
 		$this->transaction = $this->encode(array_merge($_POST,$_));
 		$Response = $this->send();
-		
+		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification validation response received: '.$Response,'paypal_standard',SHOPP_DEBUG_ERR);
 		return ($Response == "VERIFIED");
 	}
 	
@@ -225,8 +237,10 @@ class PayPalStandard {
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
+		if (SHOPP_DEBUG) new ShoppError('Processing order into purchase.',false,SHOPP_DEBUG_ERR);
 
 		// Transaction successful, save the order
+		$authentication = $Shopp->Settings->get('account_system');
 		
 		if ($authentication == "wordpress") {
 			// Check if they've logged in
@@ -251,7 +265,7 @@ class PayPalStandard {
 		$Order->Customer->save();
 
 		$Order->Billing->customer = $Order->Customer->id;
-		$Order->Billing->card = substr($Order->Billing->card,-4);
+		$Order->Billing->cardtype = "PayPal";
 		$Order->Billing->save();
 
 		if (!empty($Order->Shipping->address)) {
@@ -276,7 +290,8 @@ class PayPalStandard {
 		$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
 		$Purchase->gateway = "PayPal".(isset($_POST['test_ipn']) && $_POST['test_ipn'] == "1"?" Sandbox":"");
 		$Purchase->transactionid = $_POST['txn_id'];
-		$Purchase->transtatus = "CHARGED";
+		$Purchase->transtatus = $this->status[$_POST['payment_status']];
+		$Purchase->fees = $_POST['mc_fee'];
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
 		// echo "<pre>"; print_r($Purchase); echo "</pre>";
@@ -327,10 +342,7 @@ class PayPalStandard {
 			);
 		}
 
-		$ssl = true;
-		// Test Mode will not require encrypted checkout
-		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco']) || SHOPP_NOSSL) $ssl = false;
-		$link = $Shopp->link('receipt',$ssl);
+		$link = $Shopp->link('receipt',false);
 		header("Location: $link");
 		exit();
 		
