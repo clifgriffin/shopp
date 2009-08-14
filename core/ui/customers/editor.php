@@ -49,35 +49,37 @@
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="name"><?php _e('Name','Shopp'); ?></label></th> 
 				<td>
+					<div>
 					<span><input type="text" name="firstname" value="<?php echo attribute_escape($Customer->firstname); ?>" id="firstname" size="14" /><br /> 
 	            	<label for="firstname"><?php _e('First Name','Shopp'); ?></label></span>
 					<span><input type="text" name="lastname" value="<?php echo attribute_escape($Customer->lastname); ?>" id="lastname" size="30" /><br />
 	            	<label for="lastname"><?php _e('Last Name','Shopp'); ?></label></span><br class="clear" />
+					</div>
+	
 					<p><input type="text" name="company" value="<?php echo attribute_escape($Customer->company); ?>" id="company" size="46" /><br /> 
             		<label for="lastname"><?php _e('Company','Shopp'); ?></label></p>
-	
 				</td>
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="email"><?php _e('Contact','Shopp'); ?></label></th> 
 				<td>
+					<div>
 					<span><input type="text" name="email" value="<?php echo attribute_escape($Customer->email); ?>" id="email" size="24" /><br /> 
 	            	<label for="email"><?php _e('Email','Shopp'); ?> <em><?php _e('(required)')?></em></label></span>
 					<span><input type="text" name="phone" value="<?php echo attribute_escape($Customer->phone); ?>" id="phone" size="20" /><br />
-	            	<label for="phone"><?php _e('Phone','Shopp'); ?></label></span><br class="clear" />
+	            	<label for="phone"><?php _e('Phone','Shopp'); ?></label></span>
+					</div>
 				</td>
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="email"><?php _e('Password','Shopp'); ?></label></th> 
 				<td>
-					<span>
-						<input type="password" name="new-password" id="new-password" value="" size="20" class="selectall" /><br />
-						<label for="new-password"><?php _e('Enter a new password to change it.','Shopp'); ?></label>
-					</span>
-					<span>
-						<input type="password" name="confirm-password" id="confirm-password" value="" size="20" class="selectall" /><br />
-						<label for="confirm-password"><?php _e('Confirm the new password.','Shopp'); ?></label>
-					</span>
+					<div>
+					<span><input type="password" name="new-password" id="new-password" value="" size="20" class="selectall" /><br />
+					<label for="new-password"><?php _e('Enter a new password to change it.','Shopp'); ?></label></span>
+					<span><input type="password" name="confirm-password" id="confirm-password" value="" size="20" class="selectall" /><br />
+					<label for="confirm-password"><?php _e('Confirm the new password.','Shopp'); ?></label></span>
+					</div>
 					<br class="clear" />
 					<div id="pass-strength-result"><?php _e('Strength indicator'); ?></div>
 					<br class="clear" />
@@ -86,11 +88,11 @@
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="billing-address"><?php _e('Billing Address','Shopp'); ?></label></th> 
 				<td>
-					<p>
+					<div>
 						<input type="text" name="billing[address]" id="billing-address" value="<?php echo $Customer->Billing->address; ?>" size="46" /><br />
 						<input type="text" name="billing[xaddress]" id="billing-xaddress" value="<?php echo $Customer->Billing->xaddress; ?>" size="46" /><br />
 						<label for="billing-address"><?php _e('Street Address','Shopp'); ?></label>
-					</p>
+					</div>
 					<p>
 						<span>
 						<input type="text" name="billing[city]" id="billing-city" value="<?php echo $Customer->Billing->city; ?>" size="14" /><br />

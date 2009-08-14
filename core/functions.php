@@ -1004,6 +1004,17 @@ class FTPClient {
 	}
 	
 	/**
+	 * delete()
+	 * Delete the target file, recursively delete directories  */
+	function delete ($file) {
+		if (empty($file)) return false;
+		if (!$this->isdir($file)) return @ftp_delete($this->connection, $file);
+		$files = $this->scan($file);
+		if (!empty($files)) foreach ($files as $target) $this->delete($target);
+		return @ftp_rmdir($this->connection, $file);
+	}
+	
+	/**
 	 * put()
 	 * Copies the target file to the remote location */
 	function put ($file,$remote) {
@@ -1033,7 +1044,7 @@ class FTPClient {
 	 * Gets a list of files in a directory/current directory */
 	function scan ($path=false) {
 		if (!$path) $path = $this->pwd();
-		return ftp_nlist($this->connection,$path);
+		return @ftp_nlist($this->connection,$path);
 	}
 	
 	/**
@@ -1041,7 +1052,7 @@ class FTPClient {
 	 * Determines if the file is a directory or a file */
 	function isdir ($file=false) {
 		if (!$file) $file = $this->pwd();
-	    if (ftp_size($this->connection, $file) == '-1')
+	    if (@ftp_size($this->connection, $file) == '-1')
 	        return true; // Directory
 	    else return false; // File
 	}
@@ -1061,7 +1072,7 @@ class FTPClient {
 				return substr($path,$index);
 			}
 		}
-		$this->log[] = "Failed to map realpath to FTP path";
+		// No remapping needed
 		return $path;
 	}
 

@@ -226,9 +226,9 @@ class ShoppErrorNotification {
 		$_ = array();
 		$_[] = 'From: "'.get_bloginfo('sitename').'" <shopp@'.$url['host'].'>';
 		$_[] = 'To: '.$this->recipients;
-		$_[] = 'Subject: '.__('Shopp Error Notification','Shopp');
+		$_[] = 'Subject: '.__('Shopp Notification','Shopp');
 		$_[] = '';
-		$_[] = __('This is an automated message notification generated when the Shopp installation at '.get_bloginfo('url').' encountered the following error: ','Shopp');
+		$_[] = __('This is an automated message notification generated when the Shopp installation at '.get_bloginfo('url').' encountered the following:','Shopp');
 		$_[] = '';
 		$_[] = $error->message();
 		$_[] = '';
@@ -239,7 +239,6 @@ class ShoppErrorNotification {
 	}
 	
 }
-
 
 class CallbackSubscription {
 

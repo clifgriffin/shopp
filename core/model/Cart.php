@@ -201,6 +201,7 @@ class Cart {
 				$this->data->Shipping = true;
 		}
 		do_action_ref_array('shopp_cart_add_item',array(&$NewItem));
+
 		$this->updated();
 		return true;
 	}
@@ -503,7 +504,7 @@ class Cart {
 					case "Promo code":
 						// Match previously applied codes
 						if (is_array($this->data->PromoCodes) && in_array($rule['value'],$this->data->PromoCodes)) {							
-							echo "<pre>"; print_r($rule); echo "</pre>";
+							// echo "<pre>"; print_r($rule); echo "</pre>";
 							$rulematch = true;
 							break;
 						}
@@ -1009,11 +1010,11 @@ class Cart {
 		if(!ereg("^$account{1,64}@($domain{1,63}\.$domain{1,63}){1,255}$", $_POST['email']))
 			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
 			
-		if ($authentication == "wordpress") {
+		if ($authentication == "wordpress" && !$this->data->login) {
 			require_once(ABSPATH."/wp-includes/registration.php");
 			if (email_exists($_POST['email']))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
-		} elseif ($authentication == "shopp") {
+		} elseif ($authentication == "shopp"  && !$this->data->login) {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if (!empty($ExistingCustomer->id)) 
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account.','Shopp'),'cart_validation');

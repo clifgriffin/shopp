@@ -2753,7 +2753,7 @@ class Flow {
 				if (!empty($results)) die(join("\n\n",$log).join("\n\n",$results)."\n\nFTP transfer failed.");
 				break;
 		}
-				
+		
 		echo "updated"; // Report success!
 		exit();
 	}
