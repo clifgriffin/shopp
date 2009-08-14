@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Shopp 1.0.7\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-13 15:27-0500\n"
+"POT-Creation-Date: 2009-08-13 22:55-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jonathan Davis <jond@ingenesis.net>\n"
 "Language-Team: \n"
@@ -1192,146 +1192,154 @@ msgstr ""
 msgid "Billing Postal Code"
 msgstr ""
 
-#: core/model/Cart.php:372
+#: core/model/Cart.php:373
 msgid "A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout."
 msgstr ""
 
-#: core/model/Cart.php:572
+#: core/model/Cart.php:573
 msgid "No additional codes can be applied."
 msgstr ""
 
-#: core/model/Cart.php:579
+#: core/model/Cart.php:580
 msgid "is not a valid code."
 msgstr ""
 
-#: core/model/Cart.php:774
-#: core/model/Cart.php:797
+#: core/model/Cart.php:775
+#: core/model/Cart.php:798
 msgid "No customer account was found with that email."
 msgstr ""
 
-#: core/model/Cart.php:779
-#: core/model/Cart.php:803
+#: core/model/Cart.php:780
+#: core/model/Cart.php:804
 msgid "The password is incorrect."
 msgstr ""
 
-#: core/model/Cart.php:789
+#: core/model/Cart.php:790
 msgid "No customer account was found with that login."
 msgstr ""
 
-#: core/model/Cart.php:883
+#: core/model/Cart.php:884
 msgid "That code has already been applied."
 msgstr ""
 
-#: core/model/Cart.php:1000
+#: core/model/Cart.php:1003
 msgid "You must provide your first name."
 msgstr ""
 
-#: core/model/Cart.php:1003
+#: core/model/Cart.php:1006
 msgid "You must provide your last name."
 msgstr ""
 
-#: core/model/Cart.php:1008
+#: core/model/Cart.php:1011
 msgid "You must provide a valid e-mail address."
 msgstr ""
 
-#: core/model/Cart.php:1012
-msgid "You must enter a login name for your account."
+#: core/model/Cart.php:1016
+msgid "The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account."
 msgstr ""
 
-#: core/model/Cart.php:1017
-msgid "The login name you provided is already in use. Try logging in if you previously created that account, or enter another login name for your new account."
-msgstr ""
-
-#: core/model/Cart.php:1022
-msgid "You must provide a password for your account and confirm it to ensure correct spelling."
+#: core/model/Cart.php:1020
+msgid "The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account."
 msgstr ""
 
 #: core/model/Cart.php:1025
-msgid "The passwords you entered do not match.  Please re-enter your passwords."
+msgid "You must enter a login name for your account."
 msgstr ""
 
 #: core/model/Cart.php:1030
-#: core/model/Cart.php:1033
+msgid "The login name you provided is already in use. Try logging in if you previously created that account, or enter another login name for your new account."
+msgstr ""
+
+#: core/model/Cart.php:1035
+msgid "You must provide a password for your account and confirm it to ensure correct spelling."
+msgstr ""
+
+#: core/model/Cart.php:1038
+msgid "The passwords you entered do not match. Please re-enter your passwords."
+msgstr ""
+
+#: core/model/Cart.php:1043
+#: core/model/Cart.php:1046
 msgid "You must enter a valid street address for your billing information."
 msgstr ""
 
-#: core/model/Cart.php:1036
+#: core/model/Cart.php:1049
 msgid "You must select a country for your billing information."
 msgstr ""
 
-#: core/model/Cart.php:1042
+#: core/model/Cart.php:1057
 msgid "You did not provide a credit card number."
 msgstr ""
 
-#: core/model/Cart.php:1045
+#: core/model/Cart.php:1060
 msgid "You did not select a credit card type."
 msgstr ""
 
-#: core/model/Cart.php:1059
+#: core/model/Cart.php:1074
 msgid "The credit card number you provided is invalid."
 msgstr ""
 
-#: core/model/Cart.php:1072
+#: core/model/Cart.php:1087
 msgid "The credit card number you provided is not valid."
 msgstr ""
 
-#: core/model/Cart.php:1075
+#: core/model/Cart.php:1090
 msgid "You did not enter the month the credit card expires."
 msgstr ""
 
-#: core/model/Cart.php:1078
+#: core/model/Cart.php:1093
 msgid "You did not enter the year the credit card expires."
 msgstr ""
 
-#: core/model/Cart.php:1082
+#: core/model/Cart.php:1097
 msgid "The credit card expiration date you provided has already expired."
 msgstr ""
 
-#: core/model/Cart.php:1085
+#: core/model/Cart.php:1100
 msgid "You did not enter the name on the credit card you provided."
 msgstr ""
 
-#: core/model/Cart.php:1088
+#: core/model/Cart.php:1103
 msgid "You did not enter a valid security ID for the card you provided. The security ID is a 3 or 4 digit number found on the back of the credit card."
 msgstr ""
 
-#: core/model/Cart.php:1134
+#: core/model/Cart.php:1149
 msgid "Off!"
 msgstr ""
 
-#: core/model/Cart.php:1156
+#: core/model/Cart.php:1171
 msgid "Empty Cart"
 msgstr ""
 
-#: core/model/Cart.php:1160
+#: core/model/Cart.php:1175
 msgid "Update Subtotal"
 msgstr ""
 
-#: core/model/Cart.php:1178
+#: core/model/Cart.php:1193
 msgid "Apply Promo Code"
 msgstr ""
 
-#: core/model/Cart.php:1237
+#: core/model/Cart.php:1252
 msgid "Free Shipping!"
 msgstr ""
 
-#: core/model/Cart.php:1243
+#: core/model/Cart.php:1258
 msgid "Enter Postal Code"
 msgstr ""
 
-#: core/model/Cart.php:1245
+#: core/model/Cart.php:1260
 msgid "Not Available"
 msgstr ""
 
-#: core/model/Cart.php:1558
+#: core/model/Cart.php:1573
 msgid "Same shipping address"
 msgstr ""
 
-#: core/model/Cart.php:1713
+#: core/model/Cart.php:1728
 msgid "Submit Order"
 msgstr ""
 
-#: core/model/Cart.php:1716
+#: core/model/Cart.php:1731
 msgid "Confirm Order"
 msgstr ""
 
@@ -1580,7 +1588,7 @@ msgid "Save"
 msgstr ""
 
 #: core/model/Error.php:229
-msgid "Shopp Error Notification"
+msgid "Shopp Notification"
 msgstr ""
 
 #: core/model/Error.php:231
@@ -1619,17 +1627,17 @@ msgstr ""
 msgid "Not enough of the product is available in stock to fulfill your request."
 msgstr ""
 
-#: core/model/Item.php:176
+#: core/model/Item.php:184
 #, php-format
-msgid "The following product is now out-of-stock: %s"
+msgid "%s is now out-of-stock!"
 msgstr ""
 
-#: core/model/Item.php:178
+#: core/model/Item.php:187
 #, php-format
-msgid "The following product has low stock levels and should be re-ordered: %s"
+msgid "%s has low stock levels and should be re-ordered soon."
 msgstr ""
 
-#: core/model/Item.php:252
+#: core/model/Item.php:262
 msgid "Remove"
 msgstr ""
 
@@ -2181,118 +2189,114 @@ msgstr ""
 msgid "Customer Editor"
 msgstr ""
 
-#: core/ui/customers/editor.php:52
-#: core/ui/promotions/editor.php:59
-msgid "The name is used to describe the promotion on order receipts."
+#: core/ui/customers/editor.php:54
+#: core/ui/customers/ui.php:33
+msgid "First Name"
 msgstr ""
 
-#: core/ui/customers/editor.php:61
-#: core/ui/promotions/editor.php:68
-#: core/ui/promotions/ui.php:10
-#: core/ui/promotions/ui.php:13
-msgid "Month"
+#: core/ui/customers/editor.php:56
+#: core/ui/customers/ui.php:37
+msgid "Last Name"
 msgstr ""
 
-#: core/ui/customers/editor.php:61
-#: core/ui/promotions/editor.php:68
-#: core/ui/promotions/ui.php:10
-#: core/ui/promotions/ui.php:13
-msgid "Day"
+#: core/ui/customers/editor.php:60
+#: core/ui/customers/ui.php:42
+msgid "Company"
 msgstr ""
 
-#: core/ui/customers/editor.php:61
-#: core/ui/promotions/editor.php:68
-#: core/ui/promotions/ui.php:10
-#: core/ui/promotions/ui.php:13
-msgid "Year"
-msgstr ""
-
-#: core/ui/customers/editor.php:63
-#: core/ui/promotions/editor.php:70
-msgid "Enter the date range this promotion will be in effect for."
+#: core/ui/customers/editor.php:64
+msgid "Contact"
 msgstr ""
 
 #: core/ui/customers/editor.php:68
-#: core/ui/promotions/editor.php:75
-msgid "Discount Type"
+#: core/ui/customers/ui.php:47
+msgid "(required)"
 msgstr ""
 
-#: core/ui/customers/editor.php:72
-#: core/ui/promotions/editor.php:79
-msgid "Select how the discount will be applied."
+#: core/ui/customers/editor.php:70
+#: core/ui/customers/ui.php:51
+#: core/ui/orders/order.php:24
+msgid "Phone"
 msgstr ""
 
 #: core/ui/customers/editor.php:75
-#: core/ui/promotions/editor.php:82
-msgid "Discount Amount"
+msgid "Password"
 msgstr ""
 
-#: core/ui/customers/editor.php:77
-#: core/ui/promotions/editor.php:84
-msgid "Enter the amount of this discount."
-msgstr ""
-
-#: core/ui/customers/editor.php:80
-#: core/ui/promotions/editor.php:87
-msgid "Item Quantities"
+#: core/ui/customers/editor.php:79
+#: core/ui/customers/ui.php:15
+msgid "Enter a new password to change it."
 msgstr ""
 
 #: core/ui/customers/editor.php:81
-#: core/ui/promotions/editor.php:88
-#: core/ui/promotions/promotions.php:57
-#: core/ui/promotions/ui.php:43
-msgid "Buy"
+#: core/ui/customers/ui.php:19
+msgid "Confirm the new password."
 msgstr ""
 
-#: core/ui/customers/editor.php:81
-#: core/ui/promotions/editor.php:88
-#: core/ui/promotions/promotions.php:57
-#: core/ui/promotions/ui.php:43
-msgid "Get"
-msgstr ""
-
-#: core/ui/customers/editor.php:82
-#: core/ui/promotions/editor.php:89
-msgid "Enter the number of items that must be purchased and how many will be gifted."
-msgstr ""
-
-#: core/ui/customers/editor.php:95
-#: core/ui/promotions/editor.php:102
-#: core/ui/promotions/ui.php:63
-msgid "any"
-msgstr ""
-
-#: core/ui/customers/editor.php:95
-#: core/ui/promotions/editor.php:102
-#: core/ui/promotions/ui.php:63
-msgid "all"
-msgstr ""
-
-#: core/ui/customers/editor.php:99
-#: core/ui/promotions/editor.php:106
-#: core/ui/promotions/ui.php:67
-#, php-format
-msgid "Apply discount to %s products where %s of these conditions are met"
-msgstr ""
-
-#: core/ui/customers/editor.php:114
+#: core/ui/customers/editor.php:84
+#: core/ui/customers/editor.php:168
 #: core/ui/customers/ui.php:22
 msgid "Strength indicator"
 msgstr ""
 
-#: core/ui/customers/editor.php:116
-msgid "Good"
+#: core/ui/customers/editor.php:89
+#: core/ui/customers/ui.php:105
+msgid "Billing Address"
 msgstr ""
 
-#: core/ui/customers/editor.php:117
-msgid "Bad"
+#: core/ui/customers/editor.php:94
+#: core/ui/customers/editor.php:128
+#: core/ui/customers/ui.php:74
+#: core/ui/customers/ui.php:112
+msgid "Street Address"
+msgstr ""
+
+#: core/ui/customers/editor.php:99
+#: core/ui/customers/editor.php:133
+#: core/ui/customers/ui.php:79
+#: core/ui/customers/ui.php:117
+msgid "City"
+msgstr ""
+
+#: core/ui/customers/editor.php:106
+#: core/ui/customers/editor.php:140
+#: core/ui/customers/ui.php:86
+#: core/ui/customers/ui.php:124
+msgid "State / Province"
+msgstr ""
+
+#: core/ui/customers/editor.php:110
+#: core/ui/customers/editor.php:144
+#: core/ui/customers/ui.php:90
+#: core/ui/customers/ui.php:128
+msgid "Postal Code"
 msgstr ""
 
 #: core/ui/customers/editor.php:118
+#: core/ui/customers/editor.php:152
+#: core/ui/customers/ui.php:98
+#: core/ui/customers/ui.php:136
+msgid "Country"
+msgstr ""
+
+#: core/ui/customers/editor.php:123
+#: core/ui/customers/ui.php:143
+msgid "Shipping Address"
+msgstr ""
+
+#: core/ui/customers/editor.php:170
+msgid "Good"
+msgstr ""
+
+#: core/ui/customers/editor.php:171
+msgid "Bad"
+msgstr ""
+
+#: core/ui/customers/editor.php:172
 msgid "Short"
 msgstr ""
 
-#: core/ui/customers/editor.php:119
+#: core/ui/customers/editor.php:173
 msgid "Strong"
 msgstr ""
 
@@ -2301,74 +2305,12 @@ msgstr ""
 msgid "Save Changes"
 msgstr ""
 
-#: core/ui/customers/ui.php:15
-msgid "Enter a new password to change it."
-msgstr ""
-
-#: core/ui/customers/ui.php:19
-msgid "Confirm the new password."
-msgstr ""
-
 #: core/ui/customers/ui.php:26
 msgid "Change Password"
 msgstr ""
 
-#: core/ui/customers/ui.php:33
-msgid "First Name"
-msgstr ""
-
-#: core/ui/customers/ui.php:37
-msgid "Last Name"
-msgstr ""
-
-#: core/ui/customers/ui.php:42
-msgid "Company"
-msgstr ""
-
-#: core/ui/customers/ui.php:47
-msgid "(required)"
-msgstr ""
-
-#: core/ui/customers/ui.php:51
-#: core/ui/orders/order.php:24
-msgid "Phone"
-msgstr ""
-
 #: core/ui/customers/ui.php:67
 msgid "Profile"
-msgstr ""
-
-#: core/ui/customers/ui.php:74
-#: core/ui/customers/ui.php:112
-msgid "Street Address"
-msgstr ""
-
-#: core/ui/customers/ui.php:79
-#: core/ui/customers/ui.php:117
-msgid "City"
-msgstr ""
-
-#: core/ui/customers/ui.php:86
-#: core/ui/customers/ui.php:124
-msgid "State / Province"
-msgstr ""
-
-#: core/ui/customers/ui.php:90
-#: core/ui/customers/ui.php:128
-msgid "Postal Code"
-msgstr ""
-
-#: core/ui/customers/ui.php:98
-#: core/ui/customers/ui.php:136
-msgid "Country"
-msgstr ""
-
-#: core/ui/customers/ui.php:105
-msgid "Billing Address"
-msgstr ""
-
-#: core/ui/customers/ui.php:143
-msgid "Shipping Address"
 msgstr ""
 
 #: core/ui/help/help.php:6
@@ -2726,6 +2668,84 @@ msgstr ""
 #: core/ui/promotions/editor.php:5
 #: core/ui/promotions/editor.php:48
 msgid "Promotion Editor"
+msgstr ""
+
+#: core/ui/promotions/editor.php:59
+msgid "The name is used to describe the promotion on order receipts."
+msgstr ""
+
+#: core/ui/promotions/editor.php:68
+#: core/ui/promotions/ui.php:10
+#: core/ui/promotions/ui.php:13
+msgid "Month"
+msgstr ""
+
+#: core/ui/promotions/editor.php:68
+#: core/ui/promotions/ui.php:10
+#: core/ui/promotions/ui.php:13
+msgid "Day"
+msgstr ""
+
+#: core/ui/promotions/editor.php:68
+#: core/ui/promotions/ui.php:10
+#: core/ui/promotions/ui.php:13
+msgid "Year"
+msgstr ""
+
+#: core/ui/promotions/editor.php:70
+msgid "Enter the date range this promotion will be in effect for."
+msgstr ""
+
+#: core/ui/promotions/editor.php:75
+msgid "Discount Type"
+msgstr ""
+
+#: core/ui/promotions/editor.php:79
+msgid "Select how the discount will be applied."
+msgstr ""
+
+#: core/ui/promotions/editor.php:82
+msgid "Discount Amount"
+msgstr ""
+
+#: core/ui/promotions/editor.php:84
+msgid "Enter the amount of this discount."
+msgstr ""
+
+#: core/ui/promotions/editor.php:87
+msgid "Item Quantities"
+msgstr ""
+
+#: core/ui/promotions/editor.php:88
+#: core/ui/promotions/promotions.php:57
+#: core/ui/promotions/ui.php:43
+msgid "Buy"
+msgstr ""
+
+#: core/ui/promotions/editor.php:88
+#: core/ui/promotions/promotions.php:57
+#: core/ui/promotions/ui.php:43
+msgid "Get"
+msgstr ""
+
+#: core/ui/promotions/editor.php:89
+msgid "Enter the number of items that must be purchased and how many will be gifted."
+msgstr ""
+
+#: core/ui/promotions/editor.php:102
+#: core/ui/promotions/ui.php:63
+msgid "any"
+msgstr ""
+
+#: core/ui/promotions/editor.php:102
+#: core/ui/promotions/ui.php:63
+msgid "all"
+msgstr ""
+
+#: core/ui/promotions/editor.php:106
+#: core/ui/promotions/ui.php:67
+#, php-format
+msgid "Apply discount to %s products where %s of these conditions are met"
 msgstr ""
 
 #: core/ui/promotions/editor.php:138
@@ -3723,63 +3743,63 @@ msgstr ""
 msgid "Test Mode Enabled"
 msgstr ""
 
-#: gateways/Payson/Payson.php:129
+#: gateways/Payson/Payson.php:134
 msgid "An unverifiable order was received from Payson. Possible fraudulent order attempt!"
 msgstr ""
 
-#: gateways/Payson/Payson.php:158
+#: gateways/Payson/Payson.php:163
 msgid "An order was received from Payson that could not be validated against existing pre-order data.  Possible order spoof attempt!"
 msgstr ""
 
-#: gateways/Payson/Payson.php:306
+#: gateways/Payson/Payson.php:311
 msgid "Checkout with Payson"
 msgstr ""
 
-#: gateways/Payson/Payson.php:325
+#: gateways/Payson/Payson.php:330
 msgid "Enter your Payson Agent ID."
 msgstr ""
 
-#: gateways/Payson/Payson.php:328
+#: gateways/Payson/Payson.php:333
 msgid "Enter your Payson seller email address."
 msgstr ""
 
-#: gateways/Payson/Payson.php:331
+#: gateways/Payson/Payson.php:336
 msgid "Enter your Payson secret key."
 msgstr ""
 
-#: gateways/Payson/Payson.php:334
+#: gateways/Payson/Payson.php:339
 msgid "Enter a name or description for your store."
 msgstr ""
 
-#: gateways/Payson/Payson.php:339
+#: gateways/Payson/Payson.php:344
 msgid "Credit Cards, Internet Banks &amp; Payson"
 msgstr ""
 
-#: gateways/Payson/Payson.php:340
+#: gateways/Payson/Payson.php:345
 msgid "Credit Cards Only"
 msgstr ""
 
-#: gateways/Payson/Payson.php:341
+#: gateways/Payson/Payson.php:346
 msgid "Internet Banks Only"
 msgstr ""
 
-#: gateways/Payson/Payson.php:342
+#: gateways/Payson/Payson.php:347
 msgid "Payson Account Funds Only"
 msgstr ""
 
-#: gateways/Payson/Payson.php:343
+#: gateways/Payson/Payson.php:348
 msgid "Internet Banks &amp; Payson Account Funds"
 msgstr ""
 
-#: gateways/Payson/Payson.php:347
+#: gateways/Payson/Payson.php:352
 msgid "Choose the payment methods accepted."
 msgstr ""
 
-#: gateways/Payson/Payson.php:350
+#: gateways/Payson/Payson.php:355
 msgid "Offer Payson Guarantee payments."
 msgstr ""
 
-#: gateways/Payson/Payson.php:352
+#: gateways/Payson/Payson.php:357
 msgid "Enable Test Mode"
 msgstr ""
 

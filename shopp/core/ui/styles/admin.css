@@ -74,7 +74,8 @@ div.comment-item:hover .row-actions { visibility: visible; }
 .form-table td { position: relative; }
 .form-field th.pricing-label label { display: block; margin-bottom: 7px; }
 .form-table td ul { list-style: none; padding-left: 0; }
-.form-table td span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
+.form-table td div span,
+.form-table td p span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
 
 .pricing-table { width: 100%; }
 .pricing-table tr { background: none; }
