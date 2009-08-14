@@ -206,7 +206,7 @@ class Purchase extends DatabaseObject {
 				$classes = "";
 				if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
 				if (SHOPP_PERMALINKS) $url = $Shopp->shopuri."download/".$item->dkey;
-				else $url = add_query_arg('shopp_download',$item->dkey,$Shopp->shopuri);
+				else $url = add_query_arg('shopp_download',$item->dkey,$Shopp->link('account'));
 				return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>'; break;
 			case "item-quantity":
 				$item = current($this->purchased);
