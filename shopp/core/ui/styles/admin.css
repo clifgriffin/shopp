@@ -67,12 +67,14 @@ div.comment-item:hover .row-actions { visibility: visible; }
 .shopp div.pricing-label { background-color: #f1f1f1; padding: 6px; }
 .shopp div.priceline .pricing-ui { padding: 6px; }
 
+/* WordPress 2.6 UI styles */
 .widefat td strong { color: #555555; }
 .form-table input.toggle { margin-left: -13px; }
 .form-table { position: relative; }
 .form-table td { position: relative; }
 .form-field th.pricing-label label { display: block; margin-bottom: 7px; }
 .form-table td ul { list-style: none; padding-left: 0; }
+.form-table td span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
 
 .pricing-table { width: 100%; }
 .pricing-table tr { background: none; }
@@ -111,7 +113,7 @@ div.progress div.bar { position: absolute; height: 10px; background: #85ec3d; bo
 div.progress div.gloss { position: absolute; width: 100%; height: 10px; background: url('../icons/gloss.png') repeat-x; }
 
 #editable-slug-full { display: none; }
-#editable-slug { background-color: #fffbcc; }
+#editable-slug { background-color: #fffbcc; float: none; padding: 0; }
 #swf-uploader { display: none; }
 
 #product-images table.form-table td,

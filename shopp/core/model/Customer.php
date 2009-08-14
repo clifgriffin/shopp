@@ -149,7 +149,7 @@ class Customer extends DatabaseObject {
 		$activation = preg_replace('/[^a-z0-9]/i', '', $activation);
 
 		$errors = array();
-		if (empty($activation))
+		if (empty($activation) || !is_string($activation))
 			$errors[] = new ShoppError(__('Invalid key'));
 		
 		$RecoveryCustomer = new Customer($activation,'activation');
@@ -270,6 +270,7 @@ class Customer extends DatabaseObject {
 		
 		// Send email notification of the new account
 		wp_new_user_notification( $wpuser, $this->password );
+		$this->password = "";
 		if (SHOPP_DEBUG) new ShoppError('Successfully created the WordPress user for the Shopp account.',false,SHOPP_DEBUG_ERR);
 		return true;
 	}

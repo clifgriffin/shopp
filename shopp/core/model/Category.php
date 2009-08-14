@@ -359,7 +359,7 @@ class Category extends DatabaseObject {
 					WHERE ({$loading['where']}) {$loading['catalog']} AND p.published='on' AND pd.type != 'N/A'
 					GROUP BY p.name {$loading['having']}
 					ORDER BY {$loading['order']} LIMIT {$loading['limit']}";
-		
+
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
 
@@ -1238,8 +1238,15 @@ class TagProducts extends Category {
 	
 	function TagProducts ($options=array()) {
 		$tagtable = DatabaseObject::tablename(Tag::$table);
-
+		
 		$this->tag = $options['tag'];
+		$tagquery = "";
+		if (strpos($options['tag'],',') !== false) {
+			$tags = explode(",",$options['tag']);
+			foreach ($tags as $tag)
+				$tagquery .= empty($tagquery)?"t.name='$tag'":" OR t.name='$tag'";
+		} else $tagquery = "t.name='{$options['tag']}'";
+		
 		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($options['tag'])."&quot;";
 		$this->slug = self::$_slug;
 		$this->uri = urlencode($options['tag']);
@@ -1247,7 +1254,7 @@ class TagProducts extends Category {
 		$this->loading = array(
 			'catalog'=>'tags',
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
-			'where'=>"catalog.tag=t.id AND t.name='{$options['tag']}'");
+			'where'=>"($tagquery)");
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
