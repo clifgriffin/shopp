@@ -90,7 +90,7 @@ jQuery(document).ready( function() {
 	});
 	
 	$('a.submitdelete').click(function () {
-		if (confirm("You are about to delete this promotion\n 'Cancel' to stop, 'OK' to delete.")) {
+		if (confirm("<?php _e('You are about to delete this promotion!\n \'Cancel\' to stop, \'OK\' to delete.','Shopp'); ?>")) {
 			$('<input type="hidden" name="delete[]" />').val($(this).attr('rel')).appendTo('#promotions');
 			$('<input type="hidden" name="deleting" />').val('promotion').appendTo('#promotions');
 			$('#promotions').submit();
@@ -99,7 +99,7 @@ jQuery(document).ready( function() {
 	});
 
 	$('#delete-button').click(function() {
-		if (confirm("<?php _e('Are you sure you want to delete the selected promotions?','Shopp'); ?>")) {
+		if (confirm("<?php echo addslashes(__('Are you sure you want to delete the selected promotions?','Shopp')); ?>")) {
 			$('<input type="hidden" name="promotions" value="list" />').appendTo($('#promotions'));
 			return true;
 		} else return false;

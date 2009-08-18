@@ -134,12 +134,12 @@ $('#selectall').change( function() {
 });
 
 $('#delete-button').click(function() {
-	if (confirm("<?php _e('Are you sure you want to delete the selected orders?','Shopp'); ?>")) return true;
+	if (confirm("<?php echo addslashes(__('Are you sure you want to delete the selected orders?','Shopp')); ?>")) return true;
 	else return false;
 });
 
 $('#update-button').click(function() {
-	if (confirm("<?php _e('Are you sure you want to update the status of the selected orders?','Shopp'); ?>")) return true;
+	if (confirm("<?php echo addslashes(__('Are you sure you want to update the status of the selected orders?','Shopp')); ?>")) return true;
 	else return false;
 });
 

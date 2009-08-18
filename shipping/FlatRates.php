@@ -49,7 +49,7 @@ var FlatRates = function (methodid,table,rates) {
 		domesticHeading[key] = $('<th scope="col"><label for="'+area+'['+methodid+']">'+area+'</label></th>').appendTo(headingsRow);
 	});
 	var regionHeading = $('<th scope="col"><label for="'+region+'['+methodid+']">'+region+'</label></th>').appendTo(headingsRow);
-	var worldwideHeading = $('<th scope="col"><label for="worldwide['+methodid+']">Worldwide</label></th>').appendTo(headingsRow);
+	var worldwideHeading = $('<th scope="col"><label for="worldwide['+methodid+']"><?php echo addslashes(__('Worldwide','Shopp')); ?></label></th>').appendTo(headingsRow);
 	$('<th scope="col">').appendTo(headingsRow);
 
 	var row = $('<tr/>').appendTo(table);

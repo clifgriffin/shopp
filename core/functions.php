@@ -900,7 +900,7 @@ function copy_shopp_templates ($src,$target) {
  * or if it matches a given Shopp page ($page) */
 function is_shopp_page ($page=false) {
 	global $Shopp,$wp_query;
-	
+
 	if ($wp_query->post->post_type != "page") return false;
 	
 	$pages = $Shopp->Settings->get('pages');

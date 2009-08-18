@@ -34,6 +34,7 @@ class Item {
 	var $shipping = false;
 	var $inventory = false;
 	var $taxable = false;
+	var $freeshipping = false;
 
 	function Item ($Product,$pricing,$category,$data=array()) {
 		global $Shopp; // To access settings
@@ -67,7 +68,6 @@ class Item {
 		$this->sale = $Price->onsale;
 		$this->saved = ($Price->price - $Price->promoprice);
 		$this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
-		$this->freeshipping = ($Price->freeshipping || $Product->freeshipping);
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
 		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
 		$this->donation = $Price->donation;
@@ -92,7 +92,7 @@ class Item {
 			if ($Price->shipping == "on") {
 				$this->weight = $Price->weight;
 				$this->shipfee = $Price->shipfee;
-			}
+			} else $this->freeshipping = true;
 		}
 		
 		$this->inventory = ($Price->inventory == "on")?true:false;

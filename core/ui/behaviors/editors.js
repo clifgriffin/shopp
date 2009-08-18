@@ -255,6 +255,7 @@ function unlinkVariations (option) {
 
 function updateVariationLinks () {
 	var $=jQuery.noConflict();
+	if (!linkedPricing) return;
 	for (var key in pricingOptions) pricingOptions[key].unlinkInputs();
 	for (var option in linkedPricing) {
 		linkedPricing[option] = false;
@@ -377,8 +378,12 @@ function deleteVariationPrices (optionids,reduce) {
 				var newkey = xorkey(modOptions);
 			
 				if (reduce && !pricingOptions[newkey]) {
-					pricingOptions[newkey] = pricingOptions[key];
+					if (newkey != 0) pricingOptions[newkey] = pricingOptions[key];
+					else {
+						pricingOptions[key].row.remove();
+					}
 					delete pricingOptions[key];
+					
 					if (pricingOptions[newkey]) {
 						pricingOptions[newkey].options = modOptions;
 						pricingOptions[newkey].updateLabel();
@@ -387,7 +392,6 @@ function deleteVariationPrices (optionids,reduce) {
 					}
 				} else {
 					if (pricingOptions[key]) {
-						
 						// Mark priceline for removal from db
 						var dbPriceId = $('#priceid-'+pricingOptions[key].id).val();
 						if ($('#deletePrices').val() == "") $('#deletePrices').val(dbPriceId);

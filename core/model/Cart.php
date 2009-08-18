@@ -652,7 +652,7 @@ class Cart {
 			// Item does not have free shipping, 
 			// so the cart shouldn't have free shipping
 			if (!$Item->freeshipping) $freeshipping = false;
-			
+
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
 			
@@ -672,11 +672,11 @@ class Cart {
 		$Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
 		
 		// Calculate shipping
-		if (!$this->data->ShippingDisabled && $this->data->Shipping) 
+		if (!$this->data->ShippingDisabled && $this->data->Shipping && !$this->freeshipping) 
 			$Totals->shipping = $this->shipping();
 
 		// Calculate final total (s
-		$Totals->total = $Totals->subtotal - $discount + 
+		$Totals->total = $Totals->subtotal - round($discount,2) + 
 			$Totals->shipping + $Totals->tax;
 
 		do_action_ref_array('shopp_cart_retotal',array(&$Totals));
@@ -692,7 +692,6 @@ class Cart {
 			$this->data->Order->Billing = new Billing();
 			$this->data->Order->Shipping = new Shipping();
 		}
-		
 		
 		$authentication = $Shopp->Settings->get('account_system');
 
@@ -1379,7 +1378,7 @@ class Cart {
 				// Test Mode will not require encrypted checkout
 				if (strpos($gateway,"TestMode.php") !== false 
 					|| isset($_GET['shopp_xco']) 
-					|| defined('SHOPP_NOSSL')) 
+					|| SHOPP_NOSSL) 
 					$ssl = false;
 				$link = $Shopp->link('checkout',$ssl);
 				
@@ -1427,15 +1426,12 @@ class Cart {
 				break;
 			case "loggedin": return $this->data->login; break;
 			case "notloggedin": return (!$this->data->login && $Shopp->Settings->get('account_system') != "none"); break;
-			case "loginname-login": 
-				if (!empty($_POST['loginname-login']))
-					$options['value'] = $_POST['loginname-login'];
-				return '<input type="text" name="loginname-login" id="loginname-login" '.inputattrs($options).' />';
-				break;
-			case "email-login": 
-				if (!empty($_POST['email-login']))
-					$options['value'] = $_POST['email-login']; 
-				return '<input type="text" name="email-login" id="email-login" '.inputattrs($options).' />';
+			case "email-login":  // Deprecating
+			case "loginname-login":  // Deprecating
+			case "account-login": 
+				if (!empty($_POST['account-login']))
+					$options['value'] = $_POST['account-login']; 
+				return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
 				break;
 			case "password-login": 
 				if (!empty($_POST['password-login']))

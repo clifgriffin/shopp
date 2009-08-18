@@ -87,7 +87,7 @@ class CanadaPost {
 
 			settings += '<div class="multiple-select"><ul id="cpso-services">';
 
-			settings += '<li><input type="checkbox" name="select-all" id="cpso-services-select-all" /><label for="cpso-services-select-all"><strong><?php _e('Select All','Shopp'); ?></strong></label>';
+			settings += '<li><input type="checkbox" name="select-all" id="cpso-services-select-all" /><label for="cpso-services-select-all"><strong><?php echo addslashes(__('Select All','Shopp')); ?></strong></label>';
 
 			var even = true;
 			
@@ -102,8 +102,8 @@ class CanadaPost {
 			settings += '</td>';
 			
 			settings += '<td>';
-			settings += '<div><input type="text" name="settings[CanadaPost][merchantid]" id="cpso_merchantid" value="<?php echo $this->settings['merchantid']; ?>" size="16" /><br /><label for="cpso_merchantid"><?php _e('Canada Post merchant ID','Shopp'); ?></label></div>';
-			settings += '<div><input type="text" name="settings[CanadaPost][postcode]" id="cpso_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="cpso_postcode"><?php _e('Your postal code','Shopp'); ?></label></div>';
+			settings += '<div><input type="text" name="settings[CanadaPost][merchantid]" id="cpso_merchantid" value="<?php echo $this->settings['merchantid']; ?>" size="16" /><br /><label for="cpso_merchantid"><?php echo addslashes(__('Canada Post merchant ID','Shopp')); ?></label></div>';
+			settings += '<div><input type="text" name="settings[CanadaPost][postcode]" id="cpso_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="cpso_postcode"><?php echo addslashes(__('Your postal code','Shopp')); ?></label></div>';
 				
 			settings += '</td><td width="33%">&nbsp;</td>';
 			settings += '</tr>';

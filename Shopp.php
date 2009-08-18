@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.7
+Version: 1.0.8 RC1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.7");
+define("SHOPP_VERSION","1.0.8 RC1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -941,7 +941,13 @@ class Shopp {
 
 		$pages = $this->Settings->get('pages');
 		// If checkout page requested
-		if (is_shopp_page('checkout') && $wp->query_vars['shopp_proc'] == "checkout") {
+		// Note: we have to use custom detection here as 
+		// the wp->post vars are not available at this point
+		// to make use of is_shopp_page()
+		if (((SHOPP_PERMALINKS && isset($wp->query_vars['pagename']) 
+			&& $wp->query_vars['pagename'] == $pages['checkout']['permalink'])
+			|| (isset($wp->query_vars['page_id']) && $wp->query_vars['page_id'] == $pages['checkout']['id']))
+		 	&& $wp->query_vars['shopp_proc'] == "checkout") {
 			
 			$this->Cart->updated();
 			$this->Cart->totals();
@@ -1306,7 +1312,7 @@ class Shopp {
 
 					// Purchase Completion check
 					if ($Purchase->transtatus != "CHARGED" 
-						&& !defined('SHOPP_PREPAYMENT_DOWNLOADS')) {
+						&& !SHOPP_PREPAYMENT_DOWNLOADS) {
 						new ShoppError(__('This file cannot be downloaded because payment has not been received yet.','Shopp'),'shopp_download_limit');
 						$forbidden = true;
 					}

@@ -19,7 +19,7 @@
 		<?php if (shopp('customer','notloggedin')): ?>
 		<li>
 			<label for="login">Login to Your Account</label>
-			<span><?php shopp('customer','email-login','size=20&title=Login'); ?><label for="login">Email</label></span>
+			<span><?php shopp('customer','account-login','size=20&title=Login'); ?><label for="login">Email</label></span>
 			<span><?php shopp('customer','password-login','size=20&title=Password'); ?><label for="password">Password</label></span>
 			<span><?php shopp('customer','submit-login','value=Login'); ?></span>
 		</li>

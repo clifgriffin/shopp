@@ -88,6 +88,7 @@ class Flow {
 		if (!defined('BR')) define('BR','<br />');
 		if (!defined('SHOPP_USERLEVEL')) define('SHOPP_USERLEVEL',8);
 		if (!defined('SHOPP_NOSSL')) define('SHOPP_NOSSL',false);
+		if (!defined('SHOPP_PREPAYMENT_DOWNLOADS')) define('SHOPP_PREPAYMENT_DOWNLOADS',false);
 		define("SHOPP_WP27",(!version_compare($wp_version,"2.7","<")));
 		define("SHOPP_DEBUG",($Core->Settings->get('error_logging') == 2048));
 		define("SHOPP_PATH",$this->basepath);
@@ -1293,12 +1294,13 @@ class Flow {
 		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);	
 
 		// Check for an existing product slug
-		$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$Product->slug' AND id != $Product->id LIMIT 1");
+		$exclude_product = !empty($Product->id)?"AND id != $Product->id":"";
+		$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$Product->slug' $exclude_product LIMIT 1");
 		if ($existing) {
 			$suffix = 2;
 			while($existing) {
 				$altslug = substr($Product->slug, 0, 200-(strlen($suffix)+1)). "-$suffix";
-				$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$altslug' AND id != $Product->id LIMIT 1");
+				$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$altslug' $exclude_product LIMIT 1");
 				$suffix++;
 			}
 			$Product->slug = $altslug;
@@ -1739,14 +1741,17 @@ class Flow {
 				$pricing['shipfee'] = floatvalue($pricing['shipfee']);
 			}
 			$Category->prices = stripslashes_deep($_POST['price']);
-		}
+		} else $Category->prices = array();
 
 		if (empty($_POST['specs'])) $Category->specs = array();
 		else $_POST['specs'] = stripslashes_deep($_POST['specs']);
-		if (empty($_POST['options'])) $Category->options = array();
-		else $_POST['options'] = stripslashes_deep($_POST['options']);
+		if (empty($_POST['options']) 
+			|| (count($_POST['options'])) == 1 && !isset($_POST['options'][1]['options'])) {
+				$_POST['options'] = $Category->options = array();
+				$_POST['prices'] = $Category->prices = array();
+		} else $_POST['options'] = stripslashes_deep($_POST['options']);
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
-		
+
 		$Category->updates($_POST);
 		$Category->save();
 
@@ -2190,18 +2195,22 @@ class Flow {
 	}
 
 	function settings_checkout () {
+		global $Shopp;
 		$db =& DB::get();
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$next = $db->query("SELECT IF ((MAX(id)) > 0,(MAX(id)+1),1) AS id FROM $purchasetable LIMIT 1");
-
+		$next_setting = $Shopp->Settings->get('next_order_id');
+		
+		if ($next->id > $next_setting) $next_setting = $next->id;
+		
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-checkout');
-			if ($_POST['next_order_id'] != $next->id) {
-				if ($db->query("ALTER TABLE $purchasetable AUTO_INCREMENT={$_POST['next_order_id']}"))
-					$next->id = $_POST['next_order_id'];
+			if ($_POST['settings']['next_order_id'] != $next->id) {
+				if ($db->query("ALTER TABLE $purchasetable AUTO_INCREMENT={$_POST['settings']['next_order_id']}"))
+					$next->id = $_POST['settings']['next_order_id'];
 			} 
 				
 			$this->settings_save();
