@@ -200,20 +200,10 @@ class PayPalStandard {
 		// Check for unique transaction id
 		$Purchase = new Purchase($_POST['txn_id'],'transactionid');
 		
-		if ($this->settings['testmode'] == "on") {
-			if ($_POST['mc_gross'] == number_format($Order->Totals->total,2) 
-				&& empty($Purchase->id) 
-				&& $_POST['residence_country'] == $Order->Billing->country)
-					$validation = true;
-		} else {
-			if ($_POST['mc_gross'] == number_format($Order->Totals->total,2) 
-				&& empty($Purchase->id) 
-				&& $_POST['payer_email'] == $Order->Customer->email
-				&& $_POST['residence_country'] == $Order->Billing->country)
-					$validation = true;
-		}
-		if (SHOPP_DEBUG) new ShoppError('IPN notification received and validated.',false,SHOPP_DEBUG_ERR);
-		
+		if ($_POST['mc_gross'] == number_format($Order->Totals->total,2) 
+			&& empty($Purchase->id) 
+			&& $_POST['residence_country'] == $Order->Billing->country)
+				$validation = true;
 		
 		if ($validation) $this->order();
 		else new ShoppError(__('An order was received from PayPal that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'paypal_trxn_validation',SHOPP_TRXN_ERR);
@@ -237,7 +227,7 @@ class PayPalStandard {
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
-		if (SHOPP_DEBUG) new ShoppError('Processing order into purchase.',false,SHOPP_DEBUG_ERR);
+		if (SHOPP_DEBUG) new ShoppError('IPN notification validated.',false,SHOPP_DEBUG_ERR);
 
 		// Transaction successful, save the order
 		$authentication = $Shopp->Settings->get('account_system');

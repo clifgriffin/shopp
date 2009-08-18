@@ -88,7 +88,7 @@ jQuery(document).ready( function() {
 	});
 
 	$('a.submitdelete').click(function () {
-		if (confirm("You are about to delete this category\n 'Cancel' to stop, 'OK' to delete.")) {
+		if (confirm("<?php _e('You are about to delete this category!\n \'Cancel\' to stop, \'OK\' to delete.','Shopp'); ?>")) {
 			$('<input type="hidden" name="delete[]" />').val($(this).attr('rel')).appendTo('#categories');
 			$('<input type="hidden" name="deleting" />').val('category').appendTo('#categories');
 			$('#categories').submit();
@@ -97,7 +97,7 @@ jQuery(document).ready( function() {
 	});
 
 	$('#delete-button').click(function() {
-		if (confirm("<?php _e('Are you sure you want to delete the selected categories?','Shopp'); ?>")) {
+		if (confirm("<?php echo addslashes(__('Are you sure you want to delete the selected categories?','Shopp')); ?>")) {
 			$('<input type="hidden" name="categories" value="list" />').appendTo($('#categories'));
 			return true;
 		} else return false;

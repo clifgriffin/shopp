@@ -302,8 +302,6 @@ class Customer extends DatabaseObject {
 
 			case "loggedin": return $Shopp->Cart->data->login; break;
 			case "notloggedin": return (!$Shopp->Cart->data->login && $Shopp->Settings->get('account_system') != "none"); break;
-			case "email-login": 
-			case "loginname-login": 
 			case "login-label": 
 				$accounts = $Shopp->Settings->get('account_system');
 				$label = __('Email Address','Shopp');
@@ -311,6 +309,8 @@ class Customer extends DatabaseObject {
 				if (isset($options['label'])) $label = $options['label'];
 				return $label;
 				break;
+			case "email-login": 
+			case "loginname-login": 
 			case "account-login": 
 				if (!empty($_POST['account-login']))
 					$options['value'] = $_POST['account-login']; 

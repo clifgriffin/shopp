@@ -1125,8 +1125,6 @@ class CatalogProducts extends Category {
 		$this->smart = true;
 		$this->loading = array('where'=>"true");
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1141,8 +1139,6 @@ class NewProducts extends Category {
 		$this->smart = true;
 		$this->loading = array('where'=>"p.id IS NOT NULL",'order'=>'newest');
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1156,8 +1152,6 @@ class FeaturedProducts extends Category {
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$this->loading = array('where'=>"p.featured='on'",'order'=>'p.modified DESC');
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1171,8 +1165,6 @@ class OnSaleProducts extends Category {
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$this->loading = array('where'=>"pd.sale='on' OR (pr.status='enabled' AND pr.discount > 0 AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1) OR (UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(ends)) ))",'order'=>'p.modified DESC');
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1191,8 +1183,6 @@ class BestsellerProducts extends Category {
 			'where' => 'TRUE',
 			'order'=>'bestselling');
 		if (isset($options['where'])) $this->loading['where'] = $options['where'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1228,7 +1218,6 @@ class SearchResults extends Category {
 			'columns'=> "MATCH(p.name,p.summary,p.description) AGAINST ('$keywords' IN BOOLEAN MODE) AS score",
 			'where'=>"MATCH(p.name,p.summary,p.description) AGAINST ('$keywords' IN BOOLEAN MODE)",
 			'orderby'=>'score DESC');
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 	}
 	
 }
@@ -1255,8 +1244,6 @@ class TagProducts extends Category {
 			'catalog'=>'tags',
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
 			'where'=>"($tagquery)");
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1303,8 +1290,6 @@ class RelatedProducts extends Category {
 			'catalog'=>'tags',
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
 			'where'=>"catalog.tag=t.id AND ($tagscope)$exclude");
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
 		else $this->loading['order'] = "bestselling";
 		if (isset($options['controls']) && value_is_true($options['controls']))
@@ -1330,8 +1315,6 @@ class RandomProducts extends Category {
 			$this->loading['where'] = join(" AND ",$where);
 		}
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
