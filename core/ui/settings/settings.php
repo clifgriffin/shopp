@@ -125,7 +125,7 @@ var addLabel = function (id,label,location) {
 	});
 	
 	deleteButton.click(function () {
-		if (confirm("<?php _e('Are you sure you want to remove this order status label?','Shopp'); ?>"))
+		if (confirm("<?php echo addslashes(__('Are you sure you want to remove this order status label?','Shopp')); ?>"))
 			li.remove();
 	});
 	

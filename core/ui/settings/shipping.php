@@ -15,7 +15,7 @@
 	            <?php _e('Check this to use shipping. Leave un-checked to disable shipping &mdash; helpful if you are only selling subscriptions or downloads.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 
-				<th scope="row" valign="top"><label for="weight-units"><?php _e('Weight Unit','Shopp'); ?></label></th> 
+				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Weight Unit','Shopp'); ?></label></th> 
 				<td>
 				<select name="settings[weight_unit]" id="weight-unit">
 					<option></option>
@@ -90,7 +90,7 @@ var addShippingRate = function (r) {
 	if (!r) r = false;
 	var i = shippingRates.length;
 	var row = $('<tr class="form-required"></tr>').appendTo($('#shipping-rates'));
-	var heading = $('<th scope="row" valign="top"><label for="name['+i+']" id="label-'+i+'"><?php _e('Option Name','Shopp'); ?></label></th>').appendTo(row);
+	var heading = $('<th scope="row" valign="top"><label for="name['+i+']" id="label-'+i+'"><?php echo addslashes(__('Option Name','Shopp')); ?></label></th>').appendTo(row);
 	$('<br />').appendTo(heading);
 	var name = $('<input type="text" name="settings[shipping_rates]['+i+'][name]" value="" id="name-'+i+'" size="16" tabindex="'+(i+1)+'00" class="selectall" />').appendTo(heading);
 	$('<br />').appendTo(heading);
@@ -143,7 +143,7 @@ var addShippingRate = function (r) {
 
 	deleteRateButton.click(function () {
 		if (shippingRates.length > 1) {
-			if (confirm("<?php _e('Are you sure you want to delete this shipping option?','Shopp'); ?>")) {
+			if (confirm("<?php echo addslashes(__('Are you sure you want to delete this shipping option?','Shopp')); ?>")) {
 				row.remove();
 				shippingRates.splice(i,1);
 			}

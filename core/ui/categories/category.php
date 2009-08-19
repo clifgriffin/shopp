@@ -269,7 +269,7 @@ var DONATIONS_MIN_LABEL = "<?php _e('Amount required as minimum','Shopp'); ?>";
 var PRODUCT_DOWNLOAD_LABEL = "<?php _e('Product Download','Shopp'); ?>";
 var NO_PRODUCT_DOWNLOAD_TEXT = "<?php _e('No product download.','Shopp'); ?>";
 var NO_DOWNLOAD = "<?php _e('No download file.','Shopp'); ?>";
-var DEFAULT_PRICELINE_LABEL = "<?php _e('Price &amp; Delivery','Shopp'); ?>";
+var DEFAULT_PRICELINE_LABEL = "<?php _e('Price & Delivery','Shopp'); ?>";
 var FILE_NOT_FOUND_TEXT = "<?php _e('The file you specified could not be found.','Shopp'); ?>";
 var FILE_NOT_READ_TEXT = "<?php _e('The file you specified is not readable and cannot be used.','Shopp'); ?>";
 var FILE_ISDIR_TEXT = "<?php _e('The file you specified is a directory and cannot be used.','Shopp'); ?>";
@@ -277,6 +277,7 @@ var FILE_ISDIR_TEXT = "<?php _e('The file you specified is a directory and canno
 var productOptions = new Array();
 var optionMenus = new Array();
 var pricingOptions = new Object();
+var linkedPricing = false;
 var detailsidx = 1;
 var variationsidx = 1;
 var optionsidx = 1;
@@ -324,7 +325,7 @@ jQuery(document).ready(function () {
 		if (!$('#spectemplates-setting').attr('checked') && !$('#variations-setting').attr('checked'))
 			$('#templates').hide();
 	}).change();
-		
+	
 	if (details) for (s in details) addDetail(details[s]);
 	$('#addPriceLevel').click(function() { addPriceLevel(); });	
 	$('#addDetail').click(function() { addDetail(); });	
@@ -353,9 +354,7 @@ jQuery(document).ready(function () {
 		// close postboxes that should be closed
 		jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	}
-	
-	
-	
+		
 	function addDetail (data) {
 		var menus = $('#details-menu');
 		var entries = $('#details-list');

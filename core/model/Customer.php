@@ -37,7 +37,7 @@ class Customer extends DatabaseObject {
 				case "receipt": break;
 				case "history": $this->load_orders(); break;
 				case "downloads": $this->load_downloads(); break;
-				case "logout": $Shopp->Cart->logout(); break;
+				// case "logout": $Shopp->Cart->logout(); break;
 			}
 		}
 		
@@ -149,7 +149,7 @@ class Customer extends DatabaseObject {
 		$activation = preg_replace('/[^a-z0-9]/i', '', $activation);
 
 		$errors = array();
-		if (empty($activation))
+		if (empty($activation) || !is_string($activation))
 			$errors[] = new ShoppError(__('Invalid key'));
 		
 		$RecoveryCustomer = new Customer($activation,'activation');
@@ -234,7 +234,7 @@ class Customer extends DatabaseObject {
 		if (!empty($this->login)) $handle = $this->login;
 		else {
 			// No login provided, auto-generate login handle
-			list($handle,$domain) = split("@",$Order->Customer->email);
+			list($handle,$domain) = explode("@",$Order->Customer->email);
 
 			if (username_exists($handle)) // The email handle exists, so use first name + last initial
 				$handle = $this->firstname.substr($this->lastname,0,1);
@@ -249,6 +249,8 @@ class Customer extends DatabaseObject {
 		
 		if (username_exists($handle))
 			new ShoppError(__('The login name you provided is already in use.  Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
+		
+		if (empty($this->password)) $this->password = wp_generate_password(12,true);
 		
 		// Create the WordPress account
 		$wpuser = wp_insert_user(array(
@@ -268,6 +270,7 @@ class Customer extends DatabaseObject {
 		
 		// Send email notification of the new account
 		wp_new_user_notification( $wpuser, $this->password );
+		$this->password = "";
 		if (SHOPP_DEBUG) new ShoppError('Successfully created the WordPress user for the Shopp account.',false,SHOPP_DEBUG_ERR);
 		return true;
 	}
@@ -299,8 +302,6 @@ class Customer extends DatabaseObject {
 
 			case "loggedin": return $Shopp->Cart->data->login; break;
 			case "notloggedin": return (!$Shopp->Cart->data->login && $Shopp->Settings->get('account_system') != "none"); break;
-			case "email-login": 
-			case "loginname-login": 
 			case "login-label": 
 				$accounts = $Shopp->Settings->get('account_system');
 				$label = __('Email Address','Shopp');
@@ -308,6 +309,8 @@ class Customer extends DatabaseObject {
 				if (isset($options['label'])) $label = $options['label'];
 				return $label;
 				break;
+			case "email-login": 
+			case "loginname-login": 
 			case "account-login": 
 				if (!empty($_POST['account-login']))
 					$options['value'] = $_POST['account-login']; 
@@ -501,7 +504,7 @@ class Customer extends DatabaseObject {
 				if (array_key_exists('date',$options)) $string .= date($df,mktimestamp($download->created));
 				if (array_key_exists('url',$options)) $string .= (SHOPP_PERMALINKS) ?
 					$Shopp->shopuri."download/".$download->dkey : 
-					add_query_arg('shopp_download',$download->dkey,$Shopp->shopuri);
+					add_query_arg('shopp_download',$download->dkey,$Shopp->link('account'));
 				
 				return $string;
 				break;
@@ -577,12 +580,12 @@ class CustomersExport {
 		if (empty($request)) $request = $_GET;
 		
 		if (!empty($request['start'])) {
-			list($month,$day,$year) = split("/",$request['start']);
+			list($month,$day,$year) = explode("/",$request['start']);
 			$starts = mktime(0,0,0,$month,$day,$year);
 		}
 		
 		if (!empty($request['end'])) {
-			list($month,$day,$year) = split("/",$request['end']);
+			list($month,$day,$year) = explode("/",$request['end']);
 			$ends = mktime(0,0,0,$month,$day,$year);
 		}
 		

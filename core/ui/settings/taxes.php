@@ -112,7 +112,7 @@ var addTaxRate = function (r) {
 	
 	$(deleteButton).click(function () {
 		if (taxrates.length > 1) {
-			if (confirm("<?php _e('Are you sure you want to delete this tax rate?','Shopp'); ?>")) {
+			if (confirm("<?php echo addslashes(__('Are you sure you want to delete this tax rate?','Shopp')); ?>")) {
 				row.remove();
 				taxrates.splice(i,1);
 			}

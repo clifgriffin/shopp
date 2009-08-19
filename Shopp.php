@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.7 RC3
+Version: 1.0.8
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.7 RC3");
+define("SHOPP_VERSION","1.0.8");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -132,7 +132,7 @@ class Shopp {
 
 		// Theme widgets
 		add_action('widgets_init', array(&$this, 'widgets'));
-		add_filter('wp_list_pages',array(&$this->Flow,'secure_checkout_link'));
+		add_filter('wp_list_pages',array(&$this->Flow,'secure_page_links'));
 
 		add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
 		add_action('generate_rewrite_rules',array(&$this,'pages_index'));
@@ -436,8 +436,8 @@ class Shopp {
 			wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		}
 
-		// if ($tag == "checkout")
-		// 	wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
+		if ($tag == "checkout")
+			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
 		
 			
 	}
@@ -576,7 +576,7 @@ class Shopp {
 			(empty($shop)?"$catalog/":$shop).'feed/?$' => 'index.php?shopp_lookup=newproducts-rss',
 			(empty($shop)?"$catalog/":$shop).'receipt/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=receipt',
 			(empty($shop)?"$catalog/":$shop).'confirm-order/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=confirm-order',
-			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
+			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{40})/?$' => 'index.php?pagename='.shopp_pagename($account).'&shopp_download=$matches[1]',
 			(empty($shop)?"$catalog/":$shop).'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]'
 		);
 
@@ -705,7 +705,7 @@ class Shopp {
 			$this->welcome(); return;
 		}
 		
-		$pages = split("-",$_GET['page']);
+		$pages = explode("-",$_GET['page']);
 		$screen = end($pages);
 		switch($screen) {
 			case "catalog": 		$this->Flow->settings_catalog(); break;
@@ -776,7 +776,7 @@ class Shopp {
 	 * header()
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function header () {		
-		?><link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),$this->shopuri)); ?>' type='text/css' />
+		?><link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),get_bloginfo('url'))); ?>' type='text/css' />
 		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 		<?php
@@ -941,6 +941,9 @@ class Shopp {
 
 		$pages = $this->Settings->get('pages');
 		// If checkout page requested
+		// Note: we have to use custom detection here as 
+		// the wp->post vars are not available at this point
+		// to make use of is_shopp_page()
 		if (((SHOPP_PERMALINKS && isset($wp->query_vars['pagename']) 
 			&& $wp->query_vars['pagename'] == $pages['checkout']['permalink'])
 			|| (isset($wp->query_vars['page_id']) && $wp->query_vars['page_id'] == $pages['checkout']['id']))
@@ -1112,7 +1115,7 @@ class Shopp {
 		if (SHOPP_PERMALINKS) return $uri."/".$page['permalink'];
 		else return add_query_arg('page_id',$page['id'],trailingslashit($uri));
 	}
-	
+		
 	/**
 	 * help()
 	 * This function provides graceful degradation when the 
@@ -1215,6 +1218,8 @@ class Shopp {
 					echo "<link rel='stylesheet' href='".SHOPP_TEMPLATES_URI."/shopp.css' type='text/css' />";
 				echo "</head><body>";
 				echo $this->Flow->order_receipt();
+				if (isset($_GET['print']) && $_GET['print'] == 'auto')
+					echo '<script type="text/javascript">window.onload = function () { window.print(); window.close(); }</script>';
 				echo "</body></html>";
 				exit();
 				break;
@@ -1262,7 +1267,7 @@ class Shopp {
 					foreach ($menu['options'] as &$option) $option['id'] += $_GET['cat'];
 				}
 				foreach ($result->prices as &$price) {
-					$optionids = split(",",$price['options']);
+					$optionids = explode(",",$price['options']);
 					foreach ($optionids as &$id) $id += $_GET['cat'];
 					$price['options'] = join(",",$optionids);
 					$price['optionkey'] = "";
@@ -1298,28 +1303,56 @@ class Shopp {
 					
 					require_once("core/model/Purchased.php");
 					$Purchased = new Purchased($download,"dkey");
+					$Purchase = new Purchase($Purchased->purchase);
 					$target = $db->query("SELECT target.* FROM $assettable AS target LEFT JOIN $pricetable AS pricing ON pricing.id=target.parent AND target.context='price' WHERE pricing.id=$Purchased->price AND target.datatype='download'");
 					$Asset = new Asset();
 					$Asset->populate($target);
 
 					$forbidden = false;
-					// Download limit checking
-					if (($this->Settings->get('download_limit') && !($Purchased->downloads < $this->Settings->get('download_limit'))) &&  // Has download credits available
-						($this->Settings->get('download_timelimit') && $Purchased->created < mktime()+$this->Settings->get('download_timelimit') ))
-								$forbidden = true;
 
-					if ($this->Settings->get('download_restriction') == "ip") {
-						$Purchase = new Purchase($Purchased->purchase);
-						if ($Purchase->ip != $_SERVER['REMOTE_ADDR']) $forbidden = true;
+					// Purchase Completion check
+					if ($Purchase->transtatus != "CHARGED" 
+						&& !SHOPP_PREPAYMENT_DOWNLOADS) {
+						new ShoppError(__('This file cannot be downloaded because payment has not been received yet.','Shopp'),'shopp_download_limit');
+						$forbidden = true;
 					}
+
+					// Account restriction checks
+					if ($this->Settings->get('account_system') != "none"
+						&& !$this->Cart->data->login) {
+							new ShoppError(__('You must login to access this download.','Shopp'),'shopp_download_limit',SHOPP_ERR);
+							header('Location: '.$this->link('account'));
+							exit();
+					}
+
+					// Download limit checking
+					if ($this->Settings->get('download_limit') // Has download credits available
+						&& $Purchased->downloads+1 > $this->Settings->get('download_limit')) {
+							new ShoppError(__('This file can no longer be downloaded because the download limit has been reached.','Shopp'),'shopp_download_limit');
+							$forbidden = true;
+						}
+							
+					// Download expiration checking
+					if ($this->Settings->get('download_timelimit') // Within the timelimit
+						&& $Purchased->created < mktime()+$this->Settings->get('download_timelimit') ) {
+							new ShoppError(__('This file can no longer be downloaded because it has expired.','Shopp'),'shopp_download_limit');
+							$forbidden = true;
+						}
+					
+					// IP restriction checks
+					if ($this->Settings->get('download_restriction') == "ip"
+						&& !empty($Purchase->ip) 
+						&& $Purchase->ip != $_SERVER['REMOTE_ADDR']) {
+							new ShoppError(__('The file cannot be downloaded because this computer could not be verified as the system the file was purchased from.','Shopp'),'shopp_download_limit');
+							$forbidden = true;	
+						}
 
 					do_action_ref_array('shopp_download_request',array(&$Purchased));
 				}
 			
 				if ($forbidden) {
 					header("Status: 403 Forbidden");
-					header("Location: ".$this->link(''));
-					exit();
+					return;
 				}
 				
 				header("Content-type: ".$Asset->properties['mimetype']); 
@@ -1501,13 +1534,13 @@ function shopp () {
 				$options[strtolower($key)] = $args[2][$key];
 		} else {
 			// regular url-compatible arguments
-			$paramsets = split("&",$args[2]);
+			$paramsets = explode("&",$args[2]);
 			foreach ((array)$paramsets as $paramset) {
 				if (empty($paramset)) continue;
 				$key = $paramset;
 				$value = "";
 				if (strpos($paramset,"=") !== false) 
-					list($key,$value) = split("=",$paramset);
+					list($key,$value) = explode("=",$paramset);
 				$options[strtolower($key)] = $value;
 			}
 		}

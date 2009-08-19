@@ -119,7 +119,7 @@ function duration ($start,$end) {
  * or $_POST['variable'] */
 function shopp_email ($template,$data=array()) {
 	
-	if (strpos($template,"\r\n") !== false) $f = split("\r\n",$template);
+	if (strpos($template,"\r\n") !== false) $f = explode("\r\n",$template);
 	else {
 		if (file_exists($template)) $f = file($template);
 		else new ShoppError(__("Could not open the email template because the file does not exist or is not readable.","Shopp"),'email_template',SHOPP_ADMIN_ERR,array('template'=>$template));
@@ -356,7 +356,7 @@ function shopp_prereqs () {
 	if (!function_exists("gd_info")) $errors[] = __("Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.  Your web hosting environment does not currently have GD installed (or built into PHP).");
 	else {
 		$gd = gd_info();
-		if (!$gd['JPG Support']) $errors[] = __("Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.");
+		if (!$gd['JPG Support'] && !$gd['JPEG Support']) $errors[] = __("Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.");
 	}
 	
 	if (!empty($errors)) {
@@ -894,6 +894,31 @@ function copy_shopp_templates ($src,$target) {
 	}
 }
 
+/**
+ * is_shopp_page ()
+ * Used to determine if the requested page is a Shopp page 
+ * or if it matches a given Shopp page ($page) */
+function is_shopp_page ($page=false) {
+	global $Shopp,$wp_query;
+
+	if ($wp_query->post->post_type != "page") return false;
+	
+	$pages = $Shopp->Settings->get('pages');
+		
+	// Detect if the requested page is a Shopp page
+	if (!$page) {
+		foreach ($pages as $page)
+			if ($page['id'] == $wp_query->post->ID) return true;
+		return false;
+	}
+
+	// Determine if the visitor's requested page matches the provided page
+	if (!isset($pages[strtolower($page)])) return false;
+	$page = $pages[strtolower($page)];
+	if ($page['id'] == $wp_query->post->ID) return true;
+	return false;
+}
+
 function template_path ($path) {
 	if (DIRECTORY_SEPARATOR == "\\") $path = str_replace("/","\\",$path);
 	return $path;
@@ -979,6 +1004,17 @@ class FTPClient {
 	}
 	
 	/**
+	 * delete()
+	 * Delete the target file, recursively delete directories  */
+	function delete ($file) {
+		if (empty($file)) return false;
+		if (!$this->isdir($file)) return @ftp_delete($this->connection, $file);
+		$files = $this->scan($file);
+		if (!empty($files)) foreach ($files as $target) $this->delete($target);
+		return @ftp_rmdir($this->connection, $file);
+	}
+	
+	/**
 	 * put()
 	 * Copies the target file to the remote location */
 	function put ($file,$remote) {
@@ -1008,7 +1044,7 @@ class FTPClient {
 	 * Gets a list of files in a directory/current directory */
 	function scan ($path=false) {
 		if (!$path) $path = $this->pwd();
-		return ftp_nlist($this->connection,$path);
+		return @ftp_nlist($this->connection,$path);
 	}
 	
 	/**
@@ -1016,7 +1052,7 @@ class FTPClient {
 	 * Determines if the file is a directory or a file */
 	function isdir ($file=false) {
 		if (!$file) $file = $this->pwd();
-	    if (ftp_size($this->connection, $file) == '-1')
+	    if (@ftp_size($this->connection, $file) == '-1')
 	        return true; // Directory
 	    else return false; // File
 	}
@@ -1036,12 +1072,13 @@ class FTPClient {
 				return substr($path,$index);
 			}
 		}
-		$this->log[] = "Failed to map realpath to FTP path";
+		// No remapping needed
 		return $path;
 	}
 
 }
 
+date_default_timezone_set('UTC');
 shopp_prereqs();  // Run by default at include
 
 ?>

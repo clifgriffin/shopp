@@ -98,7 +98,7 @@ class USPSRates {
 
 			settings += '<div class="multiple-select"><ul id="usps-services">';
 
-			settings += '<li><input type="checkbox" name="select-all" id="usps-services-select-all" /><label for="ups-services-select-all"><strong><?php _e('Select All','Shopp'); ?></strong></label>';
+			settings += '<li><input type="checkbox" name="select-all" id="usps-services-select-all" /><label for="ups-services-select-all"><strong><?php echo addslashes(__('Select All','Shopp')); ?></strong></label>';
 
 			var even = true;
 			
@@ -113,8 +113,8 @@ class USPSRates {
 			settings += '</td>';
 			
 			settings += '<td>';
-			settings += '<div><input type="text" name="settings[USPSRates][userid]" id="uspsrates_userid" value="<?php echo $this->settings['userid']; ?>" size="16" /><br /><label for="uspsrates_userid"><?php _e('USPS User ID','Shopp'); ?></label></div>';
-			settings += '<div><input type="text" name="settings[USPSRates][postcode]" id="upsrates_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="upsrates_postcode"><?php _e('Your postal code','Shopp'); ?></label></div>';
+			settings += '<div><input type="text" name="settings[USPSRates][userid]" id="uspsrates_userid" value="<?php echo $this->settings['userid']; ?>" size="16" /><br /><label for="uspsrates_userid"><?php echo addslashes(__('USPS User ID','Shopp')); ?></label></div>';
+			settings += '<div><input type="text" name="settings[USPSRates][postcode]" id="upsrates_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="upsrates_postcode"><?php echo addslashes(__('Your postal code','Shopp')); ?></label></div>';
 				
 			settings += '</td><td width="33%">&nbsp;</td>';
 			settings += '</tr>';
@@ -190,7 +190,7 @@ class USPSRates {
 		$weight = number_format($weight,3);
 		if ($this->settings['units'] == "oz")
 			$pounds = $weight/16;
-		list($pounds,$ounces) = split("\.",$weight);
+		list($pounds,$ounces) = explode("\.",$weight);
 		$ounces = ceil($ounces*16);
 
 		$type = "RateV3"; // Domestic shipping rates

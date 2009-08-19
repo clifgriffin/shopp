@@ -54,11 +54,26 @@ class Category extends DatabaseObject {
 		return false;
 	}
 	
-	function load_children() {
+	function load_children($loading=array()) {
 		if (isset($this->smart)) return false;
 		$db = DB::get();
+		
+		if (empty($loading['orderby'])) $loading['orderby'] = "name";
+		switch(strtolower($loading['orderby'])) {
+			case "id": $orderby = "cat.id"; break;
+			case "slug": $orderby = "cat.slug"; break;
+			case "count": $orderby = "total"; break;
+			default: $orderby = "cat.name";
+		}
+
+		if (empty($loading['order'])) $loading['order'] = "ASC";
+		switch(strtoupper($loading['order'])) {
+			case "DESC": $order = "DESC"; break;
+			default: $order = "ASC";
+		}
+		
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
-		$children = $db->query("SELECT cat.*,count(sc.product) AS total FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.category=cat.id WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY parent DESC,name ASC",AS_ARRAY);
+		$children = $db->query("SELECT cat.*,count(sc.product) AS total FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.category=cat.id WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY cat.parent DESC,$orderby $order,name ASC",AS_ARRAY);
 		$children = sort_tree($children,$this->id);
 		foreach ($children as &$child) {
 			$this->children[$child->id] = new Category();
@@ -344,7 +359,7 @@ class Category extends DatabaseObject {
 					WHERE ({$loading['where']}) {$loading['catalog']} AND p.published='on' AND pd.type != 'N/A'
 					GROUP BY p.name {$loading['having']}
 					ORDER BY {$loading['order']} LIMIT {$loading['limit']}";
-		
+
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
 
@@ -514,6 +529,7 @@ class Category extends DatabaseObject {
 					$Shopp->shopuri."category/$this->uri":
 					add_query_arg('shopp_category',$this->id,$Shopp->shopuri);
 				break;
+			case "id": return $this->id; break;
 			case "name": return $this->name; break;
 			case "slug": return $this->slug; break;
 			case "description": return wpautop($this->description); break;
@@ -521,7 +537,7 @@ class Category extends DatabaseObject {
 			case "has-products": 
 			case "hasproducts": 
 				if (isset($options['load'])) {
-					$dataset = split(",",$options['load']);
+					$dataset = explode(",",$options['load']);
 					$options['load'] = array();
 					foreach ($dataset as $name) $options['load'][] = trim($name);
 				 } else {
@@ -584,8 +600,6 @@ class Category extends DatabaseObject {
 				break;
 			case "subcategory-list":
 				if (isset($Shopp->Category->controls)) return false;
-				if (!$this->children) $this->load_children();
-				if (empty($this->children)) return false;
 
 				$defaults = array(
 					'title' => '',
@@ -593,6 +607,8 @@ class Category extends DatabaseObject {
 					'after' => '',
 					'class' => '',
 					'depth' => 0,
+					'orderby' => 'name',
+					'order' => 'ASC',
 					'parent' => false,
 					'showall' => false,
 					'dropdown' => false,
@@ -602,6 +618,9 @@ class Category extends DatabaseObject {
 					
 				$options = array_merge($defaults,$options);
 				extract($options, EXTR_SKIP);
+
+				if (!$this->children) $this->load_children(array('orderby'=>$orderby,'order'=>$order));
+				if (empty($this->children)) return false;
 
 				$string = "";
 				$depthlimit = $depth;
@@ -704,7 +723,7 @@ class Category extends DatabaseObject {
 				$depthlimit = $depth;
 				$depth = 0;
 				$wraplist = value_is_true($wraplist);
-				$exclude = split(",",$exclude);
+				$exclude = explode(",",$exclude);
 				$section = array();
 
 				// Identify root parent
@@ -921,7 +940,7 @@ class Category extends DatabaseObject {
 				$link = $_SERVER['REQUEST_URI'];
 				if (!isset($options['cancel'])) $options['cancel'] = "X";
 				if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
-					list($link,$query) = split("\?",$_SERVER['REQUEST_URI']);
+					list($link,$query) = explode("\?",$_SERVER['REQUEST_URI']);
 				$query = $_GET;
 				unset($query['shopp_catfilters']);
 				$query = http_build_query($query);
@@ -1106,8 +1125,6 @@ class CatalogProducts extends Category {
 		$this->smart = true;
 		$this->loading = array('where'=>"true");
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1122,8 +1139,6 @@ class NewProducts extends Category {
 		$this->smart = true;
 		$this->loading = array('where'=>"p.id IS NOT NULL",'order'=>'newest');
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1137,8 +1152,6 @@ class FeaturedProducts extends Category {
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$this->loading = array('where'=>"p.featured='on'",'order'=>'p.modified DESC');
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1152,8 +1165,6 @@ class OnSaleProducts extends Category {
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$this->loading = array('where'=>"pd.sale='on' OR (pr.status='enabled' AND pr.discount > 0 AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1) OR (UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(ends)) ))",'order'=>'p.modified DESC');
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1172,8 +1183,6 @@ class BestsellerProducts extends Category {
 			'where' => 'TRUE',
 			'order'=>'bestselling');
 		if (isset($options['where'])) $this->loading['where'] = $options['where'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1209,7 +1218,6 @@ class SearchResults extends Category {
 			'columns'=> "MATCH(p.name,p.summary,p.description) AGAINST ('$keywords' IN BOOLEAN MODE) AS score",
 			'where'=>"MATCH(p.name,p.summary,p.description) AGAINST ('$keywords' IN BOOLEAN MODE)",
 			'orderby'=>'score DESC');
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 	}
 	
 }
@@ -1219,8 +1227,15 @@ class TagProducts extends Category {
 	
 	function TagProducts ($options=array()) {
 		$tagtable = DatabaseObject::tablename(Tag::$table);
-
+		
 		$this->tag = $options['tag'];
+		$tagquery = "";
+		if (strpos($options['tag'],',') !== false) {
+			$tags = explode(",",$options['tag']);
+			foreach ($tags as $tag)
+				$tagquery .= empty($tagquery)?"t.name='$tag'":" OR t.name='$tag'";
+		} else $tagquery = "t.name='{$options['tag']}'";
+		
 		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($options['tag'])."&quot;";
 		$this->slug = self::$_slug;
 		$this->uri = urlencode($options['tag']);
@@ -1228,9 +1243,7 @@ class TagProducts extends Category {
 		$this->loading = array(
 			'catalog'=>'tags',
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
-			'where'=>"catalog.tag=t.id AND t.name='{$options['tag']}'");
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
+			'where'=>"($tagquery)");
 	}
 	
 }
@@ -1277,8 +1290,6 @@ class RelatedProducts extends Category {
 			'catalog'=>'tags',
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
 			'where'=>"catalog.tag=t.id AND ($tagscope)$exclude");
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
 		else $this->loading['order'] = "bestselling";
 		if (isset($options['controls']) && value_is_true($options['controls']))
@@ -1298,14 +1309,12 @@ class RandomProducts extends Category {
 		$this->loading = array('where'=>'true','order'=>'random');
 		if (isset($options['exclude'])) {
 			$where = array();
-			$excludes = split(",",$options['exclude']);
+			$excludes = explode(",",$options['exclude']);
 			if (in_array('featured',$excludes)) $where[] = "(p.featured='off')";
 			if (in_array('onsale',$excludes)) $where[] = "(pd.sale='off' OR pr.discount=0)";
 			$this->loading['where'] = join(" AND ",$where);
 		}
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }

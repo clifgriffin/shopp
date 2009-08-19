@@ -88,6 +88,7 @@ class Flow {
 		if (!defined('BR')) define('BR','<br />');
 		if (!defined('SHOPP_USERLEVEL')) define('SHOPP_USERLEVEL',8);
 		if (!defined('SHOPP_NOSSL')) define('SHOPP_NOSSL',false);
+		if (!defined('SHOPP_PREPAYMENT_DOWNLOADS')) define('SHOPP_PREPAYMENT_DOWNLOADS',false);
 		define("SHOPP_WP27",(!version_compare($wp_version,"2.7","<")));
 		define("SHOPP_DEBUG",($Core->Settings->get('error_logging') == 2048));
 		define("SHOPP_PATH",$this->basepath);
@@ -369,16 +370,22 @@ class Flow {
 		return apply_filters('shopp_order_summary',$content);
 	}
 	
-	function secure_checkout_link ($linklist) {
+	function secure_page_links ($linklist) {
 		global $Shopp;
 		$gateway = $Shopp->Settings->get('payment_gateway');
 		if (strpos($gateway,"TestMode.php") !== false) return $linklist;
-		$cart_href = $Shopp->link('cart');
-		$checkout_href = $Shopp->link('checkout');
-		if (empty($gateway)) return str_replace($checkout_href,$cart_href,$linklist);
-		$secured_href = str_replace("http://","https://",$checkout_href);
-		return str_replace($checkout_href,$secured_href,$linklist);
-	}
+		$hrefs = array(
+			'checkout' => $Shopp->link('checkout'),
+			'account' => $Shopp->link('account')
+		);
+		if (empty($gateway)) return str_replace($hrefs['checkout'],$Shopp->link('cart'),$linklist);
+
+		foreach ($hrefs as $href) {
+			$secure_href = str_replace("http://","https://",$href);
+			$linklist = str_replace($href,$secure_href,$linklist);
+		}
+		return $linklist;
+	}	
 	
 	/**
 	 * order()
@@ -508,6 +515,9 @@ class Flow {
 
 			if (SHOPP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
 		}
+		
+		// Skip post order if no Purchase ID exists
+		if (empty($Purchase->id)) return true;
 
 		// Empty cart on successful order
 		$Shopp->Cart->unload();
@@ -577,6 +587,19 @@ class Flow {
 		ob_end_clean();
 		return apply_filters('shopp_order_receipt','<div id="shopp">'.$content.'</div>');
 	}
+	
+	// Display an error page
+	function error_page ($template="errors.php") {
+		global $Shopp;
+		$Cart = $Shopp->Cart;
+		
+		ob_start();
+		include(trailingslashit(SHOPP_TEMPLATES).$template);
+		$content = ob_get_contents();
+		ob_end_clean();
+		return apply_filters('shopp_errors_page','<div id="shopp">'.$content.'</div>');
+	}
+	
 
 	/**
 	 * Orders admin flow handlers
@@ -639,13 +662,13 @@ class Flow {
 		
 		if (!empty($start)) {
 			$startdate = $start;
-			list($month,$day,$year) = split("/",$startdate);
+			list($month,$day,$year) = explode("/",$startdate);
 			$starts = mktime(0,0,0,$month,$day,$year);
 		}
 		if (!empty($end)) {
 			$enddate = $end;
-			list($month,$day,$year) = split("/",$enddate);
-			$ends = mktime(0,0,0,$month,$day,$year);
+			list($month,$day,$year) = explode("/",$enddate);
+			$ends = mktime(23,59,59,$month,$day,$year);
 		}
 
 		$pagenum = absint( $pagenum );
@@ -785,7 +808,7 @@ class Flow {
 	}
 		
 	function account () {
-		global $Shopp;
+		global $Shopp,$wp;
 		
 		if ($Shopp->Cart->data->login 
 				&& isset($Shopp->Cart->data->Order->Customer)) 
@@ -793,9 +816,10 @@ class Flow {
 		
 		if (isset($_GET['acct']) && $_GET['acct'] == "rp") $Shopp->Cart->data->Order->Customer->reset_password($_GET['key']);
 		if (isset($_POST['recover-login'])) $Shopp->Cart->data->Order->Customer->recovery();
-		
+				
 		ob_start();
-		if ($Shopp->Cart->data->login) include(SHOPP_TEMPLATES."/account.php");
+		if (isset($wp->query_vars['shopp_download'])) include(SHOPP_TEMPLATES."/errors.php");
+		elseif ($Shopp->Cart->data->login) include(SHOPP_TEMPLATES."/account.php");
 		else include(SHOPP_TEMPLATES."/login.php");
 		$content = ob_get_contents();
 		ob_end_clean();
@@ -874,13 +898,13 @@ class Flow {
 		
 		if (!empty($start)) {
 			$startdate = $start;
-			list($month,$day,$year) = split("/",$startdate);
+			list($month,$day,$year) = explode("/",$startdate);
 			$starts = mktime(0,0,0,$month,$day,$year);
 		}
 		if (!empty($end)) {
 			$enddate = $end;
-			list($month,$day,$year) = split("/",$enddate);
-			$ends = mktime(0,0,0,$month,$day,$year);
+			list($month,$day,$year) = explode("/",$enddate);
+			$ends = mktime(23,59,59,$month,$day,$year);
 		}
 		
 		$customer_table = DatabaseObject::tablename(Customer::$table);
@@ -971,7 +995,8 @@ class Flow {
 			$Customer = new Customer($_GET['id']);
 			$Customer->Billing = new Billing($Customer->id,'customer');
 			$Customer->Shipping = new Shipping($Customer->id,'customer');
-			
+			if (empty($Customer->id)) 
+				wp_die(__('The requested customer record does not exist.','Shopp'));
 		} else $Customer = new Customer();
 
 		$countries = array(''=>'');
@@ -984,8 +1009,8 @@ class Flow {
 		$Customer->countries = $countries;
 
 		$regions = $Shopp->Settings->get('zones');
-		$Customer->billing_states = array_merge('',$regions[$Customer->Billing->country]);
-		$Customer->shipping_states = array_merge('',$regions[$Customer->Shipping->country]);
+		$Customer->billing_states = array_merge(array(''),(array)$regions[$Customer->Billing->country]);
+		$Customer->shipping_states = array_merge(array(''),(array)$regions[$Customer->Shipping->country]);
 
 		include("{$this->basepath}/core/ui/customers/editor.php");
 	}
@@ -1213,6 +1238,7 @@ class Flow {
 		$Price = new Price();
 		$priceTypes = array(
 			array('value'=>'Shipped','label'=>__('Shipped','Shopp')),
+			array('value'=>'Virtual','label'=>__('Virtual','Shopp')),
 			array('value'=>'Download','label'=>__('Download','Shopp')),
 			array('value'=>'Donation','label'=>__('Donation','Shopp')),
 			array('value'=>'N/A','label'=>__('Disabled','Shopp')),
@@ -1268,12 +1294,13 @@ class Flow {
 		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);	
 
 		// Check for an existing product slug
-		$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$Product->slug' AND id != $Product->id LIMIT 1");
+		$exclude_product = !empty($Product->id)?"AND id != $Product->id":"";
+		$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$Product->slug' $exclude_product LIMIT 1");
 		if ($existing) {
 			$suffix = 2;
 			while($existing) {
 				$altslug = substr($Product->slug, 0, 200-(strlen($suffix)+1)). "-$suffix";
-				$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$altslug' AND id != $Product->id LIMIT 1");
+				$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$altslug' $exclude_product LIMIT 1");
 				$suffix++;
 			}
 			$Product->slug = $altslug;
@@ -1291,7 +1318,7 @@ class Flow {
 			// Delete prices that were marked for removal
 			if (!empty($_POST['deletePrices'])) {
 				$deletes = array();
-				if (strpos($_POST['deletePrices'],","))	$deletes = split(',',$_POST['deletePrices']);
+				if (strpos($_POST['deletePrices'],","))	$deletes = explode(',',$_POST['deletePrices']);
 				else $deletes = array($_POST['deletePrices']);
 			
 				foreach($deletes as $option) {
@@ -1350,7 +1377,7 @@ class Flow {
 		if (!empty($_POST['details']) || !empty($_POST['deletedSpecs'])) {
 			$deletes = array();
 			if (!empty($_POST['deletedSpecs'])) {
-				if (strpos($_POST['deletedSpecs'],","))	$deletes = split(',',$_POST['deletedSpecs']);
+				if (strpos($_POST['deletedSpecs'],","))	$deletes = explode(',',$_POST['deletedSpecs']);
 				else $deletes = array($_POST['deletedSpecs']);
 				foreach($deletes as $option) {
 					$Spec = new Spec($option);
@@ -1380,7 +1407,7 @@ class Flow {
 		
 		if (!empty($_POST['deleteImages'])) {			
 			$deletes = array();
-			if (strpos($_POST['deleteImages'],","))	$deletes = split(',',$_POST['deleteImages']);
+			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
 			else $deletes = array($_POST['deleteImages']);
 			$Product->delete_images($deletes);
 		}
@@ -1608,9 +1635,10 @@ class Flow {
 		$Price = new Price();
 		$priceTypes = array(
 			array('value'=>'Shipped','label'=>__('Shipped','Shopp')),
+			array('value'=>'Virtual','label'=>__('Virtual','Shopp')),
 			array('value'=>'Download','label'=>__('Download','Shopp')),
 			array('value'=>'Donation','label'=>__('Donation','Shopp')),
-			array('value'=>'N/A','label'=>__('N/A','Shopp')),
+			array('value'=>'N/A','label'=>__('N/A','Shopp'))
 		);
 
 		
@@ -1618,7 +1646,8 @@ class Flow {
 		$permalink = trailingslashit($Shopp->link('catalog'))."category/";
 		if (!empty($Category->slug))
 			$permalink .= substr($Category->uri,0,strpos($Category->uri,$Category->slug));
-		
+
+
 		$pricerange_menu = array(
 			"disabled" => __('Price ranges disabled','Shopp'),
 			"auto" => __('Build price ranges automatically','Shopp'),
@@ -1686,7 +1715,7 @@ class Flow {
 					
 		if (!empty($_POST['deleteImages'])) {			
 			$deletes = array();
-			if (strpos($_POST['deleteImages'],","))	$deletes = split(',',$_POST['deleteImages']);
+			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
 			else $deletes = array($_POST['deleteImages']);
 			$Category->delete_images($deletes);
 		}
@@ -1712,14 +1741,17 @@ class Flow {
 				$pricing['shipfee'] = floatvalue($pricing['shipfee']);
 			}
 			$Category->prices = stripslashes_deep($_POST['price']);
-		}
+		} else $Category->prices = array();
 
 		if (empty($_POST['specs'])) $Category->specs = array();
 		else $_POST['specs'] = stripslashes_deep($_POST['specs']);
-		if (empty($_POST['options'])) $Category->options = array();
-		else $_POST['options'] = stripslashes_deep($_POST['options']);
+		if (empty($_POST['options']) 
+			|| (count($_POST['options'])) == 1 && !isset($_POST['options'][1]['options'])) {
+				$_POST['options'] = $Category->options = array();
+				$_POST['prices'] = $Category->prices = array();
+		} else $_POST['options'] = stripslashes_deep($_POST['options']);
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
-		
+
 		$Category->updates($_POST);
 		$Category->save();
 
@@ -1830,6 +1862,11 @@ class Flow {
 		$table = DatabaseObject::tablename(Promotion::$table);
 		$promocount = $db->query("SELECT count(*) as total FROM $table $where");
 		$Promotions = $db->query("SELECT * FROM $table $where",AS_ARRAY);
+		
+		$status = array(
+			'enabled' => __('Enabled','Shopp'),
+			'disabled' => __('Disabled','Shopp')
+		);
 		
 		$num_pages = ceil($promocount->total / $per_page);
 		$page_links = paginate_links( array(
@@ -2158,18 +2195,22 @@ class Flow {
 	}
 
 	function settings_checkout () {
+		global $Shopp;
 		$db =& DB::get();
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$next = $db->query("SELECT IF ((MAX(id)) > 0,(MAX(id)+1),1) AS id FROM $purchasetable LIMIT 1");
-
+		$next_setting = $Shopp->Settings->get('next_order_id');
+		
+		if ($next->id > $next_setting) $next_setting = $next->id;
+		
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-checkout');
-			if ($_POST['next_order_id'] != $next->id) {
-				if ($db->query("ALTER TABLE $purchasetable AUTO_INCREMENT={$_POST['next_order_id']}"))
-					$next->id = $_POST['next_order_id'];
+			if ($_POST['settings']['next_order_id'] != $next->id) {
+				if ($db->query("ALTER TABLE $purchasetable AUTO_INCREMENT={$_POST['settings']['next_order_id']}"))
+					$next->id = $_POST['settings']['next_order_id'];
 			} 
 				
 			$this->settings_save();
@@ -2201,7 +2242,8 @@ class Flow {
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-shipping');
 			// Sterilize $values
-			foreach ($_POST['settings']['shipping_rates'] as $i => $method) {
+			foreach ($_POST['settings']['shipping_rates'] as $i => &$method) {
+				$method['name'] = stripslashes($method['name']);
 				foreach ($method as $key => $rates) {
 					if (is_array($rates)) {
 						foreach ($rates as $id => $value) {
@@ -2225,7 +2267,7 @@ class Flow {
 				$process = '';
 				$ShipCalcClass = $method['method'];
 				if (strpos($method['method'],'::'))
-					list($ShipCalcClass,$process) = split("::",$method['method']);
+					list($ShipCalcClass,$process) = explode("::",$method['method']);
 					
 				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth)
 					&& $Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth) {
@@ -2390,7 +2432,7 @@ class Flow {
 			);
 			
 			$response = $this->callhome($request);
-			$response = split("::",$response);
+			$response = explode("::",$response);
 
 			if (count($response) == 1)
 				$activation = '<span class="shopp error">'.$response[0].'</span>';
@@ -2559,7 +2601,7 @@ class Flow {
 		$meta = get_filemeta($file);
 
 		if ($meta) {
-			$lines = split("\n",substr($meta,1));
+			$lines = explode("\n",substr($meta,1));
 			foreach($lines as $line) {
 				preg_match("/^(?:[\s\*]*?\b([^@\*\/]*))/",$line,$match);
 				if (!empty($match[1])) $data[] = $match[1];
@@ -2720,7 +2762,7 @@ class Flow {
 				if (!empty($results)) die(join("\n\n",$log).join("\n\n",$results)."\n\nFTP transfer failed.");
 				break;
 		}
-				
+		
 		echo "updated"; // Report success!
 		exit();
 	}
