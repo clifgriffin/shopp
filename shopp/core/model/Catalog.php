@@ -509,7 +509,7 @@ class Catalog extends DatabaseObject {
 				if (isset($options['title'])) $Shopp->Category->name = $options['title'];
 				if (isset($options['show'])) $Shopp->Category->loading['limit'] = $options['show'];
 				if (isset($options['pagination'])) $Shopp->Category->loading['pagination'] = $options['pagination'];
-				if (isset($options['order'])) $this->loading['order'] = $options['order'];
+				if (isset($options['order'])) $Shopp->Category->loading['order'] = $options['order'];
 
 				if (isset($options['load'])) return true;
 				if (isset($options['controls']) && !value_is_true($options['controls'])) 
