@@ -6,7 +6,7 @@
  * to your Shopp install under: .../wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.2
  * @copyright Ingenesis Limited, 22 January, 2009
  * @package shopp
  **/
@@ -85,7 +85,7 @@ class FedExRates {
 	}
 	
 	function methods (&$ShipCalc) {
-		if (class_exists('SoapClient'))
+		if (class_exists('SoapClient') || class_exists('Soap_Client'))
 			$ShipCalc->methods[get_class($this)] = __("FedEx Rates","Shopp");
 		elseif (class_exists('ShoppError'))
 			new ShoppError("The SoapClient class is not enabled for PHP. The FedEx Rates add-on cannot be used without the SoapClient class.","fedexrates_nosoap",SHOPP_ALL_ERR);
@@ -104,7 +104,7 @@ class FedExRates {
 
 			settings += '<div class="multiple-select"><ul id="fedex-services">';
 		
-			settings += '<li><input type="checkbox" name="select-all" id="fedex-services-select-all" /><label for="fedex-services-select-all"><strong><?php echo addslashes(__('Select All','Shopp')); ?></strong></label>';
+			settings += '<li><input type="checkbox" name="select-all" id="fedex-services-select-all" /><label for="fedex-services-select-all"><strong><?php _e('Select All','Shopp'); ?></strong></label>';
 			var even = true;
 
 			for (var service in services) {
@@ -118,14 +118,14 @@ class FedExRates {
 			settings += '</td>';
 			
 			settings += '<td>';
-			settings += '<div><input type="text" name="settings[FedExRates][account]" id="fedexrates_account" value="<?php echo $this->settings['account']; ?>" size="11" /><br /><label for="fedexrates_account"><?php echo addslashes(__('Account Number','Shopp')); ?></label></div>';
-			settings += '<div><input type="text" name="settings[FedExRates][meter]" id="fedexrates_meter" value="<?php echo $this->settings['meter']; ?>" size="11" /><br /><label for="fedexrates_meter"><?php echo addslashes(__('Meter Number','Shopp')); ?></label></div>';
-			settings += '<div><input type="text" name="settings[FedExRates][postcode]" id="fedexrates_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="fedexrates_postcode"><?php echo addslashes(__('Your postal code','Shopp')); ?></label></div>';
+			settings += '<div><input type="text" name="settings[FedExRates][account]" id="fedexrates_account" value="<?php echo $this->settings['account']; ?>" size="11" /><br /><label for="fedexrates_account"><?php _e('Account Number','Shopp'); ?></label></div>';
+			settings += '<div><input type="text" name="settings[FedExRates][meter]" id="fedexrates_meter" value="<?php echo $this->settings['meter']; ?>" size="11" /><br /><label for="fedexrates_meter"><?php _e('Meter Number','Shopp'); ?></label></div>';
+			settings += '<div><input type="text" name="settings[FedExRates][postcode]" id="fedexrates_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="fedexrates_postcode"><?php _e('Your postal code','Shopp'); ?></label></div>';
 				
 			settings += '</td>';
 			settings += '<td>';
-			settings += '<div><input type="text" name="settings[FedExRates][key]" id="fedexrates_key" value="<?php echo $this->settings['key']; ?>" size="16" /><br /><label for="fedexrates_key"><?php echo addslashes(__('FedEx web services key','Shopp')); ?></label></div>';
-			settings += '<div><input type="password" name="settings[FedExRates][password]" id="fedexrates_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="fedexrates_password"><?php echo addslashes(__('FedEx web services password','Shopp')); ?></label></div>';
+			settings += '<div><input type="text" name="settings[FedExRates][key]" id="fedexrates_key" value="<?php echo $this->settings['key']; ?>" size="16" /><br /><label for="fedexrates_key"><?php _e('FedEx web services key','Shopp'); ?></label></div>';
+			settings += '<div><input type="password" name="settings[FedExRates][password]" id="fedexrates_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="fedexrates_password"><?php _e('FedEx web services password','Shopp'); ?></label></div>';
 			settings += '</td>';
 			settings += '</tr>';
 
@@ -273,8 +273,14 @@ class FedExRates {
 
 		ini_set("soap.wsdl_cache_enabled", "0");
 		try {
-			$client = new SoapClient($this->wsdl, array('trace' => 1));
-			$response = $client->getRates($this->request);
+			if (class_exists('SoapClient')) {
+				$client = new SoapClient($this->wsdl, array('trace' => 1));
+				$response = $client->getRates($this->request);
+			} elseif (class_exists('Soap_Client')) {
+				$client = new Soap_Client($this->wsdl, array('trace' => 1));
+				$response = $client->call('getRates',$this->request);
+				
+			}
 		} catch (Exception $e) {
 			new ShoppError(__("FedEx could not be reached for realtime rates.","Shopp"),'fedex_connection',SHOPP_COMM_ERR);
 			return false;
