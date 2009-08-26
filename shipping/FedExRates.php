@@ -64,6 +64,7 @@ class FedExRates {
 	function FedExRates () {
 		global $Shopp;
 		
+		$this->wsdl_url = $Shopp->uri.DIRECTORY_SEPARATOR."shipping".DIRECTORY_SEPARATOR.$this->wsdl;
 		$this->wsdl = dirname(__FILE__).DIRECTORY_SEPARATOR.$this->wsdl;
 		$this->settings = $Shopp->Settings->get('FedExRates');
 		if (!isset($this->settings['account'])) $this->settings['account'] = '';
@@ -85,7 +86,7 @@ class FedExRates {
 	}
 	
 	function methods (&$ShipCalc) {
-		if (class_exists('SoapClient') || class_exists('Soap_Client'))
+		if (class_exists('SoapClient') || class_exists('SOAP_Client'))
 			$ShipCalc->methods[get_class($this)] = __("FedEx Rates","Shopp");
 		elseif (class_exists('ShoppError'))
 			new ShoppError("The SoapClient class is not enabled for PHP. The FedEx Rates add-on cannot be used without the SoapClient class.","fedexrates_nosoap",SHOPP_ALL_ERR);
@@ -225,11 +226,10 @@ class FedExRates {
 		$_['ReturnTransitAndCommit'] = '1'; 
 
 		$_['RequestedShipment'] = array();
+		$_['RequestedShipment']['ShipTimestamp'] = date('c');
 		
 		// Valid values REGULAR_PICKUP, REQUEST_COURIER, ...
 		$_['RequestedShipment']['DropoffType'] = 'REGULAR_PICKUP'; 
-		
-		$_['RequestedShipment']['ShipTimestamp'] = date('c');
 		
 		$_['RequestedShipment']['Shipper'] = array(
 			'Address' => array(
@@ -240,6 +240,7 @@ class FedExRates {
 			'Address' => array(
 				'PostalCode' => $postcode,
 				'CountryCode' => $country));
+
 
 		$_['RequestedShipment']['ShippingChargesPayment'] = array(
 			'PaymentType' => 'SENDER',
@@ -254,8 +255,8 @@ class FedExRates {
 		$_['RequestedShipment']['RequestedPackages'] = array(
 				'SequenceNumber' => '1',
 					'Weight' => array(
-						'Value' => number_format(($weight < 0.1)?0.1:$weight,1),
-						'Units' => $this->settings['units']));
+						'Units' => $this->settings['units'],
+						'Value' => number_format(($weight < 0.1)?0.1:$weight,1)));
 		
 		return $_;
 	} 
@@ -271,23 +272,42 @@ class FedExRates {
 	function send () {
    		global $Shopp;
 
-		ini_set("soap.wsdl_cache_enabled", "0");
 		try {
 			if (class_exists('SoapClient')) {
-				$client = new SoapClient($this->wsdl, array('trace' => 1));
+				ini_set("soap.wsdl_cache_enabled", "1");
+				$client = new SoapClient($this->wsdl);
 				$response = $client->getRates($this->request);
-			} elseif (class_exists('Soap_Client')) {
-				$client = new Soap_Client($this->wsdl, array('trace' => 1));
-				$response = $client->call('getRates',$this->request);
-				
+			} elseif (class_exists('SOAP_Client')) {
+				$WSDL = new SOAP_WSDL($this->wsdl_url);
+				$client = $WSDL->getProxy();
+				$returned = $client->getRates($this->request);
+				$response = new StdClass();
+				foreach ($returned as $key => $value) {
+					if (empty($key)) continue;
+					$response->{$key} = $value;
+				}
+
+				if (is_array($response->RateReplyDetails[0]))
+					$response->RateReplyDetails = $this->fix_pear_soap_result_bug($response->RateReplyDetails);
+
 			}
 		} catch (Exception $e) {
 			new ShoppError(__("FedEx could not be reached for realtime rates.","Shopp"),'fedex_connection',SHOPP_COMM_ERR);
 			return false;
 		}
-		
+
 		return $response;
 
+	}
+	
+	// Workaround for a severe parse bug in PEAR-SOAP 0.12 beta				
+	function fix_pear_soap_result_bug ($array) {
+		$rates = array();
+		foreach ($array as $value) {
+			if (is_object($value)) $rates[] = $value;
+			else $rates = array_merge($rates,$this->fix_pear_soap_result_bug($value));
+		}
+		return $rates;
 	}
 	
 }
