@@ -141,15 +141,16 @@ class Item {
 		$this->quantity($this->quantity+$qty);
 	}
 	
-	function options ($selection = "") {
+	function options ($selection = "",$taxrate=0) {
 		if (empty($this->options)) return "";
 
 		$string = "";
 		foreach($this->options as $option) {
 			if ($option->type == "N/A") continue;
 			$currently = ($option->onsale)?$option->promoprice:$option->price;
-		
-			$difference = $currently-$this->unitprice;
+
+			$difference = (float)($currently+($currently*$taxrate))-($this->unitprice+($this->unitprice*$taxrate));
+			// $difference = $currently-$this->unitprice;
 
 			$price = '';
 			if ($difference > 0) $price = '  (+'.money($difference).')';
@@ -206,12 +207,12 @@ class Item {
 			case "sku": return $this->sku;
 		}
 		
-		if ($property == "unitprice" || $property == "total") {
+		if ($property == "unitprice" || $property == "total" || $property == "options") {
 			$taxrate = 0;
+			$taxes = false;
 			$base = $Shopp->Settings->get('base_operations');
-			if ($base['vat']) $taxes = true;
 			if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
-			else $taxes = false;
+			elseif ($base['vat']) $taxes = true;
 			if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 		}
 		
@@ -285,7 +286,7 @@ class Item {
 					$result .= $options['before'];
 					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';
 					$result .= ' <select name="items['.$id.'][price]" id="items-'.$id.'-price"'.$class.'>';
-					$result .= $this->options($this->price);
+					$result .= $this->options($this->price,$taxrate);
 					$result .= '</select>';
 					$result .= $options['after'];
 				}
