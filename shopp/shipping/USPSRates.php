@@ -220,7 +220,7 @@ class USPSRates {
 				}
 			$_[] = '</Package>';
 		$_[] = '</'.$type.'Request>';
-		print_r($_);
+
 		return join("\n",$_);
 	} 
 	
