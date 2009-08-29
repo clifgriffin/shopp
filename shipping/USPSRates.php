@@ -191,7 +191,7 @@ class USPSRates {
 		if ($this->settings['units'] == "oz")
 			$pounds = $weight/16;
 		list($pounds,$ounces) = explode(".",$weight);
-		$ounces = ceil($ounces/16);
+		$ounces = ceil(($weight-$pounds)*16);
 
 		$type = "RateV3"; // Domestic shipping rates
 		if ($country != $this->settings['country']) {
@@ -220,7 +220,7 @@ class USPSRates {
 				}
 			$_[] = '</Package>';
 		$_[] = '</'.$type.'Request>';
-
+		print_r($_);
 		return join("\n",$_);
 	} 
 	
