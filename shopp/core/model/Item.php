@@ -211,11 +211,11 @@ class Item {
 			$taxrate = 0;
 			$taxes = false;
 			$base = $Shopp->Settings->get('base_operations');
-			if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
-			elseif ($base['vat']) $taxes = true;
+			if ($base['vat']) $taxes = true;
+			if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
 			if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 		}
-		
+
 		// Handle currency values
 		$result = "";
 		switch ($property) {

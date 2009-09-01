@@ -676,8 +676,8 @@ class Product extends DatabaseObject {
 				$taxrate = 0;
 				$taxes = false;
 				$base = $Shopp->Settings->get('base_operations');
-				if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
-				elseif ($base['vat']) $taxes = true;
+				if ($base['vat']) $taxes = true;
+				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
 				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 				
 				if ($this->options > 1) {
@@ -710,8 +710,8 @@ class Product extends DatabaseObject {
 				$taxrate = 0;
 				$taxes = false;
 				$base = $Shopp->Settings->get('base_operations');
-				if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
-				elseif ($base['vat']) $taxes = true;
+				if ($base['vat']) $taxes = true;
+				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
 				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 
 				if ($this->onsale) $pricetag = 'saleprice';
@@ -1022,8 +1022,8 @@ class Product extends DatabaseObject {
 				$taxrate = 0;
 				$taxes = false;
 				$base = $Shopp->Settings->get('base_operations');
-				if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
-				elseif ($base['vat']) $taxes = true;
+				if ($base['vat']) $taxes = true;
+				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
 				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 
 				if (!isset($options['label'])) $options['label'] = "on";
@@ -1059,7 +1059,7 @@ class Product extends DatabaseObject {
 							options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
 							options_required = "<?php echo $options['required']; ?>";
 							
-							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (isset($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo $taxrate; ?>);
+							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (isset($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo empty($taxrate)?'0':$taxrate; ?>);
 						});
 					})(jQuery)
 					//-->
@@ -1105,8 +1105,11 @@ class Product extends DatabaseObject {
 				$variation = current($this->prices);
 				
 				$taxrate = 0;
-				if (isset($options['taxes']) && value_is_true($options['taxes'])) 
-					$taxrate = $Shopp->Cart->taxrate();
+				$taxes = false;
+				$base = $Shopp->Settings->get('base_operations');
+				if ($base['vat']) $taxes = true;
+				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
+				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 				
 				$string = '';
 				if (array_key_exists('id',$options)) $string .= $variation->id;
