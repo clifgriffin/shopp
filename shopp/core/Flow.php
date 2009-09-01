@@ -263,13 +263,6 @@ class Flow {
 		$content = ob_get_contents();
 		ob_end_clean();
 		
-		// Disable faceted menus if not in a Shopp category
-		// or the category does not have faceted menus enabled
-		// if ($Shopp->Catalog->type != 'category' || 
-		// 	!isset($Shopp->Category->facetedmenus) || 
-		// 	$Shopp->Category->facetedmenus == 'off') 
-		// 	unregister_sidebar_widget('shopp-faceted-menu');
-
 		$classes = $Shopp->Catalog->type;
 		if (!isset($_COOKIE['shopp_catalog_view'])) {
 			// No cookie preference exists, use shopp default setting
@@ -2221,13 +2214,20 @@ class Flow {
 		$downloads = array("1","2","3","5","10","15","25","100");
 		$promolimit = array("1","2","3","4","5","6","7","8","9","10","15","20","25");
 		$time = array(
-			__('30 minutes','Shopp'), __('1 hour','Shopp'),
-			__('2 hours','Shopp'),	__('3 hours','Shopp'),
-			__('6 hours','Shopp'), __('12 hours','Shopp'),
-			__('1 day','Shopp'), __('3 days','Shopp'),
-			__('1 week','Shopp'), __('1 month','Shopp'),
-			__('3 months','Shopp'),	__('6 months','Shopp'),
-			__('1 year','Shopp'),
+			'1800' => __('30 minutes','Shopp'),
+			'3600' => __('1 hour','Shopp'),
+			'7200' => __('2 hours','Shopp'),
+			'10800' => __('3 hours','Shopp'),
+			'21600' => __('6 hours','Shopp'),
+			'43200' => __('12 hours','Shopp'),
+			'86400' => __('1 day','Shopp'),
+			'172800' => __('2 days','Shopp'),
+			'259200' => __('3 days','Shopp'),
+			'604800' => __('1 week','Shopp'),
+			'2678400' => __('1 month','Shopp'),
+			'7952400' => __('3 months','Shopp'),
+			'15901200' => __('6 months','Shopp'),
+			'31536000' => __('1 year','Shopp'),
 			);
 								
 		include(SHOPP_ADMINPATH."/settings/checkout.php");
@@ -2241,6 +2241,7 @@ class Flow {
 		
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-shipping');
+			
 			// Sterilize $values
 			foreach ($_POST['settings']['shipping_rates'] as $i => &$method) {
 				$method['name'] = stripslashes($method['name']);
@@ -2254,20 +2255,20 @@ class Flow {
 					}
 				}
 			}
-
-			$_POST['settings']['order_shipfee'] = preg_replace("/[^0-9\.\+]/","",$_POST['settings']['order_shipfee']);
 			
+			$_POST['settings']['order_shipfee'] = floatnum($_POST['settings']['order_shipfee']);
+						
 	 		$this->settings_save();
 			$updated = __('Shipping settings saved.','Shopp');
 			$Shopp->ShipCalcs = new ShipCalcs($Shopp->path);
 			$rates = $Shopp->Settings->get('shipping_rates');
 
 			$Errors = &ShoppErrors();
-			foreach ((array)$rates as $method) {
+			foreach ($rates as $rate) {
 				$process = '';
-				$ShipCalcClass = $method['method'];
-				if (strpos($method['method'],'::'))
-					list($ShipCalcClass,$process) = explode("::",$method['method']);
+				$ShipCalcClass = $rate['method'];
+				if (strpos($rate['method'],'::') != false)
+					list($ShipCalcClass,$process) = explode("::",$rate['method']);
 					
 				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth)
 					&& $Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth) {
