@@ -1078,7 +1078,9 @@ class FTPClient {
 
 }
 
-date_default_timezone_set('UTC');
+if (function_exists('date_default_timezone_set')) 
+	date_default_timezone_set(get_option('timezone_string'));
+
 shopp_prereqs();  // Run by default at include
 
 ?>

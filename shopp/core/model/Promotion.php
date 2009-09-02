@@ -11,6 +11,23 @@
 
 class Promotion extends DatabaseObject {
 	static $table = "promo";
+	
+	var $values = array(
+		"Name" => "text",
+		"Category" => "text",
+		"Variation" => "text",
+		"Price" => "price",
+		"Sale price" => "price",
+		"Type" => "text",
+		"In stock" => "text",
+		"Item name" => "text",
+		"Item quantity" => "text",
+		"Item amount" => "price",
+		"Total quantity" => "text",
+		"Shipping amount" => "price",
+		"Subtotal amount" => "price",
+		"Promo code" => "text"
+	);
 
 	function Promotion ($id=false) {
 		$this->init(self::$table);
@@ -32,18 +49,22 @@ class Promotion extends DatabaseObject {
 		// that gets all applicable product & price ids
 		if (!empty($this->rules) && is_array($this->rules)) {
 			foreach ($this->rules as $rule) {
-			
+				
+				if ($this->values[$rule['property']] == "price") 
+					$value = floatnum($rule['value']);
+				else $value = "'$value'";
+				
 				switch($rule['logic']) {
-					case "Is equal to": $match = "='".$rule['value']."'"; break;
-					case "Is not equal to": $match = "!='".$rule['value']."'"; break;
-					case "Contains": $match = " LIKE '%".$rule['value']."%'"; break;
-					case "Does not contain": $match = " NOT LIKE '%".$rule['value']."%'"; break;
-					case "Begins with": $match = " LIKE '".$rule['value']."%'"; break;
-					case "Ends with": $match = " LIKE '%".$rule['value']."'"; break;
-					case "Is greater than": $match = ">".preg_replace("/[^\d\.]/","",$rule['value']); break;
-					case "Is greater than or equal to": $match = ">=".preg_replace("/[^\d\.]/","",$rule['value']); break;
-					case "Is less than": $match = "<".preg_replace("/[^\d\.]/","",$rule['value']); break;
-					case "Is less than or equal to": $match = "<=".preg_replace("/[^\d\.]/","",$rule['value']); break;
+					case "Is equal to": $match = "=$value"; break;
+					case "Is not equal to": $match = "!=$value"; break;
+					case "Contains": $match = " LIKE '%$value%'"; break;
+					case "Does not contain": $match = " NOT LIKE '%$value%'"; break;
+					case "Begins with": $match = " LIKE '$value%'"; break;
+					case "Ends with": $match = " LIKE '%$value'"; break;
+					case "Is greater than": $match = "> $value"; break;
+					case "Is greater than or equal to": $match = ">= $value"; break;
+					case "Is less than": $match = "< $value"; break;
+					case "Is less than or equal to": $match = "<= $value"; break;
 				}
 			
 				$where .= "AND ";
