@@ -190,10 +190,11 @@ class Product extends DatabaseObject {
 			// Load into passed product set
 			foreach ($data as $row) {
 				if (isset($products[$row->product])) {
-					$record = new stdClass(); $i = 0;
+					$record = new stdClass(); $i = 0; $name = "";
 					foreach ($Dataset[$row->rtype]->_datatypes AS $key => $datatype) {
 						$column = 'c'.$i++;
 						$record->{$key} = '';
+						if ($key == "name") $name = $row->{$column};
 						if (!empty($row->{$column})) {
 							if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column})) 
 								$row->{$column} = unserialize($row->{$column});
@@ -201,6 +202,14 @@ class Product extends DatabaseObject {
 						}
 					}
 					$products[$row->product]->{$row->rtype}[] = $record;
+					if (!empty($name)) {
+						if (isset($products[$row->product]->{$row->rtype.'key'}[$name])) {
+							$products[$row->product]->{$row->rtype.'key'}[$name] = array(
+								$products[$row->product]->{$row->rtype.'key'}[$name],$record
+							);
+						}
+						else $products[$row->product]->{$row->rtype.'key'}[$name] = $record;
+					}
 				}
 			}
 			
@@ -212,10 +221,11 @@ class Product extends DatabaseObject {
 			// Load into this object
 			foreach ($data as $row) {
 				if (isset($this->{$row->rtype})) {
-					$record = new stdClass(); $i = 0;
+					$record = new stdClass(); $i = 0; $name = "";
 					foreach ($Dataset[$row->rtype]->_datatypes AS $key => $datatype) {
 						$column = 'c'.$i++;
 						$record->{$key} = '';
+						if ($key == "name") $name = $row->{$column};
 						if (!empty($row->{$column})) {
 							if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column})) 
 								$row->{$column} = unserialize($row->{$column});
@@ -223,15 +233,24 @@ class Product extends DatabaseObject {
 						}
 					}
 					$this->{$row->rtype}[] = $record;
+					if (!empty($name)) {
+						if (isset($this->{$row->rtype.'key'}[$name])) {
+							$this->{$row->rtype.'key'}[$name] = array(
+								$this->{$row->rtype.'key'}[$name],$record
+							);
+						}
+						else $this->{$row->rtype.'key'}[$name] = $record;
+					}
 				}
 			}
 			if (!empty($this->prices)) $this->pricing();
 			if (count($this->images) >= 3 && count($this->imagesets) <= 1) $this->imageset();
 		
 		}
-
+		
+		// echo "<pre>"; print_r($this); echo "</pre>";
 	} // end load_data()
-	
+		
 	function pricing () {
 		global $Shopp;
 		
@@ -354,6 +373,7 @@ class Product extends DatabaseObject {
 			}
 			
 		} // end foreach($price)
+		// echo "<pre>"; print_r($this->prices); echo "</pre>";
 		if ($this->inventory && $this->stock <= 0) $this->outofstock = true;
 		if ($freeshipping) $this->freeshipping = true;
 	}
@@ -977,10 +997,28 @@ class Product extends DatabaseObject {
 				$spec = current($this->specs);
 				if (is_array($spec->content)) $spec->content = join($delimiter,$spec->content);
 				
-				if (array_key_exists('name',$options) && array_key_exists('content',$options))
+				if (isset($options['name']) 
+					&& !empty($options['name']) 
+					&& isset($this->specskey[$options['name']])) {
+						$spec = $this->specskey[$options['name']];
+						if (is_array($spec)) {
+							if (isset($options['index'])) {
+								foreach ($spec as $index => $entry) 
+									if ($index+1 == $options['index']) 
+										$content = $entry->content;
+							} else {
+								foreach ($spec as $entry) $contents[] = $entry->content;
+								$content = join($delimiter,$contents);
+							}
+						} else $content = $spec->content;
+					$string = apply_filters('shopp_product_spec',$content);
+					return $string;
+				}
+				
+				if (isset($options['name']) && isset($options['content']))
 					$string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->content);
-				else if (array_key_exists('name',$options)) $string = $spec->name;
-				else if (array_key_exists('content',$options)) $string = apply_filters('shopp_product_spec',$spec->content);
+				elseif (isset($options['name'])) $string = $spec->name;
+				elseif (isset($options['content'])) $string = apply_filters('shopp_product_spec',$spec->content);
 				else $string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->content);
 				return $string;
 				break;
