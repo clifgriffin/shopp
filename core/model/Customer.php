@@ -94,17 +94,14 @@ class Customer extends DatabaseObject {
 					$errors[] = new ShoppError(__('There is no user registered with that email address.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);
 			} else {
 				$user_data = get_userdatabylogin($_POST['account_login']);
-				$RecoveryCustomer->load($user_data->ID,'wpuser');	
-				if (!$RecoveryCustomer->id)
+				$RecoveryCustomer = new Customer($user_data->ID,'wpuser');
+				if (empty($RecoveryCustomer->id))
 					$errors[] = new ShoppError(__('There is no user registered with that login name.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);				
 			}
 		}
 		
 		// return errors
-		if (!empty($errors)) {
-			header("Location: ".add_query_arg('acct','recover',$Shopp->link('account')));
-			exit();
-		}
+		if (!empty($errors)) return;
 
 		// Generate new key
 		$RecoveryCustomer->activation = wp_generate_password(20, false);
