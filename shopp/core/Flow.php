@@ -869,8 +869,10 @@ class Flow {
 			$Customer->updates($_POST);
 			
 			if (!empty($_POST['new-password']) && !empty($_POST['confirm-password'])
-				&& $_POST['new-password'] == $_POST['confirm-password'])
-				$Customer->password = wp_hash_password($_POST['new-password']);
+				&& $_POST['new-password'] == $_POST['confirm-password']) {
+					$Customer->password = wp_hash_password($_POST['new-password']);
+					if (!empty($Customer->wpuser)) wp_set_password($_POST['new-password'], $Customer->wpuser);
+				}
 			
 			$Customer->save();
 			
@@ -1828,9 +1830,10 @@ class Flow {
 				$_POST['ends'] = mktime(23,59,59,$_POST['ends']['month'],$_POST['ends']['date'],$_POST['ends']['year']);
 			else $_POST['ends'] = 1;
 			if (isset($_POST['rules'])) $_POST['rules'] = stripslashes_deep($_POST['rules']);
-			
+
 			$Promotion->updates($_POST);
 			$Promotion->save();
+
 			do_action_ref_array('shopp_promo_saved',array(&$Promotion));
 
 			if ($Promotion->scope == "Catalog")
