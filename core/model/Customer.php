@@ -88,12 +88,12 @@ class Customer extends DatabaseObject {
 			else $errors[] = new ShoppError(__('Enter an email address','Shopp'));
 		} else {
 			// Check that the account exists
-			if (strpos($_POST['account_login'],'@') !== false) {
-				$RecoveryCustomer = new Customer($_POST['email-login'],'email');
+			if (strpos($_POST['account-login'],'@') !== false) {
+				$RecoveryCustomer = new Customer($_POST['account-login'],'email');
 				if (!$RecoveryCustomer->id)
 					$errors[] = new ShoppError(__('There is no user registered with that email address.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);
 			} else {
-				$user_data = get_userdatabylogin($_POST['account_login']);
+				$user_data = get_userdatabylogin($_POST['account-login']);
 				$RecoveryCustomer = new Customer($user_data->ID,'wpuser');
 				if (empty($RecoveryCustomer->id))
 					$errors[] = new ShoppError(__('There is no user registered with that login name.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);				
