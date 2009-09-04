@@ -16,6 +16,7 @@ class Purchase extends DatabaseObject {
 	var $purchased = array();
 	var $columns = array();
 	var $looping = false;
+	var $dataloop = false;
 
 	function Purchase ($id=false,$key=false) {
 		$this->init(self::$table);
@@ -45,7 +46,7 @@ class Purchase extends DatabaseObject {
 		$email['from'] = '"'.get_bloginfo("name").'"';
 		if ($Shopp->Settings->get('merchant_email')) 
 			$email['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
-		$email['to'] = '"'.$addressee.'" <'.$address.'>';
+		$email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
 		$email['subject'] = $subject;
 		$email['receipt'] = $Shopp->Flow->order_receipt($receipt);
 		$email['url'] = get_bloginfo('siteurl');
@@ -269,7 +270,7 @@ class Purchase extends DatabaseObject {
 					$this->dataloop = true;
 				} else next($this->data);
 
-				if (current($this->data)) return true;
+				if (current($this->data) !== false) return true;
 				else {
 					$this->dataloop = false;
 					return false;
