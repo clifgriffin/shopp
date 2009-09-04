@@ -50,39 +50,40 @@ class Cart {
 			array( &$this, 'trash' )	// Garbage Collection
 		);
 		
-		$this->data = new stdClass();
-		$this->data->Totals = new stdClass();
-		$this->data->Totals->subtotal = 0;
-		$this->data->Totals->quantity = 0;
-		$this->data->Totals->discount = 0;
-		$this->data->Totals->shipping = 0;
-		$this->data->Totals->tax = 0;
-		$this->data->Totals->taxrate = 0;
-		$this->data->Totals->total = 0;
+		$this->data = new stdClass();				// Session data
+		$this->data->Totals = new stdClass();		// Cart totals
+		$this->data->Totals->subtotal = 0;			// Subtotal of item totals
+		$this->data->Totals->quantity = 0;			// Total quantity of all items
+		$this->data->Totals->discount = 0;			// Total discount applied
+		$this->data->Totals->shipping = 0;			// Total shipping cost
+		$this->data->Totals->tax = 0;				// Total tax cost
+		$this->data->Totals->taxrate = 0;			// Current tax rate
+		$this->data->Totals->total = 0;				// Grand total
 
-		$this->data->Order = new stdClass();
-		$this->data->Order->data = array();
-		$this->data->Order->Customer = false;
-		$this->data->Order->Billing = false;
-		$this->data->Order->Shipping = false;
-		$this->data->login = false;
+		$this->data->Order = new stdClass();		// Order object
+		$this->data->Order->data = array();			// Custom order data registry
+		$this->data->Order->Customer = false;		// Order's customer record
+		$this->data->Order->Billing = false;		// Order's billing address record
+		$this->data->Order->Shipping = false;		// Order's shipping address record
 
-		$this->data->Errors = new ShoppErrors();
-		$this->data->Shipping = false;
-		$this->data->ShippingDisabled = false;
-		$this->data->Estimates = false;
-		$this->data->Promotions = array();
-		$this->data->PromosApplied = array();
-		$this->data->PromoCode = false;
-		$this->data->PromoCodes = array();
-		$this->data->PromoCodeResult = false;
-		$this->data->Purchase = false;
-		$this->data->ShipCosts = array();
-		$this->data->ShippingPostcode = false;
-		$this->data->ShippingPostcodeError = false;
-		$this->data->Purchase = false;
-		$this->data->Category = array();
-		$this->data->Search = false;
+		$this->data->added = 0;						// Recently added item index
+		$this->data->login = false;					// Customer logged in flag
+		
+		$this->data->Errors = new ShoppErrors();	// Tracks errors
+		$this->data->Shipping = false;				// Cart has shipped items
+		$this->data->ShippingDisabled = false;		// Shipping is disabled
+		$this->data->Estimates = false;				// Order needs shipping estimates
+		$this->data->Promotions = array();			// Promotions available (cache)
+		$this->data->PromosApplied = array();		// Promotions applied to order
+		$this->data->PromoCode = false;				// Recent promo code attempt
+		$this->data->PromoCodes = array();			// Promo codes applied
+		$this->data->PromoCodeResult = false;		// Result of recent promo code attempt
+		$this->data->ShipCosts = array();			// Shipping method costs
+		$this->data->ShippingPostcode = false;		// Shipping calcs require postcode
+		$this->data->ShippingPostcodeError = false;	// Postal code invalid error
+		$this->data->Purchase = false;				// Final purchase receipt
+		$this->data->Category = array();			// Session related category settings
+		$this->data->Search = false;				// Search processed
 		
 		// Total the cart once, and only if there are changes
 		add_action('parse_request',array(&$this,'totals'),99);
@@ -193,10 +194,11 @@ class Cart {
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
 			$this->added = $this->contents[$item];
+			$this->data->added = $item;
 		} else {
 			$NewItem->quantity($quantity);
 			$this->contents[] = $NewItem;
-			$this->added = $this->contents[count($this->contents)-1];
+			$this->data->added = count($this->contents)-1;
 			if ($NewItem->shipping && !$this->data->ShippingDisabled) 
 				$this->data->Shipping = true;
 		}
@@ -1125,6 +1127,7 @@ class Cart {
 					reset($this->contents);
 					return false;
 				}
+			case "lastitem": return $this->contents[$this->data->added]; break;
 			case "totalpromos": return count($this->data->PromosApplied); break;
 			case "haspromos": return (count($this->data->PromosApplied) > 0); break;
 			case "promos":
@@ -1715,7 +1718,7 @@ class Cart {
 					if (!isset($options['cols'])) $options['cols'] = "30";
 					if (!isset($options['rows'])) $options['rows'] = "3";
 					if ($options['type'] == "textarea") 
-						return '<textarea name="data['.$options['name'].']" cols="'.$options['cols'].'" rows="'.$options['rows'].'" id="order-data-'.$options['name'].'" '.inputattrs($options).'></textarea>';
+						return '<textarea name="data['.$options['name'].']" cols="'.$options['cols'].'" rows="'.$options['rows'].'" id="order-data-'.$options['name'].'" '.inputattrs($options,array('accesskey','title','tabindex','class','disabled','required')).'>'.$options['value'].'</textarea>';
 					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'" '.inputattrs($options).' />'; 
 				}
 				break;
