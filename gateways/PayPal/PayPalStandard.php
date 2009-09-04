@@ -111,6 +111,7 @@ class PayPalStandard {
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
+		$precision = $this->settings['base_operations']['currency']['format']['precision'];
 		
 		$_ = array();
 
@@ -157,15 +158,15 @@ class PayPalStandard {
 			$id=$i+1;
 			$_['item_number_'.$id]		= $id;
 			$_['item_name_'.$id]		= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
-			$_['amount_'.$id]			= number_format($Item->unitprice,2);
+			$_['amount_'.$id]			= number_format($Item->unitprice,$precision);
 			$_['quantity_'.$id]			= $Item->quantity;
 			$_['weight_'.$id]			= $Item->quantity;
 		}
 		
-		$_['discount_amount_cart'] 		= number_format($Order->Totals->discount,2);
-		$_['tax_cart']					= number_format($Order->Totals->tax,2);
-		$_['handling_cart']				= number_format($Order->Totals->shipping,2);
-		$_['amount']					= number_format($Order->Totals->total,2);
+		$_['discount_amount_cart'] 		= number_format($Order->Totals->discount,$precision);
+		$_['tax_cart']					= number_format($Order->Totals->tax,$precision);
+		$_['handling_cart']				= number_format($Order->Totals->shipping,$precision);
+		$_['amount']					= number_format($Order->Totals->total,$precision);
 		
 				
 		return $form.$this->format($_);

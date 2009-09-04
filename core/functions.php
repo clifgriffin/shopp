@@ -686,14 +686,18 @@ function scan_money_format ($format) {
 
 	$i = 0; $dd = 0;
 	$dl = array();
+	$sdl = "";
+	$uniform = true;
 	while($i < strlen($df)) {
 		$c = substr($df,$i++,1);
 		if ($c != "#") {
+			if(empty($sdl)) $sdl = $c;
+			else if($sdl != $c) $uniform = false;
 			$dl[] = $c;
 			$dd = 0;
 		} else $dd++;
 	}
-	$f['precision'] = $dd;
+	if(!$uniform) $f['precision'] = $dd;
 	
 	if (count($dl) > 1) {
 		if ($dl[0] == "t") {
