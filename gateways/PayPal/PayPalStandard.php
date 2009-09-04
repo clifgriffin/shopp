@@ -4,7 +4,7 @@
  * @class PayPalStandard
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  **/
@@ -202,9 +202,7 @@ class PayPalStandard {
 		$Purchase = new Purchase($_POST['txn_id'],'transactionid');
 		
 		if ($_POST['mc_gross'] == number_format($Order->Totals->total,2) 
-			&& empty($Purchase->id) 
-			&& $_POST['residence_country'] == $Order->Billing->country)
-				$validation = true;
+			&& empty($Purchase->id)) $validation = true;
 		
 		if ($validation) $this->order();
 		else new ShoppError(__('An order was received from PayPal that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'paypal_trxn_validation',SHOPP_TRXN_ERR);
