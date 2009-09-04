@@ -61,7 +61,7 @@ class AuthorizeNet {
 		// Required Fields
 		$_['x_amount']				= $Order->Totals->total;
 		$_['x_customer_ip']			= $_SERVER["REMOTE_ADDR"];
-		$_['x_fp_sequence']			= $Order->Cart;
+		$_['x_fp_sequence']			= mktime();
 		$_['x_fp_timestamp']		= time();
 		// $_['x_fp_hash']				= hash_hmac("md5","{$_['x_login']}^{$_['x_fp_sequence']}^{$_['x_fp_timestamp']}^{$_['x_amount']}",$_['x_password']);
 		
