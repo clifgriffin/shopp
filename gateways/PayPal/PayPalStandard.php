@@ -151,7 +151,7 @@ class PayPalStandard {
 		$_['currency_code']			= $this->settings['currency_code'];
 
 		// Disable shipping fields if no shipped items in cart
-		if (!$Order->Shipping) $_['no_shipping'] = 1;
+		if (!$Shopp->Cart->Shipping) $_['no_shipping'] = 1;
 
 		// Line Items
 		foreach($Order->Items as $i => $Item) {
