@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.8
+Version: 1.0.9b1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define("SHOPP_VERSION","1.0.8");
+define("SHOPP_VERSION","1.0.9b1");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
@@ -108,7 +108,7 @@ class Shopp {
 			$this->Flow->setup();
 		}
 		
-		add_action('init', array(&$this,'init'),1);
+		add_action('init', array(&$this,'init'));
 		add_action('init', array(&$this, 'xorder'));
 		add_action('init', array(&$this, 'ajax'));
 		add_action('parse_request', array(&$this, 'lookups') );
@@ -810,7 +810,7 @@ class Shopp {
 	
 	function catalog ($wp) {
 		$pages = $this->Settings->get('pages');
-		// echo "<pre>"; print_r($wp->query_vars); echo "</pre>";
+		// echo "<pre>"; print_r($wp); echo "</pre>";
 		// echo "<pre>"; print_r($wp); echo "</pre>";
 		// exit();
 		
@@ -872,7 +872,8 @@ class Shopp {
 			// Add new filters
 			if (isset($_GET['shopp_catfilters'])) {
 				if (is_array($_GET['shopp_catfilters'])) {
-					$CategoryFilters = array_merge($CategoryFilters,$_GET['shopp_catfilters']);
+					$CategoryFilters = array_filter(array_merge($CategoryFilters,$_GET['shopp_catfilters']));
+					$CategoryFilters = stripslashes_deep($CategoryFilters);
 					if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
 				} else unset($this->Cart->data->Category[$this->Category->slug]);
 			}
@@ -992,7 +993,7 @@ class Shopp {
 		if ($_POST['checkout'] != "process") return true;
 		// Cancel if processing a login from the checkout form
 		if (isset($_POST['process-login']) 
-			&& $_POST['process-login'] == "login") return true;
+			&& $_POST['process-login'] == "true") return true;
 		
 		// Start processing the checkout form
 		$_POST = attribute_escape_deep($_POST);
@@ -1319,7 +1320,8 @@ class Shopp {
 
 					// Account restriction checks
 					if ($this->Settings->get('account_system') != "none"
-						&& !$this->Cart->data->login) {
+						&& (!$this->Cart->data->login
+						|| $this->Cart->data->Customer->id != $Purchase->customer)) {
 							new ShoppError(__('You must login to access this download.','Shopp'),'shopp_download_limit',SHOPP_ERR);
 							header('Location: '.$this->link('account'));
 							exit();

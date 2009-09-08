@@ -4,7 +4,7 @@
  * @class Payson
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  **/
@@ -24,6 +24,9 @@ class Payson {
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
 		
+		$loginproc = (isset($_POST['process-login']) 
+			&& $_POST['process-login'] != 'false')?$_POST['process-login']:false;
+
 		if (isset($_POST['checkout']) && 
 			$_POST['checkout'] == "process" && 
 			!$loginproc) $this->checkout();
@@ -227,7 +230,7 @@ class Payson {
 			if ($Item->inventory) $Item->unstock();
 		}
 		
-		return true;
+		return $Purchase;
 
 	}
 		

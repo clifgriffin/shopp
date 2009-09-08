@@ -78,17 +78,17 @@
 		$('#submit-login').click(function () {
 			$('#checkout.shopp').unbind('submit');
 			$('#checkout.shopp').submit(function () {
-				if ($('#email-login').val() == "") {
-					alert("You did not enter an email address to login with.");
-					$('#email-login').focus();
+				if ($('#account-login').val() == "") {
+					alert(CHECKOUT_LOGIN_NAME);
+					$('#account-login').focus();
 					return false;
 				}
 				if ($('#password-login').val() == "") {
-					alert("You did not enter a password to login with.");
+					alert(CHECKOUT_LOGIN_PASSWORD);
 					$('#password-login').focus();
 					return false;
 				}
-				$('#process-login').val('login');
+				$('#process-login').val('true');
 				return true;
 			}).submit();
 		});

@@ -191,11 +191,10 @@ class UPSServiceRates {
 			$_[] = '<RequestAction>Rate</RequestAction>';
 			$_[] = '<RequestOption>Shop</RequestOption>';
 		$_[] = '</Request>';
-		$_[] = '<PickupType><Code>01</Code></PickupType>';
+		$_[] = '<PickupType><Code>03</Code></PickupType>';
 		$_[] = '<Shipment>';
 			$_[] = '<Description>'.$description.'</Description>';
 			$_[] = '<Shipper>';
-				// $_[] = '<ShipperNumber>'.$this->settings['account'].'</ShipperNumber>';
 				$_[] = '<Address>';
 					$_[] = '<PostalCode>'.$this->settings['postcode'].'</PostalCode>';
 					$_[] = '<CountryCode>'.$this->settings['country'].'</CountryCode>';
