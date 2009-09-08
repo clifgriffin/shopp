@@ -632,8 +632,10 @@ class Cart {
 	 * Calculates subtotal, shipping, tax and 
 	 * order total amounts */
 	function totals () {
+		global $Shopp;
 		if (!$this->retotal && !$this->updated) return true;
 
+		$shippingTaxed = ($Shopp->Settings->get('tax_shipping') == "on");
 		$Totals =& $this->data->Totals;
 		$Totals->quantity = 0;
 		$Totals->subtotal = 0;
@@ -669,13 +671,14 @@ class Cart {
 		$this->promotions();
 		$discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
 
-		// Calculate taxes
-		$Totals->taxed -= $discount;
-		$Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
-		
 		// Calculate shipping
 		if (!$this->data->ShippingDisabled && $this->data->Shipping && !$this->freeshipping) 
 			$Totals->shipping = $this->shipping();
+
+		// Calculate taxes
+		$Totals->taxed -= $discount;
+		if($shippingTaxed) $Totals->taxed += $Totals->shipping;
+		$Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
 
 		// Calculate final total (s
 		$Totals->total = $Totals->subtotal - round($discount,2) + 
