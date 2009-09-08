@@ -940,7 +940,7 @@ class Category extends DatabaseObject {
 				$link = $_SERVER['REQUEST_URI'];
 				if (!isset($options['cancel'])) $options['cancel'] = "X";
 				if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
-					list($link,$query) = explode("\?",$_SERVER['REQUEST_URI']);
+					list($link,$query) = explode("?",$_SERVER['REQUEST_URI']);
 				$query = $_GET;
 				unset($query['shopp_catfilters']);
 				$query = http_build_query($query);
@@ -949,7 +949,7 @@ class Category extends DatabaseObject {
 				$list = "";
 				if (is_array($CategoryFilters)) {
 					foreach($CategoryFilters AS $facet => $filter) {
-						$href = $link.'?'.$query.'shopp_catfilters['.$facet.']=';
+						$href = add_query_arg(array('shopp_catfilters['.urlencode($facet).']'=>''),$link);
 						if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',$filter,$matches)) {
 							$label = $matches[1].' &mdash; '.$matches[3];
 							if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
@@ -965,7 +965,7 @@ class Category extends DatabaseObject {
 					$list = "";
 					$this->priceranges = auto_ranges($this->pricing['average'],$this->pricing['max'],$this->pricing['min']);
 					foreach ($this->priceranges as $range) {
-						$href = $link.'?'.$query.'shopp_catfilters[Price]='.urlencode(money($range['min']).'-'.money($range['max']));
+						$href = add_query_arg('shopp_catfilters[Price]',urlencode(money($range['min']).'-'.money($range['max'])),$link);
 						$label = money($range['min']).' &mdash; '.money($range['max']-0.01);
 						if ($range['min'] == 0) $label = __('Under ','Shopp').money($range['max']);
 						elseif ($range['max'] == 0) $label = money($range['min']).' '.__('and up','Shopp');
@@ -1125,6 +1125,8 @@ class CatalogProducts extends Category {
 		$this->smart = true;
 		$this->loading = array('where'=>"true");
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1139,6 +1141,8 @@ class NewProducts extends Category {
 		$this->smart = true;
 		$this->loading = array('where'=>"p.id IS NOT NULL",'order'=>'newest');
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1152,6 +1156,8 @@ class FeaturedProducts extends Category {
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$this->loading = array('where'=>"p.featured='on'",'order'=>'p.modified DESC');
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1165,6 +1171,8 @@ class OnSaleProducts extends Category {
 		$this->uri = $this->slug;
 		$this->smart = true;
 		$this->loading = array('where'=>"pd.sale='on' OR (pr.status='enabled' AND pr.discount > 0 AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1) OR (UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(ends)) ))",'order'=>'p.modified DESC');
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1183,6 +1191,8 @@ class BestsellerProducts extends Category {
 			'where' => 'TRUE',
 			'order'=>'bestselling');
 		if (isset($options['where'])) $this->loading['where'] = $options['where'];
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1218,6 +1228,7 @@ class SearchResults extends Category {
 			'columns'=> "MATCH(p.name,p.summary,p.description) AGAINST ('$keywords' IN BOOLEAN MODE) AS score",
 			'where'=>"MATCH(p.name,p.summary,p.description) AGAINST ('$keywords' IN BOOLEAN MODE)",
 			'orderby'=>'score DESC');
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 	}
 	
 }
@@ -1244,6 +1255,8 @@ class TagProducts extends Category {
 			'catalog'=>'tags',
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
 			'where'=>"($tagquery)");
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
@@ -1263,8 +1276,8 @@ class RelatedProducts extends Category {
 		if (isset($options['product'])) {
 			// Load by id or slug
 			if (preg_match('/^[\d+]$/',$options['product'])) 
-				$Shopp->Product = new Product($options['product']);
-			else $Shopp->Product = new Product($options['product'],'slug');
+				$this->product = new Product($options['product']);
+			else $this->product = new Product($options['product'],'slug');
 		}
 			
 		// Load the product's tags if they are not available
@@ -1290,6 +1303,8 @@ class RelatedProducts extends Category {
 			'catalog'=>'tags',
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
 			'where'=>"catalog.tag=t.id AND ($tagscope)$exclude");
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
 		else $this->loading['order'] = "bestselling";
 		if (isset($options['controls']) && value_is_true($options['controls']))
@@ -1315,6 +1330,8 @@ class RandomProducts extends Category {
 			$this->loading['where'] = join(" AND ",$where);
 		}
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }

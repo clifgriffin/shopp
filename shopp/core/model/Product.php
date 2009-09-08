@@ -186,66 +186,38 @@ class Product extends DatabaseObject {
 		$data = $db->query($query,AS_ARRAY);
 		
 		// Process the results into specific product object data in a product set
-		if (is_array($products)) {
-			// Load into passed product set
-			foreach ($data as $row) {
-				if (isset($products[$row->product])) {
-					$record = new stdClass(); $i = 0; $name = "";
-					foreach ($Dataset[$row->rtype]->_datatypes AS $key => $datatype) {
-						$column = 'c'.$i++;
-						$record->{$key} = '';
-						if ($key == "name") $name = $row->{$column};
-						if (!empty($row->{$column})) {
-							if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column})) 
-								$row->{$column} = unserialize($row->{$column});
-							$record->{$key} = $row->{$column};
-						}
-					}
-					$products[$row->product]->{$row->rtype}[] = $record;
-					if (!empty($name)) {
-						if (isset($products[$row->product]->{$row->rtype.'key'}[$name])) {
-							$products[$row->product]->{$row->rtype.'key'}[$name] = array(
-								$products[$row->product]->{$row->rtype.'key'}[$name],$record
-							);
-						}
-						else $products[$row->product]->{$row->rtype.'key'}[$name] = $record;
-					}
+		
+		foreach ($data as $row) {
+			if (is_array($products) && isset($products[$row->product])) 
+				$target = $products[$row->product];
+			else $target = $this;
+
+			$record = new stdClass(); $i = 0; $name = "";
+			foreach ($Dataset[$row->rtype]->_datatypes AS $key => $datatype) {
+				$column = 'c'.$i++;
+				$record->{$key} = '';
+				if ($key == "name") $name = $row->{$column};
+				if (!empty($row->{$column})) {
+					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column})) 
+						$row->{$column} = unserialize($row->{$column});
+					$record->{$key} = $row->{$column};
 				}
 			}
-			
+			$target->{$row->rtype}[] = $record;
+			if (!empty($name)) {
+				if (isset($target->{$row->rtype.'key'}[$name]))
+					$target->{$row->rtype.'key'}[$name] = array($target->{$row->rtype.'key'}[$name],$record);
+				else $target->{$row->rtype.'key'}[$name] = $record;
+			}
+		}
+		
+		if (is_array($products)) {
 			foreach ($products as $product) if (!empty($product->prices)) $product->pricing();
 			foreach ($products as $product) if (count($product->images) >= 3 && count($product->imagesets) <= 1)
 					$product->imageset();
-
 		} else {
-			// Load into this object
-			foreach ($data as $row) {
-				if (isset($this->{$row->rtype})) {
-					$record = new stdClass(); $i = 0; $name = "";
-					foreach ($Dataset[$row->rtype]->_datatypes AS $key => $datatype) {
-						$column = 'c'.$i++;
-						$record->{$key} = '';
-						if ($key == "name") $name = $row->{$column};
-						if (!empty($row->{$column})) {
-							if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column})) 
-								$row->{$column} = unserialize($row->{$column});
-							$record->{$key} = $row->{$column};
-						}
-					}
-					$this->{$row->rtype}[] = $record;
-					if (!empty($name)) {
-						if (isset($this->{$row->rtype.'key'}[$name])) {
-							$this->{$row->rtype.'key'}[$name] = array(
-								$this->{$row->rtype.'key'}[$name],$record
-							);
-						}
-						else $this->{$row->rtype.'key'}[$name] = $record;
-					}
-				}
-			}
 			if (!empty($this->prices)) $this->pricing();
 			if (count($this->images) >= 3 && count($this->imagesets) <= 1) $this->imageset();
-		
 		}
 		
 		// echo "<pre>"; print_r($this); echo "</pre>";
@@ -1255,6 +1227,13 @@ class Product extends DatabaseObject {
 				}
 				
 				return $result;
+				break;
+			case "outofstock":
+				if ($this->outofstock) {
+					$label = isset($options['label'])?$options['label']:$Shopp->Settings->get('outofstock_text');
+					$string = '<span class="outofstock">'.$label.'</span>';
+					return $string;
+				}
 				break;
 			case "buynow":
 				if (!isset($options['value'])) $options['value'] = __("Buy Now","Shopp");

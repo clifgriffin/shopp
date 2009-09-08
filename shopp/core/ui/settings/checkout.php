@@ -55,7 +55,7 @@
 				<th scope="row" valign="top"><label for="download-timelimit"><?php _e('Time Limit','Shopp'); ?></label></th> 
 				<td><select name="settings[download_timelimit]" id="download-timelimit">
 					<option value=""><?php _e('No Limit','Shopp'); ?></option>
-					<?php echo menuoptions($time,$this->Settings->get('download_timelimit')); ?>
+					<?php echo menuoptions($time,$this->Settings->get('download_timelimit'),true); ?>
 						</select>
 				</td>
 			</tr>
