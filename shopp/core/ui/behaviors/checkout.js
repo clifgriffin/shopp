@@ -21,8 +21,13 @@
 		for (var i = inputs.length-1; i >= 0; i--) {
 			// Validate required fields
 			if (inputs[i].className.match(new RegExp('required'))) {
-				if (inputs[i].value == null || inputs[i].value == "")
-					error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,inputs[i].title),inputs[i]);
+				if (inputs[i].type == "checkbox") {
+					if (!inputs[i].checked)
+						error = new Array(CHECKOUT_CHECKBOX_CHECKED.replace(/%s/,inputs[i].title),inputs[i]);
+				} else {
+					if (inputs[i].value == null || inputs[i].value == "")
+						error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,inputs[i].title),inputs[i]);
+				}
 			}
 		
 			// Validate emails
@@ -44,6 +49,7 @@
 					error = new Array(CHECKOUT_PASSWORD_MISMATCH,passwords[1]);
 					
 			}
+			
 		}
 	
 		if (error.length > 0) {

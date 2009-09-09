@@ -1716,6 +1716,7 @@ class Cart {
 				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
 				if (empty($options['type'])) $options['type'] = "hidden";
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
+					if (!isset($options['title'])) $options['title'] = $options['name'];
 					if (isset($this->data->Order->data[$options['name']])) 
 						$options['value'] = $this->data->Order->data[$options['name']];
 					if (!isset($options['cols'])) $options['cols'] = "30";

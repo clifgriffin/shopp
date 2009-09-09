@@ -6,6 +6,8 @@ var CHECKOUT_REQUIRED_FIELD = '<?php echo addslashes(__('Your %s is required.','
 var CHECKOUT_INVALID_EMAIL = '<?php echo addslashes(__('The e-mail address you provided does not appear to be a valid address.','Shopp')); ?>';
 var CHECKOUT_MIN_LENGTH = '<?php echo addslashes(__('The %s you entered is too short. It must be at least %d characters long.','Shopp')); ?>';
 var CHECKOUT_PASSWORD_MISMATCH = '<?php echo addslashes(__('The passwords you entered do not match. They must match in order to confirm you are correctly entering the password you want to use.','Shopp')); ?>';
+var CHECKOUT_CHECKBOX_CHECKED = '<?php echo addslashes(__('%s must be checked before you can proceed.','Shopp')); ?>';
+
 var SHOPP_TB_CLOSE = '<?php echo addslashes(__('Press Esc Key or','Shopp')); ?>';
 var SHOPP_TB_IMAGE = '<?php echo addslashes(__('Image %d of %d','Shopp')); ?>';
 var SHOPP_TB_NEXT = '<?php echo addslashes(__('Next','Shopp')); ?>';
