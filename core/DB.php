@@ -77,7 +77,7 @@ class DB {
 	function query($query, $output=true, $errors=true) {
 		if (WP_DEBUG) $this->queries[] = $query;
 		$result = @mysql_query($query, $this->dbh);
-		// echo "<pre>QUERY: $query</pre>";
+		if (SHOPP_QUERY_DEBUG && class_exists('ShoppError')) new ShoppError($query,'shopp_query_debug',SHOPP_DEBUG_ERR);
 
 		// Error handling
 		if ($this->dbh && $error = mysql_error($this->dbh)) 
