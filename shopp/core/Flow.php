@@ -86,10 +86,14 @@ class Flow {
 								"OrderAmount.php", "OrderWeight.php");
 
 		if (!defined('BR')) define('BR','<br />');
+
+		// Overrideable macros
 		if (!defined('SHOPP_USERLEVEL')) define('SHOPP_USERLEVEL',8);
 		if (!defined('SHOPP_NOSSL')) define('SHOPP_NOSSL',false);
 		if (!defined('SHOPP_PREPAYMENT_DOWNLOADS')) define('SHOPP_PREPAYMENT_DOWNLOADS',false);
 		if (!defined('SHOPP_SESSION_TIMEOUT')) define('SHOPP_SESSION_TIMEOUT',7200);
+		if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
+		
 		define("SHOPP_WP27",(!version_compare($wp_version,"2.7","<")));
 		define("SHOPP_DEBUG",($Core->Settings->get('error_logging') == 2048));
 		define("SHOPP_PATH",$this->basepath);

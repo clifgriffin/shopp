@@ -898,6 +898,8 @@ class Shopp {
 		if (isset($_GET['shopp_orderby']))
 			$this->Cart->data->Category['orderby'] = $_GET['shopp_orderby'];
 
+		if (empty($this->Category)) $this->Category = Catalog::load_category($this->Cart->data->breadcrumb,$options);
+
 		// Find product by given ID
 		if (!empty($productid) && empty($this->Product->id))
 			$this->Product = new Product($productid);
