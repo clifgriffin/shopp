@@ -277,8 +277,12 @@ class Catalog extends DatabaseObject {
 							if (!isset($parent->path)) $parent->path = $parent->slug;
 							$string = substr($string,0,-5); // Remove the previous </li>
 							$active = '';
-							if (isset($Shopp->Category) && strpos($Shopp->Category->uri,$parent->slug) !== false)
+
+							if (isset($Shopp->Category) && !empty($parent->slug)
+									&& preg_match('/(^|\/)'.$Shopp->Category->slug.'(\/|$)/',$parent->uri)) {
 								$active = ' active';
+							}
+							
 							$subcategories = '<ul class="children'.$active.'">';
 							$string .= $subcategories;
 						}

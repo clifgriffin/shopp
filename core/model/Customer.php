@@ -325,7 +325,7 @@ class Customer extends DatabaseObject {
 			case "submit-login": // Deprecating
 			case "login-button":
 				if (!isset($options['value'])) $options['value'] = __('Login','Shopp');
-				$string = '<input type="hidden" name="process-login" id="process-login" value="true" />';
+				$string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
 				$string .= '<input type="submit" name="submit-login" id="submit-login"'.inputattrs($options).' />';
 				return $string;
 				break;

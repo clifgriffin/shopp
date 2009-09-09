@@ -380,15 +380,15 @@ class Category extends DatabaseObject {
 		foreach ($products as &$product) {
 			if ($product->maxsaleprice == 0) $product->maxsaleprice = $product->maxprice;
 			if ($product->minsaleprice == 0) $product->minsaleprice = $product->minprice;
-						
-			$prices[] = $product->onsale ? $product->minsaleprice:$product->minprice;
+			
+			$prices[] = $product->onsale?$product->minsaleprice:$product->minprice;
 			
 			if (!empty($product->percentoff)) {
 				$product->maxsaleprice = $product->maxsaleprice - ($product->maxsaleprice * ($product->percentoff/100));
 				$product->minsaleprice = $product->minsaleprice - ($product->minsaleprice * ($product->percentoff/100));
 			}
 			
-			if (!empty($product->amountoff)){
+			if (!empty($product->amountoff)) {
 				$product->maxsaleprice = $product->maxsaleprice - $product->amountoff;
 				$product->minsaleprice = $product->minsaleprice - $product->amountoff;
 			}
@@ -403,7 +403,7 @@ class Category extends DatabaseObject {
 			$this->products[$product->id]->populate($product);
 
 			// Special property for Bestseller category
-			if (isset($product->sold) && $product->sold) 
+			if (isset($product->sold) && $product->sold)
 				$this->products[$product->id]->sold = $product->sold;
 				
 			// Special property Promotions
@@ -949,7 +949,7 @@ class Category extends DatabaseObject {
 				$list = "";
 				if (is_array($CategoryFilters)) {
 					foreach($CategoryFilters AS $facet => $filter) {
-						$href = add_query_arg(array('shopp_catfilters['.urlencode($facet).']'=>''),$link);
+						$href = add_query_arg('shopp_catfilters['.urlencode($facet).']','',$link);
 						if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',$filter,$matches)) {
 							$label = $matches[1].' &mdash; '.$matches[3];
 							if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
