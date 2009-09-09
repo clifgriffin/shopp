@@ -532,6 +532,7 @@ class Catalog extends DatabaseObject {
 				else include(SHOPP_TEMPLATES."/category.php");
 				$content = ob_get_contents();
 				ob_end_clean();
+				$Shopp->Category = false; // Reset the current category
 				return $content;
 				break;
 			case "product":
