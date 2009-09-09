@@ -139,6 +139,9 @@ class Shopp {
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_filter('query_vars', array(&$this,'queryvars'));
 		
+		// Extras & Integrations
+		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
+
 		// Start up the cart
 		$this->Cart = new Cart();
 		
@@ -740,8 +743,9 @@ class Shopp {
 
 	function feeds () {
 		if (empty($this->Category)):?>
-	<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
-	<?php
+
+<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
+<?php
 			else:
 			$uri = 'category/'.$this->Category->uri;
 			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
@@ -749,8 +753,9 @@ class Shopp {
 			if (SHOPP_PERMALINKS) $link = $this->shopuri.$uri.'/feed/';
 			else $link = add_query_arg(array('shopp_category'=>$this->Category->uri,'shopp_lookup'=>'category-rss'),$this->shopuri);
 			?>
-	<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo htmlentities($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
-	<?php
+
+<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo htmlentities($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
+<?php
 		endif;
 	}
 
@@ -772,14 +777,23 @@ class Shopp {
 		endif;
 	}
 
+	function canonurls ($url) {
+		global $Shopp;
+		if (!empty($Shopp->Product)) return $Shopp->Product->tag('url','echo=0');
+		if (!empty($Shopp->Category)) return $Shopp->Category->tag('url','echo=0');
+		return $url;
+	}
+
 	/**
 	 * header()
 	 * Adds stylesheets necessary for Shopp public shopping pages */
-	function header () {		
-		?><link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),get_bloginfo('url'))); ?>' type='text/css' />
-		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-		<?php
+	function header () { 
+?>
+<link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),get_bloginfo('url'))); ?>' type='text/css' />
+<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
+<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
+<link rel='canonical' href='<?php echo $this->canonurls(); ?>' />
+<?php
 	}
 	
 	/**
@@ -872,7 +886,7 @@ class Shopp {
 			// Add new filters
 			if (isset($_GET['shopp_catfilters'])) {
 				if (is_array($_GET['shopp_catfilters'])) {
-					$CategoryFilters = array_filter(array_merge($CategoryFilters,$_GET['shopp_catfilters']));
+					$CategoryFilters = array_array_merge($CategoryFilters,$_GET['shopp_catfilters']);
 					$CategoryFilters = stripslashes_deep($CategoryFilters);
 					if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
 				} else unset($this->Cart->data->Category[$this->Category->slug]);
@@ -899,7 +913,7 @@ class Shopp {
 		// No product found, try to load a page instead
 		if ($type == "product" && !$this->Product) 
 			$wp->query_vars['pagename'] = $wp->request;
-			
+
 		$this->Catalog = new Catalog($type);
 		add_filter('wp_title', array(&$this, 'titles'),10,3);
 		add_action('wp_head', array(&$this, 'metadata'));

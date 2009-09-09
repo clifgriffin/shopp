@@ -178,7 +178,7 @@ class Cart {
 		$db = DB::get();
 				
 		// 1800 seconds = 30 minutes, 3600 seconds = 1 hour
-		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified) > 7200")) 
+		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified) > ".SHOPP_SESSION_TIMEOUT)) 
 			trigger_error("Could not delete cached session data.");
 		return true;
 	}

@@ -251,8 +251,10 @@ class CallbackSubscription {
 	
 	function send () {
 		$args = func_get_args();
-		foreach ($this->subscribers as $callback)
-			call_user_func_array($callback,$args);
+		foreach ($this->subscribers as $callback) {
+			if (version_compare(PHP_VERSION, '5.3.0') === -1) call_user_func_array($callback,$args);
+			else call_user_func_array($callback,&$args);
+		}
 	}
 	
 }
