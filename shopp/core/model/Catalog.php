@@ -279,7 +279,7 @@ class Catalog extends DatabaseObject {
 							$active = '';
 
 							if (isset($Shopp->Category) && !empty($parent->slug)
-									&& preg_match('/(^|\/)'.$Shopp->Category->slug.'(\/|$)/',$parent->uri)) {
+									&& preg_match('/(^|\/)'.$parent->path.'(\/|$)/',$Shopp->Category->uri)) {
 								$active = ' active';
 							}
 							
