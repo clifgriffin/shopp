@@ -230,7 +230,7 @@ class Payson {
 			if ($Item->inventory) $Item->unstock();
 		}
 		
-		return $Purchase;
+		return true;
 
 	}
 		

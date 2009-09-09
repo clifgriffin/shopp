@@ -89,8 +89,8 @@
 						</ul>
 					</td>
 					<td><?php echo $Item->quantity; ?></td>
-					<td class="money"><?php echo money($Item->unitprice); ?></td>
-					<td class="money total"><?php echo money($Item->total); ?></td>
+					<td class="money"><?php echo money($Item->unitprice+($Item->unitprice*$taxrate)); ?></td>
+					<td class="money total"><?php echo money($Item->total+($Item->total*$taxrate)); ?></td>
 				</tr>
 			<?php endforeach; ?>
 			<tr class="totals">

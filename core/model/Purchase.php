@@ -122,6 +122,16 @@ class Purchase extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 
+
+		if ($property == "item-unitprice" || $property == "item-total") {
+			$taxrate = 0;
+			$taxes = false;
+			$base = $Shopp->Settings->get('base_operations');
+			if ($base['vat']) $taxes = true;
+			if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
+			if ($taxes) $taxrate = $Shopp->Cart->taxrate();
+		}
+
 		// Return strings with no options
 		switch ($property) {
 			case "url": return $Shopp->link('cart'); break;
@@ -214,10 +224,10 @@ class Purchase extends DatabaseObject {
 				return $item->quantity; break;
 			case "item-unitprice":
 				$item = current($this->purchased);
-				return money($item->unitprice); break;
+				return money($item->unitprice+($item->unitprice*$taxrate)); break;
 			case "item-total":
 				$item = current($this->purchased);
-				return money($item->total); break;
+				return money($item->total+($item->total*$taxrate)); break;
 			case "item-has-inputs":
 			case "item-hasinputs": 
 				$item = current($this->purchased);

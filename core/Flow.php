@@ -785,6 +785,11 @@ class Flow {
 		$targets = $this->Settings->get('target_markets');
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
+		
+		$taxrate = 0;
+		$base = $Shopp->Settings->get('base_operations');
+		if ($base['vat']) $taxrate = $Shopp->Cart->taxrate();
+		
 				
 		include("{$this->basepath}/core/ui/orders/order.php");
 	}
