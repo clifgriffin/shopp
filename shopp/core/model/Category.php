@@ -56,6 +56,7 @@ class Category extends DatabaseObject {
 	
 	function load_children($loading=array()) {
 		if (isset($this->smart)) return false;
+		if (empty($this->uri)) new ShoppError($this->name.' has no URI',false,SHOPP_DEBUG_ERR);
 		if (empty($this->uri)) return false;
 		$db = DB::get();
 		
@@ -178,7 +179,9 @@ class Category extends DatabaseObject {
 		else $loading['columns'] = '';
 		
 		// Handle default WHERE clause
-		if (empty($loading['where'])) $loading['where'] = "catalog.category=$this->id";
+		if (empty($loading['where']) && !empty($this->id)) 
+			$loading['where'] = "catalog.category=$this->id";
+		else $loading['where'] = "TRUE";
 		
 		if (empty($loading['catalog'])) $loading['catalog'] = "category";
 		switch($loading['catalog']) {
