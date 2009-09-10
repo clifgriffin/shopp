@@ -56,6 +56,7 @@ class Category extends DatabaseObject {
 	
 	function load_children($loading=array()) {
 		if (isset($this->smart)) return false;
+		if (empty($this->uri)) return false;
 		$db = DB::get();
 		
 		if (empty($loading['orderby'])) $loading['orderby'] = "name";
@@ -1288,6 +1289,7 @@ class RelatedProducts extends Category {
 		foreach ($this->product->tags as $tag)
 			if (!empty($tag->id))
 				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.tag=$tag->id";
+		if (!empty($tagscope)) $tagscope = "AND ($tagscope)";
 		
 		$this->tag = "product-".$this->product->id;
 		$this->name = __("Products related to","Shopp")." &quot;".stripslashes($this->product->name)."&quot;";
@@ -1302,7 +1304,7 @@ class RelatedProducts extends Category {
 		$this->loading = array(
 			'catalog'=>'tags',
 			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
-			'where'=>"catalog.tag=t.id AND ($tagscope)$exclude");
+			'where'=>"catalog.tag=t.id $tagscope $exclude");
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
