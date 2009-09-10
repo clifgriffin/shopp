@@ -2259,18 +2259,16 @@ class Flow {
 			foreach ($_POST['settings']['shipping_rates'] as $i => &$method) {
 				$method['name'] = stripslashes($method['name']);
 				foreach ($method as $key => $rates) {
-					if (is_array($rates)) {
-						foreach ($rates as $id => $value) {
-							if ($key != "services")
-								$_POST['settings']['shipping_rates'][$i][$key][$id] =
-									floatnum($_POST['settings']['shipping_rates'][$i][$key][$id]);
-						}
+					if (!is_array($rates)) continue;
+					foreach ($rates as $id => &$value) {
+						if ($value == ">" || $value == "+" || $key == "services") continue;
+						$value = floatnum($value);								
 					}
 				}
 			}
 			
 			$_POST['settings']['order_shipfee'] = floatnum($_POST['settings']['order_shipfee']);
-						
+			
 	 		$this->settings_save();
 			$updated = __('Shipping settings saved.','Shopp');
 			$Shopp->ShipCalcs = new ShipCalcs($Shopp->path);
