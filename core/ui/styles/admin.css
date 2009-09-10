@@ -28,6 +28,7 @@ div.comment-item:hover .row-actions { visibility: visible; }
 #status { padding-left: 20px; font-weight: bold; }
 #status.updating { background: url('../icons/updating.gif') no-repeat left center; }
 #check-update.updating { background: url('../icons/updating.gif') no-repeat 4px center; padding-left: 25px; }
+#ftp-error { display: none; }
 #add-new-category.updating { background: url('../icons/updating.gif') no-repeat 4px center; }
 
 #product #tagchecklist { margin-left: 0; }

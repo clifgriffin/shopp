@@ -18,6 +18,7 @@
 					</div>
 					<div id="ftp-credentials" class="hidden">
 						<p><strong><?php _e('FTP Settings','Shopp'); ?></strong></p>
+<p id="ftp-error" class="shopp error"><?php _e("Could not connect to your server over FTP, please check your settings and try again.","Shopp"); ?></p>
 						<div class="stored"><input type="text" name="settings[ftp_credentials][hostname]" id="ftp-host" size="40" value="<?php echo attribute_escape($credentials['hostname']); ?>" /><br />
 						<label for="ftp-host"><?php _e('Enter the FTP server/host name for this WordPress installation.','Shopp'); ?></label></div>
 						<div class="stored"><input type="text" name="settings[ftp_credentials][username]" id="ftp-username" size="20"  value="<?php echo attribute_escape($credentials['username']); ?>" /><br />
@@ -124,7 +125,7 @@
 				result = $.trim(result);
 				if (result == "ftp-failed") {
 					updating--;
-					return ftpfailure();
+					return ftpfailure(true);
 				} else if (result == "updated") {
 					if (updating+1 < queue.length) {
 						runupdate(); // Continue processing more updates if needed
@@ -189,10 +190,11 @@
 		
 	}
 	
-	function ftpfailure () {
+	function ftpfailure (err) {
 		$('#status').hide();
 		$('#ftp-continue').click(function () { setftp(); return false; });
 		$('#ftp-credentials').show();
+		if (err) $('#ftp-error').show();
 		return false;
 	}
 	

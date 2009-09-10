@@ -334,8 +334,8 @@ class Customer extends DatabaseObject {
 			case "login-errors":
 				$Errors =& ShoppErrors();
 				$result = "";
-				if (!$Errors->exist()) return false;
-				$errors = $Errors->get(SHOPP_COMM_ERR);
+				if (!$Errors->exist(SHOPP_AUTH_ERR)) return false;
+				$errors = $Errors->get(SHOPP_AUTH_ERR);
 				foreach ((array)$errors as $error) 
 					if (!empty($error)) $result .= '<p class="error">'.$error->message().'</p>';
 				$Errors->reset();				
