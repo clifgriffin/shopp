@@ -1316,7 +1316,7 @@ class Flow {
 		$Product->save();
 
 		$Product->save_categories($_POST['categories']);
-		$Product->save_tags(split(",",$_POST['taglist']));
+		$Product->save_tags(explode(",",$_POST['taglist']));
 		
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 
@@ -1728,13 +1728,15 @@ class Flow {
 		if (!empty($_POST['images']) && is_array($_POST['images'])) {
 			$Category->link_images($_POST['images']);
 			$Category->save_imageorder($_POST['images']);
-			foreach($_POST['imagedetails'] as $i => $data) {
-				$Image = new Asset();
-				unset($Image->_datatypes['data'],$Image->data);
-				$Image->load($data['id']);
-				$Image->properties['title'] = $data['title'];
-				$Image->properties['alt'] = $data['alt'];
-				$Image->save();
+			if (!empty($_POST['imagedetails']) && is_array($_POST['imagedetails'])) {
+				foreach($_POST['imagedetails'] as $i => $data) {
+					$Image = new Asset();
+					unset($Image->_datatypes['data'],$Image->data);
+					$Image->load($data['id']);
+					$Image->properties['title'] = $data['title'];
+					$Image->properties['alt'] = $data['alt'];
+					$Image->save();
+				}
 			}
 		}
 
