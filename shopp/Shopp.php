@@ -198,8 +198,9 @@ class Shopp {
 		// new install
 		if ($this->Settings->unavailable) 
 			include("core/install.php");
-				
-		if ($this->Settings->get('version') != SHOPP_VERSION)
+		
+		$ver = $this->Settings->get('version');		
+		if (!empty($ver) && $ver != SHOPP_VERSION)
 			$this->Flow->upgrade();
 				
 		if ($this->Settings->get('shopp_setup')) {
