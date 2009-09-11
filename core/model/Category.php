@@ -181,7 +181,6 @@ class Category extends DatabaseObject {
 		// Handle default WHERE clause
 		if (empty($loading['where']) && !empty($this->id)) 
 			$loading['where'] = "catalog.category=$this->id";
-		else $loading['where'] = "TRUE";
 		
 		if (empty($loading['catalog'])) $loading['catalog'] = "category";
 		switch($loading['catalog']) {

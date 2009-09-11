@@ -199,6 +199,7 @@ class Cart {
 			$NewItem->quantity($quantity);
 			$this->contents[] = $NewItem;
 			$this->data->added = count($this->contents)-1;
+			$this->added = $this->contents[$this->data->added];
 			if ($NewItem->shipping && !$this->data->ShippingDisabled) 
 				$this->data->Shipping = true;
 		}
@@ -983,15 +984,17 @@ class Cart {
 		$AjaxCart = new StdClass();
 		$AjaxCart->url = $Shopp->link('cart');
 		$AjaxCart->Totals = clone($this->data->Totals);
-		if (isset($this->added));
-			$AjaxCart->Item = clone($this->added);
-		unset($AjaxCart->Item->options);
 		$AjaxCart->Contents = array();
 		foreach($this->contents as $item) {
 			$cartitem = clone($item);
 			unset($cartitem->options);
 			$AjaxCart->Contents[] = $cartitem;
 		}
+		if (isset($this->data->added))
+			$AjaxCart->Item = clone($this->contents[$this->data->added]);
+		else $AjaxCart->Item = new Item();
+		unset($AjaxCart->Item->options);
+		
 		echo json_encode($AjaxCart);
 		exit();
 	}
