@@ -67,7 +67,6 @@
 #shopp ul.breadcrumb li { background: none; padding: 0; display: inline; margin-left: 0; text-indent: 0; }
 
 #shopp ul.categories { float: left; margin-right: 20px; }
-#shopp #new { float: left; width: 75%; }
 
 /* Category Pagination */
 #shopp ul.paging { /* placeholder for your styles - inherited defaults: clear: none; display: inline-block; */ }
@@ -106,7 +105,7 @@ ul.shopp_categories { /* category list container */ }
 ul.shopp_categories li { /* category listing containers */ }
 ul.shopp_categories li a { /* category link default styles */ }
 ul.shopp_categories li a:hover { /* category link hover styles */ }
-ul.shopp_categories li span { /* categpry product count styles*/ }
+ul.shopp_categories li span { /* categpry product count styles */ }
 ul.shopp_categories li.current { /* currently viewed category container */ }
 ul.shopp_categories li.current a { /* currently viewed category link style */ }
 ul.shopp_categories li.current a:hover { /* currently viewed category link hover style */ }
