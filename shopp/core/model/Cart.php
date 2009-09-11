@@ -1356,7 +1356,7 @@ class Cart {
 				for ($i = 0; $i < count($estimates); $i++){
 					list($interval,$p) = sscanf($estimates[$i],'%d%s');
 					if (!empty($result)) $result .= "&mdash;";
-					$result .= date($format,mktime()+($interval*$periods[$p]));
+					$result .= _d($format,mktime()+($interval*$periods[$p]));
 				}				
 				return $result;
 		}
