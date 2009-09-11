@@ -46,6 +46,9 @@ class PayPalStandard {
 		$this->button = sprintf($this->button, $this->settings['locale']);
 		$this->ipn = add_query_arg('shopp_xorder','PayPalStandard',$Shopp->link('catalog',true));
 			
+		$loginproc = (isset($_POST['process-login']) 
+			&& $_POST['process-login'] != 'false')?$_POST['process-login']:false;
+			
 		if (isset($_POST['checkout']) && 
 			$_POST['checkout'] == "process" && 
 			!$loginproc) $this->checkout();
