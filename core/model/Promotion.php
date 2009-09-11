@@ -52,7 +52,7 @@ class Promotion extends DatabaseObject {
 				
 				if ($this->values[$rule['property']] == "price") 
 					$value = floatnum($rule['value']);
-				else $value = "'$value'";
+				else $value = "'".$rule['value']."'";
 				
 				switch($rule['logic']) {
 					case "Is equal to": $match = "=$value"; break;
@@ -93,6 +93,7 @@ class Promotion extends DatabaseObject {
 					LEFT JOIN $category_table AS cat ON clog.category=cat.id 
 					WHERE TRUE $where 
 					GROUP BY prc.id";
+
 		$db->query($query);
 		
 	}
