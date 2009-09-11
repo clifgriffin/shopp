@@ -777,6 +777,41 @@ function valid_input ($type) {
 	return false;
 }
 
+function _d($format,$timestamp=false) {
+	$tokens = array(
+		'D' => array('Mon' => __('Mon'),'Tue' => __('Tue'),
+					'Wed' => __('Wed'),'Thu' => __('Thu'),
+					'Fri' => __('Fri'),'Sat' => __('Sat'),
+					'Sun' => __('Sun')),
+		'l' => array('Monday' => __('Monday'),'Tuesday' => __('Tuesday'),
+					'Wednesday' => __('Wednesday'),'Thursday' => __('Thursday'),
+					'Friday' => __('Friday'),'Saturday' => __('Saturday'),
+					'Sunday' => __('Sunday')),
+		'F' => array('January' => __('January'),'February' => __('February'),
+					'March' => __('March'),'April' => __('April'),
+					'May' => __('May'),'June' => __('June'),
+					'July' => __('July'),'August' => __('August'),
+					'September' => __('September'),'October' => __('October'),
+					'November' => __('November'),'December' => __('December')),
+		'M' => array('Jan' => __('Jan'),'Feb' => __('Feb'),
+					'Mar' => __('Mar'),'Apr' => __('Apr'),
+					'May' => __('May'),'Jun' => __('Jun'),
+					'Jul' => __('Jul'),'Aug' => __('Aug'),
+					'Sep' => __('Sep'),'Oct' => __('Oct'),
+					'Nov' => __('Nov'),'Dec' => __('Dec'))
+	);
+
+	if (!$timestamp) $date = date($format);
+	else $date = date($format,$timestamp);
+
+	foreach ($tokens as $token => $strings) {
+		if ($pos = strpos($format,$token) === false) continue;
+		$string = (!$timestamp)?date($token):date($token,$timestamp);
+		$date = str_replace($string,$strings[$string],$date);
+	}
+	return $date;
+}
+
 function inputattrs ($options,$allowed=array()) {
 	if (!is_array($options)) return "";
 	if (empty($allowed)) {

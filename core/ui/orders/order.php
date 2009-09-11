@@ -13,7 +13,7 @@
 		<div id="receipt" class="shopp">
 		<table class="transaction" cellspacing="0">
 			<tr><th><?php _e('Order Num','Shopp'); ?>:</th><td><?php echo $Purchase->id; ?></td></tr>	
-			<tr><th><?php _e('Order Date','Shopp'); ?>:</th><td><?php echo date(get_option('date_format'), $Purchase->created); ?></td></tr>	
+			<tr><th><?php _e('Order Date','Shopp'); ?>:</th><td><?php echo _d(get_option('date_format'), $Purchase->created); ?></td></tr>	
 			<?php if (!empty($Purchase->card) && !empty($Purchase->cardtype)): ?><tr><th><?php _e('Billed To','Shopp'); ?>:</th><td><?php (!empty($Purchase->card))?printf("%'X16d",$Purchase->card):''; ?> <?php echo (!empty($Purchase->cardtype))?'('.$Purchase->cardtype.')':''; ?></td></tr><?php endif; ?>
 			<tr><th><?php _e('Transaction','Shopp'); ?>:</th><td><?php echo $Purchase->transactionid; ?></td></tr>	
 			<?php if ($Purchase->gateway == "Google Checkout"):?>

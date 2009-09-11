@@ -59,8 +59,8 @@
 			<td class="applied column-applied<?php echo in_array('applied',$hidden)?' hidden':''; ?>"><?php echo $Promotion->scope; ?></td>
 			<td class="eff column-eff<?php echo in_array('eff',$hidden)?' hidden':''; ?>"><strong><?php echo $status[$Promotion->status]; ?></strong><?php
 				if (mktimestamp($Promotion->starts > 1) && mktimestamp($Promotion->ends) > 1)
-					echo "<br />".date(get_option('date_format'),mktimestamp($Promotion->starts))." &mdash; ".date(get_option('date_format'),mktimestamp($Promotion->ends));
-				else echo "<br />".date(get_option('date_format'),mktimestamp($Promotion->created)).", ".__('does not expire','Shopp');
+					echo "<br />"._d(get_option('date_format'),mktimestamp($Promotion->starts))." &mdash; "._d(get_option('date_format'),mktimestamp($Promotion->ends));
+				else echo "<br />"._d(get_option('date_format'),mktimestamp($Promotion->created)).", ".__('does not expire','Shopp');
 			?></td>
 		</tr>
 		<?php endforeach; ?>
