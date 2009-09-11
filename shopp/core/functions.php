@@ -382,6 +382,15 @@ function shopp_debug ($object) {
 	$Shopp->_debug->objects .= "<br/><br/>".str_replace("\n","<br/>",$result);
 }
 
+function _object_r ($object) {
+	global $Shopp;
+	ob_start();
+	print_r($object);
+	$result = ob_get_contents();
+	ob_end_clean();
+	return $result;
+}
+
 function shopp_pagename ($page) {
 	global $is_IIS;
 	$prefix = strpos($page,"index.php/");

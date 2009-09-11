@@ -2261,11 +2261,11 @@ class Flow {
 			// Sterilize $values
 			foreach ($_POST['settings']['shipping_rates'] as $i => &$method) {
 				$method['name'] = stripslashes($method['name']);
-				foreach ($method as $key => $rates) {
-					if (!is_array($rates)) continue;
-					foreach ($rates as $id => &$value) {
-						if ($value == ">" || $value == "+" || $key == "services") continue;
-						$value = floatnum($value);								
+				foreach ($method as $key => &$mr) {
+					if (!is_array($mr)) continue;
+					foreach ($mr as $id => &$v) {
+						if ($v == ">" || $v == "+" || $key == "services") continue;
+						$v = floatnum($v);								
 					}
 				}
 			}
