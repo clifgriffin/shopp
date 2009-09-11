@@ -36,7 +36,7 @@ class Product extends DatabaseObject {
 	
 	function Product ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id,$key)) {
+		if ($this->load($id,$key)) {			
 			add_filter('shopp_product_description', 'wptexturize');
 			add_filter('shopp_product_description', 'convert_chars');
 			add_filter('shopp_product_description', 'wpautop');
@@ -642,7 +642,7 @@ class Product extends DatabaseObject {
 		switch ($property) {
 			case "link": 
 			case "url": 
-				if (SHOPP_PERMALINKS) $url = add_query_arg($_GET,"$Shopp->shopuri$this->slug/");
+				if (SHOPP_PERMALINKS) $url = add_query_arg($_GET,$Shopp->shopuri.urldecode($this->slug)."/");
 				else $url = add_query_arg('shopp_pid',$this->id,$Shopp->shopuri);
 				return $url;
 				break;

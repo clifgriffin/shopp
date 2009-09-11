@@ -529,12 +529,12 @@ class Category extends DatabaseObject {
 			case "link": 
 			case "url": 
 				return (SHOPP_PERMALINKS)?
-					$Shopp->shopuri."category/$this->uri":
+					$Shopp->shopuri."category/".urldecode($this->uri):
 					add_query_arg('shopp_category',$this->id,$Shopp->shopuri);
 				break;
 			case "id": return $this->id; break;
 			case "name": return $this->name; break;
-			case "slug": return $this->slug; break;
+			case "slug": return urldecode($this->slug); break;
 			case "description": return wpautop($this->description); break;
 			case "total": return $this->total; break;
 			case "has-products": 
@@ -1211,7 +1211,7 @@ class SearchResults extends Category {
 		$this->smart = true;
 
 		$keywords = $options['search'];
-		
+
 		// Strip accents for search
 		$accents = array(' ','á','à','â','ã','ª','Á','À', 
 	    'Â','Ã', 'é','è','ê','É','È','Ê','í','ì','î','Í', 
@@ -1226,6 +1226,7 @@ class SearchResults extends Category {
 		// Strip non alpha-numerics
 	    $keywords = ereg_replace('[^A-Za-z0-9\_\.\-]', '', $keywords); 
 		$keywords = preg_replace('/(\s?)(\w+)\b(\s?)/','\1*\2*\3',$keywords);
+		if (strlen($options['search']) > 0 && empty($keywords)) $keywords = $options['search'];
 		
 		$this->loading = array(
 			'columns'=> "MATCH(p.name,p.summary,p.description) AGAINST ('$keywords' IN BOOLEAN MODE) AS score",

@@ -585,24 +585,24 @@ class Shopp {
 
 		// catalog/category/category-slug
 		if (empty($shop)) {
-			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]';
+			$rules[$catalog.'/category/(.+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$catalog.'/category/(.+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$catalog.'/category/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]';
 		} else {
-			$rules[$shop.'category/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$shop.'category/([\w%_\+\-\/]+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'category/([\w%_\+\-\/]+?)?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]';
+			$rules[$shop.'category/(.+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$shop.'category/(.+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$shop.'category/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]';
 		}
 
 		// tags
 		if (empty($shop)) {
-			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
-			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]&paged=$matches[2]';
-			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]';
+			$rules[$catalog.'/tag/(.+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
+			$rules[$catalog.'/tag/(.+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]&paged=$matches[2]';
+			$rules[$catalog.'/tag/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]';
 		} else {
-			$rules[$shop.'tag/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
-			$rules[$shop.'tag/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'tag/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]';
+			$rules[$shop.'tag/(.+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
+			$rules[$shop.'tag/(.+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]&paged=$matches[2]';
+			$rules[$shop.'tag/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]';
 		}
 
 		// catalog/productid
@@ -610,8 +610,8 @@ class Shopp {
 		else $rules[$shop.'(\d+(,\d+)?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_pid=$matches[1]';
 
 		// catalog/product-slug
-		if (empty($shop)) $rules[$catalog.'/([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_product=$matches[1]'; // category/product-slug
-		else $rules[$shop.'([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_product=$matches[1]'; // category/product-slug			
+		if (empty($shop)) $rules[$catalog.'/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_product=$matches[1]'; // category/product-slug
+		else $rules[$shop.'(.+)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_product=$matches[1]'; // category/product-slug			
 
 		// catalog/categories/path/product-slug
 		if (empty($shop)) $rules[$catalog.'/([\w%_\\+-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
@@ -750,11 +750,11 @@ class Shopp {
 			$uri = 'category/'.$this->Category->uri;
 			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
 
-			if (SHOPP_PERMALINKS) $link = $this->shopuri.$uri.'/feed/';
-			else $link = add_query_arg(array('shopp_category'=>$this->Category->uri,'shopp_lookup'=>'category-rss'),$this->shopuri);
+			if (SHOPP_PERMALINKS) $link = $this->shopuri.urldecode($uri).'/feed/';
+			else $link = add_query_arg(array('shopp_category'=>urldecode($this->Category->uri),'shopp_lookup'=>'category-rss'),$this->shopuri);
 			?>
 
-<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo htmlentities($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
+<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo urldecode($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
 <?php
 		endif;
 	}
@@ -866,9 +866,16 @@ class Shopp {
 			$category = "search-results";
 		}
 		
+		// Load a category/tag
 		if (!empty($category) || !empty($tag)) {
 			if (isset($this->Cart->data->Search)) $options = array('search'=>$this->Cart->data->Search);
 			if (isset($tag)) $options = array('tag'=>$tag);
+
+			// Split for encoding multi-byte slugs
+			$slugs = explode("/",$category);
+			$category = join("/",array_map('urlencode',$slugs));
+			
+			// Load the category
 			$this->Category = Catalog::load_category($category,$options);			
 			$this->Cart->data->breadcrumb = (isset($tag)?"tag/":"").$this->Category->uri;
 		} 
@@ -906,7 +913,7 @@ class Shopp {
 			
 		// Find product by product slug
 		if (!empty($productname) && empty($this->Product->id))
-			$this->Product = new Product($productname,"slug");
+			$this->Product = new Product(urlencode($productname),"slug");
 		
 		// Product must be published
 		if (!empty($this->Product->id) && $this->Product->published == "off" || empty($this->Product->id))
@@ -1469,14 +1476,14 @@ class Shopp {
 						$Category = new Category($_REQUEST['id']);
 						if (empty($_REQUEST['slug'])) $_REQUEST['slug'] = $Category->name;
 						$Category->slug = sanitize_title_with_dashes($_REQUEST['slug']);
-						if ($Category->save()) echo $Category->slug;
+						if ($Category->save()) echo apply_filters('editable_slug',$Category->slug);
 						else echo '-1';
 						break;
 					case "product":
 						$Product = new Product($_REQUEST['id']);
 						if (empty($_REQUEST['slug'])) $_REQUEST['slug'] = $Product->name;
 						$Product->slug = sanitize_title_with_dashes($_REQUEST['slug']);
-						if ($Product->save()) echo $Product->slug;
+						if ($Product->save()) echo apply_filters('editable_slug',$Product->slug);
 						else echo '-1';
 						break;
 				}
