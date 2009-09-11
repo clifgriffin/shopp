@@ -185,6 +185,10 @@ if (!wp26) {
 	jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 }
 
+$('#username').click(function () {
+	document.location.href = '/wp-admin/user-edit.php?user_id='+$('#userid').val();
+});
+
 updateStates('#billing-country','#billing-state-inputs');
 updateStates('#shipping-country','#shipping-state-inputs');
 
