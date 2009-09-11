@@ -151,6 +151,9 @@ class Catalog extends DatabaseObject {
 			case "is-catalog": return (is_shopp_page('catalog') && $this->type == "catalog"); break;
 			case "is-category": return (is_shopp_page('catalog') && $this->type == "category"); break;
 			case "is-product": return (is_shopp_page('catalog') && $this->type == "product"); break;
+			case "is-cart": return (is_shopp_page('cart')); break;
+			case "is-checkout": return (is_shopp_page('checkout')); break;
+			case "is-account": return (is_shopp_page('account')); break;
 			case "tagcloud":
 				if (!empty($options['levels'])) $levels = $options['levels'];
 				else $levels = 7;
