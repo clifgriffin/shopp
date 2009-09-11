@@ -1235,6 +1235,7 @@ class Flow {
 		// $Product->load_data(array('images'));
 		// echo "<pre>"; print_r($Product->imagesets); echo "</pre>";
 		
+		$Product->slug = apply_filters('editable_slug',$Product->slug);
 		$permalink = $Shopp->shopuri;
 
 		require_once("{$this->basepath}/core/model/Asset.php");
@@ -1649,9 +1650,9 @@ class Flow {
 		
 		// Build permalink for slug editor
 		$permalink = trailingslashit($Shopp->link('catalog'))."category/";
+		$Category->slug = apply_filters('editable_slug',$Category->slug);
 		if (!empty($Category->slug))
 			$permalink .= substr($Category->uri,0,strpos($Category->uri,$Category->slug));
-
 
 		$pricerange_menu = array(
 			"disabled" => __('Price ranges disabled','Shopp'),
