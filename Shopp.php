@@ -1255,12 +1255,11 @@ class Shopp {
 				exit();
 				break;
 			case "shipcost":
-				$this->Cart = new Cart();
-				session_start();
-				$this->ShipCalcs = new ShipCalcs($this->path);
+				$this->init();
 				if (isset($_GET['method'])) {
 					$this->Cart->data->Order->Shipping->method = $_GET['method'];
 					$this->Cart->retotal = true;
+					$this->Cart->updated();
 					$this->Cart->totals();
 					echo json_encode($this->Cart->data->Totals);
 				}

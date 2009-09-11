@@ -1286,7 +1286,7 @@ class Cart {
 		}
 		
 		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
-		else return '<span id="'.$property.'">'.money($result).'</span>';
+		else return '<span class="shopp_cart_'.$property.'">'.money($result).'</span>';
 		
 		return false;
 	}

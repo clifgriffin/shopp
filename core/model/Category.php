@@ -55,9 +55,9 @@ class Category extends DatabaseObject {
 	}
 	
 	function load_children($loading=array()) {
-		if (isset($this->smart)) return false;
-		if (empty($this->uri)) new ShoppError($this->name.' has no URI',false,SHOPP_DEBUG_ERR);
-		if (empty($this->uri)) return false;
+		if (isset($this->smart) 
+			|| empty($this->id) 
+			|| empty($this->uri)) return false;
 		$db = DB::get();
 		
 		if (empty($loading['orderby'])) $loading['orderby'] = "name";
@@ -694,6 +694,7 @@ class Category extends DatabaseObject {
 				return $string;
 				break;
 			case "section-list":
+				if (empty($this->id)) return false;
 				if (isset($Shopp->Category->controls)) return false;
 				if (empty($Shopp->Catalog->categories)) $Shopp->Catalog->load_categories(array("where"=>"(pd.published='on' OR pd.id IS NULL)"));
 				if (empty($Shopp->Catalog->categories)) return false;

@@ -110,7 +110,7 @@
 			$('<option></option>').val('').html('').appendTo('#shipping-state');
 			if (regions[this.value]) {
 				$.each(regions[this.value], function (value,label) {
-						option = $('<option></option>').val(value).html(label).appendTo('#shipping-state');
+					option = $('<option></option>').val(value).html(label).appendTo('#shipping-state');
 				});
 				$('#shipping-state').attr('disabled',false);
 			}
@@ -122,7 +122,7 @@
 			$('<option></option>').val('').html('').appendTo('#billing-state');
 			if (regions[this.value]) {
 				$.each(regions[this.value], function (value,label) {
-						option = $('<option></option>').val(value).html(label).appendTo('#billing-state');
+					option = $('<option></option>').val(value).html(label).appendTo('#billing-state');
 				});
 				$('#billing-state').attr('disabled',false);
 			}
@@ -137,8 +137,9 @@
 			$.getJSON(url+"shopp_lookup=shipcost&method="+$(this).val(),
 				function (result) {
 					var totals = eval(result);
-					$('#shipping').html(asMoney(totals.shipping));
-					$('#total').html(asMoney(totals.total));
+					$('span.shopp_cart_shipping').html(asMoney(totals.shipping));
+					$('span.shopp_cart_tax').html(asMoney(totals.tax));
+					$('span.shopp_cart_total').html(asMoney(totals.total));
 			});
 		});
 

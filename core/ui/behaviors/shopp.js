@@ -373,11 +373,11 @@ var ShoppCartAjaxHandler = function (cart) {
 			$('<li></li>').html(cart.Item.optionlabel).appendTo(item);
 		$('<li></li>').html(asMoney(cart.Item.unitprice)).appendTo(item);
 		
-		if ($('#shopp-cart-items').length > 0) {
-			$('#shopp-cart-items').html(cart.Totals.quantity);
-			$('#shopp-cart-total').html(asMoney(cart.Totals.total));			
+		if ($('#shopp-sidecart-items').length > 0) {
+			$('#shopp-sidecart-items').html(cart.Totals.quantity);
+			$('#shopp-sidecart-total').html(asMoney(cart.Totals.total));			
 		} else {
-			$('.widget_shoppcartwidget p.status').html('<a href="'+cart.url+'"><span id="shopp-cart-items">'+cart.Totals.quantity+'</span> <strong>Items</strong> &mdash; <strong>Total</strong> <span id="shopp-cart-total">'+asMoney(cart.Totals.total)+'</span></a>');
+			$('.widget_shoppcartwidget p.status').html('<a href="'+cart.url+'"><span id="shopp-sidecart-items">'+cart.Totals.quantity+'</span> <strong>Items</strong> &mdash; <strong>Total</strong> <span id="shopp-sidecart-total">'+asMoney(cart.Totals.total)+'</span></a>');
 		}
 		display.slideDown();
 	})(jQuery)	
