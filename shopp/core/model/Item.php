@@ -66,6 +66,7 @@ class Item {
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
 		$this->sale = $Price->onsale;
+		$this->freeshipping = $Price->freeshipping;
 		$this->saved = ($Price->price - $Price->promoprice);
 		$this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
