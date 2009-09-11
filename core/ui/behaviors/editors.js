@@ -145,7 +145,7 @@ function addVariationOptionsMenu (data) {
 	var linkOptionVariations = $('#linkOptionVariations');
 	var id = variationsidx;
 	
-	var menu = new NestedMenu(id,menus,'options','Option Menu',data,
+	var menu = new NestedMenu(id,menus,'options',OPTION_MENU_DEFAULT,data,
 		{target:entries,type:'list'},
 		{'axis':'y','update':function() { orderOptions(menus,entries) }}
 	);
@@ -160,7 +160,7 @@ function addVariationOptionsMenu (data) {
  			data.id = optionsidx;
 		} else if (data.id > optionsidx) optionsidx = data.id;
 		
-	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'options','New Option',data);
+	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'options',NEW_OPTION_DEFAULT,data);
 		optionsidx++;
 
 		option.linkIcon = $('<img src="'+rsrcdir+'/core/ui/icons/linked.png" alt="linked" width="16" height="16" class="link" />').appendTo(option.moveHandle);
