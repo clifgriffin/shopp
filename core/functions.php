@@ -779,26 +779,26 @@ function valid_input ($type) {
 
 function _d($format,$timestamp=false) {
 	$tokens = array(
-		'D' => array('Mon' => __('Mon'),'Tue' => __('Tue'),
-					'Wed' => __('Wed'),'Thu' => __('Thu'),
-					'Fri' => __('Fri'),'Sat' => __('Sat'),
-					'Sun' => __('Sun')),
-		'l' => array('Monday' => __('Monday'),'Tuesday' => __('Tuesday'),
-					'Wednesday' => __('Wednesday'),'Thursday' => __('Thursday'),
-					'Friday' => __('Friday'),'Saturday' => __('Saturday'),
-					'Sunday' => __('Sunday')),
-		'F' => array('January' => __('January'),'February' => __('February'),
-					'March' => __('March'),'April' => __('April'),
-					'May' => __('May'),'June' => __('June'),
-					'July' => __('July'),'August' => __('August'),
-					'September' => __('September'),'October' => __('October'),
-					'November' => __('November'),'December' => __('December')),
-		'M' => array('Jan' => __('Jan'),'Feb' => __('Feb'),
-					'Mar' => __('Mar'),'Apr' => __('Apr'),
-					'May' => __('May'),'Jun' => __('Jun'),
-					'Jul' => __('Jul'),'Aug' => __('Aug'),
-					'Sep' => __('Sep'),'Oct' => __('Oct'),
-					'Nov' => __('Nov'),'Dec' => __('Dec'))
+		'D' => array('Mon' => __('Mon','Shopp'),'Tue' => __('Tue','Shopp'),
+					'Wed' => __('Wed','Shopp'),'Thu' => __('Thu','Shopp'),
+					'Fri' => __('Fri','Shopp'),'Sat' => __('Sat','Shopp'),
+					'Sun' => __('Sun','Shopp')),
+		'l' => array('Monday' => __('Monday','Shopp'),'Tuesday' => __('Tuesday','Shopp'),
+					'Wednesday' => __('Wednesday','Shopp'),'Thursday' => __('Thursday','Shopp'),
+					'Friday' => __('Friday','Shopp'),'Saturday' => __('Saturday','Shopp'),
+					'Sunday' => __('Sunday','Shopp')),
+		'F' => array('January' => __('January','Shopp'),'February' => __('February','Shopp'),
+					'March' => __('March','Shopp'),'April' => __('April','Shopp'),
+					'May' => __('May','Shopp'),'June' => __('June','Shopp'),
+					'July' => __('July','Shopp'),'August' => __('August','Shopp'),
+					'September' => __('September','Shopp'),'October' => __('October','Shopp'),
+					'November' => __('November','Shopp'),'December' => __('December','Shopp')),
+		'M' => array('Jan' => __('Jan','Shopp'),'Feb' => __('Feb','Shopp'),
+					'Mar' => __('Mar','Shopp'),'Apr' => __('Apr','Shopp'),
+					'May' => __('May','Shopp'),'Jun' => __('Jun','Shopp'),
+					'Jul' => __('Jul','Shopp'),'Aug' => __('Aug','Shopp'),
+					'Sep' => __('Sep','Shopp'),'Oct' => __('Oct','Shopp'),
+					'Nov' => __('Nov','Shopp'),'Dec' => __('Dec','Shopp'))
 	);
 
 	if (!$timestamp) $date = date($format);
