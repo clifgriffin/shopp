@@ -38,7 +38,7 @@ function get_countries () {
 	$countries['BS'] = array('name'=>__('Bahamas','Shopp'),'currency'=>array('code'=>'BSD','format'=>'$#,###.##'),'units'=>'metric','region'=>0); 
 	$countries['BE'] = array('name'=>__('Belgium','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['BR'] = array('name'=>__('Brazil','Shopp'),'currency'=>array('code'=>'BRL','format'=>'R$ #.###,##'),'units'=>'metric','region'=>2); 
-	$countries['BG'] = array('name'=>__('Bulgaria','Shopp'),'currency'=>array('code'=>'BGN','format'=>'лв #.###,##'),'units'=>'metric','region'=>3); 
+	$countries['BG'] = array('name'=>__('Bulgaria','Shopp'),'currency'=>array('code'=>'BGN','format'=>'# ###,## лв.'),'units'=>'metric','region'=>3); 
 	$countries['CL'] = array('name'=>__('Chile','Shopp'),'currency'=>array('code'=>'CLP','format'=>'$#.###'),'units'=>'metric','region'=>2); 
 	$countries['CN'] = array('name'=>__('China','Shopp'),'currency'=>array('code'=>'CNY','format'=>'¥#,###.##'),'units'=>'metric','region'=>6); 
 	$countries['CO'] = array('name'=>__('Colombia','Shopp'),'currency'=>array('code'=>'COP','format'=>'$#.###,##'),'units'=>'metric','region'=>2); 
