@@ -360,8 +360,10 @@ class PayPalExpress {
 		foreach($pairs as $pair) {
 			list($key,$value) = explode("=",$pair);
 			if (preg_match("/(\w*?)(\d+)/",$key,$matches)) {
+				// Capture line item data into an array structure
 				if (!isset($r[$matches[1]])) $r[$matches[1]] = array();
-				$r[$matches[1]][$matches[2]] = urldecode($value);
+				// Skip non-line item data
+				if (is_array($r[$matches[1]])) $r[$matches[1]][$matches[2]] = urldecode($value);
 			} else $r[$key] = urldecode($value);
 		}
 

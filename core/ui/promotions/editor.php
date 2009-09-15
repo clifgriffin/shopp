@@ -269,7 +269,13 @@ $('#discount-type').change(function () {
 	var type = $(this).val();
 	
 	if (type == "Percentage Off" || type == "Amount Off") $('#discount-row').show();
-	if (type == "Buy X Get Y Free") $('#beyget-row').show();
+	if (type == "Buy X Get Y Free") {
+		$('#beyget-row').show();
+		$('#promotion-scope').val('Order').change();
+		$('#promotion-scope option').eq(0).attr('disabled',true);
+	} else {
+		$('#promotion-scope option').eq(0).attr('disabled',false);
+	}
 	
 	$('#discount-amount').unbind('change').change(function () {
 		if (type == "Percentage Off") this.value = asPercent(this.value);
