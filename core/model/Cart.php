@@ -464,7 +464,6 @@ class Cart {
 							if (Promotion::match_rule($Item->name,$rule['logic'],$rule['value'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
-								// echo "<pre>"; print_r($rule); echo "</pre>";
 							}
 						}
 						break;
@@ -473,7 +472,6 @@ class Cart {
 							if (Promotion::match_rule(number_format($Item->quantity,0),$rule['logic'],$rule['value'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
-								// echo "<pre>"; print_r($rule); echo "</pre>";
 							}
 						}
 						break;
@@ -482,32 +480,27 @@ class Cart {
 							if (Promotion::match_rule(number_format($Item->total,2),$rule['logic'],$rule['value'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
-								// echo "<pre>"; print_r($rule); echo "</pre>";
 							}
 						}
 						break;
 					case "Total quantity":
 						if (Promotion::match_rule(number_format($this->data->Totals->quantity,0),$rule['logic'],$rule['value'])) {
 							$rulematch = true;
-							// echo "<pre>"; print_r($rule); echo "</pre>";
 						}
 						break;
 					case "Shipping amount": 
 						if (Promotion::match_rule(number_format($this->data->Totals->shipping,2),$rule['logic'],$rule['value'])) {
 							$rulematch = true;
-							// echo "<pre>"; print_r($rule); echo "</pre>";
 						}
 						break;
 					case "Subtotal amount": 
 						if (Promotion::match_rule(number_format($this->data->Totals->subtotal,2),$rule['logic'],$rule['value'])) {
 							$rulematch = true;
-							// echo "<pre>"; print_r($rule); echo "</pre>";
 						}
 						break;
 					case "Promo code":
 						// Match previously applied codes
 						if (is_array($this->data->PromoCodes) && in_array($rule['value'],$this->data->PromoCodes)) {							
-							// echo "<pre>"; print_r($rule); echo "</pre>";
 							$rulematch = true;
 							break;
 						}

@@ -118,8 +118,10 @@ class Asset extends DatabaseObject {
 		$selection = "";
 		foreach ($keys as $value) 
 			$selection .= ((!empty($selection))?" OR ":"")."f.{$this->_key}=$value OR f.src=$value";
-		
-		$files = $db->query("SELECT f.name,count(DISTINCT links.id) AS refs FROM $this->_table AS f LEFT JOIN $this->_table AS links ON f.name=links.name WHERE $selection GROUP BY links.name",AS_ARRAY);
+
+		$query = "SELECT f.name,count(DISTINCT links.id) AS refs FROM $this->_table AS f LEFT JOIN $this->_table AS links ON f.name=links.name WHERE $selection GROUP BY links.name";
+		$files = $db->query($query,AS_ARRAY);
+
 		foreach ($files as $file)
 			if ($file->refs == 1 && file_exists($this->path.$file->name))
 				unlink($this->path.$file->name);

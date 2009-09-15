@@ -811,8 +811,6 @@ class Shopp {
 		elseif (function_exists('memory_get_usage'))
 			$this->_debug->memory .= "End: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB";
 
-		// echo "<pre>"; print_r($db->queries); echo "</pre>";
-
 		echo '<script type="text/javascript">'."\n";
 		echo '//<![CDATA['."\n";
 		echo 'var memory_profile = "'.$this->_debug->memory.'";';

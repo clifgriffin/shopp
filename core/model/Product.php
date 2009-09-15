@@ -535,26 +535,35 @@ class Product extends DatabaseObject {
 	 * Deletes the record associated with this object */
 	function delete () {
 		$db = DB::get();
-		
-		// Delete record
 		$id = $this->{$this->_key};
-		if (!empty($id)) $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
+		if (empty($id)) return false;
 		
 		// Delete from categories
 		$table = DatabaseObject::tablename(Catalog::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
 
 		// Delete prices
 		$table = DatabaseObject::tablename(Price::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
 
 		// Delete specs
 		$table = DatabaseObject::tablename(Spec::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
-
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
+		
 		// Delete images/files
 		$table = DatabaseObject::tablename(Asset::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='product'");
+
+		// Delete images
+		$images = array();
+		$src = $db->query("SELECT id FROM $table WHERE parent='$id' AND context='product' AND datatype='image'",AS_ARRAY);
+		foreach ($src as $img) $images[] = $img->id;
+		$this->delete_images($images);
+		
+		// Delete product downloads (but keep the file if on file system)
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND context='product'");
+
+		// Delete record
+		$db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
 
 	}
 	
