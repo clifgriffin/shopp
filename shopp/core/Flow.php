@@ -2496,7 +2496,7 @@ class Flow {
 		if (!is_dir($imagepath)) $error = __("The file path supplied is not a directory. Using database instead.","Shopp");
 		if (!is_writable($imagepath) || !is_readable($imagepath)) 
 			$error = __("Permissions error. This path must be writable by the web server. Using database instead.","Shopp");
-		if (empty($imagepath)) $error = __("Enter the absolute path starting from server root to your image storage directory.","Shopp");
+		if (empty($imagepath)) $error = __("Enter the absolute path starting from the root of the server file system to your image storage directory.","Shopp");
 		if ($error) {
 			$_POST['settings']['image_storage'] = 'db';
 			$imagepath_status = '<span class="error">'.$error.'</span>';
@@ -2513,7 +2513,7 @@ class Flow {
 		if (!is_dir($productspath)) $error = __("The file path supplied is not a directory. Using database instead.","Shopp");
 		if (!is_writable($productspath) || !is_readable($productspath)) 
 			$error = __("Permissions error. This path must be writable by the web server. Using database instead.","Shopp");
-		if (empty($productspath)) $error = __("Enter the absolute path starting from server root to your product file storage directory.","Shopp");
+		if (empty($productspath)) $error = __("Enter the absolute path starting from the root of the server file system to your product file storage directory.","Shopp");
 		if ($error) {
 			$_POST['settings']['product_storage'] = 'db';
 			$productspath_status = '<span class="error">'.$error.'</span>';
