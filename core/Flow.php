@@ -525,8 +525,8 @@ class Flow {
 		$Shopp->Cart = new Cart();
 		session_start();
 		
-		// Keep the user loggedin
-		if ($Shopp->Cart->data->login)
+		// Keep the user logged in or log them in if they are a new customer
+		if ($Shopp->Cart->data->login || $authentication != "none")
 			$Shopp->Cart->loggedin($Order->Customer);
 		
 		// Save the purchase ID for later lookup
