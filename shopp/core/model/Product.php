@@ -392,12 +392,19 @@ class Product extends DatabaseObject {
 
 		$table = DatabaseObject::tablename(Catalog::$table);
 
-		foreach ($added as $id) {
-			$db->query("INSERT $table SET category='$id',product='$this->id',created=now(),modified=now()");
+		if (!empty($added)) {
+			foreach ($added as $id) {
+				if (empty($id)) continue;
+				$db->query("INSERT $table SET category='$id',product='$this->id',created=now(),modified=now()");
+			}
 		}
 		
-		foreach ($removed as $id) {
-			$db->query("DELETE LOW_PRIORITY FROM $table WHERE category='$id' AND product='$this->id'"); 
+		if (!empty($removed)) {
+			foreach ($removed as $id) {
+				if (empty($id)) continue;
+				$db->query("DELETE LOW_PRIORITY FROM $table WHERE category='$id' AND product='$this->id'"); 
+			}
+			
 		}
 		
 	}
@@ -426,7 +433,7 @@ class Product extends DatabaseObject {
 			foreach ($added as $tag) {
 				if (empty($tag)) continue; // No empty tags
 				$tagid = array_search($tag,$exists);
-			
+
 				if (!$tagid) {
 					$Tag = new Tag();
 					$Tag->name = $tag;
@@ -436,6 +443,7 @@ class Product extends DatabaseObject {
 
 				if (!empty($tagid))
 					$db->query("INSERT $catalog SET tag='$tagid',product='$this->id',created=now(),modified=now()");
+					
 			}
 		}
 
@@ -728,6 +736,14 @@ class Product extends DatabaseObject {
 			case "has-savings": return ($this->onsale && $this->pricerange['min']['saved'] > 0)?true:false; break;
 			case "savings":
 				if (empty($this->prices)) $this->load_data(array('prices'));
+
+				$taxrate = 0;
+				$taxes = false;
+				$base = $Shopp->Settings->get('base_operations');
+				if ($base['vat']) $taxes = true;
+				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
+				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
+
 				if (!isset($options['show'])) $options['show'] = '';
 				if ($options['show'] == "%" || $options['show'] == "percent") {
 					if ($this->options > 1) {
@@ -738,9 +754,9 @@ class Product extends DatabaseObject {
 				} else {
 					if ($this->options > 1) {
 						if ($this->pricerange['min']['saved'] == $this->pricerange['max']['saved'])
-							return money($this->pricerange['min']['saved']); // No price range
-						else return money($this->pricerange['min']['saved'])." &mdash; ".money($this->pricerange['max']['saved']);
-					} else return money($this->pricerange['max']['saved']);
+							return money($this->pricerange['min']['saved']+($this->pricerange['min']['saved']*$taxrate)); // No price range
+						else return money($this->pricerange['min']['saved']+($this->pricerange['min']['saved']*$taxrate))." &mdash; ".money($this->pricerange['max']['saved']+($this->pricerange['max']['saved']*$taxrate));
+					} else return money($this->pricerange['max']['saved']+($this->pricerange['max']['saved']*$taxrate));
 				}
 				break;
 			case "freeshipping":

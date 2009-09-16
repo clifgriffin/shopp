@@ -1279,21 +1279,33 @@ class RelatedProducts extends Category {
 		
 		// Or load a product specified
 		if (isset($options['product'])) {
-			// Load by id or slug
-			if (preg_match('/^[\d+]$/',$options['product'])) 
+			if ($options['product'] == "recent-cartitem") 			// Use most recently added item in the cart
+				$this->product = new Product($Shopp->Cart->contents[$Shopp->Cart->data->added]->product);	
+			elseif (preg_match('/^[\d+]$/',$options['product'])) 	// Load by specified id		
 				$this->product = new Product($options['product']);
-			else $this->product = new Product($options['product'],'slug');
+			else $this->product = new Product($options['product'],'slug'); // Load by specified slug
 		}
-			
+		
+		if (empty($this->product->id)) return false;
+		
 		// Load the product's tags if they are not available
 		if (empty($this->product->tags))
 			$this->product->load_data(array('tags'));
 
+		if (empty($this->product->tags)) return false;
+
 		$tagscope = "";
+		$stag = "''";
+		if (isset($options['tagged'])) {
+			$tagged = new Tag($options['tagged'],'name');
+			$stag = $tagged->id;
+			if (!empty($tagged->id))
+				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.tag=$tagged->id";
+		}
+		
 		foreach ($this->product->tags as $tag)
 			if (!empty($tag->id))
 				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.tag=$tag->id";
-		if (!empty($tagscope)) $tagscope = "AND ($tagscope)";
 		
 		$this->tag = "product-".$this->product->id;
 		$this->name = __("Products related to","Shopp")." &quot;".stripslashes($this->product->name)."&quot;";
@@ -1303,16 +1315,17 @@ class RelatedProducts extends Category {
 		$this->controls = false;
 		
 		$exclude = "";
-		if (!empty($this->product->id)) $exclude = " AND pd.id != {$this->product->id}";
+		if (!empty($this->product->id)) $exclude = " AND p.id != {$this->product->id}";
 		
 		$this->loading = array(
+			'columns'=>'count(DISTINCT catalog.id)+SUM(IF(catalog.tag='.$stag.',100,0)) AS score',
 			'catalog'=>'tags',
-			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag",
-			'where'=>"catalog.tag=t.id $tagscope $exclude");
+			'joins'=>"LEFT JOIN $tagtable AS t ON t.id=catalog.tag AND catalog.product=p.id",
+			'where'=>"($tagscope) $exclude",
+			'orderby'=>'score DESC');
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
-		else $this->loading['order'] = "bestselling";
 		if (isset($options['controls']) && value_is_true($options['controls']))
 			unset($this->controls);
 	}
