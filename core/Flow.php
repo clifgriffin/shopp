@@ -797,7 +797,7 @@ class Flow {
 				$notification = array();
 				$notification['from'] = $Shopp->Settings->get('merchant_email');
 				$notification['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
-				$notification['subject'] = "Order Updated";
+				$notification['subject'] = __('Order Updated','Shopp');
 				$notification['url'] = get_bloginfo('siteurl');
 				$notification['sitename'] = get_bloginfo('name');
 
