@@ -4,7 +4,7 @@
  * @class PayPalPro
  *
  * @author Jonathan Davis
- * @version 1.0.6
+ * @version 1.0.7
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  **/
