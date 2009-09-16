@@ -769,7 +769,7 @@ function indian_number ($number,$format=false) {
 function floatnum ($number) {
 	$number = preg_replace("/,/",".",$number); // Replace commas with periods
 	$number = preg_replace("/[^0-9\.]/","", $number); // Get rid of everything but numbers and periods
-	$number = preg_replace("/\.(?=.*\..*$)/s","",$number); // Replace all but the last period
+	$number = preg_replace("/\.(?=.*\..+$)/s","",$number); // Replace all but the last period
 	return $number;
 }
 

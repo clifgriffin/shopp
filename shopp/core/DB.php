@@ -156,11 +156,9 @@ class DB {
 					}
 					break;
 				case "int":
-				case "float":
+				case "float":					
+					$value = floatnum($value);
 					
-					$value = preg_replace("/,/",".",$value); // Replace commas with periods
-					$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
-					$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
 					$data[$property] = "'$value'";
 					
 					if (empty($value)) $data[$property] = "'0'";
