@@ -236,7 +236,17 @@ class Flow {
 		if (!isset($this->Docs[$menu])) return;
 		$url = SHOPP_DOCS.str_replace("+","_",urlencode($this->Docs[$menu]));
 		$link = htmlspecialchars($this->Docs[$menu]);
-		add_contextual_help($page,'<a href="'.$url.'" target="_blank">'.$link.'</a>');
+		$content = '<a href="'.$url.'" target="_blank">'.$link.'</a>';
+
+		if ($menu == "orders" || $menu == "customers") {
+			ob_start();
+			include("{$this->basepath}/core/ui/help/$menu.php");
+			$help = ob_get_contents();
+			ob_end_clean();
+			$content .= $help;
+		}
+		
+		add_contextual_help($page,$content);
 	}
 
 	/**
@@ -678,9 +688,32 @@ class Flow {
 		
 		$where = '';
 		if (!empty($status) || $status === '0') $where = "WHERE status='$status'";
-		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR firstname LIKE '%$s%' OR lastname LIKE '%$s%' OR CONCAT(firstname,' ',lastname) LIKE '%$s%' OR transactionid LIKE '%$s%')";
-		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
 		
+		if (!empty($s)) {
+			$s = stripslashes($s);
+			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER) > 0) {
+				foreach ($props as $search) {
+					$keyword = !empty($search[2])?$search[2]:$search[3];
+					switch(strtolower($search[1])) {
+						case "txn": $where .= (empty($where)?"WHERE ":" AND ")."transactionid='$keyword'"; break;
+						case "gateway": $where .= (empty($where)?"WHERE ":" AND ")."gateway LIKE '%$keyword%'"; break;
+						case "cardtype": $where .= ((empty($where))?"WHERE ":" AND ")."cardtype LIKE '%$keyword%'"; break;
+						case "address": $where .= ((empty($where))?"WHERE ":" AND ")."(address LIKE '%$keyword%' OR xaddress='%$keyword%')"; break;
+						case "city": $where .= ((empty($where))?"WHERE ":" AND ")."city LIKE '%$keyword%'"; break;
+						case "province":
+						case "state": $where .= ((empty($where))?"WHERE ":" AND ")."state='$keyword'"; break;
+						case "zip":
+						case "zipcode":
+						case "postcode": $where .= ((empty($where))?"WHERE ":" AND ")."postcode='$keyword'"; break;
+						case "country": $where .= ((empty($where))?"WHERE ":" AND ")."country='$keyword'"; break;
+					}
+				}
+				if (empty($where)) $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";	
+			} elseif (strpos($s,'@') !== false) {
+				 $where .= ((empty($where))?"WHERE ":" AND ")." email='$s'";	
+			} else $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";	
+		}
+		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
 		$ordercount = $db->query("SELECT count(*) as total,SUM(total) AS sales,AVG(total) AS avgsale FROM $Purchase->_table $where ORDER BY created DESC");
 		$query = "SELECT * FROM $Purchase->_table $where ORDER BY created DESC LIMIT $start,$per_page";
 		$Orders = $db->query($query,AS_ARRAY);
@@ -918,7 +951,28 @@ class Flow {
 		$users_table = $wpdb->users;
 		
 		$where = '';
-		if (!empty($s)) $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%' OR c.email LIKE '%$s%')";
+		if (!empty($s)) {
+			$s = stripslashes($s);
+			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER) !== false) {
+				foreach ($props as $search) {
+					$keyword = !empty($search[2])?$search[2]:$search[3];
+					switch(strtolower($search[1])) {
+						case "company": $where .= ((empty($where))?"WHERE ":" AND ")."c.company LIKE '%$keyword%'"; break;
+						case "login": $where .= ((empty($where))?"WHERE ":" AND ")."u.user_login LIKE '%$keyword%'"; break;
+						case "address": $where .= ((empty($where))?"WHERE ":" AND ")."(b.address LIKE '%$keyword%' OR b.xaddress='%$keyword%')"; break;
+						case "city": $where .= ((empty($where))?"WHERE ":" AND ")."b.city LIKE '%$keyword%'"; break;
+						case "province":
+						case "state": $where .= ((empty($where))?"WHERE ":" AND ")."b.state='$keyword'"; break;
+						case "zip":
+						case "zipcode":
+						case "postcode": $where .= ((empty($where))?"WHERE ":" AND ")."b.postcode='$keyword'"; break;
+						case "country": $where .= ((empty($where))?"WHERE ":" AND ")."b.country='$keyword'"; break;
+					}
+				}
+			} elseif (strpos($s,'@') !== false) {
+				 $where .= ((empty($where))?"WHERE ":" AND ")."c.email='$s'";	
+			} else $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%')";			
+		}
 		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 
 		$customercount = $db->query("SELECT count(*) as total FROM $customer_table AS c $where");
