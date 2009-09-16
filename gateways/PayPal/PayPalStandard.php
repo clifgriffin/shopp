@@ -181,7 +181,7 @@ class PayPalStandard {
 
 		// Validate the order notification
 		if (empty($_POST['invoice']) || !$this->validipn())
-			return new ShoppError(__('An unverifiable order notifcation was received from PayPal. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
+			return new ShoppError(__('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
 
 		session_unset();
 		session_destroy();
@@ -189,7 +189,7 @@ class PayPalStandard {
 		// Load the cart for the correct order
 		$Shopp->Cart->session = $_POST['invoice'];
 		$Shopp->Cart->load($Shopp->Cart->session);
-		if (SHOPP_DEBUG) new ShoppError('PayPal sucessfully loaded session: '.$Shopp->Cart->session,false,SHOPP_DEBUG_ERR);
+		if (SHOPP_DEBUG) new ShoppError('PayPal successfully loaded session: '.$Shopp->Cart->session,false,SHOPP_DEBUG_ERR);
 
 		if (isset($Shopp->Cart->data)) {
 			$Order = $Shopp->Cart->data->Order;
