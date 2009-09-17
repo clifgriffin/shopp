@@ -1277,7 +1277,7 @@ class Flow {
 	function product_editor() {
 		global $Shopp;
 		$db = DB::get();
-
+		
 		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
