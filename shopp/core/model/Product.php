@@ -216,14 +216,14 @@ class Product extends DatabaseObject {
 			foreach ($products as $product) if (count($product->images) >= 3 && count($product->imagesets) <= 1)
 					$product->imageset();
 		} else {
-			if (!empty($this->prices)) $this->pricing();
+			if (!empty($this->prices)) $this->pricing($options);
 			if (count($this->images) >= 3 && count($this->imagesets) <= 1) $this->imageset();
 		}
 		
 		// echo "<pre>"; print_r($this); echo "</pre>";
 	} // end load_data()
 		
-	function pricing () {
+	function pricing ($options = false) {
 		global $Shopp;
 		
 		$variations = ($this->variations == "on");
@@ -335,7 +335,8 @@ class Product extends DatabaseObject {
 				}
 			}
 			
-			if (defined('WP_ADMIN')) {
+			if (defined('WP_ADMIN')
+				&& (isset($options['taxes']) && value_is_true($options['taxes']))) {
 				$base = $Shopp->Settings->get('base_operations');
 				if ($base['vat']) {
 					$taxrate = $Shopp->Cart->taxrate();
@@ -578,7 +579,7 @@ class Product extends DatabaseObject {
 	function duplicate () {
 		$db =& DB::get();
 		
-		$this->load_data(array('prices','specs','categories','tags','images'));
+		$this->load_data(array('prices','specs','categories','tags','images','taxes'=>'false'));
 		$this->id = '';
 		$this->name = $this->name.' '.__('copy','Shopp');
 		$this->slug = sanitize_title_with_dashes($this->name);
