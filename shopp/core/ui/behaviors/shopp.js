@@ -233,6 +233,7 @@ var ProductOptionsMenus;
 					var keys = selected.slice();
 					keys.push($(this).val());
 					var price = pricing[xorkey(keys)];
+					if (!price) price = pricing[xorkey_deprecated(keys)];
 					if (price) {
 						var p = asNumber(formatNumber(price.onsale?price.promoprice:price.price));
 						var tax = asNumber(formatNumber(p*taxrate));
@@ -256,6 +257,12 @@ var ProductOptionsMenus;
 	
 		// Magic key generator
 		function xorkey (ids) {
+			for (var key=0,i=0; i < ids.length; i++) 
+				key = key ^ (ids[i]*7001);
+			return key;
+		}
+
+		function xorkey_deprecated (ids) {
 			for (var key=0,i=0; i < ids.length; i++) 
 				key = key ^ (ids[i]*101);
 			return key;

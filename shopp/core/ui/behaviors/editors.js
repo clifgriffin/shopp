@@ -152,7 +152,7 @@ function addVariationOptionsMenu (data) {
 	
 	menu.addOption = function (data) {
 		var init = false;
-		
+		console.log("Added Option...");
 		if (!data) data = new Object();
 
 		if (!data.id) {
@@ -474,7 +474,7 @@ function orderVariationPrices () {
 // Magic key generator
 function xorkey (ids) {
 	for (var key=0,i=0; i < ids.length; i++) 
-		key = key ^ (ids[i]*101);
+		key = key ^ (ids[i]*7001);
 	return key;
 }
 
