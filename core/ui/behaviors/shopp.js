@@ -87,11 +87,11 @@ function formatNumber (number,format) {
  **/
 var asNumber = function(number) {
 	if (!number) number = 0;
-	number = number.toString().replace(new RegExp(/[^0-9\.\,]/g),"");
 	number = number.toString().replace(new RegExp(/\,/g),'.');
-	number = number.toString().replace(new RegExp(/\.(?=.*\..*$)/),'');
+	number = number.toString().replace(new RegExp(/[^0-9\.\,]/g),"");
+	number = number.toString().replace(new RegExp(/\.(?=$|.*\..+$)/g),'');
 	if (isNaN(new Number(number)))
-		number = number.replace(new RegExp(/\./g),"").replace(new RegExp(/\,/),"\.");
+		number = number.replace(new RegExp(/\./g),"").replace(new RegExp(/\,/),"\.");		
 	return new Number(number);
 }
 
