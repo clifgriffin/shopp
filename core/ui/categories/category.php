@@ -247,6 +247,8 @@ var FACETED_CUSTOM = "<?php _e('Build from preset options','Shopp'); ?>";
 var ADD_IMAGE_BUTTON_TEXT = "<?php _e('Add New Image','Shopp'); ?>";
 var SAVE_BUTTON_TEXT = "<?php _e('Save','Shopp'); ?>";
 var CANCEL_BUTTON_TEXT = "<?php _e('Cancel','Shopp'); ?>";
+var OPTION_MENU_DEFAULT = "<?php _e('Option Menu','Shopp'); ?>";
+var NEW_OPTION_DEFAULT = "<?php _e('New Option','Shopp'); ?>";
 
 var UPLOAD_FILE_BUTTON_TEXT = "<?php _e('Upload&nbsp;File','Shopp'); ?>";
 var TYPE_LABEL = "<?php _e('Type','Shopp'); ?>";

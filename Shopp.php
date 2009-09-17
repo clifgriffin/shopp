@@ -1312,9 +1312,7 @@ class Shopp {
 				break;
 			case "download":
 				if (empty($download)) break;
-				$storage = $this->Settings->get('product_storage');
-				$path = rtrim($this->Settings->get('products_path'),"/");
-			
+		
 				if ($admin) {
 					$Asset = new Asset($download);
 				} else {
