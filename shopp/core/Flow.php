@@ -2186,7 +2186,7 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (isset($_POST['settings']['theme_templates']) && $_POST['settings']['theme_templates'] == "on") 
-			$_POST['settings']['theme_templates'] = addslashes(template_path(TEMPLATEPATH.DIRECTORY_SEPARATOR."shopp"));
+			$_POST['settings']['theme_templates'] = addslashes(template_path(STYLESHEETPATH.DIRECTORY_SEPARATOR."shopp"));
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-presentation');
 			if (empty($_POST['settings']['catalog_pagination']))
@@ -2196,8 +2196,8 @@ class Flow {
 		}
 		
 		$builtin_path = $this->basepath.DIRECTORY_SEPARATOR."templates";
-		$theme_path = template_path(TEMPLATEPATH.DIRECTORY_SEPARATOR."shopp");
-		
+		$theme_path = template_path(STYLESHEETPATH.DIRECTORY_SEPARATOR."shopp");
+
 		// Copy templates to the current WordPress theme
 		if (!empty($_POST['install'])) {
 			check_admin_referer('shopp-settings-presentation');
