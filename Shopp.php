@@ -24,10 +24,12 @@ Author URI: http://ingenesis.net
 	You should have received a copy of the GNU General Public License
 	along with Shopp.  If not, see <http://www.gnu.org/licenses/>.
 
+
+
 */
 
 define("SHOPP_VERSION","1.0.9b1");
-define("SHOPP_REVISION","$Revision$");
+define("SHOPP_REVISION","$Rev$");
 define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
 define("SHOPP_HOME","http://shopplugin.net/");
 define("SHOPP_DOCS","http://docs.shopplugin.net/");
