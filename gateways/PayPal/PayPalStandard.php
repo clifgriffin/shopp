@@ -7,6 +7,8 @@
  * @version 1.0.1
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
+ * 
+ * $Id$
  **/
 
 class PayPalStandard {          
