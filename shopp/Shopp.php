@@ -1335,16 +1335,16 @@ class Shopp {
 						new ShoppError(__('This file cannot be downloaded because payment has not been received yet.','Shopp'),'shopp_download_limit');
 						$forbidden = true;
 					}
-
+					
 					// Account restriction checks
 					if ($this->Settings->get('account_system') != "none"
 						&& (!$this->Cart->data->login
-						|| $this->Cart->data->Customer->id != $Purchase->customer)) {
+						|| $this->Cart->data->Order->Customer->id != $Purchase->customer)) {
 							new ShoppError(__('You must login to access this download.','Shopp'),'shopp_download_limit',SHOPP_ERR);
 							header('Location: '.$this->link('account'));
 							exit();
 					}
-
+					
 					// Download limit checking
 					if ($this->Settings->get('download_limit') // Has download credits available
 						&& $Purchased->downloads+1 > $this->Settings->get('download_limit')) {
@@ -1375,24 +1375,12 @@ class Shopp {
 					return;
 				}
 				
-				header("Content-type: ".$Asset->properties['mimetype']); 
-				header("Content-Disposition: attachment; filename=\"".$Asset->name."\""); 
-				header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-				header("Cache-Control: maxage=1");
-				header("Pragma: public");
-				set_time_limit(0);
-				if ($storage == "fs") {
-					$filepath = join("/",array($path,$Asset->value,$Asset->name));
-					header ("Content-length: ".@filesize($filepath)); 
-					readfile($filepath);
-				} else {
-					header ("Content-length: ".$Asset->size); 
-					echo $Asset->data;
+				if ($Asset->download()) {
+					$Purchased->downloads++;
+					$Purchased->save();
+					do_action_ref_array('shopp_download_success',array(&$Purchased));
+					exit();
 				}
-			
-				$Purchased->downloads++;
-				$Purchased->save();
-				exit();
 				break;
 		}
 	}

@@ -129,6 +129,77 @@ class Asset extends DatabaseObject {
 		return true;
 	}
 	
+	function download () {
+		$this->setstorage('download');
+		// Close the session in case of long download
+		@session_write_close();
+
+		// Don't want interference from the server
+	    @apache_setenv('no-gzip', 1);
+	    @ini_set('zlib.output_compression', 0);
+		
+		set_time_limit(0);	// Don't timeout on long downloads
+		ob_end_clean();		// End any automatic output buffering
+		
+		header("Pragma: public");
+		header("Cache-Control: maxage=1");
+		header("Content-type: application/octet-stream"); 
+		header("Content-Disposition: attachment; filename=\"".$this->name."\""); 
+		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+
+		// File System based download - handles very large files, supports resumable downloads
+		if ($this->storage == "fs") {
+			if (!empty($this->value)) $filepath = join("/",array($this->path,$this->value,$this->name));
+			else $filepath = join("/",array($this->path,$this->name));
+
+			if (!is_file($filepath)) {
+				header("Status: 404 Forbidden");  // File not found?!
+				return false;
+			}
+
+			$size = @filesize($filepath);
+			
+			// Handle resumable downloads
+			if (isset($_SERVER['HTTP_RANGE'])) {
+				list($units, $reqrange) = explode('=', $_SERVER['HTTP_RANGE'], 2);
+				if ($units == 'bytes') {
+					// Use first range - http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt
+					list($range, $extra) = explode(',', $reqrange, 2);
+				} else $range = '';
+			} else $range = '';
+			
+			// Determine download chunk to grab
+		    list($start, $end) = explode('-', $range, 2);
+			
+		    // Set start and end based on range (if set), or set defaults
+		    // also check for invalid ranges.
+		    $end = (empty($end)) ? ($size - 1) : min(abs(intval($end)),($size - 1));
+		    $start = (empty($start) || $end < abs(intval($start))) ? 0 : max(abs(intval($start)),0);
+
+	        // Only send partial content header if downloading a piece of the file (IE workaround)
+	        if ($start > 0 || $end < ($size - 1)) header('HTTP/1.1 206 Partial Content');
+
+	        header('Accept-Ranges: bytes');
+	        header('Content-Range: bytes '.$start.'-'.$end.'/'.$size);
+		    header("Content-length: ".($end-$start+1)); 
+			
+			$file = fopen($filepath, 'rb');
+			fseek($file, $start);
+			$packet = 1024*1024;
+			while(!feof($file)) {
+				$buffer = fread($file,$packet);
+				if (!empty($buffer)) echo $buffer;
+				ob_flush(); flush();
+			}
+			fclose($file);
+		} else {
+			// Database file download - short and sweet
+			header ("Content-length: ".$this->size); 
+			echo $this->data;
+		}
+		
+	}
+	
 } // end Asset class
 
 ?>
