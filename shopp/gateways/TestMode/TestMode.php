@@ -7,6 +7,8 @@
  * @version 1.0
  * @copyright Ingenesis Limited, 9 April, 2008
  * @package Shopp
+ * 
+ * $Id$
  **/
 
 class TestMode {

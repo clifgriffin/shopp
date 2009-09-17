@@ -7,6 +7,8 @@
  * @version 1.0
  * @copyright Ingenesis Limited, 27 April, 2008
  * @package shopp
+ * 
+ * $Id$
  **/
 
 class ItemQuantity {

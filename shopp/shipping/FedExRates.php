@@ -9,6 +9,8 @@
  * @version 1.0.3
  * @copyright Ingenesis Limited, 22 January, 2009
  * @package shopp
+ * 
+ * $Id$
  **/
 
 class FedExRates {

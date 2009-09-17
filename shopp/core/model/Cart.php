@@ -826,6 +826,8 @@ class Cart {
 		$this->data->Order->Billing->cardholder = "";
 		$this->data->Order->Billing->cardtype = "";
 		$this->data->Order->Shipping = new Shipping($Account->id,'customer');
+		if (empty($this->data->Order->Shipping->id))
+			$this->data->Order->Shipping->copydata($this->data->Order->Billing);
 		do_action_ref_array('shopp_login',array(&$Account));
 	}
 	

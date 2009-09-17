@@ -7,6 +7,8 @@
  * @version 1.0.3
  * @copyright Ingenesis Limited, 24 February, 2009
  * @package Shopp
+ * 
+ * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
