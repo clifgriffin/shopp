@@ -288,9 +288,10 @@ class FedExRates {
 					if (empty($key)) continue;
 					$response->{$key} = $value;
 				}
-
-				if (is_array($response->RateReplyDetails[0]))
+				if (is_array($response->RateReplyDetails) && is_array($response->RateReplyDetails[0]))
 					$response->RateReplyDetails = $this->fix_pear_soap_result_bug($response->RateReplyDetails);
+				if(is_object($response->RateReplyDetails))
+					$response->RateReplyDetails = array($response->RateReplyDetails);
 
 			}
 		} catch (Exception $e) {
