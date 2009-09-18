@@ -149,7 +149,6 @@ class Asset extends DatabaseObject {
 
 		// File System based download - handles very large files, supports resumable downloads
 		if ($this->storage == "fs") {
-			new ShoppError(_object_r($_SERVER),false,SHOPP_DEBUG_ERR);
 			if (!empty($this->value)) $filepath = join("/",array($this->path,$this->value,$this->name));
 			else $filepath = join("/",array($this->path,$this->name));
 
@@ -183,12 +182,10 @@ class Asset extends DatabaseObject {
 	        header('Accept-Ranges: bytes');
 	        header('Content-Range: bytes '.$start.'-'.$end.'/'.$size);
 		    header('Content-length: '.($end-$start+1)); 
-		    header('Last-modified: '.date('D, d M Y H:i:s O',$this->modified)); 
 
-			// Safari Support
+			// WebKit/Safari resumable download support headers
+		    header('Last-modified: '.date('D, d M Y H:i:s O',$this->modified)); 
 			if (isset($dkey)) header('ETag: '.$dkey);
-			$headers = headers_list();
-			new ShoppError('Headers Sent: '._object_r($headers),false,SHOPP_DEBUG_ERR);
 
 			$file = fopen($filepath, 'rb');
 			fseek($file, $start);
