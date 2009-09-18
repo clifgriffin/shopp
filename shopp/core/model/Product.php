@@ -335,6 +335,16 @@ class Product extends DatabaseObject {
 				}
 			}
 			
+			// Determine weight ranges
+			if(!isset($this->weightrange['min'])) $this->weightrange = array('min'=>0,'max'=>0);
+			if($price->weight && $price->weight > 0){
+				if(!$this->weightrange['min'] || $price->weight < $this->weightrange['min']) 
+					$this->weightrange['min'] = $price->weight; 
+				if(!$this->weightrange['max'] || $price->weight > $this->weightrange['max']) 
+					$this->weightrange['max'] = $price->weight;
+			}
+
+			
 			if (defined('WP_ADMIN')
 				&& (isset($options['taxes']) && value_is_true($options['taxes']))) {
 				$base = $Shopp->Settings->get('base_operations');
@@ -698,6 +708,18 @@ class Product extends DatabaseObject {
 						return money($this->pricerange['min']['price']+($this->pricerange['min']['price']*$taxrate))." &mdash; ".money($this->pricerange['max']['price'] + ($this->pricerange['max']['price']*$taxrate));
 					}
 				} else return money($this->prices[0]->price + ($this->prices[0]->price*$taxrate));
+				break;
+			case "weight":
+				if(empty($this->prices)) $this->load_data(array('prices'));
+				$unit = (isset($options['units']) && !value_is_true($options['units'])? 
+					false : $Shopp->Settings->get('weight_unit'));
+				if(!$this->weightrange['min']) return false;
+				
+				$string = ($this->weightrange['min'] == $this->weightrange['max']) ? 
+					round($this->weightrange['min'],3) :  
+					round($this->weightrange['min'],3) . " - " . round($this->weightrange['max'],3);
+				$string .= ($unit) ? " $unit" : "";
+				return $string;
 				break;
 			case "onsale":
 				if (empty($this->prices)) $this->load_data(array('prices'));
@@ -1147,6 +1169,9 @@ class Product extends DatabaseObject {
 				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
 				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 				
+				$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? 
+					false : $Shopp->Settings->get('weight_unit');
+				
 				$string = '';
 				if (array_key_exists('id',$options)) $string .= $variation->id;
 				if (array_key_exists('label',$options)) $string .= $variation->label;
@@ -1155,7 +1180,7 @@ class Product extends DatabaseObject {
 				if (array_key_exists('price',$options)) $string .= money($variation->price+($variation->price*$taxrate));
 				if (array_key_exists('saleprice',$options)) $string .= money($variation->saleprice+($variation->saleprice*$taxrate));
 				if (array_key_exists('stock',$options)) $string .= $variation->stock;
-				if (array_key_exists('weight',$options)) $string .= $variation->weight;
+				if (array_key_exists('weight',$options)) $string .= $variation->weight . ($weightunit) ? " $weightunit":false;
 				if (array_key_exists('shipfee',$options)) $string .= money($variation->shipfee);
 				if (array_key_exists('sale',$options)) return ($variation->sale == "on");
 				if (array_key_exists('shipping',$options)) return ($variation->shipping == "on");
