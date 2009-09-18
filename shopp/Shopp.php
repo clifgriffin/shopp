@@ -1376,7 +1376,7 @@ class Shopp {
 					return;
 				}
 				
-				if ($Asset->download()) {
+				if ($Asset->download($download)) {
 					$Purchased->downloads++;
 					$Purchased->save();
 					do_action_ref_array('shopp_download_success',array(&$Purchased));
