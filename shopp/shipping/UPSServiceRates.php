@@ -6,7 +6,7 @@
  * your Shopp install under: .../wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 3 January, 2009
  * @package shopp
  * 
