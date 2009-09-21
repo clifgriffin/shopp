@@ -55,8 +55,15 @@ class GoogleCheckout {
 		return true;
 	}
 	
+	function actions () { }
+	
 	function checkout () {
 		global $Shopp;
+		
+		if ($Shopp->Cart->data->Totals->total == 0) {
+			header("Location: ".$Shopp->link('checkout'));
+			exit();
+		}
 		
 		$this->transaction = $this->buildCheckoutRequest($Shopp->Cart);
 		$Response = $this->send($this->urls['checkout']);

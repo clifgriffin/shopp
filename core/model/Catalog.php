@@ -426,9 +426,8 @@ class Catalog extends DatabaseObject {
 					}
 
 					$filters = false;
-					if (!empty($Shopp->Cart->data->Category[$Category->slug])) {
+					if (!empty($Shopp->Cart->data->Category[$Category->slug]))
 						$filters = ' (<a href="?shopp_catfilters=cancel">'.__('Clear Filters','Shopp').'</a>)';
-					}					
 					
 					if (!empty($Shopp->Product)) 
 						$trail .= '<li><a href="'.$link.'">'.$Category->name.(!$trail?'':$separator).'</a></li>';
@@ -578,9 +577,7 @@ class Catalog extends DatabaseObject {
 				if ($source == "category" && isset($options['category'])) {
 					 // Save original requested category
 					if ($Shopp->Category) $Category = clone($Shopp->Category);
-					if (preg_match('/^[\d+]$/',$options['category'])) 
-						$Shopp->Category = new Category($options['category']);
-					else $Shopp->Category = new Category($options['category'],'slug');
+					$Shopp->Category = Catalog::load_category($options['category']);
 					$Shopp->Category->load_products($options);
 					if (isset($options['load'])) return true;
 					foreach ($Shopp->Category->products as $product) {

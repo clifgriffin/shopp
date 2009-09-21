@@ -675,8 +675,8 @@ class Cart {
 		$Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
 
 		// Calculate final total (s
-		$Totals->total = $Totals->subtotal - round($discount,2) + 
-			$Totals->shipping + $Totals->tax;
+		$Totals->total = round($Totals->subtotal - round($discount,2) + 
+			$Totals->shipping + $Totals->tax,2);
 
 		do_action_ref_array('shopp_cart_retotal',array(&$Totals));
 	}
@@ -1580,8 +1580,8 @@ class Cart {
 				
 			// BILLING TAGS
 			case "billing-required": 
+				if ($this->data->Totals->total == 0) return false;
 				if (isset($_GET['shopp_xco'])) {
-					if ($this->data->Totals->total == 0) return false;
 					$xco = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
 					if (file_exists($xco)) {
 						$meta = $Shopp->Flow->scan_gateway_meta($xco);

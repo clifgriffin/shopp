@@ -123,6 +123,11 @@ class PayPalExpress {
 	function checkout () {
 		global $Shopp;
 		
+		if ($Shopp->Cart->data->Totals->total == 0) {
+			header("Location: ".$Shopp->link('checkout'));
+			exit();
+		}
+		
 		$_ = $this->headers();
 
 		// Options

@@ -953,7 +953,7 @@ class Flow {
 		$where = '';
 		if (!empty($s)) {
 			$s = stripslashes($s);
-			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER) !== false) {
+			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER)) {
 				foreach ($props as $search) {
 					$keyword = !empty($search[2])?$search[2]:$search[3];
 					switch(strtolower($search[1])) {
@@ -971,7 +971,8 @@ class Flow {
 				}
 			} elseif (strpos($s,'@') !== false) {
 				 $where .= ((empty($where))?"WHERE ":" AND ")."c.email='$s'";	
-			} else $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%')";			
+			} else $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%')";
+
 		}
 		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 

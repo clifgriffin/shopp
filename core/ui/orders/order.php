@@ -104,7 +104,7 @@
 					<?php if (!empty($Purchase->promos)): ?>
 					<ul class="promos">
 					<?php foreach ($Purchase->promos as $pid => $promo): ?>
-						<li><small><a href="?page=shopp/promotions&amp;promotion=<?php echo $pid; ?>"><?php echo $promo; ?></a></small></li>
+						<li><small><a href="?page=shopp-promotions-edit&amp;id=<?php echo $pid; ?>"><?php echo $promo; ?></a></small></li>
 					<?php endforeach; ?>
 					</ul>
 					<?php endif; ?>
