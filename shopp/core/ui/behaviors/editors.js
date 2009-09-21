@@ -152,7 +152,6 @@ function addVariationOptionsMenu (data) {
 	
 	menu.addOption = function (data) {
 		var init = false;
-		console.log("Added Option...");
 		if (!data) data = new Object();
 
 		if (!data.id) {
@@ -848,7 +847,6 @@ function FileUploader (button,defaultButton,linenum,updates) {
 			this.progressBar = bar;
 		},
 		onComplete: function(results) {
-			// console.log(results);
 			var filedata = eval('('+results+')');
 			if (filedata.error) {
 				$(this.targetHolder).html("No download file.");
@@ -912,7 +910,6 @@ function FileUploader (button,defaultButton,linenum,updates) {
 	function uploadError (file, error, message) { }
 
 	function uploadSuccess (file, results) {
-		// console.log(results);
 		var filedata = eval('('+results+')');
 		if (filedata.error) {
 			$(this.targetHolder).html(no_download)

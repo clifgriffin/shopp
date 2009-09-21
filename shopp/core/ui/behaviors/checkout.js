@@ -129,7 +129,6 @@
 		});	
 		
 		$('input.shipmethod').click(function () {
-			// console.log($('#shopp form').attr('action'));
 			$('#shipping, #total').html(SHIPCALC_STATUS);
 			
 			var url = $('#shopp form').attr('action');
