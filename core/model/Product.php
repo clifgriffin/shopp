@@ -1161,7 +1161,6 @@ class Product extends DatabaseObject {
 				break;
 			case "variation":
 				$variation = current($this->prices);
-				
 				$taxrate = 0;
 				$taxes = false;
 				$base = $Shopp->Settings->get('base_operations');
@@ -1169,8 +1168,7 @@ class Product extends DatabaseObject {
 				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
 				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 				
-				$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? 
-					false : $Shopp->Settings->get('weight_unit');
+				$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : $Shopp->Settings->get('weight_unit');
 				
 				$string = '';
 				if (array_key_exists('id',$options)) $string .= $variation->id;
@@ -1180,7 +1178,7 @@ class Product extends DatabaseObject {
 				if (array_key_exists('price',$options)) $string .= money($variation->price+($variation->price*$taxrate));
 				if (array_key_exists('saleprice',$options)) $string .= money($variation->saleprice+($variation->saleprice*$taxrate));
 				if (array_key_exists('stock',$options)) $string .= $variation->stock;
-				if (array_key_exists('weight',$options)) $string .= $variation->weight . ($weightunit) ? " $weightunit":false;
+				if (array_key_exists('weight',$options)) $string .= round($variation->weight, 3) . ($weightunit ? " $weightunit" : false);
 				if (array_key_exists('shipfee',$options)) $string .= money($variation->shipfee);
 				if (array_key_exists('sale',$options)) return ($variation->sale == "on");
 				if (array_key_exists('shipping',$options)) return ($variation->shipping == "on");
