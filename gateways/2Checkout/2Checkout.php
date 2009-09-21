@@ -7,6 +7,8 @@
  * @version 1.0
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
+ * 
+ * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
@@ -21,7 +23,7 @@ class _2Checkout {
 
 	function _2Checkout () {
 		global $Shopp,$wp;
-		$this->settings = $Shopp->Settings->get('TwoCheckout');
+		$this->settings = $Shopp->Settings->get('_2Checkout');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
 		
@@ -57,7 +59,9 @@ class _2Checkout {
 		if (empty($Order->Customer))
 			$Order->Customer = new Customer();
 		$Order->Customer->updates($_POST);
-		$Order->Customer->confirm_password = $_POST['confirm-password'];
+
+		if (isset($_POST['confirm-password']))
+			$Order->Customer->confirm_password = $_POST['confirm-password'];
 
 		if (empty($Order->Billing))
 			$Order->Billing = new Billing();
@@ -78,6 +82,11 @@ class _2Checkout {
 		$estimatedTotal = $Shopp->Cart->data->Totals->total;
 		$Shopp->Cart->updated();
 		$Shopp->Cart->totals();
+		
+		if ($Shopp->Cart->validate() !== true) {
+			$_POST['checkout'] = false;
+			return;
+		}
 		
 		header("Location: ".add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('confirm-order',false)));
 		exit();
@@ -103,6 +112,7 @@ class _2Checkout {
 		$_['sid']				= $this->settings['sid'];
 		$_['total']				= number_format($Shopp->Cart->data->Totals->total,2);
 		$_['cart_order_id']		= $Order->_2COcart_order_id;
+		$_['vendor_order_id']	= $Shopp->Cart->session;
 		$_['id_type']			= 1;
 		
 		// Extras
@@ -151,26 +161,29 @@ class _2Checkout {
 	
 	function process () {
 		global $Shopp;
-		$checkout = add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('checkout'));
 		
 		if (empty($_POST)) {
 			new ShoppError(__('Payment could not be confirmed, this order cannot be processed.','Shopp'),'2co_transaction_error',SHOPP_COMM_ERR);
-			header("Location: ".$Shopp->link('cart'));
 			exit();
 		}
+		
+		session_unset();
+		session_destroy();
+		
+		// Load the cart for the correct order
+		$Shopp->Cart->session = $_POST['vendor_order_id'];
+		$Shopp->Cart->load($Shopp->Cart->session);
 
 		if ($this->settings['verify'] == "on" && !$this->validate($_POST['key'])) {
 			new ShoppError(__('The order submitted to 2Checkout could not be verified.','Shopp'),'2co_validation_error',SHOPP_TRXN_ERR);
-			header("Location: $checkout");
 			exit();
 		}			
 		
 		if ($_POST['credit_card_processed'] == "N") {
 			new ShoppError(__('The payment failed. Please try your order again with a different payment method.','Shopp'),'2co_processing_error',SHOPP_TRXN_ERR);
-			header("Location: $checkout");
 			exit();
 		}
-		
+
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
@@ -259,8 +272,7 @@ class _2Checkout {
 			case "button":
 				$args = array('shopp_xco' => '2Checkout/2Checkout');
 				$url = add_query_arg($args,$Shopp->link('checkout'));				
-				$result .= '<p><a href="'.$url.'">'.__('Pay with 2Checkout.com','Shopp').'</a></p>';
-				return $result;
+				return '<p><a href="'.$url.'">'.__('Pay with 2Checkout.com','Shopp').'</a></p>';
 		}
 	}
 	
@@ -270,15 +282,15 @@ class _2Checkout {
 	function settings () {
 		?>
 			<th scope="row" valign="top"><label for="2co-enabled">2Checkout.com</label></th> 
-			<td><input type="hidden" name="settings[TwoCheckout][billing-required]" value="off" /><input type="hidden" name="settings[TwoCheckout][enabled]" value="off" /><input type="checkbox" name="settings[TwoCheckout][enabled]" value="on" id="2co-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="2co-enabled"> <?php _e('Enable','Shopp'); ?> 2Checkout.com</label>
+			<td><input type="hidden" name="settings[_2Checkout][billing-required]" value="off" /><input type="hidden" name="settings[_2Checkout][enabled]" value="off" /><input type="checkbox" name="settings[_2Checkout][enabled]" value="on" id="2co-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="2co-enabled"> <?php _e('Enable','Shopp'); ?> 2Checkout.com</label>
 				<div id="2co-settings">
 		
-				<p><input type="text" name="settings[TwoCheckout][sid]" id="2co-sid" size="10" value="<?php echo $this->settings['sid']; ?>"/><br />
+				<p><input type="text" name="settings[_2Checkout][sid]" id="2co-sid" size="10" value="<?php echo $this->settings['sid']; ?>"/><br />
 				<?php _e('Your 2Checkout vendor account number.','Shopp'); ?></p>
-				<p><label for="2co-verify"><input type="hidden" name="settings[TwoCheckout][verify]" value="off" /><input type="checkbox" name="settings[TwoCheckout][verify]" id="2co-verify" value="on"<?php echo ($this->settings['verify'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable order verification','Shopp'); ?></label></p>
-				<p id="2co-verify-secret" class="hidden"><input type="text" name="settings[TwoCheckout][secret]" id="2co-secret" size="18" value="<?php echo $this->settings['secret']; ?>"/><br />
+				<p><label for="2co-verify"><input type="hidden" name="settings[_2Checkout][verify]" value="off" /><input type="checkbox" name="settings[_2Checkout][verify]" id="2co-verify" value="on"<?php echo ($this->settings['verify'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable order verification','Shopp'); ?></label></p>
+				<p id="2co-verify-secret" class="hidden"><input type="text" name="settings[_2Checkout][secret]" id="2co-secret" size="18" value="<?php echo $this->settings['secret']; ?>"/><br />
 				<?php _e('Your 2Checkout secret word for order verification.','Shopp'); ?></p>				
-				<p><label for="2co-testmode"><input type="hidden" name="settings[TwoCheckout][testmode]" value="off" /><input type="checkbox" name="settings[TwoCheckout][testmode]" id="2co-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable test mode','Shopp'); ?></label></p>
+				<p><label for="2co-testmode"><input type="hidden" name="settings[_2Checkout][testmode]" value="off" /><input type="checkbox" name="settings[_2Checkout][testmode]" id="2co-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable test mode','Shopp'); ?></label></p>
 				
 				<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
 				
@@ -303,6 +315,6 @@ class _2Checkout {
 		<?php
 	}
 
-} // end TwoCheckout class
+} // end _2Checkout class
 
 ?>

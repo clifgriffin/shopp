@@ -57,9 +57,10 @@
 	<?php while(shopp('purchase','items')): ?>
 		<tr>
 			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options','before= – '); ?><br />
-				<?php shopp('purchase','item-sku')."<br />"; ?>
+				<?php shopp('purchase','item-sku'); ?><br />
 				<?php shopp('purchase','item-download'); ?>
-				</td>
+				<?php shopp('purchase','item-inputs-list'); ?>
+			</td>
 			<td><?php shopp('purchase','item-quantity'); ?></td>
 			<td class="money"><?php shopp('purchase','item-unitprice'); ?></td>
 			<td class="money"><?php shopp('purchase','item-total'); ?></td>
@@ -93,6 +94,14 @@
 		<td class="money"><?php shopp('purchase','total'); ?></td>
 	</tr>
 </table>
+
+<?php if(shopp('purchase','has-data')): ?>
+	<ul>
+	<?php while(shopp('purchase','orderdata')): ?>
+		<li><strong><?php shopp('purchase','data','name'); ?>:</strong> <?php shopp('purchase','data'); ?></li>
+	<?php endwhile; ?>
+	</ul>
+<?php endif; ?>
 
 <?php else: ?>
 	<p class="warning">There were no items found for this purchase.</p>

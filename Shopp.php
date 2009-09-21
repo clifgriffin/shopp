@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.7 RC3
+Version: 1.0.9
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -24,12 +24,15 @@ Author URI: http://ingenesis.net
 	You should have received a copy of the GNU General Public License
 	along with Shopp.  If not, see <http://www.gnu.org/licenses/>.
 
+
+
 */
 
-define("SHOPP_VERSION","1.0.7 RC3");
-define("SHOPP_GATEWAY_USERAGENT","WordPress Shopp Plugin/".SHOPP_VERSION);
-define("SHOPP_HOME","http://shopplugin.net/");
-define("SHOPP_DOCS","http://docs.shopplugin.net/");
+define('SHOPP_VERSION','1.0.9');
+define('SHOPP_REVISION','$Rev$');
+define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
+define('SHOPP_HOME','http://shopplugin.net/');
+define('SHOPP_DOCS','http://docs.shopplugin.net/');
 
 require("core/functions.php");
 require_once("core/DB.php");
@@ -108,7 +111,7 @@ class Shopp {
 			$this->Flow->setup();
 		}
 		
-		add_action('init', array(&$this,'init'),1);
+		add_action('init', array(&$this,'init'));
 		add_action('init', array(&$this, 'xorder'));
 		add_action('init', array(&$this, 'ajax'));
 		add_action('parse_request', array(&$this, 'lookups') );
@@ -132,13 +135,16 @@ class Shopp {
 
 		// Theme widgets
 		add_action('widgets_init', array(&$this, 'widgets'));
-		add_filter('wp_list_pages',array(&$this->Flow,'secure_checkout_link'));
+		add_filter('wp_list_pages',array(&$this->Flow,'secure_page_links'));
 
 		add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
 		add_action('generate_rewrite_rules',array(&$this,'pages_index'));
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_filter('query_vars', array(&$this,'queryvars'));
 		
+		// Extras & Integrations
+		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
+
 		// Start up the cart
 		$this->Cart = new Cart();
 		
@@ -195,8 +201,9 @@ class Shopp {
 		// new install
 		if ($this->Settings->unavailable) 
 			include("core/install.php");
-				
-		if ($this->Settings->get('version') != SHOPP_VERSION)
+		
+		$ver = $this->Settings->get('version');		
+		if (!empty($ver) && $ver != SHOPP_VERSION)
 			$this->Flow->upgrade();
 				
 		if ($this->Settings->get('shopp_setup')) {
@@ -436,8 +443,8 @@ class Shopp {
 			wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		}
 
-		// if ($tag == "checkout")
-		// 	wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
+		if ($tag == "checkout")
+			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
 		
 			
 	}
@@ -576,30 +583,30 @@ class Shopp {
 			(empty($shop)?"$catalog/":$shop).'feed/?$' => 'index.php?shopp_lookup=newproducts-rss',
 			(empty($shop)?"$catalog/":$shop).'receipt/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=receipt',
 			(empty($shop)?"$catalog/":$shop).'confirm-order/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=confirm-order',
-			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{40})/?$' => 'index.php?shopp_download=$matches[1]',
+			(empty($shop)?"$catalog/":$shop).'download/([a-z0-9]{40})/?$' => 'index.php?pagename='.shopp_pagename($account).'&shopp_download=$matches[1]',
 			(empty($shop)?"$catalog/":$shop).'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]'
 		);
 
 		// catalog/category/category-slug
 		if (empty($shop)) {
-			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$catalog.'/category/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]';
+			$rules[$catalog.'/category/(.+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$catalog.'/category/(.+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$catalog.'/category/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]';
 		} else {
-			$rules[$shop.'category/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
-			$rules[$shop.'category/([\w%_\+\-\/]+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'category/([\w%_\+\-\/]+?)?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]';
+			$rules[$shop.'category/(.+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_category=$matches[1]';
+			$rules[$shop.'category/(.+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]&paged=$matches[2]';
+			$rules[$shop.'category/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]';
 		}
 
 		// tags
 		if (empty($shop)) {
-			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
-			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]&paged=$matches[2]';
-			$rules[$catalog.'/tag/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]';
+			$rules[$catalog.'/tag/(.+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
+			$rules[$catalog.'/tag/(.+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]&paged=$matches[2]';
+			$rules[$catalog.'/tag/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]';
 		} else {
-			$rules[$shop.'tag/([\w%_\+\-\/]+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
-			$rules[$shop.'tag/([\w%_\+\-\/]+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'tag/([\w%_\+\-\/]+?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]';
+			$rules[$shop.'tag/(.+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
+			$rules[$shop.'tag/(.+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]&paged=$matches[2]';
+			$rules[$shop.'tag/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]';
 		}
 
 		// catalog/productid
@@ -607,8 +614,8 @@ class Shopp {
 		else $rules[$shop.'(\d+(,\d+)?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_pid=$matches[1]';
 
 		// catalog/product-slug
-		if (empty($shop)) $rules[$catalog.'/([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_product=$matches[1]'; // category/product-slug
-		else $rules[$shop.'([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_product=$matches[1]'; // category/product-slug			
+		if (empty($shop)) $rules[$catalog.'/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_product=$matches[1]'; // category/product-slug
+		else $rules[$shop.'(.+)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_product=$matches[1]'; // category/product-slug			
 
 		// catalog/categories/path/product-slug
 		if (empty($shop)) $rules[$catalog.'/([\w%_\\+-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
@@ -705,7 +712,7 @@ class Shopp {
 			$this->welcome(); return;
 		}
 		
-		$pages = split("-",$_GET['page']);
+		$pages = explode("-",$_GET['page']);
 		$screen = end($pages);
 		switch($screen) {
 			case "catalog": 		$this->Flow->settings_catalog(); break;
@@ -740,17 +747,19 @@ class Shopp {
 
 	function feeds () {
 		if (empty($this->Category)):?>
-	<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
-	<?php
+
+<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
+<?php
 			else:
 			$uri = 'category/'.$this->Category->uri;
 			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
 
-			if (SHOPP_PERMALINKS) $link = $this->shopuri.$uri.'/feed/';
-			else $link = add_query_arg(array('shopp_category'=>$this->Category->uri,'shopp_lookup'=>'category-rss'),$this->shopuri);
+			if (SHOPP_PERMALINKS) $link = $this->shopuri.urldecode($uri).'/feed/';
+			else $link = add_query_arg(array('shopp_category'=>urldecode($this->Category->uri),'shopp_lookup'=>'category-rss'),$this->shopuri);
 			?>
-	<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo htmlentities($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
-	<?php
+
+<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo urldecode($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
+<?php
 		endif;
 	}
 
@@ -772,14 +781,23 @@ class Shopp {
 		endif;
 	}
 
+	function canonurls ($url) {
+		global $Shopp;
+		if (!empty($Shopp->Product)) return $Shopp->Product->tag('url','echo=0');
+		if (!empty($Shopp->Category)) return $Shopp->Category->tag('url','echo=0');
+		return $url;
+	}
+
 	/**
 	 * header()
 	 * Adds stylesheets necessary for Shopp public shopping pages */
-	function header () {		
-		?><link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),$this->shopuri)); ?>' type='text/css' />
-		<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-		<?php
+	function header () { 
+?>
+<link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),get_bloginfo('url'))); ?>' type='text/css' />
+<link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
+<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
+<link rel='canonical' href='<?php echo $this->canonurls(false); ?>' />
+<?php
 	}
 	
 	/**
@@ -796,8 +814,6 @@ class Shopp {
 		elseif (function_exists('memory_get_usage'))
 			$this->_debug->memory .= "End: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB";
 
-		// echo "<pre>"; print_r($db->queries); echo "</pre>";
-
 		echo '<script type="text/javascript">'."\n";
 		echo '//<![CDATA['."\n";
 		echo 'var memory_profile = "'.$this->_debug->memory.'";';
@@ -810,9 +826,6 @@ class Shopp {
 	
 	function catalog ($wp) {
 		$pages = $this->Settings->get('pages');
-		// echo "<pre>"; print_r($wp->query_vars); echo "</pre>";
-		// echo "<pre>"; print_r($wp); echo "</pre>";
-		// exit();
 		
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&
@@ -852,9 +865,16 @@ class Shopp {
 			$category = "search-results";
 		}
 		
+		// Load a category/tag
 		if (!empty($category) || !empty($tag)) {
 			if (isset($this->Cart->data->Search)) $options = array('search'=>$this->Cart->data->Search);
 			if (isset($tag)) $options = array('tag'=>$tag);
+
+			// Split for encoding multi-byte slugs
+			$slugs = explode("/",$category);
+			$category = join("/",array_map('urlencode',$slugs));
+			
+			// Load the category
 			$this->Category = Catalog::load_category($category,$options);			
 			$this->Cart->data->breadcrumb = (isset($tag)?"tag/":"").$this->Category->uri;
 		} 
@@ -872,7 +892,8 @@ class Shopp {
 			// Add new filters
 			if (isset($_GET['shopp_catfilters'])) {
 				if (is_array($_GET['shopp_catfilters'])) {
-					$CategoryFilters = array_merge($CategoryFilters,$_GET['shopp_catfilters']);
+					$CategoryFilters = array_filter(array_merge($CategoryFilters,$_GET['shopp_catfilters']));
+					$CategoryFilters = stripslashes_deep($CategoryFilters);
 					if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
 				} else unset($this->Cart->data->Category[$this->Category->slug]);
 			}
@@ -883,13 +904,15 @@ class Shopp {
 		if (isset($_GET['shopp_orderby']))
 			$this->Cart->data->Category['orderby'] = $_GET['shopp_orderby'];
 
+		if (empty($this->Category)) $this->Category = Catalog::load_category($this->Cart->data->breadcrumb,$options);
+
 		// Find product by given ID
 		if (!empty($productid) && empty($this->Product->id))
 			$this->Product = new Product($productid);
 			
 		// Find product by product slug
 		if (!empty($productname) && empty($this->Product->id))
-			$this->Product = new Product($productname,"slug");
+			$this->Product = new Product(urlencode($productname),"slug");
 		
 		// Product must be published
 		if (!empty($this->Product->id) && $this->Product->published == "off" || empty($this->Product->id))
@@ -898,7 +921,7 @@ class Shopp {
 		// No product found, try to load a page instead
 		if ($type == "product" && !$this->Product) 
 			$wp->query_vars['pagename'] = $wp->request;
-			
+
 		$this->Catalog = new Catalog($type);
 		add_filter('wp_title', array(&$this, 'titles'),10,3);
 		add_action('wp_head', array(&$this, 'metadata'));
@@ -941,6 +964,9 @@ class Shopp {
 
 		$pages = $this->Settings->get('pages');
 		// If checkout page requested
+		// Note: we have to use custom detection here as 
+		// the wp->post vars are not available at this point
+		// to make use of is_shopp_page()
 		if (((SHOPP_PERMALINKS && isset($wp->query_vars['pagename']) 
 			&& $wp->query_vars['pagename'] == $pages['checkout']['permalink'])
 			|| (isset($wp->query_vars['page_id']) && $wp->query_vars['page_id'] == $pages['checkout']['id']))
@@ -989,7 +1015,7 @@ class Shopp {
 		if ($_POST['checkout'] != "process") return true;
 		// Cancel if processing a login from the checkout form
 		if (isset($_POST['process-login']) 
-			&& $_POST['process-login'] == "login") return true;
+			&& $_POST['process-login'] == "true") return true;
 		
 		// Start processing the checkout form
 		$_POST = attribute_escape_deep($_POST);
@@ -1112,7 +1138,7 @@ class Shopp {
 		if (SHOPP_PERMALINKS) return $uri."/".$page['permalink'];
 		else return add_query_arg('page_id',$page['id'],trailingslashit($uri));
 	}
-	
+		
 	/**
 	 * help()
 	 * This function provides graceful degradation when the 
@@ -1215,6 +1241,8 @@ class Shopp {
 					echo "<link rel='stylesheet' href='".SHOPP_TEMPLATES_URI."/shopp.css' type='text/css' />";
 				echo "</head><body>";
 				echo $this->Flow->order_receipt();
+				if (isset($_GET['print']) && $_GET['print'] == 'auto')
+					echo '<script type="text/javascript">window.onload = function () { window.print(); window.close(); }</script>';
 				echo "</body></html>";
 				exit();
 				break;
@@ -1225,12 +1253,11 @@ class Shopp {
 				exit();
 				break;
 			case "shipcost":
-				$this->Cart = new Cart();
-				session_start();
-				$this->ShipCalcs = new ShipCalcs($this->path);
+				$this->init();
 				if (isset($_GET['method'])) {
 					$this->Cart->data->Order->Shipping->method = $_GET['method'];
 					$this->Cart->retotal = true;
+					$this->Cart->updated();
 					$this->Cart->totals();
 					echo json_encode($this->Cart->data->Totals);
 				}
@@ -1262,7 +1289,7 @@ class Shopp {
 					foreach ($menu['options'] as &$option) $option['id'] += $_GET['cat'];
 				}
 				foreach ($result->prices as &$price) {
-					$optionids = split(",",$price['options']);
+					$optionids = explode(",",$price['options']);
 					foreach ($optionids as &$id) $id += $_GET['cat'];
 					$price['options'] = join(",",$optionids);
 					$price['optionkey'] = "";
@@ -1285,9 +1312,7 @@ class Shopp {
 				break;
 			case "download":
 				if (empty($download)) break;
-				$storage = $this->Settings->get('product_storage');
-				$path = rtrim($this->Settings->get('products_path'),"/");
-			
+		
 				if ($admin) {
 					$Asset = new Asset($download);
 				} else {
@@ -1298,48 +1323,65 @@ class Shopp {
 					
 					require_once("core/model/Purchased.php");
 					$Purchased = new Purchased($download,"dkey");
+					$Purchase = new Purchase($Purchased->purchase);
 					$target = $db->query("SELECT target.* FROM $assettable AS target LEFT JOIN $pricetable AS pricing ON pricing.id=target.parent AND target.context='price' WHERE pricing.id=$Purchased->price AND target.datatype='download'");
 					$Asset = new Asset();
 					$Asset->populate($target);
 
 					$forbidden = false;
-					// Download limit checking
-					if (($this->Settings->get('download_limit') && !($Purchased->downloads < $this->Settings->get('download_limit'))) &&  // Has download credits available
-						($this->Settings->get('download_timelimit') && $Purchased->created < mktime()+$this->Settings->get('download_timelimit') ))
-								$forbidden = true;
 
-					if ($this->Settings->get('download_restriction') == "ip") {
-						$Purchase = new Purchase($Purchased->purchase);
-						if ($Purchase->ip != $_SERVER['REMOTE_ADDR']) $forbidden = true;
+					// Purchase Completion check
+					if ($Purchase->transtatus != "CHARGED" 
+						&& !SHOPP_PREPAYMENT_DOWNLOADS) {
+						new ShoppError(__('This file cannot be downloaded because payment has not been received yet.','Shopp'),'shopp_download_limit');
+						$forbidden = true;
 					}
+					
+					// Account restriction checks
+					if ($this->Settings->get('account_system') != "none"
+						&& (!$this->Cart->data->login
+						|| $this->Cart->data->Order->Customer->id != $Purchase->customer)) {
+							new ShoppError(__('You must login to access this download.','Shopp'),'shopp_download_limit',SHOPP_ERR);
+							header('Location: '.$this->link('account'));
+							exit();
+					}
+					
+					// Download limit checking
+					if ($this->Settings->get('download_limit') // Has download credits available
+						&& $Purchased->downloads+1 > $this->Settings->get('download_limit')) {
+							new ShoppError(__('This file can no longer be downloaded because the download limit has been reached.','Shopp'),'shopp_download_limit');
+							$forbidden = true;
+						}
+							
+					// Download expiration checking
+					if ($this->Settings->get('download_timelimit') // Within the timelimit
+						&& $Purchased->created < mktime()+$this->Settings->get('download_timelimit') ) {
+							new ShoppError(__('This file can no longer be downloaded because it has expired.','Shopp'),'shopp_download_limit');
+							$forbidden = true;
+						}
+					
+					// IP restriction checks
+					if ($this->Settings->get('download_restriction') == "ip"
+						&& !empty($Purchase->ip) 
+						&& $Purchase->ip != $_SERVER['REMOTE_ADDR']) {
+							new ShoppError(__('The file cannot be downloaded because this computer could not be verified as the system the file was purchased from.','Shopp'),'shopp_download_limit');
+							$forbidden = true;	
+						}
 
 					do_action_ref_array('shopp_download_request',array(&$Purchased));
 				}
 			
 				if ($forbidden) {
 					header("Status: 403 Forbidden");
-					header("Location: ".$this->link(''));
-					exit();
+					return;
 				}
 				
-				header("Content-type: ".$Asset->properties['mimetype']); 
-				header("Content-Disposition: attachment; filename=\"".$Asset->name."\""); 
-				header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-				header("Cache-Control: maxage=1");
-				header("Pragma: public");
-				set_time_limit(0);
-				if ($storage == "fs") {
-					$filepath = join("/",array($path,$Asset->value,$Asset->name));
-					header ("Content-length: ".@filesize($filepath)); 
-					readfile($filepath);
-				} else {
-					header ("Content-length: ".$Asset->size); 
-					echo $Asset->data;
+				if ($Asset->download($download)) {
+					$Purchased->downloads++;
+					$Purchased->save();
+					do_action_ref_array('shopp_download_success',array(&$Purchased));
+					exit();
 				}
-			
-				$Purchased->downloads++;
-				$Purchased->save();
-				exit();
 				break;
 		}
 	}
@@ -1418,14 +1460,14 @@ class Shopp {
 						$Category = new Category($_REQUEST['id']);
 						if (empty($_REQUEST['slug'])) $_REQUEST['slug'] = $Category->name;
 						$Category->slug = sanitize_title_with_dashes($_REQUEST['slug']);
-						if ($Category->save()) echo $Category->slug;
+						if ($Category->save()) echo apply_filters('editable_slug',$Category->slug);
 						else echo '-1';
 						break;
 					case "product":
 						$Product = new Product($_REQUEST['id']);
 						if (empty($_REQUEST['slug'])) $_REQUEST['slug'] = $Product->name;
 						$Product->slug = sanitize_title_with_dashes($_REQUEST['slug']);
-						if ($Product->save()) echo $Product->slug;
+						if ($Product->save()) echo apply_filters('editable_slug',$Product->slug);
 						else echo '-1';
 						break;
 				}
@@ -1501,13 +1543,13 @@ function shopp () {
 				$options[strtolower($key)] = $args[2][$key];
 		} else {
 			// regular url-compatible arguments
-			$paramsets = split("&",$args[2]);
+			$paramsets = explode("&",$args[2]);
 			foreach ((array)$paramsets as $paramset) {
 				if (empty($paramset)) continue;
 				$key = $paramset;
 				$value = "";
 				if (strpos($paramset,"=") !== false) 
-					list($key,$value) = split("=",$paramset);
+					list($key,$value) = explode("=",$paramset);
 				$options[strtolower($key)] = $value;
 			}
 		}

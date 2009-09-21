@@ -9,6 +9,8 @@
  * @version 1.0.1
  * @copyright Ingenesis Limited, 3 January, 2009
  * @package shopp
+ * 
+ * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
@@ -97,7 +99,7 @@ class UPSServiceRates {
 
 			settings += '<div class="multiple-select"><ul id="ups-services">';
 
-			settings += '<li><input type="checkbox" name="select-all" id="ups-services-select-all" /><label for="ups-services-select-all"><strong><?php _e('Select All','Shopp'); ?></strong></label>';
+			settings += '<li><input type="checkbox" name="select-all" id="ups-services-select-all" /><label for="ups-services-select-all"><strong><?php echo addslashes(__('Select All','Shopp')); ?></strong></label>';
 
 			var even = true;
 			
@@ -112,13 +114,13 @@ class UPSServiceRates {
 			settings += '</td>';
 			
 			settings += '<td>';
-			settings += '<div><input type="text" name="settings[UPSServiceRates][license]" id="upsrates_license" value="<?php echo $this->settings['license']; ?>" size="16" /><br /><label for="upsrates_license"><?php _e('UPS Access License Number','Shopp'); ?></label></div>';
-			settings += '<div><input type="text" name="settings[UPSServiceRates][postcode]" id="upsrates_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="upsrates_postcode"><?php _e('Your postal code','Shopp'); ?></label></div>';
+			settings += '<div><input type="text" name="settings[UPSServiceRates][license]" id="upsrates_license" value="<?php echo $this->settings['license']; ?>" size="16" /><br /><label for="upsrates_license"><?php echo addslashes(__('UPS Access License Number','Shopp')); ?></label></div>';
+			settings += '<div><input type="text" name="settings[UPSServiceRates][postcode]" id="upsrates_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="upsrates_postcode"><?php echo addslashes(__('Your postal code','Shopp')); ?></label></div>';
 				
 			settings += '</td>';
 			settings += '<td>';
-			settings += '<div><input type="text" name="settings[UPSServiceRates][userid]" id="upsrates_userid" value="<?php echo $this->settings['userid']; ?>" size="16" /><br /><label for="upsrates_userid"><?php _e('UPS User ID','Shopp'); ?></label></div>';
-			settings += '<div><input type="password" name="settings[UPSServiceRates][password]" id="upsrates_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="upsrates_password"><?php _e('UPS password','Shopp'); ?></label></div>';
+			settings += '<div><input type="text" name="settings[UPSServiceRates][userid]" id="upsrates_userid" value="<?php echo $this->settings['userid']; ?>" size="16" /><br /><label for="upsrates_userid"><?php echo addslashes(__('UPS User ID','Shopp')); ?></label></div>';
+			settings += '<div><input type="password" name="settings[UPSServiceRates][password]" id="upsrates_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="upsrates_password"><?php echo addslashes(__('UPS password','Shopp')); ?></label></div>';
 			settings += '</td>';
 			settings += '</tr>';
 
@@ -191,11 +193,10 @@ class UPSServiceRates {
 			$_[] = '<RequestAction>Rate</RequestAction>';
 			$_[] = '<RequestOption>Shop</RequestOption>';
 		$_[] = '</Request>';
-		$_[] = '<PickupType><Code>01</Code></PickupType>';
+		$_[] = '<PickupType><Code>03</Code></PickupType>';
 		$_[] = '<Shipment>';
 			$_[] = '<Description>'.$description.'</Description>';
 			$_[] = '<Shipper>';
-				// $_[] = '<ShipperNumber>'.$this->settings['account'].'</ShipperNumber>';
 				$_[] = '<Address>';
 					$_[] = '<PostalCode>'.$this->settings['postcode'].'</PostalCode>';
 					$_[] = '<CountryCode>'.$this->settings['country'].'</CountryCode>';

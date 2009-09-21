@@ -40,13 +40,13 @@ class ShoppProductWidget extends WP_Widget {
 		<p><select id="<?php echo $this->get_field_id('source'); ?>" name="<?php echo $this->get_field_name('source'); ?>" class="widefat"><option value="category"<?php echo $options['source'] == "category"?' selected="selected"':''; ?>>From a category</option><option value="product"<?php echo $options['source'] == "product"?' selected="selected"':''; ?>>By product</option></select></p>
 
 		<?php 
-			if (SHOPP_PERMALINKS) $label = __('Category Slug','Shopp');
+			if (SHOPP_PERMALINKS) $label = __('Category Slug/ID','Shopp');
 			else $label = __('Category ID','Shopp');
 		 ?>
 		<p id="<?php echo $this->get_field_id('category-fields'); ?>" class="hidden">
 			<label for="<?php echo $this->get_field_id('category'); ?>"><?php echo $label; ?></label>
 			<input type="text" name="<?php echo $this->get_field_name('category'); ?>" id="<?php echo $this->get_field_id('category'); ?>" class="widefat" value="<?php echo $options['category']; ?>">
-			<br />
+			<br /><br />
 			<select id="<?php echo $this->get_field_id('limit'); ?>" name="<?php echo $this->get_field_name('limit'); ?>">
 				<?php $limits = array(1,2,3,4,5,6,7,8,9,10,15,20,25);
 					echo menuoptions($limits,$options['limit']); ?>
@@ -68,12 +68,13 @@ class ShoppProductWidget extends WP_Widget {
 		</p>
 		
 		<?php 
-			if (SHOPP_PERMALINKS) $label = __('Product Slug(s)','Shopp');
+			if (SHOPP_PERMALINKS) $label = __('Product Slug/ID(s)','Shopp');
 			else $label = __('Product ID(s)','Shopp');
 		 ?>
 		<p id="<?php echo $this->get_field_id('product-fields'); ?>" class="hidden">
-			<label for="<?php echo $this->get_field_id('product'); ?>"><?php echo $label; ?> <small><?php _e('Comma-separated for many','Shopp')?></small></label>
-			<input type="text" name="<?php echo $this->get_field_name('product'); ?>" id="<?php echo $this->get_field_id('product'); ?>" class="widefat" value="<?php echo $options['product']; ?>"></p>
+			<label for="<?php echo $this->get_field_id('product'); ?>"><?php echo $label; ?></label>
+			<input type="text" name="<?php echo $this->get_field_name('product'); ?>" id="<?php echo $this->get_field_id('product'); ?>" class="widefat" value="<?php echo $options['product']; ?>">
+			<small><?php _e('Use commas to specify multiple products','Shopp')?></small></p>
 		
 		<script type="text/javascript">
 		(function($) {

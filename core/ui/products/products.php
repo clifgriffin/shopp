@@ -47,21 +47,23 @@
 		$hidden = array();
 		if (SHOPP_WP27) $hidden = get_hidden_columns('shopp_page_shopp-products');
 
-		$even = false; foreach ($Products as $key => $Product):
+		$even = false; 
+		foreach ($Products as $key => $Product):
 		$editurl = attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>$this->Admin->editproduct,
 					'id'=>$Product->id)),
 					$Shopp->wpadminurl."admin.php"));
 		
+		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
-			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $Product->name; ?>&quot;'><?php echo (!empty($Product->name))?$Product->name:'(no product name)'; ?></a>
+			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;'><?php echo $ProductName; ?></a>
 				<div class="row-actions">
-					<span class='edit'><a href="<?php echo $editurl; ?>" title="Edit this product"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='edit'><a href="<?php echo add_query_arg(array_merge($_GET,array('duplicate'=>$Product->id)),$Shopp->wpadminurl); ?>" title="Duplicate this product"><?php _e('Duplicate','Shopp'); ?></a> | </span>
-					<span class='delete'><a class='submitdelete' title='Delete <?php echo (!empty($Product->name))?$Product->name:'(no product name)'; ?>' href='' rel="<?php echo $Product->id; ?>">Delete</a> | </span>
-					<span class='view'><a href="<?php echo (SHOPP_PERMALINKS)?$Shopp->shopuri.$Product->slug:add_query_arg('shopp_pid',$Product->id,$Shopp->shopuri); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo $Product->name; ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
+					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
+					<span class='edit'><a href="<?php echo add_query_arg(array_merge($_GET,array('duplicate'=>$Product->id)),$Shopp->wpadminurl); ?>" title="<?php _e('Duplicate','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;"><?php _e('Duplicate','Shopp'); ?></a> | </span>
+					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;' href='' rel="<?php echo $Product->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
+					<span class='view'><a href="<?php echo (SHOPP_PERMALINKS)?$Shopp->shopuri.$Product->slug:add_query_arg('shopp_pid',$Product->id,$Shopp->shopuri); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>
 				</td>
 			<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo $Product->categories; ?></td>
@@ -101,7 +103,7 @@ jQuery(document).ready( function() {
 	
 	$('a.submitdelete').click(function () {
 		var name = $(this).attr('title');
-		if ( confirm("<?php _e("You are about to delete this product!\\n 'Cancel' to stop, 'OK' to delete.","Shopp"); ?>")) {
+		if ( confirm("<?php _e('You are about to delete this product!\n \'Cancel\' to stop, \'OK\' to delete.','Shopp'); ?>")) {
 			$('<input type="hidden" name="delete[]" />').val($(this).attr('rel')).appendTo('#products-manager');
 			$('<input type="hidden" name="deleting" />').val('product').appendTo('#products-manager');
 			$('#products-manager').submit();
@@ -110,7 +112,7 @@ jQuery(document).ready( function() {
 	});
 
 	$('#delete-button').click(function() {
-		if (confirm("<?php _e('Are you sure you want to delete the selected products?','Shopp'); ?>")) return true;
+		if (confirm("<?php echo addslashes(__('Are you sure you want to delete the selected products?','Shopp')); ?>")) return true;
 		else return false;
 	});
 <?php if (SHOPP_WP27): ?>

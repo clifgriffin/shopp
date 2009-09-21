@@ -1,15 +1,32 @@
 <?php
 
-$root = __FILE__;
-for ($i = 0; $i < 8; $i++) $root = dirname($root);
-require_once($root.'/wp-load.php');
+function find_filepath ($filename, $directory, $root, &$found) {
+	if (is_dir($directory)) {
+		$Directory = @dir($directory);
+		if ($Directory) {
+			while (( $file = $Directory->read() ) !== false) {
+				if (substr($file,0,1) == "." || substr($file,0,1) == "_") continue;				// Ignore .dot files and _directories
+				if (is_dir($directory.DIRECTORY_SEPARATOR.$file) && $directory == $root)		// Scan one deep more than root
+					find_filepath($filename,$directory.DIRECTORY_SEPARATOR.$file,$root, $found);	// but avoid recursive scans
+				elseif ($file == $filename)
+					$found[] = substr($directory,strlen($root)).DIRECTORY_SEPARATOR.$file;		// Add the file to the found list
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+$root = $_SERVER['DOCUMENT_ROOT'];
+$found = array();
+find_filepath('wp-load.php',$root,$root,$found);
+if (empty($found[0])) exit();
+require_once($root.$found[0]);
 require_once(ABSPATH.'/wp-admin/admin.php');
 if(!current_user_can('edit_posts')) die;
 do_action('admin_init');
 
 ?>
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>

@@ -77,7 +77,7 @@ class DB {
 	function query($query, $output=true, $errors=true) {
 		if (WP_DEBUG) $this->queries[] = $query;
 		$result = @mysql_query($query, $this->dbh);
-		// echo "<pre>QUERY: $query</pre>";
+		if (SHOPP_QUERY_DEBUG && class_exists('ShoppError')) new ShoppError($query,'shopp_query_debug',SHOPP_DEBUG_ERR);
 
 		// Error handling
 		if ($this->dbh && $error = mysql_error($this->dbh)) 
@@ -156,11 +156,9 @@ class DB {
 					}
 					break;
 				case "int":
-				case "float":
+				case "float":					
+					$value = floatnum($value);
 					
-					$value = preg_replace("/,/",".",$value); // Replace commas with periods
-					$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
-					$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
 					$data[$property] = "'$value'";
 					
 					if (empty($value)) $data[$property] = "'0'";
@@ -191,7 +189,7 @@ class DB {
 		if ( strpos($r[0]->Type,"set('") )
 			$list = substr($r[0]->Type, 5, strlen($r[0]->Type) - 7);
 	
-		return split("','",$list);
+		return explode("','",$list);
 	}
 	
 	/**

@@ -10,7 +10,7 @@
 		
 		<table class="form-table"> 
 			<tr class="form-required"> 
-				<th scope="row" valign="top"><label for="showcase-order"><?php _e('Theme Templates','Shopp'); ?></label></th> 
+				<th scope="row" valign="top"><label for="theme-templates"><?php _e('Theme Templates','Shopp'); ?></label></th> 
 				<td>
 				<?php switch ($status) {
 					case "directory":?>
@@ -72,7 +72,7 @@
 	            <label for="catalog-pagination"><?php _e('products per page','Shopp'); ?></label></td>
 			</tr>
 			<tr class="form-required"> 
-				<th scope="row" valign="top"><label for="showcase-order"><?php _e('Product Order','Shopp'); ?></label></th> 
+				<th scope="row" valign="top"><label for="product-order"><?php _e('Product Order','Shopp'); ?></label></th> 
 				<td><select name="settings[default_product_order]" id="product-order">
 					<?php echo menuoptions($productOrderOptions,$this->Settings->get('default_product_order'),true); ?>
 				</select>

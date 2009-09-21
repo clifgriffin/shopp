@@ -195,8 +195,10 @@ function addPriceLine (target,options,data,attachment) {
 	if (pricesPayload) {		
 		interfaces['Shipped'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, shippingHeading, shippingCell, inventoryHeading, inventoryCell);
 		interfaces['Download'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, downloadHeading, downloadCell, uploadHeading);
+		interfaces['Virtual'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, inventoryHeading, inventoryCell);
 	} else {
 		interfaces['Shipped'] = new Array(priceHeading, priceCell, shippingHeading, shippingCell);
+		interfaces['Virtual'] = new Array(priceHeading, priceCell);
 		interfaces['Download'] = new Array(priceHeading, priceCell);
 	}
 	interfaces['Donation'] = new Array(priceHeading, priceCell, donationHeading, donationCell);	

@@ -50,39 +50,40 @@ class Cart {
 			array( &$this, 'trash' )	// Garbage Collection
 		);
 		
-		$this->data = new stdClass();
-		$this->data->Totals = new stdClass();
-		$this->data->Totals->subtotal = 0;
-		$this->data->Totals->quantity = 0;
-		$this->data->Totals->discount = 0;
-		$this->data->Totals->shipping = 0;
-		$this->data->Totals->tax = 0;
-		$this->data->Totals->taxrate = 0;
-		$this->data->Totals->total = 0;
+		$this->data = new stdClass();				// Session data
+		$this->data->Totals = new stdClass();		// Cart totals
+		$this->data->Totals->subtotal = 0;			// Subtotal of item totals
+		$this->data->Totals->quantity = 0;			// Total quantity of all items
+		$this->data->Totals->discount = 0;			// Total discount applied
+		$this->data->Totals->shipping = 0;			// Total shipping cost
+		$this->data->Totals->tax = 0;				// Total tax cost
+		$this->data->Totals->taxrate = 0;			// Current tax rate
+		$this->data->Totals->total = 0;				// Grand total
 
-		$this->data->Order = new stdClass();
-		$this->data->Order->data = array();
-		$this->data->Order->Customer = false;
-		$this->data->Order->Billing = false;
-		$this->data->Order->Shipping = false;
-		$this->data->login = false;
+		$this->data->Order = new stdClass();		// Order object
+		$this->data->Order->data = array();			// Custom order data registry
+		$this->data->Order->Customer = false;		// Order's customer record
+		$this->data->Order->Billing = false;		// Order's billing address record
+		$this->data->Order->Shipping = false;		// Order's shipping address record
 
-		$this->data->Errors = new ShoppErrors();
-		$this->data->Shipping = false;
-		$this->data->ShippingDisabled = false;
-		$this->data->Estimates = false;
-		$this->data->Promotions = array();
-		$this->data->PromosApplied = array();
-		$this->data->PromoCode = false;
-		$this->data->PromoCodes = array();
-		$this->data->PromoCodeResult = false;
-		$this->data->Purchase = false;
-		$this->data->ShipCosts = array();
-		$this->data->ShippingPostcode = false;
-		$this->data->ShippingPostcodeError = false;
-		$this->data->Purchase = false;
-		$this->data->Category = array();
-		$this->data->Search = false;
+		$this->data->added = 0;						// Recently added item index
+		$this->data->login = false;					// Customer logged in flag
+		
+		$this->data->Errors = new ShoppErrors();	// Tracks errors
+		$this->data->Shipping = false;				// Cart has shipped items
+		$this->data->ShippingDisabled = false;		// Shipping is disabled
+		$this->data->Estimates = false;				// Order needs shipping estimates
+		$this->data->Promotions = array();			// Promotions available (cache)
+		$this->data->PromosApplied = array();		// Promotions applied to order
+		$this->data->PromoCode = false;				// Recent promo code attempt
+		$this->data->PromoCodes = array();			// Promo codes applied
+		$this->data->PromoCodeResult = false;		// Result of recent promo code attempt
+		$this->data->ShipCosts = array();			// Shipping method costs
+		$this->data->ShippingPostcode = false;		// Shipping calcs require postcode
+		$this->data->ShippingPostcodeError = false;	// Postal code invalid error
+		$this->data->Purchase = false;				// Final purchase receipt
+		$this->data->Category = array();			// Session related category settings
+		$this->data->Search = false;				// Search processed
 		
 		// Total the cart once, and only if there are changes
 		add_action('parse_request',array(&$this,'totals'),99);
@@ -152,7 +153,6 @@ class Cart {
 	function save ($id,$session) {
 		global $Shopp;
 		$db = DB::get();
-		
 		if (!$Shopp->Settings->unavailable) {
 			$data = $db->escape(addslashes(serialize($this->data)));
 			$contents = $db->escape(serialize($this->contents));
@@ -178,7 +178,7 @@ class Cart {
 		$db = DB::get();
 				
 		// 1800 seconds = 30 minutes, 3600 seconds = 1 hour
-		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified) > 7200")) 
+		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified) > ".SHOPP_SESSION_TIMEOUT)) 
 			trigger_error("Could not delete cached session data.");
 		return true;
 	}
@@ -194,14 +194,17 @@ class Cart {
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
 			$this->added = $this->contents[$item];
+			$this->data->added = $item;
 		} else {
 			$NewItem->quantity($quantity);
 			$this->contents[] = $NewItem;
-			$this->added = $this->contents[count($this->contents)-1];
+			$this->data->added = count($this->contents)-1;
+			$this->added = $this->contents[$this->data->added];
 			if ($NewItem->shipping && !$this->data->ShippingDisabled) 
 				$this->data->Shipping = true;
 		}
 		do_action_ref_array('shopp_cart_add_item',array(&$NewItem));
+
 		$this->updated();
 		return true;
 	}
@@ -366,7 +369,6 @@ class Cart {
 
 			$estimate = false;
 			foreach ($methods as $id => $option) {
-				$shipping = 0;
 				if (isset($option['postcode-required'])) {
 					$this->data->ShippingPostcode = true;
 					if (empty($Shipping->postcode)) {
@@ -393,7 +395,7 @@ class Cart {
 					$column = key($option);
 				}
 
-				list($ShipCalcClass,$process) = split("::",$option['method']);
+				list($ShipCalcClass,$process) = explode("::",$option['method']);
 				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]))
 					$estimated = $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate(
 						$this, $fees, $option, $column);
@@ -462,7 +464,6 @@ class Cart {
 							if (Promotion::match_rule($Item->name,$rule['logic'],$rule['value'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
-								// echo "<pre>"; print_r($rule); echo "</pre>";
 							}
 						}
 						break;
@@ -471,7 +472,6 @@ class Cart {
 							if (Promotion::match_rule(number_format($Item->quantity,0),$rule['logic'],$rule['value'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
-								// echo "<pre>"; print_r($rule); echo "</pre>";
 							}
 						}
 						break;
@@ -480,32 +480,27 @@ class Cart {
 							if (Promotion::match_rule(number_format($Item->total,2),$rule['logic'],$rule['value'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
-								// echo "<pre>"; print_r($rule); echo "</pre>";
 							}
 						}
 						break;
 					case "Total quantity":
 						if (Promotion::match_rule(number_format($this->data->Totals->quantity,0),$rule['logic'],$rule['value'])) {
 							$rulematch = true;
-							// echo "<pre>"; print_r($rule); echo "</pre>";
 						}
 						break;
 					case "Shipping amount": 
 						if (Promotion::match_rule(number_format($this->data->Totals->shipping,2),$rule['logic'],$rule['value'])) {
 							$rulematch = true;
-							// echo "<pre>"; print_r($rule); echo "</pre>";
 						}
 						break;
 					case "Subtotal amount": 
 						if (Promotion::match_rule(number_format($this->data->Totals->subtotal,2),$rule['logic'],$rule['value'])) {
 							$rulematch = true;
-							// echo "<pre>"; print_r($rule); echo "</pre>";
 						}
 						break;
 					case "Promo code":
 						// Match previously applied codes
 						if (is_array($this->data->PromoCodes) && in_array($rule['value'],$this->data->PromoCodes)) {							
-							echo "<pre>"; print_r($rule); echo "</pre>";
 							$rulematch = true;
 							break;
 						}
@@ -544,7 +539,7 @@ class Cart {
 						switch ($promo->type) {
 							case "Percentage Off": $this->data->Totals->discount += $item->total*($promo->discount/100); break;
 							case "Amount Off": $this->data->Totals->discount += $promo->discount; break;
-							case "Buy X Get Y Free": $this->data->Totals->discount += floor($item->quantity / ($promo->buyqty + $promo->getqty))*($item->unitprice);
+							case "Buy X Get Y Free": $this->data->Totals->discount += floor($item->quantity / ($promo->buyqty + $promo->getqty))*($item->unitprice); break;
 							case "Free Shipping": $freeshipping++; break;
 						}
 					}
@@ -616,13 +611,13 @@ class Cart {
 			if (isset($setting['zone'])) {
 				if ($country == $setting['country'] &&
 					$zone == $setting['zone'])
-						return $setting['rate']/100;
+						return apply_filters('shopp_cart_taxrate',$setting['rate']/100);
 			} elseif ($country == $setting['country']) {
-				return $setting['rate']/100;
+				return apply_filters('shopp_cart_taxrate',$setting['rate']/100);
 			}
 		}
 		
-		if ($global) return $global['rate']/100;
+		if ($global) return apply_filters('shopp_cart_taxrate',$global['rate']/100);
 		
 	}   
 	
@@ -631,8 +626,10 @@ class Cart {
 	 * Calculates subtotal, shipping, tax and 
 	 * order total amounts */
 	function totals () {
+		global $Shopp;
 		if (!$this->retotal && !$this->updated) return true;
 
+		$shippingTaxed = ($Shopp->Settings->get('tax_shipping') == "on");
 		$Totals =& $this->data->Totals;
 		$Totals->quantity = 0;
 		$Totals->subtotal = 0;
@@ -643,17 +640,21 @@ class Cart {
 		$Totals->total = 0;
         
 	    $Totals->taxrate = $this->taxrate();
-
-		$freeshipping = true;	// Assume free shipping unless proven wrong
+		
+		$freeshipping = true;	// Assume free shipping for the cart unless proven wrong
 		foreach ($this->contents as $key => $Item) {
 
 			// Add the item to the shipped list
-			if ($shipping && $Item->shipping && !$Item->freeshipping) $this->shipped[$key] = $Item;
-			if (!$Item->freeshipping) $freeshipping = false;
+			if ($Item->shipping && !$Item->freeshipping) $this->shipped[$key] = $Item;
 			
+			// Item does not have free shipping, 
+			// so the cart shouldn't have free shipping
+			if (!$Item->freeshipping) $freeshipping = false;
+
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
-
+			
+			// Tabulate the taxable total to be calculated after discounts
 			if ($Item->taxable && $Totals->taxrate > 0) 
 				$Totals->taxed += $Item->total;
 		}
@@ -664,16 +665,18 @@ class Cart {
 		$this->promotions();
 		$discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
 
-		// Calculate taxes
-		$Totals->taxed -= $discount;
-		$Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
-		
 		// Calculate shipping
-		if (!$this->data->ShippingDisabled && $this->data->Shipping) 
+		if (!$this->data->ShippingDisabled && $this->data->Shipping && !$this->freeshipping) 
 			$Totals->shipping = $this->shipping();
 
-		$Totals->total = $Totals->subtotal - $discount + 
-			$Totals->shipping + $Totals->tax;
+		// Calculate taxes
+		$Totals->taxed -= $discount;
+		if($shippingTaxed) $Totals->taxed += $Totals->shipping;
+		$Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
+
+		// Calculate final total (s
+		$Totals->total = round($Totals->subtotal - round($discount,2) + 
+			$Totals->shipping + $Totals->tax,2);
 
 		do_action_ref_array('shopp_cart_retotal',array(&$Totals));
 	}
@@ -691,20 +694,24 @@ class Cart {
 		
 		$authentication = $Shopp->Settings->get('account_system');
 
+		if (isset($_GET['acct']) && isset($this->data->Order->Customer) 
+			&& $_GET['acct'] == "logout") {
+				if ($authentication == "wordpress" && $this->data->login)
+					add_action('shopp_logout','wp_clear_auth_cookie');					
+				return $this->logout();
+		}
+
 		switch ($authentication) {
 			case "wordpress":
-				if ($this->data->login) {
-					add_action('wp_logout',array(&$this,'logout'));
-					add_action('shopp_logout','wp_clear_auth_cookie');
-				}
-				// See if the wordpress user is already logged in
-				get_currentuserinfo();
-				global $user_ID;
+				if ($this->data->login) add_action('wp_logout',array(&$this,'logout'));
 
-				if (!empty($user_ID) && !$this->data->login) {
-					if ($Account = new Customer($user_ID,'wpuser')) {
+				// See if the wordpress user is already logged in
+				$user = wp_get_current_user();
+
+				if (!empty($user->ID) && !$this->data->login) {
+					if ($Account = new Customer($user->ID,'wpuser')) {
 						$this->loggedin($Account);
-						$this->data->Order->Customer->wpuser = $user_ID;
+						$this->data->Order->Customer->wpuser = $user->ID;
 						break;
 					}
 				}
@@ -727,7 +734,7 @@ class Cart {
 
 						if ($Account = new Customer($user->ID,'wpuser')) {
 							$this->loggedin($Account);
-							$this->data->Order->Customer->wpuser = $user_ID;
+							$this->data->Order->Customer->wpuser = $user->ID;
 							add_action('wp_logout',array(&$this,'logout'));
 						}
 					}
@@ -758,7 +765,6 @@ class Cart {
 		global $Shopp;
 		$db = DB::get();
 		$authentication = $Shopp->Settings->get('account_system');
-		
 		switch($authentication) {
 			case "shopp":
 				$Account = new Customer($id,'email');
@@ -820,6 +826,8 @@ class Cart {
 		$this->data->Order->Billing->cardholder = "";
 		$this->data->Order->Billing->cardtype = "";
 		$this->data->Order->Shipping = new Shipping($Account->id,'customer');
+		if (empty($this->data->Order->Shipping->id))
+			$this->data->Order->Shipping->copydata($this->data->Order->Billing);
 		do_action_ref_array('shopp_login',array(&$Account));
 	}
 	
@@ -827,7 +835,7 @@ class Cart {
 	 * logout()
 	 * Clear the session account data */
 	function logout () {
-		// do_action('shopp_logout');
+		do_action('shopp_logout');
 		$this->data->login = false;
 		$this->data->Order->wpuser = false;
 		$this->data->Order->Customer->id = false;
@@ -971,15 +979,17 @@ class Cart {
 		$AjaxCart = new StdClass();
 		$AjaxCart->url = $Shopp->link('cart');
 		$AjaxCart->Totals = clone($this->data->Totals);
-		if (isset($this->added));
-			$AjaxCart->Item = clone($this->added);
-		unset($AjaxCart->Item->options);
 		$AjaxCart->Contents = array();
 		foreach($this->contents as $item) {
 			$cartitem = clone($item);
 			unset($cartitem->options);
 			$AjaxCart->Contents[] = $cartitem;
 		}
+		if (isset($this->data->added))
+			$AjaxCart->Item = clone($this->contents[$this->data->added]);
+		else $AjaxCart->Item = new Item();
+		unset($AjaxCart->Item->options);
+		
 		echo json_encode($AjaxCart);
 		exit();
 	}
@@ -988,7 +998,9 @@ class Cart {
 	 * validate()
 	 * Validate checkout form order data before processing */
 	function validate () {
-
+		global $Shopp;
+		$authentication = $Shopp->Settings->get('account_system');
+		
 		if (empty($_POST['firstname']))
 			return new ShoppError(__('You must provide your first name.','Shopp'),'cart_validation');
 
@@ -999,6 +1011,35 @@ class Cart {
 		$domain = "[0-9A-Za-z#%$!&*+/'-=?^_`{|}~]";
 		if(!ereg("^$account{1,64}@($domain{1,63}\.$domain{1,63}){1,255}$", $_POST['email']))
 			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
+			
+		if ($authentication == "wordpress" && !$this->data->login) {
+			require_once(ABSPATH."/wp-includes/registration.php");
+			if (email_exists($_POST['email']))
+				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
+		} elseif ($authentication == "shopp"  && !$this->data->login) {
+			$ExistingCustomer = new Customer($_POST['email'],'email');
+			if (!empty($ExistingCustomer->id)) 
+				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account.','Shopp'),'cart_validation');
+		}
+
+		// Validate WP account
+		if (isset($_POST['login']) && empty($_POST['login']))
+			return new ShoppError(__('You must enter a login name for your account.','Shopp'),'cart_validation');
+
+		if (isset($_POST['login'])) {
+			require_once(ABSPATH."/wp-includes/registration.php");
+			if (username_exists($_POST['login']))
+				return new ShoppError(__('The login name you provided is already in use. Try logging in if you previously created that account, or enter another login name for your new account.','Shopp'),'cart_validation');
+		}
+
+		if (isset($_POST['password'])) {
+			if (empty($_POST['password']) || empty($_POST['confirm-password']))
+				return new ShoppError(__('You must provide a password for your account and confirm it to ensure correct spelling.','Shopp'),'cart_validation');
+			if ($_POST['password'] != $_POST['confirm-password']) {
+				$_POST['password'] = ""; $_POST['confirm-password'] = "";
+				return new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'),'cart_validation');				
+			}
+		}
 
 		if (empty($_POST['billing']['address']) || strlen($_POST['billing']['address']) < 4) 
 			return new ShoppError(__('You must enter a valid street address for your billing information.','Shopp'),'cart_validation');
@@ -1008,6 +1049,11 @@ class Cart {
 
 		if (empty($_POST['billing']['country'])) 
 			return new ShoppError(__('You must select a country for your billing information.','Shopp'),'cart_validation');
+
+		// Skip validating billing details for free purchases 
+		// and remote checkout systems
+		if ((int)$this->data->Totals->total == 0
+			|| !empty($_GET['shopp_xco'])) return apply_filters('shopp_validate_checkout',true);
 
 		if (empty($_POST['billing']['card'])) 
 			return new ShoppError(__('You did not provide a credit card number.','Shopp'),'cart_validation');
@@ -1082,6 +1128,7 @@ class Cart {
 					reset($this->contents);
 					return false;
 				}
+			case "lastitem": return $this->contents[$this->data->added]; break;
 			case "totalpromos": return count($this->data->PromosApplied); break;
 			case "haspromos": return (count($this->data->PromosApplied) > 0); break;
 			case "promos":
@@ -1159,10 +1206,9 @@ class Cart {
 				$result .= '</li></ul>';
 				return $result;
 			case "has-shipping-methods": 
-				return (!$this->data->ShippingDisabled &&
-						count($this->data->ShipCosts) > 1 &&
-						$this->data->Totals->shipping > 0 &&
-						$this->data->Shipping); break;				
+				return (!$this->data->ShippingDisabled
+						&& count($this->data->ShipCosts) > 1
+						&& $this->data->Shipping); break;				
 			case "needs-shipped": return $this->data->Shipping; break;
 			case "hasshipcosts":
 			case "has-ship-costs": return ($this->data->Totals->shipping > 0); break;
@@ -1235,7 +1281,7 @@ class Cart {
 		}
 		
 		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
-		else return '<span id="'.$property.'">'.money($result).'</span>';
+		else return '<span class="shopp_cart_'.$property.'">'.money($result).'</span>';
 		
 		return false;
 	}
@@ -1301,14 +1347,14 @@ class Cart {
 			case "method-delivery":
 				$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
 				$method = current($ShipCosts);
-				$estimates = split("-",$method['delivery']);
+				$estimates = explode("-",$method['delivery']);
 				$format = get_option('date_format');
 				if ($estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
 				$result = "";
 				for ($i = 0; $i < count($estimates); $i++){
 					list($interval,$p) = sscanf($estimates[$i],'%d%s');
 					if (!empty($result)) $result .= "&mdash;";
-					$result .= date($format,mktime()+($interval*$periods[$p]));
+					$result .= _d($format,mktime()+($interval*$periods[$p]));
 				}				
 				return $result;
 		}
@@ -1336,7 +1382,7 @@ class Cart {
 				// Test Mode will not require encrypted checkout
 				if (strpos($gateway,"TestMode.php") !== false 
 					|| isset($_GET['shopp_xco']) 
-					|| defined('SHOPP_NOSSL')) 
+					|| SHOPP_NOSSL) 
 					$ssl = false;
 				$link = $Shopp->link('checkout',$ssl);
 				
@@ -1384,15 +1430,12 @@ class Cart {
 				break;
 			case "loggedin": return $this->data->login; break;
 			case "notloggedin": return (!$this->data->login && $Shopp->Settings->get('account_system') != "none"); break;
-			case "loginname-login": 
-				if (!empty($_POST['loginname-login']))
-					$options['value'] = $_POST['loginname-login'];
-				return '<input type="text" name="loginname-login" id="loginname-login" '.inputattrs($options).' />';
-				break;
-			case "email-login": 
-				if (!empty($_POST['email-login']))
-					$options['value'] = $_POST['email-login']; 
-				return '<input type="text" name="email-login" id="email-login" '.inputattrs($options).' />';
+			case "email-login":  // Deprecating
+			case "loginname-login":  // Deprecating
+			case "account-login": 
+				if (!empty($_POST['account-login']))
+					$options['value'] = $_POST['account-login']; 
+				return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
 				break;
 			case "password-login": 
 				if (!empty($_POST['password-login']))
@@ -1537,8 +1580,8 @@ class Cart {
 				
 			// BILLING TAGS
 			case "billing-required": 
+				if ($this->data->Totals->total == 0) return false;
 				if (isset($_GET['shopp_xco'])) {
-					if ($this->data->Totals->total == 0) return false;
 					$xco = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
 					if (file_exists($xco)) {
 						$meta = $Shopp->Flow->scan_gateway_meta($xco);
@@ -1671,12 +1714,13 @@ class Cart {
 				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
 				if (empty($options['type'])) $options['type'] = "hidden";
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
+					if (!isset($options['title'])) $options['title'] = $options['name'];
 					if (isset($this->data->Order->data[$options['name']])) 
 						$options['value'] = $this->data->Order->data[$options['name']];
 					if (!isset($options['cols'])) $options['cols'] = "30";
 					if (!isset($options['rows'])) $options['rows'] = "3";
 					if ($options['type'] == "textarea") 
-						return '<textarea name="data['.$options['name'].']" cols="'.$options['cols'].'" rows="'.$options['rows'].'" id="order-data-'.$options['name'].'" '.inputattrs($options).'></textarea>';
+						return '<textarea name="data['.$options['name'].']" cols="'.$options['cols'].'" rows="'.$options['rows'].'" id="order-data-'.$options['name'].'" '.inputattrs($options,array('accesskey','title','tabindex','class','disabled','required')).'>'.$options['value'].'</textarea>';
 					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'" '.inputattrs($options).' />'; 
 				}
 				break;
@@ -1691,7 +1735,6 @@ class Cart {
 				return (!empty($gateway)); break;
 			case "xco-buttons":     
 				if (!is_array($xcos)) return false;
-
 				$buttons = "";
 				foreach ($xcos as $xco) {
 					$xcopath = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$xco));
@@ -1699,11 +1742,12 @@ class Cart {
 					$meta = $Shopp->Flow->scan_gateway_meta($xcopath);
 					$ProcessorClass = $meta->tags['class'];
 					if (!empty($ProcessorClass)) {
-						include_once($xcopath);
-						$Payment = new $ProcessorClass();
 						$PaymentSettings = $Shopp->Settings->get($ProcessorClass);
-						if ($PaymentSettings['enabled'] == "on") 
+						if ($PaymentSettings['enabled'] == "on") {
+							include_once($xcopath);
+							$Payment = new $ProcessorClass();
 							$buttons .= $Payment->tag('button',$options);
+						}
 					}
 				}
 				return $buttons;

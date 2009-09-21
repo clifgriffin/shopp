@@ -49,8 +49,12 @@ function discount_meta_box ($Promotion) {
 add_meta_box('promotion-discount', __('Discount','Shopp'), 'discount_meta_box', 'admin_page_shopp-promotions-edit', 'normal', 'core');
 
 function rules_meta_box ($Promotion) {
+	$scopes = array(
+		'Catalog' => __('Catalog','Shopp'),
+		'Order' => __('Order','Shopp')
+	);
 	$scope = '<select name="scope" id="promotion-scope" class="small">';
-	$scope .= menuoptions($Promotion->_lists['scope'],$Promotion->scope);
+	$scope .= menuoptions($scopes,$Promotion->scope,true);
 	$scope .= '</select>';
 
 	if (empty($Promotion->search)) $Promotion->search = "all";

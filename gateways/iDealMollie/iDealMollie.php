@@ -4,9 +4,11 @@
  * @class iDealMollie
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 24 February, 2009
  * @package Shopp
+ * 
+ * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
@@ -25,7 +27,8 @@ class iDealMollie {
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
 		
-		$loginproc = (isset($_POST['process-login']))?$_POST['process-login']:false;
+		$loginproc = (isset($_POST['process-login']) 
+			&& $_POST['process-login'] != 'false')?$_POST['process-login']:false;
 		
 		if (isset($_POST['checkout']) && 
 			$_POST['checkout'] == "process" && 
@@ -35,7 +38,9 @@ class iDealMollie {
 			
 		return true;
 	}
-		
+	
+	function actions () { }
+	
 	function checkout () {
 		global $Shopp;
 		if (empty($_POST['checkout'])) return false;
@@ -254,7 +259,7 @@ class iDealMollie {
 		$result = '';
 		if ($banks = $Response->getElement('bank')) {
 			$result .= '<li>';
-			$result .= '<label for="idealmollie-bank">'.__('iDeal Payment','Shopp').'</label>';
+			$result .= '<h3 class="mast" for="idealmollie-bank">'.__('iDeal Payment','Shopp').'</h3>';
 			$result .= '<span><select name="idealmollie-bank" id="idealmollie-bank">';
 			foreach ($banks as $bank) {
 				if (isset($bank['CHILDREN'])) {

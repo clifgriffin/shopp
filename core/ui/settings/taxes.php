@@ -14,6 +14,11 @@
 				<td><input type="hidden" name="settings[taxes]" value="off" /><input type="checkbox" name="settings[taxes]" value="on" id="taxes-toggle"<?php if ($this->Settings->get('taxes') == "on") echo ' checked="checked"'?> /><label for="taxes-toggle"> <?php _e('Enabled','Shopp'); ?></label><br /> 
 	            <?php _e('Enables tax calculations.  Disable if you are exclusively selling non-taxable items.','Shopp'); ?></td>
 			</tr>
+			<tr class="form-required">
+					<th scope="row" valign="top"><label for="tax-shipping-toggle"><?php _e('Tax Shipping','Shopp'); ?></label></th> 
+					<td><input type="hidden" name="settings[tax_shipping]" value="off" /><input type="checkbox" name="settings[tax_shipping]" value="on" id="tax-shipping-toggle"<?php if ($this->Settings->get('tax_shipping') == "on") echo ' checked="checked"'?> /><label for="tax-shipping-toggle"> <?php _e('Enabled','Shopp'); ?></label><br /> 
+		            <?php _e('Enable to include shipping and handling in taxes.','Shopp'); ?></td>
+				</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="taxrate[i]"><?php _e('Tax Rates','Shopp'); ?></label></th> 
 				<td>
@@ -112,7 +117,7 @@ var addTaxRate = function (r) {
 	
 	$(deleteButton).click(function () {
 		if (taxrates.length > 1) {
-			if (confirm("<?php _e('Are you sure you want to delete this tax rate?','Shopp'); ?>")) {
+			if (confirm("<?php echo addslashes(__('Are you sure you want to delete this tax rate?','Shopp')); ?>")) {
 				row.remove();
 				taxrates.splice(i,1);
 			}

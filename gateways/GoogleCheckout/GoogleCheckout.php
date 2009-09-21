@@ -7,6 +7,8 @@
  * @version 1.0.2
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
+ * 
+ * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
@@ -53,8 +55,15 @@ class GoogleCheckout {
 		return true;
 	}
 	
+	function actions () { }
+	
 	function checkout () {
 		global $Shopp;
+		
+		if ($Shopp->Cart->data->Totals->total == 0) {
+			header("Location: ".$Shopp->link('checkout'));
+			exit();
+		}
 		
 		$this->transaction = $this->buildCheckoutRequest($Shopp->Cart);
 		$Response = $this->send($this->urls['checkout']);
@@ -271,7 +280,7 @@ class GoogleCheckout {
 		$Customer->lastname = $buyer['structured-name']['CHILDREN']['last-name']['CONTENT'];
 		if (empty($name)) {
 			$name = $buyer['contact-name']['CONTENT'];
-			$names = split(" ",$name);
+			$names = explode(" ",$name);
 			$Customer->firstname = $names[0];
 			$Customer->lastname = $names[count($names)-1];
 		}
