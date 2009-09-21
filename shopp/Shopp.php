@@ -892,7 +892,7 @@ class Shopp {
 			// Add new filters
 			if (isset($_GET['shopp_catfilters'])) {
 				if (is_array($_GET['shopp_catfilters'])) {
-					$CategoryFilters = array_merge($CategoryFilters,$_GET['shopp_catfilters']);
+					$CategoryFilters = array_filter(array_merge($CategoryFilters,$_GET['shopp_catfilters']));
 					$CategoryFilters = stripslashes_deep($CategoryFilters);
 					if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
 				} else unset($this->Cart->data->Category[$this->Category->slug]);

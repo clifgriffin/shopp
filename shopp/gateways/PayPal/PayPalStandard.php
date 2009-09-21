@@ -102,6 +102,12 @@ class PayPalStandard {
 			$_POST['checkout'] = false;
 			return;
 		}
+
+		if ($Shopp->Cart->Total->total == 0) {
+			$_POST['checkout'] = 'confirmed';
+			$this->order();	
+		}
+		
 		
 		header("Location: ".add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
 		exit();
@@ -432,6 +438,7 @@ class PayPalStandard {
 	function billing () {}
 	
 	function url ($url) {
+		global $Shopp;
 		if ($this->settings['testmode'] == "on") return $this->sandbox_url;
 		else return $this->checkout_url;
 	}
