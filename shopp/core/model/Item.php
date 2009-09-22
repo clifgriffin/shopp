@@ -44,8 +44,10 @@ class Item {
 		if ($Product->variations == "on") array_shift($Product->prices);
 
 		// If option ids are passed, lookup by option key, otherwise by id
-		if (is_array($pricing)) $Price = $Product->pricekey[$Product->optionkey($pricing)];
-		else if ($pricing) $Price = $Product->priceid[$pricing];
+		if (is_array($pricing)) {
+			$Price = $Product->pricekey[$Product->optionkey($pricing)];
+			if (empty($Price)) $Price = $Product->pricekey[$Product->optionkey($pricing,true)];
+		} elseif ($pricing) $Price = $Product->priceid[$pricing];
 		else {
 			foreach ($Product->prices as &$Price)
 				if ($Price->type != "N/A" && 

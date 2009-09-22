@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.10
+Version: 1.0.11
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -28,7 +28,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define('SHOPP_VERSION','1.0.10');
+define('SHOPP_VERSION','1.0.11');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
@@ -941,6 +941,8 @@ class Shopp {
 			
 		if (empty($_REQUEST['cart'])) return true;
 
+		// echo "<pre>"; print_r($_REQUEST); echo "</pre>";
+		// exit();
 		$this->Cart->request();
 		if ($this->Cart->updated) $this->Cart->totals();
 		if (isset($_REQUEST['ajax'])) $this->Cart->ajax();

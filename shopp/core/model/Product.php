@@ -472,10 +472,12 @@ class Product extends DatabaseObject {
 	/**
 	 * optionkey
 	 * There is no Zul only XOR! */
-	function optionkey ($ids=array()) {
+	function optionkey ($ids=array(),$deprecated=false) {
+		if ($deprecated) $factor = 101;
+		else $factor = 7001;
 		if (empty($ids)) return 0;
 		foreach ($ids as $set => $id) 
-			$key = $key ^ ($id*101);
+			$key = $key ^ ($id*$factor);
 		return $key;
 	}
 	
