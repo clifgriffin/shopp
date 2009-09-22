@@ -4,9 +4,11 @@
  * @class PayPalPro
  *
  * @author Jonathan Davis
- * @version 1.0.6
+ * @version 1.0.7
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
+ * 
+ * $Id$
  **/
 
 class PayPalPro {
@@ -182,9 +184,9 @@ class PayPalPro {
 	function response ($buffer) {
 		$_ = new stdClass();
 		$r = array();
-		$pairs = split("&",$buffer);
+		$pairs = explode("&",$buffer);
 		foreach($pairs as $pair) {
-			list($key,$value) = split("=",$pair);
+			list($key,$value) = explode("=",$pair);
 			
 			if (preg_match("/(\w*?)(\d+)/",$key,$matches)) {
 				if (!isset($r[$matches[1]])) $r[$matches[1]] = array();

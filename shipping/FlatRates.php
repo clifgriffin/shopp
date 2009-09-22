@@ -7,6 +7,8 @@
  * @version 1.0
  * @copyright Ingenesis Limited, 27 April, 2008
  * @package shopp
+ * 
+ * $Id$
  **/
 
 class FlatRates {
@@ -21,7 +23,7 @@ class FlatRates {
 	
 	function calculate (&$Cart,$fees,$rate,$column) {
 		$ShipCosts = &$Cart->data->ShipCosts;
-		list($ShipCalcClass,$process) = split("::",$rate['method']);
+		list($ShipCalcClass,$process) = explode("::",$rate['method']);
 		switch($process) {
 			case "item":
 				$shipping = 0;
@@ -49,7 +51,7 @@ var FlatRates = function (methodid,table,rates) {
 		domesticHeading[key] = $('<th scope="col"><label for="'+area+'['+methodid+']">'+area+'</label></th>').appendTo(headingsRow);
 	});
 	var regionHeading = $('<th scope="col"><label for="'+region+'['+methodid+']">'+region+'</label></th>').appendTo(headingsRow);
-	var worldwideHeading = $('<th scope="col"><label for="worldwide['+methodid+']">Worldwide</label></th>').appendTo(headingsRow);
+	var worldwideHeading = $('<th scope="col"><label for="worldwide['+methodid+']"><?php echo addslashes(__('Worldwide','Shopp')); ?></label></th>').appendTo(headingsRow);
 	$('<th scope="col">').appendTo(headingsRow);
 
 	var row = $('<tr/>').appendTo(table);

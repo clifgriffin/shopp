@@ -145,14 +145,13 @@ function addVariationOptionsMenu (data) {
 	var linkOptionVariations = $('#linkOptionVariations');
 	var id = variationsidx;
 	
-	var menu = new NestedMenu(id,menus,'options','Option Menu',data,
+	var menu = new NestedMenu(id,menus,'options',OPTION_MENU_DEFAULT,data,
 		{target:entries,type:'list'},
 		{'axis':'y','update':function() { orderOptions(menus,entries) }}
 	);
 	
 	menu.addOption = function (data) {
 		var init = false;
-		
 		if (!data) data = new Object();
 
 		if (!data.id) {
@@ -160,7 +159,7 @@ function addVariationOptionsMenu (data) {
  			data.id = optionsidx;
 		} else if (data.id > optionsidx) optionsidx = data.id;
 		
-	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'options','New Option',data);
+	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'options',NEW_OPTION_DEFAULT,data);
 		optionsidx++;
 
 		option.linkIcon = $('<img src="'+rsrcdir+'/core/ui/icons/linked.png" alt="linked" width="16" height="16" class="link" />').appendTo(option.moveHandle);
@@ -255,6 +254,7 @@ function unlinkVariations (option) {
 
 function updateVariationLinks () {
 	var $=jQuery.noConflict();
+	if (!linkedPricing) return;
 	for (var key in pricingOptions) pricingOptions[key].unlinkInputs();
 	for (var option in linkedPricing) {
 		linkedPricing[option] = false;
@@ -377,8 +377,12 @@ function deleteVariationPrices (optionids,reduce) {
 				var newkey = xorkey(modOptions);
 			
 				if (reduce && !pricingOptions[newkey]) {
-					pricingOptions[newkey] = pricingOptions[key];
+					if (newkey != 0) pricingOptions[newkey] = pricingOptions[key];
+					else {
+						pricingOptions[key].row.remove();
+					}
 					delete pricingOptions[key];
+					
 					if (pricingOptions[newkey]) {
 						pricingOptions[newkey].options = modOptions;
 						pricingOptions[newkey].updateLabel();
@@ -387,7 +391,6 @@ function deleteVariationPrices (optionids,reduce) {
 					}
 				} else {
 					if (pricingOptions[key]) {
-						
 						// Mark priceline for removal from db
 						var dbPriceId = $('#priceid-'+pricingOptions[key].id).val();
 						if ($('#deletePrices').val() == "") $('#deletePrices').val(dbPriceId);
@@ -470,7 +473,7 @@ function orderVariationPrices () {
 // Magic key generator
 function xorkey (ids) {
 	for (var key=0,i=0; i < ids.length; i++) 
-		key = key ^ (ids[i]*101);
+		key = key ^ (ids[i]*7001);
 	return key;
 }
 
@@ -844,7 +847,6 @@ function FileUploader (button,defaultButton,linenum,updates) {
 			this.progressBar = bar;
 		},
 		onComplete: function(results) {
-			// console.log(results);
 			var filedata = eval('('+results+')');
 			if (filedata.error) {
 				$(this.targetHolder).html("No download file.");
@@ -908,7 +910,6 @@ function FileUploader (button,defaultButton,linenum,updates) {
 	function uploadError (file, error, message) { }
 
 	function uploadSuccess (file, results) {
-		// console.log(results);
 		var filedata = eval('('+results+')');
 		if (filedata.error) {
 			$(this.targetHolder).html(no_download)

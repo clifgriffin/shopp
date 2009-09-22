@@ -26,8 +26,17 @@ function password_meta_box () {
 add_meta_box('change-password', __('Change Password','Shopp'), 'password_meta_box', 'admin_page_shopp-customers-edit', 'side', 'core');
 
 function profile_meta_box ($Customer) {
+	$wp_user = get_userdata($Customer->wpuser);
+	if (!empty($wp_user)):
 ?>
 <p>
+	<span>
+	<input type="hidden" name="userid" id="userid" value="<?php echo $Customer->wpuser; ?>" />
+	<input type="text" name="username" id="username" value="<?php echo $wp_user->user_login; ?>" size="24" readonly="readonly" class="clickable" /><br />
+	<label for="username"><?php _e('Login (Click to edit user)','Shopp'); ?></label>
+	</span>
+<?php endif; ?>
+<p> 
 	<span>
 	<input type="text" name="firstname" id="firstname" value="<?php echo $Customer->firstname; ?>" size="14" /><br />
 	<label for="firstname"><?php _e('First Name','Shopp'); ?></label>

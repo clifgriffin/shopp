@@ -36,7 +36,7 @@ class Product extends DatabaseObject {
 	
 	function Product ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id,$key)) {
+		if ($this->load($id,$key)) {			
 			add_filter('shopp_product_description', 'wptexturize');
 			add_filter('shopp_product_description', 'convert_chars');
 			add_filter('shopp_product_description', 'wpautop');
@@ -186,53 +186,44 @@ class Product extends DatabaseObject {
 		$data = $db->query($query,AS_ARRAY);
 		
 		// Process the results into specific product object data in a product set
-		if (is_array($products)) {
-			// Load into passed product set
-			foreach ($data as $row) {
-				if (isset($products[$row->product])) {
-					$record = new stdClass(); $i = 0;
-					foreach ($Dataset[$row->rtype]->_datatypes AS $key => $datatype) {
-						$column = 'c'.$i++;
-						$record->{$key} = '';
-						if (!empty($row->{$column})) {
-							if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column})) 
-								$row->{$column} = unserialize($row->{$column});
-							$record->{$key} = $row->{$column};
-						}
-					}
-					$products[$row->product]->{$row->rtype}[] = $record;
+		
+		foreach ($data as $row) {
+			if (is_array($products) && isset($products[$row->product])) 
+				$target = $products[$row->product];
+			else $target = $this;
+
+			$record = new stdClass(); $i = 0; $name = "";
+			foreach ($Dataset[$row->rtype]->_datatypes AS $key => $datatype) {
+				$column = 'c'.$i++;
+				$record->{$key} = '';
+				if ($key == "name") $name = $row->{$column};
+				if (!empty($row->{$column})) {
+					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column})) 
+						$row->{$column} = unserialize($row->{$column});
+					$record->{$key} = $row->{$column};
 				}
 			}
-			
+			$target->{$row->rtype}[] = $record;
+			if (!empty($name)) {
+				if (isset($target->{$row->rtype.'key'}[$name]))
+					$target->{$row->rtype.'key'}[$name] = array($target->{$row->rtype.'key'}[$name],$record);
+				else $target->{$row->rtype.'key'}[$name] = $record;
+			}
+		}
+		
+		if (is_array($products)) {
 			foreach ($products as $product) if (!empty($product->prices)) $product->pricing();
 			foreach ($products as $product) if (count($product->images) >= 3 && count($product->imagesets) <= 1)
 					$product->imageset();
-
 		} else {
-			// Load into this object
-			foreach ($data as $row) {
-				if (isset($this->{$row->rtype})) {
-					$record = new stdClass(); $i = 0;
-					foreach ($Dataset[$row->rtype]->_datatypes AS $key => $datatype) {
-						$column = 'c'.$i++;
-						$record->{$key} = '';
-						if (!empty($row->{$column})) {
-							if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column})) 
-								$row->{$column} = unserialize($row->{$column});
-							$record->{$key} = $row->{$column};
-						}
-					}
-					$this->{$row->rtype}[] = $record;
-				}
-			}
-			if (!empty($this->prices)) $this->pricing();
+			if (!empty($this->prices)) $this->pricing($options);
 			if (count($this->images) >= 3 && count($this->imagesets) <= 1) $this->imageset();
-		
 		}
-
+		
+		// echo "<pre>"; print_r($this); echo "</pre>";
 	} // end load_data()
-	
-	function pricing () {
+		
+	function pricing ($options = false) {
 		global $Shopp;
 		
 		$variations = ($this->variations == "on");
@@ -344,7 +335,18 @@ class Product extends DatabaseObject {
 				}
 			}
 			
-			if (defined('WP_ADMIN')) {
+			// Determine weight ranges
+			if(!isset($this->weightrange['min'])) $this->weightrange = array('min'=>0,'max'=>0);
+			if($price->weight && $price->weight > 0){
+				if(!$this->weightrange['min'] || $price->weight < $this->weightrange['min']) 
+					$this->weightrange['min'] = $price->weight; 
+				if(!$this->weightrange['max'] || $price->weight > $this->weightrange['max']) 
+					$this->weightrange['max'] = $price->weight;
+			}
+
+			
+			if (defined('WP_ADMIN')
+				&& (isset($options['taxes']) && value_is_true($options['taxes']))) {
 				$base = $Shopp->Settings->get('base_operations');
 				if ($base['vat']) {
 					$taxrate = $Shopp->Cart->taxrate();
@@ -354,6 +356,7 @@ class Product extends DatabaseObject {
 			}
 			
 		} // end foreach($price)
+		// echo "<pre>"; print_r($this->prices); echo "</pre>";
 		if ($this->inventory && $this->stock <= 0) $this->outofstock = true;
 		if ($freeshipping) $this->freeshipping = true;
 	}
@@ -400,12 +403,19 @@ class Product extends DatabaseObject {
 
 		$table = DatabaseObject::tablename(Catalog::$table);
 
-		foreach ($added as $id) {
-			$db->query("INSERT $table SET category='$id',product='$this->id',created=now(),modified=now()");
+		if (!empty($added)) {
+			foreach ($added as $id) {
+				if (empty($id)) continue;
+				$db->query("INSERT $table SET category='$id',product='$this->id',created=now(),modified=now()");
+			}
 		}
 		
-		foreach ($removed as $id) {
-			$db->query("DELETE LOW_PRIORITY FROM $table WHERE category='$id' AND product='$this->id'"); 
+		if (!empty($removed)) {
+			foreach ($removed as $id) {
+				if (empty($id)) continue;
+				$db->query("DELETE LOW_PRIORITY FROM $table WHERE category='$id' AND product='$this->id'"); 
+			}
+			
 		}
 		
 	}
@@ -434,7 +444,7 @@ class Product extends DatabaseObject {
 			foreach ($added as $tag) {
 				if (empty($tag)) continue; // No empty tags
 				$tagid = array_search($tag,$exists);
-			
+
 				if (!$tagid) {
 					$Tag = new Tag();
 					$Tag->name = $tag;
@@ -444,6 +454,7 @@ class Product extends DatabaseObject {
 
 				if (!empty($tagid))
 					$db->query("INSERT $catalog SET tag='$tagid',product='$this->id',created=now(),modified=now()");
+					
 			}
 		}
 
@@ -461,10 +472,12 @@ class Product extends DatabaseObject {
 	/**
 	 * optionkey
 	 * There is no Zul only XOR! */
-	function optionkey ($ids=array()) {
+	function optionkey ($ids=array(),$deprecated=false) {
+		if ($deprecated) $factor = 101;
+		else $factor = 7001;
 		if (empty($ids)) return 0;
 		foreach ($ids as $set => $id) 
-			$key = $key ^ ($id*101);
+			$key = $key ^ ($id*$factor);
 		return $key;
 	}
 	
@@ -543,33 +556,42 @@ class Product extends DatabaseObject {
 	 * Deletes the record associated with this object */
 	function delete () {
 		$db = DB::get();
-		
-		// Delete record
 		$id = $this->{$this->_key};
-		if (!empty($id)) $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
+		if (empty($id)) return false;
 		
 		// Delete from categories
 		$table = DatabaseObject::tablename(Catalog::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
 
 		// Delete prices
 		$table = DatabaseObject::tablename(Price::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
 
 		// Delete specs
 		$table = DatabaseObject::tablename(Spec::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$this->id'");
-
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
+		
 		// Delete images/files
 		$table = DatabaseObject::tablename(Asset::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$this->id' AND context='product'");
+
+		// Delete images
+		$images = array();
+		$src = $db->query("SELECT id FROM $table WHERE parent='$id' AND context='product' AND datatype='image'",AS_ARRAY);
+		foreach ($src as $img) $images[] = $img->id;
+		$this->delete_images($images);
+		
+		// Delete product downloads (but keep the file if on file system)
+		$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND context='product'");
+
+		// Delete record
+		$db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
 
 	}
 	
 	function duplicate () {
 		$db =& DB::get();
 		
-		$this->load_data(array('prices','specs','categories','tags','images'));
+		$this->load_data(array('prices','specs','categories','tags','images','taxes'=>'false'));
 		$this->id = '';
 		$this->name = $this->name.' '.__('copy','Shopp');
 		$this->slug = sanitize_title_with_dashes($this->name);
@@ -650,14 +672,14 @@ class Product extends DatabaseObject {
 		switch ($property) {
 			case "link": 
 			case "url": 
-				if (SHOPP_PERMALINKS) $url = add_query_arg($_GET,"$Shopp->shopuri$this->slug/");
+				if (SHOPP_PERMALINKS) $url = add_query_arg($_GET,$Shopp->shopuri.urldecode($this->slug)."/");
 				else $url = add_query_arg('shopp_pid',$this->id,$Shopp->shopuri);
 				return $url;
 				break;
 			case "found": 
 				if (empty($this->id)) return false;
 				$load = array('prices','images','specs');
-				if (isset($options['load'])) $load = split(",",$options['load']);
+				if (isset($options['load'])) $load = explode(",",$options['load']);
 				$this->load_data($load);
 				return true;
 				break;
@@ -676,8 +698,8 @@ class Product extends DatabaseObject {
 				$taxrate = 0;
 				$taxes = false;
 				$base = $Shopp->Settings->get('base_operations');
-				if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
-				elseif ($base['vat']) $taxes = true;
+				if ($base['vat']) $taxes = true;
+				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
 				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 				
 				if ($this->options > 1) {
@@ -688,6 +710,18 @@ class Product extends DatabaseObject {
 						return money($this->pricerange['min']['price']+($this->pricerange['min']['price']*$taxrate))." &mdash; ".money($this->pricerange['max']['price'] + ($this->pricerange['max']['price']*$taxrate));
 					}
 				} else return money($this->prices[0]->price + ($this->prices[0]->price*$taxrate));
+				break;
+			case "weight":
+				if(empty($this->prices)) $this->load_data(array('prices'));
+				$unit = (isset($options['units']) && !value_is_true($options['units'])? 
+					false : $Shopp->Settings->get('weight_unit'));
+				if(!$this->weightrange['min']) return false;
+				
+				$string = ($this->weightrange['min'] == $this->weightrange['max']) ? 
+					round($this->weightrange['min'],3) :  
+					round($this->weightrange['min'],3) . " - " . round($this->weightrange['max'],3);
+				$string .= ($unit) ? " $unit" : "";
+				return $string;
 				break;
 			case "onsale":
 				if (empty($this->prices)) $this->load_data(array('prices'));
@@ -710,8 +744,8 @@ class Product extends DatabaseObject {
 				$taxrate = 0;
 				$taxes = false;
 				$base = $Shopp->Settings->get('base_operations');
-				if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
-				elseif ($base['vat']) $taxes = true;
+				if ($base['vat']) $taxes = true;
+				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
 				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 
 				if ($this->onsale) $pricetag = 'saleprice';
@@ -727,6 +761,14 @@ class Product extends DatabaseObject {
 			case "has-savings": return ($this->onsale && $this->pricerange['min']['saved'] > 0)?true:false; break;
 			case "savings":
 				if (empty($this->prices)) $this->load_data(array('prices'));
+
+				$taxrate = 0;
+				$taxes = false;
+				$base = $Shopp->Settings->get('base_operations');
+				if ($base['vat']) $taxes = true;
+				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
+				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
+
 				if (!isset($options['show'])) $options['show'] = '';
 				if ($options['show'] == "%" || $options['show'] == "percent") {
 					if ($this->options > 1) {
@@ -737,9 +779,9 @@ class Product extends DatabaseObject {
 				} else {
 					if ($this->options > 1) {
 						if ($this->pricerange['min']['saved'] == $this->pricerange['max']['saved'])
-							return money($this->pricerange['min']['saved']); // No price range
-						else return money($this->pricerange['min']['saved'])." &mdash; ".money($this->pricerange['max']['saved']);
-					} else return money($this->pricerange['max']['saved']);
+							return money($this->pricerange['min']['saved']+($this->pricerange['min']['saved']*$taxrate)); // No price range
+						else return money($this->pricerange['min']['saved']+($this->pricerange['min']['saved']*$taxrate))." &mdash; ".money($this->pricerange['max']['saved']+($this->pricerange['max']['saved']*$taxrate));
+					} else return money($this->pricerange['max']['saved']+($this->pricerange['max']['saved']*$taxrate));
 				}
 				break;
 			case "freeshipping":
@@ -977,10 +1019,28 @@ class Product extends DatabaseObject {
 				$spec = current($this->specs);
 				if (is_array($spec->content)) $spec->content = join($delimiter,$spec->content);
 				
-				if (array_key_exists('name',$options) && array_key_exists('content',$options))
+				if (isset($options['name']) 
+					&& !empty($options['name']) 
+					&& isset($this->specskey[$options['name']])) {
+						$spec = $this->specskey[$options['name']];
+						if (is_array($spec)) {
+							if (isset($options['index'])) {
+								foreach ($spec as $index => $entry) 
+									if ($index+1 == $options['index']) 
+										$content = $entry->content;
+							} else {
+								foreach ($spec as $entry) $contents[] = $entry->content;
+								$content = join($delimiter,$contents);
+							}
+						} else $content = $spec->content;
+					$string = apply_filters('shopp_product_spec',$content);
+					return $string;
+				}
+				
+				if (isset($options['name']) && isset($options['content']))
 					$string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->content);
-				else if (array_key_exists('name',$options)) $string = $spec->name;
-				else if (array_key_exists('content',$options)) $string = apply_filters('shopp_product_spec',$spec->content);
+				elseif (isset($options['name'])) $string = $spec->name;
+				elseif (isset($options['content'])) $string = apply_filters('shopp_product_spec',$spec->content);
 				else $string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->content);
 				return $string;
 				break;
@@ -1022,8 +1082,8 @@ class Product extends DatabaseObject {
 				$taxrate = 0;
 				$taxes = false;
 				$base = $Shopp->Settings->get('base_operations');
-				if (isset($options['taxes']) && value_is_true($options['taxes'])) $taxes = true;
-				elseif ($base['vat']) $taxes = true;
+				if ($base['vat']) $taxes = true;
+				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
 				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 
 				if (!isset($options['label'])) $options['label'] = "on";
@@ -1059,7 +1119,7 @@ class Product extends DatabaseObject {
 							options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
 							options_required = "<?php echo $options['required']; ?>";
 							
-							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (isset($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo $taxrate; ?>);
+							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (isset($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo empty($taxrate)?'0':$taxrate; ?>);
 						});
 					})(jQuery)
 					//-->
@@ -1103,10 +1163,14 @@ class Product extends DatabaseObject {
 				break;
 			case "variation":
 				$variation = current($this->prices);
-				
 				$taxrate = 0;
-				if (isset($options['taxes']) && value_is_true($options['taxes'])) 
-					$taxrate = $Shopp->Cart->taxrate();
+				$taxes = false;
+				$base = $Shopp->Settings->get('base_operations');
+				if ($base['vat']) $taxes = true;
+				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
+				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
+				
+				$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : $Shopp->Settings->get('weight_unit');
 				
 				$string = '';
 				if (array_key_exists('id',$options)) $string .= $variation->id;
@@ -1116,7 +1180,7 @@ class Product extends DatabaseObject {
 				if (array_key_exists('price',$options)) $string .= money($variation->price+($variation->price*$taxrate));
 				if (array_key_exists('saleprice',$options)) $string .= money($variation->saleprice+($variation->saleprice*$taxrate));
 				if (array_key_exists('stock',$options)) $string .= $variation->stock;
-				if (array_key_exists('weight',$options)) $string .= $variation->weight;
+				if (array_key_exists('weight',$options)) $string .= round($variation->weight, 3) . ($weightunit ? " $weightunit" : false);
 				if (array_key_exists('shipfee',$options)) $string .= money($variation->shipfee);
 				if (array_key_exists('sale',$options)) return ($variation->sale == "on");
 				if (array_key_exists('shipping',$options)) return ($variation->shipping == "on");
@@ -1149,12 +1213,12 @@ class Product extends DatabaseObject {
 					else $values = $options['options'];
 					if ($this->inventory && $this->pricerange['max']['stock'] == 0) return "";	
 				
-					if (strpos($values,",") !== false) $values = split(",",$values);
+					if (strpos($values,",") !== false) $values = explode(",",$values);
 					else $values = array($values);
 					$qtys = array();
 					foreach ($values as $value) {
 						if (strpos($value,"-") !== false) {
-							$value = split("-",$value);
+							$value = explode("-",$value);
 							if ($value[0] >= $value[1]) $qtys[] = $value[0];
 							else for ($i = $value[0]; $i < $value[1]+1; $i++) $qtys[] = $i;
 						} else $qtys[] = $value;
@@ -1214,6 +1278,13 @@ class Product extends DatabaseObject {
 				}
 				
 				return $result;
+				break;
+			case "outofstock":
+				if ($this->outofstock) {
+					$label = isset($options['label'])?$options['label']:$Shopp->Settings->get('outofstock_text');
+					$string = '<span class="outofstock">'.$label.'</span>';
+					return $string;
+				}
 				break;
 			case "buynow":
 				if (!isset($options['value'])) $options['value'] = __("Buy Now","Shopp");

@@ -50,9 +50,11 @@ class Shipping extends DatabaseObject {
 			
 			foreach ($areas['US'] as $name => $states) {
 				foreach ($states as $id => $coderange) {
-					if ($code > $coderange[0] && $code < $coderange[1]) {
-						$this->state = $id;
-						return $name;
+					for($i = 0; $i<count($coderange); $i+=2) {
+						if ($code >= (int)$coderange[$i] && $code <= (int)$coderange[$i+1]) {
+							$this->state = $id;
+							return $name;
+						}
 					}
 				}
 			}

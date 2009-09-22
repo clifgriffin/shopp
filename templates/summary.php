@@ -22,7 +22,11 @@
 
 	<?php while(shopp('cart','items')): ?>
 		<tr>
-			<td><a href="<?php shopp('cartitem','url'); ?>"><?php shopp('cartitem','name'); ?></a><?php shopp('cartitem','options','show=selected&before= (&after=)'); ?></td>
+			<td>
+				<a href="<?php shopp('cartitem','url'); ?>"><?php shopp('cartitem','name'); ?></a>
+				<?php shopp('cartitem','options','show=selected&before= (&after=)'); ?>
+				<?php shopp('cartitem','inputs-list'); ?>
+			</td>
 			<td><?php shopp('cartitem','quantity'); ?></td>
 			<td class="money"><?php shopp('cartitem','unitprice'); ?></td>
 			<td class="money"><?php shopp('cartitem','total'); ?></td>
@@ -68,6 +72,15 @@
 		<td class="money"><?php shopp('cart','total'); ?></td>
 	</tr>
 </table>
+
+<?php if(shopp('purchase','has-data')): ?>
+	<ul>
+	<?php while(shopp('purchase','orderdata')): ?>
+		<li><strong><?php shopp('purchase','data','name'); ?>:</strong> <?php shopp('purchase','data'); ?></li>
+	<?php endwhile; ?>
+	</ul>
+<?php endif; ?>
+
 </div>
 <?php else: ?>
 	<p class="warning">There are currently no items in your shopping cart.</p>
