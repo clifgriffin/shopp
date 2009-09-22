@@ -39,7 +39,7 @@ CREATE TABLE <?php echo $price; ?> (
 	optionkey bigint(20) unsigned NOT NULL default '0',
 	label varchar(100) NOT NULL default '',
 	context enum('product','variation','addon') NOT NULL,
-	type enum('Shipped','Download','Donation','N/A') NOT NULL,
+	type enum('Shipped','Virtual','Download','Donation','N/A') NOT NULL,
 	sku varchar(100) NOT NULL default '',
 	price float(20,2) NOT NULL default '0.00',
 	saleprice float(20,2) NOT NULL default '0.00',

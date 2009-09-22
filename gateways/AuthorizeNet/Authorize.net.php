@@ -7,6 +7,8 @@
  * @version 1.0.4
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
+ * 
+ * $Id$
  **/
 
 class AuthorizeNet {
@@ -61,7 +63,7 @@ class AuthorizeNet {
 		// Required Fields
 		$_['x_amount']				= $Order->Totals->total;
 		$_['x_customer_ip']			= $_SERVER["REMOTE_ADDR"];
-		$_['x_fp_sequence']			= $Order->Cart;
+		$_['x_fp_sequence']			= mktime();
 		$_['x_fp_timestamp']		= time();
 		// $_['x_fp_hash']				= hash_hmac("md5","{$_['x_login']}^{$_['x_fp_sequence']}^{$_['x_fp_timestamp']}^{$_['x_amount']}",$_['x_password']);
 		
@@ -178,7 +180,7 @@ class AuthorizeNet {
 			 $_->ponum,
 			 $_->md5hash,
 			 $_->cvv2code,
-			 $_->cvv2response) = split(",",$buffer);
+			 $_->cvv2response) = explode(",",$buffer);
 		return $_;
 	}
 	

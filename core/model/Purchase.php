@@ -16,6 +16,7 @@ class Purchase extends DatabaseObject {
 	var $purchased = array();
 	var $columns = array();
 	var $looping = false;
+	var $dataloop = false;
 
 	function Purchase ($id=false,$key=false) {
 		$this->init(self::$table);
@@ -45,7 +46,7 @@ class Purchase extends DatabaseObject {
 		$email['from'] = '"'.get_bloginfo("name").'"';
 		if ($Shopp->Settings->get('merchant_email')) 
 			$email['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
-		$email['to'] = '"'.$addressee.'" <'.$address.'>';
+		$email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
 		$email['subject'] = $subject;
 		$email['receipt'] = $Shopp->Flow->order_receipt($receipt);
 		$email['url'] = get_bloginfo('siteurl');
@@ -56,11 +57,11 @@ class Purchase extends DatabaseObject {
 		
 		// echo "<PRE>"; print_r($email); echo "</PRE>";
 		if (shopp_email($template,$email)) {
-			if (SHOPP_DEBUG) new ShoppError(__('A purchase notification was sent to "'.$addressee.'" &lt;'.$address.'&gt;',SHOPP_DEBUG_ERR));
+			if (SHOPP_DEBUG) new ShoppError('A purchase notification was sent to "'.$addressee.'" &lt;'.$address.'&gt;',false,SHOPP_DEBUG_ERR);
 			return true;
 		}
 		
-		if (SHOPP_DEBUG) new ShoppError(__('A purchase notification FAILED to be sent to "'.$addressee.'" &lt;'.$address.'&gt;',SHOPP_DEBUG_ERR));
+		if (SHOPP_DEBUG) new ShoppError('A purchase notification FAILED to be sent to "'.$addressee.'" &lt;'.$address.'&gt;',false,SHOPP_DEBUG_ERR);
 		return false;
 	}
 	
@@ -121,13 +122,23 @@ class Purchase extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 
+
+		if ($property == "item-unitprice" || $property == "item-total") {
+			$taxrate = 0;
+			$taxes = false;
+			$base = $Shopp->Settings->get('base_operations');
+			if ($base['vat']) $taxes = true;
+			if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
+			if ($taxes) $taxrate = $Shopp->Cart->taxrate();
+		}
+
 		// Return strings with no options
 		switch ($property) {
 			case "url": return $Shopp->link('cart'); break;
 			case "id": return $this->id; break;
 			case "date": 
 				if (empty($options['format'])) $options['format'] = get_option('date_format');
-				return date($options['format'],((is_int($this->created))?$this->created:mktimestamp($this->created)));
+				return _d($options['format'],((is_int($this->created))?$this->created:mktimestamp($this->created)));
 				break;
 			case "card": return (!empty($this->card))?sprintf("%'X16d",$this->card):''; break;
 			case "cardtype": return $this->cardtype; break;
@@ -206,17 +217,17 @@ class Purchase extends DatabaseObject {
 				$classes = "";
 				if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
 				if (SHOPP_PERMALINKS) $url = $Shopp->shopuri."download/".$item->dkey;
-				else $url = add_query_arg('shopp_download',$item->dkey,$Shopp->shopuri);
+				else $url = add_query_arg('shopp_download',$item->dkey,$Shopp->link('account'));
 				return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>'; break;
 			case "item-quantity":
 				$item = current($this->purchased);
 				return $item->quantity; break;
 			case "item-unitprice":
 				$item = current($this->purchased);
-				return money($item->unitprice); break;
+				return money($item->unitprice+($item->unitprice*$taxrate)); break;
 			case "item-total":
 				$item = current($this->purchased);
-				return money($item->total); break;
+				return money($item->total+($item->total*$taxrate)); break;
 			case "item-has-inputs":
 			case "item-hasinputs": 
 				$item = current($this->purchased);
@@ -245,10 +256,11 @@ class Purchase extends DatabaseObject {
 			case "item-inputslist":
 			case "item-inputs-list":
 			case "iteminputslist":
+				$item = current($this->purchased);
 				if (empty($item->data)) return false;
 				$before = ""; $after = ""; $classes = ""; $excludes = array();
 				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
-				if (!empty($options['exclude'])) $excludes = split(",",$options['exclude']);
+				if (!empty($options['exclude'])) $excludes = explode(",",$options['exclude']);
 				if (!empty($options['before'])) $before = $options['before'];
 				if (!empty($options['after'])) $after = $options['after'];
 
@@ -268,7 +280,7 @@ class Purchase extends DatabaseObject {
 					$this->dataloop = true;
 				} else next($this->data);
 
-				if (current($this->data)) return true;
+				if (current($this->data) !== false) return true;
 				else {
 					$this->dataloop = false;
 					return false;
@@ -280,6 +292,11 @@ class Purchase extends DatabaseObject {
 				$name = key($this->data);
 				if (isset($options['name'])) return $name;
 				return $data;
+				break;
+			case "has-promo": 
+			case "haspromo": 
+				if (empty($options['name'])) return false;
+				return (in_array($options['name'],$this->promos));
 				break;
 			case "subtotal": return money($this->subtotal); break;
 			case "hasfreight": return ($this->freight > 0);
@@ -334,12 +351,12 @@ class PurchasesExport {
 		if (empty($request)) $request = $_GET;
 		
 		if (!empty($request['start'])) {
-			list($month,$day,$year) = split("/",$request['start']);
+			list($month,$day,$year) = explode("/",$request['start']);
 			$starts = mktime(0,0,0,$month,$day,$year);
 		}
 		
 		if (!empty($request['end'])) {
-			list($month,$day,$year) = split("/",$request['end']);
+			list($month,$day,$year) = explode("/",$request['end']);
 			$ends = mktime(0,0,0,$month,$day,$year);
 		}
 		

@@ -40,65 +40,119 @@
 
 	<h2><?php _e('Customer Editor','Shopp'); ?></h2>
 	
-	<form name="promotion" id="promotion" method="post" action="<?php echo add_query_arg('page',$Shopp->Flow->Admin->promotions,$Shopp->wpadminurl."admin.php"); ?>">
-		<?php wp_nonce_field('shopp-save-promotion'); ?>
+	<form name="customer" id="customer" method="post" action="<?php echo add_query_arg('page',$Shopp->Flow->Admin->customers,$Shopp->wpadminurl."admin.php"); ?>">
+		<?php wp_nonce_field('shopp-save-customer'); ?>
 
-		<div class="hidden"><input type="hidden" name="id" value="<?php echo $Promotion->id; ?>" /></div>
+		<div class="hidden"><input type="hidden" name="id" value="<?php echo $Customer->id; ?>" /></div>
 
 		<table class="form-table"> 
-			<tr class=" form-required"> 
-				<th scope="row" valign="top"><label for="promotion-name"><?php _e('Description','Shopp'); ?></label></th> 
-				<td><input type="text" name="name" value="<?php echo attribute_escape($Promotion->name); ?>" id="promotion-name" size="40" /><br /> 
-	            <?php _e('The name is used to describe the promotion on order receipts.','Shopp'); ?></td>
-			</tr>
-			<tr class=" form-required"> 
-				<th scope="row" valign="top"><label for="discount-status"><?php _e('Status','Shopp'); ?></label></th> 
+			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="name"><?php _e('Name','Shopp'); ?></label></th> 
 				<td>
-					<label for="discount-status"><input type="hidden" name="status" value="disabled" /><input type="checkbox" name="status" id="discount-status" value="enabled"<?php echo ($Promotion->status == "enabled")?' checked="checked"':''; ?> /> &nbsp;<?php _e('Enabled','Shopp'); ?></label>
-
-					<p></p>
-					
-					<div id="start-position" class="calendar-wrap"><input type="text" name="starts[month]" id="starts-month" title="<?php _e('Month','Shopp'); ?>" size="3" value="<?php echo ($Promotion->starts>1)?date("n",$Promotion->starts):''; ?>" class="selectall" />/<input type="text" name="starts[date]" id="starts-date" title="<?php _e('Day','Shopp'); ?>" size="3" value="<?php echo ($Promotion->starts>1)?date("j",$Promotion->starts):''; ?>" class="selectall" />/<input type="text" name="starts[year]" id="starts-year" title="<?php _e('Year','Shopp'); ?>" size="5" value="<?php echo ($Promotion->starts>1)?date("Y",$Promotion->starts):''; ?>" class="selectall" /></div> &mdash; <div id="end-position" class="calendar-wrap"><input type="text" name="ends[month]" id="ends-month" title="<?php _e('Month','Shopp'); ?>" size="3" value="<?php echo ($Promotion->ends>1)?date("n",$Promotion->ends):''; ?>" class="selectall" />/<input type="text" name="ends[date]" id="ends-date" title="<?php _e('Day','Shopp'); ?>" size="3" value="<?php echo ($Promotion->ends>1)?date("j",$Promotion->ends):''; ?>" class="selectall" />/<input type="text" name="ends[year]" id="ends-year" title="<?php _e('Year','Shopp'); ?>" size="5" value="<?php echo ($Promotion->ends>1)?date("Y",$Promotion->ends):''; ?>" class="selectall" /></div>
-					<br />
-					<?php _e('Enter the date range this promotion will be in effect for.','Shopp'); ?>
-					
-	            </td>
-			</tr>			
-			<tr class=" form-required"> 
-				<th scope="row" valign="top"><label for="discount-type"><?php _e('Discount Type','Shopp'); ?></label></th> 
-				<td><select name="type" id="discount-type">
-					<?php echo menuoptions($types,$Promotion->type,true); ?>
-					</select><br />
-	            <?php _e('Select how the discount will be applied.','Shopp'); ?></td>
-			</tr>
-			<tr id="discount-row" class=" form-required"> 
-				<th scope="row" valign="top"><label for="discount-amount"><?php _e('Discount Amount','Shopp'); ?></label></th> 
-				<td><input type="text" name="discount" id="discount-amount" value="<?php echo $Promotion->discount; ?>" size="10" /><br />
-	            <?php _e('Enter the amount of this discount.','Shopp'); ?></td>
-			</tr>
-			<tr id="beyget-row" class=" form-required"> 
-				<th scope="row" valign="top"><label for="discount-amount"><?php _e('Item Quantities','Shopp'); ?></label></th> 
-				<td><?php _e('Buy','Shopp'); ?> <input type="text" name="buyqty" id="buy-x" value="<?php echo $Promotion->buyqty; ?>" size="5" /> <?php _e('Get','Shopp'); ?> <input type="text" name="getqty" id="get-y" value="<?php echo $Promotion->getqty; ?>" size="5" /><br />
-	            <?php _e('Enter the number of items that must be purchased and how many will be gifted.','Shopp'); ?></td>
-			</tr>
-			
-		</table>
-		<br class="clear" />
-		<?php
-			$scope = '<select name="scope" id="promotion-scope">';
-			$scope .= menuoptions($Promotion->_lists['scope'],$Promotion->scope);
-			$scope .= '</select>';
+					<div>
+					<span><input type="text" name="firstname" value="<?php echo attribute_escape($Customer->firstname); ?>" id="firstname" size="14" /><br /> 
+	            	<label for="firstname"><?php _e('First Name','Shopp'); ?></label></span>
+					<span><input type="text" name="lastname" value="<?php echo attribute_escape($Customer->lastname); ?>" id="lastname" size="30" /><br />
+	            	<label for="lastname"><?php _e('Last Name','Shopp'); ?></label></span><br class="clear" />
+					</div>
 	
-			if (empty($Promotion->logic)) $Promotion->logic = "all";
-	
-			$logic = '<select name="search" class="small">';
-			$logic .= menuoptions(array('any'=>__('any','Shopp'),'all' => __('all','Shopp')),$Promotion->logic,true);
-			$logic .= '</select>';
-		?>
-		
-		<h3><strong><?php printf(__('Apply discount to %s products where %s of these conditions are met','Shopp'),$scope,$logic); ?>:</strong></h3>
-		
-		<table class="form-table" id="rules"> 
+					<p><input type="text" name="company" value="<?php echo attribute_escape($Customer->company); ?>" id="company" size="46" /><br /> 
+            		<label for="lastname"><?php _e('Company','Shopp'); ?></label></p>
+				</td>
+			</tr>
+			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="email"><?php _e('Contact','Shopp'); ?></label></th> 
+				<td>
+					<div>
+					<span><input type="text" name="email" value="<?php echo attribute_escape($Customer->email); ?>" id="email" size="24" /><br /> 
+	            	<label for="email"><?php _e('Email','Shopp'); ?> <em><?php _e('(required)')?></em></label></span>
+					<span><input type="text" name="phone" value="<?php echo attribute_escape($Customer->phone); ?>" id="phone" size="20" /><br />
+	            	<label for="phone"><?php _e('Phone','Shopp'); ?></label></span>
+					</div>
+				</td>
+			</tr>
+			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="email"><?php _e('Password','Shopp'); ?></label></th> 
+				<td>
+					<div>
+					<span><input type="password" name="new-password" id="new-password" value="" size="20" class="selectall" /><br />
+					<label for="new-password"><?php _e('Enter a new password to change it.','Shopp'); ?></label></span>
+					<span><input type="password" name="confirm-password" id="confirm-password" value="" size="20" class="selectall" /><br />
+					<label for="confirm-password"><?php _e('Confirm the new password.','Shopp'); ?></label></span>
+					</div>
+					<br class="clear" />
+					<div id="pass-strength-result"><?php _e('Strength indicator'); ?></div>
+					<br class="clear" />
+				</td>
+			</tr>
+			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="billing-address"><?php _e('Billing Address','Shopp'); ?></label></th> 
+				<td>
+					<div>
+						<input type="text" name="billing[address]" id="billing-address" value="<?php echo $Customer->Billing->address; ?>" size="46" /><br />
+						<input type="text" name="billing[xaddress]" id="billing-xaddress" value="<?php echo $Customer->Billing->xaddress; ?>" size="46" /><br />
+						<label for="billing-address"><?php _e('Street Address','Shopp'); ?></label>
+					</div>
+					<p>
+						<span>
+						<input type="text" name="billing[city]" id="billing-city" value="<?php echo $Customer->Billing->city; ?>" size="14" /><br />
+						<label for="billing-city"><?php _e('City','Shopp'); ?></label>
+						</span>
+						<span id="billing-state-inputs">
+							<select name="billing[state]" id="billing-state">
+								<?php echo menuoptions($Customer->billing_states,$Customer->Billing->state,true); ?>
+							</select>
+							<input name="billing[state]" id="billing-state-text" value="<?php echo $Customer->Billing->state; ?>" size="12" disabled="disabled"  class="hidden" /><br />
+						<label for="billing-state"><?php _e('State / Province','Shopp'); ?></label>
+						</span>
+						<span>
+						<input type="text" name="billing[postcode]" id="billing-postcode" value="<?php echo $Customer->Billing->postcode; ?>" size="10" /><br />
+						<label for="billing-postcode"><?php _e('Postal Code','Shopp'); ?></label>
+						</span>
+						<br class="clear" />
+					</p>
+					<p>
+						<select name="billing[country]" id="billing-country">
+							<?php echo menuoptions($Customer->countries,$Customer->Billing->country,true); ?>
+						</select><br />
+						<label for="billing-country"><?php _e('Country','Shopp'); ?></label>
+					</p>
+				</td>
+			</tr>
+			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="shipping-address"><?php _e('Shipping Address','Shopp'); ?></label></th> 
+				<td>
+					<p>
+						<input type="text" name="shipping[[address]" id="shipping-address" value="<?php echo $Customer->Shipping->address; ?>" size="46" /><br />
+						<input type="text" name="shipping[xaddress]" id="shipping-xaddress" value="<?php echo $Customer->Shipping->xaddress; ?>" size="46" /><br />
+						<label for="shipping-address"><?php _e('Street Address','Shopp'); ?></label>
+					</p>
+					<p>
+						<span>
+						<input type="text" name="shipping[city]" id="shipping-city" value="<?php echo $Customer->Shipping->city; ?>" size="14" /><br />
+						<label for="shipping-city"><?php _e('City','Shopp'); ?></label>
+						</span>
+						<span id="shipping-state-inputs">
+							<select name="shipping[state]" id="shipping-state">
+								<?php echo menuoptions($Customer->billing_states,$Customer->Shipping->state,true); ?>
+							</select>
+							<input name="shipping[state]" id="shipping-state-text" value="<?php echo $Customer->Shipping->state; ?>" size="12" disabled="disabled"  class="hidden" /><br />
+						<label for="shipping-state"><?php _e('State / Province','Shopp'); ?></label>
+						</span>
+						<span>
+						<input type="text" name="shipping[postcode]" id="shipping-postcode" value="<?php echo $Customer->Shipping->postcode; ?>" size="10" /><br />
+						<label for="shipping-postcode"><?php _e('Postal Code','Shopp'); ?></label>
+						</span>
+						<br class="clear" />
+					</p>
+					<p>
+						<select name="shipping[country]" id="shipping-country">
+							<?php echo menuoptions($Customer->countries,$Customer->Shipping->country,true); ?>
+						</select><br />
+						<label for="shipping-country"><?php _e('Country','Shopp'); ?></label>
+					</p>
+				</td>
+			</tr>
 		</table>
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="Save Changes" /></p>
 	</form>
@@ -130,6 +184,10 @@ if (!wp26) {
 	// close postboxes that should be closed
 	jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 }
+
+$('#username').click(function () {
+	document.location.href = '/wp-admin/user-edit.php?user_id='+$('#userid').val();
+});
 
 updateStates('#billing-country','#billing-state-inputs');
 updateStates('#shipping-country','#shipping-state-inputs');

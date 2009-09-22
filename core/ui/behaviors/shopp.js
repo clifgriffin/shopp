@@ -87,11 +87,11 @@ function formatNumber (number,format) {
  **/
 var asNumber = function(number) {
 	if (!number) number = 0;
-	number = number.toString().replace(new RegExp(/[^0-9\.\,]/g),"");
 	number = number.toString().replace(new RegExp(/\,/g),'.');
-	number = number.toString().replace(new RegExp(/\.(?=.*\..*$)/),'');
+	number = number.toString().replace(new RegExp(/[^0-9\.\,]/g),"");
+	number = number.toString().replace(new RegExp(/\.(?=$|.*\..+$)/g),'');
 	if (isNaN(new Number(number)))
-		number = number.replace(new RegExp(/\./g),"").replace(new RegExp(/\,/),"\.");
+		number = number.replace(new RegExp(/\./g),"").replace(new RegExp(/\,/),"\.");		
 	return new Number(number);
 }
 
@@ -233,6 +233,7 @@ var ProductOptionsMenus;
 					var keys = selected.slice();
 					keys.push($(this).val());
 					var price = pricing[xorkey(keys)];
+					if (!price) price = pricing[xorkey_deprecated(keys)];
 					if (price) {
 						var p = asNumber(formatNumber(price.onsale?price.promoprice:price.price));
 						var tax = asNumber(formatNumber(p*taxrate));
@@ -256,6 +257,12 @@ var ProductOptionsMenus;
 	
 		// Magic key generator
 		function xorkey (ids) {
+			for (var key=0,i=0; i < ids.length; i++) 
+				key = key ^ (ids[i]*7001);
+			return key;
+		}
+
+		function xorkey_deprecated (ids) {
 			for (var key=0,i=0; i < ids.length; i++) 
 				key = key ^ (ids[i]*101);
 			return key;
@@ -373,11 +380,11 @@ var ShoppCartAjaxHandler = function (cart) {
 			$('<li></li>').html(cart.Item.optionlabel).appendTo(item);
 		$('<li></li>').html(asMoney(cart.Item.unitprice)).appendTo(item);
 		
-		if ($('#shopp-cart-items').length > 0) {
-			$('#shopp-cart-items').html(cart.Totals.quantity);
-			$('#shopp-cart-total').html(asMoney(cart.Totals.total));			
+		if ($('#shopp-sidecart-items').length > 0) {
+			$('#shopp-sidecart-items').html(cart.Totals.quantity);
+			$('#shopp-sidecart-total').html(asMoney(cart.Totals.total));			
 		} else {
-			$('.widget_shoppcartwidget p.status').html('<a href="'+cart.url+'"><span id="shopp-cart-items">'+cart.Totals.quantity+'</span> <strong>Items</strong> &mdash; <strong>Total</strong> <span id="shopp-cart-total">'+asMoney(cart.Totals.total)+'</span></a>');
+			$('.widget_shoppcartwidget p.status').html('<a href="'+cart.url+'"><span id="shopp-sidecart-items">'+cart.Totals.quantity+'</span> <strong>Items</strong> &mdash; <strong>Total</strong> <span id="shopp-sidecart-total">'+asMoney(cart.Totals.total)+'</span></a>');
 		}
 		display.slideDown();
 	})(jQuery)	

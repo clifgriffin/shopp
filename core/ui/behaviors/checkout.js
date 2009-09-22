@@ -21,8 +21,13 @@
 		for (var i = inputs.length-1; i >= 0; i--) {
 			// Validate required fields
 			if (inputs[i].className.match(new RegExp('required'))) {
-				if (inputs[i].value == null || inputs[i].value == "")
-					error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,inputs[i].title),inputs[i]);
+				if (inputs[i].type == "checkbox") {
+					if (!inputs[i].checked)
+						error = new Array(CHECKOUT_CHECKBOX_CHECKED.replace(/%s/,inputs[i].title),inputs[i]);
+				} else {
+					if (inputs[i].value == null || inputs[i].value == "")
+						error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,inputs[i].title),inputs[i]);
+				}
 			}
 		
 			// Validate emails
@@ -44,6 +49,7 @@
 					error = new Array(CHECKOUT_PASSWORD_MISMATCH,passwords[1]);
 					
 			}
+			
 		}
 	
 		if (error.length > 0) {
@@ -78,17 +84,17 @@
 		$('#submit-login').click(function () {
 			$('#checkout.shopp').unbind('submit');
 			$('#checkout.shopp').submit(function () {
-				if ($('#email-login').val() == "") {
-					alert("You did not enter an email address to login with.");
-					$('#email-login').focus();
+				if ($('#account-login').val() == "") {
+					alert(CHECKOUT_LOGIN_NAME);
+					$('#account-login').focus();
 					return false;
 				}
 				if ($('#password-login').val() == "") {
-					alert("You did not enter a password to login with.");
+					alert(CHECKOUT_LOGIN_PASSWORD);
 					$('#password-login').focus();
 					return false;
 				}
-				$('#process-login').val('login');
+				$('#process-login').val('true');
 				return true;
 			}).submit();
 		});
@@ -104,7 +110,7 @@
 			$('<option></option>').val('').html('').appendTo('#shipping-state');
 			if (regions[this.value]) {
 				$.each(regions[this.value], function (value,label) {
-						option = $('<option></option>').val(value).html(label).appendTo('#shipping-state');
+					option = $('<option></option>').val(value).html(label).appendTo('#shipping-state');
 				});
 				$('#shipping-state').attr('disabled',false);
 			}
@@ -116,14 +122,13 @@
 			$('<option></option>').val('').html('').appendTo('#billing-state');
 			if (regions[this.value]) {
 				$.each(regions[this.value], function (value,label) {
-						option = $('<option></option>').val(value).html(label).appendTo('#billing-state');
+					option = $('<option></option>').val(value).html(label).appendTo('#billing-state');
 				});
 				$('#billing-state').attr('disabled',false);
 			}
 		});	
 		
 		$('input.shipmethod').click(function () {
-			// console.log($('#shopp form').attr('action'));
 			$('#shipping, #total').html(SHIPCALC_STATUS);
 			
 			var url = $('#shopp form').attr('action');
@@ -131,8 +136,9 @@
 			$.getJSON(url+"shopp_lookup=shipcost&method="+$(this).val(),
 				function (result) {
 					var totals = eval(result);
-					$('#shipping').html(asMoney(totals.shipping));
-					$('#total').html(asMoney(totals.total));
+					$('span.shopp_cart_shipping').html(asMoney(totals.shipping));
+					$('span.shopp_cart_tax').html(asMoney(totals.tax));
+					$('span.shopp_cart_total').html(asMoney(totals.total));
 			});
 		});
 
