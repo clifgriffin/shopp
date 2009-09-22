@@ -29,7 +29,12 @@
 						<?php if (isset($zones)) echo menuoptions($zones,$operations['zone'],true); ?>
 					</select>
 					<br /> 
-	            <?php _e('Select your primary business location.','Shopp'); ?></td> 
+	            	<?php _e('Select your primary business location.','Shopp'); ?><br />
+					<?php if (!empty($operations['country'])): ?>
+		            <strong><?php _e('Currency','Shopp'); ?>: </strong><?php echo money(1000.00); ?>
+					<?php if ($operations['vat']): ?><strong>+(VAT)</strong><?php endif; ?>
+					<?php endif; ?>
+				</td> 
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="target_markets"><?php _e('Target Markets','Shopp'); ?></label></th> 
@@ -125,7 +130,7 @@ var addLabel = function (id,label,location) {
 	});
 	
 	deleteButton.click(function () {
-		if (confirm("<?php _e('Are you sure you want to remove this order status label?','Shopp'); ?>"))
+		if (confirm("<?php echo addslashes(__('Are you sure you want to remove this order status label?','Shopp')); ?>"))
 			li.remove();
 	});
 	

@@ -119,7 +119,7 @@ function duration ($start,$end) {
  * or $_POST['variable'] */
 function shopp_email ($template,$data=array()) {
 	
-	if (strpos($template,"\r\n") !== false) $f = split("\r\n",$template);
+	if (strpos($template,"\r\n") !== false) $f = explode("\r\n",$template);
 	else {
 		if (file_exists($template)) $f = file($template);
 		else new ShoppError(__("Could not open the email template because the file does not exist or is not readable.","Shopp"),'email_template',SHOPP_ADMIN_ERR,array('template'=>$template));
@@ -356,7 +356,7 @@ function shopp_prereqs () {
 	if (!function_exists("gd_info")) $errors[] = __("Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.  Your web hosting environment does not currently have GD installed (or built into PHP).");
 	else {
 		$gd = gd_info();
-		if (!$gd['JPG Support']) $errors[] = __("Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.");
+		if (!$gd['JPG Support'] && !$gd['JPEG Support']) $errors[] = __("Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.");
 	}
 	
 	if (!empty($errors)) {
@@ -380,6 +380,15 @@ function shopp_debug ($object) {
 	$result = ob_get_contents();
 	ob_end_clean();
 	$Shopp->_debug->objects .= "<br/><br/>".str_replace("\n","<br/>",$result);
+}
+
+function _object_r ($object) {
+	global $Shopp;
+	ob_start();
+	print_r($object);
+	$result = ob_get_contents();
+	ob_end_clean();
+	return $result;
 }
 
 function shopp_pagename ($page) {
@@ -686,14 +695,18 @@ function scan_money_format ($format) {
 
 	$i = 0; $dd = 0;
 	$dl = array();
+	$sdl = "";
+	$uniform = true;
 	while($i < strlen($df)) {
 		$c = substr($df,$i++,1);
 		if ($c != "#") {
+			if(empty($sdl)) $sdl = $c;
+			else if($sdl != $c) $uniform = false;
 			$dl[] = $c;
 			$dd = 0;
 		} else $dd++;
 	}
-	$f['precision'] = $dd;
+	if(!$uniform) $f['precision'] = $dd;
 	
 	if (count($dl) > 1) {
 		if ($dl[0] == "t") {
@@ -756,7 +769,7 @@ function indian_number ($number,$format=false) {
 function floatnum ($number) {
 	$number = preg_replace("/,/",".",$number); // Replace commas with periods
 	$number = preg_replace("/[^0-9\.]/","", $number); // Get rid of everything but numbers and periods
-	$number = preg_replace("/\.(?=.*\..*$)/s","",$number); // Replace all but the last period
+	$number = preg_replace("/\.(?=.*\..+$)/s","",$number); // Replace all but the last period
 	return $number;
 }
 
@@ -771,6 +784,41 @@ function valid_input ($type) {
 	$inputs = array("text","hidden","checkbox","radio","button","submit");
 	if (in_array($type,$inputs) !== false) return true;
 	return false;
+}
+
+function _d($format,$timestamp=false) {
+	$tokens = array(
+		'D' => array('Mon' => __('Mon','Shopp'),'Tue' => __('Tue','Shopp'),
+					'Wed' => __('Wed','Shopp'),'Thu' => __('Thu','Shopp'),
+					'Fri' => __('Fri','Shopp'),'Sat' => __('Sat','Shopp'),
+					'Sun' => __('Sun','Shopp')),
+		'l' => array('Monday' => __('Monday','Shopp'),'Tuesday' => __('Tuesday','Shopp'),
+					'Wednesday' => __('Wednesday','Shopp'),'Thursday' => __('Thursday','Shopp'),
+					'Friday' => __('Friday','Shopp'),'Saturday' => __('Saturday','Shopp'),
+					'Sunday' => __('Sunday','Shopp')),
+		'F' => array('January' => __('January','Shopp'),'February' => __('February','Shopp'),
+					'March' => __('March','Shopp'),'April' => __('April','Shopp'),
+					'May' => __('May','Shopp'),'June' => __('June','Shopp'),
+					'July' => __('July','Shopp'),'August' => __('August','Shopp'),
+					'September' => __('September','Shopp'),'October' => __('October','Shopp'),
+					'November' => __('November','Shopp'),'December' => __('December','Shopp')),
+		'M' => array('Jan' => __('Jan','Shopp'),'Feb' => __('Feb','Shopp'),
+					'Mar' => __('Mar','Shopp'),'Apr' => __('Apr','Shopp'),
+					'May' => __('May','Shopp'),'Jun' => __('Jun','Shopp'),
+					'Jul' => __('Jul','Shopp'),'Aug' => __('Aug','Shopp'),
+					'Sep' => __('Sep','Shopp'),'Oct' => __('Oct','Shopp'),
+					'Nov' => __('Nov','Shopp'),'Dec' => __('Dec','Shopp'))
+	);
+
+	if (!$timestamp) $date = date($format);
+	else $date = date($format,$timestamp);
+
+	foreach ($tokens as $token => $strings) {
+		if ($pos = strpos($format,$token) === false) continue;
+		$string = (!$timestamp)?date($token):date($token,$timestamp);
+		$date = str_replace($string,$strings[$string],$date);
+	}
+	return $date;
 }
 
 function inputattrs ($options,$allowed=array()) {
@@ -894,6 +942,31 @@ function copy_shopp_templates ($src,$target) {
 	}
 }
 
+/**
+ * is_shopp_page ()
+ * Used to determine if the requested page is a Shopp page 
+ * or if it matches a given Shopp page ($page) */
+function is_shopp_page ($page=false) {
+	global $Shopp,$wp_query;
+
+	if ($wp_query->post->post_type != "page") return false;
+	
+	$pages = $Shopp->Settings->get('pages');
+		
+	// Detect if the requested page is a Shopp page
+	if (!$page) {
+		foreach ($pages as $page)
+			if ($page['id'] == $wp_query->post->ID) return true;
+		return false;
+	}
+
+	// Determine if the visitor's requested page matches the provided page
+	if (!isset($pages[strtolower($page)])) return false;
+	$page = $pages[strtolower($page)];
+	if ($page['id'] == $wp_query->post->ID) return true;
+	return false;
+}
+
 function template_path ($path) {
 	if (DIRECTORY_SEPARATOR == "\\") $path = str_replace("/","\\",$path);
 	return $path;
@@ -979,6 +1052,17 @@ class FTPClient {
 	}
 	
 	/**
+	 * delete()
+	 * Delete the target file, recursively delete directories  */
+	function delete ($file) {
+		if (empty($file)) return false;
+		if (!$this->isdir($file)) return @ftp_delete($this->connection, $file);
+		$files = $this->scan($file);
+		if (!empty($files)) foreach ($files as $target) $this->delete($target);
+		return @ftp_rmdir($this->connection, $file);
+	}
+	
+	/**
 	 * put()
 	 * Copies the target file to the remote location */
 	function put ($file,$remote) {
@@ -1008,7 +1092,7 @@ class FTPClient {
 	 * Gets a list of files in a directory/current directory */
 	function scan ($path=false) {
 		if (!$path) $path = $this->pwd();
-		return ftp_nlist($this->connection,$path);
+		return @ftp_nlist($this->connection,$path);
 	}
 	
 	/**
@@ -1016,7 +1100,7 @@ class FTPClient {
 	 * Determines if the file is a directory or a file */
 	function isdir ($file=false) {
 		if (!$file) $file = $this->pwd();
-	    if (ftp_size($this->connection, $file) == '-1')
+	    if (@ftp_size($this->connection, $file) == '-1')
 	        return true; // Directory
 	    else return false; // File
 	}
@@ -1036,11 +1120,14 @@ class FTPClient {
 				return substr($path,$index);
 			}
 		}
-		$this->log[] = "Failed to map realpath to FTP path";
+		// No remapping needed
 		return $path;
 	}
 
 }
+
+if (function_exists('date_default_timezone_set')) 
+	date_default_timezone_set(get_option('timezone_string'));
 
 shopp_prereqs();  // Run by default at include
 

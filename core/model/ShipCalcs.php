@@ -49,7 +49,7 @@ class ShipCalcs {
 		$meta = get_filemeta($this->path.$modfile);
 
 		if ($meta) {
-			$lines = split("\n",substr($meta,1));
+			$lines = explode("\n",substr($meta,1));
 			foreach($lines as $line) {
 				preg_match("/^(?:[\s\*]*?\b([^@\*\/]*))/",$line,$match);
 				if (!empty($match[1])) $data[] = $match[1];

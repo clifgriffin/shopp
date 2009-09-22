@@ -13,7 +13,7 @@
 		<div id="receipt" class="shopp">
 		<table class="transaction" cellspacing="0">
 			<tr><th><?php _e('Order Num','Shopp'); ?>:</th><td><?php echo $Purchase->id; ?></td></tr>	
-			<tr><th><?php _e('Order Date','Shopp'); ?>:</th><td><?php echo date(get_option('date_format'), $Purchase->created); ?></td></tr>	
+			<tr><th><?php _e('Order Date','Shopp'); ?>:</th><td><?php echo _d(get_option('date_format'), $Purchase->created); ?></td></tr>	
 			<?php if (!empty($Purchase->card) && !empty($Purchase->cardtype)): ?><tr><th><?php _e('Billed To','Shopp'); ?>:</th><td><?php (!empty($Purchase->card))?printf("%'X16d",$Purchase->card):''; ?> <?php echo (!empty($Purchase->cardtype))?'('.$Purchase->cardtype.')':''; ?></td></tr><?php endif; ?>
 			<tr><th><?php _e('Transaction','Shopp'); ?>:</th><td><?php echo $Purchase->transactionid; ?></td></tr>	
 			<?php if ($Purchase->gateway == "Google Checkout"):?>
@@ -33,26 +33,13 @@
 			<?php endforeach; endif; ?>
 		</table>
 
-		<fieldset>
-		<?php if (!empty($Purchase->shipaddress)): ?>
-			<legend><?php _e('Ship To','Shopp'); ?></legend>
-			<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
-			<?php echo !empty($Purchase->company)?"$Purchase->company<br />":""; ?>
-			<?php echo $Purchase->shipaddress; ?><br />
-			<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
-			<?php echo "{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
-			<?php echo $targets[$Purchase->shipcountry]; ?></address>
-			<?php if (!empty($Purchase->shipmethod)): ?>
-				<p><strong>Shipping:</strong> <?php echo $Purchase->shipmethod; ?></p>
-			<?php endif;?>
-		<?php else: ?>
+		<fieldset id="customer">
 			<legend><?php _e('Customer','Shopp'); ?></legend>
 			<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
 			<?php echo $Purchase->address; ?><br />
 			<?php if (!empty($Purchase->xaddress)) echo $Purchase->xaddress."<br />"; ?>
 			<?php echo "{$Purchase->city}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->state} {$Purchase->postcode}" ?><br />
 			<?php echo $targets[$Purchase->country]; ?></address>
-		<?php endif; ?>
 			<?php if (!empty($Customer->info) && is_array($Customer->info)): ?>
 				<ul>
 					<?php foreach ($Customer->info as $name => $value): ?>
@@ -61,6 +48,21 @@
 				</ul>
 			<?php endif; ?>
 		</fieldset>
+
+		<?php if (!empty($Purchase->shipaddress)): ?>
+			<fieldset id="shipto">
+				<legend><?php _e('Ship To','Shopp'); ?></legend>
+				<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
+				<?php echo !empty($Purchase->company)?"$Purchase->company<br />":""; ?>
+				<?php echo $Purchase->shipaddress; ?><br />
+				<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
+				<?php echo "{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
+				<?php echo $targets[$Purchase->shipcountry]; ?></address>
+				<?php if (!empty($Purchase->shipmethod)): ?>
+					<p><strong><?php _e('Shipping','Shopp'); ?>:</strong> <?php echo $Purchase->shipmethod; ?></p>
+				<?php endif;?>
+			</fieldset>
+		<?php endif; ?>
 		
 		<?php if (sizeof($Purchase->purchased) > 0): ?>
 		<table class="widefat" cellspacing="0">
@@ -87,8 +89,8 @@
 						</ul>
 					</td>
 					<td><?php echo $Item->quantity; ?></td>
-					<td class="money"><?php echo money($Item->unitprice); ?></td>
-					<td class="money total"><?php echo money($Item->total); ?></td>
+					<td class="money"><?php echo money($Item->unitprice+($Item->unitprice*$taxrate)); ?></td>
+					<td class="money total"><?php echo money($Item->total+($Item->total*$taxrate)); ?></td>
 				</tr>
 			<?php endforeach; ?>
 			<tr class="totals">
@@ -102,7 +104,7 @@
 					<?php if (!empty($Purchase->promos)): ?>
 					<ul class="promos">
 					<?php foreach ($Purchase->promos as $pid => $promo): ?>
-						<li><small><a href="?page=shopp/promotions&amp;promotion=<?php echo $pid; ?>"><?php echo $promo; ?></a></small></li>
+						<li><small><a href="?page=shopp-promotions-edit&amp;id=<?php echo $pid; ?>"><?php echo $promo; ?></a></small></li>
 					<?php endforeach; ?>
 					</ul>
 					<?php endif; ?>
@@ -156,19 +158,30 @@
 <iframe id="print-receipt" name="receipt" src="?page=shopp-lookup&amp;lookup=receipt&amp;id=<?php echo $Purchase->id; ?>" width="400" height="100" class="invisible"></iframe>
 
 <script type="text/javascript">
-
 (function($){
-
 $('#notification').hide();
 $('#notify-customer').click(function () {
 	$('#notification').slideToggle(500);
 });
 
 $('#print-button').click(function () {
-	frame = $('#print-receipt').get(0);
-	frame.contentWindow.focus();
-	frame.contentWindow.print();
+	var frame = $('#print-receipt').get(0);
+	if ($.browser.opera) {
+		var preview = window.open(frame.location.href+"&print=auto");
+		$(preview).load(function () {
+			preview.close();
+		});
+	} else {
+		frame.contentWindow.focus();
+		frame.contentWindow.print();
+	}
+
 });
+
+$('#customer').click(function () {
+	window.location = "<?php echo add_query_arg(array('page'=>$this->Admin->editcustomer,'id'=>$Purchase->customer),$Shopp->wpadminurl.'admin.php'); ?>";
+});
+
 
 })(jQuery)
 

@@ -46,7 +46,8 @@ div.clear,
 #shopp form ul li div.inline { width: auto; clear: both; }
 #shopp form ul li div.inline input { width: auto;  }
 #shopp form ul li div.inline label { clear: none; display: inline; }
-#shopp form ul li span input { margin: 0 0 5px 0; }
+#shopp form ul li input,
+#shopp form ul li select { margin: 0 0 5px 0; }
 #shopp form ul li div input,
 #shopp form ul li div select { width: 100%; }
 #shopp form ul li div.left { display: inline; width: 47%; float: left; margin: 0; clear: left; }

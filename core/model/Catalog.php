@@ -141,16 +141,19 @@ class Catalog extends DatabaseObject {
 
 		$pages = $Shopp->Settings->get('pages');
 		if (SHOPP_PERMALINKS) $path = $Shopp->shopuri;
-		else $page = add_query_arg('page_id',$pages['catalog']['id'],$Shopp->shopuri);
-				
+		else $page = add_query_arg('page_id',$pages['catalog']['id'],$Shopp->shopuri);		
+		
 		switch ($property) {
 			case "url": return $Shopp->link('catalog'); break;
 			case "display":
 			case "type": return $this->type; break;
 			case "is-landing": 
-			case "is-catalog": return ($this->type == "catalog"); break;
-			case "is-category": return ($this->type == "category"); break;
-			case "is-product": return ($this->type == "product"); break;
+			case "is-catalog": return (is_shopp_page('catalog') && $this->type == "catalog"); break;
+			case "is-category": return (is_shopp_page('catalog') && $this->type == "category"); break;
+			case "is-product": return (is_shopp_page('catalog') && $this->type == "product"); break;
+			case "is-cart": return (is_shopp_page('cart')); break;
+			case "is-checkout": return (is_shopp_page('checkout')); break;
+			case "is-account": return (is_shopp_page('account')); break;
 			case "tagcloud":
 				if (!empty($options['levels'])) $levels = $options['levels'];
 				else $levels = 7;
@@ -221,7 +224,7 @@ class Catalog extends DatabaseObject {
 				$string = "";
 				$depthlimit = $depth;
 				$depth = 0;
-				$exclude = split(",",$exclude);
+				$exclude = explode(",",$exclude);
 				$classes = ' class="shopp_categories'.(empty($class)?'':' '.$class).'"';
 				$wraplist = value_is_true($wraplist);
 				
@@ -233,8 +236,7 @@ class Catalog extends DatabaseObject {
 					foreach ($this->categories as &$category) {
 						if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
 						if ($category->total == 0 && !isset($category->smart)) continue; // Only show categories with products
-						if (value_is_true($hierarchy) && $depthlimit && 
-							$category->depth >= $depthlimit) continue;
+						if ($depthlimit && $category->depth >= $depthlimit) continue;
 
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
 							$parent = &$previous;
@@ -278,8 +280,12 @@ class Catalog extends DatabaseObject {
 							if (!isset($parent->path)) $parent->path = $parent->slug;
 							$string = substr($string,0,-5); // Remove the previous </li>
 							$active = '';
-							if (isset($Shopp->Category) && strpos($Shopp->Category->uri,$parent->slug) !== false)
+
+							if (isset($Shopp->Category) && !empty($parent->slug)
+									&& preg_match('/(^|\/)'.$parent->path.'(\/|$)/',$Shopp->Category->uri)) {
 								$active = ' active';
+							}
+							
 							$subcategories = '<ul class="children'.$active.'">';
 							$string .= $subcategories;
 						}
@@ -367,7 +373,7 @@ class Catalog extends DatabaseObject {
 					$string .= '</script>';
 				} else {
 					if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
-						list($link,$query) = split("\?",$_SERVER['REQUEST_URI']);
+						list($link,$query) = explode("\?",$_SERVER['REQUEST_URI']);
 					$query = $_GET;
 					unset($query['shopp_orderby']);
  					$query = http_build_query($query);
@@ -395,7 +401,7 @@ class Catalog extends DatabaseObject {
 				$trail = false;
 				$search = array();
 				if (isset($Shopp->Cart->data->Search)) $search = array('search'=>$Shopp->Cart->data->Search);
-				$path = split("/",$category);
+				$path = explode("/",$category);
 				if ($path[0] == "tag") {
 					$category = "tag";
 					$search = array('tag'=>urldecode($path[1]));
@@ -420,9 +426,8 @@ class Catalog extends DatabaseObject {
 					}
 
 					$filters = false;
-					if (!empty($Shopp->Cart->data->Category[$Category->slug])) {
+					if (!empty($Shopp->Cart->data->Category[$Category->slug]))
 						$filters = ' (<a href="?shopp_catfilters=cancel">'.__('Clear Filters','Shopp').'</a>)';
-					}					
 					
 					if (!empty($Shopp->Product)) 
 						$trail .= '<li><a href="'.$link.'">'.$Category->name.(!$trail?'':$separator).'</a></li>';
@@ -507,7 +512,12 @@ class Catalog extends DatabaseObject {
 					else if (isset($options['slug'])) $Shopp->Category = new Category($options['slug'],'slug');
 					else if (isset($options['id'])) $Shopp->Category = new Category($options['id']);
 				}
+				if (isset($options['reset'])) return ($Shopp->Category = false);
 				if (isset($options['title'])) $Shopp->Category->name = $options['title'];
+				if (isset($options['show'])) $Shopp->Category->loading['limit'] = $options['show'];
+				if (isset($options['pagination'])) $Shopp->Category->loading['pagination'] = $options['pagination'];
+				if (isset($options['order'])) $Shopp->Category->loading['order'] = $options['order'];
+
 				if (isset($options['load'])) return true;
 				if (isset($options['controls']) && !value_is_true($options['controls'])) 
 					$Shopp->Category->controls = false;
@@ -525,6 +535,7 @@ class Catalog extends DatabaseObject {
 				else include(SHOPP_TEMPLATES."/category.php");
 				$content = ob_get_contents();
 				ob_end_clean();
+				$Shopp->Category = false; // Reset the current category
 				return $content;
 				break;
 			case "product":
@@ -544,7 +555,7 @@ class Catalog extends DatabaseObject {
 				$content = false;
 				$source = $options['source'];
 				if ($source == "product" && isset($options['product'])) {
-					$products = split(",",$options['product']);
+					$products = explode(",",$options['product']);
 					if (!is_array($products)) $products = array($products);
 					foreach ($products as $product) {
 						$product = trim($product);
@@ -566,9 +577,7 @@ class Catalog extends DatabaseObject {
 				if ($source == "category" && isset($options['category'])) {
 					 // Save original requested category
 					if ($Shopp->Category) $Category = clone($Shopp->Category);
-					if (preg_match('/^[\d+]$/',$options['category'])) 
-						$Shopp->Category = new Category($options['category']);
-					else $Shopp->Category = new Category($options['category'],'slug');
+					$Shopp->Category = Catalog::load_category($options['category']);
 					$Shopp->Category->load_products($options);
 					if (isset($options['load'])) return true;
 					foreach ($Shopp->Category->products as $product) {

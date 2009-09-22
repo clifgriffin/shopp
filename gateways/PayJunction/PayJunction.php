@@ -7,6 +7,8 @@
  * @version 1.0
  * @copyright Ingenesis Limited, 28 May, 2009
  * @package Shopp
+ * 
+ * $Id$
  **/
 
 class PayJunction {

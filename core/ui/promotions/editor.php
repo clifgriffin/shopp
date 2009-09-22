@@ -93,7 +93,7 @@
 		<br class="clear" />
 		<?php
 			$scope = '<select name="scope" id="promotion-scope">';
-			$scope .= menuoptions($Promotion->_lists['scope'],$Promotion->scope);
+			$scope .= menuoptions($scopes,$Promotion->scope,true);
 			$scope .= '</select>';
 	
 			if (empty($Promotion->search)) $Promotion->search = "all";
@@ -142,6 +142,7 @@ var RULES_LANG = {
 	"In stock":"<?php _e('In stock','Shopp'); ?>",
 
 	"Item name":"<?php _e('Item name','Shopp'); ?>",
+	"Item amount":"<?php _e('Item amount','Shopp'); ?>",
 	"Item quantity":"<?php _e('Item quantity','Shopp'); ?>",
 	"Total quantity":"<?php _e('Total quantity','Shopp'); ?>",
 	"Shipping amount":"<?php _e('Shipping amount','Shopp'); ?>",
@@ -174,6 +175,7 @@ var product_conditions = {
 var order_conditions = {
 	"Item name":{"logic":["boolean","fuzzy"],"value":"text"},
 	"Item quantity":{"logic":["boolean","amount"],"value":"text"},
+	"Item amount":{"logic":["boolean","amount"],"value":"price"},
 	"Total quantity":{"logic":["boolean","amount"],"value":"text"},
 	"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
 	"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
@@ -200,11 +202,11 @@ function add_condition (rule,location) {
 
 	if ($('#promotion-scope').val() == "Order") {
 		for (var label in order_conditions)
-			$('<option></option>').html(label).val(label).attr('rel','order').appendTo(properties);
+			$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel','order').appendTo(properties);
 		
 	} else {
 		for (var label in product_conditions)
-			$('<option></option>').html(label).val(label).attr('rel','product').appendTo(properties);
+			$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel','product').appendTo(properties);
 	}
 
 	var operation = $('<select name="rules['+i+'][logic]" ></select>').appendTo(cell);
@@ -267,7 +269,13 @@ $('#discount-type').change(function () {
 	var type = $(this).val();
 	
 	if (type == "Percentage Off" || type == "Amount Off") $('#discount-row').show();
-	if (type == "Buy X Get Y Free") $('#beyget-row').show();
+	if (type == "Buy X Get Y Free") {
+		$('#beyget-row').show();
+		$('#promotion-scope').val('Order').change();
+		$('#promotion-scope option').eq(0).attr('disabled',true);
+	} else {
+		$('#promotion-scope option').eq(0).attr('disabled',false);
+	}
 	
 	$('#discount-amount').unbind('change').change(function () {
 		if (type == "Percentage Off") this.value = asPercent(this.value);

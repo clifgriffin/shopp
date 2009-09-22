@@ -1,7 +1,7 @@
 <?php
 /**
- * Payson
- * @class Payson
+ * NetCash
+ * @class NetCash
  *
  * @author Jonathan Davis
  * @version 1.0.1
@@ -10,32 +10,35 @@
  * 
  * $Id$
  **/
-class Payson {          
+
+class NetCash {          
 	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
-	var $testurl = 'https://www.payson.se/testagent/default.aspx';
-	var $url = 'https://www.payson.se/merchant/default.aspx';
+	var $checkout_url = 'https://gateway.netcash.co.za/vvonline/ccnetcash.asp';
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
 	var $checkout = true;
 
-	function Payson () {
-		
+
+	function NetCash () {
 		global $Shopp;
-		$this->settings = $Shopp->Settings->get('Payson');
+		$this->settings = $Shopp->Settings->get('NetCash');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
-		
+
+		$this->ipn = add_query_arg('shopp_xorder','NetCash',$Shopp->link('catalog',true));
+
 		$loginproc = (isset($_POST['process-login']) 
 			&& $_POST['process-login'] != 'false')?$_POST['process-login']:false;
-
+			
 		if (isset($_POST['checkout']) && 
 			$_POST['checkout'] == "process" && 
 			!$loginproc) $this->checkout();
 		
 		// Capture processed payment
-		if (isset($_GET['Paysonref'])) $_POST['checkout'] = "confirmed";
+		if (isset($_GET['Reference'])) $_POST['checkout'] = "confirmed";
 
+		add_action('shopp_save_payment_settings',array(&$this,'saveSettings'));
 	}
 	
 	function actions () {
@@ -43,7 +46,6 @@ class Payson {
 		add_filter('shopp_confirm_form',array(&$this,'form'));
 	}
 	
-	/* Handle the checkout form */
 	function checkout () {
 		global $Shopp;
 		if (empty($_POST['checkout'])) return false;
@@ -76,19 +78,19 @@ class Payson {
 		$estimatedTotal = $Shopp->Cart->data->Totals->total;
 		$Shopp->Cart->updated();
 		$Shopp->Cart->totals();
-		
+
 		if ($Shopp->Cart->validate() !== true) {
 			$_POST['checkout'] = false;
 			return;
 		}
 		
-		header("Location: ".add_query_arg('shopp_xco','Payson/Payson',$Shopp->link('confirm-order',false)));
+		header("Location: ".add_query_arg('shopp_xco','NetCash/NetCash',$Shopp->link('confirm-order',false)));
 		exit();
 	}
 	
 	/**
 	 * form()
-	 * Builds a hidden form to submit to Payson when confirming the order for processing */
+	 * Builds a hidden form to submit to NetCash when confirming the order for processing */
 	function form ($form) {
 		global $Shopp;
 		$Order = $Shopp->Cart->data->Order;
@@ -97,79 +99,70 @@ class Payson {
 		$Order->Cart = $Shopp->Cart->session;
 		
 		$_ = array();
+		$_['m_1'] = $this->settings['username'];
+		$_['m_2'] = $this->settings['password'];
+		$_['m_3'] = $this->settings['PIN'];
+		$_['p1'] = $this->settings['terminal'];
+		$_['p2'] = mktime();
+		$_['p3'] = get_bloginfo('sitename');
+		$_['p4'] = number_format($Order->Totals->total,2);
+		$_['p10'] = $Shopp->link('checkout');
+		$_['Budget'] = 'Y';
+		$_['m_4'] = $Order->Cart;
+		// $_['m_5'] = '';		
+		// $_['m_6'] = '';
+		$_['m_9'] = $Order->Customer->email;
+		$_['m_10'] = 'shopp_xco=NetCash/NetCash';
 		
-		$_['Agentid']				= $this->settings['agentid'];
-		$_['SellerEmail']			= $this->settings['email'];
-		$_['GuaranteeOffered']		= $this->settings['guarantee'];
-		$_['PaymentMethod']			= $this->settings['payment'];
-		$_['Description']			= $this->settings['description'];
-		
-		$_['BuyerEmail']			= $Order->Customer->email;
-		$_['BuyerFirstName']		= $Order->Customer->firstname;
-		$_['BuyerLastname']			= $Order->Customer->lastname;
-		
-		$_['Cost']					= number_format($Order->Totals->subtotal+$Order->Totals->tax,2,",","");
-		$_['ExtraCost']				= number_format($Order->Totals->shipping,2,",","");
-		
-		$_['RefNr']					= $Order->Cart;
-		
-		$_['OkUrl']					= add_query_arg('shopp_xco','Payson/Payson',$Shopp->link('confirm-order'));
-		$_['CancelUrl']				= $Shopp->link('cart');
-		
-		$checkfields = array(
-			$_['SellerEmail'],
-			$_['Cost'],
-			$_['ExtraCost'],
-			$_['OkUrl'],
-			$_['GuaranteeOffered'].$this->settings['key']
-		);
-		$_['MD5']					= md5(join(':',$checkfields));
-				
 		return $form.$this->format($_);
 	}
 		
 	function process () {
 		global $Shopp;
-		new ShoppError('Payson process() called...','payson_process',SHOPP_DEBUG_ERR);
-		
+		new ShoppError('NetCash sent an order for processing...','netcash_process',SHOPP_DEBUG_ERR);
+
 		// Validate the order notification
-		$returned = array('Paysonref','OkURL','RefNr','MD5');
+		$returned = array('TransactionAccepted','CardHolderIpAddr','Reference','Amount','Extra1');
 		foreach($returned as $key) {
 			if (!isset($_GET[$key]) || empty($_GET[$key])) {
-				new ShoppError(__('An unverifiable order was received from Payson. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
+				new ShoppError(__('An unverifiable order was received from NetCash. Possible fraudulent order attempt!','Shopp'),'netcash_trxn_verification',SHOPP_TRXN_ERR);
 				return false;
 			}
 		}
 		
-		// Check for unique transaction id
-		$Purchase = new Purchase($_GET['Paysonref'],'transactionid');
-		if (!empty($Purchase->id)) return $Purchase; // Purchase already recorded
-
-		session_unset();
-		session_destroy();
+		if ($_GET['TransactionAccepted'] != 'true') {
+			new ShoppError(__('The transaction failed: ','Shopp').$_GET['Reason'],'netcash_trxn_verification',SHOPP_TRXN_ERR);
+			return false;
+		}
 		
-		// Load the cart for the correct order
-		$Shopp->Cart->session = $_GET['RefNr'];
-		$Shopp->Cart->load($Shopp->Cart->session);
+		// Check for unique transaction id
+		$Purchase = new Purchase($_GET['Extra1'],'transactionid');
 
+		// session_unset();
+		// session_destroy();
+
+		// Load the cart for the correct order
+		$Shopp->Cart->session = $_GET['Extra1'];
+		$Shopp->Cart->load($Shopp->Cart->session);
+				
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
-		
-		$checkfields = array(
-			$_GET['OkURL'],
-			$_GET['Paysonref'],
-			$this->settings['key']
-		);
-		$checksum = md5(join('',$checkfields));
 
-		if ($Order->Cart != $_GET['RefNr'] || $checksum != $_GET['MD5']) {
-			new ShoppError(__('An order was received from Payson that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'payson_trxn_validation',SHOPP_TRXN_ERR);
-			return false;
-		} 
-		// Transaction successful, save the order
+		$spoof = __('An order was received from NetCash that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp');
+		if ($Order->Cart != $_GET['Extra1']) {
+			new ShoppError($spoof,'netcash_trxn_validation',SHOPP_TRXN_ERR);
+			new ShoppError('The session did not match the NetCash transaction reference number. (Session ID: '.$Order->Cart.')','netcash_trxn_validation',SHOPP_DEBUG_ERR);
+		}
 		
+		if (!empty($Purchase->id)) {
+			new ShoppError($spoof,'netcash_trxn_validation',SHOPP_TRXN_ERR);
+			new ShoppError('A purchase already exists for the transaction sent by NetCash. (Purchase ID: '.$Purchase->id.')','netcash_trxn_validation',SHOPP_DEBUG_ERR);
+		} 
+		
+		// Transaction successful, save the order
+
 		if ($authentication == "wordpress") {
 			// Check if they've logged in
 			// If the shopper is already logged-in, save their updated customer info
@@ -197,7 +190,7 @@ class Payson {
 		$Order->Billing->save();
 
 		if (!empty($Order->Shipping->address)) {
-			$Order->Shipping->customer = $Order->Customer->id;
+			$Order->Shipping->customer = $Order->Customxer->id;
 			$Order->Shipping->save();
 		}
 		
@@ -216,9 +209,10 @@ class Payson {
 		$Purchase->copydata($Order->Shipping,'ship');
 		$Purchase->copydata($Shopp->Cart->data->Totals);
 		$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
-		$Purchase->gateway = "Payson";
-		$Purchase->transactionid = $_GET['Paysonref'];
-		$Purchase->fees = $_GET['Fee'];
+		$Purchase->gateway = "NetCash";
+		$Purchase->cardtype = "NetCash";
+		$Purchase->transactionid = $_GET['Reference'];
+		// $Purchase->fees = $_GET['Fee'];
 		$Purchase->transtatus = "CHARGED";
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
@@ -232,21 +226,22 @@ class Payson {
 			if ($Item->inventory) $Item->unstock();
 		}
 		
-		return true;
-
-	}
-		
-	function error () {}
+		return $Purchase;
+	}	
 	
-	function transactionid() {
-		return $_GET['Paysonref'];
+	function error () {
+		if (!empty($this->Response)) {
+			
+			$message = join("; ",$this->Response->l_longmessage);
+			if (empty($message)) return false;
+			return new ShoppError($message,'netcash_trxn_error',SHOPP_TRXN_ERR,
+				array('code'=>$code));
+		}
 	}
 		
 	function send () {
 		$connection = curl_init();
-		if ($this->settings['testmode'] == "on")
-			curl_setopt($connection,CURLOPT_URL,$this->sandbox_url); // Sandbox testing
-		else curl_setopt($connection,CURLOPT_URL,$this->checkout_url); // Live		
+		curl_setopt($connection,CURLOPT_URL,$this->checkout_url); // Live		
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
 		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0); 
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
@@ -254,14 +249,14 @@ class Payson {
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
 		curl_setopt($connection, CURLOPT_POST, 1); 
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->transaction); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 5); 
+		curl_setopt($connection, CURLOPT_TIMEOUT, 10); 
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
 		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_FAILONERROR, 1);
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);   
 		if ($error = curl_error($connection)) 
-			new ShoppError($error,'paypal_standard_connection',SHOPP_COMM_ERR);
+			new ShoppError($error,'netcash_connection',SHOPP_COMM_ERR);
 		curl_close($connection);
 		
 		$this->Response = $buffer;
@@ -310,10 +305,11 @@ class Payson {
 		switch ($property) {
 			case "button":
 				$args = array();
-				$args['shopp_xco'] = 'Payson/Payson';
+				$args['shopp_xco'] = 'NetCash/NetCash';
 				if (isset($options['pagestyle'])) $args['pagestyle'] = $options['pagestyle'];
+				$label = (isset($options['netcash-label']))?$options['netcash-label']:'Checkout with NetCash';
 				$url = add_query_arg($args,$Shopp->link('checkout'));
-				return '<a href="'.$url.'" class="right">'.__('Checkout with Payson','Shopp').' &raquo;</a>';
+				return '<p><a href="'.$url.'" class="netcash_checkout">'.$label.'</a></p>';
 		}
 	}
 
@@ -321,47 +317,32 @@ class Payson {
 	function billing () {}
 	
 	function url ($url) {
-		if ($this->settings['testmode'] == "on") return $this->testurl;
-		else return $this->url;
+		return $this->checkout_url;
 	}
 	
 	function settings () {
 		?>
-			<th scope="row" valign="top"><label for="payson-enabled">Payson</label></th> 
-			<td><input type="hidden" name="settings[Payson][billing-required]" value="off" /><input type="hidden" name="settings[Payson][enabled]" value="off" /><input type="checkbox" name="settings[Payson][enabled]" value="on" id="payson-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="payson-enabled"> <?php _e('Enable','Shopp'); ?> Payson</label>
-				<div id="payson-settings">
+			<th scope="row" valign="top"><label for="netcash-enabled">NetCash</label></th> 
+			<td><input type="hidden" name="settings[NetCash][billing-required]" value="off" /><input type="hidden" name="settings[NetCash][enabled]" value="off" /><input type="checkbox" name="settings[NetCash][enabled]" value="on" id="netcash-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="netcash-enabled"> <?php _e('Enable','Shopp'); ?> NetCash</label>
+				<div id="netcash-settings">
 		
-				<p><input type="text" name="settings[Payson][agentid]" id="payson-agentid" size="7" value="<?php echo $this->settings['agentid']; ?>"/><br />
-				<?php _e('Enter your Payson Agent ID.','Shopp'); ?></p>
+				<p><input type="text" name="settings[NetCash][username]" id="netcash-username" size="30" value="<?php echo $this->settings['username']; ?>"/><br />
+				<?php _e('Enter your NetCash account username.','Shopp'); ?></p>
 
-				<p><input type="text" name="settings[Payson][email]" id="payson-email" size="30" value="<?php echo $this->settings['email']; ?>"/><br />
-				<?php _e('Enter your Payson seller email address.','Shopp'); ?></p>
+				<p><input type="password" name="settings[NetCash][password]" id="netcash-password" size="30" value="<?php echo $this->settings['password']; ?>"/><br />
+				<?php _e('Enter your NetCash account password.','Shopp'); ?></p>
 
-				<p><input type="text" name="settings[Payson][key]" id="payson-key" size="40" value="<?php echo $this->settings['key']; ?>"/><br />
-				<?php _e('Enter your Payson secret key.','Shopp'); ?></p>
+				<p><input type="text" name="settings[NetCash][PIN]" id="netcash-PIN" size="8" value="<?php echo $this->settings['PIN']; ?>"/><br />
+				<?php _e('Enter your NetCash account PIN.','Shopp'); ?></p>
+				<p><input type="text" name="settings[NetCash][terminal]" id="netcash-terminal" size="5" value="<?php echo $this->settings['terminal']; ?>"/><br />
+				<?php _e('Enter your NetCash terminal number.','Shopp'); ?></p>
 
-				<p><input type="text" name="settings[Payson][description]" id="payson-description" size="40" value="<?php echo $this->settings['description']; ?>"/><br />
-				<?php _e('Enter a name or description for your store.','Shopp'); ?></p>
-
-				<p><select name="settings[Payson][payment]" id="payson-payment">
-					<?php
-						echo menuoptions(array(
-							__('Credit Cards, Internet Banks &amp; Payson','Shopp'),
-							__('Credit Cards Only','Shopp'),
-							__('Internet Banks Only','Shopp'),
-							__('Payson Account Funds Only','Shopp'),
-							__('Internet Banks &amp; Payson Account Funds','Shopp')
-						),$this->settings['payment']);
-					?>
-					</select><br />
-				<?php _e('Choose the payment methods accepted.','Shopp'); ?></label></p>
-								
-				<p><label for="payson-guarantee"><input type="hidden" name="settings[Payson][guarantee]" value="0" /><input type="checkbox" name="settings[Payson][guarantee]" id="payson-guarantee" value="1"<?php if ($this->settings['guarantee'] == "1") echo ' checked="checked"'; ?> />
-				<?php _e('Offer Payson Guarantee payments.','Shopp'); ?></label></p>
-
-				<p><label for="payson-testmode"><input type="hidden" name="settings[Payson][testmode]" value="off" /><input type="checkbox" name="settings[Payson][testmode]" id="payson-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable Test Mode','Shopp'); ?></label></p>
+				<?php if (!empty($this->settings['apiurl'])): ?>
+				<p><input type="text" name="settings[NetCash][apiurl]" id="netcash-apiurl" size="48" value="<?php echo $this->settings['apiurl']; ?>" readonly="readonly" class="select" /><br />
+				<strong>Copy this URL to your NetCash backoffice as both the Accept and Reject callback URLs found under:<br />credit cards &rarr; Credit Service Administration &rarr; Adjust Gateway Defaults</strong></p>
+				<?php endif;?>
 				
-				<input type="hidden" name="settings[Payson][path]" value="<?php echo gateway_path(__FILE__); ?>"  />
+				<input type="hidden" name="settings[NetCash][path]" value="<?php echo gateway_path(__FILE__); ?>"  />
 				<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
 				
 				</div>
@@ -371,10 +352,23 @@ class Payson {
 	
 	function registerSettings () {
 		?>
-		xcosettings('#payson-enabled','#payson-settings');
+		xcosettings('#netcash-enabled','#netcash-settings');
 		<?php
 	}
 
-} // end Payson class
+	function saveSettings () {
+		global $Shopp;
+		if (!empty($_POST['settings']['NetCash']['username']) 
+			&& !empty($_POST['settings']['NetCash']['password'])
+			&& !empty($_POST['settings']['NetCash']['PIN'])
+			&& !empty($_POST['settings']['NetCash']['terminal'])) {
+
+			$NetCash = new NetCash();
+			$url = $Shopp->link('checkout',false);
+			$_POST['settings']['NetCash']['apiurl'] = $url;
+		}
+	}
+
+} // end NetCash class
 
 ?>
