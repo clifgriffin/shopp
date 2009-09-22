@@ -103,7 +103,7 @@ class PayPalStandard {
 			return;
 		}
 
-		if ($Shopp->Cart->Total->total == 0) {
+		if ($Shopp->Cart->data->Totals->total == 0) {
 			$_POST['checkout'] = 'confirmed';
 			$this->order();	
 		}
