@@ -1,24 +1,162 @@
-function addPriceLine (target,options,data,attachment) {
+function Pricelines () {
+	var $=jQuery.noConflict();
+	this.idx = 0;
+	this.row = new Object();
+	this.variations = new Array();
+	this.linked = new Array();
+
+	this.add = function (options,data,target,attachment) {
+		var key = xorkey(options);
+		var p = new Priceline(this.idx,options,data,target,attachment);
+		this.row[key] = p;
+
+		if (data.context == "variation") {
+			if (attachment) {
+				var targetkey = parseInt(target.optionkey.val());
+				var index = $.inArray(targetkey,this.variations);
+				if (index != -1) {
+					if (attachment == "before") this.variations.splice(index,0,xorkey(p.options));
+				 	else this.variations.splice(index+1,0,xorkey(p.options));
+				}
+			} else this.variations.push(xorkey(p.options));
+		}
+		$('#prices').val(this.idx++);
+	}
+	
+	this.exists = function (key) {
+		if (this.row[key]) return true;
+		return false;
+	}
+	
+	this.remove = function (row) {
+		var index = $.inArray(row,this.variations);
+		if (index != -1) this.variations.splice(index,1);
+		
+		this.row[row].row.remove(); // Remove UI
+		delete this.row[row];		// Remove data
+	}
+	
+	this.reorderVariation = function (key,options) {
+		var variation = this.row[key];
+		variation.row.appendTo('#variations-pricing');
+		variation.setOptions(options);
+		
+		var index = $.inArray(key,this.variations);
+		if (index == -1) return;
+		this.variations.splice(index,1);
+		this.variations.push(xorkey(variation.options));
+		
+	}
+	
+	this.updateVariationsUI = function (type) {
+		for (var i in this.variations) {
+			var key = this.variations[i];
+			if (!Pricelines.row[key]) {
+				delete this.variations[i]; continue;
+			}
+			var row = Pricelines.row[key];
+			row.updateTabIndex(i);	// Re-number tab indexes
+			if (type && type == "tabs") continue;
+			row.unlinkInputs();			// Reset linking
+			for (var option in this.linked) {
+				if ($.inArray(option,this.row[key].options) != -1) {
+					if (!this.linked[option][key]) this.linked[option].push(key);
+					this.row[key].linkInputs(option);
+				}
+			}
+		}
+	}
+		
+	this.linkVariations = function (option) {
+		if (!option) return;
+		for (var key in this.row) {
+			console.log("Looping variations");
+			if ($.inArray(option.toString(),this.row[key].options) != -1) {
+				if (!this.linked[option]) this.linked[option] = new Array();
+				this.linked[option].push(key);
+				this.row[key].linkInputs(option);
+			}
+		}
+	}
+	
+	this.unlinkVariations = function (option) {
+		if (!option) return;
+		if (!this.linked[option]) return;
+		for (var row in this.linked[option]) 
+			this.linked[option][key].unlinkInputs(option);
+		this.linked.splice(option,1);
+	}
+	
+	this.unlinkAll = function () {
+		for (var key in this.row) {
+			console.log("Looping variations");
+			this.row[key].unlinkInputs();
+		}
+		this.linked.splice(0,1);
+	}
+
+	this.updateVariationLinks = function () {
+		if (!this.linked) return;
+		for (var key in this.row) {
+			console.log("Looping variations");
+			this.row[key].unlinkInputs();
+		}
+		for (var option in this.linked) {
+			this.linked[option] = false;
+			this.linkVariations(option);
+		}
+	}
+	
+	this.allLinked = function () {
+		if (this.linked[0]) return true;
+		return false;
+	}
+	
+	this.linkAll = function () {
+		this.unlinkAll();
+		this.linked = new Array();
+		this.linked[0] = new Array();
+		for (var key in this.row) {
+			if (key == 0) continue;
+			this.linked[0].push(key);
+			this.row[key].linkInputs(0);
+		}
+	}
+	
+}
+
+function Priceline (id,options,data,target,attachment) {
 	var $ = jQuery.noConflict();
+	var _self = this;
+	this.id = id;
+	this.options = options;
+	this.data = data;
+	this.label = false;
+	this.links = new Array();
+	this.inputs = new Array();
+
+	var interfaces = new Object();
+
 	// Give this entry a unique runtime id
-	var i = pricingidx;
-	
+	var i = this.id;
+
 	// Build the interface
-	var row = $('<div id="row-'+i+'" class="priceline" />');
-	if (attachment == "after") row.insertAfter(target);
-	else if (attachment == "before") row.insertBefore(target);
-	else row.appendTo(target);
-	
-	var heading = $('<div class="pricing-label" />').appendTo(row);
+	this.row = $('<div id="row-'+i+'" class="priceline" />');
+	if (attachment == "after") this.row.insertAfter(target);
+	else if (attachment == "before") this.row.insertBefore(target);
+	else this.row.appendTo(target);
+
+	var heading = $('<div class="pricing-label" />').appendTo(this.row);
 	var labelText = $('<label for="label['+i+']" />').appendTo(heading);
-	
-	var label = $('<input type="hidden" name="price['+i+'][label]" id="label['+i+']" />').appendTo(heading);
-	label.change(function () { labelText.text($(this).val()); });
+
+	this.label = $('<input type="hidden" name="price['+i+'][label]" id="label['+i+']" />').appendTo(heading);
+	this.label.change(function () { labelText.text($(this).val()); });
 
 	var myid = $('<input type="hidden" name="price['+i+'][id]" id="priceid-'+i+'" />').appendTo(heading);
 	var productid = $('<input type="hidden" name="price['+i+'][product]" id="product['+i+']" />').appendTo(heading);
 	var context = $('<input type="hidden" name="price['+i+'][context]" />').appendTo(heading);
 	var optionkey = $('<input type="hidden" name="price['+i+'][optionkey]" class="optionkey" />').appendTo(heading);
+	this.row.optionkey = optionkey;
 	var optionids = $('<input type="hidden" name="price['+i+'][options]" />').appendTo(heading);
 	var sortorder = $('<input type="hidden" name="sortorder[]" value="'+i+'" />').appendTo(heading);
 
@@ -26,7 +164,7 @@ function addPriceLine (target,options,data,attachment) {
 	$(priceTypes).each(function (t,option) { typeOptions += '<option value="'+option.value+'">'+option.label+'</option>'; });
 	var type = $('<select name="price['+i+'][type]" id="type-'+i+'"></select>').html(typeOptions).appendTo(heading);
 
-	var dataCell = $('<div class="pricing-ui clear" />').appendTo(row);
+	var dataCell = $('<div class="pricing-ui clear" />').appendTo(this.row);
 
 	var pricingTable = $('<table/>').addClass('pricing-table').appendTo(dataCell);
 
@@ -84,7 +222,7 @@ function addPriceLine (target,options,data,attachment) {
 	var inventoryBr = $('<br/>').appendTo(inventoryField);
 	var sku = $('<input type="text" name="price['+i+'][sku]" id="sku['+i+']" size="8" title="Enter a unique tracking number for this product option." class="selectall" />').appendTo(inventoryField);
 	var skuLabel =$('<label for="sku['+i+']" title="'+SKU_LABEL_HELP+'"> '+SKU_LABEL+'</label>').appendTo(inventoryField);
-	
+
 	var downloadHeading = $('<th><label for="download['+i+']">Product Download</label></th>').appendTo(headingsRow);
 	var downloadCell = $('<td width="31%" />').appendTo(inputsRow);
 	var downloadFile = $('<div></div>').html('No product download.').appendTo(downloadCell);
@@ -111,29 +249,33 @@ function addPriceLine (target,options,data,attachment) {
 		var filePathButton = $('<button type="button" class="button-secondary"><small>By File Path</small></button>').appendTo(uploadHeading).click(function () {
 			filePathCell.slideToggle();
 		});
-	
+
 	}
 
 	var uploadHolder = $('<div id="flash-product-uploader-'+i+'"></div>').appendTo(uploadHeading);
 	var uploadButton = $('<button type="button" class="button-secondary"><small>'+UPLOAD_FILE_BUTTON_TEXT+'</small></button>').appendTo(uploadHeading);
 
 	var uploader = new FileUploader($(uploadHolder).attr('id'),uploadButton,i,downloadFile);
+
+	this.disable = function () {
+		type.val('N/A').trigger('change.value');
+	}
 	
-	// Build an object to reference and control/update this entry
-	var Pricing = new Object();
-	Pricing.id = pricingidx;
-	Pricing.options = options;
-	Pricing.data = data;
-	Pricing.row = row;
-	Pricing.rowid = 0;
-	Pricing.label = label;
-	Pricing.links = new Array();
-	Pricing.inputs = new Array(
-		type,price,tax,salepriceToggle,saleprice,donationVar,donationMin,
-		shippingToggle,weight,shippingfee,inventoryToggle,stock,sku);
-	Pricing.disable = function () { type.val('N/A').trigger('change.value'); }
-	Pricing.updateKey = function () { optionkey.val(xorkey(this.options)); }
-	Pricing.updateLabel = function () {
+	this.setOptions = function(options) {
+		var update = false;
+		if (options) {
+			if (options != this.options) update = true;
+			this.options = options;
+		}
+		optionkey.val(xorkey(this.options));
+		if (update) this.updateLabel();
+	}
+	
+	this.updateKey = function () {
+		optionkey.val(xorkey(this.options));
+	}
+	
+	this.updateLabel = function () {
 		var string = "";
 		var ids = "";
 		if (this.options) {
@@ -148,49 +290,56 @@ function addPriceLine (target,options,data,attachment) {
 		this.label.val(htmlentities(string)).change();
 		optionids.val(ids);
 	}
-	Pricing.updateTabindex = function (row) {
+	
+	this.updateTabIndex = function (row) {
+		row = new Number(row);
 		$.each(this.inputs,function(i,input) {
 			$(input).attr('tabindex',((row+1)*100)+i);
 		});
 	}
-	Pricing.linkInputs = function (option) {
-		Pricing.links.push(option);
-		$.each(Pricing.inputs,function (i,input) {
+	
+	this.linkInputs = function (option) {
+		this.links.push(option);
+		$.each(this.inputs,function (i,input) {
 			if (!input) return;
 			var type = "change.linkedinputs";
 			if ($(input).attr('type') == "checkbox") type = "click.linkedinputs";
 			$(input).bind(type,function () {
 				var value = $(this).val();
 				var checked = $(this).attr('checked');
-				$.each(Pricing.links,function (l,option) {
-					$.each(linkedPricing[option],function (id,key) {
-						if (key == xorkey(Pricing.options)) return;
-						if (!pricingOptions[key]) return;
+				$.each(_self.links,function (l,option) {
+					$.each(Pricelines.linked[option],function (id,key) {
+						if (key == xorkey(_self.options)) return;
+						if (!Pricelines.row[key]) return;
 						if ($(input).attr('type') == "checkbox")
-							$(pricingOptions[key].inputs[i]).attr('checked',checked);
-						else $(pricingOptions[key].inputs[i]).val(value);
-						$(pricingOptions[key].inputs[i]).trigger('change.value');
+							$(Pricelines.row[key].inputs[i]).attr('checked',checked);
+						else $(Pricelines.row[key].inputs[i]).val(value);
+						$(Pricelines.row[key].inputs[i]).trigger('change.value');
 					});
 				});
 			});
 		});
 	}
-	Pricing.unlinkInputs = function (option) {
+	
+	this.unlinkInputs = function (option) {
 		if (option !== false) {
-			index = $.inArray(option,Pricing.links);
-			Pricing.links.splice(index,1);
+			index = $.inArray(option,this.links);
+			this.links.splice(index,1);
 		}
-		$.each(Pricing.inputs,function (i,input) {
+		$.each(this.inputs,function (i,input) {
 			if (!input) return;
 			var type = "blur.linkedinputs";
 			if ($(input).attr('type') == "checkbox") type = "click.linkedinputs";
 			$(input).unbind(type);
 		});
 	}
-	Pricing.updateKey();
-	Pricing.updateLabel();
 	
-	var interfaces = new Object();
+	this.inputs = new Array(
+		type,price,tax,salepriceToggle,saleprice,donationVar,donationMin,
+		shippingToggle,weight,shippingfee,inventoryToggle,stock,sku);
+	this.updateKey();
+	this.updateLabel();
+	
 	interfaces['All'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, shippingHeading, shippingCell, inventoryHeading, inventoryCell, downloadHeading, downloadCell, uploadHeading, donationHeading, donationCell);
 	if (pricesPayload) {		
 		interfaces['Shipped'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, shippingHeading, shippingCell, inventoryHeading, inventoryCell);
@@ -201,7 +350,7 @@ function addPriceLine (target,options,data,attachment) {
 		interfaces['Virtual'] = new Array(priceHeading, priceCell);
 		interfaces['Download'] = new Array(priceHeading, priceCell);
 	}
-	interfaces['Donation'] = new Array(priceHeading, priceCell, donationHeading, donationCell);	
+	interfaces['Donation'] = new Array(priceHeading, priceCell, donationHeading, donationCell);
 
 	// Alter the interface depending on the type of price line
 	type.bind('change.value',function () {
@@ -210,7 +359,7 @@ function addPriceLine (target,options,data,attachment) {
 		priceLabel.html(PRICE_LABEL);
 		if (interfaces[ui])
 			$.each(interfaces[ui],function() { $(this).show(); });
-		if (type.val() == "Donation") {
+		if ($(this).val() == "Donation") {
 			priceLabel.html(AMOUNT_LABEL);
 			tax.attr('checked','true').trigger('change.value');
 		}
@@ -257,7 +406,7 @@ function addPriceLine (target,options,data,attachment) {
 	// Set field values if we are rebuilding a priceline from 
 	// database data
 	if (data && data.label) {
-		label.val(htmlentities(data.label)).change();
+		this.label.val(htmlentities(data.label)).change();
 		type.val(data.type);
 		myid.val(data.id);
 	
@@ -294,15 +443,10 @@ function addPriceLine (target,options,data,attachment) {
 	// Improve usability for quick data entry by
 	// causing fields to automatically select all
 	// contents when focused/activated
-	quickSelects(row);
+	quickSelects(this.row);
 
 	// Initialize the interface by triggering the
 	// priceline type change behavior 
 	type.change();
 
-	// Store the price line reference object
-	if (options) pricingOptions[xorkey(options)] = Pricing;	
-	$('#prices').val(pricingidx++);
-
-	return row;
 }

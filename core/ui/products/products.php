@@ -29,23 +29,19 @@
 		</div>
 		<div class="clear"></div>
 	</div>
-	<?php if (SHOPP_WP27): ?><div class="clear"></div>
-	<?php else: ?><br class="clear" /><?php endif; ?>
+	<div class="clear"></div>
 	
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php shopp_print_column_headers('shopp_page_shopp-products'); ?></tr>
+		<tr><?php print_column_headers('shopp_page_shopp-products'); ?></tr>
 		</thead>
-		<?php if (SHOPP_WP27): ?>
 		<tfoot>
-		<tr><?php shopp_print_column_headers('shopp_page_shopp-products',false); ?></tr>
+		<tr><?php print_column_headers('shopp_page_shopp-products',false); ?></tr>
 		</tfoot>
-		<?php endif; ?>
 	<?php if (sizeof($Products) > 0): ?>
 		<tbody id="products" class="list products">
 		<?php 
-		$hidden = array();
-		if (SHOPP_WP27) $hidden = get_hidden_columns('shopp_page_shopp-products');
+		$hidden = get_hidden_columns('shopp_page_shopp-products');
 
 		$even = false; 
 		foreach ($Products as $key => $Product):
@@ -115,9 +111,9 @@ jQuery(document).ready( function() {
 		if (confirm("<?php echo addslashes(__('Are you sure you want to delete the selected products?','Shopp')); ?>")) return true;
 		else return false;
 	});
-<?php if (SHOPP_WP27): ?>
+
 	pagenow = 'shopp_page_shopp-products';
 	columns.init(pagenow);
-<?php endif; ?>
+
 });
 </script>

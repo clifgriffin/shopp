@@ -18,23 +18,20 @@
 		<div class="alignleft actions"><button type="submit" id="delete-button" name="deleting" value="category" class="button-secondary"><?php _e('Delete','Shopp'); ?></button></div>
 		<div class="clear"></div>
 	</div>
-	<?php if (SHOPP_WP27): ?><div class="clear"></div>
-	<?php else: ?><br class="clear" /><?php endif; ?>
+	<div class="clear"></div>
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php shopp_print_column_headers('shopp_page_shopp-categories'); ?></tr>
+		<tr><?php print_column_headers('shopp_page_shopp-categories'); ?></tr>
 		</thead>
-		<?php if (SHOPP_WP27): ?>
 		<tfoot>
-		<tr><?php shopp_print_column_headers('shopp_page_shopp-categories',false); ?></tr>
+		<tr><?php print_column_headers('shopp_page_shopp-categories',false); ?></tr>
 		</tfoot>
-		<?php endif; ?>
 	<?php if (sizeof($Categories) > 0): ?>
 		<tbody id="categories-table" class="list categories">
 		<?php 
 		$hidden = array();
-		if (SHOPP_WP27) $hidden = get_hidden_columns('shopp_page_shopp-categories');
+		$hidden = get_hidden_columns('shopp_page_shopp-categories');
 				
 		$even = false;
 		foreach ($Categories as $Category): 
@@ -103,9 +100,8 @@ jQuery(document).ready( function() {
 		} else return false;
 	});
 
-<?php if (SHOPP_WP27): ?>
 	pagenow = 'shopp_page_shopp-categories';
 	columns.init(pagenow);
-<?php endif; ?>
+
 });
 </script>

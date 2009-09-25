@@ -8,11 +8,9 @@
  * @package shopp
  **/
 
-
+var Pricelines = false;
 var productOptions = new Array();
 var optionMenus = new Array();
-var pricingOptions = new Object();
-var linkedPricing = new Array();
 var selectedMenuOption = false;
 var detailsidx = 1;
 var variationsidx = 1;
@@ -27,11 +25,9 @@ var pricesPayload = true;
 jQuery(document).ready(function() {
 	var $=jQuery.noConflict();
 
-	if (!wp26) {
-		postboxes.add_postbox_toggles('admin_page_shopp-products-edit');
-		// close postboxes that should be closed
-		jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-	}
+	postboxes.add_postbox_toggles('admin_page_shopp-products-edit');
+	// close postboxes that should be closed
+	jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	
 	if (!product) $('#title').focus();
 		
@@ -43,27 +39,27 @@ jQuery(document).ready(function() {
 	});
 
 	var editslug = new SlugEditor(product,'product');
-
+	
 	if (specs) $.each(specs,function () { addDetail(this) });
 	$('#addDetail').click(function() { addDetail(); });
-
+	
+	Pricelines = new Pricelines();
 	var basePrice = $(prices).get(0);
-	if (basePrice && basePrice.context == "product") addPriceLine('#product-pricing',[],basePrice);
-	else addPriceLine('#product-pricing',[]);
-
+	if (basePrice && basePrice.context == "product") Pricelines.add(false,basePrice,'#product-pricing');
+	else Pricelines.add(false,false,'#product-pricing');
+	
 	$('#variations-setting').click(variationsToggle);
 	variationsToggle();
 	loadVariations(options,prices);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
-	$('#linkOptionVariations').click(linkVariationsButton);
-	$('#linkOptionVariations').change(linkVariationsButtonLabel);
+	$('#linkOptionVariations').click(linkVariationsButton).change(linkVariationsButtonLabel);
 	
 	categories();
 	tags();
 	quickSelects();
 	updateWorkflow();
-
+	
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
 	window.onbeforeunload = function () { if (changes && !saving) return false; }	
 

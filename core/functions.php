@@ -343,8 +343,8 @@ function shopp_prereqs () {
 		$errors[] = __("Shopp will not work with PHP version 5.1.3 because of a critical bug in complex POST data structures.  Please upgrade PHP to version 5.1.4 or higher.");
 		
 	// Check WordPress version
-	if (!version_compare(get_bloginfo('version'),'2.6','>='))
-		$errors[] = __("Shopp requires WordPress version 2.6+.  You are using WordPress version ").get_bloginfo('version');
+	if (!version_compare(get_bloginfo('version'),'2.7','>='))
+		$errors[] = __("Shopp requires WordPress version 2.7+.  You are using WordPress version ").get_bloginfo('version');
 	
 	// Check for cURL
 	if( !function_exists("curl_init") &&
@@ -864,67 +864,6 @@ function readableFileSize($bytes,$precision=1) {
 	$unit = 0;
 	while ($sized > 1024 && ++$unit) $sized = $sized/1024;
 	return round($sized,$precision)." ".$units[$unit];
-}
-
-// From WP 2.7.0 for backwards compatibility
-function shopp_print_column_headers( $type, $id = true ) {
-	global $wp_version;
-	if (version_compare($wp_version,"2.7.0",">="))
-		return print_column_headers($type,$id);
-
-	$type = str_replace('.php', '', $type);
-	$columns = shopp_get_column_headers( $type );
-	$hidden = array();
-	$styles = array();
-	
-	foreach ( $columns as $column_key => $column_display_name ) {
-		$class = ' class="manage-column';
-		$class .= " column-$column_key";
-
-		if ( 'cb' == $column_key ) $class .= ' check-column';
-		elseif ( in_array($column_key, array('posts', 'comments', 'links')) )
-			$class .= ' num';
-
-		$class .= '"';
-
-		$style = '';
-		if ( in_array($column_key, $hidden) )
-			$style = 'display:none;';
-
-		if ( isset($styles[$type]) && isset($styles[$type][$column_key]) )
-			$style .= ' ' . $styles[$type][$column_key];
-		$style = ' style="' . $style . '"';
-?>
-	<th scope="col" <?php echo $id ? "id=\"$column_key\"" : ""; echo $class; echo $style; ?>><?php echo $column_display_name; ?></th>
-<?php }
-}
-
-// Adapted from WP 2.7.0 for backwards compatibility
-function shopp_register_column_headers($screen, $columns) {
-	global $wp_version;
-	if (version_compare($wp_version,"2.7.0",">="))
-		return register_column_headers($screen,$columns);
-		
-	global $_wp_column_headers;
-
-	if ( !isset($_wp_column_headers) )
-		$_wp_column_headers = array();
-
-	$_wp_column_headers[$screen] = $columns;
-}
-
-// Adapted from WP 2.7.0 for backwards compatibility
-function shopp_get_column_headers($page) {
-	global $_wp_column_headers;
-
-	if ( !isset($_wp_column_headers) )
-		$_wp_column_headers = array();
-
-	// Store in static to avoid running filters on each call
-	if ( isset($_wp_column_headers[$page]) )
-		return $_wp_column_headers[$page];
-
-  	return array();
 }
 
 function copy_shopp_templates ($src,$target) {
