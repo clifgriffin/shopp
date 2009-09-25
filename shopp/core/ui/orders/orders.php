@@ -41,23 +41,19 @@
 			<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="clear"></div>
 	</div>
-	<?php if (SHOPP_WP27): ?><div class="clear"></div>
-	<?php else: ?><br class="clear" /><?php endif; ?>
+	<div class="clear"></div>
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php shopp_print_column_headers('toplevel_page_shopp-orders'); ?></tr>
+		<tr><?php print_column_headers('toplevel_page_shopp-orders'); ?></tr>
 		</thead>
-		<?php if (SHOPP_WP27): ?>
 		<tfoot>
-		<tr><?php shopp_print_column_headers('toplevel_page_shopp-orders',false); ?></tr>
+		<tr><?php print_column_headers('toplevel_page_shopp-orders',false); ?></tr>
 		</tfoot>
-		<?php endif; ?>
 	<?php if (sizeof($Orders) > 0): ?>
 		<tbody id="orders-table" class="list orders">
 		<?php 
-			if (SHOPP_WP27) $hidden = get_hidden_columns('toplevel_page_shopp-orders');
- 			else $hidden = array();
+			$hidden = get_hidden_columns('toplevel_page_shopp-orders');
 			
 			$even = false; foreach ($Orders as $Order): ?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
@@ -303,10 +299,8 @@ $('#selectall_columns').change(function () {
 	else $('#export-columns input').not(this).attr('checked',false); 
 });
 
-<?php if (SHOPP_WP27): ?>
 pagenow = 'toplevel_page_shopp-orders';
 columns.init(pagenow);
-<?php endif; ?>
 
 });
 

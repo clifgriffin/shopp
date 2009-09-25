@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.11
+Version: 1.1 a1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -24,11 +24,9 @@ Author URI: http://ingenesis.net
 	You should have received a copy of the GNU General Public License
 	along with Shopp.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 */
 
-define('SHOPP_VERSION','1.0.11');
+define('SHOPP_VERSION','1.1 a1');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
@@ -260,32 +258,22 @@ class Shopp {
 		$menus['orders'] = add_submenu_page($this->Flow->Admin->default,__('Orders','Shopp'), __('Orders','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->orders, array(&$this,'orders'));
 
 		$menus['customers'] = add_submenu_page($this->Flow->Admin->default,__('Customers','Shopp'), __('Customers','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->customers, array(&$this,'customers'));
-		if (SHOPP_WP27) $customers_parent = $menus['customers'];
-		else $customers_parent = $this->Flow->Admin->default;
-		$menus['editcustomer'] = add_submenu_page($customers_parent,__('Edit Customer','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editcustomer, array(&$this,'customers'));
+		$menus['editcustomer'] = add_submenu_page($menus['customers'],__('Edit Customer','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editcustomer, array(&$this,'customers'));
 
 		$menus['promotions'] = add_submenu_page($this->Flow->Admin->default,__('Promotions','Shopp'), __('Promotions','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->promotions, array(&$this,'promotions'));
-		if (SHOPP_WP27) $promos_parent = $menus['promotions'];
-		else $promos_parent = $this->Flow->Admin->default;
-		$menus['editpromos'] = add_submenu_page($promos_parent,__('Edit Promotion','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editpromo, array(&$this,'promotions'));
+		$menus['editpromos'] = add_submenu_page($menus['promotions'],__('Edit Promotion','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editpromo, array(&$this,'promotions'));
 
 		$menus['products'] = add_submenu_page($this->Flow->Admin->default,__('Products','Shopp'), __('Products','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->products, array(&$this,'products'));
-		if (SHOPP_WP27) $products_parent = $menus['products'];
-		else $products_parent = $this->Flow->Admin->default;
-		$menus['editproducts'] = add_submenu_page($products_parent,__('Product Editor','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editproduct, array(&$this,'products'));
+		$menus['editproducts'] = add_submenu_page($menus['products'],__('Product Editor','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editproduct, array(&$this,'products'));
 		
 		$menus['categories'] = add_submenu_page($this->Flow->Admin->default,__('Categories','Shopp'), __('Categories','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->categories, array(&$this,'categories'));
-		if (SHOPP_WP27) $category_parent = $menus['categories'];
-		else $category_parent = $this->Flow->Admin->default;
-		$menus['editcategory'] = add_submenu_page($category_parent,__('Edit Category','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editcategory, array(&$this,'categories'));
+		$menus['editcategory'] = add_submenu_page($menus['categories'],__('Edit Category','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editcategory, array(&$this,'categories'));
 		
 		$menus['settings'] = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), 8, $this->Flow->Admin->settings['settings'][0], array(&$this,'settings'));
 
 		$settings_screens = array();
 		foreach ($this->Flow->Admin->settings as $key => $screen) {
-			if (SHOPP_WP27) $settings_parent = $menus['settings'];
-			else $settings_parent = $this->Flow->Admin->default;
-			$settings_screens[$key] = add_submenu_page($settings_parent,$screen[1],false, 8, $screen[0], array(&$this,'settings'));
+			$settings_screens[$key] = add_submenu_page($menus['settings'],$screen[1],false, 8, $screen[0], array(&$this,'settings'));
 			// echo $settings_screens[$key].BR;
 		}
 
@@ -310,12 +298,10 @@ class Shopp {
 		add_action("admin_print_scripts-{$menus['products']}", array(&$this->Flow, 'products_list_columns'));
 		add_action("admin_print_scripts-{$menus['categories']}", array(&$this->Flow, 'categories_list_columns'));
 		
-		if (SHOPP_WP27)	 {
-			add_action("admin_head-{$menus['editproducts']}", array(&$this->Flow, 'product_editor_ui'));
-			add_action("admin_head-{$menus['editcustomer']}", array(&$this->Flow, 'customer_editor_ui'));
-			add_action("admin_head-{$menus['editcategory']}", array(&$this->Flow, 'category_editor_ui'));
-			add_action("admin_head-{$menus['editpromos']}", array(&$this->Flow, 'promotion_editor_ui'));
-		}
+		add_action("admin_head-{$menus['editproducts']}", array(&$this->Flow, 'product_editor_ui'));
+		add_action("admin_head-{$menus['editcustomer']}", array(&$this->Flow, 'customer_editor_ui'));
+		add_action("admin_head-{$menus['editcategory']}", array(&$this->Flow, 'category_editor_ui'));
+		add_action("admin_head-{$menus['editpromos']}", array(&$this->Flow, 'promotion_editor_ui'));
 
 	}
 
@@ -339,12 +325,10 @@ class Shopp {
 			 $_GET['page'] == $this->Flow->Admin->editcustomer ||
 			 $_GET['page'] == $this->Flow->Admin->editcategory ||
 			 $_GET['page'] == $this->Flow->Admin->editpromo)) {
-			if (SHOPP_WP27) {
-				add_action( 'admin_head', 'wp_tiny_mce' );
-				wp_enqueue_script('postbox');
-				if ( user_can_richedit() )
-					wp_enqueue_script('editor');
-			}
+
+			add_action( 'admin_head', 'wp_tiny_mce' );
+			wp_enqueue_script('postbox');
+			if ( user_can_richedit() ) wp_enqueue_script('editor');
 				
 			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
 			wp_enqueue_script('shopp.editor.lib',"{$this->uri}/core/ui/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
@@ -352,9 +336,7 @@ class Shopp {
 			if ($_GET['page'] == $this->Flow->Admin->editproduct)
 				wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js",array('jquery'),SHOPP_VERSION,true);
 
-			if (SHOPP_WP27) wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);
-			else wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline-wp26.js",array('jquery'),SHOPP_VERSION,true);
-			
+wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
 			wp_enqueue_script('shopp.ocupload',"{$this->uri}/core/ui/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
 			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery','jquery-ui-core'),SHOPP_VERSION,true);
 			

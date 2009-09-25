@@ -31,23 +31,19 @@
 			<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="clear"></div>
 	</div>
-	<?php if (SHOPP_WP27): ?><div class="clear"></div>
-	<?php else: ?><br class="clear" /><?php endif; ?>
+	<div class="clear"></div>
 
 	<table class="widefat" cellspacing="0">
 		<thead>
-		<tr><?php shopp_print_column_headers('shopp_page_shopp-customers'); ?></tr>
+		<tr><?php print_column_headers('shopp_page_shopp-customers'); ?></tr>
 		</thead>
-		<?php if (SHOPP_WP27): ?>
 		<tfoot>
-		<tr><?php shopp_print_column_headers('shopp_page_shopp-customers',false); ?></tr>
+		<tr><?php print_column_headers('shopp_page_shopp-customers',false); ?></tr>
 		</tfoot>
-		<?php endif; ?>
 	<?php if (sizeof($Customers) > 0): ?>
 		<tbody id="customers-table" class="list orders">
 		<?php 
-			if (SHOPP_WP27) $hidden = get_hidden_columns('shopp_page_shopp-customers');
- 			else $hidden = array();
+			$hidden = get_hidden_columns('shopp_page_shopp-customers');
 			
 			$even = false; 
 			foreach ($Customers as $Customer): 
@@ -287,10 +283,8 @@ $('#selectall_columns').change(function () {
 	else $('#export-columns input').not(this).attr('checked',false); 
 });
 
-<?php if (SHOPP_WP27): ?>
 pagenow = 'shopp_page_shopp-customers';
 columns.init(pagenow);
-<?php endif; ?>
 
 });
 

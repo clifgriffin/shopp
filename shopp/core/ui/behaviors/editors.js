@@ -125,13 +125,13 @@ function loadVariations (options,prices) {
 
 		$.each(prices,function (key,price) { 
 			if (this.context == "variation")
-				addPriceLine('#variations-pricing',this.options.split(","),this);
+				Pricelines.add(this.options.split(","),this,'#variations-pricing');
 		});
-		updateTabIndexes();
+		Pricelines.updateVariationsUI();
 		
 		$.each(options,function (key,option) { 
 			$.each(option.options,function(i,data) {
-				if (data.linked == "on") linkVariations(data.id);
+				if (data.linked == "on") Pricelines.linkVariations(data.id);
 			});
 		});
 	}
@@ -203,7 +203,6 @@ function addVariationOptionsMenu (data) {
 
 	menu.items = new Array();
 	if (data && data.options) $.each(data.options,function () { menu.addOption(this) });
-	
 	else {
 		menu.addOption();
 		menu.addOption();
@@ -228,38 +227,6 @@ function addVariationOptionsMenu (data) {
 		menu.remove();
 	});
 	
-}
-
-function linkVariations (option) {
-	if (!option) return;
-	var $=jQuery.noConflict();
-	for (var key in pricingOptions) {
-		if ($.inArray(option.toString(),pricingOptions[key].options) != -1) {
-			if (!linkedPricing[option]) linkedPricing[option] = new Array();
-			linkedPricing[option].push(key);
-			pricingOptions[key].linkInputs(option);
-		}
-	}
-}
-
-function unlinkVariations (option) {
-	if (!option) return;
-	var $=jQuery.noConflict();
-	if (!linkedPricing[option]) return;
-	$.each(linkedPricing[option],function (i,key) {
-		pricingOptions[key].unlinkInputs(option);
-	});
-	linkedPricing.splice(option,1);
-}
-
-function updateVariationLinks () {
-	var $=jQuery.noConflict();
-	if (!linkedPricing) return;
-	for (var key in pricingOptions) pricingOptions[key].unlinkInputs();
-	for (var option in linkedPricing) {
-		linkedPricing[option] = false;
-		linkVariations(option);
-	}
 }
 
 /**
@@ -318,46 +285,31 @@ function addVariationPrices (data) {
 	if (!data) {
 		var updated = buildVariations();
 		var variationPricing = $('#variations-pricing');
-		var pricelines = $(variationPricing).children();
-		var expanded = false;
+		var variationPricelines = $(variationPricing).children();
+		var added = false;
 
 		$(updated).each(function(id,options) {
 			var key = xorkey(options);
 			var preKey = xorkey(options.slice(0,options.length-1));
 			if (preKey == "") preKey = -1;
 
-			if (!pricingOptions[key]) {
-				if (pricingOptions[preKey]) {
-					pricingOptions[key] = pricingOptions[preKey];
-					delete pricingOptions[preKey];
-					pricingOptions[key].options = options;
-					pricingOptions[key].updateKey();
-					pricingOptions[key].updateLabel();
+			if (!Pricelines.row[key]) {
+				if (Pricelines.row[preKey]) {
+					Pricelines.row[key] = Pricelines.row[preKey];
+					delete Pricelines.row[preKey];
+					Pricelines.row[key].setOptions(options);
 				} else {
-					if (pricelines.length == 0) { // Append new row
-						addPriceLine('#variations-pricing',options,{context:'variation'});
+					if (variationPricelines.length == 0) { // Append new row
+						Pricelines.add(options,{context:'variation'},'#variations-pricing');
 					} else { // Add after previous variation
-						addPriceLine(pricingOptions[ xorkey(updated[(id-1)]) ].row,options,{context:'variation'},'after');
+						Pricelines.add(options,{context:'variation'},Pricelines.row[ xorkey(updated[(id-1)]) ].row,'after');
 					}
-					expanded = true;
+					added = true;
 				}
 			}
 		});
-
-		if (expanded) {
-			updateTabIndexes();
-			updateVariationLinks();
-		}
+		if (added) Pricelines.updateVariationsUI();
 	}
-}
-
-function updateTabIndexes () {
-	var $=jQuery.noConflict();
-	var pricelines = $('#variations-pricing').children();
-	$.each(pricelines,function(row,line) {
-		key = $(line).find('.pricing-label input.optionkey').val();
-		pricingOptions[key].updateTabindex(row);
-	});
 }
 
 function deleteVariationPrices (optionids,reduce) {
@@ -376,29 +328,24 @@ function deleteVariationPrices (optionids,reduce) {
 				});
 				var newkey = xorkey(modOptions);
 			
-				if (reduce && !pricingOptions[newkey]) {
-					if (newkey != 0) pricingOptions[newkey] = pricingOptions[key];
-					else {
-						pricingOptions[key].row.remove();
-					}
-					delete pricingOptions[key];
+				if (reduce && !Pricelines.row[newkey]) {
+					if (newkey != 0) Pricelines.row[newkey] = Pricelines.row[key];
+					else Pricelines.row[key].row.remove();
+					delete Pricelines.row[key];
 					
-					if (pricingOptions[newkey]) {
-						pricingOptions[newkey].options = modOptions;
-						pricingOptions[newkey].updateLabel();
-						pricingOptions[newkey].updateKey();
+					if (Pricelines.row[newkey]) {
+						Pricelines.row[newkey].setOptions(modOptions);
 						reduced = true;
 					}
 				} else {
-					if (pricingOptions[key]) {
+					if (Pricelines.row[key]) {
 						// Mark priceline for removal from db
-						var dbPriceId = $('#priceid-'+pricingOptions[key].id).val();
+						var dbPriceId = $('#priceid-'+Pricelines.row[key].id).val();
 						if ($('#deletePrices').val() == "") $('#deletePrices').val(dbPriceId);
 						else $('#deletePrices').val($('#deletePrices').val()+","+dbPriceId);
 
 						// Remove the priceline row from the ui/dom
-						pricingOptions[key].row.remove();
-						delete pricingOptions[key];
+						Pricelines.remove(key);
 					}
 				}
 			
@@ -407,7 +354,7 @@ function deleteVariationPrices (optionids,reduce) {
 
 	});
 	
-	if (reduced) updateVariationLinks();
+	if (reduced) updateVariationsUI();
 
 }
 
@@ -416,10 +363,7 @@ function optionMenuExists (label) {
 	if (!label) return false;
 	var found = false;
 	$.each(optionMenus,function (id,menu) {
-		if (menu && $(menu.label).val() == label) {
-			found = id;
-			return true;
-		}
+		if (menu && $(menu.label).val() == label) return (found = id);
 	});
 	if (optionMenus[found]) return optionMenus[found];
 	return found;
@@ -430,10 +374,7 @@ function optionMenuItemExists (menu,label) {
 	if (!menu || !menu.items || !label) return false;
 	var found = false;
 	$.each(menu.items,function (id,item) {
-		if (item && $(item.label).val() == label) {
-			found = true;
-			return true;
-		}
+		if (item && $(item.label).val() == label) return (found = true);
 	});
 	return found;
 }
@@ -443,7 +384,7 @@ function updateVariationLabels () {
 	var updated = buildVariations();
 	$(updated).each(function(id,options) {
 		var key = xorkey(options);
-		if (pricingOptions[key]) pricingOptions[key].updateLabel();
+		if (Pricelines.row[key]) Pricelines.row[key].updateLabel();
 	});
 }
 
@@ -462,12 +403,11 @@ function orderVariationPrices () {
 
 	$(updated).each(function (id,options) {
 		var key = xorkey(options);
-		if (key > 0 && pricingOptions[key]) {
-			pricingOptions[key].row.appendTo('#variations-pricing');
-			pricingOptions[key].options = options;
-			pricingOptions[key].updateLabel();
-		}
+		if (key > 0 && Pricelines.row[key])
+			Pricelines.reorderVariation(key,options);
 	});
+
+	Pricelines.updateVariationsUI("tabs");
 }
 
 // Magic key generator
@@ -480,7 +420,7 @@ function xorkey (ids) {
 function variationsToggle () {
 	var $=jQuery.noConflict();
 	if ($('#variations-setting').attr('checked')) {
-		pricingOptions[0].disable();
+		if (Pricelines.row[0]) Pricelines.row[0].disable();
 		$('#product-pricing').hide();
 		$('#variations').show();
 	} else {
@@ -489,34 +429,34 @@ function variationsToggle () {
 	}
 }
 
+function clearLinkedIcons () {
+	var $=jQuery.noConflict();
+	$('#variations-list input.linked').each(function (key,input) { 
+		$(input).val('off').change();
+	});
+}
+
 function linkVariationsButton () {
 	var $=jQuery.noConflict();
 	if (selectedMenuOption) {
 		if (selectedMenuOption.linked.val() == 'off') {
 			// If all are linked, unlink everything first
-			if (linkedPricing[0]) {
-				for (var key in pricingOptions) pricingOptions[key].unlinkInputs(0);
-				linkedPricing.splice(0,1);
+			if (Pricelines.allLinked()) {
+				clearLinkedIcons();
+				Pricelines.unlinkAll();
 			}
 			selectedMenuOption.linked.val('on').change();
-			linkVariations(selectedMenuOption.id.val());
+			Pricelines.linkVariations(selectedMenuOption.id.val());
 		} else {
 			selectedMenuOption.linked.val('off').change();
-			unlinkVariations(selectedMenuOption.id.val());	
+			Pricelines.unlinkVariations(selectedMenuOption.id.val());	
 		}
 	} else {
 		// Nothing selected, link/unlink all
-		if (linkedPricing[0]) { // Already linked, unlink all
-			for (var key in pricingOptions) pricingOptions[key].unlinkInputs(0);
-			linkedPricing.splice(0,1);
-		} else { // Link all
-			linkedPricing = new Array();
-			linkedPricing[0] = new Array();
-			for (var key in pricingOptions) {
-				linkedPricing[0].push(key);
-				pricingOptions[key].linkInputs(0);
-			}
-		}
+		clearLinkedIcons();
+		if (Pricelines.allLinked()) {
+			Pricelines.unlinkAll();
+		} else Pricelines.linkAll();
 	}
 	$(this).change();
 }
@@ -527,7 +467,7 @@ function linkVariationsButtonLabel () {
 		if (selectedMenuOption.linked.val() == 'on') $(this).find('small').html(' '+UNLINK_VARIATIONS);
 		else $(this).find('small').html(' '+LINK_VARIATIONS);
 	} else {
-		if (linkedPricing[0]) $(this).find('small').html(' '+UNLINK_ALL_VARIATIONS);
+		if (Pricelines.allLinked()) $(this).find('small').html(' '+UNLINK_ALL_VARIATIONS);
 		else $(this).find('small').html(' '+LINK_ALL_VARIATIONS);
 	}
 	
@@ -598,12 +538,6 @@ function ImageUploads (id,type) {
 	}
 	
 	// Initialize image uploader
-	if (wp26) {
-		settings.button_image_url = rsrcdir+'/core/ui/icons/wp26button.png';
-		settings.button_height = "26";
-		settings.button_width = "100";
-		settings.button_text_style = '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 11px; color: #284464; }';
-	}
 	
 	if (flashuploader)
 		swfu = new SWFUpload(settings);
@@ -815,12 +749,6 @@ function FileUploader (button,defaultButton,linenum,updates) {
 	}
 	
 	// Initialize file uploader
-	if (wp26) {
-		_self.settings.button_image_url = rsrcdir+'/core/ui/icons/wp26button.png';
-		_self.settings.button_height = "26";
-		_self.settings.button_width = "100";
-		_self.settings.button_text_style = '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 11px; color: #284464; }';
-	}
 	
 	if (flashuploader) {
 		_self.swfu = new SWFUpload(_self.settings);

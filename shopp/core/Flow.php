@@ -94,7 +94,6 @@ class Flow {
 		if (!defined('SHOPP_SESSION_TIMEOUT')) define('SHOPP_SESSION_TIMEOUT',7200);
 		if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
 		
-		define("SHOPP_WP27",(!version_compare($wp_version,"2.7","<")));
 		define("SHOPP_DEBUG",($Core->Settings->get('error_logging') == 2048));
 		define("SHOPP_PATH",$this->basepath);
 		define("SHOPP_ADMINPATH",SHOPP_PATH."/core/ui");
@@ -762,7 +761,7 @@ class Flow {
 	}      
 	
 	function orders_list_columns () {
-		shopp_register_column_headers('toplevel_page_shopp-orders', array(
+		register_column_headers('toplevel_page_shopp-orders', array(
 			'cb'=>'<input type="checkbox" />',
 			'order'=>__('Order','Shopp'),
 			'name'=>__('Name','Shopp'),
@@ -1027,7 +1026,7 @@ class Flow {
 	}
 	
 	function customers_list_columns () {
-		shopp_register_column_headers('shopp_page_shopp-customers', array(
+		register_column_headers('shopp_page_shopp-customers', array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'login'=>__('Login','Shopp'),
@@ -1203,7 +1202,7 @@ class Flow {
 	}
 
 	function products_list_columns () {
-		shopp_register_column_headers('shopp_page_shopp-products', array(
+		register_column_headers('shopp_page_shopp-products', array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'category'=>__('Category','Shopp'),
@@ -1425,7 +1424,7 @@ class Flow {
 			unset($Price);
 		}
 		
-		// No variation options at all, delete all variation-pricelines
+		// No variation options at all, delete all variation-Pricelines
 		if (empty($Product->options) && !empty($Product->prices) && is_array($Product->prices)) { 
 			foreach ($Product->prices as $priceline) {
 				// Skip if not tied to variation options
@@ -1668,7 +1667,7 @@ class Flow {
 	}
 
 	function categories_list_columns () {
-		shopp_register_column_headers('shopp_page_shopp-categories', array(
+		register_column_headers('shopp_page_shopp-categories', array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'description'=>__('Description','Shopp'),
@@ -1944,7 +1943,7 @@ class Flow {
 	}
 
 	function promotions_list_columns () {
-		shopp_register_column_headers('shopp_page_shopp-promotions', array(
+		register_column_headers('shopp_page_shopp-promotions', array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
 			'discount'=>__('Discount','Shopp'),
