@@ -344,9 +344,8 @@ class Product extends DatabaseObject {
 					$this->weightrange['max'] = $price->weight;
 			}
 
-			
-			if (defined('WP_ADMIN')
-				&& (isset($options['taxes']) && value_is_true($options['taxes']))) {
+			if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
+			if (defined('WP_ADMIN') && value_is_true($options['taxes'])) { 
 				$base = $Shopp->Settings->get('base_operations');
 				if ($base['vat']) {
 					$taxrate = $Shopp->Cart->taxrate();
