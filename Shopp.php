@@ -1357,7 +1357,7 @@ class Shopp {
 							
 					// Download expiration checking
 					if ($this->Settings->get('download_timelimit') // Within the timelimit
-						&& $Purchased->created < mktime()+$this->Settings->get('download_timelimit') ) {
+						&& $Purchased->created+$this->Settings->get('download_timelimit') < mktime() ) {
 							new ShoppError(__('This file can no longer be downloaded because it has expired.','Shopp'),'shopp_download_limit');
 							$forbidden = true;
 						}
