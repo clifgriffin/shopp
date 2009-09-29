@@ -396,11 +396,11 @@ class PayPalStandard {
 			if (is_array($value)) {
 				foreach($value as $item) {
 					if (strlen($query) > 0) $query .= "&";
-					$query .= "$key=".urlencode($item);
+					$query .= "$key=".urlencode(stripslashes($item));
 				}
 			} else {
 				if (strlen($query) > 0) $query .= "&";
-				$query .= "$key=".urlencode($value);
+				$query .= "$key=".urlencode(stripslashes($value));
 			}
 		}
 		return $query;
