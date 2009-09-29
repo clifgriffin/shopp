@@ -86,7 +86,7 @@ class _2Checkout {
 		if ($Shopp->Cart->validate() !== true) {
 			$_POST['checkout'] = false;
 			return;
-		}
+		} else $Order->Customer->updates($_POST); // Catch changes from validation
 		
 		header("Location: ".add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('confirm-order',false)));
 		exit();

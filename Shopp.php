@@ -1064,6 +1064,7 @@ class Shopp {
 		$this->Cart->updated();
 		$this->Cart->totals();
 		if ($this->Cart->validate() !== true) return;
+		else $Order->Customer->updates($_POST); // Catch changes from validation
 
 		// If the cart's total changes at all, confirm the order
 		if ($estimatedTotal != $this->Cart->data->Totals->total || 

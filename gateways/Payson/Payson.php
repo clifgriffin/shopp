@@ -80,7 +80,7 @@ class Payson {
 		if ($Shopp->Cart->validate() !== true) {
 			$_POST['checkout'] = false;
 			return;
-		}
+		} else $Order->Customer->updates($_POST); // Catch changes from validation
 		
 		header("Location: ".add_query_arg('shopp_xco','Payson/Payson',$Shopp->link('confirm-order',false)));
 		exit();
@@ -183,7 +183,7 @@ class Payson {
 			// Create WordPress account (if necessary)
 			if (!$Order->Customer->wpuser) {
 				if (SHOPP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
-				$Order->Customer->new_wpuser();
+				if(!$Order->Customer->new_wpuser()) new ShoppError(__('Account creation failed on order for customer id:' . $Order->Customer->id), false,SHOPP_TRXN_ERR);
 			}
 		}
 

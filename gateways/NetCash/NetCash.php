@@ -82,7 +82,7 @@ class NetCash {
 		if ($Shopp->Cart->validate() !== true) {
 			$_POST['checkout'] = false;
 			return;
-		}
+		} else $Order->Customer->updates($_POST); // Catch changes from validation
 		
 		header("Location: ".add_query_arg('shopp_xco','NetCash/NetCash',$Shopp->link('confirm-order',false)));
 		exit();

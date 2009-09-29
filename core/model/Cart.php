@@ -720,7 +720,7 @@ class Cart {
 
 				if (!empty($_POST['account-login'])) {
 					if (strpos($_POST['account-login'],'@') !== false)  {
-						$user = get_user_by_email($_POST['email-login']);
+						$user = get_user_by_email($_POST['account-login']);
 						if (!is_wp_error($user)) $loginname = $user->user_login;
 					} else $loginname = $_POST['account-login'];
 				}
@@ -1014,7 +1014,29 @@ class Cart {
 			
 		if ($authentication == "wordpress" && !$this->data->login) {
 			require_once(ABSPATH."/wp-includes/registration.php");
-			if (email_exists($_POST['email']))
+			
+			// Validate possible wp account names for availability
+			if(isset($_POST['login'])){
+				if(username_exists($_POST['login'])) 
+					return new ShoppError(__('The login name you provided is not available.  Try logging in if you have previously created an account.'), 'cart_validation');
+			} else { // need to find a usuable login
+				list($handle,$domain) = explode("@",$_POST['email']);
+				if(!username_exists($handle)) $_POST['login'] = $handle;
+				
+				$handle = $_POST['firstname'].substr($_POST['lastname'],0,1);				
+				if(!isset($_POST['login']) && !username_exists($handle)) $_POST['login'] = $handle;
+				
+				$handle = substr($_POST['firstname'],0,1).$_POST['lastname'];
+				if(!isset($_POST['login']) && !username_exists($handle)) $_POST['login'] = $handle;
+				
+				$handle .= rand(1000,9999);
+				if(!isset($_POST['login']) && !username_exists($handle)) $_POST['login'] = $handle;
+				
+				if(!isset($_POST['login'])) return new ShoppError(__('A login is not available for creation with the information you provided.  Please try a different email address or name, or try logging in if you previously created an account.'),'cart_validation');
+			}
+			if(SHOPP_DEBUG) new ShoppError('Login set to '. $_POST['login'] . ' for WordPress account creation.',false,SHOPP_DEBUG_ERR);			 
+			$ExistingCustomer = new Customer($_POST['email'],'email');
+			if (email_exists($_POST['email']) || !empty($ExistingCustomer->id))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
 		} elseif ($authentication == "shopp"  && !$this->data->login) {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
