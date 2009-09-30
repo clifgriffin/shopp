@@ -228,6 +228,7 @@ class Product extends DatabaseObject {
 		
 		$variations = ($this->variations == "on");
 		$freeshipping = true;
+		$this->inventory = false;
 		foreach ($this->prices as $i => &$price) {
 			// echo "<pre>"; print_r($price); echo "</pre>";
 			// Build secondary lookup table using the combined optionkey
@@ -239,48 +240,40 @@ class Product extends DatabaseObject {
 			
 			// Boolean flag for custom product sales
 			$price->onsale = false;
-			if ($price->sale == "on" && $price->type != "N/A") {
-				$price->onsale = true;
-				$this->onsale = true;
-			}
+			if ($price->sale == "on" && $price->type != "N/A")
+				$this->onsale = $price->onsale = true;
 			
-			$this->inventory = false;
+			$price->stocked = false;
 			if ($price->inventory == "on" && $price->type != "N/A") {
 				$this->stock += $price->stock;
-				$price->stocked = true;
-				$this->inventory = true;
-			} else $price->stocked = false;
+				$this->inventory = $price->stocked = true;
+			}
 			
 			if ($price->freeshipping == 0) $freeshipping = false;
 
 			if ($price->onsale) $price->promoprice = (float)$price->saleprice;
 			else $price->promoprice = (float)$price->price;
-			// if ((int)$price->promoprice == 0) $price->promoprice = $price->price;
 
 			if ((isset($price->promos) && $price->promos == 'enabled')) {
 				if ($price->percentoff > 0) {
 					$price->promoprice = $price->promoprice - ($price->promoprice * ($price->percentoff/100));
-					$price->onsale = true;
-					$this->onsale = true;
+					$this->onsale = $price->onsale = true;
 				}
 				if ($price->amountoff > 0) {
 					$price->promoprice = $price->promoprice - $price->amountoff;
-					$price->onsale = true;
-					$this->onsale = true;
+					$this->onsale = $price->onsale = true;;
 				}
 			}
 
 			// Grab price and saleprice ranges (minimum - maximum)
 			if ($price->type != "N/A") {
 				if (!$price->price) $price->price = 0;
-				// if ($price->price > 0) {
 					if (!isset($this->pricerange['min']['price'])) 
 						$this->pricerange['min']['price'] = $this->pricerange['max']['price'] = $price->price;
 					if ($this->pricerange['min']['price'] > $price->price) 
 						$this->pricerange['min']['price'] = $price->price;
 					if ($this->pricerange['max']['price'] < $price->price) 
 						$this->pricerange['max']['price'] = $price->price;
-				// }
 
 					if (!isset($this->pricerange['min']['saleprice'])) 
 						$this->pricerange['min']['saleprice'] = $this->pricerange['max']['saleprice'] = $price->promoprice;
@@ -345,7 +338,7 @@ class Product extends DatabaseObject {
 			}
 
 			if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
-			if (defined('WP_ADMIN') && value_is_true($options['taxes'])) { 
+			if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") { 
 				$base = $Shopp->Settings->get('base_operations');
 				if ($base['vat']) {
 					$taxrate = $Shopp->Cart->taxrate();

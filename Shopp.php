@@ -1256,7 +1256,8 @@ class Shopp {
 				exit();
 				break;
 			case "shipcost":
-				$this->init();
+				@session_start();
+				$this->ShipCalcs = new ShipCalcs($this->path);
 				if (isset($_GET['method'])) {
 					$this->Cart->data->Order->Shipping->method = $_GET['method'];
 					$this->Cart->retotal = true;

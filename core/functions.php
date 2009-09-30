@@ -583,21 +583,26 @@ function file_mimetype ($file,$name=false) {
 	if (function_exists('finfo_open')) {
 		// Try using PECL module
 		$f = finfo_open(FILEINFO_MIME);
-		$mime = finfo_file($f, $file);
+		list($mime,$charset) = explode(";",finfo_file($f, $file));
 		finfo_close($f);
+		new ShoppError('File mimetype detection (finfo_open): '.$mime,false,SHOPP_DEBUG_ERR);
 		return $mime;
 	} elseif (class_exists('finfo')) {
 		// Or class
 		$f = new finfo(FILEINFO_MIME);
+		new ShoppError('File mimetype detection (finfo class): '.$f->file($file),false,SHOPP_DEBUG_ERR);
 		return $f->file($file);
 	} elseif (strlen($mime=trim(@shell_exec('file -bI "'.escapeshellarg($file).'"')))!=0) {
+		new ShoppError('File mimetype detection (shell file command): '.$mime,false,SHOPP_DEBUG_ERR);
 		// Use shell if allowed
 		return trim($mime);
 	} elseif (strlen($mime=trim(@shell_exec('file -bi "'.escapeshellarg($file).'"')))!=0) {
+		new ShoppError('File mimetype detection (shell file command, alt options): '.$mime,false,SHOPP_DEBUG_ERR);
 		// Use shell if allowed
 		return trim($mime);
 	} elseif (function_exists('mime_content_type') && $mime = mime_content_type($file)) {
 		// Try with magic-mime if available
+		new ShoppError('File mimetype detection (mime_content_type()): '.$mime,false,SHOPP_DEBUG_ERR);
 		return $mime;
 	} else {
 		if (!preg_match('/\.([a-z0-9]{2,4})$/i', $name, $extension)) return false;

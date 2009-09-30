@@ -1397,7 +1397,7 @@ class Flow {
 				$option['sortorder'] = array_search($i,$_POST['sortorder'])+1;
 				
 				// Remove VAT amount to save in DB
-				if ($base['vat']) {
+				if ($base['vat'] && $option['tax'] == "on") {
 					$option['price'] = number_format(floatnum($option['price'])/(1+$taxrate),2);
 					$option['saleprice'] = number_format(floatnum($option['saleprice'])/(1+$taxrate),2);
 				}
