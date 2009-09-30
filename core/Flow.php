@@ -1416,7 +1416,7 @@ class Flow {
 						$File->name = basename($download);
 						$File->value = substr(dirname($download),strlen($basepath));
 						$File->size = filesize($download);
-						$File->properties = array("mimetype" => file_mimetype($download));
+						$File->properties = array("mimetype" => file_mimetype($download,$File->name));
 						$File->save();
 						$Price->attach_download($File->id);
 					}
@@ -1498,7 +1498,7 @@ class Flow {
 		$File->datatype = "download";
 		$File->name = $_FILES['Filedata']['name'];
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
-		$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name'],$File->name));
+		$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name']),$File->name);
 		$File->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
 		$File->save();
 		unset($File->data); // Remove file contents from memory

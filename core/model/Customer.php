@@ -169,7 +169,7 @@ class Customer extends DatabaseObject {
 		$RecoveryCustomer->activation = '';
 		$RecoveryCustomer->save();
 		
-		$subject = apply_filters('shopp_recover_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
+		$subject = apply_filters('shopp_reset_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
 		
 		$_ = array();
 		$_[] = 'From: "'.get_option('blogname').'" <'.$Shopp->Settings->get('merchant_email').'>';

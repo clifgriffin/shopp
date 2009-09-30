@@ -578,7 +578,8 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 /**
  * file_mimetype
  * Tries a variety of methods to determine a file's mimetype */
-function file_mimetype ($file,$name) {
+function file_mimetype ($file,$name=false) {
+	if (!$name) $name = basename($file);
 	if (function_exists('finfo_open')) {
 		// Try using PECL module
 		$f = finfo_open(FILEINFO_MIME);

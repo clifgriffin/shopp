@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.11
+Version: 1.0.12 b1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -28,7 +28,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define('SHOPP_VERSION','1.0.11');
+define('SHOPP_VERSION','1.0.12 b1');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
@@ -873,9 +873,9 @@ class Shopp {
 			// Split for encoding multi-byte slugs
 			$slugs = explode("/",$category);
 			$category = join("/",array_map('urlencode',$slugs));
-			
+
 			// Load the category
-			$this->Category = Catalog::load_category($category,$options);			
+			$this->Category = Catalog::load_category($category,$options);
 			$this->Cart->data->breadcrumb = (isset($tag)?"tag/":"").$this->Category->uri;
 		} 
 		

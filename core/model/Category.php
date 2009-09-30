@@ -539,6 +539,7 @@ class Category extends DatabaseObject {
 			case "total": return $this->total; break;
 			case "has-products": 
 			case "hasproducts": 
+				if (empty($this->id) && empty($this->slug)) return false;
 				if (isset($options['load'])) {
 					$dataset = explode(",",$options['load']);
 					$options['load'] = array();
