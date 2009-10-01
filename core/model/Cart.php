@@ -1214,7 +1214,10 @@ class Cart {
 		$result = "";
 		switch ($property) {
 			case "promo-code": 
-				if (empty($this->data->Promotions)) return false; // Skip if no promotions exist
+				// Skip if no promotions exist
+				if (empty($this->data->Promotions)) return false;
+				// Skip if the promo limit has been reached
+				if (count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
 				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code");
 				$result .= '<ul><li>';
 				
