@@ -663,9 +663,12 @@ function file_mimetype ($file,$name=false) {
 
 /**
  * Returns a list marked-up as drop-down menu options */
-function menuoptions ($list,$selected=null,$values=false) {
+function menuoptions ($list,$selected=null,$values=false,$extend=false) {
 	if (!is_array($list)) return "";
 	$string = "";
+	// Extend the options if the selected value doesn't exist
+	if ((!in_array($selected,$list) && !isset($list[$selected])) && $extend)
+		$string .= "<option value=\"$selected\">$selected</option>";
 	foreach ($list as $value => $text) {
 		if ($values) {
 			if ($value == $selected) $string .= "<option value=\"$value\" selected=\"selected\">$text</option>";

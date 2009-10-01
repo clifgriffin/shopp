@@ -267,7 +267,7 @@ class Purchase extends DatabaseObject {
 				return $result;
 				break;
 			case "has-data":
-			case "hasdata": return (count($this->data) > 0); break;
+			case "hasdata": return (is_array($this->data) && count($this->data) > 0); break;
 			case "orderdata":
 				if (!$this->dataloop) {
 					reset($this->data);

@@ -655,6 +655,12 @@ class Flow {
 
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
+		$txnStatusLabels = array(
+			'PENDING' => __('Pending','Shopp'),
+			'CHARGED' => __('Charged','Shopp'),
+			'REFUNDED' => __('Refunded','Shopp'),
+			'VOID' => __('Void','Shopp')
+			);
 
 		if ($update == "order"
 						&& !empty($selected) 
@@ -789,6 +795,10 @@ class Flow {
 		
 		if (!empty($_POST)) {
 			check_admin_referer('shopp-save-order');
+			
+			if ($_POST['transtatus'] != $Purchase->transtatus)
+				do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['transtatus'],&$Purchase));
+			
 			$Purchase->updates($_POST);
 			if ($_POST['notify'] == "yes") {
 				$labels = $this->Settings->get('order_status');
@@ -816,8 +826,16 @@ class Flow {
 		}
 
 		$targets = $this->Settings->get('target_markets');
+		$txnStatusLabels = array(
+			'PENDING' => __('Pending','Shopp'),
+			'CHARGED' => __('Charged','Shopp'),
+			'REFUNDED' => __('Refunded','Shopp'),
+			'VOID' => __('Void','Shopp')
+			);
+		
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
+		
 		
 		$taxrate = 0;
 		$base = $Shopp->Settings->get('base_operations');
