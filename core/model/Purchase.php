@@ -123,14 +123,8 @@ class Purchase extends DatabaseObject {
 		global $Shopp;
 
 
-		if ($property == "item-unitprice" || $property == "item-total") {
-			$taxrate = 0;
-			$taxes = false;
-			$base = $Shopp->Settings->get('base_operations');
-			if ($base['vat']) $taxes = true;
-			if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
-			if ($taxes) $taxrate = $Shopp->Cart->taxrate();
-		}
+		if ($property == "item-unitprice" || $property == "item-total")
+			$taxrate = shopp_taxrate($options['taxes']);
 
 		// Return strings with no options
 		switch ($property) {

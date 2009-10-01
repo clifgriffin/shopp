@@ -619,7 +619,7 @@ class Cart {
 		
 		if ($global) return apply_filters('shopp_cart_taxrate',$global['rate']/100);
 		
-	}   
+	}
 	
 	/**
 	 * totals()

@@ -827,6 +827,20 @@ function _d($format,$timestamp=false) {
 	return $date;
 }
 
+function shopp_taxrate ($override=null,$taxprice=true) {
+	global $Shopp;
+	$rated = false;
+	$taxrate = 0;
+	$base = $Shopp->Settings->get('base_operations');
+
+	if ($base['vat']) $rated = true;
+	if (!is_null($override)) $rated = (value_is_true($override));
+	if (!value_is_true($taxprice)) $rated = false;
+	
+	if ($rated) $taxrate = $Shopp->Cart->taxrate();
+	return $taxrate;
+}
+
 function inputattrs ($options,$allowed=array()) {
 	if (!is_array($options)) return "";
 	if (empty($allowed)) {
