@@ -1516,14 +1516,14 @@ class Flow {
 		$File->datatype = "download";
 		$File->name = $_FILES['Filedata']['name'];
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
-		$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name']),$File->name);
+		$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name'],$File->name));
 		$File->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
 		$File->save();
 		unset($File->data); // Remove file contents from memory
 		
 		do_action('add_product_download',$File,$_FILES['Filedata']);
 		
-		echo json_encode(array("id"=>$File->id,"name"=>$File->name,"type"=>$File->properties['mimetype'],"size"=>$File->size));
+		echo json_encode(array("id"=>$File->id,"name"=>stripslashes($File->name),"type"=>$File->properties['mimetype'],"size"=>$File->size));
 	}
 	
 	function add_images () {

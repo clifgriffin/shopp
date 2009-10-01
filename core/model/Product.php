@@ -199,7 +199,7 @@ class Product extends DatabaseObject {
 				$record->{$key} = '';
 				if ($key == "name") $name = $row->{$column};
 				if (!empty($row->{$column})) {
-					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column})) 
+					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column}))
 						$row->{$column} = unserialize($row->{$column});
 					$record->{$key} = $row->{$column};
 				}
@@ -226,7 +226,7 @@ class Product extends DatabaseObject {
 		
 	function pricing ($options = false) {
 		global $Shopp;
-		
+		// print_r($this->prices);
 		$variations = ($this->variations == "on");
 		$freeshipping = true;
 		$this->inventory = false;
