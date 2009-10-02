@@ -2436,8 +2436,6 @@ class Flow {
 				$ProcessorClass = $gateway->tags['class'];
 				// Load the gateway in case there are any save-time processes to be run
 				$Processor = $Shopp->gateway($_POST['settings']['payment_gateway'],true);
-				// include_once($gateway->file);
-				// $Processor = new $ProcessorClass();
 				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
 			}
 			if (is_array($_POST['settings']['xco_gateways'])) {
@@ -2445,23 +2443,21 @@ class Flow {
 					$gateway = str_replace("\\","/",stripslashes($gateway));
 					if (!file_exists(SHOPP_GATEWAYS.$gateway)) continue;
 					$meta = $this->scan_gateway_meta(SHOPP_GATEWAYS.$gateway);
+					$_POST['settings'][$ProcessorClass]['path'] = str_replace("\\","/",stripslashes($_POST['settings'][$ProcessorClass]['path']));
 					$ProcessorClass = $meta->tags['class'];
 					// Load the gateway in case there are any save-time processes to be run
 					$Processor = $Shopp->gateway($gateway);
-					// include_once($gateway_dir.$gateway);
-					// $Processor = new $ProcessorClass();
 				}
 			}
 			
 			do_action('shopp_save_payment_settings');
-			
+
 			$this->settings_save();
 			$payment_gateway = stripslashes($this->Settings->get('payment_gateway'));
 			
 			$updated = __('Shopp payments settings saved.','Shopp');
 		}
 
-		
 		
 		// Get all of the installed gateways
 		$data = $this->settings_get_gateways();

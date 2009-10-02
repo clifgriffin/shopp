@@ -1819,6 +1819,7 @@ class Cart {
 				if (!is_array($xcos)) return false;
 				$buttons = "";
 				foreach ($xcos as $xco) {
+					$xco = str_replace('/',DIRECTORY_SEPARATOR,$xco);
 					$xcopath = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$xco));
 					if (!file_exists($xcopath)) continue;
 					$meta = $Shopp->Flow->scan_gateway_meta($xcopath);
