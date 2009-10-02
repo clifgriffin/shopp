@@ -990,6 +990,10 @@ function is_shopp_page ($page=false) {
 	return false;
 }
 
+function is_shopp_secure () {
+	return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on");
+}
+
 function template_path ($path) {
 	if (DIRECTORY_SEPARATOR == "\\") $path = str_replace("/","\\",$path);
 	return $path;

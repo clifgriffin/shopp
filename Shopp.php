@@ -1024,6 +1024,11 @@ class Shopp {
 		
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-mm'],$_POST['billing']['cardexpires-yy']);
 
+		// If the card number is provided over a secure connection
+		// Change the cart to operate in secure mode
+		if (isset($_POST['billing']['card']) && is_shopp_secure())
+			$this->Cart->secured(true);
+
 		// Sanitize the card number to ensure it only contains numbers
 		$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
 

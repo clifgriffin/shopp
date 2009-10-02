@@ -443,7 +443,6 @@ class Flow {
 					$Shopp->Gateway->error();
 					return false;
 				}
-				
 				$gatewaymeta = $this->scan_gateway_meta(SHOPP_GATEWAYS.$gateway);
 				$gatewayname = $gatewaymeta->name;
 				$transactionid = $Shopp->Gateway->transactionid();
@@ -484,6 +483,10 @@ class Flow {
 			$Order->Billing->customer = $Order->Customer->id;
 			$Order->Billing->card = substr($Order->Billing->card,-4);
 			$Order->Billing->save();
+
+			// Card data is truncated, switch the cart to normal mode
+			if ($Shopp->Cart->secured() && is_shopp_secure())
+				$Shopp->Cart->secured(false);
 
 			if (!empty($Order->Shipping->address)) {
 				$Order->Shipping->customer = $Order->Customer->id;
