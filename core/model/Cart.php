@@ -1270,6 +1270,12 @@ class Cart {
 		
 		$result = "";
 		switch ($property) {
+			case "promos-available":
+				if (empty($this->data->Promotions)) return false;
+				// Skip if the promo limit has been reached
+				if (count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
+				return true;
+				break;
 			case "promo-code": 
 				// Skip if no promotions exist
 				if (empty($this->data->Promotions)) return false;
