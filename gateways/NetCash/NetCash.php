@@ -106,7 +106,7 @@ class NetCash {
 		$_['p2'] = mktime();
 		$_['p3'] = get_bloginfo('sitename');
 		$_['p4'] = number_format($Order->Totals->total,2);
-		$_['p10'] = $Shopp->link('checkout');
+		$_['p10'] = $Shopp->link('checkout',false);
 		$_['Budget'] = 'Y';
 		$_['m_4'] = $Order->Cart;
 		// $_['m_5'] = '';		
