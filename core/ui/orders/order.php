@@ -175,8 +175,8 @@ $('#notify-customer').click(function () {
 
 $('#print-button').click(function () {
 	var frame = $('#print-receipt').get(0);
-	if ($.browser.opera) {
-		var preview = window.open(frame.location.href+"&print=auto");
+	if ($.browser.opera || $.browser.msie) {
+		var preview = window.open(frame.contentWindow.location.href+"&print=auto");
 		$(preview).load(function () {
 			preview.close();
 		});
