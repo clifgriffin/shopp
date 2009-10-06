@@ -167,7 +167,10 @@
 (function($){
 $('#notification').hide();
 $('#notify-customer').click(function () {
-	$('#notification').slideToggle(500);
+	$('#notification').animate({ 
+		height: "toggle", 
+		opacity:"toggle" 
+	}, 500);
 });
 
 $('#print-button').click(function () {
