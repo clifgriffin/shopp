@@ -58,7 +58,6 @@ class Price extends DatabaseObject {
 		
 		return true;
 	}
-	
 
 } // end Price class
 

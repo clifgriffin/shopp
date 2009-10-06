@@ -103,9 +103,9 @@ div.comment-item:hover .row-actions { visibility: visible; }
 .pricing-table div.file.msword { background-image: url('../icons/page_white_word.png'); }
 .pricing-table div.file.excel { background-image: url('../icons/page_white_excel.png'); }
 
-.pricing-table div.file.x-zip,
-.pricing-table div.file.x-stuffit,
-.pricing-table div.file.x-tar
+.pricing-table div.file.zip,
+.pricing-table div.file.stuffit,
+.pricing-table div.file.tar
 { background-image: url('../icons/page_white_zip.png'); }
 
 #variations-pricing > tr > th, #variations-pricing > tr > td { border-top: 1px solid #dfdfdf; }

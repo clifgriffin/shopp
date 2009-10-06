@@ -50,6 +50,8 @@ class Cart {
 			array( &$this, 'trash' )	// Garbage Collection
 		);
 		
+		define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
+		
 		$this->data = new stdClass();				// Session data
 		$this->data->Totals = new stdClass();		// Cart totals
 		$this->data->Totals->subtotal = 0;			// Subtotal of item totals
@@ -68,6 +70,7 @@ class Cart {
 
 		$this->data->added = 0;						// Recently added item index
 		$this->data->login = false;					// Customer logged in flag
+		$this->data->secure = false;				// Security flag
 		
 		$this->data->Errors = new ShoppErrors();	// Tracks errors
 		$this->data->Shipping = false;				// Cart has shipped items
@@ -115,7 +118,20 @@ class Cart {
 		
 		if (is_robot()) return true;
 		
-		if ($result = $db->query("SELECT * FROM $this->_table WHERE session='$this->session'")) {
+		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
+		// echo "$query".BR;
+
+		if ($result = $db->query($query)) {
+			if (substr($result->data,0,1) == "!") {
+				$key = $_COOKIE[SHOPP_SECURE_KEY];
+				$readable = $db->query("SELECT AES_DECRYPT('".
+										mysql_real_escape_string(
+											base64_decode(
+												substr($result->data,1)
+											)
+										)."','$key') AS data");
+				$result->data = $readable->data;
+			}
 			$this->ip = $result->ip;
 			$this->data = unserialize($result->data);
 			if (empty($result->contents)) $this->contents = array();
@@ -133,7 +149,7 @@ class Cart {
 		// Read standard session data
 		if (file_exists("$this->path/sess_$id"))
 			return (string) file_get_contents("$this->path/sess_$id");
-		
+
 		return true;
 	}
 	
@@ -153,11 +169,23 @@ class Cart {
 	function save ($id,$session) {
 		global $Shopp;
 		$db = DB::get();
+
 		if (!$Shopp->Settings->unavailable) {
 			$data = $db->escape(addslashes(serialize($this->data)));
 			$contents = $db->escape(serialize($this->contents));
-			if (!$db->query("UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'")) 
+			new ShoppError(_object_r($this),false,SHOPP_DEBUG_ERR);
+			
+			if ($this->secured() && is_shopp_secure()) {
+				new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
+				if (!isset($_COOKIE[SHOPP_SECURE_KEY])) $this->securekey();
+				$key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
+				$secure = $db->query("SELECT AES_ENCRYPT('$data','$key') AS data");
+				$data = "!".base64_encode($secure->data);
+			}
+			$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'";
+			if (!$db->query($query)) 
 				trigger_error("Could not save session updates to the database.");
+
 		}
 
 		// Save standard session data for compatibility
@@ -619,7 +647,7 @@ class Cart {
 		
 		if ($global) return apply_filters('shopp_cart_taxrate',$global['rate']/100);
 		
-	}   
+	}
 	
 	/**
 	 * totals()
@@ -845,7 +873,36 @@ class Cart {
 		$this->data->Order->Shipping->customer = false;
 		session_commit();
 	}
+	
+	/**
+	 * secured()
+	 * Check or set the security setting for the cart */
+	function secured ($setting=null) {
+		if (is_null($setting)) return $this->data->secure;
+		$this->data->secure = ($setting);
+		if (SHOPP_DEBUG) {
+			if ($this->data->secure) new ShoppError('Switching the cart to secure mode.',false,SHOPP_DEBUG_ERR);
+			else new ShoppError('Switching the cart to unsecure mode.',false,SHOPP_DEBUG_ERR);
+		}
+		return $this->data->secure;
+	}
 
+	/**
+	 * securekey()
+	 * Generate the security key */
+	function securekey () {
+		global $Shopp;
+		require_once(ABSPATH . WPINC . '/pluggable.php');
+		if (!is_shopp_secure()) return false;
+		$expiration = time()+SHOPP_SESSION_TIMEOUT;
+		$key = wp_hash($this->session . '|' . $expiration, 'secure_auth');
+		$content = hash_hmac('sha256', $this->session . '|' . $expiration, $key);
+		if ( version_compare(phpversion(), '5.2.0', 'ge') )
+ 			setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true,true);
+		else setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true);
+		return true;
+	}
+	
 	/**
 	 * request()
 	 * Processes cart requests and updates the cart
@@ -1191,8 +1248,17 @@ class Cart {
 		
 		$result = "";
 		switch ($property) {
+			case "promos-available":
+				if (empty($this->data->Promotions)) return false;
+				// Skip if the promo limit has been reached
+				if (count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
+				return true;
+				break;
 			case "promo-code": 
-				if (empty($this->data->Promotions)) return false; // Skip if no promotions exist
+				// Skip if no promotions exist
+				if (empty($this->data->Promotions)) return false;
+				// Skip if the promo limit has been reached
+				if (count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
 				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code");
 				$result .= '<ul><li>';
 				
@@ -1737,6 +1803,7 @@ class Cart {
 				if (!is_array($xcos)) return false;
 				$buttons = "";
 				foreach ($xcos as $xco) {
+					$xco = str_replace('/',DIRECTORY_SEPARATOR,$xco);
 					$xcopath = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$xco));
 					if (!file_exists($xcopath)) continue;
 					$meta = $Shopp->Flow->scan_gateway_meta($xcopath);

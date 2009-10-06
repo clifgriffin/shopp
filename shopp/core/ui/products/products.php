@@ -64,7 +64,8 @@
 				</td>
 			<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo $Product->categories; ?></td>
 			<td class="price column-price<?php echo in_array('price',$hidden)?' hidden':''; ?>"><?php
-				if ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
+				if ($Product->variations == "off") echo money($Product->mainprice);
+				elseif ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
 				else echo money($Product->minprice)."&mdash;".money($Product->maxprice);
 			?></td>
 			<td class="inventory column-inventory<?php echo in_array('inventory',$hidden)?' hidden':''; ?>"><?php if ($Product->inventory == "on") echo $Product->stock; ?></td> 

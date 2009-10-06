@@ -55,8 +55,20 @@
 		<?php 
 			$hidden = get_hidden_columns('toplevel_page_shopp-orders');
 			
-			$even = false; foreach ($Orders as $Order): ?>
-		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
+			$even = false; foreach ($Orders as $Order): 
+
+			$classes = array();
+			
+			$txnstatus = $Order->transtatus;
+			if (array_key_exists($Order->transtatus,$txnStatusLabels)) $txnstatus = $txnStatusLabels[$Order->transtatus];
+			if (empty($txnstatus)) $txnstatus = "UNKNOWN";
+			$classes[] = strtolower(preg_replace('/[^\w]/','_',$txnstatus));
+
+			if (!$even) $classes[] = "alternate"; 
+			do_action_ref_array('shopp_order_row_css',array(&$classes,&$Order));
+			$even = !$even;
+			?>
+		<tr class="<?php echo join(' ',$classes); ?>">
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Order->id; ?>' /></th>
 			<td class="order column-order<?php echo in_array('order',$hidden)?' hidden':''; ?>"><?php echo $Order->id; ?></td>
 			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>$this->Admin->orders,'id'=>$Order->id),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo (empty($Order->firstname) && empty($Order->lastname))?"(".__('no contact name','Shopp').")":"{$Order->firstname} {$Order->lastname}"; ?></a><?php echo !empty($Order->company)?"<br />$Order->company":""; ?></td>
@@ -71,7 +83,7 @@
 				echo $location;
 				 ?></td>
 			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><?php echo money($Order->total); ?></td>
-			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->transactionid; ?><br /><strong><?php echo $Order->gateway; ?></strong></td>
+			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->transactionid; ?><br /><strong><?php echo $Order->gateway; ?></strong> &mdash; <?php echo $txnstatus; ?></td>
 			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Order->created)); ?><br />
 				<strong><?php echo $statusLabels[$Order->status]; ?></strong></td>
 		</tr>

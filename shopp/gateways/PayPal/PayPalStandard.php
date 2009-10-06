@@ -4,7 +4,7 @@
  * @class PayPalStandard
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.2
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * 
@@ -101,13 +101,12 @@ class PayPalStandard {
 		if ($Shopp->Cart->validate() !== true) {
 			$_POST['checkout'] = false;
 			return;
-		}
+		} else $Order->Customer->updates($_POST); // Catch changes from validation
 
 		if ($Shopp->Cart->data->Totals->total == 0) {
 			$_POST['checkout'] = 'confirmed';
 			$this->order();	
 		}
-		
 		
 		header("Location: ".add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
 		exit();
@@ -187,9 +186,11 @@ class PayPalStandard {
 		global $Shopp;
 		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification received.',false,SHOPP_DEBUG_ERR);
 
-		// Validate the order notification
-		if (empty($_POST['invoice']) || !$this->validipn())
-			return new ShoppError(__('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
+		// If no invoice number is available, we 
+		if (empty($_POST['invoice'])) {
+			if (SHOPP_DEBUG) new ShoppError('No invoice number was provided by PayPal: '._object_r($_POST),'paypalstd_debug',SHOPP_DEBUG_ERR);
+			return new ShoppError(__('An unverifiable order with no invoice number was received from PayPal. Possible fraudulent order attempt!','Shopp'),'paypal_txn_verification',SHOPP_TRXN_ERR);
+		}
 
 		session_unset();
 		session_destroy();
@@ -212,7 +213,7 @@ class PayPalStandard {
 		// Check for unique transaction id
 		$Purchase = new Purchase($_POST['txn_id'],'transactionid');
 		
-		if ($_POST['mc_gross'] == number_format($Order->Totals->total,2) 
+		if (number_format($_POST['mc_gross'],2) == number_format($Order->Totals->total,2) 
 			&& empty($Purchase->id)) $validation = true;
 		
 		if ($validation) $this->order();
@@ -221,18 +222,30 @@ class PayPalStandard {
 		exit();
 	}
 	
-	function validipn () {
+	function verifyipn () {
 		$_ = array();
 		$_['cmd'] = "_notify-validate";
 		
 		$this->transaction = $this->encode(array_merge($_POST,$_));
 		$Response = $this->send();
-		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification validation response received: '.$Response,'paypal_standard',SHOPP_DEBUG_ERR);
-		return ($Response == "VERIFIED");
+		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification verfication response received: '.$Response,'paypal_standard',SHOPP_DEBUG_ERR);
+		return $Response;
 	}
 	
 	function order () {
 		global $Shopp;
+		
+		$txnstatus = false;
+		$ipnstatus = $this->verifyipn();
+
+		// Validate the order notification
+		if ($ipnstatus != "VERIFIED") {
+			$txnstatus = $ipnstatus;
+			new ShoppError('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt! The order will be created, but the order payment status must be manually set to "Charged" when the payment can be verified.','paypal_txn_verification',SHOPP_TRXN_ERR);
+		} 
+		
+		if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
+		
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
@@ -255,7 +268,7 @@ class PayPalStandard {
 			// Create WordPress account (if necessary)
 			if (!$Order->Customer->wpuser) {
 				if (SHOPP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
-				$Order->Customer->new_wpuser();
+				if(!$Order->Customer->new_wpuser()) new ShoppError(__('Account creation failed on order for customer id:' . $Order->Customer->id, "Shopp"), false,SHOPP_TRXN_ERR);
 			}
 		}
 
@@ -290,7 +303,7 @@ class PayPalStandard {
 		$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
 		$Purchase->gateway = "PayPal".(isset($_POST['test_ipn']) && $_POST['test_ipn'] == "1"?" Sandbox":"");
 		$Purchase->transactionid = $_POST['txn_id'];
-		$Purchase->transtatus = $this->status[$_POST['payment_status']];
+		$Purchase->transtatus = $txnstatus;
 		$Purchase->fees = $_POST['mc_fee'];
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
@@ -396,11 +409,11 @@ class PayPalStandard {
 			if (is_array($value)) {
 				foreach($value as $item) {
 					if (strlen($query) > 0) $query .= "&";
-					$query .= "$key=".urlencode($item);
+					$query .= "$key=".urlencode(stripslashes($item));
 				}
 			} else {
 				if (strlen($query) > 0) $query .= "&";
-				$query .= "$key=".urlencode($value);
+				$query .= "$key=".urlencode(stripslashes($value));
 			}
 		}
 		return $query;

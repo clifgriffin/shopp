@@ -13,6 +13,19 @@ function copyOf (src) {
 }
 
 /**
+ * Array.indexOf ()
+ * Provides indexOf method for browsers that
+ * that don't implement JavaScript 1.6 (IE for example)
+ **/
+if (!Array.indexOf) {
+	Array.prototype.indexOf = function(obj) {
+		for (var i = 0; i < this.length; i++)
+			if (this[i] == obj) return i;
+		return -1;
+	}
+}
+
+/**
  * asMoney ()
  * Add notation to an integer to display it as money.
  **/

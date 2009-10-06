@@ -33,6 +33,7 @@ class Product extends DatabaseObject {
 	var $specloop = false;
 	var $outofstock = false;
 	var $stock = 0;
+	var $options = 0;
 	
 	function Product ($id=false,$key=false) {
 		$this->init(self::$table);
@@ -198,7 +199,7 @@ class Product extends DatabaseObject {
 				$record->{$key} = '';
 				if ($key == "name") $name = $row->{$column};
 				if (!empty($row->{$column})) {
-					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column})) 
+					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$row->{$column}))
 						$row->{$column} = unserialize($row->{$column});
 					$record->{$key} = $row->{$column};
 				}
@@ -225,9 +226,10 @@ class Product extends DatabaseObject {
 		
 	function pricing ($options = false) {
 		global $Shopp;
-		
+		// print_r($this->prices);
 		$variations = ($this->variations == "on");
 		$freeshipping = true;
+		$this->inventory = false;
 		foreach ($this->prices as $i => &$price) {
 			// echo "<pre>"; print_r($price); echo "</pre>";
 			// Build secondary lookup table using the combined optionkey
@@ -239,48 +241,40 @@ class Product extends DatabaseObject {
 			
 			// Boolean flag for custom product sales
 			$price->onsale = false;
-			if ($price->sale == "on" && $price->type != "N/A") {
-				$price->onsale = true;
-				$this->onsale = true;
-			}
+			if ($price->sale == "on" && $price->type != "N/A")
+				$this->onsale = $price->onsale = true;
 			
-			$this->inventory = false;
+			$price->stocked = false;
 			if ($price->inventory == "on" && $price->type != "N/A") {
 				$this->stock += $price->stock;
-				$price->stocked = true;
-				$this->inventory = true;
-			} else $price->stocked = false;
+				$this->inventory = $price->stocked = true;
+			}
 			
 			if ($price->freeshipping == 0) $freeshipping = false;
 
 			if ($price->onsale) $price->promoprice = (float)$price->saleprice;
 			else $price->promoprice = (float)$price->price;
-			// if ((int)$price->promoprice == 0) $price->promoprice = $price->price;
 
 			if ((isset($price->promos) && $price->promos == 'enabled')) {
 				if ($price->percentoff > 0) {
 					$price->promoprice = $price->promoprice - ($price->promoprice * ($price->percentoff/100));
-					$price->onsale = true;
-					$this->onsale = true;
+					$this->onsale = $price->onsale = true;
 				}
 				if ($price->amountoff > 0) {
 					$price->promoprice = $price->promoprice - $price->amountoff;
-					$price->onsale = true;
-					$this->onsale = true;
+					$this->onsale = $price->onsale = true;;
 				}
 			}
 
 			// Grab price and saleprice ranges (minimum - maximum)
 			if ($price->type != "N/A") {
 				if (!$price->price) $price->price = 0;
-				// if ($price->price > 0) {
 					if (!isset($this->pricerange['min']['price'])) 
 						$this->pricerange['min']['price'] = $this->pricerange['max']['price'] = $price->price;
 					if ($this->pricerange['min']['price'] > $price->price) 
 						$this->pricerange['min']['price'] = $price->price;
 					if ($this->pricerange['max']['price'] < $price->price) 
 						$this->pricerange['max']['price'] = $price->price;
-				// }
 
 					if (!isset($this->pricerange['min']['saleprice'])) 
 						$this->pricerange['min']['saleprice'] = $this->pricerange['max']['saleprice'] = $price->promoprice;
@@ -344,9 +338,8 @@ class Product extends DatabaseObject {
 					$this->weightrange['max'] = $price->weight;
 			}
 
-			
-			if (defined('WP_ADMIN')
-				&& (isset($options['taxes']) && value_is_true($options['taxes']))) {
+			if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
+			if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") { 
 				$base = $Shopp->Settings->get('base_operations');
 				if ($base['vat']) {
 					$taxrate = $Shopp->Cart->taxrate();
@@ -694,22 +687,27 @@ class Product extends DatabaseObject {
 				return ($this->featured == "on"); break;
 			case "price":
 				if (empty($this->prices)) $this->load_data(array('prices'));
+				if (!isset($options['taxes'])) $options['taxes'] = null;
 
-				$taxrate = 0;
-				$taxes = false;
-				$base = $Shopp->Settings->get('base_operations');
-				if ($base['vat']) $taxes = true;
-				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
-				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
+				// $taxrate = 0;
+				// $taxes = false;
+				// $base = $Shopp->Settings->get('base_operations');
+				// if ($base['vat']) $taxes = true;
+				// if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
+				// if ($taxes) $taxrate = $Shopp->Cart->taxrate();
 				
-				if ($this->options > 1) {
+				if (count($this->options) > 0) {
+					$taxrate = shopp_taxrate($options['taxes']);
 					if ($this->pricerange['min']['price'] == $this->pricerange['max']['price'])
 						return money($this->pricerange['min']['price'] + ($this->pricerange['min']['price']*$taxrate));
 					else {
 						if (!empty($options['starting'])) return $options['starting']." ".money($this->pricerange['min']['price']+($this->pricerange['min']['price']*$taxrate));
 						return money($this->pricerange['min']['price']+($this->pricerange['min']['price']*$taxrate))." &mdash; ".money($this->pricerange['max']['price'] + ($this->pricerange['max']['price']*$taxrate));
 					}
-				} else return money($this->prices[0]->price + ($this->prices[0]->price*$taxrate));
+				} else {
+					$taxrate = shopp_taxrate($options['taxes'],$this->prices[0]->tax);
+					return money($this->prices[0]->price + ($this->prices[0]->price*$taxrate));
+				}
 				break;
 			case "weight":
 				if(empty($this->prices)) $this->load_data(array('prices'));
@@ -741,33 +739,25 @@ class Product extends DatabaseObject {
 				// if (empty($this->prices)) $this->load_prices();
 				$pricetag = 'price';
 
-				$taxrate = 0;
-				$taxes = false;
-				$base = $Shopp->Settings->get('base_operations');
-				if ($base['vat']) $taxes = true;
-				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
-				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
-
 				if ($this->onsale) $pricetag = 'saleprice';
-				if ($this->options > 1) {
+				if (count($this->options) > 0) {
+					$taxrate = shopp_taxrate($options['taxes']);
 					if ($this->pricerange['min'][$pricetag] == $this->pricerange['max'][$pricetag])
 						return money($this->pricerange['min'][$pricetag]+($this->pricerange['min'][$pricetag]*$taxrate)); // No price range
 					else {
 						if (!empty($options['starting'])) return $options['starting']." ".money($this->pricerange['min'][$pricetag]+($this->pricerange['min'][$pricetag]*$taxrate));
 						return money($this->pricerange['min'][$pricetag]+($this->pricerange['min'][$pricetag]*$taxrate))." &mdash; ".money($this->pricerange['max'][$pricetag]+($this->pricerange['max'][$pricetag]*$taxrate));
 					}
-				} else return money($this->prices[0]->promoprice+($this->prices[0]->promoprice*$taxrate));
+				} else {
+					$taxrate = shopp_taxrate($options['taxes'],$this->prices[0]->tax);
+					return money($this->prices[0]->promoprice+($this->prices[0]->promoprice*$taxrate));
+				}
 				break;
 			case "has-savings": return ($this->onsale && $this->pricerange['min']['saved'] > 0)?true:false; break;
 			case "savings":
 				if (empty($this->prices)) $this->load_data(array('prices'));
 
-				$taxrate = 0;
-				$taxes = false;
-				$base = $Shopp->Settings->get('base_operations');
-				if ($base['vat']) $taxes = true;
-				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
-				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
+				$taxrate = shopp_taxrate($options['taxes']);
 
 				if (!isset($options['show'])) $options['show'] = '';
 				if ($options['show'] == "%" || $options['show'] == "percent") {
@@ -1079,13 +1069,6 @@ class Product extends DatabaseObject {
 					
 				$options = array_merge($defaults,$options);
 
-				$taxrate = 0;
-				$taxes = false;
-				$base = $Shopp->Settings->get('base_operations');
-				if ($base['vat']) $taxes = true;
-				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
-				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
-
 				if (!isset($options['label'])) $options['label'] = "on";
 				if (!isset($options['required'])) $options['required'] = __('You must select the options for this item before you can add it to your shopping cart.','Shopp');
 				if ($options['mode'] == "single") {
@@ -1096,6 +1079,7 @@ class Product extends DatabaseObject {
 					if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 
 					foreach ($this->prices as $option) {
+						$taxrate = shopp_taxrate($options['taxes'],$option->tax);
 						$currently = ($option->sale == "on")?$option->promoprice:$option->price;
 						$disabled = ($option->inventory == "on" && $option->stock == 0)?' disabled="disabled"':'';
 
@@ -1108,6 +1092,7 @@ class Product extends DatabaseObject {
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 
 				} else {
+					$taxrate = shopp_taxrate($options['taxes'],$option->tax);
 					ob_start();
 					?>
 					<script type="text/javascript">
@@ -1163,12 +1148,7 @@ class Product extends DatabaseObject {
 				break;
 			case "variation":
 				$variation = current($this->prices);
-				$taxrate = 0;
-				$taxes = false;
-				$base = $Shopp->Settings->get('base_operations');
-				if ($base['vat']) $taxes = true;
-				if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
-				if ($taxes) $taxrate = $Shopp->Cart->taxrate();
+				$taxrate = shopp_taxrate($options['taxes'],$variation->tax);
 				
 				$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : $Shopp->Settings->get('weight_unit');
 				
