@@ -208,15 +208,21 @@ class PayPalStandard {
 		}
 
 		// Validate the order data
-		$validation = false;
+		$validation = true;
 		
 		// Check for unique transaction id
 		$Purchase = new Purchase($_POST['txn_id'],'transactionid');
 		
-		if (number_format($_POST['mc_gross'],2) == number_format($Order->Totals->total,2) 
-			&& empty($Purchase->id)) $validation = true;
-		
-		if ($validation) $this->order();
+		if(number_format($_POST['mc_gross'],2) != number_format($Order->Totals->total,2)){
+			$validation = false;
+			if(SHOPP_DEBUG) new ShoppError('Order validation failed. Received totals mismatch.  Received '.number_format($_POST['mc_gross'],2). ', but originally sent'.number_format($Order->Totals->total,2),'paypalstd_debug',SHOPP_DEBUG_ERR);
+		}  
+		if(!empty($Purchase->id)){
+			$validation = false;
+			if(SHOPP_DEBUG) new ShoppError('Order validation failed. Received duplicate transactionid: '.$_POST['txn_id'],'paypalstd_debug',SHOPP_DEBUG_ERR);
+		}
+		 
+		if($validation) $this->order();
 		else new ShoppError(__('An order was received from PayPal that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'paypal_trxn_validation',SHOPP_TRXN_ERR);
 		
 		exit();

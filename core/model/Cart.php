@@ -173,7 +173,6 @@ class Cart {
 		if (!$Shopp->Settings->unavailable) {
 			$data = $db->escape(addslashes(serialize($this->data)));
 			$contents = $db->escape(serialize($this->contents));
-			new ShoppError(_object_r($this),false,SHOPP_DEBUG_ERR);
 			
 			if ($this->secured() && is_shopp_secure()) {
 				new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
