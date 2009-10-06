@@ -210,14 +210,8 @@ class Item {
 			case "sku": return $this->sku;
 		}
 		
-		if ($property == "unitprice" || $property == "total" || $property == "options") {
-			$taxrate = 0;
-			$taxes = false;
-			$base = $Shopp->Settings->get('base_operations');
-			if ($base['vat']) $taxes = true;
-			if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
-			if ($taxes) $taxrate = $Shopp->Cart->taxrate();
-		}
+		if ($property == "unitprice" || $property == "total" || $property == "options")
+			$taxrate = shopp_taxrate($options['taxes'],$this->taxable);
 
 		// Handle currency values
 		$result = "";

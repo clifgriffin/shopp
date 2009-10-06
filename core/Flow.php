@@ -365,18 +365,6 @@ class Flow {
 		return apply_filters('shopp_checkout',$content);
 	}
 	
-	function checkout_order_summary () {
-		global $Shopp;
-		$Cart = $Shopp->Cart;
-
-		ob_start();
-		include(SHOPP_TEMPLATES."/summary.php");
-		$content = ob_get_contents();
-		ob_end_clean();
-		
-		return apply_filters('shopp_order_summary',$content);
-	}
-	
 	function secure_page_links ($linklist) {
 		global $Shopp;
 		$gateway = $Shopp->Settings->get('payment_gateway');
@@ -442,7 +430,6 @@ class Flow {
 					$Shopp->Gateway->error();
 					return false;
 				}
-				
 				$gatewaymeta = $this->scan_gateway_meta(SHOPP_GATEWAYS.$gateway);
 				$gatewayname = $gatewaymeta->name;
 				$transactionid = $Shopp->Gateway->transactionid();
@@ -471,7 +458,7 @@ class Flow {
 				// Create WordPress account (if necessary)
 				if (!$Order->Customer->wpuser) {
 					if (SHOPP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
-					$Order->Customer->new_wpuser();
+					if(!$Order->Customer->new_wpuser()) new ShoppError(__('Account creation failed on order for customer id:' . $Order->Customer->id, "Shopp"), false,SHOPP_TRXN_ERR);
 				}
 			}
 
@@ -483,6 +470,10 @@ class Flow {
 			$Order->Billing->customer = $Order->Customer->id;
 			$Order->Billing->card = substr($Order->Billing->card,-4);
 			$Order->Billing->save();
+
+			// Card data is truncated, switch the cart to normal mode
+			if ($Shopp->Cart->secured() && is_shopp_secure())
+				$Shopp->Cart->secured(false);
 
 			if (!empty($Order->Shipping->address)) {
 				$Order->Shipping->customer = $Order->Customer->id;
@@ -654,6 +645,12 @@ class Flow {
 
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
+		$txnStatusLabels = array(
+			'PENDING' => __('Pending','Shopp'),
+			'CHARGED' => __('Charged','Shopp'),
+			'REFUNDED' => __('Refunded','Shopp'),
+			'VOID' => __('Void','Shopp')
+			);
 
 		if ($update == "order"
 						&& !empty($selected) 
@@ -788,6 +785,10 @@ class Flow {
 		
 		if (!empty($_POST)) {
 			check_admin_referer('shopp-save-order');
+			
+			if ($_POST['transtatus'] != $Purchase->transtatus)
+				do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['transtatus'],&$Purchase));
+			
 			$Purchase->updates($_POST);
 			if ($_POST['notify'] == "yes") {
 				$labels = $this->Settings->get('order_status');
@@ -815,8 +816,16 @@ class Flow {
 		}
 
 		$targets = $this->Settings->get('target_markets');
+		$txnStatusLabels = array(
+			'PENDING' => __('Pending','Shopp'),
+			'CHARGED' => __('Charged','Shopp'),
+			'REFUNDED' => __('Refunded','Shopp'),
+			'VOID' => __('Void','Shopp')
+			);
+		
 		$statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
+		
 		
 		$taxrate = 0;
 		$base = $Shopp->Settings->get('base_operations');
@@ -1181,7 +1190,7 @@ class Flow {
 		if ($base['vat']) $taxrate = $Shopp->Cart->taxrate();
 		if (empty($taxrate)) $taxrate = 0;
 		
-		$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories, MAX(pt.price+(pt.price*$taxrate)) AS maxprice,MIN(pt.price+(pt.price*$taxrate)) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
+		$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,pd.variations,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories,if(pt.options=0,IF(pt.tax='off',pt.price,pt.price+(pt.price*$taxrate)),-1) AS mainprice,IF(MAX(pt.tax)='off',MAX(pt.price),MAX(pt.price+(pt.price*$taxrate))) AS maxprice,IF(MAX(pt.tax)='off',MIN(pt.price),MIN(pt.price+(pt.price*$taxrate))) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
 		if ($workflow) $columns = "pd.id";
 		// Load the products
 		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
@@ -1396,7 +1405,7 @@ class Flow {
 				$option['sortorder'] = array_search($i,$_POST['sortorder'])+1;
 				
 				// Remove VAT amount to save in DB
-				if ($base['vat']) {
+				if ($base['vat'] && $option['tax'] == "on") {
 					$option['price'] = number_format(floatnum($option['price'])/(1+$taxrate),2);
 					$option['saleprice'] = number_format(floatnum($option['saleprice'])/(1+$taxrate),2);
 				}
@@ -1504,7 +1513,7 @@ class Flow {
 		
 		do_action('add_product_download',$File,$_FILES['Filedata']);
 		
-		echo json_encode(array("id"=>$File->id,"name"=>$File->name,"type"=>$File->properties['mimetype'],"size"=>$File->size));
+		echo json_encode(array("id"=>$File->id,"name"=>stripslashes($File->name),"type"=>$File->properties['mimetype'],"size"=>$File->size));
 	}
 	
 	function add_images () {
@@ -2414,8 +2423,6 @@ class Flow {
 				$ProcessorClass = $gateway->tags['class'];
 				// Load the gateway in case there are any save-time processes to be run
 				$Processor = $Shopp->gateway($_POST['settings']['payment_gateway'],true);
-				// include_once($gateway->file);
-				// $Processor = new $ProcessorClass();
 				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
 			}
 			if (is_array($_POST['settings']['xco_gateways'])) {
@@ -2423,23 +2430,21 @@ class Flow {
 					$gateway = str_replace("\\","/",stripslashes($gateway));
 					if (!file_exists(SHOPP_GATEWAYS.$gateway)) continue;
 					$meta = $this->scan_gateway_meta(SHOPP_GATEWAYS.$gateway);
+					$_POST['settings'][$ProcessorClass]['path'] = str_replace("\\","/",stripslashes($_POST['settings'][$ProcessorClass]['path']));
 					$ProcessorClass = $meta->tags['class'];
 					// Load the gateway in case there are any save-time processes to be run
 					$Processor = $Shopp->gateway($gateway);
-					// include_once($gateway_dir.$gateway);
-					// $Processor = new $ProcessorClass();
 				}
 			}
 			
 			do_action('shopp_save_payment_settings');
-			
+
 			$this->settings_save();
 			$payment_gateway = stripslashes($this->Settings->get('payment_gateway'));
 			
 			$updated = __('Shopp payments settings saved.','Shopp');
 		}
 
-		
 		
 		// Get all of the installed gateways
 		$data = $this->settings_get_gateways();

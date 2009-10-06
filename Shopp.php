@@ -1006,6 +1006,11 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 		
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-mm'],$_POST['billing']['cardexpires-yy']);
 
+		// If the card number is provided over a secure connection
+		// Change the cart to operate in secure mode
+		if (isset($_POST['billing']['card']) && is_shopp_secure())
+			$this->Cart->secured(true);
+		
 		// Sanitize the card number to ensure it only contains numbers
 		$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
 
@@ -1046,6 +1051,7 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 		$this->Cart->updated();
 		$this->Cart->totals();
 		if ($this->Cart->validate() !== true) return;
+		else $Order->Customer->updates($_POST); // Catch changes from validation
 
 		// If the cart's total changes at all, confirm the order
 		if ($estimatedTotal != $this->Cart->data->Totals->total || 
@@ -1339,7 +1345,7 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 							
 					// Download expiration checking
 					if ($this->Settings->get('download_timelimit') // Within the timelimit
-						&& $Purchased->created < mktime()+$this->Settings->get('download_timelimit') ) {
+						&& $Purchased->created+$this->Settings->get('download_timelimit') < mktime() ) {
 							new ShoppError(__('This file can no longer be downloaded because it has expired.','Shopp'),'shopp_download_limit');
 							$forbidden = true;
 						}

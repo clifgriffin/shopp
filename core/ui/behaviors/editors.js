@@ -485,6 +485,15 @@ function readableFileSize (size) {
 	return sized.toFixed(2)+" "+units[unit];
 }
 
+function unsavedChanges () {
+	var mce = typeof(tinyMCE) != 'undefined' ? tinyMCE.activeEditor : false, title, content;
+
+	if ( mce && !mce.isHidden() ) {
+		if ( mce.isDirty() )
+			return UNSAVED_CHANGES_WARNING;
+	}
+	if (changes && !saving) return UNSAVED_CHANGES_WARNING;	
+}
 
 /**
  * Image Uploads using SWFUpload or the jQuery plugin One Click Upload

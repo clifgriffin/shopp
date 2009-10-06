@@ -1,5 +1,6 @@
 var currencyFormat = <?php echo json_encode($base_operations['currency']['format']); ?>;
 var tb_pathToImage = '<?php echo force_ssl(WP_PLUGIN_URL); ?>/<?php echo $dir; ?>/core/ui/icons/loading.gif';
+var UNSAVED_CHANGES_WARNING = '<?php echo addslashes(__('There are unsaved changes that will be lost if you continue.','Shopp')); ?>';
 var CHECKOUT_LOGIN_NAME = '<?php echo addslashes(__('You did not enter a login.','Shopp')); ?>';
 var CHECKOUT_LOGIN_PASSWORD = '<?php echo addslashes(__('You did not enter a password to login with.','Shopp')); ?>';
 var CHECKOUT_REQUIRED_FIELD = '<?php echo addslashes(__('Your %s is required.','Shopp')); ?>';

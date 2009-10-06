@@ -30,13 +30,6 @@ jQuery(document).ready(function() {
 	jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	
 	if (!product) $('#title').focus();
-		
-	$('#product').change(function () { changes = true; });
-	$('#product').submit(function() {
-		this.action = this.action+"?"+$.param(request);
-		saving = true;
-		return true;
-	});
 
 	var editslug = new SlugEditor(product,'product');
 	
@@ -61,8 +54,13 @@ jQuery(document).ready(function() {
 	updateWorkflow();
 	
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
-	window.onbeforeunload = function () { if (changes && !saving) return false; }	
-
+	window.onbeforeunload = unsavedChanges;
+	$('#product').change(function () { changes = true; }).submit(function() {
+		this.action = this.action+"?"+$.param(request);
+		saving = true;
+		return true;
+	});
+	
 });
 
 function updateWorkflow () {

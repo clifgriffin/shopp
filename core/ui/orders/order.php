@@ -143,7 +143,13 @@
 		<p><textarea name="message" id="message" cols="50" rows="10" ></textarea></p>
 		</div>
 		<div class="tablenav">
-			<p class="alignright"><label for="order_status_menu"><?php _e('Order Status','Shopp'); ?>:</label>
+			<p class="alignright">
+				<label for="txn_status_menu"><?php _e('Payment','Shopp'); ?>:</label>
+				<select name="transtatus" id="txn_status_menu">
+				<?php echo menuoptions($txnStatusLabels,$Purchase->transtatus,true,true); ?>
+				</select>
+				&nbsp;
+				<label for="order_status_menu"><?php _e('Order Status','Shopp'); ?>:</label>
 				<select name="status" id="order_status_menu">
 				<?php echo menuoptions($statusLabels,$Purchase->status,true); ?>
 				</select>
@@ -186,4 +192,3 @@ $('#customer').click(function () {
 })(jQuery)
 
 </script>
-
