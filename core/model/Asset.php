@@ -135,7 +135,7 @@ class Asset extends DatabaseObject {
 		@session_write_close();
 
 		// Don't want interference from the server
-	    @apache_setenv('no-gzip', 1);
+	    if (function_exists('apache_setenv')) @apache_setenv('no-gzip', 1);
 	    @ini_set('zlib.output_compression', 0);
 		
 		set_time_limit(0);	// Don't timeout on long downloads
