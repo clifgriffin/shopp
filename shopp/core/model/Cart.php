@@ -170,7 +170,7 @@ class Cart {
 		global $Shopp;
 		$db = DB::get();
 
-		if (!$Shopp->Settings->unavailable) {
+		if (isset($Shopp->Settings->unavailable) && !$Shopp->Settings->unavailable) {
 			$data = $db->escape(addslashes(serialize($this->data)));
 			$contents = $db->escape(serialize($this->contents));
 			new ShoppError(_object_r($this),false,SHOPP_DEBUG_ERR);
