@@ -427,7 +427,7 @@ class Cart {
 					$estimated = $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate(
 						$this, $fees, $option, $column);
 
-				if ($estimated === false) return false;
+				if ($estimated === false) continue; // Skip the cost estimates
 				if (!$estimate || $estimated['cost'] < $estimate['cost'])
 					$estimate = $estimated; // Get lowest estimate
 
@@ -1272,14 +1272,16 @@ class Cart {
 			case "promos-available":
 				if (empty($this->data->Promotions)) return false;
 				// Skip if the promo limit has been reached
-				if (count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
+				if ($Shopp->Settings->get('promo_limit') > 0 && 
+					count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
 				return true;
 				break;
 			case "promo-code": 
 				// Skip if no promotions exist
 				if (empty($this->data->Promotions)) return false;
 				// Skip if the promo limit has been reached
-				if (count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
+				if ($Shopp->Settings->get('promo_limit') > 0 && 
+					count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
 				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code");
 				$result .= '<ul><li>';
 				
