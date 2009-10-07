@@ -14,9 +14,9 @@
  * Initialize
  **/
 
+require('wp-config.php');
+require_once(ABSPATH.'wp-settings.php');
 
-define('ABSPATH', '/Users/jond/Sites/wordpress/');
-require(ABSPATH.'/wp-config.php');
 error_reporting(E_ALL);
 ini_set('display_errors', true);
 
@@ -467,7 +467,6 @@ function drop_tables() {
 
 
 define('SHOPP_TESTS_DIR',dirname(__FILE__).'/tests');
-// include all files in DIR_TESTCASE, and fetch all the WPTestCase descendents
 $files = get_shopp_test_files(SHOPP_TESTS_DIR);
 foreach ($files as $file) require_once($file);
 $tests = get_all_test_cases();
