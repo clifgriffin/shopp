@@ -265,9 +265,9 @@ class PayPalStandard {
 			// Check if they've logged in
 			// If the shopper is already logged-in, save their updated customer info
 			if ($Shopp->Cart->data->login) {
-				if (SHOPP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
-				$user = wp_get_current_user();
+				$user = get_userdata($Order->Customer->wpuser);
 				$Order->Customer->wpuser = $user->ID;
+				if (SHOPP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
 			}
 			
 			// Create WordPress account (if necessary)
@@ -278,7 +278,7 @@ class PayPalStandard {
 		}
 
 		// Create a WP-compatible password hash to go in the db
-		if (empty($Order->Customer->id))
+		if (empty($Order->Customer->id) && isset($Order->Customer->password))
 			$Order->Customer->password = wp_hash_password($Order->Customer->password);
 		$Order->Customer->save();
 
