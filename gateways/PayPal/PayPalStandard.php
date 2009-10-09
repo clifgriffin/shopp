@@ -4,7 +4,7 @@
  * @class PayPalStandard
  *
  * @author Jonathan Davis
- * @version 1.0.2
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * 
@@ -266,9 +266,8 @@ class PayPalStandard {
 			// If the shopper is already logged-in, save their updated customer info
 			if ($Shopp->Cart->data->login) {
 				if (SHOPP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
-				get_currentuserinfo();
-				global $user_ID;
-				$Order->Customer->wpuser = $user_ID;
+				$user = wp_get_current_user();
+				$Order->Customer->wpuser = $user->ID;
 			}
 			
 			// Create WordPress account (if necessary)
