@@ -801,7 +801,6 @@ class Cart {
 					return false;
 				}
 			} else $loginname = $id;
-//new code			
 			$user = wp_authenticate($loginname,$password);
 			if (!is_wp_error($user)) {
 				wp_set_auth_cookie($user->ID, false, $Shopp->secure);
@@ -820,7 +819,6 @@ class Cart {
 				else new ShoppError(__('Unknown login error: ').$_e,false,SHOPP_AUTH_ERR);
 				return false;
 			}
-//end new code
   			break;
 			default: return false;
 		}
@@ -883,10 +881,11 @@ class Cart {
 		require_once(ABSPATH . WPINC . '/pluggable.php');
 		if (!is_shopp_secure()) return false;
 		$expiration = time()+SHOPP_SESSION_TIMEOUT;
-		$key = wp_hash($this->session . '|' . $expiration, 'secure_auth');
+		if (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') $key = SECRET_AUTH_KEY;
+		else $key = md5(serialize($this->data).time());
 		$content = hash_hmac('sha256', $this->session . '|' . $expiration, $key);
 		if ( version_compare(phpversion(), '5.2.0', 'ge') )
- 			setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true,true);
+			setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true,true);
 		else setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true);
 		return true;
 	}

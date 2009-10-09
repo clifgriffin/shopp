@@ -74,7 +74,7 @@ class Item {
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
 		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
 		$this->donation = $Price->donation;
-		$this->data = $data;
+		$this->data = stripslashes_deep(attribute_escape_deep($data));
 		
 		// Map out the selected menu name and option
 		if ($Product->variations == "on") {

@@ -24,8 +24,6 @@ Author URI: http://ingenesis.net
 	You should have received a copy of the GNU General Public License
 	along with Shopp.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 */
 
 define('SHOPP_VERSION','1.0.13 b1');
@@ -938,11 +936,9 @@ class Shopp {
 			header("Location: ".$this->link());
 			exit();
 		}
-			
+
 		if (empty($_REQUEST['cart'])) return true;
 
-		// echo "<pre>"; print_r($_REQUEST); echo "</pre>";
-		// exit();
 		$this->Cart->request();
 		if ($this->Cart->updated) $this->Cart->totals();
 		if (isset($_REQUEST['ajax'])) $this->Cart->ajax();
