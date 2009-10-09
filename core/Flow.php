@@ -2756,6 +2756,8 @@ class Flow {
 		
 		// Find our temporary filesystem workspace
 		$tmpdir = sys_get_temp_dir();
+		$tmpdir = str_replace('\\', '/', $tmpdir); //Windows path sanitiation
+		
 		$log[] = "Found temp directory: $tmpdir";
 		
 		// Download the new version of Shopp

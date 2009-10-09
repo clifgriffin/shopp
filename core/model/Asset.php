@@ -197,10 +197,12 @@ class Asset extends DatabaseObject {
 				ob_flush(); flush();
 			}
 			fclose($file);
+			return true;
 		} else {
 			// Database file download - short and sweet
 			header ("Content-length: ".$this->size); 
 			echo $this->data;
+			return true;
 		}
 		
 	}
