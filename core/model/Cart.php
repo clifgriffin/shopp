@@ -488,7 +488,7 @@ class Cart {
 				switch($rule['property']) {
 					case "Item name": 
 						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule($Item->name,$rule['logic'],$rule['value'])) {
+							if (Promotion::match_rule($Item->name,$rule['logic'],$rule['value'], $rule['property'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
 							}
@@ -496,7 +496,7 @@ class Cart {
 						break;
 					case "Item quantity":
 						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule(number_format($Item->quantity,0),$rule['logic'],$rule['value'])) {
+							if (Promotion::match_rule(number_format($Item->quantity,0),$rule['logic'],$rule['value'], $rule['property'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
 							}
@@ -504,24 +504,24 @@ class Cart {
 						break;
 					case "Item amount":
 						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule(number_format($Item->total,2),$rule['logic'],$rule['value'])) {
+							if (Promotion::match_rule(number_format($Item->total,2),$rule['logic'],$rule['value'], $rule['property'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
 							}
 						}
 						break;
 					case "Total quantity":
-						if (Promotion::match_rule(number_format($this->data->Totals->quantity,0),$rule['logic'],$rule['value'])) {
+						if (Promotion::match_rule(number_format($this->data->Totals->quantity,0),$rule['logic'],$rule['value'], $rule['property'])) {
 							$rulematch = true;
 						}
 						break;
 					case "Shipping amount": 
-						if (Promotion::match_rule(number_format($this->data->Totals->shipping,2),$rule['logic'],$rule['value'])) {
+						if (Promotion::match_rule(number_format($this->data->Totals->shipping,2),$rule['logic'],$rule['value'], $rule['property'])) {
 							$rulematch = true;
 						}
 						break;
 					case "Subtotal amount": 
-						if (Promotion::match_rule(number_format($this->data->Totals->subtotal,2),$rule['logic'],$rule['value'])) {
+						if (Promotion::match_rule(number_format($this->data->Totals->subtotal,2),$rule['logic'],$rule['value'], $rule['property'])) {
 							$rulematch = true;
 						}
 						break;
@@ -533,11 +533,11 @@ class Cart {
 						}
 						// Match a new code
 						if (!empty($this->data->PromoCode)) {
-							if (Promotion::match_rule($this->data->PromoCode,$rule['logic'],$rule['value'])) {
+							if (Promotion::match_rule($this->data->PromoCode,$rule['logic'],$rule['value'], $rule['property'])) {
  								if (is_array($this->data->PromoCodes) && 
 									!in_array($this->data->PromoCode, $this->data->PromoCodes)) {
-									$this->data->PromoCodes[] = $this->data->PromoCode;
-									$PromoCodeFound = $this->data->PromoCode;
+									$this->data->PromoCodes[] = $rule['value'];
+									$PromoCodeFound = $rule['value'];
 								} else $PromoCodeExists = true;
 								$this->data->PromoCode = false;
 								$rulematch = true;
