@@ -196,8 +196,8 @@ class Customer extends DatabaseObject {
 	}
 	
 	function load_downloads () {
+		if (empty($this->id)) return false;
 		$db =& DB::get();
-		
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
 		$pricing = DatabaseObject::tablename(Price::$table);
@@ -208,6 +208,7 @@ class Customer extends DatabaseObject {
 	}
 
 	function load_orders ($filters=array()) {
+		if (empty($this->id)) return false;
 		global $Shopp;
 		$db =& DB::get();
 		

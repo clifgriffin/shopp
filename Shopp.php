@@ -824,6 +824,7 @@ class Shopp {
 	
 	function catalog ($wp) {
 		$pages = $this->Settings->get('pages');
+		$options = array();
 		
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&

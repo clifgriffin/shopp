@@ -210,8 +210,10 @@ class Item {
 			case "sku": return $this->sku;
 		}
 		
+		$taxes = false;
+		if (isset($options['taxes'])) $taxes = $options['taxes'];
 		if ($property == "unitprice" || $property == "total" || $property == "options")
-			$taxrate = shopp_taxrate($options['taxes'],$this->taxable);
+			$taxrate = shopp_taxrate($taxes,$this->taxable);
 
 		// Handle currency values
 		$result = "";
