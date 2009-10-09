@@ -744,34 +744,18 @@ class Cart {
 				}
 				
 				if (empty($_POST['process-login'])) return false;
-
+				
 				if (!empty($_POST['account-login'])) {
-					if (strpos($_POST['account-login'],'@') !== false)  {
-						$user = get_user_by_email($_POST['account-login']);
-						if (!is_wp_error($user)) $loginname = $user->user_login;
-					} else $loginname = $_POST['account-login'];
+					if (strpos($_POST['account-login'],'@') !== false) $mode = "email";
+					else $mode = "loginname";
+					$loginname = $_POST['account-login'];
+				} else {
+					new ShoppError(__('You must provide a valid login name or email address to proceed.'), 'missing_account', SHOPP_AUTH_ERR);
 				}
 									
 				if ($loginname) {
-					$user = wp_authenticate($loginname,$_POST['password-login']);
-					
-					if (!is_wp_error($user)) {
-						wp_set_auth_cookie($user->ID, false, $Shopp->secure);
-						do_action('wp_login', $loginname);
-
-						if ($Account = new Customer($user->ID,'wpuser')) {
-							$this->loggedin($Account);
-							$this->data->Order->Customer->wpuser = $user->ID;
-							add_action('wp_logout',array(&$this,'logout'));
-						}
-					}
-					
-				}
-			
-				// Handle WordPress account integration
-				// do_action('user_register',array(&$this,'')); // Handle users added from WP user admin
-				// do_action('profile_update',array(&$this,'')); // Handle users added from WP user admin
-				
+					$this->auth($loginname,$_POST['password-login'],$mode);			
+				}				
 				break;
 			case "shopp":
 				if (!isset($_POST['process-login'])) return false;
@@ -808,31 +792,36 @@ class Cart {
 						
 				break;
 				
-			case "wordpress":
-				global $wpdb;
-				if ($type == 'loginname') {
-					if ( !$user = get_userdatabylogin($id)) {
-						new ShoppError(__("No customer account was found with that login.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
-						return false;
-					}
-					$Account = new Customer($user->user_ID,'wpuser');
-					
-				} else {
-					$Account = new Customer($id,'email');
-					if ( !$user = get_user_by_email($Account->email)) {
-						new ShoppError(__("No customer account was found with that email.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
-						return false;
-					}
-				}
-				
-				if (!wp_check_password($password,$user->user_pass)) {
-					new ShoppError(__("The password is incorrect.","Shopp"),'invalid_password',SHOPP_AUTH_ERR);
+  		case "wordpress":
+			if($type == 'email'){
+				$user = get_user_by_email($id);
+				if ($user) $loginname = $user->user_login;
+				else {
+					new ShoppError(__("No customer account was found with that email.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
 					return false;
 				}
-				
-				wp_set_auth_cookie($user->ID, false, true);
+			} else $loginname = $id;
+//new code			
+			$user = wp_authenticate($loginname,$password);
+			if (!is_wp_error($user)) {
+				wp_set_auth_cookie($user->ID, false, $Shopp->secure);
+				do_action('wp_login', $loginname);
 
-				break;
+				if ($Account = new Customer($user->ID,'wpuser')) {
+					$this->loggedin($Account);
+					$this->data->Order->Customer->wpuser = $user->ID;
+					add_action('wp_logout',array(&$this,'logout'));
+				}
+				return true;
+			} else { // WordPress User Authentication failed
+				$_e = $user->get_error_code();
+				if($_e == 'invalid_username') new ShoppError(__("No customer account was found with that login.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
+				else if($_e == 'incorrect_password') new ShoppError(__("The password is incorrect.","Shopp"),'invalid_password',SHOPP_AUTH_ERR);
+				else new ShoppError(__('Unknown login error: ').$_e,false,SHOPP_AUTH_ERR);
+				return false;
+			}
+//end new code
+  			break;
 			default: return false;
 		}
 
