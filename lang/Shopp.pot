@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Shopp 1.0 Branch\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-10-05 15:14-0500\n"
+"POT-Creation-Date: 2009-10-12 12:41-0500\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Jonathan Davis <jond@ingenesis.net>\n"
 "Language-Team: \n"
@@ -16,95 +16,95 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: Shopp.php:181
+#: Shopp.php:179
 msgid "The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function."
 msgstr ""
 
-#: Shopp.php:260
+#: Shopp.php:258
 #: core/Flow.php:1057
 #: core/Flow.php:2044
 #: core/Flow.php:2045
 msgid "Orders"
 msgstr ""
 
-#: Shopp.php:262
+#: Shopp.php:260
 msgid "Customers"
 msgstr ""
 
-#: Shopp.php:265
+#: Shopp.php:263
 msgid "Edit Customer"
 msgstr ""
 
-#: Shopp.php:267
+#: Shopp.php:265
 msgid "Promotions"
 msgstr ""
 
-#: Shopp.php:270
+#: Shopp.php:268
 msgid "Edit Promotion"
 msgstr ""
 
-#: Shopp.php:272
+#: Shopp.php:270
 #: core/Flow.php:1696
 msgid "Products"
 msgstr ""
 
-#: Shopp.php:275
+#: Shopp.php:273
 msgid "Product Editor"
 msgstr ""
 
-#: Shopp.php:277
+#: Shopp.php:275
 msgid "Categories"
 msgstr ""
 
-#: Shopp.php:280
+#: Shopp.php:278
 msgid "Edit Category"
 msgstr ""
 
-#: Shopp.php:282
+#: Shopp.php:280
 msgid "Settings"
 msgstr ""
 
-#: Shopp.php:295
+#: Shopp.php:293
 msgid "Help"
 msgstr ""
 
-#: Shopp.php:324
+#: Shopp.php:322
 msgid "New Shopp Product"
 msgstr ""
 
-#: Shopp.php:384
+#: Shopp.php:382
 msgid "Shopp Stats"
 msgstr ""
 
-#: Shopp.php:388
+#: Shopp.php:386
 msgid "Shopp Orders"
 msgstr ""
 
-#: Shopp.php:392
+#: Shopp.php:390
 msgid "Shopp Products"
 msgstr ""
 
-#: Shopp.php:1109
+#: Shopp.php:1106
 msgid "There was a problem loading the requested payment processor."
 msgstr ""
 
-#: Shopp.php:1345
+#: Shopp.php:1342
 msgid "This file cannot be downloaded because payment has not been received yet."
 msgstr ""
 
-#: Shopp.php:1353
+#: Shopp.php:1350
 msgid "You must login to access this download."
 msgstr ""
 
-#: Shopp.php:1361
+#: Shopp.php:1358
 msgid "This file can no longer be downloaded because the download limit has been reached."
 msgstr ""
 
-#: Shopp.php:1368
+#: Shopp.php:1365
 msgid "This file can no longer be downloaded because it has expired."
 msgstr ""
 
-#: Shopp.php:1376
+#: Shopp.php:1373
 msgid "The file cannot be downloaded because this computer could not be verified as the system the file was purchased from."
 msgstr ""
 
@@ -383,7 +383,7 @@ msgid "Show New Customers"
 msgstr ""
 
 #: core/Flow.php:1054
-#: core/model/Customer.php:311
+#: core/model/Customer.php:312
 msgid "Login"
 msgstr ""
 
@@ -1380,162 +1380,170 @@ msgstr ""
 msgid "Billing Postal Code"
 msgstr ""
 
-#: core/model/Cart.php:404
+#: core/model/Cart.php:403
 msgid "A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout."
 msgstr ""
 
-#: core/model/Cart.php:597
+#: core/model/Cart.php:596
 msgid "No additional codes can be applied."
 msgstr ""
 
-#: core/model/Cart.php:604
+#: core/model/Cart.php:603
 msgid "is not a valid code."
 msgstr ""
 
-#: core/model/Cart.php:801
-#: core/model/Cart.php:824
+#: core/model/Cart.php:753
+msgid "You must provide a valid login name or email address to proceed."
+msgstr ""
+
+#: core/model/Cart.php:784
+#: core/model/Cart.php:800
 msgid "No customer account was found with that email."
 msgstr ""
 
-#: core/model/Cart.php:806
-#: core/model/Cart.php:830
+#: core/model/Cart.php:789
+#: core/model/Cart.php:818
 msgid "The password is incorrect."
 msgstr ""
 
-#: core/model/Cart.php:816
+#: core/model/Cart.php:817
 msgid "No customer account was found with that login."
 msgstr ""
 
-#: core/model/Cart.php:941
+#: core/model/Cart.php:819
+msgid "Unknown login error: "
+msgstr ""
+
+#: core/model/Cart.php:928
 msgid "That code has already been applied."
 msgstr ""
 
-#: core/model/Cart.php:1062
+#: core/model/Cart.php:1049
 msgid "You must provide your first name."
 msgstr ""
 
-#: core/model/Cart.php:1065
+#: core/model/Cart.php:1052
 msgid "You must provide your last name."
 msgstr ""
 
-#: core/model/Cart.php:1070
+#: core/model/Cart.php:1057
 msgid "You must provide a valid e-mail address."
 msgstr ""
 
-#: core/model/Cart.php:1078
+#: core/model/Cart.php:1065
 msgid "The login name you provided is not available.  Try logging in if you have previously created an account."
 msgstr ""
 
-#: core/model/Cart.php:1092
+#: core/model/Cart.php:1079
 msgid "A login is not available for creation with the information you provided.  Please try a different email address or name, or try logging in if you previously created an account."
 msgstr ""
 
-#: core/model/Cart.php:1097
+#: core/model/Cart.php:1084
 msgid "The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account."
 msgstr ""
 
-#: core/model/Cart.php:1101
+#: core/model/Cart.php:1088
 msgid "The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account."
 msgstr ""
 
-#: core/model/Cart.php:1106
+#: core/model/Cart.php:1093
 msgid "You must enter a login name for your account."
 msgstr ""
 
-#: core/model/Cart.php:1111
+#: core/model/Cart.php:1098
 msgid "The login name you provided is already in use. Try logging in if you previously created that account, or enter another login name for your new account."
 msgstr ""
 
-#: core/model/Cart.php:1116
+#: core/model/Cart.php:1103
 msgid "You must provide a password for your account and confirm it to ensure correct spelling."
 msgstr ""
 
-#: core/model/Cart.php:1119
+#: core/model/Cart.php:1106
 msgid "The passwords you entered do not match. Please re-enter your passwords."
 msgstr ""
 
-#: core/model/Cart.php:1124
-#: core/model/Cart.php:1127
+#: core/model/Cart.php:1111
+#: core/model/Cart.php:1114
 msgid "You must enter a valid street address for your billing information."
 msgstr ""
 
-#: core/model/Cart.php:1130
+#: core/model/Cart.php:1117
 msgid "You must select a country for your billing information."
 msgstr ""
 
-#: core/model/Cart.php:1138
+#: core/model/Cart.php:1125
 msgid "You did not provide a credit card number."
 msgstr ""
 
-#: core/model/Cart.php:1141
+#: core/model/Cart.php:1128
 msgid "You did not select a credit card type."
 msgstr ""
 
-#: core/model/Cart.php:1155
+#: core/model/Cart.php:1142
 msgid "The credit card number you provided is invalid."
 msgstr ""
 
-#: core/model/Cart.php:1168
+#: core/model/Cart.php:1155
 msgid "The credit card number you provided is not valid."
 msgstr ""
 
-#: core/model/Cart.php:1171
+#: core/model/Cart.php:1158
 msgid "You did not enter the month the credit card expires."
 msgstr ""
 
-#: core/model/Cart.php:1174
+#: core/model/Cart.php:1161
 msgid "You did not enter the year the credit card expires."
 msgstr ""
 
-#: core/model/Cart.php:1178
+#: core/model/Cart.php:1165
 msgid "The credit card expiration date you provided has already expired."
 msgstr ""
 
-#: core/model/Cart.php:1181
+#: core/model/Cart.php:1168
 msgid "You did not enter the name on the credit card you provided."
 msgstr ""
 
-#: core/model/Cart.php:1184
+#: core/model/Cart.php:1171
 msgid "You did not enter a valid security ID for the card you provided. The security ID is a 3 or 4 digit number found on the back of the credit card."
 msgstr ""
 
-#: core/model/Cart.php:1231
+#: core/model/Cart.php:1218
 msgid "Off!"
 msgstr ""
 
-#: core/model/Cart.php:1253
+#: core/model/Cart.php:1240
 msgid "Empty Cart"
 msgstr ""
 
-#: core/model/Cart.php:1257
+#: core/model/Cart.php:1244
 msgid "Update Subtotal"
 msgstr ""
 
-#: core/model/Cart.php:1278
+#: core/model/Cart.php:1273
 msgid "Apply Promo Code"
 msgstr ""
 
-#: core/model/Cart.php:1337
+#: core/model/Cart.php:1332
 msgid "Free Shipping!"
 msgstr ""
 
-#: core/model/Cart.php:1343
+#: core/model/Cart.php:1338
 msgid "Enter Postal Code"
 msgstr ""
 
-#: core/model/Cart.php:1345
+#: core/model/Cart.php:1340
 msgid "Not Available"
 msgstr ""
 
-#: core/model/Cart.php:1655
+#: core/model/Cart.php:1650
 msgid "Same shipping address"
 msgstr ""
 
-#: core/model/Cart.php:1811
+#: core/model/Cart.php:1806
 msgid "Submit Order"
 msgstr ""
 
-#: core/model/Cart.php:1814
+#: core/model/Cart.php:1809
 msgid "Confirm Order"
 msgstr ""
 
@@ -1731,55 +1739,55 @@ msgstr ""
 msgid "Check your email address for your new password."
 msgstr ""
 
-#: core/model/Customer.php:232
+#: core/model/Customer.php:233
 msgid "The login name you provided is already in use.  Please choose another login name."
 msgstr ""
 
-#: core/model/Customer.php:262
+#: core/model/Customer.php:263
 msgid "Customer's First Name"
 msgstr ""
 
-#: core/model/Customer.php:263
+#: core/model/Customer.php:264
 msgid "Customer's Last Name"
 msgstr ""
 
-#: core/model/Customer.php:264
+#: core/model/Customer.php:265
 msgid "Customer's Email Address"
 msgstr ""
 
-#: core/model/Customer.php:265
+#: core/model/Customer.php:266
 msgid "Customer's Phone Number"
 msgstr ""
 
-#: core/model/Customer.php:266
+#: core/model/Customer.php:267
 msgid "Customer's Company"
 msgstr ""
 
-#: core/model/Customer.php:267
+#: core/model/Customer.php:268
 msgid "Customer's Custom Information"
 msgstr ""
 
-#: core/model/Customer.php:268
+#: core/model/Customer.php:269
 msgid "Customer Created Date"
 msgstr ""
 
-#: core/model/Customer.php:269
+#: core/model/Customer.php:270
 msgid "Customer Last Updated Date"
 msgstr ""
 
-#: core/model/Customer.php:288
+#: core/model/Customer.php:289
 msgid "Email Address"
 msgstr ""
 
-#: core/model/Customer.php:289
+#: core/model/Customer.php:290
 msgid "Login Name"
 msgstr ""
 
-#: core/model/Customer.php:306
+#: core/model/Customer.php:307
 msgid "Get New Password"
 msgstr ""
 
-#: core/model/Customer.php:448
+#: core/model/Customer.php:449
 msgid "Save"
 msgstr ""
 
@@ -1833,7 +1841,7 @@ msgstr ""
 msgid "%s has low stock levels and should be re-ordered soon."
 msgstr ""
 
-#: core/model/Item.php:260
+#: core/model/Item.php:262
 msgid "Remove"
 msgstr ""
 
@@ -3900,7 +3908,7 @@ msgstr ""
 #: gateways/iDealMollie/iDealMollie.php:285
 #: gateways/NetCash/NetCash.php:326
 #: gateways/PayPal/PayPalExpress.php:419
-#: gateways/PayPal/PayPalStandard.php:462
+#: gateways/PayPal/PayPalStandard.php:467
 #: gateways/Payson/Payson.php:331
 msgid "Enable"
 msgstr ""
@@ -4025,11 +4033,11 @@ msgstr ""
 msgid "An unverifiable order with no invoice number was received from PayPal. Possible fraudulent order attempt!"
 msgstr ""
 
-#: gateways/PayPal/PayPalStandard.php:220
+#: gateways/PayPal/PayPalStandard.php:226
 msgid "An order was received from PayPal that could not be validated against existing pre-order data.  Possible order spoof attempt!"
 msgstr ""
 
-#: gateways/PayPal/PayPalStandard.php:466
+#: gateways/PayPal/PayPalStandard.php:471
 msgid "Enter your PayPal account e-mail."
 msgstr ""
 
