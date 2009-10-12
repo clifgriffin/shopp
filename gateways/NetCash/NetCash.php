@@ -84,9 +84,8 @@ class NetCash {
 			return;
 		} else $Order->Customer->updates($_POST); // Catch changes from validation
 		
-		if ($Shopp->Cart->data->Totals->total == 0) {
+		if (number_format($Shopp->Cart->data->Totals->total, 2) == 0) {
 			$_POST['checkout'] = 'confirmed';
-			unset($Shopp->Gateway);
 			return true;
 		}
 		

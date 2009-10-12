@@ -411,7 +411,7 @@ class Flow {
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
 		
-		if ($Shopp->Gateway) {
+		if ($Shopp->Gateway && $Order->Totals->total > 0) {
 			// Use an external checkout payment gateway
 			if (SHOPP_DEBUG) new ShoppError('Processing order through a remote-payment gateway service.',false,SHOPP_DEBUG_ERR);
 			$Purchase = $Shopp->Gateway->process();
