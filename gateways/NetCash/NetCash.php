@@ -4,7 +4,7 @@
  * @class NetCash
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.2
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * 
@@ -111,7 +111,7 @@ class NetCash {
 		$_['p2'] = mktime();
 		$_['p3'] = get_bloginfo('sitename');
 		$_['p4'] = number_format($Order->Totals->total,2);
-		$_['p10'] = $Shopp->link('checkout',false);
+		$_['p10'] = $Shopp->link('cart',false);
 		$_['Budget'] = 'Y';
 		$_['m_4'] = $Order->Cart;
 		// $_['m_5'] = '';		
