@@ -4,7 +4,7 @@
  * @class _2Checkout
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * 
