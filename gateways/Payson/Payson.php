@@ -82,6 +82,12 @@ class Payson {
 			return;
 		} else $Order->Customer->updates($_POST); // Catch changes from validation
 		
+		if ($Shopp->Cart->data->Totals->total == 0) {
+			$_POST['checkout'] = 'confirmed';
+			unset($Shopp->Gateway);
+			return true;
+		}
+		
 		header("Location: ".add_query_arg('shopp_xco','Payson/Payson',$Shopp->link('confirm-order',false)));
 		exit();
 	}

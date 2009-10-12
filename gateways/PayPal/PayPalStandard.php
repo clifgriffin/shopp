@@ -105,7 +105,8 @@ class PayPalStandard {
 
 		if ($Shopp->Cart->data->Totals->total == 0) {
 			$_POST['checkout'] = 'confirmed';
-			$this->order();	
+			unset($Shopp->Gateway);
+			return true;
 		}
 		
 		header("Location: ".add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
