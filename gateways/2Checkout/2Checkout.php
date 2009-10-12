@@ -87,6 +87,11 @@ class _2Checkout {
 			$_POST['checkout'] = false;
 			return;
 		} else $Order->Customer->updates($_POST); // Catch changes from validation
+
+		if (number_format($Shopp->Cart->data->Totals->total, 2) == 0) {
+			$_POST['checkout'] = 'confirmed';
+			return true;
+		}
 		
 		header("Location: ".add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('confirm-order',false)));
 		exit();
