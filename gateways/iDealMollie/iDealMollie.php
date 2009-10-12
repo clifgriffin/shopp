@@ -4,7 +4,7 @@
  * @class iDealMollie
  *
  * @author Jonathan Davis
- * @version 1.0.3
+ * @version 1.0.4
  * @copyright Ingenesis Limited, 24 February, 2009
  * @package Shopp
  * 
