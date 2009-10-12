@@ -315,11 +315,11 @@ var ProductOptionsMenus;
  * Makes a request to add the selected product/product variation
  * to the shopper's cart
  **/
-function addtocart () {
-	var button = this;
+function addtocart (e) {
+	var form = this;
 	(function($) {
 
-	var options = $(button.form).find('select.options');
+	var options = $(form).find('select.options');
 	if (options && options_default) {
 		var selections = true;
 		for (menu in options) 
@@ -332,10 +332,10 @@ function addtocart () {
 		}
 	}
 
-	if ($(button).hasClass('ajax')) {
-		ShoppCartAjaxRequest(button.form.action,$(button.form).serialize());
+	if ($(form).find('input.addtocart').hasClass('ajax')) {
+		ShoppCartAjaxRequest(form.action,$(form).serialize());
 	} else {
-		button.form.submit();
+		form.submit();
 	}
 
 	})(jQuery)
@@ -428,7 +428,16 @@ function quickSelects (target) {
  * Hooks callbacks to button events
  **/
 function buttonHandlers () {
-	jQuery('input.addtocart').bind('click.addtocart',addtocart);
+	(function($) {
+		var addtocartForm = $('input.addtocart').get(0).form;
+		var addtocartButton = function (e) { 
+			if (e.type == "keypress" && (e.keyCode == 13 || e.keyCode == 32))
+				$(this).trigger('click.addtocart'); // Route to click event to trigger once
+			if (e.type == "click") $(this.form).trigger('submit.addtocart'); // Trigger addtocart handler
+		}
+		$(addtocartForm).bind('submit.addtocart',addtocart);
+		$('input.addtocart').bind('click.addtocart',addtocartButton).bind('keypress.addtocart',addtocartButton);	
+	})(jQuery)
 }
 
 /**
