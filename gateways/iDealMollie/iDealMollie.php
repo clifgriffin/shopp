@@ -73,7 +73,12 @@ class iDealMollie {
 		$estimatedTotal = $Shopp->Cart->data->Totals->total;
 		$Shopp->Cart->updated();
 		$Shopp->Cart->totals();
-		
+
+		if (number_format($Shopp->Cart->data->Totals->total, 2) == 0) {
+			$_POST['checkout'] = 'confirmed';
+			return true;
+		}
+				
 		$_ = array();
 		
 		$_['partnerid']				= $this->settings['account'];
