@@ -6,7 +6,7 @@
  * your Shopp install under: .../wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.2
  * @copyright Ingenesis Limited, 26 February, 2009
  * @package shopp
  * 
@@ -190,10 +190,14 @@ class USPSRates {
 	
 	function build ($cart,$description,$weight,$postcode,$country) {
 		$weight = number_format($weight,3);
-		if ($this->settings['units'] == "oz")
-			$pounds = $weight/16;
-		list($pounds,$ounces) = explode(".",$weight);
-		$ounces = ceil(($weight-$pounds)*16);
+		if ($this->settings['units'] == "oz"){
+			$pounds = floor($weight / 16);
+			$ounces = $weight % 16;
+		}
+		else{ 
+			list($pounds,$ounces) = explode(".",$weight);
+			$ounces = ceil(($weight-$pounds)*16);
+		}
 
 		$type = "RateV3"; // Domestic shipping rates
 		if ($country != $this->settings['country']) {

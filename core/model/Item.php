@@ -74,7 +74,7 @@ class Item {
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
 		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
 		$this->donation = $Price->donation;
-		$this->data = $data;
+		$this->data = stripslashes_deep(attribute_escape_deep($data));
 		
 		// Map out the selected menu name and option
 		if ($Product->variations == "on") {
@@ -210,14 +210,10 @@ class Item {
 			case "sku": return $this->sku;
 		}
 		
-		if ($property == "unitprice" || $property == "total" || $property == "options") {
-			$taxrate = 0;
-			$taxes = false;
-			$base = $Shopp->Settings->get('base_operations');
-			if ($base['vat']) $taxes = true;
-			if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
-			if ($taxes) $taxrate = $Shopp->Cart->taxrate();
-		}
+		$taxes = false;
+		if (isset($options['taxes'])) $taxes = $options['taxes'];
+		if ($property == "unitprice" || $property == "total" || $property == "options")
+			$taxrate = shopp_taxrate($taxes,$this->taxable);
 
 		// Handle currency values
 		$result = "";

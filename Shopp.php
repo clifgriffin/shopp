@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.11
+Version: 1.0.13
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -24,11 +24,9 @@ Author URI: http://ingenesis.net
 	You should have received a copy of the GNU General Public License
 	along with Shopp.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 */
 
-define('SHOPP_VERSION','1.0.11');
+define('SHOPP_VERSION','1.0.13');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
@@ -826,6 +824,7 @@ class Shopp {
 	
 	function catalog ($wp) {
 		$pages = $this->Settings->get('pages');
+		$options = array();
 		
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&
@@ -873,9 +872,9 @@ class Shopp {
 			// Split for encoding multi-byte slugs
 			$slugs = explode("/",$category);
 			$category = join("/",array_map('urlencode',$slugs));
-			
+
 			// Load the category
-			$this->Category = Catalog::load_category($category,$options);			
+			$this->Category = Catalog::load_category($category,$options);
 			$this->Cart->data->breadcrumb = (isset($tag)?"tag/":"").$this->Category->uri;
 		} 
 		
@@ -938,11 +937,9 @@ class Shopp {
 			header("Location: ".$this->link());
 			exit();
 		}
-			
+
 		if (empty($_REQUEST['cart'])) return true;
 
-		// echo "<pre>"; print_r($_REQUEST); echo "</pre>";
-		// exit();
 		$this->Cart->request();
 		if ($this->Cart->updated) $this->Cart->totals();
 		if (isset($_REQUEST['ajax'])) $this->Cart->ajax();
@@ -1024,6 +1021,11 @@ class Shopp {
 		
 		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-mm'],$_POST['billing']['cardexpires-yy']);
 
+		// If the card number is provided over a secure connection
+		// Change the cart to operate in secure mode
+		if (isset($_POST['billing']['card']) && is_shopp_secure())
+			$this->Cart->secured(true);
+
 		// Sanitize the card number to ensure it only contains numbers
 		$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
 
@@ -1064,6 +1066,7 @@ class Shopp {
 		$this->Cart->updated();
 		$this->Cart->totals();
 		if ($this->Cart->validate() !== true) return;
+		else $Order->Customer->updates($_POST); // Catch changes from validation
 
 		// If the cart's total changes at all, confirm the order
 		if ($estimatedTotal != $this->Cart->data->Totals->total || 
@@ -1255,7 +1258,8 @@ class Shopp {
 				exit();
 				break;
 			case "shipcost":
-				$this->init();
+				@session_start();
+				$this->ShipCalcs = new ShipCalcs($this->path);
 				if (isset($_GET['method'])) {
 					$this->Cart->data->Order->Shipping->method = $_GET['method'];
 					$this->Cart->retotal = true;
@@ -1357,7 +1361,7 @@ class Shopp {
 							
 					// Download expiration checking
 					if ($this->Settings->get('download_timelimit') // Within the timelimit
-						&& $Purchased->created < mktime()+$this->Settings->get('download_timelimit') ) {
+						&& $Purchased->created+$this->Settings->get('download_timelimit') < mktime() ) {
 							new ShoppError(__('This file can no longer be downloaded because it has expired.','Shopp'),'shopp_download_limit');
 							$forbidden = true;
 						}

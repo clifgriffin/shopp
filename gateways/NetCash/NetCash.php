@@ -82,6 +82,11 @@ class NetCash {
 		if ($Shopp->Cart->validate() !== true) {
 			$_POST['checkout'] = false;
 			return;
+		} else $Order->Customer->updates($_POST); // Catch changes from validation
+		
+		if (number_format($Shopp->Cart->data->Totals->total, 2) == 0) {
+			$_POST['checkout'] = 'confirmed';
+			return true;
 		}
 		
 		header("Location: ".add_query_arg('shopp_xco','NetCash/NetCash',$Shopp->link('confirm-order',false)));
@@ -106,7 +111,7 @@ class NetCash {
 		$_['p2'] = mktime();
 		$_['p3'] = get_bloginfo('sitename');
 		$_['p4'] = number_format($Order->Totals->total,2);
-		$_['p10'] = $Shopp->link('checkout');
+		$_['p10'] = $Shopp->link('checkout',false);
 		$_['Budget'] = 'Y';
 		$_['m_4'] = $Order->Cart;
 		// $_['m_5'] = '';		

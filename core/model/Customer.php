@@ -169,7 +169,7 @@ class Customer extends DatabaseObject {
 		$RecoveryCustomer->activation = '';
 		$RecoveryCustomer->save();
 		
-		$subject = apply_filters('shopp_recover_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
+		$subject = apply_filters('shopp_reset_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
 		
 		$_ = array();
 		$_[] = 'From: "'.get_option('blogname').'" <'.$Shopp->Settings->get('merchant_email').'>';
@@ -196,8 +196,8 @@ class Customer extends DatabaseObject {
 	}
 	
 	function load_downloads () {
+		if (empty($this->id)) return false;
 		$db =& DB::get();
-		
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
 		$pricing = DatabaseObject::tablename(Price::$table);
@@ -208,6 +208,7 @@ class Customer extends DatabaseObject {
 	}
 
 	function load_orders ($filters=array()) {
+		if (empty($this->id)) return false;
 		global $Shopp;
 		$db =& DB::get();
 		
@@ -227,31 +228,16 @@ class Customer extends DatabaseObject {
 	function new_wpuser () {
 		global $Shopp;
 		require_once(ABSPATH."/wp-includes/registration.php");
-
-		if (!empty($this->login)) $handle = $this->login;
-		else {
-			// No login provided, auto-generate login handle
-			list($handle,$domain) = explode("@",$Order->Customer->email);
-
-			if (username_exists($handle)) // The email handle exists, so use first name + last initial
-				$handle = $this->firstname.substr($this->lastname,0,1);
-
-			if (username_exists($handle)) {
-				// The first name+last initial handle exists, so use first initial + last name
-				$handle = substr($this->firstname,0,1).$this->lastname;
-				// That exists too *bangs head on wall*, ok add a random number too :P
-				if (username_exists($handle)) $handle .= rand(1000,9999);
-			}
-		}
-		
-		if (username_exists($handle))
+		if (empty($this->login)) return false;
+		if (username_exists($this->login)){
 			new ShoppError(__('The login name you provided is already in use.  Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
-		
+			return false;
+		}
 		if (empty($this->password)) $this->password = wp_generate_password(12,true);
 		
 		// Create the WordPress account
 		$wpuser = wp_insert_user(array(
-			'user_login' => $handle,
+			'user_login' => $this->login,
 			'user_pass' => $this->password,
 			'user_email' => $this->email,
 			'display_name' => $this->firstname.' '.$this->Customer->lastname,
@@ -259,7 +245,6 @@ class Customer extends DatabaseObject {
 			'first_name' => $this->firstname,
 			'last_name' => $this->lastname
 		));
-		
 		if (!$wpuser) return false;
 
 		// Link the WP user ID to this customer record

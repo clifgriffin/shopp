@@ -4,7 +4,7 @@
  * @class PayPalStandard
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * 
@@ -101,13 +101,12 @@ class PayPalStandard {
 		if ($Shopp->Cart->validate() !== true) {
 			$_POST['checkout'] = false;
 			return;
-		}
+		} else $Order->Customer->updates($_POST); // Catch changes from validation
 
-		if ($Shopp->Cart->data->Totals->total == 0) {
+		if (number_format($Shopp->Cart->data->Totals->total, 2) == 0) {
 			$_POST['checkout'] = 'confirmed';
-			$this->order();	
+			return true;
 		}
-		
 		
 		header("Location: ".add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
 		exit();
@@ -187,9 +186,11 @@ class PayPalStandard {
 		global $Shopp;
 		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification received.',false,SHOPP_DEBUG_ERR);
 
-		// Validate the order notification
-		if (empty($_POST['invoice']) || !$this->validipn())
-			return new ShoppError(__('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
+		// If no invoice number is available, we 
+		if (empty($_POST['invoice'])) {
+			if (SHOPP_DEBUG) new ShoppError('No invoice number was provided by PayPal: '._object_r($_POST),'paypalstd_debug',SHOPP_DEBUG_ERR);
+			return new ShoppError(__('An unverifiable order with no invoice number was received from PayPal. Possible fraudulent order attempt!','Shopp'),'paypal_txn_verification',SHOPP_TRXN_ERR);
+		}
 
 		session_unset();
 		session_destroy();
@@ -207,32 +208,50 @@ class PayPalStandard {
 		}
 
 		// Validate the order data
-		$validation = false;
+		$validation = true;
 		
 		// Check for unique transaction id
 		$Purchase = new Purchase($_POST['txn_id'],'transactionid');
 		
-		if ($_POST['mc_gross'] == number_format($Order->Totals->total,2) 
-			&& empty($Purchase->id)) $validation = true;
-		
-		if ($validation) $this->order();
+		if(number_format($_POST['mc_gross'],2) != number_format($Order->Totals->total,2)){
+			$validation = false;
+			if(SHOPP_DEBUG) new ShoppError('Order validation failed. Received totals mismatch.  Received '.number_format($_POST['mc_gross'],2). ', but originally sent'.number_format($Order->Totals->total,2),'paypalstd_debug',SHOPP_DEBUG_ERR);
+		}  
+		if(!empty($Purchase->id)){
+			$validation = false;
+			if(SHOPP_DEBUG) new ShoppError('Order validation failed. Received duplicate transactionid: '.$_POST['txn_id'],'paypalstd_debug',SHOPP_DEBUG_ERR);
+		}
+		 
+		if($validation) $this->order();
 		else new ShoppError(__('An order was received from PayPal that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'paypal_trxn_validation',SHOPP_TRXN_ERR);
 		
 		exit();
 	}
 	
-	function validipn () {
+	function verifyipn () {
 		$_ = array();
 		$_['cmd'] = "_notify-validate";
 		
 		$this->transaction = $this->encode(array_merge($_POST,$_));
 		$Response = $this->send();
-		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification validation response received: '.$Response,'paypal_standard',SHOPP_DEBUG_ERR);
-		return ($Response == "VERIFIED");
+		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification verfication response received: '.$Response,'paypal_standard',SHOPP_DEBUG_ERR);
+		return $Response;
 	}
 	
 	function order () {
 		global $Shopp;
+		
+		$txnstatus = false;
+		$ipnstatus = $this->verifyipn();
+
+		// Validate the order notification
+		if ($ipnstatus != "VERIFIED") {
+			$txnstatus = $ipnstatus;
+			new ShoppError('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt! The order will be created, but the order payment status must be manually set to "Charged" when the payment can be verified.','paypal_txn_verification',SHOPP_TRXN_ERR);
+		} 
+		
+		if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
+		
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
@@ -246,21 +265,20 @@ class PayPalStandard {
 			// Check if they've logged in
 			// If the shopper is already logged-in, save their updated customer info
 			if ($Shopp->Cart->data->login) {
+				$user = get_userdata($Order->Customer->wpuser);
+				$Order->Customer->wpuser = $user->ID;
 				if (SHOPP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
-				get_currentuserinfo();
-				global $user_ID;
-				$Order->Customer->wpuser = $user_ID;
 			}
 			
 			// Create WordPress account (if necessary)
 			if (!$Order->Customer->wpuser) {
 				if (SHOPP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
-				$Order->Customer->new_wpuser();
+				if(!$Order->Customer->new_wpuser()) new ShoppError(__('Account creation failed on order for customer id:' . $Order->Customer->id, "Shopp"), false,SHOPP_TRXN_ERR);
 			}
 		}
 
 		// Create a WP-compatible password hash to go in the db
-		if (empty($Order->Customer->id))
+		if (empty($Order->Customer->id) && isset($Order->Customer->password))
 			$Order->Customer->password = wp_hash_password($Order->Customer->password);
 		$Order->Customer->save();
 
@@ -290,7 +308,7 @@ class PayPalStandard {
 		$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
 		$Purchase->gateway = "PayPal".(isset($_POST['test_ipn']) && $_POST['test_ipn'] == "1"?" Sandbox":"");
 		$Purchase->transactionid = $_POST['txn_id'];
-		$Purchase->transtatus = $this->status[$_POST['payment_status']];
+		$Purchase->transtatus = $txnstatus;
 		$Purchase->fees = $_POST['mc_fee'];
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
@@ -396,11 +414,11 @@ class PayPalStandard {
 			if (is_array($value)) {
 				foreach($value as $item) {
 					if (strlen($query) > 0) $query .= "&";
-					$query .= "$key=".urlencode($item);
+					$query .= "$key=".urlencode(stripslashes($item));
 				}
 			} else {
 				if (strlen($query) > 0) $query .= "&";
-				$query .= "$key=".urlencode($value);
+				$query .= "$key=".urlencode(stripslashes($value));
 			}
 		}
 		return $query;

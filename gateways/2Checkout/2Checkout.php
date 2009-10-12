@@ -4,7 +4,7 @@
  * @class _2Checkout
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.0.1
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * 
@@ -86,6 +86,11 @@ class _2Checkout {
 		if ($Shopp->Cart->validate() !== true) {
 			$_POST['checkout'] = false;
 			return;
+		} else $Order->Customer->updates($_POST); // Catch changes from validation
+
+		if (number_format($Shopp->Cart->data->Totals->total, 2) == 0) {
+			$_POST['checkout'] = 'confirmed';
+			return true;
 		}
 		
 		header("Location: ".add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('confirm-order',false)));

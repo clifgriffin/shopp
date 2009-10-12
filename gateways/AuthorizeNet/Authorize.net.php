@@ -4,7 +4,7 @@
  * @class AuthorizeNet
  *
  * @author Jonathan Davis
- * @version 1.0.4
+ * @version 1.0.5
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
  * 
@@ -118,7 +118,7 @@ class AuthorizeNet {
 	
 	function send () {
 		$connection = curl_init();
-		curl_setopt($connection, CURLOPT_URL,"https://secure.authorize.net/gateway/transact.dll");
+		curl_setopt($connection, CURLOPT_URL,apply_filters('shopp_authorize_net_url','https://secure.authorize.net/gateway/transact.dll'));
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
 		curl_setopt($connection, CURLOPT_VERBOSE, 1); 

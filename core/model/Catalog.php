@@ -559,6 +559,7 @@ class Catalog extends DatabaseObject {
 					if (!is_array($products)) $products = array($products);
 					foreach ($products as $product) {
 						$product = trim($product);
+						if (empty($product)) continue;
 						if (preg_match('/^[\d+]$/',$product)) 
 							$Shopp->Product = new Product($product);
 						else $Shopp->Product = new Product($product,'slug');
@@ -577,6 +578,7 @@ class Catalog extends DatabaseObject {
 				if ($source == "category" && isset($options['category'])) {
 					 // Save original requested category
 					if ($Shopp->Category) $Category = clone($Shopp->Category);
+					if (empty($options['category'])) return false;
 					$Shopp->Category = Catalog::load_category($options['category']);
 					$Shopp->Category->load_products($options);
 					if (isset($options['load'])) return true;
