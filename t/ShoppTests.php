@@ -14,7 +14,12 @@
  * Initialize
  **/
 
+
 require('wp-config.php');
+
+if (!defined('SHOPP_SQL_DATAFILE')) define('SHOPP_SQL_DATAFILE','shopptest.sql');
+system('mysql -u '.DB_USER.' --password='.DB_PASSWORD.' '.DB_NAME.' < '.SHOPP_SQL_DATAFILE);
+
 require_once(ABSPATH.'wp-settings.php');
 
 error_reporting(E_ALL);
@@ -358,13 +363,23 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		return $out;
 	}
 
+	/**
+	 * Drops all tables from the WordPress database
+	 */
+	function _drop_tables() {
+		global $wpdb;
+		$tables = $wpdb->get_col('SHOW TABLES;');
+		foreach ($tables as $table)
+			$wpdb->query("DROP TABLE IF EXISTS {$table}");
+	}
+
 	function _dump_tables($table /*, table2, .. */) {
 		$args = func_get_args();
 		$table_list = join(' ', $args);
 		system('mysqldump -u '.DB_USER.' --password='.DB_PASSWORD.' -cqnt '.DB_NAME.' '.$table_list);
 	}
 	
-	function _load_sql_dump($file) {
+	function _load_sql_datafile($file) {
 		$lines = file($file);
 		
 		global $wpdb;
@@ -455,21 +470,35 @@ function get_shopp_test_files($dir) {
 	return $tests;
 }
 
-/**
- * Drops all tables from the WordPress database
- */
-function drop_tables() {
-	global $wpdb;
-	$tables = $wpdb->get_col('SHOW TABLES;');
-	foreach ($tables as $table)
-		$wpdb->query("DROP TABLE IF EXISTS {$table}");
+function shopptests_print_result($printer, $result) {
+	$printer->printResult($result, timer_stop());
+	/*
+	echo $result->toString();
+	echo "\n", str_repeat('-', 40), "\n";
+	if ($f = intval($result->failureCount()))
+		echo "$f failures\n";
+	if ($e = intval($result->errorCount()))
+		echo "$e errors\n";
+
+	if (!$f and !$e)
+		echo "PASS (".$result->runCount()." tests)\n";
+	else
+		echo "FAIL (".$result->runCount()." tests)\n";
+	*/
 }
 
+
+
+// Main Procedures
+global $Shopp;
+if (defined('SHOPP_IMAGES_PATH')) $Shopp->Settings->save('image_path',SHOPP_IMAGES_PATH);
+if (defined('SHOPP_PRODUCTS_PATH')) $Shopp->Settings->save('products_path',SHOPP_PRODUCTS_PATH);
 
 define('SHOPP_TESTS_DIR',dirname(__FILE__).'/tests');
 $files = get_shopp_test_files(SHOPP_TESTS_DIR);
 foreach ($files as $file) require_once($file);
 $tests = get_all_test_cases();
-shopp_run_tests($tests);
+list ($result, $printer) = shopp_run_tests($tests);
+shopptests_print_result($printer,$result);
 
 ?>
