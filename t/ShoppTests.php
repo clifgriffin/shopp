@@ -46,6 +46,10 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		}
 
 		set_time_limit($this->_time_limit);
+		
+		$db = DB::get();
+		$db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
+		
 	}
 
 	function tearDown() {

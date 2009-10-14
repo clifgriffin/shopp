@@ -20,10 +20,10 @@ class CartTest extends ShoppTestCase {
 		$this->assertEquals(true, isset($Shopp->Cart) );
 	}
 
-	public function test_cart_totals_init () {
-		global $Shopp;
-		$this->assertEquals(true, isset($Shopp->Cart->data->Total) );
-	}
+	// public function test_cart_totals_init () {
+	// 	global $Shopp;
+	// 	$this->assertEquals(true, isset($Shopp->Cart->data->Total) );
+	// }
 
 } // end CartTest class
 
