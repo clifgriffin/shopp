@@ -51,6 +51,57 @@ class ProductAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals("fallout-3-game-of-the-year",$output);
 	}	
+
+	function test_product_price () {
+		global $Shopp;
+		$Shopp->Settings->registry['base_operations'] = array(
+			'name' => 'USA',
+		    'currency' => array(
+		            'code' => 'USD',
+		            'format' => array(
+		                    'cpos' => 1,
+		                    'currency' => '$',
+		                    'precision' => 2,
+		                    'decimals' => '.',
+		                    'thousands' => ',',
+		                ),
+		        ),
+		    'units' => 'imperial',
+		    'region' => 0,
+		    'country' => 'US',
+		    'zone' => 'OH',
+		    'vat' => false,
+		);
+		$Shopp->Settings->registry['taxrates'] = array(
+			0 => array('rate' => 15,'country'=>'*')
+		);
+		
+		$Shopp->Product = new Product(4);
+		ob_start();
+		shopp('product','price');
+		$output = ob_get_contents();
+		ob_end_clean();
+		$this->assertEquals("$59.82",$output);
+		
+		$Shopp->Settings->registry['base_operations']['vat'] = true;
+		ob_start();
+		shopp('product','price');
+		$output = ob_get_contents();
+		ob_end_clean();
+		$this->assertEquals("$68.79",$output);
+		
+		ob_start();
+		shopp('product','price','taxes=off');
+		$output = ob_get_contents();
+		ob_end_clean();
+		$this->assertEquals("$59.82",$output);
+		
+		
+		
+	}	
+
+
+
 } // end ProductAPITests class
 
 ?>
