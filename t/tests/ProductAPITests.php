@@ -95,11 +95,20 @@ class ProductAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals("$59.82",$output);
-		
-		
-		
+
 	}	
 
+	function test_product_thumbnail () {
+		
+		$Shopp->Product = new Product(4);
+		ob_start();
+		shopp('product','thumbnail');
+		$output = ob_get_contents();
+		ob_end_clean();
+		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/39" alt="Fallout 3: Game of the Year" width="96" height="96"  />',$output);
+		$this->assertValidMarkup($output);
+		
+	}
 
 
 } // end ProductAPITests class
