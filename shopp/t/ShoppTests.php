@@ -28,6 +28,7 @@ ini_set('display_errors', true);
 #require_once('PHPUnit.php');
 require_once('PHPUnit/Framework.php');
 require_once('PHPUnit/Util/ErrorHandler.php');
+require_once('xHTMLvalidator.php');
 
 // Abstraction Layer
 class ShoppTestCase extends PHPUnit_Framework_TestCase {
@@ -36,7 +37,8 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 	
 	protected $backupGlobals = FALSE;
 	var $_time_limit = 120; // max time in seconds for a single test function
-
+	var $validator = false;
+	
 	function setUp() {
 		// error types taken from PHPUnit_Framework_TestResult::run
 		$this->_phpunit_err_mask = E_USER_ERROR | E_NOTICE | E_STRICT;
@@ -49,6 +51,7 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		
 		$db = DB::get();
 		$db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
+		$this->validator = new xHTMLvalidator();
 		
 	}
 
@@ -56,6 +59,11 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		if (!is_null($this->_old_handler)) {
 			restore_error_handler();
 		}
+	}
+	
+	function assertValidMarkup ($string) {
+		$this->assertTrue($this->validator->validate($string),
+			'Failed to validate: '.$this->validator->showErrors());
 	}
 	
 	/**
