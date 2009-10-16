@@ -17,12 +17,11 @@ require_once 'PHPUnit/Framework.php';
 class ProductAPITests extends ShoppTestCase {
 
 	function ProductAPITests () {
+		global $Shopp;
+		$Shopp->Product = new Product(4);
 	}
 	
 	function test_product_id () {
-		global $Shopp;
-		$Shopp->Product = new Product(4);
-
 		ob_start();
 		shopp('product','id');
 		$output = ob_get_contents();
@@ -31,8 +30,6 @@ class ProductAPITests extends ShoppTestCase {
 	}
 
 	function test_product_name () {
-		global $Shopp;
-		$Shopp->Product = new Product(4);
 
 		ob_start();
 		shopp('product','name');
@@ -42,8 +39,6 @@ class ProductAPITests extends ShoppTestCase {
 	}
 	
 	function test_product_slug () {
-		global $Shopp;
-		$Shopp->Product = new Product(4);
 
 		ob_start();
 		shopp('product','slug');
@@ -76,7 +71,6 @@ class ProductAPITests extends ShoppTestCase {
 			0 => array('rate' => 15,'country'=>'*')
 		);
 		
-		$Shopp->Product = new Product(4);
 		ob_start();
 		shopp('product','price');
 		$output = ob_get_contents();
@@ -99,15 +93,20 @@ class ProductAPITests extends ShoppTestCase {
 	}	
 
 	function test_product_thumbnail () {
-		
-		$Shopp->Product = new Product(4);
 		ob_start();
 		shopp('product','thumbnail');
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/39" alt="Fallout 3: Game of the Year" width="96" height="96"  />',$output);
 		$this->assertValidMarkup($output);
-		
+	}
+	
+	function test_product_gallery () {
+		ob_start();
+		shopp('product','gallery');
+		$output = ob_get_contents();
+		ob_end_clean();
+		$this->assertValidMarkup($output);		
 	}
 
 

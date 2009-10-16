@@ -521,7 +521,7 @@ function shopp_gallery (id,evt) {
 		var previews = gallery.find('ul.previews');
 	
 		thumbnails.bind(evt,function () {
-			var target = $('#'+$(this).attr('rel'));
+			var target = $('#'+$(this).attr('class').split(' ')[0]);
 			if (!target.hasClass('active')) {
 				var previous = gallery.find('ul.previews li.active');
 				target.addClass('active').hide();

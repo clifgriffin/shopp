@@ -852,7 +852,7 @@ class xHTMLvalidator {
             }
         }
         if (isset($this->_tags[$tag]['required']) && in_array($attribute, $this->_tags[$tag]['required']) && (strlen($value) == 0)) {
-            $this->addError($this->translate("Missing required attribute %attribute on &lt;%tag&gt;", array(
+            $this->addError($this->translate("Missing required attribute %attribute on <%tag>", array(
             '%tag' => $tag,
             '%attribute' => $attribute
             )) , array(
