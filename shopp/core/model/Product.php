@@ -800,7 +800,7 @@ class Product extends DatabaseObject {
 					
 					if (!empty($options['title'])) $title = ' title="'.attribute_escape($options['title']).'"';
 					$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$this->name);
-					return '<img src="'.$img->uri.'"'.$title.' alt="'.$alt.'"  width="'.$width.'" height="'.$height.'" '.$options['class'].' />'; break;
+					return '<img src="'.$img->uri.'"'.$title.' alt="'.$alt.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />'; break;
 				}
 				break;
 			case "hasimages": 
@@ -875,7 +875,7 @@ class Product extends DatabaseObject {
 						$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
 						$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$img->name);
 						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
-						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="'.$options['zoomfx'].'" rel="product-'.$this->id.'-gallery">';
+						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="product_'.$this->id.'_gallery '.$options['zoomfx'].'">';
 						$previews .= '<img src="'.$Shopp->imguri.$img->id.'"'.$title.' alt="'.$alt.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
 						$previews .= '</a>';
 						$previews .= '</li>';
@@ -909,7 +909,7 @@ class Product extends DatabaseObject {
 						$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
 						$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$img->name);
 						
-						$thumbs .= '<li id="thumbnail-'.$img->src.'"'.(($firstThumb)?' class="first"':'').' rel="preview-'.$img->src.'">';
+						$thumbs .= '<li id="thumbnail-'.$img->src.'" class="preview-'.$img->src.(($firstThumb)?' first':' test').'">';
 						$thumbs .= '<img src="'.$Shopp->imguri.$img->id.'"'.$title.' alt="'.$alt.'" width="'.$thumbwidth.'" height="'.$thumbheight.'" />';
 						$thumbs .= '</li>';
 						$firstThumb = false;						
@@ -918,7 +918,9 @@ class Product extends DatabaseObject {
 				}
 				
 				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
-				$result .= '<script type="text/javascript">jQuery(document).ready( function() {  shopp_gallery("#gallery-'.$this->id.'","'.$options['preview'].'"); }); </script>';
+				$result .= '<script type="text/javascript"><!--
+					jQuery(document).ready( function() {  shopp_gallery("#gallery-'.$this->id.'","'.$options['preview'].'"); }); 
+					// --></script>';
 				return $result;
 				break;
 			case "has-categories": 

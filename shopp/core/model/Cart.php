@@ -40,6 +40,9 @@ class Cart {
 	 * Constructor that creates a new shopping Cart runtime object */
 	function Cart () {
 		$this->_table = DatabaseObject::tablename('cart');
+
+		// Close out any early session calls
+		if(session_id()) session_write_close();
 		
 		$this->handlers = session_set_save_handler(
 			array( &$this, 'open' ),	// Open
@@ -49,6 +52,7 @@ class Cart {
 			array( &$this, 'unload' ),	// Destroy
 			array( &$this, 'trash' )	// Garbage Collection
 		);
+		register_shutdown_function('session_write_close');
 		
 		define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
 		
@@ -115,7 +119,7 @@ class Cart {
 	function load ($id) {
 		global $Shopp;
 		$db = DB::get();
-		
+
 		if (is_robot()) return true;
 		
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
@@ -169,7 +173,7 @@ class Cart {
 	function save ($id,$session) {
 		global $Shopp;
 		$db = DB::get();
-
+		
 		if (isset($Shopp->Settings->unavailable) && !$Shopp->Settings->unavailable) {
 			$data = $db->escape(addslashes(serialize($this->data)));
 			$contents = $db->escape(serialize($this->contents));
@@ -183,6 +187,7 @@ class Cart {
 				$data = "!".base64_encode($secure->data);
 			}
 			$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'";
+
 			if (!$db->query($query)) 
 				trigger_error("Could not save session updates to the database.");
 

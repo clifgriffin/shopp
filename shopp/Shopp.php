@@ -922,9 +922,7 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 		}
 			
 		if (empty($_REQUEST['cart'])) return true;
-
-		// echo "<pre>"; print_r($_REQUEST); echo "</pre>";
-		// exit();
+		
 		$this->Cart->request();
 		if ($this->Cart->updated) $this->Cart->totals();
 		if (isset($_REQUEST['ajax'])) $this->Cart->ajax();
