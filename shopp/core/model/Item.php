@@ -211,7 +211,7 @@ class Item {
 		}
 		
 		if ($property == "unitprice" || $property == "total" || $property == "options")
-			$taxrate = shopp_taxrate($options['taxes'],$this->taxable);
+			$taxrate = shopp_taxrate(isset($options['taxes'])?$options['taxes']:null,$this->taxable);
 
 		// Handle currency values
 		$result = "";
