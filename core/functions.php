@@ -870,6 +870,15 @@ function inputattrs ($options,$allowed=array()) {
  	return $string;
 }
 
+if (!function_exists('href_add_query_arg')) {
+	function href_add_query_arg () {
+		$args = func_get_args();
+		$url = call_user_func_array('add_query_arg',$args);
+		list($uri,$query) = explode("?",$url);
+		return $uri.'?'.urlencode($query);
+	}
+}
+
 function build_query_request ($request=array()) {
 	$query = "";
 	foreach ($request as $name => $value) {
