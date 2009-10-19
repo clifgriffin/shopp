@@ -391,7 +391,6 @@ class xHTMLvalidator {
     'value'
     ) ,
     'required' => array(
-    'label'
     ) ,
     'inside' => 'select',
     ) ,
