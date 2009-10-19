@@ -161,7 +161,8 @@ class Cart {
 	 * Deletes the session data from the database, unregisters the 
 	 * session and releases all the objects. */
 	function unload () {
-		$db = DB::get();		
+		$db = DB::get();
+		if(empty($this->session)) return false;		
 		if (!$db->query("DELETE FROM $this->_table WHERE session='$this->session'")) 
 			trigger_error("Could not clear session data.");
 		unset($this->session,$this->ip,$this->data,$this->contents);
@@ -173,7 +174,7 @@ class Cart {
 	function save ($id,$session) {
 		global $Shopp;
 		$db = DB::get();
-		if(empty($this->session)) return;
+		if(empty($this->session)) return false;
 		
 		if (isset($Shopp->Settings->unavailable) && !$Shopp->Settings->unavailable) {
 			$data = $db->escape(addslashes(serialize($this->data)));
