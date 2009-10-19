@@ -120,7 +120,7 @@ class Cart {
 		global $Shopp;
 		$db = DB::get();
 
-		if (is_robot()) return true;
+		if (is_robot() || empty($this->session)) return true;
 		
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
 		// echo "$query".BR;
@@ -173,6 +173,7 @@ class Cart {
 	function save ($id,$session) {
 		global $Shopp;
 		$db = DB::get();
+		if(empty($this->session)) return;
 		
 		if (isset($Shopp->Settings->unavailable) && !$Shopp->Settings->unavailable) {
 			$data = $db->escape(addslashes(serialize($this->data)));
