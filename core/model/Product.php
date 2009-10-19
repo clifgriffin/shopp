@@ -469,6 +469,7 @@ class Product extends DatabaseObject {
 		if ($deprecated) $factor = 101;
 		else $factor = 7001;
 		if (empty($ids)) return 0;
+		$key = 0;
 		foreach ($ids as $set => $id) 
 			$key = $key ^ ($id*$factor);
 		return $key;
