@@ -203,6 +203,8 @@ class xHTMLvalidator {
     'br',
     'button' => array(
     'attributes' => array(
+	'name',
+	'tabindex' => '/^(\d)+$/',
     'disabled' => '/^(disabled)$/',
     'type' => '/^(button|reset|submit)$/',
     'value'

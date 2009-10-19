@@ -160,7 +160,7 @@ class Item {
 			if ($difference < 0) $price = '  (-'.money(abs($difference)).')';
 			
 			$selected = "";
-			if ($selection == $option->id) $selected = ' selected="Selected"';
+			if ($selection == $option->id) $selected = ' selected="selected"';
 			$disabled = "";
 			if ($option->inventory == "on" && $option->stock < $this->quantity)
 				$disabled = ' disabled="disabled"';
@@ -267,7 +267,7 @@ class Item {
 							$result = '<button type="submit" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="">'.$label.'</button>';
 					}
 				} else {
-					$result = '<a href="'.add_query_arg(array('cart'=>'update','item'=>$id,'quantity'=>0),$Shopp->link('cart')).'"'.$class.'>'.$label.'</a>';
+					$result = '<a href="'.href_add_query_arg(array('cart'=>'update','item'=>$id,'quantity'=>0),$Shopp->link('cart')).'"'.$class.'>'.$label.'</a>';
 				}
 				break;
 			case "optionlabel": $result = $this->optionlabel; break;
@@ -326,13 +326,13 @@ class Item {
 				return $result;
 				break;
 			case "thumbnail":
-				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+				if (isset($options['class']) && !empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
 				if (isset($this->thumbnail)) {
 					$img = $this->thumbnail;
 					$width = (isset($options['width']))?$options['width']:$img->properties['height'];
 					$height = (isset($options['height']))?$options['height']:$img->properties['height'];
 
-					return '<img src="'.$Shopp->imguri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />'; break;
+					return '<img src="'.$Shopp->imguri.$img->id.'" alt="'.htmlspecialchars($this->name).' '.$img->datatype.'" width="'.$width.'" height="'.$height.'" '.(isset($options['class'])?$options['class']:"").' />'; break;
 				}
 			
 		}
