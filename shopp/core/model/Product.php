@@ -31,6 +31,8 @@ class Product extends DatabaseObject {
 	var $freeshipping = false;
 	var $priceloop = false;
 	var $specloop = false;
+	var $categoryloop = false;
+	var $imageloop = false;
 	var $outofstock = false;
 	var $stock = 0;
 	var $options = 0;
@@ -726,8 +728,7 @@ class Product extends DatabaseObject {
 				if (empty($this->prices)) $this->load_data(array('prices'));
 				if (empty($this->prices)) return false;
 				return $this->onsale;
-				
-				// if (empty($this->prices)) $this->load_prices();
+
 				$sale = false;
 				if (count($this->prices) > 1) {
 					foreach($this->prices as $pricetag) 
@@ -737,7 +738,7 @@ class Product extends DatabaseObject {
 				break;
 			case "saleprice":
 				if (empty($this->prices)) $this->load_data(array('prices'));
-				// if (empty($this->prices)) $this->load_prices();
+				if (!isset($options['taxes'])) $options['taxes'] = null;
 				$pricetag = 'price';
 
 				if ($this->onsale) $pricetag = 'saleprice';
@@ -757,6 +758,7 @@ class Product extends DatabaseObject {
 			case "has-savings": return ($this->onsale && $this->pricerange['min']['saved'] > 0)?true:false; break;
 			case "savings":
 				if (empty($this->prices)) $this->load_data(array('prices'));
+				if (!isset($options['taxes'])) $options['taxes'] = null;
 
 				$taxrate = shopp_taxrate($options['taxes']);
 
@@ -777,7 +779,6 @@ class Product extends DatabaseObject {
 				break;
 			case "freeshipping":
 				if (empty($this->prices)) $this->load_data(array('prices'));
-				// if (empty($this->prices)) $this->load_prices();
 				return $this->freeshipping;
 			case "thumbnail":
 				if (empty($this->imagesets)) $this->load_data(array('images'));
@@ -839,7 +840,10 @@ class Product extends DatabaseObject {
 						default: return $img->id;
 					}
 				}
+				if (!isset($options['class'])) $options['class'] = false;
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+
+				$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
 
 				$width = (isset($options['width']))?$options['width']:$img->properties['width'];
 				$height = (isset($options['height']))?$options['height']:$img->properties['height'];
@@ -853,10 +857,13 @@ class Product extends DatabaseObject {
 					$width = round($img->properties['width']*$scale);
 				}
 
+				if (!empty($options['title'])) $title = ' title="'.attribute_escape($options['title']).'"';
+				$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$this->name);
+
 				$string = "";
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-thickbox";
 				if (!empty($options['zoom'])) $string .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="'.$options['zoomfx'].'" rel="product-gallery">';
-				$string .= '<img src="'.$img->uri.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />';
+				$string .= '<img src="'.$img->uri.'"'.$title.' alt="'.$alt.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;
