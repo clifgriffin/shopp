@@ -264,16 +264,6 @@ CREATE TABLE `wp_shopp_cart` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 --
--- Dumping data for table `wp_shopp_cart`
---
-
-LOCK TABLES `wp_shopp_cart` WRITE;
-/*!40000 ALTER TABLE `wp_shopp_cart` DISABLE KEYS */;
-INSERT INTO `wp_shopp_cart` VALUES ('88a2d116e016b5b523ec28e5d990a5cd',0,'127.0.0.1','','','2009-10-14 15:26:23','2009-10-14 15:26:23'),('',0,'','','','2009-10-14 15:04:33','2009-10-14 15:04:33');
-/*!40000 ALTER TABLE `wp_shopp_cart` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `wp_shopp_catalog`
 --
 
