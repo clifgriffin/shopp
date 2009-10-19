@@ -220,12 +220,11 @@ class ProductAPITests extends ShoppTestCase {
 		$this->assertFalse(shopp('product','freeshipping'));
 	}
 	
-	function test_product_addtocart () {
-		ob_start();
-		shopp('product','addtocart');
-		$output = ob_get_contents();
-		ob_end_clean();
-		$this->assertValidMarkup($output);
+	function test_product_hasimages () {
+		global $Shopp;
+		$this->assertTrue(shopp('product','hasimages'));
+		$this->assertTrue(shopp('product','has-images'));
+		$this->assertEquals(6,count($Shopp->Product->images));
 	}
 
 	function test_product_hascategories () {
@@ -233,6 +232,18 @@ class ProductAPITests extends ShoppTestCase {
 		$this->assertTrue(shopp('product','has-categories'));
 		$this->assertEquals(3,count($Shopp->Product->categories));
 	}
+	
+	function test_product_incategory_byname () {
+		$this->assertTrue(shopp('product','in-category','name=Entertainment'));
+	}
+
+	function test_product_incategory_byslug () {
+		$this->assertTrue(shopp('product','in-category','slug=movies-tv'));
+	}
+	
+	function test_product_incategory_byid () {
+		$this->assertTrue(shopp('product','in-category','id=24'));
+	}	
 	
 	function test_product_category_tags () {
 		ob_start();
@@ -243,19 +254,7 @@ class ProductAPITests extends ShoppTestCase {
 		$this->assertEquals('EntertainmentMovies & TVBlu-Ray',$output);
 	}
 	
-	function test_product_hasimages () {
-		global $Shopp;
-		$this->assertTrue(shopp('product','hasimages'));
-		$this->assertTrue(shopp('product','has-images'));
-		$this->assertEquals(6,count($Shopp->Product->images));
-	}
-	
 	function test_product_image_tags () {
-		ob_start();
-		shopp('product','thumbnail');
-		$thumbnail = ob_get_contents();
-		ob_end_clean();
-		
 		ob_start();
 		if (shopp('product','has-images')) 
 			while(shopp('product','images')) shopp('product','image');
@@ -264,6 +263,180 @@ class ProductAPITests extends ShoppTestCase {
 		
 		$this->assertEquals('<img src="http://shopptest/store/images/363" alt="Ultimate Matrix Collection" width="96" height="96"  /><img src="http://shopptest/store/images/480" alt="Ultimate Matrix Collection" width="96" height="96"  />',$output);
 	}
+	
+	function test_product_hastags () {
+		global $Shopp;
+		$this->assertTrue(shopp('product','hastags'));
+		$this->assertTrue(shopp('product','has-tags'));
+		$this->assertEquals(6,count($Shopp->Product->tags));
+	}
+	
+	function test_product_tag_tags () {
+		ob_start();
+		if (shopp('product','has-tags')) 
+			while(shopp('product','tags')) shopp('product','tag');
+		$output = ob_get_contents();
+		ob_end_clean();
+		
+		$this->assertEquals('matrixtrilogybluraymoviewarnerwachowski',$output);
+	}
+	
+	function test_product_tagged_byname () {
+		$this->assertTrue(shopp('product','tagged','name=matrix'));
+	}
+	
+	function test_product_tagged_byid () {
+		$this->assertTrue(shopp('product','tagged','id=28'));
+	}
+	
+	
+	function test_product_hasspecs () {
+		global $Shopp;
+		$this->assertTrue(shopp('product','hasspecs'));
+		$this->assertTrue(shopp('product','has-specs'));
+		$this->assertEquals(7,count($Shopp->Product->specs));
+	}
+	
+	function test_product_spec_tags () {
+		ob_start();
+		if (shopp('product','has-specs')) 
+			while(shopp('product','specs')) shopp('product','spec');
+		$output = ob_get_contents();
+		ob_end_clean();
+		
+		$this->assertEquals('Rating: R RatedStudio: Warner Home VideoRun Time (in minutes): 415Format: Blu-Ray, DVDLanguage: EnglishScreen Format: WidescreenDirector: The Wachowski Brothers',$output);
+	}
+
+	function test_product_spec_tags_byname () {
+		ob_start();
+		if (shopp('product','has-specs')) 
+			while(shopp('product','specs')) shopp('product','spec','name');
+		$output = ob_get_contents();
+		ob_end_clean();
+		
+		$this->assertEquals('RatingStudioRun Time (in minutes)FormatLanguageScreen FormatDirector',$output);
+		
+	}
+
+	function test_product_spec_tags_bycontent () {
+		ob_start();
+		if (shopp('product','has-specs')) 
+			while(shopp('product','specs')) shopp('product','spec','content');
+		$output = ob_get_contents();
+		ob_end_clean();
+		
+		$this->assertEquals('R RatedWarner Home Video415Blu-Ray, DVDEnglishWidescreenThe Wachowski Brothers',$output);
+	}
+	
+	function test_product_outofstock () {
+		$this->assertFalse(shopp('product','outofstock'));
+	}
+
+	function test_product_hasvariations () {
+		$this->assertTrue(shopp('product','has-variations'));
+	}
+	
+	function test_product_variations_menus () {
+		global $Shopp;
+		
+		ob_start();
+		shopp('product','variations','mode=single');
+		$output = ob_get_contents();
+		ob_end_clean();
+		$this->assertValidMarkup($output);
+
+		ob_start();
+		shopp('product','variations','mode=multi');
+		$output = ob_get_contents();
+		ob_end_clean();
+		$this->assertValidMarkup($output);
+		
+	}
+
+	function test_product_variation_tags () {
+		global $Shopp;
+		
+		ob_start();
+		if (shopp('product','has-variations')) {
+			while(shopp('product','variations')) {
+				shopp('product','variation','id');
+				shopp('product','variation','name');
+				shopp('product','variation','label');
+				shopp('product','variation','type');
+				shopp('product','variation','sku');
+				shopp('product','variation','price');
+				shopp('product','variation','saleprice');
+				shopp('product','variation','stock');
+				shopp('product','variation','weight');
+				shopp('product','variation','shipfee');
+				shopp('product','variation','sale');
+				shopp('product','variation','shipping');
+				shopp('product','variation','tax');
+				shopp('product','variation','inventory');
+			}
+		}
+		$output = ob_get_contents();
+		ob_end_clean();
+		$this->assertEquals('228Blu-RayShippedBR-81$129.95$63.86251.151 lb$0.00256DVDShipped$34.86$15.060.2 lb$0.00',$output);
+		
+	}
+	
+	function test_product_input () {
+		ob_start();
+		shopp('product','input','type=text&name=Testing');
+		$output = ob_get_contents();
+		ob_end_clean();
+		
+		$markup = array(
+			'tag' => 'input',
+			'attributes' => array(
+				'type' => 'text',
+				'name' => 'products[81][data][Testing]',
+				'id' => 'data-Testing-81'
+			)
+		);
+		$this->assertTag($markup,$output,'',true);
+		$this->assertValidMarkup($output);
+	}
+
+	function test_product_addtocart () {
+		global $Shopp;
+		
+		$Shopp->Product->outofstock = true;
+		ob_start();
+		shopp('product','addtocart');
+		$output = ob_get_contents();
+		ob_end_clean();
+		$this->assertEquals('<span class="outofstock">Out of stock</span>',$output);
+		$Shopp->Product->outofstock = false;
+		
+		ob_start();
+		shopp('product','addtocart');
+		$output = ob_get_contents();
+		ob_end_clean();
+		
+		$markup = array(
+			'tag' => 'input',
+			'attributes' => array('type' => 'hidden','name' => 'products[81][product]','value' => '81')
+		);
+		$this->assertTag($markup,$output,'',true);
+
+		$markup = array(
+			'tag' => 'input',
+			'attributes' => array('type' => 'hidden','name' => 'cart','value' => 'add')
+		);
+		$this->assertTag($markup,$output,'',true);
+
+		$markup = array(
+			'tag' => 'input',
+			'attributes' => array('type' => 'submit','name' => 'addtocart')
+		);
+		$this->assertTag($markup,$output,'',true);
+
+		$this->assertValidMarkup($output);
+		
+	}
+
 	
 } // end ProductAPITests class
 
