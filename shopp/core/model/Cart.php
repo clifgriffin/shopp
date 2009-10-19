@@ -883,7 +883,7 @@ class Cart {
 	 * secured()
 	 * Check or set the security setting for the cart */
 	function secured ($setting=null) {
-		if (is_null($setting)) return $this->data->secure;
+		if (is_null($setting) && isset($this->data->secure)) return $this->data->secure;
 		$this->data->secure = ($setting);
 		if (SHOPP_DEBUG) {
 			if ($this->data->secure) new ShoppError('Switching the cart to secure mode.',false,SHOPP_DEBUG_ERR);
@@ -963,7 +963,7 @@ class Cart {
 					if (!empty($_REQUEST['options']) && !empty($_REQUEST['options'][0])) 
 						$pricing = $_REQUEST['options'];
 					else $pricing = $_REQUEST['price'];
-					
+										
 					$category = false;
 					if (!empty($_REQUEST['category'])) $category = $_REQUEST['category'];
 					
