@@ -50,9 +50,7 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		set_time_limit($this->_time_limit);
 		
 		$db = DB::get();
-		$db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
-		$this->validator = new xHTMLvalidator();
-		
+		$db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);		
 	}
 
 	function tearDown() {
@@ -62,8 +60,9 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 	}
 	
 	function assertValidMarkup ($string) {
-		$this->assertTrue($this->validator->validate($string),
-			'Failed to validate: '.$this->validator->showErrors());
+		$validator = new xHTMLvalidator();
+		$this->assertTrue($validator->validate($string),
+			'Failed to validate: '.$validator->showErrors());
 	}
 	
 	/**
