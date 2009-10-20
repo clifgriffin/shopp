@@ -35,6 +35,7 @@ class Item {
 	var $inventory = false;
 	var $taxable = false;
 	var $freeshipping = false;
+	var $dataloop = false;
 
 	function Item ($Product,$pricing,$category,$data=array()) {
 		global $Shopp; // To access settings
@@ -210,7 +211,8 @@ class Item {
 			case "sku": return $this->sku;
 		}
 		
-		if ($property == "unitprice" || $property == "total" || $property == "options")
+		$taxrate = 0;
+		if ($property == "unitprice" || $property == "total" || $property == "tax" || $property == "options")
 			$taxrate = shopp_taxrate(isset($options['taxes'])?$options['taxes']:null,$this->taxable);
 
 		// Handle currency values
@@ -218,7 +220,7 @@ class Item {
 		switch ($property) {
 			case "unitprice": $result = (float)$this->unitprice+($this->unitprice*$taxrate); break;
 			case "total": $result = (float)$this->total+($this->total*$taxrate); break;
-			case "tax": $result = (float)$this->tax; break;			
+			case "tax": $result = (float)($this->unitprice*$taxrate); break;			
 		}
 		if (is_float($result)) {
 			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
