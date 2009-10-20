@@ -863,7 +863,7 @@ function inputattrs ($options,$allowed=array()) {
 			case "minlength": $classes .= " min$value"; break;
 			case "format": $classes .= " $value"; break;
 			default:
-				$string .= ' '.$key.'="'.$value.'"';
+				$string .= ' '.$key.'="'.attribute_escape($value).'"';
 		}
 	}
 	$string .= ' class="'.$classes.'"';

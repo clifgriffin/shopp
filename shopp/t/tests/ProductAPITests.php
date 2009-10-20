@@ -12,7 +12,6 @@
 /**
  * Initialize
  **/
-require_once 'PHPUnit/Framework.php';
 
 class ProductAPITests extends ShoppTestCase {
 

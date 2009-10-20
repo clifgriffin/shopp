@@ -29,6 +29,7 @@ class Cart {
 	var $shipped = array();
 	var $freeshipping = false;
 	var $looping = false;
+	var $itemlooping = false;
 	var $runaway = 0;
 	var $updated = false;
 	var $retotal = false;
@@ -470,6 +471,7 @@ class Cart {
 
 		$PromoCodeFound = false; $PromoCodeExists = false; $PromoLimit = false;
 		$this->data->PromosApplied = array();
+
 		foreach ($this->data->Promotions as &$promo) {
 			if (!is_array($promo->rules))
 				$promo->rules = unserialize($promo->rules);
@@ -477,7 +479,7 @@ class Cart {
 			// Add quantity rule automatically for buy x get y promos
 			if ($promo->type == "Buy X Get Y Free") {
 				$promo->search = "all";
-				if ($promo->rules[count($promo->rules)-1]['property'] != "Item quantity") {
+				if ($promo->rules[count($promo->rules)]['property'] != "Item quantity") {
 					$qtyrule = array(
 						'property' => 'Item quantity',
 						'logic' => "Is greater than",
@@ -594,7 +596,7 @@ class Cart {
 				}
 			}
 			
-			if ($match && $promo->exclusive == "on") break;
+			// if ($match && $promo->exclusive == "on") break;
 			
 		} // end foreach ($Promotions)
 
@@ -947,10 +949,11 @@ class Cart {
 			} else $this->data->PromoCodeResult = __("That code has already been applied.","Shopp");
 		}
 		
+		if (!isset($_REQUEST['cart'])) $_REQUEST['cart'] = false;
 		if (isset($_REQUEST['remove'])) $_REQUEST['cart'] = "remove";
 		if (isset($_REQUEST['update'])) $_REQUEST['cart'] = "update";
 		if (isset($_REQUEST['empty'])) $_REQUEST['cart'] = "empty";
-		
+
 		if (!isset($_REQUEST['quantity'])) $_REQUEST['quantity'] = 1;
 
 		switch($_REQUEST['cart']) {
@@ -1172,7 +1175,7 @@ class Cart {
 	
 	function tag ($property,$options=array()) {
 		global $Shopp;
-		$submit_attrs = array('title','value','disabled','tabindex','accesskey');
+		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
 		
 		// Return strings with no options
 		switch ($property) {
@@ -1212,17 +1215,20 @@ class Cart {
 				break;
 			case "promo-discount":
 				$promo = current($this->data->PromosApplied);
-				if (empty($options['label'])) $options['label'] = __('Off!','Shopp');
+				if (!isset($options['label'])) $options['label'] = ' '.__('Off!','Shopp');
+				else $options['label'] = ' '.$options['label'];
+				$string = false;
 				if (!empty($options['before'])) $string = $options['before'];
+
 				switch($promo->type) {
-					case "Free Shipping": $string .= $Shopp->Settings->get('free_shipping_text');
-					case "Percentage Off": $string .= percentage($promo->discount)." ".$options['label'];
-					case "Amount Off": $string .= money($promo->discount)." ".$options['label'];
-					case "Buy X Get Y Free": return "";
+					case "Free Shipping": $string .= $Shopp->Settings->get('free_shipping_text'); break;
+					case "Percentage Off": $string .= percentage($promo->discount).$options['label']; break;
+					case "Amount Off": $string .= money($promo->discount).$options['label']; break;
+					case "Buy X Get Y Free": return ""; break;
 				}
 				if (!empty($options['after'])) $string = $options['after'];
+
 				return $string;
-				
 				break;
 			case "function": 
 				$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
@@ -1239,7 +1245,9 @@ class Cart {
 				break;
 			case "update-button": 
 				if (!isset($options['value'])) $options['value'] = __('Update Subtotal','Shopp');
-				return '<input type="submit" name="update" class="update-button" '.inputattrs($options,$submit_attrs).' />';
+				if (isset($options['class'])) $options['class'] .= "update-button";
+				else $options['class'] = "update-button";
+				return '<input type="submit" name="update"'.inputattrs($options,$submit_attrs).' />';
 				break;
 			case "sidecart":
 				ob_start();
@@ -1257,6 +1265,7 @@ class Cart {
 			case "promos-available":
 				if (empty($this->data->Promotions)) return false;
 				// Skip if the promo limit has been reached
+				if ($Shopp->Settings->get('promo_limit') == 0) return true;
 				if (count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
 				return true;
 				break;

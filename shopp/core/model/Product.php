@@ -33,6 +33,7 @@ class Product extends DatabaseObject {
 	var $specloop = false;
 	var $categoryloop = false;
 	var $imageloop = false;
+	var $tagloop = false;
 	var $outofstock = false;
 	var $stock = 0;
 	var $options = 0;
@@ -1069,6 +1070,7 @@ class Product extends DatabaseObject {
 				}
 
 				if ($this->outofstock) return false; // Completely out of stock, hide menus
+				if (!isset($options['taxes'])) $options['taxes'] = null;
 				
 				$defaults = array(
 					'defaults' => '',
@@ -1088,21 +1090,23 @@ class Product extends DatabaseObject {
 					$string .= '<select name="products['.$this->id.'][price]" id="product-options'.$this->id.'">';
 					if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 
-					foreach ($this->prices as $option) {
-						$taxrate = shopp_taxrate($options['taxes'],$option->tax);
-						$currently = ($option->sale == "on")?$option->promoprice:$option->price;
-						$disabled = ($option->inventory == "on" && $option->stock == 0)?' disabled="disabled"':'';
+					foreach ($this->prices as $pricetag) {
+						if ($pricetag->context != "variation") continue;
+						
+						$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax);
+						$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
+						$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
 
 						$price = '  ('.money($currently).')';
-						if ($option->type != "N/A")
-							$string .= '<option value="'.$option->id.'"'.$disabled.'>'.$option->label.$price.'</option>'."\n";
+						if ($pricetag->type != "N/A")
+							$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.$pricetag->label.$price.'</option>'."\n";
 					}
 
 					$string .= '</select>';
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 
 				} else {
-					$taxrate = shopp_taxrate($options['taxes'],$option->tax);
+					$taxrate = shopp_taxrate($options['taxes'],true);
 					ob_start();
 					?>
 					<script type="text/javascript">
@@ -1158,6 +1162,7 @@ class Product extends DatabaseObject {
 				break;
 			case "variation":
 				$variation = current($this->prices);
+				if (!isset($options['taxes'])) $options['taxes'] = null;
 				$taxrate = shopp_taxrate($options['taxes'],$variation->tax);
 				
 				$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : $Shopp->Settings->get('weight_unit');
@@ -1171,7 +1176,7 @@ class Product extends DatabaseObject {
 				if (array_key_exists('saleprice',$options)) $string .= money($variation->saleprice+($variation->saleprice*$taxrate));
 				if (array_key_exists('stock',$options)) $string .= $variation->stock;
 				if (array_key_exists('weight',$options)) $string .= round($variation->weight, 3) . ($weightunit ? " $weightunit" : false);
-				if (array_key_exists('shipfee',$options)) $string .= money($variation->shipfee);
+				if (array_key_exists('shipfee',$options)) $string .= money(floatvalue($variation->shipfee));
 				if (array_key_exists('sale',$options)) return ($variation->sale == "on");
 				if (array_key_exists('shipping',$options)) return ($variation->shipping == "on");
 				if (array_key_exists('tax',$options)) return ($variation->tax == "on");
@@ -1274,7 +1279,7 @@ class Product extends DatabaseObject {
 					$label = isset($options['label'])?$options['label']:$Shopp->Settings->get('outofstock_text');
 					$string = '<span class="outofstock">'.$label.'</span>';
 					return $string;
-				}
+				} else return false;
 				break;
 			case "buynow":
 				if (!isset($options['value'])) $options['value'] = __("Buy Now","Shopp");
