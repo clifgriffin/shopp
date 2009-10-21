@@ -444,10 +444,11 @@ function shopp_run_tests($classes, $classname='') {
 
 function get_all_test_cases() {
 	$test_classes = array();
+	$skipped_classes = explode(',',SHOPP_SKIP_TESTS);
 	$all_classes = get_declared_classes();
 	// only classes that extend ShoppTestCase and have names that don't start with _ are included
 	foreach ($all_classes as $class)
-		if ($class{0} != '_' && is_descendent_class('ShoppTestCase', $class))
+		if ($class{0} != '_' && is_descendent_class('ShoppTestCase', $class) && !in_array($class,$skipped_classes))
 			$test_classes[] = $class;
 	return $test_classes;
 }
@@ -502,8 +503,9 @@ function shopptests_print_result($printer, $result) {
 
 // Main Procedures
 global $Shopp;
-if (defined('SHOPP_IMAGES_PATH')) $Shopp->Settings->save('image_path',SHOPP_IMAGES_PATH);
-if (defined('SHOPP_PRODUCTS_PATH')) $Shopp->Settings->save('products_path',SHOPP_PRODUCTS_PATH);
+if (defined('SHOPP_IMAGES_PATH')) $Shopp->Settings->registry['image_path'] = SHOPP_IMAGES_PATH;
+if (defined('SHOPP_PRODUCTS_PATH')) $Shopp->Settings->registry['products_path'] = SHOPP_PRODUCTS_PATH;
+if (!defined('SHOPP_SKIP_TESTS')) define('SHOPP_SKIP_TESTS','');
 
 define('SHOPP_TESTS_DIR',dirname(__FILE__).'/tests');
 $files = get_shopp_test_files(SHOPP_TESTS_DIR);

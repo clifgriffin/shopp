@@ -356,7 +356,7 @@ class CartAPITests extends ShoppTestCase {
 		$Shopp->Cart->totals();
 		
 		$this->assertFalse(shopp('cart','has-shipping-methods'));
-		
+		$ShipCosts = $Shopp->Cart->data->ShipCosts;
 		$Shopp->Cart->data->ShipCosts['Test'] = array (
             'name' => 'Test',
             'delivery' => 'prompt',
@@ -367,6 +367,7 @@ class CartAPITests extends ShoppTestCase {
             'cost' => '3'
 		);
 		$this->assertTrue(shopp('cart','has-shipping-methods'));
+		$Shopp->Cart->data->ShipCosts = $ShipCosts;
 	}
 	
 	function test_cart_needsshipped () {
