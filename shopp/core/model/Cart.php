@@ -1480,11 +1480,11 @@ class Cart {
 				$regions = $Shopp->Settings->get('zones');
 				$base = $Shopp->Settings->get('base_operations');
 				$output = '<script type="text/javascript">'."\n";
-				$output .= '//<![CDATA['."\n";
+				$output .= '<!--'."\n";
 				$output .= 'var currencyFormat = '.json_encode($base['currency']['format']).';'."\n";
 				$output .= 'var regions = '.json_encode($regions).';'."\n";
 				$output .= 'var SHIPCALC_STATUS = \''.$options['shipcalc'].'\'';
-				$output .= '//]]>'."\n";
+				$output .= '//-->'."\n";
 				$output .= '</script>'."\n";
 				if (!empty($options['value'])) $value = $options['value'];
 				else $value = "process";
@@ -1619,6 +1619,7 @@ class Cart {
 					$options['value'] = $this->data->Order->Shipping->state;
 				}
 				
+				$output = false;
 				$country = $base['country'];
 				if (!empty($this->data->Order->Shipping->country))
 					$country = $this->data->Order->Shipping->country;
@@ -1698,6 +1699,7 @@ class Cart {
 				}
 				if (empty($options['type'])) $options['type'] = "menu";
 				
+				$output = false;
 				$country = $base['country'];
 				if (!empty($this->data->Order->Billing->country))
 					$country = $this->data->Order->Billing->country;
