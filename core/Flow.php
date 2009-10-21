@@ -784,6 +784,7 @@ class Flow {
 	
 	function order_manager () {
 		global $Shopp;
+		global $is_IIS;
 
 		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
@@ -809,7 +810,8 @@ class Flow {
 				// Send the e-mail notification
 				$notification = array();
 				$notification['from'] = $Shopp->Settings->get('merchant_email');
-				$notification['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
+				if($is_IIS) $notification['to'] = $Purchase->email;
+				else $notification['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
 				$notification['subject'] = __('Order Updated','Shopp');
 				$notification['url'] = get_bloginfo('siteurl');
 				$notification['sitename'] = get_bloginfo('name');
