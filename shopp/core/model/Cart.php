@@ -432,8 +432,8 @@ class Cart {
 
 				list($ShipCalcClass,$process) = explode("::",$option['method']);
 				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]))
-					$estimated = $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate(
-						$this, $fees, $option, $column);
+					$estimated = apply_filters('shopp_shipping_estimate', $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate(
+						$this, $fees, $option, $column));
 
 				if ($estimated === false) return false;
 				if (!$estimate || $estimated['cost'] < $estimate['cost'])
