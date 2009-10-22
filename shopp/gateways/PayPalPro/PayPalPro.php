@@ -4,7 +4,7 @@
  * @class PayPalPro
  *
  * @author Jonathan Davis
- * @version 1.0.7
+ * @version 1.0.8
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  * 
@@ -57,6 +57,7 @@ class PayPalPro {
 	
 	function build ($Order) {
 		$_ = array();
+		$precision = $this->settings['base_operations']['currency']['format']['precision'];
 
 		// Options
 		$_['USER'] 					= $this->settings['username'];
@@ -111,11 +112,11 @@ class PayPalPro {
 		
 		// Transaction
 		$_['CURRENCYCODE']			= $this->settings['currency_code'];
-		$_['AMT']					= number_format($Order->Totals->total,2);
-		$_['ITEMAMT']				= number_format($Order->Totals->subtotal - 
-													$Order->Totals->discount,2);
-		$_['SHIPPINGAMT']			= number_format($Order->Totals->shipping,2);
-		$_['TAXAMT']				= number_format($Order->Totals->tax,2);
+		$_['AMT']					= number_format($Order->Totals->total,$precision);
+		$_['ITEMAMT']				= number_format(round($Order->Totals->subtotal,$precision) - 
+													round($Order->Totals->discount,$precision),$precision);
+		$_['SHIPPINGAMT']			= number_format($Order->Totals->shipping,$precision);
+		$_['TAXAMT']				= number_format($Order->Totals->tax,$precision);
 		
 		if (isset($Order->data['paypal-custom']))
 			$_['CUSTOM'] = htmlentities($Order->data['paypal-custom']);
@@ -123,10 +124,10 @@ class PayPalPro {
 		// Line Items
 		foreach($Order->Items as $i => $Item) {
 			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
-			$_['L_AMT'.$i]			= number_format($Item->unitprice,2);
+			$_['L_AMT'.$i]			= number_format($Item->unitprice,$precision);
 			$_['L_NUMBER'.$i]		= $i;
 			$_['L_QTY'.$i]			= $Item->quantity;
-			$_['L_TAXAMT'.$i]		= number_format($Item->tax,2);
+			$_['L_TAXAMT'.$i]		= number_format($Item->tax,$precision);
 		}
 
 		if ($Order->Totals->discount != 0) {
@@ -137,9 +138,9 @@ class PayPalPro {
 			$i++;
 			$_['L_NUMBER'.$i]		= $i;
 			$_['L_NAME'.$i]			= join(", ",$discounts);
-			$_['L_AMT'.$i]			= number_format($Order->Totals->discount*-1,2);
+			$_['L_AMT'.$i]			= number_format($Order->Totals->discount*-1,$precision);
 			$_['L_QTY'.$i]			= 1;
-			$_['L_TAXAMT'.$i]		= number_format(0,2);
+			$_['L_TAXAMT'.$i]		= number_format(0,$precision);
 		}
 
 		$this->transaction = "";
