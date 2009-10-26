@@ -2494,7 +2494,7 @@ class Flow {
 
 			$this->settings_save();	
 			
-			if ($_POST['activation'] == "Activate Key") $process = "activate-key";
+			if ($_POST['activation'] == __('Activate Key','Shopp')) $process = "activate-key";
 			else $process = "deactivate-key";
 			
 			$request = array(
