@@ -102,15 +102,17 @@ class Promotion extends DatabaseObject {
 	 * match_rule ()
 	 * Determines if the value of a given subject matches the rule based 
 	 * on the specified operation */
-	function match_rule ($subject,$op,$value) {
-		
+	function match_rule ($subject,$op,$value,$property=false) {
 		switch($op) {
 			// String or Numeric operations
-			case "Is equal to": 
-				return ($subject === $value 
-					|| (floatvalue($subject) != 0 
+			case "Is equal to":
+			 	if($property && $this->values[$property] == 'price'){
+					return ( floatvalue($subject) != 0 
 					&& floatvalue($value) != 0 
-					&& floatvalue($subject) == floatvalue($value))); 
+					&& floatvalue($subject) == floatvalue($value));
+				} else {
+					return ($subject === $value);
+				}		 
 					break;
 			case "Is not equal to": 		
 				return ($subject !== $value 
@@ -126,10 +128,18 @@ class Promotion extends DatabaseObject {
 			case "Ends with": return  (stripos($subject,$value) === strlen($subject) - strlen($value)); break;
 			
 			// Numeric operations
-			case "Is greater than": return ($subject > floatvalue($value)); break;
-			case "Is greater than or equal to": return ($subject >= floatvalue($value)); break;
-			case "Is less than": return ($subject < floatvalue($value)); break;
-			case "Is less than or equal to": return ($subject <= floatvalue($value)); break;
+			case "Is greater than":
+				return (floatvalue($subject,false) > floatvalue($value,false)); 
+				break;
+			case "Is greater than or equal to": 
+				return (floatvalue($subject,false) >= floatvalue($value,false)); 
+				break;
+			case "Is less than": 
+				return (floatvalue($subject,false) < floatvalue($value,false)); 
+				break;
+			case "Is less than or equal to": 
+				return (floatvalue($subject,false) <= floatvalue($value,false)); 
+				break;
 		}
 		
 		return false;

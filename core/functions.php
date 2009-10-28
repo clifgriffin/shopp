@@ -545,13 +545,14 @@ function auto_ranges ($avg,$max,$min) {
 	return $ranges;
 }
 
-function floatvalue($value) {
+function floatvalue($value, $format=true) {
 	$value = preg_replace("/[^\d,\.]/","",$value); // Remove any non-numeric string data
 	$value = preg_replace("/,/",".",$value); // Replace commas with periods
 	$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
 	$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
     $value = preg_replace('#^([-]*[0-9\.,\' ]+?)((\.|,){1}([0-9-]{1,2}))*$#e', "str_replace(array('.', ',', \"'\", ' '), '', '\\1') . '.' . sprintf('%02d','\\4')", $value);
-    return number_format(floatval($value),2);
+	if($format) return number_format(floatval($value),2);
+	else return floatval($value);
 }
 
 /**
