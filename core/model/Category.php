@@ -954,7 +954,7 @@ class Category extends DatabaseObject {
 				$list = "";
 				if (is_array($CategoryFilters)) {
 					foreach($CategoryFilters AS $facet => $filter) {
-						$href = add_query_arg('shopp_catfilters['.urlencode($facet).']','',$link);
+						$href = esc_url(add_query_arg('shopp_catfilters['.urlencode($facet).']','',$link));
 						if (preg_match('/^(.*?(\d+[\.\,\d]*).*?)\-(.*?(\d+[\.\,\d]*).*)$/',$filter,$matches)) {
 							$label = $matches[1].' &mdash; '.$matches[3];
 							if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
@@ -970,7 +970,7 @@ class Category extends DatabaseObject {
 					$list = "";
 					$this->priceranges = auto_ranges($this->pricing['average'],$this->pricing['max'],$this->pricing['min']);
 					foreach ($this->priceranges as $range) {
-						$href = add_query_arg('shopp_catfilters[Price]',urlencode(money($range['min']).'-'.money($range['max'])),$link);
+						$href = esc_url(add_query_arg('shopp_catfilters[Price]',urlencode(money($range['min']).'-'.money($range['max'])),$link));
 						$label = money($range['min']).' &mdash; '.money($range['max']-0.01);
 						if ($range['min'] == 0) $label = __('Under ','Shopp').money($range['max']);
 						elseif ($range['max'] == 0) $label = money($range['min']).' '.__('and up','Shopp');
@@ -1009,7 +1009,7 @@ class Category extends DatabaseObject {
 						// For custom menu presets
 						if ($spec['facetedmenu'] == "custom" && !empty($spec['options'])) {
 							foreach ($spec['options'] as $option) {
-								$href = add_query_arg('shopp_catfilters['.$spec['name'].']',urlencode($option['name']),$_SERVER['REQUEST_URI']);
+								$href = esc_url(add_query_arg('shopp_catfilters['.$spec['name'].']',urlencode($option['name']),$_SERVER['REQUEST_URI']));
 								$list .= '<li><a href="'.$href.'">'.$option['name'].'</a></li>';
 							}
 							$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
@@ -1033,12 +1033,12 @@ class Category extends DatabaseObject {
 									else $range = array("min" => $base, "max" => ($next-1));
 								}
 								if ($i == 1) {
-									$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode(sprintf($format,'0').'-'.sprintf($format,$range['min']));
+									$href = esc_url($link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode(sprintf($format,'0').'-'.sprintf($format,$range['min'])));
 									$label = __('Under ','Shopp').sprintf($format,$range['min']);
 									$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 								}
 
-								$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode(sprintf($format,$range['min']).'-'.sprintf($format,$range['max']));
+								$href = esc_url($link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode(sprintf($format,$range['min']).'-'.sprintf($format,$range['max'])));
 								$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
 								if ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
 								$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
@@ -1050,7 +1050,7 @@ class Category extends DatabaseObject {
 
 							if (is_array($specdata[$spec['name']])) { // Generate from text values
 								foreach ($specdata[$spec['name']] as $option) {
-									$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($option->content);
+									$href = esc_url($link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($option->content));
 									$list .= '<li><a href="'.$href.'">'.$option->content.'</a></li>';
 								}
 								$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
@@ -1061,7 +1061,7 @@ class Category extends DatabaseObject {
 
 								$ranges = auto_ranges($specdata[$spec['name']]->avg,$specdata[$spec['name']]->max,$specdata[$spec['name']]->min);
 								foreach ($ranges as $range) {
-									$href = $link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($range['min'].'-'.$range['max']);
+									$href = esc_url($link.'?'.$query.'shopp_catfilters['.$spec['name'].']='.urlencode($range['min'].'-'.$range['max']));
 									$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
 									if ($range['min'] == 0) $label = __('Under ','Shopp').sprintf($format,$range['max']);
 									elseif ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');

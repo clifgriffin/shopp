@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.13
+Version: 1.0.14
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define('SHOPP_VERSION','1.0.13');
+define('SHOPP_VERSION','1.0.14');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
@@ -946,10 +946,10 @@ class Shopp {
 		$redirect = false;
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {
-			case "checkout": header("Location: ".$this->link($_REQUEST['redirect'],true)); break;
+			case "checkout": header("Location: ".$this->link($redirect,true)); break;
 			default: 
 				if (!empty($_REQUEST['redirect']))
-					header("Location: ".$this->link($_REQUEST['redirect']));
+					header("Location: ".esc_url($this->link($_REQUEST['redirect'])));
 				else header("Location: ".$this->link('cart'));
 		}
 		exit();
@@ -959,7 +959,6 @@ class Shopp {
 	 * checkout()
 	 * Handles checkout process */
 	function checkout ($wp) {
-		// echo "<pre>"; print_r($wp); echo "</pre>";
 
 		$pages = $this->Settings->get('pages');
 		// If checkout page requested
@@ -1165,10 +1164,6 @@ class Shopp {
 	 * lookups ()
 	 * Provides fast db lookups with as little overhead as possible */
 	function lookups($wp) {
-		// global $wp_rewrite;
-		// echo "<pre>"; print_r($wp); echo "</pre>";
-		// echo "<pre>"; print_r($wp_rewrite); echo "</pre>";
-		// echo "<pre>"; print_r($pages); echo "</pre>";
 		$db =& DB::get();
 
 		// Grab query requests from permalink rewriting query vars

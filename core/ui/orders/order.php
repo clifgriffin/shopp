@@ -134,7 +134,7 @@
 		<?php endif; ?>
 		</div>
 		
-		<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post" id="order-status">
+		<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post" id="order-status">
 		<?php wp_nonce_field('shopp-save-order'); ?>
 		<div id="notification">
 		<div class="tablenav"><p class="alignright"><input type="hidden" name="receipt" value="no" /><input type="checkbox" name="receipt" value="yes" id="include-order" checked="checked" /><label for="include-order">&nbsp;<?php _e('Include a copy of the order in the message','Shopp'); ?></label></p>

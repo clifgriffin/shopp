@@ -359,7 +359,7 @@ class Catalog extends DatabaseObject {
 					if (isset($Shopp->Cart->data->Category['orderby'])) 
 						$default = $Shopp->Cart->data->Category['orderby'];
 					$string .= $title;
-					$string .= '<form action="'.$_SERVER['REQUEST_URI'].'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
+					$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
 					if (!SHOPP_PERMALINKS) {
 						foreach ($_GET as $key => $value)
 							if ($key != 'shopp_orderby') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
@@ -381,7 +381,7 @@ class Catalog extends DatabaseObject {
 					
 					foreach($menuoptions as $value => $option) {
 						$label = $option;
-						$href = $link.'?'.$query.'shopp_orderby='.$value;
+						$href = esc_url($link.'?'.$query.'shopp_orderby='.$value);
 						$string .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 					}
 					
@@ -413,16 +413,16 @@ class Catalog extends DatabaseObject {
 					if (isset($Category->tag)) $type = "tag";
 					
 					if (SHOPP_PERMALINKS)
-						$link = add_query_arg($_GET,$Shopp->shopuri.$type.'/'.$Category->uri);
+						$link = esc_url(add_query_arg($_GET,$Shopp->shopuri.$type.'/'.$Category->uri));
 					else {
 						if (isset($Category->smart)) 
-							$link = add_query_arg(
-								array_merge($_GET,array('shopp_category'=>$Category->slug,'shopp_pid'=>null)),
-								$Shopp->shopuri);
+							$link = esc_url(add_query_arg(array_merge($_GET,
+								array('shopp_category'=>$Category->slug,'shopp_pid'=>null)),
+								$Shopp->shopuri));
 						else 
-							$link = add_query_arg(
-								array_merge($_GET,array('shopp_category'=>$Category->id,'shopp_pid'=>null)), 
-								$Shopp->shopuri);
+							$link = esc_url(add_query_arg(array_merge($_GET,
+								array('shopp_category'=>$Category->id,'shopp_pid'=>null)), 
+								$Shopp->shopuri));
 					}
 
 					$filters = false;
@@ -441,9 +441,9 @@ class Catalog extends DatabaseObject {
 						$tree_category = $this->categories[$parentkey];
 					
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$tree_category->uri;
-						else $link = add_query_arg(
-							array_merge($_GET,array('shopp_category'=>$tree_category->id,'shopp_pid'=>null)),
-							$Shopp->shopuri);
+						else $link = esc_url(add_query_arg(array_merge($_GET,
+							array('shopp_category'=>$tree_category->id,'shopp_pid'=>null)),
+							$Shopp->shopuri));
 					
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.
 							(empty($trail)?'':$separator).'</li>'.$trail;

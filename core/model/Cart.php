@@ -1466,7 +1466,7 @@ class Cart {
 				// Pass any arguments along
 				$args = $_GET;
 				if (isset($args['page_id'])) unset($args['page_id']);
-				$link = add_query_arg($args,$link);
+				$link = esc_url(add_query_arg($args,$link));
 				if ($process == "confirm-order") $link = apply_filters('shopp_confirm_url',$link);
 				else $link = apply_filters('shopp_checkout_url',$link);
 				return $link;

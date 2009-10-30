@@ -1,7 +1,7 @@
 <div class="wrap shopp">
 	<h2><?php _e('Promotions','Shopp'); ?></h2>
 
-	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="promotions" method="get">
+	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="promotions" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->promotions; ?>" />
 	</div>
@@ -11,7 +11,7 @@
 		<input type="submit" value="<?php _e('Search Promotions','Shopp'); ?>" class="button" />
 	</p>
 
-	<p><a href="<?php echo add_query_arg(array_merge($_GET,array('page'=>$this->Admin->editpromo,'id'=>'new')),$Shopp->wpadminurl."admin.php"); ?>" class="button"><?php _e('New Promotion','Shopp'); ?></a></p>
+	<p><a href="<?php echo esc_url(add_query_arg(array_merge($_GET,array('page'=>$this->Admin->editpromo,'id'=>'new')),$Shopp->wpadminurl."admin.php")); ?>" class="button"><?php _e('New Promotion','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>

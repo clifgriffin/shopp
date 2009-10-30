@@ -157,7 +157,8 @@ class Flow {
 					$db->query("UPDATE $Category->_table SET parent=0 WHERE parent=$Category->id");
 					$Category->delete();
 				}
-				header("Location: ".add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl));
+				header("Location: ".
+					esc_url(add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl)));
 				exit();
 			}
 			
@@ -190,7 +191,8 @@ class Flow {
 					$Product = new Product($deletion);
 					$Product->delete();
 				}
-				header("Location: ".add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
+				header("Location: ".
+					esc_url(add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl)));
 				exit();
 			}
 			

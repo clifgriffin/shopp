@@ -221,17 +221,15 @@ class Product extends DatabaseObject {
 			if (count($this->images) >= 3 && count($this->imagesets) <= 1) $this->imageset();
 		}
 		
-		// echo "<pre>"; print_r($this); echo "</pre>";
 	} // end load_data()
 		
 	function pricing ($options = false) {
 		global $Shopp;
-		// print_r($this->prices);
+
 		$variations = ($this->variations == "on");
 		$freeshipping = true;
 		$this->inventory = false;
 		foreach ($this->prices as $i => &$price) {
-			// echo "<pre>"; print_r($price); echo "</pre>";
 			// Build secondary lookup table using the combined optionkey
 			$this->pricekey[$price->optionkey] = $price;
 			
@@ -349,7 +347,6 @@ class Product extends DatabaseObject {
 			}
 			
 		} // end foreach($price)
-		// echo "<pre>"; print_r($this->prices); echo "</pre>";
 		if ($this->inventory && $this->stock <= 0) $this->outofstock = true;
 		if ($freeshipping) $this->freeshipping = true;
 	}
@@ -665,7 +662,7 @@ class Product extends DatabaseObject {
 		switch ($property) {
 			case "link": 
 			case "url": 
-				if (SHOPP_PERMALINKS) $url = add_query_arg($_GET,$Shopp->shopuri.urldecode($this->slug)."/");
+				if (SHOPP_PERMALINKS) $url = esc_url(add_query_arg($_GET,$Shopp->shopuri.urldecode($this->slug)."/"));
 				else $url = add_query_arg('shopp_pid',$this->id,$Shopp->shopuri);
 				return $url;
 				break;

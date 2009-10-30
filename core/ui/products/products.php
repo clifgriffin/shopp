@@ -49,10 +49,10 @@
 
 		$even = false; 
 		foreach ($Products as $key => $Product):
-		$editurl = attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
+		$editurl = esc_url(attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>$this->Admin->editproduct,
 					'id'=>$Product->id)),
-					$Shopp->wpadminurl."admin.php"));
+					$Shopp->wpadminurl."admin.php")));
 		
 		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
 		?>
@@ -61,7 +61,7 @@
 			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;'><?php echo $ProductName; ?></a>
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='edit'><a href="<?php echo add_query_arg(array_merge($_GET,array('duplicate'=>$Product->id)),$Shopp->wpadminurl); ?>" title="<?php _e('Duplicate','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;"><?php _e('Duplicate','Shopp'); ?></a> | </span>
+					<span class='edit'><a href="<?php echo esc_url(add_query_arg(array_merge($_GET,array('duplicate'=>$Product->id)),$Shopp->wpadminurl)); ?>" title="<?php _e('Duplicate','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;"><?php _e('Duplicate','Shopp'); ?></a> | </span>
 					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;' href='' rel="<?php echo $Product->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
 					<span class='view'><a href="<?php echo (SHOPP_PERMALINKS)?$Shopp->shopuri.$Product->slug:add_query_arg('shopp_pid',$Product->id,$Shopp->shopuri); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>
