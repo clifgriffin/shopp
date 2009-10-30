@@ -31,7 +31,7 @@ function get_countries () {
 	$countries = array();
 	$countries['CA'] = array('name'=>__('Canada','Shopp'),'currency'=>array('code'=>'CAD','format'=>'$#,###.##'),'units'=>'metric','region'=>0); 
 	$countries['US'] = array('name'=>__('USA','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'imperial','region'=>0); 
-	$countries['GB'] = array('name'=>__('United Kingdom','Shopp'),'currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>3); 
+	$countries['GB'] = array('name'=>__('United Kingdom (Great Britain)','Shopp'),'currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['AR'] = array('name'=>__('Argentina','Shopp'),'currency'=>array('code'=>'ARS','format'=>'$#.###,##'),'units'=>'metric','region'=>7); 
 	$countries['AU'] = array('name'=>__('Australia','Shopp'),'currency'=>array('code'=>'AUD','format'=>'$# ###.##'),'units'=>'metric','region'=>7); 
 	$countries['AT'] = array('name'=>__('Austria','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 

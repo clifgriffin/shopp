@@ -6,7 +6,7 @@
  * your Shopp install under: .../wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0.2
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 26 February, 2009
  * @package shopp
  * 
@@ -203,7 +203,7 @@ class USPSRates {
 		if ($country != $this->settings['country']) {
 			global $Shopp;
 			$type = "IntlRate";	
-			$countries = $Shopp->Settings->get('target_markets');
+			$countries = $Shopp->Settings->get('countries');
 		}
 		
 		$_ = array('API='.$type.'&XML=<?xml version="1.0" encoding="utf-8"?>');
@@ -214,7 +214,7 @@ class USPSRates {
 					$_[] = '<Ounces>'.$ounces.'</Ounces>';
 					$_[] = '<Machinable>TRUE</Machinable>';
 					$_[] = '<MailType>Package</MailType>';
-					$_[] = '<Country>'.$countries[$country].'</Country>';
+					$_[] = '<Country>'.$countries[$country]['name'].'</Country>';
 				} else {
 					$_[] = '<Service>ALL</Service>';
 					$_[] = '<ZipOrigination>'.$this->settings['postcode'].'</ZipOrigination>';
