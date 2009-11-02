@@ -314,9 +314,7 @@ var ProductOptionsMenus;
  * Makes a request to add the selected product/product variation
  * to the shopper's cart
  **/
-function addtocart (e) {
-	var form = e.target;
-	e.stopImmediatePropagation();
+function addtocart (form) {
 	(function($) {
 	
 	var options = $(form).find('select.options');
@@ -427,11 +425,15 @@ function quickSelects (target) {
  **/
 function buttonHandlers () {
 	(function($) {
-		$('input.addtocart').each(function(i,button) {
-			var form = $(button).parent('form');
+		$('input.addtocart').each(function() {
+			var form = $(this).parents('form.product');
 			if (!form) return false;
-			$(form).bind('submit.addtocart',addtocart);
-			$(button).click(function() { $(form).trigger('submit.addtocart'); });
+			$(form).submit(function (e) {
+				e.preventDefault();
+				addtocart(this);
+			});
+			if ($(this).attr('type') == "button") 
+				$(this).click(function() { $(form).submit(); });
 		});
 	})(jQuery)
 }
@@ -773,7 +775,7 @@ function PopupCalendar (target,month,year) {
 	
 }
 
-addEvent(window,'load',function () {
+jQuery(document).ready( function() {
 	formatFields();
 	buttonHandlers();
 	cartHandlers();
