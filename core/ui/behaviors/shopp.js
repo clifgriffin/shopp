@@ -309,16 +309,16 @@ var ProductOptionsMenus;
 // Cart Behaviors
 //
 
-
 /**
  * addtocart ()
  * Makes a request to add the selected product/product variation
  * to the shopper's cart
  **/
 function addtocart (e) {
-	var form = this;
+	var form = e.target;
+	e.stopImmediatePropagation();
 	(function($) {
-
+	
 	var options = $(form).find('select.options');
 	if (options && options_default) {
 		var selections = true;
@@ -332,11 +332,9 @@ function addtocart (e) {
 		}
 	}
 
-	if ($(form).find('input.addtocart').hasClass('ajax')) {
+	if ($(form).find('input.addtocart').hasClass('ajax')) 
 		ShoppCartAjaxRequest(form.action,$(form).serialize());
-	} else {
-		form.submit();
-	}
+	else form.submit();
 
 	})(jQuery)
 	return false;
@@ -429,14 +427,12 @@ function quickSelects (target) {
  **/
 function buttonHandlers () {
 	(function($) {
-		var addtocartForm = $('input.addtocart').get(0).form;
-		var addtocartButton = function (e) { 
-			if (e.type == "keypress" && (e.keyCode == 13 || e.keyCode == 32))
-				$(this).trigger('click.addtocart'); // Route to click event to trigger once
-			if (e.type == "click") $(this.form).trigger('submit.addtocart'); // Trigger addtocart handler
-		}
-		$(addtocartForm).bind('submit.addtocart',addtocart);
-		$('input.addtocart').bind('click.addtocart',addtocartButton).bind('keypress.addtocart',addtocartButton);	
+		$('input.addtocart').each(function(i,button) {
+			var form = $(button).parent('form');
+			if (!form) return false;
+			$(form).bind('submit.addtocart',addtocart);
+			$(button).click(function() { $(form).trigger('submit.addtocart'); });
+		});
 	})(jQuery)
 }
 
