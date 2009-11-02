@@ -1409,7 +1409,8 @@ class Shopp {
 			}
 		}
 		
-		if ( !is_user_logged_in() || !current_user_can('manage_options')) die('-1');
+		if ((!is_user_logged_in() || !current_user_can('manage_options'))
+			&& strpos($_GET['action'],'wp_ajax_shopp_') !== false) die('-1');
 		
 		if (empty($_GET['action'])) return;
 		switch($_GET['action']) {
