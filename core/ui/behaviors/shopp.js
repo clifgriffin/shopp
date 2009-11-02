@@ -309,17 +309,17 @@ var ProductOptionsMenus;
 // Cart Behaviors
 //
 
-
 /**
  * addtocart ()
  * Makes a request to add the selected product/product variation
  * to the shopper's cart
  **/
-function addtocart () {
-	var button = this;
+function addtocart (e) {
+	var form = e.target;
+	e.stopImmediatePropagation();
 	(function($) {
-
-	var options = $(button.form).find('select.options');
+	
+	var options = $(form).find('select.options');
 	if (options && options_default) {
 		var selections = true;
 		for (menu in options) 
@@ -332,11 +332,9 @@ function addtocart () {
 		}
 	}
 
-	if ($(button).hasClass('ajax')) {
-		ShoppCartAjaxRequest(button.form.action,$(button.form).serialize());
-	} else {
-		button.form.submit();
-	}
+	if ($(form).find('input.addtocart').hasClass('ajax')) 
+		ShoppCartAjaxRequest(form.action,$(form).serialize());
+	else form.submit();
 
 	})(jQuery)
 	return false;
@@ -428,7 +426,14 @@ function quickSelects (target) {
  * Hooks callbacks to button events
  **/
 function buttonHandlers () {
-	jQuery('input.addtocart').bind('click.addtocart',addtocart);
+	(function($) {
+		$('input.addtocart').each(function(i,button) {
+			var form = $(button).parent('form');
+			if (!form) return false;
+			$(form).bind('submit.addtocart',addtocart);
+			$(button).click(function() { $(form).trigger('submit.addtocart'); });
+		});
+	})(jQuery)
 }
 
 /**
