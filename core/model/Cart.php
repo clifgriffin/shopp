@@ -1179,23 +1179,24 @@ class Cart {
 	function validorder(){
 		$Order = $this->data->Order;
 		$Customer = $Order->Customer;
-		
-		if(empty($this->contents)) return false;  // No items		
+		$Shipping = $this->data->Order->Shipping;
+
+		if(empty($this->contents)) return false;  // No items
 		if(empty($Order)) return false;  // No order data
 		if(!$Customer) return false; // No Customer
-		
+
 		// Always require name and email
 		if( empty($Customer->firstname) || empty($Customer->lastname)) return false;
 		if( empty($Customer->email) ) return false;
-		
+
 		// Check for shipped items but no Shipping information
 		if($this->data->Shipping){
-			if(empty($Customer->address)) return false;
-			if(empty($Customer->city)) return false;
-			if(empty($Customer->state)) return false;			
-			if(empty($Customer->country)) return false;
-			if(empty($Customer->postcode)) return false;
-		} 
+			if(empty($Shipping->address)) return false;
+			if(empty($Shipping->city)) return false;
+			if(empty($Shipping->state)) return false;
+			if(empty($Shipping->country)) return false;
+			if(empty($Shipping->postcode)) return false;
+		}
 		return true;
 	}
 	
