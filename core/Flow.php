@@ -2511,11 +2511,8 @@ class Flow {
 
 			$this->settings_save();	
 			
-			if ($_POST['activation'] == __('Activate Key','Shopp')) $process = "activate-key";
-			else $process = "deactivate-key";
-			
 			$request = array(
-				"ShoppServerRequest" => $process,
+				"ShoppServerRequest" => $_POST['process'],
 				"ver" => '1.0',
 				"key" => $updatekey['key'],
 				"type" => $updatekey['type'],
@@ -2528,7 +2525,7 @@ class Flow {
 			if (count($response) == 1)
 				$activation = '<span class="shopp error">'.$response[0].'</span>';
 			
-			if ($process == "activate-key" && $response[0] == "1") {
+			if ($_POST['process'] == "activate-key" && $response[0] == "1") {
 				$updatekey['type'] = $response[1];
 				$type = $updatekey['type'];
 				$updatekey['key'] = $response[2];
@@ -2537,7 +2534,7 @@ class Flow {
 				$activation = __('This key has been successfully activated.','Shopp');
 			}
 			
-			if ($process == "deactivate-key" && $response[0] == "1") {
+			if ($_POST['process'] == "deactivate-key" && $response[0] == "1") {
 				$updatekey['status'] = 'deactivated';
 				if ($updatekey['type'] == "dev") $updatekey['key'] = '';
 				$this->Settings->save('updatekey',$updatekey);

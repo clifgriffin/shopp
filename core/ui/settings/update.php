@@ -33,10 +33,12 @@
 				<th scope="row" valign="top"><label for="update-key"><?php _e('Update Key','Shopp'); ?></label></th> 
 				<td>
 					<?php if ($updatekey['status'] == "activated"): ?>
-						<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="40" value="<?php echo $updatekey['key']; ?>" readonly="readonly" />
+					<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="40" value="<?php echo $updatekey['key']; ?>" readonly="readonly" />
+					<input type="hidden" name="process" value="deactivate-key" />
 					<input type="submit" id="deactivate-button" name="activation" value="<?php _e('De-activate Key','Shopp'); ?>" class="button-secondary" />
 					<?php else: ?>
 					<input type="text" name="updatekey" id="update-key" size="40" value="<?php echo $updatekey['key']; ?>" />
+					<input type="hidden" name="process" value="activate-key" />
 					<input type="submit" id="activate-button" name="activation" value="<?php _e('Activate Key','Shopp'); ?>" class="button-secondary" />
 					<?php endif; ?>
 					<br /><?php echo $activation; ?>

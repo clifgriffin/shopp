@@ -171,9 +171,10 @@ class ShoppErrorLogging {
 		$debug = "";
 		if (isset($error->debug['file'])) $debug = " [".basename($error->debug['file']).", line ".$error->debug['line']."]";
 		$message = date("Y-m-d H:i:s",mktime())." - ".$error->message().$debug."\n";
-		$this->log = fopen($this->logfile,'at');
-		fwrite($this->log,$message);
-		fclose($this->log);
+		if ($this->log = @fopen($this->logfile,'at')) {
+			fwrite($this->log,$message);
+			fclose($this->log);
+		}
 	}
 	
 	function reset () {

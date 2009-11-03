@@ -31,6 +31,9 @@ class Product extends DatabaseObject {
 	var $freeshipping = false;
 	var $priceloop = false;
 	var $specloop = false;
+	var $categoryloop = false;
+	var $imageloop = false;
+	var $tagloop = false;	
 	var $outofstock = false;
 	var $stock = 0;
 	var $options = 0;
@@ -733,7 +736,7 @@ class Product extends DatabaseObject {
 				break;
 			case "saleprice":
 				if (empty($this->prices)) $this->load_data(array('prices'));
-				// if (empty($this->prices)) $this->load_prices();
+				if (!isset($options['taxes'])) $options['taxes'] = null;
 				$pricetag = 'price';
 
 				if ($this->onsale) $pricetag = 'saleprice';
@@ -753,6 +756,7 @@ class Product extends DatabaseObject {
 			case "has-savings": return ($this->onsale && $this->pricerange['min']['saved'] > 0)?true:false; break;
 			case "savings":
 				if (empty($this->prices)) $this->load_data(array('prices'));
+				if (!isset($options['taxes'])) $options['taxes'] = null;
 
 				$taxrate = shopp_taxrate($options['taxes']);
 
@@ -835,7 +839,10 @@ class Product extends DatabaseObject {
 						default: return $img->id;
 					}
 				}
+				if (!isset($options['class'])) $options['class'] = false;
 				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+
+				$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
 
 				$width = (isset($options['width']))?$options['width']:$img->properties['width'];
 				$height = (isset($options['height']))?$options['height']:$img->properties['height'];
@@ -849,10 +856,13 @@ class Product extends DatabaseObject {
 					$width = round($img->properties['width']*$scale);
 				}
 
+				if (!empty($options['title'])) $title = ' title="'.attribute_escape($options['title']).'"';
+				$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$this->name);
+
 				$string = "";
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-thickbox";
 				if (!empty($options['zoom'])) $string .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="'.$options['zoomfx'].'" rel="product-gallery">';
-				$string .= '<img src="'.$img->uri.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />';
+				$string .= '<img src="'.$img->uri.'"'.$title.' alt="'.$alt.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;
@@ -872,7 +882,7 @@ class Product extends DatabaseObject {
 						$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
 						$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$img->name);
 						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
-						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="'.$options['zoomfx'].'" rel="product-'.$this->id.'-gallery">';
+						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="product_'.$this->id.'_gallery '.$options['zoomfx'].'">';
 						$previews .= '<img src="'.$Shopp->imguri.$img->id.'"'.$title.' alt="'.$alt.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
 						$previews .= '</a>';
 						$previews .= '</li>';
@@ -880,7 +890,7 @@ class Product extends DatabaseObject {
 					}
 				}
 				$previews .= '</ul>';
-				
+
 				$thumbs = "";
 				if (isset($this->imagesets['thumbnail']) && count($this->imagesets['thumbnail']) > 1) {
 					$thumbsize = 32;
@@ -889,7 +899,7 @@ class Product extends DatabaseObject {
 					$thumbheight = $thumbsize;
 					if (isset($options['thumbwidth'])) $thumbwidth = $options['thumbwidth'];
 					if (isset($options['thumbheight'])) $thumbheight = $options['thumbheight'];
-					
+
 					$firstThumb = true;
 					$thumbs = '<ul class="thumbnails">';
 					foreach ($this->imagesets['thumbnail'] as $img) {
@@ -897,25 +907,27 @@ class Product extends DatabaseObject {
 							$scale = $thumbwidth/$img->properties['width'];
 							$thumbheight = round($img->properties['height']*$scale);
 						}
-							
+
 						if (isset($options['thumbheight']) && !isset($options['thumbwidth'])) {
 							$scale = $thumbheight/$img->properties['height'];
 							$thumbwidth = round($img->properties['width']*$scale);
 						}
-						
+
 						$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
 						$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$img->name);
-						
-						$thumbs .= '<li id="thumbnail-'.$img->src.'"'.(($firstThumb)?' class="first"':'').' rel="preview-'.$img->src.'">';
+
+						$thumbs .= '<li id="thumbnail-'.$img->src.'" class="preview-'.$img->src.(($firstThumb)?' first':' test').'">';
 						$thumbs .= '<img src="'.$Shopp->imguri.$img->id.'"'.$title.' alt="'.$alt.'" width="'.$thumbwidth.'" height="'.$thumbheight.'" />';
 						$thumbs .= '</li>';
 						$firstThumb = false;						
 					}
 					$thumbs .= '</ul>';
 				}
-				
+
 				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
-				$result .= '<script type="text/javascript">jQuery(document).ready( function() {  shopp_gallery("#gallery-'.$this->id.'","'.$options['preview'].'"); }); </script>';
+				$result .= '<script type="text/javascript"><!--
+					jQuery(document).ready( function() {  shopp_gallery("#gallery-'.$this->id.'","'.$options['preview'].'"); }); 
+					// --></script>';
 				return $result;
 				break;
 			case "has-categories": 
@@ -1056,6 +1068,7 @@ class Product extends DatabaseObject {
 				}
 
 				if ($this->outofstock) return false; // Completely out of stock, hide menus
+				if (!isset($options['taxes'])) $options['taxes'] = null;
 				
 				$defaults = array(
 					'defaults' => '',
@@ -1075,21 +1088,23 @@ class Product extends DatabaseObject {
 					$string .= '<select name="products['.$this->id.'][price]" id="product-options'.$this->id.'">';
 					if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 
-					foreach ($this->prices as $option) {
-						$taxrate = shopp_taxrate($options['taxes'],$option->tax);
-						$currently = ($option->sale == "on")?$option->promoprice:$option->price;
-						$disabled = ($option->inventory == "on" && $option->stock == 0)?' disabled="disabled"':'';
+					foreach ($this->prices as $pricetag) {
+						if ($pricetag->context != "variation") continue;
+						
+						$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax);
+						$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
+						$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
 
 						$price = '  ('.money($currently).')';
-						if ($option->type != "N/A")
-							$string .= '<option value="'.$option->id.'"'.$disabled.'>'.$option->label.$price.'</option>'."\n";
+						if ($pricetag->type != "N/A")
+							$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.$pricetag->label.$price.'</option>'."\n";
 					}
 
 					$string .= '</select>';
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 
 				} else {
-					$taxrate = shopp_taxrate($options['taxes'],$option->tax);
+					$taxrate = shopp_taxrate($options['taxes'],true);
 					ob_start();
 					?>
 					<script type="text/javascript">
@@ -1145,6 +1160,7 @@ class Product extends DatabaseObject {
 				break;
 			case "variation":
 				$variation = current($this->prices);
+				if (!isset($options['taxes'])) $options['taxes'] = null;
 				$taxrate = shopp_taxrate($options['taxes'],$variation->tax);
 				
 				$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : $Shopp->Settings->get('weight_unit');
@@ -1158,7 +1174,7 @@ class Product extends DatabaseObject {
 				if (array_key_exists('saleprice',$options)) $string .= money($variation->saleprice+($variation->saleprice*$taxrate));
 				if (array_key_exists('stock',$options)) $string .= $variation->stock;
 				if (array_key_exists('weight',$options)) $string .= round($variation->weight, 3) . ($weightunit ? " $weightunit" : false);
-				if (array_key_exists('shipfee',$options)) $string .= money($variation->shipfee);
+				if (array_key_exists('shipfee',$options)) $string .= money(floatvalue($variation->shipfee));
 				if (array_key_exists('sale',$options)) return ($variation->sale == "on");
 				if (array_key_exists('shipping',$options)) return ($variation->shipping == "on");
 				if (array_key_exists('tax',$options)) return ($variation->tax == "on");
@@ -1261,7 +1277,7 @@ class Product extends DatabaseObject {
 					$label = isset($options['label'])?$options['label']:$Shopp->Settings->get('outofstock_text');
 					$string = '<span class="outofstock">'.$label.'</span>';
 					return $string;
-				}
+				} else return false;
 				break;
 			case "buynow":
 				if (!isset($options['value'])) $options['value'] = __("Buy Now","Shopp");
