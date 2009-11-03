@@ -4,7 +4,7 @@
  * @class iDealMollie
  *
  * @author Jonathan Davis
- * @version 1.0.4
+ * @version 1.0.5
  * @copyright Ingenesis Limited, 24 February, 2009
  * @package Shopp
  * 
@@ -89,7 +89,7 @@ class iDealMollie {
 			$_['returnurl']			= $Shopp->link('confirm-order').'?shopp_xco=iDealMollie/iDealMollie';
 		else
 			$_['returnurl']			= add_query_arg('shopp_xco','iDealMollie/iDealMollie',$Shopp->link('confirm-order'));
-		$_['reporturl']				= $Shopp->link('catalog').'shopp_xco=iDealMollie/iDealMollie';
+		$_['reporturl']				= $Shopp->link('catalog').'?shopp_xco=iDealMollie/iDealMollie';
 
 		// Line Items
 		$description = array();
@@ -124,6 +124,11 @@ class iDealMollie {
 		$_['transaction_id']		= $_GET['transaction_id'];
 		if ($this->settings['testmode'] == "on")
 			$_['testmode'] = 'true';
+
+		if(!$Shopp->Cart->validorder()){
+			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
+			return false;	
+		}
 
 		// Try up to 3 times
 		for ($i = 3; $i > 0; $i--) {
@@ -168,6 +173,7 @@ class iDealMollie {
 		$Purchase->freight = $Order->Totals->shipping;
 		$Purchase->gateway = "iDeal Mollie";
 		$Purchase->transactionid = $_GET['transaction_id'];
+		$Purchase->transtatus = "CHARGED";
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
 
