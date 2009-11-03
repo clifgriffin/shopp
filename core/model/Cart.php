@@ -1644,6 +1644,7 @@ class Cart {
 				$country = $base['country'];
 				if (!empty($this->data->Order->Shipping->country))
 					$country = $this->data->Order->Shipping->country;
+				if (!in_array($country,$countries)) $country = key($countries);
 
 				if (empty($options['type'])) $options['type'] = "menu";
 				$regions = $Shopp->Settings->get('zones');
@@ -1723,7 +1724,8 @@ class Cart {
 				$country = $base['country'];
 				if (!empty($this->data->Order->Billing->country))
 					$country = $this->data->Order->Billing->country;
-				
+				if (!in_array($country,$countries)) $country = key($countries);
+
 				$regions = $Shopp->Settings->get('zones');
 				$states = $regions[$country];
 				if (is_array($states) && $options['type'] == "menu") {
