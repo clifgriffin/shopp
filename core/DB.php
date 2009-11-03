@@ -366,7 +366,10 @@ class DatabaseObject {
 				case "float":
 				case "string":
 					// If string has been serialized, unserialize it
-					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$value)) $value = unserialize($value);
+					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/s",$value)) {
+						echo "serialized data for $property";
+						$value = unserialize($value);
+					}
 				default:
 					// Anything not needing processing
 					// passes through into the object
