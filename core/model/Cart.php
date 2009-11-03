@@ -1172,6 +1172,32 @@ class Cart {
 				
 		return apply_filters('shopp_validate_checkout',true);
 	}
+
+	/**
+	 * validorder()
+	 * Validates order data during checkout processing to verify that sufficient information exists to process. */
+	function validorder(){
+		$Order = $this->data->Order;
+		$Customer = $Order->Customer;
+		
+		if(empty($this->contents)) return false;  // No items		
+		if(empty($Order)) return false;  // No order data
+		if(!$Customer) return false; // No Customer
+		
+		// Always require name and email
+		if( empty($Customer->firstname) || empty($Customer->lastname)) return false;
+		if( empty($Customer->email) ) return false;
+		
+		// Check for shipped items but no Shipping information
+		if($this->data->Shipping){
+			if(empty($Customer->address)) return false;
+			if(empty($Customer->city)) return false;
+			if(empty($Customer->state)) return false;			
+			if(empty($Customer->country)) return false;
+			if(empty($Customer->postcode)) return false;
+		} 
+		return true;
+	}
 	
 	function tag ($property,$options=array()) {
 		global $Shopp;
