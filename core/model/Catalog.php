@@ -555,6 +555,8 @@ class Catalog extends DatabaseObject {
 				$content = false;
 				$source = $options['source'];
 				if ($source == "product" && isset($options['product'])) {
+					 // Save original requested product
+					if ($Shopp->Product) $Requested = $Shopp->Product;
 					$products = explode(",",$options['product']);
 					if (!is_array($products)) $products = array($products);
 					foreach ($products as $product) {
@@ -573,11 +575,14 @@ class Catalog extends DatabaseObject {
 						$content .= ob_get_contents();
 						ob_end_clean();
 					}
+					 // Restore original requested category
+					if (!empty($Requested)) $Shopp->Product = $Requested;
+					else $Shopp->Product = false;
 				}
 				
 				if ($source == "category" && isset($options['category'])) {
 					 // Save original requested category
-					if ($Shopp->Category) $Category = clone($Shopp->Category);
+					if ($Shopp->Category) $Requested = $Shopp->Category;
 					if (empty($options['category'])) return false;
 					$Shopp->Category = Catalog::load_category($options['category']);
 					$Shopp->Category->load_products($options);
@@ -592,8 +597,8 @@ class Catalog extends DatabaseObject {
 						ob_end_clean();
 					}
 					 // Restore original requested category
-					if (!empty($Category)) $Shopp->Category = $Category;
-					else unset($Shopp->Category);
+					if (!empty($Requested)) $Shopp->Category = $Requested;
+					else $Shopp->Category = false;
 				}
 				
 				return $content;
