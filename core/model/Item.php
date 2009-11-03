@@ -266,7 +266,9 @@ class Item {
 				if (isset($options['input'])) {
 					switch ($options['input']) {
 						case "button":
-							$result = '<button type="submit" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="">'.$label.'</button>';
+							$result = '<button type="submit" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="">'.$label.'</button>'; break;
+						case "checkbox":
+						    $result = '<input type="checkbox" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="" title="'.$label.'"/>'; break;
 					}
 				} else {
 					$result = '<a href="'.add_query_arg(array('cart'=>'update','item'=>$id,'quantity'=>0),$Shopp->link('cart')).'"'.$class.'>'.$label.'</a>';

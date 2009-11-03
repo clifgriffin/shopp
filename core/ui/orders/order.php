@@ -29,7 +29,7 @@
 			<tr><td colspan="2"><br class="clear" /></td></tr>
 			<?php if (!empty($Purchase->data) && is_array($Purchase->data)): 
 				foreach ($Purchase->data as $name => $value): ?>
-				<tr><th><?php echo $name; ?>:</th><td><?php echo $value; ?></td></tr>
+				<tr><th><?php echo $name; ?>:</th><td><?php if (strpos($value,"\n")): ?><textarea name="orderdata[<?php echo $name; ?>]" readonly="readonly" cols="30" rows="4"><?php echo $value; ?></textarea><?php else: echo $value; endif; ?></td></tr>
 			<?php endforeach; endif; ?>
 		</table>
 
