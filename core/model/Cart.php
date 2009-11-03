@@ -995,8 +995,8 @@ class Cart {
 						if (isset($item['quantity'])) {
 							$item['quantity'] = ceil(preg_replace('/[^\d\.]+/','',$item['quantity']));
 							if (!empty($item['quantity'])) $this->update($id,$item['quantity']);
+						    if (isset($_REQUEST['remove'][$id])) $this->remove($_REQUEST['remove'][$id]);
 						}
-						// if (isset($item['quantity'])) $this->update($id,$item['quantity']);	
 						if (isset($item['product']) && isset($item['price']) && 
 							$item['product'] == $this->contents[$id]->product &&
 							$item['price'] != $this->contents[$id]->price) {
