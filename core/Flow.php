@@ -427,9 +427,9 @@ class Flow {
 			// Use local payment gateway set in payment settings
 			
 			$gateway = $Shopp->Settings->get('payment_gateway');
-
+			
 			// Process a transaction if the order has a cost (is not free)
-			if ($Order->Totals->total > 0) {
+			if ($Order->Totals->total > 0 ) {
 
 				if (!$Shopp->gateway($gateway)) return false;
 
@@ -452,6 +452,10 @@ class Flow {
 				if (SHOPP_DEBUG) new ShoppError('Transaction '.$transactionid.' successfully processed by local-payment gateway service '.$gatewayname.'.',false,SHOPP_DEBUG_ERR);
 				
 			} else {
+				if(!$Cart->validorder()){
+					new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
+					return false;	
+				}
 				$gatewayname = __('N/A','Shopp');
 				$transactionid = __('(Free Order)','Shopp');
 			}
