@@ -188,7 +188,11 @@ class _2Checkout {
 			new ShoppError(__('The payment failed. Please try your order again with a different payment method.','Shopp'),'2co_processing_error',SHOPP_TRXN_ERR);
 			exit();
 		}
-
+		if(!$Shopp->Cart->validorder()){
+			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
+			exit();
+		}
+		
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;

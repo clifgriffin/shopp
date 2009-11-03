@@ -4,7 +4,7 @@
  * @class PayPalStandard
  *
  * @author Jonathan Davis
- * @version 1.0.3
+ * @version 1.0.5
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * 
@@ -212,6 +212,11 @@ class PayPalStandard {
 
 		// Validate the order data
 		$validation = true;
+
+		if(!$Shopp->Cart->validorder()){
+			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
+			$validation = false;	
+		}
 		
 		// Check for unique transaction id
 		$Purchase = new Purchase($_POST['txn_id'],'transactionid');
