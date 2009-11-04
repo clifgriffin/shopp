@@ -2760,7 +2760,7 @@ class Flow {
 		}
 		
 		// Find our temporary filesystem workspace
-		$tmpdir = sys_get_temp_dir();
+		$tmpdir = defined('SHOPP_TEMP_PATH') ? SHOPP_TEMP_PATH : sys_get_temp_dir();
 		$tmpdir = str_replace('\\', '/', $tmpdir); //Windows path sanitiation
 		
 		$log[] = "Found temp directory: $tmpdir";

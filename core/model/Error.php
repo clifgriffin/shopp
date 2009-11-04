@@ -158,7 +158,8 @@ class ShoppErrorLogging {
 	
 	function ShoppErrorLogging ($loglevel=0) {
 		$this->loglevel = $loglevel;
-		$this->dir = sys_get_temp_dir();
+		$this->dir = defined('SHOPP_TEMP_PATH') ? SHOPP_TEMP_PATH : sys_get_temp_dir();
+		$this->dir = str_replace('\\', '/', $this->dir); //Windows path sanitiation
 		$sitename = sanitize_title_with_dashes(get_bloginfo('sitename'));
 		$this->logfile = trailingslashit($this->dir).$sitename."-".$this->file;
 
