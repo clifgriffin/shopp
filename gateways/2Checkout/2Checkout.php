@@ -170,6 +170,7 @@ class _2Checkout {
 		session_destroy();
 		
 		// Load the cart for the correct order
+		$Shopp->Cart = new Cart();
 		$Shopp->Cart->session = $_POST['vendor_order_id'];
 		session_start();
 		$Shopp->Cart->load($Shopp->Cart->session);
