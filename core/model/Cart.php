@@ -1495,6 +1495,7 @@ class Cart {
 				// Test Mode will not require encrypted checkout
 				if (strpos($gateway,"TestMode.php") !== false 
 					|| isset($_GET['shopp_xco']) 
+					|| $this->orderisfree() 
 					|| SHOPP_NOSSL) 
 					$ssl = false;
 				$link = $Shopp->link('checkout',$ssl);

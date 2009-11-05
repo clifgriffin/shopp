@@ -986,7 +986,9 @@ class Shopp {
 			// Force secure checkout page if its not already
 			$secure = true;
 			$gateway = $this->Settings->get('payment_gateway');
-			if (strpos($gateway,"TestMode") !== false || isset($wp->query_vars['shopp_xco'])) 
+			if (strpos($gateway,"TestMode") !== false 
+					|| isset($wp->query_vars['shopp_xco']) 
+					|| $this->Cart->orderisfree()) 
 				$secure = false;
 
 			if ($secure && !$this->secure && !SHOPP_NOSSL) {
@@ -1077,7 +1079,9 @@ class Shopp {
 				$this->Settings->get('order_confirmation') == "always") {
 			$gateway = $this->Settings->get('payment_gateway');
 			$secure = true;
-			if (strpos($gateway,"TestMode") !== false || isset($wp->query_vars['shopp_xco'])) 
+			if (strpos($gateway,"TestMode") !== false 
+				|| isset($wp->query_vars['shopp_xco'])
+				|| $this->Cart->orderisfree()) 
 				$secure = false;
 			header("Location: ".$this->link('confirm-order',$secure));
 			exit();

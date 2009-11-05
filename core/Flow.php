@@ -503,6 +503,9 @@ class Flow {
 			foreach ($Shopp->Cart->data->PromosApplied as $promo)
 				$Promos[$promo->id] = $promo->name;
 
+			if ($Shopp->Cart->orderisfree()) $orderisfree = true;
+			else $orderisfree = false;
+
 			$Purchase = new Purchase();
 			$Purchase->customer = $Order->Customer->id;
 			$Purchase->billing = $Order->Billing->id;
@@ -575,7 +578,11 @@ class Flow {
 
 		$ssl = true;
 		// Test Mode will not require encrypted checkout
-		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco']) || SHOPP_NOSSL) $ssl = false;
+		if (strpos($gateway,"TestMode.php") !== false 
+				|| isset($_GET['shopp_xco']) 
+				|| $orderisfree
+				|| SHOPP_NOSSL) 
+			$ssl = false;
 		$link = $Shopp->link('receipt',$ssl);
 		header("Location: $link");
 		exit();

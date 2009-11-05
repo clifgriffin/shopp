@@ -11,6 +11,7 @@
 
 define("AS_ARRAY",false);
 define("SHOPP_DBPREFIX","shopp_");
+if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
 
 // Make sure that compatibility mode is not enabled
 if (ini_get('zend.ze1_compatibility_mode'))
