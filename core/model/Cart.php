@@ -697,11 +697,12 @@ class Cart {
 			$Totals->shipping = $this->shipping();
 
 		// Calculate taxes
-		$Totals->taxed -= $discount;
+		if ($discount > $Totals->taxed) $Totals->taxed = 0;
+		else $Totals->taxed -= $discount;
 		if($shippingTaxed) $Totals->taxed += $Totals->shipping;
 		$Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
 
-		// Calculate final total (s
+		// Calculate final totals
 		$Totals->total = round($Totals->subtotal - round($discount,2) + 
 			$Totals->shipping + $Totals->tax,2);
 
@@ -1176,7 +1177,7 @@ class Cart {
 	/**
 	 * validorder()
 	 * Validates order data during checkout processing to verify that sufficient information exists to process. */
-	function validorder(){
+	function validorder () {		
 		$Order = $this->data->Order;
 		$Customer = $Order->Customer;
 		$Shipping = $this->data->Order->Shipping;
@@ -1190,7 +1191,7 @@ class Cart {
 		if( empty($Customer->email) ) return false;
 
 		// Check for shipped items but no Shipping information
-		if($this->data->Shipping){
+		if ($this->data->Shipping) {
 			if(empty($Shipping->address)) return false;
 			if(empty($Shipping->city)) return false;
 			if(empty($Shipping->state)) return false;
@@ -1198,6 +1199,14 @@ class Cart {
 			if(empty($Shipping->postcode)) return false;
 		}
 		return true;
+	}
+	
+	/**
+	 * orderisfree()
+	 * Determines if the current order has no cost */
+	function orderisfree() {
+		$status = (count($this->contents) > 0 && (int)$this->data->Totals->total == 0)?true:false;
+		return apply_filters('shopp_free_order',$status);
 	}
 	
 	function tag ($property,$options=array()) {
@@ -1645,7 +1654,7 @@ class Cart {
 				$country = $base['country'];
 				if (!empty($this->data->Order->Shipping->country))
 					$country = $this->data->Order->Shipping->country;
-				if (!in_array($country,$countries)) $country = key($countries);
+				if (!array_key_exists($country,$countries)) $country = key($countries);
 
 				if (empty($options['type'])) $options['type'] = "menu";
 				$regions = $Shopp->Settings->get('zones');
@@ -1725,7 +1734,7 @@ class Cart {
 				$country = $base['country'];
 				if (!empty($this->data->Order->Billing->country))
 					$country = $this->data->Order->Billing->country;
-				if (!in_array($country,$countries)) $country = key($countries);
+				if (!array_key_exists($country,$countries)) $country = key($countries);
 
 				$regions = $Shopp->Settings->get('zones');
 				$states = $regions[$country];

@@ -247,7 +247,7 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 
 #taxrates-table th, 
 #taxrates-table td{ position: relative; text-align: left; border: none; padding: 0 5px 5px 0; }
-#taxrates-table button.deleteButton { position: relative; width: 20px; margin-left: -20px; top: 3px; }
+#taxrates-table button.deleteButton { position: relative; width: 20px; height: 21px; margin-left: -20px; line-height: 1em; top: -1px; }
 
 #order-status p { margin: 0; padding: 0; }
 #order-status span { margin: 0 10px; }

@@ -4,7 +4,7 @@
  * @class _2Checkout
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.2
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * 
@@ -88,10 +88,8 @@ class _2Checkout {
 			return;
 		} else $Order->Customer->updates($_POST); // Catch changes from validation
 
-		if (number_format($Shopp->Cart->data->Totals->total, 2) == 0) {
-			$_POST['checkout'] = 'confirmed';
-			return true;
-		}
+		if ($Shopp->Cart->orderisfree()) 
+			return ($_POST['checkout'] = 'confirmed');
 		
 		header("Location: ".add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('confirm-order',false)));
 		exit();
@@ -126,11 +124,7 @@ class _2Checkout {
 		
 		$_['skip_landing'] = "1";
 		
-		$_['x_Receipt_Link_URL'] = '';
-		if (SHOPP_PERMALINKS) $_['x_Receipt_Link_URL'] =
-		 	$Shopp->link('confirm-order').'?shopp_xco=2Checkout/2Checkout';
-		else $_['x_Receipt_Link_URL'] =
-			add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('confirm-order'));
+		$_['x_Receipt_Link_URL'] = add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('confirm-order'));
 		
 		// Line Items
 		foreach($Shopp->Cart->contents as $i => $Item) {
@@ -177,6 +171,7 @@ class _2Checkout {
 		
 		// Load the cart for the correct order
 		$Shopp->Cart->session = $_POST['vendor_order_id'];
+		session_start();
 		$Shopp->Cart->load($Shopp->Cart->session);
 
 		if ($this->settings['verify'] == "on" && !$this->validate($_POST['key'])) {
@@ -188,6 +183,7 @@ class _2Checkout {
 			new ShoppError(__('The payment failed. Please try your order again with a different payment method.','Shopp'),'2co_processing_error',SHOPP_TRXN_ERR);
 			exit();
 		}
+
 		if(!$Shopp->Cart->validorder()){
 			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
 			exit();
@@ -217,6 +213,7 @@ class _2Checkout {
 		$Purchase->copydata($Order->Totals);
 		$Purchase->freight = $Order->Totals->shipping;
 		$Purchase->gateway = "2Checkout";
+		$Purchase->transtatus = "CHARGED";
 		$Purchase->transactionid = $_POST['order_number'];
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();

@@ -413,7 +413,7 @@ class Flow {
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
 		
-		if ($Shopp->Gateway && $Order->Totals->total > 0) {
+		if ($Shopp->Gateway && !$Cart->orderisfree()) {
 			// Use an external checkout payment gateway
 			if (SHOPP_DEBUG) new ShoppError('Processing order through a remote-payment gateway service.',false,SHOPP_DEBUG_ERR);
 			$Purchase = $Shopp->Gateway->process();
@@ -429,7 +429,7 @@ class Flow {
 			$gateway = $Shopp->Settings->get('payment_gateway');
 			
 			// Process a transaction if the order has a cost (is not free)
-			if ($Order->Totals->total > 0 ) {
+			if (!$Cart->orderisfree()) {
 
 				if (!$Shopp->gateway($gateway)) return false;
 
@@ -451,7 +451,7 @@ class Flow {
 				
 				if (SHOPP_DEBUG) new ShoppError('Transaction '.$transactionid.' successfully processed by local-payment gateway service '.$gatewayname.'.',false,SHOPP_DEBUG_ERR);
 				
-			} else {
+			} else { 
 				if(!$Cart->validorder()){
 					new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
 					return false;	
