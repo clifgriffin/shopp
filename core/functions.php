@@ -372,6 +372,28 @@ function shopp_prereqs () {
 	return true;
 }
 
+if( !function_exists('esc_url') ) {
+	/**
+	 * Checks and cleans a URL.  From WordPress 2.8.0+  Included for WordPress 2.7 Users of Shopp
+	 *
+	 * A number of characters are removed from the URL. If the URL is for displaying
+	 * (the default behaviour) amperstands are also replaced. The 'esc_url' filter
+	 * is applied to the returned cleaned URL.
+	 *
+	 * @since 2.8.0
+	 * @uses esc_url()
+	 * @uses wp_kses_bad_protocol() To only permit protocols in the URL set
+	 *		via $protocols or the common ones set in the function.
+	 *
+	 * @param string $url The URL to be cleaned.
+	 * @param array $protocols Optional. An array of acceptable protocols.
+	 *		Defaults to 'http', 'https', 'ftp', 'ftps', 'mailto', 'news', 'irc', 'gopher', 'nntp', 'feed', 'telnet' if not set.
+	 * @return string The cleaned $url after the 'cleaned_url' filter is applied.
+	 */
+	function esc_url( $url, $protocols = null ) {
+		return clean_url( $url, $protocols, 'display' );
+	}
+}
 
 function shopp_debug ($object) {
 	global $Shopp;

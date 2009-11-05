@@ -4,7 +4,7 @@
  * @class GoogleCheckout
  *
  * @author Jonathan Davis
- * @version 1.0.2
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  * 
@@ -235,6 +235,8 @@ class GoogleCheckout {
 											$_[] = '<us-state-area>';
 												$_[] = '<state>'.$tax['zone'].'</state>';
 											$_[] = '</us-state-area>';
+										} elseif ($tax['country'] == "*") {
+											$_[] = '<world-area />';
 										} else {
 											$_[] = '<postal-area>';
 												$_[] = '<country-code>'.$tax['country'].'</country-code>';

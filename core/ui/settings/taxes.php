@@ -145,7 +145,7 @@ var addTaxRate = function (r) {
 	
 	if (r) {
 		rate.val(r.rate);
-		countryMenu.val(r.country).change();
+		$(countryMenu).val(r.country).change();
 		if (r.zone)	zoneMenu.val(r.zone).change();
 	} else {
 		if ($.inArray(base.country,countriesInUse) == -1) {
@@ -177,7 +177,7 @@ if ($('#taxrates-table')) {
 	
 	$(window).ready(function () {
 		$('#taxrates-table').empty();
-		if (rates) for (i in rates) addTaxRate(rates[i]);
+		if (rates) $(rates).each(function () { addTaxRate(this); });
 		else addTaxRate();	
 	});
 }

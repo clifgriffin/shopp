@@ -11,6 +11,7 @@
 
 define("AS_ARRAY",false);
 define("SHOPP_DBPREFIX","shopp_");
+if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
 
 // Make sure that compatibility mode is not enabled
 if (ini_get('zend.ze1_compatibility_mode'))
@@ -75,7 +76,7 @@ class DB {
 	/**
 	 * Send a query to the database */
 	function query($query, $output=true, $errors=true) {
-		if (WP_DEBUG) $this->queries[] = $query;
+		if (SHOPP_QUERY_DEBUG) $this->queries[] = $query;
 		$result = @mysql_query($query, $this->dbh);
 		if (SHOPP_QUERY_DEBUG && class_exists('ShoppError')) new ShoppError($query,'shopp_query_debug',SHOPP_DEBUG_ERR);
 
@@ -366,7 +367,7 @@ class DatabaseObject {
 				case "float":
 				case "string":
 					// If string has been serialized, unserialize it
-					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$value)) $value = unserialize($value);
+					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/s",$value)) $value = unserialize($value);
 				default:
 					// Anything not needing processing
 					// passes through into the object

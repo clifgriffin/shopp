@@ -767,16 +767,21 @@ class Shopp {
 	}
 
 	function metadata () {
-		if (!empty($this->Product)): 
-			$tags = "";
+		$keywords = false;
+		$description = false;
+		if (!empty($this->Product)) {
 			if (empty($this->Product->tags)) $this->Product->load_data(array('tags'));
 			foreach($this->Product->tags as $tag)
-				$tags .= (!empty($tags))?", {$tag->name}":$tag->name;
+				$keywords .= (!empty($keywords))?", {$tag->name}":$tag->name;
+			$description = $this->Product->summary;
+		} elseif (!empty($this->Category)) {
+			$description = $this->Category->description;
+		}
+		$keywords = attribute_escape(apply_filters('shopp_meta_keywords',$keywords));
+		$description = attribute_escape(apply_filters('shopp_meta_description',$description));
 		?>
-		<meta name="keywords" content="<?php echo attribute_escape($tags); ?>" />
-		<meta name="description" content="<?php echo attribute_escape($this->Product->summary); ?>" />
-	<?php
-		endif;
+		<?php if ($tags): ?><meta name="keywords" content="<?php echo $keywords; ?>" /><?php endif; ?>
+		<?php if ($description): ?><meta name="description" content="<?php echo $description; ?>" /><?php endif;
 	}
 
 	function canonurls ($url) {
@@ -981,7 +986,9 @@ class Shopp {
 			// Force secure checkout page if its not already
 			$secure = true;
 			$gateway = $this->Settings->get('payment_gateway');
-			if (strpos($gateway,"TestMode") !== false || isset($wp->query_vars['shopp_xco'])) 
+			if (strpos($gateway,"TestMode") !== false 
+					|| isset($wp->query_vars['shopp_xco']) 
+					|| $this->Cart->orderisfree()) 
 				$secure = false;
 
 			if ($secure && !$this->secure && !SHOPP_NOSSL) {
@@ -1072,7 +1079,9 @@ class Shopp {
 				$this->Settings->get('order_confirmation') == "always") {
 			$gateway = $this->Settings->get('payment_gateway');
 			$secure = true;
-			if (strpos($gateway,"TestMode") !== false || isset($wp->query_vars['shopp_xco'])) 
+			if (strpos($gateway,"TestMode") !== false 
+				|| isset($wp->query_vars['shopp_xco'])
+				|| $this->Cart->orderisfree()) 
 				$secure = false;
 			header("Location: ".$this->link('confirm-order',$secure));
 			exit();
@@ -1409,7 +1418,8 @@ class Shopp {
 			}
 		}
 		
-		if ( !is_user_logged_in() || !current_user_can('manage_options')) die('-1');
+		if ((!is_user_logged_in() || !current_user_can('manage_options'))
+			&& strpos($_GET['action'],'wp_ajax_shopp_') !== false) die('-1');
 		
 		if (empty($_GET['action'])) return;
 		switch($_GET['action']) {

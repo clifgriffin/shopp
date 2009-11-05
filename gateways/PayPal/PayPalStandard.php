@@ -4,7 +4,7 @@
  * @class PayPalStandard
  *
  * @author Jonathan Davis
- * @version 1.0.3
+ * @version 1.0.5
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * 
@@ -141,14 +141,17 @@ class PayPalStandard {
 		$_['last_name']				= $Order->Customer->lastname;
 		$_['lc']					= $this->settings['base_operations']['country'];
 		
+		$AddressType = "Shipping";
+		if (!$Shopp->Cart->data->Shipping) $AddressType = "Billing";
+		
 		$_['address_override'] 		= 1;
-		$_['address1']				= $Order->Billing->address;
-		if (!empty($Order->Billing->xaddress))
-			$_['address2']			= $Order->Billing->xaddress;
-		$_['city']					= $Order->Billing->city;
-		$_['state']					= $Order->Billing->state;
-		$_['zip']					= $Order->Billing->postcode;
-		$_['country']				= $Order->Billing->country;
+		$_['address1']				= $Order->{$AddressType}->address;
+		if (!empty($Order->{$AddressType}->xaddress))
+			$_['address2']			= $Order->{$AddressType}->xaddress;
+		$_['city']					= $Order->{$AddressType}->city;
+		$_['state']					= $Order->{$AddressType}->state;
+		$_['zip']					= $Order->{$AddressType}->postcode;
+		$_['country']				= $Order->{$AddressType}->country;
 		$_['night_phone_a']			= $Order->Customer->phone;
 		
 		// Include page style option, if provided
@@ -209,6 +212,11 @@ class PayPalStandard {
 
 		// Validate the order data
 		$validation = true;
+
+		if(!$Shopp->Cart->validorder()){
+			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
+			$validation = false;	
+		}
 		
 		// Check for unique transaction id
 		$Purchase = new Purchase($_POST['txn_id'],'transactionid');

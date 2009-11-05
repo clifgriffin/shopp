@@ -240,7 +240,10 @@ class PayPalExpress {
 		if (!$result) {
 			new ShoppError(__('No response was received from PayPal. The order cannot be processed.','Shopp'),'paypalexpress_noresults',SHOPP_COMM_ERR);
 		}
-		
+		if(!$Shopp->Cart->validorder()){
+			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
+			return false;	
+		}
 		// If the transaction is a success, get the transaction details, 
 		// build the purchase receipt, save it and return it
 		if (strtolower($result->ack) == "success") {

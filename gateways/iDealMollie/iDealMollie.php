@@ -4,7 +4,7 @@
  * @class iDealMollie
  *
  * @author Jonathan Davis
- * @version 1.0.4
+ * @version 1.0.5
  * @copyright Ingenesis Limited, 24 February, 2009
  * @package Shopp
  * 
@@ -34,7 +34,12 @@ class iDealMollie {
 			$_POST['checkout'] == "process" && 
 			!$loginproc) $this->checkout();
 
-		if (isset($_GET['transaction_id'])) $_POST['checkout'] = "confirmed";
+		// Don't do anything with Mollie.nl reports
+		if (isset($_GET['idealreport'])) die('1');
+
+		if (isset($_GET['transaction_id']) 
+			&& !isset($_GET['idealreport'])) 
+				$_POST['checkout'] = "confirmed";
 			
 		return true;
 	}
@@ -52,7 +57,9 @@ class iDealMollie {
 		if (empty($Order->Customer))
 			$Order->Customer = new Customer();
 		$Order->Customer->updates($_POST);
-		$Order->Customer->confirm_password = $_POST['confirm-password'];
+
+		if (isset($_POST['confirm-password']))
+			$Order->Customer->confirm_password = $_POST['confirm-password'];
 
 		if (empty($Order->Billing))
 			$Order->Billing = new Billing();
@@ -73,23 +80,18 @@ class iDealMollie {
 		$estimatedTotal = $Shopp->Cart->data->Totals->total;
 		$Shopp->Cart->updated();
 		$Shopp->Cart->totals();
-
-		if (number_format($Shopp->Cart->data->Totals->total, 2) == 0) {
-			$_POST['checkout'] = 'confirmed';
-			return true;
-		}
-				
+		
+		if ($Shopp->Cart->orderisfree())
+			return ($_POST['checkout'] = 'confirmed');
+			
 		$_ = array();
 		
 		$_['partnerid']				= $this->settings['account'];
 
 		// Options
 		$_['a'] 					= "fetch"; // specify fetch mode
-		if (SHOPP_PERMALINKS)
-			$_['returnurl']			= $Shopp->link('confirm-order').'?shopp_xco=iDealMollie/iDealMollie';
-		else
-			$_['returnurl']			= add_query_arg('shopp_xco','iDealMollie/iDealMollie',$Shopp->link('confirm-order'));
-		$_['reporturl']				= $Shopp->link('catalog').'shopp_xco=iDealMollie/iDealMollie';
+		$_['returnurl']				= add_query_arg('shopp_xco','iDealMollie/iDealMollie',$Shopp->link('confirm-order'));
+		$_['reporturl']				= add_query_arg(array('shopp_xco'=>'iDealMollie/iDealMollie','idealreport'=>1),$Shopp->link('catalog'));
 
 		// Line Items
 		$description = array();
@@ -118,12 +120,27 @@ class iDealMollie {
 	
 	function process () {
 		global $Shopp;
-
-		$_['a'] 					= "check"; // specify fetch mode
+		if (empty($_GET['transaction_id'])) return false;
+		
+		$_['a'] 					= "check"; // specify check mode
 		$_['partnerid']				= $this->settings['account'];
 		$_['transaction_id']		= $_GET['transaction_id'];
 		if ($this->settings['testmode'] == "on")
 			$_['testmode'] = 'true';
+
+		if (!$Shopp->Cart->validorder()) {
+			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
+			header("Location: ".$Shopp->link('cart'));
+			exit();
+		}
+		
+		// Check for unique transaction id
+		$Purchase = new Purchase($_['transaction_id'],'transactionid');
+		if(!empty($Purchase->id)){
+			if(SHOPP_DEBUG) new ShoppError(__('Order validation failed. Received duplicate transaction id: ','Shopp').$_['transaction_id'], 'duplicate_order',SHOPP_TRXN_ERR);
+			header("Location: ".$Shopp->link('cart'));
+			exit();
+		}
 
 		// Try up to 3 times
 		for ($i = 3; $i > 0; $i--) {
@@ -168,6 +185,7 @@ class iDealMollie {
 		$Purchase->freight = $Order->Totals->shipping;
 		$Purchase->gateway = "iDeal Mollie";
 		$Purchase->transactionid = $_GET['transaction_id'];
+		$Purchase->transtatus = "CHARGED";
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
 
