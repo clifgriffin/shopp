@@ -618,17 +618,16 @@ class Cart {
 		$base = $Shopp->Settings->get('base_operations');
 		if (!is_array($taxrates)) return false;
 
-		$country = $this->data->Order->Shipping->country;
-		if (empty($country)) $country = $base['country'];
+		if (!empty($this->data->Order->Shipping->country)) $country = $this->data->Order->Shipping->country;
+		elseif (!empty($this->data->Order->Billing->country)) $country = $this->data->Order->Billing->country;
+		else $country = $base['country'];
 
-		$zone = $this->data->Order->Shipping->state;
-		if (empty($zone)) $zone = $base['zone'];
-		
-		if (!empty($this->data->Order->Shipping->postcode))
-			$area = $this->data->Order->Shipping->postarea();
+		if (!empty($this->data->Order->Shipping->state)) $zone = $this->data->Order->Shipping->state;
+		elseif (!empty($this->data->Order->Billing->state)) $zone = $this->data->Order->Billing->state;
+		else $zone = $base['zone'];
 		
 		$global = false;
-		foreach($taxrates as $setting) {
+		foreach ($taxrates as $setting) {
 			// Grab the global setting if found
 			if ($setting['country'] == "*") {
 				$global = $setting;
