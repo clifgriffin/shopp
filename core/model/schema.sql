@@ -26,6 +26,7 @@ CREATE TABLE <?php echo $product; ?> (
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
 	KEY published (published),
+	KEY featured (featured),
 	KEY slug (slug),
 	FULLTEXT search (name,summary,description)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
@@ -56,6 +57,7 @@ CREATE TABLE <?php echo $price; ?> (
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
 	KEY product (product),
+	KEY catalog (product,type,inventory,stock)
 	KEY context (context)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
@@ -288,6 +290,7 @@ CREATE TABLE <?php echo $purchased; ?> (
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
 	KEY purchase (purchase),
+	KEY product (product),
 	KEY dkey (dkey(8))
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 

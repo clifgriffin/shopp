@@ -28,7 +28,7 @@ function tb_init(domChunk){
 	$(domChunk).click(function(){
 	var t = this.title || this.name || null;
 	var a = this.href || this.alt;
-	var g = this.rel || false;
+	var g = this.className || false;
 	tb_show(t,a,g,true);
 	this.blur();
 	return false;
@@ -84,8 +84,9 @@ tb_show = function (caption, url, imageGroup, init) {//function called when the 
 			TB_NextHTML = "";
 			TB_imageCount = "";
 			TB_FoundURL = false;
-			if(imageGroup){
-				TB_TempArray = $("a[rel="+imageGroup+"]").get();
+			if (imageGroup) {
+				found = $('a[class='+imageGroup+']').attr('class').match(/^.*?(product_\d+_gallery)\s.*?$/i);
+				if (found) TB_TempArray = $('a[class='+imageGroup+']').get();
 				for (TB_Counter = 0; ((TB_Counter < TB_TempArray.length) && (TB_NextHTML === "")); TB_Counter++) {
 					var urlTypeTemp = TB_TempArray[TB_Counter].href.toLowerCase().match(urlString);
 						if (!(TB_TempArray[TB_Counter].href == url)) {						

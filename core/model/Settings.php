@@ -105,7 +105,7 @@ class Settings extends DatabaseObject {
 		$value = false;
 		if (isset($this->registry[$name])) {
 			return $this->registry[$name];
-		} else if ($this->load($name)) {			
+		} elseif ($this->load($name)) {			
 			$value = $this->registry[$name];
 		}
 		
