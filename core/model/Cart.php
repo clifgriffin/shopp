@@ -41,6 +41,9 @@ class Cart {
 	function Cart () {
 		$this->_table = DatabaseObject::tablename('cart');
 		
+		// Close out any early session calls
+		if(session_id()) session_write_close();		
+		
 		$this->handlers = session_set_save_handler(
 			array( &$this, 'open' ),	// Open
 			array( &$this, 'close' ),	// Close
@@ -49,6 +52,7 @@ class Cart {
 			array( &$this, 'unload' ),	// Destroy
 			array( &$this, 'trash' )	// Garbage Collection
 		);
+		register_shutdown_function('session_write_close');
 		
 		define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
 		
@@ -898,20 +902,16 @@ class Cart {
 		global $Shopp;
 		do_action('shopp_cart_request');
 
-		if (isset($_REQUEST['checkout'])) {
-			header("Location: ".$Shopp->link('checkout',true));
-			exit();
-		}
+		if (isset($_REQUEST['checkout'])) shopp_redirect($Shopp->link('checkout',true));
 		
-		if (isset($_REQUEST['shopping'])) {
-			header("Location: ".$Shopp->link('catalog'));
-			exit();
-		}
+		if (isset($_REQUEST['shopping'])) shopp_redirect($Shopp->link('catalog'));
 		
 		if (isset($_REQUEST['shipping'])) {
 			$countries = $Shopp->Settings->get('countries');
 			$regions = $Shopp->Settings->get('regions');
 			$_REQUEST['shipping']['region'] = $regions[$countries[$_REQUEST['shipping']['country']]['region']];
+			if (!empty($_REQUEST['shipping']['postcode'])) // Protect input field from XSS
+				$_REQUEST['shipping']['postcode'] = attribute_escape($_REQUEST['shipping']['postcode']);
 			unset($countries,$regions);
 			$this->shipzone($_REQUEST['shipping']);
 		} else if (!isset($this->data->Order->Shipping->country)) {
@@ -923,7 +923,7 @@ class Cart {
 		if (!empty($_REQUEST['promocode'])) {
 			$this->data->PromoCodeResult = "";
 			if (!in_array($_REQUEST['promocode'],$this->data->PromoCodes)) {
-				$this->data->PromoCode = attribute_escape($_REQUEST['promocode']);
+				$this->data->PromoCode = attribute_escape($_REQUEST['promocode']); // Protect from XSS
 				$this->updated();
 			} else $this->data->PromoCodeResult = __("That code has already been applied.","Shopp");
 		}
@@ -1051,9 +1051,14 @@ class Cart {
 		if (empty($_POST['lastname']))
 			return new ShoppError(__('You must provide your last name.','Shopp'),'cart_validation');
 
-		$account = "[0-9A-Za-z#%$!&*+/'-=?.^_`{|}~]";
-		$domain = "[0-9A-Za-z#%$!&*+/'-=?^_`{|}~]";
-		if(!ereg("^$account{1,64}@($domain{1,63}\.$domain{1,63}){1,255}$", $_POST['email']))
+		$rfc822email =	'([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d'.
+						'\\x22\\x5c\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x22)(\\x2e([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e'.
+						'\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80-\\xff]|\\x5c[\\x00-\\x7f])*'.
+						'\\x22))*\\x40([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+'.
+						'|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x5d)(\\x2e([^\\x00-\\x20\\x22\\x28'.
+						'\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]'.
+						'|\\x5c[\\x00-\\x7f])*\\x5d))*';
+		if(!preg_match("!^$rfc822email$!", $_POST['email']))
 			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
 			
 		if ($authentication == "wordpress" && !$this->data->login) {
@@ -1823,11 +1828,14 @@ class Cart {
 				}
 				break;
 				
+			case "has-data":
+			case "hasdata": return (is_array($this->data->Order->data) && count($this->data->Order->data) > 0); break;
 			case "order-data":
+			case "orderdata":
 				if (isset($options['name']) && $options['mode'] == "value") 
 					return $this->data->Order->data[$options['name']];
-				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
 				if (empty($options['type'])) $options['type'] = "hidden";
+				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
 					if (!isset($options['title'])) $options['title'] = $options['name'];
 					if (isset($this->data->Order->data[$options['name']])) 
@@ -1836,10 +1844,29 @@ class Cart {
 					if (!isset($options['rows'])) $options['rows'] = "3";
 					if ($options['type'] == "textarea") 
 						return '<textarea name="data['.$options['name'].']" cols="'.$options['cols'].'" rows="'.$options['rows'].'" id="order-data-'.$options['name'].'" '.inputattrs($options,array('accesskey','title','tabindex','class','disabled','required')).'>'.$options['value'].'</textarea>';
-					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'" '.inputattrs($options).' />'; 
+					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'" '.inputattrs($options).' />';
 				}
-				break;
 
+				// Looping for data value output
+				if (!$this->dataloop) {
+					reset($this->data->Order->data);
+					$this->dataloop = true;
+				} else next($this->data->Order->data);
+
+				if (current($this->data->Order->data) !== false) return true;
+				else {
+					$this->dataloop = false;
+					return false;
+				}
+				
+				break;
+			case "data":
+				if (!is_array($this->data->Order->data)) return false;
+				$data = current($this->data->Order->data);
+				$name = key($this->data->Order->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
 			case "submit": 
 				if (!isset($options['value'])) $options['value'] = __('Submit Order','Shopp');
 				return '<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />'; break;

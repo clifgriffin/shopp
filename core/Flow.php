@@ -157,9 +157,8 @@ class Flow {
 					$db->query("UPDATE $Category->_table SET parent=0 WHERE parent=$Category->id");
 					$Category->delete();
 				}
-				header("Location: ".
-					esc_url(add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl)));
-				exit();
+				$redirect = esc_url(add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl));
+				shopp_redirect($redirect);
 			}
 			
 			if ($id && $id != "new")
@@ -191,8 +190,8 @@ class Flow {
 					$Product = new Product($deletion);
 					$Product->delete();
 				}
-				header("Location: ".
-					esc_url(add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl)));
+				$redirect = esc_url(add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
+				shopp_redirect($redirect);
 				exit();
 			}
 			
@@ -200,8 +199,7 @@ class Flow {
 				$Product = new Product();
 				$Product->load($duplicate);
 				$Product->duplicate();
-				header("Location: ".add_query_arg('page',$Admin->products,$adminurl));
-				exit();
+				shopp_redirect(add_query_arg('page',$Admin->products,$adminurl));
 			}
 
 			if ($id && $id != "new") {
@@ -583,9 +581,7 @@ class Flow {
 				|| $orderisfree
 				|| SHOPP_NOSSL) 
 			$ssl = false;
-		$link = $Shopp->link('receipt',$ssl);
-		header("Location: $link");
-		exit();
+		shopp_redirect($Shopp->link('receipt',$ssl));
 	}
 	
 	// Display the confirm order screen
@@ -810,7 +806,7 @@ class Flow {
 		$Purchase = $Shopp->Cart->data->Purchase;
 		$Customer = new Customer($Purchase->customer);
 		
-		if (!empty($_POST)) {
+		if (!empty($_POST['update'])) {
 			check_admin_referer('shopp-save-order');
 			
 			if ($_POST['transtatus'] != $Purchase->transtatus)

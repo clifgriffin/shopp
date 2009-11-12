@@ -33,13 +33,7 @@ class Settings extends DatabaseObject {
 		else $results = $db->query("SELECT name,value FROM $this->_table WHERE autoload='on'",AS_ARRAY,false);
 		
 		if (!is_array($results) || sizeof($results) == 0) return false;
-		while(list($key,$entry) = each($results)) {
-			// Return unserialized, if serialized value
-			if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$entry->value)) 
-				$entry->value = unserialize($entry->value);
-
-			$settings[$entry->name] = $entry->value;
-		}
+		while(list($key,$entry) = each($results)) $settings[$entry->name] = $this->restore($entry->value);
 
 		if (!empty($settings)) $this->registry = array_merge($this->registry,$settings);
 		return true;
@@ -56,20 +50,12 @@ class Settings extends DatabaseObject {
 
 		$data = $db->prepare($Setting);
 		$dataset = DatabaseObject::dataset($data);
-		$this->registry[$name] = $db->clean($value);
-		if (!$db->query("INSERT $this->_table SET $dataset")) return false;
+		if ($db->query("INSERT $this->_table SET $dataset"))
+		 	$this->registry[$name] = $this->restore($db->clean($value));
+		else return false;
 		return true;
 	}
-	
-	/**
-	 * Remove a setting from the registry and the database */
-	function delete ($name) {
-		$db = DB::get();
-		unset($this->registry[$name]);
-		if (!$db->query("DELETE FROM $this->_table WHERE name='$name'")) return false;
-		return true;
-	}
-	
+
 	/**
 	 * Updates the setting in the registry and the database */
 	function update ($name,$value) {
@@ -84,8 +70,9 @@ class Settings extends DatabaseObject {
 		$data = $db->prepare($Setting);				// Prepare the data for db entry
 		$dataset = DatabaseObject::dataset($data);	// Format the data in SQL
 		
-		$this->registry[$name] = $db->clean($value);			// Update the value in the registry
-		if (!$db->query("UPDATE $this->_table SET $dataset WHERE name='$Setting->name'")) return false;
+		if ($db->query("UPDATE $this->_table SET $dataset WHERE name='$Setting->name'")) 
+			$this->registry[$name] = $this->restore($value); // Update the value in the registry
+		else return false;
 		return true;
 	}
 	
@@ -96,16 +83,23 @@ class Settings extends DatabaseObject {
 	}
 	
 	/**
+	 * Remove a setting from the registry and the database */
+	function delete ($name) {
+		$db = DB::get();
+		unset($this->registry[$name]);
+		if (!$db->query("DELETE FROM $this->_table WHERE name='$name'")) return false;
+		return true;
+	}	
+	
+	/**
 	 * Get a specific setting from the registry */
 	function get ($name) {
 		global $Shopp;
-		// $backtrace = debug_backtrace();
-		// echo "<p>".$backtrace[3]['class']."->".$backtrace[3]['function']."() called ".$backtrace[2]['class']."->".$backtrace[2]['function']."() called ".$backtrace[1]['class']."->".$backtrace[1]['function']."() requesting setting '$name'</p>";
 
 		$value = false;
 		if (isset($this->registry[$name])) {
 			return $this->registry[$name];
-		} else if ($this->load($name)) {			
+		} elseif ($this->load($name)) {			
 			$value = $this->registry[$name];
 		}
 		
@@ -116,6 +110,17 @@ class Settings extends DatabaseObject {
 			return false;
 		}
 		
+		return $value;
+	}
+	
+	function restore ($value) {
+		// Return unserialized, if serialized value
+		if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/s",$value)) {
+			$restored = unserialize($value);
+			if (!empty($restored)) return $restored;
+			$restored = unserialize(stripslashes($value));
+			if (!empty($restored)) return $restored;
+		}
 		return $value;
 	}
 	

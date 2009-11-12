@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.15
+Version: 1.0.16
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define('SHOPP_VERSION','1.0.15');
+define('SHOPP_VERSION','1.0.16');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
@@ -939,8 +939,7 @@ class Shopp {
 	function cart () {
 		if (isset($_REQUEST['shopping']) && $_REQUEST['shopping'] == "reset") {
 			$this->Cart->reset();
-			header("Location: ".$this->link());
-			exit();
+			shopp_redirect($this->link());
 		}
 
 		if (empty($_REQUEST['cart'])) return true;
@@ -951,13 +950,12 @@ class Shopp {
 		$redirect = false;
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {
-			case "checkout": header("Location: ".$this->link($redirect,true)); break;
+			case "checkout": shopp_redirect($this->link($redirect,true)); break;
 			default: 
 				if (!empty($_REQUEST['redirect']))
-					header("Location: ".esc_url($this->link($_REQUEST['redirect'])));
-				else header("Location: ".$this->link('cart'));
+					shopp_redirect(esc_url($this->link($_REQUEST['redirect'])));
+				else shopp_redirect($this->link('cart'));
 		}
-		exit();
 	}
 	
 	/**
@@ -1083,8 +1081,7 @@ class Shopp {
 				|| isset($wp->query_vars['shopp_xco'])
 				|| $this->Cart->orderisfree()) 
 				$secure = false;
-			header("Location: ".$this->link('confirm-order',$secure));
-			exit();
+			shopp_redirect($this->link('confirm-order',$secure));
 		} else $this->Flow->order();
 
 	}

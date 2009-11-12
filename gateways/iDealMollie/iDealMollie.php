@@ -110,10 +110,7 @@ class iDealMollie {
 		if ($this->error()) return false;
 		
 		$url = $this->Response->getElementContent('URL');
-		if (!empty($url)) {
-			header("Location: $url");
-			exit();
-		}
+		if (!empty($url)) shopp_redirect($url);
 		
 		return false;
 	}
@@ -130,16 +127,14 @@ class iDealMollie {
 
 		if (!$Shopp->Cart->validorder()) {
 			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
-			header("Location: ".$Shopp->link('cart'));
-			exit();
+			shopp_redirect($Shopp->link('cart'));
 		}
 		
 		// Check for unique transaction id
 		$Purchase = new Purchase($_['transaction_id'],'transactionid');
 		if(!empty($Purchase->id)){
 			if(SHOPP_DEBUG) new ShoppError(__('Order validation failed. Received duplicate transaction id: ','Shopp').$_['transaction_id'], 'duplicate_order',SHOPP_TRXN_ERR);
-			header("Location: ".$Shopp->link('cart'));
-			exit();
+			shopp_redirect($Shopp->link('cart'));
 		}
 
 		// Try up to 3 times
@@ -156,8 +151,7 @@ class iDealMollie {
 		
 		if ($payment == "false") {
 			new ShoppError(__('Payment could not be confirmed, this order cannot be processed.','Shopp'),'ideal_mollie_transaction_error',SHOPP_TRXN_ERR);
-			header("Location: ".$Shopp->link('cart'));
-			exit();
+			shopp_redirect($Shopp->link('cart'));
 		}
 
 		$Order = $Shopp->Cart->data->Order;
@@ -262,7 +256,7 @@ class iDealMollie {
 				$args = array();
 				$args['shopp_xco'] = 'iDealMollie/iDealMollie';
 				$url = add_query_arg($args,$Shopp->link('checkout'));				
-				$result .= '<p><a href="'.$url.'"><img src="'.SHOPP_PLUGINURI.'/gateways/iDealMollie/ideal.gif'.'" alt="iDeal" width="57" height="51" /></a></p>';
+				$result .= '<p class="idealmollie"><a href="'.$url.'"><img src="'.SHOPP_PLUGINURI.'/gateways/iDealMollie/ideal.gif'.'" alt="iDeal" width="57" height="51" /></a></p>';
 				return $result;
 		}
 	}

@@ -204,6 +204,8 @@ class USPSRates {
 			global $Shopp;
 			$type = "IntlRate";	
 			$countries = $Shopp->Settings->get('countries');
+			$country = $countries[$country]['name'];
+			if ($countries[$country] == "UK") $country .= ' (Great Britain)';
 		}
 		
 		$_ = array('API='.$type.'&XML=<?xml version="1.0" encoding="utf-8"?>');

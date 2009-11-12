@@ -108,8 +108,7 @@ class PayPalStandard {
 			return true;
 		}
 		
-		header("Location: ".add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
-		exit();
+		shopp_redirect(add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
 	}
 	
 	/**
@@ -210,6 +209,9 @@ class PayPalStandard {
 			$Order->Cart = $Shopp->Cart->session;
 		}
 
+		// Handle IPN updates to existing purchases
+		if ($this->updates()) exit(); 
+		
 		// Validate the order data
 		$validation = true;
 
@@ -218,16 +220,14 @@ class PayPalStandard {
 			$validation = false;	
 		}
 		
-		// Check for unique transaction id
-		$Purchase = new Purchase($_POST['txn_id'],'transactionid');
-		
 		if(number_format($_POST['mc_gross'],2) != number_format($Order->Totals->total,2)){
 			$validation = false;
 			if(SHOPP_DEBUG) new ShoppError('Order validation failed. Received totals mismatch.  Received '.number_format($_POST['mc_gross'],2). ', but originally sent'.number_format($Order->Totals->total,2),'paypalstd_debug',SHOPP_DEBUG_ERR);
 		}  
+
 		if(!empty($Purchase->id)){
 			$validation = false;
-			if(SHOPP_DEBUG) new ShoppError('Order validation failed. Received duplicate transactionid: '.$_POST['txn_id'],'paypalstd_debug',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError('Order validation failed. Received duplicate transaction id: '.$_POST['txn_id'],'paypalstd_debug',SHOPP_DEBUG_ERR);
 		}
 		 
 		if($validation) $this->order();
@@ -368,12 +368,22 @@ class PayPalStandard {
 			);
 		}
 
-		$link = $Shopp->link('receipt',false);
-		header("Location: $link");
-		exit();
+		shopp_redirect($Shopp->link('receipt',false));
 		
 	}
 	
+	function updates () {
+		if (!isset($_POST['parent_txn_id'])) return false; // Not a notification request
+		$Purchase = new Purchase($_POST['parent_txn_id'],'transactionid');
+		if (empty($Purchase->id)) return false;  // No order exists, bail out
+		
+		if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
+		
+		// Order exists, handle IPN updates
+		$Purchase->transtatus = $txnstatus;
+		$Purchase->save();
+		
+	}
 	
 	function error () {
 		if (!empty($this->Response)) {

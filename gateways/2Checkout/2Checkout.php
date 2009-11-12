@@ -91,8 +91,7 @@ class _2Checkout {
 		if ($Shopp->Cart->orderisfree()) 
 			return ($_POST['checkout'] = 'confirmed');
 		
-		header("Location: ".add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('confirm-order',false)));
-		exit();
+		shopp_redirect(add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('confirm-order',false)));
 	}
 	
 	function url ($url) {
@@ -279,7 +278,7 @@ class _2Checkout {
 			case "button":
 				$args = array('shopp_xco' => '2Checkout/2Checkout');
 				$url = add_query_arg($args,$Shopp->link('checkout'));				
-				return '<p><a href="'.$url.'">'.__('Pay with 2Checkout.com','Shopp').'</a></p>';
+				return '<p class="xco_2checkout"><a href="'.$url.'">'.__('Pay with 2Checkout.com','Shopp').'</a></p>';
 		}
 	}
 	

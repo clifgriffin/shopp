@@ -420,6 +420,12 @@ function shopp_pagename ($page) {
 	else return $page;
 }
 
+function shopp_redirect ($uri) {
+	if (class_exists('ShoppError'))	new ShoppError('Redirecting to: '.$uri,'shopp_redirect',SHOPP_DEBUG_ERR);
+	wp_redirect($uri);
+	exit();
+}
+
 function get_filemeta ($file) {
 	if (!file_exists($file)) return false;
 	if (!is_readable($file)) return false;
@@ -890,7 +896,7 @@ function inputattrs ($options,$allowed=array()) {
 				$string .= ' '.$key.'="'.$value.'"';
 		}
 	}
-	$string .= ' class="'.$classes.'"';
+	$string .= ' class="'.trim($classes).'"';
  	return $string;
 }
 

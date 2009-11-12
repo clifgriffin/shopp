@@ -115,7 +115,8 @@ class Catalog extends DatabaseObject {
 		else $limit = "";
 		
 		$tagtable = DatabaseObject::tablename(Tag::$table);
-		$this->tags = $db->query("SELECT t.*,count(sc.product) AS products FROM $tagtable AS t LEFT JOIN $this->_table AS sc ON sc.tag=t.id GROUP BY t.id HAVING products > 0 ORDER BY t.name ASC$limit",AS_ARRAY);
+		$query = "SELECT t.*,count(sc.product) AS products FROM $this->_table AS sc LEFT JOIN $tagtable AS t ON sc.tag=t.id WHERE sc.tag != 0 GROUP BY t.id ORDER BY t.name ASC$limit";
+		$this->tags = $db->query($query,AS_ARRAY);
 		return true;
 	}
 	
@@ -169,7 +170,7 @@ class Catalog extends DatabaseObject {
 					$level = floor((1-$tag->products/$max)*$levels)+1;
 					if (SHOPP_PERMALINKS) $link = $path.'tag/'.urlencode($tag->name).'/';
 					else $link = add_query_arg('shopp_tag',urlencode($tag->name),$page);
-					$string .= '<li class="level-'.$level.'"><a href="'.$link.'">'.$tag->name.'</a></li> ';
+					$string .= '<li class="level-'.$level.'"><a href="'.$link.'" rel="tag">'.$tag->name.'</a></li> ';
 				}
 				$string .= '</ul>';
 				return $string;

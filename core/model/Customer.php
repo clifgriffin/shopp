@@ -16,11 +16,11 @@ class Customer extends DatabaseObject {
 	var $looping = false;
 	
 	var $management = array(
-		"account" => "My Account",
-		"downloads" => "Downloads",
-		"history" => "Order History",
-		"status" => "Order Status",
-		"logout" => "Logout",
+		"account" => "account",
+		"downloads" => "downloads",
+		"history" => "history",
+		"status" => "status",
+		"logout" => "logout",
 		);
 	
 	function Customer ($id=false,$key=false) {
@@ -57,13 +57,22 @@ class Customer extends DatabaseObject {
 
 		if (!empty($_GET['acct']) && !empty($_GET['id'])) {
 			$Purchase = new Purchase($_GET['id']);
-			$Shopp->Cart->data->Purchase = $Purchase;
-			$Purchase->load_purchased();
-			ob_start();
-			include(SHOPP_TEMPLATES."/receipt.php");
-			$content = ob_get_contents();
-			ob_end_clean();
-			echo '<div id="shopp">'.$content.'</div>';
+			if ($Purchase->customer != $this->id) {
+				new ShoppError(sprintf(__('Order number %s could not be found in your order history.','Shopp'),$Purchase->id),'customer_order_history',SHOPP_AUTH_ERR);
+				unset($_GET['acct']);
+				return false;
+			} else {
+				$Shopp->Cart->data->Purchase = $Purchase;
+				$Purchase->load_purchased();
+				ob_start();
+				include(SHOPP_TEMPLATES."/receipt.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+			}
+			$management = apply_filters('shopp_account_management_url',
+				'<p><a href="'.$this->tag('url').'">&laquo; Return to Account Management</a></p>');
+			
+			echo '<div id="shopp">'.$management.$content.$management.'</div>';
 			return false;
 		}
 
@@ -130,8 +139,7 @@ class Customer extends DatabaseObject {
 		
 		if (!shopp_email($message)) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_recovery_email',SHOPP_ERR);
-			header("Location: ".add_query_arg('acct','recover',$Shopp->link('account')));
-			exit();
+			shopp_redirect(add_query_arg('acct','recover',$Shopp->link('account')));
 		} else {
 			new ShoppError(__('Check your email address for instructions on resetting the password for your account.','Shopp'),'password_recovery_email',SHOPP_ERR);
 		}
@@ -187,8 +195,7 @@ class Customer extends DatabaseObject {
 		
 		if (!shopp_email($message)) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_reset_email',SHOPP_ERR);
-			header("Location: ".add_query_arg('acct','recover',$Shopp->link('account')));
-			exit();
+			shopp_redirect(add_query_arg('acct','recover',$Shopp->link('account')));
 		} else {
 			new ShoppError(__('Check your email address for your new password.','Shopp'),'password_reset_email',SHOPP_ERR);
 		}
@@ -274,6 +281,14 @@ class Customer extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		
+		$menus = array(
+			"account" => __("My Account","Shopp"),
+			"downloads" => __("Downloads","Shopp"),
+			"history" => __("Order History","Shopp"),
+			"status" => __("Order Status","Shopp"),
+			"logout" => __("Logout","Shopp")
+		);
+		
 		// Return strings with no options
 		switch ($property) {
 			case "url": return $Shopp->link('account');
@@ -316,6 +331,10 @@ class Customer extends DatabaseObject {
 				$string .= '<input type="submit" name="submit-login" id="submit-login"'.inputattrs($options).' />';
 				return $string;
 				break;
+			case "errors-exist":
+				$Errors =& ShoppErrors();
+				return ($Errors->exist(SHOPP_AUTH_ERR));
+				break;
 			case "login-errors":
 				$Errors =& ShoppErrors();
 				$result = "";
@@ -340,10 +359,10 @@ class Customer extends DatabaseObject {
 					return false;
 				}
 				break;
-			case "management":
+			case "management":				
 				if (array_key_exists('url',$options)) return add_query_arg('acct',key($this->management),$Shopp->link('account'));
 				if (array_key_exists('action',$options)) return key($this->management);
-				return current($this->management);
+				return $menus[key($this->management)];
 			case "accounts": return $Shopp->Settings->get('account_system'); break;
 			case "order-lookup":
 				$auth = $Shopp->Settings->get('account_system');
