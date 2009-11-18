@@ -115,7 +115,8 @@ class Catalog extends DatabaseObject {
 		else $limit = "";
 		
 		$tagtable = DatabaseObject::tablename(Tag::$table);
-		$this->tags = $db->query("SELECT t.*,count(sc.product) AS products FROM $tagtable AS t LEFT JOIN $this->_table AS sc ON sc.tag=t.id GROUP BY t.id HAVING products > 0 ORDER BY t.name ASC$limit",AS_ARRAY);
+		$query = "SELECT t.*,count(sc.product) AS products FROM $this->_table AS sc LEFT JOIN $tagtable AS t ON sc.tag=t.id WHERE sc.tag != 0 GROUP BY t.id ORDER BY t.name ASC$limit";
+		$this->tags = $db->query($query,AS_ARRAY);
 		return true;
 	}
 	
@@ -169,7 +170,7 @@ class Catalog extends DatabaseObject {
 					$level = floor((1-$tag->products/$max)*$levels)+1;
 					if (SHOPP_PERMALINKS) $link = $path.'tag/'.urlencode($tag->name).'/';
 					else $link = add_query_arg('shopp_tag',urlencode($tag->name),$page);
-					$string .= '<li class="level-'.$level.'"><a href="'.$link.'">'.$tag->name.'</a></li> ';
+					$string .= '<li class="level-'.$level.'"><a href="'.$link.'" rel="tag">'.$tag->name.'</a></li> ';
 				}
 				$string .= '</ul>';
 				return $string;
@@ -359,7 +360,7 @@ class Catalog extends DatabaseObject {
 					if (isset($Shopp->Cart->data->Category['orderby'])) 
 						$default = $Shopp->Cart->data->Category['orderby'];
 					$string .= $title;
-					$string .= '<form action="'.$_SERVER['REQUEST_URI'].'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
+					$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
 					if (!SHOPP_PERMALINKS) {
 						foreach ($_GET as $key => $value)
 							if ($key != 'shopp_orderby') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
@@ -381,7 +382,7 @@ class Catalog extends DatabaseObject {
 					
 					foreach($menuoptions as $value => $option) {
 						$label = $option;
-						$href = $link.'?'.$query.'shopp_orderby='.$value;
+						$href = esc_url($link.'?'.$query.'shopp_orderby='.$value);
 						$string .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 					}
 					
@@ -413,16 +414,16 @@ class Catalog extends DatabaseObject {
 					if (isset($Category->tag)) $type = "tag";
 					
 					if (SHOPP_PERMALINKS)
-						$link = add_query_arg($_GET,$Shopp->shopuri.$type.'/'.$Category->uri);
+						$link = esc_url(add_query_arg($_GET,$Shopp->shopuri.$type.'/'.$Category->uri));
 					else {
 						if (isset($Category->smart)) 
-							$link = add_query_arg(
-								array_merge($_GET,array('shopp_category'=>$Category->slug,'shopp_pid'=>null)),
-								$Shopp->shopuri);
+							$link = esc_url(add_query_arg(array_merge($_GET,
+								array('shopp_category'=>$Category->slug,'shopp_pid'=>null)),
+								$Shopp->shopuri));
 						else 
-							$link = add_query_arg(
-								array_merge($_GET,array('shopp_category'=>$Category->id,'shopp_pid'=>null)), 
-								$Shopp->shopuri);
+							$link = esc_url(add_query_arg(array_merge($_GET,
+								array('shopp_category'=>$Category->id,'shopp_pid'=>null)), 
+								$Shopp->shopuri));
 					}
 
 					$filters = false;
@@ -441,9 +442,9 @@ class Catalog extends DatabaseObject {
 						$tree_category = $this->categories[$parentkey];
 					
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$tree_category->uri;
-						else $link = add_query_arg(
-							array_merge($_GET,array('shopp_category'=>$tree_category->id,'shopp_pid'=>null)),
-							$Shopp->shopuri);
+						else $link = esc_url(add_query_arg(array_merge($_GET,
+							array('shopp_category'=>$tree_category->id,'shopp_pid'=>null)),
+							$Shopp->shopuri));
 					
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.
 							(empty($trail)?'':$separator).'</li>'.$trail;
@@ -555,10 +556,13 @@ class Catalog extends DatabaseObject {
 				$content = false;
 				$source = $options['source'];
 				if ($source == "product" && isset($options['product'])) {
+					 // Save original requested product
+					if ($Shopp->Product) $Requested = $Shopp->Product;
 					$products = explode(",",$options['product']);
 					if (!is_array($products)) $products = array($products);
 					foreach ($products as $product) {
 						$product = trim($product);
+						if (empty($product)) continue;
 						if (preg_match('/^[\d+]$/',$product)) 
 							$Shopp->Product = new Product($product);
 						else $Shopp->Product = new Product($product,'slug');
@@ -572,11 +576,15 @@ class Catalog extends DatabaseObject {
 						$content .= ob_get_contents();
 						ob_end_clean();
 					}
+					 // Restore original requested category
+					if (!empty($Requested)) $Shopp->Product = $Requested;
+					else $Shopp->Product = false;
 				}
 				
 				if ($source == "category" && isset($options['category'])) {
 					 // Save original requested category
-					if ($Shopp->Category) $Category = clone($Shopp->Category);
+					if ($Shopp->Category) $Requested = $Shopp->Category;
+					if (empty($options['category'])) return false;
 					$Shopp->Category = Catalog::load_category($options['category']);
 					$Shopp->Category->load_products($options);
 					if (isset($options['load'])) return true;
@@ -590,8 +598,8 @@ class Catalog extends DatabaseObject {
 						ob_end_clean();
 					}
 					 // Restore original requested category
-					if (!empty($Category)) $Shopp->Category = $Category;
-					else unset($Shopp->Category);
+					if (!empty($Requested)) $Shopp->Category = $Requested;
+					else $Shopp->Category = false;
 				}
 				
 				return $content;

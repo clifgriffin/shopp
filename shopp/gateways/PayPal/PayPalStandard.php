@@ -4,7 +4,7 @@
  * @class PayPalStandard
  *
  * @author Jonathan Davis
- * @version 1.0.2
+ * @version 1.0.5
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * 
@@ -103,13 +103,12 @@ class PayPalStandard {
 			return;
 		} else $Order->Customer->updates($_POST); // Catch changes from validation
 
-		if ($Shopp->Cart->data->Totals->total == 0) {
+		if (number_format($Shopp->Cart->data->Totals->total, 2) == 0) {
 			$_POST['checkout'] = 'confirmed';
-			$this->order();	
+			return true;
 		}
 		
-		header("Location: ".add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
-		exit();
+		shopp_redirect(add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
 	}
 	
 	/**
@@ -141,14 +140,17 @@ class PayPalStandard {
 		$_['last_name']				= $Order->Customer->lastname;
 		$_['lc']					= $this->settings['base_operations']['country'];
 		
+		$AddressType = "Shipping";
+		if (!$Shopp->Cart->data->Shipping) $AddressType = "Billing";
+		
 		$_['address_override'] 		= 1;
-		$_['address1']				= $Order->Billing->address;
-		if (!empty($Order->Billing->xaddress))
-			$_['address2']			= $Order->Billing->xaddress;
-		$_['city']					= $Order->Billing->city;
-		$_['state']					= $Order->Billing->state;
-		$_['zip']					= $Order->Billing->postcode;
-		$_['country']				= $Order->Billing->country;
+		$_['address1']				= $Order->{$AddressType}->address;
+		if (!empty($Order->{$AddressType}->xaddress))
+			$_['address2']			= $Order->{$AddressType}->xaddress;
+		$_['city']					= $Order->{$AddressType}->city;
+		$_['state']					= $Order->{$AddressType}->state;
+		$_['zip']					= $Order->{$AddressType}->postcode;
+		$_['country']				= $Order->{$AddressType}->country;
 		$_['night_phone_a']			= $Order->Customer->phone;
 		
 		// Include page style option, if provided
@@ -207,16 +209,28 @@ class PayPalStandard {
 			$Order->Cart = $Shopp->Cart->session;
 		}
 
+		// Handle IPN updates to existing purchases
+		if ($this->updates()) exit(); 
+		
 		// Validate the order data
-		$validation = false;
+		$validation = true;
+
+		if(!$Shopp->Cart->validorder()){
+			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
+			$validation = false;	
+		}
 		
-		// Check for unique transaction id
-		$Purchase = new Purchase($_POST['txn_id'],'transactionid');
-		
-		if (number_format($_POST['mc_gross'],2) == number_format($Order->Totals->total,2) 
-			&& empty($Purchase->id)) $validation = true;
-		
-		if ($validation) $this->order();
+		if(number_format($_POST['mc_gross'],2) != number_format($Order->Totals->total,2)){
+			$validation = false;
+			if(SHOPP_DEBUG) new ShoppError('Order validation failed. Received totals mismatch.  Received '.number_format($_POST['mc_gross'],2). ', but originally sent'.number_format($Order->Totals->total,2),'paypalstd_debug',SHOPP_DEBUG_ERR);
+		}  
+
+		if(!empty($Purchase->id)){
+			$validation = false;
+			if(SHOPP_DEBUG) new ShoppError('Order validation failed. Received duplicate transaction id: '.$_POST['txn_id'],'paypalstd_debug',SHOPP_DEBUG_ERR);
+		}
+		 
+		if($validation) $this->order();
 		else new ShoppError(__('An order was received from PayPal that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'paypal_trxn_validation',SHOPP_TRXN_ERR);
 		
 		exit();
@@ -259,10 +273,9 @@ class PayPalStandard {
 			// Check if they've logged in
 			// If the shopper is already logged-in, save their updated customer info
 			if ($Shopp->Cart->data->login) {
+				$user = get_userdata($Order->Customer->wpuser);
+				$Order->Customer->wpuser = $user->ID;
 				if (SHOPP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
-				get_currentuserinfo();
-				global $user_ID;
-				$Order->Customer->wpuser = $user_ID;
 			}
 			
 			// Create WordPress account (if necessary)
@@ -273,7 +286,7 @@ class PayPalStandard {
 		}
 
 		// Create a WP-compatible password hash to go in the db
-		if (empty($Order->Customer->id))
+		if (empty($Order->Customer->id) && isset($Order->Customer->password))
 			$Order->Customer->password = wp_hash_password($Order->Customer->password);
 		$Order->Customer->save();
 
@@ -355,12 +368,22 @@ class PayPalStandard {
 			);
 		}
 
-		$link = $Shopp->link('receipt',false);
-		header("Location: $link");
-		exit();
+		shopp_redirect($Shopp->link('receipt',false));
 		
 	}
 	
+	function updates () {
+		if (!isset($_POST['parent_txn_id'])) return false; // Not a notification request
+		$Purchase = new Purchase($_POST['parent_txn_id'],'transactionid');
+		if (empty($Purchase->id)) return false;  // No order exists, bail out
+		
+		if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
+		
+		// Order exists, handle IPN updates
+		$Purchase->transtatus = $txnstatus;
+		$Purchase->save();
+		
+	}
 	
 	function error () {
 		if (!empty($this->Response)) {

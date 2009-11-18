@@ -6,7 +6,7 @@
  * your Shopp install under: .../wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.0.3
  * @copyright Ingenesis Limited, 26 February, 2009
  * @package shopp
  * 
@@ -190,16 +190,22 @@ class USPSRates {
 	
 	function build ($cart,$description,$weight,$postcode,$country) {
 		$weight = number_format($weight,3);
-		if ($this->settings['units'] == "oz")
-			$pounds = $weight/16;
-		list($pounds,$ounces) = explode(".",$weight);
-		$ounces = ceil(($weight-$pounds)*16);
+		if ($this->settings['units'] == "oz"){
+			$pounds = floor($weight / 16);
+			$ounces = $weight % 16;
+		}
+		else{ 
+			list($pounds,$ounces) = explode(".",$weight);
+			$ounces = ceil(($weight-$pounds)*16);
+		}
 
 		$type = "RateV3"; // Domestic shipping rates
 		if ($country != $this->settings['country']) {
 			global $Shopp;
 			$type = "IntlRate";	
-			$countries = $Shopp->Settings->get('target_markets');
+			$countries = $Shopp->Settings->get('countries');
+			$country = $countries[$country]['name'];
+			if ($countries[$country] == "UK") $country .= ' (Great Britain)';
 		}
 		
 		$_ = array('API='.$type.'&XML=<?xml version="1.0" encoding="utf-8"?>');
@@ -210,7 +216,7 @@ class USPSRates {
 					$_[] = '<Ounces>'.$ounces.'</Ounces>';
 					$_[] = '<Machinable>TRUE</Machinable>';
 					$_[] = '<MailType>Package</MailType>';
-					$_[] = '<Country>'.$countries[$country].'</Country>';
+					$_[] = '<Country>'.$countries[$country]['name'].'</Country>';
 				} else {
 					$_[] = '<Service>ALL</Service>';
 					$_[] = '<ZipOrigination>'.$this->settings['postcode'].'</ZipOrigination>';

@@ -6,7 +6,7 @@
  * your Shopp install under: .../wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0.3
+ * @version 1.0.4
  * @copyright Ingenesis Limited, 3 January, 2009
  * @package shopp
  * 
@@ -162,6 +162,7 @@ class UPSServiceRates {
 		foreach ($RatedShipment as $rated) {
 			$ServiceCode = $rated['CHILDREN']['Service']['CHILDREN']['Code']['CONTENT'];
 			$TotalCharges = $rated['CHILDREN']['TotalCharges']['CHILDREN']['MonetaryValue']['CONTENT'];
+			if(floatval($TotalCharges) == 0) continue;
 			$DeliveryEstimate = $rated['CHILDREN']['GuaranteedDaysToDelivery']['CONTENT'];
 			if (empty($DeliveryEstimate)) $DeliveryEstimate = "1d-5d";
 			else $DeliveryEstimate .= "d";

@@ -16,11 +16,11 @@ class Customer extends DatabaseObject {
 	var $looping = false;
 	
 	var $management = array(
-		"account" => "My Account",
-		"downloads" => "Downloads",
-		"history" => "Order History",
-		"status" => "Order Status",
-		"logout" => "Logout",
+		"account" => "account",
+		"downloads" => "downloads",
+		"history" => "history",
+		"status" => "status",
+		"logout" => "logout",
 		);
 	
 	function Customer ($id=false,$key=false) {
@@ -57,13 +57,22 @@ class Customer extends DatabaseObject {
 
 		if (!empty($_GET['acct']) && !empty($_GET['id'])) {
 			$Purchase = new Purchase($_GET['id']);
-			$Shopp->Cart->data->Purchase = $Purchase;
-			$Purchase->load_purchased();
-			ob_start();
-			include(SHOPP_TEMPLATES."/receipt.php");
-			$content = ob_get_contents();
-			ob_end_clean();
-			echo '<div id="shopp">'.$content.'</div>';
+			if ($Purchase->customer != $this->id) {
+				new ShoppError(sprintf(__('Order number %s could not be found in your order history.','Shopp'),$Purchase->id),'customer_order_history',SHOPP_AUTH_ERR);
+				unset($_GET['acct']);
+				return false;
+			} else {
+				$Shopp->Cart->data->Purchase = $Purchase;
+				$Purchase->load_purchased();
+				ob_start();
+				include(SHOPP_TEMPLATES."/receipt.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+			}
+			$management = apply_filters('shopp_account_management_url',
+				'<p><a href="'.$this->tag('url').'">&laquo; Return to Account Management</a></p>');
+			
+			echo '<div id="shopp">'.$management.$content.$management.'</div>';
 			return false;
 		}
 
@@ -130,8 +139,7 @@ class Customer extends DatabaseObject {
 		
 		if (!shopp_email($message)) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_recovery_email',SHOPP_ERR);
-			header("Location: ".add_query_arg('acct','recover',$Shopp->link('account')));
-			exit();
+			shopp_redirect(add_query_arg('acct','recover',$Shopp->link('account')));
 		} else {
 			new ShoppError(__('Check your email address for instructions on resetting the password for your account.','Shopp'),'password_recovery_email',SHOPP_ERR);
 		}
@@ -169,7 +177,7 @@ class Customer extends DatabaseObject {
 		$RecoveryCustomer->activation = '';
 		$RecoveryCustomer->save();
 		
-		$subject = apply_filters('shopp_recover_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
+		$subject = apply_filters('shopp_reset_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
 		
 		$_ = array();
 		$_[] = 'From: "'.get_option('blogname').'" <'.$Shopp->Settings->get('merchant_email').'>';
@@ -187,8 +195,7 @@ class Customer extends DatabaseObject {
 		
 		if (!shopp_email($message)) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_reset_email',SHOPP_ERR);
-			header("Location: ".add_query_arg('acct','recover',$Shopp->link('account')));
-			exit();
+			shopp_redirect(add_query_arg('acct','recover',$Shopp->link('account')));
 		} else {
 			new ShoppError(__('Check your email address for your new password.','Shopp'),'password_reset_email',SHOPP_ERR);
 		}
@@ -196,8 +203,8 @@ class Customer extends DatabaseObject {
 	}
 	
 	function load_downloads () {
+		if (empty($this->id)) return false;
 		$db =& DB::get();
-		
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
 		$pricing = DatabaseObject::tablename(Price::$table);
@@ -208,6 +215,7 @@ class Customer extends DatabaseObject {
 	}
 
 	function load_orders ($filters=array()) {
+		if (empty($this->id)) return false;
 		global $Shopp;
 		$db =& DB::get();
 		
@@ -227,31 +235,16 @@ class Customer extends DatabaseObject {
 	function new_wpuser () {
 		global $Shopp;
 		require_once(ABSPATH."/wp-includes/registration.php");
-
-		if (!empty($this->login)) $handle = $this->login;
-		else {
-			// No login provided, auto-generate login handle
-			list($handle,$domain) = explode("@",$Order->Customer->email);
-
-			if (username_exists($handle)) // The email handle exists, so use first name + last initial
-				$handle = $this->firstname.substr($this->lastname,0,1);
-
-			if (username_exists($handle)) {
-				// The first name+last initial handle exists, so use first initial + last name
-				$handle = substr($this->firstname,0,1).$this->lastname;
-				// That exists too *bangs head on wall*, ok add a random number too :P
-				if (username_exists($handle)) $handle .= rand(1000,9999);
-			}
-		}
-		
-		if (username_exists($handle))
+		if (empty($this->login)) return false;
+		if (username_exists($this->login)){
 			new ShoppError(__('The login name you provided is already in use.  Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
-		
+			return false;
+		}
 		if (empty($this->password)) $this->password = wp_generate_password(12,true);
 		
 		// Create the WordPress account
 		$wpuser = wp_insert_user(array(
-			'user_login' => $handle,
+			'user_login' => $this->login,
 			'user_pass' => $this->password,
 			'user_email' => $this->email,
 			'display_name' => $this->firstname.' '.$this->Customer->lastname,
@@ -259,7 +252,6 @@ class Customer extends DatabaseObject {
 			'first_name' => $this->firstname,
 			'last_name' => $this->lastname
 		));
-		
 		if (!$wpuser) return false;
 
 		// Link the WP user ID to this customer record
@@ -288,6 +280,14 @@ class Customer extends DatabaseObject {
 	
 	function tag ($property,$options=array()) {
 		global $Shopp;
+		
+		$menus = array(
+			"account" => __("My Account","Shopp"),
+			"downloads" => __("Downloads","Shopp"),
+			"history" => __("Order History","Shopp"),
+			"status" => __("Order Status","Shopp"),
+			"logout" => __("Logout","Shopp")
+		);
 		
 		// Return strings with no options
 		switch ($property) {
@@ -331,6 +331,10 @@ class Customer extends DatabaseObject {
 				$string .= '<input type="submit" name="submit-login" id="submit-login"'.inputattrs($options).' />';
 				return $string;
 				break;
+			case "errors-exist":
+				$Errors =& ShoppErrors();
+				return ($Errors->exist(SHOPP_AUTH_ERR));
+				break;
 			case "login-errors":
 				$Errors =& ShoppErrors();
 				$result = "";
@@ -355,10 +359,10 @@ class Customer extends DatabaseObject {
 					return false;
 				}
 				break;
-			case "management":
+			case "management":				
 				if (array_key_exists('url',$options)) return add_query_arg('acct',key($this->management),$Shopp->link('account'));
 				if (array_key_exists('action',$options)) return key($this->management);
-				return current($this->management);
+				return $menus[key($this->management)];
 			case "accounts": return $Shopp->Settings->get('account_system'); break;
 			case "order-lookup":
 				$auth = $Shopp->Settings->get('account_system');

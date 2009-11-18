@@ -3,7 +3,7 @@
 
 	<h2><?php _e('Tax Settings','Shopp'); ?></h2>
 
-	<form name="settings" id="taxes" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+	<form name="settings" id="taxes" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-taxes'); ?>
 
 		<?php include("navigation.php"); ?>
@@ -145,7 +145,7 @@ var addTaxRate = function (r) {
 	
 	if (r) {
 		rate.val(r.rate);
-		countryMenu.val(r.country).change();
+		$(countryMenu).val(r.country).change();
 		if (r.zone)	zoneMenu.val(r.zone).change();
 	} else {
 		if ($.inArray(base.country,countriesInUse) == -1) {
@@ -177,7 +177,7 @@ if ($('#taxrates-table')) {
 	
 	$(window).ready(function () {
 		$('#taxrates-table').empty();
-		if (rates) for (i in rates) addTaxRate(rates[i]);
+		if (rates) $(rates).each(function () { addTaxRate(this); });
 		else addTaxRate();	
 	});
 }

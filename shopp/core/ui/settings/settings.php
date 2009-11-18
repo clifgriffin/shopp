@@ -3,7 +3,7 @@
 	
 	<h2><?php _e('Settings','Shopp'); ?></h2>
 	
-	<form name="settings" id="general" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+	<form name="settings" id="general" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-general'); ?>
 
 		<?php include("navigation.php"); ?>

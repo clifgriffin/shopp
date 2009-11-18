@@ -751,16 +751,21 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 	}
 
 	function metadata () {
-		if (!empty($this->Product)): 
-			$tags = "";
+		$keywords = false;
+		$description = false;
+		if (!empty($this->Product)) {
 			if (empty($this->Product->tags)) $this->Product->load_data(array('tags'));
 			foreach($this->Product->tags as $tag)
-				$tags .= (!empty($tags))?", {$tag->name}":$tag->name;
+				$keywords .= (!empty($keywords))?", {$tag->name}":$tag->name;
+			$description = $this->Product->summary;
+		} elseif (!empty($this->Category)) {
+			$description = $this->Category->description;
+		}
+		$keywords = attribute_escape(apply_filters('shopp_meta_keywords',$keywords));
+		$description = attribute_escape(apply_filters('shopp_meta_description',$description));
 		?>
-		<meta name="keywords" content="<?php echo attribute_escape($tags); ?>" />
-		<meta name="description" content="<?php echo attribute_escape($this->Product->summary); ?>" />
-	<?php
-		endif;
+		<?php if ($tags): ?><meta name="keywords" content="<?php echo $keywords; ?>" /><?php endif; ?>
+		<?php if ($description): ?><meta name="description" content="<?php echo $description; ?>" /><?php endif;
 	}
 
 	function canonurls ($url) {
@@ -808,6 +813,7 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 	
 	function catalog ($wp) {
 		$pages = $this->Settings->get('pages');
+		$options = array();
 		
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&
@@ -855,9 +861,9 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 			// Split for encoding multi-byte slugs
 			$slugs = explode("/",$category);
 			$category = join("/",array_map('urlencode',$slugs));
-			
+
 			// Load the category
-			$this->Category = Catalog::load_category($category,$options);			
+			$this->Category = Catalog::load_category($category,$options);
 			$this->Cart->data->breadcrumb = (isset($tag)?"tag/":"").$this->Category->uri;
 		} 
 		
@@ -917,10 +923,9 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 	function cart () {
 		if (isset($_REQUEST['shopping']) && $_REQUEST['shopping'] == "reset") {
 			$this->Cart->reset();
-			header("Location: ".$this->link());
-			exit();
+			shopp_redirect($this->link());
 		}
-			
+
 		if (empty($_REQUEST['cart'])) return true;
 		
 		$this->Cart->request();
@@ -929,20 +934,18 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 		$redirect = false;
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {
-			case "checkout": header("Location: ".$this->link($_REQUEST['redirect'],true)); break;
+			case "checkout": shopp_redirect($this->link($redirect,true)); break;
 			default: 
 				if (!empty($_REQUEST['redirect']))
-					header("Location: ".$this->link($_REQUEST['redirect']));
-				else header("Location: ".$this->link('cart'));
+					shopp_redirect(esc_url($this->link($_REQUEST['redirect'])));
+				else shopp_redirect($this->link('cart'));
 		}
-		exit();
 	}
 	
 	/**
 	 * checkout()
 	 * Handles checkout process */
 	function checkout ($wp) {
-		// echo "<pre>"; print_r($wp); echo "</pre>";
 
 		$pages = $this->Settings->get('pages');
 		// If checkout page requested
@@ -965,7 +968,9 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 			// Force secure checkout page if its not already
 			$secure = true;
 			$gateway = $this->Settings->get('payment_gateway');
-			if (strpos($gateway,"TestMode") !== false || isset($wp->query_vars['shopp_xco'])) 
+			if (strpos($gateway,"TestMode") !== false 
+					|| isset($wp->query_vars['shopp_xco']) 
+					|| $this->Cart->orderisfree()) 
 				$secure = false;
 
 			if ($secure && !$this->secure && !SHOPP_NOSSL) {
@@ -1056,10 +1061,11 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 				$this->Settings->get('order_confirmation') == "always") {
 			$gateway = $this->Settings->get('payment_gateway');
 			$secure = true;
-			if (strpos($gateway,"TestMode") !== false || isset($wp->query_vars['shopp_xco'])) 
+			if (strpos($gateway,"TestMode") !== false 
+				|| isset($wp->query_vars['shopp_xco'])
+				|| $this->Cart->orderisfree()) 
 				$secure = false;
-			header("Location: ".$this->link('confirm-order',$secure));
-			exit();
+			shopp_redirect($this->link('confirm-order',$secure));
 		} else $this->Flow->order();
 
 	}
@@ -1148,10 +1154,6 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 	 * lookups ()
 	 * Provides fast db lookups with as little overhead as possible */
 	function lookups($wp) {
-		// global $wp_rewrite;
-		// echo "<pre>"; print_r($wp); echo "</pre>";
-		// echo "<pre>"; print_r($wp_rewrite); echo "</pre>";
-		// echo "<pre>"; print_r($pages); echo "</pre>";
 		$db =& DB::get();
 
 		// Grab query requests from permalink rewriting query vars
@@ -1241,7 +1243,8 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 				exit();
 				break;
 			case "shipcost":
-				$this->init();
+				@session_start();
+				$this->ShipCalcs = new ShipCalcs($this->path);
 				if (isset($_GET['method'])) {
 					$this->Cart->data->Order->Shipping->method = $_GET['method'];
 					$this->Cart->retotal = true;
@@ -1396,7 +1399,8 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
 			}
 		}
 		
-		if ( !is_user_logged_in() || !current_user_can('manage_options')) die('-1');
+		if ((!is_user_logged_in() || !current_user_can('manage_options'))
+			&& strpos($_GET['action'],'wp_ajax_shopp_') !== false) die('-1');
 		
 		if (empty($_GET['action'])) return;
 		switch($_GET['action']) {
@@ -1511,9 +1515,9 @@ wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/price
  * Provides the Shopp 'tag' support to allow for complete 
  * customization of customer interfaces
  *
- * @param $object - The object to get the tag property from
- * @param $property - The property of the object to get/output
- * @param $options - Custom options for the property result in query form 
+ * @param $object The object to get the tag property from
+ * @param $property The property of the object to get/output
+ * @param $options Custom options for the property result in query form 
  *                   (option1=value&option2=value&...) or alternatively as an associative array
  */
 function shopp () {
@@ -1558,7 +1562,7 @@ function shopp () {
 		case "error": if (isset($Shopp->Cart->data->Errors)) $Object =& $Shopp->Cart->data->Errors; break;
 		default: $Object = false;
 	}
-	
+
 	if (!$Object) new ShoppError("The shopp('$object') tag cannot be used in this context because the object responsible for handling it doesn't exist.",'shopp_tag_error',SHOPP_ADMIN_ERR);
 	else {
 		switch (strtolower($object)) {

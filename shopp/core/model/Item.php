@@ -29,7 +29,6 @@ class Item {
 	var $total = 0;
 	var $weight = 0;
 	var $shipfee = 0;
-	var $tax = 0;
 	var $download = false;
 	var $shipping = false;
 	var $inventory = false;
@@ -212,15 +211,17 @@ class Item {
 		}
 		
 		$taxrate = 0;
+		$taxes = false;
+		if (isset($options['taxes'])) $taxes = $options['taxes'];
 		if ($property == "unitprice" || $property == "total" || $property == "tax" || $property == "options")
-			$taxrate = shopp_taxrate(isset($options['taxes'])?$options['taxes']:null,$this->taxable);
+			$taxrate = shopp_taxrate($taxes,$this->taxable);
 
 		// Handle currency values
 		$result = "";
 		switch ($property) {
 			case "unitprice": $result = (float)$this->unitprice+($this->unitprice*$taxrate); break;
 			case "total": $result = (float)$this->total+($this->total*$taxrate); break;
-			case "tax": $result = (float)($this->unitprice*$taxrate); break;			
+			case "tax": $result = (float)($this->total*$taxrate); break;
 		}
 		if (is_float($result)) {
 			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
@@ -266,7 +267,9 @@ class Item {
 				if (isset($options['input'])) {
 					switch ($options['input']) {
 						case "button":
-							$result = '<button type="submit" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="">'.$label.'</button>';
+							$result = '<button type="submit" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="">'.$label.'</button>'; break;
+						case "checkbox":
+						    $result = '<input type="checkbox" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="" title="'.$label.'"/>'; break;
 					}
 				} else {
 					$result = '<a href="'.href_add_query_arg(array('cart'=>'update','item'=>$id,'quantity'=>0),$Shopp->link('cart')).'"'.$class.'>'.$label.'</a>';
@@ -328,13 +331,14 @@ class Item {
 				return $result;
 				break;
 			case "thumbnail":
-				if (isset($options['class']) && !empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+				$classes = false;
+				if (isset($options['class']) && !empty($options['class'])) $classes = ' class="'.esc_attr($options['class']).'"';
 				if (isset($this->thumbnail)) {
 					$img = $this->thumbnail;
 					$width = (isset($options['width']))?$options['width']:$img->properties['height'];
 					$height = (isset($options['height']))?$options['height']:$img->properties['height'];
 
-					return '<img src="'.$Shopp->imguri.$img->id.'" alt="'.htmlspecialchars($this->name).' '.$img->datatype.'" width="'.$width.'" height="'.$height.'" '.(isset($options['class'])?$options['class']:"").' />'; break;
+					return '<img src="'.$Shopp->imguri.$img->id.'" alt="'.esc_attr($this->name.' '.$img->datatype).'" width="'.$width.'" height="'.$height.'" '.$classes.' />'; break;
 				}
 			
 		}

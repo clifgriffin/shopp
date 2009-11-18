@@ -3,7 +3,7 @@
 
 	<h2><?php _e('Upgrade Settings','Shopp'); ?></h2>
 
-	<form name="settings" id="update" action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
+	<form name="settings" id="update" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-update'); ?>
 
 		<?php include("navigation.php"); ?>
@@ -33,10 +33,12 @@
 				<th scope="row" valign="top"><label for="update-key"><?php _e('Update Key','Shopp'); ?></label></th> 
 				<td>
 					<?php if ($updatekey['status'] == "activated"): ?>
-						<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="40" value="<?php echo $updatekey['key']; ?>" readonly="readonly" />
+					<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="40" value="<?php echo $updatekey['key']; ?>" readonly="readonly" />
+					<input type="hidden" name="process" value="deactivate-key" />
 					<input type="submit" id="deactivate-button" name="activation" value="<?php _e('De-activate Key','Shopp'); ?>" class="button-secondary" />
 					<?php else: ?>
 					<input type="text" name="updatekey" id="update-key" size="40" value="<?php echo $updatekey['key']; ?>" />
+					<input type="hidden" name="process" value="activate-key" />
 					<input type="submit" id="activate-button" name="activation" value="<?php _e('Activate Key','Shopp'); ?>" class="button-secondary" />
 					<?php endif; ?>
 					<br /><?php echo $activation; ?>

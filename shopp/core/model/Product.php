@@ -224,7 +224,6 @@ class Product extends DatabaseObject {
 			if (count($this->images) >= 3 && count($this->imagesets) <= 1) $this->imageset();
 		}
 		
-		// echo "<pre>"; print_r($this); echo "</pre>";
 	} // end load_data()
 		
 	function pricing ($options = false) {
@@ -234,7 +233,6 @@ class Product extends DatabaseObject {
 		$freeshipping = true;
 		$this->inventory = false;
 		foreach ($this->prices as $i => &$price) {
-			// echo "<pre>"; print_r($price); echo "</pre>";
 			// Build secondary lookup table using the combined optionkey
 			$this->pricekey[$price->optionkey] = $price;
 			
@@ -352,7 +350,6 @@ class Product extends DatabaseObject {
 			}
 			
 		} // end foreach($price)
-		// echo "<pre>"; print_r($this->prices); echo "</pre>";
 		if ($this->inventory && $this->stock <= 0) $this->outofstock = true;
 		if ($freeshipping) $this->freeshipping = true;
 	}
@@ -669,7 +666,7 @@ class Product extends DatabaseObject {
 		switch ($property) {
 			case "link": 
 			case "url": 
-				if (SHOPP_PERMALINKS) $url = add_query_arg($_GET,$Shopp->shopuri.urldecode($this->slug)."/");
+				if (SHOPP_PERMALINKS) $url = esc_url(add_query_arg($_GET,$Shopp->shopuri.urldecode($this->slug)."/"));
 				else $url = add_query_arg('shopp_pid',$this->id,$Shopp->shopuri);
 				return $url;
 				break;
@@ -872,6 +869,7 @@ class Product extends DatabaseObject {
 				if (empty($this->images)) $this->load_data(array('images'));
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-thickbox";
 				if (!isset($options['preview'])) $options['preview'] = "click";
+				
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
 				if (!empty($this->imagesets['small'])) {
@@ -892,7 +890,7 @@ class Product extends DatabaseObject {
 					}
 				}
 				$previews .= '</ul>';
-				
+
 				$thumbs = "";
 				if (isset($this->imagesets['thumbnail']) && count($this->imagesets['thumbnail']) > 1) {
 					$thumbsize = 32;
@@ -901,7 +899,7 @@ class Product extends DatabaseObject {
 					$thumbheight = $thumbsize;
 					if (isset($options['thumbwidth'])) $thumbwidth = $options['thumbwidth'];
 					if (isset($options['thumbheight'])) $thumbheight = $options['thumbheight'];
-					
+
 					$firstThumb = true;
 					$thumbs = '<ul class="thumbnails">';
 					foreach ($this->imagesets['thumbnail'] as $img) {
@@ -909,15 +907,15 @@ class Product extends DatabaseObject {
 							$scale = $thumbwidth/$img->properties['width'];
 							$thumbheight = round($img->properties['height']*$scale);
 						}
-							
+
 						if (isset($options['thumbheight']) && !isset($options['thumbwidth'])) {
 							$scale = $thumbheight/$img->properties['height'];
 							$thumbwidth = round($img->properties['width']*$scale);
 						}
-						
+
 						$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
 						$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$img->name);
-						
+
 						$thumbs .= '<li id="thumbnail-'.$img->src.'" class="preview-'.$img->src.(($firstThumb)?' first':' test').'">';
 						$thumbs .= '<img src="'.$Shopp->imguri.$img->id.'"'.$title.' alt="'.$alt.'" width="'.$thumbwidth.'" height="'.$thumbheight.'" />';
 						$thumbs .= '</li>';
@@ -925,7 +923,7 @@ class Product extends DatabaseObject {
 					}
 					$thumbs .= '</ul>';
 				}
-				
+
 				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
 				$result .= '<script type="text/javascript"><!--
 					jQuery(document).ready( function() {  shopp_gallery("#gallery-'.$this->id.'","'.$options['preview'].'"); }); 

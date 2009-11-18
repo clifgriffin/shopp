@@ -11,6 +11,9 @@
  **/
 ?>
 <?php if (!shopp('customer','process','return=true')): ?>
+<?php if(shopp('customer','errors-exist')): ?>
+	<p><?php shopp('customer','login-errors'); ?></p>
+<?php endif; ?>
 
 <ul>
 <?php while (shopp('customer','menu')): ?>

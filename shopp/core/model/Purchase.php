@@ -37,6 +37,8 @@ class Purchase extends DatabaseObject {
 	
 	function notification ($addressee,$address,$subject,$template="order.html",$receipt="receipt.php") {
 		global $Shopp;
+		global $is_IIS;
+		
 		$template = trailingslashit(SHOPP_TEMPLATES).$template;
 		if (!file_exists($template)) 
 			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ADMIN_ERR));
@@ -46,7 +48,8 @@ class Purchase extends DatabaseObject {
 		$email['from'] = '"'.get_bloginfo("name").'"';
 		if ($Shopp->Settings->get('merchant_email')) 
 			$email['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
-		$email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
+		if($is_IIS) $email['to'] = $address;
+		else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
 		$email['subject'] = $subject;
 		$email['receipt'] = $Shopp->Flow->order_receipt($receipt);
 		$email['url'] = get_bloginfo('siteurl');
@@ -55,7 +58,6 @@ class Purchase extends DatabaseObject {
 		
 		$email = apply_filters('shopp_email_receipt_data',$email);
 		
-		// echo "<PRE>"; print_r($email); echo "</PRE>";
 		if (shopp_email($template,$email)) {
 			if (SHOPP_DEBUG) new ShoppError('A purchase notification was sent to "'.$addressee.'" &lt;'.$address.'&gt;',false,SHOPP_DEBUG_ERR);
 			return true;

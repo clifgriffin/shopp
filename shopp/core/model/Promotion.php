@@ -12,7 +12,7 @@
 class Promotion extends DatabaseObject {
 	static $table = "promo";
 	
-	var $values = array(
+	static $values = array(
 		"Name" => "text",
 		"Category" => "text",
 		"Variation" => "text",
@@ -106,7 +106,7 @@ class Promotion extends DatabaseObject {
 		switch($op) {
 			// String or Numeric operations
 			case "Is equal to":
-			 	if($property && $this->values[$property] == 'price'){
+			 	if($property && Promotion::$values[$property] == 'price'){
 					return ( floatvalue($subject) != 0 
 					&& floatvalue($value) != 0 
 					&& floatvalue($subject) == floatvalue($value));

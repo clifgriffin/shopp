@@ -175,9 +175,8 @@ class Cart {
 	function save ($id,$session) {
 		global $Shopp;
 		$db = DB::get();
-		if(empty($this->session)) return false;
-		
-		if (isset($Shopp->Settings->unavailable) && !$Shopp->Settings->unavailable) {
+
+		if (!$Shopp->Settings->unavailable) {
 			$data = $db->escape(addslashes(serialize($this->data)));
 			$contents = $db->escape(serialize($this->contents));
 			
@@ -189,7 +188,6 @@ class Cart {
 				$data = "!".base64_encode($secure->data);
 			}
 			$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'";
-
 			if (!$db->query($query)) 
 				trigger_error("Could not save session updates to the database.");
 
@@ -435,7 +433,7 @@ class Cart {
 					$estimated = apply_filters('shopp_shipping_estimate', $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate(
 						$this, $fees, $option, $column));
 
-				if ($estimated === false) return false;
+				if ($estimated === false) continue; // Skip the cost estimates
 				if (!$estimate || $estimated['cost'] < $estimate['cost'])
 					$estimate = $estimated; // Get lowest estimate
 
@@ -471,7 +469,6 @@ class Cart {
 
 		$PromoCodeFound = false; $PromoCodeExists = false; $PromoLimit = false;
 		$this->data->PromosApplied = array();
-
 		foreach ($this->data->Promotions as &$promo) {
 			if (!is_array($promo->rules))
 				$promo->rules = unserialize($promo->rules);
@@ -479,7 +476,8 @@ class Cart {
 			// Add quantity rule automatically for buy x get y promos
 			if ($promo->type == "Buy X Get Y Free") {
 				$promo->search = "all";
-				if ($promo->rules[count($promo->rules)]['property'] != "Item quantity") {
+				if (isset($promo->rules[count($promo->rules)-1]) && 
+					$promo->rules[count($promo->rules)-1]['property'] != "Item quantity") {
 					$qtyrule = array(
 						'property' => 'Item quantity',
 						'logic' => "Is greater than",
@@ -497,7 +495,7 @@ class Cart {
 				switch($rule['property']) {
 					case "Item name": 
 						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule($Item->name,$rule['logic'],$rule['value'])) {
+							if (Promotion::match_rule($Item->name,$rule['logic'],$rule['value'], $rule['property'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
 							}
@@ -505,7 +503,7 @@ class Cart {
 						break;
 					case "Item quantity":
 						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule(number_format($Item->quantity,0),$rule['logic'],$rule['value'])) {
+							if (Promotion::match_rule(number_format($Item->quantity,0),$rule['logic'],$rule['value'], $rule['property'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
 							}
@@ -513,24 +511,24 @@ class Cart {
 						break;
 					case "Item amount":
 						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule(number_format($Item->total,2),$rule['logic'],$rule['value'])) {
+							if (Promotion::match_rule(number_format($Item->total,2),$rule['logic'],$rule['value'], $rule['property'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
 							}
 						}
 						break;
 					case "Total quantity":
-						if (Promotion::match_rule(number_format($this->data->Totals->quantity,0),$rule['logic'],$rule['value'])) {
+						if (Promotion::match_rule(number_format($this->data->Totals->quantity,0),$rule['logic'],$rule['value'], $rule['property'])) {
 							$rulematch = true;
 						}
 						break;
 					case "Shipping amount": 
-						if (Promotion::match_rule(number_format($this->data->Totals->shipping,2),$rule['logic'],$rule['value'])) {
+						if (Promotion::match_rule(number_format($this->data->Totals->shipping,2),$rule['logic'],$rule['value'], $rule['property'])) {
 							$rulematch = true;
 						}
 						break;
 					case "Subtotal amount": 
-						if (Promotion::match_rule(number_format($this->data->Totals->subtotal,2),$rule['logic'],$rule['value'])) {
+						if (Promotion::match_rule(number_format($this->data->Totals->subtotal,2),$rule['logic'],$rule['value'], $rule['property'])) {
 							$rulematch = true;
 						}
 						break;
@@ -542,11 +540,11 @@ class Cart {
 						}
 						// Match a new code
 						if (!empty($this->data->PromoCode)) {
-							if (Promotion::match_rule($this->data->PromoCode,$rule['logic'],$rule['value'])) {
+							if (Promotion::match_rule($this->data->PromoCode,$rule['logic'],$rule['value'], $rule['property'])) {	
  								if (is_array($this->data->PromoCodes) && 
 									!in_array($this->data->PromoCode, $this->data->PromoCodes)) {
-									$this->data->PromoCodes[] = $this->data->PromoCode;
-									$PromoCodeFound = $this->data->PromoCode;
+									$this->data->PromoCodes[] = $rule['value'];
+									$PromoCodeFound = $rule['value'];
 								} else $PromoCodeExists = true;
 								$this->data->PromoCode = false;
 								$rulematch = true;
@@ -627,17 +625,16 @@ class Cart {
 		$base = $Shopp->Settings->get('base_operations');
 		if (!is_array($taxrates)) return false;
 
-		$country = $this->data->Order->Shipping->country;
-		if (empty($country)) $country = $base['country'];
+		if (!empty($this->data->Order->Shipping->country)) $country = $this->data->Order->Shipping->country;
+		elseif (!empty($this->data->Order->Billing->country)) $country = $this->data->Order->Billing->country;
+		else $country = $base['country'];
 
-		$zone = $this->data->Order->Shipping->state;
-		if (empty($zone)) $zone = $base['zone'];
-		
-		if (!empty($this->data->Order->Shipping->postcode))
-			$area = $this->data->Order->Shipping->postarea();
+		if (!empty($this->data->Order->Shipping->state)) $zone = $this->data->Order->Shipping->state;
+		elseif (!empty($this->data->Order->Billing->state)) $zone = $this->data->Order->Billing->state;
+		else $zone = $base['zone'];
 		
 		$global = false;
-		foreach($taxrates as $setting) {
+		foreach ($taxrates as $setting) {
 			// Grab the global setting if found
 			if ($setting['country'] == "*") {
 				$global = $setting;
@@ -706,11 +703,12 @@ class Cart {
 			$Totals->shipping = $this->shipping();
 
 		// Calculate taxes
-		$Totals->taxed -= $discount;
+		if ($discount > $Totals->taxed) $Totals->taxed = 0;
+		else $Totals->taxed -= $discount;
 		if($shippingTaxed) $Totals->taxed += $Totals->shipping;
 		$Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
 
-		// Calculate final total (s
+		// Calculate final totals
 		$Totals->total = round($Totals->subtotal - round($discount,2) + 
 			$Totals->shipping + $Totals->tax,2);
 
@@ -753,34 +751,18 @@ class Cart {
 				}
 				
 				if (empty($_POST['process-login'])) return false;
-
+				
 				if (!empty($_POST['account-login'])) {
-					if (strpos($_POST['account-login'],'@') !== false)  {
-						$user = get_user_by_email($_POST['email-login']);
-						if (!is_wp_error($user)) $loginname = $user->user_login;
-					} else $loginname = $_POST['account-login'];
+					if (strpos($_POST['account-login'],'@') !== false) $mode = "email";
+					else $mode = "loginname";
+					$loginname = $_POST['account-login'];
+				} else {
+					new ShoppError(__('You must provide a valid login name or email address to proceed.'), 'missing_account', SHOPP_AUTH_ERR);
 				}
 									
 				if ($loginname) {
-					$user = wp_authenticate($loginname,$_POST['password-login']);
-					
-					if (!is_wp_error($user)) {
-						wp_set_auth_cookie($user->ID, false, $Shopp->secure);
-						do_action('wp_login', $loginname);
-
-						if ($Account = new Customer($user->ID,'wpuser')) {
-							$this->loggedin($Account);
-							$this->data->Order->Customer->wpuser = $user->ID;
-							add_action('wp_logout',array(&$this,'logout'));
-						}
-					}
-					
-				}
-			
-				// Handle WordPress account integration
-				// do_action('user_register',array(&$this,'')); // Handle users added from WP user admin
-				// do_action('profile_update',array(&$this,'')); // Handle users added from WP user admin
-				
+					$this->auth($loginname,$_POST['password-login'],$mode);			
+				}				
 				break;
 			case "shopp":
 				if (!isset($_POST['process-login'])) return false;
@@ -817,31 +799,34 @@ class Cart {
 						
 				break;
 				
-			case "wordpress":
-				global $wpdb;
-				if ($type == 'loginname') {
-					if ( !$user = get_userdatabylogin($id)) {
-						new ShoppError(__("No customer account was found with that login.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
-						return false;
-					}
-					$Account = new Customer($user->user_ID,'wpuser');
-					
-				} else {
-					$Account = new Customer($id,'email');
-					if ( !$user = get_user_by_email($Account->email)) {
-						new ShoppError(__("No customer account was found with that email.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
-						return false;
-					}
-				}
-				
-				if (!wp_check_password($password,$user->user_pass)) {
-					new ShoppError(__("The password is incorrect.","Shopp"),'invalid_password',SHOPP_AUTH_ERR);
+  		case "wordpress":
+			if($type == 'email'){
+				$user = get_user_by_email($id);
+				if ($user) $loginname = $user->user_login;
+				else {
+					new ShoppError(__("No customer account was found with that email.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
 					return false;
 				}
-				
-				wp_set_auth_cookie($user->ID, false, true);
+			} else $loginname = $id;
+			$user = wp_authenticate($loginname,$password);
+			if (!is_wp_error($user)) {
+				wp_set_auth_cookie($user->ID, false, $Shopp->secure);
+				do_action('wp_login', $loginname);
 
-				break;
+				if ($Account = new Customer($user->ID,'wpuser')) {
+					$this->loggedin($Account);
+					$this->data->Order->Customer->wpuser = $user->ID;
+					add_action('wp_logout',array(&$this,'logout'));
+				}
+				return true;
+			} else { // WordPress User Authentication failed
+				$_e = $user->get_error_code();
+				if($_e == 'invalid_username') new ShoppError(__("No customer account was found with that login.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
+				else if($_e == 'incorrect_password') new ShoppError(__("The password is incorrect.","Shopp"),'invalid_password',SHOPP_AUTH_ERR);
+				else new ShoppError(__('Unknown login error: ').$_e,false,SHOPP_AUTH_ERR);
+				return false;
+			}
+  			break;
 			default: return false;
 		}
 
@@ -886,7 +871,7 @@ class Cart {
 	 * secured()
 	 * Check or set the security setting for the cart */
 	function secured ($setting=null) {
-		if (is_null($setting) && isset($this->data->secure)) return $this->data->secure;
+		if (is_null($setting)) return $this->data->secure;
 		$this->data->secure = ($setting);
 		if (SHOPP_DEBUG) {
 			if ($this->data->secure) new ShoppError('Switching the cart to secure mode.',false,SHOPP_DEBUG_ERR);
@@ -919,20 +904,16 @@ class Cart {
 		global $Shopp;
 		do_action('shopp_cart_request');
 
-		if (isset($_REQUEST['checkout'])) {
-			header("Location: ".$Shopp->link('checkout',true));
-			exit();
-		}
+		if (isset($_REQUEST['checkout'])) shopp_redirect($Shopp->link('checkout',true));
 		
-		if (isset($_REQUEST['shopping'])) {
-			header("Location: ".$Shopp->link('catalog'));
-			exit();
-		}
+		if (isset($_REQUEST['shopping'])) shopp_redirect($Shopp->link('catalog'));
 		
 		if (isset($_REQUEST['shipping'])) {
 			$countries = $Shopp->Settings->get('countries');
 			$regions = $Shopp->Settings->get('regions');
 			$_REQUEST['shipping']['region'] = $regions[$countries[$_REQUEST['shipping']['country']]['region']];
+			if (!empty($_REQUEST['shipping']['postcode'])) // Protect input field from XSS
+				$_REQUEST['shipping']['postcode'] = attribute_escape($_REQUEST['shipping']['postcode']);
 			unset($countries,$regions);
 			$this->shipzone($_REQUEST['shipping']);
 		} else if (!isset($this->data->Order->Shipping->country)) {
@@ -944,7 +925,7 @@ class Cart {
 		if (!empty($_REQUEST['promocode'])) {
 			$this->data->PromoCodeResult = "";
 			if (!in_array($_REQUEST['promocode'],$this->data->PromoCodes)) {
-				$this->data->PromoCode = attribute_escape($_REQUEST['promocode']);
+				$this->data->PromoCode = attribute_escape($_REQUEST['promocode']); // Protect from XSS
 				$this->updated();
 			} else $this->data->PromoCodeResult = __("That code has already been applied.","Shopp");
 		}
@@ -1017,8 +998,8 @@ class Cart {
 						if (isset($item['quantity'])) {
 							$item['quantity'] = ceil(preg_replace('/[^\d\.]+/','',$item['quantity']));
 							if (!empty($item['quantity'])) $this->update($id,$item['quantity']);
+						    if (isset($_REQUEST['remove'][$id])) $this->remove($_REQUEST['remove'][$id]);
 						}
-						// if (isset($item['quantity'])) $this->update($id,$item['quantity']);	
 						if (isset($item['product']) && isset($item['price']) && 
 							$item['product'] == $this->contents[$id]->product &&
 							$item['price'] != $this->contents[$id]->price) {
@@ -1073,14 +1054,41 @@ class Cart {
 		if (empty($_POST['lastname']))
 			return new ShoppError(__('You must provide your last name.','Shopp'),'cart_validation');
 
-		$account = "[0-9A-Za-z#%$!&*+/'-=?.^_`{|}~]";
-		$domain = "[0-9A-Za-z#%$!&*+/'-=?^_`{|}~]";
-		if(!ereg("^$account{1,64}@($domain{1,63}\.$domain{1,63}){1,255}$", $_POST['email']))
+		$rfc822email =	'([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d'.
+						'\\x22\\x5c\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x22)(\\x2e([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e'.
+						'\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d\\x22\\x5c\\x80-\\xff]|\\x5c[\\x00-\\x7f])*'.
+						'\\x22))*\\x40([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+'.
+						'|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x5d)(\\x2e([^\\x00-\\x20\\x22\\x28'.
+						'\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]'.
+						'|\\x5c[\\x00-\\x7f])*\\x5d))*';
+		if(!preg_match("!^$rfc822email$!", $_POST['email']))
 			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
 			
 		if ($authentication == "wordpress" && !$this->data->login) {
 			require_once(ABSPATH."/wp-includes/registration.php");
-			if (email_exists($_POST['email']))
+			
+			// Validate possible wp account names for availability
+			if(isset($_POST['login'])){
+				if(username_exists($_POST['login'])) 
+					return new ShoppError(__('The login name you provided is not available.  Try logging in if you have previously created an account.'), 'cart_validation');
+			} else { // need to find a usuable login
+				list($handle,$domain) = explode("@",$_POST['email']);
+				if(!username_exists($handle)) $_POST['login'] = $handle;
+				
+				$handle = $_POST['firstname'].substr($_POST['lastname'],0,1);				
+				if(!isset($_POST['login']) && !username_exists($handle)) $_POST['login'] = $handle;
+				
+				$handle = substr($_POST['firstname'],0,1).$_POST['lastname'];
+				if(!isset($_POST['login']) && !username_exists($handle)) $_POST['login'] = $handle;
+				
+				$handle .= rand(1000,9999);
+				if(!isset($_POST['login']) && !username_exists($handle)) $_POST['login'] = $handle;
+				
+				if(!isset($_POST['login'])) return new ShoppError(__('A login is not available for creation with the information you provided.  Please try a different email address or name, or try logging in if you previously created an account.'),'cart_validation');
+			}
+			if(SHOPP_DEBUG) new ShoppError('Login set to '. $_POST['login'] . ' for WordPress account creation.',false,SHOPP_DEBUG_ERR);			 
+			$ExistingCustomer = new Customer($_POST['email'],'email');
+			if (email_exists($_POST['email']) || !empty($ExistingCustomer->id))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
 		} elseif ($authentication == "shopp"  && !$this->data->login) {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
@@ -1171,6 +1179,41 @@ class Cart {
 			return new ShoppError(__('You did not enter a valid security ID for the card you provided. The security ID is a 3 or 4 digit number found on the back of the credit card.','Shopp'),'cart_validation');
 				
 		return apply_filters('shopp_validate_checkout',true);
+	}
+
+	/**
+	 * validorder()
+	 * Validates order data during checkout processing to verify that sufficient information exists to process. */
+	function validorder () {		
+		$Order = $this->data->Order;
+		$Customer = $Order->Customer;
+		$Shipping = $this->data->Order->Shipping;
+
+		if(empty($this->contents)) return false;  // No items
+		if(empty($Order)) return false;  // No order data
+		if(!$Customer) return false; // No Customer
+
+		// Always require name and email
+		if( empty($Customer->firstname) || empty($Customer->lastname)) return false;
+		if( empty($Customer->email) ) return false;
+
+		// Check for shipped items but no Shipping information
+		if ($this->data->Shipping) {
+			if(empty($Shipping->address)) return false;
+			if(empty($Shipping->city)) return false;
+			if(empty($Shipping->state)) return false;
+			if(empty($Shipping->country)) return false;
+			if(empty($Shipping->postcode)) return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * orderisfree()
+	 * Determines if the current order has no cost */
+	function orderisfree() {
+		$status = (count($this->contents) > 0 && (int)$this->data->Totals->total == 0)?true:false;
+		return apply_filters('shopp_free_order',$status);
 	}
 	
 	function tag ($property,$options=array()) {
@@ -1463,6 +1506,7 @@ class Cart {
 				// Test Mode will not require encrypted checkout
 				if (strpos($gateway,"TestMode.php") !== false 
 					|| isset($_GET['shopp_xco']) 
+					|| $this->orderisfree() 
 					|| SHOPP_NOSSL) 
 					$ssl = false;
 				$link = $Shopp->link('checkout',$ssl);
@@ -1470,7 +1514,7 @@ class Cart {
 				// Pass any arguments along
 				$args = $_GET;
 				if (isset($args['page_id'])) unset($args['page_id']);
-				$link = add_query_arg($args,$link);
+				$link = esc_url(add_query_arg($args,$link));
 				if ($process == "confirm-order") $link = apply_filters('shopp_confirm_url',$link);
 				else $link = apply_filters('shopp_checkout_url',$link);
 				return $link;
@@ -1623,6 +1667,7 @@ class Cart {
 				$country = $base['country'];
 				if (!empty($this->data->Order->Shipping->country))
 					$country = $this->data->Order->Shipping->country;
+				if (!array_key_exists($country,$countries)) $country = key($countries);
 
 				if (empty($options['type'])) $options['type'] = "menu";
 				$regions = $Shopp->Settings->get('zones');
@@ -1703,7 +1748,8 @@ class Cart {
 				$country = $base['country'];
 				if (!empty($this->data->Order->Billing->country))
 					$country = $this->data->Order->Billing->country;
-				
+				if (!array_key_exists($country,$countries)) $country = key($countries);
+
 				$regions = $Shopp->Settings->get('zones');
 				$states = $regions[$country];
 				if (is_array($states) && $options['type'] == "menu") {
@@ -1791,11 +1837,14 @@ class Cart {
 				}
 				break;
 				
+			case "has-data":
+			case "hasdata": return (is_array($this->data->Order->data) && count($this->data->Order->data) > 0); break;
 			case "order-data":
+			case "orderdata":
 				if (isset($options['name']) && $options['mode'] == "value") 
 					return $this->data->Order->data[$options['name']];
-				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
 				if (empty($options['type'])) $options['type'] = "hidden";
+				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
 					if (!isset($options['title'])) $options['title'] = $options['name'];
 					if (isset($this->data->Order->data[$options['name']])) 
@@ -1804,10 +1853,29 @@ class Cart {
 					if (!isset($options['rows'])) $options['rows'] = "3";
 					if ($options['type'] == "textarea") 
 						return '<textarea name="data['.$options['name'].']" cols="'.$options['cols'].'" rows="'.$options['rows'].'" id="order-data-'.$options['name'].'" '.inputattrs($options,array('accesskey','title','tabindex','class','disabled','required')).'>'.$options['value'].'</textarea>';
-					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'" '.inputattrs($options).' />'; 
+					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'" '.inputattrs($options).' />';
 				}
-				break;
 
+				// Looping for data value output
+				if (!$this->dataloop) {
+					reset($this->data->Order->data);
+					$this->dataloop = true;
+				} else next($this->data->Order->data);
+
+				if (current($this->data->Order->data) !== false) return true;
+				else {
+					$this->dataloop = false;
+					return false;
+				}
+				
+				break;
+			case "data":
+				if (!is_array($this->data->Order->data)) return false;
+				$data = current($this->data->Order->data);
+				$name = key($this->data->Order->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
 			case "submit": 
 				if (!isset($options['value'])) $options['value'] = __('Submit Order','Shopp');
 				return '<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />'; break;
