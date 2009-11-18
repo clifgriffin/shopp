@@ -1,7 +1,7 @@
 <div class="wrap shopp">
 	<h2><?php _e('Customers','Shopp'); ?></h2>
 
-	<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" id="orders" method="get">
+	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="orders" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $page; ?>" />
 		<input type="hidden" name="status" value="<?php echo $status; ?>" />
@@ -78,7 +78,7 @@
 	</form>
 	<div class="tablenav">
 		<div class="alignleft actions">
-			<form action="<?php echo add_query_arg(array_merge($_GET,array('lookup'=>'customerexport')),$Shopp->wpadminurl."admin.php"); ?>" id="log" method="post">
+			<form action="<?php echo esc_url(add_query_arg(array_merge($_GET,array('lookup'=>'customerexport')),$Shopp->wpadminurl."admin.php")); ?>" id="log" method="post">
 			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Export Options','Shopp'); ?></button>
 			<span id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">

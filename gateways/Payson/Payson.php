@@ -82,8 +82,12 @@ class Payson {
 			return;
 		} else $Order->Customer->updates($_POST); // Catch changes from validation
 		
-		header("Location: ".add_query_arg('shopp_xco','Payson/Payson',$Shopp->link('confirm-order',false)));
-		exit();
+		if (number_format($Shopp->Cart->data->Totals->total, 2) == 0) {
+			$_POST['checkout'] = 'confirmed';
+			return true;
+		}
+		
+		shopp_redirect(add_query_arg('shopp_xco','Payson/Payson',$Shopp->link('confirm-order',false)));
 	}
 	
 	/**
@@ -313,7 +317,7 @@ class Payson {
 				$args['shopp_xco'] = 'Payson/Payson';
 				if (isset($options['pagestyle'])) $args['pagestyle'] = $options['pagestyle'];
 				$url = add_query_arg($args,$Shopp->link('checkout'));
-				return '<a href="'.$url.'" class="right">'.__('Checkout with Payson','Shopp').' &raquo;</a>';
+				return '<p class="payson_checkout"><a href="'.$url.'">'.__('Checkout with Payson','Shopp').' &raquo;</a></p>';
 		}
 	}
 

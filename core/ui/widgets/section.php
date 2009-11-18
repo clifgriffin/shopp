@@ -23,7 +23,7 @@ class ShoppCategorySectionWidget extends WP_Widget {
 
 		$title = $before_title.$options['title'].$after_title;
 		unset($options['title']);
-		if (!isset($Shopp->Category->id)) return false;
+		if (empty($Shopp->Category->id)) return false;
 		$menu = $Shopp->Category->tag('section-list',$options);
 		echo $before_widget.$title.$menu.$after_widget;
     }

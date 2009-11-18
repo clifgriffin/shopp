@@ -372,6 +372,28 @@ function shopp_prereqs () {
 	return true;
 }
 
+if( !function_exists('esc_url') ) {
+	/**
+	 * Checks and cleans a URL.  From WordPress 2.8.0+  Included for WordPress 2.7 Users of Shopp
+	 *
+	 * A number of characters are removed from the URL. If the URL is for displaying
+	 * (the default behaviour) amperstands are also replaced. The 'esc_url' filter
+	 * is applied to the returned cleaned URL.
+	 *
+	 * @since 2.8.0
+	 * @uses esc_url()
+	 * @uses wp_kses_bad_protocol() To only permit protocols in the URL set
+	 *		via $protocols or the common ones set in the function.
+	 *
+	 * @param string $url The URL to be cleaned.
+	 * @param array $protocols Optional. An array of acceptable protocols.
+	 *		Defaults to 'http', 'https', 'ftp', 'ftps', 'mailto', 'news', 'irc', 'gopher', 'nntp', 'feed', 'telnet' if not set.
+	 * @return string The cleaned $url after the 'cleaned_url' filter is applied.
+	 */
+	function esc_url( $url, $protocols = null ) {
+		return clean_url( $url, $protocols, 'display' );
+	}
+}
 
 function shopp_debug ($object) {
 	global $Shopp;
@@ -396,6 +418,12 @@ function shopp_pagename ($page) {
 	$prefix = strpos($page,"index.php/");
 	if ($prefix !== false) return substr($page,$prefix+10);
 	else return $page;
+}
+
+function shopp_redirect ($uri) {
+	if (class_exists('ShoppError'))	new ShoppError('Redirecting to: '.$uri,'shopp_redirect',SHOPP_DEBUG_ERR);
+	wp_redirect($uri);
+	exit();
 }
 
 function get_filemeta ($file) {
@@ -579,7 +607,8 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 /**
  * file_mimetype
  * Tries a variety of methods to determine a file's mimetype */
-function file_mimetype ($file,$name) {
+function file_mimetype ($file,$name=false) {
+	if (!$name) $name = basename($file);
 	if (function_exists('finfo_open')) {
 		// Try using PECL module
 		$f = finfo_open(FILEINFO_MIME);
@@ -839,7 +868,7 @@ function shopp_taxrate ($override=null,$taxprice=true) {
 	if ($base['vat']) $rated = true;
 	if (!is_null($override)) $rated = (value_is_true($override));
 	if (!value_is_true($taxprice)) $rated = false;
-	
+
 	if ($rated) $taxrate = $Shopp->Cart->taxrate();
 	return $taxrate;
 }
@@ -867,7 +896,7 @@ function inputattrs ($options,$allowed=array()) {
 				$string .= ' '.$key.'="'.attribute_escape($value).'"';
 		}
 	}
-	$string .= ' class="'.$classes.'"';
+	$string .= ' class="'.trim($classes).'"';
  	return $string;
 }
 
@@ -914,9 +943,12 @@ function copy_shopp_templates ($src,$target) {
 }
 
 /**
- * is_shopp_page ()
- * Used to determine if the requested page is a Shopp page 
- * or if it matches a given Shopp page ($page) */
+ * Determines if the requested page is a Shopp page or if it matches a given Shopp page
+ *
+ * @param string $page (optional) Page name to look for in Shopp's page registry
+ * @return boolean
+ * @author Jonathan Davis
+ **/
 function is_shopp_page ($page=false) {
 	global $Shopp,$wp_query;
 

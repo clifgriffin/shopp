@@ -156,8 +156,8 @@ class Flow {
 					$db->query("UPDATE $Category->_table SET parent=0 WHERE parent=$Category->id");
 					$Category->delete();
 				}
-				header("Location: ".add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl));
-				exit();
+				$redirect = esc_url(add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl));
+				shopp_redirect($redirect);
 			}
 			
 			if ($id && $id != "new")
@@ -189,7 +189,8 @@ class Flow {
 					$Product = new Product($deletion);
 					$Product->delete();
 				}
-				header("Location: ".add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
+				$redirect = esc_url(add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
+				shopp_redirect($redirect);
 				exit();
 			}
 			
@@ -197,8 +198,7 @@ class Flow {
 				$Product = new Product();
 				$Product->load($duplicate);
 				$Product->duplicate();
-				header("Location: ".add_query_arg('page',$Admin->products,$adminurl));
-				exit();
+				shopp_redirect(add_query_arg('page',$Admin->products,$adminurl));
 			}
 
 			if ($id && $id != "new") {
@@ -398,7 +398,7 @@ class Flow {
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
 		
-		if ($Shopp->Gateway) {
+		if ($Shopp->Gateway && !$Cart->orderisfree()) {
 			// Use an external checkout payment gateway
 			if (SHOPP_DEBUG) new ShoppError('Processing order through a remote-payment gateway service.',false,SHOPP_DEBUG_ERR);
 			$Purchase = $Shopp->Gateway->process();
@@ -412,9 +412,9 @@ class Flow {
 			// Use local payment gateway set in payment settings
 			
 			$gateway = $Shopp->Settings->get('payment_gateway');
-
+			
 			// Process a transaction if the order has a cost (is not free)
-			if ($Order->Totals->total > 0) {
+			if (!$Cart->orderisfree()) {
 
 				if (!$Shopp->gateway($gateway)) return false;
 
@@ -436,7 +436,11 @@ class Flow {
 				
 				if (SHOPP_DEBUG) new ShoppError('Transaction '.$transactionid.' successfully processed by local-payment gateway service '.$gatewayname.'.',false,SHOPP_DEBUG_ERR);
 				
-			} else {
+			} else { 
+				if(!$Cart->validorder()){
+					new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
+					return false;	
+				}
 				$gatewayname = __('N/A','Shopp');
 				$transactionid = __('(Free Order)','Shopp');
 			}
@@ -483,6 +487,9 @@ class Flow {
 			$Promos = array();
 			foreach ($Shopp->Cart->data->PromosApplied as $promo)
 				$Promos[$promo->id] = $promo->name;
+
+			if ($Shopp->Cart->orderisfree()) $orderisfree = true;
+			else $orderisfree = false;
 
 			$Purchase = new Purchase();
 			$Purchase->customer = $Order->Customer->id;
@@ -556,10 +563,12 @@ class Flow {
 
 		$ssl = true;
 		// Test Mode will not require encrypted checkout
-		if (strpos($gateway,"TestMode.php") !== false || isset($_GET['shopp_xco']) || SHOPP_NOSSL) $ssl = false;
-		$link = $Shopp->link('receipt',$ssl);
-		header("Location: $link");
-		exit();
+		if (strpos($gateway,"TestMode.php") !== false 
+				|| isset($_GET['shopp_xco']) 
+				|| $orderisfree
+				|| SHOPP_NOSSL) 
+			$ssl = false;
+		shopp_redirect($Shopp->link('receipt',$ssl));
 	}
 	
 	// Display the confirm order screen
@@ -771,6 +780,7 @@ class Flow {
 	
 	function order_manager () {
 		global $Shopp;
+		global $is_IIS;
 
 		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
@@ -783,7 +793,7 @@ class Flow {
 		$Purchase = $Shopp->Cart->data->Purchase;
 		$Customer = new Customer($Purchase->customer);
 		
-		if (!empty($_POST)) {
+		if (!empty($_POST['update'])) {
 			check_admin_referer('shopp-save-order');
 			
 			if ($_POST['transtatus'] != $Purchase->transtatus)
@@ -796,7 +806,8 @@ class Flow {
 				// Send the e-mail notification
 				$notification = array();
 				$notification['from'] = $Shopp->Settings->get('merchant_email');
-				$notification['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
+				if($is_IIS) $notification['to'] = $Purchase->email;
+				else $notification['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
 				$notification['subject'] = __('Order Updated','Shopp');
 				$notification['url'] = get_bloginfo('siteurl');
 				$notification['sitename'] = get_bloginfo('name');
@@ -1424,7 +1435,7 @@ class Flow {
 						$File->name = basename($download);
 						$File->value = substr(dirname($download),strlen($basepath));
 						$File->size = filesize($download);
-						$File->properties = array("mimetype" => file_mimetype($download));
+						$File->properties = array("mimetype" => file_mimetype($download,$File->name));
 						$File->save();
 						$Price->attach_download($File->id);
 					}
@@ -2742,7 +2753,9 @@ class Flow {
 		}
 		
 		// Find our temporary filesystem workspace
-		$tmpdir = sys_get_temp_dir();
+		$tmpdir = defined('SHOPP_TEMP_PATH') ? SHOPP_TEMP_PATH : sys_get_temp_dir();
+		$tmpdir = str_replace('\\', '/', $tmpdir); //Windows path sanitiation
+		
 		$log[] = "Found temp directory: $tmpdir";
 		
 		// Download the new version of Shopp

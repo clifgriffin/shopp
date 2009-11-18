@@ -1,4 +1,4 @@
-<form action="<?php $_SERVER['REQUEST_URI']; ?>" method="post">
+<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 <ul>
 	<li>
 		<span><input type="text" name="purchaseid" size="12" /><label><?php _e('Order Number','Shopp'); ?></label></span>

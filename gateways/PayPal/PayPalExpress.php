@@ -123,10 +123,7 @@ class PayPalExpress {
 	function checkout () {
 		global $Shopp;
 		
-		if ($Shopp->Cart->data->Totals->total == 0) {
-			header("Location: ".$Shopp->link('checkout'));
-			exit();
-		}
+		if ($Shopp->Cart->orderisfree()) shopp_redirect($Shopp->link('checkout'));
 		
 		$_ = $this->headers();
 
@@ -154,9 +151,9 @@ class PayPalExpress {
 		$result = $this->send();
 		
 		if (!empty($result) && isset($result->token)){
-			if ($this->settings['testmode'] == "on") header("Location: {$this->sandbox_url}&token=".$result->token);
-			else header("Location: {$this->checkout_url}&token=".$result->token);
-			exit();
+			if ($this->settings['testmode'] == "on")
+				shopp_redirect(add_query_arg('token',$result->token,$this->sandbox_url));
+			else shopp_redirect(add_query_arg('token',$result->token,$this->checkout_url));
 		}
 		
 		if ($result->ack == "Failure") $this->Response = &$result;
@@ -214,8 +211,7 @@ class PayPalExpress {
 		$targets = $Shopp->Settings->get('target_markets');
 		if (!in_array($Billing->country,array_keys($targets))) {
 			new ShoppError(__('The location you are purchasing from is outside of our market regions. This transaction cannot be processed.','Shopp'),'paypalexpress_market',SHOPP_TRXN_ERR);
-			header("Location: ".$Shopp->link('cart'));
-			exit();
+			shopp_redirect($Shopp->link('cart'));
 		}
 		
 	} 
@@ -240,7 +236,10 @@ class PayPalExpress {
 		if (!$result) {
 			new ShoppError(__('No response was received from PayPal. The order cannot be processed.','Shopp'),'paypalexpress_noresults',SHOPP_COMM_ERR);
 		}
-		
+		if(!$Shopp->Cart->validorder()){
+			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
+			return false;	
+		}
 		// If the transaction is a success, get the transaction details, 
 		// build the purchase receipt, save it and return it
 		if (strtolower($result->ack) == "success") {
@@ -409,7 +408,7 @@ class PayPalExpress {
 				$args['shopp_xco'] = 'PayPal/PayPalExpress';
 				if (isset($options['pagestyle'])) $args['pagestyle'] = $options['pagestyle'];
 				$url = add_query_arg($args,$Shopp->link('checkout'));
-				return '<p><a href="'.$url.'"><img src="'.$this->button.'" alt="Checkout with PayPal" /></a></p>';
+				return '<p class="paypal_express"><a href="'.$url.'"><img src="'.$this->button.'" alt="Checkout with PayPal" /></a></p>';
 		}
 	}
 	

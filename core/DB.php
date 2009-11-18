@@ -11,6 +11,7 @@
 
 define("AS_ARRAY",false);
 define("SHOPP_DBPREFIX","shopp_");
+if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
 
 // Make sure that compatibility mode is not enabled
 if (ini_get('zend.ze1_compatibility_mode'))
@@ -366,7 +367,7 @@ class DatabaseObject {
 				case "float":
 				case "string":
 					// If string has been serialized, unserialize it
-					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$value)) $value = unserialize($value);
+					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/s",$value)) $value = unserialize($value);
 				default:
 					// Anything not needing processing
 					// passes through into the object

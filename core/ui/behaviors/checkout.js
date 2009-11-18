@@ -14,7 +14,7 @@
 			// Validate required fields
 			if (selects[i].className.match(new RegExp('required')) && !selects[i].disabled) {
 				if (selects[i].selectedIndex == 0 && selects[i].options[0].value == "")
-					error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,inputs[i].title),selects[i]);
+					error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,selects[i].title),selects[i]);
 			}
 		}
 

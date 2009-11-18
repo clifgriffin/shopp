@@ -217,15 +217,16 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 
 .shopp #customer #post-body-content .postbox p { width: 66%; }
 .shopp #pass-strength-result { line-height: 20px; width: 94%; }
+
 /* Order Management */
 #order { position: relative; }
 #order address { font-style: normal; }
 #order fieldset { float: left; width: auto; width: 23%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
-#order table.transaction { float: right; }
-#order table.transaction th { text-align: right; padding-right: 7px; }
+#order table.transaction { float: right; margin-bottom: 10px; }
+#order table.transaction th { text-align: right; padding-right: 7px; vertical-align: top; }
 #order table.transaction a { text-decoration: none; }
 #order #customer { margin-right: 10px; }
-#order #customer:hover { cursor: pointer; background-color: #eeeeee; }
+#order #customer:hover { cursor: pointer; background-color: #fff; }
 
 #order .cart { width: 100%; clear: both; border: none; }
 #order .cart td { border: none; }
@@ -246,7 +247,7 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 
 #taxrates-table th, 
 #taxrates-table td{ position: relative; text-align: left; border: none; padding: 0 5px 5px 0; }
-#taxrates-table button.deleteButton { position: relative; width: 20px; margin-left: -20px; top: 3px; }
+#taxrates-table button.deleteButton { position: relative; width: 20px; height: 21px; margin-left: -20px; line-height: 1em; top: -1px; }
 
 #order-status p { margin: 0; padding: 0; }
 #order-status span { margin: 0 10px; }

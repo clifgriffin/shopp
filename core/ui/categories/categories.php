@@ -11,7 +11,7 @@
 		<input type="text" id="categories-search-input" class="search-input" name="s" value="<?php echo attribute_escape(stripslashes($s)); ?>" />
 		<input type="submit" value="<?php _e('Search Categories','Shopp'); ?>" class="button" />
 	</p>
-	<p><a href="<?php echo add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->editcategory,'id'=>'new')),$Shopp->wpadminurl."admin.php"); ?>" class="button"><?php _e('New Category','Shopp'); ?></a></p>
+	<p><a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->editcategory,'id'=>'new')),$Shopp->wpadminurl."admin.php")); ?>" class="button"><?php _e('New Category','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
@@ -36,10 +36,10 @@
 		$even = false;
 		foreach ($Categories as $Category): 
 		
-		$editurl = attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
+		$editurl = esc_url(attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>$this->Admin->editcategory,
 					'id'=>$Category->id)),
-					$Shopp->wpadminurl."admin.php"));
+					$Shopp->wpadminurl."admin.php")));
 		
 		$CategoryName = empty($Category->name)?'('.__('no category name','Shopp').')':$Category->name;
 		?>
