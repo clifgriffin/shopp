@@ -870,6 +870,7 @@ class Product extends DatabaseObject {
 				if (empty($this->images)) $this->load_data(array('images'));
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-thickbox";
 				if (!isset($options['preview'])) $options['preview'] = "click";
+				
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
 				if (!empty($this->imagesets['small'])) {
@@ -881,8 +882,10 @@ class Product extends DatabaseObject {
 						}
 						$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
 						$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$img->name);
+						$rel = (isset($options['rel']) && $options['rel'])?' rel="product_'.$this->id.'_gallery"':'';
+						
 						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
-						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="product_'.$this->id.'_gallery '.$options['zoomfx'].'">';
+						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="product_'.$this->id.'_gallery '.$options['zoomfx'].'"'.$rel.'>';
 						$previews .= '<img src="'.$Shopp->imguri.$img->id.'"'.$title.' alt="'.$alt.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
 						$previews .= '</a>';
 						$previews .= '</li>';

@@ -137,6 +137,7 @@ class Flow {
 		$adminurl = $Shopp->wpadminurl."admin.php";
 		
 		$defaults = array(
+			'page' => false,
 			'deleting' => false,
 			'delete' => false,
 			'id' => false,
@@ -149,7 +150,8 @@ class Flow {
 
 		if (strstr($page,$Admin->categories)) {
 			
-			if ($deleting == "category"
+			if ($page == "shopp-categories"
+					&& !empty($deleting) 
 					&& !empty($delete) 
 					&& is_array($delete)) {
 				foreach($delete as $deletion) {
@@ -157,9 +159,8 @@ class Flow {
 					$db->query("UPDATE $Category->_table SET parent=0 WHERE parent=$Category->id");
 					$Category->delete();
 				}
-				header("Location: ".
-					esc_url(add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl)));
-				exit();
+				$redirect = esc_url(add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl));
+				shopp_redirect($redirect);
 			}
 			
 			if ($id && $id != "new")
@@ -184,15 +185,16 @@ class Flow {
 		} // end $Admin->categories
 
 		if (strstr($page,$Admin->products)) {
-			if ($deleting == "product"
+			if ($page == "shopp-products"
+					&& !empty($deleting) 
 					&& !empty($delete) 
 					&& is_array($delete)) {
 				foreach($delete as $deletion) {
 					$Product = new Product($deletion);
 					$Product->delete();
 				}
-				header("Location: ".
-					esc_url(add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl)));
+				$redirect = esc_url(add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
+				shopp_redirect($redirect);
 				exit();
 			}
 			
@@ -200,8 +202,7 @@ class Flow {
 				$Product = new Product();
 				$Product->load($duplicate);
 				$Product->duplicate();
-				header("Location: ".add_query_arg('page',$Admin->products,$adminurl));
-				exit();
+				shopp_redirect(add_query_arg('page',$Admin->products,$adminurl));
 			}
 
 			if ($id && $id != "new") {
@@ -583,9 +584,7 @@ class Flow {
 				|| $orderisfree
 				|| SHOPP_NOSSL) 
 			$ssl = false;
-		$link = $Shopp->link('receipt',$ssl);
-		header("Location: $link");
-		exit();
+		shopp_redirect($Shopp->link('receipt',$ssl));
 	}
 	
 	// Display the confirm order screen
@@ -633,6 +632,7 @@ class Flow {
 		$db = DB::get();
 		
 		$defaults = array(
+			'page' => false,
 			'deleting' => false,
 			'selected' => false,
 			'update' => false,
@@ -654,8 +654,8 @@ class Flow {
 		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
-		if (isset($deleting)
-						&& $deleting == "order"
+		if ($page == "shopp-orders"
+						&& !empty($deleting)
 						&& !empty($selected) 
 						&& is_array($selected)) {
 			foreach($selected as $selection) {
@@ -810,7 +810,7 @@ class Flow {
 		$Purchase = $Shopp->Cart->data->Purchase;
 		$Customer = new Customer($Purchase->customer);
 		
-		if (!empty($_POST)) {
+		if (!empty($_POST['update'])) {
 			check_admin_referer('shopp-save-order');
 			
 			if ($_POST['transtatus'] != $Purchase->transtatus)
@@ -905,6 +905,7 @@ class Flow {
 		$db = DB::get();
 		
 		$defaults = array(
+			'page' => false,
 			'deleting' => false,
 			'selected' => false,
 			'update' => false,
@@ -923,7 +924,8 @@ class Flow {
 		$args = array_merge($defaults,$_GET);
 		extract($args, EXTR_SKIP);
 		
-		if ($deleting == "customer"
+		if ($page == "shopp-customers"
+				&& !empty($deleting) 
 				&& !empty($selected) 
 				&& is_array($selected)) {
 			foreach($selected as $deletion) {
@@ -1900,6 +1902,7 @@ class Flow {
 		require_once("{$this->basepath}/core/model/Promotion.php");
 		
 		$defaults = array(
+			'page' => false,
 			'deleting' => false,
 			'delete' => false,
 			'pagenum' => 1,
@@ -1910,7 +1913,8 @@ class Flow {
 		$args = array_merge($defaults,$_GET);
 		extract($args,EXTR_SKIP);
 		
-		if ($deleting == "promotion"
+		if ($page == "shopp-promotions"
+				&& !empty($deleting) 
 				&& !empty($delete) 
 				&& is_array($delete)) {
 			foreach($delete as $deletion) {

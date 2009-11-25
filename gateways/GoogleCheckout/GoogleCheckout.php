@@ -60,10 +60,7 @@ class GoogleCheckout {
 	function checkout () {
 		global $Shopp;
 		
-		if ($Shopp->Cart->data->Totals->total == 0) {
-			header("Location: ".$Shopp->link('checkout'));
-			exit();
-		}
+		if ($Shopp->Cart->data->Totals->total == 0) shopp_redirect($Shopp->link('checkout'));
 		
 		$this->transaction = $this->buildCheckoutRequest($Shopp->Cart);
 		$Response = $this->send($this->urls['checkout']);
@@ -81,8 +78,7 @@ class GoogleCheckout {
 				$Shopp->Cart = new Cart();
 				session_start();
 				
-				header("Location: $redirect");
-				exit();
+				shopp_redirect($redirect);
 			}
 		}
 			
@@ -440,7 +436,7 @@ class GoogleCheckout {
 				$buttonuri .= '&loc='.$this->settings['location'];
 				if (SHOPP_PERMALINKS) $url = $Shopp->link('checkout')."?shopp_xco=GoogleCheckout/GoogleCheckout";
 				else $url = add_query_arg('shopp_xco','GoogleCheckout/GoogleCheckout',$Shopp->link('checkout'));
-				return '<p><a href="'.$url.'"><img src="'.$buttonuri.'" alt="Checkout with Google Checkout" /></a></p>';
+				return '<p class="google_checkout"><a href="'.$url.'"><img src="'.$buttonuri.'" alt="Checkout with Google Checkout" /></a></p>';
 		}
 	}
 	

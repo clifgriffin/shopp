@@ -73,10 +73,10 @@
 	</tr>
 </table>
 
-<?php if(shopp('purchase','has-data')): ?>
+<?php if(shopp('checkout','hasdata')): ?>
 	<ul>
-	<?php while(shopp('purchase','orderdata')): ?>
-		<li><strong><?php shopp('purchase','data','name'); ?>:</strong> <?php shopp('purchase','data'); ?></li>
+	<?php while(shopp('checkout','orderdata')): ?>
+		<li><strong><?php shopp('checkout','data','name'); ?>:</strong> <?php shopp('checkout','data'); ?></li>
 	<?php endwhile; ?>
 	</ul>
 <?php endif; ?>

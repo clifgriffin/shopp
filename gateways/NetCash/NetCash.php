@@ -89,8 +89,7 @@ class NetCash {
 			return true;
 		}
 		
-		header("Location: ".add_query_arg('shopp_xco','NetCash/NetCash',$Shopp->link('confirm-order',false)));
-		exit();
+		shopp_redirect(add_query_arg('shopp_xco','NetCash/NetCash',$Shopp->link('confirm-order',false)));
 	}
 	
 	/**
@@ -314,7 +313,7 @@ class NetCash {
 				if (isset($options['pagestyle'])) $args['pagestyle'] = $options['pagestyle'];
 				$label = (isset($options['netcash-label']))?$options['netcash-label']:'Checkout with NetCash';
 				$url = add_query_arg($args,$Shopp->link('checkout'));
-				return '<p><a href="'.$url.'" class="netcash_checkout">'.$label.'</a></p>';
+				return '<p class="netcash_checkout"><a href="'.$url.'">'.$label.'</a></p>';
 		}
 	}
 

@@ -287,7 +287,7 @@ var worklist = <?php echo json_encode($this->products_list(true)); ?>;
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
-var productspath = '<?php echo trailingslashit($this->Settings->get('products_path')); ?>';
+var productspath = '<?php echo addslashes(trailingslashit($this->Settings->get('products_path'))); ?>';
 
 // Warning/Error Dialogs
 var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this product image?','Shopp'); ?>";

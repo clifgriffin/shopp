@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.0.15
+Version: 1.0.17
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define('SHOPP_VERSION','1.0.15');
+define('SHOPP_VERSION','1.0.17');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
@@ -786,8 +786,8 @@ class Shopp {
 
 	function canonurls ($url) {
 		global $Shopp;
-		if (!empty($Shopp->Product)) return $Shopp->Product->tag('url','echo=0');
-		if (!empty($Shopp->Category)) return $Shopp->Category->tag('url','echo=0');
+		if (!empty($Shopp->Product->slug)) return $Shopp->Product->tag('url','echo=0');
+		if (!empty($Shopp->Category->slug)) return $Shopp->Category->tag('url','echo=0');
 		return $url;
 	}
 
@@ -799,8 +799,10 @@ class Shopp {
 <link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),get_bloginfo('url'))); ?>' type='text/css' />
 <link rel='stylesheet' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 <link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-<link rel='canonical' href='<?php echo $this->canonurls(false); ?>' />
-<?php
+<?php 
+	$canonurl = $this->canonurls(false);
+	if (is_shopp_page('catalog') && !empty($canonurl)): ?><link rel='canonical' href='<?php echo $canonurl ?>' /><?php
+	endif;
 	}
 	
 	/**
@@ -939,8 +941,7 @@ class Shopp {
 	function cart () {
 		if (isset($_REQUEST['shopping']) && $_REQUEST['shopping'] == "reset") {
 			$this->Cart->reset();
-			header("Location: ".$this->link());
-			exit();
+			shopp_redirect($this->link());
 		}
 
 		if (empty($_REQUEST['cart'])) return true;
@@ -951,13 +952,12 @@ class Shopp {
 		$redirect = false;
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {
-			case "checkout": header("Location: ".$this->link($redirect,true)); break;
+			case "checkout": shopp_redirect($this->link($redirect,true)); break;
 			default: 
 				if (!empty($_REQUEST['redirect']))
-					header("Location: ".esc_url($this->link($_REQUEST['redirect'])));
-				else header("Location: ".$this->link('cart'));
+					shopp_redirect(esc_url($this->link($_REQUEST['redirect'])));
+				else shopp_redirect($this->link('cart'));
 		}
-		exit();
 	}
 	
 	/**
@@ -1083,8 +1083,7 @@ class Shopp {
 				|| isset($wp->query_vars['shopp_xco'])
 				|| $this->Cart->orderisfree()) 
 				$secure = false;
-			header("Location: ".$this->link('confirm-order',$secure));
-			exit();
+			shopp_redirect($this->link('confirm-order',$secure));
 		} else $this->Flow->order();
 
 	}
@@ -1534,9 +1533,9 @@ class Shopp {
  * Provides the Shopp 'tag' support to allow for complete 
  * customization of customer interfaces
  *
- * @param $object - The object to get the tag property from
- * @param $property - The property of the object to get/output
- * @param $options - Custom options for the property result in query form 
+ * @param $object The object to get the tag property from
+ * @param $property The property of the object to get/output
+ * @param $options Custom options for the property result in query form 
  *                   (option1=value&option2=value&...) or alternatively as an associative array
  */
 function shopp () {

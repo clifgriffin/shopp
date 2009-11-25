@@ -295,7 +295,7 @@ class Purchase extends DatabaseObject {
 				return (in_array($options['name'],$this->promos));
 				break;
 			case "subtotal": return money($this->subtotal); break;
-			case "hasfreight": return ($this->freight > 0);
+			case "hasfreight": return (!empty($this->shipmethod) || $this->freight > 0);
 			case "freight": return money($this->freight); break;
 			case "hasdiscount": return ($this->discount > 0);
 			case "discount": return money($this->discount); break;

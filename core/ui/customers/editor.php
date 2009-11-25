@@ -123,7 +123,7 @@
 				<th scope="row" valign="top"><label for="shipping-address"><?php _e('Shipping Address','Shopp'); ?></label></th> 
 				<td>
 					<p>
-						<input type="text" name="shipping[[address]" id="shipping-address" value="<?php echo $Customer->Shipping->address; ?>" size="46" /><br />
+						<input type="text" name="shipping[address]" id="shipping-address" value="<?php echo $Customer->Shipping->address; ?>" size="46" /><br />
 						<input type="text" name="shipping[xaddress]" id="shipping-xaddress" value="<?php echo $Customer->Shipping->xaddress; ?>" size="46" /><br />
 						<label for="shipping-address"><?php _e('Street Address','Shopp'); ?></label>
 					</p>
