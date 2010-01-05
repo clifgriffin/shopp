@@ -61,6 +61,15 @@ class GoogleCheckout {
 		global $Shopp;
 		
 		if ($Shopp->Cart->data->Totals->total == 0) shopp_redirect($Shopp->link('checkout'));
+
+		$stock = true;
+		foreach( $Shopp->Cart->contents as $item ) { //check stock before redirecting to Google
+			if (!$item->instock()){
+				new ShoppError(sprintf(__("There is not sufficient stock on %s to process order."),$item->name),'invalid_order',SHOPP_TXN_ERR);
+				$stock = false;
+			}
+		}
+		if (!$stock) shopp_redirect($Shopp->link('cart'));
 		
 		$this->transaction = $this->buildCheckoutRequest($Shopp->Cart);
 		$Response = $this->send($this->urls['checkout']);

@@ -1,21 +1,9 @@
-<?php
-/** 
- ** WARNING! DO NOT EDIT!
- **
- ** These templates are part of the core Shopp files 
- ** and will be overwritten when upgrading Shopp.
- **
- ** For editable templates, setup Shopp theme templates:
- ** http://docs.shopplugin.net/Setting_Up_Theme_Templates
- **
- **/
-?>
 <div id="receipt" class="shopp">
 <table class="transaction">
 	<tr><th>Order Num:</th><td><?php shopp('purchase','id'); ?></td></tr>	
 	<tr><th>Order Date:</th><td><?php shopp('purchase','date','format=F j, Y'); ?></td></tr>	
 	<tr><th>Billed To:</th><td><?php shopp('purchase','card'); ?> (<?php shopp('purchase','cardtype'); ?>)</td></tr>	
-	<tr><th>Transaction:</th><td><?php shopp('purchase','transactionid'); ?></td></tr>	
+	<tr><th>Transaction:</th><td><?php shopp('purchase','transactionid'); ?> (<strong><?php shopp('purchase','payment'); ?></strong>)</td></tr>	
 </table>
 
 <fieldset>
@@ -41,8 +29,6 @@
 	</fieldset>	
 <?php endif; ?>
 
-<br class="clear" />
-
 <?php if (shopp('purchase','hasitems')): ?>
 <table class="order widefat">
 	<thead>
@@ -57,10 +43,9 @@
 	<?php while(shopp('purchase','items')): ?>
 		<tr>
 			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options','before= – '); ?><br />
-				<?php shopp('purchase','item-sku'); ?><br />
+				<?php shopp('purchase','item-sku')."<br />"; ?>
 				<?php shopp('purchase','item-download'); ?>
-				<?php shopp('purchase','item-inputs-list'); ?>
-			</td>
+				</td>
 			<td><?php shopp('purchase','item-quantity'); ?></td>
 			<td class="money"><?php shopp('purchase','item-unitprice'); ?></td>
 			<td class="money"><?php shopp('purchase','item-total'); ?></td>
@@ -98,10 +83,12 @@
 <?php if(shopp('purchase','has-data')): ?>
 	<ul>
 	<?php while(shopp('purchase','orderdata')): ?>
+		<?php if (shopp('purchase','data','echo=0') == '') continue; ?>
 		<li><strong><?php shopp('purchase','data','name'); ?>:</strong> <?php shopp('purchase','data'); ?></li>
 	<?php endwhile; ?>
 	</ul>
 <?php endif; ?>
+	
 
 <?php else: ?>
 	<p class="warning">There were no items found for this purchase.</p>

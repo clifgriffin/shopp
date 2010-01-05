@@ -217,7 +217,7 @@ class Product extends DatabaseObject {
 		
 	function pricing ($options = false) {
 		global $Shopp;
-		// print_r($this->prices);
+
 		$variations = ($this->variations == "on");
 		$freeshipping = true;
 		$this->inventory = false;
@@ -350,7 +350,7 @@ class Product extends DatabaseObject {
 		foreach ($this->images as $key => &$image) {
 			if (empty($this->imagesets[$image->datatype])) $this->imagesets[$image->datatype] = array();
 			if ($image->id) {
-				if (SHOPP_PERMALINKS) $image->uri = $Shopp->imguri.$image->id;
+				if (SHOPP_PERMALINKS) $image->uri = user_trailingslashit($Shopp->imguri.$image->id);
 				else $image->uri = add_query_arg('shopp_image',$image->id,$Shopp->imguri);
 			}
 			$this->imagesets[$image->datatype][] = $image;
@@ -666,8 +666,8 @@ class Product extends DatabaseObject {
 		switch ($property) {
 			case "link": 
 			case "url": 
-				if (SHOPP_PERMALINKS) $url = esc_url(add_query_arg($_GET,$Shopp->shopuri.urldecode($this->slug)."/"));
-				else $url = add_query_arg('shopp_pid',$this->id,$Shopp->shopuri);
+				if (SHOPP_PERMALINKS) $url = user_trailingslashit(esc_url(add_query_arg($_GET,$Shopp->canonuri.urldecode($this->slug))));
+				else $url = add_query_arg('shopp_pid',$this->id,$Shopp->canonuri);
 				return $url;
 				break;
 			case "found": 
@@ -819,7 +819,7 @@ class Product extends DatabaseObject {
 					$this->imageloop = true;
 				} else next($this->imageset);
 
-				if (current($this->imageset)) return true;
+				if (current($this->imageset) !== false) return true;
 				else {
 					$this->imageloop = false;
 					$this->imageset = false;
@@ -881,8 +881,10 @@ class Product extends DatabaseObject {
 						}
 						$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
 						$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$img->name);
+						$rel = (isset($options['rel']) && $options['rel'])?' rel="product_'.$this->id.'_gallery"':'';
+						
 						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
-						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="product_'.$this->id.'_gallery '.$options['zoomfx'].'">';
+						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="product_'.$this->id.'_gallery '.$options['zoomfx'].'"'.$rel.'>';
 						$previews .= '<img src="'.$Shopp->imguri.$img->id.'"'.$title.' alt="'.$alt.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
 						$previews .= '</a>';
 						$previews .= '</li>';
@@ -939,7 +941,7 @@ class Product extends DatabaseObject {
 					$this->categoryloop = true;
 				} else next($this->categories);
 
-				if (current($this->categories)) return true;
+				if (current($this->categories) !== false) return true;
 				else {
 					$this->categoryloop = false;
 					return false;
@@ -970,7 +972,7 @@ class Product extends DatabaseObject {
 					$this->tagloop = true;
 				} else next($this->tags);
 
-				if (current($this->tags)) return true;
+				if (current($this->tags) !== false) return true;
 				else {
 					$this->tagloop = false;
 					return false;
@@ -1002,7 +1004,7 @@ class Product extends DatabaseObject {
 					$this->specloop = true;
 				} else next($this->specs);
 				
-				if (current($this->specs)) return true;
+				if (current($this->specs) !== false) return true;
 				else {
 					$this->specloop = false;
 					return false;
@@ -1059,7 +1061,7 @@ class Product extends DatabaseObject {
 					if ($thisprice && $thisprice->type == "N/A")
 						next($this->prices);
 
-					if (current($this->prices)) return true;
+					if (current($this->prices) !== false) return true;
 					else {
 						$this->priceloop = false;
 						return false;
@@ -1137,8 +1139,8 @@ class Product extends DatabaseObject {
 								$string .= '<option value="'.$menu['id'][$key].'">'.$option.'</option>'."\n";
 
 							$string .= '</select>';
-							if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 						}
+						if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 					} else {
 						foreach ($this->options as $id => $menu) {
 							if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
@@ -1150,8 +1152,8 @@ class Product extends DatabaseObject {
 								$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
 
 							$string .= '</select>';
-							if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 						}
+						if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 					}
 					
 				}

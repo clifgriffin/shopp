@@ -55,10 +55,13 @@ function categories_meta_box ($Product) {
 		<?php endfor; ?>
 	</ul>
 </div>
-<div id="new-category">
-<input type="text" name="new-category" value="" size="15" id="new-category" /><br />
+<div>
+<div id="new-category" class="hidden">
+<input type="text" name="new-category" value="" size="15" id="new-category-name" /><br />
 <select name="new-category-parent"><?php echo $categories_menu; ?></select>
 <button id="add-new-category" type="button" class="button-secondary" tabindex="2"><small><?php _e('Add','Shopp'); ?></small></button>
+</div>
+<button id="new-category-button" type="button" class="button-secondary" tabindex="2"><small><?php _e('New Category','Shopp'); ?></small></button>
 </div>
 
 <?php

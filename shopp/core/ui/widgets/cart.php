@@ -14,7 +14,7 @@ if (class_exists('WP_Widget')) {
 class ShoppCartWidget extends WP_Widget {
 
     function ShoppCartWidget() {
-        parent::WP_Widget(false, $name = 'Shopp Cart', array('description' => __('The customer\'s shopping cart')));
+        parent::WP_Widget(false, $name = 'Shopp Cart', array('description' => __('The customer\'s shopping cart','Shopp')));
     }
 
     function widget($args, $options) {		

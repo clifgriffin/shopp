@@ -68,9 +68,9 @@ var RULES_LANG = {
 	"Type":"<?php _e('Type','Shopp'); ?>",
 	"In stock":"<?php _e('In stock','Shopp'); ?>",
 
-	"Item name":"<?php _e('Item name','Shopp'); ?>",
-	"Item amount":"<?php _e('Item amount','Shopp'); ?>",
-	"Item quantity":"<?php _e('Item quantity','Shopp'); ?>",
+	"Any item name":"<?php _e('Any item name','Shopp'); ?>",
+	"Any item amount":"<?php _e('Any item amount','Shopp'); ?>",
+	"Any item quantity":"<?php _e('Any item quantity','Shopp'); ?>",
 	"Total quantity":"<?php _e('Total quantity','Shopp'); ?>",
 	"Shipping amount":"<?php _e('Shipping amount','Shopp'); ?>",
 	"Subtotal amount":"<?php _e('Subtotal amount','Shopp'); ?>",
@@ -100,9 +100,9 @@ var product_conditions = {
 }
 
 var order_conditions = {
-	"Item name":{"logic":["boolean","fuzzy"],"value":"text"},
-	"Item quantity":{"logic":["boolean","amount"],"value":"text"},
-	"Item amount":{"logic":["boolean","amount"],"value":"price"},
+	"Any item name":{"logic":["boolean","fuzzy"],"value":"text"},
+	"Any item quantity":{"logic":["boolean","amount"],"value":"text"},
+	"Any item amount":{"logic":["boolean","amount"],"value":"price"},
 	"Total quantity":{"logic":["boolean","amount"],"value":"text"},
 	"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
 	"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},

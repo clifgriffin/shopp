@@ -90,11 +90,12 @@ class UPSServiceRates {
 		function UPSServiceRates (methodid,table,rates) {
 			table.addClass('services').empty();
 			
-			uniqueMethod(methodid,'<?php echo get_class($this); ?>');
+			if (!uniqueMethod(methodid,'<?php echo get_class($this); ?>')) return;
 			
 			var services = <?php echo json_encode($this->settings['services']); ?>;
 			var settings = '';
 			settings += '<tr><td>';
+			settings += '<style type="text/css">#shipping-rates th.upsservicerates { background: url(data:image/png;base64,<?php echo $this->logo(); ?>) no-repeat 20px 20px; }</style>';
 			settings += '<input type="hidden" name="settings[shipping_rates]['+methodid+'][postcode-required]" value="true" />';
 
 			settings += '<div class="multiple-select"><ul id="ups-services">';
@@ -218,7 +219,7 @@ class UPSServiceRates {
 					$_[] = '<UnitOfMeasurement>';
 						$_[] = '<Code>'.$this->settings['units'].'</Code>';
 					$_[] = '</UnitOfMeasurement>';
-					$_[] = '<Weight>'.number_format(($weight < 1)?1:$weight,1).'</Weight>';
+					$_[] = '<Weight>'.number_format(($weight < 1)?1:$weight,1,'.','').'</Weight>';
 				$_[] = '</PackageWeight>   ';
 			$_[] = '</Package>';
 		$_[] = '</Shipment>';
@@ -258,6 +259,10 @@ class UPSServiceRates {
 		
 		$Response = new XMLdata($buffer);
 		return $Response;
+	}
+	
+	function logo () {
+		return 'iVBORw0KGgoAAAANSUhEUgAAACIAAAAoCAMAAAHbBegAAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAwBQTFRFelMaiWlGKhUBCgQB//e33ZIWVzUNvoQk/dWKyZpSWToS/+eZ0IkWglwn/+mM8/PzrpV02ahUmnVGuYk9dFMm6ahF/8Vj26VJsn4iypdH67tr6cmHxIIYiFkV1JUw67NXsXcaNyQMEggB/9uTrKaZ/btJ7Z0Zakki0Khk45oh/9qN+bM7NRkAm4116r1z+cx/yosjuJtm+tWR/9Z766Qr29ra/s13rHogtrOr/+mqs5h6/tKB7aU6yKh6/+ylx8bEjWMl/8pi5pgZ5J000bRsy5Q89KQe/++88aYq+7xS1sW0cksY/cRpp4dY8dqj/8NT4pUW8K1K7sJ32LyFl2Yn/7pDqHEblINmzLRqmGYXoHg29LJD//Ot8aIg4pcb66Q2RCIB/8Zd4+Pj+bVC7bNO7aIlx44y/8hZSykGWUEak3RT8bFSpXQh1tXU//XFvpdX+/v7gmE9/shsa0cPsayj6urq+M+J5JwtYD0TY0EV+sZ0rI5sfFo0/8xsmnpH9a86/+yweFYx3JUu6ZoYz6tkHRQJ/+229asv8qsy0JIsw4ou1o8dQisK6p4pkW5F2pUk8MZ8SjYYuqKL9q42w4km/8ppTisHyLOfppJv25kr77lhmntcjGo8/+qw/89wwYYr8as137Nhf148p5yGUS8JTjMMZkMZpJ6SaEccRCgH1ZAmoYNkb0wnzJ5b9rpc47tnSCYD8KU1on9W8q04Hg4APB0A/+Cbv5RL/+ef//OMnHlQcVAe051F0M/NzLWg9rRP5K1bnpSDwKeOwKyXx7SA3KA8Qi8U4ODg+NOOq6GEzY8o/8FQ4bZj4rVr27Jw7bhjnns/t4Uxr6J976o9uI9N/b9fsI1Ux4cnz61ooWkR6J4hnH9h/+Gfe1APvLm1pncrf1MRrnghrH0wvqqU3pkn558z+MJq76cuun4ex6Vkwaptz6Jf5qIv+sh3/8tyh2EyimU2jGc8kGw1o4Zqp41fqophkXlS3a9ckHxbuJ2AtXws+a0yc1Et/96HAAAA////ZaChQgAAAQB0Uk5T////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////AFP3ByUAAAT/SURBVHjaYvify2nxnyFCgG2LBIPLHAcPc4aXr11TzRn+b7n77z9AADH8F7j2nyGvcasSg3JF6D8Gx2nPWRkmb2FmBwgAMgDN/wBYgNxyRUupIYsARMNqpg0D/qUYANg7DQZAY/4FNwA1pJYC4CL+/gwA///HMP4nV///AgjIUsnfPoP/PwN3m/X+ELatPQw7gvtWZDBtYWa4PamQS11J8R8Do+82MyWHyGMMNX0ctcwzeR4yVMxy9N/TysDK4MqWUM/M/O8fw/+VTLeARn8DGjh/y7/Y//8BAojhv4U0yw7rZ9mizs7O5b0mvvwMEdzu7pavG9Ur2DISdIA2SDBE2P30qi5cUzFtK9MWJSXmf0DP9mlV922rNBbzD/13MS6Ax5zBpVBr13tlNrMQpeRT5XG7/5kztIi8+8hgtsTR4Z+2xL9/L5xyGAS8HTw9XXVUL5tU/LvJysN8i+H/0YwNG7ZueX5XCeS8fwb3gA77f7ETyAOCf5luy///B4kAQdKjODVdCBMggEAi/BaLDfO3X/myeC9YhP9STIyW2bpAG5AnUjtL/jPstGyz1DK7KvpLtmLJSsWVS6cw8DW4t50QWrOMa8kGkD/+sYNEfq5etKZiCcifSmCRYK9DWY3L2BLAHmUGikhNeizA2Mi2hlcRyOdqBYqsl+KYfWKChk+6qoNSrJOaEjvDQj0jRqMJr+cpXdQWufXvH1Dku96JRScmrK1VyqyfqNkNMllQSv+PvhTnVKXMBa2ZTs0gkVlV6s/OS6YrfeoAejagEigiKZYvJu+qOmfzk8ywHFZFdgZPNnHPFIa06AUGzEw8rLKtdQziGWxA98+f/I8ZHGIS9gx7j+psSNB54cEMCrV/rTzAENNNU2LaonALHIiKsQWgMCz5XfkPzGc+pQANw/+6HsX//rUayJjCQhUIDjppPjSFMAECDCxiWnLyiPTfv8bzxDz3B9rYbASBp3LCX1RywUosXvHFxDQ0WG7TsjbzWZcdGHjZJv6pc1PTKiDo14xNFVZhiODjtmtzb5t7R1nL7IBwyJoKtiUZGxIStgLDfAswMf2TYAcq2dHgnpfnZ7uJcVHNH/VlICVgFSAloAQHVsLiZzt9utVsRqCKSi6ggq0gaaA82N9gJTesvLz2/VzN2LhmRSUXOPVCpP+BAVCJy/pv58qkBT4LSZ/QWzbnbJFjur8oL9CC1vuazXHdD8BKzjDqKRt9zZpjtG1CxWuzWuFl91WjNytOfK7JU7w0UkYJpGRhIVDJpsKPQCVca83mOQCzYai2hIiHpoEiyCJzdoYb32ukOMqEGt+XaQWxrZ1X66DEzJW8eWbr7tQ41uaHrSAlLYKN583e9q3hrbI+v4RzqiNQiXryglNbgFESGcAadyyHnUFDXF2+qEiIa82zd/JLJBPTef8p7uloZ1Bc+u8fs0SAUwVQiWFKBa9nYqKjY6JjSobr6ejk0MkdwGhd5tHcHMCqJsts8IhBxd9hCVuFN4M3V4KOTleyduTKlVv+gQKFSXFl679/mbG6DP9nqDJsnbZkybQNwEBnX9D+gBkarOCgm+hWB0oei+u7dLZs3QqKuBcmqXfB6Q0StEr31SCl1P8C3TfxDFuYgeGuuLKHCaZCabdmwA9+RCIr1e1qv86l9A+Szf8xZ7K7yYQfR0p1EHBclz22+wFTK29/7ItwU4Q4khIQ4Fe5ELW8FFUMAGhZg3RNJeYTAAAAAElFTkSuQmCC';
 	}
 	
 }

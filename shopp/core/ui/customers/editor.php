@@ -75,13 +75,14 @@ function updateStates (country,state)  {
 			$(label).attr('for',$(selector).attr('id'))
 		} else {
 			$(selector).hide().attr('disabled',true);
-			$(text).show().attr('disabled',false).val('');
+			$(text).show().attr('disabled',false);
 			$(label).attr('for',$(text).attr('id'))
 		}
 		
 	}
 
 	$(country).change(function() {
+		if ($(selector).children().length > 1) $(text).val('');
 		if ($(selector).attr('type') == "text") return true;
 		$(selector).empty().attr('disabled',true);
 		$('<option></option>').val('').html('').appendTo(selector);
@@ -99,7 +100,7 @@ function updateStates (country,state)  {
 }
 
 // Included from the WP 2.8 password strength meter
-// Copyright by Automattic
+// Copyright by WordPress.org
 $('#new-password').val('').keyup( check_pass_strength );
 
 function check_pass_strength () {

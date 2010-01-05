@@ -90,7 +90,7 @@ class _2Checkout {
 
 		if ($Shopp->Cart->orderisfree()) 
 			return ($_POST['checkout'] = 'confirmed');
-		
+		if(!$Shopp->Cart->validorder()) shopp_redirect($Shopp->link('cart'));
 		shopp_redirect(add_query_arg('shopp_xco','2Checkout/2Checkout',$Shopp->link('confirm-order',false)));
 	}
 	
