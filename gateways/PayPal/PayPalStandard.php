@@ -20,6 +20,7 @@ class PayPalStandard {
 	var $settings = array();
 	var $Response = false;
 	var $checkout = true;
+	var $pdt = false;
 	var $currencies = array("USD", "AUD", "CAD", "CHF", "CZK", "DKK", "EUR", "GBP", 
 							"HKD", "HUF", "JPY", "NOK", "NZD", "PLN", "SEK", "SGD");
 	var $locales = array("AT" => "de_DE", "AU" => "en_AU", "BE" => "en_US", "CA" => "en_US",
@@ -56,7 +57,10 @@ class PayPalStandard {
 			!$loginproc) $this->checkout();
 		
 		// Capture processed payment
-		if (isset($_GET['tx'])) $_POST['checkout'] = "confirmed";
+		if (isset($_REQUEST['tx'])) {
+			$this->pdt = true;
+			$this->order();
+		}
 
 	}
 	
@@ -108,6 +112,7 @@ class PayPalStandard {
 			return true;
 		}
 		
+		if(!$Shopp->Cart->validorder()) shopp_redirect($Shopp->link('cart')); 
 		shopp_redirect(add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
 	}
 	
@@ -130,7 +135,8 @@ class PayPalStandard {
 		$_['invoice']				= $Order->Cart;
 		
 		// Options
-		$_['return']				= add_query_arg('shopping','reset',$Shopp->link('catalog'));
+		$_['return']				= add_query_arg('shopp_xco','PayPal/PayPalStandard',
+													$Shopp->link('confirm-order',false));
 		$_['cancel_return']			= $Shopp->link('cart');
 		$_['notify_url']			= add_query_arg('shopp_xorder','PayPalStandard',$Shopp->link('catalog'));
 		$_['rm']					= 1; // Return with no transaction data
@@ -180,27 +186,33 @@ class PayPalStandard {
 		$_['handling_cart']				= number_format($Order->Totals->shipping,$precision);
 		$_['amount']					= number_format($Order->Totals->total,$precision);
 		
-				
 		return $form.$this->format($_);
 	}
 		
 	function process () {
 		global $Shopp;
-		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification received.',false,SHOPP_DEBUG_ERR);
-
+		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification received: '._object_r($_POST),false,SHOPP_DEBUG_ERR);
+		
+		// Cancel processing if this is not a Website Payments Standard/Express Checkout IPN
+		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") return false;
+		
+		// Handle IPN updates to existing purchases
+		if ($this->updates()) die("Updated."); 
+		
 		// If no invoice number is available, we 
 		if (empty($_POST['invoice'])) {
 			if (SHOPP_DEBUG) new ShoppError('No invoice number was provided by PayPal: '._object_r($_POST),'paypalstd_debug',SHOPP_DEBUG_ERR);
 			return new ShoppError(__('An unverifiable order with no invoice number was received from PayPal. Possible fraudulent order attempt!','Shopp'),'paypal_txn_verification',SHOPP_TRXN_ERR);
 		}
 
-		session_unset();
-		session_destroy();
-		
+		$Shopp->Cart = new Cart();
+		$Shopp->Cart->reset();
+
 		// Load the cart for the correct order
 		$Shopp->Cart->session = $_POST['invoice'];
-		$Shopp->Cart->load($Shopp->Cart->session);
-		if (SHOPP_DEBUG) new ShoppError('PayPal successfully loaded session: '.$Shopp->Cart->session,false,SHOPP_DEBUG_ERR);
+		if (!$Shopp->Cart->load($Shopp->Cart->session)) 
+			new ShoppError('Session could not be loaded: '.$Shopp->Cart->session,false,SHOPP_DEBUG_ERR);
+		else new ShoppError('PayPal successfully loaded session: '.$Shopp->Cart->session,false,SHOPP_DEBUG_ERR);
 
 		if (isset($Shopp->Cart->data)) {
 			$Order = $Shopp->Cart->data->Order;
@@ -209,31 +221,66 @@ class PayPalStandard {
 			$Order->Cart = $Shopp->Cart->session;
 		}
 
-		// Handle IPN updates to existing purchases
-		if ($this->updates()) exit(); 
+		if (SHOPP_DEBUG) new ShoppError('PayPal IPN new transaction: '._object_r($_POST),false,SHOPP_DEBUG_ERR);
 		
 		// Validate the order data
 		$validation = true;
 
 		if(!$Shopp->Cart->validorder()){
-			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
+			new ShoppError(sprintf(__('The order can not be processed. Order data: %s -- IPN message: %s','Shopp'),_object_r($Order),_object_r($_POST)),'invalid_order_pps',SHOPP_TRXN_ERR);
 			$validation = false;	
 		}
 		
-		if(number_format($_POST['mc_gross'],2) != number_format($Order->Totals->total,2)){
+		if(floatvalue($_POST['mc_gross']) != floatvalue($Order->Totals->total)){
 			$validation = false;
-			if(SHOPP_DEBUG) new ShoppError('Order validation failed. Received totals mismatch.  Received '.number_format($_POST['mc_gross'],2). ', but originally sent'.number_format($Order->Totals->total,2),'paypalstd_debug',SHOPP_DEBUG_ERR);
+			if(SHOPP_DEBUG) new ShoppError(sprintf(__('Order validation failed. The order total from the IPN message (%s) does not match the Shopp order total (%s)','Shopp'),floatvalue($_POST['mc_gross']),floatvalue($Order->Totals->total)),'paypalstd_total_mismatch',SHOPP_TRXN_ERR);
 		}  
-
-		if(!empty($Purchase->id)){
-			$validation = false;
-			if(SHOPP_DEBUG) new ShoppError('Order validation failed. Received duplicate transaction id: '.$_POST['txn_id'],'paypalstd_debug',SHOPP_DEBUG_ERR);
-		}
 		 
-		if($validation) $this->order();
-		else new ShoppError(__('An order was received from PayPal that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'paypal_trxn_validation',SHOPP_TRXN_ERR);
-		
+		if ($validation) $this->order();		
 		exit();
+	}
+	
+	function updates () {
+		global $Shopp;
+		if (!isset($_POST['txn_id']) && !isset($_POST['parent_txn_id'])) return false; // Not a notification request
+		$target = isset($_POST['parent_txn_id'])?$_POST['parent_txn_id']:$_POST['txn_id'];
+		$Purchase = new Purchase($target,'transactionid');
+		if (empty($Purchase->id)) {
+			new ShoppError('No existing purchase to update for transaction: '.$target,false,SHOPP_DEBUG_ERR);
+			return false;  // No order exists, bail out
+		}
+		
+		// Validate the order notification
+		if ($this->verifyipn() != "VERIFIED") {
+			new ShoppError(sprintf(__('An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s','Shopp'),$target,_object_r($_POST)),'paypal_txn_verification',SHOPP_TRXN_ERR);
+			return false;
+		} 
+		
+		if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
+		
+		// Order exists, handle IPN updates
+		$Purchase->transtatus = $txnstatus;
+		$Purchase->save();
+		
+		$Shopp->Cart->data->Purchase =& $Purchase;
+		$Shopp->Cart->data->Purchase->load_purchased();
+		
+		$Purchase->notification(
+			"$Purchase->firstname $Purchase->lastname",
+			$Purchase->email,
+			__('Order Payment Update','Shopp')
+		);
+		
+		if ($Shopp->Settings->get('receipt_copy') == 1) {
+			$Purchase->notification(
+				'',
+				$Shopp->Settings->get('merchant_email'),
+				__('PayPal Order Payment Update','Shopp')
+			);
+		}
+		
+		if (SHOPP_DEBUG) new ShoppError('PayPal IPN update processed for transaction: '.$target,false,SHOPP_DEBUG_ERR);
+		return true;
 	}
 	
 	function verifyipn () {
@@ -250,21 +297,37 @@ class PayPalStandard {
 		global $Shopp;
 		
 		$txnstatus = false;
-		$ipnstatus = $this->verifyipn();
+		$transactionid = false;
+		if ($this->pdt) {
+			if (SHOPP_DEBUG) new ShoppError('Processing PDT packet: '._object_r($_GET),false,SHOPP_DEBUG_ERR);
+			
+			$transactionid = $_GET['tx'];
+			$txnstatus = $this->status[$_GET['st']];
+			$Purchase = new Purchase($transactionid,'transactionid');
+			if (!empty($Purchase->id)) {
+				if (SHOPP_DEBUG) new ShoppError('Order located, already created from an IPN message.',false,SHOPP_DEBUG_ERR);
+				$Shopp->resession();
+				$Shopp->Cart->data->Purchase = $Purchase;
+				$Shopp->Cart->data->Purchase->load_purchased();
+				shopp_redirect($Shopp->link('thanks',false));
+			}
+		} else {
+			$ipnstatus = $this->verifyipn();
 
-		// Validate the order notification
-		if ($ipnstatus != "VERIFIED") {
-			$txnstatus = $ipnstatus;
-			new ShoppError('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt! The order will be created, but the order payment status must be manually set to "Charged" when the payment can be verified.','paypal_txn_verification',SHOPP_TRXN_ERR);
-		} 
-		
-		if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
+			// Validate the order notification
+			if ($ipnstatus != "VERIFIED") {
+				$txnstatus = $ipnstatus;
+				new ShoppError('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt! The order will be created, but the order payment status must be manually set to "Charged" when the payment can be verified.','paypal_txn_verification',SHOPP_TRXN_ERR);
+			} else if (SHOPP_DEBUG) new ShoppError('IPN notification validated.',false,SHOPP_DEBUG_ERR);
+			
+			$transactionid = $_POST['txn_id'];
+			$txnstatus = $this->status[$_POST['payment_status']];
+		}
 		
 		$Order = $Shopp->Cart->data->Order;
 		$Order->Totals = $Shopp->Cart->data->Totals;
 		$Order->Items = $Shopp->Cart->contents;
 		$Order->Cart = $Shopp->Cart->session;
-		if (SHOPP_DEBUG) new ShoppError('IPN notification validated.',false,SHOPP_DEBUG_ERR);
 
 		// Transaction successful, save the order
 		$authentication = $Shopp->Settings->get('account_system');
@@ -315,9 +378,9 @@ class PayPalStandard {
 		$Purchase->copydata($Shopp->Cart->data->Totals);
 		$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
 		$Purchase->gateway = "PayPal".(isset($_POST['test_ipn']) && $_POST['test_ipn'] == "1"?" Sandbox":"");
-		$Purchase->transactionid = $_POST['txn_id'];
+		$Purchase->transactionid = $transactionid;
 		$Purchase->transtatus = $txnstatus;
-		$Purchase->fees = $_POST['mc_fee'];
+		if (isset($_POST['mc_fee'])) $Purchase->fees = $_POST['mc_fee'];
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
 		// echo "<pre>"; print_r($Purchase); echo "</pre>";
@@ -367,22 +430,10 @@ class PayPalStandard {
 				__('New Order','Shopp')
 			);
 		}
+		
+		if ($this->pdt) shopp_redirect($Shopp->link('thanks',false));
 
-		shopp_redirect($Shopp->link('receipt',false));
-		
-	}
-	
-	function updates () {
-		if (!isset($_POST['parent_txn_id'])) return false; // Not a notification request
-		$Purchase = new Purchase($_POST['parent_txn_id'],'transactionid');
-		if (empty($Purchase->id)) return false;  // No order exists, bail out
-		
-		if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
-		
-		// Order exists, handle IPN updates
-		$Purchase->transtatus = $txnstatus;
-		$Purchase->save();
-		
+		exit();
 	}
 	
 	function error () {
@@ -407,7 +458,7 @@ class PayPalStandard {
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
 		curl_setopt($connection, CURLOPT_POST, 1); 
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->transaction); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 5); 
+		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_GATEWAY_TIMEOUT); 
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
 		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_FAILONERROR, 1);

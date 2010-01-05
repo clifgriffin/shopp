@@ -100,13 +100,19 @@ function updateWorkflow () {
 function categories () {
 	var $=jQuery.noConflict();
 	
-	$('#new-category input, #new-category select').hide();
+	$('#new-category').hide();
 	
 	// Add New Category button handler
-	$('#add-new-category').click(function () {
-		
-		$('#new-category input, #new-category select').toggle();
+	$('#new-category-button').click(function () {
+		$('#new-category').toggle();
 		$('#new-category input').focus();
+		$(this).toggle();
+	});
+
+	$('#add-new-category').click(function () {
+
+		$('#new-category').hide();
+		$('#new-category-button').show();
 
 		// Add a new category
 		var name = $('#new-category input').val();

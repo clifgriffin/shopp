@@ -131,7 +131,7 @@ class FirstData {
 	}
 	
 	function send () {
-		$certificate = dirname(__FILE__).DIRECTORY_SEPARATOR.$this->settings['storenumber'].'.pem';
+		$certificate = dirname(__FILE__).'/'.$this->settings['storenumber'].'.pem';
 		
 		if (!file_exists($certificate)) {
 			new ShoppError(__('No certificate file is installed for FirstData','Shopp'),'firstdata_certificate',SHOPP_TRXN_ERR);

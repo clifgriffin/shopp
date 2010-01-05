@@ -17,6 +17,7 @@ class Purchase extends DatabaseObject {
 	var $columns = array();
 	var $looping = false;
 	var $dataloop = false;
+	var $downloads = false;
 
 	function Purchase ($id=false,$key=false) {
 		$this->init(self::$table);
@@ -31,7 +32,10 @@ class Purchase extends DatabaseObject {
 		$table = DatabaseObject::tablename(Purchased::$table);
 		if (empty($this->id)) return false;
 		$this->purchased = $db->query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
-		foreach ($this->purchased as &$purchase) $purchase->data = unserialize($purchase->data);
+		foreach ($this->purchased as &$purchase) {
+			if (!empty($purchase->download)) $this->downloads = true;
+			$purchase->data = unserialize($purchase->data);
+		}
 		return true;
 	}
 	
@@ -139,6 +143,7 @@ class Purchase extends DatabaseObject {
 				break;
 			case "card": return (!empty($this->card))?sprintf("%'X16d",$this->card):''; break;
 			case "cardtype": return $this->cardtype; break;
+			case "txnid":
 			case "transactionid": return $this->transactionid; break;
 			case "firstname": return $this->firstname; break;
 			case "lastname": return $this->lastname; break;
@@ -180,7 +185,7 @@ class Purchase extends DatabaseObject {
 					$this->looping = true;
 				} else next($this->purchased);
 
-				if (current($this->purchased)) return true;
+				if (current($this->purchased) !== false) return true;
 				else {
 					$this->looping = false;
 					reset($this->purchased);
@@ -213,7 +218,7 @@ class Purchase extends DatabaseObject {
 				if (!isset($options['label'])) $options['label'] = __('Download','Shopp');
 				$classes = "";
 				if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
-				if (SHOPP_PERMALINKS) $url = $Shopp->shopuri."download/".$item->dkey;
+				if (SHOPP_PERMALINKS) $url = user_trailingslashit($Shopp->shopuri."download/".$item->dkey);
 				else $url = add_query_arg('shopp_download',$item->dkey,$Shopp->link('account'));
 				return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>'; break;
 			case "item-quantity":
@@ -236,7 +241,7 @@ class Purchase extends DatabaseObject {
 					$this->itemdataloop = true;
 				} else next($item->data);
 
-				if (current($item->data)) return true;
+				if (current($item->data) !== false) return true;
 				else {
 					$this->itemdataloop = false;
 					return false;
@@ -296,8 +301,9 @@ class Purchase extends DatabaseObject {
 				return (in_array($options['name'],$this->promos));
 				break;
 			case "subtotal": return money($this->subtotal); break;
-			case "hasfreight": return ($this->freight > 0);
+			case "hasfreight": return (!empty($this->shipmethod) || $this->freight > 0);
 			case "freight": return money($this->freight); break;
+			case "hasdownloads": return ($this->downloads);
 			case "hasdiscount": return ($this->discount > 0);
 			case "discount": return money($this->discount); break;
 			case "hastax": return ($this->tax > 0)?true:false;
@@ -308,7 +314,9 @@ class Purchase extends DatabaseObject {
 				if (empty($labels)) $labels = array('');
 				return $labels[$this->status];
 				break;
-				
+			case "paid": return ($this->transtatus == "CHARGED"); break;
+			case "notpaid": return ($this->transtatus != "CHARGED"); break;
+			case "payment": return $this->transtatus; break;
 		}
 	}
 

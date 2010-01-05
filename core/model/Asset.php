@@ -23,17 +23,18 @@ class Asset extends DatabaseObject {
 	
 	function setstorage ($type=false) {
 		global $Shopp;
+		chdir(WP_CONTENT_DIR); // relative path context for realpath
 		if (!$type) $type = $this->datatype;
 		switch ($type) {
 			case "image":
 			case "small":
 			case "thumbnail":
 				$this->storage = $Shopp->Settings->get('image_storage');
-				$this->path = trailingslashit($Shopp->Settings->get('image_path'));
+				$this->path = trailingslashit(sanitize_path(realpath($Shopp->Settings->get('image_path'))));
 				break;
 			case "download":
 				$this->storage = $Shopp->Settings->get('product_storage');
-				$this->path = trailingslashit($Shopp->Settings->get('products_path'));
+				$this->path = trailingslashit(sanitize_path(realpath($Shopp->Settings->get('products_path'))));
 				break;
 		}
 	}

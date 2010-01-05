@@ -73,7 +73,7 @@ helpurl = "<?php echo SHOPP_DOCS; ?>Shipping_Settings";
 
 var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
 var weight_units = '<?php echo $Shopp->Settings->get("weight_unit"); ?>';
-var disabledMethods = new Array();
+var uniqueMethods = new Array();
 
 (function($) {
 	
@@ -90,7 +90,7 @@ var addShippingRate = function (r) {
 	if (!r) r = false;
 	var i = shippingRates.length;
 	var row = $('<tr class="form-required"></tr>').appendTo($('#shipping-rates'));
-	var heading = $('<th scope="row" valign="top"><label for="name['+i+']" id="label-'+i+'"><?php echo addslashes(__('Option Name','Shopp')); ?></label></th>').appendTo(row);
+	var heading = $('<th scope="row" valign="top"><label for="name['+i+']" id="label-'+i+'"><?php echo addslashes(__('Option Name','Shopp')); ?></label><input type="hidden" name="priormethod-'+i+'" id="priormethod-'+i+'" /></th>').appendTo(row);
 	$('<br />').appendTo(heading);
 	var name = $('<input type="text" name="settings[shipping_rates]['+i+'][name]" value="" id="name-'+i+'" size="16" tabindex="'+(i+1)+'00" class="selectall" />').appendTo(heading);
 	$('<br />').appendTo(heading);
@@ -116,8 +116,8 @@ var addShippingRate = function (r) {
 			lastGroup = $('<optgroup label="'+methodtype+'"></optgroup>').appendTo(methodMenu);	
 		} else {
 			var methodOption = $('<option value="'+m+'">'+methodtype+'</option>');
-			for (var disabled in disabledMethods) 
-				if (disabledMethods[disabled] == m) methodOption.attr('disabled',true);
+			for (var disabled in uniqueMethods) 
+				if (uniqueMethods[disabled] == m) methodOption.attr('disabled',true);
 			if (lastGroup) methodOption.appendTo(lastGroup);
 			else methodOption.appendTo(methodMenu);
 		}
@@ -153,7 +153,26 @@ var addShippingRate = function (r) {
 	var rateTable = $('<table class="rate"/>').appendTo(rateTableCell);
 
 	$(methodMenu).change(function() {
+		
+		var id = $(this).attr('id').split("-");
+		var methodid = id[1];
+		var priormethod = $('#priormethod-'+methodid).val();
+		var uniqueMethodIndex = $.inArray(priormethod,uniqueMethods);
+		if (priormethod != "" && uniqueMethodIndex != -1)
+			uniqueMethods.splice(uniqueMethodIndex,1);
+			
+		$('#label-'+methodid).show();
+		$('#name-'+methodid).show();
+		$('#delivery-'+methodid).show();
+		$('#shipping-rates select.methods').not($(methodMenu)).find('option').attr('disabled',false);
+		$(uniqueMethods).each(function (i,method) {
+			$('#shipping-rates select.methods').not($(methodMenu)).find('option[value='+method+']:not(:selected)').attr('disabled',true);
+		});
+
 		methodHandlers.call($(this).val(),i,rateTable,r);
+		methodName = $(this).val().split("::");
+		$(this).parent().attr('class',methodName[0].toLowerCase());
+		$('#priormethod-'+methodid).val($('#method-'+methodid).val());
 	});
 
 	if (r) {
@@ -170,31 +189,22 @@ var addShippingRate = function (r) {
 }
 
 function uniqueMethod (methodid,option) {
-	disabledMethods.push(option);
 	$('#label-'+methodid).hide();
 	$('#name-'+methodid).hide();
 	$('#delivery-'+methodid).hide();
 	
 	var methodMenu = $('#method-'+methodid);
 	var methodOptions = methodMenu.children();
-	var optionid = false;
+	var optionid = methodMenu.get(0).selectedIndex;
 
-	methodOptions.each(function (i,o) {
-		if ($(o).val() == option) optionid = i;
-	});
-
+	if ($(methodOptions.get(optionid)).attr('disabled')) {
+		methodMenu.val(methodMenu.find('option:not(:disabled):first').val()).change();
+		return false;
+	}
 	$('#shipping-rates select.methods').not($(methodMenu)).find('option[value='+option+']').attr('disabled',true);
 	
-	methodMenu.change(function() {
-		if ($(this).val() != option) {
-			$('#label-'+methodid).show();
-			$('#name-'+methodid).show();
-			$('#delivery-'+methodid).show();
-			$('#shipping-rates select.methods option[value='+option+']').each(function () {
-				$(this).attr('disabled',false);
-			});
-		}
-	});
+	uniqueMethods.push(option);
+	return true;
 }
 
 var methodHandlers = new CallbackRegistry();

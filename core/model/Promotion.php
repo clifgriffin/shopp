@@ -20,9 +20,9 @@ class Promotion extends DatabaseObject {
 		"Sale price" => "price",
 		"Type" => "text",
 		"In stock" => "text",
-		"Item name" => "text",
-		"Item quantity" => "text",
-		"Item amount" => "price",
+		"Any item name" => "text",
+		"Any item quantity" => "text",
+		"Any item amount" => "price",
 		"Total quantity" => "text",
 		"Shipping amount" => "price",
 		"Subtotal amount" => "price",
@@ -51,7 +51,7 @@ class Promotion extends DatabaseObject {
 			foreach ($this->rules as $rule) {
 				
 				if ($this->values[$rule['property']] == "price") 
-					$value = floatnum($rule['value']);
+					$value = floatvalue($rule['value']);
 				else $value = "'".$rule['value']."'";
 				
 				switch($rule['logic']) {
@@ -83,8 +83,6 @@ class Promotion extends DatabaseObject {
 		}
 		
 		$type = ($this->type == "Item")?'catalog':'cart';
-		// Delete previous discount records
-		$db->query("DELETE FROM $discount_table WHERE promo=$this->id");
 		$query = "INSERT INTO $discount_table (promo,product,price) 
 					SELECT '$this->id' as promo,p.id AS product,prc.id AS price
 					FROM $product_table as p 
@@ -97,6 +95,11 @@ class Promotion extends DatabaseObject {
 		$db->query($query);
 		
 	}
+	
+	function reset_discounts () {
+		$db =& DB::get();
+		$db->query("DELETE FROM $discount_table WHERE promo=$this->id");
+	}
 
 	/**
 	 * match_rule ()
@@ -106,7 +109,7 @@ class Promotion extends DatabaseObject {
 		switch($op) {
 			// String or Numeric operations
 			case "Is equal to":
-			 	if($property && Promotion::$values[$property] == 'price'){
+			 	if($property && Promotion::$values[$property] == 'price') {
 					return ( floatvalue($subject) != 0 
 					&& floatvalue($value) != 0 
 					&& floatvalue($subject) == floatvalue($value));

@@ -23,9 +23,9 @@ class Flow {
 		$this->Cart = $Core->Cart;
 
 		$langpath = array(PLUGINDIR,$Core->directory,'lang');
-		load_plugin_textdomain('Shopp',join(DIRECTORY_SEPARATOR,$langpath));
+		load_plugin_textdomain('Shopp',sanitize_path(join('/',$langpath)));
 
-		$this->basepath = dirname(dirname(__FILE__));
+		$this->basepath = sanitize_path(dirname(dirname(__FILE__)));
 		$this->uri = ((!empty($_SERVER['HTTPS']))?"https://":"http://").
 					$_SERVER['SERVER_NAME'].str_replace("?".$_SERVER['QUERY_STRING'],"",$_SERVER['REQUEST_URI']);
 		$this->secureuri = 'https://'.$_SERVER['SERVER_NAME'].$this->uri;
@@ -93,6 +93,7 @@ class Flow {
 		if (!defined('SHOPP_PREPAYMENT_DOWNLOADS')) define('SHOPP_PREPAYMENT_DOWNLOADS',false);
 		if (!defined('SHOPP_SESSION_TIMEOUT')) define('SHOPP_SESSION_TIMEOUT',7200);
 		if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
+		if (!defined('SHOPP_GATEWAY_TIMEOUT')) define('SHOPP_GATEWAY_TIMEOUT',10);
 		
 		define("SHOPP_DEBUG",($Core->Settings->get('error_logging') == 2048));
 		define("SHOPP_PATH",$this->basepath);
@@ -103,13 +104,13 @@ class Flow {
 		define("SHOPP_TEMPLATES",($Core->Settings->get('theme_templates') != "off" && 
 		 							is_dir($Core->Settings->get('theme_templates')))?
 									$Core->Settings->get('theme_templates'):
-									SHOPP_PATH.DIRECTORY_SEPARATOR."templates");
+									SHOPP_PATH.'/'."templates");
 		define("SHOPP_TEMPLATES_URI",($Core->Settings->get('theme_templates') != "off" && 
 			 							is_dir($Core->Settings->get('theme_templates')))?
 										get_bloginfo('stylesheet_directory')."/shopp":
 										$Core->uri."/templates");
 
-		define("SHOPP_GATEWAYS",SHOPP_PATH.DIRECTORY_SEPARATOR."gateways".DIRECTORY_SEPARATOR);
+		define("SHOPP_GATEWAYS",SHOPP_PATH.'/'."gateways".'/');
 
 		define("SHOPP_PERMALINKS",(get_option('permalink_structure') == "")?false:true);
 		
@@ -136,6 +137,7 @@ class Flow {
 		$adminurl = $Shopp->wpadminurl."admin.php";
 		
 		$defaults = array(
+			'page' => false,
 			'deleting' => false,
 			'delete' => false,
 			'id' => false,
@@ -148,7 +150,8 @@ class Flow {
 
 		if (strstr($page,$Admin->categories)) {
 			
-			if ($deleting == "category"
+			if ($page == "shopp-categories"
+					&& !empty($deleting) 
 					&& !empty($delete) 
 					&& is_array($delete)) {
 				foreach($delete as $deletion) {
@@ -182,7 +185,8 @@ class Flow {
 		} // end $Admin->categories
 
 		if (strstr($page,$Admin->products)) {
-			if ($deleting == "product"
+			if ($page == "shopp-products"
+					&& !empty($deleting) 
 					&& !empty($delete) 
 					&& is_array($delete)) {
 				foreach($delete as $deletion) {
@@ -332,7 +336,10 @@ class Flow {
 
 		switch ($process) {
 			case "confirm-order": $content = $this->order_confirmation(); break;
-			case "receipt": $content = $this->order_receipt(); break;
+			case "thanks":
+			case "receipt": 
+				$content = $this->thanks(); 
+				break;//$content = $this->order_receipt(); break;
 			default:
 				ob_start();
 				if ($Cart->data->Errors->exist(SHOPP_COMM_ERR)) {
@@ -418,6 +425,8 @@ class Flow {
 
 				if (!$Shopp->gateway($gateway)) return false;
 
+				if(!$Cart->validorder()) shopp_redirect($Shopp->link('cart'));
+
 				// Process the transaction through the payment gateway
 				if (SHOPP_DEBUG) new ShoppError('Processing order through local-payment gateway service.',false,SHOPP_DEBUG_ERR);
 				$processed = $Shopp->Gateway->process();
@@ -437,10 +446,8 @@ class Flow {
 				if (SHOPP_DEBUG) new ShoppError('Transaction '.$transactionid.' successfully processed by local-payment gateway service '.$gatewayname.'.',false,SHOPP_DEBUG_ERR);
 				
 			} else { 
-				if(!$Cart->validorder()){
-					new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
-					return false;	
-				}
+				if(!$Cart->validorder()) shopp_redirect($Shopp->link('cart'));
+				
 				$gatewayname = __('N/A','Shopp');
 				$transactionid = __('(Free Order)','Shopp');
 			}
@@ -533,8 +540,7 @@ class Flow {
 		session_start();
 		
 		// Keep the user logged in or log them in if they are a new customer
-		if ($Shopp->Cart->data->login || $authentication != "none")
-			$Shopp->Cart->loggedin($Order->Customer);
+		if ($authentication != "none") $Shopp->Cart->loggedin($Order->Customer);
 		
 		// Save the purchase ID for later lookup
 		$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
@@ -568,7 +574,7 @@ class Flow {
 				|| $orderisfree
 				|| SHOPP_NOSSL) 
 			$ssl = false;
-		shopp_redirect($Shopp->link('receipt',$ssl));
+		shopp_redirect($Shopp->link('thanks',$ssl));
 	}
 	
 	// Display the confirm order screen
@@ -594,6 +600,19 @@ class Flow {
 		ob_end_clean();
 		return apply_filters('shopp_order_receipt','<div id="shopp">'.$content.'</div>');
 	}
+
+	// Display the thanks (transaction complete) page
+	function thanks ($template="thanks.php") {
+		global $Shopp;
+		$Cart = $Shopp->Cart;
+		$Purchase = $Cart->data->Purchase;
+		
+		ob_start();
+		include(trailingslashit(SHOPP_TEMPLATES).$template);
+		$content = ob_get_contents();
+		ob_end_clean();
+		return apply_filters('shopp_thanks',$content);
+	}
 	
 	// Display an error page
 	function error_page ($template="errors.php") {
@@ -616,6 +635,7 @@ class Flow {
 		$db = DB::get();
 		
 		$defaults = array(
+			'page' => false,
 			'deleting' => false,
 			'selected' => false,
 			'update' => false,
@@ -637,8 +657,8 @@ class Flow {
 		if ( !current_user_can(SHOPP_USERLEVEL) )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
-		if (isset($deleting)
-						&& $deleting == "order"
+		if ($page == "shopp-orders"
+						&& !empty($deleting)
 						&& !empty($selected) 
 						&& is_array($selected)) {
 			foreach($selected as $selection) {
@@ -800,6 +820,7 @@ class Flow {
 				do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['transtatus'],&$Purchase));
 			
 			$Purchase->updates($_POST);
+			$mailstatus = false;
 			if ($_POST['notify'] == "yes") {
 				$labels = $this->Settings->get('order_status');
 				
@@ -816,14 +837,16 @@ class Flow {
 					$notification['receipt'] = $this->order_receipt();
 
 				$notification['status'] = strtoupper($labels[$Purchase->status]);
-				$notification['message'] = wpautop($_POST['message']);
+				$notification['message'] = wpautop(stripslashes($_POST['message']));
 
-				shopp_email(SHOPP_TEMPLATES."/notification.html",$notification);
+				if (shopp_email(SHOPP_TEMPLATES."/notification.html",$notification))
+					$mailsent = true;
 				
 			}
 			
 			$Purchase->save();
-			$updated = __('Order status updated.','Shopp');
+			if ($mailsent) $updated = __('Order status updated & notification email sent.','Shopp');
+			else $updated = __('Order status updated.','Shopp');
 		}
 
 		$targets = $this->Settings->get('target_markets');
@@ -888,6 +911,7 @@ class Flow {
 		$db = DB::get();
 		
 		$defaults = array(
+			'page' => false,
 			'deleting' => false,
 			'selected' => false,
 			'update' => false,
@@ -906,7 +930,8 @@ class Flow {
 		$args = array_merge($defaults,$_GET);
 		extract($args, EXTR_SKIP);
 		
-		if ($deleting == "customer"
+		if ($page == "shopp-customers"
+				&& !empty($deleting) 
 				&& !empty($selected) 
 				&& is_array($selected)) {
 			foreach($selected as $deletion) {
@@ -938,9 +963,11 @@ class Flow {
 			
 			$Customer->save();
 			
+			if (isset($Customer->id)) $Billing->customer = $Customer->id;
 			$Billing->updates($_POST['billing']);
 			$Billing->save();
 
+			if (isset($Customer->id)) $Shipping->customer = $Customer->id;
 			$Shipping->updates($_POST['shipping']);
 			$Shipping->save();
 
@@ -1417,16 +1444,17 @@ class Flow {
 				
 				// Remove VAT amount to save in DB
 				if ($base['vat'] && $option['tax'] == "on") {
-					$option['price'] = number_format(floatnum($option['price'])/(1+$taxrate),2);
-					$option['saleprice'] = number_format(floatnum($option['saleprice'])/(1+$taxrate),2);
+					$option['price'] = floatvalue(floatvalue($option['price'])/(1+$taxrate));
+					$option['saleprice'] = floatvalue(floatvalue($option['saleprice'])/(1+$taxrate));
 				}
 				
 				$Price->updates($option);
 				$Price->save();
 				if (!empty($option['download'])) $Price->attach_download($option['download']);
 				if (!empty($option['downloadpath'])) {
-					$basepath = trailingslashit($Shopp->Settings->get('products_path'));
-					$download = $basepath.ltrim($option['downloadpath'],"/");
+					chdir(WP_CONTENT_DIR); // relative path context for realpath
+					$basepath = trailingslashit(sanitize_path(realpath($Shopp->Settings->get('products_path'))));
+					$download = $basepath.ltrim(sanitize_path($option['downloadpath']),"/");
 					if (file_exists($download)) {
 						$File = new Asset();
 						$File->parent = 0;
@@ -1444,7 +1472,7 @@ class Flow {
 			unset($Price);
 		}
 		
-		// No variation options at all, delete all variation-Pricelines
+		// No variation options at all, delete all variation-pricelines
 		if (empty($Product->options) && !empty($Product->prices) && is_array($Product->prices)) { 
 			foreach ($Product->prices as $priceline) {
 				// Skip if not tied to variation options
@@ -1883,6 +1911,7 @@ class Flow {
 		require_once("{$this->basepath}/core/model/Promotion.php");
 		
 		$defaults = array(
+			'page' => false,
 			'deleting' => false,
 			'delete' => false,
 			'pagenum' => 1,
@@ -1893,7 +1922,8 @@ class Flow {
 		$args = array_merge($defaults,$_GET);
 		extract($args,EXTR_SKIP);
 		
-		if ($deleting == "promotion"
+		if ($page == "shopp-promotions"
+				&& !empty($deleting) 
 				&& !empty($delete) 
 				&& is_array($delete)) {
 			foreach($delete as $deletion) {
@@ -1923,6 +1953,7 @@ class Flow {
 
 			do_action_ref_array('shopp_promo_saved',array(&$Promotion));
 
+			$Promotion->reset_discounts();
 			if ($Promotion->scope == "Catalog")
 				$Promotion->build_discounts();
 			
@@ -1990,8 +2021,8 @@ class Flow {
 		} else $Promotion = new Promotion();
 		
 		$scopes = array(
-			'Catalog' => __('Catalog','Shopp'),
-			'Order' => __('Order','Shopp')
+			'Catalog' => __('Catalog Products','Shopp'),
+			'Order' => __('Entire Order','Shopp')
 		);
 		
 		$types = array(
@@ -2206,7 +2237,7 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (isset($_POST['settings']['theme_templates']) && $_POST['settings']['theme_templates'] == "on") 
-			$_POST['settings']['theme_templates'] = addslashes(template_path(STYLESHEETPATH.DIRECTORY_SEPARATOR."shopp"));
+			$_POST['settings']['theme_templates'] = addslashes(sanitize_path(STYLESHEETPATH.'/'."shopp"));
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-presentation');
 			if (empty($_POST['settings']['catalog_pagination']))
@@ -2215,8 +2246,8 @@ class Flow {
 			$updated = __('Shopp presentation settings saved.');
 		}
 		
-		$builtin_path = $this->basepath.DIRECTORY_SEPARATOR."templates";
-		$theme_path = template_path(STYLESHEETPATH.DIRECTORY_SEPARATOR."shopp");
+		$builtin_path = $this->basepath.'/'."templates";
+		$theme_path = sanitize_path(STYLESHEETPATH.'/'."shopp");
 
 		// Copy templates to the current WordPress theme
 		if (!empty($_POST['install'])) {
@@ -2339,12 +2370,12 @@ class Flow {
 					if (!is_array($mr)) continue;
 					foreach ($mr as $id => &$v) {
 						if ($v == ">" || $v == "+" || $key == "services") continue;
-						$v = floatnum($v);								
+						$v = floatvalue($v);								
 					}
 				}
 			}
 			
-			$_POST['settings']['order_shipfee'] = floatnum($_POST['settings']['order_shipfee']);
+			$_POST['settings']['order_shipfee'] = floatvalue($_POST['settings']['order_shipfee']);
 			
 	 		$this->settings_save();
 			$updated = __('Shipping settings saved.','Shopp');
@@ -2361,7 +2392,7 @@ class Flow {
 				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth)
 					&& $Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth) {
 						$Shopp->ShipCalcs->modules[$ShipCalcClass]->verifyauth();
-						if ($Errors->exist()) $autherrors = $Errors->get();
+						if ($Errors->exist()) $autherrors = $Errors->get(SHOPP_ADDON_ERR,false,true);
 					}
 			}
 			
@@ -2421,7 +2452,6 @@ class Flow {
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		// $gateway_dir = SHOPP_PATH.DIRECTORY_SEPARATOR."gateways".DIRECTORY_SEPARATOR;
 		$payment_gateway = gateway_path($this->Settings->get('payment_gateway'));
 
 		if (!empty($_POST['save'])) {
@@ -2509,7 +2539,7 @@ class Flow {
 			else $process = "deactivate-key";
 			
 			$request = array(
-				"ShoppServerRequest" => $process,
+				"ShoppServerRequest" => $_POST['process'],
 				"ver" => '1.0',
 				"key" => $updatekey['key'],
 				"type" => $updatekey['type'],
@@ -2555,12 +2585,16 @@ class Flow {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$error = false;
+		chdir(WP_CONTENT_DIR);
 		
 		// Image path processing
 		if (isset($_POST['settings']) && isset($_POST['settings']['image_storage_pref'])) 
 			$_POST['settings']['image_storage'] = $_POST['settings']['image_storage_pref'];
-		$imagepath = $this->Settings->get('image_path');
-		if (isset($_POST['settings']['products_path'])) $imagepath = $_POST['settings']['image_path'];
+		$imagepath = sanitize_path(realpath($this->Settings->get('image_path')));
+		if (isset($_POST['settings']['products_path'])) {
+			$imagepath = $_POST['settings']['image_path'];
+			$imagepath = sanitize_path(realpath($imagepath));
+		}
 		$imagepath_status = __("File system image hosting is enabled and working.","Shopp");
 		if (!file_exists($imagepath)) $error = __("The current path does not exist. Using database instead.","Shopp");
 		if (!is_dir($imagepath)) $error = __("The file path supplied is not a directory. Using database instead.","Shopp");
@@ -2575,8 +2609,11 @@ class Flow {
 		// Product path processing
 		if (isset($_POST['settings']) && isset($_POST['settings']['product_storage_pref']))
 		 	$_POST['settings']['product_storage'] = $_POST['settings']['product_storage_pref'];
-		$productspath = $this->Settings->get('products_path');
-		if (isset($_POST['settings']['products_path'])) $productspath = $_POST['settings']['products_path'];
+		$productspath = sanitize_path(realpath($this->Settings->get('products_path')));
+		if (isset($_POST['settings']['products_path'])) {
+			$productspath = $_POST['settings']['products_path'];
+			$productspath = sanitize_path(realpath($productspath));
+		}
 		$error = ""; // Reset the error tracker
 		$productspath_status = __("File system product file hosting is enabled and working.","Shopp");
 		if (!file_exists($productspath)) $error = __("The current path does not exist. Using database instead.","Shopp");
@@ -2645,7 +2682,7 @@ class Flow {
 	}	
 	
 	function settings_get_gateways () {
-		$gateway_path = $this->basepath.DIRECTORY_SEPARATOR."gateways";
+		$gateway_path = $this->basepath.'/'."gateways";
 		
 		$gateways = array();
 		$gwfiles = array();
@@ -2664,14 +2701,14 @@ class Flow {
 	function validate_addons () {
 		$addons = array();
 
-		$gateway_path = $this->basepath.DIRECTORY_SEPARATOR."gateways";		
+		$gateway_path = $this->basepath.'/'."gateways";		
 		find_files(".php",$gateway_path,$gateway_path,$gateways);
 		foreach ($gateways as $file) {
 			if (in_array(basename($file),$this->coremods)) continue;
 			$addons[] = md5_file($gateway_path.$file);
 		}
 
-		$shipping_path = $this->basepath.DIRECTORY_SEPARATOR."shipping";
+		$shipping_path = $this->basepath.'/'."shipping";
 		find_files(".php",$shipping_path,$shipping_path,$shipmods);
 		foreach ($shipmods as $file) {
 			if (in_array(basename($file),$this->coremods)) continue;
@@ -2754,7 +2791,7 @@ class Flow {
 		
 		// Find our temporary filesystem workspace
 		$tmpdir = defined('SHOPP_TEMP_PATH') ? SHOPP_TEMP_PATH : sys_get_temp_dir();
-		$tmpdir = str_replace('\\', '/', $tmpdir); //Windows path sanitiation
+		$tmpdir = sanitize_path($tmpdir);
 		
 		$log[] = "Found temp directory: $tmpdir";
 		
@@ -2840,12 +2877,12 @@ class Flow {
 				break;
 			case "Payment Gateway":
 				$results = $ftp->update($target.$files[0]['filename'],
-							$Shopp->path.DIRECTORY_SEPARATOR."gateways".DIRECTORY_SEPARATOR.$files[0]['filename']);
+							$Shopp->path.'/'."gateways".'/'.$files[0]['filename']);
 				if (!empty($results)) die(join("\n\n",$log).join("\n\n",$results)."\n\nFTP transfer failed.");
 				break;
 			case "Shipping Module":
 				$results = $ftp->update($target.$files[0]['filename'],
-							$Shopp->path.DIRECTORY_SEPARATOR."shipping".DIRECTORY_SEPARATOR.$files[0]['filename']);
+							$Shopp->path.'/'."shipping".'/'.$files[0]['filename']);
 				if (!empty($results)) die(join("\n\n",$log).join("\n\n",$results)."\n\nFTP transfer failed.");
 				break;
 		}
@@ -2961,31 +2998,36 @@ class Flow {
 	function setup_regions () {
 		global $Shopp;
 		include_once("init.php");
-		$this->Settings->save('regions',get_global_regions());
+		$regions = apply_filters('shopp_setup_global_regions',get_global_regions());
+		$this->Settings->save('regions',$regions);
 	}
 	
 	function setup_countries () {
 		global $Shopp;
 		include_once("init.php");
-		$this->Settings->save('countries',addslashes(serialize(get_countries())),false);
+		$countries = apply_filters('shopp_setup_country_table',get_countries());
+		$this->Settings->save('countries',addslashes(serialize($countries)),false);
 	}
 	
 	function setup_zones () {
 		global $Shopp;
 		include_once("init.php");
-		$this->Settings->save('zones',get_country_zones(),false);
+		$zones = apply_filters('shopp_setup_country_zones',get_country_zones());
+		$this->Settings->save('zones',$zones,false);
 	}
 
 	function setup_areas () {
 		global $Shopp;
 		include_once("init.php");
-		$this->Settings->save('areas',get_country_areas(),false);
+		$areas = apply_filters('shopp_setup_country_areas',get_country_areas());
+		$this->Settings->save('areas',$areas,false);
 	}
 
 	function setup_vat () {
 		global $Shopp;
 		include_once("init.php");
-		$this->Settings->save('vat_countries',get_vat_countries(),false);
+		$countries = apply_filters('shopp_setup_vat_countries',get_vat_countries());
+		$this->Settings->save('vat_countries',$countries,false);
 	}
 	
 }

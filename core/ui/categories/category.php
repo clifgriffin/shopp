@@ -75,7 +75,8 @@ var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
-var productspath = '<?php echo trailingslashit($this->Settings->get('products_path')); ?>';
+<?php chdir(WP_CONTENT_DIR); // realpath needs for relative paths ?>
+var productspath = '<?php echo trailingslashit(sanitize_path(realpath($this->Settings->get('products_path')))); ?>';
 
 // Warning/Error Dialogs
 var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this category image?','Shopp'); ?>";

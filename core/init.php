@@ -78,7 +78,7 @@ function get_countries () {
 	$countries['PL'] = array('name'=>__('Poland','Shopp'),'currency'=>array('code'=>'PLZ','format'=>'#.###,## zł'),'units'=>'metric','region'=>3); 
 	$countries['PT'] = array('name'=>__('Portugal','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 	$countries['PR'] = array('name'=>__('Puerto Rico','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'imperial','region'=>0); 
-	$countries['RO'] = array('name'=>__('Romania','Shopp'),'currency'=>array('code'=>'ROL','format'=>'#.###,## lei'),'units'=>'metric','region'=>3); 
+	$countries['RO'] = array('name'=>__('Romania','Shopp'),'currency'=>array('code'=>'ROL','format'=>'лея #.###,##'),'units'=>'metric','region'=>3); 
 	$countries['RU'] = array('name'=>__('Russia','Shopp'),'currency'=>array('code'=>'RUB','format'=>'RUB#.###,##'),'units'=>'metric','region'=>6); 
 	$countries['SG'] = array('name'=>__('Singapore','Shopp'),'currency'=>array('code'=>'SGD','format'=>'$#,###.##'),'units'=>'metric','region'=>6); 
 	$countries['SK'] = array('name'=>__('Slovakia','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
@@ -106,13 +106,14 @@ function get_countries () {
 function get_country_zones() {
 	$zones = array();
 	$zones['AU'] = array();
+	$zones['AU']['VIC'] = 'Victoria';	
+	$zones['AU']['ACT'] = 'Australian Capital Territory';	
 	$zones['AU']['NSW'] = 'New South Wales';
-	$zones['AU']['NT'] = 'Northern Territory';
-	$zones['AU']['QLD'] = 'Queensland';
 	$zones['AU']['SA'] = 'South Australia';
-	$zones['AU']['TAS'] = 'Tasmania';
-	$zones['AU']['VIC'] = 'Victoria';
+	$zones['AU']['QLD'] = 'Queensland';
+	$zones['AU']['NT'] = 'Northern Territory';
 	$zones['AU']['WA'] = 'Western Australia';
+	$zones['AU']['TAS'] = 'Tasmania';
 
 	$zones['CA'] = array();
 	$zones['CA']['AB'] = 'Alberta';

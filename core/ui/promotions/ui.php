@@ -50,8 +50,8 @@ add_meta_box('promotion-discount', __('Discount','Shopp'), 'discount_meta_box', 
 
 function rules_meta_box ($Promotion) {
 	$scopes = array(
-		'Catalog' => __('Catalog','Shopp'),
-		'Order' => __('Order','Shopp')
+		'Catalog' => __('Catalog Products','Shopp'),
+		'Order' => __('Entire Order','Shopp')
 	);
 	$scope = '<select name="scope" id="promotion-scope" class="small">';
 	$scope .= menuoptions($scopes,$Promotion->scope,true);
@@ -64,7 +64,7 @@ function rules_meta_box ($Promotion) {
 	$logic .= '</select>';
 
 ?>
-<p><strong><?php printf(__('Apply discount to %s products where %s of these conditions are met','Shopp'),$scope,$logic); ?>:</strong></p>
+<p><strong><?php printf(__('Apply discount to %s where %s of these conditions are met','Shopp'),$scope,$logic); ?>:</strong></p>
 <table class="form-table" id="rules"></table>
 <?php
 }

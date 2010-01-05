@@ -120,7 +120,7 @@ class Settings extends DatabaseObject {
 			$restored = unserialize($value);
 			if (!empty($restored)) return $restored;
 			$restored = unserialize(stripslashes($value));
-			if (!empty($restored)) return $restored;
+			if ($restored !== false) return $restored;
 		}
 		return $value;
 	}

@@ -258,8 +258,8 @@ class Category extends DatabaseObject {
 				$loading['joins'] .= " LEFT JOIN $purchasedtable AS pur ON p.id=pur.product";
 				$loading['order'] = "sold DESC"; 
 				break;
-			case "highprice": $loading['order'] = "pd.price DESC"; break;
-			case "lowprice": $loading['order'] = "pd.price ASC"; break;
+			case "highprice": $loading['order'] = "highprice DESC"; break;
+			case "lowprice": $loading['order'] = "lowprice ASC"; break;
 			case "newest": $loading['order'] = "pd.created DESC"; break;
 			case "oldest": $loading['order'] = "pd.created ASC"; break;
 			case "random": $loading['order'] = "RAND()"; break;
@@ -289,6 +289,8 @@ class Category extends DatabaseObject {
 					MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
 					IF(pd.sale='on',1,IF (pr.discount > 0,1,0)) AS onsale,
 					MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice,
+					IF (pd.sale='on' AND MIN(pd.saleprice) > 0,MIN(pd.saleprice),MIN(pd.price)) AS lowprice,
+					IF (pd.sale='on' AND MIN(pd.saleprice) > 0,MAX(pd.saleprice),MAX(pd.price)) AS highprice,
 					IF(pd.inventory='on',1,0) AS inventory,
 					SUM(pd.stock) as stock";
 
@@ -451,15 +453,19 @@ class Category extends DatabaseObject {
 		
 		do_action_ref_array('shopp_category_rss',array(&$this));
 		
-		if (!$this->products) $this->load_products(array('limit'=>500));
+		if (!$this->products) $this->load_products(array('limit'=>500,'load'=>array('images','prices')));
 		
-		if (SHOPP_PERMALINKS) $rssurl = $Shopp->shopuri.'feed/';
+		if (SHOPP_PERMALINKS) $rssurl = user_trailingslashit($Shopp->shopuri.'feed');
 		else $rssurl = add_query_arg('shopp_lookup','products-rss',$Shopp->shopuri);
-
 		$rss = array('title' => get_bloginfo('name')." ".$this->name,
 			 			'link' => $rssurl,
 					 	'description' => $this->description,
-						'sitename' => get_bloginfo('name').' ('.get_bloginfo('url').')');
+						'sitename' => get_bloginfo('name').' ('.get_bloginfo('url').')',
+						'xmlns' => array('shopp'=>'http://shopplugin.net/xmlns',
+							'g'=>'http://base.google.com/ns/1.0',
+							'atom'=>'http://www.w3.org/2005/Atom',
+							'content'=>'http://purl.org/rss/1.0/modules/content/')
+						);
 		$rss = apply_filters('shopp_rss_meta',$rss);
 		
 		$items = array();
@@ -469,42 +475,49 @@ class Category extends DatabaseObject {
 			$item = array();
 			$item['guid'] = array($product->id,'isPermaLink'=>'false');
 			$item['title'] = attribute_escape($product->name);
-			if (SHOPP_PERMALINKS) $item['link'] = $Shopp->shopuri.$product->id;
+			if (SHOPP_PERMALINKS) $item['link'] = user_trailingslashit($Shopp->shopuri.urldecode($product->slug));
 			else $item['link'] = urlencode(add_query_arg('shopp_pid',$product->id,$Shopp->shopuri));
-			$item['description'] = "<![CDATA[";
+			
+			// Item Description
+			$item['description'] = '';
 			if (!empty($product->thumbnail)) {
 				$item['description'] .= '<a href="'.$item['link'].'" title="'.$product->name.'">';
 				$item['description'] .= '<img src="'.$product->thumbnail->uri.'" alt="'.$product->name.'" width="'.$product->thumbnail->properties['width'].'" height="'.$product->thumbnail->properties['height'].'" style="float: left; margin: 0 10px 0 0;" />';
 				$item['description'] .= '</a>';
-				$item['g:image_link'] = $product->thumbnail->uri;
 			}
-
-			$item['g:condition'] = "new";
+			
 			$pricing = "";
 			if ($product->onsale) {
-				if ($product->pricerange['min']['saleprice'] != $product->pricerange['max']['saleprice']) $pricing .= "from ";
+				if ($product->pricerange['min']['saleprice'] != $product->pricerange['max']['saleprice'])
+					$pricing .= "from ";
 				$pricing .= money($product->pricerange['min']['saleprice']);
 			} else {
-				if ($product->pricerange['min']['price'] != $product->pricerange['max']['price']) $pricing .= "from ";
+				if ($product->pricerange['min']['price'] != $product->pricerange['max']['price']) 
+					$pricing .= "from ";
 				$pricing .= money($product->pricerange['min']['price']);
 			}
-			$item['g:price'] = number_format(($product->onsale)?
-				$product->pricerange['min']['saleprice']:$product->pricerange['min']['price'],2);
-			$item['g:price_type'] = "starting";
-
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
-			$item['description'] .= wpautop(attribute_escape($product->description));
-			$item['description'] .= "]]>";
-
-			$item = apply_filters('shopp_rss_item',$item,$product);
-			//$item['g:quantity'] = $product->stock;
 			
+			$item['description'] .= wpautop(attribute_escape($product->description));
+			$item['description'] =
+			 	'<![CDATA['.apply_filters('shopp_rss_description',$item['description'],$product).']]>';
+			
+			// Google Base Namespace
+			if(!empty($product->imagesets) & !empty($product->imagesets['image'])) 
+				$item['g:image_link'] = $product->thumbnail->uri;
+			$item['g:condition'] = "new";
+			$item['g:price'] = floatvalue($product->onsale?
+				$product->pricerange['min']['saleprice']:
+				$product->pricerange['min']['price']);
+			$item['g:price_type'] = "starting";
+			
+			$item = apply_filters('shopp_rss_item',$item,$product);
 			$items[] = $item;
 		}
 		$rss['items'] = $items;
 
 		return $rss;
-	}	
+	}
 	
 	function sortoptions () {
 		return array(
@@ -528,18 +541,19 @@ class Category extends DatabaseObject {
 		
 		if (SHOPP_PERMALINKS) {
 			$pages = $Shopp->Settings->get('pages');
-			if ($page == trailingslashit(get_bloginfo('url')))
-				$page .= $pages['catalog']['name']."/";
+			if ($page == user_trailingslashit(get_bloginfo('url')))
+				$page .= "/".$pages['catalog']['name']."/";
 		}
 		
 		switch ($property) {
 			case "link": 
 			case "url": 
 				return (SHOPP_PERMALINKS)?
-					$Shopp->shopuri."category/".urldecode($this->uri):
-					add_query_arg('shopp_category',$this->id,$Shopp->shopuri);
+					user_trailingslashit($Shopp->canonuri."category/".urldecode($this->uri)):
+					add_query_arg('shopp_category',$this->id,$Shopp->canonuri);
 				break;
 			case "id": return $this->id; break;
+			case "parent": return $this->parent; break;
 			case "name": return $this->name; break;
 			case "slug": return urldecode($this->slug); break;
 			case "description": return wpautop($this->description); break;
@@ -567,10 +581,7 @@ class Category extends DatabaseObject {
 					$this->productsidx++;
 				}
 
-				if (current($this->products)) {
-					$Shopp->Product = current($this->products);
-					return true;
-				}
+				if (current($this->products) !== false) return true;
 				else {
 					$this->productloop = false;
 					return false;
@@ -601,10 +612,8 @@ class Category extends DatabaseObject {
 					$this->childidx++;
 				}
 
-				if (current($this->children)) {
-					$this->child = current($this->children);
-					return true;
-				} else {
+				if (current($this->children) !== false) return true;
+				else {
 					$this->childloop = false;
 					return false;
 				}
@@ -660,7 +669,7 @@ class Category extends DatabaseObject {
 						}
 						$padding = str_repeat("&nbsp;",$category->depth*3);
 
-						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+						if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.'category/'.$category->uri);
 						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 
 						$total = '';
@@ -735,6 +744,7 @@ class Category extends DatabaseObject {
 
 						$previous = &$category;
 						$depth = $category->depth;
+						$count++;
 					}
 					if (value_is_true($hierarchy) && $depth > 0) 
 						for ($i = $depth; $i > 0; $i--) {
@@ -818,7 +828,7 @@ class Category extends DatabaseObject {
 						}
 						$padding = str_repeat("&nbsp;",$category->depth*3);
 			
-						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+						if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.'category/'.$category->uri);
 						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 			
 						$total = '';
@@ -854,7 +864,7 @@ class Category extends DatabaseObject {
 						}
 						if (value_is_true($hierarchy) && $category->depth < $depth) $string .= '</ul></li>';
 			
-						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+						if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.'category/'.$category->uri);
 						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 			
 						if (value_is_true($products)) $total = ' <span>('.$category->total.')</span>';
@@ -879,7 +889,7 @@ class Category extends DatabaseObject {
 				break;
 			case "pagination":
 				if (!$this->paged) return "";
-				
+				$page = $Shopp->shopuri;
 				global $wp;	
 				// Set options
 				if (!isset($options['label'])) $options['label'] = __("Pages:","Shopp");
@@ -904,7 +914,7 @@ class Category extends DatabaseObject {
 					$string .= '<ul class="paging">';
 					foreach ($this->alpha as $alpha) {
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."$type/$this->uri/page/$alpha->letter/":
+							user_trailingslashit("$page"."$type/$this->uri/page/$alpha->letter"):
 							"$page&shopp_$type=$this->uri&paged=$alpha->letter";
 						if ($alpha->total > 0)
 							$string .= '<li><a href="'.$link.'">'.$alpha->letter.'</a></li>';
@@ -930,14 +940,14 @@ class Category extends DatabaseObject {
 						if ($visible_pages > $this->pages) $visible_pages = $this->pages + 1;
 						if ($i > 1) {
 							$link = (SHOPP_PERMALINKS)?
-								"$page"."$type/$this->uri/page/$i/":
+								user_trailingslashit("$page"."$type/$this->uri/page/$i"):
 								"$page&shopp_$type=$this->uri&paged=$i";
 							$string .= '<li><a href="'.$link.'">1</a></li>';
 
 							$pagenum = ($this->page - $jumps);
 							if ($pagenum < 1) $pagenum = 1;
 							$link = (SHOPP_PERMALINKS)?
-								"$page"."$type/$this->uri/page/$pagenum/":
+								user_trailingslashit("$page"."$type/$this->uri/page/$pagenum"):
 								"$page&shopp_$type=$this->uri&paged=$pagenum";
 								
 							$string .= '<li><a href="'.$link.'">&laquo;</a></li>';
@@ -948,7 +958,7 @@ class Category extends DatabaseObject {
 					if (!value_is_true($options['previous']) && $this->page > 1) {
 						$prev = $this->page-1;
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."$type/$this->uri/page/$prev/":
+							user_trailingslashit("$page"."$type/$this->uri/page/$prev"):
 							"$page&shopp_$type=$this->uri&paged=$prev";
 						$string .= '<li class="previous"><a href="'.$link.'">'.$options['previous'].'</a></li>';
 					} else $string .= '<li class="previous disabled">'.$options['previous'].'</li>';
@@ -956,7 +966,7 @@ class Category extends DatabaseObject {
 
 					while ($i < $visible_pages) {
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."$type/$this->uri/page/$i/":
+							user_trailingslashit("$page"."$type/$this->uri/page/$i"):
 							"$page&shopp_$type=$this->uri&paged=$i";
 						if ( $i == $this->page ) $string .= '<li class="active">'.$i.'</li>';
 						else $string .= '<li><a href="'.$link.'">'.$i.'</a></li>';
@@ -966,12 +976,12 @@ class Category extends DatabaseObject {
 						$pagenum = ($this->page + $jumps);
 						if ($pagenum > $this->pages) $pagenum = $this->pages;
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."$type/$this->uri/page/$pagenum/":
+							user_trailingslashit("$page"."$type/$this->uri/page/$pagenum"):
 							"$page&shopp_$type=$this->uri&paged=$pagenum";
 						$string .= '<li><a href="'.$link.'">&raquo;</a></li>';
 
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."$type/$this->uri/page/$this->pages/":
+							user_trailingslashit("$page"."$type/$this->uri/page/$this->pages"):
 							"$page&shopp_$type=$this->uri&paged=$this->pages";
 						$string .= '<li><a href="'.$link.'">'.$this->pages.'</a></li>';	
 					}
@@ -980,7 +990,7 @@ class Category extends DatabaseObject {
 					if (!value_is_true($options['next']) && $this->page < $this->pages) {						
 						$next = $this->page+1;
 						$link = (SHOPP_PERMALINKS)?
-							"$page"."$type/$this->uri/page/$next/":
+							"$page"."$type/$this->uri/page/$next":
 							"$page&shopp_$type=$this->uri&paged=$next";
 						$string .= '<li class="next"><a href="'.$link.'">'.$options['next'].'</a></li>';
 					} else $string .= '<li class="next disabled">'.$options['next'].'</li>';
@@ -1029,7 +1039,7 @@ class Category extends DatabaseObject {
 						elseif ($range['max'] == 0) $label = money($range['min']).' '.__('and up','Shopp');
 						$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 					}
-					if (!empty($this->priceranges)) $output .= '<h4>'.__('Price Range').'</h4>';
+					if (!empty($this->priceranges)) $output .= '<h4>'.__('Price Range','Shopp').'</h4>';
 					$output .= '<ul>'.$list.'</ul>';
 				}
 				
@@ -1152,7 +1162,7 @@ class Category extends DatabaseObject {
 					$this->imageloop = true;
 				} else next($this->images[$options['type']]);
 
-				if (current($this->images[$options['type']])) return true;
+				if (current($this->images[$options['type']]) !== false) return true;
 				else {
 					$this->imageloop = false;
 					return false;
@@ -1258,7 +1268,7 @@ class BestsellerProducts extends Category {
 
 class SearchResults extends Category {
 	static $_slug = "search-results";
-	
+
 	function SearchResults ($options=array()) {
 		if (empty($options['search'])) $options['search'] = "(no search terms)";
 		$this->name = __("Search Results for","Shopp")." &quot;".stripslashes($options['search'])."&quot;";
@@ -1269,19 +1279,23 @@ class SearchResults extends Category {
 		$keywords = $options['search'];
 
 		// Strip accents for search
-		$accents = array(' ','á','à','â','ã','ª','Á','À', 
+		$accents = array('á','à','â','ã','ª','Á','À', 
 	    'Â','Ã', 'é','è','ê','É','È','Ê','í','ì','î','Í', 
 	    'Ì','Î','ò','ó','ô', 'õ','º','Ó','Ò','Ô','Õ','ú', 
 	    'ù','û','Ú','Ù','Û','ç','Ç','Ñ','ñ'); 
-	    $alt = array('-','a','a','a','a','a','A','A', 
+	    $alt = array('a','a','a','a','a','A','A', 
 	    'A','A','e','e','e','E','E','E','i','i','i','I','I', 
 	    'I','o','o','o','o','o','O','O','O','O','u','u','u', 
 	    'U','U','U','c','C','N','n');
 	    $keywords = trim(str_replace($accents, $alt, $keywords));
 	
+		if (!defined('SHOPP_SEARCH_LOGIC')) define('SHOPP_SEARCH_LOGIC','OR');
+		$logic = (strtoupper(SHOPP_SEARCH_LOGIC) == "AND")?"+":"";
+
 		// Strip non alpha-numerics
 	    $keywords = preg_replace('/[^A-Za-z0-9\_\.\-]/', '', $keywords); 
-		$keywords = preg_replace('/(\s?)(\w+)\b(\s?)/','\1\2*\3',$keywords);
+		$keywords = preg_replace('/(\s?)(\w+)\b(\s?)/','\1'.$logic.'\2*\3',$keywords);
+
 		if (strlen($options['search']) > 0 && empty($keywords)) $keywords = $options['search'];
 		
 		$this->loading = array(

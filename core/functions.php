@@ -666,7 +666,7 @@ function shopp_email ($template,$data=array()) {
 		if ( $in_body ) $message .= $line."\n";
 	}
 
-	if (!$debug) return mail($to,$subject,$message,$headers);
+	if (!$debug) return wp_mail($to,$subject,$message,$headers);
 	else {
 		echo "<pre>";
 		echo "To: $to\n";
@@ -683,13 +683,17 @@ function shopp_email ($template,$data=array()) {
  * Generates an RSS-compliant string from an associative 
  * array ($data) with a specific RSS-structure. */
 function shopp_rss ($data) {
+	// RSS filters
+	add_filter('shopp_rss_description','convert_chars');
+	add_filter('shopp_rss_description','ent2ncr');
+
 	$xmlns = '';
 	if (is_array($data['xmlns']))
 		foreach ($data['xmlns'] as $key => $value)
-			$xmlns .= ' xmlns:'.$key.'="'.$value.'"';
+			$xmlns .= 'xmlns:'.$key.'="'.$value.'" ';
 
 	$xml = "<?xml version=\"1.0\""." encoding=\"utf-8\"?>\n";
-	$xml .= "<rss version=\"2.0\" xmlns:content=\"http://purl.org/rss/1.0/modules/content/\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:g=\"http://base.google.com/ns/1.0\"$xmlns>\n";
+	$xml .= "<rss version=\"2.0\" $xmlns>\n";
 	$xml .= "<channel>\n";
 
 	$xml .= '<atom:link href="'.htmlentities($data['link']).'" rel="self" type="application/rss+xml" />'."\n";
@@ -725,33 +729,6 @@ function shopp_rss ($data) {
 	return $xml;
 }
 
-function shopp_image () {
-	$db =& DB::get();
-	require("model/Asset.php");
-	$table = DatabaseObject::tablename(Settings::$table);
-	$settings = $db->query("SELECT name,value FROM $table WHERE name='image_storage' OR name='image_path'",AS_ARRAY);
-	foreach ($settings as $setting) ${$setting->name} = $setting->value;
-
-	if (isset($_GET['shopp_image'])) $image = $_GET['shopp_image'];
-	elseif (preg_match('/\/images\/(\d+).*$/',$_SERVER['REQUEST_URI'],$matches)) 
-		$image = $matches[1];
-
-	if (empty($image)) die();
-	$Asset = new Asset($image);
-	header('Last-Modified: '.date('D, d M Y H:i:s', $Asset->created).' GMT'); 
-	header("Content-type: ".$Asset->properties['mimetype']);
-	header("Content-Disposition: inline; filename=".$Asset->name.""); 
-	header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-	if ($image_storage == "fs") {
-		header ("Content-length: ".@filesize(trailingslashit($image_path).$Asset->name)); 
-		readfile(trailingslashit($image_path).$Asset->name);
-	} else {
-		header ("Content-length: ".strlen($Asset->data)); 
-		echo $Asset->data;
-	} 
-	exit();
-}
-
 function shopp_catalog_css () {
 	$db =& DB::get();
 	$table = DatabaseObject::tablename(Settings::$table);
@@ -784,7 +761,7 @@ function shopp_settings_js ($dir="shopp") {
 	$base_operations = unserialize($base_operations);
 	
 	$path = array(PLUGINDIR,$dir,'lang');
-	load_plugin_textdomain('Shopp', join(DIRECTORY_SEPARATOR,$path));
+	load_plugin_textdomain('Shopp', sanitize_path(join('/',$path)));
 	
 	ob_start();
 	include("ui/behaviors/settings.js");
@@ -840,6 +817,28 @@ function shopp_prereqs () {
 	return true;
 }
 
+if( !function_exists('esc_url') ) {
+	/**
+	 * Checks and cleans a URL.  From WordPress 2.8.0+  Included for WordPress 2.7 Users of Shopp
+	 *
+	 * A number of characters are removed from the URL. If the URL is for displaying
+	 * (the default behaviour) amperstands are also replaced. The 'esc_url' filter
+	 * is applied to the returned cleaned URL.
+	 *
+	 * @since 2.8.0
+	 * @uses esc_url()
+	 * @uses wp_kses_bad_protocol() To only permit protocols in the URL set
+	 *		via $protocols or the common ones set in the function.
+	 *
+	 * @param string $url The URL to be cleaned.
+	 * @param array $protocols Optional. An array of acceptable protocols.
+	 *		Defaults to 'http', 'https', 'ftp', 'ftps', 'mailto', 'news', 'irc', 'gopher', 'nntp', 'feed', 'telnet' if not set.
+	 * @return string The cleaned $url after the 'cleaned_url' filter is applied.
+	 */
+	function esc_url( $url, $protocols = null ) {
+		return clean_url( $url, $protocols, 'display' );
+	}
+}
 
 function shopp_debug ($object) {
 	global $Shopp;
@@ -984,9 +983,9 @@ function readableFileSize($bytes,$precision=1) {
 function copy_shopp_templates ($src,$target) {
 	$builtin = array_filter(scandir($src),"filter_dotfiles");
 	foreach ($builtin as $template) {
-		$target_file = $target.DIRECTORY_SEPARATOR.$template;
+		$target_file = $target.'/'.$template;
 		if (!file_exists($target_file)) {
-			$src_file = file_get_contents($src.DIRECTORY_SEPARATOR.$template);
+			$src_file = file_get_contents($src.'/'.$template);
 			$file = fopen($target_file,'w');
 			$src_file = preg_replace('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/','',$src_file);
 			fwrite($file,$src_file);
@@ -1015,6 +1014,12 @@ if ( !function_exists('sys_get_temp_dir')) {
 			unlink($tempfile);
 			return realpath(dirname($tempfile));
 		}
+	}
+}
+
+if(!function_exists('sanitize_path')){
+	function sanitize_path ($path) {
+		return str_replace('\\', '/', $path);
 	}
 }
 
@@ -1134,7 +1139,7 @@ class FTPClient {
 	function remappath ($path) {
 		$files = $this->scan();
 		foreach ($files as $file) {
-			$filepath = trailingslashit($this->pwd()).basename($file);
+			$filepath = trailingslashit(sanitize_path($this->pwd())).basename($file);
 			if (!$this->isdir($filepath)) continue;
 			$index = strrpos($path,$filepath);
 			if ($index !== false) {
@@ -1148,7 +1153,7 @@ class FTPClient {
 
 }
 
-if (function_exists('date_default_timezone_set')) 
+if (function_exists('date_default_timezone_set') && get_option('timezone_string')) 
 	date_default_timezone_set(get_option('timezone_string'));
 
 shopp_prereqs();  // Run by default at include

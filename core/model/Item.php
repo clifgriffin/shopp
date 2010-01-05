@@ -74,7 +74,7 @@ class Item {
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
 		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
 		$this->donation = $Price->donation;
-		$this->data = $data;
+		$this->data = stripslashes_deep(attribute_escape_deep($data));
 		
 		// Map out the selected menu name and option
 		if ($Product->variations == "on") {
@@ -117,9 +117,9 @@ class Item {
 	function quantity ($qty) {
 
 		if ($this->type == "Donation" && $this->donation['var'] == "on") {
-			if ($this->donation['min'] == "on" && floatnum($qty) < $this->unitprice) 
+			if ($this->donation['min'] == "on" && floatvalue($qty) < $this->unitprice) 
 				$this->unitprice = $this->unitprice;
-			else $this->unitprice = floatnum($qty);
+			else $this->unitprice = floatvalue($qty);
 			$this->quantity = 1;
 			$qty = 1;
 		}
@@ -138,7 +138,7 @@ class Item {
 	
 	function add ($qty) {
 		if ($this->type == "Donation" && $this->donation['var'] == "on") {
-			$qty = floatnum($qty);
+			$qty = floatvalue($qty);
 			$this->quantity = $this->unitprice;
 		}
 		$this->quantity($this->quantity+$qty);
@@ -190,6 +190,24 @@ class Item {
 		if ($this->option->stock <= $Shopp->Settings->get('lowstock_level'))
 			return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product),'lowstock_warning',SHOPP_STOCK_ERR);
 
+	}
+	
+	function instock () {
+		if (!$this->inventory) return true;
+		$this->option->stock = $this->getstock();
+		return $this->option->stock >= $this->quantity;
+	}
+	
+	function getstock () {
+		$db = DB::get();
+		$stock = apply_filters('shopp_cartitem_stock',false,&$this);
+		if ($stock !== false) return $stock;
+
+		$table = DatabaseObject::tablename(Price::$table);
+		$result = $db->query("SELECT stock FROM $table WHERE id='$this->price'");
+		if (isset($result->stock)) return $result->stock;
+
+		return $this->option->stock;
 	}
 	
 	function shipping (&$Shipping) {
@@ -301,7 +319,7 @@ class Item {
 					$this->dataloop = true;
 				} else next($this->data);
 
-				if (current($this->data)) return true;
+				if (current($this->data) !== false) return true;
 				else {
 					$this->dataloop = false;
 					return false;

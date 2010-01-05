@@ -15,6 +15,7 @@ class Customer extends DatabaseObject {
 	var $login;
 	var $info = array();
 	var $looping = false;
+	var $newuser = false;
 	
 	var $management = array(
 		"account" => "account",
@@ -262,6 +263,9 @@ class Customer extends DatabaseObject {
 		wp_new_user_notification( $wpuser, $this->password );
 		$this->password = "";
 		if (SHOPP_DEBUG) new ShoppError('Successfully created the WordPress user for the Shopp account.',false,SHOPP_DEBUG_ERR);
+		
+		$this->newuser = true;
+		
 		return true;
 	}
 	
@@ -353,7 +357,7 @@ class Customer extends DatabaseObject {
 					$this->looping = true;
 				} else next($this->management);
 				
-				if (current($this->management)) return true;
+				if (current($this->management) !== false) return true;
 				else {
 					$this->looping = false;
 					reset($this->management);
@@ -365,6 +369,12 @@ class Customer extends DatabaseObject {
 				if (array_key_exists('action',$options)) return key($this->management);
 				return $menus[key($this->management)];
 			case "accounts": return $Shopp->Settings->get('account_system'); break;
+			case "hasaccount": 
+				$system = $Shopp->Settings->get('account_system');
+				if ($system == "wordpress") return ($this->wpuser != 0);
+				elseif ($system == "shopp") return (!empty($this->password));
+				else return false;
+			case "wpuser-created": return $this->newuser;
 			case "order-lookup":
 				$auth = $Shopp->Settings->get('account_system');
 				if ($auth != "none") return true;
@@ -446,7 +456,7 @@ class Customer extends DatabaseObject {
 					$this->looping = true;
 				} else next($this->info);
 				
-				if (current($this->info)) return true;
+				if (current($this->info) !== false) return true;
 				else {
 					$this->looping = false;
 					reset($this->info);
@@ -461,7 +471,7 @@ class Customer extends DatabaseObject {
 					$options['name'] = isset($options['name'])?$options['name']:false;
 					$options['value'] = isset($options['value'])?$options['value']:false;
 				}
-				
+
 				$allowed_types = array("text","password","hidden","checkbox","radio");
 				if (empty($options['type'])) $options['type'] = "hidden";
 				if (in_array($options['type'],$allowed_types)) {
@@ -488,7 +498,7 @@ class Customer extends DatabaseObject {
 					$this->looping = true;
 				} else next($this->downloads);
 			
-				if (current($this->downloads)) return true;
+				if (current($this->downloads) !== false) return true;
 				else {
 					$this->looping = false;
 					reset($this->downloads);
@@ -536,10 +546,7 @@ class Customer extends DatabaseObject {
 					$Shopp->Cart->data->Purchase = next($Shopp->purchases);
 				}
 
-				if (current($Shopp->purchases)) {
-					$Shopp->Cart->data->Purchase = current($Shopp->purchases);
-					return true;
-				}
+				if (current($Shopp->purchases) !== false) return true;
 				else {
 					$this->looping = false;
 					return false;

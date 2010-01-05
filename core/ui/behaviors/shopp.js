@@ -98,13 +98,30 @@ function formatNumber (number,format) {
  * Convert a field with numeric and non-numeric characters
  * to a true integer for calculations.
  **/
-var asNumber = function(number) {
-	if (!number) number = 0;
-	number = number.toString().replace(new RegExp(/\,/g),'.');
-	number = number.toString().replace(new RegExp(/[^0-9\.\,]/g),"");
-	number = number.toString().replace(new RegExp(/\.(?=$|.*\..+$)/g),'');
+var asNumber = function(number,format) {
+	if (!number) return 0;
+	if (currencyFormat && !format) format = copyOf(currencyFormat);
+	if (!format || !format['currency']) {
+		format = {
+			"cpos":true,
+			"currency":"$",
+			"precision":2,
+			"decimals":".",
+			"thousands":","
+		}
+	}
+	
+	if (number instanceof Number) return new Number(number.toFixed(format['precision']));
+
+	number = number.toString().replace(new RegExp(/[^\d\.\,]/g),""); // Reove any non-numeric string data
+	number = number.toString().replace(new RegExp('\\'+format['thousands'],'g'),""); // Remove thousands
+
+	if (format['precision'] > 0)
+		number = number.toString().replace(new RegExp('\\'+format['decimals'],'g'),"."); // Convert decimal delimter
+		
 	if (isNaN(new Number(number)))
-		number = number.replace(new RegExp(/\./g),"").replace(new RegExp(/\,/),"\.");		
+		number = number.replace(new RegExp(/\./g),"").replace(new RegExp(/\,/),"\.");
+
 	return new Number(number);
 }
 
@@ -248,9 +265,9 @@ var ProductOptionsMenus;
 					var price = pricing[xorkey(keys)];
 					if (!price) price = pricing[xorkey_deprecated(keys)];
 					if (price) {
-						var p = asNumber(formatNumber(price.onsale?price.promoprice:price.price));
-						var tax = asNumber(formatNumber(p*taxrate));
-						var pricetag = asMoney(p+tax);
+						var p = new Number(price.onsale?price.promoprice:price.price);
+						var tax = new Number(p*taxrate);
+						var pricetag = asMoney(new Number(p+tax));
 						var optiontext = $(this).attr('text');
 						var previoustag = optiontext.lastIndexOf("(");
 						if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);

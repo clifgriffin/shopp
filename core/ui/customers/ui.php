@@ -116,7 +116,7 @@ add_meta_box('customer-billing', __('Billing Address','Shopp'), 'billing_meta_bo
 function shipping_meta_box ($Customer) {
 ?>
 <p>
-	<input type="text" name="shipping[[address]" id="shipping-address" value="<?php echo $Customer->Shipping->address; ?>" /><br />
+	<input type="text" name="shipping[address]" id="shipping-address" value="<?php echo $Customer->Shipping->address; ?>" /><br />
 	<input type="text" name="shipping[xaddress]" id="shipping-xaddress" value="<?php echo $Customer->Shipping->xaddress; ?>" /><br />
 	<label for="shipping-address"><?php _e('Street Address','Shopp'); ?></label>
 </p>
@@ -127,7 +127,7 @@ function shipping_meta_box ($Customer) {
 	</span>
 	<span id="shipping-state-inputs">
 		<select name="shipping[state]" id="shipping-state">
-			<?php echo menuoptions($Customer->billing_states,$Customer->Shipping->state,true); ?>
+			<?php echo menuoptions($Customer->shipping_states,$Customer->Shipping->state,true); ?>
 		</select>
 		<input name="shipping[state]" id="shipping-state-text" value="<?php echo $Customer->Shipping->state; ?>" size="12" disabled="disabled"  class="hidden" />
 	<label for="shipping-state"><?php _e('State / Province','Shopp'); ?></label>

@@ -40,14 +40,18 @@ class ShoppErrors {
 	}
 	
 	function add ($ShoppError) {
-		$this->errors[$ShoppError->source] = $ShoppError;
+		if (isset($ShoppError->code)) $this->errors[$ShoppError->code] = $ShoppError;
+		else $this->errors[] = $ShoppError;
 		$this->notifications->send($ShoppError);
 	}
 	
-	function get ($level=SHOPP_DEBUG_ERR) {
+	function get ($level=SHOPP_DEBUG_ERR,$code=false,$levelmatch=false) {
+		if (!empty($code)) return array($this->errors[$code]);
 		$errors = array();
-		foreach ($this->errors as &$error)
-			if ($error->level <= $level) $errors[] = &$error;
+		foreach ($this->errors as &$error) {
+			if ($levelmatch && $error->level == $level) $errors[] = &$error;
+			elseif (!$levelmatch && $error->level <= $level) $errors[] = &$error;
+		}
 		return $errors;
 	}
 	
@@ -159,7 +163,7 @@ class ShoppErrorLogging {
 	function ShoppErrorLogging ($loglevel=0) {
 		$this->loglevel = $loglevel;
 		$this->dir = defined('SHOPP_TEMP_PATH') ? SHOPP_TEMP_PATH : sys_get_temp_dir();
-		$this->dir = str_replace('\\', '/', $this->dir); //Windows path sanitiation
+		$this->dir = sanitize_path($this->dir); //Windows path sanitiation
 		$sitename = sanitize_title_with_dashes(get_bloginfo('sitename'));
 		$this->logfile = trailingslashit($this->dir).$sitename."-".$this->file;
 

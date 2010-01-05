@@ -4,7 +4,7 @@
  * @class PayPalExpress
  *
  * @author Jonathan Davis
- * @version 1.0.3
+ * @version 1.0.4
  * @copyright Ingenesis Limited, 26 August, 2008
  * @package Shopp
  * 
@@ -236,10 +236,8 @@ class PayPalExpress {
 		if (!$result) {
 			new ShoppError(__('No response was received from PayPal. The order cannot be processed.','Shopp'),'paypalexpress_noresults',SHOPP_COMM_ERR);
 		}
-		if(!$Shopp->Cart->validorder()){
-			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
-			return false;	
-		}
+		if(!$Shopp->Cart->validorder()) shopp_redirect($Shopp->link('cart'));
+		
 		// If the transaction is a success, get the transaction details, 
 		// build the purchase receipt, save it and return it
 		if (strtolower($result->ack) == "success") {
@@ -365,7 +363,7 @@ class PayPalExpress {
 		$pairs = explode("&",$buffer);
 		foreach($pairs as $pair) {
 			list($key,$value) = explode("=",$pair);
-			if (preg_match("/(\w*?)(\d+)/",$key,$matches)) {
+			if (preg_match("/l_(\w+?)(\d+)/i",$key,$matches)) {
 				// Capture line item data into an array structure
 				if (!isset($r[$matches[1]])) $r[$matches[1]] = array();
 				// Skip non-line item data

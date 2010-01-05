@@ -6,10 +6,10 @@ function find_filepath ($filename, $directory, $root, &$found) {
 		if ($Directory) {
 			while (( $file = $Directory->read() ) !== false) {
 				if (substr($file,0,1) == "." || substr($file,0,1) == "_") continue;				// Ignore .dot files and _directories
-				if (is_dir($directory.DIRECTORY_SEPARATOR.$file) && $directory == $root)		// Scan one deep more than root
-					find_filepath($filename,$directory.DIRECTORY_SEPARATOR.$file,$root, $found);	// but avoid recursive scans
+				if (is_dir($directory.'/'.$file) && $directory == $root)		// Scan one deep more than root
+					find_filepath($filename,$directory.'/'.$file,$root, $found);	// but avoid recursive scans
 				elseif ($file == $filename)
-					$found[] = substr($directory,strlen($root)).DIRECTORY_SEPARATOR.$file;		// Add the file to the found list
+					$found[] = substr($directory,strlen($root)).'/'.$file;		// Add the file to the found list
 			}
 			return true;
 		}

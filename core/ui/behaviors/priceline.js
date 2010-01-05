@@ -246,7 +246,7 @@ function Priceline (id,options,data,target,attachment) {
 					}
 			});
 		});
-		var filePathButton = $('<button type="button" class="button-secondary"><small>By File Path</small></button>').appendTo(uploadHeading).click(function () {
+		var filePathButton = $('<button type="button" class="button-secondary"><small>By File Name</small></button>').appendTo(uploadHeading).click(function () {
 			filePathCell.slideToggle();
 		});
 
@@ -412,7 +412,7 @@ function Priceline (id,options,data,target,attachment) {
 	
 		productid.val(data.product);
 		sku.val(data.sku);
-		price.val(asMoney(data.price));
+		price.val(asMoney(new Number(data.price)));
 
 		if (data.sale == "on") salepriceToggle.attr('checked','true').trigger('change.value');
 		if (data.shipping == "on") shippingToggle.attr('checked','true').trigger('change.value');
@@ -423,9 +423,9 @@ function Priceline (id,options,data,target,attachment) {
 			if (data.donation['min'] == "on") donationMin.attr('checked',true);
 		}
 
-		saleprice.val(asMoney(data.saleprice));
-		shippingfee.val(asMoney(data.shipfee));
-		weight.val(data.weight).trigger('change.value');
+		saleprice.val(asMoney(new Number(data.saleprice)));
+		shippingfee.val(asMoney(new Number(data.shipfee)));
+		weight.val(new Number(data.weight)).trigger('change.value');
 		stock.val(data.stock);
 	
 		if (data.download) {

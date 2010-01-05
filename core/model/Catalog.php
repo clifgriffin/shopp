@@ -169,7 +169,7 @@ class Catalog extends DatabaseObject {
 				$string = '<ul class="shopp tagcloud">';
 				foreach ($this->tags as $tag) {
 					$level = floor((1-$tag->products/$max)*$levels)+1;
-					if (SHOPP_PERMALINKS) $link = $path.'tag/'.urlencode($tag->name).'/';
+					if (SHOPP_PERMALINKS) $link = user_trailingslashit($path.'tag/'.urlencode($tag->name));
 					else $link = add_query_arg('shopp_tag',urlencode($tag->name),$page);
 					$string .= '<li class="level-'.$level.'"><a href="'.$link.'" rel="tag">'.$tag->name.'</a></li> ';
 				}
@@ -190,10 +190,8 @@ class Catalog extends DatabaseObject {
 					$Shopp->Category = next($this->categories);
 				}
 
-				if (current($this->categories)) {
-					$Shopp->Category = current($this->categories);
-					return true;
-				} else {
+				if (current($this->categories) !== false) return true;
+				else {
 					$this->categoryloop = false;
 					return false;
 				}
@@ -250,7 +248,7 @@ class Catalog extends DatabaseObject {
 						if (value_is_true($hierarchy))
 							$padding = str_repeat("&nbsp;",$category->depth*3);
 
-						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+						if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.'category/'.$category->uri);
 						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
 
 						$total = '';
@@ -303,7 +301,7 @@ class Catalog extends DatabaseObject {
 							}
 						}
 					
-						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
+						if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.'category/'.$category->uri);
 						else $link = add_query_arg('shopp_category',(!empty($category->id)?$category->id:$category->uri),$Shopp->shopuri);
 					
 						$total = '';
@@ -448,7 +446,7 @@ class Catalog extends DatabaseObject {
 					$parentkey = (!empty($Category->id))?$this->categories[$Category->id]->parent:0;
 					while ($parentkey != 0) {
 						$tree_category = $this->categories[$parentkey];
-						
+
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$tree_category->uri;
 						else $link = esc_url(add_query_arg(array_merge($_GET,
 							array('shopp_category'=>$tree_category->id,'shopp_pid'=>null)),

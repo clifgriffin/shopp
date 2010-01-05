@@ -33,8 +33,10 @@ class DB {
 
 	protected function DB () {
 		global $wpdb;
-		$this->dbh = $wpdb->dbh;
-		$this->version = mysql_get_server_info();
+		if (isset($wpdb->dbh)) {
+			$this->dbh = $wpdb->dbh;
+			$this->version = mysql_get_server_info();
+		}
 	}
 
 	function __clone() { trigger_error('Clone is not allowed.', E_USER_ERROR); }
@@ -64,12 +66,16 @@ class DB {
 	 * Escape contents of data for safe insertion into the db */
 	function escape($data) {
 		// Prevent double escaping by stripping any existing escapes out
-		return addslashes(stripslashes($data));
+		if (is_array($data)) array_map(array(&$this,'escape'), $data);
+		elseif (is_object($data)) {
+			foreach (get_object_vars($data) as $p => $v) $data->{$p} = $this->escape($v);
+		} else $data = addslashes(stripslashes($data));
+		return $data;
 	}
 
 	function clean($data) {
 		if (is_array($data)) array_map(array(&$this,'clean'), $data);
-		if (is_string($data)) rtrim($data);
+		if (is_string($data)) $data = rtrim($data);
 		return $data;
 	}
 	
@@ -82,7 +88,7 @@ class DB {
 
 		// Error handling
 		if ($this->dbh && $error = mysql_error($this->dbh)) 
-			new ShoppError(sprintf(__('Query failed: %s - DB Query: %s','Shopp'),$error, str_replace("\n","",$query)),'shopp_query_error',SHOPP_DB_ERR);
+			if (class_exists('ShoppError')) new ShoppError(sprintf(__('Query failed: %s - DB Query: %s','Shopp'),$error, str_replace("\n","",$query)),'shopp_query_error',SHOPP_DB_ERR);
 				
 		// Results handling
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i",$query) ) {
@@ -134,8 +140,8 @@ class DB {
 			switch ($object->_datatypes[$property]) {
 				case "string":
 					// Escape characters in strings as needed
-					if (is_array($value)) $value = serialize($value);
-					$data[$property] = "'".$this->escape($value)."'";
+					if (is_array($value)) $data[$property] = "'".addslashes(serialize($this->escape($value)))."'";
+					else $data[$property] = "'".$this->escape($value)."'";
 					break;	
 				case "list":
 					// If value is empty, skip setting the field
@@ -158,7 +164,7 @@ class DB {
 					break;
 				case "int":
 				case "float":					
-					$value = floatnum($value);
+					$value = floatvalue($value);
 					
 					$data[$property] = "'$value'";
 					

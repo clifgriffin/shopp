@@ -102,7 +102,8 @@ class Cart {
 	 * Initializing routine for the session management. */
 	function open ($path,$name) {
 		$this->path = $path;
-		if (empty($this->path)) $this->path = dirname(realpath(tempnam('','tmp_')));
+		if (empty($this->path)) $this->path = dirname(realpath(tempnam(defined('SHOPP_TEMP_PATH')?SHOPP_TEMP_PATH:'','tmp_')));
+		$this->path = sanitize_path($this->path);
 		$this->trash();	// Clear out any residual session information before loading new data
 		if (empty($this->session)) $this->session = session_id();	// Grab our session id
 		$this->ip = $_SERVER['REMOTE_ADDR'];						// Save the IP address making the request
@@ -123,12 +124,15 @@ class Cart {
 
 		if (is_robot() || empty($this->session)) return true;
 		
+		if (is_robot()) return true;
+
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
 		// echo "$query".BR;
-
 		if ($result = $db->query($query)) {
 			if (substr($result->data,0,1) == "!") {
 				$key = $_COOKIE[SHOPP_SECURE_KEY];
+				if (empty($key) && !is_shopp_secure())
+					shopp_redirect(force_ssl(raw_request_url(),true));
 				$readable = $db->query("SELECT AES_DECRYPT('".
 										mysql_real_escape_string(
 											base64_decode(
@@ -143,19 +147,21 @@ class Cart {
 			else $this->contents = unserialize($result->contents);
 			$this->created = mktimestamp($result->created);
 			$this->modified = mktimestamp($result->modified);
+			$loaded = true;
 		} else {
-			$db->query("INSERT INTO $this->_table (session, ip, data, contents, created, modified) 
-							VALUES ('$this->session','$this->ip','','',now(),now())");
+			if (!empty($this->session))
+				$db->query("INSERT INTO $this->_table (session, ip, data, contents, created, modified) 
+								VALUES ('$this->session','$this->ip','','',now(),now())");
 		}
 		
 		if (empty($this->data->Errors)) $this->data->Errors = new ShoppErrors();
 		if ($Shopp->Settings->get('shipping') == "off") $this->data->ShippingDisabled = true;
 
 		// Read standard session data
-		if (file_exists("$this->path/sess_$id"))
+		if (@file_exists("$this->path/sess_$id"))
 			return (string) file_get_contents("$this->path/sess_$id");
 
-		return true;
+		return $loaded;
 	}
 	
 	/* unload()
@@ -177,16 +183,20 @@ class Cart {
 		$db = DB::get();
 
 		if (!$Shopp->Settings->unavailable) {
+			
 			$data = $db->escape(addslashes(serialize($this->data)));
-			$contents = $db->escape(serialize($this->contents));
+			$contents = $db->escape(addslashes(serialize($this->contents)));
 			
 			if ($this->secured() && is_shopp_secure()) {
-				new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
-				if (!isset($_COOKIE[SHOPP_SECURE_KEY])) $this->securekey();
-				$key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
-				$secure = $db->query("SELECT AES_ENCRYPT('$data','$key') AS data");
-				$data = "!".base64_encode($secure->data);
+				if (!isset($_COOKIE[SHOPP_SECURE_KEY])) $key = $this->securekey();
+				else $key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
+				if (!empty($key)) {
+					new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
+					$secure = $db->query("SELECT AES_ENCRYPT('$data','$key') AS data");
+					$data = "!".base64_encode($secure->data);
+				}
 			}
+			
 			$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'";
 			if (!$db->query($query)) 
 				trigger_error("Could not save session updates to the database.");
@@ -284,8 +294,12 @@ class Cart {
 	 * reset()
 	 * Resets the entire session */
 	function reset () {
-		$this->unload();
-		$this->session = session_regenerate_id();
+		session_regenerate_id();
+		$this->session = session_id();
+		session_write_close();
+		$this->clear();
+		$this->data->Promotions = array();
+		return true;
 	}
 	
 	/**
@@ -503,7 +517,7 @@ class Cart {
 						break;
 					case "Item quantity":
 						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule(number_format($Item->quantity,0),$rule['logic'],$rule['value'], $rule['property'])) {
+							if (Promotion::match_rule((int)$Item->quantity,$rule['logic'],$rule['value'], $rule['property'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
 							}
@@ -511,24 +525,24 @@ class Cart {
 						break;
 					case "Item amount":
 						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule(number_format($Item->total,2),$rule['logic'],$rule['value'], $rule['property'])) {
+							if (Promotion::match_rule($Item->total,$rule['logic'],$rule['value'], $rule['property'])) {
 								$items[$id] = &$Item;
 								$rulematch = true;
 							}
 						}
 						break;
 					case "Total quantity":
-						if (Promotion::match_rule(number_format($this->data->Totals->quantity,0),$rule['logic'],$rule['value'], $rule['property'])) {
+						if (Promotion::match_rule((int)$this->data->Totals->quantity,$rule['logic'],$rule['value'], $rule['property'])) {
 							$rulematch = true;
 						}
 						break;
 					case "Shipping amount": 
-						if (Promotion::match_rule(number_format($this->data->Totals->shipping,2),$rule['logic'],$rule['value'], $rule['property'])) {
+						if (Promotion::match_rule($this->data->Totals->shipping,$rule['logic'],$rule['value'], $rule['property'])) {
 							$rulematch = true;
 						}
 						break;
 					case "Subtotal amount": 
-						if (Promotion::match_rule(number_format($this->data->Totals->subtotal,2),$rule['logic'],$rule['value'], $rule['property'])) {
+						if (Promotion::match_rule($this->data->Totals->subtotal,$rule['logic'],$rule['value'], $rule['property'])) {
 							$rulematch = true;
 						}
 						break;
@@ -540,7 +554,7 @@ class Cart {
 						}
 						// Match a new code
 						if (!empty($this->data->PromoCode)) {
-							if (Promotion::match_rule($this->data->PromoCode,$rule['logic'],$rule['value'], $rule['property'])) {	
+							if (Promotion::match_rule($this->data->PromoCode,$rule['logic'],$rule['value'], $rule['property'])) {
  								if (is_array($this->data->PromoCodes) && 
 									!in_array($this->data->PromoCode, $this->data->PromoCodes)) {
 									$this->data->PromoCodes[] = $rule['value'];
@@ -622,16 +636,15 @@ class Cart {
 		if ($Shopp->Settings->get('taxes') == "off") return false;
 		
 		$taxrates = $Shopp->Settings->get('taxrates');
-		$base = $Shopp->Settings->get('base_operations');
 		if (!is_array($taxrates)) return false;
 
 		if (!empty($this->data->Order->Shipping->country)) $country = $this->data->Order->Shipping->country;
 		elseif (!empty($this->data->Order->Billing->country)) $country = $this->data->Order->Billing->country;
-		else $country = $base['country'];
+		else return false;
 
 		if (!empty($this->data->Order->Shipping->state)) $zone = $this->data->Order->Shipping->state;
 		elseif (!empty($this->data->Order->Billing->state)) $zone = $this->data->Order->Billing->state;
-		else $zone = $base['zone'];
+		else return false;
 		
 		$global = false;
 		foreach ($taxrates as $setting) {
@@ -696,20 +709,20 @@ class Cart {
 		
 		// Calculate discounts
 		$this->promotions();
-		$discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
+		$Totals->discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
 
 		// Calculate shipping
 		if (!$this->data->ShippingDisabled && $this->data->Shipping && !$this->freeshipping) 
 			$Totals->shipping = $this->shipping();
 
 		// Calculate taxes
-		if ($discount > $Totals->taxed) $Totals->taxed = 0;
-		else $Totals->taxed -= $discount;
+		if ($Totals->discount > $Totals->taxed) $Totals->taxed = 0;
+		else $Totals->taxed -= $Totals->discount;
 		if($shippingTaxed) $Totals->taxed += $Totals->shipping;
 		$Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
 
 		// Calculate final totals
-		$Totals->total = round($Totals->subtotal - round($discount,2) + 
+		$Totals->total = round($Totals->subtotal - round($Totals->discount,2) + 
 			$Totals->shipping + $Totals->tax,2);
 
 		do_action_ref_array('shopp_cart_retotal',array(&$Totals));
@@ -888,12 +901,13 @@ class Cart {
 		require_once(ABSPATH . WPINC . '/pluggable.php');
 		if (!is_shopp_secure()) return false;
 		$expiration = time()+SHOPP_SESSION_TIMEOUT;
-		$key = wp_hash($this->session . '|' . $expiration, 'secure_auth');
+		if (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') $key = SECRET_AUTH_KEY;
+		else $key = md5(serialize($this->data).time());
 		$content = hash_hmac('sha256', $this->session . '|' . $expiration, $key);
 		if ( version_compare(phpversion(), '5.2.0', 'ge') )
- 			setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true,true);
+			setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true,true);
 		else setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true);
-		return true;
+		return $content;
 	}
 	
 	/**
@@ -948,7 +962,7 @@ class Cart {
 					if (!empty($_REQUEST['options']) && !empty($_REQUEST['options'][0])) 
 						$pricing = $_REQUEST['options'];
 					else $pricing = $_REQUEST['price'];
-										
+
 					$category = false;
 					if (!empty($_REQUEST['category'])) $category = $_REQUEST['category'];
 					
@@ -1118,8 +1132,8 @@ class Cart {
 		if (empty($_POST['billing']['address']) || strlen($_POST['billing']['address']) < 4) 
 			return new ShoppError(__('You must enter a valid street address for your billing information.','Shopp'),'cart_validation');
 
-		if (empty($_POST['billing']['postcode']) || strlen($_POST['billing']['postcode']) < 3) 
-			return new ShoppError(__('You must enter a valid street address for your billing information.','Shopp'),'cart_validation');
+		if (empty($_POST['billing']['postcode'])) 
+			return new ShoppError(__('You must enter a valid postal code for your billing information.','Shopp'),'cart_validation');
 
 		if (empty($_POST['billing']['country'])) 
 			return new ShoppError(__('You must select a country for your billing information.','Shopp'),'cart_validation');
@@ -1188,31 +1202,56 @@ class Cart {
 		$Order = $this->data->Order;
 		$Customer = $Order->Customer;
 		$Shipping = $this->data->Order->Shipping;
+		$errorindex = 0;
+		
+		if (empty($this->contents)) { 
+			new ShoppError(__("There are no items in the cart."),'invalid_order'.$errorindex++,SHOPP_TXN_ERR);
+			return false;
+		}
+		
+		$stock = true;
+		foreach ($this->contents as $item) { 
+			if (!$item->instock()){
+				new ShoppError(sprintf(__("%s does not have sufficient stock to process order."),
+				$item->name . ($item->optionlabel?" ({$item->optionlabel})":"")),
+				'invalid_order'.$errorindex++,SHOPP_TXN_ERR);
+				$stock = false;
+			} 
+		}
+		
+		if (!$stock) return false;
 
-		if(empty($this->contents)) return false;  // No items
-		if(empty($Order)) return false;  // No order data
-		if(!$Customer) return false; // No Customer
+		if (empty($Order)) {
+			new ShoppError(__("Missing order data."),'invalid_order'.$errorindex++,SHOPP_TXN_ERR); 
+			return false;
+		}
+		
+		$hasCustInfo = true;
+		if (!$Customer) $hasCustInfo = false; // No Customer
 
 		// Always require name and email
-		if( empty($Customer->firstname) || empty($Customer->lastname)) return false;
-		if( empty($Customer->email) ) return false;
+		if (empty($Customer->firstname) || empty($Customer->lastname)) $hasCustInfo = false;
+		if (empty($Customer->email) ) $hasCustInfo = false;
 
+		if (!$hasCustInfo) new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order'.$errorindex++,SHOPP_TXN_ERR);
+		return $hasCustInfo;
+		
 		// Check for shipped items but no Shipping information
+		$hasShipInfo = true;
 		if ($this->data->Shipping) {
-			if(empty($Shipping->address)) return false;
-			if(empty($Shipping->city)) return false;
-			if(empty($Shipping->state)) return false;
-			if(empty($Shipping->country)) return false;
-			if(empty($Shipping->postcode)) return false;
+			if (empty($Shipping->address)) $hasShipInfo = false;
+			if (empty($Shipping->country)) $hasShipInfo = false;
+			if (empty($Shipping->postcode)) $hasShipInfo = false;
 		}
-		return true;
+		if (!$hasShipInfo) new ShoppError(__('The shipping address information is incomplete.  The order can not be processed','Shopp'),'invalid_order'.$errorindex++,SHOPP_TXN_ERR);
+		return $hasShipInfo;
 	}
 	
 	/**
 	 * orderisfree()
 	 * Determines if the current order has no cost */
 	function orderisfree() {
-		$status = (count($this->contents) > 0 && (int)$this->data->Totals->total == 0)?true:false;
+		$status = (count($this->contents) > 0 && floatvalue($this->data->Totals->total) == 0)?true:false;
 		return apply_filters('shopp_free_order',$status);
 	}
 	
@@ -1265,8 +1304,8 @@ class Cart {
 
 				switch($promo->type) {
 					case "Free Shipping": $string .= $Shopp->Settings->get('free_shipping_text'); break;
-					case "Percentage Off": $string .= percentage($promo->discount).$options['label']; break;
-					case "Amount Off": $string .= money($promo->discount).$options['label']; break;
+					case "Percentage Off": $string .= percentage($promo->discount)." ".$options['label']; break;
+					case "Amount Off": $string .= money($promo->discount)." ".$options['label']; break;
 					case "Buy X Get Y Free": return ""; break;
 				}
 				if (!empty($options['after'])) $string = $options['after'];
@@ -1308,16 +1347,17 @@ class Cart {
 			case "promos-available":
 				if (empty($this->data->Promotions)) return false;
 				// Skip if the promo limit has been reached
-				if ($Shopp->Settings->get('promo_limit') == 0) return true;
-				if (count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
+				if ($Shopp->Settings->get('promo_limit') > 0 && 
+					count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
 				return true;
 				break;
 			case "promo-code": 
 				// Skip if no promotions exist
 				if (empty($this->data->Promotions)) return false;
 				// Skip if the promo limit has been reached
-				if (count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
-				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code");
+				if ($Shopp->Settings->get('promo_limit') > 0 && 
+					count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
+				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code","Shopp");
 				$result .= '<ul><li>';
 				
 				if (!empty($this->data->PromoCodeResult)) {
@@ -1471,6 +1511,7 @@ class Cart {
 			case "method-delivery":
 				$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
 				$method = current($ShipCosts);
+				if (!$method['delivery']) return "";
 				$estimates = explode("-",$method['delivery']);
 				$format = get_option('date_format');
 				if ($estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
@@ -1697,7 +1738,7 @@ class Cart {
 				return $output;
 				break;
 			case "same-shipping-address":
-				$label = __("Same shipping address");
+				$label = __("Same shipping address","Shopp");
 				if (isset($options['label'])) $label = $options['label'];
 				$checked = ' checked="checked"';
 				if (isset($options['checked']) && !value_is_true($options['checked'])) $checked = '';
@@ -1709,7 +1750,7 @@ class Cart {
 			case "billing-required": 
 				if ($this->data->Totals->total == 0) return false;
 				if (isset($_GET['shopp_xco'])) {
-					$xco = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
+					$xco = join('/',array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
 					if (file_exists($xco)) {
 						$meta = $Shopp->Flow->scan_gateway_meta($xco);
 						$PaymentSettings = $Shopp->Settings->get($meta->tags['class']);
@@ -1730,6 +1771,7 @@ class Cart {
 				return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
 				break;
 			case "billing-city":
+				if ($options['mode'] == "value") return $this->data->Order->Billing->city;
 				if (!empty($this->data->Order->Billing->city))
 					$options['value'] = $this->data->Order->Billing->city;			
 				return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />'; 
@@ -1826,7 +1868,7 @@ class Cart {
 			case "billing-xco":     
 				if (isset($_GET['shopp_xco'])) {
 					if ($this->data->Totals->total == 0) return false;
-					$xco = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
+					$xco = join('/',array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
 					if (file_exists($xco)) {
 						$meta = $Shopp->Flow->scan_gateway_meta($xco);
 						$ProcessorClass = $meta->tags['class'];
@@ -1847,7 +1889,7 @@ class Cart {
 				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
 					if (!isset($options['title'])) $options['title'] = $options['name'];
-					if (isset($this->data->Order->data[$options['name']])) 
+					if (in_array($options['type'],$value_override) && isset($this->data->Order->data[$options['name']])) 
 						$options['value'] = $this->data->Order->data[$options['name']];
 					if (!isset($options['cols'])) $options['cols'] = "30";
 					if (!isset($options['rows'])) $options['rows'] = "3";
@@ -1888,8 +1930,7 @@ class Cart {
 				if (!is_array($xcos)) return false;
 				$buttons = "";
 				foreach ($xcos as $xco) {
-					$xco = str_replace('/',DIRECTORY_SEPARATOR,$xco);
-					$xcopath = join(DIRECTORY_SEPARATOR,array($Shopp->path,'gateways',$xco));
+					$xcopath = join('/',array($Shopp->path,'gateways',$xco));
 					if (!file_exists($xcopath)) continue;
 					$meta = $Shopp->Flow->scan_gateway_meta($xcopath);
 					$ProcessorClass = $meta->tags['class'];
@@ -1903,6 +1944,10 @@ class Cart {
 					}
 				}
 				return $buttons;
+				break;
+			case "receipt":
+				if (!empty($this->data->Purchase->id)) 
+					return $Shopp->Flow->order_receipt();
 				break;
 		}
 	}

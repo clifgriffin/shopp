@@ -100,7 +100,7 @@ class iDealMollie {
 
 		// Transaction
 		$_['bank_id']				= $_POST['idealmollie-bank'];
-		$_['amount']				= number_format(($Shopp->Cart->data->Totals->total*100),0,'','');
+		$_['amount']				= round(floatvalue($Shopp->Cart->data->Totals->total)*100);
 		$_['description']			= join(", ",$description);
 				
 		$this->transaction = $this->encode($_);

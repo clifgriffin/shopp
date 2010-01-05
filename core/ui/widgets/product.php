@@ -14,7 +14,7 @@ if (class_exists('WP_Widget')) {
 class ShoppProductWidget extends WP_Widget {
 
     function ShoppProductWidget() {
-        parent::WP_Widget(false, $name = 'Shopp Product', array('description' => __('Highlight specific store products')));	
+        parent::WP_Widget(false, $name = 'Shopp Product', array('description' => __('Highlight specific store products','Shopp')));	
     }
 
     function widget($args, $options) {		
