@@ -155,8 +155,8 @@ class xHTMLvalidator {
     'href',
     'hreflang',
     'name',
-    'rel' => '/^(alternate|designates|stylesheet|start|next|prev|contents|index|glossary|copyright|chapter|section|subsection|appendix|help|bookmark| |shortcut|icon)+$/',
-    'rev' => '/^(alternate|designates|stylesheet|start|next|prev|contents|index|glossary|copyright|chapter|section|subsection|appendix|help|bookmark| |shortcut|icon)+$/',
+    'rel' => '/^(alternate|designates|stylesheet|start|next|prev|contents|index|glossary|copyright|chapter|section|subsection|appendix|help|bookmark| |shortcut|icon|tag)+$/',
+    'rev' => '/^(alternate|designates|stylesheet|start|next|prev|contents|index|glossary|copyright|chapter|section|subsection|appendix|help|bookmark| |shortcut|icon|tag)+$/',
     'shape' => '/^(rect|rectangle|circ|circle|poly|polygon)$/',
     'type',
     ) ,
@@ -332,8 +332,8 @@ class xHTMLvalidator {
     'href',
     'hreflang',
     'media' => '/^(all|braille|print|projection|screen|speech|,|;| )+$/i',
-    'rel' => '/^(alternate|appendix|bookmark|chapter|contents|copyright|glossary|help|home|index|next|prev|section|start|stylesheet|subsection| |shortcut|icon)+$/i',
-    'rev' => '/^(alternate|appendix|bookmark|chapter|contents|copyright|glossary|help|home|index|next|prev|section|start|stylesheet|subsection| |shortcut|icon)+$/i',
+    'rel' => '/^(alternate|appendix|bookmark|chapter|contents|copyright|glossary|help|home|index|next|prev|section|start|stylesheet|subsection| |shortcut|icon|tag)+$/i',
+    'rev' => '/^(alternate|appendix|bookmark|chapter|contents|copyright|glossary|help|home|index|next|prev|section|start|stylesheet|subsection| |shortcut|icon|tag)+$/i',
     'type'
     ) ,
     'inside' => 'head'

@@ -18,6 +18,7 @@ class Catalog extends DatabaseObject {
 	var $smarts = array("FeaturedProducts","BestsellerProducts","NewProducts","OnSaleProducts");
 	var $categories = array();
 	var $outofstock = false;
+	var $categoryloop = false;
 	
 	function Catalog ($type="catalog") {
 		global $Shopp;
@@ -56,7 +57,7 @@ class Catalog extends DatabaseObject {
 		$query = "SELECT {$filtering['columns']} FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY cat.parent DESC,$orderby $order {$filtering['limit']}";
 		$categories = $db->query($query,AS_ARRAY);
 
-		if (count($categories) > 1) $categories = sort_tree($categories);		
+		if (count($categories) > 1) $categories = sort_tree($categories);
 		if ($results) return $categories;
 
 		foreach ($categories as $category) {
@@ -175,8 +176,10 @@ class Catalog extends DatabaseObject {
 				$string .= '</ul>';
 				return $string;
 				break;
+			case "hascategories": 
 			case "has-categories": 
-				if (empty($this->categories)) $this->load_categories(array('where'=>'true'),$options['showsmart']);
+				$showsmart = isset($options['showsmart'])?$options['showsmart']:false;
+				if (empty($this->categories)) $this->load_categories(array('where'=>'true'),$showsmart);
 				if (count($this->categories) > 0) return true; else return false; break;
 			case "categories":
 				if (!$this->categoryloop) {
@@ -350,13 +353,14 @@ class Catalog extends DatabaseObject {
 				$menuoptions = Category::sortoptions();
 				$title = "";
 				$string = "";
+				$dropdown = isset($options['dropdown'])?$options['dropdown']:true;
 				$default = $Shopp->Settings->get('default_product_order');
 				if (empty($default)) $default = "title";
 				
 				if (isset($options['default'])) $default = $options['default'];
 				if (isset($options['title'])) $title = $options['title'];
 
-				if (value_is_true($options['dropdown'])) {
+				if (value_is_true($dropdown)) {
 					if (isset($Shopp->Cart->data->Category['orderby'])) 
 						$default = $Shopp->Cart->data->Category['orderby'];
 					$string .= $title;
@@ -370,9 +374,13 @@ class Catalog extends DatabaseObject {
 					$string .= '</select>';
 					$string .= '</form>';
 					$string .= '<script type="text/javascript">';
+					$string .= '<!--';
 					$string .= "jQuery('#shopp-".$Shopp->Category->slug."-orderby-menu select.shopp-orderby-menu').change(function () { this.form.submit(); });";
+					$string .= '//-->';
 					$string .= '</script>';
 				} else {
+					$link = "";
+					$query = "";
 					if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
 						list($link,$query) = explode("\?",$_SERVER['REQUEST_URI']);
 					$query = $_GET;
@@ -440,7 +448,7 @@ class Catalog extends DatabaseObject {
 					$parentkey = (!empty($Category->id))?$this->categories[$Category->id]->parent:0;
 					while ($parentkey != 0) {
 						$tree_category = $this->categories[$parentkey];
-					
+						
 						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$tree_category->uri;
 						else $link = esc_url(add_query_arg(array_merge($_GET,
 							array('shopp_category'=>$tree_category->id,'shopp_pid'=>null)),
@@ -476,7 +484,7 @@ class Catalog extends DatabaseObject {
 				} elseif ($type == "menu") {
 					if (empty($options['store'])) $options['store'] = __('Search the store','Shopp');
 					if (empty($options['blog'])) $options['blog'] = __('Search the blog','Shopp');
-					if (isset($wp->query_vars['st'])) $selected = $wp->query_vars['st'];
+					$selected = isset($wp->query_vars['st'])?$wp->query_vars['st']:'blog';
 					$menu = '<select name="st">';
 					if (isset($options['default']) && $options['default'] == "blog") {
 						$menu .= '<option value="blog"'.($selected == "blog"?' selected="selected"':'').'>'.$options['blog'].'</option>';
@@ -554,7 +562,7 @@ class Catalog extends DatabaseObject {
 				break;
 			case "sideproduct":
 				$content = false;
-				$source = $options['source'];
+				$source = isset($options['source'])?$options['source']:'product';
 				if ($source == "product" && isset($options['product'])) {
 					 // Save original requested product
 					if ($Shopp->Product) $Requested = $Shopp->Product;

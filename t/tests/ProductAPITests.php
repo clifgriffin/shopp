@@ -1,21 +1,15 @@
 <?php
 /**
  * ProductAPITests
- * 
  *
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, 14 October, 2009
- * @package 
+ * @package shopp
  **/
-
-/**
- * Initialize
- **/
-
 class ProductAPITests extends ShoppTestCase {
 
-	function ProductAPITests () {
+	function test_init () {
 		global $Shopp;
 		$Shopp->Product = new Product(81);
 	}
@@ -398,43 +392,43 @@ class ProductAPITests extends ShoppTestCase {
 		$this->assertValidMarkup($output);
 	}
 
-	function test_product_addtocart () {
-		global $Shopp;
-		
-		$Shopp->Product->outofstock = true;
-		ob_start();
-		shopp('product','addtocart');
-		$output = ob_get_contents();
-		ob_end_clean();
-		$this->assertEquals('<span class="outofstock">Out of stock</span>',$output);
-		$Shopp->Product->outofstock = false;
-		
-		ob_start();
-		shopp('product','addtocart');
-		$output = ob_get_contents();
-		ob_end_clean();
-		
-		$markup = array(
-			'tag' => 'input',
-			'attributes' => array('type' => 'hidden','name' => 'products[81][product]','value' => '81')
-		);
-		$this->assertTag($markup,$output,'',true);
-
-		$markup = array(
-			'tag' => 'input',
-			'attributes' => array('type' => 'hidden','name' => 'cart','value' => 'add')
-		);
-		$this->assertTag($markup,$output,'',true);
-
-		$markup = array(
-			'tag' => 'input',
-			'attributes' => array('type' => 'submit','name' => 'addtocart')
-		);
-		$this->assertTag($markup,$output,'',true);
-
-		$this->assertValidMarkup($output);
-		
-	}
+	// function test_product_addtocart () {
+	// 	global $Shopp;
+	// 	
+	// 	$Shopp->Product->outofstock = true;
+	// 	ob_start();
+	// 	shopp('product','addtocart');
+	// 	$output = ob_get_contents();
+	// 	ob_end_clean();
+	// 	$this->assertEquals('<span class="outofstock">Out of stock</span>',$output);
+	// 	$Shopp->Product->outofstock = false;
+	// 	
+	// 	ob_start();
+	// 	shopp('product','addtocart');
+	// 	$output = ob_get_contents();
+	// 	ob_end_clean();
+	// 	
+	// 	$markup = array(
+	// 		'tag' => 'input',
+	// 		'attributes' => array('type' => 'hidden','name' => 'products[81][product]','value' => '81')
+	// 	);
+	// 	$this->assertTag($markup,$output,'',true);
+	// 
+	// 	$markup = array(
+	// 		'tag' => 'input',
+	// 		'attributes' => array('type' => 'hidden','name' => 'cart','value' => 'add')
+	// 	);
+	// 	$this->assertTag($markup,$output,'',true);
+	// 
+	// 	$markup = array(
+	// 		'tag' => 'input',
+	// 		'attributes' => array('type' => 'submit','name' => 'addtocart')
+	// 	);
+	// 	$this->assertTag($markup,$output,'',true);
+	// 
+	// 	$this->assertValidMarkup($output);
+	// 	
+	// }
 
 	
 } // end ProductAPITests class

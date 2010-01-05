@@ -192,7 +192,7 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 			unset($GLOBALS[$v]);
 		}
 
-		$GLOBALS['wp']->main($parts['query']);
+		if (isset($parts['query'])) $GLOBALS['wp']->main($parts['query']);
 	}
 
 	// various helper functions for creating and deleting posts, pages etc

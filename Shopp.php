@@ -33,6 +33,7 @@ define('SHOPP_HOME','http://shopplugin.net/');
 define('SHOPP_DOCS','http://docs.shopplugin.net/');
 
 require("core/functions.php");
+require("core/legacy.php");
 require_once("core/DB.php");
 require("core/model/Settings.php");
 

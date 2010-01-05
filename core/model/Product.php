@@ -40,18 +40,7 @@ class Product extends DatabaseObject {
 	
 	function Product ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id,$key)) {			
-			add_filter('shopp_product_description', 'wptexturize');
-			add_filter('shopp_product_description', 'convert_chars');
-			add_filter('shopp_product_description', 'wpautop');
-			add_filter('shopp_product_description', 'do_shortcode', 11); // AFTER wpautop()	
-
-			add_filter('shopp_product_spec', 'wptexturize');
-			add_filter('shopp_product_spec', 'convert_chars');
-			add_filter('shopp_product_spec', 'do_shortcode', 11); // AFTER wpautop()	
-
-			return true;
-		}
+		if ($this->load($id,$key)) return true;
 		return false;
 	}
 	
@@ -662,6 +651,17 @@ class Product extends DatabaseObject {
 	
 	function tag ($property,$options=array()) {
 		global $Shopp;
+		add_filter('shopp_product_name','convert_chars');
+		add_filter('shopp_product_summary','convert_chars');
+
+		add_filter('shopp_product_description', 'wptexturize');
+		add_filter('shopp_product_description', 'convert_chars');
+		add_filter('shopp_product_description', 'wpautop');
+		add_filter('shopp_product_description', 'do_shortcode', 11); // AFTER wpautop()	
+
+		add_filter('shopp_product_spec', 'wptexturize');
+		add_filter('shopp_product_spec', 'convert_chars');
+		add_filter('shopp_product_spec', 'do_shortcode', 11); // AFTER wpautop()	
 				
 		switch ($property) {
 			case "link": 
@@ -678,9 +678,9 @@ class Product extends DatabaseObject {
 				return true;
 				break;
 			case "id": return $this->id; break;
-			case "name": return $this->name; break;
+			case "name": return apply_filters('shopp_product_name',$this->name); break;
 			case "slug": return $this->slug; break;
-			case "summary": return $this->summary; break;
+			case "summary": return apply_filters('shopp_product_summary',$this->summary); break;
 			case "description": 
 				return apply_filters('shopp_product_description',$this->description);
 			case "isfeatured": 
