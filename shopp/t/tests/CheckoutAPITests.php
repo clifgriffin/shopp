@@ -1,29 +1,24 @@
 <?php
 /**
  * CheckoutAPITests
- * 
  *
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, 20 October, 2009
- * @package 
+ * @package shopp
  **/
-
-/**
- * Initialize
- **/
-
 class CheckoutAPITests extends ShoppTestCase {
 
 	public function test_checkout_url () {
 		global $Shopp;
+		$gateway = $Shopp->Settings->get('payment_gateway');
+		$Shopp->Settings->registry['payment_gateway'] = "PayPalPro/PayPalPro.php";
 		ob_start();
 		shopp('checkout','url');
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals('https://shopptest/store/checkout/',$actual);
 
-		$gateway = $Shopp->Settings->get('payment_gateway');
 		$Shopp->Settings->registry['payment_gateway'] = "TestMode/TestMode.php";
 		ob_start();
 		shopp('checkout','url');

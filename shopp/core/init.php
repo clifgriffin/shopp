@@ -134,13 +134,13 @@ function get_country_zones() {
 	$zones['US']['AK'] = 'Alaska ';
 	$zones['US']['AZ'] = 'Arizona';
 	$zones['US']['AR'] = 'Arkansas';
-	$zones['US']['CA'] = 'California ';
+	$zones['US']['CA'] = 'California';
 	$zones['US']['CO'] = 'Colorado';
 	$zones['US']['CT'] = 'Connecticut';
 	$zones['US']['DE'] = 'Delaware';
-	$zones['US']['DC'] = 'District Of Columbia ';
+	$zones['US']['DC'] = 'District Of Columbia';
 	$zones['US']['FL'] = 'Florida';
-	$zones['US']['GA'] = 'Georgia ';
+	$zones['US']['GA'] = 'Georgia';
 	$zones['US']['HI'] = 'Hawaii';
 	$zones['US']['ID'] = 'Idaho';
 	$zones['US']['IL'] = 'Illinois';

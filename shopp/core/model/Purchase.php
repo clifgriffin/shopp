@@ -124,9 +124,10 @@ class Purchase extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 
-
+		$taxes = isset($options['taxes'])?$options['taxes']:false;
+		$taxrate = 0;
 		if ($property == "item-unitprice" || $property == "item-total")
-			$taxrate = shopp_taxrate($options['taxes']);
+			$taxrate = shopp_taxrate($taxes);
 
 		// Return strings with no options
 		switch ($property) {
