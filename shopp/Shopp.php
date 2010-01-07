@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.1 a1
+Version: 1.1 dev
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define('SHOPP_VERSION','1.1 a1');
+define('SHOPP_VERSION','1.1 dev');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
@@ -44,7 +44,7 @@ if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'catalog.css') shop
 if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'settings.js') 
 	shopp_settings_js(basename(dirname(__FILE__)));
 
-require("core/Flow.php");
+require("core/flow/Flow.php");
 require("core/model/Cart.php");
 require("core/model/ShipCalcs.php");
 require("core/model/Catalog.php");
@@ -61,6 +61,8 @@ class Shopp {
 	var $Category;
 	var $Gateway;
 	var $Catalog;
+	var $Pages;
+	var $Page;
 	var $_debug;
 	
 	function Shopp () {
@@ -72,9 +74,15 @@ class Shopp {
 				$this->_debug->memory = "Initial: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
 		}
 		
+		
+		// Determine system and URI paths
+
 		$this->path = sanitize_path(dirname(__FILE__));
 		$this->file = basename(__FILE__);
 		$this->directory = basename($this->path);
+
+		$languages_path = array(PLUGINDIR,$this->directory,'lang');
+		load_plugin_textdomain('Shopp',sanitize_path(join('/',$languages_path)));
 
 		$this->uri = WP_PLUGIN_URL."/".$this->directory;
 		$this->siteurl = get_bloginfo('url');
@@ -87,12 +95,62 @@ class Shopp {
 			$this->wpadminurl = str_replace('http://','https://',$this->wpadminurl);
 		}
 
-		$this->Settings = new Settings();
-		$this->Flow = new Flow($this);
-		
-		register_deactivation_hook($this->directory."/Shopp.php", array(&$this, 'deactivate'));
-		register_activation_hook($this->directory."/Shopp.php", array(&$this, 'install'));
 
+		// Initialize settings & macros
+
+		$this->Settings = new Settings();
+		
+		if (!defined('BR')) define('BR','<br />');
+
+		// Overrideable macros
+		if (!defined('SHOPP_USERLEVEL')) define('SHOPP_USERLEVEL',8);
+		if (!defined('SHOPP_NOSSL')) define('SHOPP_NOSSL',false);
+		if (!defined('SHOPP_PREPAYMENT_DOWNLOADS')) define('SHOPP_PREPAYMENT_DOWNLOADS',false);
+		if (!defined('SHOPP_SESSION_TIMEOUT')) define('SHOPP_SESSION_TIMEOUT',7200);
+		if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
+		if (!defined('SHOPP_GATEWAY_TIMEOUT')) define('SHOPP_GATEWAY_TIMEOUT',10);
+
+		define("SHOPP_DEBUG",($this->Settings->get('error_logging') == 2048));
+		define("SHOPP_PATH",$this->path);
+		define("SHOPP_ADMIN_PATH",SHOPP_PATH."/core/ui");
+		define("SHOPP_FLOW_PATH",SHOPP_PATH."/core/flow");
+		define("SHOPP_MODEL_PATH",SHOPP_PATH."/core/model");
+		define("SHOPP_GATEWAYS",SHOPP_PATH."/gateways");
+		define("SHOPP_SHIPPING",SHOPP_PATH."/shipping");
+		define("SHOPP_PLUGINURI",$this->uri);
+		define("SHOPP_DBSCHEMA",SHOPP_MODEL_PATH."/schema.sql");
+
+		define("SHOPP_TEMPLATES",($this->Settings->get('theme_templates') != "off" 
+			&& is_dir($this->Settings->get('theme_templates')))?
+					  $this->Settings->get('theme_templates'):
+					  SHOPP_PATH.'/'."templates");
+		define("SHOPP_TEMPLATES_URI",($this->Settings->get('theme_templates') != "off"
+			&& is_dir($this->Settings->get('theme_templates')))?
+					  get_bloginfo('stylesheet_directory')."/shopp":
+					  $this->uri."/templates");
+
+
+		define("SHOPP_PERMALINKS",(get_option('permalink_structure') == "")?false:true);
+		
+		define("SHOPP_LOOKUP",(strpos($_SERVER['REQUEST_URI'],"images/") !== false
+			||  strpos($_SERVER['REQUEST_URI'],"lookup=") !== false)?true:false);
+		
+		$this->Pages = $this->Settings->get('pages');
+		if (empty($this->Pages)) {
+			$this->Pages = array();
+			$this->Pages['catalog'] = array('name'=>'shop','title'=>'Shop','content'=>'[catalog]');
+			$this->Pages['cart'] = array('name'=>'cart','title'=>'Cart','content'=>'[cart]');
+			$this->Pages['checkout'] = array('name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
+			$this->Pages['account'] = array('name'=>'account','title'=>'Your Orders','content'=>'[account]');
+		}
+		
+		// Initialize application control processing
+		
+		$this->Flow = new Flow();
+		
+		register_deactivation_hook($this->directory."/".$this->file, array(&$this, 'deactivate'));
+		register_activation_hook($this->directory."/".$this->file, array(&$this, 'install'));
+		
 		// Keep any DB operations from occuring while in maintenance mode
 		if (!empty($_GET['updated']) && 
 				($this->Settings->get('maintenance') == "on" || $this->Settings->unavailable)) {
@@ -113,37 +171,26 @@ class Shopp {
 		add_action('init', array(&$this,'init'));
 		add_action('init', array(&$this, 'xorder'));
 		add_action('init', array(&$this, 'ajax'));
-		add_action('parse_request', array(&$this, 'lookups') );
-		add_action('parse_request', array(&$this, 'cart'));
-		add_action('parse_request', array(&$this, 'checkout'));
-		add_action('parse_request', array(&$this, 'catalog') );
-		add_action('wp', array(&$this, 'shortcodes'));
-		add_action('wp', array(&$this, 'behaviors'));
-
+		
 		// Admin calls
 		add_action('admin_menu', array(&$this, 'lookups'));
 		add_action('admin_init', array(&$this, 'tinymce'));
-		add_action('admin_init', array(&$this->Flow, 'admin'));
-		add_action('admin_menu', array(&$this, 'add_menus'));
 		add_filter('favorite_actions', array(&$this, 'favorites'));
 		add_action('admin_footer', array(&$this, 'footer'));
-		add_action('wp_dashboard_setup', array(&$this, 'dashboard_init'));
-		add_action('wp_dashboard_widgets', array(&$this, 'dashboard'));
-		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
-		add_action('save_post', array(&$this, 'pages_index'),10,2);
-
+		
 		// Theme widgets
 		add_action('widgets_init', array(&$this, 'widgets'));
-		add_filter('wp_list_pages',array(&$this->Flow,'secure_page_links'));
-
+		// add_filter('wp_list_pages',array(&$this->Flow,'secure_page_links'));
+		
 		add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
 		add_action('generate_rewrite_rules',array(&$this,'pages_index'));
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
+		add_action('save_post', array(&$this, 'pages_index'),10,2);
 		add_filter('query_vars', array(&$this,'queryvars'));
 		
 		// Extras & Integrations
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
-
+		
 		// Start up the cart
 		$this->Cart = new Cart();
 		
@@ -151,6 +198,7 @@ class Shopp {
 	
 	function init() {
 		$pages = $this->Settings->get('pages');
+		if (empty($pages)) $this->pages_index();
 		if (SHOPP_PERMALINKS) {
 			$this->shopuri = trailingslashit($this->link('catalog'));
 			$this->canonuri = trailingslashit($this->link('catalog'),false);
@@ -177,7 +225,7 @@ class Shopp {
 		
 		// Setup Error handling
 		$Errors = &ShoppErrors();
-		
+
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
 									$this->Settings->get('error_notifications'));
@@ -262,13 +310,13 @@ class Shopp {
 		else $menus['main'] = add_menu_page('Shopp', 'Shopp', SHOPP_USERLEVEL, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
 
 		$menus['orders'] = add_submenu_page($this->Flow->Admin->default,__('Orders','Shopp'), __('Orders','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->orders, array(&$this,'orders'));
-
+		
 		$menus['customers'] = add_submenu_page($this->Flow->Admin->default,__('Customers','Shopp'), __('Customers','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->customers, array(&$this,'customers'));
 		$menus['editcustomer'] = add_submenu_page($menus['customers'],__('Edit Customer','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editcustomer, array(&$this,'customers'));
-
+		
 		$menus['promotions'] = add_submenu_page($this->Flow->Admin->default,__('Promotions','Shopp'), __('Promotions','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->promotions, array(&$this,'promotions'));
 		$menus['editpromos'] = add_submenu_page($menus['promotions'],__('Edit Promotion','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editpromo, array(&$this,'promotions'));
-
+		
 		$menus['products'] = add_submenu_page($this->Flow->Admin->default,__('Products','Shopp'), __('Products','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->products, array(&$this,'products'));
 		$menus['editproducts'] = add_submenu_page($menus['products'],__('Product Editor','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editproduct, array(&$this,'products'));
 		
@@ -276,25 +324,25 @@ class Shopp {
 		$menus['editcategory'] = add_submenu_page($menus['categories'],__('Edit Category','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editcategory, array(&$this,'categories'));
 		
 		$menus['settings'] = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), 8, $this->Flow->Admin->settings['settings'][0], array(&$this,'settings'));
-
+		
 		$settings_screens = array();
 		foreach ($this->Flow->Admin->settings as $key => $screen) {
-			$settings_screens[$key] = add_submenu_page($menus['settings'],$screen[1],false, 8, $screen[0], array(&$this,'settings'));
+			$settings_screens[$key] = add_submenu_page($menus['settings'],$screen[1],false, 8, $screen[0], array(&$this->Flow,'parse'));
 			// echo $settings_screens[$key].BR;
 		}
-
+		
 		if (function_exists('add_contextual_help')) {
-			foreach ($menus as $menu => $page) $this->Flow->helpdoc($menu,$page);
-			foreach ($settings_screens as $menu => $page) $this->Flow->helpdoc($menu,$page);
+			foreach ($menus as $menu => $page) $this->Flow->help($menu,$page);
+			foreach ($settings_screens as $menu => $page) $this->Flow->help($menu,$page);
 		} else $menus['help'] = add_submenu_page($this->Flow->Admin->default,__('Help','Shopp'), __('Help','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->help, array(&$this,'help'));
 		
 		// $welcome = add_submenu_page($this->Flow->Admin->default,__('Welcome','Shopp'), __('Welcome','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->welcome, array(&$this,'welcome'));
-
+		
 		// add_action("admin_head-$editproduct", array(&$this, 'admin_behaviors'));
 		
 		foreach($menus as $name => $menu) 
 			add_action("admin_print_scripts-$menu", array(&$this, 'admin_behaviors'));
-
+		
 		foreach ($settings_screens as $settings_screen)
 			add_action("admin_print_scripts-$settings_screen", array(&$this, 'admin_behaviors'));
 		
@@ -363,36 +411,7 @@ class Shopp {
 		?><link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
 <?php
 	}
-	
-	/**
-	 * dashboard_init()
-	 * Initializes the Shopp dashboard widgets */
-	function dashboard_init () {
 		
-		wp_register_sidebar_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array(&$this->Flow,'dashboard_stats'),
-			array('all_link' => '','feed_link' => '','width' => 'half','height' => 'single')
-		);
-
-		wp_register_sidebar_widget('dashboard_shopp_orders', __('Shopp Orders','Shopp'), array(&$this->Flow,'dashboard_orders'),
-			array('all_link' => 'admin.php?page='.$this->Flow->Admin->orders,'feed_link' => '','width' => 'half','height' => 'single')
-		);
-
-		wp_register_sidebar_widget('dashboard_shopp_products', __('Shopp Products','Shopp'), array(&$this->Flow,'dashboard_products'),
-			array('all_link' => 'admin.php?page='.$this->Flow->Admin->products,'feed_link' => '','width' => 'half','height' => 'single')
-		);
-		
-	}
-
-	/**
-	 * dashboard ()
-	 * Adds the Shopp dashboard widgets to the WordPress Dashboard */
-	function dashboard ($widgets) {
-		$dashboard = $this->Settings->get('dashboard');
-		if (current_user_can(SHOPP_USERLEVEL) && $dashboard == "on")
-			array_unshift($widgets,'dashboard_shopp_stats','dashboard_shopp_orders','dashboard_shopp_products');
-		return $widgets;
-	}
-	
 	/**
 	 * behaviors()
 	 * Dynamically includes necessary JavaScript and stylesheets as needed in 
@@ -521,7 +540,7 @@ class Shopp {
 		$pages = $this->Settings->get('pages');
 		
 		// No pages setting, use defaults
-		$pages = $this->Flow->Pages;
+		$pages = $this->Pages;
 		
 		// Find pages with Shopp-related main shortcodes
 		$codes = array();
@@ -633,484 +652,6 @@ class Shopp {
 	
 		return $vars;
 	}
-		
-	/**
-	 * orders()
-	 * Handles order administration screens */
-	function orders () {
-		if ($this->Settings->get('display_welcome') == "on") {
-			$this->welcome(); return;
-		}
-		if (!empty($_GET['id'])) $this->Flow->order_manager();
-		else $this->Flow->orders_list();
-	}
-
-	/**
-	 * customers()
-	 * Handles order administration screens */
-	function customers () {
-		if ($this->Settings->get('display_welcome') == "on") {
-			$this->welcome(); return;
-		}
-		
-		if ($_GET['page'] == $this->Flow->Admin->editcustomer)
-			$this->Flow->customer_editor();
-		else $this->Flow->customers_list();
-	}
-
-	/**
-	 * categories()
-	 * Handles category administration screens */
-	function categories () {
-		if ($this->Settings->get('display_welcome') == "on") {
-			$this->welcome(); return;
-		}
-		if ($_GET['page'] == $this->Flow->Admin->editcategory)
-			$this->Flow->category_editor();
-		else $this->Flow->categories_list();
-	}
-
-	/**
-	 * products()
-	 * Handles product administration screens */
-	function products () {
-		if ($this->Settings->get('display_welcome') == "on") {
-			$this->welcome(); return;
-		}
-
-		if ($_GET['page'] == $this->Flow->Admin->editproduct) 
-			$this->Flow->product_editor();
-		else $this->Flow->products_list();
-		
-	}
-
-	/**
-	 * promotions()
-	 * Handles product administration screens */
-	function promotions () {
-		if ($this->Settings->get('display_welcome') == "on") {
-			$this->welcome(); return;
-		}
-		if ($_GET['page'] == $this->Flow->Admin->editpromo)
-			$this->Flow->promotion_editor();
-		else $this->Flow->promotions_list();
-	}
-
-	/**
-	 * settings()
-	 * Handles settings administration screens */
-	function settings () {
-		if ($this->Settings->get('display_welcome') == "on" && empty($_POST['setup'])) {
-			$this->welcome(); return;
-		}
-		
-		$pages = explode("-",$_GET['page']);
-		$screen = end($pages);
-		switch($screen) {
-			case "catalog": 		$this->Flow->settings_catalog(); break;
-			case "cart": 			$this->Flow->settings_cart(); break;
-			case "checkout": 		$this->Flow->settings_checkout(); break;
-			case "payments": 		$this->Flow->settings_payments(); break;
-			case "shipping": 		$this->Flow->settings_shipping(); break;
-			case "taxes": 			$this->Flow->settings_taxes(); break;
-			case "presentation":	$this->Flow->settings_presentation(); break;
-			case "system":			$this->Flow->settings_system(); break;
-			case "update":			$this->Flow->settings_update(); break;
-			default: 				$this->Flow->settings_general();
-		}
-		
-	}
-
-	/**
-	 * titles ()
-	 * Changes the Shopp catalog page titles to include the product
-	 * name and category (when available) */
-	function titles ($title,$sep=" &mdash; ",$placement="left") {
-		if (empty($this->Product->name) && empty($this->Category->name)) return $title;
-			
-		if ($placement == "right") {
-			if (!empty($this->Product->name)) $title = $this->Product->name." $sep ".$title;
-			if (!empty($this->Category->name)) $title = $this->Category->name." $sep ".$title;
-		} else {
-			if (!empty($this->Category->name)) $title .= " $sep ".$this->Category->name;
-			if (!empty($this->Product->name)) $title .=  " $sep ".$this->Product->name;
-		}
-
-		return $title;
-	}
-	
-	// Override the post title for internal Shopp checkout process pages
-	function pagetitle ($title,$post_id=false) {
-		if (!$post_id) return $title;
-		global $wp;
-
-		$pages = $this->Settings->get('pages');
-
-		if (isset($wp->query_vars['shopp_proc']) && 
-			$post_id == $pages['checkout']['id']) {
-			switch(strtolower($wp->query_vars['shopp_proc'])) {
-				case "thanks": $title = apply_filters('shopp_thanks_pagetitle',__('Thank You!','Shopp')); break;
-				case "confirm-order": $title = apply_filters('shopp_confirmorder_pagetitle',__('Confirm Order','Shopp')); break;
-			}
-		}
-		return $title;
-	}
-
-	function feeds () {
-		if (empty($this->Category)):?>
-
-<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
-<?php
-			else:
-			$uri = 'category/'.$this->Category->uri;
-			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
-
-			if (SHOPP_PERMALINKS) $link = user_trailingslashit($this->shopuri.urldecode($uri).'/feed');
-			else $link = add_query_arg(array('shopp_category'=>urldecode($this->Category->uri),'shopp_lookup'=>'category-rss'),$this->shopuri);
-			?>
-
-<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo urldecode($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
-<?php
-		endif;
-	}
-
-	function updatesearch () {
-		global $wp_query;
-		$wp_query->query_vars['s'] = $this->Cart->data->Search;
-	}
-
-	function metadata () {
-		$keywords = false;
-		$description = false;
-		if (!empty($this->Product)) {
-			if (empty($this->Product->tags)) $this->Product->load_data(array('tags'));
-			foreach($this->Product->tags as $tag)
-				$keywords .= (!empty($keywords))?", {$tag->name}":$tag->name;
-			$description = $this->Product->summary;
-		} elseif (!empty($this->Category)) {
-			$description = $this->Category->description;
-		}
-		$keywords = attribute_escape(apply_filters('shopp_meta_keywords',$keywords));
-		$description = attribute_escape(apply_filters('shopp_meta_description',$description));
-		?>
-		<?php if ($keywords): ?><meta name="keywords" content="<?php echo $keywords; ?>" /><?php endif; ?>
-		<?php if ($description): ?><meta name="description" content="<?php echo $description; ?>" /><?php endif;
-	}
-
-	function canonurls ($url) {
-		global $Shopp;
-		if (!empty($Shopp->Product->slug)) return $Shopp->Product->tag('url','echo=0');
-		if (!empty($Shopp->Category->slug)) return $Shopp->Category->tag('url','echo=0');
-		return $url;
-	}
-
-	/**
-	 * header()
-	 * Adds stylesheets necessary for Shopp public shopping pages */
-	function header () {
-		global $wp;
-?>
-<link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),get_bloginfo('url'))); ?>' type='text/css' />
-<link rel='stylesheet' media='all' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-<?php if (is_shopp_page('account') || (isset($wp->query_vars['shopp_proc']) && $wp->query_vars['shopp_proc'] == "sold")): ?>
-<link rel='stylesheet' media='print' href='<?php echo $this->uri; ?>/core/ui/styles/printable.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-<?php endif; ?>
-<?php 
-	$canonurl = $this->canonurls(false);
-	if (is_shopp_page('catalog') && !empty($canonurl)): ?><link rel='canonical' href='<?php echo $canonurl ?>' /><?php
-	endif;
-	}
-	
-	/**
-	 * footer()
-	 * Adds report information and custom debugging tools to the public and admin footers */
-	function footer () {
-		if (!WP_DEBUG) return true;
-		if (!current_user_can('manage_options')) return true;
-		$db = DB::get();
-		global $wpdb;
-		
-		if (function_exists('memory_get_peak_usage'))
-			$this->_debug->memory .= "End: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
-		elseif (function_exists('memory_get_usage'))
-			$this->_debug->memory .= "End: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB";
-
-		echo '<script type="text/javascript">'."\n";
-		echo '//<![CDATA['."\n";
-		echo 'var memory_profile = "'.$this->_debug->memory.'";';
-		echo 'var wpquerytotal = '.$wpdb->num_queries.';';
-		echo 'var shoppquerytotal = '.count($db->queries).';';
-		echo '//]]>'."\n";
-		echo '</script>'."\n";
-
-	}
-	
-	function catalog ($wp) {
-		$pages = $this->Settings->get('pages');
-		$options = array();
-
-		add_filter('redirect_canonical','cancel_canoncial_redirect');
-		
-		$type = "catalog";
-		if (isset($wp->query_vars['shopp_category']) &&
-			$category = $wp->query_vars['shopp_category']) $type = "category";
-		if (isset($wp->query_vars['shopp_pid']) && 
-			$productid = $wp->query_vars['shopp_pid']) $type = "product";
-		if (isset($wp->query_vars['shopp_product']) && 
-			$productname = $wp->query_vars['shopp_product']) $type = "product";
-
-		if (isset($wp->query_vars['shopp_tag']) && 
-			$tag = $wp->query_vars['shopp_tag']) {
-			$type = "category";
-			$category = "tag";
-		}
-
-		$referer = wp_get_referer();
-		$target = "blog";
-		if (isset($wp->query_vars['st'])) $target = $wp->query_vars['st'];
-		if (!empty($wp->query_vars['s']) && // Search query is present and...
-			// The search target is set to shopp
-			($target == "shopp" 
-				// The referering page includes a Shopp catalog page path
-				|| strpos($referer,$this->link('catalog')) !== false || 
-				strpos($referer,'page_id='.$pages['catalog']['id']) !== false || 
-				// Or the referer was a search that matches the last recorded Shopp search
-				substr($referer,-1*(strlen($this->Cart->data->Search))) == $this->Cart->data->Search || 
-				// Or the blog URL matches the Shopp catalog URL (Takes over search for store-only search)
-				trailingslashit(get_bloginfo('url')) == $this->link('catalog') || 
-				// Or the referer is one of the Shopp cart, checkout or account pages
-				$referer == $this->link('cart') || $referer == $this->link('checkout') || 
-				$referer == $this->link('account'))) {
-			$this->Cart->data->Search = $wp->query_vars['s'];
-			$wp->query_vars['s'] = "";
-			$wp->query_vars['pagename'] = $pages['catalog']['name'];
-			add_action('wp_head', array(&$this, 'updatesearch'));
-			if ($type != "product") $type = "category"; 
-			$category = "search-results";
-		}
-		
-		// Load a category/tag
-		if (!empty($category) || !empty($tag)) {
-			if (isset($this->Cart->data->Search)) $options = array('search'=>$this->Cart->data->Search);
-			if (isset($tag)) $options = array('tag'=>$tag);
-
-			// Split for encoding multi-byte slugs
-			$slugs = explode("/",$category);
-			$category = join("/",array_map('urlencode',$slugs));
-
-			// Load the category
-			$this->Category = Catalog::load_category($category,$options);
-			$this->Cart->data->breadcrumb = (isset($tag)?"tag/":"").$this->Category->uri;
-		} 
-		
-		if (empty($category) && empty($tag) && 
-			empty($productid) && empty($productname)) 
-			$this->Cart->data->breadcrumb = "";
-		
-		// Category Filters
-		if (!empty($this->Category->slug)) {
-			if (empty($this->Cart->data->Category[$this->Category->slug]))
-				$this->Cart->data->Category[$this->Category->slug] = array();
-			$CategoryFilters =& $this->Cart->data->Category[$this->Category->slug];
-			
-			// Add new filters
-			if (isset($_GET['shopp_catfilters'])) {
-				if (is_array($_GET['shopp_catfilters'])) {
-					$CategoryFilters = array_filter(array_merge($CategoryFilters,$_GET['shopp_catfilters']));
-					$CategoryFilters = stripslashes_deep($CategoryFilters);
-					if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
-				} else unset($this->Cart->data->Category[$this->Category->slug]);
-			}
-			
-		}
-		
-		// Catalog sort order setting
-		if (isset($_GET['shopp_orderby']))
-			$this->Cart->data->Category['orderby'] = $_GET['shopp_orderby'];
-
-		if (empty($this->Category)) $this->Category = Catalog::load_category($this->Cart->data->breadcrumb,$options);
-
-		// Find product by given ID
-		if (!empty($productid) && empty($this->Product->id))
-			$this->Product = new Product($productid);
-			
-		// Find product by product slug
-		if (!empty($productname) && empty($this->Product->id))
-			$this->Product = new Product(urlencode($productname),"slug");
-		
-		// Product must be published
-		if (!empty($this->Product->id) && $this->Product->published == "off" || empty($this->Product->id))
-			$this->Product = false;
-		
-		// No product found, try to load a page instead
-		if ($type == "product" && !$this->Product) 
-			$wp->query_vars['pagename'] = $wp->request;
-
-		$this->Catalog = new Catalog($type);
-		add_filter('wp_title', array(&$this, 'titles'),10,3);
-		add_action('wp_head', array(&$this, 'metadata'));
-		add_action('wp_head', array(&$this, 'feeds'));
-	}
-		
-	/**
-	 * cart()
-	 * Handles shopping cart requests */
-	function cart () {
-		if (isset($_REQUEST['shopping']) && strtolower($_REQUEST['shopping']) == "reset") {
-			$this->Cart->reset();
-			shopp_redirect($this->link());
-		}
-
-		if (empty($_REQUEST['cart'])) return true;
-		
-		$this->Cart->request();
-		if ($this->Cart->updated) $this->Cart->totals();
-		if (isset($_REQUEST['ajax'])) $this->Cart->ajax();
-		$redirect = false;
-		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
-		switch ($redirect) {
-			case "checkout": shopp_redirect($this->link($redirect,true)); break;
-			default: 
-				if (!empty($_REQUEST['redirect']))
-					shopp_redirect(esc_url($this->link($_REQUEST['redirect'])));
-				else shopp_redirect($this->link('cart'));
-		}
-	}
-	
-	/**
-	 * checkout()
-	 * Handles checkout process */
-	function checkout ($wp) {
-		// Set wp page-post titles for checkout process pages
-		if (isset($wp->query_vars['shopp_proc'])) add_filter('the_title', array(&$this, 'pagetitle'),10,2);
-		
-		$pages = $this->Settings->get('pages');
-		// If checkout page requested
-		// Note: we have to use custom detection here as 
-		// the wp->post vars are not available at this point
-		// to make use of is_shopp_page()
-		if (((SHOPP_PERMALINKS && isset($wp->query_vars['pagename']) 
-			&& $wp->query_vars['pagename'] == $pages['checkout']['permalink'])
-			|| (isset($wp->query_vars['page_id']) && $wp->query_vars['page_id'] == $pages['checkout']['id']))
-		 	&& $wp->query_vars['shopp_proc'] == "checkout") {
-			
-			$this->Cart->updated();
-			$this->Cart->totals();
-
-			if (!$this->Cart->freeshipping && $this->Cart->data->ShippingPostcodeError) {
-				header('Location: '.$this->link('cart'));
-				exit();
-			}
-
-			// Force secure checkout page if its not already
-			$secure = true;
-			$gateway = $this->Settings->get('payment_gateway');
-			if (strpos($gateway,"TestMode") !== false 
-					|| isset($wp->query_vars['shopp_xco']) 
-					|| $this->Cart->orderisfree()) 
-				$secure = false;
-
-			if ($secure && !$this->secure && !SHOPP_NOSSL) {
-				header('Location: '.$this->link('checkout',$secure));
-				exit();
-			}
-		}
-		
-		// Cancel this process if there is no order data
-		if (!isset($this->Cart->data->Order)) return;
-		$Order = $this->Cart->data->Order;
-
-		// Intercept external checkout processing
-		if (!empty($wp->query_vars['shopp_xco'])) {
-			if ($this->gateway($wp->query_vars['shopp_xco'])) {
-				if ($wp->query_vars['shopp_proc'] != "confirm-order" && 
-						!isset($_POST['checkout'])) {
-					$this->Gateway->checkout();
-					$this->Gateway->error();
-				}
-			}
-		}
-
-		// Cancel if no checkout process detected
-		if (empty($_POST['checkout'])) return true;
-		// Handoff to order processing
-		if ($_POST['checkout'] == "confirmed") return $this->Flow->order();
-		// Cancel if checkout process is not ready for processing
-		if ($_POST['checkout'] != "process") return true;
-		// Cancel if processing a login from the checkout form
-		if (isset($_POST['process-login']) 
-			&& $_POST['process-login'] == "true") return true;
-		
-		// Start processing the checkout form
-		$_POST = attribute_escape_deep($_POST);
-		
-		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-mm'],$_POST['billing']['cardexpires-yy']);
-
-		// If the card number is provided over a secure connection
-		// Change the cart to operate in secure mode
-		if (isset($_POST['billing']['card']) && is_shopp_secure())
-			$this->Cart->secured(true);
-
-		// Sanitize the card number to ensure it only contains numbers
-		$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
-
-		if (isset($_POST['data'])) $Order->data = stripslashes_deep($_POST['data']);
-		if (isset($_POST['info'])) $Order->data = stripslashes_deep($_POST['info']);
-		
-		if (empty($Order->Customer))
-			$Order->Customer = new Customer();
-		$Order->Customer->updates($_POST);
-
-		if (isset($_POST['confirm-password']))
-			$Order->Customer->confirm_password = $_POST['confirm-password'];
-
-		if (empty($Order->Billing))
-			$Order->Billing = new Billing();
-		$Order->Billing->updates($_POST['billing']);
-		
-		if (!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy'])) {
-			$Order->Billing->cardexpires = mktime(0,0,0,
-					$_POST['billing']['cardexpires-mm'],1,
-					($_POST['billing']['cardexpires-yy'])+2000
-				);
-		} else $Order->Billing->cardexpires = 0;
-		
-		$Order->Billing->cvv = preg_replace('/[^\d]/','',$_POST['billing']['cvv']);
-
-		if ($this->Cart->data->Shipping) {
-			if (empty($Order->Shipping))
-				$Order->Shipping = new Shipping();
-			
-			if (isset($_POST['shipping'])) $Order->Shipping->updates($_POST['shipping']);
-			if (!empty($_POST['shipmethod'])) $Order->Shipping->method = $_POST['shipmethod'];
-			else $Order->Shipping->method = key($this->Cart->data->ShipCosts);
-
-			// Override posted shipping updates with billing address
-			if ($_POST['sameshipaddress'] == "on")
-				$Order->Shipping->updates($Order->Billing,
-					array("_datatypes","_table","_key","_lists","id","created","modified"));
-		} else $Order->Shipping = new Shipping(); // Use blank shipping for non-Shipped orders
-
-		$estimatedTotal = $this->Cart->data->Totals->total;
-		$this->Cart->updated();
-		$this->Cart->totals();
-		if ($this->Cart->validate() !== true) return;
-		else $Order->Customer->updates($_POST); // Catch changes from validation
-
-		// If the cart's total changes at all, confirm the order
-		if ($estimatedTotal != $this->Cart->data->Totals->total || 
-				$this->Settings->get('order_confirmation') == "always") {
-			$gateway = $this->Settings->get('payment_gateway');
-			$secure = true;
-			if (strpos($gateway,"TestMode") !== false 
-				|| isset($wp->query_vars['shopp_xco'])
-				|| $this->Cart->orderisfree()) 
-				$secure = false;
-			shopp_redirect($this->link('confirm-order',$secure));
-		} else $this->Flow->order();
-
-	}
 
 	/**
 	 * xorder ()
@@ -1196,11 +737,11 @@ class Shopp {
 	 * provides the default behavior of showing a help gateway
 	 * page with instructions on where to find help on Shopp. */
 	function help () {
-		include(SHOPP_ADMINPATH."/help/help.php");
+		include(SHOPP_ADMIN_PATH."/help/help.php");
 	}
 
 	function welcome () {
-		include(SHOPP_ADMINPATH."/help/welcome.php");
+		include(SHOPP_ADMIN_PATH."/help/welcome.php");
 	}
 	
 	/**
