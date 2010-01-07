@@ -66,7 +66,10 @@ class Shipping extends DatabaseObject {
 			
 			foreach ($areas['CA'] as $name => $provinces) {
 				foreach ($provinces as $id => $fsas) {
-					if (in_array(substr($code,0,1),$fsas)) return $name;
+					if (in_array(substr($code,0,1),$fsas)) {
+						$this->state = $id; 
+						return $name; 
+					}
 				}
 			}
 			return $name;

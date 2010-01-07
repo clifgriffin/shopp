@@ -396,7 +396,7 @@ class Cart {
 		if (empty($Shipping->country)) $Shipping->country = $base['country'];
 		
 		if (!$this->retotal) {
-			
+			$this->data->ShipCosts = array();
 			$fees = 0;
 			
 			// Calculate any product-specific shipping fee markups
