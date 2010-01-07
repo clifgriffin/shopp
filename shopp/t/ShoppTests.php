@@ -33,7 +33,7 @@ require_once('xHTMLvalidator.php');
 // Abstraction Layer
 class ShoppTestCase extends PHPUnit_Framework_TestCase {
 
-	function __constructor () {}
+	function __construct () {}
 	
 	protected $backupGlobals = FALSE;
 	var $_time_limit = 120; // max time in seconds for a single test function

@@ -46,7 +46,7 @@
 		$even = false; 
 		foreach ($Products as $key => $Product):
 		$editurl = esc_url(attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
-			array('page'=>$this->Admin->editproduct,
+			array('page'=>'shopp-products-edit',
 					'id'=>$Product->id)),
 					$Shopp->wpadminurl."admin.php")));
 		

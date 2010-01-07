@@ -1,17 +1,17 @@
 <div class="wrap shopp">
 	<h2><?php _e('Categories','Shopp'); ?></h2>
-	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
+	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
 	
 	<form action="" id="categories" method="get">
 	<div>
-		<input type="hidden" name="page" value="<?php echo $this->Admin->categories; ?>" />
+		<input type="hidden" name="page" value="<?php echo $this->categories; ?>" />
 	</div>
 
 	<p id="post-search" class="search-box">
 		<input type="text" id="categories-search-input" class="search-input" name="s" value="<?php echo attribute_escape(stripslashes($s)); ?>" />
 		<input type="submit" value="<?php _e('Search Categories','Shopp'); ?>" class="button" />
 	</p>
-	<p><a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->editcategory,'id'=>'new')),$Shopp->wpadminurl."admin.php")); ?>" class="button"><?php _e('New Category','Shopp'); ?></a></p>
+	<p><a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories-edit'),'id'=>'new')),$Shopp->wpadminurl."admin.php")); ?>" class="button"><?php _e('New Category','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
@@ -37,7 +37,7 @@
 		foreach ($Categories as $Category): 
 		
 		$editurl = esc_url(attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
-			array('page'=>$this->Admin->editcategory,
+			array('page'=>$this->Admin->pagename('categories-edit'),
 					'id'=>$Category->id)),
 					$Shopp->wpadminurl."admin.php")));
 		
