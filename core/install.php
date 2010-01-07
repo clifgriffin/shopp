@@ -27,8 +27,8 @@ $db->loaddata($schema);
 unset($schema);
 
 $parent = 0;
-foreach ($this->Flow->Pages as $key => &$page) {
-	if (!empty($this->Flow->Pages['catalog']['id'])) $parent = $this->Flow->Pages['catalog']['id'];
+foreach ($this->Pages as $key => &$page) {
+	if (!empty($this->Pages['catalog']['id'])) $parent = $this->Pages['catalog']['id'];
 	$query = "INSERT $wpdb->posts SET post_title='{$page['title']}',
 										post_name='{$page['name']}',
 										post_content='{$page['content']}',
@@ -57,6 +57,6 @@ foreach ($this->Flow->Pages as $key => &$page) {
 	$page['permalink'] = preg_replace('|https?://[^/]+/|i','',$page['permalink']);
 }
 
-$this->Settings->save("pages",$this->Flow->Pages);
+$this->Settings->save("pages",$this->Pages);
 
 ?>

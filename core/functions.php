@@ -801,7 +801,7 @@ function shopp_prereqs () {
 	if (!function_exists("gd_info")) $errors[] = __("Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.  Your web hosting environment does not currently have GD installed (or built into PHP).");
 	else {
 		$gd = gd_info();
-		if (!$gd['JPG Support'] && !$gd['JPEG Support']) $errors[] = __("Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.");
+		if (!isset($gd['JPG Support']) && !isset($gd['JPEG Support'])) $errors[] = __("Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.");
 	}
 	
 	if (!empty($errors)) {
@@ -1001,6 +1001,77 @@ function template_path ($path) {
 	if (DIRECTORY_SEPARATOR == "\\") $path = str_replace("/","\\",$path);
 	return $path;
 }
+
+
+// TODO: Clean up for Controllers
+
+function settings_get_gateways () {
+	global $Shopp;
+	$gateway_path = $Shopp->path.'/'."gateways";
+	
+	$gateways = array();
+	$gwfiles = array();
+	find_files(".php",$gateway_path,$gateway_path,$gwfiles);
+	if (empty($gwfiles)) return $gwfiles;
+	
+	foreach ($gwfiles as $file) {
+		if (! is_readable($gateway_path.$file)) continue;
+		if (! $gateway = scan_gateway_meta($gateway_path.$file)) continue;
+		$gateways[$file] = $gateway;
+	}
+
+	return $gateways;
+}
+
+function validate_addons () {
+	$addons = array();
+
+	$gateway_path = $this->basepath.'/'."gateways";		
+	find_files(".php",$gateway_path,$gateway_path,$gateways);
+	foreach ($gateways as $file) {
+		if (in_array(basename($file),$this->coremods)) continue;
+		$addons[] = md5_file($gateway_path.$file);
+	}
+
+	$shipping_path = $this->basepath.'/'."shipping";
+	find_files(".php",$shipping_path,$shipping_path,$shipmods);
+	foreach ($shipmods as $file) {
+		if (in_array(basename($file),$this->coremods)) continue;
+		$addons[] = md5_file($shipping_path.$file);
+	}
+	return $addons;
+}
+
+function scan_gateway_meta ($file) {
+	global $Shopp;
+	$metadata = array();
+	
+	$meta = get_filemeta($file);
+
+	if ($meta) {
+		$lines = explode("\n",substr($meta,1));
+		foreach($lines as $line) {
+			preg_match("/^(?:[\s\*]*?\b([^@\*\/]*))/",$line,$match);
+			if (!empty($match[1])) $data[] = $match[1];
+			preg_match("/^(?:[\s\*]*?@([^\*\/]+?)\s(.+))/",$line,$match);
+			if (!empty($match[1]) && !empty($match[2])) $tags[$match[1]] = $match[2];
+		
+		}
+		$gateway = new stdClass();
+		$gateway->file = $file;
+		$gateway->name = $data[0];
+		$gateway->description = (!empty($data[1]))?$data[1]:"";
+		$gateway->tags = $tags;
+		$gateway->activated = false;
+		if ($Shopp->Settings->get('payment_gateway') == $file) $module->activated = true;
+		return $gateway;
+	}
+	return false;
+}
+
+// TODO END: Clean up for Controllers
+
+
 
 
 if ( !function_exists('sys_get_temp_dir')) {

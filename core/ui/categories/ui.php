@@ -23,7 +23,7 @@ add_meta_box('save-category', __('Save','Shopp'), 'save_meta_box', 'admin_page_s
 
 function settings_meta_box ($Category) {
 	global $Shopp;
-	$categories_menu = $Shopp->Flow->category_menu($Category->parent,$Category->id);
+	$categories_menu = $Shopp->Flow->Controller->menu($Category->parent,$Category->id);
 	$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
 ?>
 	<p><select name="parent" id="category_parent"><?php echo $categories_menu; ?></select><br /> 

@@ -1,0 +1,481 @@
+<?php
+/**
+ * AdminFlow
+ *
+ * @author Jonathan Davis
+ * @version 1.0
+ * @copyright Ingenesis Limited, January 6, 2010
+ * @package shopp
+ * @subpackage shopp
+ **/
+
+/**
+ * AdminFlow
+ *
+ * @author Jonathan Davis
+ * @package shopp
+ * @since 1.1
+ **/
+class AdminFlow extends FlowController {
+
+	var $Pages = array();	// List of admin pages
+	var $Menus = array();	// List of initialized WordPress menus
+	var $MainMenu = false;	
+	var $Page = false;
+	var $Menu = false;
+	
+	/**
+	 * Admin constructor
+	 *
+	 * @author Jonathan Davis
+	 * @return void
+	 **/
+	function __construct () {
+		parent::__construct();
+		// Add Dashboard Widgets
+		add_action('wp_dashboard_setup', array(&$this, 'widgets'));
+		add_action('wp_dashboard_widgets', array(&$this, 'dashboard'));
+		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
+
+		// Add the default Shopp pages
+		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
+		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
+		$this->addpage('customers-edit',__('Edit Customer','Shopp'),'Account','Managing Customers',"customers");
+		$this->addpage('products',__('Products','Shopp'),'Store','Editing a Product');
+		$this->addpage('products-edit',__('Product Editor','Shopp'),'Store','Editing a Product',"products");
+		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category');
+		$this->addpage('categories-edit',__('Edit Category','Shopp'),'Categorize','Editing a Category',"categories");
+		$this->addpage('promotions',__('Promotions','Shopp'),'Promote','Running Sales & Promotions');
+		$this->addpage('promotions-edit',__('Edit Promotion','Shopp'),'Promote','Running Sales & Promotions',"promotions");
+		$this->addpage('settings',__('Settings','Shopp'),'Setup','General Settings');
+		$this->addpage('settings-checkout',__('Checkout','Shopp'),'Setup','Checkout Settings',"settings");
+		$this->addpage('settings-payments',__('Payments','Shopp'),'Setup','Payments Settings',"settings");
+		$this->addpage('settings-shipping',__('Shipping','Shopp'),'Setup','Shipping Settings',"settings");
+		$this->addpage('settings-taxes',__('Taxes','Shopp'),'Setup','Taxes Settings',"settings");
+		$this->addpage('settings-presentation',__('Presentation','Shopp'),'Setup','Presentation Settings',"settings");
+		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
+		$this->addpage('settings-update',__('Update','Shopp'),'Setup','Update Settings',"settings");
+		// $this->addpage('welcome',__('Welcome','Shopp'),'Flow',$base);
+
+		// Action hook for adding custom third-party pages
+		do_action('shopp_admin_menu');
+		
+		reset($this->Pages);
+		$this->MainMenu = key($this->Pages);
+		
+		// Set the currently requested page and menu
+		if (isset($_GET['page'])) $page = strtolower($_GET['page']);
+		else return;
+		if (isset($this->Pages[$page])) $this->Page = $this->Pages[$page];
+		if (isset($this->Menus[$page])) $this->Menu = $this->Menus[$page];
+		
+	}
+
+	/**
+	 * Generates the Shopp admin menu
+	 *
+	 * @author Jonathan Davis
+	 * @return void
+	 **/
+	function menus () {
+		global $Shopp;
+		
+		// Add the main Shopp menu
+		$this->Menus['main'] = add_object_page(
+			'Shopp',									// Page title
+			'Shopp',									// Menu title
+			SHOPP_USERLEVEL,							// Access level
+			$this->MainMenu,							// Page
+			array(&$Shopp->Flow,'parse'),				// Handler
+			"$Shopp->uri/core/ui/icons/shopp.png"		// Icon
+		);
+
+		// Add menus to WordPress admin
+		foreach (array_keys($this->Pages) as $page) $this->addmenu($page);
+
+		// Add admin JavaScript & CSS
+		foreach ($this->Menus as $menu) add_action("admin_print_scripts-$menu", array(&$this, 'behaviors'));
+
+		// Add contextual help menus
+		foreach ($this->Menus as $pagename => $menu) $this->help($pagename,$menu);
+		
+	}
+	
+	/**
+	 * Registers a new page to the Shopp admin pages
+	 *
+	 * @author Jonathan Davis
+	 * @param string $page The internal reference name for the page
+	 * @param string $label The label displayed in the WordPress admin menu
+	 * @param string $controller The name of the controller to use for the page
+	 * @param string $doc The title of the documentation article on docs.shopplugin.net
+	 * @param string $parent The internal reference for the parent page
+	 * @return void
+	 **/
+	function addpage ($page,$label,$controller,$doc=false,$parent=false) {
+		$page = basename(SHOPP_PATH)."-$page";
+		if (!empty($parent)) $parent = basename(SHOPP_PATH)."-$parent";
+		$this->Pages[$page] = new ShoppAdminPage($page,$label,$controller,$doc,$parent);
+	}
+
+	/**
+	 * Adds a ShoppAdminPage entry to the Shopp admin menu
+	 *
+	 * @return void
+	 * @param string $name The name of the page
+	 * @author Jonathan Davis
+	 **/
+	function addmenu ($name) {
+		global $Shopp;
+		if (!isset($this->Pages[$name])) return false;
+
+		$page = $this->Pages[$name];
+		$this->Menus[$name] = add_submenu_page(
+			($page->parent)?$page->parent:$this->MainMenu,
+			$page->label,
+			$page->label,
+			SHOPP_USERLEVEL,
+			$name,
+			array(&$Shopp->Flow,'admin')
+		);
+	}
+
+	/**
+	 * Takes an internal page name reference and builds the full path name
+	 *
+	 * @author Jonathan Davis
+	 * @param string $page The internal reference name for the page
+	 * @return string The fully qualified resource name for the admin page
+	 **/
+	function pagename ($page) {
+		return basename(SHOPP_PATH)."-$page";
+	}
+	
+	/**
+	 * Gets the name of the controller for the current request or the specified page resource
+	 *
+	 * @author Jonathan Davis
+	 * @param string $page (optional) The fully qualified reference name for the page
+	 * @return string|boolean The name of the controller or false if not available
+	 **/
+	function controller ($page=false) {
+		if (!$page && isset($this->Page->controller)) return $this->Page->controller;
+		if (isset($this->Pages[$page])) return $this->Pages[$page]->controller;
+		return false;
+	}
+	
+	/**
+	 * Dynamically includes necessary JavaScript and stylesheets for the admin
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @return void
+	 **/
+	function behaviors () {
+		global $wp_version,$Shopp;
+		
+		wp_enqueue_script('jquery');
+		wp_enqueue_script('shopp',SHOPP_ADMIN_PATH."/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
+		wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',get_bloginfo('url')),array(),SHOPP_VERSION);
+		
+		
+		// Load only for the editors to keep other admin screens snappy
+		$editors = array_filter(array_keys($this->Pages),array(&$this,'get_editor_pages'));
+		if (array_search($_GET['page'],$editors)) {
+			add_action( 'admin_head', 'wp_tiny_mce' );
+			wp_enqueue_script('postbox');
+			if ( user_can_richedit() ) wp_enqueue_script('editor');
+			wp_enqueue_script("shopp-thickbox",SHOPP_ADMIN_PATH."/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
+			wp_enqueue_script('shopp.editor.lib',SHOPP_ADMIN_PATH."/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
+
+			if ($_GET['page'] == $this->Pages['shopp-product-edit'])
+				wp_enqueue_script('shopp.product.editor',SHOPP_ADMIN_PATH."/products/editor.js",array('jquery'),SHOPP_VERSION,true);
+
+			wp_enqueue_script('shopp.editor.priceline',SHOPP_ADMIN_PATH."/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
+			wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_PATH."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery','jquery-ui-core'),SHOPP_VERSION,true);
+			
+			wp_enqueue_script('shopp.swfupload',SHOPP_ADMIN_PATH."/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION);
+			wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_PATH."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
+		}
+		
+		?>
+		<link rel='stylesheet' href='<?php echo $Shopp->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
+		<link rel='stylesheet' href='<?php echo $Shopp->uri; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
+		<?php
+	}
+	
+	/**
+	 * Adds contextually appropriate help information to interfaces
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @return void
+	 **/
+	function help ($pagename,$menu) {
+		global $Shopp;
+		if (!isset($this->Pages[$pagename])) return;
+		$page = $this->Pages[$pagename];
+		$url = SHOPP_DOCS.str_replace("+","_",urlencode($page->doc));
+		$link = htmlspecialchars($page->doc);
+		$content = '<a href="'.$url.'" target="_blank">'.$link.'</a>';
+		
+		$target = substr($menu,strrpos($menu,'-')+1);
+		if ($target == "orders" || $target == "customers") {
+			ob_start();
+			include("{$Shopp->path}/core/ui/help/$target.php");
+			$help = ob_get_contents();
+			ob_end_clean();
+			$content .= $help;
+		}
+
+		add_contextual_help($menu,$content);
+	}
+	
+	
+	/**
+	 * Initializes the Shopp dashboard widgets
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @return void
+	 **/
+	function widgets () {
+		
+		wp_register_sidebar_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array(&$this,'stats_widget'),
+			array('all_link' => '','feed_link' => '','width' => 'half','height' => 'single')
+		);
+
+		wp_register_sidebar_widget('dashboard_shopp_orders', __('Shopp Orders','Shopp'), array(&$this,'orders_widget'),
+			array('all_link' => 'admin.php?page='.$this->pagename('orders'),'feed_link' => '','width' => 'half','height' => 'single')
+		);
+
+		wp_register_sidebar_widget('dashboard_shopp_products', __('Shopp Products','Shopp'), array(&$this,'products_widget'),
+			array('all_link' => 'admin.php?page='.$this->pagename('products'),'feed_link' => '','width' => 'half','height' => 'single')
+		);
+		
+	}
+
+	/**
+	 * Adds the Shopp dashboard widgets to the WordPress Dashboard
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @param array $widgets List of current WordPress dashboard widgets
+	 * @return array $widgets List of widgets with the Shopp widgets added
+	 **/
+	function dashboard ($widgets) {
+		$dashboard = $this->Settings->get('dashboard');
+		if (current_user_can(SHOPP_USERLEVEL) && $dashboard == "on")
+			array_unshift($widgets,'dashboard_shopp_stats','dashboard_shopp_orders','dashboard_shopp_products');
+		return $widgets;
+	}
+	
+	/**
+	 * dashbaord_css()
+	 * Loads only the Shopp Admin CSS on the WordPress dashboard for widget styles */
+	function dashboard_css () {
+		global $Shopp;
+		echo "<link rel='stylesheet' href='$Shopp->uri/core/ui/styles/admin.css?ver=".urlencode(SHOPP_VERSION)."' type='text/css' />\n";
+	}
+	
+	/**
+	 * Dashboard Widgets
+	 */
+	function stats_widget ($args=null) {
+		global $Shopp;
+		$db = DB::get();
+		$defaults = array(
+			'before_widget' => '',
+			'before_title' => '',
+			'widget_name' => '',
+			'after_title' => '',
+			'after_widget' => ''
+		);
+		if (!$args) $args = array();
+		$args = array_merge($defaults,$args);
+		if (!empty($args)) extract( $args, EXTR_SKIP );
+
+		echo $before_widget;
+
+		echo $before_title;
+		echo $widget_name;
+		echo $after_title;
+		
+		$purchasetable = DatabaseObject::tablename(Purchase::$table);
+
+		$results = $db->query("SELECT count(id) AS orders, SUM(total) AS sales, AVG(total) AS average,
+		 						SUM(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),1,0)) AS wkorders,
+								SUM(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,0)) AS wksales,
+								AVG(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,null)) AS wkavg
+		 						FROM $purchasetable");
+
+		$orderscreen = add_query_arg('page',$this->Admin->orders,$Shopp->wpadminurl."admin.php");
+		echo '<div class="table"><table><tbody>';
+		echo '<tr><th colspan="2">'.__('Last 30 Days','Shopp').'</th><th colspan="2">'.__('Lifetime','Shopp').'</th></tr>';
+
+		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.$results->wkorders.'</a></td><td>'.__('Orders','Shopp').'</td>';
+		echo '<td class="amount"><a href="'.$orderscreen.'">'.$results->orders.'</a></td><td>'.__('Orders','Shopp').'</td></tr>';
+
+		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.money($results->wksales).'</a></td><td>'.__('Sales','Shopp').'</td>';
+		echo '<td class="amount"><a href="'.$orderscreen.'">'.money($results->sales).'</a></td><td>'.__('Sales','Shopp').'</td></tr>';
+
+		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.money($results->wkavg).'</a></td><td>'.__('Average Order','Shopp').'</td>';
+		echo '<td class="amount"><a href="'.$orderscreen.'">'.money($results->average).'</a></td><td>'.__('Average Order','Shopp').'</td></tr>';
+
+		echo '</tbody></table></div>';
+		
+		echo $after_widget;
+		
+	}
+	
+	function orders_widget ($args=null) {
+		global $Shopp;
+		$db = DB::get();
+		$defaults = array(
+			'before_widget' => '',
+			'before_title' => '',
+			'widget_name' => '',
+			'after_title' => '',
+			'after_widget' => ''
+		);
+		if (!$args) $args = array();
+		$args = array_merge($defaults,$args);
+		if (!empty($args)) extract( $args, EXTR_SKIP );
+		$statusLabels = $this->Settings->get('order_status');
+		
+		echo $before_widget;
+
+		echo $before_title;
+		echo $widget_name;
+		echo $after_title;
+		
+		$purchasetable = DatabaseObject::tablename(Purchase::$table);
+		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
+		
+		$Orders = $db->query("SELECT p.*,count(i.id) as items FROM $purchasetable AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY i.purchase ORDER BY created DESC LIMIT 6",AS_ARRAY);
+
+		if (!empty($Orders)) {
+		echo '<table class="widefat">';
+		echo '<tr><th scope="col">'.__('Name','Shopp').'</th><th scope="col">'.__('Date','Shopp').'</th><th scope="col" class="num">'.__('Items','Shopp').'</th><th scope="col" class="num">'.__('Total','Shopp').'</th><th scope="col" class="num">'.__('Status','Shopp').'</th></tr>';
+		echo '<tbody id="orders" class="list orders">';
+		$even = false; 
+		foreach ($Orders as $Order) {
+			echo '<tr'.((!$even)?' class="alternate"':'').'>';
+			$even = !$even;
+			echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>$this->Admin->orders,'id'=>$Order->id),$Shopp->wpadminurl."admin.php").'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
+			echo '<td>'.date("Y/m/d",mktimestamp($Order->created)).'</td>';
+			echo '<td class="num">'.$Order->items.'</td>';
+			echo '<td class="num">'.money($Order->total).'</td>';
+			echo '<td class="num">'.$statusLabels[$Order->status].'</td>';
+			echo '</tr>';
+		}
+		echo '</tbody></table>';
+		} else {
+			echo '<p>'.__('No orders, yet.','Shopp').'</p>';
+		}
+
+		echo $after_widget;
+		
+	}
+	
+	function products_widget ($args=null) {
+		global $Shopp;
+		$db = DB::get();
+		$defaults = array(
+			'before_widget' => '',
+			'before_title' => '',
+			'widget_name' => '',
+			'after_title' => '',
+			'after_widget' => ''
+		);
+		
+		if (!$args) $args = array();
+		$args = array_merge($defaults,$args);
+		if (!empty($args)) extract( $args, EXTR_SKIP );
+
+		echo $before_widget;
+
+		echo $before_title;
+		echo $widget_name;
+		echo $after_title;
+
+		$RecentBestsellers = new BestsellerProducts(array('where'=>'UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)','show'=>3));
+		$RecentBestsellers->load_products();
+
+		echo '<table><tbody><tr>';
+		echo '<td><h4>'.__('Recent Bestsellers','Shopp').'</h4>';
+		echo '<ul>';
+		foreach ($RecentBestsellers->products as $product) 
+			echo '<li><a href="'.add_query_arg(array('page'=>$this->Admin->editproduct,'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a> ('.$product->sold.')</li>';
+		echo '</ul></td>';
+		
+		
+		$LifetimeBestsellers = new BestsellerProducts(array('show'=>3));
+		$LifetimeBestsellers->load_products();
+		echo '<td><h4>'.__('Lifetime Bestsellers','Shopp').'</h4>';
+		echo '<ul>';
+		foreach ($LifetimeBestsellers->products as $product) 
+			echo '<li><a href="'.add_query_arg(array('page'=>$this->Admin->editproduct,'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a> ('.$product->sold.')</li>';
+		echo '</ul></td>';
+		echo '</tr></tbody></table>';
+		echo $after_widget;
+		
+	}
+	
+	/**
+	 * Helper callback filter to identify editor-related pages in the pages list
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * @param string $pagename The full page reference name 
+	 * @return boolean True if the page is identified as an editor-related page
+	 **/
+	function get_editor_pages ($pagenames) {
+		$filter = '-edit';
+		if (substr($pagenames,strlen($filter)*-1) == $filter) return true;
+		else return false;
+	}
+
+	/**
+	 * Helper callback filter to identify settings pages in the pages list
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * @param string $pagename The page's full reference name 
+	 * @return boolean True if the page is identified as a settings page
+	 **/
+	function get_settings_pages ($pagenames) {
+		$filter = '-settings';
+		if (strpos($pagenames,$filter) !== false) return true;
+		else return false;
+	}
+
+} // end AdminFlow class
+
+/**
+ * ShoppAdminPage class
+ *
+ * A property container for Shopp's admin page meta
+ *
+ * @package default
+ * @since 1.1
+ * @author Jonathan Davis
+ **/
+class ShoppAdminPage {
+	var $label = "";
+	var $controller = "";
+	var $doc = false;
+	var $parent = false;
+	
+	function __construct ($page,$label,$controller,$doc=false,$parent=false) {
+		$this->page = $page;
+		$this->label = $label;
+		$this->controller = $controller;
+		$this->doc = $doc;
+		$this->parent = $parent;
+	}
+	
+} // END class ShoppAdminPage 
+
+?>

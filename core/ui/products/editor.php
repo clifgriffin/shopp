@@ -1,5 +1,5 @@
 <div class="wrap shopp"> 
-	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
+	<?php if (!empty($Shopp->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Notice; ?></p></div><?php endif; ?>
 
 	<h2><?php _e('Product Editor','Shopp'); ?></h2> 
 
@@ -57,8 +57,6 @@
 </div>
 
 <script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Product";
-
 var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security')))?'true':'false'; ?>;
 var product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>;
 var prices = <?php echo json_encode($Product->prices) ?>;
@@ -78,7 +76,7 @@ var manager_page = '<?php echo $this->Admin->products; ?>';
 var editor_page = '<?php echo $this->Admin->editproduct; ?>';
 var request = <?php echo json_encode(stripslashes_deep($_GET)); ?>;
 var workflow = {'continue':editor_page, 'close':manager_page, 'new':editor_page, 'next':editor_page, 'previous':editor_page};
-var worklist = <?php echo json_encode($this->products_list(true)); ?>;
+var worklist = <?php echo json_encode($this->products(true)); ?>;
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';

@@ -1,10 +1,10 @@
 	<div class="wrap shopp"> 
-		<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
+		<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
 
 		<h2><?php _e('Promotion Editor','Shopp'); ?></h2> 
 
 		<div id="ajax-response"></div> 
-		<form name="promotion" id="promotion" action="<?php echo add_query_arg('page',$this->Admin->promotions,$Shopp->wpadminurl."admin.php"); ?>" method="post">
+		<form name="promotion" id="promotion" action="<?php echo add_query_arg('page','shopp-promotions',$Shopp->wpadminurl."admin.php"); ?>" method="post">
 			<?php wp_nonce_field('shopp-save-promotion'); ?>
 
 			<div class="hidden"><input type="hidden" name="id" value="<?php echo $Promotion->id; ?>" /></div>

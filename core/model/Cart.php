@@ -1932,7 +1932,7 @@ class Cart {
 				foreach ($xcos as $xco) {
 					$xcopath = join('/',array($Shopp->path,'gateways',$xco));
 					if (!file_exists($xcopath)) continue;
-					$meta = $Shopp->Flow->scan_gateway_meta($xcopath);
+					$meta = scan_gateway_meta($xcopath);
 					$ProcessorClass = $meta->tags['class'];
 					if (!empty($ProcessorClass)) {
 						$PaymentSettings = $Shopp->Settings->get($ProcessorClass);

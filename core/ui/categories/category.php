@@ -1,5 +1,5 @@
 <div class="wrap shopp"> 
-	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
+	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
 
 	<h2><?php _e('Category Editor','Shopp'); ?></h2> 
 
@@ -70,7 +70,7 @@ var manager_page = '<?php echo $this->Admin->categories; ?>';
 var editor_page = '<?php echo $this->Admin->editcategory; ?>';
 var request = <?php echo json_encode(stripslashes_deep($_GET)); ?>;
 var workflow = {'continue':editor_page, 'close':manager_page, 'new':editor_page, 'next':editor_page, 'previous':editor_page};
-var worklist = <?php echo json_encode($this->categories_list(true)); ?>;
+var worklist = <?php echo json_encode($this->categories(true)); ?>;
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
@@ -172,6 +172,7 @@ jQuery(document).ready(function () {
 			$('#templates').hide();
 	}).change();
 	
+	Pricelines = new Pricelines();
 	if (details) for (s in details) addDetail(details[s]);
 	$('#addPriceLevel').click(function() { addPriceLevel(); });	
 	$('#addDetail').click(function() { addDetail(); });	

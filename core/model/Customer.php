@@ -394,7 +394,7 @@ class Customer extends DatabaseObject {
 				}
 
 				ob_start();
-				include(SHOPP_ADMINPATH."/orders/account.php");
+				include(SHOPP_ADMIN_PATH."/orders/account.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 				return '<div id="shopp">'.$content.'</div>';
