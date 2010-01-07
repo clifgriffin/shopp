@@ -193,7 +193,7 @@ function get_country_areas () {
 	$areas['CA'] = array();
 	$areas['CA']['Northern Canada'] = array('YT'=>array('Y'),'NT'=>array('X'),'NU'=>array('X'));
 	$areas['CA']['Western Canada'] = array('BC'=>array('V'),'AB'=>array('T'),'SK'=>array('S'),'MB'=>array('R'));
-	$areas['CA']['Eastern Canada'] = array('OT'=>array('K','L','M','N','P'),'PQ'=>array('G','H','J'),'NB'=>array('E'),'PE'=>array('C'),'NS'=>array('B'),'NF'=>array('A'));
+	$areas['CA']['Eastern Canada'] = array('ON'=>array('K','L','M','N','P'),'PQ'=>array('G','H','J'),'NB'=>array('E'),'PE'=>array('C'),'NS'=>array('B'),'NF'=>array('A'));
 
 	$areas['US'] = array();
 	$areas['US']['Northeast US'] = array('MA'=>array('01000','02799','05500','05599'),'RI'=>array('02800','02999'),'NH'=>array('03000','03999'),'ME'=>array('03900','04999'),'VT'=>array('05000','05999'),'CT'=>array('06000','06999'),'NJ'=>array('07000','08999'),'NY'=>array('09000','14999','00500','00599','06300','06399'),'PA'=>array('15000','19699'));
