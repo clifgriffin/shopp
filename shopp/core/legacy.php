@@ -1,22 +1,25 @@
 <?php
 /**
- * Provides functional support for older versions of PHP & WordPress
+ * legacy.php
+ * A library of functions for older version of PHP and WordPress
  *
  * @author Jonathan Davis
- * @version $Id$
- * @copyright Ingenesis Limited, 18 November, 2009
+ * @version 1.0
+ * @copyright Ingenesis Limited, November 18, 2009
+ * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
  **/
 
 if( !function_exists('esc_url') ) {
 	/**
-	 * Checks and cleans a URL.  From WordPress 2.8.0+  Included for WordPress 2.7 Users of Shopp
+	 * Checks and cleans a URL
 	 *
 	 * A number of characters are removed from the URL. If the URL is for displaying
 	 * (the default behaviour) amperstands are also replaced. The 'esc_url' filter
 	 * is applied to the returned cleaned URL.
 	 *
-	 * @since 2.8.0
+	 * @since WordPress 2.8.0+
+	 * 
 	 * @uses esc_url()
 	 * @uses wp_kses_bad_protocol() To only permit protocols in the URL set
 	 *		via $protocols or the common ones set in the function.
@@ -35,9 +38,11 @@ if (!function_exists('json_encode')) {
 	/**
 	 * Builds JSON {@link http://www.json.org/} formatted strings from PHP data structures
 	 *
+	 * @author Jonathan Davis
+	 * @since PHP 5.2.0+
+	 *
 	 * @param mixed $a PHP data structure
 	 * @return string JSON encoded string
-	 * @author Jonathan Davis
 	 **/
 	function json_encode ($a = false) {
 		if (is_null($a)) return 'null';
@@ -74,9 +79,17 @@ if (!function_exists('json_encode')) {
 	}
 }
 
-/**
- * List files and directories inside the specified path */
 if(!function_exists('scandir')) {
+	/**
+	 * Lists files and directories inside the specified path
+	 *
+	 * @author Jonathan Davis
+	 * @since PHP 5.0+
+	 * 
+	 * @param string $dir Directory path to scan
+	 * @param int $sortorder The sort order of the file listing (0=alphabetic, 1=reversed)
+	 * @return array|boolean The list of files or false if not available
+	 **/
 	function scandir($dir, $sortorder = 0) {
 		if(is_dir($dir) && $dirlist = @opendir($dir)) {
 			$files = array();
@@ -89,11 +102,51 @@ if(!function_exists('scandir')) {
 }
 
 if (!function_exists('attribute_escape_deep')) {
+	/**
+	* @todo	Replace with esc_attrs in functions.php
+	**/
 	function attribute_escape_deep($value) {
 		 $value = is_array($value) ?
 			 array_map('attribute_escape_deep', $value) :
 			 attribute_escape($value);
 		 return $value;
+	}
+}
+
+if (!function_exists('property_exists')) {
+	/**
+	 * Checks an object for a declared property
+	 * 
+	 * @author Jonathan Davis
+	 * @since PHP 5.1.0+
+	 * 
+	 * @param object $Object The object to inspect
+	 * @param string $property The name of the property to look for
+	 * @return boolean True if the property exists, false otherwise
+	 **/
+	function property_exists($object, $property) {
+		return array_key_exists($property, get_object_vars($object));
+	}
+}
+
+if ( !function_exists('sys_get_temp_dir')) {
+	/**
+	 * Determines the temporary directory for the local system
+	 *
+	 * @author Jonathan Davis
+	 * @since PHP 5.2.1+
+	 * 
+	 * @return string The path to the system temp directory
+	 **/
+	function sys_get_temp_dir() {
+		if (!empty($_ENV['TMP'])) return realpath($_ENV['TMP']);
+		if (!empty($_ENV['TMPDIR'])) return realpath( $_ENV['TMPDIR']);
+		if (!empty($_ENV['TEMP'])) return realpath( $_ENV['TEMP']);
+		$tempfile = tempnam(uniqid(rand(),TRUE),'');
+		if (file_exists($tempfile)) {
+			unlink($tempfile);
+			return realpath(dirname($tempfile));
+		}
 	}
 }
 
