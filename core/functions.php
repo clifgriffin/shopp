@@ -1,21 +1,25 @@
 <?php
 /**
+ * functions.php
  * A library of global utility functions for Shopp
  *
  * @author Jonathan Davis
- * @version $Id$
- * @copyright Ingenesis Limited, 18 November, 2009
+ * @version 1.0
+ * @copyright Ingenesis Limited, November 18, 2009
+ * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
  **/
 
 /**
  * Automatically generates a list of number ranges distributed across a number set
  *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
  * @param int $avg Mean average number in the distribution
  * @param int $max The max number in the distribution
  * @param int $min The minimum in the distribution
  * @return array A list of number ranges
- * @author Jonathan Davis
  **/
 function auto_ranges ($avg,$max,$min) {
 	$ranges = array();
@@ -51,12 +55,14 @@ function auto_ranges ($avg,$max,$min) {
 /**
  * Calculates the timestamp of a day based on a repeating interval (Fourth Thursday in November (Thanksgiving))
  *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
  * @param int|string $week The week of the month (1-4, -1 or first-fourth, last)
  * @param int|string $dayOfWeek The day of the week (0-6 or Sunday-Saturday)
  * @param int $month The month, uses current month if none provided
  * @param int $year The year, uses current year if none provided
  * @return void
- * @author Jonathan Davis
  **/
 function datecalc($week=-1,$dayOfWeek=-1,$month=-1,$year=-1) {
 	$weekdays = array("sunday" => 0, "monday" => 1, "tuesday" => 2, "wednesday" => 3, "thursday" => 4, "friday" => 5, "saturday" => 6);
@@ -95,10 +101,12 @@ function datecalc($week=-1,$dayOfWeek=-1,$month=-1,$year=-1) {
 /**
  * Returns the duration (in days) between two timestamps
  *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
  * @param int $start The starting timestamp
  * @param int $end The ending timestamp
  * @return int	Number of days between the start and end
- * @author Jonathan Davis
  **/
 function duration ($start,$end) {
 	return ceil(($end - $start) / 86400);
@@ -107,8 +115,11 @@ function duration ($start,$end) {
 /**
  * Callback to filter out files beginning with a dot
  *
- * @return boolean
  * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $name The filename to check
+ * @return boolean
  **/
 function filter_dotfiles ($name) {
 	return (substr($name,0,1) != ".");
@@ -117,17 +128,20 @@ function filter_dotfiles ($name) {
 /**
  * Finds files of a specific extension
  *
- * Recursively searches directories and one-level deep of 
- * sub-directories for files with a specific extension
- * NOTE: Files are saved to the $found parameter, 
- * an array passed by reference, not a returned value
+ * Recursively searches directories and one-level deep of sub-directories for
+ * files with a specific extension
+ * 
+ * NOTE: Files are saved to the $found parameter, an array passed by
+ * reference, not a returned value
  *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
  * @param string $extension File extension to search for
  * @param string $directory Starting directory
  * @param string $root Starting directory reference
  * @param string &$found List of files found
  * @return boolean Returns true if files are found
- * @author Jonathan Davis
  **/
 function find_files ($extension, $directory, $root, &$found) {
 	if (is_dir($directory)) {
@@ -150,10 +164,12 @@ function find_files ($extension, $directory, $root, &$found) {
 /**
  * Determines the mimetype of a file
  *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
  * @param string $file The path to the file
  * @param string $name (optional) The name of the file
  * @return string The mimetype of the file
- * @author Jonathan Davis
  **/
 function file_mimetype ($file,$name=false) {
 	if (!$name) $name = basename($file);
@@ -239,26 +255,14 @@ function file_mimetype ($file,$name=false) {
 }
 
 /**
- * (DEPRECATED) Converts a string to a floating point numeric string
- *
- * @return string
- * @author Jonathan Davis
- **/
-function floatnum ($number) {
-	$number = preg_replace("/,/",".",$number); // Replace commas with periods
-	$number = preg_replace("/[^0-9\.]/","", $number); // Get rid of everything but numbers and periods
-	$number = preg_replace("/\.(?=.*\..+$)/s","",$number); // Replace all but the last period
-	return $number;
-}
-
-
-/**
  * Converts a numeric string to a floating point number
  *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
  * @param string $value Numeric string to be converted
  * @param boolean $format (optional) Numerically formats the value to normalize it (Default: true) 
  * @return float
- * @author Jonathan Davis
  **/
 function floatvalue($value, $format=true) {
 	$value = preg_replace("/[^\d,\.]/","",$value); // Remove any non-numeric string data
@@ -270,16 +274,43 @@ function floatvalue($value, $format=true) {
 	else return floatval($value);
 }
 
+/**
+ * Modifies URLs to use SSL connections
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $url Source URL to rewrite 
+ * @return string $url The secure URL
+ **/
 function force_ssl ($url) {
 	if(isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on")
 		$url = str_replace('http://', 'https://', $url);
 	return $url;
 }
 
+/**
+ * Determines the gateway path to a gateway file
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $file The target gateway file 
+ * @return string The path fragment for the gateway file
+ **/
 function gateway_path ($file) {
-	return basename(dirname($file)).DIRECTORY_SEPARATOR.basename($file);
+	return basename(dirname($file)).'/'.basename($file);
 }
 
+/**
+ * Read the file meta data for Shopp addons
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $file The target file
+ * @return string The meta block from the file
+ **/
 function get_filemeta ($file) {
 	if (!file_exists($file)) return false;
 	if (!is_readable($file)) return false;
@@ -300,6 +331,20 @@ function get_filemeta ($file) {
 	return $string;
 }
 
+/**
+ * Handles sanitizing URLs for use in markup HREF attributes
+ *
+ * Wrapper for securing URLs generated with the WordPress 
+ * add_query_arg() function
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param mixed $param1 Either newkey or an associative_array
+ * @param mixed $param2 Either newvalue or oldquery or uri
+ * @param mixed $param3 Optional. Old query or uri
+ * @return string New URL query string.
+ **/
 if (!function_exists('href_add_query_arg')) {
 	function href_add_query_arg () {
 		$args = func_get_args();
@@ -309,6 +354,19 @@ if (!function_exists('href_add_query_arg')) {
 	}
 }
 
+/**
+ * Formats a number in the Indian numbering format
+ *
+ * The Indian numbering format involves grouping thousand
+ * decimals by two places instead of by three. (e.g. 1,00,00,000)
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param float $number The number to format
+ * @param array $format A formatting configuration array 
+ * @return string Indian format number
+ **/
 function indian_number ($number,$format=false) {
 	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
 
@@ -327,6 +385,16 @@ function indian_number ($number,$format=false) {
 	
 }
 
+/**
+ * Generates attribute markup for HTML inputs based on specified options
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param array $options An associative array of options
+ * @param array $allowed (optional) Allowable attribute options for the element
+ * @return string Attribute markup fragment
+ **/
 function inputattrs ($options,$allowed=array()) {
 	if (!is_array($options)) return "";
 	if (empty($allowed)) {
@@ -357,8 +425,10 @@ function inputattrs ($options,$allowed=array()) {
 /**
  * Determines if the current client is a known web crawler bot
  *
- * @return boolean Returns true if a bot user agent is detected
  * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @return boolean Returns true if a bot user agent is detected
  **/
 function is_robot() {
 	$bots = array("Googlebot","TeomaAgent","Zyborg","Gulliver","Architext spider","FAST-WebCrawler","Slurp","Ask Jeeves","ia_archiver","Scooter","Mercator","crawler@fast","Crawler","InfoSeek sidewinder","Lycos_Spider_(T-Rex)","Fluffy the Spider","Ultraseek","MantraAgent","Moget","MuscatFerret","VoilaBot","Sleek Spider","KIT_Fireball","WebCrawler");
@@ -370,9 +440,11 @@ function is_robot() {
 /**
  * Determines if the requested page is a Shopp page or if it matches a given Shopp page
  *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
  * @param string $page (optional) Page name to look for in Shopp's page registry
  * @return boolean
- * @author Jonathan Davis
  **/
 function is_shopp_page ($page=false) {
 	global $Shopp,$wp_query;
@@ -400,14 +472,24 @@ function is_shopp_page ($page=false) {
 /**
  * Detects SSL requests
  *
- * @return boolean 
  * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @return boolean 
  **/
 function is_shopp_secure () {
 	return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on");
 }
+
 /**
- * Converts a datetime value from a MySQL datetime format to a Unix timestamp. */
+ * Generates a timestamp from a MySQL datetime format
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $datetime A MySQL date time string
+ * @return int A timestamp number usable by PHP date functions
+ **/
 function mktimestamp ($datetime) {
 	$h = $mn = $s = 0;
 	list($Y, $M, $D, $h, $mn, $s) = sscanf($datetime,"%d-%d-%d %d:%d:%d");
@@ -415,15 +497,28 @@ function mktimestamp ($datetime) {
 }
 
 /**
- * Converts a Unix timestamp value to a datetime format suitable for entry in a
- * MySQL record. */
+ * Converts a timestamp number to an SQL datetime formatted string
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param int $timestamp A timestamp number
+ * @return string An SQL datetime formatted string
+ **/
 function mkdatetime ($timestamp) {
 	return date("Y-m-d H:i:s",$timestamp);
 }
 
 /**
- * Returns the corresponding 24-hour $hour based on a 12-hour based $hour
- * and the AM (Ante Meridiem) / PM (Post Meridiem) $meridiem. */
+ * Returns the 24-hour equivalent of a the Ante Meridiem or Post Meridem hour
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param int $hour The hour of the meridiem
+ * @param string $meridiem Specified meridiem of "AM" or "PM"
+ * @return int The 24-hour equivalent
+ **/
 function mk24hour ($hour, $meridiem) {
 	if ($hour < 12 && $meridiem == "PM") return $hour + 12;
 	if ($hour == 12 && $meridiem == "AM") return 0;
@@ -432,6 +527,26 @@ function mk24hour ($hour, $meridiem) {
 
 /**
  * Returns a list marked-up as drop-down menu options */
+/**
+ * Generates HTML markup for the options of a drop-down menu
+ *
+ * Takes a list of options and generates the option elements for an HTML 
+ * select element.  By default, the option values and labels will be the 
+ * same.  If the values option is set, the option values will use the 
+ * key of the associative array, and the option label will be the value in 
+ * the array.  The extend option can be used to ensure that if the selected
+ * value does not exist in the menu, it will be automatically added at the
+ * top of the list.
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param array $list The list of options
+ * @param int|string $selected The array index, or key name of the selected value
+ * @param boolean $values (optional) Use the array key as the option value attribute (defaults to false)
+ * @param boolean $extend (optional) Use to add the selected value if it doesn't exist in the specified list of options
+ * @return string The markup of option elements
+ **/
 function menuoptions ($list,$selected=null,$values=false,$extend=false) {
 	if (!is_array($list)) return "";
 	$string = "";
@@ -450,6 +565,25 @@ function menuoptions ($list,$selected=null,$values=false,$extend=false) {
 	return $string;
 }
 
+/**
+ * Formats a number amount using a specified currency format
+ *
+ * The number is formatted based on a currency formatting configuration
+ * array that  includes the currency symbol position (cpos), the currency 
+ * symbol (currency), the decimal precision (precision), the decimal character 
+ * to use (decimals) and the thousands separator (thousands).
+ * 
+ * If the currency format is not specified, the currency format from the 
+ * store setting is used.  If no setting is available, the currency format
+ * for US dollars is used.
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param float $amount The amount to be formatted
+ * @param array $format The currency format to use
+ * @return string The formatted amount
+ **/
 function money ($amount,$format=false) {
 	global $Shopp;
 	$locale = $Shopp->Settings->get('base_operations');
@@ -465,7 +599,14 @@ function money ($amount,$format=false) {
 
 
 /**
- * Formats a number into a standardized telephone number format */
+ * Formats a number to telephone number style
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param int $num The number to format
+ * @return string The formatted telephone number
+ **/
 function phone ($num) {
 	if (empty($num)) return "";
 	$num = preg_replace("/[A-Za-z\-\s\(\)]/","",$num);
@@ -485,6 +626,22 @@ function phone ($num) {
 
 }
 
+/**
+ * Formats a numeric amount to a percentage using a specified format
+ * 
+ * Uses a format configuration array to specify how the amount needs to be
+ * formatted.  When no format is specified, the currency format setting 
+ * is used only paying attention to the decimal precision, decimal symbol and 
+ * thousands separator.  If no setting is available, a default configuration 
+ * is used (precision: 1) (decimal separator: .) (thousands separator: ,)
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param float $amount The amount to format
+ * @param array $format A specific format for the number
+ * @return string The formatted percentage
+ **/
 function percentage ($amount,$format=false) {
 	global $Shopp;
 	
@@ -499,18 +656,17 @@ function percentage ($amount,$format=false) {
 }
 
 /**
- * Checks an object for a declared property
- * if() checks to see if the function is already available (as in PHP 5) */
-if (!function_exists('property_exists')) {
-	function property_exists($object, $property) {
-		return array_key_exists($property, get_object_vars($object));
-	}
-}
-
-
-/**
- * Returns a string of the number of years, months, days, hours, 
- * minutes and even seconds from a specified date ($date). */
+ * Creates natural language amount of time from a specified timestamp to today
+ *
+ * The string includes the number of years, months, days, hours, minutes 
+ * and even seconds e.g.: 1 year, 5 months, 29 days , 23 hours and 59 minutes
+ *
+ * @author Timothy Hatcher
+ * @since 1.0
+ * 
+ * @param int $date The original timestamp
+ * @return string The formatted time range
+ **/
 function readableTime($date, $long = false) {
 
 	$secs = time() - $date;
@@ -554,9 +710,11 @@ function readableTime($date, $long = false) {
 /**
  * Scans a formatted string to build a list of currency formatting settings
  *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
  * @param string $format A currency formatting string such as $#,###.##
  * @return array Formatting options list
- * @author Jonathan Davis
  **/
 function scan_money_format ($format) {
 	$f = array(
@@ -614,6 +772,22 @@ function scan_money_format ($format) {
  * for variables appearing in the template as a bracketed
  * [variable] with data from the coinciding $data['variable']
  * or $_POST['variable'] */
+
+/**
+ * Sends an email message based on a specified template file
+ *
+ * Sends an e-mail message in the format of a specified e-mail 
+ * template file using variable substitution for variables appearing in 
+ * the template as a bracketed [variable] with data from the 
+ * provided data array or the super-global $_POST array
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $template Email template file path
+ * @param array $data The data to populate the template with
+ * @return boolean True on success, false on failure
+ **/
 function shopp_email ($template,$data=array()) {
 	
 	if (strpos($template,"\r\n") !== false) $f = explode("\r\n",$template);
@@ -680,8 +854,14 @@ function shopp_email ($template,$data=array()) {
 }
 
 /**
- * Generates an RSS-compliant string from an associative 
- * array ($data) with a specific RSS-structure. */
+ * Generates RSS markup in XML from a set of provided data
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param array $data The data to populate the RSS feed with
+ * @return string The RSS markup
+ **/
 function shopp_rss ($data) {
 	// RSS filters
 	add_filter('shopp_rss_description','convert_chars');
@@ -729,6 +909,19 @@ function shopp_rss ($data) {
 	return $xml;
 }
 
+/**
+ * Outputs a parsed catalog CSS file to the browser
+ *
+ * The catalog CSS file provides core styling used to initialize foundational
+ * elements of Shopp catalog layout. Some aspects for the CSS can only be
+ * known by loading settings and using them to generate dynamic dimensions
+ * for some elements (primarily the product gallery).
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @return void
+ **/
 function shopp_catalog_css () {
 	$db =& DB::get();
 	$table = DatabaseObject::tablename(Settings::$table);
@@ -753,6 +946,17 @@ function shopp_catalog_css () {
 	exit();
 }
 
+/**
+ * Outputs a parsed JS file to provide Shopp settings to the JS environment
+ *
+ * The JavaScript file is parsed by PHP in order to load Shopp settings 
+ * from the database into the browser's JavaScript environment.
+ * 
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @return void
+ **/
 function shopp_settings_js ($dir="shopp") {
 	$db =& DB::get();
 	$table = DatabaseObject::tablename(Settings::$table);
@@ -775,8 +979,14 @@ function shopp_settings_js ($dir="shopp") {
 	exit();
 }
 
-
-
+/**
+ * Checks for prerequisite technologies needed for Shopp
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @return boolean Returns true if all technologies are available
+ **/
 function shopp_prereqs () {
 	$errors = array();
 	// Check PHP version, this won't appear much since syntax errors in earlier
@@ -817,38 +1027,17 @@ function shopp_prereqs () {
 	return true;
 }
 
-if( !function_exists('esc_url') ) {
-	/**
-	 * Checks and cleans a URL.  From WordPress 2.8.0+  Included for WordPress 2.7 Users of Shopp
-	 *
-	 * A number of characters are removed from the URL. If the URL is for displaying
-	 * (the default behaviour) amperstands are also replaced. The 'esc_url' filter
-	 * is applied to the returned cleaned URL.
-	 *
-	 * @since 2.8.0
-	 * @uses esc_url()
-	 * @uses wp_kses_bad_protocol() To only permit protocols in the URL set
-	 *		via $protocols or the common ones set in the function.
-	 *
-	 * @param string $url The URL to be cleaned.
-	 * @param array $protocols Optional. An array of acceptable protocols.
-	 *		Defaults to 'http', 'https', 'ftp', 'ftps', 'mailto', 'news', 'irc', 'gopher', 'nntp', 'feed', 'telnet' if not set.
-	 * @return string The cleaned $url after the 'cleaned_url' filter is applied.
-	 */
-	function esc_url( $url, $protocols = null ) {
-		return clean_url( $url, $protocols, 'display' );
-	}
-}
-
-function shopp_debug ($object) {
-	global $Shopp;
-	ob_start();
-	print_r($object);
-	$result = ob_get_contents();
-	ob_end_clean();
-	$Shopp->_debug->objects .= "<br/><br/>".str_replace("\n","<br/>",$result);
-}
-
+/**
+ * Returns the platform appropriate page name for Shopp internal pages
+ *
+ * IIS rewriting requires including index.php as part of the page
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $page The normal page name
+ * @return string The modified page name
+ **/
 function shopp_pagename ($page) {
 	global $is_IIS;
 	$prefix = strpos($page,"index.php/");
@@ -856,12 +1045,37 @@ function shopp_pagename ($page) {
 	else return $page;
 }
 
-function shopp_redirect ($uri) {
+/**
+ * Redirects the browser to a specified URL
+ *
+ * A wrapper for the wp_redirect function
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $uri The URI to redirect to
+ * @param boolean $exit (optional) Exit immediately after the redirect (defaults to true, set to false to override)
+ * @return void
+ **/
+function shopp_redirect ($uri,$exit=true) {
 	if (class_exists('ShoppError'))	new ShoppError('Redirecting to: '.$uri,'shopp_redirect',SHOPP_DEBUG_ERR);
 	wp_redirect($uri);
-	exit();
+	if ($exit) exit();
 }
 
+/**
+ * Determines the current taxrate from the store settings and provided options
+ *
+ * Contextually works out if the tax rate applies or not based on storefront
+ * settings and the provided override options 
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $override (optional) Specifies whether to override the default taxrate behavior
+ * @param string $taxprice (optional) Supports a secondary contextual override
+ * @return float The determined tax rate
+ **/
 function shopp_taxrate ($override=null,$taxprice=true) {
 	global $Shopp;
 	$rated = false;
@@ -904,6 +1118,15 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 	return $result;
 }
 
+/**
+ * Generates a representation of the current state of an object structure
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param object $object The object to display
+ * @return string The object structure 
+ **/
 function _object_r ($object) {
 	global $Shopp;
 	ob_start();
@@ -913,6 +1136,17 @@ function _object_r ($object) {
 	return $result;
 }
 
+/**
+ * Converts natural language text to boolean values
+ * 
+ * Used primarily for handling boolean text provided in shopp() tag options.
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $value The natural language value
+ * @return boolean The boolean value of the provided text
+ **/
 function value_is_true ($value) {
 	switch (strtolower($value)) {
 		case "yes": case "true": case "1": case "on": return true;
@@ -920,12 +1154,31 @@ function value_is_true ($value) {
 	}
 }
 
+/**
+ * Determines if a specified type is a valid HTML input element
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $type The HTML element type name
+ * @return boolean True if valid, false if not
+ **/
 function valid_input ($type) {
 	$inputs = array("text","hidden","checkbox","radio","button","submit");
 	if (in_array($type,$inputs) !== false) return true;
 	return false;
 }
 
+/**
+ * Converts timestamps to formatted localized date/time strings
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $format A date() format string
+ * @param int $timestamp (optional) The timestamp to be formatted (defaults to current timestamp)
+ * @return string The formatted localized date/time
+ **/
 function _d($format,$timestamp=false) {
 	$tokens = array(
 		'D' => array('Mon' => __('Mon','Shopp'),'Tue' => __('Tue','Shopp'),
@@ -961,7 +1214,18 @@ function _d($format,$timestamp=false) {
 	return $date;
 }
 
-
+/**
+ * Builds an SQL query fragment for key/value pair assignments
+ *
+ * Generates a string concatenating the keys and corresponding values
+ * for INSERT or UPDATE queries.
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param array $request A list of key/value pairs
+ * @return string The query fragment
+ **/
 function build_query_request ($request=array()) {
 	$query = "";
 	foreach ($request as $name => $value) {
@@ -971,6 +1235,17 @@ function build_query_request ($request=array()) {
 	return $query;
 }
 
+/**
+ * Converts bytes to the largest applicable human readable unit
+ *
+ * Supports up to petabyte sizes
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param int $bytes The number of bytes
+ * @return string The formatted unit size
+ **/
 function readableFileSize($bytes,$precision=1) {
 	$units = array(__("bytes","Shopp"),"KB","MB","GB","TB","PB");
 	$sized = $bytes*1;
@@ -980,6 +1255,20 @@ function readableFileSize($bytes,$precision=1) {
 	return round($sized,$precision)." ".$units[$unit];
 }
 
+/**
+ * Copies the builtin template files to the active WordPress theme
+ *
+ * Handles copying the builting template files to the shopp/ directory of 
+ * the currently active WordPress theme.  Strips out the header comment 
+ * block which includes a warning about editing the builtin templates.
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $src The source directory for the builtin template files
+ * @param string $target The target directory in the active theme
+ * @return void
+ **/
 function copy_shopp_templates ($src,$target) {
 	$builtin = array_filter(scandir($src),"filter_dotfiles");
 	foreach ($builtin as $template) {
@@ -994,14 +1283,6 @@ function copy_shopp_templates ($src,$target) {
 		}
 	}
 }
-
-
-
-function template_path ($path) {
-	if (DIRECTORY_SEPARATOR == "\\") $path = str_replace("/","\\",$path);
-	return $path;
-}
-
 
 // TODO: Clean up for Controllers
 
@@ -1071,43 +1352,66 @@ function scan_gateway_meta ($file) {
 
 // TODO END: Clean up for Controllers
 
-
-
-
-if ( !function_exists('sys_get_temp_dir')) {
-	// For PHP 5 (pre-5.2.1)
-	function sys_get_temp_dir() {
-		if (!empty($_ENV['TMP'])) return realpath($_ENV['TMP']);
-		if (!empty($_ENV['TMPDIR'])) return realpath( $_ENV['TMPDIR']);
-		if (!empty($_ENV['TEMP'])) return realpath( $_ENV['TEMP']);
-		$tempfile = tempnam(uniqid(rand(),TRUE),'');
-		if (file_exists($tempfile)) {
-			unlink($tempfile);
-			return realpath(dirname($tempfile));
-		}
-	}
-}
-
 if(!function_exists('sanitize_path')){
+	/**
+	 * Normalizes path separators to always use forward-slashes
+	 *
+	 * PHP path functions on Windows-based systems will return paths with 
+	 * backslashes as the directory separator.  This function is used to 
+	 * ensure we are always working with forward-slash paths
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $path The path to clean up
+	 * @return string $path The forward-slash path
+	 **/
 	function sanitize_path ($path) {
 		return str_replace('\\', '/', $path);
 	}
 }
 
+/**
+ * A lightweight FTP-client for handling Shopp upgrades
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * @package shopp
+ **/
 class FTPClient {
 	var $connected = false;
 	var $log = array();
 	var $remapped = false;
 	
-	function FTPClient ($host, $user, $password) {
+	/**
+	 * Sets up a connection to an FTP server
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $host The hostname of the server to connect to
+	 * @param string $user The user name to authenticate with
+	 * @param string $password The password to authenticate with
+	 * @return boolean True when connected, false on failure
+	 **/
+	function __construct ($host, $user, $password) {
 		$this->connect($host, $user, $password);
 		if ($this->connected) ftp_pasv($this->connection,true);
 		else return false;
 		return true;
 	}
 	
-	/** 
-	 * Connects to the FTP server */
+	/**
+	 * Connects to the FTP server
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $host The hostname of the server to connect to
+	 * @param string $user The user name to authenticate with
+	 * @param string $password The password to authenticate with
+	 * @return boolean True when connected, false on failure
+	 **/
 	function connect($host, $user, $password) {
 		$this->connection = @ftp_connect($host,0,20);
 		if (!$this->connection) return false;
@@ -1117,8 +1421,15 @@ class FTPClient {
 	}
 	
 	/**
-	 * update()
-	 * Recursively copies files from a src $path to the $remote path */
+	 * Recursively copies files from a working path to the remote FTP path
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $path The path to the working files
+	 * @param string $remote The remote FTP path
+	 * @return string A log of actions
+	 **/
 	function update ($path,$remote) {
 		if (is_dir($path)){
 			$path = trailingslashit($path);
@@ -1150,8 +1461,14 @@ class FTPClient {
 	}
 	
 	/**
-	 * delete()
-	 * Delete the target file, recursively delete directories  */
+	 * Delete the target file, recursively delete directories
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $file The file path on the remote system
+	 * @return boolean True on success, false on failure
+	 **/
 	function delete ($file) {
 		if (empty($file)) return false;
 		if (!$this->isdir($file)) return @ftp_delete($this->connection, $file);
@@ -1161,8 +1478,15 @@ class FTPClient {
 	}
 	
 	/**
-	 * put()
-	 * Copies the target file to the remote location */
+	 * Copies the target file to the remote location
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $file Path to the source file on the local machine
+	 * @param string $remote Path to the remote target location
+	 * @return boolean True on success, false on failure
+	 **/
 	function put ($file,$remote) {
 		if (@ftp_put($this->connection,$remote,$file,FTP_BINARY))
 			return @ftp_chmod($this->connection, 0644, $remote);
@@ -1170,8 +1494,14 @@ class FTPClient {
 	}
 	
 	/**
-	 * mkdir()
-	 * Makes a new remote directory with correct permissions */
+	 * Makes a new remote directory with correct permissions
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $path The remote path for the new directory
+	 * @return boolean True on success, false on failure
+	 **/
 	function mkdir ($path) {
 		if (@ftp_mkdir($this->connection,$path)) 
 			@ftp_chmod($this->connection,0755,$path);
@@ -1179,8 +1509,13 @@ class FTPClient {
 	}
 	
 	/**
-	 * mkdir()
-	 * Gets the current directory */
+	 * Gets the current directory on the remote system
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return string The current working directory path
+	 **/
 	function pwd () {
 		return ftp_pwd($this->connection);
 	}
@@ -1188,14 +1523,29 @@ class FTPClient {
 	/**
 	 * scan()
 	 * Gets a list of files in a directory/current directory */
+	/**
+	 * Gets a list of files in a given directory or the current directory
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $path (optional) The path to look for files (defaults to the current working directory)
+	 * @return array A list of files
+	 **/
 	function scan ($path=false) {
 		if (!$path) $path = $this->pwd();
 		return @ftp_nlist($this->connection,$path);
 	}
 	
 	/**
-	 * isdir()
-	 * Determines if the file is a directory or a file */
+	 * Determines if the file is a directory or a file
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $file (optional) The file path to check
+	 * @return boolean True if the path is a directory, false if it is a file
+	 **/
 	function isdir ($file=false) {
 		if (!$file) $file = $this->pwd();
 	    if (@ftp_size($this->connection, $file) == '-1')
@@ -1204,9 +1554,17 @@ class FTPClient {
 	}
 	
 	/**
-	 * remappath()
-	 * Remap a given path to the root path of the FTP server 
-	 * to take into account root jails common in FTP setups */
+	 * Remap a path to the real root path of the remote server
+	 *
+	 * Remaps the path to a real full-path taking into account root jails
+	 * common in most FTP setups.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $path The path to remap
+	 * @return string The real full path
+	 **/
 	function remappath ($path) {
 		$files = $this->scan();
 		foreach ($files as $file) {
@@ -1227,6 +1585,7 @@ class FTPClient {
 if (function_exists('date_default_timezone_set') && get_option('timezone_string')) 
 	date_default_timezone_set(get_option('timezone_string'));
 
-shopp_prereqs();  // Run by default at include
+// Run pre-req check when this file is included
+shopp_prereqs();
 
 ?>
