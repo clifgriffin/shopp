@@ -6,7 +6,8 @@
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, 28 March, 2008
- * @package Shopp
+ * @license GNU GPL version 3 (or later) {@see license.txt}
+ * @package shopp
  **/
 
 define("AS_ARRAY",false);
@@ -17,6 +18,13 @@ if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
 if (ini_get('zend.ze1_compatibility_mode'))
 	ini_set('zend.ze1_compatibility_mode','Off');
 
+/**
+ * Provides the DB query interface for Shopp
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * @package shopp
+ **/
 class DB {
 	private static $instance;
 	// Define datatypes for MySQL
@@ -31,7 +39,17 @@ class DB {
 	var $dbh = false;
 
 
-	protected function DB () {
+	/**
+	 * Initializes the DB object
+	 *
+	 * Uses the WordPress DB connection when available
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
+	protected function __construct () {
 		global $wpdb;
 		if (isset($wpdb->dbh)) {
 			$this->dbh = $wpdb->dbh;
@@ -39,32 +57,75 @@ class DB {
 		}
 	}
 
-	function __clone() { trigger_error('Clone is not allowed.', E_USER_ERROR); }
+	/**
+	 * Prevents cloning the DB singleton
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
+	function __clone () { trigger_error('Clone is not allowed.', E_USER_ERROR); }
+	
+	/**
+	 * Provides a reference to the instantiated DB singleton
+	 *
+	 * The DB class uses a singleton to ensure only one DB object is 
+	 * instantiated at any time
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return DB Returns a reference to the DB object
+	 **/
 	static function &get() {
 		if (!self::$instance instanceof self)
 			self::$instance = new self;
 		return self::$instance;
 	}
-
 	
-	/* 
-	 * Connects to the database server */
-	function connect($user, $password, $database, $host) {
+	/**
+	 * Connects to the database server
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $user The database username
+	 * @param string $password The database password
+	 * @param string $database The database name
+	 * @param string $host The host name of the server
+	 * @return void
+	 **/
+	function connect ($user, $password, $database, $host) {
 		$this->dbh = @mysql_connect($host, $user, $password);
 		if (!$this->dbh) trigger_error("Could not connect to the database server '$host'.");
 		else $this->select($database);
 	}
 	
 	/**
-	 * Select the database to use for our connection */
-	function select($database) {
+	 * Selects the database to use for querying
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $database The database name
+	 * @return void
+	 **/
+	function select ($database) {
 		if(!@mysql_select_db($database,$this->dbh)) 
 			trigger_error("Could not select the '$database' database.");
 	}
 	
 	/**
-	 * Escape contents of data for safe insertion into the db */
-	function escape($data) {
+	 * Escape the contents of data for safe insertion into the database
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string|array|object $data Data to be escaped
+	 * @return string Database-safe data
+	 **/
+	function escape ($data) {
 		// Prevent double escaping by stripping any existing escapes out
 		if (is_array($data)) array_map(array(&$this,'escape'), $data);
 		elseif (is_object($data)) {
@@ -73,15 +134,32 @@ class DB {
 		return $data;
 	}
 
-	function clean($data) {
+	/**
+	 * Sanitize and normalize data strings
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string|array|object $data Data to be sanitized
+	 * @return string Cleaned up data
+	 **/
+	function clean ($data) {
 		if (is_array($data)) array_map(array(&$this,'clean'), $data);
 		if (is_string($data)) $data = rtrim($data);
 		return $data;
 	}
 	
 	/**
-	 * Send a query to the database */
-	function query($query, $output=true, $errors=true) {
+	 * Send a query to the database and retrieve the results
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $query The SQL query to send
+	 * @param boolean $output (optional) Return results as an object (default) or as an array of result rows
+	 * @return array|object The query results as an object or array of result rows
+	 **/
+	function query ($query, $output=true) {
 		if (SHOPP_QUERY_DEBUG) $this->queries[] = $query;
 		$result = @mysql_query($query, $this->dbh);
 		if (SHOPP_QUERY_DEBUG && class_exists('ShoppError')) new ShoppError($query,'shopp_query_debug',SHOPP_DEBUG_ERR);
@@ -112,8 +190,17 @@ class DB {
 		}
 	
 	}
-		
-	function datatype($type) {
+	
+	/**
+	 * Maps the SQL data type to primitive data types used by the DB class
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $type The SQL data type
+	 * @return string|boolean The primitive datatype or false if not found
+	 **/
+	function datatype ($type) {
 		foreach((array)$this->_datatypes as $datatype => $patterns) {
 			foreach((array)$patterns as $pattern) {				
 				if (strpos($type,$pattern) !== false) return $datatype;
@@ -123,9 +210,20 @@ class DB {
 	}
 	
 	/**
-	 * Prepare the data properties for entry into
-	 * the database */
-	function prepare($object) {
+	 * Prepares a DatabaseObject for entry into the database
+	 *
+	 * Iterates the properties of a DatabaseObject and formats the data
+	 * according to the datatype meta available for the property to create
+	 * an array of key/value pairs that are easy concatenate into a valid
+	 * SQL query
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param DatabaseObject $object The object to be prepared
+	 * @return array Data structure ready for query building
+	 **/
+	function prepare ($object) {
 		$data = array();
 		
 		// Go through each data property of the object
@@ -186,7 +284,15 @@ class DB {
 	}
 	
 	/**
-	 * Get the list of possible values for an enum() or set() column */
+	 * Get the list of possible values for an SQL enum or set column
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $table The table to read column data from
+	 * @param string $column The column name to inspect
+	 * @return array List of values
+	 **/
 	function column_options($table = null, $column = null) {
 		if ( ! ($table && $column)) return array();
 		$r = $this->query("SHOW COLUMNS FROM $table LIKE '$column'");
@@ -198,9 +304,15 @@ class DB {
 	
 		return explode("','",$list);
 	}
-	
+
 	/**
-	 * Send a large set of queries to the database. */
+	 * Processes a bulk string of semi-colon terminated SQL queries
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @param string $queries Long string of multiple queries
+	 * @return boolean
+	 **/
 	function loaddata ($queries) {
 		$queries = explode(";\n", $queries);
 		array_pop($queries);
@@ -208,22 +320,38 @@ class DB {
 		return true;
 	}
 	
-	
 } // END class DB
 
 
-/* class DatabaseObject
- * Generic database glueware between the database and the active data model */
-
-class DatabaseObject {
-	
-	function DatabaseObject () {
-		// Constructor	
-	}
+/**
+ * Provides interfacing between database records and active data objects
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ **/
+abstract class DatabaseObject {
 	
 	/**
-	 * Initializes the db object by grabbing table schema
-	 * so we know how to work with this table */
+	 * Initializes the DatabaseObject with functional necessities
+	 *
+	 * A DatabaseObject tracks meta data relevant to translating PHP object
+	 * data into SQL-ready data.  This is done by reading and caching the 
+	 * table schema so the properties and their data types can be known
+	 * in order to automate query building.
+	 * 
+	 * The table schema is stored in an array structure that contains 
+	 * the columns and their datatypes.  This structure is cached as the 
+	 * current data_model setting. If a table is missing from the data_model
+	 * a new table schema structure is generated on the fly.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $table The base table name (without prefixes)
+	 * @param string $key (optional) The column name of the primary key
+	 * @return void
+	 **/
 	function init ($table,$key="id") {
 		global $Shopp;
 		$db = DB::get();
@@ -276,6 +404,10 @@ class DatabaseObject {
 	
 	/**
 	 * Load a single record by the primary key or a custom query 
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
 	 * @param $where - An array of key/values to be built into an SQL where clause
 	 * or
 	 * @param $id - A string containing the id for db object's predefined primary key
@@ -306,16 +438,16 @@ class DatabaseObject {
 		if (!empty($this->id)) return true;
 		return false;
 	}
-
-	/**
-	 * Processes a bulk string of semi-colon separated SQL queries */
-	function loaddata ($queries) {
-		$queries = explode(";\n", $queries);
-		array_pop($queries);
-		foreach ($queries as $query) if (!empty($query)) $this->query($query);
-		return true;
-	}
 	
+	/**
+	 * Builds a table name from the defined WP table prefix and Shopp prefix
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $table The base table name
+	 * @return string The full, prefixed table name
+	 **/
 	function tablename ($table) {
 		global $table_prefix;
 		return $table_prefix.SHOPP_DBPREFIX.$table;
@@ -324,6 +456,18 @@ class DatabaseObject {
 	/**
 	 * Save a record, updating when we have a value for the primary key,
 	 * inserting a new record when we don't */
+	/**
+	 * Saves the current state of the DatabaseObject to the database
+	 *
+	 * Intelligently saves a DatabaseObject, using an UPDATE query when the
+	 * value for the primary key is set, and using an INSERT query when the
+	 * value of the primary key is not set.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return boolean|int Returns true when UPDATES are successful; returns an integer with the record ID
+	 **/
 	function save () {
 		$db = DB::get();
 		
@@ -348,18 +492,41 @@ class DatabaseObject {
 	}
 		
 	/**
-	 * Deletes the record associated with this object */
+	 * Deletes the database record associated with the DatabaseObject
+	 *
+	 * Deletes the record that matches the primary key of the current
+	 * DatabaseObject
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return boolean
+	 **/
 	function delete () {
 		$db = DB::get();
 		// Delete record
 		$id = $this->{$this->_key};
-		if (!empty($id)) $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
+		if (!empty($id)) return $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
 		else return false;
 	}
 
 	/**
 	 * Populate the object properties from a set of 
 	 * loaded results  */
+	
+	/**
+	 * Populates the DatabaseObject properties from a db query result object
+	 *
+	 * Uses the available data model built from the table schema to 
+	 * automatically set the object properties, taking care to convert
+	 * special data such as dates and serialized structures.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $data The query results
+	 * @return void
+	 **/
 	function populate($data) {
 		if(empty($data)) return false;
 		foreach(get_object_vars($data) as $property => $value) {
@@ -383,8 +550,14 @@ class DatabaseObject {
 	}
 	
 	/**
-	 * Build an SQL-ready string of the prepared data
-	 * for entry into the database  */
+	 * Builds an SQL-ready string of prepared data for entry into the database
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param array $data The prepared data
+	 * @return string The query fragment of column value updates
+	 **/
 	function dataset($data) {
 		$query = "";
 		foreach($data as $property => $value) {
@@ -395,8 +568,18 @@ class DatabaseObject {
 	}
 	
 	/**
-	 * Populate the object properties from a set of 
-	 * form post inputs  */
+	 * Populate the object properties from an array
+	 *
+	 * Updates the DatabaseObject properties when the key of the array 
+	 * entry matches the name of the DatabaseObject property
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $data The array of updated values
+	 * @param array $ignores (optional) A list of properties to skip updating
+	 * @return void
+	 **/
 	function updates($data,$ignores = array()) {
 		$db = DB::get();
 		
@@ -410,8 +593,18 @@ class DatabaseObject {
 	}
 	
 	/**
-	 * Copy property values from a given (like) object to this object
-	 * where the property names match */
+	 * Copy property values into the current DatbaseObject from another object 	 			
+	 * 
+	 * Copies the property values from a specified object into the current
+	 * DatabaseObject where the property names match.
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param object $Object The source object to copy from
+	 * @param string $prefix (optional) A property prefix
+	 * @return void
+	 **/
 	function copydata ($Object,$prefix="") {
 		$db = DB::get();
 
