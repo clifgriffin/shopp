@@ -219,6 +219,7 @@ class Item {
 		// Return strings with no options
 		switch ($property) {
 			case "id": return $id;
+			case "product": return $this->product;
 			case "name": return $this->name;
 			case "link":
 			case "url": 

@@ -1,13 +1,13 @@
 <div id="receipt" class="shopp">
 <table class="transaction">
-	<tr><th>Order Num:</th><td><?php shopp('purchase','id'); ?></td></tr>	
-	<tr><th>Order Date:</th><td><?php shopp('purchase','date','format=F j, Y'); ?></td></tr>	
-	<tr><th>Billed To:</th><td><?php shopp('purchase','card'); ?> (<?php shopp('purchase','cardtype'); ?>)</td></tr>	
-	<tr><th>Transaction:</th><td><?php shopp('purchase','transactionid'); ?> (<strong><?php shopp('purchase','payment'); ?></strong>)</td></tr>	
+	<tr><th><?php _e('Order Num:','Shopp'); ?></th><td><?php shopp('purchase','id'); ?></td></tr>	
+	<tr><th><?php _e('Order Date:','Shopp'); ?></th><td><?php shopp('purchase','date','format=F j, Y'); ?></td></tr>	
+	<tr><th><?php _e('Billed To:','Shopp'); ?></th><td><?php shopp('purchase','card'); ?> (<?php shopp('purchase','cardtype'); ?>)</td></tr>	
+	<tr><th><?php _e('Transaction:','Shopp'); ?></th><td><?php shopp('purchase','transactionid'); ?> (<strong><?php shopp('purchase','payment'); ?></strong>)</td></tr>	
 </table>
 
 <fieldset>
-	<legend>Billed to</legend>
+	<legend><?php _e('Billed to','Shopp'); ?></legend>
 	<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
 	<?php shopp('purchase','company'); ?><br />
 	<?php shopp('purchase','address'); ?><br />
@@ -18,7 +18,7 @@
 
 <?php if (shopp('purchase','hasfreight')): ?>
 	<fieldset class="shipping">
-		<legend>Ship to</legend>
+		<legend><?php _e('Ship to','Shopp'); ?></legend>
 		<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
 		<?php shopp('purchase','shipaddress'); ?><br />
 		<?php shopp('purchase','shipxaddress'); ?>
@@ -33,10 +33,10 @@
 <table class="order widefat">
 	<thead>
 	<tr>
-		<th scope="col" class="item">Items Ordered</th>
-		<th scope="col">Quantity</th>
-		<th scope="col" class="money">Item Price</th>
-		<th scope="col" class="money">Item Total</th>
+		<th scope="col" class="item"><?php _e('Items Ordered','Shopp'); ?></th>
+		<th scope="col"><?php _e('Quantity','Shopp'); ?></th>
+		<th scope="col" class="money"><?php _e('Item Price','Shopp'); ?></th>
+		<th scope="col" class="money"><?php _e('Item Total','Shopp'); ?></th>
 	</tr>
 	</thead>
 
@@ -53,29 +53,29 @@
 	<?php endwhile; ?>
 
 	<tr class="totals">
-		<th scope="row" colspan="3" class="total">Subtotal</th>
+		<th scope="row" colspan="3" class="total"><?php _e('Subtotal','Shopp'); ?></th>
 		<td class="money"><?php shopp('purchase','subtotal'); ?></td>
 	</tr>
 	<?php if (shopp('purchase','hasdiscount')): ?>
 	<tr class="totals">
-		<th scope="row" colspan="3" class="total">Discount</th>
+		<th scope="row" colspan="3" class="total"><?php _e('Discount','Shopp'); ?></th>
 		<td class="money">-<?php shopp('purchase','discount'); ?></td>
 	</tr>
 	<?php endif; ?>
 	<?php if (shopp('purchase','hasfreight')): ?>
 	<tr class="totals">
-		<th scope="row" colspan="3" class="total">Shipping</th>
+		<th scope="row" colspan="3" class="total"><?php _e('Shipping','Shopp'); ?></th>
 		<td class="money"><?php shopp('purchase','freight'); ?></td>
 	</tr>
 	<?php endif; ?>
 	<?php if (shopp('purchase','hastax')): ?>
 	<tr class="totals">
-		<th scope="row" colspan="3" class="total">Tax</th>
+		<th scope="row" colspan="3" class="total"><?php _e('Tax','Shopp'); ?></th>
 		<td class="money"><?php shopp('purchase','tax'); ?></td>
 	</tr>
 	<?php endif; ?>
 	<tr class="totals">
-		<th scope="row" colspan="3" class="total">Total</th>
+		<th scope="row" colspan="3" class="total"><?php _e('Total','Shopp'); ?></th>
 		<td class="money"><?php shopp('purchase','total'); ?></td>
 	</tr>
 </table>
@@ -91,6 +91,6 @@
 	
 
 <?php else: ?>
-	<p class="warning">There were no items found for this purchase.</p>
+	<p class="warning"><?php _e('There were no items found for this purchase.','Shopp'); ?></p>
 <?php endif; ?>
 </div>

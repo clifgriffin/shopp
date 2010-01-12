@@ -115,7 +115,7 @@ class Setup extends FlowController {
 			$updated = __('Shopp presentation settings saved.');
 		}
 		
-		$builtin_path = $this->basepath.'/'."templates";
+		$builtin_path = SHOPP_PATH.'/'."templates";
 		$theme_path = sanitize_path(STYLESHEETPATH.'/'."shopp");
 
 		// Copy templates to the current WordPress theme

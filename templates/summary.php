@@ -14,10 +14,10 @@
 <div id="cart" class="shopp">
 <table>
 	<tr>
-		<th scope="col" class="item">Cart Items</th>
-		<th scope="col">Quantity</th>
-		<th scope="col" class="money">Item Price</th>
-		<th scope="col" class="money">Item Total</th>
+		<th scope="col" class="item"><?php _e('Cart Items','Shopp'); ?></th>
+		<th scope="col"><?php _e('Quantity','Shopp'); ?></th>
+		<th scope="col" class="money"><?php _e('Item Price','Shopp'); ?></th>
+		<th scope="col" class="money"><?php _e('Item Total','Shopp'); ?></th>
 	</tr>
 
 	<?php while(shopp('cart','items')): ?>
@@ -36,7 +36,7 @@
 	<tr class="totals">
 		<td colspan="2" rowspan="5">
 			<?php if ((shopp('cart','has-shipping-methods'))): ?>
-			<small>Select a shipping method:</small>
+			<small><?php _e('Select a shipping method:','Shopp'); ?></small>
 
 			<ul id="shipping-methods">
 			<?php while(shopp('shipping','methods')): ?>
@@ -50,25 +50,25 @@
 			
 			<?php endif; ?>
 		</td>
-		<th scope="row">Subtotal</th>
+		<th scope="row"><?php _e('Subtotal','Shopp'); ?></th>
 		<td class="money"><?php shopp('cart','subtotal'); ?></td>
 	</tr>
 	<?php if (shopp('cart','hasdiscount')): ?>
 	<tr class="totals">
-		<th scope="row">Discount</th>
+		<th scope="row"><?php _e('Discount','Shopp'); ?></th>
 		<td class="money">-<?php shopp('cart','discount'); ?></td>
 	</tr>
 	<?php endif; ?>
 	<tr class="totals">
-		<th scope="row"><?php shopp('cart','shipping','label=Shipping'); ?></th>
+		<th scope="row"><?php shopp('cart','shipping','label='.__('Shipping','Shopp')); ?></th>
 		<td class="money"><?php shopp('cart','shipping'); ?></td>
 	</tr>
 	<tr class="totals">
-		<th scope="row"><?php shopp('cart','tax','label=Taxes'); ?></th>
+		<th scope="row"><?php shopp('cart','tax','label='.__('Taxes','Shopp')); ?></th>
 		<td class="money"><?php shopp('cart','tax'); ?></td>
 	</tr>
 	<tr class="totals total">
-		<th scope="row">Total</th>
+		<th scope="row"><?php _e('Total','Shopp'); ?></th>
 		<td class="money"><?php shopp('cart','total'); ?></td>
 	</tr>
 </table>
@@ -83,5 +83,5 @@
 
 </div>
 <?php else: ?>
-	<p class="warning">There are currently no items in your shopping cart.</p>
+	<p class="warning"><?php _e('There are currently no items in your shopping cart.','Shopp'); ?></p>
 <?php endif; ?>

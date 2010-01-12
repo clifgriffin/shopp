@@ -13,15 +13,15 @@
 <div id="shopp-cart-ajax"></div>
 <?php if (shopp('cart','hasitems')): ?>	
 	<p class="status">
-		<span id="shopp-sidecart-items"><?php shopp('cart','totalitems'); ?></span> <strong>Items</strong><br />
-		<span id="shopp-sidecart-total" class="money"><?php shopp('cart','total'); ?></span> <strong>Total</strong> 
+		<span id="shopp-sidecart-items"><?php shopp('cart','totalitems'); ?></span> <strong><?php _e('Items','Shopp'); ?></strong><br />
+		<span id="shopp-sidecart-total" class="money"><?php shopp('cart','total'); ?></span> <strong><?php _e('Total','Shopp'); ?></strong> 
 	</p>
 	<ul>
-		<li><a href="<?php shopp('cart','url'); ?>">Edit shopping cart</a></li>
+		<li><a href="<?php shopp('cart','url'); ?>"><?php _e('Edit shopping cart','Shopp'); ?></a></li>
 		<?php if (shopp('checkout','local-payment')): ?>
-		<li><a href="<?php shopp('checkout','url'); ?>">Proceed to Checkout</a></li>
+		<li><a href="<?php shopp('checkout','url'); ?>"><?php _e('Proceed to Checkout','Shopp'); ?></a></li>
 		<?php endif; ?>
 	</ul>
 <?php else: ?>
-	<p class="status">Your cart is empty.</p>
+	<p class="status"><?php _e('Your cart is empty.','Shopp'); ?></p>
 <?php endif; ?>
