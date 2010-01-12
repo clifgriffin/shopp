@@ -15,7 +15,7 @@
 	<?php shopp('catalog','breadcrumb'); ?>
 
 	<h3><?php shopp('category','name'); ?></h3>
-	<?php shopp('catalog','views','label=Views: '); ?>
+	<?php shopp('catalog','views','label='.__('Views: ','Shopp')); ?>
 	<br class="clear" />
 	<?php shopp('category','subcategory-list','hierarchy=true&showall=true&class=subcategories'); ?>
 	<?php shopp('catalog','orderby-list','dropdown=on'); ?>
@@ -33,7 +33,7 @@
 					<h4 class="name"><a href="<?php shopp('product','url'); ?>"><?php shopp('product','name'); ?></a></h4>
 					<p class="price"><?php shopp('product','saleprice','starting=from'); ?> </p>
 					<?php if (shopp('product','has-savings')): ?>
-						<p class="savings">Save <?php shopp('product','savings','show=percent'); ?></p>
+						<p class="savings"><?php _e('Save','Shopp'); ?> <?php shopp('product','savings','show=percent'); ?></p>
 					<?php endif; ?>
 					
 						<div class="listview">
@@ -58,6 +58,6 @@
 	<?php if (!shopp('catalog','is-landing')): ?>
 	<?php shopp('catalog','breadcrumb'); ?>
 	<h3><?php shopp('category','name'); ?></h3>
-	<p>No products were found.</p>
+	<p><?php _e('No products were found.','Shopp'); ?></p>
 	<?php endif; ?>
 <?php endif; ?>

@@ -10,7 +10,7 @@
  **
  **/
 ?>
-<?php shopp('catalog','views','label=Views: '); ?>
+<?php shopp('catalog','views','label='.__('Views: ','Shopp')); ?>
 <br class="clear" />
 <?php shopp('catalog','featured-products','show=3&controls=false'); ?>
 <?php shopp('catalog','onsale-products','show=3&controls=false'); ?>

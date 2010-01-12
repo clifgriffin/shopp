@@ -11,7 +11,7 @@
  **/
 ?>
 <div id="errors" class="shopp">
-	<h3>Error</h3>
+	<h3><?php _e('Error','Shopp'); ?></h3>
 	<p>
 		<!-- ERROR CODE: <?php shopp('checkout','error','show=code'); ?> -->
 		<?php shopp('checkout','error'); ?>

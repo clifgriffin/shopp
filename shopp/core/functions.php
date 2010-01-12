@@ -1262,7 +1262,7 @@ function readableFileSize($bytes,$precision=1) {
  * the currently active WordPress theme.  Strips out the header comment 
  * block which includes a warning about editing the builtin templates.
  *
- * @author Jonathan Davis
+ * @author Jonathan Davis, John Dillick
  * @since 1.0
  * 
  * @param string $src The source directory for the builtin template files
@@ -1276,13 +1276,38 @@ function copy_shopp_templates ($src,$target) {
 		if (!file_exists($target_file)) {
 			$src_file = file_get_contents($src.'/'.$template);
 			$file = fopen($target_file,'w');
-			$src_file = preg_replace('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/','',$src_file);
+			$src_file = preg_replace('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/','',$src_file); // strip warning comments
+			
+			/* Translate Strings @since 1.1 */ 
+			$src_file = preg_replace_callback('/\<\?php _(e)\(\'(.*?)\',\'Shopp\'\); \?\>/','preg_e_callback',$src_file);
+			$src_file = preg_replace_callback('/_(_)\(\'(.*?)\',\'Shopp\'\)/','preg_e_callback',$src_file);
+			$src_file = preg_replace('/\'\.\'/','',$src_file);
+			
 			fwrite($file,$src_file);
 			fclose($file);			
 			chmod($target_file,0666);
 		}
 	}
 }
+
+/**
+ * Translate callback function for preg_replace_callback.
+ *
+ * Helper function for copy_shopp_templates to translate strings in core template files.
+ *
+ * @author John Dillick
+ * @since 1.1
+ * 
+ * @param array $matches preg matches array, expects $1 to be type and $2 to be string
+ * @return string _e translated string
+ **/
+function preg_e_callback ($matches) {
+	// echo $matches[2].'<br />';
+	return ($matches[1] == 'e') ? __($matches[2],'Shopp') : "'".__($matches[2],'Shopp')."'";
+}
+
+
+
 
 // TODO: Clean up for Controllers
 
