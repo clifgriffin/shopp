@@ -1064,7 +1064,9 @@ class Cart {
 		// Return strings with no options
 		switch ($property) {
 			case "url": return $Shopp->link('cart'); break;
-			case "hasitems": return (count($this->contents) > 0); break;
+			case "hasitems": // @since 1.1
+			case "has-items": return (count($this->contents) > 0); break;
+			case "total-items":
 			case "totalitems": return $this->data->Totals->quantity; break;
 			case "items":
 				if (!$this->looping) {
@@ -1078,8 +1080,13 @@ class Cart {
 					reset($this->contents);
 					return false;
 				}
-			case "lastitem": return $this->contents[$this->data->added]; break;
+			case "currentitem":
+			case "current-item": if ($this->looping) return current($this->contents); else return false; break;
+			case "last-item":
+			case "lastitem": if ($this->contents) return $this->contents[$this->data->added]; break;
+			case "total-promos":
 			case "totalpromos": return count($this->data->PromosApplied); break;
+			case "has-promos":
 			case "haspromos": return (count($this->data->PromosApplied) > 0); break;
 			case "promos":
 				if (!$this->looping) {
@@ -1093,10 +1100,12 @@ class Cart {
 					reset($this->data->PromosApplied);
 					return false;
 				}
+			case "promoname":
 			case "promo-name":
 				$promo = current($this->data->PromosApplied);
 				return $promo->name;
 				break;
+			case "promodiscount":
 			case "promo-discount":
 				$promo = current($this->data->PromosApplied);
 				if (!isset($options['label'])) $options['label'] = ' '.__('Off!','Shopp');
@@ -1123,10 +1132,12 @@ class Cart {
 				$Shopp->Errors->reset(); // Reset after display
 				return $result;
 				break;
+			case "emptybutton":
 			case "empty-button": 
 				if (!isset($options['value'])) $options['value'] = __('Empty Cart','Shopp');
 				return '<input type="submit" name="empty" id="empty-button" '.inputattrs($options,$submit_attrs).' />';
 				break;
+			case "updatebutton":
 			case "update-button": 
 				if (!isset($options['value'])) $options['value'] = __('Update Subtotal','Shopp');
 				if (isset($options['class'])) $options['class'] .= "update-button";
@@ -1140,12 +1151,14 @@ class Cart {
 				ob_end_clean();
 				return $content;
 				break;
+			case "has-discount":
 			case "hasdiscount": return ($this->data->Totals->discount > 0); break;
 			case "discount": return money($this->data->Totals->discount); break;
 		}
 		
 		$result = "";
 		switch ($property) {
+			case "promosavailable":
 			case "promos-available":
 				if (empty($this->data->Promotions)) return false;
 				// Skip if the promo limit has been reached
@@ -1153,6 +1166,7 @@ class Cart {
 					count($this->data->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
 				return true;
 				break;
+			case "promocode":
 			case "promo-code": 
 				// Skip if no promotions exist
 				if (empty($this->data->Promotions)) return false;
@@ -1171,17 +1185,21 @@ class Cart {
 				$result .= '<span><input type="submit" id="apply-code" name="update" '.inputattrs($options,$submit_attrs).' /></span>';
 				$result .= '</li></ul>';
 				return $result;
+			case "hasshippingmethods":
 			case "has-shipping-methods": 
 				return (!$this->data->ShippingDisabled
 						&& count($this->data->ShipCosts) > 1
-						&& $this->data->Shipping); break;				
+						&& $this->data->Shipping); break;
+			case "needsshipped":				
 			case "needs-shipped": return $this->data->Shipping; break;
 			case "hasshipcosts":
 			case "has-ship-costs": return ($this->data->Totals->shipping > 0); break;
+			case "needsshippingestimates":
 			case "needs-shipping-estimates":
 				$markets = $Shopp->Settings->get('target_markets');
 				return ($this->data->Shipping && ($this->data->ShippingPostcode || count($markets) > 1));
 				break;
+			case "shippingestimates":
 			case "shipping-estimates":
 				if (!$this->data->Shipping) return "";
 				$base = $Shopp->Settings->get('base_operations');
@@ -1275,6 +1293,7 @@ class Cart {
 		$result = "";
 		
 		switch ($property) {
+			case "has-estimates":
 			case "hasestimates": return (count($ShipCosts) > 0); break;
 			case "methods":
 				if (!isset($this->sclooping)) $this->sclooping = false;
@@ -1290,13 +1309,16 @@ class Cart {
 					return false;
 				}
 				break;
+			case "methodname":
 			case "method-name": 
 				return key($ShipCosts);
 				break;
+			case "methodcost":
 			case "method-cost": 
 				$method = current($ShipCosts);
 				return money($method['cost']);
 				break;
+			case "methodselector":
 			case "method-selector":
 				$method = current($ShipCosts);
 	
@@ -1310,6 +1332,7 @@ class Cart {
 				return $result;
 				
 				break;
+			case "methoddelivery":
 			case "method-delivery":
 				$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
 				$method = current($ShipCosts);
@@ -1389,6 +1412,7 @@ class Cart {
 				// if (isset($options['show']) && $options['show'] == "code") return $this->data->OrderError->code;
 				// return $this->data->OrderError->message;
 				break;
+			case "cartsummary":
 			case "cart-summary":
 				ob_start();
 				include(SHOPP_TEMPLATES."/summary.php");
@@ -1396,7 +1420,9 @@ class Cart {
 				ob_end_clean();
 				return $content;
 				break;
+			case "logged-in":
 			case "loggedin": return $this->data->login; break;
+			case "not-logged-in":
 			case "notloggedin": return (!$this->data->login && $Shopp->Settings->get('account_system') != "none"); break;
 			case "email-login":  // Deprecating
 			case "loginname-login":  // Deprecating
