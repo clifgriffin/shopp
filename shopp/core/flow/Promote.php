@@ -17,7 +17,7 @@
  * @package promotions
  * @author Jonathan Davis
  **/
-class Promote extends FlowController {
+class Promote extends AdminController {
 	var $Notice = false;
 	
 	/**

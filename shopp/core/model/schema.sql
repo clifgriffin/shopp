@@ -146,12 +146,14 @@ CREATE TABLE <?php echo $asset; ?> (
 
 <?php $cart = DatabaseObject::tablename('cart'); ?>
 DROP TABLE IF EXISTS <?php echo $cart; ?>;
-CREATE TABLE <?php echo $cart; ?> (
+
+<?php $shopping = DatabaseObject::tablename('shopping'); ?>
+DROP TABLE IF EXISTS <?php echo $shopping; ?>;
+CREATE TABLE <?php echo $shopping; ?> (
 	session varchar(32) NOT NULL,
 	customer bigint(20) unsigned NOT NULL default '0',
 	ip varchar(15) NOT NULL default '0.0.0.0',
 	data longtext NOT NULL,
-	contents longtext NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY session (session),
@@ -169,6 +171,7 @@ CREATE TABLE <?php echo $customer; ?> (
 	email varchar(96) NOT NULL default '',
 	phone varchar(24) NOT NULL default '',
 	company varchar(100) NOT NULL default '',
+	marketing enum('yes','no') NOT NULL default 'no',
 	activation varchar(20) NOT NULL default '',
 	info longtext NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',

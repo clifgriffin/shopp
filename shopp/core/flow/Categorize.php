@@ -18,7 +18,7 @@
  * @since 1.1
  * @author Jonathan Davis
  **/
-class Categorize extends FlowController {
+class Categorize extends AdminController {
 	
 	/**
 	 * Categorize constructor
@@ -378,6 +378,6 @@ class Categorize extends FlowController {
 		return $options;
 	}
 
-} // end Categorize class
+} // END class Categorize
 
 ?>

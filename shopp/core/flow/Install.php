@@ -12,12 +12,12 @@
  **/
 
 /**
- * Install
+ * ShoppInstallation
  *
  * @package shopp
  * @author Jonathan Davis
  **/
-class Install {
+class Install extends FlowController {
 	
 	/**
 	 * Install constructor
@@ -25,8 +25,8 @@ class Install {
 	 * @return void
 	 * @author Jonathan Davis
 	 **/
-	function __construct ( () {
-		
+	function __construct () {
+		add_action('shopp_upgrade',array(&$this,'upgrade'));
 	}
 
 	/**
@@ -37,6 +37,94 @@ class Install {
 	 **/
 	function parse () {
 
+	}
+
+
+	/**
+	 * activate()
+	 * Installs the tables and initializes settings */
+	function activate () {
+		global $Shopp,$wpdb,$wp_rewrite;
+
+		// If no settings are available,
+		// no tables exist, so this is a
+		// new install
+		if ($Shopp->Settings->unavailable) 
+			include("core/install.php");
+		
+		$ver = $Shopp->Settings->get('version');		
+		if (!empty($ver) && $ver != SHOPP_VERSION)
+			$this->upgrade();
+				
+		if ($Shopp->Settings->get('shopp_setup')) {
+			$Shopp->Settings->save('maintenance','off');
+			$Shopp->Settings->save('shipcalc_lastscan','');
+			
+			// Publish/re-enable Shopp pages
+			$filter = "";
+			$pages = $Shopp->Settings->get('pages');
+			foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
+			if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='publish' WHERE $filter");
+			$Shopp->pages_index(true);
+			
+			// Update rewrite rules
+			$wp_rewrite->flush_rules();
+			$wp_rewrite->wp_rewrite_rules();
+			
+		}
+		
+		if ($Shopp->Settings->get('show_welcome') == "on")
+			$Shopp->Settings->save('display_welcome','on');
+	}
+	
+	function install () {
+		global $wpdb,$wp_rewrite,$wp_version,$table_prefix;
+		$db = DB::get();
+
+		// Install tables
+		if (!file_exists(SHOPP_DBSCHEMA)) {
+		 	trigger_error("Could not install the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
+			exit();
+		}
+
+		ob_start();
+		include(SHOPP_DBSCHEMA);
+		$schema = ob_get_contents();
+		ob_end_clean();
+
+		$db->loaddata($schema);
+		unset($schema);
+
+		$parent = 0;
+		foreach ($this->Pages as $key => &$page) {
+			if (!empty($this->Pages['catalog']['id'])) $parent = $this->Pages['catalog']['id'];
+			$query = "INSERT $wpdb->posts SET post_title='{$page['title']}',
+											  post_name='{$page['name']}',
+											  post_content='{$page['content']}',
+											  post_parent='$parent',
+											  post_author='1',
+											  post_status='publish',
+											  post_type='page',
+											  post_date=now(),
+											  post_date_gmt=utc_timestamp(),
+											  post_modified=now(),
+											  post_modified_gmt=utc_timestamp(),
+											  comment_status='closed',
+											  ping_status='closed',
+											  post_excerpt='',
+											  to_ping='',     
+											  pinged='',      
+											  post_content_filtered='',
+											  menu_order=0";
+			$wpdb->query($query);
+			$page['id'] = $wpdb->insert_id;
+			$page['permalink'] = get_permalink($page['id']);
+			if ($key == "checkout") $page['permalink'] = str_replace("http://","https://",$page['permalink']);
+			$wpdb->query("UPDATE $wpdb->posts SET guid='{$page['permalink']}' WHERE ID={$page['id']}");
+			$page['permalink'] = preg_replace('|https?://[^/]+/|i','',$page['permalink']);
+		}
+
+		$this->Settings->save("pages",$this->Pages);
 	}
 
 	function update () {
@@ -181,6 +269,7 @@ class Install {
 		global $Shopp,$table_prefix;
 		$db = DB::get();
 		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
+		$this->Settings = &$Shopp->Settings;
 
 		// Check for the schema definition file
 		if (!file_exists(SHOPP_DBSCHEMA))
@@ -195,11 +284,11 @@ class Install {
 		$tables = preg_replace('/;\s+/',';',$schema);
 		dbDelta($tables);
 		
-		$this->setup_regions();
-		$this->setup_countries();
-		$this->setup_zones();
-		$this->setup_areas();
-		$this->setup_vat();
+		$this->regions();
+		$this->countries();
+		$this->zones();
+		$this->areas();
+		$this->vat();
 		
 		// Update the version number
 		$settings = DatabaseObject::tablename(Settings::$table);
@@ -283,40 +372,40 @@ class Install {
 
 	function regions () {
 		global $Shopp;
-		include_once("init.php");
+		include_once(SHOPP_PATH."/core/init.php");
 		$regions = apply_filters('shopp_setup_global_regions',get_global_regions());
 		$this->Settings->save('regions',$regions);
 	}
 	
 	function countries () {
 		global $Shopp;
-		include_once("init.php");
+		include_once(SHOPP_PATH."/core/init.php");
 		$countries = apply_filters('shopp_setup_country_table',get_countries());
 		$this->Settings->save('countries',addslashes(serialize($countries)),false);
 	}
 	
 	function zones () {
 		global $Shopp;
-		include_once("init.php");
+		include_once(SHOPP_PATH."/core/init.php");
 		$zones = apply_filters('shopp_setup_country_zones',get_country_zones());
 		$this->Settings->save('zones',$zones,false);
 	}
 
 	function areas () {
 		global $Shopp;
-		include_once("init.php");
+		include_once(SHOPP_PATH."/core/init.php");
 		$areas = apply_filters('shopp_setup_country_areas',get_country_areas());
 		$this->Settings->save('areas',$areas,false);
 	}
 
 	function vat () {
 		global $Shopp;
-		include_once("init.php");
+		include_once(SHOPP_PATH."/core/init.php");
 		$countries = apply_filters('shopp_setup_vat_countries',get_vat_countries());
 		$this->Settings->save('vat_countries',$countries,false);
 	}
 
 
-} // end Install class
+} // end ShoppInstallation class
 
 ?>

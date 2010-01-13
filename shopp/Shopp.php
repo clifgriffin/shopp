@@ -45,35 +45,46 @@ if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'settings.js')
 	shopp_settings_js(basename(dirname(__FILE__)));
 
 require("core/flow/Flow.php");
+require("core/flow/Transact.php");
+
+// require("core/model/ShipCalcs.php");
+require("core/model/Shopping.php");
+require("core/model/Error.php");
 require("core/model/Cart.php");
-require("core/model/ShipCalcs.php");
 require("core/model/Catalog.php");
 require("core/model/Purchase.php");
+require("core/model/Customer.php");
 
 $Shopp = new Shopp();
+do_action('shopp_init');
 
+/**
+ * Shopp class
+ *
+ * @author Jonathan Davis
+ * @package shopp
+ * @since 1.0
+ **/
 class Shopp {
-	var $Cart;
-	var $Flow;
-	var $Settings;
-	var $ShipCalcs;
-	var $Product;
-	var $Category;
-	var $Gateway;
-	var $Catalog;
-	var $Pages;
-	var $Page;
+	var $Settings;		// Shopp settings registry
+	var $Flow;			// Controller routing
+	var $Catalog;		// The main catalog
+	var $Category;		// Current category
+	var $Product;		// Current product
+	var $Cart;			// The shopping cart
+	var $Login;			// The currently authenticated customer
+	// var $ShipCalcs;
+	// var $Gateway;
 	var $_debug;
 	
 	function Shopp () {
 		if (WP_DEBUG) {
 			$this->_debug = new StdClass();
 			if (function_exists('memory_get_peak_usage'))
-				$this->_debug->memory = "Initial: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
+				$this->_debug->memory = memory_get_peak_usage(true);
 			if (function_exists('memory_get_usage'))
-				$this->_debug->memory = "Initial: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
+				$this->_debug->memory = memory_get_usage(true);
 		}
-		
 		
 		// Determine system and URI paths
 
@@ -95,7 +106,6 @@ class Shopp {
 			$this->wpadminurl = str_replace('http://','https://',$this->wpadminurl);
 		}
 
-
 		// Initialize settings & macros
 
 		$this->Settings = new Settings();
@@ -112,12 +122,16 @@ class Shopp {
 
 		define("SHOPP_DEBUG",($this->Settings->get('error_logging') == 2048));
 		define("SHOPP_PATH",$this->path);
-		define("SHOPP_ADMIN_PATH",SHOPP_PATH."/core/ui");
+		define("SHOPP_PLUGINURI",$this->uri);
+		define("SHOPP_PLUGINFILE",$this->directory."/".$this->file);
+
+		define("SHOPP_ADMIN_DIR","/core/ui");
+		define("SHOPP_ADMIN_PATH",SHOPP_PATH.SHOPP_ADMIN_DIR);
+		define("SHOPP_ADMIN_URI",SHOPP_PLUGINURI.SHOPP_ADMIN_DIR);
 		define("SHOPP_FLOW_PATH",SHOPP_PATH."/core/flow");
 		define("SHOPP_MODEL_PATH",SHOPP_PATH."/core/model");
 		define("SHOPP_GATEWAYS",SHOPP_PATH."/gateways");
 		define("SHOPP_SHIPPING",SHOPP_PATH."/shipping");
-		define("SHOPP_PLUGINURI",$this->uri);
 		define("SHOPP_DBSCHEMA",SHOPP_MODEL_PATH."/schema.sql");
 
 		define("SHOPP_TEMPLATES",($this->Settings->get('theme_templates') != "off" 
@@ -134,28 +148,20 @@ class Shopp {
 		
 		define("SHOPP_LOOKUP",(strpos($_SERVER['REQUEST_URI'],"images/") !== false
 			||  strpos($_SERVER['REQUEST_URI'],"lookup=") !== false)?true:false);
-		
-		$this->Pages = $this->Settings->get('pages');
-		if (empty($this->Pages)) {
-			$this->Pages = array();
-			$this->Pages['catalog'] = array('name'=>'shop','title'=>'Shop','content'=>'[catalog]');
-			$this->Pages['cart'] = array('name'=>'cart','title'=>'Cart','content'=>'[cart]');
-			$this->Pages['checkout'] = array('name'=>'checkout','title'=>'Checkout','content'=>'[checkout]');
-			$this->Pages['account'] = array('name'=>'account','title'=>'Your Orders','content'=>'[account]');
-		}
-		
+				
 		// Initialize application control processing
 		
 		$this->Flow = new Flow();
-		
-		register_deactivation_hook($this->directory."/".$this->file, array(&$this, 'deactivate'));
-		register_activation_hook($this->directory."/".$this->file, array(&$this, 'install'));
+
+		register_deactivation_hook(SHOPP_PLUGINFILE, array(&$this, 'activate'));
+		register_activation_hook(SHOPP_PLUGINFILE, array(&$this, 'deactivate'));
 		
 		// Keep any DB operations from occuring while in maintenance mode
 		if (!empty($_GET['updated']) && 
 				($this->Settings->get('maintenance') == "on" || $this->Settings->unavailable)) {
-			$this->Flow->upgrade();
-			$this->Settings->save("maintenance","off");
+			$this->Flow->handler('Install');
+			do_action('shopp_upgrade');
+			return true;
 		} elseif ($this->Settings->get('maintenance') == "on") {
 			add_action('init', array(&$this, 'ajax'));
 			add_action('wp', array(&$this, 'shortcodes'));
@@ -174,14 +180,12 @@ class Shopp {
 		
 		// Admin calls
 		add_action('admin_menu', array(&$this, 'lookups'));
-		add_action('admin_init', array(&$this, 'tinymce'));
 		add_filter('favorite_actions', array(&$this, 'favorites'));
 		add_action('admin_footer', array(&$this, 'footer'));
 		
 		// Theme widgets
 		add_action('widgets_init', array(&$this, 'widgets'));
 		// add_filter('wp_list_pages',array(&$this->Flow,'secure_page_links'));
-		
 		add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
 		add_action('generate_rewrite_rules',array(&$this,'pages_index'));
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
@@ -191,11 +195,21 @@ class Shopp {
 		// Extras & Integrations
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
 		
-		// Start up the cart
-		$this->Cart = new Cart();
+		// Session Data
+		add_action('shopp_session_load', array(&$this,'session'));
+		
+		$this->Shopping = new Shopping();
 		
 	}
 	
+	/**
+	 * Initializes the Shopp runtime environment
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function init() {
 		$pages = $this->Settings->get('pages');
 		if (empty($pages)) $this->pages_index();
@@ -219,33 +233,57 @@ class Shopp {
 		
 		if (SHOPP_LOOKUP) return true;
 		
-		// Initialize the session if not already done
-		// by another plugin
-		if(session_id() == "") @session_start();
-		
-		// Setup Error handling
-		$Errors = &ShoppErrors();
+		$this->Errors = new ShoppErrors();
+		$this->Cart = new Cart();
 
-		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
-		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
-									$this->Settings->get('error_notifications'));
+		// Setup Error handling
+		// $Errors = &ShoppErrors();
+
+		// $this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
+		// $this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
+		// 							$this->Settings->get('error_notifications'));
 									
 		if (!$this->Cart->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
 		if (SHOPP_DEBUG && $this->Cart->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 		
+		
 		// Initialize the catalog and shipping calculators
-		$this->Catalog = new Catalog();
-		$this->ShipCalcs = new ShipCalcs($this->path);
+		// $this->Catalog = new Catalog();
+		// $this->ShipCalcs = new ShipCalcs($this->path);
 
 		// Handle WordPress-processed logins
-		$this->Cart->logins();
+		// $this->Cart->logins();
+	}
+	
+	/**
+	 * Registers session data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param type $var Description...
+	 * @return void Description...
+	 **/
+	function session () {
+		if (SHOPP_LOOKUP) return true;
+		$this->Shopping->store('Cart',$this->Cart);
+		$this->Shopping->store('Order',$this->Transact->Order);
+		$this->Shopping->store('Errors',$this->Errors);
 	}
 
 	/**
-	 * install()
-	 * Installs the tables and initializes settings */
-	function install () {
+	 * Installs the tables and initializes settings
+	 *
+	 * Loads the install script if an installation is needed, or upgrades 
+	 * the database if an upgrade is needed.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
+	function activate () {
 		global $wpdb,$wp_rewrite;
 
 		// If no settings are available,
@@ -255,8 +293,11 @@ class Shopp {
 			include("core/install.php");
 		
 		$ver = $this->Settings->get('version');		
-		if (!empty($ver) && $ver != SHOPP_VERSION)
-			$this->Flow->upgrade();
+		if (!empty($ver) && $ver != SHOPP_VERSION) {
+			$this->Flow->handler('Install');
+			$this->Flow->Controller->upgrade();
+		}
+			
 				
 		if ($this->Settings->get('shopp_setup')) {
 			$this->Settings->save('maintenance','off');
@@ -280,8 +321,17 @@ class Shopp {
 	}
 	
 	/**
-	 * deactivate()
-	 * Resets the data_model to prepare for potential upgrades/changes to the table schema */
+	 * Reset for Shopp data model and WordPress rewrite rules
+	 *
+	 * Flushes the active data model in preparation for potential upgrades
+	 * and wipes the rewrite rules.  Also unpublishes the Shopp pages so the
+	 * store front no longers shows up on the live site.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function deactivate() {
 		global $wpdb,$wp_rewrite;
 
@@ -301,164 +351,20 @@ class Shopp {
 		return true;
 	}
 	
-	/**
-	 * add_menus()
-	 * Adds the WordPress admin menus */
-	function add_menus () {
-		$menus = array();
-		if (function_exists('add_object_page')) $menus['main'] = add_object_page('Shopp', 'Shopp', SHOPP_USERLEVEL, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
-		else $menus['main'] = add_menu_page('Shopp', 'Shopp', SHOPP_USERLEVEL, $this->Flow->Admin->default, array(&$this,'orders'),$this->uri."/core/ui/icons/shopp.png");
-
-		$menus['orders'] = add_submenu_page($this->Flow->Admin->default,__('Orders','Shopp'), __('Orders','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->orders, array(&$this,'orders'));
-		
-		$menus['customers'] = add_submenu_page($this->Flow->Admin->default,__('Customers','Shopp'), __('Customers','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->customers, array(&$this,'customers'));
-		$menus['editcustomer'] = add_submenu_page($menus['customers'],__('Edit Customer','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editcustomer, array(&$this,'customers'));
-		
-		$menus['promotions'] = add_submenu_page($this->Flow->Admin->default,__('Promotions','Shopp'), __('Promotions','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->promotions, array(&$this,'promotions'));
-		$menus['editpromos'] = add_submenu_page($menus['promotions'],__('Edit Promotion','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editpromo, array(&$this,'promotions'));
-		
-		$menus['products'] = add_submenu_page($this->Flow->Admin->default,__('Products','Shopp'), __('Products','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->products, array(&$this,'products'));
-		$menus['editproducts'] = add_submenu_page($menus['products'],__('Product Editor','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editproduct, array(&$this,'products'));
-		
-		$menus['categories'] = add_submenu_page($this->Flow->Admin->default,__('Categories','Shopp'), __('Categories','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->categories, array(&$this,'categories'));
-		$menus['editcategory'] = add_submenu_page($menus['categories'],__('Edit Category','Shopp'), false, SHOPP_USERLEVEL, $this->Flow->Admin->editcategory, array(&$this,'categories'));
-		
-		$menus['settings'] = add_submenu_page($this->Flow->Admin->default,__('Settings','Shopp'), __('Settings','Shopp'), 8, $this->Flow->Admin->settings['settings'][0], array(&$this,'settings'));
-		
-		$settings_screens = array();
-		foreach ($this->Flow->Admin->settings as $key => $screen) {
-			$settings_screens[$key] = add_submenu_page($menus['settings'],$screen[1],false, 8, $screen[0], array(&$this->Flow,'parse'));
-			// echo $settings_screens[$key].BR;
-		}
-		
-		if (function_exists('add_contextual_help')) {
-			foreach ($menus as $menu => $page) $this->Flow->help($menu,$page);
-			foreach ($settings_screens as $menu => $page) $this->Flow->help($menu,$page);
-		} else $menus['help'] = add_submenu_page($this->Flow->Admin->default,__('Help','Shopp'), __('Help','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->help, array(&$this,'help'));
-		
-		// $welcome = add_submenu_page($this->Flow->Admin->default,__('Welcome','Shopp'), __('Welcome','Shopp'), SHOPP_USERLEVEL, $this->Flow->Admin->welcome, array(&$this,'welcome'));
-		
-		// add_action("admin_head-$editproduct", array(&$this, 'admin_behaviors'));
-		
-		foreach($menus as $name => $menu) 
-			add_action("admin_print_scripts-$menu", array(&$this, 'admin_behaviors'));
-		
-		foreach ($settings_screens as $settings_screen)
-			add_action("admin_print_scripts-$settings_screen", array(&$this, 'admin_behaviors'));
-		
-		add_action("admin_print_scripts-{$menus['orders']}", array(&$this->Flow, 'orders_list_columns'));
-		add_action("admin_print_scripts-{$menus['customers']}", array(&$this->Flow, 'customers_list_columns'));
-		add_action("admin_print_scripts-{$menus['promotions']}", array(&$this->Flow, 'promotions_list_columns'));
-		add_action("admin_print_scripts-{$menus['products']}", array(&$this->Flow, 'products_list_columns'));
-		add_action("admin_print_scripts-{$menus['categories']}", array(&$this->Flow, 'categories_list_columns'));
-		
-		add_action("admin_head-{$menus['editproducts']}", array(&$this->Flow, 'product_editor_ui'));
-		add_action("admin_head-{$menus['editcustomer']}", array(&$this->Flow, 'customer_editor_ui'));
-		add_action("admin_head-{$menus['editcategory']}", array(&$this->Flow, 'category_editor_ui'));
-		add_action("admin_head-{$menus['editpromos']}", array(&$this->Flow, 'promotion_editor_ui'));
-
-	}
-
 	function favorites ($actions) {
 		$key = add_query_arg(array('page'=>$this->Flow->Admin->editproduct,'id'=>'new'),$this->wpadminurl);
 	    $actions[$key] = array(__('New Shopp Product','Shopp'),8);
 		return $actions;
 	}
-		
-	/**
-	 * admin_behaviors()
-	 * Dynamically includes necessary JavaScript and stylesheets for the admin */
-	function admin_behaviors () {
-		global $wp_version;
-		wp_enqueue_script('jquery');
-		wp_enqueue_script('shopp',"{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
-		wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',get_bloginfo('url')),array(),SHOPP_VERSION);
-		
-		// Load only for the product editor to keep other admin screens snappy
-		if (($_GET['page'] == $this->Flow->Admin->editproduct || 
-			 $_GET['page'] == $this->Flow->Admin->editcustomer ||
-			 $_GET['page'] == $this->Flow->Admin->editcategory ||
-			 $_GET['page'] == $this->Flow->Admin->editpromo)) {
-
-			add_action( 'admin_head', 'wp_tiny_mce' );
-			wp_enqueue_script('postbox');
-			if ( user_can_richedit() ) wp_enqueue_script('editor');
-				
-			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
-			wp_enqueue_script('shopp.editor.lib',"{$this->uri}/core/ui/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
-
-			if ($_GET['page'] == $this->Flow->Admin->editproduct)
-				wp_enqueue_script('shopp.product.editor',"{$this->uri}/core/ui/products/editor.js",array('jquery'),SHOPP_VERSION,true);
-
-			wp_enqueue_script('shopp.editor.priceline',"{$this->uri}/core/ui/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
-			wp_enqueue_script('shopp.ocupload',"{$this->uri}/core/ui/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery','jquery-ui-core'),SHOPP_VERSION,true);
-			
-			wp_enqueue_script('shopp.swfupload',"{$this->uri}/core/ui/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION);
-			wp_enqueue_script('shopp.swfupload.swfobject',"{$this->uri}/core/ui/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
-		}
-		
-		?>
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
-		<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
-		<?php
-	}
-	
-	/**
-	 * dashbaord_css()
-	 * Loads only the Shopp Admin CSS on the WordPress dashboard for widget styles */
-	function dashboard_css () {
-		?><link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
-<?php
-	}
-		
-	/**
-	 * behaviors()
-	 * Dynamically includes necessary JavaScript and stylesheets as needed in 
-	 * public shopping pages handled by Shopp */
-	function behaviors () {
-		global $wp_query;
-		$object = $wp_query->get_queried_object();
-
-		if(isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on") {
-			add_filter('option_siteurl', 'force_ssl');
-			add_filter('option_home', 'force_ssl');
-			add_filter('option_url', 'force_ssl');
-			add_filter('option_wpurl', 'force_ssl');
-			add_filter('option_stylesheet_url', 'force_ssl');
-			add_filter('option_template_url', 'force_ssl');
-			add_filter('script_loader_src', 'force_ssl');
-		}
-		
-		// Determine which tag is getting used in the current post/page
-		$tag = false;
-		$tagregexp = join( '|', array_keys($this->shortcodes) );
-		foreach ($wp_query->posts as $post) {
-			if (preg_match('/\[('.$tagregexp.')\b(.*?)(?:(\/))?\](?:(.+?)\[\/\1\])?/',$post->post_content,$matches))
-				$tag = $matches[1];
-		}
-
-		// Include stylesheets and javascript based on whether shopp shortcodes are used
-		add_action('wp_head', array(&$this, 'header'));
-		add_action('wp_footer', array(&$this, 'footer'));
-		
-		$loading = $this->Settings->get('script_loading');
-		if (!$loading || $loading == "global" || $tag !== false) {
-			wp_enqueue_script('jquery');
-			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',get_bloginfo('url')));
-			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
-		}
-
-		if ($tag == "checkout")
-			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
-		
-			
-	}
 
 	/**
-	 * widgets()
-	 * Initializes theme widgets */
+	 * Initializes theme widgets
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function widgets () {
 		global $wp_version;
 
@@ -481,9 +387,13 @@ class Shopp {
 	}
 		
 	/**
-	 * shortcodes()
-	 * Handles shortcodes used on Shopp-installed pages and used by
-	 * site owner for including categories/products in posts and pages */
+	 * Handles shortcodes used on Shopp-installed pages and other post/pages
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function shortcodes () {
 
 		$this->shortcodes = array();
@@ -500,43 +410,19 @@ class Shopp {
 			else add_shortcode($name,$callback);
 	}
 	
-	function tinymce () {
-		if (!current_user_can('edit_posts') && !current_user_can('edit_pages')) return;
-
-		// Add TinyMCE buttons when using rich editor
-		if (get_user_option('rich_editing') == 'true') {
-			add_filter('tiny_mce_version', array(&$this,'mceupdate')); // Move to plugin activation
-			add_filter('mce_external_plugins', array(&$this,'mceplugin'),5);
-			add_filter('mce_buttons', array(&$this,'mcebutton'),5);
-		}
-	}
-
-	function mceplugin ($plugins) {
-		$plugins['Shopp'] = $this->uri.'/core/ui/behaviors/tinymce/editor_plugin.js';
-		return $plugins;
-	}
-
-	function mcebutton ($buttons) {
-		array_push($buttons, "separator", "Shopp");
-		return $buttons;
-	}
-
-	function my_change_mce_settings( $init_array ) {
-	    $init_array['disk_cache'] = false; // disable caching
-	    $init_array['compress'] = false; // disable gzip compression
-	    $init_array['old_cache_max'] = 3; // keep 3 different TinyMCE configurations cached (when switching between several configurations regularly)
-	}
-
-	function mceupdate($ver) {
-	  return ++$ver;
-	}
-	
-	
 	/**
-	 * pages_index()
-	 * Handles changes to Shopp-installed pages that may affect 'pretty' urls */
+	 * Relocates the Shopp-installed pages and indexes any changes
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param boolean $update (optional) Used in a filter callback context
+	 * @param boolean $updates (optional) Used in an action callback context
+	 * @return boolean The update status
+	 **/
 	function pages_index ($update=false,$updates=false) {
 		global $wpdb;
+		return true; // DEV
 		$pages = $this->Settings->get('pages');
 		
 		// No pages setting, use defaults
@@ -570,8 +456,14 @@ class Shopp {
 	}
 			
 	/**
-	 * rewrites()
-	 * Adds Shopp-specific pretty-url rewrite rules to the WordPress rewrite rules */
+	 * Adds Shopp-specific pretty-url rewrite rules to WordPress rewrite rules
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param array $wp_rewrite_rules An array of existing WordPress rewrite rules
+	 * @return array Modified rewrite rules
+	 **/
 	function rewrites ($wp_rewrite_rules) {
 		$this->pages_index(true);
 		$pages = $this->Settings->get('pages');
@@ -636,8 +528,14 @@ class Shopp {
 	}
 	
 	/**
-	 * queryvars()
-	 * Registers the query variables used by Shopp */
+	 * Registers the query variables used by Shopp
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param array $vars The current list of handled WordPress query vars
+	 * @return array Augmented list of query vars including Shopp vars
+	 **/
 	function queryvars ($vars) {
 		$vars[] = 'shopp_proc';
 		$vars[] = 'shopp_category';
@@ -669,8 +567,16 @@ class Shopp {
 	}
 
 	/**
-	 * resession ()
-	 * Reset the shopping session */
+	 * Reset the shopping session
+	 *
+	 * Controls the cart to allocate a new session ID and transparently 
+	 * move existing session data to the new session ID.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return boolean True on success
+	 **/
 	function resession () {
 		session_regenerate_id();
 		$this->Cart->session = session_id();
@@ -1106,12 +1012,12 @@ class Shopp {
 				
 	}
 
-} // end Shopp
+} // END class Shopp
 
 /**
- * shopp()
- * Provides the Shopp 'tag' support to allow for complete 
- * customization of customer interfaces
+ * Defines the shopp() 'tag' handler for complete template customization
+ * 
+ * Appropriately routes tag calls to the tag handler for the requested object.
  *
  * @param $object The object to get the tag property from
  * @param $property The property of the object to get/output

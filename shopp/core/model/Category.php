@@ -205,12 +205,12 @@ class Category extends DatabaseObject {
 		else $where[] = "p.id in (SELECT product FROM $pricetable WHERE type != 'N/A')";
 
 		if (!isset($loading['joins'])) $loading['joins'] = '';
-		if (!empty($Shopp->Cart->data->Category[$this->slug])) {
+		if (!empty($Shopp->Flow->Controller->browsing[$this->slug])) {
 			$spectable = DatabaseObject::tablename(Spec::$table);
 			
 			$f = 1;
 			$filters = "";
-			foreach ($Shopp->Cart->data->Category[$this->slug] as $facet => $value) {
+			foreach ($Shopp->Flow->Controller->browsing[$this->slug] as $facet => $value) {
 				if (empty($value)) continue;
 				$specalias = "spec".($f++);
 
@@ -248,8 +248,8 @@ class Category extends DatabaseObject {
 		
 		$defaultOrder = $Shopp->Settings->get('default_product_order');
 		if (empty($defaultOrder)) $defaultOrder = "title";
-		$ordering = isset($Shopp->Cart->data->Category['orderby'])?
-						$Shopp->Cart->data->Category['orderby']:$defaultOrder;
+		$ordering = isset($Shopp->Flow->Controller->browsing['orderby'])?
+						$Shopp->Flow->Controller->browsing['orderby']:$defaultOrder;
 		if (!empty($loading['order'])) $ordering = $loading['order'];
 		switch ($ordering) {
 			case "bestselling":
@@ -1004,7 +1004,7 @@ class Category extends DatabaseObject {
 			case "faceted-menu":
 				if ($this->facetedmenus == "off") return;
 				$output = "";
-				$CategoryFilters =& $Shopp->Cart->data->Category[$this->slug];
+				$CategoryFilters =& $Shopp->Flow->Controller->browsing[$this->slug];
 				$link = $_SERVER['REQUEST_URI'];
 				if (!isset($options['cancel'])) $options['cancel'] = "X";
 				if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 

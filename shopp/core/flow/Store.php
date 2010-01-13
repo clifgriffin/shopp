@@ -18,7 +18,7 @@
  * @package products
  * @author Jonathan Davis
  **/
-class Store extends FlowController {
+class Store extends AdminController {
 	
 	/**
 	 * Store constructor

@@ -5,7 +5,9 @@
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, 28 March, 2008
+ * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
+ * @subpackage product-editor
  **/
 
 var Pricelines = false;

@@ -619,4 +619,199 @@ abstract class DatabaseObject {
 
 }  // END class DatabaseObject
 
+
+/**
+ * Provides integration between the database and session handling
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage db
+ **/
+abstract class SessionObject {
+
+	var $_table;
+	var $session;
+	var $ip;
+	var $data;
+	var $created;
+	var $modified;
+	var $path;
+	
+
+	function __construct () {
+		
+		define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
+		
+		// Close out any early session calls
+		if(session_id()) session_write_close();
+		
+		$this->handlers = session_set_save_handler(
+			array( &$this, 'open' ),	// Open
+			array( &$this, 'close' ),	// Close
+			array( &$this, 'load' ),	// Read
+			array( &$this, 'save' ),	// Write
+			array( &$this, 'unload' ),	// Destroy
+			array( &$this, 'trash' )	// Garbage Collection
+		);
+		
+		register_shutdown_function('session_write_close');
+		
+	}
+	
+	/* open()
+	 * Initializing routine for the session management. */
+	function open ($path,$name) {
+		$this->path = $path;
+		if (empty($this->path)) $this->path = dirname(realpath(tempnam(defined('SHOPP_TEMP_PATH')?SHOPP_TEMP_PATH:'','tmp_')));
+		$this->path = sanitize_path($this->path);
+		$this->trash();	// Clear out any residual session information before loading new data
+		if (empty($this->session)) $this->session = session_id();	// Grab our session id
+		$this->ip = $_SERVER['REMOTE_ADDR'];						// Save the IP address making the request
+		return true;
+	}
+	
+	/* close()
+	 * Placeholder function as we are working with a persistant 
+	 * database as opposed to file handlers. */
+	function close () { return true; }
+
+	/* load()
+	 * Gets data from the session data table and loads Member 
+	 * objects into the User from the loaded data. */
+	function load ($id) {
+		global $Shopp;
+		$db = DB::get();
+
+		if (is_robot() || empty($this->session)) return true;
+		
+		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
+		if ($result = $db->query($query)) {
+			if (substr($result->data,0,1) == "!") {
+				$key = $_COOKIE[SHOPP_SECURE_KEY];
+				if (empty($key) && !is_shopp_secure())
+					shopp_redirect(force_ssl(raw_request_url(),true));
+				$readable = $db->query("SELECT AES_DECRYPT('".
+										mysql_real_escape_string(
+											base64_decode(
+												substr($result->data,1)
+											)
+										)."','$key') AS data");
+				$result->data = $readable->data;
+			}
+			$this->ip = $result->ip;
+			$this->data = unserialize($result->data);
+			$this->created = mktimestamp($result->created);
+			$this->modified = mktimestamp($result->modified);
+			$loaded = true;
+			do_action('shopp_session_loaded');
+		} else {
+			if (!empty($this->session))
+				$db->query("INSERT INTO $this->_table (session, ip, data, contents, created, modified) 
+								VALUES ('$this->session','$this->ip','','',now(),now())");
+		}
+		do_action('shopp_session_load');
+		
+		// Read standard session data
+		if (@file_exists("$this->path/sess_$id"))
+			return (string) @file_get_contents("$this->path/sess_$id");
+		
+		return $loaded;
+	}
+
+	/* unload()
+	 * Deletes the session data from the database, unregisters the 
+	 * session and releases all the objects. */
+	function unload () {
+		$db = DB::get();
+		if(empty($this->session)) return false;		
+		if (!$db->query("DELETE FROM $this->_table WHERE session='$this->session'")) 
+			trigger_error("Could not clear session data.");
+		unset($this->session,$this->ip,$this->data,$this->contents);
+		return true;
+	}
+	
+	/* save() 
+	 * Save the session data to our session table in the database. */
+	function save ($id,$session) {
+		global $Shopp;
+		$db = DB::get();
+		
+		if (!$Shopp->Settings->unavailable) {
+			
+			$data = $db->escape(addslashes(serialize($this->data)));
+			$contents = $db->escape(addslashes(serialize($this->contents)));
+			
+			if ($this->secured() && is_shopp_secure()) {
+				if (!isset($_COOKIE[SHOPP_SECURE_KEY])) $key = $this->securekey();
+				else $key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
+				if (!empty($key)) {
+					new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
+					$secure = $db->query("SELECT AES_ENCRYPT('$data','$key') AS data");
+					$data = "!".base64_encode($secure->data);
+				}
+			}
+			
+			$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'";
+			if (!$db->query($query)) 
+				trigger_error("Could not save session updates to the database.");
+			do_action('shopp_session_saved');
+
+		}
+
+		// Save standard session data for compatibility
+		if (!empty($session)) {
+			if ($sf = fopen("$this->path/sess_$id","w")) {
+				$result = fwrite($sf, $session);
+				fclose($sf);
+				return $result;
+			} return false;
+		}
+		
+		return true;
+	}
+
+	/* trash()
+	 * Garbage collection routine for cleaning up old and expired
+	 * sessions. */
+	function trash () {
+		$db = DB::get();
+				
+		// 1800 seconds = 30 minutes, 3600 seconds = 1 hour
+		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified) > ".SHOPP_SESSION_TIMEOUT)) 
+			trigger_error("Could not delete cached session data.");
+		return true;
+	}
+	
+	/**
+	 * secured()
+	 * Check or set the security setting for the session */
+	function secured ($setting=null) {
+		if (is_null($setting)) return $this->data->secure;
+		$this->data->secure = ($setting);
+		if (SHOPP_DEBUG) {
+			if ($this->data->secure) new ShoppError('Switching the cart to secure mode.',false,SHOPP_DEBUG_ERR);
+			else new ShoppError('Switching the cart to unsecure mode.',false,SHOPP_DEBUG_ERR);
+		}
+		return $this->data->secure;
+	}
+
+	/**
+	 * securekey()
+	 * Generate the session security key */
+	function securekey () {
+		global $Shopp;
+		require_once(ABSPATH . WPINC . '/pluggable.php');
+		if (!is_shopp_secure()) return false;
+		$expiration = time()+SHOPP_SESSION_TIMEOUT;
+		if (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') $key = SECRET_AUTH_KEY;
+		else $key = md5(serialize($this->data).time());
+		$content = hash_hmac('sha256', $this->session . '|' . $expiration, $key);
+		if ( version_compare(phpversion(), '5.2.0', 'ge') )
+			setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true,true);
+		else setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true);
+		return $content;
+	}
+	
+}
 ?>

@@ -14,9 +14,9 @@
 /**
  * Flow
  *
+ * @author Jonathan Davis
  * @since 1.1
  * @package shopp
- * @author Jonathan Davis
  **/
 class Flow {
 	
@@ -26,10 +26,14 @@ class Flow {
 	/**
 	 * Flow constructor
 	 *
-	 * @return void
 	 * @author Jonathan Davis
+	 * 
+	 * @return void
 	 **/
 	function __construct () {
+		// register_deactivation_hook(SHOPP_PLUGINFILE, array(&$this, 'activate'));
+		// register_activation_hook(SHOPP_PLUGINFILE, array(&$this, 'deactivate'));
+				
 		add_action('admin_menu',array(&$this,'menu'));
 		if (defined('WP_ADMIN')) add_action('admin_init',array(&$this,'parse'));
 		else add_action('parse_request',array(&$this,'parse'));
@@ -38,32 +42,29 @@ class Flow {
 	/**
 	 * Parses requests and hands off processing to specific subcontrollers
 	 *
-	 * @return boolean
 	 * @author Jonathan Davis
+	 * 
+	 * @return boolean
 	 **/
 	function parse () {
 		global $Shopp;
 		if (defined('WP_ADMIN')) {
-			if ($this->welcome()) return true;
-
-			if (!$this->Admin) return false;
 			$controller = $this->Admin->controller(strtolower($_GET['page']));
-			return $this->handler($controller);
-		} else $this->handler('Shopping');
-		
+			if (!empty($controller)) $this->handler($controller);
+		} else $this->handler("Storefront");
 	}
 	
 	/**
 	 * Loads a specified flow controller
 	 *
-	 * @return void
-	 * @param string $controller The base name of the controller file
 	 * @author Jonathan Davis
+	 * 
+	 * @param string $controller The base name of the controller file
+	 * @return void
 	 **/
 	function handler ($controller) {
 		if (!$controller) return false;
-		error_log('parse_request');
-		require_once("$controller.php");
+		require_once(SHOPP_FLOW_PATH."/$controller.php");
 		$this->Controller = new $controller();
 		return true;
 	}
@@ -72,12 +73,13 @@ class Flow {
 	 * Initializes the Admin controller
 	 *
 	 * @author Jonathan Davis
+	 * 
 	 * @return void
 	 **/
 	function admin () {
 		if (!defined('WP_ADMIN')) return false;
 		$controller = $this->Admin->controller(strtolower($_GET['page']));
-		require_once("$controller.php");
+		require_once(SHOPP_FLOW_PATH."/$controller.php");
 		$this->Controller = new $controller();
 		$this->Controller->admin();
 		return true;
@@ -86,13 +88,50 @@ class Flow {
 	/**
 	 * Defines the Shopp admin page and menu structure
 	 *
-	 * @return void
 	 * @author Jonathan Davis
+	 * 
+	 * @return void
 	 **/
 	function menu () {
 		require_once(SHOPP_FLOW_PATH."/Admin.php");
 		$this->Admin = new AdminFlow();
 		$this->Admin->menus();
+	}
+	
+	/**
+	 * Activates the plugin
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
+	function activate () {
+		require_once(SHOPP_FLOW_PATH."/Install.php");
+		$Installation = new ShoppInstallation();
+		$Installation->install();
+	}
+		
+	/**
+	 * deactivate()
+	 * Resets the data_model to prepare for potential upgrades/changes to the table schema */
+	function deactivate() {
+		global $wpdb,$wp_rewrite;
+
+		// Unpublish/disable Shopp pages
+		$filter = "";
+		$pages = $this->Settings->get('pages');
+		if (!is_array($pages)) return true;
+		foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
+		if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='draft' WHERE $filter");
+
+		// Update rewrite rules
+		$wp_rewrite->flush_rules();
+		$wp_rewrite->wp_rewrite_rules();
+
+		$this->Settings->save('data_model','');
+
+		return true;
 	}
 	
 	
@@ -112,7 +151,7 @@ class Flow {
 	}	
 	
 
-} // end Flow class
+} // End class Flow
 
 /**
  * FlowController
@@ -126,20 +165,57 @@ class Flow {
 abstract class FlowController  {
 	
 	var $Settings = false;
-	var $Admin = false;
 	
 	/**
 	 * FlowController constructor
 	 *
-	 * @return void
 	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
 	 **/
 	function __construct () {
+		if (defined('WP_ADMIN')) {
+			add_action('admin_init',array(&$this,'settings'));
+			$this->settings();
+		} else add_action('shopp_init',array(&$this,'settings'));
+	}
+	
+	function settings () {
 		global $Shopp;
-		$this->Settings = $Shopp->Settings;
-		if (!empty($Shopp->Flow->Admin)) $this->Admin = $Shopp->Flow->Admin;
+		if (!$this->Settings && !empty($Shopp)) 
+			$this->Settings = &$Shopp->Settings;
 	}
 
-} // end FlowController class
+} // END class FlowController
+
+/**
+ * AdminController
+ * 
+ * Provides a template for admin controllers
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ **/
+abstract class AdminController extends FlowController {
+	
+	var $Admin = false;
+
+	/**
+	 * AdminController constructor
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function __construct () {
+		parent::__construct();
+		global $Shopp;
+		if (!empty($Shopp->Flow->Admin)) $this->Admin = &$Shopp->Flow->Admin;
+	}
+	
+}
 
 ?>

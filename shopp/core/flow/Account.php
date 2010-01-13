@@ -17,7 +17,7 @@
  * @package shopp
  * @author Jonathan Davis
  **/
-class Account extends FlowController {
+class Account extends AdminController {
 	
 	/**
 	 * Account constructor
@@ -288,6 +288,6 @@ class Account extends FlowController {
 	}
 	
 
-} // end Account class
+} // END class Account
 
 ?>

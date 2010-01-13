@@ -18,7 +18,7 @@
  * @since 1.1
  * @author Jonathan Davis
  **/
-class Service extends FlowController {
+class Service extends AdminController {
 	
 	/**
 	 * Service constructor
@@ -26,7 +26,7 @@ class Service extends FlowController {
 	 * @return void
 	 * @author Jonathan Davis
 	 **/
-	function Service () {
+	function __construct () {
 		parent::__construct();
 		add_action('admin_print_scripts',array(&$this,'columns'));
 	}
@@ -46,9 +46,8 @@ class Service extends FlowController {
 	/**
 	 * Interface processor for the orders list interface
 	 *
-	 * Full Description...
-	 *
 	 * @author Jonathan Davis
+	 * 
 	 * @return void
 	 **/
 	function orders () {
@@ -204,7 +203,7 @@ class Service extends FlowController {
 		$selected = $Shopp->Settings->get('purchaselog_columns');
 		if (empty($selected)) $selected = array_keys($columns);
 		
-		include("$Shopp->path/core/ui/orders/orders.php");
+		include(SHOPP_ADMIN_PATH."/orders/orders.php");
 	}      
 	
 	/**
@@ -302,7 +301,7 @@ class Service extends FlowController {
 		if ($base['vat']) $taxrate = $Shopp->Cart->taxrate();
 		
 				
-		include("$Shopp->path/core/ui/orders/order.php");
+		include(SHOPP_ADMIN_PATH."/orders/order.php");
 	}
 	
 	/**
