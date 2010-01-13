@@ -9,6 +9,7 @@
  * @package shopp
  **/
 
+require_once("Product.php");
 require_once("Category.php");
 require_once("Tag.php");
 
@@ -359,8 +360,8 @@ class Catalog extends DatabaseObject {
 				if (isset($options['title'])) $title = $options['title'];
 
 				if (value_is_true($dropdown)) {
-					if (isset($Shopp->Cart->data->Category['orderby'])) 
-						$default = $Shopp->Cart->data->Category['orderby'];
+					if (isset($Shopp->Flow->Controller->browsing['orderby'])) 
+						$default = $Shopp->Flow->Controller->browsing['orderby'];
 					$string .= $title;
 					$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
 					if (!SHOPP_PERMALINKS) {
@@ -402,12 +403,12 @@ class Catalog extends DatabaseObject {
 				if (isset($options['separator'])) $separator = $options['separator'];
 				
 				$category = false;
-				if (isset($Shopp->Cart->data->breadcrumb))
-					$category = $Shopp->Cart->data->breadcrumb;
+				if (isset($Shopp->Flow->Controller->breadcrumb))
+					$category = $Shopp->Flow->Controller->breadcrumb;
 				
 				$trail = false;
 				$search = array();
-				if (isset($Shopp->Cart->data->Search)) $search = array('search'=>$Shopp->Cart->data->Search);
+				if (isset($Shopp->Flow->Controller->search)) $search = array('search'=>$Shopp->Flow->Controller->search);
 				$path = explode("/",$category);
 				if ($path[0] == "tag") {
 					$category = "tag";

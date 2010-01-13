@@ -1,35 +1,67 @@
 <?php
 /**
- * Shopping
+ * Storefront
  * 
- * Flow controller for the customer shopping experience
+ * Flow controller for the front-end shopping interfaces
  *
  * @author Jonathan Davis
  * @version 1.0
- * @copyright Ingenesis Limited, January 6, 2010
+ * @copyright Ingenesis Limited, January 12, 2010
+ * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
- * @subpackage shopp
+ * @subpackage storefront
  **/
 
 /**
- * Shopping
+ * Storefront
  *
- * @package shopp
  * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
  **/
-class Shopping extends FlowController {
+class Storefront extends FlowController {
 
-	var $shortcodes = false;
+	var $Pages = array(
+		'catalog'	=> array('name'=>'shop','title'=>'Shop','shortcode'=>'[catalog]'),
+		'cart'		=> array('name'=>'cart','title'=>'Cart','shortcode'=>'[cart]'),
+		'checkout'	=> array('name'=>'checkout','title'=>'Checkout','shortcode'=>'[checkout]'),
+		'account'	=> array('name'=>'account','title'=>'Your Orders','shortcode'=>'[account]')
+	);
+	var $Settings = false;
+	var $Page = false;
+	var $Catalog = false;
+	var $Category = false;
+	var $Product = false;
+	var $breadcrumb = false;
+	var $search = false;
+	var $browsing = array();
 	
 	/**
-	 * Shopping constructor
+	 * Storefront constructor
 	 *
-	 * @return void
 	 * @author Jonathan Davis
+	 * 
+	 * @return void
 	 **/
 	function __construct () {
+		global $Shopp;
 		parent::__construct();
+		
+		$this->Settings = &$Shopp->Settings;
+		$this->Catalog = &$Shopp->Catalog;
+		$this->Category = &$Shopp->Category;
+		$this->Product = &$Shopp->Product;
+		
+
+		$Pages = $this->Settings->get('pages');
+		if (!empty($Pages)) $this->Pages = $Pages;
+		
+		$Shopp->Shopping->store('search',$this->search);
+		$Shopp->Shopping->store('browsing',$this->browsing);
+		
 		add_action('wp', array(&$this, 'parse'));
+		add_action('wp', array(&$this, 'cart'));
+		add_action('wp', array(&$this, 'catalog'));
 		add_action('wp', array(&$this, 'shortcodes'));
 		add_action('wp', array(&$this, 'behaviors'));
 	}
@@ -44,16 +76,12 @@ class Shopping extends FlowController {
 		global $Shopp,$wp_query;
 
 		// Identify the current page
-		foreach ($Shopp->Pages as &$Page) {
-			if ($Page['id'] == $wp_query->posts[0]->ID) $Shopp->Page = $Page; break;
+		foreach ($this->Pages as &$Page) {
+			if ($Page['id'] == $wp_query->posts[0]->ID) $this->Page = $Page; break;
 		}
-		
-		
-		$this->cart();
-		$this->catalog();
 
 	}
-	
+
 	/**
 	 * behaviors()
 	 * Dynamically includes necessary JavaScript and stylesheets as needed in 
@@ -73,7 +101,7 @@ class Shopping extends FlowController {
 			add_filter('option_template_url', 'force_ssl');
 			add_filter('script_loader_src', 'force_ssl');
 		}
-		
+
 		// Determine which tag is getting used in the current post/page
 		$tag = false;
 		$tagregexp = join( '|', array_keys($this->shortcodes) );
@@ -85,21 +113,21 @@ class Shopping extends FlowController {
 		// Include stylesheets and javascript based on whether shopp shortcodes are used
 		add_action('wp_head', array(&$this, 'header'));
 		add_action('wp_footer', array(&$this, 'footer'));
-		
+
 		$loading = $this->Settings->get('script_loading');
 		if (!$loading || $loading == "global" || $tag !== false) {
 			wp_enqueue_script('jquery');
 			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',get_bloginfo('url')));
-			wp_enqueue_script("shopp-thickbox","{$this->uri}/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script("shopp","{$this->uri}/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script("shopp-thickbox",SHOPP_PLUGINURI."/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script("shopp",SHOPP_PLUGINURI."/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		}
 
 		if ($tag == "checkout")
-			wp_enqueue_script('shopp_checkout',"{$this->uri}/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
-		
-			
+			wp_enqueue_script('shopp_checkout',SHOPP_PLUGINURI."/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
+
+
 	}
-	
+
 	/**
 	 * shortcodes()
 	 * Handles shortcodes used on Shopp-installed pages and used by
@@ -113,13 +141,13 @@ class Shopping extends FlowController {
 		$this->shortcodes['account'] = array(&$this,'account');
 		$this->shortcodes['product'] = array(&$this,'product_shortcode');
 		$this->shortcodes['category'] = array(&$this,'category_shortcode');
-		
+
 		foreach ($this->shortcodes as $name => &$callback)
 			if ($this->Settings->get("maintenance") == "on")
 				add_shortcode($name,array(&$this,'maintenance_shortcode'));
 			else add_shortcode($name,$callback);
 	}
-	
+
 	/**
 	 * titles ()
 	 * Changes the Shopp catalog page titles to include the product
@@ -175,7 +203,7 @@ class Shopping extends FlowController {
 
 	function updatesearch () {
 		global $wp_query;
-		$wp_query->query_vars['s'] = $this->Cart->data->Search;
+		$wp_query->query_vars['s'] = $this->search;
 	}
 
 	function metadata () {
@@ -211,9 +239,9 @@ class Shopping extends FlowController {
 ?>
 <link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),get_bloginfo('url'))); ?>' type='text/css' />
 <link rel='stylesheet' media='all' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-<link rel='stylesheet' href='<?php echo $this->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
+<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 <?php if (is_shopp_page('account') || (isset($wp->query_vars['shopp_proc']) && $wp->query_vars['shopp_proc'] == "sold")): ?>
-<link rel='stylesheet' media='print' href='<?php echo $this->uri; ?>/core/ui/styles/printable.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
+<link rel='stylesheet' media='print' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/printable.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 <?php endif; ?>
 <?php 
 	$canonurl = $this->canonurls(false);
@@ -247,7 +275,6 @@ class Shopping extends FlowController {
 
 	function catalog () {
 		global $Shopp,$wp;
-		$pages = $Shopp->Pages;
 		$options = array();
 
 		add_filter('redirect_canonical','cancel_canoncial_redirect');
@@ -274,17 +301,17 @@ class Shopping extends FlowController {
 			($target == "shopp" 
 				// The referering page includes a Shopp catalog page path
 				|| strpos($referer,$Shopp->link('catalog')) !== false || 
-				strpos($referer,'page_id='.$pages['catalog']['id']) !== false || 
+				strpos($referer,'page_id='.$this->Pages['catalog']['id']) !== false || 
 				// Or the referer was a search that matches the last recorded Shopp search
-				substr($referer,-1*(strlen($Shopp->Cart->data->Search))) == $Shopp->Cart->data->Search || 
+				substr($referer,-1*(strlen($this->search))) == $this->search || 
 				// Or the blog URL matches the Shopp catalog URL (Takes over search for store-only search)
 				trailingslashit(get_bloginfo('url')) == $Shopp->link('catalog') || 
 				// Or the referer is one of the Shopp cart, checkout or account pages
 				$referer == $Shopp->link('cart') || $referer == $Shopp->link('checkout') || 
 				$referer == $Shopp->link('account'))) {
-			$Shopp->Cart->data->Search = $wp->query_vars['s'];
+			$this->search = $wp->query_vars['s'];
 			$wp->query_vars['s'] = "";
-			$wp->query_vars['pagename'] = $pages['catalog']['name'];
+			$wp->query_vars['pagename'] = $this->Pages['catalog']['name'];
 			add_action('wp_head', array(&$this, 'updatesearch'));
 			if ($type != "product") $type = "category"; 
 			$category = "search-results";
@@ -292,7 +319,7 @@ class Shopping extends FlowController {
 
 		// Load a category/tag
 		if (!empty($category) || !empty($tag)) {
-			if (isset($Shopp->Cart->data->Search)) $options = array('search'=>$Shopp->Cart->data->Search);
+			if (isset($this->search)) $options = array('search'=>$this->search);
 			if (isset($tag)) $options = array('tag'=>$tag);
 
 			// Split for encoding multi-byte slugs
@@ -301,18 +328,18 @@ class Shopping extends FlowController {
 
 			// Load the category
 			$Shopp->Category = Catalog::load_category($category,$options);
-			$Shopp->Cart->data->breadcrumb = (isset($tag)?"tag/":"").$Shopp->Category->uri;
+			$this->breadcrumb = (isset($tag)?"tag/":"").$Shopp->Category->uri;
 		} 
 
 		if (empty($category) && empty($tag) && 
 			empty($productid) && empty($productname)) 
-			$Shopp->Cart->data->breadcrumb = "";
+			$this->breadcrumb = "";
 
 		// Category Filters
 		if (!empty($Shopp->Category->slug)) {
-			if (empty($Shopp->Cart->data->Category[$Shopp->Category->slug]))
-				$Shopp->Cart->data->Category[$Shopp->Category->slug] = array();
-			$CategoryFilters =& $Shopp->Cart->data->Category[$Shopp->Category->slug];
+			if (empty($this->browsing[$Shopp->Category->slug]))
+				$this->browsing[$Shopp->Category->slug] = array();
+			$CategoryFilters =& $this->browsing[$Shopp->Category->slug];
 
 			// Add new filters
 			if (isset($_GET['shopp_catfilters'])) {
@@ -320,16 +347,16 @@ class Shopping extends FlowController {
 					$CategoryFilters = array_filter(array_merge($CategoryFilters,$_GET['shopp_catfilters']));
 					$CategoryFilters = stripslashes_deep($CategoryFilters);
 					if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
-				} else unset($Shopp->Cart->data->Category[$Shopp->Category->slug]);
+				} else unset($this->browsing[$Shopp->Category->slug]);
 			}
 
 		}
 
 		// Catalog sort order setting
 		if (isset($_GET['shopp_orderby']))
-			$Shopp->Cart->data->Category['orderby'] = $_GET['shopp_orderby'];
+			$this->browsing['orderby'] = $_GET['shopp_orderby'];
 
-		if (empty($Shopp->Category)) $Shopp->Category = Catalog::load_category($Shopp->Cart->data->breadcrumb,$options);
+		if (empty($Shopp->Category)) $Shopp->Category = Catalog::load_category($this->breadcrumb,$options);
 
 		// Find product by given ID
 		if (!empty($productid) && empty($Shopp->Product->id))
@@ -377,7 +404,7 @@ class Shopping extends FlowController {
 		}
 		$content = ob_get_contents();
 		ob_end_clean();
-		
+
 		$classes = $Shopp->Catalog->type;
 		if (!isset($_COOKIE['shopp_catalog_view'])) {
 			// No cookie preference exists, use shopp default setting
@@ -388,7 +415,7 @@ class Shopping extends FlowController {
 			if ($_COOKIE['shopp_catalog_view'] == "list") $classes .= " list";
 			if ($_COOKIE['shopp_catalog_view'] == "grid") $classes .= " grid";
 		}			
-		
+
 		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'<div class="clear"></div></div>');
 	}
 
@@ -551,7 +578,7 @@ class Shopping extends FlowController {
 		} else $this->Flow->order();
 
 	}
-	
+
 	function cart_page ($attrs=array()) {
 		$Cart = $this->Cart;
 
@@ -574,6 +601,6 @@ class Shopping extends FlowController {
 		return $content;
 	}
 
-} // end Shopping class
+} // END class Storefront
 
 ?>

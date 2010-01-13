@@ -7,16 +7,26 @@
  * @version 1.0
  * @copyright Ingenesis Limited, 12 December, 2009
  * @package shopp
+ * @subpackage image
  **/
+
 require_once('DB.php');
 require_once('model/Settings.php');
 require_once("model/Asset.php");
 
+/**
+ * ImageServer class
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package image
+ **/
 class ImageServer extends DatabaseObject {
+
 	var $image = false;
 	var $Asset = false;
 	
-	function ImageServer () {
+	function __construct () {
 		$this->dbinit();
 		$this->request();
 		if ($this->load())
@@ -24,12 +34,27 @@ class ImageServer extends DatabaseObject {
 		else $this->error();
 	}
 
+	/**
+	 * Parses the request to determine the image to load
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function request () {
 		if (isset($_GET['shopp_image'])) $this->image = $_GET['shopp_image'];
 		elseif (preg_match('/\/images\/(\d+).*$/',$_SERVER['REQUEST_URI'],$matches)) 
 			$this->image = $matches[1];
 	}
 
+	/**
+	 * Loads the requested image for display
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * @return boolean Status of the image load
+	 **/
 	function load () {
 		$db =& DB::get();
 
@@ -48,7 +73,14 @@ class ImageServer extends DatabaseObject {
 			
 		return true;
 	}
-	
+
+	/**
+	 * Output the image to the browser
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * @return void
+	 **/
 	function render () {
 		header('Last-Modified: '.date('D, d M Y H:i:s', $this->Asset->created).' GMT'); 
 		header("Content-type: ".$this->Asset->properties['mimetype']);
@@ -64,6 +96,13 @@ class ImageServer extends DatabaseObject {
 		exit();
 	}
 	
+	/**
+	 * Output a default image when the requested image is not found
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * @return void
+	 **/
 	function error () {
 		header("HTTP/1.1 404 Not Found");
 		$notfound = sanitize_path(dirname(__FILE__)).'/ui/icons/notfound.png';
@@ -80,7 +119,14 @@ class ImageServer extends DatabaseObject {
 		}
 		die();
 	}
-	
+
+	/**
+	 * Read the wp-config file to connect to the database
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * @return void
+	 **/
 	function dbinit () {
 		global $table_prefix;
 		$_ = array();
@@ -112,7 +158,16 @@ class ImageServer extends DatabaseObject {
 
 } // end ImageServer class
 
-
+/**
+ * Find a target file starting at a given directory
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @param string $filename The target file to find
+ * @param string $directory The starting directory
+ * @param string $root The original starting directory
+ * @param array $found Result array that matching files are added to
+ **/
 function find_filepath ($filename, $directory, $root, &$found) {
 	if (is_dir($directory)) {
 		$Directory = @dir($directory);
@@ -130,17 +185,23 @@ function find_filepath ($filename, $directory, $root, &$found) {
 	return false;
 }
 
+/**
+ * Stub for compatibility
+ **/
 if (!function_exists('mktimestamp')) {
 	function mktimestamp () {}
 }
 
+/**
+ * Converts paths to a uniform separator
+ **/
 if(!function_exists('sanitize_path')){
 	function sanitize_path ($path) {
 		return str_replace('\\', '/', $path);
 	}
 }
 
-
+// Start the server
 new ImageServer();
 
 ?>

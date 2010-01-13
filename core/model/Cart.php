@@ -9,23 +9,13 @@
  * @package shopp
  **/
 
-require("Error.php");
 require("Item.php");
-require("Customer.php");
-require("Billing.php");
-require("Shipping.php");
 
 class Cart {
 
 	// properties
-	var $_table;
-	var $session;
-	var $created;
-	var $modified;
-	var $ip;
-	var $data;
-	var $path;
 	var $contents = array();
+	
 	var $shipped = array();
 	var $freeshipping = false;
 	var $looping = false;
@@ -40,24 +30,7 @@ class Cart {
 	/* Cart()
 	 * Constructor that creates a new shopping Cart runtime object */
 	function Cart () {
-		$this->_table = DatabaseObject::tablename('cart');
-
-		// Close out any early session calls
-		if(session_id()) session_write_close();
-		
-		$this->handlers = session_set_save_handler(
-			array( &$this, 'open' ),	// Open
-			array( &$this, 'close' ),	// Close
-			array( &$this, 'load' ),	// Read
-			array( &$this, 'save' ),	// Write
-			array( &$this, 'unload' ),	// Destroy
-			array( &$this, 'trash' )	// Garbage Collection
-		);
-		register_shutdown_function('session_write_close');
-		
-		define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
-		
-		$this->data = new stdClass();				// Session data
+			
 		$this->data->Totals = new stdClass();		// Cart totals
 		$this->data->Totals->subtotal = 0;			// Subtotal of item totals
 		$this->data->Totals->quantity = 0;			// Total quantity of all items
@@ -67,17 +40,8 @@ class Cart {
 		$this->data->Totals->taxrate = 0;			// Current tax rate
 		$this->data->Totals->total = 0;				// Grand total
 
-		$this->data->Order = new stdClass();		// Order object
-		$this->data->Order->data = array();			// Custom order data registry
-		$this->data->Order->Customer = false;		// Order's customer record
-		$this->data->Order->Billing = false;		// Order's billing address record
-		$this->data->Order->Shipping = false;		// Order's shipping address record
+		$this->added = 0;							// Recently added item index
 
-		$this->data->added = 0;						// Recently added item index
-		$this->data->login = false;					// Customer logged in flag
-		$this->data->secure = false;				// Security flag
-		
-		$this->data->Errors = new ShoppErrors();	// Tracks errors
 		$this->data->Shipping = false;				// Cart has shipped items
 		$this->data->ShippingDisabled = false;		// Shipping is disabled
 		$this->data->Estimates = false;				// Order needs shipping estimates
@@ -89,143 +53,12 @@ class Cart {
 		$this->data->ShipCosts = array();			// Shipping method costs
 		$this->data->ShippingPostcode = false;		// Shipping calcs require postcode
 		$this->data->ShippingPostcodeError = false;	// Postal code invalid error
-		$this->data->Purchase = false;				// Final purchase receipt
-		$this->data->Category = array();			// Session related category settings
-		$this->data->Search = false;				// Search processed
 		
 		// Total the cart once, and only if there are changes
 		add_action('parse_request',array(&$this,'totals'),99);
 
 	}
-			
-	/* open()
-	 * Initializing routine for the session management. */
-	function open ($path,$name) {
-		$this->path = $path;
-		if (empty($this->path)) $this->path = dirname(realpath(tempnam(defined('SHOPP_TEMP_PATH')?SHOPP_TEMP_PATH:'','tmp_')));
-		$this->path = sanitize_path($this->path);
-		$this->trash();	// Clear out any residual session information before loading new data
-		if (empty($this->session)) $this->session = session_id();	// Grab our session id
-		$this->ip = $_SERVER['REMOTE_ADDR'];						// Save the IP address making the request
-		return true;
-	}
 	
-	/* close()
-	 * Placeholder function as we are working with a persistant 
-	 * database as opposed to file handlers. */
-	function close () { return true; }
-
-	/* load()
-	 * Gets data from the session data table and loads Member 
-	 * objects into the User from the loaded data. */
-	function load ($id) {
-		global $Shopp;
-		$db = DB::get();
-
-		if (is_robot() || empty($this->session)) return true;
-		
-		if (is_robot()) return true;
-
-		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
-		// echo "$query".BR;
-		if ($result = $db->query($query)) {
-			if (substr($result->data,0,1) == "!") {
-				$key = $_COOKIE[SHOPP_SECURE_KEY];
-				if (empty($key) && !is_shopp_secure())
-					shopp_redirect(force_ssl(raw_request_url(),true));
-				$readable = $db->query("SELECT AES_DECRYPT('".
-										mysql_real_escape_string(
-											base64_decode(
-												substr($result->data,1)
-											)
-										)."','$key') AS data");
-				$result->data = $readable->data;
-			}
-			$this->ip = $result->ip;
-			$this->data = unserialize($result->data);
-			if (empty($result->contents)) $this->contents = array();
-			else $this->contents = unserialize($result->contents);
-			$this->created = mktimestamp($result->created);
-			$this->modified = mktimestamp($result->modified);
-			$loaded = true;
-		} else {
-			if (!empty($this->session))
-				$db->query("INSERT INTO $this->_table (session, ip, data, contents, created, modified) 
-								VALUES ('$this->session','$this->ip','','',now(),now())");
-		}
-		
-		if (empty($this->data->Errors)) $this->data->Errors = new ShoppErrors();
-		if ($Shopp->Settings->get('shipping') == "off") $this->data->ShippingDisabled = true;
-
-		// Read standard session data
-		if (@file_exists("$this->path/sess_$id"))
-			return (string) file_get_contents("$this->path/sess_$id");
-
-		return $loaded;
-	}
-	
-	/* unload()
-	 * Deletes the session data from the database, unregisters the 
-	 * session and releases all the objects. */
-	function unload () {
-		$db = DB::get();
-		if(empty($this->session)) return false;		
-		if (!$db->query("DELETE FROM $this->_table WHERE session='$this->session'")) 
-			trigger_error("Could not clear session data.");
-		unset($this->session,$this->ip,$this->data,$this->contents);
-		return true;
-	}
-	
-	/* save() 
-	 * Save the session data to our session table in the database. */
-	function save ($id,$session) {
-		global $Shopp;
-		$db = DB::get();
-
-		if (!$Shopp->Settings->unavailable) {
-			
-			$data = $db->escape(addslashes(serialize($this->data)));
-			$contents = $db->escape(addslashes(serialize($this->contents)));
-			
-			if ($this->secured() && is_shopp_secure()) {
-				if (!isset($_COOKIE[SHOPP_SECURE_KEY])) $key = $this->securekey();
-				else $key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
-				if (!empty($key)) {
-					new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
-					$secure = $db->query("SELECT AES_ENCRYPT('$data','$key') AS data");
-					$data = "!".base64_encode($secure->data);
-				}
-			}
-			
-			$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'";
-			if (!$db->query($query)) 
-				trigger_error("Could not save session updates to the database.");
-
-		}
-
-		// Save standard session data for compatibility
-		if (!empty($session)) {
-			if ($sf = fopen("$this->path/sess_$id","w")) {
-				$result = fwrite($sf, $session);
-				fclose($sf);
-				return $result;
-			} return false;
-		}
-		return true;
-	}
-
-	/* trash()
-	 * Garbage collection routine for cleaning up old and expired
-	 * sessions. */
-	function trash () {
-		$db = DB::get();
-				
-		// 1800 seconds = 30 minutes, 3600 seconds = 1 hour
-		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified) > ".SHOPP_SESSION_TIMEOUT)) 
-			trigger_error("Could not delete cached session data.");
-		return true;
-	}
-		
 	/**
 	 * add()
 	 * Adds a product as an item to the cart */
@@ -237,12 +70,10 @@ class Cart {
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
 			$this->added = $this->contents[$item];
-			$this->data->added = $item;
 		} else {
 			$NewItem->quantity($quantity);
 			$this->contents[] = $NewItem;
-			$this->data->added = count($this->contents)-1;
-			$this->added = $this->contents[$this->data->added];
+			$this->added = &$NewItem;
 			if ($NewItem->shipping && !$this->data->ShippingDisabled) 
 				$this->data->Shipping = true;
 		}
@@ -355,6 +186,7 @@ class Cart {
 	 * Sets the shipping address location 
 	 * for calculating shipping estimates */
 	function shipzone ($data) {
+		return; // DEV
 		if (!isset($this->data->Order->Shipping))
 			$this->data->Order->Shipping = new Shipping();
 		$this->data->Order->Shipping->updates($data);
@@ -881,36 +713,6 @@ class Cart {
 	}
 	
 	/**
-	 * secured()
-	 * Check or set the security setting for the cart */
-	function secured ($setting=null) {
-		if (is_null($setting)) return $this->data->secure;
-		$this->data->secure = ($setting);
-		if (SHOPP_DEBUG) {
-			if ($this->data->secure) new ShoppError('Switching the cart to secure mode.',false,SHOPP_DEBUG_ERR);
-			else new ShoppError('Switching the cart to unsecure mode.',false,SHOPP_DEBUG_ERR);
-		}
-		return $this->data->secure;
-	}
-
-	/**
-	 * securekey()
-	 * Generate the security key */
-	function securekey () {
-		global $Shopp;
-		require_once(ABSPATH . WPINC . '/pluggable.php');
-		if (!is_shopp_secure()) return false;
-		$expiration = time()+SHOPP_SESSION_TIMEOUT;
-		if (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') $key = SECRET_AUTH_KEY;
-		else $key = md5(serialize($this->data).time());
-		$content = hash_hmac('sha256', $this->session . '|' . $expiration, $key);
-		if ( version_compare(phpversion(), '5.2.0', 'ge') )
-			setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true,true);
-		else setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true);
-		return $content;
-	}
-	
-	/**
 	 * request()
 	 * Processes cart requests and updates the cart
 	 * accordingly */
@@ -1314,11 +1116,11 @@ class Cart {
 				break;
 			case "function": 
 				$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
-				if (!$this->data->Errors->exist()) return $result;
-				$errors = $this->data->Errors->get(SHOPP_COMM_ERR);
+				if (!$Shopp->Errors->exist()) return $result;
+				$errors = $Shopp->Errors->get(SHOPP_COMM_ERR);
 				foreach ((array)$errors as $error) 
 					if (!empty($error)) $result .= '<p class="error">'.$error->message().'</p>';
-				$this->data->Errors->reset(); // Reset after display
+				$Shopp->Errors->reset(); // Reset after display
 				return $result;
 				break;
 			case "empty-button": 
@@ -1953,5 +1755,29 @@ class Cart {
 	}
 		
 } // end Cart class
+
+class CartTotals {
+	
+	var $quantity = 0;
+	var $subtotal = 0;
+	var $discount = 0;
+	var $shipping = 0;
+	var $taxed = 0;
+	var $tax = 0;
+	var $total = 0;
+	
+	/**
+	 * CartTotals constructor
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function __construct () {
+		
+	}
+	
+}
 
 ?>

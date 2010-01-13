@@ -8,6 +8,8 @@
  * @copyright Ingenesis Limited, 28 March, 2008
  * @package shopp
  **/
+require("Billing.php");
+require("Shipping.php");
 
 class Customer extends DatabaseObject {
 	static $table = "customer";

@@ -6,14 +6,14 @@
  * @version 1.0
  * @copyright Ingenesis Limited, January 6, 2010
  * @package shopp
- * @subpackage shopp
+ * @subpackage admin
  **/
 
 /**
  * AdminFlow
  *
  * @author Jonathan Davis
- * @package shopp
+ * @package admin
  * @since 1.1
  **/
 class AdminFlow extends FlowController {
@@ -28,14 +28,18 @@ class AdminFlow extends FlowController {
 	 * Admin constructor
 	 *
 	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
 	 * @return void
 	 **/
 	function __construct () {
 		parent::__construct();
+		
 		// Add Dashboard Widgets
 		add_action('wp_dashboard_setup', array(&$this, 'widgets'));
 		add_action('wp_dashboard_widgets', array(&$this, 'dashboard'));
 		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
+		add_action('admin_init', array(&$this, 'tinymce'));
 
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
@@ -75,6 +79,8 @@ class AdminFlow extends FlowController {
 	 * Generates the Shopp admin menu
 	 *
 	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
 	 * @return void
 	 **/
 	function menus () {
@@ -105,6 +111,8 @@ class AdminFlow extends FlowController {
 	 * Registers a new page to the Shopp admin pages
 	 *
 	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
 	 * @param string $page The internal reference name for the page
 	 * @param string $label The label displayed in the WordPress admin menu
 	 * @param string $controller The name of the controller to use for the page
@@ -121,9 +129,11 @@ class AdminFlow extends FlowController {
 	/**
 	 * Adds a ShoppAdminPage entry to the Shopp admin menu
 	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
 	 * @return void
 	 * @param string $name The name of the page
-	 * @author Jonathan Davis
 	 **/
 	function addmenu ($name) {
 		global $Shopp;
@@ -144,6 +154,8 @@ class AdminFlow extends FlowController {
 	 * Takes an internal page name reference and builds the full path name
 	 *
 	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
 	 * @param string $page The internal reference name for the page
 	 * @return string The fully qualified resource name for the admin page
 	 **/
@@ -155,6 +167,8 @@ class AdminFlow extends FlowController {
 	 * Gets the name of the controller for the current request or the specified page resource
 	 *
 	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
 	 * @param string $page (optional) The fully qualified reference name for the page
 	 * @return string|boolean The name of the controller or false if not available
 	 **/
@@ -169,13 +183,14 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
+	 * 
 	 * @return void
 	 **/
 	function behaviors () {
 		global $wp_version,$Shopp;
 		
 		wp_enqueue_script('jquery');
-		wp_enqueue_script('shopp',SHOPP_ADMIN_PATH."/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
+		wp_enqueue_script('shopp',SHOPP_ADMIN_URI."/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',get_bloginfo('url')),array(),SHOPP_VERSION);
 		
 		
@@ -185,23 +200,23 @@ class AdminFlow extends FlowController {
 			add_action( 'admin_head', 'wp_tiny_mce' );
 			wp_enqueue_script('postbox');
 			if ( user_can_richedit() ) wp_enqueue_script('editor');
-			wp_enqueue_script("shopp-thickbox",SHOPP_ADMIN_PATH."/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
-			wp_enqueue_script('shopp.editor.lib',SHOPP_ADMIN_PATH."/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script("shopp-thickbox",SHOPP_ADMIN_URI."/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
+			wp_enqueue_script('shopp.editor.lib',SHOPP_ADMIN_URI."/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
 
-			if ($_GET['page'] == $this->Pages['shopp-product-edit'])
-				wp_enqueue_script('shopp.product.editor',SHOPP_ADMIN_PATH."/products/editor.js",array('jquery'),SHOPP_VERSION,true);
+			if ($this->pagename('products-edit') == $this->Page->page)
+				wp_enqueue_script('shopp.product.editor',SHOPP_ADMIN_URI."/products/editor.js",array('jquery'),SHOPP_VERSION,true);
 
-			wp_enqueue_script('shopp.editor.priceline',SHOPP_ADMIN_PATH."/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
-			wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_PATH."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script('shopp.editor.priceline',SHOPP_ADMIN_URI."/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
+			wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
 			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery','jquery-ui-core'),SHOPP_VERSION,true);
 			
-			wp_enqueue_script('shopp.swfupload',SHOPP_ADMIN_PATH."/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION);
-			wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_PATH."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
+			wp_enqueue_script('shopp.swfupload',SHOPP_ADMIN_URI."/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION);
+			wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_URI."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
 		}
 		
 		?>
-		<link rel='stylesheet' href='<?php echo $Shopp->uri; ?>/core/ui/styles/thickbox.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
-		<link rel='stylesheet' href='<?php echo $Shopp->uri; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
+		<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/thickbox.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
+		<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
 		<?php
 	}
 	
@@ -210,6 +225,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
+	 * 
 	 * @return void
 	 **/
 	function help ($pagename,$menu) {
@@ -272,8 +288,13 @@ class AdminFlow extends FlowController {
 	}
 	
 	/**
-	 * dashbaord_css()
-	 * Loads only the Shopp Admin CSS on the WordPress dashboard for widget styles */
+	 * Loads the Shopp admin CSS on the WordPress dashboard for widget styles
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function dashboard_css () {
 		global $Shopp;
 		echo "<link rel='stylesheet' href='$Shopp->uri/core/ui/styles/admin.css?ver=".urlencode(SHOPP_VERSION)."' type='text/css' />\n";
@@ -428,6 +449,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
+	 * 
 	 * @param string $pagename The full page reference name 
 	 * @return boolean True if the page is identified as an editor-related page
 	 **/
@@ -442,6 +464,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
+	 * 
 	 * @param string $pagename The page's full reference name 
 	 * @return boolean True if the page is identified as a settings page
 	 **/
@@ -451,16 +474,48 @@ class AdminFlow extends FlowController {
 		else return false;
 	}
 
-} // end AdminFlow class
+	function tinymce () {
+		if (!current_user_can('edit_posts') && !current_user_can('edit_pages')) return;
+
+		// Add TinyMCE buttons when using rich editor
+		if (get_user_option('rich_editing') == 'true') {
+			add_filter('tiny_mce_version', array(&$this,'mceupdate')); // Move to plugin activation
+			add_filter('mce_external_plugins', array(&$this,'mceplugin'),5);
+			add_filter('mce_buttons', array(&$this,'mcebutton'),5);
+		}
+	}
+
+	function mceplugin ($plugins) {
+		$plugins['Shopp'] = SHOPP_ADMIN_URI.'/behaviors/tinymce/editor_plugin.js';
+		return $plugins;
+	}
+
+	function mcebutton ($buttons) {
+		array_push($buttons, "separator", "Shopp");
+		return $buttons;
+	}
+
+	function my_change_mce_settings( $init_array ) {
+	    $init_array['disk_cache'] = false; // disable caching
+	    $init_array['compress'] = false; // disable gzip compression
+	    $init_array['old_cache_max'] = 3; // keep 3 different TinyMCE configurations cached (when switching between several configurations regularly)
+	}
+
+	function mceupdate($ver) {
+	  return ++$ver;
+	}
+
+
+} // END class AdminFlow
 
 /**
  * ShoppAdminPage class
  *
  * A property container for Shopp's admin page meta
  *
- * @package default
- * @since 1.1
  * @author Jonathan Davis
+ * @since 1.1
+ * @package admin
  **/
 class ShoppAdminPage {
 	var $label = "";

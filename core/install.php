@@ -6,7 +6,8 @@
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, 4 April, 2008
- * @package Shopp
+ * @license GNU GPL version 3 (or later) {@see license.txt}
+ * @package shopp
  **/
 
 global $wpdb,$wp_rewrite,$wp_version,$table_prefix;
@@ -14,7 +15,7 @@ $db = DB::get();
 
 // Install tables
 if (!file_exists(SHOPP_DBSCHEMA)) {
- 	trigger_error("Could not install the shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
+ 	trigger_error("Could not install the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
 	exit();
 }
 
@@ -30,25 +31,23 @@ $parent = 0;
 foreach ($this->Pages as $key => &$page) {
 	if (!empty($this->Pages['catalog']['id'])) $parent = $this->Pages['catalog']['id'];
 	$query = "INSERT $wpdb->posts SET post_title='{$page['title']}',
-										post_name='{$page['name']}',
-										post_content='{$page['content']}',
-										post_parent='$parent',
-										post_author='1',
-										post_status='publish',
-										post_type='page',
-										post_date=now(),
-										post_date_gmt=utc_timestamp(),
-										post_modified=now(),
-										post_modified_gmt=utc_timestamp(),
-										comment_status='closed',
-										ping_status='closed',
-										post_excerpt='',
-										to_ping='',     
-										pinged='',      
-										post_content_filtered='',
-										menu_order=0";
-
-										
+									  post_name='{$page['name']}',
+									  post_content='{$page['content']}',
+									  post_parent='$parent',
+									  post_author='1',
+									  post_status='publish',
+									  post_type='page',
+									  post_date=now(),
+									  post_date_gmt=utc_timestamp(),
+									  post_modified=now(),
+									  post_modified_gmt=utc_timestamp(),
+									  comment_status='closed',
+									  ping_status='closed',
+									  post_excerpt='',
+									  to_ping='',     
+									  pinged='',      
+									  post_content_filtered='',
+									  menu_order=0";
 	$wpdb->query($query);
 	$page['id'] = $wpdb->insert_id;
 	$page['permalink'] = get_permalink($page['id']);

@@ -39,6 +39,6 @@ class Checkout implements FlowController {
 		
 	}
 
-} // end Checkout class
+} // END class Checkout
 
 ?>
