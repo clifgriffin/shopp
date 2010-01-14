@@ -227,7 +227,7 @@ class Customer extends DatabaseObject {
 		if (isset($filters['where'])) $where = " AND {$filters['where']}";
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
-		$query = "SELECT o.* FROM $orders AS o LEFT JOIN $purchases AS p ON p.purchase=o.id WHERE o.customer=$this->id $where ORDER BY created DESC";
+		$query = "SELECT o.* FROM $orders AS o WHERE o.customer=$this->id $where ORDER BY created DESC";
 		$Shopp->purchases = $db->query($query,AS_ARRAY);
 		foreach($Shopp->purchases as &$p) {
 			$Purchase = new Purchase();
