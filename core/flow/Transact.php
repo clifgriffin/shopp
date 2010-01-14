@@ -2,7 +2,7 @@
 /**
  * Transact
  * 
- * Flow controller for transaction handling
+ * Flow dispatcher for transaction handling
  *
  * @author Jonathan Davis
  * @version 1.0
@@ -29,9 +29,22 @@ class Transact extends FlowController {
 	 * 
 	 * @return void
 	 **/
-	function __constructor () {
+	function __construct () {
+		add_action('parse_request',array(&$this,'parse'));
+	}
+	
+	/**
+	 * Parses the request for transaction messages and dispatches checkout events
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function parse () {
 		
 	}
+	
 
 } // END class Transact
 

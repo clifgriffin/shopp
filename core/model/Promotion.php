@@ -98,7 +98,8 @@ class Promotion extends DatabaseObject {
 	
 	function reset_discounts () {
 		$db =& DB::get();
-		$db->query("DELETE FROM $discount_table WHERE promo=$this->id");
+		$_table = DatabaseObject::tablename(Discount::$table);
+		$db->query("DELETE FROM $_table WHERE promo=$this->id");
 	}
 
 	/**

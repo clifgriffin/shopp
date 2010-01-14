@@ -48,7 +48,7 @@ class Flow {
 	 **/
 	function parse () {
 		global $Shopp;
-		if (defined('WP_ADMIN')) {
+		if (defined('WP_ADMIN') && isset($_GET['page'])) {
 			$controller = $this->Admin->controller(strtolower($_GET['page']));
 			if (!empty($controller)) $this->handler($controller);
 		} else $this->handler("Storefront");

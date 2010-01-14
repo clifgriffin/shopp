@@ -50,6 +50,7 @@ require("core/flow/Transact.php");
 // require("core/model/ShipCalcs.php");
 require("core/model/Shopping.php");
 require("core/model/Error.php");
+require("core/model/Order.php");
 require("core/model/Cart.php");
 require("core/model/Catalog.php");
 require("core/model/Purchase.php");
@@ -173,6 +174,8 @@ class Shopp {
 			if ($this->Settings->unavailable) return true;
 			$this->Flow->setup();
 		}
+
+		$this->Shopping = new Shopping();
 		
 		add_action('init', array(&$this,'init'));
 		add_action('init', array(&$this, 'xorder'));
@@ -181,7 +184,6 @@ class Shopp {
 		// Admin calls
 		add_action('admin_menu', array(&$this, 'lookups'));
 		add_filter('favorite_actions', array(&$this, 'favorites'));
-		add_action('admin_footer', array(&$this, 'footer'));
 		
 		// Theme widgets
 		add_action('widgets_init', array(&$this, 'widgets'));
@@ -198,7 +200,6 @@ class Shopp {
 		// Session Data
 		add_action('shopp_session_load', array(&$this,'session'));
 		
-		$this->Shopping = new Shopping();
 		
 	}
 	
@@ -232,19 +233,18 @@ class Shopp {
 		}
 		
 		if (SHOPP_LOOKUP) return true;
+
+		$this->Order = ShoppingObject::__new('Order');
+		$this->Errors = ShoppingObject::__new('ShoppErrors');
+		$this->Promotions = ShoppingObject::__new('CartPromotions');
 		
-		$this->Errors = new ShoppErrors();
-		$this->Cart = new Cart();
 
-		// Setup Error handling
-		// $Errors = &ShoppErrors();
-
-		// $this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
-		// $this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
-		// 							$this->Settings->get('error_notifications'));
+		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
+		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
+									$this->Settings->get('error_notifications'));
 									
-		if (!$this->Cart->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
-		if (SHOPP_DEBUG && $this->Cart->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
+		if (!$this->Shopping->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
+		if (SHOPP_DEBUG && $this->Shopping->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 		
 		
@@ -267,9 +267,10 @@ class Shopp {
 	 **/
 	function session () {
 		if (SHOPP_LOOKUP) return true;
-		$this->Shopping->store('Cart',$this->Cart);
-		$this->Shopping->store('Order',$this->Transact->Order);
-		$this->Shopping->store('Errors',$this->Errors);
+
+		
+		// $this->Shopping->store('Order',$this->Order);
+		// $this->Shopping->store('Errors',$this->Errors);
 	}
 
 	/**
@@ -352,8 +353,8 @@ class Shopp {
 	}
 	
 	function favorites ($actions) {
-		$key = add_query_arg(array('page'=>$this->Flow->Admin->editproduct,'id'=>'new'),$this->wpadminurl);
-	    $actions[$key] = array(__('New Shopp Product','Shopp'),8);
+		// $key = add_query_arg(array('page'=>$this->Flow->Admin->editproduct,'id'=>'new'),$this->wpadminurl);
+		// 	    $actions[$key] = array(__('New Shopp Product','Shopp'),8);
 		return $actions;
 	}
 
@@ -368,7 +369,7 @@ class Shopp {
 	function widgets () {
 		global $wp_version;
 
-		include('core/ui/widgets/cart.php');
+		// include('core/ui/widgets/cart.php');
 		include('core/ui/widgets/categories.php');
 		include('core/ui/widgets/section.php');
 		include('core/ui/widgets/tagcloud.php');
@@ -380,7 +381,7 @@ class Shopp {
 			$ShoppSection = new LegacyShoppCategorySectionWidget();
 			$ShoppTagCloud = new LegacyShoppTagCloudWidget();
 			$ShoppFacetedMenu = new LegacyShoppFacetedMenuWidget();
-			$ShoppCart = new LegacyShoppCartWidget();
+			// $ShoppCart = new LegacyShoppCartWidget();
 			$ShoppProduct = new LegacyShoppProductWidget();
 		}
 		
@@ -1053,17 +1054,17 @@ function shopp () {
 	
 	$Object = false; $result = false;
 	switch (strtolower($object)) {
-		case "cart": if (isset($Shopp->Cart)) $Object =& $Shopp->Cart; break;
-		case "cartitem": if (isset($Shopp->Cart)) $Object =& $Shopp->Cart; break;
-		case "shipping": if (isset($Shopp->Cart)) $Object =& $Shopp->Cart; break;
-		case "checkout": if (isset($Shopp->Cart)) $Object =& $Shopp->Cart; break;
+		case "cart": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
+		case "cartitem": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
+		case "shipping": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
+		case "checkout": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
 		case "category": if (isset($Shopp->Category)) $Object =& $Shopp->Category; break;
 		case "subcategory": if (isset($Shopp->Category->child)) $Object =& $Shopp->Category->child; break;
 		case "catalog": if (isset($Shopp->Catalog)) $Object =& $Shopp->Catalog; break;
 		case "product": if (isset($Shopp->Product)) $Object =& $Shopp->Product; break;
-		case "purchase": if (isset($Shopp->Cart->data->Purchase)) $Object =& $Shopp->Cart->data->Purchase; break;
-		case "customer": if (isset($Shopp->Cart->data->Order->Customer)) $Object =& $Shopp->Cart->data->Order->Customer; break;
-		case "error": if (isset($Shopp->Cart->data->Errors)) $Object =& $Shopp->Cart->data->Errors; break;
+		case "purchase": if (isset($Shopp->Order->Cart->data->Purchase)) $Object =& $Shopp->Order->Cart->data->Purchase; break;
+		case "customer": if (isset($Shopp->Order->Cart->data->Order->Customer)) $Object =& $Shopp->Order->Cart->data->Order->Customer; break;
+		case "error": if (isset($Shopp->Order->Cart->data->Errors)) $Object =& $Shopp->Order->Cart->data->Errors; break;
 		default: $Object = false;
 	}
 
@@ -1099,7 +1100,8 @@ function shopp () {
 		return $result;
 
 	// Output the result
-	echo $result;
+	if (is_string($result)) echo $result;
+	else return $result;
 	return true;
 }
 

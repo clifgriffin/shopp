@@ -261,7 +261,7 @@ class Setup extends FlowController {
 				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth)
 					&& $Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth) {
 						$Shopp->ShipCalcs->modules[$ShipCalcClass]->verifyauth();
-						if ($Errors->exist()) $autherrors = $Errors->get(SHOPP_ADDON_ERR,false,true);
+						if ($Errors->exist()) $autherrors = $Errors->level(SHOPP_ADDON_ERR);
 					}
 			}
 			
