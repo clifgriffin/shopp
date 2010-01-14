@@ -52,14 +52,13 @@ class Storefront extends FlowController {
 		$this->Category = &$Shopp->Category;
 		$this->Product = &$Shopp->Product;
 		
-
 		$Pages = $this->Settings->get('pages');
 		if (!empty($Pages)) $this->Pages = $Pages;
 		
-		$Shopp->Shopping->store('search',$this->search);
-		$Shopp->Shopping->store('browsing',$this->browsing);
+		ShoppingObject::store('search',$this->search);
+		ShoppingObject::store('browsing',$this->browsing);
 		
-		add_action('wp', array(&$this, 'parse'));
+		add_action('wp', array(&$this, 'pageid'));
 		add_action('wp', array(&$this, 'cart'));
 		add_action('wp', array(&$this, 'catalog'));
 		add_action('wp', array(&$this, 'shortcodes'));
@@ -72,7 +71,7 @@ class Storefront extends FlowController {
 	 * @return void
 	 * @author Jonathan Davis
 	 **/
-	function parse () {
+	function pageid () {
 		global $Shopp,$wp_query;
 
 		// Identify the current page
@@ -184,6 +183,7 @@ class Storefront extends FlowController {
 	}
 
 	function feeds () {
+		global $Shopp;
 		if (empty($this->Category)):?>
 
 <link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
@@ -192,7 +192,7 @@ class Storefront extends FlowController {
 			$uri = 'category/'.$this->Category->uri;
 			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
 
-			if (SHOPP_PERMALINKS) $link = user_trailingslashit($this->shopuri.urldecode($uri).'/feed');
+			if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.urldecode($uri).'/feed');
 			else $link = add_query_arg(array('shopp_category'=>urldecode($this->Category->uri),'shopp_lookup'=>'category-rss'),$this->shopuri);
 			?>
 
@@ -277,7 +277,7 @@ class Storefront extends FlowController {
 		global $Shopp,$wp;
 		$options = array();
 
-		add_filter('redirect_canonical','cancel_canoncial_redirect');
+		// add_filter('redirect_canonical','cancel_canonical_redirect');
 
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&
@@ -425,15 +425,25 @@ class Storefront extends FlowController {
 	function cart () {
 		global $Shopp;
 		if (isset($_REQUEST['shopping']) && strtolower($_REQUEST['shopping']) == "reset") {
-			$Shopp->Cart->reset();
-			shopp_redirect($Shopp->link());
+			$Shopp->Shopping->reset();
+			shopp_redirect($Shopp->link('catalog'));
 		}
 
-		if (empty($_REQUEST['cart'])) return true;
 
-		$Shopp->Cart->request();
-		if ($Shopp->Cart->updated) $Shopp->Cart->totals();
-		if (isset($_REQUEST['ajax'])) $Shopp->Cart->ajax();
+		if (empty($_REQUEST['cart'])) return true;
+		
+		error_log('Storefront::cart()');
+		do_action('shopp_cart_request');
+		
+		// if ($_REQUEST['cart']) $Shopp->Order->Cart->request();
+
+		// echo BR.BR."<pre>";
+		// print_r($Shopp->Order->Cart);
+		// echo BR.BR."</pre>";
+
+		
+		// if ($Shopp->Order->Cart->changed) $Shopp->Order->Cart->totals();
+		if (isset($_REQUEST['ajax'])) $Shopp->Order->Cart->ajax();
 		$redirect = false;
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {
@@ -580,7 +590,8 @@ class Storefront extends FlowController {
 	}
 
 	function cart_page ($attrs=array()) {
-		$Cart = $this->Cart;
+		global $Shopp;
+		$Cart = $Shopp->Order->Cart;
 
 		ob_start();
 		include(SHOPP_TEMPLATES."/cart.php");

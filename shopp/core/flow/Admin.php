@@ -36,8 +36,7 @@ class AdminFlow extends FlowController {
 		parent::__construct();
 		
 		// Add Dashboard Widgets
-		add_action('wp_dashboard_setup', array(&$this, 'widgets'));
-		add_action('wp_dashboard_widgets', array(&$this, 'dashboard'));
+		add_action('wp_dashboard_setup', array(&$this, 'dashboard'));
 		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
 		add_action('admin_init', array(&$this, 'tinymce'));
 
@@ -256,35 +255,22 @@ class AdminFlow extends FlowController {
 	 * @since 1.0
 	 * @return void
 	 **/
-	function widgets () {
+	function dashboard () {
+		$dashboard = $this->Settings->get('dashboard');
+		if (!(current_user_can(SHOPP_USERLEVEL) && $dashboard == "on")) return false;
 		
-		wp_register_sidebar_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array(&$this,'stats_widget'),
+		wp_add_dashboard_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array(&$this,'stats_widget'),
 			array('all_link' => '','feed_link' => '','width' => 'half','height' => 'single')
 		);
 
-		wp_register_sidebar_widget('dashboard_shopp_orders', __('Shopp Orders','Shopp'), array(&$this,'orders_widget'),
+		wp_add_dashboard_widget('dashboard_shopp_orders', __('Shopp Orders','Shopp'), array(&$this,'orders_widget'),
 			array('all_link' => 'admin.php?page='.$this->pagename('orders'),'feed_link' => '','width' => 'half','height' => 'single')
 		);
 
-		wp_register_sidebar_widget('dashboard_shopp_products', __('Shopp Products','Shopp'), array(&$this,'products_widget'),
+		wp_add_dashboard_widget('dashboard_shopp_products', __('Shopp Products','Shopp'), array(&$this,'products_widget'),
 			array('all_link' => 'admin.php?page='.$this->pagename('products'),'feed_link' => '','width' => 'half','height' => 'single')
 		);
 		
-	}
-
-	/**
-	 * Adds the Shopp dashboard widgets to the WordPress Dashboard
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 * @param array $widgets List of current WordPress dashboard widgets
-	 * @return array $widgets List of widgets with the Shopp widgets added
-	 **/
-	function dashboard ($widgets) {
-		$dashboard = $this->Settings->get('dashboard');
-		if (current_user_can(SHOPP_USERLEVEL) && $dashboard == "on")
-			array_unshift($widgets,'dashboard_shopp_stats','dashboard_shopp_orders','dashboard_shopp_products');
-		return $widgets;
 	}
 	
 	/**
@@ -331,7 +317,7 @@ class AdminFlow extends FlowController {
 								AVG(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,null)) AS wkavg
 		 						FROM $purchasetable");
 
-		$orderscreen = add_query_arg('page',$this->Admin->orders,$Shopp->wpadminurl."admin.php");
+		$orderscreen = add_query_arg('page',$this->pagename('orders'),$Shopp->wpadminurl."admin.php");
 		echo '<div class="table"><table><tbody>';
 		echo '<tr><th colspan="2">'.__('Last 30 Days','Shopp').'</th><th colspan="2">'.__('Lifetime','Shopp').'</th></tr>';
 
@@ -384,7 +370,7 @@ class AdminFlow extends FlowController {
 		foreach ($Orders as $Order) {
 			echo '<tr'.((!$even)?' class="alternate"':'').'>';
 			$even = !$even;
-			echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>$this->Admin->orders,'id'=>$Order->id),$Shopp->wpadminurl."admin.php").'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
+			echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>$this->pagename('orders'),'id'=>$Order->id),$Shopp->wpadminurl."admin.php").'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
 			echo '<td>'.date("Y/m/d",mktimestamp($Order->created)).'</td>';
 			echo '<td class="num">'.$Order->items.'</td>';
 			echo '<td class="num">'.money($Order->total).'</td>';
@@ -428,7 +414,7 @@ class AdminFlow extends FlowController {
 		echo '<td><h4>'.__('Recent Bestsellers','Shopp').'</h4>';
 		echo '<ul>';
 		foreach ($RecentBestsellers->products as $product) 
-			echo '<li><a href="'.add_query_arg(array('page'=>$this->Admin->editproduct,'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a> ('.$product->sold.')</li>';
+			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a> ('.$product->sold.')</li>';
 		echo '</ul></td>';
 		
 		
@@ -437,7 +423,7 @@ class AdminFlow extends FlowController {
 		echo '<td><h4>'.__('Lifetime Bestsellers','Shopp').'</h4>';
 		echo '<ul>';
 		foreach ($LifetimeBestsellers->products as $product) 
-			echo '<li><a href="'.add_query_arg(array('page'=>$this->Admin->editproduct,'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a> ('.$product->sold.')</li>';
+			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a> ('.$product->sold.')</li>';
 		echo '</ul></td>';
 		echo '</tr></tbody></table>';
 		echo $after_widget;

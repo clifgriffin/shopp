@@ -354,7 +354,7 @@ abstract class DatabaseObject {
 	 **/
 	function init ($table,$key="id") {
 		global $Shopp;
-		$db = DB::get();
+		$db = &DB::get();
 		
 		$this->_table = $this->tablename($table); // So we know what the table name is
 		$this->_key = $key;				// So we know what the primary key is
@@ -416,7 +416,7 @@ abstract class DatabaseObject {
 	 * @param $key - A string of the name of the db object's primary key
 	 **/
 	function load () {
-		$db = DB::get();
+		$db = &DB::get();
 
 		$args = func_get_args();
 		if (empty($args[0])) return false;
@@ -469,7 +469,7 @@ abstract class DatabaseObject {
 	 * @return boolean|int Returns true when UPDATES are successful; returns an integer with the record ID
 	 **/
 	function save () {
-		$db = DB::get();
+		$db = &DB::get();
 		
 		$data = $db->prepare($this);
 		$id = $this->{$this->_key};
@@ -503,7 +503,7 @@ abstract class DatabaseObject {
 	 * @return boolean
 	 **/
 	function delete () {
-		$db = DB::get();
+		$db = &DB::get();
 		// Delete record
 		$id = $this->{$this->_key};
 		if (!empty($id)) return $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
@@ -581,7 +581,7 @@ abstract class DatabaseObject {
 	 * @return void
 	 **/
 	function updates($data,$ignores = array()) {
-		$db = DB::get();
+		$db = &DB::get();
 		
 		foreach ($data as $key => $value) {
 			if (!is_null($value) && 
@@ -606,7 +606,7 @@ abstract class DatabaseObject {
 	 * @return void
 	 **/
 	function copydata ($Object,$prefix="") {
-		$db = DB::get();
+		$db = &DB::get();
 
 		$ignores = array("_datatypes","_table","_key","_lists","id","created","modified");
 		foreach(get_object_vars($Object) as $property => $value) {
@@ -637,6 +637,8 @@ abstract class SessionObject {
 	var $created;
 	var $modified;
 	var $path;
+	
+	var $secure = false;
 	
 
 	function __construct () {
@@ -680,8 +682,7 @@ abstract class SessionObject {
 	 * Gets data from the session data table and loads Member 
 	 * objects into the User from the loaded data. */
 	function load ($id) {
-		global $Shopp;
-		$db = DB::get();
+		$db = &DB::get();
 
 		if (is_robot() || empty($this->session)) return true;
 		
@@ -704,11 +705,12 @@ abstract class SessionObject {
 			$this->created = mktimestamp($result->created);
 			$this->modified = mktimestamp($result->modified);
 			$loaded = true;
+
 			do_action('shopp_session_loaded');
 		} else {
 			if (!empty($this->session))
-				$db->query("INSERT INTO $this->_table (session, ip, data, contents, created, modified) 
-								VALUES ('$this->session','$this->ip','','',now(),now())");
+				$db->query("INSERT INTO $this->_table (session, ip, data, created, modified) 
+							VALUES ('$this->session','$this->ip','',now(),now())");
 		}
 		do_action('shopp_session_load');
 		
@@ -723,11 +725,11 @@ abstract class SessionObject {
 	 * Deletes the session data from the database, unregisters the 
 	 * session and releases all the objects. */
 	function unload () {
-		$db = DB::get();
+		$db = &DB::get();
 		if(empty($this->session)) return false;		
 		if (!$db->query("DELETE FROM $this->_table WHERE session='$this->session'")) 
 			trigger_error("Could not clear session data.");
-		unset($this->session,$this->ip,$this->data,$this->contents);
+		unset($this->session,$this->ip,$this->data);
 		return true;
 	}
 	
@@ -735,29 +737,25 @@ abstract class SessionObject {
 	 * Save the session data to our session table in the database. */
 	function save ($id,$session) {
 		global $Shopp;
-		$db = DB::get();
+		$db = &DB::get();
 		
-		if (!$Shopp->Settings->unavailable) {
-			
-			$data = $db->escape(addslashes(serialize($this->data)));
-			$contents = $db->escape(addslashes(serialize($this->contents)));
-			
-			if ($this->secured() && is_shopp_secure()) {
-				if (!isset($_COOKIE[SHOPP_SECURE_KEY])) $key = $this->securekey();
-				else $key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
-				if (!empty($key)) {
-					new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
-					$secure = $db->query("SELECT AES_ENCRYPT('$data','$key') AS data");
-					$data = "!".base64_encode($secure->data);
-				}
+		$data = $db->escape(addslashes(serialize($this->data)));
+		
+		if ($this->secured() && is_shopp_secure()) {
+			if (!isset($_COOKIE[SHOPP_SECURE_KEY])) $key = $this->securekey();
+			else $key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
+			if (!empty($key)) {
+				new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
+				$secure = $db->query("SELECT AES_ENCRYPT('$data','$key') AS data");
+				$data = "!".base64_encode($secure->data);
 			}
-			
-			$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',contents='$contents',modified=now() WHERE session='$this->session'";
-			if (!$db->query($query)) 
-				trigger_error("Could not save session updates to the database.");
-			do_action('shopp_session_saved');
-
 		}
+		
+		$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',modified=now() WHERE session='$this->session'";
+		if (!$db->query($query)) 
+			trigger_error("Could not save session updates to the database.");
+			
+		do_action('shopp_session_saved');
 
 		// Save standard session data for compatibility
 		if (!empty($session)) {
@@ -775,7 +773,7 @@ abstract class SessionObject {
 	 * Garbage collection routine for cleaning up old and expired
 	 * sessions. */
 	function trash () {
-		$db = DB::get();
+		$db = &DB::get();
 				
 		// 1800 seconds = 30 minutes, 3600 seconds = 1 hour
 		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified) > ".SHOPP_SESSION_TIMEOUT)) 
@@ -787,20 +785,19 @@ abstract class SessionObject {
 	 * secured()
 	 * Check or set the security setting for the session */
 	function secured ($setting=null) {
-		if (is_null($setting)) return $this->data->secure;
-		$this->data->secure = ($setting);
+		if (is_null($setting)) return $this->secure;
+		$this->secure = ($setting);
 		if (SHOPP_DEBUG) {
-			if ($this->data->secure) new ShoppError('Switching the cart to secure mode.',false,SHOPP_DEBUG_ERR);
-			else new ShoppError('Switching the cart to unsecure mode.',false,SHOPP_DEBUG_ERR);
+			if ($this->secure) new ShoppError('Switching the session to secure mode.',false,SHOPP_DEBUG_ERR);
+			else new ShoppError('Switching the session to unsecure mode.',false,SHOPP_DEBUG_ERR);
 		}
-		return $this->data->secure;
+		return $this->secure;
 	}
 
 	/**
 	 * securekey()
 	 * Generate the session security key */
 	function securekey () {
-		global $Shopp;
 		require_once(ABSPATH . WPINC . '/pluggable.php');
 		if (!is_shopp_secure()) return false;
 		$expiration = time()+SHOPP_SESSION_TIMEOUT;
@@ -814,4 +811,5 @@ abstract class SessionObject {
 	}
 	
 }
+
 ?>

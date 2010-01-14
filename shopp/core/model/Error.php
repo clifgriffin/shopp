@@ -29,7 +29,7 @@ class ShoppErrors {
 	var $errors = array();
 	var $notifications;
 	
-	function ShoppErrors () {
+	function __construct () {
 		$this->notifications = new CallbackSubscription();
 
 		$types = E_ALL ^ E_NOTICE;
@@ -45,13 +45,30 @@ class ShoppErrors {
 		$this->notifications->send($ShoppError);
 	}
 	
-	function get ($level=SHOPP_DEBUG_ERR,$code=false,$levelmatch=false) {
-		if (!empty($code)) return array($this->errors[$code]);
+	function get ($level=SHOPP_DEBUG_ERR) {
 		$errors = array();
-		foreach ($this->errors as &$error) {
-			if ($levelmatch && $error->level == $level) $errors[] = &$error;
-			elseif (!$levelmatch && $error->level <= $level) $errors[] = &$error;
-		}
+		foreach ($this->errors as &$error)
+			if ($error->level <= $level) $errors[] = &$error;
+		return $errors;
+	}
+	
+	function level ($level=SHOPP_ALL_ERR) {
+		$errors = array();
+		foreach ($this->errors as &$error)
+			if ($error->level == $level) $errors[] = &$error;
+		return $errors;
+	}
+	
+	function code ($code) {
+		if (!empty($code) && isset($this->errors[$code])) 
+			return $this->errors[$code];
+	}
+	
+	function source ($source) {
+		if (empty($source)) return array();
+		$errors = array();
+		foreach ($this->errors as &$error)
+			if ($error->source == $source) $errors[] = &$error;
 		return $errors;
 	}
 	
@@ -60,6 +77,10 @@ class ShoppErrors {
 		foreach ($this->errors as &$error)
 			if ($error->level <= $level) $errors[] = &$error;
 		return (count($errors) > 0);
+	}
+	
+	function remove ($error) {
+		unset($this->errors[$error->code]);
 	}
 	
 	function reset () {
@@ -71,7 +92,7 @@ class ShoppErrors {
 			new ShoppError($message,'php_error',SHOPP_PHP_ERR,
 				array('file'=>$file,'line'=>$line,'phperror'=>$number));
 	}
-	
+		
 	/* Provides functionality for shopp('error') tags */
 	function tag ($property,$options=array()) {
 		global $Shopp;
@@ -142,12 +163,16 @@ class ShoppError {
 		if (!empty($Errors)) $Errors->add($this);
 	}
 	
-	function message ($delimiter="\n") {
+	function message ($remove=true,$source=false,$delimiter="\n") {
 		$string = "";
 		// Show source if debug is on, or not a general error message
 		if (((defined('WP_DEBUG') && WP_DEBUG) || $this->level > SHOPP_ERR) && 
-			!empty($this->source)) $string .= "$this->source: ";
+			!empty($this->source) && $source) $string .= "$this->source: ";
 		$string .= join($delimiter,$this->messages);
+		if ($remove) {
+			$Errors = &ShoppErrors();
+			if (!empty($Errors)) $Errors->remove($this);
+		}
 		return $string;
 	}
 				
@@ -175,7 +200,7 @@ class ShoppErrorLogging {
 		if ($error->level > $this->loglevel) return;
 		$debug = "";
 		if (isset($error->debug['file'])) $debug = " [".basename($error->debug['file']).", line ".$error->debug['line']."]";
-		$message = date("Y-m-d H:i:s",mktime())." - ".$error->message().$debug."\n";
+		$message = date("Y-m-d H:i:s",mktime())." - ".$error->message(false,true).$debug."\n";
 		if ($this->log = @fopen($this->logfile,'at')) {
 			fwrite($this->log,$message);
 			fclose($this->log);
@@ -267,7 +292,7 @@ class CallbackSubscription {
 
 function &ShoppErrors () {
 	global $Shopp;
-	return $Shopp->Cart->data->Errors;
+	return $Shopp->Errors;
 }
 
 function is_shopperror ($e) {

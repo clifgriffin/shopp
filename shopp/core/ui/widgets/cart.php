@@ -24,7 +24,7 @@ class ShoppCartWidget extends WP_Widget {
 		if (empty($options['title'])) $options['title'] = "Your Cart";
 		$title = $before_title.$options['title'].$after_title;
 
-		$sidecart = $Shopp->Cart->tag('sidecart',$options);
+		$sidecart = $Shopp->Order->Cart->tag('sidecart',$options);
 		echo $before_widget.$title.$sidecart.$after_widget;
     }
 
