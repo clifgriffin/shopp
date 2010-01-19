@@ -1,28 +1,32 @@
 <?php
 /**
- * UPSServiceRates
+ * UPS Service Rates
+ * 
  * Uses UPS Online Tools to get live shipping rates based on product weight
- * INSTALLATION INSTRUCTIONS: Upload UPSServiceRates.php to 
- * your Shopp install under: .../wp-content/plugins/shopp/shipping/
+ * 
+ * INSTALLATION INSTRUCTIONS
+ * Upload UPSServiceRates.php to your Shopp install under:
+ * ./wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0.4
+ * @version 1.1
  * @copyright Ingenesis Limited, 3 January, 2009
  * @package shopp
+ * @since 1.1 dev
+ * @subpackage UPSServiceRates
  * 
  * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
 
-class UPSServiceRates {
+class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	var $testurl = 'https://wwwcie.ups.com/ups.app/xml/Rate';
 	var $liveurl = 'https://www.ups.com/ups.app/xml/Rate';
 	var $request = false;
 	var $weight = 0;
 	var $conversion = 1;
 	var $Response = false;
-	var $requiresauth = true;
 	
 	var $codes = array(
 		"01" => "UPS Next Day Air",
@@ -51,26 +55,18 @@ class UPSServiceRates {
 		"MX" => array("07","08","54","65"),
 		"PL" => array("07","08","11","54","65","82","83","84","85","86") );
 	
-	function UPSServiceRates () {
-		global $Shopp;
-		$this->settings = $Shopp->Settings->get('UPSServiceRates');
-		if (!isset($this->settings['license'])) $this->settings['license'] = '';
-		if (!isset($this->settings['postcode'])) $this->settings['postcode'] = '';
-		if (!isset($this->settings['userid'])) $this->settings['userid'] = '';
-		if (!isset($this->settings['password'])) $this->settings['password'] = '';
+	function __construct () {
+		parent::__construct();
+		$this->setup('license','postcode','userid','password');
 		
-		$base = $Shopp->Settings->get('base_operations');
-		$storeunits = $Shopp->Settings->get('weight_unit');
-		$this->settings['country'] = $base['country'];
-
 		$units = array("imperial" => "LBS","metric"=>"KGS");
-		$this->settings['units'] = $units[$base['units']];
-		if ($storeunits == 'oz') $this->conversion = 0.0625;
-		if ($storeunits == 'g') $this->conversion = 0.001;
+		$this->settings['units'] = $units[$this->base['units']];
+		if ($this->units == 'oz') $this->conversion = 0.0625;
+		if ($this->units == 'g') $this->conversion = 0.001;
 
 		// Select service options using base country
-		if (array_key_exists($this->settings['country'],$this->services)) 
-			$services = $this->services[$this->settings['country']];
+		if (array_key_exists($this->base['country'],$this->services)) 
+			$services = $this->services[$this->base['country']];
 		else $services = $this->worldwide;
 		
 		// Build the service list
@@ -78,12 +74,13 @@ class UPSServiceRates {
 		foreach ($services as $code) 
 			$this->settings['services'][$code] = $this->codes[$code];
 		
+		if (isset($this->rates[0])) $this->rate = $this->rates[0];
+		
 		add_action('shipping_service_settings',array(&$this,'settings'));
 	}
 	
-	function methods (&$ShipCalc) {
-		$ShipCalc->methods[get_class($this)] = __("UPS Service Rates","Shopp");
-		
+	function methods () {
+		return array(__("UPS Service Rates","Shopp"));
 	}
 		
 	function ui () {?>
@@ -141,14 +138,21 @@ class UPSServiceRates {
 		<?php		
 	}
 	
-	function calculate (&$Cart,$fees,$rate,$column) {
-		if (empty($Cart->data->Order->Shipping->postcode)) return false;
-		$ShipCosts = &$Cart->data->ShipCosts;
-		$weight = 0;
-		foreach($Cart->shipped as $Item) $weight += (($Item->weight*$this->conversion) * $Item->quantity);
-
-		$this->request = $this->build($Cart->session, $rate['name'], $weight, 
-			$Cart->data->Order->Shipping->postcode, $Cart->data->Order->Shipping->country);
+	function init () {
+		$this->weight = 0;
+	}
+	function calcitem ($id,$Item) {
+		$this->weight += ($Item->weight*$this->conversion) * $Item->quantity;
+	}
+	
+	function calculate ($options,$Order) {
+		if (empty($Order->Shipping->postcode)) {
+			new ShoppError(__('A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout.','Shopp','usps_postcode_required',SHOPP_ERR));
+			return $options;
+		}
+		
+		$this->request = $this->build(session_id(), $this->rate['name'], 
+			$Order->Shipping->postcode, $Order->Shipping->country);
 		
 		$this->Response = $this->send();
 		if (!$this->Response) return false;
@@ -161,24 +165,24 @@ class UPSServiceRates {
 		$RatedShipment = $this->Response->getElement('RatedShipment');
 		if (!is_array($RatedShipment)) return false;
 		foreach ($RatedShipment as $rated) {
-			$ServiceCode = $rated['CHILDREN']['Service']['CHILDREN']['Code']['CONTENT'];
-			$TotalCharges = $rated['CHILDREN']['TotalCharges']['CHILDREN']['MonetaryValue']['CONTENT'];
-			if(floatval($TotalCharges) == 0) continue;
-			$DeliveryEstimate = $rated['CHILDREN']['GuaranteedDaysToDelivery']['CONTENT'];
-			if (empty($DeliveryEstimate)) $DeliveryEstimate = "1d-5d";
-			else $DeliveryEstimate .= "d";
-			if (is_array($rate['services']) && in_array($ServiceCode,$rate['services'])) {
-				$rate['cost'] = $TotalCharges+$fees;
-				$ShipCosts[$this->codes[$ServiceCode]] = $rate;
-				$ShipCosts[$this->codes[$ServiceCode]]['name'] = $this->codes[$ServiceCode];
-				$ShipCosts[$this->codes[$ServiceCode]]['delivery'] = $DeliveryEstimate;
-				if (!$estimate || $rate['cost'] < $estimate['cost']) $estimate = &$ShipCosts[$this->codes[$ServiceCode]];
+			$service = $rated['CHILDREN']['Service']['CHILDREN']['Code']['CONTENT'];
+			$amount = $rated['CHILDREN']['TotalCharges']['CHILDREN']['MonetaryValue']['CONTENT'];
+			if(floatval($amount) == 0) continue;
+			$delivery = $rated['CHILDREN']['GuaranteedDaysToDelivery']['CONTENT'];
+			if (empty($delivery)) $delivery = "1d-5d";
+			else $delivery .= "d";
+			if (is_array($this->rate['services']) && in_array($service,$this->rate['services'])) {
+				$rate = array();
+				$rate['name'] = $this->codes[$service];
+				$rate['amount'] = $amount;
+				$rate['delivery'] = $delivery;
+				$options[$rate['name']] = new ShippingOption($rate);
 			}
 		}
-		return $estimate;
+		return $options;
 	}
 	
-	function build ($cart,$description,$weight,$postcode,$country) {
+	function build ($cart,$description,$postcode,$country) {
 
 		$_ = array('<?xml version="1.0" encoding="utf-8"?>');
 		$_[] = '<AccessRequest xml:lang="en-US">';
@@ -201,7 +205,7 @@ class UPSServiceRates {
 			$_[] = '<Shipper>';
 				$_[] = '<Address>';
 					$_[] = '<PostalCode>'.$this->settings['postcode'].'</PostalCode>';
-					$_[] = '<CountryCode>'.$this->settings['country'].'</CountryCode>';
+					$_[] = '<CountryCode>'.$this->base['country'].'</CountryCode>';
 				$_[] = '</Address>';
 			$_[] = '</Shipper>';
 			$_[] = '<ShipTo>';
@@ -219,7 +223,7 @@ class UPSServiceRates {
 					$_[] = '<UnitOfMeasurement>';
 						$_[] = '<Code>'.$this->settings['units'].'</Code>';
 					$_[] = '</UnitOfMeasurement>';
-					$_[] = '<Weight>'.number_format(($weight < 1)?1:$weight,1,'.','').'</Weight>';
+					$_[] = '<Weight>'.number_format(($this->weight < 1)?1:$this->weight,1,'.','').'</Weight>';
 				$_[] = '</PackageWeight>   ';
 			$_[] = '</Package>';
 		$_[] = '</Shipment>';
@@ -228,8 +232,10 @@ class UPSServiceRates {
 		return join("\n",$_);
 	}  
 	     
-	function verifyauth () {         
-		$this->request = $this->build('1','Authentication test',1,'10012','US');
+	function verify () {
+		if (!$this->activated()) return;
+		$this->weight = 1;
+		$this->request = $this->build('1','Authentication test','10012','US');
 		$Response = $this->send();
 		if ($Response->getElement('Error')) new ShoppError($Response->getElementContent('ErrorDescription'),'ups_verify_auth',SHOPP_ADDON_ERR);
 	}   

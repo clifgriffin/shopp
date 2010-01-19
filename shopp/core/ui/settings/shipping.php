@@ -209,7 +209,7 @@ function uniqueMethod (methodid,option) {
 
 var methodHandlers = new CallbackRegistry();
 
-<?php $Shopp->ShipCalcs->ui(); ?>
+<?php do_action('shopp_settings_shipping_ui'); ?>
 
 if ($('#shipping-rates')) {
 	var shippingRates = new Array();

@@ -1,41 +1,43 @@
 <?php
 /**
- * OrderAmount
+ * Order Amount Tiers
+ * 
  * Provides shipping calculations based on order amount ranges
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.1
  * @copyright Ingenesis Limited, 27 April, 2008
  * @package shopp
+ * @since 1.1 dev
+ * @subpackage OrderAmount
  * 
  * $Id$
  **/
 
-class OrderAmount {
-
-	function OrderAmount () {
+class OrderAmount extends ShippingFramework implements ShippingModule {
+	
+	function init () {}
+	function calcitem ($id,$Item) {}
+	
+	function methods () {
+		return array('range' => __("Order Amount Tiers","Shopp"));
 	}
 	
-	function methods (&$ShipCalc) {
-		$ShipCalc->methods[get_class($this).'::range'] = __("Order Amount Tiers","Shopp");
-	}
-	
-	function calculate (&$Cart,$fees,$rate,$column) {
-		$ShipCosts = &$Cart->data->ShipCosts;
-		$shipping = 0;
-		foreach ($rate['max'] as $id => $value) {
-			if ($Cart->data->Totals->subtotal <= $value) {
-				$shipping = $rate[$column][$id];
-				break;
+	function calculate ($options,$Order) {
+		foreach ($this->rates as $rate) {
+			$column = $this->ratecolumn($rate);
+			foreach ($rate['max'] as $id => $value) {
+				if (!(int)$value) $rate['amount'] = $rate[$column][$id];
+				if ($Order->Cart->Totals->subtotal <= $value) {
+					$rate['amount'] = $rate[$column][$id];
+					break;
+				}
 			}
+			$options[$rate['name']] = new ShippingOption($rate);
 		}
-		if ($shipping == 0) $shipping = $rate[$column][$id];
-		
-		$rate['cost'] = $shipping+$fees;
-		$ShipCosts[$rate['name']] = $rate;
-		return $rate;
+		return $options;
 	}
-	
+		
 	function ui () {
 		?>
 var OrderAmountRange = function (methodid,table,rates) {
@@ -86,7 +88,7 @@ function AddOrderAmountRangeRow(methodid,table,rates) {
 		if (!isNaN(key)) key = area;
 		if (rates && rates[key] && rates[key][id]) value = rates[key][id];
 		else value = 0;
-		$('<input name="settings[shipping_rates]['+methodid+']['+key+'][]" id="'+area+'-'+methodid+'-'+id+'" class="selectall right" size="7" tabindex="'+(id+1)+'0'+(d++)+'" />').change(function() {
+		$('<input type="text" name="settings[shipping_rates]['+methodid+']['+key+'][]" id="'+area+'-'+methodid+'-'+id+'" class="selectall right" size="7" tabindex="'+(id+1)+'0'+(d++)+'" />').change(function() {
 			this.value = asMoney(this.value);
 		}).val(value).appendTo(inputCell).change();
 	});
@@ -94,14 +96,14 @@ function AddOrderAmountRangeRow(methodid,table,rates) {
 	var inputCell = $('<td/>').appendTo(row);
 	if (rates && rates[region] && rates[region][id]) value = rates[region][id];
 	else value = 0;
-	$('<input name="settings[shipping_rates]['+methodid+']['+region+'][]"  id="'+region+'-'+methodid+'-'+id+'" class="selectall right" size="7" tabindex="'+(id+1)+'10" />').change(function() {
+	$('<input type="text" name="settings[shipping_rates]['+methodid+']['+region+'][]"  id="'+region+'-'+methodid+'-'+id+'" class="selectall right" size="7" tabindex="'+(id+1)+'10" />').change(function() {
 		this.value = asMoney(this.value);
 	}).val(value).appendTo(inputCell).change();
 	
 	var inputCell = $('<td/>').appendTo(row);
 	if (rates && rates['Worldwide'] && rates['Worldwide'][id]) value = rates['Worldwide'][id];
 	else value = 0;
-	worldwideInput = $('<input name="settings[shipping_rates]['+methodid+'][Worldwide][]" id="worldwide-'+methodid+'-'+id+'"  class="selectall right" size="7" tabindex="'+(id+1)+'11" />').change(function() {
+	worldwideInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][Worldwide][]" id="worldwide-'+methodid+'-'+id+'"  class="selectall right" size="7" tabindex="'+(id+1)+'11" />').change(function() {
 		this.value = asMoney(this.value);
 	}).val(value).appendTo(inputCell).change();
 	

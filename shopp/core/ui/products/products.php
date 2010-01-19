@@ -5,7 +5,7 @@
 
 	<form action="" method="get" id="products-manager">
 	<div>
-		<input type="hidden" name="page" value="<?php echo $this->Admin->products; ?>" />
+		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('products'); ?>" />
 	</div>
 
 	<p id="post-search" class="search-box">
@@ -13,7 +13,7 @@
 		<input type="submit" value="<?php _e('Search Products','Shopp'); ?>" class="button" />
 	</p>
 	
-	<p><a href="<?php echo add_query_arg(array('page'=>$this->Admin->editproduct,'id'=>'new'),$Shopp->wpadminurl."admin.php"); ?>" class="button"><?php _e('New Product','Shopp'); ?></a></p>
+	<p><a href="<?php echo add_query_arg(array('page'=>$this->Admin->pagename('products-edit'),'id'=>'new'),$Shopp->wpadminurl."admin.php"); ?>" class="button"><?php _e('New Product','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>

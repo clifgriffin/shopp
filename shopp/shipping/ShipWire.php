@@ -1,21 +1,26 @@
 <?php
 /**
  * ShipWire
+ * 
  * Integrates ShipWire fulfillment services with Shopp
- * INSTALLATION INSTRUCTIONS: Upload ShipWire.php to 
- * your Shopp install under: .../wp-content/plugins/shopp/shipping/
+ * 
+ * INSTALLATION INSTRUCTIONS
+ * Upload ShipWire.php to your Shopp install under:
+ * ./wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.1
  * @copyright Ingenesis Limited, 9 December, 2009
  * @package shopp
+ * @since 1.1 dev
+ * @subpackage ShipWire
  * 
  * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
 
-class ShipWire {
+class ShipWire extends ShippingFramework implements ShippingModule {
 	var $url = 'https://www.shipwire.com/exec/';
 	var $apis = array(
 		"OrderListXML" => "FulfillmentServices.php",
@@ -34,20 +39,15 @@ class ShipWire {
 	var $trackcycle = array();
 	var $services = array();
 	
-	function ShipWire () {
-		global $Shopp;
-		$this->settings = $Shopp->Settings->get('ShipWire');
-		if (!isset($this->settings['email'])) $this->settings['email'] = '';
-		if (!isset($this->settings['password'])) $this->settings['password'] = '';
+	function __construct () {
+		parent::__construct();
 		
-		$base = $Shopp->Settings->get('base_operations');
-		$storeunits = $Shopp->Settings->get('weight_unit');
-		$this->settings['country'] = $base['country'];
-
+		$this->setup('email','password','trackcycle');
+		
 		$units = array("imperial" => "LBS","metric"=>"KGS");
-		$this->settings['units'] = $units[$base['units']];
-		if ($storeunits == 'oz') $this->conversion = 0.0625;
-		if ($storeunits == 'g') $this->conversion = 0.001;
+		$this->settings['units'] = $units[$this->base['units']];
+		if ($this->units == 'oz') $this->conversion = 0.0625;
+		if ($this->units == 'g') $this->conversion = 0.001;
 
 		$this->services = array(
 			'OrderListXML' => __('Order Fulfillment','Shopp'),
@@ -62,11 +62,13 @@ class ShipWire {
 			'hourly' => __('Every Hour','Shopp')
 		);
 		
+		if (isset($this->rates[0])) $this->rate = $this->rates[0];
+		
 		add_action('init', array(&$this, 'ajax'),9);
 		add_action('shipping_service_settings',array(&$this,'settings'));
 		add_action('shopp_order_success',array(&$this,'order'));
 
-		if ($this->settings['services']) {
+		if (isset($this->settings['services'])) {
 			if (in_array('InventoryUpdateXML',$this->settings['services']))
 				add_filter('shopp_cartitem_stock',array(&$this,'sync'));
 
@@ -75,10 +77,9 @@ class ShipWire {
 		}
 
 	}
-	
-	function methods (&$ShipCalc) {
-		$ShipCalc->methods[get_class($this)] = __("ShipWire Service","Shopp");
 		
+	function methods () {
+		return array(__("ShipWire Service","Shopp"));
 	}
 		
 	function ui () {
@@ -172,14 +173,22 @@ class ShipWire {
 		<?php		
 	}
 	
-	function calculate (&$Cart,$fees,$rate,$column) {
-		if (empty($Cart->data->Order->Shipping->postcode)) return false;
-		$ShipCosts = &$Cart->data->ShipCosts;
-		$weight = 0;
-		foreach($Cart->shipped as $Item) $weight += (($Item->weight*$this->conversion) * $Item->quantity);
-
-		$this->request = $this->build($Cart->session, $rate['name'], $weight, 
-			$Cart->data->Order->Shipping->postcode, $Cart->data->Order->Shipping->country);
+	function init () {
+		$this->weight = 0;
+	}
+	
+	function calcitem ($id,$Item) {
+ 		$this->weight += ($Item->weight * $this->conversion) * $Item->quantity;
+	}
+	
+	function calculate ($options,$Order) {
+		if (empty($Order->Shipping->postcode)) {
+			new ShoppError(__('A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout.','Shopp','shipwire_postcode_required',SHOPP_ERR));
+			return $options;
+		}
+		
+		$this->request = $this->build(session_id(), $$this->rate['name'], 
+			$Order->Shipping->postcode, $Order->Shipping->country);
 		
 		$this->Response = $this->send();
 		if (!$this->Response) return false;
@@ -194,25 +203,25 @@ class ShipWire {
 		if (!is_array($Quotes)) return false;
 		foreach ($Quotes as $Quote) {
 			$service = $Quote['CHILDREN']['Service']['CONTENT'];
-			$cost = $Quote['CHILDREN']['Cost']['CONTENT'];
-			if(floatval($cost) == 0) continue;
+			$amount = $Quote['CHILDREN']['Cost']['CONTENT'];
+			if(floatval($amount) == 0) continue;
 			$DeliveryEstimate = false;
 			$delivery = $Quote['CHILDREN']['DeliveryEstimate']['CHILDREN'];
 			$MinDelivery = $delivery['Minimum']['CONTENT'].substr($delivery['Minimum']['ATTRS']['units'],0,1);
 			$MaxDelivery = $delivery['Maximum']['CONTENT'].substr($delivery['Maximum']['ATTRS']['units'],0,1);
 			$DeliveryEstimate = "$MinDelivery-$MaxDelivery";
 			if (empty($DeliveryEstimate)) $DeliveryEstimate = "1d-5d";
-			$rate['cost'] = $cost+$fees;
-			$ShipCosts[$service] = $rate;
-			$ShipCosts[$service]['name'] = $service;
-			$ShipCosts[$service]['delivery'] = $DeliveryEstimate;
-			if (!$estimate || $rate['cost'] < $estimate['cost']) $estimate = &$ShipCosts[$service];
+			$rate = array();
+			$rate['name'] = $service;
+			$rate['amount'] = $amount;
+			$rate['delivery'] = $DeliveryEstimate;
+			$options[$rate['name']] = new ShippingOption($rate);
 		}
 		
-		return $estimate;
+		return $options;
 	}
 	
-	function build ($cart,$description,$weight,$postcode,$country) {
+	function build ($cart,$description,$postcode,$country) {
 		$this->type = "RateRequestXML";
 		
 		$_ = array('<?xml version="1.0" encoding="utf-8"?>');
@@ -241,8 +250,10 @@ class ShipWire {
 		return $this->type.'='.urlencode(join("\n",$_));
 	}  
 	
-	function verifyauth () {         
-		$this->request = $this->build('1','Authentication test',1,'10012','US');
+	function verify () {         
+		if (!$this->activated()) return;
+		$this->weight = 1;
+		$this->request = $this->build('1','Authentication test','10012','US');
 		$Response = $this->send();
 		if ($Response->getElementContent('Status') == "Error") new ShoppError($Response->getElementContent('ErrorMessage'),'shipwire_verify_auth',SHOPP_ADDON_ERR);
 	}   
@@ -470,7 +481,7 @@ class ShipWire {
 	
 	function ajax () {
 		if ((!is_user_logged_in() || !current_user_can('manage_options'))) return;
-		if ($_GET['action'] != 'wp_ajax_shopp_shipwire_sync') return;
+		if (empty($_GET['action']) || $_GET['action'] != 'wp_ajax_shopp_shipwire_sync') return;
 		
 		$Updates = $this->sync();
 

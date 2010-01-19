@@ -91,7 +91,7 @@ class Item {
 
 		if (!empty($Price->download)) $this->download = $Price->download;
 		if ($Price->type == "Shipped") {
-			$this->shipping = true;
+			$this->shipped = true;
 			if ($Price->shipping == "on") {
 				$this->weight = $Price->weight;
 				$this->shipfee = $Price->shipfee;
@@ -297,6 +297,8 @@ class Item {
 			case "optionlabel": $result = $this->optionlabel; break;
 			case "options":
 				$class = "";
+				if (!isset($options['before'])) $options['before'] = '';
+				if (!isset($options['after'])) $options['after'] = '';
 				if (isset($options['show']) && 
 					strtolower($options['show']) == "selected") 
 					return (!empty($this->optionlabel))?

@@ -18,6 +18,7 @@
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
+ * @subpackage storefront
  **/
 class Storefront extends FlowController {
 
@@ -432,7 +433,6 @@ class Storefront extends FlowController {
 
 		if (empty($_REQUEST['cart'])) return true;
 		
-		error_log('Storefront::cart()');
 		do_action('shopp_cart_request');
 		
 		// if ($_REQUEST['cart']) $Shopp->Order->Cart->request();

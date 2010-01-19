@@ -284,7 +284,7 @@ class Catalog extends DatabaseObject {
 							$string = substr($string,0,-5); // Remove the previous </li>
 							$active = '';
 
-							if (isset($Shopp->Category) && !empty($parent->slug)
+							if (isset($Shopp->Category->uri) && !empty($parent->slug)
 									&& preg_match('/(^|\/)'.$parent->path.'(\/|$)/',$Shopp->Category->uri)) {
 								$active = ' active';
 							}
@@ -309,7 +309,7 @@ class Catalog extends DatabaseObject {
 						if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
 					
 						$current = '';
-						if (isset($Shopp->Category) && $Shopp->Category->slug == $category->slug) 
+						if (isset($Shopp->Category->slug) && $Shopp->Category->slug == $category->slug) 
 							$current = ' class="current"';
 						
 						$listing = '';

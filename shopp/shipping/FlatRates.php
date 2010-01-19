@@ -1,41 +1,58 @@
 <?php
 /**
- * FlatRates
+ * Flat Rates
+ * 
  * Provides flat rate shipping calculations
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.1
  * @copyright Ingenesis Limited, 27 April, 2008
  * @package shopp
+ * @since 1.1 dev
+ * @subpackage FlatRates
  * 
  * $Id$
  **/
 
-class FlatRates {
+class FlatRates extends ShippingFramework implements ShippingModule {
 
-	function FlatRates () {
+	function methods () {
+		return array('order' => __("Flat Rate on order","Shopp"),
+					 'item' => __("Flat Rate per item","Shopp"));
 	}
 	
-	function methods (&$ShipCalc) {
-		$ShipCalc->methods[get_class($this).'::order'] = __("Flat Rate on order","Shopp");
-		$ShipCalc->methods[get_class($this).'::item'] = __("Flat Rate per item","Shopp");
+	function init () {
+		$rate['items'] = array();
 	}
 	
-	function calculate (&$Cart,$fees,$rate,$column) {
-		$ShipCosts = &$Cart->data->ShipCosts;
-		list($ShipCalcClass,$process) = explode("::",$rate['method']);
-		switch($process) {
-			case "item":
-				$shipping = 0;
-				foreach($Cart->shipped as $Item)
- 					$shipping += $Item->quantity * $rate[$column][0];
-				$rate['cost'] = $shipping+$fees;
-				break;
-			default:
-				$rate['cost'] = $rate[$column][0]+$fees;
+	function calculate ($options,$Order) {
+		$column = $this->ratecolumn($rate);
+		foreach ($this->rates as $rate) {
+			list($module,$method) = explode("::",$rate['method']);
+			
+			if ($method == 'item')
+				$rate['amount'] = array_sum($rate['items']);
+			
+			if ($method == 'order') {
+				$rate['amount'] = $rate[$column][0];
+			}
+			
+			if (isset($rate['name']) && isset($rate['amount']))
+				$options[$rate['name']] = new ShippingOption($rate);
+			
 		}
-		$ShipCosts[$rate['name']] = $rate;
-		return $rate;
+
+		return $options;
+	}
+	
+	function calcitem ($id,$Item) {
+		foreach ($this->rates as &$rate) {
+			list($module,$method) = explode("::",$rate['method']);
+			if ($method != 'item') continue; // Only work on item shipping methods
+			$column = $this->ratecolumn($rate);
+			if (!isset($rate[$column][0])) continue;
+			$rate['items'][$id] = $Item->quantity * $rate[$column][0];
+		}
 	}
 	
 	function ui () {
@@ -63,7 +80,7 @@ var FlatRates = function (methodid,table,rates) {
 		if (!isNaN(key)) key = area;
 		if (rates && rates[key] && rates[key][0]) var value = rates[key][0];
 		else value = 0;
-		$('<input name="settings[shipping_rates]['+methodid+']['+key+'][]" id="'+area+'['+methodid+']" class="selectall right" size="7" tabindex="'+(methodid+1)+'04" />').change(function() {
+		$('<input type="text" name="settings[shipping_rates]['+methodid+']['+key+'][]" id="'+area+'['+methodid+']" class="selectall right" size="7" tabindex="'+(methodid+1)+'04" />').change(function() {
 			this.value = asMoney(this.value);
 		}).val(value).appendTo(inputCell).change();
 	});
@@ -71,14 +88,14 @@ var FlatRates = function (methodid,table,rates) {
 	var inputCell = $('<td/>').appendTo(row);
 	if (rates && rates[region] && rates[region][0]) value = rates[region][0];
 	else value = 0;
-	$('<input name="settings[shipping_rates]['+methodid+']['+region+'][]"  id="'+region+'['+methodid+']" class="selectall right" size="7" tabindex="'+(methodid+1)+'05" />').change(function() {
+	$('<input type="text" name="settings[shipping_rates]['+methodid+']['+region+'][]"  id="'+region+'['+methodid+']" class="selectall right" size="7" tabindex="'+(methodid+1)+'05" />').change(function() {
 		this.value = asMoney(this.value);
 	}).val(value).appendTo(inputCell).change();
 	
 	var inputCell = $('<td/>').appendTo(row);
 	if (rates && rates['Worldwide'] && rates['Worldwide'][0]) value = rates['Worldwide'][0];
 	else value = 0;
-	intlInput = $('<input name="settings[shipping_rates]['+methodid+'][Worldwide][]" id="worldwide['+methodid+']" class="selectall right" size="7" tabindex="'+(methodid+1)+'06" />').change(function() {
+	intlInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][Worldwide][]" id="worldwide['+methodid+']" class="selectall right" size="7" tabindex="'+(methodid+1)+'06" />').change(function() {
 		this.value = asMoney(this.value);
 	}).val(value).appendTo(inputCell).change();	
 	
@@ -87,12 +104,12 @@ var FlatRates = function (methodid,table,rates) {
 	quickSelects();
 }
 
-methodHandlers.register('<?php echo get_class($this); ?>::order',FlatRates);
-methodHandlers.register('<?php echo get_class($this); ?>::item',FlatRates);
+methodHandlers.register('<?php echo $this->module; ?>::order',FlatRates);
+methodHandlers.register('<?php echo $this->module; ?>::item',FlatRates);
 
 		<?php		
 	}
 
-} // end flatrates class
+} // END class FlatRates
 
 ?>
