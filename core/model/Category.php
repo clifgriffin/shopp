@@ -232,7 +232,7 @@ class Category extends DatabaseObject {
 				// Use HAVING clause for filtering by pricing information 
 				// because of data aggregation
 				if ($facet == "Price") { 
-					$loading['having'] .= (empty($loading['having'])?'HAVING ':' AND ').$match;
+					$loading['having'] = (empty($loading['having'])?'HAVING ':$loading['having'].' AND ').$match;
 					continue;
 				}
 				

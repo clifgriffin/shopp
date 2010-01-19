@@ -1,12 +1,14 @@
 <?php
 /**
- * Error class
- * Error message handler class
+ * Error.php
+ * Error management system for Shopp
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.1
  * @copyright Ingenesis Limited, 28 March, 2008
+ * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
+ * @subpackage errors
  **/
 
 define('SHOPP_ERR',1);
@@ -24,11 +26,31 @@ define('SHOPP_DEBUG_ERR',2048);
 if (!defined('SHOPP_ERROR_REPORTING') && WP_DEBUG) define('SHOPP_ERROR_REPORTING',SHOPP_DEBUG_ERR);
 if (!defined('SHOPP_ERROR_REPORTING')) define('SHOPP_ERROR_REPORTING',SHOPP_ALL_ERR);
 
+/**
+ * ShoppErrors class
+ * 
+ * The error message management class that allows other 
+ * systems to subscribe to notifications when errors are
+ * triggered.
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * @package shopp
+ * @subpackage errors
+ **/
 class ShoppErrors {
 	
-	var $errors = array();
-	var $notifications;
+	var $errors = array();	// Error message registry
+	var $notifications;		// Notification subscription registry
 	
+	/**
+	 * Setup error system and PHP error capture
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function __construct () {
 		$this->notifications = new CallbackSubscription();
 
@@ -39,12 +61,30 @@ class ShoppErrors {
 			set_error_handler(array($this,'phperror'),$types);
 	}
 	
+	/**
+	 * Adds a ShoppError to the registry
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param ShoppError $ShoppError The ShoppError object to add
+	 * @return void
+	 **/
 	function add ($ShoppError) {
 		if (isset($ShoppError->code)) $this->errors[$ShoppError->code] = $ShoppError;
 		else $this->errors[] = $ShoppError;
 		$this->notifications->send($ShoppError);
 	}
 	
+	/**
+	 * Gets all errors in a range up to a specified error level
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $level The maximum error level
+	 * @return array A list of errors
+	 **/
 	function get ($level=SHOPP_DEBUG_ERR) {
 		$errors = array();
 		foreach ($this->errors as &$error)
@@ -52,6 +92,15 @@ class ShoppErrors {
 		return $errors;
 	}
 	
+	/**
+	 * Gets all errors of a specific error level
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $level The level of errors to retrieve
+	 * @return array A list of errors
+	 **/
 	function level ($level=SHOPP_ALL_ERR) {
 		$errors = array();
 		foreach ($this->errors as &$error)
@@ -59,11 +108,29 @@ class ShoppErrors {
 		return $errors;
 	}
 	
+	/**
+	 * Gets an error message with a specific error code
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $code The name of the error code
+	 * @return ShoppError The error object
+	 **/
 	function code ($code) {
 		if (!empty($code) && isset($this->errors[$code])) 
 			return $this->errors[$code];
 	}
 	
+	/**
+	 * Gets all errors from a specified source (object)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $source The source object of errors
+	 * @return array A list of errors
+	 **/
 	function source ($source) {
 		if (empty($source)) return array();
 		$errors = array();
@@ -72,6 +139,15 @@ class ShoppErrors {
 		return $errors;
 	}
 	
+	/**
+	 * Determines if any errors exist up to the specified error level
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param int $level The maximum level to look for errors in
+	 * @return void Description...
+	 **/
 	function exist ($level=SHOPP_DEBUG_ERR) {
 		$errors = array();
 		foreach ($this->errors as &$error)
@@ -79,21 +155,63 @@ class ShoppErrors {
 		return (count($errors) > 0);
 	}
 	
+	/**
+	 * Removes an error from the registry
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param ShoppError $error The ShoppError object to remove
+	 * @return boolean True when removed, false if removal failed
+	 **/
 	function remove ($error) {
+		if (!isset($this->errors[$error->code])) return false;
 		unset($this->errors[$error->code]);
+		return true;
 	}
 	
+	/**
+	 * Removes all errors from the error registry
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function reset () {
 		$this->errors = array();
 	}
 	
+	/**
+	 * Reports PHP generated errors to the Shopp error system
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param int $number The error type
+	 * @param string $message The PHP error message
+	 * @param string $file The file the error occurred in
+	 * @param int $line The line number the error occurred at in the file
+	 * @return void
+	 **/
 	function phperror ($number, $message, $file, $line) {
 		if (strpos($file,SHOPP_PATH) !== false)
 			new ShoppError($message,'php_error',SHOPP_PHP_ERR,
 				array('file'=>$file,'line'=>$line,'phperror'=>$number));
 	}
 		
-	/* Provides functionality for shopp('error') tags */
+	/**
+	 * Provides functionality for the shopp('error') tags
+	 * 
+	 * Support for triggering errors through the Template API.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $property The error property for the tag
+	 * @param array $options Tag options
+	 * @return void
+	 **/
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		if (empty($options)) return false;
@@ -112,6 +230,16 @@ class ShoppErrors {
 	
 }
 
+/**
+ * ShoppError class
+ * 
+ * Triggers an error that is handled by the Shopp error system.
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * @package shopp
+ * @subpackage errors
+ **/
 class ShoppError {
 
 	var $code;
@@ -135,6 +263,14 @@ class ShoppError {
 		E_RECOVERABLE_ERROR  => 'RECOVERABLE ERROR'
 	);
     
+	/**
+	 * Creates and registers a new error
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function ShoppError($message='',$code='',$level=SHOPP_ERR,$data='') {
 		if ($level > SHOPP_ERROR_REPORTING) return;
 		if (empty($message)) return;
@@ -163,6 +299,17 @@ class ShoppError {
 		if (!empty($Errors)) $Errors->add($this);
 	}
 	
+	/**
+	 * Displays messages registered to a specific error code
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param boolean $remove (optional) (Default true) Removes the error after retrieving it
+	 * @param boolean $source Prefix the error with the source object where the error was triggered
+	 * @param string $delimiter The delimeter used to join multiple error messages
+	 * @return string A collection of concatenated error messages
+	 **/
 	function message ($remove=true,$source=false,$delimiter="\n") {
 		$string = "";
 		// Show source if debug is on, or not a general error message
@@ -178,6 +325,17 @@ class ShoppError {
 				
 }
 
+/**
+ * ShoppErrorLogging class
+ *
+ * Subscribes to error notifications in order to log any errors 
+ * generated.
+ * 
+ * @author Jonathan Davis
+ * @since 1.0
+ * @package shopp
+ * @subpackage errors
+ **/
 class ShoppErrorLogging {
 	var $dir;
 	var $file = "shopp_errors.log";
@@ -185,10 +343,18 @@ class ShoppErrorLogging {
 	var $log;
 	var $loglevel = 0;
 	
-	function ShoppErrorLogging ($loglevel=0) {
+	/**
+	 * Setup for error logging
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
+	function __construct ($loglevel=0) {
 		$this->loglevel = $loglevel;
 		$this->dir = defined('SHOPP_TEMP_PATH') ? SHOPP_TEMP_PATH : sys_get_temp_dir();
-		$this->dir = sanitize_path($this->dir); //Windows path sanitiation
+		$this->dir = sanitize_path($this->dir); // Windows path sanitiation
 		$sitename = sanitize_title_with_dashes(get_bloginfo('sitename'));
 		$this->logfile = trailingslashit($this->dir).$sitename."-".$this->file;
 
@@ -196,6 +362,15 @@ class ShoppErrorLogging {
 		$Errors->notifications->subscribe($this,'log');
 	}
 	
+	/**
+	 * Logs an error to the error log file
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param ShoppError $error The error object to log
+	 * @return void
+	 **/
 	function log (&$error) {
 		if ($error->level > $this->loglevel) return;
 		$debug = "";
@@ -207,12 +382,29 @@ class ShoppErrorLogging {
 		}
 	}
 	
+	/**
+	 * Empties the error log file
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function reset () {
 		$this->log = fopen($this->logfile,'w');
 		fwrite($this->log,'');
 		fclose($this->log);
 	}
 	
+	/**
+	 * Gets the end of the log file
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param int $lines The number of lines to get from the end of the log file
+	 * @return array List of log file lines
+	 **/
 	function tail($lines=100) {
 		if (!file_exists($this->logfile)) return;
 		$f = fopen($this->logfile, "r");
@@ -238,12 +430,33 @@ class ShoppErrorLogging {
 
 }
 
+/**
+ * ShoppErrorNotification class
+ * 
+ * Sends error notification emails when errors are triggered 
+ * to specified recipients
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * @package shopp
+ * @subpackage errors
+ **/
 class ShoppErrorNotification {
 	
-	var $recipients;
-	var $types=0;
+	var $recipients;	// Recipient addresses to send to
+	var $types=0;		// Error types to send
 	
-	function ShoppErrorNotification ($recipients='',$types=array()) {
+	/**
+	 * Relays triggered errors to email messages
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $recipients List of email addresses
+	 * @param array $types The types of errors to report
+	 * @return void
+	 **/
+	function __construct ($recipients='',$types=array()) {
 		if (empty($recipients)) return;
 		$this->recipients = $recipients;
 		foreach ((array)$types as $type) $this->types += $type;
@@ -251,6 +464,15 @@ class ShoppErrorNotification {
 		$Errors->notifications->subscribe($this,'notify');
 	}
 	
+	/**
+	 * Generates and sends an email of an error to the recipient list
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param ShoppError $error The error object
+	 * @return void
+	 **/
 	function notify (&$error) {
 		if (!($error->level & $this->types)) return;
 		$url = parse_url(get_bloginfo('url'));
@@ -290,11 +512,28 @@ class CallbackSubscription {
 	
 }
 
+/**
+ * Helper to access the error system
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @return void Description...
+ **/
 function &ShoppErrors () {
 	global $Shopp;
 	return $Shopp->Errors;
 }
 
+/**
+ * Detects ShoppError objects
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param object $e The object to test
+ * @return boolean True if the object is a ShoppError
+ **/
 function is_shopperror ($e) {
 	return (get_class($e) == "ShoppError");
 }

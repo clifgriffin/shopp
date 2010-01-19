@@ -279,6 +279,7 @@ class Store extends AdminController {
 	 * @return
 	 **/
 	function layout () {
+		global $Shopp;
 		include(SHOPP_ADMIN_PATH."/products/ui.php");
 	}
 
@@ -342,7 +343,7 @@ class Store extends AdminController {
 		if (!$uploader) $uploader = 'flash';
 
 		$process = (!empty($Product->id)?$Product->id:'new');
-		$_POST['action'] = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->products)),$Shopp->wpadminurl."admin.php");
+		$_POST['action'] = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('products'))),$Shopp->wpadminurl."admin.php");
 		
 		include(SHOPP_ADMIN_PATH."/products/editor.php");
 

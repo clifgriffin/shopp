@@ -303,7 +303,7 @@ function gateway_path ($file) {
 }
 
 /**
- * Read the file meta data for Shopp addons
+ * Read the file docblock for Shopp addons
  *
  * @author Jonathan Davis
  * @since 1.0

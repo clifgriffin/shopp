@@ -1,19 +1,24 @@
 <?php
 /**
- * FedExRates
+ * FedEx Rates
+ * 
  * Uses FedEx Web Services to get live shipping rates based on product weight
- * INSTALLATION INSTRUCTIONS: Upload FedExRates.php and FedExRateService_v5.wsdl 
- * to your Shopp install under: .../wp-content/plugins/shopp/shipping/
+ * 
+ * INSTALLATION INSTRUCTIONS
+ * Upload FedExRates.php to your Shopp install under:
+ * ./wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0.4
+ * @version 1.1
  * @copyright Ingenesis Limited, 22 January, 2009
  * @package shopp
+ * @since 1.1 dev
+ * @subpackage FedExRates
  * 
  * $Id$
  **/
 
-class FedExRates {
+class FedExRates extends ShippingFramework implements ShippingModule {
 	var $test = false;
 	var $wsdl_url = "";
 	var $url = "https://gateway.fedex.com:443/web-services";
@@ -22,7 +27,6 @@ class FedExRates {
 	var $weight = 0;
 	var $conversion = 1;
 	var $Response = false;
-	var $requiresauth = true;
 	
 	var $services = array(
 		'FEDEX_GROUND' => 'FedEx Ground',
@@ -66,38 +70,31 @@ class FedExRates {
 		'UNKNOWN' => '30d'
 		);
 	
-	function FedExRates () {
-		global $Shopp;
+	function __construct () {
+		parent::__construct();
 
-		// $this->wsdl_url = $Shopp->uri.DIRECTORY_SEPARATOR."shipping".DIRECTORY_SEPARATOR.$this->wsdl;
-		// $this->wsdl = dirname(__FILE__).DIRECTORY_SEPARATOR.$this->wsdl;
-		$this->settings = $Shopp->Settings->get('FedExRates');
-		if (!isset($this->settings['account'])) $this->settings['account'] = '';
-		if (!isset($this->settings['meter'])) $this->settings['meter'] = '';
-		if (!isset($this->settings['postcode'])) $this->settings['postcode'] = '';
-		if (!isset($this->settings['key'])) $this->settings['key'] = '';
-		if (!isset($this->settings['password'])) $this->settings['password'] = '';
+		$this->setup('account','meter','postcode','key','password');
 		
-		$base = $Shopp->Settings->get('base_operations');
-		$this->settings['country'] = $base['country'];
-   		$storeunits = $Shopp->Settings->get('weight_unit');
-
 		$units = array("imperial" => "LB","metric"=>"KG");
-		$this->settings['units'] = $units[$base['units']];
-		if ($storeunits == 'oz') $this->conversion = 0.0625;
-		if ($storeunits == 'g') $this->conversion = 0.001;
+		$this->settings['units'] = $units[$this->base['units']];
+		if ($this->units == 'oz') $this->conversion = 0.0625;
+		if ($this->units == 'g') $this->conversion = 0.001;
+
+		if (isset($this->rates[0])) $this->rate = $this->rates[0];
 		
 		add_action('shipping_service_settings',array(&$this,'settings'));
+		add_action('shopp_verify_shipping_services',array(&$this,'verify'));
+
 		$this->wsdl_url = add_query_arg('shopp_fedex','wsdl',get_bloginfo('siteurl'));
 		$this->wsdl();
 		
 		if (defined('SHOPP_FEDEX_TESTMODE')) $this->test = SHOPP_FEDEX_TESTMODE;
 		
 	}
-	
-	function methods (&$ShipCalc) {
+		
+	function methods () {
 		if (class_exists('SoapClient') || class_exists('SOAP_Client'))
-			$ShipCalc->methods[get_class($this)] = __("FedEx Rates","Shopp");
+			return array(__("FedEx Rates","Shopp"));
 		elseif (class_exists('ShoppError'))
 			new ShoppError("The SoapClient class is not enabled for PHP. The FedEx Rates add-on cannot be used without the SoapClient class.","fedexrates_nosoap",SHOPP_ALL_ERR);
 	}
@@ -156,15 +153,23 @@ class FedExRates {
 
 		<?php		
 	}
-	
-	function calculate (&$Cart,$fees,$rate,$column) {
-		if (empty($Cart->data->Order->Shipping->postcode)) return false;
-		$ShipCosts = &$Cart->data->ShipCosts;
-		$weight = 0;
-		foreach($Cart->shipped as $Item) $weight += (($Item->weight * $this->conversion) * $Item->quantity);
 
-		$this->request = $this->build($Cart->session, $rate['name'], $weight, 
-			$Cart->data->Order->Shipping->postcode, $Cart->data->Order->Shipping->country);
+	function init () {
+		$this->weight = 0;
+	}
+	
+	function calcitem ($id,$Item) {
+ 		$this->weight += ($Item->weight * $this->conversion) * $Item->quantity;
+	}
+	
+	function calculate ($options,$Order) {
+		if (empty($Order->Shipping->postcode)) {
+			new ShoppError(__('A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout.','Shopp','fedex_postcode_required',SHOPP_ERR));
+			return $options;
+		}
+
+		$this->request = $this->build(session_id(), $this->rate['name'], 
+			$Order->Shipping->postcode, $Order->Shipping->country);
 		
 		$this->Response = $this->send();
 		if (!$this->Response) return false;
@@ -180,7 +185,7 @@ class FedExRates {
 		$RatedReply = &$this->Response->RateReplyDetails;
 		if (!is_array($RatedReply)) return false;
 		foreach ($RatedReply as $quote) {
-			if (!in_array($quote->ServiceType,$rate['services'])) continue;
+			if (!in_array($quote->ServiceType,$this->rate['services'])) continue;
 			
 			$name = $this->services[$quote->ServiceType];
 			if (is_array($quote->RatedShipmentDetails)) 
@@ -188,22 +193,21 @@ class FedExRates {
 			else $details = &$quote->RatedShipmentDetails;
 			
 			if (isset($quote->DeliveryTimestamp)) 
-				$DeliveryEstimate = $this->timestamp_delivery($quote->DeliveryTimestamp);
+				$delivery = $this->timestamp_delivery($quote->DeliveryTimestamp);
 			elseif(isset($quote->TransitTime))
-				$DeliveryEstimate = $this->deliverytimes[$quote->TransitTime];
-			else $DeliveryEstimate = '5d-7d';
+				$delivery = $this->deliverytimes[$quote->TransitTime];
+			else $delivery = '5d-7d';
 			
-			$total = $details->ShipmentRateDetail->TotalNetCharge->Amount;
+			$amount = $details->ShipmentRateDetail->TotalNetCharge->Amount;
 
-			$rate['cost'] = $total+$fees;
-			$ShipCosts[$name] = $rate;
-			$ShipCosts[$name]['name'] = $name;
-			$ShipCosts[$name]['module'] = get_class($this);
-			$ShipCosts[$name]['delivery'] = $DeliveryEstimate;
-			if (!$estimate || $rate['cost'] < $estimate['cost']) $estimate = &$ShipCosts[$name];
-
+			$rate = array();
+			$rate['name'] = $name;
+			$rate['amount'] = $amount;
+			$rate['delivery'] = $delivery;
+			$options[$rate['name']] = new ShippingOption($rate);
 		}
-		return $estimate;
+		
+		return $options;
 	}
 	
 	function timestamp_delivery ($datetime) {
@@ -212,7 +216,7 @@ class FedExRates {
 		return $days.'d';
 	}
 	
-	function build ($cart,$description,$weight,$postcode,$country) {
+	function build ($session,$description,$postcode,$country) {
 		
 		$_ = array();
 
@@ -226,7 +230,7 @@ class FedExRates {
 			'MeterNumber' => $this->settings['meter']);
 
 		$_['TransactionDetail'] = array(
-			'CustomerTransactionId' => empty($cart->session)?mktime():$cart->session);
+			'CustomerTransactionId' => empty($session)?mktime():$session);
 
 		$_['Version'] = array(
 			'ServiceId' => 'crs', 
@@ -245,7 +249,7 @@ class FedExRates {
 		$_['RequestedShipment']['Shipper'] = array(
 			'Address' => array(
 				'PostalCode' => $this->settings['postcode'],
-				'CountryCode' => $this->settings['country']));
+				'CountryCode' => $this->base['country']));
 
 		$_['RequestedShipment']['Recipient'] = array(
 			'Address' => array(
@@ -267,22 +271,23 @@ class FedExRates {
 				'SequenceNumber' => '1',
 					'Weight' => array(
 						'Units' => $this->settings['units'],
-						'Value' => number_format(($weight < 0.1)?0.1:$weight,1,'.','')));
+						'Value' => number_format(($this->weight < 0.1)?0.1:$this->weight,1,'.','')));
 		
 		return $_;
 	} 
 	
-	function verifyauth () {         
-		$this->request = $this->build('1','Authentication test',1,'10012','US');
-		$response = $this->send();       
-		if ($response->HighestSeverity == 'FAILURE' || 
-		 	$response->HighestSeverity == 'ERROR') 
+	function verify () {         
+		if (!$this->activated()) return;
+		$this->weight = 1;
+		$this->request = $this->build('1','Authentication test','10012','US');
+		$response = $this->send();
+		if (isset($response->HighestSeverity)
+			&& ($response->HighestSeverity == 'FAILURE'
+			|| $response->HighestSeverity == 'ERROR')) 
 		 	new ShoppError($response->Notifications->Message,'fedex_verify_auth',SHOPP_ADDON_ERR);
 	}   
 	
 	function send () {
-   		global $Shopp;
-
 		try {
 			if (class_exists('SoapClient')) {
 				ini_set("soap.wsdl_cache_enabled", "1");
@@ -307,9 +312,8 @@ class FedExRates {
 			new ShoppError(__("FedEx could not be reached for realtime rates.","Shopp"),'fedex_connection',SHOPP_COMM_ERR);
 			return false;
 		}
-
+		
 		return $response;
-
 	}
 	
 	// Workaround for a severe parse bug in PEAR-SOAP 0.12 beta				
@@ -3608,7 +3612,8 @@ class FedExRates {
      <s1:address location="'.($this->test?$this->test_url:$this->url).'"/>
    </port>
  </service>
-</definitions>';
+</definitions>
+';
 		header("Content-type: text/xml");
 		header("Content-length: ".strlen($contents));
 		echo $contents;

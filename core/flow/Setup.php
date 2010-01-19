@@ -51,7 +51,15 @@ class Setup extends FlowController {
 			default: 				$this->general();
 		}
 	}
-	
+
+	/**
+	 * Displays the General Settings screen and processes updates
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function general () {
 		global $Shopp;
 		if ( !current_user_can('manage_options') )
@@ -223,9 +231,17 @@ class Setup extends FlowController {
 		include(SHOPP_ADMIN_PATH."/settings/checkout.php");
 	}
 
+	/**
+	 * Renders the shipping settings screen and processes updates
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function shipping () {
 		global $Shopp;
-
+		
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 		
@@ -248,32 +264,29 @@ class Setup extends FlowController {
 			
 	 		$this->settings_save();
 			$updated = __('Shipping settings saved.','Shopp');
-			$Shopp->ShipCalcs = new ShipCalcs($Shopp->path);
-			$rates = $Shopp->Settings->get('shipping_rates');
+			
+			// Reload the currently active shipping modules
+			$active = $Shopp->Shipping->activated();
+			$Shopp->Shipping->settings();
 
 			$Errors = &ShoppErrors();
-			foreach ($rates as $rate) {
-				$process = '';
-				$ShipCalcClass = $rate['method'];
-				if (strpos($rate['method'],'::') != false)
-					list($ShipCalcClass,$process) = explode("::",$rate['method']);
-					
-				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth)
-					&& $Shopp->ShipCalcs->modules[$ShipCalcClass]->requiresauth) {
-						$Shopp->ShipCalcs->modules[$ShipCalcClass]->verifyauth();
-						if ($Errors->exist()) $autherrors = $Errors->level(SHOPP_ADDON_ERR);
-					}
-			}
+			do_action('shopp_verify_shipping_services');
 			
-			if (!empty($autherrors)) {
-				$updated = __('Shipping settings saved but there were errors: ','Shopp');
-				foreach ((array)$autherrors as $error) $updated .= '<p>'.$error->message().'</p>';
-				$Errors->reset();
+			if ($Errors->exist()) {
+				// Get all addon related errors
+				$failures = $Errors->level(SHOPP_ADDON_ERR);
+				if (!empty($failures)) {
+					$updated = __('Shipping settings saved but there were errors: ','Shopp');
+					foreach ($failures as $error)
+						$updated .= '<p>'.$error->message(true,true).'</p>';
+				}
 			}
 			
 		}
+		
+		$Shopp->Shipping->settings();
 
-		$methods = $Shopp->ShipCalcs->methods;
+		$methods = $Shopp->Shipping->methods;
 		$base = $Shopp->Settings->get('base_operations');
 		$regions = $Shopp->Settings->get('regions');
 		$region = $regions[$base['region']];

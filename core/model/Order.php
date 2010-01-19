@@ -35,8 +35,22 @@ class Order {
 	 **/
 	function __construct () {
 		$this->Cart = new Cart();
+		$this->Customer = new Customer();
+		$this->Billing = new Billing();
+		$this->Shipping = new Shipping();
+
+		$this->Shipping->destination();
 		
+		$this->listeners();
+	}
+	
+	function __wakeup () {
+		$this->listeners();
+	}
+	
+	function listeners () {
 		add_action('shopp_checkout', array(&$this,'checkout'));
+		add_action('shopp_update_destination',array(&$this->Shipping,'destination'));
 	}
 	
 	/**

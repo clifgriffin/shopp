@@ -1,16 +1,26 @@
 <?php
 /**
- * Cart class
- * Shopping session handling
+ * Cart.php
+ * 
+ * The shopping cart system
  *
  * @author Jonathan Davis
  * @version 1.1
- * @copyright Ingenesis Limited, 23 July, 2009
+ * @copyright Ingenesis Limited, January 19, 2010
+ * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
+ * @subpackage cart
  **/
 
 require("Item.php");
 
+/**
+ * 
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ **/
 class Cart {
 
 	// properties
@@ -25,6 +35,7 @@ class Cart {
 	var $Totals = false;		// Cart Totals data structure
 	
 	var $freeship = false;
+	var $showpostcode = false;	// Flag to show postcode field in shipping estimator
 	
 	// Internal properties
 	var $changed = false;		// Flag when Cart updates and needs retotaled
@@ -46,21 +57,8 @@ class Cart {
 	 * @return void
 	 **/
 	function __construct () {
-		$this->Totals = new CartTotals();
-		$this->listeners();	// Establish our command listeners
-		
-		// $this->Shipping = false;				// Cart has shipped items
-		// $this->ShippingDisabled = false;		// Shipping is disabled
-		// $this->Estimates = false;				// Order needs shipping estimates
-		// $this->Promotions = array();			// Promotions available (cache)
-		// $this->PromosApplied = array();		// Promotions applied to order
-		// $this->PromoCode = false;				// Recent promo code attempt
-		// $this->PromoCodes = array();			// Promo codes applied
-		// $this->PromoCodeResult = false;		// Result of recent promo code attempt
-		// $this->ShipCosts = array();			// Shipping method costs
-		// $this->ShippingPostcode = false;		// Shipping calcs require postcode
-		// $this->ShippingPostcodeError = false;	// Postal code invalid error
-		
+		$this->Totals = new CartTotals();	// Initialize aggregate total data
+		$this->listeners();					// Establish our command listeners
 	}
 	
 	/**
@@ -104,30 +102,19 @@ class Cart {
 		
 		if (isset($_REQUEST['shopping'])) shopp_redirect($Shopp->link('catalog'));
 		
-		// if (isset($_REQUEST['shipping'])) {
-		// 	$countries = $Shopp->Settings->get('countries');
-		// 	$regions = $Shopp->Settings->get('regions');
-		// 	$_REQUEST['shipping']['region'] = $regions[$countries[$_REQUEST['shipping']['country']]['region']];
-		// 	if (!empty($_REQUEST['shipping']['postcode'])) // Protect input field from XSS
-		// 		$_REQUEST['shipping']['postcode'] = attribute_escape($_REQUEST['shipping']['postcode']);
-		// 	unset($countries,$regions);
-		// 	$this->shipzone($_REQUEST['shipping']);
-		// } else if (!isset($this->Order->Shipping->country)) {
-		// 	$base = $Shopp->Settings->get('base_operations');
-		// 	$_REQUEST['shipping']['country'] = $base['country'];
-		// 	$this->shipzone($_REQUEST['shipping']);
-		// }
+		if (isset($_REQUEST['shipping'])) {
+			if (!empty($_REQUEST['shipping']['postcode'])) // Protect input field from XSS
+				$_REQUEST['shipping']['postcode'] = esc_attr($_REQUEST['shipping']['postcode']);
+				
+			do_action_ref_array('shopp_update_destination',array($_REQUEST['shipping']));
+			if (!empty($_REQUEST['shipping']['country']) || !empty($_REQUEST['shipping']['postcode']))
+				$this->changed(true);
+		}
 
 		if (!empty($_REQUEST['promocode'])) {
 			$this->promocode = esc_attr($_REQUEST['promocode']);
 			$this->changed(true);
 		}
-		// 	$this->PromoCodeResult = "";
-		// 	if (!in_array($_REQUEST['promocode'],$this->PromoCodes)) {
-		// 		$this->PromoCode = attribute_escape($_REQUEST['promocode']); // Protect from XSS
-		// 		$this->changed(true);
-		// 	} else $this->PromoCodeResult = __("That code has already been applied.","Shopp");
-		// }
 		
 		if (!isset($_REQUEST['cart'])) $_REQUEST['cart'] = false;
 		if (isset($_REQUEST['remove'])) $_REQUEST['cart'] = "remove";
@@ -208,15 +195,18 @@ class Cart {
 					}
 				}
 		}
-		// echo BR.BR."<pre>";
-		// print_r($this);
-		// echo BR.BR."</pre>";
+
 		do_action('shopp_cart_updated',$this);
 	}
 
 	/**
-	 * ajax()
-	 * Handles AJAX-based cart request responses */
+	 * Responds to AJAX-based cart requests
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return string JSON response
+	 **/
 	function ajax () { 
 		global $Shopp;
 		
@@ -228,13 +218,13 @@ class Cart {
 		$AjaxCart->url = $Shopp->link('cart');
 		$AjaxCart->Totals = clone($this->Totals);
 		$AjaxCart->Contents = array();
-		foreach($this->contents as $item) {
-			$cartitem = clone($item);
-			unset($cartitem->options);
-			$AjaxCart->Contents[] = $cartitem;
+		foreach($this->contents as $Item) {
+			$CartItem = clone($Item);
+			unset($CartItem->options);
+			$AjaxCart->Contents[] = $CartItem;
 		}
 		if (isset($this->added))
-			$AjaxCart->Item = clone($this->contents[$this->added]);
+			$AjaxCart->Item = clone($this->Added);
 		else $AjaxCart->Item = new Item();
 		unset($AjaxCart->Item->options);
 		
@@ -402,259 +392,7 @@ class Cart {
 		if ($changed) $this->changed = true;
 		else return $this->changed;
 	}
-
-	/**
-	 * shipping()
-	 * Calulates shipping costs based on the contents
-	 * of the cart and the currently available shipping
-	 * location set with shipzone() */
-	function shipping () {
-		if (!$this->Order->Shipping) return false;
-		if ($this->freeshipping) return 0;
-         
-		global $Shopp;
-        
-		$ShipCosts = &$this->ShipCosts;
-		$Shipping = $this->Order->Shipping;
-		$base = $Shopp->Settings->get('base_operations');
-		$handling = $Shopp->Settings->get('order_shipfee');
-		$methods = $Shopp->Settings->get('shipping_rates');
-		if (!is_array($methods)) return 0;
-
-		if (empty($Shipping->country)) $Shipping->country = $base['country'];
-		
-		if (!$this->retotal) {
-			$this->ShipCosts = array();
-			$fees = 0;
-			
-			// Calculate any product-specific shipping fee markups
-			$shipflag = false;
-			foreach ($this->contents as $Item) {
-				if ($Item->shipping) $shipflag = true;
-				if ($Item->shipfee > 0) $fees += ($Item->quantity * $Item->shipfee);
-			}
-			if ($shipflag) $this->Shipping = true;
-			else {
-				$this->Shipping = false;
-				return 0;
-			}
-		
-			// Add order handling fee
-			if ($handling > 0) $fees += $handling;
-
-			$estimate = false;
-			foreach ($methods as $id => $option) {
-				if (isset($option['postcode-required'])) {
-					$this->ShippingPostcode = true;
-					if (empty($Shipping->postcode)) {
-						$this->ShippingPostcodeError = true;
-						new ShoppError(__('A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout.','Shopp','cart_required_postcode',SHOPP_ERR));
-						return null;
-					} else $this->ShippingPostcodeError = false;
-				} else {
-					$this->ShippingPostcode = false;
-					$this->ShippingPostcodeError = false;	
-				}
-			
-				if ($Shipping->country == $base['country']) {
-					// Use country/domestic region
-					if (isset($option[$base['country']]))
-						$column = $base['country'];  // Use the country rate
-					else $column = $Shipping->postarea(); // Try to get domestic regional rate
-				} else if (isset($option[$Shipping->region])) {
-					// Global region rate
-					$column = $Shipping->region;
-				} else {
-					// Worldwide shipping rate, last rate entry
-					end($option);
-					$column = key($option);
-				}
-
-				list($ShipCalcClass,$process) = explode("::",$option['method']);
-				if (isset($Shopp->ShipCalcs->modules[$ShipCalcClass]))
-					$estimated = apply_filters('shopp_shipping_estimate', $Shopp->ShipCalcs->modules[$ShipCalcClass]->calculate(
-						$this, $fees, $option, $column));
-
-				if ($estimated === false) continue; // Skip the cost estimates
-				if (!$estimate || $estimated['cost'] < $estimate['cost'])
-					$estimate = $estimated; // Get lowest estimate
-
-			} // end foreach ($methods)         
-
-        } // end if (!$this->retotal)
-
-		if (!isset($ShipCosts[$this->Order->Shipping->method]))
-			$this->Order->Shipping->method = false;
-		
-		if (!empty($this->Order->Shipping->method))
-			return $ShipCosts[$this->Order->Shipping->method]['cost'];
-		
-		$this->Order->Shipping->method = $estimate['name'];
-		
-		return $estimate['cost'];
-	}
 	
-	/**
-	 * promotions()
-	 * Matches, calculates and applies promotion discounts */
-	function promotions () {
-		global $Shopp;
-		$db = DB::get();
-		$limit = $Shopp->Settings->get('promo_limit');
-
-		// Load promotions if they've not yet been loaded
-		if (empty($this->Promotions)) {
-			$promo_table = DatabaseObject::tablename(Promotion::$table);
-			// Add date-based lookup too
-			$this->Promotions = $db->query("SELECT * FROM $promo_table WHERE scope='Order' AND ((status='enabled' AND UNIX_TIMESTAMP(starts) > 0 AND UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP() AND UNIX_TIMESTAMP(ends) > UNIX_TIMESTAMP()) OR status='enabled')",AS_ARRAY);
-		}
-
-		$PromoCodeFound = false; $PromoCodeExists = false; $PromoLimit = false;
-		$this->PromosApplied = array();
-		foreach ($this->Promotions as &$promo) {
-			if (!is_array($promo->rules))
-				$promo->rules = unserialize($promo->rules);
-			
-			// Add quantity rule automatically for buy x get y promos
-			if ($promo->type == "Buy X Get Y Free") {
-				$promo->search = "all";
-				if (isset($promo->rules[count($promo->rules)-1]) && 
-					$promo->rules[count($promo->rules)-1]['property'] != "Item quantity") {
-					$qtyrule = array(
-						'property' => 'Item quantity',
-						'logic' => "Is greater than",
-						'value' => $promo->buyqty);
-					$promo->rules[] = $qtyrule;
-				}
-			}
-			
-			$items = array();
-			
-			$match = false;
-			$rulematches = 0;
-			foreach ($promo->rules as $rule) {
-				$rulematch = false;
-				switch($rule['property']) {
-					case "Item name": 
-						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule($Item->name,$rule['logic'],$rule['value'], $rule['property'])) {
-								$items[$id] = &$Item;
-								$rulematch = true;
-							}
-						}
-						break;
-					case "Item quantity":
-						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule((int)$Item->quantity,$rule['logic'],$rule['value'], $rule['property'])) {
-								$items[$id] = &$Item;
-								$rulematch = true;
-							}
-						}
-						break;
-					case "Item amount":
-						foreach ($this->contents as $id => &$Item) {
-							if (Promotion::match_rule($Item->total,$rule['logic'],$rule['value'], $rule['property'])) {
-								$items[$id] = &$Item;
-								$rulematch = true;
-							}
-						}
-						break;
-					case "Total quantity":
-						if (Promotion::match_rule((int)$this->Totals->quantity,$rule['logic'],$rule['value'], $rule['property'])) {
-							$rulematch = true;
-						}
-						break;
-					case "Shipping amount": 
-						if (Promotion::match_rule($this->Totals->shipping,$rule['logic'],$rule['value'], $rule['property'])) {
-							$rulematch = true;
-						}
-						break;
-					case "Subtotal amount": 
-						if (Promotion::match_rule($this->Totals->subtotal,$rule['logic'],$rule['value'], $rule['property'])) {
-							$rulematch = true;
-						}
-						break;
-					case "Promo code":
-						// Match previously applied codes
-						if (is_array($this->PromoCodes) && in_array($rule['value'],$this->PromoCodes)) {							
-							$rulematch = true;
-							break;
-						}
-						// Match a new code
-						if (!empty($this->PromoCode)) {
-							if (Promotion::match_rule($this->PromoCode,$rule['logic'],$rule['value'], $rule['property'])) {
- 								if (is_array($this->PromoCodes) && 
-									!in_array($this->PromoCode, $this->PromoCodes)) {
-									$this->PromoCodes[] = $rule['value'];
-									$PromoCodeFound = $rule['value'];
-								} else $PromoCodeExists = true;
-								$this->PromoCode = false;
-								$rulematch = true;
-							}
-						}
-						break;
-				}
-
-				if ($rulematch && $promo->search == "all") $rulematches++;
-				if ($rulematch && $promo->search == "any") {
-					$match = true;
-					break; // One matched, no need to match any more
-				}
-			} // end foreach ($promo->rules)
-
-			if ($promo->search == "all" && $rulematches == count($promo->rules))
-				$match = true;
-
-			// Everything matches up, apply the promotion
-			if ($match && !$PromoLimit) {
-				// echo "Matched $promo->name".BR;
-				if (!empty($items)) {
-					$freeshipping = 0;
-					// Apply promo calculation to specific cart items
-					foreach ($items as $item) {
-						switch ($promo->type) {
-							case "Percentage Off": $this->Totals->discount += $item->total*($promo->discount/100); break;
-							case "Amount Off": $this->Totals->discount += $promo->discount; break;
-							case "Buy X Get Y Free": $this->Totals->discount += floor($item->quantity / ($promo->buyqty + $promo->getqty))*($item->unitprice); break;
-							case "Free Shipping": $freeshipping++; break;
-						}
-					}
-					if ($freeshipping == count($this->contents) && $promo->scope == "Order") $this->freeshipping = true;
-					else $this->freeshipping = false;
-				} else {
-					// Apply promo calculation to entire order
-					switch ($promo->type) {
-						case "Percentage Off": $this->Totals->discount += $this->Totals->subtotal*($promo->discount/100); break;
-						case "Amount Off": $this->Totals->discount += $promo->discount; break;
-						case "Free Shipping": $this->freeshipping = true; break;
-					}
-				}
-				$this->PromosApplied[] = $promo;
-				if ($limit > 0 && count($this->PromosApplied)+1 > $limit) {
-					$PromoLimit = true;
-					break;
-				}
-			}
-			
-			// if ($match && $promo->exclusive == "on") break;
-			
-		} // end foreach ($Promotions)
-
-		// Promo code found, but ran into promotion limits
-		if (!empty($this->PromoCode) && $PromoLimit) { 
-			$this->PromoCodeResult = __("No additional codes can be applied.","Shopp");
-			$this->PromoCodes = array_diff($this->PromoCodes,array($PromoCodeFound));
-			$this->PromoCode = false;
-		}
-
-		// Promo code not found
-		if (!empty($this->PromoCode) && !$PromoCodeFound && !$PromoCodeExists) {
-			$this->PromoCodeResult = $this->PromoCode.' '.__("is not a valid code.","Shopp");
-			$this->PromoCodes = array_diff($this->PromoCodes,array($this->PromoCode));
-			$this->PromoCode = false;
-		}
-	}
-
 	/**
 	 * taxrate()
 	 * Determines the taxrate based on the currently
@@ -696,10 +434,6 @@ class Cart {
 	}
 	
 	/**
-	 * totals()
-	 * Calculates subtotal, shipping, tax and 
-	 * order total amounts */
-	/**
 	 * Calculates aggregated total amounts
 	 *
 	 * Iterates over the cart items in the contents of the cart
@@ -714,14 +448,15 @@ class Cart {
 	function totals () {
 		global $Shopp;
 		if (!$this->retotal && !$this->changed()) return true;
-		
-		$Totals = new CartTotals();
+
+		$this->Totals = new CartTotals();
+		$Totals = &$this->Totals;
 		
 		// Free shipping until costs are assessed
-		$this->freeship = true;	
+		$this->freeshipping = true;	
 
 		// If no items are shipped, free shipping is disabled
-		if (!$this->shipped()) $this->freeship = false;
+		if (!$this->shipped()) $this->freeshipping = false;
 		
 		foreach ($this->contents as $key => $Item) {
 
@@ -733,7 +468,7 @@ class Cart {
 			
 			// Item does not have free shipping, 
 			// so the cart shouldn't have free shipping
-			if (!$Item->freeshipping) $this->freeship = false;
+			if (!$Item->freeshipping) $this->freeshipping = false;
 			
 		}
 		
@@ -745,7 +480,9 @@ class Cart {
 		$Totals->discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
 
 		// Calculate shipping
-		// if (!$this->ShippingDisabled && $this->Shipping && !$this->freeshipping) 
+		$Shipping = new CartShipping();
+		$Totals->shipping = $Shipping->calculate();
+		// if (!$this->ShippingDisabled && $this->Shipping && !$this->freeshippingping) 
 		// 	$Totals->shipping = $this->shipping();
 
 		// Calculate taxes
@@ -788,13 +525,22 @@ class Cart {
 	 **/
 	function shipped () {
 		$shipped = array_filter($this->contents,array(&$this,'_filter_shipped'));
+		
 		foreach ($shipped as $key => $item)
 			$this->shipped[$key] = &$this->contents[$key];
 		return (!empty($this->shipped));
 	}
 	
+	/**
+	 * Helper method to identify shipped items in the cart
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	private function _filter_shipped ($item) {
-		return ($item->shipping);
+		return ($item->shipped);
 	}
 	
 	/**
@@ -812,11 +558,27 @@ class Cart {
 		return (!empty($this->downloads));
 	}
 	
+	/**
+	 * Helper method to identify digital items in the cart
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	private function _filter_downloads ($item) {
 		return ($item->download >= 0);
 	}
 
 	
+	/**
+	 * Provides shopp('cart') template api functionality
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return mixed
+	 **/
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
@@ -907,18 +669,18 @@ class Cart {
 		$result = "";
 		switch ($property) {
 			case "promos-available":
-				if (empty($this->Promotions)) return false;
+				if ($Shopp->Promotions->available()) return false;
 				// Skip if the promo limit has been reached
 				if ($Shopp->Settings->get('promo_limit') > 0 && 
-					count($this->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
+					count($this->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
 				return true;
 				break;
 			case "promo-code": 
 				// Skip if no promotions exist
-				if (!$Shopp->Promotions->exist()) return false;
+				if (!$Shopp->Promotions->available()) return false;
 				// Skip if the promo limit has been reached
 				if ($Shopp->Settings->get('promo_limit') > 0 && 
-					count($this->PromosApplied) >= $Shopp->Settings->get('promo_limit')) return false;
+					count($this->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
 				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code","Shopp");
 				$result .= '<ul><li>';
 				
@@ -938,26 +700,26 @@ class Cart {
 				return (!$this->ShippingDisabled
 						&& count($this->ShipCosts) > 1
 						&& $this->Shipping); break;				
-			case "needs-shipped": //return $this->Shipping; break;
+			case "needs-shipped": return (!empty($this->shipped)); break;
 			case "hasshipcosts":
 			case "has-ship-costs": return false;//return ($this->Totals->shipping > 0); break;
-			case "needs-shipping-estimates": return false;
+			case "needs-shipping-estimates":
 				$markets = $Shopp->Settings->get('target_markets');
-				return ($this->Shipping && ($this->ShippingPostcode || count($markets) > 1));
+				return (!empty($this->shipped) && ($this->showpostcode || count($markets) > 1));
 				break;
 			case "shipping-estimates":
-				if (!$this->Shipping) return "";
+				if (empty($this->shipped)) return "";
 				$base = $Shopp->Settings->get('base_operations');
 				$markets = $Shopp->Settings->get('target_markets');
+				$Shipping = &$Shopp->Order->Shipping;
 				if (empty($markets)) return "";
 				foreach ($markets as $iso => $country) $countries[$iso] = $country;
-				if (!empty($this->Order->Shipping->country)) $selected = $this->Order->Shipping->country;
+				if (!empty($Shipping->country)) $selected = $Shipping->country;
 				else $selected = $base['country'];
 				$result .= '<ul><li>';
-				if ((isset($options['postcode']) && value_is_true($options['postcode'])) ||
-				 		$this->ShippingPostcode) {
+				if ((isset($options['postcode']) && value_is_true($options['postcode'])) || $this->showpostcode) {
 					$result .= '<span>';
-					$result .= '<input name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$this->Order->Shipping->postcode.'" />&nbsp;';
+					$result .= '<input name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$Shipping->postcode.'" />&nbsp;';
 					$result .= '</span>';
 				}
 				if (count($countries) > 1) {
@@ -967,7 +729,7 @@ class Cart {
 					$result .= '</select>';
 					$result .= '</span>';
 				} else $result .= '<input type="hidden" name="shipping[country]" id="shipping-country" value="'.key($markets).'" />';
-				$result .= '</li></ul>';
+				$result .= '<br class="clear" /></li></ul>';
 				return $result;
 				break;
 		}
@@ -976,7 +738,7 @@ class Cart {
 		switch ($property) {
 			case "subtotal": $result = $this->Totals->subtotal; break;
 			case "shipping": 
-				if (!$this->Shipping) return "";
+				if (empty($this->shipped)) return "";
 				if (isset($options['label'])) {
 					$options['currency'] = "false";
 					if ($this->Totals->shipping === 0) {
@@ -1015,6 +777,14 @@ class Cart {
 		return false;
 	}
 	
+	/**
+	 * Provides shopp('cartitem') template API functionality
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return mixed
+	 **/
 	function itemtag ($property,$options=array()) {
 		if ($this->looping) {
 			$Item = current($this->contents);
@@ -1028,9 +798,14 @@ class Cart {
 
 
 	/**
-	 * shippingtag()
-	 * shopp('shipping','...')
+	 * Provides shopp('shipping') template API functionality
+	 * 
 	 * Used primarily in the summary.php template
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return mixed
 	 **/
 	function shippingtag ($property,$options=array()) {
 		global $Shopp;
@@ -1090,6 +865,14 @@ class Cart {
 		}
 	}
 	
+	/**
+	 * Provides shopp('checkout') template API functionality
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return mixed
+	 **/
 	function checkouttag ($property,$options=array()) {
 		global $Shopp,$wp;
 		$gateway = $Shopp->Settings->get('payment_gateway');
@@ -1517,7 +1300,7 @@ class Cart {
 		}
 	}
 		
-} // end Cart class
+} // END class Cart
 
 
 /**
@@ -1526,6 +1309,7 @@ class Cart {
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
+ * @subpackage cart
  **/
 class CartTotals {
 	
@@ -1549,6 +1333,7 @@ class CartTotals {
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
+ * @subpackage cart
  **/
 class CartPromotions {
 	
@@ -1591,7 +1376,15 @@ class CartPromotions {
 		$this->promotions = $db->query($query,AS_ARRAY);
 	}
 	
-	function exist () {
+	/**
+	 * Determines if there are promotions available for the order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
+	function available () {
 		return (!empty($this->promotions));
 	}
 	
@@ -1606,6 +1399,7 @@ class CartPromotions {
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
+ * @subpackage cart
  **/
 class CartDiscounts {
 
@@ -1620,7 +1414,15 @@ class CartDiscounts {
 	// Internals
 	var $itemrules = array('Any item name','Any item quantity','Any item amount');
 	var $matched = array();
-		
+	
+	/**
+	 * Initializes discount calculations
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function __construct () {
 		global $Shopp;
 		$this->limit = $Shopp->Settings->get('promo_limit');
@@ -1629,6 +1431,14 @@ class CartDiscounts {
 		$this->promos = &$Shopp->Promotions->promotions;
 	}
 	
+	/**
+	 * Calculates the discounts applied to the order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return float The total discount amount
+	 **/
 	function calculate () {
 		$this->applypromos();
 		
@@ -1637,10 +1447,21 @@ class CartDiscounts {
 			$discount += $Discount->applied;
 			
 		return $discount;
-		
-	} // End calculate()
-	
+	}
+
+	/**
+	 * Determines which promotions to apply to the order
+	 * 
+	 * Matches promotion rules to conditions in the cart to determine which
+	 * promotions apply.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function applypromos () {
+
 		// Iterate over each promo to determine whether it applies
 		foreach ($this->promos as &$promo) {
 			$applypromo = false;
@@ -1649,7 +1470,10 @@ class CartDiscounts {
 
 			// If promotion limit has been reached, cancel the loop
 			if ($this->limit > 0 && count($this->Cart->discounts)+1 > $this->limit) {
-
+				if (!empty($this->Cart->promocode)) {
+					new ShoppError(__("No additional codes can be applied.","Shopp"),'cart_promocode_limit',SHOPP_ALL_ERR);
+					$this->Cart->promocode = false;
+				}
 				break;
 			}
 			
@@ -1695,7 +1519,7 @@ class CartDiscounts {
 			switch ($promo->type) {
 				case "Percentage Off": $discount = $this->Cart->Totals->subtotal*($promo->discount/100); break;
 				case "Amount Off": $discount = $promo->discount; break;
-				case "Free Shipping": $discount = 0; $this->Cart->freeship = true; break;
+				case "Free Shipping": $discount = 0; $this->Cart->freeshipping = true; break;
 			}
 			$this->apply_discount($promo,$discount);
 			
@@ -1714,6 +1538,16 @@ class CartDiscounts {
 		
 	}
 	
+	/**
+	 * Adds a discount entry for a promotion that applies
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param Object $Promotion The pseudo-Promotion object to apply
+	 * @param float $discount The calculated discount amount
+	 * @return void
+	 **/
 	function apply_discount ($promo,$discount) {
 
 		$promo->applied = $discount;
@@ -1728,7 +1562,8 @@ class CartDiscounts {
 			
 			if (Promotion::match_rule($subject,$logic,$promocode,$property)) {
 				if (isset($this->Cart->promocodes[$value])) {
-					new ShoppError(__("No additional codes can be applied.","Shopp"),'cart_promocode',SHOPP_ALL_ERR);
+					new ShoppError(sprintf(__("%s has already been applied.","Shopp"),$value),'cart_promocode_used',SHOPP_ALL_ERR);
+					$this->Cart->promocode = false;
 					return false;
 				}
 				$this->Cart->promocodes[$value] = $promo;
@@ -1737,9 +1572,19 @@ class CartDiscounts {
 		}
 		
 		$this->Cart->discounts[$promo->id] = $promo;
-		
 	}
 	
+	/**
+	 * Matches an Item to an item rule
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param Item $Item The Item to test against
+	 * @param int $id The index of the Item in the cart
+	 * @param array $rule The conditions of the rule
+	 * @return boolean
+	 **/
 	function itemrule (&$Item,$id,$rule) {
 		extract($rule);
 		switch($property) {
@@ -1755,6 +1600,15 @@ class CartDiscounts {
 		return false;
 	}
 	
+	/**
+	 * Matches a Promo Code rule to a code submitted from the shopping cart
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $rule The promo code rule
+	 * @return boolean
+	 **/
 	function promocode ($rule) {
 		extract($rule);
 
@@ -1773,16 +1627,131 @@ class CartDiscounts {
 		return false;
 	}
 	
+	/**
+	 * Helper method to identify a rule as a promo code rule
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $rule The rule to test
+	 * @return boolean
+	 **/
 	function _filter_promocode_rule ($rule) {
 		return ($rule['property'] == "Promo code");
 	}
 	
 } // END class CartDiscounts
 
-
-
-class CartTaxes {
+/**
+ * CartShipping class
+ * 
+ * Mediator object for triggering ShippingModule calculations that are 
+ * then used for a lowest-cost shipping estimate to show in the cart.
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage cart
+ **/
+class CartShipping {
 	
+	var $options = array();
+	var $modules = false;
+	var $fees = 0;
+	var $handling = 0;
+	
+	/**
+	 * CartShipping constructor
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function __construct () {
+		global $Shopp;
+		
+		$this->Shipping = &$Shopp->Order->Shipping;
+		$this->modules = &$Shopp->Shipping->active;
+		$this->Cart = &$Shopp->Order->Cart;
+		
+		$this->handling = $Shopp->Settings->get('order_shipfee');
+		
+	}
+	
+	/**
+	 * Runs the shipping calculation modules
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function calculate () {
+		global $Shopp;
+		
+		// If no shipped items, bail
+		if (!$this->Cart->shipped()) return false;
+		// If the cart is flagged for free shipping bail
+		if ($this->Cart->freeshipping) return 0;
+
+		// Initialize shipping modules
+		do_action('shopp_calculate_init');
+
+		foreach ($this->Cart->shipped as $id => &$Item) {
+			// Calculate any product-specific shipping fee markups
+			if ($Item->shipfee > 0) $this->fees += ($Item->quantity * $Item->shipfee);
+			// Run shipping module item calculations
+								do_action_ref_array('shopp_calculate_item_shipping',array($id,&$Item));
+		}
+	
+		// Add order handling fee
+		if ($this->handling > 0) $this->fees += $this->handling;
+		
+		// Run shipping module aggregate shipping calculations
+		do_action_ref_array('shopp_calculate_shipping',array(&$this->options,$Shopp->Order));
+
+		// No shipping options were generated, bail
+		if (empty($this->options)) return false;
+		
+		// Determine the lowest cost estimate
+		$estimate = false;
+		foreach ($this->options as $name => $option) {
+			// Add in the fees
+			$option->amount += apply_filter('shopp_cart_fees',$this->fees);				
+			// Skip if not to be included
+			if (!$option->estimate) continue;
+			// If the option amount is less than current estimate
+			// Update the estimate to use this option instead
+			if (!$estimate || $option->amount < $estimate->amount)
+				$estimate = $option;
+		}
+		
+		// Wipe out the selected shipping method if the option doesn't exist
+		if (!isset($this->options[$this->Shipping->method]))
+			$this->Shipping->method = false;
+
+		// Always return the selected shipping option if a method has been set
+		if (!empty($this->Shipping->method))
+			return $this->options[$this->Shipping->method]->amount;
+
+		// Return the estimated amount
+		return $estimate->amount;
+	}
+	
+} // END class CartShipping
+
+/**
+ * CartTaxes class
+ * 
+ * Handles tax calculations
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage cart
+ **/
+class CartTaxes {
 	
 	/**
 	 * CartTaxes constructor
@@ -1796,29 +1765,48 @@ class CartTaxes {
 	}
 	
 	function calculate () {
-		
-		
-		
 	}
 	
-	
-}
+} // END class CartTaxes
 
-class CartShipping {
-		
+/**
+ * ShippingOption class
+ * 
+ * A data structure for order shipping options
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage cart
+ **/
+class ShippingOption {
+	
+	var $name;				// Name of the shipping option
+	var $amount;			// Amount (cost) of the shipping option
+	var $delivery;			// Estimated delivery of the shipping option
+	var $estimate;			// Include option in estimate
+	var $items = array();	// Item shipping rates for this shipping option
+
 	/**
-	 * CartShipping constructor
+	 * Builds a shipping option from a configured/calculated 
+	 * shipping rate array
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 * 
+	 * @param array $rate The calculated shipping rate
+	 * @param boolean $estimate Flag to be included/excluded from estimates
 	 * @return void
 	 **/
-	function __construct () {
-		
+	function __construct ($rate,$estimate=true) {
+		$this->name = $rate['name'];
+		$this->amount = $rate['amount'];
+		$this->estimate = $estimate;
+		if (!empty($rate['delivery']))
+			$this->delivery = $rate['delivery'];
+		if (!empty($rate['items']))
+			$this->delivery = $rate['items'];
 	}
-	
-}
-
+} // END class ShippingOption
 
 ?>

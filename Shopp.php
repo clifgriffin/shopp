@@ -45,6 +45,7 @@ if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'settings.js')
 	shopp_settings_js(basename(dirname(__FILE__)));
 
 require("core/flow/Flow.php");
+require("core/flow/Modules.php");
 require("core/flow/Transact.php");
 
 // require("core/model/ShipCalcs.php");
@@ -74,8 +75,8 @@ class Shopp {
 	var $Product;		// Current product
 	var $Cart;			// The shopping cart
 	var $Login;			// The currently authenticated customer
-	// var $ShipCalcs;
-	// var $Gateway;
+	var $Shipping;		// Shipping modules
+	var $Gateways;		// Gateway modules
 	var $_debug;
 	
 	function Shopp () {
@@ -120,6 +121,7 @@ class Shopp {
 		if (!defined('SHOPP_SESSION_TIMEOUT')) define('SHOPP_SESSION_TIMEOUT',7200);
 		if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
 		if (!defined('SHOPP_GATEWAY_TIMEOUT')) define('SHOPP_GATEWAY_TIMEOUT',10);
+		if (!defined('SHOPP_SHIPPING_TIMEOUT')) define('SHOPP_SHIPPING_TIMEOUT',10);
 
 		define("SHOPP_DEBUG",($this->Settings->get('error_logging') == 2048));
 		define("SHOPP_PATH",$this->path);
@@ -237,7 +239,7 @@ class Shopp {
 		$this->Order = ShoppingObject::__new('Order');
 		$this->Errors = ShoppingObject::__new('ShoppErrors');
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
-		
+		$this->Shipping = new ShippingModules();
 
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),

@@ -78,7 +78,32 @@ class Shipping extends DatabaseObject {
 		
 		return false;
 	}
+	
+	/**
+	 * destination()
+	 * Sets the shipping address location 
+	 * for calculating shipping estimates */
+	function destination ($data=false) {
+		global $Shopp;
+		
+		$base = $Shopp->Settings->get('base_operations');
+		$countries = $Shopp->Settings->get('countries');
+		$regions = $Shopp->Settings->get('regions');
+		
+		if ($data) $this->updates($data);
 
-} // end Shipping class
+		// Update state if postcode changes for tax updates
+		if (isset($this->postcode))
+			$this->postarea();
+		
+		if (empty($this->country))
+			$this->country = $base['country'];
+
+		$this->region = $regions[$countries[$this->country]['region']];
+
+	}
+	
+
+} // END class Shipping
 
 ?>

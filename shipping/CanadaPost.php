@@ -1,21 +1,26 @@
 <?php
 /**
  * Canada Post
+ * 
  * Uses the Canada Post Sell Online Webtools to get live shipping rates based on product weight
- * INSTALLATION INSTRUCTIONS: Upload USPSRates.php to 
- * your Shopp install under: .../wp-content/plugins/shopp/shipping/
+ * 
+ * INSTALLATION INSTRUCTIONS
+ * Upload USPSRates.php to your Shopp install under:  
+ * ./wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.1
  * @copyright Ingenesis Limited, 26 February, 2009
  * @package shopp
+ * @since 1.1 dev
+ * @subpackage CanadaPost
  * 
  * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
 
-class CanadaPost {
+class CanadaPost extends ShippingFramework implements ShippingModule {
 	var $testurl = 'http://sellonline.canadapost.ca';
 	var $url = 'http://sellonline.canadapost.ca';
 	var $request = false;
@@ -51,29 +56,29 @@ class CanadaPost {
 		"3050" => "Priority Worldwide Pak International"
 	);
 				
-	function CanadaPost () {
-		global $Shopp;
-		$this->settings = $Shopp->Settings->get('CanadaPost');
-		if (!isset($this->settings['merchantid'])) $this->settings['merchantid'] = '';
-		if (!isset($this->settings['postcode'])) $this->settings['postcode'] = '';
-		
-		$base = $Shopp->Settings->get('base_operations');
-		$this->settings['country'] = $base['country'];
-		$this->settings['units'] = $Shopp->Settings->get('weight_unit');
+	function __construct () {
+		parent::__construct();
+
+		$this->setup('merchantid','postcode');
+	
 
 		// Select service options using base country
-		if (array_key_exists($this->settings['country'],$this->services)) 
-			$services = $this->services[$this->settings['country']];
+		if (array_key_exists($this->base['country'],$this->services)) 
+			$services = $this->services[$this->base['country']];
 		
 		// Build the service list
 		$this->settings['services'] = $this->services;
 		
+		if (isset($this->rates[0])) $this->rate = $this->rates[0];
+		
 		add_action('shipping_service_settings',array(&$this,'settings'));
+		add_action('shopp_verify_shipping_services',array(&$this,'verify'));
 	}
-	
-	function methods (&$ShipCalc) {
-		if ($this->settings['country'] == "CA") // Require base of operations in Canada
-			$ShipCalc->methods[get_class($this)] = __("Canada Post","Shopp");
+		
+	function methods () {
+		// Require base of operations in Canada
+		// if ($this->settings['country'] != "CA") return array(); 
+		return array(__("Canada Post","Shopp"));
 	}
 		
 	function ui () {?>
@@ -113,28 +118,36 @@ class CanadaPost {
 
 			$(settings).appendTo(table);
 			
-			$('#usps-services-select-all').change(function () {
-				if (this.checked) $('#usps-services input').attr('checked',true);
-				else $('#usps-services input').attr('checked',false);
+			$('#cpso-services-select-all').change(function () {
+				if (this.checked) $('#cpso-services input').attr('checked',true);
+				else $('#cpso-services input').attr('checked',false);
 			});
 			
 			quickSelects();
 
 		}
 
-		methodHandlers.register('<?php echo get_class($this); ?>',CanadaPost);
+		methodHandlers.register('<?php echo $this->module; ?>',CanadaPost);
 
 		<?php		
 	}
 	
-	function calculate (&$Cart,$fees,$rate,$column) {
-		if (empty($Cart->data->Order->Shipping->postcode)) return false;
-		$ShipCosts = &$Cart->data->ShipCosts;
-		$weight = 0;
-		foreach($Cart->shipped as $Item) $weight += (($Item->weight*$this->conversion) * $Item->quantity);
+	function init () {
+		$this->weight = 0;
+	}
 
-		$this->request = $this->build($Cart, $rate['name'], $weight, 
-			$Cart->data->Order->Shipping->postcode, $Cart->data->Order->Shipping->country);
+	function calcitem ($id,$Item) {
+		$this->weight += ($Item->weight*$this->conversion) * $Item->quantity;
+	}
+	
+	function calculate ($options,$Order) {
+		if (empty($Order->Shipping->postcode)) {
+			new ShoppError(__('A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout.','Shopp','usps_postcode_required',SHOPP_ERR));
+			return $options;
+		}
+
+		$this->request = $this->build($Order->Cart->shipped, $this->rate['name'], 
+			$Order->Shipping->postcode, $Order->Shipping->country);
 		
 		$this->Response = $this->send();
 		if (!$this->Response) return false;
@@ -148,29 +161,28 @@ class CanadaPost {
 		
 		if (!is_array($Postage)) return false;
 		foreach ($Postage as $rated) {
-			$ServiceCode = $rated['ATTRS']['id'];
-			$TotalCharges = $rated['CHILDREN']['rate']['CONTENT'];
-			$DeliveryEstimate = "1d-5d";
+			$service = $rated['ATTRS']['id'];
+			$amount = $rated['CHILDREN']['rate']['CONTENT'];
+			$delivery = "1d-5d";
 			if (isset($rated['CHILDREN']['deliveryDate']['CONTENT'])) 
-				$DeliveryEstimate = $this->delivery_estimate($rated['CHILDREN']['deliveryDate']['CONTENT']);
-			if (is_array($rate['services']) && in_array($ServiceCode,$rate['services'])) {
-				$rate['cost'] = $TotalCharges+$fees;
-				$ShipCosts[$this->services[$ServiceCode]] = $rate;
-				$ShipCosts[$this->services[$ServiceCode]]['name'] = $this->services[$ServiceCode];
-				$ShipCosts[$this->services[$ServiceCode]]['delivery'] = $DeliveryEstimate;
-				if (!$estimate || $rate['cost'] < $estimate['cost']) $estimate = &$ShipCosts[$this->services[$ServiceCode]];
+				$delivery = $this->delivery($rated['CHILDREN']['deliveryDate']['CONTENT']);
+			if (is_array($this->rate['services']) && in_array($service,$this->rate['services'])) {
+				$rate['name'] = $this->services[$service];
+				$rate['amount'] = $amount;
+				$rate['delivery'] = $delivery;
+				$options[$rate['name']] = new ShippingOption($rate);
 			}
 		}
-		return $estimate;
+		return $options;
 	}
-
-	function delivery_estimate ($date) {
+	
+	function delivery ($date) {
 		list($year,$month,$day) = sscanf($date,"%4d-%2d-%2d");
 		$days = ceil((mktime(9,0,0,$month,$day,$year) - mktime())/86400);
 		return $days.'d';
 	}
 	
-	function build ($cart,$description,$weight,$postcode,$country) {
+	function build ($items,$description,$postcode,$country) {
 		
 		$_ = array('<?xml version="1.0"?>');
 		$_[] = '<eparcel>';
@@ -179,11 +191,11 @@ class CanadaPost {
 				$_[] = '<merchantCPCID> '.$this->settings['merchantid'].' </merchantCPCID>';
 				$_[] = '<fromPostalCode> '.$this->settings['postcode'].' </fromPostalCode>';
 				$_[] = '<lineItems>';
-					if (is_array($cart->contents) && !empty($cart->contents)) {
+					if (is_array($items) && !empty($items)) {
 						$items = array();
 						$itemid = 0;
 						$items[$itemid] = array('weight'=>0);
-						foreach ($cart->contents as $product) {
+						foreach ($items as $product) {
 							$weight = ($product->weight*$product->quantity) > 0 ? 
 								($product->weight*$product->quantity):1;
 							if ($this->settings['units'] == "g")
@@ -204,10 +216,9 @@ class CanadaPost {
 								$_[] = '</item>';
 						}						
 					} else {
-						$weight = ($weight*$quantity) > 0?number_format(($weight*$quantity),3,'.',''):1;
 						$_[] = '<item>';
 						$_[] = '<quantity>1</quantity>';
-						$_[] = '<weight>'.$weight.'</weight>';
+						$_[] = '<weight>1</weight>';
 						$_[] = '<length>1</length>';
 						$_[] = '<width>1</width>';
 						$_[] = '<height>1</height>';
@@ -229,7 +240,8 @@ class CanadaPost {
 		return "XMLRequest=".urlencode(join("\n",$_));
 	}  
 
-	function verifyauth () {         
+	function verify () {
+		if (!$this->activated()) return;
 		$this->request = $this->build('1','Authentication test',1,'M1P1C0','CA');
 		$Response = $this->send();
 		if ($Response->getElement('error')) new ShoppError($Response->getElementContent('statusMessage'),'cpc_verify_auth',SHOPP_ADDON_ERR);
@@ -238,7 +250,7 @@ class CanadaPost {
 	function send () {   
 		global $Shopp;
 		$connection = curl_init();
-		curl_setopt($connection,CURLOPT_URL,$this->url.":30000");
+		curl_setopt($connection,CURLOPT_URL,$this->testurl.":30000");
 		curl_setopt($connection, CURLOPT_PORT, 30000); // alternative port not used in some libcurl builds
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
 		curl_setopt($connection, CURLOPT_POST, 1); 
