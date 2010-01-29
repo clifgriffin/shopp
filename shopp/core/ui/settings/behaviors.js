@@ -71,7 +71,7 @@ var SettingInput = function (module,attrs,options) {
 	var $ = jQuery.noConflict();
 	var _self = this;
 	
-	var types = new Array('text','password','hidden','checkbox','menu','textarea','multimenu');
+	var types = new Array('text','password','hidden','checkbox','menu','textarea','multimenu','p');
 
 	if (!attrs.name) return '';
 	
@@ -85,12 +85,14 @@ var SettingInput = function (module,attrs,options) {
 	this.cols = (attrs.size)?attrs.size:'40';
 	this.rows = (attrs.size)?attrs.size:'3';
 	this.classes = (attrs.classes)?attrs.classes:'';
-	this.id = 'settings-'+module.toLowerCase().replace(/[^\w]/,'-')+'-'+attrs.name.toLowerCase();
+	this.id = (attrs.id)?attrs.id:'settings-'+module.toLowerCase().replace(/[^\w]/,'-')+'-'+attrs.name.toLowerCase();
 	this.options = options;
+	this.content = (attrs.content)?attrs.content:'';
 	this.label = (attrs.label)?attrs.label:false;	
 	
 	this.generate = function () {
 		if (!this.name) return;
+		if (this.type == "p") return this.paragraph();
 		if (this.type == "checkbox") return this.checkbox();
 		if (this.type == "menu") return this.menu();
 		if (this.type == "multimenu") return this.multimenu();
@@ -138,7 +140,7 @@ var SettingInput = function (module,attrs,options) {
 		html += '<ul id="'+this.id+'" class="'+_self.classes+'">';
 		if (this.options) {
 			html += '<li><input type="checkbox" name="select-all" id="'+this.id+'-select-all" class="selectall" /><label for="'+this.id+'-select-all"><strong>'+SHOPP_SELECT_ALL+'</strong></label></li>';
-			
+
 			var alt = true;
 			var selected = this.selected;
 			$.each(this.options,function (id,label) {
@@ -156,6 +158,15 @@ var SettingInput = function (module,attrs,options) {
 		
 		if (this.label) html += '<br /><label for="'+this.id+'">'+this.label+'</label></div>\n';
 		
+		return html;
+	}
+	
+	this.paragraph = function () {
+		var id = (this.id)?' id="'+this.id+'"':'';
+		var classes = (this.classes)?' class="'+this.classes+'"':'';
+		var html = '';
+		if (this.label) html += '<label><strong>'+this.label+'</strong></label>';
+		html += '<div'+id+classes+'>'+this.content+'</div>';
 		return html;
 	}
 	
