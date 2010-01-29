@@ -55,7 +55,7 @@ class Purchase extends DatabaseObject {
 		if($is_IIS) $email['to'] = $address;
 		else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
 		$email['subject'] = $subject;
-		$email['receipt'] = $Shopp->Flow->order_receipt($receipt);
+		$email['receipt'] = $this->receipt($receipt);
 		$email['url'] = get_bloginfo('siteurl');
 		$email['sitename'] = get_bloginfo('name');
 		$email['orderid'] = $this->id;
@@ -124,7 +124,17 @@ class Purchase extends DatabaseObject {
 			$prefix.'modified' => __('Order Last Updated','Shopp')
 			);
 	}
+	
+	// Display a sales receipt
+	function receipt ($template="receipt.php") {
 		
+		ob_start();
+		include(SHOPP_TEMPLATES."/$template");
+		$content = ob_get_contents();
+		ob_end_clean();
+		return apply_filters('shopp_order_receipt','<div id="shopp">'.$content.'</div>');
+	}
+	
 	function tag ($property,$options=array()) {
 		global $Shopp;
 
@@ -207,6 +217,7 @@ class Purchase extends DatabaseObject {
 				$item = current($this->purchased);
 				return $item->description; break;
 			case "item-options":
+				if (!isset($options['after'])) $options['after'] = "";
 				$item = current($this->purchased);
 				return (!empty($item->optionlabel))?$options['before'].$item->optionlabel.$options['after']:''; break;
 			case "item-sku":

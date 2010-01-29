@@ -76,6 +76,7 @@
 		<?php endif; ?>
 		<li></li>
 		<?php if (shopp('checkout','billing-required')): ?>
+		<li></li>
 		<li>
 			<label for="billing-card"><?php _e('Payment Information','Shopp'); ?></label>
 			<span><?php shopp('checkout','billing-card','required=true&size=30&title='.__('Credit/Debit Card Number','Shopp')); ?><label for="billing-card"><?php _e('Credit/Debit Card Number','Shopp'); ?></label></span>

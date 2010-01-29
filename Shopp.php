@@ -44,11 +44,13 @@ if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'catalog.css') shop
 if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'settings.js') 
 	shopp_settings_js(basename(dirname(__FILE__)));
 
+// Load super controllers and framework systems
 require("core/flow/Flow.php");
+require("core/flow/Login.php");
 require("core/flow/Modules.php");
-require("core/flow/Transact.php");
 
-// require("core/model/ShipCalcs.php");
+// Load Shopp-managed data model objects
+require("core/model/Gateway.php");
 require("core/model/Shopping.php");
 require("core/model/Error.php");
 require("core/model/Order.php");
@@ -57,6 +59,7 @@ require("core/model/Catalog.php");
 require("core/model/Purchase.php");
 require("core/model/Customer.php");
 
+// Start up the core
 $Shopp = new Shopp();
 do_action('shopp_init');
 
@@ -75,6 +78,7 @@ class Shopp {
 	var $Product;		// Current product
 	var $Cart;			// The shopping cart
 	var $Login;			// The currently authenticated customer
+	var $Purchase; 		// Currently requested order receipt
 	var $Shipping;		// Shipping modules
 	var $Gateways;		// Gateway modules
 	var $_debug;
@@ -177,10 +181,11 @@ class Shopp {
 			$this->Flow->setup();
 		}
 
+
 		$this->Shopping = new Shopping();
 		
+		
 		add_action('init', array(&$this,'init'));
-		add_action('init', array(&$this, 'xorder'));
 		add_action('init', array(&$this, 'ajax'));
 		
 		// Admin calls
@@ -198,11 +203,7 @@ class Shopp {
 		
 		// Extras & Integrations
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
-		
-		// Session Data
-		add_action('shopp_session_load', array(&$this,'session'));
-		
-		
+				
 	}
 	
 	/**
@@ -239,8 +240,9 @@ class Shopp {
 		$this->Order = ShoppingObject::__new('Order');
 		$this->Errors = ShoppingObject::__new('ShoppErrors');
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
+		$this->Gateways = new GatewayModules();
 		$this->Shipping = new ShippingModules();
-
+		
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
 									$this->Settings->get('error_notifications'));
@@ -248,33 +250,10 @@ class Shopp {
 		if (!$this->Shopping->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
 		if (SHOPP_DEBUG && $this->Shopping->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
-		
-		
-		// Initialize the catalog and shipping calculators
-		// $this->Catalog = new Catalog();
-		// $this->ShipCalcs = new ShipCalcs($this->path);
 
-		// Handle WordPress-processed logins
-		// $this->Cart->logins();
+		new Login();
 	}
 	
-	/**
-	 * Registers session data
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 * 
-	 * @param type $var Description...
-	 * @return void Description...
-	 **/
-	function session () {
-		if (SHOPP_LOOKUP) return true;
-
-		
-		// $this->Shopping->store('Order',$this->Order);
-		// $this->Shopping->store('Errors',$this->Errors);
-	}
-
 	/**
 	 * Installs the tables and initializes settings
 	 *
@@ -525,7 +504,7 @@ class Shopp {
 		$corepath = array(PLUGINDIR,$this->directory,'core');
 
 		// Add mod_rewrite rule for image server for low-resource, speedy delivery
-		add_rewrite_rule('.*/images/(\d+)/?$',join('/',$corepath).'/image.php?shopp_image=$1');
+		add_rewrite_rule('.*/images/(\d+)/?.*?$',join('/',$corepath).'/image.php?shopp_image=$1');
 
 		return $rules + $wp_rewrite_rules;
 	}
@@ -1059,14 +1038,15 @@ function shopp () {
 		case "cart": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
 		case "cartitem": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
 		case "shipping": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
-		case "checkout": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
+		case "checkout": if (isset($Shopp->Order)) $Object =& $Shopp->Order; break;
 		case "category": if (isset($Shopp->Category)) $Object =& $Shopp->Category; break;
 		case "subcategory": if (isset($Shopp->Category->child)) $Object =& $Shopp->Category->child; break;
 		case "catalog": if (isset($Shopp->Catalog)) $Object =& $Shopp->Catalog; break;
 		case "product": if (isset($Shopp->Product)) $Object =& $Shopp->Product; break;
-		case "purchase": if (isset($Shopp->Order->Cart->data->Purchase)) $Object =& $Shopp->Order->Cart->data->Purchase; break;
-		case "customer": if (isset($Shopp->Order->Cart->data->Order->Customer)) $Object =& $Shopp->Order->Cart->data->Order->Customer; break;
-		case "error": if (isset($Shopp->Order->Cart->data->Errors)) $Object =& $Shopp->Order->Cart->data->Errors; break;
+		case "checkout": if (isset($Shopp->Order)) $Object =& $Shopp->Order; break;
+		case "purchase": if (isset($Shopp->Purchase)) $Object =& $Shopp->Purchase; break;
+		case "customer": if (isset($Shopp->Order->Customer)) $Object =& $Shopp->Order->Customer; break;
+		case "error": if (isset($Shopp->Errors)) $Object =& $Shopp->Errors; break;
 		default: $Object = false;
 	}
 
@@ -1075,7 +1055,6 @@ function shopp () {
 		switch (strtolower($object)) {
 			case "cartitem": $result = $Object->itemtag($property,$options); break;
 			case "shipping": $result = $Object->shippingtag($property,$options); break;
-			case "checkout": $result = $Object->checkouttag($property,$options); break;
 			default: $result = $Object->tag($property,$options); break;
 		}
 	}

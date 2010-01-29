@@ -64,6 +64,7 @@ class Storefront extends FlowController {
 		add_action('wp', array(&$this, 'catalog'));
 		add_action('wp', array(&$this, 'shortcodes'));
 		add_action('wp', array(&$this, 'behaviors'));
+		
 	}
 	
 	/**
@@ -137,8 +138,8 @@ class Storefront extends FlowController {
 		$this->shortcodes = array();
 		$this->shortcodes['catalog'] = array(&$this,'catalog_page');
 		$this->shortcodes['cart'] = array(&$this,'cart_page');
-		$this->shortcodes['checkout'] = array(&$this,'checkout');
-		$this->shortcodes['account'] = array(&$this,'account');
+		$this->shortcodes['checkout'] = array(&$this,'checkout_page');
+		$this->shortcodes['account'] = array(&$this,'account_page');
 		$this->shortcodes['product'] = array(&$this,'product_shortcode');
 		$this->shortcodes['category'] = array(&$this,'category_shortcode');
 
@@ -600,6 +601,78 @@ class Storefront extends FlowController {
 
 		return apply_filters('shopp_cart_template','<div id="shopp">'.$content.'</div>');
 	}
+	
+	function checkout_page () {
+		global $Shopp;
+		$Cart = $Shopp->Order->Cart;
+		$Errors = &ShoppErrors();
+		
+		$process = get_query_var('shopp_proc');
+		$xco = get_query_var('shopp_xco');
+		if (!empty($xco)) {
+			$Shopp->gateway($xco);
+			$Shopp->Gateway->actions();
+		}
+
+		switch ($process) {
+			case "confirm-order": $content = $this->order_confirmation(); break;
+			case "thanks":
+			case "receipt": 
+				$content = $this->thanks(); 
+				break;//$content = $this->order_receipt(); break;
+			default:
+				ob_start();
+				if ($Errors->exist(SHOPP_COMM_ERR)) {
+					include(SHOPP_TEMPLATES."/errors.php");
+				}
+				if (!empty($xco)) {
+					
+					if (!empty($Shopp->Gateway)) {
+						if ($Shopp->Gateway->checkout)
+							include(SHOPP_TEMPLATES."/checkout.php");
+						else {
+							if ($Errors->exist(SHOPP_COMM_ERR))
+								include(SHOPP_TEMPLATES."/errors.php");
+							include(SHOPP_TEMPLATES."/summary.php");
+							echo $Shopp->Gateway->tag('button');
+						}
+					} else include(SHOPP_TEMPLATES."/summary.php");
+					
+				} else include(SHOPP_TEMPLATES."/checkout.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+		}
+
+		// Wrap with #shopp if not already wrapped
+		if (strpos($content,'<div id="shopp">') === false) 
+			$content = '<div id="shopp">'.$content.'</div>';
+
+		return apply_filters('shopp_checkout_page',$content);
+	}
+	
+
+	function account_page () {
+		global $Shopp,$wp;
+		
+		$Customer = &$Shopp->Order->Customer;
+		
+		if (isset($Customer->login) && $Customer->login) 
+			$Customer->management();
+		
+		if (isset($_GET['acct']) && $_GET['acct'] == "rp") $Customer->reset_password($_GET['key']);
+		if (isset($_POST['recover-login'])) $Customer->recovery();
+				
+		ob_start();
+		if (isset($wp->query_vars['shopp_download'])) include(SHOPP_TEMPLATES."/errors.php");
+		elseif ($Customer->login) include(SHOPP_TEMPLATES."/account.php");
+		else include(SHOPP_TEMPLATES."/login.php");
+		$content = ob_get_contents();
+		ob_end_clean();
+		
+		return apply_filters('shopp_account_template','<div id="shopp">'.$content.'</div>');
+		
+	}
+
 
 	function shipping_estimate_page ($attrs) {
 		$Cart = $this->Cart;
@@ -611,6 +684,43 @@ class Storefront extends FlowController {
 
 		return $content;
 	}
+	
+	// Display the confirm order screen
+	function order_confirmation () {
+		global $Shopp;
+		$Cart = $Shopp->Cart;
+		
+		ob_start();
+		include(SHOPP_TEMPLATES."/confirm.php");
+		$content = ob_get_contents();
+		ob_end_clean();
+		return apply_filters('shopp_order_confirmation','<div id="shopp">'.$content.'</div>');
+	}
+
+	// Display the thanks (transaction complete) page
+	function thanks ($template="thanks.php") {
+		global $Shopp;
+		$Purchase = $Shopp->Purchase;
+		
+		ob_start();
+		include(SHOPP_TEMPLATES."/$template");
+		$content = ob_get_contents();
+		ob_end_clean();
+		return apply_filters('shopp_thanks',$content);
+	}
+	
+	// Display an error page
+	function error_page ($template="errors.php") {
+		global $Shopp;
+		$Cart = $Shopp->Cart;
+		
+		ob_start();
+		include(SHOPP_TEMPLATES."/$template");
+		$content = ob_get_contents();
+		ob_end_clean();
+		return apply_filters('shopp_errors_page','<div id="shopp">'.$content.'</div>');
+	}
+	
 
 } // END class Storefront
 

@@ -15,9 +15,9 @@
 			<tr><th><?php _e('Order Num','Shopp'); ?>:</th><td><?php echo $Purchase->id; ?></td></tr>	
 			<tr><th><?php _e('Order Date','Shopp'); ?>:</th><td><?php echo _d(get_option('date_format'), $Purchase->created); ?></td></tr>	
 			<?php if (!empty($Purchase->card) && !empty($Purchase->cardtype)): ?><tr><th><?php _e('Billed To','Shopp'); ?>:</th><td><?php (!empty($Purchase->card))?printf("%'X16d",$Purchase->card):''; ?> <?php echo (!empty($Purchase->cardtype))?'('.$Purchase->cardtype.')':''; ?></td></tr><?php endif; ?>
-			<tr><th><?php _e('Transaction','Shopp'); ?>:</th><td><?php echo $Purchase->transactionid; ?></td></tr>	
+			<tr><th><?php _e('Transaction','Shopp'); ?>:</th><td><?php echo $Purchase->txnid; ?></td></tr>	
 			<?php if ($Purchase->gateway == "Google Checkout"):?>
-				<tr><th><?php _e('Status','Shopp'); ?>:</th><td><?php echo $Purchase->transtatus; ?></td></tr>
+				<tr><th><?php _e('Status','Shopp'); ?>:</th><td><?php echo $Purchase->txnstatus; ?></td></tr>
 			<?php endif; ?>
 			<tr><td colspan="2"><br class="clear" /></td></tr>
 			<?php if (!empty($Purchase->phone)):?>
