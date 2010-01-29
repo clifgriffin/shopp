@@ -39,7 +39,7 @@ class Item {
 	function Item ($Product,$pricing,$category,$data=array()) {
 		global $Shopp; // To access settings
 
-		$Product->load_data(array('prices','images'));
+		$Product->load_data(array('prices','images','categories','tags','specs'));
 		// If product variations are enabled, disregard the first priceline
 		if ($Product->variations == "on") array_shift($Product->prices);
 

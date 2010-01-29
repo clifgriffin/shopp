@@ -29,6 +29,7 @@ class Cart {
 	var $downloads = array();	// Reference list of digital Items
 	var $discounts = array();	// List of promotional discounts applied
 	var $promocodes = array();	// List of promotional codes applied
+	var $shipping = array();	// List of shipping options
 	
 	// Object properties
 	var $Added = false;			// Last Item added
@@ -482,17 +483,19 @@ class Cart {
 		// Calculate shipping
 		$Shipping = new CartShipping();
 		$Totals->shipping = $Shipping->calculate();
-		// if (!$this->ShippingDisabled && $this->Shipping && !$this->freeshippingping) 
-		// 	$Totals->shipping = $this->shipping();
+		
+		// Save the generated shipping options
+		$this->shipping = $Shipping->options();
 
 		// Calculate taxes
-		$shippingTaxed = ($Shopp->Settings->get('tax_shipping') == "on");
-		$Totals->taxrate = $this->taxrate();
+		$Tax = new CartTax();
+		$Totals->taxrate = $Tax->rate();
+		$Totals->tax = $Tax->calculate();
 	    
-		if ($Totals->discount > $Totals->taxed) $Totals->taxed = 0;
-		else $Totals->taxed -= $Totals->discount;
-		if($shippingTaxed) $Totals->taxed += $Totals->shipping;
-		$Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
+		// if ($Totals->discount > $Totals->taxed) $Totals->taxed = 0;
+		// else $Totals->taxed -= $Totals->discount;
+		// if($shippingTaxed) $Totals->taxed += $Totals->shipping;
+		// $Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
 
 		// Calculate final totals
 		$Totals->total = round($Totals->subtotal - round($Totals->discount,2) + 
@@ -640,7 +643,7 @@ class Cart {
 			case "function": 
 				$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
 				if (!$Shopp->Errors->exist()) return $result;
-				$errors = $Shopp->Errors->get(SHOPP_COMM_ERR);
+				$errors = $Shopp->Errors->get(SHOPP_STOCK_ERR);
 				foreach ((array)$errors as $error) 
 					if (!empty($error)) $result .= '<p class="error">'.$error->message(true,false).'</p>';
 				return $result;
@@ -696,10 +699,10 @@ class Cart {
 				$result .= '<span><input type="submit" id="apply-code" name="update" '.inputattrs($options,$submit_attrs).' /></span>';
 				$result .= '</li></ul>';
 				return $result;
-			case "has-shipping-methods": 
-				return (!$this->ShippingDisabled
-						&& count($this->ShipCosts) > 1
-						&& $this->Shipping); break;				
+			case "has-shipping-methods": return (!empty($this->shipping)); break;
+				// return (!$this->ShippingDisabled
+				// 		&& count($this->ShipCosts) > 1
+				// 		&& $this->Shipping); break;				
 			case "needs-shipped": return (!empty($this->shipped)); break;
 			case "hasshipcosts":
 			case "has-ship-costs": return false;//return ($this->Totals->shipping > 0); break;
@@ -809,52 +812,57 @@ class Cart {
 	 **/
 	function shippingtag ($property,$options=array()) {
 		global $Shopp;
-		$ShipCosts =& $this->ShipCosts;
 		$result = "";
 		
 		switch ($property) {
-			case "hasestimates": return (count($ShipCosts) > 0); break;
+			case "hasestimates": return (!empty($this->shipping)); break;
+			case "options":
 			case "methods":
 				if (!isset($this->sclooping)) $this->sclooping = false;
 				if (!$this->sclooping) {
-					reset($ShipCosts);
+					reset($this->shipping);
 					$this->sclooping = true;
-				} else next($ShipCosts);
+				} else next($this->shipping);
 				
-				if (current($ShipCosts)) return true;
+				if (current($this->shipping) !== false) return true;
 				else {
 					$this->sclooping = false;
-					reset($ShipCosts);
+					reset($this->shipping);
 					return false;
 				}
 				break;
+			case "options-name": 
 			case "method-name": 
-				return key($ShipCosts);
+				$option = current($this->shipping);
+				return $option->name;
 				break;
+			case "options-cost": 
 			case "method-cost": 
-				$method = current($ShipCosts);
-				return money($method['cost']);
+				$option = current($this->shipping);
+				return money($option->amount);
 				break;
 			case "method-selector":
-				$method = current($ShipCosts);
-	
+				$method = current($this->shipping);
+
 				$checked = '';
-				if ((isset($this->Order->Shipping->method) && 
-					$this->Order->Shipping->method == $method['name']) ||
-					($method['cost'] == $this->Totals->shipping))
+				if ((isset($Shopp->Order->Shipping->method) && 
+					$Shopp->Order->Shipping->method == $method->name) ||
+					($method->amount == $this->Totals->shipping))
 						$checked = ' checked="checked"';
 	
-				$result .= '<input type="radio" name="shipmethod" value="'.$method['name'].'" class="shipmethod" '.$checked.' rel="'.$method['cost'].'" />';
+				$result .= '<input type="radio" name="shipmethod" value="'.$method->name.'" class="shipmethod" '.$checked.' rel="'.$method->amount.'" />';
 				return $result;
 				
 				break;
+			case "option-delivery":
 			case "method-delivery":
 				$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
-				$method = current($ShipCosts);
-				if (!$method['delivery']) return "";
-				$estimates = explode("-",$method['delivery']);
+				$option = current($this->shipping);
+				if (!$option->delivery) return "";
+				$estimates = explode("-",$option->delivery);
 				$format = get_option('date_format');
-				if ($estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
+				if (count($estimates) > 1 
+					&& $estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
 				$result = "";
 				for ($i = 0; $i < count($estimates); $i++){
 					list($interval,$p) = sscanf($estimates[$i],'%d%s');
@@ -865,440 +873,6 @@ class Cart {
 		}
 	}
 	
-	/**
-	 * Provides shopp('checkout') template API functionality
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 * 
-	 * @return mixed
-	 **/
-	function checkouttag ($property,$options=array()) {
-		global $Shopp,$wp;
-		$gateway = $Shopp->Settings->get('payment_gateway');
-		$xcos = $Shopp->Settings->get('xco_gateways');
-		$pages = $Shopp->Settings->get('pages');
-		$base = $Shopp->Settings->get('base_operations');
-		$countries = $Shopp->Settings->get('target_markets');
-		$process = get_query_var('shopp_proc');
-		$xco = get_query_var('shopp_xco');
-
-		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
-		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
-		
-		
-		if (!isset($options['mode'])) $options['mode'] = "input";
-		
-		switch ($property) {
-			case "url": 
-				$ssl = true;
-				// Test Mode will not require encrypted checkout
-				if (strpos($gateway,"TestMode.php") !== false 
-					|| isset($_GET['shopp_xco']) 
-					|| $this->orderisfree() 
-					|| SHOPP_NOSSL) 
-					$ssl = false;
-				$link = $Shopp->link('checkout',$ssl);
-				
-				// Pass any arguments along
-				$args = $_GET;
-				if (isset($args['page_id'])) unset($args['page_id']);
-				$link = esc_url(add_query_arg($args,$link));
-				if ($process == "confirm-order") $link = apply_filters('shopp_confirm_url',$link);
-				else $link = apply_filters('shopp_checkout_url',$link);
-				return $link;
-				break;
-			case "function":
-				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_PLUGINURI.'/core/ui/icons/updating.gif" width="16" height="16" />';
-				$regions = $Shopp->Settings->get('zones');
-				$base = $Shopp->Settings->get('base_operations');
-				$output = '<script type="text/javascript">'."\n";
-				$output .= '<!--'."\n";
-				$output .= 'var currencyFormat = '.json_encode($base['currency']['format']).';'."\n";
-				$output .= 'var regions = '.json_encode($regions).';'."\n";
-				$output .= 'var SHIPCALC_STATUS = \''.$options['shipcalc'].'\'';
-				$output .= '//-->'."\n";
-				$output .= '</script>'."\n";
-				if (!empty($options['value'])) $value = $options['value'];
-				else $value = "process";
-				$output .= '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>'; 
-				if ($value == "confirmed") $output = apply_filters('shopp_confirm_form',$output);
-				else $output = apply_filters('shopp_checkout_form',$output);
-				return $output;
-				break;
-			case "error":
-				$result = "";
-				if (!$this->Errors->exist(SHOPP_COMM_ERR)) return false;
-				$errors = $this->Errors->get(SHOPP_COMM_ERR);
-				foreach ((array)$errors as $error) if (!empty($error)) $result .= $error->message();
-				return $result;
-				// if (isset($options['show']) && $options['show'] == "code") return $this->OrderError->code;
-				// return $this->OrderError->message;
-				break;
-			case "cart-summary":
-				ob_start();
-				include(SHOPP_TEMPLATES."/summary.php");
-				$content = ob_get_contents();
-				ob_end_clean();
-				return $content;
-				break;
-			case "loggedin": return $this->login; break;
-			case "notloggedin": return (!$this->login && $Shopp->Settings->get('account_system') != "none"); break;
-			case "email-login":  // Deprecating
-			case "loginname-login":  // Deprecating
-			case "account-login": 
-				if (!empty($_POST['account-login']))
-					$options['value'] = $_POST['account-login']; 
-				return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
-				break;
-			case "password-login": 
-				if (!empty($_POST['password-login']))
-					$options['value'] = $_POST['password-login']; 
-				return '<input type="password" name="password-login" id="password-login" '.inputattrs($options).' />';
-				break;
-			case "submit-login": // Deprecating
-			case "login-button":
-				$string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
-				$string .= '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
-				return $string;
-				break;
-
-			case "firstname": 
-				if ($options['mode'] == "value") return $this->Order->Customer->firstname;
-				if (!empty($this->Order->Customer->firstname))
-					$options['value'] = $this->Order->Customer->firstname; 
-				return '<input type="text" name="firstname" id="firstname" '.inputattrs($options).' />';
-				break;
-			case "lastname":
-				if ($options['mode'] == "value") return $this->Order->Customer->lastname;
-				if (!empty($this->Order->Customer->lastname))
-					$options['value'] = $this->Order->Customer->lastname; 
-				return '<input type="text" name="lastname" id="lastname" '.inputattrs($options).' />'; 
-				break;
-			case "email":
-				if ($options['mode'] == "value") return $this->Order->Customer->email;
-				if (!empty($this->Order->Customer->email))
-					$options['value'] = $this->Order->Customer->email; 
-				return '<input type="text" name="email" id="email" '.inputattrs($options).' />';
-				break;
-			case "loginname":
-				if ($options['mode'] == "value") return $this->Order->Customer->login;
-				if (!empty($this->Order->Customer->login))
-					$options['value'] = $this->Order->Customer->login; 
-				return '<input type="text" name="login" id="login" '.inputattrs($options).' />';
-				break;
-			case "password":
-				if ($options['mode'] == "value") return $this->Order->Customer->password;
-				if (!empty($this->Order->Customer->password))
-					$options['value'] = $this->Order->Customer->password; 
-				return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
-				break;
-			case "confirm-password":
-				if (!empty($this->Order->Customer->confirm_password))
-					$options['value'] = $this->Order->Customer->confirm_password; 
-				return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
-				break;
-			case "phone": 
-				if ($options['mode'] == "value") return $this->Order->Customer->phone;
-				if (!empty($this->Order->Customer->phone))
-					$options['value'] = $this->Order->Customer->phone; 
-				return '<input type="text" name="phone" id="phone" '.inputattrs($options).' />'; 
-				break;
-			case "organization": 
-			case "company": 
-				if ($options['mode'] == "value") return $this->Order->Customer->company;
-				if (!empty($this->Order->Customer->company))
-					$options['value'] = $this->Order->Customer->company; 
-				return '<input type="text" name="company" id="company" '.inputattrs($options).' />'; 
-				break;
-			case "customer-info":
-				$allowed_types = array("text","password","hidden","checkbox","radio");
-				if (empty($options['type'])) $options['type'] = "hidden";
-				if (isset($options['name']) && $options['mode'] == "value") 
-					return $this->Order->Customer->info[$options['name']];
-				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
-					if (isset($this->Order->Customer->info[$options['name']])) 
-						$options['value'] = $this->Order->Customer->info[$options['name']]; 
-					return '<input type="text" name="info['.$options['name'].']" id="customer-info-'.$options['name'].'" '.inputattrs($options).' />'; 
-				}
-				break;
-
-			// SHIPPING TAGS
-			case "shipping": return $this->Shipping;
-			case "shipping-address": 
-				if ($options['mode'] == "value") return $this->Order->Shipping->address;
-				if (!empty($this->Order->Shipping->address))
-					$options['value'] = $this->Order->Shipping->address; 
-				return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
-				break;
-			case "shipping-xaddress":
-				if ($options['mode'] == "value") return $this->Order->Shipping->xaddress;
-				if (!empty($this->Order->Shipping->xaddress))
-					$options['value'] = $this->Order->Shipping->xaddress; 
-				return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
-				break;
-			case "shipping-city":
-				if ($options['mode'] == "value") return $this->Order->Shipping->city;
-				if (!empty($this->Order->Shipping->city))
-					$options['value'] = $this->Order->Shipping->city; 
-				return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
-				break;
-			case "shipping-province":
-			case "shipping-state":
-				if ($options['mode'] == "value") return $this->Order->Shipping->state;
-				if (!isset($options['selected'])) $options['selected'] = false;
-				if (!empty($this->Order->Shipping->state)) {
-					$options['selected'] = $this->Order->Shipping->state;
-					$options['value'] = $this->Order->Shipping->state;
-				}
-				
-				$output = false;
-				$country = $base['country'];
-				if (!empty($this->Order->Shipping->country))
-					$country = $this->Order->Shipping->country;
-				if (!array_key_exists($country,$countries)) $country = key($countries);
-
-				if (empty($options['type'])) $options['type'] = "menu";
-				$regions = $Shopp->Settings->get('zones');
-				$states = $regions[$country];
-				if (is_array($states) && $options['type'] == "menu") {
-					$label = (!empty($options['label']))?$options['label']:'';
-					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'>';
-					$output .= '<option value="" selected="selected">'.$label.'</option>';
-				 	$output .= menuoptions($states,$options['selected'],true);
-					$output .= '</select>';
-				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
-				return $output;
-				break;
-			case "shipping-postcode":
-				if ($options['mode'] == "value") return $this->Order->Shipping->postcode;
-				if (!empty($this->Order->Shipping->postcode))
-					$options['value'] = $this->Order->Shipping->postcode; 				
-				return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />'; break;
-			case "shipping-country": 
-				if ($options['mode'] == "value") return $this->Order->Shipping->country;
-				if (!empty($this->Order->Shipping->country))
-					$options['selected'] = $this->Order->Shipping->country;
-				else if (empty($options['selected'])) $options['selected'] = $base['country'];
-				$output = '<select name="shipping[country]" id="shipping-country" '.inputattrs($options,$select_attrs).'>';
-			 	$output .= menuoptions($countries,$options['selected'],true);
-				$output .= '</select>';
-				return $output;
-				break;
-			case "same-shipping-address":
-				$label = __("Same shipping address","Shopp");
-				if (isset($options['label'])) $label = $options['label'];
-				$checked = ' checked="checked"';
-				if (isset($options['checked']) && !value_is_true($options['checked'])) $checked = '';
-				$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" '.$checked.' /> '.$label.'</label>';
-				return $output;
-				break;
-				
-			// BILLING TAGS
-			case "billing-required": 
-				if ($this->Totals->total == 0) return false;
-				if (isset($_GET['shopp_xco'])) {
-					$xco = join('/',array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
-					if (file_exists($xco)) {
-						$meta = $Shopp->Flow->scan_gateway_meta($xco);
-						$PaymentSettings = $Shopp->Settings->get($meta->tags['class']);
-						return ($PaymentSettings['billing-required'] != "off");
-					}
-				}
-				return ($this->Totals->total > 0); break;
-			case "billing-address":
-				if ($options['mode'] == "value") return $this->Order->Billing->address;
-				if (!empty($this->Order->Billing->address))
-					$options['value'] = $this->Order->Billing->address;			
-				return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
-				break;
-			case "billing-xaddress":
-				if ($options['mode'] == "value") return $this->Order->Billing->xaddress;
-				if (!empty($this->Order->Billing->xaddress))
-					$options['value'] = $this->Order->Billing->xaddress;			
-				return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
-				break;
-			case "billing-city":
-				if ($options['mode'] == "value") return $this->Order->Billing->city;
-				if (!empty($this->Order->Billing->city))
-					$options['value'] = $this->Order->Billing->city;			
-				return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />'; 
-				break;
-			case "billing-province": 
-			case "billing-state": 
-				if ($options['mode'] == "value") return $this->Order->Billing->state;
-				if (!isset($options['selected'])) $options['selected'] = false;
-				if (!empty($this->Order->Billing->state)) {
-					$options['selected'] = $this->Order->Billing->state;
-					$options['value'] = $this->Order->Billing->state;
-				}
-				if (empty($options['type'])) $options['type'] = "menu";
-				
-				$output = false;
-				$country = $base['country'];
-				if (!empty($this->Order->Billing->country))
-					$country = $this->Order->Billing->country;
-				if (!array_key_exists($country,$countries)) $country = key($countries);
-
-				$regions = $Shopp->Settings->get('zones');
-				$states = $regions[$country];
-				if (is_array($states) && $options['type'] == "menu") {
-					$label = (!empty($options['label']))?$options['label']:'';
-					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'>';
-					$output .= '<option value="" selected="selected">'.$label.'</option>';
-				 	$output .= menuoptions($states,$options['selected'],true);
-					$output .= '</select>';
-				} else $output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
-				return $output;
-				break;
-			case "billing-postcode":
-				if ($options['mode'] == "value") return $this->Order->Billing->postcode;
-				if (!empty($this->Order->Billing->postcode))
-					$options['value'] = $this->Order->Billing->postcode;			
-				return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
-				break;
-			case "billing-country": 
-				if ($options['mode'] == "value") return $this->Order->Billing->country;
-				if (!empty($this->Order->Billing->country))
-					$options['selected'] = $this->Order->Billing->country;
-				else if (empty($options['selected'])) $options['selected'] = $base['country'];			
-				$output = '<select name="billing[country]" id="billing-country" '.inputattrs($options,$select_attrs).'>';
-			 	$output .= menuoptions($countries,$options['selected'],true);
-				$output .= '</select>';
-				return $output;
-				break;
-			case "billing-card":
-				if ($options['mode'] == "value") 
-					return str_repeat('X',strlen($this->Order->Billing->card)-4)
-						.substr($this->Order->Billing->card,-4);
-				if (!empty($this->Order->Billing->card)) {
-					$options['value'] = $this->Order->Billing->card;
-					$this->Order->Billing->card = "";
-				}
-				return '<input type="text" name="billing[card]" id="billing-card" '.inputattrs($options).' />';
-				break;
-			case "billing-cardexpires-mm":
-				if ($options['mode'] == "value") return date("m",$this->Order->Billing->cardexpires);
-				if (!empty($this->Order->Billing->cardexpires))
-					$options['value'] = date("m",$this->Order->Billing->cardexpires);				
-				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm" '.inputattrs($options).' />'; 	
-				break;
-			case "billing-cardexpires-yy": 
-				if ($options['mode'] == "value") return date("y",$this->Order->Billing->cardexpires);
-				if (!empty($this->Order->Billing->cardexpires))
-					$options['value'] = date("y",$this->Order->Billing->cardexpires);							
-				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy" '.inputattrs($options).' />'; 
-				break;
-			case "billing-cardtype":
-				if ($options['mode'] == "value") return $this->Order->Billing->cardtype;
-				if (!isset($options['selected'])) $options['selected'] = false;
-				if (!empty($this->Order->Billing->cardtype))
-					$options['selected'] = $this->Order->Billing->cardtype;	
-				$cards = $Shopp->Settings->get('gateway_cardtypes');
-				$label = (!empty($options['label']))?$options['label']:'';
-				$output = '<select name="billing[cardtype]" id="billing-cardtype" '.inputattrs($options,$select_attrs).'>';
-				$output .= '<option value="" selected="selected">'.$label.'</option>';
-			 	$output .= menuoptions($cards,$options['selected']);
-				$output .= '</select>';
-				return $output;
-				break;
-			case "billing-cardholder":
-				if ($options['mode'] == "value") return $this->Order->Billing->cardholder;
-				if (!empty($this->Order->Billing->cardholder))
-					$options['value'] = $this->Order->Billing->cardholder;			
-				return '<input type="text" name="billing[cardholder]" id="billing-cardholder" '.inputattrs($options).' />';
-				break;
-			case "billing-cvv":
-				if (!empty($this->Order->Billing->cardholder))
-					$options['value'] = $_POST['billing']['cvv'];
-				return '<input type="text" name="billing[cvv]" id="billing-cvv" '.inputattrs($options).' />';
-				break;
-			case "billing-xco":     
-				if (isset($_GET['shopp_xco'])) {
-					if ($this->Totals->total == 0) return false;
-					$xco = join('/',array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
-					if (file_exists($xco)) {
-						$meta = $Shopp->Flow->scan_gateway_meta($xco);
-						$ProcessorClass = $meta->tags['class'];
-						include_once($xco);
-						$Payment = new $ProcessorClass();
-						if (method_exists($Payment,'billing')) return $Payment->billing($options);
-					}
-				}
-				break;
-				
-			case "has-data":
-			case "hasdata": return (is_array($this->Order->data) && count($this->Order->data) > 0); break;
-			case "order-data":
-			case "orderdata":
-				if (isset($options['name']) && $options['mode'] == "value") 
-					return $this->Order->data[$options['name']];
-				if (empty($options['type'])) $options['type'] = "hidden";
-				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
-				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
-					if (!isset($options['title'])) $options['title'] = $options['name'];
-					if (in_array($options['type'],$value_override) && isset($this->Order->data[$options['name']])) 
-						$options['value'] = $this->Order->data[$options['name']];
-					if (!isset($options['cols'])) $options['cols'] = "30";
-					if (!isset($options['rows'])) $options['rows'] = "3";
-					if ($options['type'] == "textarea") 
-						return '<textarea name="data['.$options['name'].']" cols="'.$options['cols'].'" rows="'.$options['rows'].'" id="order-data-'.$options['name'].'" '.inputattrs($options,array('accesskey','title','tabindex','class','disabled','required')).'>'.$options['value'].'</textarea>';
-					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'" '.inputattrs($options).' />';
-				}
-
-				// Looping for data value output
-				if (!$this->dataloop) {
-					reset($this->Order->data);
-					$this->dataloop = true;
-				} else next($this->Order->data);
-
-				if (current($this->Order->data) !== false) return true;
-				else {
-					$this->dataloop = false;
-					return false;
-				}
-				
-				break;
-			case "data":
-				if (!is_array($this->Order->data)) return false;
-				$data = current($this->Order->data);
-				$name = key($this->Order->data);
-				if (isset($options['name'])) return $name;
-				return $data;
-				break;
-			case "submit": 
-				if (!isset($options['value'])) $options['value'] = __('Submit Order','Shopp');
-				return '<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />'; break;
-			case "confirm-button": 
-				if (!isset($options['value'])) $options['value'] = __('Confirm Order','Shopp');
-				return '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />'; break;
-			case "local-payment": 
-				return (!empty($gateway)); break;
-			case "xco-buttons":     
-				if (!is_array($xcos)) return false;
-				$buttons = "";
-				foreach ($xcos as $xco) {
-					$xcopath = join('/',array($Shopp->path,'gateways',$xco));
-					if (!file_exists($xcopath)) continue;
-					$meta = scan_gateway_meta($xcopath);
-					$ProcessorClass = $meta->tags['class'];
-					if (!empty($ProcessorClass)) {
-						$PaymentSettings = $Shopp->Settings->get($ProcessorClass);
-						if ($PaymentSettings['enabled'] == "on") {
-							include_once($xcopath);
-							$Payment = new $ProcessorClass();
-							$buttons .= $Payment->tag('button',$options);
-						}
-					}
-				}
-				return $buttons;
-				break;
-			case "receipt":
-				if (!empty($this->Purchase->id)) 
-					return $Shopp->Flow->order_receipt();
-				break;
-		}
-	}
 		
 } // END class Cart
 
@@ -1718,7 +1292,7 @@ class CartShipping {
 		$estimate = false;
 		foreach ($this->options as $name => $option) {
 			// Add in the fees
-			$option->amount += apply_filter('shopp_cart_fees',$this->fees);				
+			$option->amount += apply_filters('shopp_cart_fees',$this->fees);
 			// Skip if not to be included
 			if (!$option->estimate) continue;
 			// If the option amount is less than current estimate
@@ -1739,10 +1313,22 @@ class CartShipping {
 		return $estimate->amount;
 	}
 	
+	/**
+	 * Returns the currently calculated shipping options
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return array List of ShippingOption objects
+	 **/
+	function options () {
+		return $this->options;
+	}
+	
 } // END class CartShipping
 
 /**
- * CartTaxes class
+ * CartTax class
  * 
  * Handles tax calculations
  *
@@ -1751,10 +1337,15 @@ class CartShipping {
  * @package shopp
  * @subpackage cart
  **/
-class CartTaxes {
+class CartTax {
+
+	var $Order = false;
+	var $enabled = false;
+	var $shipping = false;
+	var $rates = array();
 	
 	/**
-	 * CartTaxes constructor
+	 * CartTax constructor
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -1762,12 +1353,56 @@ class CartTaxes {
 	 * @return void
 	 **/
 	function __construct () {
+		global $Shopp;
+		$this->Order = $Shopp->Order;
+		$this->enabled = ($Shopp->Settings->get('taxes') == "on");
+		$this->rates = $Shopp->Settings->get('taxrates');
+		$this->shipping = ($Shopp->Settings->get('tax_shipping') == "on");
+	}
+	
+	function rate () {
+		if (!$this->enabled) return false;		
+		if (!is_array($this->rates)) return false;
+		
+		$Billing = $this->Order->Billing;
+		$Shipping = $this->Order->Shipping;
+		$country = false;
+		if (!empty($Shipping->country)) $country = $Shipping->country;
+		elseif (!empty($Billing->country)) $country = $Billing->country;
+
+		$zone = false;
+		if (!empty($Shipping->state)) $zone = $Shipping->state;
+		elseif (!empty($Billing->state)) $zone = $Billing->state;
+
+		$global = false;
+		foreach ($this->rates as $setting) {
+			// Grab the global setting if found
+			if ($setting['country'] == "*") {
+				$global = $setting;
+				continue;
+			}
+			
+			if (isset($setting['zone'])) {
+				if ($country == $setting['country'] &&
+					$zone == $setting['zone'])
+						return apply_filters('shopp_cart_taxrate',$setting['rate']/100);
+			} elseif ($country == $setting['country']) {
+				return apply_filters('shopp_cart_taxrate',$setting['rate']/100);
+			}
+		}
+		
+		if ($global) return apply_filters('shopp_cart_taxrate',$global['rate']/100);
 	}
 	
 	function calculate () {
+		$Totals = $this->Order->Cart->Totals;
+		if ($Totals->discount > $Totals->taxed) $Totals->taxed = 0;
+		else $Totals->taxed -= $Totals->discount;
+		if($this->shipping) $Totals->taxed += $Totals->shipping;
+		return round($Totals->taxed*$Totals->taxrate,2);
 	}
 	
-} // END class CartTaxes
+} // END class CartTax
 
 /**
  * ShippingOption class

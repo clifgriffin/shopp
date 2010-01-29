@@ -7,19 +7,22 @@
  * @version 1.0.5
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
+ * @since 1.1 dev
+ * @subpackage AuthorizeNet
  * 
  * $Id$
  **/
 
-class AuthorizeNet {
+class AuthorizeNet extends GatewayFramework {
 	var $transaction = array();
 	var $settings = array();
 	var $Response = false;
 	var $cards = array("Visa", "MasterCard", "American Express", "Discover", "JCB", "Diner’s Club", "EnRoute");
 
 	function AuthorizeNet (&$Order="") {
+		parent::__construct();
+		$this->setup('login','password','testmode');
 		global $Shopp;
-		$this->settings = $Shopp->Settings->get('AuthorizeNet');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
 
@@ -185,34 +188,33 @@ class AuthorizeNet {
 	}
 	
 	function settings () {
-		global $Shopp;
-		?>
-		<tr id="authorize-net-settings" class="addon">
-			<th scope="row" valign="top">Authorize.Net</th>
-			<td>
-				<div><input type="text" name="settings[AuthorizeNet][login]" id="authorize_net_loginname" value="<?php echo $this->settings['login']; ?>" size="16" /><br /><label for="authorize_net_loginname"><?php _e('Enter your AuthorizeNet Login ID.'); ?></label></div>
-				<div><input type="password" name="settings[AuthorizeNet][password]" id="authorize_net_pw" value="<?php echo $this->settings['password']; ?>" size="24" /><br /><label for="authorize_net_pw"><?php _e('Enter your AuthorizeNet Password or Transaction Key.'); ?></label></div>
-				<div><input type="hidden" name="settings[AuthorizeNet][testmode]" value="off"><input type="checkbox" name="settings[AuthorizeNet][testmode]" id="authorize_net_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="authorize_net_testmode"> <?php _e('Enable test mode'); ?></label></div>
-				<div><strong>Accept these cards:</strong>
-				<ul class="cards"><?php foreach($this->cards as $id => $card): 
-					$checked = "";
-					if (in_array($card,$this->settings['cards'])) $checked = ' checked="checked"';
-				?>
-					<li><input type="checkbox" name="settings[AuthorizeNet][cards][]" id="authorize_net_cards_<?php echo $id; ?>" value="<?php echo $card; ?>" <?php echo $checked; ?> /><label for="authorize_net_cards_<?php echo $id; ?>"> <?php echo $card; ?></label></li>
-				<?php endforeach; ?></ul></div>
-				
-				<input type="hidden" name="module[<?php echo basename(__FILE__); ?>]" value="AuthorizeNet" />
-			</td>
-		</tr>
-		<?php
-	}
-	
-	function registerSettings () {
-		?>
-		gatewayHandlers.register('<?php echo addslashes(gateway_path(__FILE__)); ?>','authorize-net-settings');
-		<?php
+		$this->ui->multimenu(0,array(
+			'name' => 'cards',
+			'selected' => $this->settings['cards']
+		),$this->cards);
+		
+		$this->ui->text(1,array(
+			'name' => 'login',
+			'value' => $this->settings['login'],
+			'size' => '16',
+			'label' => __('Enter your AuthorizeNet Login ID.','Shopp')
+		));
+
+		$this->ui->password(1,array(
+			'name' => 'password',
+			'value' => $this->settings['password'],
+			'size' => '24',
+			'label' => __('Enter your AuthorizeNet Password or Transaction Key.','Shopp')
+		));
+
+		$this->ui->checkbox(1,array(
+			'name' => 'testmode',
+			'checked' => $this->settings['testmode'],
+			'label' => __('Enable test mode','Shopp')
+		));
+
 	}
 
-} // end AuthorizeNet class
+} // END class AuthorizeNet
 
 ?>

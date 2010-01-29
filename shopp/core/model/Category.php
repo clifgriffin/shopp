@@ -692,6 +692,7 @@ class Category extends DatabaseObject {
 				} else {
 					if (!empty($class)) $classes = ' class="'.$class.'"';
 					$string .= $title.'<ul'.$classes.'>';
+					$count = 0;
 					foreach ($this->children as &$category) {
 						if (!isset($category->total)) $category->total = 0;
 						if (!isset($category->depth)) $category->depth = 0;

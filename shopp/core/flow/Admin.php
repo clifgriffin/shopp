@@ -213,6 +213,14 @@ class AdminFlow extends FlowController {
 			wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_URI."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
 		}
 		
+		$settings = array_filter(array_keys($this->Pages),array(&$this,'get_settings_pages'));
+		if (in_array($this->Page->page,$settings))
+					wp_enqueue_script('shopp.settings.behaviors',
+										SHOPP_ADMIN_URI."/settings/behaviors.js", 
+										array('jquery'), 
+										SHOPP_VERSION,
+										true);		
+		
 		?>
 		<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/thickbox.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
 		<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />

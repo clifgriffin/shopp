@@ -14,10 +14,13 @@ require("Shipping.php");
 class Customer extends DatabaseObject {
 	static $table = "customer";
 	
-	var $login;
+	var $login = false;
 	var $info = array();
 	var $looping = false;
 	var $newuser = false;
+	
+	var $accounts = "none";			// Account system setting
+	var $merchant = "";
 	
 	var $management = array(
 		"account" => "account",
@@ -28,10 +31,16 @@ class Customer extends DatabaseObject {
 		);
 	
 	function Customer ($id=false,$key=false) {
+		global $Shopp;
+		
+		$this->accounts = $Shopp->Settings->get('account_system');
+		$this->merchant = $Shopp->Settings->get('merchant_email');
+		
 		$this->init(self::$table);
 		if ($this->load($id,$key)) return true;
 		else return false;
 	}
+	
 	
 	function management () {
 		global $Shopp;
@@ -92,12 +101,11 @@ class Customer extends DatabaseObject {
 	
 	function recovery () {
 		global $Shopp;
-		$authentication = $Shopp->Settings->get('account_system');
 		$errors = array();
 		
 		// Check email or login supplied
 		if (empty($_POST['account-login'])) {
-			if ($authentication == "wordpress") $errors[] = new ShoppError(__('Enter an email address or login name','Shopp'));
+			if ($this->accounts == "wordpress") $errors[] = new ShoppError(__('Enter an email address or login name','Shopp'));
 			else $errors[] = new ShoppError(__('Enter an email address','Shopp'));
 		} else {
 			// Check that the account exists
@@ -151,8 +159,7 @@ class Customer extends DatabaseObject {
 	}
 	
 	function reset_password ($activation) {
-		global $Shopp;
-		$authentication = $Shopp->Settings->get('account_system');
+		if ($this->accounts == "none") return;
 		
 		$user_data = false;
 		$activation = preg_replace('/[^a-z0-9]/i', '', $activation);
@@ -173,7 +180,7 @@ class Customer extends DatabaseObject {
 		do_action_ref_array('password_reset', array(&$RecoveryCustomer,$password));
 		
 		$RecoveryCustomer->password = wp_hash_password($password);
-		if ($authentication == "wordpress") {
+		if ($this->accounts == "wordpress") {
 			$user_data = get_userdata($RecoveryCustomer->wpuser);
 			wp_set_password($password, $user_data->ID);
 		}
@@ -304,8 +311,8 @@ class Customer extends DatabaseObject {
 				if (isset($_GET['acct'])) return $_GET['acct'];
 				return false;
 
-			case "loggedin": return $Shopp->Cart->data->login; break;
-			case "notloggedin": return (!$Shopp->Cart->data->login && $Shopp->Settings->get('account_system') != "none"); break;
+			case "loggedin": return $Shopp->Order->Customer->login; break;
+			case "notloggedin": return (!$Shopp->Order->Customer->login && $Shopp->Settings->get('account_system') != "none"); break;
 			case "login-label": 
 				$accounts = $Shopp->Settings->get('account_system');
 				$label = __('Email Address','Shopp');

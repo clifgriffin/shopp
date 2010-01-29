@@ -26,8 +26,8 @@ class FlatRates extends ShippingFramework implements ShippingModule {
 	}
 	
 	function calculate ($options,$Order) {
-		$column = $this->ratecolumn($rate);
 		foreach ($this->rates as $rate) {
+			$column = $this->ratecolumn($rate);
 			list($module,$method) = explode("::",$rate['method']);
 			
 			if ($method == 'item')

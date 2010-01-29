@@ -5,55 +5,82 @@
 
 	<form name="settings" id="payments" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-payments'); ?>
-
+		<div><input type="hidden" id="active-gateways" name="settings[active_gateways]" /></div>
+		
 		<?php include("navigation.php"); ?>
 
-		<table class="form-table"> 
-			<tr class="form-required"> 
-				<th scope="row" valign="top"><label for="payment-gateway"><?php _e('Payment Gateway','Shopp'); ?></label></th> 
-				<td><select name="settings[payment_gateway]" id="payment-gateway">
-					<option value=""><?php _e('No On-site Checkout','Shopp'); ?></option>
-					<?php echo menuoptions($gateways,$payment_gateway,true); ?>
-					</select><br /> 
-	            <?php _e('Select the payment gateway processor you will be using to process credit card transactions.','Shopp'); ?></td>
-			</tr>
-			<tbody id="payment-settings">
-				<?php if (is_array($LocalProcessors)) foreach ($LocalProcessors as &$Processor) $Processor->settings(); ?>
-			</tbody>
-			<?php  if (is_array($XcoProcessors)): foreach ($XcoProcessors as &$Processor): ?>
-				<tr><?php $Processor->settings(); ?></tr>
-			<?php endforeach; endif; ?>
+		<table id="payment-settings" class="form-table"> 
  		</table>
+		
+		<br class="clear" />
+		
+		<div class="tablenav"><div class="alignright actions">
+			<select name="payment-option-menu" id="payment-option-menu">
+			</select>
+			<button type="button" name="add-payment-option" id="add-payment-option" class="button-secondary" tabindex="9999"><?php _e('Add Payment Option','Shopp'); ?></button>
+			</div>
+		</div>
+		
 		
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
 
 <script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>Payments_Settings";
-
-function xcosettings (toggle,settings) {
-  	(function($) {
-	toggle = $(toggle);
-	settings = $(settings);
-	if (!toggle.attr('checked')) settings.hide();
-	toggle.change(function () { settings.slideToggle(250); });
-	})(jQuery);
-}
-
+var SHOPP_PAYMENT_OPTION = "<?php _e('Option Name','Shopp'); ?>";
+var SHOPP_DELETE_PAYMENT_OPTION = "<?php echo addslashes(__('Are you sure you want to delete this payment option?','Shopp')); ?>";
+var SHOPP_PLUGINURI = "<?php echo SHOPP_PLUGINURI; ?>";
+var SHOPP_SELECT_ALL = "<?php _e('Select All','Shopp'); ?>";
+var gateways = <?php echo json_encode($gateways); ?>;
 
 jQuery(document).ready( function() {
 	var $=jQuery.noConflict();
-var gatewayHandlers = new CallbackRegistry();
+	var handlers = new CallbackRegistry();
+	handlers.options = {};
+	handlers.enabled = [];
+	handlers.register = function (name,object) {
+		this.callbacks[name] = function () {object['payment']();}
+		this.options[name] = object;
+	}
+	
+	handlers.call = function(name,arg1,arg2,arg3) {
+		this.callbacks[name](arg1,arg2,arg3);
+		var module = this.options[name];
+		if ($.inArray(name,gateways) == -1) gateways.push(name);
+		$('#active-gateways').val(gateways.join());
+		module.deleteButton.click(function () {
+			if (confirm(SHOPP_DELETE_PAYMENT_OPTION)) {
+				module.row.remove();
+				var index = $.inArray(name,gateways);
+				gateways.splice(index,1);
+				$('#active-gateways').val(gateways.join());
+			}
+		});
+	}
 
-<?php foreach ($LocalProcessors as &$Processor) $Processor->registerSettings(); ?>
-<?php foreach ($XcoProcessors as &$Processor) $Processor->registerSettings(); ?>
-
-$('#payment-gateway').change(function () {
-	$('#payment-settings tr').hide();
-	var target = '#'+gatewayHandlers.get(this.value);
-	if (this.value.length > 0) $(target).show();
-}).change();
-
+	<?php do_action('gateway_module_settings'); ?>
+	
+	// Populate the payment options menu
+	var options = '';
+	$.each(handlers['options'],function (id,object) {
+		var disabled = '';
+		if ($.inArray(id,gateways) != -1) {
+			handlers.call(id);
+			disabled = ' disabled="disabled"';
+		}
+		options += '<option value="'+id+'"'+disabled+'>'+object.name+'</option>';
+	});
+	$('#payment-option-menu').html(options);
+	
+	$('#add-payment-option').click(function () {
+		var module = $('#payment-option-menu').val();
+		var selected = $('#payment-option-menu :selected');
+		if (!selected.attr('disabled')) {
+			handlers.call(module);
+			selected.attr('disabled',true);
+		}
+	});
+	
 });
+
 </script>

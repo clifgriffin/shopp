@@ -27,6 +27,7 @@ class Setup extends FlowController {
 	 **/
 	function __construct () {
 		parent::__construct();
+		
 	}
 	
 	/**
@@ -331,63 +332,76 @@ class Setup extends FlowController {
 
 	function payments () {
 		global $Shopp;
+		
 		if ( !current_user_can('manage_options') )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		$payment_gateway = gateway_path($this->Settings->get('payment_gateway'));
-
+		add_action('gateway_module_settings',array(&$this,'payments_ui'));
+		
+		// $payment_gateway = gateway_path($this->Settings->get('payment_gateway'));
+		// 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-payments');
-
-			// Update the accepted credit card payment methods
-			if (!empty($_POST['settings']['payment_gateway']) 
-					&& file_exists(SHOPP_GATEWAYS.$_POST['settings']['payment_gateway'])) {
-				$gateway = $this->scan_gateway_meta(SHOPP_GATEWAYS.$_POST['settings']['payment_gateway']);
-				$ProcessorClass = $gateway->tags['class'];
-				// Load the gateway in case there are any save-time processes to be run
-				$Processor = $Shopp->gateway($_POST['settings']['payment_gateway'],true);
-				$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
-			}
-			if (is_array($_POST['settings']['xco_gateways'])) {
-				foreach($_POST['settings']['xco_gateways'] as &$gateway) {
-					$gateway = str_replace("\\","/",stripslashes($gateway));
-					if (!file_exists(SHOPP_GATEWAYS.$gateway)) continue;
-					$meta = $this->scan_gateway_meta(SHOPP_GATEWAYS.$gateway);
-					$_POST['settings'][$ProcessorClass]['path'] = str_replace("\\","/",stripslashes($_POST['settings'][$ProcessorClass]['path']));
-					$ProcessorClass = $meta->tags['class'];
-					// Load the gateway in case there are any save-time processes to be run
-					$Processor = $Shopp->gateway($gateway);
-				}
-			}
-			
+		// 
+		// 	// Update the accepted credit card payment methods
+		// 	if (!empty($_POST['settings']['payment_gateway']) 
+		// 			&& file_exists(SHOPP_GATEWAYS.$_POST['settings']['payment_gateway'])) {
+		// 		$gateway = $this->scan_gateway_meta(SHOPP_GATEWAYS.$_POST['settings']['payment_gateway']);
+		// 		$ProcessorClass = $gateway->tags['class'];
+		// 		// Load the gateway in case there are any save-time processes to be run
+		// 		$Processor = $Shopp->gateway($_POST['settings']['payment_gateway'],true);
+		// 		$_POST['settings']['gateway_cardtypes'] = $_POST['settings'][$ProcessorClass]['cards'];
+		// 	}
+		// 	if (is_array($_POST['settings']['xco_gateways'])) {
+		// 		foreach($_POST['settings']['xco_gateways'] as &$gateway) {
+		// 			$gateway = str_replace("\\","/",stripslashes($gateway));
+		// 			if (!file_exists(SHOPP_GATEWAYS.$gateway)) continue;
+		// 			$meta = $this->scan_gateway_meta(SHOPP_GATEWAYS.$gateway);
+		// 			$_POST['settings'][$ProcessorClass]['path'] = str_replace("\\","/",stripslashes($_POST['settings'][$ProcessorClass]['path']));
+		// 			$ProcessorClass = $meta->tags['class'];
+		// 			// Load the gateway in case there are any save-time processes to be run
+		// 			$Processor = $Shopp->gateway($gateway);
+		// 		}
+		// 	}
+		// 	
 			do_action('shopp_save_payment_settings');
-
+		
 			$this->settings_save();
-			$payment_gateway = stripslashes($this->Settings->get('payment_gateway'));
+			// $payment_gateway = stripslashes($this->Settings->get('payment_gateway'));
 			
 			$updated = __('Shopp payments settings saved.','Shopp');
 		}
 
 		
 		// Get all of the installed gateways
-		$data = settings_get_gateways();
+		// $data = settings_get_gateways();
 
-		$gateways = array();
-		$LocalProcessors = array();
-		$XcoProcessors = array();
-		foreach ($data as $gateway) {
-			$ProcessorClass = $gateway->tags['class'];
-			include_once($gateway->file);
-			$processor = new $ProcessorClass();
-			if (isset($processor->type) && strtolower($processor->type) == "xco") {
-				$XcoProcessors[] = $processor;
-			} else {
-				$gateways[gateway_path($gateway->file)] = $gateway->name;
-				$LocalProcessors[] = $processor;
-			}
-		}
+		// $gateways = array();
+		// $LocalProcessors = array();
+		// $XcoProcessors = array();
+		// foreach ($data as $gateway) {
+		// 	$ProcessorClass = $gateway->tags['class'];
+		// 	include_once($gateway->file);
+		// 	$processor = new $ProcessorClass();
+		// 	if (isset($processor->type) && strtolower($processor->type) == "xco") {
+		// 		$XcoProcessors[] = $processor;
+		// 	} else {
+		// 		$gateways[gateway_path($gateway->file)] = $gateway->name;
+		// 		$LocalProcessors[] = $processor;
+		// 	}
+		// }
+
+	 	$active_gateways = $Shopp->Settings->get('active_gateways');
+		if (!$active_gateways) $gateways = array();
+		else $gateways = explode(",",$active_gateways);
 
 		include(SHOPP_ADMIN_PATH."/settings/payments.php");
+	}
+	
+	function payments_ui () {
+		global $Shopp;
+		$Shopp->Gateways->settings();
+		$Shopp->Gateways->ui();
 	}
 	
 	function update () {
@@ -570,6 +584,61 @@ class Setup extends FlowController {
 	}
 	
 
-} // end Setup class
+} // END class Setup
+
+class ModuleSettingsUI {
+	
+	var $type;
+	var $module;
+	var $name;
+	
+	function __construct($type,$module,$name,$label) {
+		$this->type = $type;
+		$this->module = $module;
+		$this->Name = $name;
+		
+		echo "\n\tvar $module = new ModuleSetting('$module','$name','$label');\n";
+		echo "\thandlers.register('$module',$module);\n";
+	}
+	
+	function checkbox ($column=0,$attributes=array()) {
+		$attributes['type'] = "checkbox";
+		$attributes['normal'] = "off";
+		$attributes['value'] = "on";
+		
+		$attributes['checked'] = (value_is_true($attributes['checked'])?true:false);
+		
+		$attrs = json_encode($attributes);
+		echo "$this->module.newInput($column,$attrs);\n";
+	}
+	
+	function multimenu ($column=0,$attributes=array(),$options=array()) {
+		$attributes['type'] = "multimenu";
+		$attrs = json_encode($attributes);
+		$options = json_encode($options);
+		echo "$this->module.newInput($column,$attrs,$options);\n";
+	}
+
+	function text ($column=0,$attributes=array()) {
+		$attributes['type'] = "text";
+		$attrs = json_encode($attributes);
+		echo "$this->module.newInput($column,$attrs);\n";
+	}
+
+	function password ($column=0,$attributes=array()) {
+		$attributes['type'] = "password";
+		$attrs = json_encode($attributes);
+		echo "$this->module.newInput($column,$attrs);\n";
+	}
+
+	function hidden ($column=0,$attributes=array()) {
+		$attributes['type'] = "hidden";
+		$attrs = json_encode($attributes);
+		echo "$this->module.newInput($column,$attrs);\n";
+	}
+	
+	
+	
+}
 
 ?>

@@ -22,6 +22,7 @@ class Flow {
 	
 	var $Controller = false;
 	var $Admin = false;
+	var $Logins = false;
 	
 	/**
 	 * Flow constructor
@@ -33,7 +34,7 @@ class Flow {
 	function __construct () {
 		// register_deactivation_hook(SHOPP_PLUGINFILE, array(&$this, 'activate'));
 		// register_activation_hook(SHOPP_PLUGINFILE, array(&$this, 'deactivate'));
-				
+			
 		add_action('admin_menu',array(&$this,'menu'));
 		if (defined('WP_ADMIN')) add_action('admin_init',array(&$this,'parse'));
 		else add_action('parse_request',array(&$this,'parse'));
@@ -48,10 +49,31 @@ class Flow {
 	 **/
 	function parse () {
 		global $Shopp;
+		
+		$this->transactions();
+		
 		if (defined('WP_ADMIN') && isset($_GET['page'])) {
 			$controller = $this->Admin->controller(strtolower($_GET['page']));
 			if (!empty($controller)) $this->handler($controller);
 		} else $this->handler("Storefront");
+	}
+	
+	function logins () {
+		
+		if (!empty($_POST['process-login']) && $_POST['process-login'] == "true") 
+			do_action('shopp_auth');
+		
+	}
+	
+	function transactions () {
+		
+		if (isset($_REQUEST['stn'])) return do_action('shopp_txn_notification');
+		
+		if (isset($_POST['checkout'])) {
+			if ($_POST['checkout'] == "process") do_action('shopp_process_checkout');
+			if ($_POST['checkout'] == "confirmed") do_action('shopp_confirm_order');
+		}
+		
 	}
 	
 	/**

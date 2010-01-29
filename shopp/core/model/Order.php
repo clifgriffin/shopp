@@ -21,10 +21,24 @@
  **/
 class Order {
 	
-	var $Customer = false;
-	var $Shipping = false;
-	var $Billing = false;
-	var $Cart = false;
+	var $Customer = false;			// The current customer
+	var $Shipping = false;			// The shipping address
+	var $Billing = false;			// The billing address
+	var $Cart = false;				// The shopping cart
+	var $data = array();			// Extra/custom order data
+	var $Purchase = false;			// Generated Purchase
+
+	var $processor = false;			// The payment processor object
+
+	// Post processing properties
+	var $gateway = false;			// Gateway used to process the order
+	var $transactionid = false;		// The transaction ID reported by the gateway
+	var $transtatus = "PENDING";	// Status of the payment
+	
+	// Processing control properties
+	var $confirm = false;			// Flag to confirm order or not
+	var $confirmed = false;			// Confirmed by the shopper for processing
+	var $accounts = false;			// Account system setting
 	
 	/**
 	 * Order constructor
@@ -34,12 +48,17 @@ class Order {
 	 * @return void
 	 **/
 	function __construct () {
+		global $Shopp;
 		$this->Cart = new Cart();
 		$this->Customer = new Customer();
 		$this->Billing = new Billing();
 		$this->Shipping = new Shipping();
+		$this->purchase = false;
 
 		$this->Shipping->destination();
+
+		$this->confirm = ($Shopp->Settings->get('order_confirmation') == "always");
+		$this->accounts = $Shopp->Settings->get('account_system');
 		
 		$this->listeners();
 	}
@@ -49,8 +68,18 @@ class Order {
 	}
 	
 	function listeners () {
-		add_action('shopp_checkout', array(&$this,'checkout'));
+		add_action('shopp_process_checkout', array(&$this,'checkout'));
+		add_action('shopp_confirm_order', array(&$this,'confirmed'));
+		add_action('shopp_process_order', array(&$this,'processing'));
+		
 		add_action('shopp_update_destination',array(&$this->Shipping,'destination'));
+		add_action('shopp_create_purchase',array(&$this,'purchase'));
+		add_action('shopp_order_notifications',array(&$this,'notify'));
+		add_action('shopp_order_success',array(&$this,'success'));
+	}
+	
+	function processing () {
+		new ShoppError('shopp_process_order','debug',SHOPP_DEBUG_ERR);
 	}
 	
 	/**
@@ -65,15 +94,209 @@ class Order {
 	 * @return void
 	 **/
 	function checkout () {
+		global $Shopp;
+		if (!isset($_POST['checkout'])) return;
+		if ($_POST['checkout'] != "process") return;
+		
+		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-mm'],$_POST['billing']['cardexpires-yy']);
 
+		// If the card number is provided over a secure connection
+		// Change the cart to operate in secure mode
+		if (!empty($_POST['billing']['card']) && is_shopp_secure())
+			$Shopp->Shopping->secured(true);
+
+		// Sanitize the card number to ensure it only contains numbers
+		if (!empty($_POST['billing']['card']))
+			$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
+
+		if (isset($_POST['data'])) $this->data = stripslashes_deep($_POST['data']);
+		if (isset($_POST['info'])) $this->Customer->info = stripslashes_deep($_POST['info']);
+
+		if (empty($this->Customer))
+			$this->Customer = new Customer();
+		$this->Customer->updates($_POST);
+
+		if (isset($_POST['confirm-password']))
+			$Order->Customer->confirm_password = $_POST['confirm-password'];
+
+		if (empty($this->Billing))
+			$this->Billing = new Billing();
+		$this->Billing->updates($_POST['billing']);
+
+		if (!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy'])) {
+			$this->Billing->cardexpires = mktime(0,0,0,
+					$_POST['billing']['cardexpires-mm'],1,
+					($_POST['billing']['cardexpires-yy'])+2000
+				);
+		} else $this->Billing->cardexpires = 0;
+
+		$this->Billing->cvv = preg_replace('/[^\d]/','',$_POST['billing']['cvv']);
+
+		if (!empty($this->Cart->shipped)) {
+			if (empty($this->Shipping))
+				$this->Shipping = new Shipping();
+
+			if (isset($_POST['shipping'])) $this->Shipping->updates($_POST['shipping']);
+			if (!empty($_POST['shipmethod'])) $this->Shipping->method = $_POST['shipmethod'];
+			else $this->Shipping->method = key($this->Cart->shipping);
+
+			// Override posted shipping updates with billing address
+			if ($_POST['sameshipaddress'] == "on")
+				$this->Shipping->updates($this->Billing,
+					array("_datatypes","_table","_key","_lists","id","created","modified"));
+		} else $this->Shipping = new Shipping(); // Use blank shipping for non-Shipped orders
+		
+		
+		// Determine gateway to use
+		
+		if (isset($_POST['paymethod'])) {
+			// User selected one of the payment options
+		}
+		
+		// If only one gateway is active, use tha
+		if (count($Shopp->Gateways->active) == 1) {
+			$Gateway = current($Shopp->Gateways->active);
+			$this->processor = $Gateway->module;
+			$this->gateway = $Gateway->name;
+		}
+		
+		$estimated = $this->Cart->Totals->total;
+		
+		$this->Cart->changed(true);
+		$this->Cart->totals();
+		if ($this->validate() !== true) return;
+		else $this->Customer->updates($_POST); // Catch changes from validation
+		
+		// If the cart's total changes at all, confirm the order
+		if ($estimated != $this->Cart->Totals->total || $this->confirm) {
+			global $Shopp;
+			$secure = true;
+			// $gateway = $this->Settings->get('payment_gateway');
+			// $secure = true;
+			// if (strpos($gateway,"TestMode") !== false 
+			// 	|| isset($wp->query_vars['shopp_xco'])
+			// 	|| $this->Cart->orderisfree()) 
+			// 	$secure = false;
+				
+			shopp_redirect($Shopp->link('confirm-order',$secure));
+		}
+		
+	}
+	
+	function confirmed () {
+		
+		if ($_POST['checkout'] == "confirmed") {
+			$this->confirmed = true;	
+			do_action('shopp_process_order');
+		}
+		
+	}
+	
+	/**
+	 * Generates a Purchase record from the order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function purchase () {
+		global $Shopp;
+		// New customer, save password
+		if (empty($this->Customer->id) && !empty($this->Customer->password))
+			$this->Customer->password = wp_hash_password($this->Customer->password);
+		$this->Customer->save();
+
+		$this->Billing->customer = $this->Customer->id;
+		$card = substr($this->Billing->card,-4);
+		$this->Billing->save();
+
+		// Card data is truncated, switch the cart to normal mode
+		$Shopp->Shopping->secured(false);
+
+		if (!empty($this->Shipping->address)) {
+			$this->Shipping->customer = $this->Customer->id;
+			$this->Shipping->save();
+		}
+		
+		$Promos = array();
+		foreach ($this->Cart->discounts as $promo)
+			$promos[$promo->id] = $promo->name;
+
+		$Purchase = new Purchase();
+		$Purchase->copydata($this);
+		$Purchase->copydata($this->Customer);
+		$Purchase->copydata($this->Billing);
+		$Purchase->copydata($this->Shipping,'ship');
+		$Purchase->copydata($this->Cart->Totals);
+		$Purchase->customer = $this->Customer->id;
+		$Purchase->billing = $this->Billing->id;
+		$Purchase->shipping = $this->Shipping->id;
+		$Purchase->promos = $promos;
+		$Purchase->freight = $this->Cart->Totals->shipping;
+		$Purchase->ip = $Shopp->Shopping->ip;
+		$Purchase->save();
+
+		foreach($this->Cart->contents as $Item) {
+			$Purchased = new Purchased();
+			$Purchased->copydata($Item);
+			$Purchased->purchase = $Purchase->id;
+			if (!empty($Purchased->download)) $Purchased->keygen();
+			$Purchased->save();
+			if ($Item->inventory) $Item->unstock();
+		}
+		
+		$Shopp->Purchase = &$Purchase;
+		$this->purchase = $Purchase->id;
+
+		if (SHOPP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
+
+		do_action('shopp_order_notifications');
+		
+		do_action_ref_array('shopp_order_success',array(&$Shopp->Purchase));
+	}
+	
+	function notify () {
+		global $Shopp;
+		$Purchase = $Shopp->Purchase;
+		
+		// Send email notifications
+		// notification(addressee name, email, subject, email template, receipt template)
+		$Purchase->notification(
+			"$Purchase->firstname $Purchase->lastname",
+			$Purchase->email,
+			__('Order Receipt','Shopp')
+		);
+
+		if ($Shopp->Settings->get('receipt_copy') != 1) return;
+		$Purchase->notification(
+			'',
+			$Shopp->Settings->get('merchant_email'),
+			__('New Order','Shopp')
+		);
+
+		return;
+	}
+	
+	function transaction ($txnid) {
+		$this->txnid = $txnid;
+
+		if (empty($this->txnid)) return new ShoppError(sprintf('The payment gateway %s did not provide a transaction id. Purchase records cannot be created without a transaction id.',$this->gateway),'shopp_order_transaction',SHOPP_DEBUG_ERR);
+
+		do_action('shopp_create_purchase');
+		return true;
+	}
+	
+	function success () {
+		global $Shopp;
+		if ($this->purchase !== false)
+			shopp_redirect($Shopp->link('thanks'));
 	}
 	
 	/**
 	 * validate()
 	 * Validate checkout form order data before processing */
 	function validate () {
-		global $Shopp;
-		$authentication = $Shopp->Settings->get('account_system');
 		
 		if (empty($_POST['firstname']))
 			return new ShoppError(__('You must provide your first name.','Shopp'),'cart_validation');
@@ -91,7 +314,7 @@ class Order {
 		if(!preg_match("!^$rfc822email$!", $_POST['email']))
 			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
 			
-		if ($authentication == "wordpress" && !$this->data->login) {
+		if ($this->accounts == "wordpress" && !$this->Customer->login) {
 			require_once(ABSPATH."/wp-includes/registration.php");
 			
 			// Validate possible wp account names for availability
@@ -117,7 +340,7 @@ class Order {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if (email_exists($_POST['email']) || !empty($ExistingCustomer->id))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
-		} elseif ($authentication == "shopp"  && !$this->data->login) {
+		} elseif ($this->accounts == "shopp"  && !$this->data->login) {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if (!empty($ExistingCustomer->id)) 
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account.','Shopp'),'cart_validation');
@@ -153,7 +376,7 @@ class Order {
 
 		// Skip validating billing details for free purchases 
 		// and remote checkout systems
-		if ((int)$this->data->Totals->total == 0
+		if ((int)$this->Cart->Totals->total == 0
 			|| !empty($_GET['shopp_xco'])) return apply_filters('shopp_validate_checkout',true);
 
 		if (empty($_POST['billing']['card'])) 
@@ -259,7 +482,453 @@ class Order {
 		if (!$hasShipInfo) new ShoppError(__('The shipping address information is incomplete.  The order can not be processed','Shopp'),'invalid_order'.$errorindex++,SHOPP_TXN_ERR);
 		return $hasShipInfo;
 	}
-	
+
+	/**
+	 * Provides shopp('checkout') template API functionality
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return mixed
+	 **/
+	function tag ($property,$options=array()) {
+		global $Shopp,$wp;
+		$gateway = $Shopp->Settings->get('payment_gateway');
+		$xcos = $Shopp->Settings->get('xco_gateways');
+		$pages = $Shopp->Settings->get('pages');
+		$base = $Shopp->Settings->get('base_operations');
+		$countries = $Shopp->Settings->get('target_markets');
+		$process = get_query_var('shopp_proc');
+		$xco = get_query_var('shopp_xco');
+
+		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
+		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
+		
+		
+		if (!isset($options['mode'])) $options['mode'] = "input";
+		
+		switch ($property) {
+			case "url": 
+				$ssl = true;
+				// Test Mode will not require encrypted checkout
+				if (strpos($gateway,"TestMode.php") !== false 
+					|| isset($_GET['shopp_xco']) 
+					|| $this->orderisfree() 
+					|| SHOPP_NOSSL) 
+					$ssl = false;
+				$link = $Shopp->link('checkout',$ssl);
+				
+				// Pass any arguments along
+				$args = $_GET;
+				if (isset($args['page_id'])) unset($args['page_id']);
+				$link = esc_url(add_query_arg($args,$link));
+				if ($process == "confirm-order") $link = apply_filters('shopp_confirm_url',$link);
+				else $link = apply_filters('shopp_checkout_url',$link);
+				return $link;
+				break;
+			case "function":
+				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_PLUGINURI.'/core/ui/icons/updating.gif" width="16" height="16" />';
+				$regions = $Shopp->Settings->get('zones');
+				$base = $Shopp->Settings->get('base_operations');
+				$output = '<script type="text/javascript">'."\n";
+				$output .= '<!--'."\n";
+				$output .= 'var currencyFormat = '.json_encode($base['currency']['format']).';'."\n";
+				$output .= 'var regions = '.json_encode($regions).';'."\n";
+				$output .= 'var SHIPCALC_STATUS = \''.$options['shipcalc'].'\'';
+				$output .= '//-->'."\n";
+				$output .= '</script>'."\n";
+				if (!empty($options['value'])) $value = $options['value'];
+				else $value = "process";
+				$output .= '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>'; 
+				if ($value == "confirmed") $output = apply_filters('shopp_confirm_form',$output);
+				else $output = apply_filters('shopp_checkout_form',$output);
+				return $output;
+				break;
+			case "error":
+				$result = "";
+				$Errors = &ShoppErrors();
+				if (!$Errors->exist(SHOPP_COMM_ERR)) return false;
+				$errors = $Errors->get(SHOPP_COMM_ERR);
+				foreach ((array)$errors as $error) if (!empty($error)) $result .= $error->message();
+				return $result;
+				// if (isset($options['show']) && $options['show'] == "code") return $this->OrderError->code;
+				// return $this->OrderError->message;
+				break;
+			case "cart-summary":
+				ob_start();
+				include(SHOPP_TEMPLATES."/summary.php");
+				$content = ob_get_contents();
+				ob_end_clean();
+				return $content;
+				break;
+			case "loggedin": return $this->login; break;
+			case "notloggedin": return (!$this->login && $Shopp->Settings->get('account_system') != "none"); break;
+			case "email-login":  // Deprecating
+			case "loginname-login":  // Deprecating
+			case "account-login": 
+				if (!empty($_POST['account-login']))
+					$options['value'] = $_POST['account-login']; 
+				return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
+				break;
+			case "password-login": 
+				if (!empty($_POST['password-login']))
+					$options['value'] = $_POST['password-login']; 
+				return '<input type="password" name="password-login" id="password-login" '.inputattrs($options).' />';
+				break;
+			case "submit-login": // Deprecating
+			case "login-button":
+				$string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
+				$string .= '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
+				return $string;
+				break;
+
+			case "firstname": 
+				if ($options['mode'] == "value") return $this->Customer->firstname;
+				if (!empty($this->Customer->firstname))
+					$options['value'] = $this->Customer->firstname; 
+				return '<input type="text" name="firstname" id="firstname" '.inputattrs($options).' />';
+				break;
+			case "lastname":
+				if ($options['mode'] == "value") return $this->Customer->lastname;
+				if (!empty($this->Customer->lastname))
+					$options['value'] = $this->Customer->lastname; 
+				return '<input type="text" name="lastname" id="lastname" '.inputattrs($options).' />'; 
+				break;
+			case "email":
+				if ($options['mode'] == "value") return $this->Customer->email;
+				if (!empty($this->Customer->email))
+					$options['value'] = $this->Customer->email; 
+				return '<input type="text" name="email" id="email" '.inputattrs($options).' />';
+				break;
+			case "loginname":
+				if ($options['mode'] == "value") return $this->Customer->login;
+				if (!empty($this->Customer->login))
+					$options['value'] = $this->Customer->login; 
+				return '<input type="text" name="login" id="login" '.inputattrs($options).' />';
+				break;
+			case "password":
+				if ($options['mode'] == "value") return $this->Customer->password;
+				if (!empty($this->Customer->password))
+					$options['value'] = $this->Customer->password; 
+				return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
+				break;
+			case "confirm-password":
+				if (!empty($this->Customer->confirm_password))
+					$options['value'] = $this->Customer->confirm_password; 
+				return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
+				break;
+			case "phone": 
+				if ($options['mode'] == "value") return $this->Customer->phone;
+				if (!empty($this->Customer->phone))
+					$options['value'] = $this->Customer->phone; 
+				return '<input type="text" name="phone" id="phone" '.inputattrs($options).' />'; 
+				break;
+			case "organization": 
+			case "company": 
+				if ($options['mode'] == "value") return $this->Customer->company;
+				if (!empty($this->Customer->company))
+					$options['value'] = $this->Customer->company; 
+				return '<input type="text" name="company" id="company" '.inputattrs($options).' />'; 
+				break;
+			case "customer-info":
+				$allowed_types = array("text","password","hidden","checkbox","radio");
+				if (empty($options['type'])) $options['type'] = "hidden";
+				if (isset($options['name']) && $options['mode'] == "value") 
+					return $this->Customer->info[$options['name']];
+				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
+					if (isset($this->Customer->info[$options['name']])) 
+						$options['value'] = $this->Customer->info[$options['name']]; 
+					return '<input type="text" name="info['.$options['name'].']" id="customer-info-'.$options['name'].'" '.inputattrs($options).' />'; 
+				}
+				break;
+
+			// SHIPPING TAGS
+			case "shipping": return $this->Shipping;
+			case "shipping-address": 
+				if ($options['mode'] == "value") return $this->Shipping->address;
+				if (!empty($this->Shipping->address))
+					$options['value'] = $this->Shipping->address; 
+				return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
+				break;
+			case "shipping-xaddress":
+				if ($options['mode'] == "value") return $this->Shipping->xaddress;
+				if (!empty($this->Shipping->xaddress))
+					$options['value'] = $this->Shipping->xaddress; 
+				return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
+				break;
+			case "shipping-city":
+				if ($options['mode'] == "value") return $this->Shipping->city;
+				if (!empty($this->Shipping->city))
+					$options['value'] = $this->Shipping->city; 
+				return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
+				break;
+			case "shipping-province":
+			case "shipping-state":
+				if ($options['mode'] == "value") return $this->Shipping->state;
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($this->Shipping->state)) {
+					$options['selected'] = $this->Shipping->state;
+					$options['value'] = $this->Shipping->state;
+				}
+				
+				$output = false;
+				$country = $base['country'];
+				if (!empty($this->Shipping->country))
+					$country = $this->Shipping->country;
+				if (!array_key_exists($country,$countries)) $country = key($countries);
+
+				if (empty($options['type'])) $options['type'] = "menu";
+				$regions = $Shopp->Settings->get('zones');
+				$states = $regions[$country];
+				if (is_array($states) && $options['type'] == "menu") {
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'>';
+					$output .= '<option value="" selected="selected">'.$label.'</option>';
+				 	$output .= menuoptions($states,$options['selected'],true);
+					$output .= '</select>';
+				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
+				return $output;
+				break;
+			case "shipping-postcode":
+				if ($options['mode'] == "value") return $this->Shipping->postcode;
+				if (!empty($this->Shipping->postcode))
+					$options['value'] = $this->Shipping->postcode; 				
+				return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />'; break;
+			case "shipping-country": 
+				if ($options['mode'] == "value") return $this->Shipping->country;
+				if (!empty($this->Shipping->country))
+					$options['selected'] = $this->Shipping->country;
+				else if (empty($options['selected'])) $options['selected'] = $base['country'];
+				$output = '<select name="shipping[country]" id="shipping-country" '.inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($countries,$options['selected'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "same-shipping-address":
+				$label = __("Same shipping address","Shopp");
+				if (isset($options['label'])) $label = $options['label'];
+				$checked = ' checked="checked"';
+				if (isset($options['checked']) && !value_is_true($options['checked'])) $checked = '';
+				$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" '.$checked.' /> '.$label.'</label>';
+				return $output;
+				break;
+				
+			// BILLING TAGS
+			case "billing-required": 
+				if ($this->Cart->Totals->total == 0) return false;
+				if (isset($_GET['shopp_xco'])) {
+					$xco = join('/',array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
+					if (file_exists($xco)) {
+						$meta = $Shopp->Flow->scan_gateway_meta($xco);
+						$PaymentSettings = $Shopp->Settings->get($meta->tags['class']);
+						return ($PaymentSettings['billing-required'] != "off");
+					}
+				}
+				return ($this->Cart->Totals->total > 0); break;
+			case "billing-address":
+				if ($options['mode'] == "value") return $this->Billing->address;
+				if (!empty($this->Billing->address))
+					$options['value'] = $this->Billing->address;			
+				return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
+				break;
+			case "billing-xaddress":
+				if ($options['mode'] == "value") return $this->Billing->xaddress;
+				if (!empty($this->Billing->xaddress))
+					$options['value'] = $this->Billing->xaddress;			
+				return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
+				break;
+			case "billing-city":
+				if ($options['mode'] == "value") return $this->Billing->city;
+				if (!empty($this->Billing->city))
+					$options['value'] = $this->Billing->city;			
+				return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />'; 
+				break;
+			case "billing-province": 
+			case "billing-state": 
+				if ($options['mode'] == "value") return $this->Billing->state;
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($this->Billing->state)) {
+					$options['selected'] = $this->Billing->state;
+					$options['value'] = $this->Billing->state;
+				}
+				if (empty($options['type'])) $options['type'] = "menu";
+				
+				$output = false;
+				$country = $base['country'];
+				if (!empty($this->Billing->country))
+					$country = $this->Billing->country;
+				if (!array_key_exists($country,$countries)) $country = key($countries);
+
+				$regions = $Shopp->Settings->get('zones');
+				$states = $regions[$country];
+				if (is_array($states) && $options['type'] == "menu") {
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'>';
+					$output .= '<option value="" selected="selected">'.$label.'</option>';
+				 	$output .= menuoptions($states,$options['selected'],true);
+					$output .= '</select>';
+				} else $output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
+				return $output;
+				break;
+			case "billing-postcode":
+				if ($options['mode'] == "value") return $this->Billing->postcode;
+				if (!empty($this->Billing->postcode))
+					$options['value'] = $this->Billing->postcode;			
+				return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
+				break;
+			case "billing-country": 
+				if ($options['mode'] == "value") return $this->Billing->country;
+				if (!empty($this->Billing->country))
+					$options['selected'] = $this->Billing->country;
+				else if (empty($options['selected'])) $options['selected'] = $base['country'];			
+				$output = '<select name="billing[country]" id="billing-country" '.inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($countries,$options['selected'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "billing-card":
+				if ($options['mode'] == "value") 
+					return str_repeat('X',strlen($this->Billing->card)-4)
+						.substr($this->Billing->card,-4);
+				if (!empty($this->Billing->card)) {
+					$options['value'] = $this->Billing->card;
+					$this->Billing->card = "";
+				}
+				return '<input type="text" name="billing[card]" id="billing-card" '.inputattrs($options).' />';
+				break;
+			case "billing-cardexpires-mm":
+				if ($options['mode'] == "value") return date("m",$this->Billing->cardexpires);
+				if (!empty($this->Billing->cardexpires))
+					$options['value'] = date("m",$this->Billing->cardexpires);				
+				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm" '.inputattrs($options).' />'; 	
+				break;
+			case "billing-cardexpires-yy": 
+				if ($options['mode'] == "value") return date("y",$this->Billing->cardexpires);
+				if (!empty($this->Billing->cardexpires))
+					$options['value'] = date("y",$this->Billing->cardexpires);							
+				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy" '.inputattrs($options).' />'; 
+				break;
+			case "billing-cardtype":
+				if ($options['mode'] == "value") return $this->Billing->cardtype;
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($this->Billing->cardtype))
+					$options['selected'] = $this->Billing->cardtype;	
+				$cards = $Shopp->Settings->get('gateway_cardtypes');
+				$label = (!empty($options['label']))?$options['label']:'';
+				$output = '<select name="billing[cardtype]" id="billing-cardtype" '.inputattrs($options,$select_attrs).'>';
+				$output .= '<option value="" selected="selected">'.$label.'</option>';
+			 	$output .= menuoptions($cards,$options['selected']);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "billing-cardholder":
+				if ($options['mode'] == "value") return $this->Billing->cardholder;
+				if (!empty($this->Billing->cardholder))
+					$options['value'] = $this->Billing->cardholder;			
+				return '<input type="text" name="billing[cardholder]" id="billing-cardholder" '.inputattrs($options).' />';
+				break;
+			case "billing-cvv":
+				if (!empty($_POST['billing']['cvv']))
+					$options['value'] = $_POST['billing']['cvv'];
+				return '<input type="text" name="billing[cvv]" id="billing-cvv" '.inputattrs($options).' />';
+				break;
+			case "billing-xco":     
+				if (isset($_GET['shopp_xco'])) {
+					if ($this->Totals->total == 0) return false;
+					$xco = join('/',array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
+					if (file_exists($xco)) {
+						$meta = $Shopp->Flow->scan_gateway_meta($xco);
+						$ProcessorClass = $meta->tags['class'];
+						include_once($xco);
+						$Payment = new $ProcessorClass();
+						if (method_exists($Payment,'billing')) return $Payment->billing($options);
+					}
+				}
+				break;
+				
+			case "has-data":
+			case "hasdata": return (is_array($this->data) && count($this->data) > 0); break;
+			case "order-data":
+			case "orderdata":
+				if (isset($options['name']) && $options['mode'] == "value") 
+					return $this->data[$options['name']];
+				if (empty($options['type'])) $options['type'] = "hidden";
+				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
+				$value_override = array("text","hidden","password","textarea");
+				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
+					if (!isset($options['title'])) $options['title'] = $options['name'];
+					// @todo: Check if this is still necessary
+					if (in_array($options['type'],$value_override) && isset($this->data[$options['name']])) 
+						$options['value'] = $this->data[$options['name']];
+					if (!isset($options['value'])) $options['value'] = "";
+					if (!isset($options['cols'])) $options['cols'] = "30";
+					if (!isset($options['rows'])) $options['rows'] = "3";
+					if ($options['type'] == "textarea") 
+						return '<textarea name="data['.$options['name'].']" cols="'.$options['cols'].'" rows="'.$options['rows'].'" id="order-data-'.$options['name'].'" '.inputattrs($options,array('accesskey','title','tabindex','class','disabled','required')).'>'.$options['value'].'</textarea>';
+					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'" '.inputattrs($options).' />';
+				}
+
+				// Looping for data value output
+				if (!$this->dataloop) {
+					reset($this->data);
+					$this->dataloop = true;
+				} else next($this->data);
+
+				if (current($this->data) !== false) return true;
+				else {
+					$this->dataloop = false;
+					return false;
+				}
+				
+				break;
+			case "data":
+				if (!is_array($this->data)) return false;
+				$data = current($this->data);
+				$name = key($this->data);
+				if (isset($options['name'])) return $name;
+				return $data;
+				break;
+			case "submit": 
+				if (!isset($options['value'])) $options['value'] = __('Submit Order','Shopp');
+				return '<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />'; break;
+			case "confirm-button": 
+				if (!isset($options['value'])) $options['value'] = __('Confirm Order','Shopp');
+				return '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />'; break;
+			case "local-payment": 
+				return (!empty($gateway)); break;
+			case "xco-buttons":     
+				if (!is_array($xcos)) return false;
+				$buttons = "";
+				foreach ($xcos as $xco) {
+					$xcopath = join('/',array($Shopp->path,'gateways',$xco));
+					if (!file_exists($xcopath)) continue;
+					$meta = scan_gateway_meta($xcopath);
+					$ProcessorClass = $meta->tags['class'];
+					if (!empty($ProcessorClass)) {
+						$PaymentSettings = $Shopp->Settings->get($ProcessorClass);
+						if ($PaymentSettings['enabled'] == "on") {
+							include_once($xcopath);
+							$Payment = new $ProcessorClass();
+							$buttons .= $Payment->tag('button',$options);
+						}
+					}
+				}
+				return $buttons;
+				break;
+			case "receipt":
+				if (empty($Shopp->Purchase->id)) {
+					if ($this->purchase !== false) {
+						$Shopp->Purchase = new Purchase($this->purchase);
+						$Shopp->Purchase->load_purchased();
+					}
+						
+				}
+			
+				if (!empty($Shopp->Purchase->id)) 
+					return $Shopp->Purchase->receipt();
+				break;
+		}
+	}	
 
 } // END class Order
 

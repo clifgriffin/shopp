@@ -7,11 +7,12 @@
  * @version 1.0.5
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
+ * @since 1.0
  * 
  * $Id$
  **/
 
-class PayPalStandard {          
+class PayPalStandard  {          
 	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
 	var $button = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
 	var $sandbox_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
