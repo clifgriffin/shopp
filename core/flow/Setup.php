@@ -637,6 +637,11 @@ class ModuleSettingsUI {
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
 	
+	function p ($column=0,$attributes=array()) {
+		$attributes['type'] = "p";
+		$attrs = json_encode($attributes);
+		echo "$this->module.newInput($column,$attrs);\n";
+	}
 	
 	
 }

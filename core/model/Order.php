@@ -278,9 +278,10 @@ class Order {
 		return;
 	}
 	
-	function transaction ($txnid) {
-		$this->txnid = $txnid;
-
+	function transaction ($id,$status="PENDING") {
+		$this->txnid = $id;
+		$this->txnstatus = $status;
+		
 		if (empty($this->txnid)) return new ShoppError(sprintf('The payment gateway %s did not provide a transaction id. Purchase records cannot be created without a transaction id.',$this->gateway),'shopp_order_transaction',SHOPP_DEBUG_ERR);
 
 		do_action('shopp_create_purchase');
@@ -896,24 +897,27 @@ class Order {
 				return '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />'; break;
 			case "local-payment": 
 				return (!empty($gateway)); break;
-			case "xco-buttons":     
-				if (!is_array($xcos)) return false;
-				$buttons = "";
-				foreach ($xcos as $xco) {
-					$xcopath = join('/',array($Shopp->path,'gateways',$xco));
-					if (!file_exists($xcopath)) continue;
-					$meta = scan_gateway_meta($xcopath);
-					$ProcessorClass = $meta->tags['class'];
-					if (!empty($ProcessorClass)) {
-						$PaymentSettings = $Shopp->Settings->get($ProcessorClass);
-						if ($PaymentSettings['enabled'] == "on") {
-							include_once($xcopath);
-							$Payment = new $ProcessorClass();
-							$buttons .= $Payment->tag('button',$options);
-						}
-					}
-				}
-				return $buttons;
+			case "xco-buttons": return;	// DEPRECATED
+				// if (!is_array($xcos)) return false;
+				// $buttons = "";
+				// foreach ($xcos as $xco) {
+				// 	$xcopath = join('/',array($Shopp->path,'gateways',$xco));
+				// 	if (!file_exists($xcopath)) continue;
+				// 	$meta = scan_gateway_meta($xcopath);
+				// 	$ProcessorClass = $meta->tags['class'];
+				// 	if (!empty($ProcessorClass)) {
+				// 		$PaymentSettings = $Shopp->Settings->get($ProcessorClass);
+				// 		if ($PaymentSettings['enabled'] == "on") {
+				// 			include_once($xcopath);
+				// 			$Payment = new $ProcessorClass();
+				// 			$buttons .= $Payment->tag('button',$options);
+				// 		}
+				// 	}
+				// }
+				// return $buttons;
+				break;
+			case "payment-options":
+			case "paymentoptions": 
 				break;
 			case "receipt":
 				if (empty($Shopp->Purchase->id)) {

@@ -76,15 +76,15 @@
 		<?php endif; ?>
 		<li></li>
 		<?php if (shopp('checkout','billing-required')): ?>
-		<li></li>
-		<li>
+		<li><?php shopp('checkout','payment-options'); ?></li>
+		<li class="payment">
 			<label for="billing-card"><?php _e('Payment Information','Shopp'); ?></label>
 			<span><?php shopp('checkout','billing-card','required=true&size=30&title='.__('Credit/Debit Card Number','Shopp')); ?><label for="billing-card"><?php _e('Credit/Debit Card Number','Shopp'); ?></label></span>
 			<span><?php shopp('checkout','billing-cardexpires-mm','size=4&required=true&minlength=2&maxlength=2&title='.__('Card\'s 2-digit expiration month','Shopp')); ?> /<label for="billing-cardexpires-mm"><?php _e('MM','Shopp'); ?></label></span>
 			<span><?php shopp('checkout','billing-cardexpires-yy','size=4&required=true&minlength=2&maxlength=2&title=Card\'s 2-digit expiration year'); ?><label for="billing-cardexpires-yy">YY</label></span>
 			<span><?php shopp('checkout','billing-cardtype','required=true&title='.__('Card Type','Shopp')); ?><label for="billing-cardtype"><?php _e('Card Type','Shopp'); ?></label></span>
 		</li>
-		<li>
+		<li class="payment">
 			<span><?php shopp('checkout','billing-cardholder','required=true&size=30&title='.__('Card Holder\'s Name','Shopp')); ?><label for="billing-cardholder"><?php _e('Name on Card','Shopp'); ?></label></span>
 			<span><?php shopp('checkout','billing-cvv','size=7&minlength=3&maxlength=4&title='.__('Card\'s security code (3-4 digits on the back of the card)','Shopp')); ?><label for="billing-cvv"><?php _e('Security ID','Shopp'); ?></label></span>
 		</li>	
