@@ -71,7 +71,7 @@ var SettingInput = function (module,attrs,options) {
 	var $ = jQuery.noConflict();
 	var _self = this;
 	
-	var types = new Array('text','password','hidden','checkbox','menu','textarea','multimenu','p');
+	var types = new Array('text','password','hidden','checkbox','menu','textarea','multimenu','p','button');
 
 	if (!attrs.name) return '';
 	
@@ -93,6 +93,7 @@ var SettingInput = function (module,attrs,options) {
 	this.generate = function () {
 		if (!this.name) return;
 		if (this.type == "p") return this.paragraph();
+		if (this.type == "button") return this.button();
 		if (this.type == "checkbox") return this.checkbox();
 		if (this.type == "menu") return this.menu();
 		if (this.type == "multimenu") return this.multimenu();
@@ -158,6 +159,12 @@ var SettingInput = function (module,attrs,options) {
 		
 		if (this.label) html += '<br /><label for="'+this.id+'">'+this.label+'</label></div>\n';
 		
+		return html;
+	}
+
+	this.button = function () {
+		classes = (this.classes)?' class="button-secondary '+this.classes+'"':' class="button-secondary"';
+		var html = '<div><button name="'+this.name+'" value="'+this.value+'" size="'+this.size+'" id="'+this.id+'"'+classes+'>'+this.label+'</button></div>\n';
 		return html;
 	}
 	
