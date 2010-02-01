@@ -127,7 +127,6 @@ class Purchase extends DatabaseObject {
 	
 	// Display a sales receipt
 	function receipt ($template="receipt.php") {
-		
 		ob_start();
 		include(SHOPP_TEMPLATES."/$template");
 		$content = ob_get_contents();

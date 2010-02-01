@@ -75,6 +75,8 @@ class PayPalStandard extends GatewayFramework {
 		add_action('shopp_init_checkout',array(&$this,'init'));
 		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
 		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
+		add_action('shopp_remote_order',array(&$this,'returned'));
+		add_action('shopp_process_order',array(&$this,'process'));
 	}
 	
 	function confirmation () {
@@ -88,7 +90,7 @@ class PayPalStandard extends GatewayFramework {
 		if (!$this->myorder()) return false;
 		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 	}
-	
+		
 	function checkout () {
 		global $Shopp;
 		$Shopp->Order->confirm = true;
@@ -168,8 +170,7 @@ class PayPalStandard extends GatewayFramework {
 		$_['invoice']				= $Shopp->Shopping->session;
 		
 		// Options
-		$_['return']				= add_query_arg('shopp_xco','PayPal/PayPalStandard',
-													$Shopp->link('confirm-order',false));
+		$_['return']				= add_query_arg('r_order','process',$Shopp->link('checkout',false));
 		$_['cancel_return']			= $Shopp->link('cart');
 		$_['notify_url']			= add_query_arg('_txnupdate','PPS',$Shopp->link('catalog'));
 		$_['rm']					= 1; // Return with no transaction data
@@ -222,55 +223,53 @@ class PayPalStandard extends GatewayFramework {
 		return $form.$this->format($_);
 	}
 	
+	function returned () {
+		if (isset($_REQUEST['tx']) && $this->myorder()) { // PDT
+			error_log('paypal returned');
+			// Run order processing
+			do_action('shopp_process_order'); 
+		}
+	}
+	
 	function process () {
-		global $Shopp;
-		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification received: '._object_r($_POST),false,SHOPP_DEBUG_ERR);
-		
-		// Cancel processing if this is not a Website Payments Standard/Express Checkout IPN
-		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") return false;
-		
-		// Handle IPN updates to existing purchases
-		if ($this->updates()) die("Updated."); 
-		
-		// If no invoice number is available, we 
-		if (empty($_POST['invoice'])) {
-			if (SHOPP_DEBUG) new ShoppError('No invoice number was provided by PayPal: '._object_r($_POST),'paypalstd_debug',SHOPP_DEBUG_ERR);
-			return new ShoppError(__('An unverifiable order with no invoice number was received from PayPal. Possible fraudulent order attempt!','Shopp'),'paypal_txn_verification',SHOPP_TRXN_ERR);
-		}
+			global $Shopp;
+			
+			$txnstatus = false;
+			$transactionid = false;
+			if (isset($_REQUEST['tx'])) { // PDT processing
+				if (SHOPP_DEBUG) new ShoppError('Processing PDT packet: '._object_r($_GET),false,SHOPP_DEBUG_ERR);
 
-		$Shopp->Cart = new Cart();
-		$Shopp->Cart->reset();
+				$txnid = $_GET['tx'];
+				$txnstatus = $this->status[$_GET['st']];
+				error_log("$txnid - $txnstatus");
+				$Purchase = new Purchase($txnid,'txnid');
 
-		// Load the cart for the correct order
-		$Shopp->Cart->session = $_POST['invoice'];
-		if (!$Shopp->Cart->load($Shopp->Cart->session)) 
-			new ShoppError('Session could not be loaded: '.$Shopp->Cart->session,false,SHOPP_DEBUG_ERR);
-		else new ShoppError('PayPal successfully loaded session: '.$Shopp->Cart->session,false,SHOPP_DEBUG_ERR);
+				if (!empty($Purchase->id)) {
+					error_log("Purchase exists! Update status...");
+					if (SHOPP_DEBUG) new ShoppError('Order located, already created from an IPN message.',false,SHOPP_DEBUG_ERR);
+					$Shopp->resession();
+					$Shopp->Purchase = $Purchase;
+					$Shopp->Order->purchase = $Purchase->id;
+					shopp_redirect($Shopp->link('thanks',false));
+				}
 
-		if (isset($Shopp->Cart->data)) {
-			$Order = $Shopp->Cart->data->Order;
-			$Order->Totals = $Shopp->Cart->data->Totals;
-			$Order->Items = $Shopp->Cart->contents;
-			$Order->Cart = $Shopp->Cart->session;
-		}
+			}
+			
+			if (isset($_REQUEST['txn_id'])) { // IPN processing
+				$txnid = $_POST['txn_id'];
+				$txnstatus = $this->status[$_POST['payment_status']];
 
-		if (SHOPP_DEBUG) new ShoppError('PayPal IPN new transaction: '._object_r($_POST),false,SHOPP_DEBUG_ERR);
+				// Validate the order notification
+				$ipnstatus = $this->verifyipn();
+				if ($ipnstatus != "VERIFIED") {
+					$txnstatus = $ipnstatus;
+					new ShoppError('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt! The order will be created, but the order payment status must be manually set to "Charged" when the payment can be verified.','paypal_txn_verification',SHOPP_TRXN_ERR);
+				} else if (SHOPP_DEBUG) new ShoppError('IPN notification validated.',false,SHOPP_DEBUG_ERR);
+				
+			}
 		
-		// Validate the order data
-		$validation = true;
-
-		if(!$Shopp->Cart->validorder()){
-			new ShoppError(sprintf(__('The order can not be processed. Order data: %s -- IPN message: %s','Shopp'),_object_r($Order),_object_r($_POST)),'invalid_order_pps',SHOPP_TRXN_ERR);
-			$validation = false;	
-		}
+		$Shopp->Order->transaction($txnid,$txnstatus);
 		
-		if(floatvalue($_POST['mc_gross']) != floatvalue($Order->Totals->total)){
-			$validation = false;
-			if(SHOPP_DEBUG) new ShoppError(sprintf(__('Order validation failed. The order total from the IPN message (%s) does not match the Shopp order total (%s)','Shopp'),floatvalue($_POST['mc_gross']),floatvalue($Order->Totals->total)),'paypalstd_total_mismatch',SHOPP_TRXN_ERR);
-		}  
-		 
-		if ($validation) $this->order();		
-		exit();
 	}
 	
 	function updates () {
@@ -282,8 +281,8 @@ class PayPalStandard extends GatewayFramework {
 		if (!isset($_POST['invoice'])) return false;
 
 		global $Shopp;
-		$Shopping = $Shopp->Shopping;
-		$Shopping->reload($_POST['invoice']);
+		$Shopp->resession($_POST['invoice']);
+		$Shopping = &$Shopp->Shopping;
 		// Couldn't load the session data
 		if ($Shopping->session != $_POST['invoice'])
 			return new ShoppError("Session could not be loaded: {$_POST['invoice']}",false,SHOPP_DEBUG_ERR);
@@ -365,156 +364,12 @@ class PayPalStandard extends GatewayFramework {
 		$_['cmd'] = "_notify-validate";
 		
 		$transaction = $this->encode(array_merge($_POST,$_));
-		$response = parent::send($transaction);
+		$response = parent::send($transaction,$this->url);
 		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification verfication response received: '.$response,'paypal_standard',SHOPP_DEBUG_ERR);
 		return $response;
 	}
 	
-	// function order () {
-	// 	
-	// 	
-	// 	
-	// 	global $Shopp;
-	// 	
-	// 	$txnstatus = false;
-	// 	$transactionid = false;
-	// 	if ($this->pdt) {
-	// 		if (SHOPP_DEBUG) new ShoppError('Processing PDT packet: '._object_r($_GET),false,SHOPP_DEBUG_ERR);
-	// 		
-	// 		$transactionid = $_GET['tx'];
-	// 		$txnstatus = $this->status[$_GET['st']];
-	// 		$Purchase = new Purchase($transactionid,'transactionid');
-	// 		if (!empty($Purchase->id)) {
-	// 			if (SHOPP_DEBUG) new ShoppError('Order located, already created from an IPN message.',false,SHOPP_DEBUG_ERR);
-	// 			$Shopp->resession();
-	// 			$Shopp->Cart->data->Purchase = $Purchase;
-	// 			$Shopp->Cart->data->Purchase->load_purchased();
-	// 			shopp_redirect($Shopp->link('thanks',false));
-	// 		}
-	// 	} else {
-	// 		$ipnstatus = $this->verifyipn();
-	// 	
-	// 		// Validate the order notification
-	// 		if ($ipnstatus != "VERIFIED") {
-	// 			$txnstatus = $ipnstatus;
-	// 			new ShoppError('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt! The order will be created, but the order payment status must be manually set to "Charged" when the payment can be verified.','paypal_txn_verification',SHOPP_TRXN_ERR);
-	// 		} else if (SHOPP_DEBUG) new ShoppError('IPN notification validated.',false,SHOPP_DEBUG_ERR);
-	// 		
-	// 		$transactionid = $_POST['txn_id'];
-	// 		$txnstatus = $this->status[$_POST['payment_status']];
-	// 	}
-	// 	
-	// 	$Order = $Shopp->Cart->data->Order;
-	// 	$Order->Totals = $Shopp->Cart->data->Totals;
-	// 	$Order->Items = $Shopp->Cart->contents;
-	// 	$Order->Cart = $Shopp->Cart->session;
-	// 	
-	// 	// Transaction successful, save the order
-	// 	$authentication = $Shopp->Settings->get('account_system');
-	// 	
-	// 	if ($authentication == "wordpress") {
-	// 		// Check if they've logged in
-	// 		// If the shopper is already logged-in, save their updated customer info
-	// 		if ($Shopp->Cart->data->login) {
-	// 			$user = get_userdata($Order->Customer->wpuser);
-	// 			$Order->Customer->wpuser = $user->ID;
-	// 			if (SHOPP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
-	// 		}
-	// 		
-	// 		// Create WordPress account (if necessary)
-	// 		if (!$Order->Customer->wpuser) {
-	// 			if (SHOPP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
-	// 			if(!$Order->Customer->new_wpuser()) new ShoppError(__('Account creation failed on order for customer id:' . $Order->Customer->id, "Shopp"), false,SHOPP_TRXN_ERR);
-	// 		}
-	// 	}
-	// 	
-	// 	// Create a WP-compatible password hash to go in the db
-	// 	if (empty($Order->Customer->id) && isset($Order->Customer->password))
-	// 		$Order->Customer->password = wp_hash_password($Order->Customer->password);
-	// 	$Order->Customer->save();
-	// 	
-	// 	$Order->Billing->customer = $Order->Customer->id;
-	// 	$Order->Billing->cardtype = "PayPal";
-	// 	$Order->Billing->save();
-	// 	
-	// 	if (!empty($Order->Shipping->address)) {
-	// 		$Order->Shipping->customer = $Order->Customer->id;
-	// 		$Order->Shipping->save();
-	// 	}
-	// 	
-	// 	$Promos = array();
-	// 	foreach ($Shopp->Cart->data->PromosApplied as $promo)
-	// 		$Promos[$promo->id] = $promo->name;
-	// 	
-	// 	$Purchase = new Purchase();
-	// 	$Purchase->customer = $Order->Customer->id;
-	// 	$Purchase->billing = $Order->Billing->id;
-	// 	$Purchase->shipping = $Order->Shipping->id;
-	// 	$Purchase->data = $Order->data;
-	// 	$Purchase->promos = $Promos;
-	// 	$Purchase->copydata($Order->Customer);
-	// 	$Purchase->copydata($Order->Billing);
-	// 	$Purchase->copydata($Order->Shipping,'ship');
-	// 	$Purchase->copydata($Shopp->Cart->data->Totals);
-	// 	$Purchase->freight = $Shopp->Cart->data->Totals->shipping;
-	// 	$Purchase->gateway = "PayPal".(isset($_POST['test_ipn']) && $_POST['test_ipn'] == "1"?" Sandbox":"");
-	// 	$Purchase->transactionid = $transactionid;
-	// 	$Purchase->transtatus = $txnstatus;
-	// 	if (isset($_POST['mc_fee'])) $Purchase->fees = $_POST['mc_fee'];
-	// 	$Purchase->ip = $Shopp->Cart->ip;
-	// 	$Purchase->save();
-	// 	// echo "<pre>"; print_r($Purchase); echo "</pre>";
-	// 	
-	// 	foreach($Shopp->Cart->contents as $Item) {
-	// 		$Purchased = new Purchased();
-	// 		$Purchased->copydata($Item);
-	// 		$Purchased->purchase = $Purchase->id;
-	// 		if (!empty($Purchased->download)) $Purchased->keygen();
-	// 		$Purchased->save();
-	// 		if ($Item->inventory) $Item->unstock();
-	// 	}
-	// 	
-	// 	// Empty cart on successful order
-	// 	$Shopp->Cart->unload();
-	// 	session_destroy();
-	// 	
-	// 	// Start new cart session
-	// 	$Shopp->Cart = new Cart();
-	// 	session_start();
-	// 	
-	// 	// Keep the user loggedin
-	// 	if ($Shopp->Cart->data->login)
-	// 		$Shopp->Cart->loggedin($Order->Customer);
-	// 	
-	// 	// Save the purchase ID for later lookup
-	// 	$Shopp->Cart->data->Purchase = new Purchase($Purchase->id);
-	// 	$Shopp->Cart->data->Purchase->load_purchased();
-	// 	// $Shopp->Cart->save();
-	// 	
-	// 	// Allow other WordPress plugins access to Purchase data to extend
-	// 	// what Shopp does after a successful transaction
-	// 	do_action_ref_array('shopp_order_success',array(&$Shopp->Cart->data->Purchase));
-	// 	
-	// 	// Send email notifications
-	// 	// notification(addressee name, email, subject, email template, receipt template)
-	// 	$Purchase->notification(
-	// 		"$Purchase->firstname $Purchase->lastname",
-	// 		$Purchase->email,
-	// 		__('Order Receipt','Shopp')
-	// 	);
-	// 	
-	// 	if ($Shopp->Settings->get('receipt_copy') == 1) {
-	// 		$Purchase->notification(
-	// 			'',
-	// 			$Shopp->Settings->get('merchant_email'),
-	// 			__('New Order','Shopp')
-	// 		);
-	// 	}
-	// 	
-	// 	if ($this->pdt) shopp_redirect($Shopp->link('thanks',false));
-	// 	
-	// 	exit();
-	// }
+
 	
 	function error () {
 		if (!empty($this->Response)) {
@@ -527,8 +382,7 @@ class PayPalStandard extends GatewayFramework {
 	}
 		
 	function send () {
-		$response = parent::send($this->transaction,$this->url());
-		return $response;
+		return parent::send($this->transaction,$this->url());
 	}
 	
 	function response () { /* Placeholder */ }

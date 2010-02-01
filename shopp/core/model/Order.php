@@ -76,7 +76,6 @@ class Order {
 		add_action('shopp_create_purchase',array(&$this,'purchase'));
 		add_action('shopp_order_notifications',array(&$this,'notify'));
 		add_action('shopp_order_success',array(&$this,'success'));
-		error_log('Order constructed');
 	}
 	
 	function processor () {
