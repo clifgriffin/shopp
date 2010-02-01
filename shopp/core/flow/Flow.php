@@ -67,7 +67,10 @@ class Flow {
 	
 	function transactions () {
 		
-		if (isset($_REQUEST['stn'])) return do_action('shopp_txn_notification');
+		if (!empty($_REQUEST['_txnupdate'])) {
+			error_log('txn update message received');
+			return do_action('shopp_txn_update');
+		}
 		
 		if (isset($_POST['checkout'])) {
 			if ($_POST['checkout'] == "process") do_action('shopp_process_checkout');

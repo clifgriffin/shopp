@@ -561,12 +561,11 @@ class Shopp {
 	 **/
 	function resession () {
 		session_regenerate_id();
-		$this->Cart->session = session_id();
+		$this->Shopping->session = session_id();
 		session_write_close();
-		$this->Cart = new Cart();
+		$this->Shopping = new Shopping();
 		session_start();
-		$this->Cart->clear();
-		$this->Cart->data->Promotions = array();
+		$this->Order->Cart->clear();
 		return true;
 	}
 	

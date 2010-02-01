@@ -606,16 +606,18 @@ class Storefront extends FlowController {
 		global $Shopp;
 		$Cart = $Shopp->Order->Cart;
 		$Errors = &ShoppErrors();
-		
 		$process = get_query_var('shopp_proc');
-		$xco = get_query_var('shopp_xco');
-		if (!empty($xco)) {
-			$Shopp->gateway($xco);
-			$Shopp->Gateway->actions();
-		}
-
+		// $xco = get_query_var('shopp_xco');
+		// if (!empty($xco)) {
+		// 	$Shopp->gateway($xco);
+		// 	$Shopp->Gateway->actions();
+		// }
+		do_action('shopp_init_checkout');
 		switch ($process) {
-			case "confirm-order": $content = $this->order_confirmation(); break;
+			case "confirm-order": 
+				do_action('shopp_init_confirmation'); 
+				$content = $this->order_confirmation(); 
+				break;
 			case "thanks":
 			case "receipt": 
 				$content = $this->thanks(); 
