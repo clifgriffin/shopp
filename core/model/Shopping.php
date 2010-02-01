@@ -81,6 +81,12 @@ class Shopping extends SessionObject {
 		return true;
 	}
 	
+	function reload ($session) {
+		session_write_close();
+		$this->session = session_id($session);
+		session_start();
+	}
+	
 } // END class Shopping
 
 /**

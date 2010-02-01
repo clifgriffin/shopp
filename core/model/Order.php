@@ -28,10 +28,10 @@ class Order {
 	var $data = array();			// Extra/custom order data
 	var $Purchase = false;			// Generated Purchase
 
-	var $processor = false;			// The payment processor object
+	var $processor = false;			// The payment processor module name
 
 	// Post processing properties
-	var $gateway = false;			// Gateway used to process the order
+	var $gateway = false;			// Proper name of the gateway used to process the order
 	var $transactionid = false;		// The transaction ID reported by the gateway
 	var $transtatus = "PENDING";	// Status of the payment
 	
@@ -65,21 +65,39 @@ class Order {
 	
 	function __wakeup () {
 		$this->listeners();
+		$this->processor();
 	}
 	
 	function listeners () {
 		add_action('shopp_process_checkout', array(&$this,'checkout'));
 		add_action('shopp_confirm_order', array(&$this,'confirmed'));
-		add_action('shopp_process_order', array(&$this,'processing'));
 		
 		add_action('shopp_update_destination',array(&$this->Shipping,'destination'));
 		add_action('shopp_create_purchase',array(&$this,'purchase'));
 		add_action('shopp_order_notifications',array(&$this,'notify'));
 		add_action('shopp_order_success',array(&$this,'success'));
+		error_log('Order constructed');
 	}
 	
-	function processing () {
-		new ShoppError('shopp_process_order','debug',SHOPP_DEBUG_ERR);
+	function processor () {
+		global $Shopp;
+		
+		if (count($Shopp->Gateways->active) == 1) {
+			$Gateway = current($Shopp->Gateways->active);
+			$this->processor = $Gateway->module;
+			$this->gateway = $Gateway->name;
+		}
+		
+		if (isset($Shopp->Gateways->active[$this->processor]))
+			return $Shopp->Gateways->active[$this->processor];
+		return false;
+	}
+	
+	function ccpayment () {
+		$ccdata = array('card','cardexpires-mm','cardexpires-yy','cvv');
+		foreach ($ccdata as $field) 
+			if (isset($_POST['billing'][$field])) return true;
+		return false;
 	}
 	
 	/**
@@ -98,16 +116,21 @@ class Order {
 		if (!isset($_POST['checkout'])) return;
 		if ($_POST['checkout'] != "process") return;
 		
-		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-mm'],$_POST['billing']['cardexpires-yy']);
+		$cc = $this->ccpayment();
+		
+		if ($cc) {
+			$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-mm'],$_POST['billing']['cardexpires-yy']);
 
-		// If the card number is provided over a secure connection
-		// Change the cart to operate in secure mode
-		if (!empty($_POST['billing']['card']) && is_shopp_secure())
-			$Shopp->Shopping->secured(true);
+			// If the card number is provided over a secure connection
+			// Change the cart to operate in secure mode
+			if (!empty($_POST['billing']['card']) && is_shopp_secure())
+				$Shopp->Shopping->secured(true);
+			
+			// Sanitize the card number to ensure it only contains numbers
+			if (!empty($_POST['billing']['card']))
+				$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
 
-		// Sanitize the card number to ensure it only contains numbers
-		if (!empty($_POST['billing']['card']))
-			$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
+		}
 
 		if (isset($_POST['data'])) $this->data = stripslashes_deep($_POST['data']);
 		if (isset($_POST['info'])) $this->Customer->info = stripslashes_deep($_POST['info']);
@@ -123,14 +146,16 @@ class Order {
 			$this->Billing = new Billing();
 		$this->Billing->updates($_POST['billing']);
 
-		if (!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy'])) {
-			$this->Billing->cardexpires = mktime(0,0,0,
-					$_POST['billing']['cardexpires-mm'],1,
-					($_POST['billing']['cardexpires-yy'])+2000
-				);
-		} else $this->Billing->cardexpires = 0;
+		if ($cc) {
+			if (!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy'])) {
+				$this->Billing->cardexpires = mktime(0,0,0,
+						$_POST['billing']['cardexpires-mm'],1,
+						($_POST['billing']['cardexpires-yy'])+2000
+					);
+			} else $this->Billing->cardexpires = 0;
 
-		$this->Billing->cvv = preg_replace('/[^\d]/','',$_POST['billing']['cvv']);
+			$this->Billing->cvv = preg_replace('/[^\d]/','',$_POST['billing']['cvv']);
+		}
 
 		if (!empty($this->Cart->shipped)) {
 			if (empty($this->Shipping))
@@ -153,12 +178,7 @@ class Order {
 			// User selected one of the payment options
 		}
 		
-		// If only one gateway is active, use tha
-		if (count($Shopp->Gateways->active) == 1) {
-			$Gateway = current($Shopp->Gateways->active);
-			$this->processor = $Gateway->module;
-			$this->gateway = $Gateway->name;
-		}
+		$Gateway = $this->processor();
 		
 		$estimated = $this->Cart->Totals->total;
 		
@@ -166,11 +186,14 @@ class Order {
 		$this->Cart->totals();
 		if ($this->validate() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
+
+		if ($this->confirm) error_log("confirmation required");
 		
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm) {
 			global $Shopp;
 			$secure = true;
+			if (!$Gateway->secure || $this->Cart->orderisfree()) $secure = false;
 			// $gateway = $this->Settings->get('payment_gateway');
 			// $secure = true;
 			// if (strpos($gateway,"TestMode") !== false 
@@ -377,9 +400,8 @@ class Order {
 
 		// Skip validating billing details for free purchases 
 		// and remote checkout systems
-		if ((int)$this->Cart->Totals->total == 0
-			|| !empty($_GET['shopp_xco'])) return apply_filters('shopp_validate_checkout',true);
-
+		if (!$this->ccpayment()) return true;
+		
 		if (empty($_POST['billing']['card'])) 
 			return new ShoppError(__('You did not provide a credit card number.','Shopp'),'cart_validation');
 
@@ -494,7 +516,7 @@ class Order {
 	 **/
 	function tag ($property,$options=array()) {
 		global $Shopp,$wp;
-		$gateway = $Shopp->Settings->get('payment_gateway');
+		$Gateway = $this->processor();
 		$xcos = $Shopp->Settings->get('xco_gateways');
 		$pages = $Shopp->Settings->get('pages');
 		$base = $Shopp->Settings->get('base_operations');
@@ -510,14 +532,10 @@ class Order {
 		
 		switch ($property) {
 			case "url": 
-				$ssl = true;
+				$secure = true;
 				// Test Mode will not require encrypted checkout
-				if (strpos($gateway,"TestMode.php") !== false 
-					|| isset($_GET['shopp_xco']) 
-					|| $this->orderisfree() 
-					|| SHOPP_NOSSL) 
-					$ssl = false;
-				$link = $Shopp->link('checkout',$ssl);
+				if (!$Gateway->secure || $this->Cart->orderisfree()) $secure = false;
+				$link = $Shopp->link('checkout',$secure);
 				
 				// Pass any arguments along
 				$args = $_GET;
@@ -715,17 +733,21 @@ class Order {
 				break;
 				
 			// BILLING TAGS
-			case "billing-required": 
+			case "billing-required":
+			// case "creditcard-required":
 				if ($this->Cart->Totals->total == 0) return false;
-				if (isset($_GET['shopp_xco'])) {
-					$xco = join('/',array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
-					if (file_exists($xco)) {
-						$meta = $Shopp->Flow->scan_gateway_meta($xco);
-						$PaymentSettings = $Shopp->Settings->get($meta->tags['class']);
-						return ($PaymentSettings['billing-required'] != "off");
-					}
-				}
-				return ($this->Cart->Totals->total > 0); break;
+				$Gateway = $this->processor();
+				return ($Gateway->cards);
+				
+				// if (isset($_GET['shopp_xco'])) {
+				// 	$xco = join('/',array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
+				// 	if (file_exists($xco)) {
+				// 		$meta = $Shopp->Flow->scan_gateway_meta($xco);
+				// 		$PaymentSettings = $Shopp->Settings->get($meta->tags['class']);
+				// 		return ($PaymentSettings['billing-required'] != "off");
+				// 	}
+				// }
+				// return ($this->Cart->Totals->total > 0); break;
 			case "billing-address":
 				if ($options['mode'] == "value") return $this->Billing->address;
 				if (!empty($this->Billing->address))
@@ -891,10 +913,18 @@ class Order {
 				break;
 			case "submit": 
 				if (!isset($options['value'])) $options['value'] = __('Submit Order','Shopp');
-				return '<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />'; break;
+				$custom = apply_filters('shopp_checkout_submit_button',false,$options,$submit_attrs);
+				if (!$custom)
+					return '<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />';
+				else return $custom;
+				break;
 			case "confirm-button": 
 				if (!isset($options['value'])) $options['value'] = __('Confirm Order','Shopp');
-				return '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />'; break;
+				$custom = apply_filters('shopp_checkout_confirm_button',false,$options,$submit_attrs);
+				if (!$custom)
+					return '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />'; 
+				else return $custom;
+				break;
 			case "local-payment": 
 				return (!empty($gateway)); break;
 			case "xco-buttons": return;	// DEPRECATED
