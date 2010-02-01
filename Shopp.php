@@ -559,13 +559,13 @@ class Shopp {
 	 * 
 	 * @return boolean True on success
 	 **/
-	function resession () {
-		session_regenerate_id();
+	function resession ($session=false) {
+		if ($session) session_regenerate_id();
+		else session_id($session);
 		$this->Shopping->session = session_id();
 		session_write_close();
 		$this->Shopping = new Shopping();
 		session_start();
-		$this->Order->Cart->clear();
 		return true;
 	}
 	
@@ -707,14 +707,14 @@ class Shopp {
 			case "receipt":
 				if (!defined('WP_ADMIN') || !is_user_logged_in() || !current_user_can('manage_options')) die('-1');
 				if (preg_match("/\d+/",$_GET['id'])) {
-					$this->Cart->data->Purchase = new Purchase($_GET['id']);
-					$this->Cart->data->Purchase->load_purchased();
+					$this->Purchase = new Purchase($_GET['id']);
+					$this->Purchase->load_purchased();
 				} else die('-1');
 				echo "<html><head>";
 					echo '<style type="text/css">body { padding: 20px; font-family: Arial,Helvetica,sans-serif; }</style>';
 					echo "<link rel='stylesheet' href='".SHOPP_TEMPLATES_URI."/shopp.css' type='text/css' />";
 				echo "</head><body>";
-				echo $this->Flow->order_receipt();
+				echo $this->Purchase->receipt();
 				if (isset($_GET['print']) && $_GET['print'] == 'auto')
 					echo '<script type="text/javascript">window.onload = function () { window.print(); window.close(); }</script>';
 				echo "</body></html>";
