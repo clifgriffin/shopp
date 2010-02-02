@@ -47,10 +47,10 @@ abstract class GatewayFramework {
 		$this->Order = $Shopp->Order;
 		$this->module = get_class($this);
 		$this->settings = $Shopp->Settings->get($this->module);
-		$this->setup('label');
 	}
 
 	function setupui ($module,$name) {
+		if (!isset($this->settings['label'])) $this->settings['label'] = $name;
 		$this->ui = new ModuleSettingsUI('payment',$module,$name,$this->settings['label']);
 		$this->settings();
 	}
@@ -180,7 +180,7 @@ class GatewayModules extends ModuleLoader {
 	}
 	
 	function ui () {
-		foreach ($this->active as $package => $module) {
+		foreach ($this->active as $package => &$module) {
 			$module->setupui($package,$this->modules[$package]->name);
 		}
 	}

@@ -643,7 +643,8 @@ abstract class SessionObject {
 
 	function __construct () {
 		
-		define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
+		if (!defined('SHOPP_SECURE_KEY')) 
+			define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
 		
 		// Close out any early session calls
 		if(session_id()) session_write_close();

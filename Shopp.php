@@ -46,6 +46,7 @@ if (isset($_GET['shopp_lookup']) && $_GET['shopp_lookup'] == 'settings.js')
 
 // Load super controllers and framework systems
 require("core/flow/Flow.php");
+require("core/flow/Storefront.php");
 require("core/flow/Login.php");
 require("core/flow/Modules.php");
 
@@ -159,9 +160,6 @@ class Shopp {
 		// Initialize application control processing
 		
 		$this->Flow = new Flow();
-
-		register_deactivation_hook(SHOPP_PLUGINFILE, array(&$this, 'activate'));
-		register_activation_hook(SHOPP_PLUGINFILE, array(&$this, 'deactivate'));
 		
 		// Keep any DB operations from occuring while in maintenance mode
 		if (!empty($_GET['updated']) && 
@@ -178,12 +176,11 @@ class Shopp {
 		// Initialize defaults if they have not been entered
 		if (!$this->Settings->get('shopp_setup')) {
 			if ($this->Settings->unavailable) return true;
-			$this->Flow->setup();
+			$this->Flow->installation();
+			do_action('shopp_setup');
 		}
 
-
 		$this->Shopping = new Shopping();
-		
 		
 		add_action('init', array(&$this,'init'));
 		add_action('init', array(&$this, 'ajax'));
@@ -214,9 +211,12 @@ class Shopp {
 	 * 
 	 * @return void
 	 **/
-	function init() {
+	function init () {
 		$pages = $this->Settings->get('pages');
-		if (empty($pages)) $this->pages_index();
+		if (empty($pages)) {
+			$this->pages_index();
+			$pages = $this->Settings->get('pages');
+		}
 		if (SHOPP_PERMALINKS) {
 			$this->shopuri = trailingslashit($this->link('catalog'));
 			$this->canonuri = trailingslashit($this->link('catalog'),false);
@@ -253,86 +253,7 @@ class Shopp {
 
 		new Login();
 	}
-	
-	/**
-	 * Installs the tables and initializes settings
-	 *
-	 * Loads the install script if an installation is needed, or upgrades 
-	 * the database if an upgrade is needed.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 * 
-	 * @return void
-	 **/
-	function activate () {
-		global $wpdb,$wp_rewrite;
-
-		// If no settings are available,
-		// no tables exist, so this is a
-		// new install
-		if ($this->Settings->unavailable) 
-			include("core/install.php");
 		
-		$ver = $this->Settings->get('version');		
-		if (!empty($ver) && $ver != SHOPP_VERSION) {
-			$this->Flow->handler('Install');
-			$this->Flow->Controller->upgrade();
-		}
-			
-				
-		if ($this->Settings->get('shopp_setup')) {
-			$this->Settings->save('maintenance','off');
-			$this->Settings->save('shipcalc_lastscan','');
-			
-			// Publish/re-enable Shopp pages
-			$filter = "";
-			$pages = $this->Settings->get('pages');
-			foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
-			if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='publish' WHERE $filter");
-			$this->pages_index(true);
-			
-			// Update rewrite rules
-			$wp_rewrite->flush_rules();
-			$wp_rewrite->wp_rewrite_rules();
-			
-		}
-		
-		if ($this->Settings->get('show_welcome') == "on")
-			$this->Settings->save('display_welcome','on');
-	}
-	
-	/**
-	 * Reset for Shopp data model and WordPress rewrite rules
-	 *
-	 * Flushes the active data model in preparation for potential upgrades
-	 * and wipes the rewrite rules.  Also unpublishes the Shopp pages so the
-	 * store front no longers shows up on the live site.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 * 
-	 * @return void
-	 **/
-	function deactivate() {
-		global $wpdb,$wp_rewrite;
-
-		// Unpublish/disable Shopp pages
-		$filter = "";
-		$pages = $this->Settings->get('pages');
-		if (!is_array($pages)) return true;
-		foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
-		if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='draft' WHERE $filter");
-
-		// Update rewrite rules
-		$wp_rewrite->flush_rules();
-		$wp_rewrite->wp_rewrite_rules();
-
-		$this->Settings->save('data_model','');
-
-		return true;
-	}
-	
 	function favorites ($actions) {
 		// $key = add_query_arg(array('page'=>$this->Flow->Admin->editproduct,'id'=>'new'),$this->wpadminurl);
 		// 	    $actions[$key] = array(__('New Shopp Product','Shopp'),8);
@@ -404,24 +325,25 @@ class Shopp {
 	 **/
 	function pages_index ($update=false,$updates=false) {
 		global $wpdb;
-		return true; // DEV
 		$pages = $this->Settings->get('pages');
 		
 		// No pages setting, use defaults
-		$pages = $this->Pages;
-		
+		if (!is_array($pages)) $pages = Storefront::$Pages;
+
 		// Find pages with Shopp-related main shortcodes
 		$codes = array();
 		$search = "";
-		foreach ($pages as $page) $codes[] = $page['content'];
+		foreach ($pages as $page) $codes[] = $page['shortcode'];
 		foreach ($codes as $code) $search .= ((!empty($search))?" OR ":"")."post_content LIKE '%$code%'";
 		$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE post_status='publish' AND ($search)";
 		$results = $wpdb->get_results($query);
-
+		
 		// Match updates from the found results to our pages index
 		foreach ($pages as $key => &$page) {
+			// Convert old page definitions
+			if (!isset($page['shortcode']) && isset($page['content'])) $page['shortcode'] = $page['content'];
 			foreach ($results as $index => $post) {
-				if (strpos($post->post_content,$page['content']) !== false) {
+				if (strpos($post->post_content,$page['shortcode']) !== false) {
 					$page['id'] = $post->ID;
 					$page['title'] = $post->post_title;
 					$page['name'] = $post->post_name;
@@ -431,7 +353,7 @@ class Shopp {
 				}
 			}
 		}
-		
+
 		$this->Settings->save('pages',$pages);
 
 		if ($update) return $update;
@@ -595,8 +517,10 @@ class Shopp {
 	function link ($target,$secure=false) {
 		$internals = array("thanks","receipt","confirm-order");
 		$pages = $this->Settings->get('pages');
-		
-		if (!is_array($pages)) $pages = $this->Flow->Pages;
+		if (empty($pages)) {
+			$this->pages_index(true);
+			$pages = $this->Settings->get('pages');
+		}
 		
 		$uri = get_bloginfo('url');
 		if ($secure && !SHOPP_NOSSL) $uri = str_replace('http://','https://',$uri);

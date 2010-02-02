@@ -960,9 +960,12 @@ function shopp_catalog_css () {
 function shopp_settings_js ($dir="shopp") {
 	$db =& DB::get();
 	$table = DatabaseObject::tablename(Settings::$table);
+	$base_operations = false;
 	$settings = $db->query("SELECT name,value FROM $table WHERE name='base_operations'",AS_ARRAY);
-	foreach ($settings as $setting) ${$setting->name} = $setting->value;
-	$base_operations = unserialize($base_operations);
+	if (!empty($settings)) {
+		foreach ($settings as $setting) ${$setting->name} = $setting->value;
+		$base_operations = unserialize($base_operations);
+	}
 	
 	$path = array(PLUGINDIR,$dir,'lang');
 	load_plugin_textdomain('Shopp', sanitize_path(join('/',$path)));

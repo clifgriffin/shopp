@@ -22,6 +22,8 @@ class AuthorizeNet extends GatewayFramework {
 	function AuthorizeNet (&$Order="") {
 		parent::__construct();
 		$this->setup('login','password','testmode');
+		if (!isset($this->settings['label'])) $this->settings['label'] = __("Credit Card","Shopp");
+
 		global $Shopp;
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
