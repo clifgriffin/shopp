@@ -20,8 +20,6 @@ class TestMode extends GatewayFramework {
 	function TestMode () {
 		parent::__construct();
 		$this->setup('error');
-		global $Shopp;
-		$this->settings = $Shopp->Settings->get('TestMode');
 
 		add_action('shopp_process_order',array(&$this,'process'));
 		return true;

@@ -55,6 +55,8 @@ class PayPalStandard extends GatewayFramework {
 
 		$this->buttonurl = sprintf($this->buttonurl, $this->settings['locale']);
 
+		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
+		
 		add_action('shopp_init_checkout',array(&$this,'init'));
 		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
 		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
@@ -108,7 +110,7 @@ class PayPalStandard extends GatewayFramework {
 		// Options
 		$_['return']				= add_query_arg('rmtpay','process',$Shopp->link('checkout',false));
 		$_['cancel_return']			= $Shopp->link('cart');
-		$_['notify_url']			= add_query_arg('_txnupdate','PPS',$Shopp->link('catalog'));
+		$_['notify_url']			= add_query_arg('_txnupdate','PPS',$Shopp->link('checkout'));
 		$_['rm']					= 1; // Return with no transaction data
 		
 		// Pre-populate PayPal Checkout
@@ -192,6 +194,8 @@ class PayPalStandard extends GatewayFramework {
 		}
 		
 		if (isset($_REQUEST['txn_id'])) { // IPN order processing
+			error_log('IPN new order processing');
+			
 			$txnid = $_POST['txn_id'];
 			$txnstatus = $this->status[$_POST['payment_status']];
 
@@ -209,31 +213,27 @@ class PayPalStandard extends GatewayFramework {
 	}
 	
 	function updates () {
+		global $Shopp;
 
 		// Cancel processing if this is not a PayPal Website Payments Standard/Express Checkout IPN
 		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") return false;
 
-		// Need an invoice number to locate pre-order data
-		if (!isset($_POST['invoice'])) return false;
+		// Need an invoice number to locate pre-order data and a transaction id for the order
+		if (isset($_POST['invoice']) && isset($_POST['txn_id']) && !isset($_POST['parent_txn_id'])) {
 
-		global $Shopp;
-		$Shopp->resession($_POST['invoice']);
-		$Shopping = &$Shopp->Shopping;
-		// Couldn't load the session data
-		if ($Shopping->session != $_POST['invoice'])
-			return new ShoppError("Session could not be loaded: {$_POST['invoice']}",false,SHOPP_DEBUG_ERR);
-		else new ShoppError("PayPal successfully loaded session: {$_POST['invoice']}",false,SHOPP_DEBUG_ERR);
-
-		if (!isset($_POST['txn_id']) && !isset($_POST['parent_txn_id'])) {
+			$Shopp->resession($_POST['invoice']);
+			$Shopping = &$Shopp->Shopping;
+			// Couldn't load the session data
+			if ($Shopping->session != $_POST['invoice'])
+				return new ShoppError("Session could not be loaded: {$_POST['invoice']}",false,SHOPP_DEBUG_ERR);
+			else new ShoppError("PayPal successfully loaded session: {$_POST['invoice']}",false,SHOPP_DEBUG_ERR);
+			
 			return do_action('shopp_process_order'); // New order
 		}
+
 		$target = isset($_POST['parent_txn_id'])?$_POST['parent_txn_id']:$_POST['txn_id'];
 
-		$Purchase = new Purchase($target,'transactionid');
-		if (empty($Purchase->id)) {
-			new ShoppError('No existing purchase to update for transaction: '.$target,false,SHOPP_DEBUG_ERR);
-			if ($Shopp->Order->validorder()) do_action('shopp_create_purchase');
-		}
+		$Purchase = new Purchase($target,'txnid');
 		
 		// Validate the order notification
 		if ($this->verifyipn() != "VERIFIED") {
@@ -257,6 +257,7 @@ class PayPalStandard extends GatewayFramework {
 	}
 	
 	function verifyipn () {
+		if ($this->settings['testmode'] == "on") return "VERIFIED";
 		$_ = array();
 		$_['cmd'] = "_notify-validate";
 		

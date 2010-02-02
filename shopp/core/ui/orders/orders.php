@@ -59,8 +59,8 @@
 
 			$classes = array();
 			
-			$txnstatus = $Order->transtatus;
-			if (array_key_exists($Order->transtatus,$txnStatusLabels)) $txnstatus = $txnStatusLabels[$Order->transtatus];
+			$txnstatus = $Order->txnstatus;
+			if (array_key_exists($Order->txnstatus,$txnStatusLabels)) $txnstatus = $txnStatusLabels[$Order->txnstatus];
 			if (empty($txnstatus)) $txnstatus = "UNKNOWN";
 			$classes[] = strtolower(preg_replace('/[^\w]/','_',$txnstatus));
 
@@ -83,7 +83,7 @@
 				echo $location;
 				 ?></td>
 			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><?php echo money($Order->total); ?></td>
-			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->transactionid; ?><br /><strong><?php echo $Order->gateway; ?></strong> &mdash; <?php echo $txnstatus; ?></td>
+			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->txnid; ?><br /><strong><?php echo $Order->gateway; ?></strong> &mdash; <?php echo $txnstatus; ?></td>
 			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Order->created)); ?><br />
 				<strong><?php echo $statusLabels[$Order->status]; ?></strong></td>
 		</tr>

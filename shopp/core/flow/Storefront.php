@@ -22,7 +22,7 @@
  **/
 class Storefront extends FlowController {
 
-	var $Pages = array(
+	static $Pages = array(
 		'catalog'	=> array('name'=>'shop','title'=>'Shop','shortcode'=>'[catalog]'),
 		'cart'		=> array('name'=>'cart','title'=>'Cart','shortcode'=>'[cart]'),
 		'checkout'	=> array('name'=>'checkout','title'=>'Checkout','shortcode'=>'[checkout]'),
@@ -75,6 +75,7 @@ class Storefront extends FlowController {
 	 **/
 	function pageid () {
 		global $Shopp,$wp_query;
+		if (empty($wp_query->posts)) return false;
 
 		// Identify the current page
 		foreach ($this->Pages as &$Page) {

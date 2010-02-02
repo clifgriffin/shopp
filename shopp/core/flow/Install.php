@@ -1,6 +1,6 @@
 <?php
 /**
- * Install
+ * Install.php
  * 
  * Flow controller for installation and upgrades
  *
@@ -17,7 +17,7 @@
  * @package shopp
  * @author Jonathan Davis
  **/
-class Install extends FlowController {
+class ShoppInstallation extends FlowController {
 	
 	/**
 	 * Install constructor
@@ -26,6 +26,10 @@ class Install extends FlowController {
 	 * @author Jonathan Davis
 	 **/
 	function __construct () {
+		$this->Settings = new Settings();
+		add_action('shopp_activate',array(&$this,'activate'));
+		add_action('shopp_deactivate',array(&$this,'deactivate'));
+		add_action('shopp_setup',array(&$this,'setup'));
 		add_action('shopp_upgrade',array(&$this,'upgrade'));
 	}
 
@@ -39,33 +43,36 @@ class Install extends FlowController {
 
 	}
 
-
 	/**
 	 * activate()
 	 * Installs the tables and initializes settings */
 	function activate () {
-		global $Shopp,$wpdb,$wp_rewrite;
+		global $wpdb,$wp_rewrite;
+		error_log('ShoppInstallation::activate()');
 
 		// If no settings are available,
 		// no tables exist, so this is a
 		// new install
-		if ($Shopp->Settings->unavailable) 
-			include("core/install.php");
+		if ($this->Settings->unavailable) {
+			error_log('ShoppInstallation::install()');
+			$this->install();
+		}
 		
-		$ver = $Shopp->Settings->get('version');		
-		if (!empty($ver) && $ver != SHOPP_VERSION)
+		$ver = $this->Settings->get('version');
+		if (!empty($ver) && $ver != SHOPP_VERSION) {
+			error_log('call upgrade()');
 			$this->upgrade();
+		}
 				
-		if ($Shopp->Settings->get('shopp_setup')) {
-			$Shopp->Settings->save('maintenance','off');
-			$Shopp->Settings->save('shipcalc_lastscan','');
+		if ($this->Settings->get('shopp_setup')) {
+			$this->Settings->save('maintenance','off');
+			$this->Settings->save('shipcalc_lastscan','');
 			
 			// Publish/re-enable Shopp pages
 			$filter = "";
-			$pages = $Shopp->Settings->get('pages');
+			$pages = $this->Settings->get('pages');
 			foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
 			if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='publish' WHERE $filter");
-			$Shopp->pages_index(true);
 			
 			// Update rewrite rules
 			$wp_rewrite->flush_rules();
@@ -73,11 +80,32 @@ class Install extends FlowController {
 			
 		}
 		
-		if ($Shopp->Settings->get('show_welcome') == "on")
-			$Shopp->Settings->save('display_welcome','on');
+		if ($this->Settings->get('show_welcome') == "on")
+			$this->Settings->save('display_welcome','on');
+	}
+	
+	function deactivate () {
+		global $Shopp,$wpdb,$wp_rewrite;
+		if (!isset($Shopp->Settings)) return;
+		
+		// Unpublish/disable Shopp pages
+		$filter = "";
+		$pages = $Shopp->Settings->get('pages');
+		if (!is_array($pages)) return true;
+		foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
+		if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='draft' WHERE $filter");
+
+		// Update rewrite rules
+		$wp_rewrite->flush_rules();
+		$wp_rewrite->wp_rewrite_rules();
+
+		$this->Settings->save('data_model','');
+
+		return true;
 	}
 	
 	function install () {
+		error_log('install()');
 		global $wpdb,$wp_rewrite,$wp_version,$table_prefix;
 		$db = DB::get();
 
@@ -96,7 +124,7 @@ class Install extends FlowController {
 		unset($schema);
 
 		$parent = 0;
-		foreach ($this->Pages as $key => &$page) {
+		foreach (Storefront::$Pages as $key => &$page) {
 			if (!empty($this->Pages['catalog']['id'])) $parent = $this->Pages['catalog']['id'];
 			$query = "INSERT $wpdb->posts SET post_title='{$page['title']}',
 											  post_name='{$page['name']}',
@@ -267,9 +295,9 @@ class Install extends FlowController {
 		
 	function upgrade () {
 		global $Shopp,$table_prefix;
+		error_log('upgrade()');
 		$db = DB::get();
 		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
-		$this->Settings = &$Shopp->Settings;
 
 		// Check for the schema definition file
 		if (!file_exists(SHOPP_DBSCHEMA))
@@ -322,11 +350,11 @@ class Install extends FlowController {
 	 * Initialize default install settings and lists */
 	function setup () {
 		
-		$this->setup_regions();
-		$this->setup_countries();
-		$this->setup_zones();
-		$this->setup_areas();
-		$this->setup_vat();
+		$this->regions();
+		$this->countries();
+		$this->zones();
+		$this->areas();
+		$this->vat();
 
 		$this->Settings->save('show_welcome','on');	
 		$this->Settings->save('display_welcome','on');	
@@ -371,35 +399,30 @@ class Install extends FlowController {
 	}
 
 	function regions () {
-		global $Shopp;
 		include_once(SHOPP_PATH."/core/init.php");
 		$regions = apply_filters('shopp_setup_global_regions',get_global_regions());
 		$this->Settings->save('regions',$regions);
 	}
 	
 	function countries () {
-		global $Shopp;
 		include_once(SHOPP_PATH."/core/init.php");
 		$countries = apply_filters('shopp_setup_country_table',get_countries());
 		$this->Settings->save('countries',addslashes(serialize($countries)),false);
 	}
 	
 	function zones () {
-		global $Shopp;
 		include_once(SHOPP_PATH."/core/init.php");
 		$zones = apply_filters('shopp_setup_country_zones',get_country_zones());
 		$this->Settings->save('zones',$zones,false);
 	}
 
 	function areas () {
-		global $Shopp;
 		include_once(SHOPP_PATH."/core/init.php");
 		$areas = apply_filters('shopp_setup_country_areas',get_country_areas());
 		$this->Settings->save('areas',$areas,false);
 	}
 
 	function vat () {
-		global $Shopp;
 		include_once(SHOPP_PATH."/core/init.php");
 		$countries = apply_filters('shopp_setup_vat_countries',get_vat_countries());
 		$this->Settings->save('vat_countries',$countries,false);

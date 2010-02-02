@@ -234,7 +234,7 @@ class Order {
 			$this->Shipping->save();
 		}
 		
-		$Promos = array();
+		$promos = array();
 		foreach ($this->Cart->discounts as $promo)
 			$promos[$promo->id] = $promo->name;
 

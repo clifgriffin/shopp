@@ -32,8 +32,8 @@ class Flow {
 	 * @return void
 	 **/
 	function __construct () {
-		// register_deactivation_hook(SHOPP_PLUGINFILE, array(&$this, 'activate'));
-		// register_activation_hook(SHOPP_PLUGINFILE, array(&$this, 'deactivate'));
+		register_deactivation_hook(SHOPP_PLUGINFILE, array(&$this, 'deactivate'));
+		register_activation_hook(SHOPP_PLUGINFILE, array(&$this, 'activate'));
 			
 		add_action('admin_menu',array(&$this,'menu'));
 		if (defined('WP_ADMIN')) add_action('admin_init',array(&$this,'parse'));
@@ -136,33 +136,22 @@ class Flow {
 	 * @return void
 	 **/
 	function activate () {
-		require_once(SHOPP_FLOW_PATH."/Install.php");
-		$Installation = new ShoppInstallation();
-		$Installation->install();
+		$this->installation();
+		do_action('shopp_activate');
 	}
 		
 	/**
 	 * deactivate()
 	 * Resets the data_model to prepare for potential upgrades/changes to the table schema */
 	function deactivate() {
-		global $wpdb,$wp_rewrite;
-
-		// Unpublish/disable Shopp pages
-		$filter = "";
-		$pages = $this->Settings->get('pages');
-		if (!is_array($pages)) return true;
-		foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
-		if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='draft' WHERE $filter");
-
-		// Update rewrite rules
-		$wp_rewrite->flush_rules();
-		$wp_rewrite->wp_rewrite_rules();
-
-		$this->Settings->save('data_model','');
-
-		return true;
+		$this->installation();
+		do_action('shopp_deactivate');
 	}
 	
+	function installation () {
+		require_once(SHOPP_FLOW_PATH."/Install.php");
+		$Installation = new ShoppInstallation();
+	}
 	
 	/**
 	 * Displays the welcome screen
