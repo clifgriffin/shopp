@@ -59,7 +59,7 @@ class PayPalStandard extends GatewayFramework {
 		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
 		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
 
-		// add_action('shopp_remote_payment',array(&$this,'returned'));
+		add_action('shopp_remote_payment',array(&$this,'returned'));
 		add_action('shopp_process_order',array(&$this,'process'));
 		add_action('shopp_txn_update',array(&$this,'updates'));
 	}
@@ -68,7 +68,7 @@ class PayPalStandard extends GatewayFramework {
 		if (!$this->myorder()) return false;
 		add_filter('shopp_confirm_url',array(&$this,'url'));
 		add_filter('shopp_confirm_form',array(&$this,'form'));
-		add_filter('shopp_checkout_confirm_button',array(&$this,'confirm'),10,3);
+		// add_filter('shopp_checkout_confirm_button',array(&$this,'confirm'),10,3);
 	}
 	
 	function init () {
@@ -114,7 +114,7 @@ class PayPalStandard extends GatewayFramework {
 		// Pre-populate PayPal Checkout
 		$_['first_name']			= $Order->Customer->firstname;
 		$_['last_name']				= $Order->Customer->lastname;
-		$_['lc']					= $this->settings['base_operations']['country'];
+		$_['lc']					= $this->baseop['country'];
 		
 		$AddressType = "Shipping";
 		if (!$Order->Shipping) $AddressType = "Billing";
