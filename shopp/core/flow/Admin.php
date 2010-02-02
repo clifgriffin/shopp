@@ -39,6 +39,7 @@ class AdminFlow extends FlowController {
 		add_action('wp_dashboard_setup', array(&$this, 'dashboard'));
 		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
 		add_action('admin_init', array(&$this, 'tinymce'));
+		add_action('switch_theme',array(&$this, 'themepath'));
 
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
@@ -436,6 +437,22 @@ class AdminFlow extends FlowController {
 		echo '</tr></tbody></table>';
 		echo $after_widget;
 		
+	}
+	
+	/**
+	 * Update the stored path to the activated theme
+	 * 
+	 * Automatically updates the Shopp theme path setting when the
+	 * a new theme is activated.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function themepath () {
+		global $Shopp;
+		$Shopp->Settings->save('theme_templates',addslashes(sanitize_path(STYLESHEETPATH.'/'."shopp")));
 	}
 	
 	/**

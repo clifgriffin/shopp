@@ -13,9 +13,8 @@
  **/
 
 class TestMode extends GatewayFramework {
-	var $transaction = array();
-	var $settings = array();
-	var $Response = false;
+
+	var $secure = false;
 	var $cards = array("Visa","MasterCard","Discover","American Express");
 
 	function TestMode () {
