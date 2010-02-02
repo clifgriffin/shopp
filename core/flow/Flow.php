@@ -72,8 +72,8 @@ class Flow {
 			return do_action('shopp_txn_update');
 		}
 		
-		if (!empty($_REQUEST['r_order'])) {
-			return do_action('shopp_remote_order');
+		if (!empty($_REQUEST['rmtpay'])) {
+			return do_action('shopp_remote_payment');
 		}
 		
 		if (isset($_POST['checkout'])) {

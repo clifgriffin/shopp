@@ -193,13 +193,6 @@ class Order {
 			global $Shopp;
 			$secure = true;
 			if (!$Gateway->secure || $this->Cart->orderisfree()) $secure = false;
-			// $gateway = $this->Settings->get('payment_gateway');
-			// $secure = true;
-			// if (strpos($gateway,"TestMode") !== false 
-			// 	|| isset($wp->query_vars['shopp_xco'])
-			// 	|| $this->Cart->orderisfree()) 
-			// 	$secure = false;
-				
 			shopp_redirect($Shopp->link('confirm-order',$secure));
 		}
 		
@@ -924,8 +917,8 @@ class Order {
 					return '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />'; 
 				else return $custom;
 				break;
-			case "local-payment": 
-				return (!empty($gateway)); break;
+			case "local-payment": return true; // Deprecated
+				// return (!empty($gateway)); break;
 			case "xco-buttons": return;	// DEPRECATED
 				// if (!is_array($xcos)) return false;
 				// $buttons = "";

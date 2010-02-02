@@ -14,19 +14,17 @@
  **/
 
 class PayPalStandard extends GatewayFramework {
-	// var $type = "xco"; // Define as an External CheckOut/remote checkout processor
+	
+	// Settings
+	var $secure = false;
+
+	// URLs
 	var $buttonurl = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
 	var $sandboxurl = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
 	var $checkouturl = 'https://www.paypal.com/cgi-bin/webscr';
 
-	var $transaction = array();
-	var $settings = array();
-	
-	var $Response = false;
-	var $checkout = true;
-	var $pdt = false;
-	var $secure = false;
-	
+	// Internals
+	var $baseop = array();
 	var $currencies = array("USD", "AUD", "CAD", "CHF", "CZK", "DKK", "EUR", "GBP", 
 							"HKD", "HUF", "JPY", "NOK", "NZD", "PLN", "SEK", "SGD");
 	var $locales = array("AT" => "de_DE", "AU" => "en_AU", "BE" => "en_US", "CA" => "en_US",
@@ -42,41 +40,28 @@ class PayPalStandard extends GatewayFramework {
 	function PayPalStandard () {
 		parent::__construct();
 		
-		global $Shopp;
 		$this->setup('account','testmode');
-		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
-		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
+		
+		global $Shopp;
+		$this->baseop = $Shopp->Settings->get('base_operations');
+		
 		$this->settings['currency_code'] = $this->currencies[0];
-		if (in_array($this->settings['base_operations']['currency']['code'],$this->currencies))
-			$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];
+		if (in_array($this->baseop['currency']['code'],$this->currencies))
+			$this->settings['currency_code'] = $this->baseop['currency']['code'];
 
-		if (array_key_exists($this->settings['base_operations']['country'],$this->locales))
-			$this->settings['locale'] = $this->locales[$this->settings['base_operations']['country']];
-		else $this->settings['locale'] = $this->locales["US"];
+		if (array_key_exists($this->baseop['country'],$this->locales))
+			$this->settings['locale'] = $this->locales[$this->baseop['country']];
+		else $this->settings['locale'] = $this->locales['US'];
 
 		$this->buttonurl = sprintf($this->buttonurl, $this->settings['locale']);
-		$this->ipn = add_query_arg('shopp_xorder','PayPalStandard',$Shopp->link('catalog',true));
-		
-		// $loginproc = (isset($_POST['process-login']) 
-		// 	&& $_POST['process-login'] != 'false')?$_POST['process-login']:false;
-		// 	
-		// if (isset($_POST['checkout']) && 
-		// 	$_POST['checkout'] == "process" && 
-		// 	!$loginproc) $this->checkout();
-		// 
-		// // Capture processed payment
-		// if (isset($_REQUEST['tx'])) {
-		// 	$this->pdt = true;
-		// 	$this->order();
-		// }
 
-		error_log("paypal constructed");
-		add_action('shopp_txn_update',array(&$this,'updates'));
 		add_action('shopp_init_checkout',array(&$this,'init'));
 		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
 		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
-		add_action('shopp_remote_order',array(&$this,'returned'));
+
+		// add_action('shopp_remote_payment',array(&$this,'returned'));
 		add_action('shopp_process_order',array(&$this,'process'));
+		add_action('shopp_txn_update',array(&$this,'updates'));
 	}
 	
 	function confirmation () {
@@ -94,60 +79,11 @@ class PayPalStandard extends GatewayFramework {
 	function checkout () {
 		global $Shopp;
 		$Shopp->Order->confirm = true;
-		// global $Shopp;
-		// if (empty($_POST['checkout'])) return false;
-		// 
-		// // Save checkout data
-		// $Order = $Shopp->Cart->data->Order;
-		// 
-		// if (isset($_POST['data'])) $Order->data = $_POST['data'];
-		// if (empty($Order->Customer))
-		// 	$Order->Customer = new Customer();
-		// $Order->Customer->updates($_POST);
-		// $Order->Customer->confirm_password = $_POST['confirm-password'];
-		// 
-		// if (empty($Order->Billing))
-		// 	$Order->Billing = new Billing();
-		// $Order->Billing->updates($_POST['billing']);
-		// 
-		// if (empty($Order->Shipping))
-		// 	$Order->Shipping = new Shipping();
-		// 	
-		// if ($_POST['shipping']) $Order->Shipping->updates($_POST['shipping']);
-		// if (!empty($_POST['shipmethod'])) $Order->Shipping->method = $_POST['shipmethod'];
-		// else $Order->Shipping->method = key($Shopp->Cart->data->ShipCosts);
-		// 
-		// // Override posted shipping updates with billing address
-		// if ($_POST['sameshipaddress'] == "on")
-		// 	$Order->Shipping->updates($Order->Billing,
-		// 		array("_datatypes","_table","_key","_lists","id","created","modified"));
-		// 
-		// $estimatedTotal = $Shopp->Cart->data->Totals->total;
-		// $Shopp->Cart->updated();
-		// $Shopp->Cart->totals();
-		// 
-		// if ($Shopp->Cart->validate() !== true) {
-		// 	$_POST['checkout'] = false;
-		// 	return;
-		// } else $Order->Customer->updates($_POST); // Catch changes from validation
-		// 
-		// if (number_format($Shopp->Cart->data->Totals->total, 2) == 0) {
-		// 	$_POST['checkout'] = 'confirmed';
-		// 	return true;
-		// }
-		// 
-		// if(!$Shopp->Cart->validorder()) shopp_redirect($Shopp->link('cart')); 
-		// shopp_redirect(add_query_arg('shopp_xco','PayPal/PayPalStandard',$Shopp->link('confirm-order',false)));
 	}
 
 	function submit ($tag=false,$options=array(),$attrs=array()) {
 		return '<input type="image" name="process" src="'.$this->buttonurl.'" id="checkout-button" '.inputattrs($options,$attrs).' />';
 	}
-
-	function confirm ($tag=false,$options=array(),$attrs=array()) {
-		return '<input type="image" name="confirmed" src="'.$this->buttonurl.'" id="confirm-button" '.inputattrs($options,$attrs).' />';
-	}
-
 	
 	function url ($url=false) {
 		if ($this->settings['testmode'] == "on") return $this->sandboxurl;
@@ -160,7 +96,7 @@ class PayPalStandard extends GatewayFramework {
 	function form ($form) {
 		global $Shopp;
 		$Order = $this->Order;
-		$precision = $this->settings['base_operations']['currency']['format']['precision'];
+		$precision = $this->baseop['currency']['format']['precision'];
 		
 		$_ = array();
 
@@ -170,7 +106,7 @@ class PayPalStandard extends GatewayFramework {
 		$_['invoice']				= $Shopp->Shopping->session;
 		
 		// Options
-		$_['return']				= add_query_arg('r_order','process',$Shopp->link('checkout',false));
+		$_['return']				= add_query_arg('rmtpay','process',$Shopp->link('checkout',false));
 		$_['cancel_return']			= $Shopp->link('cart');
 		$_['notify_url']			= add_query_arg('_txnupdate','PPS',$Shopp->link('catalog'));
 		$_['rm']					= 1; // Return with no transaction data
@@ -232,41 +168,41 @@ class PayPalStandard extends GatewayFramework {
 	}
 	
 	function process () {
-			global $Shopp;
-			
-			$txnstatus = false;
-			$transactionid = false;
-			if (isset($_REQUEST['tx'])) { // PDT processing
-				if (SHOPP_DEBUG) new ShoppError('Processing PDT packet: '._object_r($_GET),false,SHOPP_DEBUG_ERR);
+		global $Shopp;
+		
+		$txnid = false;
+		$txnstatus = false;
+		if (isset($_REQUEST['tx'])) { // PDT order processing
+			if (SHOPP_DEBUG) new ShoppError('Processing PDT packet: '._object_r($_GET),false,SHOPP_DEBUG_ERR);
 
-				$txnid = $_GET['tx'];
-				$txnstatus = $this->status[$_GET['st']];
-				error_log("$txnid - $txnstatus");
-				$Purchase = new Purchase($txnid,'txnid');
+			$txnid = $_GET['tx'];
+			$txnstatus = $this->status[$_GET['st']];
+			error_log("$txnid - $txnstatus");
+			$Purchase = new Purchase($txnid,'txnid');
 
-				if (!empty($Purchase->id)) {
-					error_log("Purchase exists! Update status...");
-					if (SHOPP_DEBUG) new ShoppError('Order located, already created from an IPN message.',false,SHOPP_DEBUG_ERR);
-					$Shopp->resession();
-					$Shopp->Purchase = $Purchase;
-					$Shopp->Order->purchase = $Purchase->id;
-					shopp_redirect($Shopp->link('thanks',false));
-				}
-
+			if (!empty($Purchase->id)) {
+				error_log("Purchase exists! Update status...");
+				if (SHOPP_DEBUG) new ShoppError('Order located, already created from an IPN message.',false,SHOPP_DEBUG_ERR);
+				$Shopp->resession();
+				$Shopp->Purchase = $Purchase;
+				$Shopp->Order->purchase = $Purchase->id;
+				shopp_redirect($Shopp->link('thanks',false));
 			}
-			
-			if (isset($_REQUEST['txn_id'])) { // IPN processing
-				$txnid = $_POST['txn_id'];
-				$txnstatus = $this->status[$_POST['payment_status']];
 
-				// Validate the order notification
-				$ipnstatus = $this->verifyipn();
-				if ($ipnstatus != "VERIFIED") {
-					$txnstatus = $ipnstatus;
-					new ShoppError('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt! The order will be created, but the order payment status must be manually set to "Charged" when the payment can be verified.','paypal_txn_verification',SHOPP_TRXN_ERR);
-				} else if (SHOPP_DEBUG) new ShoppError('IPN notification validated.',false,SHOPP_DEBUG_ERR);
-				
-			}
+		}
+		
+		if (isset($_REQUEST['txn_id'])) { // IPN order processing
+			$txnid = $_POST['txn_id'];
+			$txnstatus = $this->status[$_POST['payment_status']];
+
+			// Validate the order notification
+			$ipnstatus = $this->verifyipn();
+			if ($ipnstatus != "VERIFIED") {
+				$txnstatus = $ipnstatus;
+				new ShoppError('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt! The order will be created, but the order payment status must be manually set to "Charged" when the payment can be verified.','paypal_txn_verification',SHOPP_TRXN_ERR);
+			} else if (SHOPP_DEBUG) new ShoppError('IPN notification validated.',false,SHOPP_DEBUG_ERR);
+			
+		}
 		
 		$Shopp->Order->transaction($txnid,$txnstatus);
 		
@@ -288,7 +224,9 @@ class PayPalStandard extends GatewayFramework {
 			return new ShoppError("Session could not be loaded: {$_POST['invoice']}",false,SHOPP_DEBUG_ERR);
 		else new ShoppError("PayPal successfully loaded session: {$_POST['invoice']}",false,SHOPP_DEBUG_ERR);
 
-		if (!isset($_POST['txn_id']) && !isset($_POST['parent_txn_id'])) return false; // Not a notification request
+		if (!isset($_POST['txn_id']) && !isset($_POST['parent_txn_id'])) {
+			return do_action('shopp_process_order'); // New order
+		}
 		$target = isset($_POST['parent_txn_id'])?$_POST['parent_txn_id']:$_POST['txn_id'];
 
 		$Purchase = new Purchase($target,'transactionid');
@@ -316,47 +254,6 @@ class PayPalStandard extends GatewayFramework {
 		if (SHOPP_DEBUG) new ShoppError('PayPal IPN update processed for transaction: '.$target,false,SHOPP_DEBUG_ERR);
 
 		die('PayPal IPN update processed.');
-		
-		// global $Shopp;
-		// if (!isset($_POST['txn_id']) && !isset($_POST['parent_txn_id'])) return false; // Not a notification request
-		// $target = isset($_POST['parent_txn_id'])?$_POST['parent_txn_id']:$_POST['txn_id'];
-		// $Purchase = new Purchase($target,'transactionid');
-		// if (empty($Purchase->id)) {
-		// 	new ShoppError('No existing purchase to update for transaction: '.$target,false,SHOPP_DEBUG_ERR);
-		// 	return false;  // No order exists, bail out
-		// }
-		// 
-		// // Validate the order notification
-		// if ($this->verifyipn() != "VERIFIED") {
-		// 	new ShoppError(sprintf(__('An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s','Shopp'),$target,_object_r($_POST)),'paypal_txn_verification',SHOPP_TRXN_ERR);
-		// 	return false;
-		// } 
-		// 
-		// if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
-		// 
-		// // Order exists, handle IPN updates
-		// $Purchase->transtatus = $txnstatus;
-		// $Purchase->save();
-		// 
-		// $Shopp->Cart->data->Purchase =& $Purchase;
-		// $Shopp->Cart->data->Purchase->load_purchased();
-		// 
-		// $Purchase->notification(
-		// 	"$Purchase->firstname $Purchase->lastname",
-		// 	$Purchase->email,
-		// 	__('Order Payment Update','Shopp')
-		// );
-		// 
-		// if ($Shopp->Settings->get('receipt_copy') == 1) {
-		// 	$Purchase->notification(
-		// 		'',
-		// 		$Shopp->Settings->get('merchant_email'),
-		// 		__('PayPal Order Payment Update','Shopp')
-		// 	);
-		// }
-		// 
-		// if (SHOPP_DEBUG) new ShoppError('PayPal IPN update processed for transaction: '.$target,false,SHOPP_DEBUG_ERR);
-		// return true;
 	}
 	
 	function verifyipn () {
@@ -368,8 +265,6 @@ class PayPalStandard extends GatewayFramework {
 		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification verfication response received: '.$response,'paypal_standard',SHOPP_DEBUG_ERR);
 		return $response;
 	}
-	
-
 	
 	function error () {
 		if (!empty($this->Response)) {
@@ -384,8 +279,6 @@ class PayPalStandard extends GatewayFramework {
 	function send () {
 		return parent::send($this->transaction,$this->url());
 	}
-	
-	function response () { /* Placeholder */ }
 
 	/**
 	 * encode()
@@ -421,21 +314,6 @@ class PayPalStandard extends GatewayFramework {
 		}
 		return $query;
 	}
-	
-	// function tag ($property,$options=array()) {
-	// 	global $Shopp;
-	// 	switch ($property) {
-	// 		case "button":
-	// 			$args = array();
-	// 			$args['shopp_xco'] = 'PayPal/PayPalStandard';
-	// 			if (isset($options['pagestyle'])) $args['pagestyle'] = $options['pagestyle'];
-	// 			$url = add_query_arg($args,$Shopp->link('checkout'));
-	// 			return '<p><a href="'.$url.'"><img src="'.$this->button.'" alt="Checkout with PayPal" /></a></p>';
-	// 	}
-	// }
-
-	// Required, but not used
-	function billing () {}
 		
 	function settings () {
 		$this->ui->text(0,array(
