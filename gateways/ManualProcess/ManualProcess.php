@@ -13,10 +13,9 @@
  **/
 
 class ManualProcess extends GatewayFramework {
+
 	var $secure = true;
-	var $transaction = array();
-	var $settings = array();
-	var $Response = false;
+
 	var $cards = array("Visa","MasterCard","Discover","American Express");
 	var $public_key = false;
 	var $private_key = false;
@@ -185,7 +184,9 @@ class ManualProcess extends GatewayFramework {
 	
 	function decrypt(&$purchase) {
 		if($purchase->secured){
-			echo "decrypt('".$purchase->secured[$this->module]."','".$this->sec_prefix."');\n";
+			$decrypt = "decrypt('".$purchase->secured[$this->module]."','".$this->sec_prefix."');\n";
+			echo '$(\'#card\').click(function(){'.$decrypt.'});';
+			echo '$(\'#cvv\').click(function(){'.$decrypt.'});';
 		}
 	}
 
