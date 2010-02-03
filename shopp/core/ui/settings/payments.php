@@ -56,6 +56,7 @@ jQuery(document).ready( function() {
 				$('#active-gateways').val(gateways.join());
 			}
 		});
+		module.behaviors();
 	}
 
 	<?php do_action('gateway_module_settings'); ?>

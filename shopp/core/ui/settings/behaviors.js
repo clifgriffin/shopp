@@ -64,6 +64,8 @@ var ModuleSetting = function (module,name,label) {
 		if (!this.columns[index]) return this.columns[index] = $('<td/>').appendTo(this.settingsTable)
 		else return this.columns[index];
 	}
+	
+	this.behaviors = function () {}
 
 }
 
