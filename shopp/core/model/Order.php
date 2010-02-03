@@ -114,7 +114,7 @@ class Order {
 		global $Shopp;
 		if (!isset($_POST['checkout'])) return;
 		if ($_POST['checkout'] != "process") return;
-		
+
 		$cc = $this->ccpayment();
 		
 		if ($cc) {
@@ -190,11 +190,12 @@ class Order {
 		
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm) {
+			error_log('checkout');
 			global $Shopp;
 			$secure = true;
 			if (!$Gateway->secure || $this->Cart->orderisfree()) $secure = false;
 			shopp_redirect($Shopp->link('confirm-order',$secure));
-		}
+		} else do_action('shopp_process_order');
 		
 	}
 	
