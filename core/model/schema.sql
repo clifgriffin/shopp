@@ -264,6 +264,7 @@ CREATE TABLE <?php echo $purchase; ?> (
 	shiptrack varchar(100) NOT NULL default '',
 	status tinyint(3) unsigned NOT NULL default '0',
 	data longtext NOT NULL,
+	secured text NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),

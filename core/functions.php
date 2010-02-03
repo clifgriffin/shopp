@@ -1351,6 +1351,21 @@ function validate_addons () {
 	return $addons;
 }
 
+/**
+ * Uses builtin php openssl library to encrypt data.
+ *
+ * @author John Dillick
+ * @since 1.1
+ * 
+ * @param string $data data to be encrypted
+ * @param string $pkey PEM encoded RSA public key
+ * @return string Encrypted binary data
+ **/
+function rsa_encrypt($data, $pkey){
+	openssl_public_encrypt($data, $encrypted,$pkey);
+	return ($encrypted)?$encrypted:false;
+}
+
 function scan_gateway_meta ($file) {
 	global $Shopp;
 	$metadata = array();
