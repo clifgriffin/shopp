@@ -14,9 +14,9 @@
 define('SHOPP_ERR',1);
 define('SHOPP_TRXN_ERR',2);
 define('SHOPP_AUTH_ERR',4);
-define('SHOPP_ADDON_ERR',8);
-define('SHOPP_COMM_ERR',16);
-define('SHOPP_STOCK_ERR',32);
+define('SHOPP_COMM_ERR',8);
+define('SHOPP_STOCK_ERR',16);
+define('SHOPP_ADDON_ERR',32);
 define('SHOPP_ADMIN_ERR',64);
 define('SHOPP_DB_ERR',128);
 define('SHOPP_PHP_ERR',256);
@@ -52,6 +52,8 @@ class ShoppErrors {
 	 * @return void
 	 **/
 	function __construct () {
+		ShoppingObject::store('errors',$this->errors);
+		
 		$this->notifications = new CallbackSubscription();
 
 		$types = E_ALL ^ E_NOTICE;
@@ -77,7 +79,7 @@ class ShoppErrors {
 	}
 	
 	/**
-	 * Gets all errors in a range up to a specified error level
+	 * Gets all errors up to a specified error level
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -300,6 +302,18 @@ class ShoppError {
 	}
 	
 	/**
+	 * Prevent excess data from being stored in the session
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function __sleep () {
+		return array('code','source','messages','level');
+	}
+	
+	/**
 	 * Displays messages registered to a specific error code
 	 *
 	 * @author Jonathan Davis
@@ -310,7 +324,7 @@ class ShoppError {
 	 * @param string $delimiter The delimeter used to join multiple error messages
 	 * @return string A collection of concatenated error messages
 	 **/
-	function message ($remove=true,$source=false,$delimiter="\n") {
+	function message ($remove=false,$source=false,$delimiter="\n") {
 		$string = "";
 		// Show source if debug is on, or not a general error message
 		if (((defined('WP_DEBUG') && WP_DEBUG) || $this->level > SHOPP_ERR) && 
@@ -318,7 +332,7 @@ class ShoppError {
 		$string .= join($delimiter,$this->messages);
 		if ($remove) {
 			$Errors = &ShoppErrors();
-			if (!empty($Errors)) $Errors->remove($this);
+			if (!empty($Errors->errors)) $Errors->remove($this);
 		}
 		return $string;
 	}
@@ -338,7 +352,7 @@ class ShoppError {
  **/
 class ShoppErrorLogging {
 	var $dir;
-	var $file = "shopp_errors.log";
+	var $file = "shopp_debug.log";
 	var $logfile;
 	var $log;
 	var $loglevel = 0;
@@ -353,10 +367,12 @@ class ShoppErrorLogging {
 	 **/
 	function __construct ($loglevel=0) {
 		$this->loglevel = $loglevel;
-		$this->dir = defined('SHOPP_TEMP_PATH') ? SHOPP_TEMP_PATH : sys_get_temp_dir();
+		$this->dir = defined('SHOPP_LOG_PATH') ? SHOPP_LOG_PATH : sys_get_temp_dir();
 		$this->dir = sanitize_path($this->dir); // Windows path sanitiation
-		$sitename = sanitize_title_with_dashes(get_bloginfo('sitename'));
-		$this->logfile = trailingslashit($this->dir).$sitename."-".$this->file;
+
+		$siteurl = parse_url(get_bloginfo('siteurl'));
+		$sub = (!empty($path)?"_".sanitize_title_with_dashes($path):'');
+		$this->logfile = trailingslashit($this->dir).$siteurl['host'].$sub."_".$this->file;
 
 		$Errors = &ShoppErrors();
 		$Errors->notifications->subscribe($this,'log');

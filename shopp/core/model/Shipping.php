@@ -38,7 +38,7 @@ class Shipping extends DatabaseObject {
 	function postarea () {
 		global $Shopp;
 		$code = $this->postcode;
-		$areas = $Shopp->Settings->get('areas');
+		$areas = Lookup::country_areas();
 		
 		// Skip if there are no areas for this country
 		if (!isset($areas[$this->country])) return false;
@@ -87,8 +87,8 @@ class Shipping extends DatabaseObject {
 		global $Shopp;
 		
 		$base = $Shopp->Settings->get('base_operations');
-		$countries = $Shopp->Settings->get('countries');
-		$regions = $Shopp->Settings->get('regions');
+		$countries = Lookup::countries();
+		$regions = Lookup::regions();
 		
 		if ($data) $this->updates($data);
 

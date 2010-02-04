@@ -146,12 +146,12 @@ var SettingInput = function (module,attrs,options) {
 
 			var alt = true;
 			var selected = this.selected;
-			$.each(this.options,function (id,label) {
+			$.each(this.options,function (key,label) {
 				var id = _self.id+'-'+label.toLowerCase().replace(/[^\w]/,'-');
 				var checked = '';
-				if ($.inArray(label,selected) != -1) checked = ' checked="true"';
+				if ($.inArray(key,selected) != -1) checked = ' checked="true"';
 				html += '<li'+(alt?' class="odd"':'')+'>';
-				html += '<input type="checkbox" name="'+_self.name+'[]" value="'+label+'" id="'+id+'"'+checked+' />';
+				html += '<input type="checkbox" name="'+_self.name+'[]" value="'+key+'" id="'+id+'"'+checked+' />';
 				html += '<label for="'+id+'">'+label+'</label>';				
 				html += '</li>';
 				alt = !alt;

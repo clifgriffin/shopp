@@ -127,6 +127,7 @@ class Purchase extends DatabaseObject {
 	
 	// Display a sales receipt
 	function receipt ($template="receipt.php") {
+		if (empty($this->purchased)) $this->load_purchased();
 		ob_start();
 		include(SHOPP_TEMPLATES."/$template");
 		$content = ob_get_contents();
@@ -164,7 +165,7 @@ class Purchase extends DatabaseObject {
 			case "city": return $this->city; break;
 			case "state": 
 				if (strlen($this->state > 2)) return $this->state;
-				$regions = $Shopp->Settings->get('zones');
+				$regions = Lookup::country_zones();
 				$states = $regions[$this->country];
 				return $states[$this->state];
 				break;
@@ -177,7 +178,7 @@ class Purchase extends DatabaseObject {
 			case "shipcity": return $this->shipcity; break;
 			case "shipstate":
 				if (strlen($this->shipstate > 2)) return $this->shipstate;
-				$regions = $Shopp->Settings->get('zones');
+				$regions = Lookup::country_zones();
 				$states = $regions[$this->country];
 				return $states[$this->shipstate];
 				break;

@@ -7,29 +7,19 @@
  * @version 1.0.5
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
- * @since 1.1 dev
+ * @since 1.1
  * @subpackage AuthorizeNet
  * 
  * $Id$
  **/
 
 class AuthorizeNet extends GatewayFramework {
-	var $transaction = array();
-	var $settings = array();
-	var $Response = false;
-	var $cards = array("Visa", "MasterCard", "American Express", "Discover", "JCB", "Diner’s Club", "EnRoute");
 
-	function AuthorizeNet (&$Order="") {
+	var $cards = array("visa", "mc", "amex", "disc", "jcb", "dc");
+
+	function AuthorizeNet () {
 		parent::__construct();
 		$this->setup('login','password','testmode');
-		if (!isset($this->settings['label'])) $this->settings['label'] = __("Credit Card","Shopp");
-
-		global $Shopp;
-		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
-		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
-
-		if (!empty($Order)) $this->build($Order);
-		return true;
 	}
 	
 	function process () {
@@ -190,7 +180,7 @@ class AuthorizeNet extends GatewayFramework {
 	}
 	
 	function settings () {
-		$this->ui->multimenu(0,array(
+		$this->ui->cardmenu(0,array(
 			'name' => 'cards',
 			'selected' => $this->settings['cards']
 		),$this->cards);

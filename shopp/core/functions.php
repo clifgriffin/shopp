@@ -264,14 +264,25 @@ function file_mimetype ($file,$name=false) {
  * @param boolean $format (optional) Numerically formats the value to normalize it (Default: true) 
  * @return float
  **/
-function floatvalue($value, $format=true) {
+function floatvalue($value, $format=false) {
+	if ($format === false) {
+		global $Shopp;
+		$locale = $Shopp->Settings->get('base_operations');
+		$format = $locale['currency']['format'];
+		if (empty($format)) $format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
+	}
+
+	extract($format,EXTR_SKIP);
+
+	if (is_float($value)) return round($value,$precision);
+
 	$value = preg_replace("/[^\d,\.]/","",$value); // Remove any non-numeric string data
-	$value = preg_replace("/,/",".",$value); // Replace commas with periods
-	$value = preg_replace("/[^0-9\.]/","", $value); // Get rid of everything but numbers and periods
-	$value = preg_replace("/\.(?=.*\..*$)/s","",$value); // Replace all but the last period
-    $value = preg_replace('#^([-]*[0-9\.,\' ]+?)((\.|,){1}([0-9-]{1,2}))*$#e', "str_replace(array('.', ',', \"'\", ' '), '', '\\1') . '.' . sprintf('%02d','\\4')", $value);
-	if($format) return number_format(floatval($value),2);
-	else return floatval($value);
+	$value = preg_replace("/\\".$thousands."/","",$value); // Remove thousands
+
+	if ($precision > 0) // Don't convert decimals if not required
+		$value = preg_replace("/\\".$decimals."/",".",$value); // Convert decimal delimter
+
+	return round(floatval($value),$precision);
 }
 
 /**
@@ -283,8 +294,8 @@ function floatvalue($value, $format=true) {
  * @param string $url Source URL to rewrite 
  * @return string $url The secure URL
  **/
-function force_ssl ($url) {
-	if(isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on")
+function force_ssl ($url,$rewrite=false) {
+	if((isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on") || $rewrite)
 		$url = str_replace('http://', 'https://', $url);
 	return $url;
 }
@@ -992,6 +1003,7 @@ function shopp_settings_js ($dir="shopp") {
  **/
 function shopp_prereqs () {
 	$errors = array();
+	
 	// Check PHP version, this won't appear much since syntax errors in earlier
 	// PHP releases will cause this code to never be executed
 	if (!version_compare(PHP_VERSION, '5.0','>=')) 

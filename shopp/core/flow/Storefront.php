@@ -592,8 +592,8 @@ class Storefront extends FlowController {
 	}
 
 	function cart_page ($attrs=array()) {
-		global $Shopp;
-		$Cart = $Shopp->Order->Cart;
+		$Order = &ShoppOrder();
+		$Cart = $Order->Cart;
 
 		ob_start();
 		include(SHOPP_TEMPLATES."/cart.php");
@@ -604,15 +604,11 @@ class Storefront extends FlowController {
 	}
 	
 	function checkout_page () {
-		global $Shopp;
-		$Cart = $Shopp->Order->Cart;
 		$Errors = &ShoppErrors();
+		$Order = &ShoppOrder();
+		$Cart = $Order->Cart;
 		$process = get_query_var('shopp_proc');
-		// $xco = get_query_var('shopp_xco');
-		// if (!empty($xco)) {
-		// 	$Shopp->gateway($xco);
-		// 	$Shopp->Gateway->actions();
-		// }
+
 		do_action('shopp_init_checkout');
 		switch ($process) {
 			case "confirm-order": 
@@ -625,23 +621,8 @@ class Storefront extends FlowController {
 				break;//$content = $this->order_receipt(); break;
 			default:
 				ob_start();
-				if ($Errors->exist(SHOPP_COMM_ERR)) {
-					include(SHOPP_TEMPLATES."/errors.php");
-				}
-				if (!empty($xco)) {
-					
-					if (!empty($Shopp->Gateway)) {
-						if ($Shopp->Gateway->checkout)
-							include(SHOPP_TEMPLATES."/checkout.php");
-						else {
-							if ($Errors->exist(SHOPP_COMM_ERR))
-								include(SHOPP_TEMPLATES."/errors.php");
-							include(SHOPP_TEMPLATES."/summary.php");
-							echo $Shopp->Gateway->tag('button');
-						}
-					} else include(SHOPP_TEMPLATES."/summary.php");
-					
-				} else include(SHOPP_TEMPLATES."/checkout.php");
+				if ($Errors->exist(SHOPP_COMM_ERR)) include(SHOPP_TEMPLATES."/errors.php");
+				include(SHOPP_TEMPLATES."/checkout.php");
 				$content = ob_get_contents();
 				ob_end_clean();
 		}

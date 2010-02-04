@@ -26,11 +26,12 @@ class Order {
 	var $Billing = false;			// The billing address
 	var $Cart = false;				// The shopping cart
 	var $data = array();			// Extra/custom order data
-	var $Purchase = false;			// Generated Purchase
 
 	var $processor = false;			// The payment processor module name
+	var $paymethod = false;			// The selected payment method
 
 	// Post processing properties
+	var $purchase = false;			// Generated purchase ID
 	var $gateway = false;			// Proper name of the gateway used to process the order
 	var $transactionid = false;		// The transaction ID reported by the gateway
 	var $transtatus = "PENDING";	// Status of the payment
@@ -53,21 +54,38 @@ class Order {
 		$this->Customer = new Customer();
 		$this->Billing = new Billing();
 		$this->Shipping = new Shipping();
-		$this->purchase = false;
 
 		$this->Shipping->destination();
 
 		$this->confirm = ($Shopp->Settings->get('order_confirmation') == "always");
 		$this->accounts = $Shopp->Settings->get('account_system');
 		
+		$this->created = mktime();
+		
 		$this->listeners();
 	}
 	
+	/**
+	 * Re-establish event listeners and discover the current gateway processor
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function __wakeup () {
 		$this->listeners();
 		$this->processor();
 	}
 	
+	/**
+	 * Establish event listeners
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function listeners () {
 		add_action('shopp_process_checkout', array(&$this,'checkout'));
 		add_action('shopp_confirm_order', array(&$this,'confirmed'));
@@ -76,8 +94,18 @@ class Order {
 		add_action('shopp_create_purchase',array(&$this,'purchase'));
 		add_action('shopp_order_notifications',array(&$this,'notify'));
 		add_action('shopp_order_success',array(&$this,'success'));
+		
+		add_action('shopp_reset_session',array(&$this->Cart,'clear'));
 	}
 	
+	/**
+	 * Get the currently selected gateway processor 
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return Object|false The currently selected gateway
+	 **/
 	function processor () {
 		global $Shopp;
 		
@@ -92,6 +120,14 @@ class Order {
 		return false;
 	}
 	
+	/**
+	 * Determine if payment card data has been submitted
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function ccpayment () {
 		$ccdata = array('card','cardexpires-mm','cardexpires-yy','cvv');
 		foreach ($ccdata as $field) 
@@ -172,9 +208,15 @@ class Order {
 		
 		
 		// Determine gateway to use
-		
 		if (isset($_POST['paymethod'])) {
+			$this->paymethod = $_POST['paymethod'];
 			// User selected one of the payment options
+			list($module,$label) = explode(":",$this->paymethod);
+			if (isset($Shopp->Gateways->active[$module])) {
+				$Gateway = $Shopp->Gateways->active[$module];
+				$this->processor = $Gateway->module;
+				$this->gateway = $Gateway->name;
+			} else new ShoppError(__("The payment method you selected is no longer available. Please choose another.","Shopp"));
 		}
 		
 		$Gateway = $this->processor();
@@ -183,22 +225,28 @@ class Order {
 		
 		$this->Cart->changed(true);
 		$this->Cart->totals();
-		if ($this->validate() !== true) return;
+		if ($this->validform() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
 
 		if ($this->confirm) error_log("confirmation required");
 		
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm) {
-			error_log('checkout');
-			global $Shopp;
 			$secure = true;
-			if (!$Gateway->secure || $this->Cart->orderisfree()) $secure = false;
+			if (!$Shopp->Gateways->secure || $this->Cart->orderisfree()) $secure = false;
 			shopp_redirect($Shopp->link('confirm-order',$secure));
 		} else do_action('shopp_process_order');
 		
 	}
 	
+	/**
+	 * Confirms the order and starts order processing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function confirmed () {
 		
 		if ($_POST['checkout'] == "confirmed") {
@@ -262,8 +310,8 @@ class Order {
 			if ($Item->inventory) $Item->unstock();
 		}
 		
-		$Shopp->Purchase = &$Purchase;
 		$this->purchase = $Purchase->id;
+		$Shopp->Purchase = &$Purchase;
 
 		if (SHOPP_DEBUG) new ShoppError('Purchase '.$Purchase->id.' was successfully saved to the database.',false,SHOPP_DEBUG_ERR);
 
@@ -272,6 +320,14 @@ class Order {
 		do_action_ref_array('shopp_order_success',array(&$Shopp->Purchase));
 	}
 	
+	/**
+	 * Send out new order notifications
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function notify () {
 		global $Shopp;
 		$Purchase = $Shopp->Purchase;
@@ -290,13 +346,24 @@ class Order {
 			$Shopp->Settings->get('merchant_email'),
 			__('New Order','Shopp')
 		);
-
-		return;
 	}
 	
-	function transaction ($id,$status="PENDING") {
+	/**
+	 * Sets transaction information to create the purchase record
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $id Transaction ID
+	 * @param string $status (optional) Transaction status (PENDING, CHARGED, VOID, etc)
+	 * @param float $fees (optional) Transaction fees assesed by the processor
+	 * 
+	 * @return true
+	 **/
+	function transaction ($id,$status="PENDING",$fees=0) {
 		$this->txnid = $id;
 		$this->txnstatus = $status;
+		$this->fees = $fees;
 		
 		if (empty($this->txnid)) return new ShoppError(sprintf('The payment gateway %s did not provide a transaction id. Purchase records cannot be created without a transaction id.',$this->gateway),'shopp_order_transaction',SHOPP_DEBUG_ERR);
 
@@ -304,16 +371,32 @@ class Order {
 		return true;
 	}
 	
+	/**
+	 * Resets the session and redirects to the thank you page
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function success () {
 		global $Shopp;
+
+		$Shopp->resession();
+		
 		if ($this->purchase !== false)
 			shopp_redirect($Shopp->link('thanks'));
 	}
 	
 	/**
-	 * validate()
-	 * Validate checkout form order data before processing */
-	function validate () {
+	 * Validate the checkout form data before processing the order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean Status of valid checkout data
+	 **/
+	function validform () {
 		
 		if (empty($_POST['firstname']))
 			return new ShoppError(__('You must provide your first name.','Shopp'),'cart_validation');
@@ -448,9 +531,14 @@ class Order {
 	}
 
 	/**
-	 * validorder()
-	 * Validates order data during checkout processing to verify that sufficient information exists to process. */
-	function validorder () {		
+	 * Validate order data before transaction processing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean Validity of the order
+	 **/
+	function validate () {		
 		$Order = $this->data->Order;
 		$Customer = $Order->Customer;
 		$Shipping = $this->data->Order->Shipping;
@@ -527,7 +615,7 @@ class Order {
 			case "url": 
 				$secure = true;
 				// Test Mode will not require encrypted checkout
-				if (!$Gateway->secure || $this->Cart->orderisfree()) $secure = false;
+				if (!$Shopp->Gateways->secure || $this->Cart->orderisfree()) $secure = false;
 				$link = $Shopp->link('checkout',$secure);
 				
 				// Pass any arguments along
@@ -540,7 +628,7 @@ class Order {
 				break;
 			case "function":
 				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_PLUGINURI.'/core/ui/icons/updating.gif" width="16" height="16" />';
-				$regions = $Shopp->Settings->get('zones');
+				$regions = Lookup::country_zones();
 				$base = $Shopp->Settings->get('base_operations');
 				$output = '<script type="text/javascript">'."\n";
 				$output .= '<!--'."\n";
@@ -690,7 +778,7 @@ class Order {
 				if (!array_key_exists($country,$countries)) $country = key($countries);
 
 				if (empty($options['type'])) $options['type'] = "menu";
-				$regions = $Shopp->Settings->get('zones');
+				$regions = Lookup::country_zones();
 				$states = $regions[$country];
 				if (is_array($states) && $options['type'] == "menu") {
 					$label = (!empty($options['label']))?$options['label']:'';
@@ -729,8 +817,8 @@ class Order {
 			case "billing-required":
 			// case "creditcard-required":
 				if ($this->Cart->Totals->total == 0) return false;
-				$Gateway = $this->processor();
-				return ($Gateway->cards);
+				foreach ($Shopp->Gateways->active as $gateway) 
+					if (!empty($gateway->cards)) return true;
 				
 				// if (isset($_GET['shopp_xco'])) {
 				// 	$xco = join('/',array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
@@ -775,7 +863,7 @@ class Order {
 					$country = $this->Billing->country;
 				if (!array_key_exists($country,$countries)) $country = key($countries);
 
-				$regions = $Shopp->Settings->get('zones');
+				$regions = Lookup::country_zones();
 				$states = $regions[$country];
 				if (is_array($states) && $options['type'] == "menu") {
 					$label = (!empty($options['label']))?$options['label']:'';
@@ -861,7 +949,7 @@ class Order {
 					}
 				}
 				break;
-				
+			
 			case "has-data":
 			case "hasdata": return (is_array($this->data) && count($this->data) > 0); break;
 			case "order-data":
@@ -918,29 +1006,41 @@ class Order {
 					return '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />'; 
 				else return $custom;
 				break;
-			case "local-payment": return true; // Deprecated
-				// return (!empty($gateway)); break;
-			case "xco-buttons": return;	// DEPRECATED
-				// if (!is_array($xcos)) return false;
-				// $buttons = "";
-				// foreach ($xcos as $xco) {
-				// 	$xcopath = join('/',array($Shopp->path,'gateways',$xco));
-				// 	if (!file_exists($xcopath)) continue;
-				// 	$meta = scan_gateway_meta($xcopath);
-				// 	$ProcessorClass = $meta->tags['class'];
-				// 	if (!empty($ProcessorClass)) {
-				// 		$PaymentSettings = $Shopp->Settings->get($ProcessorClass);
-				// 		if ($PaymentSettings['enabled'] == "on") {
-				// 			include_once($xcopath);
-				// 			$Payment = new $ProcessorClass();
-				// 			$buttons .= $Payment->tag('button',$options);
-				// 		}
-				// 	}
-				// }
-				// return $buttons;
-				break;
+			case "local-payment": return true; break; // DEPRECATED
+			case "xco-buttons": return;	break; // DEPRECATED
 			case "payment-options":
 			case "paymentoptions": 
+				if (count($Shopp->Gateways->active) <= 1) return false;
+				extract($options);
+				$output = '';
+				$js = '<script type="text/javascript">';
+				$js .= "\n<!--\n";
+				$js .= "var ccpayments = {};\n";
+				if (!isset($type)) $type = "menu";
+				
+				if ($type == "list") {
+					$output .= '<span><ul>';
+					foreach ($Shopp->Gateways->active as $gateway) {
+						$value = $gateway->module.":".$gateway->settings['label'];
+						$checked = ($this->paymethod == $value)?' checked="checked"':'';
+						$output .= '<li><label><input type="radio" name="paymethod" value="'.$value.'"'.$checked.' /> '.$gateway->settings['label'].'</label></li>';
+						$js .= "ccpayments['".$value."'] = ".(!empty($gateway->cards)?"true":"false").";\n";
+					}
+					$output .= '</ul></span>';
+				} else {
+					$output .= '<select name="paymethod">';
+					foreach ($Shopp->Gateways->active as $gateway) {
+						$value = $gateway->module.":".$gateway->settings['label'];
+						$selected = ($this->paymethod == $value)?' selected="selected"':'';
+						$output .= '<option value="'.$value.'"'.$selected.'>'.$gateway->settings['label'].'</option>';
+						$js .= "ccpayments['".$value."'] = ".(!empty($gateway->cards)?"true":"false").";\n";
+					}
+					$output .= '</select>';
+				}
+				$js .= "\n//-->\n</script>";
+				echo $js;
+				
+				return $output;
 				break;
 			case "receipt":
 				if (empty($Shopp->Purchase->id)) {
@@ -958,6 +1058,19 @@ class Order {
 	}	
 
 } // END class Order
+
+/**
+ * Helper to access the Shopping Order
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @return Order
+ **/
+function &ShoppOrder () {
+	global $Shopp;
+	return $Shopp->Order;
+}
 
 
 ?>

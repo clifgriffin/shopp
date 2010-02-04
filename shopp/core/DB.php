@@ -616,6 +616,20 @@ abstract class DatabaseObject {
 				$this->{$property} = $db->clean($value);
 		}
 	}
+	
+	/**
+	 * Keeps database objects from storing unecessary metadata when serialized
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return array List of properties to store
+	 **/
+	function __sleep () {
+		$properties = array_keys(get_object_vars($this));
+		$ignores = array("_datatypes","_table","_key","_lists","_defaults");
+		return array_diff($properties,$ignores);
+	}
 
 }  // END class DatabaseObject
 
@@ -645,7 +659,7 @@ abstract class SessionObject {
 		
 		if (!defined('SHOPP_SECURE_KEY')) 
 			define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
-		
+
 		// Close out any early session calls
 		if(session_id()) session_write_close();
 		
@@ -659,7 +673,6 @@ abstract class SessionObject {
 		);
 		
 		register_shutdown_function('session_write_close');
-		
 	}
 	
 	/* open()
@@ -739,7 +752,7 @@ abstract class SessionObject {
 	function save ($id,$session) {
 		global $Shopp;
 		$db = &DB::get();
-		
+
 		$data = $db->escape(addslashes(serialize($this->data)));
 		
 		if ($this->secured() && is_shopp_secure()) {

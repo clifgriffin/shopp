@@ -40,6 +40,7 @@ class AdminFlow extends FlowController {
 		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
 		add_action('admin_init', array(&$this, 'tinymce'));
 		add_action('switch_theme',array(&$this, 'themepath'));
+		add_filter('favorite_actions', array(&$this, 'favorites'));
 
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
@@ -256,12 +257,27 @@ class AdminFlow extends FlowController {
 		add_contextual_help($menu,$content);
 	}
 	
+	/**
+	 * Adds a 'New Product' shortcut to the WordPress admin favorites menu
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $actions List of actions in the menu
+	 * @return array Modified actions list
+	 **/
+	function favorites ($actions) {
+		$key = add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>'new'),$this->wpadminurl);
+	    $actions[$key] = array(__('New Product','Shopp'),8);
+		return $actions;
+	}
 	
 	/**
 	 * Initializes the Shopp dashboard widgets
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
+	 * 
 	 * @return void
 	 **/
 	function dashboard () {
@@ -298,6 +314,14 @@ class AdminFlow extends FlowController {
 	/**
 	 * Dashboard Widgets
 	 */
+	/**
+	 * Renders the order stats widget
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function stats_widget ($args=null) {
 		global $Shopp;
 		$db = DB::get();
@@ -330,8 +354,8 @@ class AdminFlow extends FlowController {
 		echo '<div class="table"><table><tbody>';
 		echo '<tr><th colspan="2">'.__('Last 30 Days','Shopp').'</th><th colspan="2">'.__('Lifetime','Shopp').'</th></tr>';
 
-		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.$results->wkorders.'</a></td><td>'.__('Orders','Shopp').'</td>';
-		echo '<td class="amount"><a href="'.$orderscreen.'">'.$results->orders.'</a></td><td>'.__('Orders','Shopp').'</td></tr>';
+		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.(int)$results->wkorders.'</a></td><td>'.__('Orders','Shopp').'</td>';
+		echo '<td class="amount"><a href="'.$orderscreen.'">'.(int)$results->orders.'</a></td><td>'.__('Orders','Shopp').'</td></tr>';
 
 		echo '<tr><td class="amount"><a href="'.$orderscreen.'">'.money($results->wksales).'</a></td><td>'.__('Sales','Shopp').'</td>';
 		echo '<td class="amount"><a href="'.$orderscreen.'">'.money($results->sales).'</a></td><td>'.__('Sales','Shopp').'</td></tr>';
@@ -345,6 +369,14 @@ class AdminFlow extends FlowController {
 		
 	}
 	
+	/**
+	 * Renders the recent orders dashboard widget
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function orders_widget ($args=null) {
 		global $Shopp;
 		$db = DB::get();
@@ -395,6 +427,14 @@ class AdminFlow extends FlowController {
 		
 	}
 	
+	/**
+	 * Renders the bestselling products dashboard widget
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function products_widget ($args=null) {
 		global $Shopp;
 		$db = DB::get();
@@ -422,6 +462,7 @@ class AdminFlow extends FlowController {
 		echo '<table><tbody><tr>';
 		echo '<td><h4>'.__('Recent Bestsellers','Shopp').'</h4>';
 		echo '<ul>';
+		if (empty($RecentBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';
 		foreach ($RecentBestsellers->products as $product) 
 			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a> ('.$product->sold.')</li>';
 		echo '</ul></td>';
@@ -431,8 +472,9 @@ class AdminFlow extends FlowController {
 		$LifetimeBestsellers->load_products();
 		echo '<td><h4>'.__('Lifetime Bestsellers','Shopp').'</h4>';
 		echo '<ul>';
+		if (empty($LifetimeBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';
 		foreach ($LifetimeBestsellers->products as $product) 
-			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a> ('.$product->sold.')</li>';
+			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a>'.(isset($product->sold)?' ('.$product->sold.')':' (0)').'</li>';
 		echo '</ul></td>';
 		echo '</tr></tbody></table>';
 		echo $after_widget;

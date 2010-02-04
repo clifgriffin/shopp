@@ -7,28 +7,27 @@ Subject: [subject]
 html { font: 13px "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, sans-serif; width: 600px; padding: 40px; position: relative; }
 
 address { font-style: normal; }
-fieldset { width: auto; width: 33%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
+fieldset { padding: 10px; border: 1px solid #dadada; margin: 20px 0 30px; }
+fieldset legend { display: block; }
+table { clear: both; }
 table.transaction th { text-align: left; }
+.labels { width: 100%; }
+table.labels td { vertical-align: top; }
 h1 { margin-bottom: 0; }
 p { margin-bottom: 24px; }
 
-fieldset { float: left; width: 40%; height: 150px; margin-top: 20px; }
-fieldset.shipping { float: right; }
-fieldset legend { display: block; }
-
-.billship { clear: both; width: 100%; }
-
 .clear { clear: both; }
 
-.cart { width: 100%; clear: both; border: none; }
-.cart td { border: none; }
-.cart th { font-weight: bold; text-align: left; }
-.cart .item { width: 50%; }
-.cart .money,
-.cart .total,
-.cart .buttons td { text-align: right; }
-.cart .remove { font-size: 12px; }
-.cart tr.totals th,.cart tr.totals td { padding: 10px 0 0 0; }
+.order { width: 100%; clear: both; border: none; }
+.order td { border: none; }
+.order th { font-weight: bold; text-align: left; }
+.order .item { width: 50%; }
+.order td.qty { text-align: center; }
+.order .money,
+.order .total,
+.order .buttons td { text-align: right; }
+.order .remove { font-size: 12px; }
+.order tr.totals th,.order tr.totals td { padding: 10px 0 0 0; }
 </style>
 
 <html>

@@ -7,17 +7,21 @@
  * @version 1.0
  * @copyright Ingenesis Limited, 28 May, 2009
  * @package Shopp
+ * @since 1.1
+ * @subpackage PayJunction
  * 
  * $Id$
  **/
 
-class PayJunction {
-	var $transaction = array();
-	var $settings = array();
-	var $Response = false;
+class PayJunction extends GatewayFramework {
+
+	var $secure = true;
+	
 	var $production = "https://payjunction.com/quick_link";
 	var $demo = "https://demo.payjunction.com/quick_link";
-	var $cards = array("Visa", "MasterCard", "American Express", "Discover");
+	
+	var $cards = array("visa", "mc", "amex", "disc");
+	
 	var $codes = array(
 		"FE" => "There was a format error with your Trinity Gateway Service (API) request.",
 		"AE" => "Address verification failed because address did not match.",
@@ -56,34 +60,29 @@ class PayJunction {
 		"DT" => "Duplicate Transaction"
 	);
 
-	function PayJunction (&$Order="") {
-		global $Shopp;
-		$this->settings = $Shopp->Settings->get('PayJunction');
-		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
-		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
-
-		if (!empty($Order)) $this->build($Order);
-		return true;
+	function PayJunction () {
+		parent::__construct();
+		$this->setup('login','password','testmode');
 	}
 	
 	function process () {
-		$this->send();
-		if ($this->Response->dc_response_code == "00" || 
-			$this->Response->dc_response_code == "85") return true;
-		else return false;
+		if (!$this->myorder()) return;
+		
+		$Response = $this->send($this->build());
+
+		if ($Response->dc_response_code == "00" || 
+			$Response->dc_response_code == "85") {
+				$this->Order->transaction($Response->dc_transaction_id,'CHARGED');
+			return;
+		}
+				
+		new ShoppError($Response->dc_response_message,'payjunction_error',SHOPP_TRXN_ERR,
+			array('code'=>$Response->dc_response_code));
+		
 	}
 	
-	function transactionid () {
-		if (!empty($this->Response)) return $this->Response->dc_transaction_id;
-	}
-	
-	function error () {
-		if (!empty($this->Response)) 
-			return new ShoppError($this->Response->dc_response_message,'payjunction_error',SHOPP_TRXN_ERR,
-				array('code'=>$this->Response->dc_response_code));
-	}
-	
-	function build (&$Order) {
+	function build () {
+		$Order = $this->Order;
 		$_ = array();
 
 		// Options
@@ -119,38 +118,18 @@ class PayJunction {
 		
 		// Transaction
 		// $_['dc_transaction_id']		= $Order->Cart;
-		$_['dc_transaction_amount']	= number_format($Order->Totals->subtotal - 
-													$Order->Totals->discount,2);
-		$_['dc_shipping_amount']	= number_format($Order->Totals->shipping,2);
-		$_['dc_tax_amount']			= number_format($Order->Totals->tax,2);
+		$_['dc_transaction_amount']	= number_format($Order->Cart->Totals->subtotal - 
+													$Order->Cart->Totals->discount,2);
+		$_['dc_shipping_amount']	= number_format($Order->Cart->Totals->shipping,2);
+		$_['dc_tax_amount']			= number_format($Order->Cart->Totals->tax,2);
 		
-		$this->transaction = $this->encode($_);
-		return true;
+		return $this->encode($_);
 	}
 	
-	function send () {
+	function send ($message) {
 		$url = $this->production;
 		if ($this->settings['testmode'] == "on") $url = $this->demo;
-
-		$connection = curl_init();
-		curl_setopt($connection, CURLOPT_URL,$url);
-		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
-		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
-		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
-		curl_setopt($connection, CURLOPT_POST, 1); 
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->transaction); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 60); 
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
-		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
-		$buffer = curl_exec($connection);
-		if ($error = curl_error($connection)) 
-			new ShoppError($error,'payjunction_connection',SHOPP_COMM_ERR);
-		curl_close($connection);
-
-		$this->Response = $this->response($buffer);
-		return $this->Response;
+		return $this->response(parent::send($message,$url));
 	}
 	
 	function response ($buffer) {
@@ -180,34 +159,33 @@ class PayJunction {
 	}
 	
 	function settings () {
-		global $Shopp;
-		?>
-		<tr id="payjunction-settings" class="addon">
-			<th scope="row" valign="top">PayJunction</th>
-			<td>
-				<div><input type="text" name="settings[PayJunction][login]" id="payjunction_loginname" value="<?php echo $this->settings['login']; ?>" size="16" /><br /><label for="payjunction_loginname"><?php _e('Enter your PayJunction login name.'); ?></label></div>
-				<div><input type="password" name="settings[PayJunction][password]" id="payjunction_pw" value="<?php echo $this->settings['password']; ?>" size="24" /><br /><label for="payjunction_pw"><?php _e('Enter your PayJunction password.'); ?></label></div>
-				<div><input type="hidden" name="settings[PayJunction][testmode]" value="off"><input type="checkbox" name="settings[PayJunction][testmode]" id="payjunction_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="payjunction_testmode"> <?php _e('Enable test mode'); ?></label></div>
-				<div><strong>Accept these cards:</strong>
-				<ul class="cards"><?php foreach($this->cards as $id => $card): 
-					$checked = "";
-					if (in_array($card,$this->settings['cards'])) $checked = ' checked="checked"';
-				?>
-					<li><input type="checkbox" name="settings[PayJunction][cards][]" id="payjunction_cards_<?php echo $id; ?>" value="<?php echo $card; ?>" <?php echo $checked; ?> /><label for="payjunction_cards_<?php echo $id; ?>"> <?php echo $card; ?></label></li>
-				<?php endforeach; ?></ul></div>
-				
-				<input type="hidden" name="module[<?php echo basename(__FILE__); ?>]" value="PayJunction" />
-			</td>
-		</tr>
-		<?php
+		$this->ui->cardmenu(0,array(
+			'name' => 'cards',
+			'selected' => $this->settings['cards']
+		),$this->cards);
+
+		$this->ui->text(1,array(
+			'name' => 'login',
+			'value' => $this->settings['login'],
+			'size' => '16',
+			'label' => __('Enter your PayJunction login name.','Shopp')
+		));
+
+		$this->ui->password(1,array(
+			'name' => 'password',
+			'value' => $this->settings['password'],
+			'size' => '24',
+			'label' => __('Enter your PayJunction password.','Shopp')
+		));
+		
+		$this->ui->checkbox(1,array(
+			'name' => 'testmode',
+			'checked' => $this->settings['testmode'],
+			'label' => __('Enable test mode','Shopp')
+		));
+		
 	}
 	
-	function registerSettings () {
-		?>
-		gatewayHandlers.register('<?php echo addslashes(gateway_path(__FILE__)); ?>','payjunction-settings');
-		<?php
-	}
-
-} // end PayJunction class
+} // END class PayJunction
 
 ?>
