@@ -7,7 +7,7 @@
  * @version 1.0.5
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
- * @since 1.1 dev
+ * @since 1.1
  * @subpackage PayPalStandard
  * 
  * $Id$
@@ -84,6 +84,7 @@ class PayPalStandard extends GatewayFramework {
 	}
 
 	function submit ($tag=false,$options=array(),$attrs=array()) {
+		return $tag;
 		return '<input type="image" name="process" src="'.$this->buttonurl.'" id="checkout-button" '.inputattrs($options,$attrs).' />';
 	}
 	
@@ -261,8 +262,8 @@ class PayPalStandard extends GatewayFramework {
 		$_ = array();
 		$_['cmd'] = "_notify-validate";
 		
-		$transaction = $this->encode(array_merge($_POST,$_));
-		$response = parent::send($transaction,$this->url);
+		$message = $this->encode(array_merge($_POST,$_));
+		$response = $this->send($message);
 		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification verfication response received: '.$response,'paypal_standard',SHOPP_DEBUG_ERR);
 		return $response;
 	}
@@ -277,45 +278,10 @@ class PayPalStandard extends GatewayFramework {
 		}
 	}
 		
-	function send () {
-		return parent::send($this->transaction,$this->url());
+	function send ($message) {
+		return parent::send($message,$this->url());
 	}
-
-	/**
-	 * encode()
-	 * Builds a get/post encoded string from the provided $data */
-	function encode ($data) {
-		$query = "";
-		foreach($data as $key => $value) {
-			if (is_array($value)) {
-				foreach($value as $item) {
-					if (strlen($query) > 0) $query .= "&";
-					$query .= "$key=".urlencode(stripslashes($item));
-				}
-			} else {
-				if (strlen($query) > 0) $query .= "&";
-				$query .= "$key=".urlencode(stripslashes($value));
-			}
-		}
-		return $query;
-	}
-	
-	/**
-	 * format()
-	 * Generates hidden inputs based on the supplied $data */
-	function format ($data) {
-		$query = "";
-		foreach($data as $key => $value) {
-			if (is_array($value)) {
-				foreach($value as $item)
-					$query .= '<input type="hidden" name="'.$key.'[]" value="'.attribute_escape($item).'" />';
-			} else {
-				$query .= '<input type="hidden" name="'.$key.'" value="'.attribute_escape($value).'" />';
-			}
-		}
-		return $query;
-	}
-		
+			
 	function settings () {
 		$this->ui->text(0,array(
 			'name' => 'account',
@@ -329,7 +295,6 @@ class PayPalStandard extends GatewayFramework {
 			'label' => sprintf(__('Use the %s','Shopp'),'<a href="http://docs.shopplugin.net/PayPal_Sandbox" target="shoppdocs">PayPal Sandbox</a>'),
 			'checked' => $this->settings['testmode']
 		));
-		
 	}
 	
 

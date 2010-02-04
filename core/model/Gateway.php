@@ -12,21 +12,6 @@
  **/
 
 /**
- * GatewayModule interface
- * 
- * Provides a template of required methods in order for a gateway to be 
- * fully integrated with Shopp.
- *
- * @author Jonathan Davis
- * @since 1.1
- * @package shopp
- * @subpackage gateways
- **/
-interface GatewayModule {
-	
-}
-
-/**
  * GatewayFramework class
  * 
  * Provides default helper methods for gateway modules.
@@ -41,12 +26,16 @@ abstract class GatewayFramework {
 	var $Order = false;
 	var $name = false;
 	var $cards = false;
+	var $secure = true;
 	
 	function __construct () {
 		global $Shopp;
-		$this->Order = $Shopp->Order;
+		$this->Order = &ShoppOrder();
 		$this->module = get_class($this);
 		$this->settings = $Shopp->Settings->get($this->module);
+		if (!isset($this->settings['label']) && $this->cards) 
+			$this->settings['label'] = __("Credit Card","Shopp");
+		$this->_loadcards();
 	}
 
 	function setupui ($module,$name) {
@@ -97,11 +86,55 @@ abstract class GatewayFramework {
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		$buffer = curl_exec($connection);   
 		if ($error = curl_error($connection)) 
-			new ShoppError($error,'gateway_comm_err',SHOPP_COMM_ERR);
+			new ShoppError($this->name.": ".$error,'gateway_comm_err',SHOPP_COMM_ERR);
 		curl_close($connection);
 		
 		return $buffer;
 		
+	}
+	
+	function encode ($data) {
+		$query = "";
+		foreach($data as $key => $value) {
+			if (is_array($value)) {
+				foreach($value as $item) {
+					if (strlen($query) > 0) $query .= "&";
+					$query .= "$key=".urlencode($item);
+				}
+			} else {
+				if (strlen($query) > 0) $query .= "&";
+				$query .= "$key=".urlencode($value);
+			}
+		}
+		return $query;
+	}
+	
+	function format ($data) {
+		$query = "";
+		foreach($data as $key => $value) {
+			if (is_array($value)) {
+				foreach($value as $item)
+					$query .= '<input type="hidden" name="'.$key.'[]" value="'.attribute_escape($item).'" />';
+			} else {
+				$query .= '<input type="hidden" name="'.$key.'" value="'.attribute_escape($value).'" />';
+			}
+		}
+		return $query;
+	}
+	
+	function settings () {}
+	
+	private function _loadcards () {
+		if (empty($this->settings['cards'])) $this->settings['cards'] = $this->cards;
+		if ($this->cards) {
+			$cards = array();
+			$pcs = Lookup::paycards();
+			foreach ($this->cards as $card) {
+				$card = strtolower($card);
+				if (isset($pcs[$card])) $cards[] = $pcs[$card];
+			}
+			$this->cards = $cards;
+		}
 	}
 	
 } // end Gateway class
@@ -120,6 +153,7 @@ abstract class GatewayFramework {
 class GatewayModules extends ModuleLoader {
 	
 	var $selected = false;		// The chosen gateway to process the order
+	var $secure = false;		// SSL-required flag
 	
 	/**
 	 * Initializes the shipping module loader
@@ -164,8 +198,8 @@ class GatewayModules extends ModuleLoader {
 	function properties ($module) {
 		if (!isset($this->active[$module])) return;
 		$this->active[$module]->name = $this->modules[$module]->name;
+		if ($this->active[$module]->secure) $this->secure = true;
 	}
-	
 	
 	/**
 	 * Loads all the installed gateway modules for the payments settings
@@ -183,6 +217,45 @@ class GatewayModules extends ModuleLoader {
 		foreach ($this->active as $package => &$module) {
 			$module->setupui($package,$this->modules[$package]->name);
 		}
+	}
+	
+}
+
+class PayCard {
+	
+	var $name;
+	var $symbol;
+	var $pattern = false;
+	var $csc = false;
+	var $inputs = array();
+
+	function __construct ($name,$symbol,$pattern,$csc=false,$inputs=array()) {
+		$this->name = $name;
+		$this->symbol = $symbol;
+		$this->pattern = $pattern;
+		$this->csc = $csc;
+		$this->inputs = $inputs;
+	}
+	
+	function validate ($pan) {
+		$n = preg_replace('/[^\d+]/','',$pan);
+		return ($this->match($n) && $this->checksum($n));
+	}
+	
+	function match ($number) {
+		if ($this->pattern && !preg_match($this->pattern,$number)) return false;
+		return true;
+	}
+	
+	function checksum ($number) {
+		$code = strrev($number);
+		for ($i = 0; $i < strlen($code); $i++) {
+			$d = intval($code[$i]);
+			if ($i & 1) $d *= 2;
+			$cs += $d % 10;
+			if ($d > 9) $cs += 1;
+		}
+		return ($cs % 10 != 0);
 	}
 	
 }

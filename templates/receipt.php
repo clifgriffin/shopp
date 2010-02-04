@@ -6,7 +6,8 @@
 	<tr><th><?php _e('Transaction:','Shopp'); ?></th><td><?php shopp('purchase','transactionid'); ?> (<strong><?php shopp('purchase','payment'); ?></strong>)</td></tr>	
 </table>
 
-<fieldset>
+<table class="labels"><tr>
+<td><fieldset class="billing">
 	<legend><?php _e('Billed to','Shopp'); ?></legend>
 	<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
 	<?php shopp('purchase','company'); ?><br />
@@ -14,10 +15,9 @@
 	<?php shopp('purchase','xaddress'); ?>
 	<?php shopp('purchase','city'); ?>, <?php shopp('purchase','state'); ?> <?php shopp('purchase','postcode'); ?><br />
 	<?php shopp('purchase','country'); ?></address>
-</fieldset>
-
+</fieldset></td>
 <?php if (shopp('purchase','hasfreight')): ?>
-	<fieldset class="shipping">
+<td><fieldset class="shipping">
 		<legend><?php _e('Ship to','Shopp'); ?></legend>
 		<address><big><?php shopp('purchase','firstname'); ?> <?php shopp('purchase','lastname'); ?></big><br />
 		<?php shopp('purchase','shipaddress'); ?><br />
@@ -26,8 +26,9 @@
 		<?php shopp('purchase','shipcountry'); ?></address>
 		
 		<p>Shipping: <?php shopp('purchase','shipmethod'); ?></p>
-	</fieldset>	
+</fieldset></td>
 <?php endif; ?>
+</tr></table>
 
 <?php if (shopp('purchase','hasitems')): ?>
 <table class="order widefat">

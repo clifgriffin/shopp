@@ -455,6 +455,16 @@ function buttonHandlers () {
 	})(jQuery)
 }
 
+function validateForms () {
+	(function($) {
+		$('form.validate').submit(function () {
+			console.log('validate form');
+			if (validate(this)) return true;
+			else return false;
+		});
+	})(jQuery)
+}
+
 /**
  * catalogViewHandler ()
  * Handles catalog view changes
@@ -792,7 +802,50 @@ function PopupCalendar (target,month,year) {
 	
 }
 
+var validate = function (form) {
+	var $ = jQuery.noConflict();
+	if (!form) return false;
+
+	var passed = true;
+	var passwords = new Array();
+	var error = new Array();
+
+	var inputs = $(form).find('input,select');
+	$.each(inputs,function (id,input) {
+		if ($(input).attr('disabled') == true) return;
+		
+		if ($(input).hasClass('required') && $(input).val() == "")
+			error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,$(input).attr('title')),input);
+		
+		if ($(input).attr('type') == "checkbox" && !$(input).attr('checked'))
+			error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,$(input).attr('title')),input);
+		
+		if ($(input).hasClass('email') && !$(input).val().match(new RegExp('^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+\.)+[a-zA-Z0-9.-]{2,4}$')))
+			error = new Array(CHECKOUT_INVALID_EMAIL,input);
+			
+		if (chars = $(input).attr('class').match(new RegExp('min(\\d+)'))) {
+			if ($(input).val().length < chars[1])
+				error = new Array(CHECKOUT_MIN_LENGTH.replace(/%s/,$(input).attr('title')).replace(/%d/,chars[1]),input);
+		}
+		
+		if ($(input).hasClass('passwords')) {
+			passwords.push(input);
+			if (passwords.length == 2 && passwords[0].value != passwords[1].value)
+				error = new Array(CHECKOUT_PASSWORD_MISMATCH,passwords[1]);
+		}
+			
+	});
+
+	if (error.length > 0) {
+		error[1].focus();
+		alert(error[0]);
+		passed = false;
+	}
+	return passed;
+}
+
 jQuery(document).ready( function() {
+	validateForms();
 	formatFields();
 	buttonHandlers();
 	cartHandlers();

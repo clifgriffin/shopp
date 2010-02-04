@@ -166,11 +166,12 @@ ul.shopp_categories li ul.active { display: block; }
  **/
 #shopp #receipt { position: relative; margin: 20px 0; }
 #shopp #receipt address { font-style: normal; }
-#shopp #receipt fieldset { float: left; width: auto; width: 42%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
-#shopp #receipt fieldset.shipping { width: 42%; float: right; }
+#shopp #receipt fieldset { padding: 10px; border: 1px solid #dadada; margin: 20px 0 30px; }
 #shopp #receipt fieldset legend { display: block; }
-#shopp #receipt table.transaction { clear: both; width: 100%; margin-bottom: 10px; }
-#shopp #receipt table.transaction th { text-align: right; width: 80px; padding-right: 10px;}
+#shopp #receipt table { clear: both; }
+#shopp #receipt table.transaction th { text-align: left; }
+#shopp #receipt .labels { width: 100%; }
+#shopp #receipt table.labels td { vertical-align: top; }
 
 #shopp #receipt .order { width: 100%; clear: both; border: none; }
 #shopp #receipt td { border: none; }
@@ -178,6 +179,7 @@ ul.shopp_categories li ul.active { display: block; }
 #shopp #receipt th, 
 #shopp #receipt td { padding: 3px 0; }
 #shopp #receipt .order .item { width: 50%; }
+#shopp #receipt .order td.qty { text-align: center; }
 #shopp #receipt .order .money, 
 #shopp #receipt .order .total,
 #shopp #receipt .order .buttons td { text-align: right; }

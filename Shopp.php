@@ -52,6 +52,7 @@ require("core/flow/Modules.php");
 
 // Load Shopp-managed data model objects
 require("core/model/Gateway.php");
+require("core/model/Lookup.php");
 require("core/model/Shopping.php");
 require("core/model/Error.php");
 require("core/model/Order.php");
@@ -187,7 +188,6 @@ class Shopp {
 		
 		// Admin calls
 		add_action('admin_menu', array(&$this, 'lookups'));
-		add_filter('favorite_actions', array(&$this, 'favorites'));
 		
 		// Theme widgets
 		add_action('widgets_init', array(&$this, 'widgets'));
@@ -200,7 +200,7 @@ class Shopp {
 		
 		// Extras & Integrations
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
-				
+		
 	}
 	
 	/**
@@ -237,8 +237,8 @@ class Shopp {
 		
 		if (SHOPP_LOOKUP) return true;
 
+		$this->Errors = new ShoppErrors();
 		$this->Order = ShoppingObject::__new('Order');
-		$this->Errors = ShoppingObject::__new('ShoppErrors');
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
 		$this->Gateways = new GatewayModules();
 		$this->Shipping = new ShippingModules();
@@ -246,18 +246,12 @@ class Shopp {
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
 									$this->Settings->get('error_notifications'));
-									
+			
 		if (!$this->Shopping->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
 		if (SHOPP_DEBUG && $this->Shopping->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 
 		new Login();
-	}
-		
-	function favorites ($actions) {
-		// $key = add_query_arg(array('page'=>$this->Flow->Admin->editproduct,'id'=>'new'),$this->wpadminurl);
-		// 	    $actions[$key] = array(__('New Shopp Product','Shopp'),8);
-		return $actions;
 	}
 
 	/**
@@ -271,7 +265,7 @@ class Shopp {
 	function widgets () {
 		global $wp_version;
 
-		// include('core/ui/widgets/cart.php');
+		include('core/ui/widgets/cart.php');
 		include('core/ui/widgets/categories.php');
 		include('core/ui/widgets/section.php');
 		include('core/ui/widgets/tagcloud.php');
@@ -283,7 +277,7 @@ class Shopp {
 			$ShoppSection = new LegacyShoppCategorySectionWidget();
 			$ShoppTagCloud = new LegacyShoppTagCloudWidget();
 			$ShoppFacetedMenu = new LegacyShoppFacetedMenuWidget();
-			// $ShoppCart = new LegacyShoppCartWidget();
+			$ShoppCart = new LegacyShoppCartWidget();
 			$ShoppProduct = new LegacyShoppProductWidget();
 		}
 		
@@ -456,21 +450,6 @@ class Shopp {
 	}
 
 	/**
-	 * xorder ()
-	 * Handle external checkout system order notifications */
-	function xorder () {
-		$path = false;
-		if (!empty($_GET['shopp_xorder'])) {
-			$gateway = $this->Settings->get($_GET['shopp_xorder']);
-			if (isset($gateway['path'])) $path = $gateway['path'];
-			// Use the old path support for transition if the new path setting isn't available
-			if (empty($path)) $path = "{$_GET['shopp_xorder']}/{$_GET['shopp_xorder']}.php";
-			if ($this->gateway($path)) $this->Gateway->process();
-			exit();
-		}
-	}
-
-	/**
 	 * Reset the shopping session
 	 *
 	 * Controls the cart to allocate a new session ID and transparently 
@@ -482,32 +461,23 @@ class Shopp {
 	 * @return boolean True on success
 	 **/
 	function resession ($session=false) {
-		if ($session) session_regenerate_id();
-		else session_id($session);
+		// Generate new ID while session is started
+		if ($session) {
+			session_write_close();
+			$this->Shopping->session = session_id($session);
+			$this->Shopping = new Shopping();
+			session_start();
+			return true;
+		} else session_regenerate_id();
+
+		// Ensure we have the newest session ID
 		$this->Shopping->session = session_id();
+		
+		// Commit the session and restart
 		session_write_close();
-		$this->Shopping = new Shopping();
 		session_start();
-		return true;
-	}
-	
-	/**
-	 * gateway ()
-	 * Loads a requested gateway */
-	function gateway ($gateway,$load=false) {
-		if (substr($gateway,-4) != ".php") $gateway .= ".php";
-		$filepath = join('/',array($this->path,'gateways',$gateway));
-		if (!file_exists($filepath)) {
-			new ShoppError(__('There was a problem loading the requested payment processor.','Shopp').' ('.$gateway.')','shopp_load_gateway');
-			return false;
-		}
-		$meta = $this->Flow->scan_gateway_meta($filepath);
-		$ProcessorClass = $meta->tags['class'];
-		include_once($filepath);
-
-		if (isset($this->Cart->data->Order) && !$load) $this->Gateway = new $ProcessorClass($this->Cart->data->Order);
-		else $this->Gateway = new $ProcessorClass();
-
+		
+		do_action('shopp_reset_session');
 		return true;
 	}
 	
@@ -540,21 +510,7 @@ class Shopp {
 		if (SHOPP_PERMALINKS) return user_trailingslashit($uri."/".$page['permalink']);
 		else return add_query_arg('page_id',$page['id'],trailingslashit($uri));
 	}
-		
-	/**
-	 * help()
-	 * This function provides graceful degradation when the 
-	 * contextual javascript behavior isn't working, this
-	 * provides the default behavior of showing a help gateway
-	 * page with instructions on where to find help on Shopp. */
-	function help () {
-		include(SHOPP_ADMIN_PATH."/help/help.php");
-	}
 
-	function welcome () {
-		include(SHOPP_ADMIN_PATH."/help/welcome.php");
-	}
-	
 	/**
 	 * AJAX Responses */
 	
@@ -645,9 +601,10 @@ class Shopp {
 				exit();
 				break;
 			case "zones":
-				$zones = $this->Settings->get('zones');
-				if (isset($_GET['country']))
+				$zones = Lookup::country_zones();
+				if (isset($_GET['country']) && isset($zones[$_GET['country']]))
 					echo json_encode($zones[$_GET['country']]);
+				else echo json_encode(false);
 				exit();
 				break;
 			case "shipcost":

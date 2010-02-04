@@ -15,14 +15,16 @@
 class ManualProcess extends GatewayFramework {
 
 	var $secure = true;
+	var $cards = array();
 
-	var $cards = array("Visa","MasterCard","Discover","American Express");
 	var $public_key = false;
 	var $private_key = false;
 	var $sec_prefix = false;
 	var $path = false;
 
 	function ManualProcess () {
+		$paycards = Lookup::paycards();
+		$this->cards = array_keys($paycards);
 		parent::__construct();
 		global $Shopp;
 
@@ -37,8 +39,6 @@ class ManualProcess extends GatewayFramework {
 		add_action('admin_head', array(&$this, 'jserrors'));
 		add_action('shopp_process_order',array(&$this,'process'));
 		add_action('shopp_order_admin_script', array(&$this, 'decrypt'));
-		
-		return true;
 	}
 	
 	function jserrors() {
@@ -67,8 +67,12 @@ class ManualProcess extends GatewayFramework {
 	}
 	
 	function settings () {
-		if(SHOPP_DEBUG) new ShoppError('Manual Processing: '._object_r($_POST),false,SHOPP_DEBUG_ERR);
 		if(isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on") {			
+			$this->ui->cardmenu(0,array(
+				'name' => 'cards',
+				'selected' => $this->settings['cards']
+			),$this->cards);
+
 			if (empty($this->public_key)) {
 				$this->ui->hidden(0,array(
 					'name' => 'public_key',
@@ -122,7 +126,7 @@ class ManualProcess extends GatewayFramework {
 			$this->ui->p(0, array(
 				'name' => 'sslrequired',
 				'label' => __('Unable to Complete Setup', 'Shopp'),
-				'content' => __('<p>This payment method requires an SSL enabled site, and also SSL security in the WordPress Admin.</p>  <p>Please save to activate this module, and then login in secure mode to complete the setup. See the <a target="_blank" href="http://codex.wordpress.org/Administration_Over_SSL#To_Force_SSL_Logins_and_SSL_Admin_Access">WordPress Codex - Administration Over SSL</a> for more information on securing your WordPress Admin.</p>','Shopp')
+				'content' => '<p>'.__('This payment method requires an SSL enabled site, and also SSL security in the WordPress Admin.','Shopp').'</p><p>'.__('Please save to activate this module, and then login in secure mode to complete the setup. See the <a target="_blank" href="http://codex.wordpress.org/Administration_Over_SSL#To_Force_SSL_Logins_and_SSL_Admin_Access">WordPress Codex - Administration Over SSL</a> for more information on securing your WordPress Admin.','Shopp')
 			));
 		}
 	}

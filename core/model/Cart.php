@@ -1354,7 +1354,7 @@ class CartTax {
 	 **/
 	function __construct () {
 		global $Shopp;
-		$this->Order = $Shopp->Order;
+		$this->Order = &ShoppOrder();
 		$this->enabled = ($Shopp->Settings->get('taxes') == "on");
 		$this->rates = $Shopp->Settings->get('taxrates');
 		$this->shipping = ($Shopp->Settings->get('tax_shipping') == "on");

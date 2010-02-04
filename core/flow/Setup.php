@@ -68,7 +68,7 @@ class Setup extends FlowController {
 
 		$country = (isset($_POST['settings']))?$_POST['settings']['base_operations']['country']:'';
 		$countries = array();
-		$countrydata = $Shopp->Settings->get('countries');
+		$countrydata = Lookup::countries();
 		foreach ($countrydata as $iso => $c) {
 			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso) 
 				$base_region = $c['region'];
@@ -82,7 +82,7 @@ class Setup extends FlowController {
 		
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-general');
-			$vat_countries = $Shopp->Settings->get('vat_countries');
+			$vat_countries = Lookup::vat_countries();
 			$zone = $_POST['settings']['base_operations']['zone'];
 			$_POST['settings']['base_operations'] = $countrydata[$_POST['settings']['base_operations']['country']];
 			$_POST['settings']['base_operations']['country'] = $country;
@@ -99,7 +99,7 @@ class Setup extends FlowController {
 
 		$operations = $Shopp->Settings->get('base_operations');
 		if (!empty($operations['zone'])) {
-			$zones = $Shopp->Settings->get('zones');
+			$zones = Lookup::country_zones();
 			$zones = $zones[$operations['country']];
 		}
 		
@@ -289,11 +289,11 @@ class Setup extends FlowController {
 
 		$methods = $Shopp->Shipping->methods;
 		$base = $Shopp->Settings->get('base_operations');
-		$regions = $Shopp->Settings->get('regions');
+		$regions = Lookup::regions();
 		$region = $regions[$base['region']];
 		$useRegions = $Shopp->Settings->get('shipping_regions');
 
-		$areas = $Shopp->Settings->get('areas');
+		$areas = Lookup::country_areas();
 		if (is_array($areas[$base['country']]) && $useRegions == "on") 
 			$areas = array_keys($areas[$base['country']]);
 		else $areas = array($base['country'] => $base['name']);
@@ -325,7 +325,7 @@ class Setup extends FlowController {
 			$this->Settings->get('target_markets'));
 
 		
-		$zones = $this->Settings->get('zones');
+		$zones = Lookup::country_zones();
 		
 		include(SHOPP_ADMIN_PATH."/settings/taxes.php");
 	}	
@@ -531,7 +531,7 @@ class Setup extends FlowController {
 			$this->settings_save();
 
 			// Reinitialize Error System
-			$Shopp->Cart->data->Errors = new ShoppErrors();
+			$Shopp->Errors = new ShoppErrors();
 			$Shopp->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 			$Shopp->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
 										$this->Settings->get('error_notifications'));
@@ -586,12 +586,31 @@ class Setup extends FlowController {
 
 } // END class Setup
 
+
+/**
+ * ModuleSettingsUI class
+ * 
+ * Provides a PHP interface for building JavaScript based module setting 
+ * widgets using the ModuleSetting Javascript class.
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ **/
 class ModuleSettingsUI {
 	
 	var $type;
 	var $module;
 	var $name;
 	
+	/**
+	 * Registers a new module setting interface
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function __construct($type,$module,$name,$label) {
 		$this->type = $type;
 		$this->module = $module;
@@ -601,6 +620,17 @@ class ModuleSettingsUI {
 		echo "\thandlers.register('$module',$module);\n";
 	}
 	
+	/**
+	 * Renders a checkbox input
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; use 'checked' to set whether the element is toggled on or not
+	 * 
+	 * @return void
+	 **/
 	function checkbox ($column=0,$attributes=array()) {
 		$attributes['type'] = "checkbox";
 		$attributes['normal'] = "off";
@@ -611,45 +641,151 @@ class ModuleSettingsUI {
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
+
+	/**
+	 * Renders a drop-down menu element
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; use 'selected' to set the selected option
+	 * @param array $options The available options in the menu
+	 * 
+	 * @return void
+	 **/
+	function menu ($column=0,$attributes=array(),$options=array()) {
+		$attributes['type'] = "menu";
+		$attrs = json_encode($attributes);
+		$options = json_encode($options);
+		echo "$this->module.newInput($column,$attrs,$options);\n";
+	}
 	
+	/**
+	 * Renders a multiple-select widget
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; pass a 'selected' attribute as an array to set the selected options
+	 * @param array $options The available options in the menu
+	 * 
+	 * @return void
+	 **/
 	function multimenu ($column=0,$attributes=array(),$options=array()) {
 		$attributes['type'] = "multimenu";
 		$attrs = json_encode($attributes);
 		$options = json_encode($options);
 		echo "$this->module.newInput($column,$attrs,$options);\n";
 	}
+	
+	/**
+	 * Renders a multiple-select widget from a list of payment cards
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; pass a 'selected' attribute as an array to set the selected payment cards
+	 * @param array $options The available payment cards in the menu
+	 * 
+	 * @return void
+	 **/
+	function cardmenu ($column=0,$attributes=array(),$cards=array()) {
+		$attributes['type'] = "multimenu";
+		$options = array();
+		foreach ($cards as $card) $options[$card->symbol] = $card->name;
+		$attrs = json_encode($attributes);
+		$options = json_encode($options);
+		echo "$this->module.newInput($column,$attrs,$options);\n";
+	}
 
+	/**
+	 * Renders a text input
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; requires a 'name' attribute
+	 * 
+	 * @return void
+	 **/
 	function text ($column=0,$attributes=array()) {
 		$attributes['type'] = "text";
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
 
+	/**
+	 * Renders a password input
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; requires a 'name' attribute
+	 * 
+	 * @return void
+	 **/
 	function password ($column=0,$attributes=array()) {
 		$attributes['type'] = "password";
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
 
+	/**
+	 * Renders a hidden input
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; requires a 'name' attribute
+	 * 
+	 * @return void
+	 **/
 	function hidden ($column=0,$attributes=array()) {
 		$attributes['type'] = "hidden";
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
 
+	/**
+	 * Renders a styled button element
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; requires a 'name' attribute
+	 * 
+	 * @return void
+	 **/
 	function button ($column=0,$attributes=array()) {
 		$attributes['type'] = "button";
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
 	
+	/**
+	 * Renders a paragraph element
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; requires a 'name' attribute
+	 * 
+	 * @return void
+	 **/
 	function p ($column=0,$attributes=array()) {
 		$attributes['type'] = "p";
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
 	
-	
-}
+} // END class ModuleSettingsUI
 
 ?>

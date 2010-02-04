@@ -344,18 +344,11 @@ class ShoppInstallation extends FlowController {
 		return $result;
 	}
 
-
 	/**
 	 * setup()
 	 * Initialize default install settings and lists */
 	function setup () {
 		
-		$this->regions();
-		$this->countries();
-		$this->zones();
-		$this->areas();
-		$this->vat();
-
 		$this->Settings->save('show_welcome','on');	
 		$this->Settings->save('display_welcome','on');	
 		
@@ -397,37 +390,6 @@ class ShoppInstallation extends FlowController {
 		$this->Settings->save('PayPalExpress',array('enabled'=>'off'));
 		$this->Settings->save('GoogleCheckout',array('enabled'=>'off'));
 	}
-
-	function regions () {
-		include_once(SHOPP_PATH."/core/init.php");
-		$regions = apply_filters('shopp_setup_global_regions',get_global_regions());
-		$this->Settings->save('regions',$regions);
-	}
-	
-	function countries () {
-		include_once(SHOPP_PATH."/core/init.php");
-		$countries = apply_filters('shopp_setup_country_table',get_countries());
-		$this->Settings->save('countries',addslashes(serialize($countries)),false);
-	}
-	
-	function zones () {
-		include_once(SHOPP_PATH."/core/init.php");
-		$zones = apply_filters('shopp_setup_country_zones',get_country_zones());
-		$this->Settings->save('zones',$zones,false);
-	}
-
-	function areas () {
-		include_once(SHOPP_PATH."/core/init.php");
-		$areas = apply_filters('shopp_setup_country_areas',get_country_areas());
-		$this->Settings->save('areas',$areas,false);
-	}
-
-	function vat () {
-		include_once(SHOPP_PATH."/core/init.php");
-		$countries = apply_filters('shopp_setup_vat_countries',get_vat_countries());
-		$this->Settings->save('vat_countries',$countries,false);
-	}
-
 
 } // end ShoppInstallation class
 

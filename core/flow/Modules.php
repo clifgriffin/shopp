@@ -166,7 +166,11 @@ class ModuleFile {
 				__('%s could not be loaded because the file descriptors are incomplete.','Shopp'),
 				$this->name),
 				'addon_missing_meta',SHOPP_ADDON_ERR);
-		if (version_compare(SHOPP_VERSION,$this->since) == -1)
+
+		$coreversion = '/^([\d\.])\b.*?$/';
+		$shopp = preg_replace($coreversion,"$1",SHOPP_VERSION);
+		$since = preg_replace($coreversion,"$1",$this->since);
+		if (version_compare($shopp,$since) == -1)
 			return new ShoppError(sprintf(
 				__('%s could not be loaded because it requires version %s (or higher) of Shopp.','Shopp'),
 				$this->name, $this->since),

@@ -10,7 +10,7 @@
  **
  **/
 ?>
-<form action="<?php shopp('checkout','url'); ?>" method="post" class="shopp" id="checkout">
+<form action="<?php shopp('checkout','url'); ?>" method="post" class="shopp validate" id="checkout">
 <?php shopp('checkout','cart-summary'); ?>
 
 <?php if (shopp('cart','hasitems')): ?>

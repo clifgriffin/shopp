@@ -216,7 +216,7 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 		if ($country != $this->base['country']) {
 			global $Shopp;
 			$type = "IntlRate";	
-			$countries = $Shopp->Settings->get('countries');
+			$countries = Lookup::country_zones();
 			if ($country == "GB") $country = $countries[$country]['name'].' (Great Britain)';
 			else $country = $countries[$country]['name'];
 		}
