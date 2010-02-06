@@ -470,7 +470,7 @@ abstract class DatabaseObject {
 	 **/
 	function save () {
 		$db = &DB::get();
-		
+		error_log(serialize($this));
 		$data = $db->prepare($this);
 		$id = $this->{$this->_key};
 		// Update record
@@ -615,20 +615,6 @@ abstract class DatabaseObject {
 				!in_array($property,$ignores)) 
 				$this->{$property} = $db->clean($value);
 		}
-	}
-	
-	/**
-	 * Keeps database objects from storing unecessary metadata when serialized
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 * 
-	 * @return array List of properties to store
-	 **/
-	function __sleep () {
-		$properties = array_keys(get_object_vars($this));
-		$ignores = array("_datatypes","_table","_key","_lists","_defaults");
-		return array_diff($properties,$ignores);
 	}
 
 }  // END class DatabaseObject

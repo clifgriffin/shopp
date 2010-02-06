@@ -829,6 +829,7 @@ class Order {
 				// 	}
 				// }
 				// return ($this->Cart->Totals->total > 0); break;
+				break;
 			case "billing-address":
 				if ($options['mode'] == "value") return $this->Billing->address;
 				if (!empty($this->Billing->address))
