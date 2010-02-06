@@ -22,6 +22,11 @@ class Payson extends GatewayFramework {
 	function __construct () {
 		parent::__construct();
 		$this->actions();
+		
+		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
+		
+		add_action('shopp_remote_payment',array(&$this,'returned'));
+		add_action('shopp_process_order',array(&$this,'process'));
 	}
 	
 	function actions () {
@@ -35,10 +40,17 @@ class Payson extends GatewayFramework {
 		$Shopp->Order->confirm = true;
 	}
 	
+	function url ($url) {
+		if ($this->settings['testmode'] == "on")
+			return $this->testurl;
+		else return $this->liveurl;
+	}
+	
 	/**
 	 * form()
 	 * Builds a hidden form to submit to Payson when confirming the order for processing */
 	function form ($form) {
+		global $Shopp;
 		$Order = $this->Order;
 		$precision = $this->baseop['currency']['format']['precision'];
 		
@@ -76,31 +88,45 @@ class Payson extends GatewayFramework {
 		
 	function process () {
 		global $Shopp;
-		
-		// Validate the order notification
-		$returned = array('Paysonref','OkURL','RefNr','MD5');
-		foreach($returned as $key) {
-			if (!isset($_GET[$key]) || empty($_GET[$key])) {
-				new ShoppError(__('An unverifiable order was received from Payson. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
-				return false;
-			}
-		}
-		
-		$checkfields = array(
-			$_GET['OkURL'],
-			$_GET['Paysonref'],
-			$this->settings['key']
-		);
-		$checksum = md5(join('',$checkfields));
-		
-		if ($Shopp->Shopping->session != $_GET['RefNr'] || $checksum != $_GET['MD5']) {
-			new ShoppError(__('An order was received from Payson that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'payson_trxn_validation',SHOPP_TRXN_ERR);
-			return false;
-		} 
-		
+				
 		$Shopp->Order->transaction($_GET['Paysonref'],'CHARGED',$_GET['Fee']);
 	}
 	
+	function returned () {
+		global $Shopp;
+		if (isset($_REQUEST['Paysonref']) && $this->myorder()) {
+			// Validate the order notification
+			$returned = array('Paysonref','OkURL','RefNr','MD5');
+			foreach($returned as $key) {
+				if (!isset($_GET[$key]) || empty($_GET[$key])) {
+					new ShoppError(__('An unverifiable order was received from Payson. Possible fraudulent order attempt!','Shopp'),'paypal_trxn_verification',SHOPP_TRXN_ERR);
+					return false;
+				}
+			}
+
+			// Check for unique transaction id
+			$Purchase = new Purchase($_GET['Paysonref'],'transactionid');
+			if (!empty($Purchase->id)) return false; // Purchase already recorded
+			
+			if ($Shopp->Shopping->session != $_GET['RefNr'])
+				$Shopp->resession($_GET['RefNr']);
+			
+			$checkfields = array(
+				$_GET['OkURL'],
+				$_GET['Paysonref'],
+				$this->settings['key']
+			);
+			$checksum = md5(join('',$checkfields));
+
+			if ($Shopp->Shopping->session != $_GET['RefNr'] || $checksum != $_GET['MD5']) {
+				new ShoppError(__('An order was received from Payson that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'payson_trxn_validation',SHOPP_TRXN_ERR);
+				return false;
+			}
+
+			// Run order processing
+			do_action('shopp_process_order'); 
+		}
+	}
 		
 	function send ($message) {
 		$url = $this->liveurl;
