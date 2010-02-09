@@ -259,7 +259,7 @@ class Account extends AdminController {
 	function editor () {
 		global $Shopp,$Customer;
 		
-		if ( !current_user_can(SHOPP_USERLEVEL) )
+		if ( !(is_shopp_userlevel() || current_user_can('shopp_customer')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 

@@ -74,9 +74,9 @@ class Service extends AdminController {
 		$args = array_merge($defaults,$_GET);
 		extract($args, EXTR_SKIP);
 		
-		if ( !current_user_can(SHOPP_USERLEVEL) )
-			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
-
+		if ( !(is_shopp_userlevel() || current_user_can('shopp_orders')) )
+			//wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
+			wp_die('What do you think you are doing?!');
 		if ($page == "shopp-orders"
 						&& !empty($deleting)
 						&& !empty($selected) 
@@ -237,7 +237,7 @@ class Service extends AdminController {
 		global $Shopp;
 		global $is_IIS;
 
-		if ( !current_user_can(SHOPP_USERLEVEL) )
+		if ( !(is_shopp_userlevel() || current_user_can('shopp_orders')) )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
 		if (preg_match("/\d+/",$_GET['id'])) {

@@ -480,7 +480,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 	}
 	
 	function ajax () {
-		if ((!is_user_logged_in() || !current_user_can('manage_options'))) return;
+		if ((!is_user_logged_in() || !current_user_can('manage_options') || !current_user_can('shopp_settings_shipping'))) return;
 		if (empty($_GET['action']) || $_GET['action'] != 'wp_ajax_shopp_shipwire_sync') return;
 		
 		$Updates = $this->sync();

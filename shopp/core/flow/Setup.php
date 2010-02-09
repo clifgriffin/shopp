@@ -63,7 +63,7 @@ class Setup extends FlowController {
 	 **/
 	function general () {
 		global $Shopp;
-		if ( !current_user_can('manage_options') )
+		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$country = (isset($_POST['settings']))?$_POST['settings']['base_operations']['country']:'';
@@ -111,7 +111,7 @@ class Setup extends FlowController {
 	}
 	
 	function presentation () {
-		if ( !current_user_can('manage_options') )
+		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_presentation')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (isset($_POST['settings']['theme_templates']) && $_POST['settings']['theme_templates'] == "on") 
@@ -169,27 +169,10 @@ class Setup extends FlowController {
 		include(SHOPP_ADMIN_PATH."/settings/presentation.php");
 	}
 
-	// function catalog () {
-	// 	// check_admin_referer('shopp-settings-catalog');
-	// 	if ( !current_user_can('manage_options') )
-	// 		wp_die(__('You do not have sufficient permissions to access this page.'));
-	// 
-	// 	if (!empty($_POST['save'])) $this->settings_save();
-	// 	include(SHOPP_ADMIN_PATH."/settings/catalog.php");
-	// }
-
-	function cart () {
-		if ( !current_user_can('manage_options') )
-			wp_die(__('You do not have sufficient permissions to access this page.'));
-
-		if (!empty($_POST['save'])) $this->settings_save();
-		include(SHOPP_ADMIN_PATH."/settings/cart.php");
-	}
-
 	function checkout () {
 		global $Shopp;
 		$db =& DB::get();
-		if ( !current_user_can('manage_options') )
+		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_checkout')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
@@ -243,7 +226,7 @@ class Setup extends FlowController {
 	function shipping () {
 		global $Shopp;
 		
-		if ( !current_user_can('manage_options') )
+		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_shipping')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 		
 		if (!empty($_POST['save'])) {
@@ -309,7 +292,7 @@ class Setup extends FlowController {
 	}
 
 	function taxes () {
-		if ( !current_user_can('manage_options') )
+		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_taxes')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (!empty($_POST['save'])) {
@@ -333,7 +316,7 @@ class Setup extends FlowController {
 	function payments () {
 		global $Shopp;
 		
-		if ( !current_user_can('manage_options') )
+		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_payments')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		add_action('gateway_module_settings',array(&$this,'payments_ui'));
@@ -407,7 +390,7 @@ class Setup extends FlowController {
 	function update () {
 		global $Shopp;
 		
-		if ( !current_user_can('manage_options') )
+		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_update')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$ftpsupport = (function_exists('ftp_connect'))?true:false;
@@ -477,7 +460,7 @@ class Setup extends FlowController {
 	
 	function system () {
 		global $Shopp;
-		if ( !current_user_can('manage_options') )
+		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_system')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$error = false;

@@ -121,7 +121,7 @@ class Shopp {
 		if (!defined('BR')) define('BR','<br />');
 
 		// Overrideable macros
-		if (!defined('SHOPP_USERLEVEL')) define('SHOPP_USERLEVEL',8);
+		//if (!defined('SHOPP_USERLEVEL')) define('SHOPP_USERLEVEL',8); // Deprecated
 		if (!defined('SHOPP_NOSSL')) define('SHOPP_NOSSL',false);
 		if (!defined('SHOPP_PREPAYMENT_DOWNLOADS')) define('SHOPP_PREPAYMENT_DOWNLOADS',false);
 		if (!defined('SHOPP_SESSION_TIMEOUT')) define('SHOPP_SESSION_TIMEOUT',7200);
