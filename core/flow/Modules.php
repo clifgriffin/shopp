@@ -75,6 +75,14 @@ abstract class ModuleLoader {
 		}
 	}
 	
+	function checksums () {
+		foreach ($this->modules as $file) {
+			if (in_array(basename($file),$this->coremods)) continue;
+			$addons[] = md5_file($gateway_path.$file);
+		}
+		return $addons;
+	}
+	
 
 } // END class ModuleLoader
 

@@ -356,7 +356,9 @@ abstract class DatabaseObject {
 		global $Shopp;
 		$db = &DB::get();
 		
-		$this->_table = $this->tablename($table); // So we know what the table name is
+		if (empty($this->_table) && $table)		// So we know what the table name is
+			$this->_table = $this->tablename($table); 
+
 		$this->_key = $key;				// So we know what the primary key is
 		$this->_datatypes = array();	// So we know the format of the table
 		$this->_lists = array();		// So we know the options for each list
@@ -615,6 +617,10 @@ abstract class DatabaseObject {
 				!in_array($property,$ignores)) 
 				$this->{$property} = $db->clean($value);
 		}
+	}
+	
+	function __wakeup () {
+		$this->init(false);
 	}
 
 }  // END class DatabaseObject

@@ -165,7 +165,7 @@
 	
 </div>
 
-<iframe id="print-receipt" name="receipt" src="?page=shopp-lookup&amp;lookup=receipt&amp;id=<?php echo $Purchase->id; ?>" width="400" height="100" class="invisible"></iframe>
+<iframe id="print-receipt" name="receipt" src="<?php echo admin_url('admin-ajax.php'); ?>?action=shopp_order_receipt&amp;id=<?php echo $Purchase->id; ?>" width="400" height="100" class="invisible"></iframe>
 
 <script type="text/javascript">
 (function($){
@@ -192,7 +192,7 @@ $('#print-button').click(function () {
 });
 
 $('#customer').click(function () {
-	window.location = "<?php echo add_query_arg(array('page'=>$this->Admin->editcustomer,'id'=>$Purchase->customer),$Shopp->wpadminurl.'admin.php'); ?>";
+	window.location = "<?php echo add_query_arg(array('page'=>$this->Admin->pagename('customers-edit'),'id'=>$Purchase->customer),admin_url('admin.php')); ?>";
 });
 
 <?php do_action_ref_array('shopp_order_admin_script',array(&$Purchase)); ?>

@@ -29,8 +29,9 @@ class Categorize extends AdminController {
 	function __construct () {
 		parent::__construct();
 		add_action('admin_print_scripts',array(&$this,'columns'));
-		add_action('admin_head',array(&$this,'workflow'));
 		add_action('admin_head',array(&$this,'layout'));
+		add_action('load-shopp_page_shopp-categories',array(&$this,'workflow'));
+		add_action('load-admin_page_shopp-categories-edit',array(&$this,'workflow'));
 	}
 	
 	/**
@@ -55,7 +56,6 @@ class Categorize extends AdminController {
 	function workflow () {
 		global $Shopp;
 		$db =& DB::get();
-
 		$defaults = array(
 			'page' => false,
 			'deleting' => false,
@@ -73,7 +73,7 @@ class Categorize extends AdminController {
 			&& $page != $this->Admin->pagename('categories-edit')))
 				return false;
 
-		$adminurl = $Shopp->wpadminurl."admin.php";		
+		$adminurl = admin_url('admin.php');		
 			
 		if ($page == $this->Admin->pagename('categories')
 				&& !empty($deleting) 
@@ -81,10 +81,11 @@ class Categorize extends AdminController {
 				&& is_array($delete)) {
 			foreach($delete as $deletion) {
 				$Category = new Category($deletion);
+				if (empty($Category->id)) continue;
 				$db->query("UPDATE $Category->_table SET parent=0 WHERE parent=$Category->id");
 				$Category->delete();
 			}
-			$redirect = esc_url(add_query_arg(array_merge($_GET,array('delete[]'=>null,'deleting'=>null)),$adminurl));
+			$redirect = (add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
 			shopp_redirect($redirect);
 		}
 		
@@ -106,7 +107,6 @@ class Categorize extends AdminController {
 			}
 				
 		}
-		
 	}
 
 	/**
@@ -166,6 +166,13 @@ class Categorize extends AdminController {
 			'total' => $num_pages,
 			'current' => $pagenum
 		));
+		
+		$action = esc_url(
+			add_query_arg(
+				array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'))),
+				admin_url('admin.php')
+			)
+		);
 		
 		include(SHOPP_ADMIN_PATH."/categories/categories.php");
 	}

@@ -98,7 +98,7 @@
 	
 	<div class="tablenav">
 		<div class="alignleft actions">
-			<form action="<?php echo esc_url(add_query_arg(array_merge($_GET,array('lookup'=>'purchaselog')),$Shopp->wpadminurl."admin.php")); ?>" id="log" method="post">
+			<form action="<?php echo esc_url(add_query_arg(array_merge($_GET,array('src'=>'export_purchases')),admin_url("admin.php"))); ?>" id="log" method="post">
 			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Export Options','Shopp'); ?></button>
 			<span id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">

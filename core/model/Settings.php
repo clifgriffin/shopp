@@ -138,6 +138,25 @@ class Settings extends DatabaseObject {
 		return $setting;
 	}
 	
+	function saveform () {
+		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
+		foreach ($_POST['settings'] as $setting => $value)
+			$this->save($setting,$value);
+	}
+	
 } // END class Settings
+
+/**
+ * Helper to access the Shopp settings registry
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @return void Description...
+ **/
+function &ShoppSettings () {
+	global $Shopp;
+	return $Shopp->Settings;
+}
 
 ?>

@@ -518,11 +518,9 @@ function ImageUploads (id,type) {
 		file_types_description : "Web-compatible Image Files",
 		file_upload_limit : filesizeLimit,
 		post_params : {
-			action:'shopp_add_image',
-			type:id
+			action:'shopp_upload_image',
+			type:type
 		},
-
-		// degraded_element_id : "browser-uploader",
 
 		swfupload_loaded_handler : swfuLoaded,
 		file_queued_handler : imageFileQueued,
@@ -542,7 +540,7 @@ function ImageUploads (id,type) {
 			sorting : false
 			
 		},
-		debug: false
+		debug: imageupload_debug
 		
 	}
 	
@@ -556,8 +554,8 @@ function ImageUploads (id,type) {
 		action: ajaxurl,
 		enctype: 'multipart/form-data',
 		params: {
-			action:'shopp_add_image',
-			type:id
+			action:'shopp_upload_image',
+			type:type
 		},
 		autoSubmit: true,
 		onSubmit: function() {
@@ -569,7 +567,7 @@ function ImageUploads (id,type) {
 	
 			this.targetHolder = cell;
 			this.progressBar = bar;
-			this.sorting = sorting;			
+			this.sorting = sorting;
 		},
 		onComplete: function(results) {
 			if (results == "") {
@@ -657,14 +655,15 @@ function ImageUploads (id,type) {
 	}
 
 	function imageUploadError (file, error, message) {
-		// console.log(error+": "+message);
+		console.log(error+": "+message);
 	}
 
 	function imageUploadSuccess (file, results) {
 		var image = eval('('+results+')');
-		if (image.error) {
+		if (!image.id && !image.src) {
 			$(this.targetHolder).remove();
-			alert(image.error);
+			if (image.error) alert(image.error);
+			else alert(UNKNOWN_UPLOAD_ERROR);
 			return true;
 		}
 	
@@ -735,7 +734,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		file_types_description : "All Files",
 		file_upload_limit : filesizeLimit,
 		post_params : {
-			action:'shopp_add_download'
+			action:'shopp_upload_file'
 		},
 				
 		swfupload_loaded_handler : swfuLoaded,
@@ -753,7 +752,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 			targetLine : false,
 			progressBar : false
 		},
-		debug: false
+		debug: fileupload_debug
 		
 	}
 	
@@ -771,7 +770,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		action: ajaxurl,
 		enctype: 'multipart/form-data',
 		params: {
-			action:'shopp_add_download'
+			action:'shopp_upload_file'
 		},
 		autoSubmit: true,
 		onSubmit: function() {
@@ -848,9 +847,10 @@ function FileUploader (button,defaultButton,linenum,updates) {
 
 	function uploadSuccess (file, results) {
 		var filedata = eval('('+results+')');
-		if (filedata.error) {
-			$(this.targetHolder).html(no_download)
-			alert(filedata.error);
+		if (!filedata.id && !filedata.name) {
+			$(this.targetHolder).html(NO_DOWNLOAD);
+			if (filedata.error) alert(filedata.error);
+			else alert(UNKNOWN_UPLOAD_ERROR);
 			return true;
 		}
 
@@ -886,7 +886,7 @@ function SlugEditor (id,type) {
 			buttons.html('<button type="button" class="save button">'+SAVE_BUTTON_TEXT+'</button> <button type="button" class="cancel button">'+CANCEL_BUTTON_TEXT+'</button>');
 			buttons.children('.save').click(function() {
 				var slug = editor.children('input').val();
-				$.post(editslug_url+'&action=wp_ajax_shopp_edit_slug', 
+				$.post(editslug_url+'&action=shopp_edit_slug', 
 					{ 'id':id, 'type':type, 'slug':slug },
 					function (data) {
 						editor.html(revert_editor);

@@ -75,7 +75,7 @@ class Customer extends DatabaseObject {
 				unset($_GET['acct']);
 				return false;
 			} else {
-				$Shopp->Cart->data->Purchase = $Purchase;
+				$Shopp->Purchase = $Purchase;
 				$Purchase->load_purchased();
 				ob_start();
 				include(SHOPP_TEMPLATES."/receipt.php");
@@ -222,7 +222,6 @@ class Customer extends DatabaseObject {
 		$asset = DatabaseObject::tablename(Asset::$table);
 		$query = "SELECT p.*,f.name as filename,f.size,f.properties FROM $purchases AS p LEFT JOIN $orders AS o ON o.id=p.purchase LEFT JOIN $asset AS f ON f.parent=p.price WHERE o.customer=$this->id AND f.size > 0";
 		$this->downloads = $db->query($query,AS_ARRAY);
-		
 	}
 
 	function load_orders ($filters=array()) {
@@ -345,18 +344,16 @@ class Customer extends DatabaseObject {
 				$string .= '<input type="submit" name="submit-login" id="submit-login"'.inputattrs($options).' />';
 				return $string;
 				break;
-			case "errors-exist":
-				$Errors =& ShoppErrors();
+			case "errors-exist": return true;
+				$Errors = &ShoppErrors();
 				return ($Errors->exist(SHOPP_AUTH_ERR));
 				break;
 			case "login-errors":
-				$Errors =& ShoppErrors();
 				$result = "";
+				$Errors = &ShoppErrors();
 				if (!$Errors->exist(SHOPP_AUTH_ERR)) return false;
 				$errors = $Errors->get(SHOPP_AUTH_ERR);
-				foreach ((array)$errors as $error) 
-					if (!empty($error)) $result .= '<p class="error">'.$error->message().'</p>';
-				$Errors->reset();				
+				foreach ((array)$errors as $error) if (!empty($error)) $result .= '<p class="error">'.$error->message().'</p>';
 				return $result;
 				break;
 
@@ -539,7 +536,7 @@ class Customer extends DatabaseObject {
 				
 			// Downloads UI tags
 			case "haspurchases":
-			case "has-purchases": 
+			case "has-purchases":
 				$filters = array();
 				if (isset($options['daysago'])) 
 					$filters['where'] = "UNIX_TIMESTAMP(o.created) > UNIX_TIMESTAMP()-".($options['daysago']*86400);
@@ -549,10 +546,10 @@ class Customer extends DatabaseObject {
 			case "purchases":
 				if (!$this->looping) {
 					reset($Shopp->purchases);
-					$Shopp->Cart->data->Purchase = current($Shopp->purchases);
+					$Shopp->Purchase = current($Shopp->purchases);
 					$this->looping = true;
 				} else {
-					$Shopp->Cart->data->Purchase = next($Shopp->purchases);
+					$Shopp->Purchase = next($Shopp->purchases);
 				}
 
 				if (current($Shopp->purchases) !== false) return true;
@@ -565,7 +562,7 @@ class Customer extends DatabaseObject {
 				return add_query_arg(
 					array(
 						'acct'=>'receipt',
-						'id'=>$Shopp->Cart->data->Purchase->id),
+						'id'=>$Shopp->Purchase->id),
 						$Shopp->link('account'));
 
 		}
@@ -585,6 +582,8 @@ class CustomersExport {
 	var $recordstart = true;
 	var $content_type = "text/plain";
 	var $extension = "txt";
+	var $set = 0;
+	var $limit = 1024;
 	
 	function CustomersExport () {
 		global $Shopp;
@@ -621,10 +620,11 @@ class CustomersExport {
 		$customer_table = DatabaseObject::tablename(Customer::$table);
 		$billing_table = DatabaseObject::tablename(Billing::$table);
 		$shipping_table = DatabaseObject::tablename(Shipping::$table);
+		$offset = $this->set*$this->limit;
 		
 		$c = 0; $columns = array();
 		foreach ($this->selected as $column) $columns[] = "$column AS col".$c++;
-		$query = "SELECT ".join(",",$columns)." FROM $customer_table AS c LEFT JOIN $billing_table AS b ON c.id=b.customer LEFT JOIN $shipping_table AS s ON c.id=s.customer $where ORDER BY c.created ASC";
+		$query = "SELECT ".join(",",$columns)." FROM $customer_table AS c LEFT JOIN $billing_table AS b ON c.id=b.customer LEFT JOIN $shipping_table AS s ON c.id=s.customer $where ORDER BY c.created ASC LIMIT $offset,$this->limit";
 		$this->data = $db->query($query,AS_ARRAY);
 	}
 
@@ -653,10 +653,14 @@ class CustomersExport {
 	}
 	
 	function records () {
-		foreach ($this->data as $key => $record) {
-			foreach(get_object_vars($record) as $column)
-				$this->export($this->parse($column));
-			$this->record();
+		while (!empty($this->data)) {
+			foreach ($this->data as $key => $record) {
+				foreach(get_object_vars($record) as $column)
+					$this->export($this->parse($column));
+				$this->record();
+			}
+			$this->set++;
+			$this->query();
 		}
 	}
 	

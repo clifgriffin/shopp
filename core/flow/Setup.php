@@ -27,7 +27,6 @@ class Setup extends FlowController {
 	 **/
 	function __construct () {
 		parent::__construct();
-		
 	}
 	
 	/**
@@ -564,8 +563,7 @@ class Setup extends FlowController {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value)
 			$this->Settings->save($setting,$value);
-	}
-	
+	}	
 
 } // END class Setup
 
@@ -594,12 +592,13 @@ class ModuleSettingsUI {
 	 * 
 	 * @return void Description...
 	 **/
-	function __construct($type,$module,$name,$label) {
+	function __construct($type,$module,$name,$label,$multi=false) {
 		$this->type = $type;
 		$this->module = $module;
-		$this->Name = $name;
+		$this->name = $name;
+		$multi = ($multi === false)?'false':'true';
 		
-		echo "\n\tvar $module = new ModuleSetting('$module','$name','$label');\n";
+		echo "\n\tvar $module = new ModuleSetting('$module','$name',".json_encode($label).",$multi);\n";
 		echo "\thandlers.register('$module',$module);\n";
 	}
 	
@@ -700,7 +699,7 @@ class ModuleSettingsUI {
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
-
+	
 	/**
 	 * Renders a password input
 	 *
@@ -736,6 +735,24 @@ class ModuleSettingsUI {
 	}
 
 	/**
+	 * Renders a text input
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $column The table column to add the element to
+	 * @param array $attributes Element attributes; requires a 'name' attribute
+	 * 
+	 * @return void
+	 **/
+	function textarea ($column=0,$attributes=array()) {
+		$attributes['type'] = "textarea";
+		$attrs = json_encode($attributes);
+		echo "$this->module.newInput($column,$attrs);\n";
+	}
+
+
+	/**
 	 * Renders a styled button element
 	 *
 	 * @author Jonathan Davis
@@ -768,7 +785,7 @@ class ModuleSettingsUI {
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
-	
+		
 } // END class ModuleSettingsUI
 
 ?>

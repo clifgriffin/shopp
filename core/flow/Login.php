@@ -39,9 +39,9 @@ class Login {
 		
 		$this->accounts = $Shopp->Settings->get('account_system');
 		
-		$this->Customer = $Shopp->Order->Customer;
-		$this->Billing = $Shopp->Order->Billing;
-		$this->Shipping = $Shopp->Order->Shipping;
+		$this->Customer = &$Shopp->Order->Customer;
+		$this->Billing = &$Shopp->Order->Billing;
+		$this->Shipping = &$Shopp->Order->Shipping;
 		
 		add_action('shopp_logout',array(&$this,'logout'));
 
@@ -49,8 +49,7 @@ class Login {
 			add_action('wp_logout',array(&$this,'logout'));
 			add_action('shopp_logout','wp_clear_auth_cookie');					
 		}
-		
-
+		// print_r($this);
 		$this->process();
 		
 	}
@@ -168,8 +167,9 @@ class Login {
 	 * loggedin()
 	 * Initialize login data */
 	function login ($Account) {
+		$this->Customer->copydata($Account);
+		$this->Customer->id = $Account->id;
 		$this->Customer->login = true;
-		$this->Customer = $Account;
 		unset($this->Customer->password);
 		$this->Billing->load($Account->id,'customer');
 		$this->Billing->card = "";

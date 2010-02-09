@@ -4,7 +4,7 @@
 		<h2><?php _e('Promotion Editor','Shopp'); ?></h2> 
 
 		<div id="ajax-response"></div> 
-		<form name="promotion" id="promotion" action="<?php echo add_query_arg('page','shopp-promotions',$Shopp->wpadminurl."admin.php"); ?>" method="post">
+		<form name="promotion" id="promotion" action="<?php echo add_query_arg('page','shopp-promotions',admin_url('admin.php')); ?>" method="post">
 			<?php wp_nonce_field('shopp-save-promotion'); ?>
 
 			<div class="hidden"><input type="hidden" name="id" value="<?php echo $Promotion->id; ?>" /></div>

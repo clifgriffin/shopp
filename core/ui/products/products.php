@@ -13,7 +13,7 @@
 		<input type="submit" value="<?php _e('Search Products','Shopp'); ?>" class="button" />
 	</p>
 	
-	<p><a href="<?php echo add_query_arg(array('page'=>$this->Admin->pagename('products-edit'),'id'=>'new'),$Shopp->wpadminurl."admin.php"); ?>" class="button"><?php _e('New Product','Shopp'); ?></a></p>
+	<p><a href="<?php echo add_query_arg(array('page'=>$this->Admin->pagename('products-edit'),'id'=>'new'),admin_url('admin.php')); ?>" class="button"><?php _e('New Product','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
@@ -48,7 +48,7 @@
 		$editurl = esc_url(attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>'shopp-products-edit',
 					'id'=>$Product->id)),
-					$Shopp->wpadminurl."admin.php")));
+					admin_url('admin.php'))));
 		
 		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
 		?>
