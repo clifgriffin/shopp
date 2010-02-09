@@ -120,7 +120,7 @@ class Categorize extends AdminController {
 		global $Shopp;
 		$db = DB::get();
 
-		if ( !current_user_can(SHOPP_USERLEVEL) )
+		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		$defaults = array(
@@ -210,7 +210,7 @@ class Categorize extends AdminController {
 		global $Shopp;
 		$db = DB::get();
 		
-		if ( !current_user_can(SHOPP_USERLEVEL) )
+		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if (empty($Shopp->Category)) $Category = new Category();
@@ -272,7 +272,7 @@ class Categorize extends AdminController {
 		$db = DB::get();
 		check_admin_referer('shopp-save-category');
 		
-		if ( !current_user_can(SHOPP_USERLEVEL) )
+		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 		
 		$this->settings_save(); // Save workflow setting

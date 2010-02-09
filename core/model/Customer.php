@@ -136,7 +136,7 @@ class Customer extends DatabaseObject {
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
-		$_[] = __('A request has beem made to reset the password for the following site and account:','Shopp');
+		$_[] = __('A request has been made to reset the password for the following site and account:','Shopp');
 		$_[] = get_option('siteurl');
 		$_[] = '';
 		if (isset($_POST['email-login']))

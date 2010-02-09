@@ -23,7 +23,47 @@ class AdminFlow extends FlowController {
 	var $MainMenu = false;	
 	var $Page = false;
 	var $Menu = false;
-	
+
+/*
+	* Capabilities						Role
+	* ==========================================
+	* shopp_settings					admin
+	* shopp_settings_checkout
+	* shopp_settings_payments
+	* shopp_settings_shipping
+	* shopp_settings_taxes
+	* shopp_settings_presentation
+	* shopp_settings_system
+	* shopp_settings_update
+	* shopp_financials					merchant
+	* shopp_promotions
+	* shopp_products
+	* shopp_categories
+	* shopp_orders						shopp-csr
+	* shopp_customers
+	* shopp_menu
+*/
+	var $caps = array(
+		'main'=>'shopp_menu',
+		'orders'=>'shopp_orders',
+		'customers'=>'shopp_customers',
+		'customers-edit'=>'shopp_customers',
+		'products'=>'shopp_products',
+		'products-edit'=>'shopp_products',
+		'categories'=>'shopp_categories',
+		'categories-edit'=>'shopp_categories',
+		'promotions'=>'shopp_promotions',
+		'promotions-edit'=>'shopp_promotions',
+		'settings'=>'shopp_settings',
+		'settings-checkout'=>'shopp_settings_checkout',
+		'settings-payments'=>'shopp_settings_payments',
+		'settings-shipping'=>'shopp_settings_shipping',
+		'settings-taxes'=>'shopp_settings_taxes',
+		'settings-presentation'=>'shopp_settings_presentation',
+		'settings-system'=>'shopp_settings_system',
+		'settings-update'=>'shopp_settings_update'
+		);
+		
 	/**
 	 * Admin constructor
 	 *
@@ -91,14 +131,15 @@ class AdminFlow extends FlowController {
 		$this->Menus['main'] = add_object_page(
 			'Shopp',									// Page title
 			'Shopp',									// Menu title
-			SHOPP_USERLEVEL,							// Access level
+			defined('SHOPP_USERLEVEL') ? 
+			SHOPP_USERLEVEL:$this->caps['main'],		// Access level
 			$this->MainMenu,							// Page
 			array(&$Shopp->Flow,'parse'),				// Handler
 			"$Shopp->uri/core/ui/icons/shopp.png"		// Icon
 		);
 
 		// Add menus to WordPress admin
-		foreach (array_keys($this->Pages) as $page) $this->addmenu($page);
+		foreach ($this->Pages as $page) $this->addmenu($page);
 
 		// Add admin JavaScript & CSS
 		foreach ($this->Menus as $menu) add_action("admin_print_scripts-$menu", array(&$this, 'behaviors'));
@@ -114,17 +155,17 @@ class AdminFlow extends FlowController {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 * 
-	 * @param string $page The internal reference name for the page
+	 * @param string $name The internal reference name for the page
 	 * @param string $label The label displayed in the WordPress admin menu
 	 * @param string $controller The name of the controller to use for the page
 	 * @param string $doc The title of the documentation article on docs.shopplugin.net
 	 * @param string $parent The internal reference for the parent page
 	 * @return void
 	 **/
-	function addpage ($page,$label,$controller,$doc=false,$parent=false) {
-		$page = basename(SHOPP_PATH)."-$page";
+	function addpage ($name,$label,$controller,$doc=false,$parent=false) {
+		$page = basename(SHOPP_PATH)."-$name";
 		if (!empty($parent)) $parent = basename(SHOPP_PATH)."-$parent";
-		$this->Pages[$page] = new ShoppAdminPage($page,$label,$controller,$doc,$parent);
+		$this->Pages[$page] = new ShoppAdminPage($name,$page,$label,$controller,$doc,$parent);
 	}
 
 	/**
@@ -134,18 +175,17 @@ class AdminFlow extends FlowController {
 	 * @since 1.1
 	 * 
 	 * @return void
-	 * @param string $name The name of the page
+	 * @param mixed $page ShoppAdminPage object
 	 **/
-	function addmenu ($name) {
+	function addmenu ($page) {
 		global $Shopp;
-		if (!isset($this->Pages[$name])) return false;
-
-		$page = $this->Pages[$name];
-		$this->Menus[$name] = add_submenu_page(
+		$name = $page->page;
+		
+		$this->Menus[$page->page] = add_submenu_page(
 			($page->parent)?$page->parent:$this->MainMenu,
 			$page->label,
 			$page->label,
-			SHOPP_USERLEVEL,
+			defined('SHOPP_USERLEVEL')?SHOPP_USERLEVEL:$this->caps[$page->name],
 			$name,
 			array(&$Shopp->Flow,'admin')
 		);
@@ -282,7 +322,7 @@ class AdminFlow extends FlowController {
 	 **/
 	function dashboard () {
 		$dashboard = $this->Settings->get('dashboard');
-		if (!(current_user_can(SHOPP_USERLEVEL) && $dashboard == "on")) return false;
+		if (!((is_shopp_userlevel() || current_user_can('shopp_financials')) && $dashboard == "on")) return false;
 		
 		wp_add_dashboard_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array(&$this,'stats_widget'),
 			array('all_link' => '','feed_link' => '','width' => 'half','height' => 'single')
@@ -576,7 +616,8 @@ class ShoppAdminPage {
 	var $doc = false;
 	var $parent = false;
 	
-	function __construct ($page,$label,$controller,$doc=false,$parent=false) {
+	function __construct ($name,$page,$label,$controller,$doc=false,$parent=false) {
+		$this->name = $name;
 		$this->page = $page;
 		$this->label = $label;
 		$this->controller = $controller;

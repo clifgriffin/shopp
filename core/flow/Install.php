@@ -347,14 +347,8 @@ class ShoppInstallation extends FlowController {
 	/**
 	 * Installed roles and capabilities used for Shopp
 	 *
-	 * Roles
-	 * ================
-	 * admin
-	 * shopp-merchant
-	 * shopp-csr
-	 * 
-	 * Capabilities
-	 * ================
+	 * Capabilities						Role
+	 * ==========================================
 	 * shopp_settings					admin
 	 * shopp_settings_checkout
 	 * shopp_settings_payments
@@ -367,9 +361,9 @@ class ShoppInstallation extends FlowController {
 	 * shopp_promotions
 	 * shopp_products
 	 * shopp_categories
-	 * shopp_orders*					shopp-csr
-	 * shopp_customers*
-	 * (limited by shopp-financials)
+	 * shopp_orders						shopp-csr
+	 * shopp_customers
+	 * shopp_menu
 	 *
 	 * @author John Dillick
 	 * @since 1.1
@@ -379,9 +373,12 @@ class ShoppInstallation extends FlowController {
 		global $wp_roles; // WP_Roles roles container
 		if(!$wp_roles) $wp_roles = new WP_Roles();
 		$shopp_roles = array('administrator'=>'Administrator', 'shopp-merchant'=>__('Merchant','Shopp'), 'shopp-csr'=>__('Customer Service Rep','Shopp'));
-		$caps['shopp-csr'] = array('shopp_customers', 'shopp_orders');
+		$caps['shopp-csr'] = array('shopp_customers', 'shopp_orders','shopp_menu','read');
 		$caps['shopp-merchant'] = array_merge($caps['shopp-csr'], 
-			array('shopp_categories', 'shopp_products', 'shopp_promotions','shopp_financials'));
+			array('shopp_categories', 
+				'shopp_products', 
+				'shopp_promotions',
+				'shopp_financials'));
 		$caps['administrator'] = array_merge($caps['shopp-merchant'], 
 			array('shopp_settings_update', 
 				'shopp_settings_system', 
@@ -391,7 +388,9 @@ class ShoppInstallation extends FlowController {
 				'shopp_settings_payments', 
 				'shopp_settings_checkout',
 				'shopp_settings'));
-
+		$wp_roles->remove_role('shopp-csr');
+		$wp_roles->remove_role('shopp-merchant');
+		
 		foreach($shopp_roles as $role => $display) {
 			if($wp_roles->is_role($role)) {
 				foreach($caps[$role] as $cap) $wp_roles->add_cap($role, $cap, true);
