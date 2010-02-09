@@ -345,6 +345,64 @@ class ShoppInstallation extends FlowController {
 	}
 
 	/**
+	 * Installed roles and capabilities used for Shopp
+	 *
+	 * Roles
+	 * ================
+	 * admin
+	 * shopp-merchant
+	 * shopp-csr
+	 * 
+	 * Capabilities
+	 * ================
+	 * shopp_settings					admin
+	 * shopp_settings_checkout
+	 * shopp_settings_payments
+	 * shopp_settings_shipping
+	 * shopp_settings_taxes
+	 * shopp_settings_presentation
+	 * shopp_settings_system
+	 * shopp_settings_update
+	 * shopp_financials					merchant
+	 * shopp_promotions
+	 * shopp_products
+	 * shopp_categories
+	 * shopp_orders*					shopp-csr
+	 * shopp_customers*
+	 * (limited by shopp-financials)
+	 *
+	 * @author John Dillick
+	 * @since 1.1
+	 * 
+	 **/
+	function roles () {
+		global $wp_roles; // WP_Roles roles container
+		if(!$wp_roles) $wp_roles = new WP_Roles();
+		$shopp_roles = array('administrator'=>'Administrator', 'shopp-merchant'=>__('Merchant','Shopp'), 'shopp-csr'=>__('Customer Service Rep','Shopp'));
+		$caps['shopp-csr'] = array('shopp_customers', 'shopp_orders');
+		$caps['shopp-merchant'] = array_merge($caps['shopp-csr'], 
+			array('shopp_categories', 'shopp_products', 'shopp_promotions','shopp_financials'));
+		$caps['administrator'] = array_merge($caps['shopp-merchant'], 
+			array('shopp_settings_update', 
+				'shopp_settings_system', 
+				'shopp_settings_presentation', 
+				'shopp_settings_taxes', 
+				'shopp_settings_shipping', 
+				'shopp_settings_payments', 
+				'shopp_settings_checkout',
+				'shopp_settings'));
+
+		foreach($shopp_roles as $role => $display) {
+			if($wp_roles->is_role($role)) {
+				foreach($caps[$role] as $cap) $wp_roles->add_cap($role, $cap, true);
+			} else {
+				$wp_roles->add_role($role, $display, array_fill_keys($caps[$role],true));
+			}
+		}
+	}
+
+
+	/**
 	 * setup()
 	 * Initialize default install settings and lists */
 	function setup () {
@@ -389,6 +447,9 @@ class ShoppInstallation extends FlowController {
 		// Payment Gateway Settings
 		$this->Settings->save('PayPalExpress',array('enabled'=>'off'));
 		$this->Settings->save('GoogleCheckout',array('enabled'=>'off'));
+		
+		// Setup Roles and Capabilities
+		$this->roles();
 	}
 
 } // end ShoppInstallation class
