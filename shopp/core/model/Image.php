@@ -136,7 +136,7 @@ class ImageProcessor {
 	 * version 2.1.1
 	 * Unsharp mask algorithm by Torstein Hansi <thoensi_at_netcom_dot_no>, July 2003
 	 **/
-	function UnsharpMask ($amount=50, $radius=0.5, $threshold=3) {  
+	function UnsharpMask ($amount=25, $radius=0.5, $threshold=3) {  
 		if (!isset($this->Processed->image)) return false;
 		$image = $this->Processed->image;
 

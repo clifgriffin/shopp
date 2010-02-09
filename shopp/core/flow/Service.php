@@ -313,19 +313,19 @@ class Service extends AdminController {
 	function status_counts () {
 		$db = DB::get();
 		
-		$purchase_table = DatabaseObject::tablename(Purchase::$table);
+		$table = DatabaseObject::tablename(Purchase::$table);
 		$labels = $this->Settings->get('order_status');
 		
 		if (empty($labels)) return false;
 
-		$r = $db->query("SELECT status,COUNT(status) AS total FROM $purchase_table GROUP BY status ORDER BY status ASC",AS_ARRAY);
+		$r = $db->query("SELECT status,COUNT(status) AS total FROM $table GROUP BY status ORDER BY status ASC",AS_ARRAY);
 
 		$status = array();
 		foreach ($r as $count) $status[$count->status] = $count->total;
 		foreach ($labels as $id => $label) if (empty($status[$id])) $status[$id] = 0;
 		return $status;
 	}
-
+	
 } // end Service class
 
 ?>

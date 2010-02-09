@@ -76,7 +76,7 @@
 			
 			var url = $('#shopp form').attr('action');
 			url += (url.indexOf("?") == -1)?"?":"&";
-			$.getJSON(url+"shopp_lookup=shipcost&method="+$(this).val(),
+			$.getJSON(ajaxurl+"?action=shopp_shipping_costs&method="+$(this).val(),
 				function (result) {
 					var totals = eval(result);
 					$('span.shopp_cart_shipping').html(asMoney(totals.shipping));
@@ -93,7 +93,7 @@
 				$('#checkout.shopp .creditcard').hide();
 				$('#checkout.shopp .creditcard .required,#checkout.shopp .creditcard .min3').attr('disabled',true);
 			}
-		});
+		}).change();
 
 	});
 })(jQuery)

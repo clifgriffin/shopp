@@ -51,7 +51,7 @@
 			?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Customer->id; ?>' /></th>
-			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>'shopp-customers-edit','id'=>$Customer->id),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $CustomerName; ?>&quot;'><?php echo $CustomerName; ?></a><?php echo !empty($Customer->company)?"<br />$Customer->company":""; ?></td>
+			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>'shopp-customers-edit','id'=>$Customer->id),admin_url('admin.php')); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $CustomerName; ?>&quot;'><?php echo $CustomerName; ?></a><?php echo !empty($Customer->company)?"<br />$Customer->company":""; ?></td>
 			<td class="login column-login<?php echo in_array('login',$hidden)?' hidden':''; ?>"><?php echo $Customer->user_login; ?></td>
 			<td class="email column-email<?php echo in_array('email',$hidden)?' hidden':''; ?>"><a href="mailto:<?php echo $Customer->email; ?>"><?php echo $Customer->email; ?></a></td>
 			
@@ -78,7 +78,7 @@
 	</form>
 	<div class="tablenav">
 		<div class="alignleft actions">
-			<form action="<?php echo esc_url(add_query_arg(array_merge($_GET,array('lookup'=>'customerexport')),$Shopp->wpadminurl."admin.php")); ?>" id="log" method="post">
+			<form action="<?php echo esc_url(add_query_arg(array_merge($_GET,array('src'=>'export_customers')),admin_url("admin.php"))); ?>" id="log" method="post">
 			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Export Options','Shopp'); ?></button>
 			<span id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">

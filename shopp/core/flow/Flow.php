@@ -34,7 +34,9 @@ class Flow {
 	function __construct () {
 		register_deactivation_hook(SHOPP_PLUGINFILE, array(&$this, 'deactivate'));
 		register_activation_hook(SHOPP_PLUGINFILE, array(&$this, 'activate'));
-			
+
+		if (defined('DOING_AJAX')) add_action('admin_init',array(&$this,'ajax'));
+				
 		add_action('admin_menu',array(&$this,'menu'));
 		if (defined('WP_ADMIN')) add_action('admin_init',array(&$this,'parse'));
 		else add_action('parse_request',array(&$this,'parse'));
@@ -48,16 +50,19 @@ class Flow {
 	 * @return boolean
 	 **/
 	function parse () {
-		global $Shopp;
+		global $Shopp,$wp;
 		
 		$this->transactions();
+
+		if (isset($wp->query_vars['src']) || 
+			(defined('WP_ADMIN') && isset($_GET['src']))) $this->resources();
 		
 		if (defined('WP_ADMIN') && isset($_GET['page'])) {
 			$controller = $this->Admin->controller(strtolower($_GET['page']));
 			if (!empty($controller)) $this->handler($controller);
 		} else $this->handler("Storefront");
 	}
-	
+		
 	function logins () {
 		
 		if (!empty($_POST['process-login']) && $_POST['process-login'] == "true") 
@@ -127,6 +132,17 @@ class Flow {
 		$this->Admin->menus();
 	}
 	
+	function ajax () {
+		if (!isset($_REQUEST['action']) || !defined('DOING_AJAX')) return;
+		require_once(SHOPP_FLOW_PATH."/Ajax.php");
+		$this->Ajax = new AjaxFlow();
+	}
+
+	function resources () {
+		require_once(SHOPP_FLOW_PATH."/Resources.php");
+		$this->Controller = new Resources();
+	}
+	
 	/**
 	 * Activates the plugin
 	 *
@@ -166,7 +182,14 @@ class Flow {
 			return true;
 		}
 		return false;
-	}	
+	}
+	
+	function save_settings () {
+		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
+		foreach ($_POST['settings'] as $setting => $value)
+			$this->Settings->save($setting,$value);
+		return true;
+	}
 	
 
 } // End class Flow

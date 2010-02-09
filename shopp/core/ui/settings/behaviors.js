@@ -1,54 +1,84 @@
 
-var ModuleSetting = function (module,name,label) {
+var ModuleSetting = function (module,name,label,multi) {
 	var $ = jQuery.noConflict();
-	var i = 0;
 	var _self = this;
+	var methods = 0;
 	
 	this.name = name;
 	this.module = module;
+	
 	this.label = label;
 	this.settings = new Array();
+	this.ui = new Array();
+
+	this.tables = new Array();
 	this.columns = new Array();
 	this.settingsTable = false;
 	this.deleteButton = false;
-	this.row = false;
+
+	this.multi = multi;
 
 	this.payment = function () {
-		var id = this.label.toLowerCase();
+		if (this.label instanceof Array) {
+			if (this.label[methods]) var label = this.label[methods];
+			else var label = this.name;
+		} else var label = this.label;
+		var id = label.toLowerCase().replace(/[^\w+]/,'-');
 		var ui = '';
 		ui += '';
 		ui += '<th scope="row"><label>'+this.name+'</label><br />';
-		ui += '<input type="text" name="settings['+this.module+'][label]" value="'+this.label+'" id="'+id+'-label" size="16" tabindex="'+(i+1)+'00" class="selectall" /><br />';
+		if (this.multi)
+			ui += '<input type="text" name="settings['+this.module+'][label]['+methods+']" value="'+label+'" id="'+id+'-label" size="16" class="selectall" /><br />';
+		else ui += '<input type="text" name="settings['+this.module+'][label]" value="'+label+'" id="'+id+'-label" size="16" class="selectall" /><br />';
 		ui += '<small><label for="'+id+'-label">'+SHOPP_PAYMENT_OPTION+'</label></small>';
 		ui += '</th>';
-		this.row = $('<tr class="form-required" />').html(ui).appendTo('#payment-settings');
+		var row = $('<tr class="form-required" />').html(ui).appendTo('#payment-settings');
 		
-		var settingsTableCell = $('<td/>').appendTo(this.row);
-		this.deleteButton = $('<button type="button" name="deleteRate" class="delete deleteRate" />').appendTo(settingsTableCell).hide();
-		$('<img src="'+SHOPP_PLUGINURI+'/core/ui/icons/delete.png" width="16" height="16"  />').appendTo(this.deleteButton);
-
+		var settingsTableCell = $('<td/>').appendTo(row);
+		var deleteButton = $('<button type="button" name="deleteRate" class="delete deleteRate" />').appendTo(settingsTableCell).hide();
+		$('<img src="'+SHOPP_PLUGINURI+'/core/ui/icons/delete.png" width="16" height="16"  />').appendTo(deleteButton);
+		this.deleteButton.row = row;
 		var bodyBG = $('html').css('background-color');
 		var deletingBG = "#ffebe8";
-		this.row.hover(function () {
-				_self.deleteButton.show();
+
+		$('#active-gateways').val($('#active-gateways').val()+","+this.module);
+
+		row.hover(function () {
+				deleteButton.show();
 			}, function () {
-				_self.deleteButton.hide();
+				deleteButton.hide();
 		});
 
-		this.deleteButton.hover (function () {
-				_self.row.animate({backgroundColor:deletingBG},250);
+		deleteButton.hover (function () {
+				row.animate({backgroundColor:deletingBG},250);
 			},function() {
-				_self.row.animate({backgroundColor:bodyBG},250);		
+				row.animate({backgroundColor:bodyBG},250);		
 		});
 
-		this.settingsTable = $('<table class="settings"/>').appendTo(settingsTableCell);
+		deleteButton.click (function () {
+			if (confirm(SHOPP_DELETE_PAYMENT_OPTION)) {
+				row.remove();
+				gateways = $('#active-gateways').val().split(",");
+				var index = $.inArray(_self.module,gateways);
+				gateways.splice(index,1);
+				$('#active-gateways').val(gateways.join());
+				$('#payment-option-menu option[value='+_self.module+']').attr('disabled',false);
+			}
+		});
+
+		this.tables[methods] = $('<table class="settings"/>').appendTo(settingsTableCell);
+		
 		$.each(this.settings,function (id,element) {
-			var input = new SettingInput(_self.module,element.attrs,element.options);
+			if (_self.multi) var input = new SettingInput(_self.module,element.attrs,element.options,methods);
+			else var input = new SettingInput(_self.module,element.attrs,element.options);
 			var markup = input.generate();
-			$(markup).appendTo(_self.column(element.target));
+			$(markup).appendTo(_self.column(element.target,methods));
 			if (input.type == "multimenu") input.selectall();
 		});
-		
+		if (this.multi) {
+			methods++;
+			if (this.label[methods]) this.payment();
+		}
 	}
 	
  	this.newInput = function (column,attrs,options) {
@@ -59,27 +89,35 @@ var ModuleSetting = function (module,name,label) {
 		};
 		this.settings.push(input);
 	}
-	
-	this.column = function (index) {
-		if (!this.columns[index]) return this.columns[index] = $('<td/>').appendTo(this.settingsTable)
-		else return this.columns[index];
+		
+	this.column = function (index,methods) {
+		if (!this.columns[methods]) this.columns[methods] = new Array();
+		if (!this.columns[methods][index]) return this.columns[methods][index] = $('<td/>').appendTo(this.tables[methods])
+		else return this.columns[methods][index];
 	}
 	
 	this.behaviors = function () {}
-
+	
 }
 
-var SettingInput = function (module,attrs,options) {
+var SettingInput = function (module,attrs,options,method) {
 	var $ = jQuery.noConflict();
 	var _self = this;
-	
+
 	var types = new Array('text','password','hidden','checkbox','menu','textarea','multimenu','p','button');
 
 	if (!attrs.name) return '';
 	
 	this.type = ($.inArray(attrs.type,types) != -1)?attrs.type:'text';
 	this.name = 'settings['+module+']['+attrs.name+']';
-	this.value = (attrs.value)?attrs.value:'';
+	if (method !== undefined ) this.name += '['+method+']'	;
+	if (attrs.value) {
+		if (attrs.value instanceof Array) {
+			if (attrs.value[method]) this.value = attrs.value[method];
+			else this.value = '';
+		} else this.value = attrs.value;
+	}
+	
 	this.normal = (attrs.normal)?attrs.normal:'';
 	this.selected = (attrs.selected)?attrs.selected:0;
 	this.checked = (attrs.checked)?attrs.checked:false;
@@ -87,7 +125,8 @@ var SettingInput = function (module,attrs,options) {
 	this.cols = (attrs.size)?attrs.size:'40';
 	this.rows = (attrs.size)?attrs.size:'3';
 	this.classes = (attrs.classes)?attrs.classes:'';
-	this.id = (attrs.id)?attrs.id:'settings-'+module.toLowerCase().replace(/[^\w]/,'-')+'-'+attrs.name.toLowerCase();
+	this.id = (attrs.id)?attrs.id:'settings-'+module.toLowerCase().replace(/[^\w+]/,'-')+'-'+attrs.name.toLowerCase();
+	if (method !== undefined ) this.id += '-'+method;
 	this.options = options;
 	this.content = (attrs.content)?attrs.content:'';
 	this.label = (attrs.label)?attrs.label:false;	

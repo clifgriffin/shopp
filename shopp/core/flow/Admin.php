@@ -20,6 +20,7 @@ class AdminFlow extends FlowController {
 
 	var $Pages = array();	// List of admin pages
 	var $Menus = array();	// List of initialized WordPress menus
+	var $Ajax = array();	// List of AJAX controllers
 	var $MainMenu = false;	
 	var $Page = false;
 	var $Menu = false;
@@ -81,7 +82,7 @@ class AdminFlow extends FlowController {
 		add_action('admin_init', array(&$this, 'tinymce'));
 		add_action('switch_theme',array(&$this, 'themepath'));
 		add_filter('favorite_actions', array(&$this, 'favorites'));
-
+		
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
 		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
@@ -100,6 +101,7 @@ class AdminFlow extends FlowController {
 		$this->addpage('settings-presentation',__('Presentation','Shopp'),'Setup','Presentation Settings',"settings");
 		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
 		$this->addpage('settings-update',__('Update','Shopp'),'Setup','Update Settings',"settings");
+				
 		// $this->addpage('welcome',__('Welcome','Shopp'),'Flow',$base);
 
 		// Action hook for adding custom third-party pages
@@ -115,7 +117,7 @@ class AdminFlow extends FlowController {
 		if (isset($this->Menus[$page])) $this->Menu = $this->Menus[$page];
 		
 	}
-
+	
 	/**
 	 * Generates the Shopp admin menu
 	 *
@@ -167,7 +169,7 @@ class AdminFlow extends FlowController {
 		if (!empty($parent)) $parent = basename(SHOPP_PATH)."-$parent";
 		$this->Pages[$page] = new ShoppAdminPage($name,$page,$label,$controller,$doc,$parent);
 	}
-
+	
 	/**
 	 * Adds a ShoppAdminPage entry to the Shopp admin menu
 	 *
@@ -232,7 +234,7 @@ class AdminFlow extends FlowController {
 		
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp',SHOPP_ADMIN_URI."/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
-		wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',get_bloginfo('url')),array(),SHOPP_VERSION);
+		wp_enqueue_script('shopp-settings',add_query_arg('src','settings.js',get_bloginfo('url')),array(),SHOPP_VERSION);
 		
 		
 		// Load only for the editors to keep other admin screens snappy
@@ -307,7 +309,7 @@ class AdminFlow extends FlowController {
 	 * @return array Modified actions list
 	 **/
 	function favorites ($actions) {
-		$key = add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>'new'),$this->wpadminurl);
+		$key = add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>'new'),admin_url('admin.php'));
 	    $actions[$key] = array(__('New Product','Shopp'),8);
 		return $actions;
 	}
@@ -390,7 +392,7 @@ class AdminFlow extends FlowController {
 								AVG(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,null)) AS wkavg
 		 						FROM $purchasetable");
 
-		$orderscreen = add_query_arg('page',$this->pagename('orders'),$Shopp->wpadminurl."admin.php");
+		$orderscreen = add_query_arg('page',$this->pagename('orders'),admin_url('admin.php'));
 		echo '<div class="table"><table><tbody>';
 		echo '<tr><th colspan="2">'.__('Last 30 Days','Shopp').'</th><th colspan="2">'.__('Lifetime','Shopp').'</th></tr>';
 
@@ -451,7 +453,7 @@ class AdminFlow extends FlowController {
 		foreach ($Orders as $Order) {
 			echo '<tr'.((!$even)?' class="alternate"':'').'>';
 			$even = !$even;
-			echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>$this->pagename('orders'),'id'=>$Order->id),$Shopp->wpadminurl."admin.php").'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
+			echo '<td><a class="row-title" href="'.add_query_arg(array('page'=>$this->pagename('orders'),'id'=>$Order->id),admin_url('admin.php')).'" title="View &quot;Order '.$Order->id.'&quot;">'.((empty($Order->firstname) && empty($Order->lastname))?'(no contact name)':$Order->firstname.' '.$Order->lastname).'</a></td>';
 			echo '<td>'.date("Y/m/d",mktimestamp($Order->created)).'</td>';
 			echo '<td class="num">'.$Order->items.'</td>';
 			echo '<td class="num">'.money($Order->total).'</td>';
@@ -504,7 +506,7 @@ class AdminFlow extends FlowController {
 		echo '<ul>';
 		if (empty($RecentBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';
 		foreach ($RecentBestsellers->products as $product) 
-			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a> ('.$product->sold.')</li>';
+			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>$product->id),admin_url('admin.php')).'">'.$product->name.'</a> ('.$product->sold.')</li>';
 		echo '</ul></td>';
 		
 		
@@ -514,7 +516,7 @@ class AdminFlow extends FlowController {
 		echo '<ul>';
 		if (empty($LifetimeBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';
 		foreach ($LifetimeBestsellers->products as $product) 
-			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>$product->id),$Shopp->wpadminurl."admin.php").'">'.$product->name.'</a>'.(isset($product->sold)?' ('.$product->sold.')':' (0)').'</li>';
+			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>$product->id),admin_url('admin.php')).'">'.$product->name.'</a>'.(isset($product->sold)?' ('.$product->sold.')':' (0)').'</li>';
 		echo '</ul></td>';
 		echo '</tr></tbody></table>';
 		echo $after_widget;
@@ -588,12 +590,14 @@ class AdminFlow extends FlowController {
 		return $buttons;
 	}
 
-	function my_change_mce_settings( $init_array ) {
-	    $init_array['disk_cache'] = false; // disable caching
-	    $init_array['compress'] = false; // disable gzip compression
-	    $init_array['old_cache_max'] = 3; // keep 3 different TinyMCE configurations cached (when switching between several configurations regularly)
-	}
-
+	/**
+	 * Keep the TinyMCE interface from being cached
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function mceupdate($ver) {
 	  return ++$ver;
 	}

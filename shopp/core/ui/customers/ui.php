@@ -91,7 +91,7 @@ function billing_meta_box ($Customer) {
 		<select name="billing[state]" id="billing-state">
 			<?php echo menuoptions($Customer->billing_states,$Customer->Billing->state,true); ?>
 		</select>
-		<input name="billing[state]" id="billing-state-text" value="<?php echo $Customer->Billing->state; ?>" size="12" disabled="disabled"  class="hidden" />
+		<input type="text" name="billing[state]" id="billing-state-text" value="<?php echo $Customer->Billing->state; ?>" size="12" disabled="disabled"  class="hidden" />
 	<label for="billing-state"><?php _e('State / Province','Shopp'); ?></label>
 	</span>
 	<span>
@@ -129,7 +129,7 @@ function shipping_meta_box ($Customer) {
 		<select name="shipping[state]" id="shipping-state">
 			<?php echo menuoptions($Customer->shipping_states,$Customer->Shipping->state,true); ?>
 		</select>
-		<input name="shipping[state]" id="shipping-state-text" value="<?php echo $Customer->Shipping->state; ?>" size="12" disabled="disabled"  class="hidden" />
+		<input type="text" name="shipping[state]" id="shipping-state-text" value="<?php echo $Customer->Shipping->state; ?>" size="12" disabled="disabled"  class="hidden" />
 	<label for="shipping-state"><?php _e('State / Province','Shopp'); ?></label>
 	</span>
 	<span>

@@ -225,14 +225,14 @@ function Priceline (id,options,data,target,attachment) {
 
 	var downloadHeading = $('<th><label for="download['+i+']">Product Download</label></th>').appendTo(headingsRow);
 	var downloadCell = $('<td width="31%" />').appendTo(inputsRow);
-	var downloadFile = $('<div></div>').html('No product download.').appendTo(downloadCell);
+	var downloadFile = $('<div></div>').html(NO_DOWNLOAD).appendTo(downloadCell);
 
 	var uploadHeading = $('<td rowspan="2" class="controls" width="75" />').appendTo(headingsRow);
 	if (storage == "fs") {
 		var filePathCell = $('<div></div>').prependTo(downloadCell).hide();
 		var filePath = $('<input type="text" name="price['+i+'][downloadpath]" value="" title="Enter file path relative to: '+productspath+'" class="filepath" />').appendTo(filePathCell).change(function () {
 			$(this).removeClass('warning').addClass('verifying');
-			$.ajax({url:fileverify_url+'&action=wp_ajax_shopp_verify_file',
+			$.ajax({url:fileverify_url+'&action=shopp_verify_file',
 					type:"POST",
 					data:'filepath='+$(this).val(),
 					timeout:10000,

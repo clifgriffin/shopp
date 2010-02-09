@@ -75,7 +75,6 @@ class Order {
 	 **/
 	function __wakeup () {
 		$this->listeners();
-		$this->processor();
 	}
 	
 	/**
@@ -96,6 +95,8 @@ class Order {
 		add_action('shopp_order_success',array(&$this,'success'));
 		
 		add_action('shopp_reset_session',array(&$this->Cart,'clear'));
+		add_action('shopp_init_checkout',array(&$this,'processor'));
+
 	}
 	
 	/**
@@ -108,7 +109,7 @@ class Order {
 	 **/
 	function processor () {
 		global $Shopp;
-		
+
 		if (count($Shopp->Gateways->active) == 1) {
 			$Gateway = current($Shopp->Gateways->active);
 			$this->processor = $Gateway->module;
@@ -227,8 +228,6 @@ class Order {
 		$this->Cart->totals();
 		if ($this->validform() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
-
-		if ($this->confirm) error_log("confirmation required");
 		
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm) {
@@ -597,7 +596,6 @@ class Order {
 	 **/
 	function tag ($property,$options=array()) {
 		global $Shopp,$wp;
-		$Gateway = $this->processor();
 		$xcos = $Shopp->Settings->get('xco_gateways');
 		$pages = $Shopp->Settings->get('pages');
 		$base = $Shopp->Settings->get('base_operations');
@@ -651,8 +649,6 @@ class Order {
 				$errors = $Errors->get(SHOPP_COMM_ERR);
 				foreach ((array)$errors as $error) if (!empty($error)) $result .= $error->message();
 				return $result;
-				// if (isset($options['show']) && $options['show'] == "code") return $this->OrderError->code;
-				// return $this->OrderError->message;
 				break;
 			case "cart-summary":
 				ob_start();
@@ -814,21 +810,13 @@ class Order {
 				break;
 				
 			// BILLING TAGS
-			case "billing-required":
-			// case "creditcard-required":
+			case "billing-required": return true; break; // DEPRECATED
+			case "card-required":
 				if ($this->Cart->Totals->total == 0) return false;
 				foreach ($Shopp->Gateways->active as $gateway) 
 					if (!empty($gateway->cards)) return true;
-				
-				// if (isset($_GET['shopp_xco'])) {
-				// 	$xco = join('/',array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
-				// 	if (file_exists($xco)) {
-				// 		$meta = $Shopp->Flow->scan_gateway_meta($xco);
-				// 		$PaymentSettings = $Shopp->Settings->get($meta->tags['class']);
-				// 		return ($PaymentSettings['billing-required'] != "off");
-				// 	}
-				// }
-				// return ($this->Cart->Totals->total > 0); break;
+				return false;
+				break;
 				break;
 			case "billing-address":
 				if ($options['mode'] == "value") return $this->Billing->address;
@@ -937,20 +925,7 @@ class Order {
 					$options['value'] = $_POST['billing']['cvv'];
 				return '<input type="text" name="billing[cvv]" id="billing-cvv" '.inputattrs($options).' />';
 				break;
-			case "billing-xco":     
-				if (isset($_GET['shopp_xco'])) {
-					if ($this->Totals->total == 0) return false;
-					$xco = join('/',array($Shopp->path,'gateways',$_GET['shopp_xco'].".php"));
-					if (file_exists($xco)) {
-						$meta = $Shopp->Flow->scan_gateway_meta($xco);
-						$ProcessorClass = $meta->tags['class'];
-						include_once($xco);
-						$Payment = new $ProcessorClass();
-						if (method_exists($Payment,'billing')) return $Payment->billing($options);
-					}
-				}
-				break;
-			
+			case "billing-xco": return; break; // DEPRECATED
 			case "has-data":
 			case "hasdata": return (is_array($this->data) && count($this->data) > 0); break;
 			case "order-data":
@@ -1011,29 +986,38 @@ class Order {
 			case "xco-buttons": return;	break; // DEPRECATED
 			case "payment-options":
 			case "paymentoptions": 
-				if (count($Shopp->Gateways->active) <= 1) return false;
+				// if (count($Shopp->Gateways->active) <= 1) return false;
 				extract($options);
 				$output = '';
 				$js = '<script type="text/javascript">';
 				$js .= "\n<!--\n";
 				$js .= "var ccpayments = {};\n";
 				if (!isset($type)) $type = "menu";
+
+				$payments = array();
+				foreach ($Shopp->Gateways->active as $gateway) {
+					if (is_array($gateway->settings['label'])) {
+						foreach ($gateway->settings['label'] as $method) {
+							$payments[$gateway->module.':'.$method] = $method;
+						}
+					} else $payments[$gateway->module.':'.$gateway->settings['label']] = $gateway->settings['label'];
+						
+				}
 				
 				if ($type == "list") {
 					$output .= '<span><ul>';
-					foreach ($Shopp->Gateways->active as $gateway) {
-						$value = $gateway->module.":".$gateway->settings['label'];
+					$options = array();
+					foreach ($payments as $value => $option) {
 						$checked = ($this->paymethod == $value)?' checked="checked"':'';
-						$output .= '<li><label><input type="radio" name="paymethod" value="'.$value.'"'.$checked.' /> '.$gateway->settings['label'].'</label></li>';
+						$output .= '<li><label><input type="radio" name="paymethod" value="'.$value.'"'.$checked.' /> '.$option.'</label></li>';
 						$js .= "ccpayments['".$value."'] = ".(!empty($gateway->cards)?"true":"false").";\n";
 					}
 					$output .= '</ul></span>';
 				} else {
 					$output .= '<select name="paymethod">';
-					foreach ($Shopp->Gateways->active as $gateway) {
-						$value = $gateway->module.":".$gateway->settings['label'];
+					foreach ($payments as $value => $option) {
 						$selected = ($this->paymethod == $value)?' selected="selected"':'';
-						$output .= '<option value="'.$value.'"'.$selected.'>'.$gateway->settings['label'].'</option>';
+						$output .= '<option value="'.$value.'"'.$selected.'>'.$option.'</option>';
 						$js .= "ccpayments['".$value."'] = ".(!empty($gateway->cards)?"true":"false").";\n";
 					}
 					$output .= '</select>';

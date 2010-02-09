@@ -1343,24 +1343,6 @@ function preg_e_callback ($matches) {
 
 // TODO: Clean up for Controllers
 
-function settings_get_gateways () {
-	global $Shopp;
-	$gateway_path = $Shopp->path.'/'."gateways";
-	
-	$gateways = array();
-	$gwfiles = array();
-	find_files(".php",$gateway_path,$gateway_path,$gwfiles);
-	if (empty($gwfiles)) return $gwfiles;
-	
-	foreach ($gwfiles as $file) {
-		if (! is_readable($gateway_path.$file)) continue;
-		if (! $gateway = scan_gateway_meta($gateway_path.$file)) continue;
-		$gateways[$file] = $gateway;
-	}
-
-	return $gateways;
-}
-
 function validate_addons () {
 	$addons = array();
 

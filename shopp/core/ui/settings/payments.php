@@ -29,6 +29,7 @@
 <script type="text/javascript">
 var SHOPP_PAYMENT_OPTION = "<?php _e('Option Name','Shopp'); ?>";
 var SHOPP_DELETE_PAYMENT_OPTION = "<?php echo addslashes(__('Are you sure you want to delete this payment option?','Shopp')); ?>";
+var SHOPP_GATEWAY_MENU_PROMPT = "<?php _e('Select a payment system&hellip;','Shopp'); ?>";
 var SHOPP_PLUGINURI = "<?php echo SHOPP_PLUGINURI; ?>";
 var SHOPP_SELECT_ALL = "<?php _e('Select All','Shopp'); ?>";
 var gateways = <?php echo json_encode($gateways); ?>;
@@ -46,16 +47,6 @@ jQuery(document).ready( function() {
 	handlers.call = function(name,arg1,arg2,arg3) {
 		this.callbacks[name](arg1,arg2,arg3);
 		var module = this.options[name];
-		if ($.inArray(name,gateways) == -1) gateways.push(name);
-		$('#active-gateways').val(gateways.join());
-		module.deleteButton.click(function () {
-			if (confirm(SHOPP_DELETE_PAYMENT_OPTION)) {
-				module.row.remove();
-				var index = $.inArray(name,gateways);
-				gateways.splice(index,1);
-				$('#active-gateways').val(gateways.join());
-			}
-		});
 		module.behaviors();
 	}
 
@@ -63,11 +54,12 @@ jQuery(document).ready( function() {
 	
 	// Populate the payment options menu
 	var options = '';
+	options += '<option disabled="disabled">'+SHOPP_GATEWAY_MENU_PROMPT+'</option>';
 	$.each(handlers['options'],function (id,object) {
 		var disabled = '';
 		if ($.inArray(id,gateways) != -1) {
 			handlers.call(id);
-			disabled = ' disabled="disabled"';
+			if (!object.multi) disabled = ' disabled="disabled"';
 		}
 		options += '<option value="'+id+'"'+disabled+'>'+object.name+'</option>';
 	});
@@ -78,7 +70,7 @@ jQuery(document).ready( function() {
 		var selected = $('#payment-option-menu :selected');
 		if (!selected.attr('disabled')) {
 			handlers.call(module);
-			selected.attr('disabled',true);
+			if (!handlers.options[module].multi) selected.attr('disabled',true);
 		}
 	});
 	

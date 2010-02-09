@@ -113,21 +113,21 @@ function categories () {
 
 	$('#add-new-category').click(function () {
 
-		$('#new-category').hide();
-		$('#new-category-button').show();
-
 		// Add a new category
 		var name = $('#new-category input').val();
 		var parent = $('#new-category select').val();
 		if (name != "") {
+			$('#new-category').hide();
+			$('#new-category-button').show();
+
 			$(this).addClass('updating');
-			$.getJSON(addcategory_url+"&action=wp_ajax_shopp_add_category&name="+name+"&parent="+parent,
+			$.getJSON(addcategory_url+"&action=shopp_add_category&name="+name+"&parent="+parent,
 				function(Category) {
 				$('#add-new-category').removeClass('updating');
 				addCategoryMenuItem(Category);
 
 				// Update the parent category menu selector
-				$.get(siteurl+'/wp-admin/admin.php?lookup=category-menu',false,function (menu) {
+				$.get(ajaxurl+'?action=shopp_category_menu',false,function (menu) {
 					var defaultOption = $('#new-category select option').eq(0).clone();
 					$('#new-category select').empty().html(menu);
 					defaultOption.prependTo('#new-category select');
@@ -153,7 +153,7 @@ function categories () {
 		
 		var id = $(this).attr('id').substr($(this).attr('id').indexOf("-")+1);
 		// Load category spec templates
-		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=spectemplate&cat="+id,function (speclist) {
+		$.getJSON(ajaxurl+'?action=shopp_spec_template&category='+id,function (speclist) {
 			if (!speclist) return true;
 			for (id in speclist) {
 				speclist[id].add = true;
@@ -162,7 +162,7 @@ function categories () {
 		});
 
 		// Load category variation option templates
-		$.getJSON(siteurl+"/wp-admin/admin.php?lookup=optionstemplate&cat="+id,function (template) {
+		$.getJSON(ajaxurl+'?action=shopp_options_template&category='+id,function (template) {
 			if (!template) return true;
 			if (!template.options) return true;
 			

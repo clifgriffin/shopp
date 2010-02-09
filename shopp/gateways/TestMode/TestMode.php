@@ -28,7 +28,9 @@ class TestMode extends GatewayFramework {
 	function __construct () {
 		parent::__construct();
 		$this->setup('error');
-
+	}
+	
+	function actions () {
 		add_action('shopp_process_order',array(&$this,'process'));
 	}
 	
@@ -41,9 +43,6 @@ class TestMode extends GatewayFramework {
 	 * @return void
 	 **/
 	function process () {
-		// Required so we don't process some other gateway's order
-		if (!$this->myorder()) return false;
-
 		// If the error option is checked, always generate an error
 		if ($this->settings['error'] == "on")
 			return new ShoppError(__("This is an example error message. Disable the 'always show an error' setting to stop displaying this error.","Shopp"),'test_mode_error',SHOPP_TRXN_ERR);

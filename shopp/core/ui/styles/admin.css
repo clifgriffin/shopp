@@ -297,15 +297,12 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #payment-settings.form-table tr td table td { border-bottom: none; }
 
 #payment-settings table.settings { width: 100%;}
-#payment-settings.form-table table.settings td { vertical-align: top; }
+#payment-settings table.settings td { vertical-align: top; }
 #payment-settings table.settings th, #payment-settings table.settings td { border: none; padding: 2px; }
-#payment-settings.form-table table.settings div { padding-bottom: 4px; }
+#payment-settings table.settings div { padding-bottom: 4px; }
 #payment-settings, #payment-settings td { position: relative; padding-left: 0; padding-right: 0; top: 0; }
 #payment-settings td button.deleteRate { position: absolute; right: 5px; }
 #payment-settings table th, #payment-settings table td { border: none; padding: 2px; }
-
-#payments .addon { display: none; }
-#payments ul.cards li { width: 30%; display: inline-block;}
 
 #help { list-style-type: none; padding: 0; }
 #help h3 { margin-bottom: 0; }

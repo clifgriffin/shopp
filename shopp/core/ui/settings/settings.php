@@ -83,7 +83,7 @@ $('#base_operations').change(function() {
 		return true;
 	}
 
-	$.getJSON($('#general').attr('action')+'&lookup=zones&country='+$('#base_operations').val(),
+	$.getJSON(ajaxurl+'?action=shopp_country_zones&country='+$('#base_operations').val(),
 		function(data) {
 			$('#base_operations_zone').hide();
 			$('#base_operations_zone').empty();

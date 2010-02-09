@@ -40,6 +40,7 @@ do_action('admin_init');
 	
 	var _self = tinyMCEPopup;
 	function init () {
+		updateCategories();
 		changeCategory();
 	}
 	
@@ -61,11 +62,18 @@ do_action('admin_init');
 	function closePopup () {
 		tinyMCEPopup.close();
 	}
+	
+	function updateCategories () {
+		var menu = jQuery('#category-menu');
+		jQuery.get("<?php echo admin_url('admin-ajax.php'); ?>?action=shopp_category_menu",{},function (results) {
+			menu.empty().html(results);
+		},'string');
+	}
 
 	function changeCategory () {
 		var menu = jQuery('#category-menu');
 		var products = jQuery('#product-menu');
-		jQuery.get("<?php echo $Shopp->siteurl; ?>?shopp_lookup=category-products-menu",{category:menu.val()},function (results) {
+		jQuery.get("<?php echo admin_url('admin-ajax.php'); ?>?action=shopp_category_products",{category:menu.val()},function (results) {
 			products.empty().html(results);
 		},'string');
 	}
@@ -88,7 +96,7 @@ do_action('admin_init');
 		<table border="0" cellpadding="4" cellspacing="0">
 		<tr>
 		<th nowrap="nowrap"><label for="category-menu"><?php _e("Category", 'Shopp'); ?></label></th>
-		<td><select id="category-menu" name="category" onchange="changeCategory()"><?php echo $Shopp->Flow->category_menu(); ?></select></td>
+		<td><select id="category-menu" name="category" onchange="changeCategory()"></select></td>
 		</tr>
 		<tr id="product-selector">
 		<th nowrap="nowrap"><label for="product-menu"><?php _e("Product", 'Shopp'); ?></label></th>

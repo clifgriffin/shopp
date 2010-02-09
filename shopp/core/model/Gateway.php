@@ -11,6 +11,13 @@
  * @subpackage gateways
  **/
 
+interface GatewayModule {
+	
+	public function actions();
+	public function settings();
+	
+}
+
 /**
  * GatewayFramework class
  * 
@@ -27,6 +34,8 @@ abstract class GatewayFramework {
 	var $name = false;
 	var $cards = false;
 	var $secure = true;
+	var $multi = false;
+	var $settings = array();
 	
 	function __construct () {
 		global $Shopp;
@@ -36,11 +45,12 @@ abstract class GatewayFramework {
 		if (!isset($this->settings['label']) && $this->cards) 
 			$this->settings['label'] = __("Credit Card","Shopp");
 		$this->_loadcards();
+		if ($this->myorder()) $this->actions();
 	}
 
 	function setupui ($module,$name) {
 		if (!isset($this->settings['label'])) $this->settings['label'] = $name;
-		$this->ui = new ModuleSettingsUI('payment',$module,$name,$this->settings['label']);
+		$this->ui = new ModuleSettingsUI('payment',$module,$name,$this->settings['label'],$this->multi);
 		$this->settings();
 	}
 	
@@ -121,9 +131,7 @@ abstract class GatewayFramework {
 		}
 		return $query;
 	}
-	
-	function settings () {}
-	
+		
 	private function _loadcards () {
 		if (empty($this->settings['cards'])) $this->settings['cards'] = $this->cards;
 		if ($this->cards) {
@@ -214,9 +222,8 @@ class GatewayModules extends ModuleLoader {
 	}
 	
 	function ui () {
-		foreach ($this->active as $package => &$module) {
+		foreach ($this->active as $package => &$module)
 			$module->setupui($package,$this->modules[$package]->name);
-		}
 	}
 	
 }

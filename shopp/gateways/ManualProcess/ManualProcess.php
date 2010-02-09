@@ -12,7 +12,7 @@
  * $Id$
  **/
 
-class ManualProcess extends GatewayFramework {
+class ManualProcess extends GatewayFramework implements GatewayModule {
 
 	var $secure = true;
 	var $cards = array();
@@ -26,7 +26,6 @@ class ManualProcess extends GatewayFramework {
 		$paycards = Lookup::paycards();
 		$this->cards = array_keys($paycards);
 		parent::__construct();
-		global $Shopp;
 
 		$this->path = sanitize_path(SHOPP_PLUGINURI."/gateways/{$this->module}/");
 		$this->public_key = $this->settings['public_key'];
@@ -37,8 +36,11 @@ class ManualProcess extends GatewayFramework {
 		wp_enqueue_script('shopp_mp_gateway', $this->path."behaviors/mp.js", array('json2'));
 		
 		add_action('admin_head', array(&$this, 'jserrors'));
-		add_action('shopp_process_order',array(&$this,'process'));
 		add_action('shopp_order_admin_script', array(&$this, 'decrypt'));
+	}
+	
+	function actions () {
+		add_action('shopp_process_order',array(&$this,'process'));		
 	}
 	
 	function jserrors() {
@@ -55,10 +57,6 @@ class ManualProcess extends GatewayFramework {
 	}
 	
 	function process () {
-		global $Shopp;
-
-		if (!$this->myorder()) return false; 
-
 		if($this->Order->Billing->card && $this->Order->Billing->cvv) {
 			$sensitive = array('card'=>$this->Order->Billing->card,'cvv'=>$this->Order->Billing->cvv);
 			$this->Order->secured[$this->module] = $this->encrypt(json_encode($sensitive));

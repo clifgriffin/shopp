@@ -71,7 +71,7 @@ class Account extends AdminController {
 			'startdate' => '',
 			'enddate' => '',
 		);
-		
+
 		$args = array_merge($defaults,$_GET);
 		extract($args, EXTR_SKIP);
 		
@@ -244,7 +244,7 @@ class Account extends AdminController {
 	 **/
 	function editor_ui () {
 		global $Shopp;
-		include("$Shopp->path/core/ui/customers/ui.php");
+		include(SHOPP_ADMIN_PATH."/customers/ui.php");
 	}
 	
 	/**
@@ -284,7 +284,7 @@ class Account extends AdminController {
 		$Customer->billing_states = array_merge(array(''),(array)$regions[$Customer->Billing->country]);
 		$Customer->shipping_states = array_merge(array(''),(array)$regions[$Customer->Shipping->country]);
 
-		include("$Shopp->path/core/ui/customers/editor.php");
+		include(SHOPP_ADMIN_PATH."/customers/editor.php");
 	}
 	
 

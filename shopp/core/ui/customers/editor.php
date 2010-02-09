@@ -4,7 +4,7 @@
 		<h2><?php _e('Customer Editor','Shopp'); ?></h2> 
 
 		<div id="ajax-response"></div> 
-		<form name="customer" id="customer" action="<?php echo add_query_arg('page',$this->Admin->customers,$Shopp->wpadminurl."admin.php"); ?>" method="post">
+		<form name="customer" id="customer" action="<?php echo add_query_arg('page',$this->Admin->pagename('customers'),admin_url('admin.php')); ?>" method="post">
 			<?php wp_nonce_field('shopp-save-customer'); ?>
 
 			<div class="hidden"><input type="hidden" name="id" value="<?php echo $Customer->id; ?>" /></div>

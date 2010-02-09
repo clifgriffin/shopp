@@ -56,7 +56,7 @@
 	$(document).ready( function() {
 	
 	var purchase_url = '<?php echo SHOPP_HOME; ?>?buynow=true';
-	var adminurl = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin.php","shopp-wp_ajax_shopp_update"); ?>';
+	var adminurl = '<?php echo wp_nonce_url(admin_url('admin.php'),"shopp-wp_ajax_shopp_update"); ?>';
 	var ajaxurl = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php","shopp-wp_ajax_shopp_update"); ?>';
 	
 	var INSTALLING_MESSAGE = "<?php _e('Installing update %d of %d&hellip;','Shopp'); ?>";
@@ -76,7 +76,7 @@
 		$('<div id="status" class="updating"><?php _e("Checking"); ?>&hellip;</div>').appendTo(target);
 		$.ajax({
 			type:"GET",
-			url:ajaxurl+"&action=wp_ajax_shopp_version_check",
+			url:ajaxurl+"&action=shopp_version_check",
 			timeout:10000,
 			dataType:'json',
 			success:function (data) {
@@ -119,7 +119,7 @@
 		
 		$.ajax({
 			type:"POST",
-			url:ajaxurl+"&action=wp_ajax_shopp_update",
+			url:ajaxurl+"&action=shopp_update",
 			data:"update="+update.download+"&type="+update.type+"&password="+ftppassword.val(),
 			timeout:30000,
 			datatype:'text',
@@ -203,7 +203,7 @@
 	function setftp () {
 		$.ajax({
 			type:"POST",
-			url:ajaxurl+"&action=wp_ajax_shopp_setftp",
+			url:ajaxurl+"&action=shopp_setup_ftp",
 			data:$('#ftp-credentials input').serialize(),
 			timeout:30000,
 			datatype:'text',

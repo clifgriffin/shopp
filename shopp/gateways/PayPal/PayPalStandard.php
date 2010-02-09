@@ -13,7 +13,7 @@
  * $Id$
  **/
 
-class PayPalStandard extends GatewayFramework {
+class PayPalStandard extends GatewayFramework implements GatewayModule {
 	
 	// Settings
 	var $secure = false;
@@ -56,35 +56,34 @@ class PayPalStandard extends GatewayFramework {
 		$this->buttonurl = sprintf($this->buttonurl, $this->settings['locale']);
 
 		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
-		
-		add_action('shopp_init_checkout',array(&$this,'init'));
+				
+		add_action('shopp_txn_update',array(&$this,'updates'));
+				
+	}
+	
+	function actions () {
 		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
-		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
+		add_action('shopp_init_checkout',array(&$this,'init'));
 
+		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
 		add_action('shopp_remote_payment',array(&$this,'returned'));
 		add_action('shopp_process_order',array(&$this,'process'));
-		add_action('shopp_txn_update',array(&$this,'updates'));
 	}
 	
 	function confirmation () {
-		if (!$this->myorder()) return false;
 		add_filter('shopp_confirm_url',array(&$this,'url'));
 		add_filter('shopp_confirm_form',array(&$this,'form'));
-		// add_filter('shopp_checkout_confirm_button',array(&$this,'confirm'),10,3);
 	}
 	
 	function init () {
-		if (!$this->myorder()) return false;
 		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 	}
 		
 	function checkout () {
-		global $Shopp;
-		$Shopp->Order->confirm = true;
+		$this->Order->confirm = true;
 	}
 
 	function submit ($tag=false,$options=array(),$attrs=array()) {
-		return $tag;
 		return '<input type="image" name="process" src="'.$this->buttonurl.'" id="checkout-button" '.inputattrs($options,$attrs).' />';
 	}
 	
@@ -163,8 +162,7 @@ class PayPalStandard extends GatewayFramework {
 	}
 	
 	function returned () {
-		if (isset($_REQUEST['tx']) && $this->myorder()) { // PDT
-			error_log('paypal returned');
+		if (isset($_REQUEST['tx'])) { // PDT
 			// Run order processing
 			do_action('shopp_process_order'); 
 		}
@@ -184,7 +182,6 @@ class PayPalStandard extends GatewayFramework {
 			$Purchase = new Purchase($txnid,'txnid');
 
 			if (!empty($Purchase->id)) {
-				error_log("Purchase exists! Update status...");
 				if (SHOPP_DEBUG) new ShoppError('Order located, already created from an IPN message.',false,SHOPP_DEBUG_ERR);
 				$Shopp->resession();
 				$Shopp->Purchase = $Purchase;

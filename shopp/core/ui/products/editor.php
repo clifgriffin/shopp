@@ -82,6 +82,9 @@ var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
 <?php chdir(WP_CONTENT_DIR); // realpath needs for relative paths ?>
 var productspath = '<?php echo trailingslashit(sanitize_path(realpath($this->Settings->get('products_path')))); ?>';
+var imageupload_debug = <?php echo (defined('SHOPP_IMAGEUPLOAD_DEBUG') && SHOPP_IMAGEUPLOAD_DEBUG)?'true':'false'; ?>;
+var fileupload_debug = <?php echo (defined('SHOPP_FILEUPLOAD_DEBUG') && SHOPP_FILEUPLOAD_DEBUG)?'true':'false'; ?>;
+
 
 // Warning/Error Dialogs
 var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this product image?','Shopp'); ?>";
@@ -118,6 +121,7 @@ var DONATIONS_MIN_LABEL = "<?php _e('Amount required as minimum','Shopp'); ?>";
 var PRODUCT_DOWNLOAD_LABEL = "<?php _e('Product Download','Shopp'); ?>";
 var NO_PRODUCT_DOWNLOAD_TEXT = "<?php _e('No product download.','Shopp'); ?>";
 var NO_DOWNLOAD = "<?php _e('No download file.','Shopp'); ?>";
+var UNKNOWN_UPLOAD_ERROR = "<?php _e('An unknown error occurred. The upload could not be saved.','Shopp'); ?>";
 var DEFAULT_PRICELINE_LABEL = "<?php _e('Price & Delivery','Shopp'); ?>";
 var FILE_NOT_FOUND_TEXT = "<?php _e('The file you specified could not be found.','Shopp'); ?>";
 var FILE_NOT_READ_TEXT = "<?php _e('The file you specified is not readable and cannot be used.','Shopp'); ?>";

@@ -119,7 +119,7 @@ class Storefront extends FlowController {
 		$loading = $this->Settings->get('script_loading');
 		if (!$loading || $loading == "global" || $tag !== false) {
 			wp_enqueue_script('jquery');
-			wp_enqueue_script('shopp-settings',add_query_arg('shopp_lookup','settings.js',get_bloginfo('url')));
+			wp_enqueue_script('shopp-settings',add_query_arg('src','settings.js',get_bloginfo('url')));
 			wp_enqueue_script("shopp-thickbox",SHOPP_PLUGINURI."/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION,true);
 			wp_enqueue_script("shopp",SHOPP_PLUGINURI."/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		}
@@ -187,16 +187,16 @@ class Storefront extends FlowController {
 
 	function feeds () {
 		global $Shopp;
-		if (empty($this->Category)):?>
+		if (empty($this->Category->name)):?>
 
-<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo $this->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
+<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo $Shopp->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
 <?php
 			else:
 			$uri = 'category/'.$this->Category->uri;
 			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
 
 			if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.urldecode($uri).'/feed');
-			else $link = add_query_arg(array('shopp_category'=>urldecode($this->Category->uri),'shopp_lookup'=>'category-rss'),$this->shopuri);
+			else $link = add_query_arg(array('shopp_category'=>urldecode($this->Category->uri),'src'=>'category_rss'),$this->shopuri);
 			?>
 
 <link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo urldecode($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
@@ -240,7 +240,7 @@ class Storefront extends FlowController {
 	function header () {
 		global $wp;
 ?>
-<link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('shopp_lookup'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),get_bloginfo('url'))); ?>' type='text/css' />
+<link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('src'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),get_bloginfo('url'))); ?>' type='text/css' />
 <link rel='stylesheet' media='all' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 <link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
 <?php if (is_shopp_page('account') || (isset($wp->query_vars['shopp_proc']) && $wp->query_vars['shopp_proc'] == "sold")): ?>

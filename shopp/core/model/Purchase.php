@@ -154,7 +154,7 @@ class Purchase extends DatabaseObject {
 			case "card": return (!empty($this->card))?sprintf("%'X16d",$this->card):''; break;
 			case "cardtype": return $this->cardtype; break;
 			case "txnid":
-			case "transactionid": return $this->transactionid; break;
+			case "transactionid": return $this->txnid; break;
 			case "firstname": return $this->firstname; break;
 			case "lastname": return $this->lastname; break;
 			case "company": return $this->company; break;
@@ -325,9 +325,9 @@ class Purchase extends DatabaseObject {
 				if (empty($labels)) $labels = array('');
 				return $labels[$this->status];
 				break;
-			case "paid": return ($this->transtatus == "CHARGED"); break;
-			case "notpaid": return ($this->transtatus != "CHARGED"); break;
-			case "payment": return $this->transtatus; break;
+			case "paid": return ($this->txnstatus == "CHARGED"); break;
+			case "notpaid": return ($this->txnstatus != "CHARGED"); break;
+			case "payment": return $this->txnstatus; break;
 		}
 	}
 
@@ -346,6 +346,8 @@ class PurchasesExport {
 	var $extension = "txt";
 	var $date_format = 'F j, Y';
 	var $time_format = 'g:i:s a';
+	var $set = 0;
+	var $limit = 1024;
 	
 	function PurchasesExport () {
 		global $Shopp;
@@ -383,10 +385,11 @@ class PurchasesExport {
 		
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
+		$offset = ($this->set*$this->limit);
 		
 		$c = 0; $columns = array();
 		foreach ($this->selected as $column) $columns[] = "$column AS col".$c++;
-		$query = "SELECT ".join(",",$columns)." FROM $purchasedtable AS p LEFT JOIN $purchasetable AS o ON o.id=p.purchase $where ORDER BY o.created ASC";
+		$query = "SELECT ".join(",",$columns)." FROM $purchasedtable AS p LEFT JOIN $purchasetable AS o ON o.id=p.purchase $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
 		$this->data = $db->query($query,AS_ARRAY);
 	}
 
@@ -416,10 +419,14 @@ class PurchasesExport {
 	}
 	
 	function records () {
-		foreach ($this->data as $key => $record) {
-			foreach(get_object_vars($record) as $column)
-				$this->export($this->parse($column));
-			$this->record();
+		while (!empty($this->data)) {
+			foreach ($this->data as $key => $record) {
+				foreach(get_object_vars($record) as $column)
+					$this->export($this->parse($column));
+				$this->record();
+			}
+			$this->set++;
+			$this->query();
 		}
 	}
 	
