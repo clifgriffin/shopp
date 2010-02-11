@@ -227,7 +227,7 @@ class Category extends DatabaseObject {
 						if ($matches[1] > 0) $match .= "$specalias.numeral >= {$matches[1]}";
 						if ($matches[2] > 0) $match .= (empty($match)?"":" AND ")."$specalias.numeral <= {$matches[2]}";
 					}
-				} else $match = "$specalias.content='$value'"; // No range, direct value match
+				} else $match = "$specalias.value='$value'"; // No range, direct value match
 		
 				// Use HAVING clause for filtering by pricing information 
 				// because of data aggregation
@@ -236,7 +236,7 @@ class Category extends DatabaseObject {
 					continue;
 				}
 				
-				$loading['joins'] .= " LEFT JOIN $spectable AS $specalias ON $specalias.product=p.id AND $specalias.name='$facet'";
+				$loading['joins'] .= " LEFT JOIN $spectable AS $specalias ON $specalias.parent=p.id AND $specalias.context='product' AND $specalias.type='spec' AND $specalias.name='$facet'";
 				$filters .= (empty($filters))?$match:" AND ".$match;
 			}
 			if (!empty($filters)) $where[] = $filters;

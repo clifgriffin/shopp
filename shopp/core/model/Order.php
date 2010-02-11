@@ -397,10 +397,10 @@ class Order {
 	 **/
 	function validform () {
 		
-		if (empty($_POST['firstname']))
+		if (apply_filters('shopp_firstname_required',empty($_POST['firstname'])))
 			return new ShoppError(__('You must provide your first name.','Shopp'),'cart_validation');
 
-		if (empty($_POST['lastname']))
+		if (apply_filters('shopp_lastname_required',empty($_POST['lastname'])))
 			return new ShoppError(__('You must provide your last name.','Shopp'),'cart_validation');
 
 		$rfc822email =	'([^\\x00-\\x20\\x22\\x28\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x22([^\\x0d'.
@@ -410,7 +410,7 @@ class Order {
 						'|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]|\\x5c[\\x00-\\x7f])*\\x5d)(\\x2e([^\\x00-\\x20\\x22\\x28'.
 						'\\x29\\x2c\\x2e\\x3a-\\x3c\\x3e\\x40\\x5b-\\x5d\\x7f-\\xff]+|\\x5b([^\\x0d\\x5b-\\x5d\\x80-\\xff]'.
 						'|\\x5c[\\x00-\\x7f])*\\x5d))*';
-		if(!preg_match("!^$rfc822email$!", $_POST['email']))
+		if(apply_filters('shopp_email_valid',!preg_match("!^$rfc822email$!", $_POST['email'])))
 			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
 			
 		if ($this->accounts == "wordpress" && !$this->Customer->login) {
@@ -418,7 +418,7 @@ class Order {
 			
 			// Validate possible wp account names for availability
 			if(isset($_POST['login'])){
-				if(username_exists($_POST['login'])) 
+				if(apply_filters('shopp_login_exists',username_exists($_POST['login']))) 
 					return new ShoppError(__('The login name you provided is not available.  Try logging in if you have previously created an account.'), 'cart_validation');
 			} else { // need to find a usuable login
 				list($handle,$domain) = explode("@",$_POST['email']);
@@ -433,97 +433,75 @@ class Order {
 				$handle .= rand(1000,9999);
 				if(!isset($_POST['login']) && !username_exists($handle)) $_POST['login'] = $handle;
 				
-				if(!isset($_POST['login'])) return new ShoppError(__('A login is not available for creation with the information you provided.  Please try a different email address or name, or try logging in if you previously created an account.'),'cart_validation');
+				if(apply_filters('shopp_login_required',!isset($_POST['login']))) 
+					return new ShoppError(__('A login is not available for creation with the information you provided.  Please try a different email address or name, or try logging in if you previously created an account.'),'cart_validation');
 			}
 			if(SHOPP_DEBUG) new ShoppError('Login set to '. $_POST['login'] . ' for WordPress account creation.',false,SHOPP_DEBUG_ERR);			 
 			$ExistingCustomer = new Customer($_POST['email'],'email');
-			if (email_exists($_POST['email']) || !empty($ExistingCustomer->id))
+			if (apply_filters('shopp_email_exists',(email_exists($_POST['email']) || !empty($ExistingCustomer->id))))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
 		} elseif ($this->accounts == "shopp"  && !$this->data->login) {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
-			if (!empty($ExistingCustomer->id)) 
+			if (apply_filters('shopp_email_exists',!empty($ExistingCustomer->id))) 
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account.','Shopp'),'cart_validation');
 		}
 
 		// Validate WP account
-		if (isset($_POST['login']) && empty($_POST['login']))
+		if (apply_filters('shopp_login_required',(isset($_POST['login']) && empty($_POST['login']))))
 			return new ShoppError(__('You must enter a login name for your account.','Shopp'),'cart_validation');
 
 		if (isset($_POST['login'])) {
 			require_once(ABSPATH."/wp-includes/registration.php");
-			if (username_exists($_POST['login']))
+			if (apply_filters('shopp_login_exists',username_exists($_POST['login'])))
 				return new ShoppError(__('The login name you provided is already in use. Try logging in if you previously created that account, or enter another login name for your new account.','Shopp'),'cart_validation');
 		}
 
 		if (isset($_POST['password'])) {
-			if (empty($_POST['password']) || empty($_POST['confirm-password']))
+			if (apply_filters('shopp_passwords_required',(empty($_POST['password']) || empty($_POST['confirm-password']))))
 				return new ShoppError(__('You must provide a password for your account and confirm it to ensure correct spelling.','Shopp'),'cart_validation');
-			if ($_POST['password'] != $_POST['confirm-password']) {
+			if (apply_filters('shopp_password_mismatch',($_POST['password'] != $_POST['confirm-password']))) {
 				$_POST['password'] = ""; $_POST['confirm-password'] = "";
 				return new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'),'cart_validation');				
 			}
 		}
 
-		if (empty($_POST['billing']['address']) || strlen($_POST['billing']['address']) < 4) 
+		if (apply_filters('shopp_billing_address_required',(empty($_POST['billing']['address']) || strlen($_POST['billing']['address']) < 4)))
 			return new ShoppError(__('You must enter a valid street address for your billing information.','Shopp'),'cart_validation');
 
-		if (empty($_POST['billing']['postcode'])) 
+		if (apply_filters('shopp_billing_postcode_required',empty($_POST['billing']['postcode']))) 
 			return new ShoppError(__('You must enter a valid postal code for your billing information.','Shopp'),'cart_validation');
 
-		if (empty($_POST['billing']['country'])) 
+		if (apply_filters('shopp_billing_country_required',empty($_POST['billing']['country'])))
 			return new ShoppError(__('You must select a country for your billing information.','Shopp'),'cart_validation');
 
-		// Skip validating billing details for free purchases 
-		// and remote checkout systems
+		// Skip validating payment details for purchases not requiring a
+		// payment (credit) card including free orders, remote checkout systems, etc 
 		if (!$this->ccpayment()) return true;
 		
-		if (empty($_POST['billing']['card'])) 
+		if (apply_filters('shopp_billing_card_required',empty($_POST['billing']['card'])))
 			return new ShoppError(__('You did not provide a credit card number.','Shopp'),'cart_validation');
 
-		if (empty($_POST['billing']['cardtype'])) 
+		if (apply_filters('shopp_billing_cardtype_required',empty($_POST['billing']['cardtype'])))
 			return new ShoppError(__('You did not select a credit card type.','Shopp'),'cart_validation');
-			
-		// credit card validation
-		switch(strtolower($_POST['billing']['cardtype'])) {
-			case "american express":
-			case "amex": $pattern = '/^3[4,7]\d{13}$/'; break;
-			case "diner's club":
-			case "diners club": $pattern = '/^3[0,6,8]\d{12}$/'; break;
-			case "discover": $pattern = '/^6011-?\d{4}-?\d{4}-?\d{4}$/'; break;
-			case "mastercard": $pattern = '/^5[1-5]\d{2}-?\d{4}-?\d{4}-?\d{4}$/'; break;
-			case "visa": $pattern = '/^4\d{3}-?\d{4}-?\d{4}-?\d{4}$/'; break;
-			default: $pattern = false;
-		}
-		if ($pattern && !preg_match($pattern,$_POST['billing']['card'])) 
-			return new ShoppError(__('The credit card number you provided is invalid.','Shopp'),'cart_validation');
 
-		// credit card checksum validation
-		$cs = 0;
-		$cc = str_replace("-","",$_POST['billing']['card']);
-		$code = strrev(str_replace("-","",$_POST['billing']['card']));
-		for ($i = 0; $i < strlen($code); $i++) {
-			$d = intval($code[$i]);
-			if ($i & 1) $d *= 2;
-			$cs += $d % 10;
-			if ($d > 9) $cs += 1;
-		}
-		if ($cs % 10 != 0)
-			return new ShoppError(__('The credit card number you provided is not valid.','Shopp'),'cart_validation');
-			
-		if (empty($_POST['billing']['cardexpires-mm'])) 
+		$card = Lookup::paycard(strtolower($_POST['billing']['cardtype']));
+		if (apply_filters('shopp_billing_valid_card',$card->validate($_POST['billing']['card'])))
+			return new ShoppError(__('The credit card number you provided is invalid.','Shopp'),'cart_validation');
+		
+		if (apply_filters('shopp_billing_cardexpires_month_required',empty($_POST['billing']['cardexpires-mm'])))
 			return new ShoppError(__('You did not enter the month the credit card expires.','Shopp'),'cart_validation');
 
-		if (empty($_POST['billing']['cardexpires-yy'])) 
+		if (apply_filters('shopp_billing_cardexpires_year_required',empty($_POST['billing']['cardexpires-yy'])))
 			return new ShoppError(__('You did not enter the year the credit card expires.','Shopp'),'cart_validation');
 
-		if (!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy']) 
+		if (apply_filters('shopp_billing_card_expired',(!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy'])))
 		 	&& $_POST['billing']['cardexpires-mm'] < date('n') && $_POST['billing']['cardexpires-yy'] <= date('y')) 
 			return new ShoppError(__('The credit card expiration date you provided has already expired.','Shopp'),'cart_validation');
 		
-		if (strlen($_POST['billing']['cardholder']) < 2) 
+		if (apply_filters('shopp_billing_cardholder_required',strlen($_POST['billing']['cardholder']) < 2))
 			return new ShoppError(__('You did not enter the name on the credit card you provided.','Shopp'),'cart_validation');
 		
-		if (strlen($_POST['billing']['cvv']) < 3) 
+		if (apply_filters('shopp_billing_cvv_required',strlen($_POST['billing']['cvv']) < 3))
 			return new ShoppError(__('You did not enter a valid security ID for the card you provided. The security ID is a 3 or 4 digit number found on the back of the credit card.','Shopp'),'cart_validation');
 				
 		return apply_filters('shopp_validate_checkout',true);

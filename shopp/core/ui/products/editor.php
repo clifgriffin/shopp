@@ -27,7 +27,7 @@
 						<?php if (SHOPP_PERMALINKS && !empty($Product->id)): ?>
 							<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
 							<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo attribute_escape($Product->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Product->slug); ?></span>/</span>
-							<span id="edit-slug-buttons"><button type="button" class="edit-slug button"><?php _e('Edit','Shopp'); ?></button></span>
+							<span id="edit-slug-buttons"><button type="button" class="edit-slug button"><?php _e('Edit','Shopp'); ?></button><?php if ($Product->published == "on"): ?><button type="button" class="view-product button"><?php _e('View','Shopp'); ?></button><?php endif; ?></span>
 							</div>
 						<?php else: ?>
 							<?php if (!empty($Product->id)): ?>
@@ -79,11 +79,13 @@ var workflow = {'continue':editor_page, 'close':manager_page, 'new':editor_page,
 var worklist = <?php echo json_encode($this->products(true)); ?>;
 var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
 var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
+var dimensionUnit = '<?php echo $this->Settings->get('dimension_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
 <?php chdir(WP_CONTENT_DIR); // realpath needs for relative paths ?>
 var productspath = '<?php echo trailingslashit(sanitize_path(realpath($this->Settings->get('products_path')))); ?>';
 var imageupload_debug = <?php echo (defined('SHOPP_IMAGEUPLOAD_DEBUG') && SHOPP_IMAGEUPLOAD_DEBUG)?'true':'false'; ?>;
 var fileupload_debug = <?php echo (defined('SHOPP_FILEUPLOAD_DEBUG') && SHOPP_FILEUPLOAD_DEBUG)?'true':'false'; ?>;
+var dimensionsRequired = <?php echo $Shopp->Shipping->dimensions?'true':'false'; ?>;
 
 
 // Warning/Error Dialogs
@@ -108,6 +110,10 @@ var NOTAX_LABEL = "<?php _e('Not Taxed','Shopp'); ?>";
 var SHIPPING_LABEL = "<?php _e('Shipping','Shopp'); ?>";
 var FREE_SHIPPING_TEXT = "<?php _e('Free Shipping','Shopp'); ?>";
 var WEIGHT_LABEL = "<?php _e('Weight','Shopp'); ?>";
+var LENGTH_LABEL = "<?php _e('Length','Shopp'); ?>";
+var WIDTH_LABEL = "<?php _e('Width','Shopp'); ?>";
+var HEIGHT_LABEL = "<?php _e('Height','Shopp'); ?>";
+var DIMENSIONAL_WEIGHT_LABEL = "<?php _e('3D Weight','Shopp'); ?>";
 var SHIPFEE_LABEL = "<?php _e('Handling Fee','Shopp'); ?>";
 var INVENTORY_LABEL = "<?php _e('Inventory','Shopp'); ?>";
 var NOT_TRACKED_TEXT = "<?php _e('Not Tracked','Shopp'); ?>";

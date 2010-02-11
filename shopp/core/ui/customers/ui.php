@@ -60,20 +60,28 @@ function profile_meta_box ($Customer) {
 	<label for="phone"><?php _e('Phone','Shopp'); ?></label>
 	</span>
 </p>
-<?php if (is_array($Customer->info)):
-		foreach($Customer->info as $name => $info): ?>
-		<p>
-			<input type="text" name="info[<?php echo $name; ?>]" id="info-<?php echo sanitize_title_with_dashes($name); ?>" value="<?php echo $info; ?>" /><br />
-			<label for="info-<?php echo sanitize_title_with_dashes($name); ?>"><?php echo $name; ?></label>
-		</p>	
-<?php endforeach; endif;?>
-
 
 <br class="clear" />
 
 <?php
 }
 add_meta_box('customer-profile', __('Profile','Shopp'), 'profile_meta_box', 'admin_page_shopp-customers-edit', 'normal', 'core');
+
+function info_meta_box ($Customer) {
+?>
+<?php if (is_array($Customer->info->meta)):
+		foreach($Customer->info->meta as $id => $meta): ?>
+		<p>
+			<?php echo apply_filters('shopp_customer_info_input','<input type="text" name="info['.$meta->id.']" id="info-'.$meta->id.'" value="'.$meta->value.'" />',$meta); ?>
+			<br />
+			<label for="info-<?php echo $meta->id; ?>"><?php echo $meta->name; ?></label>
+		</p>	
+<?php endforeach; endif;?>
+
+<?php
+}
+add_meta_box('customer-info', __('Details','Shopp'), 'info_meta_box', 'admin_page_shopp-customers-edit', 'normal', 'core');
+
 
 function billing_meta_box ($Customer) {
 ?>

@@ -37,7 +37,7 @@ class DB {
 	var $results = array();
 	var $queries = array();
 	var $dbh = false;
-
+	var $version = '1.1 dev';
 
 	/**
 	 * Initializes the DB object
@@ -472,7 +472,7 @@ abstract class DatabaseObject {
 	 **/
 	function save () {
 		$db = &DB::get();
-		error_log(serialize($this));
+
 		$data = $db->prepare($this);
 		$id = $this->{$this->_key};
 		// Update record
@@ -607,15 +607,17 @@ abstract class DatabaseObject {
 	 * @param string $prefix (optional) A property prefix
 	 * @return void
 	 **/
-	function copydata ($Object,$prefix="") {
+	function copydata ($Object,$prefix="",$ignores=false) {
 		$db = &DB::get();
 
-		$ignores = array("_datatypes","_table","_key","_lists","id","created","modified");
+		if ($ignores === false)
+			$ignores = array("_datatypes","_table","_key","_lists","id","created","modified");
+
 		foreach(get_object_vars($Object) as $property => $value) {
 			$property = $prefix.$property;
 			if (property_exists($this,$property) && 
-				!in_array($property,$ignores)) 
-				$this->{$property} = $db->clean($value);
+				!in_array($property,$ignores))
+					$this->{$property} = $db->clean($value);
 		}
 	}
 	

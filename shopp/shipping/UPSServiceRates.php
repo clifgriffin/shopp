@@ -26,6 +26,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	var $request = false;
 	var $weight = 0;
 	var $conversion = 1;
+	var $dimensions = true;
 	var $Response = false;
 	
 	var $codes = array(

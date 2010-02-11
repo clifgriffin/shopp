@@ -178,7 +178,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 			$txnid = $_GET['tx'];
 			$txnstatus = $this->status[$_GET['st']];
-			error_log("$txnid - $txnstatus");
+
 			$Purchase = new Purchase($txnid,'txnid');
 
 			if (!empty($Purchase->id)) {
@@ -192,7 +192,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		}
 		
 		if (isset($_REQUEST['txn_id'])) { // IPN order processing
-			error_log('IPN new order processing');
 			
 			$txnid = $_POST['txn_id'];
 			$txnstatus = $this->status[$_POST['payment_status']];

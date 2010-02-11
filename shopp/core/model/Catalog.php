@@ -9,6 +9,7 @@
  * @package shopp
  **/
 
+require_once("Meta.php");
 require_once("Product.php");
 require_once("Category.php");
 require_once("Tag.php");

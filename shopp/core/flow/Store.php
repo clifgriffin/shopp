@@ -54,7 +54,7 @@ class Store extends AdminController {
 	function workflow () {
 		global $Shopp;
 		$db =& DB::get();
-		error_log('workflow');
+
 		$defaults = array(
 			'page' => false,
 			'deleting' => false,
@@ -480,14 +480,11 @@ class Store extends AdminController {
 					if (isset($spec['new'])) {
 						$Spec = new Spec();
 						$spec['id'] = '';
-						$spec['product'] = $Product->id;
+						$spec['parent'] = $Product->id;
 					} else $Spec = new Spec($spec['id']);
 					$spec['sortorder'] = array_search($i,$_POST['details-sortorder'])+1;
 					
 					$Spec->updates($spec);
-					if (preg_match('/^.*?(\d+[\.\,\d]*).*$/',$spec['content']))
-						$Spec->numeral = preg_replace('/^.*?(\d+[\.\,\d]*).*$/','$1',$spec['content']);
-					
 					$Spec->save();
 				}
 			}

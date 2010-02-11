@@ -228,9 +228,13 @@ class Lookup {
 		$_['mc'] = new PayCard('MasterCard','MC','/^5[1-5]\d{14}$/',3);
 		$_['solo'] = new PayCard('Solo','Solo','/^(6334|6767)\d{16,18,19}$/',3);
 		$_['visa'] = new PayCard('Visa','Visa','/^4\d{15}$/',3);
-		return $_;
+		return apply_filters('shopp_payment_cards',$_);
 	}
-	
+
+	static function paycard ($card) {
+		$cards = Lookup::paycards();
+		return $cards[$card];
+	}
 
 } // END class Lookup
 

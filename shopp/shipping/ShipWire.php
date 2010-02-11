@@ -32,6 +32,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 	var $request = false;
 	var $test = true;
 	var $dev = true;
+	var $dimensions = true;
 	var $weight = 0;
 	var $conversion = 1;
 	var $Response = false;

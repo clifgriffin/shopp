@@ -45,6 +45,7 @@ CREATE TABLE <?php echo $price; ?> (
 	price float(20,2) NOT NULL default '0.00',
 	saleprice float(20,2) NOT NULL default '0.00',
 	weight float(20,3) NOT NULL default '0',
+	dimensions varchar(255) NOT NULL default '0',
 	shipfee float(20,2) NOT NULL default '0',
 	stock int(10) NOT NULL default '0',
 	inventory enum('off','on') NOT NULL,
@@ -74,6 +75,24 @@ CREATE TABLE <?php echo $spec; ?> (
 	KEY product (product,name),
 	FULLTEXT name (name,content)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
+
+<?php $meta = DatabaseObject::tablename('meta'); ?>
+DROP TABLE IF EXISTS <?php echo $meta; ?>;
+CREATE TABLE <?php echo $meta; ?> (
+	id bigint(20) unsigned NOT NULL auto_increment,
+	parent bigint(20) unsigned NOT NULL default '0',
+	context varchar(16) NOT NULL default 'product',
+	type varchar(16) NOT NULL default 'meta',
+	name varchar(255) NOT NULL default '',
+	value longtext NOT NULL,
+	numeral float(20,4) NOT NULL default '0.0000',
+	sortorder int(10) unsigned NOT NULL default '0',
+	created datetime NOT NULL default '0000-00-00 00:00:00',
+	modified datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY id (id),
+	KEY lookup (parent,context,type)
+) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
+
 
 <?php $category = DatabaseObject::tablename('category'); ?>
 DROP TABLE IF EXISTS <?php echo $category; ?>;

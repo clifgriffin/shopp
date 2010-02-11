@@ -15,7 +15,7 @@ class Customer extends DatabaseObject {
 	static $table = "customer";
 	
 	var $login = false;
-	var $info = array();
+	var $info = false;
 	var $looping = false;
 	var $newuser = false;
 	
@@ -37,10 +37,14 @@ class Customer extends DatabaseObject {
 		$this->merchant = $Shopp->Settings->get('merchant_email');
 		
 		$this->init(self::$table);
-		if ($this->load($id,$key)) return true;
-		else return false;
+		$this->load($id,$key);
+		if (!empty($this->id)) $this->load_info();
+
 	}
 	
+	function load_info () {
+		$this->info = new ObjectMeta($this->id,'customer');
+	}
 	
 	function management () {
 		global $Shopp;

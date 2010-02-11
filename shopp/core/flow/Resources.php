@@ -45,8 +45,10 @@ class Resources {
 
 		// For secure, backend lookups
 		if (defined('WP_ADMIN') && is_user_logged_in()) {
-			add_action('shopp_resource_export_purchases',array(&$this,'export_purchases'));
-			add_action('shopp_resource_export_customers',array(&$this,'export_customers'));
+			if (current_user_can('shopp_financials')) {
+				add_action('shopp_resource_export_purchases',array(&$this,'export_purchases'));
+				add_action('shopp_resource_export_customers',array(&$this,'export_customers'));
+			}
 		}
 		
 		if ( !empty( $this->request['src'] ) )
@@ -90,6 +92,7 @@ class Resources {
 	}
 	
 	function export_customers () {
+
 		if (!isset($_POST['settings']['customerexport_columns'])) {
 			$Customer = Customer::exportcolumns();
 			$Billing = Billing::exportcolumns();
@@ -116,7 +119,8 @@ class Resources {
 		global $Shopp;
 		$download = $this->request['shopp_download'];
 
-		if ($admin) {
+		if (defined('WP_ADMIN')) {
+			$forbidden = false;
 			$Asset = new Asset($download);
 		} else {
 			$Order = &ShoppOrder();

@@ -164,8 +164,8 @@ function Priceline (id,options,data,target,attachment) {
 	$(priceTypes).each(function (t,option) { typeOptions += '<option value="'+option.value+'">'+option.label+'</option>'; });
 	var type = $('<select name="price['+i+'][type]" id="type-'+i+'"></select>').html(typeOptions).appendTo(heading);
 
-	var dataCell = $('<div class="pricing-ui clear" />').appendTo(this.row);
-
+	var dataCell = $('<div class="pricing-ui clear" />').appendTo(this.row);	
+	
 	var pricingTable = $('<table/>').addClass('pricing-table').appendTo(dataCell);
 
 	var headingsRow = $('<tr/>').appendTo(pricingTable);	
@@ -206,8 +206,10 @@ function Priceline (id,options,data,target,attachment) {
 	var shippingCell = $('<td/>').appendTo(inputsRow);
 	var shippingStatus = $('<span>'+FREE_SHIPPING_TEXT+'</span>').addClass('status').appendTo(shippingCell);
 	var shippingFields = $('<span/>').addClass('fields').appendTo(shippingCell).hide();
+	
 	var weight = $('<input type="text" name="price['+i+'][weight]" id="weight['+i+']" size="8" class="selectall right" />').appendTo(shippingFields);
-	var shippingWeightLabel = $('<label for="weight['+i+']" title="Weight"> '+WEIGHT_LABEL+((weightUnit)?' ('+weightUnit+')':'')+'</label><br />').appendTo(shippingFields);
+	var shippingWeightLabel = $('<label for="weight['+i+']" title="'+WEIGHT_LABEL+'"> '+WEIGHT_LABEL+((weightUnit)?' ('+weightUnit+')':'')+'</label><br />').appendTo(shippingFields);
+	
 	var shippingfee = $('<input type="text" name="price['+i+'][shipfee]" id="shipfee['+i+']" size="8" class="selectall right" />').appendTo(shippingFields);
 	var shippingFeeLabel = $('<label for="shipfee['+i+']" title="Additional shipping fee calculated per quantity ordered (for handling costs, etc)"> '+SHIPFEE_LABEL+'</label><br />').appendTo(shippingFields);
 
@@ -399,6 +401,52 @@ function Priceline (id,options,data,target,attachment) {
 	shippingfee.bind('change.value',function() { this.value = asMoney(this.value); }).trigger('change.value');
 	weight.bind('change.value',function() { var num = new Number(this.value); this.value = num.roundFixed(3); }).trigger('change.value');
 
+	if (dimensionsRequired) {
+		shippingWeightLabel.html(' '+dimensionUnit+'<sup>3</sup>/'+weightUnit);
+		var dimensionsCell = $('<div class="dimensions" />').appendTo(shippingCell).hide();
+
+		var weightInput = $('<div class="inline"/>').appendTo(dimensionsCell);
+		var dimWeight = $('<input type="text" name="price['+i+'][dimensions][weight]" id="dimensions-weight-'+i+'" size="4" class="selectall right weight" />').appendTo(weightInput);
+		$(((weightUnit)?'<label>'+weightUnit+'&nbsp;</label>':'')+'<br /><label for="dimensions-weight-'+i+'" title="'+WEIGHT_LABEL+'"> '+WEIGHT_LABEL+'</label>').appendTo(weightInput);
+		dimWeight.bind('change.value',function() { var num = new Number(this.value); this.value = num.roundFixed(0); }).trigger('change.value');
+
+		var lengthInput = $('<div class="inline" />').appendTo(dimensionsCell);
+		var dimLength = $('<input type="text" name="price['+i+'][dimensions][length]" id="dimensions-length-'+i+'" size="4" class="selectall right" />').appendTo(lengthInput);
+		$('<label> x </label><br /><label for="dimensions-length-'+i+'" title="'+LENGTH_LABEL+'"> '+LENGTH_LABEL+'</label>').appendTo(lengthInput);
+		dimLength.bind('change.value',function() { var num = new Number(this.value); this.value = num.roundFixed(0); }).trigger('change.value');
+
+		var widthInput = $('<div class="inline" />').appendTo(dimensionsCell);
+		var dimWidth = $('<input type="text" name="price['+i+'][dimensions][width]" id="dimensions-width-'+i+'" size="4" class="selectall right" />').appendTo(widthInput);
+		$('<label> x </label><br /><label for="dimensions-width-'+i+'" title="'+WIDTH_LABEL+'"> '+WIDTH_LABEL+'</label>').appendTo(widthInput);
+		dimWidth.bind('change.value',function() { var num = new Number(this.value); this.value = num.roundFixed(0); }).trigger('change.value');
+
+		var heightInput = $('<div class="inline" />').appendTo(dimensionsCell);
+		var dimHeight = $('<input type="text" name="price['+i+'][dimensions][height]" id="dimensions-height-'+i+'" size="4" class="selectall right" />').appendTo(heightInput);
+		$('<label>inches</label><br /><label for="dimensions-height-'+i+'" title="'+HEIGHT_LABEL+'"> '+HEIGHT_LABEL+'</label>').appendTo(heightInput);
+		dimHeight.bind('change.value',function() { var num = new Number(this.value); this.value = num.roundFixed(0); }).trigger('change.value');
+
+		var toggleDimensions = function () {
+			$(weight).toggleClass('extoggle');
+			dimensionsCell.toggle();
+			weightInput.find('input').focus();
+			var d = 0;
+			var w = 0;
+			dimensionsCell.find('input').each(function (id,dims) {
+				if ($(dims).hasClass('weight')) { w = dims.value; }
+				else {
+					if (d == 0) d = dims.value;
+					else d *= dims.value;
+				}
+			});
+			if (!isNaN(d/w)) $(weight).val((d/w)).trigger('change.value');
+		}
+
+		dimHeight.blur(toggleDimensions);
+		weight.click(toggleDimensions);
+		weight.attr('readonly',true);
+		
+	}
+
 	// Set the context for the db
 	if (data && data.context) context.val(data.context);
 	else context.val('product');
@@ -428,10 +476,18 @@ function Priceline (id,options,data,target,attachment) {
 		weight.val(new Number(data.weight)).trigger('change.value');
 		stock.val(data.stock);
 	
+		if (dimensionsRequired) {
+			d = data.dimensions
+			dimWeight.val(new Number(d.weight?d.weight:0)).trigger('change.value');
+			dimLength.val(new Number(d.length?d.length:0)).trigger('change.value');
+			dimWidth.val(new Number(d.width?d.width:0)).trigger('change.value');
+			dimHeight.val(new Number(d.height?d.height:0)).trigger('change.value');
+		}
+	
 		if (data.download) {
 			if (data.filedata.mimetype)	data.filedata.mimetype = data.filedata.mimetype.replace(/\//gi," ");
 			downloadFile.attr('class','file '+data.filedata.mimetype).html(data.filename+'<br /><small>'+readableFileSize(data.filesize)+'</small>').click(function () {
-				window.location.href = adminurl+"admin.php?page=shopp-lookup&download="+data.download;
+				window.location.href = adminurl+"admin.php?src=download&shopp_download="+data.download;
 			});
 
 		}

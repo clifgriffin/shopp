@@ -118,7 +118,8 @@ class Shipping extends DatabaseObject {
  * @subpackage shipping
  **/
 class ShippingModules extends ModuleLoader {
-	
+
+	var $dimensions = false;	// Flags when a module requires product dimensions
 	var $methods = array();		// Registry of shipping method handles
 
 	/**
@@ -192,6 +193,8 @@ class ShippingModules extends ModuleLoader {
 		$m = $this->active[$module]->methods();
 		if (empty($m) || !is_array($m)) return;
 		
+		if ($this->active[$module]->dimensions) $this->dimensions = true;
+
 		$methods = array();
 		foreach ($m as $method => $name) {
 			if (is_int($method)) $method = "$module";
@@ -328,6 +331,7 @@ abstract class ShippingFramework {
 	var $base = false;		// Base of operations settings
 	var $postcode = false;	// Flag to enable the postcode field in the cart
 	var $rates = array();	// The shipping rates that apply to the module
+	var $dimensions = false; // Uses dimensions in calculating estimates
 	
 	/**
 	 * Initializes a shipping module

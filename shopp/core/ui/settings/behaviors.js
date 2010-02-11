@@ -116,7 +116,7 @@ var SettingInput = function (module,attrs,options,method) {
 			if (attrs.value[method]) this.value = attrs.value[method];
 			else this.value = '';
 		} else this.value = attrs.value;
-	}
+	} else this.value = '';
 	
 	this.normal = (attrs.normal)?attrs.normal:'';
 	this.selected = (attrs.selected)?attrs.selected:0;

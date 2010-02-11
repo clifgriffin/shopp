@@ -9,13 +9,19 @@
  * @package shopp
  **/
 
-class Spec extends DatabaseObject {
-	static $table = "spec";
+class Spec extends MetaObject {
 	
 	function Spec ($id=false) {
 		$this->init(self::$table);
-		if ($this->load($id)) return true;
-		else return false;
+		$this->load($id);
+		$this->context = 'product';
+		$this->type = 'spec';
+	}
+	
+	function updates ($data,$ignored=array()) {
+		parent::updates($data,$ignores);
+		if (preg_match('/^.*?(\d+[\.\,\d]*).*$/',$this->value))
+			$this->numeral = preg_replace('/^.*?(\d+[\.\,\d]*).*$/','$1',$this->value);
 	}
 
 } // end Spec class

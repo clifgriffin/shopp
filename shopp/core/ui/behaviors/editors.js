@@ -63,8 +63,8 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 
 function NestedMenuContent (i,target,dataname,data) {
 	var $=jQuery.noConflict();
-	var content = $('<textarea name="'+dataname+'['+i+'][content]" cols="40" rows="7"></textarea>').appendTo(target);
-	if (data && data.content) content.val(htmlentities(data.content));
+	var content = $('<textarea name="'+dataname+'['+i+'][value]" cols="40" rows="7"></textarea>').appendTo(target);
+	if (data && data.value) content.val(htmlentities(data.value));
 }
 
 function NestedMenuOption (i,target,dataname,defaultlabel,data) {
@@ -107,9 +107,9 @@ function addDetail (data) {
 	var menu = new NestedMenu(id,menus,'details','Detail Name',data,{target:entries});
 
 	if (data && data.options) {
-		var optionsmenu = $('<select name="details['+menu.index+'][content]"></select>').appendTo(menu.itemsElement);
+		var optionsmenu = $('<select name="details['+menu.index+'][value]"></select>').appendTo(menu.itemsElement);
 		for (var i in data.options) $('<option>'+data.options[i]['name']+'</option>').appendTo(optionsmenu);		
-		if (data && data.content) optionsmenu.val(htmlentities(data.content));	
+		if (data && data.value) optionsmenu.val(htmlentities(data.value));	
 	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);	
 	
 	if (!data || data.add) menu.add = $('<input type="hidden" name="details['+menu.index+'][new]" value="true" />').appendTo(menu.element);
