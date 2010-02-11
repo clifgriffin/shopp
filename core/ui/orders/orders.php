@@ -13,11 +13,14 @@
 		<input type="text" id="orders-search-input" class="search-input" name="s" value="<?php echo attribute_escape($s); ?>" />
 		<input type="submit" value="<?php _e('Search Orders','Shopp'); ?>" class="button" />
 	</p>
+	
+	<?php if (current_user_can('shopp_financials')): ?>
 	<ul id="report">
 		<li><strong><?php echo $ordercount->total; ?></strong> <span><?php _e('Orders','Shopp'); ?></span></li>
 		<li><strong><?php echo money($ordercount->sales); ?></strong> <span><?php _e('Total Sales','Shopp'); ?></span></li>
 		<li><strong><?php echo money($ordercount->avgsale); ?></strong> <span><?php _e('Average Sale','Shopp'); ?></span></li>
 	</ul>
+	<?php endif; ?>
 	
 	<div class="tablenav">
 		<div class="alignleft actions">
@@ -97,6 +100,7 @@
 	</form>
 	
 	<div class="tablenav">
+		<?php if (current_user_can('shopp_financials')): ?>
 		<div class="alignleft actions">
 			<form action="<?php echo esc_url(add_query_arg(array_merge($_GET,array('src'=>'export_purchases')),admin_url("admin.php"))); ?>" id="log" method="post">
 			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Export Options','Shopp'); ?></button>
@@ -119,6 +123,7 @@
 			</select></span>
 			<button type="submit" id="download-button" name="download" value="export" class="button-secondary"><?php _e('Download','Shopp'); ?></button>
 		</div>
+		<?php endif; ?>
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="clear"></div>
 	</div>

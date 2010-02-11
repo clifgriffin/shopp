@@ -140,7 +140,7 @@ class Asset extends DatabaseObject {
 	    @ini_set('zlib.output_compression', 0);
 		
 		set_time_limit(0);	// Don't timeout on long downloads
-		ob_end_clean();		// End any automatic output buffering
+		// ob_end_clean();		// End any automatic output buffering
 		
 		header("Pragma: public");
 		header("Cache-Control: maxage=1");

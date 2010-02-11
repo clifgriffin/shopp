@@ -158,8 +158,8 @@ class Product extends DatabaseObject {
 					$query .= "(SELECT '$set->_table' as dataset,parent AS product,'$rtype' AS rtype,$alphaorder AS alphaorder,$sortorder AS sortorder,$cols FROM $set->_table WHERE $where ORDER BY $orderby)";
 					break;
 				case "specs":
-					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."product=$id";
-					$query .= "(SELECT '$set->_table' as dataset,product,'$rtype' AS rtype,'' AS alphaorder,sortorder AS sortorder,$cols FROM $set->_table WHERE $where)";
+					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."parent=$id AND context='product' AND type='spec'";
+					$query .= "(SELECT '$set->_table' as dataset,parent AS product,'$rtype' AS rtype,'' AS alphaorder,sortorder AS sortorder,$cols FROM $set->_table WHERE $where)";
 					break;
 				case "categories":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."catalog.product=$id";
@@ -173,7 +173,7 @@ class Product extends DatabaseObject {
 					break;
 			}
 		}
-		
+
 		// Add order by columns
 		$query .= " ORDER BY sortorder";
 		// echo $query;

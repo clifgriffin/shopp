@@ -139,7 +139,12 @@ class AdminFlow extends FlowController {
 			array(&$Shopp->Flow,'parse'),				// Handler
 			"$Shopp->uri/core/ui/icons/shopp.png"		// Icon
 		);
-
+		
+		if (!$this->dbupgraded()) {
+			add_action('toplevel_page_shopp-orders',array(&$this,'dbwarning'));
+			return false;
+		}
+		
 		// Add menus to WordPress admin
 		foreach ($this->Pages as $page) $this->addmenu($page);
 
@@ -150,6 +155,16 @@ class AdminFlow extends FlowController {
 		foreach ($this->Menus as $pagename => $menu) $this->help($pagename,$menu);
 		
 	}
+	
+	function dbwarning () {?>
+		<div class="wrap">
+			<h2><?php _e('Shopp Upgrade','Shopp'); ?></h2>
+			<div class="error">
+			<p><?php _e('Your Shopp database is out-of-date and needs to be updated.','Shopp'); ?></p>
+			<p><?php _e('Please deactivate Shopp and re-activate from the WordPress plugin manager to upgrade your database.','Shopp'); ?></p>
+			</div>
+		</div>
+<?php }
 	
 	/**
 	 * Registers a new page to the Shopp admin pages
@@ -269,6 +284,16 @@ class AdminFlow extends FlowController {
 		<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/thickbox.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
 		<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
 		<?php
+	}
+	
+	function dbupgraded () {
+		global $Shopp;
+		$db = &DB::get();
+		$db_version = $Shopp->Settings->get('db_version');
+		
+		if ($db_version != $db->version)
+			return false;
+		return true;
 	}
 	
 	/**

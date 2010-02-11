@@ -7,13 +7,15 @@
  * @version 1.0.3
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
+ * @since 1.1
+ * @subpackage GoogleCheckout
  * 
  * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
 
-class GoogleCheckout {
+class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
 	var $urls = array();
 	var $settings = array();
@@ -39,7 +41,7 @@ class GoogleCheckout {
 			'test' => 'http://sandbox.google.com/checkout/buttons/checkout.gif'
 			);
 		
-		$this->settings = $Shopp->Settings->get('GoogleCheckout');
+		$this->setup('id','key');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		$this->settings['location'] = "en_US";
 		$base = $Shopp->Settings->get('base_operations');
@@ -455,6 +457,54 @@ class GoogleCheckout {
 		$buttons = array("w=160&h=43"=>"Small (160x43)","w=168&h=44"=>"Medium (168x44)","w=180&h=46"=>"Large (180x46)");
 		$styles = array("white"=>"On White Background","trans"=>"With Transparent Background");
 		
+		$this->ui->text(0,array(
+			'name' => 'id',
+			'value' => $this->settings['id'],
+			'size' => 18,
+			'label' => __('Enter your Google Checkout merchant ID.','Shopp')
+		));
+		
+		$this->ui->text(0,array(
+			'name' => 'key',
+			'value' => $this->settings['key'],
+			'size' => 24,
+			'label' => __('Enter your Google Checkout merchant key.','Shopp')
+		));
+
+ 		if (!empty($this->settings['apiurl'])) {
+			$this->ui->text(0,array(
+				'name' => 'apiurl',
+				'value' => $this->settings['apiurl'],
+				'size' => 48,
+				'label' => __('Copy this URL to your Google Checkout integration settings API callback URL.','Shopp')
+			));
+		}
+
+		$this->ui->checkbox(0,array(
+			'name' => 'testmode',
+			'checked' => ($this->settings['testmode'] == "on"),
+			'label' => sprintf(__('Use the %s','Shopp'),'<a href="http://docs.shopplugin.net/Google_Checkout_Sandbox">Google Checkout Sandbox</a>')
+		));
+		
+		$this->ui->menu(1,array(
+			'name' => 'button',
+			'selected' => $this->settings['button']
+		),$buttons);
+
+		$this->ui->menu(1,array(
+			'name' => 'buttonstyle',
+			'selected' => $this->settings['buttonstyle'],
+			'label' => __('Select the preferred size and style of the Google Checkout button.','Shopp')
+		),$styles);
+		
+		$this->ui->checkbox(1,array(
+			'name' => 'autocharge',
+			'checked' => ($this->settings['autocharge'] == "on"),
+			'label' => __('Automatically charge orders','Shopp')
+		));
+		
+		
+		/*
 		?>
 		<th scope="row" valign="top"><label for="googlecheckout-enabled">Google Checkout</label></th> 
 		<td><input type="hidden" name="settings[GoogleCheckout][enabled]" value="off" id="googlecheckout-disabled"/><input type="checkbox" name="settings[GoogleCheckout][enabled]" value="on" id="googlecheckout-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="googlecheckout-enabled"> <?php _e('Enable','Shopp'); ?> Google Checkout</label>
@@ -485,14 +535,9 @@ class GoogleCheckout {
 			</div>
 		</td>
 		<?php
+		*/
 	}
 
-	function registerSettings () {
-		?>
-		xcosettings('#googlecheckout-enabled','#googlecheckout-settings');
-		<?php
-	}
-	
 	function saveSettings () {
 		global $Shopp;
 		// Build the Google Checkout API URL if Google Checkout is enabled

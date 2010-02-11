@@ -48,20 +48,17 @@ class ShoppInstallation extends FlowController {
 	 * Installs the tables and initializes settings */
 	function activate () {
 		global $wpdb,$wp_rewrite;
-		error_log('ShoppInstallation::activate()');
 
 		// If no settings are available,
 		// no tables exist, so this is a
 		// new install
 		if ($this->Settings->unavailable) {
-			error_log('ShoppInstallation::install()');
 			$this->install();
 		}
 		
 		$ver = $this->Settings->get('version');
 		if (!empty($ver) && $ver != SHOPP_VERSION) {
-			error_log('call upgrade()');
-			$this->upgrade();
+			$this->upgrade($ver);
 		}
 				
 		if ($this->Settings->get('shopp_setup')) {
@@ -105,7 +102,6 @@ class ShoppInstallation extends FlowController {
 	}
 	
 	function install () {
-		error_log('install()');
 		global $wpdb,$wp_rewrite,$wp_version,$table_prefix;
 		$db = DB::get();
 
@@ -293,10 +289,10 @@ class ShoppInstallation extends FlowController {
 		exit();
 	}
 		
-	function upgrade () {
+	function upgrade ($version) {
 		global $Shopp,$table_prefix;
-		error_log('upgrade()');
 		$db = DB::get();
+		$db_version = $this->Settings->get('db_version');
 		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
 
 		// Check for the schema definition file
@@ -311,12 +307,8 @@ class ShoppInstallation extends FlowController {
 		// Update the table schema
 		$tables = preg_replace('/;\s+/',';',$schema);
 		dbDelta($tables);
-		
-		$this->regions();
-		$this->countries();
-		$this->zones();
-		$this->areas();
-		$this->vat();
+
+		if ($db_version != $db->version) $this->updatedb_1p1();
 		
 		// Update the version number
 		$settings = DatabaseObject::tablename(Settings::$table);
@@ -449,6 +441,23 @@ class ShoppInstallation extends FlowController {
 		
 		// Setup Roles and Capabilities
 		$this->roles();
+	}
+	
+	function updatedb_1p1 () {
+		$db =& DB::get();
+		
+		// Update specs
+		$meta_table = DatabaseObject::tablename('meta');
+		$spec_table = DatabaseObject::tablename('spec');
+		$db->query("INSERT INTO $meta_table (id,parent,context,type,name,value,numeral,sortorder,created,modified)
+					SELECT id,product,'product','spec',name,content,numeral,sortorder,now(),now() FROM $spec_table");
+					
+
+		// Update purchase table
+		$purchase_table = DatabaseObject::tablename('purchase');
+		$db->query("UPDATE $purchase_table SET txnid=transactionid,txnstatus=transtatus");
+
+		$this->Settings->save('db_version',$db->version);
 	}
 
 } // end ShoppInstallation class

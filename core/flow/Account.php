@@ -106,7 +106,14 @@ class Account extends AdminController {
 					if (!empty($Customer->wpuser)) wp_set_password($_POST['new-password'], $Customer->wpuser);
 				}
 			
+			$Customer->info = false; // No longer used from DB
 			$Customer->save();
+			
+			foreach ($_POST['info'] as $id => $info) {
+				$Meta = new MetaObject($id);
+				$Meta->value = $info;
+				$Meta->save();
+			}
 			
 			if (isset($Customer->id)) $Billing->customer = $Customer->id;
 			$Billing->updates($_POST['billing']);
@@ -259,7 +266,7 @@ class Account extends AdminController {
 	function editor () {
 		global $Shopp,$Customer;
 		
-		if ( !(is_shopp_userlevel() || current_user_can('shopp_customer')) )
+		if ( !(is_shopp_userlevel() || current_user_can('shopp_customers')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 

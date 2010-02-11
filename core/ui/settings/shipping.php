@@ -28,6 +28,19 @@
 				<?php _e('Used as unit of weight for all products.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Dimension Unit','Shopp'); ?></label></th> 
+				<td>
+				<select name="settings[dimension_unit]" id="dimension-unit">
+					<option></option>
+						<?php
+							if ($base['units'] == "imperial") $units = array("in" => __("inches (in)","Shopp"),"ft" => __("feet (ft)","Shopp"));
+							else $units = array("cm"=>__("centimeters (cm)","Shopp"),"m"=>__("meters (m)","Shopp"));
+							echo menuoptions($units,$this->Settings->get('dimension_unit'),true);
+						?>
+				</select><br />
+				<?php _e('Used as the unit of dimensions for all products.','Shopp'); ?></td>
+			</tr>
+			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="order_handling_fee"><?php _e('Order Handling Fee','Shopp'); ?></label></th> 
 				<td><input type="text" name="settings[order_shipfee]" value="<?php echo money($this->Settings->get('order_shipfee')); ?>" id="order_handling_fee" size="7" class="right selectall" /><br /> 
 	            <?php _e('Handling fee applied once to each order with shipped products.','Shopp'); ?></td>
