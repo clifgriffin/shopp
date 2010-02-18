@@ -301,6 +301,27 @@ function force_ssl ($url,$rewrite=false) {
 }
 
 /**
+ * Returns the raw url that was requested
+ *
+ * Useful for getting the complete value of the requested url
+ *
+ * @author Jonathan Davis, John Dillick
+ * @since 1.1
+ * 
+ * @return string raw request url
+ **/
+function raw_request_url () {
+	return esc_url(
+		'http'.
+		($_SERVER['HTTPS']?'s':'').
+		'://'.
+		$_SERVER['HTTP_HOST'].
+		$_SERVER['REQUEST_URI'].
+		(SHOPP_PERMALINKS?((!empty($_SERVER['QUERY_STRING'])?'?':'').$_SERVER['QUERY_STRING']):'')
+	);
+}
+
+/**
  * Determines the gateway path to a gateway file
  *
  * @author Jonathan Davis
@@ -844,7 +865,7 @@ function shopp_email ($template,$data=array()) {
 			while ( list($i,$label) = each($labels) ) {
 				$code = $label[1];
 				if (empty($data)) $string = $_POST[$code];
-				else $string = $data[$code];
+				else $string = apply_filters('shopp_email_data', $data[$code], $code);
 
 				$string = str_replace(array_keys($replacements),array_values($replacements),$string); 
 
