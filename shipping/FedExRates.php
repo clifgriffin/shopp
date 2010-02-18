@@ -199,7 +199,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 				$delivery = $this->deliverytimes[$quote->TransitTime];
 			else $delivery = '5d-7d';
 			
-			$amount = $details->ShipmentRateDetail->TotalNetCharge->Amount;
+			$amount = apply_filters('shopp_fedex_total',$details->ShipmentRateDetail->TotalNetCharge->Amount,$details);
 
 			$rate = array();
 			$rate['name'] = $name;
@@ -274,7 +274,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 						'Units' => $this->settings['units'],
 						'Value' => number_format(($this->weight < 0.1)?0.1:$this->weight,1,'.','')));
 		
-		return $_;
+		return apply_filters('shopp_fedex_request', $_, $session,$description,$postcode,$country);
 	} 
 	
 	function verify () {         
