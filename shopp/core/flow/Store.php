@@ -28,10 +28,23 @@ class Store extends AdminController {
 	 **/
 	function __construct () {
 		parent::__construct();
-		add_action('admin_print_scripts',array(&$this,'columns'));
-		add_action('admin_head',array(&$this,'layout'));
-		add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
-		add_action('load-admin_page_shopp-products-edit',array(&$this,'workflow'));
+		if (!empty($_GET['id'])) {
+			wp_enqueue_script('postbox');
+			if ( user_can_richedit() ) wp_enqueue_script('editor');
+			wp_enqueue_script("shopp-thickbox",SHOPP_ADMIN_URI."/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
+			wp_enqueue_script('shopp.editor.lib',SHOPP_ADMIN_URI."/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script('shopp.product.editor',SHOPP_ADMIN_URI."/products/editor.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script('shopp.editor.priceline',SHOPP_ADMIN_URI."/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
+			wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery','jquery-ui-core'),SHOPP_VERSION,true);
+			wp_enqueue_script('shopp.swfupload',SHOPP_ADMIN_URI."/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION);
+				wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_URI."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
+			
+			
+			add_action('admin_head',array(&$this,'layout'));
+			add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
+			add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
+		} else add_action('admin_print_scripts',array(&$this,'columns'));
 	}
 	
 	/**
@@ -41,7 +54,7 @@ class Store extends AdminController {
 	 * @author Jonathan Davis
 	 **/
 	function admin () {
-		if ($_GET['page'] == $this->Admin->pagename('products-edit')) $this->editor();
+		if (!empty($_GET['id'])) $this->editor();
 		else $this->products();
 	}
 
@@ -68,8 +81,7 @@ class Store extends AdminController {
 		extract($args,EXTR_SKIP);
 
 		if (!defined('WP_ADMIN') || !isset($page)
-			|| ($page != $this->Admin->pagename('products')
-			&& $page != $this->Admin->pagename('products-edit')))
+			|| $page != $this->Admin->pagename('products'))
 				return false;
 		
 		$adminurl = admin_url('admin.php');

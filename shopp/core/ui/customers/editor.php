@@ -14,15 +14,15 @@
 				<div id="side-info-column" class="inner-sidebar">
 				<?php
 				do_action('submitpage_box');
-				$side_meta_boxes = do_meta_boxes('admin_page_shopp-customers-edit', 'side', $Customer);
+				$side_meta_boxes = do_meta_boxes('shopp_page_shopp-customers', 'side', $Customer);
 				?>
 				</div>
 
 				<div id="post-body" class="<?php echo $side_meta_boxes ? 'has-sidebar' : 'has-sidebar'; ?>">
 				<div id="post-body-content" class="has-sidebar-content">
 				<?php
-				do_meta_boxes('admin_page_shopp-customers-edit', 'normal', $Customer);
-				do_meta_boxes('admin_page_shopp-customers-edit', 'advanced', $Customer);
+				do_meta_boxes('shopp_page_shopp-customers', 'normal', $Customer);
+				do_meta_boxes('shopp_page_shopp-customers', 'advanced', $Customer);
 				wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
 				?>
 
@@ -52,7 +52,7 @@ var $=jQuery.noConflict();
 
 var regions = <?php echo json_encode($regions); ?>;
 
-postboxes.add_postbox_toggles('admin_page_shopp-customers-edit');
+postboxes.add_postbox_toggles('shopp_page_shopp-customers');
 // close postboxes that should be closed
 jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 

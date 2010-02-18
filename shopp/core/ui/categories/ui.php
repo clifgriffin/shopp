@@ -19,7 +19,7 @@ function save_meta_box ($Category) {
 	</div>
 <?php
 }
-add_meta_box('save-category', __('Save','Shopp'), 'save_meta_box', 'admin_page_shopp-categories-edit', 'side', 'core');
+add_meta_box('save-category', __('Save','Shopp'), 'save_meta_box', 'shopp_page_shopp-products', 'side', 'core');
 
 function settings_meta_box ($Category) {
 	global $Shopp;
@@ -34,7 +34,7 @@ function settings_meta_box ($Category) {
 	<p><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if ($Category->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations','Shopp'); ?></label><br /><?php _e('Predefined selectable product options for products created in this category','Shopp'); ?></p>
 	<?php
 }
-add_meta_box('category-settings', __('Settings','Shopp'), 'settings_meta_box', 'admin_page_shopp-categories-edit', 'side', 'core');
+add_meta_box('category-settings', __('Settings','Shopp'), 'settings_meta_box', 'shopp_page_shopp-products', 'side', 'core');
 
 function images_meta_box ($Category) {
 	$db =& DB::get();
@@ -71,7 +71,7 @@ function images_meta_box ($Category) {
 	<p><?php _e('The first image will be the default image. These thumbnails are out of proportion, but will be correctly sized for shoppers.','Shopp'); ?></p>
 <?php
 }
-add_meta_box('product-images', __('Category Images','Shopp'), 'images_meta_box', 'admin_page_shopp-categories-edit', 'normal', 'core');
+add_meta_box('product-images', __('Category Images','Shopp'), 'images_meta_box', 'shopp_page_shopp-products', 'normal', 'core');
 
 function templates_meta_box ($Category) {
 	$pricerange_menu = array(
@@ -164,10 +164,10 @@ function templates_meta_box ($Category) {
 
 <?php
 }
-add_meta_box('templates_menus', __('Product Templates &amp; Menus','Shopp'), 'templates_meta_box', 'admin_page_shopp-categories-edit', 'advanced', 'core');
+add_meta_box('templates_menus', __('Product Templates &amp; Menus','Shopp'), 'templates_meta_box', 'shopp_page_shopp-products', 'advanced', 'core');
 
 
-do_action('do_meta_boxes', 'admin_page_shopp-categories-edit', 'normal', $Shopp->Category);
-do_action('do_meta_boxes', 'admin_page_shopp-categories-edit', 'advanced', $Shopp->Category);
-do_action('do_meta_boxes', 'admin_page_shopp-categories-edit', 'side', $Shopp->Category);
+do_action('do_meta_boxes', 'shopp_page_shopp-products', 'normal', $Shopp->Category);
+do_action('do_meta_boxes', 'shopp_page_shopp-products', 'advanced', $Shopp->Category);
+do_action('do_meta_boxes', 'shopp_page_shopp-products', 'side', $Shopp->Category);
 ?>

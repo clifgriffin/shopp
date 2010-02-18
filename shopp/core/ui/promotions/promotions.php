@@ -34,7 +34,7 @@
 			
 			$even = false; 
 			foreach ($Promotions as $Promotion): 
-			$editurl = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions-edit','id'=>$Promotion->id)),admin_url('admin.php'));
+			$editurl = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions','id'=>$Promotion->id)),admin_url('admin.php'));
 			$PromotionName = empty($Promotion->name)?'('.__('no promotion name').')':$Promotion->name;
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>

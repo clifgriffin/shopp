@@ -167,8 +167,7 @@ class Login {
 	 * loggedin()
 	 * Initialize login data */
 	function login ($Account) {
-		$this->Customer->copydata($Account);
-		$this->Customer->id = $Account->id;
+		$this->Customer->copydata($Account,false,array());
 		$this->Customer->login = true;
 		unset($this->Customer->password);
 		$this->Billing->load($Account->id,'customer');

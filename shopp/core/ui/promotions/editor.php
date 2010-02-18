@@ -14,7 +14,7 @@
 				<div id="side-info-column" class="inner-sidebar">
 				<?php
 				do_action('submitpage_box');
-				$side_meta_boxes = do_meta_boxes('admin_page_shopp-promotions-edit', 'side', $Promotion);
+				$side_meta_boxes = do_meta_boxes('shopp_page_shopp-promotions', 'side', $Promotion);
 				?>
 				</div>
 
@@ -28,8 +28,8 @@
 					</div>
 
 				<?php
-				do_meta_boxes('admin_page_shopp-promotions-edit', 'normal', $Promotion);
-				do_meta_boxes('admin_page_shopp-promotions-edit', 'advanced', $Promotion);
+				do_meta_boxes('shopp_page_shopp-promotions', 'normal', $Promotion);
+				do_meta_boxes('shopp_page_shopp-promotions', 'advanced', $Promotion);
 				wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
 				?>
 
@@ -261,11 +261,9 @@ $('#ends-month').click(function (e) {
 	});
 });
 
-jQuery(document).ready( function($) {
-	postboxes.add_postbox_toggles('admin_page_shopp-promotions-edit');
-	// close postboxes that should be closed
-	jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-});
+postboxes.add_postbox_toggles('shopp_page_shopp-promotions');
+// close postboxes that should be closed
+$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 
 if (!promotion) $('#title').focus();
 

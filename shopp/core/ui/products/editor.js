@@ -27,7 +27,7 @@ var pricesPayload = true;
 jQuery(document).ready(function() {
 	var $=jQuery.noConflict();
 
-	postboxes.add_postbox_toggles('admin_page_shopp-products-edit');
+	postboxes.add_postbox_toggles('shopp_page_shopp-products');
 	// close postboxes that should be closed
 	jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	

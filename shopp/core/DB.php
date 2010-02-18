@@ -238,7 +238,7 @@ class DB {
 			switch ($object->_datatypes[$property]) {
 				case "string":
 					// Escape characters in strings as needed
-					if (is_array($value)) $data[$property] = "'".addslashes(serialize($this->escape($value)))."'";
+					if (is_array($value) || is_object($value)) $data[$property] = "'".addslashes(serialize($this->escape($value)))."'";
 					else $data[$property] = "'".$this->escape($value)."'";
 					break;	
 				case "list":
@@ -542,7 +542,8 @@ abstract class DatabaseObject {
 				case "float":
 				case "string":
 					// If string has been serialized, unserialize it
-					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/s",$value)) $value = unserialize($value);
+					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/s",$value))
+						$value = unserialize($value);
 				default:
 					// Anything not needing processing
 					// passes through into the object

@@ -5,69 +5,17 @@
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
 	<?php include("navigation.php"); ?>
-	<input type="submit" id="print-button" value="<?php _e('Print Order','Shopp'); ?>" class="button" />
 	<br class="clear" />
 		
+	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post" id="order-status">
 	<div id="order">
 		<br class="clear" />
-		<div id="receipt" class="shopp">
-		<table class="transaction" cellspacing="0">
-			<tr><th><?php _e('Order Num','Shopp'); ?>:</th><td><?php echo $Purchase->id; ?></td></tr>	
-			<tr><th><?php _e('Order Date','Shopp'); ?>:</th><td><?php echo _d(get_option('date_format'), $Purchase->created); ?></td></tr>	
-			<?php if (!empty($Purchase->card) && !empty($Purchase->cardtype)): ?><tr><th><?php _e('Billed To','Shopp'); ?>:</th><td><?php (!empty($Purchase->card))?printf("%'X16d",$Purchase->card):''; ?> <?php echo (!empty($Purchase->cardtype))?'('.$Purchase->cardtype.')':''; ?></td></tr><?php endif; ?>
-			<tr><th><?php _e('Transaction','Shopp'); ?>:</th><td><?php echo $Purchase->txnid; ?></td></tr>	
-			<?php if($Purchase->secured):?><tr><th><?php _e('Secured Card','Shopp'); ?>:</th><td><span id="card"><?php _e('[ENCRYPTED]','Shopp'); ?></span></td></tr>	
-			<tr><th><?php _e('Secured CVV','Shopp'); ?>:</th><td><span id="cvv"><?php _e('[ENCRYPTED]','Shopp'); ?></span></td></tr>
-			<tr><th><?php _e('Expiration','Shopp'); ?>:</th><td><?php echo _d('m/Y', $Purchase->cardexpires); ?></td></tr>		
-			<?php endif;?>
-			<?php if ($Purchase->gateway == "Google Checkout"):?>
-				<tr><th><?php _e('Status','Shopp'); ?>:</th><td><?php echo $Purchase->txnstatus; ?></td></tr>
-			<?php endif; ?>
-			<tr><td colspan="2"><br class="clear" /></td></tr>
-			<?php if (!empty($Purchase->phone)):?>
-				<tr><th><?php _e('Phone','Shopp'); ?>:</th><td><?php echo $Purchase->phone; ?></td></tr>
-			<?php endif; ?>
-			<?php if (!empty($Purchase->email)):?>
-				<tr><th><?php _e('Email','Shopp'); ?>:</th><td><?php echo '<a href="mailto:'.$Purchase->email.'">'.$Purchase->email.'</a>'; ?></td></tr>
-			<?php endif; ?>
-			<tr><td colspan="2"><br class="clear" /></td></tr>
-			<?php if (!empty($Purchase->data) && is_array($Purchase->data)): 
-				foreach ($Purchase->data as $name => $value): ?>
-				<tr><th><?php echo $name; ?>:</th><td><?php if (strpos($value,"\n")): ?><textarea name="orderdata[<?php echo $name; ?>]" readonly="readonly" cols="30" rows="4"><?php echo $value; ?></textarea><?php else: echo $value; endif; ?></td></tr>
-			<?php endforeach; endif; ?>
-		</table>
-
-		<fieldset id="customer">
-			<legend><?php _e('Customer','Shopp'); ?></legend>
-			<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
-			<?php echo $Purchase->address; ?><br />
-			<?php if (!empty($Purchase->xaddress)) echo $Purchase->xaddress."<br />"; ?>
-			<?php echo "{$Purchase->city}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->state} {$Purchase->postcode}" ?><br />
-			<?php echo $targets[$Purchase->country]; ?></address>
-			<?php if (!empty($Customer->info) && is_array($Customer->info)): ?>
-				<ul>
-					<?php foreach ($Customer->info as $name => $value): ?>
-					<li><strong><?php echo $name; ?>:</strong> <?php echo $value; ?></li>
-					<?php endforeach; ?>
-				</ul>
-			<?php endif; ?>
-		</fieldset>
-
-		<?php if (!empty($Purchase->shipaddress)): ?>
-			<fieldset id="shipto">
-				<legend><?php _e('Ship To','Shopp'); ?></legend>
-				<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
-				<?php echo !empty($Purchase->company)?"$Purchase->company<br />":""; ?>
-				<?php echo $Purchase->shipaddress; ?><br />
-				<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
-				<?php echo "{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
-				<?php echo $targets[$Purchase->shipcountry]; ?></address>
-				<?php if (!empty($Purchase->shipmethod)): ?>
-					<p><strong><?php _e('Shipping','Shopp'); ?>:</strong> <?php echo $Purchase->shipmethod; ?></p>
-				<?php endif;?>
-			</fieldset>
-		<?php endif; ?>
-		
+		<div id="titlewrap">
+			<big><?php _e('Order','Shopp'); ?> #<?php echo $Purchase->id; ?><span class="date"><?php echo _d(get_option('date_format'), $Purchase->created); ?></span></big>
+			<input type="submit" id="print-button" value="<?php _e('Print Order','Shopp'); ?>" class="button" />
+		</div>
+		<br class="clear" />
+		<div id="poststuff" class="shopp poststuff">
 		<?php if (sizeof($Purchase->purchased) > 0): ?>
 		<table class="widefat" cellspacing="0">
 			<thead>
@@ -87,9 +35,10 @@
 						<?php if (is_array($Item->data) || !empty($Item->sku)): ?>
 						<ul>
 						<?php if (!empty($Item->sku)): ?><li><small><?php _e('SKU','Shopp'); ?>: <strong><?php echo $Item->sku; ?></strong></small></li><?php endif; ?>
-						<?php foreach ($Item->data as $key => $value): ?>
-							<li><small><?php echo $key; ?>: <strong><?php echo $value; ?></strong></small></li>
+						<?php foreach ($Item->data as $name => $value): ?>
+							<li><small><?php echo apply_filters('shopp_purchased_data_name',$name); ?>: <strong><?php echo apply_filters('shopp_purchased_data_value',$value); ?></strong></small></li>
 						<?php endforeach; endif; ?>
+						<?php do_action_ref_array('shopp_after_purchased_data',array(&$Item,&$Purchase)); ?>
 						</ul>
 					</td>
 					<td><?php echo $Item->quantity; ?></td>
@@ -108,7 +57,7 @@
 					<?php if (!empty($Purchase->promos)): ?>
 					<ul class="promos">
 					<?php foreach ($Purchase->promos as $pid => $promo): ?>
-						<li><small><a href="?page=shopp-promotions-edit&amp;id=<?php echo $pid; ?>"><?php echo $promo; ?></a></small></li>
+						<li><small><a href="?page=shopp-promotions&amp;id=<?php echo $pid; ?>"><?php echo $promo; ?></a></small></li>
 					<?php endforeach; ?>
 					</ul>
 					<?php endif; ?>
@@ -133,33 +82,27 @@
 			</tr>
 			</tbody>
 		</table>
+		
 		<?php else: ?>
 			<p class="warning"><?php _e('There were no items found for this purchase.','Shopp'); ?></p>
 		<?php endif; ?>
+		
+		<div class="meta-boxes">
+			<div id="main-column">
+				<div id="column-two" class="column right-column">
+					<?php do_meta_boxes('toplevel_page_shopp-orders', 'normal', $Purchase, $UI); ?>
+				</div>
+			</div>
+
+			<div id="column-one" class="column left-column">
+				<?php do_meta_boxes('toplevel_page_shopp-orders', 'side', $Purchase, $UI); ?>
+			</div>
+			<br class="clear" />
 		</div>
 		
-		<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post" id="order-status">
 		<?php wp_nonce_field('shopp-save-order'); ?>
-		<div id="notification">
-		<div class="tablenav"><p class="alignright"><input type="hidden" name="receipt" value="no" /><input type="checkbox" name="receipt" value="yes" id="include-order" checked="checked" /><label for="include-order">&nbsp;<?php _e('Include a copy of the order in the message','Shopp'); ?></label></p>
-		</div>
-		<br class="clear" />
-		<p><textarea name="message" id="message" cols="50" rows="10" ></textarea></p>
-		</div>
-		<div class="tablenav">
-			<p class="alignright">
-				<label for="txn_status_menu"><?php _e('Payment','Shopp'); ?>:</label>
-				<select name="transtatus" id="txn_status_menu">
-				<?php echo menuoptions($txnStatusLabels,$Purchase->transtatus,true,true); ?>
-				</select>
-				&nbsp;
-				<label for="order_status_menu"><?php _e('Order Status','Shopp'); ?>:</label>
-				<select name="status" id="order_status_menu">
-				<?php echo menuoptions($statusLabels,$Purchase->status,true); ?>
-				</select>
-				<span class="middle"><input type="hidden" name="notify" value="no" /><input type="checkbox" name="notify" value="yes" id="notify-customer" /><label for="notify-customer">&nbsp;<?php _e('Send customer notification','Shopp'); ?></label></span>
-				<button type="submit" name="update" value="status" class="button-secondary"><?php _e('Update Status','Shopp'); ?></button></p>
-		</div>
+		<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
+		<?php wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false ); ?>
 		</form>
 	</div>
 	
@@ -168,35 +111,102 @@
 <iframe id="print-receipt" name="receipt" src="<?php echo admin_url('admin-ajax.php'); ?>?action=shopp_order_receipt&amp;id=<?php echo $Purchase->id; ?>" width="400" height="100" class="invisible"></iframe>
 
 <script type="text/javascript">
-(function($){
-$('#notification').hide();
-$('#notify-customer').click(function () {
-	$('#notification').animate({ 
-		height: "toggle", 
-		opacity:"toggle" 
-	}, 500);
-});
 
-$('#print-button').click(function () {
-	var frame = $('#print-receipt').get(0);
-	if ($.browser.opera || $.browser.msie) {
-		var preview = window.open(frame.contentWindow.location.href+"&print=auto");
-		$(preview).load(function () {
-			preview.close();
+jQuery(document).ready(function() {
+	var $=jQuery.noConflict();
+
+	// close postboxes that should be closed
+	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	postboxes.add_postbox_toggles('toplevel_page_shopp-orders');
+	
+	$('#notification').hide();
+	$('#notify-customer').click(function () {
+		$('#notification').animate({ 
+			height: "toggle", 
+			opacity:"toggle" 
+		}, 500);
+	});
+
+	$('#notation').hide();
+	$('#add-note-button').click(function (e) {
+		e.preventDefault();
+		$('#add-note-button').hide();
+		$('#notation').animate({ 
+			height: "toggle", 
+			opacity:"toggle" 
+		}, 500);
+	});
+
+	$('#cancel-note-button').click(function (e) {
+		e.preventDefault();
+		$('#add-note-button').animate({opacity:"toggle"},500);
+		$('#notation').animate({ 
+			height: "toggle", 
+			opacity:"toggle" 
+		}, 500);
+	});
+
+	$('#order-notes table tr').hover(function () {
+		$(this).find('.notectrls').animate({ 
+			opacity:"toggle"
+		}, 500);
+	
+	},function () {
+		$(this).find('.notectrls').animate({ 
+			opacity:"toggle"
+		}, 100);
+
+	});
+
+	$('td .deletenote').click(function (e) {
+		if (!confirm('Are you sure you want to delete this note?'))
+			e.preventDefault();
+	});
+
+	$('td .editnote').click(function () {
+		var cell = $(this).parents('td');
+		var note = $(cell).find('div');
+		var ctrls = cell.find('span.notectrls');
+		var meta = cell.find('p.notemeta');
+		var idattr = note.attr('id').split("-");
+		var id = idattr[1];
+		$.get(ajaxurl+'?action=shopp_order_note_message&id='+id,false,function (msg) {
+			if (msg == '1') return;
+			var editor = $('<textarea name="note-editor['+id+']" cols="50" rows="10" />').val(msg).prependTo(cell);
+			var buttons = $('<p class="alignright" />').appendTo(meta);
+			var cancel = $('<button type="button" name="cancel" class="button-secondary">Cancel</button>').appendTo(buttons).click(function () {
+				buttons.remove();
+				editor.remove();
+				note.show();
+				ctrls.addClass('notectrls');
+			});
+			var save = $('<button type="submit" name="edit-note['+id+']" class="button-primary">Save Note</button>').appendTo(buttons);
+			note.hide();
+			ctrls.hide().removeClass('notectrls');
 		});
-	} else {
-		frame.contentWindow.focus();
-		frame.contentWindow.print();
-	}
+	
+	});
 
-});
+	$('#print-button').click(function () {
+		var frame = $('#print-receipt').get(0);
+		if ($.browser.opera || $.browser.msie) {
+			var preview = window.open(frame.contentWindow.location.href+"&print=auto");
+			$(preview).load(function () {
+				preview.close();
+			});
+		} else {
+			frame.contentWindow.focus();
+			frame.contentWindow.print();
+		}
 
-$('#customer').click(function () {
-	window.location = "<?php echo add_query_arg(array('page'=>$this->Admin->pagename('customers-edit'),'id'=>$Purchase->customer),admin_url('admin.php')); ?>";
-});
+	});
+
+	$('#customer').click(function () {
+		window.location = "<?php echo add_query_arg(array('page'=>$this->Admin->pagename('customers'),'id'=>$Purchase->customer),admin_url('admin.php')); ?>";
+	});
 
 <?php do_action_ref_array('shopp_order_admin_script',array(&$Purchase)); ?>
 
-})(jQuery)
+});
 
 </script>

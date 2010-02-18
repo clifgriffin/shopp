@@ -13,7 +13,7 @@
 		<input type="submit" value="<?php _e('Search Products','Shopp'); ?>" class="button" />
 	</p>
 	
-	<p><a href="<?php echo add_query_arg(array('page'=>$this->Admin->pagename('products-edit'),'id'=>'new'),admin_url('admin.php')); ?>" class="button"><?php _e('New Product','Shopp'); ?></a></p>
+	<p><a href="<?php echo add_query_arg(array('page'=>$this->Admin->pagename('products'),'id'=>'new'),admin_url('admin.php')); ?>" class="button"><?php _e('New Product','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
@@ -46,7 +46,7 @@
 		$even = false; 
 		foreach ($Products as $key => $Product):
 		$editurl = esc_url(attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
-			array('page'=>'shopp-products-edit',
+			array('page'=>'shopp-products',
 					'id'=>$Product->id)),
 					admin_url('admin.php'))));
 		

@@ -12,7 +12,7 @@
 			<div id="side-info-column" class="inner-sidebar">
 			<?php
 			do_action('submitpage_box');
-			$side_meta_boxes = do_meta_boxes('admin_page_shopp-products-edit', 'side', $Product);
+			$side_meta_boxes = do_meta_boxes('shopp_page_shopp-products', 'side', $Product);
 			?>
 			</div>
 
@@ -45,8 +45,8 @@
 				</div>
 				
 			<?php
-			do_meta_boxes('admin_page_shopp-products-edit', 'normal', $Product);
-			do_meta_boxes('admin_page_shopp-products-edit', 'advanced', $Product);
+			do_meta_boxes('shopp_page_shopp-products', 'normal', $Product);
+			do_meta_boxes('shopp_page_shopp-products', 'advanced', $Product);
 			?>
 
 			</div>
@@ -73,7 +73,7 @@ var addcategory_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.ph
 var editslug_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
 var fileverify_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_verify_file"); ?>';
 var manager_page = '<?php echo $this->Admin->pagename('products'); ?>';
-var editor_page = '<?php echo $this->Admin->pagename('products-edit'); ?>';
+var editor_page = '<?php echo $this->Admin->pagename('products'); ?>';
 var request = <?php echo json_encode(stripslashes_deep($_GET)); ?>;
 var workflow = {'continue':editor_page, 'close':manager_page, 'new':editor_page, 'next':editor_page, 'previous':editor_page};
 var worklist = <?php echo json_encode($this->products(true)); ?>;

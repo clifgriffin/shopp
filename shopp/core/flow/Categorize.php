@@ -28,10 +28,23 @@ class Categorize extends AdminController {
 	 **/
 	function __construct () {
 		parent::__construct();
-		add_action('admin_print_scripts',array(&$this,'columns'));
-		add_action('admin_head',array(&$this,'layout'));
-		add_action('load-shopp_page_shopp-categories',array(&$this,'workflow'));
-		add_action('load-admin_page_shopp-categories-edit',array(&$this,'workflow'));
+
+		if (!empty($_GET['id'])) {
+			wp_enqueue_script('postbox');
+			if ( user_can_richedit() ) wp_enqueue_script('editor');
+			wp_enqueue_script("shopp-thickbox",SHOPP_ADMIN_URI."/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script('shopp.editor.lib',SHOPP_ADMIN_URI."/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script('shopp.editor.priceline',SHOPP_ADMIN_URI."/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
+			wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery','jquery-ui-core'),SHOPP_VERSION,true);			
+			wp_enqueue_script('shopp.swfupload',SHOPP_ADMIN_URI."/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION,true);
+			wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_URI."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION,true);
+
+			add_action('admin_head',array(&$this,'layout'));
+			add_action('load-shopp_page_shopp-categories',array(&$this,'workflow'));
+			add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
+			
+		} add_action('admin_print_scripts',array(&$this,'columns'));
 	}
 	
 	/**
@@ -42,7 +55,7 @@ class Categorize extends AdminController {
 	 * @return void
 	 **/
 	function admin () {
-		if ($_GET['page'] == 'shopp-categories-edit') $this->editor();
+		if (!empty($_GET['id'])) $this->editor();
 		else $this->categories();
 	}
 
@@ -69,8 +82,7 @@ class Categorize extends AdminController {
 		extract($args,EXTR_SKIP);
 
 		if (!defined('WP_ADMIN') || !isset($page)
-			|| ($page != $this->Admin->pagename('categories')
-			&& $page != $this->Admin->pagename('categories-edit')))
+			|| $page != $this->Admin->pagename('categories'))
 				return false;
 
 		$adminurl = admin_url('admin.php');		
