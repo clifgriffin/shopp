@@ -13,7 +13,7 @@
 
 			<?php
 			do_action('submitpage_box');
-			$side_meta_boxes = do_meta_boxes('admin_page_shopp-categories-edit', 'side', $Category);
+			$side_meta_boxes = do_meta_boxes('shopp_page_shopp-products', 'side', $Category);
 			?>
 			</div>
 
@@ -39,8 +39,8 @@
 				</div>
 				
 			<?php
-			do_meta_boxes('admin_page_shopp-categories-edit', 'normal', $Category);
-			do_meta_boxes('admin_page_shopp-categories-edit', 'advanced', $Category);
+			do_meta_boxes('shopp_page_shopp-products', 'normal', $Category);
+			do_meta_boxes('shopp_page_shopp-products', 'advanced', $Category);
 			?>
 
 			</div>
@@ -77,6 +77,8 @@ var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
 var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
 <?php chdir(WP_CONTENT_DIR); // realpath needs for relative paths ?>
 var productspath = '<?php echo trailingslashit(sanitize_path(realpath($this->Settings->get('products_path')))); ?>';
+var imageupload_debug = <?php echo (defined('SHOPP_IMAGEUPLOAD_DEBUG') && SHOPP_IMAGEUPLOAD_DEBUG)?'true':'false'; ?>;
+var fileupload_debug = <?php echo (defined('SHOPP_FILEUPLOAD_DEBUG') && SHOPP_FILEUPLOAD_DEBUG)?'true':'false'; ?>;
 
 // Warning/Error Dialogs
 var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this category image?','Shopp'); ?>";
@@ -139,7 +141,7 @@ var pricesPayload = false;
 jQuery(document).ready(function () {	
 	var $=jQuery.noConflict();
 	var editslug = new SlugEditor(category,'category');
-	var imageUploads = new ImageUploads({"category" : $('#image-category-id').val()});
+	var imageUploads = new ImageUploads({"category" : $('#image-category-id').val()},'category');
 	
 	updateWorkflow();
 	$('#category').submit(function () {
@@ -197,9 +199,9 @@ jQuery(document).ready(function () {
 		$(menu.label).change(function (){ this.value = asMoney(this.value); }).change();
 	}
 	
-	postboxes.add_postbox_toggles('admin_page_shopp-categories-edit');
+	postboxes.add_postbox_toggles('shopp_page_shopp-categories');
 	// close postboxes that should be closed
-	jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 		
 	function addDetail (data) {
 		var menus = $('#details-menu');

@@ -11,7 +11,7 @@
 		<input type="text" id="categories-search-input" class="search-input" name="s" value="<?php echo attribute_escape(stripslashes($s)); ?>" />
 		<input type="submit" value="<?php _e('Search Categories','Shopp'); ?>" class="button" />
 	</p>
-	<p><a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories-edit'),'id'=>'new')),admin_url('admin.php'))); ?>" class="button"><?php _e('New Category','Shopp'); ?></a></p>
+	<p><a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'id'=>'new')),admin_url('admin.php'))); ?>" class="button"><?php _e('New Category','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
@@ -37,7 +37,7 @@
 		foreach ($Categories as $Category): 
 		
 		$editurl = esc_url(attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
-			array('page'=>$this->Admin->pagename('categories-edit'),
+			array('page'=>$this->Admin->pagename('categories'),
 					'id'=>$Category->id)),
 					admin_url('admin.php'))));
 		

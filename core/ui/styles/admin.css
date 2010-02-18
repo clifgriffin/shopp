@@ -191,7 +191,8 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 #poststuff #save-product .inside,
 #poststuff #save-category .inside,
 #poststuff #save-customer .inside,
-#poststuff #save-promotion .inside { margin: 0; }
+#poststuff #save-promotion .inside,
+#poststuff #order-status .inside { margin: 0; }
 .shopp #major-publishing-actions { text-align: right;}
 .postbox #category-menu,.postbox #summary { width: 100%;}
 .postbox #new-category select { width: 80%; }
@@ -227,6 +228,7 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #order address { font-style: normal; }
 #order fieldset { float: left; width: auto; width: 23%; padding: 10px; border: 1px solid #dadada; margin-bottom: 30px; }
 #order table.transaction { float: right; margin-bottom: 10px; }
+#order table td { padding: 7px 7px 8px;}
 #order table.transaction th { text-align: right; padding-right: 7px; vertical-align: top; }
 #order table.transaction a { text-decoration: none; }
 #order #customer { margin-right: 10px; }
@@ -245,17 +247,54 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #order .cart tr.totals th,.cart tr.totals td { padding: 7px 7px 5px; }
 #order .totals th { text-align: right; }
 
-#order #message { width: 99%; margin: 0 auto; }
+#order #message, #order #note { width: 100%; }
 #order ul.promos { list-style: square; padding-left: 25px; }
 #order ul.promos li { text-indent: -5px; }
 
+#order .meta-boxes { position: relative; clear: both; margin-top: 20px; }
+
+#order .column { float: left; position: relative; }
+#order .left-column { clear: left; }
+#order .right-column { float: right; clear: right; width: 100%; margin-left: -340px; }
+#order #main-column { margin-left: 280px; }
+
+#order .meta-boxes .inside { line-height: 1.3em; }
+#order .meta-boxes .inside big { line-height: 1.5em; }
+#order .meta-boxes .inside address,
+#order .meta-boxes .inside ul { margin: 6px 6px 8px; }
+#order .meta-boxes .inside ul { list-style: square; padding-left: 20px; }
+#order .meta-boxes .inside ul li { font-size: 11px; }
+
+#order #order-notes table { border-collapse: collapse; width: 100%; padding: 6px 6px 8px; }
+#order #order-notes th { width: 120px; text-align: left; padding: 6px 6px 8px; }
+#order #order-notes td { padding: 0; }
+#order #order-notes th,
+#order #order-notes td { font-size: 11px; margin: 0; border-bottom: 1px solid #ddd; vertical-align: top; }
+#order #order-notes p { line-height: 1.3em; }
+#order #order-notes th span,
+#order #order-notes td span { margin: 0; color: #999; }
+#order #order-notes .notemeta { position: relative; height: 24px;  }
+#order #order-notes textarea { width: 100%; }
+#order #order-notes .notectrls { position: relative; display: none; padding: 6px 0; }
+
+#order .meta-boxes .inside p.name { background-image: url('../icons/user.png'); }
+#order .meta-boxes .inside p.company { background-image: url('../icons/building.png'); }
+#order .meta-boxes .inside p.email { background-image: url('../icons/email.png'); }
+#order .meta-boxes .inside p.phone { background-image: url('../icons/phone.png'); }
+#order .meta-boxes .inside p.marketing { background-image: url('../icons/add.png'); }
+#order .meta-boxes .inside p.nomarketing { background-image: url('../icons/delete.png'); }
+#order .meta-boxes .inside p.customer { background-repeat: no-repeat; background-position: 0px 5px; padding-left: 24px; line-height: 18px; }
+
+#order span.date { color: #777; border-left: 1px solid #aaa; margin-left: 10px; padding-left: 10px; }
 #taxrates-table th, 
 #taxrates-table td{ position: relative; text-align: left; border: none; padding: 0 5px 5px 0; }
 #taxrates-table button.deleteButton { position: relative; width: 20px; height: 21px; margin-left: -20px; line-height: 1em; top: -1px; }
 
-#order-status p { margin: 0; padding: 0; }
-#order-status span { margin: 0 10px; }
-#order-status label { display: inline-block; padding-top: 3px; font-weight: bold; }
+#order #order-status p { margin: 0; padding: 0; }
+#order #order-status .inside-wrap,
+#order #order-status .inside-wrap p { padding: 6px 6px 8px; }
+#order #order-status .inside span { float: none; display: inline-block; }
+#order #order-status label { display: inline-block; padding-top: 1px; font-weight: bold; }
 
 #order-statuslabels li { position: relative; }
 #order-statuslabels li input { width: 120px; padding-right: 20px; margin-right: 5px;}

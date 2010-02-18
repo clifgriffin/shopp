@@ -28,7 +28,13 @@ class Service extends AdminController {
 	 **/
 	function __construct () {
 		parent::__construct();
-		add_action('admin_print_scripts',array(&$this,'columns'));
+
+		if (isset($_GET['id'])) {
+			wp_enqueue_script('postbox');
+			add_action('load-toplevel_page_shopp-orders',array(&$this,'workflow'));
+			add_action('load-toplevel_page_shopp-orders',array(&$this,'layout'));
+			
+		} else add_action('admin_print_scripts',array(&$this,'columns'));
 	}
 	
 	/**
@@ -38,9 +44,16 @@ class Service extends AdminController {
 	 * @author Jonathan Davis
 	 **/
 	function admin () {
-		global $Shopp;
 		if (!empty($_GET['id'])) $this->manager();
 		else $this->orders();
+	}
+	
+	function workflow () {
+		global $Shopp;
+		if (preg_match("/\d+/",$_GET['id'])) {
+			$Shopp->Purchase = new Purchase($_GET['id']);
+			$Shopp->Purchase->load_purchased();
+		} else $Shopp->Purchase = new Purchase();
 	}
 
 	/**
@@ -228,25 +241,61 @@ class Service extends AdminController {
 	}
 	
 	/**
+	 * Provides overall layout for the order manager interface
+	 *
+	 * Makes use of WordPress postboxes to generate panels (box) content
+	 * containers that are customizable with drag & drop, collapsable, and
+	 * can be toggled to be hidden or visible in the interface.
+	 *
+	 * @author Jonathan Davis
+	 * @return
+	 **/
+	function layout () {
+		global $Shopp;
+		include(SHOPP_ADMIN_PATH."/orders/ui.php");
+	}
+	
+	/**
 	 * Interface processor for the order manager
 	 *
 	 * @author Jonathan Davis
 	 * @return void
 	 **/
 	function manager () {
-		global $Shopp;
+		global $Shopp,$UI,$Notes;
 		global $is_IIS;
 
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_orders')) )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
-		if (preg_match("/\d+/",$_GET['id'])) {
-			$Shopp->Cart->data->Purchase = new Purchase($_GET['id']);
-			$Shopp->Cart->data->Purchase->load_purchased();
-		} else $Shopp->Cart->data->Purchase = new Purchase();
-		
-		$Purchase = $Shopp->Cart->data->Purchase;
+		$Purchase = $Shopp->Purchase;
 		$Customer = new Customer($Purchase->customer);
+
+		// Handle Order note processing
+		if (!empty($_POST['note'])) {
+			$user = wp_get_current_user();
+			$Note = new MetaObject();
+			$Note->parent = $Purchase->id;
+			$Note->context = 'purchase';
+			$Note->type = 'order_note';
+			$Note->name = 'note';
+			$Note->value = new stdClass();
+			$Note->value->author = $user->ID;
+			$Note->value->message = $_POST['note'];
+			$Note->save();
+		}
+		if (!empty($_POST['delete-note'])) {
+			$noteid = key($_POST['delete-note']);
+			$Note = new MetaObject($noteid);
+			$Note->delete();
+		}
+		if (!empty($_POST['edit-note'])) {
+			$noteid = key($_POST['note-editor']);
+			$Note = new MetaObject($noteid);
+			$Note->value->message = $_POST['note-editor'][$noteid];
+			$Note->save();
+		}
+		$Notes = new ObjectMeta($Purchase->id,'purchase','order_note');
 		
 		if (!empty($_POST['update'])) {
 			check_admin_referer('shopp-save-order');
@@ -255,6 +304,7 @@ class Service extends AdminController {
 				do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['transtatus'],&$Purchase));
 			
 			$Purchase->updates($_POST);
+			
 			$mailstatus = false;
 			if ($_POST['notify'] == "yes") {
 				$labels = $this->Settings->get('order_status');
@@ -282,17 +332,17 @@ class Service extends AdminController {
 			$Purchase->save();
 			if ($mailsent) $updated = __('Order status updated & notification email sent.','Shopp');
 			else $updated = __('Order status updated.','Shopp');
-		}
-
+		}	
+		
 		$targets = $this->Settings->get('target_markets');
-		$txnStatusLabels = array(
+		$UI->txnStatusLabels = array(
 			'PENDING' => __('Pending','Shopp'),
 			'CHARGED' => __('Charged','Shopp'),
 			'REFUNDED' => __('Refunded','Shopp'),
 			'VOID' => __('Void','Shopp')
 			);
 		
-		$statusLabels = $this->Settings->get('order_status');
+		$UI->statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
 		
 		

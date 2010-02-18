@@ -501,7 +501,7 @@ function unsavedChanges () {
 function ImageUploads (id,type) {
 	(function($) {
 	var swfu;
-	
+
 	var settings = {
 		button_text: '<span class="button">'+ADD_IMAGE_BUTTON_TEXT+'</span>',
 		button_text_style: '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 9px; color: #333333; }',

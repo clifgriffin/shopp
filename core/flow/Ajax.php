@@ -56,6 +56,8 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_update',array(&$this,'update'));
 		add_action('wp_ajax_shopp_setup_ftp',array(&$this,'setup_ftp'));
 		add_action('wp_ajax_shopp_ssl_available',array(&$this,'ssl_available'));
+		add_action('wp_ajax_shopp_order_note_message',array(&$this,'order_note_message'));
+		
 	}
 
 	function receipt () {
@@ -271,6 +273,14 @@ class AjaxFlow {
 		global $Shopp;
 		if ($Shopp->secure) die('1');
 		die('0');
+	}
+	
+	function order_note_message () {
+		// check_admin_referer('shopp-ajax_edit_order_note');
+		if (!isset($_GET['id'])) die('1');
+		
+		$Note = new MetaObject($_GET['id']);
+		die($Note->value->message);
 	}
 
 } // END class AjaxFlow

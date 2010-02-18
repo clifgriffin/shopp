@@ -25,36 +25,37 @@ class AdminFlow extends FlowController {
 	var $Page = false;
 	var $Menu = false;
 
-/*
-	* Capabilities						Role
-	* ==========================================
-	* shopp_settings					admin
-	* shopp_settings_checkout
-	* shopp_settings_payments
-	* shopp_settings_shipping
-	* shopp_settings_taxes
-	* shopp_settings_presentation
-	* shopp_settings_system
-	* shopp_settings_update
-	* shopp_financials					merchant
-	* shopp_promotions
-	* shopp_products
-	* shopp_categories
-	* shopp_orders						shopp-csr
-	* shopp_customers
-	* shopp_menu
-*/
+	/**
+	 * Initialize the capabilities, mapping to pages
+	 *
+	 * Capabilities						Role
+	 * _______________________________________________
+	 * 
+	 * shopp_settings					administrator
+	 * shopp_settings_checkout
+	 * shopp_settings_payments
+	 * shopp_settings_shipping
+	 * shopp_settings_taxes
+	 * shopp_settings_presentation
+	 * shopp_settings_system
+	 * shopp_settings_update
+	 * shopp_financials					shopp-merchant
+	 * shopp_promotions
+	 * shopp_products
+	 * shopp_categories
+	 * shopp_orders						shopp-csr
+	 * shopp_customers
+	 * shopp_menu
+	 * 
+	 * @var $caps
+	 **/
 	var $caps = array(
 		'main'=>'shopp_menu',
 		'orders'=>'shopp_orders',
 		'customers'=>'shopp_customers',
-		'customers-edit'=>'shopp_customers',
 		'products'=>'shopp_products',
-		'products-edit'=>'shopp_products',
 		'categories'=>'shopp_categories',
-		'categories-edit'=>'shopp_categories',
 		'promotions'=>'shopp_promotions',
-		'promotions-edit'=>'shopp_promotions',
 		'settings'=>'shopp_settings',
 		'settings-checkout'=>'shopp_settings_checkout',
 		'settings-payments'=>'shopp_settings_payments',
@@ -86,13 +87,9 @@ class AdminFlow extends FlowController {
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
 		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
-		$this->addpage('customers-edit',__('Edit Customer','Shopp'),'Account','Managing Customers',"customers");
 		$this->addpage('products',__('Products','Shopp'),'Store','Editing a Product');
-		$this->addpage('products-edit',__('Product Editor','Shopp'),'Store','Editing a Product',"products");
 		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category');
-		$this->addpage('categories-edit',__('Edit Category','Shopp'),'Categorize','Editing a Category',"categories");
 		$this->addpage('promotions',__('Promotions','Shopp'),'Promote','Running Sales & Promotions');
-		$this->addpage('promotions-edit',__('Edit Promotion','Shopp'),'Promote','Running Sales & Promotions',"promotions");
 		$this->addpage('settings',__('Settings','Shopp'),'Setup','General Settings');
 		$this->addpage('settings-checkout',__('Checkout','Shopp'),'Setup','Checkout Settings',"settings");
 		$this->addpage('settings-payments',__('Payments','Shopp'),'Setup','Payments Settings',"settings");
@@ -250,27 +247,9 @@ class AdminFlow extends FlowController {
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp',SHOPP_ADMIN_URI."/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		wp_enqueue_script('shopp-settings',add_query_arg('src','settings.js',get_bloginfo('url')),array(),SHOPP_VERSION);
-		
-		
-		// Load only for the editors to keep other admin screens snappy
-		$editors = array_filter(array_keys($this->Pages),array(&$this,'get_editor_pages'));
-		if (array_search($_GET['page'],$editors)) {
-			add_action( 'admin_head', 'wp_tiny_mce' );
-			wp_enqueue_script('postbox');
-			if ( user_can_richedit() ) wp_enqueue_script('editor');
-			wp_enqueue_script("shopp-thickbox",SHOPP_ADMIN_URI."/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
-			wp_enqueue_script('shopp.editor.lib',SHOPP_ADMIN_URI."/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
 
-			if ($this->pagename('products-edit') == $this->Page->page)
-				wp_enqueue_script('shopp.product.editor',SHOPP_ADMIN_URI."/products/editor.js",array('jquery'),SHOPP_VERSION,true);
-
-			wp_enqueue_script('shopp.editor.priceline',SHOPP_ADMIN_URI."/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
-			wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery','jquery-ui-core'),SHOPP_VERSION,true);
-			
-			wp_enqueue_script('shopp.swfupload',SHOPP_ADMIN_URI."/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION);
-			wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_URI."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
-		}
+		// For TinyMCE editors (product editor & category editor)
+		if (!empty($_GET['id'])) add_action( 'admin_footer', 'wp_tiny_mce', 25 );
 		
 		$settings = array_filter(array_keys($this->Pages),array(&$this,'get_settings_pages'));
 		if (in_array($this->Page->page,$settings))
@@ -334,7 +313,7 @@ class AdminFlow extends FlowController {
 	 * @return array Modified actions list
 	 **/
 	function favorites ($actions) {
-		$key = add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>'new'),admin_url('admin.php'));
+		$key = add_query_arg(array('page'=>$this->pagename('products'),'id'=>'new'),admin_url('admin.php'));
 	    $actions[$key] = array(__('New Product','Shopp'),8);
 		return $actions;
 	}
@@ -415,7 +394,7 @@ class AdminFlow extends FlowController {
 		 						SUM(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),1,0)) AS wkorders,
 								SUM(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,0)) AS wksales,
 								AVG(IF(UNIX_TIMESTAMP(created) > UNIX_TIMESTAMP()-(86400*30),total,null)) AS wkavg
-		 						FROM $purchasetable");
+		 						FROM $purchasetable WHERE txnstatus='CHARGED'");
 
 		$orderscreen = add_query_arg('page',$this->pagename('orders'),admin_url('admin.php'));
 		echo '<div class="table"><table><tbody>';
@@ -531,7 +510,7 @@ class AdminFlow extends FlowController {
 		echo '<ul>';
 		if (empty($RecentBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';
 		foreach ($RecentBestsellers->products as $product) 
-			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>$product->id),admin_url('admin.php')).'">'.$product->name.'</a> ('.$product->sold.')</li>';
+			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products'),'id'=>$product->id),admin_url('admin.php')).'">'.$product->name.'</a> ('.$product->sold.')</li>';
 		echo '</ul></td>';
 		
 		
@@ -541,7 +520,7 @@ class AdminFlow extends FlowController {
 		echo '<ul>';
 		if (empty($LifetimeBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';
 		foreach ($LifetimeBestsellers->products as $product) 
-			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products-edit'),'id'=>$product->id),admin_url('admin.php')).'">'.$product->name.'</a>'.(isset($product->sold)?' ('.$product->sold.')':' (0)').'</li>';
+			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products'),'id'=>$product->id),admin_url('admin.php')).'">'.$product->name.'</a>'.(isset($product->sold)?' ('.$product->sold.')':' (0)').'</li>';
 		echo '</ul></td>';
 		echo '</tr></tbody></table>';
 		echo $after_widget;

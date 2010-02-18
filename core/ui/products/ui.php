@@ -21,7 +21,7 @@ function save_meta_box ($Product) {
 	</div>
 <?php
 }
-add_meta_box('save-product', __('Save','Shopp'), 'save_meta_box', 'admin_page_shopp-products-edit', 'side', 'core');
+add_meta_box('save-product', __('Save','Shopp'), 'save_meta_box', 'shopp_page_shopp-products', 'side', 'core');
 
 function categories_meta_box ($Product) {
 	$db =& DB::get();
@@ -66,7 +66,7 @@ function categories_meta_box ($Product) {
 
 <?php
 }
-add_meta_box('categories-box', __('Categories','Shopp'), 'categories_meta_box', 'admin_page_shopp-products-edit', 'side', 'core');
+add_meta_box('categories-box', __('Categories','Shopp'), 'categories_meta_box', 'shopp_page_shopp-products', 'side', 'core');
 
 function tags_meta_box ($Product) {
 	$taglist = array();
@@ -81,7 +81,7 @@ function tags_meta_box ($Product) {
 </div>
 <?php
 }
-add_meta_box('product-tags', __('Tags','Shopp'), 'tags_meta_box', 'admin_page_shopp-products-edit', 'side', 'core');
+add_meta_box('product-tags', __('Tags','Shopp'), 'tags_meta_box', 'shopp_page_shopp-products', 'side', 'core');
 
 function settings_meta_box ($Product) {
 	$taglist = array();
@@ -92,7 +92,7 @@ function settings_meta_box ($Product) {
 	<p><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if ($Product->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations &mdash; Selectable product options','Shopp'); ?></label></p>
 <?php
 }
-add_meta_box('product-settings', __('Settings','Shopp'), 'settings_meta_box', 'admin_page_shopp-products-edit', 'side', 'core');
+add_meta_box('product-settings', __('Settings','Shopp'), 'settings_meta_box', 'shopp_page_shopp-products', 'side', 'core');
 
 
 function summary_meta_box ($Product) {
@@ -101,7 +101,7 @@ function summary_meta_box ($Product) {
     <label for="summary"><?php _e('A brief description of the product to draw the customer\'s attention.','Shopp'); ?></label>
 <?php
 }
-add_meta_box('product-summary', __('Summary','Shopp'), 'summary_meta_box', 'admin_page_shopp-products-edit', 'normal', 'core');
+add_meta_box('product-summary', __('Summary','Shopp'), 'summary_meta_box', 'shopp_page_shopp-products', 'normal', 'core');
 
 function details_meta_box ($Product) {
 ?>
@@ -122,7 +122,7 @@ function details_meta_box ($Product) {
 	<p></p>
 <?php
 }
-add_meta_box('product-details-box', __('Details &amp; Specs','Shopp'), 'details_meta_box', 'admin_page_shopp-products-edit', 'normal', 'core');
+add_meta_box('product-details-box', __('Details &amp; Specs','Shopp'), 'details_meta_box', 'shopp_page_shopp-products', 'normal', 'core');
 
 function images_meta_box ($Product) {
 	$db =& DB::get();
@@ -160,7 +160,7 @@ function images_meta_box ($Product) {
 	<?php _e('Double-click images to edit their details. Save the product to confirm deleted images.','Shopp'); ?></p>
 <?php
 }
-add_meta_box('product-images', __('Product Images','Shopp'), 'images_meta_box', 'admin_page_shopp-products-edit', 'normal', 'core');
+add_meta_box('product-images', __('Product Images','Shopp'), 'images_meta_box', 'shopp_page_shopp-products', 'normal', 'core');
 
 function pricing_meta_box ($Product) {
 ?>
@@ -200,11 +200,11 @@ function pricing_meta_box ($Product) {
 
 <?php
 }
-add_meta_box('product-pricing-box', __('Pricing','Shopp'), 'pricing_meta_box', 'admin_page_shopp-products-edit', 'advanced', 'core');
+add_meta_box('product-pricing-box', __('Pricing','Shopp'), 'pricing_meta_box', 'shopp_page_shopp-products', 'advanced', 'core');
 
 
-do_action('do_meta_boxes', 'admin_page_shopp-products-edit', 'normal', $Shopp->Product);
-do_action('do_meta_boxes', 'admin_page_shopp-products-edit', 'advanced', $Shopp->Product);
-do_action('do_meta_boxes', 'admin_page_shopp-products-edit', 'side', $Shopp->Product);
+do_action('do_meta_boxes', 'shopp_page_shopp-products', 'normal', $Shopp->Product);
+do_action('do_meta_boxes', 'shopp_page_shopp-products', 'advanced', $Shopp->Product);
+do_action('do_meta_boxes', 'shopp_page_shopp-products', 'side', $Shopp->Product);
 
 ?>

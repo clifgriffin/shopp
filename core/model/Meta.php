@@ -15,10 +15,11 @@
 class ObjectMeta {
 	static $table = "meta";
 
+	var $loaded = false;
 	var $meta = array();
 	var $named = array();
 	
-	function __construct ($parent=false,$context='product',$type=false) {
+	function __construct ($parent=false,$context='product',$type=false,$sort='sortorder') {
 		$this->_table = DatabaseObject::tablename(self::$table);
 		
 		$params = array(
@@ -39,21 +40,24 @@ class ObjectMeta {
 		$where = "";
 		foreach ($args[0] as $key => $id) 
 			$where .= ($where == ""?"":" AND ")."$key='".$db->escape($id)."'";
-		
+
 		$r = $db->query("SELECT * FROM $this->_table WHERE $where",AS_ARRAY);
 		foreach ($r as $row) {
 			$meta = new MetaObject();
-			$meta->copydata($row,'',array());
-			$this->meta[$meta->id] = &$meta;
+			$meta->populate($row,'',array());
 			
-			if (isset($this->named[$meta->name])) {
-				$this->named[$meta->name] = array($this->named[$meta->name]);
-				$this->named[$meta->name][] = &$meta;
-			} else 	$this->named[$meta->name] = &$meta;
+			$this->meta[$meta->id] = $meta;
+			
+			// if (isset($this->named[$meta->name])) {
+			// 	$this->named[$meta->name] = array($this->named[$meta->name]);
+			// 	$this->named[$meta->name][] = &$meta;
+			// } else $this->named[$meta->name] = &$meta;
 		}
 		
-		if (count($row) == 0) return false;
-		return true;
+		if (count($row) == 0) $this->loaded = false;
+		$this->loaded = true;
+
+		return $this->loaded;
 	}
 	
 }

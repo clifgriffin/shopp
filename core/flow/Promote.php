@@ -28,8 +28,10 @@ class Promote extends AdminController {
 	 **/
 	function __construct () {
 		parent::__construct();
-		add_action('admin_print_scripts',array(&$this,'columns'));
-		add_action('admin_head',array(&$this,'editor_ui'));
+		if (!empty($_GET['id'])) {
+			wp_enqueue_script('postbox');
+			add_action('admin_head',array(&$this,'layout'));
+		} else add_action('admin_print_scripts',array(&$this,'columns'));
 	}
 	
 	/**
@@ -40,7 +42,7 @@ class Promote extends AdminController {
 	 **/
 	function admin () {
 		global $Shopp;
-		if ($_GET['page'] == 'shopp-promotions-edit') $this->editor();
+		if (!empty($_GET['id'])) $this->editor();
 		else $this->promotions();
 	}
 
@@ -164,7 +166,7 @@ class Promote extends AdminController {
 	 * @author Jonathan Davis
 	 * @return void
 	 **/
-	function editor_ui () {
+	function layout () {
 		include(SHOPP_PATH."/core/ui/promotions/ui.php");
 	}
 	
