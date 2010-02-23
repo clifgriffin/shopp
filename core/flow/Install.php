@@ -392,7 +392,6 @@ class ShoppInstallation extends FlowController {
 		}
 	}
 
-
 	/**
 	 * setup()
 	 * Initialize default install settings and lists */
@@ -403,6 +402,7 @@ class ShoppInstallation extends FlowController {
 		
 		// General Settings
 		$this->Settings->save('version',SHOPP_VERSION);
+		$this->Settings->save('dbschema_version',DB::$schema);
 		$this->Settings->save('shipping','on');	
 		$this->Settings->save('order_status',array('Pending','Completed'));	
 		$this->Settings->save('shopp_setup','completed');
@@ -430,8 +430,6 @@ class ShoppInstallation extends FlowController {
 		$this->Settings->save('gallery_thumbnail_quality','3');
 		
 		// System Settinggs
-		$this->Settings->save('image_storage_pref','db');
-		$this->Settings->save('product_storage_pref','db');
 		$this->Settings->save('uploader_pref','flash');
 		$this->Settings->save('script_loading','global');
 
@@ -510,8 +508,7 @@ class ShoppInstallation extends FlowController {
 			$db->query("UPDATE $meta_table set name='$name',value='$value' WHERE id=$r->id");
 		}
 		
-		
-		$this->Settings->save('db_version',$db->version);
+		$this->Settings->save('dbschema_version',DB::$schema);
 	}
 
 } // end ShoppInstallation class

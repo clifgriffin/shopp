@@ -27,6 +27,8 @@ if (ini_get('zend.ze1_compatibility_mode'))
  **/
 class DB {
 	private static $instance;
+	static $schema = '1.1 dev';
+
 	// Define datatypes for MySQL
 	var $_datatypes = array("int" => array("int", "bit", "bool", "boolean"),
 							"float" => array("float", "double", "decimal", "real"),
@@ -37,7 +39,6 @@ class DB {
 	var $results = array();
 	var $queries = array();
 	var $dbh = false;
-	var $version = '1.1 dev';
 
 	/**
 	 * Initializes the DB object

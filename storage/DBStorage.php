@@ -31,7 +31,7 @@ class DBStorage extends StorageModule implements StorageEngine {
 		$this->_table = DatabaseObject::tablename($this->_table);
 	}
 	
-	function save ($data,$asset=false) {
+	function save ($data,$asset) {
 		$db = &DB::get();
 		
 		if (empty($data)) return false;
