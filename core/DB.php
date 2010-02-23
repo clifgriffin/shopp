@@ -674,8 +674,7 @@ abstract class SessionObject {
 	 * Initializing routine for the session management. */
 	function open ($path,$name) {
 		$this->path = $path;
-		if (empty($this->path)) $this->path = dirname(realpath(tempnam(defined('SHOPP_TEMP_PATH')?SHOPP_TEMP_PATH:'','tmp_')));
-		$this->path = sanitize_path($this->path);
+		if (empty($this->path)) $this->path = sanitize_path(defined('SHOPP_TEMP_PATH')?realpath(SHOPP_TEMP_PATH):sys_get_temp_dir());
 		$this->trash();	// Clear out any residual session information before loading new data
 		if (empty($this->session)) $this->session = session_id();	// Grab our session id
 		$this->ip = $_SERVER['REMOTE_ADDR'];						// Save the IP address making the request
