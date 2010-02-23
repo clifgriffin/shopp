@@ -42,7 +42,6 @@ class Categorize extends AdminController {
 
 			add_action('admin_head',array(&$this,'layout'));
 			add_action('load-shopp_page_shopp-categories',array(&$this,'workflow'));
-			add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
 			
 		} add_action('admin_print_scripts',array(&$this,'columns'));
 	}
@@ -106,7 +105,7 @@ class Categorize extends AdminController {
 		else $Shopp->Category = new Category();
 				
 		if ($save) {
-			$this->save_category($Shopp->Category);
+			$this->save($Shopp->Category);
 			$this->Notice = '<strong>'.stripslashes($Shopp->Category->name).'</strong> '.__('has been saved.','Shopp');
 
 			if ($next) {
@@ -226,7 +225,7 @@ class Categorize extends AdminController {
 	 * @return void
 	 **/
 	function editor () {
-		global $Shopp;
+		global $Shopp,$CategoryImages;
 		$db = DB::get();
 		
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
@@ -234,6 +233,8 @@ class Categorize extends AdminController {
 
 		if (empty($Shopp->Category)) $Category = new Category();
 		else $Category = $Shopp->Category;
+
+		$Category->load_images();
 
 		$Price = new Price();
 		$priceTypes = array(
@@ -256,11 +257,6 @@ class Categorize extends AdminController {
 			"custom" => __('Use custom price ranges','Shopp'),
 		);
 		
-		$Images = array();
-		if (!empty($Category->id)) {
-			$asset_table = DatabaseObject::tablename(Asset::$table);
-			$Images = $db->query("SELECT id,src,properties FROM $asset_table WHERE context='category' AND parent=$Category->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
-		}
 		
 		$categories_menu = $this->menu($Category->parent,$Category->id);
 		$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
@@ -288,13 +284,14 @@ class Categorize extends AdminController {
 	 **/
 	function save ($Category) {
 		global $Shopp;
+		$Settings = &ShoppSettings();
 		$db = DB::get();
 		check_admin_referer('shopp-save-category');
 		
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 		
-		$this->settings_save(); // Save workflow setting
+		$Settings->saveform(); // Save workflow setting
 		
 		$Shopp->Catalog = new Catalog();
 		$Shopp->Catalog->load_categories(array('where'=>'true'));
@@ -334,11 +331,9 @@ class Categorize extends AdminController {
 			$Category->save_imageorder($_POST['images']);
 			if (!empty($_POST['imagedetails']) && is_array($_POST['imagedetails'])) {
 				foreach($_POST['imagedetails'] as $i => $data) {
-					$Image = new Asset();
-					unset($Image->_datatypes['data'],$Image->data);
-					$Image->load($data['id']);
-					$Image->properties['title'] = $data['title'];
-					$Image->properties['alt'] = $data['alt'];
+					$Image = new CategoryImage($data['id']);
+					$Image->title = $data['title'];
+					$Image->alt = $data['alt'];
 					$Image->save();
 				}
 			}

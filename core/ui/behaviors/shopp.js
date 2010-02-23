@@ -458,7 +458,6 @@ function buttonHandlers () {
 function validateForms () {
 	(function($) {
 		$('form.validate').submit(function () {
-			console.log('validate form');
 			if (validate(this)) return true;
 			else return false;
 		});

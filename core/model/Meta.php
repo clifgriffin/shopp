@@ -82,11 +82,11 @@ class MetaObject extends DatabaseObject {
 	 * 
 	 * @return void
 	 **/
-	function __construct ($id=false) {
+	function __construct ($id=false,$key='id') {
 		$this->init(self::$table);
-		$this->load($id);
+		$this->load($id,$key);
 	}
-
+	
 } // END class Meta
 
 ?>

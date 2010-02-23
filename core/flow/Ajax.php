@@ -87,7 +87,7 @@ class AjaxFlow {
 	function category_products () {
 		if (!isset($_GET['category'])) return;
 		$category = $_GET['category'];
-		require_once(SHOPP_FLOW_PATH."/Store.php");
+		require_once(SHOPP_FLOW_PATH."/Warehouse.php");
 		$Store = new Store();
 		echo $Store->category($category);
 		exit();
@@ -131,16 +131,16 @@ class AjaxFlow {
 	}
 	
 	function upload_image () {
-		require_once(SHOPP_FLOW_PATH."/Store.php");
-		$Store = new Store();
-		echo $Store->images();
+		require_once(SHOPP_FLOW_PATH."/Warehouse.php");
+		$Warehouse = new Warehouse();
+		echo $Warehouse->images();
 		exit();
 	}
 
 	function upload_file () {
-		require_once(SHOPP_FLOW_PATH."/Store.php");
-		$Store = new Store();
-		echo $Store->downloads();
+		require_once(SHOPP_FLOW_PATH."/Warehouse.php");
+		$Warehouse = new Warehouse();
+		echo $Warehouse->downloads();
 		exit();
 	}
 

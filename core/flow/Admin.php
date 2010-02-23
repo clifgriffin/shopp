@@ -87,7 +87,7 @@ class AdminFlow extends FlowController {
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
 		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
-		$this->addpage('products',__('Products','Shopp'),'Store','Editing a Product');
+		$this->addpage('products',__('Products','Shopp'),'Warehouse','Editing a Product');
 		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category');
 		$this->addpage('promotions',__('Promotions','Shopp'),'Promote','Running Sales & Promotions');
 		$this->addpage('settings',__('Settings','Shopp'),'Setup','General Settings');

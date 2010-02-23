@@ -102,21 +102,19 @@ class Category extends DatabaseObject {
 		
 		if ($ordering == "RAND()") $orderby = $ordering;
 		else $orderby .= ' '.$ordering;
-		$table = DatabaseObject::tablename(Asset::$table);
+		$table = DatabaseObject::tablename(CategoryImage::$table);
 		if (empty($this->id)) return false;
-		$images = $db->query("SELECT id,name,properties,datatype,src FROM $table WHERE parent=$this->id AND context='category' AND (datatype='image' OR datatype='small' OR datatype='thumbnail') ORDER BY $orderby",AS_ARRAY);
+		$records = $db->query("SELECT * FROM $table WHERE parent=$this->id AND context='category' AND type='image' ORDER BY $orderby",AS_ARRAY);
 
-		$this->images = array();
-		// Organize images into groupings by type
-		foreach ($images as $key => &$image) {
-			if (empty($this->images[$image->datatype])) $this->images[$image->datatype] = array();
-			$image->properties = unserialize($image->properties);
-			$image->uri = $Shopp->imguri.$image->id;
-			$this->images[$image->datatype][] = $image;
+		foreach ($records as $r) {
+			$image = new CategoryImage();
+			$image->copydata($r,false,array());
+			$image->value = unserialize($image->value);
+			$image->expopulate();
+			$this->images[] = $image;
 		}
-		if (isset($this->images['thumbnail'][0]))
-			$this->thumbnail = $this->images['thumbnail'][0];
-			
+		
+					
 		return true;
 	}
 	
@@ -126,9 +124,9 @@ class Category extends DatabaseObject {
 	 * based on the provided array of image ids */
 	function save_imageorder ($ordering) {
 		$db = DB::get();
-		$table = DatabaseObject::tablename(Asset::$table);
-		foreach ($ordering as $i => $id) 
-			$db->query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE id='$id' OR src='$id'");
+		$table = DatabaseObject::tablename(CategoryImage::$table);
+		foreach ($ordering as $i => $id)
+			$db->query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='category' AND type='image')");
 		return true;
 	}
 	
@@ -138,32 +136,31 @@ class Category extends DatabaseObject {
 	 * when the product being saved is new (has no previous id assigned) */
 	function link_images ($images) {
 		$db = DB::get();
-		$table = DatabaseObject::tablename(Asset::$table);
+		$table = DatabaseObject::tablename(CategoryImage::$table);
+				
+		$set = "id=".join('OR id=',$images);
 		
-		$query = "UPDATE $table SET parent='$this->id',context='category' WHERE ";
-		foreach ($images as $i => $id) {
-			if ($i > 0) $query .= " OR ";
-			$query .= "id=$id OR src=$id";
-		}
+		if (empty($query)) return false;
+		else $query = "UPDATE $table SET parent='$this->id',context='category' WHERE ".$set;
+		
 		$db->query($query);
+		
 		return true;
 	}
-	
 	
 	/**
 	 * delete_images()
 	 * Delete provided array of image ids, removing the source image and
-	 * all related images (featured and thumbnails) */
+	 * all related images (small and thumbnails) */
 	function delete_images ($images) {
-		$db = DB::get();
-		$table = DatabaseObject::tablename(Asset::$table);
-		
-		$query = "DELETE LOW_PRIORITY FROM $table WHERE ";
-		foreach ($images as $i => $id) {
-			if ($i > 0) $query .= " OR ";
-			$query .= "id=$id OR src=$id";
+		$db = &DB::get();
+		$imagetable = DatabaseObject::tablename(CategoryImage::$table);
+		$imagesets = "";
+		foreach ($images as $image) {
+			$imagesets .= (!empty($imagesets)?" OR ":"");
+			$imagesets .= "((context='category' AND parent='$this->id' AND id='$image') OR (context='image' AND parent='$image'))";
 		}
-		$db->query($query);
+		$db->query("DELETE LOW_PRIORITY FROM $imagetable WHERE type='image' AND ($imagesets)");
 		return true;
 	}
 	
@@ -176,7 +173,7 @@ class Category extends DatabaseObject {
 		$pricetable = DatabaseObject::tablename(Price::$table);
 		$discounttable = DatabaseObject::tablename(Discount::$table);
 		$promotable = DatabaseObject::tablename(Promotion::$table);
-		$assettable = DatabaseObject::tablename(Asset::$table);
+		$imagetable = DatabaseObject::tablename(ProductImage::$table);
 		
 		$this->paged = false;
 		$this->pagination = $Shopp->Settings->get('catalog_pagination');
@@ -280,7 +277,7 @@ class Category extends DatabaseObject {
 		} else $limit = (int)$loading['limit'];
 				
 		$columns = "p.*,
-					img.id AS thumbnail,img.properties AS thumbnail_properties,MAX(pr.status) as promos,
+					img.id AS image,img.value AS imgmeta,MAX(pr.status) as promos,
 					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0))AS percentoff,
 					SUM(DISTINCT IF(pr.type='Amount Off',pr.discount,0)) AS amountoff,
 					if (pr.type='Free Shipping',1,0) AS freeshipping,
@@ -318,7 +315,7 @@ class Category extends DatabaseObject {
 						LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' 
 						LEFT JOIN $discounttable AS dc ON dc.product=p.id AND dc.price=pd.id
 						LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
-						LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
+						LEFT JOIN $imagetable AS img ON img.parent=p.id AND img.context='product' AND img.type='image' AND img.sortorder=0 
 						{$loading['joins']}
 						WHERE {$loading['where']}
 						GROUP BY letter";
@@ -365,7 +362,7 @@ class Category extends DatabaseObject {
 					LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' 
 					LEFT JOIN $discounttable AS dc ON dc.product=p.id AND dc.price=pd.id
 					LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
-					LEFT JOIN $assettable AS img ON img.parent=p.id AND img.context='product' AND img.datatype='thumbnail' AND img.sortorder=0 
+					LEFT JOIN $imagetable AS img ON img.parent=p.id AND img.context='product' AND img.type='image' AND img.sortorder=0 
 					{$loading['joins']}
 					WHERE {$loading['where']}
 					GROUP BY p.id {$loading['having']}
@@ -422,14 +419,12 @@ class Category extends DatabaseObject {
 			if (isset($product->promos))
 				$this->products[$product->id]->promos = $product->promos;
 
-			if (!empty($product->thumbnail)) {
-				$image = new stdClass();
-				$image->properties = unserialize($product->thumbnail_properties);
-				if (SHOPP_PERMALINKS) $image->uri = $Shopp->imguri.$product->thumbnail;
-				else $image->uri = add_query_arg('shopp_image',$product->thumbnail,$Shopp->imguri);
-				$this->products[$product->id]->imagesets['thumbnail'] = array();
-				$this->products[$product->id]->imagesets['thumbnail'][] = $image;
-				$this->products[$product->id]->thumbnail =& $this->products[$product->id]->imagesets['thumbnail'][0];
+			if (!empty($product->image)) {
+				$image = new ProductImage();
+				$image->id = $product->image;
+				$image->value = unserialize($product->imgmeta);
+				$image->expopulate();
+				$this->products[$product->id]->images = array($image);
 			}
 			
 		}
@@ -442,6 +437,7 @@ class Category extends DatabaseObject {
 			$Processing = new Product();
 			$Processing->load_data($loading['load'],$this->products);
 		}
+		
 
 		$this->loaded = true;
 
@@ -537,7 +533,7 @@ class Category extends DatabaseObject {
 
 		$page = $Shopp->link('catalog');
 		if (SHOPP_PERMALINKS) $imageuri = trailingslashit($page)."images/";
-		else $imageuri = add_query_arg('shopp_image','=',$page);
+		else $imageuri = add_query_arg('siid','=',$page);
 		
 		if (SHOPP_PERMALINKS) {
 			$pages = $Shopp->Settings->get('pages');
@@ -1145,41 +1141,69 @@ class Category extends DatabaseObject {
 
 			case "thumbnail":
 				if (empty($this->images)) $this->load_images();
-				$class = isset($options['class'])?' class="'.$options['class'].'"':'';
-				if (isset($this->thumbnail)) {
-					$img = $this->thumbnail;
-					return '<img src="'.$imageuri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'"'.$class.' />'; break;
-				}
-				break;
-			case "has-images": 
-				if (empty($options['type'])) $options['type'] = "thumbnail";
-				if (empty($this->images)) $this->load_images();
-				if (!isset($this->images[$options['type']])) return false;
-				return (count($this->images[$options['type']]) > 0); break;
-			case "images":
-				if (empty($options['type'])) $options['type'] = "thumbnail";
-				if (!$this->imageloop) {
-					reset($this->images[$options['type']]);
-					$this->imageloop = true;
-				} else next($this->images[$options['type']]);
+				if (empty($this->images)) return false;
 
-				if (current($this->images[$options['type']]) !== false) return true;
+				reset($this->images);
+				$img = current($this->images);
+				
+				$thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
+				$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
+				$width = (isset($options['width']))?$options['width']:$thumbwidth;
+				$height = (isset($options['height']))?$options['height']:$thumbheight;
+				$scale = empty($options['resizing'])?false:array_search($options['resizing']);
+				$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
+				$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
+				$scaled = $img->scaled($width,$height,$scale);
+				
+				$alt = empty($options['alt'])?$img->alt:$options['alt'];
+				$title = empty($options['title'])?$img->title:$options['title'];
+				$title = empty($title)?'':' title="'.esc_attr($title).'"';
+				$class = isset($options['class'])?' class="'.esc_attr($options['class']).'"':'';
+				
+				return '<img src="'.$imageuri.$img->id.'?'.$img->resizing($width,$height,$scale,$sharpen,$quality).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; break;
+				break;
+
+			case "hasimages":
+			case "has-images": 
+				if (empty($this->images)) $this->load_images();
+				if (empty($this->images)) return false; 
+				return true;
+				break;
+			case "images":
+				if (!$this->imageloop) {
+					reset($this->images);
+					$this->imageloop = true;
+				} else next($this->images);
+
+				if (current($this->images) !== false) return true;
 				else {
 					$this->imageloop = false;
 					return false;
 				}
 				break;
-			case "image":			
-				if (empty($options['type'])) $options['type'] = "thumbnail";
-				$img = current($this->images[$options['type']]);
-				$class = isset($options['class'])?' class="'.$options['class'].'"':'';
-				$string = "";
-				if (!empty($options['zoom'])) $string .= '<a href="'.$imageuri.$img->src.'/'.str_replace('small_','',$img->name).'" class="shopp-thickbox" rel="product-gallery">';
-				$string .= '<img src="'.$imageuri.$img->id.'" alt="'.$this->name.' '.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" '.$class.' />';
+			case "image":
+				$img = current($this->images);
+				
+				$thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
+				$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
+				$width = (isset($options['width']))?$options['width']:$thumbwidth;
+				$height = (isset($options['height']))?$options['height']:$thumbheight;
+				$scale = empty($options['resizing'])?false:array_search($options['resizing']);
+				$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
+				$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
+				$scaled = $img->scaled($width,$height,$scale);
+				
+				$alt = empty($options['alt'])?$img->alt:$options['alt'];
+				$title = empty($options['title'])?$img->title:$options['title'];
+				$title = empty($title)?'':' title="'.esc_attr($title).'"';
+				$class = isset($options['class'])?' class="'.esc_attr($options['class']).'"':'';
+
+				$string = "";				
+				if (!empty($options['zoom'])) $string .= '<a href="'.$imageuri.$img->id.'/image.jpg" class="shopp-thickbox" rel="product-gallery">';
+				$string .= '<img src="'.$imageuri.$img->id.'?'.$img->resizing($width,$height,$scale,$sharpen,$quality).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;
-
 		}
 	}
 	

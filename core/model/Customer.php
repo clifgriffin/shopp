@@ -223,9 +223,15 @@ class Customer extends DatabaseObject {
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
 		$pricing = DatabaseObject::tablename(Price::$table);
-		$asset = DatabaseObject::tablename(Asset::$table);
-		$query = "SELECT p.*,f.name as filename,f.size,f.properties FROM $purchases AS p LEFT JOIN $orders AS o ON o.id=p.purchase LEFT JOIN $asset AS f ON f.parent=p.price WHERE o.customer=$this->id AND f.size > 0";
+		$asset = DatabaseObject::tablename(ProductDownload::$table);
+		$query = "SELECT p.*,f.id as download,f.name as filename,f.value AS filedata FROM $purchases AS p LEFT JOIN $orders AS o ON o.id=p.purchase LEFT JOIN $asset AS f ON f.parent=p.price WHERE o.customer=$this->id AND context='price' AND type='download'";
 		$this->downloads = $db->query($query,AS_ARRAY);
+		foreach ($this->downloads as &$download) {
+			$download->filedata = unserialize($download->filedata);
+			foreach ($download->filedata as $property => $value) {
+				$download->{$property} = $value;
+			}
+		}
 	}
 
 	function load_orders ($filters=array()) {

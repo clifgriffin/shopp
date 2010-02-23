@@ -11,7 +11,8 @@
 
 class ImageProcessor {
 	var $src;
-	var $Processed;
+	var $processed;
+	var $alpha = false;
 	
 	function ImageProcessor ($data,$width,$height) {
 		$this->src = new StdClass();
@@ -19,113 +20,81 @@ class ImageProcessor {
 		$this->src->height = $height;
 		$this->src->image = imagecreatefromstring($data);
 	}
+		
+	function scale ($width,$height,$fit='fit',$alpha=false,$fill=false) {
+		$dx = $dy = 0;
+		$xd = false;
+		
+		// Allocate a new true color image
+		$this->processed = ImageCreateTrueColor($width,$height);
+		if ($alpha) {
+			ImageAlphaBlending($this->processed, false);
+			$transparent = ImageColorAllocateAlpha($this->processed, 0, 0, 0, 127);
+			ImageFill($this->processed, 0, 0, $transparent);
+			ImageSaveAlpha($this->processed, true);
+			$this->alpha = true;
+		}
+
+		if ($fit == "crop" || $fit = "mattedfit") {
+			// Determine the extra dimension for positioning
+			$xd = false;
+			$xd = ($this->src->width > $this->src->height && $fit == "crop");
+			$xd = ($this->src->width < $this->src->height && $fit == "mattedfit");
+			
+			if ($xd) {
+				$dw = $this->_proportionalWidth($height);
+				$dx = ($dw - $width)*-0.5;	
+				$width = $dw;
+			} else {
+				$dh = $this->_proportionalHeight($width);
+				$dy = ($dh - $height)*-0.5;
+				$height = $dh;
+			}
+		}
+		
+		// Fill image with matte color
+		if ($fill !== false || $fit == "mattedfit") {
+			// Default to white
+			if (!is_array($fill)) $fill = array(255,255,255);
+			
+			// Mix the color
+			$matte = ImageColorAllocate($this->processed, $fill[0], $fill[1], $fill[2]);
+			
+			// Fill the canvas
+			ImageFill($this->processed,0,0,$matte);
+		}
+
+		ImageCopyResampled(
+			$this->processed,$this->src->image,
+			$dx, $dy, 								// dest_x, dest_y
+			0, 0, 									// src_x, src_y
+			$width, $height, 						// dest_width, dest_height
+			$this->src->width, $this->src->height	// src_width, src_height
+		);
+		
+	}
 	
-	/**
-	 * scaleToWidth()
-	 * Determine the scale percentage by width of the image,
-	 * height is variable to maintain image proportions
-	 **/
-	function scaleToWidth($width) {
-		$scale = $width / $this->src->width;
-
-		$this->Processed = new StdClass();
-		$this->Processed->width = $width;
-		$this->Processed->height = ceil($this->src->height * $scale);
-		
-		$this->Processed->image = ImageCreateTrueColor($this->Processed->width,$this->Processed->height);
-		ImageCopyResampled($this->Processed->image, $this->src->image, 
-			0, 0, 0, 0, 
-			$this->Processed->width, $this->Processed->height, $this->src->width, $this->src->height);
-		
+	function _proportionalWidth ($height) {
+		$s_height = $height/$this->src->height;
+		return ceil($this->src->width * $s_height);
 	}
-
-	/**
-	 * scaleToHeight()
-	 * Determine the scale percentage by height of the image,
-	 * width is variable to maintain image proportions
-	 */
-	function scaleToHeight($height) {
-		$scale = $height / $this->src->height;
-
-		$this->Processed = new StdClass();
-		$this->Processed->height = $height;
-		$this->Processed->width = ceil($this->src->width * $scale);
-		
-		$this->Processed->image = ImageCreateTrueColor($this->Processed->width,$this->Processed->height);
-		ImageCopyResampled($this->Processed->image, $this->src->image, 
-			0, 0, 0, 0, 
-			$this->Processed->width, $this->Processed->height, $this->src->width, $this->src->height);
-		
-	}
-
-	/**
-	 * scaleToFit()
-	 * Resize the image directly to the provided dimensions,
-	 * do not maintain image proportions
-	 */
-	function scaleToFit($width,$height) {
-
-		$this->Processed = new StdClass();
-		
-		if ($this->src->width > $this->src->height) { // Scale to width
-			$scale = $width / $this->src->width;
-			$this->Processed->width = $width;
-			$this->Processed->height = ceil($this->src->height * $scale);
-		} else { // Scale to height
-			$scale = $height / $this->src->height;
-			$this->Processed->height = $height;
-			$this->Processed->width = ceil($this->src->width * $scale);
-		}
-				
-		$this->Processed->image = ImageCreateTrueColor($this->Processed->width,$this->Processed->height);
-		ImageCopyResampled($this->Processed->image, $this->src->image, 
-			0, 0, 0, 0, 
-			$this->Processed->width, $this->Processed->height, $this->src->width, $this->src->height);
-		
-	}
-
-	/**
-	 * scaleCrop()
-	 * Scale based on the smallest dimension, 
-	 * cropping the extra on the other dimension to 
-	 * maintain image proportion and fit the provided
-	 * dimensions exactly
-	 */
-	function scaleCrop($width,$height) {
-		$this->Processed = new StdClass();
-		$this->Processed->width = $width;
-		$this->Processed->height = $height;
-
-		$widthScale = $width / $this->src->width;
-		$heightScale = $height / $this->src->height;
-		
-		$this->Processed->image = ImageCreateTrueColor($this->Processed->width,$this->Processed->height);
-		if ($heightScale > $widthScale) {
-			$scale = $height / $this->src->height;		// Scale by height
-			$width = ceil($this->src->width * $scale);	// Determine proportional width
-			$x = ($width - $this->Processed->width)*-0.5;	// Center scaled image on the canvas
-			ImageCopyResampled($this->Processed->image, $this->src->image, 
-				$x, 0, 0, 0, 
-				$width, $this->Processed->height, $this->src->width, $this->src->height);
-		} else {
-			$scale = $width / $this->src->width;			// Scale by width
-			$height = ceil($this->src->height * $scale);	// Determine proportional height
-			$y = ($height - $this->Processed->height)*-0.5;	// Center scaled image on the canvas
-			ImageCopyResampled($this->Processed->image, $this->src->image, 
-				0, $y, 0, 0, 
-				$this->Processed->width, $height, $this->src->width, $this->src->height);
-		}
-		
+	
+	function _proportionalHeight ($width) {
+		$s_width = $width/$this->src->width;
+		return ceil($this->src->height * $s_width);
 	}
 	
 	/**
 	 * Return the processed image
 	 */
 	function imagefile ($quality=80) {
-		if (!isset($this->Processed->image)) return false;
-		imageinterlace($this->Processed->image, true);		// For progressive loading
+		if (!isset($this->processed)) $image =& $this->src->image;
+		else $image = &$this->processed;
+		
+		imageinterlace($image, true);						// For progressive loading
 		ob_start();  										// Start capturing output buffer stream
-		imagejpeg($this->Processed->image,NULL,$quality);	// Output the image to the stream
+		if ($this->alpha) imagepng($image);					// Output the image to the stream
+		else imagejpeg($image,NULL,$quality);				
 		$buffer = ob_get_contents(); 						// Get the bugger
 		ob_end_clean(); 									// Clear the buffer
 		return $buffer;										// Send it back
@@ -136,22 +105,22 @@ class ImageProcessor {
 	 * version 2.1.1
 	 * Unsharp mask algorithm by Torstein Hansi <thoensi_at_netcom_dot_no>, July 2003
 	 **/
-	function UnsharpMask ($amount=25, $radius=0.5, $threshold=3) {  
-		if (!isset($this->Processed->image)) return false;
-		$image = $this->Processed->image;
+	function UnsharpMask ($amount=50, $radius=0.5, $threshold=3) {  
+		if (!isset($this->Processed->image)) $image = &$this->src->image;
+		else $image = &$this->Processed->image;
 
 	    // Attempt to calibrate the parameters to Photoshop
-	    if ($amount > 500) $amount = 500;  
+	    if ($amount > 500) $amount = 500;
 	    $amount = $amount * 0.016;
 	    if ($radius > 50) $radius = 50;
 	    $radius = $radius * 2;
-	    if ($threshold > 255) $threshold = 255;  
+	    if ($threshold > 255) $threshold = 255;
 
 	    $radius = abs(round($radius));
 	    if ($radius == 0) return $image;
-	    $w = imagesx($image); $h = imagesy($image);  
-	    $canvas = imagecreatetruecolor($w, $h);  
-	    $blur = imagecreatetruecolor($w, $h);  
+	    $w = imagesx($image); $h = imagesy($image);
+	    $canvas = imagecreatetruecolor($w, $h);
+	    $blur = imagecreatetruecolor($w, $h);
 
 	    /**
 	     * Gaussian blur matrix:
@@ -251,10 +220,8 @@ class ImageProcessor {
 	    imagedestroy($canvas);  
 	    imagedestroy($blur);  
 
-	    $this->Processed->image = $image;  
-
 	}
 
-} // end Image class
+} // END class ImageProcessor
 
 ?>

@@ -37,7 +37,7 @@ require("core/legacy.php");
 require_once("core/DB.php");
 require_once("core/model/Settings.php");
 
-if (isset($_GET['shopp_image']) || 
+if (isset($_GET['siid']) || 
 	preg_match('/images\/\d+/',$_SERVER['REQUEST_URI'])) 
 		require("core/image.php");
 if (isset($_GET['src']) && $_GET['src'] == 'catalog.css') shopp_catalog_css();
@@ -48,15 +48,17 @@ if (isset($_GET['src']) && $_GET['src'] == 'settings.js')
 require("core/flow/Flow.php");
 require("core/flow/Storefront.php");
 require("core/flow/Login.php");
-require("core/flow/Modules.php");
 
 // Load Shopp-managed data model objects
+require("core/model/Modules.php");
 require("core/model/Gateway.php");
 require("core/model/Lookup.php");
 require("core/model/Shopping.php");
 require("core/model/Error.php");
 require("core/model/Order.php");
 require("core/model/Cart.php");
+require("core/model/Meta.php");
+require("core/model/Asset.php");
 require("core/model/Catalog.php");
 require("core/model/Purchase.php");
 require("core/model/Customer.php");
@@ -141,6 +143,7 @@ class Shopp {
 		define("SHOPP_MODEL_PATH",SHOPP_PATH."/core/model");
 		define("SHOPP_GATEWAYS",SHOPP_PATH."/gateways");
 		define("SHOPP_SHIPPING",SHOPP_PATH."/shipping");
+		define("SHOPP_STORAGE",SHOPP_PATH."/storage");
 		define("SHOPP_DBSCHEMA",SHOPP_MODEL_PATH."/schema.sql");
 
 		define("SHOPP_TEMPLATES",($this->Settings->get('theme_templates') != "off" 
@@ -219,7 +222,7 @@ class Shopp {
 			$this->imguri = trailingslashit($this->shopuri)."images/";
 		} else {
 			$this->shopuri = add_query_arg('page_id',$pages['catalog']['id'],get_bloginfo('url'));
-			$this->imguri = add_query_arg('shopp_image','=',get_bloginfo('url'));
+			$this->imguri = add_query_arg('siid','=',get_bloginfo('url'));
 			$this->canonuri = $this->link('catalog');
 		}
 		if ($this->secure) {
@@ -234,6 +237,7 @@ class Shopp {
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
 		$this->Gateways = new GatewayModules();
 		$this->Shipping = new ShippingModules();
+		$this->Storage = new StorageEngines();
 		
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
@@ -349,7 +353,7 @@ class Shopp {
 			(empty($shop)?"$catalog/":$shop).'(thanks|receipt)/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=thanks',
 			(empty($shop)?"$catalog/":$shop).'confirm-order/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=confirm-order',
 			(empty($shop)?"$catalog/":$shop).'download/([a-f0-9]{40})/?$' => 'index.php?pagename='.shopp_pagename($account).'&src=download&shopp_download=$matches[1]',
-			(empty($shop)?"$catalog/":$shop).'images/(\d+)/?.*?$' => 'index.php?shopp_image=$matches[1]'
+			(empty($shop)?"$catalog/":$shop).'images/(\d+)/?.*?$' => 'index.php?siid=$matches[1]'
 		);
 
 		// catalog/category/category-slug
@@ -388,7 +392,7 @@ class Shopp {
 		$corepath = array(PLUGINDIR,$this->directory,'core');
 
 		// Add mod_rewrite rule for image server for low-resource, speedy delivery
-		add_rewrite_rule('.*/images/(\d+)/?.*?$',join('/',$corepath).'/image.php?shopp_image=$1');
+		add_rewrite_rule('.*/images/(\d+)/?.*?$',join('/',$corepath).'/image.php?siid=$1');
 
 		return $rules + $wp_rewrite_rules;
 	}
@@ -408,10 +412,10 @@ class Shopp {
 		$vars[] = 'shopp_tag';
 		$vars[] = 'shopp_pid';
 		$vars[] = 'shopp_product';
-		$vars[] = 'shopp_image';
 		$vars[] = 'shopp_download';
 		$vars[] = 'src';
 		$vars[] = 'st';
+		$vars[] = 'siid';
 	
 		return $vars;
 	}

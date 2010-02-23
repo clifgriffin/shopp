@@ -15,9 +15,9 @@ class Settings extends DatabaseObject {
 	var $unavailable = false;
 	var $_table = "";
 	
-	function Settings () {
+	function Settings ($name="") {
 		$this->_table = $this->tablename(self::$table);
-		if (!$this->load()) {
+		if (!$this->load($name)) {
 			if (!$this->init('setting')) {
 				$this->unavailable = true;
 				return false;

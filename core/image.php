@@ -11,7 +11,11 @@
  **/
 
 require_once('DB.php');
+require_once('model/Error.php');
 require_once('model/Settings.php');
+require_once("model/Modules.php");
+
+require_once("model/Meta.php");
 require_once("model/Asset.php");
 
 /**
@@ -23,12 +27,23 @@ require_once("model/Asset.php");
  **/
 class ImageServer extends DatabaseObject {
 
-	var $image = false;
-	var $Asset = false;
+	var $request = false;
+	var $parameters = array();
+	var $args = array('width','height','scale','sharpen','quality');
+	var $scaling = array('fit','mattedfit','crop','width','height');
+	var $width;
+	var $height;
+	var $scale = 0;
+	var $sharpen = 0;
+	var $quality = 80;
+	var $valid = false;
+	var $Image = false;
 	
 	function __construct () {
+		define('SHOPP_PATH',sanitize_path(dirname(dirname(__FILE__))));
 		$this->dbinit();
 		$this->request();
+		$this->settings();
 		if ($this->load())
 			$this->render();
 		else $this->error();
@@ -43,9 +58,24 @@ class ImageServer extends DatabaseObject {
 	 * @return void
 	 **/
 	function request () {
-		if (isset($_GET['shopp_image'])) $this->image = $_GET['shopp_image'];
-		elseif (preg_match('/\/images\/(\d+).*$/',$_SERVER['REQUEST_URI'],$matches)) 
-			$this->image = $matches[1];
+		foreach ($_GET as $key => $value) {
+			if ($key == "siid") $this->request = $value;
+			if (isset($key) && empty($value))
+				$this->parameters = explode(',',$key);
+				$this->valid = array_pop($this->parameters);
+		}
+		
+		// Handle pretty permalinks
+		if (preg_match('/\/images\/(\d+).*$/',$_SERVER['REQUEST_URI'],$matches)) 
+			$this->request = $matches[1];
+
+		foreach ($this->parameters as $index => $arg) {
+			$this->{$this->args[$index]} = $arg;
+		}
+		
+		if ($this->height == 0 && $this->width > 0) $this->height = $this->width;
+		if ($this->width == 0 && $this->height > 0) $this->width = $this->height;
+		$this->scale = $this->scaling[$this->scale];
 	}
 
 	/**
@@ -56,22 +86,68 @@ class ImageServer extends DatabaseObject {
 	 * @return boolean Status of the image load
 	 **/
 	function load () {
-		$db =& DB::get();
-
-		$table = DatabaseObject::tablename(Settings::$table);
-		$settings = $db->query("SELECT * FROM $table WHERE name='image_storage' OR name='image_path'",AS_ARRAY);
-		foreach ($settings as $setting) $this->{$setting->name} = $setting->value;
+		$this->Image = new ImageAsset($this->request);
+		if (max($this->width,$this->height) > 0) $this->loadsized();
+		if (!empty($this->Image->id) || !empty($this->Image->data)) return true;
+		else return false;
+	}
+	
+	function loadsized () {
+		// Same size requested, skip resizing
+		if ($this->width > $this->Image->width) $this->width = $this->Image->width;
+		if ($this->height > $this->Image->height) $this->height = $this->Image->height;
+		if ($this->Image->width == $this->width && $this->Image->height == $this->height) return;
 		
-		if (empty($this->image)) return false;
-		$this->Asset = new Asset($this->image);
-		if (empty($this->Asset->id)) return false;
-		if (isset($this->image_path)) $this->image_path = sanitize_path(realpath($this->image_path));
-		if ($this->image_storage == "fs" && !file_exists($this->image_path.'/'.$this->Asset->name)) 
-			return false;
-		if ($this->image_storage == "db" && empty($this->Asset->data)) 
-			return false;
-			
-		return true;
+		$Cached = new ImageAsset(array(
+				'parent' => $this->Image->id,
+				'context'=>'image',
+				'type'=>'image',
+				'name'=>'cache_'.implode('_',$this->parameters)
+		));
+
+		// Use the cached version if it exists, otherwise resize the image
+		if (!empty($Cached->id)) $this->Image = $Cached;
+		else $this->resize(); // No cached copy exists, recreate
+
+	}
+	
+	function resize () {
+		$key = (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '')?SECRET_AUTH_KEY:DB_PASSWORD;
+		$message = $this->Image->id.','.implode(',',$this->parameters);
+		if ($this->valid != crc32($key.$message)) {
+			header("HTTP/1.1 404 Not Found");
+			die('');
+		}
+		
+		require_once(SHOPP_PATH."/core/model/Image.php");
+		$Resized = new ImageProcessor($this->Image->retrieve(),$this->Image->width,$this->Image->height);
+
+		$scaled = $this->Image->scaled($this->width,$this->height,$this->scale);
+		$alpha = ($this->Image->mime == "image/png");
+		$Resized->scale($scaled['width'],$scaled['height'],$this->scale,$alpha);
+
+		// Post sharpen
+		if ($this->sharpen !== false)
+			$Resized->UnsharpMask($this->sharpen);
+		
+		$ResizedImage = new ImageAsset();
+		$ResizedImage->copydata($this->Image,false,array());
+		$ResizedImage->name = 'cache_'.implode('_',$this->parameters);
+		$ResizedImage->filename = $ResizedImage->name.'_'.$ResizedImage->filename;
+		$ResizedImage->parent = $this->Image->id;
+		$ResizedImage->context = 'image';
+		$ResizedImage->mime = "image/jpeg";
+		$ResizedImage->id = false;
+
+		$ResizedImage->data = $Resized->imagefile($this->quality);
+		if (empty($ResizedImage->data)) return false;
+		
+		$ResizedImage->size = strlen($ResizedImage->data);
+		$ResizedImage->store( $ResizedImage->data );
+
+		$ResizedImage->save();
+		$this->Image = $ResizedImage;
+		
 	}
 
 	/**
@@ -82,17 +158,14 @@ class ImageServer extends DatabaseObject {
 	 * @return void
 	 **/
 	function render () {
-		header('Last-Modified: '.date('D, d M Y H:i:s', $this->Asset->created).' GMT'); 
-		header("Content-type: ".$this->Asset->properties['mimetype']);
-		header("Content-Disposition: inline; filename=".$this->Asset->name.""); 
-		header("Content-Description: Delivered by WordPress/Shopp Image Server");
-		if ($this->image_storage == "fs") {
-			header ("Content-length: ".@filesize($this->image_path.'/'.$this->Asset->name)); 
-			@readfile($this->image_path.'/'.$this->Asset->name);
-		} else {
-			header ("Content-length: ".strlen($this->Asset->data)); 
-			echo $this->Asset->data;
-		} 
+		if ($this->Image->notfound()) return $this->error();
+		header('Last-Modified: '.date('D, d M Y H:i:s', $this->Image->created).' GMT');
+		header("Content-type: {$this->Image->mime}");
+		if (!empty($this->Image->filename))
+			header("Content-Disposition: inline; filename=".$this->Image->filename); 
+		else header("Content-Disposition: inline; filename=image-".$this->Image->id.".jpg");
+		header("Content-Description: Delivered by WordPress/Shopp Image Server ({$this->Image->storage})");
+		$this->Image->output();
 		exit();
 	}
 	
@@ -112,12 +185,16 @@ class ImageServer extends DatabaseObject {
 		else {
 			header("Cache-Control: no-cache, must-revalidate");
 			header("Content-type: image/png");
-			header("Content-Disposition: inline; filename=".$notfound.""); 
+			header("Content-Disposition: inline; filename=".basename($notfound).""); 
 			header("Content-Description: Delivered by WordPress/Shopp Image Server");
 			header("Content-length: ".@strlen($notfound)); 
 			@readfile($notfound);
 		}
 		die();
+	}
+	
+	function settings () {
+		$this->Settings = new Settings();
 	}
 
 	/**
@@ -155,7 +232,7 @@ class ImageServer extends DatabaseObject {
 			@date_default_timezone_set(@date_default_timezone_get());
 			
 	}
-
+	
 } // end ImageServer class
 
 /**
@@ -190,6 +267,16 @@ function find_filepath ($filename, $directory, $root, &$found) {
  **/
 if (!function_exists('mktimestamp')) {
 	function mktimestamp () {}
+}
+
+if (!function_exists('floatvalue')) {
+	function floatvalue ($number) { return $number; }
+}
+
+if (!function_exists('__')) {
+	function __ ($string,$domain=false) {
+		return $string;
+	}
 }
 
 /**

@@ -1,4 +1,3 @@
-
 var ModuleSetting = function (module,name,label,multi) {
 	var $ = jQuery.noConflict();
 	var _self = this;
@@ -81,6 +80,24 @@ var ModuleSetting = function (module,name,label,multi) {
 		}
 	}
 	
+	this.storage = function () {
+		var id = name.toLowerCase().replace(/[^\w+]/,'-');
+		$.each(this.settings,function (id,element) {
+			var input = new SettingInput(_self.module,element.attrs,element.options);
+			input.name += '['+_self.setting+']';
+			input.id += '-'+_self.setting;
+			if (element.attrs.value) {
+				if (element.attrs.value instanceof Object) {
+					if (element.attrs.value[_self.setting]) input.value = element.attrs.value[_self.setting];
+					else input.value = '';
+				} else input.value = element.attrs.value;
+			} else input.value = '';
+			var markup = input.generate();
+			$(markup).appendTo(_self.element);
+			if (input.type == "multimenu") input.selectall();
+		});
+	}
+	
  	this.newInput = function (column,attrs,options) {
 		var input = {
 			'target':column,
@@ -110,7 +127,7 @@ var SettingInput = function (module,attrs,options,method) {
 	
 	this.type = ($.inArray(attrs.type,types) != -1)?attrs.type:'text';
 	this.name = 'settings['+module+']['+attrs.name+']';
-	if (method !== undefined ) this.name += '['+method+']'	;
+	if (method !== undefined ) this.name += '['+method+']';
 	if (attrs.value) {
 		if (attrs.value instanceof Array) {
 			if (attrs.value[method]) this.value = attrs.value[method];

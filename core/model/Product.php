@@ -9,10 +9,10 @@
  * @package shopp
  **/
 
-require("Asset.php");
-require("Spec.php");
-require("Price.php");
-require("Promotion.php");
+require_once("Asset.php");
+require_once("Spec.php");
+require_once("Price.php");
+require_once("Promotion.php");
 
 class Product extends DatabaseObject {
 	static $table = "product";
@@ -56,7 +56,7 @@ class Product extends DatabaseObject {
 		if (in_array('prices',$options)) {
 			$promotable = DatabaseObject::tablename(Promotion::$table);
 			$discounttable = DatabaseObject::tablename(Discount::$table);
-			$assettable = DatabaseObject::tablename(Asset::$table);
+			$assettable = DatabaseObject::tablename(ProductDownload::$table);
 
 			$Dataset['prices'] = new Price();
 			$Dataset['prices']->_datatypes['promos'] = "MAX(promo.status)";
@@ -68,13 +68,12 @@ class Product extends DatabaseObject {
 			$Dataset['prices']->_datatypes['getqty'] = "IF (promo.type='Buy X Get Y Free',promo.getqty,0)";
 			$Dataset['prices']->_datatypes['download'] = "download.id";
 			$Dataset['prices']->_datatypes['filename'] = "download.name";
-			$Dataset['prices']->_datatypes['filedata'] = "download.properties";
-			$Dataset['prices']->_datatypes['filesize'] = "download.size";
+			$Dataset['prices']->_datatypes['filedata'] = "download.value";
 		}
 
 		if (in_array('images',$options)) {
-			$Dataset['images'] = new Asset();
-			unset($Dataset['images']->_datatypes['data']);	
+			$Dataset['images'] = new ProductImage();
+			array_merge($Dataset['images']->_datatypes,$Dataset['images']->_xcols);
 		}
 
 		if (in_array('categories',$options)) {
@@ -124,7 +123,7 @@ class Product extends DatabaseObject {
 				case "prices":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."$set->_table.product=$id";
 					$query .= "(SELECT '$set->_table' as dataset,$set->_table.product AS product,'$rtype' AS rtype,'' AS alphaorder,$set->_table.sortorder AS sortorder,$cols FROM $set->_table 
-								LEFT JOIN $assettable AS download ON $set->_table.id=download.parent AND download.context='price' AND download.datatype='download' 
+								LEFT JOIN $assettable AS download ON $set->_table.id=download.parent AND download.context='price' AND download.type='download' 
 								LEFT JOIN $discounttable AS discount ON discount.product=$set->_table.product AND discount.price=$set->_table.id
 								LEFT JOIN $promotable AS promo ON promo.id=discount.promo AND (promo.status='enabled' AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1) OR (UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(ends)) ))
 								WHERE $where GROUP BY $set->_table.id)";
@@ -154,7 +153,7 @@ class Product extends DatabaseObject {
 					}
 
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."parent=$id";
-					$where = "($where) AND context='product'";
+					$where = "($where) AND context='product' AND type='image'";
 					$query .= "(SELECT '$set->_table' as dataset,parent AS product,'$rtype' AS rtype,$alphaorder AS alphaorder,$sortorder AS sortorder,$cols FROM $set->_table WHERE $where ORDER BY $orderby)";
 					break;
 				case "specs":
@@ -176,7 +175,8 @@ class Product extends DatabaseObject {
 
 		// Add order by columns
 		$query .= " ORDER BY sortorder";
-		// echo $query;
+		// die($query);
+		
 		// Execute the query
 		$data = $db->query($query,AS_ARRAY);
 		
@@ -198,6 +198,14 @@ class Product extends DatabaseObject {
 					$record->{$key} = $row->{$column};
 				}
 			}
+			
+			if ($row->rtype == "images") {
+				$image = new ProductImage();
+				$image->copydata($record,false,array());
+				$image->expopulate();
+				$record = $image;
+			}
+						
 			$target->{$row->rtype}[] = $record;
 			if (!empty($name)) {
 				if (isset($target->{$row->rtype.'key'}[$name]))
@@ -208,11 +216,11 @@ class Product extends DatabaseObject {
 		
 		if (is_array($products)) {
 			foreach ($products as $product) if (!empty($product->prices)) $product->pricing();
-			foreach ($products as $product) if (count($product->images) >= 3 && count($product->imagesets) <= 1)
-					$product->imageset();
+			// foreach ($products as $product) if (count($product->images) >= 3 && count($product->imagesets) <= 1)
+			// 		$product->imageset();
 		} else {
 			if (!empty($this->prices)) $this->pricing($options);
-			if (count($this->images) >= 3 && count($this->imagesets) <= 1) $this->imageset();
+			// if (count($this->images) >= 3 && count($this->imagesets) <= 1) $this->imageset();
 		}
 		
 	} // end load_data()
@@ -345,21 +353,21 @@ class Product extends DatabaseObject {
 		if ($freeshipping) $this->freeshipping = true;
 	}
 	
-	function imageset () {
-		global $Shopp;
-		// Organize images into groupings by type
-		$this->imagesets = array();
-		foreach ($this->images as $key => &$image) {
-			if (empty($this->imagesets[$image->datatype])) $this->imagesets[$image->datatype] = array();
-			if ($image->id) {
-				if (SHOPP_PERMALINKS) $image->uri = user_trailingslashit($Shopp->imguri.$image->id);
-				else $image->uri = add_query_arg('shopp_image',$image->id,$Shopp->imguri);
-			}
-			$this->imagesets[$image->datatype][] = $image;
-		}
-		$this->thumbnail = $this->imagesets['thumbnail'][0];
-		return true;
-	}
+	// function imageset () {
+	// 	global $Shopp;
+	// 	// Organize images into groupings by type
+	// 	$this->imagesets = array();
+	// 	foreach ($this->images as $key => &$image) {
+	// 		if (empty($this->imagesets[$image->datatype])) $this->imagesets[$image->datatype] = array();
+	// 		if ($image->id) {
+	// 			if (SHOPP_PERMALINKS) $image->uri = user_trailingslashit($Shopp->imguri.$image->id);
+	// 			else $image->uri = add_query_arg('shopp_image',$image->id,$Shopp->imguri);
+	// 		}
+	// 		$this->imagesets[$image->datatype][] = $image;
+	// 	}
+	// 	$this->thumbnail = $this->imagesets['thumbnail'][0];
+	// 	return true;
+	// }
 	
 	function merge_specs () {
 		$merged = array();
@@ -472,9 +480,9 @@ class Product extends DatabaseObject {
 	 * based on the provided array of image ids */
 	function save_imageorder ($ordering) {
 		$db = DB::get();
-		$table = DatabaseObject::tablename(Asset::$table);
-		foreach ($ordering as $i => $id) 
-			$db->query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE id='$id' OR src='$id'");
+		$table = DatabaseObject::tablename(ProductImage::$table);
+		foreach ($ordering as $i => $id)
+			$db->query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='product' AND type='image')");
 		return true;
 	}
 	
@@ -484,17 +492,12 @@ class Product extends DatabaseObject {
 	 * when the product being saved is new (has no previous id assigned) */
 	function link_images ($images) {
 		$db = DB::get();
-		$table = DatabaseObject::tablename(Asset::$table);
-		
-		$query = "";
-		foreach ($images as $i => $id) {
-			if (empty($id)) continue;
-			if ($i > 0) $query .= " OR ";
-			$query .= "id=$id OR src=$id";
-		}
+		$table = DatabaseObject::tablename(ProductImage::$table);
+				
+		$set = "id=".join('OR id=',$images);
 		
 		if (empty($query)) return false;
-		else $query = "UPDATE $table SET parent='$this->id',context='product' WHERE ".$query;
+		else $query = "UPDATE $table SET parent='$this->id',context='product' WHERE ".$set;
 		
 		$db->query($query);
 		
@@ -506,22 +509,13 @@ class Product extends DatabaseObject {
 	 * Updates the image details for an entire image set (thumbnail, small, image) */
 	function update_images ($images) {
 		if (!is_array($images)) return false;
-
-		$db = DB::get();
-		$table = DatabaseObject::tablename(Asset::$table);
-
-		foreach($images as $i => $img) {
-			$query = "SELECT imgs.id FROM $table AS thumb LEFT JOIN $table AS imgs ON thumb.src=imgs.src OR thumb.src=imgs.id WHERE thumb.id={$img['id']}";
-			$imageset = $db->query($query);
-			foreach ($imageset as $is) {
-				$Image = new Asset();
-				unset($Image->_datatypes['data'],$Image->data);
-				$Image->load($is->id);
-				$Image->properties['title'] = $img['title'];
-				$Image->properties['alt'] = $img['alt'];
-				$Image->save();
-			}
-		}			
+		
+		foreach ($images as $img) {
+			$Image = new ProductImage($img['id']);
+			$Image->title = $img['title'];
+			$Image->alt = $img['alt'];
+			$Image->save();
+		}
 		
 		return true;
 	}
@@ -532,8 +526,14 @@ class Product extends DatabaseObject {
 	 * Delete provided array of image ids, removing the source image and
 	 * all related images (small and thumbnails) */
 	function delete_images ($images) {
-		$Images = new Asset();
-		$Images->deleteset($images,'image');
+		$db = &DB::get();
+		$imagetable = DatabaseObject::tablename(ProductImage::$table);
+		$imagesets = "";
+		foreach ($images as $image) {
+			$imagesets .= (!empty($imagesets)?" OR ":"");
+			$imagesets .= "((context='product' AND parent='$this->id' AND id='$image') OR (context='image' AND parent='$image'))";
+		}
+		$db->query("DELETE FROM $imagetable WHERE type='image' AND ($imagesets)");
 		return true;
 	}
 	
@@ -557,11 +557,11 @@ class Product extends DatabaseObject {
 		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
 		
 		// Delete images/files
-		$table = DatabaseObject::tablename(Asset::$table);
+		$table = DatabaseObject::tablename(ProductImage::$table);
 
 		// Delete images
 		$images = array();
-		$src = $db->query("SELECT id FROM $table WHERE parent='$id' AND context='product' AND datatype='image'",AS_ARRAY);
+		$src = $db->query("SELECT id FROM $table WHERE parent='$id' AND context='product' AND type='image'",AS_ARRAY);
 		foreach ($src as $img) $images[] = $img->id;
 		$this->delete_images($images);
 		
@@ -625,30 +625,14 @@ class Product extends DatabaseObject {
 		$this->tags = array();
 		$this->save_tags($taglist);
 
-		// // Copy product images
-		$template = new Asset();
-		$columns = array(); $values = array();
-		foreach ($template->_datatypes as $name => $type) {
-			$colname = $name;
-			$columns[$colname] = $name;
-			if ($name == "id") $name = "''";
-			if ($name == "parent") $name = "'$this->id'";
-			if ($name == "created" || $name == "modified") $name = "now()";
-			$values[$colname] = $name;
+		// Copy product images
+		foreach ($this->images as $ProductImage) {
+			$Image = new ProductImage();
+			$Image->updates($ProductImage,array('id','product','created','modified'));
+			$Image->product = $this->id;
+			$Image->save();
 		}
-		$sets = array('image','small','thumbnail');
-		$images = array();
-		foreach ($sets as $set) {
-			foreach ($this->imagesets[$set] as $image) {
-				if (isset($images[$image->src])) $values['src'] = $images[$image->src];
-				$id = $db->query("INSERT $template->_table (".join(',',$columns).") SELECT ".join(",",$values)." FROM $template->_table WHERE id=$image->id");
-				if ($set == "image") {
-					$images[$image->id] = $id;
-					$db->query("UPDATE $template->_table SET src=$id WHERE id=$id LIMIT 1");
-				}
-			}
-		}
-		
+				
 	}
 	
 	function tag ($property,$options=array()) {
@@ -781,147 +765,152 @@ class Product extends DatabaseObject {
 				if (empty($this->prices)) $this->load_data(array('prices'));
 				return $this->freeshipping;
 			case "thumbnail":
-				if (empty($this->imagesets)) $this->load_data(array('images'));
+				if (empty($this->images)) $this->load_data(array('images'));
 				if (empty($options['class'])) $options['class'] = '';
 				else $options['class'] = ' class="'.$options['class'].'"';
-				if (isset($this->thumbnail)) {
-					$img = $this->thumbnail;
-					$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
 
-					$width = (isset($options['width']))?$options['width']:$img->properties['width'];
-					$height = (isset($options['height']))?$options['height']:$img->properties['height'];
-
-					if (isset($options['width']) && !isset($options['height'])) {
-						$scale = $width/$img->properties['width'];
-						$height = round($img->properties['height']*$scale);
-					}
-					if (isset($options['height']) && !isset($options['width'])) {
-						$scale = $height/$img->properties['height'];
-						$width = round($img->properties['width']*$scale);
-					}
+				if (count($this->images) > 0) {
+					$img = current($this->images);
 					
+					$thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
+					$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
+					$width = (isset($options['width']))?$options['width']:$thumbwidth;
+					$height = (isset($options['height']))?$options['height']:$thumbheight;
+					$scale = empty($options['resizing'])?false:array_search($options['resizing']);
+					$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
+					$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
+					$scaled = $img->scaled($width,$height,$scale);
+
+					$alt = empty($options['alt'])?$img->alt:$options['alt'];
+					$title = empty($options['title'])?$img->title:$options['title'];
+					$title = empty($title)?'':' title="'.esc_attr($title).'"';
+					$class = isset($options['class'])?' class="'.esc_attr($options['class']).'"':'';
+
 					if (!empty($options['title'])) $title = ' title="'.attribute_escape($options['title']).'"';
-					$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$this->name);
-					return '<img src="'.$img->uri.'"'.$title.' alt="'.$alt.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />'; break;
-				}
+					$alt = esc_attr(!empty($img->alt)?$img->alt:$this->name);
+					return '<img src="'.$Shopp->imguri.$img->id.'?'.$img->resizing($width,$height,$scale,$sharpen,$quality).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" '.$options['class'].' />'; break;
+				} else return "";
 				break;
 			case "hasimages": 
 			case "has-images": 
-				if (empty($options['type'])) $options['type'] = "thumbnail";
 				if (empty($this->images)) $this->load_data(array('images'));
-				if (!empty($this->imagesets[$options['type']])) {
-					$this->imageset = &$this->imagesets[$options['type']];
-					return true;
-				} else return false;
+				return (!empty($this->images));
 				break;
 			case "images":
-				if (!$this->imageset) return false;
+				if (!$this->images) return false;
 				if (!$this->imageloop) {
-					reset($this->imageset);
+					reset($this->images);
 					$this->imageloop = true;
-				} else next($this->imageset);
+				} else next($this->images);
 
-				if (current($this->imageset) !== false) return true;
+				if (current($this->images) !== false) return true;
 				else {
 					$this->imageloop = false;
-					$this->imageset = false;
+					$this->images = false;
 					return false;
 				}
 				break;
 			case "image":			
-				$img = current($this->imageset);
+				$img = current($this->images);
 				if (isset($options['property'])) {
 					switch (strtolower($options['property'])) {
 						case "url": return $img->uri;
-						case "width": return $img->properties['width'];
-						case "height": return $img->properties['height'];
-						case "title": return attribute_escape($img->properties['title']);
-						case "alt": return attribute_escape($img->properties['alt']);
+						case "width": return $img->width;
+						case "height": return $img->height;
+						case "title": return esc_attr($img->title);
+						case "alt": return esc_attr($img->alt);
 						default: return $img->id;
 					}
 				}
-				if (!isset($options['class'])) $options['class'] = false;
-				if (!empty($options['class'])) $options['class'] = ' class="'.$options['class'].'"';
+				$thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
+				$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
+				$width = (isset($options['width']))?$options['width']:$thumbwidth;
+				$height = (isset($options['height']))?$options['height']:$thumbheight;
+				$scale = empty($options['resizing'])?false:array_search($options['resizing']);
+				$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
+				$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
+				$scaled = $img->scaled($width,$height,$scale);
 
-				$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
-
-				$width = (isset($options['width']))?$options['width']:$img->properties['width'];
-				$height = (isset($options['height']))?$options['height']:$img->properties['height'];
-
-				if (isset($options['width']) && !isset($options['height'])) {
-					$scale = $width/$img->properties['width'];
-					$height = round($img->properties['height']*$scale);
-				}
-				if (isset($options['height']) && !isset($options['width'])) {
-					$scale = $height/$img->properties['height'];
-					$width = round($img->properties['width']*$scale);
-				}
-
-				if (!empty($options['title'])) $title = ' title="'.attribute_escape($options['title']).'"';
-				$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$this->name);
-
+				$alt = empty($options['alt'])?$img->alt:$options['alt'];
+				$title = empty($options['title'])?$img->title:$options['title'];
+				$title = empty($title)?'':' title="'.esc_attr($title).'"';
+				$class = isset($options['class'])?' class="'.esc_attr($options['class']).'"':'';
+				
 				$string = "";
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-thickbox";
-				if (!empty($options['zoom'])) $string .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="'.$options['zoomfx'].'" rel="product-gallery">';
-				$string .= '<img src="'.$img->uri.'"'.$title.' alt="'.$alt.'" width="'.$width.'" height="'.$height.'" '.$options['class'].' />';
+				if (!empty($options['zoom'])) $string .= '<a href="'.$Shopp->imguri.$img->id.'/image.jpg" class="'.$options['zoomfx'].'" rel="product-gallery">';
+				$string .= '<img src="'.$Shopp->imguri.$img->id.'?'.$img->resizing($width,$height,$scale,$sharpen,$quality).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" '.$class.' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;
 			case "gallery":
 				if (empty($this->images)) $this->load_data(array('images'));
+				if (empty($this->images)) return false;
+				
+				$preview_width = $Shopp->Settings->get('gallery_small_width');
+				$preview_height = $Shopp->Settings->get('gallery_small_height');
+
+				if (!empty($options['p.size'])) {
+					$preview_width = $options['p.size'];
+					$preview_height = $options['p.size'];
+				}
+				$width = (isset($options['p.width']))?$options['p.width']:$preview_width;
+				$height = (isset($options['p.height']))?$options['p.height']:$preview_height;
+				
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-thickbox";
 				if (!isset($options['preview'])) $options['preview'] = "click";
 				
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
-				if (!empty($this->imagesets['small'])) {
-					foreach ($this->imagesets['small'] as $img) {
-						if ($firstPreview) {
-							$previews .= '<li id="preview-fill"'.(($firstPreview)?' class="fill"':'').'>';
-							$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="'.$img->datatype.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
-							$previews .= '</li>';
-						}
-						$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
-						$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$img->name);
-						$rel = (isset($options['rel']) && $options['rel'])?' rel="product_'.$this->id.'_gallery"':'';
-						
-						$previews .= '<li id="preview-'.$img->src.'"'.(($firstPreview)?' class="active"':'').'>';
-						$previews .= '<a href="'.$Shopp->imguri.$img->src.'/'.str_replace('small_','',$img->name).'" class="product_'.$this->id.'_gallery '.$options['zoomfx'].'"'.$rel.'>';
-						$previews .= '<img src="'.$Shopp->imguri.$img->id.'"'.$title.' alt="'.$alt.'" width="'.$img->properties['width'].'" height="'.$img->properties['height'].'" />';
-						$previews .= '</a>';
+				
+				foreach ($this->images as $img) {
+					$scale = empty($options['p.resizing'])?false:array_search($options['p.resizing']);
+					$sharpen = empty($options['p.sharpen'])?false:min($options['p.sharpen'],$img->_sharpen);
+					$quality = empty($options['p.quality'])?false:min($options['p.quality'],$img->_quality);
+					$scaled = $img->scaled($width,$height,$scale);
+					if ($firstPreview) {
+						$previews .= '<li id="preview-fill"'.(($firstPreview)?' class="fill"':'').'>';
+						$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="'.$img->datatype.'" width="'.$width.'" height="'.$height.'" />';
 						$previews .= '</li>';
-						$firstPreview = false;
 					}
+					$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
+					$alt = esc_attr(!empty($img->alt)?$img->alt:$img->filename);
+					$rel = (isset($options['rel']) && $options['rel'])?' rel="product_'.$this->id.'_gallery"':'';
+					
+					
+					$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="active"':'').'>';
+					$previews .= '<a href="'.$Shopp->imguri.$img->id.'/image.jpg" class="product_'.$this->id.'_gallery '.$options['zoomfx'].'"'.$rel.'>';
+					$previews .= '<img src="'.$Shopp->imguri.$img->id.'/?'.$img->resizing($width,$height,$scale,$sharpen,$quality).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
+					$previews .= '</a>';
+					$previews .= '</li>';
+					$firstPreview = false;
 				}
 				$previews .= '</ul>';
 
 				$thumbs = "";
-				if (isset($this->imagesets['thumbnail']) && count($this->imagesets['thumbnail']) > 1) {
+				if (count($this->images) > 1) {
 					$thumbsize = 32;
 					if (isset($options['thumbsize'])) $thumbsize = $options['thumbsize'];
 					$thumbwidth = $thumbsize;
 					$thumbheight = $thumbsize;
-					if (isset($options['thumbwidth'])) $thumbwidth = $options['thumbwidth'];
-					if (isset($options['thumbheight'])) $thumbheight = $options['thumbheight'];
+
+					$width = (isset($options['thumbwidth']))?$options['thumbwidth']:$thumbwidth;
+					$height = (isset($options['thumbheight']))?$options['thumbheight']:$thumbheight;
 
 					$firstThumb = true;
 					$thumbs = '<ul class="thumbnails">';
-					foreach ($this->imagesets['thumbnail'] as $img) {
-						if (isset($options['thumbwidth']) && !isset($options['thumbheight'])) {
-							$scale = $thumbwidth/$img->properties['width'];
-							$thumbheight = round($img->properties['height']*$scale);
-						}
+					foreach ($this->images as $img) {
+						$scale = empty($options['thumbresizing'])?false:array_search($options['thumbresizing']);
+						$sharpen = empty($options['thumbsharpen'])?false:min($options['thumbsharpen'],$img->_sharpen);
+						$quality = empty($options['thumbquality'])?false:min($options['thumbquality'],$img->_quality);
+						$scaled = $img->scaled($width,$height,$scale);
+						$scaled = $img->scaled($thumbwidth,$thumbheight);
 
-						if (isset($options['thumbheight']) && !isset($options['thumbwidth'])) {
-							$scale = $thumbheight/$img->properties['height'];
-							$thumbwidth = round($img->properties['width']*$scale);
-						}
+						$title = !empty($img->title)?' title="'.attribute_escape($img->title).'"':'';
+						$alt = attribute_escape(!empty($img->alt)?$img->alt:$img->name);
 
-						$title = !empty($img->properties['title'])?' title="'.attribute_escape($img->properties['title']).'"':'';
-						$alt = attribute_escape(!empty($img->properties['alt'])?$img->properties['alt']:$img->name);
-
-						$thumbs .= '<li id="thumbnail-'.$img->src.'" class="preview-'.$img->src.(($firstThumb)?' first':' test').'">';
-						$thumbs .= '<img src="'.$Shopp->imguri.$img->id.'"'.$title.' alt="'.$alt.'" width="'.$thumbwidth.'" height="'.$thumbheight.'" />';
+						$thumbs .= '<li id="thumbnail-'.$img->id.'" class="preview-'.$img->id.(($firstThumb)?' first':' test').'">';
+						$thumbs .= '<img src="'.$Shopp->imguri.$img->id.'?'.$img->resizing($thumbwidth,$thumbheight).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 						$thumbs .= '</li>';
 						$firstThumb = false;						
 					}

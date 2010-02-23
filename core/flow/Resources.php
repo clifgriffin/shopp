@@ -121,20 +121,16 @@ class Resources {
 
 		if (defined('WP_ADMIN')) {
 			$forbidden = false;
-			$Asset = new Asset($download);
+			$Download = new ProductDownload($download);
 		} else {
 			$Order = &ShoppOrder();
-			$db = DB::get();
-			$pricetable = DatabaseObject::tablename(Purchase::$table);			
-			$pricetable = DatabaseObject::tablename(Price::$table);			
-			$assettable = DatabaseObject::tablename(Asset::$table);			
 			
 			require_once(SHOPP_MODEL_PATH."/Purchased.php");
 			$Purchased = new Purchased($download,"dkey");
 			$Purchase = new Purchase($Purchased->purchase);
-			$target = $db->query("SELECT target.* FROM $assettable AS target LEFT JOIN $pricetable AS pricing ON pricing.id=target.parent AND target.context='price' WHERE pricing.id=$Purchased->price AND target.datatype='download'");
-			$Asset = new Asset();
-			$Asset->populate($target);
+			
+			$Download = new ProductDownload();
+			$Download->loadby_dkey($download);
 
 			$forbidden = false;
 			// Purchase Completion check
@@ -181,7 +177,7 @@ class Resources {
 			header("Status: 403 Forbidden");
 		}
 		
-		if ($Asset->download($download)) {
+		if ($Download->download()) {
 			$Purchased->downloads++;
 			$Purchased->save();
 			do_action_ref_array('shopp_download_success',array(&$Purchased));

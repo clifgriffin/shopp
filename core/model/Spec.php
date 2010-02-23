@@ -7,11 +7,11 @@
  * @version 1.0
  * @copyright Ingenesis Limited, 26 July, 2008
  * @package shopp
+ * @subpackage product
  **/
-
 class Spec extends MetaObject {
 	
-	function Spec ($id=false) {
+	function __construct ($id=false) {
 		$this->init(self::$table);
 		$this->load($id);
 		$this->context = 'product';
@@ -24,6 +24,6 @@ class Spec extends MetaObject {
 			$this->numeral = preg_replace('/^.*?(\d+[\.\,\d]*).*$/','$1',$this->value);
 	}
 
-} // end Spec class
+} // END class Spec
 
 ?>
