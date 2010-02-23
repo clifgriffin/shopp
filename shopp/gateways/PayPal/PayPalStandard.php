@@ -56,7 +56,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$this->buttonurl = sprintf($this->buttonurl, $this->settings['locale']);
 
 		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
-				
+		
 		add_action('shopp_txn_update',array(&$this,'updates'));
 				
 	}

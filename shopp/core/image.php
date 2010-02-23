@@ -10,7 +10,9 @@
  * @subpackage image
  **/
 
-require_once('DB.php');
+chdir(dirname(__FILE__));
+
+require_once(realpath('DB.php'));
 require_once('model/Error.php');
 require_once('model/Settings.php');
 require_once("model/Modules.php");

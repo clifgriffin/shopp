@@ -37,19 +37,21 @@ require("core/legacy.php");
 require_once("core/DB.php");
 require_once("core/model/Settings.php");
 
-if (isset($_GET['siid']) || 
-	preg_match('/images\/\d+/',$_SERVER['REQUEST_URI'])) 
-		require("core/image.php");
+// Serve images and bypass loading all of Shopp
+if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI'])) 
+	require("core/image.php");
+	
+// Serve the dynamic CSS and JS
 if (isset($_GET['src']) && $_GET['src'] == 'catalog.css') shopp_catalog_css();
 if (isset($_GET['src']) && $_GET['src'] == 'settings.js') 
 	shopp_settings_js(basename(dirname(__FILE__)));
 
-// Load super controllers and framework systems
+// Load super controllers
 require("core/flow/Flow.php");
 require("core/flow/Storefront.php");
 require("core/flow/Login.php");
 
-// Load Shopp-managed data model objects
+// Load frameworks & Shopp-managed data model objects
 require("core/model/Modules.php");
 require("core/model/Gateway.php");
 require("core/model/Lookup.php");
@@ -392,7 +394,7 @@ class Shopp {
 		$corepath = array(PLUGINDIR,$this->directory,'core');
 
 		// Add mod_rewrite rule for image server for low-resource, speedy delivery
-		add_rewrite_rule('.*/images/(\d+)/?.*?$',join('/',$corepath).'/image.php?siid=$1');
+		add_rewrite_rule('.*/images/(\d+)[/\?]?(.*?)$',join('/',$corepath).'/image.php?siid=$1&$2');
 
 		return $rules + $wp_rewrite_rules;
 	}

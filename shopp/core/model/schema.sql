@@ -22,6 +22,7 @@ CREATE TABLE <?php echo $product; ?> (
 	featured enum('off','on') NOT NULL,
 	variations enum('off','on') NOT NULL,
 	options text NOT NULL,
+	priority int(10) NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
@@ -62,20 +63,6 @@ CREATE TABLE <?php echo $price; ?> (
 	KEY context (context)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-<?php $spec = DatabaseObject::tablename('spec'); ?>
-DROP TABLE IF EXISTS <?php echo $spec; ?>;
-CREATE TABLE <?php echo $spec; ?> (
-	id bigint(20) unsigned NOT NULL auto_increment,
-	product bigint(20) unsigned NOT NULL default '0',
-	name varchar(255) NOT NULL default '',
-	content text NOT NULL,
-	numeral float(20,4) NOT NULL default '0.0000',
-	sortorder int(10) unsigned NOT NULL default '0',
-	PRIMARY KEY id (id),
-	KEY product (product,name),
-	FULLTEXT name (name,content)
-) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
-
 <?php $meta = DatabaseObject::tablename('meta'); ?>
 DROP TABLE IF EXISTS <?php echo $meta; ?>;
 CREATE TABLE <?php echo $meta; ?> (
@@ -111,6 +98,7 @@ CREATE TABLE <?php echo $category; ?> (
 	specs text NOT NULL,
 	options text NOT NULL,
 	prices text NOT NULL,
+	priority int(10) NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
@@ -138,33 +126,17 @@ CREATE TABLE <?php echo $catalog; ?> (
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
 	KEY product (product),
-	KEY category (category),
-	KEY tag (tag)
+	KEY category (category,product),
+	KEY tag (tag,product)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $asset = DatabaseObject::tablename('asset'); ?>
 DROP TABLE IF EXISTS <?php echo $asset; ?>;
 CREATE TABLE <?php echo $asset; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
-	parent bigint(20) unsigned NOT NULL default '0',
-	context enum('product','price','category') NOT NULL default 'product',
-	src bigint(20) unsigned NOT NULL default '0',
-	name varchar(255) NOT NULL default '',
-	value varchar(255) NOT NULL default '',
-	properties text NOT NULL,
-	size bigint(20) unsigned NOT NULL default '0',
 	data longblob NOT NULL,
-	datatype enum('metadata','image','small','thumbnail','download') NOT NULL default 'metadata',
-	sortorder int(10) unsigned NOT NULL default '0',
-	created datetime NOT NULL default '0000-00-00 00:00:00',
-	modified datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY id (id),
-	KEY parent (parent,context),
-	KEY src (src)
+	PRIMARY KEY id (id)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
-
-<?php $cart = DatabaseObject::tablename('cart'); ?>
-DROP TABLE IF EXISTS <?php echo $cart; ?>;
 
 <?php $shopping = DatabaseObject::tablename('shopping'); ?>
 DROP TABLE IF EXISTS <?php echo $shopping; ?>;
@@ -195,7 +167,8 @@ CREATE TABLE <?php echo $customer; ?> (
 	info longtext NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY id (id)
+	PRIMARY KEY id (id),
+	KEY wordpress (wpuser)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $shipping = DatabaseObject::tablename('shipping'); ?>

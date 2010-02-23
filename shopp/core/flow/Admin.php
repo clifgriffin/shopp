@@ -264,14 +264,19 @@ class AdminFlow extends FlowController {
 		<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
 		<?php
 	}
-	
+
+	/**
+	 * Determines if a database schema upgrade is required
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function dbupgraded () {
-		global $Shopp;
-		$db = &DB::get();
-		$db_version = $Shopp->Settings->get('db_version');
-		
-		if ($db_version != $db->version)
-			return false;
+		$Settings = &ShoppSettings();
+		$db_version = $Settings->get('dbschema_version');
+		if ($db_version != DB::$schema)	return false;
 		return true;
 	}
 	
