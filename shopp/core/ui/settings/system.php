@@ -10,23 +10,25 @@
 		<table class="form-table"> 
 			<tr>
 				<th scope="row" valign="top"><label for="image-storage"><?php _e('Image Storage','Shopp'); ?></label></th> 
-				<td><select name="settings[image_storage_pref]" id="image-storage">
-					<?php echo menuoptions($filesystems,$this->Settings->get('image_storage_pref'),true); ?>
+				<td><select name="settings[image_storage]" id="image-storage">
+					<?php echo menuoptions($storage,$this->Settings->get('image_storage'),true); ?>
 					</select>
-					<p id="image-path-settings">
+					<div id="image-storage-engine" class="storage-settings"></div>
+					<!-- <p id="image-path-settings">
 						<input type="text" name="settings[image_path]" id="image-path" value="<?php echo attribute_escape($this->Settings->get('image_path')); ?>" size="40" /><br class="clear" />
 						<label for="image-path"><?php echo $imagepath_status; ?></label>
-					</p>
+					</p> -->
 	            </td>
 			</tr>			
 			<tr>
 				<th scope="row" valign="top"><label for="product-storage"><?php _e('Product File Storage','Shopp'); ?></label></th> 
-				<td><select name="settings[product_storage_pref]" id="product-storage">
-					<?php echo menuoptions($filesystems,$this->Settings->get('product_storage_pref'),true); ?>
+				<td><select name="settings[product_storage]" id="product-storage">
+					<?php echo menuoptions($storage,$this->Settings->get('product_storage'),true); ?>
 					</select>
-					<p id="products-path-settings"><input type="text" name="settings[products_path]" id="products-path" value="<?php echo attribute_escape($this->Settings->get('products_path')); ?>" size="40" /><br class="clear" />
+					<div id="product-storage-engine" class="storage-settings"></div>
+					<!-- <p id="products-path-settings"><input type="text" name="settings[products_path]" id="products-path" value="<?php echo attribute_escape($this->Settings->get('products_path')); ?>" size="40" /><br class="clear" />
 						<label for="products-path"><?php echo $productspath_status; ?></label>
-						</p>
+						</p> -->
 	            </td>
 			</tr>
 			<tr class="form-required"> 
@@ -74,26 +76,60 @@
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>System_Settings";
 
-(function($){
+jQuery(document).ready(function() {
+	var $ = jQuery.noConflict();
+	
+	var handlers = new CallbackRegistry();
+	handlers.options = {};
+	handlers.enabled = [];
+	handlers.register = function (name,object) {
+		this.callbacks[name] = function () {object['storage']();}
+		this.options[name] = object;
+	}
+	
+	handlers.call = function(id,setting,name,arg1,arg2,arg3) {
+		var module = this.options[name];
+		module.element = $(id);
+		module.setting = setting;
+		this.callbacks[name](arg1,arg2,arg3);
+		module.behaviors();
+	}
+
+	<?php do_action('storage_module_settings'); ?>
 	
 	$('#image-storage').change(function () {
-		$('#image-path-settings').slideToggle(300);
-	});
-	
-	$('#image-storage').ready(function () {
-		if ($('#image-storage').val() == 'db') $('#image-path-settings').hide();
-	});
+		var module = $(this).val();
+		var selected = $('#image-storage :selected');
+		$('#image-storage-engine').empty();
+		handlers.call('#image-storage-engine','image',module);
+	}).change();
 
 	$('#product-storage').change(function () {
-		$('#products-path-settings').slideToggle(300);
-	});
+		var module = $(this).val();
+		var selected = $('#product-storage :selected');
+		$('#product-storage-engine').empty();
+		handlers.call('#product-storage-engine','download',module);
+	}).change();
 	
-	$('#product-storage').ready(function () {
-		if ($('#product-storage').val() == 'db') $('#products-path-settings').hide();
-	});
+	
+	// $('#image-storage').change(function () {
+	// 	$('#image-path-settings').slideToggle(300);
+	// });
+	// 
+	// $('#image-storage').ready(function () {
+	// 	if ($('#image-storage').val() == 'db') $('#image-path-settings').hide();
+	// });
+	// 
+	// $('#product-storage').change(function () {
+	// 	$('#products-path-settings').slideToggle(300);
+	// });
+	// 
+	// $('#product-storage').ready(function () {
+	// 	if ($('#product-storage').val() == 'db') $('#products-path-settings').hide();
+	// });
 	
 	$('#errorlog').scrollTop($('#errorlog').attr('scrollHeight'));
 
-})(jQuery);
+});
 
 </script>

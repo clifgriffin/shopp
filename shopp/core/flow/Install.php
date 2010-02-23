@@ -450,13 +450,67 @@ class ShoppInstallation extends FlowController {
 		$meta_table = DatabaseObject::tablename('meta');
 		$spec_table = DatabaseObject::tablename('spec');
 		$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
-					SELECT product,'product','spec',name,content,numeral,sortorder,now(),now() FROM $spec_table");
+					SELECT product,'product','spec',name,content,numeral,sortorder,created,modified FROM $spec_table");
 					
 
 		// Update purchase table
 		$purchase_table = DatabaseObject::tablename('purchase');
 		$db->query("UPDATE $purchase_table SET txnid=transactionid,txnstatus=transtatus");
 
+		// Update image assets
+		$meta_table = DatabaseObject::tablename('meta');
+		$asset_table = DatabaseObject::tablename('asset');
+		$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
+							SELECT parent,context,'image','processing',CONCAT_WS('::',name,value,size,properties,LENGTH(data)),'0',sortorder,created,modified FROM $asset_table WHERE datatype='image'");
+		$records = $db->query("SELECT id,value FROM $meta_table WHERE type='image' AND name='processing'",AS_ARRAY);
+		foreach ($records as $r) {
+			list($name,$value,$size,$properties,$datasize) = explode("::",$r->value);
+			$p = unserialize($properties);
+			$value = new StdClass();
+			$value->width = $p['width'];
+			$value->height = $p['height'];
+			$value->alt = $p['alt'];
+			$value->title = $p['title'];
+			$value->filename = $name;
+			$value->mime = $p['mimetype'];
+			$value->size = $size;
+			if ($datasize > 0) {
+				$value->storage = "DBStorage";
+				$value->uri = $r->id;
+			} else {
+				$value->storage = "FSStorage";
+				$value->uri = $name;
+			}
+			$value = mysql_real_escape_string(serialize($value));
+			$db->query("UPDATE $meta_table set name='original',value='$value' WHERE id=$r->id"); 			
+		}
+		
+		// Update product downloads
+		$meta_table = DatabaseObject::tablename('meta');
+		$asset_table = DatabaseObject::tablename('asset');
+		$query = "INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
+					SELECT parent,context,'download','processing',CONCAT_WS('::',name,value,size,properties,LENGTH(data)),'0',sortorder,created,modified FROM $asset_table WHERE datatype='download' AND parent != 0";
+		$db->query($query);
+		$records = $db->query("SELECT id,value FROM $meta_table WHERE type='download' AND name='processing'",AS_ARRAY);
+		foreach ($records as $r) {
+			list($name,$value,$size,$properties,$datasize) = explode("::",$r->value);
+			$p = unserialize($properties);
+			$value = new StdClass();
+			$value->filename = $name;
+			$value->mime = $p['mimetype'];
+			$value->size = $size;
+			if ($datasize > 0) {
+				$value->storage = "DBStorage";
+				$value->uri = $r->id;
+			} else {
+				$value->storage = "FSStorage";
+				$value->uri = $name;
+			}
+			$value = mysql_real_escape_string(serialize($value));
+			$db->query("UPDATE $meta_table set name='$name',value='$value' WHERE id=$r->id");
+		}
+		
+		
 		$this->Settings->save('db_version',$db->version);
 	}
 

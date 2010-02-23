@@ -347,15 +347,18 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #payment-settings td button.deleteRate { position: absolute; right: 5px; }
 #payment-settings table th, #payment-settings table td { border: none; padding: 2px; }
 
+div.storage-settings { clear: both; margin-top: 8px; }
+
 #help { list-style-type: none; padding: 0; }
 #help h3 { margin-bottom: 0; }
 #help p { margin-top: 0; margin-bottom: 15px; }
 #contextual-help-wrap table.advsearch { border-top: 1px solid #ddd; }
 #contextual-help-wrap table.advsearch td { width: 150px; font-size: 11px; vertical-align: top; border-bottom: 1px solid #ddd; }
+
+
 /**
  * Debug Console
  **/
-
 #debug.shopp { position: absolute; left: 25%; top: 100px; width: 50%; margin: 0 auto; height: 300px; overflow-y: auto; background: #fff; border: 5px solid #999; text-align: left; padding: 0 10px; font: 12px/1 "Lucida Grande",monospace; z-index: 100; }
 #debug.shopp.overlay { position: absolute; width: 100%; height: 100%; background: #000; top: 0; left: 0; padding: 0; opacity: 0.8; border: none; }
 #debug.shopp h3 { font: bold 15px/1 "Lucida Grande",monospace;  }

@@ -11,9 +11,36 @@
  * @subpackage gateways
  **/
 
+/**
+ * GatewayModule interface
+ * 
+ * Provides a template for required gateway methods
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage gateways
+ **/
 interface GatewayModule {
 	
+	/**
+	 * Used for setting up event listeners
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	public function actions();
+	
+	/**
+	 * Used for rendering the gateway settings UI
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	public function settings();
 	
 }
@@ -30,13 +57,23 @@ interface GatewayModule {
  **/
 abstract class GatewayFramework {
 	
-	var $Order = false;
-	var $name = false;
-	var $cards = false;
-	var $secure = true;
-	var $multi = false;
-	var $settings = array();
+	var $Order = false;			// The current customer's Order
+	var $name = false;			// The proper name of the gateway
+	var $cards = false;			// A list of supported payment cards
+	var $secure = true;			// Flag for requiring encrypted checkout process
+	var $multi = false;			// Flag to enable a multi-instance gateway
+	var $settings = array();	// List of settings for the module
 	
+	/**
+	 * Setup the module for runtime
+	 * 
+	 * Auto-loads settings for the module and setups defaults
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function __construct () {
 		global $Shopp;
 		$this->Order = &ShoppOrder();
@@ -48,6 +85,16 @@ abstract class GatewayFramework {
 		if ($this->myorder()) $this->actions();
 	}
 
+	/**
+	 * Generate the settings UI for the module
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $module The module class name
+	 * @param string $name The formal name of the module
+	 * @return void
+	 **/
 	function setupui ($module,$name) {
 		if (!isset($this->settings['label'])) $this->settings['label'] = $name;
 		$this->ui = new ModuleSettingsUI('payment',$module,$name,$this->settings['label'],$this->multi);
@@ -71,14 +118,41 @@ abstract class GatewayFramework {
 				$this->settings[$name] = false;
 	}
 	
+	/**
+	 * Determine if the current order should be processed by this module
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function myorder () {
 		return ($this->Order->processor == $this->module);
 	}
 	
+	/**
+	 * Generate a unique transaction ID using a timestamp
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return string
+	 **/
 	function txnid () {
 		return mktime();
 	}
 	
+	/**
+	 * Generic connection manager for sending data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $data The encoded data to send
+	 * @param string $url The URL to connect to
+	 * @param string $port (optional) Connect to a specific port
+	 * @return void Description...
+	 **/
 	function send ($data,$url,$port=false) {
 		$connection = curl_init();
 		curl_setopt($connection,CURLOPT_URL,"$url".($port?":$port":""));
@@ -103,6 +177,15 @@ abstract class GatewayFramework {
 		
 	}
 	
+	/**
+	 * Helper to encode a data structure into a URL-compatible format
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $data Key/value pairs of data to encode
+	 * @return string
+	 **/
 	function encode ($data) {
 		$query = "";
 		foreach($data as $key => $value) {
@@ -119,6 +202,15 @@ abstract class GatewayFramework {
 		return $query;
 	}
 	
+	/**
+	 * Formats a data structure into POST-able form elements
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $data Key/value pairs of data to format into form elements
+	 * @return string
+	 **/
 	function format ($data) {
 		$query = "";
 		foreach($data as $key => $value) {
@@ -131,7 +223,15 @@ abstract class GatewayFramework {
 		}
 		return $query;
 	}
-		
+	
+	/**
+	 * Loads the enabled payment cards
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	private function _loadcards () {
 		if (empty($this->settings['cards'])) $this->settings['cards'] = $this->cards;
 		if ($this->cards) {
@@ -145,7 +245,7 @@ abstract class GatewayFramework {
 		}
 	}
 	
-} // end Gateway class
+} // END class GatewayFramework
 
 
 /**
@@ -203,6 +303,15 @@ class GatewayModules extends ModuleLoader {
 		return $this->activated;
 	}
 	
+	/**
+	 * Sets Gateway system settings flags based on activated modules
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $module Activated module class name
+	 * @return void
+	 **/
 	function properties ($module) {
 		if (!isset($this->active[$module])) return;
 		$this->active[$module]->name = $this->modules[$module]->name;
@@ -221,13 +330,32 @@ class GatewayModules extends ModuleLoader {
 		$this->load(true);
 	}
 	
+	/**
+	 * Initializes the settings UI for each loaded module
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function ui () {
 		foreach ($this->active as $package => &$module)
 			$module->setupui($package,$this->modules[$package]->name);
 	}
 	
-}
+} // END class GatewayModules
 
+/**
+ * PayCard classs
+ * 
+ * Implements structured payment card (credit card) behaviors including 
+ * card number validation and extra security field requirements.
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage gateways
+ **/
 class PayCard {
 	
 	var $name;

@@ -370,8 +370,9 @@ abstract class DatabaseObject {
 				$this->_datatypes = $Tables[$this->_table]->_datatypes;
 				$this->_lists = $Tables[$this->_table]->_lists;
 				foreach($this->_datatypes as $property => $type) {
-					$this->{$property} = (isset($this->_defaults[$property]))?
-						$this->_defaults[$property]:'';
+					if (!isset($this->{$property}))
+						$this->{$property} = (isset($this->_defaults[$property]))?
+							$this->_defaults[$property]:'';
 					if (empty($this->{$property}) && $type == "date")
 						$this->{$property} = null;
 				}
@@ -384,7 +385,8 @@ abstract class DatabaseObject {
 		// Map out the table definition into our data structure
 		foreach($r as $object) {	
 			$property = $object->Field;
-			$this->{$property} = $object->Default;
+			if (!isset($this->{$property}))
+				$this->{$property} = $object->Default;
 			$this->_datatypes[$property] = $db->datatype($object->Type);
 			$this->_defaults[$property] = $object->Default;
 			
@@ -608,12 +610,10 @@ abstract class DatabaseObject {
 	 * @param string $prefix (optional) A property prefix
 	 * @return void
 	 **/
-	function copydata ($Object,$prefix="",$ignores=false) {
+	function copydata ($Object,$prefix="",$ignores=array("_datatypes","_table","_key","_lists","id","created","modified")) {
 		$db = &DB::get();
 
-		if ($ignores === false)
-			$ignores = array("_datatypes","_table","_key","_lists","id","created","modified");
-
+		if ($ignores === false) $ignored = array();
 		foreach(get_object_vars($Object) as $property => $value) {
 			$property = $prefix.$property;
 			if (property_exists($this,$property) && 

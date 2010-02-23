@@ -4,7 +4,7 @@
 	<h2><?php _e('Product Editor','Shopp'); ?></h2> 
 
 	<div id="ajax-response"></div> 
-	<form name="product" id="product" action="<?php echo $Shopp->wpadminurl; ?>admin.php" method="post">
+	<form name="product" id="product" action="<?php echo admin_url('admin.php'); ?>" method="post">
 		<?php wp_nonce_field('shopp-save-product'); ?>
 
 		<div id="poststuff" class="metabox-holder has-right-sidebar">

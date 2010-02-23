@@ -125,27 +125,21 @@ function details_meta_box ($Product) {
 add_meta_box('product-details-box', __('Details &amp; Specs','Shopp'), 'details_meta_box', 'shopp_page_shopp-products', 'normal', 'core');
 
 function images_meta_box ($Product) {
-	$db =& DB::get();
-	if ($Product->id) {
-		$Assets = new Asset();
-		$Images = $db->query("SELECT id,src,properties FROM $Assets->_table WHERE context='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
-		unset($Assets);
-	}
-	if (!isset($Images)) $Images = array();
+	global $ProductImages;
 ?>
 	<ul id="lightbox">
-	<?php foreach ($Images as $i => $thumbnail): $thumbnail->properties = unserialize($thumbnail->properties); ?>
-		<li id="image-<?php echo $thumbnail->src; ?>"><input type="hidden" name="images[]" value="<?php echo $thumbnail->src; ?>" />
-			<div id="image-<?php echo $thumbnail->src; ?>-details">
-			<img src="?shopp_image=<?php echo $thumbnail->id; ?>" width="96" height="96" />
+	<?php foreach ($ProductImages as $i => $Image): ?>
+		<li id="image-<?php echo $Image->id; ?>"><input type="hidden" name="images[]" value="<?php echo $Image->id; ?>" />
+			<div id="image-<?php echo $Image->id; ?>-details">
+			<img src="?siid=<?php echo $Image->id; ?>&amp;<?php echo $Image->resizing(96,0,1); ?>" width="96" height="96" />
 				<div class="details">
-					<input type="hidden" name="imagedetails[<?php echo $i; ?>][id]" value="<?php echo $thumbnail->id; ?>" />
-					<p><label>Title: </label><input type="text" name="imagedetails[<?php echo $i; ?>][title]" value="<?php echo $thumbnail->properties['title']; ?>" /></p>
-					<p><label>Alt: </label><input type="text" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $thumbnail->properties['alt']; ?>" /></p>
+					<input type="hidden" name="imagedetails[<?php echo $i; ?>][id]" value="<?php echo $Image->id; ?>" />
+					<p><label>Title: </label><input type="text" name="imagedetails[<?php echo $i; ?>][title]" value="<?php echo $Image->title; ?>" /></p>
+					<p><label>Alt: </label><input type="text" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $Image->alt; ?>" /></p>
 					<p class="submit"><input type="button" name="close" value="Close" class="button close" /></p>
 				</div>
 			</div>
-			<button type="button" name="deleteImage" value="<?php echo $thumbnail->src; ?>" title="Delete product image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
+			<button type="button" name="deleteImage" value="<?php echo $Image->id; ?>" title="Delete product image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
 	<?php endforeach; ?>
 	</ul>
 	<div class="clear"></div>
@@ -156,7 +150,6 @@ function images_meta_box ($Product) {
 		<button type="button" name="image_upload" id="image-upload" class="button-secondary"><small><?php _e('Add New Image','Shopp'); ?></small></button><br class="clear"/>
 	</div>
 		
-	<p><?php _e('Images shown here will be out of proportion, but will be correctly sized for shoppers.','Shopp'); ?><br />
 	<?php _e('Double-click images to edit their details. Save the product to confirm deleted images.','Shopp'); ?></p>
 <?php
 }

@@ -9,129 +9,203 @@
  * @package shopp
  **/
 
-class Asset extends DatabaseObject {
-	static $table = "asset";
-	
-	var $storage = "db";
-	var $path = "";
-	
-	function Asset ($id=false,$key=false) {
+class FileAsset extends MetaObject {
+
+	var $mime;
+	var $size;
+	var $storage;
+	var $uri;
+	var $context = 'product';
+	var $type = 'asset';
+	var $_xcols = array('mime','size','storage','uri');
+
+	function __construct ($id=false) {
+		global $Shopp;
 		$this->init(self::$table);
-		if ($this->load($id,$key)) return true;
-		else return false;
+		$this->extensions();
+		if (!$id) return;
+		$this->load($id);
+
+	}
+		
+	function load ($id) {
+		if (is_array($id)) parent::load($id);
+		parent::load(array('id'=>$id,'type'=>$this->type));
+		if (empty($this->id)) return false;
+		$this->expopulate();
 	}
 	
-	function setstorage ($type=false) {
+	function expopulate () {
+		if (is_object($this->value)) {
+			$properties = $this->value;
+			unset($this->value);
+			$this->copydata($properties);
+		}
+	}
+	
+	function save () {
+		$this->value = new stdClass();
+		foreach ($this->_xcols as $col)
+			$this->value->{$col} = $this->{$col};
+		parent::save();
+	}
+	
+	function store ($data,$type='binary') {
+		$Engine = $this->_engine();
+		if ($type=='file') {
+			if (!is_readable($data)) die("Could not read the file.");
+			$data = file_get_contents($data);
+		}
+		$this->uri = $Engine->save($data,$this);
+		if ($this->uri === false) return false;
+	}
+	
+	function retrieve () {
+		$Engine = $this->_engine();
+		return $Engine->load($this->uri);
+	}
+	
+	function notfound () {
+		$Engine = $this->_engine();
+		return (!$Engine->exists($this->uri));
+	}
+	
+	function &_engine () {
 		global $Shopp;
-		chdir(WP_CONTENT_DIR); // relative path context for realpath
-		if (!$type) $type = $this->datatype;
-		switch ($type) {
-			case "image":
-			case "small":
-			case "thumbnail":
-				$this->storage = $Shopp->Settings->get('image_storage');
-				$this->path = trailingslashit(sanitize_path(realpath($Shopp->Settings->get('image_path'))));
+
+		if (!empty($this->storage)) {
+			// Use the storage engine setting of the asset
+			if (isset($Shopp->Storage->active[$this->storage])) {
+				$Engine = $Shopp->Storage->active[$this->storage];
+			} else {
+				$Module = new ModuleFile(SHOPP_PATH."/storage/",$this->storage.".php");
+				$Engine = $Module->load();
+			}
+		} elseif (isset($Shopp->Storage->engines[$this->type])) {
+			// Pick storage engine from Shopp-loaded engines by type of asset
+			$engine = $Shopp->Storage->engines[$this->type];
+			$this->storage = $engine;
+			$Engine = $Shopp->Storage->active[$engine];
+		}
+		if (!empty($Engine)) $Engine->context($this->type);
+		
+		return $Engine;
+	}
+	
+	function extensions () {}
+	
+} // END class FileAsset
+
+class ImageAsset extends FileAsset {
+	
+	// Allowable settings
+	var $_scaling = array('fit','mattedfit','crop','width','height');
+	var $_sharpen = 500;
+	var $_quality = 100;
+
+	var $width;
+	var $height;
+	var $alt;
+	var $title;
+	var $filename;
+	var $type = 'image';
+	
+	function output () {
+		if (isset($this->data)) {
+			echo $this->data;
+			return;
+		}
+		$Engine = $this->_engine();
+		$Engine->output($this->uri);
+	}
+
+	function scaled ($width,$height,$fit='fit') {
+		$d = array('width'=>$this->width,'height'=>$this->height);
+		switch ($fit) {
+			case "width": return $this->scaledWidth($width,$height); break;
+			case "height": return $this->scaledHeight($width,$height); break;
+			case "crop":
+			case "mattedfit":
+				$d['width'] = $width;
+				$d['height'] = $height;
 				break;
-			case "download":
-				$this->storage = $Shopp->Settings->get('product_storage');
-				$this->path = trailingslashit(sanitize_path(realpath($Shopp->Settings->get('products_path'))));
+			case "fit":
+			default:
+				if ($this->width > $this->height) return $this->scaledWidth($width,$height);
+				else return $this->scaledHeight($width,$height);
 				break;
 		}
+		
+		return $d;
+	}
+	
+	function scaledWidth ($width,$height) {
+		$d = array('width'=>$this->width,'height'=>$this->height);
+		$scale = $width / $this->width;
+		$d['width'] = $width;
+		$d['height'] = ceil($this->height * $scale);
+		return $d;
+	}
+	
+	function scaledHeight ($width,$height) {
+		$d = array('width'=>$this->width,'height'=>$this->height);
+		$scale = $height / $this->height;
+		$d['height'] = $height;
+		$d['width'] = ceil($this->width * $scale);
+		return $d;
 	}
 	
 	/**
-	 * Save a record, updating when we have a value for the primary key,
-	 * inserting a new record when we don't */
-	function save () {
-		$db =& DB::get();
+	 * Generate a resizing request message
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function resizing ($width,$height,$scale=false,$sharpen=false,$quality=false) {
+		$key = (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '')?SECRET_AUTH_KEY:DB_PASSWORD;
+		$args = func_get_args();
 		
-		$data = $db->prepare($this);
-		$id = $this->{$this->_key};
-
-		$this->setstorage();
-	
-		// Hook for outputting files to filesystem
-		if ($this->storage == "fs") {
-			if (!$this->savefile()) return false;
-			unset($data['data']); // Keep from duplicating data in DB
-		}
-
-		// Update record
-		if (!empty($id)) {
-			if (isset($data['modified'])) $data['modified'] = "now()";
-			$dataset = $this->dataset($data);
-			$db->query("UPDATE $this->_table SET $dataset WHERE $this->_key=$id");
-			return true;
-		// Insert new record
-		} else {
-			if (isset($data['created'])) $data['created'] = "now()";
-			if (isset($data['modified'])) $data['modified'] = "now()";
-			$dataset = $this->dataset($data);
-			$this->id = $db->query("INSERT $this->_table SET $dataset");
-			return $this->id;
-		}
+		$message = '';
+		foreach ($args as $arg) $message .= (!empty($message) && !empty($arg))?",$arg":$arg;
+		$validation = crc32($key.$this->id.','.$message);
+		$message .= ",$validation";
+		return $message;
 	}
 	
-	function savedata ($file) {
-		$db =& DB::get();
-
-		$id = $this->{$this->_key};
-		if (!$id) return false;
-		
-		$handle = fopen($file, "r");
-		while (!feof($handle)) {
-			$buffer = mysql_real_escape_string(fread($handle, 65535));
-			$query = "UPDATE $this->_table SET data=CONCAT(data,'$buffer') WHERE $this->_key=$id";
-			$db->query($query);
-		}
-		fclose($handle);
+	function extensions () {
+		array_push($this->_xcols,'filename','width','height','alt','title');
 	}
+}
+
+class ProductImage extends ImageAsset {
+	var $context = 'product';
+}
+
+class CategoryImage extends ImageAsset {
+	var $context = 'category';
+}
+
+class DownloadAsset extends FileAsset {
 	
-	function savefile () {
-		if (empty($this->data)) return true;
-		if (file_put_contents($this->path.$this->name,stripslashes($this->data)) > 0) return true;
-		return false;
-	}
+	var $type = 'download';
+	var $context = 'product';
+	var $etag = "";
 	
-	function deleteset ($keys,$type="image") {
-		$db =& DB::get();
-
-		if ($type == "image") $this->setstorage('image');
-		if ($type == "download") $this->setstorage('download');
-
-		if ($this->storage == "fs")	$this->deletefiles($keys);
-
-		$selection = "";
-		foreach ($keys as $value) 
-			$selection .= ((!empty($selection))?" OR ":"")."{$this->_key}=$value OR src=$value";
-
-		$query = "DELETE LOW_PRIORITY FROM $this->_table WHERE $selection";
-		$db->query($query);
-	}
-
-	/** 
-	 * deletefiles ()
-	 * Remove files from the file system only when 1 reference to the file exists
-	 * in file references in the database, otherwise, leave them **/
-	function deletefiles ($keys) {
-		$db =& DB::get();
-		
-		$selection = "";
-		foreach ($keys as $value) 
-			$selection .= ((!empty($selection))?" OR ":"")."f.{$this->_key}=$value OR f.src=$value";
-
-		$query = "SELECT f.name,count(DISTINCT links.id) AS refs FROM $this->_table AS f LEFT JOIN $this->_table AS links ON f.name=links.name WHERE $selection GROUP BY links.name";
-		$files = $db->query($query,AS_ARRAY);
-
-		foreach ($files as $file)
-			if ($file->refs == 1 && file_exists($this->path.$file->name))
-				unlink($this->path.$file->name);
-
-		return true;
+	function loadby_dkey ($key) {
+		$db = &DB::get();
+		require_once(SHOPP_MODEL_PATH."/Purchased.php");
+		$pricetable = DatabaseObject::tablename(Price::$table);
+		$Purchased = new Purchased($key,"dkey");
+		$Purchase = new Purchase($Purchased->purchase);
+		$record = $db->query("SELECT download.* FROM $this->_table AS download LEFT JOIN $pricetable AS pricing ON pricing.id=download.parent WHERE pricing.id=$Purchased->price AND download.context='price' AND download.type='download' LIMIT 1");
+		$this->populate($record);
+		$this->expopulate();
+		$this->etag = $key;
 	}
 	
 	function download ($dkey=false) {
-		$this->setstorage('download');
 		// Close the session in case of long download
 		@session_write_close();
 
@@ -147,67 +221,156 @@ class Asset extends DatabaseObject {
 		header("Content-type: application/octet-stream"); 
 		header("Content-Disposition: attachment; filename=\"".$this->name."\""); 
 		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
-
-		// File System based download - handles very large files, supports resumable downloads
-		if ($this->storage == "fs") {
-			if (!empty($this->value)) $filepath = join("/",array($this->path,$this->value,$this->name));
-			else $filepath = join("/",array($this->path,$this->name));
-
-			if (!is_file($filepath)) {
-				header("Status: 404 Forbidden");  // File not found?!
-				return false;
-			}
-
-			$size = @filesize($filepath);
-			
-			// Handle resumable downloads
-			if (isset($_SERVER['HTTP_RANGE'])) {
-				list($units, $reqrange) = explode('=', $_SERVER['HTTP_RANGE'], 2);
-				if ($units == 'bytes') {
-					// Use first range - http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt
-					list($range, $extra) = explode(',', $reqrange, 2);
-				} else $range = '';
-			} else $range = '';
-			
-			// Determine download chunk to grab
-		    list($start, $end) = explode('-', $range, 2);
-			
-		    // Set start and end based on range (if set), or set defaults
-		    // also check for invalid ranges.
-		    $end = (empty($end)) ? ($size - 1) : min(abs(intval($end)),($size - 1));
-		    $start = (empty($start) || $end < abs(intval($start))) ? 0 : max(abs(intval($start)),0);
-
-	        // Only send partial content header if downloading a piece of the file (IE workaround)
-	        if ($start > 0 || $end < ($size - 1)) header('HTTP/1.1 206 Partial Content');
-
-	        header('Accept-Ranges: bytes');
-	        header('Content-Range: bytes '.$start.'-'.$end.'/'.$size);
-		    header('Content-length: '.($end-$start+1)); 
-
-			// WebKit/Safari resumable download support headers
-		    header('Last-modified: '.date('D, d M Y H:i:s O',$this->modified)); 
-			if (isset($dkey)) header('ETag: '.$dkey);
-
-			$file = fopen($filepath, 'rb');
-			fseek($file, $start);
-			$packet = 1024*1024;
-			while(!feof($file)) {
-				if (connection_status() !== 0) return false;
-				$buffer = fread($file,$packet);
-				if (!empty($buffer)) echo $buffer;
-				ob_flush(); flush();
-			}
-			fclose($file);
-			return true;
-		} else {
-			// Database file download - short and sweet
-			header ("Content-length: ".$this->size); 
-			echo $this->data;
-			return true;
-		}
+		$this->send();
 		
+		return true;
 	}
 	
-} // end Asset class
+	function send () {
+		$Engine = $this->_engine();
+		$Engine->output($this->uri,$this->etag);
+	}
+	
+
+}
+
+class ProductDownload extends DownloadAsset {
+	var $context = 'product';
+}
+
+/**
+ * StorageEngines class
+ * 
+ * Storage engine file manager to load storage engines that are active.
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage storage
+ **/
+class StorageEngines extends ModuleLoader {
+	
+	var $engines = array();
+	var $activate = false;
+	
+	/**
+	 * Initializes the shipping module loader
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
+	function __construct () {
+		$this->path = SHOPP_STORAGE;
+		$this->installed();
+		$this->activated();
+		$this->load();
+	}
+	
+	/**
+	 * Determines the activated storage engine modules
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return array List of module names for the activated modules
+	 **/
+	function activated () {
+		global $Shopp;
+	
+		$this->activated = array();
+
+		$systems = array();
+		$systems['image'] = $Shopp->Settings->get('image_storage');
+		$systems['download'] = $Shopp->Settings->get('download_storage');
+		
+		foreach ($systems as $system => $storage) {
+			foreach ($this->modules as $engine) {
+				if ($engine->subpackage == $storage) {
+					$this->activated[] = $engine->subpackage;
+					$this->engines[$system] = $engine->subpackage;
+					break; // Check for next system engine
+				}
+			}
+		}
+
+		return $this->activated;
+	}
+	
+	/**
+	 * Loads all the installed gateway modules for the payments settings
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function settings () {
+		$this->load(true);
+	}
+	
+	/**
+	 * Sets up the storage engine settings interfaces
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function ui () {
+		foreach ($this->active as $package => &$module)
+			$module->setupui($package,$this->modules[$package]->name);
+	}
+	
+}
+
+
+interface StorageEngine {
+	
+	public function load($uri);
+	public function output($uri);
+	public function exists($uri);
+	public function save($data,$asset);
+	
+}
+
+abstract class StorageModule {
+	
+	function __construct () {
+		global $Shopp;
+		$this->module = get_class($this);
+		if (!isset($Shopp->Settings)) {
+			$Settings = new Settings($this->module);
+			$this->settings = $Settings->get($this->module);
+		} else $this->settings = $Shopp->Settings->get($this->module);
+	}
+	
+	function context ($setting) {}
+	
+	/**
+	 * Generate the settings UI for the module
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $module The module class name
+	 * @param string $name The formal name of the module
+	 * @return void
+	 **/
+	function setupui ($module,$name) {
+		$this->ui = new ModuleSettingsUI('storage',$module,$name,$this->settings['label'],$this->multi);
+		$this->settings();
+	}
+	
+	function settings () {}
+	
+	function output ($uri) {
+		$data = $this->load($uri);
+		header ("Content-length: ".strlen($data)); 
+		echo $data;
+	}
+	
+}
 
 ?>

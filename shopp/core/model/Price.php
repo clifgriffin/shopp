@@ -35,25 +35,23 @@ class Price extends DatabaseObject {
 	
 	function load_download () {
 		if ($this->type != "Download") return false;
-		$db = DB::get();
+		$this->download = new ProductDownload(array(
+			'parent' => $this->id,
+			'context' => 'price',
+			'type' => 'download'
+			));
 		
-		$table = DatabaseObject::tablename(Asset::$table);
-		$this->download = $db->query("SELECT id,name,properties,size FROM $table WHERE parent='$this->id' AND context='price' AND datatype='download' LIMIT 1");
-
-		if (empty($this->download)) return false;
-
-		$this->download->properties = unserialize($this->download->properties);
+		if (empty($this->download->id)) return false;
 		return true;
 	}
 	
 	function attach_download ($id) {
 		if (!$id) return false;
-		$db = DB::get();
-
-		$table = DatabaseObject::tablename(Asset::$table);
-		$db->query("DELETE FROM $table WHERE parent='$this->id' AND context='price' AND datatype='download'");
-		$db->query("UPDATE $table SET parent='$this->id',context='price',datatype='download' WHERE id='$id'");
 		
+		$Download = new ProductDownload($id);
+		$Download->parent = $this->id;
+		$Download->save();
+				
 		do_action('attach_product_download',$id,$this->id);
 		
 		return true;

@@ -39,6 +39,18 @@ class Lookup {
 		return $r[$id];
 	}
 
+	/**
+	 * Returns a lookup table of supported country defaults
+	 * 
+	 * The information in the following table has been derived from 
+	 * the ISO standard documents including ISO-3166 for 2-letter country 
+	 * codes and ISO-4217 for currency codes
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return array
+	 **/
 	static function countries () {
 		$_ = array();
 		$_['CA'] = array('name'=>__('Canada','Shopp'),'currency'=>array('code'=>'CAD','format'=>'$#,###.##'),'units'=>'metric','region'=>0); 
@@ -47,7 +59,9 @@ class Lookup {
 		$_['AR'] = array('name'=>__('Argentina','Shopp'),'currency'=>array('code'=>'ARS','format'=>'$#.###,##'),'units'=>'metric','region'=>7); 
 		$_['AU'] = array('name'=>__('Australia','Shopp'),'currency'=>array('code'=>'AUD','format'=>'$# ###.##'),'units'=>'metric','region'=>7); 
 		$_['AT'] = array('name'=>__('Austria','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
+		$_['BB'] = array('name'=>__('Barbados','Shopp'),'currency'=>array('code'=>'BBD','format'=>'$#,###.##'),'units'=>'metric','region'=>0);
 		$_['BS'] = array('name'=>__('Bahamas','Shopp'),'currency'=>array('code'=>'BSD','format'=>'$#,###.##'),'units'=>'metric','region'=>0); 
+		$_['BH'] = array('name'=>__('Bahrain','Shopp'),'currency'=>array('code'=>'BHD','format'=>'ب.د #,###.###'),'units'=>'metric','region'=>0); 
 		$_['BE'] = array('name'=>__('Belgium','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#.###,##'),'units'=>'metric','region'=>3); 
 		$_['BR'] = array('name'=>__('Brazil','Shopp'),'currency'=>array('code'=>'BRL','format'=>'R$ #.###,##'),'units'=>'metric','region'=>2); 
 		$_['BG'] = array('name'=>__('Bulgaria','Shopp'),'currency'=>array('code'=>'BGN','format'=>'# ###,## лв.'),'units'=>'metric','region'=>3); 
@@ -115,14 +129,14 @@ class Lookup {
 	static function country_zones () {
 		$_ = array();
 		$_['AU'] = array();
-		$_['AU']['VIC'] = 'Victoria';	
 		$_['AU']['ACT'] = 'Australian Capital Territory';	
 		$_['AU']['NSW'] = 'New South Wales';
-		$_['AU']['SA'] = 'South Australia';
-		$_['AU']['QLD'] = 'Queensland';
 		$_['AU']['NT'] = 'Northern Territory';
-		$_['AU']['WA'] = 'Western Australia';
+		$_['AU']['QLD'] = 'Queensland';
+		$_['AU']['SA'] = 'South Australia';
 		$_['AU']['TAS'] = 'Tasmania';
+		$_['AU']['VIC'] = 'Victoria';	
+		$_['AU']['WA'] = 'Western Australia';
 
 		$_['CA'] = array();
 		$_['CA']['AB'] = 'Alberta';

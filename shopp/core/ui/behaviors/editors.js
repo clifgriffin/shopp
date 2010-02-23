@@ -519,6 +519,7 @@ function ImageUploads (id,type) {
 		file_upload_limit : filesizeLimit,
 		post_params : {
 			action:'shopp_upload_image',
+			parent:id,
 			type:type
 		},
 
@@ -583,7 +584,7 @@ function ImageUploads (id,type) {
 			}
 			$(this.targetHolder).attr({'id':'image-'+image.src});
 			$(this.sorting).val(image.src);
-			var img = $('<img src="?shopp_image='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
+			var img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 			var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
 			var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
 	
@@ -655,22 +656,22 @@ function ImageUploads (id,type) {
 	}
 
 	function imageUploadError (file, error, message) {
-		console.log(error+": "+message);
+		//console.log(error+": "+message);
 	}
 
 	function imageUploadSuccess (file, results) {
 		var image = eval('('+results+')');
-		if (!image.id && !image.src) {
+		if (!image.id) {
 			$(this.targetHolder).remove();
 			if (image.error) alert(image.error);
 			else alert(UNKNOWN_UPLOAD_ERROR);
 			return true;
 		}
 	
-		$(this.targetHolder).attr({'id':'image-'+image.src});
+		$(this.targetHolder).attr({'id':'image-'+image.id});
 		$(this.sorting).val(image.src);
-		var img = $('<img src="?shopp_image='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
-		var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
+		var img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
+		var deleteButton = $('<button type="button" name="deleteImage" value="'+image.id+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
 		var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
 	
 		$(this.progressBar).animate({'width':'76px'},250,function () { 

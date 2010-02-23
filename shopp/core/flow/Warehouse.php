@@ -1,6 +1,6 @@
 <?php
 /**
- * Store
+ * Warehouse
  * 
  * Flow controller for product management interfaces
  *
@@ -18,7 +18,7 @@
  * @package products
  * @author Jonathan Davis
  **/
-class Store extends AdminController {
+class Warehouse extends AdminController {
 	
 	/**
 	 * Store constructor
@@ -29,6 +29,7 @@ class Store extends AdminController {
 	function __construct () {
 		parent::__construct();
 		if (!empty($_GET['id'])) {
+			add_action( 'admin_head', 'wp_tiny_mce' );
 			wp_enqueue_script('postbox');
 			if ( user_can_richedit() ) wp_enqueue_script('editor');
 			wp_enqueue_script("shopp-thickbox",SHOPP_ADMIN_URI."/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
@@ -38,7 +39,7 @@ class Store extends AdminController {
 			wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
 			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery','jquery-ui-core'),SHOPP_VERSION,true);
 			wp_enqueue_script('shopp.swfupload',SHOPP_ADMIN_URI."/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION);
-				wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_URI."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
+			wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_URI."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
 			
 			
 			add_action('admin_head',array(&$this,'layout'));
@@ -304,7 +305,7 @@ class Store extends AdminController {
 	 * @return void
 	 **/
 	function editor () {
-		global $Shopp;
+		global $Shopp,$ProductImages;
 		$db = DB::get();
 		
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_products')) )
@@ -345,9 +346,16 @@ class Store extends AdminController {
 		foreach ($Product->tags as $tag) $taglist[] = $tag->name;
 
 		if ($Product->id) {
-			$Assets = new Asset();
-			$Images = $db->query("SELECT id,src,properties FROM $Assets->_table WHERE context='product' AND parent=$Product->id AND datatype='thumbnail' ORDER BY sortorder",AS_ARRAY);
-			unset($Assets);			
+			
+			$ProductImage = new ProductImage();
+			$results = $db->query("SELECT * FROM $ProductImage->_table WHERE context='product' AND parent=$Product->id AND type='image' ORDER BY sortorder",AS_ARRAY);
+			$ProductImages = array();
+			foreach ($results as $i => $image) {
+				$image->value = unserialize($image->value);
+				$ProductImages[$i] = new ProductImage();
+				$ProductImages[$i]->copydata($image,false,array());
+				$ProductImages[$i]->expopulate();
+			}
 		}
 
 		$shiprates = $this->Settings->get('shipping_rates');
@@ -443,23 +451,24 @@ class Store extends AdminController {
 				$Price->updates($option);
 				$Price->save();
 				if (!empty($option['download'])) $Price->attach_download($option['download']);
-				if (!empty($option['downloadpath'])) {
-					chdir(WP_CONTENT_DIR); // relative path context for realpath
-					$basepath = trailingslashit(sanitize_path(realpath($Settings->get('products_path'))));
-					$download = $basepath.ltrim(sanitize_path($option['downloadpath']),"/");
-					if (file_exists($download)) {
-						$File = new Asset();
+
+				if (!empty($option['downloadpath'])) { // Attach file specified by URI/path
+					$File = new ProductDownload();
+					$File->_engine(); // Set engine from storage settings
+					$File->uri = ltrim(sanitize_path($option['downloadpath']),"/");
+					if (!$File->notfound()) {
 						$File->parent = 0;
 						$File->context = "price";
-						$File->datatype = "download";
-						$File->name = basename($download);
-						$File->value = substr(dirname($download),strlen($basepath));
+						$File->type = "download";
+						$File->name = basename($File->uri);
 						$File->size = filesize($download);
-						$File->properties = array("mimetype" => file_mimetype($download,$File->name));
+						$File->mime = file_mimetype($download,$File->name);
+						$File->store($File->uri);
 						$File->save();
 						$Price->attach_download($File->id);
 					}
-				}
+					
+				} // END attach file by path/uri
 			}
 			unset($Price);
 		}
@@ -502,7 +511,7 @@ class Store extends AdminController {
 			}
 		}
 		
-		if (!empty($_POST['deleteImages'])) {			
+		if (!empty($_POST['deleteImages'])) {
 			$deletes = array();
 			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
 			else $deletes = array($_POST['deleteImages']);
@@ -546,20 +555,19 @@ class Store extends AdminController {
 			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
 		
 		// Save the uploaded file
-		$File = new Asset();
+		$File = new ProductDownload();
 		$File->parent = 0;
 		$File->context = "price";
-		$File->datatype = "download";
+		$File->type = "download";
 		$File->name = $_FILES['Filedata']['name'];
+		$File->mime = file_mimetype($_FILES['Filedata']['tmp_name'],$File->name);
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
-		$File->properties = array("mimetype" => file_mimetype($_FILES['Filedata']['tmp_name'],$File->name));
-		$File->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
+		$File->store($_FILES['Filedata']['tmp_name'],'file');
 		$File->save();
-		unset($File->data); // Remove file contents from memory
 		
 		do_action('add_product_download',$File,$_FILES['Filedata']);
 		
-		echo json_encode(array("id"=>$File->id,"name"=>stripslashes($File->name),"type"=>$File->properties['mimetype'],"size"=>$File->size));
+		echo json_encode(array("id"=>$File->id,"name"=>stripslashes($File->name),"type"=>$File->mime,"size"=>$File->size));
 	}
 	
 	/**
@@ -571,7 +579,6 @@ class Store extends AdminController {
 	 * @return string JSON encoded result with thumbnail id and src
 	 **/
 	function images () {
-		$QualityValue = array(100,92,80,70,60);
 		$context = false;
 		
 		$error = false;
@@ -580,14 +587,16 @@ class Store extends AdminController {
 
 		require(SHOPP_PATH."/core/model/Image.php");
 		
-		if (isset($_POST['type']) == "product") {
-			$parent = $_POST['product'];
-			$context = "product";
-		}
-
-		if (isset($_POST['type']) == "category") {
-			$parent = $_POST['category'];
-			$context = "category";
+		if (isset($_POST['type'])) {
+			$parent = $_POST['parent'];
+			switch (strtolower($_POST['type'])) {
+				case "product":
+					$context = "product";
+					break;
+				case "category":
+					$context = "category";
+					break;
+			}
 		}
 		
 		if (!$context)
@@ -603,86 +612,20 @@ class Store extends AdminController {
 			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
 
 		// Save the source image
-		$Image = new Asset();
+		if ($context == "category") $Image = new CategoryImage();
+		else $Image = new ProductImage();
+		
 		$Image->parent = $parent;
-		$Image->context = $context;
-		$Image->datatype = "image";
-		$Image->name = $_FILES['Filedata']['name'];
-		list($width, $height, $mimetype, $attr) = getimagesize($_FILES['Filedata']['tmp_name']);
-		$Image->properties = array(
-			"width" => $width,
-			"height" => $height,
-			"mimetype" => image_type_to_mime_type($mimetype),
-			"attr" => $attr);
-		$Image->data = addslashes(file_get_contents($_FILES['Filedata']['tmp_name']));
+		$Image->type = "image";
+		$Image->name = "original";
+		$Image->filename = $_FILES['Filedata']['name'];
+		list($Image->width, $Image->height, $Image->mime, $Image->attr) = getimagesize($_FILES['Filedata']['tmp_name']);
+		$Image->mime = image_type_to_mime_type($Image->mime);
+		$Image->size = filesize($_FILES['Filedata']['tmp_name']);
+		$Image->store($_FILES['Filedata']['tmp_name'],'file');
 		$Image->save();
-		unset($Image->data); // Save memory for small image & thumbnail processing
-
-		// Generate Small Size
-		$SmallSettings = array();
-		$SmallSettings['width'] = $this->Settings->get('gallery_small_width');
-		$SmallSettings['height'] = $this->Settings->get('gallery_small_height');
-		$SmallSettings['sizing'] = $this->Settings->get('gallery_small_sizing');
-		$SmallSettings['quality'] = $this->Settings->get('gallery_small_quality');
-		
-		$Small = new Asset();
-		$Small->parent = $Image->parent;
-		$Small->context = $context;
-		$Small->datatype = "small";
-		$Small->src = $Image->id;
-		$Small->name = "small_".$Image->name;
-		$Small->data = file_get_contents($_FILES['Filedata']['tmp_name']);
-		$SmallSizing = new ImageProcessor($Small->data,$width,$height);
-		
-		switch ($SmallSettings['sizing']) {
-			// case "0": $SmallSizing->scaleToWidth($SmallSettings['width']); break;
-			// case "1": $SmallSizing->scaleToHeight($SmallSettings['height']); break;
-			case "0": $SmallSizing->scaleToFit($SmallSettings['width'],$SmallSettings['height']); break;
-			case "1": $SmallSizing->scaleCrop($SmallSettings['width'],$SmallSettings['height']); break;
-		}
-		$SmallSizing->UnsharpMask(75);
-		$Small->data = addslashes($SmallSizing->imagefile($QualityValue[$SmallSettings['quality']]));
-		$Small->properties = array();
-		$Small->properties['width'] = $SmallSizing->Processed->width;
-		$Small->properties['height'] = $SmallSizing->Processed->height;
-		$Small->properties['mimetype'] = "image/jpeg";
-		unset($SmallSizing);
-		$Small->save();
-		unset($Small);
-		
-		// Generate Thumbnail
-		$ThumbnailSettings = array();
-		$ThumbnailSettings['width'] = $this->Settings->get('gallery_thumbnail_width');
-		$ThumbnailSettings['height'] = $this->Settings->get('gallery_thumbnail_height');
-		$ThumbnailSettings['sizing'] = $this->Settings->get('gallery_thumbnail_sizing');
-		$ThumbnailSettings['quality'] = $this->Settings->get('gallery_thumbnail_quality');
-
-		$Thumbnail = new Asset();
-		$Thumbnail->parent = $Image->parent;
-		$Thumbnail->context = $context;
-		$Thumbnail->datatype = "thumbnail";
-		$Thumbnail->src = $Image->id;
-		$Thumbnail->name = "thumbnail_".$Image->name;
-		$Thumbnail->data = file_get_contents($_FILES['Filedata']['tmp_name']);
-		$ThumbnailSizing = new ImageProcessor($Thumbnail->data,$width,$height);
-		
-		switch ($ThumbnailSettings['sizing']) {
-			// case "0": $ThumbnailSizing->scaleToWidth($ThumbnailSettings['width']); break;
-			// case "1": $ThumbnailSizing->scaleToHeight($ThumbnailSettings['height']); break;
-			case "0": $ThumbnailSizing->scaleToFit($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
-			case "1": $ThumbnailSizing->scaleCrop($ThumbnailSettings['width'],$ThumbnailSettings['height']); break;
-		}
-		$ThumbnailSizing->UnsharpMask();
-		$Thumbnail->data = addslashes($ThumbnailSizing->imagefile($QualityValue[$ThumbnailSettings['quality']]));
-		$Thumbnail->properties = array();
-		$Thumbnail->properties['width'] = $ThumbnailSizing->Processed->width;
-		$Thumbnail->properties['height'] = $ThumbnailSizing->Processed->height;
-		$Thumbnail->properties['mimetype'] = "image/jpeg";
-		unset($ThumbnailSizing);
-		$Thumbnail->save();
-		unset($Thumbnail->data);
 					
-		echo json_encode(array("id"=>$Thumbnail->id,"src"=>$Thumbnail->src));
+		echo json_encode(array("id"=>$Image->id));
 	}
 
 	/**

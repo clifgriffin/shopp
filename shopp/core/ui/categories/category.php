@@ -4,7 +4,7 @@
 	<h2><?php _e('Category Editor','Shopp'); ?></h2> 
 
 	<div id="ajax-response"></div> 
-	<form name="category" id="category" action="<?php echo $Shopp->wpadminurl; ?>admin.php" method="post">
+	<form name="category" id="category" action="<?php echo admin_url('admin.php'); ?>" method="post">
 		<?php wp_nonce_field('shopp-save-category'); ?>
 
 		<div id="poststuff" class="metabox-holder has-right-sidebar">
@@ -66,8 +66,8 @@ var ajaxurl = adminurl+'admin-ajax.php';
 var addcategory_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_add_category"); ?>';
 var editslug_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_edit_slug"); ?>';
 var fileverify_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_verify_file"); ?>';
-var manager_page = '<?php echo $this->Admin->categories; ?>';
-var editor_page = '<?php echo $this->Admin->editcategory; ?>';
+var manager_page = '<?php echo $this->Admin->pagename('categories'); ?>';
+var editor_page = '<?php echo $this->Admin->pagename('categories'); ?>';
 var request = <?php echo json_encode(stripslashes_deep($_GET)); ?>;
 var workflow = {'continue':editor_page, 'close':manager_page, 'new':editor_page, 'next':editor_page, 'previous':editor_page};
 var worklist = <?php echo json_encode($this->categories(true)); ?>;
@@ -141,7 +141,7 @@ var pricesPayload = false;
 jQuery(document).ready(function () {	
 	var $=jQuery.noConflict();
 	var editslug = new SlugEditor(category,'category');
-	var imageUploads = new ImageUploads({"category" : $('#image-category-id').val()},'category');
+	var imageUploads = new ImageUploads($('#image-category-id').val(),'category');
 	
 	updateWorkflow();
 	$('#category').submit(function () {

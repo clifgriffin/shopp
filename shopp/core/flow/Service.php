@@ -88,8 +88,8 @@ class Service extends AdminController {
 		extract($args, EXTR_SKIP);
 		
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_orders')) )
-			//wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
-			wp_die('What do you think you are doing?!');
+			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
+
 		if ($page == "shopp-orders"
 						&& !empty($deleting)
 						&& !empty($selected) 

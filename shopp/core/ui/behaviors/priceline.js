@@ -70,7 +70,6 @@ function Pricelines () {
 	this.linkVariations = function (option) {
 		if (!option) return;
 		for (var key in this.row) {
-			console.log("Looping variations");
 			if ($.inArray(option.toString(),this.row[key].options) != -1) {
 				if (!this.linked[option]) this.linked[option] = new Array();
 				this.linked[option].push(key);
@@ -89,7 +88,6 @@ function Pricelines () {
 	
 	this.unlinkAll = function () {
 		for (var key in this.row) {
-			console.log("Looping variations");
 			this.row[key].unlinkInputs();
 		}
 		this.linked.splice(0,1);
@@ -98,7 +96,6 @@ function Pricelines () {
 	this.updateVariationLinks = function () {
 		if (!this.linked) return;
 		for (var key in this.row) {
-			console.log("Looping variations");
 			this.row[key].unlinkInputs();
 		}
 		for (var option in this.linked) {
@@ -230,7 +227,7 @@ function Priceline (id,options,data,target,attachment) {
 	var downloadFile = $('<div></div>').html(NO_DOWNLOAD).appendTo(downloadCell);
 
 	var uploadHeading = $('<td rowspan="2" class="controls" width="75" />').appendTo(headingsRow);
-	if (storage == "fs") {
+	if (storage == "FSStorage") {
 		var filePathCell = $('<div></div>').prependTo(downloadCell).hide();
 		var filePath = $('<input type="text" name="price['+i+'][downloadpath]" value="" title="Enter file path relative to: '+productspath+'" class="filepath" />').appendTo(filePathCell).change(function () {
 			$(this).removeClass('warning').addClass('verifying');
@@ -485,8 +482,8 @@ function Priceline (id,options,data,target,attachment) {
 		}
 	
 		if (data.download) {
-			if (data.filedata.mimetype)	data.filedata.mimetype = data.filedata.mimetype.replace(/\//gi," ");
-			downloadFile.attr('class','file '+data.filedata.mimetype).html(data.filename+'<br /><small>'+readableFileSize(data.filesize)+'</small>').click(function () {
+			if (data.filedata.mime)	data.filedata.mime = data.filedata.mime.replace(/\//gi," ");
+			downloadFile.attr('class','file '+data.filedata.mime).html(data.filename+'<br /><small>'+readableFileSize(data.filedata.size)+'</small>').click(function () {
 				window.location.href = adminurl+"admin.php?src=download&shopp_download="+data.download;
 			});
 

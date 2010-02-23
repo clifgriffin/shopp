@@ -267,8 +267,10 @@ function file_mimetype ($file,$name=false) {
 function floatvalue($value, $format=false) {
 	if ($format === false) {
 		global $Shopp;
-		$locale = $Shopp->Settings->get('base_operations');
-		$format = $locale['currency']['format'];
+		if (isset($Shopp->Settings)) {
+			$locale = $Shopp->Settings->get('base_operations');
+			$format = $locale['currency']['format'];
+		}
 		if (empty($format)) $format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
 	}
 
@@ -332,35 +334,6 @@ function raw_request_url () {
  **/
 function gateway_path ($file) {
 	return basename(dirname($file)).'/'.basename($file);
-}
-
-/**
- * Read the file docblock for Shopp addons
- *
- * @author Jonathan Davis
- * @since 1.0
- * 
- * @param string $file The target file
- * @return string The meta block from the file
- **/
-function get_filemeta ($file) {
-	if (!file_exists($file)) return false;
-	if (!is_readable($file)) return false;
-
-	$meta = false;
-	$string = "";
-	
-	$f = @fopen($file, "r");
-	if (!$f) return false;
-	while (!feof($f)) {
-		$buffer = fgets($f,80);
-		if (preg_match("/\/\*/",$buffer)) $meta = true;
-		if ($meta) $string .= $buffer;
-		if (preg_match("/\*\//",$buffer)) break;
-	}
-	fclose($f);
-
-	return $string;
 }
 
 /**
@@ -1396,33 +1369,6 @@ function validate_addons () {
 function rsa_encrypt($data, $pkey){
 	openssl_public_encrypt($data, $encrypted,$pkey);
 	return ($encrypted)?$encrypted:false;
-}
-
-function scan_gateway_meta ($file) {
-	global $Shopp;
-	$metadata = array();
-	
-	$meta = get_filemeta($file);
-
-	if ($meta) {
-		$lines = explode("\n",substr($meta,1));
-		foreach($lines as $line) {
-			preg_match("/^(?:[\s\*]*?\b([^@\*\/]*))/",$line,$match);
-			if (!empty($match[1])) $data[] = $match[1];
-			preg_match("/^(?:[\s\*]*?@([^\*\/]+?)\s(.+))/",$line,$match);
-			if (!empty($match[1]) && !empty($match[2])) $tags[$match[1]] = $match[2];
-		
-		}
-		$gateway = new stdClass();
-		$gateway->file = $file;
-		$gateway->name = $data[0];
-		$gateway->description = (!empty($data[1]))?$data[1]:"";
-		$gateway->tags = $tags;
-		$gateway->activated = false;
-		if ($Shopp->Settings->get('payment_gateway') == $file) $module->activated = true;
-		return $gateway;
-	}
-	return false;
 }
 
 // TODO END: Clean up for Controllers
