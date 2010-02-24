@@ -9,6 +9,17 @@
  * @package shopp
  **/
 
+/**
+ * FileAsset class
+ * 
+ * Foundational class to provide a useable asset framework built on the meta
+ * system introduced in Shopp 1.1.
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage asset
+ **/
 class FileAsset extends MetaObject {
 
 	var $mime;
@@ -96,6 +107,16 @@ class FileAsset extends MetaObject {
 	
 } // END class FileAsset
 
+/**
+ * ImageAsset class
+ * 
+ * A specific implementation of the FileAsset class that provides helper 
+ * methods for imaging-specific tasks.
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ **/
 class ImageAsset extends FileAsset {
 	
 	// Allowable settings
@@ -179,14 +200,68 @@ class ImageAsset extends FileAsset {
 	}
 }
 
+/**
+ * ProductImage class
+ * 
+ * An ImageAsset used in a product context.
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ **/
 class ProductImage extends ImageAsset {
 	var $context = 'product';
+	
+	/**
+	 * Truncate image data when stored in a session
+	 * 
+	 * A ProductImage can be stored in the session with a cart Item object. We
+	 * strip out unnecessary fields here to keep the session data as small as
+	 * possible.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return array
+	 **/
+	function __sleep () {
+		$ignore = array('numeral','created','modified','parent');
+		$properties = get_object_vars($this);
+		$session = array();
+		foreach ($properties as $property => $value) {
+			if (substr($property,0,1) == "_") continue;
+			if (in_array($property,$ignore)) continue;
+			$session[] = $property;
+		}
+		return $session;
+	}
 }
 
+/**
+ * CategoryImage class
+ * 
+ * An ImageAsset used in a category context.
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage asset
+ **/
 class CategoryImage extends ImageAsset {
 	var $context = 'category';
 }
 
+/**
+ * DownloadAsset class
+ * 
+ * A specific implementation of a FileAsset that includes helper methods 
+ * for downloading routines.
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage asset
+ **/
 class DownloadAsset extends FileAsset {
 	
 	var $type = 'download';
@@ -325,16 +400,75 @@ class StorageEngines extends ModuleLoader {
 	
 }
 
-
+/**
+ * StorageEngine interface
+ * 
+ * Provides a template for storage engine modules to implement
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage storage
+ **/
 interface StorageEngine {
 	
+	/**
+	 * Load a resource by the uri
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $uri The uniform resource indicator
+	 * @return void
+	 **/
 	public function load($uri);
+	
+	/**
+	 * Output the asset data of a given uri
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $uri The uniform resource indicator
+	 * @return void
+	 **/
 	public function output($uri);
+	
+	/**
+	 * Checks if the binary data of an asset exists
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $uri The uniform resource indicator
+	 * @return boolean
+	 **/
 	public function exists($uri);
+	
+	/**
+	 * Store the data for an asset
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param mixed $data The raw data to be stored
+	 * @param FileAsset $asset The parent asset for the data
+	 * @return void
+	 **/
 	public function save($data,$asset);
 	
 }
 
+/**
+ * StorageModule class
+ * 
+ * A framework for storage engine modules.
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage storage
+ **/
 abstract class StorageModule {
 	
 	function __construct () {
@@ -347,6 +481,7 @@ abstract class StorageModule {
 	}
 	
 	function context ($setting) {}
+	function settings () {}
 	
 	/**
 	 * Generate the settings UI for the module
@@ -362,9 +497,7 @@ abstract class StorageModule {
 		$this->ui = new ModuleSettingsUI('storage',$module,$name,$this->settings['label'],$this->multi);
 		$this->settings();
 	}
-	
-	function settings () {}
-	
+		
 	function output ($uri) {
 		$data = $this->load($uri);
 		header ("Content-length: ".strlen($data)); 

@@ -17,15 +17,12 @@ class Item {
 	var $type = false;
 	var $name = false;
 	var $description = false;
-	var $optionlabel = false;
-	var $variation = array();
 	var $option = false;
-	var $menus = array();
-	var $options = array();
-	var $saved = 0;
-	var $savings = 0;
+	var $variation = array();
+	var $variations = array();
 	var $quantity = 0;
 	var $unitprice = 0;
+	var $discount = 0;
 	var $total = 0;
 	var $weight = 0;
 	var $shipfee = 0;
@@ -57,29 +54,33 @@ class Item {
 		}
 		if (isset($Product->id)) $this->product = $Product->id;
 		if (isset($Price->id)) $this->price = $Price->id;
-		$this->category = $category;
-		$this->option = $Price;
+
 		$this->name = $Product->name;
 		$this->slug = $Product->slug;
+
+		$this->categories = $this->namelist($Product->categories);
+		$this->tags = $this->namelist($Product->tags);
+		$this->option = $this->mapvariation($Price);
+		$this->image = current($Product->images);
 		$this->description = $Product->summary;
 		if (isset($Product->thumbnail)) $this->thumbnail = $Product->thumbnail;
-		$this->menus = $Product->options;
-		if ($Product->variations == "on") $this->options = $Product->prices;
+		if ($Product->variations == "on") 
+			$this->variations($Product->prices);
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
 		$this->sale = $Price->onsale;
 		$this->freeshipping = $Price->freeshipping;
-		$this->saved = ($Price->price - $Price->promoprice);
-		$this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
+		// $this->saved = ($Price->price - $Price->promoprice);
+		// $this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
-		$this->optionlabel = (count($Product->prices) > 1)?$Price->label:'';
-		$this->donation = $Price->donation;
+		if ($this->type == "Donation")
+			$this->donation = $Price->donation;
 		$this->data = stripslashes_deep(attribute_escape_deep($data));
 		
 		// Map out the selected menu name and option
 		if ($Product->variations == "on") {
 			$selected = explode(",",$this->option->options); $s = 0;
-			foreach ($this->menus as $i => $menu) {
+			foreach ($Product->options as $i => $menu) {
 				foreach($menu['options'] as $option) {
 					if ($option['id'] == $selected[$s]) {
 						$this->variation[$menu['name']] = $option['name']; break;
@@ -145,10 +146,10 @@ class Item {
 	}
 	
 	function options ($selection = "",$taxrate=0) {
-		if (empty($this->options)) return "";
+		if (empty($this->variations)) return "";
 
 		$string = "";
-		foreach($this->options as $option) {
+		foreach($this->variations as $option) {
 			if ($option->type == "N/A") continue;
 			$currently = ($option->onsale)?$option->promoprice:$option->price;
 
@@ -168,6 +169,28 @@ class Item {
 			$string .= '<option value="'.$option->id.'"'.$selected.$disabled.'>'.$option->label.$price.'</option>';
 		}
 		return $string;
+			
+	}
+	
+	function variations ($prices) {
+		foreach ($prices as $price)	{
+			if ($price->type == "N/A") continue;
+			$this->variations[] = $this->mapvariation($price);
+		}		
+	}
+
+	function mapvariation ($price) {
+		$map = array('id','label','onsale','promoprice','price','inventory','stock','options');
+		$v = new stdClass();
+		foreach ($map as $property)
+			$v->{$property} = $price->{$property};
+		return $v;
+	}
+
+	function namelist ($items) {
+		$list = array();
+		foreach ($items as $item) $list[$item->id] = $item->name;
+		return $list;
 	}
 	
 	function unstock () {
@@ -210,6 +233,31 @@ class Item {
 		return $this->option->stock;
 	}
 	
+	function match ($rule) {
+		extract($rule);
+
+		switch($property) {
+			case "Any item name": $subject = $this->name; break;
+			case "Any item quantity": $subject = (int)$this->quantity; break;
+			case "Any item amount": $subject = $this->total; break;
+
+			case "Name": $subject = $this->name; break;
+			case "Category": $subject = $this->categories; break;
+			case "Tag name": $subject = $this->tags; break;
+			case "Variation": $subject = $this->option->label; break;
+
+			// case "Input name": $subject = $Item->option->label; break;
+			// case "Input value": $subject = $Item->option->label; break;
+
+			case "Quantity": $subject = $this->quantity; break;
+			case "Unit price": $subject = $this->unitprice; break;
+			case "Total price": $subject = $this->total; break;
+			case "Discount amount": $subject = $this->discount; break;
+
+		}
+		return Promotion::match_rule($subject,$logic,$value,$property);
+	}
+	
 	function shipping (&$Shipping) {
 	}
 	
@@ -238,6 +286,7 @@ class Item {
 		// Handle currency values
 		$result = "";
 		switch ($property) {
+			case "discount": $result = (float)($this->discount); break;
 			case "unitprice": $result = (float)$this->unitprice+($this->unitprice*$taxrate); break;
 			case "total": $result = (float)$this->total+($this->total*$taxrate); break;
 			case "tax": $result = (float)($this->total*$taxrate); break;
@@ -294,18 +343,18 @@ class Item {
 					$result = '<a href="'.href_add_query_arg(array('cart'=>'update','item'=>$id,'quantity'=>0),$Shopp->link('cart')).'"'.$class.'>'.$label.'</a>';
 				}
 				break;
-			case "optionlabel": $result = $this->optionlabel; break;
+			case "optionlabel": $result = $this->option->label; break;
 			case "options":
 				$class = "";
 				if (!isset($options['before'])) $options['before'] = '';
 				if (!isset($options['after'])) $options['after'] = '';
 				if (isset($options['show']) && 
 					strtolower($options['show']) == "selected") 
-					return (!empty($this->optionlabel))?
-						$options['before'].$this->optionlabel.$options['after']:'';
+					return (!empty($this->option->label))?
+						$options['before'].$this->option->label.$options['after']:'';
 					
 				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
-				if (count($this->options) > 1) {
+				if (count($this->variations) > 1) {
 					$result .= $options['before'];
 					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';
 					$result .= ' <select name="items['.$id.'][price]" id="items-'.$id.'-price"'.$class.'>';

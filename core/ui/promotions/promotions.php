@@ -3,7 +3,7 @@
 
 	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="promotions" method="get">
 	<div>
-		<input type="hidden" name="page" value="<?php echo ''; ?>" />
+		<input type="hidden" name="page" value="shopp-promotions" />
 	</div>
 
 	<p id="post-search" class="search-box">
@@ -11,7 +11,7 @@
 		<input type="submit" value="<?php _e('Search Promotions','Shopp'); ?>" class="button" />
 	</p>
 
-	<p><a href="<?php echo esc_url(add_query_arg(array_merge($_GET,array('page'=>'','id'=>'new')),admin_url('admin.php'))); ?>" class="button"><?php _e('New Promotion','Shopp'); ?></a></p>
+	<p><a href="<?php echo esc_url(add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions','id'=>'new')),admin_url('admin.php'))); ?>" class="button"><?php _e('New Promotion','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
