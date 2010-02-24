@@ -149,8 +149,8 @@ function images_meta_box ($Product) {
 	<div id="browser-uploader">
 		<button type="button" name="image_upload" id="image-upload" class="button-secondary"><small><?php _e('Add New Image','Shopp'); ?></small></button><br class="clear"/>
 	</div>
-		
-	<?php _e('Double-click images to edit their details. Save the product to confirm deleted images.','Shopp'); ?></p>
+
+	<p><?php _e('Double-click images to edit their details. Save the product to confirm deleted images.','Shopp'); ?></p>
 <?php
 }
 add_meta_box('product-images', __('Product Images','Shopp'), 'images_meta_box', 'shopp_page_shopp-products', 'normal', 'core');
