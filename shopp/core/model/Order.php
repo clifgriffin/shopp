@@ -788,7 +788,7 @@ class Order {
 				break;
 				
 			// BILLING TAGS
-			case "billing-required": return true; break; // DEPRECATED
+			case "billing-required": // DEPRECATED
 			case "card-required":
 				if ($this->Cart->Totals->total == 0) return false;
 				foreach ($Shopp->Gateways->active as $gateway) 
@@ -964,7 +964,7 @@ class Order {
 			case "xco-buttons": return;	break; // DEPRECATED
 			case "payment-options":
 			case "paymentoptions": 
-				// if (count($Shopp->Gateways->active) <= 1) return false;
+				if (count($Shopp->Gateways->active) <= 1) return false;
 				extract($options);
 				$output = '';
 				$js = '<script type="text/javascript">';

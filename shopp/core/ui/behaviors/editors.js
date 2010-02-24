@@ -924,6 +924,7 @@ function SlugEditor (id,type) {
 	_self.enable = function () {
 		
 		$('#edit-slug-buttons').children('.edit-slug').click(function () { _self.edit_permalink(); });
+		$('#edit-slug-buttons').children('.view').click(function () { document.location.href=canonurl+$('#editable-slug-full').html(); });
 		$('#editable-slug').click(function() { $('#edit-slug-buttons').children('.edit-slug').click(); });		
 	}
 

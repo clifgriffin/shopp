@@ -27,7 +27,7 @@
 						<?php if (SHOPP_PERMALINKS && !empty($Product->id)): ?>
 							<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
 							<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo attribute_escape($Product->slug); ?></span><span id="editable-slug-full"><?php echo attribute_escape($Product->slug); ?></span>/</span>
-							<span id="edit-slug-buttons"><button type="button" class="edit-slug button"><?php _e('Edit','Shopp'); ?></button><?php if ($Product->published == "on"): ?><button type="button" class="view-product button"><?php _e('View','Shopp'); ?></button><?php endif; ?></span>
+							<span id="edit-slug-buttons"><button type="button" class="edit-slug button"><?php _e('Edit','Shopp'); ?></button><?php if ($Product->published == "on"): ?><button id="view-product" type="button" class="view button"><?php _e('View','Shopp'); ?></button><?php endif; ?></span>
 							</div>
 						<?php else: ?>
 							<?php if (!empty($Product->id)): ?>
@@ -67,6 +67,7 @@ var shiprates = <?php echo json_encode($shiprates); ?>;
 var buttonrsrc = '<?php echo includes_url('images/upload.png'); ?>';
 var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
 var siteurl = '<?php echo $Shopp->siteurl; ?>';
+var canonurl = '<?php echo $Shopp->canonuri; ?>';
 var adminurl = '<?php echo $Shopp->wpadminurl; ?>';
 var ajaxurl = adminurl+'admin-ajax.php';
 var addcategory_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_add_category"); ?>';

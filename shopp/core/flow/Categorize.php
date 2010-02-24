@@ -41,9 +41,9 @@ class Categorize extends AdminController {
 			wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_URI."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION,true);
 
 			add_action('admin_head',array(&$this,'layout'));
-			add_action('load-shopp_page_shopp-categories',array(&$this,'workflow'));
-			
 		} add_action('admin_print_scripts',array(&$this,'columns'));
+
+		add_action('load-shopp_page_shopp-categories',array(&$this,'workflow'));
 	}
 	
 	/**

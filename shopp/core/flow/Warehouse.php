@@ -41,11 +41,9 @@ class Warehouse extends AdminController {
 			wp_enqueue_script('shopp.swfupload',SHOPP_ADMIN_URI."/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION);
 			wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_URI."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
 			
-			
 			add_action('admin_head',array(&$this,'layout'));
-			add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
-			add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
+		add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
 	}
 	
 	/**
@@ -87,6 +85,7 @@ class Warehouse extends AdminController {
 		
 		$adminurl = admin_url('admin.php');
 
+
 		if ($page == $this->Admin->pagename('products')
 				&& !empty($deleting) 
 				&& !empty($delete) 
@@ -100,8 +99,7 @@ class Warehouse extends AdminController {
 		}
 		
 		if ($duplicate) {
-			$Product = new Product();
-			$Product->load($duplicate);
+			$Product = new Product($duplicate);
 			$Product->duplicate();
 			shopp_redirect(add_query_arg('page',$this->Admin->pagename('products'),$adminurl));
 		}
