@@ -464,6 +464,9 @@ class Cart {
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
 			
+			// Reinitialize discount amounts
+			$Item->discount = 0;
+
 			// Tabulate the taxable total to be calculated after discounts
 			if ($Item->taxable) $Totals->taxed += $Item->total;
 			
@@ -492,11 +495,6 @@ class Cart {
 		$Totals->taxrate = $Tax->rate();
 		$Totals->tax = $Tax->calculate();
 	    
-		// if ($Totals->discount > $Totals->taxed) $Totals->taxed = 0;
-		// else $Totals->taxed -= $Totals->discount;
-		// if($shippingTaxed) $Totals->taxed += $Totals->shipping;
-		// $Totals->tax = round($Totals->taxed*$Totals->taxrate,2);
-
 		// Calculate final totals
 		$Totals->total = round($Totals->subtotal - round($Totals->discount,2) + 
 			$Totals->shipping + $Totals->tax,2);
@@ -940,7 +938,7 @@ class CartPromotions {
 		if (!empty($this->promotions)) return true;
 		
 		$_table = DatabaseObject::tablename(Promotion::$table);
-		$query = "SELECT * FROM $_table WHERE scope='Order' 
+		$query = "SELECT * FROM $_table WHERE (scope='Cart' OR scope='Cart Item')
 					AND ((status='enabled' 
 					AND UNIX_TIMESTAMP(starts) > 0 
 					AND UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP() 
@@ -986,9 +984,10 @@ class CartDiscounts {
 	var $limit = 0;
 	
 	// Internals
-	var $itemrules = array('Any item name','Any item quantity','Any item amount');
+	var $itemprops = array('Any item name','Any item quantity','Any item amount');
+	var $cartitemprops = array('Name','Category','Tag name','Variation','Input name','Input value','Quantity','Unit price','Total price','Discount amount');
 	var $matched = array();
-	
+		
 	/**
 	 * Initializes discount calculations
 	 *
@@ -1000,6 +999,8 @@ class CartDiscounts {
 	function __construct () {
 		global $Shopp;
 		$this->limit = $Shopp->Settings->get('promo_limit');
+		$baseop = $Shopp->Settings->get('base_operations');
+		$this->precision = $baseop['currency']['format']['precision'];
 		
 		$this->Cart = &$Shopp->Order->Cart;
 		$this->promos = &$Shopp->Promotions->promotions;
@@ -1015,13 +1016,20 @@ class CartDiscounts {
 	 **/
 	function calculate () {
 		$this->applypromos();
-		
+
 		$discount = 0;
-		foreach ($this->Cart->discounts as $Discount)
-			$discount += $Discount->applied;
+		foreach ($this->Cart->discounts as $Discount) {
+			foreach ($Discount->items as $id => $amount) {
+				if (isset($this->Cart->contents[$id]))
+					$this->Cart->contents[$id]->discount += $amount;
+			}
+			$discount += round($Discount->applied,$this->precision);
+		}
 			
 		return $discount;
 	}
+	
+	
 
 	/**
 	 * Determines which promotions to apply to the order
@@ -1039,9 +1047,10 @@ class CartDiscounts {
 		// Iterate over each promo to determine whether it applies
 		foreach ($this->promos as &$promo) {
 			$applypromo = false;
+
 			if (!is_array($promo->rules))
 				$promo->rules = unserialize($promo->rules);
-
+			
 			// If promotion limit has been reached, cancel the loop
 			if ($this->limit > 0 && count($this->Cart->discounts)+1 > $this->limit) {
 				if (!empty($this->Cart->promocode)) {
@@ -1053,19 +1062,22 @@ class CartDiscounts {
 			
 			// Match the promo rules against the cart properties
 			$matches = 0;
-			foreach ($promo->rules as $rule) {
+			$total = 0;
+			foreach ($promo->rules as $index => $rule) {
+				if ($index == "item") continue;
 				$match = false;
+				$total++;
 				extract($rule);
-
 				if ($property == "Promo code") {
 					// See if a promo code rule matches
 					$match = $this->promocode($rule);
-				} elseif (in_array($property,$this->itemrules)) {
+					// if ($match) echo "$promo->name applying code: ".$this->Cart->promocode.BR;
+					
+
+				} elseif (in_array($property,$this->itemprops)) {
 					// See if an item rule matches
-					foreach ($this->Cart->contents as $id => &$Item) {
-						$match = $this->itemrule($Item,$id,$rule);
-						if ($match) break;
-					}
+					foreach ($this->Cart->contents as $id => &$Item)
+						if ($Item->match($rule)) break;
 				} else {
 					// Match cart aggregate property rules
 					switch($property) {
@@ -1084,9 +1096,9 @@ class CartDiscounts {
 
 			} // End rules loop
 			
-			if ($promo->search == "all" && $matches == count($promo->rules))
+			if ($promo->search == "all" && $matches == $total)
 				$applypromo = true;
-
+				
 			if (!$applypromo) continue; // Try next promotion
 
 			// Apply the promotional discount
@@ -1095,13 +1107,14 @@ class CartDiscounts {
 				case "Amount Off": $discount = $promo->discount; break;
 				case "Free Shipping": $discount = 0; $this->Cart->freeshipping = true; break;
 			}
-			$this->apply_discount($promo,$discount);
-			
+			$this->discount($promo,$discount);
+
 		} // End promos loop
 		
-		// Handle promo codes that were not found
+		// Promocode was/is applied
 		if (empty($this->Cart->promocode)) return;
-		
+		if (is_array($this->Cart->promocodes[strtolower($this->Cart->promocode)])) return;
+
 		$codes_applied = array_change_key_case($this->Cart->promocodes);
 		if (!array_key_exists(strtolower($this->Cart->promocode),$codes_applied)) {
 			new ShoppError(
@@ -1122,10 +1135,32 @@ class CartDiscounts {
 	 * @param float $discount The calculated discount amount
 	 * @return void
 	 **/
-	function apply_discount ($promo,$discount) {
+	function discount ($promo,$discount) {
 
-		$promo->applied = $discount;
+		$promo->applied = 0;
+		
+		// Per line item discounts
+		if (isset($promo->rules['item'])) {
+			foreach ($promo->rules['item'] as $rule) {
+				if (in_array($rule['property'],$this->cartitemprops)) {
+					// See if an item rule matches
+					foreach ($this->Cart->contents as $id => &$Item) {
 
+						if ($Item->match($rule)) {
+							switch ($promo->type) {
+								case "Percentage Off": $discount = $Item->total*($promo->discount/100); break;
+								case "Amount Off": $discount = $promo->discount; break;
+								case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
+							}
+							$promo->applied += $discount;
+							$promo->items[$id] = $discount;
+							
+						} // endif $Item->match
+					} // endforeach
+				} // end in_array
+			} // endforeach $promo->rules['item']
+		} else $promo->applied = $discount;
+		
 		// Determine which promocode matched
 		$promocode_rules = array_filter($promo->rules,array(&$this,'_filter_promocode_rule'));
 		foreach ($promocode_rules as $rule) {
@@ -1135,43 +1170,20 @@ class CartDiscounts {
 			$promocode = strtolower($value);
 			
 			if (Promotion::match_rule($subject,$logic,$promocode,$property)) {
-				if (isset($this->Cart->promocodes[$value])) {
+				// Prevent customers from reapplying codes
+				if (is_array($this->Cart->promocodes[$promocode]) && in_array($promo->id,$this->Cart->promocodes[$promocode])) {
 					new ShoppError(sprintf(__("%s has already been applied.","Shopp"),$value),'cart_promocode_used',SHOPP_ALL_ERR);
 					$this->Cart->promocode = false;
 					return false;
 				}
-				$this->Cart->promocodes[$value] = $promo;
-				$this->Cart->promocode = false;
+				// Add the code to the registry
+				if (!is_array($this->Cart->promocodes[$promocode])) $this->Cart->promocodes[$promocode] = array();
+				else $this->Cart->promocodes[$promocode][] = $promo->id;
+				
 			}
 		}
 		
 		$this->Cart->discounts[$promo->id] = $promo;
-	}
-	
-	/**
-	 * Matches an Item to an item rule
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 * 
-	 * @param Item $Item The Item to test against
-	 * @param int $id The index of the Item in the cart
-	 * @param array $rule The conditions of the rule
-	 * @return boolean
-	 **/
-	function itemrule (&$Item,$id,$rule) {
-		extract($rule);
-		switch($property) {
-			case "Any item name": $subject = $Item->name; break;
-			case "Any item quantity": $subject = (int)$Item->quantity; break;
-			case "Any item amount": $subject = $Item->total; break;
-		}
-		
-		if (Promotion::match_rule($subject,$logic,$value,$property)) {
-			$this->items[$id] = &$Item;
-			return true;
-		}
-		return false;
 	}
 	
 	/**
@@ -1187,7 +1199,7 @@ class CartDiscounts {
 		extract($rule);
 
 		// Match previously applied codes
-		if (in_array($value,$this->Cart->promocodes)) return true;
+		if (is_array($this->Cart->promocodes[$value])) return true;
 		
 		// Match new codes
 		
@@ -1196,9 +1208,8 @@ class CartDiscounts {
 
 		$subject = strtolower($this->Cart->promocode);
 		$promocode = strtolower($value);
-		if (Promotion::match_rule($subject,$logic,$promocode,$property)) 
-			return true;
-		return false;
+		
+		return Promotion::match_rule($subject,$logic,$promocode,$property);
 	}
 	
 	/**

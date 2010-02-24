@@ -115,21 +115,47 @@ class Promotion extends DatabaseObject {
 					&& floatvalue($value) != 0 
 					&& floatvalue($subject) == floatvalue($value));
 				} else {
-					return ($subject === $value);
+					if (is_array($subject)) return (in_array($value,$subject));
+					return ("$subject" === "$value");
 				}		 
-					break;
+				break;
 			case "Is not equal to": 		
-				return ($subject !== $value 
+				if (is_array($subject)) return (!in_array($value,$subject));
+				return ("$subject" !== "$value"
 						|| (floatvalue($subject) != 0 
 						&& floatvalue($value) != 0 
 						&& floatvalue($subject) != floatvalue($value))); 
 						break;
 
 			// String operations
-			case "Contains": return (stripos($subject,$value) !== false); break;
-			case "Does not contain": return (stripos($subject,$value) === false); break;
-			case "Begins with": return (stripos($subject,$value) === 0); break;
-			case "Ends with": return  (stripos($subject,$value) === strlen($subject) - strlen($value)); break;
+			case "Contains": 
+				if (is_array($subject)) {
+					foreach ($subject as $s) 
+						if (stripos($s,$value) !== false) return true;
+					return false;
+				}
+				return (stripos($subject,$value) !== false); break;
+			case "Does not contain": 
+				if (is_array($subject)) {
+					foreach ($subject as $s) 
+						if (stripos($s,$value) !== false) return false;
+					return true;
+				}
+				return (stripos($subject,$value) === false); break;
+			case "Begins with": 
+				if (is_array($subject)) {
+					foreach ($subject as $s) 
+						if (stripos($s,$value) === 0) return true;
+					return false;
+				}
+				return (stripos($subject,$value) === 0); break;
+			case "Ends with": 
+				if (is_array($subject)) {
+					foreach ($subject as $s) 
+						if (stripos($s,$value) === strlen($s) - strlen($value)) return true;
+					return false;
+				}
+				return  (stripos($subject,$value) === strlen($subject) - strlen($value)); break;
 			
 			// Numeric operations
 			case "Is greater than":

@@ -50,11 +50,12 @@ add_meta_box('promotion-discount', __('Discount','Shopp'), 'discount_meta_box', 
 
 function rules_meta_box ($Promotion) {
 	$scopes = array(
-		'Catalog' => __('Catalog Product','Shopp'),
-		'Cart' => __('Shopping Cart','Shopp'),
-		'Cart Item' => __('Cart Item','Shopp'),
+		'Catalog' => __('catalog product','Shopp'),
+		'Cart' => __('shopping cart','Shopp'),
+		'Cart Item' => __('cart item','Shopp'),
 		
 	);
+
 	$scope = '<select name="scope" id="promotion-scope" class="small">';
 	$scope .= menuoptions($scopes,$Promotion->scope,true);
 	$scope .= '</select>';
