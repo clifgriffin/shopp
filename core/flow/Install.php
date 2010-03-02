@@ -368,6 +368,8 @@ class ShoppInstallation extends FlowController {
 	 * @return void
 	 **/
 	function update () {
+		global $parent_file,$submenu_file;
+		
 		$plugin = isset($_REQUEST['plugin']) ? trim($_REQUEST['plugin']) : '';
 		$addon = isset($_REQUEST['addon']) ? trim($_REQUEST['addon']) : '';
 		$type = isset($_REQUEST['type']) ? trim($_REQUEST['type']) : '';
@@ -447,7 +449,7 @@ if (!class_exists('Plugin_Upgrader'))
  * Provides foundational functionality specific to Shopp update 
  * processing classes.
  * 
- * Extensions derived from the WordPress WP_Upgrader class:
+ * Extensions derived from the WordPress WP_Upgrader & Plugin_Upgrader classes:
  * @see wp-admin/includes/class-wp-upgrader.php
  * 
  * @copyright WordPress {@link http://codex.wordpress.org/Copyright_Holders}
@@ -457,7 +459,7 @@ if (!class_exists('Plugin_Upgrader'))
  * @package shopp
  * @subpackage installation
  **/
-class Shopp_Upgrader extends WP_Upgrader {
+class Shopp_Upgrader extends Plugin_Upgrader {
 	
 	function download_package($package) {
 
@@ -559,7 +561,7 @@ class Shopp_Upgrader extends WP_Upgrader {
  * 
  * Adds auto-update support for the core plugin.
  * 
- * Extensions derived from the WordPress WP_Upgrader class:
+ * Extensions derived from the WordPress WP_Upgrader & Plugin_Upgrader classes:
  * @see wp-admin/includes/class-wp-upgrader.php
  * 
  * @copyright WordPress {@link http://codex.wordpress.org/Copyright_Holders}
@@ -646,7 +648,7 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
  * 
  * Adds auto-update support for individual Shopp add-ons.
  * 
- * Extensions derived from the WordPress WP_Upgrader class:
+ * Extensions derived from the WordPress WP_Upgrader & Plugin_Upgrader classes:
  * @see wp-admin/includes/class-wp-upgrader.php
  * 
  * @copyright WordPress {@link http://codex.wordpress.org/Copyright_Holders}
