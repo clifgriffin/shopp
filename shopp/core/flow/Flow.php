@@ -36,8 +36,12 @@ class Flow {
 		register_activation_hook(SHOPP_PLUGINFILE, array(&$this, 'activate'));
 
 		if (defined('DOING_AJAX')) add_action('admin_init',array(&$this,'ajax'));
-				
+
 		add_action('admin_menu',array(&$this,'menu'));
+
+		// Handle automatic updates
+		add_action('update-custom_shopp',array(&$this,'update'));
+		
 		if (defined('WP_ADMIN')) add_action('admin_init',array(&$this,'parse'));
 		else add_action('parse_request',array(&$this,'parse'));
 	}
@@ -51,7 +55,7 @@ class Flow {
 	 **/
 	function parse () {
 		global $Shopp,$wp;
-		
+
 		$this->transactions();
 
 		if (isset($wp->query_vars['src']) || 
@@ -167,6 +171,11 @@ class Flow {
 	function installation () {
 		require_once(SHOPP_FLOW_PATH."/Install.php");
 		$Installation = new ShoppInstallation();
+	}
+	
+	function update () {
+		$this->installation();
+		do_action('shopp_autoupdate');
 	}
 	
 	/**

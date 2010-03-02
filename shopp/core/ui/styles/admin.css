@@ -83,6 +83,8 @@ div.comment-item:hover .row-actions { visibility: visible; }
 .form-table td div span,
 .form-table td p span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
 
+.shopp .icon32 { background: url('../icons/shopp32.png') no-repeat; }
+
 .pricing-table { width: 100%; }
 .pricing-table tr { background: none; }
 .pricing-table th { width: auto; border: none; padding: 0; vertical-align: top; text-align: left; white-space: nowrap; }
@@ -414,3 +416,5 @@ div.storage-settings { clear: both; margin-top: 8px; }
 #errorlog ol { list-style: decimal; padding-left: 50px; background: #ececec; margin-left: 0; }
 #errorlog ol li { background: white; margin: 0; padding: 5px; }
 #error_notify li { width: 200px; display: inline-block; }
+
+#error-page.shopp-update { margin-top: 20px; margin-bottom: 20px; width: 540px;}

@@ -1,5 +1,6 @@
 <div class="wrap shopp">
 
+	<div class="icon32"></div>
 	<h2><?php _e('Order','Shopp'); ?></h2>
 
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>

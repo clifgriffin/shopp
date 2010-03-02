@@ -1,4 +1,6 @@
 <div class="wrap shopp">
+
+	<div class="icon32"></div>
 	<h2><?php _e('Products','Shopp'); ?></h2>
 
 	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>

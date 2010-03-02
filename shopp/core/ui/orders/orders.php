@@ -1,4 +1,5 @@
 <div class="wrap shopp">
+	<div class="icon32"></div>
 	<h2><?php _e('Orders','Shopp'); ?></h2>
 
 	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="orders" method="get">

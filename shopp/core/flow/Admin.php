@@ -76,13 +76,14 @@ class AdminFlow extends FlowController {
 	 **/
 	function __construct () {
 		parent::__construct();
-		
+
 		// Add Dashboard Widgets
 		add_action('wp_dashboard_setup', array(&$this, 'dashboard'));
 		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
 		add_action('admin_init', array(&$this, 'tinymce'));
 		add_action('switch_theme',array(&$this, 'themepath'));
 		add_filter('favorite_actions', array(&$this, 'favorites'));
+		add_action("load-update.php", array(&$this, 'admin_css'));
 		
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
@@ -242,7 +243,7 @@ class AdminFlow extends FlowController {
 	 * @return void
 	 **/
 	function behaviors () {
-		global $wp_version,$Shopp;
+		global $wp_version,$Shopp,$pagenow;
 		
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp',SHOPP_ADMIN_URI."/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
@@ -261,8 +262,12 @@ class AdminFlow extends FlowController {
 		
 		?>
 		<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/thickbox.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
-		<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/admin.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
 		<?php
+		$this->admin_css();
+	}
+	
+	function admin_css () {
+		wp_enqueue_style('shopp-admin',SHOPP_PLUGINURI.'/core/ui/styles/admin.css',array(),SHOPP_VERSION,'screen');
 	}
 
 	/**
