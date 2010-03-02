@@ -60,7 +60,7 @@ class ShoppInstallation extends FlowController {
 		
 		$ver = $this->Settings->get('version');
 		if (!empty($ver) && $ver != SHOPP_VERSION) {
-			$this->upgrade($ver);
+			$this->dbupgrades($ver);
 		}
 				
 		if ($this->Settings->get('shopp_setup')) {
