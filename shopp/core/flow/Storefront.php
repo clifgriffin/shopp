@@ -395,8 +395,8 @@ class Storefront extends FlowController {
 				else include(SHOPP_TEMPLATES."/product.php"); break;
 
 			case "category":
-				if (isset($Shopp->Category->smart) && 
-						file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
+				if (isset($Shopp->Category->slug) && 
+					file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
 					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
 				elseif (isset($Shopp->Category->id) && 
 					file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
