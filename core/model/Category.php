@@ -1432,6 +1432,7 @@ class RandomProducts extends Category {
 	static $_slug = "random";
 	
 	function RandomProducts ($options=array()) {
+		global $Shopp;
 		$this->name = __("Random Products","Shopp");
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
@@ -1440,6 +1441,8 @@ class RandomProducts extends Category {
 		if (isset($options['exclude'])) {
 			$where = array();
 			$excludes = explode(",",$options['exclude']);
+			if (in_array('current-product',$excludes) && 
+				isset($Shopp->Product->id)) $where[] = '(p.id != $Shopp->Product->id)';
 			if (in_array('featured',$excludes)) $where[] = "(p.featured='off')";
 			if (in_array('onsale',$excludes)) $where[] = "(pd.sale='off' OR pr.discount=0)";
 			$this->loading['where'] = join(" AND ",$where);

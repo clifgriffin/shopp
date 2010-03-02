@@ -1,6 +1,7 @@
 <div class="wrap shopp">
 	<?php if (!empty($updated)): ?><div id="message" class="updated fade"><p><?php echo $updated; ?></p></div><?php endif; ?>
 
+	<div class="icon32"></div>
 	<h2><?php _e('Presentation Settings','Shopp'); ?></h2>
 
 	<form name="settings" id="presentation" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">

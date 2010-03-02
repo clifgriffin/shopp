@@ -1,4 +1,5 @@
 <div class="wrap shopp">
+	<div class="icon32"></div>
 	<h2><?php _e('Categories','Shopp'); ?></h2>
 	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
 	

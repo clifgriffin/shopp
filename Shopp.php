@@ -186,6 +186,10 @@ class Shopp {
 		$this->Shopping = new Shopping();
 		
 		add_action('init', array(&$this,'init'));
+
+		// Plugin management
+        add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array(&$this, 'status'),10,2);
+        add_action('install_plugins_pre_plugin-information', array(&$this, 'changelog'));
 				
 		// Theme widgets
 		add_action('widgets_init', array(&$this, 'widgets'));
@@ -248,7 +252,7 @@ class Shopp {
 		if (!$this->Shopping->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
 		if (SHOPP_DEBUG && $this->Shopping->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
-
+		
 		new Login();
 	}
 
@@ -497,7 +501,117 @@ class Shopp {
 			$linklist = str_replace($href,$secure_href,$linklist);
 		}
 		return $linklist;
-	}	
+	}
+	
+	function callhome ($request=array(),$data=array(),$options=array()) {
+		$query = http_build_query($request);
+		$data = http_build_query($data);
+
+		$connection = curl_init(); 
+		curl_setopt($connection, CURLOPT_URL, SHOPP_HOME."?".$query); 
+		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
+		curl_setopt($connection, CURLOPT_HEADER, 0);
+		curl_setopt($connection, CURLOPT_POST, 1); 
+		curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($connection, CURLOPT_TIMEOUT, 20); 
+		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1); 
+		
+		$result = curl_exec($connection); 
+		
+		curl_close ($connection);
+		
+		return $result;
+	}
+	
+	function updates () {
+		$updates = $this->Settings->get('updates'); 
+		// $wp_plugins = get_transient('update_plugins');
+
+		// Already set
+		// if (isset($updates->response[SHOPP_PLUGINFILE])) return;
+		
+		$addons = array_merge(
+			$this->Gateways->checksums(),
+			$this->Shipping->checksums(),
+			$this->Storage->checksums()
+		);
+
+		$request = array(
+			"ShoppServerRequest" => "update-check",
+			"ver" => '1.1',
+		);
+		$data = array(
+			'core' => '1.0',
+			'addons' => join("-",$addons)
+		);
+
+		$response = $this->callhome($request,$data);
+		if ($response == '-1') return; // Bad response, bail
+		$response = unserialize($response);
+			
+		unset($updates->response[SHOPP_PLUGINFILE]);
+		unset($updates->response[SHOPP_PLUGINFILE.'/addons']);
+		unset($wp_plugins->response[SHOPP_PLUGINFILE]);
+
+		if (isset($response->addons)) {
+			$updates->response[SHOPP_PLUGINFILE.'/addons'] = $response->addons;
+			unset($response->addons);
+		}
+		
+		if (isset($response->id)) {
+			$updates->response[SHOPP_PLUGINFILE] = $response;
+			// $wp_plugins->response[SHOPP_PLUGINFILE] = new StdClass();
+		}
+			
+		$this->Settings->save('updates',$updates);
+		// set_transient('update_plugins',$wp_plugins);
+		
+	}
+	
+	function changelog () {
+		if($_REQUEST["plugin"] != "shopp") return;
+		
+		$request = array(
+			"ShoppServerRequest" => "changelog",
+			"ver" => '1.1',
+		);
+		$data = array(
+		);
+		$response = $this->callhome($request,$data);
+
+		echo '<html><head>';
+		echo '<link rel="stylesheet" href="'.admin_url().'/css/install.css" type="text/css" />';
+		echo '<link rel="stylesheet" href="'.SHOPP_PLUGINURI.'/core/ui/styles/admin.css" type="text/css" />';
+		echo '</head>';
+		echo '<body id="error-page" class="shopp-update">';
+		echo $response;
+		echo "</body>";
+		echo '</html>';
+		exit();
+	}
+	
+	function status () {
+		$this->updates();
+		$upgrades = $this->Settings->get('updates');
+		$core = $upgrades->response[SHOPP_PLUGINFILE];
+		$addons = $upgrades->response[SHOPP_PLUGINFILE.'/addons'];
+				
+		$plugin_name = 'Shopp';
+		$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=' . $core->slug . '&TB_iframe=true&width=600&height=800');
+		$update_url = wp_nonce_url('update.php?action=shopp&plugin='.SHOPP_PLUGINFILE,'upgrade-plugin_shopp');
+
+		$message = sprintf(__('There is a new version of %1$s available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s Details</a> or <a href="%5$s">upgrade automatically</a>.'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
+		echo '</tr><tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td>';
+
+		if (!empty($core)) return;
+        
+		foreach ($addons as $addon) {
+			$message = sprintf(__('There is a new version of the %s add-on available. <a href="%s">Upgrade automatically</a> to version %s','Shopp'),$addon->name,wp_nonce_url('update.php?action=shopp&addon=' . $addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_' . $addon->slug),$addon->new_version);
+			echo '<tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
+			
+		}
+        
+	}
 	
 
 } // END class Shopp

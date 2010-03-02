@@ -1024,8 +1024,8 @@ function shopp_prereqs () {
 		$errors[] = __("Shopp will not work with PHP version 5.1.3 because of a critical bug in complex POST data structures.  Please upgrade PHP to version 5.1.4 or higher.");
 		
 	// Check WordPress version
-	if (!version_compare(get_bloginfo('version'),'2.7','>='))
-		$errors[] = __("Shopp requires WordPress version 2.7+.  You are using WordPress version ").get_bloginfo('version');
+	if (!version_compare(get_bloginfo('version'),'2.8','>='))
+		$errors[] = __("Shopp requires WordPress version 2.8+.  You are using WordPress version ").get_bloginfo('version');
 	
 	// Check for cURL
 	if( !function_exists("curl_init") &&
@@ -1241,27 +1241,6 @@ function _d($format,$timestamp=false) {
 }
 
 /**
- * Builds an SQL query fragment for key/value pair assignments
- *
- * Generates a string concatenating the keys and corresponding values
- * for INSERT or UPDATE queries.
- *
- * @author Jonathan Davis
- * @since 1.0
- * 
- * @param array $request A list of key/value pairs
- * @return string The query fragment
- **/
-function build_query_request ($request=array()) {
-	$query = "";
-	foreach ($request as $name => $value) {
-		if (strlen($query) > 0) $query .= "&";
-		$query .= "$name=$value";
-	}
-	return $query;
-}
-
-/**
  * Converts bytes to the largest applicable human readable unit
  *
  * Supports up to petabyte sizes
@@ -1328,15 +1307,10 @@ function copy_shopp_templates ($src,$target) {
  * @return string _e translated string
  **/
 function preg_e_callback ($matches) {
-	// echo $matches[2].'<br />';
 	return ($matches[1] == 'e') ? __($matches[2],'Shopp') : "'".__($matches[2],'Shopp')."'";
 }
 
-
-
-
 // TODO: Clean up for Controllers
-
 function validate_addons () {
 	$addons = array();
 
@@ -1355,6 +1329,7 @@ function validate_addons () {
 	}
 	return $addons;
 }
+// TODO END: Clean up for Controllers
 
 /**
  * Uses builtin php openssl library to encrypt data.
@@ -1370,8 +1345,6 @@ function rsa_encrypt($data, $pkey){
 	openssl_public_encrypt($data, $encrypted,$pkey);
 	return ($encrypted)?$encrypted:false;
 }
-
-// TODO END: Clean up for Controllers
 
 if(!function_exists('sanitize_path')){
 	/**
