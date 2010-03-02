@@ -190,6 +190,7 @@ class Shopp {
 		// Plugin management
         add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array(&$this, 'status'),10,2);
         add_action('install_plugins_pre_plugin-information', array(&$this, 'changelog'));
+        add_action('shopp_check_updates', array(&$this, 'updates'));
 				
 		// Theme widgets
 		add_action('widgets_init', array(&$this, 'widgets'));
@@ -202,6 +203,10 @@ class Shopp {
 		
 		// Extras & Integrations
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
+		
+		if (!wp_next_scheduled('shopp_check_updates'))
+			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
+
 	}
 	
 	/**
@@ -524,7 +529,8 @@ class Shopp {
 	}
 	
 	function updates () {
-		$updates = $this->Settings->get('updates'); 
+		$updates = new StdClass();
+		
 		// $wp_plugins = get_transient('update_plugins');
 
 		// Already set
@@ -549,23 +555,22 @@ class Shopp {
 		if ($response == '-1') return; // Bad response, bail
 		$response = unserialize($response);
 			
-		unset($updates->response[SHOPP_PLUGINFILE]);
-		unset($updates->response[SHOPP_PLUGINFILE.'/addons']);
-		unset($wp_plugins->response[SHOPP_PLUGINFILE]);
+		unset($updates->response);
+		// unset($wp_plugins->response[SHOPP_PLUGINFILE]);
 
 		if (isset($response->addons)) {
 			$updates->response[SHOPP_PLUGINFILE.'/addons'] = $response->addons;
 			unset($response->addons);
 		}
 		
-		if (isset($response->id)) {
+		if (isset($response->id))
 			$updates->response[SHOPP_PLUGINFILE] = $response;
-			// $wp_plugins->response[SHOPP_PLUGINFILE] = new StdClass();
-		}
+		
+		if (!empty($updates))
 			
 		$this->Settings->save('updates',$updates);
 		// set_transient('update_plugins',$wp_plugins);
-		
+		return $updates;
 	}
 	
 	function changelog () {
@@ -591,19 +596,21 @@ class Shopp {
 	}
 	
 	function status () {
-		$this->updates();
-		$upgrades = $this->Settings->get('updates');
-		$core = $upgrades->response[SHOPP_PLUGINFILE];
-		$addons = $upgrades->response[SHOPP_PLUGINFILE.'/addons'];
+		$updates = $this->Settings->get('updates');
+		if (empty($updates)) $updates = $this->updates();
+		$core = $updates->response[SHOPP_PLUGINFILE];
+		$addons = $updates->response[SHOPP_PLUGINFILE.'/addons'];
 				
-		$plugin_name = 'Shopp';
-		$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=' . $core->slug . '&TB_iframe=true&width=600&height=800');
-		$update_url = wp_nonce_url('update.php?action=shopp&plugin='.SHOPP_PLUGINFILE,'upgrade-plugin_shopp');
+		if (!empty($core)) {
+			$plugin_name = 'Shopp';
+			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=' . $core->slug . '&TB_iframe=true&width=600&height=800');
+			$update_url = wp_nonce_url('update.php?action=shopp&plugin='.SHOPP_PLUGINFILE,'upgrade-plugin_shopp');
 
-		$message = sprintf(__('There is a new version of %1$s available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s Details</a> or <a href="%5$s">upgrade automatically</a>.'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
-		echo '</tr><tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td>';
+			$message = sprintf(__('There is a new version of %1$s available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s Details</a> or <a href="%5$s">upgrade automatically</a>.'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
+			echo '</tr><tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td>';
 
-		if (!empty($core)) return;
+			return;
+		}
         
 		foreach ($addons as $addon) {
 			$message = sprintf(__('There is a new version of the %s add-on available. <a href="%s">Upgrade automatically</a> to version %s','Shopp'),$addon->name,wp_nonce_url('update.php?action=shopp&addon=' . $addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_' . $addon->slug),$addon->new_version);

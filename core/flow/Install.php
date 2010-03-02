@@ -577,7 +577,6 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 		$this->strings['up_to_date'] = __('Shopp is at the latest version.','Shopp');
 		$this->strings['no_package'] = __('Shopp upgrade package not available.','Shopp');
 		$this->strings['downloading_package'] = sprintf(__('Downloading update from <span class="code">%s</span>.'),SHOPP_HOME);;
-		$this->strings['unpack_package'] = __('Unpacking the update.');
 		$this->strings['deactivate_plugin'] = __('Deactivating Shopp.','Shopp');
 		$this->strings['remove_old'] = __('Removing the old version of Shopp.','Shopp');
 		$this->strings['remove_old_failed'] = __('Could not remove the old Shopp.','Shopp');
@@ -738,9 +737,6 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 
 		if ( ! $this->result || is_wp_error($this->result) )
 			return $this->result;
-
-		// Force refresh of plugin update information
-		$Settings->save('updates',false);
 		
 	}
 	
