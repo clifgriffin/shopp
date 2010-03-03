@@ -28,7 +28,7 @@
 			</tr>
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="accounting-serial"><?php _e('Next Order Number','Shopp'); ?></label></th> 
-				<td><input type="text" name="settings[next_order_id]" id="accounting-serial" value="<?php echo attribute_escape($next_setting); ?>" size="7" class="selectall" /><br />
+				<td><input type="text" name="settings[next_order_id]" id="accounting-serial" value="<?php echo esc_attr($next_setting); ?>" size="7" class="selectall" /><br />
 					<?php _e('Set the next order number to sync with your accounting systems.','Shopp'); ?></td>
 			</tr>
 			<tr class="form-required"> 

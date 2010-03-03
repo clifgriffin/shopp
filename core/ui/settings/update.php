@@ -20,11 +20,11 @@
 					<div id="ftp-credentials" class="hidden">
 						<p><strong><?php _e('FTP Settings','Shopp'); ?></strong></p>
 <p id="ftp-error" class="shopp error"><?php _e("Could not connect to your server over FTP, please check your settings and try again.","Shopp"); ?></p>
-						<div class="stored"><input type="text" name="settings[ftp_credentials][hostname]" id="ftp-host" size="40" value="<?php echo attribute_escape($credentials['hostname']); ?>" /><br />
+						<div class="stored"><input type="text" name="settings[ftp_credentials][hostname]" id="ftp-host" size="40" value="<?php echo esc_attr($credentials['hostname']); ?>" /><br />
 						<label for="ftp-host"><?php _e('Enter the FTP server/host name for this WordPress installation.','Shopp'); ?></label></div>
-						<div class="stored"><input type="text" name="settings[ftp_credentials][username]" id="ftp-username" size="20"  value="<?php echo attribute_escape($credentials['username']); ?>" /><br />
+						<div class="stored"><input type="text" name="settings[ftp_credentials][username]" id="ftp-username" size="20"  value="<?php echo esc_attr($credentials['username']); ?>" /><br />
 						<label for="ftp-username"><?php _e('Enter your FTP username','Shopp'); ?></label></div>
-						<div><input type="password" name="password" id="ftp-password" size="20" value="<?php echo attribute_escape($credentials['password']); ?>" /><br />
+						<div><input type="password" name="password" id="ftp-password" size="20" value="<?php echo esc_attr($credentials['password']); ?>" /><br />
 						<label for="ftp-password"><?php _e('Enter your FTP password','Shopp'); ?></label></div><br />
 						<div><input type="submit" name="ftp-settings" id="ftp-continue" value="<?php _e('Continue Updates&hellip;','Shopp'); ?>" class="button-secondary" /></div>
 					</div>

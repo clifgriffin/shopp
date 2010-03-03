@@ -24,7 +24,7 @@
 
 					<div id="titlediv">
 						<div id="titlewrap">
-							<input name="name" id="title" type="text" value="<?php echo attribute_escape($Promotion->name); ?>" size="30" tabindex="1" autocomplete="off" />
+							<input name="name" id="title" type="text" value="<?php echo esc_attr($Promotion->name); ?>" size="30" tabindex="1" autocomplete="off" />
 						</div>
 					</div>
 

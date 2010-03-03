@@ -220,8 +220,8 @@ class Storefront extends FlowController {
 		} elseif (!empty($this->Category)) {
 			$description = $this->Category->description;
 		}
-		$keywords = attribute_escape(apply_filters('shopp_meta_keywords',$keywords));
-		$description = attribute_escape(apply_filters('shopp_meta_description',$description));
+		$keywords = esc_attr(apply_filters('shopp_meta_keywords',$keywords));
+		$description = esc_attr(apply_filters('shopp_meta_description',$description));
 		?>
 		<?php if ($keywords): ?><meta name="keywords" content="<?php echo $keywords; ?>" /><?php endif; ?>
 		<?php if ($description): ?><meta name="description" content="<?php echo $description; ?>" /><?php endif;

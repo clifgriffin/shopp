@@ -56,7 +56,8 @@ interface GatewayModule {
  * @subpackage gateways
  **/
 abstract class GatewayFramework {
-	
+
+	var $session = fals;		// The current shopping session ID
 	var $Order = false;			// The current customer's Order
 	var $name = false;			// The proper name of the gateway
 	var $cards = false;			// A list of supported payment cards
@@ -76,6 +77,7 @@ abstract class GatewayFramework {
 	 **/
 	function __construct () {
 		global $Shopp;
+		$this->session = $Shopp->Shopping->session;
 		$this->Order = &ShoppOrder();
 		$this->module = get_class($this);
 		$this->settings = $Shopp->Settings->get($this->module);
@@ -151,13 +153,13 @@ abstract class GatewayFramework {
 	 * @param string $data The encoded data to send
 	 * @param string $url The URL to connect to
 	 * @param string $port (optional) Connect to a specific port
-	 * @return void Description...
+	 * @return string Raw response
 	 **/
 	function send ($data,$url,$port=false) {
 		$connection = curl_init();
 		curl_setopt($connection,CURLOPT_URL,"$url".($port?":$port":""));
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
-		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0); 
+		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0);
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
 		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
@@ -216,9 +218,9 @@ abstract class GatewayFramework {
 		foreach($data as $key => $value) {
 			if (is_array($value)) {
 				foreach($value as $item)
-					$query .= '<input type="hidden" name="'.$key.'[]" value="'.attribute_escape($item).'" />';
+					$query .= '<input type="hidden" name="'.$key.'[]" value="'.esc_attr($item).'" />';
 			} else {
-				$query .= '<input type="hidden" name="'.$key.'" value="'.attribute_escape($value).'" />';
+				$query .= '<input type="hidden" name="'.$key.'" value="'.esc_attr($value).'" />';
 			}
 		}
 		return $query;

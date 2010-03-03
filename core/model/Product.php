@@ -786,7 +786,7 @@ class Product extends DatabaseObject {
 					$title = empty($title)?'':' title="'.esc_attr($title).'"';
 					$class = isset($options['class'])?' class="'.esc_attr($options['class']).'"':'';
 
-					if (!empty($options['title'])) $title = ' title="'.attribute_escape($options['title']).'"';
+					if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
 					$alt = esc_attr(!empty($img->alt)?$img->alt:$this->name);
 					return '<img src="'.$Shopp->imguri.$img->id.'?'.$img->resizing($width,$height,$scale,$sharpen,$quality).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" '.$options['class'].' />'; break;
 				} else return "";
@@ -906,8 +906,8 @@ class Product extends DatabaseObject {
 						$scaled = $img->scaled($width,$height,$scale);
 						$scaled = $img->scaled($thumbwidth,$thumbheight);
 
-						$title = !empty($img->title)?' title="'.attribute_escape($img->title).'"':'';
-						$alt = attribute_escape(!empty($img->alt)?$img->alt:$img->name);
+						$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
+						$alt = esc_attr(!empty($img->alt)?$img->alt:$img->name);
 
 						$thumbs .= '<li id="thumbnail-'.$img->id.'" class="preview-'.$img->id.(($firstThumb)?' first':' test').'">';
 						$thumbs .= '<img src="'.$Shopp->imguri.$img->id.'?'.$img->resizing($thumbwidth,$thumbheight).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';

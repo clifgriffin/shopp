@@ -4,7 +4,7 @@
  * @class AuthorizeNet
  *
  * @author Jonathan Davis
- * @version 1.0.5
+ * @version 1.1
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
  * @since 1.1
@@ -13,36 +13,47 @@
  * $Id$
  **/
 
-class AuthorizeNet extends GatewayFramework {
+class AuthorizeNet extends GatewayFramework implements GatewayModule {
 
 	var $cards = array("visa", "mc", "amex", "disc", "jcb", "dc");
+
+	var $liveurl = 'https://secure.authorize.net/gateway/transact.dll';
+	var $testurl = 'https://test.authorize.net/gateway/transact.dll';
 
 	function AuthorizeNet () {
 		parent::__construct();
 		$this->setup('login','password','testmode');
 	}
 	
+	function actions () {
+		add_action('shopp_process_order',array(&$this,'process'));
+	}
+	
 	function process () {
-		$this->Response = $this->send();
-		if ($this->Response->code == 1) return true;
-		else return false;
+		$transaction = $this->build();
+		$Response = $this->send($transaction);
+		if ($Response->code == '1') {
+			$this->Order->transaction($this->txnid($Response),'CHARGED');
+			return;
+		} else $this->error($Response);
 	}
 	
-	function transactionid () {
-		if (!empty($this->Response)) return $this->Response->transactionid;
+	function txnid ($Response) {
+		if (empty($Response->transactionid)) return parent::txnid();
+		return $Response->transactionid;
 	}
 	
-	function error () {
-		if (!empty($this->Response)) 
-			return new ShoppError($this->Response->reason,'authorize_net_error',SHOPP_TRXN_ERR,
-				array('code'=>$this->Response->reasoncode));
+	function error ($Response) {
+		return new ShoppError($Response->reason,'authorize_net_error',SHOPP_TRXN_ERR,
+			array('code'=>$Response->reasoncode));
 	}
 	
-	function build (&$Order) {
+	function build () {
+		$Order = $this->Order;
 		$_ = array();
 
 		// Options
-		$_['x_test_request']		= $this->settings['testmode']; // Set "TRUE" while testing
+		$_['x_test_request']		= ($this->settings['testmode'] == "on")?"TRUE":"FALSE"; // Set "TRUE" while testing
 		$_['x_login'] 				= $this->settings['login'];
 		$_['x_password'] 			= $this->settings['password'];
 		$_['x_Delim_Data'] 			= "TRUE"; 
@@ -56,7 +67,7 @@ class AuthorizeNet extends GatewayFramework {
 		$_['x_merchant_email']		= $this->settings['merchant_email'];
 		
 		// Required Fields
-		$_['x_amount']				= $Order->Totals->total;
+		$_['x_amount']				= $Order->Cart->Totals->total;
 		$_['x_customer_ip']			= $_SERVER["REMOTE_ADDR"];
 		$_['x_fp_sequence']			= mktime();
 		$_['x_fp_timestamp']		= time();
@@ -88,49 +99,23 @@ class AuthorizeNet extends GatewayFramework {
 		$_['x_ship_to_country']		= $Order->Shipping->country;
 		
 		// Transaction
-		$_['x_freight']				= $Order->Totals->shipping;
-		$_['x_tax']					= $Order->Totals->tax;
+		$_['x_freight']				= $Order->Cart->Totals->shipping;
+		$_['x_tax']					= $Order->Cart->Totals->tax;
 		
 		// Line Items
 		$i = 1;
-		foreach($Order->Items as $Item) {
+		foreach($Order->Cart->contents as $Item) {
 			$_['x_line_item'][] = ($i++)."<|>".substr($Item->name,0,31)."<|>".((sizeof($Item->options) > 1)?" (".substr($Item->optionlabel,0,253).")":"")."<|>".number_format($Item->quantity,2)."<|>".number_format($Item->unitprice,2,'.','')."<|>".(($Item->tax)?"Y":"N");
 		}
-
-		$this->transaction = "";
-		foreach($_ as $key => $value) {
-			if (is_array($value)) {
-				foreach($value as $item) {
-					if (strlen($this->transaction) > 0) $this->transaction .= "&";
-					$this->transaction .= "$key=".urlencode($item);
-				}
-			} else {
-				if (strlen($this->transaction) > 0) $this->transaction .= "&";
-				$this->transaction .= "$key=".urlencode($value);
-			}
-		}
+		
+		return $this->encode($_);
 	}
 	
-	function send () {
-		$connection = curl_init();
-		curl_setopt($connection, CURLOPT_URL,apply_filters('shopp_authorize_net_url','https://secure.authorize.net/gateway/transact.dll'));
-		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
-		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
-		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
-		curl_setopt($connection, CURLOPT_POST, 1); 
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->transaction); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 60); 
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
-		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
-		$buffer = curl_exec($connection);
-		if ($error = curl_error($connection)) 
-			new ShoppError($error,'authorize_net_connection',SHOPP_COMM_ERR);
-		curl_close($connection);
-
-		$Response = $this->response($buffer);
-		return $Response;
+	function send ($data) {
+		if ($this->settings['testmode'] == "on") $url = $this->testurl;
+		else $url = $this->liveurl;
+		$url = apply_filters('shopp_authorize_net_url',$url);
+		return $this->response(parent::send($data,$url));
 	}
 	
 	function response ($buffer) {

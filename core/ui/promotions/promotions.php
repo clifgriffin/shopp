@@ -9,7 +9,7 @@
 	</div>
 
 	<p id="post-search" class="search-box">
-		<input type="text" id="promotions-search-input" name="s" class="search-input" value="<?php echo attribute_escape($s); ?>" />
+		<input type="text" id="promotions-search-input" name="s" class="search-input" value="<?php echo esc_attr($s); ?>" />
 		<input type="submit" value="<?php _e('Search Promotions','Shopp'); ?>" class="button" />
 	</p>
 

@@ -11,7 +11,7 @@
 	</div>
 
 	<p id="post-search" class="search-box">
-		<input type="text" id="products-search-input" class="search-input" name="s" value="<?php echo stripslashes(attribute_escape($s)); ?>" />
+		<input type="text" id="products-search-input" class="search-input" name="s" value="<?php echo stripslashes(esc_attr($s)); ?>" />
 		<input type="submit" value="<?php _e('Search Products','Shopp'); ?>" class="button" />
 	</p>
 	
@@ -47,12 +47,12 @@
 
 		$even = false; 
 		foreach ($Products as $key => $Product):
-		$editurl = esc_url(attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
+		$editurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>'shopp-products',
 					'id'=>$Product->id)),
 					admin_url('admin.php'))));
 
-		$dupurl = esc_url(attribute_escape(add_query_arg(array_merge(stripslashes_deep($_GET),
+		$dupurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>'shopp-products',
 					'duplicate'=>$Product->id)),
 					admin_url('admin.php'))));
