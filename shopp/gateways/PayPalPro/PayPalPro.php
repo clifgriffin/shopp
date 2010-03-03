@@ -25,22 +25,19 @@ class PayPalPro extends GatewayFramework {
 	
 	function PayPalPro () {
 		parent::__construct();
-		global $Shopp;
 
-		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
-		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
-		
+		$Settings = ShoppSettings();
+		$this->settings['base_operations'] = $Settings->get('base_operations');
 		$this->settings['currency_code'] = $this->currencies[0]; // Use USD by default
 		if (in_array($this->settings['base_operations']['currency']['code'],$this->currencies))
 			$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];
-		
-		if (!isset($this->settings['label'])) $this->settings['label'] = "Credit Card";
-		
+	}
+	
+	function actions () {
 		add_action('shopp_process_order',array(&$this,'process'));
 	}
 	
 	function process () {
-		if (!$this->myorder()) return;
 		
 		if ($this->settings['testmode'] == "on") $this->url = $this->sandboxurl;
 		else $this->liveurl;

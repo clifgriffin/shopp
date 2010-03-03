@@ -10,30 +10,6 @@
  * @package shopp
  **/
 
-if( !function_exists('esc_url') ) {
-	/**
-	 * Checks and cleans a URL
-	 *
-	 * A number of characters are removed from the URL. If the URL is for displaying
-	 * (the default behaviour) amperstands are also replaced. The 'esc_url' filter
-	 * is applied to the returned cleaned URL.
-	 *
-	 * @since WordPress 2.8.0+
-	 * 
-	 * @uses esc_url()
-	 * @uses wp_kses_bad_protocol() To only permit protocols in the URL set
-	 *		via $protocols or the common ones set in the function.
-	 *
-	 * @param string $url The URL to be cleaned.
-	 * @param array $protocols Optional. An array of acceptable protocols.
-	 *		Defaults to 'http', 'https', 'ftp', 'ftps', 'mailto', 'news', 'irc', 'gopher', 'nntp', 'feed', 'telnet' if not set.
-	 * @return string The cleaned $url after the 'cleaned_url' filter is applied.
-	 */
-	function esc_url( $url, $protocols = null ) {
-		return clean_url( $url, $protocols, 'display' );
-	}
-}
-
 if (!function_exists('json_encode')) {
 	/**
 	 * Builds JSON {@link http://www.json.org/} formatted strings from PHP data structures
@@ -108,7 +84,7 @@ if (!function_exists('attribute_escape_deep')) {
 	function attribute_escape_deep($value) {
 		 $value = is_array($value) ?
 			 array_map('attribute_escape_deep', $value) :
-			 attribute_escape($value);
+			 esc_attr($value);
 		 return $value;
 	}
 }

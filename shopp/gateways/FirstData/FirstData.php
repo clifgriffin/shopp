@@ -1,67 +1,65 @@
 <?php
 /**
  * FirstData
- * @class FirstData
  *
  * @author Jonathan Davis
- * @version 1.0.1
+ * @version 1.1
  * @copyright Ingenesis Limited, 12 March, 2009
  * @package Shopp
+ * @since 1.1
+ * @subpackage FirstData
  * 
  * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
 
-class FirstData {
-	var $transaction = array();
-	var $settings = array();
-	var $Response = false;
-	var $cards = array("Visa","MasterCard","Discover","Amex","Diners Club","JCB");
-	// var $url = "https://staging.linkpt.net/lpc/servlet/lppay"; // Staging URL
-	var $url = "https://secure.linkpt.net/lpcentral/servlet/lppay";
+class FirstData extends GatewayFramework implements GatewayModule {
+
+	var $secure = true;
+
+	var $cards = array("visa","mc","disc","amex","dc","jcb");
+
+	var $testurl = "https://staging.linkpt.net/lpc/servlet/lppay";
+	var $liveurl = "https://secure.linkpt.net/lpcentral/servlet/lppay";
 	
-	function FirstData (&$Order="") {
-		global $Shopp;
-		$this->settings = $Shopp->Settings->get('FirstData');
-		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
-		if (!isset($this->settings['cards'])) $this->settings['cards'] = $this->cards;
-		
-		if (!empty($Order)) $this->build($Order);
-		return true;
+	function __construct () {
+		parent::__construct();
+		$this->setup('storenumber','testmode');
+	}
+	
+	function actions () {
+		add_action('shopp_process_order',array(&$this,'process'));
 	}
 	
 	function process () {
-		$this->Response = $this->send();
-		if (!$this->Response) return false;
-		$status = $this->Response->getElementContent('r_approved');
+		$transaction = $this->build();
+		$XML = new XMLData($this->send($transaction));
+		if (!$XML) return false;
 
-		if ($status == "APPROVED") return true;
-		else return false;
-	}
-	
-	function transactionid () {
-		$transaction = $this->Response->getElementContent('r_ref');
-		if (!empty($transaction)) return $transaction;
-		return false;
-	}
-	
-	function error () {
-		if (empty($this->Response)) return false;
-		$message = $this->Response->getElementContent('r_error');
-		if (class_exists('ShoppError')) {
-			if (empty($message)) return new ShoppError(__("An unknown error occurred while processing this transaction.  Please contact the site administrator.","Shopp"),'firstdata_trxn_error',SHOPP_TRXN_ERR);
-			return new ShoppError($message,'firstdata_trxn_error',SHOPP_TRXN_ERR);
-		} else {
-			$Error = new stdClass();
-			$Error->code = 'firstdata_trxn_error';
-			$Error->message = $message;
-			return $Error;
+		if ($XML->getElementContent('r_approved') == "APPROVED") {
+			$this->Order->transaction($this->txnid($XML),'CHARGED');
+			return;
 		}
+		
+		$this->error($XML);
 	}
 	
-	function build ($Order) {
-		
+	function txnid ($XML) {
+		$transaction = $XML->getElementContent('r_ref');
+		if (!empty($transaction)) return $transaction;
+		return parent::txnid();
+	}
+	
+	function error ($XML) {
+		if (empty($XML)) return false;
+		$message = $XML->getElementContent('r_error');
+		if (empty($message)) return new ShoppError(__("An unknown error occurred while processing this transaction.  Please contact the site administrator.","Shopp"),'firstdata_trxn_error',SHOPP_TRXN_ERR);
+		return new ShoppError($message,'firstdata_trxn_error',SHOPP_TRXN_ERR);
+	}
+	
+	function build () {
+		$Order = $this->Order;
 		$result = "live";
 		if ($this->settings['testmode'] == "on") $result = "good";
 				
@@ -76,10 +74,10 @@ class FirstData {
 				$_[] = '<result>'.$result.'</result>';
 			$_[] = '</orderoptions>';
 			$_[] = '<payment>';
-				$_[] = '<chargetotal>'.number_format($Order->Totals->total,2,'.','').'</chargetotal>';
-				$_[] = '<subtotal>'.number_format($Order->Totals->subtotal,2,'.','').'</subtotal>';
-				$_[] = '<tax>'.number_format($Order->Totals->tax,2,'.','').'</tax>';
-				$_[] = '<shipping>'.number_format($Order->Totals->shipping,2,'.','').'</shipping>';
+				$_[] = '<chargetotal>'.number_format($Order->Cart->Totals->total,2,'.','').'</chargetotal>';
+				$_[] = '<subtotal>'.number_format($Order->Cart->Totals->subtotal,2,'.','').'</subtotal>';
+				$_[] = '<tax>'.number_format($Order->Cart->Totals->tax,2,'.','').'</tax>';
+				$_[] = '<shipping>'.number_format($Order->Cart->Totals->shipping,2,'.','').'</shipping>';
 			$_[] = '</payment>';
 			$_[] = '<creditcard>';
 				$_[] = '<cardnumber>'.$Order->Billing->card.'</cardnumber>';
@@ -115,9 +113,9 @@ class FirstData {
 			$_[] = '</shipping>';
 
 			$_[] = '<items>';
-			foreach($Order->Items as $Item) {
+			foreach($Order->Cart->contents as $Item) {
 				$_[] = '<item>';
-					$_[] = '<description>'.$Item->name.' '.((sizeof($Item->options) > 1)?' ('.$Item->optionlabel.')':'').'</description>';
+					$_[] = '<description>'.htmlentities($Item->name.' '.((sizeof($Item->options) > 1)?' ('.$Item->optionlabel.')':'')).'</description>';
 					$_[] = '<id>'.$Item->product.'</id>';
 					$_[] = '<price>'.number_format($Item->unitprice,2,'.','').'</price>';
 					$_[] = '<quantity>'.$Item->quantity.'</quantity>';
@@ -126,11 +124,13 @@ class FirstData {
 			$_[] = '</items>';
 			
 		$_[] = '</order>';
-		
-		$this->transaction = join("",$_);
+
+		return implode("",$_);
 	}
 	
-	function send () {
+	function send ($data) {
+		$url = ($this->settings['testmode'] == "on")?$this->testurl:$this->liveurl;
+		
 		$certificate = dirname(__FILE__).'/'.$this->settings['storenumber'].'.pem';
 		
 		if (!file_exists($certificate)) {
@@ -139,7 +139,7 @@ class FirstData {
 		}
 		
 		$connection = curl_init();
-		curl_setopt($connection,CURLOPT_URL,$this->url);		
+		curl_setopt($connection,CURLOPT_URL,$url);		
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
 		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0); 
 		curl_setopt($connection, CURLOPT_SSLCERT, $certificate); 
@@ -148,8 +148,8 @@ class FirstData {
 		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
 		curl_setopt($connection, CURLOPT_POST, 1); 
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->transaction); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 5); 
+		curl_setopt($connection, CURLOPT_POSTFIELDS, $data); 
+		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_GATEWAY_TIMEOUT); 
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
 		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
@@ -160,38 +160,30 @@ class FirstData {
 		}
 		curl_close($connection);
 		
-		$this->Response = new XMLdata(trim('<response>'.$buffer.'</response>'));
-		return $this->Response;
+		return trim('<response>'.$buffer.'</response>');
 	}
 		
 	function settings () {
-		?>
-		<tr id="FirstData-settings" class="addon">
-			<th scope="row" valign="top">FirstData</th>
-			<td>
-				<div><input type="text" name="settings[FirstData][storenumber]" id="FirstData_storenumber" value="<?php echo $this->settings['storenumber']; ?>" size="16" /><br /><label for="FirstData_customerid"><?php _e('Enter your FirstData store number.'); ?></label></div>
-				<div><input type="hidden" name="settings[FirstData][testmode]" value="off" /><input type="checkbox" name="settings[FirstData][testmode]" id="FirstData_testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /><label for="FirstData_testmode"> <?php _e('Enable test mode'); ?></label></div>
-				<div><strong>Accept these cards:</strong>
-				<ul class="cards"><?php foreach($this->cards as $id => $card): 
-					$checked = "";
-					if (in_array($card,$this->settings['cards'])) $checked = ' checked="checked"';
-				?>
-					<li><input type="checkbox" name="settings[FirstData][cards][]" id="FirstData_cards_<?php echo $id; ?>" value="<?php echo $card; ?>" <?php echo $checked; ?> /><label for="FirstData_cards_<?php echo $id; ?>"> <?php echo $card; ?></label></li>
-				<?php endforeach; ?></ul></div>
-				
-				<input type="hidden" name="module[<?php echo basename(__FILE__); ?>]" value="FirstData" />
-				
-			</td>
-		</tr>
-		<?php
+		$this->ui->cardmenu(0,array(
+			'name' => 'cards',
+			'selected' => $this->settings['cards']
+		),$this->cards);
+
+		$this->ui->text(1,array(
+			'name' => 'storenumber',
+			'size' => 30,
+			'value' => $this->settings['storenumber'],
+			'label' => __('Enter your FirstData store number.','Shopp')
+		));
+
+		$this->ui->checkbox(1,array(
+			'name' => 'testmode',
+			'checked' => $this->settings['testmode'],
+			'label' => __('Enable test mode','Shopp')
+		));
+		
 	}
 	
-	function registerSettings () {
-		?>
-		gatewayHandlers.register('<?php echo addslashes(gateway_path(__FILE__)); ?>','FirstData-settings');
-		<?php
-	}
-
-} // end FirstData class
+} // END class FirstData
 
 ?>

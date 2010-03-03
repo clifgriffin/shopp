@@ -4,7 +4,7 @@
  * @class PayJunction
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.1
  * @copyright Ingenesis Limited, 28 May, 2009
  * @package Shopp
  * @since 1.1
@@ -13,7 +13,7 @@
  * $Id$
  **/
 
-class PayJunction extends GatewayFramework {
+class PayJunction extends GatewayFramework implements GatewayModule {
 
 	var $secure = true;
 	
@@ -65,9 +65,11 @@ class PayJunction extends GatewayFramework {
 		$this->setup('login','password','testmode');
 	}
 	
+	function actions () {
+		add_action('shopp_process_order',array(&$this,'process'));
+	}
+	
 	function process () {
-		if (!$this->myorder()) return;
-		
 		$Response = $this->send($this->build());
 
 		if ($Response->dc_response_code == "00" || 
@@ -183,7 +185,6 @@ class PayJunction extends GatewayFramework {
 			'checked' => $this->settings['testmode'],
 			'label' => __('Enable test mode','Shopp')
 		));
-		
 	}
 	
 } // END class PayJunction

@@ -470,7 +470,7 @@ class Category extends DatabaseObject {
 				$product->thumbnail_properties = unserialize($product->thumbnail_properties);
 			$item = array();
 			$item['guid'] = array($product->id,'isPermaLink'=>'false');
-			$item['title'] = attribute_escape($product->name);
+			$item['title'] = esc_attr($product->name);
 			if (SHOPP_PERMALINKS) $item['link'] = user_trailingslashit($Shopp->shopuri.urldecode($product->slug));
 			else $item['link'] = urlencode(add_query_arg('shopp_pid',$product->id,$Shopp->shopuri));
 			
@@ -494,7 +494,7 @@ class Category extends DatabaseObject {
 			}
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
 			
-			$item['description'] .= wpautop(attribute_escape($product->description));
+			$item['description'] .= wpautop(esc_attr($product->description));
 			$item['description'] =
 			 	'<![CDATA['.apply_filters('shopp_rss_description',$item['description'],$product).']]>';
 			

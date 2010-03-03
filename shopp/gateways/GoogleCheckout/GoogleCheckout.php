@@ -16,12 +16,11 @@
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
 
 class GoogleCheckout extends GatewayFramework implements GatewayModule {
-	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
-	var $urls = array();
-	var $settings = array();
-	var $Response = false;
 
-	function GoogleCheckout () {
+	var $secure = false;
+
+	function __construct () {
+		parent::__construct();
 		global $Shopp;
 		
 		$this->urls['schema'] = 'http://checkout.google.com/schema/2';
@@ -53,11 +52,34 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 		$this->settings['taxes'] = $Shopp->Settings->get('taxrates');
 		
-		add_action('shopp_save_payment_settings',array(&$this,'saveSettings'));
-		return true;
+		add_action('shopp_txn_update',array(&$this,'updates'));
 	}
 	
-	function actions () { }
+	function actions () {
+
+		add_action('shopp_init_checkout',array(&$this,'init'));
+
+		add_action('shopp_save_payment_settings',array(&$this,'saveSettings'));
+		
+	}
+	
+	function init () {
+		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
+	}
+	
+	function submit ($tag=false,$options=array(),$attrs=array()) {
+		$type = "live";
+		if ($this->settings['testmode'] == "on") $type = "test";
+		$buttonuri = $this->urls['button'][$type];
+		$buttonuri .= '?merchant_id='.$this->settings['id'];
+		$buttonuri .= '&'.$this->settings['button'];
+		$buttonuri .= '&style='.$this->settings['buttonstyle'];
+		$buttonuri .= '&variant=text';
+		$buttonuri .= '&loc='.$this->settings['location'];
+		
+		return '<input type="image" name="process" src="'.$buttonuri.'" id="checkout-button" '.inputattrs($options,$attrs).' />';
+	}
+	
 	
 	function checkout () {
 		global $Shopp;
@@ -176,7 +198,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 						if (is_array($Item->data) && count($Item->data) > 0) {
 							$_[] = '<shopp-item-data-list>';
 							foreach ($Item->data AS $name => $data) {
-								$_[] = '<shopp-item-data name="'.attribute_escape($name).'">'.attribute_escape($data).'</shopp-item-data>';
+								$_[] = '<shopp-item-data name="'.esc_attr($name).'">'.esc_attr($data).'</shopp-item-data>';
 							}
 							$_[] = '</shopp-item-data-list>';
 						}
@@ -204,7 +226,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 					if (is_array($Cart->data->Order->data) && count($Cart->data->Order->data) > 0) {
 						$_[] = '<shopp-order-data-list>';
 						foreach ($Cart->data->Order->data AS $name => $data) {
-							$_[] = '<shopp-order-data name="'.attribute_escape($name).'">'.attribute_escape($data).'</shopp-item-data>';
+							$_[] = '<shopp-order-data name="'.esc_attr($name).'">'.esc_attr($data).'</shopp-item-data>';
 						}
 						$_[] = '</shopp-order-data-list>';
 					}

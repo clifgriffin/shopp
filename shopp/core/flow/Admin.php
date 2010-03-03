@@ -147,7 +147,7 @@ class AdminFlow extends FlowController {
 		foreach ($this->Pages as $page) $this->addmenu($page);
 
 		// Add admin JavaScript & CSS
-		foreach ($this->Menus as $menu) add_action("admin_print_scripts-$menu", array(&$this, 'behaviors'));
+		foreach ($this->Menus as $menu) add_action("admin_enqueue_scripts", array(&$this, 'behaviors'));
 
 		// Add contextual help menus
 		foreach ($this->Menus as $pagename => $menu) $this->help($pagename,$menu);
@@ -243,8 +243,11 @@ class AdminFlow extends FlowController {
 	 * @return void
 	 **/
 	function behaviors () {
-		global $wp_version,$Shopp,$pagenow;
+		global $Shopp,$wp_version,$hook_suffix;
+		if (!in_array($hook_suffix,$this->Menus)) return;
 		
+		$this->admin_css();		
+
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp',SHOPP_ADMIN_URI."/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		wp_enqueue_script('shopp-settings',add_query_arg('src','settings.js',get_bloginfo('url')),array(),SHOPP_VERSION);
@@ -254,19 +257,16 @@ class AdminFlow extends FlowController {
 		
 		$settings = array_filter(array_keys($this->Pages),array(&$this,'get_settings_pages'));
 		if (in_array($this->Page->page,$settings))
-					wp_enqueue_script('shopp.settings.behaviors',
-										SHOPP_ADMIN_URI."/settings/behaviors.js", 
-										array('jquery'), 
-										SHOPP_VERSION,
-										true);		
+			wp_enqueue_script('shopp.settings.behaviors',
+							SHOPP_ADMIN_URI."/settings/behaviors.js", 
+							array('jquery'), 
+							SHOPP_VERSION,
+							true);		
 		
-		?>
-		<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/thickbox.css?ver=<?php echo SHOPP_VERSION; ?>' type='text/css' />
-		<?php
-		$this->admin_css();
 	}
 	
 	function admin_css () {
+		wp_enqueue_style('shopp-thickbox',SHOPP_PLUGINURI.'/core/ui/styles/thickbox.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp-admin',SHOPP_PLUGINURI.'/core/ui/styles/admin.css',array(),SHOPP_VERSION,'screen');
 	}
 

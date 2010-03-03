@@ -271,7 +271,7 @@ class Order {
 		$this->Customer->save();
 
 		$this->Billing->customer = $this->Customer->id;
-		$card = substr($this->Billing->card,-4);
+		$this->Billing->card = substr($this->Billing->card,-4);
 		$this->Billing->save();
 
 		// Card data is truncated, switch the cart to normal mode

@@ -250,9 +250,9 @@ class _2Checkout {
 		foreach($data as $key => $value) {
 			if (is_array($value)) {
 				foreach($value as $item)
-					$query .= '<input type="hidden" name="'.$key.'[]" value="'.attribute_escape($item).'" />';
+					$query .= '<input type="hidden" name="'.$key.'[]" value="'.esc_attr($item).'" />';
 			} else {
-				$query .= '<input type="hidden" name="'.$key.'" value="'.attribute_escape($value).'" />';
+				$query .= '<input type="hidden" name="'.$key.'" value="'.esc_attr($value).'" />';
 			}
 		}
 		return $query;
