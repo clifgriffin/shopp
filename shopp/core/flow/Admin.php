@@ -62,9 +62,8 @@ class AdminFlow extends FlowController {
 		'settings-shipping'=>'shopp_settings_shipping',
 		'settings-taxes'=>'shopp_settings_taxes',
 		'settings-presentation'=>'shopp_settings_presentation',
-		'settings-system'=>'shopp_settings_system',
-		'settings-update'=>'shopp_settings_update'
-		);
+		'settings-system'=>'shopp_settings_system'
+	);
 		
 	/**
 	 * Admin constructor
@@ -98,7 +97,6 @@ class AdminFlow extends FlowController {
 		$this->addpage('settings-taxes',__('Taxes','Shopp'),'Setup','Taxes Settings',"settings");
 		$this->addpage('settings-presentation',__('Presentation','Shopp'),'Setup','Presentation Settings',"settings");
 		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
-		$this->addpage('settings-update',__('Update','Shopp'),'Setup','Update Settings',"settings");
 				
 		// $this->addpage('welcome',__('Welcome','Shopp'),'Flow',$base);
 

@@ -65,6 +65,15 @@ class Setup extends FlowController {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
+		$updatekey = $Shopp->Settings->get('updatekey');
+		$activated = ($updatekey[0] == "1");
+		$type = "text";
+		$key = $updatekey[1];
+		if ($updatekey[2] == "dev") {
+			$type = "password";
+			$key = preg_replace('/\w/','?',$key);
+		}
+
 		$country = (isset($_POST['settings']))?$_POST['settings']['base_operations']['country']:'';
 		$countries = array();
 		$countrydata = Lookup::countries();
@@ -340,78 +349,7 @@ class Setup extends FlowController {
 		$Shopp->Gateways->settings();
 		$Shopp->Gateways->ui();
 	}
-	
-	function update () {
-		global $Shopp;
 		
-		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_update')) )
-			wp_die(__('You do not have sufficient permissions to access this page.'));
-
-		$ftpsupport = (function_exists('ftp_connect'))?true:false;
-		
-		$credentials = $this->Settings->get('ftp_credentials');	
-		if (!isset($credentials['password'])) $credentials['password'] = false;
-		$updatekey = $this->Settings->get('updatekey');
-		if (empty($updatekey)) 
-			$updatekey = array('key' => '','type' => 'single','status' => 'deactivated');
-
-		if (!empty($_POST['save'])) {
-			$updatekey['key'] = $_POST['updatekey'];
-			$_POST['settings']['updatekey'] = $updatekey;
-			$this->settings_save();
-		}
-
-		if (!empty($_POST['activation'])) {
-			check_admin_referer('shopp-settings-update');
-			$updatekey['key'] = trim($_POST['updatekey']);
-			$_POST['settings']['updatekey'] = $updatekey;
-
-			$this->settings_save();	
-			
-			if ($_POST['activation'] == __('Activate Key','Shopp')) $process = "activate-key";
-			else $process = "deactivate-key";
-			
-			$request = array(
-				"ShoppServerRequest" => $_POST['process'],
-				"ver" => '1.0',
-				"key" => $updatekey['key'],
-				"type" => $updatekey['type'],
-				"site" => get_bloginfo('siteurl')
-			);
-			
-			$response = $this->callhome($request);
-			$response = explode("::",$response);
-
-			if (count($response) == 1)
-				$activation = '<span class="shopp error">'.$response[0].'</span>';
-			
-			if ($process == "activate-key" && $response[0] == "1") {
-				$updatekey['type'] = $response[1];
-				$type = $updatekey['type'];
-				$updatekey['key'] = $response[2];
-				$updatekey['status'] = 'activated';
-				$this->Settings->save('updatekey',$updatekey);
-				$activation = __('This key has been successfully activated.','Shopp');
-			}
-			
-			if ($process == "deactivate-key" && $response[0] == "1") {
-				$updatekey['status'] = 'deactivated';
-				if ($updatekey['type'] == "dev") $updatekey['key'] = '';
-				$this->Settings->save('updatekey',$updatekey);
-				$activation = __('This key has been successfully de-activated.','Shopp');
-			}
-		} else {
-			if ($updatekey['status'] == "activated") 
-				$activation = __('This key has been successfully activated.','Shopp');
-			else $activation = __('Enter your Shopp upgrade key and activate it to enable easy, automatic upgrades.','Shopp');
-		}
-		
-		$type = "text";
-		if ($updatekey['status'] == "activated" && $updatekey['type'] == "dev") $type = "password";
-		
-		include(SHOPP_ADMIN_PATH."/settings/update.php");
-	}
-	
 	function system () {
 		global $Shopp;
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_system')) )

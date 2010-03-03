@@ -14,6 +14,11 @@ body { position: relative; }
 .shopp table td.spectemplates { background: url('../icons/templates.png') no-repeat center center; }
 .shopp table td.facetedmenus { background: url('../icons/menus.png') no-repeat center center; }
 
+/* AJAX-related */
+.shopp .updating { background-image: url('../icons/updating.gif'); background-repeat: no-repeat; }
+.shopp .activating { border-width: 1px; border-style: solid; padding: 0 0.6em; margin-left: 0px; -moz-border-radius: 3px; -khtml-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px; background-color: #ffffe0; border-color: #e6db55; }
+.shopp button.updating { background-position: 5px 1px; padding-left: 25px;}
+
 /* Welcome screen */
 #welcome ul { padding-left: 20px; list-style-type: square; }
 #welcome ul li { margin-top: 18px; }
