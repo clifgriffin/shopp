@@ -57,17 +57,19 @@ if (!empty($Shopp->Purchase->data) && is_array($Shopp->Purchase->data) && join("
 
 function transaction_meta_box ($Purchase) {
 ?>
-<p><strong><?php _e('Processed by','Shopp'); ?> </strong><?php echo $Purchase->gateway; ?><?php echo (!empty($Purchase->txnid)?"($Purchase->txnid)":""); ?></p>
+<p><strong><?php _e('Processed by','Shopp'); ?> </strong><?php echo $Purchase->gateway; ?><?php echo (!empty($Purchase->txnid)?" ($Purchase->txnid)":""); ?></p>
+<?php if($Purchase->secured): ?>
+<ul>
+	<li><strong><?php _e('Secured Card','Shopp'); ?>:</strong> <span id="card" title="<?php _e('Click here to decrypt the card details&hellip;','Shopp'); ?>"><?php _e('[ENCRYPTED]','Shopp'); ?></span></li>	
+	<li><strong><?php _e('Secured CVV','Shopp'); ?>:</strong> <span id="cvv" title="<?php _e('Click here to decrypt the card details&hellip;','Shopp'); ?>"><?php _e('[ENCRYPTED]','Shopp'); ?></span></li>
+	<li><strong><?php _e('Expiration','Shopp'); ?>:</strong> <?php echo _d('m/Y', $Purchase->cardexpires); ?></li>
+	<li><strong><?php _e('Payment','Shopp'); ?>:</strong> <?php echo $Purchase->txnstatus; ?></li>	
+</ul>
+<?php else: ?>
 <?php if (!empty($Purchase->card) && !empty($Purchase->cardtype)): ?>
 <p><strong><?php echo $Purchase->txnstatus; ?></strong> <?php _e('to','Shopp'); ?> <?php (!empty($Purchase->card))?printf("%'X16d",$Purchase->card):''; ?> <?php echo (!empty($Purchase->cardtype))?'('.$Purchase->cardtype.')':''; ?></p>
 <?php endif; ?>
 
-<?php if($Purchase->secured):?>
-<ul>
-	<li><strong><?php _e('Secured Card','Shopp'); ?>:</strong> <span id="card"><?php _e('[ENCRYPTED]','Shopp'); ?></span></li>	
-	<li><strong><?php _e('Secured CVV','Shopp'); ?>:</strong> <span id="cvv"><?php _e('[ENCRYPTED]','Shopp'); ?></span></li>
-	<li><strong><?php _e('Expiration','Shopp'); ?>:</strong> <?php echo _d('m/Y', $Purchase->cardexpires); ?></li>
-</ul>
 <?php endif;?>
 
 <?php if ($Purchase->gateway == "Google Checkout"):?>
@@ -126,8 +128,8 @@ function status_meta_box ($Purchase) {
 <p>
 	<span>
 <label for="txn_status_menu"><?php _e('Payment','Shopp'); ?>:</label>
-<select name="transtatus" id="txn_status_menu">
-<?php echo menuoptions($UI->txnStatusLabels,$Purchase->transtatus,true,true); ?>
+<select name="txnstatus" id="txn_status_menu">
+<?php echo menuoptions($UI->txnStatusLabels,$Purchase->txnstatus,true,true); ?>
 </select>
 &nbsp;
 <label for="order_status_menu"><?php _e('Order Status','Shopp'); ?>:</label>

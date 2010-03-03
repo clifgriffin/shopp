@@ -300,8 +300,9 @@ class Service extends AdminController {
 		if (!empty($_POST['update'])) {
 			check_admin_referer('shopp-save-order');
 			
-			if ($_POST['transtatus'] != $Purchase->transtatus)
-				do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['transtatus'],&$Purchase));
+			if ($_POST['txnstatus'] != $Purchase->txnstatus)
+				do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['txnstatus'],&$Purchase));
+				
 			
 			$Purchase->updates($_POST);
 			
