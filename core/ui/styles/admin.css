@@ -303,6 +303,9 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #order #order-status .inside span { float: none; display: inline-block; }
 #order #order-status label { display: inline-block; padding-top: 1px; font-weight: bold; }
 
+#order #card,
+#order #cvv { cursor: pointer; }
+
 #order-statuslabels li { position: relative; }
 #order-statuslabels li input { width: 120px; padding-right: 20px; margin-right: 5px;}
 

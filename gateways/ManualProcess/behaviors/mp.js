@@ -70,8 +70,8 @@ function decrypt (data, prefix) {
 			jQuery('#cvv').html(SECRET_DATA);
 		}
 		else {
-			jQuery('#card').html(sensitive.card);
-			jQuery('#cvv').html(sensitive.cvv);
+			jQuery('#card').html(sensitive.card).unbind('click');
+			jQuery('#cvv').html(sensitive.cvv).unbind('click');
 		}
 	}
 	return true;

@@ -548,7 +548,7 @@ class Shopp {
 			"ver" => '1.1',
 		);
 		$data = array(
-			'core' => '1.0',
+			'core' => SHOPP_VERSION,
 			'addons' => join("-",$addons)
 		);
 
@@ -598,20 +598,35 @@ class Shopp {
 	
 	function status () {
 		$updates = $this->Settings->get('updates');
-		if (empty($updates)) $updates = $this->updates();
+		$key = $this->Settings->get('updatekey');
 		$core = $updates->response[SHOPP_PLUGINFILE];
 		$addons = $updates->response[SHOPP_PLUGINFILE.'/addons'];
-				
+
+		// Core update available
 		if (!empty($core)) {
 			$plugin_name = 'Shopp';
 			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=' . $core->slug . '&TB_iframe=true&width=600&height=800');
 			$update_url = wp_nonce_url('update.php?action=shopp&plugin='.SHOPP_PLUGINFILE,'upgrade-plugin_shopp');
 
-			$message = sprintf(__('There is a new version of %1$s available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s Details</a> or <a href="%5$s">upgrade automatically</a>.'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
+			// Key not active
+			if ($key[0] != '1') {
+				$update_url = SHOPP_HOME."store/";
+				$message = sprintf(__('There is a new version of %1$s available, but your %1$s key has not been activated. No automatic upgrade available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%4$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
+				$this->Settings->save('updates',false);
+			} else $message = sprintf(__('There is a new version of %1$s available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%5$s">upgrade automatically</a>.'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
+			
 			echo '</tr><tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td>';
 
 			return;
 		}
+
+		// Key not active
+		if ($key[0] != '1') {
+			$message = sprintf(__('Your Shopp key has not been activated. Feel free to <a href="%1$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),SHOPP_HOME."store/");
+			echo '<tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
+			$this->Settings->save('updates',false);
+			return;
+		}		
         
 		foreach ($addons as $addon) {
 			$message = sprintf(__('There is a new version of the %s add-on available. <a href="%s">Upgrade automatically</a> to version %s','Shopp'),$addon->name,wp_nonce_url('update.php?action=shopp&addon=' . $addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_' . $addon->slug),$addon->new_version);
