@@ -80,6 +80,69 @@ var ModuleSetting = function (module,name,label,multi) {
 		}
 	}
 	
+	this.shipping = function () {
+		if (this.label instanceof Array) {
+			if (this.label[methods]) var label = this.label[methods];
+			else var label = this.name;
+		} else var label = this.label;
+		var id = label.toLowerCase().replace(/[^\w+]/,'-');
+		var ui = '';
+		ui += '';
+		ui += '<th scope="row"><label>'+this.name+'</label><br />';
+		if (this.multi)
+			ui += '<input type="text" name="settings['+this.module+'][label]['+methods+']" value="'+label+'" id="'+id+'-label" size="16" class="selectall" /><br />';
+		else ui += '<input type="text" name="settings['+this.module+'][label]" value="'+label+'" id="'+id+'-label" size="16" class="selectall" /><br />';
+		ui += '<small><label for="'+id+'-label">'+SHOPP_PAYMENT_OPTION+'</label></small>';
+		ui += '</th>';
+		var row = $('<tr class="form-required" />').html(ui).appendTo('#payment-settings');
+		
+		var settingsTableCell = $('<td/>').appendTo(row);
+		var deleteButton = $('<button type="button" name="deleteRate" class="delete deleteRate" />').appendTo(settingsTableCell).hide();
+		$('<img src="'+SHOPP_PLUGINURI+'/core/ui/icons/delete.png" width="16" height="16"  />').appendTo(deleteButton);
+		this.deleteButton.row = row;
+		var bodyBG = $('html').css('background-color');
+		var deletingBG = "#ffebe8";
+
+		$('#active-gateways').val($('#active-gateways').val()+","+this.module);
+
+		row.hover(function () {
+				deleteButton.show();
+			}, function () {
+				deleteButton.hide();
+		});
+
+		deleteButton.hover (function () {
+				row.animate({backgroundColor:deletingBG},250);
+			},function() {
+				row.animate({backgroundColor:bodyBG},250);		
+		});
+
+		deleteButton.click (function () {
+			if (confirm(SHOPP_DELETE_PAYMENT_OPTION)) {
+				row.remove();
+				gateways = $('#active-gateways').val().split(",");
+				var index = $.inArray(_self.module,gateways);
+				gateways.splice(index,1);
+				$('#active-gateways').val(gateways.join());
+				$('#payment-option-menu option[value='+_self.module+']').attr('disabled',false);
+			}
+		});
+
+		this.tables[methods] = $('<table class="settings"/>').appendTo(settingsTableCell);
+		
+		$.each(this.settings,function (id,element) {
+			if (_self.multi) var input = new SettingInput(_self.module,element.attrs,element.options,methods);
+			else var input = new SettingInput(_self.module,element.attrs,element.options);
+			var markup = input.generate();
+			$(markup).appendTo(_self.column(element.target,methods));
+			if (input.type == "multimenu") input.selectall();
+		});
+		if (this.multi) {
+			methods++;
+			if (this.label[methods]) this.payment();
+		}
+	}
+	
 	this.storage = function () {
 		var id = name.toLowerCase().replace(/[^\w+]/,'-');
 		$.each(this.settings,function (id,element) {

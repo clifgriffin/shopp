@@ -30,6 +30,7 @@ define('SHOPP_VERSION','1.1 dev');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
+define('SHOPP_CUSTOMERS','http://customers.shopplugin.net/');
 define('SHOPP_DOCS','http://docs.shopplugin.net/');
 
 require("core/functions.php");

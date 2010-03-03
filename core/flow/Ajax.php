@@ -57,6 +57,8 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_setup_ftp',array(&$this,'setup_ftp'));
 		add_action('wp_ajax_shopp_ssl_available',array(&$this,'ssl_available'));
 		add_action('wp_ajax_shopp_order_note_message',array(&$this,'order_note_message'));
+		add_action('wp_ajax_shopp_activate_key',array(&$this,'activate_key'));
+		add_action('wp_ajax_shopp_deactivate_key',array(&$this,'deactivate_key'));
 		
 	}
 
@@ -249,12 +251,11 @@ class AjaxFlow {
 	}
 	
 	function setup_ftp () {
-			check_admin_referer('shopp-wp_ajax_shopp_update');
-			$Settings = &ShoppSettings();
-			$Settings->saveform();
-			$updates = $Settings->get('ftp_credentials');
-			exit();
-		
+		check_admin_referer('shopp-wp_ajax_shopp_update');
+		$Settings = &ShoppSettings();
+		$Settings->saveform();
+		$updates = $Settings->get('ftp_credentials');
+		exit();
 	}
 	
 	function shipping_costs () {
@@ -281,6 +282,40 @@ class AjaxFlow {
 		
 		$Note = new MetaObject($_GET['id']);
 		die($Note->value->message);
+	}
+	
+	function activate_key () {
+		global $Shopp;
+		$updatekey = $Shopp->Settings->get('updatekey');
+		$request = array(
+			"ShoppServerRequest" => "activate-key",
+			"ver" => '1.1',
+			'key' => $_GET['key'],
+			'site' => get_bloginfo('siteurl')
+		);
+		$response = $Shopp->callhome($request);
+		$result = json_decode($response);
+		if ($result[0] == "1")
+			$Shopp->Settings->save('updatekey',$result);
+		echo $response;
+		exit();
+	}
+	
+	function deactivate_key () {
+		global $Shopp;
+		$updatekey = $Shopp->Settings->get('updatekey');
+		$request = array(
+			"ShoppServerRequest" => "deactivate-key",
+			"ver" => '1.1',
+			'key' => $updatekey[1],
+			'site' => get_bloginfo('siteurl')
+		);
+		$response = $Shopp->callhome($request);
+		$result = json_decode($response);
+		if ($result[0] == "0" && $updatekey[2] == "dev") $Shopp->Settings->save('updatekey',array("0"));
+		else $Shopp->Settings->save('updatekey',$result);
+		echo $response;
+		exit();
 	}
 
 } // END class AjaxFlow
