@@ -32,7 +32,7 @@ class ImageServer extends DatabaseObject {
 	var $request = false;
 	var $parameters = array();
 	var $args = array('width','height','scale','sharpen','quality');
-	var $scaling = array('fit','mattedfit','crop','width','height');
+	var $scaling = array('all','matte','crop','width','height');
 	var $width;
 	var $height;
 	var $scale = 0;
@@ -123,7 +123,6 @@ class ImageServer extends DatabaseObject {
 		
 		require_once(SHOPP_PATH."/core/model/Image.php");
 		$Resized = new ImageProcessor($this->Image->retrieve(),$this->Image->width,$this->Image->height);
-
 		$scaled = $this->Image->scaled($this->width,$this->height,$this->scale);
 		$alpha = ($this->Image->mime == "image/png");
 		$Resized->scale($scaled['width'],$scaled['height'],$this->scale,$alpha);
@@ -146,7 +145,7 @@ class ImageServer extends DatabaseObject {
 		
 		$ResizedImage->size = strlen($ResizedImage->data);
 		$ResizedImage->store( $ResizedImage->data );
-
+		
 		$ResizedImage->save();
 		$this->Image = $ResizedImage;
 		
@@ -160,14 +159,12 @@ class ImageServer extends DatabaseObject {
 	 * @return void
 	 **/
 	function render () {
-		if ($this->Image->notfound()) return $this->error();
-		header('Last-Modified: '.date('D, d M Y H:i:s', $this->Image->created).' GMT');
-		header("Content-type: {$this->Image->mime}");
-		if (!empty($this->Image->filename))
-			header("Content-Disposition: inline; filename=".$this->Image->filename); 
-		else header("Content-Disposition: inline; filename=image-".$this->Image->id.".jpg");
-		header("Content-Description: Delivered by WordPress/Shopp Image Server ({$this->Image->storage})");
-		$this->Image->output();
+		$found = $this->Image->found();
+		if (!$found) return $this->error();
+
+		if (is_array($found) && isset($found['redirect'])) {
+			$this->Image->output(false);
+		} else $this->Image->output();
 		exit();
 	}
 	

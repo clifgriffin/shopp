@@ -591,7 +591,7 @@ abstract class DatabaseObject {
 		
 		foreach ($data as $key => $value) {
 			if (!is_null($value) && 
-				!in_array($key,$ignores) && 
+				($ignores === false || (is_array($ignores) && !in_array($key,$ignores))) && 
 				property_exists($this, $key) ) {
 				$this->{$key} = $db->clean($value);
 			}	

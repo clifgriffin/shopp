@@ -1005,15 +1005,15 @@ class Order {
 				
 				return $output;
 				break;
-			case "receipt":
-				if (empty($Shopp->Purchase->id)) {
-					if ($this->purchase !== false) {
-						$Shopp->Purchase = new Purchase($this->purchase);
-						$Shopp->Purchase->load_purchased();
-					}
-						
+			case "completed":
+				if (empty($Shopp->Purchase->id) && $this->purchase !== false) {
+					$Shopp->Purchase = new Purchase($this->purchase);
+					$Shopp->Purchase->load_purchased();
+					return (!empty($Shopp->Purchase->id));
 				}
-			
+				return false;
+				break;
+			case "receipt":			
 				if (!empty($Shopp->Purchase->id)) 
 					return $Shopp->Purchase->receipt();
 				break;

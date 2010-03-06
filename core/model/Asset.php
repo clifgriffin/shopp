@@ -61,13 +61,17 @@ class FileAsset extends MetaObject {
 		parent::save();
 	}
 	
+	/**
+	 * Store the file data using the preferred storage engine
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function store ($data,$type='binary') {
 		$Engine = $this->_engine();
-		if ($type=='file') {
-			if (!is_readable($data)) die("Could not read the file.");
-			$data = file_get_contents($data);
-		}
-		$this->uri = $Engine->save($data,$this);
+		$this->uri = $Engine->save($this,$data,$type);
 		if ($this->uri === false) return false;
 	}
 	
@@ -76,9 +80,10 @@ class FileAsset extends MetaObject {
 		return $Engine->load($this->uri);
 	}
 	
-	function notfound () {
+	function found () {
+		if (!empty($this->data)) return true;
 		$Engine = $this->_engine();
-		return (!$Engine->exists($this->uri));
+		return $Engine->exists($this->uri);
 	}
 	
 	function &_engine () {
@@ -120,7 +125,7 @@ class FileAsset extends MetaObject {
 class ImageAsset extends FileAsset {
 	
 	// Allowable settings
-	var $_scaling = array('fit','mattedfit','crop','width','height');
+	var $_scaling = array('all','matte','crop','width','height');
 	var $_sharpen = 500;
 	var $_quality = 100;
 
@@ -131,7 +136,15 @@ class ImageAsset extends FileAsset {
 	var $filename;
 	var $type = 'image';
 	
-	function output () {
+	function output ($headers=true) {
+		if ($headers) {
+			header('Last-Modified: '.date('D, d M Y H:i:s', $this->created).' GMT');
+			header("Content-type: {$this->mime}");
+			if (!empty($this->filename))
+				header("Content-Disposition: inline; filename=".$this->filename); 
+			else header("Content-Disposition: inline; filename=image-".$this->id.".jpg");
+			header("Content-Description: Delivered by WordPress/Shopp Image Server ({$this->storage})");
+		}
 		if (isset($this->data)) {
 			echo $this->data;
 			return;
@@ -140,19 +153,22 @@ class ImageAsset extends FileAsset {
 		$Engine->output($this->uri);
 	}
 
-	function scaled ($width,$height,$fit='fit') {
+	function scaled ($width,$height,$fit='all') {
+		if (preg_match('/^\d+$/',$fit))
+			$fit = $this->_scaling[$fit];
+
 		$d = array('width'=>$this->width,'height'=>$this->height);
 		switch ($fit) {
 			case "width": return $this->scaledWidth($width,$height); break;
 			case "height": return $this->scaledHeight($width,$height); break;
 			case "crop":
-			case "mattedfit":
+			case "matte":
 				$d['width'] = $width;
 				$d['height'] = $height;
 				break;
-			case "fit":
+			case "all":
 			default:
-				if ($this->width > $this->height) return $this->scaledWidth($width,$height);
+				if ($width/$this->width < $height/$this->height) return $this->scaledWidth($width,$height);
 				else return $this->scaledHeight($width,$height);
 				break;
 		}
@@ -187,6 +203,8 @@ class ImageAsset extends FileAsset {
 	function resizing ($width,$height,$scale=false,$sharpen=false,$quality=false) {
 		$key = (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '')?SECRET_AUTH_KEY:DB_PASSWORD;
 		$args = func_get_args();
+		
+		if ($args[1] == 0) $args[1] = $args[0];
 		
 		$message = '';
 		foreach ($args as $arg) $message .= (!empty($message) && !empty($arg))?",$arg":$arg;
@@ -281,21 +299,26 @@ class DownloadAsset extends FileAsset {
 	}
 	
 	function download ($dkey=false) {
-		// Close the session in case of long download
-		@session_write_close();
+		$found = $this->found();
+		if (!$found) return false;
+		
+		if (!isset($found['redirect'])) {
+			// Close the session in case of long download
+			@session_write_close();
 
-		// Don't want interference from the server
-	    if (function_exists('apache_setenv')) @apache_setenv('no-gzip', 1);
-	    @ini_set('zlib.output_compression', 0);
+			// Don't want interference from the server
+		    if (function_exists('apache_setenv')) @apache_setenv('no-gzip', 1);
+		    @ini_set('zlib.output_compression', 0);
 		
-		set_time_limit(0);	// Don't timeout on long downloads
-		// ob_end_clean();		// End any automatic output buffering
+			set_time_limit(0);	// Don't timeout on long downloads
+			// ob_end_clean();		// End any automatic output buffering
 		
-		header("Pragma: public");
-		header("Cache-Control: maxage=1");
-		header("Content-type: application/octet-stream"); 
-		header("Content-Disposition: attachment; filename=\"".$this->name."\""); 
-		header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+			header("Pragma: public");
+			header("Cache-Control: maxage=1");
+			header("Content-type: application/octet-stream"); 
+			header("Content-Disposition: attachment; filename=\"".$this->name."\""); 
+			header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
+		}
 		$this->send();
 		
 		return true;
@@ -358,7 +381,7 @@ class StorageEngines extends ModuleLoader {
 
 		$systems = array();
 		$systems['image'] = $Shopp->Settings->get('image_storage');
-		$systems['download'] = $Shopp->Settings->get('download_storage');
+		$systems['download'] = $Shopp->Settings->get('product_storage');
 		
 		foreach ($systems as $system => $storage) {
 			foreach ($this->modules as $engine) {
@@ -451,11 +474,12 @@ interface StorageEngine {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 * 
-	 * @param mixed $data The raw data to be stored
 	 * @param FileAsset $asset The parent asset for the data
+	 * @param mixed $data The raw data to be stored
+	 * @param string $type (optional) Type of data source, one of binary or file (file referring to a filepath)
 	 * @return void
 	 **/
-	public function save($data,$asset);
+	public function save($asset,$data,$type);
 	
 }
 

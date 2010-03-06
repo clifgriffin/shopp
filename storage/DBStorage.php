@@ -31,10 +31,16 @@ class DBStorage extends StorageModule implements StorageEngine {
 		$this->_table = DatabaseObject::tablename($this->_table);
 	}
 	
-	function save ($data,$asset) {
+	function save ($asset,$data,$type='binary') {
 		$db = &DB::get();
 		
 		if (empty($data)) return false;
+
+		if ($type == "file") {
+			if (!is_readable($data)) die("Could not read the file."); // Die because we can't use ShoppError
+			$data = file_get_contents($data);			
+		}
+		
 		$data = @mysql_real_escape_string($data);
 
 		if (!$asset->id) $uri = $db->query("INSERT $this->_table SET data='$data'");

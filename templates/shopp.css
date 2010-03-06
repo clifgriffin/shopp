@@ -29,6 +29,10 @@
 #shopp .orderby { float: right; }
 
 #shopp .subcategories { padding: 10px 0; margin-bottom: 10px;}
+#shopp .subcategories ul { padding: 0 0 0 10px; margin-bottom: 10px; }
+
+#shopp .slideshow,
+#shopp .carousel { margin: 20px 0; clear: both; }
 
 /* Each product in a category has a containing frame */
 #shopp ul.products li.product div.frame { padding: 10px; }

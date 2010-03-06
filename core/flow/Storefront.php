@@ -116,16 +116,23 @@ class Storefront extends FlowController {
 		add_action('wp_head', array(&$this, 'header'));
 		add_action('wp_footer', array(&$this, 'footer'));
 
+
+		wp_enqueue_style('shopp.catalog.css',add_query_arg(array('src'=>'catalog.css'),get_bloginfo('url')),array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.css',SHOPP_TEMPLATES_URI.'/shopp.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.colorbox.css',SHOPP_PLUGINURI.'/core/ui/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
+		if (is_shopp_page('account') || (isset($wp->query_vars['shopp_proc']) && $wp->query_vars['shopp_proc'] == "sold"))
+			wp_enqueue_style('shopp.printable.css',SHOPP_PLUGINURI.'/core/ui/styles/printable.css',array(),SHOPP_VERSION,'screen');
+
 		$loading = $this->Settings->get('script_loading');
 		if (!$loading || $loading == "global" || $tag !== false) {
 			wp_enqueue_script('jquery');
 			wp_enqueue_script('shopp-settings',add_query_arg('src','settings.js',get_bloginfo('url')));
-			wp_enqueue_script("shopp-thickbox",SHOPP_PLUGINURI."/core/ui/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script("shopp.thickbox",SHOPP_PLUGINURI."/core/ui/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION,true);
 			wp_enqueue_script("shopp",SHOPP_PLUGINURI."/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		}
 
 		if ($tag == "checkout")
-			wp_enqueue_script('shopp_checkout',SHOPP_PLUGINURI."/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
+			wp_enqueue_script('shopp.checkout',SHOPP_PLUGINURI."/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
 
 
 	}
@@ -239,17 +246,9 @@ class Storefront extends FlowController {
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function header () {
 		global $wp;
-?>
-<link rel='stylesheet' href='<?php echo htmlentities( add_query_arg(array('src'=>'catalog.css','ver'=>urlencode(SHOPP_VERSION)),get_bloginfo('url'))); ?>' type='text/css' />
-<link rel='stylesheet' media='all' href='<?php echo SHOPP_TEMPLATES_URI; ?>/shopp.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-<link rel='stylesheet' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/thickbox.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-<?php if (is_shopp_page('account') || (isset($wp->query_vars['shopp_proc']) && $wp->query_vars['shopp_proc'] == "sold")): ?>
-<link rel='stylesheet' media='print' href='<?php echo SHOPP_PLUGINURI; ?>/core/ui/styles/printable.css?ver=<?php echo urlencode(SHOPP_VERSION); ?>' type='text/css' />
-<?php endif; ?>
-<?php 
-	$canonurl = $this->canonurls(false);
-	if (is_shopp_page('catalog') && !empty($canonurl)): ?><link rel='canonical' href='<?php echo $canonurl ?>' /><?php
-	endif;
+		$canonurl = $this->canonurls(false);
+		if (is_shopp_page('catalog') && !empty($canonurl)): ?><link rel='canonical' href='<?php echo $canonurl ?>' /><?php
+		endif;
 	}
 
 	/**
@@ -457,140 +456,6 @@ class Storefront extends FlowController {
 		}
 	}
 
-	/**
-	 * checkout()
-	 * Handles checkout process */
-	function checkout ($wp) {
-		// Set wp page-post titles for checkout process pages
-		if (isset($wp->query_vars['shopp_proc'])) add_filter('the_title', array(&$this, 'pagetitle'),10,2);
-
-		$pages = $this->Settings->get('pages');
-		// If checkout page requested
-		// Note: we have to use custom detection here as 
-		// the wp->post vars are not available at this point
-		// to make use of is_shopp_page()
-		if (((SHOPP_PERMALINKS && isset($wp->query_vars['pagename']) 
-			&& $wp->query_vars['pagename'] == $pages['checkout']['permalink'])
-			|| (isset($wp->query_vars['page_id']) && $wp->query_vars['page_id'] == $pages['checkout']['id']))
-		 	&& $wp->query_vars['shopp_proc'] == "checkout") {
-
-			$this->Cart->updated();
-			$this->Cart->totals();
-
-			if (!$this->Cart->freeshipping && $this->Cart->data->ShippingPostcodeError) {
-				header('Location: '.$Shopp->link('cart'));
-				exit();
-			}
-
-			// Force secure checkout page if its not already
-			$secure = true;
-			$gateway = $this->Settings->get('payment_gateway');
-			if (strpos($gateway,"TestMode") !== false 
-					|| isset($wp->query_vars['shopp_xco']) 
-					|| $this->Cart->orderisfree()) 
-				$secure = false;
-
-			if ($secure && !$this->secure && !SHOPP_NOSSL) {
-				header('Location: '.$Shopp->link('checkout',$secure));
-				exit();
-			}
-		}
-
-		// Cancel this process if there is no order data
-		if (!isset($this->Cart->data->Order)) return;
-		$Order = $this->Cart->data->Order;
-
-		// Intercept external checkout processing
-		if (!empty($wp->query_vars['shopp_xco'])) {
-			if ($this->gateway($wp->query_vars['shopp_xco'])) {
-				if ($wp->query_vars['shopp_proc'] != "confirm-order" && 
-						!isset($_POST['checkout'])) {
-					$this->Gateway->checkout();
-					$this->Gateway->error();
-				}
-			}
-		}
-
-		// Cancel if no checkout process detected
-		if (empty($_POST['checkout'])) return true;
-		// Handoff to order processing
-		if ($_POST['checkout'] == "confirmed") return $this->Flow->order();
-		// Cancel if checkout process is not ready for processing
-		if ($_POST['checkout'] != "process") return true;
-		// Cancel if processing a login from the checkout form
-		if (isset($_POST['process-login']) 
-			&& $_POST['process-login'] == "true") return true;
-
-		// Start processing the checkout form
-		$_POST = attribute_escape_deep($_POST);
-
-		$_POST['billing']['cardexpires'] = sprintf("%02d%02d",$_POST['billing']['cardexpires-mm'],$_POST['billing']['cardexpires-yy']);
-
-		// If the card number is provided over a secure connection
-		// Change the cart to operate in secure mode
-		if (isset($_POST['billing']['card']) && is_shopp_secure())
-			$this->Cart->secured(true);
-
-		// Sanitize the card number to ensure it only contains numbers
-		$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
-
-		if (isset($_POST['data'])) $Order->data = stripslashes_deep($_POST['data']);
-		if (isset($_POST['info'])) $Order->data = stripslashes_deep($_POST['info']);
-
-		if (empty($Order->Customer))
-			$Order->Customer = new Customer();
-		$Order->Customer->updates($_POST);
-
-		if (isset($_POST['confirm-password']))
-			$Order->Customer->confirm_password = $_POST['confirm-password'];
-
-		if (empty($Order->Billing))
-			$Order->Billing = new Billing();
-		$Order->Billing->updates($_POST['billing']);
-
-		if (!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy'])) {
-			$Order->Billing->cardexpires = mktime(0,0,0,
-					$_POST['billing']['cardexpires-mm'],1,
-					($_POST['billing']['cardexpires-yy'])+2000
-				);
-		} else $Order->Billing->cardexpires = 0;
-
-		$Order->Billing->cvv = preg_replace('/[^\d]/','',$_POST['billing']['cvv']);
-
-		if ($this->Cart->data->Shipping) {
-			if (empty($Order->Shipping))
-				$Order->Shipping = new Shipping();
-
-			if (isset($_POST['shipping'])) $Order->Shipping->updates($_POST['shipping']);
-			if (!empty($_POST['shipmethod'])) $Order->Shipping->method = $_POST['shipmethod'];
-			else $Order->Shipping->method = key($this->Cart->data->ShipCosts);
-
-			// Override posted shipping updates with billing address
-			if ($_POST['sameshipaddress'] == "on")
-				$Order->Shipping->updates($Order->Billing,
-					array("_datatypes","_table","_key","_lists","id","created","modified"));
-		} else $Order->Shipping = new Shipping(); // Use blank shipping for non-Shipped orders
-
-		$estimatedTotal = $this->Cart->data->Totals->total;
-		$this->Cart->updated();
-		$this->Cart->totals();
-		if ($this->Cart->validate() !== true) return;
-		else $Order->Customer->updates($_POST); // Catch changes from validation
-
-		// If the cart's total changes at all, confirm the order
-		if ($estimatedTotal != $this->Cart->data->Totals->total || 
-				$this->Settings->get('order_confirmation') == "always") {
-			$gateway = $this->Settings->get('payment_gateway');
-			$secure = true;
-			if (strpos($gateway,"TestMode") !== false 
-				|| isset($wp->query_vars['shopp_xco'])
-				|| $this->Cart->orderisfree()) 
-				$secure = false;
-			shopp_redirect($Shopp->link('confirm-order',$secure));
-		} else $this->Flow->order();
-
-	}
-
 	function cart_page ($attrs=array()) {
 		$Order = &ShoppOrder();
 		$Cart = $Order->Cart;
@@ -636,9 +501,9 @@ class Storefront extends FlowController {
 	
 
 	function account_page () {
-		global $Shopp,$wp;
-		
-		$Customer = &$Shopp->Order->Customer;
+		global $wp;
+		$Order = &ShoppOrder();
+		$Customer = &$Order->Customer;
 		
 		if (isset($Customer->login) && $Customer->login) 
 			$Customer->management();

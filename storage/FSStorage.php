@@ -16,6 +16,9 @@
 /**
  * FSStorage
  *
+ * Note that storage modules cannot use ShoppError for logging errors
+ * as they are used in another context where WordPress is not fully loaded.
+ * 
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
@@ -41,7 +44,12 @@ class FSStorage extends StorageModule implements StorageEngine {
 			$this->path = realpath($this->settings['path'][$context]);
 	}
 
-	function save ($data,$asset) {
+	function save ($asset,$data,$type='binary') {
+		if ($type == "file") { // $data is a file path, just move the file
+			if (!is_readable($data)) die("$this->module: Could not read the file."); // Die because we can't use ShoppError
+			if (move_uploaded_file($data,$this->path.'/'.$asset->filename)) return $asset->filename;
+			else die("$this->module: Could not move the file to the storage repository.");
+		}
 		if (file_put_contents($this->path.'/'.$asset->filename,$data) > 0) return $asset->filename;
 		else return false;
 	}

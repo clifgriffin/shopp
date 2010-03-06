@@ -32,7 +32,7 @@ class Warehouse extends AdminController {
 			add_action( 'admin_head', 'wp_tiny_mce' );
 			wp_enqueue_script('postbox');
 			if ( user_can_richedit() ) wp_enqueue_script('editor');
-			wp_enqueue_script("shopp-thickbox",SHOPP_ADMIN_URI."/behaviors/thickbox.js",array('jquery'),SHOPP_VERSION);
+			wp_enqueue_script("shopp.colorbox",SHOPP_ADMIN_URI."/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION);
 			wp_enqueue_script('shopp.editor.lib',SHOPP_ADMIN_URI."/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
 			wp_enqueue_script('shopp.product.editor',SHOPP_ADMIN_URI."/products/editor.js",array('jquery'),SHOPP_VERSION,true);
 			wp_enqueue_script('shopp.editor.priceline',SHOPP_ADMIN_URI."/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
@@ -551,13 +551,14 @@ class Warehouse extends AdminController {
 
 		if ($_FILES['Filedata']['size'] == 0) 
 			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
-		
+
 		// Save the uploaded file
 		$File = new ProductDownload();
 		$File->parent = 0;
 		$File->context = "price";
 		$File->type = "download";
 		$File->name = $_FILES['Filedata']['name'];
+		$File->filename = $File->name;
 		$File->mime = file_mimetype($_FILES['Filedata']['tmp_name'],$File->name);
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
 		$File->store($_FILES['Filedata']['tmp_name'],'file');

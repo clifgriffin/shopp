@@ -15,10 +15,6 @@
 					<?php echo menuoptions($storage,$this->Settings->get('image_storage'),true); ?>
 					</select>
 					<div id="image-storage-engine" class="storage-settings"></div>
-					<!-- <p id="image-path-settings">
-						<input type="text" name="settings[image_path]" id="image-path" value="<?php echo esc_attr($this->Settings->get('image_path')); ?>" size="40" /><br class="clear" />
-						<label for="image-path"><?php echo $imagepath_status; ?></label>
-					</p> -->
 	            </td>
 			</tr>			
 			<tr>
@@ -27,9 +23,6 @@
 					<?php echo menuoptions($storage,$this->Settings->get('product_storage'),true); ?>
 					</select>
 					<div id="product-storage-engine" class="storage-settings"></div>
-					<!-- <p id="products-path-settings"><input type="text" name="settings[products_path]" id="products-path" value="<?php echo esc_attr($this->Settings->get('products_path')); ?>" size="40" /><br class="clear" />
-						<label for="products-path"><?php echo $productspath_status; ?></label>
-						</p> -->
 	            </td>
 			</tr>
 			<tr class="form-required"> 
@@ -111,24 +104,7 @@ jQuery(document).ready(function() {
 		$('#product-storage-engine').empty();
 		handlers.call('#product-storage-engine','download',module);
 	}).change();
-	
-	
-	// $('#image-storage').change(function () {
-	// 	$('#image-path-settings').slideToggle(300);
-	// });
-	// 
-	// $('#image-storage').ready(function () {
-	// 	if ($('#image-storage').val() == 'db') $('#image-path-settings').hide();
-	// });
-	// 
-	// $('#product-storage').change(function () {
-	// 	$('#products-path-settings').slideToggle(300);
-	// });
-	// 
-	// $('#product-storage').ready(function () {
-	// 	if ($('#product-storage').val() == 'db') $('#products-path-settings').hide();
-	// });
-	
+		
 	$('#errorlog').scrollTop($('#errorlog').attr('scrollHeight'));
 
 });

@@ -264,8 +264,8 @@ class AdminFlow extends FlowController {
 	}
 	
 	function admin_css () {
-		wp_enqueue_style('shopp-thickbox',SHOPP_PLUGINURI.'/core/ui/styles/thickbox.css',array(),SHOPP_VERSION,'screen');
-		wp_enqueue_style('shopp-admin',SHOPP_PLUGINURI.'/core/ui/styles/admin.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.colorbox.css',SHOPP_PLUGINURI.'/core/ui/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.admin.css',SHOPP_PLUGINURI.'/core/ui/styles/admin.css',array(),SHOPP_VERSION,'screen');
 	}
 
 	/**

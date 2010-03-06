@@ -1,3 +1,4 @@
+/** Core Shopp admin styles **/
 body { position: relative; }
 
 .invisible { visibility: hidden; }
@@ -5,7 +6,7 @@ body { position: relative; }
 .shopp .clickable,
 .shopp button { cursor: pointer; }
 .shopp button.deleteButton { background: none; border: none; padding: 0; width: 16px; height: 16px; }
-.shopp button.delete,.shopp button.add {  display: inline-block; background: none; border: none; padding: 3px; margin: 1px; }
+.shopp button.delete,.shopp button.add { display: inline-block; background: none; border: none; padding: 3px; margin: 1px; }
 .shopp button img { display: inline; vertical-align: middle; }
 .shopp input.right { text-align: right; }
 .shopp label .error { display: inline-block; margin-top: 5px; padding: 0 0.6em; }
@@ -48,19 +49,25 @@ div.comment-item:hover .row-actions { visibility: visible; }
 #product #variations h4 { font-size: 13px; font-weight: bold; margin: 6px 0; }
 #product #variations p { margin: 6px 0; }
 
+/* Image details modal */
 #product #lightbox li .details,
 #category #lightbox li .details { display: none; }
 
-#TB_window { color: #000; letter-spacing: 0; font-family: 'Lucida Grande', Verdana, Arial, 'Bitstream Vera Sans', sans-serif; text-transform: none; }
-#TB_window img { float: left; }
-#TB_window p { padding: 0;  } 
-#TB_window p.submit { text-align: right; } 
-#TB_window label { display: inline-block; width: 40px; text-align: right; margin-right: 5px; }
-#TB_closeAjaxWindow { display: none; }
+#cboxContent { color: #000; letter-spacing: 0; font-family: 'Lucida Grande', Verdana, Arial, 'Bitstream Vera Sans', sans-serif; text-transform: none; }
+#cboxLoadedContent { padding: 10px; }
+#cboxLoadedContent .details { padding-top: 7px; }
+#cboxContent img { float: left; }
+#cboxContent p { padding: 0;  }
+#cboxContent p.submit { text-align: right; } 
+#cboxContent label { display: inline-block; width: 40px; text-align: right; margin-right: 5px; }
 
+/* Promotions */
 .shopp #promotion p select,
 .shopp #promotion td select { vertical-align: baseline; }
 .shopp #promotion #misc-publishing-actions { margin: 10px; }
+
+#promotion #rules tr td { border-bottom-width: 2px; }
+#promotion #rules button.delete { visibility: hidden; }
 
 .shopp div.pricing-label { position: relative; }
 .shopp div.pricing-label label { font-size: 13px; font-weight: bold; }
@@ -184,8 +191,6 @@ div.progress div.gloss { position: absolute; width: 100%; height: 10px; backgrou
 
 
 .form-table th div { margin-top: 10px; }
-/*.form-table th div button { width: 100%; }
-*/
 
 #new-category, 
 #new-category input, 
@@ -338,8 +343,6 @@ p.controls { position: absolute; top: 0; right: 0; margin: 0; }
 #shipping-rates.form-table tr td { border-bottom: 1px solid #dfdfdf; }
 #shipping-rates.form-table tr td table th,
 #shipping-rates.form-table tr td table td { border-bottom: none; }
-#promotion #rules tr td { border-bottom-width: 2px; }
-#promotion #rules button.delete { visibility: hidden; }
 #shipping-rates .services div.multiple-select { height: 100px; }
 #shipping-rates .services div.multiple-select ul li { padding: 2px; padding-left: 22px; }
 #shipping-rates .services div.multiple-select ul li input { margin-left: -17px; }

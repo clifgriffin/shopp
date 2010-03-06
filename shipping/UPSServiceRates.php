@@ -230,7 +230,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 		$_[] = '</Shipment>';
 		$_[] = '</RatingServiceSelectionRequest>';
 		
-		return join("\n",$_);
+		return join("\n",apply_filters('shopp_ups_request',$_));
 	}  
 	     
 	function verify () {

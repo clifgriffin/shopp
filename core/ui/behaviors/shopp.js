@@ -147,46 +147,6 @@ var CallbackRegistry = function() {
 }
 
 /**
- * addEvent ()
- * Adds/binds an event listener to an element in the DOM
- * Cross-browser compatible
- **/
-function addEvent( obj, type, fn ) {
-	if ( obj.addEventListener ) {
-		obj.addEventListener( type, fn, false );
-	}
-	else if ( obj.attachEvent ) {
-		var eProp = type + fn;
-		obj["e"+eProp] = fn;
-		obj[eProp] = function() { obj["e"+eProp]( window.event ); };
-		obj.attachEvent( "on"+type, obj[eProp] );
-	}
-	else {
-		obj['on'+type] = fn;
-	}
-};
-
-/**
- * removeEvent ()
- * Removes/unbinds an event listener from an element in the DOM
- * Cross-browser compatible
- **/
-function removeEvent( obj, type, fn ) {
-	if ( obj.removeEventListener ) {
-		obj.removeEventListener( type, fn, false );
-	}
-	else if ( obj.detachEvent ) {
-		var eProp = type + fn;
-		obj.detachEvent( "on"+type, obj[eProp] );
-		obj['e'+eProp] = null;
-		obj[eProp] = null;
-	}
-	else {
-		obj['on'+type] = null;
-	}
-};
-
-/**
  * formatFields ()
  * Find fields that need display formatting and 
  * run the approriate formatting.
@@ -570,6 +530,164 @@ function shopp_gallery (id,evt) {
 	})(jQuery)
 }
 
+var Slideshow = function (element,duration,delay,fx,order) {
+	var $ = jQuery.noConflict();
+	var _ = this;
+	this.element = $(element);
+	var effects = {
+		'fade':[{'display':'none'},{'opacity':'show'}],
+		'slide-down':[{'display':'block','top':this.element.height()*-1},{'top':0}],
+		'slide-up':[{'display':'block','top':this.element.height()},{'top':0}],
+		'slide-left':[{'display':'block','left':this.element.width()*-1},{'left':0}],
+		'slide-right':[{'display':'block','left':this.element.width()},{'left':0}],
+		'wipe':[{'display':'block','height':0},{'height':this.element.height()}]
+	};
+	var ordering = ['normal','reverse','shuffle'];
+	
+	this.duration = (!duration)?800:duration;
+	this.delay = (!delay)?7000:delay;
+	fx = (!fx)?'fade':fx;
+	this.effect = (!effects[fx])?effects['fade']:effects[fx];
+	order = (!order)?'normal':order;
+	this.order = ($.inArray(order,ordering) != -1)?order:'normal';
+	
+	this.slides = $(this.element).find('li:not(li.clear)').hide().css('visibility','visible');;
+	this.total = this.slides.length;
+	this.slide = 0;
+	this.shuffling = new Array();
+	this.startTransition = function () {
+		var prev = $(self.slides).find('.active').removeClass('active');
+		$(_.slides[_.slide]).css(_.effect[0]).appendTo(_.element).animate(
+				_.effect[1],
+				_.duration,
+				function () {
+					prev.css(_.effect[0]);
+				}
+			).addClass('active');
+
+		switch (_.order) {
+			case "shuffle": 
+				if (_.shuffling.length == 0) {
+					_.shuffleList();
+					var index = $.inArray(_.slide,_.shuffling);
+					if (index != -1) _.shuffling.splice(index,1);						
+				}
+				var selected = Math.floor(Math.random()*_.shuffling.length);
+				_.slide = _.shuffling[selected];
+				_.shuffling.splice(selected,1);
+				break;
+			case "reverse": _.slide = (_.slide-1 < 0)?_.slides.length-1:_.slide-1; break;
+			default: _.slide = (_.slide+1 == _.total)?0:_.slide+1;
+		}
+		
+		if (_.slides.length == 1) return;
+		setTimeout(_.startTransition,_.delay);
+	}
+	
+	this.transitionTo = function (slide) {
+		this.slide = slide;
+		this.startTransition();
+	}
+	
+	this.shuffleList = function () {
+		for (var i = 0; i < this.total; i++) this.shuffling.push(i);
+	}
+	
+	this.startTransition();
+}
+
+function slideshows () {
+	jQuery('ul.slideshow').each(function () {
+		var $ = jQuery.noConflict();
+		var classes = $(this).attr('class');
+		var options = {};
+		var map = {
+			'fx':new RegExp(/([\w_-]+?)\-fx/),
+			'order':new RegExp(/([\w_-]+?)\-order/),
+			'duration':new RegExp(/duration\-(\d+)/),
+			'delay':new RegExp(/delay\-(\d+)/)
+		};
+		$.each(map,function (name,pattern) {
+			if (option = classes.match(pattern)) options[name] = option[1];
+		});
+		new Slideshow(this,options['duration'],options['delay'],options['fx'],options['order']);
+	});
+}
+
+var Carousel = function (element,duration) {
+	var $ = jQuery.noConflict(),
+		_ = this,
+		carousel = $(element),
+		list = carousel.find('ul'),
+		items = list.find('> li');
+
+	this.duration = (!duration)?800:duration;
+	this.cframe = carousel.find('div.frame');
+
+	var visible = Math.floor(this.cframe.innerWidth() / items.outerWidth()),
+		spacing = Math.round(((this.cframe.innerWidth() % items.outerWidth())/items.length)/2);
+
+	items.css('margin','0 '+spacing+'px');
+		
+	this.pageWidth = (items.outerWidth()+(spacing*2)) * visible;
+	this.page = 1;
+	this.pages = Math.ceil(items.length / visible);
+	
+	// Fill in empty slots
+	if ((items.length % visible) != 0) {
+		list.append( new Array(visible - (items.length % visible)+1).join('<li class="empty" style="width: '+items.outerWidth()+'px; height: 1px; margin: 0 '+spacing+'px"/>') );
+		items = list.find('> li');
+	}
+	
+	items.filter(':first').before(items.slice(-visible).clone().addClass('cloned'));
+	items.filter(':last').after(items.slice(0,visible).clone().addClass('cloned'));
+	items = list.find('> li');
+	
+	this.cframe.scrollLeft(this.pageWidth);
+
+	this.scrollLeft = carousel.find('button.left');
+	this.scrollRight = carousel.find('button.right');
+	
+	this.scrolltoPage = function (page) {
+		var dir = page < _.page?-1:1,
+			delta = Math.abs(_.page-page),
+			scrollby = _.pageWidth*dir*delta;
+		
+		_.cframe.filter(':not(:animated)').animate({
+			'scrollLeft':'+='+scrollby
+		},_.duration,function() {
+			if (page == 0) {
+				_.cframe.scrollLeft(_.pageWidth*_.pages);
+				page = _.pages;
+			} else if (page > _.pages) {
+				_.cframe.scrollLeft(_.pageWidth);
+				page = 1;
+			}
+			_.page = page;
+		});
+	}
+	
+	this.scrollLeft.click(function () {
+		return _.scrolltoPage(_.page-1);
+	});
+
+	this.scrollRight.click(function () {
+		return _.scrolltoPage(_.page+1);
+	});
+	
+}
+function carousels () {
+	jQuery('div.carousel').each(function () {
+		var $ = jQuery.noConflict();
+		var classes = $(this).attr('class');
+		var options = {};
+		var map = { 'duration':new RegExp(/duration\-(\d+)/) };
+		$.each(map,function (name,pattern) {
+			if (option = classes.match(pattern)) options[name] = option[1];
+		});
+		new Carousel(this,options['duration']);
+	});
+}
 
 function htmlentities (string) {
 	if (!string) return "";
@@ -581,7 +699,7 @@ function htmlentities (string) {
 
 function PopupCalendar (target,month,year) {
 	
-	var _self = this;
+	var _ = this;
 	var $=jQuery.noConflict();
 	
 	var DAYS_IN_MONTH = new Array(new Array(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31),
@@ -606,11 +724,11 @@ function PopupCalendar (target,month,year) {
 	var calendar = new Array();
 	var dates = new Array();
 	var selection = new Date();
-	_self.selection = selection;
+	_.selection = selection;
 	var scope = "month";
-	_self.scope = scope;
+	_.scope = scope;
 	var scheduling = true;
-	_self.scheduling = scheduling;
+	_.scheduling = scheduling;
 
 	this.render = function (month,day,year) {
 		$(target).empty();
@@ -632,20 +750,20 @@ function PopupCalendar (target,month,year) {
 		
 		var backarrow = $('<span class="back">&laquo;</span>').appendTo(target);
 		var previousMonth = new Date(year,month-2,today.getDate());
-		if (!_self.scheduling || (_self.scheduling && previousMonth >= today.getTime())) {
+		if (!_.scheduling || (_.scheduling && previousMonth >= today.getTime())) {
 			backarrow.click(function () {
-				_self.scope = "month";
-				_self.selection = new Date(year,month-2);
-				_self.render(_self.selection.getMonth()+1,1,_self.selection.getFullYear());
-				$(_self).change();
+				_.scope = "month";
+				_.selection = new Date(year,month-2);
+				_.render(_.selection.getMonth()+1,1,_.selection.getFullYear());
+				$(_).change();
 			});
 		}
 		var nextarrow = $('<span class="next">&raquo;</span>').appendTo(target);
 		nextarrow.click(function () {
-			_self.scope = "month";
-			_self.selection = new Date(year,month);
-			_self.render(_self.selection.getMonth()+1,1,_self.selection.getFullYear());
-			$(_self).change();
+			_.scope = "month";
+			_.selection = new Date(year,month);
+			_.render(_.selection.getMonth()+1,1,_.selection.getFullYear());
+			$(_).change();
 		});
 		
 		var title = $('<h3></h3>').appendTo(target);
@@ -670,7 +788,7 @@ function PopupCalendar (target,month,year) {
 				calendar[i].date = thisDate;
 
 				if (thisMonth != month) calendar[i].addClass('disabled');
-				if (_self.scheduling && thisDate.getTime() < today.getTime()) calendar[i].addClass('disabled');
+				if (_.scheduling && thisDate.getTime() < today.getTime()) calendar[i].addClass('disabled');
 				if (thisDate.getTime() == today.getTime()) calendar[i].addClass('today');
 
 				calendar[i].hover(function () {
@@ -683,21 +801,21 @@ function PopupCalendar (target,month,year) {
 				calendar[i].mouseup(function () { $(this).removeClass('active'); });
 				
 				
-				if (!_self.scheduling || (_self.scheduling && thisDate.getTime() >= today.getTime())) {
+				if (!_.scheduling || (_.scheduling && thisDate.getTime() >= today.getTime())) {
 					calendar[i].click(function () {
-						_self.resetCalendar();
+						_.resetCalendar();
 						if (!$(this).hasClass("disabled")) $(this).addClass("selected");
 						
-						_self.selection = dates[$(this).attr('title')];
-						_self.scope = "day";
+						_.selection = dates[$(this).attr('title')];
+						_.scope = "day";
 
-						if (_self.selection.getMonth()+1 != month) {
-	 						_self.render(_self.selection.getMonth()+1,1,_self.selection.getFullYear());
-							_self.autoselect();
+						if (_.selection.getMonth()+1 != month) {
+	 						_.render(_.selection.getMonth()+1,1,_.selection.getFullYear());
+							_.autoselect();
 						} else {
 							$(target).hide();
 						}
-						$(_self).change();
+						$(_).change();
 					});
 				}
 			}
@@ -805,9 +923,9 @@ var validate = function (form) {
 	var $ = jQuery.noConflict();
 	if (!form) return false;
 
-	var passed = true;
-	var passwords = new Array();
-	var error = new Array();
+	var passed = true,
+		passwords = new Array(),
+		error = new Array();
 
 	var inputs = $(form).find('input,select');
 	$.each(inputs,function (id,input) {
@@ -851,6 +969,10 @@ jQuery(document).ready( function() {
 	catalogViewHandler();
 	helpHandler();
 	quickSelects();
+	slideshows();
+	carousels();
+	jQuery('a.shopp-zoom').colorbox();
+	jQuery('a.shopp-zoom.gallery').attr('rel','gallery').colorbox({slideshow:true});
 });
 
 // Initialize placehoder variables

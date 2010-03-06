@@ -136,7 +136,6 @@ function images_meta_box ($Product) {
 					<input type="hidden" name="imagedetails[<?php echo $i; ?>][id]" value="<?php echo $Image->id; ?>" />
 					<p><label>Title: </label><input type="text" name="imagedetails[<?php echo $i; ?>][title]" value="<?php echo $Image->title; ?>" /></p>
 					<p><label>Alt: </label><input type="text" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $Image->alt; ?>" /></p>
-					<p class="submit"><input type="button" name="close" value="Close" class="button close" /></p>
 				</div>
 			</div>
 			<button type="button" name="deleteImage" value="<?php echo $Image->id; ?>" title="Delete product image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>

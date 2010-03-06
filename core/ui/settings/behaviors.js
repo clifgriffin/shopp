@@ -155,6 +155,14 @@ var ModuleSetting = function (module,name,label,multi) {
 					else input.value = '';
 				} else input.value = element.attrs.value;
 			} else input.value = '';
+			
+			if (element.attrs.selected) {
+				if (element.attrs.selected instanceof Object) {
+					if (element.attrs.selected[_self.setting]) input.selected = element.attrs.selected[_self.setting];
+					else input.selected = 0;
+				} else input.selected = element.attrs.selected;
+			} else input.selected = 0;
+			
 			var markup = input.generate();
 			$(markup).appendTo(_self.element);
 			if (input.type == "multimenu") input.selectall();
@@ -199,7 +207,8 @@ var SettingInput = function (module,attrs,options,method) {
 	} else this.value = '';
 	
 	this.normal = (attrs.normal)?attrs.normal:'';
-	this.selected = (attrs.selected)?attrs.selected:0;
+	this.keyed = (attrs.keyed)?(attrs.keyed == 'true'?true:false):true;
+	this.selected = (attrs.selected)?attrs.selected:false;
 	this.checked = (attrs.checked)?attrs.checked:false;
 	this.size = (attrs.size)?attrs.size:'20';
 	this.cols = (attrs.size)?attrs.size:'40';
@@ -244,11 +253,15 @@ var SettingInput = function (module,attrs,options,method) {
 	}
 
 	this.menu = function () {
+		var selected = this.selected;
+		var keyed = this.keyed;
 		var html = '<div>';
-		html += '<select name="'+this.name+'" value="'+this.value+'" class="'+this.classes+'" id="'+this.id+'">';
+		html += '<select name="'+this.name+'" class="'+this.classes+'" id="'+this.id+'">';
 		if (this.options) {
-			$.each(this.options,function (value,label) {
-				html += '<option'+(value?' value="'+value+'"':'')+'>'+label+'</option>';
+			$.each(this.options,function (val,label) {
+				var value = (keyed && val !== false)?' value="'+val+'"':'';
+				var select = ((keyed && selected == val) || selected == label)?' selected="selected"':'';
+				html += '<option'+value+select+'>'+label+'</option>';
 			});
 		}
 		html += '</select>';
