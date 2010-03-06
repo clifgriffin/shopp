@@ -237,7 +237,7 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 		$_[] = '</eparcel>';
 		// echo "<pre>"; print_r($_); echo "</pre>";
 		// exit();
-		return "XMLRequest=".urlencode(join("\n",$_));
+		return "XMLRequest=".urlencode(join("\n",apply_filters('shopp_capost_request',$_)));
 	}  
 
 	function verify () {

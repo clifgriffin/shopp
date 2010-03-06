@@ -21,7 +21,7 @@ class ImageProcessor {
 		$this->src->image = imagecreatefromstring($data);
 	}
 		
-	function scale ($width,$height,$fit='fit',$alpha=false,$fill=false) {
+	function scale ($width,$height,$fit='all',$alpha=false,$fill=false) {
 		$dx = $dy = 0;
 		$xd = false;
 		
@@ -35,11 +35,11 @@ class ImageProcessor {
 			$this->alpha = true;
 		}
 
-		if ($fit == "crop" || $fit = "mattedfit") {
+		if ($fit == "crop" || $fit = "matte") {
 			// Determine the extra dimension for positioning
 			$xd = false;
 			$xd = ($this->src->width > $this->src->height && $fit == "crop");
-			$xd = ($this->src->width < $this->src->height && $fit == "mattedfit");
+			$xd = ($this->src->width < $this->src->height && $fit == "matte");
 			
 			if ($xd) {
 				$dw = $this->_proportionalWidth($height);
@@ -53,7 +53,7 @@ class ImageProcessor {
 		}
 		
 		// Fill image with matte color
-		if ($fill !== false || $fit == "mattedfit") {
+		if ($fill !== false || $fit == "matte") {
 			// Default to white
 			if (!is_array($fill)) $fill = array(255,255,255);
 			

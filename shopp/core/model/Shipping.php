@@ -356,7 +356,7 @@ abstract class ShippingFramework {
 		$rates = $Shopp->Settings->get('shipping_rates');
 		$this->rates = array_filter($rates,array(&$this,'myrates'));
 		
-		add_action('shopp_calculate_init',array(&$this,'init'));
+		add_action('shopp_calculate_shipping_init',array(&$this,'init'));
 		add_action('shopp_calculate_shipping',array(&$this,'calculate'),10,2);
 		add_action('shopp_calculate_item_shipping',array(&$this,'calcitem'),10,2);
 	}

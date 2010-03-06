@@ -44,39 +44,3 @@ class ShoppCartWidget extends WP_Widget {
 register_widget('ShoppCartWidget');
 
 }
-
-class LegacyShoppCartWidget {
-
-	function LegacyShoppCartWidget () {
-		wp_register_sidebar_widget('shopp-cart',__('Shopp Cart','Shopp'),array(&$this,'widget'),'shopp cart');
-		wp_register_widget_control('shopp-cart',__('Shopp Cart','Shopp'),array(&$this,'form'));
-	}
-
-	function widget ($args=null) {
-		global $Shopp;
-		if (!empty($args)) extract($args);
-
-		$options = $Shopp->Settings->get('cart_widget_options');
-
-		if (empty($options['title'])) $options['title'] = "Your Cart";
-		$options['title'] = $before_title.$options['title'].$after_title;
-
-		$sidecart = $Shopp->Cart->tag('sidecart',$options);
-		echo $before_widget.$options['title'].$sidecart.$after_widget;
-	}
-
-	function form ($args=null) {
-		global $Shopp;
-
-		if (isset($_POST['shopp_cart_widget_options'])) {
-			$options = $_POST['shopp_cart_options'];
-			$Shopp->Settings->save('cart_widget_options',$options);
-		}
-
-		$options = $Shopp->Settings->get('cart_widget_options');
-
-		echo '<p><label>Title<input name="shopp_cart_options[title]" class="widefat" value="'.$options['title'].'"></label></p>';
-		echo '<div><input type="hidden" name="shopp_cart_widget_options" value="1" /></div>';
-	}
-
-}

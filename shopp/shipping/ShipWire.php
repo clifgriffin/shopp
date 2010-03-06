@@ -248,7 +248,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 			$_[] = '</Order>';
 		$_[] = '</RateRequest>';	
 
-		return $this->type.'='.urlencode(join("\n",$_));
+		return $this->type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_rate_request',$_)));
 	}  
 	
 	function verify () {         
@@ -274,7 +274,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 		$_[] = '<ProductCode>'.$product.'</ProductCode>';
 		$_[] = '</InventoryUpdate>';
 		
-		$this->request = $this->type.'='.urlencode(join("\n",$_));
+		$this->request = $this->type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_inventory_update',$_)));
 		$Response = $this->send();
 
 		if ($Response->getElementContent('Status') == "Error") new ShoppError($Response->getElementContent('ErrorMessage'),'shipwire_sync_error',SHOPP_ADDON_ERR);
@@ -307,7 +307,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 		$_[] = '<Bookmark>3</Bookmark>';
 		$_[] = '</TrackingUpdate>';
 
-		$this->request = $this->type.'='.urlencode(join("\n",$_));
+		$this->request = $this->type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_tracking_update',$_)));
 		$Response = $this->send();
 
 		if ($Response->getElementContent('Status') == "Error") new ShoppError($Response->getElementContent('ErrorMessage'),'shipwire_sync_error',SHOPP_ADDON_ERR);
@@ -368,7 +368,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 		$_[] = '</OrderList>';
 		// new ShoppError(_object_r($_),'shipwire_order',SHOPP_DEBUG_ERR);
 		
-		$this->request = $this->type.'='.urlencode(join("\n",$_));
+		$this->request = $this->type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_order_list',$_)));
 		$Response = $this->send();
 
 		if ($Response->getElementContent('Status') == "Error") new ShoppError($Response->getElementContent('ErrorMessage'),'shipwire_orderlist_error',SHOPP_ADDON_ERR);
@@ -424,7 +424,6 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 			</Order>
 			</RateResponse>');
 		}
-
 
 		if ($this->type == "InventoryUpdateXML" && $this->dev) {
 			sleep(1);

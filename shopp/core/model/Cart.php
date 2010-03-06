@@ -1281,7 +1281,7 @@ class CartShipping {
 		if ($this->Cart->freeshipping) return 0;
 
 		// Initialize shipping modules
-		do_action('shopp_calculate_init');
+		do_action('shopp_calculate_shipping_init');
 
 		foreach ($this->Cart->shipped as $id => &$Item) {
 			// Calculate any product-specific shipping fee markups

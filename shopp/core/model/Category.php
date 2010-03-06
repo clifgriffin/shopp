@@ -1150,7 +1150,7 @@ class Category extends DatabaseObject {
 				$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
 				$width = (isset($options['width']))?$options['width']:$thumbwidth;
 				$height = (isset($options['height']))?$options['height']:$thumbheight;
-				$scale = empty($options['resizing'])?false:array_search($options['resizing']);
+				$scale = empty($options['fit'])?false:array_search($options['fit']);
 				$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
 				$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
 				$scaled = $img->scaled($width,$height,$scale);
@@ -1188,7 +1188,7 @@ class Category extends DatabaseObject {
 				$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
 				$width = (isset($options['width']))?$options['width']:$thumbwidth;
 				$height = (isset($options['height']))?$options['height']:$thumbheight;
-				$scale = empty($options['resizing'])?false:array_search($options['resizing']);
+				$scale = empty($options['fit'])?false:array_search($options['fit']);
 				$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
 				$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
 				$scaled = $img->scaled($width,$height,$scale);
@@ -1199,9 +1199,66 @@ class Category extends DatabaseObject {
 				$class = isset($options['class'])?' class="'.esc_attr($options['class']).'"':'';
 
 				$string = "";				
-				if (!empty($options['zoom'])) $string .= '<a href="'.$imageuri.$img->id.'/image.jpg" class="shopp-thickbox" rel="product-gallery">';
+				if (!empty($options['zoom'])) $string .= '<a href="'.$imageuri.$img->id.'/image.jpg" class="gallery shopp-zoom">';
 				$string .= '<img src="'.$imageuri.$img->id.'?'.$img->resizing($width,$height,$scale,$sharpen,$quality).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
+				return $string;
+				break;
+			case "slideshow":
+				$options['load'] = array('images');
+				if (!$this->loaded) $this->load_products($options);
+				if (count($this->products) == 0) return false;
+				
+				$defaults = array(
+					'width' => '440',
+					'height' => '180',
+					'fit' => 'crop',
+					'fx' => 'fade',
+					'duration' => 1000,
+					'delay' => 7000,
+					'order' => 'normal'
+				);
+				$options = array_merge($defaults,$options);
+				extract($options, EXTR_SKIP);
+				
+				$string = '<ul class="slideshow '.$fx.'-fx '.$order.'-order duration-'.$duration.' delay-'.$delay.'">';
+				$string .= '<li class="clear"><img src="clear.png" width="'.$width.'" height="'.$height.'" /></li>';
+				foreach ($this->products as $Product) {
+					if (empty($Product->images)) continue;
+					$string .= '<li><a href="'.$Product->tag('url').'">';
+					$string .= $Product->tag('image',array('width'=>$width,'height'=>$height,'fit'=>$fit));
+					$string .= '</a></li>';
+				}
+				$string .= '</ul>';
+				return $string;
+				break;
+			case "carousel":
+				$options['load'] = array('images');
+				if (!$this->loaded) $this->load_products($options);
+				if (count($this->products) == 0) return false;
+				
+				$defaults = array(
+					'imagewidth' => '96',
+					'imageheight' => '96',
+					'fit' => 'all',
+					'duration' => 500
+				);
+				$options = array_merge($defaults,$options);
+				extract($options, EXTR_SKIP);
+				
+				$string = '<div class="carousel duration-'.$duration.'">';
+				$string .= '<div class="frame">';
+				$string .= '<ul>';
+				foreach ($this->products as $Product) {
+					if (empty($Product->images)) continue;
+					$string .= '<li><a href="'.$Product->tag('url').'">';
+					$string .= $Product->tag('image',array('width'=>$imagewidth,'height'=>$imageheight,'fit'=>$fit));
+					$string .= '</a></li>';
+				}
+				$string .= '</ul></div>';
+				$string .= '<button type="button" name="left" class="left">&nbsp;</button>';
+				$string .= '<button type="button" name="right" class="right">&nbsp;</button>';
+				$string .= '</div>';
 				return $string;
 				break;
 		}

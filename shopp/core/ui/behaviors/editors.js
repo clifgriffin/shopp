@@ -606,9 +606,8 @@ function ImageUploads (id,type) {
 	$('#lightbox li').each(function () {
 		$(this).dblclick(function () {
 			var id = $(this).attr('id')+"-details";
-			$(this).find('input.close').click(function () { tb_remove(); });
-			tb_show("Image Details","#TB_inline?height=125&width=320&inlineId="+id);
-			
+			$.fn.colorbox({'title':'Enter the image details','innerWidth':'340','innerHeight':'110','inline':true,'href':'#'+id});
+			$(this).find('input.close').click(function () { console.log('yes'); });
 		});
 		enableDeleteButton($(this).find('button.deleteButton'));
 	});

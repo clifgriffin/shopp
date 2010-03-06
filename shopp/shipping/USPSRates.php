@@ -242,7 +242,7 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 			$_[] = '</Package>';
 		$_[] = '</'.$type.'Request>';
 
-		return join("\n",$_);
+		return join("\n",apply_filters('shopp_usps_request',$_));
 	} 
 	
 	function delivery ($timeframe) {

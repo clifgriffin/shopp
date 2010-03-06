@@ -107,6 +107,20 @@ div.clear,
 #shopp .gallery .thumbnails li.first { margin-left: 0; }
 #shopp .gallery .thumbnails li img { cursor: pointer; }
 
+#shopp .slideshow { position: relative; margin: 0; clear: both; overflow: hidden; }
+#shopp .slideshow li { position: absolute; top: 0; left: 0; margin: 0; display: block; text-align: center; visibility: hidden; }
+#shopp .slideshow li.clear { position: relative; clear: both; }
+
+#shopp .carousel { position: relative; margin: 0; clear: both; width: 100%; }
+#shopp .carousel .frame { position: relative; margin: 0 20px; overflow: hidden; }
+#shopp .carousel ul { position: relative; width: 999em; }
+#shopp .carousel li { display: inline-block; vertical-align: middle;}
+#shopp .carousel button { position: absolute; top: 0; margin-top: 45%; cursor: pointer; border: none; width: 14px; height: 14px; background-image: url('<?php echo $pluginuri; ?>core/ui/icons/carousel.png'); background-repeat: no-repeat; background-color: transparent; }
+#shopp .carousel button.left { left: 0; }
+#shopp .carousel button.right { right: 0; background-position: -16px 0; }
+#shopp .carousel button.left:hover { background-position: 0 -16px; }
+#shopp .carousel button.right:hover { background-position: -16px -16px; }
+
 /**
  * Debug Console
  **/

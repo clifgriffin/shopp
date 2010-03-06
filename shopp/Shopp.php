@@ -126,7 +126,6 @@ class Shopp {
 		if (!defined('BR')) define('BR','<br />');
 
 		// Overrideable macros
-		//if (!defined('SHOPP_USERLEVEL')) define('SHOPP_USERLEVEL',8); // Deprecated
 		if (!defined('SHOPP_NOSSL')) define('SHOPP_NOSSL',false);
 		if (!defined('SHOPP_PREPAYMENT_DOWNLOADS')) define('SHOPP_PREPAYMENT_DOWNLOADS',false);
 		if (!defined('SHOPP_SESSION_TIMEOUT')) define('SHOPP_SESSION_TIMEOUT',7200);
@@ -272,23 +271,13 @@ class Shopp {
 	 **/
 	function widgets () {
 		global $wp_version;
-
+		// include('core/ui/widgets/account.php');
 		include('core/ui/widgets/cart.php');
 		include('core/ui/widgets/categories.php');
 		include('core/ui/widgets/section.php');
 		include('core/ui/widgets/tagcloud.php');
 		include('core/ui/widgets/facetedmenu.php');
 		include('core/ui/widgets/product.php');
-		
-		if (version_compare($wp_version,'2.8-dev','<')) {
-			$ShoppCategories = new LegacyShoppCategoriesWidget();
-			$ShoppSection = new LegacyShoppCategorySectionWidget();
-			$ShoppTagCloud = new LegacyShoppTagCloudWidget();
-			$ShoppFacetedMenu = new LegacyShoppFacetedMenuWidget();
-			$ShoppCart = new LegacyShoppCartWidget();
-			$ShoppProduct = new LegacyShoppProductWidget();
-		}
-		
 	}
 		
 	/**
@@ -549,7 +538,8 @@ class Shopp {
 		);
 		$data = array(
 			'core' => SHOPP_VERSION,
-			'addons' => join("-",$addons)
+			'addons' => join("-",$addons),
+			'wp' => get_bloginfo('version')
 		);
 
 		$response = $this->callhome($request,$data);
