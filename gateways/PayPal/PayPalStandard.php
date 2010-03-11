@@ -119,7 +119,11 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['lc']					= $this->baseop['country'];
 		
 		$AddressType = "Shipping";
-		if (!$Order->Shipping) $AddressType = "Billing";
+		// Disable shipping fields if no shipped items in cart
+		if (empty($Order->Cart->shipped)) {
+			$AddressType = "Billing";
+			$_['no_shipping'] = 1;
+		}
 		
 		$_['address_override'] 		= 1;
 		$_['address1']				= $Order->{$AddressType}->address;
@@ -140,8 +144,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		// Transaction
 		$_['currency_code']			= $this->settings['currency_code'];
 
-		// Disable shipping fields if no shipped items in cart
-		if (!$Order->Shipping) $_['no_shipping'] = 1;
 
 		// Line Items
 		foreach($Order->Cart->contents as $i => $Item) {

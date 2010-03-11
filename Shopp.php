@@ -415,8 +415,8 @@ class Shopp {
 		$vars[] = 'shopp_product';
 		$vars[] = 'shopp_download';
 		$vars[] = 'src';
-		$vars[] = 'st';
 		$vars[] = 'siid';
+		$vars[] = 'catalog';
 	
 		return $vars;
 	}
@@ -447,6 +447,7 @@ class Shopp {
 		
 		// Commit the session and restart
 		session_write_close();
+		$this->Shopping->handling(); // Workaround for PHP 5.2 bug #32330
 		session_start();
 		
 		do_action('shopp_reset_session');
@@ -680,7 +681,7 @@ function shopp () {
 		case "purchase": if (isset($Shopp->Purchase)) $Object =& $Shopp->Purchase; break;
 		case "customer": if (isset($Shopp->Order->Customer)) $Object =& $Shopp->Order->Customer; break;
 		case "error": if (isset($Shopp->Errors)) $Object =& $Shopp->Errors; break;
-		default: $Object = false;
+		default: $Object = apply_filters('shopp_tag_domain',$Object);
 	}
 
 	if (!$Object) new ShoppError("The shopp('$object') tag cannot be used in this context because the object responsible for handling it doesn't exist.",'shopp_tag_error',SHOPP_ADMIN_ERR);

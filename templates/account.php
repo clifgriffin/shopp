@@ -15,9 +15,9 @@
 	<p><?php shopp('customer','login-errors'); ?></p>
 <?php endif; ?>
 
-<ul>
+<ul class="shopp account">
 <?php while (shopp('customer','menu')): ?>
-	<li><a href="<?php shopp('customer','management','url'); ?>"><?php shopp('customer','management'); ?></a></li>
+	<li><h3><a href="<?php shopp('customer','management','url'); ?>"><?php shopp('customer','management'); ?></a></h3></li>
 <?php endwhile; ?>
 </ul>
 

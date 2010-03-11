@@ -249,6 +249,17 @@ class Lookup {
 		$cards = Lookup::paycards();
 		return $cards[$card];
 	}
+	
+	static function stopwords () {
+		$_ = array(
+			"a", "an", "and", "are", "as", "at", "be", "but", "by",
+			"for", "if", "in", "into", "is", "it",
+			"no", "not", "of", "on", "or", "such",
+			"that", "the", "their", "then", "there", "these",
+			"they", "this", "to", "was", "will", "with"
+		);
+		return apply_filters('shopp_index_stopwords',$_);
+	}
 
 } // END class Lookup
 

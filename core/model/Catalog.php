@@ -466,35 +466,37 @@ class Catalog extends DatabaseObject {
 			case "search":
 				global $wp;
 				$type = "hidden";
-				if (isset($options['type'])) $type = $options['type'];
-				if ($type == "radio") {
-					$option = "shopp";
-					if (isset($options['option'])) $option = $options['option'];
-					$default = false;
-					if (isset($options['default'])) $default = value_is_true($options['default']);
-					$selected = '';
-					if ($default) $selected = ' checked="checked"';
-					if (!empty($wp->query_vars['st'])) {
-						$selected = '';
-						if ($wp->query_vars['st'] == $option) $selected = ' checked="checked"';
-					}
-					if ($option == "blog") return '<input type="radio" name="st" value="blog"'.$selected.' />';
-					else return '<input type="radio" name="st" value="shopp"'.$selected.' />';
-				} elseif ($type == "menu") {
-					if (empty($options['store'])) $options['store'] = __('Search the store','Shopp');
-					if (empty($options['blog'])) $options['blog'] = __('Search the blog','Shopp');
-					$selected = isset($wp->query_vars['st'])?$wp->query_vars['st']:'blog';
-					$menu = '<select name="st">';
-					if (isset($options['default']) && $options['default'] == "blog") {
-						$menu .= '<option value="blog"'.($selected == "blog"?' selected="selected"':'').'>'.$options['blog'].'</option>';
-						$menu .= '<option value="shopp"'.($selected == "shopp"?' selected="selected"':'').'>'.$options['store'].'</option>';
-					} else {
-						$menu .= '<option value="shopp"'.($selected == "shopp"?' selected="selected"':'').'>'.$options['store'].'</option>';
-						$menu .= '<option value="blog"'.($selected == "blog"?' selected="selected"':'').'>'.$options['blog'].'</option>';
-					}
-					$menu .= '</select>';
-					return $menu;
-				} else return '<input type="hidden" name="st" value="shopp" />';
+				// if (isset($options['type'])) $type = $options['type'];
+				// if ($type == "radio") {
+				// 	$option = "shopp";
+				// 	if (isset($options['option'])) $option = $options['option'];
+				// 	$default = false;
+				// 	if (isset($options['default'])) $default = value_is_true($options['default']);
+				// 	$selected = ($default)?' checked="checked"':'';
+				// 	
+				// 	if ($option == "blog") return '<input type="radio" name="catalog" value="false"'.$selected.' />';
+				// 	else {
+				// 		if (!empty($wp->query_vars['catalog'])) 
+				// 			$selected = (value_is_true($wp->query_vars['catalog']))?' checked="checked"':'';
+				// 		return '<input type="radio" name="st" value="shopp"'.$selected.' />';
+				// 	}
+				// } elseif ($type == "menu") {
+				// 	if (empty($options['store'])) $options['store'] = __('Search the store','Shopp');
+				// 	if (empty($options['blog'])) $options['blog'] = __('Search the blog','Shopp');
+				// 	$selected = (value_is_true($wp->query_vars['catalog']))?'ecked="checked"':'';
+				// 	$selected = isset($wp->query_vars['st'])?$wp->query_vars['st']:'blog';
+				// 	$menu = '<select name="st">';
+				// 	if (isset($options['default']) && $options['default'] == "blog") {
+				// 		$menu .= '<option value="blog"'.($selected == "blog"?' selected="selected"':'').'>'.$options['blog'].'</option>';
+				// 		$menu .= '<option value="shopp"'.($selected == "shopp"?' selected="selected"':'').'>'.$options['store'].'</option>';
+				// 	} else {
+				// 		$menu .= '<option value=""'.($selected == "shopp"?' selected="selected"':'').'>'.$options['store'].'</option>';
+				// 		$menu .= '<option value="blog"'.($selected == "blog"?' selected="selected"':'').'>'.$options['blog'].'</option>';
+				// 	}
+				// 	$menu .= '</select>';
+				// 	return $menu;
+				// } else 
+				return '<input type="hidden" name="catalog" value="true" />';
 				break;
 			case "catalog-products":
 				if ($property == "catalog-products") $Shopp->Category = new CatalogProducts($options);

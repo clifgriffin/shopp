@@ -156,6 +156,8 @@ ul.shopp_categories li ul.active { display: block; }
  **/
 #shopp-cart.widget p.status { margin-bottom: 10px; }
 
+#shopp ul.account li { display: inline-block; width: 200px; padding-top: 18px; }
+
 /**
  * Checkout 
  **/
