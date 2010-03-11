@@ -10,7 +10,6 @@
  **/
 
 require_once("Asset.php");
-require_once("Spec.php");
 require_once("Price.php");
 require_once("Promotion.php");
 
@@ -1312,6 +1311,23 @@ class Product extends DatabaseObject {
 		
 	}
 
-} // end Product class
+} // END class Product
+
+class Spec extends MetaObject {
+	
+	function __construct ($id=false) {
+		$this->init(self::$table);
+		$this->load($id);
+		$this->context = 'product';
+		$this->type = 'spec';
+	}
+	
+	function updates ($data,$ignored=array()) {
+		parent::updates($data,$ignores);
+		if (preg_match('/^.*?(\d+[\.\,\d]*).*$/',$this->value))
+			$this->numeral = preg_replace('/^.*?(\d+[\.\,\d]*).*$/','$1',$this->value);
+	}
+
+} // END class Spec
 
 ?>

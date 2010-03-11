@@ -1358,7 +1358,7 @@ class SearchResults extends Category {
 		$this->uri = $this->slug;
 		$this->smart = true;
 
-		$keywords = $options['search'];
+		$search = stripslashes($options['search']);
 
 		// Strip accents for search
 		$accents = array('á','à','â','ã','ª','Á','À', 
@@ -1369,20 +1369,34 @@ class SearchResults extends Category {
 	    'A','A','e','e','e','E','E','E','i','i','i','I','I', 
 	    'I','o','o','o','o','o','O','O','O','O','u','u','u', 
 	    'U','U','U','c','C','N','n');
-	    $keywords = trim(str_replace($accents, $alt, $keywords));
+	    $search = trim(str_replace($accents, $alt, $search));
+
+		// Strip non alpha-numerics
+	    $search = preg_replace('/[^A-Za-z0-9\_\.\-" ]/', '', $search); 
 	
 		if (!defined('SHOPP_SEARCH_LOGIC')) define('SHOPP_SEARCH_LOGIC','OR');
 		$logic = (strtoupper(SHOPP_SEARCH_LOGIC) == "AND")?"+":"";
-
-		// Strip non alpha-numerics
-	    $keywords = preg_replace('/[^A-Za-z0-9\_\.\-]/', '', $keywords); 
-		$keywords = preg_replace('/(\s?)(\w+)\b(\s?)/','\1'.$logic.'\2*\3',$keywords);
-
-		if (strlen($options['search']) > 0 && empty($keywords)) $keywords = $options['search'];
+		
+		$tokens = array();
+		$token = strtok($search,' '); 
+        while ($token) { 
+            // find double quoted tokens 
+            if ($token{0} == '"') { 
+				$token .= ' '.strtok('"').'"';
+	            $tokens[] = $token; 
+			} else {
+				$tokens[] = "$logic$token*";
+			}
+            $token = strtok(' '); 
+        }
+		$boolean = implode(' ',$tokens);
+		echo "boolean $boolean".BR;
+		
+		if (strlen($options['search']) > 0 && empty($boolean)) $boolean = $options['search'];
 		
 		$this->loading = array(
-			'columns'=> "MATCH(p.name,p.summary,p.description) AGAINST ('$keywords' IN BOOLEAN MODE) AS score",
-			'where'=>"MATCH(p.name,p.summary,p.description) AGAINST ('$keywords' IN BOOLEAN MODE)",
+			'columns'=> "MATCH(p.name,p.summary,p.description) AGAINST ('$search') AS score",
+			'where'=>"MATCH(p.name,p.summary,p.description) AGAINST ('$boolean' IN BOOLEAN MODE)",
 			'orderby'=>'score DESC');
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 	}

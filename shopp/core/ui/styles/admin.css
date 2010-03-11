@@ -54,8 +54,10 @@ div.comment-item:hover .row-actions { visibility: visible; }
 #category #lightbox li .details { display: none; }
 
 #cboxContent { color: #000; letter-spacing: 0; font-family: 'Lucida Grande', Verdana, Arial, 'Bitstream Vera Sans', sans-serif; text-transform: none; }
+#cboxLoadedContent {border: 1px solid #333; -moz-border-radius: 5px; -khtml-border-radius: 5px; -webkit-border-radius: 5px; border-radius: 5px; }
 #cboxLoadedContent { padding: 10px; }
 #cboxLoadedContent .details { padding-top: 7px; }
+
 #cboxContent img { float: left; }
 #cboxContent p { padding: 0;  }
 #cboxContent p.submit { text-align: right; } 

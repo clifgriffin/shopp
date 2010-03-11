@@ -80,6 +80,18 @@ CREATE TABLE <?php echo $meta; ?> (
 	KEY lookup (parent,context,type)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
+<?php $index = DatabaseObject::tablename('index'); ?>
+DROP TABLE IF EXISTS <?php echo $index; ?>;
+CREATE TABLE <?php echo $index; ?> (
+	id bigint(20) unsigned NOT NULL auto_increment,
+	product bigint(20) unsigned NOT NULL default '0',
+	indexed longtext NOT NULL,
+	priority tinyint(3) unsigned NOT NULL default '0',
+	created datetime NOT NULL default '0000-00-00 00:00:00',
+	modified datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY id (id),
+	FULLTEXT search (indexed)
+) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $category = DatabaseObject::tablename('category'); ?>
 DROP TABLE IF EXISTS <?php echo $category; ?>;

@@ -11,7 +11,7 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 	this.sortorder = $('<input type="hidden" name="'+dataname+'-sortorder[]" value="'+i+'" />').appendTo(this.element);
 	this.id = $('<input type="hidden" name="'+dataname+'['+i+'][id]" class="id" />').appendTo(this.element);
 	this.label = $('<input type="text" name="'+dataname+'['+i+'][name]" class="label" />').appendTo(this.element);
-	this.deleteButton = $('<button type="button" class="delete"><img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="Delete" width="16" height="16" /></button>').appendTo(this.element);
+	this.deleteButton = $('<button type="button" class="delete"><img src="'+uidir+'/icons/delete.png" alt="Delete" width="16" height="16" /></button>').appendTo(this.element);
 
 	if (this.items) {
 		if (items.type == "list") this.itemsElement = $('<ul></ul>').appendTo(items.target).hide();
@@ -77,7 +77,7 @@ function NestedMenuOption (i,target,dataname,defaultlabel,data) {
 	this.moveHandle = $('<div class="move"></div>').appendTo(this.element);
 	this.id = $('<input type="hidden" name="'+dataname+'['+i+'][options]['+this.index+'][id]" class="id" />').appendTo(this.element);
 	this.label = $('<input type="text" name="'+dataname+'['+i+'][options]['+this.index+'][name]" class="label" />').appendTo(this.element);
-	this.deleteButton = $('<button type="button" class="delete"><img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="delete" width="16" height="16" /></button>').appendTo(this.element);
+	this.deleteButton = $('<button type="button" class="delete"><img src="'+uidir+'/icons/delete.png" alt="delete" width="16" height="16" /></button>').appendTo(this.element);
 
 	this.element.hover(function () { $(this).addClass('hover'); },
 					   function () { $(this).removeClass('hover'); });
@@ -162,7 +162,7 @@ function addVariationOptionsMenu (data) {
 	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'options',NEW_OPTION_DEFAULT,data);
 		optionsidx++;
 
-		option.linkIcon = $('<img src="'+rsrcdir+'/core/ui/icons/linked.png" alt="linked" width="16" height="16" class="link" />').appendTo(option.moveHandle);
+		option.linkIcon = $('<img src="'+uidir+'/icons/linked.png" alt="linked" width="16" height="16" class="link" />').appendTo(option.moveHandle);
 		option.linked = $('<input type="hidden" name="options['+menu.index+'][options]['+option.index+'][linked]" class="linked" />').appendTo(option.element);
 		option.linked.change(function () {
 			if ($(this).val() == "off")	option.linkIcon.addClass('invisible');
@@ -508,10 +508,10 @@ function ImageUploads (id,type) {
 		button_text_top_padding: 3,
 		button_height: "22",
 		button_width: "100",
-		button_image_url: rsrcdir+'/core/ui/icons/buttons.png',
+		button_image_url: uidir+'/icons/buttons.png',
 		button_placeholder_id: "swf-uploader-button",
 		upload_url : ajaxurl,
-		flash_url : rsrcdir+'/core/ui/behaviors/swfupload/swfupload.swf',
+		flash_url : uidir+'/behaviors/swfupload/swfupload.swf',
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',
 		file_types : "*.jpg;*.jpeg;*.png;*.gif",
@@ -586,7 +586,7 @@ function ImageUploads (id,type) {
 			$(this.sorting).val(image.src);
 			var img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 			var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
-			var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
+			var deleteIcon = $('<img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
 	
 			$(this.progressBar).animate({'width':'76px'},250,function () { 
 				$(this).parent().fadeOut(500,function() {
@@ -606,7 +606,7 @@ function ImageUploads (id,type) {
 	$('#lightbox li').each(function () {
 		$(this).dblclick(function () {
 			var id = $(this).attr('id')+"-details";
-			$.fn.colorbox({'title':'Enter the image details','innerWidth':'340','innerHeight':'110','inline':true,'href':'#'+id});
+			$.fn.colorbox({'title':IMAGE_DETAILS_TEXT,'innerWidth':'340','innerHeight':'110','inline':true,'href':'#'+id});
 			$(this).find('input.close').click(function () { console.log('yes'); });
 		});
 		enableDeleteButton($(this).find('button.deleteButton'));
@@ -671,7 +671,7 @@ function ImageUploads (id,type) {
 		$(this.sorting).val(image.src);
 		var img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 		var deleteButton = $('<button type="button" name="deleteImage" value="'+image.id+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
-		var deleteIcon = $('<img src="'+rsrcdir+'/core/ui/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
+		var deleteIcon = $('<img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
 	
 		$(this.progressBar).animate({'width':'76px'},250,function () { 
 			$(this).parent().fadeOut(500,function() {
@@ -724,9 +724,9 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		button_text_top_padding: 3,
 		button_height: "22",
 		button_width: "100",
-		button_image_url: rsrcdir+'/core/ui/icons/buttons.png',
+		button_image_url: uidir+'/icons/buttons.png',
 		button_placeholder_id: button,
-		flash_url : rsrcdir+'/core/ui/behaviors/swfupload/swfupload.swf',
+		flash_url : uidir+'/behaviors/swfupload/swfupload.swf',
 		upload_url : ajaxurl,
 		file_queue_limit : 1,
 		file_size_limit : filesizeLimit+'b',

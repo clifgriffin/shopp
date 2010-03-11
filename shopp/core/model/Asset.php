@@ -479,7 +479,7 @@ interface StorageEngine {
 	 * @param string $type (optional) Type of data source, one of binary or file (file referring to a filepath)
 	 * @return void
 	 **/
-	public function save($asset,$data,$type);
+	public function save($asset,$data,$type='binary');
 	
 }
 

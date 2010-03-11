@@ -934,7 +934,7 @@ var validate = function (form) {
 		if ($(input).hasClass('required') && $(input).val() == "")
 			error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,$(input).attr('title')),input);
 		
-		if ($(input).attr('type') == "checkbox" && !$(input).attr('checked'))
+		if ($(input).hasClass('required') && $(input).attr('type') == "checkbox" && !$(input).attr('checked'))
 			error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,$(input).attr('title')),input);
 		
 		if ($(input).hasClass('email') && !$(input).val().match(new RegExp('^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+\.)+[a-zA-Z0-9.-]{2,4}$')))

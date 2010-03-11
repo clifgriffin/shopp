@@ -459,9 +459,6 @@ abstract class DatabaseObject {
 	}
 	
 	/**
-	 * Save a record, updating when we have a value for the primary key,
-	 * inserting a new record when we don't */
-	/**
 	 * Saves the current state of the DatabaseObject to the database
 	 *
 	 * Intelligently saves a DatabaseObject, using an UPDATE query when the
@@ -471,7 +468,7 @@ abstract class DatabaseObject {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 * 
-	 * @return boolean|int Returns true when UPDATES are successful; returns an integer with the record ID
+	 * @return boolean|int Returns true when UPDATEs are successful; returns an integer with the record ID
 	 **/
 	function save () {
 		$db = &DB::get();
@@ -659,7 +656,13 @@ abstract class SessionObject {
 		// Close out any early session calls
 		if(session_id()) session_write_close();
 		
-		$this->handlers = session_set_save_handler(
+		$this->handlers = $this->handling();
+		
+		register_shutdown_function('session_write_close');
+	}
+	
+	function handling () {
+		return session_set_save_handler(
 			array( &$this, 'open' ),	// Open
 			array( &$this, 'close' ),	// Close
 			array( &$this, 'load' ),	// Read
@@ -667,8 +670,6 @@ abstract class SessionObject {
 			array( &$this, 'unload' ),	// Destroy
 			array( &$this, 'trash' )	// Garbage Collection
 		);
-		
-		register_shutdown_function('session_write_close');
 	}
 	
 	/* open()

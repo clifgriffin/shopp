@@ -66,7 +66,7 @@ var options = <?php echo json_encode($Product->options) ?>;
 var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var shiprates = <?php echo json_encode($shiprates); ?>;
 var buttonrsrc = '<?php echo includes_url('images/upload.png'); ?>';
-var rsrcdir = '<?php echo SHOPP_PLUGINURI; ?>';
+var uidir = '<?php echo SHOPP_ADMIN_PATH; ?>';
 var siteurl = '<?php echo $Shopp->siteurl; ?>';
 var canonurl = '<?php echo $Shopp->canonuri; ?>';
 var adminurl = '<?php echo $Shopp->wpadminurl; ?>';
@@ -134,5 +134,6 @@ var DEFAULT_PRICELINE_LABEL = "<?php _e('Price & Delivery','Shopp'); ?>";
 var FILE_NOT_FOUND_TEXT = "<?php _e('The file you specified could not be found.','Shopp'); ?>";
 var FILE_NOT_READ_TEXT = "<?php _e('The file you specified is not readable and cannot be used.','Shopp'); ?>";
 var FILE_ISDIR_TEXT = "<?php _e('The file you specified is a directory and cannot be used.','Shopp'); ?>";
+var IMAGE_DETAILS_TEXT = "<?php _e('Image Details','Shopp'); ?>";
 
 </script>

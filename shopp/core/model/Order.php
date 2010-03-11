@@ -57,6 +57,9 @@ class Order {
 
 		$this->Shipping->destination();
 
+		// Set locking timeout for concurrency operation protection
+		if (!defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
+
 		$this->confirm = ($Shopp->Settings->get('order_confirmation') == "always");
 		$this->accounts = $Shopp->Settings->get('account_system');
 		
@@ -265,6 +268,21 @@ class Order {
 	 **/
 	function purchase () {
 		global $Shopp;
+		
+		// Lock for concurrency protection
+		$this->lock();
+		
+		$Purchase = new Purchase($this->txnid,'txnid');
+		if (!empty($Purchase->id)) {
+			$this->unlock();
+			$Shopp->resession();
+			
+			$this->purchase = $Purchase->id;
+			if ($this->purchase !== false)
+				shopp_redirect($Shopp->link('thanks'));
+			
+		}
+		 
 		// New customer, save password
 		if (empty($this->Customer->id) && !empty($this->Customer->password))
 			$this->Customer->password = wp_hash_password($this->Customer->password);
@@ -299,6 +317,7 @@ class Order {
 		$Purchase->freight = $this->Cart->Totals->shipping;
 		$Purchase->ip = $Shopp->Shopping->ip;
 		$Purchase->save();
+		$this->unlock();
 
 		foreach($this->Cart->contents as $Item) {
 			$Purchased = new Purchased();
@@ -308,7 +327,7 @@ class Order {
 			$Purchased->save();
 			if ($Item->inventory) $Item->unstock();
 		}
-		
+
 		$this->purchase = $Purchase->id;
 		$Shopp->Purchase = &$Purchase;
 
@@ -317,6 +336,45 @@ class Order {
 		do_action('shopp_order_notifications');
 		
 		do_action_ref_array('shopp_order_success',array(&$Shopp->Purchase));
+	}
+	
+	/**
+	 * Create a lock for transaction processing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
+	function lock () {
+		if (empty($this->txnid)) return false;
+		$db = DB::get();
+		
+		$r = new StdClass();
+		$r->locked = 0;
+		for ($attempts = 0; $attempts < 3 || $r->locked == 0; $attempts++);
+			$r = $db->query("SELECT GET_LOCK('$this->txnid',".SHOPP_TXNLOCK_TIMEOUT.")");
+		
+		if ($r->locked == 1) return true;
+			
+		new ShoppError(__('Transaction %s failed. Could not acheive a transaction lock.','Shopp'),'order_txn_lock',SHOPP_TXN_ERR);
+		shopp_redirect('checkout');
+	}
+
+	/**
+	 * Unlocks a transaction lock
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
+	function unlock () {
+		$db = DB::get();
+		if (empty($this->txnid)) return false;
+
+		$r = $db->query("SELECT RELEASE_LOCK('$this->txnid') as unlocked");
+		return ($r->unlocked == 1)?true:false;
 	}
 	
 	/**
@@ -476,7 +534,7 @@ class Order {
 
 		// Skip validating payment details for purchases not requiring a
 		// payment (credit) card including free orders, remote checkout systems, etc 
-		if (!$this->ccpayment()) return true;
+		if (!$this->ccpayment()) return apply_filters('shopp_validate_checkout',true);
 		
 		if (apply_filters('shopp_billing_card_required',empty($_POST['billing']['card'])))
 			return new ShoppError(__('You did not provide a credit card number.','Shopp'),'cart_validation');

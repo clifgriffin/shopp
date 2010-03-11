@@ -65,6 +65,8 @@ class Storefront extends FlowController {
 		add_action('wp', array(&$this, 'shortcodes'));
 		add_action('wp', array(&$this, 'behaviors'));
 		
+		$this->searching();
+		
 	}
 	
 	/**
@@ -121,7 +123,7 @@ class Storefront extends FlowController {
 		wp_enqueue_style('shopp.css',SHOPP_TEMPLATES_URI.'/shopp.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp.colorbox.css',SHOPP_PLUGINURI.'/core/ui/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
 		if (is_shopp_page('account') || (isset($wp->query_vars['shopp_proc']) && $wp->query_vars['shopp_proc'] == "sold"))
-			wp_enqueue_style('shopp.printable.css',SHOPP_PLUGINURI.'/core/ui/styles/printable.css',array(),SHOPP_VERSION,'screen');
+			wp_enqueue_style('shopp.printable.css',SHOPP_PLUGINURI.'/core/ui/styles/printable.css',array(),SHOPP_VERSION,'print');
 
 		$loading = $this->Settings->get('script_loading');
 		if (!$loading || $loading == "global" || $tag !== false) {
@@ -213,7 +215,7 @@ class Storefront extends FlowController {
 
 	function updatesearch () {
 		global $wp_query;
-		$wp_query->query_vars['s'] = $this->search;
+		$wp_query->query_vars['s'] = esc_attr(stripslashes($this->search));;
 	}
 
 	function metadata () {
@@ -275,10 +277,21 @@ class Storefront extends FlowController {
 
 	}
 
+	function searching () {
+		global $Shopp,$wp;
+		if (empty($wp->query_vars['s']) || !isset($wp->query_vars['catalog'])) return false;
+
+		$this->search = $wp->query_vars['s'];
+		unset($wp->query_vars['s']); // Not needed any longer
+		$wp->query_vars['pagename'] = $this->Pages['catalog']['name'];
+		add_action('wp_head', array(&$this, 'updatesearch'));
+		
+	}
+
 	function catalog () {
 		global $Shopp,$wp;
 		$options = array();
-
+		print_r($wpdb);
 		// add_filter('redirect_canonical','cancel_canonical_redirect');
 
 		$type = "catalog";
@@ -295,26 +308,7 @@ class Storefront extends FlowController {
 			$category = "tag";
 		}
 
-		$referer = wp_get_referer();
-		$target = "blog";
-		if (isset($wp->query_vars['st'])) $target = $wp->query_vars['st'];
-		if (!empty($wp->query_vars['s']) && // Search query is present and...
-			// The search target is set to shopp
-			($target == "shopp" 
-				// The referering page includes a Shopp catalog page path
-				|| strpos($referer,$Shopp->link('catalog')) !== false || 
-				strpos($referer,'page_id='.$this->Pages['catalog']['id']) !== false || 
-				// Or the referer was a search that matches the last recorded Shopp search
-				substr($referer,-1*(strlen($this->search))) == $this->search || 
-				// Or the blog URL matches the Shopp catalog URL (Takes over search for store-only search)
-				trailingslashit(get_bloginfo('url')) == $Shopp->link('catalog') || 
-				// Or the referer is one of the Shopp cart, checkout or account pages
-				$referer == $Shopp->link('cart') || $referer == $Shopp->link('checkout') || 
-				$referer == $Shopp->link('account'))) {
-			$this->search = $wp->query_vars['s'];
-			$wp->query_vars['s'] = "";
-			$wp->query_vars['pagename'] = $this->Pages['catalog']['name'];
-			add_action('wp_head', array(&$this, 'updatesearch'));
+		if (!empty($this->search)) {
 			if ($type != "product") $type = "category"; 
 			$category = "search-results";
 		}
@@ -504,11 +498,12 @@ class Storefront extends FlowController {
 		global $wp;
 		$Order = &ShoppOrder();
 		$Customer = &$Order->Customer;
-		
+
 		if (isset($Customer->login) && $Customer->login) 
 			$Customer->management();
 		
 		if (isset($_GET['acct']) && $_GET['acct'] == "rp") $Customer->reset_password($_GET['key']);
+		if (isset($_GET['acct']) && $_GET['acct'] == "receipt" && isset($_GET['id'])) return;
 		if (isset($_POST['recover-login'])) $Customer->recovery();
 				
 		ob_start();
