@@ -602,8 +602,8 @@ class Cart {
 					return false;
 				}
 			case "lastitem": return $this->contents[$this->added]; break;
-			case "totalpromos": return count($this->PromosApplied); break;
-			case "haspromos": return (count($this->PromosApplied) > 0); break;
+			case "totalpromos": return count($this->discounts); break;
+			case "haspromos": return (count($this->discounts) > 0); break;
 			case "promos":
 			return false;
 				if (!$this->looping) {

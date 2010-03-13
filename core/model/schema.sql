@@ -28,8 +28,7 @@ CREATE TABLE <?php echo $product; ?> (
 	PRIMARY KEY id (id),
 	KEY published (published),
 	KEY featured (featured),
-	KEY slug (slug),
-	FULLTEXT search (name,summary,description)
+	KEY slug (slug)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $price = DatabaseObject::tablename('price'); ?>
@@ -85,12 +84,13 @@ DROP TABLE IF EXISTS <?php echo $index; ?>;
 CREATE TABLE <?php echo $index; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	product bigint(20) unsigned NOT NULL default '0',
-	indexed longtext NOT NULL,
-	priority tinyint(3) unsigned NOT NULL default '0',
+	terms longtext NOT NULL,
+	factor tinyint(3) unsigned NOT NULL default '0',
+	type varchar(16) NOT NULL default 'description',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
-	FULLTEXT search (indexed)
+	FULLTEXT search (terms)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $category = DatabaseObject::tablename('category'); ?>
@@ -310,7 +310,7 @@ CREATE TABLE <?php echo $promo; ?> (
 	name varchar(255) NOT NULL default '',
 	status enum('disabled','enabled') default 'disabled',
 	type enum('Percentage Off','Amount Off','Free Shipping','Buy X Get Y Free') default 'Percentage Off',
-	scope enum('Catalog','Order') default 'Catalog',
+	scope enum('Catalog','Cart','Cart Item') default 'Catalog',
 	discount float(20,2) NOT NULL default '0.00',
 	buyqty int(10) NOT NULL default '0',
 	getqty int(10) NOT NULL default '0',

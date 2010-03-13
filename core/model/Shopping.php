@@ -141,7 +141,7 @@ class ShoppingObject {
 	static function store ($property, &$data) {
 		global $Shopp;
 		if (isset($Shopp->Shopping->data->{$property}))	// Restore the data
-			$data = &$Shopp->Shopping->data->{$property};	
+			$data = $Shopp->Shopping->data->{$property};
 		$Shopp->Shopping->data->{$property} = &$data;	// Keep a reference
 	}
 		

@@ -167,7 +167,9 @@ class Category extends DatabaseObject {
 	function load_products ($loading=false) {
 		global $Shopp,$wp;
 		$db = DB::get();
-
+		
+		$debug = debug_backtrace();
+		
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 		$producttable = DatabaseObject::tablename(Product::$table);
 		$pricetable = DatabaseObject::tablename(Price::$table);
@@ -368,7 +370,7 @@ class Category extends DatabaseObject {
 					GROUP BY p.id {$loading['having']}
 					ORDER BY {$loading['order']} 
 					LIMIT {$loading['limit']}";
-
+		
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
 
@@ -410,6 +412,9 @@ class Category extends DatabaseObject {
 			
 			$this->products[$product->id] = new Product();
 			$this->products[$product->id]->populate($product);
+
+			if (isset($product->score)) 
+				$this->products[$product->id]->score = $product->score;
 
 			// Special property for Bestseller category
 			if (isset($product->sold) && $product->sold)
@@ -1352,55 +1357,55 @@ class SearchResults extends Category {
 	static $_slug = "search-results";
 
 	function SearchResults ($options=array()) {
-		if (empty($options['search'])) $options['search'] = "(no search terms)";
-		$this->name = __("Search Results for","Shopp")." &quot;".stripslashes($options['search'])."&quot;";
+		$options['search'] = empty($options['search'])?"":stripslashes($options['search']);
 		$this->slug = self::$_slug;
 		$this->uri = $this->slug;
 		$this->smart = true;
 
-		$search = stripslashes($options['search']);
-
-		// Strip accents for search
-		$accents = array('á','à','â','ã','ª','Á','À', 
-	    'Â','Ã', 'é','è','ê','É','È','Ê','í','ì','î','Í', 
-	    'Ì','Î','ò','ó','ô', 'õ','º','Ó','Ò','Ô','Õ','ú', 
-	    'ù','û','Ú','Ù','Û','ç','Ç','Ñ','ñ'); 
-	    $alt = array('a','a','a','a','a','A','A', 
-	    'A','A','e','e','e','E','E','E','i','i','i','I','I', 
-	    'I','o','o','o','o','o','O','O','O','O','u','u','u', 
-	    'U','U','U','c','C','N','n');
-	    $search = trim(str_replace($accents, $alt, $search));
-
-		// Strip non alpha-numerics
-	    $search = preg_replace('/[^A-Za-z0-9\_\.\-" ]/', '', $search); 
-	
-		if (!defined('SHOPP_SEARCH_LOGIC')) define('SHOPP_SEARCH_LOGIC','OR');
-		$logic = (strtoupper(SHOPP_SEARCH_LOGIC) == "AND")?"+":"";
+		// Load search engine components
+		require_once(SHOPP_MODEL_PATH."/Search.php");
+		new SearchParser();
+		new BooleanParser();
 		
-		$tokens = array();
-		$token = strtok($search,' '); 
-        while ($token) { 
-            // find double quoted tokens 
-            if ($token{0} == '"') { 
-				$token .= ' '.strtok('"').'"';
-	            $tokens[] = $token; 
-			} else {
-				$tokens[] = "$logic$token*";
+		// Sanitize the search string
+		$search = $options['search'];
+
+		// Price matching
+		$prices = SearchParser::PriceMatching($search);
+		if ($prices) {
+			$pricematch = false;
+			switch ($prices->op) {
+				case ">": $pricematch = "HAVING ((onsale=0 AND (minprice > $prices->target OR maxprice > $prices->target)) 
+							OR (onsale=1 AND (minsaleprice > $prices->target OR maxsaleprice > $prices->target)))"; break;
+				case "<": $pricematch = "HAVING ((onsale=0 AND (minprice < $prices->target OR maxprice < $prices->target)) 
+							OR (onsale=1 AND (minsaleprice < $prices->target OR maxsaleprice < $prices->target)))"; break;
+				default: $pricematch = "HAVING ((onsale=0 AND (minprice >= $prices->min AND maxprice <= $prices->max)) 
+								OR (onsale=1 AND (minsaleprice >= $prices->min AND maxsaleprice <= $prices->max)))";
 			}
-            $token = strtok(' '); 
-        }
-		$boolean = implode(' ',$tokens);
-		echo "boolean $boolean".BR;
+		}
+
+		// Boolean keyword search
+		$boolean = apply_filters('shopp_boolean_search',$search);
 		
+		// Natural language search for relevance
+		$search = apply_filters('shopp_search_query',$search);
+
 		if (strlen($options['search']) > 0 && empty($boolean)) $boolean = $options['search'];
-		
+
+		$index = DatabaseObject::tablename(ContentIndex::$table);
 		$this->loading = array(
-			'columns'=> "MATCH(p.name,p.summary,p.description) AGAINST ('$search') AS score",
-			'where'=>"MATCH(p.name,p.summary,p.description) AGAINST ('$boolean' IN BOOLEAN MODE)",
+			'joins'=>"LEFT JOIN $index AS search ON search.product=p.id",
+			'columns'=> "SUM(MATCH(search.terms) AGAINST ('$search')) AS score",
+			'where'=>"p.id IN (SELECT product FROM $index WHERE MATCH(terms) AGAINST ('$boolean' IN BOOLEAN MODE))",
 			'orderby'=>'score DESC');
+		if (!empty($pricematch)) $this->loading['having'] = $pricematch;
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		
+		// No search
+		if (empty($options['search'])) $options['search'] = __('(no search terms)','Shopp');
+		$this->name = __("Search Results for","Shopp").": {$options['search']}";
+
 	}
-	
 }
 
 class TagProducts extends Category {
@@ -1426,7 +1431,6 @@ class TagProducts extends Category {
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
-	
 }
 
 class RelatedProducts extends Category {
@@ -1522,7 +1526,6 @@ class RandomProducts extends Category {
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
-	
 }
 
 

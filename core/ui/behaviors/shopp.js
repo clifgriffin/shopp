@@ -971,8 +971,10 @@ jQuery(document).ready( function() {
 	quickSelects();
 	slideshows();
 	carousels();
-	jQuery('a.shopp-zoom').colorbox();
-	jQuery('a.shopp-zoom.gallery').attr('rel','gallery').colorbox({slideshow:true});
+	if (jQuery.colorbox) {
+		jQuery('a.shopp-zoom').colorbox();
+		jQuery('a.shopp-zoom.gallery').attr('rel','gallery').colorbox({slideshow:true});
+	}
 });
 
 // Initialize placehoder variables
