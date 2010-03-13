@@ -59,6 +59,7 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_order_note_message',array(&$this,'order_note_message'));
 		add_action('wp_ajax_shopp_activate_key',array(&$this,'activate_key'));
 		add_action('wp_ajax_shopp_deactivate_key',array(&$this,'deactivate_key'));
+		add_action('wp_ajax_shopp_rebuild_search_index',array(&$this,'rebuild_search_index'));
 		
 	}
 
@@ -315,6 +316,32 @@ class AjaxFlow {
 		if ($result[0] == "0" && $updatekey[2] == "dev") $Shopp->Settings->save('updatekey',array("0"));
 		else $Shopp->Settings->save('updatekey',$result);
 		echo $response;
+		exit();
+	}
+	
+	function rebuild_search_index () {
+		$db = DB::get();
+		require(SHOPP_MODEL_PATH."/Search.php");
+		new ContentParser();
+
+		$set = 10;
+		$product_table = DatabaseObject::tablename(Product::$table);
+		
+		$total = $db->query("SELECT count(id) as products FROM $product_table");
+		if (empty($total->products)) die('-1');
+		
+		$done = 0;
+		for ($i = 0; $i*$set < $total->products; $i++) {
+			$row = $db->query("SELECT id FROM $product_table LIMIT ".($i*$set).",$set",AS_ARRAY);
+			foreach ($row as $index => $product) {
+				$Indexer = new IndexProduct($product->id);
+				$Indexer->index();
+				$done++;
+			}
+			echo $done."/".$total->products.BR;
+			ob_flush();
+		    flush();
+		}
 		exit();
 	}
 

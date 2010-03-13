@@ -651,7 +651,7 @@ class Product extends DatabaseObject {
 		switch ($property) {
 			case "link": 
 			case "url": 
-				if (SHOPP_PERMALINKS) $url = user_trailingslashit(esc_url(add_query_arg($_GET,$Shopp->canonuri.urldecode($this->slug))));
+				if (SHOPP_PERMALINKS) $url = esc_url(user_trailingslashit($Shopp->canonuri.urldecode($this->slug)));
 				else $url = add_query_arg('shopp_pid',$this->id,$Shopp->canonuri);
 				return $url;
 				break;
@@ -662,6 +662,7 @@ class Product extends DatabaseObject {
 				$this->load_data($load);
 				return true;
 				break;
+			case "relevance": return (string)$this->score; break;
 			case "id": return $this->id; break;
 			case "name": return apply_filters('shopp_product_name',$this->name); break;
 			case "slug": return $this->slug; break;
@@ -1008,7 +1009,7 @@ class Product extends DatabaseObject {
 				if (isset($options['delimiter'])) $separator = $options['delimiter'];
 
 				$spec = current($this->specs);
-				if (is_array($spec->content)) $spec->content = join($delimiter,$spec->content);
+				if (is_array($spec->value)) $spec->content = join($delimiter,$spec->value);
 				
 				if (isset($options['name']) 
 					&& !empty($options['name']) 
@@ -1018,9 +1019,9 @@ class Product extends DatabaseObject {
 							if (isset($options['index'])) {
 								foreach ($spec as $index => $entry) 
 									if ($index+1 == $options['index']) 
-										$content = $entry->content;
+										$content = $entry->value;
 							} else {
-								foreach ($spec as $entry) $contents[] = $entry->content;
+								foreach ($spec as $entry) $contents[] = $entry->value;
 								$content = join($delimiter,$contents);
 							}
 						} else $content = $spec->content;
@@ -1031,8 +1032,8 @@ class Product extends DatabaseObject {
 				if (isset($options['name']) && isset($options['content']))
 					$string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->content);
 				elseif (isset($options['name'])) $string = $spec->name;
-				elseif (isset($options['content'])) $string = apply_filters('shopp_product_spec',$spec->content);
-				else $string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->content);
+				elseif (isset($options['content'])) $string = apply_filters('shopp_product_spec',$spec->value);
+				else $string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->value);
 				return $string;
 				break;
 			case "has-variations":

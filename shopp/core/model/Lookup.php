@@ -252,14 +252,28 @@ class Lookup {
 	
 	static function stopwords () {
 		$_ = array(
-			"a", "an", "and", "are", "as", "at", "be", "but", "by",
-			"for", "if", "in", "into", "is", "it",
-			"no", "not", "of", "on", "or", "such",
-			"that", "the", "their", "then", "there", "these",
-			"they", "this", "to", "was", "will", "with"
+	  	    "a", "an", "and", "are", "as", "at", "be", "but", "by",
+		    "for", "if", "in", "into", "is", "it",
+		    "no", "not", "of", "on", "or", "such",
+		    "that", "the", "their", "then", "there", "these",
+		    "they", "this", "to", "was", "will", "with"
 		);
 		return apply_filters('shopp_index_stopwords',$_);
 	}
+
+	static function index_factors () {
+		$_ = array(
+			'name' => 200,
+			'variations' => 160,
+			'specs' => 75,
+			'summary' => 100,
+			'description' => 100,
+			'categories' => 50,
+			'tags' => 50
+		);
+		return apply_filters('shopp_index_factors',$_);
+	}
+
 
 } // END class Lookup
 

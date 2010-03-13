@@ -34,7 +34,8 @@ class Storefront extends FlowController {
 	var $Category = false;
 	var $Product = false;
 	var $breadcrumb = false;
-	var $search = false;
+	var $search = false;		// The search query string
+	var $searching = false;		// Flags if a search request has been made
 	var $browsing = array();
 	
 	/**
@@ -55,10 +56,10 @@ class Storefront extends FlowController {
 		
 		$Pages = $this->Settings->get('pages');
 		if (!empty($Pages)) $this->Pages = $Pages;
-		
+
 		ShoppingObject::store('search',$this->search);
 		ShoppingObject::store('browsing',$this->browsing);
-		
+
 		add_action('wp', array(&$this, 'pageid'));
 		add_action('wp', array(&$this, 'cart'));
 		add_action('wp', array(&$this, 'catalog'));
@@ -208,14 +209,14 @@ class Storefront extends FlowController {
 			else $link = add_query_arg(array('shopp_category'=>urldecode($this->Category->uri),'src'=>'category_rss'),$this->shopuri);
 			?>
 
-<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo urldecode($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
+<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo htmlentities($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
 <?php
 		endif;
 	}
 
 	function updatesearch () {
 		global $wp_query;
-		$wp_query->query_vars['s'] = esc_attr(stripslashes($this->search));;
+		$wp_query->query_vars['s'] = esc_attr(stripslashes($this->search));
 	}
 
 	function metadata () {
@@ -279,9 +280,10 @@ class Storefront extends FlowController {
 
 	function searching () {
 		global $Shopp,$wp;
-		if (empty($wp->query_vars['s']) || !isset($wp->query_vars['catalog'])) return false;
+		if (!isset($_GET['s']) || !isset($wp->query_vars['catalog'])) return false;
 
 		$this->search = $wp->query_vars['s'];
+		$this->searching = true;
 		unset($wp->query_vars['s']); // Not needed any longer
 		$wp->query_vars['pagename'] = $this->Pages['catalog']['name'];
 		add_action('wp_head', array(&$this, 'updatesearch'));
@@ -291,7 +293,7 @@ class Storefront extends FlowController {
 	function catalog () {
 		global $Shopp,$wp;
 		$options = array();
-		print_r($wpdb);
+
 		// add_filter('redirect_canonical','cancel_canonical_redirect');
 
 		$type = "catalog";
@@ -308,10 +310,22 @@ class Storefront extends FlowController {
 			$category = "tag";
 		}
 
-		if (!empty($this->search)) {
+		// If a search query is stored, and this request is a product or the 
+		// search results category repopulate the search box and set the 
+		// category for the breadcrumb
+		if (!empty($this->search) 
+				&& ($type == "product" 
+				|| ($type == "category" && $category == "search-results"))) {
+			add_action('wp_head', array(&$this, 'updatesearch'));
+			$category = "search-results";
+		}
+
+		// If a search request is being made, set the type to category
+		if ($this->searching) {
 			if ($type != "product") $type = "category"; 
 			$category = "search-results";
 		}
+		
 
 		// Load a category/tag
 		if (!empty($category) || !empty($tag)) {
@@ -325,6 +339,15 @@ class Storefront extends FlowController {
 			// Load the category
 			$Shopp->Category = Catalog::load_category($category,$options);
 			$this->breadcrumb = (isset($tag)?"tag/":"").$Shopp->Category->uri;
+
+			if (!empty($this->searching)) {
+				$Shopp->Category->load_products(array('load'=>'images,prices'));
+				if (count($Shopp->Category->products) == 1) {
+					reset($Shopp->Category->products);
+					$BestBet = current($Shopp->Category->products);
+					shopp_redirect($BestBet->tag('url',array('return'=>true)));
+				}
+			}
 		} 
 
 		if (empty($category) && empty($tag) && 
@@ -429,15 +452,7 @@ class Storefront extends FlowController {
 		if (empty($_REQUEST['cart'])) return true;
 		
 		do_action('shopp_cart_request');
-		
-		// if ($_REQUEST['cart']) $Shopp->Order->Cart->request();
 
-		// echo BR.BR."<pre>";
-		// print_r($Shopp->Order->Cart);
-		// echo BR.BR."</pre>";
-
-		
-		// if ($Shopp->Order->Cart->changed) $Shopp->Order->Cart->totals();
 		if (isset($_REQUEST['ajax'])) $Shopp->Order->Cart->ajax();
 		$redirect = false;
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];

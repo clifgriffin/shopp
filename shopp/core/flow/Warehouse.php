@@ -44,6 +44,11 @@ class Warehouse extends AdminController {
 			add_action('admin_head',array(&$this,'layout'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
+		
+		// Load the search model for indexing
+		require_once(SHOPP_MODEL_PATH."/Search.php");
+		new ContentParser();
+		add_action('shopp_product_saved',array(&$this,'index'),99,1);
 	}
 	
 	/**
@@ -304,6 +309,7 @@ class Warehouse extends AdminController {
 	 **/
 	function editor () {
 		global $Shopp,$ProductImages;
+		
 		$db = DB::get();
 		
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_products')) )
@@ -414,7 +420,7 @@ class Warehouse extends AdminController {
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 		$Product->updates($_POST,array('categories'));
 		$Product->save();
-
+		
 		$Product->save_categories($_POST['categories']);
 		$Product->save_tags(explode(",",$_POST['taglist']));
 		
@@ -522,9 +528,9 @@ class Warehouse extends AdminController {
 			if (!empty($_POST['imagedetails']))
 				$Product->update_images($_POST['imagedetails']);
 		}
-		
+
 		do_action_ref_array('shopp_product_saved',array(&$Product));
-		
+				
 		unset($Product);
 		return true;
 	}
@@ -645,6 +651,11 @@ class Warehouse extends AdminController {
 		foreach ($results as $result) $products[$result->id] = $result->name;
 		return menuoptions($products,0,true);
 		
+	}
+	
+	function index ($Product) {
+		$Indexer = new IndexProduct($Product->id);
+		$Indexer->index();
 	}
 
 } // end Store class
