@@ -12,10 +12,14 @@
 
 var Pricelines = false;
 var productOptions = new Array();
+var productAddons = new Array();
 var optionMenus = new Array();
+var addonGroups = new Array();
 var selectedMenuOption = false;
 var detailsidx = 1;
 var variationsidx = 1;
+var addon_group_idx = 1;
+var addonsidx = 1;
 var optionsidx = 1;
 var pricingidx = 1;
 var fileUploader = false;
@@ -23,49 +27,63 @@ var changes = false;
 var saving = false;
 var flashUploader = false;
 var pricesPayload = true;
+var fileUploads = false;
 
 jQuery(document).ready(function() {
 	var $=jQuery.noConflict();
 
+	// Init postboxes for the editor
 	postboxes.add_postbox_toggles('shopp_page_shopp-products');
 	// close postboxes that should be closed
 	jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	
-	if (!product) $('#title').focus();
-
+	// Setup the slug editor
 	var editslug = new SlugEditor(product,'product');
 	
+	// Load up existing specs & setup the add new button
 	if (specs) $.each(specs,function () { addDetail(this) });
 	$('#addDetail').click(function() { addDetail(); });
+
+	fileUploads = new FileUploader('flash-upload-file',$('#ajax-upload-file'));
 	
+	// Initalize the base price line
 	Pricelines = new Pricelines();
 	var basePrice = $(prices).get(0);
 	if (basePrice && basePrice.context == "product") Pricelines.add(false,basePrice,'#product-pricing');
 	else Pricelines.add(false,false,'#product-pricing');
 	
-	$('#variations-setting').click(variationsToggle);
-	variationsToggle();
+	// Initialize variations
+	$('#variations-setting').bind('click.variations',variationsToggle).trigger('click.variations');
 	loadVariations(options,prices);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
 	$('#linkOptionVariations').click(linkVariationsButton).change(linkVariationsButtonLabel);
-	
-	categories();
-	tags();
-	quickSelects();
-	updateWorkflow();
-	
+
+	// Initialize Add-ons
+	$('#addons-setting').bind('click.addons',addonsToggle).trigger('click.addons');
+	$('#newAddonGroup').click(function() { newAddonGroup(); });
+	loadAddons(addons,prices);
+
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
 	window.onbeforeunload = unsavedChanges;
 	$('#product').change(function () { changes = true; }).submit(function() {
 		this.action = this.action+"?"+$.param(request);
 		saving = true;
 		return true;
-	});
+	}); 
 	
+
+	// Setup categories
+	categories();
+	tags();
+	quickSelects();
+	updateWorkflow();
+
+	// Give the product name initial focus
+	if (!product) $('#title').focus();
 });
 
-function updateWorkflow () {
+var updateWorkflow = function () {
 	var $=jQuery.noConflict();
 	$('#workflow').change(function () {
 		setting = $(this).val();
@@ -77,29 +95,25 @@ function updateWorkflow () {
 		// Find previous product
 		if (setting == "previous") {
 			$.each(worklist,function (i,entry) {
-				if (entry.id == product) {
-					if (worklist[i-1]) request.next = worklist[i-1].id;
-					else request.page = workflow['close'];
-					return true;
-				}
+				if (entry.id != product) return true;
+				if (worklist[i-1]) request.next = worklist[i-1].id;
+				else request.page = workflow['close'];
 			});
 		}
 		
 		// Find next product
 		if (setting == "next") {
 			$.each(worklist,function (i,entry) {
-				if (entry.id == product) {
-					if (worklist[i+1]) request.next = worklist[i+1].id;
-					else request.page = workflow['close'];
-					return true;
-				}
+				if (entry.id != product) return true;
+				if (worklist[i+1]) request.next = worklist[i+1].id;
+				else request.page = workflow['close'];
 			});
 		}
 		
 	}).change();
 }
 
-function categories () {
+var categories = function () {
 	var $=jQuery.noConflict();
 	
 	$('#new-category').hide();
@@ -194,7 +208,7 @@ function categories () {
 	});
 		
 	// Add to selection menu
-	function  addCategoryMenuItem (c) {
+	function addCategoryMenuItem (c) {
 		var $=jQuery.noConflict();
 		
 		var parent = false;
@@ -231,7 +245,7 @@ function categories () {
 	
 }
 
-function tags () {
+var tags = function () {
 	var $=jQuery.noConflict();
 	
 	function updateTagList () {

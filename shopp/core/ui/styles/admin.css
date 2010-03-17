@@ -41,11 +41,13 @@ div.comment-item:hover .row-actions { visibility: visible; }
 #product #tagchecklist { margin-left: 0; }
 #product #tagchecklist span { background: #f1f1f1; padding: 1px 5px 1px 18px; margin-right: 5px; margin-top: 5px; border: 1px solid #dfdfdf; }
 #product #tagchecklist span a { margin-left: -13px;  }
-#product input.filepath { padding-right: 16px; width: 90%; }
-#product input.verifying { background: url('../icons/updating.gif') no-repeat right center; }
-#product input.warning { background: url('../icons/error.png') no-repeat right center; }
+#cboxContent input.fileimport { padding-right: 16px; width: 80%; }
+#cboxContent input.verifying { background: url('../icons/updating.gif') no-repeat right center; }
+#cboxContent input.warning { background: url('../icons/error.png') no-repeat right center; }
+#cboxContent input.ok { background: url('../icons/accept.png') no-repeat right center; }
 
-#product #variations { display: none; }
+#product #variations,
+#product #addons { display: none; }
 #product #variations h4 { font-size: 13px; font-weight: bold; margin: 6px 0; }
 #product #variations p { margin: 6px 0; }
 
@@ -115,7 +117,8 @@ div.comment-item:hover .row-actions { visibility: visible; }
 
 .pricing tbody th, .pricing tbody td { padding-bottom: 1px; border-bottom-width: 3px; }
 
-.pricing-table div.file { background: url('../icons/page_white.png') no-repeat left 2px; padding-left: 20px; cursor: pointer; }
+.pricing-table div.file { line-height: 1.3em; background: url('../icons/page_white.png') no-repeat; padding-left: 20px; cursor: pointer; }
+.pricing-table div.file small { color: #606060; }
 .pricing-table div.file.image { background-image: url('../icons/image.png'); }
 .pricing-table div.file.audio { background-image: url('../icons/music.png'); }
 .pricing-table div.file.video { background-image: url('../icons/film.png'); }
@@ -130,6 +133,11 @@ div.comment-item:hover .row-actions { visibility: visible; }
 
 #variations-pricing > tr > th, #variations-pricing > tr > td { border-top: 1px solid #dfdfdf; }
 .form-table.pricing { border-bottom: 1px solid #dfdfdf; }
+
+#chooser { font-size: 11px; position: absolute; left: -9999em; width: 350px; }
+#chooser p { font-size: 11px; margin: 6px 0 8px; line-height: 1; }
+#cboxContent #chooser { left: auto; }
+#cboxContent #chooser label { margin: 0; padding: 6px 0; text-align: left; width: auto; }
 
 div.progress { position: relative; width: 76px; height: 10px; background: #ffffff; border: 1px solid #dddddd;}
 div.progress div.bar { position: absolute; height: 10px; background: #85ec3d; border: none; }

@@ -90,6 +90,7 @@ function settings_meta_box ($Product) {
 <p><input type="hidden" name="published" value="off" /><input type="checkbox" name="published" value="on" id="published" tabindex="11" <?php if ($Product->published == "on") echo ' checked="checked"'?> /><label for="published"> <?php _e('Published','Shopp'); ?></label></p>
 	<p><input type="hidden" name="featured" value="off" /><input type="checkbox" name="featured" value="on" id="featured" tabindex="12" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /><label for="featured"> <?php _e('Featured Product','Shopp'); ?></label></p>
 	<p><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if ($Product->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations &mdash; Selectable product options','Shopp'); ?></label></p>
+	<p><input type="hidden" name="addons" value="off" /><input type="checkbox" name="addons" value="on" id="addons-setting" tabindex="13"<?php if ($Product->addons == "on") echo ' checked="checked"'?> /><label for="addons-setting"> <?php _e('Add-ons &mdash; Optional product add-ons','Shopp'); ?></label></p>
 <?php
 }
 add_meta_box('product-settings', __('Settings','Shopp'), 'settings_meta_box', 'shopp_page_shopp-products', 'side', 'core');
@@ -187,16 +188,49 @@ function pricing_meta_box ($Product) {
 <div id="variations-pricing"></div>
 </div>
 
+<div id="addons">
+	<div id="addons-menus" class="panel">
+		<div class="pricing-label">
+			<label><?php _e('Add-on Option Menus','Shopp'); ?></label>
+		</div>
+		<div class="pricing-ui">
+			<p><?php _e('Create the menus and menu options for the product\'s add-ons.','Shopp'); ?></p>
+			<ul class="multipane options">
+				<li><div id="addon-menu" class="multiple-select menu"><ul></ul></div>
+					<div class="controls">
+						<button type="button" id="newAddonGroup" class="button-secondary" tabindex="14"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('New Add-on Group','Shopp'); ?></small></button>
+					</div>
+				</li>
+
+				<li>
+					<div id="addon-list" class="multiple-select options"></div>
+					<div class="controls right">
+					<button type="button" id="addAddonOption" class="button-secondary" tabindex="15"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /><small> <?php _e('Add Option','Shopp'); ?></small></button>
+					</div>
+				</li>
+			</ul>
+			<div class="clear"></div>
+		</div>
+	</div>
+<br />
+<div id="addon-pricing"></div>
+</div>
+
 <div><input type="hidden" name="deletePrices" id="deletePrices" value="" />
 	<input type="hidden" name="prices" value="" id="prices" /></div>
+
+<div id="chooser">
+	<p><label for="import-url"><?php _e('Import file by URL','Shopp'); ?>&hellip;</label></p>
+	<p><input type="text" name="url" id="import-url" class="fileimport" /><button class="button-secondary"><small><?php _e('Import','Shopp'); ?></small></button><br /><span><label for="import-url">file:///path/to/file.zip, http://server.com/file.zip</label></span></p>
+	<label class="alignleft"><?php _e('Select a file from your computer','Shopp'); ?>:</label>
+	<div class=""><div id="flash-upload-file"></div><button id="ajax-upload-file" class="button-secondary"><small><?php _e('Upload File','Shopp'); ?></small></button></div>
+</div>
 
 <?php
 }
 add_meta_box('product-pricing-box', __('Pricing','Shopp'), 'pricing_meta_box', 'shopp_page_shopp-products', 'advanced', 'core');
 
-
 do_action('do_meta_boxes', 'shopp_page_shopp-products', 'normal', $Shopp->Product);
 do_action('do_meta_boxes', 'shopp_page_shopp-products', 'advanced', $Shopp->Product);
 do_action('do_meta_boxes', 'shopp_page_shopp-products', 'side', $Shopp->Product);
-
 ?>

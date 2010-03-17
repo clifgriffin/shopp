@@ -13,7 +13,7 @@
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="update-key"><?php _e('Update Key','Shopp'); ?></label></th> 
 				<td>
-					<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="40" value="<?php echo $key; ?>"<?php echo ($activated)?' readonly="readonly"':''; ?> />
+					<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="40" value="<?php echo esc_attr($key); ?>"<?php echo ($activated)?' readonly="readonly"':''; ?> />
 					<button type="button" id="activation-button" name="activation-button" class="button-secondary"><? echo (!$activated)?__('Activate Key','Shopp'):str_repeat('&nbsp;',25); ?></button>
 					<br /><div id="activation-status" class="activating hidden"><?php printf(__('Activate your Shopp access key for automatic updates and official support services. If you don\'t have a Shopp key, feel free to support the project by <a href="%s">purchasing a key from shopplugin.net</a>.','Shopp'),SHOPP_HOME.'store/'); ?></div>
 	            </td>
