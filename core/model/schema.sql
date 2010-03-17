@@ -22,6 +22,7 @@ CREATE TABLE <?php echo $product; ?> (
 	featured enum('off','on') NOT NULL,
 	variations enum('off','on') NOT NULL,
 	options text NOT NULL,
+	addons text NOT NULL,
 	priority int(10) NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',

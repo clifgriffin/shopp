@@ -26,7 +26,7 @@ class IndexProduct {
 	
 	var $Product = false;
 	var $properties = array(
-		"name","variations","summary","description","specs","categories","tags"
+		"name","prices","summary","description","specs","categories","tags"
 	);
 	
 	/**
@@ -53,13 +53,13 @@ class IndexProduct {
 	function index () {
 		foreach ($this->properties as $property) {
 			switch ($property) {
-				case "variations": 
-					$variations = array();
-					foreach ($this->Product->prices as $variation) {
-						if ($variation->type == "N/A") continue; // Skip disabled pricelines
-						$variations[] = $variation->label;
+				case "prices": 
+					$prices = array();
+					foreach ($this->Product->prices as $price) {
+						if ($price->type == "N/A") continue; // Skip disabled pricelines
+						$prices[] = $prices->label;
 					}
-					$content = join(' ',$variations);
+					$content = join(' ',$prices);
 					break;
 				case "specs": 
 					$specs = array();

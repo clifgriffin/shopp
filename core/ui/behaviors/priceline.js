@@ -1,16 +1,19 @@
-function Pricelines () {
+var Pricelines = function () {
 	var $=jQuery.noConflict();
 	this.idx = 0;
 	this.row = new Object();
 	this.variations = new Array();
+	this.addons = new Array();
 	this.linked = new Array();
 
 	this.add = function (options,data,target,attachment) {
-		var key = xorkey(options);
-		var p = new Priceline(this.idx,options,data,target,attachment);
-		this.row[key] = p;
-
+		if (!data) data = {'context':'product'};
+		
 		if (data.context == "variation") {
+			var key = xorkey(options);
+			var p = new Priceline(this.idx,options,data,target,attachment);
+			this.row[key] = p;
+
 			if (attachment) {
 				var targetkey = parseInt(target.optionkey.val());
 				var index = $.inArray(targetkey,this.variations);
@@ -20,6 +23,15 @@ function Pricelines () {
 				}
 			} else this.variations.push(xorkey(p.options));
 		}
+		if (data.context == "addon") {
+			var p = new Priceline(this.idx,options,data,target,attachment);
+			this.row[this.idx] = p;
+		}
+		if (data.context == "product") {
+			var p = new Priceline(0,options,data,target,attachment);
+			this.row[0] = p;
+		}
+
 		$('#prices').val(this.idx++);
 	}
 	
@@ -45,7 +57,11 @@ function Pricelines () {
 		if (index == -1) return;
 		this.variations.splice(index,1);
 		this.variations.push(xorkey(variation.options));
-		
+	}
+	
+	this.reorderAddon = function (id,pricegroup) {
+		var addon = this.row[id];
+		addon.row.appendTo(pricegroup);
 	}
 	
 	this.updateVariationsUI = function (type) {
@@ -122,143 +138,300 @@ function Pricelines () {
 	
 }
 
-function Priceline (id,options,data,target,attachment) {
+var Priceline = function (id,options,data,target,attachment) {
 	var $ = jQuery.noConflict();
 	var _self = this;
-	this.id = id;
-	this.options = options;
-	this.data = data;
-	this.label = false;
-	this.links = new Array();
-	this.inputs = new Array();
-
-	var interfaces = new Object();
+	this.id = id;				// Index position in the Pricelines.rows array
+	this.options = options;		// Option indexes for options linked to this priceline
+	this.data = data;			// The data associated with this priceline
+	this.label = false;			// The label of the priceline
+	this.links = new Array();	// Option linking registry
+	this.inputs = new Array();	// Inputs registry
 
 	// Give this entry a unique runtime id
 	var i = this.id;
 
 	// Build the interface
+	var fn = 'price['+i+']'; // Field name base
+	
 	this.row = $('<div id="row-'+i+'" class="priceline" />');
 	if (attachment == "after") this.row.insertAfter(target);
 	else if (attachment == "before") this.row.insertBefore(target);
 	else this.row.appendTo(target);
 
 	var heading = $('<div class="pricing-label" />').appendTo(this.row);
-	var labelText = $('<label for="label['+i+']" />').appendTo(heading);
+	var labelText = $('<label for="label-'+i+'" />').appendTo(heading);
 
-	this.label = $('<input type="hidden" name="price['+i+'][label]" id="label['+i+']" />').appendTo(heading);
+	this.label = $('<input type="hidden" name="price['+i+'][label]" id="label-'+i+'" />').appendTo(heading);
 	this.label.change(function () { labelText.text($(this).val()); });
+	
+	$('<input type="hidden" name="'+fn+'[id]" id="priceid-'+i+'" value="'+data.id+'" />'+
+		'<input type="hidden" name="'+fn+'[product]" id="product-'+i+'" />'+
+		'<input type="hidden" name="'+fn+'[context]" id="context-'+i+'"/>'+
+		'<input type="hidden" name="'+fn+'[optionkey]" id="optionkey-'+i+'" class="optionkey" />'+
+		'<input type="hidden" name="'+fn+'[options]" id="options-'+i+'" value="" />'+
+		'<input type="hidden" name="sortorder[]" id="sortorder-'+i+'" value="'+i+'" />').appendTo(heading);
 
-	var myid = $('<input type="hidden" name="price['+i+'][id]" id="priceid-'+i+'" />').appendTo(heading);
-	var productid = $('<input type="hidden" name="price['+i+'][product]" id="product['+i+']" />').appendTo(heading);
-	var context = $('<input type="hidden" name="price['+i+'][context]" />').appendTo(heading);
-	var optionkey = $('<input type="hidden" name="price['+i+'][optionkey]" class="optionkey" />').appendTo(heading);
+	var myid = $('#priceid-'+i);
+	var context = $('#context-'+i);
+	var optionids = $('#options-'+i);
+	var sortorder = $('#sortorder-'+i);
+	var optionkey = $('#optionkey-'+i).appendTo(heading);
 	this.row.optionkey = optionkey;
-	var optionids = $('<input type="hidden" name="price['+i+'][options]" />').appendTo(heading);
-	var sortorder = $('<input type="hidden" name="sortorder[]" value="'+i+'" />').appendTo(heading);
-
+	
 	var typeOptions = "";
 	$(priceTypes).each(function (t,option) { typeOptions += '<option value="'+option.value+'">'+option.label+'</option>'; });
 	var type = $('<select name="price['+i+'][type]" id="type-'+i+'"></select>').html(typeOptions).appendTo(heading);
 
-	var dataCell = $('<div class="pricing-ui clear" />').appendTo(this.row);	
-	
-	var pricingTable = $('<table/>').addClass('pricing-table').appendTo(dataCell);
+	if (data && data.label) {
+		this.label.val(htmlentities(data.label)).change();
+		type.val(data.type);
+	}
 
+	var dataCell = $('<div class="pricing-ui clear" />').appendTo(this.row);	
+	var pricingTable = $('<table/>').addClass('pricing-table').appendTo(dataCell);
 	var headingsRow = $('<tr/>').appendTo(pricingTable);	
 	var inputsRow = $('<tr/>').appendTo(pricingTable);
 
-	var priceHeading = $('<th/>').appendTo(headingsRow);
-	var priceLabel = $('<label for="price['+i+']">'+PRICE_LABEL+'</label>').appendTo(priceHeading);
-	var priceCell = $('<td/>').appendTo(inputsRow);
-	var price = $('<input type="text" name="price['+i+'][price]" id="price['+i+']" value="0" size="10" class="selectall right"  />').appendTo(priceCell);
-	$('<br />').appendTo(priceCell);
+	// Build individual fields
+	this.price = function (price,tax) {
+		var hd = $('<th><label for="price-'+i+'">'+PRICE_LABEL+'</label></th>').appendTo(headingsRow);
+		var ui = $('<td><input type="text" name="'+fn+'[price]" id="price-'+i+'" value="0" size="10" class="selectall money right" /><br />'+
+					 '<input type="hidden" name="'+fn+'[tax]" value="on" /><input type="checkbox" name="'+fn+'[tax]" id="tax-'+i+'" value="off" />'+
+					 '<label for="tax-'+i+'"> '+NOTAX_LABEL+'</label><br /></td>').appendTo(inputsRow);
 
-	$('<input type="hidden" name="price['+i+'][tax]" value="on" />').appendTo(priceCell);
-	var tax = $('<input type="checkbox" name="price['+i+'][tax]" id="tax['+i+']" value="off" />').appendTo(priceCell);
-	var taxLabel = $('<label for="tax['+i+']"> '+NOTAX_LABEL+'</label><br />').appendTo(priceCell);
-
-	var salepriceHeading = $('<th><label for="sale['+i+']"> '+SALE_PRICE_LABEL+'</label></th>').appendTo(headingsRow);
-	var salepriceToggle = $('<input type="checkbox" name="price['+i+'][sale]" id="sale['+i+']" />').prependTo(salepriceHeading);
-	$('<input type="hidden" name="price['+i+'][sale]" value="off" />').prependTo(salepriceHeading);
-
-	var salepriceCell = $('<td/>').appendTo(inputsRow);
-	var salepriceStatus = $('<span>'+NOT_ON_SALE_TEXT+'</span>').addClass('status').appendTo(salepriceCell);
-	var salepriceField = $('<span/>').addClass('fields').appendTo(salepriceCell).hide();
-	var saleprice = $('<input type="text" name="price['+i+'][saleprice]" id="saleprice['+i+']" size="10" class="selectall right" />').appendTo(salepriceField);
-
-	var donationHeading = $('<th/>').appendTo(headingsRow);
-	var donationCell = $('<td width="80%" />').appendTo(inputsRow);
-	$('<input type="hidden" name="price['+i+'][donation][var]" value="off" />').appendTo(donationCell);
-	var donationVar = $('<input type="checkbox" name="price['+i+'][donation][var]" id="donation-var['+i+']" value="on" />').appendTo(donationCell);
-	$('<label for="donation-var['+i+']"> '+DONATIONS_VAR_LABEL+'</label><br />').appendTo(donationCell);
-	$('<input type="hidden" name="price['+i+'][donation][min]" value="off" />').appendTo(donationCell);
-	var donationMin = $('<input type="checkbox" name="price['+i+'][donation][min]" id="donation-min['+i+']" value="on" />').appendTo(donationCell);
-	$('<label for="donation-min['+i+']"> '+DONATIONS_MIN_LABEL+'</label>').appendTo(donationCell);
-
-	var shippingHeading = $('<th><label for="shipping-'+i+'"> '+SHIPPING_LABEL+'</label></th>').appendTo(headingsRow);
-	var shippingToggle = $('<input type="checkbox" name="price['+i+'][shipping]" id="shipping-'+i+'" />').prependTo(shippingHeading);
-	$('<input type="hidden" name="price['+i+'][shipping]" value="off" />').prependTo(shippingHeading);
-
-	var shippingCell = $('<td/>').appendTo(inputsRow);
-	var shippingStatus = $('<span>'+FREE_SHIPPING_TEXT+'</span>').addClass('status').appendTo(shippingCell);
-	var shippingFields = $('<span/>').addClass('fields').appendTo(shippingCell).hide();
+		this.p = $('#price-'+i).val(price);
+		this.t = $('#tax-'+i).attr('checked',tax == "off"?true:false);
+	}
 	
-	var weight = $('<input type="text" name="price['+i+'][weight]" id="weight['+i+']" size="8" class="selectall right" />').appendTo(shippingFields);
-	var shippingWeightLabel = $('<label for="weight['+i+']" title="'+WEIGHT_LABEL+'"> '+WEIGHT_LABEL+((weightUnit)?' ('+weightUnit+')':'')+'</label><br />').appendTo(shippingFields);
+	this.saleprice = function (toggle,saleprice) {
+		var hd = $('<th><input type="hidden" name="'+fn+'[sale]" value="off" />'+
+					'<input type="checkbox" name="'+fn+'[sale]" id="sale-'+i+'" />'+
+					'<label for="sale-'+i+'"> '+SALE_PRICE_LABEL+'</label></th>').appendTo(headingsRow);
+		var ui = $('<td><span class="status">'+NOT_ON_SALE_TEXT+'</span><span class="ui">'+
+					'<input type="text" name="'+fn+'[saleprice]" id="saleprice-'+i+'" size="10" class="selectall money right" />'+
+					'</span></td>').appendTo(inputsRow);
+
+		dis = ui.find('span.status');
+		ui = ui.find('span.ui').hide();
+
+		this.sp = $('#saleprice-'+i);
+		this.sp.val(saleprice);
+
+		this.spt = $('#sale-'+i).attr('checked',(toggle == "on"?true:false)).toggler(dis,ui,this.sp);
+	}
 	
-	var shippingfee = $('<input type="text" name="price['+i+'][shipfee]" id="shipfee['+i+']" size="8" class="selectall right" />').appendTo(shippingFields);
-	var shippingFeeLabel = $('<label for="shipfee['+i+']" title="Additional shipping fee calculated per quantity ordered (for handling costs, etc)"> '+SHIPFEE_LABEL+'</label><br />').appendTo(shippingFields);
+	this.donation = function (price,tax,variable,minimum) {
+		var hd = $('<th><label for="price-'+i+'"> '+AMOUNT_LABEL+'</label></th>').appendTo(headingsRow);
+		var ui = $('<td><input type="text" name="'+fn+'[price]" id="price-'+i+'" value="0" size="10" class="selectall money right" /><br />'+
+					 '<input type="hidden" name="'+fn+'[tax]" value="on" /><input type="checkbox" name="'+fn+'[tax]" id="tax-'+i+'" value="off" />'+
+					 '<label for="tax-'+i+'"> '+NOTAX_LABEL+'</label><br /></td>').appendTo(inputsRow);
 
-	var inventoryHeading = $('<th><label for="inventory['+i+']"> '+INVENTORY_LABEL+'</label></th>').appendTo(headingsRow);
-	var inventoryToggle = $('<input type="checkbox" name="price['+i+'][inventory]" id="inventory['+i+']" />').prependTo(inventoryHeading);
-	$('<input type="hidden" name="price['+i+'][inventory]" value="off" />').prependTo(salepriceHeading);
-	var inventoryCell = $('<td/>').appendTo(inputsRow);
-	var inventoryStatus = $('<span>'+NOT_TRACKED_TEXT+'</span>').addClass('status').appendTo(inventoryCell);
-	var inventoryField = $('<span/>').addClass('fields').appendTo(inventoryCell).hide();
-	var stock = $('<input type="text" name="price['+i+'][stock]" id="stock['+i+']" size="8" class="selectall right" />').appendTo(inventoryField);
-	var inventoryLabel =$('<label for="stock['+i+']"> '+IN_STOCK_LABEL+'</label>').appendTo(inventoryField);
-	var inventoryBr = $('<br/>').appendTo(inventoryField);
-	var sku = $('<input type="text" name="price['+i+'][sku]" id="sku['+i+']" size="8" title="Enter a unique tracking number for this product option." class="selectall" />').appendTo(inventoryField);
-	var skuLabel =$('<label for="sku['+i+']" title="'+SKU_LABEL_HELP+'"> '+SKU_LABEL+'</label>').appendTo(inventoryField);
+		this.p = $('#price-'+i).val(price);
+		this.t = $('#tax-'+i).attr('checked',tax == "on"?false:true);
+		
+		var hd2 = $('<th />').appendTo(headingsRow);
+		var ui2 = $('<td width="80%"><input type="hidden" name="'+fn+'[donation][var]" value="off" />'+
+					'<input type="checkbox" name="'+fn+'[donation][var]" id="donation-var-'+i+'" value="on" />'+
+					'<label for="donation-var-'+i+'"> '+DONATIONS_VAR_LABEL+'</label><br />'+
+					'<input type="hidden" name="'+fn+'[donation][min]" value="off" />'+
+					'<input type="checkbox" name="'+fn+'[donation][min]" id="donation-min-'+i+'" value="on" />'+
+					'<label for="donation-min-'+i+'"> '+DONATIONS_MIN_LABEL+'</label><br /></td>').appendTo(inputsRow);
+					
+		this.dv = $('#donation-var-'+i).attr('checked',variable == "on"?true:false);
+		this.dm = $('#donation-min-'+i).attr('checked',minimum == "on"?true:false);
+	}
+	
+	this.shipping = function (toggle,weight,fee,dimensions) {
+		var hd = $('<th><input type="hidden" name="'+fn+'[shipping]" value="off" /><input type="checkbox" name="'+fn+'[shipping]" id="shipping-'+i+'" /><label for="shipping-'+i+'"> '+SHIPPING_LABEL+'</label></th>').appendTo(headingsRow);
+		var ui = $('<td><span class="status">'+FREE_SHIPPING_TEXT+'</span>'+
+					'<span class="ui"><input type="text" name="'+fn+'[weight]" id="weight-'+i+'" size="8" class="selectall right" />'+
+					'<label for="weight-'+i+'" id="weight-label-'+i+'" title="'+WEIGHT_LABEL+'"> '+WEIGHT_LABEL+((weightUnit)?' ('+weightUnit+')':'')+'</label><br />'+
+					'<input type="text" name="'+fn+'[shipfee]" id="shipfee-'+i+'" size="8" class="selectall money right" />'+
+					'<label for="shipfee-'+i+'" title="'+SHIPFEE_XTRA+'"> '+SHIPFEE_LABEL+'</label><br />'+
+					'</span></td>').appendTo(inputsRow);
 
-	var downloadHeading = $('<th><label for="download['+i+']">Product Download</label></th>').appendTo(headingsRow);
-	var downloadCell = $('<td width="31%" />').appendTo(inputsRow);
-	var downloadFile = $('<div></div>').html(NO_DOWNLOAD).appendTo(downloadCell);
+		dis = ui.find('span.status');
+		inf = ui.find('span.ui').hide();
 
-	var uploadHeading = $('<td rowspan="2" class="controls" width="75" />').appendTo(headingsRow);
-	if (storage == "FSStorage") {
-		var filePathCell = $('<div></div>').prependTo(downloadCell).hide();
-		var filePath = $('<input type="text" name="price['+i+'][downloadpath]" value="" title="Enter file path relative to: '+productspath+'" class="filepath" />').appendTo(filePathCell).change(function () {
-			$(this).removeClass('warning').addClass('verifying');
-			$.ajax({url:fileverify_url+'&action=shopp_verify_file',
-					type:"POST",
-					data:'filepath='+$(this).val(),
-					timeout:10000,
-					dataType:'text',
-					success:function (results) {
-						filePath.removeClass('verifying');
-						if (results == "OK") return;
-						if (results == "NULL") filePath.addClass("warning").attr('title',FILE_NOT_FOUND_TEXT);
-						if (results == "ISDIR") filePath.addClass("warning").attr('title',FILE_ISDIR_TEXT);
-						if (results == "READ") filePath.addClass("warning").attr('title',FILE_NOT_READ_TEXT);
+		if (!weight) weight = 0;
+		this.w = $('#weight-'+i);
+		this.w.val(weight).bind('change.value',function () {
+			var num = new Number(this.value); this.value = num.roundFixed(3);
+		}).trigger('change.value');
+
+		this.fee = $('#shipfee-'+i);
+		this.fee.val(fee);
+		
+		this.st = hd.find('#shipping-'+i).attr('checked',(toggle == "off"?false:true)).toggler(dis,inf,this.w);
+		
+		if (dimensionsRequired) {
+			$('#weight-label-'+i).html(' '+dimensionUnit+'<sup>3</sup>/'+weightUnit);
+			var dc = $('<div class="dimensions">'+
+				'<div class="inline">'+
+				'<input type="text" name="'+fn+'[dimensions][weight]" id="dimensions-weight-'+i+'" size="4" class="selectall right weight" />'+
+				(weightUnit?'<label>'+weightUnit+'&nbsp;</label>':'')+'<br />'+
+				'<label for="dimensions-weight-'+i+'" title="'+WEIGHT_LABEL+'"> '+WEIGHT_LABEL+'</label>'+
+				'</div>'+
+				'<div class="inline">'+
+				'<input type="text" name="'+fn+'[dimensions][length]" id="dimensions-length-'+i+'" size="4" class="selectall right" />'+
+				'<label> x </label><br />'+
+				'<label for="dimensions-length-'+i+'" title="'+LENGTH_LABEL+'"> '+LENGTH_LABEL+'</label>'+
+				'</div>'+
+				'<div class="inline">'+
+				'<input type="text" name="'+fn+'[dimensions][width]" id="dimensions-width-'+i+'" size="4" class="selectall right" />'+
+				'<label> x </label><br /><label for="dimensions-width-'+i+'" title="'+WIDTH_LABEL+'"> '+WIDTH_LABEL+'</label>'+
+				'</div>'+
+				'<div class="inline">'+
+				'<input type="text" name="'+fn+'[dimensions][height]" id="dimensions-height-'+i+'" size="4" class="selectall right" />'+
+				'<label>'+dimensionUnit+'</label><br />'+
+				'<label for="dimensions-height-'+i+'" title="'+HEIGHT_LABEL+'"> '+HEIGHT_LABEL+'</label>'+
+				'</div>'+
+				'</div>').hide().appendTo(ui);
+			if (!dimensions) {
+				dimensions = {};
+				dimensions.weight = 0; dimensions.length = 0; dimensions.width = 0; dimensions.height = 0;
+			}
+			
+			var dw = $('#dimensions-weight-'+i).val(dimensions.weight).bind('change.value',function () {
+				var num = new Number(this.value); this.value = num.roundFixed(0);
+			}).trigger('change.value');
+			
+			var dl = $('#dimensions-length-'+i).val(dimensions.length).bind('change.value',function () {
+				var num = new Number(this.value); this.value = num.roundFixed(0);
+			}).trigger('change.value');
+
+			var dwd = $('#dimensions-width-'+i).val(dimensions.width).bind('change.value',function () {
+				var num = new Number(this.value); this.value = num.roundFixed(0);
+			}).trigger('change.value');
+
+			var dh = $('#dimensions-height-'+i).val(dimensions.height).bind('change.value',function () {
+				var num = new Number(this.value); this.value = num.roundFixed(0);
+			}).trigger('change.value');
+			
+			var weight = this.w;
+			var toggleDimensions = function () {
+				weight.toggleClass('extoggle');
+				dc.toggle(); dw.focus();
+				var d = 0; var w = 0;
+				dc.find('input').each(function (id,dims) {
+					if ($(dims).hasClass('weight')) { w = dims.value; }
+					else {
+						if (d == 0) d = dims.value;
+						else d *= dims.value;
 					}
+				});
+				if (!isNaN(d/w)) weight.val((d/w)).trigger('change.value');
+			}
+
+			dh.blur(toggleDimensions);
+			weight.click(toggleDimensions);
+			weight.attr('readonly',true);
+
+		}
+		
+	}
+	
+	this.inventory = function (toggle,stock,sku) {
+		var hd = $('<th><input type="hidden" name="'+fn+'[inventory]" value="off" />'+
+					'<input type="checkbox" name="'+fn+'[inventory]" id="inventory-'+i+'" />'+
+					'<label for="inventory-'+i+'"> '+INVENTORY_LABEL+'</label></th>').appendTo(headingsRow);
+		var ui = $('<td><span class="status">'+NOT_TRACKED_TEXT+'</span>'+
+					'<span class="ui"><input type="text" name="'+fn+'[stock]" id="stock-'+i+'" size="8" class="selectall right" />'+
+					'<label for="stock-'+i+'"> '+IN_STOCK_LABEL+'</label><br />'+
+					'<input type="text" name="'+fn+'[sku]" id="sku-'+i+'" size="8" title="'+SKU_XTRA+'" class="selectall" />'+
+					'<label for="sku-'+i+'" title="'+SKU_LABEL_HELP+'"> '+SKU_LABEL+'</label></span></td>').appendTo(inputsRow);
+
+		dis = ui.find('span.status');
+		ui = ui.find('span.ui').hide();
+
+		if (!stock) stock = 0;
+		this.stock = $('#stock-'+i);
+		this.stock.val(stock).trigger('change.value',function() { var n = new Number(this.value); this.value = n; });
+
+		this.sku = $('#sku-'+i);
+		this.sku.val(sku);
+		
+		this.it = hd.find('#inventory-'+i).attr('checked',(toggle == "on"?true:false)).toggler(dis,ui,this.stock);
+	}
+	
+	this.download = function (fileid,filename,filedata) {
+		var hd = $('<th><label for="download-'+i+'">'+PRODUCT_DOWNLOAD_LABEL+'</label></th>').appendTo(headingsRow);
+		var ui = $('<td width="31%"><input type="hidden" name="'+name+'[downloadpath]" id="download_path"/><div id="file-'+i+'">'+NO_DOWNLOAD+'</div></td>').appendTo(inputsRow);
+		
+		var hd2 = $('<td rowspan="2" class="controls" width="75"><button type="button" class="button-secondary" style="white-space: nowrap;" id="file-selector-'+i+'"><small>'+SELECT_FILE_BUTTON_TEXT+'&hellip;</small></button></td>').appendTo(headingsRow);
+
+		this.file = $('#file-'+i);
+		this.selector = $('#file-selector-'+i).FileChooser(i,this.file);
+		
+		if (fileid) {
+			if (filedata.mime) filedata.mime = filedata.mime.replace(/\//gi," ");
+			this.file.attr('class','file '+filedata.mime).html(filename+'<br /><small>'+readableFileSize(filedata.size)+'</small>').click(function () {
+				window.location.href = adminurl+"admin.php?src=download&shopp_download="+fileid;
 			});
-		});
-		var filePathButton = $('<button type="button" class="button-secondary"><small>By File Name</small></button>').appendTo(uploadHeading).click(function () {
-			filePathCell.slideToggle();
-		});
-
+		}
+	}
+	
+	$.fn.toggler = function (s,ui,f) {
+		this.bind('change.value',function () {
+			if (this.checked) { s.hide(); ui.show(); }
+			else { s.show(); ui.hide(); }
+			if ($.browser.msie) $(this).blur();
+		}).click(function () {
+			if ($.browser.msie) $(this).trigger('change.value');
+			if (this.checked) f.focus().select();
+		}).trigger('change.value');
+		return $(this);
+	}
+	
+	this.Shipped = function (data) {
+		this.price(data.price,data.tax);
+		this.saleprice(data.saleprice);
+		this.shipping(data.shipping,data.weight,data.shipfee,data.dimensions);
+		this.inventory(data.inventory,data.stock,data.sku);
 	}
 
-	var uploadHolder = $('<div id="flash-product-uploader-'+i+'"></div>').appendTo(uploadHeading);
-	var uploadButton = $('<button type="button" class="button-secondary"><small>'+UPLOAD_FILE_BUTTON_TEXT+'</small></button>').appendTo(uploadHeading);
-
-	var uploader = new FileUploader($(uploadHolder).attr('id'),uploadButton,i,downloadFile);
-
-	this.disable = function () {
-		type.val('N/A').trigger('change.value');
+	this.Virtual = function (data) {
+		this.price(data.price,data.tax);
+		this.saleprice(data.saleprice);
+		this.inventory(data.inventory,data.stock,data.sku);
 	}
+
+	this.Download = function (data) {
+		this.price(data.price,data.tax);
+		this.saleprice(data.saleprice);
+		this.download(data.download,data.filename,data.filedata);
+	}
+	
+	this.Donation = function (data) {
+		this.donation(data.price,data.tax,data.donation['var'],data.donation['min']);
+	}
+	
+	// Alter the interface depending on the type of price line
+	type.bind('change.value',function () {
+		headingsRow.empty();
+		inputsRow.empty();
+		var ui = type.val();
+		if (ui == "Shipped") _self.Shipped(data);
+		if (ui == "Virtual") _self.Virtual(data);
+		if (ui == "Download") _self.Download(data);
+		if (ui == "Donation") _self.Donation(data);
+
+		// Global behaviors
+		inputsRow.find('input.money').bind('change.value',function () {
+			this.value = asMoney(this.value);
+		}).trigger('change.value');
+		quickSelects(inputsRow);
+		
+	}).trigger('change.value');
+	
+	
+	// Setup behaviors
+	this.disable = function () { type.val('N/A').trigger('change.value'); }
+	
+	// Set the context for the db
+	if (data && data.context) context.val(data.context);
+	else context.val('product');
 	
 	this.setOptions = function(options) {
 		var update = false;
@@ -266,7 +439,8 @@ function Priceline (id,options,data,target,attachment) {
 			if (options != this.options) update = true;
 			this.options = options;
 		}
-		optionkey.val(xorkey(this.options));
+		if (context.val() == "variation")
+			optionkey.val(xorkey(this.options));
 		if (update) this.updateLabel();
 	}
 	
@@ -275,15 +449,23 @@ function Priceline (id,options,data,target,attachment) {
 	}
 	
 	this.updateLabel = function () {
+		var type = context.val();
+
 		var string = "";
 		var ids = "";
 		if (this.options) {
-			$(this.options).each(function(index,id) {
-				if (string == "") string = $(productOptions[id]).val();
-				else string += ", "+$(productOptions[id]).val();
-				if (ids == "") ids = id;
-				else ids += ","+id;
-			});
+			if (type == "variation") {
+				$(this.options).each(function(index,id) {
+					if (string == "") string = $(productOptions[id]).val();
+					else string += ", "+$(productOptions[id]).val();
+					if (ids == "") ids = id;
+					else ids += ","+id;
+				});
+			}
+			if (type == "addon") {
+				string = $(productAddons[this.options]).val();
+				ids = this.options;
+			}
 		}
 		if (string == "") string = DEFAULT_PRICELINE_LABEL;
 		this.label.val(htmlentities(string)).change();
@@ -302,7 +484,8 @@ function Priceline (id,options,data,target,attachment) {
 		$.each(this.inputs,function (i,input) {
 			if (!input) return;
 			var type = "change.linkedinputs";
-			if ($(input).attr('type') == "checkbox") type = "click.linkedinputs";
+			var elem = $(input);
+			if (elem.attr('type') == "checkbox") type = "click.linkedinputs";
 			$(input).bind(type,function () {
 				var value = $(this).val();
 				var checked = $(this).attr('checked');
@@ -310,7 +493,7 @@ function Priceline (id,options,data,target,attachment) {
 					$.each(Pricelines.linked[option],function (id,key) {
 						if (key == xorkey(_self.options)) return;
 						if (!Pricelines.row[key]) return;
-						if ($(input).attr('type') == "checkbox")
+						if (elem.attr('type') == "checkbox")
 							$(Pricelines.row[key].inputs[i]).attr('checked',checked);
 						else $(Pricelines.row[key].inputs[i]).val(value);
 						$(Pricelines.row[key].inputs[i]).trigger('change.value');
@@ -332,174 +515,13 @@ function Priceline (id,options,data,target,attachment) {
 			$(input).unbind(type);
 		});
 	}
-	
-	this.inputs = new Array(
-		type,price,tax,salepriceToggle,saleprice,donationVar,donationMin,
-		shippingToggle,weight,shippingfee,inventoryToggle,stock,sku);
+
+	if (type.val() != "N/A")
+		this.inputs = new Array(
+			type,this.p,this.t,this.spt,this.sp,this.dv,this.dm,
+			this.st,this.w,this.fee,this.it,this.stock,this.sku);
+
 	this.updateKey();
 	this.updateLabel();
-	
-	interfaces['All'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, shippingHeading, shippingCell, inventoryHeading, inventoryCell, downloadHeading, downloadCell, uploadHeading, donationHeading, donationCell);
-	if (pricesPayload) {		
-		interfaces['Shipped'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, shippingHeading, shippingCell, inventoryHeading, inventoryCell);
-		interfaces['Download'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, downloadHeading, downloadCell, uploadHeading);
-		interfaces['Virtual'] = new Array(priceHeading, priceCell, salepriceHeading, salepriceCell, inventoryHeading, inventoryCell);
-	} else {
-		interfaces['Shipped'] = new Array(priceHeading, priceCell, shippingHeading, shippingCell);
-		interfaces['Virtual'] = new Array(priceHeading, priceCell);
-		interfaces['Download'] = new Array(priceHeading, priceCell);
-	}
-	interfaces['Donation'] = new Array(priceHeading, priceCell, donationHeading, donationCell);
-
-	// Alter the interface depending on the type of price line
-	type.bind('change.value',function () {
-		var ui = type.val();
-		$.each(interfaces['All'],function() { $(this).hide(); });
-		priceLabel.html(PRICE_LABEL);
-		if (interfaces[ui])
-			$.each(interfaces[ui],function() { $(this).show(); });
-		if ($(this).val() == "Donation") {
-			priceLabel.html(AMOUNT_LABEL);
-			tax.attr('checked','true').trigger('change.value');
-		}
-	});
-
-	// Optional input's checkbox toggle behavior
-	salepriceToggle.bind('change.value',function () {
-		if (this.checked) { salepriceStatus.hide(); salepriceField.show(); }
-		else { salepriceStatus.show(); salepriceField.hide(); }
-		if ($.browser.msie) $(this).blur();
-	}).click(function () {
-		if ($.browser.msie) $(this).trigger('change.value');
-		if (this.checked) saleprice.focus().select();
-	
-	});
-
-	shippingToggle.bind('change.value',function () {
-		if (this.checked) { shippingStatus.hide(); shippingFields.show(); }
-		else { shippingStatus.show(); shippingFields.hide(); }
-		if ($.browser.msie) $(this).blur();
-	}).click(function () {
-		if ($.browser.msie) $(this).trigger('change.value');
-		if (this.checked) weight.focus().select();
-	});
-
-	inventoryToggle.bind('change.value',function () {
-		if (this.checked) { inventoryStatus.hide(); inventoryField.show(); }
-		else { inventoryStatus.show(); inventoryField.hide(); }
-		if ($.browser.msie) $(this).blur();
-	}).click(function () {
-		if ($.browser.msie) $(this).trigger('change.value');
-		if (this.checked) stock.focus().select();
-	});
-
-	price.bind('change.value',function() { this.value = asMoney(this.value); }).trigger('change.value');
-	saleprice.bind('change.value',function() { this.value = asMoney(this.value); }).trigger('change.value');
-	shippingfee.bind('change.value',function() { this.value = asMoney(this.value); }).trigger('change.value');
-	weight.bind('change.value',function() { var num = new Number(this.value); this.value = num.roundFixed(3); }).trigger('change.value');
-
-	if (dimensionsRequired) {
-		shippingWeightLabel.html(' '+dimensionUnit+'<sup>3</sup>/'+weightUnit);
-		var dimensionsCell = $('<div class="dimensions" />').appendTo(shippingCell).hide();
-
-		var weightInput = $('<div class="inline"/>').appendTo(dimensionsCell);
-		var dimWeight = $('<input type="text" name="price['+i+'][dimensions][weight]" id="dimensions-weight-'+i+'" size="4" class="selectall right weight" />').appendTo(weightInput);
-		$(((weightUnit)?'<label>'+weightUnit+'&nbsp;</label>':'')+'<br /><label for="dimensions-weight-'+i+'" title="'+WEIGHT_LABEL+'"> '+WEIGHT_LABEL+'</label>').appendTo(weightInput);
-		dimWeight.bind('change.value',function() { var num = new Number(this.value); this.value = num.roundFixed(0); }).trigger('change.value');
-
-		var lengthInput = $('<div class="inline" />').appendTo(dimensionsCell);
-		var dimLength = $('<input type="text" name="price['+i+'][dimensions][length]" id="dimensions-length-'+i+'" size="4" class="selectall right" />').appendTo(lengthInput);
-		$('<label> x </label><br /><label for="dimensions-length-'+i+'" title="'+LENGTH_LABEL+'"> '+LENGTH_LABEL+'</label>').appendTo(lengthInput);
-		dimLength.bind('change.value',function() { var num = new Number(this.value); this.value = num.roundFixed(0); }).trigger('change.value');
-
-		var widthInput = $('<div class="inline" />').appendTo(dimensionsCell);
-		var dimWidth = $('<input type="text" name="price['+i+'][dimensions][width]" id="dimensions-width-'+i+'" size="4" class="selectall right" />').appendTo(widthInput);
-		$('<label> x </label><br /><label for="dimensions-width-'+i+'" title="'+WIDTH_LABEL+'"> '+WIDTH_LABEL+'</label>').appendTo(widthInput);
-		dimWidth.bind('change.value',function() { var num = new Number(this.value); this.value = num.roundFixed(0); }).trigger('change.value');
-
-		var heightInput = $('<div class="inline" />').appendTo(dimensionsCell);
-		var dimHeight = $('<input type="text" name="price['+i+'][dimensions][height]" id="dimensions-height-'+i+'" size="4" class="selectall right" />').appendTo(heightInput);
-		$('<label>inches</label><br /><label for="dimensions-height-'+i+'" title="'+HEIGHT_LABEL+'"> '+HEIGHT_LABEL+'</label>').appendTo(heightInput);
-		dimHeight.bind('change.value',function() { var num = new Number(this.value); this.value = num.roundFixed(0); }).trigger('change.value');
-
-		var toggleDimensions = function () {
-			$(weight).toggleClass('extoggle');
-			dimensionsCell.toggle();
-			weightInput.find('input').focus();
-			var d = 0;
-			var w = 0;
-			dimensionsCell.find('input').each(function (id,dims) {
-				if ($(dims).hasClass('weight')) { w = dims.value; }
-				else {
-					if (d == 0) d = dims.value;
-					else d *= dims.value;
-				}
-			});
-			if (!isNaN(d/w)) $(weight).val((d/w)).trigger('change.value');
-		}
-
-		dimHeight.blur(toggleDimensions);
-		weight.click(toggleDimensions);
-		weight.attr('readonly',true);
-		
-	}
-
-	// Set the context for the db
-	if (data && data.context) context.val(data.context);
-	else context.val('product');
-
-	// Set field values if we are rebuilding a priceline from 
-	// database data
-	if (data && data.label) {
-		this.label.val(htmlentities(data.label)).change();
-		type.val(data.type);
-		myid.val(data.id);
-	
-		productid.val(data.product);
-		sku.val(data.sku);
-		price.val(asMoney(new Number(data.price)));
-
-		if (data.sale == "on") salepriceToggle.attr('checked','true').trigger('change.value');
-		if (data.shipping == "on") shippingToggle.attr('checked','true').trigger('change.value');
-		if (data.inventory == "on") inventoryToggle.attr('checked','true').trigger('change.value');
-	
-		if (data.donation) {
-			if (data.donation['var'] == "on") donationVar.attr('checked',true);
-			if (data.donation['min'] == "on") donationMin.attr('checked',true);
-		}
-
-		saleprice.val(asMoney(new Number(data.saleprice)));
-		shippingfee.val(asMoney(new Number(data.shipfee)));
-		weight.val(new Number(data.weight)).trigger('change.value');
-		stock.val(data.stock);
-	
-		if (dimensionsRequired) {
-			d = data.dimensions
-			dimWeight.val(new Number(d.weight?d.weight:0)).trigger('change.value');
-			dimLength.val(new Number(d.length?d.length:0)).trigger('change.value');
-			dimWidth.val(new Number(d.width?d.width:0)).trigger('change.value');
-			dimHeight.val(new Number(d.height?d.height:0)).trigger('change.value');
-		}
-	
-		if (data.download) {
-			if (data.filedata.mime)	data.filedata.mime = data.filedata.mime.replace(/\//gi," ");
-			downloadFile.attr('class','file '+data.filedata.mime).html(data.filename+'<br /><small>'+readableFileSize(data.filedata.size)+'</small>').click(function () {
-				window.location.href = adminurl+"admin.php?src=download&shopp_download="+data.download;
-			});
-
-		}
-		if (data.tax == "off") tax.attr('checked','true');
-	} else {
-		if (type.val() == "Shipped") shippingToggle.attr('checked','true').trigger('change.value');
-	}
-
-	// Improve usability for quick data entry by
-	// causing fields to automatically select all
-	// contents when focused/activated
-	quickSelects(this.row);
-
-	// Initialize the interface by triggering the
-	// priceline type change behavior 
-	type.change();
 
 }

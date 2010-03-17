@@ -402,6 +402,9 @@ class Warehouse extends AdminController {
 		if (!$_POST['options']) $Product->options = array();
 		else $_POST['options'] = stripslashes_deep($_POST['options']);
 
+		if (!$_POST['addons']) $Product->addons = array();
+		else $_POST['addons'] = stripslashes_deep($_POST['addons']);
+
 		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);	
 
 		// Check for an existing product slug

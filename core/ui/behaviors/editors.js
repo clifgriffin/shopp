@@ -1,3 +1,6 @@
+/**
+ * Nested Menu behaviors
+ **/
 function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 	var $=jQuery.noConflict();
 	if (!sortoptions) sortoptions = {'axis':'y'};
@@ -99,42 +102,28 @@ function NestedMenuOption (i,target,dataname,defaultlabel,data) {
 		
 }
 
-function addDetail (data) {
-	var $=jQuery.noConflict();
-	var menus = $('#details-menu');
-	var entries = $('#details-list');
-	var id = detailsidx++;
-	var menu = new NestedMenu(id,menus,'details','Detail Name',data,{target:entries});
 
-	if (data && data.options) {
-		var optionsmenu = $('<select name="details['+menu.index+'][value]"></select>').appendTo(menu.itemsElement);
-		for (var i in data.options) $('<option>'+data.options[i]['name']+'</option>').appendTo(optionsmenu);		
-		if (data && data.value) optionsmenu.val(htmlentities(data.value));	
-	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);	
-	
-	if (!data || data.add) menu.add = $('<input type="hidden" name="details['+menu.index+'][new]" value="true" />').appendTo(menu.element);
-	
-}
-
+/**
+ * Variations support
+ **/
 function loadVariations (options,prices) {
+	if (!options) return;
 	var $=jQuery.noConflict();
-	if (options) {
-		$.each(options,function (key,option) { 
-			addVariationOptionsMenu(option); 
-		});
+	$.each(options,function (key,option) { 
+		addVariationOptionsMenu(option); 
+	});
 
-		$.each(prices,function (key,price) { 
-			if (this.context == "variation")
-				Pricelines.add(this.options.split(","),this,'#variations-pricing');
+	$.each(prices,function (key,price) { 
+		if (this.context == "variation")
+			Pricelines.add(this.options.split(","),this,'#variations-pricing');
+	});
+	Pricelines.updateVariationsUI();
+	
+	$.each(options,function (key,option) { 
+		$.each(option.options,function(i,data) {
+			if (data.linked == "on") Pricelines.linkVariations(data.id);
 		});
-		Pricelines.updateVariationsUI();
-		
-		$.each(options,function (key,option) { 
-			$.each(option.options,function(i,data) {
-				if (data.linked == "on") Pricelines.linkVariations(data.id);
-			});
-		});
-	}
+	});
 }
 
 function addVariationOptionsMenu (data) {
@@ -208,7 +197,6 @@ function addVariationOptionsMenu (data) {
 		menu.addOption();
 	}
 	menu.itemsElement.sortable({'axis':'y','update':function(){ orderVariationPrices() }});
-	
 
 	menu.element.unbind('click',menu.click);
 	menu.element.click(function () {
@@ -429,11 +417,15 @@ function variationsToggle () {
 	}
 }
 
-function clearLinkedIcons () {
+function addonsToggle () {
 	var $=jQuery.noConflict();
-	$('#variations-list input.linked').each(function (key,input) { 
-		$(input).val('off').change();
-	});
+	if ($('#addons-setting').attr('checked')) $('#addons').show();
+	else $('#addons').hide();
+}
+
+
+function clearLinkedIcons () {
+	jQuery('#variations-list input.linked').val('off').change();
 }
 
 function linkVariationsButton () {
@@ -473,6 +465,128 @@ function linkVariationsButtonLabel () {
 	
 }
 
+/**
+ * Addons support
+ **/
+function loadAddons (addons,prices) {
+	var $=jQuery.noConflict();
+	if (!addons) return;
+
+	$.each(addons,function (key,addon) {
+		newAddonGroup(addon); 
+	});
+
+	// $.each(prices,function (key,price) { 
+	// 	console.log(price.options);
+	// 	if (price.context == "addon")
+	// 		Pricelines.add(price.options.split(","),this,'#addon-pricing');
+	// });
+	Pricelines.updateVariationsUI();
+}
+
+function newAddonGroup (data) {
+	var $=jQuery.noConflict();
+	var menus = $('#addon-menu');
+	var entries = $('#addon-list');
+	var addOptionButton = $('#addAddonOption');
+	var id = addon_group_idx;
+	
+	var menu = new NestedMenu(id,menus,'addons',ADDON_GROUP_DEFAULT,data,
+		{target:entries,type:'list'},
+		{'axis':'y','update':function() { orderAddonGroups() }}
+	);
+	
+	menu.itemsElement.attr('id','addon-group-'+id);
+	menu.pricegroup = $('<div id="addon-pricegroup-'+id+'" />').appendTo('#addon-pricing');
+	menu.pricegroupLabel = $('<label />').html('<h4>'+menu.label.val()+'</h4>').prependTo(menu.pricegroup);
+	menu.updatePriceLabel = function () {
+		menu.pricegroupLabel.html('<h4>'+menu.label.val()+'</h4>');
+	}
+	menu.label.blur(menu.updatePriceLabel);
+	
+	menu.addOption = function (data) {
+		var init = false;
+		if (!data) data = new Object();
+
+		if (!data.id) {
+			init = true;
+ 			data.id = addonsidx;
+		} else if (data.id > addonsidx) addonsidx = data.id;
+		
+	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'addons',NEW_OPTION_DEFAULT,data);
+		addonsidx++;
+		var optionid = option.id.val();
+		option.selected = function () {
+			if (option.element.hasClass('selected')) {
+				entries.find('ul li').removeClass('selected');
+				selectedMenuOption = false;
+			} else {
+				entries.find('ul li').removeClass('selected');
+				$(option.element).addClass('selected');
+				selectedMenuOption = option;
+			}
+		}
+		option.element.click(option.selected);
+
+		productAddons[optionid] = option.label;
+		option.label.blur(function() { Pricelines.row[optionid].updateLabel(); });
+		option.deleteButton.unbind('click');
+	
+		option.deleteButton.click(function () {
+			Pricelines.row[option.id.val()].row.remove();
+			option.element.remove();
+		});
+
+		Pricelines.add(option.id.val(),{context:'addon'},menu.pricegroup);
+		
+		menu.items.push(option);
+	}
+
+	menu.items = new Array();
+	if (data && data.options) $.each(data.options,function () { menu.addOption(this) });
+	else {
+		menu.addOption();
+		menu.addOption();
+	}
+	menu.itemsElement.sortable({'axis':'y','update':function(){ orderAddonPrices(menu.index) }});
+
+	menu.element.unbind('click',menu.click);
+	menu.element.click(function () {
+		menu.selected();
+		$(addOptionButton).unbind('click').click(menu.addOption);
+	});
+	addonGroups[addon_group_idx++] = menu;
+	
+	menu.deleteButton.unbind('click');
+	menu.deleteButton.click(function () {
+		var options = $('#addon-list #addon-group-'+menu.index+' li').not('.ui-sortable-helper').find('input.id');
+		$(options).each(function (id,option) {
+			Pricelines.row[$(option).val()].row.remove();
+		});
+		menu.pricegroup.remove();
+		menu.remove();
+	});
+	
+}
+
+function orderAddonGroups () {
+	var $=jQuery.noConflict();
+	var menuids = $('#addon-menu ul li').not('.ui-sortable-helper').find('input.id');
+	$(menuids).each(function (i,menuid) {
+		var menu = addonGroups[$(menuid).val()];
+		menu.pricegroup.appendTo('#addon-pricing');
+	});
+}
+
+function orderAddonPrices (index) {
+	var $=jQuery.noConflict();
+	var menu = addonGroups[index];
+	var options = $('#addon-list #addon-group-'+menu.index+' li').not('.ui-sortable-helper').find('input.id');
+	$(options).each(function (id,option) {
+		Pricelines.reorderAddon($(option).val(),menu.pricegroup);
+	});
+}
+
 function readableFileSize (size) {
 	var units = new Array("bytes","KB","MB","GB");
 	var sized = size*1;
@@ -493,6 +607,25 @@ function unsavedChanges () {
 			return UNSAVED_CHANGES_WARNING;
 	}
 	if (changes && !saving) return UNSAVED_CHANGES_WARNING;	
+}
+
+/**
+ * Add a product spec/detail
+ **/
+function addDetail (data) {
+	var $=jQuery.noConflict();
+	var menus = $('#details-menu');
+	var entries = $('#details-list');
+	var id = detailsidx++;
+	var menu = new NestedMenu(id,menus,'details','Detail Name',data,{target:entries});
+
+	if (data && data.options) {
+		var optionsmenu = $('<select name="details['+menu.index+'][value]"></select>').appendTo(menu.itemsElement);
+		for (var i in data.options) $('<option>'+data.options[i]['name']+'</option>').appendTo(optionsmenu);		
+		if (data && data.value) optionsmenu.val(htmlentities(data.value));	
+	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);	
+	
+	if (!data || data.add) menu.add = $('<input type="hidden" name="details['+menu.index+'][new]" value="true" />').appendTo(menu.element);
 }
 
 /**
@@ -607,7 +740,6 @@ function ImageUploads (id,type) {
 		$(this).dblclick(function () {
 			var id = $(this).attr('id')+"-details";
 			$.fn.colorbox({'title':IMAGE_DETAILS_TEXT,'innerWidth':'340','innerHeight':'110','inline':true,'href':'#'+id});
-			$(this).find('input.close').click(function () { console.log('yes'); });
 		});
 		enableDeleteButton($(this).find('button.deleteButton'));
 	});
@@ -711,10 +843,41 @@ function ImageUploads (id,type) {
 
 }
 
+jQuery.fn.FileChooser = function (line,status) {
+	var $ = jQuery.noConflict();
+
+	fileUploads.updateLine(line,status);
+
+	var downloadpath = $('#downloadpath-'+line);
+	var fileimport = $('#import-url').change(function () {
+		var fi = $(this);
+		fi.removeClass('warning').addClass('verifying');
+		$.ajax({url:fileverify_url+'&action=shopp_verify_file',
+				type:"POST",
+				data:'url='+fi.val(),
+				timeout:10000,
+				dataType:'text',
+				success:function (results) {
+					fi.attr('class','fileimport');
+					if (results == "OK") { fi.addClass('ok'); return; }
+					if (results == "NULL") fi.attr('title',FILE_NOT_FOUND_TEXT);
+					if (results == "ISDIR") fi.attr('title',FILE_ISDIR_TEXT);
+					if (results == "READ") fi.attr('title',FILE_NOT_READ_TEXT);
+					fi.addClass("warning");
+				}
+		});
+		
+	});
+
+	$(this).colorbox({'title':'File Selector','innerWidth':'350','innerHeight':'140','inline':true,'href':'#chooser'});
+
+}
+
+
 /**
  * File upload handlers for product download files using SWFupload
  **/
-function FileUploader (button,defaultButton,linenum,updates) {
+function FileUploader (button,defaultButton) {
 	var _self = this;
 	(function($) {
 
@@ -726,6 +889,7 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		button_width: "100",
 		button_image_url: uidir+'/icons/buttons.png',
 		button_placeholder_id: button,
+		button_action: SWFUpload.BUTTON_ACTION.SELECT_FILE,
 		flash_url : uidir+'/behaviors/swfupload/swfupload.swf',
 		upload_url : ajaxurl,
 		file_queue_limit : 1,
@@ -758,11 +922,8 @@ function FileUploader (button,defaultButton,linenum,updates) {
 	
 	// Initialize file uploader
 	
-	if (flashuploader) {
+	if (flashuploader)
 		_self.swfu = new SWFUpload(_self.settings);
-		_self.swfu.targetCell = updates;
-		_self.swfu.targetLine = linenum;
-	}
 	
 	// Browser-based AJAX uploads
 	defaultButton.upload({
@@ -809,6 +970,11 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		this.loaded = true;
 	}
 	
+	_self.updateLine = function (line,status) {
+		_self.swfu.targetLine = line;
+		_self.swfu.targetCell = status;
+	}
+		
 	function fileQueueError (file, error, message) {
 		if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
 			alert("You selected too many files to upload at one time. " + (message === 0 ? "You have reached the upload limit." : "You may upload " + (message > 1 ? "up to " + message + " files." : "only one file.")));
@@ -818,13 +984,17 @@ function FileUploader (button,defaultButton,linenum,updates) {
 		}
 
 	}
-
+	
 	function fileDialogComplete (selected, queued) {
+		$.fn.colorbox.hide();
+
+		if (!selected) return;
 		try {
 			this.startUpload();
 		} catch (ex) {
 			this.debug(ex);
 		}
+		
 	}
 
 	function startUpload (file) {

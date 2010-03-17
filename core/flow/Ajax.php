@@ -211,10 +211,22 @@ class AjaxFlow {
 		check_admin_referer('shopp-ajax_verify_file');
 		$Settings = &ShoppSettings();
 		chdir(WP_CONTENT_DIR); // relative path context for realpath
-		$target = trailingslashit(sanitize_path(realpath($Settings->get('products_path')))).$_POST['filepath'];
-		if (!file_exists($target)) die("NULL");
-		if (is_dir($target)) die("ISDIR");
-		if (!is_readable($target)) die("READ");
+		$url = $_POST['url'];
+		$request = parse_url($url);
+		if ($request['scheme'] == "http") {
+			$results = @get_headers($url);
+			if (substr($url,-1) == "/") die("ISDIR");
+			if (strpos($results[0],'200') === false) die("NULL");
+		} else {
+			$url = str_replace('file://','',$url);	
+
+			if ($url{0} != "/") $url = trailingslashit(sanitize_path(realpath($Settings->get('products_path')))).$url;
+
+			if (!file_exists($url)) die("NULL");
+			if (is_dir($url)) die("ISDIR");
+			if (!is_readable($url)) die("READ");
+		}
+
 		die("OK");
 	}
 	

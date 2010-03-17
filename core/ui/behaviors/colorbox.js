@@ -740,6 +740,18 @@
 		});
 	};
 
+	cboxPublic.hide = function () {
+		
+		open = FALSE;
+		$(document).unbind("keydown.cbox_close keydown.cbox_arrows");
+		$window.unbind(cbox_resize+' resize.cboxie6 scroll.cboxie6');
+		$overlay.css({cursor: 'auto'}).fadeOut('fast');
+
+		$loaded.css({'position':'absolute','left':'-9999em'});
+		$cbox.css({'opacity': 1,'left':'-9999em'});
+		
+	};
+
 	// A method for fetching the current element ColorBox is referencing.
 	// returns a jQuery object.
 	cboxPublic.element = function(){ return $(element); };

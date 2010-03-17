@@ -52,7 +52,7 @@
 
 			</div>
 			</div>
-				
+			
 		</div> <!-- #poststuff -->
 	</form>
 </div>
@@ -63,10 +63,11 @@ var product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>;
 var prices = <?php echo json_encode($Product->prices) ?>;
 var specs = <?php echo json_encode($Product->specs) ?>;
 var options = <?php echo json_encode($Product->options) ?>;
+var addons = <?php echo json_encode($Product->addons) ?>;
 var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var shiprates = <?php echo json_encode($shiprates); ?>;
 var buttonrsrc = '<?php echo includes_url('images/upload.png'); ?>';
-var uidir = '<?php echo SHOPP_ADMIN_PATH; ?>';
+var uidir = '<?php echo SHOPP_ADMIN_URI; ?>';
 var siteurl = '<?php echo $Shopp->siteurl; ?>';
 var canonurl = '<?php echo $Shopp->canonuri; ?>';
 var adminurl = '<?php echo $Shopp->wpadminurl; ?>';
@@ -89,7 +90,6 @@ var imageupload_debug = <?php echo (defined('SHOPP_IMAGEUPLOAD_DEBUG') && SHOPP_
 var fileupload_debug = <?php echo (defined('SHOPP_FILEUPLOAD_DEBUG') && SHOPP_FILEUPLOAD_DEBUG)?'true':'false'; ?>;
 var dimensionsRequired = <?php echo $Shopp->Shipping->dimensions?'true':'false'; ?>;
 
-
 // Warning/Error Dialogs
 var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this product image?','Shopp'); ?>";
 var SERVER_COMM_ERROR = "<?php _e('There was an error communicating with the server.','Shopp'); ?>";
@@ -101,6 +101,7 @@ var LINK_VARIATIONS = "<?php _e('Link Variations','Shopp'); ?>";
 var UNLINK_VARIATIONS = "<?php _e('Unlink Variations','Shopp'); ?>";
 var ADD_IMAGE_BUTTON_TEXT = "<?php _e('Add New Image','Shopp'); ?>";
 var UPLOAD_FILE_BUTTON_TEXT = "<?php _e('Upload&nbsp;File','Shopp'); ?>";
+var SELECT_FILE_BUTTON_TEXT = "<?php _e('Select File','Shopp'); ?>";
 var SAVE_BUTTON_TEXT = "<?php _e('Save','Shopp'); ?>";
 var CANCEL_BUTTON_TEXT = "<?php _e('Cancel','Shopp'); ?>";
 var TYPE_LABEL = "<?php _e('Type','Shopp'); ?>";
@@ -117,13 +118,16 @@ var WIDTH_LABEL = "<?php _e('Width','Shopp'); ?>";
 var HEIGHT_LABEL = "<?php _e('Height','Shopp'); ?>";
 var DIMENSIONAL_WEIGHT_LABEL = "<?php _e('3D Weight','Shopp'); ?>";
 var SHIPFEE_LABEL = "<?php _e('Handling Fee','Shopp'); ?>";
+var SHIPFEE_XTRA = "<?php _e('Amount added to shipping costs for each unit ordered (for handling costs, etc)','Shopp'); ?>";
 var INVENTORY_LABEL = "<?php _e('Inventory','Shopp'); ?>";
 var NOT_TRACKED_TEXT = "<?php _e('Not Tracked','Shopp'); ?>";
 var IN_STOCK_LABEL = "<?php _e('In Stock','Shopp'); ?>";
 var OPTION_MENU_DEFAULT = "<?php _e('Option Menu','Shopp'); ?>";
 var NEW_OPTION_DEFAULT = "<?php _e('New Option','Shopp'); ?>";
+var ADDON_GROUP_DEFAULT = "<?php _e('Add-on Group','Shopp'); ?>";
 var SKU_LABEL = "<?php _e('SKU','Shopp'); ?>";
 var SKU_LABEL_HELP = "<?php _e('Stock Keeping Unit','Shopp'); ?>";
+var SKU_XTRA = "<?php _e('Enter a unique stock keeping unit identification code.','Shopp'); ?>";
 var DONATIONS_VAR_LABEL = "<?php _e('Accept variable amounts','Shopp'); ?>";
 var DONATIONS_MIN_LABEL = "<?php _e('Amount required as minimum','Shopp'); ?>";
 var PRODUCT_DOWNLOAD_LABEL = "<?php _e('Product Download','Shopp'); ?>";
