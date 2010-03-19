@@ -210,6 +210,7 @@ var SettingInput = function (module,attrs,options,method) {
 	this.keyed = (attrs.keyed)?(attrs.keyed == 'true'?true:false):true;
 	this.selected = (attrs.selected)?attrs.selected:false;
 	this.checked = (attrs.checked)?attrs.checked:false;
+	this.readonly = (attrs.readonly)?'readonly':false;
 	this.size = (attrs.size)?attrs.size:'20';
 	this.cols = (attrs.size)?attrs.size:'40';
 	this.rows = (attrs.size)?attrs.size:'3';
@@ -232,7 +233,8 @@ var SettingInput = function (module,attrs,options,method) {
 	}
 	
 	this.text = function () {
-		var html = '<div><input type="'+this.type+'" name="'+this.name+'" value="'+this.value+'" size="'+this.size+'" class="'+this.classes+'" id="'+this.id+'" />';
+		var readonly = (this.readonly)?' readonly="readonly"':'';
+		var html = '<div><input type="'+this.type+'" name="'+this.name+'" value="'+this.value+'" size="'+this.size+'" class="'+this.classes+'" id="'+this.id+'"'+readonly+' />';
 		if (this.label) html += '<br /><label for="'+this.id+'">'+this.label+'</label></div>\n';
 		return html;
 	}

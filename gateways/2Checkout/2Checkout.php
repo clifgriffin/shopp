@@ -19,12 +19,16 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 	var $secure = false;
 
 	// URLs
-	var $url = 'https://www.2checkout.com/checkout/purchase';
-
+	var $url = 'https://www.2checkout.com/checkout/purchase';	// Multi-page checkout
+	var $surl = 'https://www.2checkout.com/checkout/spurchase'; // Single-page, CC-only checkout
+	
 	function __construct () {
 		parent::__construct();
 		
-		$this->setup('sid','verify','secret','testmode');
+		$this->setup('sid','verify','secret','returnurl','testmode');
+
+		global $Shopp;
+		$this->settings['returnurl'] = add_query_arg('rmtpay','process',$Shopp->link('thanks',false));
 				
 		add_action('shopp_txn_update',array(&$this,'notifications'));
 	}
@@ -48,12 +52,13 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 	}
 	
 	function url ($url) {
+		if ($this->settings['singlepage']) return $this->surl;
 		return $this->url;
 	}
 	
 	function form ($form) {
-		global $Shopp;
 		$db =& DB::get();
+
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$next = $db->query("SELECT auto_increment as id FROM information_schema.tables WHERE table_schema=database() AND table_name='$purchasetable' LIMIT 1");
 
@@ -65,7 +70,7 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 		
 		// Required
 		$_['sid']				= $this->settings['sid'];
-		$_['total']				= number_format($Shopp->Cart->data->Totals->total,2);
+		$_['total']				= number_format($Order->Totals->total,2);
 		$_['cart_order_id']		= $Order->_2COcart_order_id;
 		$_['vendor_order_id']	= $this->session;
 		$_['id_type']			= 1;
@@ -77,7 +82,7 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 		$_['fixed'] 			= "Y";
 		$_['skip_landing'] 		= "1";
 		
-		$_['x_Receipt_Link_URL'] = add_query_arg('rmtpay','process',$Shopp->link('thanks',false));
+		$_['x_Receipt_Link_URL'] = $this->settings['returnurl'];
 		
 		// Line Items
 		foreach($Shopp->Cart->contents as $i => $Item) {
@@ -155,11 +160,32 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 	
 	function settings () {
 		
-		$this->ui->text(1,array(
+		$this->ui->text(0,array(
 			'name' => 'sid',
 			'size' => 10,
 			'value' => $this->settings['sid'],
 			'label' => __('Your 2Checkout vendor account number.','Shopp')
+		));
+
+		$this->ui->text(0,array(
+			'name' => 'returnurl',
+			'size' => 40,
+			'value' => $this->settings['returnurl'],
+			'readonly' => 'readonly',
+			'classes' => 'selectall',
+			'label' => __('Copy as the <strong>Approved URL</strong> & <strong>Pending URL</strong> in your 2Checkout Vendor Area under the <strong>Account &rarr; Site Management</strong> settings page.','Shopp')
+		));
+
+		$this->ui->checkbox(1,array(
+			'name' => 'testmode',
+			'checked' => $this->settings['testmode'],
+			'label' => __('Enable test mode','Shopp')
+		));
+
+		$this->ui->checkbox(1,array(
+			'name' => 'singlepage',
+			'checked' => $this->settings['singlepage'],
+			'label' => __('Single-page, credit card only checkout','Shopp')
 		));
 
 		$this->ui->checkbox(1,array(
@@ -175,10 +201,13 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 			'label' => __('Your 2Checkout secret word for order verification.','Shopp')
 		));
 
-		$this->ui->checkbox(1,array(
-			'name' => 'testmode',
-			'checked' => $this->settings['testmode'],
-			'label' => __('Enable test mode','Shopp')
+		$this->ui->p(1,array(
+			'name' => 'returnurl',
+			'size' => 40,
+			'value' => $this->settings['returnurl'],
+			'readonly' => 'readonly',
+			'classes' => 'selectall',
+			'content' => '<span style="width: 300px;">&nbsp;</span>'
 		));
 		
 		$this->verifysecret();
