@@ -134,7 +134,7 @@ class Resources {
 
 			$forbidden = false;
 			// Purchase Completion check
-			if ($Purchase->transtatus != "CHARGED" 
+			if ($Purchase->txnstatus != "CHARGED" 
 				&& !SHOPP_PREPAYMENT_DOWNLOADS) {
 				new ShoppError(__('This file cannot be downloaded because payment has not been received yet.','Shopp'),'shopp_download_limit');
 				$forbidden = true;

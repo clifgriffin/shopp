@@ -149,6 +149,7 @@ class Cart {
 				
 				if (isset($_REQUEST['products']) && is_array($_REQUEST['products'])) {
 					foreach ($_REQUEST['products'] as $id => $product) {
+						if (isset($product['quantity']) && $product['quantity'] == '0') continue;
 						$quantity = (empty($product['quantity']) && 
 							$product['quantity'] !== 0)?1:$product['quantity']; // Add 1 by default
 						$Product = new Product($product['product']);

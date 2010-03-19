@@ -57,7 +57,7 @@ interface GatewayModule {
  **/
 abstract class GatewayFramework {
 
-	var $session = fals;		// The current shopping session ID
+	var $session = false;		// The current shopping session ID
 	var $Order = false;			// The current customer's Order
 	var $name = false;			// The proper name of the gateway
 	var $cards = false;			// A list of supported payment cards

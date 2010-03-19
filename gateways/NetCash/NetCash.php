@@ -217,7 +217,7 @@ class NetCash {
 		$Purchase->cardtype = "NetCash";
 		$Purchase->transactionid = $_GET['Reference'];
 		// $Purchase->fees = $_GET['Fee'];
-		$Purchase->transtatus = "CHARGED";
+		$Purchase->txnstatus = "CHARGED";
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
 
