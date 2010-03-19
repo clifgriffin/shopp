@@ -40,7 +40,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	function PayPalStandard () {
 		parent::__construct();
 		
-		$this->setup('account','testmode');
+		$this->setup('account','pdtverify','pdttoken','testmode');
 		
 		global $Shopp;
 		$this->baseop = $Shopp->Settings->get('base_operations');
@@ -105,7 +105,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['cmd'] 					= "_cart";
 		$_['upload'] 				= 1;
 		$_['business']				= $this->settings['account'];
-		$_['invoice']				= $Shopp->Shopping->session;
+		$_['invoice']				= mktime();
+		$_['custom']				= $Shopp->Shopping->session;
 		
 		// Options
 		$_['return']				= add_query_arg('rmtpay','process',$Shopp->link('checkout',false));
@@ -138,8 +139,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		// Include page style option, if provided
 		if (isset($_GET['pagestyle'])) $_['pagestyle'] = $_GET['pagestyle'];
 
-		if (isset($Order->data['paypal-custom']))
-			$_['custom'] = htmlentities($Order->data['paypal-custom']);
+		// if (isset($Order->data['paypal-custom']))
+		// 	$_['custom'] = htmlentities($Order->data['paypal-custom']);
 		
 		// Transaction
 		$_['currency_code']			= $this->settings['currency_code'];
@@ -181,8 +182,13 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			$txnid = $_GET['tx'];
 			$txnstatus = $this->status[$_GET['st']];
 
-			$Purchase = new Purchase($txnid,'txnid');
+			$pdtstatus = $this->verifypdt();
+			if (!$pdtstatus) {
+				new ShoppError(__('The transaction was not verified by PayPal.','Shopp'),false,SHOPP_DEBUG_ERR);
+				shopp_redirect($Shopp->link('checkout',false));
+			}
 
+			$Purchase = new Purchase($txnid,'txnid');
 			if (!empty($Purchase->id)) {
 				if (SHOPP_DEBUG) new ShoppError('Order located, already created from an IPN message.',false,SHOPP_DEBUG_ERR);
 				$Shopp->resession();
@@ -217,15 +223,15 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		// Cancel processing if this is not a PayPal Website Payments Standard/Express Checkout IPN
 		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") return false;
 
-		// Need an invoice number to locate pre-order data and a transaction id for the order
-		if (isset($_POST['invoice']) && isset($_POST['txn_id']) && !isset($_POST['parent_txn_id'])) {
+		// Need an session id to locate pre-order data and a transaction id for the order
+		if (isset($_POST['custom']) && isset($_POST['txn_id']) && !isset($_POST['parent_txn_id'])) {
 
-			$Shopp->resession($_POST['invoice']);
+			$Shopp->resession($_POST['custom']);
 			$Shopping = &$Shopp->Shopping;
 			// Couldn't load the session data
-			if ($Shopping->session != $_POST['invoice'])
-				return new ShoppError("Session could not be loaded: {$_POST['invoice']}",false,SHOPP_DEBUG_ERR);
-			else new ShoppError("PayPal successfully loaded session: {$_POST['invoice']}",false,SHOPP_DEBUG_ERR);
+			if ($Shopping->session != $_POST['custom'])
+				return new ShoppError("Session could not be loaded: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
+			else new ShoppError("PayPal successfully loaded session: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
 			
 			return do_action('shopp_process_order'); // New order
 		}
@@ -266,6 +272,18 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		return $response;
 	}
 	
+	function verifypdt () {
+		if ($this->settings['testmode'] == "on") return "VERIFIED";
+		$_ = array();
+		$_['cmd'] = "_notify-synch";
+		$_['tx'] = $txnid;
+		$_['at'] = $this->settings['pdttoken'];
+		
+		$message = $this->encode(array_merge($_POST,$_));
+		$response = $this->send($message);
+		return (strpos($response,"SUCCESS") !== false);
+	}
+	
 	function error () {
 		if (!empty($this->Response)) {
 			
@@ -287,13 +305,40 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			'size' => 30,
 			'label' => __('Enter your PayPal account email.','Shopp')
 		));
+		
+		$this->ui->checkbox(0,array(
+			'name' => 'pdtverify',
+			'checked' => $this->settings['pdtverify'],
+			'label' => __('Enable order verification','Shopp')
+		));
 
+		$this->ui->text(0,array(
+			'name' => 'pdttoken',
+			'size' => 30,
+			'value' => $this->settings['pdttoken'],
+			'label' => __('PDT identity token for validating orders.','Shopp')
+		));
+		
 		$this->ui->checkbox(0,array(
 			'name' => 'testmode',
 			'label' => sprintf(__('Use the %s','Shopp'),'<a href="http://docs.shopplugin.net/PayPal_Sandbox" target="shoppdocs">PayPal Sandbox</a>'),
 			'checked' => $this->settings['testmode']
 		));
+
+		$this->verifytoken();
 	}
+	
+		function verifytoken () {
+	?>
+			PayPalStandard.behaviors = function () {
+				$('#settings-paypalstandard-pdtverify').change(function () {
+					if ($(this).attr('checked')) $('#settings-paypalstandard-pdttoken').parent().show();
+					else $('#settings-paypalstandard-pdttoken').parent().hide();
+				}).change();
+			}
+	<?php
+		}
+	
 	
 
 } // END class PayPalStandard

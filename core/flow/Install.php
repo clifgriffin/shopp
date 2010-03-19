@@ -356,6 +356,8 @@ class ShoppInstallation extends FlowController {
 			$db->query("UPDATE $meta_table set name='$name',value='$value' WHERE id=$r->id");
 		}
 		
+		$this->roles(); // Setup Roles and Capabilities
+		
 		$this->Settings->save('dbschema_version',DB::$schema);
 	}
 	

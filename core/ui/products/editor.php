@@ -63,7 +63,6 @@ var product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>;
 var prices = <?php echo json_encode($Product->prices) ?>;
 var specs = <?php echo json_encode($Product->specs) ?>;
 var options = <?php echo json_encode($Product->options) ?>;
-var addons = <?php echo json_encode($Product->addons) ?>;
 var priceTypes = <?php echo json_encode($priceTypes) ?>;
 var shiprates = <?php echo json_encode($shiprates); ?>;
 var buttonrsrc = '<?php echo includes_url('images/upload.png'); ?>';

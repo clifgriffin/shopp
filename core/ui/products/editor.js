@@ -15,6 +15,7 @@ var productOptions = new Array();
 var productAddons = new Array();
 var optionMenus = new Array();
 var addonGroups = new Array();
+var addonOptionsGroup = new Array();
 var selectedMenuOption = false;
 var detailsidx = 1;
 var variationsidx = 1;
@@ -43,7 +44,8 @@ jQuery(document).ready(function() {
 	// Load up existing specs & setup the add new button
 	if (specs) $.each(specs,function () { addDetail(this) });
 	$('#addDetail').click(function() { addDetail(); });
-
+	
+	// Initialize file uploads before the pricelines
 	fileUploads = new FileUploader('flash-upload-file',$('#ajax-upload-file'));
 	
 	// Initalize the base price line
@@ -54,7 +56,7 @@ jQuery(document).ready(function() {
 	
 	// Initialize variations
 	$('#variations-setting').bind('click.variations',variationsToggle).trigger('click.variations');
-	loadVariations(options,prices);
+	loadVariations(options.v,prices);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
 	$('#linkOptionVariations').click(linkVariationsButton).change(linkVariationsButtonLabel);
@@ -62,7 +64,7 @@ jQuery(document).ready(function() {
 	// Initialize Add-ons
 	$('#addons-setting').bind('click.addons',addonsToggle).trigger('click.addons');
 	$('#newAddonGroup').click(function() { newAddonGroup(); });
-	loadAddons(addons,prices);
+	loadAddons(options.a,prices);
 
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
 	window.onbeforeunload = unsavedChanges;
@@ -71,14 +73,14 @@ jQuery(document).ready(function() {
 		saving = true;
 		return true;
 	}); 
-	
 
 	// Setup categories
 	categories();
 	tags();
 	quickSelects();
 	updateWorkflow();
-
+	
+	$('#prices-loading').remove();
 	// Give the product name initial focus
 	if (!product) $('#title').focus();
 });

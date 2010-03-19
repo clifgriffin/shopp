@@ -134,7 +134,7 @@ function addVariationOptionsMenu (data) {
 	var linkOptionVariations = $('#linkOptionVariations');
 	var id = variationsidx;
 	
-	var menu = new NestedMenu(id,menus,'options',OPTION_MENU_DEFAULT,data,
+	var menu = new NestedMenu(id,menus,'options[v]',OPTION_MENU_DEFAULT,data,
 		{target:entries,type:'list'},
 		{'axis':'y','update':function() { orderOptions(menus,entries) }}
 	);
@@ -148,7 +148,7 @@ function addVariationOptionsMenu (data) {
  			data.id = optionsidx;
 		} else if (data.id > optionsidx) optionsidx = data.id;
 		
-	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'options',NEW_OPTION_DEFAULT,data);
+	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'options[v]',NEW_OPTION_DEFAULT,data);
 		optionsidx++;
 
 		option.linkIcon = $('<img src="'+uidir+'/icons/linked.png" alt="linked" width="16" height="16" class="link" />').appendTo(option.moveHandle);
@@ -423,7 +423,6 @@ function addonsToggle () {
 	else $('#addons').hide();
 }
 
-
 function clearLinkedIcons () {
 	jQuery('#variations-list input.linked').val('off').change();
 }
@@ -476,11 +475,14 @@ function loadAddons (addons,prices) {
 		newAddonGroup(addon); 
 	});
 
-	// $.each(prices,function (key,price) { 
-	// 	console.log(price.options);
-	// 	if (price.context == "addon")
-	// 		Pricelines.add(price.options.split(","),this,'#addon-pricing');
-	// });
+	$.each(prices,function (key,price) {
+		if (price.context == "addon") {
+			// Lookup which group this one belongs to
+			var group = addonOptionsGroup[price.options];
+			Pricelines.add(price.options,this,'#addon-pricegroup-'+group);
+		}
+			
+	});
 	Pricelines.updateVariationsUI();
 }
 
@@ -491,7 +493,7 @@ function newAddonGroup (data) {
 	var addOptionButton = $('#addAddonOption');
 	var id = addon_group_idx;
 	
-	var menu = new NestedMenu(id,menus,'addons',ADDON_GROUP_DEFAULT,data,
+	var menu = new NestedMenu(id,menus,'options[a]',ADDON_GROUP_DEFAULT,data,
 		{target:entries,type:'list'},
 		{'axis':'y','update':function() { orderAddonGroups() }}
 	);
@@ -513,7 +515,7 @@ function newAddonGroup (data) {
  			data.id = addonsidx;
 		} else if (data.id > addonsidx) addonsidx = data.id;
 		
-	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'addons',NEW_OPTION_DEFAULT,data);
+	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'options[a]',NEW_OPTION_DEFAULT,data);
 		addonsidx++;
 		var optionid = option.id.val();
 		option.selected = function () {
@@ -537,8 +539,8 @@ function newAddonGroup (data) {
 			option.element.remove();
 		});
 
-		Pricelines.add(option.id.val(),{context:'addon'},menu.pricegroup);
-		
+		if (init) Pricelines.add(option.id.val(),{context:'addon'},menu.pricegroup);
+		addonOptionsGroup[optionid] = menu.index;
 		menu.items.push(option);
 	}
 
@@ -555,6 +557,7 @@ function newAddonGroup (data) {
 		menu.selected();
 		$(addOptionButton).unbind('click').click(menu.addOption);
 	});
+ 
 	addonGroups[addon_group_idx++] = menu;
 	
 	menu.deleteButton.unbind('click');
@@ -566,7 +569,7 @@ function newAddonGroup (data) {
 		menu.pricegroup.remove();
 		menu.remove();
 	});
-	
+
 }
 
 function orderAddonGroups () {
@@ -782,7 +785,7 @@ function ImageUploads (id,type) {
 	}
 
 	function imageUploadProgress (file, loaded, total) {
-		var progress = Math.ceil((loaded/total)*76);
+		var progress = Math.ceil((loaded/total)*200);
 		$(this.progressBar).animate({'width':progress+'px'},100);
 	}
 

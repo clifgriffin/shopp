@@ -57,9 +57,6 @@ class Order {
 
 		$this->Shipping->destination();
 
-		// Set locking timeout for concurrency operation protection
-		if (!defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
-
 		$this->confirm = ($Shopp->Settings->get('order_confirmation') == "always");
 		$this->accounts = $Shopp->Settings->get('account_system');
 		
@@ -99,6 +96,9 @@ class Order {
 		
 		add_action('shopp_reset_session',array(&$this->Cart,'clear'));
 		add_action('shopp_init_checkout',array(&$this,'processor'));
+
+		// Set locking timeout for concurrency operation protection
+		if (!defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
 
 	}
 	
@@ -232,6 +232,8 @@ class Order {
 		if ($this->validform() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
 		
+		do_action('shopp_checkout_processed');
+		
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm) {
 			$secure = true;
@@ -352,13 +354,14 @@ class Order {
 		
 		$r = new StdClass();
 		$r->locked = 0;
-		for ($attempts = 0; $attempts < 3 || $r->locked == 0; $attempts++);
-			$r = $db->query("SELECT GET_LOCK('$this->txnid',".SHOPP_TXNLOCK_TIMEOUT.")");
-		
+		for ($attempts = 0; $attempts < 3 && $r->locked == 0; $attempts++)
+			$r = $db->query("SELECT GET_LOCK('$this->txnid',".SHOPP_TXNLOCK_TIMEOUT.") AS locked");
+
 		if ($r->locked == 1) return true;
 			
-		new ShoppError(__('Transaction %s failed. Could not acheive a transaction lock.','Shopp'),'order_txn_lock',SHOPP_TXN_ERR);
-		shopp_redirect('checkout');
+		new ShoppError(sprintf(__('Transaction %s failed. Could not acheive a transaction lock.','Shopp'),$this->txnid),'order_txn_lock',SHOPP_TXN_ERR);
+		global $Shopp;
+		shopp_redirect($Shopp->link('checkout'));
 	}
 
 	/**

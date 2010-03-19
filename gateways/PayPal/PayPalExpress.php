@@ -4,21 +4,29 @@
  * @class PayPalExpress
  *
  * @author Jonathan Davis
- * @version 1.0.4
+ * @version 1.1
  * @copyright Ingenesis Limited, 26 August, 2008
- * @package Shopp
+ * @package shopp
+ * @since 1.1
+ * @subpackage PayPalExpress
  * 
  * $Id$
  **/
 
-class PayPalExpress {          
-	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
-	var $button = 'https://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
-	var $sandbox_url = 'https://www.sandbox.paypal.com/%s/cgi-bin/webscr?cmd=_express-checkout';
-	var $checkout_url = 'https://www.paypal.com/%s/cgi-bin/webscr?cmd=_express-checkout';
-	var $transaction = array();
-	var $settings = array();
-	var $Response = false;
+class PayPalExpress extends GatewayFramework implements GatewayModule {          
+
+	// Settings
+	var $secure = false;
+
+	// URLs
+	var $buttonurl = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
+	var $sandboxurl = 'https://www.sandbox.paypal.com/%s/cgi-bin/webscr?cmd=_express-checkout';
+	var $liveurl = 'https://www.paypal.com/%s/cgi-bin/webscr?cmd=_express-checkout';
+	var $sandboxapi = 'https://api-3t.sandbox.paypal.com/nvp';
+	var $liveapi = 'https://api-3t.paypal.com/nvp';
+
+	// Internals
+	var $baseop = array();
 	var $currencies = array("USD", "AUD", "CAD", "CHF", "CZK", "DKK", "EUR", "GBP", 
 							"HKD", "HUF", "JPY", "NOK", "NZD", "PLN", "SEK", "SGD");
 	var $locales = array("AT" => "de_DE", "AU" => "en_AU", "BE" => "en_US", "CA" => "en_US",
@@ -33,38 +41,65 @@ class PayPalExpress {
 
 	var $shiprequired = array('en_GB');
 
-	function PayPalExpress () {
+	function __construct () {
+		parent::__construct();
+		
+		$this->setup('username','password','signature','testmode');
+		
 		global $Shopp;
-		$this->settings = $Shopp->Settings->get('PayPalExpress');
-		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
-		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
+		$this->baseop = $Shopp->Settings->get('base_operations');
+		
 		$this->settings['currency_code'] = $this->currencies[0];
+		if (in_array($this->baseop['currency']['code'],$this->currencies))
+			$this->settings['currency_code'] = $this->baseop['currency']['code'];
 
-		if (in_array($this->settings['base_operations']['currency']['code'],$this->currencies))
-			$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];
+		if (array_key_exists($this->baseop['country'],$this->locales))
+			$this->settings['locale'] = $this->locales[$this->baseop['country']];
+		else $this->settings['locale'] = $this->locales['US'];
 
-		if (array_key_exists($this->settings['base_operations']['country'],$this->locales))
-			$this->settings['locale'] = $this->locales[$this->settings['base_operations']['country']];
-		else $this->settings['locale'] = $this->locales["US"];
+		$this->buttonurl = sprintf($this->buttonurl, $this->settings['locale']);
+		$this->sandboxurl = sprintf($this->sandboxurl, $this->settings['locale']);
+		$this->liveurl = sprintf($this->liveurl, $this->settings['locale']);
 
-		$this->button = sprintf($this->button, $this->settings['locale']);
-		$this->sandbox_url = sprintf($this->sandbox_url, strtolower($this->settings['base_operations']['country']));
-		$this->checkout_url = sprintf($this->checkout_url, strtolower($this->settings['base_operations']['country']));
-				
-		// Capture PayPal Express transaction information as it becomes available
-		if (!isset($Shopp->Cart->data->PayPalExpress)) $Shopp->Cart->data->PayPalExpress = new stdClass();
-		if (!empty($_GET['PayerID'])) $Shopp->Cart->data->PayPalExpress->payerid = $_GET['PayerID'];
-		if (!empty($_GET['token'])) {
-			if (empty($Shopp->Cart->data->PayPalExpress->token)) {
-				$Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
-			} else $Shopp->Cart->data->PayPalExpress->token = $_GET['token'];
-			$this->details();
-		}
+		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
 
-		return true;
+		add_action('shopp_txn_update',array(&$this,'updates'));
 	}
 	
-	function actions () {}
+	function actions () {
+		add_action('shopp_checkout_processed', array(&$this,'checkout'));
+		add_action('shopp_init_checkout',array(&$this,'init'));
+
+		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
+		add_action('shopp_remote_payment',array(&$this,'returned'));
+		add_action('shopp_process_order',array(&$this,'process'));
+	}
+	
+	function init () {
+		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
+	}
+	
+	function submit ($tag=false,$options=array(),$attrs=array()) {
+		return '<input type="image" name="process" src="'.$this->buttonurl.'" id="checkout-button" '.inputattrs($options,$attrs).' />';
+	}
+	
+	function url ($url=false) {
+		if ($this->settings['testmode'] == "on") return $this->sandboxurl;
+		else return $this->liveurl;
+	}
+
+	function api ($url=false) {
+		if ($this->settings['testmode'] == "on") return $this->sandboxapi;
+		else return $this->liveapi;
+	}
+	
+	function returned () {
+		
+		if (!empty($_GET['token'])) $this->Order->token = $_GET['token'];
+		if (!empty($_GET['PayerID'])) $this->Order->payerid = $_GET['PayerID'];
+
+		if ($_POST['checkout'] == "confirmed") do_action('shopp_confirm_order');
+	}
 	
 	function notax ($rate) { return false; }
 	
@@ -85,18 +120,33 @@ class PayPalExpress {
 		
 		// Transaction
 		$_['CURRENCYCODE']			= $this->settings['currency_code'];
-		$_['AMT']					= number_format($Shopp->Cart->data->Totals->total,2);
-		$_['ITEMAMT']				= number_format($Shopp->Cart->data->Totals->subtotal - 
-													$Shopp->Cart->data->Totals->discount,2);
-		$_['SHIPPINGAMT']			= number_format($Shopp->Cart->data->Totals->shipping,2);
-		$_['TAXAMT']				= number_format($Shopp->Cart->data->Totals->tax,2);
+		$_['AMT']					= number_format($this->Order->Cart->Totals->total,2);
+		$_['ITEMAMT']				= number_format($this->Order->Cart->Totals->subtotal - 
+													$this->Order->Cart->Totals->discount,2);
+		$_['SHIPPINGAMT']			= number_format($this->Order->Cart->Totals->shipping,2);
+		$_['TAXAMT']				= number_format($this->Order->Cart->Totals->tax,2);
 
-		// Disable shipping fields if no shipped items in cart
-		if (!$Shopp->Cart->data->Shipping && 
-				!in_array($this->settings['locale'],$this->shiprequired)) $_['NOSHIPPING'] = 1;
+
+		$_['EMAIL']					= $this->Customer->email;
+		$_['PHONENUM']				= $this->Order->Customer->phone;
+		
+		// Shipping address override
+		if (!empty($this->Order->Shipping->address) && !empty($this->Order->Shipping->postcode)) {
+			$_['ADDRESSOVERRIDE'] = 1;
+			$_['SHIPTOSTREET'] 		= $this->Order->Shipping->address;
+			if (!empty($this->Order->Shipping->xaddress))
+				$_['SHIPTOSTREET2']	= $this->Order->Shipping->xaddress;
+			$_['SHIPTOCITY']		= $this->Order->Shipping->city;
+			$_['SHIPTOSTATE']		= $this->Order->Shipping->state;
+			$_['SHIPTOZIP']			= $this->Order->Shipping->postcode;
+			$_['SHIPTOCOUNTRY']		= $this->Order->Shipping->country;
+		}
+		
+		if (empty($this->Order->Cart->shipped) && 
+			!in_array($this->settings['locale'],$this->shiprequired)) $_['NOSHIPPING'] = 1;
 
 		// Line Items
-		foreach($Shopp->Cart->contents as $i => $Item) {
+		foreach($this->Order->Cart->contents as $i => $Item) {
 			$_['L_NUMBER'.$i]		= $i;
 			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
 			$_['L_AMT'.$i]			= number_format($Item->unitprice,2);
@@ -104,15 +154,15 @@ class PayPalExpress {
 			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,2);
 		}
 		
-		if ($Shopp->Cart->data->Totals->discount != 0) {
+		if ($this->Order->Cart->Totals->discount != 0) {
 			$discounts = array();
-			foreach($Shopp->Cart->data->PromosApplied as $promo)
-				$discounts[] = $promo->name;
+			foreach($this->Order->Cart->discounts as $discount)
+				$discounts[] = $discount->name;
 			
 			$i++;
 			$_['L_NUMBER'.$i]		= $i;
 			$_['L_NAME'.$i]			= join(", ",$discounts);
-			$_['L_AMT'.$i]			= number_format($Shopp->Cart->data->Totals->discount*-1,2);
+			$_['L_AMT'.$i]			= number_format($this->Order->Cart->Totals->discount*-1,2);
 			$_['L_QTY'.$i]			= 1;
 			$_['L_TAXAMT'.$i]		= number_format(0,2);
 		}
@@ -122,8 +172,6 @@ class PayPalExpress {
 		
 	function checkout () {
 		global $Shopp;
-		
-		if ($Shopp->Cart->orderisfree()) shopp_redirect($Shopp->link('checkout'));
 		
 		$_ = $this->headers();
 
@@ -135,226 +183,154 @@ class PayPalExpress {
 		// Include page style option, if provided
 		if (isset($_GET['pagestyle'])) $_['PAGESTYLE'] = $_GET['pagestyle'];
 
-		if (isset($Shopp->Cart->data->Order->data['paypal-custom']))
-			$_['CUSTOM'] = htmlentities($Shopp->Cart->data->Order->data['paypal-custom']);
+		if (isset($this->Order->data['paypal-custom']))
+			$_['CUSTOM'] = htmlentities($this->Order->data['paypal-custom']);
 
-		if (SHOPP_PERMALINKS)
-			$_['RETURNURL']			= $Shopp->link('confirm-order').'?shopp_xco=PayPal/PayPalExpress';
-		else
-			$_['RETURNURL']			= add_query_arg('shopp_xco','PayPal/PayPalExpress',$Shopp->link('confirm-order'));
+		$_['RETURNURL']			= add_query_arg('rmtpay','process',$Shopp->link('confirm-order'));
 
-		$_['CANCELURL']				= $Shopp->link('cart');
+		$_['CANCELURL']			= $Shopp->link('cart');
 		
 		$_ = array_merge($_,$this->purchase());
 		
-		$this->transaction = $this->encode($_);
-		$result = $this->send();
+		$message = $this->encode($_);
+		$response = $this->send($message);
 		
-		if (!empty($result) && isset($result->token)){
-			if ($this->settings['testmode'] == "on")
-				shopp_redirect(add_query_arg('token',$result->token,$this->sandbox_url));
-			else shopp_redirect(add_query_arg('token',$result->token,$this->checkout_url));
+		if ($response->ack == "Failure") {
+			
 		}
-		
-		if ($result->ack == "Failure") $this->Response = &$result;
+
+		if (!empty($response) && isset($response->token))
+			shopp_redirect(add_query_arg('token',$response->token,$this->url()));
 		
 		return false;	
 	}
 	
-	function details () {
+	function confirmation () {
 		global $Shopp;
-		if (!isset($Shopp->Cart->data->PayPalExpress->token) && 
-			!isset($Shopp->Cart->data->PayPalExpress->payerid)) return false;
+		if (!isset($this->Order->token) 
+			|| !isset($this->Order->payerid)) return false;
 		
 		$_ = $this->headers();
 
    		$_['METHOD'] 				= "GetExpressCheckoutDetails";
-		$_['TOKEN'] 				= $Shopp->Cart->data->PayPalExpress->token;
+		$_['TOKEN'] 				= $this->Order->token;
 
-		$this->transaction = $this->encode($_);
-		$this->send();
-		
-		if (!$this->Response) { // Try one more time
-			$this->transaction = $this->encode($_);
-			$this->send();
+		// Get transaction details
+		$response = false;
+		for ($attempts = 0; $attempts < 2 && !$response; $attempts++) {
+			$message = $this->encode($_);
+			$response = $this->send($message);
 		}
+	
+		$Customer = $this->Order->Customer;
+		$Customer->firstname = $response->firstname;
+		$Customer->lastname = $response->lastname;
+		$Customer->email = $response->email;
+		$Customer->phone = $response->phonenum;
 		
-		$Customer = $Shopp->Cart->data->Order->Customer;
-		$Customer->firstname = $this->Response->firstname;
-		$Customer->lastname = $this->Response->lastname;
-		$Customer->email = $this->Response->email;
-		$Customer->phone = $this->Response->phonenum;
-		
-		$Shipping = $Shopp->Cart->data->Order->Shipping;		
-		$Shipping->address = $this->Response->shiptostreet;
-		$Shipping->xaddress = $this->Response->shiptostreet2;
-		$Shipping->city = $this->Response->shiptocity;
-		$Shipping->state = $this->Response->shiptostate;
-		$Shipping->country = $this->Response->shiptocountrycode;
-		$Shipping->postcode = $this->Response->shiptozip;
+		$Shipping = &$this->Order->Shipping;		
+		$Shipping->address = $response->shiptostreet;
+		$Shipping->xaddress = $response->shiptostreet2;
+		$Shipping->city = $response->shiptocity;
+		$Shipping->state = $response->shiptostate;
+		$Shipping->country = $response->shiptocountrycode;
+		$Shipping->postcode = $response->shiptozip;
 		
 		if (empty($Shipping->state) && empty($Shipping->country))
 			add_filter('shopp_cart_taxrate',array(&$this,'notax'));
-		
-		$Billing = $Shopp->Cart->data->Order->Billing;
-		$Billing->cardtype = "PayPal";
-		$Billing->address = $Shipping->address;
-		$Billing->xaddress = $Shipping->xaddress;
-		$Billing->city = $Shipping->city;
-		$Billing->state = $Shipping->state;
-		$Billing->country = $this->Response->countrycode;
-		$Billing->postcode = $Shipping->postcode;
-		
-		$Shopp->Cart->updated();
-		$Shopp->Cart->totals();
-		
+					
 		$targets = $Shopp->Settings->get('target_markets');
-		if (!in_array($Billing->country,array_keys($targets))) {
+		if (!in_array($this->Order->Billing->country,array_keys($targets))) {
 			new ShoppError(__('The location you are purchasing from is outside of our market regions. This transaction cannot be processed.','Shopp'),'paypalexpress_market',SHOPP_TRXN_ERR);
-			shopp_redirect($Shopp->link('cart'));
+			shopp_redirect($Shopp->link('checkout'));
 		}
 		
 	} 
 	
 	function process () {
 		global $Shopp;
-		if (!isset($Shopp->Cart->data->PayPalExpress->token) && 
-			!isset($Shopp->Cart->data->PayPalExpress->payerid)) return false;
+		error_log('process '.$this->Order->token);
+		if (!isset($this->Order->token) || 
+			!isset($this->Order->payerid)) return false;
 				
 		$_ = $this->headers();
 
 		$_['METHOD'] 				= "DoExpressCheckoutPayment";
 		$_['PAYMENTACTION']			= "Sale";
-		$_['TOKEN'] 				= $Shopp->Cart->data->PayPalExpress->token;
-		$_['PAYERID'] 				= $Shopp->Cart->data->PayPalExpress->payerid;
+		$_['TOKEN'] 				= $this->Order->token;
+		$_['PAYERID'] 				= $this->Order->payerid;
 
 		// Transaction
 		$_ = array_merge($_,$this->purchase());
 
-		$this->transaction = $this->encode($_);
-		$result = $this->send();
-		if (!$result) {
+		$message = $this->encode($_);
+		$response = $this->send($message);
+
+		if (!$response) {
 			new ShoppError(__('No response was received from PayPal. The order cannot be processed.','Shopp'),'paypalexpress_noresults',SHOPP_COMM_ERR);
-		}
-		if(!$Shopp->Cart->validorder()) shopp_redirect($Shopp->link('cart'));
-		
-		// If the transaction is a success, get the transaction details, 
-		// build the purchase receipt, save it and return it
-		if (strtolower($result->ack) == "success") {
-			$_ = $this->headers();
-			
-			$_['METHOD'] 				= "GetTransactionDetails";
-			$_['TRANSACTIONID']			= $this->Response->transactionid;
-			
-			$this->transaction = $this->encode($_);
-			$result = $this->send();
-			if (!$result) {
-				new ShoppError(__('Details for the order were not provided by PayPal.','Shopp'),'paypalexpress_notrxn_details',SHOPP_COMM_ERR);
-				return false;
-			}
-
-			$Order = $Shopp->Cart->data->Order;
-			$Order->Totals = $Shopp->Cart->data->Totals;
-			$Order->Items = $Shopp->Cart->contents;
-			$Order->Cart = $Shopp->Cart->session;
-
-			$authentication = $Shopp->Settings->get('account_system');
-
-			if ($authentication == "wordpress") {
-				// Check if they've logged in
-				// If the shopper is already logged-in, save their updated customer info
-				if ($Shopp->Cart->data->login) {
-					if (SHOPP_DEBUG) new ShoppError('Customer logged in, linking Shopp customer account to existing WordPress account.',false,SHOPP_DEBUG_ERR);
-					get_currentuserinfo();
-					global $user_ID;
-					$Order->Customer->wpuser = $user_ID;
-				}
-
-				// Create WordPress account (if necessary)
-				if (!$Order->Customer->wpuser) {
-					if (SHOPP_DEBUG) new ShoppError('Creating a new WordPress account for this customer.',false,SHOPP_DEBUG_ERR);
-					if(!$Order->Customer->new_wpuser()) new ShoppError(__('Account creation failed on order for customer id:' . $Order->Customer->id, "Shopp"), false,SHOPP_TRXN_ERR);
-				}
-			}
-
-			// Create a WP-compatible password hash to go in the db
-			if (empty($Order->Customer->id))
-				$Order->Customer->password = wp_hash_password($Order->Customer->password);
-			$Order->Customer->save();
-
-			$Order->Billing->customer = $Order->Customer->id;
-			$Order->Billing->cardtype = "PayPal";
-			$Order->Billing->save();
-
-			$Order->Shipping->customer = $Order->Customer->id;
-			$Order->Shipping->save();
-			
-			$Purchase = new Purchase();
-			$Purchase->customer = $Order->Customer->id;
-			$Purchase->billing = $Order->Billing->id;
-			$Purchase->shipping = $Order->Shipping->id;
-			$Purchase->copydata($Order->Customer);
-			$Purchase->copydata($Order->Billing);
-			$Purchase->copydata($Order->Shipping,'ship');
-			$Purchase->copydata($Order->Totals);
-			$Purchase->freight = $Order->Totals->shipping;
-			$Purchase->gateway = "PayPal Express";
-			$Purchase->transactionid = $this->Response->transactionid;
-			$Purchase->transtatus = $this->status[$this->Response->paymentstatus];
-			$Purchase->ip = $Shopp->Cart->ip;
-			$Purchase->fees = $this->Response->feeamt;
-			$Purchase->save();
-
-			foreach($Shopp->Cart->contents as $Item) {
-				$Purchased = new Purchased();
-				$Purchased->copydata($Item);
-				$Purchased->purchase = $Purchase->id;
-				if (!empty($Purchased->download)) $Purchased->keygen();
-				$Purchased->save();
-				if ($Item->inventory) $Item->unstock();
-			}
-
-			return $Purchase;
+			shopp_redirect($Shopp->link('checkout'));
 		}
 		
-		// Fail by default
-		return false;
+		if (strtolower($response->ack) != "success") {
+			$message = join("; ",$response->longmessage);
+			if (empty($message)) $message = __('The transaction failed for an unknown reason. PayPal did not provide any indication of why it failed.','Shopp');
+			new ShoppError($message,'paypal_express_transacton_error',SHOPP_TRXN_ERR,array('codes'=>join('; ',$response->errorcode)));
+			shopp_redirect($Shopp->link('checkout'));
+		}
+
+		$txnid = $response->transactionid;
+		$txnstatus = $this->status[$response->paymentstatus];
+		
+		$Shopp->Order->transaction($txnid,$txnstatus);
 	}
 	
-	function error () {
-		if (!empty($this->Response)) {
-			
-			$message = join("; ",$this->Response->l_longmessage);
-			if (empty($message)) return false;
-			return new ShoppError($message,'paypal_express_transacton_error',SHOPP_TRXN_ERR,
-				array('code'=>$code));
-		}
-	}
-		
-	function send () {
-		$connection = curl_init();
-		if ($this->settings['testmode'] == "on")
-			curl_setopt($connection,CURLOPT_URL,"https://api-3t.sandbox.paypal.com/nvp"); // Sandbox testing
-		else curl_setopt($connection,CURLOPT_URL,"https://api-3t.paypal.com/nvp"); // Live		
-		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
-		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0); 
-		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
-		curl_setopt($connection, CURLOPT_VERBOSE, 0); 
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
-		curl_setopt($connection, CURLOPT_POST, 1); 
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->transaction); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 60); 
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
-		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
-		$buffer = curl_exec($connection);   
-		if ($error = curl_error($connection)) 
-			new ShoppError($error,'paypal_express_connection',SHOPP_COMM_ERR);
-		curl_close($connection);
+	function updates () {
+		global $Shopp;
 
-		$this->Response = false;
-		$this->Response = $this->response($buffer);
-		return $this->Response;
+		// Cancel processing if this is not a PayPal Website Payments Standard/Express Checkout IPN
+		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") return false;
+
+		$target = isset($_POST['parent_txn_id'])?$_POST['parent_txn_id']:$_POST['txn_id'];
+
+		$Purchase = new Purchase($target,'txnid');
+		if ($Purchase->gateway != $this->module) return; // Not a PPE order, don't touch it
+		
+		// Validate the order notification
+		if ($this->verifyipn() != "VERIFIED") {
+			new ShoppError(sprintf(__('An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s','Shopp'),$target,_object_r($_POST)),'paypal_txn_verification',SHOPP_TRXN_ERR);
+			return false;
+		} 
+		
+		if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
+		
+		$Purchase->transtatus = $txnstatus;
+		$Purchase->save();
+		
+		$Shopp->Purchase = &$Purchase;
+		$Shopp->Order->purchase = $Purchase->id;
+
+		do_action('shopp_order_notifications');
+		
+		if (SHOPP_DEBUG) new ShoppError('PayPal IPN update processed for transaction: '.$target,false,SHOPP_DEBUG_ERR);
+
+		die('PayPal IPN update processed.');
+	}
+	
+	function verifyipn () {
+		if ($this->settings['testmode'] == "on") return "VERIFIED";
+		$_ = array();
+		$_['cmd'] = "_notify-validate";
+		
+		$message = $this->encode(array_merge($_POST,$_));
+		$response = $this->send($message);
+		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification verfication response received: '.$response,'paypal_standard',SHOPP_DEBUG_ERR);
+		return $response;
+	}
+	
+			
+	function send ($message) {
+		$response = parent::send($message,$this->api());
+		return $this->response($response);
 	}
 	
 	function response ($buffer) {
@@ -381,62 +357,35 @@ class PayPalExpress {
 		return $_;
 	}
 	
-	
-	function encode ($data) {
-		$query = "";
-		foreach($data as $key => $value) {
-			if (is_array($value)) {
-				foreach($value as $item) {
-					if (strlen($query) > 0) $query .= "&";
-					$query .= "$key=".urlencode($item);
-				}
-			} else {
-				if (strlen($query) > 0) $query .= "&";
-				$query .= "$key=".urlencode($value);
-			}
-		}
-		return $query;
-	}
-	
-	function tag ($property,$options=array()) {
-		global $Shopp;
-		switch ($property) {
-			case "button":
-				$args = array();
-				$args['shopp_xco'] = 'PayPal/PayPalExpress';
-				if (isset($options['pagestyle'])) $args['pagestyle'] = $options['pagestyle'];
-				$url = add_query_arg($args,$Shopp->link('checkout'));
-				return '<p class="paypal_express"><a href="'.$url.'"><img src="'.$this->button.'" alt="Checkout with PayPal" /></a></p>';
-		}
-	}
-	
 	function settings () {
-		?>
-			<th scope="row" valign="top"><label for="paypalexpress-enabled">PayPal Express</label></th> 
-			<td><input type="hidden" name="settings[PayPalExpress][enabled]" value="off" /><input type="checkbox" name="settings[PayPalExpress][enabled]" value="on" id="paypalexpress-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="paypalexpress-enabled"> <?php _e('Enable','Shopp'); ?> PayPal Express</label>
-				<div id="paypalexpress-settings">
-		
-				<p><input type="text" name="settings[PayPalExpress][username]" id="paypalxp-username" size="30" value="<?php echo $this->settings['username']; ?>"/><br />
-				Enter your PayPal Express API Username.</p>
-				<p><input type="password" name="settings[PayPalExpress][password]" id="paypalxp-password" size="16" value="<?php echo $this->settings['password']; ?>" /><br />
-				Enter your PayPal Express API Password.</p>
-				<p><input type="text" name="settings[PayPalExpress][signature]" id="paypalxp-signature" size="48" value="<?php echo $this->settings['signature']; ?>" /><br />
-				Enter your PayPal Express API Signature.</p>
-				<p><label for="paypalxp-testmode"><input type="hidden" name="settings[PayPalExpress][testmode]" value="off" /><input type="checkbox" name="settings[PayPalExpress][testmode]" id="paypalxp-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> Use the <a href="http://docs.shopplugin.net/PayPal_Sandbox" target="shoppdocs">PayPal Sandbox</a></label></p>
-				
-				<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
-				
-				</div>
-			</td>
-		<?php
-	}
-	
-	function registerSettings () {
-		?>
-		xcosettings('#paypalexpress-enabled','#paypalexpress-settings');
-		<?php
+		$this->ui->text(0,array(
+			'name' => 'username',
+			'size' => 30,
+			'value' => $this->settings['username'],
+			'label' => __('Enter your PayPal API Username.','Shopp')
+		));
+
+		$this->ui->password(0,array(
+			'name' => 'password',
+			'size' => 16,
+			'value' => $this->settings['password'],
+			'label' => __('Enter your PayPal API Password.','Shopp')
+		));
+
+		$this->ui->text(0,array(
+			'name' => 'signature',
+			'size' => 48,
+			'value' => $this->settings['signature'],
+			'label' => __('Enter your PayPal API Signature.','Shopp')
+		));
+
+		$this->ui->checkbox(0,array(
+			'name' => 'testmode',
+			'checked' => $this->settings['testmode'],
+			'label' => sprintf(__('Use the %s','Shopp'),'<a href="http://docs.shopplugin.net/PayPal_Sandbox" target="shoppdocs">PayPal Sandbox</a>')
+		));
 	}
 
-} // end PayPalExpress class
+} // END class PayPalExpress
 
 ?>

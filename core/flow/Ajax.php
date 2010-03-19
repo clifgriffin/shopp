@@ -60,6 +60,7 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_activate_key',array(&$this,'activate_key'));
 		add_action('wp_ajax_shopp_deactivate_key',array(&$this,'deactivate_key'));
 		add_action('wp_ajax_shopp_rebuild_search_index',array(&$this,'rebuild_search_index'));
+		add_action('wp_ajax_shopp_rebuild_search_index_progress',array(&$this,'rebuild_search_index_progress'));
 		
 	}
 
@@ -338,23 +339,40 @@ class AjaxFlow {
 
 		$set = 10;
 		$product_table = DatabaseObject::tablename(Product::$table);
+		$index_table = DatabaseObject::tablename(ContentIndex::$table);
 		
-		$total = $db->query("SELECT count(id) as products FROM $product_table");
+		$total = $db->query("SELECT count(id) AS products,now() as start FROM $product_table");
 		if (empty($total->products)) die('-1');
+
+		$Settings = &ShoppSettings();
+		$Settings->save('searchindex_build',mktimestamp($total->start));
 		
-		$done = 0;
+		$indexed = 0;
 		for ($i = 0; $i*$set < $total->products; $i++) {
 			$row = $db->query("SELECT id FROM $product_table LIMIT ".($i*$set).",$set",AS_ARRAY);
 			foreach ($row as $index => $product) {
 				$Indexer = new IndexProduct($product->id);
 				$Indexer->index();
-				$done++;
+				$indexed++;
 			}
-			echo $done."/".$total->products.BR;
-			ob_flush();
-		    flush();
 		}
+		echo "1";
 		exit();
+	}
+	
+	function rebuild_search_index_progress () {
+		$db = DB::get();
+		require(SHOPP_MODEL_PATH."/Search.php");
+		$product_table = DatabaseObject::tablename(Product::$table);
+		$index_table = DatabaseObject::tablename(ContentIndex::$table);
+		
+		$Settings = &ShoppSettings();
+		$lastbuild = $Settings->get('searchindex_build');
+		
+		$status = $db->query("SELECT count(DISTINCT product.id) AS products, count(DISTINCT product) AS indexed FROM $product_table AS product LEFT JOIN $index_table AS indx ON product.id=indx.product AND $lastbuild < UNIX_TIMESTAMP(indx.modified)");
+		
+		if (empty($status)) die('');
+		die($status->indexed.':'.$status->products);
 	}
 
 } // END class AjaxFlow
