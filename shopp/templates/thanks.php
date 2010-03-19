@@ -10,6 +10,8 @@
  **
  **/
 ?>
+<?php if (shopp('checkout','completed')): ?>
+
 <h3><?php _e('Thank you for your order!','Shopp'); ?></h3>
 
 <?php if (shopp('purchase','notpaid')): ?> 
@@ -29,4 +31,10 @@
 
 <?php if (shopp('customer','wpuser-created')): ?>
 	<p><?php _e('An email was sent with account login information to the email address provided for your order.','Shopp'); ?>  <a href="<?php shopp('customer','url'); ?>"><?php _e('Login to your account','Shopp'); ?></a> <?php _e('to access your orders, change your password and manage your checkout information.','Shopp'); ?></p>
+<?php endif; ?>
+
+<?php else: ?>
+
+<h3><?php _e('An unknown error occured. The transaction failed.','Shopp'); ?></h3>
+
 <?php endif; ?>

@@ -157,6 +157,7 @@ add_meta_box('product-images', __('Product Images','Shopp'), 'images_meta_box', 
 
 function pricing_meta_box ($Product) {
 ?>
+<div id="prices-loading" class="updating"></div>
 <div id="product-pricing"></div>
 
 <div id="variations">

@@ -399,10 +399,10 @@ class Warehouse extends AdminController {
 		$taxrate = 0;
 		if ($base['vat']) $taxrate = shopp_taxrate();
 
-		if (!$_POST['options']) $Product->options = array();
+		if (empty($_POST['options'])) $Product->options = array();
 		else $_POST['options'] = stripslashes_deep($_POST['options']);
 
-		if (!$_POST['addons']) $Product->addons = array();
+		if (empty($_POST['addons'])) $Product->addons = array();
 		else $_POST['addons'] = stripslashes_deep($_POST['addons']);
 
 		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);	
@@ -448,7 +448,7 @@ class Warehouse extends AdminController {
 					$option['product'] = $Product->id;
 				} else $Price = new Price($option['id']);
 				$option['sortorder'] = array_search($i,$_POST['sortorder'])+1;
-				
+
 				// Remove VAT amount to save in DB
 				if ($base['vat'] && $option['tax'] == "on") {
 					$option['price'] = floatvalue(floatvalue($option['price'])/(1+$taxrate));
@@ -457,6 +457,7 @@ class Warehouse extends AdminController {
 				
 				$Price->updates($option);
 				$Price->save();
+
 				if (!empty($option['download'])) $Price->attach_download($option['download']);
 
 				if (!empty($option['downloadpath'])) { // Attach file specified by URI/path

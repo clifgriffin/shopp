@@ -165,8 +165,10 @@ var Priceline = function (id,options,data,target,attachment) {
 	this.label = $('<input type="hidden" name="price['+i+'][label]" id="label-'+i+'" />').appendTo(heading);
 	this.label.change(function () { labelText.text($(this).val()); });
 	
+	if (!data.id) data.id = '';
+	if (!data.product) data.product = product;
 	$('<input type="hidden" name="'+fn+'[id]" id="priceid-'+i+'" value="'+data.id+'" />'+
-		'<input type="hidden" name="'+fn+'[product]" id="product-'+i+'" />'+
+		'<input type="hidden" name="'+fn+'[product]" id="product-'+i+'" value="'+data.product+'" />'+
 		'<input type="hidden" name="'+fn+'[context]" id="context-'+i+'"/>'+
 		'<input type="hidden" name="'+fn+'[optionkey]" id="optionkey-'+i+'" class="optionkey" />'+
 		'<input type="hidden" name="'+fn+'[options]" id="options-'+i+'" value="" />'+
@@ -178,7 +180,7 @@ var Priceline = function (id,options,data,target,attachment) {
 	var sortorder = $('#sortorder-'+i);
 	var optionkey = $('#optionkey-'+i).appendTo(heading);
 	this.row.optionkey = optionkey;
-	
+		
 	var typeOptions = "";
 	$(priceTypes).each(function (t,option) { typeOptions += '<option value="'+option.value+'">'+option.label+'</option>'; });
 	var type = $('<select name="price['+i+'][type]" id="type-'+i+'"></select>').html(typeOptions).appendTo(heading);

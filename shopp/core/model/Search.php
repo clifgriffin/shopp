@@ -67,7 +67,7 @@ class IndexProduct {
 						$specs[] = "$Spec->name $Spec->value";
 					$content = join(' ',$specs);
 					break;
-				case "categories": 
+				case "categoriesgories": 
 					$categories = array();
 					foreach ($this->Product->categories as $Category)
 						$categories[] = $Category->name;
@@ -131,9 +131,10 @@ class ContentIndex extends DatabaseObject {
 		if (empty($product) || empty($type)) return false; // Nothing to load
 
 		$db = DB::get();
-		$r = $db->query("SELECT id FROM $this->_table WHERE product='$product' AND type='$type' LIMIT 1");
+		$r = $db->query("SELECT id,created FROM $this->_table WHERE product='$product' AND type='$type' LIMIT 1");
 		if (!empty($r->id)) {
 			$this->id = $r->id;
+			$this->created = mktimestamp($r->created);
 			$this->_loaded = true;
 		}
 	}
@@ -240,6 +241,7 @@ class BooleanParser extends SearchTextFilters {
 		add_filter('shopp_boolean_search',array('BooleanParser','AccentFilter'));
 		add_filter('shopp_boolean_search',array('BooleanParser','KeywordFilter'));
 		add_filter('shopp_boolean_search',array('BooleanParser','NormalizeFilter'));
+		add_filter('shopp_boolean_search',array('BooleanParser','StemFilter'));
 	}
 
 }

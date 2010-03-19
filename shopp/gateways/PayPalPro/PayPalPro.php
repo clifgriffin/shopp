@@ -13,7 +13,7 @@
  * $Id$
  **/
 
-class PayPalPro extends GatewayFramework {
+class PayPalPro extends GatewayFramework implements GatewayModule {
 
 	var $secure = true;
 	var $cards = array("visa","mc","disc","amex");
@@ -23,7 +23,7 @@ class PayPalPro extends GatewayFramework {
 
 	var $currencies = array("USD", "AUD", "CAD", "EUR", "GBP", "JPY");
 	
-	function PayPalPro () {
+	function __construct () {
 		parent::__construct();
 
 		$Settings = ShoppSettings();
@@ -220,7 +220,7 @@ class PayPalPro extends GatewayFramework {
 		$this->ui->checkbox(1,array(
 			'name' => 'testmode',
 			'checked' => $this->settings['testmode'],
-			'label' => __('Enable test mode','Shopp')
+			'label' => sprintf(__('Use the %s','Shopp'),'<a href="http://docs.shopplugin.net/PayPal_Sandbox" target="shoppdocs">PayPal Sandbox</a>')
 		));
 	}
 

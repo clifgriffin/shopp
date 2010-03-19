@@ -387,13 +387,7 @@ var ShoppCartAjaxHandler = function (cart) {
  * when activating the field by mouse click
  **/
 function quickSelects (target) {
-	(function($) {
-		if (!target) target = $('.selectall');
-		else target = $(target).find('.selectall');
-		$(target).each(function(input) {
-			$(this).mouseup(function (e) { this.select(); });
-		});
-	})(jQuery)
+	jQuery('input.selectall').mouseup(function () { this.select(); });
 }
 
 /**
@@ -416,12 +410,10 @@ function buttonHandlers () {
 }
 
 function validateForms () {
-	(function($) {
-		$('form.validate').submit(function () {
-			if (validate(this)) return true;
-			else return false;
-		});
-	})(jQuery)
+	jQuery('form.validate').submit(function () {
+		if (validate(this)) return true;
+		else return false;
+	});
 }
 
 /**
@@ -429,22 +421,21 @@ function validateForms () {
  * Handles catalog view changes
  **/
 function catalogViewHandler () {
-	(function($) {
-		var display = $('#shopp');
-		var expires = new Date();
-		expires.setTime(expires.getTime()+(30*86400000));
+	var $=jQuery.noConflict();
+	
+	var display = $('#shopp');
+	var expires = new Date();
+	expires.setTime(expires.getTime()+(30*86400000));
 
-		var category = $(this);
-		$(display).find('ul.views li button.list').click(function () {
-			$(display).removeClass('grid').addClass('list');
-			document.cookie = 'shopp_catalog_view=list; expires='+expires+'; path=/';
-		});
-		$(display).find('ul.views li button.grid').click(function () {
-			$(display).removeClass('list').addClass('grid');
-			document.cookie = 'shopp_catalog_view=grid; expires='+expires+'; path=/';
-		});
-
-	})(jQuery)
+	var category = $(this);
+	display.find('ul.views li button.list').click(function () {
+		display.removeClass('grid').addClass('list');
+		document.cookie = 'shopp_catalog_view=list; expires='+expires+'; path=/';
+	});
+	display.find('ul.views li button.grid').click(function () {
+		display.removeClass('list').addClass('grid');
+		document.cookie = 'shopp_catalog_view=grid; expires='+expires+'; path=/';
+	});
 }
 
 /**
@@ -452,58 +443,9 @@ function catalogViewHandler () {
  * Adds behaviors to shopping cart controls
  **/
 function cartHandlers () {
-	(function($) {
-		$('#cart #shipping-country').change(function () {
-			this.form.submit();
-		});
-	})(jQuery)
-}
-
-/**
- * helpHandler ()
- * Adds contextual help linking to the Help link in 
- * the Shopp admin screens
- **/
-function helpHandler () {
-	var wpwrap = document.getElementById("wpwrap");
-	if (!wpwrap) return true;
-
-	(function($) {
-		if (helpurl) {			
-			var links = $(wpwrap).find("a");
-			links.each(function (index,link) {
-				var href = $(link).attr('href');
-				if (href && href.match(new RegExp(/(.*?)=shopp\/help$/))) {
-					href = href.replace(new RegExp(/(.*?)=shopp\/help$/),helpurl);
-					$(link).attr('href',href);
-					$(link).attr('target','_blank');
-				}
-			});
-		}
-	})(jQuery)
-}
-
-function shopp_debug () {
-	(function($) {
-		var overlay = $('<div id="debug" class="shopp overlay"></div>').appendTo(document.body);
-		var debug = $('<div id="debug" class="shopp"></div>').appendTo(document.body);
-		$('<h3>Shopp Debug Console</h3>').appendTo(debug);
-		if (memory_profile) {
-			$('<h4></h4>').html('Memory:').appendTo(debug);
-			$('<p></p>').html(memory_profile).appendTo(debug);
-		}
-		if (wpquerytotal || shoppquerytotal) {
-			$('<h4></h4>').html('Queries:').appendTo(debug);
-			$('<p></p>').html('WP Total: '+wpquerytotal+'<br />Shopp Total: '+shoppquerytotal).appendTo(debug);
-		}
-		
-		debug.click(function () {
-			overlay.remove();
-			debug.remove();
-		});
-		
-		return true;
-	})(jQuery)
+	jQuery('#cart #shipping-country').change(function () {
+		this.form.submit();
+	});
 }
 
 function shopp_gallery (id,evt) {
@@ -961,17 +903,16 @@ var validate = function (form) {
 	return passed;
 }
 
-jQuery(document).ready( function() {
+jQuery(document).ready(function() {
 	validateForms();
 	formatFields();
 	buttonHandlers();
 	cartHandlers();
 	catalogViewHandler();
-	helpHandler();
 	quickSelects();
 	slideshows();
 	carousels();
-	if (jQuery.colorbox) {
+	if (jQuery.fn.colorbox) {
 		jQuery('a.shopp-zoom').colorbox();
 		jQuery('a.shopp-zoom.gallery').attr('rel','gallery').colorbox({slideshow:true});
 	}

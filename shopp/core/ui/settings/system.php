@@ -25,6 +25,13 @@
 					<div id="product-storage-engine" class="storage-settings"></div>
 	            </td>
 			</tr>
+
+			<tr class="form-required"> 
+				<th scope="row" valign="top"><label for="uploader-toggle"><?php _e('Search Index','Shopp'); ?></label></th> 
+				<td><button type="button" id="rebuild-index" name="rebuild" class="button-secondary"><?php _e('Rebuild Product Search Index'); ?></button><br /> 
+	            <?php _e('Update search indexes for all the products in the catalog.','Shopp'); ?></td>
+			</tr>			
+
 			<tr class="form-required"> 
 				<th scope="row" valign="top"><label for="uploader-toggle"><?php _e('Upload System','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[uploader_pref]" value="browser" /><input type="checkbox" name="settings[uploader_pref]" value="flash" id="uploader-toggle"<?php if ($this->Settings->get('uploader_pref') == "flash") echo ' checked="checked"'?> /><label for="uploader-toggle"> <?php _e('Enable Flash-based uploading','Shopp'); ?></label><br /> 
@@ -106,6 +113,43 @@ jQuery(document).ready(function() {
 	}).change();
 		
 	$('#errorlog').scrollTop($('#errorlog').attr('scrollHeight'));
+
+
+
+	var progressbar = false;
+	function progress () {
+		$.ajax({url:ajaxurl+'?action=shopp_rebuild_search_index_progress',
+			type:"GET",
+			timeout:500,
+			dataType:'text',
+			success:function (results) {
+				p = results.split(':');
+				var progress = Math.ceil((p[0]/p[1])*76);
+				progressbar.animate({'width':progress+'px'},500);
+			}
+		});
+		
+	}
+
+	$('#rebuild-index').click(function () {
+		$.fn.colorbox({'title':'<?php _e('Product Indexing','Shopp'); ?>', 
+			'innerWidth':'250', 
+			'innerHeight':'50', 
+			'html':
+			'<div id="progress"><div class="bar"></div><div class="gloss"></div></div><iframe id="process" width="0" height="0" src="'+ajaxurl+'?action=shopp_rebuild_search_index"></iframe>',
+			'onComplete':function () {
+				progressbar = $('#progress div.bar');
+				progress();
+				setTimeout(progress,1000);
+				$('#process').load(function () {
+					progressbar.animate({'width':'100%'},500,'swing',function () {
+						setTimeout($.fn.colorbox.close,1000);
+					});
+				});
+			}
+		});
+	});
+	
 
 });
 
