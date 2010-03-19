@@ -33,8 +33,8 @@ class Order {
 	// Post processing properties
 	var $purchase = false;			// Generated purchase ID
 	var $gateway = false;			// Proper name of the gateway used to process the order
-	var $transactionid = false;		// The transaction ID reported by the gateway
-	var $transtatus = "PENDING";	// Status of the payment
+	var $txnid = false;				// The transaction ID reported by the gateway
+	var $txnstatus = "PENDING";		// Status of the payment
 	
 	// Processing control properties
 	var $confirm = false;			// Flag to confirm order or not
@@ -56,7 +56,7 @@ class Order {
 		$this->Shipping = new Shipping();
 
 		$this->Shipping->destination();
-
+		
 		$this->confirm = ($Shopp->Settings->get('order_confirmation') == "always");
 		$this->accounts = $Shopp->Settings->get('account_system');
 		
@@ -427,7 +427,10 @@ class Order {
 		
 		if (empty($this->txnid)) return new ShoppError(sprintf('The payment gateway %s did not provide a transaction id. Purchase records cannot be created without a transaction id.',$this->gateway),'shopp_order_transaction',SHOPP_DEBUG_ERR);
 
-		do_action('shopp_create_purchase');
+		$Purchase = new Purchase($txnid,'txnid');
+		if (!empty($Purchase->id)) $Purchase->save();
+		else do_action('shopp_create_purchase');
+		
 		return true;
 	}
 	

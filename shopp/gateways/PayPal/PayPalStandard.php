@@ -248,7 +248,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		
 		if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
 		
-		$Purchase->transtatus = $txnstatus;
+		$Purchase->txnstatus = $txnstatus;
 		$Purchase->save();
 		
 		$Shopp->Purchase = &$Purchase;

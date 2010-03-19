@@ -179,7 +179,7 @@ class iDealMollie {
 		$Purchase->freight = $Order->Totals->shipping;
 		$Purchase->gateway = "iDeal Mollie";
 		$Purchase->transactionid = $_GET['transaction_id'];
-		$Purchase->transtatus = "CHARGED";
+		$Purchase->txnstatus = "CHARGED";
 		$Purchase->ip = $Shopp->Cart->ip;
 		$Purchase->save();
 
