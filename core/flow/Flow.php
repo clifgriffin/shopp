@@ -228,7 +228,7 @@ abstract class FlowController  {
 		if (defined('WP_ADMIN')) {
 			add_action('admin_init',array(&$this,'settings'));
 			$this->settings();
-		} else add_action('shopp_init',array(&$this,'settings'));
+		} else add_action('shopp_loaded',array(&$this,'settings'));
 	}
 	
 	function settings () {

@@ -125,7 +125,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$XML = new XMLdata($data);
 			$type = key($XML->data);
 			$serial = $XML->getElementAttr($type,'serial-number');
-			
+						
 			switch($type) {
 				case "new-order-notification": $this->order($XML); break;
 				case "risk-information-notification": $this->risk($XML); break;
@@ -159,7 +159,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				&& $_GET['merc'] == $this->authcode($this->settings['id'],$this->settings['key']));
 		 	return true;
 		
-		header('HTTP/1.0 401 Unauthorized');
+		header('HTTP/1.1 401 Unauthorized');
 		die("<h1>401 Unauthorized Access</h1>");
 		exit();
 	}
@@ -169,7 +169,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	 * Sends an acknowledgement message back to Google to confirm the notification
 	 * was received and processed */
 	function acknowledge ($serial) {
-		header('HTTP/1.0 200 OK');
+		header('HTTP/1.1 200 OK');
 		$_ = array('<?xml version="1.0" encoding="utf-8"?>'."\n");
 		$_[] .= '<notification-acknowledgement xmlns="'.$this->urls['schema'].'" serial-number="'.$serial.'" />';
 		echo join("\n",$_);
@@ -292,21 +292,29 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	/**
 	 * order()
 	 * Handles new order notifications from Google */
-	function order ($XML) {
+	function order ($XML) {		
 		global $Shopp;
+		
+		if (empty($XML)) {
+			new ShoppError("No transaction data was provided by Google Checkout",false,SHOPP_DEBUG_ERR);
+			$this->error();
+		}
 
 		add_action('shopp_order_success',array(&$this,'success'),1);
+
+		$sessionid = $XML->getElementContent('shopping-session');
+
+		$Shopp->resession($sessionid);
+		$Shopp->Order = ShoppingObject::__new('Order');
 		
-		$sessionid = $XML->getElement('shopping-session');
-		
-		$Shopp->resession($sessionid['CONTENT']);
 		$Shopping = &$Shopp->Shopping;
 		$Order = &$Shopp->Order;
 
 		// Couldn't load the session data
-		if ($Shopping->session != $sessionid['CONTENT'])
-			return new ShoppError("Session could not be loaded: {$sessionid['CONTENT']}",false,SHOPP_DEBUG_ERR);
-		else new ShoppError("Google Checkout successfully loaded session: {$sessionid['CONTENT']}",false,SHOPP_DEBUG_ERR);
+		if ($Shopping->session != $sessionid) {
+			new ShoppError("Session could not be loaded: $sessionid",false,SHOPP_DEBUG_ERR);
+			$this->error();
+		} else new ShoppError("Google Checkout successfully loaded session: $sessionid",false,SHOPP_DEBUG_ERR);
 
 		// Check if this is a Shopp order or not
 		$origin = $XML->getElementContent('shopping-cart-agent');
@@ -348,9 +356,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$Order->Shipping->state = $shipto['region']['CONTENT'];
 		$Order->Shipping->country = $shipto['country-code']['CONTENT'];
 		$Order->Shipping->postcode = $shipto['postal-code']['CONTENT'];
+		
+		$Shopp->Order->gateway = $this->name;
 
  		$txnid = $XML->getElementContent('google-order-number');
-		
 		$Shopp->Order->transaction($txnid);
 
 	}
@@ -361,6 +370,11 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	
 	function risk ($XML) {
  		$id = $XML->getElementContent('google-order-number');
+		if (empty($id)) {
+			new ShoppError("No transaction ID was provided with a risk information message sent by Google Checkout",false,SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
 		$Purchase = new Purchase($id,'transactionid');
 		$Purchase->ip = $XML->getElementContent('ip-address');
 		$Purchase->card = $XML->getElementContent('partial-cc-number');
@@ -369,9 +383,14 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	
 	function state ($XML) {
  		$id = $XML->getElementContent('google-order-number');
+		if (empty($id)) {
+			new ShoppError("No transaction ID was provided with an order state change message sent by Google Checkout",false,SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+
 		$state = $XML->getElementContent('new-financial-order-state');
 		$Purchase = new Purchase($id,'transactionid');
-		$Purchase->transtatus = $state;
+		$Purchase->txnstatus = $state;
 		$Purchase->save();
 		
 		if (strtoupper($state) == "CHARGEABLE" && $this->settings['autocharge'] == "on") {
@@ -384,7 +403,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			exit();
 		}
 	}
-	
+
 	function send ($message,$url) {
 		$type = ($this->settings['testmode'] == "on")?'test':'live';
 		$url = sprintf($url[$type],$this->settings['id'],$this->settings['key'],$this->settings['id']);
@@ -392,10 +411,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		return new XMLdata($response);
 	}
 	
-	function error () {
-		$message = $this->Response->getElementContent('error-message');
-		if (!empty($message)) 
-			return new ShoppError($message,'google_checkout_error',SHOPP_TRXN_ERR);
+	function error () { // Error response
+		header('HTTP/1.1 500 Internal Server Error');
+		die("<h1>500 Internal Server Error</h1>");
 	}
 		
 	function tag ($property,$options=array()) {

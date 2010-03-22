@@ -271,6 +271,9 @@ class Order {
 	function purchase () {
 		global $Shopp;
 		
+		// Need a transaction ID to create a purchase
+		if (empty($this->txnid)) return false;
+		
 		// Lock for concurrency protection
 		$this->lock();
 		
