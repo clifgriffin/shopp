@@ -62,7 +62,7 @@ class Customer extends DatabaseObject {
 			
 			$Purchase = new Purchase($_POST['purchaseid']);
 			if ($Purchase->email == $_POST['email']) {
-				$Shopp->Cart->data->Purchase = $Purchase;
+				$Shopp->Purchase = $Purchase;
 				$Purchase->load_purchased();
 				ob_start();
 				include(SHOPP_TEMPLATES."/receipt.php");
@@ -314,7 +314,8 @@ class Customer extends DatabaseObject {
 		
 		// Return strings with no options
 		switch ($property) {
-			case "url": return $Shopp->link('account');
+			case "url": return add_query_arg('acct',false,esc_url($_SERVER['REQUEST_URI'])); break;
+			case "accounturl": $Shopp->link('account'); break;
 			case "recover-url": return add_query_arg('acct','recover',$Shopp->link('account'));
 			case "process":
 				if (isset($_GET['acct'])) return $_GET['acct'];
@@ -348,7 +349,7 @@ class Customer extends DatabaseObject {
 			case "submit-login": // Deprecating
 			case "login-button":
 				if (!isset($options['value'])) $options['value'] = __('Login','Shopp');
-				if (is_shopp_page('account'))
+				if (!is_shopp_page('checkout'))
 					$string = '<input type="hidden" name="process-login" id="process-login" value="true" />';
 				else $string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
 				$string .= '<input type="submit" name="submit-login" id="submit-login"'.inputattrs($options).' />';
@@ -399,7 +400,7 @@ class Customer extends DatabaseObject {
 					require_once("Purchase.php");
 					$Purchase = new Purchase($_POST['purchaseid']);
 					if ($Purchase->email == $_POST['email']) {
-						$Shopp->Cart->data->Purchase = $Purchase;
+						$Shopp->Purchase = $Purchase;
 						$Purchase->load_purchased();
 						ob_start();
 						include(SHOPP_TEMPLATES."/receipt.php");
