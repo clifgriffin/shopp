@@ -68,7 +68,7 @@ require("core/model/Customer.php");
 
 // Start up the core
 $Shopp = new Shopp();
-do_action('shopp_init');
+do_action('shopp_loaded');
 
 /**
  * Shopp class

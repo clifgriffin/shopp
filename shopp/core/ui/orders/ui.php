@@ -72,9 +72,7 @@ function transaction_meta_box ($Purchase) {
 
 <?php endif;?>
 
-<?php if ($Purchase->gateway == "Google Checkout"):?>
-	<tr><th><?php _e('Status','Shopp'); ?>:</th><td><?php echo $Purchase->txnstatus; ?></td></tr>
-<?php endif; ?><?php
+<?php
 }
 add_meta_box('order-transaction', __('Payment Method','Shopp'), 'transaction_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
