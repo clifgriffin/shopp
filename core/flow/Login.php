@@ -49,7 +49,7 @@ class Login {
 			add_action('wp_logout',array(&$this,'logout'));
 			add_action('shopp_logout','wp_clear_auth_cookie');					
 		}
-		// print_r($this);
+
 		$this->process();
 		
 	}
@@ -80,7 +80,7 @@ class Login {
 				
 				if (empty($_POST['process-login'])) return false;
 				if ($_POST['process-login'] != "true") return false;
-				
+
 				if (!empty($_POST['account-login'])) {
 					if (strpos($_POST['account-login'],'@') !== false) $mode = "email";
 					else $mode = "loginname";

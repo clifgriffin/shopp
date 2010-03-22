@@ -1227,7 +1227,7 @@ class Category extends DatabaseObject {
 				extract($options, EXTR_SKIP);
 				
 				$string = '<ul class="slideshow '.$fx.'-fx '.$order.'-order duration-'.$duration.' delay-'.$delay.'">';
-				$string .= '<li class="clear"><img src="clear.png" width="'.$width.'" height="'.$height.'" /></li>';
+				$string .= '<li class="clear"><img src="'.SHOPP_ADMIN_URI.'/icons/clear.png" width="'.$width.'" height="'.$height.'" /></li>';
 				foreach ($this->products as $Product) {
 					if (empty($Product->images)) continue;
 					$string .= '<li><a href="'.$Product->tag('url').'">';

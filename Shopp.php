@@ -271,7 +271,7 @@ class Shopp {
 	 **/
 	function widgets () {
 		global $wp_version;
-		// include('core/ui/widgets/account.php');
+		include('core/ui/widgets/account.php');
 		include('core/ui/widgets/cart.php');
 		include('core/ui/widgets/categories.php');
 		include('core/ui/widgets/section.php');
@@ -417,6 +417,7 @@ class Shopp {
 		$vars[] = 'src';
 		$vars[] = 'siid';
 		$vars[] = 'catalog';
+		$vars[] = 'acct';
 	
 		return $vars;
 	}

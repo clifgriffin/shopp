@@ -509,7 +509,7 @@ class Storefront extends FlowController {
 	}
 	
 
-	function account_page () {
+	function account_page ($menuonly=false) {
 		global $wp;
 		$Order = &ShoppOrder();
 		$Customer = &$Order->Customer;
@@ -517,8 +517,8 @@ class Storefront extends FlowController {
 		if (isset($Customer->login) && $Customer->login) 
 			$Customer->management();
 		
-		if (isset($_GET['acct']) && $_GET['acct'] == "rp") $Customer->reset_password($_GET['key']);
-		if (isset($_GET['acct']) && $_GET['acct'] == "receipt" && isset($_GET['id'])) return;
+		if (isset($wp->query_vars['acct']) && $wp->query_vars['acct'] == "rp") $Customer->reset_password($_GET['key']);
+		if (isset($wp->query_vars['acct']) && $wp->query_vars['acct'] == "receipt" && isset($_GET['id'])) return;
 		if (isset($_POST['recover-login'])) $Customer->recovery();
 				
 		ob_start();
