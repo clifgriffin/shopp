@@ -9,6 +9,7 @@
  * @copyright Ingenesis Limited, March  6, 2010
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
+ * @since 1.1
  * @subpackage search
  **/
 

@@ -75,6 +75,14 @@ abstract class ModuleLoader {
 		}
 	}
 	
+	/**
+	 * Hashes module files
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return array List of checksums
+	 **/
 	function checksums () {
 		$hashes = array();
 		foreach ($this->modules as $module) $hashes[] = md5_file($module->file);

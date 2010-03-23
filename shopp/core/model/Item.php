@@ -1,39 +1,55 @@
 <?php
 /**
- * Item class
- * Cart items
+ * Item.php
+ * 
+ * Cart line items generated from product/price objects
  *
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, 28 March, 2008
+ * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
+ * @since 1.0
+ * @subpackage cart
  **/
-
 class Item {
-	var $product = false;
-	var $price = false;
-	var $category = false;
-	var $sku = false;
-	var $type = false;
-	var $name = false;
-	var $description = false;
-	var $option = false;
-	var $variation = array();
-	var $variations = array();
-	var $quantity = 0;
-	var $unitprice = 0;
-	var $discount = 0;
-	var $total = 0;
-	var $weight = 0;
-	var $shipfee = 0;
-	var $download = false;
-	var $shipping = false;
-	var $inventory = false;
-	var $taxable = false;
-	var $freeshipping = false;
-	var $dataloop = false;
+	var $product = false;		// The source product ID
+	var $price = false;			// The source price ID
+	var $category = false;		// The breadcrumb category
+	var $sku = false;			// The SKU of the product/price combination
+	var $type = false;			// The type of the product price object
+	var $name = false;			// The name of the source product
+	var $description = false;	// Short description from the product summary
+	var $option = false;		// The option ID of the price object
+	var $variation = array();	// The selected variation
+	var $variations = array();	// The available variation options
+	var $quantity = 0;			// The selected quantity for the line item
+	var $unitprice = 0;			// Per unit price
+	var $discount = 0;			// Discounts applied to the line item
+	var $total = 0;				// Total cost of the line item (unitprice x quantity)
+	var $weight = 0;			// Weight of the line item (unit weight)
+	var $shipfee = 0;			// Shipping fees for each unit of the line item
+	var $download = false;		// Download ID of the asset from the selected price object
+	var $shipping = false;		// Shipping setting of the selected price object
+	var $inventory = false;		// Inventory setting of the selected price object
+	var $taxable = false;		// Taxable setting of the selected price object
+	var $freeshipping = false;	// Free shipping status of the selected price object
 
-	function Item ($Product,$pricing,$category,$data=array()) {
+	var $dataloop = false;		// Internal loop controller
+
+	/**
+	 * Constructs a line item from a Product object and identified price object
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param object $Product Product object
+	 * @param mixed $pricing A list of price IDs; The option key of a price object; or a Price object
+	 * @param int $category The breadcrumb category ID where the product was added from
+	 * @param array $data Custom data associated with the line item
+	 * @return void
+	 **/
+	function __construct ($Product,$pricing,$category,$data=array()) {
 		global $Shopp; // To access settings
 
 		$Product->load_data(array('prices','images','categories','tags','specs'));
@@ -58,6 +74,7 @@ class Item {
 		$this->name = $Product->name;
 		$this->slug = $Product->slug;
 
+		$this->category = $category;
 		$this->categories = $this->namelist($Product->categories);
 		$this->tags = $this->namelist($Product->tags);
 		$this->option = $this->mapvariation($Price);
@@ -103,6 +120,17 @@ class Item {
 		$this->taxable = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
 	}
 	
+	/**
+	 * Validates the line item
+	 * 
+	 * Ensures the product and price object exist in the catalog and that
+	 * inventory is available for the selected price variation.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function valid () {
 		if (!$this->product || !$this->price) {
 			new ShoppError(__('The product could not be added to the cart because it could not be found.','cart_item_invalid',SHOPP_ERR));
@@ -115,6 +143,18 @@ class Item {
 		return true;
 	}
 
+	/**
+	 * Sets the quantity of the line item
+	 * 
+	 * Sets the quantity only if stock is available or 
+	 * the donation amount to the donation minimum.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $qty The quantity to set the line item to
+	 * @return void
+	 **/
 	function quantity ($qty) {
 
 		if ($this->type == "Donation" && $this->donation['var'] == "on") {
@@ -137,6 +177,14 @@ class Item {
 		$this->total = $this->quantity * $this->unitprice;
 	}
 	
+	/**
+	 * Adds a specified quantity to the line item
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function add ($qty) {
 		if ($this->type == "Donation" && $this->donation['var'] == "on") {
 			$qty = floatvalue($qty);
@@ -145,6 +193,16 @@ class Item {
 		$this->quantity($this->quantity+$qty);
 	}
 	
+	/**
+	 * Generates an option menu of available price variations
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $selection (optional) The selected price option
+	 * @param float $taxrate (optional) The tax rate to apply to pricing information
+	 * @return string
+	 **/
 	function options ($selection = "",$taxrate=0) {
 		if (empty($this->variations)) return "";
 
@@ -172,6 +230,15 @@ class Item {
 			
 	}
 	
+	/**
+	 * Populates the variations from a collection of price objects
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $prices A list of Price objects
+	 * @return void
+	 **/
 	function variations ($prices) {
 		foreach ($prices as $price)	{
 			if ($price->type == "N/A") continue;
@@ -179,6 +246,18 @@ class Item {
 		}		
 	}
 
+	/**
+	 * Maps price object properties to variation properties
+	 * 
+	 * Populates only the necessary properties from a price object 
+	 * to a variation option to cut down on line item data size 
+	 * for better serialization performance.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return object An Item variation object
+	 **/
 	function mapvariation ($price) {
 		$map = array('id','label','onsale','promoprice','price','inventory','stock','options');
 		$v = new stdClass();
@@ -187,12 +266,29 @@ class Item {
 		return $v;
 	}
 
+	/**
+	 * Collects a list of name properties from a list of objects
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $items List of objects with a name property to grab
+	 * @return array List of names
+	 **/
 	function namelist ($items) {
 		$list = array();
 		foreach ($items as $item) $list[$item->id] = $item->name;
 		return $list;
 	}
 	
+	/**
+	 * Unstock the item from inventory
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function unstock () {
 		if (!$this->inventory) return;
 		global $Shopp;
@@ -215,12 +311,28 @@ class Item {
 
 	}
 	
+	/**
+	 * Verifies the item is in stock
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function instock () {
 		if (!$this->inventory) return true;
 		$this->option->stock = $this->getstock();
 		return $this->option->stock >= $this->quantity;
 	}
 	
+	/**
+	 * Determines the stock level of the line item
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return int The amount of stock available
+	 **/
 	function getstock () {
 		$db = DB::get();
 		$stock = apply_filters('shopp_cartitem_stock',false,&$this);
@@ -233,6 +345,15 @@ class Item {
 		return $this->option->stock;
 	}
 	
+	/**
+	 * Match a rule to the item
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $rule A structured rule array
+	 * @return boolean
+	 **/
 	function match ($rule) {
 		extract($rule);
 
@@ -258,9 +379,14 @@ class Item {
 		return Promotion::match_rule($subject,$logic,$value,$property);
 	}
 	
-	function shipping (&$Shipping) {
-	}
-	
+	/**
+	 * Provides support for the shopp('cartitem') tags
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return mixed
+	 **/
 	function tag ($id,$property,$options=array()) {
 		global $Shopp;
 
@@ -418,6 +544,6 @@ class Item {
 		return false;
 	}
 
-} // end Item class
+} // END class Item
 
 ?>

@@ -1,38 +1,35 @@
 <?php
 /**
- * Price class
- * Catalog product price variations
+ * Price.php
+ * 
+ * Product price objects
  *
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, 28 March, 2008
+ * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
+ * @since 1.0
+ * @subpackage products
  **/
-
 class Price extends DatabaseObject {
+
 	static $table = "price";
 	
-	function Price ($id=false,$key=false) {
+	function __construct ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id,$key)) {
+		if ($this->load($id,$key))
 			$this->load_download();
-			return true;
-		}
-		else return false;
 	}
-	
-	/**
-	 * Load a single record by a slug name */
-	function loadby_optionkey ($product,$key) {
-		$db = DB::get();
-		
-		$r = $db->query("SELECT * FROM $this->_table WHERE product='$product' AND optionkey='$key'");
-		$this->populate($r);
 
-		if (!empty($this->id)) return true;
-		return false;
-	}
-	
+	/**
+	 * Loads a product download attached to the price object
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return boolean
+	 **/
 	function load_download () {
 		if ($this->type != "Download") return false;
 		$this->download = new ProductDownload(array(
@@ -45,18 +42,26 @@ class Price extends DatabaseObject {
 		return true;
 	}
 	
+	/**
+	 * Attaches a product download asset to the price object
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function attach_download ($id) {
 		if (!$id) return false;
 		
 		$Download = new ProductDownload($id);
 		$Download->parent = $this->id;
 		$Download->save();
-				
+
 		do_action('attach_product_download',$id,$this->id);
 		
 		return true;
 	}
 
-} // end Price class
+} // END class Price
 
 ?>

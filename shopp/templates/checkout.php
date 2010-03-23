@@ -87,9 +87,15 @@
 		<li class="payment">
 			<span><?php shopp('checkout','billing-cardholder','required=true&size=30&title='.__('Card Holder\'s Name','Shopp')); ?><label for="billing-cardholder"><?php _e('Name on Card','Shopp'); ?></label></span>
 			<span><?php shopp('checkout','billing-cvv','size=7&minlength=3&maxlength=4&title='.__('Card\'s security code (3-4 digits on the back of the card)','Shopp')); ?><label for="billing-cvv"><?php _e('Security ID','Shopp'); ?></label></span>
-		</li>	
+		</li>
+		<?php if (shopp('checkout','billing-xcsc-required')): // Extra billing security fields ?>
+		<li class="payment">
+		<span><?php shopp('checkout','billing-xcsc','input=start&size=7&minlength=5&maxlength=5&title='.__('Card\'s start date (MM/YY)','Shopp')); ?><label for="billing-xcsc-start"><?php _e('Start Date','Shopp'); ?></label></span>
+			<span><?php shopp('checkout','billing-xcsc','input=issue&size=7&minlength=3&maxlength=4&title='.__('Card\'s issue number','Shopp')); ?><label for="billing-xcsc-issue"><?php _e('Issue #','Shopp'); ?></label></span>
+		</li>
 		<?php endif; ?>
-		<?php shopp('checkout','billing-xco'); ?>
+		
+		<?php endif; ?>
 	</ul>
 	<br class="clear" />
 	<p class="submit"><?php shopp('checkout','submit','value='.__('Submit Order','Shopp')); ?></p>

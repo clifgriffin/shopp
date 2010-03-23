@@ -38,7 +38,15 @@ class FileAsset extends MetaObject {
 		$this->load($id);
 
 	}
-		
+	
+	/**
+	 * Load a FileAsset from the database
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function load ($id) {
 		if (is_array($id)) parent::load($id);
 		parent::load(array('id'=>$id,'type'=>$this->type));
@@ -46,6 +54,14 @@ class FileAsset extends MetaObject {
 		$this->expopulate();
 	}
 	
+	/**
+	 * Populate extended fields loaded from the MetaObject
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function expopulate () {
 		if (is_object($this->value)) {
 			$properties = $this->value;
@@ -54,6 +70,14 @@ class FileAsset extends MetaObject {
 		}
 	}
 	
+	/**
+	 * Save the object back to the database
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function save () {
 		$this->value = new stdClass();
 		foreach ($this->_xcols as $col)
@@ -75,17 +99,41 @@ class FileAsset extends MetaObject {
 		if ($this->uri === false) return false;
 	}
 	
+	/**
+	 * Retrieve the resource data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function retrieve () {
 		$Engine = $this->_engine();
 		return $Engine->load($this->uri);
 	}
 	
+	/**
+	 * Determine if the resource exists
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function found () {
 		if (!empty($this->data)) return true;
 		$Engine = $this->_engine();
 		return $Engine->exists($this->uri);
 	}
 	
+	/**
+	 * Determine the storage engine to use
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function &_engine () {
 		global $Shopp;
 
@@ -108,6 +156,14 @@ class FileAsset extends MetaObject {
 		return $Engine;
 	}
 	
+	/**
+	 * Stub for extensions
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function extensions () {}
 	
 } // END class FileAsset

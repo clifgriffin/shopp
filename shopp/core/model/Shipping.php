@@ -1,24 +1,45 @@
 <?php
 /**
- * Shipping class
- * Shipping addresses
+ * Shipping.php
+ * 
+ * Shipping addresses and shipping rate modules
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.1
  * @copyright Ingenesis Limited, 28 March, 2008
+ * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
+ * @since 1.1
+ * @subpackage shipping
  **/
 
+/**
+ * Shipping class
+ * 
+ * The shipping address manager
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * @package shipping
+ **/
 class Shipping extends DatabaseObject {
 	static $table = "shipping";
 	var $method = false;
 	
-	function Shipping ($id=false,$key=false) {
+	function __construct ($id=false,$key=false) {
 		$this->init(self::$table);
 		if ($id && $this->load($id,$key)) return true;
 		else return false;
 	}
 	
+	/**
+	 * Registry of supported export fields
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return array
+	 **/
 	function exportcolumns () {
 		$prefix = "s.";
 		return array(
@@ -32,9 +53,14 @@ class Shipping extends DatabaseObject {
 	}
 	
 	/**
-	 * postarea()
-	 * Determines the domestic area name from a 
-	 * U.S. zip code or Canadian postal code */
+	 * Determines the domestic area name from a U.S. ZIP code or
+	 * Canadian postal code.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return string
+	 **/
 	function postarea () {
 		global $Shopp;
 		$code = $this->postcode;
@@ -80,9 +106,14 @@ class Shipping extends DatabaseObject {
 	}
 	
 	/**
-	 * destination()
-	 * Sets the shipping address location 
-	 * for calculating shipping estimates */
+	 * Sets the shipping address location for calculating
+	 * shipping estimates.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function destination ($data=false) {
 		global $Shopp;
 		

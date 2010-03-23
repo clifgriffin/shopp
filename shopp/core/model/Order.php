@@ -117,8 +117,9 @@ class Order {
 			$Gateway = current($Shopp->Gateways->active);
 			$this->processor = $Gateway->module;
 			$this->gateway = $Gateway->name;
+			return $Gateway;
 		}
-		
+
 		if (isset($Shopp->Gateways->active[$this->processor]))
 			return $Shopp->Gateways->active[$this->processor];
 		return false;
@@ -194,6 +195,10 @@ class Order {
 			} else $this->Billing->cardexpires = 0;
 
 			$this->Billing->cvv = preg_replace('/[^\d]/','',$_POST['billing']['cvv']);
+			if (!empty($_POST['billing']['xcsc'])) {
+				foreach ($_POST['billing']['xcsc'] as $field => $value)
+					$this->Billing->{$field} = $value;
+			}
 		}
 
 		if (!empty($this->Cart->shipped)) {
@@ -950,12 +955,20 @@ class Order {
 				if ($options['mode'] == "value") return $this->Billing->cardtype;
 				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->Billing->cardtype))
-					$options['selected'] = $this->Billing->cardtype;	
-				$cards = $Shopp->Settings->get('gateway_cardtypes');
+					$options['selected'] = $this->Billing->cardtype;
+
+				$Gateway = $Shopp->Gateways->active[$this->processor];
+
+				$cards = array();
+				foreach ($Gateway->settings['cards'] as $card) {
+					$PayCard = Lookup::paycard($card);
+					$cards[$PayCard->symbol] = $PayCard->name;
+				}
+
 				$label = (!empty($options['label']))?$options['label']:'';
 				$output = '<select name="billing[cardtype]" id="billing-cardtype" '.inputattrs($options,$select_attrs).'>';
 				$output .= '<option value="" selected="selected">'.$label.'</option>';
-			 	$output .= menuoptions($cards,$options['selected']);
+			 	$output .= menuoptions($cards,$options['selected'],true);
 				$output .= '</select>';
 				return $output;
 				break;
@@ -969,6 +982,50 @@ class Order {
 				if (!empty($_POST['billing']['cvv']))
 					$options['value'] = $_POST['billing']['cvv'];
 				return '<input type="text" name="billing[cvv]" id="billing-cvv" '.inputattrs($options).' />';
+				break;
+			case "billing-xcsc-required":
+				$Gateways = $Shopp->Gateways->active;
+				foreach ($Gateways as $Gateway) {
+					foreach ($Gateway->settings['cards'] as $card) {
+						$PayCard = Lookup::paycard($card);
+						if (!empty($PayCard->inputs)) return true;
+					}
+				}
+				return false;
+				break;
+			case "billing-xcsc":
+				if (empty($options['input'])) return;
+				$input = $options['input'];
+				
+				$cards = array();
+				$valid = array();
+				// Collect valid card inputs for all gateways
+				foreach ($Shopp->Gateways->active as $Gateway) {
+					foreach ($Gateway->settings['cards'] as $card) {
+						$PayCard = Lookup::paycard($card);
+						if (empty($PayCard->inputs)) continue;
+						$cards[] = $PayCard->symbol;
+						foreach ($PayCard->inputs as $field => $size)
+							$valid[$field] = $size;
+					} 
+				}
+
+				if (!array_key_exists($input,$valid)) return;
+
+				if (!empty($_POST['billing']['xcsc'][$input]))
+					$options['value'] = $_POST['billing']['xcsc'][$input];
+				$string = '<input type="text" name="billing[xcsc]['.$input.']" id="billing-xcsc-'.$input.'" '.inputattrs($options).' />';
+				$string .= '<script type="text/javascript">
+				jQuery(document).ready(function () { 
+					jQuery("#billing-cardtype").change(function () {
+						var cards = '.json_encode($cards).';
+					
+						if (jQuery.inArray(jQuery(this).val(),cards) != -1) jQuery("#billing-xcsc-'.$input.'").attr("disabled",false);
+						else jQuery("#billing-xcsc-'.$input.'").attr("disabled",true);
+					}).change();
+				});
+				</script>';
+				return $string;
 				break;
 			case "billing-xco": return; break; // DEPRECATED
 			case "has-data":
