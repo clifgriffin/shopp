@@ -1,6 +1,7 @@
 <?php
 /**
- * DB classes
+ * DB.php
+ * 
  * Database management classes
  *
  * @author Jonathan Davis
@@ -8,6 +9,8 @@
  * @copyright Ingenesis Limited, 28 March, 2008
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
+ * @since 1.0
+ * @subpackage db
  **/
 
 define("AS_ARRAY",false);
@@ -624,7 +627,7 @@ abstract class DatabaseObject {
 		$this->init(false);
 	}
 
-}  // END class DatabaseObject
+} // END class DatabaseObject
 
 
 /**
@@ -661,6 +664,14 @@ abstract class SessionObject {
 		register_shutdown_function('session_write_close');
 	}
 	
+	/**
+	 * Register session handlers
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function handling () {
 		return session_set_save_handler(
 			array( &$this, 'open' ),	// Open
@@ -672,8 +683,14 @@ abstract class SessionObject {
 		);
 	}
 	
-	/* open()
-	 * Initializing routine for the session management. */
+	/**
+	 * Initializing routine for the session management.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function open ($path,$name) {
 		$this->path = $path;
 		if (empty($this->path)) $this->path = sanitize_path(defined('SHOPP_TEMP_PATH')?realpath(SHOPP_TEMP_PATH):sys_get_temp_dir());
@@ -683,14 +700,26 @@ abstract class SessionObject {
 		return true;
 	}
 	
-	/* close()
+	/**
 	 * Placeholder function as we are working with a persistant 
-	 * database as opposed to file handlers. */
+	 * database as opposed to file handlers.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function close () { return true; }
 
-	/* load()
+	/**
 	 * Gets data from the session data table and loads Member 
-	 * objects into the User from the loaded data. */
+	 * objects into the User from the loaded data.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function load ($id) {
 		$db = &DB::get();
 
@@ -731,9 +760,15 @@ abstract class SessionObject {
 		return $loaded;
 	}
 
-	/* unload()
+	/**
 	 * Deletes the session data from the database, unregisters the 
-	 * session and releases all the objects. */
+	 * session and releases all the objects.
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function unload () {
 		$db = &DB::get();
 		if(empty($this->session)) return false;		
@@ -743,8 +778,14 @@ abstract class SessionObject {
 		return true;
 	}
 	
-	/* save() 
-	 * Save the session data to our session table in the database. */
+	/**
+	 * Save the session data to our session table in the database.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function save ($id,$session) {
 		global $Shopp;
 		$db = &DB::get();
@@ -779,9 +820,15 @@ abstract class SessionObject {
 		return true;
 	}
 
-	/* trash()
+	/**
 	 * Garbage collection routine for cleaning up old and expired
-	 * sessions. */
+	 * sessions.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function trash () {
 		$db = &DB::get();
 				
@@ -792,8 +839,13 @@ abstract class SessionObject {
 	}
 	
 	/**
-	 * secured()
-	 * Check or set the security setting for the session */
+	 * Check or set the security setting for the session
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
 	function secured ($setting=null) {
 		if (is_null($setting)) return $this->secure;
 		$this->secure = ($setting);
@@ -805,8 +857,13 @@ abstract class SessionObject {
 	}
 
 	/**
-	 * securekey()
-	 * Generate the session security key */
+	 * Generate the session security key
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return string
+	 **/
 	function securekey () {
 		require_once(ABSPATH . WPINC . '/pluggable.php');
 		if (!is_shopp_secure()) return false;
@@ -820,6 +877,6 @@ abstract class SessionObject {
 		return $content;
 	}
 	
-}
+} // END class SessionObject
 
 ?>

@@ -31,6 +31,17 @@ class DBStorage extends StorageModule implements StorageEngine {
 		$this->_table = DatabaseObject::tablename($this->_table);
 	}
 	
+	/**
+	 * Save an asset to the database
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param Asset $asset Asset object the data is associated with
+	 * @param string $data Binary data or path to the file to be saved
+	 * @param string $type (optional) Type of data provided - binary (default) or file
+	 * @return string|boolean A URI for the resource or false if failed
+	 **/
 	function save ($asset,$data,$type='binary') {
 		$db = &DB::get();
 		
@@ -53,12 +64,30 @@ class DBStorage extends StorageModule implements StorageEngine {
 		return false;
 	}
 	
+	/**
+	 * Determine if the provided resource exists
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $uri The URI for the resource
+	 * @return boolean True if the resource exists
+	 **/
 	function exists ($uri) {
 		$db = &DB::get();
 		$file = $db->query("SELECT id FROM $this->_table WHERE $this->_key='$uri' LIMIT 1");
 		return (!empty($file));
 	}
 
+	/**
+	 * Load the binary data of a specified resource
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $uri The URI for the resource
+	 * @return string Binary data
+	 **/
 	function load ($uri) {
 		$db = &DB::get();
 		if (!$uri) return false;

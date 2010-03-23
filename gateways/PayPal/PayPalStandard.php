@@ -37,7 +37,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 						'Denied' => 'VOID', 'Expired' => 'VOID','Failed' => 'VOID','Pending' => 'PENDING',
 						'Refunded' => 'VOID','Reversed' => 'VOID','Processed' => 'PENDING','Voided' => 'VOID');
 
-	function PayPalStandard () {
+	function __construct () {
 		parent::__construct();
 		
 		$this->setup('account','pdtverify','pdttoken','testmode');

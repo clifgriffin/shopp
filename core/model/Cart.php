@@ -14,13 +14,6 @@
 
 require("Item.php");
 
-/**
- * 
- *
- * @author Jonathan Davis
- * @since 1.1
- * @package shopp
- **/
 class Cart {
 
 	// properties
@@ -1372,6 +1365,14 @@ class CartTax {
 		$this->shipping = ($Shopp->Settings->get('tax_shipping') == "on");
 	}
 	
+	/**
+	 * Determine the applicable tax rate
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return float The tax rate
+	 **/
 	function rate () {
 		if (!$this->enabled) return false;		
 		if (!is_array($this->rates)) return false;
@@ -1406,6 +1407,14 @@ class CartTax {
 		if ($global) return apply_filters('shopp_cart_taxrate',$global['rate']/100);
 	}
 	
+	/**
+	 * Calculates total taxes
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return float Total tax amount
+	 **/
 	function calculate () {
 		$Totals = $this->Order->Cart->Totals;
 		if ($Totals->discount > $Totals->taxed) $Totals->taxed = 0;

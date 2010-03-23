@@ -133,6 +133,7 @@ class Shopp {
 		if (!defined('SHOPP_GATEWAY_TIMEOUT')) define('SHOPP_GATEWAY_TIMEOUT',10);
 		if (!defined('SHOPP_SHIPPING_TIMEOUT')) define('SHOPP_SHIPPING_TIMEOUT',10);
 
+		// Settings & Paths
 		define("SHOPP_DEBUG",($this->Settings->get('error_logging') == 2048));
 		define("SHOPP_PATH",$this->path);
 		define("SHOPP_PLUGINURI",$this->uri);
@@ -485,6 +486,14 @@ class Shopp {
 		else return add_query_arg('page_id',$page['id'],trailingslashit($uri));
 	}
 	
+	/**
+	 * Filters the WP page list transforming unsecured URLs to secure URLs
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function secure_links ($linklist) {
 		if (!$this->gateways->secure) return $linklist;
 		$hrefs = array(
@@ -500,6 +509,17 @@ class Shopp {
 		return $linklist;
 	}
 	
+	/**
+	 * Communicates with the Shopp update service server
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $request (optional) A list of request variables to send
+	 * @param array $data (optional) A list of data variables to send
+	 * @param array $options (optional) 
+	 * @return string The response from the server
+	 **/
 	function callhome ($request=array(),$data=array(),$options=array()) {
 		$query = http_build_query($request);
 		$data = http_build_query($data);
@@ -520,6 +540,14 @@ class Shopp {
 		return $result;
 	}
 	
+	/**
+	 * Checks for available updates
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return array List of available updates
+	 **/
 	function updates () {
 		$updates = new StdClass();
 		
@@ -566,6 +594,14 @@ class Shopp {
 		return $updates;
 	}
 	
+	/**
+	 * Loads the change log for an available update
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function changelog () {
 		if($_REQUEST["plugin"] != "shopp") return;
 		
@@ -588,6 +624,14 @@ class Shopp {
 		exit();
 	}
 	
+	/**
+	 * Reports on the availability of new updates and the update key
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function status () {
 		$updates = $this->Settings->get('updates');
 		$key = $this->Settings->get('updatekey');
