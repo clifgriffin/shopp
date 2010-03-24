@@ -248,8 +248,8 @@ class AdminFlow extends FlowController {
 
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp',SHOPP_ADMIN_URI."/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
-		wp_enqueue_script('shopp-settings',add_query_arg('src','settings.js',get_bloginfo('url')),array(),SHOPP_VERSION);
-
+		$Shopp->settingsjs();
+		
 		// For TinyMCE editors (product editor & category editor)
 		if (!empty($_GET['id'])) add_action( 'admin_footer', 'wp_tiny_mce', 25 );
 		

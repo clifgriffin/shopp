@@ -120,14 +120,13 @@ class Cart {
 		switch($_REQUEST['cart']) {
 			case "add":			
 				if (isset($_REQUEST['product'])) {
-					
 					$quantity = (empty($product['quantity']) && 
 						$product['quantity'] !== 0)?1:$product['quantity']; // Add 1 by default
 					$Product = new Product($_REQUEST['product']);
 					$pricing = false;
-					if (!empty($_REQUEST['options']) && !empty($_REQUEST['options'][0])) 
+					if (!empty($_REQUEST['options']) && !empty($_REQUEST['options'][0])) {
 						$pricing = $_REQUEST['options'];
-					else $pricing = $_REQUEST['price'];
+					} else $pricing = $_REQUEST['price'];
 
 					$category = false;
 					if (!empty($_REQUEST['category'])) $category = $_REQUEST['category'];

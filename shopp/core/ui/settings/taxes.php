@@ -40,8 +40,6 @@
 
 <script type="text/javascript">
 //<![CDATA[
-helpurl = "<?php echo SHOPP_DOCS; ?>Taxes_Settings";
-
 (function($) {
 
 var disableCountriesInUse = function () {

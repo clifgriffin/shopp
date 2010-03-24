@@ -1051,7 +1051,10 @@ class Product extends DatabaseObject {
 
 					if ($thisprice && $thisprice->type == "N/A")
 						next($this->prices);
-
+						
+					if ($thisprice && $thisprice->context != "variation")
+						next($this->prices);
+						
 					if (current($this->prices) !== false) return true;
 					else {
 						$this->priceloop = false;
@@ -1097,6 +1100,8 @@ class Product extends DatabaseObject {
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 
 				} else {
+					// if (isset($this->options)) return;
+					
 					$taxrate = shopp_taxrate($options['taxes'],true);
 					ob_start();
 					?>
@@ -1119,33 +1124,19 @@ class Product extends DatabaseObject {
 					ob_end_clean();
 
 					$options['after_menu'] = $script.$options['after_menu'];
-					if (isset($this->options['variations'])) {
-						foreach ($this->options['variations'] as $id => $menu) {
-							if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-							if (value_is_true($options['label'])) $string .= '<label for="options-'.$id.'">'.$menu['menu'].'</label> '."\n";
 
-							$string .= '<select name="products['.$this->id.'][options][]" class="product'.$this->id.' options">';
-							if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
-							foreach ($menu['label'] as $key => $option)
-								$string .= '<option value="'.$menu['id'][$key].'">'.$option.'</option>'."\n";
+					foreach ($this->options as $id => $menu) {
+						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
+						if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
+						$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
+						$string .= '<select name="products['.$this->id.'][options][]" class="'.$category_class.' product'.$this->id.' options" id="options-'.$menu['id'].'">';
+						if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
+						foreach ($menu['options'] as $key => $option)
+							$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
 
-							$string .= '</select>';
-						}
-						if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
-					} else {
-						foreach ($this->options as $id => $menu) {
-							if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-							if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
-							$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
-							$string .= '<select name="products['.$this->id.'][options][]" class="'.$category_class.' product'.$this->id.' options" id="options-'.$menu['id'].'">';
-							if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
-							foreach ($menu['options'] as $key => $option)
-								$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
-
-							$string .= '</select>';
-						}
-						if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
+						$string .= '</select>';
 					}
+					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 					
 				}
 
@@ -1175,8 +1166,94 @@ class Product extends DatabaseObject {
 				return $string;
 				break;
 			case "has-addons":
-				if (isset($this->options['addons'])) return true; else return false; break;
+				return ($this->addons == "on" && !empty($this->options['a'])); break;
 				break;
+				
+			case "addons":
+
+				$string = "";
+
+				if (!isset($options['mode'])) {
+					if (!$this->priceloop) {
+						reset($this->prices);
+						$this->priceloop = true;
+					} else next($this->prices);
+					$thisprice = current($this->prices);
+
+					if ($thisprice && $thisprice->type == "N/A")
+						next($this->prices);
+
+					if ($thisprice && $thisprice->context != "addon")
+						next($this->prices);
+
+					if (current($this->prices) !== false) return true;
+					else {
+						$this->priceloop = false;
+						return false;
+					}
+					return true;
+				}
+
+				if ($this->outofstock) return false; // Completely out of stock, hide menus
+				if (!isset($options['taxes'])) $options['taxes'] = null;
+
+				$defaults = array(
+					'defaults' => '',
+					'disabled' => 'show',
+					'before_menu' => '',
+					'after_menu' => ''
+					);
+
+				$options = array_merge($defaults,$options);
+
+				if (!isset($options['label'])) $options['label'] = "on";
+				if (!isset($options['required'])) $options['required'] = __('You must select the options for this item before you can add it to your shopping cart.','Shopp');
+				if ($options['mode'] == "single") {
+					if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
+					if (value_is_true($options['label'])) $string .= '<label for="product-options'.$this->id.'">'. __('Options').': </label> '."\n";
+
+					$string .= '<select name="products['.$this->id.'][price]" id="product-options'.$this->id.'">';
+					if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
+
+					foreach ($this->prices as $pricetag) {
+						if ($pricetag->context != "addon") continue;
+
+						$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax);
+						$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
+						$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
+
+						$price = '  ('.money($currently).')';
+						if ($pricetag->type != "N/A")
+							$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.$pricetag->label.$price.'</option>'."\n";
+					}
+
+					$string .= '</select>';
+					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
+
+				} else {
+					if (!isset($this->options['a'])) return;
+
+					$taxrate = shopp_taxrate($options['taxes'],true);
+					$options['after_menu'] = $script.$options['after_menu'];
+					
+					foreach ($this->options['a'] as $id => $menu) {
+						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
+						if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
+						$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
+						$string .= '<select name="products['.$this->id.'][addons][]" class="'.$category_class.' product'.$this->id.' options" id="options-'.$menu['id'].'">';
+						if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
+						foreach ($menu['options'] as $key => $option)
+							$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
+
+						$string .= '</select>';
+					}
+					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
+
+				}
+
+				return $string;
+				break;
+
 			case "donation":
 			case "amount":
 			case "quantity":

@@ -116,27 +116,25 @@ class Storefront extends FlowController {
 		}
 
 		// Include stylesheets and javascript based on whether shopp shortcodes are used
+		add_action('wp_print_styles',array(&$this, 'catalogcss'));
 		add_action('wp_head', array(&$this, 'header'));
 		add_action('wp_footer', array(&$this, 'footer'));
-
-
-		wp_enqueue_style('shopp.catalog.css',add_query_arg(array('src'=>'catalog.css'),get_bloginfo('url')),array(),SHOPP_VERSION,'screen');
-		wp_enqueue_style('shopp.css',SHOPP_TEMPLATES_URI.'/shopp.css',array(),SHOPP_VERSION,'screen');
-		wp_enqueue_style('shopp.colorbox.css',SHOPP_PLUGINURI.'/core/ui/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.catalog',SHOPP_PLUGINURI.'/core/ui/styles/catalog.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp',SHOPP_TEMPLATES_URI.'/shopp.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.colorbox',SHOPP_PLUGINURI.'/core/ui/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
 		if (is_shopp_page('account') || (isset($wp->query_vars['shopp_proc']) && $wp->query_vars['shopp_proc'] == "sold"))
-			wp_enqueue_style('shopp.printable.css',SHOPP_PLUGINURI.'/core/ui/styles/printable.css',array(),SHOPP_VERSION,'print');
+			wp_enqueue_style('shopp.printable',SHOPP_PLUGINURI.'/core/ui/styles/printable.css',array(),SHOPP_VERSION,'print');
 
 		$loading = $this->Settings->get('script_loading');
 		if (!$loading || $loading == "global" || $tag !== false) {
 			wp_enqueue_script('jquery');
-			wp_enqueue_script('shopp-settings',add_query_arg('src','settings.js',get_bloginfo('url')));
-			wp_enqueue_script("shopp.thickbox",SHOPP_PLUGINURI."/core/ui/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script("shopp",SHOPP_PLUGINURI."/core/ui/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script("shopp.colorbox",SHOPP_PLUGINURI.'/core/ui/behaviors/colorbox.js',array('jquery'),SHOPP_VERSION,true);
+			wp_enqueue_script("shopp",SHOPP_PLUGINURI.'/core/ui/behaviors/shopp.js',array('jquery'),SHOPP_VERSION,true);
+			$Shopp->settingsjs();
 		}
 
 		if ($tag == "checkout")
-			wp_enqueue_script('shopp.checkout',SHOPP_PLUGINURI."/core/ui/behaviors/checkout.js",array('jquery'),SHOPP_VERSION,true);		
-
+			wp_enqueue_script('shopp.checkout',SHOPP_PLUGINURI.'/core/ui/behaviors/checkout.js',array('jquery'),SHOPP_VERSION,true);		
 
 	}
 
@@ -249,11 +247,33 @@ class Storefront extends FlowController {
 	 * Adds stylesheets necessary for Shopp public shopping pages */
 	function header () {
 		global $wp;
+
 		$canonurl = $this->canonurls(false);
 		if (is_shopp_page('catalog') && !empty($canonurl)): ?><link rel='canonical' href='<?php echo $canonurl ?>' /><?php
 		endif;
 	}
 
+	function catalogcss () {
+		$Settings = ShoppSettings();
+		if (!isset($row_products)) $row_products = 3;
+		$products_per_row = floor((100/$row_products));
+
+		$category_thumb_width = $Settings->get('gallery_thumbnail_width');
+		$row_products = $Settings->get('row_products');
+		$gallery_small_width = $Settings->get('gallery_small_width');
+		$gallery_small_height = $Settings->get('gallery_small_height');
+
+?>
+	<!-- Shopp dynamic catalog styles -->
+	<style type="text/css">
+	#shopp .products .frame { width: <?php echo $category_thumb_width; ?>px; }
+	#shopp ul.products li.product { width: <?php echo $products_per_row; ?>%; } /* For grid view */
+	#shopp .gallery .previews li { width: <?php echo $gallery_small_width; ?>px; height: <?php echo $gallery_small_height; ?>px; line-height: <?php echo $gallery_small_height; ?>px; }
+	</style>
+	<!-- END Shopp dynamic catalog styles -->
+<?php
+	}
+	
 	/**
 	 * footer()
 	 * Adds report information and custom debugging tools to the public and admin footers */

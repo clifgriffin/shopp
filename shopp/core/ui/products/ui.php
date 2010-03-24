@@ -213,7 +213,6 @@ function pricing_meta_box ($Product) {
 			<div class="clear"></div>
 		</div>
 	</div>
-<br />
 <div id="addon-pricing"></div>
 </div>
 

@@ -72,8 +72,6 @@
 </div>
 
 <script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>Categories";
-
 jQuery(document).ready( function() {
 
 	var $ = jQuery.noConflict();

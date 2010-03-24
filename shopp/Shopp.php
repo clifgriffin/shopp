@@ -41,11 +41,6 @@ require_once("core/model/Settings.php");
 // Serve images and bypass loading all of Shopp
 if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI'])) 
 	require("core/image.php");
-	
-// Serve the dynamic CSS and JS
-if (isset($_GET['src']) && $_GET['src'] == 'catalog.css') shopp_catalog_css();
-if (isset($_GET['src']) && $_GET['src'] == 'settings.js') 
-	shopp_settings_js(basename(dirname(__FILE__)));
 
 // Load super controllers
 require("core/flow/Flow.php");
@@ -484,6 +479,63 @@ class Shopp {
 
 		if (SHOPP_PERMALINKS) return user_trailingslashit($uri."/".$page['permalink']);
 		else return add_query_arg('page_id',$page['id'],trailingslashit($uri));
+	}
+
+	/**
+	 * Provides the JavaScript environment with Shopp settings
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function settingsjs () {
+		$baseop = $this->Settings->get('base_operations');
+		
+		wp_localize_script('shopp','ShoppSettings',array(
+			// Currency formatting
+			'cp' => $baseop['currency']['format']['cpos'],
+			'c' => $baseop['currency']['format']['currency'],
+			'p' => $baseop['currency']['format']['precision'],
+			't' => $baseop['currency']['format']['thousands'],
+			'd' => $baseop['currency']['format']['decimals'],
+
+			// Alerts
+			'LOGIN_NAME_REQUIRED' => __('You did not enter a login.','Shopp'),
+			'LOGIN_PASSWORD_REQUIRED' => __('You did not enter a password to login with.','Shopp'),
+			'REQUIRED_FIELD' => __('Your %s is required.','Shopp'),
+			'INVALID_EMAIL' => __('The e-mail address you provided does not appear to be a valid address.','Shopp'),
+			'MIN_LENGTH' => __('The %s you entered is too short. It must be at least %d characters long.','Shopp'),
+			'PASSWORD_MISMATCH' => __('The passwords you entered do not match. They must match in order to confirm you are correctly entering the password you want to use.','Shopp'),
+			'REQUIRED_CHECKBOX' => __('%s must be checked before you can proceed.','Shopp'),
+
+			// Admin only
+			'UNSAVED_CHANGES_WARNING' => __('There are unsaved changes that will be lost if you continue.','Shopp'),
+			
+			// Month names
+			'month_jan' => __('January','Shopp'),
+			'month_feb' => __('February','Shopp'),
+			'month_mar' => __('March','Shopp'),
+			'month_apr' => __('April','Shopp'),
+			'month_may' => __('May','Shopp'),
+			'month_jun' => __('June','Shopp'),
+			'month_jul' => __('July','Shopp'),
+			'month_aug' => __('August','Shopp'),
+			'month_sep' => __('September','Shopp'),
+			'month_oct' => __('October','Shopp'),
+			'month_nov' => __('November','Shopp'),
+			'month_dec' => __('December','Shopp'),
+
+			// Weekday names
+			'weekday_sun' => __('Sun','Shopp'),
+			'weekday_mon' => __('Mon','Shopp'),
+			'weekday_tue' => __('Tue','Shopp'),
+			'weekday_wed' => __('Wed','Shopp'),
+			'weekday_thu' => __('Thu','Shopp'),
+			'weekday_fri' => __('Fri','Shopp'),
+			'weekday_sat' => __('Sat','Shopp')
+
+		));
 	}
 	
 	/**
