@@ -25,11 +25,24 @@ if (!Array.indexOf) {
 	}
 }
 
+function getCurrencyFormat () {
+	if (!ShoppSettings) return false;
+	return {
+		"cp":ShoppSettings.cpos,
+		"c":ShoppSettings.currency,
+		"p":parseInt(ShoppSettings.precision),
+		"d":ShoppSettings.decimals,
+		"t":ShoppSettings.thousands
+	}
+	
+}
+
 /**
  * asMoney ()
  * Add notation to an integer to display it as money.
  **/
 function asMoney (number,format) {
+	var currencyFormat = getCurrencyFormat();
 	if (currencyFormat && !format) format = copyOf(currencyFormat);
 	if (!format || !format['currency']) {
 		format = {
@@ -51,6 +64,7 @@ function asMoney (number,format) {
  * Add notation to an integer to display it as a percentage.
  **/
 function asPercent (number,format) {
+	var currencyFormat = getCurrencyFormat();
 	if (currencyFormat && !format) format = copyOf(currencyFormat);
 	if (!format) {
 		format = {
@@ -100,6 +114,7 @@ function formatNumber (number,format) {
  **/
 var asNumber = function(number,format) {
 	if (!number) return 0;
+	var currencyFormat = getCurrencyFormat();
 	if (currencyFormat && !format) format = copyOf(currencyFormat);
 	if (!format || !format['currency']) {
 		format = {
@@ -647,7 +662,15 @@ function PopupCalendar (target,month,year) {
 	var DAYS_IN_MONTH = new Array(new Array(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31),
 								  new Array(0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 								 );
-								
+	var MONTH_NAMES = new Array('',ShoppSettings.month_jan, ShoppSettings.month_feb, ShoppSettings.month_mar, 
+									ShoppSettings.month_apr, ShoppSettings.month_may, ShoppSettings.month_jun, 
+									ShoppSettings.month_jul, ShoppSettings.month_aug, ShoppSettings.month_sep, 
+									ShoppSettings.month_oct, ShoppSettings.month_nov, ShoppSettings.month_dec);
+	
+	var WEEK_DAYS = new Array(ShoppSettings.weekday_sun, ShoppSettings.weekday_mon,ShoppSettings.weekday_tue, 
+								ShoppSettings.weekday_wed, ShoppSettings.weekday_thu, ShoppSettings.weekday_fri, 
+								ShoppSettings.weekday_sat);
+	
 	/* Date Constants */
 	var K_FirstMissingDays = 639787; /* 3 Sep 1752 */
 	var K_MissingDays = 11; /* 11 day correction */
@@ -874,23 +897,23 @@ var validate = function (form) {
 		if ($(input).attr('disabled') == true) return;
 		
 		if ($(input).hasClass('required') && $(input).val() == "")
-			error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,$(input).attr('title')),input);
+			error = new Array(ShoppSettings.REQUIRED_FIELD.replace(/%s/,$(input).attr('title')),input);
 		
 		if ($(input).hasClass('required') && $(input).attr('type') == "checkbox" && !$(input).attr('checked'))
-			error = new Array(CHECKOUT_REQUIRED_FIELD.replace(/%s/,$(input).attr('title')),input);
+			error = new Array(ShoppSettings.REQUIRED_CHECKBOX.replace(/%s/,$(input).attr('title')),input);
 		
 		if ($(input).hasClass('email') && !$(input).val().match(new RegExp('^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+\.)+[a-zA-Z0-9.-]{2,4}$')))
-			error = new Array(CHECKOUT_INVALID_EMAIL,input);
+			error = new Array(ShoppSettings.INVALID_EMAIL,input);
 			
 		if (chars = $(input).attr('class').match(new RegExp('min(\\d+)'))) {
 			if ($(input).val().length < chars[1])
-				error = new Array(CHECKOUT_MIN_LENGTH.replace(/%s/,$(input).attr('title')).replace(/%d/,chars[1]),input);
+				error = new Array(ShoppSettings.MIN_LENGTH.replace(/%s/,$(input).attr('title')).replace(/%d/,chars[1]),input);
 		}
 		
 		if ($(input).hasClass('passwords')) {
 			passwords.push(input);
 			if (passwords.length == 2 && passwords[0].value != passwords[1].value)
-				error = new Array(CHECKOUT_PASSWORD_MISMATCH,passwords[1]);
+				error = new Array(ShoppSettings.PASSWORD_MISMATCH,passwords[1]);
 		}
 			
 	});
