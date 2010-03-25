@@ -1237,27 +1237,6 @@ function preg_e_callback ($matches) {
 	return ($matches[1] == 'e') ? __($matches[2],'Shopp') : "'".__($matches[2],'Shopp')."'";
 }
 
-// TODO: Clean up for Controllers
-function validate_addons () {
-	$addons = array();
-
-	$gateway_path = $this->basepath.'/'."gateways";		
-	find_files(".php",$gateway_path,$gateway_path,$gateways);
-	foreach ($gateways as $file) {
-		if (in_array(basename($file),$this->coremods)) continue;
-		$addons[] = md5_file($gateway_path.$file);
-	}
-
-	$shipping_path = $this->basepath.'/'."shipping";
-	find_files(".php",$shipping_path,$shipping_path,$shipmods);
-	foreach ($shipmods as $file) {
-		if (in_array(basename($file),$this->coremods)) continue;
-		$addons[] = md5_file($shipping_path.$file);
-	}
-	return $addons;
-}
-// TODO END: Clean up for Controllers
-
 /**
  * Uses builtin php openssl library to encrypt data.
  *

@@ -33,6 +33,7 @@
 			<td>
 				<a href="<?php shopp('cartitem','url'); ?>"><?php shopp('cartitem','name'); ?></a>
 				<?php shopp('cartitem','options'); ?>
+				<?php shopp('cartitem','addons-list'); ?>
 				<?php shopp('cartitem','inputs-list'); ?>
 			</td>
 			<td><?php shopp('cartitem','quantity','input=text'); ?>

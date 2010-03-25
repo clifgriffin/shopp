@@ -59,6 +59,7 @@ class Storefront extends FlowController {
 
 		ShoppingObject::store('search',$this->search);
 		ShoppingObject::store('browsing',$this->browsing);
+		ShoppingObject::store('breadcrumb',$this->breadcrumb);
 
 		add_action('wp', array(&$this, 'pageid'));
 		add_action('wp', array(&$this, 'cart'));

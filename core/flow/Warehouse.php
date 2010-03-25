@@ -402,9 +402,6 @@ class Warehouse extends AdminController {
 		if (empty($_POST['options'])) $Product->options = array();
 		else $_POST['options'] = stripslashes_deep($_POST['options']);
 
-		if (empty($_POST['addons'])) $Product->addons = array();
-		else $_POST['addons'] = stripslashes_deep($_POST['addons']);
-
 		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);	
 
 		// Check for an existing product slug
@@ -421,7 +418,7 @@ class Warehouse extends AdminController {
 		}
 		
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
-		$Product->updates($_POST,array('categories'));
+		$Product->updates($_POST,array('categories','prices'));
 		$Product->save();
 		
 		$Product->save_categories($_POST['categories']);
@@ -480,14 +477,17 @@ class Warehouse extends AdminController {
 			}
 			unset($Price);
 		}
-		
+
 		// No variation options at all, delete all variation-pricelines
-		if (empty($Product->options) && !empty($Product->prices) && is_array($Product->prices)) { 
+		if (!empty($Product->prices) && is_array($Product->prices)) { 
 			foreach ($Product->prices as $priceline) {
 				// Skip if not tied to variation options
-				if ($priceline->optionkey == 0) continue; 
-				$Price = new Price($priceline->id);
-				$Price->delete();
+				if ($priceline->optionkey == 0) continue;
+				if ((empty($this->options['v']) && $priceline->context == "variation") 
+					|| (empty($this->options['a']) && $priceline->context == "addon")) {
+						$Price = new Price($priceline->id);
+						$Price->delete();
+				}
 			}
 		}
 			

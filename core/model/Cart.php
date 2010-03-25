@@ -39,9 +39,7 @@ class Cart {
 	var $runaway = 0;
 	var $retotal = false;
 	var $handlers = false;
-	
-	// methods
-	
+		
 	/**
 	 * Cart constructor
 	 *
@@ -119,50 +117,38 @@ class Cart {
 
 		switch($_REQUEST['cart']) {
 			case "add":			
-				if (isset($_REQUEST['product'])) {
+				$products = array(); // List of products to add
+				if (isset($_REQUEST['product'])) $products[] = $_REQUEST['product'];
+				if (!empty($_REQUEST['products']) && is_array($_REQUEST['products'])) 
+					$products = array_merge($products,$_REQUEST['products']);
+				
+				if (empty($products)) break;
+				
+				foreach ($products as $id => $product) {
+					if (isset($product['quantity']) && $product['quantity'] == '0') continue;
 					$quantity = (empty($product['quantity']) && 
 						$product['quantity'] !== 0)?1:$product['quantity']; // Add 1 by default
-					$Product = new Product($_REQUEST['product']);
+					$Product = new Product($product['product']);
 					$pricing = false;
-					if (!empty($_REQUEST['options']) && !empty($_REQUEST['options'][0])) {
-						$pricing = $_REQUEST['options'];
-					} else $pricing = $_REQUEST['price'];
-
+					
+					if (!empty($product['options'][0])) $pricing = $product['options'];
+					elseif (isset($product['price'])) $pricing = $product['price'];
+					
 					$category = false;
-					if (!empty($_REQUEST['category'])) $category = $_REQUEST['category'];
-					
-					if (isset($_REQUEST['data'])) $data = $_REQUEST['data'];
-					else $data = array();
+					if (!empty($product['category'])) $category = $product['category'];
 
-					if (isset($_REQUEST['item'])) $result = $this->change($_REQUEST['item'],$Product,$pricing);
-					else $result = $this->add($quantity,$Product,$pricing,$category,$data);
-					
-				}
-				
-				if (isset($_REQUEST['products']) && is_array($_REQUEST['products'])) {
-					foreach ($_REQUEST['products'] as $id => $product) {
-						if (isset($product['quantity']) && $product['quantity'] == '0') continue;
-						$quantity = (empty($product['quantity']) && 
-							$product['quantity'] !== 0)?1:$product['quantity']; // Add 1 by default
-						$Product = new Product($product['product']);
-						$pricing = false;
-						if (!empty($product['options']) && !empty($product['options'][0])) 
-							$pricing = $product['options'];
-						elseif (isset($product['price'])) $pricing = $product['price'];
-						
-						$category = false;
-						if (!empty($product['category'])) $category = $product['category'];
+					$data = array();
+					if (!empty($product['data'])) $data = $product['data'];
 
-						if (!empty($product['data'])) $data = $product['data'];
-						else $data = array();
+					$addons = array();
+					if (isset($product['addons'])) $addons = $product['addons'];
 
-						if (!empty($Product->id)) {
-							if (isset($product['item'])) $result = $this->change($product['item'],$Product,$pricing);
-							else $result = $this->add($quantity,$Product,$pricing,$category,$data);
-						}
+					if (!empty($Product->id)) {
+						if (isset($product['item'])) $result = $this->change($product['item'],$Product,$pricing);
+						else $result = $this->add($quantity,$Product,$pricing,$category,$data,$addons);
 					}
-					
 				}
+					
 				break;
 			case "remove":
 				if (!empty($this->contents)) $this->remove(current($_REQUEST['remove']));
@@ -240,9 +226,9 @@ class Cart {
 	 * @param array $data Any custom item data to carry through
 	 * @return boolean
 	 **/
-	function add ($quantity,&$Product,&$Price,$category,$data=array()) {
+	function add ($quantity,&$Product,&$Price,$addons=array(),$data=array(),$category=false) {
 
-		$NewItem = new Item($Product,$Price,$category,$data);
+		$NewItem = new Item($Product,$Price,$addons,$data,$category);
 		if (!$NewItem->valid()) return false;
 		
 		if (($item = $this->hasitem($NewItem)) !== false) {
@@ -323,7 +309,7 @@ class Cart {
 	 * @param int|array|Price $pricing Price record ID or an array of pricing record IDs or a Price object
 	 * @return boolean
 	 **/
-	function change ($item,&$Product,$pricing) {
+	function change ($item,&$Product,$pricing,$addons=array()) {
 		// Don't change anything if everything is the same
 		if ($this->contents[$item]->product == $Product->id &&
 				$this->contents[$item]->price == $pricing) return true;
@@ -342,7 +328,8 @@ class Cart {
 		// No existing item, so change this one
 		$qty = $this->contents[$item]->quantity;
 		$category = $this->contents[$item]->category;
-		$this->contents[$item] = new Item($Product,$pricing,$category);
+		$data = $this->contents[$item]->data;
+		$this->contents[$item] = new Item($Product,$pricing,$addons,$data,$category);
 		$this->contents[$item]->quantity($qty);
 		
 		return $this->changed(true);
