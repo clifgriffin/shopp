@@ -45,13 +45,13 @@ class Item {
 	 * 
 	 * @param object $Product Product object
 	 * @param mixed $pricing A list of price IDs; The option key of a price object; or a Price object
-	 * @param int $category The breadcrumb category ID where the product was added from
-	 * @param array $data Custom data associated with the line item
+	 * @param int $category (optional)The breadcrumb category ID where the product was added from
+	 * @param array $data (optional) Custom data associated with the line item
+	 * @param array $addons (optional) A set of addon options
 	 * @return void
 	 **/
-	function __construct ($Product,$pricing,$category,$data=array()) {
-		global $Shopp; // To access settings
-
+	function __construct ($Product,$pricing,$category=false,$data=array(),$addons=array()) {
+		
 		$Product->load_data(array('prices','images','categories','tags','specs'));
 		// If product variations are enabled, disregard the first priceline
 		if ($Product->variations == "on") array_shift($Product->prices);
@@ -77,19 +77,24 @@ class Item {
 		$this->category = $category;
 		$this->categories = $this->namelist($Product->categories);
 		$this->tags = $this->namelist($Product->tags);
-		$this->option = $this->mapvariation($Price);
+		$this->option = $this->mapprice($Price);
 		$this->image = current($Product->images);
 		$this->description = $Product->summary;
 		if (isset($Product->thumbnail)) $this->thumbnail = $Product->thumbnail;
 		if ($Product->variations == "on") 
 			$this->variations($Product->prices);
+			
+		$addonsum = 0;
+		if ($Product->addons == "on") 
+			$this->addons($addonsum,$addons,$Product->prices);
+		
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
 		$this->sale = $Price->onsale;
 		$this->freeshipping = $Price->freeshipping;
 		// $this->saved = ($Price->price - $Price->promoprice);
 		// $this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
-		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price);
+		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price)+$addonsum;
 		if ($this->type == "Donation")
 			$this->donation = $Price->donation;
 		$this->data = stripslashes_deep(attribute_escape_deep($data));
@@ -115,9 +120,10 @@ class Item {
 				$this->shipfee = $Price->shipfee;
 			} else $this->freeshipping = true;
 		}
-		
+		$Settings = ShoppSettings();
 		$this->inventory = ($Price->inventory == "on")?true:false;
-		$this->taxable = ($Price->tax == "on" && $Shopp->Settings->get('taxes') == "on")?true:false;
+		$this->taxable = ($Price->tax == "on" && $Settings->get('taxes') == "on")?true:false;
+
 	}
 	
 	/**
@@ -242,12 +248,34 @@ class Item {
 	function variations ($prices) {
 		foreach ($prices as $price)	{
 			if ($price->type == "N/A") continue;
-			$this->variations[] = $this->mapvariation($price);
+			$pricing = $this->mapprice($price,"variation");
+			if ($pricing) $this->variations[] = $pricing;
 		}		
+	}
+	
+	/**
+	 * Populates the addons from a collection of price objects
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $prices A list of Price objects
+	 * @return void
+	 **/
+	function addons (&$sum,$addons,$prices) {
+		foreach ($prices as $p)	{
+			if ($p->type == "N/A" || !in_array($p->options,$addons)) continue;
+			$pricing = $this->mapprice($p,"addon");
+			if ($pricing) {
+				$pricing->unitprice = (($p->onsale)?$p->promoprice:$p->price);
+				$this->addons[] = $pricing;
+				$sum += $pricing->unitprice;
+			}
+		}
 	}
 
 	/**
-	 * Maps price object properties to variation properties
+	 * Maps price object properties
 	 * 
 	 * Populates only the necessary properties from a price object 
 	 * to a variation option to cut down on line item data size 
@@ -258,7 +286,8 @@ class Item {
 	 * 
 	 * @return object An Item variation object
 	 **/
-	function mapvariation ($price) {
+	function mapprice ($price,$context) {
+		if ($price->context != $context) return false;
 		$map = array('id','label','onsale','promoprice','price','inventory','stock','options');
 		$v = new stdClass();
 		foreach ($map as $property)
@@ -488,6 +517,24 @@ class Item {
 					$result .= '</select>';
 					$result .= $options['after'];
 				}
+				break;
+			case "addons-list":
+			case "addonslist":
+				if (empty($this->addons)) return false;
+				$prefix = "+"; $before = ""; $after = ""; $classes = ""; $excludes = array();
+				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
+				if (!empty($options['exclude'])) $excludes = explode(",",$options['exclude']);
+				if (!empty($options['before'])) $before = $options['before'];
+				if (!empty($options['after'])) $after = $options['after'];
+				if (!empty($options['prefix'])) $prefix = $options['prefix'];
+
+				$result .= $before.'<ul'.$classes.'>';
+				foreach ($this->addons as $id => $addon) {
+					if (in_array($addon->label,$excludes)) continue;
+					$result .= '<li>'.($prefix?$prefix.' ':'').''.$addon->label.'</li>';
+				}
+				$result .= '</ul>'.$after;
+				return $result;
 				break;
 			case "hasinputs": 
 			case "has-inputs": return (count($this->data) > 0); break;

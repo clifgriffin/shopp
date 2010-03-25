@@ -1037,7 +1037,7 @@ class Product extends DatabaseObject {
 				return $string;
 				break;
 			case "has-variations":
-				return ($this->variations == "on" && !empty($this->options)); break;
+				return ($this->variations == "on" && (!empty($this->options['v']) || !empty($this->options))); break;
 			case "variations":
 				
 				$string = "";
@@ -1100,7 +1100,7 @@ class Product extends DatabaseObject {
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 
 				} else {
-					// if (isset($this->options)) return;
+					if (!isset($this->options)) return;
 					
 					$taxrate = shopp_taxrate($options['taxes'],true);
 					ob_start();
@@ -1124,7 +1124,10 @@ class Product extends DatabaseObject {
 					ob_end_clean();
 
 					$options['after_menu'] = $script.$options['after_menu'];
-
+					
+					$options = $this->options;
+					if (!empty($this->options['v'])) $options = $this->options['v'];
+					
 					foreach ($this->options as $id => $menu) {
 						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 						if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
@@ -1168,7 +1171,6 @@ class Product extends DatabaseObject {
 			case "has-addons":
 				return ($this->addons == "on" && !empty($this->options['a'])); break;
 				break;
-				
 			case "addons":
 
 				$string = "";
@@ -1235,6 +1237,13 @@ class Product extends DatabaseObject {
 
 					$taxrate = shopp_taxrate($options['taxes'],true);
 					$options['after_menu'] = $script.$options['after_menu'];
+
+					// Index addon prices by option
+					$pricing = array();
+					foreach ($this->prices as $pricetag) {
+						if ($pricetag->context != "addon") continue;
+						$pricing[$pricetag->options] = $pricetag;
+					}
 					
 					foreach ($this->options['a'] as $id => $menu) {
 						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
@@ -1242,9 +1251,14 @@ class Product extends DatabaseObject {
 						$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
 						$string .= '<select name="products['.$this->id.'][addons][]" class="'.$category_class.' product'.$this->id.' options" id="options-'.$menu['id'].'">';
 						if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
-						foreach ($menu['options'] as $key => $option)
-							$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
-
+						foreach ($menu['options'] as $key => $option) {
+							
+							$pricetag = $pricing[$option['id']];
+							$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax);
+							$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
+							$string .= '<option value="'.$option['id'].'">'.$option['name'].' (+'.money($currently).')</option>'."\n";
+						}
+							
 						$string .= '</select>';
 					}
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
@@ -1383,7 +1397,7 @@ class Product extends DatabaseObject {
 					$string .= '<input type="submit" name="addtocart" '.inputattrs($options).' />';					
 				}
 					
-				return $string;
+				return $string;				
 		}
 		
 		

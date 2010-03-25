@@ -564,7 +564,8 @@ function newAddonGroup (data) {
 	menu.deleteButton.click(function () {
 		var options = $('#addon-list #addon-group-'+menu.index+' li').not('.ui-sortable-helper').find('input.id');
 		$(options).each(function (id,option) {
-			Pricelines.row[$(option).val()].row.remove();
+			if (Pricelines.row[$(option).val()])
+				Pricelines.row[$(option).val()].row.remove();
 		});
 		menu.pricegroup.remove();
 		menu.remove();
