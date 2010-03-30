@@ -919,7 +919,7 @@ class Product extends DatabaseObject {
 
 				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
 				$result .= '<script type="text/javascript"><!--
-					jQuery(document).ready( function() {  shopp_gallery("#gallery-'.$this->id.'","'.$options['preview'].'"); }); 
+					jQuery(document).ready( function() {  ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'"); }); 
 					// --></script>';
 				return $result;
 				break;

@@ -1,37 +1,31 @@
-/**
- * editor.js
- * Product editor behaviors
- *
- * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, 28 March, 2008
- * @license GNU GPL version 3 (or later) {@see license.txt}
- * @package shopp
- * @subpackage product-editor
+/*!
+ * editor.js - Product editor behaviors
+ * Copyright © 2008-2010 by Ingenesis Limited
+ * Licensed under the GPLv3 (or later) {@see license.txt}
  **/
 
-var Pricelines = false;
-var productOptions = new Array();
-var productAddons = new Array();
-var optionMenus = new Array();
-var addonGroups = new Array();
-var addonOptionsGroup = new Array();
-var selectedMenuOption = false;
-var detailsidx = 1;
-var variationsidx = 1;
-var addon_group_idx = 1;
-var addonsidx = 1;
-var optionsidx = 1;
-var pricingidx = 1;
-var fileUploader = false;
-var changes = false;
-var saving = false;
-var flashUploader = false;
-var pricesPayload = true;
-var fileUploads = false;
+var Pricelines = false,
+ 	productOptions = new Array(),
+ 	productAddons = new Array(),
+ 	optionMenus = new Array(),
+ 	addonGroups = new Array(),
+ 	addonOptionsGroup = new Array(),
+ 	selectedMenuOption = false,
+ 	detailsidx = 1,
+ 	variationsidx = 1,
+ 	addon_group_idx = 1,
+ 	addonsidx = 1,
+ 	optionsidx = 1,
+ 	pricingidx = 1,
+ 	fileUploader = false,
+ 	changes = false,
+ 	saving = false,
+ 	flashUploader = false,
+ 	pricesPayload = true,
+ 	fileUploads = false;
 
 jQuery(document).ready(function() {
-	var $=jQuery.noConflict();
+	var $=jqnc();
 
 	// Init postboxes for the editor
 	postboxes.add_postbox_toggles('shopp_page_shopp-products');
@@ -39,7 +33,7 @@ jQuery(document).ready(function() {
 	jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	
 	// Setup the slug editor
-	var editslug = new SlugEditor(product,'product');
+	editslug = new SlugEditor(product,'product');
 	
 	// Load up existing specs & setup the add new button
 	if (specs) $.each(specs,function () { addDetail(this) });
@@ -50,13 +44,13 @@ jQuery(document).ready(function() {
 	
 	// Initalize the base price line
 	Pricelines = new Pricelines();
-	var basePrice = $(prices).get(0);
+	basePrice = $(prices).get(0);
 	if (basePrice && basePrice.context == "product") Pricelines.add(false,basePrice,'#product-pricing');
 	else Pricelines.add(false,false,'#product-pricing');
 	
 	// Initialize variations
 	$('#variations-setting').bind('click.variations',variationsToggle).trigger('click.variations');
-	loadVariations(options.v,prices);
+	loadVariations((!options.v && !options.a)?options:options.v,prices);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
 	$('#linkOptionVariations').click(linkVariationsButton).change(linkVariationsButtonLabel);
@@ -85,8 +79,8 @@ jQuery(document).ready(function() {
 	if (!product) $('#title').focus();
 });
 
-var updateWorkflow = function () {
-	var $=jQuery.noConflict();
+function updateWorkflow () {
+	var $=jqnc();
 	$('#workflow').change(function () {
 		setting = $(this).val();
 		request.page = workflow[setting];
@@ -115,8 +109,8 @@ var updateWorkflow = function () {
 	}).change();
 }
 
-var categories = function () {
-	var $=jQuery.noConflict();
+function categories () {
+	var $=jqnc();
 	
 	$('#new-category').hide();
 	
@@ -130,8 +124,8 @@ var categories = function () {
 	$('#add-new-category').click(function () {
 
 		// Add a new category
-		var name = $('#new-category input').val();
-		var parent = $('#new-category select').val();
+		var name = $('#new-category input').val(),
+			parent = $('#new-category select').val();
 		if (name != "") {
 			$('#new-category').hide();
 			$('#new-category-button').show();
@@ -160,14 +154,14 @@ var categories = function () {
 	// Handles toggling a category on/off when the category is pre-existing
 	$('#category-menu input.category-toggle').change(function () {
 		if (!this.checked) return true;
+		var id,details = new Array();
 		
 		// Build current list of spec labels
-		var details = new Array();
 		$('#details-menu').children().children().find('input.label').each(function(id,item) {
 			details.push($(item).val());
 		});
 		
-		var id = $(this).attr('id').substr($(this).attr('id').indexOf("-")+1);
+		id = $(this).attr('id').substr($(this).attr('id').indexOf("-")+1);
 		// Load category spec templates
 		$.getJSON(ajaxurl+'?action=shopp_spec_template&category='+id,function (speclist) {
 			if (!speclist) return true;
@@ -211,27 +205,28 @@ var categories = function () {
 		
 	// Add to selection menu
 	function addCategoryMenuItem (c) {
-		var $=jQuery.noConflict();
-		
-		var parent = false;
-		var name = $('#new-category input').val();
-		var parentid = $('#new-category select').val();
+		var $=jqnc(),
+			ulparent,liparent,label,li
+		 	parent = false,
+			insertionPoint = false,
+		 	name = $('#new-category input').val(),
+		 	parentid = $('#new-category select').val();
 
 		// Determine where to add on the tree (trunk, branch, leaf)
 		if (parentid > 0) {
 			if ($('#category-element-'+parentid+' ~ li > ul').size() > 0)
 				parent = $('#category-element-'+parentid+' ~ li > ul');
 			else {
-				var ulparent = $('#category-element-'+parentid);
-				var liparent = $('<li></li>').insertAfter(ulparent);
+				ulparent = $('#category-element-'+parentid);
+				liparent = $('<li></li>').insertAfter(ulparent);
 				parent = $('<ul></ul>').appendTo(liparent);
 			}
 		} else parent = $('#category-menu > ul');
 
 		// Figure out where to insert our item amongst siblings (leaves)
-		var insertionPoint = false;
+		insertionPoint = false;
 		parent.children().each(function() {
-			var label = $(this).children('label').text();
+			label = $(this).children('label').text();
 			if (label && name < label) {
 				insertionPoint = this;
 				return false;
@@ -239,30 +234,29 @@ var categories = function () {
 		});
 
 		// Add the category selector
-		if (!insertionPoint) var li = $('<li id="category-element-'+c.id+'"></li>').appendTo(parent);
-		else var li = $('<li id="category-element-'+c.id+'"></li>').insertBefore(insertionPoint);
-		var checkbox = $('<input type="checkbox" name="categories[]" value="'+c.id+'" id="category-'+c.id+'" checked="checked" />').appendTo(li);
-		var label = $('<label for="category-'+c.id+'"></label>').html(name).appendTo(li);
+		if (!insertionPoint) li = $('<li id="category-element-'+c.id+'"></li>').appendTo(parent);
+		else li = $('<li id="category-element-'+c.id+'"></li>').insertBefore(insertionPoint);
+		$('<input type="checkbox" name="categories[]" value="'+c.id+'" id="category-'+c.id+'" checked="checked" />').appendTo(li);
+		$('<label for="category-'+c.id+'"></label>').html(name).appendTo(li);
 	}
 	
 }
 
-var tags = function () {
-	var $=jQuery.noConflict();
+function tags () {
+	var $=jqnc();
 	
 	function updateTagList () {
 		$('#tagchecklist').empty();
 		var tags = $('#tags').val().split(',');
 		if (tags[0].length > 0) {
 			$(tags).each(function (id,tag) {
-				var entry = $('<span></span>').html(tag).appendTo('#tagchecklist');
-				var deleteButton = $('<a></a>').html('X').addClass('ntdelbutton').prependTo(entry);
-				deleteButton.click(function () {
-					var tags = $('#tags').val();
-					tags = tags.replace(new RegExp('(^'+tag+',?|,'+tag+'\\b)'),'');
-					$('#tags').val(tags);
-					updateTagList();
-				});
+				entry = $('<span></span>').html(tag).appendTo('#tagchecklist');
+				deleteButton = $('<a></a>').html('X').addClass('ntdelbutton')
+					.click(function () {
+						tags = $('#tags').val().replace(new RegExp('(^'+tag+',?|,'+tag+'\\b)'),'');
+						$('#tags').val(tags);
+						updateTagList();
+					}).prependTo(entry);
 			});
 		}
 	}

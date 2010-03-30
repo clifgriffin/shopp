@@ -1,6 +1,6 @@
-/*
+/*!
  * One Click Upload - jQuery Plugin
- * Copyright (c) 2008 Michael Mitchell - http://www.michaelmitchell.co.nz
+ * Copyright © 2008 Michael Mitchell - http://www.michaelmitchell.co.nz
  */
 (function($){
 	$.fn.upload = function(options) {

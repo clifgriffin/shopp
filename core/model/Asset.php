@@ -263,7 +263,11 @@ class ImageAsset extends FileAsset {
 		if ($args[1] == 0) $args[1] = $args[0];
 		
 		$message = '';
-		foreach ($args as $arg) $message .= (!empty($message) && !empty($arg))?",$arg":$arg;
+		foreach ($args as $arg) {
+			if (empty($arg)) continue;
+			$message .= (!empty($message))?",$arg":$arg;
+		}
+			
 		$validation = crc32($key.$this->id.','.$message);
 		$message .= ",$validation";
 		return $message;

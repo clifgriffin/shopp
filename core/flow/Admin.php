@@ -255,17 +255,25 @@ class AdminFlow extends FlowController {
 		
 		$settings = array_filter(array_keys($this->Pages),array(&$this,'get_settings_pages'));
 		if (in_array($this->Page->page,$settings))
-			wp_enqueue_script('shopp.settings.behaviors',
-							SHOPP_ADMIN_URI."/settings/behaviors.js", 
+			wp_enqueue_script('shopp.settings',
+							SHOPP_ADMIN_URI."/behaviors/settings.js", 
 							array('jquery'), 
 							SHOPP_VERSION,
 							true);		
 		
 	}
 	
+	/**
+	 * Queues the admin stylesheets
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function admin_css () {
-		wp_enqueue_style('shopp.colorbox.css',SHOPP_PLUGINURI.'/core/ui/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
-		wp_enqueue_style('shopp.admin.css',SHOPP_PLUGINURI.'/core/ui/styles/admin.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.colorbox',SHOPP_PLUGINURI.'/core/ui/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.admin',SHOPP_PLUGINURI.'/core/ui/styles/admin.css',array(),SHOPP_VERSION,'screen');
 	}
 
 	/**

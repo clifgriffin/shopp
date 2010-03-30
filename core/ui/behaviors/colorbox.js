@@ -1,6 +1,8 @@
-// ColorBox v1.3.6 - a full featured, light-weight, customizable lightbox based on jQuery 1.3
-// c) 2009 Jack Moore - www.colorpowered.com - jack@colorpowered.com
-// Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+/*!
+ * ColorBox v1.3.6 - a full featured, light-weight, customizable lightbox based on jQuery 1.3
+ * Copyright © 2009 Jack Moore - www.colorpowered.com - jack@colorpowered.com
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ */
 
 (function ($) {
 	// Shortcuts (to increase compression)
