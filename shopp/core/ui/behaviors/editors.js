@@ -1,61 +1,68 @@
+/*!
+ * editors.js - Product & Category editor behaviors
+ * Copyright © 2008-2010 by Ingenesis Limited
+ * Licensed under the GPLv3 {@see license.txt}
+ */
+
 /**
  * Nested Menu behaviors
  **/
 function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
-	var $=jQuery.noConflict();
+	var $=jqnc(), _ = this;
 	if (!sortoptions) sortoptions = {'axis':'y'};
-	var _self = this;
 	
-	this.items = items;
-	this.dataname = dataname;
-	this.element = $('<li>').appendTo($(target).children('ul'));
-	this.index = i;
-	this.moveHandle = $('<div class="move"></div>').appendTo(this.element);
-	this.sortorder = $('<input type="hidden" name="'+dataname+'-sortorder[]" value="'+i+'" />').appendTo(this.element);
-	this.id = $('<input type="hidden" name="'+dataname+'['+i+'][id]" class="id" />').appendTo(this.element);
-	this.label = $('<input type="text" name="'+dataname+'['+i+'][name]" class="label" />').appendTo(this.element);
-	this.deleteButton = $('<button type="button" class="delete"><img src="'+uidir+'/icons/delete.png" alt="Delete" width="16" height="16" /></button>').appendTo(this.element);
+	_.items = items;
+	_.dataname = dataname;
+	_.index = i;
+	_.element = $('<li><div class="move"></div>'+
+		'<input type="hidden" name="'+dataname+'-sortorder[]" value="'+i+'" class="sortorder" />'+
+		'<input type="hidden" name="'+dataname+'['+i+'][id]" class="id" />'+
+		'<input type="text" name="'+dataname+'['+i+'][name]" class="label" />'+
+		'<button type="button" class="delete"><img src="'+uidir+'/icons/delete.png" alt="Delete" width="16" height="16" /></button>'+
+		'</li>').appendTo($(target).children('ul'));
 
-	if (this.items) {
-		if (items.type == "list") this.itemsElement = $('<ul></ul>').appendTo(items.target).hide();
-		else this.itemsElement = $('<li></li>').appendTo(items.target).hide();
+	_.moveHandle = _.element.find('div.move');
+	_.sortorder = _.element.find('input.sortorder');
+	_.id = _.element.find('input.id');
+	_.label = _.element.find('input.label');
+	_.deleteButton = _.element.find('button.delete').click(function () {
+		var deletes = $(target).find('input.deletes');
+		if ($(_.id).val() != "") // Only need db delete if an id exists
+			deletes.val( (deletes.val() == "")?$(_.id).val():deletes.val()+','+$(_.id).val() );
+		if (items) _.itemsElement.remove();
+		_.element.remove();
+	});
+
+	if (_.items) {
+		if (items.type == "list") _.itemsElement = $('<ul></ul>').appendTo(items.target).hide();
+		else _.itemsElement = $('<li></li>').appendTo(items.target).hide();
 	}
 
-	this.selected = function () {
+	_.selected = function () {
 		$(target).find('ul li').removeClass('selected');
-		$(_self.element).addClass('selected');
+		$(_.element).addClass('selected');
 		if (items) {
 			$(items.target).children().hide();
-			$(_self.itemsElement).show();	
+			$(_.itemsElement).show();	
 		}
 	}
-	this.element
+	_.element
 		.click(this.selected)
 		.hover(function () { $(this).addClass('hover'); },
 			   function () { $(this).removeClass('hover'); }
 		);
 
-	this.label.mouseup(function (e) { this.select(); }).focus(function () {
+	_.label.mouseup(function (e) { this.select(); }).focus(function () {
 		$(this).keydown(function (e) {
 			e.stopPropagation();
 			if (e.keyCode == 13) $(this).blur().unbind('keydown');
 		});
 	});
 
-	this.remove = function () {
-		var deletes = $(target).find('input.deletes');
-		if ($(_self.id).val() != "") // Only need db delete if an id exists
-			deletes.val( (deletes.val() == "")?$(_self.id).val():deletes.val()+','+$(_self.id).val() );
-		if (items) _self.itemsElement.remove();
-		_self.element.remove();
-
-	}
-	this.deleteButton.click(this.remove);
-	
-	this.id.val(this.index);
-	if (data && data.id) this.id.val(data.id);
-	if (data && data.name) this.label.val(htmlentities(data.name));
-	else this.label.val(defaultlabel+' '+this.index);
+	_.id.val(_.index);
+	if (data && data.id) _.id.val(data.id);
+	if (data && data.name) _.label.val(htmlentities(data.name));
+	else _.label.val(defaultlabel+' '+_.index);
 
 	// Enable sorting
 	if (!$(target).children('ul').hasClass('ui-sortable'))
@@ -65,40 +72,42 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 }
 
 function NestedMenuContent (i,target,dataname,data) {
-	var $=jQuery.noConflict();
-	var content = $('<textarea name="'+dataname+'['+i+'][value]" cols="40" rows="7"></textarea>').appendTo(target);
+	var $=jqnc(),
+		content = $('<textarea name="'+dataname+'['+i+'][value]" cols="40" rows="7"></textarea>').appendTo(target);
 	if (data && data.value) content.val(htmlentities(data.value));
 }
 
 function NestedMenuOption (i,target,dataname,defaultlabel,data) {
-	var $=jQuery.noConflict();
+	var $=jqnc(), _ = this;
 	
-	var _self = this;
+	_.index = $(target).contents().length;
+	_.element = $('<li class="option"><div class="move"></div>'+
+		'<input type="hidden" name="'+dataname+'['+i+'][options]['+this.index+'][id]" class="id" />'+
+		'<input type="text" name="'+dataname+'['+i+'][options]['+this.index+'][name]" class="label" />'+
+		'<button type="button" class="delete"><img src="'+uidir+'/icons/delete.png" alt="delete" width="16" height="16" /></button>'+
+		'</li>').appendTo(target);
 	
-	this.index = $(target).contents().length;
-	this.element = $('<li class="option"></li>').appendTo(target);
-	this.moveHandle = $('<div class="move"></div>').appendTo(this.element);
-	this.id = $('<input type="hidden" name="'+dataname+'['+i+'][options]['+this.index+'][id]" class="id" />').appendTo(this.element);
-	this.label = $('<input type="text" name="'+dataname+'['+i+'][options]['+this.index+'][name]" class="label" />').appendTo(this.element);
-	this.deleteButton = $('<button type="button" class="delete"><img src="'+uidir+'/icons/delete.png" alt="delete" width="16" height="16" /></button>').appendTo(this.element);
-
-	this.element.hover(function () { $(this).addClass('hover'); },
+	_.moveHandle = _.element.find('div.move');
+	_.id = _.element.find('input.id');
+	_.label = _.element.find('input.label');
+	_.deleteButton = _.element.find('button.delete').click(function () { $(_.element).remove(); });
+	
+	_.element.hover(function () { $(this).addClass('hover'); },
 					   function () { $(this).removeClass('hover'); });
 
-	this.label.click(function () { this.select(); });
-	this.label.focus(function () {
+	_.label.click(
+		function () { this.select(); }
+	).focus(function () {
 		$(this).keydown(function (e) {
 			e.stopPropagation();
 			if (e.keyCode == 13) $(this).blur().unbind('keydown');
 		});
 	});
 	
-	this.deleteButton.click(function () { $(_self.element).remove(); });
-
-	this.id.val(this.index);
-	if (data.id) this.id.val(data.id);
-	if (data.name) this.label.val(htmlentities(data.name));
-	if (!data.name) this.label.val(defaultlabel+' '+(this.index+1));
+	_.id.val(_.index);
+	if (data.id) _.id.val(data.id);
+	if (data.name) _.label.val(htmlentities(data.name));
+	if (!data.name) _.label.val(defaultlabel+' '+(_.index+1));
 		
 }
 
@@ -108,7 +117,7 @@ function NestedMenuOption (i,target,dataname,defaultlabel,data) {
  **/
 function loadVariations (options,prices) {
 	if (!options) return;
-	var $=jQuery.noConflict();
+	var $=jqnc();
 	$.each(options,function (key,option) { 
 		addVariationOptionsMenu(option); 
 	});
@@ -127,20 +136,19 @@ function loadVariations (options,prices) {
 }
 
 function addVariationOptionsMenu (data) {
-	var $=jQuery.noConflict();
-	var menus = $('#variations-menu');
-	var entries = $('#variations-list');
-	var addOptionButton = $('#addVariationOption');
-	var linkOptionVariations = $('#linkOptionVariations');
-	var id = variationsidx;
-	
-	var menu = new NestedMenu(id,menus,'options[v]',OPTION_MENU_DEFAULT,data,
+	var $=jqnc(),
+	 	menus = $('#variations-menu'),
+	 	entries = $('#variations-list'),
+	 	addOptionButton = $('#addVariationOption'),
+	 	linkOptionVariations = $('#linkOptionVariations'),
+	 	id = variationsidx,
+	 	menu = new NestedMenu(id,menus,'options[v]',OPTION_MENU_DEFAULT,data,
 		{target:entries,type:'list'},
 		{'axis':'y','update':function() { orderOptions(menus,entries) }}
 	);
 	
 	menu.addOption = function (data) {
-		var init = false;
+		var init = false,option;
 		if (!data) data = new Object();
 
 		if (!data.id) {
@@ -148,12 +156,11 @@ function addVariationOptionsMenu (data) {
  			data.id = optionsidx;
 		} else if (data.id > optionsidx) optionsidx = data.id;
 		
-	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'options[v]',NEW_OPTION_DEFAULT,data);
+	 	option = new NestedMenuOption(menu.index,menu.itemsElement,'options[v]',NEW_OPTION_DEFAULT,data);
 		optionsidx++;
 
 		option.linkIcon = $('<img src="'+uidir+'/icons/linked.png" alt="linked" width="16" height="16" class="link" />').appendTo(option.moveHandle);
-		option.linked = $('<input type="hidden" name="options['+menu.index+'][options]['+option.index+'][linked]" class="linked" />').appendTo(option.element);
-		option.linked.change(function () {
+		option.linked = $('<input type="hidden" name="options['+menu.index+'][options]['+option.index+'][linked]" class="linked" />').appendTo(option.element).change(function () {
 			if ($(this).val() == "off")	option.linkIcon.addClass('invisible');
 			if ($(this).val() == "on") option.linkIcon.removeClass('invisible');
 		});
@@ -221,14 +228,14 @@ function addVariationOptionsMenu (data) {
  * buildVariations()
  * Creates an array of all possible combinations of the product variation options */
 function buildVariations () {
-	var $=jQuery.noConflict();
-	var combos = new Array();							// Final list of possible variations
-	var optionSets = $('#variations-list ul');			// Reference to the DOM-stored option set
-	var totalSets = optionSets.length;					// Total number of sets
-	var lastOptionSet = totalSets-1;					// Reference to the index of the last set
-	var address = new Array(optionSets.length);			// Helper to reference a specific option in a specific set
-	var totalOptions = new Array(optionSets.length);	// Reference list of total options of a set
-	var totalVariations = 0;							// The total variations possible
+	var $=jqnc(),i,setid,fields,index,
+	 	combos = new Array(),							// Final list of possible variations
+	 	optionSets = $('#variations-list ul'),			// Reference to the DOM-stored option set
+	 	totalSets = optionSets.length,					// Total number of sets
+	 	lastOptionSet = totalSets-1,					// Reference to the index of the last set
+	 	address = new Array(optionSets.length),			// Helper to reference a specific option in a specific set
+	 	totalOptions = new Array(optionSets.length),	// Reference list of total options of a set
+	 	totalVariations = 0;							// The total variations possible
 	
 	// Identify total options in each set and calculate total permutations
 	optionSets.each(function (id,set) {
@@ -241,12 +248,12 @@ function buildVariations () {
 	});
 
 	// Build variation labels for each possible permutation
-	for (var i = 0; i < totalVariations; i++) {
+	for (i = 0; i < totalVariations; i++) {
 		
 		// Grab the label for the currently addressed option in each set
 		// and add it to this variation permutation
-		for (var setid = 0; setid < optionSets.length; setid++) {
-			var fields = $(optionSets[setid]).children("li").not('.ui-sortable-helper').children("input.id");
+		for (setid = 0; setid < optionSets.length; setid++) {
+			fields = $(optionSets[setid]).children("li").not('.ui-sortable-helper').children("input.id");
 			if (!combos[i]) combos[i] = [$(fields[address[setid]]).val()];
 			else combos[i].push($(fields[address[setid]]).val());
 		}
@@ -256,7 +263,7 @@ function buildVariations () {
 		// reset it to 0 and increment the previous option set address 
 		// (and if that exceeds its total, reset and so on)
 		if (++address[lastOptionSet] >= totalOptions[lastOptionSet]) {
-			for (var index = lastOptionSet; index > -1; index--) {
+			for (index = lastOptionSet; index > -1; index--) {
 				if (address[index] < totalOptions[index]) continue;
 				address[index] = 0;
 				if (index-1 > -1) address[(index-1)]++;
@@ -269,52 +276,53 @@ function buildVariations () {
 }
 
 function addVariationPrices (data) {
-	var $=jQuery.noConflict();
-	if (!data) {
-		var updated = buildVariations();
-		var variationPricing = $('#variations-pricing');
-		var variationPricelines = $(variationPricing).children();
-		var added = false;
+	if (data !== false) return;
+	var $=jqnc(), key, preKey
+	 	updated = buildVariations(),
+	 	variationPricing = $('#variations-pricing'),
+	 	variationPricelines = $(variationPricing).children(),
+	 	added = false;
 
-		$(updated).each(function(id,options) {
-			var key = xorkey(options);
-			var preKey = xorkey(options.slice(0,options.length-1));
-			if (preKey == "") preKey = -1;
+	$(updated).each(function(id,options) {
+	 	key = xorkey(options);
+	 	preKey = xorkey(options.slice(0,options.length-1));
+		if (preKey == "") preKey = -1;
 
-			if (!Pricelines.row[key]) {
-				if (Pricelines.row[preKey]) {
-					Pricelines.row[key] = Pricelines.row[preKey];
-					delete Pricelines.row[preKey];
-					Pricelines.row[key].setOptions(options);
-				} else {
-					if (variationPricelines.length == 0) { // Append new row
-						Pricelines.add(options,{context:'variation'},'#variations-pricing');
-					} else { // Add after previous variation
-						Pricelines.add(options,{context:'variation'},Pricelines.row[ xorkey(updated[(id-1)]) ].row,'after');
-					}
-					added = true;
+		if (!Pricelines.row[key]) {
+			if (Pricelines.row[preKey]) {
+				Pricelines.row[key] = Pricelines.row[preKey];
+				delete Pricelines.row[preKey];
+				Pricelines.row[key].setOptions(options);
+			} else {
+				if (variationPricelines.length == 0) { // Append new row
+					Pricelines.add(options,{context:'variation'},'#variations-pricing');
+				} else { // Add after previous variation
+					Pricelines.add(options,{context:'variation'},Pricelines.row[ xorkey(updated[(id-1)]) ].row,'after');
 				}
+				added = true;
 			}
-		});
-		if (added) Pricelines.updateVariationsUI();
-	}
+		}
+	});
+	if (added) Pricelines.updateVariationsUI();
 }
 
 function deleteVariationPrices (optionids,reduce) {
-	var $=jQuery.noConflict();
-	var updated = buildVariations();
-	var reduced = false;
+	var $=jqnc(),
+	 	updated = buildVariations(),
+	 	reduced = false,
+		i,key,modOptions,newkey,dbPriceId;
+		
 	$(updated).each(function(id,options) {
-		var key = xorkey(options);
+		key = xorkey(options);
 
-		for (var i = 0; i < optionids.length; i++)  {
+		for (i = 0; i < optionids.length; i++)  {
 			if (options.indexOf(optionids[i]) != -1) {
 
-				var modOptions = new Array();
+				modOptions = new Array();
 				$(options).each(function(index,option) {
 					if (option != optionids[i]) modOptions.push(option);
 				});
-				var newkey = xorkey(modOptions);
+				newkey = xorkey(modOptions);
 			
 				if (reduce && !Pricelines.row[newkey]) {
 					if (newkey != 0) Pricelines.row[newkey] = Pricelines.row[key];
@@ -328,7 +336,7 @@ function deleteVariationPrices (optionids,reduce) {
 				} else {
 					if (Pricelines.row[key]) {
 						// Mark priceline for removal from db
-						var dbPriceId = $('#priceid-'+Pricelines.row[key].id).val();
+						dbPriceId = $('#priceid-'+Pricelines.row[key].id).val();
 						if ($('#deletePrices').val() == "") $('#deletePrices').val(dbPriceId);
 						else $('#deletePrices').val($('#deletePrices').val()+","+dbPriceId);
 
@@ -347,9 +355,9 @@ function deleteVariationPrices (optionids,reduce) {
 }
 
 function optionMenuExists (label) {
-	var $=jQuery.noConflict();
 	if (!label) return false;
-	var found = false;
+	var $=jqnc(),
+		found = false;
 	$.each(optionMenus,function (id,menu) {
 		if (menu && $(menu.label).val() == label) return (found = id);
 	});
@@ -358,9 +366,9 @@ function optionMenuExists (label) {
 }
 
 function optionMenuItemExists (menu,label) {
-	var $=jQuery.noConflict();
 	if (!menu || !menu.items || !label) return false;
-	var found = false;
+	var $=jqnc(),
+		found = false;
 	$.each(menu.items,function (id,item) {
 		if (item && $(item.label).val() == label) return (found = true);
 	});
@@ -368,8 +376,8 @@ function optionMenuItemExists (menu,label) {
 }
 
 function updateVariationLabels () {
-	var $=jQuery.noConflict();
-	var updated = buildVariations();
+	var $=jqnc(),
+	 	updated = buildVariations();
 	$(updated).each(function(id,options) {
 		var key = xorkey(options);
 		if (Pricelines.row[key]) Pricelines.row[key].updateLabel();
@@ -377,20 +385,19 @@ function updateVariationLabels () {
 }
 
 function orderOptions (menus,options) {
-	var $=jQuery.noConflict();
-	var menuids = $(menus).find("ul li").not('.ui-sortable-helper').find('input.id');
-	$(menuids).each(function (i,menuid) {
+	var $=jqnc();
+	$(menus).find("ul li").not('.ui-sortable-helper').find('input.id').each(function (i,menuid) {
 		if (menuid) $(optionMenus[$(menuid).val()].itemsElement).appendTo(options);
 	});
 	orderVariationPrices();
 }
 
 function orderVariationPrices () {
-	var $=jQuery.noConflict();
-	var updated = buildVariations();
+	var $=jqnc(), key
+	 	updated = buildVariations();
 
 	$(updated).each(function (id,options) {
-		var key = xorkey(options);
+		key = xorkey(options);
 		if (key > 0 && Pricelines.row[key])
 			Pricelines.reorderVariation(key,options);
 	});
@@ -406,7 +413,7 @@ function xorkey (ids) {
 }
 
 function variationsToggle () {
-	var $=jQuery.noConflict();
+	var $=jqnc();
 	if ($('#variations-setting').attr('checked')) {
 		if (Pricelines.row[0]) Pricelines.row[0].disable();
 		$('#product-pricing').hide();
@@ -418,7 +425,7 @@ function variationsToggle () {
 }
 
 function addonsToggle () {
-	var $=jQuery.noConflict();
+	var $=jqnc();
 	if ($('#addons-setting').attr('checked')) $('#addons').show();
 	else $('#addons').hide();
 }
@@ -428,7 +435,7 @@ function clearLinkedIcons () {
 }
 
 function linkVariationsButton () {
-	var $=jQuery.noConflict();
+	var $=jqnc();
 	if (selectedMenuOption) {
 		if (selectedMenuOption.linked.val() == 'off') {
 			// If all are linked, unlink everything first
@@ -453,7 +460,7 @@ function linkVariationsButton () {
 }
 
 function linkVariationsButtonLabel () {
-	var $=jQuery.noConflict();
+	var $=jqnc();
 	if (selectedMenuOption) {
 		if (selectedMenuOption.linked.val() == 'on') $(this).find('small').html(' '+UNLINK_VARIATIONS);
 		else $(this).find('small').html(' '+LINK_VARIATIONS);
@@ -468,7 +475,7 @@ function linkVariationsButtonLabel () {
  * Addons support
  **/
 function loadAddons (addons,prices) {
-	var $=jQuery.noConflict();
+	var $=jqnc();
 	if (!addons) return;
 
 	$.each(addons,function (key,addon) {
@@ -487,13 +494,12 @@ function loadAddons (addons,prices) {
 }
 
 function newAddonGroup (data) {
-	var $=jQuery.noConflict();
-	var menus = $('#addon-menu');
-	var entries = $('#addon-list');
-	var addOptionButton = $('#addAddonOption');
-	var id = addon_group_idx;
-	
-	var menu = new NestedMenu(id,menus,'options[a]',ADDON_GROUP_DEFAULT,data,
+	var $=jqnc(),
+	 	menus = $('#addon-menu'),
+	 	entries = $('#addon-list'),
+	 	addOptionButton = $('#addAddonOption'),
+	 	id = addon_group_idx,
+	 	menu = new NestedMenu(id,menus,'options[a]',ADDON_GROUP_DEFAULT,data,
 		{target:entries,type:'list'},
 		{'axis':'y','update':function() { orderAddonGroups() }}
 	);
@@ -507,7 +513,7 @@ function newAddonGroup (data) {
 	menu.label.blur(menu.updatePriceLabel);
 	
 	menu.addOption = function (data) {
-		var init = false;
+		var init = false, option, optionid;
 		if (!data) data = new Object();
 
 		if (!data.id) {
@@ -515,9 +521,9 @@ function newAddonGroup (data) {
  			data.id = addonsidx;
 		} else if (data.id > addonsidx) addonsidx = data.id;
 		
-	 	var option = new NestedMenuOption(menu.index,menu.itemsElement,'options[a]',NEW_OPTION_DEFAULT,data);
+	 	option = new NestedMenuOption(menu.index,menu.itemsElement,'options[a]',NEW_OPTION_DEFAULT,data);
 		addonsidx++;
-		var optionid = option.id.val();
+		optionid = option.id.val();
 		option.selected = function () {
 			if (option.element.hasClass('selected')) {
 				entries.find('ul li').removeClass('selected');
@@ -562,8 +568,7 @@ function newAddonGroup (data) {
 	
 	menu.deleteButton.unbind('click');
 	menu.deleteButton.click(function () {
-		var options = $('#addon-list #addon-group-'+menu.index+' li').not('.ui-sortable-helper').find('input.id');
-		$(options).each(function (id,option) {
+		$('#addon-list #addon-group-'+menu.index+' li').not('.ui-sortable-helper').find('input.id').each(function (id,option) {
 			if (Pricelines.row[$(option).val()])
 				Pricelines.row[$(option).val()].row.remove();
 		});
@@ -574,28 +579,25 @@ function newAddonGroup (data) {
 }
 
 function orderAddonGroups () {
-	var $=jQuery.noConflict();
-	var menuids = $('#addon-menu ul li').not('.ui-sortable-helper').find('input.id');
-	$(menuids).each(function (i,menuid) {
-		var menu = addonGroups[$(menuid).val()];
+	var $=jqnc(),menu;
+	$('#addon-menu ul li').not('.ui-sortable-helper').find('input.id').each(function (i,menuid) {
+		menu = addonGroups[$(menuid).val()];
 		menu.pricegroup.appendTo('#addon-pricing');
 	});
 }
 
 function orderAddonPrices (index) {
-	var $=jQuery.noConflict();
-	var menu = addonGroups[index];
-	var options = $('#addon-list #addon-group-'+menu.index+' li').not('.ui-sortable-helper').find('input.id');
-	$(options).each(function (id,option) {
+	var $=jqnc(),menu = addonGroups[index];
+	$('#addon-list #addon-group-'+menu.index+' li').not('.ui-sortable-helper').find('input.id').each(function (id,option) {
 		Pricelines.reorderAddon($(option).val(),menu.pricegroup);
 	});
 }
 
 function readableFileSize (size) {
-	var units = new Array("bytes","KB","MB","GB");
-	var sized = size*1;
+	var units = new Array("bytes","KB","MB","GB"),
+		sized = size*1,
+		unit = 0;
 	if (sized == 0) return sized;
-	var unit = 0;
 	while (sized > 1000) {
 		sized = sized/1024;
 		unit++;
@@ -604,7 +606,7 @@ function readableFileSize (size) {
 }
 
 function unsavedChanges () {
-	var mce = typeof(tinyMCE) != 'undefined' ? tinyMCE.activeEditor : false, title, content;
+	var mce = typeof(tinyMCE) != 'undefined' ? tinyMCE.activeEditor : false;
 
 	if ( mce && !mce.isHidden() ) {
 		if ( mce.isDirty() )
@@ -617,15 +619,15 @@ function unsavedChanges () {
  * Add a product spec/detail
  **/
 function addDetail (data) {
-	var $=jQuery.noConflict();
-	var menus = $('#details-menu');
-	var entries = $('#details-list');
-	var id = detailsidx++;
-	var menu = new NestedMenu(id,menus,'details','Detail Name',data,{target:entries});
+	var $=jqnc(),i,optionsmenu,
+	 	menus = $('#details-menu'),
+	 	entries = $('#details-list'),
+	 	id = detailsidx++,
+	 	menu = new NestedMenu(id,menus,'details','Detail Name',data,{target:entries});
 
 	if (data && data.options) {
-		var optionsmenu = $('<select name="details['+menu.index+'][value]"></select>').appendTo(menu.itemsElement);
-		for (var i in data.options) $('<option>'+data.options[i]['name']+'</option>').appendTo(optionsmenu);		
+		optionsmenu = $('<select name="details['+menu.index+'][value]"></select>').appendTo(menu.itemsElement);
+		for (i in data.options) $('<option>'+data.options[i]['name']+'</option>').appendTo(optionsmenu);		
 		if (data && data.value) optionsmenu.val(htmlentities(data.value));	
 	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);	
 	
@@ -636,10 +638,9 @@ function addDetail (data) {
  * Image Uploads using SWFUpload or the jQuery plugin One Click Upload
  **/
 function ImageUploads (id,type) {
-	(function($) {
-	var swfu;
-
-	var settings = {
+	var $ = jqnc(),
+	swfu,
+	settings = {
 		button_text: '<span class="button">'+ADD_IMAGE_BUTTON_TEXT+'</span>',
 		button_text_style: '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 9px; color: #333333; }',
 		button_text_top_padding: 3,
@@ -661,14 +662,12 @@ function ImageUploads (id,type) {
 		},
 
 		swfupload_loaded_handler : swfuLoaded,
-		file_queued_handler : imageFileQueued,
 		file_queue_error_handler : imageFileQueueError,
 		file_dialog_complete_handler : imageFileDialogComplete,
 		upload_start_handler : startImageUpload,
 		upload_progress_handler : imageUploadProgress,
 		upload_error_handler : imageUploadError,
 		upload_success_handler : imageUploadSuccess,
-		upload_complete_handler : imageUploadComplete,
 		queue_complete_handler : imageQueueComplete,
 
 		custom_settings : {
@@ -687,7 +686,8 @@ function ImageUploads (id,type) {
 	if (flashuploader)
 		swfu = new SWFUpload(settings);
 
-	var browserImageUploader = $('#image-upload').upload({
+	// Browser image uploader
+	$('#image-upload').upload({
 		name: 'Filedata',
 		action: ajaxurl,
 		enctype: 'multipart/form-data',
@@ -697,23 +697,18 @@ function ImageUploads (id,type) {
 		},
 		autoSubmit: true,
 		onSubmit: function() {
-			var cell = $('<li id="image-uploading"></li>').appendTo($('#lightbox'));
-			var sorting = $('<input type="hidden" name="images[]" value="" />').appendTo(cell);
-			var progress = $('<div class="progress"></div>').appendTo(cell);
-			var bar = $('<div class="bar"></div>').appendTo(progress);
-			var art = $('<div class="gloss"></div>').appendTo(progress);
-	
-			this.targetHolder = cell;
-			this.progressBar = bar;
-			this.sorting = sorting;
+			this.targetHolder = $('<li id="image-uploading"><input type="hidden" name="images[]" value="" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo('#lightbox');
+			this.progressBar = this.targetHolder.find('div.bar');
+			this.sorting = this.targetHolder.find('input');
 		},
 		onComplete: function(results) {
+			var image,img,deleteButton;
 			if (results == "") {
 				$(this.targetHolder).remove();
 				alert(SERVER_COMM_ERROR);
 				return true;
 			}
-			var image = eval('('+results+')');
+			image = $.parseJSON(results);
 			if (image.error) {
 				$(this.targetHolder).remove();
 				alert(image.error);
@@ -721,9 +716,8 @@ function ImageUploads (id,type) {
 			}
 			$(this.targetHolder).attr({'id':'image-'+image.src});
 			$(this.sorting).val(image.src);
-			var img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
-			var deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
-			var deleteIcon = $('<img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
+			img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
+			deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"><img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" /></button>').appendTo($(this.targetHolder)).hide();
 	
 			$(this.progressBar).animate({'width':'76px'},250,function () { 
 				$(this).parent().fadeOut(500,function() {
@@ -753,8 +747,6 @@ function ImageUploads (id,type) {
 		swfu.loaded = true;
 	}
 
-	function imageFileQueued (file) {}
-
 	function imageFileQueueError (file, error, message) {
 
 		if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
@@ -773,21 +765,13 @@ function ImageUploads (id,type) {
 	}
 
 	function startImageUpload (file) {
-		var cell = $('<li class="image uploading"></li>').appendTo($('#lightbox'));
-		var sorting = $('<input type="hidden" name="images[]" value="" />').appendTo(cell);
-		var progress = $('<div class="progress"></div>').appendTo(cell);
-		var bar = $('<div class="bar"></div>').appendTo(progress);
-		var art = $('<div class="gloss"></div>').appendTo(progress);
-
-		this.targetHolder = cell;
-		this.progressBar = bar;
-		this.sorting = sorting;
-		return true;
+		this.targetHolder = $('<li class="image uploading"><input type="hidden" name="images[]" value="" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo($('#lightbox'))
+		this.progressBar = this.targetHolder.find('div.bar');
+		this.sorting = this.targetHolder.find('input');
 	}
 
 	function imageUploadProgress (file, loaded, total) {
-		var progress = Math.ceil((loaded/total)*200);
-		$(this.progressBar).animate({'width':progress+'px'},100);
+		this.progressBar.animate({'width':Math.ceil((loaded/total)*200)+'px'},100);
 	}
 
 	function imageUploadError (file, error, message) {
@@ -795,21 +779,21 @@ function ImageUploads (id,type) {
 	}
 
 	function imageUploadSuccess (file, results) {
-		var image = eval('('+results+')');
+		var image,img,deleteButton;
+		image = $.parseJSON(results);
 		if (!image.id) {
-			$(this.targetHolder).remove();
+			this.targetHolder.remove();
 			if (image.error) alert(image.error);
 			else alert(UNKNOWN_UPLOAD_ERROR);
 			return true;
 		}
 	
-		$(this.targetHolder).attr({'id':'image-'+image.id});
-		$(this.sorting).val(image.src);
-		var img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
-		var deleteButton = $('<button type="button" name="deleteImage" value="'+image.id+'" title="Delete product image&hellip;" class="deleteButton"></button>').appendTo($(this.targetHolder)).hide();
-		var deleteIcon = $('<img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" />').appendTo(deleteButton);
+		this.targetHolder.attr({'id':'image-'+image.id});
+		this.sorting.val(image.src);
+		img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
+		deleteButton = $('<button type="button" name="deleteImage" value="'+image.id+'" title="Delete product image&hellip;" class="deleteButton"><img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" /></button>').appendTo(this.targetHolder).hide();
 	
-		$(this.progressBar).animate({'width':'76px'},250,function () { 
+		this.progressBar.animate({'width':'76px'},250,function () { 
 			$(this).parent().fadeOut(500,function() {
 				$(this).remove(); 
 				$(img).fadeIn('500');
@@ -818,42 +802,36 @@ function ImageUploads (id,type) {
 		});
 	}
 
-	function imageUploadComplete (file) {}
-
 	function imageQueueComplete (uploads) {
 		if ($('#lightbox li').size() > 1) $('#lightbox').sortable('refresh');
 		else $('#lightbox').sortable();
 	}
 
 	function enableDeleteButton (button) {
-		$(button).hide();
+		button.hide();
 
-		$(button).parent().hover(function() {
-			$(button).show();
+		button.parent().hover(function() {
+			button.show();
 		},function () {
-			$(button).hide();
+			button.hide();
 		});
 	
-		$(button).click(function() {
+		button.click(function() {
 			if (confirm(DELETE_IMAGE_WARNING)) {
-				$('#deleteImages').val(($('#deleteImages').val() == "")?$(button).val():$('#deleteImages').val()+','+$(button).val());
-				$(button).parent().fadeOut(500,function() {
+				$('#deleteImages').val(($('#deleteImages').val() == "")?button.val():$('#deleteImages').val()+','+button.val());
+				button.parent().fadeOut(500,function() {
 					$(this).remove();
 				});
 			}
 		});
 	}
-	})(jQuery)
-
 }
 
 jQuery.fn.FileChooser = function (line,status) {
-	var $ = jQuery.noConflict();
-
+	var $ = jqnc();
+		
 	fileUploads.updateLine(line,status);
-
-	var downloadpath = $('#downloadpath-'+line);
-	var fileimport = $('#import-url').change(function () {
+	$('#import-url').change(function () {
 		var fi = $(this);
 		fi.removeClass('warning').addClass('verifying');
 		$.ajax({url:fileverify_url+'&action=shopp_verify_file',
@@ -882,10 +860,9 @@ jQuery.fn.FileChooser = function (line,status) {
  * File upload handlers for product download files using SWFupload
  **/
 function FileUploader (button,defaultButton) {
-	var _self = this;
-	(function($) {
+	var $ = jqnc(), _ = this;
 
-	_self.settings = {
+	_.settings = {
 		button_text: '<span class="button">'+UPLOAD_FILE_BUTTON_TEXT+'</span>',
 		button_text_style: '.button { text-align: center; font-family:"Lucida Grande","Lucida Sans Unicode",Tahoma,Verdana,sans-serif; font-size: 9px; color: #333333; }',
 		button_text_top_padding: 3,
@@ -910,9 +887,7 @@ function FileUploader (button,defaultButton) {
 		file_dialog_complete_handler : fileDialogComplete,
 		upload_start_handler : startUpload,
 		upload_progress_handler : uploadProgress,
-		upload_error_handler : uploadError,
 		upload_success_handler : uploadSuccess,
-		upload_complete_handler : uploadComplete,
 		
 		custom_settings : {
 			loaded : false,
@@ -927,7 +902,7 @@ function FileUploader (button,defaultButton) {
 	// Initialize file uploader
 	
 	if (flashuploader)
-		_self.swfu = new SWFUpload(_self.settings);
+		_.swfu = new SWFUpload(_.settings);
 	
 	// Browser-based AJAX uploads
 	defaultButton.upload({
@@ -939,34 +914,30 @@ function FileUploader (button,defaultButton) {
 		},
 		autoSubmit: true,
 		onSubmit: function() {
-			updates.attr('class','').html('');
-			var progress = $('<div class="progress"></div>').appendTo(updates);
-			var bar = $('<div class="bar"></div>').appendTo(progress);
-			var art = $('<div class="gloss"></div>').appendTo(progress);
-
-			this.targetHolder = updates;
-			this.progressBar = bar;
+			this.targetHolder.attr('class','').html('');
+			$('<div class="progress"><div class="bar"></div><div class="gloss"></div></div>').appendTo(this.targetHolder);
+			this.progressBar = this.targetHolder.find('div.bar');
 		},
 		onComplete: function(results) {
-			var filedata = eval('('+results+')');
+			var filedata = $.parseJSON(results),
+				targetHolder = this.targetHolder;
 			if (filedata.error) {
-				$(this.targetHolder).html("No download file.");
+				targetHolder.html("No download file.");
 				alert(filedata.error);
 				return true;
 			}
-			var targetHolder = this.targetHolder;
 			filedata.type = filedata.type.replace(/\//gi," ");
 			$(this.progressBar).animate({'width':'76px'},250,function () { 
 				$(this).parent().fadeOut(500,function() {
-					$(targetHolder).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+readableFileSize(filedata.size)+'</small><input type="hidden" name="price['+linenum+'][download]" value="'+filedata.id+'" />');
+					targetHolder.attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+readableFileSize(filedata.size)+'</small><input type="hidden" name="price['+linenum+'][download]" value="'+filedata.id+'" />');
 					$(this).remove(); 
 				});
 			});
 		}
 	});
 
-	$(_self).load(function () {
-		if (!_self.swfu.loaded) $(defaultButton).parent().parent().find('.swfupload').remove();
+	$(_).load(function () {
+		if (!_.swfu.loaded) $(defaultButton).parent().parent().find('.swfupload').remove();
 	});
 	
 	function swfuLoaded () {
@@ -974,9 +945,9 @@ function FileUploader (button,defaultButton) {
 		this.loaded = true;
 	}
 	
-	_self.updateLine = function (line,status) {
-		_self.swfu.targetLine = line;
-		_self.swfu.targetCell = status;
+	_.updateLine = function (line,status) {
+		_.swfu.targetLine = line;
+		_.swfu.targetCell = status;
 	}
 		
 	function fileQueueError (file, error, message) {
@@ -1003,24 +974,18 @@ function FileUploader (button,defaultButton) {
 
 	function startUpload (file) {
 		this.targetCell.attr('class','').html('');
-		var progress = $('<div class="progress"></div>').appendTo(this.targetCell);
-		var bar = $('<div class="bar"></div>').appendTo(progress);
-		var art = $('<div class="gloss"></div>').appendTo(progress);
-
-		this.progressBar = bar;
-
-		return true;
+		$('<div class="progress"><div class="bar"></div><div class="gloss"></div></div>').appendTo(this.targetCell);
+		this.progressBar = this.targetCell.find('div.bar');
 	}
 
 	function uploadProgress (file, loaded, total) {
-		var progress = Math.ceil((loaded/total)*76);
-		$(this.progressBar).animate({'width':progress+'px'},100);
+		this.progressBar.animate({'width':Math.ceil((loaded/total)*76)+'px'},100);
 	}
 
-	function uploadError (file, error, message) { }
-
 	function uploadSuccess (file, results) {
-		var filedata = eval('('+results+')');
+		var filedata = $.parseJSON(results),
+			targetCell = this.targetCell,
+			i = this.targetLine;
 		if (!filedata.id && !filedata.name) {
 			$(this.targetHolder).html(NO_DOWNLOAD);
 			if (filedata.error) alert(filedata.error);
@@ -1028,8 +993,6 @@ function FileUploader (button,defaultButton) {
 			return true;
 		}
 
-		var targetCell = this.targetCell;
-		var i = this.targetLine;
 		filedata.type = filedata.type.replace(/\//gi," ");
 		$(this.progressBar).animate({'width':'76px'},250,function () { 
 			$(this).parent().fadeOut(500,function() {
@@ -1039,23 +1002,20 @@ function FileUploader (button,defaultButton) {
 		});
 	}
 
-	function uploadComplete (file) {}
-	})(jQuery)
-	
 }
 
 function SlugEditor (id,type) {
-	var _self = this;
-	(function($) {
-	_self.edit_permalink = function () {
-			var i, c = 0;
-			var editor = $('#editable-slug');
-			var revert_editor = editor.html();
-			var real_slug = $('#slug_input');
-			var revert_slug = real_slug.html();
-			var buttons = $('#edit-slug-buttons');
-			var revert_buttons = buttons.html();
-			var full = $('#editable-slug-full').html();
+	var $ = jqnc(), _ = this;
+	
+	_.edit_permalink = function () {
+			var i, c = 0,
+			 	editor = $('#editable-slug'),
+			 	revert_editor = editor.html(),
+			 	real_slug = $('#slug_input'),
+			 	revert_slug = real_slug.html(),
+			 	buttons = $('#edit-slug-buttons'),
+			 	revert_buttons = buttons.html(),
+			 	full = $('#editable-slug-full').html();
 		
 			buttons.html('<button type="button" class="save button">'+SAVE_BUTTON_TEXT+'</button> <button type="button" class="cancel button">'+CANCEL_BUTTON_TEXT+'</button>');
 			buttons.children('.save').click(function() {
@@ -1070,14 +1030,14 @@ function SlugEditor (id,type) {
 							$('#editable-slug-full').html(data);
 							real_slug.val(data);
 						}
-						_self.enable();
+						_.enable();
 					},'text');
 			});
 			$('#edit-slug-buttons .cancel').click(function() {
 				editor.html(revert_editor);
 				buttons.html(revert_buttons);
 				real_slug.attr('value', revert_slug);
-				_self.enable();
+				_.enable();
 			});
 			
 			for(i=0; i < full.length; ++i) if ('%' == full.charAt(i)) c++;
@@ -1094,14 +1054,18 @@ function SlugEditor (id,type) {
 
 	}
 	
-	_self.enable = function () {
-		
-		$('#edit-slug-buttons').children('.edit-slug').click(function () { _self.edit_permalink(); });
+	_.enable = function () {
+		$('#edit-slug-buttons').children('.edit-slug').click(function () { _.edit_permalink(); });
 		$('#edit-slug-buttons').children('.view').click(function () { document.location.href=canonurl+$('#editable-slug-full').html(); });
 		$('#editable-slug').click(function() { $('#edit-slug-buttons').children('.edit-slug').click(); });		
 	}
 
-	
-	_self.enable();
-	})(jQuery)
+	_.enable();
+}
+
+jQuery.parseJSON = function (data) {
+	if (typeof (JSON) !== 'undefined' && 
+		typeof (JSON.parse) === 'function')
+		return JSON.parse(data);
+	else return eval('(' + data + ')');
 }
