@@ -669,12 +669,11 @@ function PopupCalendar (target,month,year) {
 	selected = 'selected',
 	hover = 'hover';
 	
-	
 	// Set today starting at 12am
 	today = new Date(today.getFullYear(),today.getMonth(),today.getDate());
 	_.selection = new Date();
 	_.scope = scopeMonth;
-	_.scheduling = scheduling;
+	_.scheduling = true;
 
 	_.render = function (month,day,year) {
 		$(target).empty();
