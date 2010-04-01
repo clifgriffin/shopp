@@ -32,6 +32,7 @@ class Category extends DatabaseObject {
 	var $loading = array();
 	var $images = array();
 	var $facetedmenus = "off";
+	var $published = "on";
 	
 	function Category ($id=false,$key=false) {
 		global $Shopp;
@@ -191,6 +192,9 @@ class Category extends DatabaseObject {
 		if (!empty($loading['columns'])) $loading['columns'] = ", ".$loading['columns'];
 		else $loading['columns'] = '';
 		
+		// Allow override for loading unpublished products
+		if (isset($loading['published'])) $this->published = $loading['published'];
+		
 		$where = array();
 		
 		if (!empty($loading['where'])) $where[] = "({$loading['where']})";
@@ -241,7 +245,7 @@ class Category extends DatabaseObject {
 			if (!empty($filters)) $where[] = $filters;
 			
 		}
-		$where[] = "p.published='on'";
+		$where[] = "p.published='$this->published'";
 		$loading['having'] = isset($loading['having'])?$loading['having']:'';
 		$loading['where'] = join(" AND ",$where);
 		
@@ -560,6 +564,8 @@ class Category extends DatabaseObject {
 			case "description": return wpautop($this->description); break;
 			case "total": return $this->loaded?$this->total:false; break;
 			case "has-products": 
+			case "loadproducts":
+			case "load-products":
 			case "hasproducts": 
 				if (empty($this->id) && empty($this->slug)) return false;
 				if (isset($options['load'])) {

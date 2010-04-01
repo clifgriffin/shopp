@@ -219,7 +219,7 @@ function Priceline (id,options,data,target,attachment) {
 					 '<input type="hidden" name="'+fn+'[tax]" value="on" /><input type="checkbox" name="'+fn+'[tax]" id="tax-'+i+'" value="off" />'+
 					 '<label for="tax-'+i+'"> '+NOTAX_LABEL+'</label><br /></td>').appendTo(inputsRow);
 
-		_.p = $('#price-'+i).val(price);
+		_.p = $('#price-'+i).val(asMoney(new Number(price)));
 		_.t = $('#tax-'+i).attr('checked',tax == "off"?true:false);
 	}
 	
@@ -236,7 +236,7 @@ function Priceline (id,options,data,target,attachment) {
 		ui = ui.find('span.ui').hide();
 
 		_.sp = $('#saleprice-'+i);
-		_.sp.val(saleprice);
+		_.sp.val(asMoney(new Number(saleprice)));
 
 		_.spt = $('#sale-'+i).attr('checked',(toggle == "on"?true:false)).toggler(dis,ui,_.sp);
 	}
@@ -248,7 +248,7 @@ function Priceline (id,options,data,target,attachment) {
 					 '<input type="hidden" name="'+fn+'[tax]" value="on" /><input type="checkbox" name="'+fn+'[tax]" id="tax-'+i+'" value="off" />'+
 					 '<label for="tax-'+i+'"> '+NOTAX_LABEL+'</label><br /></td>').appendTo(inputsRow);
 
-		_.p = $('#price-'+i).val(price);
+		_.p = $('#price-'+i).val(asMoney(new Number(price)));
 		_.t = $('#tax-'+i).attr('checked',tax == "on"?false:true);
 		
 		hd2 = $('<th />').appendTo(headingsRow);
@@ -279,11 +279,13 @@ function Priceline (id,options,data,target,attachment) {
 		if (!weight) weight = 0;
 		_.w = $('#weight-'+i);
 		_.w.val(weight).bind('change.value',function () {
-			var num = new Number(this.value); this.value = num.roundFixed(3);
+			f = getCurrencyFormat();
+			f.precision = '1';
+			this.value = formatNumber(this.value,f);
 		}).trigger('change.value');
 
 		_.fee = $('#shipfee-'+i);
-		_.fee.val(fee);
+		_.fee.val(asMoney(new Number(fee)));
 		
 		_.st = hd.find('#shipping-'+i).attr('checked',(toggle == "off"?false:true)).toggler(dis,inf,_.w);
 		

@@ -32,11 +32,11 @@ if (!Array.indexOf) {
 function getCurrencyFormat () {
 	if (!ShoppSettings) return false;
 	return {
-		"cp":ShoppSettings.cpos,
-		"c":ShoppSettings.currency,
-		"p":parseInt(ShoppSettings.precision),
-		"d":ShoppSettings.decimals,
-		"t":ShoppSettings.thousands
+		"cpos":ShoppSettings.cp,
+		"currency":ShoppSettings.c,
+		"precision":parseInt(ShoppSettings.p),
+		"decimals":ShoppSettings.d,
+		"thousands":ShoppSettings.t
 	}
 }
 
@@ -59,7 +59,7 @@ function asMoney (n,f) {
 	var currencyFormat = getCurrencyFormat();
 	if (currencyFormat && !f) f = copyOf(currencyFormat);
 	if (!f || !f.currency) f = defaultCurrencyFormat();
-	
+
 	n = formatNumber(n,f);
 	if (f.cpos) return f.currency+n;
 	return n+f.currency;
