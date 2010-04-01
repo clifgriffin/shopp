@@ -306,6 +306,16 @@ class Purchase extends DatabaseObject {
 				if (isset($options['name'])) return $name;
 				return $data;
 				break;
+			case "promolist":
+			case "promo-list":
+				$output = "";
+				if (!empty($this->promos)) {
+					$output .= '<ul>';
+					foreach ($this->promos as $promo)
+						$output .= '<li>'.$promo.'</li>';
+					$output .= '</ul>';
+				}
+				return $output;
 			case "has-promo": 
 			case "haspromo": 
 				if (empty($options['name'])) return false;
