@@ -341,7 +341,7 @@ class Product extends DatabaseObject {
 			if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") { 
 				$base = $Shopp->Settings->get('base_operations');
 				if ($base['vat']) {
-					$taxrate = $Shopp->Cart->taxrate();
+					$taxrate = $Shopp->Order->Cart->taxrate();
 					$price->price += $price->price*$taxrate;
 					$price->saleprice += $price->saleprice*$taxrate;
 				}
@@ -351,23 +351,7 @@ class Product extends DatabaseObject {
 		if ($this->inventory && $this->stock <= 0) $this->outofstock = true;
 		if ($freeshipping) $this->freeshipping = true;
 	}
-	
-	// function imageset () {
-	// 	global $Shopp;
-	// 	// Organize images into groupings by type
-	// 	$this->imagesets = array();
-	// 	foreach ($this->images as $key => &$image) {
-	// 		if (empty($this->imagesets[$image->datatype])) $this->imagesets[$image->datatype] = array();
-	// 		if ($image->id) {
-	// 			if (SHOPP_PERMALINKS) $image->uri = user_trailingslashit($Shopp->imguri.$image->id);
-	// 			else $image->uri = add_query_arg('shopp_image',$image->id,$Shopp->imguri);
-	// 		}
-	// 		$this->imagesets[$image->datatype][] = $image;
-	// 	}
-	// 	$this->thumbnail = $this->imagesets['thumbnail'][0];
-	// 	return true;
-	// }
-	
+		
 	function merge_specs () {
 		$merged = array();
 		foreach ($this->specs as $key => $spec) {
