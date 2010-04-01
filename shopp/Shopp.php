@@ -375,10 +375,6 @@ class Shopp {
 			$rules[$shop.'tag/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]';
 		}
 
-		// catalog/productid
-		if (empty($shop)) $rules[$catalog.'/(\d+(,\d+)?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_pid=$matches[1]';
-		else $rules[$shop.'(\d+(,\d+)?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_pid=$matches[1]';
-
 		// catalog/product-slug
 		if (empty($shop)) $rules[$catalog.'/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_product=$matches[1]'; // category/product-slug
 		else $rules[$shop.'(.+)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_product=$matches[1]'; // category/product-slug			
@@ -414,7 +410,7 @@ class Shopp {
 		$vars[] = 'siid';
 		$vars[] = 'catalog';
 		$vars[] = 'acct';
-	
+
 		return $vars;
 	}
 
