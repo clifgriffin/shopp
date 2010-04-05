@@ -1171,7 +1171,7 @@ class Category extends DatabaseObject {
 				$title = empty($title)?'':' title="'.esc_attr($title).'"';
 				$class = isset($options['class'])?' class="'.esc_attr($options['class']).'"':'';
 				
-				return '<img src="'.$imageuri.$img->id.'?'.$img->resizing($width,$height,$scale,$sharpen,$quality).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; break;
+				return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality),$imageuri.$img->id).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; break;
 				break;
 
 			case "hasimages":
@@ -1211,7 +1211,7 @@ class Category extends DatabaseObject {
 
 				$string = "";				
 				if (!empty($options['zoom'])) $string .= '<a href="'.$imageuri.$img->id.'/image.jpg" class="gallery shopp-zoom">';
-				$string .= '<img src="'.$imageuri.$img->id.'?'.$img->resizing($width,$height,$scale,$sharpen,$quality).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
+				$string .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality),$imageuri.$img->id).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;

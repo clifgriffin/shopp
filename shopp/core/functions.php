@@ -1223,6 +1223,21 @@ function copy_shopp_templates ($src,$target) {
 }
 
 /**
+ * Appends a string to the end of URL as a query string
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param string $string The string to add
+ * @param string $url The url to append to
+ * @return string
+ **/
+function add_query_string ($string,$url) {
+	if(strpos($url,'?') !== false) return "$url&$string";
+	else return "$url?$string";
+}
+
+/**
  * Translate callback function for preg_replace_callback.
  *
  * Helper function for copy_shopp_templates to translate strings in core template files.

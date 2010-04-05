@@ -36,16 +36,6 @@ class ShoppInstallation extends FlowController {
 	}
 
 	/**
-	 * parse function
-	 *
-	 * @return void
-	 * @author Jonathan Davis
-	 **/
-	function parse () {
-
-	}
-
-	/**
 	 * activate()
 	 * Installs the tables and initializes settings */
 	function activate () {
@@ -65,7 +55,6 @@ class ShoppInstallation extends FlowController {
 				
 		if ($this->Settings->get('shopp_setup')) {
 			$this->Settings->save('maintenance','off');
-			$this->Settings->save('shipcalc_lastscan','');
 			
 			// Publish/re-enable Shopp pages
 			$filter = "";
@@ -77,7 +66,7 @@ class ShoppInstallation extends FlowController {
 			$wp_rewrite->flush_rules();
 			$wp_rewrite->wp_rewrite_rules();
 			
-		}
+		} else do_action('shopp_setup');
 		
 		if ($this->Settings->get('show_welcome') == "on")
 			$this->Settings->save('display_welcome','on');
@@ -85,11 +74,11 @@ class ShoppInstallation extends FlowController {
 	
 	function deactivate () {
 		global $Shopp,$wpdb,$wp_rewrite;
-		if (!isset($Shopp->Settings)) return;
+		if (!isset($this->Settings)) return;
 		
 		// Unpublish/disable Shopp pages
 		$filter = "";
-		$pages = $Shopp->Settings->get('pages');
+		$pages = $this->Settings->get('pages');
 		if (!is_array($pages)) return true;
 		foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
 		if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='draft' WHERE $filter");
@@ -123,7 +112,7 @@ class ShoppInstallation extends FlowController {
 
 		$parent = 0;
 		foreach (Storefront::$Pages as $key => &$page) {
-			if (!empty($this->Pages['catalog']['id'])) $parent = $this->Pages['catalog']['id'];
+			if (!empty(Storefront::$Pages['catalog']['id'])) $parent = Storefront::$Pages['catalog']['id'];
 			$query = "INSERT $wpdb->posts SET post_title='{$page['title']}',
 											  post_name='{$page['name']}',
 											  post_content='{$page['content']}',
@@ -150,7 +139,7 @@ class ShoppInstallation extends FlowController {
 			$page['permalink'] = preg_replace('|https?://[^/]+/|i','',$page['permalink']);
 		}
 
-		$this->Settings->save("pages",$this->Pages);
+		$this->Settings->save("pages",Storefront::$Pages);
 	}
 		
 	function dbupgrades ($version) {
@@ -244,7 +233,7 @@ class ShoppInstallation extends FlowController {
 	 * setup()
 	 * Initialize default install settings and lists */
 	function setup () {
-		
+
 		$this->Settings->save('show_welcome','on');	
 		$this->Settings->save('display_welcome','on');	
 		
@@ -287,6 +276,7 @@ class ShoppInstallation extends FlowController {
 		
 		// Setup Roles and Capabilities
 		$this->roles();
+		
 	}
 	
 	function updates_100 () {
@@ -525,7 +515,6 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 
 		//Clean up contents of upgrade directory beforehand.
 		if ($clear_working) {
-			error_log("clearing working dir for $package");
 			$upgrade_files = $wp_filesystem->dirlist($upgrade_folder);
 			if ( !empty($upgrade_files) ) {
 				foreach ( $upgrade_files as $file )

@@ -177,6 +177,9 @@ class Shopp {
 			if ($this->Settings->unavailable) return true;
 			$this->Flow->installation();
 			do_action('shopp_setup');
+
+			// Reload settings after setup
+			$this->Settings->load();
 		}
 
 		$this->Shopping = new Shopping();
