@@ -97,8 +97,9 @@ class AdminFlow extends FlowController {
 		$this->addpage('settings-taxes',__('Taxes','Shopp'),'Setup','Taxes Settings',"settings");
 		$this->addpage('settings-presentation',__('Presentation','Shopp'),'Setup','Presentation Settings',"settings");
 		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
-				
-		// $this->addpage('welcome',__('Welcome','Shopp'),'Flow',$base);
+
+		// if ($Shopp->Settings->get('display_welcome') == "on" && empty($_POST['setup']))
+			// $this->addpage('welcome',__('Welcome','Shopp'),'Flow',$base);
 
 		// Action hook for adding custom third-party pages
 		do_action('shopp_admin_menu');
@@ -138,9 +139,9 @@ class AdminFlow extends FlowController {
 		
 		if (!$this->dbupgraded()) {
 			add_action('toplevel_page_shopp-orders',array(&$this,'dbwarning'));
-			return false;
+			return;
 		}
-		
+				
 		// Add menus to WordPress admin
 		foreach ($this->Pages as $page) $this->addmenu($page);
 
@@ -200,7 +201,8 @@ class AdminFlow extends FlowController {
 			$page->label,
 			defined('SHOPP_USERLEVEL')?SHOPP_USERLEVEL:$this->caps[$page->name],
 			$name,
-			array(&$Shopp->Flow,'admin')
+			($Shopp->Settings->get('display_welcome') == "on" &&  empty($_POST['setup']))?
+				array(&$Shopp->Flow,'welcome'):array(&$Shopp->Flow,'admin')
 		);
 	}
 
