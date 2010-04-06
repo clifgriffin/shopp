@@ -489,7 +489,7 @@ class Product extends DatabaseObject {
 	
 	/**
 	 * update_images()
-	 * Updates the image details for an entire image set (thumbnail, small, image) */
+	 * Updates the image details for all cached images */
 	function update_images ($images) {
 		if (!is_array($images)) return false;
 		
@@ -1374,7 +1374,8 @@ class Product extends DatabaseObject {
 
 				$string .= '<input type="hidden" name="cart" value="add" />';
 				if (isset($options['ajax'])) {
-					$options['class'] .= " ajax";
+					if ($options['ajax'] == "html") $options['class'] .= ' ajax-html';
+					else $options['class'] .= " ajax";
 					$string .= '<input type="hidden" name="ajax" value="true" />';
 					$string .= '<input type="button" name="addtocart" '.inputattrs($options).' />';					
 				} else {

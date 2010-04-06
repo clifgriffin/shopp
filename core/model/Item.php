@@ -80,7 +80,6 @@ class Item {
 		$this->option = $this->mapprice($Price);
 		$this->image = current($Product->images);
 		$this->description = $Product->summary;
-		if (isset($Product->thumbnail)) $this->thumbnail = $Product->thumbnail;
 		if ($Product->variations == "on") 
 			$this->variations($Product->prices);
 			
