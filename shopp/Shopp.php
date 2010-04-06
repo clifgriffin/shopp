@@ -191,7 +191,7 @@ class Shopp {
         add_action('install_plugins_pre_plugin-information', array(&$this, 'changelog'));
         add_action('shopp_check_updates', array(&$this, 'updates'));
 				
-		// Theme widgets
+		// Theme integration
 		add_action('widgets_init', array(&$this, 'widgets'));
 		add_filter('wp_list_pages',array(&$this,'secure_links'));
 		add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
@@ -248,7 +248,8 @@ class Shopp {
 		$this->Gateways = new GatewayModules();
 		$this->Shipping = new ShippingModules();
 		$this->Storage = new StorageEngines();
-		
+		$this->SmartCategories = array();
+
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
 									$this->Settings->get('error_notifications'));
@@ -259,7 +260,7 @@ class Shopp {
 		
 		new Login();
 	}
-
+	
 	/**
 	 * Initializes theme widgets
 	 *
@@ -558,6 +559,12 @@ class Shopp {
 			$linklist = str_replace($href,$secure_href,$linklist);
 		}
 		return $linklist;
+	}
+	
+	function add_smartcategory ($name) {
+		global $Shopp;
+		if (empty($Shopp)) return;
+		$Shopp->SmartCategories[] = $name;
 	}
 	
 	/**

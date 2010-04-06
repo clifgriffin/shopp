@@ -168,9 +168,7 @@ class Category extends DatabaseObject {
 	function load_products ($loading=false) {
 		global $Shopp,$wp;
 		$db = DB::get();
-		
-		$debug = debug_backtrace();
-		
+				
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 		$producttable = DatabaseObject::tablename(Product::$table);
 		$pricetable = DatabaseObject::tablename(Price::$table);
@@ -1275,98 +1273,88 @@ class Category extends DatabaseObject {
 		}
 	}
 	
-} // end Category class
+} // END class Category
 
-class CatalogProducts extends Category {
+class SmartCategory extends Category {
+	var $smart = true;
+	var $slug = false;
+	var $uri = false;
+	var $loading = array();
+	
+	function __construct ($options=array()) {
+		global $Shopp;
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
+		$this->smart($options);
+	}
+}
+
+class CatalogProducts extends SmartCategory {
 	static $_slug = "catalog";
 	
-	function CatalogProducts ($options=array()) {
+	function smart ($options=array()) {
+		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("Catalog Products","Shopp");
-		$this->slug = self::$_slug;
-		$this->uri = $this->slug;
-		$this->smart = true;
 		$this->loading = array('where'=>"true");
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
 
-class NewProducts extends Category {
+class NewProducts extends SmartCategory {
 	static $_slug = "new";
 	
-	function NewProducts ($options=array()) {
+	function smart ($options=array()) {
+		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("New Products","Shopp");
-		$this->slug = self::$_slug;
-		$this->uri = $this->slug;
-		$this->smart = true;
 		$this->loading = array('where'=>"p.id IS NOT NULL",'order'=>'newest');
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
 
-class FeaturedProducts extends Category {
+class FeaturedProducts extends SmartCategory {
 	static $_slug = "featured";
 	
-	function FeaturedProducts ($options=array()) {
+	function smart ($options=array()) {
+		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("Featured Products","Shopp");
-		$this->slug = self::$_slug;
-		$this->uri = $this->slug;
-		$this->smart = true;
 		$this->loading = array('where'=>"p.featured='on'",'order'=>'p.modified DESC');
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
 
-class OnSaleProducts extends Category {
+class OnSaleProducts extends SmartCategory {
 	static $_slug = "onsale";
 	
-	function OnSaleProducts ($options=array()) {
+	function smart ($options=array()) {
+		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("On Sale","Shopp");
-		$this->slug = self::$_slug;
-		$this->uri = $this->slug;
-		$this->smart = true;
 		$this->loading = array('where'=>"pd.sale='on' OR (pr.status='enabled' AND pr.discount > 0 AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1) OR (UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(ends)) ))",'order'=>'p.modified DESC');
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
 
-class BestsellerProducts extends Category {
+class BestsellerProducts extends SmartCategory {
 	static $_slug = "bestsellers";
 	
-	function BestsellerProducts ($options=array()) {
+	function smart ($options=array()) {
+		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("Bestsellers","Shopp");
-		$this->slug = self::$_slug;
-		$this->uri = $this->slug;
-		$this->smart = true;
-		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
-		
 		$this->loading = array(
 			'where' => 'TRUE',
 			'order'=>'bestselling');
 		if (isset($options['where'])) $this->loading['where'] = $options['where'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 	
 }
 
-class SearchResults extends Category {
+class SearchResults extends SmartCategory {
 	static $_slug = "search-results";
 
-	function SearchResults ($options=array()) {
+	function smart ($options=array()) {
+		$this->slug = $this->uri = self::$_slug;
 		$options['search'] = empty($options['search'])?"":stripslashes($options['search']);
-		$this->slug = self::$_slug;
-		$this->uri = $this->slug;
-		$this->smart = true;
 
 		// Load search engine components
 		require_once(SHOPP_MODEL_PATH."/Search.php");
@@ -1414,10 +1402,11 @@ class SearchResults extends Category {
 	}
 }
 
-class TagProducts extends Category {
+class TagProducts extends SmartCategory {
 	static $_slug = "tag";
 	
-	function TagProducts ($options=array()) {
+	function smart ($options=array()) {
+		$this->slug = self::$_slug;
 		$tagtable = DatabaseObject::tablename(Tag::$table);
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 		
@@ -1430,21 +1419,20 @@ class TagProducts extends Category {
 		} else $tagquery = "tag.name='{$options['tag']}'";
 		
 		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($options['tag'])."&quot;";
-		$this->slug = self::$_slug;
 		$this->uri = urlencode($options['tag']);
-		$this->smart = true;
 		$this->loading = array('where'=>"p.id in (SELECT product FROM $catalogtable AS catalog LEFT JOIN $tagtable AS tag ON catalog.tag=tag.id WHERE $tagquery)");
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 }
 
-class RelatedProducts extends Category {
+class RelatedProducts extends SmartCategory {
 	static $_slug = "related";
 	var $product = false;
 	
-	function RelatedProducts ($options=array()) {
+	function smart ($options=array()) {
+		$this->slug = self::$_slug;
+		
 		global $Shopp;
+		$Cart = $Shopp->Order->Cart;
 		$tagtable = DatabaseObject::tablename(Tag::$table);
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 
@@ -1455,7 +1443,7 @@ class RelatedProducts extends Category {
 		// Or load a product specified
 		if (isset($options['product'])) {
 			if ($options['product'] == "recent-cartitem") 			// Use most recently added item in the cart
-				$this->product = new Product($Shopp->Cart->contents[$Shopp->Cart->data->added]->product);	
+				$this->product = new Product($Cart->Added->product);
 			elseif (preg_match('/^[\d+]$/',$options['product']) !== false) 	// Load by specified id		
 				$this->product = new Product($options['product']);
 			else
@@ -1486,9 +1474,7 @@ class RelatedProducts extends Category {
 		
 		$this->tag = "product-".$this->product->id;
 		$this->name = __("Products related to","Shopp")." &quot;".stripslashes($this->product->name)."&quot;";
-		$this->slug = self::$_slug;
 		$this->uri = urlencode($this->tag);
-		$this->smart = true;
 		$this->controls = false;
 		
 		$exclude = "";
@@ -1500,8 +1486,6 @@ class RelatedProducts extends Category {
 			'where'=>"($tagscope) $exclude",
 			'orderby'=>'score DESC'
 			);
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
 		if (isset($options['controls']) && value_is_true($options['controls']))
 			unset($this->controls);
@@ -1509,19 +1493,17 @@ class RelatedProducts extends Category {
 	
 }
 
-class RandomProducts extends Category {
+class RandomProducts extends SmartCategory {
 	static $_slug = "random";
 	
-	function RandomProducts ($options=array()) {
-		global $Shopp;
+	function smart ($options=array()) {
+		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("Random Products","Shopp");
-		$this->slug = self::$_slug;
-		$this->uri = $this->slug;
-		$this->smart = true;
 		$this->loading = array('where'=>'true','order'=>'random');
 		if (isset($options['exclude'])) {
 			$where = array();
 			$excludes = explode(",",$options['exclude']);
+			global $Shopp;
 			if (in_array('current-product',$excludes) && 
 				isset($Shopp->Product->id)) $where[] = '(p.id != $Shopp->Product->id)';
 			if (in_array('featured',$excludes)) $where[] = "(p.featured='off')";
@@ -1529,10 +1511,7 @@ class RandomProducts extends Category {
 			$this->loading['where'] = join(" AND ",$where);
 		}
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 	}
 }
-
 
 ?>

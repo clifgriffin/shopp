@@ -16,7 +16,6 @@ require_once("Tag.php");
 class Catalog extends DatabaseObject {
 	static $table = "catalog";
 
-	var $smarts = array("FeaturedProducts","BestsellerProducts","NewProducts","OnSaleProducts");
 	var $categories = array();
 	var $outofstock = false;
 	var $categoryloop = false;
@@ -101,7 +100,10 @@ class Catalog extends DatabaseObject {
 	}
 	
 	function smart_categories ($method) {
-		foreach ($this->smarts as $SmartCategory) {
+		global $Shopp;
+		$internal = array('CatalogProducts','SearchResults','TagProducts','RelatedProducts','RandomProducts');
+		foreach ($Shopp->SmartCategories as $SmartCategory) {
+			if (in_array($SmartCategory,$internal)) continue;
 			$category = new $SmartCategory(array("noload" => true));
 			switch($method) {
 				case "before": array_unshift($this->categories,$category); break; 
@@ -123,20 +125,16 @@ class Catalog extends DatabaseObject {
 	}
 	
 	function load_category ($category,$options=array()) {
-		switch ($category) {
-			case SearchResults::$_slug: return new SearchResults($options); break;
-			case TagProducts::$_slug: return new TagProducts($options); break;
-			case BestsellerProducts::$_slug: return new BestsellerProducts(); break;
-			case CatalogProducts::$_slug: return new CatalogProducts(); break;
-			case NewProducts::$_slug: return new NewProducts(); break;
-			case FeaturedProducts::$_slug: return new FeaturedProducts(); break;
-			case OnSaleProducts::$_slug: return new OnSaleProducts(); break;
-			case RandomProducts::$_slug: return new RandomProducts(); break;
-			default:
-				$key = "id";
-				if (!preg_match("/^\d+$/",$category)) $key = "uri";
-				return new Category($category,$key);
+		global $Shopp;
+		foreach ($Shopp->SmartCategories as $SmartCategory) {
+			if ($category == $SmartCategory::$_slug)
+				return new $SmartCategory($options);
 		}
+		
+		$key = "id";
+		if (!preg_match("/^\d+$/",$category)) $key = "uri";
+		return new Category($category,$key);
+		
 	}
 	
 	function tag ($property,$options=array()) {
@@ -616,6 +614,6 @@ class Catalog extends DatabaseObject {
 		}
 	}
 
-} // end Catalog class
+} // END class Catalog
 
 ?>

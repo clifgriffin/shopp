@@ -33,6 +33,7 @@ class Cart {
 	
 	// Internal properties
 	var $changed = false;		// Flag when Cart updates and needs retotaled
+	var $added = false;			// The index of the last item added
 	
 	var $looping = false;
 	var $itemlooping = false;
@@ -233,13 +234,15 @@ class Cart {
 		
 		if (($item = $this->hasitem($NewItem)) !== false) {
 			$this->contents[$item]->add($quantity);
+			$this->added = $item;
 		} else {
 			$NewItem->quantity($quantity);
 			$this->contents[] = $NewItem;
+			$this->added = count($this->contents)-1;
 		}
 
 		do_action_ref_array('shopp_cart_add_item',array(&$NewItem));
-		$this->added = &$NewItem;
+		$this->Added = &$NewItem;
 
 		$this->changed(true);
 		return true;
