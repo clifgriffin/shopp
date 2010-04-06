@@ -473,8 +473,6 @@ class Category extends DatabaseObject {
 		
 		$items = array();
 		foreach ($this->products as $product) {
-			if (isset($product->thumbnail_properties))
-				$product->thumbnail_properties = unserialize($product->thumbnail_properties);
 			$item = array();
 			$item['guid'] = array($product->id,'isPermaLink'=>'false');
 			$item['title'] = esc_attr($product->name);
@@ -483,9 +481,10 @@ class Category extends DatabaseObject {
 			
 			// Item Description
 			$item['description'] = '';
-			if (!empty($product->thumbnail)) {
+			$Image = current($product->images);
+			if (!empty($Image)) {
 				$item['description'] .= '<a href="'.$item['link'].'" title="'.$product->name.'">';
-				$item['description'] .= '<img src="'.$product->thumbnail->uri.'" alt="'.$product->name.'" width="'.$product->thumbnail->properties['width'].'" height="'.$product->thumbnail->properties['height'].'" style="float: left; margin: 0 10px 0 0;" />';
+				$item['description'] .= '<img src="'.add_query_string($Image->resizing(96,96,0),$Shopp->imguri.$Image->id).'" alt="'.$product->name.'" width="96" height="96" style="float: left; margin: 0 10px 0 0;" />';
 				$item['description'] .= '</a>';
 			}
 			
@@ -506,8 +505,7 @@ class Category extends DatabaseObject {
 			 	'<![CDATA['.apply_filters('shopp_rss_description',$item['description'],$product).']]>';
 			
 			// Google Base Namespace
-			if(!empty($product->imagesets) & !empty($product->imagesets['image'])) 
-				$item['g:image_link'] = $product->thumbnail->uri;
+			if($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),$Shopp->imguri.$Image->id);
 			$item['g:condition'] = "new";
 			$item['g:price'] = floatvalue($product->onsale?
 				$product->pricerange['min']['saleprice']:
