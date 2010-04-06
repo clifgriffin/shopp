@@ -212,14 +212,13 @@ function addVariationOptionsMenu (data) {
 	});
 	optionMenus[variationsidx++] = menu;
 	
-	menu.deleteButton.unbind('click');
 	menu.deleteButton.click(function () {
 		var deletedOptions = new Array();
 		$(menu.itemsElement).find('li').not('.ui-sortable-helper').find('input.id').each(function (i,id) {
 			deletedOptions.push($(id).val());
 		});
 		deleteVariationPrices(deletedOptions,true);
-		menu.remove();
+		// menu.element.remove();
 	});
 	
 }

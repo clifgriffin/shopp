@@ -67,6 +67,7 @@ class Storefront extends FlowController {
 		add_action('wp', array(&$this, 'shortcodes'));
 		add_action('wp', array(&$this, 'behaviors'));
 		
+		$this->smartcategories();
 		$this->searching();
 		
 	}
@@ -242,6 +243,20 @@ class Storefront extends FlowController {
 		if (!empty($Shopp->Category->slug)) return $Shopp->Category->tag('url','echo=0');
 		return $url;
 	}
+	
+	function smartcategories () {
+		Shopp::add_smartcategory('CatalogProducts');
+		Shopp::add_smartcategory('NewProducts');
+		Shopp::add_smartcategory('FeaturedProducts');
+		Shopp::add_smartcategory('OnSaleProducts');
+		Shopp::add_smartcategory('BestsellerProducts');
+		Shopp::add_smartcategory('SearchResults');
+		Shopp::add_smartcategory('TagProducts');
+		Shopp::add_smartcategory('RelatedProducts');
+		Shopp::add_smartcategory('RandomProducts');
+
+		do_action('shopp_register_smartcategories');
+	}
 
 	/**
 	 * header()
@@ -347,7 +362,6 @@ class Storefront extends FlowController {
 			$category = "search-results";
 		}
 		
-
 		// Load a category/tag
 		if (!empty($category) || !empty($tag)) {
 			if (isset($this->search)) $options = array('search'=>$this->search);
@@ -356,7 +370,7 @@ class Storefront extends FlowController {
 			// Split for encoding multi-byte slugs
 			$slugs = explode("/",$category);
 			$category = join("/",array_map('urlencode',$slugs));
-
+			
 			// Load the category
 			$Shopp->Category = Catalog::load_category($category,$options);
 			$this->breadcrumb = (isset($tag)?"tag/":"").$Shopp->Category->uri;
