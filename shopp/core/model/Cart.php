@@ -197,6 +197,10 @@ class Cart {
 		}
 		$AjaxCart = new StdClass();
 		$AjaxCart->url = $Shopp->link('cart');
+		$AjaxCart->label = __('Edit shopping cart','Shopp');
+		$AjaxCart->checkouturl = $Shopp->link('checkout');
+		$AjaxCart->checkoutLabel = __('Proceed to Checkout','Shopp');
+		$AjaxCart->imguri = (SHOPP_PERMALINKS)?$Shopp->imguri:$Shopp->imguri.'?siid=';
 		$AjaxCart->Totals = clone($this->Totals);
 		$AjaxCart->Contents = array();
 		foreach($this->contents as $Item) {
@@ -458,7 +462,7 @@ class Cart {
 			if (!$Item->freeshipping) $this->freeshipping = false;
 			
 		}
-		
+
 		// Calculate discounts
 		$Discounts = new CartDiscounts();
 		$Totals->discount = $Discounts->calculate();

@@ -311,7 +311,9 @@ function addtocart (form) {
 		}
 	}
 
-	if ($(form).find('input.addtocart').hasClass('ajax')) 
+	if ($(form).find('input.addtocart').hasClass('ajax-html')) 
+		ShoppCartAjaxRequest(form.action,$(form).serialize(),'html');
+	else if ($(form).find('input.addtocart').hasClass('ajax')) 
 		ShoppCartAjaxRequest(form.action,$(form).serialize());
 	else form.submit();
 
@@ -319,9 +321,11 @@ function addtocart (form) {
 }
 
 /**
- * Makes an asyncronous request to the cart
+ * Overridable wrapper function to call cartajax.
+ * Developers can recreate this function in their own
+ * custom JS libraries to change the way cartajax is called.
  **/
-function cartajax (url,data,response) {
+function ShoppCartAjaxRequest (url,data,response) {
 	if (!response) response = "json";
 	var $ = jqnc(),
 		datatype = ((response == 'json')?'json':'string');
@@ -332,19 +336,10 @@ function cartajax (url,data,response) {
 		timeout:10000,
 		dataType:datatype,
 		success:function (cart) {
-			ShoppCartAjaxHandler(cart);
+			ShoppCartAjaxHandler(cart,response);
 		},
 		error:function () { }
 	});
-}
-
-/**
- * Overridable wrapper function to call cartajax.
- * Developers can recreate this function in their own
- * custom JS libraries to change the way cartajax is called.
- **/
-function ShoppCartAjaxRequest (url,data,response) {
-	cartajax(url,data,response);
 }
 
 /**
@@ -353,25 +348,34 @@ function ShoppCartAjaxRequest (url,data,response) {
  * custom JS libraries to change the way the cart response
  * is processed and displayed to the shopper.
  **/
-function ShoppCartAjaxHandler (cart) {
+function ShoppCartAjaxHandler (cart,response) {
 	var $ = jqnc(),
+		widget = $('.widget_shoppcartwidget div.widget-all'),
+		actions = widget.find('ul'),
 		display = $('#shopp-cart-ajax'),
-		item = $('<ul></ul>').appendTo(display);
-	display.empty().hide(); // clear any previous additions
-	if (cart.Item.thumbnail)
-		$('<li><img src="'+cart.Item.thumbnail.uri+'" alt="" width="'+cart.Item.thumbnail.width+'"  height="'+cart.Item.thumbnail.height+'" /></li>').appendTo(item);
-	$('<li></li>').html('<strong>'+cart.Item.name+'</strong>').appendTo(item);
-	if (cart.Item.optionlabel.length > 0)
-		$('<li></li>').html(cart.Item.optionlabel).appendTo(item);
-	$('<li></li>').html(asMoney(cart.Item.unitprice)).appendTo(item);
+		item = $('<div class="added"></div>');
+
+	if (response == "html") return display.html(cart);
 	
-	if ($('#shopp-sidecart-items').length > 0) {
-		$('#shopp-sidecart-items').html(cart.Totals.quantity);
-		$('#shopp-sidecart-total').html(asMoney(cart.Totals.total));			
-	} else {
-		$('.widget_shoppcartwidget p.status').html('<a href="'+cart.url+'"><span id="shopp-sidecart-items">'+cart.Totals.quantity+'</span> <strong>Items</strong> &mdash; <strong>Total</strong> <span id="shopp-sidecart-total">'+asMoney(cart.Totals.total)+'</span></a>');
-	}
-	display.slideDown();
+	added = display.find('div.added').empty().hide(); // clear any previous additions
+	if (added.length == 1) item = added;
+	else item.prependTo(display).hide();
+	
+	if (cart.Item.image)
+		$('<p><img src="'+cart.imguri+cart.Item.image.id+'" alt="" width="96"  height="96" /></p>').appendTo(item);
+	$('<p />').html('<strong>'+cart.Item.name+'</strong>').appendTo(item);
+	// if (cart.Item.optionlabel.length > 0)
+	// 	$('<li></li>').html(cart.Item.optionlabel).appendTo(item);
+	$('<p />').html(asMoney(cart.Item.unitprice)).appendTo(item);
+	
+	widget.find('p.status')
+		.html('<a href="'+cart.url+'"><span id="shopp-sidecart-items">'+cart.Totals.quantity+'</span> '+
+				'<strong>Items</strong> &mdash; <strong>Total</strong> '+
+				'<span id="shopp-sidecart-total">'+asMoney(cart.Totals.total)+'</span></a>');
+
+	if (actions.length != 1) actions = $('<ul />').appendTo(widget);
+	actions.html('<li><a href="'+cart.url+'">'+cart.label+'</a></li><li><a href="'+cart.checkouturl+'">'+cart.checkoutLabel+'</a></li>');
+	item.slideDown();
 }
 
 

@@ -478,17 +478,20 @@ class Storefront extends FlowController {
 	 * Handles shopping cart requests */
 	function cart () {
 		global $Shopp;
+		$Cart = $Shopp->Order->Cart;
 		if (isset($_REQUEST['shopping']) && strtolower($_REQUEST['shopping']) == "reset") {
 			$Shopp->Shopping->reset();
 			shopp_redirect($Shopp->link('catalog'));
 		}
 
-
 		if (empty($_REQUEST['cart'])) return true;
 		
 		do_action('shopp_cart_request');
 
-		if (isset($_REQUEST['ajax'])) $Shopp->Order->Cart->ajax();
+		if (isset($_REQUEST['ajax'])) {
+			$Cart->totals();
+			$Cart->ajax();
+		}
 		$redirect = false;
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {

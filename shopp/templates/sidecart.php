@@ -10,7 +10,7 @@
  **
  **/
 ?>
-<div id="shopp-cart-ajax"></div>
+<div id="shopp-cart-ajax">
 <?php if (shopp('cart','hasitems')): ?>	
 	<p class="status">
 		<span id="shopp-sidecart-items"><?php shopp('cart','totalitems'); ?></span> <strong><?php _e('Items','Shopp'); ?></strong><br />
@@ -25,3 +25,4 @@
 <?php else: ?>
 	<p class="status"><?php _e('Your cart is empty.','Shopp'); ?></p>
 <?php endif; ?>
+</div>
