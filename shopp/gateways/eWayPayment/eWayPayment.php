@@ -67,7 +67,7 @@ class eWayPayment extends GatewayFramework implements GatewayModule {
 		$_ = array();
 		$_[] = '<ewaygateway>';
 			$_[] = '<ewayCustomerID>'.$eWayCustomer.'</ewayCustomerID>';
-			$_[] = '<ewayTotalAmount>'.str_replace(".","",number_format($Order->Cart->Totals->total,2)).'</ewayTotalAmount>';
+			$_[] = '<ewayTotalAmount>'.str_replace(".","",number_format($Order->Cart->Totals->total,$this->precision)).'</ewayTotalAmount>';
 			$_[] = '<ewayCustomerFirstName>'.htmlentities($Order->Customer->firstname).'</ewayCustomerFirstName>';
 			$_[] = '<ewayCustomerLastName>'.htmlentities($Order->Customer->lastname).'</ewayCustomerLastName>';
 			$_[] = '<ewayCustomerEmail>'.htmlentities($Order->Customer->email).'</ewayCustomerEmail>';

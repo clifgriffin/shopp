@@ -58,7 +58,6 @@ class Payson extends GatewayFramework implements GatewayModule {
 	function form ($form) {
 		global $Shopp;
 		$Order = $this->Order;
-		$precision = $this->baseop['currency']['format']['precision'];
 		
 		$_ = array();
 		
@@ -72,8 +71,8 @@ class Payson extends GatewayFramework implements GatewayModule {
 		$_['BuyerFirstName']		= $Order->Customer->firstname;
 		$_['BuyerLastname']			= $Order->Customer->lastname;
 		
-		$_['Cost']					= number_format($Order->Cart->Totals->subtotal+$Order->Totals->tax,2,",","");
-		$_['ExtraCost']				= number_format($Order->Cart->Totals->shipping,2,",","");
+		$_['Cost']					= number_format($Order->Cart->Totals->subtotal+$Order->Totals->tax,$this->precision,",","");
+		$_['ExtraCost']				= number_format($Order->Cart->Totals->shipping,$this->precision,",","");
 		
 		$_['RefNr']					= $Shopp->Shopping->session;
 		

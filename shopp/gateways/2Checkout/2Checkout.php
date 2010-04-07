@@ -70,7 +70,7 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 		
 		// Required
 		$_['sid']				= $this->settings['sid'];
-		$_['total']				= number_format($Order->Totals->total,2);
+		$_['total']				= number_format($Order->Totals->total,$this->precision);
 		$_['cart_order_id']		= $Order->_2COcart_order_id;
 		$_['vendor_order_id']	= $this->session;
 		$_['id_type']			= 1;
@@ -91,7 +91,7 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 			$_['c_prod_'.$id]			= 'shopp_pid-'.$Item->product.','.$Item->quantity;
 			$_['c_name_'.$id]			= $Item->name;
 			$_['c_description_'.$id]	= !empty($Item->optionlabel)?$Item->optionlabel:'';
-			$_['c_price_'.$id]			= number_format($Item->unitprice,2);
+			$_['c_price_'.$id]			= number_format($Item->unitprice,$this->precision);
 			
 		}
 			
@@ -153,7 +153,7 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 		$verification = strtoupper(md5($this->settings['secret'].
 							$this->settings['sid'].
 							$order.
-							number_format($this->Order->Cart->Totals->total,2)));
+							number_format($this->Order->Cart->Totals->total,$this->precision)));
 
 		return ($verification == $key);
 	}
