@@ -49,16 +49,16 @@ function discount_meta_box ($Promotion) {
 add_meta_box('promotion-discount', __('Discount','Shopp'), 'discount_meta_box', 'shopp_page_shopp-promotions', 'normal', 'core');
 
 function rules_meta_box ($Promotion) {
-	$scopes = array(
+	$targets = array(
 		'Catalog' => __('catalog product','Shopp'),
 		'Cart' => __('shopping cart','Shopp'),
 		'Cart Item' => __('cart item','Shopp'),
 		
 	);
 
-	$scope = '<select name="scope" id="promotion-scope" class="small">';
-	$scope .= menuoptions($scopes,$Promotion->scope,true);
-	$scope .= '</select>';
+	$target = '<select name="target" id="promotion-target" class="small">';
+	$target .= menuoptions($targets,$Promotion->target,true);
+	$target .= '</select>';
 
 	if (empty($Promotion->search)) $Promotion->search = "all";
 	
@@ -67,7 +67,7 @@ function rules_meta_box ($Promotion) {
 	$logic .= '</select>';
 
 ?>
-<p><strong><?php printf(__('Apply discount to %s','Shopp'),$scope,$logic); ?> <strong id="scope-property"></strong></strong></p>
+<p><strong><?php printf(__('Apply discount to %s','Shopp'),$target,$logic); ?> <strong id="target-property"></strong></strong></p>
 <table class="form-table" id="cartitem"></table>
 
 <p><strong><?php printf(__('When %s of these conditions match the','Shopp'),$logic); ?> <strong id="rule-target">:</strong></strong></p>

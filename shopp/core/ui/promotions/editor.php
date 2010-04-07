@@ -162,7 +162,7 @@ var logic = {
 }
 
 var Conditional = function (type,settings,location) {
-	var scope = $('#promotion-scope').val();
+	var target = $('#promotion-target').val();
 	var row = false;
 
 	if (!type) type = 'condition';
@@ -183,10 +183,10 @@ var Conditional = function (type,settings,location) {
 	var properties_name = (type=='cartitem')?'rules[item]['+i+'][property]':'rules['+i+'][property]';
 	var properties = $('<select name="'+properties_name+'" class="ruleprops"></select>').appendTo(cell);
 	
-	if (type == "cartitem") scope = "Cart Item Target";
-	if (conditions[scope])
-		for (var label in conditions[scope])
-			$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel',scope).appendTo(properties);
+	if (type == "cartitem") target = "Cart Item Target";
+	if (conditions[target])
+		for (var label in conditions[target])
+			$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel',target).appendTo(properties);
 
 	var operation_name = (type=='cartitem')?'rules[item]['+i+'][logic]':'rules['+i+'][logic]';
 	var operation = $('<select name="'+operation_name+'" ></select>').appendTo(cell);
@@ -250,10 +250,10 @@ $('#discount-type').change(function () {
 	if (type == "Percentage Off" || type == "Amount Off") $('#discount-row').show();
 	if (type == "Buy X Get Y Free") {
 		$('#beyget-row').show();
-		$('#promotion-scope').val('Cart').change();
-		$('#promotion-scope option').eq(0).attr('disabled',true);
+		$('#promotion-target').val('Cart').change();
+		$('#promotion-target option').eq(0).attr('disabled',true);
 	} else {
-		$('#promotion-scope option').eq(0).attr('disabled',false);
+		$('#promotion-target option').eq(0).attr('disabled',false);
 	}
 	
 	$('#discount-amount').unbind('change').change(function () {
@@ -263,16 +263,16 @@ $('#discount-type').change(function () {
 	
 }).change();
 
-$('#promotion-scope').change(function () {
-	var scope = $(this).val();
+$('#promotion-target').change(function () {
+	var target = $(this).val();
 	var menus = $('#rules select.ruleprops');
-	$('#scope-property').html(SCOPEPROP_LANG[scope]);
-	$('#rule-target').html(TARGET_LANG[scope]);
+	$('#target-property').html(SCOPEPROP_LANG[target]);
+	$('#rule-target').html(TARGET_LANG[target]);
 	$(menus).empty().each(function (id,menu) {
-		for (var label in conditions[scope])
-			$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel',scope).appendTo($(menu));
+		for (var label in conditions[target])
+			$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel',target).appendTo($(menu));
 	});
-	if (scope == "Cart Item") {
+	if (target == "Cart Item") {
 		if (rules['item']) for (var r in rules['item']) new Conditional('cartitem',rules['item'][r]);
 		else new Conditional('cartitem');
 	} else $('#cartitem').empty();
