@@ -126,5 +126,28 @@ if ( !function_exists('sys_get_temp_dir')) {
 	}
 }
 
+if (!function_exists('get_class_property')) {
+	/**
+	 * Gets the property of an uninstantiated class
+	 * 
+	 * Provides support for getting a property of an uninstantiated 
+	 * class by dynamic name.  As of PHP 5.3.0 this function is no
+	 * longer necessary as you can simply reference as $Classname::$property
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $classname Name of the class
+	 * @param string $property Name of the property
+	 * @return mixed Value of the property
+	 **/
+	function get_class_property ($classname, $property) {
+	  if(!class_exists($classname)) return;
+	  if(!property_exists($classname, $property)) return;
+
+	  $vars = get_class_vars($classname);
+	  return $vars[$property];
+	}
+}
 
 ?>
