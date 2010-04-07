@@ -46,9 +46,6 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		
 		$this->setup('username','password','signature','testmode');
 		
-		global $Shopp;
-		$this->baseop = $Shopp->Settings->get('base_operations');
-		
 		$this->settings['currency_code'] = $this->currencies[0];
 		if (in_array($this->baseop['currency']['code'],$this->currencies))
 			$this->settings['currency_code'] = $this->baseop['currency']['code'];
@@ -120,11 +117,11 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		
 		// Transaction
 		$_['CURRENCYCODE']			= $this->settings['currency_code'];
-		$_['AMT']					= number_format($this->Order->Cart->Totals->total,2);
+		$_['AMT']					= number_format($this->Order->Cart->Totals->total,$this->precision);
 		$_['ITEMAMT']				= number_format($this->Order->Cart->Totals->subtotal - 
-													$this->Order->Cart->Totals->discount,2);
-		$_['SHIPPINGAMT']			= number_format($this->Order->Cart->Totals->shipping,2);
-		$_['TAXAMT']				= number_format($this->Order->Cart->Totals->tax,2);
+													$this->Order->Cart->Totals->discount,$this->precision);
+		$_['SHIPPINGAMT']			= number_format($this->Order->Cart->Totals->shipping,$this->precision);
+		$_['TAXAMT']				= number_format($this->Order->Cart->Totals->tax,$this->precision);
 
 
 		$_['EMAIL']					= $this->Customer->email;
@@ -149,9 +146,9 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		foreach($this->Order->Cart->contents as $i => $Item) {
 			$_['L_NUMBER'.$i]		= $i;
 			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
-			$_['L_AMT'.$i]			= number_format($Item->unitprice,2);
+			$_['L_AMT'.$i]			= number_format($Item->unitprice,$this->precision);
 			$_['L_QTY'.$i]			= $Item->quantity;
-			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,2);
+			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,$this->precision);
 		}
 		
 		if ($this->Order->Cart->Totals->discount != 0) {
@@ -162,9 +159,9 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 			$i++;
 			$_['L_NUMBER'.$i]		= $i;
 			$_['L_NAME'.$i]			= join(", ",$discounts);
-			$_['L_AMT'.$i]			= number_format($this->Order->Cart->Totals->discount*-1,2);
+			$_['L_AMT'.$i]			= number_format($this->Order->Cart->Totals->discount*-1,$this->precision);
 			$_['L_QTY'.$i]			= 1;
-			$_['L_TAXAMT'.$i]		= number_format(0,2);
+			$_['L_TAXAMT'.$i]		= number_format(0,$this->precision);
 		}
 		
 		return $_;

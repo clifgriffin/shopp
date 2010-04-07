@@ -121,9 +121,9 @@ class PayJunction extends GatewayFramework implements GatewayModule {
 		// Transaction
 		// $_['dc_transaction_id']		= $Order->Cart;
 		$_['dc_transaction_amount']	= number_format($Order->Cart->Totals->subtotal - 
-													$Order->Cart->Totals->discount,2);
-		$_['dc_shipping_amount']	= number_format($Order->Cart->Totals->shipping,2);
-		$_['dc_tax_amount']			= number_format($Order->Cart->Totals->tax,2);
+													$Order->Cart->Totals->discount,$this->precision);
+		$_['dc_shipping_amount']	= number_format($Order->Cart->Totals->shipping,$this->precision);
+		$_['dc_tax_amount']			= number_format($Order->Cart->Totals->tax,$this->precision);
 		
 		return $this->encode($_);
 	}

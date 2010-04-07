@@ -188,7 +188,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 					$_[] = '<item>';
 					$_[] = '<item-name>'.htmlspecialchars($Item->name).htmlspecialchars((!empty($Item->optionlabel))?' ('.$Item->optionlabel.')':'').'</item-name>';
 					$_[] = '<item-description>'.htmlspecialchars($Item->description).'</item-description>';
-					$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Item->unitprice,2).'</unit-price>';
+					$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Item->unitprice,$this->precision).'</unit-price>';
 					$_[] = '<quantity>'.$Item->quantity.'</quantity>';
 					if (!empty($Item->sku)) $_[] = '<merchant-item-id>'.$Item->sku.'</merchant-item-id>';
 					$_[] = '<merchant-private-item-data>';
@@ -211,7 +211,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 					$_[] = '<item>';
 						$_[] = '<item-name>Discounts</item-name>';
 						$_[] = '<item-description>'.join(", ",$discounts).'</item-description>';
-						$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Cart->Totals->discount*-1,2).'</unit-price>';
+						$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Cart->Totals->discount*-1,$this->precision).'</unit-price>';
 						$_[] = '<quantity>1</quantity>';
 					$_[] = '</item>';
 				}
@@ -245,7 +245,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 							$label = __('Shipping Option','Shopp').' '.($i+1);
 							if (!empty($shipping['name'])) $label = $shipping['name'];
 							$_[] = '<flat-rate-shipping name="'.$label.'">';
-							$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping['cost'],2).'</price>';
+							$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping['cost'],$this->precision).'</price>';
 							$_[] = '</flat-rate-shipping>';
 						}
 					$_[] = '</shipping-methods>';

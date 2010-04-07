@@ -113,10 +113,10 @@ class SagePay extends GatewayFramework implements GatewayModule {
 		foreach($Order->Cart->contents as $Item) {
 			$Basket[] = htmlentities($Item->name.' '.((sizeof($Item->options) > 1)?' ('.$Item->optionlabel.')':''));
 			$Basket[] = $Item->quantity;
-			$Basket[] = number_format($Item->unitprice,2);
-			$Basket[] = number_format($Item->tax,2);
-			$Basket[] = number_format($Item->tax,2)+number_format($Item->unitprice,2);
-			$Basket[] = number_format($Item->total,2);
+			$Basket[] = number_format($Item->unitprice,$this->precision);
+			$Basket[] = number_format($Item->tax,$this->precision);
+			$Basket[] = number_format($Item->tax,$this->precision)+number_format($Item->unitprice,$this->precision);
+			$Basket[] = number_format($Item->total,$this->precision);
 		}
 		array_push($Basket,__('Shipping','Shopp'),'','','','',$Order->Cart->Totals->shipping);
 		array_push($Basket,__('Discount','Shopp'),'','','','',$Order->Cart->Totals->discount*-1);

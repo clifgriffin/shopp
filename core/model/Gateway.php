@@ -63,6 +63,8 @@ abstract class GatewayFramework {
 	var $cards = false;			// A list of supported payment cards
 	var $secure = true;			// Flag for requiring encrypted checkout process
 	var $multi = false;			// Flag to enable a multi-instance gateway
+	var $baseop = false; 		// Base of operation setting
+	var $precision = 2;			// Currency precision
 	var $settings = array();	// List of settings for the module
 	
 	/**
@@ -83,6 +85,10 @@ abstract class GatewayFramework {
 		$this->settings = $Shopp->Settings->get($this->module);
 		if (!isset($this->settings['label']) && $this->cards) 
 			$this->settings['label'] = __("Credit Card","Shopp");
+			
+		$this->baseop = $Shopp->Settings->get('base_operations');
+		$this->precision = $this->baseop['currency']['format']['precision'];
+			
 		$this->_loadcards();
 		if ($this->myorder()) $this->actions();
 	}

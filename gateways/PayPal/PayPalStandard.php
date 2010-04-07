@@ -42,9 +42,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		
 		$this->setup('account','pdtverify','pdttoken','testmode');
 		
-		global $Shopp;
-		$this->baseop = $Shopp->Settings->get('base_operations');
-		
 		$this->settings['currency_code'] = $this->currencies[0];
 		if (in_array($this->baseop['currency']['code'],$this->currencies))
 			$this->settings['currency_code'] = $this->baseop['currency']['code'];
@@ -98,7 +95,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	function form ($form) {
 		global $Shopp;
 		$Order = $this->Order;
-		$precision = $this->baseop['currency']['format']['precision'];
 		
 		$_ = array();
 
@@ -151,15 +147,15 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			$id=$i+1;
 			$_['item_number_'.$id]		= $id;
 			$_['item_name_'.$id]		= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
-			$_['amount_'.$id]			= number_format($Item->unitprice,$precision);
+			$_['amount_'.$id]			= number_format($Item->unitprice,$this->precision);
 			$_['quantity_'.$id]			= $Item->quantity;
 			$_['weight_'.$id]			= $Item->quantity;
 		}
 		
-		$_['discount_amount_cart'] 		= number_format($Order->Cart->Totals->discount,$precision);
-		$_['tax_cart']					= number_format($Order->Cart->Totals->tax,$precision);
-		$_['handling_cart']				= number_format($Order->Cart->Totals->shipping,$precision);
-		$_['amount']					= number_format($Order->Cart->Totals->total,$precision);
+		$_['discount_amount_cart'] 		= number_format($Order->Cart->Totals->discount,$this->precision);
+		$_['tax_cart']					= number_format($Order->Cart->Totals->tax,$this->precision);
+		$_['handling_cart']				= number_format($Order->Cart->Totals->shipping,$this->precision);
+		$_['amount']					= number_format($Order->Cart->Totals->total,$this->precision);
 		
 		return $form.$this->format($_);
 	}
