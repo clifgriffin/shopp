@@ -311,7 +311,7 @@ CREATE TABLE <?php echo $promo; ?> (
 	name varchar(255) NOT NULL default '',
 	status enum('disabled','enabled') default 'disabled',
 	type enum('Percentage Off','Amount Off','Free Shipping','Buy X Get Y Free') default 'Percentage Off',
-	scope enum('Catalog','Cart','Cart Item') default 'Catalog',
+	target enum('Catalog','Cart','Cart Item') default 'Catalog',
 	discount float(20,2) NOT NULL default '0.00',
 	buyqty int(10) NOT NULL default '0',
 	getqty int(10) NOT NULL default '0',

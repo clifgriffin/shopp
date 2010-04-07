@@ -190,18 +190,6 @@ class Promote extends AdminController {
 		if ($_GET['id'] != "new") {
 			$Promotion = new Promotion($_GET['id']);
 		} else $Promotion = new Promotion();
-		
-		$scopes = array(
-			'Catalog' => __('Catalog Products','Shopp'),
-			'Order' => __('Entire Order','Shopp')
-		);
-		
-		$types = array(
-			'Percentage Off' => __('Percentage Off','Shopp'),
-			'Amount Off' => __('Amount Off','Shopp'),
-			'Free Shipping' => __('Free Shipping','Shopp'),
-			'Buy X Get Y Free' => __('Buy X Get Y Free','Shopp')			
-		);
 				
 		include(SHOPP_PATH."/core/ui/promotions/editor.php");
 	}
