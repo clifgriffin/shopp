@@ -127,7 +127,8 @@ class Catalog extends DatabaseObject {
 	function load_category ($category,$options=array()) {
 		global $Shopp;
 		foreach ($Shopp->SmartCategories as $SmartCategory) {
-			if ($category == $SmartCategory::$_slug)
+			$SmartCategory_slug = get_class_property($SmartCategory,'_slug');
+			if ($category == $SmartCategory_slug)
 				return new $SmartCategory($options);
 		}
 		
