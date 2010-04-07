@@ -52,11 +52,11 @@ class Promotion extends DatabaseObject {
 				
 				if ($this->values[$rule['property']] == "price") 
 					$value = floatvalue($rule['value']);
-				else $value = "'".$rule['value']."'";
+				else $value = $rule['value'];
 				
 				switch($rule['logic']) {
-					case "Is equal to": $match = "=$value"; break;
-					case "Is not equal to": $match = "!=$value"; break;
+					case "Is equal to": $match = "='$value'"; break;
+					case "Is not equal to": $match = "!='$value'"; break;
 					case "Contains": $match = " LIKE '%$value%'"; break;
 					case "Does not contain": $match = " NOT LIKE '%$value%'"; break;
 					case "Begins with": $match = " LIKE '$value%'"; break;
