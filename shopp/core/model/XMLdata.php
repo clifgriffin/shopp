@@ -169,6 +169,16 @@ class XMLdata {
 		if (!empty($found)) return $found[0];
 		else return false;
 	}
+
+	/**
+	 * getXMLElement()
+	 * Searches the tree for the target $element and returns 
+	 * an array of the element attributes, content and any children */
+	function getXMLElement ($element) {
+		$found = $this->search($element);
+		if (!empty($found)) return new XMLdata($found[0]);
+		else return false;
+	}
 	
 	/**
 	 * getElements()
