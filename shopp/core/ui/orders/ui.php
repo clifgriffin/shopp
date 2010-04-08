@@ -43,6 +43,7 @@ function contact_meta_box ($Purchase) {
 add_meta_box('order-contact', __('Customer Contact','Shopp'), 'contact_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function orderdata_meta_box ($Purchase) {
+	ob_start();
 ?>
 	<ul>
 	<?php foreach ($Purchase->data as $name => $value): ?>
@@ -51,8 +52,12 @@ function orderdata_meta_box ($Purchase) {
 	<?php endforeach; ?>
 	</ul>
 <?php
+	$contents = ob_get_contents();
+	ob_end_clean();
+	echo apply_filters('shopp_orderui_orderdata',$content);
 }
-if (!empty($Shopp->Purchase->data) && is_array($Shopp->Purchase->data) && join("",$Shopp->Purchase->data) != "")
+if (!empty($Shopp->Purchase->data) && is_array($Shopp->Purchase->data) && join("",$Shopp->Purchase->data) != "" 
+		|| apply_filters('shopp_orderui_show_orderdata',false))
 	add_meta_box('order-data', __('Details','Shopp'), 'orderdata_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 function transaction_meta_box ($Purchase) {
