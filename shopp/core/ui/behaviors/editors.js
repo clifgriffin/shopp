@@ -143,9 +143,8 @@ function addVariationOptionsMenu (data) {
 	 	linkOptionVariations = $('#linkOptionVariations'),
 	 	id = variationsidx,
 	 	menu = new NestedMenu(id,menus,'options[v]',OPTION_MENU_DEFAULT,data,
-		{target:entries,type:'list'},
-		{'axis':'y','update':function() { orderOptions(menus,entries) }}
-	);
+			{target:entries,type:'list'},
+			{'axis':'y','update':function() { orderOptions(menus,entries) }});
 	
 	menu.addOption = function (data) {
 		var init = false,option;
@@ -190,7 +189,7 @@ function addVariationOptionsMenu (data) {
 			else deleteVariationPrices([option.id.val()]);
 			option.element.remove();
 		});
-	
+		
 		if (!init) addVariationPrices(option.id.val());
 		else addVariationPrices();
 		
@@ -275,7 +274,7 @@ function buildVariations () {
 }
 
 function addVariationPrices (data) {
-	if (data !== false) return;
+	if (data) return;
 	var $=jqnc(), key, preKey
 	 	updated = buildVariations(),
 	 	variationPricing = $('#variations-pricing'),
