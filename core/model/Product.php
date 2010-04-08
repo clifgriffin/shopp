@@ -1085,34 +1085,30 @@ class Product extends DatabaseObject {
 
 				} else {
 					if (!isset($this->options)) return;
+
+					$options = $this->options;
+					if (!empty($this->options['v'])) $options = $this->options['v'];
 					
 					$taxrate = shopp_taxrate($options['taxes'],true);
 					ob_start();
 					?>
 					<script type="text/javascript">
 					<!--
-					(function($) {
-						$(document).ready(function () {
-							productOptions[<?php echo $this->id; ?>] = new Array();
-							productOptions[<?php echo $this->id; ?>]['pricing'] = <?php echo json_encode($this->pricekey); ?>;
-							options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
-							options_required = "<?php echo $options['required']; ?>";
-							
-							productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (isset($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo empty($taxrate)?'0':$taxrate; ?>);
-						});
-					})(jQuery)
+					jQuery(document).ready(function () {
+						productOptions[<?php echo $this->id; ?>] = new Array();
+						productOptions[<?php echo $this->id; ?>]['pricing'] = <?php echo json_encode($this->pricekey); ?>;
+						options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
+						options_required = "<?php echo $options['required']; ?>";
+						
+						productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo empty($taxrate)?'0':$taxrate; ?>);
+					});
 					//-->
 					</script>
 					<?php
 					$script = ob_get_contents();
 					ob_end_clean();
-
-					$options['after_menu'] = $script.$options['after_menu'];
 					
-					$options = $this->options;
-					if (!empty($this->options['v'])) $options = $this->options['v'];
-					
-					foreach ($this->options as $id => $menu) {
+					foreach ($options as $id => $menu) {
 						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 						if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
 						$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
@@ -1124,7 +1120,7 @@ class Product extends DatabaseObject {
 						$string .= '</select>';
 					}
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
-					
+					$string .= $script;
 				}
 
 				return $string;

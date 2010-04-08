@@ -224,12 +224,14 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 		$(current).val(currentSelection);
 
 		$(current).children('option').each(function () {
+			
 			var p,tax,pricetag,optiontext,previoustag,
 				option = $(this),
 				keys = selected.slice(),
-				price = pricing[xorkey(keys)];
+				price;
 			if (option.val() != "") {
-				keys.push(option.val());
+					keys.push(option.val());
+				price = pricing[xorkey(keys)];
 				if (!price) price = pricing[xorkey_deprecated(keys)];
 				if (price) {
 					p = new Number(price.onsale?price.promoprice:price.price);
@@ -273,14 +275,15 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 	
 	function disabledHandler (menu) {
 		$(menu).change(function () {
-			if (!this.options[this.selectedIndex].disabled) {
-				this.lastSelected = this.selectedIndex;
+			var _ = this,firstEnabled;
+			if (!_.options[_.selectedIndex].disabled) {
+				_.lastSelected = _.selectedIndex;
 				return true;
 			}
-			if (this.lastSelected) this.selectedIndex = this.lastSelected;
+			if (_.lastSelected) _.selectedIndex = _.lastSelected;
 			else {
-				var firstEnabled = $(this).children('option:not(:disabled)').get(0);
-				this.selectedIndex = firstEnabled?firstEnabled.index:0;
+				firstEnabled = $(_).children('option:not(:disabled)').get(0);
+				_.selectedIndex = firstEnabled?firstEnabled.index:0;
 			}				
 		});
 	}		

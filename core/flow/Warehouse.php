@@ -479,12 +479,13 @@ class Warehouse extends AdminController {
 		}
 
 		// No variation options at all, delete all variation-pricelines
-		if (!empty($Product->prices) && is_array($Product->prices)) { 
+		if (!empty($Product->prices) && is_array($Product->prices) 
+				&& (empty($_POST['options']['v']) || empty($_POST['options']['a']))) { 
 			foreach ($Product->prices as $priceline) {
 				// Skip if not tied to variation options
 				if ($priceline->optionkey == 0) continue;
-				if ((empty($this->options['v']) && $priceline->context == "variation") 
-					|| (empty($this->options['a']) && $priceline->context == "addon")) {
+				if ((empty($_POST['options']['v']) && $priceline->context == "variation") 
+					|| (empty($_POST['options']['a']) && $priceline->context == "addon")) {
 						$Price = new Price($priceline->id);
 						$Price->delete();
 				}
