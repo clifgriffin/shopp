@@ -363,7 +363,9 @@ class Product extends DatabaseObject {
 			if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") { 
 				$base = $Shopp->Settings->get('base_operations');
 				if ($base['vat']) {
-					$taxrate = $Shopp->Order->Cart->taxrate();
+					$Taxes = new CartTax();
+					$taxrate = $Taxes->rate();
+
 					$price->price += $price->price*$taxrate;
 					$price->saleprice += $price->saleprice*$taxrate;
 				}
@@ -698,14 +700,7 @@ class Product extends DatabaseObject {
 			case "price":
 				if (empty($this->prices)) $this->load_data(array('prices'));
 				if (!isset($options['taxes'])) $options['taxes'] = null;
-
-				// $taxrate = 0;
-				// $taxes = false;
-				// $base = $Shopp->Settings->get('base_operations');
-				// if ($base['vat']) $taxes = true;
-				// if (isset($options['taxes'])) $taxes = (value_is_true($options['taxes']));
-				// if ($taxes) $taxrate = $Shopp->Cart->taxrate();
-				
+			
 				if (count($this->options) > 0) {
 					$taxrate = shopp_taxrate($options['taxes']);
 					if ($this->pricerange['min']['price'] == $this->pricerange['max']['price'])
