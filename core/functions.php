@@ -1034,12 +1034,13 @@ function shopp_taxrate ($override=null,$taxprice=true) {
 	$rated = false;
 	$taxrate = 0;
 	$base = $Shopp->Settings->get('base_operations');
+	$Taxes = new CartTax();
 
 	if ($base['vat']) $rated = true;
 	if (!is_null($override)) $rated = (value_is_true($override));
 	if (!value_is_true($taxprice)) $rated = false;
 
-	if ($rated) $taxrate = $Shopp->Order->Cart->taxrate();
+	if ($rated) $taxrate = $Taxes->rate();
 	return $taxrate;
 }
 

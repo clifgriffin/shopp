@@ -349,8 +349,8 @@ class Service extends AdminController {
 		
 		$taxrate = 0;
 		$base = $Shopp->Settings->get('base_operations');
-		if ($base['vat']) $taxrate = $Shopp->Cart->taxrate();
-		
+		$Taxes = new CartTax();
+		if ($base['vat']) $taxrate = $Taxes->rate();
 				
 		include(SHOPP_ADMIN_PATH."/orders/order.php");
 	}
