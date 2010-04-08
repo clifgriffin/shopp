@@ -109,7 +109,7 @@ class Payson extends GatewayFramework implements GatewayModule {
 		}
 
 		// Check for unique transaction id
-		$Purchase = new Purchase($_GET['Paysonref'],'transactionid');
+		$Purchase = new Purchase($_GET['Paysonref'],'txnid');
 		if (!empty($Purchase->id)) return false; // Purchase already recorded
 		
 		if ($Shopp->Shopping->session != $_GET['RefNr'])
