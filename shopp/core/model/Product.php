@@ -237,6 +237,15 @@ class Product extends DatabaseObject {
 		
 	} // end load_data()
 		
+	/**
+	 * Aggregates product pricing information
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $options shopp() tag option list
+	 * @return void
+	 **/
 	function pricing ($options = false) {
 		global $Shopp;
 
