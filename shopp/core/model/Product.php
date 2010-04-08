@@ -1,12 +1,15 @@
 <?php
 /**
- * Product class
- * Catalog products
+ * Product.php
+ * 
+ * Database management of catalog products
  *
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, 28 March, 2008
  * @package shopp
+ * @since 1.0
+ * @subpackage products
  **/
 
 require_once("Asset.php");
@@ -37,12 +40,22 @@ class Product extends DatabaseObject {
 	var $stock = 0;
 	var $options = 0;
 	
-	function Product ($id=false,$key=false) {
+	function __construct ($id=false,$key=false) {
 		$this->init(self::$table);
 		if ($this->load($id,$key)) return true;
 		return false;
 	}
 	
+	/**
+	 * Loads specified relational data associated with the product
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $options List of data to load (prices, images, categories, tags, specs)
+	 * @param array $products List of products to load data for
+	 * @return void
+	 **/
 	function load_data ($options=false,&$products=false) {
 		global $Shopp;
 		$db =& DB::get();
