@@ -77,7 +77,7 @@ class Item {
 		$this->category = $category;
 		$this->categories = $this->namelist($Product->categories);
 		$this->tags = $this->namelist($Product->tags);
-		$this->option = $this->mapprice($Price);
+		$this->option = $this->mapprice($Price,'variation');
 		$this->image = current($Product->images);
 		$this->description = $Product->summary;
 		if ($Product->variations == "on") 
@@ -247,7 +247,7 @@ class Item {
 	function variations ($prices) {
 		foreach ($prices as $price)	{
 			if ($price->type == "N/A") continue;
-			$pricing = $this->mapprice($price,"variation");
+			$pricing = $this->mapprice($price, 'variation');
 			if ($pricing) $this->variations[] = $pricing;
 		}		
 	}
@@ -264,7 +264,7 @@ class Item {
 	function addons (&$sum,$addons,$prices) {
 		foreach ($prices as $p)	{
 			if ($p->type == "N/A" || !in_array($p->options,$addons)) continue;
-			$pricing = $this->mapprice($p,"addon");
+			$pricing = $this->mapprice($p,'addon');
 			if ($pricing) {
 				$pricing->unitprice = (($p->onsale)?$p->promoprice:$p->price);
 				$this->addons[] = $pricing;
