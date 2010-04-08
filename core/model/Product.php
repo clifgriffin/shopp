@@ -395,6 +395,15 @@ class Product extends DatabaseObject {
 		$this->specs = $merged;
 	}
 	
+	/**
+	 * Saves product category assignments to the catalog
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $updates Updated list of category ids the product is assigned to
+	 * @return void
+	 **/
 	function save_categories ($updates) {
 		$db = DB::get();
 		
