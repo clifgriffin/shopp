@@ -373,7 +373,15 @@ class Product extends DatabaseObject {
 		if ($this->inventory && $this->stock <= 0) $this->outofstock = true;
 		if ($freeshipping) $this->freeshipping = true;
 	}
-		
+	
+	/**
+	 * Merges specs with identical names into an array of values
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function merge_specs () {
 		$merged = array();
 		foreach ($this->specs as $key => $spec) {
