@@ -71,7 +71,7 @@ class Payson extends GatewayFramework implements GatewayModule {
 		$_['BuyerFirstName']		= $Order->Customer->firstname;
 		$_['BuyerLastname']			= $Order->Customer->lastname;
 		
-		$_['Cost']					= number_format($Order->Cart->Totals->subtotal+$Order->Totals->tax,$this->precision,",","");
+		$_['Cost']					= number_format($Order->Cart->Totals->total-$Order->Cart->Totals->shipping,$this->precision,",","");
 		$_['ExtraCost']				= number_format($Order->Cart->Totals->shipping,$this->precision,",","");
 		
 		$_['RefNr']					= $Shopp->Shopping->session;
