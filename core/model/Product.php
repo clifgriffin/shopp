@@ -1411,8 +1411,8 @@ class Product extends DatabaseObject {
 				} else {
 					$string .= '<input type="submit" name="addtocart" '.inputattrs($options).' />';					
 				}
-					
-				return $string;				
+				
+				return $string;
 		}
 		
 		

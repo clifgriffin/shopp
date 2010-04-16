@@ -505,8 +505,12 @@ class Catalog extends DatabaseObject {
 				if ($property == "featured-products") $Shopp->Category = new FeaturedProducts($options);
 			case "onsale-products":
 				if ($property == "onsale-products") $Shopp->Category = new OnSaleProducts($options);
+			case "bestsellers-products":
+				if ($property == "bestsellers-products") $Shopp->Category = new BestsellerProducts($options);
 			case "bestseller-products":
 				if ($property == "bestseller-products") $Shopp->Category = new BestsellerProducts($options);
+			case "bestselling-products":
+				if ($property == "bestselling-products") $Shopp->Category = new BestsellerProducts($options);
 			case "random-products":
 				if ($property == "random-products") $Shopp->Category = new RandomProducts($options);
 			case "tag-products":

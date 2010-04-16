@@ -325,7 +325,7 @@ class Shopp {
 
 		if ($update) return $update;
 	}
-			
+
 	/**
 	 * Adds Shopp-specific pretty-url rewrite rules to WordPress rewrite rules
 	 *
@@ -452,8 +452,15 @@ class Shopp {
 	}
 	
 	/**
-	 * link ()
-	 * Builds a full URL for a specific Shopp-related resource */
+	 * Builds a full URL for a specific Shopp-related resource
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $target The name of the target page
+	 * @param boolean $secure Toggle SSL URLs
+	 * @return string Generated URL
+	 **/
 	function link ($target,$secure=false) {
 		$internals = array("thanks","receipt","confirm-order");
 		$pages = $this->Settings->get('pages');
@@ -560,11 +567,20 @@ class Shopp {
 		}
 		return $linklist;
 	}
-	
+
+	/**
+	 * Registers a smart category
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $name Class name of the smart category
+	 * @return void
+	 **/
 	function add_smartcategory ($name) {
 		global $Shopp;
 		if (empty($Shopp)) return;
-		$Shopp->SmartCategories[] = $name;
+			$Shopp->SmartCategories[] = $name;
 	}
 	
 	/**

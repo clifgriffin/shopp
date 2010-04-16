@@ -92,8 +92,8 @@ class AjaxFlow {
 		if (!isset($_GET['category'])) return;
 		$category = $_GET['category'];
 		require_once(SHOPP_FLOW_PATH."/Warehouse.php");
-		$Store = new Store();
-		echo $Store->category($category);
+		$Warehouse = new Warehouse();
+		echo $Warehouse->category($category);
 		exit();
 	}
 	
