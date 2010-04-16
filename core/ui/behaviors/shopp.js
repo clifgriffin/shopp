@@ -885,7 +885,9 @@ function validate (form) {
 		title = 'title';
 		
 	$.each(inputs,function (id,field) {
-		input = $(field)
+		input = $(field).removeClass('error');
+		label = $('label[for=' + input.attr('id') + ']').removeClass('error');
+		
 		if (input.attr('disabled') == true) return;
 		
 		if (input.hasClass(required) && input.val() == "")
@@ -907,12 +909,17 @@ function validate (form) {
 			if (passwords.length == 2 && passwords[0].value != passwords[1].value)
 				error = new Array(ShoppSettings.PASSWORD_MISMATCH,passwords[1]);
 		}
-			
+		
+		if (error[1] && error[1].id == input.attr('id')) {
+			input.addClass('error');
+			label.addClass('error');
+		}
+
 	});
 
 	if (error.length > 0) {
 		error[1].focus();
-		alert(error[0]);
+		if ($(form).hasClass('validation-alerts')) alert(error[0]);
 		passed = false;
 	}
 	return passed;
