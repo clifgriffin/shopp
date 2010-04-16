@@ -152,6 +152,7 @@ class Storefront extends FlowController {
 		$this->shortcodes['checkout'] = array(&$this,'checkout_page');
 		$this->shortcodes['account'] = array(&$this,'account_page');
 		$this->shortcodes['product'] = array(&$this,'product_shortcode');
+		$this->shortcodes['buynow'] = array(&$this,'buynow_shortcode');
 		$this->shortcodes['category'] = array(&$this,'category_shortcode');
 
 		foreach ($this->shortcodes as $name => &$callback)
@@ -570,7 +571,6 @@ class Storefront extends FlowController {
 		
 	}
 
-
 	function shipping_estimate_page ($attrs) {
 		$Cart = $this->Cart;
 
@@ -617,7 +617,97 @@ class Storefront extends FlowController {
 		ob_end_clean();
 		return apply_filters('shopp_errors_page','<div id="shopp">'.$content.'</div>');
 	}
+
+	function product_shortcode ($atts) {
+		global $Shopp;
+
+		if (isset($atts['name'])) {
+			$Shopp->Product = new Product($atts['name'],'name');
+		} elseif (isset($atts['slug'])) {
+			$Shopp->Product = new Product($atts['slug'],'slug');
+		} elseif (isset($atts['id'])) {
+			$Shopp->Product = new Product($atts['id']);
+		} else return "";
+		
+		if (isset($atts['nowrap']) && value_is_true($atts['nowrap']))
+			return $Shopp->Catalog->tag('product',$atts);
+		else return '<div id="shopp">'.$Shopp->Catalog->tag('product',$atts).'<div class="clear"></div></div>';
+	}
 	
+	function category_shortcode ($atts) {
+		global $Shopp;
+		
+		$tag = 'category';
+		if (isset($atts['name'])) {
+			$Shopp->Category = new Category($atts['name'],'name');
+			unset($atts['name']);
+		} elseif (isset($atts['slug'])) {
+			foreach ($Shopp->SmartCategories as $SmartCategory) {
+				$SmartCategory_slug = get_class_property($SmartCategory,'_slug');
+				if ($atts['slug'] == $SmartCategory_slug) {
+					$tag = "$SmartCategory_slug-products";
+					unset($atts['slug']);
+				}
+			}
+		} elseif (isset($atts['id'])) {
+			$Shopp->Category = new Category($atts['id']);
+			unset($atts['id']);
+		} else return "";
+		
+		if (isset($atts['nowrap']) && value_is_true($atts['nowrap']))
+			return $Shopp->Catalog->tag($tag,$atts);
+		else return '<div id="shopp">'.$Shopp->Catalog->tag($tag,$atts).'<div class="clear"></div></div>';
+		
+	}
+	
+	function maintenance_shortcode ($atts) {
+		return '<div id="shopp" class="update"><p>The store is currently down for maintenance.  We\'ll be back soon!</p><div class="clear"></div></div>';
+	}
+
+	function buynow_shortcode ($atts) {
+		global $Shopp;
+		
+		if (empty($Shopp->Product->id)) {
+			if (isset($atts['name'])) {
+				$Shopp->Product = new Product($atts['name'],'name');
+			} elseif (isset($atts['slug'])) {
+				$Shopp->Product = new Product($atts['slug'],'slug');
+			} elseif (isset($atts['id'])) {
+				$Shopp->Product = new Product($atts['id']);
+			} else return "";
+		}
+		if (empty($Shopp->Product->id)) return "";
+
+		ob_start();
+		?>
+		<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
+			<input type="hidden" name="redirect" value="checkout" />
+			<?php if (isset($atts['variations'])): $variations = empty($atts['variations'])?'mode=multiple&label=true&defaults='.__('Select an option','Shopp').'&before_menu=<li>&after_menu=</li>':$atts['variations']; ?>
+				<?php if(shopp('product','has-variations')): ?>
+				<ul class="variations">
+					<?php shopp('product','variations',$variations); ?>			
+				</ul>
+				<?php endif; ?>
+			<?php endif; ?>
+			<?php if (isset($atts['addons'])): $addons = empty($atts['addons'])?'mode=menu&label=true&defaults='.__('Select an add-on','Shopp').'&before_menu=<li>&after_menu=</li>':$atts['addons']; ?>
+				<?php if(shopp('product','has-addons')): ?>
+					<ul class="addons">
+						<?php shopp('product','addons','mode=menu&label=true&defaults='.__('Select an add-on','Shopp').'&before_menu=<li>&after_menu=</li>'); ?>			
+					</ul>
+				<?php endif; ?>
+			<?php endif; ?>
+			<p><?php if (isset($atts['quantity'])): $quantity = (empty($atts['quantity']))?'class=selectall&input=menu':$atts['quantity']; ?>
+				<?php shopp('product','quantity',$quantity); ?>
+			<?php endif; ?>
+			<?php $button = empty($atts['button'])?'label='.__('Buy Now','Shopp'):$atts['button']; ?>
+			<?php shopp('product','addtocart',$button); ?></p>
+		</form>
+		<?php
+		$markup = ob_get_contents();
+		ob_end_clean();
+
+		return $markup;
+	}
 
 } // END class Storefront
 
