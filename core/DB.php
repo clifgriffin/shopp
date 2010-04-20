@@ -697,6 +697,7 @@ abstract class SessionObject {
 		$this->trash();	// Clear out any residual session information before loading new data
 		if (empty($this->session)) $this->session = session_id();	// Grab our session id
 		$this->ip = $_SERVER['REMOTE_ADDR'];						// Save the IP address making the request
+		if (!isset($_COOKIE[SHOPP_SECURE_KEY])) $this->securekey();
 		return true;
 	}
 	
@@ -793,13 +794,12 @@ abstract class SessionObject {
 		$data = $db->escape(addslashes(serialize($this->data)));
 		
 		if ($this->secured() && is_shopp_secure()) {
-			if (!isset($_COOKIE[SHOPP_SECURE_KEY])) $key = $this->securekey();
-			else $key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
-			if (!empty($key)) {
+			$key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
+			if (!empty($key) && $key !== false) {
 				new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
 				$secure = $db->query("SELECT AES_ENCRYPT('$data','$key') AS data");
 				$data = "!".base64_encode($secure->data);
-			}
+			} else return false;
 		}
 		
 		$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',modified=now() WHERE session='$this->session'";
@@ -871,10 +871,12 @@ abstract class SessionObject {
 		if (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') $key = SECRET_AUTH_KEY;
 		else $key = md5(serialize($this->data).time());
 		$content = hash_hmac('sha256', $this->session . '|' . $expiration, $key);
+		$success = false;
 		if ( version_compare(phpversion(), '5.2.0', 'ge') )
-			setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true,true);
-		else setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true);
-		return $content;
+			$success = setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true,true);
+		else $success = setcookie(SHOPP_SECURE_KEY,$content,0,'/','',true);
+		if ($success) return $content;
+		else return false;
 	}
 	
 } // END class SessionObject
