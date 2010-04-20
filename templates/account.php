@@ -51,7 +51,7 @@
 		<?php endwhile; ?>
 		<li>
 			<label for="password"><?php _e('Change Your Password','Shopp'); ?></label>
-			<span><?php shopp('checkout','password','required=true&minlength=3&size=14&title='.__('New Password','Shopp')); ?><label for="password"><?php _e('New Password','Shopp'); ?></label></span>
+			<span><?php shopp('customer','password','required=true&minlength=3&size=14&title='.__('New Password','Shopp')); ?><label for="password"><?php _e('New Password','Shopp'); ?></label></span>
 			<span><?php shopp('customer','confirm-password','required=true&minlength=3&size=14&title='.__('Confirm Password','Shopp')); ?><label for="confirm-password"><?php _e('Confirm Password','Shopp'); ?></label></span>
 		</li>
 	</ul>	

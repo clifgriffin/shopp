@@ -93,12 +93,14 @@ class Customer extends DatabaseObject {
 			return false;
 		}
 
-		
 		if (!empty($_POST['customer'])) {
 			$this->updates($_POST);
-			if ($_POST['password'] == $_POST['confirm-password'])
+			if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
 				$this->password = wp_hash_password($_POST['password']);
-			$this->save();
+				$this->save();
+			} else {
+				if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
+			}
 		}
 		
 	}
@@ -364,7 +366,7 @@ class Customer extends DatabaseObject {
 				$Errors = &ShoppErrors();
 				if (!$Errors->exist(SHOPP_AUTH_ERR)) return false;
 				$errors = $Errors->get(SHOPP_AUTH_ERR);
-				foreach ((array)$errors as $error) if (!empty($error)) $result .= '<p class="error">'.$error->message().'</p>';
+				foreach ((array)$errors as $error) if (!empty($error)) $result .= '<p class="error">'.$error->message(true).'</p>';
 				return $result;
 				break;
 
@@ -450,13 +452,11 @@ class Customer extends DatabaseObject {
 			case "password":
 				if (isset($options['mode']) && $options['mode'] == "value") 
 					return strlen($this->password) == 34?str_pad('&bull;',8):$this->password;
-				if (!empty($this->password))
-					$options['value'] = $this->password; 
+				$options['value'] = "";
 				return '<input type="password" name="password" id="password"'.inputattrs($options).' />';
 				break;
 			case "confirm-password":
-				if (!empty($this->confirm_password))
-					$options['value'] = $this->confirm_password; 
+				$options['value'] = ""; 
 				return '<input type="password" name="confirm-password" id="confirm-password"'.inputattrs($options).' />';
 				break;
 			case "phone": 

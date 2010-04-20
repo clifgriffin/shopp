@@ -754,13 +754,11 @@ class Order {
 				break;
 			case "password":
 				if ($options['mode'] == "value") return $this->Customer->password;
-				if (!empty($this->Customer->password))
-					$options['value'] = $this->Customer->password; 
+				$options['value'] = ""; 
 				return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
 				break;
 			case "confirm-password":
-				if (!empty($this->Customer->confirm_password))
-					$options['value'] = $this->Customer->confirm_password; 
+				$options['value'] = ""; 
 				return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
 				break;
 			case "phone": 
