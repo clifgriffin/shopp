@@ -45,6 +45,7 @@ class Resources {
 
 		// For secure, backend lookups
 		if (defined('WP_ADMIN') && is_user_logged_in()) {
+			add_action('shopp_resource_help',array(&$this,'help'));
 			if (current_user_can('shopp_financials')) {
 				add_action('shopp_resource_export_purchases',array(&$this,'export_purchases'));
 				add_action('shopp_resource_export_customers',array(&$this,'export_customers'));
@@ -185,6 +186,23 @@ class Resources {
 		}
 	}
 
+	function help () {
+		if (!isset($_GET['id'])) return;
+		$request = array(
+			"ShoppScreencast" => "installation",
+		);
+		// $data = array(
+		// 	'core' => SHOPP_VERSION,
+		// 	'addons' => join("-",$addons),
+		// 	'wp' => get_bloginfo('version')
+		// );
+
+		$response = Shopp::callhome($request);
+		echo $response;
+		
+		exit();
+		
+	}
 } // END class Resources
 
 ?>

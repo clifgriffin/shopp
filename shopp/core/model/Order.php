@@ -678,13 +678,10 @@ class Order {
 				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_PLUGINURI.'/core/ui/icons/updating.gif" width="16" height="16" />';
 				$regions = Lookup::country_zones();
 				$base = $Shopp->Settings->get('base_operations');
-				$output = '<script type="text/javascript">'."\n";
-				$output .= '<!--'."\n";
-				$output .= 'var currencyFormat = '.json_encode($base['currency']['format']).';'."\n";
-				$output .= 'var regions = '.json_encode($regions).';'."\n";
-				$output .= 'var SHIPCALC_STATUS = \''.$options['shipcalc'].'\'';
-				$output .= '//-->'."\n";
-				$output .= '</script>'."\n";
+				
+				add_storefrontjs("var regions = ".json_encode($regions).",".
+									"SHIPCALC_STATUS = '".$options['shipcalc']."';",true);
+				
 				if (!empty($options['value'])) $value = $options['value'];
 				else $value = "process";
 				$output .= '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>'; 
@@ -753,12 +750,17 @@ class Order {
 				return '<input type="text" name="login" id="login" '.inputattrs($options).' />';
 				break;
 			case "password":
-				if ($options['mode'] == "value") return $this->Customer->password;
-				$options['value'] = ""; 
+				if ($options['mode'] == "value") 
+					return strlen($this->Customer->password) == 34?str_pad('&bull;',8):$this->Customer->password;
+				if (!empty($this->Customer->password))
+					$options['value'] = $this->Customer->password; 
+				if ($this->Customer->tag('notloggedin')) $options['value'] = "";
 				return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
 				break;
 			case "confirm-password":
-				$options['value'] = ""; 
+				if (!empty($this->Customer->confirm_password))
+					$options['value'] = $this->Customer->confirm_password; 
+				if ($this->Customer->tag('notloggedin')) $options['value'] = "";
 				return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
 				break;
 			case "phone": 
@@ -1012,17 +1014,15 @@ class Order {
 
 				if (!empty($_POST['billing']['xcsc'][$input]))
 					$options['value'] = $_POST['billing']['xcsc'][$input];
+				
+				$script = "$('#billing-cardtype').change(function () {";
+				$script .= "var cards = ".json_encode($cards).";";
+				$script .= "if ($.inArray($(this).val(),cards) != -1) $('#billing-xcsc-$input').attr('disabled',false);";
+				$script .= "else $('#billing-xcsc-$input').attr('disabled',true);";
+				$script .= "}).change();";				
+				add_storefrontjs($script);
+
 				$string = '<input type="text" name="billing[xcsc]['.$input.']" id="billing-xcsc-'.$input.'" '.inputattrs($options).' />';
-				$string .= '<script type="text/javascript">
-				jQuery(document).ready(function () { 
-					jQuery("#billing-cardtype").change(function () {
-						var cards = '.json_encode($cards).';
-					
-						if (jQuery.inArray(jQuery(this).val(),cards) != -1) jQuery("#billing-xcsc-'.$input.'").attr("disabled",false);
-						else jQuery("#billing-xcsc-'.$input.'").attr("disabled",true);
-					}).change();
-				});
-				</script>';
 				return $string;
 				break;
 			case "billing-xco": return; break; // DEPRECATED
@@ -1089,9 +1089,7 @@ class Order {
 				if (count($Shopp->Gateways->active) <= 1) return false;
 				extract($options);
 				$output = '';
-				$js = '<script type="text/javascript">';
-				$js .= "\n<!--\n";
-				$js .= "var ccpayments = {};\n";
+				$js = "var ccpayments = {};\n";
 				if (!isset($type)) $type = "menu";
 
 				$payments = array();
@@ -1122,8 +1120,8 @@ class Order {
 					}
 					$output .= '</select>';
 				}
-				$js .= "\n//-->\n</script>";
-				echo $js;
+
+				add_storefrontjs($js);
 				
 				return $output;
 				break;

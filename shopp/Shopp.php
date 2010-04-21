@@ -606,6 +606,7 @@ class Shopp {
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
 		curl_setopt($connection, CURLOPT_TIMEOUT, 20); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1); 
+		curl_setopt($connection, CURLOPT_FOLLOWLOCATION, 1); 
 		
 		$result = curl_exec($connection); 
 		

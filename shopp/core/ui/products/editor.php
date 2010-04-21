@@ -7,6 +7,8 @@
 	<div id="ajax-response"></div> 
 	<form name="product" id="product" action="<?php echo admin_url('admin.php'); ?>" method="post">
 		<?php wp_nonce_field('shopp-save-product'); ?>
+		<?php wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false ); ?>
+		<?php wp_nonce_field('meta-box-order', 'meta-box-order-nonce', false ); ?>
 
 		<div id="poststuff" class="metabox-holder has-right-sidebar">
 
@@ -41,8 +43,6 @@
 				</div>
 				<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
 				<?php the_editor($Product->description,'content','Description', false); ?>
-				<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
-				<?php wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false ); ?>
 				</div>
 				
 			<?php
@@ -58,6 +58,7 @@
 </div>
 
 <script type="text/javascript">
+<!--
 var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security')))?'true':'false'; ?>;
 var product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>;
 var prices = <?php echo json_encode($Product->prices) ?>;
@@ -138,5 +139,5 @@ var FILE_NOT_FOUND_TEXT = "<?php _e('The file you specified could not be found.'
 var FILE_NOT_READ_TEXT = "<?php _e('The file you specified is not readable and cannot be used.','Shopp'); ?>";
 var FILE_ISDIR_TEXT = "<?php _e('The file you specified is a directory and cannot be used.','Shopp'); ?>";
 var IMAGE_DETAILS_TEXT = "<?php _e('Image Details','Shopp'); ?>";
-
+//-->
 </script>

@@ -29,10 +29,13 @@ class Warehouse extends AdminController {
 	function __construct () {
 		parent::__construct();
 		if (!empty($_GET['id'])) {
-			add_action( 'admin_head', 'wp_tiny_mce' );
 			wp_enqueue_script('postbox');
-			if ( user_can_richedit() ) wp_enqueue_script('editor');
-			wp_enqueue_script("shopp.colorbox",SHOPP_ADMIN_URI."/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION);
+			if ( user_can_richedit() ) {
+				wp_enqueue_script('editor');
+				wp_enqueue_script('quicktags');
+				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 25 );
+			}
+			wp_enqueue_script("shopp.colorbox",SHOPP_ADMIN_URI."/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION,true);
 			wp_enqueue_script('shopp.editor.lib',SHOPP_ADMIN_URI."/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
 			wp_enqueue_script('shopp.product.editor',SHOPP_ADMIN_URI."/products/editor.js",array('jquery'),SHOPP_VERSION,true);
 			wp_enqueue_script('shopp.editor.priceline',SHOPP_ADMIN_URI."/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
@@ -298,6 +301,7 @@ class Warehouse extends AdminController {
 	 **/
 	function layout () {
 		global $Shopp;
+		$Admin = $Shopp->Flow->Admin;
 		include(SHOPP_ADMIN_PATH."/products/ui.php");
 	}
 

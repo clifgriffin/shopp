@@ -666,7 +666,6 @@ function ImageUploads (id,type) {
 		upload_progress_handler : imageUploadProgress,
 		upload_error_handler : imageUploadError,
 		upload_success_handler : imageUploadSuccess,
-		queue_complete_handler : imageQueueComplete,
 
 		custom_settings : {
 			loaded: false,
@@ -730,8 +729,8 @@ function ImageUploads (id,type) {
 	$(document).load(function() {
 		if (!swfu.loaded) $('#product-images .swfupload').remove();
 	});
-		
-	if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
+	
+	sorting();
 	$('#lightbox li').each(function () {
 		$(this).dblclick(function () {
 			var id = $(this).attr('id')+"-details";
@@ -743,6 +742,10 @@ function ImageUploads (id,type) {
 	function swfuLoaded () {
 		$('#browser-uploader').hide();	
 		swfu.loaded = true;
+	}
+	
+	function sorting () {
+		if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
 	}
 
 	function imageFileQueueError (file, error, message) {
@@ -790,7 +793,8 @@ function ImageUploads (id,type) {
 		this.sorting.val(image.src);
 		img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 		deleteButton = $('<button type="button" name="deleteImage" value="'+image.id+'" title="Delete product image&hellip;" class="deleteButton"><img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" /></button>').appendTo(this.targetHolder).hide();
-	
+		sorting();
+		
 		this.progressBar.animate({'width':'76px'},250,function () { 
 			$(this).parent().fadeOut(500,function() {
 				$(this).remove(); 
@@ -799,12 +803,7 @@ function ImageUploads (id,type) {
 			});
 		});
 	}
-
-	function imageQueueComplete (uploads) {
-		if ($('#lightbox li').size() > 1) $('#lightbox').sortable('refresh');
-		else $('#lightbox').sortable();
-	}
-
+	
 	function enableDeleteButton (button) {
 		button.hide();
 

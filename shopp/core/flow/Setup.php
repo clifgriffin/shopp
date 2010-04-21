@@ -27,7 +27,7 @@ class Setup extends FlowController {
 	 **/
 	function __construct () {
 		parent::__construct();
-		wp_enqueue_script("shopp.colorbox",SHOPP_ADMIN_URI."/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION);
+		wp_enqueue_script("shopp.colorbox",SHOPP_ADMIN_URI."/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION,true);
 	}
 	
 	/**

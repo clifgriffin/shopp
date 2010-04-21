@@ -981,6 +981,26 @@ function shopp_prereqs () {
 }
 
 /**
+ * Adds JavaScript to be included in the footer on shopping pages
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param string $script JavaScript fragment
+ * @param boolean $global (optional) Include the script in the global namespace
+ * @return void
+ **/
+function add_storefrontjs ($script,$global=false) {
+	global $Shopp;
+	if (!get_class($Shopp->Flow->Controller) == "Storefront") return;
+	$Storefront = $Shopp->Flow->Controller;
+	if ($global) {
+		if (!isset($Storefront->behaviors['global'])) $Storefront->behaviors['global'] = array();
+		$Storefront->behaviors['global'][] = trim($script);
+	} else $Storefront->behaviors[] = $script;
+}
+
+/**
  * Returns the platform appropriate page name for Shopp internal pages
  *
  * IIS rewriting requires including index.php as part of the page

@@ -21,7 +21,14 @@ function save_meta_box ($Product) {
 	</div>
 <?php
 }
-add_meta_box('save-product', __('Save','Shopp'), 'save_meta_box', 'shopp_page_shopp-products', 'side', 'core');
+add_meta_box(
+	'save-product', 
+	__('Save','Shopp').$Admin->boxhelp('product-editor-save'), 
+	'save_meta_box', 
+	'shopp_page_shopp-products', 
+	'side', 
+	'core'
+);
 
 function categories_meta_box ($Product) {
 	$db =& DB::get();
@@ -66,14 +73,21 @@ function categories_meta_box ($Product) {
 
 <?php
 }
-add_meta_box('categories-box', __('Categories','Shopp'), 'categories_meta_box', 'shopp_page_shopp-products', 'side', 'core');
+add_meta_box(
+	'categories-box', 
+	__('Categories','Shopp').$Admin->boxhelp('product-editor-categories'), 
+	'categories_meta_box', 
+	'shopp_page_shopp-products', 
+	'side', 
+	'core'
+);
 
 function tags_meta_box ($Product) {
 	$taglist = array();
 	foreach ($Product->tags as $tag) $taglist[] = $tag->name;
 ?>
 <input name="newtags" id="newtags" type="text" size="16" tabindex="4" autocomplete="off" value="<?php _e('enter, new, tags','Shopp'); ?>…" title="<?php _e('enter, new, tags','Shopp'); ?>…" class="form-input-tip" />
-	<button type="button" name="addtags" id="add-tags" class="button-secondary" tabindex="5"><small><?php _e('Add','Shopp'); ?></small></button><input type="hidden" name="taglist" id="tags" value="<?php echo join(",",attribute_escape_deep($taglist)); ?>"><br />
+	<button type="button" name="addtags" id="add-tags" class="button-secondary" tabindex="5"><small><?php _e('Add','Shopp'); ?></small></button><input type="hidden" name="taglist" id="tags" value="<?php echo join(",",attribute_escape_deep($taglist)); ?>" /><br />
 <label><?php _e('Separate tags with commas','Shopp'); ?></label>
 <div id="taglist">
 	<label><big><strong><?php _e('Tags for this product:','Shopp'); ?></strong></big></label><br />
@@ -81,7 +95,14 @@ function tags_meta_box ($Product) {
 </div>
 <?php
 }
-add_meta_box('product-tags', __('Tags','Shopp'), 'tags_meta_box', 'shopp_page_shopp-products', 'side', 'core');
+add_meta_box(
+	'product-tags', 
+	__('Tags','Shopp').$Admin->boxhelp('product-editor-tags'), 
+	'tags_meta_box', 
+	'shopp_page_shopp-products', 
+	'side', 
+	'core'
+);
 
 function settings_meta_box ($Product) {
 	$taglist = array();
@@ -93,7 +114,14 @@ function settings_meta_box ($Product) {
 	<p><input type="hidden" name="addons" value="off" /><input type="checkbox" name="addons" value="on" id="addons-setting" tabindex="13"<?php if ($Product->addons == "on") echo ' checked="checked"'?> /><label for="addons-setting"> <?php _e('Add-ons &mdash; Optional product add-ons','Shopp'); ?></label></p>
 <?php
 }
-add_meta_box('product-settings', __('Settings','Shopp'), 'settings_meta_box', 'shopp_page_shopp-products', 'side', 'core');
+add_meta_box(
+	'product-settings', 
+	__('Settings','Shopp').$Admin->boxhelp('product-editor-settings'), 
+	'settings_meta_box', 
+	'shopp_page_shopp-products', 
+	'side', 
+	'core'
+);
 
 
 function summary_meta_box ($Product) {
@@ -102,7 +130,14 @@ function summary_meta_box ($Product) {
     <label for="summary"><?php _e('A brief description of the product to draw the customer\'s attention.','Shopp'); ?></label>
 <?php
 }
-add_meta_box('product-summary', __('Summary','Shopp'), 'summary_meta_box', 'shopp_page_shopp-products', 'normal', 'core');
+add_meta_box(
+	'product-summary', 
+	__('Summary','Shopp').$Admin->boxhelp('product-editor-summary'), 
+	'summary_meta_box', 
+	'shopp_page_shopp-products', 
+	'normal', 
+	'core'
+);
 
 function details_meta_box ($Product) {
 ?>
@@ -123,7 +158,14 @@ function details_meta_box ($Product) {
 	<p></p>
 <?php
 }
-add_meta_box('product-details-box', __('Details &amp; Specs','Shopp'), 'details_meta_box', 'shopp_page_shopp-products', 'normal', 'core');
+add_meta_box(
+	'product-details-box', 
+	__('Details &amp; Specs','Shopp').$Admin->boxhelp('product-editor-details'), 
+	'details_meta_box', 
+	'shopp_page_shopp-products', 
+	'normal', 
+	'core'
+);
 
 function images_meta_box ($Product) {
 	global $ProductImages;
@@ -153,7 +195,14 @@ function images_meta_box ($Product) {
 	<p><?php _e('Double-click images to edit their details. Save the product to confirm deleted images.','Shopp'); ?></p>
 <?php
 }
-add_meta_box('product-images', __('Product Images','Shopp'), 'images_meta_box', 'shopp_page_shopp-products', 'normal', 'core');
+add_meta_box(
+	'product-images',
+	 __('Product Images','Shopp').$Admin->boxhelp('product-editor-images'), 
+	'images_meta_box', 
+	'shopp_page_shopp-products', 
+	'normal', 
+	'core'
+);
 
 function pricing_meta_box ($Product) {
 ?>
@@ -228,9 +277,13 @@ function pricing_meta_box ($Product) {
 
 <?php
 }
-add_meta_box('product-pricing-box', __('Pricing','Shopp'), 'pricing_meta_box', 'shopp_page_shopp-products', 'advanced', 'core');
+add_meta_box(
+	'product-pricing-box', 
+	__('Pricing','Shopp').$Admin->boxhelp('product-editor-pricing'), 
+	'pricing_meta_box', 
+	'shopp_page_shopp-products',
+	'advanced', 
+	'core'
+);
 
-do_action('do_meta_boxes', 'shopp_page_shopp-products', 'normal', $Shopp->Product);
-do_action('do_meta_boxes', 'shopp_page_shopp-products', 'advanced', $Shopp->Product);
-do_action('do_meta_boxes', 'shopp_page_shopp-products', 'side', $Shopp->Product);
 ?>

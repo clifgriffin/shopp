@@ -684,13 +684,11 @@ class Category extends DatabaseObject {
 						$count++;
 					}
 					$string .= '</select>';
-					$string .= '<script type="text/javascript">';
-					$string .= 'var menu = document.getElementById(\'shopp-'.$this->slug.'-subcategories-menu\');';
-					$string .= 'if (menu)';
-					$string .= '	menu.onchange = function () {';
-					$string .= '		document.location.href = this.options[this.selectedIndex].value;';
-					$string .= '	}';
-					$string .= '</script>';
+
+					$script = "$('#shopp-{$this->slug}-subcategories-menu').change(function(){";
+					$script .= "document.location.href = $(this).val();';";
+					$script .= "})";
+					add_storefrontjs($script);
 					
 				} else {
 					if (!empty($class)) $classes = ' class="'.$class.'"';
@@ -844,14 +842,12 @@ class Category extends DatabaseObject {
 			
 					}
 					$string .= '</select>';
-					$string .= '<script type="text/javascript">';
-					$string .= 'var menu = document.getElementById(\'shopp-'.$this->slug.'-subcategories-menu\');';
-					$string .= 'if (menu)';
-					$string .= '	menu.onchange = function () {';
-					$string .= '		document.location.href = this.options[this.selectedIndex].value;';
-					$string .= '	}';
-					$string .= '</script>';
-			
+					
+					$script = "$('#shopp-{$this->slug}-subcategories-menu').change(function(){";
+					$script .= "document.location.href = $(this).val();';";
+					$script .= "})";
+					add_storefrontjs($script);
+								
 				} else {
 					if (!empty($class)) $classes = ' class="'.$class.'"';
 					$string .= $title;
