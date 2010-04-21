@@ -246,6 +246,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 							if (!empty($shipping['name'])) $label = $shipping['name'];
 							$_[] = '<flat-rate-shipping name="'.$label.'">';
 							$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping['cost'],$this->precision).'</price>';
+							$_[] = '<shipping-restrictions><allowed-areas><world-area /></allowed-areas></shipping-restrictions>';
 							$_[] = '</flat-rate-shipping>';
 						}
 					$_[] = '</shipping-methods>';
