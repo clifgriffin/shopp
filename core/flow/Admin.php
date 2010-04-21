@@ -251,10 +251,7 @@ class AdminFlow extends FlowController {
 		wp_enqueue_script('jquery');
 		wp_enqueue_script('shopp',SHOPP_ADMIN_URI."/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
 		$Shopp->settingsjs();
-		
-		// For TinyMCE editors (product editor & category editor)
-		if (!empty($_GET['id'])) add_action( 'admin_footer', 'wp_tiny_mce', 25 );
-		
+				
 		$settings = array_filter(array_keys($this->Pages),array(&$this,'get_settings_pages'));
 		if (in_array($this->Page->page,$settings))
 			wp_enqueue_script('shopp.settings',
@@ -321,6 +318,12 @@ class AdminFlow extends FlowController {
 		add_contextual_help($menu,$content);
 	}
 	
+	function boxhelp ($id) {
+		$name = "$metabox-help";
+		$helpurl = add_query_arg(array('src'=>'help','id'=>$id),admin_url('admin.php'));
+		return '<a href="'.$helpurl.'" class="help"></a>';
+	}
+	
 	/**
 	 * Adds a 'New Product' shortcut to the WordPress admin favorites menu
 	 *
@@ -331,7 +334,7 @@ class AdminFlow extends FlowController {
 	 * @return array Modified actions list
 	 **/
 	function favorites ($actions) {
-		$key = add_query_arg(array('page'=>$this->pagename('products'),'id'=>'new'),admin_url('admin.php'));
+		$key = esc_url(add_query_arg(array('page'=>$this->pagename('products'),'id'=>'new'),'admin.php'));
 	    $actions[$key] = array(__('New Product','Shopp'),8);
 		return $actions;
 	}

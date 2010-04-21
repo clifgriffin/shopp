@@ -936,9 +936,10 @@ class Product extends DatabaseObject {
 				}
 
 				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
-				$result .= '<script type="text/javascript"><!--
-					jQuery(document).ready( function() {  ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'"); }); 
-					// --></script>';
+				
+				$script = 'ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'");';
+				add_storefrontjs($script);
+				
 				return $result;
 				break;
 			case "has-categories": 
@@ -1123,24 +1124,30 @@ class Product extends DatabaseObject {
 					$options = $this->options;
 					if (!empty($this->options['v'])) $options = $this->options['v'];
 					
+					$baseop = $Shopp->Settings->get('base_operations');
+					$precision = $baseop['currency']['format']['precision'];
+					
 					$taxrate = shopp_taxrate($options['taxes'],true);
+					$pricekeys = array();
+					foreach ($this->pricekey as $key => $pricing) {
+						$filter = array('');
+						$_ = new StdClass();
+						$_->p = number_format(($pricing->onsale == "on")?$pricing->promoprice:$pricing->price,$precision);
+						$_->i = ($pricing->inventory == "on")?true:false;
+						$_->s = ($pricing->inventory == "on")?$pricing->stock:false;
+						$_->t = $pricing->type;
+						$pricekeys[$key] = $_;
+					}
+					
 					ob_start();
-					?>
-					<script type="text/javascript">
-					<!--
-					jQuery(document).ready(function () {
-						productOptions[<?php echo $this->id; ?>] = new Array();
-						productOptions[<?php echo $this->id; ?>]['pricing'] = <?php echo json_encode($this->pricekey); ?>;
-						options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
-						options_required = "<?php echo $options['required']; ?>";
-						
-						productOptions[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,productOptions[<?php echo $this->id; ?>]['pricing'],<?php echo empty($taxrate)?'0':$taxrate; ?>);
-					});
-					//-->
-					</script>
-					<?php
+	?>options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
+	options_required = "<?php echo $options['required']; ?>";
+	pricetags[<?php echo $this->id; ?>] = {};
+	pricetags[<?php echo $this->id; ?>]['pricing'] = <?php echo json_encode($pricekeys); ?>;
+	pricetags[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,pricetags[<?php echo $this->id; ?>]['pricing'],<?php echo empty($taxrate)?'0':$taxrate; ?>);<?php
 					$script = ob_get_contents();
 					ob_end_clean();
+					add_storefrontjs($script,true);
 					
 					foreach ($options as $id => $menu) {
 						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
@@ -1154,7 +1161,6 @@ class Product extends DatabaseObject {
 						$string .= '</select>';
 					}
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
-					$string .= $script;
 				}
 
 				return $string;
@@ -1380,6 +1386,7 @@ class Product extends DatabaseObject {
 			case "buynow":
 				if (!isset($options['value'])) $options['value'] = __("Buy Now","Shopp");
 			case "addtocart":
+			
 				if (!isset($options['class'])) $options['class'] = "addtocart";
 				else $options['class'] .= " addtocart";
 				if (!isset($options['value'])) $options['value'] = __("Add to Cart","Shopp");
@@ -1389,6 +1396,8 @@ class Product extends DatabaseObject {
 					$string .= '<span class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</span>';
 					return $string;
 				}
+				if (isset($options['redirect']) && !isset($options['ajax'])) 
+					$string .= '<input type="hidden" name="redirect" value="'.$options['redirect'].'" />';
 				
 				$string .= '<input type="hidden" name="products['.$this->id.'][product]" value="'.$this->id.'" />';
 

@@ -30,7 +30,12 @@ jQuery(document).ready(function() {
 	// Init postboxes for the editor
 	postboxes.add_postbox_toggles('shopp_page_shopp-products');
 	// close postboxes that should be closed
-	jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+
+	$('.postbox a.help').click(function () {
+		$(this).colorbox({iframe:true,open:true,width:820,height:560});
+		return false;
+	});
 	
 	// Setup the slug editor
 	editslug = new SlugEditor(product,'product');
@@ -58,10 +63,10 @@ jQuery(document).ready(function() {
 	// Initialize Add-ons
 	$('#addons-setting').bind('click.addons',addonsToggle).trigger('click.addons');
 	$('#newAddonGroup').click(function() { newAddonGroup(); });
-	loadAddons(options.a,prices);
+	if (options.a) loadAddons(options.a,prices);
 
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
-	window.onbeforeunload = unsavedChanges;
+	// window.onbeforeunload = unsavedChanges;
 	$('#product').change(function () { changes = true; }).submit(function() {
 		this.action = this.action+"?"+$.param(request);
 		saving = true;
@@ -86,23 +91,27 @@ function updateWorkflow () {
 		request.page = workflow[setting];
 		request.id = product;
 		if (!request.id) request.id = "new";
-		if (setting == "new") request.next = setting;
+		if (setting == "new") {
+			request.id = "new";
+			request.next = setting;
+		}
+		if (setting == "close") delete request.id;
 		
 		// Find previous product
 		if (setting == "previous") {
 			$.each(worklist,function (i,entry) {
-				if (entry.id != product) return true;
+				if (entry.id != product) return;
 				if (worklist[i-1]) request.next = worklist[i-1].id;
-				else request.page = workflow['close'];
+				else delete request.id;
 			});
 		}
 		
 		// Find next product
 		if (setting == "next") {
 			$.each(worklist,function (i,entry) {
-				if (entry.id != product) return true;
+				if (entry.id != product) return;
 				if (worklist[i+1]) request.next = worklist[i+1].id;
-				else request.page = workflow['close'];
+				else delete request.id;
 			});
 		}
 		

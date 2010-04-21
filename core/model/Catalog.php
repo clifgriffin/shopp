@@ -260,14 +260,11 @@ class Catalog extends DatabaseObject {
 						
 					}
 					$string .= '</select></form>';
-					$string .= '<script type="text/javascript">';
-					$string .= 'var menu = document.getElementById(\'shopp-categories-menu\');';
-					$string .= 'if (menu) {';
-					$string .= '	menu.onchange = function () {';
-					$string .= '		document.location.href = this.options[this.selectedIndex].value;';
-					$string .= '	}';
-					$string .= '}';
-					$string .= '</script>';
+
+					$script = "$('#shopp-categories-menu').change(function (){";
+					$script .= "document.location.href = $(this).val();";
+					$script .= "});";
+					add_storefrontjs($script);
 					
 				} else {
 					$string .= $title;
@@ -371,11 +368,8 @@ class Catalog extends DatabaseObject {
 					$string .= menuoptions($menuoptions,$default,true);
 					$string .= '</select>';
 					$string .= '</form>';
-					$string .= '<script type="text/javascript">';
-					$string .= '<!--';
-					$string .= "jQuery('#shopp-".$Shopp->Category->slug."-orderby-menu select.shopp-orderby-menu').change(function () { this.form.submit(); });";
-					$string .= '//-->';
-					$string .= '</script>';
+					
+					add_storefrontjs("$('#shopp-".$Shopp->Category->slug."-orderby-menu select.shopp-orderby-menu').change(function () { this.form.submit(); });");
 				} else {
 					$link = "";
 					$query = "";

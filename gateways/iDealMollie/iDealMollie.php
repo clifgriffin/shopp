@@ -1,50 +1,50 @@
 <?php
 /**
  * iDeal Mollie
- * @class iDealMollie
  *
  * @author Jonathan Davis
- * @version 1.0.5
+ * @version 1.1
  * @copyright Ingenesis Limited, 24 February, 2009
- * @package Shopp
+ * @package shopp
+ * @since 1.1
+ * @subpackage iDealMollie
  * 
  * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XMLdata.php");
 
-class iDealMollie {          
-	var $type = "xco"; // Define as an External CheckOut/remote checkout processor
-	var $gateway_url = 'http://www.mollie.nl/xml/ideal/';
-	var $transaction = array();
-	var $settings = array();
-	var $Response = false;
-	var $checkout = true;
+class iDealMollie extends GatewayFramework implements GatewayModule {          
+	
+	var $secure = false;
+	var $url = 'http://www.mollie.nl/xml/ideal/';
 
-	function iDealMollie () {
-		global $Shopp,$wp;
-		$this->settings = $Shopp->Settings->get('iDealMollie');
-		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
-		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
-		
-		$loginproc = (isset($_POST['process-login']) 
-			&& $_POST['process-login'] != 'false')?$_POST['process-login']:false;
-		
-		if (isset($_POST['checkout']) && 
-			$_POST['checkout'] == "process" && 
-			!$loginproc) $this->checkout();
-
-		// Don't do anything with Mollie.nl reports
-		if (isset($_GET['idealreport'])) die('1');
-
-		if (isset($_GET['transaction_id']) 
-			&& !isset($_GET['idealreport'])) 
-				$_POST['checkout'] = "confirmed";
-			
-		return true;
+	function __construct () {
+		// global $Shopp,$wp;
+		// $this->settings = $Shopp->Settings->get('iDealMollie');
+		// $this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
+		// $this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
+		// 
+		// $loginproc = (isset($_POST['process-login']) 
+		// 	&& $_POST['process-login'] != 'false')?$_POST['process-login']:false;
+		// 
+		// if (isset($_POST['checkout']) && 
+		// 	$_POST['checkout'] == "process" && 
+		// 	!$loginproc) $this->checkout();
+		// 
+		// // Don't do anything with Mollie.nl reports
+		// if (isset($_GET['idealreport'])) die('1');
+		// 
+		// if (isset($_GET['transaction_id']) 
+		// 	&& !isset($_GET['idealreport'])) 
+		// 		$_POST['checkout'] = "confirmed";
+		// 	
+		// return true;
 	}
 	
-	function actions () { }
+	function actions () { 
+		
+	}
 	
 	function checkout () {
 		global $Shopp;
@@ -297,28 +297,20 @@ class iDealMollie {
 	}
 	
 	function settings () {
-		?>
-			<th scope="row" valign="top"><label for="idealmollie-enabled">iDeal Mollie</label></th> 
-			<td><input type="hidden" name="settings[iDealMollie][billing-required]" value="off" /><input type="hidden" name="settings[iDealMollie][enabled]" value="off" /><input type="checkbox" name="settings[iDealMollie][enabled]" value="on" id="idealmollie-enabled"<?php echo ($this->settings['enabled'] == "on")?' checked="checked"':''; ?>/><label for="idealmollie-enabled"> <?php _e('Enable','Shopp'); ?> iDeal Mollie</label>
-				<div id="idealmollie-settings">
+		$this->ui->text(0,array(
+			'name' => 'account',
+			'value' => $this->settings['account'],
+			'size' => 30,
+			'label' => __('Enter your iDeal Mollie account ID.','Shopp')
+		));
 		
-				<p><input type="text" name="settings[iDealMollie][account]" id="idealmollie-account" size="30" value="<?php echo $this->settings['account']; ?>"/><br />
-				<?php _e('Enter your iDeal Mollie account ID.','Shopp'); ?></p>
-				<p><label for="idealmollie-testmode"><input type="hidden" name="settings[iDealMollie][testmode]" value="off" /><input type="checkbox" name="settings[iDealMollie][testmode]" id="idealmollie-testmode" value="on"<?php echo ($this->settings['testmode'] == "on")?' checked="checked"':''; ?> /> <?php _e('Enable test mode','Shopp'); ?></label></p>
-				
-				<input type="hidden" name="settings[xco_gateways][]" value="<?php echo gateway_path(__FILE__); ?>"  />
-				
-				</div>
-			</td>
-		<?php
+		$this->ui->checkbox(0,array(
+			'name' => 'testmode',
+			'label' => __('Enable test mode','Shopp'),
+			'checked' => $this->settings['testmode']
+		));
 	}
 	
-	function registerSettings () {
-		?>
-		xcosettings('#idealmollie-enabled','#idealmollie-settings');
-		<?php
-	}
-
-} // end iDealMollie class
+} // END class iDealMollie
 
 ?>

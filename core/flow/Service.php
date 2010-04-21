@@ -311,21 +311,26 @@ class Service extends AdminController {
 				$labels = $this->Settings->get('order_status');
 				
 				// Send the e-mail notification
-				$notification = array();
-				$notification['from'] = $Shopp->Settings->get('merchant_email');
-				if($is_IIS) $notification['to'] = $Purchase->email;
-				else $notification['to'] = "\"{$Purchase->firstname} {$Purchase->lastname}\" <{$Purchase->email}>";
-				$notification['subject'] = __('Order Updated','Shopp');
-				$notification['url'] = get_bloginfo('siteurl');
-				$notification['sitename'] = get_bloginfo('name');
+				$addressee = "$Purchase->firstname $Purchase->lastname";
+				$address = "$Purchase->email";
+				
+				$email = array();
+				$email['from'] = '"'.get_bloginfo("name").'"';
+				if ($Shopp->Settings->get('merchant_email')) 
+					$email['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
+				if($is_IIS) $email['to'] = $address;
+				else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
+				$email['subject'] = __('Order Updated','Shopp');
+				$email['url'] = get_bloginfo('siteurl');
+				$email['sitename'] = get_bloginfo('name');
 
 				if ($_POST['receipt'] == "yes")
-					$notification['receipt'] = $this->order_receipt();
+					$email['receipt'] = $this->order_receipt();
 
-				$notification['status'] = strtoupper($labels[$Purchase->status]);
-				$notification['message'] = wpautop(stripslashes($_POST['message']));
+				$email['status'] = strtoupper($labels[$Purchase->status]);
+				$email['message'] = wpautop(stripslashes($_POST['message']));
 
-				if (shopp_email(SHOPP_TEMPLATES."/notification.html",$notification))
+				if (shopp_email(SHOPP_TEMPLATES."/notification.html",$email))
 					$mailsent = true;
 				
 			}

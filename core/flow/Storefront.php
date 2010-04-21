@@ -37,6 +37,7 @@ class Storefront extends FlowController {
 	var $search = false;		// The search query string
 	var $searching = false;		// Flags if a search request has been made
 	var $browsing = array();
+	var $behaviors = array();	// Runtime JavaScript behaviors
 	
 	/**
 	 * Storefront constructor
@@ -137,9 +138,9 @@ class Storefront extends FlowController {
 
 		if ($tag == "checkout")
 			wp_enqueue_script('shopp.checkout',SHOPP_PLUGINURI.'/core/ui/behaviors/checkout.js',array('jquery'),SHOPP_VERSION,true);		
-
+		
 	}
-
+	
 	/**
 	 * shortcodes()
 	 * Handles shortcodes used on Shopp-installed pages and used by
@@ -159,8 +160,9 @@ class Storefront extends FlowController {
 			if ($this->Settings->get("maintenance") == "on")
 				add_shortcode($name,array(&$this,'maintenance_shortcode'));
 			else add_shortcode($name,$callback);
+		
 	}
-
+	
 	/**
 	 * titles ()
 	 * Changes the Shopp catalog page titles to include the product
@@ -234,8 +236,10 @@ class Storefront extends FlowController {
 		$keywords = esc_attr(apply_filters('shopp_meta_keywords',$keywords));
 		$description = esc_attr(apply_filters('shopp_meta_description',$description));
 		?>
-		<?php if ($keywords): ?><meta name="keywords" content="<?php echo $keywords; ?>" /><?php endif; ?>
-		<?php if ($description): ?><meta name="description" content="<?php echo $description; ?>" /><?php endif;
+		<?php if ($keywords): ?><meta name="keywords" content="<?php echo $keywords; ?>" />
+		<?php endif; ?>
+<?php if ($description): ?><meta name="description" content="<?php echo $description; ?>" />
+		<?php endif;
 	}
 
 	function canonurls ($url) {
@@ -305,13 +309,19 @@ class Storefront extends FlowController {
 		elseif (function_exists('memory_get_usage'))
 			$this->_debug->memory .= "End: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB";
 
-		echo '<script type="text/javascript">'."\n";
-		echo '//<![CDATA['."\n";
-		echo 'var memory_profile = "'.$this->_debug->memory.'";';
-		echo 'var wpquerytotal = '.$wpdb->num_queries.';';
-		echo 'var shoppquerytotal = '.count($db->queries).';';
-		echo '//]]>'."\n";
-		echo '</script>'."\n";
+		add_storefrontjs("var memory_profile = '{$this->_debug->memory}',wpquerytotal = {$wpdb->num_queries},shoppquerytotal = ".count($db->queries).";",true);
+
+		$globals = $this->behaviors['global'];
+		unset($this->behaviors['global']);
+		$_ = '<script type="text/javascript">'."\n";
+		$_ .= '/'.'* <![CDATA[ */'."\n";
+		if (!empty($globals)) $_ .= "\t".join("\n\t",$globals)."\n";
+		$_ .= 'jQuery(window).ready(function(){ var $ = jqnc(); '."\n";
+		$_ .= "\t".join("\t\n",$this->behaviors)."\n";
+		$_ .= '});'."\n";
+		$_ .= '/'.'* ]]> */'."\n";
+		$_ .= '</script>'."\n";
+		echo $_;
 
 	}
 
@@ -469,7 +479,7 @@ class Storefront extends FlowController {
 		} else {
 			if ($_COOKIE['shopp_catalog_view'] == "list") $classes .= " list";
 			if ($_COOKIE['shopp_catalog_view'] == "grid") $classes .= " grid";
-		}			
+		}
 
 		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'<div class="clear"></div></div>');
 	}
@@ -708,7 +718,7 @@ class Storefront extends FlowController {
 
 		return $markup;
 	}
-
+	
 } // END class Storefront
 
 ?>

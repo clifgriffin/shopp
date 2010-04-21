@@ -234,21 +234,21 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 				price = pricing[xorkey(keys)];
 				if (!price) price = pricing[xorkey_deprecated(keys)];
 				if (price) {
-					p = new Number(price.onsale?price.promoprice:price.price);
+					p = new Number(price.p);
 					tax = new Number(p*taxrate);
 					pricetag = asMoney(new Number(p+tax));
 					optiontext = option.attr('text');
 					previoustag = optiontext.lastIndexOf("(");
 					if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
 					option.attr('text',optiontext+"  ("+pricetag+")");
-					if ((price.inventory == "on" && price.stock == 0) || price.type == "N/A") {
+					if ((price.i && !price.s) || price.t == "N/A") {
 						if (option.attr('selected')) 
 							option.parent().attr('selectedIndex',0);
 						if (hideDisabled) option.remove();
 						else optionDisable(this);
 					
 					} else option.removeAttr(disabled).show();
-					if (price.type == "N/A" && hideDisabled) option.remove();
+					if (price.t == "N/A" && hideDisabled) option.remove();
 				}
 			}
 		});
@@ -937,11 +937,9 @@ jQuery(document).ready(function() {
 	carousels();
 	if ($.fn.colorbox) {
 		$('a.shopp-zoom').colorbox();
-		$('a.shopp-zoom.gallery').attr('rel','gallery').colorbox({slideshow:true});
+		$('a.shopp-zoom.gallery').attr('rel','gallery').colorbox({slideshow:true,slideshowSpeed:3500});
 	}
 });
 
 // Initialize placehoder variables
-var options_required,
-	options_default,
-	productOptions = new Array();
+var options_required, options_default, pricetags = {};
