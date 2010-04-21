@@ -451,6 +451,7 @@
 				}
 				
 				$loaded.show();
+				$loaded.find('img').animate({'opacity':1},speed);
 				
 				$title.show().html(settings.title);
 				
@@ -605,7 +606,7 @@
 				
 				img.id = 'cboxPhoto';
 				
-				$(img).css({margin:'auto', border:'none', display:'block', cssFloat:'left'});
+				$(img).css({margin:'auto', border:'none', display:'block', cssFloat:'left','opacity':0});
 				
 				if(settings.scalePhotos){
 					setResize = function(){
