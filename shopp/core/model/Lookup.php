@@ -71,6 +71,8 @@ class Lookup {
 		$_ = array();
 		$_['CA'] = array('name'=>__('Canada','Shopp'),'currency'=>array('code'=>'CAD','format'=>'$#,###.##'),'units'=>'metric','region'=>0); 
 		$_['US'] = array('name'=>__('USA','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'imperial','region'=>0); 
+		// Specialized "country" for US Armed Forces
+		$_['USAF'] = array('name'=>__('US Armed Forces','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'imperial','region'=>0); 
 		$_['GB'] = array('name'=>__('United Kingdom','Shopp'),'currency'=>array('code'=>'GBP','format'=>'£#,###.##'),'units'=>'metric','region'=>3); 
 		$_['DZ'] = array('name'=>__('Algeria','Shopp'),'currency'=>array('code'=>'DZD','format'=>'# ###,## د.ج'),'units'=>'metric','region'=>5); 
 		$_['AR'] = array('name'=>__('Argentina','Shopp'),'currency'=>array('code'=>'ARS','format'=>'$#.###,##'),'units'=>'metric','region'=>7); 
@@ -181,7 +183,7 @@ class Lookup {
 		$_['CA']['PQ'] = 'Quebec';
 		$_['CA']['SK'] = 'Saskatchewan';
 		$_['CA']['YT'] = 'Yukon Territory';
-
+		
 		$_['US'] = array();
 		$_['US']['AL'] = 'Alabama';
 		$_['US']['AK'] = 'Alaska ';
@@ -234,6 +236,10 @@ class Lookup {
 		$_['US']['WV'] = 'West Virginia';
 		$_['US']['WI'] = 'Wisconsin';
 		$_['US']['WY'] = 'Wyoming';
+		
+		$_['USAF']['AA'] = 'Americas';
+		$_['USAF']['AE'] = 'Europe';
+		$_['USAF']['AP'] = 'Pacific';
 		return apply_filters('shopp_country_zones',$_);
 	}
 	
@@ -257,6 +263,11 @@ class Lookup {
 		$_['US']['Midwest US'] = array('OH'=>array('43000','45999'),'IN'=>array('46000','47999'),'MI'=>array('48000','49999'),'IA'=>array('50000','52899'),'WI'=>array('53000','54999'),'MN'=>array('55000','56799'),'SD'=>array('57000','57799'),'ND'=>array('58000','58899'),'IL'=>array('60000','62999'),'MO'=>array('63000','65899'),'KS'=>array('66000','67999'),'NE'=>array('68000','69399'));
 		$_['US']['South US'] =array('DE'=>array('19700','19999'),'DC'=>array('20000','20599'),'MD'=>array('20600','21999'),'VA'=>array('22000','24699','20100','20199'),'WV'=>array('24700','26899'),'NC'=>array('26900','28999'),'SC'=>array('29000','29999'),'GA'=>array('30000','31999','39800','39999'),'FL'=>array('32000','34999'),'AL'=>array('35000','36999'),'TN'=>array('37000','38599'),'MS'=>array('38600','39799'),'KY'=>array('40000','42799'),'LA'=>array('70000','71499'),'AR'=>array('71600','72999','75500','75599'),'OK'=>array('73000','74999'),'TX'=>array('75000','79999','88500','88599'));
 		$_['US']['West US'] =array('MT'=>array('59000','59999'),'CO'=>array('80000','81699'),'WY'=>array('82000','83199'),'ID'=>array('83200','83899'),'UT'=>array('84000','84799'),'AZ'=>array('85000','86599'),'NM'=>array('87000','88499'),'NV'=>array('88900','89899'),'CA'=>array('90000','96699'),'HI'=>array('96700','96899'),'OR'=>array('97000','97999'),'WA'=>array('98000','99499'),'AK'=>array('99500','99999'));
+		
+		$_['USAF'] = array();
+		$_['USAF']['Americas'] = array('AA'=>array('34000','34099'));
+		$_['USAF']['Europe'] = array('AE'=>array('09000','09999'));
+		$_['USAF']['Pacific'] = array('AP'=>array('96200','96699'));		
 		return apply_filters('shopp_areas',$_);
 	}
 	
