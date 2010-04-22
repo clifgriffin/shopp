@@ -72,9 +72,9 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 }
 
 function NestedMenuContent (i,target,dataname,data) {
-	var $=jqnc(),
-		content = $('<textarea name="'+dataname+'['+i+'][value]" cols="40" rows="7"></textarea>').appendTo(target);
-	if (data && data.value) content.val(htmlentities(data.value));
+	var $=jqnc();
+	this.contents = $('<textarea name="'+dataname+'['+i+'][value]" cols="40" rows="7"></textarea>').appendTo(target);
+	if (data && data.value) this.contents.val(htmlentities(data.value));
 }
 
 function NestedMenuOption (i,target,dataname,defaultlabel,data) {
@@ -139,6 +139,7 @@ function addVariationOptionsMenu (data) {
 	var $=jqnc(),
 	 	menus = $('#variations-menu'),
 	 	entries = $('#variations-list'),
+		addMenuButton = $('#addVariationMenu'),
 	 	addOptionButton = $('#addVariationOption'),
 	 	linkOptionVariations = $('#linkOptionVariations'),
 	 	id = variationsidx,
@@ -192,6 +193,14 @@ function addVariationOptionsMenu (data) {
 		
 		if (!init) addVariationPrices(option.id.val());
 		else addVariationPrices();
+
+		menus.dequeue().animate({ scrollTop: menus.attr('scrollHeight')-menus.height() }, 200);
+		menu.label.click().focus().select().keydown(function(e) { 
+			var key = e.keyCode || e.which; 
+			if (key != 9) return;
+			e.preventDefault(); 
+			addMenuButton.focus();
+		});
 		
 		menu.items.push(option);
 	}
@@ -219,6 +228,15 @@ function addVariationOptionsMenu (data) {
 		deleteVariationPrices(deletedOptions,true);
 		// menu.element.remove();
 	});
+	
+	entries.dequeue().animate({ scrollTop: entries.attr('scrollHeight')-entries.height() }, 200);
+	option.label.click().focus().select().keydown(function(e) { 
+		var key = e.keyCode || e.which; 
+		if (key != 9) return;
+		e.preventDefault(); 
+		addOptionButton.focus();
+	});
+	
 	
 }
 
@@ -495,6 +513,7 @@ function newAddonGroup (data) {
 	var $=jqnc(),
 	 	menus = $('#addon-menu'),
 	 	entries = $('#addon-list'),
+		addMenuButton = $('#newAddonGroup'),
 	 	addOptionButton = $('#addAddonOption'),
 	 	id = addon_group_idx,
 	 	menu = new NestedMenu(id,menus,'options[a]',ADDON_GROUP_DEFAULT,data,
@@ -546,6 +565,15 @@ function newAddonGroup (data) {
 		if (init) Pricelines.add(option.id.val(),{context:'addon'},menu.pricegroup);
 		addonOptionsGroup[optionid] = menu.index;
 		menu.items.push(option);
+		
+		entries.dequeue().animate({ scrollTop: entries.attr('scrollHeight')-entries.height() }, 200);
+		option.label.click().focus().select().keydown(function(e) { 
+			var key = e.keyCode || e.which; 
+			if (key != 9) return;
+			e.preventDefault(); 
+			addMenuButton.focus();
+		});
+		
 	}
 
 	menu.items = new Array();
@@ -572,6 +600,14 @@ function newAddonGroup (data) {
 		});
 		menu.pricegroup.remove();
 		menu.remove();
+	});
+
+	menus.dequeue().animate({ scrollTop: menus.attr('scrollHeight')-menus.height() }, 200);
+	menu.label.click().focus().select().keydown(function(e) { 
+		var key = e.keyCode || e.which; 
+		if (key != 9) return;
+		e.preventDefault(); 
+		addMenuButton.focus();
 	});
 
 }
@@ -628,6 +664,15 @@ function addDetail (data) {
 		for (i in data.options) $('<option>'+data.options[i]['name']+'</option>').appendTo(optionsmenu);		
 		if (data && data.value) optionsmenu.val(htmlentities(data.value));	
 	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);	
+
+	menus.dequeue().animate({ scrollTop: menus.attr('scrollHeight')-menus.height() }, 200);
+	menu.label.click().focus().select();
+	menu.item.contents.keydown(function(e) { 
+		var key = e.keyCode || e.which; 
+		if (key != 9) return;
+		e.preventDefault(); 
+		$('#addDetail').focus();
+	});
 	
 	if (!data || data.add) menu.add = $('<input type="hidden" name="details['+menu.index+'][new]" value="true" />').appendTo(menu.element);
 }
