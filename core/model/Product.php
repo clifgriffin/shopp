@@ -1438,7 +1438,7 @@ class Spec extends MetaObject {
 		$this->type = 'spec';
 	}
 	
-	function updates ($data,$ignored=array()) {
+	function updates ($data,$ignores=array()) {
 		parent::updates($data,$ignores);
 		if (preg_match('/^.*?(\d+[\.\,\d]*).*$/',$this->value))
 			$this->numeral = preg_replace('/^.*?(\d+[\.\,\d]*).*$/','$1',$this->value);
