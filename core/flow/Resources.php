@@ -1,23 +1,15 @@
 <?php
 /**
- * Resources
+ * Resources.php
  * 
- * Description…
+ * Processes resource requests for non-HTML data
  *
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, February  8, 2010
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
- * @subpackage shopp
- **/
-
-/**
- * Resources
- *
- * @author Jonathan Davis
- * @since 1.1
- * @package shopp
+ * @subpackage resources
  **/
 class Resources {
 	
@@ -58,6 +50,14 @@ class Resources {
 		die('-1');
 	}
 	
+	/**
+	 * Handles RSS-feed requests
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function category_rss () {
 		global $Shopp;
 		require_once(SHOPP_FLOW_PATH.'/Storefront.php');
@@ -68,6 +68,14 @@ class Resources {
 		exit();
 	}
 	
+	/**
+	 * Delivers order export files to the browser
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function export_purchases () {
 
 		if (!isset($_POST['settings']['purchaselog_columns'])) {
@@ -92,6 +100,14 @@ class Resources {
 		
 	}
 	
+	/**
+	 * Delivers customer export files to the browser
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function export_customers () {
 
 		if (!isset($_POST['settings']['customerexport_columns'])) {
@@ -116,6 +132,14 @@ class Resources {
 		exit();
 	}
 	
+	/**
+	 * Handles product file download requests
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function download () {
 		global $Shopp;
 		$download = $this->request['shopp_download'];
@@ -186,23 +210,22 @@ class Resources {
 		}
 	}
 
+	/**
+	 * Grabs interface help screencasts
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function help () {
 		if (!isset($_GET['id'])) return;
-		$request = array(
-			"ShoppScreencast" => "installation",
-		);
-		// $data = array(
-		// 	'core' => SHOPP_VERSION,
-		// 	'addons' => join("-",$addons),
-		// 	'wp' => get_bloginfo('version')
-		// );
-
+		$request = array("ShoppScreencast" => $_GET['id']);
 		$response = Shopp::callhome($request);
 		echo $response;
-		
 		exit();
-		
 	}
+	
 } // END class Resources
 
 ?>
