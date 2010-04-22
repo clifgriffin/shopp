@@ -286,7 +286,7 @@ class ShoppInstallation extends FlowController {
 		$meta_table = DatabaseObject::tablename('meta');
 		$spec_table = DatabaseObject::tablename('spec');
 		$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
-					SELECT product,'product','spec',name,content,numeral,sortorder,created,modified FROM $spec_table");
+					SELECT product,'product','spec',name,content,numeral,sortorder,now(),now() FROM $spec_table");
 					
 
 		// Update purchase table
