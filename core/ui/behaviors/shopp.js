@@ -941,5 +941,12 @@ jQuery(document).ready(function() {
 	}
 });
 
+jQuery.parseJSON = function (data) {
+	if (typeof (JSON) !== 'undefined' && 
+		typeof (JSON.parse) === 'function')
+		return JSON.parse(data);
+	else return eval('(' + data + ')');
+}
+
 // Initialize placehoder variables
 var options_required, options_default, pricetags = {};

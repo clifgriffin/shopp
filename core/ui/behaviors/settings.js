@@ -292,7 +292,7 @@ function SettingInput (module,attrs,options,method) {
 	_.button = function () {
 		classes = (_.classes)?' class="button-secondary '+_.classes+'"':' class="button-secondary"';
 		type = (_.type)?' type="'+_.type+'"':'';
-		var html = '<div><button'+type+' name="'+_.name+'" value="'+_.value+'" size="'+_.size+'" id="'+_.id+'"'+classes+'>'+_.label+'</button></div>\n';
+		var html = '<div><button'+type+' name="'+_.name+'" value="'+_.value+'" id="'+_.id+'"'+classes+'>'+_.label+'</button></div>\n';
 		return html;
 	}
 	

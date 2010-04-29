@@ -1196,10 +1196,3 @@ function SlugEditor (id,type) {
 
 	_.enable();
 }
-
-jQuery.parseJSON = function (data) {
-	if (typeof (JSON) !== 'undefined' && 
-		typeof (JSON.parse) === 'function')
-		return JSON.parse(data);
-	else return eval('(' + data + ')');
-}
