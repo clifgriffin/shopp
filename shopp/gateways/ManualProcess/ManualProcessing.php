@@ -5,24 +5,27 @@
  * @author John Dillick
  * @version 1.0
  * @copyright Ingenesis Limited, February 3, 2010
+ * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package Shopp
  * @since 1.1 dev
- * @subpackage ManualProcess
+ * @subpackage ManualProcessing
  * 
- * $Id$
+ * $Id: ManualProcessing.php 810 2010-04-29 18:08:26Z jond $
  **/
+class ManualProcessing extends GatewayFramework implements GatewayModule {
 
-class ManualProcess extends GatewayFramework implements GatewayModule {
-
+	// Standard GatewayModel vars
 	var $secure = true;
 	var $cards = array();
 
-	var $public_key = false;
-	var $private_key = false;
-	var $sec_prefix = false;
-	var $path = false;
+	// Manual Process vars
+	var $public_key = false; // public RSA key
+	var $private_key = false; // private RSA key
+	var $private_pem = false; // private RSA pem
+	var $sec_prefix = false; // security prefix for storing private key in local storage
+	var $path = false; // URI path to ManualProcessing.php
 
-	function ManualProcess () {
+	function ManualProcessing () {
 		$paycards = Lookup::paycards();
 		$this->cards = array_keys($paycards);
 		parent::__construct();
@@ -40,7 +43,7 @@ class ManualProcess extends GatewayFramework implements GatewayModule {
 		add_action('admin_head', array(&$this, 'jserrors'));
 		add_action('shopp_order_admin_script', array(&$this, 'decrypt'));
 		add_action('wp_ajax_mp_reinstall_keys', array(&$this, 'reinstall_keypairs'));
-		
+		add_action('shopp_resource_mp_dl_pem', array(&$this, 'download'));
 	}
 	
 	function init () {
@@ -57,7 +60,7 @@ class ManualProcess extends GatewayFramework implements GatewayModule {
 		$errors .= "var BROWSER_UNSUPPORTED='".__('This browser is unsupported for Manual Processing administration. Please use Google Chrome 5, Apple Safari 4, Internet Explorer 8, Mozilla Firefox 3.6 or later version of these browsers.','Shopp')."';\n";
 		$errors .= "var LOCAL_STORAGE_QUOTA='".__('Browser Local Storage Quota Exceeded, Setup Failed','Shopp')."';\n";
 		$errors .= "var LOCAL_STORAGE_ERROR='".__('Browser Local Storage Error: ','Shopp')."';\n";
-		$errors .= "var DECRYPTION_ERROR='".__('There was an failure retrieving your private key from the browser.  Decryption failed.','Shopp')."';\n";
+		$errors .= "var DECRYPTION_ERROR='".__('There was a failure retrieving your private key from the browser, or this transaction was encrypted on a different keypair.  Data decryption failed.  You may only decrypt secure data from the browser with a proper private key installed.  See your Payment Settings to reinstall the correct private key.','Shopp')."';\n";
 		$errors .= "var SECRET_DATA='".__('[ENCRYPTED]','Shopp')."';\n";
 		$errors .= "//]]>\n";
 		$errors .= "</script>";
@@ -117,7 +120,7 @@ class ManualProcess extends GatewayFramework implements GatewayModule {
 				$this->ui->p(1, array(
 					'name' => 'complete',
 					'label' => __("Setup Complete",'Shopp'),
-					'content' => __('The ManualProcess payment method setup is complete.  Please keep your private key in a secure place and backed up.  If you need to re-cache your private key in your browser, or use this key in another browser, click the "Reinstall Key" button to select your saved private key file.','Shopp')
+					'content' => __('The Manual Processing payment method setup is complete.  Please keep your private key in a secure place and backed up.  If you need to re-cache your private key in your browser, or use this key in another browser, click the "Reinstall Key" button to select your saved private key file.','Shopp')
 				));
 				$this->ui->button(1, array(
 					'name' => 'reinstall',
@@ -137,7 +140,7 @@ class ManualProcess extends GatewayFramework implements GatewayModule {
 	}
 
 	function gen_button_press() {
-		?>ManualProcess.behaviors = function (){ 
+		?>ManualProcessing.behaviors = function (){ 
 			if(!dp.supported) { 
 				alert(BROWSER_UNSUPPORTED);
 				this.row.remove();
@@ -151,12 +154,12 @@ class ManualProcess extends GatewayFramework implements GatewayModule {
 		<?php
 	}
 	function finish_button_press() {
-		?>ManualProcess.behaviors = function (){
+		?>ManualProcessing.behaviors = function (){
 			var prefix='<?php echo $this->sec_prefix; ?>',
 				msg='',
 				test='<?php echo $this->encrypt('test'); ?>',
 				button=$('#finish'),
-				href = '<?php echo $this->path."util/private.php?private=".urlencode(base64_encode(serialize(array($this->private_key,$this->public_key)))); ?>';	
+				href = '<?php echo admin_url('admin.php')."?src=mp_dl_pem&private=".urlencode($this->private_pem); ?>';	
 
 			dp.get(prefix);
 			if(!dp.supported || dp.decrypt(test) != 'test') {
@@ -176,7 +179,7 @@ class ManualProcess extends GatewayFramework implements GatewayModule {
 
 	function reinstall_button_press() {
 		global $Shopp;
-		?>ManualProcess.behaviors = function (){ 
+		?>ManualProcessing.behaviors = function (){ 
 			if(!dp.supported) { 
 				alert(BROWSER_UNSUPPORTED);
 				this.row.remove();
@@ -189,56 +192,46 @@ class ManualProcess extends GatewayFramework implements GatewayModule {
 				msg='<?php _e('Private key installed','Shopp'); ?>',
 				status='',
 				test='<?php echo $this->encrypt('test'); ?>';
+				
 			button.upload({
-					name: 'pemfile',
-					action: ajaxurl,
-					enctype: 'multipart/form-data',
-					params: {
-						action:'mp_reinstall_keys'
-					},
-					autoSubmit: true,
-					onSubmit: function() {
-						button.attr('disabled',true).html('<?php _e('Uploading...','Shopp'); ?>').addClass('updating').parent().css('width','100%');
-					},
-					onComplete: function(results) {
-						data = $.parseJSON(results);
-						button.removeAttr('disabled').removeClass('updating').html(buttonLabel);
-						status='upload success';
-						if(!data) {
-							msg = '<?php _e('Invalid private key file.','Shopp'); ?>';
-							status='upload failure';
-						}
-						dp.store(data[0],prefix);
-						dp.get(prefix);
-						if(dp.decrypt(test) != 'test') {
-							msg = '<?php _e('Invalid private key file or mismatched key.','Shopp'); ?>'; 
-							status='upload failure'; 
-						}
-						$('<span class="'+status+'">'+msg+'</span>').insertAfter(button);
+				name: 'pemfile',
+				action: ajaxurl,
+				enctype: 'multipart/form-data',
+				params: {
+					action:'mp_reinstall_keys'
+				},
+				autoSubmit: true,
+				onSubmit: function() {
+					button.attr('disabled',true).html('<?php _e('Uploading...','Shopp'); ?>').addClass('updating').parent().css('width','100%');
+				},
+				onComplete: function(results) {
+					button.removeAttr('disabled').removeClass('updating').html(buttonLabel);
+					status='upload success';
+					if(!results) {
+						msg = '<?php _e('Invalid private key file.','Shopp'); ?>';
+						status='upload failure';
 					}
-				});
-		}
-		<?php
+					dp.store(results,prefix);
+					dp.get(prefix);
+					if(dp.decrypt(test) != 'test') {
+						msg = '<?php _e('Invalid private key file or mismatched key.','Shopp'); ?>'; 
+						status='upload failure'; 
+					}
+					$('<span class="'+status+'">'+msg+'</span>').insertAfter(button);
+				}
+			});
+		}<?php
 	}	
 
 	function reinstall_keypairs() {
 		check_admin_referer('shopp-mp_reinstall_keys');
 		$fs = false;
-		if (($fs = $_FILES['pemfile']['size']) > 0) {
-			$file = fopen($_FILES['pemfile']['tmp_name'], 'r');
-			$contents = fread($file, $fs);
-			fclose($file);
-			if ($contents !== false) {
-				$lines = explode("\n", $contents);
-				if (count($lines) == 3 && $lines[0] == "-----BEGIN SHOPP PRIVATE KEY-----") {
-					$data = stripslashes(urldecode(base64_decode($lines[1])));
-					$data = unserialize(base64_decode(urldecode($lines[1])));
-					if($data) {
-						$data[0] = json_encode($data[0]);
-						echo json_encode($data); exit();
-					}
-				}
-			}
+		if ($_FILES['pemfile']['size'] > 0) {
+			$contents = file_get_contents($_FILES['pemfile']['tmp_name']);
+			$RSA = new PEMparser($contents);
+			$this->private_key = $RSA->parse();
+			echo json_encode($this->private_key); 
+			exit();
 		} 
 		echo 0;
 		exit();
@@ -249,8 +242,8 @@ class ManualProcess extends GatewayFramework implements GatewayModule {
 			$res_priv = openssl_pkey_new();
 			
 			// Get private key
-			openssl_pkey_export($res_priv, $private_key);
-			$RSA = new PEMparser($private_key);
+			openssl_pkey_export($res_priv, $this->private_pem);
+			$RSA = new PEMparser($this->private_pem);
 			$this->private_key = $RSA->parse();
 
 			// Get public key
@@ -282,8 +275,17 @@ class ManualProcess extends GatewayFramework implements GatewayModule {
 			echo '$(\'#cvv\').click(function(){'.$decrypt.'});';
 		}
 	}
-
-} // END class ManualProcess
+	
+	function download() {
+		if($_REQUEST['private']) {
+			//error_log("private: ".$_REQUEST['private']);
+			header("Content-type: application/octet-stream");
+			header("Content-Disposition: attachment; filename=\"private.pem\""); 
+			echo $_REQUEST['private'];
+			exit();
+		}
+	}
+} // END class ManualProcessing
 
 
 /**
@@ -346,9 +348,9 @@ class PEMparser extends ASNValue {
 /**
  * ASNValue class
  * 
- * Reads ASN.1 notation from DER-formatted data
+ * Reads ASN.1 notation from DER-formatted data. Included with generous permission from Anton Oliinyk (Pumka.net).
  * 
- * @author A.Oliinyk (contact@pumka.net)
+ * @author Anton Oliinyk (contact@pumka.net)
  * @copyright December 19th, 2009 by Anton Oliinyk {@link http://blog.pumka.net/2009/12/19/reading-writing-and-converting-rsa-keys-in-pem-der-publickeyblob-and-privatekeyblob-formats/}
  * @since 1.1
  * @package shopp
