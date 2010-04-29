@@ -57,7 +57,7 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 	function jserrors() {
 		$errors = "<script type=\"text/javascript\" charset=\"utf-8\">\n";
 		$errors .= "//<![CDATA[\n";
-		$errors .= "var BROWSER_UNSUPPORTED='".__('This browser is unsupported for Manual Processing administration. Please use Google Chrome 5, Apple Safari 4, Internet Explorer 8, Mozilla Firefox 3.6 or later version of these browsers.','Shopp')."';\n";
+		$errors .= "var BROWSER_UNSUPPORTED='".__('This browser is unsupported for Manual Processing administration. Please use Opera 10.50, Google Chrome 5, Apple Safari 4, Mozilla Firefox 3.6, Internet Explorer 8, or a later version of these browsers.','Shopp')."';\n";
 		$errors .= "var LOCAL_STORAGE_QUOTA='".__('Browser Local Storage Quota Exceeded, Setup Failed','Shopp')."';\n";
 		$errors .= "var LOCAL_STORAGE_ERROR='".__('Browser Local Storage Error: ','Shopp')."';\n";
 		$errors .= "var DECRYPTION_ERROR='".__('There was a failure retrieving your private key from the browser, or this transaction was encrypted on a different keypair.  Data decryption failed.  You may only decrypt secure data from the browser with a proper private key installed.  See your Payment Settings to reinstall the correct private key.','Shopp')."';\n";
