@@ -155,9 +155,6 @@ class Shopp {
 
 
 		define("SHOPP_PERMALINKS",(get_option('permalink_structure') == "")?false:true);
-		
-		define("SHOPP_LOOKUP",(strpos($_SERVER['REQUEST_URI'],"images/") !== false
-			||  strpos($_SERVER['REQUEST_URI'],"src=") !== false)?true:false);
 				
 		// Initialize application control processing
 		
@@ -240,8 +237,6 @@ class Shopp {
 			$this->imguri = str_replace('http://','https://',$this->imguri);	
 		}
 		
-		if (SHOPP_LOOKUP) return true;
-
 		$this->Errors = new ShoppErrors();
 		$this->Order = ShoppingObject::__new('Order');
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
