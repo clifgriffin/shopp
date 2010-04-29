@@ -247,9 +247,16 @@ class ManualProcess extends GatewayFramework implements GatewayModule {
 	function generate_keypairs() {
 		if($this->public_key == 'generate') {
 			$res_priv = openssl_pkey_new();
-			$priv_details=openssl_pkey_get_details($res_priv);
-			$this->private_key = array_map('bin2hex',$priv_details['rsa']);
-			$this->public_key = urlencode($priv_details['key']);
+			
+			// Get private key
+			openssl_pkey_export($res_priv, $private_key);
+			$RSA = new PEMparser($private_key);
+			$this->private_key = $RSA->parse();
+
+			// Get public key
+			$details=openssl_pkey_get_details($res_priv);
+			$this->public_key = urlencode($details['key']);
+
 			echo "if(dp.supported) dp.store('".json_encode($this->private_key)."','".$this->sec_prefix."');\n";
 		}
 		return;
@@ -277,5 +284,213 @@ class ManualProcess extends GatewayFramework implements GatewayModule {
 	}
 
 } // END class ManualProcess
+
+
+/**
+ * PEMparser class
+ *
+ * Parses an RSA Private Key in PEM-format
+ * 
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ **/
+class PEMparser extends ASNValue {
+
+	static $fields = array('','n','e','d','p','q','dmp1','dmq1','iqmp');
+	var $sequence = array();
+	
+	function __construct ($pem) {
+		$DER = self::convert($pem);
+		$this->decode($DER);
+		$this->sequence = $this->GetSequence();
+	}
+	
+	/**
+	 * Parses the sequences into RSA private key fields
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return array The private key fields
+	 **/
+	function parse () {
+		$_ = array();
+		foreach ($this->sequence as $i => $entry) {
+			if ($i == 0) continue;
+			if ($i == 2) $_[self::$fields[$i]] = str_pad(dechex($entry->GetInt()),6,'0',STR_PAD_LEFT);
+			else $_[self::$fields[$i]] = bin2hex($entry->GetIntBuffer());
+		}
+		return $_;
+	}
+	
+	/**
+	 * Converts a PEM string to binary DER-formatted data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $pem The PEM string
+	 * @return string Binary DER
+	 **/
+	protected static function convert ($pem) {
+		$lines = explode("\n", trim($pem));
+		$lines = array_slice($lines,1,count($lines)-2);
+	    $string = implode('', $lines);
+	    $der = base64_decode($string);
+	    return $der;
+	}
+	
+}
+
+/**
+ * ASNValue class
+ * 
+ * Reads ASN.1 notation from DER-formatted data
+ * 
+ * @author A.Oliinyk (contact@pumka.net)
+ * @copyright December 19th, 2009 by Anton Oliinyk {@link http://blog.pumka.net/2009/12/19/reading-writing-and-converting-rsa-keys-in-pem-der-publickeyblob-and-privatekeyblob-formats/}
+ * @since 1.1
+ * @package shopp
+ **/
+class ASNValue {
+    const TAG_INTEGER   = 0x02;
+    const TAG_BITSTRING = 0x03;
+    const TAG_SEQUENCE  = 0x30;
+    
+    public $tag;
+    public $value;
+    
+    function __construct ($tag=0x00, $value='') {
+        $this->tag = $tag;
+        $this->value = $value;
+    }
+    
+    function encode() {   
+		$result = chr($this->tag);		// Write type
+		$size = strlen($this->value);	// Write size
+		if ($size < 127) {
+			$result .= chr($size);		// Write size as is
+		} else {
+			// Prepare length sequence
+			$sizeBuf = self::IntToBin($size);
+
+			// Write length sequence
+			$firstByte = 0x80 + strlen($sizeBuf);
+			$result .= chr($firstByte) . $sizeBuf;
+		}
+
+		$result .= $this->value; // Write value
+
+		return $result;
+    }
+    
+    function decode (&$Buffer) {   
+		$this->tag = self::ReadByte($Buffer);	// Read type
+		$firstByte = self::ReadByte($Buffer);	// Read first byte
+
+		if ($firstByte < 127) {
+			$size = $firstByte;
+		} else if ($firstByte > 127) {
+			$sizeLen = $firstByte - 0x80;
+			//Read length sequence
+			$size = self::BinToInt(self::ReadBytes($Buffer, $sizeLen));
+		} else {
+			new ShoppError('Invalid ASN length value while decoding the exported PEM data for the generated private key.','manualprocess_asnvalue_decode',SHOPP_DEBUG_ERR);
+		}
+
+		$this->value = self::ReadBytes($Buffer, $size);
+    }
+    
+    protected static function ReadBytes (&$Buffer, $Length) {
+		$result = substr($Buffer, 0, $Length);
+		$Buffer = substr($Buffer, $Length);
+
+		return $result;
+    }
+    
+    protected static function ReadByte(&$Buffer) {      
+        return ord(self::ReadBytes($Buffer, 1));
+    }
+    
+    protected static function BinToInt($Bin) {    
+		$len = strlen($Bin);
+		$result = 0;
+		for ($i=0; $i<$len; $i++) {
+			$curByte = self::ReadByte($Bin);
+			$result += $curByte << (($len-$i-1)*8);
+		}
+
+		return $result;
+    }
+    
+    protected static function IntToBin($Int) {
+        $result = '';
+        do {
+            $curByte = $Int % 256;
+            $result .= chr($curByte);
+
+            $Int = ($Int - $curByte) / 256;
+        } while ($Int > 0);
+
+        $result = strrev($result);
+        
+        return $result;
+    }
+    
+    function SetIntBuffer($Value) {
+        if (strlen($Value) > 1) {
+            $firstByte = ord($Value{0});
+            if ($firstByte & 0x80) { //first bit set
+                $Value = chr(0x00) . $Value;
+            }
+        }
+        
+        $this->value = $Value;
+    }
+    
+    function GetIntBuffer() {        
+        $result = $this->value;
+        if (ord($result{0}) == 0x00) {
+            $result = substr($result, 1);
+        }
+        
+        return $result;
+    }
+    
+    function SetInt($Value) {
+        $Value = self::IntToBin($Value);
+        
+        $this->SetIntBuffer($Value);
+    }   
+    
+    function GetInt() {
+        $result = $this->GetIntBuffer();
+        $result = self::BinToInt($result);
+        
+        return $result;
+    }
+    
+    function SetSequence($Values) {
+        $result = '';
+        foreach ($Values as $item) {
+            $result .= $item->Encode();            
+        }   
+        
+        $this->value = $result;
+    }   
+    
+    function GetSequence() {
+        $result = array();
+        $seq = $this->value;
+        while (strlen($seq)) {
+            $val = new ASNValue();
+            $val->Decode($seq);
+            $result[] = $val;
+        }  
+        
+        return $result;
+    }    
+}
 
 ?>
