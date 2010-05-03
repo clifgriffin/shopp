@@ -237,7 +237,7 @@ class Shopp {
 			$this->imguri = str_replace('http://','https://',$this->imguri);	
 		}
 		
-		$this->Errors = new ShoppErrors();
+		$this->Errors = new ShoppErrors($this->Settings->get('error_logging'));
 		$this->Order = ShoppingObject::__new('Order');
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
 		$this->Gateways = new GatewayModules();

@@ -409,7 +409,7 @@ class Setup extends FlowController {
 			$this->settings_save();
 
 			// Reinitialize Error System
-			$Shopp->Errors = new ShoppErrors();
+			$Shopp->Errors = new ShoppErrors($this->Settings->get('error_logging'));
 			$Shopp->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 			$Shopp->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
 										$this->Settings->get('error_notifications'));
