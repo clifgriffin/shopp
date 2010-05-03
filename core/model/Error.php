@@ -23,9 +23,6 @@ define('SHOPP_PHP_ERR',256);
 define('SHOPP_ALL_ERR',1024);
 define('SHOPP_DEBUG_ERR',2048);
 
-if (!defined('SHOPP_ERROR_REPORTING') && WP_DEBUG) define('SHOPP_ERROR_REPORTING',SHOPP_DEBUG_ERR);
-if (!defined('SHOPP_ERROR_REPORTING')) define('SHOPP_ERROR_REPORTING',SHOPP_ALL_ERR);
-
 /**
  * ShoppErrors class
  * 
@@ -42,6 +39,7 @@ class ShoppErrors {
 	
 	var $errors = array();	// Error message registry
 	var $notifications;		// Notification subscription registry
+	var $reporting = SHOPP_ALL_ERR;		// level of reporting
 	
 	/**
 	 * Setup error system and PHP error capture
@@ -51,15 +49,18 @@ class ShoppErrors {
 	 * 
 	 * @return void
 	 **/
-	function __construct () {
+	function __construct ($level = SHOPP_ALL_ERR) {
 		ShoppingObject::store('errors',$this->errors);
+		
+		if (defined('WP_DEBUG') && WP_DEBUG) $this->reporting = SHOPP_DEBUG_ERR;
+		if ($level > $this->reporting) $this->reporting = $level;
 		
 		$this->notifications = new CallbackSubscription();
 
 		$types = E_ALL ^ E_NOTICE;
 		if (defined('WP_DEBUG') && WP_DEBUG) $types = E_ALL;
 		// Handle PHP errors
-		if (SHOPP_ERROR_REPORTING >= SHOPP_PHP_ERR)
+		if ($this->reporting >= SHOPP_PHP_ERR)
 			set_error_handler(array($this,'phperror'),$types);
 	}
 	
@@ -274,7 +275,9 @@ class ShoppError {
 	 * @return void Description...
 	 **/
 	function ShoppError($message='',$code='',$level=SHOPP_ERR,$data='') {
-		if ($level > SHOPP_ERROR_REPORTING) return;
+		$Errors = &ShoppErrors();
+
+		if ($level > $Errors->reporting) return;
 		if (empty($message)) return;
 
 		$debug = debug_backtrace();
