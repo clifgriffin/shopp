@@ -395,10 +395,10 @@ class ShoppErrorLogging {
 		$debug = "";
 		if (isset($error->debug['file'])) $debug = " [".basename($error->debug['file']).", line ".$error->debug['line']."]";
 		$message = date("Y-m-d H:i:s",mktime())." - ".$error->message(false,true).$debug."\n";
-		if ($this->log = @fopen($this->logfile,'at')) {
+		if (($this->log = @fopen($this->logfile,'at')) !== false) {
 			fwrite($this->log,$message);
 			fclose($this->log);
-		}
+		} else error_log($message);
 	}
 	
 	/**
