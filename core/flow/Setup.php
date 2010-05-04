@@ -18,6 +18,8 @@
  * @author Jonathan Davis
  **/
 class Setup extends FlowController {
+
+	var $screen = false;
 	
 	/**
 	 * Setup constructor
@@ -27,7 +29,21 @@ class Setup extends FlowController {
 	 **/
 	function __construct () {
 		parent::__construct();
-		wp_enqueue_script("shopp.colorbox",SHOPP_ADMIN_URI."/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION,true);
+		
+		$pages = explode("-",$_GET['page']);
+		$this->screen = end($pages);
+		
+		switch ($this->screen) {
+			case "taxes":
+				wp_enqueue_script("suggest");
+				wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
+				wp_enqueue_script('shopp.taxes',SHOPP_ADMIN_URI."/behaviors/taxes.js",array('jquery'),SHOPP_VERSION,true);
+				break;
+			case "system":
+				wp_enqueue_script("shopp.colorbox",SHOPP_ADMIN_URI."/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION,true);
+				break;
+		}
+		
 	}
 	
 	/**
@@ -37,9 +53,7 @@ class Setup extends FlowController {
 	 * @author Jonathan Davis
 	 **/
 	function admin () {
-		$pages = explode("-",$_GET['page']);
-		$screen = end($pages);
-		switch($screen) {
+		switch($this->screen) {
 			case "catalog": 		$this->catalog(); break;
 			case "cart": 			$this->cart(); break;
 			case "checkout": 		$this->checkout(); break;
@@ -309,10 +323,10 @@ class Setup extends FlowController {
 			$this->settings_save();
 			$updated = __('Shopp taxes settings saved.','Shopp');
 		}
-		
+
 		$rates = $this->Settings->get('taxrates');
 		$base = $this->Settings->get('base_operations');
-		
+				
 		$countries = array_merge(array('*' => __('All Markets','Shopp')),
 			$this->Settings->get('target_markets'));
 

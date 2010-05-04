@@ -271,6 +271,11 @@ class Lookup {
 		return apply_filters('shopp_areas',$_);
 	}
 	
+	function localities () {
+		$_ = array();
+		return apply_filters('shopp_localities',$_);
+	}
+	
 	/**
 	 * Provides a list of country codes for countries that use VAT taxes
 	 *

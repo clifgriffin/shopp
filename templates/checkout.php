@@ -53,25 +53,69 @@
 			<li>
 		<?php endif; ?>
 			<label for="billing-address"><?php _e('Billing Address','Shopp'); ?></label>
-			<div><?php shopp('checkout','billing-address','required=true&title='.__('Billing street address','Shopp')); ?><label for="billing-address"><?php _e('Street Address','Shopp'); ?></label></div>
-			<div><?php shopp('checkout','billing-xaddress','title='.__('Billing address line 2','Shopp')); ?><label for="billing-xaddress"><?php _e('Address Line 2','Shopp'); ?></label></div>
-			<div class="left"><?php shopp('checkout','billing-city','required=true&title='.__('City billing address','Shopp')); ?><label for="billing-city"><?php _e('City','Shopp'); ?></label></div>
-			<div class="right"><?php shopp('checkout','billing-state','required=true&title='.__('State/Provice/Region billing address','Shopp')); ?><label for="billing-state"><?php _e('State / Province','Shopp'); ?></label></div>
-			<div class="left"><?php shopp('checkout','billing-postcode','required=true&title='.__('Postal/Zip Code billing address','Shopp')); ?><label for="billing-postcode"><?php _e('Postal / Zip Code','Shopp'); ?></label></div>
-			<div class="right"><?php shopp('checkout','billing-country','required=true&title='.__('Country billing address','Shopp')); ?><label for="billing-country"><?php _e('Country','Shopp'); ?></label></div>
+			<div>
+				<?php shopp('checkout','billing-address','required=true&title='.__('Billing street address','Shopp')); ?>
+				<label for="billing-address"><?php _e('Street Address','Shopp'); ?></label>
+			</div>
+			<div>
+				<?php shopp('checkout','billing-xaddress','title='.__('Billing address line 2','Shopp')); ?>
+				<label for="billing-xaddress"><?php _e('Address Line 2','Shopp'); ?></label>
+			</div>
+			<div class="left">
+				<?php shopp('checkout','billing-city','required=true&title='.__('City billing address','Shopp')); ?>
+				<label for="billing-city"><?php _e('City','Shopp'); ?></label>
+			</div>
+			<div class="right">
+				<?php shopp('checkout','billing-state','required=true&title='.__('State/Provice/Region billing address','Shopp')); ?>
+				<label for="billing-state"><?php _e('State / Province','Shopp'); ?></label>
+			</div>
+			<div class="left">
+				<?php shopp('checkout','billing-postcode','required=true&title='.__('Postal/Zip Code billing address','Shopp')); ?>
+				<label for="billing-postcode"><?php _e('Postal / Zip Code','Shopp'); ?></label>
+			</div>
+			<div class="right">
+				<?php shopp('checkout','billing-country','required=true&title='.__('Country billing address','Shopp')); ?>
+				<label for="billing-country"><?php _e('Country','Shopp'); ?></label>
+			</div>
 		<?php if (shopp('checkout','shipping')): ?>
 			<div class="inline"><?php shopp('checkout','same-shipping-address'); ?></div>
 			</li>
 			<li class="half right" id="shipping-address-fields">
 				<label for="shipping-address"><?php _e('Shipping Address','Shopp'); ?></label>
-				<div><?php shopp('checkout','shipping-address','required=true&title='.__('Shipping street address','Shopp')); ?><label for="shipping-address"><?php _e('Street Address','Shopp'); ?></label></div>
-				<div><?php shopp('checkout','shipping-xaddress','title='.__('Shipping address line 2','Shopp')); ?><label for="shipping-xaddress"><?php _e('Address Line 2','Shopp'); ?></label></div>
-				<div class="left"><?php shopp('checkout','shipping-city','required=true&title='.__('City shipping address','Shopp')); ?><label for="shipping-city"><?php _e('City','Shopp'); ?></label></div>
-				<div class="right"><?php shopp('checkout','shipping-state','required=true&title='.__('State/Provice/Region shipping address','Shopp')); ?><label for="shipping-state"><?php _e('State / Province','Shopp'); ?></label></div>
-				<div class="left"><?php shopp('checkout','shipping-postcode','required=true&title='.__('Postal/Zip Code shipping address','Shopp')); ?><label for="shipping-postcode"><?php _e('Postal / Zip Code','Shopp'); ?></label></div>
-				<div class="right"><?php shopp('checkout','shipping-country','required=true&title='.__('Country shipping address','Shopp')); ?><label for="shipping-country"><?php _e('Country','Shopp'); ?></label></div>
+				<div>
+					<?php shopp('checkout','shipping-address','required=true&title='.__('Shipping street address','Shopp')); ?>
+					<label for="shipping-address"><?php _e('Street Address','Shopp'); ?></label>
+				</div>
+				<div>
+					<?php shopp('checkout','shipping-xaddress','title='.__('Shipping address line 2','Shopp')); ?>
+					<label for="shipping-xaddress"><?php _e('Address Line 2','Shopp'); ?></label>
+				</div>
+				<div class="left">
+					<?php shopp('checkout','shipping-city','required=true&title='.__('City shipping address','Shopp')); ?>
+					<label for="shipping-city"><?php _e('City','Shopp'); ?></label>
+				</div>
+				<div class="right">
+					<?php shopp('checkout','shipping-state','required=true&title='.__('State/Provice/Region shipping address','Shopp')); ?>
+					<label for="shipping-state"><?php _e('State / Province','Shopp'); ?></label>
+				</div>
+				<div class="left">
+					<?php shopp('checkout','shipping-postcode','required=true&title='.__('Postal/Zip Code shipping address','Shopp')); ?>
+					<label for="shipping-postcode"><?php _e('Postal / Zip Code','Shopp'); ?></label>
+				</div>
+				<div class="right">
+					<?php shopp('checkout','shipping-country','required=true&title='.__('Country shipping address','Shopp')); ?>
+					<label for="shipping-country"><?php _e('Country','Shopp'); ?></label>
+				</div>
 			</li>
 		<?php else: ?>
+			</li>
+		<?php endif; ?>
+		<?php if (shopp('checkout','billing-localities')): ?>
+			<li class="half locale hidden">
+				<div>
+				<?php shopp('checkout','billing-locale'); ?>
+				<label for="billing-locale"><?php _e('Local Jurisdiction','Shopp'); ?></label>
+				</div>
 			</li>
 		<?php endif; ?>
 		<li></li>

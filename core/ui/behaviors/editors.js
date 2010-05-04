@@ -823,12 +823,10 @@ function ImageUploads (id,type) {
 	$('#image-upload').upload({
 		name: 'Filedata',
 		action: ajaxurl,
-		enctype: 'multipart/form-data',
 		params: {
 			action:'shopp_upload_image',
 			type:type
 		},
-		autoSubmit: true,
 		onSubmit: function() {
 			this.targetHolder = $('<li id="image-uploading"><input type="hidden" name="images[]" value="" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo('#lightbox');
 			this.progressBar = this.targetHolder.find('div.bar');
@@ -1042,11 +1040,7 @@ function FileUploader (button,defaultButton) {
 	defaultButton.upload({
 		name: 'Filedata',
 		action: ajaxurl,
-		enctype: 'multipart/form-data',
-		params: {
-			action:'shopp_upload_file'
-		},
-		autoSubmit: true,
+		params: { action:'shopp_upload_file' },
 		onSubmit: function() {
 			this.targetHolder.attr('class','').html('');
 			$('<div class="progress"><div class="bar"></div><div class="gloss"></div></div>').appendTo(this.targetHolder);

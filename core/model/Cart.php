@@ -447,15 +447,13 @@ class Cart {
 		if (!$this->shipped()) $this->freeshipping = false;
 		
 		foreach ($this->contents as $key => $Item) {
+			$Item->retotal();
 
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
 			
 			// Reinitialize discount amounts
 			$Item->discount = 0;
-
-			// Tabulate the taxable total to be calculated after discounts
-			if ($Item->taxable) $Totals->taxed += $Item->total;
 			
 			// Item does not have free shipping, 
 			// so the cart shouldn't have free shipping
@@ -483,8 +481,8 @@ class Cart {
 		$Totals->tax = $Tax->calculate();
 	    
 		// Calculate final totals
-		$Totals->total = round($Totals->subtotal - round($Totals->discount,2) + 
-			$Totals->shipping + $Totals->tax,2);
+		$Totals->total = roundprice($Totals->subtotal - roundprice($Totals->discount) + 
+			$Totals->shipping + $Totals->tax);
 
 		do_action_ref_array('shopp_cart_retotal',array(&$Totals));
 		$this->Totals = &$Totals;
@@ -1010,9 +1008,9 @@ class CartDiscounts {
 				if (isset($this->Cart->contents[$id]))
 					$this->Cart->contents[$id]->discount += $amount;
 			}
-			$discount += round($Discount->applied,$this->precision);
+			$discount += $Discount->applied;
 		}
-			
+
 		return $discount;
 	}
 	
@@ -1124,7 +1122,7 @@ class CartDiscounts {
 	 **/
 	function discount ($promo,$discount) {
 
-		$promo->applied = 0;
+		$promo->applied = 0;	// Track total discount applied by the promo
 		
 		// Per line item discounts
 		if (isset($promo->rules['item'])) {
@@ -1366,7 +1364,7 @@ class CartTax {
 	 * 
 	 * @return float The tax rate
 	 **/
-	function rate () {
+	function rate ($Item=false,$settings=false) {
 		if (!$this->enabled) return false;		
 		if (!is_array($this->rates)) return false;
 		
@@ -1380,24 +1378,50 @@ class CartTax {
 		if (!empty($Shipping->state)) $zone = $Shipping->state;
 		elseif (!empty($Billing->state)) $zone = $Billing->state;
 
+		$locale = false;
+		if (!empty($Shipping->locale)) $locale = $Shipping->locale;
+		elseif (!empty($Billing->locale)) $locale = $Billing->locale;
+		// print_r($Billing);
 		$global = false;
 		foreach ($this->rates as $setting) {
+			$rate = false;
 			// Grab the global setting if found
 			if ($setting['country'] == "*") {
 				$global = $setting;
 				continue;
 			}
 			
-			if (isset($setting['zone'])) {
+			if (isset($setting['locals']) && is_array($setting['locals'])) {
 				if ($country == $setting['country'] &&
-					$zone == $setting['zone'])
-						return apply_filters('shopp_cart_taxrate',$setting['rate']/100);
+					$zone == $setting['zone']) {
+						$localrate = isset($setting['locals'][$locale])?$setting['locals'][$locale]:0;
+						$rate = (floatvalue($setting['rate'])+floatvalue($localrate));
+					}
+			} elseif (isset($setting['zone'])) {
+				if ($country == $setting['country'] && $zone == $setting['zone'])
+					$rate = $setting['rate'];
 			} elseif ($country == $setting['country']) {
-				return apply_filters('shopp_cart_taxrate',$setting['rate']/100);
+				$rate = $setting['rate'];
+			}
+			
+			// Match tax rules
+
+			// Match item-based tax rules
+			if ($Item !== false && is_array($setting['rules'])) {
+				if (!$Item->taxapplies($setting['rules'],$setting['logic'])) continue;
+			}
+			
+			if ($rate !== false) {
+				if ($settings) return apply_filters('shopp_cart_taxrate_settings',$setting);
+				return apply_filters('shopp_cart_taxrate',$rate/100);
 			}
 		}
 		
-		if ($global) return apply_filters('shopp_cart_taxrate',$global['rate']/100);
+		if ($global) {
+			if ($settings) return apply_filters('shopp_cart_taxrate_settings',$global);
+			return apply_filters('shopp_cart_taxrate',$global['rate']/100);
+		}
+		else return false;
 	}
 	
 	/**
@@ -1410,10 +1434,24 @@ class CartTax {
 	 **/
 	function calculate () {
 		$Totals = $this->Order->Cart->Totals;
-		if ($Totals->discount > $Totals->taxed) $Totals->taxed = 0;
-		else $Totals->taxed -= $Totals->discount;
-		if($this->shipping) $Totals->taxed += $Totals->shipping;
-		return round($Totals->taxed*$Totals->taxrate,2);
+
+		$tiers = array();
+		foreach ($this->Order->Cart->contents as $id => &$Item) {
+			if (!$Item->taxable) continue;
+			$Item->taxrate = $this->rate($Item);
+			
+			if (!isset($tiers[$Item->taxrate])) $tiers[$Item->taxrate] = $Item->total;
+			else $tiers[$Item->taxrate] += $Item->total;
+			
+			$taxes += $Item->tax;
+		}
+		
+		// TODO: Handle discounts > taxable item totals
+		// if ($Totals->discount > $Totals->taxed) $Totals->taxed = 0;
+		// else $Totals->taxed -= $Totals->discount;
+		if($this->shipping) $taxes += roundprice($Totals->shipping*$Totals->taxrate);
+
+		return $taxes;
 	}
 	
 } // END class CartTax

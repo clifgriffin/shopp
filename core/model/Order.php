@@ -185,6 +185,10 @@ class Order {
 		if (empty($this->Billing))
 			$this->Billing = new Billing();
 		$this->Billing->updates($_POST['billing']);
+		
+		// Special case for updating/tracking billing locale
+		if (!empty($_POST['billing']['locale'])) 
+			$this->Billing->locale = $_POST['billing']['locale'];
 
 		if ($cc) {
 			if (!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy'])) {
@@ -655,8 +659,7 @@ class Order {
 
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
-		
-		
+
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		
 		switch ($property) {
@@ -724,7 +727,6 @@ class Order {
 				$string .= '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
 				return $string;
 				break;
-
 			case "firstname": 
 				if ($options['mode'] == "value") return $this->Customer->firstname;
 				if (!empty($this->Customer->firstname))
@@ -1026,6 +1028,38 @@ class Order {
 				return $string;
 				break;
 			case "billing-xco": return; break; // DEPRECATED
+			case "billing-localities": 
+				$rates = $Shopp->Settings->get("taxrates");
+				foreach ($rates as $rate) if (is_array($rate['locals'])) return true;
+				return false;
+				break;
+			case "billing-locale":
+				if ($options['mode'] == "value") return $this->Billing->locale;
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($this->Billing->locale)) {
+					$options['selected'] = $this->Billing->locale;
+					$options['value'] = $this->Billing->locale;
+				}
+				if (empty($options['type'])) $options['type'] = "menu";
+				$output = false;
+
+				
+				$rates = $Shopp->Settings->get("taxrates");
+				foreach ($rates as $rate) if (is_array($rate['locals'])) 
+					$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
+				
+				add_storefrontjs('var locales = '.json_encode($locales).';',true);
+				
+				$Taxes = new CartTax();
+				$rate = $Taxes->rate(false,true);
+
+				$localities = array_keys($rate['locals']);
+				$label = (!empty($options['label']))?$options['label']:'';
+				$output = '<select name="billing[locale]" id="billing-locale" '.inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($localities,$options['selected']);
+				$output .= '</select>';
+				return $output;
+				break;
 			case "has-data":
 			case "hasdata": return (is_array($this->data) && count($this->data) > 0); break;
 			case "order-data":

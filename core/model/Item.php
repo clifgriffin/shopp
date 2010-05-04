@@ -14,7 +14,7 @@
  **/
 class Item {
 	var $product = false;		// The source product ID
-	var $price = false;			// The source price ID
+	var $priceline = false;		// The source price ID
 	var $category = false;		// The breadcrumb category
 	var $sku = false;			// The SKU of the product/price combination
 	var $type = false;			// The type of the product price object
@@ -25,8 +25,13 @@ class Item {
 	var $variations = array();	// The available variation options
 	var $quantity = 0;			// The selected quantity for the line item
 	var $unitprice = 0;			// Per unit price
-	var $discount = 0;			// Discounts applied to the line item
+	var $price = 0;				// Per unit price after discounts are applied
+	var $unittax = 0;			// Per unit tax amount
+	var $tax = 0;				// Sum of the per unit tax amount for the line item
+	var $taxrate = 0;			// Tax rate for the item
 	var $total = 0;				// Total cost of the line item (unitprice x quantity)
+	var $discount = 0;			// Discount applied to each unit
+	var $discounts = 0;			// Sum of per unit discounts (discount for the line)
 	var $weight = 0;			// Weight of the line item (unit weight)
 	var $shipfee = 0;			// Shipping fees for each unit of the line item
 	var $download = false;		// Download ID of the asset from the selected price object
@@ -69,7 +74,7 @@ class Item {
 				
 		}
 		if (isset($Product->id)) $this->product = $Product->id;
-		if (isset($Price->id)) $this->price = $Price->id;
+		if (isset($Price->id)) $this->priceline = $Price->id;
 
 		$this->name = $Product->name;
 		$this->slug = $Product->slug;
@@ -137,7 +142,7 @@ class Item {
 	 * @return boolean
 	 **/
 	function valid () {
-		if (!$this->product || !$this->price) {
+		if (!$this->product || !$this->priceline) {
 			new ShoppError(__('The product could not be added to the cart because it could not be found.','cart_item_invalid',SHOPP_ERR));
 			return false;
 		}
@@ -179,7 +184,7 @@ class Item {
 			else $this->quantity = $qty;
 		} else $this->quantity = $qty;
 		
-		$this->total = $this->quantity * $this->unitprice;
+		$this->retotal();
 	}
 	
 	/**
@@ -324,7 +329,7 @@ class Item {
 		
 		// Update stock in the database
 		$table = DatabaseObject::tablename(Price::$table);
-		$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$this->price}' AND stock > 0");
+		$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$this->priceline}' AND stock > 0");
 		
 		// Update stock in the model
 		$this->option->stock -= $this->quantity;
@@ -367,7 +372,7 @@ class Item {
 		if ($stock !== false) return $stock;
 
 		$table = DatabaseObject::tablename(Price::$table);
-		$result = $db->query("SELECT stock FROM $table WHERE id='$this->price'");
+		$result = $db->query("SELECT stock FROM $table WHERE id='$this->priceline'");
 		if (isset($result->stock)) return $result->stock;
 
 		return $this->option->stock;
@@ -407,6 +412,40 @@ class Item {
 		return Promotion::match_rule($subject,$logic,$value,$property);
 	}
 	
+	function taxapplies ($rules,$logic) {
+		
+		$matches = 0;
+		foreach ($rules as $rule) {
+			switch ($rule['p']) {
+				case "product-name": $match = ($rule['v'] == $this->name); break;
+				case "product-tags": $match = (in_array($rule['v'],$this->tags)); break;
+				case "product-category": $match = (in_array($rule['v'],$this->categories)); break;
+			}
+			if ($match) $matches++;
+		}
+		if ($logic == "all" && $matches == count($rules)) return true;
+		if ($logic == "any" && $matches > 0) return true;
+
+		return false;
+	}
+
+	/**
+	 * Recalculates line item amounts
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function retotal () {
+		$this->taxrate = shopp_taxrate(true,$this->taxable,$this);
+		$this->price = roundprice($this->unitprice-$this->discount);
+		$this->unittax = roundprice($this->price*$this->taxrate);
+		$this->discounts = roundprice($this->discount*$this->quantity);
+		$this->tax = roundprice($this->unittax*$this->quantity);
+		$this->total = roundprice($this->price * $this->quantity);
+	}
+
 	/**
 	 * Provides support for the shopp('cartitem') tags
 	 *
@@ -431,19 +470,21 @@ class Item {
 			case "sku": return $this->sku;
 		}
 		
-		$taxrate = 0;
-		$taxes = false;
-		if (isset($options['taxes'])) $taxes = $options['taxes'];
-		if ($property == "unitprice" || $property == "total" || $property == "tax" || $property == "options")
-			$taxrate = shopp_taxrate($taxes,$this->taxable);
+		$taxes = isset($options['taxes'])?value_is_true($options['taxes']):null;
+		if (in_array($property,array('price','newprice','unitprice','total','tax','options')))
+			$taxes = shopp_taxrate($taxes,$this->taxable,$this) > 0?true:false;
 
 		// Handle currency values
 		$result = "";
 		switch ($property) {
-			case "discount": $result = (float)($this->discount); break;
-			case "unitprice": $result = (float)$this->unitprice+($this->unitprice*$taxrate); break;
-			case "total": $result = (float)$this->total+($this->total*$taxrate); break;
-			case "tax": $result = (float)($this->total*$taxrate); break;
+			case "discount": $result = (float)$this->discount; break;
+			case "price":
+			case "newprice": $result = (float)$this->price+($taxes?$this->unittax:0); break;
+			case "unitprice": $result = (float)$this->unitprice+($taxes?$this->unittax:0); break;
+			case "unittax": $result = (float)$this->unittax; break;
+			case "discounts": $result = (float)$this->discounts; break;
+			case "tax": $result = (float)$this->tax; break;
+			case "total": $result = (float)$this->total+($taxes?$this->tax:0); break;
 		}
 		if (is_float($result)) {
 			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
@@ -452,6 +493,7 @@ class Item {
 		
 		// Handle values with complex options
 		switch ($property) {
+			case "taxrate": return percentage($this->taxrate*100,array('precision' => 1)); break;
 			case "quantity": 
 				$result = $this->quantity;
 				if ($this->type == "Donation" && $this->donation['var'] == "on") return $result;
