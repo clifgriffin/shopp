@@ -135,7 +135,7 @@ if (!function_exists('get_class_property')) {
 	 * longer necessary as you can simply reference as $Classname::$property
 	 *
 	 * @author Jonathan Davis
-	 * @since 1.1
+	 * @since PHP 5.3.0
 	 * 
 	 * @param string $classname Name of the class
 	 * @param string $property Name of the property
@@ -149,5 +149,31 @@ if (!function_exists('get_class_property')) {
 	  return $vars[$property];
 	}
 }
+
+if (!function_exists('array_replace')) {
+	/**
+	 * Replaces elements from passed arrays into the first array
+	 * 
+	 * Provides backwards compatible support for the PHP 5.3.0
+	 * array_replace() function.
+	 * 
+	 * @author Jonathan Davis
+	 * @since PHP 5.3.0
+	 * 
+	 * @return void Description...
+	 **/
+	function array_replace (array &$array, array &$array1) {
+		$args = func_get_args();
+		$count = func_num_args();
+
+		for ($i = 1; $i < $count; $i++) {
+			if (is_array($args[$i]))
+				foreach ($args[$i] as $k => $v) $array[$k] = $v;
+		}
+
+		return $array;
+	}
+}
+
 
 ?>
