@@ -11,6 +11,104 @@
  **/
 
 /**
+ * Converts timestamps to formatted localized date/time strings
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param string $format A date() format string
+ * @param int $timestamp (optional) The timestamp to be formatted (defaults to current timestamp)
+ * @return string The formatted localized date/time
+ **/
+function _d($format,$timestamp=false) {
+	$tokens = array(
+		'D' => array('Mon' => __('Mon','Shopp'),'Tue' => __('Tue','Shopp'),
+					'Wed' => __('Wed','Shopp'),'Thu' => __('Thu','Shopp'),
+					'Fri' => __('Fri','Shopp'),'Sat' => __('Sat','Shopp'),
+					'Sun' => __('Sun','Shopp')),
+		'l' => array('Monday' => __('Monday','Shopp'),'Tuesday' => __('Tuesday','Shopp'),
+					'Wednesday' => __('Wednesday','Shopp'),'Thursday' => __('Thursday','Shopp'),
+					'Friday' => __('Friday','Shopp'),'Saturday' => __('Saturday','Shopp'),
+					'Sunday' => __('Sunday','Shopp')),
+		'F' => array('January' => __('January','Shopp'),'February' => __('February','Shopp'),
+					'March' => __('March','Shopp'),'April' => __('April','Shopp'),
+					'May' => __('May','Shopp'),'June' => __('June','Shopp'),
+					'July' => __('July','Shopp'),'August' => __('August','Shopp'),
+					'September' => __('September','Shopp'),'October' => __('October','Shopp'),
+					'November' => __('November','Shopp'),'December' => __('December','Shopp')),
+		'M' => array('Jan' => __('Jan','Shopp'),'Feb' => __('Feb','Shopp'),
+					'Mar' => __('Mar','Shopp'),'Apr' => __('Apr','Shopp'),
+					'May' => __('May','Shopp'),'Jun' => __('Jun','Shopp'),
+					'Jul' => __('Jul','Shopp'),'Aug' => __('Aug','Shopp'),
+					'Sep' => __('Sep','Shopp'),'Oct' => __('Oct','Shopp'),
+					'Nov' => __('Nov','Shopp'),'Dec' => __('Dec','Shopp'))
+	);
+
+	if (!$timestamp) $date = date($format);
+	else $date = date($format,$timestamp);
+
+	foreach ($tokens as $token => $strings) {
+		if ($pos = strpos($format,$token) === false) continue;
+		$string = (!$timestamp)?date($token):date($token,$timestamp);
+		$date = str_replace($string,$strings[$string],$date);
+	}
+	return $date;
+}
+
+/**
+ * Generates a representation of the current state of an object structure
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param object $object The object to display
+ * @return string The object structure 
+ **/
+function _object_r ($object) {
+	global $Shopp;
+	ob_start();
+	print_r($object);
+	$result = ob_get_contents();
+	ob_end_clean();
+	return $result;
+}
+
+/**
+ * Appends a string to the end of URL as a query string
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param string $string The string to add
+ * @param string $url The url to append to
+ * @return string
+ **/
+function add_query_string ($string,$url) {
+	if(strpos($url,'?') !== false) return "$url&$string";
+	else return "$url?$string";
+}
+
+/**
+ * Adds JavaScript to be included in the footer on shopping pages
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param string $script JavaScript fragment
+ * @param boolean $global (optional) Include the script in the global namespace
+ * @return void
+ **/
+function add_storefrontjs ($script,$global=false) {
+	global $Shopp;
+	if (!get_class($Shopp->Flow->Controller) == "Storefront") return;
+	$Storefront = $Shopp->Flow->Controller;
+	if ($global) {
+		if (!isset($Storefront->behaviors['global'])) $Storefront->behaviors['global'] = array();
+		$Storefront->behaviors['global'][] = trim($script);
+	} else $Storefront->behaviors[] = $script;
+}
+
+/**
  * Automatically generates a list of number ranges distributed across a number set
  *
  * @author Jonathan Davis
@@ -50,6 +148,70 @@ function auto_ranges ($avg,$max,$min) {
 		if ($i > 0) $base += $scale;
 	}
 	return $ranges;
+}
+
+/**
+ * Copies the builtin template files to the active WordPress theme
+ *
+ * Handles copying the builting template files to the shopp/ directory of 
+ * the currently active WordPress theme.  Strips out the header comment 
+ * block which includes a warning about editing the builtin templates.
+ *
+ * @author Jonathan Davis, John Dillick
+ * @since 1.0
+ * 
+ * @param string $src The source directory for the builtin template files
+ * @param string $target The target directory in the active theme
+ * @return void
+ **/
+function copy_shopp_templates ($src,$target) {
+	$builtin = array_filter(scandir($src),"filter_dotfiles");
+	foreach ($builtin as $template) {
+		$target_file = $target.'/'.$template;
+		if (!file_exists($target_file)) {
+			$src_file = file_get_contents($src.'/'.$template);
+			$file = fopen($target_file,'w');
+			$src_file = preg_replace('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/','',$src_file); // strip warning comments
+			
+			/* Translate Strings @since 1.1 */ 
+			$src_file = preg_replace_callback('/\<\?php _(e)\(\'(.*?)\',\'Shopp\'\); \?\>/','preg_e_callback',$src_file);
+			$src_file = preg_replace_callback('/_(_)\(\'(.*?)\',\'Shopp\'\)/','preg_e_callback',$src_file);
+			$src_file = preg_replace('/\'\.\'/','',$src_file);
+			
+			fwrite($file,$src_file);
+			fclose($file);			
+			chmod($target_file,0666);
+		}
+	}
+}
+
+/**
+ * Determines the currency format for the store
+ *
+ * If a format is provided, it is passed through. Otherwise the locale-based
+ * currency format is used or if no locale setting is available 
+ * a default of $#,###.## is returned.  Any formatting settings that are 
+ * missing will use settings from the default.
+ * 
+ * The currency format settings consist of a named array with the following:
+ * cpos boolean The position of the currency symbol: true to prefix the number, false for suffix
+ * currency string The currency symbol
+ * precision int The decimal precision
+ * decimals string The decimal delimiter
+ * thousands string The thousands separator
+ *  
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param array $format (optional) A currency format settings array
+ * @return array Format settings array
+ **/
+function currency_format ($format=false) {
+	$default = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
+	if ($format !== false) return array_merge($default,$format);
+	$Settings = &ShoppSettings();
+	$locale = $Settings->get('base_operations');
+	return array_merge($default,$locale['currency']['format']);
 }
 
 /**
@@ -265,15 +427,7 @@ function file_mimetype ($file,$name=false) {
  * @return float
  **/
 function floatvalue($value, $format=false) {
-	if ($format === false) {
-		global $Shopp;
-		if (isset($Shopp->Settings)) {
-			$locale = $Shopp->Settings->get('base_operations');
-			$format = $locale['currency']['format'];
-		}
-		if (empty($format)) $format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
-	}
-
+	$format = currency_format($format);
 	extract($format,EXTR_SKIP);
 
 	if (is_float($value)) return round($value,$precision);
@@ -284,7 +438,7 @@ function floatvalue($value, $format=false) {
 	if ($precision > 0) // Don't convert decimals if not required
 		$value = preg_replace("/\\".$decimals."/",".",$value); // Convert decimal delimter
 
-	return round(floatval($value),$precision);
+	return round(floatval($value),$precision,PHP_ROUND_HALF_EVEN);
 }
 
 /**
@@ -302,26 +456,6 @@ function force_ssl ($url,$rewrite=false) {
 	return $url;
 }
 
-/**
- * Returns the raw url that was requested
- *
- * Useful for getting the complete value of the requested url
- *
- * @author Jonathan Davis, John Dillick
- * @since 1.1
- * 
- * @return string raw request url
- **/
-function raw_request_url () {
-	return esc_url(
-		'http'.
-		($_SERVER['HTTPS']?'s':'').
-		'://'.
-		$_SERVER['HTTP_HOST'].
-		$_SERVER['REQUEST_URI'].
-		(SHOPP_PERMALINKS?((!empty($_SERVER['QUERY_STRING'])?'?':'').$_SERVER['QUERY_STRING']):'')
-	);
-}
 
 /**
  * Determines the gateway path to a gateway file
@@ -374,7 +508,8 @@ if (!function_exists('href_add_query_arg')) {
  **/
 function indian_number ($number,$format=false) {
 	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
-
+	extract($format);
+	
 	$d = explode(".",$number);
 	$number = "";
 	$digits = substr($d[0],0,-3); // Get rid of the last 3
@@ -383,9 +518,9 @@ function indian_number ($number,$format=false) {
 	else $number = $d[0];
 	
 	for ($i = 0; $i < (strlen($digits) / 2); $i++)
-		$number = substr($digits,(-2*($i+1)),2).((strlen($number) > 0)?$format['thousands'].$number:$number);
-	if ($format['precision'] > 0) 
-		$number = $number.$format['decimals'].substr(number_format('0.'.$d[1],$format['precision']),2);
+		$number = substr($digits,(-2*($i+1)),2).((strlen($number) > 0)?$thousands.$number:$number);
+	if ($precision > 0) 
+		$number = $number.$decimals.substr(number_format('0.'.$d[1],$precision),2);
 	return $number;
 	
 }
@@ -606,18 +741,12 @@ function menuoptions ($list,$selected=null,$values=false,$extend=false) {
  * @return string The formatted amount
  **/
 function money ($amount,$format=false) {
-	global $Shopp;
-	$locale = $Shopp->Settings->get('base_operations');
-	if (!$format) $format = $locale['currency']['format'];
-	if (empty($format['currency'])) 
-		$format = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
-
+	$format = currency_format($format);
 	if (isset($format['indian'])) $number = indian_number($amount,$format);
 	else $number = number_format($amount, $format['precision'], $format['decimals'], $format['thousands']);
 	if ($format['cpos']) return $format['currency'].$number;
 	else return $number.$format['currency'];
 }
-
 
 /**
  * Formats a number to telephone number style
@@ -664,16 +793,65 @@ function phone ($num) {
  * @return string The formatted percentage
  **/
 function percentage ($amount,$format=false) {
-	global $Shopp;
-	
-	$locale = $Shopp->Settings->get('base_operations');
-	if (!$format) {
-		$format = $locale['currency']['format'];
-		$format['precision'] = 0;
-	}
-	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
+	$format = currency_format($format);
 	if (isset($format['indian'])) return indian_number($amount,$format);
-	return number_format(round($amount), $format['precision'], $format['decimals'], $format['thousands']).'%';
+	return number_format(round($amount,$format['precision'], PHP_ROUND_HALF_EVEN), $format['precision'], $format['decimals'], $format['thousands']).'%';
+}
+
+/**
+ * Translate callback function for preg_replace_callback.
+ *
+ * Helper function for copy_shopp_templates to translate strings in core template files.
+ *
+ * @author John Dillick
+ * @since 1.1
+ * 
+ * @param array $matches preg matches array, expects $1 to be type and $2 to be string
+ * @return string _e translated string
+ **/
+function preg_e_callback ($matches) {
+	return ($matches[1] == 'e') ? __($matches[2],'Shopp') : "'".__($matches[2],'Shopp')."'";
+}
+
+/**
+ * Returns the raw url that was requested
+ *
+ * Useful for getting the complete value of the requested url
+ *
+ * @author Jonathan Davis, John Dillick
+ * @since 1.1
+ * 
+ * @return string raw request url
+ **/
+function raw_request_url () {
+	return esc_url(
+		'http'.
+		($_SERVER['HTTPS']?'s':'').
+		'://'.
+		$_SERVER['HTTP_HOST'].
+		$_SERVER['REQUEST_URI'].
+		(SHOPP_PERMALINKS?((!empty($_SERVER['QUERY_STRING'])?'?':'').$_SERVER['QUERY_STRING']):'')
+	);
+}
+
+/**
+ * Converts bytes to the largest applicable human readable unit
+ *
+ * Supports up to petabyte sizes
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ * 
+ * @param int $bytes The number of bytes
+ * @return string The formatted unit size
+ **/
+function readableFileSize($bytes,$precision=1) {
+	$units = array(__("bytes","Shopp"),"KB","MB","GB","TB","PB");
+	$sized = $bytes*1;
+	if ($sized == 0) return $sized;
+	$unit = 0;
+	while ($sized > 1024 && ++$unit) $sized = $sized/1024;
+	return round($sized,$precision)." ".$units[$unit];
 }
 
 /**
@@ -726,6 +904,56 @@ function readableTime($date, $long = false) {
 	}
 
 	return $retval;
+}
+
+/**
+ * Rounds a price amount with the store's currency format
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param float $amount The number to be rounded
+ * @param array $format (optional) The formatting settings to use,
+ * @return float The rounded float
+ **/
+function roundprice ($amount,$format=false) {
+	$format = currency_format($format);
+	extract($format);
+	return round($amount, $precision, PHP_ROUND_HALF_EVEN);
+}
+
+/**
+ * Uses builtin php openssl library to encrypt data.
+ *
+ * @author John Dillick
+ * @since 1.1
+ * 
+ * @param string $data data to be encrypted
+ * @param string $pkey PEM encoded RSA public key
+ * @return string Encrypted binary data
+ **/
+function rsa_encrypt($data, $pkey){
+	openssl_public_encrypt($data, $encrypted,$pkey);
+	return ($encrypted)?$encrypted:false;
+}
+
+if(!function_exists('sanitize_path')){
+	/**
+	 * Normalizes path separators to always use forward-slashes
+	 *
+	 * PHP path functions on Windows-based systems will return paths with 
+	 * backslashes as the directory separator.  This function is used to 
+	 * ensure we are always working with forward-slash paths
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $path The path to clean up
+	 * @return string $path The forward-slash path
+	 **/
+	function sanitize_path ($path) {
+		return str_replace('\\', '/', $path);
+	}
 }
 
 /**
@@ -980,26 +1208,6 @@ function shopp_prereqs () {
 }
 
 /**
- * Adds JavaScript to be included in the footer on shopping pages
- *
- * @author Jonathan Davis
- * @since 1.1
- * 
- * @param string $script JavaScript fragment
- * @param boolean $global (optional) Include the script in the global namespace
- * @return void
- **/
-function add_storefrontjs ($script,$global=false) {
-	global $Shopp;
-	if (!get_class($Shopp->Flow->Controller) == "Storefront") return;
-	$Storefront = $Shopp->Flow->Controller;
-	if ($global) {
-		if (!isset($Storefront->behaviors['global'])) $Storefront->behaviors['global'] = array();
-		$Storefront->behaviors['global'][] = trim($script);
-	} else $Storefront->behaviors[] = $script;
-}
-
-/**
  * Returns the platform appropriate page name for Shopp internal pages
  *
  * IIS rewriting requires including index.php as part of the page
@@ -1048,18 +1256,18 @@ function shopp_redirect ($uri,$exit=true) {
  * @param string $taxprice (optional) Supports a secondary contextual override
  * @return float The determined tax rate
  **/
-function shopp_taxrate ($override=null,$taxprice=true) {
-	global $Shopp;
+function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
+	$Settings = &ShoppSettings();
+	$locale = $Settings->get('base_operations');
 	$rated = false;
 	$taxrate = 0;
-	$base = $Shopp->Settings->get('base_operations');
 	$Taxes = new CartTax();
 
-	if ($base['vat']) $rated = true;
-	if (!is_null($override)) $rated = (value_is_true($override));
+	if ($locale['vat']) $rated = true;
+	if (!is_null($override)) $rated = $override;
 	if (!value_is_true($taxprice)) $rated = false;
 
-	if ($rated) $taxrate = $Taxes->rate();
+	if ($rated) $taxrate = $Taxes->rate($Item);
 	return $taxrate;
 }
 
@@ -1088,24 +1296,6 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 		}
 	}
 	$depth--;
-	return $result;
-}
-
-/**
- * Generates a representation of the current state of an object structure
- *
- * @author Jonathan Davis
- * @since 1.0
- * 
- * @param object $object The object to display
- * @return string The object structure 
- **/
-function _object_r ($object) {
-	global $Shopp;
-	ob_start();
-	print_r($object);
-	$result = ob_get_contents();
-	ob_end_clean();
 	return $result;
 }
 
@@ -1140,170 +1330,6 @@ function valid_input ($type) {
 	$inputs = array("text","hidden","checkbox","radio","button","submit");
 	if (in_array($type,$inputs) !== false) return true;
 	return false;
-}
-
-/**
- * Converts timestamps to formatted localized date/time strings
- *
- * @author Jonathan Davis
- * @since 1.0
- * 
- * @param string $format A date() format string
- * @param int $timestamp (optional) The timestamp to be formatted (defaults to current timestamp)
- * @return string The formatted localized date/time
- **/
-function _d($format,$timestamp=false) {
-	$tokens = array(
-		'D' => array('Mon' => __('Mon','Shopp'),'Tue' => __('Tue','Shopp'),
-					'Wed' => __('Wed','Shopp'),'Thu' => __('Thu','Shopp'),
-					'Fri' => __('Fri','Shopp'),'Sat' => __('Sat','Shopp'),
-					'Sun' => __('Sun','Shopp')),
-		'l' => array('Monday' => __('Monday','Shopp'),'Tuesday' => __('Tuesday','Shopp'),
-					'Wednesday' => __('Wednesday','Shopp'),'Thursday' => __('Thursday','Shopp'),
-					'Friday' => __('Friday','Shopp'),'Saturday' => __('Saturday','Shopp'),
-					'Sunday' => __('Sunday','Shopp')),
-		'F' => array('January' => __('January','Shopp'),'February' => __('February','Shopp'),
-					'March' => __('March','Shopp'),'April' => __('April','Shopp'),
-					'May' => __('May','Shopp'),'June' => __('June','Shopp'),
-					'July' => __('July','Shopp'),'August' => __('August','Shopp'),
-					'September' => __('September','Shopp'),'October' => __('October','Shopp'),
-					'November' => __('November','Shopp'),'December' => __('December','Shopp')),
-		'M' => array('Jan' => __('Jan','Shopp'),'Feb' => __('Feb','Shopp'),
-					'Mar' => __('Mar','Shopp'),'Apr' => __('Apr','Shopp'),
-					'May' => __('May','Shopp'),'Jun' => __('Jun','Shopp'),
-					'Jul' => __('Jul','Shopp'),'Aug' => __('Aug','Shopp'),
-					'Sep' => __('Sep','Shopp'),'Oct' => __('Oct','Shopp'),
-					'Nov' => __('Nov','Shopp'),'Dec' => __('Dec','Shopp'))
-	);
-
-	if (!$timestamp) $date = date($format);
-	else $date = date($format,$timestamp);
-
-	foreach ($tokens as $token => $strings) {
-		if ($pos = strpos($format,$token) === false) continue;
-		$string = (!$timestamp)?date($token):date($token,$timestamp);
-		$date = str_replace($string,$strings[$string],$date);
-	}
-	return $date;
-}
-
-/**
- * Converts bytes to the largest applicable human readable unit
- *
- * Supports up to petabyte sizes
- *
- * @author Jonathan Davis
- * @since 1.0
- * 
- * @param int $bytes The number of bytes
- * @return string The formatted unit size
- **/
-function readableFileSize($bytes,$precision=1) {
-	$units = array(__("bytes","Shopp"),"KB","MB","GB","TB","PB");
-	$sized = $bytes*1;
-	if ($sized == 0) return $sized;
-	$unit = 0;
-	while ($sized > 1024 && ++$unit) $sized = $sized/1024;
-	return round($sized,$precision)." ".$units[$unit];
-}
-
-/**
- * Copies the builtin template files to the active WordPress theme
- *
- * Handles copying the builting template files to the shopp/ directory of 
- * the currently active WordPress theme.  Strips out the header comment 
- * block which includes a warning about editing the builtin templates.
- *
- * @author Jonathan Davis, John Dillick
- * @since 1.0
- * 
- * @param string $src The source directory for the builtin template files
- * @param string $target The target directory in the active theme
- * @return void
- **/
-function copy_shopp_templates ($src,$target) {
-	$builtin = array_filter(scandir($src),"filter_dotfiles");
-	foreach ($builtin as $template) {
-		$target_file = $target.'/'.$template;
-		if (!file_exists($target_file)) {
-			$src_file = file_get_contents($src.'/'.$template);
-			$file = fopen($target_file,'w');
-			$src_file = preg_replace('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/','',$src_file); // strip warning comments
-			
-			/* Translate Strings @since 1.1 */ 
-			$src_file = preg_replace_callback('/\<\?php _(e)\(\'(.*?)\',\'Shopp\'\); \?\>/','preg_e_callback',$src_file);
-			$src_file = preg_replace_callback('/_(_)\(\'(.*?)\',\'Shopp\'\)/','preg_e_callback',$src_file);
-			$src_file = preg_replace('/\'\.\'/','',$src_file);
-			
-			fwrite($file,$src_file);
-			fclose($file);			
-			chmod($target_file,0666);
-		}
-	}
-}
-
-/**
- * Appends a string to the end of URL as a query string
- *
- * @author Jonathan Davis
- * @since 1.1
- * 
- * @param string $string The string to add
- * @param string $url The url to append to
- * @return string
- **/
-function add_query_string ($string,$url) {
-	if(strpos($url,'?') !== false) return "$url&$string";
-	else return "$url?$string";
-}
-
-/**
- * Translate callback function for preg_replace_callback.
- *
- * Helper function for copy_shopp_templates to translate strings in core template files.
- *
- * @author John Dillick
- * @since 1.1
- * 
- * @param array $matches preg matches array, expects $1 to be type and $2 to be string
- * @return string _e translated string
- **/
-function preg_e_callback ($matches) {
-	return ($matches[1] == 'e') ? __($matches[2],'Shopp') : "'".__($matches[2],'Shopp')."'";
-}
-
-/**
- * Uses builtin php openssl library to encrypt data.
- *
- * @author John Dillick
- * @since 1.1
- * 
- * @param string $data data to be encrypted
- * @param string $pkey PEM encoded RSA public key
- * @return string Encrypted binary data
- **/
-function rsa_encrypt($data, $pkey){
-	openssl_public_encrypt($data, $encrypted,$pkey);
-	return ($encrypted)?$encrypted:false;
-}
-
-if(!function_exists('sanitize_path')){
-	/**
-	 * Normalizes path separators to always use forward-slashes
-	 *
-	 * PHP path functions on Windows-based systems will return paths with 
-	 * backslashes as the directory separator.  This function is used to 
-	 * ensure we are always working with forward-slash paths
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 * 
-	 * @param string $path The path to clean up
-	 * @return string $path The forward-slash path
-	 **/
-	function sanitize_path ($path) {
-		return str_replace('\\', '/', $path);
-	}
 }
 
 if (function_exists('date_default_timezone_set') && get_option('timezone_string')) 
