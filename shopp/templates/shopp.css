@@ -147,10 +147,6 @@ ul.shopp_categories li ul.active { display: block; }
 #shopp #cart big { display: block; margin: 10px 0; }
 #shopp #cart big a.right { float: right; }
 
-/* External checkout buttons */
-#shopp .xcheckout { display: block; clear: both; text-align: right; }
-#shopp .xcheckout button { border: none; margin: 0; padding: 0; }
-
 /**
  * Shopping Cart Widget
  **/
