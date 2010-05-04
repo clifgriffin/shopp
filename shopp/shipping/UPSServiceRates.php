@@ -18,7 +18,7 @@
  * $Id$
  **/
 
-require_once(SHOPP_PATH."/core/model/XMLdata.php");
+require_once(SHOPP_PATH."/core/model/XML.php");
 
 class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	var $testurl = 'https://wwwcie.ups.com/ups.app/xml/Rate';
