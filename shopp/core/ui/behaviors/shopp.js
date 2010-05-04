@@ -70,12 +70,12 @@ function asMoney (n,f) {
  * @param int n Number to convert
  * @param array f Format settings
  **/
-function asPercent (n,f) {
+function asPercent (n,f,p) {
 	var currencyFormat = getCurrencyFormat();
 	if (currencyFormat && !f) f = copyOf(currencyFormat);
 	if (!f) f = defaultCurrencyFormat();
 
-	f.precision = 1;
+	f.precision = p?p:1;
 	return formatNumber(n,f)+"%";
 }
 
@@ -619,6 +619,7 @@ function ShoppCarousel (element,duration) {
 	});
 	
 }
+
 function carousels () {
 	var $ = jqnc(),classes,options,map;
 	$('div.carousel').each(function () {
@@ -638,6 +639,13 @@ function htmlentities (string) {
 		return String.fromCharCode(RegExp.$1);
 	});
 	return string;
+}
+
+jQuery.parseJSON = function (data) {
+	if (typeof (JSON) !== 'undefined' && 
+		typeof (JSON.parse) === 'function')
+		return JSON.parse(data);
+	else return eval('(' + data + ')');
 }
 
 function PopupCalendar (target,month,year) {
