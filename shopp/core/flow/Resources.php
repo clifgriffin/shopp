@@ -43,7 +43,7 @@ class Resources {
 				add_action('shopp_resource_export_customers',array(&$this,'export_customers'));
 			}
 		}
-		
+
 		if ( !empty( $this->request['src'] ) )
 			do_action( 'shopp_resource_' . $this->request['src'] );
 

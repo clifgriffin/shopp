@@ -17,7 +17,7 @@
 		}, options);
 
 		return new $.ocupload(this, options);
-	},
+	}
 	
 	$.ocupload = function(element, options) {
 		/** Fix scope problems */

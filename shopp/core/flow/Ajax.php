@@ -61,6 +61,8 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_deactivate_key',array(&$this,'deactivate_key'));
 		add_action('wp_ajax_shopp_rebuild_search_index',array(&$this,'rebuild_search_index'));
 		add_action('wp_ajax_shopp_rebuild_search_index_progress',array(&$this,'rebuild_search_index_progress'));
+		add_action('wp_ajax_shopp_suggestions',array(&$this,'suggestions'));
+		add_action('wp_ajax_shopp_upload_local_taxes',array(&$this,'upload_local_taxes'));
 		
 	}
 
@@ -374,7 +376,74 @@ class AjaxFlow {
 		if (empty($status)) die('');
 		die($status->indexed.':'.$status->products);
 	}
+	
+	function suggestions () {
+		$db = DB::get();
+		switch($_GET['t']) {
+			case "product-name": $table = DatabaseObject::tablename(Product::$table); break;
+			case "product-tags": $table = DatabaseObject::tablename(Tag::$table); break;
+			case "product-category": $table = DatabaseObject::tablename(Category::$table); break;
+		}
+		
+		$entries = $db->query("SELECT name FROM $table WHERE name LIKE '%{$_GET['q']}%'",AS_ARRAY);
+		$results = array();
+		foreach ($entries as $entry) $results[] = $entry->name;
+		echo join("\n",$results);
+		exit();
+	}
+	
+	function upload_local_taxes () {
+		if (isset($_FILES['shopp']['error'])) $error = $_FILES['shopp']['error'];
+		if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
+			
+		if (!file_exists($_FILES['shopp']['tmp_name']))
+			die(json_encode(array("error" => __('The file could not be saved because the upload was not found on the server.','Shopp'))));
+			
+		if (!is_readable($_FILES['shopp']['tmp_name']))
+			die(json_encode(array("error" => __('The file could not be saved because the web server does not have permission to read the upload.','Shopp'))));
 
+		if ($_FILES['shopp']['size'] == 0) 
+			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
+
+		$data = file_get_contents($_FILES['shopp']['tmp_name']);
+
+		$formats = array(0=>false,3=>"xml",4=>"tab",5=>"csv");
+		preg_match('/((<[^>]+>.+?<\/[^>]+>)|(.+?\t.+?\n)|(.+?,.+?\n))/',$data,$_);
+		$format = $formats[count($_)];
+		if (!$format) die(json_encode(array("error" => __('The file format could not be detected.','Shopp'))));
+
+		$_ = array();
+		switch ($format) {
+			case "xml":
+				require_once(SHOPP_MODEL_PATH."/XML.php");
+				$XML = new xmlQuery($data);
+				$taxrates = $XML->tag('taxrate');
+				while($rate = $taxrates->each()) {
+					$name = $rate->attr(false,'name');
+					$value = $rate->content();
+					$_[$name] = $value;
+				}
+				break;
+			case "csv":
+				if (($csv = fopen($_FILES['shopp']['tmp_name'], "r")) === false) die('');
+				while (($data = fgetcsv($csv, 1000, ",")) !== false)
+					$_[$data[0]] = !empty($data[1])?$data[1]:0;
+				fclose($csv);
+				break;
+			case "tab":
+			default:
+				$lines = explode("\n",$data);
+				foreach ($lines as $line) {
+					list($key,$value) = explode("\t",$line);
+					$_[$key] = $value;
+				}
+		}
+
+		echo json_encode($_);
+		exit();
+		
+	}
+		
 } // END class AjaxFlow
 
 ?>

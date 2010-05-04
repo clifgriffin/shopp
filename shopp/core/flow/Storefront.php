@@ -67,7 +67,7 @@ class Storefront extends FlowController {
 		add_action('wp', array(&$this, 'catalog'));
 		add_action('wp', array(&$this, 'shortcodes'));
 		add_action('wp', array(&$this, 'behaviors'));
-		
+
 		$this->smartcategories();
 		$this->searching();
 		
@@ -299,17 +299,17 @@ class Storefront extends FlowController {
 	 * footer()
 	 * Adds report information and custom debugging tools to the public and admin footers */
 	function footer () {
-		if (!WP_DEBUG) return true;
-		if (!current_user_can('manage_options')) return true;
 		$db = DB::get();
 		global $wpdb;
 
-		if (function_exists('memory_get_peak_usage'))
-			$this->_debug->memory .= "End: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
-		elseif (function_exists('memory_get_usage'))
-			$this->_debug->memory .= "End: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB";
+		if (WP_DEBUG && current_user_can('manage_options')) {
+			if (function_exists('memory_get_peak_usage'))
+				$this->_debug->memory .= "End: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";
+			elseif (function_exists('memory_get_usage'))
+				$this->_debug->memory .= "End: ".number_format(memory_get_usage(true)/1024/1024, 2, '.', ',') . " MB";
 
-		add_storefrontjs("var memory_profile = '{$this->_debug->memory}',wpquerytotal = {$wpdb->num_queries},shoppquerytotal = ".count($db->queries).";",true);
+			add_storefrontjs("var memory_profile = '{$this->_debug->memory}',wpquerytotal = {$wpdb->num_queries},shoppquerytotal = ".count($db->queries).";",true);
+		}
 
 		$globals = $this->behaviors['global'];
 		unset($this->behaviors['global']);
@@ -322,7 +322,6 @@ class Storefront extends FlowController {
 		$_ .= '/'.'* ]]> */'."\n";
 		$_ .= '</script>'."\n";
 		echo $_;
-
 	}
 
 	function searching () {
