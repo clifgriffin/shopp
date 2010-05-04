@@ -211,7 +211,7 @@ class xmlQuery {
 	 * @return mixed A single xmlQuery object or an list of xmlQuery objects
 	 **/
 	function content ($tag=false) {
-		if (!$tag) return (!empty($this->dom['CONTENT'])?$this->dom['CONTENT']:false);
+		if (!$tag) return count($this->dom) == 1 && !empty($this->dom[0]['CONTENT'])?$this->dom[0]['CONTENT']:false;
 			
 		$found = $this->find($tag);
 		if (isset($found['CONTENT'])) $found = array($found);
