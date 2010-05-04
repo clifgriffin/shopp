@@ -12,7 +12,7 @@
  * $Id$
  **/
 
-require_once(SHOPP_PATH."/core/model/XMLdata.php");
+require_once(SHOPP_PATH."/core/model/XML.php");
 
 class iDealMollie extends GatewayFramework implements GatewayModule {          
 	

@@ -18,7 +18,7 @@
  * $Id$
  **/
 
-require_once(SHOPP_PATH."/core/model/XMLdata.php");
+require_once(SHOPP_PATH."/core/model/XML.php");
 
 class ShipWire extends ShippingFramework implements ShippingModule {
 	var $url = 'https://www.shipwire.com/exec/';
