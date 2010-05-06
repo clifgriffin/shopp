@@ -34,6 +34,7 @@ class Catalog extends DatabaseObject {
 		if (!empty($filtering['limit'])) $filtering['limit'] = "LIMIT ".$filtering['limit'];
 		else $filtering['limit'] = "";
 
+		if (!isset($filtering['where'])) $filtering['where'] = '';
 		if (!$this->outofstock) $filtering['where'] .= (empty($filtering['where'])?"":" AND ")."(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))";
 		if (empty($filtering['where'])) $filtering['where'] = "true";
 		
