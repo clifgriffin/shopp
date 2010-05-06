@@ -576,6 +576,7 @@ class PurchasesIIFExport extends PurchasesExport {
 			<label for="iif-account"><small><?php _e('QuickBooks account name for transactions','Shopp'); ?></small></label>
 		</div>
 		<script type="text/javascript">
+		/* <![CDATA[ */
 		jQuery(document).ready( function() {
 			var $=jqnc();
 			$('#purchaselog-format').change(function () {
@@ -589,6 +590,7 @@ class PurchasesIIFExport extends PurchasesExport {
 				}
 			}).change();
 		});
+		/* ]]> */
 		</script>
 		<?php
 	}
