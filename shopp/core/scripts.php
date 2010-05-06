@@ -56,7 +56,7 @@ foreach( $load as $handle ) {
 	if ( !array_key_exists($handle, $ShoppScripts->registered) )
 		continue;
 
-	$path = dir(__FILE__) . $ShoppScripts->registered[$handle]->src;
+	$path = dirname(__FILE__) . $ShoppScripts->registered[$handle]->src;
 	$out .= get_file($path) . "\n";
 }
 
