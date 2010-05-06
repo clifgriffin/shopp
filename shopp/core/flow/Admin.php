@@ -248,17 +248,11 @@ class AdminFlow extends FlowController {
 		
 		$this->admin_css();		
 
-		wp_enqueue_script('jquery');
-		wp_enqueue_script('shopp',SHOPP_ADMIN_URI."/behaviors/shopp.js",array('jquery'),SHOPP_VERSION,true);
+		shopp_enqueue_script('shopp');
 		$Shopp->settingsjs();
 				
 		$settings = array_filter(array_keys($this->Pages),array(&$this,'get_settings_pages'));
-		if (in_array($this->Page->page,$settings))
-			wp_enqueue_script('shopp.settings',
-							SHOPP_ADMIN_URI."/behaviors/settings.js", 
-							array('jquery'), 
-							SHOPP_VERSION,
-							true);		
+		if (in_array($this->Page->page,$settings)) shopp_enqueue_script('settings');		
 		
 	}
 	

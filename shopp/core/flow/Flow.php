@@ -41,7 +41,7 @@ class Flow {
 
 		// Handle automatic updates
 		add_action('update-custom_shopp',array(&$this,'update'));
-		
+				
 		if (defined('WP_ADMIN')) add_action('admin_init',array(&$this,'parse'));
 		else add_action('parse_request',array(&$this,'parse'));
 	}

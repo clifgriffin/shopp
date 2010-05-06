@@ -288,6 +288,33 @@ function filter_dotfiles ($name) {
 }
 
 /**
+ * Find a target file starting at a given directory
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @param string $filename The target file to find
+ * @param string $directory The starting directory
+ * @param string $root The original starting directory
+ * @param array $found Result array that matching files are added to
+ **/
+function find_filepath ($filename, $directory, $root, &$found) {
+	if (is_dir($directory)) {
+		$Directory = @dir($directory);
+		if ($Directory) {
+			while (( $file = $Directory->read() ) !== false) {
+				if (substr($file,0,1) == "." || substr($file,0,1) == "_") continue;				// Ignore .dot files and _directories
+				if (is_dir($directory.'/'.$file) && $directory == $root)		// Scan one deep more than root
+					find_filepath($filename,$directory.'/'.$file,$root, $found);	// but avoid recursive scans
+				elseif ($file == $filename)
+					$found[] = substr($directory,strlen($root)).'/'.$file;		// Add the file to the found list
+			}
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
  * Finds files of a specific extension
  *
  * Recursively searches directories and one-level deep of sub-directories for
@@ -1103,6 +1130,34 @@ function shopp_email ($template,$data=array()) {
 }
 
 /**
+ * Read the wp-config file to import WP settings without loading all of WordPress
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @return void
+ **/
+function shopp_read_wpconfig () {
+	global $table_prefix;
+	$_ = array();
+	$root = $_SERVER['DOCUMENT_ROOT'];
+	$found = array();
+	find_filepath('wp-config.php',$root,$root,$found);
+	if (empty($found[0])) $this->error();
+	$config = file_get_contents($root.$found[0]);
+	
+	// Evaluate all define macros
+	preg_match_all('/^\s*?(define\(\s*?\'(.*?)\'\s*?,\s*?(.*?)\);)/m',$config,$defines,PREG_SET_ORDER);
+	foreach($defines as $defined) if (!defined($defined[2])) {
+		$defined[1] = preg_replace('/\_\_FILE\_\_/',"'$root{$found[0]}'",$defined[1]);
+		eval($defined[1]);
+	}
+	
+	if(function_exists("date_default_timezone_set") && function_exists("date_default_timezone_get"))
+		@date_default_timezone_set(@date_default_timezone_get());
+	
+}
+
+/**
  * Generates RSS markup in XML from a set of provided data
  *
  * @author Jonathan Davis
@@ -1272,6 +1327,19 @@ function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
 }
 
 /**
+ * Sets the default timezone based on the WordPress option (if available)
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @return void
+ **/
+function shopp_timezone () {
+	if (function_exists('date_default_timezone_set') && get_option('timezone_string')) 
+		date_default_timezone_set(get_option('timezone_string'));	
+}
+
+/**
  * Recursively sorts a heirarchical tree of data
  *
  * @param array $item The item data to be sorted
@@ -1331,11 +1399,5 @@ function valid_input ($type) {
 	if (in_array($type,$inputs) !== false) return true;
 	return false;
 }
-
-if (function_exists('date_default_timezone_set') && get_option('timezone_string')) 
-	date_default_timezone_set(get_option('timezone_string'));
-
-// Run pre-req check when this file is included
-shopp_prereqs();
 
 ?>
