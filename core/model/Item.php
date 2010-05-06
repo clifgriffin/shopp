@@ -292,7 +292,7 @@ class Item {
 	 **/
 	function mapprice ($price,$context) {
 		if ($price->context != $context) return false;
-		$map = array('id','label','onsale','promoprice','price','inventory','stock','options');
+		$map = array('id','type','label','onsale','promoprice','price','inventory','stock','options');
 		$v = new stdClass();
 		foreach ($map as $property)
 			$v->{$property} = $price->{$property};
@@ -554,7 +554,7 @@ class Item {
 					$result .= $options['before'];
 					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';
 					$result .= ' <select name="items['.$id.'][price]" id="items-'.$id.'-price"'.$class.'>';
-					$result .= $this->options($this->price,$taxrate);
+					$result .= $this->options($this->price,$this->unittax);
 					$result .= '</select>';
 					$result .= $options['after'];
 				}
