@@ -1,15 +1,15 @@
 <?php
 
-function find_filepath ($filename, $directory, $root, &$found) {
+function shopp_tinymce_find_root ($filename, $directory, $root, &$found) {
 	if (is_dir($directory)) {
 		$Directory = @dir($directory);
 		if ($Directory) {
 			while (( $file = $Directory->read() ) !== false) {
-				if (substr($file,0,1) == "." || substr($file,0,1) == "_") continue;				// Ignore .dot files and _directories
-				if (is_dir($directory.'/'.$file) && $directory == $root)		// Scan one deep more than root
-					find_filepath($filename,$directory.'/'.$file,$root, $found);	// but avoid recursive scans
+				if (substr($file,0,1) == "." || substr($file,0,1) == "_") continue;			// Ignore .dot files and _directories
+				if (is_dir($directory.'/'.$file) && $directory == $root)					// Scan one deep more than root
+					shopp_tinymce_find_root($filename,$directory.'/'.$file,$root, $found);	// but avoid recursive scans
 				elseif ($file == $filename)
-					$found[] = substr($directory,strlen($root)).'/'.$file;		// Add the file to the found list
+					$found[] = substr($directory,strlen($root)).'/'.$file;					// Add the file to the found list
 			}
 			return true;
 		}
@@ -19,7 +19,7 @@ function find_filepath ($filename, $directory, $root, &$found) {
 
 $root = $_SERVER['DOCUMENT_ROOT'];
 $found = array();
-find_filepath('wp-load.php',$root,$root,$found);
+shopp_tinymce_find_root('wp-load.php',$root,$root,$found);
 if (empty($found[0])) exit();
 require_once($root.$found[0]);
 require_once(ABSPATH.'/wp-admin/admin.php');
@@ -117,8 +117,5 @@ do_action('admin_init');
 </form>
 </div>
 
-<script type="text/javascript">
-
-</script>
 </body>
 </html>
