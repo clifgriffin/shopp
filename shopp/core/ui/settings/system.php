@@ -117,8 +117,10 @@ jQuery(document).ready(function() {
 
 
 	var progressbar = false;
+	var search_url = '<?php wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_rebuild_search_index'); ?>';
+	var searchprog_url = '<?php wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_rebuild_search_index_progress'); ?>';
 	function progress () {
-		$.ajax({url:ajaxurl+'?action=shopp_rebuild_search_index_progress',
+		$.ajax({url:searchprog_url+'&action=shopp_rebuild_search_index_progress',
 			type:"GET",
 			timeout:500,
 			dataType:'text',
@@ -136,7 +138,7 @@ jQuery(document).ready(function() {
 			'innerWidth':'250', 
 			'innerHeight':'50', 
 			'html':
-			'<div id="progress"><div class="bar"></div><div class="gloss"></div></div><iframe id="process" width="0" height="0" src="'+ajaxurl+'?action=shopp_rebuild_search_index"></iframe>',
+			'<div id="progress"><div class="bar"></div><div class="gloss"></div></div><iframe id="process" width="0" height="0" src="'+search_url+'&action=shopp_rebuild_search_index"></iframe>',
 			'onComplete':function () {
 				progressbar = $('#progress div.bar');
 				progress();
