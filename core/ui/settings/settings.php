@@ -101,6 +101,10 @@ var keyStatus = {
 	'-202':"<?php _e('The site is not able to be activated.','Shopp'); ?>",
 	'-203':"<?php _e('The key provided could not be validated by shopplugin.net.','Shopp'); ?>"
 }
+var zones_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones'); ?>';
+var act_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_activate_key'); ?>';
+var deact_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_deactivate_key'); ?>';
+
 
 function activation (key,success,status) {
 	var button = $('#activation-button').attr('disabled',false).removeClass('updating');
@@ -135,8 +139,8 @@ else $('#activation-status').show();
 $('#activation-button').click(function () {
 	$(this).html(SHOPP_CONNECTING+"&hellip;").attr('disabled',true).addClass('updating');
 	if ($(this).hasClass('deactivation'))
-		$.getJSON(ajaxurl+'?action=shopp_deactivate_key',activation);
-	else $.getJSON(ajaxurl+'?action=shopp_activate_key&key='+$('#update-key').val(),activation);
+		$.getJSON(deact_key_url+'&action=shopp_deactivate_key',activation);
+	else $.getJSON(act_key_url+'&action=shopp_activate_key&key='+$('#update-key').val(),activation);
 });
 
 
@@ -151,7 +155,7 @@ $('#base_operations').change(function() {
 		return true;
 	}
 
-	$.getJSON(ajaxurl+'?action=shopp_country_zones&country='+$('#base_operations').val(),
+	$.getJSON(zones_url+'&action=shopp_country_zones&country='+$('#base_operations').val(),
 		function(data) {
 			$('#base_operations_zone').hide();
 			$('#base_operations_zone').empty();

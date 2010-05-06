@@ -115,7 +115,8 @@
 
 jQuery(document).ready(function() {
 	var $=jQuery.noConflict();
-
+	var noteurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>';
+	
 	// close postboxes that should be closed
 	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	postboxes.add_postbox_toggles('toplevel_page_shopp-orders');
@@ -171,7 +172,7 @@ jQuery(document).ready(function() {
 		var meta = cell.find('p.notemeta');
 		var idattr = note.attr('id').split("-");
 		var id = idattr[1];
-		$.get(ajaxurl+'?action=shopp_order_note_message&id='+id,false,function (msg) {
+		$.get(noteurl+'&action=shopp_order_note_message&id='+id,false,function (msg) {
 			if (msg == '1') return;
 			var editor = $('<textarea name="note-editor['+id+']" cols="50" rows="10" />').val(msg).prependTo(cell);
 			var buttons = $('<p class="alignright" />').appendTo(meta);

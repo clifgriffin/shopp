@@ -145,7 +145,7 @@ function categories () {
 				addCategoryMenuItem(Category);
 
 				// Update the parent category menu selector
-				$.get(ajaxurl+'?action=shopp_category_menu',false,function (menu) {
+				$.get(catmenu_url+'&action=shopp_category_menu',false,function (menu) {
 					var defaultOption = $('#new-category select option').eq(0).clone();
 					$('#new-category select').empty().html(menu);
 					defaultOption.prependTo('#new-category select');
@@ -171,7 +171,7 @@ function categories () {
 		
 		id = $(this).attr('id').substr($(this).attr('id').indexOf("-")+1);
 		// Load category spec templates
-		$.getJSON(ajaxurl+'?action=shopp_spec_template&category='+id,function (speclist) {
+		$.getJSON(spectemp_url+'&action=shopp_spec_template&category='+id,function (speclist) {
 			if (!speclist) return true;
 			for (id in speclist) {
 				speclist[id].add = true;
@@ -180,7 +180,7 @@ function categories () {
 		});
 
 		// Load category variation option templates
-		$.getJSON(ajaxurl+'?action=shopp_options_template&category='+id,function (template) {
+		$.getJSON(opttemp_url+'&action=shopp_options_template&category='+id,function (template) {
 			if (!template) return true;
 			if (!template.options) return true;
 			

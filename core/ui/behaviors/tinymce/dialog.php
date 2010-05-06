@@ -65,7 +65,7 @@ do_action('admin_init');
 	
 	function updateCategories () {
 		var menu = jQuery('#category-menu');
-		jQuery.get("<?php echo admin_url('admin-ajax.php'); ?>?action=shopp_category_menu",{},function (results) {
+		jQuery.get("<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_category_menu'); ?>&action=shopp_category_menu",{},function (results) {
 			menu.empty().html(results);
 		},'string');
 	}
@@ -73,7 +73,7 @@ do_action('admin_init');
 	function changeCategory () {
 		var menu = jQuery('#category-menu');
 		var products = jQuery('#product-menu');
-		jQuery.get("<?php echo admin_url('admin-ajax.php'); ?>?action=shopp_category_products",{category:menu.val()},function (results) {
+		jQuery.get("<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_category_products'); ?>&action=shopp_category_products",{category:menu.val()},function (results) {
 			products.empty().html(results);
 		},'string');
 	}

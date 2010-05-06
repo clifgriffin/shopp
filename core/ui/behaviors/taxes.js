@@ -110,7 +110,7 @@ function TaxRate (data) {
 		
 		property.change(function () {
 			value.unbind('keydown').unbind('keypress').suggest(
-				'admin-ajax.php?action=shopp_suggestions&t='+$(this).val(), 
+				sugg_url+'&action=shopp_suggestions&t='+$(this).val(), 
 				{ delay:500, minchars:2 } 
 			);
 		}).change();
@@ -151,7 +151,7 @@ function TaxRate (data) {
 
 		uploadButton.upload({
 			name: 'shopp',
-			action: 'admin-ajax.php?action=shopp_upload_local_taxes',
+			action: upload_url+'&action=shopp_upload_local_taxes',
 			onSubmit: function() {
 				uploadButton.attr('disabled',true).addClass('updating').parent().css('width','100%');
 			},

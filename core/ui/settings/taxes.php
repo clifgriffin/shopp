@@ -43,7 +43,9 @@
 
 var ratetable,rates,base,countries,zones,localities,taxrates,
 	ratesidx,countriesInUse,zonesInUse,allCountryZonesInUse,
-	APPLY_LOGIC,LOCAL_RATES,LOCAL_RATE_INSTRUCTIONS,SHOPP_PLUGINURI,RULE_LANG;
+	APPLY_LOGIC,LOCAL_RATES,LOCAL_RATE_INSTRUCTIONS,SHOPP_PLUGINURI,RULE_LANG,
+	sugg_url='<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_suggestions'); ?>',
+	upload_url='<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_upload_local_taxes'); ?>';
 
 jQuery(document).ready(function () {
 	var $ = jqnc();
@@ -70,7 +72,7 @@ jQuery(document).ready(function () {
 		"product-category":"<?php _e('Product in category','Shopp'); ?>",
 		"customer-type":"<?php _e('Customer type is','Shopp'); ?>"
 	}
-	
+
 });
 
 //]]>
