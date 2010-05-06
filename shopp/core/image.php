@@ -13,6 +13,7 @@
 chdir(dirname(__FILE__));
 
 require_once(realpath('DB.php'));
+require_once(realpath('functions.php'));
 require_once('model/Error.php');
 require_once('model/Settings.php');
 require_once("model/Modules.php");
@@ -193,7 +194,9 @@ class ImageServer extends DatabaseObject {
 	}
 	
 	function settings () {
-		$this->Settings = new Settings();
+		global $Shopp;
+		$Shopp->Settings = new Settings();
+		$this->Settings = &ShoppSettings();
 	}
 
 	/**
@@ -235,55 +238,12 @@ class ImageServer extends DatabaseObject {
 } // end ImageServer class
 
 /**
- * Find a target file starting at a given directory
- *
- * @author Jonathan Davis
- * @since 1.1
- * @param string $filename The target file to find
- * @param string $directory The starting directory
- * @param string $root The original starting directory
- * @param array $found Result array that matching files are added to
- **/
-function find_filepath ($filename, $directory, $root, &$found) {
-	if (is_dir($directory)) {
-		$Directory = @dir($directory);
-		if ($Directory) {
-			while (( $file = $Directory->read() ) !== false) {
-				if (substr($file,0,1) == "." || substr($file,0,1) == "_") continue;				// Ignore .dot files and _directories
-				if (is_dir($directory.'/'.$file) && $directory == $root)		// Scan one deep more than root
-					find_filepath($filename,$directory.'/'.$file,$root, $found);	// but avoid recursive scans
-				elseif ($file == $filename)
-					$found[] = substr($directory,strlen($root)).'/'.$file;		// Add the file to the found list
-			}
-			return true;
-		}
-	}
-	return false;
-}
-
-/**
  * Stub for compatibility
  **/
-if (!function_exists('mktimestamp')) {
-	function mktimestamp () {}
-}
-
-if (!function_exists('floatvalue')) {
-	function floatvalue ($number) { return $number; }
-}
-
 if (!function_exists('__')) {
+	// Localization API is not available at this point
 	function __ ($string,$domain=false) {
 		return $string;
-	}
-}
-
-/**
- * Converts paths to a uniform separator
- **/
-if(!function_exists('sanitize_path')){
-	function sanitize_path ($path) {
-		return str_replace('\\', '/', $path);
 	}
 }
 
