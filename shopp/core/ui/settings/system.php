@@ -117,8 +117,8 @@ jQuery(document).ready(function() {
 
 
 	var progressbar = false;
-	var search_url = '<?php wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_rebuild_search_index'); ?>';
-	var searchprog_url = '<?php wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_rebuild_search_index_progress'); ?>';
+	var search_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_rebuild_search_index'); ?>';
+	var searchprog_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_rebuild_search_index_progress'); ?>';
 	function progress () {
 		$.ajax({url:searchprog_url+'&action=shopp_rebuild_search_index_progress',
 			type:"GET",
