@@ -1184,7 +1184,8 @@ class CartDiscounts {
 		extract($rule);
 
 		// Match previously applied codes
-		if (is_array($this->Cart->promocodes[$value])) return true;
+		if (isset($this->Cart->promocodes[$value]) 
+			&& is_array($this->Cart->promocodes[$value])) return true;
 		
 		// Match new codes
 		
@@ -1407,7 +1408,7 @@ class CartTax {
 			// Match tax rules
 
 			// Match item-based tax rules
-			if ($Item !== false && is_array($setting['rules'])) {
+			if ($Item !== false && isset($setting['rules']) && is_array($setting['rules'])) {
 				if (!$Item->taxapplies($setting['rules'],$setting['logic'])) continue;
 			}
 			
@@ -1436,6 +1437,7 @@ class CartTax {
 		$Totals = $this->Order->Cart->Totals;
 
 		$tiers = array();
+		$taxes = 0;
 		foreach ($this->Order->Cart->contents as $id => &$Item) {
 			if (!$Item->taxable) continue;
 			$Item->taxrate = $this->rate($Item);
