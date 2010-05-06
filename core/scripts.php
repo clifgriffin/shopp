@@ -10,10 +10,8 @@
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
  * @since 1.1
- * @subpackage shopp
+ * @subpackage scripts
  **/
-
-global $wp;
 
 $load = preg_replace( '/[^a-z0-9,_-]+/i', '', $_GET['load'] );
 $load = explode(',', $load);

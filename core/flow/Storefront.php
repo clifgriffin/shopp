@@ -121,7 +121,7 @@ class Storefront extends FlowController {
 		// Include stylesheets and javascript based on whether shopp shortcodes are used
 		add_action('wp_print_styles',array(&$this, 'catalogcss'));
 		add_action('wp_head', array(&$this, 'header'));
-		add_action('wp_footer', array(&$this, 'footer'));
+		add_action('wp_footer', array(&$this, 'footer'),15);
 		wp_enqueue_style('shopp.catalog',SHOPP_PLUGINURI.'/core/ui/styles/catalog.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp',SHOPP_TEMPLATES_URI.'/shopp.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp.colorbox',SHOPP_PLUGINURI.'/core/ui/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
@@ -132,6 +132,8 @@ class Storefront extends FlowController {
 		if (!$loading || $loading == "global" || $tag !== false) {
 			shopp_enqueue_script("colorbox");
 			shopp_enqueue_script("shopp");
+			shopp_enqueue_script("catalog");
+			shopp_enqueue_script("cart");
 			$Shopp->settingsjs();
 		}
 
