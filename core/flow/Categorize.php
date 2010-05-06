@@ -30,16 +30,16 @@ class Categorize extends AdminController {
 		parent::__construct();
 
 		if (!empty($_GET['id'])) {
+			
 			wp_enqueue_script('postbox');
-			if ( user_can_richedit() ) wp_enqueue_script('editor');
-			wp_enqueue_script("shopp.colorbox",SHOPP_ADMIN_URI."/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script('shopp.editor.lib',SHOPP_ADMIN_URI."/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script('shopp.editor.priceline',SHOPP_ADMIN_URI."/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
-			wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery','jquery-ui-core'),SHOPP_VERSION,true);			
-			wp_enqueue_script('shopp.swfupload',SHOPP_ADMIN_URI."/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION,true);
-			wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_URI."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION,true);
-
+			if ( user_can_richedit() ) wp_enqueue_script('editor'); 
+			
+			shopp_enqueue_script('priceline');
+			shopp_enqueue_script('ocupload');
+			shopp_enqueue_script('colorbox');
+			shopp_enqueue_script('editors');
+			shopp_enqueue_script('swfupload');
+			
 			add_action('admin_head',array(&$this,'layout'));
 		} add_action('admin_print_scripts',array(&$this,'columns'));
 

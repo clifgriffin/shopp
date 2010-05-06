@@ -1,0 +1,256 @@
+<?php
+/**
+ * Scripts.php
+ * 
+ * Controller for browser script queueing and delivery
+ *
+ * @author Jonathan Davis
+ * @version 1.0
+ * @copyright Ingenesis Limited, May  5, 2010
+ * @license GNU GPL version 3 (or later) {@see license.txt}
+ * @package shopp
+ * @since 1.0
+ * @subpackage scripts
+ **/
+
+/**
+ * Scripts
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ **/
+/** From BackPress */
+require_once( ABSPATH . WPINC . '/class.wp-dependencies.php' );
+require_once( ABSPATH . WPINC . '/class.wp-scripts.php' );
+
+class ShoppScripts extends WP_Scripts {
+	
+	function __construct() {
+		do_action_ref_array( 'shopp_default_scripts', array(&$this) );
+
+		add_action('wp_enqueue_scripts', array(&$this,'wp_dependencies'),1);
+		add_action('admin_head', array(&$this,'wp_dependencies'),1);
+		
+		add_action('wp_head', array(&$this,'print_head_scripts'),15);
+		add_action('admin_head', array(&$this,'print_head_scripts'),15);
+		add_action('wp_footer', array(&$this,'print_footer_scripts'),15);
+		add_action('admin_footer', array(&$this,'print_footer_scripts'),15);
+
+	}
+	
+	function print_head_scripts() {
+		global $concatenate_scripts;
+
+		if ( ! did_action('shopp_print_scripts') )
+			do_action('shopp_print_scripts');
+
+		script_concat_settings();
+		$this->do_concat = $concatenate_scripts;
+		$this->do_head_items();
+
+		if ( apply_filters('shopp_print_head_scripts', true) )
+			$this->print_script_request();
+
+		$this->reset();
+		return $this->done;
+	}
+	
+	function print_footer_scripts() {
+		global $concatenate_scripts;
+
+		if ( ! did_action('shopp_print_footer_scripts') )
+			do_action('shopp_print_footer_scripts');
+
+		script_concat_settings();
+		$this->do_concat = $concatenate_scripts;
+		$this->do_footer_items();
+
+		if ( apply_filters('shopp_print_footer_scripts', true) )
+			$this->print_script_request();
+
+		$this->reset();
+		return $this->done;
+	}
+	
+	function print_script_request () {
+		global $compress_scripts;
+
+		$zip = $compress_scripts ? 1 : 0;
+		if ( $zip && defined('ENFORCE_GZIP') && ENFORCE_GZIP )
+			$zip = 'gzip';
+
+		if ( !empty($this->concat) ) {
+
+			if ( !empty($this->print_code) ) {
+				echo "<script type='text/javascript'>\n";
+				echo "/* <![CDATA[ */\n";
+				echo $this->print_code;
+				echo "/* ]]> */\n";
+				echo "</script>\n";
+			}
+
+			$ver = md5("$this->concat_version");
+			$src = $this->base_url . "scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver";
+			echo "<script type='text/javascript' src='" . esc_attr($src) . "'></script>\n";
+		}
+
+		if ( !empty($this->print_html) )
+			echo $this->print_html;
+	}
+	
+	function wp_dependencies () {
+		global $wp_scripts;
+
+		if ( !is_a($wp_scripts, 'WP_Scripts') )
+			$wp_scripts = new WP_Scripts();
+
+		$wpscripts = array_keys($wp_scripts->registered);
+		
+		$deps = array();
+		foreach ($this->queue as $handle) {
+			if (!isset($this->registered[$handle]) || !isset($this->registered[$handle]->deps)) continue;
+			$wpdeps = array_intersect($this->registered[$handle]->deps,$wpscripts);
+			$mydep = array_diff($this->registered[$handle]->deps,$wpdeps);
+			$this->registered[$handle]->deps = $mydep;
+		}
+		
+		foreach ($wpdeps as $handle) wp_enqueue_script($handle);
+		
+	}
+	
+} // END class ShoppScripts
+
+function shopp_default_scripts (&$scripts) {
+
+	$script = basename(__FILE__);
+	$schema = ( isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on' ) ? 'https://' : 'http://';
+	if (defined('SHOPP_PLUGINURI')) $url = SHOPP_PLUGINURI.'/core'.'/';
+	else $url = preg_replace("|$script.*|i", '', $schema . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+	
+	$scripts->base_url = $url;
+	$scripts->default_version = mktime(false,false,false,1,1,2010);
+	$scripts->default_dirs = array('ui/behaviors/','ui/products');
+	
+	// $suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '_dev' : '';
+	
+	$scripts->add('shopp', "ui/behaviors/shopp.js", array('jquery'), '20100101');
+	$scripts->add_data('shopp', 'group', 1);
+
+	$scripts->add('calendar', "ui/behaviors/calendar.js", array('jquery'), '20100101');
+	$scripts->add_data('calendar', 'group', 1);
+
+	$scripts->add('checkout', "ui/behaviors/checkout.js", array('jquery'), '20100101');
+	$scripts->add_data('checkout', 'group', 1);
+
+	$scripts->add('colorbox', "ui/behaviors/colorbox.js", array('jquery'), '20100101');
+	$scripts->add_data('colorbox', 'group', 1);
+
+	$scripts->add('ocupload', "ui/behaviors/ocupload.js", array('jquery'), '20100101');
+	$scripts->add_data('ocupload', 'group', 1);
+
+	$scripts->add('priceline', "ui/behaviors/priceline.js", array('jquery'), '20100101');
+	$scripts->add_data('priceline', 'group', 1);
+
+	$scripts->add('editors', "ui/behaviors/editors.js", array('jquery','jquery-ui-sortable'), '20100101');
+	$scripts->add_data('editors', 'group', 1);
+
+	$scripts->add('product-editor', "ui/products/editor.js", array('jquery','priceline'), '20100101');
+	$scripts->add_data('product-editor', 'group', 1);
+
+	$scripts->add('settings', "ui/behaviors/settings.js", array('jquery'), '20100101');
+	$scripts->add_data('settings', 'group', 1);
+
+	$scripts->add('taxes', "ui/behaviors/taxes.js", array('jquery'), '20100101');
+	$scripts->add_data('taxes', 'group', 1);
+	
+	$scripts->add('shopp-swfobject', "ui/behaviors/swfupload/plugins/swfupload.swfobject.js", array(), '2202');
+	$scripts->add_data('shopp-swfobject', 'group', 1);
+
+	$scripts->add('shopp-swfupload-queue', "ui/behaviors/swfupload/plugins/swfupload.queue.js", array(), '2202');
+	$scripts->add_data('shopp-swfupload-queue', 'group', 1);
+
+	$scripts->add('swfupload', "ui/behaviors/swfupload/swfupload.js", array('jquery','shopp-swfobject'), '2202');
+	$scripts->add_data('swfupload', 'group', 1);
+
+
+}
+
+/**
+ * Register new JavaScript file.
+ */
+function shopp_register_script( $handle, $src, $deps = array(), $ver = false, $in_footer = false ) {
+	global $ShoppScripts;
+	if ( !is_a($ShoppScripts, 'ShoppScripts') )
+		$ShoppScripts = new ShoppScripts();
+
+	$ShoppScripts->add( $handle, $src, $deps, $ver );
+	if ( $in_footer )
+		$ShoppScripts->add_data( $handle, 'group', 1 );
+}
+
+function shopp_localize_script( $handle, $object_name, $l10n ) {
+	global $ShoppScripts;
+	if ( !is_a($ShoppScripts, 'ShoppScripts') )
+		return false;
+
+	return $ShoppScripts->localize( $handle, $object_name, $l10n );
+}
+
+
+/**
+ * Remove a registered script.
+ */
+function shopp_deregister_script( $handle ) {
+	global $ShoppScripts;
+	if ( !is_a($ShoppScripts, 'ShoppScripts') )
+		$ShoppScripts = new ShoppScripts();
+
+	$ShoppScripts->remove( $handle );
+}
+
+/**
+ * Enqueues script.
+ *
+ * Registers the script if src provided (does NOT overwrite) and enqueues.
+*/
+function shopp_enqueue_script( $handle, $src = false, $deps = array(), $ver = false, $in_footer = false ) {
+	global $ShoppScripts;
+	if ( !is_a($ShoppScripts, 'ShoppScripts') )
+		$ShoppScripts = new ShoppScripts();
+
+	if ( $src ) {
+		$_handle = explode('?', $handle);
+		$ShoppScripts->add( $_handle[0], $src, $deps, $ver );
+		if ( $in_footer )
+			$ShoppScripts->add_data( $_handle[0], 'group', 1 );
+	}
+	$ShoppScripts->enqueue( $handle );
+}
+
+/**
+ * Check whether script has been added to WordPress Scripts.
+ *
+ * The values for list defaults to 'queue', which is the same as enqueue for
+ * scripts.
+ *
+ * @param string $handle Handle used to add script.
+ * @param string $list Optional, defaults to 'queue'. Others values are 'registered', 'queue', 'done', 'to_do'
+ * @return bool
+ */
+function shopp_script_is( $handle, $list = 'queue' ) {
+	global $ShoppScripts;
+	if ( !is_a($ShoppScripts, 'ShoppScripts') )
+		$ShoppScripts = new ShoppScripts();
+
+	$query = $ShoppScripts->query( $handle, $list );
+
+	if ( is_object( $query ) )
+		return true;
+
+	return $query;
+}
+
+add_action('shopp_default_scripts', 'shopp_default_scripts');
+
+?>

@@ -36,11 +36,11 @@ class Setup extends FlowController {
 		switch ($this->screen) {
 			case "taxes":
 				wp_enqueue_script("suggest");
-				wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
-				wp_enqueue_script('shopp.taxes',SHOPP_ADMIN_URI."/behaviors/taxes.js",array('jquery'),SHOPP_VERSION,true);
+				shopp_enqueue_script('ocupload');
+				shopp_enqueue_script('taxes');
 				break;
 			case "system":
-				wp_enqueue_script("shopp.colorbox",SHOPP_ADMIN_URI."/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION,true);
+				shopp_enqueue_script('colorbox');
 				break;
 		}
 		

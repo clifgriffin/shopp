@@ -233,6 +233,7 @@ class Account extends AdminController {
 	 * @return void
 	 **/
 	function columns () {
+		shopp_enqueue_script('calendar');
 		register_column_headers('shopp_page_shopp-customers', array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),

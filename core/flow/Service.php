@@ -229,6 +229,7 @@ class Service extends AdminController {
 	 * @return void
 	 **/
 	function columns () {
+		shopp_enqueue_script('calendar');
 		register_column_headers('toplevel_page_shopp-orders', array(
 			'cb'=>'<input type="checkbox" />',
 			'order'=>__('Order','Shopp'),

@@ -130,14 +130,12 @@ class Storefront extends FlowController {
 
 		$loading = $this->Settings->get('script_loading');
 		if (!$loading || $loading == "global" || $tag !== false) {
-			wp_enqueue_script('jquery');
-			wp_enqueue_script("shopp.colorbox",SHOPP_PLUGINURI.'/core/ui/behaviors/colorbox.js',array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script("shopp",SHOPP_PLUGINURI.'/core/ui/behaviors/shopp.js',array('jquery'),SHOPP_VERSION,true);
+			shopp_enqueue_script("colorbox");
+			shopp_enqueue_script("shopp");
 			$Shopp->settingsjs();
 		}
 
-		if ($tag == "checkout")
-			wp_enqueue_script('shopp.checkout',SHOPP_PLUGINURI.'/core/ui/behaviors/checkout.js',array('jquery'),SHOPP_VERSION,true);		
+		if ($tag == "checkout")	shopp_enqueue_script('checkout');		
 		
 	}
 	

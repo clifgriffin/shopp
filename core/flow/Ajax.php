@@ -415,6 +415,12 @@ class AjaxFlow {
 		$_ = array();
 		switch ($format) {
 			case "xml":
+				// Example:
+				// <localtaxrates>
+				// 	<taxrate name="Kent">1</taxrate>
+				// 	<taxrate name="New Castle">0.25</taxrate>
+				// 	<taxrate name="Sussex">1.4</taxrate>
+				// </localtaxrates>
 				require_once(SHOPP_MODEL_PATH."/XML.php");
 				$XML = new xmlQuery($data);
 				$taxrates = $XML->tag('taxrate');

@@ -4,7 +4,7 @@
  * Licensed under the GPLv3 (or later) {@see license.txt}
  **/
 
-var Pricelines = false,
+var Pricelines = new Pricelines(),
  	productOptions = new Array(),
  	productAddons = new Array(),
  	optionMenus = new Array(),
@@ -48,7 +48,6 @@ jQuery(document).ready(function() {
 	fileUploads = new FileUploader('flash-upload-file',$('#ajax-upload-file'));
 	
 	// Initalize the base price line
-	Pricelines = new Pricelines();
 	basePrice = $(prices).get(0);
 	if (basePrice && basePrice.context == "product") Pricelines.add(false,basePrice,'#product-pricing');
 	else Pricelines.add(false,false,'#product-pricing');

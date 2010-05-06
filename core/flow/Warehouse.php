@@ -35,14 +35,13 @@ class Warehouse extends AdminController {
 				wp_enqueue_script('quicktags');
 				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 25 );
 			}
-			wp_enqueue_script("shopp.colorbox",SHOPP_ADMIN_URI."/behaviors/colorbox.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script('shopp.editor.lib',SHOPP_ADMIN_URI."/behaviors/editors.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script('shopp.product.editor',SHOPP_ADMIN_URI."/products/editor.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script('shopp.editor.priceline',SHOPP_ADMIN_URI."/behaviors/priceline.js",array('jquery'),SHOPP_VERSION,true);			
-			wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
-			wp_enqueue_script('jquery-ui-sortable', '/wp-includes/js/jquery/ui.sortable.js', array('jquery','jquery-ui-core'),SHOPP_VERSION,true);
-			wp_enqueue_script('shopp.swfupload',SHOPP_ADMIN_URI."/behaviors/swfupload/swfupload.js",array(),SHOPP_VERSION);
-			wp_enqueue_script('shopp.swfupload.swfobject',SHOPP_ADMIN_URI."/behaviors/swfupload/plugins/swfupload.swfobject.js",array('shopp.swfupload'),SHOPP_VERSION);
+			shopp_enqueue_script('colorbox');
+			shopp_enqueue_script('editors');
+			shopp_enqueue_script('product-editor');
+			shopp_enqueue_script('priceline');
+			shopp_enqueue_script('ocupload');
+			shopp_enqueue_script('swfupload');
+			shopp_enqueue_script('shopp-swfupload-queue');
 			
 			add_action('admin_head',array(&$this,'layout'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));

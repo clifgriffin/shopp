@@ -35,6 +35,10 @@ define('SHOPP_DOCS','http://docs.shopplugin.net/');
 
 require("core/functions.php");
 require("core/legacy.php");
+
+shopp_prereqs();
+shopp_timezone();
+
 require_once("core/DB.php");
 require_once("core/model/Settings.php");
 
@@ -46,6 +50,7 @@ if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI']))
 require("core/flow/Flow.php");
 require("core/flow/Storefront.php");
 require("core/flow/Login.php");
+require('core/flow/Scripts.php');
 
 // Load frameworks & Shopp-managed data model objects
 require("core/model/Modules.php");
@@ -493,8 +498,7 @@ class Shopp {
 	 **/
 	function settingsjs () {
 		$baseop = $this->Settings->get('base_operations');
-		
-		wp_localize_script('shopp','ShoppSettings',array(
+		shopp_localize_script('shopp','ShoppSettings',array(
 			// Currency formatting
 			'cp' => $baseop['currency']['format']['cpos'],
 			'c' => $baseop['currency']['format']['currency'],
