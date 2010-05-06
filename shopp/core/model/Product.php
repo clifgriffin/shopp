@@ -63,7 +63,7 @@ class Product extends DatabaseObject {
 		// Load object schemas on request
 		
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
-		
+
 		$Dataset = array();
 		if (in_array('prices',$options)) {
 			$promotable = DatabaseObject::tablename(Promotion::$table);
@@ -888,7 +888,7 @@ class Product extends DatabaseObject {
 					$scaled = $img->scaled($width,$height,$scale);
 					if ($firstPreview) {
 						$previews .= '<li id="preview-fill"'.(($firstPreview)?' class="fill"':'').'>';
-						$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="'.$img->datatype.'" width="'.$width.'" height="'.$height.'" />';
+						$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="" width="'.$width.'" height="'.$height.'" />';
 						$previews .= '</li>';
 					}
 					$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
@@ -1089,7 +1089,8 @@ class Product extends DatabaseObject {
 					'defaults' => '',
 					'disabled' => 'show',
 					'before_menu' => '',
-					'after_menu' => ''
+					'after_menu' => '',
+					'taxes' => false
 					);
 					
 				$options = array_merge($defaults,$options);
@@ -1121,18 +1122,19 @@ class Product extends DatabaseObject {
 				} else {
 					if (!isset($this->options)) return;
 
-					$options = $this->options;
-					if (!empty($this->options['v'])) $options = $this->options['v'];
+					$menuoptions = $this->options;
+					if (!empty($this->options['v'])) $menuoptions = $this->options['v'];
 					
 					$baseop = $Shopp->Settings->get('base_operations');
 					$precision = $baseop['currency']['format']['precision'];
-					
+
 					$taxrate = shopp_taxrate($options['taxes'],true);
 					$pricekeys = array();
 					foreach ($this->pricekey as $key => $pricing) {
 						$filter = array('');
 						$_ = new StdClass();
-						$_->p = number_format(($pricing->onsale == "on")?$pricing->promoprice:$pricing->price,$precision);
+						$_->p = number_format((isset($pricing->onsale) 
+									&& $pricing->onsale == "on")?(float)$pricing->promoprice:(float)$pricing->price,$precision);
 						$_->i = ($pricing->inventory == "on")?true:false;
 						$_->s = ($pricing->inventory == "on")?$pricing->stock:false;
 						$_->t = $pricing->type;
@@ -1149,7 +1151,7 @@ class Product extends DatabaseObject {
 					ob_end_clean();
 					add_storefrontjs($script,true);
 					
-					foreach ($options as $id => $menu) {
+					foreach ($menuoptions as $id => $menu) {
 						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 						if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
 						$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
