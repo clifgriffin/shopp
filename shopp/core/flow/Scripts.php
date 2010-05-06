@@ -32,10 +32,10 @@ class ShoppScripts extends WP_Scripts {
 		add_action('wp_enqueue_scripts', array(&$this,'wp_dependencies'),1);
 		add_action('admin_head', array(&$this,'wp_dependencies'),1);
 		
-		add_action('wp_head', array(&$this,'print_head_scripts'),15);
-		add_action('admin_head', array(&$this,'print_head_scripts'),15);
-		add_action('wp_footer', array(&$this,'print_footer_scripts'),15);
-		add_action('admin_footer', array(&$this,'print_footer_scripts'),15);
+		add_action('wp_head', array(&$this,'print_head_scripts'),12);
+		add_action('admin_head', array(&$this,'print_head_scripts'),12);
+		add_action('wp_footer', array(&$this,'print_footer_scripts'),12);
+		add_action('admin_footer', array(&$this,'print_footer_scripts'),12);
 
 	}
 	
@@ -63,6 +63,7 @@ class ShoppScripts extends WP_Scripts {
 			do_action('shopp_print_footer_scripts');
 
 		script_concat_settings();
+		$concatenate_scripts = defined('CONCATENATE_SCRIPTS') ? CONCATENATE_SCRIPTS : true;
 		$this->do_concat = $concatenate_scripts;
 		$this->do_footer_items();
 
@@ -137,10 +138,16 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('shopp', "ui/behaviors/shopp.js", array('jquery'), '20100101');
 	$scripts->add_data('shopp', 'group', 1);
 
-	$scripts->add('calendar', "ui/behaviors/calendar.js", array('jquery'), '20100101');
+	$scripts->add('cart', "ui/behaviors/cart.js", array('jquery','shopp'), '20100101');
+	$scripts->add_data('cart', 'group', 1);
+
+	$scripts->add('catalog', "ui/behaviors/catalog.js", array('jquery','shopp'), '20100101');
+	$scripts->add_data('catalog', 'group', 1);
+
+	$scripts->add('calendar', "ui/behaviors/calendar.js", array('jquery','shopp'), '20100101');
 	$scripts->add_data('calendar', 'group', 1);
 
-	$scripts->add('checkout', "ui/behaviors/checkout.js", array('jquery'), '20100101');
+	$scripts->add('checkout', "ui/behaviors/checkout.js", array('jquery','shopp'), '20100101');
 	$scripts->add_data('checkout', 'group', 1);
 
 	$scripts->add('colorbox', "ui/behaviors/colorbox.js", array('jquery'), '20100101');
@@ -149,7 +156,7 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('ocupload', "ui/behaviors/ocupload.js", array('jquery'), '20100101');
 	$scripts->add_data('ocupload', 'group', 1);
 
-	$scripts->add('priceline', "ui/behaviors/priceline.js", array('jquery'), '20100101');
+	$scripts->add('priceline', "ui/behaviors/priceline.js", array('jquery','shopp'), '20100101');
 	$scripts->add_data('priceline', 'group', 1);
 
 	$scripts->add('editors', "ui/behaviors/editors.js", array('jquery','jquery-ui-sortable'), '20100101');
