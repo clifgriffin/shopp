@@ -553,12 +553,12 @@ class Shopp {
 	 * @return void Description...
 	 **/
 	function secure_links ($linklist) {
-		if (!$this->gateways->secure) return $linklist;
+		if (!$this->Gateways->secure) return $linklist;
 		$hrefs = array(
 			'checkout' => $this->link('checkout'),
 			'account' => $this->link('account')
 		);
-		if (empty($this->gateways->active)) return str_replace($hrefs['checkout'],$this->link('cart'),$linklist);
+		if (empty($this->Gateways->active)) return str_replace($hrefs['checkout'],$this->link('cart'),$linklist);
 
 		foreach ($hrefs as $href) {
 			$secure_href = str_replace("http://","https://",$href);
