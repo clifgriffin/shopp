@@ -310,9 +310,13 @@ class Storefront extends FlowController {
 
 			add_storefrontjs("var memory_profile = '{$this->_debug->memory}',wpquerytotal = {$wpdb->num_queries},shoppquerytotal = ".count($db->queries).";",true);
 		}
+		
+		$globals = false;
+		if (isset($this->behaviors['global'])) {
+			$globals = $this->behaviors['global'];
+			unset($this->behaviors['global']);
+		}
 
-		$globals = $this->behaviors['global'];
-		unset($this->behaviors['global']);
 		$_ = '<script type="text/javascript">'."\n";
 		$_ .= '/'.'* <![CDATA[ */'."\n";
 		if (!empty($globals)) $_ .= "\t".join("\n\t",$globals)."\n";
@@ -386,7 +390,7 @@ class Storefront extends FlowController {
 			$this->breadcrumb = (isset($tag)?"tag/":"").$Shopp->Category->uri;
 
 			if (!empty($this->searching)) {
-				$Shopp->Category->load_products(array('load'=>'images,prices'));
+				$Shopp->Category->load_products(array('load'=>array('images','prices')));
 				if (count($Shopp->Category->products) == 1) {
 					reset($Shopp->Category->products);
 					$BestBet = current($Shopp->Category->products);
