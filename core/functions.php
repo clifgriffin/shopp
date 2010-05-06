@@ -946,7 +946,7 @@ function readableTime($date, $long = false) {
 function roundprice ($amount,$format=false) {
 	$format = currency_format($format);
 	extract($format);
-	return round($amount, $precision, PHP_ROUND_HALF_EVEN);
+	return round($amount, $precision);
 }
 
 /**
