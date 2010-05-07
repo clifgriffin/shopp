@@ -164,26 +164,6 @@ class Shopp {
 		// Initialize application control processing
 		
 		$this->Flow = new Flow();
-		
-		// Keep any DB operations from occuring while in maintenance mode
-		if (!empty($_GET['updated']) 
-			&& ($this->Settings->get('maintenance') == "on" 
-				|| $this->Settings->unavailable)) {
-			$this->Flow->handler('Install');
-			do_action('shopp_upgrade');
-			return true;
-		} elseif ($this->Settings->get('maintenance') == "on") return true;
-		
-		// Initialize defaults if they have not been entered
-		if (!$this->Settings->get('shopp_setup')) {
-			if ($this->Settings->unavailable) return true;
-			$this->Flow->installation();
-			do_action('shopp_setup');
-
-			// Reload settings after setup
-			$this->Settings->load();
-		}
-
 		$this->Shopping = new Shopping();
 		
 		add_action('init', array(&$this,'init'));
@@ -293,36 +273,8 @@ class Shopp {
 	function pages_index ($update=false,$updates=false) {
 		global $wpdb;
 		$pages = $this->Settings->get('pages');
-		
-		// No pages setting, use defaults
-		if (!is_array($pages)) $pages = Storefront::$Pages;
-
-		// Find pages with Shopp-related main shortcodes
-		$codes = array();
-		$search = "";
-		foreach ($pages as $page) $codes[] = $page['shortcode'];
-		foreach ($codes as $code) $search .= ((!empty($search))?" OR ":"")."post_content LIKE '%$code%'";
-		$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE post_status='publish' AND ($search)";
-		$results = $wpdb->get_results($query);
-		
-		// Match updates from the found results to our pages index
-		foreach ($pages as $key => &$page) {
-			// Convert old page definitions
-			if (!isset($page['shortcode']) && isset($page['content'])) $page['shortcode'] = $page['content'];
-			foreach ($results as $index => $post) {
-				if (strpos($post->post_content,$page['shortcode']) !== false) {
-					$page['id'] = $post->ID;
-					$page['title'] = $post->post_title;
-					$page['name'] = $post->post_name;
-					$page['permalink'] = str_replace(trailingslashit(get_bloginfo('url')),'',get_permalink($page['id']));
-					if ($page['permalink'] == get_bloginfo('url')) $page['permalink'] = "";
-					break;
-				}
-			}
-		}
-
+		$pages = shopp_locate_pages($pages);
 		$this->Settings->save('pages',$pages);
-
 		if ($update) return $update;
 	}
 
@@ -463,6 +415,8 @@ class Shopp {
 	 **/
 	function link ($target,$secure=false) {
 		$internals = array("thanks","receipt","confirm-order");
+		
+		if ($this->Settings->unavailable) return;
 		$pages = $this->Settings->get('pages');
 		if (empty($pages)) {
 			$this->pages_index(true);
@@ -745,7 +699,23 @@ class Shopp {
 		}
         
 	}
-	
+
+	/**
+	 * Detect if this Shopp installation needs maintenance
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
+	function maintenance () {
+		// Settings unavailable
+		if (!$this->Settings->unavailable || !$this->Settings->get('shopp_setup') != "completed") 
+			return false;
+			
+		$this->Settings->save('maintenance','on');
+		return true;
+	}
 
 } // END class Shopp
 

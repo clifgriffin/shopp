@@ -175,12 +175,12 @@ class Product extends DatabaseObject {
 				case "categories":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."catalog.product=$id";
 					$where = "($where) AND catalog.category > 0";
-					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM $catalogtable AS catalog LEFT JOIN $set->_table ON catalog.category=$set->_table.id WHERE $where)";
+					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM $catalogtable AS catalog LEFT JOIN $set->_table ON catalog.parent=$set->_table.id AND catalog.type='category' WHERE $where)";
 					break;
 				case "tags":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."catalog.product=$id";
 					$where = "($where) AND catalog.tag > 0";
-					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM $catalogtable AS catalog LEFT JOIN $set->_table ON catalog.tag=$set->_table.id WHERE $where)";
+					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM $catalogtable AS catalog LEFT JOIN $set->_table ON catalog.parent=$set->_table.id AND type='tag' WHERE $where)";
 					break;
 			}
 		}
@@ -422,14 +422,14 @@ class Product extends DatabaseObject {
 		if (!empty($added)) {
 			foreach ($added as $id) {
 				if (empty($id)) continue;
-				$db->query("INSERT $table SET category='$id',product='$this->id',created=now(),modified=now()");
+				$db->query("INSERT $table SET parent='$id',type='category',product='$this->id',created=now(),modified=now()");
 			}
 		}
 		
 		if (!empty($removed)) {
 			foreach ($removed as $id) {
 				if (empty($id)) continue;
-				$db->query("DELETE LOW_PRIORITY FROM $table WHERE category='$id' AND product='$this->id'"); 
+				$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND type='category' AND product='$this->id'"); 
 			}
 			
 		}

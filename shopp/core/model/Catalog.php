@@ -55,7 +55,7 @@ class Catalog extends DatabaseObject {
 		$category_table = DatabaseObject::tablename(Category::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
-		$query = "SELECT {$filtering['columns']} FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.category=cat.id LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY cat.parent DESC,$orderby $order {$filtering['limit']}";
+		$query = "SELECT {$filtering['columns']} FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.parent=cat.id AND sc.type='category' LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY cat.parent DESC,$orderby $order {$filtering['limit']}";
 		$categories = $db->query($query,AS_ARRAY);
 
 		if (count($categories) > 1) $categories = sort_tree($categories);
@@ -120,7 +120,7 @@ class Catalog extends DatabaseObject {
 		else $limit = "";
 		
 		$tagtable = DatabaseObject::tablename(Tag::$table);
-		$query = "SELECT t.*,count(sc.product) AS products FROM $this->_table AS sc LEFT JOIN $tagtable AS t ON sc.tag=t.id WHERE sc.tag != 0 GROUP BY t.id ORDER BY t.name ASC$limit";
+		$query = "SELECT t.*,count(sc.product) AS products FROM $this->_table AS sc LEFT JOIN $tagtable AS t ON sc.parent=t.id WHERE sc.type='tag' GROUP BY t.id ORDER BY t.name ASC$limit";
 		$this->tags = $db->query($query,AS_ARRAY);
 		return true;
 	}

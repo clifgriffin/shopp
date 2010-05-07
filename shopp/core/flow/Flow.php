@@ -177,22 +177,7 @@ class Flow {
 		$this->installation();
 		do_action('shopp_autoupdate');
 	}
-	
-	/**
-	 * Displays the welcome screen
-	 *
-	 * @return boolean
-	 * @author Jonathan Davis
-	 **/
-	function welcome () {
-		global $Shopp;
-		if ($Shopp->Settings->get('display_welcome') == "on" && empty($_POST['setup'])) {
-			include(SHOPP_ADMIN_PATH."/help/welcome.php");
-			return true;
-		}
-		return false;
-	}
-	
+		
 	function save_settings () {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value)

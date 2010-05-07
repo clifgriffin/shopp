@@ -30,7 +30,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  **/
 class DB {
 	private static $instance;
-	static $schema = '1.1 dev';
+	static $version = 1100;
 
 	// Define datatypes for MySQL
 	var $_datatypes = array("int" => array("int", "bit", "bool", "boolean"),
@@ -57,7 +57,7 @@ class DB {
 		global $wpdb;
 		if (isset($wpdb->dbh)) {
 			$this->dbh = $wpdb->dbh;
-			$this->version = mysql_get_server_info();
+			$this->mysql = mysql_get_server_info();
 		}
 	}
 

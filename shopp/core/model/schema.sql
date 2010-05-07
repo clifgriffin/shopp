@@ -133,14 +133,15 @@ DROP TABLE IF EXISTS <?php echo $catalog; ?>;
 CREATE TABLE <?php echo $catalog; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	product bigint(20) unsigned NOT NULL default '0',
+	parent bigint(20) unsigned NOT NULL default '0',
+	type enum('category','tag') NOT NULL,
 	category bigint(20) unsigned NOT NULL default '0',
 	tag bigint(20) unsigned NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
 	KEY product (product),
-	KEY category (category,product),
-	KEY tag (tag,product)
+	KEY assignment (parent,type)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $asset = DatabaseObject::tablename('asset'); ?>
