@@ -276,7 +276,8 @@ class ShoppError {
 	 **/
 	function ShoppError($message='',$code='',$level=SHOPP_ERR,$data='') {
 		$Errors = &ShoppErrors();
-
+		
+		if (!is_a($Errors,'ShoppErrors')) return;
 		if ($level > $Errors->reporting) return;
 		if (empty($message)) return;
 
