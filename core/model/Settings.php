@@ -138,6 +138,22 @@ class Settings extends DatabaseObject {
 		if ($this->get($name) === false) $this->add($name,$value,$autoload);
 		else $this->update($name,$value);
 	}
+
+
+	/**
+	 * Save a setting to the database if it does not already exist
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $name Name of the setting to save
+	 * @param mixed $value Value of the setting
+	 * @param boolean $autoload (optional) The autoload setting - true by default
+	 * @return void
+	 **/
+	function setup ($name,$value,$autoload=true) {
+		if ($this->get($name) === false) $this->add($name,$value,$autoload);
+	}
 	
 	/**
 	 * Remove a setting from the registry and the database

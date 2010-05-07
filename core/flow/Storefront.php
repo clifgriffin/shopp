@@ -157,7 +157,7 @@ class Storefront extends FlowController {
 		$this->shortcodes['category'] = array(&$this,'category_shortcode');
 
 		foreach ($this->shortcodes as $name => &$callback)
-			if ($this->Settings->get("maintenance") == "on")
+			if ($this->Settings->get("maintenance") == "on" || $this->Settings->unavailable)
 				add_shortcode($name,array(&$this,'maintenance_shortcode'));
 			else add_shortcode($name,$callback);
 		
@@ -674,7 +674,14 @@ class Storefront extends FlowController {
 	}
 	
 	function maintenance_shortcode ($atts) {
-		return '<div id="shopp" class="update"><p>The store is currently down for maintenance.  We\'ll be back soon!</p><div class="clear"></div></div>';
+		if (file_exists(SHOPP_TEMPLATES."/maintenance.php")) {
+			ob_start();
+			include(SHOPP_TEMPLATES."/maintenance.php");
+			$content = ob_get_contents();
+			ob_end_clean();
+		} else $content = '<div id="shopp" class="update"><p>'.__("The store is currently down for maintenance.  We'll be back soon!","Shopp").'</p><div class="clear"></div></div>';
+		
+		return $content;
 	}
 
 	function buynow_shortcode ($atts) {

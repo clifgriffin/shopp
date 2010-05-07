@@ -30,58 +30,62 @@ class ShoppInstallation extends FlowController {
 		$this->Settings = new Settings();
 		add_action('shopp_activate',array(&$this,'activate'));
 		add_action('shopp_deactivate',array(&$this,'deactivate'));
+		add_action('shopp_reinstall',array(&$this,'install'));
 		add_action('shopp_setup',array(&$this,'setup'));
+		add_action('shopp_setup',array(&$this,'roles'));
 		add_action('shopp_autoupdate',array(&$this,'update'));
-		add_action('shopp_post_upgrade',array(&$this,'postupgrade'));
 	}
 
 	/**
-	 * activate()
-	 * Installs the tables and initializes settings */
+	 * Initializes the plugin for use
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function activate () {
 		global $wpdb,$wp_rewrite;
 
 		// If no settings are available,
 		// no tables exist, so this is a
 		// new install
-		if ($this->Settings->unavailable) {
-			$this->install();
-		}
+		if ($this->Settings->unavailable) $this->install();
+
+		// Process any DB upgrades (if needed)
+		$this->upgrades();
 		
-		$ver = $this->Settings->get('version');
-		if (!empty($ver) && $ver != SHOPP_VERSION) {
-			$this->dbupgrades($ver);
-		}
-				
-		if ($this->Settings->get('shopp_setup')) {
+		do_action('shopp_setup');
+		
+		if (!$this->Settings->unavailable && $this->Settings->get('db_version'))
 			$this->Settings->save('maintenance','off');
-			
-			// Publish/re-enable Shopp pages
-			$filter = "";
-			$pages = $this->Settings->get('pages');
-			foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
-			if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='publish' WHERE $filter");
-			
-			// Update rewrite rules
-			$wp_rewrite->flush_rules();
-			$wp_rewrite->wp_rewrite_rules();
-			
-		} else do_action('shopp_setup');
+
+		// Publish/re-enable Shopp pages
+		$this->pages_status('publish');
+		
+		// Update rewrite rules
+		$wp_rewrite->flush_rules();
+		$wp_rewrite->wp_rewrite_rules();
+
 		
 		if ($this->Settings->get('show_welcome') == "on")
 			$this->Settings->save('display_welcome','on');
 	}
 	
+	/**
+	 * Resets plugin data when deactivated
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function deactivate () {
 		global $Shopp,$wpdb,$wp_rewrite;
 		if (!isset($this->Settings)) return;
 		
 		// Unpublish/disable Shopp pages
-		$filter = "";
-		$pages = $this->Settings->get('pages');
-		if (!is_array($pages)) return true;
-		foreach ($pages as $page) $filter .= ($filter == "")?"ID={$page['id']}":" OR ID={$page['id']}";	
-		if ($filter != "") $wpdb->query("UPDATE $wpdb->posts SET post_status='draft' WHERE $filter");
+		$this->pages_status('draft');
 
 		// Update rewrite rules
 		$wp_rewrite->flush_rules();
@@ -92,45 +96,66 @@ class ShoppInstallation extends FlowController {
 		return true;
 	}
 	
+	/**
+	 * Installs the database tables and content gateway pages
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function install () {
 		global $wpdb,$wp_rewrite,$wp_version,$table_prefix;
 		$db = DB::get();
-
+		
 		// Install tables
 		if (!file_exists(SHOPP_DBSCHEMA)) {
-		 	trigger_error("Could not install the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
+		 	trigger_error("Could not install the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA,E_USER_ERROR);
 			exit();
 		}
-
+		
 		ob_start();
 		include(SHOPP_DBSCHEMA);
 		$schema = ob_get_contents();
 		ob_end_clean();
-
+		
 		$db->loaddata($schema);
 		unset($schema);
+		$this->install_pages();
+		$this->Settings->save("db_version",$db->version);
+	}
+	
+	/**
+	 * Installs Shopp content gateway pages or reinstalls missing pages
+	 * 
+	 * The key to Shopp displaying content is through placeholder pages
+	 * that contain a specific Shopp shortcode.  The shortcode is replaced
+	 * at runtime with Shopp-specific markup & content.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function install_pages () {
+		// Locate any Shopp pages that already exist
+		$pages_installed = shopp_locate_pages(false);
 
 		$parent = 0;
 		foreach (Storefront::$Pages as $key => &$page) {
 			if (!empty(Storefront::$Pages['catalog']['id'])) $parent = Storefront::$Pages['catalog']['id'];
+			if (!empty($pages_installed[$key]['id'])) { // Skip installing pages that already exist
+				$page = $pages_installed[$key];
+				continue;
+			}
 			$query = "INSERT $wpdb->posts SET post_title='{$page['title']}',
-											  post_name='{$page['name']}',
-											  post_content='{$page['content']}',
-											  post_parent='$parent',
-											  post_author='1',
-											  post_status='publish',
-											  post_type='page',
-											  post_date=now(),
-											  post_date_gmt=utc_timestamp(),
-											  post_modified=now(),
-											  post_modified_gmt=utc_timestamp(),
-											  comment_status='closed',
-											  ping_status='closed',
-											  post_excerpt='',
-											  to_ping='',     
-											  pinged='',      
-											  post_content_filtered='',
-											  menu_order=0";
+						post_name='{$page['name']}',
+						post_content='{$page['shortcode']}',
+						post_parent='$parent',
+						post_author='1', post_status='publish', post_type='page',
+						post_date=now(), post_date_gmt=utc_timestamp(), post_modified=now(),
+						post_modified_gmt=utc_timestamp(), comment_status='closed', ping_status='closed',
+						post_excerpt='', to_ping='', pinged='', post_content_filtered='', menu_order=0";
 			$wpdb->query($query);
 			$page['id'] = $wpdb->insert_id;
 			$page['permalink'] = get_permalink($page['id']);
@@ -141,11 +166,61 @@ class ShoppInstallation extends FlowController {
 
 		$this->Settings->save("pages",Storefront::$Pages);
 	}
+	
+	/**
+	 * Sets the content gateway pages publish status
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $mode The publish status (publish or draft)
+	 * @return void
+	 **/
+	function pages_status ($mode) {
+		global $wpdb;
+		$status = array('publish','draft');
+		if (!in_array($mode,$status)) return;
 		
-	function dbupgrades ($version) {
-		global $Shopp,$table_prefix;
+		$_ = array();
+		$pages = shopp_locate_pages(false);
+		foreach ($pages as $page) if (!empty($page['id'])) $_[] = $page['id'];
+		if (!empty($_)) $wpdb->query("UPDATE $wpdb->posts SET post_status='$mode' WHERE 0<FIND_IN_SET(ID,'".join(',',$_)."')");
+	}
+	
+	/**
+	 * Performs database upgrades when required
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function upgrades () {
 		$db = DB::get();
-		$db_version = $this->Settings->get('dbschema_version');
+		$db_version = intval($this->Settings->get('db_version'));
+		
+		// No upgrades required
+		if ($db_version == DB::$version) return;
+
+		$this->Settings->save('shopp_setup','');
+		$this->Settings->save('maintenance','on');
+		
+		// Process any database schema changes
+		$this->upschema();
+		
+		if ($db_version < 1100) $this->upgrade_110();
+	
+	}
+	
+	/**
+	 * Updates the database schema
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function upschema () {
 		require_once(ABSPATH.'wp-admin/includes/upgrade.php');
 
 		// Check for the schema definition file
@@ -159,19 +234,10 @@ class ShoppInstallation extends FlowController {
 		
 		// Update the table schema
 		$tables = preg_replace('/;\s+/',';',$schema);
-		dbDelta($tables);
-
-		if ($dbschema_version != DB::$schema)
-			$this->updates_100();
-		
-		// Update the version number
-		$settings = DatabaseObject::tablename(Settings::$table);
-		$db->query("UPDATE $settings SET value='".SHOPP_VERSION."' WHERE name='version'");
-		$db->query("DELETE FROM $settings WHERE name='data_model'");
-		
-		return true;
+		$changes = dbDelta($tables);
+		$this->Settings->save('db_updates',$changes);
 	}
-
+	
 	/**
 	 * Installed roles and capabilities used for Shopp
 	 *
@@ -230,57 +296,68 @@ class ShoppInstallation extends FlowController {
 	}
 
 	/**
-	 * setup()
-	 * Initialize default install settings and lists */
+	 * Initializes default settings or resets missing settings
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function setup () {
 
-		$this->Settings->save('show_welcome','on');	
-		$this->Settings->save('display_welcome','on');	
+		$this->Settings->setup('show_welcome','on');	
+		$this->Settings->setup('display_welcome','on');	
 		
 		// General Settings
-		$this->Settings->save('version',SHOPP_VERSION);
-		$this->Settings->save('dbschema_version',DB::$schema);
-		$this->Settings->save('shipping','on');	
-		$this->Settings->save('order_status',array('Pending','Completed'));	
-		$this->Settings->save('shopp_setup','completed');
-		$this->Settings->save('maintenance','off');
-		$this->Settings->save('dashboard','on');
+		$this->Settings->setup('shipping','on');	
+		$this->Settings->setup('order_status',array('Pending','Completed'));	
+		$this->Settings->setup('shopp_setup','completed');
+		$this->Settings->setup('maintenance','off');
+		$this->Settings->setup('dashboard','on');
 
 		// Checkout Settings
-		$this->Settings->save('order_confirmation','ontax');	
-		$this->Settings->save('receipt_copy','1');	
-		$this->Settings->save('account_system','none');	
+		$this->Settings->setup('order_confirmation','ontax');	
+		$this->Settings->setup('receipt_copy','1');	
+		$this->Settings->setup('account_system','none');	
 
 		// Presentation Settings
-		$this->Settings->save('theme_templates','off');
-		$this->Settings->save('row_products','3');
-		$this->Settings->save('catalog_pagination','25');
-		$this->Settings->save('product_image_order','ASC');
-		$this->Settings->save('product_image_orderby','sortorder');
-		$this->Settings->save('gallery_small_width','240');
-		$this->Settings->save('gallery_small_height','240');
-		$this->Settings->save('gallery_small_sizing','1');
-		$this->Settings->save('gallery_small_quality','2');
-		$this->Settings->save('gallery_thumbnail_width','96');
-		$this->Settings->save('gallery_thumbnail_height','96');
-		$this->Settings->save('gallery_thumbnail_sizing','1');
-		$this->Settings->save('gallery_thumbnail_quality','3');
+		$this->Settings->setup('theme_templates','off');
+		$this->Settings->setup('row_products','3');
+		$this->Settings->setup('catalog_pagination','25');
+		$this->Settings->setup('product_image_order','ASC');
+		$this->Settings->setup('product_image_orderby','sortorder');
+		$this->Settings->setup('gallery_small_width','240');
+		$this->Settings->setup('gallery_small_height','240');
+		$this->Settings->setup('gallery_small_sizing','1');
+		$this->Settings->setup('gallery_small_quality','2');
+		$this->Settings->setup('gallery_thumbnail_width','96');
+		$this->Settings->setup('gallery_thumbnail_height','96');
+		$this->Settings->setup('gallery_thumbnail_sizing','1');
+		$this->Settings->setup('gallery_thumbnail_quality','3');
 		
 		// System Settinggs
-		$this->Settings->save('uploader_pref','flash');
-		$this->Settings->save('script_loading','global');
+		$this->Settings->setup('uploader_pref','flash');
+		$this->Settings->setup('script_loading','global');
 
-		// Payment Gateway Settings
-		$this->Settings->save('PayPalExpress',array('enabled'=>'off'));
-		$this->Settings->save('GoogleCheckout',array('enabled'=>'off'));
-		
-		// Setup Roles and Capabilities
-		$this->roles();
-		
+		$this->Settings->save('version',SHOPP_VERSION);
+		$this->Settings->save('db_version',DB::$version);
+				
 	}
 	
-	function updates_100 () {
+	/**
+	 * Shopp 1.1.0 upgrades
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function upgrade_110 () {
 		$db =& DB::get();
+		
+		// Update Catalog
+		$catalog_table = DatabaseObject::tablename('catalog');
+		$db->query("UPDATE $catalog_table set parent=IF(category!=0,category,tag),type=IF(category!=0,'category','tag')");
 		
 		// Update specs
 		$meta_table = DatabaseObject::tablename('meta');
@@ -352,7 +429,6 @@ class ShoppInstallation extends FlowController {
 		
 		$this->roles(); // Setup Roles and Capabilities
 		
-		$this->Settings->save('dbschema_version',DB::$schema);
 	}
 	
 	/**

@@ -81,7 +81,7 @@ class Category extends DatabaseObject {
 		}
 		
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
-		$children = $db->query("SELECT cat.*,count(sc.product) AS total FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.category=cat.id WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY cat.parent DESC,$orderby $order,name ASC",AS_ARRAY);
+		$children = $db->query("SELECT cat.*,count(sc.product) AS total FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.parent=cat.id AND sc.type='category' WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY cat.parent DESC,$orderby $order,name ASC",AS_ARRAY);
 		$children = sort_tree($children,$this->id);
 		foreach ($children as &$child) {
 			$this->children[$child->id] = new Category();
@@ -199,7 +199,7 @@ class Category extends DatabaseObject {
 
 		// Handle default WHERE clause matching this category id
 		if (empty($loading['where']) && !empty($this->id)) 
-			$where[] = "p.id in (SELECT product FROM $catalogtable WHERE category=$this->id)";
+			$where[] = "p.id in (SELECT product FROM $catalogtable WHERE (parent=$this->id AND type='category'))";
 
 		if (!isset($loading['nostock']) && ($Shopp->Settings->get('outofstock_catalog') == "off"))
 			$where[] = "p.id in (SELECT product FROM $pricetable WHERE type != 'N/A' AND inventory='off' OR (inventory='on' AND stock > 0))";
@@ -296,7 +296,7 @@ class Category extends DatabaseObject {
 					SUM(pd.stock) as stock";
 
 		// Query without promotions for MySQL servers prior to 5
-		if (version_compare($db->version,'5.0','<')) {
+		if (version_compare($db->mysql,'5.0','<')) {
 			$columns = "p.*,
 						img.id AS thumbnail,img.properties AS thumbnail_properties,
 						MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
@@ -445,7 +445,6 @@ class Category extends DatabaseObject {
 			$Processing->load_data($loading['load'],$this->products);
 		}
 		
-
 		$this->loaded = true;
 
 	}
@@ -1052,7 +1051,7 @@ class Category extends DatabaseObject {
 					FROM $catalogtable AS cat 
 					LEFT JOIN $producttable AS p ON cat.product=p.id 
 					LEFT JOIN $spectable AS spec ON spec.product=p.id 
-					WHERE cat.category=$this->id GROUP BY merge ORDER BY spec.name,merge",AS_ARRAY);
+					WHERE (cat.parent=$this->id AND cat.type='category') GROUP BY merge ORDER BY spec.name,merge",AS_ARRAY);
 
 				$specdata = array();
 				foreach ($results as $data) {
@@ -1456,14 +1455,16 @@ class RelatedProducts extends SmartCategory {
 			$tagged = new Tag($options['tagged'],'name');
 			
 			if (!empty($tagged->id)) {
-				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.tag=$tagged->id";
+				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.parent=$tagged->id";
 			}
 				
 		}
 		
 		foreach ($this->product->tags as $tag)
 			if (!empty($tag->id))
-				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.tag=$tag->id";
+				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.parent=$tag->id";
+		
+		if (!empty($tagscope)) $tagscope = "($tagscope) AND catalog.type='tag'";
 		
 		$this->tag = "product-".$this->product->id;
 		$this->name = __("Products related to","Shopp")." &quot;".stripslashes($this->product->name)."&quot;";
@@ -1475,7 +1476,7 @@ class RelatedProducts extends SmartCategory {
 		
 		$this->loading = array(
 			'columns'=>'count(DISTINCT catalog.id)+SUM(IF('.$tagscope.',100,0)) AS score',
-			'joins'=>"LEFT JOIN $catalogtable AS catalog ON catalog.product=p.id LEFT JOIN $tagtable AS t ON t.id=catalog.tag AND catalog.product=p.id",
+			'joins'=>"LEFT JOIN $catalogtable AS catalog ON catalog.product=p.id LEFT JOIN $tagtable AS t ON t.id=catalog.parent AND catalog.product=p.id",
 			'where'=>"($tagscope) $exclude",
 			'orderby'=>'score DESC'
 			);

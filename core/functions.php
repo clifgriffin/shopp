@@ -1130,6 +1130,47 @@ function shopp_email ($template,$data=array()) {
 }
 
 /**
+ * Locates the Shopp content gateway pages in the WordPress posts table
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param array $pages Currently known page data
+ * @return array
+ **/
+function shopp_locate_pages ($pages) {
+	global $wpdb;
+
+	// No pages provided, use the Storefront definitions
+	if (!is_array($pages)) $pages = Storefront::$Pages;
+
+	// Find pages with Shopp-related main shortcodes
+	$codes = array();
+	$search = "";
+	foreach ($pages as $page) $codes[] = $page['shortcode'];
+	foreach ($codes as $code) $search .= ((!empty($search))?" OR ":"")."post_content LIKE '%$code%'";
+	$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE $search";
+	$results = $wpdb->get_results($query);
+	
+	// Match updates from the found results to our pages index
+	foreach ($pages as $key => &$page) {
+		// Convert old page definitions
+		if (!isset($page['shortcode']) && isset($page['content'])) $page['shortcode'] = $page['content'];
+		foreach ($results as $index => $post) {
+			if (strpos($post->post_content,$page['shortcode']) !== false) {
+				$page['id'] = $post->ID;
+				$page['title'] = $post->post_title;
+				$page['name'] = $post->post_name;
+				$page['permalink'] = str_replace(trailingslashit(get_bloginfo('url')),'',get_permalink($page['id']));
+				if ($page['permalink'] == get_bloginfo('url')) $page['permalink'] = "";
+				break;
+			}
+		}
+	}
+	return $pages;
+}
+
+/**
  * Read the wp-config file to import WP settings without loading all of WordPress
  *
  * @author Jonathan Davis

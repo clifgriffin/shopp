@@ -99,7 +99,7 @@ class AdminFlow extends FlowController {
 		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
 
 		// if ($Shopp->Settings->get('display_welcome') == "on" && empty($_POST['setup']))
-			// $this->addpage('welcome',__('Welcome','Shopp'),'Flow',$base);
+			// $this->addpage('welcome',__('Welcome','Shopp'),'Admin',$base);
 
 		// Action hook for adding custom third-party pages
 		do_action('shopp_admin_menu');
@@ -137,9 +137,9 @@ class AdminFlow extends FlowController {
 			"$Shopp->uri/core/ui/icons/shopp.png"		// Icon
 		);
 		
-		if (!$this->dbupgraded()) {
-			add_action('toplevel_page_shopp-orders',array(&$this,'dbwarning'));
-			return;
+		if ($this->maintenance()) {
+			add_action("admin_enqueue_scripts", array(&$this, 'behaviors'));
+			return add_action('toplevel_page_shopp-orders',array(&$this,'reactivate'));
 		}
 				
 		// Add menus to WordPress admin
@@ -202,7 +202,7 @@ class AdminFlow extends FlowController {
 			defined('SHOPP_USERLEVEL')?SHOPP_USERLEVEL:$this->caps[$page->name],
 			$name,
 			($Shopp->Settings->get('display_welcome') == "on" &&  empty($_POST['setup']))?
-				array(&$Shopp->Flow,'welcome'):array(&$Shopp->Flow,'admin')
+				array(&$this,'welcome'):array(&$Shopp->Flow,'admin')
 		);
 	}
 
@@ -277,11 +277,11 @@ class AdminFlow extends FlowController {
 	 * 
 	 * @return boolean
 	 **/
-	function dbupgraded () {
+	function maintenance () {
 		$Settings = &ShoppSettings();
-		$db_version = $Settings->get('dbschema_version');
-		if ($db_version != DB::$schema)	return false;
-		return true;
+		$db_version = intval($Settings->get('db_version'));
+		if ($db_version != DB::$version) return true;
+		return false;
 	}
 	
 	/**
@@ -316,6 +316,32 @@ class AdminFlow extends FlowController {
 		$name = "$metabox-help";
 		$helpurl = add_query_arg(array('src'=>'help','id'=>$id),admin_url('admin.php'));
 		return '<a href="'.$helpurl.'" class="help"></a>';
+	}
+	
+	/**
+	 * Displays the welcome screen
+	 *
+	 * @return boolean
+	 * @author Jonathan Davis
+	 **/
+	function welcome () {
+		global $Shopp;
+		if ($Shopp->Settings->get('display_welcome') == "on" && empty($_POST['setup'])) {
+			include(SHOPP_ADMIN_PATH."/help/welcome.php");
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Displays the re-activate screen
+	 *
+	 * @return boolean
+	 * @author Jonathan Davis
+	 **/
+	function reactivate () {
+		global $Shopp;
+		include(SHOPP_ADMIN_PATH."/help/reactivate.php");
 	}
 	
 	/**
