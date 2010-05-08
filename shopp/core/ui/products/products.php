@@ -77,7 +77,7 @@
 				else echo money($Product->minprice)."&mdash;".money($Product->maxprice);
 			?></td>
 			<td class="inventory column-inventory<?php echo in_array('inventory',$hidden)?' hidden':''; ?>"><?php if ($Product->inventory == "on") echo $Product->stock; ?></td> 
-			<td class="featured column-featured<?php echo ($Product->featured == "on")?' is-featured':''; echo in_array('featured',$hidden)?' hidden':''; ?>">&nbsp;</td> 
+			<td class="featured column-featured<?php echo in_array('featured',$hidden)?' hidden':''; ?>"><button type="button" name="feature" value="<?php echo $Product->id; ?>" class="<?php echo ($Product->featured == "on")?' feature featured':'feature'; ?>">&nbsp;</button></td> 
 		
 		</tr>
 		<?php endforeach; ?>
@@ -94,10 +94,10 @@
 </div>    
 
 <script type="text/javascript">
-	helpurl = "<?php echo SHOPP_DOCS; ?>Products";
-
+/* <![CDATA[ */
 jQuery(document).ready( function() {
-	var $=jQuery.noConflict();
+	var $=jqnc(),
+		featureurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_feature_product'); ?>';
 	
 	$('#selectall').change( function() {
 		$('#products th input').each( function () {
@@ -120,9 +120,18 @@ jQuery(document).ready( function() {
 		if (confirm("<?php echo addslashes(__('Are you sure you want to delete the selected products?','Shopp')); ?>")) return true;
 		else return false;
 	});
+	
+	$('button.feature').click(function () {
+		var $this = $(this);
+		$.get(featureurl,{'feature':$this.val(),'action':'shopp_feature_product'},function (result) {
+			if (result == "on") $this.addClass('featured');
+			else $this.removeClass('featured');
+		});
+	});
 
 	pagenow = 'shopp_page_shopp-products';
 	columns.init(pagenow);
 
 });
+/* ]]> */
 </script>

@@ -54,6 +54,7 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_rebuild_search_index_progress',array(&$this,'rebuild_search_index_progress'));
 		add_action('wp_ajax_shopp_suggestions',array(&$this,'suggestions'));
 		add_action('wp_ajax_shopp_upload_local_taxes',array(&$this,'upload_local_taxes'));
+		add_action('wp_ajax_shopp_feature_product',array(&$this,'feature_product'));
 		
 	}
 
@@ -405,6 +406,18 @@ class AjaxFlow {
 		echo json_encode($_);
 		exit();
 		
+	}
+	
+	function feature_product () {
+		check_admin_referer('wp_ajax_shopp_feature_product');
+		
+		if (empty($_GET['feature'])) die('0');
+		$Product = new Product($_GET['feature']);
+		if ($Product->featured == "on") $Product->featured = "off";
+		else $Product->featured = "on";
+		$Product->save();
+		echo $Product->featured;
+		exit();
 	}
 		
 } // END class AjaxFlow
