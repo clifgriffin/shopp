@@ -313,7 +313,6 @@ class AdminFlow extends FlowController {
 	}
 	
 	function boxhelp ($id) {
-		$name = "$metabox-help";
 		$helpurl = add_query_arg(array('src'=>'help','id'=>$id),admin_url('admin.php'));
 		return '<a href="'.$helpurl.'" class="help"></a>';
 	}
