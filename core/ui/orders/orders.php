@@ -85,7 +85,7 @@
 					$location .= ' &mdash; ';
 				$location .= $Order->shipcountry;
 				echo $location;
-				if ($Order->downloads) echo (!empty($location)?'<br />':'').__('Downloads','Shopp');
+				if (isset($Order->downloads)) echo (!empty($location)?'<br />':'').__('Downloads','Shopp');
 				?></td>
 			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><?php echo money($Order->total); ?></td>
 			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->txnid; ?><br /><strong><?php echo $Order->gateway; ?></strong> &mdash; <?php echo $txnstatus; ?></td>
