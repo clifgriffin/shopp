@@ -171,7 +171,7 @@ function images_meta_box ($Product) {
 	global $ProductImages;
 ?>
 	<ul id="lightbox">
-	<?php foreach ($ProductImages as $i => $Image): ?>
+	<?php foreach ((array)$ProductImages as $i => $Image): ?>
 		<li id="image-<?php echo $Image->id; ?>"><input type="hidden" name="images[]" value="<?php echo $Image->id; ?>" />
 			<div id="image-<?php echo $Image->id; ?>-details">
 			<img src="?siid=<?php echo $Image->id; ?>&amp;<?php echo $Image->resizing(96,0,1); ?>" width="96" height="96" />

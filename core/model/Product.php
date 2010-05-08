@@ -557,7 +557,8 @@ class Product extends DatabaseObject {
 			$imagesets .= (!empty($imagesets)?" OR ":"");
 			$imagesets .= "((context='product' AND parent='$this->id' AND id='$image') OR (context='image' AND parent='$image'))";
 		}
-		$db->query("DELETE FROM $imagetable WHERE type='image' AND ($imagesets)");
+		if (!empty($imagesets))
+			$db->query("DELETE FROM $imagetable WHERE type='image' AND ($imagesets)");
 		return true;
 	}
 	
@@ -576,10 +577,6 @@ class Product extends DatabaseObject {
 		$table = DatabaseObject::tablename(Price::$table);
 		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
 
-		// Delete specs
-		$table = DatabaseObject::tablename(Spec::$table);
-		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
-		
 		// Delete images/files
 		$table = DatabaseObject::tablename(ProductImage::$table);
 
@@ -589,7 +586,8 @@ class Product extends DatabaseObject {
 		foreach ($src as $img) $images[] = $img->id;
 		$this->delete_images($images);
 		
-		// Delete product downloads (but keep the file if on file system)
+		// Delete product meta (specs, images, downloads)
+		$table = DatabaseObject::tablename(MetaObject::$table);
 		$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND context='product'");
 
 		// Delete record

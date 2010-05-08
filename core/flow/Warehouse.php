@@ -147,7 +147,7 @@ class Warehouse extends AdminController {
 	 * @return void
 	 **/
 	function products ($workflow=false) {
-		global $Products;
+		global $Shopp,$Products;
 		$db = DB::get();
 		$Settings = &ShoppSettings();
 
@@ -423,9 +423,12 @@ class Warehouse extends AdminController {
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 		$Product->updates($_POST,array('categories','prices'));
 		$Product->save();
+
+		if (!empty($_POST['categories']))
+			$Product->save_categories($_POST['categories']);
 		
-		$Product->save_categories($_POST['categories']);
-		$Product->save_tags(explode(",",$_POST['taglist']));
+		if (!empty($_POST['taglist']))
+			$Product->save_tags(explode(",",$_POST['taglist']));
 		
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 
