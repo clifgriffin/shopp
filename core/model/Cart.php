@@ -923,7 +923,7 @@ class CartPromotions {
 		if (!empty($this->promotions)) return true;
 		
 		$_table = DatabaseObject::tablename(Promotion::$table);
-		$query = "SELECT * FROM $_table WHERE (scope='Cart' OR scope='Cart Item')
+		$query = "SELECT * FROM $_table WHERE (target='Cart' OR target='Cart Item')
 					AND ((status='enabled' 
 					AND UNIX_TIMESTAMP(starts) > 0 
 					AND UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP() 
