@@ -310,6 +310,9 @@ class Service extends AdminController {
 			$mailstatus = false;
 			if ($_POST['notify'] == "yes") {
 				$labels = $this->Settings->get('order_status');
+				// Save a reference to this purchase in Shopp 
+				// so the Template API works when generating the receipt
+				$Shopp->Purchase =& $Purchase;
 				
 				// Send the e-mail notification
 				$addressee = "$Purchase->firstname $Purchase->lastname";
@@ -326,7 +329,7 @@ class Service extends AdminController {
 				$email['sitename'] = get_bloginfo('name');
 
 				if ($_POST['receipt'] == "yes")
-					$email['receipt'] = $this->order_receipt();
+					$email['receipt'] = $Purchase->receipt();
 
 				$email['status'] = strtoupper($labels[$Purchase->status]);
 				$email['message'] = wpautop(stripslashes($_POST['message']));
