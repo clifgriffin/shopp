@@ -211,6 +211,7 @@ function currency_format ($format=false) {
 	if ($format !== false) return array_merge($default,$format);
 	$Settings = &ShoppSettings();
 	$locale = $Settings->get('base_operations');
+	if (empty($locale['currency']['format']['currency'])) return $default;
 	return array_merge($default,$locale['currency']['format']);
 }
 
