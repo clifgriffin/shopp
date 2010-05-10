@@ -11,13 +11,16 @@ body { position:relative; }
 .shopp input.right { text-align:right; }
 .shopp label .error { display:inline-block;margin-top:5px;padding:0 0.6em; }
 
+.shopp table td.featured { text-align: center; }
 .shopp table td.spectemplates { background:url('../icons/templates.png') no-repeat center center; }
 .shopp table td.facetedmenus { background:url('../icons/menus.png') no-repeat center center; }
 
 
-#products-manager button.feature { display:block;padding: 4px; border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left top; }
+#products-manager button.feature { display:block;padding: 4px; border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left top; margin: 0 auto; }
 #products-manager button.feature:hover { border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left -20px; }
 #products-manager button.featured { border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left -40px; }
+
+#products-manager select.filters { max-width: 150px; }
 
 /* AJAX-related */
 .shopp .updating { background-image:url('../icons/updating.gif');background-repeat:no-repeat; }
@@ -32,6 +35,7 @@ body { position:relative; }
 #welcome ul li { margin-top:18px; }
 
 /* List managers */
+h2 a.add-new { font-style: normal; margin: 0px 6px; position: relative; top: -3px; font-family:'Lucida Grande',Verdana,Arial,'Bitstream Vera Sans',sans-serif;text-transform:none;}
 .row-actions { visibility:hidden;padding:2px 0 0; }
 tr:hover .row-actions,
 div.comment-item:hover .row-actions { visibility:visible; }
