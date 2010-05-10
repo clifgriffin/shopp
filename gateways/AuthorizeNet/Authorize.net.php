@@ -32,8 +32,11 @@ class AuthorizeNet extends GatewayFramework implements GatewayModule {
 	function process () {
 		$transaction = $this->build();
 		$Response = $this->send($transaction);
-		if ($Response->code == '1') {
+		if ($Response->code == '1') { // success
 			$this->Order->transaction($this->txnid($Response),'CHARGED');
+			return;
+		} elseif ($Response->code == '4') { // flagged for merchant review or risk management
+			$this->Order->transaction($this->txnid($Response),'PENDING');
 			return;
 		} else $this->error($Response);
 	}
