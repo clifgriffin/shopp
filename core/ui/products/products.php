@@ -1,11 +1,13 @@
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<h2><?php _e('Products','Shopp'); ?></h2>
+	<h2><?php _e('Products','Shopp'); ?><a href="<?php echo add_query_arg(array('page'=>$this->Admin->pagename('products'),'id'=>'new'),admin_url('admin.php')); ?>" class="button add-new"><?php _e('Add New'); ?></a></h2>
 
 	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
 
 	<form action="" method="get" id="products-manager">
+	<?php include("navigation.php"); ?>
+
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('products'); ?>" />
 	</div>
@@ -15,16 +17,15 @@
 		<input type="submit" value="<?php _e('Search Products','Shopp'); ?>" class="button" />
 	</p>
 	
-	<p><a href="<?php echo add_query_arg(array('page'=>$this->Admin->pagename('products'),'id'=>'new'),admin_url('admin.php')); ?>" class="button"><?php _e('New Product','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
-		<div class="alignleft actions">
+		<div class="alignleft actions filters">
 		<button type="submit" id="delete-button" name="deleting" value="product" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
-		<select name='cat'>
+		<select name="cat" class="filters">
 		<?php echo $categories_menu; ?>
 		</select>
-		<select name='sl'>
+		<select name="sl" class="filters">
 		<?php echo $inventory_menu; ?>
 		</select>
 		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary">

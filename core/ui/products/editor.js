@@ -53,14 +53,14 @@ jQuery(document).ready(function() {
 	else Pricelines.add(false,false,'#product-pricing');
 	
 	// Initialize variations
-	$('#variations-setting').bind('click.variations',variationsToggle).trigger('click.variations');
+	$('#variations-setting').bind('click.variations',variationsToggle);
 	loadVariations((!options.v && !options.a)?options:options.v,prices);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
 	$('#linkOptionVariations').click(linkVariationsButton).change(linkVariationsButtonLabel);
 
 	// Initialize Add-ons
-	$('#addons-setting').bind('click.addons',addonsToggle).trigger('click.addons');
+	$('#addons-setting').bind('click.addons',addonsToggle);
 	$('#newAddonGroup').click(function() { newAddonGroup(); });
 	if (options.a) loadAddons(options.a,prices);
 

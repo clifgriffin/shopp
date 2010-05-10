@@ -32,8 +32,8 @@ class Warehouse extends AdminController {
 			wp_enqueue_script('postbox');
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');
+				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 11 );
 				wp_enqueue_script('quicktags');
-				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 25 );
 			}
 			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('editors');
@@ -192,6 +192,14 @@ class Warehouse extends AdminController {
 			$inventory_menu = menuoptions($inventory_filters,$sl,true);
 		}
 		
+		$subfilters = array('f' => 'featured','p' => 'published','s' => 'onsale');
+		$subs = array(
+			'all' => array('label' => __('All','Shopp'),'columns' => "count(distinct pd.id) AS total",'where'=>'true','total' => $productcount->total),
+			'published' => array('label' => __('Published','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.published='on'",'request' => 'p'),
+			'onsale' => array('label' => __('On Sale','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pt.sale='on'",'request' => 's'),
+			'featured' => array('label' => __('Featured','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.featured='on'",'request' => 'f')
+		);
+		
 		$pagenum = absint( $pagenum );
 		if ( empty($pagenum) )
 			$pagenum = 1;
@@ -227,8 +235,7 @@ class Warehouse extends AdminController {
 				$having = "HAVING COUNT(cat.id) = 0";
 			} else {
 				$matchcol .= ", GROUP_CONCAT(DISTINCT cat.id ORDER BY cat.id SEPARATOR ',') AS catids";
-				$where .= " AND (clog.category != 0 OR clog.id IS NULL)";	
-				$having = "HAVING FIND_IN_SET('$cat',catids) > 0";
+				$where .= " AND cat.id IN (SELECT parent FROM $clog WHERE parent=$cat AND type='category')";	
 			}
 		}
 		if (!empty($sl)) {
@@ -247,16 +254,28 @@ class Warehouse extends AdminController {
 			}
 		}
 		
+		if (!empty($f))	$where .= " AND ".$subs[$subfilters[$f]]['where'];
+		
 		$base = $Settings->get('base_operations');
 		if ($base['vat']) $taxrate = shopp_taxrate();
 		if (empty($taxrate)) $taxrate = 0;
 		
 		$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,pd.variations,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories,if(pt.options=0,IF(pt.tax='off',pt.price,pt.price+(pt.price*$taxrate)),-1) AS mainprice,IF(MAX(pt.tax)='off',MAX(pt.price),MAX(pt.price+(pt.price*$taxrate))) AS maxprice,IF(MAX(pt.tax)='off',MIN(pt.price),MIN(pt.price+(pt.price*$taxrate))) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
 		if ($workflow) $columns = "pd.id";
+
 		// Load the products
-		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
+		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
 		$Products = $db->query($query,AS_ARRAY);
 		$productcount = $db->query("SELECT FOUND_ROWS() as total");
+				
+		foreach ($subs as $name => &$subquery) {
+			$columns = $subquery['columns'];
+			if (!empty($f)) $where = str_replace(" AND ".$subs[$subfilters[$f]]['where'],"",$where);
+			$w = ($where == "true")?$subquery['where']:"$where AND ({$subquery['where']})";
+			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.category WHERE $w $having";
+			$result = $db->query($query);
+			$subquery['total'] = (int)$result->total;
+		}
 
 		$num_pages = ceil($productcount->total / $per_page);
 		$page_links = paginate_links( array(
