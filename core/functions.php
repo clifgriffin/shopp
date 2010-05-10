@@ -465,7 +465,7 @@ function floatvalue($value, $format=false) {
 	if ($precision > 0) // Don't convert decimals if not required
 		$value = preg_replace("/\\".$decimals."/",".",$value); // Convert decimal delimter
 
-	return round(floatval($value),$precision,PHP_ROUND_HALF_EVEN);
+	return round(floatval($value),$precision);
 }
 
 /**
@@ -822,7 +822,7 @@ function phone ($num) {
 function percentage ($amount,$format=false) {
 	$format = currency_format($format);
 	if (isset($format['indian'])) return indian_number($amount,$format);
-	return number_format(round($amount,$format['precision'], PHP_ROUND_HALF_EVEN), $format['precision'], $format['decimals'], $format['thousands']).'%';
+	return number_format(round($amount,$format['precision']), $format['precision'], $format['decimals'], $format['thousands']).'%';
 }
 
 /**
