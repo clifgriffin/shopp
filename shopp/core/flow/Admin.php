@@ -126,17 +126,22 @@ class AdminFlow extends FlowController {
 	function menus () {
 		global $Shopp;
 		
+		
+		$access = defined('SHOPP_USERLEVEL') ? 
+			SHOPP_USERLEVEL:$this->caps['main'];
+
+		if ($this->maintenance()) $access = 'manage_options';
+		
 		// Add the main Shopp menu
 		$this->Menus['main'] = add_object_page(
 			'Shopp',									// Page title
 			'Shopp',									// Menu title
-			defined('SHOPP_USERLEVEL') ? 
-			SHOPP_USERLEVEL:$this->caps['main'],		// Access level
+			$access,									// Access level
 			$this->MainMenu,							// Page
 			array(&$Shopp->Flow,'parse'),				// Handler
 			"$Shopp->uri/core/ui/icons/shopp.png"		// Icon
 		);
-		
+
 		if ($this->maintenance()) {
 			add_action("admin_enqueue_scripts", array(&$this, 'behaviors'));
 			return add_action('toplevel_page_shopp-orders',array(&$this,'reactivate'));
@@ -152,16 +157,6 @@ class AdminFlow extends FlowController {
 		foreach ($this->Menus as $pagename => $menu) $this->help($pagename,$menu);
 		
 	}
-	
-	function dbwarning () {?>
-		<div class="wrap">
-			<h2><?php _e('Shopp Upgrade','Shopp'); ?></h2>
-			<div class="error">
-			<p><?php _e('Your Shopp database is out-of-date and needs to be updated.','Shopp'); ?></p>
-			<p><?php _e('Please deactivate Shopp and re-activate from the WordPress plugin manager to upgrade your database.','Shopp'); ?></p>
-			</div>
-		</div>
-<?php }
 	
 	/**
 	 * Registers a new page to the Shopp admin pages

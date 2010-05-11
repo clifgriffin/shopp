@@ -157,10 +157,17 @@ class Storefront extends FlowController {
 		$this->shortcodes['category'] = array(&$this,'category_shortcode');
 
 		foreach ($this->shortcodes as $name => &$callback)
-			if ($this->Settings->get("maintenance") == "on" || $this->Settings->unavailable)
+			if ($this->Settings->get("maintenance") == "on" || $this->Settings->unavailable || $this->maintenance())
 				add_shortcode($name,array(&$this,'maintenance_shortcode'));
 			else add_shortcode($name,$callback);
 		
+	}
+	
+	function maintenance () {
+		$Settings = &ShoppSettings();
+		$db_version = intval($Settings->get('db_version'));
+		if ($db_version != DB::$version) return true;
+		return false;
 	}
 	
 	/**
