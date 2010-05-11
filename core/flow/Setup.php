@@ -372,48 +372,6 @@ class Setup extends FlowController {
 
 		add_action('storage_module_settings',array(&$this,'storage_ui'));
 
-		$error = false;
-		chdir(WP_CONTENT_DIR);
-		
-		// Image path processing
-		if (isset($_POST['settings']) && isset($_POST['settings']['image_storage_pref'])) 
-			$_POST['settings']['image_storage'] = $_POST['settings']['image_storage_pref'];
-		$imagepath = sanitize_path(realpath($this->Settings->get('image_path')));
-		if (isset($_POST['settings']['products_path'])) {
-			$imagepath = $_POST['settings']['image_path'];
-			$imagepath = sanitize_path(realpath($imagepath));
-		}
-		$imagepath_status = __("File system image hosting is enabled and working.","Shopp");
-		if (!file_exists($imagepath)) $error = __("The current path does not exist. Using database instead.","Shopp");
-		if (!is_dir($imagepath)) $error = __("The file path supplied is not a directory. Using database instead.","Shopp");
-		if (!is_writable($imagepath) || !is_readable($imagepath)) 
-			$error = __("Permissions error. This path must be writable by the web server. Using database instead.","Shopp");
-		if (empty($imagepath)) $error = __("Enter the absolute path starting from the root of the server file system to your image storage directory.","Shopp");
-		if ($error) {
-			$_POST['settings']['image_storage'] = 'db';
-			$imagepath_status = '<span class="error">'.$error.'</span>';
-		}
-
-		// Product path processing
-		if (isset($_POST['settings']) && isset($_POST['settings']['product_storage_pref']))
-		 	$_POST['settings']['product_storage'] = $_POST['settings']['product_storage_pref'];
-		$productspath = sanitize_path(realpath($this->Settings->get('products_path')));
-		if (isset($_POST['settings']['products_path'])) {
-			$productspath = $_POST['settings']['products_path'];
-			$productspath = sanitize_path(realpath($productspath));
-		}
-		$error = ""; // Reset the error tracker
-		$productspath_status = __("File system product file hosting is enabled and working.","Shopp");
-		if (!file_exists($productspath)) $error = __("The current path does not exist. Using database instead.","Shopp");
-		if (!is_dir($productspath)) $error = __("The file path supplied is not a directory. Using database instead.","Shopp");
-		if (!is_writable($productspath) || !is_readable($productspath)) 
-			$error = __("Permissions error. This path must be writable by the web server. Using database instead.","Shopp");
-		if (empty($productspath)) $error = __("Enter the absolute path starting from the root of the server file system to your product file storage directory.","Shopp");
-		if ($error) {
-			$_POST['settings']['product_storage'] = 'db';
-			$productspath_status = '<span class="error">'.$error.'</span>';
-		}
-
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-system');
 			
