@@ -64,6 +64,9 @@ class ImageProcessor {
 			ImageFill($this->processed,0,0,$matte);
 		}
 
+		$this->width = $width;
+		$this->height = $height;
+
 		ImageCopyResampled(
 			$this->processed,$this->src->image,
 			$dx, $dy, 								// dest_x, dest_y
@@ -71,7 +74,6 @@ class ImageProcessor {
 			$width, $height, 						// dest_width, dest_height
 			$this->src->width, $this->src->height	// src_width, src_height
 		);
-		
 	}
 	
 	function _proportionalWidth ($height) {
