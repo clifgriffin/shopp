@@ -117,16 +117,37 @@ class FSStorage extends StorageModule implements StorageEngine {
 	}
 	
 	function settings () {
+		$error = false;
+
+		$default = __('The file system path to your storage directory.','Shopp');
+		$label = array('image' => $default,'download'=>$default);
+
+		chdir(WP_CONTENT_DIR);
+
+		foreach ($this->settings['path'] as $method => $path) {
+			$error = false;
+			$p = sanitize_path(realpath($path));
+
+				if	(empty($path)) continue;
+			elseif	(!file_exists($p)) $error = __("The path does not exist.","Shopp");
+			elseif	(!is_dir($p)) $error = __("The path supplied is not a directory.","Shopp");
+			elseif	(!is_writable($p)) $error = __("The path must be <strong>writable</strong> by the web server.","Shopp");
+			elseif	(!is_readable($p)) $error = __("The path must be <strong>readable</strong> by the web server.","Shopp");
+
+			if ($error !== false)
+				$label[$method] = '<span class="error">'.$error.'</span>';
+			
+		}
+		
 		$this->ui->text(0,array(
 			'name' => 'path',
 			'value' => $this->settings['path'],
 			'size' => 40,
-			'label' => __('The file system path to your storage directory.','Shopp')
+			'label' => $label
 		));
 		
 	}
 	
-
 } // END class FSStorage
 
 ?>

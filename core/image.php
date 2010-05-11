@@ -108,6 +108,7 @@ class ImageServer extends DatabaseObject {
 				'name'=>'cache_'.implode('_',$this->parameters)
 		));
 
+		// print_r($Cached);
 		// Use the cached version if it exists, otherwise resize the image
 		if (!empty($Cached->id)) $this->Image = $Cached;
 		else $this->resize(); // No cached copy exists, recreate
@@ -140,15 +141,18 @@ class ImageServer extends DatabaseObject {
 		$ResizedImage->context = 'image';
 		$ResizedImage->mime = "image/jpeg";
 		$ResizedImage->id = false;
+		$ResizedImage->width = $Resized->width;
+		$ResizedImage->height = $Resized->height;
 
 		$ResizedImage->data = $Resized->imagefile($this->quality);
 		if (empty($ResizedImage->data)) return false;
 		
 		$ResizedImage->size = strlen($ResizedImage->data);
-		$ResizedImage->store( $ResizedImage->data );
+		$this->Image = $ResizedImage;
+		if ($ResizedImage->store( $ResizedImage->data ) === false) 
+			return false;
 		
 		$ResizedImage->save();
-		$this->Image = $ResizedImage;
 		
 	}
 

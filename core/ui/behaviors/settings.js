@@ -138,6 +138,7 @@ function ModuleSetting (module,name,label,multi) {
 	
 	_.storage = function () {
 		$.each(_.settings,function (id,element) {
+			element.attrs.setting = _.setting;
 			var markup,input = new SettingInput(_.module,element.attrs,element.options);
 			input.name += '['+_.setting+']';
 			input.id += '-'+_.setting;
@@ -154,6 +155,7 @@ function ModuleSetting (module,name,label,multi) {
 					else input.selected = 0;
 				} else input.selected = element.attrs.selected;
 			} else input.selected = 0;
+			
 			
 			markup = input.generate();
 			$(markup).appendTo(_.element);
@@ -209,7 +211,9 @@ function SettingInput (module,attrs,options,method) {
 	if (method !== undefined ) _.id += '-'+method;
 	_.options = options;
 	_.content = (attrs.content)?attrs.content:'';
-	_.label = (attrs.label)?attrs.label:false;	
+	_.label = (attrs.label)?attrs.label:false;
+	if (_.label instanceof Object && attrs.setting)
+		_.label = attrs.label[attrs.setting];	
 	
 	_.generate = function () {
 		if (!_.name) return;
