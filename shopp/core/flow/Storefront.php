@@ -342,9 +342,10 @@ class Storefront extends FlowController {
 
 	function catalog () {
 		global $Shopp,$wp;
+		
 		$options = array();
-
-		// add_filter('redirect_canonical','cancel_canonical_redirect');
+		
+		add_filter('redirect_canonical','canonical_home');
 
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&
@@ -448,6 +449,25 @@ class Storefront extends FlowController {
 		add_action('wp_head', array(&$this, 'feeds'));
 	}
 
+	/**
+	 * Cancels canonical redirects when the catalog is Set as the front page
+	 *
+	 * Added for WordPress 3.0 compatibility {@see wp-includes/canonical.php line 111}
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $redirect The redirected URL
+	 * @return mixed False when the Shopp catalog is set as the front page
+	 **/
+	function canonical_home ($redirect) {
+		$pages = $this->Settings->get('pages');
+		if (!function_exists('home_url')) return $redirect;
+		if ($redirect == home_url('/') && $pages['catalog']['id'] == get_option('page_on_front'))
+			return false;
+		return $redirect;
+	}
+	
 	function catalog_page () {
 		global $Shopp;
 		if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
