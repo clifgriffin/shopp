@@ -181,7 +181,6 @@ class Shopp {
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_action('save_post', array(&$this, 'pages_index'),10,2);
 		add_filter('query_vars', array(&$this,'queryvars'));
-		add_filter('redirect_canonical', array(&$this,'canonical_home'));
 		
 		// Extras & Integrations
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
@@ -189,25 +188,6 @@ class Shopp {
 		if (!wp_next_scheduled('shopp_check_updates'))
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
 
-	}
-	
-	/**
-	 * Cancels canonical redirects when the catalog is Set as the front page
-	 *
-	 * Added for WordPress 3.0 compatibility {@see wp-includes/canonical.php line 111}
-	 * 
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 * 
-	 * @param string $redirect The redirected URL
-	 * @return mixed False when the Shopp catalog is set as the front page
-	 **/
-	function canonical_home ($redirect) {
-		$pages = $this->Settings->get('pages');
-
-		if ($redirect == home_url('/') && $pages['catalog']['id'] == get_option('page_on_front'))
-			return false;
-		return $redirect;
 	}
 	
 	/**
