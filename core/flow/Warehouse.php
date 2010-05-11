@@ -44,6 +44,8 @@ class Warehouse extends AdminController {
 			shopp_enqueue_script('shopp-swfupload-queue');
 			
 			add_action('admin_head',array(&$this,'layout'));
+		} elseif (!empty($_GET['f']) && $_GET['f'] == 'i') {
+			add_action('admin_print_scripts',array(&$this,'inventory_cols'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
 		
@@ -192,13 +194,16 @@ class Warehouse extends AdminController {
 			$inventory_menu = menuoptions($inventory_filters,$sl,true);
 		}
 		
-		$subfilters = array('f' => 'featured','p' => 'published','s' => 'onsale');
+		$subfilters = array('f' => 'featured','p' => 'published','s' => 'onsale','i' => 'inventory');
 		$subs = array(
 			'all' => array('label' => __('All','Shopp'),'columns' => "count(distinct pd.id) AS total",'where'=>'true','total' => $productcount->total),
 			'published' => array('label' => __('Published','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.published='on'",'request' => 'p'),
 			'onsale' => array('label' => __('On Sale','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pt.sale='on'",'request' => 's'),
-			'featured' => array('label' => __('Featured','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.featured='on'",'request' => 'f')
+			'featured' => array('label' => __('Featured','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.featured='on'",'request' => 'f'),
+			'inventory' => array('label' => __('Inventory','Shopp'),'total' => 0,'columns' => "count(distinct pt.id) AS total",'where'=>"pt.inventory='on' AND pt.type!='N/A'",'request' => 'i')
 		);
+		
+		if ('i' == $f) $per_page = 50;
 		
 		$pagenum = absint( $pagenum );
 		if ( empty($pagenum) )
@@ -255,18 +260,29 @@ class Warehouse extends AdminController {
 		}
 		
 		if (!empty($f))	$where .= " AND ".$subs[$subfilters[$f]]['where'];
-		
+
 		$base = $Settings->get('base_operations');
 		if ($base['vat']) $taxrate = shopp_taxrate();
 		if (empty($taxrate)) $taxrate = 0;
 		
-		$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,pd.variations,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories,if(pt.options=0,IF(pt.tax='off',pt.price,pt.price+(pt.price*$taxrate)),-1) AS mainprice,IF(MAX(pt.tax)='off',MAX(pt.price),MAX(pt.price+(pt.price*$taxrate))) AS maxprice,IF(MAX(pt.tax)='off',MIN(pt.price),MIN(pt.price+(pt.price*$taxrate))) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
-		if ($workflow) $columns = "pd.id";
+		if ('i' == $f) {
+			$columns = "SQL_CALC_FOUND_ROWS pt.id,pd.name,pd.slug,pt.label,pt.optionkey,pt.stock,pt.sku";
 
-		// Load the products
-		$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
-		$Products = $db->query($query,AS_ARRAY);
-		$productcount = $db->query("SELECT FOUND_ROWS() as total");
+			// Load the products
+			$query = "SELECT $columns $matchcol FROM $pt AS pt LEFT JOIN $pd AS pd ON pd.id=pt.product LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pt.id $having ORDER BY $orderby LIMIT $start,$per_page";
+			$Products = $db->query($query,AS_ARRAY);
+			$productcount = $db->query("SELECT FOUND_ROWS() as total");
+			
+		} else {
+			$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,pd.variations,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories,if(pt.options=0,IF(pt.tax='off',pt.price,pt.price+(pt.price*$taxrate)),-1) AS mainprice,IF(MAX(pt.tax)='off',MAX(pt.price),MAX(pt.price+(pt.price*$taxrate))) AS maxprice,IF(MAX(pt.tax)='off',MIN(pt.price),MIN(pt.price+(pt.price*$taxrate))) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/count(DISTINCT clog.id),0) AS stock";
+			if ($workflow) $columns = "pd.id";
+
+			// Load the products
+			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
+			$Products = $db->query($query,AS_ARRAY);
+			$productcount = $db->query("SELECT FOUND_ROWS() as total");
+			
+		}
 				
 		foreach ($subs as $name => &$subquery) {
 			$columns = $subquery['columns'];
@@ -284,6 +300,11 @@ class Warehouse extends AdminController {
 			'total' => $num_pages,
 			'current' => $pagenum,
 		));
+
+		if ('i' == $f) {
+			include(SHOPP_ADMIN_PATH."/products/inventory.php");
+			return;
+		}
 
 		if ($workflow) return $Products;
 		
@@ -307,6 +328,14 @@ class Warehouse extends AdminController {
 		);
 	}	
 	
+	function inventory_cols () {
+		register_column_headers('shopp_page_shopp-products', array(
+			'inventory'=>__('Inventory','Shopp'),
+			'sku'=>__('SKU','Shopp'),
+			'name'=>__('Name','Shopp'))
+		);
+	}
+		
 	/**
 	 * Provides overall layout for the product editor interface
 	 *
