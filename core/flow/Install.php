@@ -427,6 +427,24 @@ class ShoppInstallation extends FlowController {
 		$promo_table = DatabaseObject::tablename('promo');
 		$records = $db->query("UPDATE $promo_table SET target='Cart' WHERE scope='Order'",AS_ARRAY);
 		
+		$FSStorage = array('path' => array());
+		// Migrate Asset storage settings
+		$image_storage = $this->Settings->get('image_storage_pref');
+		if ($image_storage == "fs") {
+			$image_storage = "FSStorage";
+			$FSStorage['path']['image'] = $this->Settings->get('image_path');
+		} else $image_storage = "DBStorage";
+		$this->Settings->save('image_storage',$image_storage);
+
+		$product_storage = $this->Settings->get('product_storage_pref');
+		if ($product_storage == "fs") {
+			$product_storage = "FSStorage";
+			$FSStorage['path']['download'] = $this->Settings->get('products_path');
+		} else $product_storage = "DBStorage";
+		$this->Settings->save('product_storage',$product_storage);
+		
+		if (!empty($FSStorage['path'])) $this->Settings->save('FSStorage',$FSStorage);
+		
 		$this->roles(); // Setup Roles and Capabilities
 		
 	}
