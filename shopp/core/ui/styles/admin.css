@@ -16,11 +16,17 @@ body { position:relative; }
 .shopp table td.facetedmenus { background:url('../icons/menus.png') no-repeat center center; }
 
 
+/* Product Manager */
 #products-manager button.feature { display:block;padding: 4px; border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left top; margin: 0 auto; }
 #products-manager button.feature:hover { border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left -20px; }
 #products-manager button.featured { border: none;width: 16px;height: 16px; background:url('../icons/featured.png') no-repeat left -40px; }
-
 #products-manager select.filters { max-width: 150px; }
+
+/* Inventory Manager */
+#inventory-manager td.inventory { width: 60px; }
+#inventory-manager td.inventory input { text-align: right; }
+#inventory-manager td.inventory input.updating { background-position: 3px 3px; }
+
 
 /* AJAX-related */
 .shopp .updating { background-image:url('../icons/updating.gif');background-repeat:no-repeat; }

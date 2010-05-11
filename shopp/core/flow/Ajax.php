@@ -55,6 +55,7 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_suggestions',array(&$this,'suggestions'));
 		add_action('wp_ajax_shopp_upload_local_taxes',array(&$this,'upload_local_taxes'));
 		add_action('wp_ajax_shopp_feature_product',array(&$this,'feature_product'));
+		add_action('wp_ajax_shopp_update_inventory',array(&$this,'update_inventory'));
 		
 	}
 
@@ -417,6 +418,17 @@ class AjaxFlow {
 		else $Product->featured = "on";
 		$Product->save();
 		echo $Product->featured;
+		exit();
+	}
+	
+	function update_inventory () {
+		check_admin_referer('wp_ajax_shopp_update_inventory');
+		$Priceline = new Price($_GET['id']);
+		if ($Priceline->inventory != "on") die('0');
+		if ((int)$_GET['stock'] < 0) die('0');
+		$Priceline->stock = $_GET['stock'];
+		$Priceline->save();
+		echo "1";
 		exit();
 	}
 		
