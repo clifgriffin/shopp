@@ -269,7 +269,7 @@ class Warehouse extends AdminController {
 			$columns = "SQL_CALC_FOUND_ROWS pt.id,pd.name,pd.slug,pt.label,pt.optionkey,pt.stock,pt.sku";
 
 			// Load the products
-			$query = "SELECT $columns $matchcol FROM $pt AS pt LEFT JOIN $pd AS pd ON pd.id=pt.product LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pt.id $having ORDER BY $orderby LIMIT $start,$per_page";
+			$query = "SELECT $columns $matchcol FROM $pt AS pt LEFT JOIN $pd AS pd ON pd.id=pt.product LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pt.id $having ORDER BY pd.id,pt.sortorder LIMIT $start,$per_page";
 			$Products = $db->query($query,AS_ARRAY);
 			$productcount = $db->query("SELECT FOUND_ROWS() as total");
 			
