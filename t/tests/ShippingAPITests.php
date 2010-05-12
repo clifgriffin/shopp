@@ -17,22 +17,22 @@ class ShippingAPITests extends ShoppTestCase {
 
 	function test_shipping_hasestimates () {
 		global $Shopp;
-		$Shopp->Cart->clear();
+		$Shopp->Order->Cart->clear();
 	
 		$Product = new Product(81); $Price = false;
-		$Shopp->Cart->add(1,$Product,$Price,false);
-		$Shopp->Cart->totals();
+		$Shopp->Order->Cart->add(1,$Product,$Price,false);
+		$Shopp->Order->Cart->totals();
 		$this->assertTrue(shopp('shipping','hasestimates'));
 		
 	}
 
 	function test_shipping_methodname () {
 		global $Shopp;
-		$Shopp->Cart->clear();
+		$Shopp->Order->Cart->clear();
 	
 		$Product = new Product(81); $Price = false;
-		$Shopp->Cart->add(1,$Product,$Price,false);
-		$Shopp->Cart->totals();
+		$Shopp->Order->Cart->add(1,$Product,$Price,false);
+		$Shopp->Order->Cart->totals();
 		
 		ob_start();
 		if (shopp('shipping','hasestimates'))
@@ -45,11 +45,11 @@ class ShippingAPITests extends ShoppTestCase {
 
 	function test_shipping_methodcost () {
 		global $Shopp;
-		$Shopp->Cart->clear();
+		$Shopp->Order->Cart->clear();
 	
 		$Product = new Product(81); $Price = false;
-		$Shopp->Cart->add(1,$Product,$Price,false);
-		$Shopp->Cart->totals();
+		$Shopp->Order->Cart->add(1,$Product,$Price,false);
+		$Shopp->Order->Cart->totals();
 		
 		ob_start();
 		if (shopp('shipping','hasestimates'))
@@ -62,11 +62,11 @@ class ShippingAPITests extends ShoppTestCase {
 
 	function test_shipping_methodselector () {
 		global $Shopp;
-		$Shopp->Cart->clear();
+		$Shopp->Order->Cart->clear();
 	
 		$Product = new Product(81); $Price = false;
-		$Shopp->Cart->add(1,$Product,$Price,false);
-		$Shopp->Cart->totals();
+		$Shopp->Order->Cart->add(1,$Product,$Price,false);
+		$Shopp->Order->Cart->totals();
 		
 		ob_start();
 		if (shopp('shipping','hasestimates')) shopp('shipping','methods');
@@ -83,11 +83,11 @@ class ShippingAPITests extends ShoppTestCase {
 	
 	function test_shipping_methoddelivery () {
 		global $Shopp;
-		$Shopp->Cart->clear();
+		$Shopp->Order->Cart->clear();
 	
 		$Product = new Product(81); $Price = false;
-		$Shopp->Cart->add(1,$Product,$Price,false);
-		$Shopp->Cart->totals();
+		$Shopp->Order->Cart->add(1,$Product,$Price,false);
+		$Shopp->Order->Cart->totals();
 		
 		ob_start();
 		if (shopp('shipping','hasestimates')) shopp('shipping','methods');
