@@ -60,11 +60,11 @@ class CheckoutAPITests extends ShoppTestCase {
 	
 	function test_checkout_cartsummary () {
 		global $Shopp;
-		$Shopp->Cart->clear();
+		$Shopp->Order->Cart->clear();
 	
 		$Product = new Product(81); $Price = false;
-		$Shopp->Cart->add(1,$Product,$Price,false);
-		$Shopp->Cart->totals();
+		$Shopp->Order->Cart->add(1,$Product,$Price,false);
+		$Shopp->Order->Cart->totals();
 
 		ob_start();
 		shopp('checkout','cart-summary');
@@ -84,7 +84,7 @@ class CheckoutAPITests extends ShoppTestCase {
 		global $Shopp;
 		$this->assertFalse(shopp('checkout','loggedin'));
 		$Account = new Customer();
-		$Shopp->Cart->loggedin($Account);
+		$Shopp->Order->Cart->loggedin($Account);
 		$this->assertTrue(shopp('checkout','loggedin'));
 	}
 	
