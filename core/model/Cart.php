@@ -301,6 +301,7 @@ class Cart {
 		$this->contents = array();
 		$this->promocodes = array();
 		$this->discounts = array();
+		if (isset($this->promocode)) unset($this->promocode);
 		$this->changed(true);
 		return true;
 	}
@@ -590,7 +591,6 @@ class Cart {
 			case "totalpromos": return count($this->discounts); break;
 			case "haspromos": return (count($this->discounts) > 0); break;
 			case "promos":
-			return false;
 				if (!$this->looping) {
 					reset($this->discounts);
 					$this->looping = true;
@@ -604,7 +604,7 @@ class Cart {
 				}
 			case "promo-name":
 				$discount = current($this->discounts);
-				return $discount->promo->name;
+				return $discount->name;
 				break;
 			case "promo-discount":
 				$discount = current($this->discounts);
@@ -613,10 +613,10 @@ class Cart {
 				$string = false;
 				if (!empty($options['before'])) $string = $options['before'];
 				
-				switch($discount->promo->type) {
+				switch($discount->type) {
 					case "Free Shipping": $string .= $Shopp->Settings->get('free_shipping_text'); break;
-					case "Percentage Off": $string .= percentage($promo->discount)." ".$options['label']; break;
-					case "Amount Off": $string .= money($promo->discount)." ".$options['label']; break;
+					case "Percentage Off": $string .= percentage($discount->discount,array('precision' => 0)).$options['label']; break;
+					case "Amount Off": $string .= money($discount->discount).$options['label']; break;
 					case "Buy X Get Y Free": return ""; break;
 				}
 				if (!empty($options['after'])) $string = $options['after'];
@@ -655,7 +655,7 @@ class Cart {
 		$result = "";
 		switch ($property) {
 			case "promos-available":
-				if ($Shopp->Promotions->available()) return false;
+				if (!$Shopp->Promotions->available()) return false;
 				// Skip if the promo limit has been reached
 				if ($Shopp->Settings->get('promo_limit') > 0 && 
 					count($this->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
@@ -668,9 +668,8 @@ class Cart {
 				if ($Shopp->Settings->get('promo_limit') > 0 && 
 					count($this->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
 				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code","Shopp");
-				$result .= '<ul><li>';
+				$result = '<ul><li>';
 				
-				$result = "";
 				if ($Shopp->Errors->exist()) {
 					$result .= '<p class="error">';
 					$errors = $Shopp->Errors->source('CartDiscounts');
@@ -688,7 +687,7 @@ class Cart {
 				// 		&& $this->Shipping); break;				
 			case "needs-shipped": return (!empty($this->shipped)); break;
 			case "hasshipcosts":
-			case "has-ship-costs": return false;//return ($this->Totals->shipping > 0); break;
+			case "has-ship-costs": return ($this->Totals->shipping > 0); break;
 			case "needs-shipping-estimates":
 				$markets = $Shopp->Settings->get('target_markets');
 				return (!empty($this->shipped) && ($this->showpostcode || count($markets) > 1));
@@ -776,7 +775,6 @@ class Cart {
 			$Item = current($this->contents);
 			if ($Item !== false) {
 				$id = key($this->contents);
-				if ($property == "id") return $id;
 				return $Item->tag($id,$property,$options);
 			}
 		} else return false;
@@ -1004,9 +1002,11 @@ class CartDiscounts {
 
 		$discount = 0;
 		foreach ($this->Cart->discounts as $Discount) {
-			foreach ($Discount->items as $id => $amount) {
-				if (isset($this->Cart->contents[$id]))
-					$this->Cart->contents[$id]->discount += $amount;
+			if (isset($Discount->items)) {
+				foreach ($Discount->items as $id => $amount) {
+					if (isset($this->Cart->contents[$id]))
+						$this->Cart->contents[$id]->discount += $amount;
+				}
 			}
 			$discount += $Discount->applied;
 		}
@@ -1144,7 +1144,9 @@ class CartDiscounts {
 					} // endforeach
 				} // end in_array
 			} // endforeach $promo->rules['item']
-		} else $promo->applied = $discount;
+		} else {
+			$promo->applied = $discount;	
+		}
 		
 		// Determine which promocode matched
 		$promocode_rules = array_filter($promo->rules,array(&$this,'_filter_promocode_rule'));
@@ -1156,13 +1158,17 @@ class CartDiscounts {
 			
 			if (Promotion::match_rule($subject,$logic,$promocode,$property)) {
 				// Prevent customers from reapplying codes
-				if (is_array($this->Cart->promocodes[$promocode]) && in_array($promo->id,$this->Cart->promocodes[$promocode])) {
+				if (isset($this->Cart->promocodes[$promocode]) 
+						&& is_array($this->Cart->promocodes[$promocode]) 
+						&& in_array($promo->id,$this->Cart->promocodes[$promocode])) {
 					new ShoppError(sprintf(__("%s has already been applied.","Shopp"),$value),'cart_promocode_used',SHOPP_ALL_ERR);
 					$this->Cart->promocode = false;
 					return false;
 				}
 				// Add the code to the registry
-				if (!is_array($this->Cart->promocodes[$promocode])) $this->Cart->promocodes[$promocode] = array();
+				if (!isset($this->Cart->promocodes[$promocode]) 
+					|| !is_array($this->Cart->promocodes[$promocode])) 
+					$this->Cart->promocodes[$promocode] = array();
 				else $this->Cart->promocodes[$promocode][] = $promo->id;
 				
 			}

@@ -803,7 +803,7 @@ function shopp () {
 		return $result;
 
 	// Output the result
-	if (is_string($result)) echo $result;
+	if (is_scalar($result)) echo $result;
 	else return $result;
 	return true;
 }

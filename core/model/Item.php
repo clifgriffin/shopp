@@ -58,6 +58,7 @@ class Item {
 	function __construct ($Product,$pricing,$category=false,$data=array(),$addons=array()) {
 		
 		$Product->load_data(array('prices','images','categories','tags','specs'));
+		
 		// If product variations are enabled, disregard the first priceline
 		if ($Product->variations == "on") array_shift($Product->prices);
 
@@ -65,13 +66,13 @@ class Item {
 		if (is_array($pricing)) {
 			$Price = $Product->pricekey[$Product->optionkey($pricing)];
 			if (empty($Price)) $Price = $Product->pricekey[$Product->optionkey($pricing,true)];
-		} elseif ($pricing) $Price = $Product->priceid[$pricing];
-		else {
+		} elseif ($pricing !== false) {
+			$Price = $Product->priceid[$pricing];
+		} else {
 			foreach ($Product->prices as &$Price)
 				if ($Price->type != "N/A" && 
 					(!$Price->stocked || 
 					($Price->stocked && $Price->stock > 0))) break;
-				
 		}
 		if (isset($Product->id)) $this->product = $Product->id;
 		if (isset($Price->id)) $this->priceline = $Price->id;
@@ -82,14 +83,15 @@ class Item {
 		$this->category = $category;
 		$this->categories = $this->namelist($Product->categories);
 		$this->tags = $this->namelist($Product->tags);
-		$this->option = $this->mapprice($Price,'variation');
+		if (isset($Price->id))
+			$this->option = $this->mapprice($Price,'variation');
 		$this->image = current($Product->images);
 		$this->description = $Product->summary;
 		if ($Product->variations == "on") 
 			$this->variations($Product->prices);
 			
 		$addonsum = 0;
-		if ($Product->addons == "on") 
+		if (isset($Product->addons) && $Product->addons == "on") 
 			$this->addons($addonsum,$addons,$Product->prices);
 		
 		$this->sku = $Price->sku;
