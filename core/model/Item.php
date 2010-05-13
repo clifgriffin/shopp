@@ -556,7 +556,7 @@ class Item {
 					$result .= $options['before'];
 					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';
 					$result .= ' <select name="items['.$id.'][price]" id="items-'.$id.'-price"'.$class.'>';
-					$result .= $this->options($this->price,$this->unittax);
+					$result .= $this->options($this->priceline,$this->unittax);
 					$result .= '</select>';
 					$result .= $options['after'];
 				}
@@ -617,16 +617,41 @@ class Item {
 				return $result;
 				break;
 			case "thumbnail":
-				$classes = false;
-				if (isset($options['class']) && !empty($options['class'])) $classes = ' class="'.esc_attr($options['class']).'"';
-				if (isset($this->thumbnail)) {
-					$img = $this->thumbnail;
-					$width = (isset($options['width']))?$options['width']:$img->properties['height'];
-					$height = (isset($options['height']))?$options['height']:$img->properties['height'];
+				$defaults = array(
+					'class' => '',
+					'width' => 48,
+					'height' => 48,
+					'fit' => false,
+					'sharpen' => false,
+					'quality' => false,
+					'bg' => false,
+					'alt' => false,
+					'title' => false
+				);
+				
+				$options = array_merge($defaults,$options);
+				extract($options);
 
-					return '<img src="'.$Shopp->imguri.$img->id.'" alt="'.esc_attr($this->name.' '.$img->datatype).'" width="'.$width.'" height="'.$height.'" '.$classes.' />'; break;
+				if (isset($this->image)) {
+					$img = $this->image;
+
+					$scale = (!$fit)?false:esc_attr($fit);
+					$sharpen = (!$sharpen)?false:esc_attr(min($sharpen,$img->_sharpen));
+					$quality = (!$quality)?false:esc_attr(min($quality,$img->_quality));
+					$fill = (!$bg)?false:esc_attr(hexdec(ltrim($bg,'#')));
+					$scaled = $img->scaled($width,$height,$scale);
+
+					$alt = empty($alt)?$img->alt:$alt;
+					$title = empty($title)?$img->title:$title;
+					$title = empty($title)?'':' title="'.esc_attr($title).'"';
+					$class = !empty($class)?' class="'.esc_attr($class).'"':'';
+
+					if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
+					$alt = esc_attr(!empty($img->alt)?$img->alt:$this->name);
+					return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; 
 				}
-			
+				break;
+				
 		}
 		if (!empty($result)) return $result;
 		

@@ -145,7 +145,7 @@ class Catalog extends DatabaseObject {
 		$pages = $Shopp->Settings->get('pages');
 		if (SHOPP_PERMALINKS) $path = $Shopp->shopuri;
 		else $page = add_query_arg('page_id',$pages['catalog']['id'],$Shopp->shopuri);		
-		
+
 		switch ($property) {
 			case "url": return $Shopp->link('catalog'); break;
 			case "display":

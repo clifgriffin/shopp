@@ -1147,21 +1147,35 @@ class Category extends DatabaseObject {
 				reset($this->images);
 				$img = current($this->images);
 				
-				$thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
-				$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
-				$width = (isset($options['width']))?$options['width']:$thumbwidth;
-				$height = (isset($options['height']))?$options['height']:$thumbheight;
-				$scale = empty($options['fit'])?false:array_search($options['fit']);
-				$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
-				$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
+				$defaults = array(
+					'class' => '',
+					'width' => 96,
+					'height' => 96,
+					'fit' => false,
+					'sharpen' => false,
+					'quality' => false,
+					'bg' => false,
+					'alt' => false,
+					'title' => false
+				);
+				
+				$options = array_merge($defaults,$options);
+				extract($options);
+				
+				$scale = (!$fit)?false:esc_attr($fit);
+				$sharpen = (!$sharpen)?false:esc_attr(min($sharpen,$img->_sharpen));
+				$quality = (!$quality)?false:esc_attr(min($quality,$img->_quality));
+				$fill = (!$bg)?false:esc_attr(hexdec(ltrim($bg,'#')));
 				$scaled = $img->scaled($width,$height,$scale);
-				
-				$alt = empty($options['alt'])?$img->alt:$options['alt'];
-				$title = empty($options['title'])?$img->title:$options['title'];
+
+				$alt = empty($alt)?$img->alt:$alt;
+				$title = empty($title)?$img->title:$title;
 				$title = empty($title)?'':' title="'.esc_attr($title).'"';
-				$class = isset($options['class'])?' class="'.esc_attr($options['class']).'"':'';
-				
-				return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality),$imageuri.$img->id).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; break;
+				$class = !empty($class)?' class="'.esc_attr($class).'"':'';
+
+				if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
+				$alt = esc_attr(!empty($img->alt)?$img->alt:$this->name);
+				return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; 
 				break;
 
 			case "hasimages":
@@ -1192,6 +1206,7 @@ class Category extends DatabaseObject {
 				$scale = empty($options['fit'])?false:array_search($options['fit']);
 				$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
 				$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
+				$fill = empty($options['bg'])?false:hexdec(ltrim($options['bg'],'#'));
 				$scaled = $img->scaled($width,$height,$scale);
 				
 				$alt = empty($options['alt'])?$img->alt:$options['alt'];
@@ -1201,7 +1216,7 @@ class Category extends DatabaseObject {
 
 				$string = "";				
 				if (!empty($options['zoom'])) $string .= '<a href="'.$imageuri.$img->id.'/image.jpg" class="gallery shopp-zoom">';
-				$string .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality),$imageuri.$img->id).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
+				$string .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$imageuri.$img->id).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;

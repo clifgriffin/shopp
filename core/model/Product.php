@@ -795,6 +795,7 @@ class Product extends DatabaseObject {
 					$scale = empty($options['fit'])?false:array_search($options['fit']);
 					$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
 					$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
+					$fill = empty($options['bg'])?false:hexdec(ltrim($options['bg'],'#'));
 					$scaled = $img->scaled($width,$height,$scale);
 
 					$alt = empty($options['alt'])?$img->alt:$options['alt'];
@@ -804,7 +805,7 @@ class Product extends DatabaseObject {
 
 					if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
 					$alt = esc_attr(!empty($img->alt)?$img->alt:$this->name);
-					return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" '.$options['class'].' />'; break;
+					return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" '.$options['class'].' />'; break;
 				} else return "";
 				break;
 			case "hasimages": 
@@ -845,6 +846,7 @@ class Product extends DatabaseObject {
 				$fit = empty($options['fit'])?false:array_search($options['fit'],$img->_scaling);
 				$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
 				$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
+				$fill = empty($options['bg'])?false:hexdec(ltrim($options['bg'],'#'));
 				$scaled = $img->scaled($width,$height,$fit);
 
 				$alt = empty($options['alt'])?$img->alt:$options['alt'];
@@ -855,7 +857,7 @@ class Product extends DatabaseObject {
 				$string = "";
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-zoom";
 				if (!empty($options['zoom'])) $string .= '<a href="'.$Shopp->imguri.$img->id.'/image.jpg" class="'.$options['zoomfx'].'" rel="product-gallery">';
-				$string .= '<img src="'.add_query_string($img->resizing($width,$height,$fit,$sharpen,$quality),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" '.$class.' />';
+				$string .= '<img src="'.add_query_string($img->resizing($width,$height,$fit,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" '.$class.' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;
@@ -883,10 +885,11 @@ class Product extends DatabaseObject {
 					$scale = empty($options['p.fit'])?false:array_search($options['p.fit']);
 					$sharpen = empty($options['p.sharpen'])?false:min($options['p.sharpen'],$img->_sharpen);
 					$quality = empty($options['p.quality'])?false:min($options['p.quality'],$img->_quality);
+					$fill = empty($options['p.bg'])?false:hexdec(ltrim($options['p.bg'],'#'));
 					$scaled = $img->scaled($width,$height,$scale);
 					if ($firstPreview) {
 						$previews .= '<li id="preview-fill"'.(($firstPreview)?' class="fill"':'').'>';
-						$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt="" width="'.$width.'" height="'.$height.'" />';
+						$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt=" " width="'.$width.'" height="'.$height.'" />';
 						$previews .= '</li>';
 					}
 					$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
@@ -896,7 +899,7 @@ class Product extends DatabaseObject {
 					
 					$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="active"':'').'>';
 					$previews .= '<a href="'.$Shopp->imguri.$img->id.'/image.jpg" class="gallery product_'.$this->id.' '.$options['zoomfx'].'"'.$rel.'>';
-					$previews .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
+					$previews .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 					$previews .= '</a>';
 					$previews .= '</li>';
 					$firstPreview = false;
@@ -919,14 +922,15 @@ class Product extends DatabaseObject {
 						$scale = empty($options['thumbfit'])?false:array_search($options['thumbfit']);
 						$sharpen = empty($options['thumbsharpen'])?false:min($options['thumbsharpen'],$img->_sharpen);
 						$quality = empty($options['thumbquality'])?false:min($options['thumbquality'],$img->_quality);
-						$scaled = $img->scaled($width,$height,$scale);
+						$fill = empty($options['thumbbg'])?false:hexdec(ltrim($options['thumbbg'],'#'));
+						// $scaled = $img->scaled($width,$height,$scale);
 						$scaled = $img->scaled($thumbwidth,$thumbheight);
 
 						$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
 						$alt = esc_attr(!empty($img->alt)?$img->alt:$img->name);
 
 						$thumbs .= '<li id="thumbnail-'.$img->id.'" class="preview-'.$img->id.(($firstThumb)?' first':' test').'">';
-						$thumbs .= '<img src="'.add_query_string($img->resizing($thumbwidth,$thumbheight),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
+						$thumbs .= '<img src="'.add_query_string($img->resizing($thumbwidth,$thumbheight,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 						$thumbs .= '</li>';
 						$firstThumb = false;						
 					}
