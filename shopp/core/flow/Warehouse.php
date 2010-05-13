@@ -266,7 +266,7 @@ class Warehouse extends AdminController {
 		if (empty($taxrate)) $taxrate = 0;
 		
 		if ('i' == $f) {
-			$columns = "SQL_CALC_FOUND_ROWS pt.id,pd.name,pd.slug,pt.label,pt.optionkey,pt.stock,pt.sku";
+			$columns = "SQL_CALC_FOUND_ROWS pt.id,pd.id as product,pd.name,pd.slug,pt.label,pt.optionkey,pt.stock,pt.sku";
 
 			// Load the products
 			$query = "SELECT $columns $matchcol FROM $pt AS pt LEFT JOIN $pd AS pd ON pd.id=pt.product LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pt.id $having ORDER BY pd.id,pt.sortorder LIMIT $start,$per_page";
