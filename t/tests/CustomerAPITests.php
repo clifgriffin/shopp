@@ -10,16 +10,19 @@
  **/
 class CustomerAPITests extends ShoppTestCase {
 
-	function test_init () {
+	function __construct () {
+		parent::__construct();
 		global $Shopp;
+
 		$_SERVER['REQUEST_URI'] = "/";
-		$Account = new Customer(1);
-		$Shopp->Cart->loggedin($Account);
+		$Login = new Login();
+		$Account = new Customer(4,'wpuser');
+		$Login->login($Account);
 	}
 	
-	function test_customer_url () {
+	function test_customer_accounturl () {
 		ob_start();
-		shopp('customer','url');
+		shopp('customer','accounturl');
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals('http://shopptest/store/account/',$actual);
@@ -104,15 +107,19 @@ class CustomerAPITests extends ShoppTestCase {
 	}
 	
 	function test_customer_errorsexist () {
+		new ShoppError("Test Error",'',SHOPP_AUTH_ERR);
 		$this->assertTrue(shopp('customer','errors-exist'));
 	}
 	
 	function test_customer_loginerrors () {
+
+		$Errors = &ShoppErrors();
+
 		ob_start();
 		shopp('customer','login-errors');
 		$actual = ob_get_contents();
 		ob_end_clean();
-
+		
 		$this->assertEquals('<p class="error">Test Error</p>',$actual);
 		$this->assertValidMarkup($actual);
 	}
@@ -266,7 +273,7 @@ class CustomerAPITests extends ShoppTestCase {
 	}
 	
 	function test_customer_info_tags () {
-		$this->assertFalse(shopp('customer','hasinfo'));
+		$this->assertTrue(shopp('customer','hasinfo'));
 		ob_start();
 		shopp('customer','info','type=text&name=Test Field');
 		$actual = ob_get_contents();
@@ -301,14 +308,14 @@ class CustomerAPITests extends ShoppTestCase {
 	// }
 	
 	function test_customer_purchase_tags () {
+		global $Shopp;
 		ob_start();
 		if (shopp('customer','has-purchases'))
 			while (shopp('customer','purchases'))
 				shopp('customer','receipt');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
-		$this->assertEquals('http://shopptest/store/account/?acct=receipt&id=1',$actual);
+		$this->assertEquals('http://shopptest/store/account/?acct=receipt&id=2',$actual);
 	}
 
 } // end CustomerAPITests class
