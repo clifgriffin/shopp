@@ -138,6 +138,8 @@ class ShoppInstallation extends FlowController {
 	 * @return void
 	 **/
 	function install_pages () {
+		global $wpdb;
+		
 		// Locate any Shopp pages that already exist
 		$pages_installed = shopp_locate_pages(false);
 
