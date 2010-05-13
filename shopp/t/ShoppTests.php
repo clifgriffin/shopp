@@ -25,7 +25,7 @@ require_once(ABSPATH.'wp-settings.php');
 error_reporting(E_ALL);
 ini_set('display_errors', true);
 
-#require_once('PHPUnit.php');
+// require_once('PHPUnit.php');
 require_once('PHPUnit/Framework.php');
 require_once('PHPUnit/Util/ErrorHandler.php');
 require_once('xHTMLvalidator.php');
@@ -508,7 +508,7 @@ if (!defined('SHOPP_SKIP_TESTS')) define('SHOPP_SKIP_TESTS','');
 
 define('SHOPP_TESTS_DIR',dirname(__FILE__).'/tests');
 $files = get_shopp_test_files(SHOPP_TESTS_DIR);
-// $files = array(SHOPP_TESTS_DIR."/CartAPITests.php");
+// $files = array(SHOPP_TESTS_DIR."/CategoryAPITests.php");
 foreach ($files as $file) require_once($file);
 $tests = get_all_test_cases();
 list ($result, $printer) = shopp_run_tests($tests);
