@@ -20,39 +20,39 @@ class CartItemAPITests extends ShoppTestCase {
 	
 	// example for adding product to cart by the product id and price id
 	function test_cartitem_addbypriceid () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 		
 		$product = new Product(55);
 
 		$price = 108;
-		$Shopp->Order->Cart->add(1, $product, $price, false);
+		$Order->Cart->add(1, $product, $price, false);
 		$this->assertTrue(shopp('cart','hasitems'));
-		$this->assertEquals(count($Shopp->Order->Cart->contents),1);
+		$this->assertEquals(count($Order->Cart->contents),1);
 
 	}
 	
 	// example for adding product to cart by the product id and the option number
 	function test_cartitem_addbyoptionid () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 		
 		$product = new Product(55);
 		
 		$price = array(1);
-		$Shopp->Order->Cart->add(1, $product, $price, false);
+		$Order->Cart->add(1, $product, $price, false);
 		$this->assertTrue(shopp('cart','hasitems'));
-		$this->assertEquals(count($Shopp->Order->Cart->contents),1);
+		$this->assertEquals(count($Order->Cart->contents),1);
 	}
 
 	function test_cartitem_name () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 		
 		$product = new Product(55);
 
 		$price = array(1);
-		$Shopp->Order->Cart->add(1, $product, $price, false);
+		$Order->Cart->add(1, $product, $price, false);
 		$this->assertTrue(shopp('cart','hasitems'));
 		ob_start();
 		while(shopp('cart', 'items')) shopp('cartitem','name');
@@ -63,13 +63,13 @@ class CartItemAPITests extends ShoppTestCase {
 	}
 	
 	function test_cartitem_url () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 		
 		$product = new Product(55);
 
 		$price = array(1);
-		$Shopp->Order->Cart->add(1, $product, $price, false);
+		$Order->Cart->add(1, $product, $price, false);
 		$this->assertTrue(shopp('cart','hasitems'));
 		ob_start();
 		while(shopp('cart', 'items')) shopp('cartitem','url');
@@ -80,13 +80,13 @@ class CartItemAPITests extends ShoppTestCase {
 	}
 
 	function test_cartitem_sku () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 				
 		$product = new Product(81);
 
 		$price = array(11);
-		$Shopp->Order->Cart->add(1, $product, $price, false);
+		$Order->Cart->add(1, $product, $price, false);
 		$this->assertTrue(shopp('cart','hasitems'));
 		ob_start();
 		while(shopp('cart', 'items')) shopp('cartitem','sku');
@@ -97,13 +97,13 @@ class CartItemAPITests extends ShoppTestCase {
 	}
 
 	function test_cartitem_unitprice () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 		
 		$product = new Product(55);
 
 		$price = array(1);
-		$Shopp->Order->Cart->add(1, $product, $price, false);
+		$Order->Cart->add(1, $product, $price, false);
 		$this->assertTrue(shopp('cart','hasitems'));
 
 		while(shopp('cart', 'items')){ 
@@ -125,13 +125,13 @@ class CartItemAPITests extends ShoppTestCase {
 	}
 	
 	function test_cartitem_tax () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 		
 		$product = new Product(55);
 
 		$price = array(1);
-		$Shopp->Order->Cart->add(1, $product, $price, false);
+		$Order->Cart->add(1, $product, $price, false);
 		$this->assertTrue(shopp('cart','hasitems'));
 		
 		while(shopp('cart', 'items')){ 
@@ -155,23 +155,23 @@ class CartItemAPITests extends ShoppTestCase {
 	}
 	
 	function test_cartitem_quantity () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 
 		$product = new Product(55);
 
 		$price = 108;
-		$Shopp->Order->Cart->add(1, $product, $price, false);
+		$Order->Cart->add(1, $product, $price, false);
 		
 		$product = new Product(81);
 
 		$price = array(11);
-		$Shopp->Order->Cart->add(6, $product, $price, false);
+		$Order->Cart->add(6, $product, $price, false);
 
 		$this->assertTrue(shopp('cart','hasitems'));
-		$this->assertEquals(count($Shopp->Order->Cart->contents),2);
+		$this->assertEquals(count($Order->Cart->contents),2);
 		while(shopp('cart', 'items')){
-			$item = current($Shopp->Order->Cart->contents);
+			$item = current($Order->Cart->contents);
 			ob_start();			 
 			shopp('cartitem','quantity');
 			$actual = ob_get_contents();
@@ -184,13 +184,13 @@ class CartItemAPITests extends ShoppTestCase {
 	}
 	
 	function test_cartitem_total () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 		
 		$product = new Product(55);
 
 		$price = array(1);
-		$Shopp->Order->Cart->add(3, $product, $price, false);
+		$Order->Cart->add(3, $product, $price, false);
 		$this->assertTrue(shopp('cart','hasitems'));
 
 		while(shopp('cart', 'items')){ 
@@ -213,15 +213,15 @@ class CartItemAPITests extends ShoppTestCase {
 	}
 	
 	function test_cartitem_quantityinput () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 
 		$product = new Product(55);
 
 		$price = 108;
-		$Shopp->Order->Cart->add(1, $product, $price, false);
+		$Order->Cart->add(1, $product, $price, false);
 		$this->assertTrue(shopp('cart','hasitems'));
-		$this->assertEquals(count($Shopp->Order->Cart->contents),1);
+		$this->assertEquals(count($Order->Cart->contents),1);
 		
 		while(shopp('cart', 'items')){
 			ob_start();			 
@@ -253,14 +253,15 @@ class CartItemAPITests extends ShoppTestCase {
 
 		function test_cartitem_remove () {
 			global $Shopp;
-			$Shopp->Order->Cart->clear();
+			$Order =& ShoppOrder();
+			$Order->Cart->clear();
 
 			$product = new Product(55);
 
 			$price = 108;
-			$Shopp->Order->Cart->add(1, $product, $price, false);
+			$Order->Cart->add(1, $product, $price, false);
 			$this->assertTrue(shopp('cart','hasitems'));
-			$this->assertEquals(count($Shopp->Order->Cart->contents),1);
+			$this->assertEquals(count($Order->Cart->contents),1);
 
 			while(shopp('cart', 'items')){
 				ob_start();			 
@@ -284,7 +285,8 @@ class CartItemAPITests extends ShoppTestCase {
 				ob_start();
 				?><a href="http://shopptest/store/cart/?cart=update&amp;item=0&amp;quantity=0" class="myclass2">My Label 2</a><?php
 				$expected = ob_get_contents();
-				ob_end_clean();			
+				ob_end_clean();		
+					
 				$this->assertEquals($expected,$actual);
 				$this->assertValidMarkup($actual);
 			}
@@ -292,32 +294,33 @@ class CartItemAPITests extends ShoppTestCase {
 		
 		function test_cartitem_thumbnail (){
 			global $Shopp;
-			$Shopp->Order->Cart->clear();
+			$Order =& ShoppOrder();
+			$Order->Cart->clear();
 
 			$product = new Product(55);
 
 			$price = 108;
-			$Shopp->Order->Cart->add(1, $product, $price, false);
+			$Order->Cart->add(1, $product, $price, false);
 			$this->assertTrue(shopp('cart','hasitems'));
 			while(shopp('cart', 'items')){
 				ob_start();			 
-				shopp('cartitem','thumbnail', 'class=cart-thumb&width=200&height=220');
+				shopp('cartitem','thumbnail','class=cart-thumb&width=200&height=220');
 				$actual = ob_get_contents();
 				ob_end_clean();
 				
 				ob_start();
-				?><img src="http://shopptest/store/images/276" alt="Smart &amp; Sexy - Push-Up Underwire Bra and Thong Panty Set thumbnail" width="200" height="220"  class="cart-thumb" /><?php
+				?><img src="http://shopptest/store/images/623?200,220,3795756877" alt="Smart &amp; Sexy - Push-Up Underwire Bra and Thong Panty Set" width="200" height="192" class="cart-thumb" /><?php
 				$expected = ob_get_contents();
 				ob_end_clean();
 				
 				$this->assertEquals($expected, $actual);
 				$this->assertValidMarkup($actual);
 			}
-			$Shopp->Order->Cart->clear();
+			$Order->Cart->clear();
 			$product = new Product(9);
 
 			$price = array(1,8);
-			$Shopp->Order->Cart->add(1, $product, $price, false);
+			$Order->Cart->add(1, $product, $price, false);
 			$this->assertTrue(shopp('cart','hasitems'));
 			while(shopp('cart', 'items')){
 				ob_start();			 
@@ -326,7 +329,7 @@ class CartItemAPITests extends ShoppTestCase {
 				ob_end_clean();
 				
 				ob_start();
-				?><img src="http://shopptest/store/images/72" alt="Faded Glory - Men&#039;s Original Fit Jeans thumbnail" width="96" height="96"  /><?php
+				?><img src="http://shopptest/store/images/555?48,48,116832631" alt="Faded Glory - Men&#039;s Original Fit Jeans" width="48" height="48" /><?php
 				$expected = ob_get_contents();
 				ob_end_clean();
 				
@@ -338,12 +341,13 @@ class CartItemAPITests extends ShoppTestCase {
 		
 		function test_cartitem_options (){
 			global $Shopp;
-			$Shopp->Order->Cart->clear();
+			$Order =& ShoppOrder();
+			$Order->Cart->clear();
 
 			$product = new Product(55);
 
 			$price = 108;
-			$Shopp->Order->Cart->add(1, $product, $price, false);
+			$Order->Cart->add(1, $product, $price, false);
 			$this->assertTrue(shopp('cart','hasitems'));
 			while(shopp('cart', 'items')){
 				ob_start();			 
@@ -363,13 +367,14 @@ class CartItemAPITests extends ShoppTestCase {
 
 		function test_cartitem_inputs (){
 			global $Shopp;
-			$Shopp->Order->Cart->clear();
+			$Order =& ShoppOrder();
+			$Order->Cart->clear();
 
 			$product = new Product(55);
 
 			$price = 108;
-			$data = array('customField1' => 'Custom Value1\nWith Newline', 'customField2' => 'Custom Value2');
-			$Shopp->Order->Cart->add(1, $product, $price, false, $data);
+			$data = array('customField1' => "Custom Value1\nWith Newline", 'customField2' => 'Custom Value2');
+			$Order->Cart->add(1, $product, $price, false, $data);
 			$this->assertTrue(shopp('cart','hasitems'));
 			while(shopp('cart', 'items')){
 				$this->assertTrue(shopp('cartitem', 'hasinputs'));
@@ -387,20 +392,21 @@ class CartItemAPITests extends ShoppTestCase {
 					$this->assertTrue(isset($name));
 					$expected = $data[$name];
 
-					$this->assertEquals($expected, $actual);	
+					$this->assertEquals($expected, $actual);
 				}
 			}			
 		}
 		
 		function test_cartitem_inputslist (){
 			global $Shopp;
-			$Shopp->Order->Cart->clear();
+			$Order =& ShoppOrder();
+			$Order->Cart->clear();
 
 			$product = new Product(55);
 
 			$price = 108;
-			$data = array('customField1' => 'Custom Value1\nWith Newline', 'customField2' => 'Custom Value2', 'merryxmas'=>'Merry Christmas');
-			$Shopp->Order->Cart->add(1, $product, $price, false, $data);
+			$data = array('customField1' => "Custom Value1\nWith Newline", 'customField2' => 'Custom Value2', 'merryxmas'=>'Merry Christmas');
+			$Order->Cart->add(1, $product, $price, false, $data);
 					
 			$this->assertTrue(shopp('cart','hasitems'));
 			while(shopp('cart', 'items')){
@@ -414,7 +420,8 @@ class CartItemAPITests extends ShoppTestCase {
 					$this->assertTrue(!empty($actual));
 					
 					ob_start();					
-					?><ul><li><strong>customField1</strong>: Custom Value1\nWith Newline</li><li><strong>customField2</strong>: Custom Value2</li><li><strong>merryxmas</strong>: Merry Christmas</li></ul><?php	
+					?><ul><li><strong>customField1</strong>: Custom Value1
+With Newline</li><li><strong>customField2</strong>: Custom Value2</li><li><strong>merryxmas</strong>: Merry Christmas</li></ul><?php	
 					$expected = ob_get_contents();
 					ob_end_clean();
 					
@@ -429,7 +436,8 @@ class CartItemAPITests extends ShoppTestCase {
 					$this->assertTrue(!empty($actual));
 					
 					ob_start();					
-					?><div><ul class="customdata"><li><strong>customField1</strong>: Custom Value1\nWith Newline</li><li><strong>customField2</strong>: Custom Value2</li></ul></div><?php	
+					?><div><ul class="customdata"><li><strong>customField1</strong>: Custom Value1
+With Newline</li><li><strong>customField2</strong>: Custom Value2</li></ul></div><?php	
 					$expected = ob_get_contents();
 					ob_end_clean();
 					

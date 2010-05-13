@@ -15,6 +15,9 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+DROP TABLE IF EXISTS `wp_shopp_meta`;
+DROP TABLE IF EXISTS `wp_shopp_index`;
+
 --
 -- Table structure for table `wp_commentmeta`
 --

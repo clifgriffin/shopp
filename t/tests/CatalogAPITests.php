@@ -8,6 +8,14 @@
  * @package 
  **/
 class CatalogAPITests extends ShoppTestCase {
+	
+	function __construct() {
+		parent::__construct();
+		global $Shopp;
+		$Shopp->Flow->Controller = new Storefront();
+		$Shopp->Catalog = new Catalog();
+		
+	}
 
 	function test_catalog_url () {
 		ob_start();
@@ -45,7 +53,7 @@ class CatalogAPITests extends ShoppTestCase {
 	function test_catalog_categories () {
 		global $Shopp;
 		$this->assertTrue(shopp('catalog','has-categories'));
-		$expected = 27;
+		$expected = 22;
 		$this->assertEquals($expected,count($Shopp->Catalog->categories));
 		for ($i = 0; $i < $expected; $i++)
 			$this->assertTrue(shopp('catalog','categories'));
@@ -77,6 +85,9 @@ class CatalogAPITests extends ShoppTestCase {
 	}
 	
 	function test_catalog_orderbylist () {
+		global $Shopp;
+		$Shopp->Catalog = new Catalog();
+		$Shopp->Category = new NewProducts();
 		$_SERVER['REQUEST_URI'] = "/";
 		ob_start();
 		shopp('catalog','orderby-list');
@@ -184,7 +195,7 @@ class CatalogAPITests extends ShoppTestCase {
 
 	function test_catalog_product () {
 		ob_start();
-		shopp('catalog','product','show=3&id=114');
+		shopp('catalog','product','id=114');
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertValidMarkup($actual);
@@ -197,7 +208,6 @@ class CatalogAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertValidMarkup($actual);
 	}
-
 
 } // end CatalogAPITests class
 

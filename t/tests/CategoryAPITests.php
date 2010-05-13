@@ -10,9 +10,14 @@
  **/
 class CategoryAPITests extends ShoppTestCase {
 
-	function test_init () {
+	function __construct () {
+		parent::__construct();
+		global $Shopp;
 		$_SERVER['REQUEST_URI'] = "/";
+		$Shopp->Flow->Controller = new Storefront();
+		$Shopp->Catalog = new Catalog();
 		shopp('catalog','category','id=1&load=true');
+		
 	}
 
 	function test_category_url () {
@@ -20,7 +25,7 @@ class CategoryAPITests extends ShoppTestCase {
 		shopp('category','url');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('http://shopptest/store/category/apparel',$actual);
+		$this->assertEquals('http://shopptest/store/category/apparel/',$actual);
 	}
 	
 	function test_category_id () {
@@ -131,7 +136,7 @@ class CategoryAPITests extends ShoppTestCase {
 		$actual = ob_get_contents();
 		ob_end_clean();
 
-		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/images/486" alt="Games thumbnail" width="96" height="96" />',$actual);
+		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/691?96,96,3603059750" alt="Games" width="96" height="95"/>',$actual);
 		$this->assertValidMarkup($actual);
 	}
 	
