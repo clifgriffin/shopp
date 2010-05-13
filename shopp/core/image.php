@@ -32,7 +32,7 @@ class ImageServer extends DatabaseObject {
 
 	var $request = false;
 	var $parameters = array();
-	var $args = array('width','height','scale','sharpen','quality');
+	var $args = array('width','height','scale','sharpen','quality','fill');
 	var $scaling = array('all','matte','crop','width','height');
 	var $width;
 	var $height;
@@ -73,7 +73,8 @@ class ImageServer extends DatabaseObject {
 			$this->request = $matches[1];
 
 		foreach ($this->parameters as $index => $arg) {
-			$this->{$this->args[$index]} = $arg;
+			if ($arg == 0) continue;
+			$this->{$this->args[$index]} = intval($arg);
 		}
 		
 		if ($this->height == 0 && $this->width > 0) $this->height = $this->width;
@@ -127,7 +128,7 @@ class ImageServer extends DatabaseObject {
 		$Resized = new ImageProcessor($this->Image->retrieve(),$this->Image->width,$this->Image->height);
 		$scaled = $this->Image->scaled($this->width,$this->height,$this->scale);
 		$alpha = ($this->Image->mime == "image/png");
-		$Resized->scale($scaled['width'],$scaled['height'],$this->scale,$alpha);
+		$Resized->scale($scaled['width'],$scaled['height'],$this->scale,$alpha,$this->fill);
 
 		// Post sharpen
 		if ($this->sharpen !== false)

@@ -256,17 +256,13 @@ class ImageAsset extends FileAsset {
 	 * 
 	 * @return void
 	 **/
-	function resizing ($width,$height,$scale=false,$sharpen=false,$quality=false) {
+	function resizing ($width,$height,$scale=false,$sharpen=false,$quality=false,$fill=false) {
 		$key = (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '')?SECRET_AUTH_KEY:DB_PASSWORD;
 		$args = func_get_args();
 		
 		if ($args[1] == 0) $args[1] = $args[0];
 		
-		$message = '';
-		foreach ($args as $arg) {
-			if (empty($arg)) continue;
-			$message .= (!empty($message))?",$arg":$arg;
-		}
+		$message = rtrim(join(',',$args),',');
 			
 		$validation = crc32($key.$this->id.','.$message);
 		$message .= ",$validation";

@@ -12,20 +12,26 @@
 class ImageProcessor {
 	var $src;
 	var $processed;
+	var $width = false;
+	var $height = false;
+	var $axis = 'y';
+	var $aspect = 1;
+	var $dx = 0;
+	var $dy = 0;
 	var $alpha = false;
 	
 	function ImageProcessor ($data,$width,$height) {
 		$this->src = new StdClass();
 		$this->src->width = $width;
 		$this->src->height = $height;
-		$this->src->image = imagecreatefromstring($data);
+		$this->src->aspect = $width/$height;
+		
+		if ($data) $this->src->image = imagecreatefromstring($data);
+		else $this->src->image = false;
 	}
-		
-	function scale ($width,$height,$fit='all',$alpha=false,$fill=false) {
-		$dx = $dy = 0;
-		$xd = false;
-		
-		// Allocate a new true color image
+	
+	
+	function canvas ($width,$height,$alpha=false) {
 		$this->processed = ImageCreateTrueColor($width,$height);
 		if ($alpha) {
 			ImageAlphaBlending($this->processed, false);
@@ -34,54 +40,94 @@ class ImageProcessor {
 			ImageSaveAlpha($this->processed, true);
 			$this->alpha = true;
 		}
+	}
+	
+	function scale ($width,$height,$fit='all',$alpha=false,$fill=false) {
+		$this->aspect = $width/$height;
 
-		if ($fit == "crop" || $fit = "matte") {
-			// Determine the extra dimension for positioning
-			$xd = false;
-			$xd = ($this->src->width > $this->src->height && $fit == "crop");
-			$xd = ($this->src->width < $this->src->height && $fit == "matte");
-			
-			if ($xd) {
-				$dw = $this->_proportionalWidth($height);
-				$dx = ($dw - $width)*-0.5;	
-				$width = $dw;
-			} else {
-				$dh = $this->_proportionalHeight($width);
-				$dy = ($dh - $height)*-0.5;
-				$height = $dh;
-			}
-		}
+		// Allocate a new true color image
+		$this->canvas($width,$height,$alpha);
 		
+		// Determine the dimensions to use for resizing
+		$this->dimensions($width,$height,$fit);
+				
 		// Fill image with matte color
-		if ($fill !== false || $fit == "matte") {
+		if ($fit == "matte") {
+			if (is_int($fill)) $rgb = $this->hexrgb($fill);
+						
 			// Default to white
-			if (!is_array($fill)) $fill = array(255,255,255);
+			if (!is_array($rgb)) $rgb = array('red'=>255,'green'=>255,'blue'=>255);
 			
-			// Mix the color
-			$matte = ImageColorAllocate($this->processed, $fill[0], $fill[1], $fill[2]);
+			// Allocate the color in the image palette
+			$matte = ImageColorAllocate($this->processed, $rgb['red'], $rgb['green'], $rgb['blue']);
 			
 			// Fill the canvas
 			ImageFill($this->processed,0,0,$matte);
 		}
 
-		$this->width = $width;
-		$this->height = $height;
-
+		if (!$this->src->image) {
+			// Determine the mock dimensions from the resample operation
+			if ($fit == "crop") {
+				$this->width = min($width,$this->width);
+				$this->height = min($height,$this->height);
+			} elseif ($fill !== false) {
+				$this->width = $width;
+				$this->height = $height;
+			}
+			return;
+		}
+		
+		// Resample the image
 		ImageCopyResampled(
 			$this->processed,$this->src->image,
-			$dx, $dy, 								// dest_x, dest_y
+			$this->dx, $this->dy,					// dest_x, dest_y
 			0, 0, 									// src_x, src_y
-			$width, $height, 						// dest_width, dest_height
+			$this->width, $this->height, 			// dest_width, dest_height
 			$this->src->width, $this->src->height	// src_width, src_height
 		);
+		$this->width = imagesx($this->processed);
+		$this->height = imagesy($this->processed);
 	}
 	
-	function _proportionalWidth ($height) {
+	function dimensions ($width,$height,$fit='all') {
+		if ($this->src->width <= $width && $this->src->height <= $height) {
+			$this->width = $this->src->width;
+			$this->height = $this->src->height;
+			return false;
+		}
+
+		if ($fit == "crop") {
+			if ($this->src->aspect/$this->aspect <= 1) 
+				$this->axis = 'x'; // Scale & crop
+		} elseif ($this->src->aspect/$this->aspect >= 1) 
+			$this->axis = 'x'; // Scale & fit (with or without matte)
+
+		$this->resized($width,$height,$this->axis);
+
+		if ($fit == "crop") { // Center cropped image on the canvas
+			if ($this->src->width <= $width || $this->src->height <= $height) {
+				$this->width = $this->src->width;
+				$this->height = $this->src->height;
+			}
+		}
+
+		$this->dx = ($this->width - $width)*-0.5;
+		$this->dy = ($this->height - $height)*-0.5;
+
+		return true;
+	}
+	
+	private function resized ($width,$height,$axis='y') {
+		if ($axis == "x") list($this->width,$this->height) = array($width,$this->ratioHeight($width));
+		else list($this->width,$this->height) = array($this->ratioWidth($height),$height);
+	}
+
+	private function ratioWidth ($height) {
 		$s_height = $height/$this->src->height;
 		return ceil($this->src->width * $s_height);
 	}
 	
-	function _proportionalHeight ($width) {
+	private function ratioHeight ($width) {
 		$s_width = $width/$this->src->width;
 		return ceil($this->src->height * $s_width);
 	}
@@ -222,6 +268,25 @@ class ImageProcessor {
 	    imagedestroy($canvas);  
 	    imagedestroy($blur);  
 
+	}
+
+	/**
+	 * Convert a decimal-encoded hexadecimal color to RGB color values
+	 * 
+	 * Uses bit-shifty voodoo magic to pick the color spectrum apart.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $color Decimal color value
+	 * @return array RGB color values
+	 **/
+	function hexrgb ($color) {
+		return array(
+			"red" => (0xFF & ($color >> 0x10)),
+			"green" => (0xFF & ($color >> 0x8)),
+			"blue" => (0xFF & $color)
+		);
 	}
 
 } // END class ImageProcessor

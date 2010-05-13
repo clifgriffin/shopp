@@ -754,7 +754,7 @@ function shopp () {
 			}
 		}
 	}
-	
+
 	$Object = false; $result = false;
 	switch (strtolower($object)) {
 		case "cart": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
