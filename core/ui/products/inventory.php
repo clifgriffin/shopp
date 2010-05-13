@@ -50,7 +50,8 @@
 		foreach ($Products as $key => $Product):
 		$editurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>'shopp-products',
-					'id'=>$Product->id)),
+					'id'=>$Product->product,
+					'f'=>null)),
 					admin_url('admin.php'))));
 		
 		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
