@@ -687,7 +687,7 @@ class Order {
 				
 				if (!empty($options['value'])) $value = $options['value'];
 				else $value = "process";
-				$output .= '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>'; 
+				$output = '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>'; 
 				if ($value == "confirmed") $output = apply_filters('shopp_confirm_form',$output);
 				else $output = apply_filters('shopp_checkout_form',$output);
 				return $output;
@@ -707,8 +707,8 @@ class Order {
 				ob_end_clean();
 				return $content;
 				break;
-			case "loggedin": return $this->login; break;
-			case "notloggedin": return (!$this->login && $Shopp->Settings->get('account_system') != "none"); break;
+			case "loggedin": return $this->Customer->login; break;
+			case "notloggedin": return (!$this->Customer->login && $Shopp->Settings->get('account_system') != "none"); break;
 			case "email-login":  // Deprecating
 			case "loginname-login":  // Deprecating
 			case "account-login": 
@@ -778,14 +778,25 @@ class Order {
 					$options['value'] = $this->Customer->company; 
 				return '<input type="text" name="company" id="company" '.inputattrs($options).' />'; 
 				break;
+			case "marketing": 
+				if ($options['mode'] == "value") return $this->Customer->marketing;
+				if (!empty($this->Customer->marketing))
+					$options['value'] = $this->Customer->marketing; 
+				$attrs = array("accesskey","alt","checked","class","disabled","format",
+					"minlength","maxlength","readonly","size","src","tabindex",
+					"title");
+				$input = '<input type="hidden" name="marketing" value="no" />';
+				$input .= '<input type="checkbox" name="marketing" id="marketing" value="yes" '.inputattrs($options,$attrs).' />'; 
+				return $input;
+				break;
 			case "customer-info":
 				$allowed_types = array("text","password","hidden","checkbox","radio");
 				if (empty($options['type'])) $options['type'] = "hidden";
 				if (isset($options['name']) && $options['mode'] == "value") 
-					return $this->Customer->info[$options['name']];
+					return $this->Customer->info->named[$options['name']];
 				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
-					if (isset($this->Customer->info[$options['name']])) 
-						$options['value'] = $this->Customer->info[$options['name']]; 
+					if (isset($this->Customer->info->named[$options['name']])) 
+						$options['value'] = $this->Customer->info->named[$options['name']]; 
 					return '<input type="text" name="info['.$options['name'].']" id="customer-info-'.$options['name'].'" '.inputattrs($options).' />'; 
 				}
 				break;
@@ -958,13 +969,17 @@ class Order {
 				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->Billing->cardtype))
 					$options['selected'] = $this->Billing->cardtype;
-
-				$Gateway = $Shopp->Gateways->active[$this->processor];
+				
+				if (isset($Shopp->Gateways->active[$this->processor]))
+					$Gateway = $Shopp->Gateways->active[$this->processor];
+				else $Gateway = $this->processor();
 
 				$cards = array();
-				foreach ($Gateway->settings['cards'] as $card) {
-					$PayCard = Lookup::paycard($card);
-					$cards[$PayCard->symbol] = $PayCard->name;
+				if (isset($Gateway->settings['cards'])) {
+					foreach ($Gateway->settings['cards'] as $card) {
+						$PayCard = Lookup::paycard($card);
+						$cards[$PayCard->symbol] = $PayCard->name;
+					}
 				}
 
 				$label = (!empty($options['label']))?$options['label']:'';
