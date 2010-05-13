@@ -831,7 +831,7 @@ class Cart {
 					($method->amount == $this->Totals->shipping))
 						$checked = ' checked="checked"';
 	
-				$result .= '<input type="radio" name="shipmethod" value="'.$method->name.'" class="shipmethod" '.$checked.' rel="'.$method->amount.'" />';
+				$result .= '<input type="radio" name="shipmethod" value="'.$method->name.'" class="shipmethod" '.$checked.' />';
 				return $result;
 				
 				break;
