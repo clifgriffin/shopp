@@ -9,23 +9,19 @@
  **/
 class CheckoutAPITests extends ShoppTestCase {
 
-	public function test_checkout_url () {
+	function __construct () {
+		parent::__construct();
 		global $Shopp;
-		$gateway = $Shopp->Settings->get('payment_gateway');
-		$Shopp->Settings->registry['payment_gateway'] = "PayPalPro/PayPalPro.php";
-		ob_start();
-		shopp('checkout','url');
-		$actual = ob_get_contents();
-		ob_end_clean();
-		$this->assertEquals('https://shopptest/store/checkout/',$actual);
+		$_SERVER['REQUEST_URI'] = "/store/checkout/";
+		$Shopp->Flow->Controller = new Storefront();
+	}
 
-		$Shopp->Settings->registry['payment_gateway'] = "TestMode/TestMode.php";
+	public function test_checkout_url () {
 		ob_start();
 		shopp('checkout','url');
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals('http://shopptest/store/checkout/',$actual);
-		$Shopp->Settings->registry['payment_gateway'] = $gateway;
 	}
 
 	function test_checkout_function () {
@@ -34,12 +30,6 @@ class CheckoutAPITests extends ShoppTestCase {
 		$actual = ob_get_contents();
 		ob_end_clean();
 		
-		$expected = array(
-			'tag' => 'script',
-			'attributes' => array('type' => 'text/javascript')
-		);
-		$this->assertTag($expected,$actual,'',true);
-
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'hidden','name' => 'checkout')
@@ -83,8 +73,11 @@ class CheckoutAPITests extends ShoppTestCase {
 	function test_checkout_loggedin () {
 		global $Shopp;
 		$this->assertFalse(shopp('checkout','loggedin'));
-		$Account = new Customer();
-		$Shopp->Order->Cart->loggedin($Account);
+		
+		$Login = new Login();
+		$Account = new Customer(4,'wpuser');
+		$Login->login($Account);
+		
 		$this->assertTrue(shopp('checkout','loggedin'));
 	}
 	
@@ -266,7 +259,8 @@ class CheckoutAPITests extends ShoppTestCase {
 	}
 	
 	function test_checkout_shipping () {
-		$this->assertTrue(shopp('checkout','shipping'));
+		$Shipping = shopp('checkout','shipping');
+		$this->assertTrue(!empty($Shipping));
 	}
 	
 	function test_checkout_shipping_address () {
@@ -380,7 +374,7 @@ class CheckoutAPITests extends ShoppTestCase {
 	}
 
 	function test_checkout_billingrequired () {
-		$this->assertTrue(shopp('checkout','billing-required'));
+		$this->assertFalse(shopp('checkout','billing-required'));
 	}
 
 	function test_checkout_billing_address () {
@@ -605,15 +599,7 @@ class CheckoutAPITests extends ShoppTestCase {
 		);
 		$this->assertTag($expected,$actual,'',true);
 		$this->assertValidMarkup($actual);
-	}
-
-	function test_checkout_localpayment () {
-		$this->assertTrue(shopp('checkout','localpayment'));
-	}
-
-	function test_checkout_xcobuttons () {	/* TODO */ }
-	
-	
+	}	
 
 } // end CheckoutAPITests class
 

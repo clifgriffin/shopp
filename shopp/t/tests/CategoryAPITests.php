@@ -17,7 +17,6 @@ class CategoryAPITests extends ShoppTestCase {
 		$Shopp->Flow->Controller = new Storefront();
 		$Shopp->Catalog = new Catalog();
 		shopp('catalog','category','id=1&load=true');
-		
 	}
 
 	function test_category_url () {

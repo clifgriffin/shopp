@@ -16,7 +16,6 @@ class Customer extends DatabaseObject {
 	
 	var $login = false;
 	var $info = false;
-	var $looping = false;
 	var $newuser = false;
 	
 	var $accounts = "none";			// Account system setting
@@ -317,7 +316,7 @@ class Customer extends DatabaseObject {
 		// Return strings with no options
 		switch ($property) {
 			case "url": return add_query_arg('acct',false,esc_url($_SERVER['REQUEST_URI'])); break;
-			case "accounturl": $Shopp->link('account'); break;
+			case "accounturl": return $Shopp->link('account'); break;
 			case "recover-url": return add_query_arg('acct','recover',$Shopp->link('account'));
 			case "process":
 				if (isset($_GET['acct'])) return $_GET['acct'];
@@ -371,14 +370,14 @@ class Customer extends DatabaseObject {
 				break;
 
 			case "menu":
-				if (!$this->looping) {
+				if (!isset($this->_menu_looping)) {
 					reset($this->management);
-					$this->looping = true;
+					$this->_menu_looping = true;
 				} else next($this->management);
 				
 				if (current($this->management) !== false) return true;
 				else {
-					$this->looping = false;
+					unset($this->_menu_looping);
 					reset($this->management);
 					return false;
 				}
@@ -467,15 +466,15 @@ class Customer extends DatabaseObject {
 				break;
 			case "hasinfo":
 			case "has-info":
-				if (empty($this->info)) return false;
-				if (!$this->looping) {
+				if (isset($this->info) && $this->info->is_empty()) return false;
+				if (!isset($this->_info_looping)) {
 					reset($this->info);
-					$this->looping = true;
+					$this->_info_looping = true;
 				} else next($this->info);
 				
 				if (current($this->info) !== false) return true;
 				else {
-					$this->looping = false;
+					unset($this->_info_looping);
 					reset($this->info);
 					return false;
 				}
@@ -510,14 +509,14 @@ class Customer extends DatabaseObject {
 			case "has-downloads": return (!empty($this->downloads)); break;
 			case "downloads":
 				if (empty($this->downloads)) return false;
-				if (!$this->looping) {
+				if (!isset($this->_dowload_looping)) {
 					reset($this->downloads);
-					$this->looping = true;
+					$this->_dowload_looping = true;
 				} else next($this->downloads);
 			
 				if (current($this->downloads) !== false) return true;
 				else {
-					$this->looping = false;
+					unset($this->_dowload_looping);
 					reset($this->downloads);
 					return false;
 				}
@@ -555,17 +554,17 @@ class Customer extends DatabaseObject {
 				return (!empty($Shopp->purchases));
 				break;
 			case "purchases":
-				if (!$this->looping) {
+				if (!isset($this->_purchaseloop)) {
 					reset($Shopp->purchases);
 					$Shopp->Purchase = current($Shopp->purchases);
-					$this->looping = true;
+					$this->_purchaseloop = true;
 				} else {
 					$Shopp->Purchase = next($Shopp->purchases);
 				}
 
 				if (current($Shopp->purchases) !== false) return true;
 				else {
-					$this->looping = false;
+					unset($this->_purchaseloop);
 					return false;
 				}
 				break;
