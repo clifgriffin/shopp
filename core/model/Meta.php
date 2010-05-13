@@ -207,17 +207,24 @@ class ObjectMeta {
 			$where .= ($where == ""?"":" AND ")."$key='".$db->escape($id)."'";
 
 		$r = $db->query("SELECT * FROM $this->_table WHERE $where",AS_ARRAY);
+
 		foreach ($r as $row) {
 			$meta = new MetaObject();
 			$meta->populate($row,'',array());
 			
 			$this->meta[$meta->id] = $meta;
+			$this->named[$meta->name] =& $this->meta[$meta->id]; 
 		}
 		
-		if (count($row) == 0) $this->_loaded = false;
+		if (isset($row) && count($row) == 0) $this->_loaded = false;
 		$this->_loaded = true;
 
 		return $this->_loaded;
+	}
+	
+	function is_empty () {
+		if (!$this->_loaded) return true;
+		return (empty($this->meta));
 	}
 	
 }
