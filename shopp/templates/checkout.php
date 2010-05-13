@@ -140,6 +140,10 @@
 		<?php endif; ?>
 		
 		<?php endif; ?>
+		<li></li>
+		<li>
+		<div class="inline"><label for="marketing"><?php shopp('checkout','marketing','title='.__('','Shopp')); ?> <?php _e('Yes, I would like to receive e-mail updates and special offers!','Shopp'); ?></label></div>
+		</li>
 	</ul>
 	<br class="clear" />
 	<p class="submit"><?php shopp('checkout','submit','value='.__('Submit Order','Shopp')); ?></p>
