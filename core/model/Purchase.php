@@ -15,8 +15,6 @@ class Purchase extends DatabaseObject {
 	static $table = "purchase";
 	var $purchased = array();
 	var $columns = array();
-	var $looping = false;
-	var $dataloop = false;
 	var $downloads = false;
 
 	function Purchase ($id=false,$key=false) {
@@ -190,15 +188,14 @@ class Purchase extends DatabaseObject {
 			case "totalitems": return count($this->purchased); break;
 			case "hasitems": if (count($this->purchased) > 0) return true; else return false; break;
 			case "items":
-				if (!$this->looping) {
+				if (!isset($this->_items_loop)) {
 					reset($this->purchased);
-					$this->looping = true;
+					$this->_items_loop = true;
 				} else next($this->purchased);
 
 				if (current($this->purchased) !== false) return true;
 				else {
-					$this->looping = false;
-					reset($this->purchased);
+					unset($this->_items_loop);
 					return false;
 				}
 			case "item-id":
@@ -247,14 +244,14 @@ class Purchase extends DatabaseObject {
 				return (count($item->data) > 0); break;
 			case "item-inputs":
 				$item = current($this->purchased);
-				if (!$this->itemdataloop) {
+				if (!isset($this->_iteminputs_loop)) {
 					reset($item->data);
-					$this->itemdataloop = true;
+					$this->_iteminputs_loop = true;
 				} else next($item->data);
 
 				if (current($item->data) !== false) return true;
 				else {
-					$this->itemdataloop = false;
+					unset($this->_iteminputs_loop);
 					return false;
 				}
 				break;
