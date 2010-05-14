@@ -14,6 +14,12 @@
  **/
 
 class CartAPITests extends ShoppTestCase {
+	
+	function setUp () {
+		parent::setUp();
+		$Order =& ShoppOrder();
+		$Order->Shipping->country = 'US';
+	}
 
 	function test_cart_url () {
 		ob_start();
