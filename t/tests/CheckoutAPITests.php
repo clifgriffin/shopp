@@ -67,17 +67,27 @@ class CheckoutAPITests extends ShoppTestCase {
 	function test_checkout_notloggedin () {
 		global $Shopp;
 		$Shopp->Settings->registry['account_system'] = 'wordpress';
+		$Order =& ShoppOrder();
+		$Order->Customer = new Customer();
 		$this->assertTrue(shopp('checkout','notloggedin'));
+
+		$Login = new Login();
+		$Account = new Customer(4,'wpuser');
+		$Login->login($Account);
+
+		$this->assertFalse(shopp('checkout','notloggedin'));
 	}
 	
 	function test_checkout_loggedin () {
 		global $Shopp;
+		$Shopp->Settings->registry['account_system'] = 'wordpress';
+		$Order =& ShoppOrder();
+		$Order->Customer = new Customer();
 		$this->assertFalse(shopp('checkout','loggedin'));
 		
 		$Login = new Login();
 		$Account = new Customer(4,'wpuser');
 		$Login->login($Account);
-		
 		$this->assertTrue(shopp('checkout','loggedin'));
 	}
 	
@@ -374,7 +384,9 @@ class CheckoutAPITests extends ShoppTestCase {
 	}
 
 	function test_checkout_billingrequired () {
-		$this->assertFalse(shopp('checkout','billing-required'));
+		global $Shopp;
+		
+		$this->assertTrue(shopp('checkout','billing-required'));
 	}
 
 	function test_checkout_billing_address () {

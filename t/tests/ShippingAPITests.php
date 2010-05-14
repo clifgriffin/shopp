@@ -16,23 +16,23 @@
 class ShippingAPITests extends ShoppTestCase {
 
 	function test_shipping_hasestimates () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 	
 		$Product = new Product(81); $Price = false;
-		$Shopp->Order->Cart->add(1,$Product,$Price,false);
-		$Shopp->Order->Cart->totals();
+		$Order->Cart->add(1,$Product,$Price,false);
+		$Order->Cart->totals();
 		$this->assertTrue(shopp('shipping','hasestimates'));
 		
 	}
 
 	function test_shipping_methodname () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 	
 		$Product = new Product(81); $Price = false;
-		$Shopp->Order->Cart->add(1,$Product,$Price,false);
-		$Shopp->Order->Cart->totals();
+		$Order->Cart->add(1,$Product,$Price,false);
+		$Order->Cart->totals();
 		
 		ob_start();
 		if (shopp('shipping','hasestimates'))
@@ -44,12 +44,13 @@ class ShippingAPITests extends ShoppTestCase {
 	}
 
 	function test_shipping_methodcost () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
+		$Order->Shipping->country = 'US';
 	
 		$Product = new Product(81); $Price = false;
-		$Shopp->Order->Cart->add(1,$Product,$Price,false);
-		$Shopp->Order->Cart->totals();
+		$Order->Cart->add(1,$Product,$Price,false);
+		$Order->Cart->totals();
 		
 		ob_start();
 		if (shopp('shipping','hasestimates'))
@@ -61,12 +62,12 @@ class ShippingAPITests extends ShoppTestCase {
 	}
 
 	function test_shipping_methodselector () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 	
 		$Product = new Product(81); $Price = false;
-		$Shopp->Order->Cart->add(1,$Product,$Price,false);
-		$Shopp->Order->Cart->totals();
+		$Order->Cart->add(1,$Product,$Price,false);
+		$Order->Cart->totals();
 		
 		ob_start();
 		if (shopp('shipping','hasestimates')) shopp('shipping','methods');
@@ -82,12 +83,12 @@ class ShippingAPITests extends ShoppTestCase {
 	}
 	
 	function test_shipping_methoddelivery () {
-		global $Shopp;
-		$Shopp->Order->Cart->clear();
+		$Order =& ShoppOrder();
+		$Order->Cart->clear();
 	
 		$Product = new Product(81); $Price = false;
-		$Shopp->Order->Cart->add(1,$Product,$Price,false);
-		$Shopp->Order->Cart->totals();
+		$Order->Cart->add(1,$Product,$Price,false);
+		$Order->Cart->totals();
 		
 		ob_start();
 		if (shopp('shipping','hasestimates')) shopp('shipping','methods');

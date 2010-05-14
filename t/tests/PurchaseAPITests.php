@@ -10,11 +10,12 @@
  **/
 class PurchaseAPITests extends ShoppTestCase {
 
-	function test_init () {
+	function setUp () {
+		parent::setUp();
 		global $Shopp;
 		$_SERVER['REQUEST_URI'] = "/";
-		$Shopp->Cart->data->Purchase = new Purchase(1);
-		$Shopp->Cart->data->Purchase->load_purchased();
+		$Shopp->Purchase = new Purchase(1);
+		$Shopp->Purchase->load_purchased();
 	}
 
 	function test_purchase_id () {
@@ -203,16 +204,14 @@ class PurchaseAPITests extends ShoppTestCase {
 
 	function test_purchase_items_tags () {
 		ob_start();
-		if (shopp('purchase','has-items')) {
-			shopp('purchase','items');
-			shopp('purchase','totalitems');
-		}
+		shopp('purchase','totalitems');
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals('1',$actual);
 	}
 
 	function test_purchase_item_id () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-id');
 		$actual = ob_get_contents();
@@ -221,6 +220,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_product () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-product');
 		$actual = ob_get_contents();
@@ -229,6 +229,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_price () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-price');
 		$actual = ob_get_contents();
@@ -237,6 +238,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_name () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-name');
 		$actual = ob_get_contents();
@@ -245,6 +247,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_description () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-description');
 		$actual = ob_get_contents();
@@ -253,6 +256,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_options () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-options');
 		$actual = ob_get_contents();
@@ -261,6 +265,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_sku () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-sku');
 		$actual = ob_get_contents();
@@ -269,6 +274,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_download () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-download');
 		$actual = ob_get_contents();
@@ -277,6 +283,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_quantity () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-quantity');
 		$actual = ob_get_contents();
@@ -285,6 +292,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_unitprice () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-unitprice');
 		$actual = ob_get_contents();
@@ -293,6 +301,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_total () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-total');
 		$actual = ob_get_contents();
@@ -301,6 +310,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_input_tags () {
+		shopp('purchase','items');
 		ob_start();
 		if (shopp('purchase','item-has-inputs')) 
 			while(shopp('purchase','item-inputs')) 
@@ -312,6 +322,7 @@ class PurchaseAPITests extends ShoppTestCase {
 	}
 
 	function test_purchase_item_inputs_list () {
+		shopp('purchase','items');
 		ob_start();
 		shopp('purchase','item-inputs-list');
 		$output = ob_get_contents();
