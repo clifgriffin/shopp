@@ -379,9 +379,9 @@ class Product extends DatabaseObject {
 		foreach ($this->specs as $key => $spec) {
 			if (!isset($merged[$spec->name])) $merged[$spec->name] = $spec;
 			else {
-				if (!is_array($merged[$spec->name]->content)) 
-					$merged[$spec->name]->content = array($merged[$spec->name]->content);
-				$merged[$spec->name]->content[] = $spec->content;
+				if (!is_array($merged[$spec->name]->value)) 
+					$merged[$spec->name]->value = array($merged[$spec->name]->value);
+				$merged[$spec->name]->value[] = $spec->value;
 			}
 		}
 		$this->specs = $merged;
@@ -687,7 +687,9 @@ class Product extends DatabaseObject {
 				return ($this->featured == "on"); break;
 			case "price":
 				if (empty($this->prices)) $this->load_data(array('prices'));
+
 				if (!isset($options['taxes'])) $options['taxes'] = null;
+				else $options['taxes'] = value_is_true($options['taxes']);
 			
 				if (count($this->options) > 0) {
 					$taxrate = shopp_taxrate($options['taxes']);
@@ -729,6 +731,7 @@ class Product extends DatabaseObject {
 			case "saleprice":
 				if (empty($this->prices)) $this->load_data(array('prices'));
 				if (!isset($options['taxes'])) $options['taxes'] = null;
+				else $options['taxes'] = value_is_true($options['taxes']);
 				$pricetag = 'price';
 
 				if ($this->onsale) $pricetag = 'saleprice';
@@ -756,9 +759,9 @@ class Product extends DatabaseObject {
 				if ($options['show'] == "%" || $options['show'] == "percent") {
 					if ($this->options > 1) {
 						if (round($this->pricerange['min']['savings']) == round($this->pricerange['max']['savings']))
-							return percentage($this->pricerange['min']['savings']); // No price range
-						else return percentage($this->pricerange['min']['savings'])." &mdash; ".percentage($this->pricerange['max']['savings']);
-					} else return percentage($this->pricerange['max']['savings']);
+							return percentage($this->pricerange['min']['savings'],array('precision' => 0)); // No price range
+						else return percentage($this->pricerange['min']['savings'],array('precision' => 0))." &mdash; ".percentage($this->pricerange['max']['savings'],array('precision' => 0));
+					} else return percentage($this->pricerange['max']['savings'],array('precision' => 0));
 				} else {
 					if ($this->options > 1) {
 						if ($this->pricerange['min']['saved'] == $this->pricerange['max']['saved'])
@@ -964,6 +967,7 @@ class Product extends DatabaseObject {
 				}
 				return $category->name;
 				break;
+			case "hastags": 
 			case "has-tags": 
 				if (empty($this->tags)) $this->load_data(array('tags'));
 				if (count($this->tags) > 0) return true; else return false; break;
@@ -993,6 +997,7 @@ class Product extends DatabaseObject {
 				}
 				return $tag->name;
 				break;
+			case "hasspecs": 
 			case "has-specs": 
 				if (empty($this->specs)) $this->load_data(array('specs'));
 				if (count($this->specs) > 0) {
@@ -1019,7 +1024,7 @@ class Product extends DatabaseObject {
 				if (isset($options['delimiter'])) $separator = $options['delimiter'];
 
 				$spec = current($this->specs);
-				if (is_array($spec->value)) $spec->content = join($delimiter,$spec->value);
+				if (is_array($spec->value)) $spec->value = join($delimiter,$spec->value);
 				
 				if (isset($options['name']) 
 					&& !empty($options['name']) 
@@ -1040,7 +1045,7 @@ class Product extends DatabaseObject {
 				}
 				
 				if (isset($options['name']) && isset($options['content']))
-					$string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->content);
+					$string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->value);
 				elseif (isset($options['name'])) $string = $spec->name;
 				elseif (isset($options['content'])) $string = apply_filters('shopp_product_spec',$spec->value);
 				else $string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->value);
@@ -1057,12 +1062,9 @@ class Product extends DatabaseObject {
 						reset($this->prices);
 						$this->_prices_loop = true;
 					} else next($this->prices);
-					$thisprice = current($this->prices);
+					$price = current($this->prices);
 
-					if ($thisprice && $thisprice->type == "N/A")
-						next($this->prices);
-						
-					if ($thisprice && $thisprice->context != "variation")
+					if ($price && ($price->type == 'N/A' || $price->context != 'variation'))
 						next($this->prices);
 						
 					if (current($this->prices) !== false) return true;
@@ -1161,6 +1163,7 @@ class Product extends DatabaseObject {
 			case "variation":
 				$variation = current($this->prices);
 				if (!isset($options['taxes'])) $options['taxes'] = null;
+				else $options['taxes'] = value_is_true($options['taxes']);
 				$taxrate = shopp_taxrate($options['taxes'],$variation->tax);
 				
 				$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : $Shopp->Settings->get('weight_unit');

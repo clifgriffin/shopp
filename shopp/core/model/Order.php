@@ -112,8 +112,9 @@ class Order {
 	 **/
 	function processor () {
 		global $Shopp;
-
+		
 		if (count($Shopp->Gateways->active) == 1) {
+			reset($Shopp->Gateways->active);
 			$Gateway = current($Shopp->Gateways->active);
 			$this->processor = $Gateway->module;
 			$this->gateway = $Gateway->name;
