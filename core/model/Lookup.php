@@ -106,7 +106,7 @@ class Lookup {
 		$_['IN'] = array('name'=>__('India','Shopp'),'currency'=>array('code'=>'INR','format'=>'Rs. #,##,###.##'),'units'=>'metric','region'=>6); 
 		$_['ID'] = array('name'=>__('Indonesia','Shopp'),'currency'=>array('code'=>'IDR','format'=>'Rp#.###'),'units'=>'metric','region'=>7); 
 		$_['IE'] = array('name'=>__('Ireland','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
-		$_['IL'] = array('name'=>__('Israel','Shopp'),'currency'=>array('code'=>'ILS','format'=>'#,###.## NIS'),'units'=>'metric','region'=>4); 
+		$_['IL'] = array('name'=>__('Israel','Shopp'),'currency'=>array('code'=>'ILS','format'=>'₪ #,###.##'),'units'=>'metric','region'=>4); 
 		$_['IT'] = array('name'=>__('Italy','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 		$_['JM'] = array('name'=>__('Jamaica','Shopp'),'currency'=>array('code'=>'JMD','format'=>'$#,###.##'),'units'=>'metric','region'=>0); 
 		$_['JP'] = array('name'=>__('Japan','Shopp'),'currency'=>array('code'=>'JPY','format'=>'¥#,###'),'units'=>'metric','region'=>6); 
