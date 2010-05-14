@@ -48,12 +48,15 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		}
 
 		set_time_limit($this->_time_limit);
-		
-		$db = DB::get();
-		$db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);		
+		$db =& DB::get();
+		if (!$db->dbh) $db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
 	}
 
 	function tearDown() {
+		global $Shopp;
+		// $Shopp->Catalog = false;
+		// $Shopp->Category = false;
+		// $Shopp->Product = false;
 		if (!is_null($this->_old_handler)) {
 			restore_error_handler();
 		}
@@ -502,13 +505,15 @@ function shopptests_print_result($printer, $result) {
 
 // Main Procedures
 global $Shopp;
+$db = DB::get();
+
 if (defined('SHOPP_IMAGES_PATH')) $Shopp->Settings->registry['image_path'] = SHOPP_IMAGES_PATH;
 if (defined('SHOPP_PRODUCTS_PATH')) $Shopp->Settings->registry['products_path'] = SHOPP_PRODUCTS_PATH;
 if (!defined('SHOPP_SKIP_TESTS')) define('SHOPP_SKIP_TESTS','');
 
 define('SHOPP_TESTS_DIR',dirname(__FILE__).'/tests');
 $files = get_shopp_test_files(SHOPP_TESTS_DIR);
-// $files = array(SHOPP_TESTS_DIR."/CustomerAPITests.php");
+// $files = array(SHOPP_TESTS_DIR."/CatalogAPITests.php",SHOPP_TESTS_DIR."/CategoryAPITests.php");
 foreach ($files as $file) require_once($file);
 $tests = get_all_test_cases();
 list ($result, $printer) = shopp_run_tests($tests);

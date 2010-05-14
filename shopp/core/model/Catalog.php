@@ -60,7 +60,7 @@ class Catalog extends DatabaseObject {
 
 		if (count($categories) > 1) $categories = sort_tree($categories);
 		if ($results) return $categories;
-
+		
 		foreach ($categories as $category) {
 			$category->outofstock = false;
 			if (isset($category->inventory)) {
@@ -93,6 +93,7 @@ class Catalog extends DatabaseObject {
 			if ($category->total > 0 && isset($this->categories[$category->parent]))
 				$this->categories[$category->parent]->children = true;
 		}
+
 
 		if ($showsmart == "before" || $showsmart == "after")
 			$this->smart_categories($showsmart);

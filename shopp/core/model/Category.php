@@ -20,12 +20,7 @@ class Category extends DatabaseObject {
 	var $parent = 0;
 	var $total = 0;
 	var $description = "";
-	var $imguri = "";
 	var $thumbnail = false;
-	var $productidx = 0;
-	var $productloop = false;
-	var $childloop = false;
-	var $imageloop = false;
 	var $products = array();
 	var $pricing = array();
 	var $filters = array();
@@ -573,25 +568,26 @@ class Category extends DatabaseObject {
 				if (!$this->loaded) $this->load_products($options);
 				if (count($this->products) > 0) return true; else return false; break;
 			case "products":			
-				if (!$this->productloop) {
+				if (!isset($this->_product_loop)) {
 					reset($this->products);
 					$Shopp->Product = current($this->products);
-					$this->productsidx = 0;
-					$this->productloop = true;
+					$this->_pindex = 0;
+					$this->_product_loop = true;
 				} else {
 					$Shopp->Product = next($this->products);
-					$this->productsidx++;
+					$this->_pindex++;
 				}
 
 				if (current($this->products) !== false) return true;
 				else {
-					$this->productloop = false;
+					unset($this->_product_loop);
+					$this->_pindex = 0;
 					return false;
 				}
 				break;
 			case "row":
 				if (empty($options['products'])) $options['products'] = $Shopp->Settings->get('row_products');
-				if ($this->productsidx > 0 && $this->productsidx % $options['products'] == 0) return true;
+				if (isset($this->_pindex) && $this->_pindex > 0 && $this->_pindex % $options['products'] == 0) return true;
 				else return false;
 				break;
 			case "has-categories":
@@ -604,19 +600,20 @@ class Category extends DatabaseObject {
 				return ($this->parent != 0);
 				break;
 			case "subcategories":			
-				if (!$this->childloop) {
+				if (!isset($this->_children_loop)) {
 					reset($this->children);
 					$this->child = current($this->children);
-					$this->childidx = 0;
-					$this->childloop = true;
+					$this->_cindex = 0;
+					$this->_children_loop = true;
 				} else {
 					$this->child = next($this->children);
-					$this->childidx++;
+					$this->_cindex++;
 				}
 
 				if (current($this->children) !== false) return true;
 				else {
-					$this->childloop = false;
+					unset($this->_children_loop);
+					$this->_cindex = 0;
 					return false;
 				}
 				break;
@@ -1185,14 +1182,14 @@ class Category extends DatabaseObject {
 				return true;
 				break;
 			case "images":
-				if (!$this->imageloop) {
+				if (!isset($this->_images_loop)) {
 					reset($this->images);
-					$this->imageloop = true;
+					$this->_images_loop = true;
 				} else next($this->images);
 
 				if (current($this->images) !== false) return true;
 				else {
-					$this->imageloop = false;
+					unset($this->_images_loop);
 					return false;
 				}
 				break;
@@ -1286,6 +1283,7 @@ class SmartCategory extends Category {
 	var $smart = true;
 	var $slug = false;
 	var $uri = false;
+	var $name = false;
 	var $loading = array();
 	
 	function __construct ($options=array()) {

@@ -10,15 +10,11 @@
  **/
 class CategoryAPITests extends ShoppTestCase {
 
-	function __construct () {
-		parent::__construct();
-		global $Shopp;
-		$_SERVER['REQUEST_URI'] = "/";
-		$Shopp->Flow->Controller = new Storefront();
-		$Shopp->Catalog = new Catalog();
+	function setUp () {
+		parent::setUp();
 		shopp('catalog','category','id=1&load=true');
 	}
-
+	
 	function test_category_url () {
 		ob_start();
 		shopp('category','url');
@@ -70,6 +66,7 @@ class CategoryAPITests extends ShoppTestCase {
 	}
 	
 	function test_category_total () {
+		shopp('category','has-products');
 		ob_start();
 		shopp('category','total');
 		$actual = ob_get_contents();
@@ -78,7 +75,9 @@ class CategoryAPITests extends ShoppTestCase {
 	}
 	
 	function test_category_row () {
-		$this->assertTrue(shopp('category','row'));		
+		shopp('category','has-products');
+		for ($i = 0; $i < 4; $i++) shopp('category','products');
+		$this->assertTrue(shopp('category','row'));
 	}
 		
 	function test_category_categories_tags () {
@@ -130,11 +129,11 @@ class CategoryAPITests extends ShoppTestCase {
 	}
 
 	function test_category_thumbnail () {
+		shopp('catalog','category','id=17&load=1');
 		ob_start();
 		shopp('category','thumbnail');
 		$actual = ob_get_contents();
 		ob_end_clean();
-
 		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/691?96,96,3603059750" alt="Games" width="96" height="95"/>',$actual);
 		$this->assertValidMarkup($actual);
 	}

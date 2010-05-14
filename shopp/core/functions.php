@@ -100,7 +100,7 @@ function add_query_string ($string,$url) {
  **/
 function add_storefrontjs ($script,$global=false) {
 	global $Shopp;
-	if (get_class($Shopp->Flow->Controller) != "Storefront") return;
+	if (!isset($Shopp->Flow->Controller) || !is_a($Shopp->Flow->Controller,'Storefront')) return;
 	$Storefront = $Shopp->Flow->Controller;
 	if ($global) {
 		if (!isset($Storefront->behaviors['global'])) $Storefront->behaviors['global'] = array();
