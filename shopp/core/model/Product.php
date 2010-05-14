@@ -22,20 +22,13 @@ class Product extends DatabaseObject {
 	var $pricekey = array();
 	var $priceid = array();
 	var $pricerange = array('max'=>array(),'min'=>array());
-	var $onsale = false;
 	var $categories = array();
 	var $tags = array();
 	var $images = array();
-	var $imagesets = array();
-	var $imageset = false;
 	var $specs = array();
 	var $ranges = array('max'=>array(),'min'=>array());
+	var $onsale = false;
 	var $freeshipping = false;
-	var $priceloop = false;
-	var $specloop = false;
-	var $categoryloop = false;
-	var $imageloop = false;
-	var $tagloop = false;
 	var $outofstock = false;
 	var $stock = 0;
 	var $options = 0;
@@ -228,11 +221,8 @@ class Product extends DatabaseObject {
 		
 		if (is_array($products)) {
 			foreach ($products as $product) if (!empty($product->prices)) $product->pricing();
-			// foreach ($products as $product) if (count($product->images) >= 3 && count($product->imagesets) <= 1)
-			// 		$product->imageset();
 		} else {
 			if (!empty($this->prices)) $this->pricing($options);
-			// if (count($this->images) >= 3 && count($this->imagesets) <= 1) $this->imageset();
 		}
 		
 	} // end load_data()
@@ -815,15 +805,14 @@ class Product extends DatabaseObject {
 				break;
 			case "images":
 				if (!$this->images) return false;
-				if (!$this->imageloop) {
+				if (!isset($this->_images_loop)) {
 					reset($this->images);
-					$this->imageloop = true;
+					$this->_images_loop = true;
 				} else next($this->images);
 
 				if (current($this->images) !== false) return true;
 				else {
-					$this->imageloop = false;
-					$this->images = false;
+					unset($this->_images_loop);
 					return false;
 				}
 				break;
@@ -948,14 +937,14 @@ class Product extends DatabaseObject {
 				if (empty($this->categories)) $this->load_data(array('categories'));
 				if (count($this->categories) > 0) return true; else return false; break;
 			case "categories":			
-				if (!$this->categoryloop) {
+				if (!isset($this->_categories_loop)) {
 					reset($this->categories);
-					$this->categoryloop = true;
+					$this->_categories_loop = true;
 				} else next($this->categories);
 
 				if (current($this->categories) !== false) return true;
 				else {
-					$this->categoryloop = false;
+					unset($this->_categories_loop);
 					return false;
 				}
 				break;
@@ -979,14 +968,14 @@ class Product extends DatabaseObject {
 				if (empty($this->tags)) $this->load_data(array('tags'));
 				if (count($this->tags) > 0) return true; else return false; break;
 			case "tags":
-				if (!$this->tagloop) {
+				if (!isset($this->_tags_loop)) {
 					reset($this->tags);
-					$this->tagloop = true;
+					$this->_tags_loop = true;
 				} else next($this->tags);
 
 				if (current($this->tags) !== false) return true;
 				else {
-					$this->tagloop = false;
+					unset($this->_tags_loop);
 					return false;
 				}
 				break;
@@ -1011,14 +1000,14 @@ class Product extends DatabaseObject {
 					return true;
 				} else return false; break;
 			case "specs":			
-				if (!$this->specloop) {
+				if (!isset($this->_specs_loop)) {
 					reset($this->specs);
-					$this->specloop = true;
+					$this->_specs_loop = true;
 				} else next($this->specs);
 				
 				if (current($this->specs) !== false) return true;
 				else {
-					$this->specloop = false;
+					unset($this->_specs_loop);
 					return false;
 				}
 				break;
@@ -1064,9 +1053,9 @@ class Product extends DatabaseObject {
 				$string = "";
 
 				if (!isset($options['mode'])) {
-					if (!$this->priceloop) {
+					if (!isset($this->_prices_loop)) {
 						reset($this->prices);
-						$this->priceloop = true;
+						$this->_prices_loop = true;
 					} else next($this->prices);
 					$thisprice = current($this->prices);
 
@@ -1078,7 +1067,7 @@ class Product extends DatabaseObject {
 						
 					if (current($this->prices) !== false) return true;
 					else {
-						$this->priceloop = false;
+						unset($this->_prices_loop);
 						return false;
 					}
 					return true;
@@ -1305,7 +1294,7 @@ class Product extends DatabaseObject {
 				$result = "";
 				if ($options['labelpos'] == "before") $result .= "$label ";
 				
-				if (!$this->priceloop) reset($this->prices);
+				if (!isset($this->_prices_loop)) reset($this->prices);
 				$variation = current($this->prices);
 
 				if (isset($options['input']) && $options['input'] == "menu") {
