@@ -169,7 +169,7 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('product','savings','show=percent');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals("190% &mdash; 51%",$output);
+		$this->assertEquals("43% &mdash; 49%",$output);
 	}
 	
 	function test_product_weight () {
