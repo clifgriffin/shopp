@@ -138,12 +138,14 @@ class Resources {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 * 
-	 * @return void Description...
+	 * @return void
 	 **/
 	function download () {
 		global $Shopp;
 		$download = $this->request['shopp_download'];
-
+		$Purchase = false;
+		$Purchased = false;
+		
 		if (defined('WP_ADMIN')) {
 			$forbidden = false;
 			$Download = new ProductDownload($download);
@@ -203,9 +205,11 @@ class Resources {
 		}
 		
 		if ($Download->download()) {
-			$Purchased->downloads++;
-			$Purchased->save();
-			do_action_ref_array('shopp_download_success',array(&$Purchased));
+			if ($Purchased !== false) {
+				$Purchased->downloads++;
+				$Purchased->save();
+				do_action_ref_array('shopp_download_success',array(&$Purchased));
+			}
 			exit();
 		}
 	}
