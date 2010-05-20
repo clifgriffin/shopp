@@ -13,6 +13,8 @@
  * @subpackage FSStorage
  **/
 
+if (!defined('WP_CONTENT_DIR')) define('WP_CONTENT_DIR', ABSPATH . 'wp-content');
+
 /**
  * FSStorage
  *
