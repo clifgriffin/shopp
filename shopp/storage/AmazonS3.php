@@ -43,7 +43,13 @@ class AmazonS3 extends StorageModule implements StorageEngine {
 			$this->s3 = new S3(current($this->settings['accesskey']), current($this->settings['secretkey']));
 			if ($this->s3) $this->buckets = $this->s3->listBuckets(); // Update the bucket list
 		}
+		
 			
+	}
+
+	function actions () {
+		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'suggestions'));
+		add_action('wp_ajax_shopp_verify_file',array(&$this,'verify'));
 	}
 	
 	function context ($context) {
@@ -52,16 +58,13 @@ class AmazonS3 extends StorageModule implements StorageEngine {
 	
 	function save ($asset,$data,$type='binary') {
 		$bucket = $this->settings['bucket'][$this->context];
-		if ($type == "file")  {
-			error_log("Storing file $data for $asset->filename");
+		if ($type != "binary")  {
 			$this->s3->putObject(
 				$this->s3->inputResource(fopen($data, 'rb'), @filesize($data)),
 				$bucket, 
 				$asset->filename, 
 				S3::ACL_PUBLIC_READ);
-			
-		}
-		else $this->s3->putObject($data, $bucket, $asset->filename, S3::ACL_PUBLIC_READ);
+		} else $this->s3->putObject($data, $bucket, $asset->filename, S3::ACL_PUBLIC_READ);
 		return "$bucket:$asset->filename";
 	}
 	
@@ -79,6 +82,15 @@ class AmazonS3 extends StorageModule implements StorageEngine {
 		list($bucket,$filename) = explode(":",$uri);
 		$resource = $this->s3->getObject($bucket, $filename);
 		return $resource->body;
+	}
+
+	function meta ($uri) {
+		list($bucket,$filename) = explode(":",$uri);
+		$resource = $this->s3->getObjectInfo($bucket, $filename);
+		$_ = array();
+		$_['size'] = $resource['size'];
+		$_['mime'] = file_mimetype(basename($uri));
+		return $_;
 	}
 	
 	function output ($uri) {
@@ -122,6 +134,59 @@ class AmazonS3 extends StorageModule implements StorageEngine {
 			// placeholder
 		}
 <?php
+	}
+	
+	function suggestions () {
+		check_admin_referer('wp_ajax_shopp_storage_suggestions');
+		if (empty($_GET['q']) || strlen($_GET['q']) < 3) return;
+
+		if ($_GET['t'] == "image") $this->context('image');
+		else $this->context('download');
+		
+		global $Shopp;
+		if ($Shopp->Storage->engines[$this->context] != $this->module) return;
+		
+		$url = parse_url($_GET['q']);
+		if ((isset($url['scheme']) && $url['scheme'] != 'file') || !isset($url['path'])) 
+			return;
+		
+		$query = sanitize_path($url['path']);
+		$search = basename($query);
+		if (strlen($search) < 3) return;
+		
+		$bucket = $this->settings['bucket'][$this->context];
+		
+		$results = array();
+		$files = $this->s3->getBucket($bucket);
+		foreach ($files as $file) {
+			if (strpos(strtolower($file['name']),strtolower($search)) === false) continue;
+			$results[] = $file['name'];
+		}
+
+		echo join("\n",$results);
+		exit();
+	}
+	
+	function verify () {
+		check_admin_referer('wp_ajax_shopp_verify_file');
+		
+		$url = $_POST['url'];
+		$request = parse_url($url);
+		
+		if ($_GET['t'] == "image") $this->context('image');
+		else $this->context('download');
+
+		$bucket = $this->settings['bucket'][$this->context];
+		
+		global $Shopp;
+		if ($Shopp->Storage->engines[$this->context] != $this->module) return;
+
+		$uri = "$bucket:{$request['path']}";
+
+		if (!$this->exists($uri)) die('NULL');
+		list($size,$mime) = array_values($this->meta($uri));
+		if ($size == 0) die('ISDIR');
+		die('OK');		
 	}
 	
 

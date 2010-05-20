@@ -47,7 +47,7 @@ class DBStorage extends StorageModule implements StorageEngine {
 		
 		if (empty($data)) return false;
 
-		if ($type == "file") {
+		if ($type != "binary") {
 			if (!is_readable($data)) die("Could not read the file."); // Die because we can't use ShoppError
 			$data = file_get_contents($data);			
 		}

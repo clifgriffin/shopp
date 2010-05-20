@@ -37,6 +37,11 @@ class FSStorage extends StorageModule implements StorageEngine {
 		$this->name = __('File system','Shopp');
 	}
 	
+	function actions () {
+		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'suggestions'));
+		add_action('wp_ajax_shopp_verify_file',array(&$this,'verify'));
+	}
+	
 	function context ($context) {
 		chdir(WP_CONTENT_DIR);
 		$this->context = $context;
@@ -45,11 +50,17 @@ class FSStorage extends StorageModule implements StorageEngine {
 	}
 
 	function save ($asset,$data,$type='binary') {
-		if ($type == "file") { // $data is a file path, just move the file
+		
+		if ($type == "upload") { // $data is an uploaded temp file path, just move the file
 			if (!is_readable($data)) die("$this->module: Could not read the file."); // Die because we can't use ShoppError
 			if (move_uploaded_file($data,$this->path.'/'.$asset->filename)) return $asset->filename;
+			else die("$this->module: Could not move the uploaded file to the storage repository.");
+		} elseif ($type == "file") { // $data is a file path, just move the file
+			if (!is_readable($data)) die("$this->module: Could not read the file."); // Die because we can't use ShoppError
+			if (rename($data,$this->path.'/'.$asset->filename)) return $asset->filename;
 			else die("$this->module: Could not move the file to the storage repository.");
 		}
+		
 		if (file_put_contents($this->path.'/'.$asset->filename,$data) > 0) return $asset->filename;
 		else return false;
 	}
@@ -61,6 +72,13 @@ class FSStorage extends StorageModule implements StorageEngine {
 	
 	function load ($uri) {
 		return file_get_contents($this->path.'/'.$uri);
+	}
+	
+	function meta ($uri) {
+		$_ = array();
+		$_['size'] = filesize($this->path.'/'.$uri);
+		$_['mime'] = file_mimetype($this->path.'/'.$uri);
+		return $_;
 	}
 	
 	function output ($uri,$etag=false) {
@@ -146,6 +164,78 @@ class FSStorage extends StorageModule implements StorageEngine {
 			'label' => $label
 		));
 		
+	}
+	
+	function suggestions () {
+		check_admin_referer('wp_ajax_shopp_storage_suggestions');
+		if (empty($_GET['q']) || strlen($_GET['q']) < 3) return;
+		if ($_GET['t'] == "image") $this->context('image');
+		else $this->context('download');
+		
+		global $Shopp;
+		if ($Shopp->Storage->engines[$this->context] != $this->module) return;
+		
+		$directory = false;	// The directory to search
+		$search = false;	// The file name to search for
+		$relpath = false;	// The related path
+		$sep = DIRECTORY_SEPARATOR;
+
+		$url = parse_url($_GET['q']);
+		if ((isset($url['scheme']) && $url['scheme'] != 'file') || !isset($url['path'])) 
+			return;
+		
+		$query = sanitize_path($url['path']);
+		$search = basename($query);
+		if (strlen($search) < 3) return;
+
+		if ($url['scheme'] == "file") {
+			$directory = dirname($query);
+			$uri = array($url['scheme'].':','',$directory);
+			$relpath = join("/",$uri).'/';
+		}
+		if (!$directory && $query[0] == "/") $directory = dirname($query);
+		if (!$directory) {
+			$directory = realpath($this->path.$sep.dirname($query));
+			$relpath = dirname($query);
+			$relpath = ($relpath == ".")?false:$relpath.$sep;
+		}
+
+		$Directory = @dir($directory);
+		if ($Directory) {
+			while (( $file = $Directory->read() ) !== false) {
+				if (substr($file,0,1) == "." || substr($file,0,1) == "_") continue;
+				if (strpos(strtolower($file),strtolower($search)) === false) continue;
+				if (is_dir($directory.'/'.$file)) $results[] = $relpath.$file.$sep;
+				else $results[] = $relpath.$file;
+			}
+		}
+		echo join("\n",$results);
+		exit();
+	}
+	
+	function verify () {
+		check_admin_referer('wp_ajax_shopp_verify_file');
+		$Settings = &ShoppSettings();
+		chdir(WP_CONTENT_DIR); // relative path context for realpath
+		$url = $_POST['url'];
+		$request = parse_url($url);
+
+		if ($request['scheme'] == "http") {
+			$results = get_headers(linkencode($url));
+			if (substr($url,-1) == "/") die("ISDIR");
+			if (strpos($results[0],'200') === false) die("NULL");
+
+		} else {
+			$fs_path = $Settings->get('products_path');
+			$url = str_replace('file://','',$url);
+	
+			if ($url{0} != "/" && !empty($fs_path)) $url = trailingslashit(sanitize_path(realpath($fs_path))).$url;
+			if (!file_exists($url)) die('NULL');
+			if (is_dir($url)) die('ISDIR');
+			if (!is_readable($url)) die('READ');
+		}
+
+		die('OK');
 	}
 	
 } // END class FSStorage

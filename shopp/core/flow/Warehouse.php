@@ -29,6 +29,7 @@ class Warehouse extends AdminController {
 	function __construct () {
 		parent::__construct();
 		if (!empty($_GET['id'])) {
+			wp_enqueue_script('suggest');
 			wp_enqueue_script('postbox');
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');
@@ -513,20 +514,22 @@ class Warehouse extends AdminController {
 
 				if (!empty($option['downloadpath'])) { // Attach file specified by URI/path
 					$File = new ProductDownload();
+					$stored = false;
 					$File->_engine(); // Set engine from storage settings
-					$File->uri = ltrim(sanitize_path($option['downloadpath']),"/");
-					if (!$File->notfound()) {
-						$File->parent = 0;
-						$File->context = "price";
-						$File->type = "download";
-						$File->name = basename($File->uri);
-						$File->size = filesize($download);
-						$File->mime = file_mimetype($download,$File->name);
-						$File->store($File->uri);
+					$File->uri = sanitize_path($option['downloadpath']);
+					$File->parent = $Price->id;
+					$File->context = "price";
+					$File->type = "download";
+					$File->name = !empty($option['downloadfile'])?$option['downloadfile']:basename($File->uri);
+					$File->filename = $File->name;
+
+					if (!$File->found()) $stored = $File->store($File->uri,'file');
+					else $stored = true;
+
+					if ($stored) {
+						$File->readmeta();
 						$File->save();
-						$Price->attach_download($File->id);
 					}
-					
 				} // END attach file by path/uri
 			}
 			unset($Price);
@@ -626,7 +629,7 @@ class Warehouse extends AdminController {
 		$File->filename = $File->name;
 		$File->mime = file_mimetype($_FILES['Filedata']['tmp_name'],$File->name);
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
-		$File->store($_FILES['Filedata']['tmp_name'],'file');
+		$File->store($_FILES['Filedata']['tmp_name'],'upload');
 		$File->save();
 		
 		do_action('add_product_download',$File,$_FILES['Filedata']);
@@ -686,7 +689,7 @@ class Warehouse extends AdminController {
 		list($Image->width, $Image->height, $Image->mime, $Image->attr) = getimagesize($_FILES['Filedata']['tmp_name']);
 		$Image->mime = image_type_to_mime_type($Image->mime);
 		$Image->size = filesize($_FILES['Filedata']['tmp_name']);
-		$Image->store($_FILES['Filedata']['tmp_name'],'file');
+		$Image->store($_FILES['Filedata']['tmp_name'],'upload');
 		$Image->save();
 					
 		echo json_encode(array("id"=>$Image->id));
