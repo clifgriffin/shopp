@@ -194,9 +194,13 @@ function htmlentities (string) {
  **/
 jQuery.parseJSON = function (data) {
 	if (typeof (JSON) !== 'undefined' && 
-		typeof (JSON.parse) === 'function')
-		return JSON.parse(data);
-	else return eval('(' + data + ')');
+		typeof (JSON.parse) === 'function') {
+			try {
+				return JSON.parse(data);
+			} catch (e) {
+				return false;
+			}
+	} else return eval('(' + data + ')');
 }
 
 /**
