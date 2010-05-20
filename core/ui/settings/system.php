@@ -125,9 +125,10 @@ jQuery(document).ready(function() {
 			timeout:500,
 			dataType:'text',
 			success:function (results) {
-				p = results.split(':');
-				var progress = Math.ceil((p[0]/p[1])*76);
-				progressbar.animate({'width':progress+'px'},500);
+				var p = results.split(':'),
+					width = Math.ceil((p[0]/p[1])*76);
+				if (p[0] < p[1]) setTimeout(progress,1000);
+				progressbar.animate({'width':width+'px'},500);
 			}
 		});
 		
@@ -142,7 +143,6 @@ jQuery(document).ready(function() {
 			'onComplete':function () {
 				progressbar = $('#progress div.bar');
 				progress();
-				setTimeout(progress,1000);
 				$('#process').load(function () {
 					progressbar.animate({'width':'100%'},500,'swing',function () {
 						setTimeout($.fn.colorbox.close,1000);

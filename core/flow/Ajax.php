@@ -46,7 +46,6 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_options_template',array(&$this,'load_options_template'));
 		add_action('wp_ajax_shopp_add_category',array(&$this,'add_category'));
 		add_action('wp_ajax_shopp_edit_slug',array(&$this,'edit_slug'));
-		add_action('wp_ajax_shopp_verify_file',array(&$this,'verify_file'));
 		add_action('wp_ajax_shopp_order_note_message',array(&$this,'order_note_message'));
 		add_action('wp_ajax_shopp_activate_key',array(&$this,'activate_key'));
 		add_action('wp_ajax_shopp_deactivate_key',array(&$this,'deactivate_key'));
@@ -55,8 +54,11 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_suggestions',array(&$this,'suggestions'));
 		add_action('wp_ajax_shopp_upload_local_taxes',array(&$this,'upload_local_taxes'));
 		add_action('wp_ajax_shopp_feature_product',array(&$this,'feature_product'));
-		add_action('wp_ajax_shopp_update_inventory',array(&$this,'update_inventory'));
-		
+		add_action('wp_ajax_shopp_update_inventory',array(&$this,'update_inventory'));		
+		add_action('wp_ajax_shopp_import_file',array(&$this,'import_file'));
+		add_action('wp_ajax_shopp_import_file_progress',array(&$this,'import_file_progress'));
+		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'storage_suggestions'),11);		
+		add_action('wp_ajax_shopp_verify_file',array(&$this,'verify_file'));
 	}
 
 	function receipt () {
@@ -209,30 +211,7 @@ class AjaxFlow {
 		}
 		exit();
 	}
-	
-	function verify_file () {
-		check_admin_referer('shopp-ajax_verify_file');
-		$Settings = &ShoppSettings();
-		chdir(WP_CONTENT_DIR); // relative path context for realpath
-		$url = $_POST['url'];
-		$request = parse_url($url);
-		if ($request['scheme'] == "http") {
-			$results = @get_headers($url);
-			if (substr($url,-1) == "/") die("ISDIR");
-			if (strpos($results[0],'200') === false) die("NULL");
-		} else {
-			$url = str_replace('file://','',$url);	
-
-			if ($url{0} != "/") $url = trailingslashit(sanitize_path(realpath($Settings->get('products_path')))).$url;
-
-			if (!file_exists($url)) die("NULL");
-			if (is_dir($url)) die("ISDIR");
-			if (!is_readable($url)) die("READ");
-		}
-
-		die("OK");
-	}
-	
+		
 	function shipping_costs () {
 		// $this->ShipCalcs = new ShipCalcs($this->path);
 		// if (isset($_GET['method'])) {
@@ -342,7 +321,7 @@ class AjaxFlow {
 			case "product-tags": $table = DatabaseObject::tablename(Tag::$table); break;
 			case "product-category": $table = DatabaseObject::tablename(Category::$table); break;
 		}
-		
+
 		$entries = $db->query("SELECT name FROM $table WHERE name LIKE '%{$_GET['q']}%'",AS_ARRAY);
 		$results = array();
 		foreach ($entries as $entry) $results[] = $entry->name;
@@ -429,6 +408,91 @@ class AjaxFlow {
 		$Priceline->stock = $_GET['stock'];
 		$Priceline->save();
 		echo "1";
+		exit();
+	}
+	
+	function import_file () {
+		check_admin_referer('wp_ajax_shopp_import_file');
+
+		if (empty($_REQUEST['url'])) die(json_encode(false));
+		$url = $_REQUEST['url'];
+		$request = parse_url($url);
+		$filename = basename($request['path']);
+
+		
+		// @todo open_basedir restriction workaround
+		$importfile = tempnam(null, 'shp');
+		$incoming = fopen($importfile,'w');
+		
+		if (!$file = fopen(linkencode($url), 'rb')) die(json_encode(false));
+		$data = stream_get_meta_data($file);
+		
+		if (isset($data['wrapper_data'])) {
+			foreach ($data['wrapper_data'] as $d) {
+				if (strpos($d,':') === false) continue;
+				list($name,$value) = explode(': ',$d);
+				if ($rel = strpos($value,';')) $headers[$name] = substr($value,0,$rel);
+				else $headers[$name] = $value;
+			}
+		}
+
+		$tmp = basename($importfile);
+		$Settings =& ShoppSettings();
+
+		$_ = new StdClass();
+		$_->name = $filename;
+		$_->path = $importfile;
+		$_->size = $headers['Content-Length'];
+		$_->mime = $headers['Content-Type'] == 'text/plain'?file_mimetype($_->name):$headers['Content-Type'];
+
+
+		ob_end_clean();
+		header("Connection: close");
+		header("Content-Encoding: none");
+		ob_start();
+	 	echo json_encode($_);
+		$size = ob_get_length();
+		header("Content-Length: $size");
+		ob_end_flush();
+		flush();
+		ob_end_clean();
+		
+		$progress = 0;
+		fseek($file, 0);
+		$packet = 1024*1024;
+		while(!feof($file)) {
+			if (connection_status() !== 0) return false;
+			$buffer = fread($file,$packet);
+			if (!empty($buffer)) {
+				fwrite($incoming, $buffer);
+				$progress += strlen($buffer);
+				$Settings->save($tmp.'_import_progress',$progress);
+			}
+		}
+		fclose($file);
+		fclose($incoming);
+
+		sleep(5);
+		$Settings->delete($tmp.'_import_progress');
+
+		exit();
+	}
+	
+	function import_file_progress () {
+		check_admin_referer('wp_ajax_shopp_import_file_progress');
+		if (empty($_REQUEST['proc'])) die('0');
+		
+		$Settings =& ShoppSettings();
+		$progress = $Settings->get($_REQUEST['proc'].'_import_progress');
+		if (empty($progress)) die('0');
+		die($progress);
+	}
+	
+	function storage_suggestions () {
+		exit();
+	}
+	
+	function verify_file () {
 		exit();
 	}
 		

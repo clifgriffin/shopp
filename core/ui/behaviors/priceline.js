@@ -383,7 +383,7 @@ function Priceline (id,options,data,target,attachment) {
 	_.download = function (fileid,filename,filedata) {
 		var hd,ui,hd2;
 		hd = $('<th><label for="download-'+i+'">'+PRODUCT_DOWNLOAD_LABEL+'</label></th>').appendTo(headingsRow);
-		ui = $('<td width="31%"><input type="hidden" name="'+name+'[downloadpath]" id="download_path"/><div id="file-'+i+'">'+NO_DOWNLOAD+'</div></td>').appendTo(inputsRow);
+		ui = $('<td width="31%"><input type="hidden" name="'+fn+'[downloadpath]" id="download_path-'+i+'"/><input type="hidden" name="'+fn+'[downloadfile]" id="download_file-'+i+'"/><div id="file-'+i+'">'+NO_DOWNLOAD+'</div></td>').appendTo(inputsRow);
 		
 		hd2 = $('<td rowspan="2" class="controls" width="75"><button type="button" class="button-secondary" style="white-space: nowrap;" id="file-selector-'+i+'"><small>'+SELECT_FILE_BUTTON_TEXT+'&hellip;</small></button></td>').appendTo(headingsRow);
 

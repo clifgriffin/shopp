@@ -97,6 +97,7 @@ class FileAsset extends MetaObject {
 		$Engine = $this->_engine();
 		$this->uri = $Engine->save($this,$data,$type);
 		if ($this->uri === false) return false;
+		return true;
 	}
 	
 	/**
@@ -110,6 +111,19 @@ class FileAsset extends MetaObject {
 	function retrieve () {
 		$Engine = $this->_engine();
 		return $Engine->load($this->uri);
+	}
+	
+	/**
+	 * Retreive resource meta information
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function readmeta () {
+		$Engine = $this->_engine();
+ 		list($this->size,$this->mime) = array_values($Engine->meta($this->uri));
 	}
 	
 	/**
@@ -389,7 +403,7 @@ class DownloadAsset extends FileAsset {
 }
 
 class ProductDownload extends DownloadAsset {
-	var $context = 'product';
+	var $context = 'price';
 }
 
 /**
@@ -417,6 +431,9 @@ class StorageEngines extends ModuleLoader {
 	 **/
 	function __construct () {
 		$this->path = SHOPP_STORAGE;
+		
+		add_action('shopp_module_loaded',array(&$this,'actions'));
+		
 		$this->installed();
 		$this->activated();
 		$this->load();
@@ -475,6 +492,11 @@ class StorageEngines extends ModuleLoader {
 	function ui () {
 		foreach ($this->active as $package => &$module)
 			$module->setupui($package,$this->modules[$package]->name);
+	}
+	
+	function actions ($module) {
+		if (method_exists($this->active[$module],'actions'))
+			$this->active[$module]->actions();
 	}
 	
 }
@@ -562,7 +584,7 @@ abstract class StorageModule {
 	
 	function context ($setting) {}
 	function settings () {}
-	
+		
 	/**
 	 * Generate the settings UI for the module
 	 *

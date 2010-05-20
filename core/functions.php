@@ -669,6 +669,22 @@ function is_shopp_secure () {
 }
 
 /**
+ * Encodes an all parts of a URL
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param string $url The URL of the link to encode
+ * @return void
+ **/
+function linkencode ($url) {
+	$search = array('%2F','%3A','%3F','%3D','%26');
+	$replace = array('/',':','?','=','&');
+	$url = rawurlencode($url);
+	return str_replace($search, $replace, $url);
+}
+
+/**
  * Generates a timestamp from a MySQL datetime format
  *
  * @author Jonathan Davis

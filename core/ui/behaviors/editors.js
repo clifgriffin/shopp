@@ -875,31 +875,83 @@ function ImageUploads (id,type) {
 }
 
 jQuery.fn.FileChooser = function (line,status) {
-	var $ = jqnc();
+	var $ = jqnc(),
+		importurl = $('#import-url'),
+		attach = $('#attach-file'),
+		dlpath = $('#download_path-'+line),
+		dlname = $('#download_file-'+line),
+		file = $('#file-'+line),
+		verified = false,
+		progressbar = false;
 		
 	fileUploads.updateLine(line,status);
-	$('#import-url').change(function () {
-		var fi = $(this);
-		fi.removeClass('warning').addClass('verifying');
-		$.ajax({url:fileverify_url+'&action=shopp_verify_file',
+	importurl.unbind('keydown').unbind('keypress').suggest(
+			sugg_url+'&action=shopp_storage_suggestions&t=download', 
+			{ delay:500, minchars:3, multiple:false, onSelect:function () { importurl.change(); } }
+	).change(function () {
+		var $this = $(this);
+		$this.removeClass('warning').addClass('verifying');
+		$.ajax({url:fileverify_url+'&action=shopp_verify_file&t=download',
 				type:"POST",
-				data:'url='+fi.val(),
+				data:'url='+$this.val(),
 				timeout:10000,
 				dataType:'text',
 				success:function (results) {
-					fi.attr('class','fileimport');
-					if (results == "OK") { fi.addClass('ok'); return; }
-					if (results == "NULL") fi.attr('title',FILE_NOT_FOUND_TEXT);
-					if (results == "ISDIR") fi.attr('title',FILE_ISDIR_TEXT);
-					if (results == "READ") fi.attr('title',FILE_NOT_READ_TEXT);
-					fi.addClass("warning");
+					$this.attr('class','fileimport');
+					if (results == "OK") return $this.addClass('ok');
+					if (results == "NULL") $this.attr('title',FILE_NOT_FOUND_TEXT);
+					if (results == "ISDIR") $this.attr('title',FILE_ISDIR_TEXT);
+					if (results == "READ") $this.attr('title',FILE_NOT_READ_TEXT);
+					$this.addClass("warning");
 				}
 		});
+	});
+	
+	attach.click(function () {
+		$.fn.colorbox.hide();
+		var importid = false,
+			importdata = false,
+			importfile = importurl.val(),
+			importing = function () {
+				$.ajax({url:fileimportp_url+'&action=shopp_import_file_progress&proc='+importid,
+					timeout:500,
+					dataType:'text',
+					success:function (status) {
+						var total = parseInt(importdata.size);
+							width = Math.ceil((status/total)*76),
+							progressbar = file.find('div.progress > div.bar');
+						if (status < total) setTimeout(importing,1000);
+						else { // Completed
+							if (progressbar) progressbar.css({'width':'100%'}).fadeOut(500,function () {
+								if (!importdata.name) return $this.attr('class','');
+								file.attr('class','file '+importdata.mime.replace('/',' ')).html(importdata.name+'<br /><small>'+readableFileSize(importdata.size)+'</small>');
+								dlpath.val(importdata.path); dlname.val(importdata.name);
+								importurl.val('').attr('class','fileimport');
+							});
+							return;				
+						}
+						if (progressbar) progressbar.animate({'width':width+'px'},500);
+					}
+				});
+
+			}
 		
+		
+		// file.attr('class','importing').html('Importing&hellip;');
+		file.attr('class','').html('<div class="progress"><div class="bar"></div><div class="gloss"></div></div><iframe width="0" height="0" src="'+fileimport_url+'&action=shopp_import_file&url='+importfile+'"></iframe>');
+		file.find('iframe').load(function () {
+			var f = $(this).contents().find('body').html();
+			importdata = $.parseJSON(f);
+			if (importdata.path) {
+				savepath = importdata.path.split('/');
+				importid = savepath[savepath.length-1];
+				importing();
+			}
+		});
+
 	});
 
-	$(this).colorbox({'title':'File Selector','innerWidth':'350','innerHeight':'140','inline':true,'href':'#chooser'});
-
+	$(this).colorbox({'title':'File Selector','innerWidth':'360','innerHeight':'140','inline':true,'href':'#chooser'});
 }
 
 

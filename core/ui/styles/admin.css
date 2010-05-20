@@ -152,7 +152,7 @@ div.comment-item:hover .row-actions { visibility:visible; }
 #variations-pricing > tr > th,#variations-pricing > tr > td { border-top:1px solid #dfdfdf; }
 .form-table.pricing { border-bottom:1px solid #dfdfdf; }
 
-#chooser { font-size:11px;position:absolute;left:-9999em;width:350px; }
+#chooser { font-size:11px;position:absolute;left:-9999em;width:360px; }
 #chooser p { font-size:11px;margin:6px 0 8px;line-height:1; }
 #cboxContent #chooser { left:auto; }
 #cboxContent #chooser label { margin:0;padding:6px 0;text-align:left;width:auto; }
