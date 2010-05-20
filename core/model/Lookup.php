@@ -100,6 +100,7 @@ class Lookup {
 		$_['DE'] = array('name'=>__('Germany','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 		$_['GR'] = array('name'=>__('Greece','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
 		$_['GP'] = array('name'=>__('Guadeloupe','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3); 
+		$_['GT'] = array('name'=>__('Guatemala','Shopp'),'currency'=>array('code'=>'GTQ','format'=>'Q#,###.##'),'units'=>'metric','region'=>1); 
 		$_['HK'] = array('name'=>__('Hong Kong','Shopp'),'currency'=>array('code'=>'HKD','format'=>'$#,###.##'),'units'=>'metric','region'=>6); 
 		$_['HU'] = array('name'=>__('Hungary','Shopp'),'currency'=>array('code'=>'HUF','format'=>'#t ### Ft'),'units'=>'metric','region'=>3); 
 		$_['IS'] = array('name'=>__('Iceland','Shopp'),'currency'=>array('code'=>'ISK','format'=>'#t.### kr.'),'units'=>'metric','region'=>3); 
