@@ -68,6 +68,8 @@ class Storefront extends FlowController {
 		add_action('wp', array(&$this, 'shortcodes'));
 		add_action('wp', array(&$this, 'behaviors'));
 
+		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
+
 		$this->smartcategories();
 		$this->searching();
 		
@@ -206,7 +208,7 @@ class Storefront extends FlowController {
 	}
 
 	function feeds () {
-		global $Shopp;
+		global $Shopp;		
 		if (empty($this->Category->name)):?>
 
 <link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo $Shopp->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
