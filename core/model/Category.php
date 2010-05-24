@@ -468,10 +468,9 @@ class Category extends DatabaseObject {
 		$items = array();
 		foreach ($this->products as $product) {
 			$item = array();
-			$item['guid'] = array($product->id,'isPermaLink'=>'false');
+			$item['guid'] = $product->tag('url','return=1');
 			$item['title'] = esc_attr($product->name);
-			if (SHOPP_PERMALINKS) $item['link'] = user_trailingslashit($Shopp->shopuri.urldecode($product->slug));
-			else $item['link'] = urlencode(add_query_arg('shopp_pid',$product->id,$Shopp->shopuri));
+			$item['link'] =  $product->tag('url','return=1');
 			
 			// Item Description
 			$item['description'] = '';
@@ -484,13 +483,13 @@ class Category extends DatabaseObject {
 			
 			$pricing = "";
 			if ($product->onsale) {
-				if ($product->pricerange['min']['saleprice'] != $product->pricerange['max']['saleprice'])
+				if ($product->min['saleprice'] != $product->max['saleprice'])
 					$pricing .= "from ";
-				$pricing .= money($product->pricerange['min']['saleprice']);
+				$pricing .= money($product->min['saleprice']);
 			} else {
-				if ($product->pricerange['min']['price'] != $product->pricerange['max']['price']) 
+				if ($product->min['price'] != $product->max['price']) 
 					$pricing .= "from ";
-				$pricing .= money($product->pricerange['min']['price']);
+				$pricing .= money($product->min['price']);
 			}
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
 			
@@ -502,8 +501,8 @@ class Category extends DatabaseObject {
 			if($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),$Shopp->imguri.$Image->id);
 			$item['g:condition'] = "new";
 			$item['g:price'] = floatvalue($product->onsale?
-				$product->pricerange['min']['saleprice']:
-				$product->pricerange['min']['price']);
+				$product->min['saleprice']:
+				$product->min['price']);
 			$item['g:price_type'] = "starting";
 			
 			$item = apply_filters('shopp_rss_item',$item,$product);

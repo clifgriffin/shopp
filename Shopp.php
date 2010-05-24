@@ -182,9 +182,6 @@ class Shopp {
 		add_action('save_post', array(&$this, 'pages_index'),10,2);
 		add_filter('query_vars', array(&$this,'queryvars'));
 		
-		// Extras & Integrations
-		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
-		
 		if (!wp_next_scheduled('shopp_check_updates'))
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
 
