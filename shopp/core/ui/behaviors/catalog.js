@@ -124,16 +124,15 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 function catalogViewHandler () {
 	var $=jqnc(),
 		display = $('#shopp'),
-		expires = new Date();
+		expires = new Date(),
+		toggles = {'list':'grid','grid':'list'};
 	expires.setTime(expires.getTime()+(30*86400000));
-
-	display.find('ul.views li button.list').click(function () {
-		display.removeClass('grid').addClass('list');
-		document.cookie = 'shopp_catalog_view=list; expires='+expires+'; path=/';
-	});
-	display.find('ul.views li button.grid').click(function () {
-		display.removeClass('list').addClass('grid');
-		document.cookie = 'shopp_catalog_view=grid; expires='+expires+'; path=/';
+	
+	$.each(toggles,function (view,lastview) {
+		display.find('ul.views li button.'+view).click(function () {
+			display.removeClass(lastview).addClass(view);
+			document.cookie = 'shopp_catalog_view='+view+'; expires='+expires+'; path=/';
+		}).hover(function () { $(this).toggleClass('hover'); });
 	});
 }
 
