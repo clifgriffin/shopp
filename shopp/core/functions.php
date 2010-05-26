@@ -464,6 +464,7 @@ function floatvalue($value, $format=false) {
 	if (is_float($value)) return round($value,$precision);
 
 	$value = preg_replace("/[^\d,\.]/","",$value); // Remove any non-numeric string data
+	$value = preg_replace("/^\./","",$value); // Remove any decimals at the beginning of the string
 	$value = preg_replace("/\\".$thousands."/","",$value); // Remove thousands
 
 	if ($precision > 0) // Don't convert decimals if not required
