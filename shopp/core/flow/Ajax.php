@@ -309,6 +309,7 @@ class AjaxFlow {
 		
 		$Settings = &ShoppSettings();
 		$lastbuild = $Settings->get('searchindex_build');
+		if (empty($lastbuild)) $lastbuild = 0;
 		
 		$status = $db->query("SELECT count(DISTINCT product.id) AS products, count(DISTINCT product) AS indexed FROM $product_table AS product LEFT JOIN $index_table AS indx ON product.id=indx.product AND $lastbuild < UNIX_TIMESTAMP(indx.modified)");
 		
