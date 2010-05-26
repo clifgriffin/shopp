@@ -20,7 +20,7 @@ div.clear,
 #shopp #cart table { clear: both; }
 #shopp { position: relative; }
 #shopp ul { list-style: none; text-indent: 0; text-align: left; padding: 0; margin: 0; }
-#shopp li { background: none; padding: 0; margin: 0; }
+#shopp li { background: none !important; padding: 0; margin: 0; }
 #shopp li:before,
 #shopp-cart:before,
 #shopp-cart ul li:before,
@@ -38,6 +38,10 @@ div.clear,
 #shopp ul.paging li { display: inline; margin-left: 5px;}
 
 /* Shopp Forms */
+#shopp #checkout,
+#shopp #checkout > ul,
+#shopp #checkout > ul ul,
+#shopp #checkout > ul li { margin: 0; padding: 0; }
 #shopp form ul { width: 100%; clear: both; line-height: 1; }
 #shopp form ul li { text-indent: 0; clear: both; display: block; padding: 4px 0; margin: 0; }
 #shopp form label { clear: both; display: block; }
@@ -76,8 +80,20 @@ div.clear,
 
 /** Categories **/
 #shopp .category { position: relative; }
+.content #shopp .views li,
+#shopp .views li { display: inline; margin: 0; padding: 0; }
+
 #shopp .views .grid { width: 15px; height: 15px; background: url('../../../core/ui/icons/grid.png') no-repeat 50% 50%; }
 #shopp .views .list { width: 15px; height: 15px; background: url('../../../core/ui/icons/list.png') no-repeat 50% 50%; }
+
+#shopp.catalog .category ul,
+#shopp.category .category ul { margin: 0; padding: 0; }
+#shopp.catalog .category .products li,
+#shopp.category .category .products li,
+#shopp.catalog .carousel .frame li { margin: 0; padding: 0; }
+
+#shopp.catalog .listview form { margin: 0; padding: 0; }
+
 
 /** Product Page Gallery **/
 #shopp form.product label { clear: none; display: inline; }
@@ -97,7 +113,7 @@ div.clear,
 #shopp .gallery .thumbnails li img { cursor: pointer; }
 
 /** Category Slideshow **/
-#shopp .slideshow { position: relative; margin: 0; clear: both; }
+#shopp .slideshow { position: relative; margin: 0; clear: both; width: 100%; overflow: auto; }
 #shopp .slideshow li { position: absolute; top: 0; left: 0; margin: 0; display: block; text-align: center; visibility: hidden; }
 #shopp .slideshow li.clear { position: relative; clear: both; visibility: visible; }
 #shopp .slideshow li.clear:after { clear: both; }
@@ -106,7 +122,7 @@ div.clear,
 #shopp .carousel { position: relative; margin: 0; clear: both; width: 100%; }
 #shopp .carousel .frame { position: relative; margin: 0 20px; overflow: hidden; }
 #shopp .carousel ul { position: relative; width: 999em; }
-#shopp .carousel li { display: inline-block; vertical-align: middle;}
+#shopp.catalog .carousel li { display: inline-block; vertical-align: middle;}
 #shopp .carousel button { position: absolute; bottom: 50%; cursor: pointer; border: none; width: 14px; height: 14px; background-image: url('../../../core/ui/icons/carousel.png'); background-repeat: no-repeat; background-color: transparent; }
 #shopp .carousel button.left { left: 0; }
 #shopp .carousel button.right { right: 0; background-position: -16px 0; }
