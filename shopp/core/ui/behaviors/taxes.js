@@ -128,19 +128,45 @@ function TaxRate (data) {
 	}
 	
 	function LocalRates (d) {
-		var label,counter,ui,instructions,ratelist,uploadButton,
-			src = '<div class="local-rates"><div class="label"><label>'+LOCAL_RATES+' <span class="counter"></span><input type="hidden" name="settings[taxrates]['+id+'][locals]" value="" /></label></div><div class="ui"><p>'+LOCAL_RATE_INSTRUCTIONS+'</p><ul></ul><button type="button" name="upload" class="button-secondary">Upload</button></div>',
+		var label,counter,ui,instructions,ratelist,uploadButton,pos
+			src = '<div class="local-rates"><div class="label"><label>'+LOCAL_RATES+' <span class="counter"></span><input type="hidden" name="settings[taxrates]['+id+'][locals]" value="" /></label><button type="button" name="toggle" class="toggle">&nbsp;</button></div><div class="ui"><p>'+LOCAL_RATE_INSTRUCTIONS+'</p><ul></ul><button type="button" name="upload" class="button-secondary">Upload</button></div>',
 			panel = origin.find('div.local-rates');
 			
 		if (!panel.get(0)) panel = $(src).appendTo(origin);
 		else panel.toggle();
 		
 		ui = panel.find('div.ui');
-		label = panel.find('div.label').unbind('click').click(function () { ui.slideToggle('fast'); });
+		label = panel.find('div.label');
+		toggle = label.find('button.toggle');
+		label.unbind('click').click(function () { ui.slideToggle('fast'); toggle.trigger('toggle.clicked'); });
 		counter = label.find('span.counter');
 		instructions = ui.find('p');
 		ratelist = ui.find('ul');
 		uploadButton = ui.find('button');
+		
+		toggle.bind('toggle.clicked',function () {
+			var $button = $(this),
+				step = 20,
+				max = 180;
+
+			function openIcon () {
+				pos += step;
+				$button.css('background-position',pos+'px top');
+				if (pos < 0) setTimeout(openIcon,20);
+				else $button.css('background-position',null).removeClass('closed');
+			}
+			
+			function closeIcon () {
+				pos -= step;
+				$button.css('background-position',pos+'px top');
+				if (Math.abs(pos) < max) setTimeout(closeIcon,20);
+				else $button.css('background-position',null).addClass('closed');
+			}
+
+			if (pos < 0) return setTimeout(openIcon,20);
+			else return setTimeout(closeIcon,20);
+			
+		});
 		
 		zoneMenu.change(function () {
 			var locales = false;
@@ -165,6 +191,8 @@ function TaxRate (data) {
 
 		if (d) {
 			ui.hide();
+			pos = -180;
+			toggle.addClass('closed');
 			listings(d);
 		}
 		
