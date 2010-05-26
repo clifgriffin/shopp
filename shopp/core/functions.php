@@ -1412,12 +1412,14 @@ function shopp_timezone () {
  **/
 function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 	$depth++;
+	$position = 1;
 	$result = array();
 	if ($items) { 
 		foreach ($items as $item) {
 			if ($item->parent == $parent) {
 				$item->parentkey = $key;
 				$item->depth = $depth;
+				$item->priority = $position++;
 				$result[] = $item;
 				$children = sort_tree($items, $item->id, count($result)-1, $depth);
 				$result = array_merge($result,$children); // Add children in as they are found

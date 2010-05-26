@@ -38,6 +38,9 @@ class Catalog extends DatabaseObject {
 		if (!$this->outofstock) $filtering['where'] .= (empty($filtering['where'])?"":" AND ")."(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))";
 		if (empty($filtering['where'])) $filtering['where'] = "true";
 		
+		if (isset($filtering['parent'])) $filtering['where'] .= " AND cat.parent=".$filtering['parent'];
+		else $filtering['parent'] = 0;
+		
 		if (empty($filtering['orderby'])) $filtering['orderby'] = "name";
 		switch(strtolower($filtering['orderby'])) {
 			case "id": $orderby = "cat.id"; break;
@@ -55,10 +58,10 @@ class Catalog extends DatabaseObject {
 		$category_table = DatabaseObject::tablename(Category::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
-		$query = "SELECT {$filtering['columns']} FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.parent=cat.id AND sc.type='category' LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY cat.parent DESC,$orderby $order {$filtering['limit']}";
+		$query = "SELECT {$filtering['columns']} FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.parent=cat.id AND sc.type='category' LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY cat.parent DESC,cat.priority,$orderby $order {$filtering['limit']}";
 		$categories = $db->query($query,AS_ARRAY);
 
-		if (count($categories) > 1) $categories = sort_tree($categories);
+		if (count($categories) > 1) $categories = sort_tree($categories, $filtering['parent']);
 		if ($results) return $categories;
 		
 		foreach ($categories as $category) {
@@ -139,7 +142,7 @@ class Catalog extends DatabaseObject {
 		return new Category($category,$key);
 		
 	}
-	
+		
 	function tag ($property,$options=array()) {
 		global $Shopp;
 

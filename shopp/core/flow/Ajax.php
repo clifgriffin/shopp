@@ -41,6 +41,8 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_category_products',array(&$this,'category_products'));			
 		add_action('wp_ajax_shopp_order_receipt',array(&$this,'receipt'));
 		add_action('wp_ajax_shopp_category_menu',array(&$this,'category_menu'));
+		add_action('wp_ajax_shopp_category_children',array(&$this,'category_children'));
+		add_action('wp_ajax_shopp_category_order',array(&$this,'category_order'));
 		add_action('wp_ajax_shopp_country_zones',array(&$this,'country_zones'));
 		add_action('wp_ajax_shopp_spec_template',array(&$this,'load_spec_template'));
 		add_action('wp_ajax_shopp_options_template',array(&$this,'load_options_template'));
@@ -59,6 +61,7 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_import_file_progress',array(&$this,'import_file_progress'));
 		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'storage_suggestions'),11);		
 		add_action('wp_ajax_shopp_verify_file',array(&$this,'verify_file'));
+
 	}
 
 	function receipt () {
@@ -488,14 +491,48 @@ class AjaxFlow {
 		die($progress);
 	}
 	
-	function storage_suggestions () {
+	function storage_suggestions () { exit(); }
+	
+	function verify_file () { exit(); }
+	
+	function category_children () {
+		check_admin_referer('wp_ajax_shopp_category_children');
+		
+		if (empty($_GET['parent'])) die('0');
+		$parent = $_GET['parent'];
+
+		$columns = array('id','parent','priority','name','uri','slug');
+		
+		$filters['columns'] = 'cat.'.join(',cat.',$columns);
+		$filters['parent'] = $parent;
+		
+		$Catalog = new Catalog();
+		$Catalog->outofstock = true;
+		$Catalog->load_categories($filters);
+		
+		$columns[] = 'depth';
+		foreach ($Catalog->categories as &$Category) {
+			$properties = get_object_vars($Category);
+			foreach ($properties as $property => $value)
+				if (!in_array($property,$columns)) unset($Category->$property);
+		}
+		
+		die(json_encode($Catalog->categories));
+	}
+
+	function category_order () {
+		check_admin_referer('wp_ajax_shopp_category_order');
+		if (empty($_POST['position']) || !is_array($_POST['position'])) die('0');
+
+		$db =& DB::get();
+		$table = DatabaseObject::tablename(Category::$table);
+		$updates = $_POST['position'];
+		foreach ($updates as $id => $position) 
+			$db->query("UPDATE $table SET priority='$position' WHERE id='$id'");
+		die('1');
 		exit();
 	}
 	
-	function verify_file () {
-		exit();
-	}
-		
 } // END class AjaxFlow
 
 ?>

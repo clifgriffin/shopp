@@ -41,8 +41,12 @@ class Categorize extends AdminController {
 			shopp_enqueue_script('swfupload');
 			
 			add_action('admin_head',array(&$this,'layout'));
-		} add_action('admin_print_scripts',array(&$this,'columns'));
-
+		} elseif (!empty($_GET['a']) && $_GET['a'] == 'arrange') {
+			shopp_enqueue_script('dragrow');
+			shopp_enqueue_script('category-arrange');
+			
+			add_action('admin_print_scripts',array(&$this,'arrange_cols'));
+		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		add_action('load-shopp_page_shopp-categories',array(&$this,'workflow'));
 	}
 	
@@ -142,6 +146,11 @@ class Categorize extends AdminController {
 		$args = array_merge($defaults,$_GET);
 		extract($args,EXTR_SKIP);
 
+		if ('arrange' == $a)  {
+			$this->init_positions();
+			$per_page = 300;
+		}
+
 		$pagenum = absint( $pagenum );
 		if ( empty($pagenum) )
 			$pagenum = 1;
@@ -159,11 +168,14 @@ class Categorize extends AdminController {
 		$Catalog = new Catalog();
 		$Catalog->outofstock = true;
 		if ($workflow) {
-			$filters['columns'] = "cat.id,cat.parent";
+			$filters['columns'] = "cat.id,cat.parent,cat.priority";
 			$results = $Catalog->load_categories($filters,false,true);
 			return array_slice($results,$start,$per_page);
 		} else {
-			$filters['columns'] = "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,cat.spectemplate,cat.facetedmenus,count(DISTINCT pd.id) AS total";
+			if ('arrange' == $a) {
+				$filters['columns'] = "cat.id,cat.parent,cat.priority,cat.name,cat.uri,cat.slug";
+				$filters['parent'] = '0';
+			} else $filters['columns'] = "cat.id,cat.parent,cat.priority,cat.name,cat.description,cat.uri,cat.slug,cat.spectemplate,cat.facetedmenus,count(DISTINCT pd.id) AS total";
 			
 			$Catalog->load_categories($filters);
 			$Categories = array_slice($Catalog->categories,$start,$per_page);
@@ -185,6 +197,12 @@ class Categorize extends AdminController {
 			)
 		);
 		
+		if ('arrange' == $a) {
+			include(SHOPP_ADMIN_PATH."/categories/arrange.php");
+			return;
+		}
+		
+		
 		include(SHOPP_ADMIN_PATH."/categories/categories.php");
 	}
 
@@ -199,7 +217,6 @@ class Categorize extends AdminController {
 		register_column_headers('shopp_page_shopp-categories', array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
-			'description'=>__('Description','Shopp'),
 			'links'=>__('Products','Shopp'),
 			'templates'=>__('Templates','Shopp'),
 			'menus'=>__('Menus','Shopp'))
@@ -216,6 +233,21 @@ class Categorize extends AdminController {
 	function layout () {
 		include(SHOPP_ADMIN_PATH."/categories/ui.php");
 	}
+
+	/**
+	 * Registers column headings for the category list manager
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @return void
+	 **/
+	function arrange_cols () {
+		register_column_headers('shopp_page_shopp-categories', array(
+			'cat'=>__('Category','Shopp'),
+			'move'=>'<div class="move">&nbsp;</div>')
+		);
+	}
+
 
 	/**
 	 * Interface processor for the category editor
@@ -364,6 +396,20 @@ class Categorize extends AdminController {
 		do_action_ref_array('shopp_category_saved',array(&$Category));
 		
 		$updated = '<strong>'.$Category->name.'</strong> '.__('category saved.','Shopp');
+		
+	}
+	
+	function init_positions () {
+		$db =& DB::get();
+		// Load the entire catalog structure and update the category positions
+		$Catalog = new Catalog();
+		$Catalog->outofstock = true;
+	
+		$filters['columns'] = "cat.id,cat.parent,cat.priority";
+		$Catalog->load_categories($filters);
+
+		foreach ($Catalog->categories as $Category) 
+			 $db->query("UPDATE $Category->_table SET priority=$Category->priority WHERE id=$Category->id");
 		
 	}
 
