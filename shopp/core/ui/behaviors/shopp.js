@@ -128,12 +128,12 @@ function asNumber (n,f) {
 	
 	if (n instanceof Number) return new Number(n.toFixed(f.precision));
 
-	n = n.toString().replace(new RegExp(/[^\d\.\,]/g),""); // Remove any non-numeric string data
+	n = n.toString().replace(new RegExp(/[^\d\.\,]/g),''); // Remove any non-numeric string data
 	n = n.toString().replace(new RegExp(/^\./),'');	// Remove decimals at the beginning (leftover from currency symbol stripping)
-	n = n.toString().replace(new RegExp('\\'+f.thousands,'g'),""); // Remove thousands
+	n = n.toString().replace(new RegExp('\\'+f.thousands,'g'),''); // Remove thousands
 
 	if (f.precision > 0)
-		n = n.toString().replace(new RegExp('\\'+f.decimals,'g'),"."); // Convert decimal delimter
+		n = n.toString().replace(new RegExp('\\'+f.decimals,'g'),'.'); // Convert decimal delimter
 		
 	if (isNaN(new Number(n)))
 		n = n.replace(new RegExp(/\./g),"").replace(new RegExp(/\,/),"\.");
