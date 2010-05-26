@@ -165,11 +165,17 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('product-editor', "/ui/products/editor.js", array('jquery','priceline'), '20100101');
 	$scripts->add_data('product-editor', 'group', 1);
 
+	$scripts->add('category-arrange', "/ui/categories/arrange.js", array('jquery','shopp'), '20100101');
+	$scripts->add_data('category-arrange', 'group', 1);
+
 	$scripts->add('settings', "/ui/behaviors/settings.js", array('jquery'), '20100101');
 	$scripts->add_data('settings', 'group', 1);
 
 	$scripts->add('taxes', "/ui/behaviors/taxes.js", array('jquery'), '20100101');
 	$scripts->add_data('taxes', 'group', 1);
+
+	$scripts->add('dragrow', "/ui/behaviors/dragrow.js", array('jquery'), '20100101');
+	$scripts->add_data('dragrow', 'group', 1);
 	
 	$scripts->add('shopp-swfobject', "/ui/behaviors/swfupload/plugins/swfupload.swfobject.js", array(), '2202');
 	$scripts->add_data('shopp-swfobject', 'group', 1);
