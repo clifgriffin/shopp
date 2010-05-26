@@ -68,7 +68,7 @@ class IndexProduct {
 						$specs[] = "$Spec->name $Spec->value";
 					$content = join(' ',$specs);
 					break;
-				case "categoriesgories": 
+				case "categories": 
 					$categories = array();
 					foreach ($this->Product->categories as $Category)
 						$categories[] = $Category->name;
@@ -155,7 +155,7 @@ class ContentIndex extends DatabaseObject {
 		$factoring = Lookup::index_factors();
 		if (isset($factoring[$this->type])) $this->factor = $factoring[$this->type];
 		else $this->factor = 1;
-
+		
 		$this->terms = apply_filters('shopp_index_content',$content);
 
 		parent::save();
