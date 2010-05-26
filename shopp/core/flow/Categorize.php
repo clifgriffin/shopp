@@ -399,6 +399,14 @@ class Categorize extends AdminController {
 		
 	}
 	
+	/**
+	 * Set
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function init_positions () {
 		$db =& DB::get();
 		// Load the entire catalog structure and update the category positions
@@ -408,8 +416,10 @@ class Categorize extends AdminController {
 		$filters['columns'] = "cat.id,cat.parent,cat.priority";
 		$Catalog->load_categories($filters);
 
-		foreach ($Catalog->categories as $Category) 
-			 $db->query("UPDATE $Category->_table SET priority=$Category->priority WHERE id=$Category->id");
+		foreach ($Catalog->categories as $Category)
+			if (!isset($Category->_priority) // Check previous priority and only save changes
+					|| (isset($Category->_priority) && $Category->_priority != $Category->priority))
+				$db->query("UPDATE $Category->_table SET priority=$Category->priority WHERE id=$Category->id");
 		
 	}
 
