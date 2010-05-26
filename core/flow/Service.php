@@ -235,9 +235,9 @@ class Service extends AdminController {
 			'order'=>__('Order','Shopp'),
 			'name'=>__('Name','Shopp'),
 			'destination'=>__('Destination','Shopp'),
-			'total'=>__('Total','Shopp'),
 			'txn'=>__('Transaction','Shopp'),
-			'date'=>__('Date','Shopp'))
+			'date'=>__('Date','Shopp'),
+			'total'=>__('Total','Shopp'))
 		);
 	}
 	
