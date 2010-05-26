@@ -36,6 +36,7 @@ if (!Array.indexOf) {
 function getCurrencyFormat () {
 	if (!ShoppSettings) return false;
 	return {
+		"indian":(ShoppSettings.india),
 		"cpos":ShoppSettings.cp,
 		"currency":ShoppSettings.c,
 		"precision":parseInt(ShoppSettings.p),
@@ -127,7 +128,8 @@ function asNumber (n,f) {
 	
 	if (n instanceof Number) return new Number(n.toFixed(f.precision));
 
-	n = n.toString().replace(new RegExp(/[^\d\.\,]/g),""); // Reove any non-numeric string data
+	n = n.toString().replace(new RegExp(/[^\d\.\,]/g),""); // Remove any non-numeric string data
+	n = n.toString().replace(new RegExp(/^\./),'');	// Remove decimals at the beginning (leftover from currency symbol stripping)
 	n = n.toString().replace(new RegExp('\\'+f.thousands,'g'),""); // Remove thousands
 
 	if (f.precision > 0)
