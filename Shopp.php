@@ -448,7 +448,7 @@ class Shopp {
 	 **/
 	function settingsjs () {
 		$baseop = $this->Settings->get('base_operations');
-		shopp_localize_script('shopp','ShoppSettings',array(
+		$settings = array(
 			// Currency formatting
 			'cp' => $baseop['currency']['format']['cpos'],
 			'c' => $baseop['currency']['format']['currency'],
@@ -491,7 +491,9 @@ class Shopp {
 			'weekday_fri' => __('Fri','Shopp'),
 			'weekday_sat' => __('Sat','Shopp')
 
-		));
+		);
+		if (isset($baseop['currency']['format']['indian'])) $settings['india'] = true;
+		shopp_localize_script('shopp','ShoppSettings',$settings);
 	}
 	
 	/**
