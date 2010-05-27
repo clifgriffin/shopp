@@ -76,7 +76,7 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 	}
 	
 	function settings () {
-		if(isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on") {			
+		if ( is_shopp_secure() ) {			
 			$this->ui->cardmenu(0,array(
 				'name' => 'cards',
 				'selected' => $this->settings['cards']

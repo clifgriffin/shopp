@@ -102,7 +102,7 @@ class Storefront extends FlowController {
 		global $wp_query;
 		$object = $wp_query->get_queried_object();
 
-		if(isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on") {
+		if(is_shopp_secure()) {
 			add_filter('option_siteurl', 'force_ssl');
 			add_filter('option_home', 'force_ssl');
 			add_filter('option_url', 'force_ssl');

@@ -483,7 +483,7 @@ function floatvalue($value, $format=false) {
  * @return string $url The secure URL
  **/
 function force_ssl ($url,$rewrite=false) {
-	if((isset($_SERVER['HTTPS']) && $_SERVER["HTTPS"] == "on") || $rewrite)
+	if(is_shopp_secure() || $rewrite)
 		$url = str_replace('http://', 'https://', $url);
 	return $url;
 }
@@ -666,7 +666,7 @@ function is_shopp_page ($page=false) {
  * @return boolean 
  **/
 function is_shopp_secure () {
-	return (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on");
+	return (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != "off");
 }
 
 /**
@@ -874,7 +874,7 @@ function preg_e_callback ($matches) {
 function raw_request_url () {
 	return esc_url(
 		'http'.
-		($_SERVER['HTTPS']?'s':'').
+		(is_shopp_secure()?'s':'').
 		'://'.
 		$_SERVER['HTTP_HOST'].
 		$_SERVER['REQUEST_URI'].
