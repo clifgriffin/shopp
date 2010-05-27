@@ -430,21 +430,28 @@ function xorkey (ids) {
 }
 
 function variationsToggle () {
-	var $=jqnc();
-	if ($('#variations-setting').attr('checked')) {
+	var $=jqnc(),
+		toggle = $(this),
+		ui = $('#variations'),
+		baseprice = $('#product-pricing');
+		
+	if (toggle.attr('checked')) {
 		if (Pricelines.row[0]) Pricelines.row[0].disable();
-		$('#product-pricing').hide();
-		$('#variations').show();
+		baseprice.hide();
+		ui.show();
 	} else {
-		$('#variations').hide();
-		$('#product-pricing').show();
+		ui.hide();
+		baseprice.show();
 	}
 }
 
 function addonsToggle () {
-	var $=jqnc();
-	if ($('#addons-setting').attr('checked')) $('#addons').show();
-	else $('#addons').hide();
+	var $=jqnc(),
+		toggle = $(this),
+		ui = $('#addons');
+	
+	if (toggle.attr('checked')) ui.show();
+	else ui.hide();
 }
 
 function clearLinkedIcons () {
