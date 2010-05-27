@@ -33,10 +33,13 @@ class AjaxFlow {
 		add_action('wp_ajax_nopriv_shopp_upload_image',array(&$this,'upload_image'));
 		add_action('wp_ajax_nopriv_shopp_upload_file',array(&$this,'upload_file'));
 
-		// These must have nonce protection
+		// Actions that can happen on front end whether or not logged in
+		add_action('wp_ajax_nopriv_shopp_shipping_costs',array(&$this,'shipping_costs'));
+		add_action('wp_ajax_shopp_shipping_costs',array(&$this,'shipping_costs'));
+
+		// Below this line must have nonce protection (all admin ajax go below)
 		if (!isset($_REQUEST['_wpnonce'])) return;
 
-		add_action('wp_ajax_shopp_shipping_costs',array(&$this,'shipping_costs')); // @todo not implemented
 		add_action('wp_ajax_shopp_category_menu',array(&$this,'category_menu'));
 		add_action('wp_ajax_shopp_category_products',array(&$this,'category_products'));			
 		add_action('wp_ajax_shopp_order_receipt',array(&$this,'receipt'));
@@ -216,14 +219,15 @@ class AjaxFlow {
 	}
 		
 	function shipping_costs () {
-		// $this->ShipCalcs = new ShipCalcs($this->path);
-		// if (isset($_GET['method'])) {
-		// 	$this->Cart->data->Order->Shipping->method = $_GET['method'];
-		// 	$this->Cart->retotal = true;
-		// 	$this->Cart->updated();
-		// 	$this->Cart->totals();
-		// 	echo json_encode($this->Cart->data->Totals);
-		// }
+		global $Shopp;
+
+		if (isset($_GET['method'])) {
+			$Shopp->Order->Shipping->method = $_GET['method'];
+			$Shopp->Order->Cart->changed(true);
+			$Shopp->Order->Cart->totals();
+			
+			echo json_encode($Shopp->Order->Cart->Totals);
+		}
 		exit();
 	}
 	

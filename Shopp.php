@@ -449,6 +449,8 @@ class Shopp {
 	function settingsjs () {
 		$baseop = $this->Settings->get('base_operations');
 		$settings = array(
+			'ajaxurl' => admin_url('admin-ajax.php'),
+			
 			// Currency formatting
 			'cp' => $baseop['currency']['format']['cpos'],
 			'c' => $baseop['currency']['format']['currency'],
