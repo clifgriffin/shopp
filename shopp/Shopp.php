@@ -112,8 +112,7 @@ class Shopp {
 		$this->siteurl = get_bloginfo('url');
 		$this->wpadminurl = admin_url();
 		
-		$this->secure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on");
-		if ($this->secure) {
+		if ($this->secure = is_shopp_secure()) {
 			$this->uri = str_replace('http://','https://',$this->uri);
 			$this->siteurl = str_replace('http://','https://',$this->siteurl);
 			$this->wpadminurl = str_replace('http://','https://',$this->wpadminurl);
