@@ -17,7 +17,7 @@ jQuery(document).ready(function () {
 				shippingFields.hide().find('.required').attr('disabled',true);
 			} else {
 				billingFields.addClass('half');
-				shippingFields.show().find('input, select').not('#shipping-xaddress').attr('disabled',false);
+				shippingFields.show().find('input, select').not('#shipping-xaddress, .unavailable').attr('disabled',false);
 			}
 		}).change();
 
@@ -52,25 +52,25 @@ jQuery(document).ready(function () {
 
 	$('#shipping-country').change(function() {
 		if ($('#shipping-state').attr('type') == "text") return true;
-		$('#shipping-state').empty().attr('disabled',true);
+		$('#shipping-state').empty().attr('disabled',true).addClass('unavailable disabled');
 		$('<option></option>').val('').html('').appendTo('#shipping-state');
 		if (regions[this.value]) {
 			$.each(regions[this.value], function (value,label) {
 				option = $('<option></option>').val(value).html(label).appendTo('#shipping-state');
 			});
-			$('#shipping-state').attr('disabled',false);
+			$('#shipping-state').attr('disabled',false).removeClass('unavailable disabled');
 		}
 	});
 
 	$('#billing-country').change(function() {
 		if ($('#billing-state').attr('type') == "text") return true;
-		$('#billing-state').empty().attr('disabled',true);
+		$('#billing-state').empty().attr('disabled',true).addClass('unavailable disabled');
 		$('<option></option>').val('').html('').appendTo('#billing-state');
 		if (regions[this.value]) {
 			$.each(regions[this.value], function (value,label) {
 				option = $('<option></option>').val(value).html(label).appendTo('#billing-state');
 			});
-			$('#billing-state').attr('disabled',false);
+			$('#billing-state').attr('disabled',false).removeClass('unavailable disabled');
 		}
 	});
 	

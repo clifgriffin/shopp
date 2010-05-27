@@ -846,6 +846,11 @@ class Order {
 					$output .= '<option value="" selected="selected">'.$label.'</option>';
 				 	$output .= menuoptions($states,$options['selected'],true);
 					$output .= '</select>';
+				} else if ($options['type'] == "menu") {
+					$options['disabled'] = 'disabled';
+					$options['class'] = ($options['class']?" ":null).'unavailable'; 
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'></select>';				
 				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
 				return $output;
 				break;
@@ -924,6 +929,11 @@ class Order {
 					$output .= '<option value="" selected="selected">'.$label.'</option>';
 				 	$output .= menuoptions($states,$options['selected'],true);
 					$output .= '</select>';
+				} else if ($options['type'] == "menu") {
+					$options['disabled'] = 'disabled';
+					$options['class'] = ($options['class']?" ":null).'unavailable';
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'></select>';					
 				} else $output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
 				return $output;
 				break;
