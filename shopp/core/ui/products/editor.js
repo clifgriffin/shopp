@@ -53,14 +53,18 @@ jQuery(document).ready(function() {
 	else Pricelines.add(false,false,'#product-pricing');
 	
 	// Initialize variations
-	$('#variations-setting').bind('click.variations',variationsToggle).trigger('click.variations');
+	$('#variations-setting').bind('toggleui',variationsToggle).click(function() { 
+		$(this).trigger('toggleui');
+	}).trigger('toggleui');
 	loadVariations((!options.v && !options.a)?options:options.v,prices);
 	
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
 	$('#linkOptionVariations').click(linkVariationsButton).change(linkVariationsButtonLabel);
 
 	// Initialize Add-ons
-	$('#addons-setting').bind('click.addons',addonsToggle).trigger('click.addons');
+	$('#addons-setting').bind('toggleui',addonsToggle).click(function () { 
+		$(this).trigger('toggleui');
+	}).trigger('toggleui');
 	$('#newAddonGroup').click(function() { newAddonGroup(); });
 	if (options.a) loadAddons(options.a,prices);
 
@@ -185,8 +189,7 @@ function categories () {
 			if (!template.options) return true;
 			
 			if (!$('#variations-setting').attr('checked')) {
-				$('#variations-setting').click();
-				variationsToggle();
+				$('#variations-setting').attr('checked',true).trigger('toggleui');
 			}
 
 			if (optionMenus.length > 0) {
