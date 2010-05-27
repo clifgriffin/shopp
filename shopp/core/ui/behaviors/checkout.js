@@ -93,10 +93,8 @@ jQuery(document).ready(function () {
 	
 	$('input.shipmethod').click(function () {
 		$('#shipping, #total').html(SHIPCALC_STATUS);
-		
-		var url = $('#shopp form').attr('action');
-		url += (url.indexOf("?") == -1)?"?":"&";
-		$.getJSON(ajaxurl+"?action=shopp_shipping_costs&method="+$(this).val(),
+
+		$.getJSON(ShoppSettings.ajaxurl+"?action=shopp_shipping_costs&method="+$(this).val(),
 			function (result) {
 				var totals = eval(result);
 				$('span.shopp_cart_shipping').html(asMoney(totals.shipping));
