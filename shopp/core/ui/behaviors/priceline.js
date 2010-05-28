@@ -412,20 +412,20 @@ function Priceline (id,options,data,target,attachment) {
 	
 	_.Shipped = function (data) {
 		_.price(data.price,data.tax);
-		_.saleprice(data.saleprice);
+		_.saleprice(data.sale,data.saleprice);
 		_.shipping(data.shipping,data.weight,data.shipfee,data.dimensions);
 		_.inventory(data.inventory,data.stock,data.sku);
 	}
 
 	_.Virtual = function (data) {
 		_.price(data.price,data.tax);
-		_.saleprice(data.saleprice);
+		_.saleprice(data.sale,data.saleprice);
 		_.inventory(data.inventory,data.stock,data.sku);
 	}
 
 	_.Download = function (data) {
 		_.price(data.price,data.tax);
-		_.saleprice(data.saleprice);
+		_.saleprice(data.sale,data.saleprice);
 		_.download(data.download,data.filename,data.filedata);
 	}
 	
