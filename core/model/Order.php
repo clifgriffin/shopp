@@ -95,7 +95,7 @@ class Order {
 		add_action('shopp_order_success',array(&$this,'success'));
 		
 		add_action('shopp_reset_session',array(&$this->Cart,'clear'));
-		add_action('shopp_init_checkout',array(&$this,'processor'));
+		add_action('shopp_init',array(&$this,'processor'));
 
 		// Set locking timeout for concurrency operation protection
 		if (!defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
@@ -103,22 +103,30 @@ class Order {
 	}
 	
 	/**
-	 * Get the currently selected gateway processor 
+	 * Set or get the currently selected gateway processor 
 	 *
-	 * @author Jonathan Davis
+	 * @author Jonathan Davis, John Dillick
 	 * @since 1.1
 	 * 
 	 * @return Object|false The currently selected gateway
 	 **/
-	function processor () {
+	function processor ($processor=false) {
 		global $Shopp;
 		
-		if (count($Shopp->Gateways->active) == 1) {
+		$current = $this->processor;
+		if (count($Shopp->Gateways->active) == 1) { // base case
 			reset($Shopp->Gateways->active);
 			$Gateway = current($Shopp->Gateways->active);
-			$this->processor = $Gateway->module;
-			$this->gateway = $Gateway->name;
-			return $Gateway;
+			if ($this->processor != $Gateway->module)
+				$this->processor = $Gateway->module;
+		} elseif ($processor !== false) { 
+			if ($this->processor != $processor && isset($Shopp->Gateways->active[$processor])) 
+				$this->processor = $processor; 
+		}
+		
+		if($current != $this->processor) {
+			$this->gateway = $Shopp->Gateways->active[$this->processor]->name;
+			$Shopp->Gateways->active[$this->processor]->actions();
 		}
 
 		if (isset($Shopp->Gateways->active[$this->processor]))
@@ -228,8 +236,7 @@ class Order {
 			list($module,$label) = explode(":",$this->paymethod);
 			if (isset($Shopp->Gateways->active[$module])) {
 				$Gateway = $Shopp->Gateways->active[$module];
-				$this->processor = $Gateway->module;
-				$this->gateway = $Gateway->name;
+				$this->processor($Gateway->module);
 			} else new ShoppError(__("The payment method you selected is no longer available. Please choose another.","Shopp"));
 		}
 		
@@ -882,10 +889,9 @@ class Order {
 			case "billing-required": // DEPRECATED
 			case "card-required":
 				if ($this->Cart->Totals->total == 0) return false;
-				foreach ($Shopp->Gateways->active as $gateway) 
+				foreach ($Shopp->Gateways->active as $gateway)
 					if (!empty($gateway->cards)) return true;
 				return false;
-				break;
 				break;
 			case "billing-address":
 				if ($options['mode'] == "value") return $this->Billing->address;
@@ -957,6 +963,7 @@ class Order {
 				if ($options['mode'] == "value") 
 					return str_repeat('X',strlen($this->Billing->card)-4)
 						.substr($this->Billing->card,-4);
+				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
 				if (!empty($this->Billing->card)) {
 					$options['value'] = $this->Billing->card;
 					$this->Billing->card = "";
@@ -965,18 +972,21 @@ class Order {
 				break;
 			case "billing-cardexpires-mm":
 				if ($options['mode'] == "value") return date("m",$this->Billing->cardexpires);
+				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
 				if (!empty($this->Billing->cardexpires))
 					$options['value'] = date("m",$this->Billing->cardexpires);				
 				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm" '.inputattrs($options).' />'; 	
 				break;
 			case "billing-cardexpires-yy": 
 				if ($options['mode'] == "value") return date("y",$this->Billing->cardexpires);
+				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
 				if (!empty($this->Billing->cardexpires))
 					$options['value'] = date("y",$this->Billing->cardexpires);							
 				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy" '.inputattrs($options).' />'; 
 				break;
 			case "billing-cardtype":
 				if ($options['mode'] == "value") return $this->Billing->cardtype;
+				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
 				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->Billing->cardtype))
 					$options['selected'] = $this->Billing->cardtype;
@@ -984,7 +994,7 @@ class Order {
 				if (isset($Shopp->Gateways->active[$this->processor]))
 					$Gateway = $Shopp->Gateways->active[$this->processor];
 				else $Gateway = $this->processor();
-
+				
 				$cards = array();
 				if (isset($Gateway->settings['cards'])) {
 					foreach ($Gateway->settings['cards'] as $card) {
@@ -1002,6 +1012,7 @@ class Order {
 				break;
 			case "billing-cardholder":
 				if ($options['mode'] == "value") return $this->Billing->cardholder;
+				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
 				if (!empty($this->Billing->cardholder))
 					$options['value'] = $this->Billing->cardholder;			
 				return '<input type="text" name="billing[cardholder]" id="billing-cardholder" '.inputattrs($options).' />';
@@ -1009,6 +1020,7 @@ class Order {
 			case "billing-cvv":
 				if (!empty($_POST['billing']['cvv']))
 					$options['value'] = $_POST['billing']['cvv'];
+				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
 				return '<input type="text" name="billing[cvv]" id="billing-cvv" '.inputattrs($options).' />';
 				break;
 			case "billing-xcsc-required":
@@ -1042,6 +1054,7 @@ class Order {
 
 				if (!empty($_POST['billing']['xcsc'][$input]))
 					$options['value'] = $_POST['billing']['xcsc'][$input];
+				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
 				
 				$script = "$('#billing-cardtype').change(function () {";
 				$script .= "var cards = ".json_encode($cards).";";
@@ -1149,17 +1162,23 @@ class Order {
 				if (count($Shopp->Gateways->active) <= 1) return false;
 				extract($options);
 				$output = '';
-				$js = "var ccpayments = {};\n";
+				$js = "var ccpayments = {}, ccallowed = {};\n";
 				if (!isset($type)) $type = "menu";
 
 				$payments = array();
+				$cards = array();
 				foreach ($Shopp->Gateways->active as $gateway) {
 					if (is_array($gateway->settings['label'])) {
 						foreach ($gateway->settings['label'] as $method) {
 							$payments[$gateway->module.':'.$method] = $method;
+							$cards[$gateway->module.':'.$method] = $gateway->cards;
+							$allowed[$gateway->module.':'.$method] = is_array($gateway->settings['cards']) ? $gateway->settings['cards'] : false;
 						}
-					} else $payments[$gateway->module.':'.$gateway->settings['label']] = $gateway->settings['label'];
-						
+					} else {
+						$payments[$gateway->module.':'.$gateway->settings['label']] = $gateway->settings['label'];
+						$cards[$gateway->module.':'.$gateway->settings['label']] = $gateway->cards;
+						$allowed[$gateway->module.':'.$gateway->settings['label']] = is_array($gateway->settings['cards']) ? $gateway->settings['cards'] : false;
+					}
 				}
 				
 				if ($type == "list") {
@@ -1168,7 +1187,8 @@ class Order {
 					foreach ($payments as $value => $option) {
 						$checked = ($this->paymethod == $value)?' checked="checked"':'';
 						$output .= '<li><label><input type="radio" name="paymethod" value="'.$value.'"'.$checked.' /> '.$option.'</label></li>';
-						$js .= "ccpayments['".$value."'] = ".(!empty($gateway->cards)?"true":"false").";\n";
+						$js .= "ccpayments['".$value."'] = ".json_encode($cards[$value]).";\n";
+						$js .= "ccallowed['".$value."'] = ".json_encode($allowed[$value]).";\n";
 					}
 					$output .= '</ul></span>';
 				} else {
@@ -1176,12 +1196,13 @@ class Order {
 					foreach ($payments as $value => $option) {
 						$selected = ($this->paymethod == $value)?' selected="selected"':'';
 						$output .= '<option value="'.$value.'"'.$selected.'>'.$option.'</option>';
-						$js .= "ccpayments['".$value."'] = ".(!empty($gateway->cards)?"true":"false").";\n";
+						$js .= "ccpayments['".$value."'] = ".json_encode($cards[$value]).";\n";
+						$js .= "ccallowed['".$value."'] = ".json_encode($allowed[$value]).";\n";
 					}
 					$output .= '</select>';
 				}
 
-				add_storefrontjs($js);
+				add_storefrontjs($js, true);
 				
 				return $output;
 				break;

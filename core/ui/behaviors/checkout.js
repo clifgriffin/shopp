@@ -78,7 +78,6 @@ jQuery(document).ready(function () {
 		var country = $('#billing-country').val(),
 			state = $('#billing-state').val(),
 			id = country+state,options;
-
 		if (!localeMenu.get(0)) return;
 		localeMenu.empty().attr('disabled',true);
 		if (locales[id]) {
@@ -104,12 +103,33 @@ jQuery(document).ready(function () {
 	});
 	
 	$('#checkout.shopp [name=paymethod]').change(function () {
-		if (ccpayments[$(this).val()] != null && ccpayments[$(this).val()]) {
+		var paymethod = $(this).val();
+		$.post( ShoppSettings.ajaxurl, 
+			{	action : 'shopp_checkout_submit_button',
+			 	paymethod : paymethod
+			},
+			function (data) {
+				if (data != null) $('#checkout.shopp p.submit').html(data);
+			});
+		
+		if (ccpayments[paymethod] != false && ccpayments[paymethod].length > 0) {
+			$('#checkout.shopp .payment').show();
 			$('#checkout.shopp .creditcard').show();
-			$('#checkout.shopp .creditcard [disabled]').attr('disabled',false);
+			$('#checkout.shopp .creditcard.disabled').attr('disabled',false).removeClass('disabled');
+			$('#checkout.shopp #billing-cardtype').empty().attr('disabled',false).removeClass('disabled');
+			var options = '<option value="" selected="selected"></option>';
+			$.each(ccpayments[paymethod], function (a,b) {
+				$.each(ccallowed[paymethod], function (c,d){
+					if (b.symbol == d) options += '<option value="'+b.symbol+'">'+b.name+'</option>';
+				});
+			});
+			$(options).appendTo('#checkout.shopp #billing-cardtype');
+
 		} else {
+			$('#checkout.shopp .payment').hide();
 			$('#checkout.shopp .creditcard').hide();
-			$('#checkout.shopp .creditcard .required,#checkout.shopp .creditcard .min3').attr('disabled',true);
+			$('#checkout.shopp .creditcard').addClass('disabled').attr('disabled',true);
+			$('#checkout.shopp #billing-cardtype').addClass('disabled').attr('disabled',true);
 		}
 	}).change();
 

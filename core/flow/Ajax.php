@@ -36,6 +36,8 @@ class AjaxFlow {
 		// Actions that can happen on front end whether or not logged in
 		add_action('wp_ajax_nopriv_shopp_shipping_costs',array(&$this,'shipping_costs'));
 		add_action('wp_ajax_shopp_shipping_costs',array(&$this,'shipping_costs'));
+		add_action('wp_ajax_nopriv_shopp_checkout_submit_button', array(&$this, 'checkout_button'));
+		add_action('wp_ajax_shopp_checkout_submit_button', array(&$this, 'checkout_button'));
 
 		// Below this line must have nonce protection (all admin ajax go below)
 		if (!isset($_REQUEST['_wpnonce'])) return;
@@ -535,6 +537,25 @@ class AjaxFlow {
 		foreach ($updates as $id => $position) 
 			$db->query("UPDATE $table SET priority='$position' WHERE id='$id'");
 		die('1');
+		exit();
+	}
+	
+	function checkout_button () {
+		global $Shopp;
+		if (isset($_POST['paymethod'])) {
+			$paymethod = $_POST['paymethod'];
+			// User selected one of the payment options
+			list($module,$label) = explode(":",$paymethod);
+			if (isset($Shopp->Gateways->active[$module])) {
+				remove_all_filters('shopp_init_checkout');
+				remove_all_filters('shopp_checkout_submit_button');
+				remove_all_filters('shopp_process_checkout');
+				remove_all_filters('shopp_save_payment_settings');				
+				$Gateway = $Shopp->Order->processor($Shopp->Gateways->active[$module]->module);
+				do_action('shopp_init_checkout');
+			} 
+		}
+		echo $Shopp->Order->tag('submit');
 		exit();
 	}
 	
