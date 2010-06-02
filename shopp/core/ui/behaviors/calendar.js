@@ -75,7 +75,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 	today = new Date(today.getFullYear(),today.getMonth(),today.getDate());
 	_.scope = scopeMonth;
 	_.scheduling = settings.scheduling;
-	_.selection = (settings.selection)?settings.selection:today;
+	_.selection = (!settings.selection)?today:settings.selection;
 	_.ui = false;
 	
 	$this.mouseenter(function () {
@@ -95,7 +95,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 	
 	_.bind('updated',function () {
 		var match = false;
-		if (m_input !== false) _.select(new Date(y_input.val(),m_input.val()-1,d_input.val()));
+		if (m_input !== false && (m_input.val()+d_input.val()+y_input.val() != '')) _.select(new Date(y_input.val(),m_input.val()-1,d_input.val()));
 		else if (input !== false) {
 			match = input.val().match(/^(\d{1,2}).{1}(\d{1,2}).{1}(\d{4})/);
 			if (match) _.select(new Date(match[3],(match[1]-1),match[2]));
@@ -320,8 +320,10 @@ jQuery.fn.PopupCalendar = function (settings) {
 		pos = input.parent().offset();
 		$this.css({left:pos.left,top:pos.top+input.outerHeight() });
 
-		if (m_input && (y_input.val() != '' && m_input.val() != '' && d_input.val() != ''))
+		if (m_input !== false && (y_input.val()+m_input.val()+d_input.val() != '')) {
 			_.selection = new Date(y_input.val(),m_input.val()-1,d_input.val());
+		}
+			
 
 		inputs.focus(function (e) {
 			_.show();
