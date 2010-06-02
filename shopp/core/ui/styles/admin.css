@@ -342,7 +342,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .meta-boxes .inside p.company { background-image:url('../icons/building.png'); }
 #order .meta-boxes .inside p.email { background-image:url('../icons/email.png'); }
 #order .meta-boxes .inside p.phone { background-image:url('../icons/phone.png'); }
-#order .meta-boxes .inside p.marketing { background-image:url('../icons/add.png'); }
+#order .meta-boxes .inside p.marketing { background-image:url('../icons/accept.png'); }
 #order .meta-boxes .inside p.nomarketing { background-image:url('../icons/delete.png'); }
 #order .meta-boxes .inside p.customer { background-repeat:no-repeat;background-position:0px 5px;padding-left:24px;line-height:18px; }
 
