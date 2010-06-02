@@ -73,6 +73,7 @@ abstract class ModuleLoader {
 			$this->active[$module] = &$this->modules[$module]->load();
 			do_action_ref_array('shopp_module_loaded',array($module));
 		}
+		do_action('shopp_'.strtolower(get_class($this)).'_loaded');
 	}
 	
 	/**

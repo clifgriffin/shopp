@@ -235,6 +235,7 @@ class Shopp {
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 		
 		new Login();
+		do_action('shopp_init');
 	}
 	
 	/**
