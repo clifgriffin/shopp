@@ -66,7 +66,7 @@
 				$location .= $Customer->country;
 				echo $location;
 				 ?></td>
-			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><?php echo $Customer->orders; ?> &mdash; <?php echo money($Customer->total); ?></td>
+			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><a href="<?php echo add_query_arg(array('page'=>'shopp-orders','customer'=>$Customer->id),admin_url('admin.php')); ?>"><?php echo $Customer->orders; ?> &mdash; <?php echo money($Customer->total); ?></a></td>
 			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Customer->created)); ?></td>
 		</tr>
 		<?php endforeach; ?>
