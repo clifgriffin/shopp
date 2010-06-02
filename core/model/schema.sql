@@ -317,6 +317,7 @@ CREATE TABLE <?php echo $promo; ?> (
 	discount float(20,2) NOT NULL default '0.00',
 	buyqty int(10) NOT NULL default '0',
 	getqty int(10) NOT NULL default '0',
+	uses int(10) NOT NULL default '0',
 	search enum('all','any') default 'all',
 	code varchar(255) NOT NULL default '',
 	rules text NOT NULL,

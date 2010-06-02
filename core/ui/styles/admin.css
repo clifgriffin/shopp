@@ -97,7 +97,6 @@ div.comment-item:hover .row-actions { visibility:visible; }
 /* Promotions */
 .shopp #promotion p select,
 .shopp #promotion td select { vertical-align:baseline; }
-.shopp #promotion #misc-publishing-actions { margin:10px; }
 
 #promotion #rules tr td { border-bottom-width:2px; }
 #promotion #rules button.delete { visibility:hidden; }
@@ -254,6 +253,9 @@ span.indent { display: inline-block; width: 36px; }
 .shopp .postbox #category-menu ul label { line-height:1; }
 
 .shopp .postbox p label { font-size:11px;font-weight:bold;line-height:24px; }
+
+
+#save-product .misc-pub-section { padding-left: 24px; text-indent: -18px; }
 
 #editorcontainer #content { width:100%;margin:0;padding:6px;line-height:150%;border:0 none;outline:none;-moz-box-sizing:border-box;-webkit-box-sizing:border-box;-khtml-box-sizing:border-box;box-sizing:border-box; }
 
@@ -468,8 +470,6 @@ div.storage-settings { clear:both;margin-top:8px; }
 .calendar div.week div.active { background-color:#1A8ED2;color:#ffffff; }
 
 .subsubsub.right { float:right; }
-
-.misc-pub-section { padding-left: 24px; text-indent: -18px;  }
 
 /** Autocomplete **/
 .ac_results { position:absolute;padding:0;background:#efefef;border:1px solid #ccc;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;-moz-box-shadow: 0 2px 7px #ccc;-webkit-box-shadow: 0 2px 7px #ccc;box-shadow: 0 2px 7px #ccc; }

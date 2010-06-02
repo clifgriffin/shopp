@@ -109,6 +109,8 @@ var RULES_LANG = {
 	"Subtotal amount":"<?php _e('Subtotal amount','Shopp'); ?>",
 	"Discount amount":"<?php _e('Discount amount','Shopp'); ?>",
 	"Promo code":"<?php _e('Promo code','Shopp'); ?>",
+
+	"Promo use count":"<?php _e('Promo use count','Shopp'); ?>",
 	
 	"Is equal to":"<?php _e('Is equal to','Shopp'); ?>",
 	"Is not equal to":"<?php _e('Is not equal to','Shopp'); ?>",
@@ -141,6 +143,7 @@ var conditions = {
 		"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
 		"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
 		"Discount amount":{"logic":["boolean","amount"],"value":"price"},
+		"Promo use count":{"logic":["boolean","amount"],"value":"text"},
 		"Promo code":{"logic":["boolean"],"value":"text"}
 	},
 	"Cart Item":{
@@ -151,6 +154,7 @@ var conditions = {
 		"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
 		"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
 		"Discount amount":{"logic":["boolean","amount"],"value":"price"},
+		"Promo use count":{"logic":["boolean","amount"],"value":"text"},
 		"Promo code":{"logic":["boolean"],"value":"text"}
 	},
 	"Cart Item Target":{
@@ -163,7 +167,7 @@ var conditions = {
 		"Quantity":{"logic":["boolean","amount"],"value":"text"},
 		"Unit price":{"logic":["boolean","amount"],"value":"price"},
 		"Total price":{"logic":["boolean","amount"],"value":"price"},
-		"Discount amount":{"logic":["boolean","amount"],"value":"price"},
+		"Discount amount":{"logic":["boolean","amount"],"value":"price"}
 	}
 }
 

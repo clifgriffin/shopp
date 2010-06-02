@@ -75,8 +75,6 @@
 </div>   
 
 <script type="text/javascript">
-	helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
-
 jQuery(document).ready( function() {
 	var $=jQuery.noConflict();
 	

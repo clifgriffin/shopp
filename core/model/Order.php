@@ -323,8 +323,10 @@ class Order {
 		}
 		
 		$promos = array();
-		foreach ($this->Cart->discounts as $promo)
+		foreach ($this->Cart->discounts as &$promo) {
 			$promos[$promo->id] = $promo->name;
+			$promo->uses++;
+		}
 
 		$Purchase = new Purchase();
 		$Purchase->copydata($this);
@@ -340,6 +342,7 @@ class Order {
 		$Purchase->ip = $Shopp->Shopping->ip;
 		$Purchase->save();
 		$this->unlock();
+		Promotion::used(array_keys($promos));
 
 		foreach($this->Cart->contents as $Item) {
 			$Purchased = new Purchased();
