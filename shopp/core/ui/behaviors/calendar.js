@@ -91,9 +91,9 @@ jQuery.fn.PopupCalendar = function (settings) {
 			_.show();
 			_.focused = $(this);
 		}).click(function () {
-			if (_.focused) _.focused.focus();
+			if (_.focused) _.focused.focus().select();
 		}).blur(function (e) {
-			if (_.ui) $(this).focus();
+			if (_.ui) $(this).focus().select();
 			else _.hide();
 		}).change(function () { 
 			_.trigger('selection');
