@@ -10,12 +10,15 @@ jQuery.fn.PopupCalendar = function (settings) {
 		defaults = { 
 			month:(new Date().getMonth()+1),
 			year:new Date().getFullYear(),
+			selection:false,
 			m_input:false,
 			d_input:false,
 			y_input:false,
+			input:false,
 			startWeek:0,
 			title:'my',
 			scheduling:true,
+			scheduleAfter:false,
 			disabled:'disabled',
 			scopeMonth:'month',
 			active:'active',
@@ -55,11 +58,12 @@ jQuery.fn.PopupCalendar = function (settings) {
 		m_input = settings.m_input,
 		d_input = settings.d_input,
 		y_input = settings.y_input,
+		input = (m_input)?m_input:settings.input,
+		inputs = (m_input)?m_input.add(d_input).add(y_input):input,
 		sw = settings.startWeek,
 		tf = settings.title,
-		inputs = m_input.add(d_input).add(y_input),
 		autoinit = settings.autoinit,
-		
+				
 		// Literals
 		disabled = settings.disabled,
 		scopeMonth = settings.scopeMonth,
@@ -71,7 +75,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 	today = new Date(today.getFullYear(),today.getMonth(),today.getDate());
 	_.scope = scopeMonth;
 	_.scheduling = settings.scheduling;
-	_.selection = today;
+	_.selection = (settings.selection)?settings.selection:today;
 	_.ui = false;
 	
 	$this.mouseenter(function () {
@@ -80,44 +84,31 @@ jQuery.fn.PopupCalendar = function (settings) {
 		_.ui = false;
 	});
 
-	if (m_input !== false) {
-		pos = m_input.parent().offset();
-		$this.css({left:pos.left,top:pos.top+m_input.outerHeight() });
-
-		if (y_input.val() != '' && m_input.val() != '' && d_input.val() != '')
-			_.selection = new Date(y_input.val(),m_input.val()-1,d_input.val());
-
-		inputs.focus(function (e) { 
-			_.show();
-			_.focused = $(this);
-		}).click(function () {
-			if (_.focused) _.focused.focus().select();
-		}).blur(function (e) {
-			if (_.ui) $(this).focus().select();
-			else _.hide();
-		}).change(function () { 
-			_.trigger('selection');
-		});
-		
-	}
-	
 	_.change(function () {
+		if (input !== false) input.val((_.selection.getMonth()+1)+"/"+_.selection.getDate()+"/"+_.selection.getFullYear());
 		if (m_input !== false) m_input.val(_.selection.getMonth()+1);
 		if (d_input !== false) d_input.val(_.selection.getDate());
 		if (y_input !== false) y_input.val(_.selection.getFullYear());
+		if (_.focused) _.focused.select();
 		return this;
 	});
-
-	if (autoinit) {
-		if (m_input !== false && m_input.val() == "") m_input.val(_.selection.getMonth()+1);
-		if (d_input !== false && d_input.val() == "") d_input.val(_.selection.getDate());
-		if (y_input !== false && y_input.val() == "") y_input.val(_.selection.getFullYear());
-	}
 	
-	_.bind('selection',function () {
-		_.selection = new Date(y_input.val(),m_input.val()-1,d_input.val());
-		_.change().render(_.selection.getMonth()+1,_.selection.getFullYear()).autoselect();
+	_.bind('updated',function () {
+		var match = false;
+		if (m_input !== false) _.select(new Date(y_input.val(),m_input.val()-1,d_input.val()));
+		else if (input !== false) {
+			match = input.val().match(/^(\d{1,2}).{1}(\d{1,2}).{1}(\d{4})/);
+			if (match) _.select(new Date(match[3],(match[1]-1),match[2]));
+		}
 	});
+
+	_.select = function (selection) {
+		if (selection) {
+			if (selection instanceof Date) _.selection = selection;
+			else _.selection = new Date(selection);
+		}
+		_.change().render(_.selection.getMonth()+1,_.selection.getFullYear()).autoselect();
+	}
 
 	_.render = function (month,year) {
 		$this.empty();
@@ -126,6 +117,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 			i = 0, 
 			w = 0,
 			wd = 0,
+			scheduleAfter = false,
 			dayLabels = new Array(),
 			weeks = new Array();
 
@@ -133,10 +125,14 @@ jQuery.fn.PopupCalendar = function (settings) {
 		if (!year) year = _.selection.getFullYear();
 	
 		dates = this.getDayMap(month, year,sw,true);
-	
+			
+		if (settings.scheduleAfter.selection) scheduleAfter = settings.scheduleAfter.selection;
+		if (settings.scheduleAfter === false) scheduleAfter = today;
+
 		backarrow = $('<span class="back">&laquo;</span>').appendTo($this);
-		previousMonth = new Date(year,month-2,today.getDate());
-		if (!_.scheduling || (_.scheduling && previousMonth >= today.getTime())) {
+		previousMonth = new Date(year,month-1,0);
+		
+		if (!_.scheduling || (_.scheduling && previousMonth.getTime() >= scheduleAfter.getTime())) {
 			backarrow.click(function () {
 				_.scope = scopeMonth;
 				_.selection = new Date(year,month-2);
@@ -181,7 +177,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 				calendar[i].date = thisDate;
 
 				if (thisMonth != month) calendar[i].addClass(disabled);
-				if (_.scheduling && thisDate.getTime() < today.getTime()) calendar[i].addClass(disabled);
+				if (_.scheduling && thisDate.getTime() < scheduleAfter.getTime()) calendar[i].addClass(disabled);
 				if (thisDate.getTime() == today.getTime()) calendar[i].addClass('today');
 
 				calendar[i].hover(function () {
@@ -194,12 +190,12 @@ jQuery.fn.PopupCalendar = function (settings) {
 				calendar[i].mouseup(function () { $(this).removeClass(active); });
 			
 			
-				if (!_.scheduling || (_.scheduling && thisDate.getTime() >= today.getTime())) {
+				if (!_.scheduling || (_.scheduling && thisDate.getTime() >= scheduleAfter.getTime())) {
 					calendar[i].click(function () {
 						_.resetCalendar();
 						if (!$(this).hasClass(disabled)) $(this).addClass(selected);
 					
-						_.selection = dates[$(this).attr('title')];
+						_.select(dates[$(this).attr('title')]);
 						_.scope = "day";
 
 						if (_.selection.getMonth()+1 != month) {
@@ -209,7 +205,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 							_.ui = false;
 							$this.hide();
 						}
-						_.change();
+						_.change().trigger('calendarSelect');
 					});
 				}
 			}
@@ -318,7 +314,37 @@ jQuery.fn.PopupCalendar = function (settings) {
 	_.leapYearsSinceBC = function (yr) {
 		return (Math.floor(yr / 4) - _.centuriesSince1700(yr) + _.quadCenturiesSince1700(yr));
 	}
+	
+	
+	if (input !== false) {
+		pos = input.parent().offset();
+		$this.css({left:pos.left,top:pos.top+input.outerHeight() });
+
+		if (m_input && (y_input.val() != '' && m_input.val() != '' && d_input.val() != ''))
+			_.selection = new Date(y_input.val(),m_input.val()-1,d_input.val());
+
+		inputs.focus(function (e) {
+			_.show();
+			_.focused = $(this);
+		}).click(function () {
+			if (_.focused) _.focused.focus().select();
+		}).blur(function (e) {
+			if (_.ui) $(this).focus().select();
+			else _.hide();
+		}).bind('change.input',function () {
+			_.trigger('updated');
+		}).trigger('change.input');
 		
+	}
+	
+	if (settings.scheduleAfter.selection) {
+		settings.scheduleAfter.change(function () {
+			_.render().autoselect();
+		});
+	}
+
+	if (autoinit) _.change();
+	
 	_.render().autoselect();
 	return this;
 }
