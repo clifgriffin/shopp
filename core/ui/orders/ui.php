@@ -37,7 +37,7 @@ function contact_meta_box ($Purchase) {
 	<?php echo !empty($Purchase->company)?'<p class="customer company">'.$Purchase->company.'</p>':''; ?>
 	<?php echo !empty($Purchase->email)?'<p class="customer email"><a href="mailto:'.$Purchase->email.'">'.$Purchase->email.'</a></p>':''; ?>
 	<?php echo !empty($Purchase->phone)?'<p class="customer phone">'.$Purchase->phone.'</p>':''; ?>
-	<p class="customer <?php echo ($Purchase->Customer->marketing == "on")?'marketing':'nomarketing'; ?>"><?php ($Purchase->Customer->marketing == "on")?_e('Agreed to marketing','Shopp'):_e('No marketing','Shopp'); ?></p>
+	<p class="customer <?php echo ($Purchase->Customer->marketing == "yes")?'marketing':'nomarketing'; ?>"><?php ($Purchase->Customer->marketing == "yes")?_e('Agreed to marketing','Shopp'):_e('No marketing','Shopp'); ?></p>
 <?php
 }
 add_meta_box('order-contact', __('Customer Contact','Shopp'), 'contact_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
@@ -188,8 +188,5 @@ function notes_meta_box ($Purchase) {
 <?php
 }
 add_meta_box('order-notes', __('Notes','Shopp'), 'notes_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
-
-do_action('do_meta_boxes', 'toplevel_page_shopp-orders', 'normal', $Shopp->Purchase);
-do_action('do_meta_boxes', 'toplevel_page_shopp-orders', 'side', $Shopp->Purchase);
 
 ?>

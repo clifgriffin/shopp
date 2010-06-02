@@ -270,7 +270,7 @@ class Service extends AdminController {
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
 		$Purchase = $Shopp->Purchase;
-		$Customer = new Customer($Purchase->customer);
+		$Purchase->Customer = new Customer($Purchase->customer);
 
 		// Handle Order note processing
 		if (!empty($_POST['note'])) {
