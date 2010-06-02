@@ -226,7 +226,7 @@ class Catalog extends DatabaseObject {
 				$options = array_merge($defaults,$options);
 				extract($options, EXTR_SKIP);
 
-				$this->load_categories(array("where"=>"(pd.published='on' OR pd.id IS NULL)","orderby"=>$orderby,"order"=>$order),$showsmart);
+				$this->load_categories(array("where"=>"(pd.status='publish' OR pd.id IS NULL)","orderby"=>$orderby,"order"=>$order),$showsmart);
 
 				$string = "";
 				$depthlimit = $depth;

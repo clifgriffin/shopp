@@ -74,7 +74,26 @@ jQuery(document).ready(function() {
 		this.action = this.action+"?"+$.param(request);
 		saving = true;
 		return true;
-	}); 
+	});
+	
+	$('#publish-calendar').PopupCalendar({
+		m_input:$('#publish-month'),
+		d_input:$('#publish-date'),
+		y_input:$('#publish-year'),
+		autoinit:true,
+		title:calendarTitle,
+		startWeek:startWeekday
+	});
+
+	$('#schedule-toggle').click(function () {
+		$('#scheduling').slideToggle();
+	});
+	$('#scheduling').hide();
+
+	$('#published').change(function () {
+		if ($(this).attr('checked')) $('#publish-status,#schedule-toggling').show();
+		else $('#publish-status,#schedule-toggling,#scheduling').hide();
+	})
 
 	// Setup categories
 	categories();

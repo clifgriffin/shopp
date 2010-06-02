@@ -341,6 +341,18 @@ class Product extends DatabaseObject {
 	}
 	
 	/**
+	 * Detect if the product is currently published
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
+	function published () {
+		return ($this->status == "publish" && mktime() >= $this->publish);
+	}
+	
+	/**
 	 * Merges specs with identical names into an array of values
 	 *
 	 * @author Jonathan Davis

@@ -270,10 +270,14 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 .shopp .postbox p span select { width:auto; }
 .shopp .postbox p label { clear:both;display:block; }
 .shopp #product-settings input,
-.shopp #category-settings input { width:auto; }
+.shopp #category-settings input,
+.shopp #misc-publishing-actions input { width:auto; }
 .shopp #product-settings label,
-.shopp #category-settings label { display:inline; }
+.shopp #category-settings label,
+.shopp #misc-publishing-actions label { display:inline; vertical-align: middle; }
 .shopp .postbox p .small { width:auto; }
+
+#schedule-calendar { margin-left: 18px; }
 
 .shopp #customer #post-body-content .postbox p { width:66%; }
 .shopp #pass-strength-result { line-height:20px;width:94%; }
@@ -452,7 +456,6 @@ div.storage-settings { clear:both;margin-top:8px; }
 .calendar-wrap { display:inline;position:relative;overflow:visible; }
 .calendar { position:absolute;z-index:10;top:18px;left:0;width:185px;background:white;border:1px solid #cee1ef;padding:5px;font-size:11px; }
 .calendar h3 { width:100%;margin:0;text-align:center; }
-.calendar h3 .month { margin-right:5px; }
 .calendar span.back { display:block;position:absolute;left:5px;top:5px;padding:0 10px;cursor:pointer; }
 .calendar span.next { display:block;position:absolute;right:5px;top:5px;padding:0 10px;cursor:pointer; }
 .calendar div.week { display:block;width:100%; }
@@ -466,6 +469,7 @@ div.storage-settings { clear:both;margin-top:8px; }
 
 .subsubsub.right { float:right; }
 
+.misc-pub-section { padding-left: 24px; text-indent: -18px;  }
 
 /** Autocomplete **/
 .ac_results { position:absolute;padding:0;background:#efefef;border:1px solid #ccc;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;-moz-box-shadow: 0 2px 7px #ccc;-webkit-box-shadow: 0 2px 7px #ccc;box-shadow: 0 2px 7px #ccc; }

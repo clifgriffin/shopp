@@ -30,7 +30,7 @@
 						<?php if (SHOPP_PERMALINKS && !empty($Product->id)): ?>
 							<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
 							<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo esc_attr($Product->slug); ?></span><span id="editable-slug-full"><?php echo esc_attr($Product->slug); ?></span>/</span>
-							<span id="edit-slug-buttons"><button type="button" class="edit-slug button"><?php _e('Edit','Shopp'); ?></button><?php if ($Product->published == "on"): ?><button id="view-product" type="button" class="view button"><?php _e('View','Shopp'); ?></button><?php endif; ?></span>
+							<span id="edit-slug-buttons"><button type="button" class="edit-slug button"><?php _e('Edit','Shopp'); ?></button><?php if ($Product->status == "publish"): ?><button id="view-product" type="button" class="view button"><?php _e('View','Shopp'); ?></button><?php endif; ?></span>
 							</div>
 						<?php else: ?>
 							<?php if (!empty($Product->id)): ?>
@@ -56,6 +56,8 @@
 		</div> <!-- #poststuff -->
 	</form>
 </div>
+
+<div id="publish-calendar" class="calendar"></div>
 
 <script type="text/javascript">
 <!--
@@ -96,6 +98,8 @@ var productspath = '<?php echo trailingslashit(sanitize_path(realpath($this->Set
 var imageupload_debug = <?php echo (defined('SHOPP_IMAGEUPLOAD_DEBUG') && SHOPP_IMAGEUPLOAD_DEBUG)?'true':'false'; ?>;
 var fileupload_debug = <?php echo (defined('SHOPP_FILEUPLOAD_DEBUG') && SHOPP_FILEUPLOAD_DEBUG)?'true':'false'; ?>;
 var dimensionsRequired = <?php echo $Shopp->Shipping->dimensions?'true':'false'; ?>;
+var startWeekday = <?php echo get_option('start_of_week'); ?>;
+var calendarTitle = '<?php $df = date_format_order(); $format = ''; foreach ($df as $type => $f) if ($type == "month" || $type == "year") $format .= $type[0]; echo $format; ?>';
 
 // Warning/Error Dialogs
 var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this product image?','Shopp'); ?>";

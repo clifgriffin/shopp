@@ -38,6 +38,7 @@ class Warehouse extends AdminController {
 			}
 			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('editors');
+			shopp_enqueue_script('calendar');
 			shopp_enqueue_script('product-editor');
 			shopp_enqueue_script('priceline');
 			shopp_enqueue_script('ocupload');
@@ -119,7 +120,7 @@ class Warehouse extends AdminController {
 			$Shopp->Product->load_data(array('prices','specs','categories','tags'));
 		} else {
 			$Shopp->Product = new Product();
-			$Shopp->Product->published = "on";  
+			$Shopp->Product->status = "publish";  
 		}
 		
 		if ($save) {
@@ -129,7 +130,7 @@ class Warehouse extends AdminController {
 			if ($next) {
 				if ($next == "new") {
 					$Shopp->Product = new Product();
-					$Shopp->Product->published = "on";  
+					$Shopp->Product->status = "publish";  
 				} else {
 					$Shopp->Product = new Product($next);
 					$Shopp->Product->load_data(array('prices','specs','categories','tags'));
@@ -198,7 +199,7 @@ class Warehouse extends AdminController {
 		$subfilters = array('f' => 'featured','p' => 'published','s' => 'onsale','i' => 'inventory');
 		$subs = array(
 			'all' => array('label' => __('All','Shopp'),'columns' => "count(distinct pd.id) AS total",'where'=>'true','total' => $productcount->total),
-			'published' => array('label' => __('Published','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.published='on'",'request' => 'p'),
+			'published' => array('label' => __('Published','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.status='publish'",'request' => 'p'),
 			'onsale' => array('label' => __('On Sale','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pt.sale='on'",'request' => 's'),
 			'featured' => array('label' => __('Featured','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.featured='on'",'request' => 'f'),
 			'inventory' => array('label' => __('Inventory','Shopp'),'total' => 0,'columns' => "count(distinct pt.id) AS total",'where'=>"pt.inventory='on' AND pt.type!='N/A'",'request' => 'i')
@@ -369,7 +370,7 @@ class Warehouse extends AdminController {
 
 		if (empty($Shopp->Product)) {
 			$Product = new Product();
-			$Product->published = "on";
+			$Product->status = "publish";
 		} else $Product = $Shopp->Product;
 		
 		// $Product->load_data(array('images'));
@@ -469,7 +470,20 @@ class Warehouse extends AdminController {
 			$Product->slug = $altslug;
 		}
 		
+		if ($_POST['status'] == "publish") {
+			$datefields = join('',array($_POST['publish']['month'],$_POST['publish']['date'],$_POST['publish']['year']));
+			if (!empty($datefields)) {
+				if ($_POST['publish']['meridiem'] == "PM" && $_POST['publish']['hour'] < 12) 
+					$_POST['publish']['hour'] += 12;
+				$_POST['publish'] = mktime($_POST['publish']['hour'],$_POST['publish']['minute'],0,$_POST['publish']['month'],$_POST['publish']['date'],$_POST['publish']['year']);
+			} elseif ($Product->status != 'publish') {
+				unset($_POST['publish']);
+				$Product->publish = null;
+			}
+		} else $_POST['publish'] = 1;
+		
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
+
 		$Product->updates($_POST,array('categories','prices'));
 		$Product->save();
 
