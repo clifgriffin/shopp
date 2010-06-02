@@ -107,11 +107,10 @@
 <div id="end-calendar" class="calendar"></div>
 
 <script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>Managing Orders";
 var lastexport = new Date(<?php echo date("Y,(n-1),j",$Shopp->Settings->get('customerexport_lastexport')); ?>);
 
 jQuery(document).ready( function() {
-	var $=jQuery.noConflict();
+	var $=jqnc();
 	
 $('#selectall').change( function() {
 	$('#customers-table th input').each( function () {
@@ -125,107 +124,49 @@ $('#delete-button').click(function() {
 	else return false;
 });
 
-function getDateInput(input) {
-	var match = false;
-	match = $(input).get(0).value.match(/^(\d{1,2}).{1}(\d{1,2}).{1}(\d{4})/);
-	if (match) return new Date(match[3],(match[1]-1),match[2]);
-	return false;
-}
-
 function formatDate (e) {
 	if (this.value == "") match = false;
 	if (this.value.match(/^(\d{6,8})/))
 		match = this.value.match(/(\d{1,2}?)(\d{1,2})(\d{4,4})$/);
 	else if (this.value.match(/^(\d{1,2}.{1}\d{1,2}.{1}\d{4})/))
 		match = this.value.match(/^(\d{1,2}).{1}(\d{1,2}).{1}(\d{4})/);
-	if (match) this.setDate(new Date(match[3],(match[1]-1),match[2]));
-	$('#start-calendar, #end-calendar').hide();
-}
-
-function setDate(date,calendar) {
-	$(this).val((date.getMonth()+1)+"/"+date.getDate()+"/"+date.getFullYear());
-	if (calendar) {
-		calendar.render(date.getMonth()+1,date.getDate(),date.getFullYear());
-		calendar.selection = date;
-		calendar.autoselect();
+	if (match) {
+		date = new Date(match[3],(match[1]-1),match[2]);
+		$(this).val((date.getMonth()+1)+"/"+date.getDate()+"/"+date.getFullYear());
+		range.val('custom');
 	}
 }
 
-var start = $('#start');
-var startdate = getDateInput(start);
-var StartCalendar = new PopupCalendar($('#start-calendar'));
-StartCalendar.scheduling = false;
-if (startdate) {
-	StartCalendar.render(startdate.getMonth()+1,startdate.getDate(),startdate.getFullYear());
-	StartCalendar.selection = startdate;
-	StartCalendar.autoselect();
-} else StartCalendar.render();
-
-start.setDate = setDate;
-start.get(0).setDate = setDate;
-start.calendar = StartCalendar;
-start.change(formatDate);
-
-
-var end = $('#end');
-var enddate = getDateInput(end);
-var EndCalendar = new PopupCalendar($('#end-calendar'));
-EndCalendar.scheduling = false;
-if (enddate) {
-	EndCalendar.render(enddate.getMonth()+1,enddate.getDate(),enddate.getFullYear());
-	EndCalendar.selection = enddate;
-	EndCalendar.autoselect();	
-} else EndCalendar.render();
-
-end.setDate = setDate;
-end.get(0).setDate = setDate;
-end.calendar = EndCalendar;
-end.change(formatDate);
-
-var scpos = $('#start-position').offset();
-$('#start-calendar').hide()
-	.css({left:scpos.left,
-		   top:scpos.top+$('#start-position').height()+10});
-
-$('#start').click(function (e) {
-	$('#end-calendar').hide();
-	$('#start-calendar').toggle();
-	$(StartCalendar).change(function () {
-			$('#start').val((StartCalendar.selection.getMonth()+1)+"/"+
-				StartCalendar.selection.getDate()+"/"+
-				StartCalendar.selection.getFullYear());
+var range = $('#range'),
+	start = $('#start').change(formatDate),
+	StartCalendar = $('#start-calendar').PopupCalendar({
+		scheduling:false,
+		input:start
+	}).bind('calendarSelect',function () {
+		range.val('custom');
+	}),
+	end = $('#end').change(formatDate),
+	EndCalendar = $('#end-calendar').PopupCalendar({
+		scheduling:true,
+		input:end,
+		scheduleAfter:StartCalendar
+	}).bind('calendarSelect',function () {
+		range.val('custom');
 	});
-});
 
-var ecpos = $('#end-position').offset();
-$('#end-calendar').hide()
-	.css({left:ecpos.left,
-		   top:ecpos.top+$('#end-position input').height()+10});
-		
-$('#end').click(function (e) {
-	$('#start-calendar').hide();
-	$('#end-calendar').toggle();
-	$(EndCalendar).change(function () {
-		$('#end').val((EndCalendar.selection.getMonth()+1)+"/"+
-			EndCalendar.selection.getDate()+"/"+
-			EndCalendar.selection.getFullYear());
-	});
-});
-
-$('#range').change(function () {
+range.change(function () {
 	if (this.selectedIndex == 0) {
 		start.val(''); end.val('');
 		$('#dates').addClass('hidden');
 		return;
 	} else $('#dates').removeClass('hidden');
-	var today = new Date();
-	var startdate = getDateInput($('#start'));
-	var enddate = getDateInput($('#end'));
-	if (!startdate) startdate = new Date(today.getFullYear(),today.getMonth(),today.getDate());
-	if (!enddate) enddate = new Date(today.getFullYear(),today.getMonth(),today.getDate());
+	var today = new Date(),
+		startdate = new Date(today.getFullYear(),today.getMonth(),today.getDate()),
+		enddate = new Date(today.getFullYear(),today.getMonth(),today.getDate());
 	today = new Date(today.getFullYear(),today.getMonth(),today.getDate());
+
 	switch($(this).val()) {
-		case 'week': 
+		case 'week':
 			startdate.setDate(today.getDate()-today.getDay());
 			enddate = new Date(startdate.getFullYear(),startdate.getMonth(),startdate.getDate()+6);
 			break;
@@ -274,10 +215,12 @@ $('#range').change(function () {
 			startdate = lastexport;
 			enddate = today;
 			break;
-		case 'custom': break;
+		case 'custom': return; break;
 	}
-	start.setDate(startdate,StartCalendar); end.setDate(enddate,EndCalendar);
+	StartCalendar.select(startdate);
+	EndCalendar.select(enddate);
 }).change();
+
 $('#export-settings-button').click(function () { $('#export-settings-button').hide(); $('#export-settings').removeClass('hidden'); });
 $('#selectall_columns').change(function () { 
 	if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true); 
