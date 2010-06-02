@@ -1032,7 +1032,6 @@ class CartDiscounts {
 		// Iterate over each promo to determine whether it applies
 		foreach ($this->promos as &$promo) {
 			$applypromo = false;
-
 			if (!is_array($promo->rules))
 				$promo->rules = unserialize($promo->rules);
 			
@@ -1058,7 +1057,6 @@ class CartDiscounts {
 					$match = $this->promocode($rule);
 					// if ($match) echo "$promo->name applying code: ".$this->Cart->promocode.BR;
 					
-
 				} elseif (in_array($property,$this->itemprops)) {
 					// See if an item rule matches
 					foreach ($this->Cart->contents as $id => &$Item)
@@ -1066,6 +1064,7 @@ class CartDiscounts {
 				} else {
 					// Match cart aggregate property rules
 					switch($property) {
+						case "Promo use count": $subject = $promo->uses; break;
 						case "Total quantity": $subject = $this->Cart->Totals->quantity; break;
 						case "Shipping amount": $subject = $this->Cart->Totals->shipping; break;
 						case "Subtotal amount": $subject = $this->Cart->Totals->subtotal; break;
