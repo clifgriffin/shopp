@@ -56,10 +56,22 @@ var rules = <?php echo json_encode($Promotion->rules); ?>;
 var ruleidx = 1;
 var itemidx = 1;
 var promotion = <?php echo (!empty($Promotion->id))?$Promotion->id:'false'; ?>;
-var StartsCalendar = new PopupCalendar($('#starts-calendar'));
-StartsCalendar.render();
-var EndsCalendar = new PopupCalendar($('#ends-calendar'));
-EndsCalendar.render();
+
+$('#starts-calendar').PopupCalendar({
+	m_input:$('#starts-month'),
+	d_input:$('#starts-date'),
+	y_input:$('#starts-year')
+}).bind('show',function () {
+	$('#ends-calendar').hide();
+});
+
+$('#ends-calendar').PopupCalendar({
+	m_input:$('#ends-month'),
+	d_input:$('#ends-date'),
+	y_input:$('#ends-year')
+}).bind('show',function () {
+	$('#starts-calendar').hide();
+});
 
 var SCOPEPROP_LANG = {
 	"Catalog":"<?php _e('price','Shopp'); ?>",
@@ -284,34 +296,36 @@ if (rules) {
 } else new Conditional();
 
 
-var scpos = $('#start-position').offset();
-$('#starts-calendar').hide()
-	.css({left:scpos.left,
-		   top:scpos.top+$('#start-position input:first').height()});
-$('#starts-month').click(function (e) {
-	$('#ends-calendar').hide();
-	$('#starts-calendar').toggle();
-	$(StartsCalendar).change(function () {
-		$('#starts-month').val(StartsCalendar.selection.getMonth()+1);
-		$('#starts-date').val(StartsCalendar.selection.getDate());
-		$('#starts-year').val(StartsCalendar.selection.getFullYear());
-	});
-});
-
-var ecpos = $('#end-position').offset();
-$('#ends-calendar').hide()
-	.css({left:ecpos.left,
-		   top:ecpos.top+$('#end-position input:first').height()});
-		
-$('#ends-month').click(function (e) {
-	$('#starts-calendar').hide();
-	$('#ends-calendar').toggle();
-	$(EndsCalendar).change(function () {
-		$('#ends-month').val(EndsCalendar.selection.getMonth()+1);
-		$('#ends-date').val(EndsCalendar.selection.getDate());
-		$('#ends-year').val(EndsCalendar.selection.getFullYear());
-	});
-});
+// var scpos = $('#start-position').offset();
+// $('#starts-calendar').hide()
+// 	.css({left:scpos.left,
+// 		   top:scpos.top+$('#start-position input:first').height()});
+// 		console.log(scpos);
+// 		
+// $('#starts-month').click(function (e) {
+// 	$('#ends-calendar').hide();
+// 	$('#starts-calendar').toggle();
+// 	$(StartsCalendar).change(function () {
+// 		$('#starts-month').val(StartsCalendar.selection.getMonth()+1);
+// 		$('#starts-date').val(StartsCalendar.selection.getDate());
+// 		$('#starts-year').val(StartsCalendar.selection.getFullYear());
+// 	});
+// });
+// 
+// var ecpos = $('#end-position').offset();
+// $('#ends-calendar').hide()
+// 	.css({left:ecpos.left,
+// 		   top:ecpos.top+$('#end-position input:first').height()});
+// 		
+// $('#ends-month').click(function (e) {
+// 	$('#starts-calendar').hide();
+// 	$('#ends-calendar').toggle();
+// 	$(EndsCalendar).change(function () {
+// 		$('#ends-month').val(EndsCalendar.selection.getMonth()+1);
+// 		$('#ends-date').val(EndsCalendar.selection.getDate());
+// 		$('#ends-year').val(EndsCalendar.selection.getFullYear());
+// 	});
+// });
 
 postboxes.add_postbox_toggles('shopp_page_shopp-promotions');
 // close postboxes that should be closed

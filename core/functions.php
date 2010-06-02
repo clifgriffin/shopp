@@ -262,6 +262,44 @@ function datecalc($week=-1,$dayOfWeek=-1,$month=-1,$year=-1) {
 }
 
 /**
+ * Builds an array of the current WP date_format setting
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @return array The list version of date_format
+ **/
+function date_format_order () {
+	$format = get_option('date_format'); 
+	
+	$tokens = array(
+		'day' => 'dDjl',
+		'month' => 'FmMn',
+		'year' => 'yY'
+	);
+	
+	$dt = join('',$tokens);
+
+	preg_match("/([$dt]{1})([^$dt]+)([$dt]{1})([^$dt]+)([$dt]{1})/",$format,$matches);
+
+	array_shift($matches); 
+	$_ = array(); $s = 0;
+	foreach ($matches as $match) {
+		foreach ($tokens as $type => $pattern) {
+			if (preg_match("/[$pattern]/",$match)) {
+				$_[$type] = $match;
+				break;
+			} elseif (preg_match("/[^$dt]/",$match)) {
+				$_['s'.$s++] = $match;
+				break;
+			}
+		}
+	}
+	
+	return $_;	
+}
+
+/**
  * Returns the duration (in days) between two timestamps
  *
  * @author Jonathan Davis
@@ -697,6 +735,7 @@ function linkencode ($url) {
 function mktimestamp ($datetime) {
 	$h = $mn = $s = 0;
 	list($Y, $M, $D, $h, $mn, $s) = sscanf($datetime,"%d-%d-%d %d:%d:%d");
+	if (max($Y, $M, $D, $h, $mn, $s) == 0) return 0;
 	return mktime($h, $mn, $s, $M, $D, $Y);
 }
 

@@ -211,6 +211,7 @@ class ShoppInstallation extends FlowController {
 		$this->upschema();
 		
 		if ($db_version < 1100) $this->upgrade_110();
+		if ($db_version < 1101) $this->upgrade_1101();
 	
 	}
 	
@@ -356,7 +357,11 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function upgrade_110 () {
 		$db =& DB::get();
-		
+
+		// Update product publish status
+		$product_table = DatabaseObject::tablename('product');
+		$db->query("UPDATE $product_table SET status=CAST(published AS unsigned)");
+
 		// Update Catalog
 		$catalog_table = DatabaseObject::tablename('catalog');
 		$db->query("UPDATE $catalog_table set parent=IF(category!=0,category,tag),type=IF(category!=0,'category','tag')");
@@ -449,6 +454,19 @@ class ShoppInstallation extends FlowController {
 		
 		$this->roles(); // Setup Roles and Capabilities
 		
+	}
+	
+	/**
+	 * Interim db upgrade for dev versions
+	 * 
+	 * @todo Remove before release
+	 **/
+	function upgrade_1101 () {
+		$db =& DB::get();
+		
+		// Update product publish status
+		$product_table = DatabaseObject::tablename('product');
+		$db->query("UPDATE $product_table SET status=CAST(published AS unsigned)");
 	}
 	
 	/**

@@ -27,7 +27,7 @@ class Category extends DatabaseObject {
 	var $loading = array();
 	var $images = array();
 	var $facetedmenus = "off";
-	var $published = "on";
+	var $published = true;
 	
 	function Category ($id=false,$key=false) {
 		global $Shopp;
@@ -186,7 +186,7 @@ class Category extends DatabaseObject {
 		else $loading['columns'] = '';
 		
 		// Allow override for loading unpublished products
-		if (isset($loading['published'])) $this->published = $loading['published'];
+		if (isset($loading['published'])) $this->published = value_is_true($loading['published']);
 		
 		$where = array();
 		
@@ -238,7 +238,10 @@ class Category extends DatabaseObject {
 			if (!empty($filters)) $where[] = $filters;
 			
 		}
-		$where[] = "p.published='$this->published'";
+		
+		if ($this->published) $where[] = "(p.status='publish' AND UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(p.publish))";
+		else $where[] = "(p.status!='publish' OR UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(p.publish))";
+
 		$loading['having'] = isset($loading['having'])?$loading['having']:'';
 		$loading['where'] = join(" AND ",$where);
 		
