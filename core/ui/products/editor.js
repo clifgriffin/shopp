@@ -86,14 +86,18 @@ jQuery(document).ready(function() {
 	});
 
 	$('#schedule-toggle').click(function () {
-		$('#scheduling').slideToggle();
+		$('#scheduling').slideToggle('fast',function () {
+			if ($(this).is(':visible')) $('#publish-month,#publish-date,#publish-year').removeAttr('disabled');
+			else $('#publish-month,#publish-date,#publish-year').attr('disabled',true);
+		});
 	});
 	$('#scheduling').hide();
+	$('#publish-month,#publish-date,#publish-year').attr('disabled',true);
 
 	$('#published').change(function () {
 		if ($(this).attr('checked')) $('#publish-status,#schedule-toggling').show();
 		else $('#publish-status,#schedule-toggling,#scheduling').hide();
-	})
+	}).change();
 
 	// Setup categories
 	categories();
