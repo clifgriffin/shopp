@@ -67,6 +67,19 @@ class Storefront extends FlowController {
 		add_action('wp', array(&$this, 'catalog'));
 		add_action('wp', array(&$this, 'shortcodes'));
 		add_action('wp', array(&$this, 'behaviors'));
+		
+		// Shopp product text filters
+		add_filter('shopp_product_name','convert_chars');
+		add_filter('shopp_product_summary','convert_chars');
+
+		add_filter('shopp_product_description', 'wptexturize');
+		add_filter('shopp_product_description', 'convert_chars');
+		add_filter('shopp_product_description', 'wpautop');
+		add_filter('shopp_product_description', 'do_shortcode', 11); // AFTER wpautop()	
+
+		add_filter('shopp_product_spec', 'wptexturize');
+		add_filter('shopp_product_spec', 'convert_chars');
+		add_filter('shopp_product_spec', 'do_shortcode', 11); // AFTER wpautop()
 
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
 
@@ -287,11 +300,11 @@ class Storefront extends FlowController {
 		$Settings = ShoppSettings();
 		if (!isset($row_products)) $row_products = 3;
 		$products_per_row = floor((100/$row_products));
-
-		$category_thumb_width = $Settings->get('gallery_thumbnail_width');
+		
+		$category_thumb_width = $Settings->get('gallery_thumbnail_width')+20;
 		$row_products = $Settings->get('row_products');
-		$gallery_small_width = $Settings->get('gallery_small_width');
-		$gallery_small_height = $Settings->get('gallery_small_height');
+		$gallery_small_width = $Settings->get('gallery_small_width')+20;
+		$gallery_small_height = $Settings->get('gallery_small_height')+20;
 
 ?>
 	<!-- Shopp dynamic catalog styles -->
@@ -453,6 +466,7 @@ class Storefront extends FlowController {
 			$wp->query_vars['pagename'] = $wp->request;
 
 		$Shopp->Catalog = new Catalog($type);
+				
 		add_filter('wp_title', array(&$this, 'titles'),10,3);
 		add_action('wp_head', array(&$this, 'metadata'));
 		add_action('wp_head', array(&$this, 'feeds'));
