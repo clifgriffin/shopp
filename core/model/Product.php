@@ -35,8 +35,7 @@ class Product extends DatabaseObject {
 	
 	function __construct ($id=false,$key=false) {
 		$this->init(self::$table);
-		if ($this->load($id,$key)) return true;
-		return false;
+		$this->load($id,$key);
 	}
 	
 	/**
@@ -635,18 +634,7 @@ class Product extends DatabaseObject {
 	
 	function tag ($property,$options=array()) {
 		global $Shopp;
-		add_filter('shopp_product_name','convert_chars');
-		add_filter('shopp_product_summary','convert_chars');
 
-		add_filter('shopp_product_description', 'wptexturize');
-		add_filter('shopp_product_description', 'convert_chars');
-		add_filter('shopp_product_description', 'wpautop');
-		add_filter('shopp_product_description', 'do_shortcode', 11); // AFTER wpautop()	
-
-		add_filter('shopp_product_spec', 'wptexturize');
-		add_filter('shopp_product_spec', 'convert_chars');
-		add_filter('shopp_product_spec', 'do_shortcode', 11); // AFTER wpautop()	
-				
 		switch ($property) {
 			case "link": 
 			case "url": 
