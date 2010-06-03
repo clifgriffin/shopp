@@ -29,7 +29,7 @@ class Categorize extends AdminController {
 	function __construct () {
 		parent::__construct();
 
-		if (!empty($_GET['id'])) {
+		if (!empty($_GET['id']) && !isset($_GET['a'])) {
 			
 			wp_enqueue_script('postbox');
 			if ( user_can_richedit() ) wp_enqueue_script('editor'); 
@@ -42,10 +42,13 @@ class Categorize extends AdminController {
 			
 			add_action('admin_head',array(&$this,'layout'));
 		} elseif (!empty($_GET['a']) && $_GET['a'] == 'arrange') {
-			shopp_enqueue_script('dragrow');
 			shopp_enqueue_script('category-arrange');
 			
 			add_action('admin_print_scripts',array(&$this,'arrange_cols'));
+		} elseif (!empty($_GET['a']) && $_GET['a'] == 'products') {
+			shopp_enqueue_script('products-arrange');
+
+			add_action('admin_print_scripts',array(&$this,'products_cols'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		add_action('load-shopp_page_shopp-categories',array(&$this,'workflow'));
 	}
@@ -58,7 +61,8 @@ class Categorize extends AdminController {
 	 * @return void
 	 **/
 	function admin () {
-		if (!empty($_GET['id'])) $this->editor();
+		if (!empty($_GET['id']) && !isset($_GET['a'])) $this->editor();
+		elseif (!empty($_GET['id']) && isset($_GET['a']) && $_GET['a'] == "products") $this->products();
 		else $this->categories();
 	}
 
@@ -247,7 +251,6 @@ class Categorize extends AdminController {
 			'move'=>'<div class="move">&nbsp;</div>')
 		);
 	}
-
 
 	/**
 	 * Interface processor for the category editor
@@ -447,6 +450,85 @@ class Categorize extends AdminController {
 		}
 		return $options;
 	}
+
+	/**
+	 * Registers column headings for the category list manager
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @return void
+	 **/
+	function products_cols () {
+		register_column_headers('shopp_page_shopp-categories', array(
+			'move'=>'<img src="'.SHOPP_PLUGINURI.'/core/ui/icons/updating.gif" alt="updating" width="16" height="16" class="hidden" />',
+			'p'=>__('Product','Shopp'))
+		);
+	}
+
+	/**
+	 * Interface processor for the product list manager
+	 *
+	 * @author Jonathan Davis
+	 * @return void
+	 **/
+	function products ($workflow=false) {
+		global $Shopp;
+		$db = DB::get();
+
+		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
+			wp_die(__('You do not have sufficient permissions to access this page.'));
+
+		$defaults = array(
+			'pagenum' => 1,
+			'per_page' => 500,
+			'id' => 0,
+			's' => ''
+			);
+		$args = array_merge($defaults,$_GET);
+		extract($args,EXTR_SKIP);
+
+		$pagenum = absint( $pagenum );
+		if ( empty($pagenum) )
+			$pagenum = 1;
+		if( !$per_page || $per_page < 0 )
+			$per_page = 20;
+		$start = ($per_page * ($pagenum-1)); 
+		
+		$filters = array();
+		// $filters['limit'] = "$start,$per_page";
+		if (!empty($s)) 
+			$filters['where'] = "cat.name LIKE '%$s%'";
+		else $filters['where'] = "true";
+		
+		$Category = new Category($id);
+		
+		$catalog_table = DatabaseObject::tablename(Catalog::$table);
+		$product_table = DatabaseObject::tablename(Product::$table);
+		$columns = "c.id AS cid,p.id,c.priority,p.name";
+		$where = "c.parent=$id AND type='category'";
+		$query = "SELECT $columns FROM $catalog_table AS c LEFT JOIN $product_table AS p ON c.product=p.id WHERE $where ORDER BY c.priority ASC,p.name ASC LIMIT $start,$per_page";
+		$products = $db->query($query);
+
+		$count = $db->query("SELECT count(*) AS total FROM $table");
+		$num_pages = ceil($count->total / $per_page);
+		$page_links = paginate_links( array(
+			'base' => add_query_arg( array('edit'=>null,'pagenum' => '%#%' )),
+			'format' => '',
+			'total' => $num_pages,
+			'current' => $pagenum
+		));
+		
+		$action = esc_url(
+			add_query_arg(
+				array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'))),
+				admin_url('admin.php')
+			)
+		);
+		
+		
+		include(SHOPP_ADMIN_PATH."/categories/products.php");
+	}
+
 
 } // END class Categorize
 

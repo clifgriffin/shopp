@@ -32,6 +32,8 @@ function settings_meta_box ($Category) {
 	<p><input type="hidden" name="spectemplate" value="off" /><input type="checkbox" name="spectemplate" value="on" id="spectemplates-setting" tabindex="11" <?php if ($Category->spectemplate == "on") echo ' checked="checked"'?> /><label for="spectemplates-setting"> <?php _e('Product Details Template','Shopp'); ?></label><br /><?php _e('Predefined details for products created in this category','Shopp'); ?></p>
 	<p id="facetedmenus-setting"><input type="hidden" name="facetedmenus" value="off" /><input type="checkbox" name="facetedmenus" value="on" id="faceted-setting" tabindex="12" <?php if ($Category->facetedmenus == "on") echo ' checked="checked"'?> /><label for="faceted-setting"> <?php _e('Faceted Menus','Shopp'); ?></label><br /><?php _e('Build drill-down filter menus based on the details template of this category','Shopp'); ?></p>
 	<p><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if ($Category->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations','Shopp'); ?></label><br /><?php _e('Predefined selectable product options for products created in this category','Shopp'); ?></p>
+	<p><a href="<?php echo add_query_arg(array('page'=>'shopp-categories','id'=>$Category->id,'a'=>'products'),admin_url('admin.php')); ?>" class="button-secondary"><?php _e('Arrange Products','Shopp'); ?></a></p>
+	
 	<?php
 }
 add_meta_box('category-settings', __('Settings','Shopp'), 'settings_meta_box', 'shopp_page_shopp-products', 'side', 'core');
@@ -161,8 +163,4 @@ function templates_meta_box ($Category) {
 }
 add_meta_box('templates_menus', __('Product Templates &amp; Menus','Shopp'), 'templates_meta_box', 'shopp_page_shopp-products', 'advanced', 'core');
 
-
-do_action('do_meta_boxes', 'shopp_page_shopp-products', 'normal', $Shopp->Category);
-do_action('do_meta_boxes', 'shopp_page_shopp-products', 'advanced', $Shopp->Category);
-do_action('do_meta_boxes', 'shopp_page_shopp-products', 'side', $Shopp->Category);
 ?>
