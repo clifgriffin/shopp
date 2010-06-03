@@ -68,7 +68,7 @@ jQuery(document).ready( function() {
 		if (!$(this).is('tr')) return false;
 		if (!$(this).parent().is('tbody')) return false;
 		var $this = $(this),
-			row,id,slug,clases,top,siblingsClass,branchSiblings,lastSibling,siblings,ancestry,parentClass,parent,position;
+			row,id,slug,classes,top,siblingsClass,branchSiblings,lastSibling,siblings,ancestry,parentClass,parent,position;
 
 		/* Add drag-drop behaviors */
 		$this.dragRelatedRows({onDrop:updatePositions});
@@ -218,7 +218,7 @@ jQuery(document).ready( function() {
 				success:function () {
 					updating.removeClass('updating');
 				}
-			})
+			});
 		}
 
 		/* Create a new row in the DOM for a loaded category (from AJAX) */

@@ -1,6 +1,6 @@
 <div class="wrap shopp">
 	<div class="icon32"></div>
-	<h2><?php _e('Categories','Shopp'); ?> <a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'id'=>'new')),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('New Category','Shopp'); ?></a></h2>
+	<h2><?php _e('Arrange Categories','Shopp'); ?></h2>
 	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
 	
 	<form action="" id="categories" method="get">
@@ -10,7 +10,7 @@
 	
 	<div class="tablenav">
 		<div class="alignleft actions">
-			<a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'a'=>null)),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('Manage Categories','Shopp'); ?></a>
+			<a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'a'=>null)),admin_url('admin.php'))); ?>" class="button add-new">&larr; <?php _e('Return to Manage Categories','Shopp'); ?></a>
 		</div>
 		<div class="clear"></div>
 	</div>
