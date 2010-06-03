@@ -48,6 +48,7 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_category_menu',array(&$this,'category_menu'));
 		add_action('wp_ajax_shopp_category_children',array(&$this,'category_children'));
 		add_action('wp_ajax_shopp_category_order',array(&$this,'category_order'));
+		add_action('wp_ajax_shopp_category_products_order',array(&$this,'products_order'));
 		add_action('wp_ajax_shopp_country_zones',array(&$this,'country_zones'));
 		add_action('wp_ajax_shopp_spec_template',array(&$this,'load_spec_template'));
 		add_action('wp_ajax_shopp_options_template',array(&$this,'load_options_template'));
@@ -539,6 +540,20 @@ class AjaxFlow {
 		die('1');
 		exit();
 	}
+
+	function products_order () {
+		check_admin_referer('wp_ajax_shopp_category_products_order');
+		if (empty($_POST['category']) || empty($_POST['position']) || !is_array($_POST['position'])) die('0');
+
+		$db =& DB::get();
+		$table = DatabaseObject::tablename(Catalog::$table);
+		$updates = $_POST['position'];
+		foreach ($updates as $id => $position) 
+			$db->query("UPDATE $table SET priority='$position' WHERE id='$id'");
+		die('1');
+		exit();
+	}
+
 	
 	function checkout_button () {
 		global $Shopp;

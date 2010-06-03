@@ -264,7 +264,11 @@ class Category extends DatabaseObject {
 			case "random": $loading['order'] = "RAND()"; break;
 			case "": 
 			case "title": 
-			default: $loading['order'] = "p.name ASC"; break;
+			default: 
+				// Need to add the catalog table for access to category-product priorities
+				$loading['joins'] .= " LEFT JOIN $catalogtable AS c ON c.product=p.id AND c.parent = '$this->id'";
+				$loading['order'] = "c.priority ASC,p.name ASC";
+				break;
 		}
 		if (!empty($loading['orderby'])) $loading['order'] = $loading['orderby'];
 		
@@ -278,7 +282,7 @@ class Category extends DatabaseObject {
 			} else $loading['limit'] = $limit;
 		} else $limit = (int)$loading['limit'];
 				
-		$columns = "p.*,
+		$columns = "p.*,c.priority,
 					img.id AS image,img.value AS imgmeta,MAX(pr.status) as promos,
 					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0))AS percentoff,
 					SUM(DISTINCT IF(pr.type='Amount Off',pr.discount,0)) AS amountoff,
@@ -315,6 +319,7 @@ class Category extends DatabaseObject {
 			$ac = "SELECT count(DISTINCT p.id) AS total,IF(LEFT(p.name,1) REGEXP '[0-9]',LEFT(p.name,1),LEFT(SOUNDEX(p.name),1)) AS letter,AVG(IF(pd.sale='on',pd.saleprice,pd.price)) as avgprice 
 						FROM $producttable AS p 
 						LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' 
+						LEFT JOIN $catalogtable AS c ON c.product=p.id AND c.parent=$this->id 
 						LEFT JOIN $discounttable AS dc ON dc.product=p.id AND dc.price=pd.id
 						LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
 						LEFT JOIN $imagetable AS img ON img.parent=p.id AND img.context='product' AND img.type='image' AND img.sortorder=0 
@@ -370,7 +375,7 @@ class Category extends DatabaseObject {
 					GROUP BY p.id {$loading['having']}
 					ORDER BY {$loading['order']} 
 					LIMIT {$loading['limit']}";
-		
+
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
 

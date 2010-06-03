@@ -234,6 +234,8 @@ button.bottom { background:url('../icons/topbottom.png') no-repeat right top; ma
 button.bottom.hover { background:url('../icons/topbottom.png') no-repeat right -28px; }
 span.indent { display: inline-block; width: 36px; }
 
+#arrange-products .move-column { width: 40px; }
+
 #new-category,
 #new-category input,
 #new-category select { width:100%; }
