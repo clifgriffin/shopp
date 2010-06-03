@@ -136,8 +136,7 @@ CREATE TABLE <?php echo $catalog; ?> (
 	product bigint(20) unsigned NOT NULL default '0',
 	parent bigint(20) unsigned NOT NULL default '0',
 	type enum('category','tag') NOT NULL,
-	category bigint(20) unsigned NOT NULL default '0',
-	tag bigint(20) unsigned NOT NULL default '0',
+	priority int(10) NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
@@ -338,4 +337,3 @@ CREATE TABLE <?php echo $discount; ?> (
 	PRIMARY KEY id (id),
 	KEY lookup (product,price)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
