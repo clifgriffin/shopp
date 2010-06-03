@@ -37,6 +37,31 @@ jQuery(document).ready(function() {
 		return false;
 	});
 	
+	// Handle publishing/scheduling
+	$('#publish-calendar').PopupCalendar({
+		m_input:$('#publish-month'),
+		d_input:$('#publish-date'),
+		y_input:$('#publish-year'),
+		autoinit:true,
+		title:calendarTitle,
+		startWeek:startWeekday
+	});
+
+	$('#schedule-toggle').click(function () {
+		$('#scheduling').slideToggle('fast',function () {
+			if ($(this).is(':visible')) $('#publish-month,#publish-date,#publish-year').removeAttr('disabled');
+			else $('#publish-month,#publish-date,#publish-year').attr('disabled',true);
+		});
+	});
+	$('#scheduling').hide();
+	$('#publish-month,#publish-date,#publish-year').attr('disabled',true);
+
+	$('#published').change(function () {
+		if ($(this).attr('checked')) $('#publish-status,#schedule-toggling').show();
+		else $('#publish-status,#schedule-toggling,#scheduling').hide();
+	}).change();
+	
+	
 	// Setup the slug editor
 	editslug = new SlugEditor(product,'product');
 	
@@ -76,29 +101,6 @@ jQuery(document).ready(function() {
 		return true;
 	});
 	
-	$('#publish-calendar').PopupCalendar({
-		m_input:$('#publish-month'),
-		d_input:$('#publish-date'),
-		y_input:$('#publish-year'),
-		autoinit:true,
-		title:calendarTitle,
-		startWeek:startWeekday
-	});
-
-	$('#schedule-toggle').click(function () {
-		$('#scheduling').slideToggle('fast',function () {
-			if ($(this).is(':visible')) $('#publish-month,#publish-date,#publish-year').removeAttr('disabled');
-			else $('#publish-month,#publish-date,#publish-year').attr('disabled',true);
-		});
-	});
-	$('#scheduling').hide();
-	$('#publish-month,#publish-date,#publish-year').attr('disabled',true);
-
-	$('#published').change(function () {
-		if ($(this).attr('checked')) $('#publish-status,#schedule-toggling').show();
-		else $('#publish-status,#schedule-toggling,#scheduling').hide();
-	}).change();
-
 	// Setup categories
 	categories();
 	tags();
