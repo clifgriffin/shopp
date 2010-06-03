@@ -689,7 +689,7 @@ class Order {
 				return $link;
 				break;
 			case "function":
-				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_PLUGINURI.'/core/ui/icons/updating.gif" width="16" height="16" />';
+				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_PLUGINURI.'/core/ui/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />';
 				$regions = Lookup::country_zones();
 				$base = $Shopp->Settings->get('base_operations');
 				
