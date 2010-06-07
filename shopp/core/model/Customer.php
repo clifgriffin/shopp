@@ -96,6 +96,7 @@ class Customer extends DatabaseObject {
 			$this->updates($_POST);
 			if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
 				$this->password = wp_hash_password($_POST['password']);
+				if($this->accounts == "wordpress" && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser ); 
 				$this->save();
 			} else {
 				if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
@@ -467,7 +468,7 @@ class Customer extends DatabaseObject {
 				break;
 			case "hasinfo":
 			case "has-info":
-				if (isset($this->info) && $this->info->is_empty()) return false;
+				if (!is_object($this->info) || $this->info->is_empty()) return false;
 				if (!isset($this->_info_looping)) {
 					reset($this->info);
 					$this->_info_looping = true;
