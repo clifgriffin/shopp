@@ -767,13 +767,11 @@ class Order {
 					return strlen($this->Customer->password) == 34?str_pad('&bull;',8):$this->Customer->password;
 				if (!empty($this->Customer->password))
 					$options['value'] = $this->Customer->password; 
-				if ($this->Customer->tag('notloggedin')) $options['value'] = "";
 				return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
 				break;
 			case "confirm-password":
 				if (!empty($this->Customer->confirm_password))
 					$options['value'] = $this->Customer->confirm_password; 
-				if ($this->Customer->tag('notloggedin')) $options['value'] = "";
 				return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
 				break;
 			case "phone": 
