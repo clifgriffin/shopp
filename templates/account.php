@@ -30,7 +30,7 @@
 	<ul>
 		<li>
 			<label for="firstname"><?php _e('Your Account','Shopp'); ?></label>
-			<span><?php shopp('checkout','firstname','required=true&minlength=2&size=8&title='.__('First Name','Shopp')); ?><label for="firstname"><?php _e('First','Shopp'); ?></label></span>
+			<span><?php shopp('customer','firstname','required=true&minlength=2&size=8&title='.__('First Name','Shopp')); ?><label for="firstname"><?php _e('First','Shopp'); ?></label></span>
 			<span><?php shopp('customer','lastname','required=true&minlength=3&size=14&title='.__('Last Name','Shopp')); ?><label for="lastname"><?php _e('Last','Shopp'); ?></label></span>
 		</li>
 		<li>
