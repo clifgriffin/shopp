@@ -580,7 +580,13 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 			return new WP_Error('no_package', $this->strings['no_package']);
 
 		$this->skin->feedback('downloading_package', $package);
-
+		
+		$Settings =& ShoppSettings();
+		$keydata = $Settings->get('updatekey');
+		$vars = array('VERSION','KEY','URL');
+		$values = array(urlencode(SHOPP_VERSION),urlencode($keydata[1]),urlencode(get_option('siteurl')));
+		$package = str_replace($vars,$values,$package);
+		
 		$download_file = $this->download_url($package);
 
 		if ( is_wp_error($download_file) )
@@ -685,7 +691,8 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 	function upgrade_strings() {
 		$this->strings['up_to_date'] = __('Shopp is at the latest version.','Shopp');
 		$this->strings['no_package'] = __('Shopp upgrade package not available.','Shopp');
-		$this->strings['downloading_package'] = sprintf(__('Downloading update from <span class="code">%s</span>.'),SHOPP_HOME);;
+		$this->strings['downloading_package'] = sprintf(__('Downloading update from <span class="code">%s</span>.'),SHOPP_HOME);
+		$this->strings['unpack_package'] = __('Unpacking the update.');
 		$this->strings['deactivate_plugin'] = __('Deactivating Shopp.','Shopp');
 		$this->strings['remove_old'] = __('Removing the old version of Shopp.','Shopp');
 		$this->strings['remove_old_failed'] = __('Could not remove the old Shopp.','Shopp');
