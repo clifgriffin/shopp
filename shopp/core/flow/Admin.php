@@ -625,7 +625,7 @@ class AdminFlow extends FlowController {
 	}
 
 	function mcebutton ($buttons) {
-		array_push($buttons, "separator", "Shopp");
+		array_push($buttons, "|", "Shopp");
 		return $buttons;
 	}
 
