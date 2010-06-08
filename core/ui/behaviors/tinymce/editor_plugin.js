@@ -53,7 +53,7 @@
 			return {
 				longname : 'Shopp TinyMCE Plugin',
 				author : 'Jonathan Davis',
-				authorurl : 'http://insites.ingenesis.net',
+				authorurl : 'http://shopplugin.net',
 				infourl : 'http://shopplugin.net',
 				version : "1.0"
 			};
