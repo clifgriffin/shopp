@@ -141,7 +141,7 @@ var flashUploader = false;
 var pricesPayload = false;
 
 jQuery(document).ready(function () {	
-	var $=jQuery.noConflict();
+	var $=jqnc();
 	var editslug = new SlugEditor(category,'category');
 	var imageUploads = new ImageUploads($('#image-category-id').val(),'category');
 	
