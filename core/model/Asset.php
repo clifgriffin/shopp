@@ -203,6 +203,7 @@ class ImageAsset extends FileAsset {
 	var $height;
 	var $alt;
 	var $title;
+	var $settings;
 	var $filename;
 	var $type = 'image';
 	
@@ -284,7 +285,7 @@ class ImageAsset extends FileAsset {
 	}
 	
 	function extensions () {
-		array_push($this->_xcols,'filename','width','height','alt','title');
+		array_push($this->_xcols,'filename','width','height','alt','title','settings');
 	}
 }
 

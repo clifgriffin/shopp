@@ -94,7 +94,10 @@ jQuery(document).ready(function() {
 	if (options.a) loadAddons(options.a,prices);
 
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
+	
+	// @todo Re-enable before shipping
 	// window.onbeforeunload = unsavedChanges;
+	
 	$('#product').change(function () { changes = true; }).submit(function() {
 		this.action = this.action+"?"+$.param(request);
 		saving = true;

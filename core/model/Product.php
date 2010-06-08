@@ -513,6 +513,38 @@ class Product extends DatabaseObject {
 			$Image = new ProductImage($img['id']);
 			$Image->title = $img['title'];
 			$Image->alt = $img['alt'];
+			if (!empty($img['cropping'])) {
+				require_once(SHOPP_PATH."/core/model/Image.php");
+
+				foreach ($img['cropping'] as $id => $cropping) {
+					$Cropped = new ProductImage($id);
+
+					list($Cropped->settings['dx'],
+						$Cropped->settings['dy'],
+						$Cropped->settings['cropscale']) = explode(',', $cropping);
+					extract($Cropped->settings);
+
+					$Resized = new ImageProcessor($Image->retrieve(),$Image->width,$Image->height);
+					$scaled = $Image->scaled($width,$height,$scale);
+					$scale = $Cropped->_scaling[$scale];
+					$quality = ($quality === false)?$Cropped->_quality:$quality;
+					
+					$Resized->scale($scaled['width'],$scaled['height'],$scale,$alpha,$fill,(int)$dx,(int)$dy,(float)$cropscale);
+
+					// Post sharpen
+					if ($sharpen !== false) $Resized->UnsharpMask($sharpen);
+					$Cropped->data = $Resized->imagefile($quality);
+					if (empty($Cropped->data)) return false;
+
+					$Cropped->size = strlen($Cropped->data);
+					if ($Cropped->store( $Cropped->data ) === false) 
+						return false;
+					
+					$Cropped->save();
+					
+				}
+			}
+			
 			$Image->save();
 		}
 		

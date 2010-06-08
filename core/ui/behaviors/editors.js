@@ -789,8 +789,63 @@ function ImageUploads (id,type) {
 	sorting();
 	$('#lightbox li').each(function () {
 		$(this).dblclick(function () {
-			var id = $(this).attr('id')+"-details";
-			$.fn.colorbox({'title':IMAGE_DETAILS_TEXT,'innerWidth':'340','innerHeight':'110','inline':true,'href':'#'+id});
+			var id = $(this).attr('id')+"-details",
+				src = $('#'+id),
+				srcid = src.find('input[type=hidden]').val(),
+				srcthumb = src.find('img'),
+				srctitle = src.find('input.imagetitle'),
+				srcalt = src.find('input.imagealt'),
+				srcCropped = src.find('input.imagecropped'),
+				ui = $('<div class="image-details-editor">'+
+							'<div class="details-editor">'+
+							'<img class="thumb" width="96" height="96" />'+
+								'<div class="details">'+
+									'<p><label>'+IMAGE_DETAILS_TITLE_LABEL+': </label><input type="text" name="title" /></p>'+
+									'<p><label>'+IMAGE_DETAILS_ALT_LABEL+': </label><input type="text" name="alt" /></p>'+
+								'</div>'+
+							'</div>'+
+							'<div class="cropping">'+
+							'<p class="clear">'+IMAGE_DETAILS_CROP_LABEL+': '+
+							'<select name="cropimage"><option></option></select></p>'+
+							'<div class="cropui"></div><br class="clear"/>'+
+						'</div></div>'),
+				thumb = ui.find('img').attr('src',srcthumb.attr('src')),
+				titlefield = ui.find('input[name=title]').val(srctitle.val()).change(function () {
+					srctitle.val(titlefield.value());
+				}),
+				altfield = ui.find('input[name=alt]').val(srcalt.val()).change(function () {
+					srcalt.val(altfield.val());
+				}),
+				cropping = ui.find('div.cropping').hide(),
+				croptool = ui.find('div.cropui'),
+				cropselect = ui.find('select[name=cropimage]').change(function () {
+					if (cropselect.val() == '') {
+						croptool.empty();
+						$.fn.colorbox.resize();
+						return;
+					}
+					
+					var d = cropselect.val().split(':');
+					croptool.empty().scaleCrop({
+						imgsrc:'?siid='+srcid,
+						target:{width:parseInt(d[0]),height:parseInt(d[1])}
+					}).ready(function () {
+						$.fn.colorbox.resize();
+					}).bind('change.scalecrop',function (e,c) {
+						if (c) srcCropped.filter('input[alt='+cropselect.val()+']').val(c.x+','+c.y+','+c.s);
+					});
+				});
+			
+			if (srcCropped.size() > 0) {
+				srcCropped.each(function (i,e) {
+					var d = $(e).attr('alt');
+					$('<option value="'+d+'">'+d.replace(':','&times;')+'</option>').appendTo(cropselect);
+				});
+				cropping.show();
+			}
+
+			$.fn.colorbox({'title':IMAGE_DETAILS_TEXT,'html':ui})
+			
 		});
 		enableDeleteButton($(this).find('button.deleteButton'));
 	});
