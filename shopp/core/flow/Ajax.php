@@ -248,7 +248,6 @@ class AjaxFlow {
 		$updatekey = $Shopp->Settings->get('updatekey');
 		$request = array(
 			"ShoppServerRequest" => "activate-key",
-			"ver" => '1.1',
 			'key' => $_GET['key'],
 			'site' => get_bloginfo('siteurl')
 		);
@@ -266,7 +265,6 @@ class AjaxFlow {
 		$updatekey = $Shopp->Settings->get('updatekey');
 		$request = array(
 			"ShoppServerRequest" => "deactivate-key",
-			"ver" => '1.1',
 			'key' => $updatekey[1],
 			'site' => get_bloginfo('siteurl')
 		);
