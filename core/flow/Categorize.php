@@ -32,24 +32,32 @@ class Categorize extends AdminController {
 		if (!empty($_GET['id']) && !isset($_GET['a'])) {
 			
 			wp_enqueue_script('postbox');
-			if ( user_can_richedit() ) wp_enqueue_script('editor'); 
+			if ( user_can_richedit() ) {
+				wp_enqueue_script('editor');
+				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 11 );
+				wp_enqueue_script('quicktags');
+			}
 			
-			shopp_enqueue_script('priceline');
-			shopp_enqueue_script('ocupload');
 			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('editors');
+			shopp_enqueue_script('calendar');
+			shopp_enqueue_script('priceline');
+			shopp_enqueue_script('ocupload');
 			shopp_enqueue_script('swfupload');
-			
+			shopp_enqueue_script('shopp-swfupload-queue');
+
+			do_action('shopp_category_editor_scripts');
 			add_action('admin_head',array(&$this,'layout'));
 		} elseif (!empty($_GET['a']) && $_GET['a'] == 'arrange') {
 			shopp_enqueue_script('category-arrange');
-			
+			do_action('shopp_category_arrange_scripts');
 			add_action('admin_print_scripts',array(&$this,'arrange_cols'));
 		} elseif (!empty($_GET['a']) && $_GET['a'] == 'products') {
 			shopp_enqueue_script('products-arrange');
-
+			do_action('shopp_category_products_arrange_scripts');
 			add_action('admin_print_scripts',array(&$this,'products_cols'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
+		do_action('shopp_category_admin_scripts');
 		add_action('load-shopp_page_shopp-categories',array(&$this,'workflow'));
 	}
 	

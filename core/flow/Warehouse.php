@@ -29,27 +29,31 @@ class Warehouse extends AdminController {
 	function __construct () {
 		parent::__construct();
 		if (!empty($_GET['id'])) {
+			wp_enqueue_script('jquery-ui-draggable');
 			wp_enqueue_script('suggest');
 			wp_enqueue_script('postbox');
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');
-				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 11 );
 				wp_enqueue_script('quicktags');
+				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 11 );
 			}
 			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('editors');
+			shopp_enqueue_script('scalecrop');
 			shopp_enqueue_script('calendar');
 			shopp_enqueue_script('product-editor');
 			shopp_enqueue_script('priceline');
 			shopp_enqueue_script('ocupload');
 			shopp_enqueue_script('swfupload');
 			shopp_enqueue_script('shopp-swfupload-queue');
-			
+			do_action('shopp_product_editor_scripts');
 			add_action('admin_head',array(&$this,'layout'));
 		} elseif (!empty($_GET['f']) && $_GET['f'] == 'i') {
+			do_action('shopp_inventory_manager_scripts');
 			add_action('admin_print_scripts',array(&$this,'inventory_cols'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
+		do_action('shopp_product_admin_scripts');
 		
 		// Load the search model for indexing
 		require_once(SHOPP_MODEL_PATH."/Search.php");
@@ -406,12 +410,24 @@ class Warehouse extends AdminController {
 			
 			$ProductImage = new ProductImage();
 			$results = $db->query("SELECT * FROM $ProductImage->_table WHERE context='product' AND parent=$Product->id AND type='image' ORDER BY sortorder",AS_ARRAY);
+			
 			$ProductImages = array();
-			foreach ($results as $i => $image) {
+			foreach ((array)$results as $i => $image) {
 				$image->value = unserialize($image->value);
 				$ProductImages[$i] = new ProductImage();
 				$ProductImages[$i]->copydata($image,false,array());
 				$ProductImages[$i]->expopulate();
+				
+				// Load any cropped image cache
+				$cropped = $db->query("SELECT * FROM $ProductImage->_table WHERE context='image' AND type='image' AND parent='$image->id' AND '2'=SUBSTRING_INDEX(SUBSTRING_INDEX(name,'_',4),'_',-1)",AS_ARRAY);
+				foreach ((array)$cropped as $c => $cache) {
+					$cache->value = unserialize($cache->value);
+					$CachedImage = new ProductImage();
+					$CachedImage->copydata($cache,false,array());
+					$CachedImage->expopulate();
+					$ProductImages[$i]->cropped[$c] = $CachedImage;
+				}
+
 			}
 		}
 
