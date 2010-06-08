@@ -825,10 +825,12 @@ function ImageUploads (id,type) {
 						return;
 					}
 					
-					var d = cropselect.val().split(':');
+					var d = cropselect.val().split(':'),
+						init = srcCropped.filter('input[alt='+cropselect.val()+']').val().split(',');
 					croptool.empty().scaleCrop({
 						imgsrc:'?siid='+srcid,
-						target:{width:parseInt(d[0]),height:parseInt(d[1])}
+						target:{width:parseInt(d[0]),height:parseInt(d[1])},
+						init:{x:parseInt(init[0]),y:parseInt(init[1]),s:new Number(init[2])}
 					}).ready(function () {
 						$.fn.colorbox.resize();
 					}).bind('change.scalecrop',function (e,c) {
@@ -839,7 +841,7 @@ function ImageUploads (id,type) {
 			if (srcCropped.size() > 0) {
 				srcCropped.each(function (i,e) {
 					var d = $(e).attr('alt');
-					$('<option value="'+d+'">'+d.replace(':','&times;')+'</option>').appendTo(cropselect);
+					$('<option value="'+d+'">'+(i+1)+': '+d.replace(':','&times;')+'</option>').appendTo(cropselect);
 				});
 				cropping.show();
 			}
