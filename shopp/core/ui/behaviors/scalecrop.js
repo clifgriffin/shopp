@@ -7,7 +7,8 @@ jQuery.fn.scaleCrop = function (settings) {
 	var $ = jqnc(),
 		defaults = {
 			imgsrc:false,
-			target:{width:300,height:300}
+			target:{width:300,height:300},
+			init:{x:false,y:false,s:false}
 		},
 		settings = $.extend(defaults,settings),
 		totalWidth = settings.target.width+100,
@@ -127,13 +128,20 @@ jQuery.fn.scaleCrop = function (settings) {
 			maxHeight = this.height;
 			aspect = maxWidth/maxHeight;			
 			handle.width(maxWidth).height(maxHeight);
-			resizeImage(0);
+			var initLeft = (settings.init.x !== false)?
+					settings.init.x+px:frame.position().left+((frame.outerWidth()-image.width())/2)+px,
+				initTop = (settings.init.y !== false)?
+					settings.init.y+px:frame.position().top+((frame.outerHeight()-image.height())/2)+px,
+				initScale = (settings.init.s !== false)?settings.init.s:0;
+			
+			resizeImage(initScale);
 			inst = handle.data("draggable");
 			image.css({
-				left:frame.position().left+((frame.outerWidth()-image.width())/2)+px,
-				top:frame.position().top+((frame.outerHeight()-image.height())/2)+px
+				left:initLeft,
+				top:initTop
 			}).fadeIn('fast');
-			resizeImage(0);
+			resizeImage(initScale);
+			if (initScale != 0) scaler.get(0).style.left = (slidebar.width()-scaler.width())*initScale+px;
 			$this.trigger('ready.scalecrop',[cropping]);
 		});
 	return $this;

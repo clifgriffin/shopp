@@ -205,8 +205,10 @@ function images_meta_box ($Product) {
 				<input type="hidden" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $Image->alt; ?>"  class="imagealt" />
 				<?php 
 					if (count($Image->cropped) > 0): 
-						foreach ($Image->cropped as $cache): $c = "$cache->width:$cache->height"; ?>
-					<input type="hidden" name="imagedetails[<?php echo $i; ?>][cropping][<?php echo $cache->id; ?>]" alt="<?php echo $c; ?>" value="" class="imagecropped" />
+						foreach ($Image->cropped as $cache): 
+							$cropping = join(',',array($cache->settings['dx'],$cache->settings['dy'],$cache->settings['cropscale'])); 
+							$c = "$cache->width:$cache->height"; ?>
+					<input type="hidden" name="imagedetails[<?php echo $i; ?>][cropping][<?php echo $cache->id; ?>]" alt="<?php echo $c; ?>" value="<?php echo $cropping; ?>" class="imagecropped" />
 				<?php endforeach; endif;?>
 			</div>
 			<button type="button" name="deleteImage" value="<?php echo $Image->id; ?>" title="Delete product image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
