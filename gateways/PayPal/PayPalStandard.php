@@ -39,7 +39,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 	function __construct () {
 		parent::__construct();
-		
+		if (is_shopp_secure()) $this->buttonurl = str_replace('http://','https://',$this->buttonurl);
 		$this->setup('account','pdtverify','pdttoken','testmode');
 		
 		$this->settings['currency_code'] = $this->currencies[0];
