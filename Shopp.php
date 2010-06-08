@@ -180,7 +180,7 @@ class Shopp {
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_action('save_post', array(&$this, 'pages_index'),10,2);
 		add_filter('query_vars', array(&$this,'queryvars'));
-		
+
 		if (!wp_next_scheduled('shopp_check_updates'))
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
 
@@ -236,6 +236,8 @@ class Shopp {
 		
 		new Login();
 		do_action('shopp_init');
+		do_action('shopp_check_updates');
+		
 	}
 	
 	/**
@@ -548,7 +550,7 @@ class Shopp {
 	 * @return string The response from the server
 	 **/
 	function callhome ($request=array(),$data=array(),$options=array()) {
-		$query = http_build_query($request);
+		$query = http_build_query(array_merge(array('ver'=>'1.1'),$request));
 		$data = http_build_query($data);
 
 		$connection = curl_init(); 
@@ -578,7 +580,7 @@ class Shopp {
 	 **/
 	function updates () {
 		$updates = new StdClass();
-		
+
 		// $wp_plugins = get_transient('update_plugins');
 
 		// Already set
@@ -590,10 +592,7 @@ class Shopp {
 			$this->Storage->checksums()
 		);
 
-		$request = array(
-			"ShoppServerRequest" => "update-check",
-			"ver" => '1.1',
-		);
+		$request = array("ShoppServerRequest" => "update-check");
 		$data = array(
 			'core' => SHOPP_VERSION,
 			'addons' => join("-",$addons),
@@ -633,10 +632,7 @@ class Shopp {
 	function changelog () {
 		if($_REQUEST["plugin"] != "shopp") return;
 		
-		$request = array(
-			"ShoppServerRequest" => "changelog",
-			"ver" => '1.1',
-		);
+		$request = array("ShoppServerRequest" => "changelog");
 		$data = array(
 		);
 		$response = $this->callhome($request,$data);
@@ -666,32 +662,30 @@ class Shopp {
 		$core = $updates->response[SHOPP_PLUGINFILE];
 		$addons = $updates->response[SHOPP_PLUGINFILE.'/addons'];
 
-		// Core update available
-		if (!empty($core)) {
+		if (!empty($core)) { // Core update available
 			$plugin_name = 'Shopp';
 			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=' . $core->slug . '&TB_iframe=true&width=600&height=800');
 			$update_url = wp_nonce_url('update.php?action=shopp&plugin='.SHOPP_PLUGINFILE,'upgrade-plugin_shopp');
 
-			// Key not active
-			if ($key[0] != '1') {
+			if ($key[0] != '1') { // Key not active
 				$update_url = SHOPP_HOME."store/";
 				$message = sprintf(__('There is a new version of %1$s available, but your %1$s key has not been activated. No automatic upgrade available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%4$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
 				$this->Settings->save('updates',false);
 			} else $message = sprintf(__('There is a new version of %1$s available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%5$s">upgrade automatically</a>.'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
 			
-			echo '</tr><tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td>';
+			echo '<tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 
 			return;
 		}
 
-		// Key not active
-		if ($key[0] != '1') {
+		if ($key[0] != '1') { // No update availableKey not active
 			$message = sprintf(__('Your Shopp key has not been activated. Feel free to <a href="%1$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),SHOPP_HOME."store/");
 			echo '<tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 			$this->Settings->save('updates',false);
 			return;
-		}		
+		}
         
+		// Addon update messages
 		foreach ($addons as $addon) {
 			$message = sprintf(__('There is a new version of the %s add-on available. <a href="%s">Upgrade automatically</a> to version %s','Shopp'),$addon->name,wp_nonce_url('update.php?action=shopp&addon=' . $addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_' . $addon->slug),$addon->new_version);
 			echo '<tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
