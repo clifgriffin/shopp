@@ -394,9 +394,12 @@
 		if(!object){
 			timeout = setTimeout(function(){ // timer allows IE to render the dimensions before attempting to calculate the height
 				var $child = $loaded.wrapInner("<div style='overflow:auto'></div>").children(); // temporary wrapper to get an accurate estimate of just how high the total content should be.
+				settings.w = $child.width(); // Added by Jon Davis, Ingenesis Limited
 				settings.h = $child.height();
-				$loaded.css({height:settings.h});
-				$child.replaceWith($child.children()); // ditch the temporary wrapper div used in height calculation
+				$loaded.css({width:settings.w,height:settings.h}); // Added width (Jon Davis, Ingenesis Limited)
+				// $child.replaceWith($child.children()); Replaced with below to maintain draggables DOM reference
+				$child.children().appendTo($loaded);
+				$child.remove(); // ditch the temporary wrapper div used in height calculation
 				cboxPublic.position(speed);
 			}, 1);
 			return;

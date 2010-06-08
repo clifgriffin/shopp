@@ -144,7 +144,9 @@ class ImageServer extends DatabaseObject {
 		$ResizedImage->id = false;
 		$ResizedImage->width = $Resized->width;
 		$ResizedImage->height = $Resized->height;
-
+		foreach ($this->args as $index => $arg)
+			$ResizedImage->settings[$arg] = isset($this->parameters[$index])?intval($this->parameters[$index]):false;
+		
 		$ResizedImage->data = $Resized->imagefile($this->quality);
 		if (empty($ResizedImage->data)) return false;
 		

@@ -42,15 +42,15 @@ class ImageProcessor {
 		}
 	}
 	
-	function scale ($width,$height,$fit='all',$alpha=false,$fill=false) {
+	function scale ($width,$height,$fit='all',$alpha=false,$fill=false,$dx=false,$dy=false,$cropscale=false) {
 		$this->aspect = $width/$height;
 
 		// Allocate a new true color image
 		$this->canvas($width,$height,$alpha);
-		
+
 		// Determine the dimensions to use for resizing
-		$this->dimensions($width,$height,$fit);
-				
+		$this->dimensions($width,$height,$fit,$dx,$dy,$cropscale);
+
 		// Fill image with matte color
 		if ($fit == "matte") {
 			if (is_int($fill)) $rgb = $this->hexrgb($fill);
@@ -76,20 +76,20 @@ class ImageProcessor {
 			}
 			return;
 		}
-		
 		// Resample the image
 		ImageCopyResampled(
 			$this->processed,$this->src->image,
 			$this->dx, $this->dy,					// dest_x, dest_y
-			0, 0, 									// src_x, src_y
+			0, 0,									// src_x, src_y
 			$this->width, $this->height, 			// dest_width, dest_height
 			$this->src->width, $this->src->height	// src_width, src_height
 		);
 		$this->width = imagesx($this->processed);
 		$this->height = imagesy($this->processed);
+		if (function_exists('apply_filters')) return apply_filters('shopp_image_scale',$this);
 	}
 	
-	function dimensions ($width,$height,$fit='all') {
+	function dimensions ($width,$height,$fit='all',$dx=false,$dy=false,$cropscale=false) {
 		if ($this->src->width <= $width && $this->src->height <= $height) {
 			$this->width = $this->src->width;
 			$this->height = $this->src->height;
@@ -105,14 +105,19 @@ class ImageProcessor {
 		$this->resized($width,$height,$this->axis);
 
 		if ($fit == "crop") { // Center cropped image on the canvas
-			if ($this->src->width <= $width || $this->src->height <= $height) {
+			if ($cropscale !== false) {
+				$this->width = $this->src->width * $cropscale;
+				$this->height = $this->src->height * $cropscale;
+			} elseif ($this->src->width <= $width || $this->src->height <= $height) {
 				$this->width = $this->src->width;
 				$this->height = $this->src->height;
 			}
 		}
 
-		$this->dx = ($this->width - $width)*-0.5;
-		$this->dy = ($this->height - $height)*-0.5;
+		$this->dx = ($dx !== false)?$dx:($this->width - $width)*-0.5;
+		$this->dy = ($dy !== false)?$dy:($this->height - $height)*-0.5;
+
+		error_log('calc: '.$this->width.'x'.$this->height.' @ '.$this->dx.','.$this->dy.':'.$cropscale);
 
 		return true;
 	}
@@ -134,7 +139,12 @@ class ImageProcessor {
 	
 	/**
 	 * Return the processed image
-	 */
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return string Binary string of the image data
+	 **/
 	function imagefile ($quality=80) {
 		if (!isset($this->processed)) $image =& $this->src->image;
 		else $image = &$this->processed;
@@ -149,13 +159,21 @@ class ImageProcessor {
 	}
 	
 	/**
-	 * UnsharpMask ()
-	 * version 2.1.1
-	 * Unsharp mask algorithm by Torstein Hansi <thoensi_at_netcom_dot_no>, July 2003
+	 * Performs an unsharp mask on the processed image
+	 *
+	 * Photoshop-like unsharp mask processing using image convolution.
+	 * Original algorithm by Torstein Hansi
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 2.1.1
+	 * @copyright Torstein Hansi <thoensi_at_netcom_dot_no>, July 2003
+	 * 
+	 * @return void Description...
 	 **/
 	function UnsharpMask ($amount=50, $radius=0.5, $threshold=3) {  
-		if (!isset($this->Processed->image)) $image = &$this->src->image;
-		else $image = &$this->Processed->image;
+		if (!isset($this->processed)) $image =& $this->src->image;
+		else $image = &$this->processed;
 
 	    // Attempt to calibrate the parameters to Photoshop
 	    if ($amount > 500) $amount = 500;
@@ -283,7 +301,7 @@ class ImageProcessor {
 	 **/
 	function hexrgb ($color) {
 		return array(
-			"red" => (0xFF & ($color >> 0x10)),
+			"red" => (0xFF & ($color >> 0x16)),
 			"green" => (0xFF & ($color >> 0x8)),
 			"blue" => (0xFF & $color)
 		);

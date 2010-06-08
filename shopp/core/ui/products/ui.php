@@ -199,12 +199,15 @@ function images_meta_box ($Product) {
 	<?php foreach ((array)$ProductImages as $i => $Image): ?>
 		<li id="image-<?php echo $Image->id; ?>"><input type="hidden" name="images[]" value="<?php echo $Image->id; ?>" />
 			<div id="image-<?php echo $Image->id; ?>-details">
-			<img src="?siid=<?php echo $Image->id; ?>&amp;<?php echo $Image->resizing(96,0,1); ?>" width="96" height="96" />
-				<div class="details">
-					<input type="hidden" name="imagedetails[<?php echo $i; ?>][id]" value="<?php echo $Image->id; ?>" />
-					<p><label>Title: </label><input type="text" name="imagedetails[<?php echo $i; ?>][title]" value="<?php echo $Image->title; ?>" /></p>
-					<p><label>Alt: </label><input type="text" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $Image->alt; ?>" /></p>
-				</div>
+				<img src="?siid=<?php echo $Image->id; ?>&amp;<?php echo $Image->resizing(96,0,1); ?>" width="96" height="96" />
+				<input type="hidden" name="imagedetails[<?php echo $i; ?>][id]" value="<?php echo $Image->id; ?>" />
+				<input type="hidden" name="imagedetails[<?php echo $i; ?>][title]" value="<?php echo $Image->title; ?>" class="imagetitle" />
+				<input type="hidden" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $Image->alt; ?>"  class="imagealt" />
+				<?php 
+					if (count($Image->cropped) > 0): 
+						foreach ($Image->cropped as $cache): $c = "$cache->width:$cache->height"; ?>
+					<input type="hidden" name="imagedetails[<?php echo $i; ?>][cropping][<?php echo $cache->id; ?>]" alt="<?php echo $c; ?>" value="" class="imagecropped" />
+				<?php endforeach; endif;?>
 			</div>
 			<button type="button" name="deleteImage" value="<?php echo $Image->id; ?>" title="Delete product image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
 	<?php endforeach; ?>
