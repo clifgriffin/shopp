@@ -29,8 +29,10 @@ class Account extends AdminController {
 		parent::__construct();
 		if (!empty($_GET['id'])) {
 			wp_enqueue_script('postbox');
+			do_action('shopp_customer_editor_scripts');
 			add_action('admin_head',array(&$this,'layout'));			
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
+		do_action('shopp_customer_admin_scripts');
 	}
 	
 	/**

@@ -33,8 +33,11 @@ class Service extends AdminController {
 			wp_enqueue_script('postbox');
 			add_action('load-toplevel_page_shopp-orders',array(&$this,'workflow'));
 			add_action('load-toplevel_page_shopp-orders',array(&$this,'layout'));
+			do_action('shopp_order_management_scripts');
 			
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
+		do_action('shopp_order_admin_scripts');
+
 	}
 	
 	/**
