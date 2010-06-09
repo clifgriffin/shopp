@@ -1102,12 +1102,20 @@ function scan_money_format ($format) {
 	return $f;
 }
 
-/** 
- * Sends an e-mail message in the format of a specified e-mail 
- * template ($template) file providing variable substitution 
- * for variables appearing in the template as a bracketed
- * [variable] with data from the coinciding $data['variable']
- * or $_POST['variable'] */
+/**
+ * Wraps mark-up in a #shopp container, if needed
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param string $string The content markup to be wrapped
+ * @return string The wrapped markup
+ **/
+function shoppdiv ($string) {
+	if (strpos($string,'<div id="shopp">') === false) 
+		return '<div id="shopp">'.$string.'</div>';
+	return $string;
+}
 
 /**
  * Sends an email message based on a specified template file

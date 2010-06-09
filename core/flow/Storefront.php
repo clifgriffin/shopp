@@ -81,6 +81,16 @@ class Storefront extends FlowController {
 		add_filter('shopp_product_spec', 'convert_chars');
 		add_filter('shopp_product_spec', 'do_shortcode', 11); // AFTER wpautop()
 
+		add_filter('shopp_order_lookup','shoppdiv');
+		add_filter('shopp_order_confirmation','shoppdiv');
+		add_filter('shopp_errors_page','shoppdiv');
+		add_filter('shopp_cart_template','shoppdiv');
+		add_filter('shopp_checkout_page','shoppdiv');
+		add_filter('shopp_account_template','shoppdiv');
+		add_filter('shopp_order_receipt','shoppdiv');
+		add_filter('shopp_account_manager','shoppdiv');
+		add_filter('shopp_account_vieworder','shoppdiv');
+
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
 
 		$this->smartcategories();
@@ -569,7 +579,7 @@ class Storefront extends FlowController {
 		$content = ob_get_contents();
 		ob_end_clean();
 
-		return apply_filters('shopp_cart_template','<div id="shopp">'.$content.'</div>');
+		return apply_filters('shopp_cart_template',$content);
 	}
 	
 	function checkout_page () {
@@ -596,10 +606,6 @@ class Storefront extends FlowController {
 				ob_end_clean();
 		}
 
-		// Wrap with #shopp if not already wrapped
-		if (strpos($content,'<div id="shopp">') === false) 
-			$content = '<div id="shopp">'.$content.'</div>';
-
 		return apply_filters('shopp_checkout_page',$content);
 	}
 	
@@ -623,7 +629,7 @@ class Storefront extends FlowController {
 		$content = ob_get_contents();
 		ob_end_clean();
 		
-		return apply_filters('shopp_account_template','<div id="shopp">'.$content.'</div>');
+		return apply_filters('shopp_account_template',$content);
 		
 	}
 
@@ -647,7 +653,7 @@ class Storefront extends FlowController {
 		include(SHOPP_TEMPLATES."/confirm.php");
 		$content = ob_get_contents();
 		ob_end_clean();
-		return apply_filters('shopp_order_confirmation','<div id="shopp">'.$content.'</div>');
+		return apply_filters('shopp_order_confirmation',$content);
 	}
 
 	// Display the thanks (transaction complete) page
@@ -671,7 +677,7 @@ class Storefront extends FlowController {
 		include(SHOPP_TEMPLATES."/$template");
 		$content = ob_get_contents();
 		ob_end_clean();
-		return apply_filters('shopp_errors_page','<div id="shopp">'.$content.'</div>');
+		return apply_filters('shopp_errors_page',$content);
 	}
 
 	function product_shortcode ($atts) {
@@ -687,7 +693,7 @@ class Storefront extends FlowController {
 		
 		if (isset($atts['nowrap']) && value_is_true($atts['nowrap']))
 			return $Shopp->Catalog->tag('product',$atts);
-		else return '<div id="shopp">'.$Shopp->Catalog->tag('product',$atts).'<div class="clear"></div></div>';
+		else return apply_filters('shopp_product_shortcode',$Shopp->Catalog->tag('product',$atts).'<div class="clear"></div>');
 	}
 	
 	function category_shortcode ($atts) {
@@ -712,7 +718,7 @@ class Storefront extends FlowController {
 		
 		if (isset($atts['nowrap']) && value_is_true($atts['nowrap']))
 			return $Shopp->Catalog->tag($tag,$atts);
-		else return '<div id="shopp">'.$Shopp->Catalog->tag($tag,$atts).'<div class="clear"></div></div>';
+		else return apply_filters('shopp_category_shortcode',$Shopp->Catalog->tag($tag,$atts).'<div class="clear">');
 		
 	}
 	
