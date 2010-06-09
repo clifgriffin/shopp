@@ -309,9 +309,9 @@ class Product extends DatabaseObject {
 				
 				// Find lowest savings percentage
 				if ($this->min['saved'] == ($price->price-$price->promoprice))
-					$this->min['savings'] = ($price->promoprice/$price->price)*100;
+					$this->min['savings'] = (1 - $price->promoprice/$price->price)*100;
 				if ($this->max['saved'] == ($price->price-$price->promoprice))
-					$this->max['savings'] = ($price->promoprice/$price->price)*100;
+					$this->max['savings'] = (1 - $price->promoprice/$price->price)*100;
 			}
 			
 			// Determine weight ranges
