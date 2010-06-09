@@ -617,10 +617,11 @@ class Category extends DatabaseObject {
 					$this->_cindex++;
 				}
 
-				if (current($this->children) !== false) return true;
+				if ($this->child !== false) return true;
 				else {
 					unset($this->_children_loop);
 					$this->_cindex = 0;
+					$this->child = false;
 					return false;
 				}
 				break;

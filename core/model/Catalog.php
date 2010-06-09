@@ -92,9 +92,9 @@ class Catalog extends DatabaseObject {
 			if (isset($category->outofstock))
 				$this->categories[$category->id]->outofstock = $category->outofstock;
 			
-			$this->categories[$category->id]->children = false;
+			$this->categories[$category->id]->_children = false;
 			if ($category->total > 0 && isset($this->categories[$category->parent]))
-				$this->categories[$category->parent]->children = true;
+				$this->categories[$category->parent]->_children = true;
 		}
 
 
@@ -321,7 +321,7 @@ class Catalog extends DatabaseObject {
 						if (value_is_true($showall) || 
 							$category->total > 0 || 
 							isset($category->smart) || 
-							$category->children) 
+							$category->_children) 
 							$string .= '<li'.$current.'>'.$listing.'</li>';
 
 						$previous = &$category;
