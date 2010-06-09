@@ -67,7 +67,7 @@ class Customer extends DatabaseObject {
 				include(SHOPP_TEMPLATES."/receipt.php");
 				$content = ob_get_contents();
 				ob_end_clean();
-				return '<div id="shopp">'.$content.'</div>';
+				return apply_filters('shopp_account_vieworder',$content);
 			}
 		}
 
@@ -88,7 +88,9 @@ class Customer extends DatabaseObject {
 			$management = apply_filters('shopp_account_management_url',
 				'<p><a href="'.$this->tag('url').'">&laquo; Return to Account Management</a></p>');
 			
-			echo '<div id="shopp">'.$management.$content.$management.'</div>';
+			$content = $management.$content.$management;
+			
+			echo apply_filters('shopp_account_manager',$content);
 			return false;
 		}
 
@@ -415,7 +417,7 @@ class Customer extends DatabaseObject {
 						include(SHOPP_TEMPLATES."/receipt.php");
 						$content = ob_get_contents();
 						ob_end_clean();
-						return '<div id="shopp">'.$content.'</div>';
+						return apply_filters('shopp_order_lookup',$content);
 					}
 				}
 
@@ -423,7 +425,7 @@ class Customer extends DatabaseObject {
 				include(SHOPP_ADMIN_PATH."/orders/account.php");
 				$content = ob_get_contents();
 				ob_end_clean();
-				return '<div id="shopp">'.$content.'</div>';
+				return apply_filters('shopp_order_lookup',$content);
 				break;
 
 			case "firstname": 

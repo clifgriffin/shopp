@@ -130,7 +130,7 @@ class Purchase extends DatabaseObject {
 		include(SHOPP_TEMPLATES."/$template");
 		$content = ob_get_contents();
 		ob_end_clean();
-		return apply_filters('shopp_order_receipt','<div id="shopp">'.$content.'</div>');
+		return apply_filters('shopp_order_receipt',$content);
 	}
 	
 	function tag ($property,$options=array()) {
