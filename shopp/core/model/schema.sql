@@ -178,11 +178,12 @@ CREATE TABLE <?php echo $customer; ?> (
 	company varchar(100) NOT NULL default '',
 	marketing enum('yes','no') NOT NULL default 'no',
 	activation varchar(20) NOT NULL default '',
-	info longtext NOT NULL,
+	type varchar(100) NOT NULL default '',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
-	KEY wordpress (wpuser)
+	KEY wordpress (wpuser),
+	KEY type (type)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $shipping = DatabaseObject::tablename('shipping'); ?>

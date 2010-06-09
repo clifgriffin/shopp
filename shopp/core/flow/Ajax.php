@@ -325,10 +325,19 @@ class AjaxFlow {
 	function suggestions () {
 		check_admin_referer('wp_ajax_shopp_suggestions');
 		$db = DB::get();
+
 		switch($_GET['t']) {
 			case "product-name": $table = DatabaseObject::tablename(Product::$table); break;
 			case "product-tags": $table = DatabaseObject::tablename(Tag::$table); break;
 			case "product-category": $table = DatabaseObject::tablename(Category::$table); break;
+			case "customer-type": 
+				$types = Lookup::customer_types();
+				$results = array();
+				foreach ($types as $type)
+					if (strpos(strtolower($type),strtolower($_GET['q'])) !== false) $results[] = $type;
+				echo join("\n",$results);
+				exit();
+				break;
 		}
 
 		$entries = $db->query("SELECT name FROM $table WHERE name LIKE '%{$_GET['q']}%'",AS_ARRAY);

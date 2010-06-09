@@ -1,12 +1,37 @@
 <?php
-function save_meta_box () {
+function save_meta_box ($Customer) {
 ?>
+<div id="misc-publishing-actions">
+<p><strong><a href="<?php echo add_query_arg(array('page'=>'shopp-orders','customer'=>$Customer->id),admin_url('admin.php')); ?>"><?php _e('Orders','Shopp'); ?></a>: </strong><?php echo $Customer->orders; ?> &mdash; <strong><?php echo money($Customer->total); ?></strong></p>
+<p><strong><a href="<?php echo add_query_arg(array('page'=>'shopp-customers','range'=>'custom','start'=>date('n/j/Y',$Customer->created),'end'=>date('n/j/Y',$Customer->created)),admin_url('admin.php')); ?>"><?php _e('Joined','Shopp'); ?></a>: </strong><?php echo date(get_option('date_format'),$Customer->created); ?></p>
+</div>
 <div id="major-publishing-actions">
 	<input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" />
 </div>
 <?php
 }
 add_meta_box('save-customer', __('Save','Shopp'), 'save_meta_box', 'shopp_page_shopp-customers', 'side', 'core');
+
+function settings_meta_box ($Customer) {
+?>
+	<p>
+		<span>
+		<input type="hidden" name="marketing" value="no" />
+		<input type="checkbox" id="marketing" name="marketing" value="yes"<?php echo $Customer->marketing == 'yes'?' checked="checked"':''; ?>/>
+		<label for="marketing" class="inline">&nbsp;<?php _e('Subscribes to marketing','Shopp'); ?></label>
+		</span>
+	</p>
+	<br class="clear" />
+	<p>
+		<span>
+		<select name="type"><?php echo menuoptions(Lookup::customer_types(),$Customer->type); ?></select>
+		<label for="type"><?php _e('Customer Type','Shopp'); ?></label>
+		</span>
+	</p>
+	<br class="clear" />
+<?php
+}
+add_meta_box('customer-settings', __('Settings','Shopp'), 'settings_meta_box', 'shopp_page_shopp-customers', 'side', 'core');
 
 function password_meta_box () {
 ?>
@@ -24,6 +49,7 @@ function password_meta_box () {
 <?php
 }
 add_meta_box('change-password', __('Change Password','Shopp'), 'password_meta_box', 'shopp_page_shopp-customers', 'side', 'core');
+
 
 function profile_meta_box ($Customer) {
 	$wp_user = get_userdata($Customer->wpuser);

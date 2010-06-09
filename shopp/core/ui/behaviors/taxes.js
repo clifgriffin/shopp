@@ -29,15 +29,15 @@ function TaxRate (data) {
 		countryOptions += '<option value="'+value+'">'+label+'</option>';
 	});
 	
-	zoneMenu.change(function () {
-		// var $this = $(this);
-		// if (!selectedZone) selectedZone = $this.val();
-		// if ($.inArray(selectedZone,zonesInUse) != -1)
-		// 	zonesInUse.splice($.inArray(selectedZone,zonesInUse),1);
-		// selectedZone = $this.val();
-		// zonesInUse.push(selectedZone);
-		// ratetable.trigger('disableZonesInUse');
-	});
+	// zoneMenu.change(function () {
+	// 	var $this = $(this);
+	// 	if (!selectedZone) selectedZone = $this.val();
+	// 	if ($.inArray(selectedZone,zonesInUse) != -1)
+	// 		zonesInUse.splice($.inArray(selectedZone,zonesInUse),1);
+	// 	selectedZone = $this.val();
+	// 	zonesInUse.push(selectedZone);
+	// 	ratetable.trigger('disableZonesInUse');
+	// });
 	
 	countryMenu.html(countryOptions).change(function () {
 		var $this = $(this);
@@ -46,7 +46,7 @@ function TaxRate (data) {
 			countriesInUse.splice($.inArray(selectedCountry,countriesInUse),1);
 		selectedCountry = $this.val();
 		if (!zones[selectedCountry]) countriesInUse.push(selectedCountry);
-		ratetable.trigger('disableCountriesInUse');
+		// ratetable.trigger('disableCountriesInUse');
 
 		// Update zone Menu
 		zoneMenu.hide().empty(); // Clear out the zone menu to start from scratch
@@ -67,7 +67,7 @@ function TaxRate (data) {
 			// All of the zones have been selected, disable the country in the country menu
 			if (selectNext) {
 				allCountryZonesInUse.push($(countryMenu).val());
-				ratetable.trigger('disableCountriesInUse');
+				// ratetable.trigger('disableCountriesInUse');
 				countryMenu.attr('selectedIndex',countryMenu.attr('selectedIndex')+1).change();
 			}
 		}
@@ -254,25 +254,25 @@ jQuery(document).ready(function () {
 	var $ = jqnc();
 	if (!ratetable.get(0)) return;
 	
-	ratetable.bind('disableCountriesInUse', function () {
-		ratetable.find('tr select.country option').each (function () {
-			var $this = $(this),country = $this.val();
-			$this.removeAttr('disabled');
-			if ($.inArray(country,countriesInUse) != -1 && !this.selected)
-				$this.attr('disabled',true);
-			if ($.inArray(country,allCountryZonesInUse) != -1 && !this.selected)
-				$this.attr('disabled',true);
-		});
-	});
+	// ratetable.bind('disableCountriesInUse', function () {
+	// 	ratetable.find('tr select.country option').each (function () {
+	// 		var $this = $(this),country = $this.val();
+	// 		$this.removeAttr('disabled');
+	// 		if ($.inArray(country,countriesInUse) != -1 && !this.selected)
+	// 			$this.attr('disabled',true);
+	// 		if ($.inArray(country,allCountryZonesInUse) != -1 && !this.selected)
+	// 			$this.attr('disabled',true);
+	// 	});
+	// });
 
-	ratetable.bind('disableZonesInUse', function () {
-		ratetable.find('tr select.zone option').each (function () {
-			var $this = $(this),zone = $this.val();
-			if ($.inArray(zone,zonesInUse) != -1 && !this.selected)
-				$this.attr('disabled',true);
-			else $this.removeAttr('disabled');
-		});
-	});
+	// ratetable.bind('disableZonesInUse', function () {
+	// 	ratetable.find('tr select.zone option').each (function () {
+	// 		var $this = $(this),zone = $this.val();
+	// 		if ($.inArray(zone,zonesInUse) != -1 && !this.selected)
+	// 			$this.attr('disabled',true);
+	// 		else $this.removeAttr('disabled');
+	// 	});
+	// });
 
 	$('#add-taxrate').click(function() { new TaxRate(); });
 	
