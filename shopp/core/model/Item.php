@@ -215,16 +215,14 @@ class Item {
 	 * @param float $taxrate (optional) The tax rate to apply to pricing information
 	 * @return string
 	 **/
-	function options ($selection = "",$taxrate=0) {
+	function options ($selection = "") {
 		if (empty($this->variations)) return "";
 
 		$string = "";
 		foreach($this->variations as $option) {
 			if ($option->type == "N/A") continue;
 			$currently = ($option->onsale)?$option->promoprice:$option->price;
-
-			$difference = (float)($currently+($currently*$taxrate))-($this->unitprice+($this->unitprice*$taxrate));
-			// $difference = $currently-$this->unitprice;
+			$difference = (float)($currently+$this->unittax)-($this->unitprice+$this->unittax);
 
 			$price = '';
 			if ($difference > 0) $price = '  (+'.money($difference).')';
@@ -548,7 +546,7 @@ class Item {
 					$result .= $options['before'];
 					$result .= '<input type="hidden" name="items['.$id.'][product]" value="'.$this->product.'"/>';
 					$result .= ' <select name="items['.$id.'][price]" id="items-'.$id.'-price"'.$class.'>';
-					$result .= $this->options($this->priceline,$this->unittax);
+					$result .= $this->options($this->priceline);
 					$result .= '</select>';
 					$result .= $options['after'];
 				}
