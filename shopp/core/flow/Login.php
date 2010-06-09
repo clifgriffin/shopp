@@ -27,13 +27,6 @@ class Login {
 
 	var $accounts = "none";		// Account system setting
 	
-	/**
-	 * Login constructor
-	 *
-	 * @author Jonathan Davis
-	 * 
-	 * @return void
-	 **/
 	function __construct () {
 		global $Shopp;
 		
@@ -46,6 +39,7 @@ class Login {
 		add_action('shopp_logout',array(&$this,'logout'));
 
 		if ($this->accounts == "wordpress") {
+			add_action('set_logged_in_cookie',array(&$this,'wplogin'),10,4);
 			add_action('wp_logout',array(&$this,'logout'));
 			add_action('shopp_logout','wp_clear_auth_cookie');					
 		}
@@ -55,8 +49,13 @@ class Login {
 	}
 	
 	/**
-	 * process ()
-	 * Handle login processing */
+	 * Handle Shopp login processing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function process () {
 		global $Shopp;
 		
@@ -106,8 +105,16 @@ class Login {
 	}
 	
 	/**
-	 * auth ()
-	 * Authorize login credentials */
+	 * Authorize login
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param int $id The supplied identifying credential
+	 * @param string $password The password provided for login authentication
+	 * @param string $type (optional) Type of identifying credential provided (defaults to 'email')
+	 * @return void
+	 **/
 	function auth ($id,$password,$type='email') {
 		global $Shopp;
 		
@@ -142,11 +149,6 @@ class Login {
 				wp_set_auth_cookie($user->ID, false, $Shopp->secure);
 				do_action('wp_login', $loginname);
 
-				if ($Account = new Customer($user->ID,'wpuser')) {
-					$this->login($Account);
-					$Shopp->Order->Customer->wpuser = $user->ID;
-					add_action('wp_logout',array(&$this,'logout'));
-				}
 				return true;
 			} else { // WordPress User Authentication failed
 				$_e = $user->get_error_code();
@@ -164,8 +166,32 @@ class Login {
 	}
 	
 	/**
-	 * loggedin()
-	 * Initialize login data */
+	 * Login to the linked Shopp account when logging into WordPress
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param $cookie N/A
+	 * @param $expire N/A
+	 * @param $expiration N/A
+	 * @param int $user_id The WordPress user ID
+	 * @return void
+	 **/
+	function wplogin ($cookie,$expire,$expiration,$user_id) {
+		if ($Account = new Customer($user_id,'wpuser')) {
+			$this->login($Account);
+			add_action('wp_logout',array(&$this,'logout'));
+		}
+	}
+	
+	/**
+	 * Initialize Shopp customer login data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function login ($Account) {
 		$this->Customer->copydata($Account,false,array());
 		$this->Customer->login = true;
@@ -179,12 +205,16 @@ class Login {
 		if (empty($this->Shipping->id))
 			$this->Shipping->copydata($this->Billing);
 		do_action_ref_array('shopp_login',array(&$this->Customer));
-
 	}
 	
 	/**
-	 * logout()
-	 * Clear the session account data */
+	 * Clear the Customer-related session data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void
+	 **/
 	function logout () {
 		$this->Customer->login = false;
 		$this->Customer->wpuser = false;
