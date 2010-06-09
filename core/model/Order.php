@@ -304,10 +304,15 @@ class Order {
 				shopp_redirect($Shopp->link('thanks'));
 			
 		}
+
+		// WordPress account integration used, customer has no wp user
+		if ($this->accounts == "wordpress" && empty($this->Customer->wpuser))
+			$this->Customer->create_wpuser();
 		 
 		// New customer, save password
 		if (empty($this->Customer->id) && !empty($this->Customer->password))
 			$this->Customer->password = wp_hash_password($this->Customer->password);
+
 		$this->Customer->save();
 
 		$this->Billing->customer = $this->Customer->id;

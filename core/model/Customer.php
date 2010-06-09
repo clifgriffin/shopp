@@ -254,8 +254,7 @@ class Customer extends DatabaseObject {
 		}
 	}
 	
-	function new_wpuser () {
-		global $Shopp;
+	function create_wpuser () {
 		require_once(ABSPATH."/wp-includes/registration.php");
 		if (empty($this->login)) return false;
 		if (username_exists($this->login)){
@@ -290,8 +289,6 @@ class Customer extends DatabaseObject {
 	}
 	
 	function taxrule ($rule) {
-		// print_r($rule);
-		// print_r($this);
 		switch ($rule['p']) {
 			case "customer-type": return ($rule['v'] == $this->type); break;
 		}
