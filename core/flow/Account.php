@@ -270,6 +270,7 @@ class Account extends AdminController {
 	 **/
 	function editor () {
 		global $Shopp,$Customer;
+		$db =& DB::get();
 		
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_customers')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -283,6 +284,15 @@ class Account extends AdminController {
 				wp_die(__('The requested customer record does not exist.','Shopp'));
 		} else $Customer = new Customer();
 
+		if (empty($Customer->info->meta)) remove_meta_box('customer-info','shopp_page_shopp-customers','normal');
+		
+		$purchase_table = DatabaseObject::tablename(Purchase::$table);
+		$r = $db->query("SELECT count(id) AS purchases,SUM(total) AS total FROM $purchase_table WHERE customer='$Customer->id' LIMIT 1");
+		
+		$Customer->orders = $r->purchases;
+		$Customer->total = $r->total;
+		
+		
 		$countries = array(''=>'');
 		$countrydata = Lookup::countries();
 		foreach ($countrydata as $iso => $c) {

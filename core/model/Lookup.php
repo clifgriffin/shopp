@@ -271,6 +271,17 @@ class Lookup {
 		$_['USAF']['Pacific'] = array('AP'=>array('96200','96699'));		
 		return apply_filters('shopp_areas',$_);
 	}
+
+	function customer_types () {
+		$_ = array(
+			__('Retail','Shopp'),
+			__('Wholesale','Shopp'),
+			__('Referral','Shopp'),
+			__('Tax-Exempt','Shopp')
+		);
+		return apply_filters('shopp_customer_types',$_);
+	}
+
 	
 	function localities () {
 		$_ = array();

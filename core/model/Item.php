@@ -414,20 +414,12 @@ class Item {
 		return Promotion::match_rule($subject,$logic,$value,$property);
 	}
 	
-	function taxapplies ($rules,$logic) {
-		
-		$matches = 0;
-		foreach ($rules as $rule) {
-			switch ($rule['p']) {
-				case "product-name": $match = ($rule['v'] == $this->name); break;
-				case "product-tags": $match = (in_array($rule['v'],$this->tags)); break;
-				case "product-category": $match = (in_array($rule['v'],$this->categories)); break;
-			}
-			if ($match) $matches++;
+	function taxrule ($rule) {
+		switch ($rule['p']) {
+			case "product-name": return ($rule['v'] == $this->name); break;
+			case "product-tags": return (in_array($rule['v'],$this->tags)); break;
+			case "product-category": return (in_array($rule['v'],$this->categories)); break;
 		}
-		if ($logic == "all" && $matches == count($rules)) return true;
-		if ($logic == "any" && $matches > 0) return true;
-
 		return false;
 	}
 

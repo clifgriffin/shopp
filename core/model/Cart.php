@@ -1368,12 +1368,13 @@ class CartTax {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 * 
-	 * @return float The tax rate
+	 * @return float The tax rate (or false if no rate applies)
 	 **/
 	function rate ($Item=false,$settings=false) {
 		if (!$this->enabled) return false;		
 		if (!is_array($this->rates)) return false;
 		
+		$Customer = $this->Order->Customer;
 		$Billing = $this->Order->Billing;
 		$Shipping = $this->Order->Shipping;
 		$country = false;
@@ -1387,15 +1388,10 @@ class CartTax {
 		$locale = false;
 		if (!empty($Shipping->locale)) $locale = $Shipping->locale;
 		elseif (!empty($Billing->locale)) $locale = $Billing->locale;
-		// print_r($Billing);
+
 		$global = false;
 		foreach ($this->rates as $setting) {
 			$rate = false;
-			// Grab the global setting if found
-			if ($setting['country'] == "*") {
-				$global = $setting;
-				continue;
-			}
 			
 			if (isset($setting['locals']) && is_array($setting['locals'])) {
 				if ($country == $setting['country'] &&
@@ -1412,22 +1408,41 @@ class CartTax {
 			
 			// Match tax rules
 
-			// Match item-based tax rules
-			if ($Item !== false && isset($setting['rules']) && is_array($setting['rules'])) {
-				if (!$Item->taxapplies($setting['rules'],$setting['logic'])) continue;
+			if (isset($setting['rules']) && is_array($setting['rules'])) {
+				$applies = false;
+				$matches = 0;
+
+				foreach ($setting['rules'] as $rule) {
+					$match = false;
+					if ($Item !== false && strpos($rule['p'],'product') !== false) {
+						$match = $Item->taxrule($rule);
+					} elseif (strpos($rule['p'],'customer') !== false) {
+						$match = $Customer->taxrule($rule);
+					}
+
+					$match = apply_filters('shopp_customer_taxrule_match',$match,$rule,$this);
+					if ($match) $matches++;
+				}
+				if ($setting['logic'] == "all" && $matches == count($setting['rules'])) $applies = true;
+				if ($setting['logic'] == "any" && $matches > 0) $applies = true;
+				if (!$applies) continue;
 			}
+			
+			// Grab the global setting if found
+			if ($setting['country'] == "*") $global = $setting;
 			
 			if ($rate !== false) {
 				if ($settings) return apply_filters('shopp_cart_taxrate_settings',$setting);
 				return apply_filters('shopp_cart_taxrate',$rate/100);
 			}
+			
 		}
 		
 		if ($global) {
 			if ($settings) return apply_filters('shopp_cart_taxrate_settings',$global);
 			return apply_filters('shopp_cart_taxrate',$global['rate']/100);
 		}
-		else return false;
+		return false;
 	}
 	
 	/**

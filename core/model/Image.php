@@ -117,8 +117,6 @@ class ImageProcessor {
 		$this->dx = ($dx !== false)?$dx:($this->width - $width)*-0.5;
 		$this->dy = ($dy !== false)?$dy:($this->height - $height)*-0.5;
 
-		error_log('calc: '.$this->width.'x'.$this->height.' @ '.$this->dx.','.$this->dy.':'.$cropscale);
-
 		return true;
 	}
 	
