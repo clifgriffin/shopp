@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.1 dev
+Version: 1.1b1
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define('SHOPP_VERSION','1.1 dev');
+define('SHOPP_VERSION','1.1b1');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
@@ -181,6 +181,8 @@ class Shopp {
 		add_action('save_post', array(&$this, 'pages_index'),10,2);
 		add_filter('query_vars', array(&$this,'queryvars'));
 
+		add_action('load-plugins.php',array(&$this, 'updates'));
+		
 		if (!wp_next_scheduled('shopp_check_updates'))
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
 
@@ -235,9 +237,7 @@ class Shopp {
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 		
 		new Login();
-		do_action('shopp_init');
-		do_action('shopp_check_updates');
-		
+		do_action('shopp_init');		
 	}
 	
 	/**
@@ -581,11 +581,6 @@ class Shopp {
 	function updates () {
 		$updates = new StdClass();
 
-		// $wp_plugins = get_transient('update_plugins');
-
-		// Already set
-		// if (isset($updates->response[SHOPP_PLUGINFILE])) return;
-		
 		$addons = array_merge(
 			$this->Gateways->checksums(),
 			$this->Shipping->checksums(),
@@ -604,7 +599,6 @@ class Shopp {
 		$response = unserialize($response);
 			
 		unset($updates->response);
-		// unset($wp_plugins->response[SHOPP_PLUGINFILE]);
 
 		if (isset($response->addons)) {
 			$updates->response[SHOPP_PLUGINFILE.'/addons'] = $response->addons;
@@ -617,7 +611,6 @@ class Shopp {
 		if (!empty($updates))
 			
 		$this->Settings->save('updates',$updates);
-		// set_transient('update_plugins',$wp_plugins);
 		return $updates;
 	}
 	
