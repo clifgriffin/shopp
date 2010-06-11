@@ -40,7 +40,7 @@ function get_file($path) {
 
 
 require_once('functions.php');
-shopp_read_wpconfig();
+load_shopps_wpconfig();
 if (!defined('WPINC')) define('WPINC', 'wp-includes');
 require_once('flow/Scripts.php');
 
