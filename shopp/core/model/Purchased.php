@@ -18,6 +18,11 @@ class Purchased extends DatabaseObject {
 		else return false;
 	}
 	
+	function copydata ($Item) {
+		parent::copydata ($Item);
+		$this->optionlabel = $Item->option->label;
+	}
+	
 	function keygen() {
 		$message = $this->name.$this->purchase.$this->product.$this->price.$this->download;
 		$key = sha1($message);
