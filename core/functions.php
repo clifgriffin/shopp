@@ -1241,7 +1241,7 @@ function shopp_locate_pages ($pages) {
 /**
  * Read the wp-config file to import WP settings without loading all of WordPress
  *
- * @author Jonathan Davis
+ * @author Jonathan Davis, John Dillick
  * @since 1.1
  * @return boolean If the load was successful or not
  **/
@@ -1249,20 +1249,45 @@ function load_shopps_wpconfig () {
 	global $table_prefix;
 	
 	$_ = array();
-	$root = $_SERVER['DOCUMENT_ROOT'];
-	$found = array();
-	find_filepath('wp-config.php',$root,$root,$found);
-	if (empty($found[0])) return false;
-	$config = file_get_contents($root.$found[0]);
+	$root = realpath($_SERVER['DOCUMENT_ROOT']);
+	$filepath = realpath(dirname(__FILE__));
+	$wp_config_path = false;
+	$wp_root = false;
+
+	if ( isset($_SERVER['SHOPP_WPCONFIG']) && file_exists(sanitize_path($_SERVER['SHOPP_WPCONFIG']).'/wp-config.php') &&
+		 isset($_SERVER['SHOPP_ABSPATH']) && file_exists(sanitize_path($_SERVER['SHOPP_ABSPATH']).'/wp-load.php')
+		) { // SetEnv SHOPP_WP_CONFIG_PATH and SHOPP_ABSPATH used on webserver site config
+		$wp_config_path = $_SERVER['SHOPP_WPCONFIG'];
+		$wp_root = $_SERVER['SHOPP_ABSPATH'];
+	} elseif ( strpos($filepath, $root) !== false ) { // Shopp directory has DOCUMENT_ROOT ancenstor, finding wp-config.php and wordpress install
+		$levels = count(explode ('/', sanitize_path($filepath) ));
+		$path = $filepath;
+		for ( $i = 1; $i < $levels; $i++ ) { 
+			if ( file_exists(sanitize_path($path).'/wp-load.php') ) $wp_root = $path;
+			if ( file_exists(sanitize_path($path).'/wp-config.php') ) {
+				$wp_config_path = $path;
+				break;
+			}
+			$path = dirname($path);
+		}
+	} elseif (  file_exists(sanitize_path($root).'/wp-config.php') && 
+				file_exists(sanitize_path($root).'/wp-load.php') ) {  // wordpress install in DOCUMENT_ROOT
+		$wp_config_path = $wp_root = $root;
+	} elseif (  file_exists(sanitize_path(dirname($root)).'/wp-config.php') && 
+				file_exists(sanitize_path($root).'/wp-load.php') && 
+				!file_exists(sanitize_path(dirname($root)).'/wp-load.php')) { // wordpress install in DOCUMENT_ROOT, config up one directory
+		$wp_config_path = dirname($root);
+		$wp_root = $root;
+	}
+			
+	if ( $wp_config_path !== false && $wp_root !== false) $config = file_get_contents(sanitize_path($wp_config_path).'/wp-config.php');
+	else return false;
 	
 	preg_match_all('/^\s*?(define\(\s*?\'(.*?)\'\s*?,\s*(.*?)\);)/m',$config,$defines,PREG_SET_ORDER);
 	foreach($defines as $defined) if (!defined($defined[2])) {
-		// $defined[1] = preg_replace('/\_\_FILE\_\_/',"'$root{$found[0]}'",$defined[1]);
-		
 		$name = $defined[2];
 		$value = trim($defined[3],"'");
-		if ($name == "ABSPATH" && $defined[3][0] != "'")
-			$value = $root.dirname($found[0]);
+		if ( $name == "ABSPATH" ) $value = sanitize_path($wp_root).'/';
 		define($name,$value);
 	}
 
