@@ -1243,27 +1243,37 @@ function shopp_locate_pages ($pages) {
  *
  * @author Jonathan Davis
  * @since 1.1
- * @return void
+ * @return boolean If the load was successful or not
  **/
-function shopp_read_wpconfig () {
+function load_shopps_wpconfig () {
 	global $table_prefix;
+	
 	$_ = array();
 	$root = $_SERVER['DOCUMENT_ROOT'];
 	$found = array();
 	find_filepath('wp-config.php',$root,$root,$found);
-	if (empty($found[0])) $this->error();
+	if (empty($found[0])) return false;
 	$config = file_get_contents($root.$found[0]);
 	
-	// Evaluate all define macros
-	preg_match_all('/^\s*?(define\(\s*?\'(.*?)\'\s*?,\s*?(.*?)\);)/m',$config,$defines,PREG_SET_ORDER);
+	preg_match_all('/^\s*?(define\(\s*?\'(.*?)\'\s*?,\s*(.*?)\);)/m',$config,$defines,PREG_SET_ORDER);
 	foreach($defines as $defined) if (!defined($defined[2])) {
-		$defined[1] = preg_replace('/\_\_FILE\_\_/',"'$root{$found[0]}'",$defined[1]);
-		eval($defined[1]);
+		// $defined[1] = preg_replace('/\_\_FILE\_\_/',"'$root{$found[0]}'",$defined[1]);
+		
+		$name = $defined[2];
+		$value = trim($defined[3],"'");
+		if ($name == "ABSPATH" && $defined[3][0] != "'")
+			$value = $root.dirname($found[0]);
+		define($name,$value);
 	}
+
+	// Evaluate the $table_prefix variable
+	preg_match('/\$table_prefix\s*?=\s*?[\'|"](.*?)[\'|"];/',$config,$match);
+	$table_prefix = $match[1];
 	
 	if(function_exists("date_default_timezone_set") && function_exists("date_default_timezone_get"))
 		@date_default_timezone_set(@date_default_timezone_get());
-	
+
+	return true;
 }
 
 /**

@@ -215,30 +215,16 @@ class ImageServer extends DatabaseObject {
 	 **/
 	function dbinit () {
 		global $table_prefix;
-		$_ = array();
-		$root = $_SERVER['DOCUMENT_ROOT'];
-		$found = array();
-		find_filepath('wp-config.php',$root,$root,$found);
-		if (empty($found[0])) $this->error();
-		$config = file_get_contents($root.$found[0]);
 		
-		// Evaluate all define macros
-		preg_match_all('/^\s*?(define\(\s*?\'(.*?)\'\s*?,\s*?(.*?)\);)/m',$config,$defines,PREG_SET_ORDER);
-		foreach($defines as $defined) if (!defined($defined[2])) {
-			$defined[1] = preg_replace('/\_\_FILE\_\_/',"'$root{$found[0]}'",$defined[1]);
-			eval($defined[1]);
-		}
+		if (!load_shopps_wpconfig())
+			$this->error();
+
 		chdir(ABSPATH.'wp-content');
 
-		// Evaluate the $table_prefix variable
-		preg_match('/\$table_prefix\s*?=\s*?[\'|"](.*?)[\'|"];/',$config,$match);
-		$table_prefix = $match[1];
-
+		// Establish database connection
 		$db = DB::get();
 		$db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
-		
-		if(function_exists("date_default_timezone_set") && function_exists("date_default_timezone_get"))
-			@date_default_timezone_set(@date_default_timezone_get());
+		mysql_set_charset(DB_CHARSET, $db->dbh);
 			
 	}
 	
