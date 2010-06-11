@@ -13,8 +13,9 @@ function addtocart (form) {
 		options = $(form).find('select.options'),selections;
 	if (options && options_default) {
 		selections = true;
-		for (menu in options) 
-			if (options[menu].selectedIndex == 0 && options[menu][0].value == "") selections = false;
+		options.each(function (i,menu) {
+			if ($(menu).val() == "") selections = false;
+		});
 
 		if (!selections) {
 			if (!options_required) options_required = "You must select the options for this item before you can add it to your shopping cart.";
