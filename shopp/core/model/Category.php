@@ -1050,13 +1050,15 @@ class Category extends DatabaseObject {
 				$producttable = DatabaseObject::tablename(Product::$table);
 				$spectable = DatabaseObject::tablename(Spec::$table);
 				
-				$results = $db->query("SELECT spec.name,spec.content,
-					IF(spec.numeral > 0,spec.name,spec.content) AS merge,
-					count(*) AS total,avg(numeral) AS avg,max(numeral) AS max,min(numeral) AS min 
+				$query = "SELECT spec.name,spec.value,
+					IF(spec.numeral > 0,spec.name,spec.value) AS merge,
+					count(*) AS total,avg(numeral) AS avg,max(numeral) AS max,min(numeral) AS min
 					FROM $catalogtable AS cat 
 					LEFT JOIN $producttable AS p ON cat.product=p.id 
-					LEFT JOIN $spectable AS spec ON spec.product=p.id 
-					WHERE (cat.parent=$this->id AND cat.type='category') GROUP BY merge ORDER BY spec.name,merge",AS_ARRAY);
+					LEFT JOIN $spectable AS spec ON p.id=spec.parent AND spec.context='product' AND spec.type='spec'
+					WHERE cat.parent=$this->id AND cat.type='category' AND spec.value != '' AND spec.value != '0' GROUP BY merge ORDER BY spec.name,merge";
+
+				$results = $db->query($query,AS_ARRAY);
 
 				$specdata = array();
 				foreach ($results as $data) {
@@ -1116,8 +1118,8 @@ class Category extends DatabaseObject {
 
 							if (is_array($specdata[$spec['name']])) { // Generate from text values
 								foreach ($specdata[$spec['name']] as $option) {
-									$href = add_query_arg('shopp_catfilters['.$spec['name'].']',urlencode($option->content),$link);
-									$list .= '<li><a href="'.$href.'">'.$option->content.'</a></li>';
+									$href = add_query_arg('shopp_catfilters['.$spec['name'].']',urlencode($option->value),$link);
+									$list .= '<li><a href="'.$href.'">'.$option->value.'</a></li>';
 								}
 								$output .= '<h4>'.$spec['name'].'</h4><ul>'.$list.'</ul>';
 							} else { // Generate number ranges
