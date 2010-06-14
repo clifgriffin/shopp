@@ -1,9 +1,8 @@
 /**
  * Shopp TinyMCE Plugin
  * @author Jonathan Davis
- * @copyright Copyright © 2008, Ingenesis Limited, All rights reserved.
+ * @copyright Copyright Â© 2008, Ingenesis Limited, All rights reserved.
  */
-
 (function() {
 	// Load plugin specific language pack
 	tinymce.PluginManager.requireLangPack('Shopp');
@@ -30,33 +29,13 @@
 				});
 			});
 
-			// Register example button
+			// Register button
 			ed.addButton('Shopp', {
 				title : 'Shopp.desc',
 				cmd : 'mceShopp',
 				image : url + '/shopp.png'
 			});
 
-			// Add a node change handler, selects the button in the UI when a image is selected
-			ed.onNodeChange.add(function(ed, cm, n) {
-				cm.setActive('Shopp', n.nodeName == 'IMG');
-			});
-		}, 
-
-		/**
-		 * Returns information about the plugin as a name/value array.
-		 * The current keys are longname, author, authorurl, infourl and version.
-		 *
-		 * @return {Object} Name/value array containing information about the plugin.
-		 */
-		getInfo : function() {
-			return {
-				longname : 'Shopp TinyMCE Plugin',
-				author : 'Jonathan Davis',
-				authorurl : 'http://shopplugin.net',
-				infourl : 'http://shopplugin.net',
-				version : "1.0"
-			};
 		}
 	});
 
