@@ -811,7 +811,7 @@ function ImageUploads (id,type) {
 						'</div></div>'),
 				thumb = ui.find('img').attr('src',srcthumb.attr('src')),
 				titlefield = ui.find('input[name=title]').val(srctitle.val()).change(function () {
-					srctitle.val(titlefield.value());
+					srctitle.val(titlefield.val());
 				}),
 				altfield = ui.find('input[name=alt]').val(srcalt.val()).change(function () {
 					srcalt.val(altfield.val());
@@ -837,7 +837,7 @@ function ImageUploads (id,type) {
 						if (c) srcCropped.filter('input[alt='+cropselect.val()+']').val(c.x+','+c.y+','+c.s);
 					});
 				});
-			
+		
 			if (srcCropped.size() > 0) {
 				srcCropped.each(function (i,e) {
 					var d = $(e).attr('alt');
