@@ -32,10 +32,10 @@ class ShoppScripts extends WP_Scripts {
 		add_action('wp_enqueue_scripts', array(&$this,'wp_dependencies'),1);
 		add_action('admin_head', array(&$this,'wp_dependencies'),1);
 		
-		add_action('wp_head', array(&$this,'print_head_scripts'),12);
-		add_action('admin_head', array(&$this,'print_head_scripts'),12);
-		add_action('wp_footer', array(&$this,'print_footer_scripts'),12);
-		add_action('admin_footer', array(&$this,'print_footer_scripts'),12);
+		add_action('wp_head', array(&$this,'print_head_scripts'),15);
+		add_action('admin_head', array(&$this,'print_head_scripts'),15);
+		add_action('wp_footer', array(&$this,'print_footer_scripts'),15);
+		add_action('admin_footer', array(&$this,'print_footer_scripts'),15);
 
 	}
 	
@@ -168,6 +168,9 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('product-editor', "/ui/products/editor.js", array('jquery','priceline'), '20100101');
 	$scripts->add_data('product-editor', 'group', 1);
 
+	$scripts->add('category-editor', "/ui/categories/category.js", array('jquery','priceline'), '20100101');
+	$scripts->add_data('category-editor', 'group', 1);
+
 	$scripts->add('category-arrange', "/ui/categories/arrange.js", array('jquery','shopp'), '20100101');
 	$scripts->add_data('category-arrange', 'group', 1);
 
@@ -188,7 +191,6 @@ function shopp_default_scripts (&$scripts) {
 
 	$scripts->add('swfupload', "/ui/behaviors/swfupload/swfupload.js", array('jquery','shopp-swfobject'), '2202');
 	$scripts->add_data('swfupload', 'group', 1);
-
 
 }
 
