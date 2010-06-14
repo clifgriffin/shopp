@@ -608,37 +608,51 @@ class AdminFlow extends FlowController {
 		else return false;
 	}
 
+	/**
+	 * Initializes the Shopp TinyMCE plugin
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @return void Description...
+	 **/
 	function tinymce () {
 		if (!current_user_can('edit_posts') && !current_user_can('edit_pages')) return;
 
 		// Add TinyMCE buttons when using rich editor
 		if (get_user_option('rich_editing') == 'true') {
-			add_filter('tiny_mce_version', array(&$this,'mceupdate')); // Move to plugin activation
 			add_filter('mce_external_plugins', array(&$this,'mceplugin'),5);
 			add_filter('mce_buttons', array(&$this,'mcebutton'),5);
 		}
 	}
 
+	/**
+	 * Adds the Shopp TinyMCE plugin to the list of loaded plugins
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param array $plugins The current list of plugins to load
+	 * @return array The updated list of plugins to laod
+	 **/
 	function mceplugin ($plugins) {
-		$plugins['Shopp'] = SHOPP_ADMIN_URI.'/behaviors/tinymce/editor_plugin.js';
+		// Add a changing query string to keep the TinyMCE plugin from being cached & breaking TinyMCE in Safari/Chrome
+		$plugins['Shopp'] = SHOPP_ADMIN_URI.'/behaviors/tinymce/editor_plugin.js?ver='.mktime();
 		return $plugins;
 	}
 
+	/**
+	 * Adds the Shopp button to the TinyMCE editor
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param array $buttons The current list of buttons in the editor
+	 * @return array The updated list of buttons in the editor
+	 **/
 	function mcebutton ($buttons) {
 		array_push($buttons, "|", "Shopp");
 		return $buttons;
-	}
-
-	/**
-	 * Keep the TinyMCE interface from being cached
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 * 
-	 * @return void Description...
-	 **/
-	function mceupdate($ver) {
-	  return ++$ver;
 	}
 
 
