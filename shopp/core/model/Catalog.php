@@ -349,7 +349,7 @@ class Catalog extends DatabaseObject {
 				return $string;
 			case "orderby-list":
 				if (isset($Shopp->Category->controls)) return false;
-				if (isset($Shopp->Category->smart)) return false;
+				if (isset($Shopp->Category->loading['order']) || isset($Shopp->Category->loading['orderby'])) return false;
 				$menuoptions = Category::sortoptions();
 				$title = "";
 				$string = "";

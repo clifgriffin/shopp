@@ -282,7 +282,7 @@ class Category extends DatabaseObject {
 			} else $loading['limit'] = $limit;
 		} else $limit = (int)$loading['limit'];
 				
-		$columns = "p.*,c.priority,
+		$columns = "p.*,
 					img.id AS image,img.value AS imgmeta,MAX(pr.status) as promos,
 					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0))AS percentoff,
 					SUM(DISTINCT IF(pr.type='Amount Off',pr.discount,0)) AS amountoff,
@@ -375,7 +375,7 @@ class Category extends DatabaseObject {
 					GROUP BY p.id {$loading['having']}
 					ORDER BY {$loading['order']} 
 					LIMIT {$loading['limit']}";
-
+		
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
 
