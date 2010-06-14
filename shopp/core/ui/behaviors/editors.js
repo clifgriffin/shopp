@@ -15,7 +15,7 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 	_.dataname = dataname;
 	_.index = i;
 	_.element = $('<li><div class="move"></div>'+
-		'<input type="hidden" name="'+dataname+'-sortorder[]" value="'+i+'" class="sortorder" />'+
+		'<input type="hidden" name="'+dataname.replace('[','-').replace(']','-')+'-sortorder[]" value="'+i+'" class="sortorder" />'+
 		'<input type="hidden" name="'+dataname+'['+i+'][id]" class="id" />'+
 		'<input type="text" name="'+dataname+'['+i+'][name]" class="label" />'+
 		'<button type="button" class="delete"><img src="'+uidir+'/icons/delete.png" alt="Delete" width="16" height="16" /></button>'+
@@ -160,7 +160,7 @@ function addVariationOptionsMenu (data) {
 		optionsidx++;
 
 		option.linkIcon = $('<img src="'+uidir+'/icons/linked.png" alt="linked" width="16" height="16" class="link" />').appendTo(option.moveHandle);
-		option.linked = $('<input type="hidden" name="options['+menu.index+'][options]['+option.index+'][linked]" class="linked" />').appendTo(option.element).change(function () {
+		option.linked = $('<input type="hidden" name="options[v]['+menu.index+'][options]['+option.index+'][linked]" class="linked" />').appendTo(option.element).change(function () {
 			if ($(this).val() == "off")	option.linkIcon.addClass('invisible');
 			if ($(this).val() == "on") option.linkIcon.removeClass('invisible');
 		});
