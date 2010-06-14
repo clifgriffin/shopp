@@ -985,6 +985,7 @@ class CartDiscounts {
 		$baseop = $Shopp->Settings->get('base_operations');
 		$this->precision = $baseop['currency']['format']['precision'];
 		
+		$this->Order = &$Shopp->Order;
 		$this->Cart = &$Shopp->Order->Cart;
 		$this->promos = &$Shopp->Promotions->promotions;
 	}
@@ -1068,6 +1069,7 @@ class CartDiscounts {
 						case "Total quantity": $subject = $this->Cart->Totals->quantity; break;
 						case "Shipping amount": $subject = $this->Cart->Totals->shipping; break;
 						case "Subtotal amount": $subject = $this->Cart->Totals->subtotal; break;
+						case "Ship-to country": $subject = $this->Order->Shipping->country; break;
 					}
 					if (Promotion::match_rule($subject,$logic,$value,$property))
 						$match = true;
@@ -1079,7 +1081,7 @@ class CartDiscounts {
 				}
 
 			} // End rules loop
-			
+
 			if ($promo->search == "all" && $matches == $total)
 				$applypromo = true;
 				

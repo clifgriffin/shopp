@@ -45,139 +45,117 @@
 <div id="ends-calendar" class="calendar"></div>
 
 <script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>Running_Sales_%26_Promotions";
-
 
 jQuery(document).ready( function() {
-var $=jQuery.noConflict();
+var $=jqnc(),
+	currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>,
+	rules = <?php echo json_encode($Promotion->rules); ?>,
+	ruleidx = 1,
+	itemidx = 1,
+	promotion = <?php echo (!empty($Promotion->id))?$Promotion->id:'false'; ?>,
+	SCOPEPROP_LANG = {
+		"Catalog":"<?php _e('price','Shopp'); ?>",
+		"Cart":"<?php _e('subtotal','Shopp'); ?>",
+		"Cart Item":"<?php _e('total, where:','Shopp'); ?>",
+	},
+	TARGET_LANG = {
+		"Catalog":"<?php _e('product','Shopp'); ?>",
+		"Cart":"<?php _e('cart','Shopp'); ?>",
+		"Cart Item":"<?php _e('cart','Shopp'); ?>",
+	},
+	RULES_LANG = {
+		"Name":"<?php _e('Name','Shopp'); ?>",
+		"Category":"<?php _e('Category','Shopp'); ?>",
+		"Variation":"<?php _e('Variation','Shopp'); ?>",
+		"Price":"<?php _e('Price','Shopp'); ?>",
+		"Sale price":"<?php _e('Sale price','Shopp'); ?>",
+		"Type":"<?php _e('Type','Shopp'); ?>",
+		"In stock":"<?php _e('In stock','Shopp'); ?>",
 
-var currencyFormat = <?php $base = $this->Settings->get('base_operations'); echo json_encode($base['currency']['format']); ?>;
-var rules = <?php echo json_encode($Promotion->rules); ?>;
-var ruleidx = 1;
-var itemidx = 1;
-var promotion = <?php echo (!empty($Promotion->id))?$Promotion->id:'false'; ?>;
+		"Tag name":"<?php _e('Tag name','Shopp'); ?>",
+		"Unit price":"<?php _e('Unit price','Shopp'); ?>",
+		"Total price":"<?php _e('Total price','Shopp'); ?>",
+		"Input name":"<?php _e('Input name','Shopp'); ?>",
+		"Input value":"<?php _e('Input value','Shopp'); ?>",
+		"Quantity":"<?php _e('Quantity','Shopp'); ?>",
 
-$('#starts-calendar').PopupCalendar({
-	m_input:$('#starts-month'),
-	d_input:$('#starts-date'),
-	y_input:$('#starts-year')
-}).bind('show',function () {
-	$('#ends-calendar').hide();
-});
+		"Any item name":"<?php _e('Any item name','Shopp'); ?>",
+		"Any item amount":"<?php _e('Any item amount','Shopp'); ?>",
+		"Any item quantity":"<?php _e('Any item quantity','Shopp'); ?>",
+		"Total quantity":"<?php _e('Total quantity','Shopp'); ?>",
+		"Shipping amount":"<?php _e('Shipping amount','Shopp'); ?>",
+		"Subtotal amount":"<?php _e('Subtotal amount','Shopp'); ?>",
+		"Discount amount":"<?php _e('Discount amount','Shopp'); ?>",
+		"Ship-to country":"<?php _e('Ship-to country','Shopp'); ?>",
 
-$('#ends-calendar').PopupCalendar({
-	m_input:$('#ends-month'),
-	d_input:$('#ends-date'),
-	y_input:$('#ends-year')
-}).bind('show',function () {
-	$('#starts-calendar').hide();
-});
-
-var SCOPEPROP_LANG = {
-	"Catalog":"<?php _e('price','Shopp'); ?>",
-	"Cart":"<?php _e('subtotal','Shopp'); ?>",
-	"Cart Item":"<?php _e('total, where:','Shopp'); ?>",
-}
-
-var TARGET_LANG = {
-	"Catalog":"<?php _e('product','Shopp'); ?>",
-	"Cart":"<?php _e('cart','Shopp'); ?>",
-	"Cart Item":"<?php _e('cart','Shopp'); ?>",
-}
-
-var RULES_LANG = {
-	"Name":"<?php _e('Name','Shopp'); ?>",
-	"Category":"<?php _e('Category','Shopp'); ?>",
-	"Variation":"<?php _e('Variation','Shopp'); ?>",
-	"Price":"<?php _e('Price','Shopp'); ?>",
-	"Sale price":"<?php _e('Sale price','Shopp'); ?>",
-	"Type":"<?php _e('Type','Shopp'); ?>",
-	"In stock":"<?php _e('In stock','Shopp'); ?>",
-
-	"Tag name":"<?php _e('Tag name','Shopp'); ?>",
-	"Unit price":"<?php _e('Unit price','Shopp'); ?>",
-	"Total price":"<?php _e('Total price','Shopp'); ?>",
-	"Input name":"<?php _e('Input name','Shopp'); ?>",
-	"Input value":"<?php _e('Input value','Shopp'); ?>",
-	"Quantity":"<?php _e('Quantity','Shopp'); ?>",
-
-	"Any item name":"<?php _e('Any item name','Shopp'); ?>",
-	"Any item amount":"<?php _e('Any item amount','Shopp'); ?>",
-	"Any item quantity":"<?php _e('Any item quantity','Shopp'); ?>",
-	"Total quantity":"<?php _e('Total quantity','Shopp'); ?>",
-	"Shipping amount":"<?php _e('Shipping amount','Shopp'); ?>",
-	"Subtotal amount":"<?php _e('Subtotal amount','Shopp'); ?>",
-	"Discount amount":"<?php _e('Discount amount','Shopp'); ?>",
-	"Promo code":"<?php _e('Promo code','Shopp'); ?>",
-
-	"Promo use count":"<?php _e('Promo use count','Shopp'); ?>",
+		"Promo code":"<?php _e('Promo code','Shopp'); ?>",
+		"Promo use count":"<?php _e('Promo use count','Shopp'); ?>",
 	
-	"Is equal to":"<?php _e('Is equal to','Shopp'); ?>",
-	"Is not equal to":"<?php _e('Is not equal to','Shopp'); ?>",
-	"Contains":"<?php _e('Contains','Shopp'); ?>",
-	"Does not contain":"<?php _e('Does not contain','Shopp'); ?>",
-	"Begins with":"<?php _e('Begins with','Shopp'); ?>",
-	"Ends with":"<?php _e('Ends with','Shopp'); ?>",
-	"Is greater than":"<?php _e('Is greater than','Shopp'); ?>",
-	"Is greater than or equal to":"<?php _e('Is greater than or equal to','Shopp'); ?>",
-	"Is less than":"<?php _e('Is less than','Shopp'); ?>",
-	"Is less than or equal to":"<?php _e('Is less than or equal to','Shopp'); ?>"
+		"Is equal to":"<?php _e('Is equal to','Shopp'); ?>",
+		"Is not equal to":"<?php _e('Is not equal to','Shopp'); ?>",
+		"Contains":"<?php _e('Contains','Shopp'); ?>",
+		"Does not contain":"<?php _e('Does not contain','Shopp'); ?>",
+		"Begins with":"<?php _e('Begins with','Shopp'); ?>",
+		"Ends with":"<?php _e('Ends with','Shopp'); ?>",
+		"Is greater than":"<?php _e('Is greater than','Shopp'); ?>",
+		"Is greater than or equal to":"<?php _e('Is greater than or equal to','Shopp'); ?>",
+		"Is less than":"<?php _e('Is less than','Shopp'); ?>",
+		"Is less than or equal to":"<?php _e('Is less than or equal to','Shopp'); ?>"
 	
-}
-
-var conditions = {
-	"Catalog":{
-		"Name":{"logic":["boolean","fuzzy"],"value":"text"},
-		"Category":{"logic":["boolean","fuzzy"],"value":"text"},
-		"Variation":{"logic":["boolean","fuzzy"],"value":"text"},
-		"Price":{"logic":["boolean","amount"],"value":"price"},
-		"Sale price":{"logic":["boolean","amount"],"value":"price"},
-		"Type":{"logic":["boolean"],"value":"text"},
-		"In stock":{"logic":["boolean","amount"],"value":"text"}
 	},
-	"Cart":{
-		"Any item name":{"logic":["boolean","fuzzy"],"value":"text"},
-		"Any item quantity":{"logic":["boolean","amount"],"value":"text"},
-		"Any item amount":{"logic":["boolean","amount"],"value":"price"},
-		"Total quantity":{"logic":["boolean","amount"],"value":"text"},
-		"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
-		"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
-		"Discount amount":{"logic":["boolean","amount"],"value":"price"},
-		"Promo use count":{"logic":["boolean","amount"],"value":"text"},
-		"Promo code":{"logic":["boolean"],"value":"text"}
+	conditions = {
+		"Catalog":{
+			"Name":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Category":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Variation":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Price":{"logic":["boolean","amount"],"value":"price"},
+			"Sale price":{"logic":["boolean","amount"],"value":"price"},
+			"Type":{"logic":["boolean"],"value":"text"},
+			"In stock":{"logic":["boolean","amount"],"value":"text"}
+		},
+		"Cart":{
+			"Any item name":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Any item quantity":{"logic":["boolean","amount"],"value":"text"},
+			"Any item amount":{"logic":["boolean","amount"],"value":"price"},
+			"Total quantity":{"logic":["boolean","amount"],"value":"text"},
+			"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
+			"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
+			"Discount amount":{"logic":["boolean","amount"],"value":"price"},
+			"Ship-to country":{"logic":["boolean"],"value":"text"},
+			"Promo use count":{"logic":["boolean","amount"],"value":"text"},
+			"Promo code":{"logic":["boolean"],"value":"text"}
+		},
+		"Cart Item":{
+			"Any item name":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Any item quantity":{"logic":["boolean","amount"],"value":"text"},
+			"Any item amount":{"logic":["boolean","amount"],"value":"price"},
+			"Total quantity":{"logic":["boolean","amount"],"value":"text"},
+			"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
+			"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
+			"Discount amount":{"logic":["boolean","amount"],"value":"price"},
+			"Ship-to country":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Promo use count":{"logic":["boolean","amount"],"value":"text"},
+			"Promo code":{"logic":["boolean"],"value":"text"}
+		},
+		"Cart Item Target":{
+			"Name":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Category":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Tag name":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Variation":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Input name":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Input value":{"logic":["boolean","fuzzy"],"value":"text"},
+			"Quantity":{"logic":["boolean","amount"],"value":"text"},
+			"Unit price":{"logic":["boolean","amount"],"value":"price"},
+			"Total price":{"logic":["boolean","amount"],"value":"price"},
+			"Discount amount":{"logic":["boolean","amount"],"value":"price"}
+		}
 	},
-	"Cart Item":{
-		"Any item name":{"logic":["boolean","fuzzy"],"value":"text"},
-		"Any item quantity":{"logic":["boolean","amount"],"value":"text"},
-		"Any item amount":{"logic":["boolean","amount"],"value":"price"},
-		"Total quantity":{"logic":["boolean","amount"],"value":"text"},
-		"Shipping amount":{"logic":["boolean","amount"],"value":"price"},
-		"Subtotal amount":{"logic":["boolean","amount"],"value":"price"},
-		"Discount amount":{"logic":["boolean","amount"],"value":"price"},
-		"Promo use count":{"logic":["boolean","amount"],"value":"text"},
-		"Promo code":{"logic":["boolean"],"value":"text"}
+	logic = {
+		"boolean":["Is equal to","Is not equal to"],
+		"fuzzy":["Contains","Does not contain","Begins with","Ends with"],
+		"amount":["Is greater than","Is greater than or equal to","Is less than","Is less than or equal to"]
 	},
-	"Cart Item Target":{
-		"Name":{"logic":["boolean","fuzzy"],"value":"text"},
-		"Category":{"logic":["boolean","fuzzy"],"value":"text"},
-		"Tag name":{"logic":["boolean","fuzzy"],"value":"text"},
-		"Variation":{"logic":["boolean","fuzzy"],"value":"text"},
-		"Input name":{"logic":["boolean","fuzzy"],"value":"text"},
-		"Input value":{"logic":["boolean","fuzzy"],"value":"text"},
-		"Quantity":{"logic":["boolean","amount"],"value":"text"},
-		"Unit price":{"logic":["boolean","amount"],"value":"price"},
-		"Total price":{"logic":["boolean","amount"],"value":"price"},
-		"Discount amount":{"logic":["boolean","amount"],"value":"price"}
-	}
-}
-
-var logic = {
-	"boolean":["Is equal to","Is not equal to"],
-	"fuzzy":["Contains","Does not contain","Begins with","Ends with"],
-	"amount":["Is greater than","Is greater than or equal to","Is less than","Is less than or equal to"]
-}
-
-var Conditional = function (type,settings,location) {
+	Conditional = function (type,settings,location) {
 	var target = $('#promotion-target').val();
 	var row = false;
 
@@ -295,41 +273,26 @@ $('#promotion-target').change(function () {
 
 }).change();
 
+
 if (rules) {
 	for (var r in rules) if (r != 'item') new Conditional('condition',rules[r]);
 } else new Conditional();
 
+$('#starts-calendar').PopupCalendar({
+	m_input:$('#starts-month'),
+	d_input:$('#starts-date'),
+	y_input:$('#starts-year')
+}).bind('show',function () {
+	$('#ends-calendar').hide();
+});
 
-// var scpos = $('#start-position').offset();
-// $('#starts-calendar').hide()
-// 	.css({left:scpos.left,
-// 		   top:scpos.top+$('#start-position input:first').height()});
-// 		console.log(scpos);
-// 		
-// $('#starts-month').click(function (e) {
-// 	$('#ends-calendar').hide();
-// 	$('#starts-calendar').toggle();
-// 	$(StartsCalendar).change(function () {
-// 		$('#starts-month').val(StartsCalendar.selection.getMonth()+1);
-// 		$('#starts-date').val(StartsCalendar.selection.getDate());
-// 		$('#starts-year').val(StartsCalendar.selection.getFullYear());
-// 	});
-// });
-// 
-// var ecpos = $('#end-position').offset();
-// $('#ends-calendar').hide()
-// 	.css({left:ecpos.left,
-// 		   top:ecpos.top+$('#end-position input:first').height()});
-// 		
-// $('#ends-month').click(function (e) {
-// 	$('#starts-calendar').hide();
-// 	$('#ends-calendar').toggle();
-// 	$(EndsCalendar).change(function () {
-// 		$('#ends-month').val(EndsCalendar.selection.getMonth()+1);
-// 		$('#ends-date').val(EndsCalendar.selection.getDate());
-// 		$('#ends-year').val(EndsCalendar.selection.getFullYear());
-// 	});
-// });
+$('#ends-calendar').PopupCalendar({
+	m_input:$('#ends-month'),
+	d_input:$('#ends-date'),
+	y_input:$('#ends-year')
+}).bind('show',function () {
+	$('#starts-calendar').hide();
+});
 
 postboxes.add_postbox_toggles('shopp_page_shopp-promotions');
 // close postboxes that should be closed
