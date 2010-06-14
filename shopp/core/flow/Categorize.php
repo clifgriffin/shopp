@@ -11,13 +11,6 @@
  * @subpackage categories
  **/
 
-/**
- * Categorize
- *
- * @package categories
- * @since 1.1
- * @author Jonathan Davis
- **/
 class Categorize extends AdminController {
 	
 	/**
@@ -40,7 +33,7 @@ class Categorize extends AdminController {
 			
 			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('editors');
-			shopp_enqueue_script('calendar');
+			shopp_enqueue_script('category-editor');
 			shopp_enqueue_script('priceline');
 			shopp_enqueue_script('ocupload');
 			shopp_enqueue_script('swfupload');

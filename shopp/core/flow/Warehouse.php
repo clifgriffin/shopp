@@ -11,13 +11,6 @@
  * @subpackage products
  **/
 
-/**
- * Store
- *
- * @since 1.1
- * @package products
- * @author Jonathan Davis
- **/
 class Warehouse extends AdminController {
 	
 	/**

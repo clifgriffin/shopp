@@ -60,99 +60,98 @@
 <div id="publish-calendar" class="calendar"></div>
 
 <script type="text/javascript">
-<!--
-var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security')))?'true':'false'; ?>;
-var product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>;
-var prices = <?php echo json_encode($Product->prices) ?>;
-var specs = <?php echo json_encode($Product->specs) ?>;
-var options = <?php echo json_encode($Product->options) ?>;
-var priceTypes = <?php echo json_encode($priceTypes) ?>;
-var shiprates = <?php echo json_encode($shiprates); ?>;
-var buttonrsrc = '<?php echo includes_url('images/upload.png'); ?>';
-var uidir = '<?php echo SHOPP_ADMIN_URI; ?>';
-var siteurl = '<?php echo $Shopp->siteurl; ?>';
-var canonurl = '<?php echo $Shopp->canonuri; ?>';
-var adminurl = '<?php echo $Shopp->wpadminurl; ?>';
-var ajaxurl = adminurl+'admin-ajax.php';
-var sugg_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_storage_suggestions"); ?>';
-var spectemp_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_spec_template"); ?>';
-var opttemp_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_options_template"); ?>';
-var catmenu_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_category_menu"); ?>';
-var addcategory_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_add_category"); ?>';
-var editslug_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_edit_slug"); ?>';
-var fileverify_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_verify_file"); ?>';
-var fileimport_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_import_file"); ?>';
-var fileimportp_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_import_file_progress"); ?>';
-var imageul_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_upload_image"); ?>';
-var manager_page = '<?php echo $this->Admin->pagename('products'); ?>';
-var editor_page = '<?php echo $this->Admin->pagename('products'); ?>';
-var request = <?php echo json_encode(stripslashes_deep($_GET)); ?>;
-var workflow = {'continue':editor_page, 'close':manager_page, 'new':editor_page, 'next':editor_page, 'previous':editor_page};
-var worklist = <?php echo json_encode($this->products(true)); ?>;
-var filesizeLimit = <?php echo wp_max_upload_size(); ?>;
-var weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>';
-var dimensionUnit = '<?php echo $this->Settings->get('dimension_unit'); ?>';
-var storage = '<?php echo $this->Settings->get('product_storage'); ?>';
-<?php chdir(WP_CONTENT_DIR); // realpath needs for relative paths ?>
-var productspath = '<?php echo trailingslashit(sanitize_path(realpath($this->Settings->get('products_path')))); ?>';
-var imageupload_debug = <?php echo (defined('SHOPP_IMAGEUPLOAD_DEBUG') && SHOPP_IMAGEUPLOAD_DEBUG)?'true':'false'; ?>;
-var fileupload_debug = <?php echo (defined('SHOPP_FILEUPLOAD_DEBUG') && SHOPP_FILEUPLOAD_DEBUG)?'true':'false'; ?>;
-var dimensionsRequired = <?php echo $Shopp->Shipping->dimensions?'true':'false'; ?>;
-var startWeekday = <?php echo get_option('start_of_week'); ?>;
-var calendarTitle = '<?php $df = date_format_order(); $format = ''; foreach ($df as $type => $f) if ($type == "month" || $type == "year") $format .= $type[0]; echo $format; ?>';
+/* <![CDATA[ */
+var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security')))?'true':'false'; ?>,
+	product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>,
+	prices = <?php echo json_encode($Product->prices) ?>,
+	specs = <?php echo json_encode($Product->specs) ?>,
+	options = <?php echo json_encode($Product->options) ?>,
+	priceTypes = <?php echo json_encode($priceTypes) ?>,
+	shiprates = <?php echo json_encode($shiprates); ?>,
+	buttonrsrc = '<?php echo includes_url('images/upload.png'); ?>',
+	uidir = '<?php echo SHOPP_ADMIN_URI; ?>',
+	siteurl = '<?php echo $Shopp->siteurl; ?>',
+	canonurl = '<?php echo $Shopp->canonuri; ?>',
+	adminurl = '<?php echo $Shopp->wpadminurl; ?>',
+	ajaxurl = adminurl+'admin-ajax.php',
+	sugg_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_storage_suggestions"); ?>',
+	spectemp_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_spec_template"); ?>',
+	opttemp_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_options_template"); ?>',
+	catmenu_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_category_menu"); ?>',
+	addcategory_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_add_category"); ?>',
+	editslug_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_edit_slug"); ?>',
+	fileverify_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_verify_file"); ?>',
+	fileimport_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_import_file"); ?>',
+	fileimportp_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_import_file_progress"); ?>',
+	imageul_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_upload_image"); ?>',
+	manager_page = '<?php echo $this->Admin->pagename('products'); ?>',
+	editor_page = '<?php echo $this->Admin->pagename('products'); ?>',
+	request = <?php echo json_encode(stripslashes_deep($_GET)); ?>,
+	workflow = {'continue':editor_page, 'close':manager_page, 'new':editor_page, 'next':editor_page, 'previous':editor_page},
+	worklist = <?php echo json_encode($this->products(true)); ?>,
+	filesizeLimit = <?php echo wp_max_upload_size(); ?>,
+	weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>',
+	dimensionUnit = '<?php echo $this->Settings->get('dimension_unit'); ?>',
+	storage = '<?php echo $this->Settings->get('product_storage'); ?>',
+	productspath = '<?php chdir(WP_CONTENT_DIR); /* realpath needs for relative paths */ 
+						echo trailingslashit(sanitize_path(realpath($this->Settings->get('products_path')))); ?>',
+	imageupload_debug = <?php echo (defined('SHOPP_IMAGEUPLOAD_DEBUG') && SHOPP_IMAGEUPLOAD_DEBUG)?'true':'false'; ?>,
+	fileupload_debug = <?php echo (defined('SHOPP_FILEUPLOAD_DEBUG') && SHOPP_FILEUPLOAD_DEBUG)?'true':'false'; ?>,
+	dimensionsRequired = <?php echo $Shopp->Shipping->dimensions?'true':'false'; ?>,
+	startWeekday = <?php echo get_option('start_of_week'); ?>,
+	calendarTitle = '<?php $df = date_format_order(); $format = ''; foreach ($df as $type => $f) if ($type == "month" || $type == "year") $format .= $type[0]; echo $format; ?>',
 
-// Warning/Error Dialogs
-var DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this product image?','Shopp'); ?>";
-var SERVER_COMM_ERROR = "<?php _e('There was an error communicating with the server.','Shopp'); ?>";
+	// Warning/Error Dialogs
+	DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this product image?','Shopp'); ?>",
+	SERVER_COMM_ERROR = "<?php _e('There was an error communicating with the server.','Shopp'); ?>",
 
-// Dynamic interface label translations
-var LINK_ALL_VARIATIONS = "<?php _e('Link All Variations','Shopp'); ?>";
-var UNLINK_ALL_VARIATIONS = "<?php _e('Unlink All Variations','Shopp'); ?>";
-var LINK_VARIATIONS = "<?php _e('Link Variations','Shopp'); ?>";
-var UNLINK_VARIATIONS = "<?php _e('Unlink Variations','Shopp'); ?>";
-var ADD_IMAGE_BUTTON_TEXT = "<?php _e('Add New Image','Shopp'); ?>";
-var UPLOAD_FILE_BUTTON_TEXT = "<?php _e('Upload&nbsp;File','Shopp'); ?>";
-var SELECT_FILE_BUTTON_TEXT = "<?php _e('Select File','Shopp'); ?>";
-var SAVE_BUTTON_TEXT = "<?php _e('Save','Shopp'); ?>";
-var CANCEL_BUTTON_TEXT = "<?php _e('Cancel','Shopp'); ?>";
-var TYPE_LABEL = "<?php _e('Type','Shopp'); ?>";
-var PRICE_LABEL = "<?php _e('Price','Shopp'); ?>";
-var AMOUNT_LABEL = "<?php _e('Amount','Shopp'); ?>";
-var SALE_PRICE_LABEL = "<?php _e('Sale Price','Shopp'); ?>";
-var NOT_ON_SALE_TEXT = "<?php _e('Not on Sale','Shopp'); ?>";
-var NOTAX_LABEL = "<?php _e('Not Taxed','Shopp'); ?>";
-var SHIPPING_LABEL = "<?php _e('Shipping','Shopp'); ?>";
-var FREE_SHIPPING_TEXT = "<?php _e('Free Shipping','Shopp'); ?>";
-var WEIGHT_LABEL = "<?php _e('Weight','Shopp'); ?>";
-var LENGTH_LABEL = "<?php _e('Length','Shopp'); ?>";
-var WIDTH_LABEL = "<?php _e('Width','Shopp'); ?>";
-var HEIGHT_LABEL = "<?php _e('Height','Shopp'); ?>";
-var DIMENSIONAL_WEIGHT_LABEL = "<?php _e('3D Weight','Shopp'); ?>";
-var SHIPFEE_LABEL = "<?php _e('Handling Fee','Shopp'); ?>";
-var SHIPFEE_XTRA = "<?php _e('Amount added to shipping costs for each unit ordered (for handling costs, etc)','Shopp'); ?>";
-var INVENTORY_LABEL = "<?php _e('Inventory','Shopp'); ?>";
-var NOT_TRACKED_TEXT = "<?php _e('Not Tracked','Shopp'); ?>";
-var IN_STOCK_LABEL = "<?php _e('In Stock','Shopp'); ?>";
-var OPTION_MENU_DEFAULT = "<?php _e('Option Menu','Shopp'); ?>";
-var NEW_OPTION_DEFAULT = "<?php _e('New Option','Shopp'); ?>";
-var ADDON_GROUP_DEFAULT = "<?php _e('Add-on Group','Shopp'); ?>";
-var SKU_LABEL = "<?php _e('SKU','Shopp'); ?>";
-var SKU_LABEL_HELP = "<?php _e('Stock Keeping Unit','Shopp'); ?>";
-var SKU_XTRA = "<?php _e('Enter a unique stock keeping unit identification code.','Shopp'); ?>";
-var DONATIONS_VAR_LABEL = "<?php _e('Accept variable amounts','Shopp'); ?>";
-var DONATIONS_MIN_LABEL = "<?php _e('Amount required as minimum','Shopp'); ?>";
-var PRODUCT_DOWNLOAD_LABEL = "<?php _e('Product Download','Shopp'); ?>";
-var NO_PRODUCT_DOWNLOAD_TEXT = "<?php _e('No product download.','Shopp'); ?>";
-var NO_DOWNLOAD = "<?php _e('No download file.','Shopp'); ?>";
-var UNKNOWN_UPLOAD_ERROR = "<?php _e('An unknown error occurred. The upload could not be saved.','Shopp'); ?>";
-var DEFAULT_PRICELINE_LABEL = "<?php _e('Price & Delivery','Shopp'); ?>";
-var FILE_NOT_FOUND_TEXT = "<?php _e('The file you specified could not be found.','Shopp'); ?>";
-var FILE_NOT_READ_TEXT = "<?php _e('The file you specified is not readable and cannot be used.','Shopp'); ?>";
-var FILE_ISDIR_TEXT = "<?php _e('The file you specified is a directory and cannot be used.','Shopp'); ?>";
-var IMAGE_DETAILS_TEXT = "<?php _e('Image Details','Shopp'); ?>";
-var IMAGE_DETAILS_TITLE_LABEL = "<?php _e('Title','Shopp'); ?>";
-var IMAGE_DETAILS_ALT_LABEL = "<?php _e('Alt','Shopp'); ?>";
-var IMAGE_DETAILS_CROP_LABEL = "<?php _e('Cropped images','Shopp'); ?>";
-
-//-->
+	// Dynamic interface label translations
+	LINK_ALL_VARIATIONS = "<?php _e('Link All Variations','Shopp'); ?>",
+	UNLINK_ALL_VARIATIONS = "<?php _e('Unlink All Variations','Shopp'); ?>",
+	LINK_VARIATIONS = "<?php _e('Link Variations','Shopp'); ?>",
+	UNLINK_VARIATIONS = "<?php _e('Unlink Variations','Shopp'); ?>",
+	ADD_IMAGE_BUTTON_TEXT = "<?php _e('Add New Image','Shopp'); ?>",
+	UPLOAD_FILE_BUTTON_TEXT = "<?php _e('Upload&nbsp;File','Shopp'); ?>",
+	SELECT_FILE_BUTTON_TEXT = "<?php _e('Select File','Shopp'); ?>",
+	SAVE_BUTTON_TEXT = "<?php _e('Save','Shopp'); ?>",
+	CANCEL_BUTTON_TEXT = "<?php _e('Cancel','Shopp'); ?>",
+	TYPE_LABEL = "<?php _e('Type','Shopp'); ?>",
+	PRICE_LABEL = "<?php _e('Price','Shopp'); ?>",
+	AMOUNT_LABEL = "<?php _e('Amount','Shopp'); ?>",
+	SALE_PRICE_LABEL = "<?php _e('Sale Price','Shopp'); ?>",
+	NOT_ON_SALE_TEXT = "<?php _e('Not on Sale','Shopp'); ?>",
+	NOTAX_LABEL = "<?php _e('Not Taxed','Shopp'); ?>",
+	SHIPPING_LABEL = "<?php _e('Shipping','Shopp'); ?>",
+	FREE_SHIPPING_TEXT = "<?php _e('Free Shipping','Shopp'); ?>",
+	WEIGHT_LABEL = "<?php _e('Weight','Shopp'); ?>",
+	LENGTH_LABEL = "<?php _e('Length','Shopp'); ?>",
+	WIDTH_LABEL = "<?php _e('Width','Shopp'); ?>",
+	HEIGHT_LABEL = "<?php _e('Height','Shopp'); ?>",
+	DIMENSIONAL_WEIGHT_LABEL = "<?php _e('3D Weight','Shopp'); ?>",
+	SHIPFEE_LABEL = "<?php _e('Handling Fee','Shopp'); ?>",
+	SHIPFEE_XTRA = "<?php _e('Amount added to shipping costs for each unit ordered (for handling costs, etc)','Shopp'); ?>",
+	INVENTORY_LABEL = "<?php _e('Inventory','Shopp'); ?>",
+	NOT_TRACKED_TEXT = "<?php _e('Not Tracked','Shopp'); ?>",
+	IN_STOCK_LABEL = "<?php _e('In Stock','Shopp'); ?>",
+	OPTION_MENU_DEFAULT = "<?php _e('Option Menu','Shopp'); ?>",
+	NEW_OPTION_DEFAULT = "<?php _e('New Option','Shopp'); ?>",
+	ADDON_GROUP_DEFAULT = "<?php _e('Add-on Group','Shopp'); ?>",
+	SKU_LABEL = "<?php _e('SKU','Shopp'); ?>",
+	SKU_LABEL_HELP = "<?php _e('Stock Keeping Unit','Shopp'); ?>",
+	SKU_XTRA = "<?php _e('Enter a unique stock keeping unit identification code.','Shopp'); ?>",
+	DONATIONS_VAR_LABEL = "<?php _e('Accept variable amounts','Shopp'); ?>",
+	DONATIONS_MIN_LABEL = "<?php _e('Amount required as minimum','Shopp'); ?>",
+	PRODUCT_DOWNLOAD_LABEL = "<?php _e('Product Download','Shopp'); ?>",
+	NO_PRODUCT_DOWNLOAD_TEXT = "<?php _e('No product download.','Shopp'); ?>",
+	NO_DOWNLOAD = "<?php _e('No download file.','Shopp'); ?>",
+	UNKNOWN_UPLOAD_ERROR = "<?php _e('An unknown error occurred. The upload could not be saved.','Shopp'); ?>",
+	DEFAULT_PRICELINE_LABEL = "<?php _e('Price & Delivery','Shopp'); ?>",
+	FILE_NOT_FOUND_TEXT = "<?php _e('The file you specified could not be found.','Shopp'); ?>",
+	FILE_NOT_READ_TEXT = "<?php _e('The file you specified is not readable and cannot be used.','Shopp'); ?>",
+	FILE_ISDIR_TEXT = "<?php _e('The file you specified is a directory and cannot be used.','Shopp'); ?>",
+	IMAGE_DETAILS_TEXT = "<?php _e('Image Details','Shopp'); ?>",
+	IMAGE_DETAILS_TITLE_LABEL = "<?php _e('Title','Shopp'); ?>",
+	IMAGE_DETAILS_ALT_LABEL = "<?php _e('Alt','Shopp'); ?>",
+	IMAGE_DETAILS_CROP_LABEL = "<?php _e('Cropped images','Shopp'); ?>";
+/* ]]> */
 </script>
