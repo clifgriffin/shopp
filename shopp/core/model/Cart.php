@@ -610,11 +610,13 @@ class Cart {
 			case "promoname":
 			case "promo-name":
 				$discount = current($this->discounts);
+				if ($discount->applied == 0) return false;
 				return $discount->name;
 				break;
 			case "promodiscount":
 			case "promo-discount":
 				$discount = current($this->discounts);
+				if ($discount->applied == 0) return false;
 				if (!isset($options['label'])) $options['label'] = ' '.__('Off!','Shopp');
 				else $options['label'] = ' '.$options['label'];
 				$string = false;
