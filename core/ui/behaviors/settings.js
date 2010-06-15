@@ -312,7 +312,7 @@ function SettingInput (module,attrs,options,method) {
 	_.selectall = function () {
 		var id = _.id;
 		$('#'+id+'-select-all').change(function () {
-			if (_.checked) $('#'+id+' input').attr('checked',true);
+			if (this.checked) $('#'+id+' input').attr('checked',true);
 			else $('#'+id+' input').attr('checked',false);
 		});
 	}
