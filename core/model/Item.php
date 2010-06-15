@@ -454,6 +454,7 @@ class Item {
 			case "id": return $id;
 			case "product": return $this->product;
 			case "name": return $this->name;
+			case "type": return $this->type;
 			case "link":
 			case "url": 
 				return (SHOPP_PERMALINKS)?
