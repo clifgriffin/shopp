@@ -573,8 +573,10 @@ class Cart {
 		// Return strings with no options
 		switch ($property) {
 			case "url": return $Shopp->link('cart'); break;
-			case "hasitems": return (count($this->contents) > 0); break;
-			case "totalitems": return $this->Totals->quantity; break;
+			case "hasitems":
+			case "has-items": return (count($this->contents) > 0); break;
+			case "totalitems":
+			case "total-items": return $this->Totals->quantity; break;
 			case "items":
 				if (!$this->looping) {
 					reset($this->contents);
@@ -587,9 +589,12 @@ class Cart {
 					reset($this->contents);
 					return false;
 				}
-			case "lastitem": return $this->contents[$this->added]; break;
-			case "totalpromos": return count($this->discounts); break;
-			case "haspromos": return (count($this->discounts) > 0); break;
+			case "lastitem":
+			case "last-item": return $this->contents[$this->added]; break;
+			case "totalpromos":
+			case "total-promos": return count($this->discounts); break;
+			case "haspromos":
+			case "has-promos": return (count($this->discounts) > 0); break;
 			case "promos":
 				if (!$this->looping) {
 					reset($this->discounts);
@@ -602,10 +607,12 @@ class Cart {
 					reset($this->discounts);
 					return false;
 				}
+			case "promoname":
 			case "promo-name":
 				$discount = current($this->discounts);
 				return $discount->name;
 				break;
+			case "promodiscount":
 			case "promo-discount":
 				$discount = current($this->discounts);
 				if (!isset($options['label'])) $options['label'] = ' '.__('Off!','Shopp');
@@ -631,13 +638,15 @@ class Cart {
 					if (!empty($error)) $result .= '<p class="error">'.$error->message(true,false).'</p>';
 				return $result;
 				break;
+			case "emptybutton":
 			case "empty-button": 
 				if (!isset($options['value'])) $options['value'] = __('Empty Cart','Shopp');
 				return '<input type="submit" name="empty" id="empty-button" '.inputattrs($options,$submit_attrs).' />';
 				break;
+			case "updatebutton":
 			case "update-button": 
 				if (!isset($options['value'])) $options['value'] = __('Update Subtotal','Shopp');
-				if (isset($options['class'])) $options['class'] .= "update-button";
+				if (isset($options['class'])) $options['class'] .= " update-button";
 				else $options['class'] = "update-button";
 				return '<input type="submit" name="update"'.inputattrs($options,$submit_attrs).' />';
 				break;
@@ -648,7 +657,8 @@ class Cart {
 				ob_end_clean();
 				return $content;
 				break;
-			case "hasdiscount": return ($this->Totals->discount > 0); break;
+			case "hasdiscount":
+			case "has-discount": return ($this->Totals->discount > 0); break;
 			case "discount": return money($this->Totals->discount); break;
 		}
 		
