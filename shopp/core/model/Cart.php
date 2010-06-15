@@ -998,6 +998,7 @@ class CartDiscounts {
 		$this->Order = &$Shopp->Order;
 		$this->Cart = &$Shopp->Order->Cart;
 		$this->promos = &$Shopp->Promotions->promotions;
+		// print_r($this->promos);
 	}
 	
 	/**
@@ -1015,8 +1016,10 @@ class CartDiscounts {
 		foreach ($this->Cart->discounts as $Discount) {
 			if (isset($Discount->items)) {
 				foreach ($Discount->items as $id => $amount) {
-					if (isset($this->Cart->contents[$id]))
+					if (isset($this->Cart->contents[$id])) {
 						$this->Cart->contents[$id]->discount += $amount;
+						$this->Cart->contents[$id]->retotal();
+					}
 				}
 			}
 			$discount += $Discount->applied;
@@ -1071,7 +1074,7 @@ class CartDiscounts {
 				} elseif (in_array($property,$this->itemprops)) {
 					// See if an item rule matches
 					foreach ($this->Cart->contents as $id => &$Item)
-						if ($Item->match($rule)) break;
+						if ($match = $Item->match($rule)) break;
 				} else {
 					// Match cart aggregate property rules
 					switch($property) {
@@ -1079,6 +1082,7 @@ class CartDiscounts {
 						case "Total quantity": $subject = $this->Cart->Totals->quantity; break;
 						case "Shipping amount": $subject = $this->Cart->Totals->shipping; break;
 						case "Subtotal amount": $subject = $this->Cart->Totals->subtotal; break;
+						case "Customer type": $subject = $this->Order->Customer->type; break;
 						case "Ship-to country": $subject = $this->Order->Shipping->country; break;
 					}
 					if (Promotion::match_rule($subject,$logic,$value,$property))
@@ -1135,22 +1139,21 @@ class CartDiscounts {
 
 		$promo->applied = 0;	// Track total discount applied by the promo
 		
-		// Per line item discounts
+		// Line item discounts
 		if (isset($promo->rules['item'])) {
 			foreach ($promo->rules['item'] as $rule) {
 				if (in_array($rule['property'],$this->cartitemprops)) {
 					// See if an item rule matches
 					foreach ($this->Cart->contents as $id => &$Item) {
-
-						if ($Item->match($rule)) {
+						
+						if ($Item->match($rule) && !isset($promo->items[$id])) {
 							switch ($promo->type) {
-								case "Percentage Off": $discount = $Item->total*($promo->discount/100); break;
+								case "Percentage Off": $discount = $Item->total*($promo->discount/100); echo $discount; break;
 								case "Amount Off": $discount = $promo->discount; break;
 								case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
 							}
 							$promo->applied += $discount;
 							$promo->items[$id] = $discount;
-							
 						} // endif $Item->match
 					} // endforeach
 				} // end in_array
