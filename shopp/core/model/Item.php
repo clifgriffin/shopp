@@ -83,16 +83,18 @@ class Item {
 		$this->category = $category;
 		$this->categories = $this->namelist($Product->categories);
 		$this->tags = $this->namelist($Product->tags);
-		if (isset($Price->id))
-			$this->option = $this->mapprice($Price,'variation');
 		$this->image = current($Product->images);
 		$this->description = $Product->summary;
+		
 		if ($Product->variations == "on") 
 			$this->variations($Product->prices);
 			
 		$addonsum = 0;
 		if (isset($Product->addons) && $Product->addons == "on") 
 			$this->addons($addonsum,$addons,$Product->prices);
+
+		if (isset($Price->id))
+			$this->option = $this->mapprice($Price);
 		
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
@@ -129,7 +131,6 @@ class Item {
 		$Settings = ShoppSettings();
 		$this->inventory = ($Price->inventory == "on")?true:false;
 		$this->taxable = ($Price->tax == "on" && $Settings->get('taxes') == "on")?true:false;
-
 	}
 	
 	/**
@@ -252,7 +253,7 @@ class Item {
 	function variations ($prices) {
 		foreach ($prices as $price)	{
 			if ($price->type == "N/A") continue;
-			$pricing = $this->mapprice($price, 'variation');
+			$pricing = $this->mapprice($price);
 			if ($pricing) $this->variations[] = $pricing;
 		}		
 	}
@@ -269,7 +270,7 @@ class Item {
 	function addons (&$sum,$addons,$prices) {
 		foreach ($prices as $p)	{
 			if ($p->type == "N/A" || !in_array($p->options,$addons)) continue;
-			$pricing = $this->mapprice($p,'addon');
+			$pricing = $this->mapprice($p);
 			if ($pricing) {
 				$pricing->unitprice = (($p->onsale)?$p->promoprice:$p->price);
 				$this->addons[] = $pricing;
@@ -288,10 +289,10 @@ class Item {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 * 
+	 * @param Object $price Price object to minimize
 	 * @return object An Item variation object
 	 **/
-	function mapprice ($price,$context) {
-		if ($price->context != $context) return false;
+	function mapprice ($price) {
 		$map = array('id','type','label','onsale','promoprice','price','inventory','stock','options');
 		$v = new stdClass();
 		foreach ($map as $property)
