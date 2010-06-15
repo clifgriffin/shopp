@@ -232,8 +232,8 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 					$_[] = '<Country>'.$country.'</Country>';
 				} else {
 					$_[] = '<Service>ALL</Service>';
-					$_[] = '<ZipOrigination>'.$this->settings['postcode'].'</ZipOrigination>';
-					$_[] = '<ZipDestination>'.$postcode.'</ZipDestination>';
+					$_[] = '<ZipOrigination>'.substr($this->settings['postcode'],0,5).'</ZipOrigination>';
+					$_[] = '<ZipDestination>'.substr($postcode,0,5).'</ZipDestination>';
 					$_[] = '<Pounds>'.$pounds.'</Pounds>';
 					$_[] = '<Ounces>'.$ounces.'</Ounces>';
 					$_[] = '<Size>REGULAR</Size>';
