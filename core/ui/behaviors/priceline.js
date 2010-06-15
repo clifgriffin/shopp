@@ -164,6 +164,7 @@ function Priceline (id,options,data,target,attachment) {
 	_.label = false;			// The label of the priceline
 	_.links = new Array();	// Option linking registry
 	_.inputs = new Array();	// Inputs registry
+	_.lasttype = false;		// Tracks the previous product type selected
 
 	// Give this entry a unique runtime id
 	i = _.id;
@@ -453,7 +454,8 @@ function Priceline (id,options,data,target,attachment) {
 	
 	
 	// Setup behaviors
-	_.disable = function () { type.val('N/A').trigger('change.value'); }
+	_.disable = function () { _.lasttype = (type.val())?type.val():false; type.val('N/A').trigger('change.value'); }
+	_.enable = function () { if (_.lasttype) type.val(_.lasttype).trigger('change.value'); }
 	
 	// Set the context for the db
 	if (data && data.context) context.val(data.context);

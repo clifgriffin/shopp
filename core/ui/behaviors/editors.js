@@ -442,6 +442,7 @@ function variationsToggle () {
 	} else {
 		ui.hide();
 		baseprice.show();
+		if (Pricelines.row[0]) Pricelines.row[0].enable();
 	}
 }
 
