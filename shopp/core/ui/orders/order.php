@@ -12,7 +12,7 @@
 	<div id="order">
 		<br class="clear" />
 		<div id="titlewrap">
-			<big><?php _e('Order','Shopp'); ?> #<?php echo $Purchase->id; ?><span class="date"><?php echo _d(get_option('date_format'), $Purchase->created); ?></span></big>
+			<?php _e('Order','Shopp'); ?> #<?php echo $Purchase->id; ?><span class="date"><?php echo _d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small></span>
 			<input type="submit" id="print-button" value="<?php _e('Print Order','Shopp'); ?>" class="button" />
 		</div>
 		<br class="clear" />

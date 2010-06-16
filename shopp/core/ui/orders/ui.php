@@ -32,11 +32,33 @@ if (!empty($Shopp->Purchase->shipaddress))
 	add_meta_box('order-shipto', __('Shipping Address','Shopp'), 'shipto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function contact_meta_box ($Purchase) {
+	$customer_url = add_query_arg(array('page'=>'shopp-customers','id'=>$Purchase->customer),admin_url('admin.php'));
+	$customer_url = apply_filters('shopp_order_customer_url',$customer_url);
+	
+	$email_url = 'mailto:'.$Purchase->email.'?subject='.sprintf(__('RE: %s: Order #%s','Shopp'),get_bloginfo('sitename'),$Purchase->id);
+	$email_url = apply_filters('shopp_order_customer_email_url',$email_url);
+	
+	$phone_url = 'callto:'.preg_replace('/[^\d+]/','',$Purchase->phone);
+	$phone_url = apply_filters('shopp_order_customer_phone_url',$phone_url);
+	
+	$Settings =& ShoppSettings();
+	$accounts = $Settings->get('account_system');
+	$wp_user = false;
+	if ($accounts == "wordpress") {
+		$Customer = new Customer($Purchase->customer);
+		$wp_user = get_userdata($Customer->wpuser);
+		$edituser_url = add_query_arg('user_id',$Customer->wpuser,admin_url('user-edit.php'));
+		$edituser_url = apply_filters('shopp_order_customer_wpuser_url',$edituser_url);
+	} 
+	
+
 ?>
-	<p class="customer name"><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></p>
+	<p class="customer name"><a href="<?php echo $customer_url; ?>"><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></a><?php
+		if ($wp_user) echo ' (<a href="'.$edituser_url.'">'.$wp_user->user_login.'</a>)';
+	?></p>
 	<?php echo !empty($Purchase->company)?'<p class="customer company">'.$Purchase->company.'</p>':''; ?>
-	<?php echo !empty($Purchase->email)?'<p class="customer email"><a href="mailto:'.$Purchase->email.'">'.$Purchase->email.'</a></p>':''; ?>
-	<?php echo !empty($Purchase->phone)?'<p class="customer phone">'.$Purchase->phone.'</p>':''; ?>
+	<?php echo !empty($Purchase->email)?'<p class="customer email"><a href="'.$email_url.'">'.$Purchase->email.'</a></p>':''; ?>
+	<?php echo !empty($Purchase->phone)?'<p class="customer phone"><a href="'.$phone_url.'">'.$Purchase->phone.'</a></p>':''; ?>
 	<p class="customer <?php echo ($Purchase->Customer->marketing == "yes")?'marketing':'nomarketing'; ?>"><?php ($Purchase->Customer->marketing == "yes")?_e('Agreed to marketing','Shopp'):_e('No marketing','Shopp'); ?></p>
 <?php
 }
@@ -130,15 +152,13 @@ function status_meta_box ($Purchase) {
 
 <p>
 	<span>
-<label for="txn_status_menu"><?php _e('Payment','Shopp'); ?>:</label>
-<select name="txnstatus" id="txn_status_menu">
+<label for="txn_status_menu"><?php _e('Payment','Shopp'); ?>: <select name="txnstatus" id="txn_status_menu">
 <?php echo menuoptions($UI->txnStatusLabels,$Purchase->txnstatus,true,true); ?>
-</select>
+</select></label>
 &nbsp;
-<label for="order_status_menu"><?php _e('Order Status','Shopp'); ?>:</label>
-<select name="status" id="order_status_menu">
+<label for="order_status_menu"><?php _e('Order Status','Shopp'); ?>: <select name="status" id="order_status_menu">
 <?php echo menuoptions($UI->statusLabels,$Purchase->status,true); ?>
-</select></span>
+</select></label></span>
 <br class="clear" />
 </p>
 </div>
