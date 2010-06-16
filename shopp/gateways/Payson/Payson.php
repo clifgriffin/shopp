@@ -12,7 +12,7 @@
  * 
  * $Id$
  **/
-class Payson extends GatewayFramework implements GatewayModule {          
+class Payson extends GatewayFramework implements GatewayModule {
 
 	var $secure = false;
 
@@ -39,6 +39,7 @@ class Payson extends GatewayFramework implements GatewayModule {
 	
 	/* Handle the checkout form */
 	function checkout () {
+		$this->Order->Billing->cardtype = "Payson";
 		$this->Order->confirm = true;
 	}
 	
@@ -87,12 +88,13 @@ class Payson extends GatewayFramework implements GatewayModule {
 			$_['GuaranteeOffered'].$this->settings['key']
 		);
 		$_['MD5']					= md5(join(':',$checkfields));
-				
+	
 		return $form.$this->format($_);
 	}
 		
 	function process () {
-		$this->Order->transaction($_GET['Paysonref'],'CHARGED',$_GET['Fee']);
+		global $Shopp;
+		$Shopp->Order->transaction($_GET['Paysonref'],'CHARGED',$_GET['Fee']);
 	}
 	
 	function returned () {
@@ -110,10 +112,20 @@ class Payson extends GatewayFramework implements GatewayModule {
 
 		// Check for unique transaction id
 		$Purchase = new Purchase($_GET['Paysonref'],'txnid');
-		if (!empty($Purchase->id)) return false; // Purchase already recorded
+		if (!empty($Purchase->id)) {
+			$Shopp->Purchase = $Purchase;
+			$Shopp->Order->purchase = $Purchase->id;
+			shopp_redirect($Shopp->link('thanks',false));
+			return false;
+		}
 		
-		if ($Shopp->Shopping->session != $_GET['RefNr'])
+		if ($Shopp->Shopping->session != $_GET['RefNr']) {
+			// Unqueue previous session hook to prevent duplicate notifications from firing
+			remove_action('shopp_order_notifications',array(&$Shopp->Order,'notify'));
 			$Shopp->resession($_GET['RefNr']);
+			$Shopp->Order = ShoppingObject::__new('Order');
+			$Order = &$Shopp->Order;
+		}
 		
 		$checkfields = array(
 			$_GET['OkURL'],
@@ -121,12 +133,12 @@ class Payson extends GatewayFramework implements GatewayModule {
 			$this->settings['key']
 		);
 		$checksum = md5(join('',$checkfields));
-
+		
 		if ($Shopp->Shopping->session != $_GET['RefNr'] || $checksum != $_GET['MD5']) {
 			new ShoppError(__('An order was received from Payson that could not be validated against existing pre-order data.  Possible order spoof attempt!','Shopp'),'payson_trxn_validation',SHOPP_TRXN_ERR);
 			return false;
 		}
-
+				
 		// Run order processing
 		do_action('shopp_process_order'); 
 	}
