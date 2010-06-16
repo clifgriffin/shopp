@@ -608,52 +608,51 @@ class Order {
 	 * @return boolean Validity of the order
 	 **/
 	function validate () {		
-		$Order = $this->data->Order;
-		$Customer = $Order->Customer;
-		$Shipping = $this->data->Order->Shipping;
-		$errorindex = 0;
-		
-		if (empty($this->contents)) { 
-			new ShoppError(__("There are no items in the cart."),'invalid_order'.$errorindex++,SHOPP_TXN_ERR);
+		$Customer = $this->Customer;
+		$Shipping = $this->Shipping;
+		$Cart = $this->Cart;
+		$errors = 0;
+
+		if (empty($Cart->contents)) { 
+			new ShoppError(__("There are no items in the cart."),'invalid_order'.$errors++,SHOPP_TXN_ERR);
 			return false;
 		}
 		
 		$stock = true;
-		foreach ($this->contents as $item) { 
+		foreach ($Cart->contents as $item) { 
 			if (!$item->instock()){
 				new ShoppError(sprintf(__("%s does not have sufficient stock to process order."),
-				$item->name . ($item->optionlabel?" ({$item->optionlabel})":"")),
-				'invalid_order'.$errorindex++,SHOPP_TXN_ERR);
+				$item->name . ($item->option->label?" ({$item->option->label})":"")),
+				'invalid_order'.$errors++,SHOPP_TXN_ERR);
 				$stock = false;
 			} 
 		}
-		
 		if (!$stock) return false;
 
-		if (empty($Order)) {
-			new ShoppError(__("Missing order data."),'invalid_order'.$errorindex++,SHOPP_TXN_ERR); 
+		if (empty($this)) {
+			new ShoppError(__("Missing order data."),'invalid_order'.$errors++,SHOPP_TXN_ERR); 
 			return false;
 		}
 		
-		$hasCustInfo = true;
-		if (!$Customer) $hasCustInfo = false; // No Customer
+		$valid = true;
+		if (!$Customer) $valid = false; // No Customer
 
 		// Always require name and email
-		if (empty($Customer->firstname) || empty($Customer->lastname)) $hasCustInfo = false;
-		if (empty($Customer->email) ) $hasCustInfo = false;
+		if (empty($Customer->firstname) || empty($Customer->lastname)) $valid = false;
+		if (empty($Customer->email)) $valid = false;
 
-		if (!$hasCustInfo) new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order'.$errorindex++,SHOPP_TXN_ERR);
-		return $hasCustInfo;
+		if (!$valid) new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order'.$errors++,SHOPP_TXN_ERR);
+		return $valid;
 		
 		// Check for shipped items but no Shipping information
-		$hasShipInfo = true;
-		if ($this->data->Shipping) {
-			if (empty($Shipping->address)) $hasShipInfo = false;
-			if (empty($Shipping->country)) $hasShipInfo = false;
-			if (empty($Shipping->postcode)) $hasShipInfo = false;
+		$valid = true;
+		if ($this->Shipping) {
+			if (empty($Shipping->address)) $valid = false;
+			if (empty($Shipping->country)) $valid = false;
+			if (empty($Shipping->postcode)) $valid = false;
 		}
-		if (!$hasShipInfo) new ShoppError(__('The shipping address information is incomplete.  The order can not be processed','Shopp'),'invalid_order'.$errorindex++,SHOPP_TXN_ERR);
-		return $hasShipInfo;
+		if (!$valid) new ShoppError(__('The shipping address information is incomplete.  The order can not be processed','Shopp'),'invalid_order'.$errors++,SHOPP_TXN_ERR);
+		return $valid;
 	}
 
 	/**
@@ -888,6 +887,13 @@ class Order {
 				$checked = ' checked="checked"';
 				if (isset($options['checked']) && !value_is_true($options['checked'])) $checked = '';
 				$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" '.$checked.' /> '.$label.'</label>';
+				return $output;
+				break;
+			case "residential-shipping-address":
+				$label = __("Residential shipping address","Shopp");
+				if (isset($options['label'])) $label = $options['label'];
+				if (isset($options['checked']) && value_is_true($options['checked'])) $checked = ' checked="checked"';
+				$output = '<label for="residential-shipping"><input type="checkbox" name="residentialshipping" value="on" id="residential-shipping" '.$checked.' /> '.$label.'</label>';
 				return $output;
 				break;
 				
@@ -1211,6 +1217,10 @@ class Order {
 				add_storefrontjs($js, true);
 				
 				return $output;
+				break;
+			case "gatewayinputs":
+			case "gateway-inputs":
+				return apply_filters('shopp_checkout_gateway_inputs',false);
 				break;
 			case "completed":
 				if (empty($Shopp->Purchase->id) && $this->purchase !== false) {
