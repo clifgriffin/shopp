@@ -444,6 +444,9 @@ class Cart {
 		// Free shipping until costs are assessed
 		$this->freeshipping = true;	
 
+		// Identify downloadable products
+		$this->downloads();
+		
 		// If no items are shipped, free shipping is disabled
 		if (!$this->shipped()) $this->freeshipping = false;
 		
@@ -578,17 +581,50 @@ class Cart {
 			case "totalitems":
 			case "total-items": return $this->Totals->quantity; break;
 			case "items":
-				if (!$this->looping) {
+				if (!isset($this->_item_loop)) {
 					reset($this->contents);
-					$this->looping = true;
+					$this->_item_loop = true;
 				} else next($this->contents);
 				
 				if (current($this->contents)) return true;
 				else {
-					$this->looping = false;
+					unset($this->_item_loop);
 					reset($this->contents);
 					return false;
 				}
+				break;
+			case "hasshipped":
+			case "has-shipped": return $this->shipped(); break;
+			case "shippeditems":
+			case "shipped-items":
+				if (!isset($this->_shipped_loop)) {
+					reset($this->shipped);
+					$this->_shipped_loop = true;
+				} else next($this->shipped);
+			
+				if (current($this->shipped)) return true;
+				else {
+					unset($this->_shipped_loop);
+					reset($this->shipped);
+					return false;
+				}
+				break;
+			case "hasdownloads":
+			case "has-downloads": return $this->downloads(); break;
+			case "downloaditems":
+			case "download-items":
+				if (!isset($this->_downloads_loop)) {
+					reset($this->downloads);
+					$this->_downloads_loop = true;
+				} else next($this->downloads);
+			
+				if (current($this->downloads)) return true;
+				else {
+					unset($this->_downloads_loop);
+					reset($this->downloads);
+					return false;
+				}
+				break;
 			case "lastitem":
 			case "last-item": return $this->contents[$this->added]; break;
 			case "totalpromos":
@@ -783,12 +819,14 @@ class Cart {
 	 * @return mixed
 	 **/
 	function itemtag ($property,$options=array()) {
-		if ($this->looping) {
-			$Item = current($this->contents);
-			if ($Item !== false) {
-				$id = key($this->contents);
-				return $Item->tag($id,$property,$options);
-			}
+		$Item = false;
+		if (isset($this->_item_loop)) $Item = current($this->contents);
+		elseif (isset($this->_shipped_loop)) $Item = current($this->shipped);
+		elseif (isset($this->_downloads_loop)) $Item = current($this->downloads);
+		
+		if ($Item !== false) {
+			$id = key($this->contents);
+			return $Item->tag($id,$property,$options);
 		} else return false;
 	}
 
