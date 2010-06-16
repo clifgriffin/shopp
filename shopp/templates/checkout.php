@@ -79,6 +79,7 @@
 			</div>
 		<?php if (shopp('checkout','shipping')): ?>
 			<div class="inline"><?php shopp('checkout','same-shipping-address'); ?></div>
+			<div class="inline"><?php shopp('checkout','residential-shipping-address'); ?></div>
 			</li>
 			<li class="half right" id="shipping-address-fields">
 				<label for="shipping-address"><?php _e('Shipping Address','Shopp'); ?></label>
@@ -105,7 +106,7 @@
 				<div class="right">
 					<?php shopp('checkout','shipping-country','required=true&title='.__('Country shipping address','Shopp')); ?>
 					<label for="shipping-country"><?php _e('Country','Shopp'); ?></label>
-				</div>
+				</div>				
 			</li>
 		<?php else: ?>
 			</li>
@@ -119,7 +120,10 @@
 			</li>
 		<?php endif; ?>
 		<li></li>
-		<li><?php shopp('checkout','payment-options'); ?></li>
+		<li>
+			<?php shopp('checkout','payment-options'); ?>
+			<?php shopp('checkout','gateway-inputs'); ?>
+		</li>
 		<?php if (shopp('checkout','card-required')): ?>
 		<li class="payment">
 			<label for="billing-card"><?php _e('Payment Information','Shopp'); ?></label>
