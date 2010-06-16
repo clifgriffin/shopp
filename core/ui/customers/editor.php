@@ -58,7 +58,8 @@ postboxes.add_postbox_toggles('shopp_page_shopp-customers');
 jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 
 $('#username').click(function () {
-	document.location.href = '/wp-admin/user-edit.php?user_id='+$('#userid').val();
+	var url = $(this).attr('rel');
+	if (url) document.location.href = url;
 });
 
 updateStates('#billing-country','#billing-state-inputs');

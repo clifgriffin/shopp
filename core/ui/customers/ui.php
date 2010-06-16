@@ -4,6 +4,7 @@ function save_meta_box ($Customer) {
 <div id="misc-publishing-actions">
 <p><strong><a href="<?php echo add_query_arg(array('page'=>'shopp-orders','customer'=>$Customer->id),admin_url('admin.php')); ?>"><?php _e('Orders','Shopp'); ?></a>: </strong><?php echo $Customer->orders; ?> &mdash; <strong><?php echo money($Customer->total); ?></strong></p>
 <p><strong><a href="<?php echo add_query_arg(array('page'=>'shopp-customers','range'=>'custom','start'=>date('n/j/Y',$Customer->created),'end'=>date('n/j/Y',$Customer->created)),admin_url('admin.php')); ?>"><?php _e('Joined','Shopp'); ?></a>: </strong><?php echo date(get_option('date_format'),$Customer->created); ?></p>
+<?php do_action('shopp_customer_editor_info',$Customer); ?>
 </div>
 <div id="major-publishing-actions">
 	<input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" />
@@ -29,6 +30,7 @@ function settings_meta_box ($Customer) {
 		</span>
 	</p>
 	<br class="clear" />
+	<?php do_action('shopp_customer_editor_settings',$Customer); ?>
 <?php
 }
 add_meta_box('customer-settings', __('Settings','Shopp'), 'settings_meta_box', 'shopp_page_shopp-customers', 'side', 'core');
@@ -58,7 +60,7 @@ function profile_meta_box ($Customer) {
 <p>
 	<span>
 	<input type="hidden" name="userid" id="userid" value="<?php echo $Customer->wpuser; ?>" />
-	<input type="text" name="username" id="username" value="<?php echo $wp_user->user_login; ?>" size="24" readonly="readonly" class="clickable" /><br />
+	<input type="text" name="username" id="username" value="<?php echo $wp_user->user_login; ?>" size="24" readonly="readonly" class="clickable" rel="<?php echo add_query_arg('user_id',$Customer->wpuser,admin_url('user-edit.php')); ?>" /><br />
 	<label for="username"><?php _e('Login (Click to edit user)','Shopp'); ?></label>
 	</span>
 <?php endif; ?>

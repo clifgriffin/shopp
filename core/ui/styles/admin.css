@@ -364,6 +364,8 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .meta-boxes .inside p.customer { background-repeat:no-repeat;background-position:0px 5px;padding-left:24px;line-height:18px; }
 
 #order span.date { color:#777;border-left:1px solid #aaa;margin-left:10px;padding-left:10px; }
+#order #titlewrap { font-size: 1.2em; text-shadow: white 0px 1px 0px; }
+
 #taxrates-table th,
 #taxrates-table td { position:relative;text-align:left;border:none;padding:0 5px 5px 0; }
 #taxrates-table button.deleteButton { position:relative;width:20px;height:21px;margin-left:-20px;line-height:1em;top:-1px; }
