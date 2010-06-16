@@ -77,6 +77,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	}
 		
 	function checkout () {
+		$this->Order->Billing->cardtype = "PayPal";
 		$this->Order->confirm = true;
 	}
 
