@@ -90,7 +90,7 @@ class Cart {
 	 **/
 	function request () {
 		global $Shopp;
-
+		
 		if (isset($_REQUEST['checkout'])) shopp_redirect($Shopp->link('checkout',true));
 		
 		if (isset($_REQUEST['shopping'])) shopp_redirect($Shopp->link('catalog'));
@@ -576,6 +576,12 @@ class Cart {
 		// Return strings with no options
 		switch ($property) {
 			case "url": return $Shopp->link('cart'); break;
+			case "referrer": 
+			case "referer": 
+				$referrer = wp_get_referer(); 
+				if (!$referrer) $referrer = shopp('catalog','url','return=1');
+				return $referrer;
+				break;
 			case "hasitems":
 			case "has-items": return (count($this->contents) > 0); break;
 			case "totalitems":
@@ -735,6 +741,8 @@ class Cart {
 				// 		&& $this->Shipping); break;				
 			case "needs-shipped": return (!empty($this->shipped)); break;
 			case "hasshipcosts":
+			case "has-shipcosts":
+			case "hasship-costs":
 			case "has-ship-costs": return ($this->Totals->shipping > 0); break;
 			case "needs-shipping-estimates":
 				$markets = $Shopp->Settings->get('target_markets');
