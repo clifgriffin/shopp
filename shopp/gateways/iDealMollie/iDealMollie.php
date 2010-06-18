@@ -18,7 +18,7 @@ class iDealMollie extends GatewayFramework implements GatewayModule {
 	
 	var $secure = false;
 	var $url = 'http://www.mollie.nl/xml/ideal/';
-	var $buttonurl = '/gateways/iDealMollie/ideal.gif';
+	var $buttonurl = '/gateways/iDealMollie/ideal.png';
 
 	function __construct () {
 		parent::__construct();
@@ -36,7 +36,7 @@ class iDealMollie extends GatewayFramework implements GatewayModule {
 	
 	function init () {
 		add_filter('shopp_checkout_gateway_inputs',array(&$this,'inputs'),10);
-		// add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
+		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 	}
 	
 	function checkout () {
@@ -143,7 +143,7 @@ class iDealMollie extends GatewayFramework implements GatewayModule {
 		
 		
 	function submit ($tag=false,$options=array(),$attrs=array()) {
-		return '<input type="image" name="process" src="'.$this->buttonurl.'" id="checkout-button" alt="iDeal" width="57" height="51" '.inputattrs($options,$attrs).' />';
+		return '<input type="image" name="process" src="'.$this->buttonurl.'" id="checkout-button" alt="iDeal" width="75" height="75" '.inputattrs($options,$attrs).' />';
 	}
 	
 	function inputs ($options) {
