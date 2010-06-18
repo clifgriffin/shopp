@@ -282,7 +282,8 @@ class Catalog extends DatabaseObject {
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = $parent->slug;
-							$string = substr($string,0,-5); // Remove the previous </li>
+							if (substr($string,-5,5) == "</li>") // Keep everything but the 
+								$string = substr($string,0,-5);  // last </li> to re-open the entry
 							$active = '';
 
 							if (isset($Shopp->Category->uri) && !empty($parent->slug)
