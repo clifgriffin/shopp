@@ -259,8 +259,8 @@ class Category extends DatabaseObject {
 				break;
 			case "highprice": $loading['order'] = "highprice DESC"; break;
 			case "lowprice": $loading['order'] = "lowprice ASC"; break;
-			case "newest": $loading['order'] = "pd.created DESC"; break;
-			case "oldest": $loading['order'] = "pd.created ASC"; break;
+			case "newest": $loading['order'] = "p.publish DESC,p.name ASC"; break;
+			case "oldest": $loading['order'] = "p.publish ASC,p.name ASC"; break;
 			case "random": $loading['order'] = "RAND()"; break;
 			case "": 
 			case "title": 
