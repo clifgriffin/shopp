@@ -23,6 +23,7 @@ class Item {
 	var $option = false;		// The option ID of the price object
 	var $variation = array();	// The selected variation
 	var $variations = array();	// The available variation options
+	var $data = array();		// Custom input data
 	var $quantity = 0;			// The selected quantity for the line item
 	var $unitprice = 0;			// Per unit price
 	var $price = 0;				// Per unit price after discounts are applied
@@ -39,8 +40,6 @@ class Item {
 	var $inventory = false;		// Inventory setting of the selected price object
 	var $taxable = false;		// Taxable setting of the selected price object
 	var $freeshipping = false;	// Free shipping status of the selected price object
-
-	var $dataloop = false;		// Internal loop controller
 
 	/**
 	 * Constructs a line item from a Product object and identified price object
@@ -574,14 +573,15 @@ class Item {
 			case "hasinputs": 
 			case "has-inputs": return (count($this->data) > 0); break;
 			case "inputs":			
-				if (!$this->dataloop) {
+				if (!isset($this->_data_loop)) {
 					reset($this->data);
-					$this->dataloop = true;
+					$this->_data_loop = true;
 				} else next($this->data);
 
 				if (current($this->data) !== false) return true;
 				else {
-					$this->dataloop = false;
+					unset($this->_data_loop);
+					reset($this->data);
 					return false;
 				}
 				break;
