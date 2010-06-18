@@ -353,14 +353,12 @@ class Cart {
 	 * @return boolean|int	Item index if found, false if not found
 	 **/
 	function hasitem($NewItem) {
-		$i = 0;
-		foreach ($this->contents as $Item) {
+		foreach ($this->contents as $i => $Item) {
 			if ($Item->product == $NewItem->product && 
-					$Item->price == $NewItem->price && 
+					$Item->priceline == $NewItem->priceline && 
 					(empty($NewItem->data) || 
 					(serialize($Item->data) == serialize($NewItem->data)))) 
 				return $i;
-			$i++;
 		}
 		return false;
 	}
