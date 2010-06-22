@@ -298,7 +298,7 @@ class xmlQuery {
 				$tag = isset($target[0])?$target[0]:false;
 				$subselect = isset($target[1])?$target[1]:false;
 				$attributes = isset($target[2])?$target[2]:false;
-				print_r($r_query);
+
 				if ($operator !== false) {
 					// Operator detected for this target
 					$last = count($_)-1;

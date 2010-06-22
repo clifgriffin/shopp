@@ -352,6 +352,21 @@ class Product extends DatabaseObject {
 	}
 	
 	/**
+	 * Returns the number of this product sold
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return int
+	 **/
+	function sold () {
+		$db =& DB::get();
+		$purchased = DatabaseObject::tablename(Purchased::$table);
+		$r = $db->query("SELECT count(id) AS sold FROM $purchased WHERE product=$this->id LIMIT 1");
+		return $r->sold;
+	}
+	
+	/**
 	 * Merges specs with identical names into an array of values
 	 *
 	 * @author Jonathan Davis

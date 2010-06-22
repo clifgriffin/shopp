@@ -555,6 +555,16 @@ class Catalog extends DatabaseObject {
 				if (isset($options['name'])) $Shopp->Product = new Product($options['name'],'name');
 				else if (isset($options['slug'])) $Shopp->Product = new Product($options['slug'],'slug');
 				else if (isset($options['id'])) $Shopp->Product = new Product($options['id']);
+				
+				if (isset($Shopp->Product->id) && isset($Shopp->Category->slug)) {
+					$Category = clone($Shopp->Category);
+					
+					if (isset($options['next']) && value_is_true($options['next']))
+						$Shopp->Product = $Category->adjacent_product(1);
+					if (isset($options['previous']) && value_is_true($options['previous']))
+						$Shopp->Product = $Category->adjacent_product(-1);
+				}
+
 				if (isset($options['load'])) return true;
 				ob_start();
 				if (file_exists(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php"))

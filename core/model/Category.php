@@ -189,8 +189,10 @@ class Category extends DatabaseObject {
 		if (isset($loading['published'])) $this->published = value_is_true($loading['published']);
 		
 		$where = array();
-		
 		if (!empty($loading['where'])) $where[] = "({$loading['where']})";
+
+		$having = array();
+		if (!empty($loading['having'])) $having[] = "({$loading['having']})";
 
 		// Handle default WHERE clause matching this category id
 		if (empty($loading['where']) && !empty($this->id)) 
@@ -228,7 +230,7 @@ class Category extends DatabaseObject {
 				// Use HAVING clause for filtering by pricing information 
 				// because of data aggregation
 				if ($facet == "Price") { 
-					$loading['having'] = (empty($loading['having'])?'HAVING ':$loading['having'].' AND ').$match;
+					$having[] = $match;
 					continue;
 				}
 				
@@ -241,9 +243,6 @@ class Category extends DatabaseObject {
 		
 		if ($this->published) $where[] = "(p.status='publish' AND UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(p.publish))";
 		else $where[] = "(p.status!='publish' OR UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(p.publish))";
-
-		$loading['having'] = isset($loading['having'])?$loading['having']:'';
-		$loading['where'] = join(" AND ",$where);
 		
 		$defaultOrder = $Shopp->Settings->get('default_product_order');
 		if (empty($defaultOrder)) $defaultOrder = "title";
@@ -255,15 +254,14 @@ class Category extends DatabaseObject {
 				$purchasedtable = DatabaseObject::tablename(Purchased::$table);
 				$loading['columns'] .= ',count(DISTINCT pur.id) AS sold';
 				$loading['joins'] .= " LEFT JOIN $purchasedtable AS pur ON p.id=pur.product";
-				$loading['order'] = "sold DESC"; 
+				$loading['order'] = "sold DESC,p.name ASC"; 
 				break;
 			case "highprice": $loading['order'] = "highprice DESC"; break;
 			case "lowprice": $loading['order'] = "lowprice ASC"; break;
 			case "newest": $loading['order'] = "p.publish DESC,p.name ASC"; break;
 			case "oldest": $loading['order'] = "p.publish ASC,p.name ASC"; break;
 			case "random": $loading['order'] = "RAND()"; break;
-			case "": 
-			case "title": 
+			case "title": $loading['order'] = "p.name ASC"; break;
 			default: 
 				// Need to add the catalog table for access to category-product priorities
 				$loading['joins'] .= " LEFT JOIN $catalogtable AS c ON c.product=p.id AND c.parent = '$this->id'";
@@ -271,6 +269,51 @@ class Category extends DatabaseObject {
 				break;
 		}
 		if (!empty($loading['orderby'])) $loading['order'] = $loading['orderby'];
+		
+		if (isset($loading['adjacent']) && isset($loading['product'])) {
+			
+			$product = $loading['product'];
+			$field = substr($loading['order'],0,strpos($loading['order'],' '));
+			$op = $loading['adjacent'] != "next"?'<':'>';
+
+			// Flip the sort order for previous
+			if ($op == '<') {
+				$loading['order'] = str_replace(array('ASC','DESC'),array('DSC','ACE'),$loading['order']);
+				$loading['order'] = str_replace(array('DSC','ACE'),array('DESC','ASC'),$loading['order']);
+			}
+
+			switch ($field) {
+				case "sold": 
+					if ($product->sold() == 0) {
+						$field = 'p.name';
+						$target = "'".$db->escape($product->name)."'";
+					} else $target = $product->sold();
+					$where[] = "$field $op $target";
+					break;
+				case "highprice":
+					if (empty($product->prices)) $product->load_data(array('prices'));
+					$target = !empty($product->max['saleprice'])?$product->max['saleprice']:$product->max['price'];
+					$where[] = "$target $op IF (pd.sale='on' OR pr.discount>0,pd.saleprice,pd.price) AND p.id != $product->id";
+					break;
+				case "lowprice":
+					if (empty($product->prices)) $product->load_data(array('prices'));
+					$target = !empty($product->max['saleprice'])?$product->max['saleprice']:$product->max['price'];
+					$where[] = "$target $op= IF (pd.sale='on' OR pr.discount>0,pd.saleprice,pd.price) AND p.id != $product->id";
+					break;
+				case "p.name": $where[] = "$field $op '".$db->escape($product->name)."'"; break;
+				default: 
+					if ($product->priority == 0) {
+						$field = 'p.name';
+						$target = "'".$db->escape($product->name)."'";
+					} else $target = $product->priority;
+					$where[] = "$field $op $target";
+					break;
+			}
+
+		}
+
+		if (!empty($having)) $loading['having'] = "HAVING ".join(" AND ",$having);
+		$loading['where'] = join(" AND ",$where);
 		
 		if (empty($loading['limit'])) {
 			if ($this->pagination > 0 && is_numeric($this->page)) {
@@ -375,7 +418,7 @@ class Category extends DatabaseObject {
 					GROUP BY p.id {$loading['having']}
 					ORDER BY {$loading['order']} 
 					LIMIT {$loading['limit']}";
-		
+				
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
 
@@ -393,7 +436,7 @@ class Category extends DatabaseObject {
 		$this->pricing['max'] = 0;
 
 		$prices = array();
-		foreach ($products as &$product) {
+		foreach ($products as $i => &$product) {
 			if ($product->maxsaleprice == 0) $product->maxsaleprice = $product->maxprice;
 			if ($product->minsaleprice == 0) $product->minsaleprice = $product->minprice;
 			
@@ -451,7 +494,24 @@ class Category extends DatabaseObject {
 		$this->loaded = true;
 
 	}
+	
+	function adjacent_product($next=1) {
+		global $Shopp;
 		
+		if ($next < 0) $this->loading['adjacent'] = "previous";
+		else $this->loading['adjacent'] = "next";
+		
+		$this->loading['limit'] = '1';
+		$this->loading['product'] = $Shopp->Requested;
+		$this->load_products($this->loading);
+
+		if (!$this->loaded) return false;
+
+		reset($this->products);
+		$product = key($this->products);
+		return new Product($product);
+	}
+			
 	function rss () {
 		global $Shopp;
 		$db = DB::get();
