@@ -457,7 +457,11 @@ class Storefront extends FlowController {
 		if (isset($_GET['shopp_orderby']))
 			$this->browsing['orderby'] = $_GET['shopp_orderby'];
 
-		if (empty($Shopp->Category)) $Shopp->Category = Catalog::load_category($this->breadcrumb,$options);
+		// Set the category context by following the breadcrumb
+		if (empty($Shopp->Category->slug)) $Shopp->Category = Catalog::load_category($this->breadcrumb,$options);
+		
+		// No category context, use the CatalogProducts smart category
+		if (empty($Shopp->Category->slug)) $Shopp->Category = Catalog::load_category('catalog',$options);
 
 		// Find product by given ID
 		if (!empty($productid) && empty($Shopp->Product->id))
@@ -476,6 +480,13 @@ class Storefront extends FlowController {
 			$wp->query_vars['pagename'] = $wp->request;
 
 		$Shopp->Catalog = new Catalog($type);
+
+		// $Shopp->Category->adjacent_product();
+		// echo "<pre>";
+		// print_r($Shopp->Category);
+		// print_r($Shopp->Product);
+		if ($type == "category") $Shopp->Requested = $Shopp->Category;
+		else $Shopp->Requested = $Shopp->Product;
 				
 		add_filter('wp_title', array(&$this, 'titles'),10,3);
 		add_action('wp_head', array(&$this, 'metadata'));
