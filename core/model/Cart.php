@@ -873,6 +873,11 @@ class Cart {
 				$option = current($this->shipping);
 				return $option->name;
 				break;
+			case "method-selected":
+				$method = current($this->shipping);
+				return ((isset($Shopp->Order->Shipping->method) && 
+					$Shopp->Order->Shipping->method == $method->name));			
+				break;
 			case "options-cost": 
 			case "method-cost": 
 				$option = current($this->shipping);
@@ -883,8 +888,7 @@ class Cart {
 
 				$checked = '';
 				if ((isset($Shopp->Order->Shipping->method) && 
-					$Shopp->Order->Shipping->method == $method->name) ||
-					($method->amount == $this->Totals->shipping))
+					$Shopp->Order->Shipping->method == $method->name))
 						$checked = ' checked="checked"';
 	
 				$result .= '<input type="radio" name="shipmethod" value="'.$method->name.'" class="shipmethod" '.$checked.' />';
