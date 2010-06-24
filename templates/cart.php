@@ -44,7 +44,7 @@
 	<?php endwhile; ?>
 
 	<?php while(shopp('cart','promos')): ?>
-		<tr><td colspan="4" class="money"><?php shopp('cart','promo-name'); ?><strong><?php shopp('cart','promo-discount','before=&mdash;'); ?></strong></td></tr>
+		<tr><td colspan="4" class="money"><?php shopp('cart','promo-name'); ?> &mdash; <strong><?php shopp('cart','promo-discount'); ?></strong></td></tr>
 	<?php endwhile; ?>
 	
 	<tr class="totals">
