@@ -28,7 +28,7 @@ CREATE TABLE <?php echo $product; ?> (
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
-	KEY published (published),
+	KEY status (status),
 	KEY featured (featured),
 	KEY slug (slug)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
