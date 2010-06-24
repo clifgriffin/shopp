@@ -23,7 +23,7 @@
 .categories ul li a.current { font-weight: bold; }
 #shopp .category { position: relative; }
 #shopp .views { display: inline; position: absolute; right: 0; top: 0; }
-#shopp .views button { border: 1px solid transparent; background: none; cursor: pointer; padding: 2px; }
+#shopp .views button { border: 1px solid transparent; background: none; cursor: pointer; padding: 2px; margin-bottom: -3px; }
 #shopp .views button.hover { background-color: #ebebeb; border: 1px solid #777; }
 #shopp .views li { display: inline; }
 #shopp .orderby { float: right; }
