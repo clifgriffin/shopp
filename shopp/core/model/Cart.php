@@ -636,39 +636,39 @@ class Cart {
 			case "haspromos":
 			case "has-promos": return (count($this->discounts) > 0); break;
 			case "promos":
-				if (!$this->looping) {
+				if (!isset($this->_promo_looping)) {
 					reset($this->discounts);
-					$this->looping = true;
+					$this->_promo_looping = true;
 				} else next($this->discounts);
 				
 				if (current($this->discounts)) return true;
 				else {
-					$this->looping = false;
+					unset($this->_promo_looping);
 					reset($this->discounts);
 					return false;
 				}
 			case "promoname":
 			case "promo-name":
 				$discount = current($this->discounts);
-				if ($discount->applied == 0) return false;
+				if ($discount->applied == 0 && empty($discount->items)) return false;
 				return $discount->name;
 				break;
 			case "promodiscount":
 			case "promo-discount":
 				$discount = current($this->discounts);
-				if ($discount->applied == 0) return false;
+				if ($discount->applied == 0 && empty($discount->items)) return false;
 				if (!isset($options['label'])) $options['label'] = ' '.__('Off!','Shopp');
 				else $options['label'] = ' '.$options['label'];
 				$string = false;
 				if (!empty($options['before'])) $string = $options['before'];
-				
+
 				switch($discount->type) {
 					case "Free Shipping": $string .= $Shopp->Settings->get('free_shipping_text'); break;
 					case "Percentage Off": $string .= percentage($discount->discount,array('precision' => 0)).$options['label']; break;
 					case "Amount Off": $string .= money($discount->discount).$options['label']; break;
 					case "Buy X Get Y Free": return ""; break;
 				}
-				if (!empty($options['after'])) $string = $options['after'];
+				if (!empty($options['after'])) $string .= $options['after'];
 				
 				return $string;
 				break;
@@ -1048,6 +1048,9 @@ class CartDiscounts {
 		$this->Order = &$Shopp->Order;
 		$this->Cart = &$Shopp->Order->Cart;
 		$this->promos = &$Shopp->Promotions->promotions;
+		// print_r($this->Cart->promocodes);
+		// print_r($this->Cart->discounts);
+
 		// print_r($this->promos);
 	}
 	
@@ -1072,7 +1075,7 @@ class CartDiscounts {
 					}
 				}
 			}
-			$discount += $Discount->applied;
+			$discount += !empty($Discount->items)?array_sum($Discount->items):$Discount->applied;
 		}
 
 		return $discount;
@@ -1187,7 +1190,8 @@ class CartDiscounts {
 	 **/
 	function discount ($promo,$discount) {
 
-		$promo->applied = 0;	// Track total discount applied by the promo
+		$promo->applied = 0;		// Track total discount applied by the promo
+		$promo->items = array();	// Track the cart items the rule applies to
 		
 		// Line item discounts
 		if (isset($promo->rules['item'])) {
@@ -1198,7 +1202,7 @@ class CartDiscounts {
 						
 						if ($Item->match($rule) && !isset($promo->items[$id])) {
 							switch ($promo->type) {
-								case "Percentage Off": $discount = $Item->total*($promo->discount/100); echo $discount; break;
+								case "Percentage Off": $discount = $Item->total*($promo->discount/100); break;
 								case "Amount Off": $discount = $promo->discount; break;
 								case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
 							}
