@@ -72,13 +72,14 @@ class Catalog extends DatabaseObject {
 
 		if (!$this->outofstock) $where[] = "(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))";
 
-		if ($ancestry) {
-			array_unshift($joins,"LEFT JOIN $category_table AS children ON children.parent=cat.id");
-			$where = array("cat.id=children.parent OR (".join(" AND ",$where).")");
-		}
-		
 		if ($parent !== false) $where[] = "cat.parent=".$loading['parent'];
 		else $parent = 0;
+
+		if ($ancestry) {
+			array_unshift($joins,"LEFT JOIN $category_table AS children ON children.parent=cat.id");
+			if (!empty($where))	$where = array("cat.id=children.parent OR (".join(" AND ",$where).")");
+			else $where = array("cat.id=children.parent");
+		}
 
 		switch(strtolower($orderby)) {
 			case "id": $orderby = "cat.id"; break;
