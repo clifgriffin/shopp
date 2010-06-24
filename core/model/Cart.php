@@ -1533,7 +1533,7 @@ class CartTax {
 			$taxes += $Item->tax;
 		}
 		
-		// TODO: Handle discounts > taxable item totals
+		// @todo: Handle discounts > taxable item totals
 		// if ($Totals->discount > $Totals->taxed) $Totals->taxed = 0;
 		// else $Totals->taxed -= $Totals->discount;
 		if($this->shipping) $taxes += roundprice($Totals->shipping*$Totals->taxrate);

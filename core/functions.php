@@ -492,14 +492,15 @@ function file_mimetype ($file,$name=false) {
  * @since 1.0
  * 
  * @param string $value Numeric string to be converted
- * @param boolean $format (optional) Numerically formats the value to normalize it (Default: true) 
+ * @param boolean $round (optional) Whether to round the value (default true for to round)
+ * @param array $format (optional) The currency format to use for precision (defaults to the current base of operations)
  * @return float
  **/
-function floatvalue($value, $format=false) {
+function floatvalue($value, $round=true, $format=false) {
 	$format = currency_format($format);
 	extract($format,EXTR_SKIP);
 
-	if (is_float($value)) return round($value,$precision);
+	if (is_float($value)) return $round?round($value,$precision):$value;
 
 	$value = preg_replace("/[^\d,\.]/","",$value); // Remove any non-numeric string data
 	$value = preg_replace("/^\./","",$value); // Remove any decimals at the beginning of the string
@@ -508,7 +509,7 @@ function floatvalue($value, $format=false) {
 	if ($precision > 0) // Don't convert decimals if not required
 		$value = preg_replace("/\\".$decimals."/",".",$value); // Convert decimal delimter
 
-	return round(floatval($value),$precision);
+	return $round?round(floatval($value),$precision):floatval($value);
 }
 
 /**

@@ -30,7 +30,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  **/
 class DB {
 	private static $instance;
-	static $version = 1104;
+	static $version = 1105;
 
 	// Define datatypes for MySQL
 	var $_datatypes = array("int" => array("int", "bit", "bool", "boolean"),
@@ -265,8 +265,9 @@ class DB {
 					}
 					break;
 				case "int":
-				case "float":					
-					$value = floatvalue($value);
+				case "float":
+					// Sanitize without rounding to protect precision
+					$value = floatvalue($value,false);
 					
 					$data[$property] = "'$value'";
 					
@@ -278,7 +279,7 @@ class DB {
 					break;
 				default:
 					// Anything not needing processing
-					// passes through into the object
+					// passes through into the structure
 					$data[$property] = "'$value'";
 			}
 			

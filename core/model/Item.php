@@ -172,7 +172,7 @@ class Item {
 		if ($this->type == "Donation" && $this->donation['var'] == "on") {
 			if ($this->donation['min'] == "on" && floatvalue($qty) < $this->unitprice) 
 				$this->unitprice = $this->unitprice;
-			else $this->unitprice = floatvalue($qty);
+			else $this->unitprice = floatvalue($qty,false);
 			$this->quantity = 1;
 			$qty = 1;
 		}
@@ -431,11 +431,12 @@ class Item {
 	 **/
 	function retotal () {
 		$this->taxrate = shopp_taxrate(true,$this->taxable,$this);
-		$this->price = roundprice($this->unitprice-$this->discount);
-		$this->unittax = roundprice($this->price*$this->taxrate);
-		$this->discounts = roundprice($this->discount*$this->quantity);
-		$this->tax = roundprice($this->unittax*$this->quantity);
-		$this->total = roundprice($this->price * $this->quantity);
+		$this->price = ($this->unitprice-$this->discount);
+		$this->unittax = ($this->price*$this->taxrate);
+		$this->discounts = ($this->discount*$this->quantity);
+		$this->tax = ($this->unittax*$this->quantity);
+		$this->total = ($this->price * $this->quantity);
+		// print_r($this);
 	}
 
 	/**
