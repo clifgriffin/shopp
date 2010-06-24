@@ -28,6 +28,8 @@ div.clear,
 #shopp ul.breadcrumb li:before { content: ""; }
 #shopp div.hidden { display: none; }
 
+#shopp .frame { border: none; }
+
 #shopp .products, #shopp .products ul { width: 100%; margin: 0; padding: 0;}
 #shopp .products ul li { display: block; float: left; }
 #shopp .products li.row { display: block; width: 100%; }
