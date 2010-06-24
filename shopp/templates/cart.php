@@ -98,4 +98,5 @@
 
 <?php else: ?>
 	<p class="warning"><?php _e('There are currently no items in your shopping cart.','Shopp'); ?></p>
+	<p><a href="<?php shopp('catalog','url'); ?>">&laquo; <?php _e('Continue Shopping','Shopp'); ?></a></p>
 <?php endif; ?>
