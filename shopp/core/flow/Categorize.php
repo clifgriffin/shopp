@@ -378,9 +378,9 @@ class Categorize extends AdminController {
 		// Variation price templates
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 			foreach ($_POST['price'] as &$pricing) {
-				$pricing['price'] = floatvalue($pricing['price']);
-				$pricing['saleprice'] = floatvalue($pricing['saleprice']);
-				$pricing['shipfee'] = floatvalue($pricing['shipfee']);
+				$pricing['price'] = floatvalue($pricing['price'],false);
+				$pricing['saleprice'] = floatvalue($pricing['saleprice'],false);
+				$pricing['shipfee'] = floatvalue($pricing['shipfee'],false);
 			}
 			$Category->prices = stripslashes_deep($_POST['price']);
 		} else $Category->prices = array();
