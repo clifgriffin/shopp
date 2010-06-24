@@ -524,7 +524,6 @@ class Warehouse extends AdminController {
 				} else $Price = new Price($option['id']);
 				$option['sortorder'] = array_search($i,$_POST['sortorder'])+1;
 
-				print_r($option);
 				// Remove VAT amount to save in DB
 				if ($base['vat'] && $option['tax'] == "on") {
 					$option['price'] = (floatvalue($option['price'])/(1+$taxrate));
@@ -533,8 +532,6 @@ class Warehouse extends AdminController {
 
 				$Price->updates($option);
 				$Price->save();
-				$db =& DB::get();
-				print_r(end($db->queries));
 
 				if (!empty($option['download'])) $Price->attach_download($option['download']);
 
