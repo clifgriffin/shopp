@@ -2,11 +2,14 @@
 /**
  * Catalog class
  * 
+ * Catalog navigational experience data manager
  *
  * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited,  9 April, 2008
+ * @version 1.1
+ * @since 1.0
+ * @copyright Ingenesis Limited, 24 June, 2010
  * @package shopp
+ * @subpackage storefront
  **/
 
 require_once("Product.php");
@@ -18,50 +21,86 @@ class Catalog extends DatabaseObject {
 
 	var $categories = array();
 	var $outofstock = false;
-	var $categoryloop = false;
 	
-	function Catalog ($type="catalog") {
+	function __construct ($type="catalog") {
 		global $Shopp;
 		$this->init(self::$table);
 		$this->type = $type;
 		$this->outofstock = ($Shopp->Settings->get('outofstock_catalog') == "on");
 	}
 	
-	function load_categories ($filtering=false,$showsmart=false,$results=false) {
+	/**
+	 * Load categories from the catalog index
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * 
+	 * @param array $loading (optional) Loading options for building the query
+	 * @param boolean $showsmart (optional) Include smart categories in the listing
+	 * @param boolean $results (optional) Return the raw structure of results without aggregate processing
+	 * @return boolean|object True when categories are loaded and processed, object of results when $results is set
+	 **/
+	function load_categories ($loading=false,$showsmart=false,$results=false) {
 		$db = DB::get();
+		$category_table = DatabaseObject::tablename(Category::$table);
+		$product_table = DatabaseObject::tablename(Product::$table);
+		$price_table = DatabaseObject::tablename(Price::$table);
 
-		if (empty($filtering['columns'])) $filtering['columns'] = "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total,IF(SUM(IF(pt.inventory='off',1,0) OR pt.inventory IS NULL)>0,'off','on') AS inventory, SUM(pt.stock) AS stock";
-		if (!empty($filtering['limit'])) $filtering['limit'] = "LIMIT ".$filtering['limit'];
-		else $filtering['limit'] = "";
+		$defaults = array(
+			'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total,IF(SUM(IF(pt.inventory='off',1,0) OR pt.inventory IS NULL)>0,'off','on') AS inventory, SUM(pt.stock) AS stock",
+			'where' => array(),
+			'joins' => array(
+				"LEFT JOIN $this->_table AS sc ON sc.parent=cat.id AND sc.type='category'",
+				"LEFT JOIN $product_table AS pd ON sc.product=pd.id",
+				"LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A'"
+			),
+			'limit' => false,
+			'orderby' => 'name',
+			'order' => 'ASC',
+			'parent' => false,
+			'ancestry' => false
+		);
+		$options = array_merge($defaults,$loading);
+		extract($options);
 
-		if (!isset($filtering['where'])) $filtering['where'] = '';
-		if (!$this->outofstock) $filtering['where'] .= (empty($filtering['where'])?"":" AND ")."(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))";
-		if (empty($filtering['where'])) $filtering['where'] = "true";
+		// Ensure the where clause is an array
+		if (isset($loading['where'])) $where = is_array($loading['where'])?$loading['where']:array($loading['where']);
+
+		// Merge joins
+		if (isset($loading['joins'])) $joins = array_merge($defaults['joins'],$loading['joins']);
+
+		if (!$this->outofstock) $where[] = "(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))";
+
+		if ($ancestry) {
+			array_unshift($joins,"LEFT JOIN $category_table AS children ON children.parent=cat.id");
+			$where = array("cat.id=children.parent OR (".join(" AND ",$where).")");
+		}
 		
-		if (isset($filtering['parent'])) $filtering['where'] .= " AND cat.parent=".$filtering['parent'];
-		else $filtering['parent'] = 0;
-		
-		if (empty($filtering['orderby'])) $filtering['orderby'] = "name";
-		switch(strtolower($filtering['orderby'])) {
+		if ($parent !== false) $where[] = "cat.parent=".$loading['parent'];
+		else $parent = 0;
+
+		switch(strtolower($orderby)) {
 			case "id": $orderby = "cat.id"; break;
 			case "slug": $orderby = "cat.slug"; break;
 			case "count": $orderby = "total"; break;
 			default: $orderby = "cat.name";
 		}
 
-		if (empty($filtering['order'])) $filtering['order'] = "ASC";
-		switch(strtoupper($filtering['order'])) {
+		switch(strtoupper($order)) {
 			case "DESC": $order = "DESC"; break;
 			default: $order = "ASC";
 		}
+
+		if ($limit !== false) $limit = "LIMIT $limit";
 		
-		$category_table = DatabaseObject::tablename(Category::$table);
-		$product_table = DatabaseObject::tablename(Product::$table);
-		$price_table = DatabaseObject::tablename(Price::$table);
-		$query = "SELECT {$filtering['columns']} FROM $category_table AS cat LEFT JOIN $this->_table AS sc ON sc.parent=cat.id AND sc.type='category' LEFT JOIN $product_table AS pd ON sc.product=pd.id LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A' WHERE {$filtering['where']} GROUP BY cat.id ORDER BY cat.parent DESC,cat.priority,$orderby $order {$filtering['limit']}";
+		$joins = join(' ',$joins);
+		if (!empty($where)) $where = "WHERE ".join(' AND ',$where);
+		
+		$query = "SELECT $columns FROM $category_table AS cat $joins $where GROUP BY cat.id ORDER BY cat.parent DESC,cat.priority,$orderby $order $limit";
 		$categories = $db->query($query,AS_ARRAY);
 
-		if (count($categories) > 1) $categories = sort_tree($categories, $filtering['parent']);
+		if (count($categories) > 1) $categories = sort_tree($categories, $parent);
 		if ($results) return $categories;
 		
 		foreach ($categories as $category) {
@@ -93,10 +132,17 @@ class Catalog extends DatabaseObject {
 				$this->categories[$category->id]->outofstock = $category->outofstock;
 			
 			$this->categories[$category->id]->_children = false;
-			if ($category->total > 0 && isset($this->categories[$category->parent]))
-				$this->categories[$category->parent]->_children = true;
+			if ($category->total > 0 && isset($this->categories[$category->parent])) {
+				$ancestor = $category->parent;
+				
+				// Recursively flag the ancestors as having children
+				while (isset($this->categories[$ancestor])) {
+					$this->categories[$ancestor]->_children = true;
+					$ancestor = $this->categories[$ancestor]->parent;
+				}
+			}
+				
 		}
-
 
 		if ($showsmart == "before" || $showsmart == "after")
 			$this->smart_categories($showsmart);
@@ -104,7 +150,19 @@ class Catalog extends DatabaseObject {
 		return true;
 	}
 	
-	function smart_categories ($method) {
+	/**
+	 * Returns a list of known built-in smart categories
+	 * 
+	 * Operates on the list of already loaded categories in the $this->category property
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * 
+	 * @param string $method Add smart categories 'before' the list of the loaded categores or 'after' (defaults after)
+	 * @return void
+	 **/
+	function smart_categories ($method="after") {
 		global $Shopp;
 		$internal = array('CatalogProducts','SearchResults','TagProducts','RelatedProducts','RandomProducts');
 		foreach ($Shopp->SmartCategories as $SmartCategory) {
@@ -117,6 +175,16 @@ class Catalog extends DatabaseObject {
 		}
 	}
 	
+	/**
+	 * Load the tags assigned to products across the entire catalog
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.0
+	 * 
+	 * @param array $limits Query limits in the format of [offset,count]
+	 * @return boolean True when tags are loaded
+	 **/
 	function load_tags ($limits=false) {
 		$db = DB::get();
 		
@@ -129,6 +197,17 @@ class Catalog extends DatabaseObject {
 		return true;
 	}
 	
+	/**
+	 * Load a any category from the catalog including smart categories
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * 
+	 * @param string|int $category The identifying element of a category (by id/slug or uri)
+	 * @param array $options (optional) Any shopp() tag-compatible options to pass on to smart categories
+	 * @return object The loaded Category object
+	 **/
 	function load_category ($category,$options=array()) {
 		global $Shopp;
 		foreach ($Shopp->SmartCategories as $SmartCategory) {
@@ -142,7 +221,19 @@ class Catalog extends DatabaseObject {
 		return new Category($category,$key);
 		
 	}
-		
+	
+	/**
+	 * shopp('catalog','...') tags
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * @see http://docs.shopplugin.net/Catalog_Tags
+	 * 
+	 * @param string $property The property to handle
+	 * @param array $options (optional) The tag options to process
+	 * @return mixed
+	 **/
 	function tag ($property,$options=array()) {
 		global $Shopp;
 
@@ -187,17 +278,18 @@ class Catalog extends DatabaseObject {
 				if (empty($this->categories)) $this->load_categories(array('where'=>'true'),$showsmart);
 				if (count($this->categories) > 0) return true; else return false; break;
 			case "categories":
-				if (!$this->categoryloop) {
+				if (!isset($this->_category_loop)) {
 					reset($this->categories);
 					$Shopp->Category = current($this->categories);
-					$this->categoryloop = true;
+					$this->_category_loop = true;
 				} else {
 					$Shopp->Category = next($this->categories);
 				}
 
 				if (current($this->categories) !== false) return true;
 				else {
-					$this->categoryloop = false;
+					unset($this->_category_loop);
+					reset($this->categories);
 					return false;
 				}
 				break;
@@ -226,7 +318,7 @@ class Catalog extends DatabaseObject {
 				$options = array_merge($defaults,$options);
 				extract($options, EXTR_SKIP);
 
-				$this->load_categories(array("where"=>"(pd.status='publish' OR pd.id IS NULL)","orderby"=>$orderby,"order"=>$order),$showsmart);
+				$this->load_categories(array("ancestry"=>true,"where"=>array("(pd.status='publish' OR pd.id IS NULL)"),"orderby"=>$orderby,"order"=>$order),$showsmart);
 
 				$string = "";
 				$depthlimit = $depth;
@@ -241,8 +333,13 @@ class Catalog extends DatabaseObject {
 					$string .= '<form><select name="shopp_cats" id="shopp-categories-menu"'.$classes.'>';
 					$string .= '<option value="">'.$default.'</option>';
 					foreach ($this->categories as &$category) {
+						// If the parent of this category was excluded, add this to the excludes and skip
+						if (!empty($category->parent) && in_array($category->parent,$exclude)) {
+							$exclude[] = $category->id;
+							continue;
+						}
 						if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
-						if ($category->total == 0 && !isset($category->smart)) continue; // Only show categories with products
+						if ($category->total == 0 && !isset($category->smart) && !$category->_children) continue; // Only show categories with products
 						if ($depthlimit && $category->depth >= $depthlimit) continue;
 
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
@@ -277,6 +374,13 @@ class Catalog extends DatabaseObject {
 					foreach ($this->categories as &$category) {
 						if (!isset($category->total)) $category->total = 0;
 						if (!isset($category->depth)) $category->depth = 0;
+						
+						// If the parent of this category was excluded, add this to the excludes and skip
+						if (!empty($category->parent) && in_array($category->parent,$exclude)) {
+							$exclude[] = $category->id;
+							continue;
+						}
+						
 						if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
 						if ($depthlimit && $category->depth >= $depthlimit) continue;
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
@@ -305,7 +409,7 @@ class Catalog extends DatabaseObject {
 						}
 					
 						if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.'category/'.$category->uri);
-						else $link = add_query_arg('shopp_category',(!empty($category->id)?$category->id:$category->uri),$Shopp->shopuri);
+						else $link = href_add_query_arg('shopp_category',(!empty($category->id)?$category->id:$category->uri),$Shopp->shopuri);
 					
 						$total = '';
 						if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
