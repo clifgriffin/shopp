@@ -409,6 +409,7 @@ abstract class DatabaseObject {
 			$Tables[$this->_table]->_defaults = $this->_defaults;
 			$Shopp->Settings->save('data_model',$Tables);
 		}
+		return true;
 	}
 	
 	/**

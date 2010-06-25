@@ -290,12 +290,12 @@ class Shopp {
 		$this->pages_index(true);
 		$pages = $this->Settings->get('pages');
 		if (!$pages) $pages = $this->Flow->Pages;
-		$shop = $pages['catalog']['permalink'];
+		$shop = $pages['catalog']['uri'];
 		if (!empty($shop)) $shop = trailingslashit($shop);
-		$catalog = $pages['catalog']['name'];
-		$cart = $pages['cart']['permalink'];
-		$checkout = $pages['checkout']['permalink'];
-		$account = $pages['account']['permalink'];
+		$catalog = $pages['catalog']['uri'];
+		$cart = $pages['cart']['uri'];
+		$checkout = $pages['checkout']['uri'];
+		$account = $pages['account']['uri'];
 
 		$rules = array(
 			$cart.'?$' => 'index.php?pagename='.shopp_pagename($cart),
@@ -414,7 +414,7 @@ class Shopp {
 	function link ($target,$secure=false) {
 		$internals = array("thanks","receipt","confirm-order");
 		
-		if ($this->Settings->unavailable) return;
+		if (!$this->Settings->available) return;
 		$pages = $this->Settings->get('pages');
 		if (empty($pages)) {
 			$this->pages_index(true);
@@ -429,14 +429,14 @@ class Shopp {
 			if (in_array($target,$internals)) {
 				$page = $pages['checkout'];
 				if (SHOPP_PERMALINKS) {
-					$catalog = $pages['catalog']['permalink'];
+					$catalog = $pages['catalog']['uri'];
 					if (empty($catalog)) $catalog = $pages['catalog']['name'];
-					$page['permalink'] = trailingslashit($catalog).$target;
+					$page['uri'] = trailingslashit($catalog).$target;
 				} else $page['id'] .= "&shopp_proc=$target";
 			} else $page = $pages['catalog'];
  		}
 
-		if (SHOPP_PERMALINKS) return user_trailingslashit($uri."/".$page['permalink']);
+		if (SHOPP_PERMALINKS) return user_trailingslashit($uri."/".$page['uri']);
 		else return add_query_arg('page_id',$page['id'],trailingslashit($uri));
 	}
 
@@ -697,7 +697,7 @@ class Shopp {
 	 **/
 	function maintenance () {
 		// Settings unavailable
-		if (!$this->Settings->unavailable || !$this->Settings->get('shopp_setup') != "completed") 
+		if (!$this->Settings->available || !$this->Settings->get('shopp_setup') != "completed") 
 			return false;
 			
 		$this->Settings->save('maintenance','on');
