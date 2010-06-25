@@ -317,6 +317,7 @@ class Order {
 
 		$this->Billing->customer = $this->Customer->id;
 		$this->Billing->card = substr($this->Billing->card,-4);
+		$this->Billing->cvv = false;
 		$this->Billing->save();
 
 		// Card data is truncated, switch the cart to normal mode
