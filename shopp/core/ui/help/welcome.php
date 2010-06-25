@@ -10,14 +10,14 @@
 			<?php printf(__('Click the %sHelp menu%s to access help articles about the screen you are using, directly from the %sofficial documentation%s.','Shopp'),'<strong>','</strong>','<a href="http://docs.shopplugin.net" target="_blank">','</a>'); ?>
 			<ul>
 				<li><?php printf(__('You can also get community help from the community %sSupport Forums%s','Shopp'),'<a href="http://forums.shopplugin.net">','</a>'); ?></li>
-				<li><?php printf(__('Or, get official interactive support from the Shopp <a href="%s">Help Desk%s','Shopp'),'<a href="http://help.shopplugin.net/">','</a>'); ?></li>
-				<li><?php printf(__('For guaranteed fast response from the Shopp Support Team, <a href="%s">purchase a priority support credit.</a>','Shopp'),'https://shopplugin.net/store/category/priority-support/'); ?></li>
-				<li><?php _e('Find qualified Shopp professionals you can contract for customization consulting work','Shopp'); ?></li>
+				<li><?php printf(__('Or, get official interactive support from the Shopp %sHelp Desk%s','Shopp'),'<a href="http://help.shopplugin.net/">','</a>'); ?></li>
+				<li><?php printf(__('For guaranteed fast response from the Shopp Support Team, %spurchase a priority support credit%s.','Shopp'),'<a href="https://shopplugin.net/store/category/priority-support/" target="_blank">','</a>'); ?></li>
+				<li><?php _e('Find qualified Shopp professionals you can hire as consultant contractors for customization work.','Shopp'); ?></li>
 			</ul>
 			</li>
 		<li><strong><?php _e('Easy setup in just a few steps.','Shopp'); ?></strong><br /><?php _e('Setup is simple and takes about 10-15 minutes.  Just jump through each of the settings screens to configure your store.','Shopp'); ?></li>
-		<li><strong><?php _e('Don\'t forget to activate your key!','Shopp'); ?></strong><br /><?php printf(__('Be sure to activate your update key on the %sShopp%s &rarr; %sSettings%s screen so you can get trouble-free, automated updates.','Shopp'),'<strong>','</strong>','<strong><a href="admin.php?page=shopp-settings">','</a></strong>'); ?></li>
-		<li><strong><?php _e('Show It Off','Shopp')?></strong><br /><?php printf(__('Once you\'re up and running, drop by the Shopp website and %ssubmit your site%s to be included in the Shopp-powered website showcase.','Shopp'),'<a href="http://shopplugin.net/showcase">','</a>'); ?></li>
+		<li><strong><?php _e('Don\'t forget to activate your key!','Shopp'); ?></strong><br /><?php printf(__('Be sure to activate your update key on the %sShopp%s &rarr; %sSettings%s screen so you can get trouble-free, automated updates.','Shopp'),'<strong>','</strong>','<strong>','</strong>'); ?></li>
+		<li><strong><?php _e('Show It Off','Shopp')?></strong><br /><?php printf(__('Once you\'re up and running, drop by the Shopp website and %ssubmit your site%s to be included in the showcase of Shopp-powered websites.','Shopp'),'<a href="http://shopplugin.net/showcase">','</a>'); ?></li>
 	</ul>
 	<br />
 	<form action="admin.php?page=shopp-settings" method="post">
