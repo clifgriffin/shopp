@@ -223,7 +223,7 @@ class AjaxFlow {
 		
 	function shipping_costs () {
 		global $Shopp;
-
+		
 		if (isset($_GET['method'])) {
 			$Shopp->Order->Shipping->method = $_GET['method'];
 			$Shopp->Order->Cart->changed(true);
