@@ -870,6 +870,7 @@ class Cart {
 				break;
 			case "option-menu":
 			case "method-menu":
+				// @todo Add options for differential pricing and estimated delivery dates
 				$_ = array();
 				$_[] = '<select name="shipmethod" class="shopp shipmethod">';
 				foreach ($this->shipping as $method) {
