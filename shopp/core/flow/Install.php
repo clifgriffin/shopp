@@ -50,14 +50,14 @@ class ShoppInstallation extends FlowController {
 		// If no settings are available,
 		// no tables exist, so this is a
 		// new install
-		if ($this->Settings->unavailable) $this->install();
+		if (!$this->Settings->availability()) $this->install();
 
 		// Process any DB upgrades (if needed)
 		$this->upgrades();
 		
 		do_action('shopp_setup');
 		
-		if (!$this->Settings->unavailable && $this->Settings->get('db_version'))
+		if ($this->Settings->availability() && $this->Settings->get('db_version'))
 			$this->Settings->save('maintenance','off');
 
 		// Publish/re-enable Shopp pages
@@ -65,7 +65,6 @@ class ShoppInstallation extends FlowController {
 		
 		// Update rewrite rules
 		$wp_rewrite->flush_rules();
-		$wp_rewrite->wp_rewrite_rules();
 
 		
 		if ($this->Settings->get('show_welcome') == "on")
@@ -87,9 +86,9 @@ class ShoppInstallation extends FlowController {
 		// Unpublish/disable Shopp pages
 		$this->pages_status('draft');
 
-		// Update rewrite rules
+		// Update rewrite rules (cleanup Shopp rewrites)
+		remove_filter('rewrite_rules_array',array(&$Shopp,'rewrites'));
 		$wp_rewrite->flush_rules();
-		$wp_rewrite->wp_rewrite_rules();
 
 		$this->Settings->save('data_model','');
 
@@ -160,10 +159,10 @@ class ShoppInstallation extends FlowController {
 						post_excerpt='', to_ping='', pinged='', post_content_filtered='', menu_order=0";
 			$wpdb->query($query);
 			$page['id'] = $wpdb->insert_id;
-			$page['permalink'] = get_permalink($page['id']);
-			if ($key == "checkout") $page['permalink'] = str_replace("http://","https://",$page['permalink']);
-			$wpdb->query("UPDATE $wpdb->posts SET guid='{$page['permalink']}' WHERE ID={$page['id']}");
-			$page['permalink'] = preg_replace('|https?://[^/]+/|i','',$page['permalink']);
+			$permalink = get_permalink($page['id']);
+			if ($key == "checkout") $permalink = str_replace("http://","https://",$permalink);
+			$wpdb->query("UPDATE $wpdb->posts SET guid='{$permalink}' WHERE ID={$page['id']}");
+			$page['uri'] = get_page_uri($page['id']);
 		}
 
 		$this->Settings->save("pages",Storefront::$Pages);

@@ -1223,15 +1223,16 @@ function shopp_locate_pages ($pages) {
 	
 	// Match updates from the found results to our pages index
 	foreach ($pages as $key => &$page) {
-		// Convert old page definitions
+		// Convert Shopp 1.0 page definitions
 		if (!isset($page['shortcode']) && isset($page['content'])) $page['shortcode'] = $page['content'];
 		foreach ($results as $index => $post) {
 			if (strpos($post->post_content,$page['shortcode']) !== false) {
-				$page['id'] = $post->ID;
-				$page['title'] = $post->post_title;
-				$page['name'] = $post->post_name;
-				$page['permalink'] = str_replace(trailingslashit(get_bloginfo('url')),'',get_permalink($page['id']));
-				if ($page['permalink'] == get_bloginfo('url')) $page['permalink'] = "";
+				$page = array(
+					'id' => $post->ID,
+					'title' => $post->post_title,
+					'name' => $post->post_name,
+					'uri' => get_page_uri($post->ID)
+				);
 				break;
 			}
 		}
@@ -1280,7 +1281,7 @@ function load_shopps_wpconfig () {
 		$wp_config_path = dirname($root);
 		$wp_root = $root;
 	}
-			
+		
 	if ( $wp_config_path !== false && $wp_root !== false) $config = file_get_contents(sanitize_path($wp_config_path).'/wp-config.php');
 	else return false;
 	

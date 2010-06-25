@@ -16,8 +16,8 @@ class Settings extends DatabaseObject {
 	static $table = "setting";
 
 	var $registry = array();	// Registry of setting objects
-	var $unavailable = false;	// Flag when database tables don't exist
-	var $_table = "";
+	var $available = true;		// Flag when database tables don't exist
+	var $_table = "";			// The table name
 	
 	/**
 	 * Settings object constructor
@@ -27,17 +27,27 @@ class Settings extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
+	 * @version 1.1
 	 * 
 	 * @return void
 	 **/
 	function __construct ($name="") {
 		$this->_table = $this->tablename(self::$table);
-		if (!$this->load($name)) {
-			if (!$this->init('setting')) {
-				$this->unavailable = true;
-				return;
-			}
-		}
+		if (!$this->load($name))	// If no settings are loaded
+			$this->availability();	// update the Shopp tables availability status
+	}
+	
+	/**
+	 * Update the availability status of the settings database table
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
+	function availability () {
+		$this->available = $this->init('setting');
+		return $this->available;
 	}
 	
 	/**
