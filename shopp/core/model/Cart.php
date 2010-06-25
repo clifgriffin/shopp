@@ -868,7 +868,20 @@ class Cart {
 					return false;
 				}
 				break;
-			case "options-name": 
+			case "option-menu":
+			case "method-menu":
+				$_ = array();
+				$_[] = '<select name="shipmethod" class="shopp shipmethod">';
+				foreach ($this->shipping as $method) {
+					$selected = ((isset($Shopp->Order->Shipping->method) && 
+						$Shopp->Order->Shipping->method == $method->name))?' selected="selected"':false;
+					
+					$_[] = '<option value="'.$method->name.'"'.$selected.'>'.$method->name.' &mdash '.money($method->amount).'</option>';
+				}
+				$_[] = '</select>';
+				return join("",$_);
+				break;
+			case "option-name": 
 			case "method-name": 
 				$option = current($this->shipping);
 				return $option->name;
@@ -878,7 +891,7 @@ class Cart {
 				return ((isset($Shopp->Order->Shipping->method) && 
 					$Shopp->Order->Shipping->method == $method->name));			
 				break;
-			case "options-cost": 
+			case "option-cost": 
 			case "method-cost": 
 				$option = current($this->shipping);
 				return money($option->amount);
@@ -890,8 +903,8 @@ class Cart {
 				if ((isset($Shopp->Order->Shipping->method) && 
 					$Shopp->Order->Shipping->method == $method->name))
 						$checked = ' checked="checked"';
-	
-				$result .= '<input type="radio" name="shipmethod" value="'.$method->name.'" class="shipmethod" '.$checked.' />';
+				
+				$result = '<input type="radio" name="shipmethod" value="'.$method->name.'" class="shopp shipmethod" '.$checked.' />';
 				return $result;
 				
 				break;
