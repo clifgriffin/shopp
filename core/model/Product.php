@@ -943,7 +943,7 @@ class Product extends DatabaseObject {
 						$alt = esc_attr(!empty($img->alt)?$img->alt:$img->name);
 
 						$thumbs .= '<li id="thumbnail-'.$img->id.'" class="preview-'.$img->id.(($firstThumb)?' first':' test').'">';
-						$thumbs .= '<img src="'.add_query_string($img->resizing($thumbwidth,$thumbheight,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
+						$thumbs .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 						$thumbs .= '</li>';
 						$firstThumb = false;						
 					}
