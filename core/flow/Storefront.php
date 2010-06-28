@@ -309,12 +309,13 @@ class Storefront extends FlowController {
 	function catalogcss () {
 		$Settings = ShoppSettings();
 		if (!isset($row_products)) $row_products = 3;
-		$products_per_row = floor((100/$row_products));
 		
 		$category_thumb_width = $Settings->get('gallery_thumbnail_width')+20;
 		$row_products = $Settings->get('row_products');
 		$gallery_small_width = $Settings->get('gallery_small_width')+20;
 		$gallery_small_height = $Settings->get('gallery_small_height')+20;
+
+		$products_per_row = floor((100/$row_products));
 
 ?>
 	<!-- Shopp dynamic catalog styles -->
