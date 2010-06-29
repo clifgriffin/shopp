@@ -248,10 +248,6 @@ class Order {
 		$this->Cart->totals();
 		if ($this->validform() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
-
-		echo "<pre>";
-		print_r($this->Shipping);
-		echo "</pre>";
 		
 		do_action('shopp_checkout_processed');
 		
