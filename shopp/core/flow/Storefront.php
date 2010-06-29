@@ -477,7 +477,7 @@ class Storefront extends FlowController {
 			$Shopp->Product = new Product(urlencode($productname),"slug");
 
 		// Product must be published
-		if (!empty($Shopp->Product->id) && !$Shopp->Product->published() || empty($Shopp->Product->id))
+		if ((!empty($Shopp->Product->id) && !$Shopp->Product->published()) || empty($Shopp->Product->id))
 			$Shopp->Product = false;
 
 		// No product found, try to load a page instead
@@ -486,10 +486,6 @@ class Storefront extends FlowController {
 
 		$Shopp->Catalog = new Catalog($type);
 
-		// $Shopp->Category->adjacent_product();
-		// echo "<pre>";
-		// print_r($Shopp->Category);
-		// print_r($Shopp->Product);
 		if ($type == "category") $Shopp->Requested = $Shopp->Category;
 		else $Shopp->Requested = $Shopp->Product;
 				
