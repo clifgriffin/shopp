@@ -307,6 +307,15 @@ class AdminFlow extends FlowController {
 		add_contextual_help($menu,$content);
 	}
 	
+	/**
+	 * Returns a postbox help link to launch help screencasts
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $id The ID of the help resource
+	 * @return string The anchor tag for the help link
+	 **/
 	function boxhelp ($id) {
 		$helpurl = add_query_arg(array('src'=>'help','id'=>$id),admin_url('admin.php'));
 		return '<a href="'.$helpurl.'" class="help"></a>';
