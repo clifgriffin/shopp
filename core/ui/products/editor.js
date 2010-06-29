@@ -253,14 +253,14 @@ function categories () {
 
 		// Determine where to add on the tree (trunk, branch, leaf)
 		if (parentid > 0) {
-			if ($('#category-element-'+parentid+' ~ li > ul').size() > 0)
-				parent = $('#category-element-'+parentid+' ~ li > ul');
-			else {
+			if ($('#category-element-'+parentid+' ul li').size() > 0) // Add to branch
+				parent = $('#category-element-'+parentid+' ul');
+			else {	// Add as a leaf of a leaf
 				ulparent = $('#category-element-'+parentid);
 				liparent = $('<li></li>').insertAfter(ulparent);
 				parent = $('<ul></ul>').appendTo(liparent);
 			}
-		} else parent = $('#category-menu > ul');
+		} else parent = $('#category-menu > ul'); // Add to the trunk
 
 		// Figure out where to insert our item amongst siblings (leaves)
 		insertionPoint = false;
