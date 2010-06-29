@@ -236,6 +236,8 @@ class Categorize extends AdminController {
 	 * @return void
 	 **/
 	function layout () {
+		global $Shopp;
+		$Admin =& $Shopp->Flow->Admin;
 		include(SHOPP_ADMIN_PATH."/categories/ui.php");
 	}
 

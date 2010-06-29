@@ -347,7 +347,7 @@ class Warehouse extends AdminController {
 	 **/
 	function layout () {
 		global $Shopp;
-		$Admin = $Shopp->Flow->Admin;
+		$Admin =& $Shopp->Flow->Admin;
 		include(SHOPP_ADMIN_PATH."/products/ui.php");
 	}
 
