@@ -28,8 +28,9 @@
 #shopp .views li { display: inline; }
 #shopp .orderby { float: right; }
 
-#shopp .subcategories { padding: 10px 0; margin-bottom: 10px;}
-#shopp .subcategories ul { padding: 0 0 0 10px; margin-bottom: 10px; }
+#shopp .category .subcategories { padding: 10px 0; margin-bottom: 10px; }
+#shopp .category .subcategories ul { padding: 10px 0 0 20px; margin-bottom: 10px; }
+#shopp .category .subcategories li { display: inline-block; margin-right: 20px; vertical-align: top; }
 
 #shopp .slideshow,
 #shopp .carousel { margin: 20px 0; clear: both; }

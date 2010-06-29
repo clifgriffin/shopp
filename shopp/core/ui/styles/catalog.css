@@ -88,8 +88,7 @@ div.clear,
 #shopp .views .grid { width: 15px; height: 15px; background: url('../../../core/ui/icons/grid.png') no-repeat 50% 50%; }
 #shopp .views .list { width: 15px; height: 15px; background: url('../../../core/ui/icons/list.png') no-repeat 50% 50%; }
 
-#shopp.catalog .category ul,
-#shopp.category .category ul { margin: 0; padding: 0; }
+#shopp .category ul { margin: 0; padding: 0; }
 #shopp.catalog .category .products li,
 #shopp.category .category .products li,
 #shopp.catalog .carousel .frame li { margin: 0; padding: 0; }
