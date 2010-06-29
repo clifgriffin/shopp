@@ -248,6 +248,10 @@ class Order {
 		$this->Cart->totals();
 		if ($this->validform() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
+
+		echo "<pre>";
+		print_r($this->Shipping);
+		echo "</pre>";
 		
 		do_action('shopp_checkout_processed');
 		
@@ -894,7 +898,7 @@ class Order {
 				$label = __("Residential shipping address","Shopp");
 				if (isset($options['label'])) $label = $options['label'];
 				if (isset($options['checked']) && value_is_true($options['checked'])) $checked = ' checked="checked"';
-				$output = '<label for="residential-shipping"><input type="checkbox" name="residentialshipping" value="on" id="residential-shipping" '.$checked.' /> '.$label.'</label>';
+				$output = '<label for="residential-shipping"><input type="hidden" name="shipping[residential]" value="no" /><input type="checkbox" name="shipping[residential]" value="yes" id="residential-shipping" '.$checked.' /> '.$label.'</label>';
 				return $output;
 				break;
 				

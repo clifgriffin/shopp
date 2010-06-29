@@ -79,7 +79,6 @@
 			</div>
 		<?php if (shopp('checkout','shipping')): ?>
 			<div class="inline"><?php shopp('checkout','same-shipping-address'); ?></div>
-			<div class="inline"><?php shopp('checkout','residential-shipping-address'); ?></div>
 			</li>
 			<li class="half right" id="shipping-address-fields">
 				<label for="shipping-address"><?php _e('Shipping Address','Shopp'); ?></label>
