@@ -200,6 +200,10 @@ class Storefront extends FlowController {
 	 * Changes the Shopp catalog page titles to include the product
 	 * name and category (when available) */
 	function titles ($title,$sep=" &mdash; ",$placement="left") {
+		global $wp;
+		if (!isset($wp->query_vars['shopp_category']) 
+			&& !isset($wp->query_vars['shopp_product'])
+			&& !isset($wp->query_vars['shopp_pid'])) return $title;
 		if (empty($this->Product->name) && empty($this->Category->name)) return $title;
 
 		if ($placement == "right") {
