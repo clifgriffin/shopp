@@ -183,7 +183,6 @@ function TaxRate (data) {
 			},
 			onComplete: function(results) {
 				uploadButton.removeAttr('disabled').removeClass('updating');
-				console.log(results);
 				r = $.parseJSON(results);
 				listings(r);
 			}
