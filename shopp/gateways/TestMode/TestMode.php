@@ -27,7 +27,11 @@ class TestMode extends GatewayFramework {
 	 **/
 	function __construct () {
 		parent::__construct();
-		$this->setup('error');
+		$this->setup('cards','error');
+
+		// Autoset useable payment cards
+		$this->settings['cards'] = array();
+		foreach ($this->cards as $card)	$this->settings['cards'][] = $card->symbol;
 	}
 	
 	function actions () {
