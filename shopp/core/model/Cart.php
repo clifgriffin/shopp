@@ -1423,6 +1423,7 @@ class CartShipping {
 		// Always return the selected shipping option if a method has been set
 		if (!empty($this->Shipping->method))
 			return $this->options[$this->Shipping->method]->amount;
+		else $this->Shipping->method = $estimate->name;
 
 		// Return the estimated amount
 		return $estimate->amount;
