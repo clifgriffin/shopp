@@ -459,7 +459,7 @@ class Product extends DatabaseObject {
 				}
 
 				if (!empty($tagid))
-					$db->query("INSERT $catalog SET tag='$tagid',product='$this->id',created=now(),modified=now()");
+					$db->query("INSERT $catalog SET parent='$tagid',type='tag',product='$this->id',created=now(),modified=now()");
 					
 			}
 		}
@@ -469,7 +469,7 @@ class Product extends DatabaseObject {
 			foreach ($removed as $tag) {
 				$Tag = new Tag($tag,'name');
 				if (!empty($Tag->id))
-					$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE tag='$Tag->id' AND product='$this->id'"); 
+					$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE parent='$Tag->id' AND type='tag' AND product='$this->id'"); 
 			}
 		}
 
