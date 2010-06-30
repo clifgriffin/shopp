@@ -81,7 +81,7 @@ class AjaxFlow {
 			echo '<style type="text/css">body { padding: 20px; font-family: Arial,Helvetica,sans-serif; }</style>';
 			echo "<link rel='stylesheet' href='".SHOPP_TEMPLATES_URI."/shopp.css' type='text/css' />";
 		echo "</head><body>";
-		echo $Shopp->Purchase->receipt();
+		echo apply_filters('shopp_admin_order_receipt',$Shopp->Purchase->receipt('receipt-admin.php'));
 		if (isset($_GET['print']) && $_GET['print'] == 'auto')
 			echo '<script type="text/javascript">window.onload = function () { window.print(); window.close(); }</script>';
 		echo "</body></html>";

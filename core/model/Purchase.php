@@ -125,6 +125,7 @@ class Purchase extends DatabaseObject {
 	
 	// Display a sales receipt
 	function receipt ($template="receipt.php") {
+		if (!file_exists(SHOPP_TEMPLATES."/$template")) $template = "receipt.php";
 		if (empty($this->purchased)) $this->load_purchased();
 		ob_start();
 		include(SHOPP_TEMPLATES."/$template");

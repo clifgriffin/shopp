@@ -109,7 +109,7 @@
 	
 </div>
 
-<iframe id="print-receipt" name="receipt" src="<?php echo admin_url('admin-ajax.php'); ?>?action=shopp_order_receipt&amp;id=<?php echo $Purchase->id; ?>" width="400" height="100" class="invisible"></iframe>
+<iframe id="print-receipt" name="receipt" src="<?php echo wp_nonce_url(admin_url('admin-ajax.php').'?action=shopp_order_receipt&amp;id='.$Purchase->id,'wp_ajax_shopp_order_receipt'); ?>" width="400" height="100" class="invisible"></iframe>
 
 <script type="text/javascript">
 
