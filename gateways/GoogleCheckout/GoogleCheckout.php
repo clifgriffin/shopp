@@ -4,7 +4,7 @@
  * @class GoogleCheckout
  *
  * @author Jonathan Davis
- * @version 1.0.3
+ * @version 1.0.4
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  * @since 1.1
@@ -39,6 +39,12 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$this->urls['button'] = array(
 			'live' => 'http://checkout.google.com/buttons/checkout.gif',
 			'test' => 'http://sandbox.google.com/checkout/buttons/checkout.gif'
+			);
+		
+		$this->merchant_calc_url = (
+			SHOPP_PERMALINKS ?
+			$Shopp->link('catalog').'?_txnupdate=gc' :
+			add_query_arg(array('_txnupdate' => 'gc'), $Shopp->link('catalog'))
 			);
 		
 		$this->setup('id','key','apiurl');
@@ -124,12 +130,15 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			// Handle notifications
 			$XML = new XMLdata($data);
 			$type = key($XML->data);
+			
 			$serial = $XML->getElementAttr($type,'serial-number');
-						
+			
+			$ack = true;			
 			switch($type) {
 				case "new-order-notification": $this->order($XML); break;
 				case "risk-information-notification": $this->risk($XML); break;
 				case "order-state-change-notification": $this->state($XML); break;
+				case "merchant-calculation-callback": $ack = $this->merchant_calc($XML); break;
 				case "charge-amount-notification":			// Not implemented
 				case "refund-amount-notification":			// Not implemented
 				case "chargeback-amount-notification":		// Not implemented
@@ -137,7 +146,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 					break;
 			}
 			// Send acknowledgement
-			$this->acknowledge($serial);	
+			if($ack) $this->acknowledge($serial);	
 		}
 		exit();
 	}
@@ -174,8 +183,21 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$_[] .= '<notification-acknowledgement xmlns="'.$this->urls['schema'].'" serial-number="'.$serial.'" />';
 		echo join("\n",$_);
 	}
+
+	/**
+	* response()
+	* Send a response for a callback
+	* $message is a array containing XML response lines
+	* 
+	* */
+	function response ($message) {
+		header('HTTP/1.1 200 OK');
+		// error_log("message: ".join("\n",$message));
+		echo join("\n",$message);
+	} 
 		
 	function buildCheckoutRequest () {
+		global $Shopp;
 		$Cart = $this->Order->Cart;
 		
 		$_ = array('<?xml version="1.0" encoding="utf-8"?>'."\n");
@@ -237,28 +259,34 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			// Build the flow support request
 			$_[] = '<checkout-flow-support>';
 				$_[] = '<merchant-checkout-flow-support>';
-
+					// Merchant Calculations
+					$_[] = '<merchant-calculations>';
+					$_[] = '<merchant-calculations-url>'.$this->merchant_calc_url.'</merchant-calculations-url>';
+					$_[] = '</merchant-calculations>';
+				
 				// Shipping Methods
-				if ($Cart->data->Shipping && !empty($Cart->data->ShipCosts)) {
+				if ($this->settings['use_google_shipping'] != 'on' && $Cart->shipped() && !empty($Cart->shipping)) {
 					$_[] = '<shipping-methods>';
-						foreach ($Cart->data->ShipCosts as $i => $shipping) {
+						foreach ($Cart->shipping as $i => $shipping) {
 							$label = __('Shipping Option','Shopp').' '.($i+1);
-							if (!empty($shipping['name'])) $label = $shipping['name'];
-							$_[] = '<flat-rate-shipping name="'.$label.'">';
-							$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping['cost'],$this->precision).'</price>';
-							$_[] = '<shipping-restrictions><allowed-areas><world-area /></allowed-areas></shipping-restrictions>';
-							$_[] = '</flat-rate-shipping>';
+							if (!empty($shipping->name)) $label = $shipping->name;
+							$_[] = '<merchant-calculated-shipping name="'.$label.'">';
+							$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping->amount,$this->precision).'</price>';
+							$_[] = '<shipping-restrictions>';
+							$_[] = '<allowed-areas><world-area /></allowed-areas>';
+							$_[] = '</shipping-restrictions>';
+							$_[] = '</merchant-calculated-shipping>';
 						}
 					$_[] = '</shipping-methods>';
 				}
 
-				if (is_array($this->settings['taxes'])) {
+				if ($this->settings['use_google_taxes'] != 'on' && is_array($this->settings['taxes'])) {
 					$_[] = '<tax-tables>';
 						$_[] = '<default-tax-table>';
 							$_[] = '<tax-rules>';
 							foreach ($this->settings['taxes'] as $tax) {
 								$_[] = '<default-tax-rule>';
-									$_[] = '<shipping-taxed>false</shipping-taxed>';
+									$_[] = '<shipping-taxed>'.($Shopp->Settings->get('tax_shipping') == 'on' ? 'true' : 'false').'</shipping-taxed>';
 									$_[] = '<rate>'.number_format($tax['rate']/100,4).'</rate>';
 									$_[] = '<tax-area>';
 										if ($tax['country'] == "US" && isset($tax['zone'])) {
@@ -285,8 +313,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			
 			
 		$_[] = '</checkout-shopping-cart>';
-		// echo "<pre>"; print_r($_); echo "</pre>";
-		return join("\n",$_);
+		return join("\n", apply_filters('googlecheckout_build_request', $_));
 	}
 	
 	
@@ -405,6 +432,67 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		}
 	}
 
+	function tax () {
+		if ($XML->getElementContent('tax') == 'false') return;
+	}
+
+	/**
+	* merchant_calc()
+	* Callback function for merchant calculated shipping and taxes
+	* taxes calculations unimplemented
+	* returns false when it responds, as acknowledgement of merchant calculations is unnecessary
+	* */
+	function merchant_calc ($XML) {
+		global $Shopp;
+
+		if ($XML->getElementContent('shipping') == 'false') return true;  // ack
+				
+		$sessionid = $XML->getElementContent('shopping-session');
+		$Shopp->resession($sessionid);
+		$Shopp->Order = ShoppingObject::__new('Order');		
+		$Shopping = &$Shopp->Shopping;
+		$Order = &$Shopp->Order;
+		
+		// Get new address information on order
+		$shipto = $XML->getElement('anonymous-address');
+		$shipto = $shipto['CHILDREN'];
+		
+		$Order->Shipping->city = $shipto['city']['CONTENT'];
+		$Order->Shipping->state = $shipto['region']['CONTENT'];
+		$Order->Shipping->country = $shipto['country-code']['CONTENT'];
+		$Order->Shipping->postcode = $shipto['postal-code']['CONTENT'];
+		
+		// Calculate shipping options
+		$Shipping = new CartShipping();
+		$Shipping->calculate();
+		$options = $Shipping->options();
+		if (empty($options)) return true; // acknowledge, but don't respond
+		
+		$methods_data = $XML->getElements('method');
+		// $methods = $methods['CHILDREN'];
+		$methods = array();
+		foreach ($methods_data[0] as $data) {
+			$methods[] = $data['ATTRS']['name'];
+		}
+		$address_id = $XML->getElementAttr('anonymous-address','id');		
+		$_ = array('<?xml version="1.0" encoding="utf-8"?>');
+		$_[] = "<merchant-calculation-results xmlns=\"http://checkout.google.com/schema/2\">";
+		$_[] = "<results>";
+		foreach ($options as $option) {
+			if (in_array($option->name, $methods)) {	
+				$_[] = '<result shipping-name="'.$option->name.'" address-id="'.$address_id.'">';
+				$_[] = '<shipping-rate currency="'.$this->settings['currency'].'">'.number_format($option->amount,$this->precision).'</shipping-rate>';
+				$_[] = '<shippable>true</shippable>';
+				$_[] = '</result>';
+			} 
+		}
+		$_[] = "</results>";		
+		$_[] = "</merchant-calculation-results>";
+		
+		$this->response($_);
+		return false; //no ack
+	}
+
 	function send ($message,$url) {
 		$type = ($this->settings['testmode'] == "on")?'test':'live';
 		$url = sprintf($url[$type],$this->settings['id'],$this->settings['key'],$this->settings['id']);
@@ -487,6 +575,19 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			'checked' => ($this->settings['autocharge'] == "on"),
 			'label' => __('Automatically charge orders','Shopp')
 		));
+		
+		$this->ui->checkbox(1,array(
+			'name' => 'use_google_taxes',
+			'checked' => ($this->settings['use_google_taxes']),
+			'label' => __('Use Google tax settings')
+		));
+
+		$this->ui->checkbox(1,array(
+			'name' => 'use_google_shipping',
+			'checked' => ($this->settings['use_google_shipping']),
+			'label' => __('Use Google shipping rate settings')
+		));
+
 	}
 
 	function apiurl () {
