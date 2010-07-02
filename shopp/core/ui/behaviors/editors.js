@@ -946,7 +946,7 @@ jQuery.fn.FileChooser = function (line,status) {
 		dlpath = $('#download_path-'+line),
 		dlname = $('#download_file-'+line),
 		file = $('#file-'+line),
-		verified = false,
+		stored = false,
 		progressbar = false;
 		
 	fileUploads.updateLine(line,status);
@@ -973,7 +973,13 @@ jQuery.fn.FileChooser = function (line,status) {
 	});
 	
 	attach.click(function () {
-		$.fn.colorbox.hide();
+		$.fn.colorbox.hide()
+		if (stored) {
+			dlpath.val(importurl.val());
+			importurl.val('').attr('class','fileimport');
+			return true;
+		}
+		
 		var importid = false,
 			importdata = false,
 			importfile = importurl.val(),
@@ -1001,13 +1007,21 @@ jQuery.fn.FileChooser = function (line,status) {
 
 			}
 		
-		
-		// file.attr('class','importing').html('Importing&hellip;');
 		file.attr('class','').html('<div class="progress"><div class="bar"></div><div class="gloss"></div></div><iframe width="0" height="0" src="'+fileimport_url+'&action=shopp_import_file&url='+importfile+'"></iframe>');
 		file.find('iframe').load(function () {
 			var f = $(this).contents().find('body').html();
 			importdata = $.parseJSON(f);
-			if (importdata.path) {
+			
+			console.log(importdata);
+			if (importdata.error) return file.attr('class','error').html('<small>'+importdata.error+'</small>');
+			if (!importdata.path) return file.attr('class','error').html('<small>'+FILE_UNKNOWN_IMPORT_ERROR+'</small>');
+			
+			if (importdata.stored) {
+				file.attr('class','file '+importdata.mime.replace('/',' ')).html(importdata.name+'<br /><small>'+readableFileSize(importdata.size)+'</small>');
+				dlpath.val(importdata.path); dlname.val(importdata.name);
+				importurl.val('').attr('class','fileimport');
+				return;
+			} else {
 				savepath = importdata.path.split('/');
 				importid = savepath[savepath.length-1];
 				importing();

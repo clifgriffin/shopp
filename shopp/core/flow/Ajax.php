@@ -371,12 +371,14 @@ class AjaxFlow {
 		$_ = array();
 		switch ($format) {
 			case "xml":
-				// Example:
-				// <localtaxrates>
-				// 	<taxrate name="Kent">1</taxrate>
-				// 	<taxrate name="New Castle">0.25</taxrate>
-				// 	<taxrate name="Sussex">1.4</taxrate>
-				// </localtaxrates>
+				/* 
+				Example XML import file:
+					<localtaxrates>
+						<taxrate name="Kent">1</taxrate>
+						<taxrate name="New Castle">0.25</taxrate>
+						<taxrate name="Sussex">1.4</taxrate>
+					</localtaxrates>
+				*/
 				require_once(SHOPP_MODEL_PATH."/XML.php");
 				$XML = new xmlQuery($data);
 				$taxrates = $XML->tag('taxrate');
@@ -431,38 +433,75 @@ class AjaxFlow {
 	
 	function import_file () {
 		check_admin_referer('wp_ajax_shopp_import_file');
-
-		if (empty($_REQUEST['url'])) die(json_encode(false));
+		global $Shopp;
+		$Engine =& $Shopp->Storage->engines['download'];
+				
+		$error = create_function('$s', 'die(json_encode(array("error" => $s)));');
+		if (empty($_REQUEST['url'])) $error(__('No file import URL was provided.','Shopp'));
 		$url = $_REQUEST['url'];
 		$request = parse_url($url);
+		$headers = array();
 		$filename = basename($request['path']);
-
 		
-		// @todo open_basedir restriction workaround
-		$importfile = tempnam(null, 'shp');
-		$incoming = fopen($importfile,'w');
-		
-		if (!$file = fopen(linkencode($url), 'rb')) die(json_encode(false));
-		$data = stream_get_meta_data($file);
-		
-		if (isset($data['wrapper_data'])) {
-			foreach ($data['wrapper_data'] as $d) {
-				if (strpos($d,':') === false) continue;
-				list($name,$value) = explode(': ',$d);
-				if ($rel = strpos($value,';')) $headers[$name] = substr($value,0,$rel);
-				else $headers[$name] = $value;
-			}
-		}
-
-		$tmp = basename($importfile);
-		$Settings =& ShoppSettings();
-
 		$_ = new StdClass();
 		$_->name = $filename;
-		$_->path = $importfile;
-		$_->size = $headers['Content-Length'];
-		$_->mime = $headers['Content-Type'] == 'text/plain'?file_mimetype($_->name):$headers['Content-Type'];
+		$_->stored = false;
+		
+		
+		$File = new ProductDownload();
+		$stored = false;
+		$File->_engine(); // Set engine from storage settings
+		$File->uri = sanitize_path($url);
+		$File->type = "download";
+		$File->name = $filename;
+		$File->filename = $filename;
+		
+		if ($File->found()) {
+			// File in storage, look up meta from storage engine
+			$File->readmeta();
+			$_->stored = true;
+			$_->path = $File->uri;
+			$_->size = $File->size;
+			$_->mime = $File->mime;
+			if ($_->mime == "application/octet-stream" || $_->mime == "text/plain")
+				$mime = file_mimetype($File->name);
+			if ($mime == "application/octet-stream" || $mime == "text/plain")
+				$_->mime = $mime;
+		} else {
+			if (!$importfile = @tempnam(sanitize_path(realpath(SHOPP_TEMP_PATH)), 'shp')) $error(sprintf(__('A temporary file could not be created for importing the file.','Shopp'),$importfile));
+			if (!$incoming = @fopen($importfile,'w')) $error(sprintf(__('A temporary file at %s could not be opened for importing.','Shopp'),$importfile));
+		
+			if (!$file = @fopen(linkencode($url), 'rb')) $error(sprintf(__('The file at %s could not be opened for importing.','Shopp'),$url));
+			$data = @stream_get_meta_data($file);
+		
+			if (isset($data['timed_out']) && $data['timed_out']) $error(__('The connection timed out while trying to get information about the target file.','Shopp'));
+		
+			if (isset($data['wrapper_data'])) {
+				foreach ($data['wrapper_data'] as $d) {
+					if (strpos($d,':') === false) continue;
+					list($name,$value) = explode(': ',$d);
+					if ($rel = strpos($value,';')) $headers[$name] = substr($value,0,$rel);
+					else $headers[$name] = $value;
+				}
+			}
+		
+			$tmp = basename($importfile);
+			$Settings =& ShoppSettings();
+		
+			$_->path = $importfile;
+			if (empty($headers)) {
+				// Stat file data directly if no stream data available
+				$_->size = filesize($url);
+				$_->mime = file_mimetype($url);
+			} else {
+				// Use the stream data
+				$_->size = $headers['Content-Length'];
+				$_->mime = $headers['Content-Type'] == 'text/plain'?file_mimetype($_->name):$headers['Content-Type'];
+			}			
+		}
 
+		// Mimetype must be set or we'll have problems in the UI
+		if (!$_->mime) $_->mime = "application/octet-stream";
 
 		ob_end_clean();
 		header("Connection: close");
@@ -474,6 +513,8 @@ class AjaxFlow {
 		ob_end_flush();
 		flush();
 		ob_end_clean();
+		
+		if ($_->stored) return;
 		
 		$progress = 0;
 		fseek($file, 0);
@@ -508,7 +549,33 @@ class AjaxFlow {
 	
 	function storage_suggestions () { exit(); }
 	
-	function verify_file () { exit(); }
+	function verify_file () {
+		check_admin_referer('wp_ajax_shopp_verify_file');
+		$Settings = &ShoppSettings();
+		chdir(WP_CONTENT_DIR); // relative file system path context for realpath
+		$url = $_POST['url'];
+		$request = parse_url($url);
+
+		if ($request['scheme'] == "http") {
+			$results = get_headers(linkencode($url));
+			if (substr($url,-1) == "/") die("ISDIR");
+			if (strpos($results[0],'200') === false) die("NULL");
+		} else {
+			$url = str_replace('file://','',$url);
+
+			if ($url{0} != "/" || substr($url,0,2) == "./" || substr($url,0,3) == "../")
+				$result = apply_filters('shopp_verify_stored_file',$url);
+			
+			$url = sanitize_path(realpath($url));
+			if (!file_exists($url)) die('NULL');
+			if (is_dir($url)) die('ISDIR');
+			if (!is_readable($url)) die('READ');
+	
+		}
+
+		die('OK');
+		
+	}
 	
 	function category_children () {
 		check_admin_referer('wp_ajax_shopp_category_children');

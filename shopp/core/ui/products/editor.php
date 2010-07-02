@@ -24,6 +24,7 @@
 
 				<div id="titlediv">
 					<div id="titlewrap">
+						<label class="hide-if-no-js" id="title-prompt-text" for="title">Enter product name</label>
 						<input name="name" id="title" type="text" value="<?php echo esc_attr($Product->name); ?>" size="30" tabindex="1" autocomplete="off" />
 					</div>
 					<div class="inside">
@@ -149,6 +150,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	FILE_NOT_FOUND_TEXT = "<?php _e('The file you specified could not be found.','Shopp'); ?>",
 	FILE_NOT_READ_TEXT = "<?php _e('The file you specified is not readable and cannot be used.','Shopp'); ?>",
 	FILE_ISDIR_TEXT = "<?php _e('The file you specified is a directory and cannot be used.','Shopp'); ?>",
+	FILE_UNKNOWN_IMPORT_ERROR = "<?php _e('An unknown error occured while attempting to attach the file.','Shopp'); ?>",
 	IMAGE_DETAILS_TEXT = "<?php _e('Image Details','Shopp'); ?>",
 	IMAGE_DETAILS_TITLE_LABEL = "<?php _e('Title','Shopp'); ?>",
 	IMAGE_DETAILS_ALT_LABEL = "<?php _e('Alt','Shopp'); ?>",

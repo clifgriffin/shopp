@@ -496,6 +496,10 @@ class StorageEngines extends ModuleLoader {
 	}
 	
 	function actions ($module) {
+		// Register contexts the module is a handler for
+		foreach ($this->engines as $system => $handler) 
+			if ($module == $handler) $this->active[$module]->contexts[] = $system;
+
 		if (method_exists($this->active[$module],'actions'))
 			$this->active[$module]->actions();
 	}
@@ -574,6 +578,8 @@ interface StorageEngine {
  **/
 abstract class StorageModule {
 	
+	var $contexts;
+	
 	function __construct () {
 		global $Shopp;
 		$this->module = get_class($this);
@@ -605,6 +611,10 @@ abstract class StorageModule {
 		$data = $this->load($uri);
 		header ("Content-length: ".strlen($data)); 
 		echo $data;
+	}
+	
+	function handles ($context) {
+		return in_array($context,$this->contexts);
 	}
 	
 }
