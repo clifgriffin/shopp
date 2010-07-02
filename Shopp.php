@@ -131,6 +131,7 @@ class Shopp {
 		if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
 		if (!defined('SHOPP_GATEWAY_TIMEOUT')) define('SHOPP_GATEWAY_TIMEOUT',10);
 		if (!defined('SHOPP_SHIPPING_TIMEOUT')) define('SHOPP_SHIPPING_TIMEOUT',10);
+		if (!defined('SHOPP_TEMP_PATH')) define('SHOPP_TEMP_PATH',sys_get_temp_dir());
 
 		// Settings & Paths
 		define("SHOPP_DEBUG",($this->Settings->get('error_logging') == 2048));
@@ -156,7 +157,6 @@ class Shopp {
 			&& is_dir($this->Settings->get('theme_templates')))?
 					  get_bloginfo('stylesheet_directory')."/shopp":
 					  $this->uri."/templates");
-
 
 		define("SHOPP_PERMALINKS",(get_option('permalink_structure') == "")?false:true);
 				

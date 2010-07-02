@@ -536,8 +536,12 @@ class Warehouse extends AdminController {
 				if (!empty($option['download'])) $Price->attach_download($option['download']);
 
 				if (!empty($option['downloadpath'])) { // Attach file specified by URI/path
-					$File = new ProductDownload();
+					if (!empty($Price->download->id) || (empty($Price->download) && $Price->load_download())) {
+						$File = $Price->download;
+					} else $File = new ProductDownload();
+					
 					$stored = false;
+					$File->storage = false;
 					$File->_engine(); // Set engine from storage settings
 					$File->uri = sanitize_path($option['downloadpath']);
 					$File->parent = $Price->id;
@@ -553,6 +557,7 @@ class Warehouse extends AdminController {
 						$File->readmeta();
 						$File->save();
 					}
+					
 				} // END attach file by path/uri
 			}
 			unset($Price);

@@ -41,7 +41,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 	
 	function actions () {
 		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'suggestions'));
-		add_action('wp_ajax_shopp_verify_file',array(&$this,'verify'));
+ 		add_filter('shopp_verify_stored_file',array(&$this,'verify'));
 	}
 	
 	function context ($context) {
@@ -169,6 +169,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 	}
 	
 	function suggestions () {
+		if (!$this->handles('download')) return;
 		check_admin_referer('wp_ajax_shopp_storage_suggestions');
 		if (empty($_GET['q']) || strlen($_GET['q']) < 3) return;
 		if ($_GET['t'] == "image") $this->context('image');
@@ -207,7 +208,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 			while (( $file = $Directory->read() ) !== false) {
 				if (substr($file,0,1) == "." || substr($file,0,1) == "_") continue;
 				if (strpos(strtolower($file),strtolower($search)) === false) continue;
-				if (is_dir($directory.'/'.$file)) $results[] = $relpath.$file.$sep;
+				if (is_dir($directory.$sep.$file)) $results[] = $relpath.$file.$sep;
 				else $results[] = $relpath.$file;
 			}
 		}
@@ -215,27 +216,16 @@ class FSStorage extends StorageModule implements StorageEngine {
 		exit();
 	}
 	
-	function verify () {
-		check_admin_referer('wp_ajax_shopp_verify_file');
-		$Settings = &ShoppSettings();
-		chdir(WP_CONTENT_DIR); // relative path context for realpath
-		$url = $_POST['url'];
-		$request = parse_url($url);
+	function verify ($uri) {
+		if (!$this->handles('download')) return $uri;
 
-		if ($request['scheme'] == "http") {
-			$results = get_headers(linkencode($url));
-			if (substr($url,-1) == "/") die("ISDIR");
-			if (strpos($results[0],'200') === false) die("NULL");
-
-		} else {
-			$fs_path = $Settings->get('products_path');
-			$url = str_replace('file://','',$url);
-	
-			if ($url{0} != "/" && !empty($fs_path)) $url = trailingslashit(sanitize_path(realpath($fs_path))).$url;
-			if (!file_exists($url)) die('NULL');
-			if (is_dir($url)) die('ISDIR');
-			if (!is_readable($url)) die('READ');
-		}
+		$this->context('download');
+		$path = trailingslashit(sanitize_path($this->path));
+		
+		$url = $path.$uri;
+		if (!file_exists($url)) die('NULL');
+		if (is_dir($url)) die('ISDIR');
+		if (!is_readable($url)) die('READ');
 
 		die('OK');
 	}
