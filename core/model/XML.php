@@ -2,10 +2,29 @@
 /**
  * Generates a searchable document object model from valid XML
  * 
- * @author Jonathan Davis
+ * Usage: $XML = new xmlQuery($source);
+ * 
+ * $source can be another xmlQuery DOM object or a string of XML markup
+ * 
+ * The xmlQuery object uses several helper methods to find data in the 
+ * parsed document object model (DOM).  Each method takes a selector argument
+ * that can be used to filter the returned results.  {@see xmlQuery::parsequery()}
+ * 
+ * The helper methods will contextually return different result structures based 
+ * on the query and the structure of the target DOM.  The primary search methods 
+ * include:
+ *  $xmlQuery->tag() to find and filter the DOM to a specific set of tags
+ * 	$xmlQuery->content() to return the content in a tag (or tags)
+ * 	$xmlQuery->attr() to return a specific attribute (or all attributes) from a tag (or tags)
+ * 
+ * The $xmlQuery->each() method can be used to iterate through the DOM nodes that
+ * match the provided selector argument: while($xmlQuery->each()) { … }
+ * 
+ * @author Jonathan Davis, leoSr
  * @since 1.1
  * @package shopp
  * @subpackage XML
+ * @copyright Ingenesis Limited, May 2010
  **/
 class xmlQuery {
 
@@ -20,8 +39,16 @@ class xmlQuery {
 
 	/**
 	 * Parses a string of XML-markup into a structured document object model
+	 * 
+	 * $DOM['_a'] Attributes
+	 * $DOM['_c'] Child nodes
+	 * $DOM['_v'] Content value
+	 * $DOM['_p'] Recursive entries
+	 * 
+	 * XML markup parsing and resulting DOM structure and insert functions by leoSr:
+	 * http://mysrc.blogspot.com/2007/02/php-xml-to-array-and-backwards.html
 	 *
-	 * @author Jonathan Davis
+	 * @author Jonathan Davis, leoSr
 	 * @since 1.1
 	 * 
 	 * @param string $markup String of XML markup
@@ -43,10 +70,10 @@ class xmlQuery {
 					else $working[$t]=array($working[$t], array());
 					$cv = &$working[$t][count($working[$t])-1];
 				} else $cv = &$working[$t];
-				if (isset($r['attributes'])) { foreach ($r['attributes'] as $k => $v) $cv['ATTRS'][$k] = $v; }
-				$cv['CHILDREN'] = array();
-				$cv['CHILDREN']['_p'] = &$working;
-				$working = &$cv['CHILDREN'];
+				if (isset($r['attributes'])) { foreach ($r['attributes'] as $k => $v) $cv['_a'][$k] = $v; }
+				$cv['_c'] = array();
+				$cv['_c']['_p'] = &$working;
+				$working = &$cv['_c'];
 
 			} elseif ($r['type']=='complete') {
 				if (isset($working[$t])) { // same as open
@@ -54,8 +81,8 @@ class xmlQuery {
 					else $working[$t] = array($working[$t], array());
 					$cv = &$working[$t][count($working[$t])-1];
 				} else $cv = &$working[$t];
-				if (isset($r['attributes'])) { foreach ($r['attributes'] as $k => $v) $cv['ATTRS'][$k] = $v; }
-				$cv['CONTENT'] = (isset($r['value']) ? $r['value'] : '');
+				if (isset($r['attributes'])) { foreach ($r['attributes'] as $k => $v) $cv['_a'][$k] = $v; }
+				$cv['_v'] = (isset($r['value']) ? $r['value'] : '');
 
 			} elseif ($r['type'] == 'close') {
 				$working = &$working['_p'];
@@ -70,7 +97,7 @@ class xmlQuery {
 	/**
 	 * Removes recursive results in the tree
 	 *
-	 * @author Jonathan Davis
+	 * @author Jonathan Davis, leoSr
 	 * @since 1.1
 	 * 
 	 * @param array $data A branch of data in the tree
@@ -86,7 +113,7 @@ class xmlQuery {
 	/**
 	 * Uses recursion to generate XML-markup from the DOM
 	 *
-	 * @author Jonathan Davis
+	 * @author Jonathan Davis, leoSr
 	 * @since 1.1
 	 * 
 	 * @return string XML markup
@@ -101,11 +128,11 @@ class xmlQuery {
 				if ($forcetag) $tag=$forcetag;
 				$sp=str_repeat("\t", $depth);
 				$res[] = "$sp<$tag";
-				if (isset($r['ATTRS'])) { foreach ($r['ATTRS'] as $at => $av) $res[] = ' '.$at.'="'.htmlentities($av).'"'; }
-				$res[] = ">".((isset($r['CHILDREN'])) ? "\n" : '');
-				if (isset($r['CHILDREN'])) $res[] = $this->markup($r['CHILDREN'], $depth+1);
-				elseif (isset($r['CONTENT'])) $res[] = htmlentities($r['CONTENT']);
-				$res[] = (isset($r['CHILDREN']) ? $sp : '')."</$tag>\n";
+				if (isset($r['_a'])) { foreach ($r['_a'] as $at => $av) $res[] = ' '.$at.'="'.htmlentities($av).'"'; }
+				$res[] = ">".((isset($r['_c'])) ? "\n" : '');
+				if (isset($r['_c'])) $res[] = $this->markup($r['_c'], $depth+1);
+				elseif (isset($r['_v'])) $res[] = htmlentities($r['_v']);
+				$res[] = (isset($r['_c']) ? $sp : '')."</$tag>\n";
 			}
         
 		}
@@ -115,7 +142,7 @@ class xmlQuery {
 	/**
 	 * Inserts a new element into the data tree
 	 *
-	 * @author Jonathan Davis
+	 * @author Jonathan Davis, leoSr
 	 * @since 1.1
 	 * 
 	 * @param array $element An DOM-compatible element
@@ -130,7 +157,7 @@ class xmlQuery {
 	/**
 	 * Adds a new element to the data tree as a child of the $target element
 	 *
-	 * @author Jonathan Davis
+	 * @author Jonathan Davis, leoSr
 	 * @since 1.1
 	 * 
 	 * @param array $element Name of the new element
@@ -142,14 +169,14 @@ class xmlQuery {
 	function &add ($element,$target=false,$attrs=array(),$content=false) {
 		$working = array();
 		$working[$element] = array();
-		if (!empty($attrs) && is_array($attrs)) $working[$element]['ATTRS'] = $attrs;
-		if ($content) $working[$element]['CONTENT'] = $content;
+		if (!empty($attrs) && is_array($attrs)) $working[$element]['_a'] = $attrs;
+		if ($content) $working[$element]['_v'] = $content;
 		if ($target) {
 			if (is_array($target)) $node = &$target;
 			else $node =& $this->find($target,false,true);
-			if (!isset($node['CHILDREN'])) $node['CHILDREN'][$element] = $working[$element];
-			else $node['CHILDREN'][$element] = $working[$element];
-			return $node['CHILDREN'][$element];
+			if (!isset($node['_c'])) $node['_c'][$element] = $working[$element];
+			else $node['_c'][$element] = $working[$element];
+			return $node['_c'][$element];
 		} else $this->dom[$element] = $working[$element];
 		return $this->dom[$element];
 	}
@@ -186,6 +213,14 @@ class xmlQuery {
 		return false;
 	}
 	
+	/**
+	 * Iterate through each of the results in the current DOM
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean True if a node exists, false if not
+	 **/
 	function each () {
 		if (!$this->_loop) {
 			$this->_loop = true;
@@ -208,16 +243,16 @@ class xmlQuery {
 	 * @since 1.1
 	 * 
 	 * @param mixed $tag (optional) Tag to find
-	 * @return mixed A single xmlQuery object or an list of xmlQuery objects
+	 * @return string|array A string of a single value or an array of strings for each matching value
 	 **/
 	function content ($tag=false) {
-		if (!$tag) return count($this->dom) == 1 && !empty($this->dom[0]['CONTENT'])?$this->dom[0]['CONTENT']:false;
+		if (!$tag) return count($this->dom) == 1 && !empty($this->dom[0]['_v'])?$this->dom[0]['_v']:false;
 			
 		$found = $this->find($tag);
-		if (isset($found['CONTENT'])) $found = array($found);
+		if (isset($found['_v'])) $found = array($found);
 		$_ = array();
 		foreach ($found as $entry)
-			$_[] = $entry['CONTENT'];
+			$_[] = $entry['_v'];
 		if (count($_) == 1) return $_[0];
 		else return $_;
 
@@ -231,25 +266,25 @@ class xmlQuery {
 	 * 
 	 * @param string $attr (optional) Attribute to retrieve
 	 * @param mixed $tag (optional) Tag to find
-	 * @return mixed A single attribute value or an array of attribute values
+	 * @return string|array A single attribute value or an array of attribute values
 	 **/
 	function attr ($tag=false,$attr=false) {
 		if (!is_string($attr)) $attr = false;
 		if (!$tag) {
 			$dom = (count($this->dom) == 1)?$this->dom[0]:$this->dom;
-			if (!isset($dom['ATTRS'])) return false;
-			if (!$attr) return $dom['ATTRS'];
-			return (isset($dom['ATTRS'][$attr]))?$dom['ATTRS'][$attr]:false;
+			if (!isset($dom['_a'])) return false;
+			if (!$attr) return $dom['_a'];
+			return (isset($dom['_a'][$attr]))?$dom['_a'][$attr]:false;
 		}
 
 		$found = $this->find($tag);
-		if (isset($found['ATTRS'])) $found = array($found);
+		if (isset($found['_a'])) $found = array($found);
 		$_ = array();
 		foreach ($found as $entry) {
-			if (!empty($entry['ATTRS'])) {
-				if (!$attr) $_[] = $entry['ATTRS'];
-				if (isset($entry['ATTRS'][$attr])) 
-					$_[] = $entry['ATTRS'][$attr];
+			if (!empty($entry['_a'])) {
+				if (!$attr) $_[] = $entry['_a'];
+				if (isset($entry['_a'][$attr])) 
+					$_[] = $entry['_a'][$attr];
 			} 
 		}
 		
@@ -375,9 +410,9 @@ class xmlQuery {
 			$match = false;
 			
 			if ($recursive) {
-				if (isset($element['CHILDREN'])) {
+				if (isset($element['_c'])) {
 					// Search child elements/nodes first
-					$found = &$this->search($tag,$attributes,$element['CHILDREN']);
+					$found = &$this->search($tag,$attributes,$element['_c']);
 					$_ = array_merge($_,$found);
 				} elseif (count($element) > 0 && isset($element[0])) {
 					// Search a collection of a single tag
@@ -394,9 +429,9 @@ class xmlQuery {
 			// Matched tag already, if attribute search is set check that those match too
 			if (empty($attributes)) $match = true;
 			else foreach ($attributes as $attr => $search) // Match attributes	
-				if (isset($element['ATTRS']) && isset($element['ATTRS'][$search[1]]) && !isset($search[3])
-					|| isset($element['ATTRS']) && isset($element['ATTRS'][$search[1]])
-					&& $this->match($element['ATTRS'][$search[1]],$search[2],$search[3])) 
+				if (isset($element['_a']) && isset($element['_a'][$search[1]]) && !isset($search[3])
+					|| isset($element['_a']) && isset($element['_a'][$search[1]])
+					&& $this->match($element['_a'][$search[1]],$search[2],$search[3])) 
 						$match = true;
 
 			if (!$match) return;
@@ -586,7 +621,6 @@ class xmlQuery {
 	}
 
 }
-
 
 /**
  * DEPRECATED!!
