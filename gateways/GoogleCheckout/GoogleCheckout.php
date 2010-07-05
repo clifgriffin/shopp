@@ -108,7 +108,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$Response = $this->send($message,$this->urls['checkout']);
 		
 		if (!empty($Response)) {
-			if ($Response->getElement('error')) return $this->error();
+			if ($Response->getElement('error')) {
+				new ShoppError($Response->getElementContent('error-message'),'google_checkout_error',SHOPP_TXN_ERR);
+				return $this->error();
+			}
 			$redirect = false;
 			$redirect = $Response->getElementContent('redirect-url');
 			
@@ -126,11 +129,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			
 			// Read incoming request data
 			$data = trim(file_get_contents('php://input'));
-
+			if(SHOPP_DEBUG) new ShoppError($data,'google_incoming_request',SHOPP_DEBUG_ERR);
 			// Handle notifications
 			$XML = new XMLdata($data);
 			$type = key($XML->data);
-			
 			$serial = $XML->getElementAttr($type,'serial-number');
 			
 			$ack = true;			
@@ -179,8 +181,8 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	 * was received and processed */
 	function acknowledge ($serial) {
 		header('HTTP/1.1 200 OK');
-		$_ = array('<?xml version="1.0" encoding="utf-8"?>'."\n");
-		$_[] .= '<notification-acknowledgement xmlns="'.$this->urls['schema'].'" serial-number="'.$serial.'" />';
+		$_ = array("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+		$_[] .= '<notification-acknowledgment xmlns="'.$this->urls['schema'].'" serial-number="'.$serial.'"/>';
 		echo join("\n",$_);
 	}
 
@@ -192,7 +194,6 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	* */
 	function response ($message) {
 		header('HTTP/1.1 200 OK');
-		// error_log("message: ".join("\n",$message));
 		echo join("\n",$message);
 	} 
 		
@@ -200,7 +201,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		global $Shopp;
 		$Cart = $this->Order->Cart;
 		
-		$_ = array('<?xml version="1.0" encoding="utf-8"?>'."\n");
+		$_ = array('<?xml version="1.0" encoding="UTF-8"?>'."\n");
 		$_[] = '<checkout-shopping-cart xmlns="'.$this->urls['schema'].'">';
 			
 			// Build the cart
@@ -328,8 +329,6 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
-		add_action('shopp_order_success',array(&$this,'success'),1);
-
 		$sessionid = $XML->getElementContent('shopping-session');
 
 		$Shopp->resession($sessionid);
@@ -340,9 +339,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 		// Couldn't load the session data
 		if ($Shopping->session != $sessionid) {
-			new ShoppError("Session could not be loaded: $sessionid",false,SHOPP_DEBUG_ERR);
+			new ShoppError("Session could not be loaded: $sessionid",'google_session_load_failure',SHOPP_DEBUG_ERR);
 			$this->error();
-		} else new ShoppError("Google Checkout successfully loaded session: $sessionid",false,SHOPP_DEBUG_ERR);
+		} else new ShoppError("Google Checkout successfully loaded session: $sessionid",'google_session_load_success',SHOPP_DEBUG_ERR);
 
 		// Check if this is a Shopp order or not
 		$origin = $XML->getElementContent('shopping-cart-agent');
@@ -367,14 +366,13 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$Order->Customer->email = $buyer['email']['CONTENT'];
 		if (!empty($buyer['phone']['CONTENT']))
 			$Order->Customer->phone = $buyer['phone']['CONTENT'];
-
+		$Order->Customer->marketing = ($XML->getElementContent('email-allowed') != 'false' ? 'yes' : 'no');
 		$Order->Billing->address = $buyer['address1']['CONTENT'];
 		$Order->Billing->xaddress = $buyer['address2']['CONTENT'];
 		$Order->Billing->city = $buyer['city']['CONTENT'];
 		$Order->Billing->state = $buyer['region']['CONTENT'];
 		$Order->Billing->country = $buyer['country-code']['CONTENT'];
 		$Order->Billing->postcode = $buyer['postal-code']['CONTENT'];
-		$Order->Billing->card = $XML->getElementContent('partial-cc-number');
 		
 		$shipto = $XML->getElement('buyer-shipping-address');
 		$shipto = $shipto['CHILDREN'];
@@ -388,12 +386,15 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$Shopp->Order->gateway = $this->name;
 
  		$txnid = $XML->getElementContent('google-order-number');
+
+		// Google Adjustments
+		$Order->Shipping->method = $XML->getElementContent('shipping-name');
+		$Order->Cart->Totals->shipping = $XML->getElementContent('shipping-cost');
+		$Order->Cart->Totals->tax = $XML->getElementContent('total-tax');
+		$Order->Cart->Totals->total = $XML->getElementContent('order-total');
+		
 		$Shopp->Order->transaction($txnid);
 
-	}
-	
-	function success () {
-		die('Success');
 	}
 	
 	function risk ($XML) {
@@ -403,7 +404,12 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
-		$Purchase = new Purchase($id,'transactionid');
+		$Purchase = new Purchase($id,'txnid');
+		if ( empty($Purchase->id) ) { 
+			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
+			return;
+		}
+		
 		$Purchase->ip = $XML->getElementContent('ip-address');
 		$Purchase->card = $XML->getElementContent('partial-cc-number');
 		$Purchase->save();
@@ -412,28 +418,32 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	function state ($XML) {
  		$id = $XML->getElementContent('google-order-number');
 		if (empty($id)) {
-			new ShoppError("No transaction ID was provided with an order state change message sent by Google Checkout",false,SHOPP_DEBUG_ERR);
+			new ShoppError("No transaction ID was provided with an order state change message sent by Google Checkout",'google_state_notification_error',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
 
 		$state = $XML->getElementContent('new-financial-order-state');
-		$Purchase = new Purchase($id,'transactionid');
+		$Purchase = new Purchase($id,'txnid');
+		if ( empty($Purchase->id) ) { 
+			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
+			return;
+		}
+		
 		$Purchase->txnstatus = $state;
+		$Purchase->card = $XML->getElementContent('partial-cc-number');
 		$Purchase->save();
 		
 		if (strtoupper($state) == "CHARGEABLE" && $this->settings['autocharge'] == "on") {
-			$_ = array('<?xml version="1.0" encoding="utf-8"?>'."\n");
+			$_ = array('<?xml version="1.0" encoding="UTF-8"?>'."\n");
 			$_[] = '<charge-order xmlns="'.$this->urls['schema'].'" google-order-number="'.$id.'">';
-			$_[] = '<amount currency="'.$this->settings['currency'].'">'.$Purchase->total.'</amount>';
+			$_[] = '<amount currency="'.$this->settings['currency'].'">'.number_format($Purchase->total,$this->precision).'</amount>';
 			$_[] = '</charge-order>';
-			$this->transaction = join("\n",$_);
-			$Reponse = $this->send($this->urls['order']);
-			exit();
+			$Response = $this->send(join("\n",$_), $this->urls['order']);
+			if ($Response->getElement('error')) {
+				new ShoppError($Response->getElementContent('error-message'),'google_checkout_error',SHOPP_TXN_ERR);
+				return;
+			}			
 		}
-	}
-
-	function tax () {
-		if ($XML->getElementContent('tax') == 'false') return;
 	}
 
 	/**
@@ -475,7 +485,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$methods[] = $data['ATTRS']['name'];
 		}
 		$address_id = $XML->getElementAttr('anonymous-address','id');		
-		$_ = array('<?xml version="1.0" encoding="utf-8"?>');
+		$_ = array('<?xml version="1.0" encoding="UTF-8"?>');
 		$_[] = "<merchant-calculation-results xmlns=\"http://checkout.google.com/schema/2\">";
 		$_[] = "<results>";
 		foreach ($options as $option) {
@@ -579,13 +589,13 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$this->ui->checkbox(1,array(
 			'name' => 'use_google_taxes',
 			'checked' => ($this->settings['use_google_taxes']),
-			'label' => __('Use Google tax settings')
+			'label' => __('Use Google tax settings','Shopp')
 		));
 
 		$this->ui->checkbox(1,array(
 			'name' => 'use_google_shipping',
 			'checked' => ($this->settings['use_google_shipping']),
-			'label' => __('Use Google shipping rate settings')
+			'label' => __('Use Google shipping rate settings','Shopp')
 		));
 
 	}
