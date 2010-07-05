@@ -852,7 +852,7 @@ class Cart {
 		$result = "";
 		
 		switch ($property) {
-			case "hasestimates": return (!empty($this->shipping)); break;
+			case "hasestimates": return apply_filters('shopp_shipping_hasestimates',(!empty($this->shipping))); break;
 			case "options":
 			case "methods":
 				if (!isset($this->sclooping)) $this->sclooping = false;
