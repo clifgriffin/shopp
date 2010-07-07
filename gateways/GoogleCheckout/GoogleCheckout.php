@@ -277,19 +277,31 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				$_[] = '<merchant-calculations-url>'.$this->merchant_calc_url.'</merchant-calculations-url>';
 				$_[] = '</merchant-calculations>';
 
-				if ($this->settings['use_google_shipping'] != 'on' && $Cart->shipped() && !empty($Cart->shipping)) {
-					$_[] = '<shipping-methods>';
-						foreach ($Cart->shipping as $i => $shipping) {
-							$label = __('Shipping Option','Shopp').' '.($i+1);
-							if (!empty($shipping->name)) $label = $shipping->name;
-							$_[] = '<merchant-calculated-shipping name="'.$label.'">';
-							$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping->amount,$this->precision).'</price>';
-							$_[] = '<shipping-restrictions>';
-							$_[] = '<allowed-areas><world-area /></allowed-areas>';
-							$_[] = '</shipping-restrictions>';
-							$_[] = '</merchant-calculated-shipping>';
-						}
-					$_[] = '</shipping-methods>';
+				if ($this->settings['use_google_shipping'] != 'on' && $Cart->shipped()) {
+					if ($Cart->freeshipping === true) { // handle free shipping case and ignore all shipping methods
+						$_[] = '<shipping-methods>';
+						$_[] = '<flat-rate-shipping name="'.$Shopp->Settings->get('free_shipping_text').'">';
+						$_[] = '<price currency="'.$this->settings['currency'].'">0.00</price>';
+						$_[] = '<shipping-restrictions>';
+						$_[] = '<allowed-areas><world-area /></allowed-areas>';
+						$_[] = '</shipping-restrictions>';
+						$_[] = '</flat-rate-shipping>';
+						$_[] = '</shipping-methods>';
+					}
+					elseif (!empty($Cart->shipping)) {
+						$_[] = '<shipping-methods>';
+							foreach ($Cart->shipping as $i => $shipping) {
+								$label = __('Shipping Option','Shopp').' '.($i+1);
+								if (!empty($shipping->name)) $label = $shipping->name;
+								$_[] = '<merchant-calculated-shipping name="'.$label.'">';
+								$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping->amount,$this->precision).'</price>';
+								$_[] = '<shipping-restrictions>';
+								$_[] = '<allowed-areas><world-area /></allowed-areas>';
+								$_[] = '</shipping-restrictions>';
+								$_[] = '</merchant-calculated-shipping>';
+							}
+						$_[] = '</shipping-methods>';
+					}
 				}
 
 				if ($this->settings['use_google_taxes'] != 'on' && is_array($this->settings['taxes'])) {
