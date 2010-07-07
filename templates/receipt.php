@@ -1,7 +1,7 @@
 <div id="receipt" class="shopp">
 <table class="transaction">
 	<tr><th><?php _e('Order Num:','Shopp'); ?></th><td><?php shopp('purchase','id'); ?></td></tr>	
-	<tr><th><?php _e('Order Date:','Shopp'); ?></th><td><?php shopp('purchase','date','format=F j, Y'); ?></td></tr>	
+	<tr><th><?php _e('Order Date:','Shopp'); ?></th><td><?php shopp('purchase','date'); ?></td></tr>	
 	<tr><th><?php _e('Billed To:','Shopp'); ?></th><td><?php shopp('purchase','card'); ?> (<?php shopp('purchase','cardtype'); ?>)</td></tr>	
 	<tr><th><?php _e('Transaction:','Shopp'); ?></th><td><?php shopp('purchase','transactionid'); ?> (<strong><?php shopp('purchase','payment'); ?></strong>)</td></tr>	
 </table>

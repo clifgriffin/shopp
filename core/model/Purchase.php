@@ -147,7 +147,7 @@ class Purchase extends DatabaseObject {
 			case "url": return $Shopp->link('cart'); break;
 			case "id": return $this->id; break;
 			case "date": 
-				if (empty($options['format'])) $options['format'] = get_option('date_format');
+				if (empty($options['format'])) $options['format'] = get_option('date_format').' '.get_option('time_format');
 				return _d($options['format'],((is_int($this->created))?$this->created:mktimestamp($this->created)));
 				break;
 			case "card": return (!empty($this->card))?sprintf("%'X16d",$this->card):''; break;
