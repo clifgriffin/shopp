@@ -513,6 +513,63 @@ function floatvalue($value, $round=true, $format=false) {
 }
 
 /**
+ * convert_unit
+ *
+ * Converts weight units from base setting to needed unit value
+ *
+ * @author John Dillick
+ * @since 1.1
+ * 
+ * @param float $value The value that needs converted
+ * @param string $unit The unit that we are converting to
+ * @param string $from The unit that we are converting from (defaults to System Setting)
+ * @return mixed The converted value, false on error
+ **/
+function convert_unit ($value = 0, $unit='lb', $from=false) {
+	global $Shopp;
+	// oz, lb, g, kg
+	// 16 oz = 1 lb
+	// 1 pound = 453.59237 grams
+	// 1 ounce = 28.3495231 grams
+	
+	if ($from === false) $from = $Shopp->Settings->get('weight_unit'); 
+	if (empty($from)) return false;
+	
+	// Base
+	if ($unit == $from || $value == 0) return $value;
+	elseif ($from == 'oz') {
+		switch ($unit) {
+			case 'lb': return ($value / 16); break;
+			case 'g': return ($value * 28.3495231); break;
+			case 'kg': return ($value * 28.3495231 / 1000); break;
+			default: return false;
+		}
+	} elseif ($from == 'lb') {
+		switch ($unit) {
+			case 'oz': return ($value * 16); break;
+			case 'g': return ($value * 453.59237); break;
+			case 'kg': return ($value * 453.59237 / 1000); break;
+			default: return false;
+		}		
+	} elseif ($from == 'g') {
+		switch ($unit) {
+			case 'oz': return ($value / 28.3495231); break;
+			case 'lb': return ($value / 453.59237); break;
+			case 'kg': return ($value / 1000); break;
+			default: return false;
+		}		
+	} elseif ($from == 'kg') {
+		switch ($unit) {
+			case 'oz': return ($value * 1000 / 28.3495231); break;
+			case 'lb': return ($value * 1000 / 453.59237); break;
+			case 'g': return ($value * 1000); break;
+			default: return false;
+		}		
+	} else return false;	
+}
+
+
+/**
  * Modifies URLs to use SSL connections
  *
  * @author Jonathan Davis
