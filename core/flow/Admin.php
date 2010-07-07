@@ -82,6 +82,7 @@ class AdminFlow extends FlowController {
 		add_action('admin_init', array(&$this, 'tinymce'));
 		add_action('switch_theme',array(&$this, 'themepath'));
 		add_filter('favorite_actions', array(&$this, 'favorites'));
+		add_filter('shopp_admin_boxhelp', array(&$this, 'keystatus'));
 		add_action("load-update.php", array(&$this, 'admin_css'));
 		
 		// Add the default Shopp pages
@@ -318,7 +319,7 @@ class AdminFlow extends FlowController {
 	 **/
 	function boxhelp ($id) {
 		$helpurl = add_query_arg(array('src'=>'help','id'=>$id),admin_url('admin.php'));
-		return '<a href="'.$helpurl.'" class="help"></a>';
+		return apply_filters('shopp_admin_boxhelp','<a href="'.$helpurl.'" class="help"></a>');
 	}
 	
 	/**
@@ -346,7 +347,7 @@ class AdminFlow extends FlowController {
 		global $Shopp;
 		include(SHOPP_ADMIN_PATH."/help/reactivate.php");
 	}
-	
+		
 	/**
 	 * Adds a 'New Product' shortcut to the WordPress admin favorites menu
 	 *
@@ -585,6 +586,21 @@ class AdminFlow extends FlowController {
 	function themepath () {
 		global $Shopp;
 		$Shopp->Settings->save('theme_templates',addslashes(sanitize_path(STYLESHEETPATH.'/'."shopp")));
+	}
+
+	/**
+	 * Report the current status of the update key
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
+	function keystatus ($_=true) {
+		$Settings =& ShoppSettings();
+		$status = $Settings->get('updatekey');
+		if ($status[0] != "1") return false;
+		return $_;
 	}
 	
 	/**
