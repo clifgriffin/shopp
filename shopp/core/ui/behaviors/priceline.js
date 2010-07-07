@@ -185,6 +185,8 @@ function Priceline (id,options,data,target,attachment) {
 	
 	if (!data.id) data.id = '';
 	if (!data.product) data.product = product;
+	if (!data.donation) data.donation = {'var':false,'min':false};
+
 	$('<input type="hidden" name="'+fn+'[id]" id="priceid-'+i+'" value="'+data.id+'" />'+
 		'<input type="hidden" name="'+fn+'[product]" id="product-'+i+'" value="'+data.product+'" />'+
 		'<input type="hidden" name="'+fn+'[context]" id="context-'+i+'"/>'+
@@ -206,7 +208,7 @@ function Priceline (id,options,data,target,attachment) {
 		_.label.val(htmlentities(data.label)).change();
 		type.val(data.type);
 	}
-
+	
 	dataCell = $('<div class="pricing-ui clear" />').appendTo(_.row);	
 	pricingTable = $('<table/>').addClass('pricing-table').appendTo(dataCell);
 	headingsRow = $('<tr/>').appendTo(pricingTable);	
