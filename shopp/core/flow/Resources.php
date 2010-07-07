@@ -224,7 +224,12 @@ class Resources {
 	 **/
 	function help () {
 		if (!isset($_GET['id'])) return;
-		$request = array("ShoppScreencast" => $_GET['id']);
+
+		$Settings =& ShoppSettings();
+		list($status,$key) = $Settings->get('updatekey');
+		$site = get_bloginfo('siteurl');
+		
+		$request = array("ShoppScreencast" => $_GET['id'],'key'=>$key,'site'=>$site);
 		$response = Shopp::callhome($request);
 		echo $response;
 		exit();
