@@ -353,6 +353,7 @@ class Order {
 		foreach($this->Cart->contents as $Item) {
 			$Purchased = new Purchased();
 			$Purchased->copydata($Item);
+			$Purchased->price = $Item->option->id;
 			$Purchased->purchase = $Purchase->id;
 			if (!empty($Purchased->download)) $Purchased->keygen();
 			$Purchased->save();

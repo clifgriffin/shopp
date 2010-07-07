@@ -130,12 +130,14 @@ function downloads_meta_box ($Purchase) {
 ?>
 	<ul>
 	<?php foreach ($Purchase->purchased as $Item): ?>
+		<?php $price = new Price($Item->price); if ($price->type == 'Download'): ?>
 		<li><strong><?php echo $Item->name; ?></strong>: <?php echo $Item->downloads.' '.__('Downloads','Shopp'); ?></li>
+		<?php endif; ?>
 	<?php endforeach; ?>
 	</ul>
 <?php
 }
-if (!empty($Shopp->Purchase->downloads))
+if ($Shopp->Purchase->downloads !== false)
 	add_meta_box('order-downloads', __('Downloads','Shopp'), 'downloads_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 function status_meta_box ($Purchase) {
