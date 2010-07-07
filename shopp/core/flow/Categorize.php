@@ -27,8 +27,8 @@ class Categorize extends AdminController {
 			wp_enqueue_script('postbox');
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');
-				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 11 );
 				wp_enqueue_script('quicktags');
+				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 20 );
 			}
 			
 			shopp_enqueue_script('colorbox');

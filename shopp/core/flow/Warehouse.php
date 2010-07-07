@@ -28,8 +28,9 @@ class Warehouse extends AdminController {
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');
 				wp_enqueue_script('quicktags');
-				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 11 );
+				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 20 );
 			}
+			
 			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('editors');
 			shopp_enqueue_script('scalecrop');

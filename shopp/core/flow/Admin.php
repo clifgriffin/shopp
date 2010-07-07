@@ -646,6 +646,18 @@ class AdminFlow extends FlowController {
 
 		// Add TinyMCE buttons when using rich editor
 		if (get_user_option('rich_editing') == 'true') {
+			global $pagenow,$plugin_page;
+			$pages = array('post.php', 'post-new.php', 'page.php', 'page-new.php');
+			$editors = array('shopp-products','shopp-categories');
+			if(!(in_array($pagenow, $pages) || (in_array($plugin_page, $editors) && !empty($_GET['id'])))) 
+				return false;
+			
+			wp_enqueue_script('shopp-tinymce',admin_url('admin-ajax.php').'?action=shopp_tinymce',array());
+			wp_localize_script('shopp-tinymce', 'ShoppDialog', array(
+				'title' => __('Insert from Shopp…', 'Shopp'),
+				'desc' => __('Insert a product or category from Shopp…', 'Shopp')
+			));
+
 			add_filter('mce_external_plugins', array(&$this,'mceplugin'),5);
 			add_filter('mce_buttons', array(&$this,'mcebutton'),5);
 		}
