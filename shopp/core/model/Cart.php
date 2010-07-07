@@ -733,7 +733,7 @@ class Cart {
 				$result .= '<span><input type="submit" id="apply-code" name="update" '.inputattrs($options,$submit_attrs).' /></span>';
 				$result .= '</li></ul>';
 				return $result;
-			case "has-shipping-methods": return (!empty($this->shipping)); break;
+			case "has-shipping-methods": return apply_filters('shopp_shipping_hasestimates',!empty($this->shipping),$this->shipping); break;
 				// return (!$this->ShippingDisabled
 				// 		&& count($this->ShipCosts) > 1
 				// 		&& $this->Shipping); break;				
@@ -852,7 +852,7 @@ class Cart {
 		$result = "";
 		
 		switch ($property) {
-			case "hasestimates": return apply_filters('shopp_shipping_hasestimates',(!empty($this->shipping))); break;
+			case "hasestimates": return apply_filters('shopp_shipping_hasestimates',!empty($this->shipping)); break;
 			case "options":
 			case "methods":
 				if (!isset($this->sclooping)) $this->sclooping = false;

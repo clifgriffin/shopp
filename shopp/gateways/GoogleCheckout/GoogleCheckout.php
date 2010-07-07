@@ -204,22 +204,30 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		global $Shopp;
 		$Cart = $this->Order->Cart;
 		
-		$_ = array('<?xml version="1.0" encoding="UTF-8"?>'."\n");
+		$_ = array('<?xml version="1.0" encoding="UTF-8"?>');
 		$_[] = '<checkout-shopping-cart xmlns="'.$this->urls['schema'].'">';
 			
 			// Build the cart
 			$_[] = '<shopping-cart>';
 				$_[] = '<items>';
 				foreach($Cart->contents as $i => $Item) {
+					// if(SHOPP_DEBUG) new ShoppError("Item $i: "._object_r($Item),'google_checkout_item_'.$i,SHOPP_DEBUG_ERR);
 					$_[] = '<item>';
 					$_[] = '<item-name>'.htmlspecialchars($Item->name).htmlspecialchars((!empty($Item->optionlabel))?' ('.$Item->optionlabel.')':'').'</item-name>';
 					$_[] = '<item-description>'.htmlspecialchars($Item->description).'</item-description>';
+					if ($Item->type == 'Download') $_[] = '<digital-content><description>'.
+						apply_filters('shopp_googlecheckout_download_instructions', __('You will receive an email with download instructions upon receipt of payment.','Shopp')).
+						'</description>'.
+						apply_filters('shopp_googlecheckout_download_delivery_markup', '<email-delivery>true</email-delivery>').
+						'</digital-content>';
+					// Shipped Item
+					if ($Item->weight > 0) $_[] = '<item-weight unit="LB" value="'.number_format(convert_unit($Item->weight,'lb'),2).'" />';
 					$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Item->unitprice,$this->precision).'</unit-price>';
 					$_[] = '<quantity>'.$Item->quantity.'</quantity>';
 					if (!empty($Item->sku)) $_[] = '<merchant-item-id>'.$Item->sku.'</merchant-item-id>';
 					$_[] = '<merchant-private-item-data>';
 						$_[] = '<shopp-product-id>'.$Item->product.'</shopp-product-id>';
-						$_[] = '<shopp-price-id>'.$Item->price.'</shopp-price-id>';
+						$_[] = '<shopp-price-id>'.$Item->option->id.'</shopp-price-id>';
 						if (is_array($Item->data) && count($Item->data) > 0) {
 							$_[] = '<shopp-item-data-list>';
 							foreach ($Item->data AS $name => $data) {
@@ -262,13 +270,13 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 						
 			// Build the flow support request
 			$_[] = '<checkout-flow-support>';
-				$_[] = '<merchant-checkout-flow-support>';
-					// Merchant Calculations
-					$_[] = '<merchant-calculations>';
-					$_[] = '<merchant-calculations-url>'.$this->merchant_calc_url.'</merchant-calculations-url>';
-					$_[] = '</merchant-calculations>';
-				
+				$_[] = '<merchant-checkout-flow-support>';			
 				// Shipping Methods
+				// Merchant Calculations
+				$_[] = '<merchant-calculations>';
+				$_[] = '<merchant-calculations-url>'.$this->merchant_calc_url.'</merchant-calculations-url>';
+				$_[] = '</merchant-calculations>';
+
 				if ($this->settings['use_google_shipping'] != 'on' && $Cart->shipped() && !empty($Cart->shipping)) {
 					$_[] = '<shipping-methods>';
 						foreach ($Cart->shipping as $i => $shipping) {
@@ -317,7 +325,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			
 			
 		$_[] = '</checkout-shopping-cart>';
-		return join("\n", apply_filters('googlecheckout_build_request', $_));
+		$request = join("\n", apply_filters('shopp_googlecheckout_build_request', $_));
+		
+		if(SHOPP_DEBUG) new ShoppError($request,'googlecheckout_build_request',SHOPP_DEBUG_ERR);
+		return $request;
 	}
 	
 	
@@ -328,7 +339,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		global $Shopp;
 		
 		if (empty($XML)) {
-			new ShoppError("No transaction data was provided by Google Checkout",false,SHOPP_DEBUG_ERR);
+			new ShoppError("No transaction data was provided by Google Checkout.",'google_missing_txn_data',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
 
