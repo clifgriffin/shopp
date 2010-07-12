@@ -75,7 +75,7 @@ function ModuleSetting (module,name,label,multi) {
 		});
 		if (_.multi) {
 			methods++;
-			if (_.label[methods]) _.payment();
+			if (_.label instanceof Array && _.label[methods]) _.payment();
 		}
 	}
 	

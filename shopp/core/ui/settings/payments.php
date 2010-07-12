@@ -28,16 +28,17 @@
 </div>
 
 <script type="text/javascript">
-var SHOPP_PAYMENT_OPTION = "<?php _e('Option Name','Shopp'); ?>";
-var SHOPP_DELETE_PAYMENT_OPTION = "<?php echo addslashes(__('Are you sure you want to delete this payment option?','Shopp')); ?>";
-var SHOPP_GATEWAY_MENU_PROMPT = "<?php _e('Select a payment system&hellip;','Shopp'); ?>";
-var SHOPP_PLUGINURI = "<?php echo SHOPP_PLUGINURI; ?>";
-var SHOPP_SELECT_ALL = "<?php _e('Select All','Shopp'); ?>";
-var gateways = <?php echo json_encode($gateways); ?>;
+var SHOPP_PAYMENT_OPTION = "<?php _e('Option Name','Shopp'); ?>",
+	SHOPP_DELETE_PAYMENT_OPTION = "<?php echo addslashes(__('Are you sure you want to delete this payment option?','Shopp')); ?>",
+	SHOPP_GATEWAY_MENU_PROMPT = "<?php _e('Select a payment system&hellip;','Shopp'); ?>",
+	SHOPP_PLUGINURI = "<?php echo SHOPP_PLUGINURI; ?>",
+	SHOPP_SELECT_ALL = "<?php _e('Select All','Shopp'); ?>",
+	gateways = <?php echo json_encode($gateways); ?>;
 
 jQuery(document).ready( function() {
-	var $=jQuery.noConflict();
-	var handlers = new CallbackRegistry();
+	var $=jqnc(),
+		handlers = new CallbackRegistry();
+
 	handlers.options = {};
 	handlers.enabled = [];
 	handlers.register = function (name,object) {
@@ -46,6 +47,7 @@ jQuery(document).ready( function() {
 	}
 	
 	handlers.call = function(name,arg1,arg2,arg3) {
+		
 		this.callbacks[name](arg1,arg2,arg3);
 		var module = this.options[name];
 		module.behaviors();
@@ -67,8 +69,8 @@ jQuery(document).ready( function() {
 	$('#payment-option-menu').html(options);
 	
 	$('#add-payment-option').click(function () {
-		var module = $('#payment-option-menu').val();
-		var selected = $('#payment-option-menu :selected');
+		var module = $('#payment-option-menu').val(),
+			selected = $('#payment-option-menu :selected');
 		if (!selected.attr('disabled')) {
 			handlers.call(module);
 			if (!handlers.options[module].multi) selected.attr('disabled',true);

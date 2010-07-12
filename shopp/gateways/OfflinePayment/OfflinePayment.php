@@ -35,6 +35,7 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 	
 	function actions () {
 		add_action('shopp_process_order',array(&$this,'process'));
+		add_action('shopp_save_payment_settings',array(&$this,'reset'));
 	}
 	
 	/**
@@ -88,6 +89,13 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 			if ($method == $label) return $this->settings['instructions'][$index];
 		}
 		return "";
+	}
+	
+	function reset () {
+		$Settings =& ShoppSettings();
+		if (!in_array($this->module,explode(',',$_POST['settings']['active_gateways']))) 
+			$Settings->save('OfflinePayment',false);
+		
 	}
 
 } // END class TestMode
