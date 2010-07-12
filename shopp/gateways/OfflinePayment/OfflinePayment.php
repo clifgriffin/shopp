@@ -81,9 +81,14 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 	
 	function tag_instructions ($result,$options) {
 		global $Shopp;
-		list($module,$method) = explode(":",$Shopp->Order->paymethod);
+		$module = $method = false;
+		
+		if (!empty($Shopp->Order->paymethod)) list($module,$method) = explode(":",$Shopp->Order->paymethod);
+		else $module = $Shopp->Order->processor; // Use the current processor for single payment method
+
 		if ($module != $this->module) return;
 
+		if (!$method) $method = current($this->settings['label']); // Only one payment method anyways
 		$index = 0;
 		foreach ($this->settings['label'] as $index => $label) {
 			if ($method == $label) return $this->settings['instructions'][$index];
