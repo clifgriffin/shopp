@@ -45,7 +45,7 @@ jQuery(document).ready(function() {
 	}).blur();
 	
 	$('.postbox a.help').click(function () {
-		$(this).colorbox({iframe:true,open:true,width:820,height:560});
+		$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
 		return false;
 	});
 	
