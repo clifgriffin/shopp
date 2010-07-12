@@ -160,85 +160,84 @@ var $=jqnc(),
 		"amount":["Is greater than","Is greater than or equal to","Is less than","Is less than or equal to"]
 	},
 	Conditional = function (type,settings,location) {
-	var target = $('#promotion-target').val();
-	var row = false;
+		var target = $('#promotion-target').val(),
+			row = false, i = false;
 
-	if (!type) type = 'condition';
+		if (!type) type = 'condition';
 	
-	if (type == "cartitem") {
-		var i = itemidx;
-		if (!location) row = $('<tr />').appendTo('#cartitem');
-		else row = $('<tr></tr>').insertAfter(location);
-	} else {
-		var i = ruleidx;
-		if (!location) row = $('<tr />').appendTo('#rules');
-		else row = $('<tr></tr>').insertAfter(location);
-	}
+		if (type == "cartitem") {
+			i = itemidx;
+			if (!location) row = $('<tr />').appendTo('#cartitem');
+			else row = $('<tr></tr>').insertAfter(location);
+		} else {
+			i = ruleidx;
+			if (!location) row = $('<tr />').appendTo('#rules');
+			else row = $('<tr></tr>').insertAfter(location);
+		}
 
-	var cell = $('<td></td>').appendTo(row);
-	var deleteButton = $('<button type="button" class="delete"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="<?php _e('Delete','Shopp'); ?>" width="16" height="16" />').appendTo(cell).click(function () { $(row).remove(); });
+		var cell = $('<td></td>').appendTo(row);
+		var deleteButton = $('<button type="button" class="delete"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="<?php _e('Delete','Shopp'); ?>" width="16" height="16" />').appendTo(cell).click(function () { if (i > 1) $(row).remove(); }).attr('opacity',0);
 
-	var properties_name = (type=='cartitem')?'rules[item]['+i+'][property]':'rules['+i+'][property]';
-	var properties = $('<select name="'+properties_name+'" class="ruleprops"></select>').appendTo(cell);
+		var properties_name = (type=='cartitem')?'rules[item]['+i+'][property]':'rules['+i+'][property]';
+		var properties = $('<select name="'+properties_name+'" class="ruleprops"></select>').appendTo(cell);
 	
-	if (type == "cartitem") target = "Cart Item Target";
-	if (conditions[target])
-		for (var label in conditions[target])
-			$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel',target).appendTo(properties);
+		if (type == "cartitem") target = "Cart Item Target";
+		if (conditions[target])
+			for (var label in conditions[target])
+				$('<option></option>').html(RULES_LANG[label]).val(label).attr('rel',target).appendTo(properties);
 
-	var operation_name = (type=='cartitem')?'rules[item]['+i+'][logic]':'rules['+i+'][logic]';
-	var operation = $('<select name="'+operation_name+'" ></select>').appendTo(cell);
-	var value = $('<span></span>').appendTo(cell);
+		var operation_name = (type=='cartitem')?'rules[item]['+i+'][logic]':'rules['+i+'][logic]';
+		var operation = $('<select name="'+operation_name+'" ></select>').appendTo(cell);
+		var value = $('<span></span>').appendTo(cell);
 	
-	var addspan = $('<span></span>').appendTo(cell);
-	$('<button type="button" class="add"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="<?php _e('Add','Shopp'); ?>" width="16" height="16" />').appendTo(addspan).click(function () { new Conditional(type,false,row); });
+		var addspan = $('<span></span>').appendTo(cell);
+		$('<button type="button" class="add"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="<?php _e('Add','Shopp'); ?>" width="16" height="16" />').appendTo(addspan).click(function () { new Conditional(type,false,row); });
 	
-	
-	cell.hover(function () {
-		deleteButton.css({'opacity':100,'visibility':'visible'});
-	},function () {
-		deleteButton.animate({'opacity':0});
-	});
+		cell.hover(function () {
+			if (i > 1) deleteButton.css({'opacity':100,'visibility':'visible'});
+		},function () {
+			deleteButton.animate({'opacity':0});
+		});
 
-	var valuefield = function (fieldtype) {
-		value.empty();
-		var name = (type=='cartitem')?'rules[item]['+i+'][value]':'rules['+i+'][value]';
-		field = $('<input type="text" name="'+name+'" class="selectall" />').appendTo(value);
-		if (fieldtype == "price") field.change(function () { this.value = asMoney(this.value); });
-	}
+		var valuefield = function (fieldtype) {
+			value.empty();
+			var name = (type=='cartitem')?'rules[item]['+i+'][value]':'rules['+i+'][value]';
+			field = $('<input type="text" name="'+name+'" class="selectall" />').appendTo(value);
+			if (fieldtype == "price") field.change(function () { this.value = asMoney(this.value); });
+		}
 	
-	// Generate logic operation menu
-	properties.change(function () {
-		operation.empty();
-		if (!$(this).val()) this.selectedIndex = 0;
-		var property = $(this).val();
-		var c = false;
-		if (conditions[$(this).find(':selected').attr('rel')]);
-			c = conditions[$(this).find(':selected').attr('rel')][property];
+		// Generate logic operation menu
+		properties.change(function () {
+			operation.empty();
+			if (!$(this).val()) this.selectedIndex = 0;
+			var property = $(this).val();
+			var c = false;
+			if (conditions[$(this).find(':selected').attr('rel')]);
+				c = conditions[$(this).find(':selected').attr('rel')][property];
 
-		if (c['logic'].length > 0) {
-			operation.show();
-			for (var l = 0; l < c['logic'].length; l++) {
-				var lop = c['logic'][l];
-				if (!lop) break;
-				for (var op = 0; op < logic[lop].length; op++) 
-					$('<option></option>').html(RULES_LANG[logic[lop][op]]).val(logic[lop][op]).appendTo(operation);
-			}
-		} else operation.hide();
+			if (c['logic'].length > 0) {
+				operation.show();
+				for (var l = 0; l < c['logic'].length; l++) {
+					var lop = c['logic'][l];
+					if (!lop) break;
+					for (var op = 0; op < logic[lop].length; op++) 
+						$('<option></option>').html(RULES_LANG[logic[lop][op]]).val(logic[lop][op]).appendTo(operation);
+				}
+			} else operation.hide();
 		
-		valuefield(c['value']);
-	}).change();
+			valuefield(c['value']);
+		}).change();
 		
-	// Load up existing conditional rule
-	if (settings) {
-		properties.val(settings.property).change();
-		operation.val(settings.logic);
-		if (field) field.val(settings.value);
-	}
+		// Load up existing conditional rule
+		if (settings) {
+			properties.val(settings.property).change();
+			operation.val(settings.logic);
+			if (field) field.val(settings.value);
+		}
 	
-	if (type == "cartitem") itemidx++;
-	else ruleidx++;
-}
+		if (type == "cartitem") itemidx++;
+		else ruleidx++;
+	};
 
 $('#discount-type').change(function () {
 	$('#discount-row').hide();
