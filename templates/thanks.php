@@ -16,7 +16,11 @@
 
 <?php if (shopp('purchase','notpaid')): ?> 
 	<p><?php _e('Your order has been received but the payment has not yet completed processing.','Shopp'); ?></p>
-
+	
+	<?php if (shopp('checkout','offline-instructions','return=1')): ?>
+	<p><?php shopp('checkout','offline-instructions'); ?></p>
+	<?php endif; ?>
+	
 	<?php if (shopp('purchase','hasdownloads')): ?> 
 	<p><?php _e('The download links on your order receipt will not work until the payment is received.','Shopp'); ?></p>
 	<?php endif; ?>
