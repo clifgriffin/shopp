@@ -794,6 +794,7 @@ class Product extends DatabaseObject {
 			case "freeshipping":
 				if (empty($this->prices)) $this->load_data(array('prices'));
 				return $this->freeshipping;
+			case "coverimage":
 			case "thumbnail":
 				if (empty($this->images)) $this->load_data(array('images'));
 				if (empty($options['class'])) $options['class'] = '';
@@ -806,7 +807,7 @@ class Product extends DatabaseObject {
 					$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
 					$width = (isset($options['width']))?$options['width']:$thumbwidth;
 					$height = (isset($options['height']))?$options['height']:$thumbheight;
-					$scale = empty($options['fit'])?false:array_search($options['fit']);
+					$scale = empty($options['fit'])?false:array_search($options['fit'],$img->_scaling);
 					$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
 					$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
 					$fill = empty($options['bg'])?false:hexdec(ltrim($options['bg'],'#'));
