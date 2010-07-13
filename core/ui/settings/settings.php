@@ -76,147 +76,34 @@
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
+
 <script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>General_Settings";
+/* <![CDATA[ */
+var labels = <?php echo json_encode($statusLabels); ?>,
+	labelInputs = new Array(),
+	activated = <?php echo ($activated)?'true':'false'; ?>,
+	SHOPP_PLUGINURI = "<?php echo SHOPP_PLUGINURI; ?>",
+	SHOPP_ACTIVATE_KEY = "<?php _e('Activate Key','Shopp'); ?>",
+	SHOPP_DEACTIVATE_KEY = "<?php _e('Deactivate Key','Shopp'); ?>",
+	SHOPP_CONNECTING = "<?php _e('Connecting','Shopp'); ?>",
+	SHOPP_CONFIRM_DELETE_LABEL = "<?php _e('Are you sure you want to remove this order status label?','Shopp'); ?>",
+	keyStatus = {
+		'-1':"<?php _e('An unkown error occurred.','Shopp'); ?>",
+		'0':"<?php _e('This key has been deactivated.','Shopp'); ?>",
+		'1':"<?php _e('This key has been activated.','Shopp'); ?>",
+		'-100':"<?php _e('An unknown activation error occurred.','Shopp'); ?>",
+		'-101':"<?php __('The key provided is not valid.','Shopp'); ?>",
+		'-102':"<?php _e('The site is not able to be activated.','Shopp'); ?>",
+		'-103':"<?php _e('The key provided could not be validated by shopplugin.net.','Shopp'); ?>",
+		'-104':"<?php printf(__('The key provided is already active on another site. Contact <a href=\"%s\">customer service</a>.','Shopp'),SHOPP_CUSTOMERS); ?>",
+		'-200':"<?php _e('An unkown deactivation error occurred.','Shopp'); ?>",
+		'-201':"<?php _e('The key provided is not valid.','Shopp'); ?>",
+		'-202':"<?php _e('The site is not able to be activated.','Shopp'); ?>",
+		'-203':"<?php _e('The key provided could not be validated by shopplugin.net.','Shopp'); ?>"
+	},
 
-(function($){
-var labels = <?php echo json_encode($statusLabels); ?>;
-var labelInputs = new Array();
-var activated = <?php echo ($activated)?'true':'false'; ?>;
-var SHOPP_ACTIVATE_KEY = "<?php _e('Activate Key','Shopp'); ?>";
-var SHOPP_DEACTIVATE_KEY = "<?php _e('Deactivate Key','Shopp'); ?>";
-var SHOPP_CONNECTING = "<?php _e('Connecting','Shopp'); ?>";
-
-var keyStatus = {
-	'-1':"<?php _e('An unkown error occurred.','Shopp'); ?>",
-	'0':"<?php _e('This key has been deactivated.','Shopp'); ?>",
-	'1':"<?php _e('This key has been activated.','Shopp'); ?>",
-	'-100':"<?php _e('An unknown activation error occurred.','Shopp'); ?>",
-	'-101':"<?php __('The key provided is not valid.','Shopp'); ?>",
-	'-102':"<?php _e('The site is not able to be activated.','Shopp'); ?>",
-	'-103':"<?php _e('The key provided could not be validated by shopplugin.net.','Shopp'); ?>",
-	'-104':"<?php printf(__('The key provided is already active on another site. Contact <a href=\"%s\">customer service</a>.','Shopp'),SHOPP_CUSTOMERS); ?>",
-	'-200':"<?php _e('An unkown deactivation error occurred.','Shopp'); ?>",
-	'-201':"<?php _e('The key provided is not valid.','Shopp'); ?>",
-	'-202':"<?php _e('The site is not able to be activated.','Shopp'); ?>",
-	'-203':"<?php _e('The key provided could not be validated by shopplugin.net.','Shopp'); ?>"
-}
-var zones_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones'); ?>';
-var act_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_activate_key'); ?>';
-var deact_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_deactivate_key'); ?>';
-
-
-function activation (key,success,status) {
-	var button = $('#activation-button').attr('disabled',false).removeClass('updating');
-	var keyin = $('#update-key');
-	
-	if (button.hasClass('deactivation')) button.html(SHOPP_DEACTIVATE_KEY);
-	else button.html(SHOPP_DEACTIVATE_KEY);
-
-	if (key[0] == "1") {
-		if (key[2] == "dev" && keyin.attr('type') == "text") keyin.replaceWith('<input type="password" name="updatekey" id="update-key" value="'+keyin.val()+'" readonly="readonly" size="40" />');
-		else keyin.attr('readonly',true);
-		button.html(SHOPP_DEACTIVATE_KEY).addClass('deactivation');
-	}
-	
-	if (key[0] == "0") {
-		if (keyin.attr('type') == "password") 
-			keyin.replaceWith('<input type="text" name="updatekey" id="update-key" value="" size="40" />');
-		else keyin.attr('readonly',false);
-		button.html(SHOPP_ACTIVATE_KEY).removeClass('deactivation');
-	}
-	
-	if (key instanceof Array) 
-		$('#activation-status').html(keyStatus[key[0]]);
-	
-	if (status) $('#activation-status').removeClass('activating').show();
-	else $('#activation-status').addClass('activating').show();
-}
-
-if (activated) activation([1],'success',true);
-else $('#activation-status').show();
-
-$('#activation-button').click(function () {
-	$(this).html(SHOPP_CONNECTING+"&hellip;").attr('disabled',true).addClass('updating');
-	if ($(this).hasClass('deactivation'))
-		$.getJSON(deact_key_url+'&action=shopp_deactivate_key',activation);
-	else $.getJSON(act_key_url+'&action=shopp_activate_key&key='+$('#update-key').val(),activation);
-});
-
-
-
-
-if (!$('#base_operations').val() || $('#base_operations').val() == '') $('#base_operations_zone').hide();
-if (!$('#base_operations_zone').val()) $('#base_operations_zone').hide();
-
-$('#base_operations').change(function() {
-	if ($('#base_operations').val() == '') {
-		$('#base_operations_zone').hide();
-		return true;
-	}
-
-	$.getJSON(zones_url+'&action=shopp_country_zones&country='+$('#base_operations').val(),
-		function(data) {
-			$('#base_operations_zone').hide();
-			$('#base_operations_zone').empty();
-			if (!data) return true;
-			
-			$.each(data, function(value,label) {
-				option = $('<option></option>').val(value).html(label).appendTo('#base_operations_zone');
-			});
-			$('#base_operations_zone').show();
-			
-	});
-});
-
-$('#selectall_targetmarkets').change(function () { 
-	if ($(this).attr('checked')) $('#target_markets input').not(this).attr('checked',true); 
-	else $('#target_markets input').not(this).attr('checked',false); 
-});
-
-var addLabel = function (id,label,location) {
-	
-	var i = labelInputs.length+1;
-	if (!id) id = i;
-	
-	if (!location) var li = $('<li id="item-'+i+'"></li>').appendTo('#order-statuslabels');
-	else var li = $('<li id="item-'+i+'"></li>').insertAfter(location);
-
-	var wrap = $('<span></span>').appendTo(li);
-	var input = $('<input type="text" name="settings[order_status]['+id+']" id="label-'+i+'" size="14" />').appendTo(wrap);
-	var deleteButton = $('<button type="button" class="delete"></button>').appendTo(wrap).hide();
-	var deleteIcon = $('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="Delete" width="16" height="16" />').appendTo(deleteButton);
-	var addButton = $('<button type="button" class="add"></button>').appendTo(wrap);
-	var addIcon = $('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="Add" width="16" height="16" />').appendTo(addButton);
-	
-	if (i > 0) {
-		wrap.hover(function() {
-			deleteButton.show();
-		},function () {
-			deleteButton.hide();
-		});
-	}
-	
-	addButton.click(function () {
-		addLabel(null,null,'#'+$(li).attr('id'));
-	});
-	
-	deleteButton.click(function () {
-		if (confirm("<?php echo addslashes(__('Are you sure you want to remove this order status label?','Shopp')); ?>"))
-			li.remove();
-	});
-	
-	if (label) input.val(label);
-	
-	labelInputs.push(li);
-	
-}
-
-if (labels) {
-	for (var id in labels) {		
-		addLabel(id,labels[id]);
-	}
-} else addLabel();
-
-})(jQuery)
+	zones_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones'); ?>',
+	act_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_activate_key'); ?>',
+	deact_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_deactivate_key'); ?>',
+/* ]]> */
 </script>

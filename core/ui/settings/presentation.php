@@ -96,15 +96,14 @@
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
+
 <script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>Presentation_Settings";
-
+/* <![CDATA[ */
 (function($){
-
-$('#template-instructions').hide();
-$('#show-instructions').click(function () {
-	$('#template-instructions').slideToggle(500);
-});
-
+	$('#template-instructions').hide();
+	$('#show-instructions').click(function () {
+		$('#template-instructions').slideToggle(500);
+	});
 })(jQuery);
+/* ]]> */
 </script>

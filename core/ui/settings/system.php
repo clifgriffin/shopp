@@ -81,10 +81,9 @@
 	</form>
 </div>
 <script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>System_Settings";
-
+/* <![CDATA[ */
 jQuery(document).ready(function() {
-	var $ = jQuery.noConflict();
+	var $ = jqnc();
 	
 	var handlers = new CallbackRegistry();
 	handlers.options = {};
@@ -119,7 +118,6 @@ jQuery(document).ready(function() {
 	}).change();
 		
 	$('#errorlog').scrollTop($('#errorlog').attr('scrollHeight'));
-
 
 
 	var progressbar = false;
@@ -160,5 +158,5 @@ jQuery(document).ready(function() {
 	
 
 });
-
+/* ]]> */
 </script>
