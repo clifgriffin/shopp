@@ -78,16 +78,29 @@ do_action('shopp_loaded');
  * @since 1.0
  **/
 class Shopp {
-	var $Settings;		// Shopp settings registry
-	var $Flow;			// Controller routing
-	var $Catalog;		// The main catalog
-	var $Category;		// Current category
-	var $Product;		// Current product
-	var $Cart;			// The shopping cart
-	var $Login;			// The currently authenticated customer
-	var $Purchase; 		// Currently requested order receipt
-	var $Shipping;		// Shipping modules
-	var $Gateways;		// Gateway modules
+	var $Settings;			// Shopp settings registry
+	var $Flow;				// Controller routing
+	var $Catalog;			// The main catalog
+	var $Category;			// Current category
+	var $Product;			// Current product
+	var $Cart;				// The shopping cart
+	var $Login;				// The currently authenticated customer
+	var $Purchase; 			// Currently requested order receipt
+	var $Promotions;		// Active promotions registry
+	var $Shipping;			// Shipping modules
+	var $Gateways;			// Gateway modules
+	var $Storage;			// Storage engine modules
+	var $Shopping; 			// The shopping session
+	var $Errors;			// Error system
+	var $SmartCategories;	// Smart Categories registry
+	
+	var $path;		  		// File ystem path to the plugin
+	var $file;		  		// Base file name for the plugin (this file)
+	var $directory;	  		// The parent directory name
+	var $uri;		  		// The URI fragment to the plugin
+	var $siteurl;	  		// The full site URL
+	var $wpadminurl;  		// The admin URL for the site
+	
 	var $_debug;
 	
 	function Shopp () {
@@ -450,7 +463,7 @@ class Shopp {
 	 **/
 	function settingsjs () {
 		$baseop = $this->Settings->get('base_operations');
-		$settings = array(
+		$defaults = array(
 			'ajaxurl' => admin_url('admin-ajax.php'),
 			
 			// Currency formatting
@@ -459,6 +472,9 @@ class Shopp {
 			'p' => $baseop['currency']['format']['precision'],
 			't' => $baseop['currency']['format']['thousands'],
 			'd' => $baseop['currency']['format']['decimals'],
+
+			'opdef' => false,
+			'opreq' => __('You must select the options for this item before you can add it to your shopping cart.','Shopp'),
 
 			// Alerts
 			'LOGIN_NAME_REQUIRED' => __('You did not enter a login.','Shopp'),
@@ -497,7 +513,8 @@ class Shopp {
 
 		);
 		if (isset($baseop['currency']['format']['indian'])) $settings['india'] = true;
-		shopp_localize_script('shopp','ShoppSettings',$settings);
+		$defaults = apply_filters('shopp_js_settings',$defaults);
+		shopp_localize_script('shopp','ShoppSettings',$defaults);
 	}
 	
 	/**
