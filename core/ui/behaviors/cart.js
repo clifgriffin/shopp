@@ -11,15 +11,15 @@
 function addtocart (form) {
 	var $ = jqnc(),
 		options = $(form).find('select.options'),selections;
-	if (options && options_default) {
+	if (options && ShoppSettings.opdef) {
 		selections = true;
 		options.each(function (i,menu) {
 			if ($(menu).val() == "") selections = false;
 		});
 
 		if (!selections) {
-			if (!options_required) options_required = "You must select the options for this item before you can add it to your shopping cart.";
-			alert(options_required);
+			if (!ShoppSettings.opreq) ShoppSettings.opreq = "You must select the options for this item before you can add it to your shopping cart.";
+			alert(ShoppSettings.opreq);
 			return false;
 		}
 	}
