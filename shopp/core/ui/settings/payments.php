@@ -28,6 +28,7 @@
 </div>
 
 <script type="text/javascript">
+/* <![CDATA[ */
 var SHOPP_PAYMENT_OPTION = "<?php _e('Option Name','Shopp'); ?>",
 	SHOPP_DELETE_PAYMENT_OPTION = "<?php echo addslashes(__('Are you sure you want to delete this payment option?','Shopp')); ?>",
 	SHOPP_GATEWAY_MENU_PROMPT = "<?php _e('Select a payment system&hellip;','Shopp'); ?>",
@@ -78,5 +79,5 @@ jQuery(document).ready( function() {
 	});
 	
 });
-
+/* ]]> */
 </script>

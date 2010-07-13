@@ -32,7 +32,6 @@ class Setup extends FlowController {
 		
 		$pages = explode("-",$_GET['page']);
 		$this->screen = end($pages);
-		
 		switch ($this->screen) {
 			case "taxes":
 				wp_enqueue_script("suggest");
@@ -41,6 +40,9 @@ class Setup extends FlowController {
 				break;
 			case "system":
 				shopp_enqueue_script('colorbox');
+				break;
+			case "settings":
+				shopp_enqueue_script('setup');
 				break;
 		}
 		

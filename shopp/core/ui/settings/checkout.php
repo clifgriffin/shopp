@@ -69,6 +69,3 @@
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
-<script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>Checkout_Settings";
-</script>

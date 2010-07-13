@@ -83,10 +83,11 @@
 </div>
 
 <script type="text/javascript">
+/* <![CDATA[ */
 var weight_units = '<?php echo $Shopp->Settings->get("weight_unit"); ?>',
 	uniqueMethods = new Array();
 
-jQuery(document).ready( function() {
+jQuery(document).ready(function() {
 	var $ = jqnc();
 	
 	$('#order_handling_fee').change(function() { this.value = asMoney(this.value); });
@@ -242,4 +243,5 @@ jQuery(document).ready( function() {
 	}
 
 });
+/* ]]> */
 </script>

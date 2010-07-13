@@ -182,6 +182,9 @@ function shopp_default_scripts (&$scripts) {
 
 	$scripts->add('taxes', "/ui/behaviors/taxes.js", array('jquery'), '20100101');
 	$scripts->add_data('taxes', 'group', 1);
+
+	$scripts->add('setup', "/ui/behaviors/setup.js", array('jquery'), '20100101');
+	$scripts->add_data('setup', 'group', 1);
 	
 	$scripts->add('shopp-swfobject', "/ui/behaviors/swfupload/plugins/swfupload.swfobject.js", array(), '2202');
 	$scripts->add_data('shopp-swfobject', 'group', 1);

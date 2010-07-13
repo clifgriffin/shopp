@@ -39,41 +39,34 @@
 </div>
 
 <script type="text/javascript">
-//<![CDATA[
-
+/* <![CDATA[ */
 var ratetable,rates,base,countries,zones,localities,taxrates,
 	ratesidx,countriesInUse,zonesInUse,allCountryZonesInUse,
 	APPLY_LOGIC,LOCAL_RATES,LOCAL_RATE_INSTRUCTIONS,SHOPP_PLUGINURI,RULE_LANG,
 	sugg_url='<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_suggestions'); ?>',
-	upload_url='<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_upload_local_taxes'); ?>';
-
-jQuery(document).ready(function () {
-	var $ = jqnc();
-	ratetable = $('#tax-rates');
-	rates = <?php echo json_encode($rates); ?>;
-	base = <?php echo json_encode($base); ?>;
-	countries = <?php echo json_encode($countries); ?>;
-	zones = <?php echo json_encode($zones); ?>;
-	localities = <?php echo json_encode(Lookup::localities()); ?>;
-	taxrates = new Array();
-	ratesidx = 0;
-	countriesInUse = new Array();
-	zonesInUse = new Array();
-	allCountryZonesInUse = new Array();
-	APPLY_LOGIC = '<?php _e("Apply tax rate when %s of the following conditions match","Shopp"); ?>';
-	LOCAL_RATES = '<?php _e("Local Rates","Shopp"); ?>';
-	LOCAL_RATE_INSTRUCTIONS = '<?php _e("No local regions have been setup for this location. Local regions can be specified by uploading a formatted local rates file.","Shopp"); ?>';
-	ANY_OPTION = '<?php _e("any","Shopp"); ?>';
-	ALL_OPTION = '<?php _e("all","Shopp"); ?>';
-	SHOPP_PLUGINURI = '<?php echo SHOPP_PLUGINURI; ?>';
+	upload_url='<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_upload_local_taxes'); ?>',
+	ratetable = jQuery('#tax-rates'),
+	rates = <?php echo json_encode($rates); ?>,
+	base = <?php echo json_encode($base); ?>,
+	countries = <?php echo json_encode($countries); ?>,
+	zones = <?php echo json_encode($zones); ?>,
+	localities = <?php echo json_encode(Lookup::localities()); ?>,
+	taxrates = new Array(),
+	ratesidx = 0,
+	countriesInUse = new Array(),
+	zonesInUse = new Array(),
+	allCountryZonesInUse = new Array(),
+	APPLY_LOGIC = '<?php _e("Apply tax rate when %s of the following conditions match","Shopp"); ?>',
+	LOCAL_RATES = '<?php _e("Local Rates","Shopp"); ?>',
+	LOCAL_RATE_INSTRUCTIONS = '<?php _e("No local regions have been setup for this location. Local regions can be specified by uploading a formatted local rates file.","Shopp"); ?>',
+	ANY_OPTION = '<?php _e("any","Shopp"); ?>',
+	ALL_OPTION = '<?php _e("all","Shopp"); ?>',
+	SHOPP_PLUGINURI = '<?php echo SHOPP_PLUGINURI; ?>',
 	RULE_LANG = {
 		"product-name":"<?php _e('Product name is','Shopp'); ?>",
 		"product-tags":"<?php _e('Product is tagged','Shopp'); ?>",
 		"product-category":"<?php _e('Product in category','Shopp'); ?>",
 		"customer-type":"<?php _e('Customer type is','Shopp'); ?>"
-	}
-
-});
-
-//]]>
+	};
+/* ]]> */
 </script>
