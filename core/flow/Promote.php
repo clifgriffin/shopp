@@ -113,7 +113,8 @@ class Promote extends AdminController {
 			
 			// Reset cart promotions cache
 			// to force reload for these updates
-			$Shopp->Cart->data->Promotions = false;
+			$Shopp->Promotions->load();
+
 		}
 		
 		$pagenum = absint( $pagenum );
