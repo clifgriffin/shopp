@@ -293,10 +293,12 @@ class Item {
 	 **/
 	function mapprice ($price) {
 		$map = array('id','type','label','onsale','promoprice','price','inventory','stock','options');
-		$v = new stdClass();
-		foreach ($map as $property)
-			$v->{$property} = $price->{$property};
-		return $v;
+		$_ = new stdClass();
+		foreach ($map as $property) {
+			if (empty($price->options) && $property == 'label') continue;
+			$_->{$property} = $price->{$property};
+		}
+		return $_;
 	}
 
 	/**
