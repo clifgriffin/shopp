@@ -159,6 +159,7 @@ class Storefront extends FlowController {
 			shopp_enqueue_script("shopp");
 			shopp_enqueue_script("catalog");
 			shopp_enqueue_script("cart");
+			shopp_custom_script('catalog',"\tvar pricetags = {};\n");
 			$Shopp->settingsjs();
 		}
 
@@ -353,16 +354,13 @@ class Storefront extends FlowController {
 			$globals = $this->behaviors['global'];
 			unset($this->behaviors['global']);
 		}
-
-		$_ = '<script type="text/javascript">'."\n";
-		$_ .= '/'.'* <![CDATA[ */'."\n";
-		if (!empty($globals)) $_ .= "\t".join("\n\t",$globals)."\n";
-		$_ .= 'jQuery(window).ready(function(){ var $ = jqnc(); '."\n";
-		$_ .= "\t".join("\t\n",$this->behaviors)."\n";
-		$_ .= '});'."\n";
-		$_ .= '/'.'* ]]> */'."\n";
-		$_ .= '</script>'."\n";
-		echo $_;
+		
+		$script = '';
+		if (!empty($globals)) $script .= "\t".join("\n\t",$globals)."\n";
+		$script .= 'jQuery(window).ready(function(){ var $ = jqnc(); '."\n";
+		$script .= "\t".join("\t\n",$this->behaviors)."\n";
+		$script .= '});'."\n";
+		shopp_custom_script('catalog',$script);
 	}
 
 	function searching () {

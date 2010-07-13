@@ -410,6 +410,3 @@ jQuery(document).ready(function() {
 		$('a.shopp-zoom.gallery').attr('rel','gallery').colorbox({slideshow:true,slideshowSpeed:3500});
 	}
 });
-
-// Initialize placehoder variables
-var options_required, options_default, pricetags = {};

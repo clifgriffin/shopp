@@ -39,6 +39,11 @@ class ShoppScripts extends WP_Scripts {
 
 	}
 	
+	function do_item( $handle, $group = false ) {
+		$this->print_code .= $this->print_script_custom($handle);
+		parent::do_item($handle,$group);
+	}
+	
 	function print_head_scripts() {
 		global $concatenate_scripts;
 
@@ -80,7 +85,7 @@ class ShoppScripts extends WP_Scripts {
 		$zip = $compress_scripts ? 1 : 0;
 		if ( $zip && defined('ENFORCE_GZIP') && ENFORCE_GZIP )
 			$zip = 'gzip';
-
+			
 		if ( !empty($this->concat) ) {
 
 			if ( !empty($this->print_code) ) {
@@ -119,6 +124,11 @@ class ShoppScripts extends WP_Scripts {
 		foreach ($wpdeps as $handle) wp_enqueue_script($handle);
 		
 	}
+	
+	function print_script_custom ($handle) {
+		return !empty($this->registered[$handle]->extra['code'])?$this->registered[$handle]->extra['code']:false;
+	}
+	
 	
 } // END class ShoppScripts
 
@@ -218,6 +228,14 @@ function shopp_localize_script( $handle, $object_name, $l10n ) {
 	return $ShoppScripts->localize( $handle, $object_name, $l10n );
 }
 
+function shopp_custom_script ($handle, $code) {
+	global $ShoppScripts;
+	if ( !is_a($ShoppScripts, 'ShoppScripts') )
+		return false;
+
+	$code = !empty($ShoppScripts->registered[$handle]->extra['code'])?$ShoppScripts->registered[$handle]->extra['code'].$code:$code;
+	return $ShoppScripts->add_data( $handle, 'code', $code );
+}
 
 /**
  * Remove a registered script.

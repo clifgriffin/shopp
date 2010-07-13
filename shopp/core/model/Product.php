@@ -1105,13 +1105,13 @@ class Product extends DatabaseObject {
 					'disabled' => 'show',
 					'before_menu' => '',
 					'after_menu' => '',
-					'taxes' => false
+					'taxes' => false,
+					'label' => 'on',
+					'required' => ''
 					);
 					
 				$options = array_merge($defaults,$options);
 
-				if (!isset($options['label'])) $options['label'] = "on";
-				if (!isset($options['required'])) $options['required'] = __('You must select the options for this item before you can add it to your shopping cart.','Shopp');
 				if ($options['mode'] == "single") {
 					if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 					if (value_is_true($options['label'])) $string .= '<label for="product-options'.$this->id.'">'. __('Options').': </label> '."\n";
@@ -1157,14 +1157,20 @@ class Product extends DatabaseObject {
 					}
 					
 					ob_start();
-	?>options_default = <?php echo (!empty($options['defaults']))?'true':'false'; ?>;
-	options_required = "<?php echo $options['required']; ?>";
+?><?php if (!empty($options['defaults'])): ?>
+	ShoppSettings.opdef = true;
+<?php endif; ?>
+<?php if (!empty($required)): ?>
+	ShoppSettings.opdef = "<?php echo $required; ?>";
+<?php endif; ?>
 	pricetags[<?php echo $this->id; ?>] = {};
 	pricetags[<?php echo $this->id; ?>]['pricing'] = <?php echo json_encode($pricekeys); ?>;
-	pricetags[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,pricetags[<?php echo $this->id; ?>]['pricing'],<?php echo empty($taxrate)?'0':$taxrate; ?>);<?php
+	pricetags[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,pricetags[<?php echo $this->id; ?>]['pricing'],<?php echo empty($taxrate)?'0':$taxrate; ?>);
+<?php
 					$script = ob_get_contents();
 					ob_end_clean();
-					add_storefrontjs($script,true);
+
+					add_storefrontjs($script);
 					
 					foreach ($menuoptions as $id => $menu) {
 						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
