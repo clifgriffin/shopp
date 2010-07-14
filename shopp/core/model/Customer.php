@@ -7,7 +7,10 @@
  * @version 1.0
  * @copyright Ingenesis Limited, 28 March, 2008
  * @package shopp
+ * @since 1.0
+ * @subpackage customer
  **/
+
 require("Billing.php");
 require("Shipping.php");
 
@@ -29,7 +32,7 @@ class Customer extends DatabaseObject {
 		"logout" => "logout",
 		);
 	
-	function Customer ($id=false,$key=false) {
+	function __construct ($id=false,$key=false) {
 		global $Shopp;
 		
 		$this->accounts = $Shopp->Settings->get('account_system');
@@ -41,10 +44,26 @@ class Customer extends DatabaseObject {
 
 	}
 	
+	/**
+	 * Loads customer 'info' meta data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function load_info () {
 		$this->info = new ObjectMeta($this->id,'customer');
 	}
 	
+	/**
+	 * Management menu controller for the account manager
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean|string output based on the account menu request
+	 **/
 	function management () {
 		global $Shopp;
 
@@ -107,6 +126,15 @@ class Customer extends DatabaseObject {
 		
 	}
 	
+	/**
+	 * Password recovery processing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * 
+	 * @return void
+	 **/
 	function recovery () {
 		global $Shopp;
 		$errors = array();
@@ -155,9 +183,9 @@ class Customer extends DatabaseObject {
 		$_[] = __('To reset your password visit the following address, otherwise just ignore this email and nothing will happen.');
 		$_[] = '';
 		$_[] = add_query_arg(array('acct'=>'rp','key'=>$RecoveryCustomer->activation),$Shopp->link('account'));
-		$message = apply_filters('shopp_recover_password_message',join("\r\n",$_));
+		$message = apply_filters('shopp_recover_password_message',$_);
 		
-		if (!shopp_email($message)) {
+		if (!shopp_email(join("\r\n",$message))) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_recovery_email',SHOPP_ERR);
 			shopp_redirect(add_query_arg('acct','recover',$Shopp->link('account')));
 		} else {
@@ -198,8 +226,10 @@ class Customer extends DatabaseObject {
 		
 		$subject = apply_filters('shopp_reset_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
 		
+		global $Shopp;
+		$Settings =& ShoppSettings();
 		$_ = array();
-		$_[] = 'From: "'.get_option('blogname').'" <'.$Shopp->Settings->get('merchant_email').'>';
+		$_[] = 'From: "'.get_option('blogname').'" <'.$Settings->get('merchant_email').'>';
 		$_[] = 'To: '.$RecoveryCustomer->email;
 		$_[] = 'Subject: '.$subject;
 		$_[] = '';
@@ -210,9 +240,9 @@ class Customer extends DatabaseObject {
 		$_[] = sprintf(__('Password: %s'), $password) . "\r\n";
 		$_[] = '';
 		$_[] = __('Click here to login:').' '.$Shopp->link('account');
-		$message = apply_filters('shopp_reset_password_message',join("\r\n",$_));
+		$message = apply_filters('shopp_reset_password_message',$_);
 		
-		if (!shopp_email($message)) {
+		if (!shopp_email(join("\r\n",$message))) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_reset_email',SHOPP_ERR);
 			shopp_redirect(add_query_arg('acct','recover',$Shopp->link('account')));
 		} else {
@@ -226,7 +256,6 @@ class Customer extends DatabaseObject {
 		$db =& DB::get();
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
-		$pricing = DatabaseObject::tablename(Price::$table);
 		$asset = DatabaseObject::tablename(ProductDownload::$table);
 		$query = "SELECT p.*,f.id as download,f.name as filename,f.value AS filedata FROM $purchases AS p LEFT JOIN $orders AS o ON o.id=p.purchase LEFT JOIN $asset AS f ON f.parent=p.price WHERE o.customer=$this->id AND context='price' AND type='download'";
 		$this->downloads = $db->query($query,AS_ARRAY);
