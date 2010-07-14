@@ -311,29 +311,31 @@ class xmlQuery {
 		if (!$dom) $dom = &$this->dom;
 		if (!is_array($dom)) $dom = array($dom);
 		if (is_string($query)) $query = $this->parsequery($query);
-		
+
 		$patterns = $this->patterns();
 		extract($patterns);
-		
+
 		$results = array();
 		// Iterate through the query sets
 		foreach ($query as $i => $q) {
 
 			$operator = false;
 			$_ = array();
-			
+
 			// Iterate through each target of the query set 
 			foreach ($q as $target) {
-				
-				if (is_string($target) && preg_match("/$delimiters/",$target) !== false) {
+
+				if (is_string($target) && preg_match("/$delimiters/",$target)) {
 					// Target is an operator, skip to next target
 					$operator = $target; continue;
 				}
 				
-				$tag = isset($target[0])?$target[0]:false;
-				$subselect = isset($target[1])?$target[1]:false;
-				$attributes = isset($target[2])?$target[2]:false;
-
+				if (is_array($target)) {
+					$tag = isset($target[0])?$target[0]:false;
+					$subselect = isset($target[1])?$target[1]:false;
+					$attributes = isset($target[2])?$target[2]:false;
+				} else $tag = $target;
+				
 				if ($operator !== false) {
 					// Operator detected for this target
 					$last = count($_)-1;
