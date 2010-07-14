@@ -214,6 +214,21 @@ class xmlQuery {
 	}
 	
 	/**
+	 * Get name of the first container node in the DOM
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return string|boolean The name of the container node or false if none found
+	 **/
+	function context () {
+		reset($this->dom);
+		$context = key($this->dom);
+		if (empty($context)) return false;
+		else return $context;
+	}
+	
+	/**
 	 * Iterate through each of the results in the current DOM
 	 *
 	 * @author Jonathan Davis
