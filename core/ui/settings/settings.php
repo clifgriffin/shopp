@@ -80,7 +80,7 @@
 <script type="text/javascript">
 /* <![CDATA[ */
 var labels = <?php echo json_encode($statusLabels); ?>,
-	labelInputs = new Array(),
+	labelInputs = [],
 	activated = <?php echo ($activated)?'true':'false'; ?>,
 	SHOPP_PLUGINURI = "<?php echo SHOPP_PLUGINURI; ?>",
 	SHOPP_ACTIVATE_KEY = "<?php _e('Activate Key','Shopp'); ?>",
@@ -92,7 +92,7 @@ var labels = <?php echo json_encode($statusLabels); ?>,
 		'0':"<?php _e('This key has been deactivated.','Shopp'); ?>",
 		'1':"<?php _e('This key has been activated.','Shopp'); ?>",
 		'-100':"<?php _e('An unknown activation error occurred.','Shopp'); ?>",
-		'-101':"<?php __('The key provided is not valid.','Shopp'); ?>",
+		'-101':"<?php _e('The key provided is not valid.','Shopp'); ?>",
 		'-102':"<?php _e('The site is not able to be activated.','Shopp'); ?>",
 		'-103':"<?php _e('The key provided could not be validated by shopplugin.net.','Shopp'); ?>",
 		'-104':"<?php printf(__('The key provided is already active on another site. Contact <a href=\"%s\">customer service</a>.','Shopp'),SHOPP_CUSTOMERS); ?>",
@@ -104,6 +104,6 @@ var labels = <?php echo json_encode($statusLabels); ?>,
 
 	zones_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_country_zones'); ?>',
 	act_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_activate_key'); ?>',
-	deact_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_deactivate_key'); ?>',
+	deact_key_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_deactivate_key'); ?>';
 /* ]]> */
 </script>
