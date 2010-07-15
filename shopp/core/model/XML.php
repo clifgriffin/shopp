@@ -355,6 +355,7 @@ class xmlQuery {
 					// Operator detected for this target
 					$last = count($_)-1;
 					switch ($operator) {
+						case " ":	// Branch search
 						case ">":	// Child search
 							foreach ($_ as $in => $r) {
 								$entry = array($in => $r);
@@ -523,7 +524,7 @@ class xmlQuery {
 	 **/
 	private function patterns () {
 		$_ = array(
-			'tags' => '\w+',
+			'tags' => '[\w0-9\-]+',
 			'subselects' => '\:(\w+)(?:\((.+?)\))?',
 			'ops' => array(
 				'contains' => '\*=',
@@ -533,7 +534,7 @@ class xmlQuery {
 				'equal' => '=',
 				'notequal' => '!='
 			),
-			'delimiters' => '[>\+]'
+			'delimiters' => '[>\+ ]'
 		);
 		$_['attrs'] = "\[(\w+)(".join('|',$_['ops']).")?(\w+)?\]";
 		
