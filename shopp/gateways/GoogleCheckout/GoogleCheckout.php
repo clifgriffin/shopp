@@ -3,7 +3,7 @@
  * Google Checkout
  * @class GoogleCheckout
  *
- * @author Jonathan Davis
+ * @author Jonathan Davis, John Dillick
  * @version 1.0.4
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
@@ -111,12 +111,12 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$Response = $this->send($message,$this->urls['checkout']);
 		
 		if (!empty($Response)) {
-			if ($Response->getElement('error')) {
-				new ShoppError($Response->getElementContent('error-message'),'google_checkout_error',SHOPP_TXN_ERR);
+			if ($Response->tag('error')) {
+				new ShoppError($Response->content('error-message'),'google_checkout_error',SHOPP_TXN_ERR);
 				return $this->error();
 			}
 			$redirect = false;
-			$redirect = $Response->getElementContent('redirect-url');
+			$redirect = $Response->content('redirect-url');
 			
 			if ($redirect) {
 				$Shopp->resession();
@@ -133,10 +133,15 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			// Read incoming request data
 			$data = trim(file_get_contents('php://input'));
 			if(SHOPP_DEBUG) new ShoppError($data,'google_incoming_request',SHOPP_DEBUG_ERR);
+			
 			// Handle notifications
-			$XML = new XMLdata($data);
-			$type = key($XML->data);
-			$serial = $XML->getElementAttr($type,'serial-number');
+			$XML = new xmlQuery($data);
+			$type = $XML->context();
+			if ( $type === false ) {
+				if(SHOPP_DEBUG) new ShoppError('Unable to determine context of request.','google_checkout_unknown_notification',SHOPP_DEBUG_ERR);
+				exit();
+			}
+			$serial = $XML->attr($type,'serial-number');
 			
 			$ack = true;			
 			switch($type) {
@@ -355,8 +360,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		}
 
-		$sessionid = $XML->getElementContent('shopping-session');
-
+		$sessionid = $XML->content('shopping-session:first');
+		$order_summary = $XML->tag('order-summary');
+		
 		$Shopp->resession($sessionid);
 		$Shopp->Order = ShoppingObject::__new('Order');
 		
@@ -370,61 +376,65 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		} else new ShoppError("Google Checkout successfully loaded session: $sessionid",'google_session_load_success',SHOPP_DEBUG_ERR);
 
 		// Check if this is a Shopp order or not
-		$origin = $XML->getElementContent('shopping-cart-agent');
+		$origin = $order_summary->content('shopping-cart-agent');
 		if (empty($origin) || 
 			substr($origin,0,strpos("/",SHOPP_GATEWAY_USERAGENT)) == SHOPP_GATEWAY_USERAGENT) 
 				return true;
 		
-		$buyer = $XML->getElement('buyer-billing-address');
-		$buyer = $buyer['CHILDREN'];
+		$buyer = $XML->tag('buyer-billing-address'); // buyer billing address not in order summary
+		$name = $buyer->tag('structured-name');
 		
-		$name = $XML->getElement('structured-name');
-		$Order->Customer->firstname = $buyer['structured-name']['CHILDREN']['first-name']['CONTENT'];
-		$Order->Customer->lastname = $buyer['structured-name']['CHILDREN']['last-name']['CONTENT'];
+		$Order->Customer->firstname = $name->content('first-name'); 
+		$Order->Customer->lastname = $name->content('last-name');
 		if (empty($name)) {
-			$name = $buyer['contact-name']['CONTENT'];
+			$name = $buyer->content('contact-name'); 
 			$names = explode(" ",$name);
 			$Order->Customer->firstname = $names[0];
 			$Order->Customer->lastname = $names[count($names)-1];
 		}
 		
-		if (!empty($buyer['email']['CONTENT'])) 
-			$Order->Customer->email = $buyer['email']['CONTENT'];
-		if (!empty($buyer['phone']['CONTENT']))
-			$Order->Customer->phone = $buyer['phone']['CONTENT'];
-		$Order->Customer->marketing = ($XML->getElementContent('email-allowed') != 'false' ? 'yes' : 'no');
-		$Order->Billing->address = $buyer['address1']['CONTENT'];
-		$Order->Billing->xaddress = $buyer['address2']['CONTENT'];
-		$Order->Billing->city = $buyer['city']['CONTENT'];
-		$Order->Billing->state = $buyer['region']['CONTENT'];
-		$Order->Billing->country = $buyer['country-code']['CONTENT'];
-		$Order->Billing->postcode = $buyer['postal-code']['CONTENT'];
+		$email = $buyer->content('email');
+		$Order->Customer->email = !empty($email) ? $email : ''; 
+		$phone = $buyer->content('phone');
+		$Order->Customer->phone = !empty($phone) ? $phone : '';
 		
-		$shipto = $XML->getElement('buyer-shipping-address');
-		$shipto = $shipto['CHILDREN'];
-		$Order->Shipping->address = $shipto['address1']['CONTENT'];
-		$Order->Shipping->xaddress = $shipto['address2']['CONTENT'];
-		$Order->Shipping->city = $shipto['city']['CONTENT'];
-		$Order->Shipping->state = $shipto['region']['CONTENT'];
-		$Order->Shipping->country = $shipto['country-code']['CONTENT'];
-		$Order->Shipping->postcode = $shipto['postal-code']['CONTENT'];
+		$Order->Customer->marketing = $order_summary->content('buyer-marketing-preferences > email-allowed') != 'false' ? 'yes' : 'no';
+		$Order->Billing->address = $buyer->content('address1'); 
+		$Order->Billing->xaddress = $buyer->content('address2'); 
+		$Order->Billing->city = $buyer->content('city'); 
+		$Order->Billing->state = $buyer->content('region'); 
+		$Order->Billing->country = $buyer->content('country-code'); 
+		$Order->Billing->postcode = $buyer->content('postal-code'); 
+		
+		$shipto = $order_summary->tag('buyer-shipping-address');
+		$Order->Shipping->address = $shipto->content('address1'); 
+		$Order->Shipping->xaddress = $shipto->content('address2'); 
+		$Order->Shipping->city = $shipto->content('city'); 
+		$Order->Shipping->state = $shipto->content('region'); 
+		$Order->Shipping->country = $shipto->content('country-code'); 
+		$Order->Shipping->postcode = $shipto->content('postal-code'); 
 		
 		$Shopp->Order->gateway = $this->name;
 
- 		$txnid = $XML->getElementContent('google-order-number');
+ 		$txnid = $order_summary->content('google-order-number');
 
 		// Google Adjustments
-		$Order->Shipping->method = $XML->getElementContent('shipping-name');
-		$Order->Cart->Totals->shipping = $XML->getElementContent('shipping-cost');
-		$Order->Cart->Totals->tax = $XML->getElementContent('total-tax');
-		$Order->Cart->Totals->total = $XML->getElementContent('order-total');
+		$order_adjustment = $order_summary->tag('order-adjustment');
+		$Order->Shipping->method = $order_adjustment->content('shipping-name');
+		$Order->Cart->Totals->shipping = $order_adjustment->content('shipping-cost');
+		$Order->Cart->Totals->tax = $order_adjustment->content('total-tax');
+		
+		// New total from order summary
+		$Order->Cart->Totals->total = $order_summary->content('order-total');
 		
 		$Shopp->Order->transaction($txnid);
 
 	}
 	
 	function risk ($XML) {
- 		$id = $XML->getElementContent('google-order-number');
+		$summary = $XML->tag('order-summary');
+ 		$id = $summary->content('google-order-number');
+
 		if (empty($id)) {
 			new ShoppError("No transaction ID was provided with a risk information message sent by Google Checkout",false,SHOPP_DEBUG_ERR);
 			$this->error();
@@ -436,19 +446,21 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			return;
 		}
 		
-		$Purchase->ip = $XML->getElementContent('ip-address');
-		$Purchase->card = $XML->getElementContent('partial-cc-number');
+		$Purchase->ip = $XML->content('ip-address');
+		$Purchase->card = $XML->content('partial-cc-number');
 		$Purchase->save();
 	}
 	
 	function state ($XML) {
- 		$id = $XML->getElementContent('google-order-number');
+		$summary = $XML->tag('order-summary');
+ 		$id = $summary->content('google-order-number');
 		if (empty($id)) {
 			new ShoppError("No transaction ID was provided with an order state change message sent by Google Checkout",'google_state_notification_error',SHOPP_DEBUG_ERR);
 			$this->error();
 		}
 
-		$state = $XML->getElementContent('new-financial-order-state');
+		$state = $XML->content('new-financial-order-state');
+		
 		$Purchase = new Purchase($id,'txnid');
 		if ( empty($Purchase->id) ) { 
 			new ShoppError('Transaction update on non existing order.','google_order_state_missing_order',SHOPP_DEBUG_ERR);
@@ -456,7 +468,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		}
 		
 		$Purchase->txnstatus = $state;
-		$Purchase->card = $XML->getElementContent('partial-cc-number');
+		$Purchase->card = $XML->content('partial-cc-number');
 		$Purchase->save();
 		
 		if (strtoupper($state) == "CHARGEABLE" && $this->settings['autocharge'] == "on") {
@@ -465,8 +477,8 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$_[] = '<amount currency="'.$this->settings['currency'].'">'.number_format($Purchase->total,$this->precision).'</amount>';
 			$_[] = '</charge-order>';
 			$Response = $this->send(join("\n",$_), $this->urls['order']);
-			if ($Response->getElement('error')) {
-				new ShoppError($Response->getElementContent('error-message'),'google_checkout_error',SHOPP_TXN_ERR);
+			if ($Response->tag('error')) {
+				new ShoppError($Response->content('error-message'),'google_checkout_error',SHOPP_TXN_ERR);
 				return;
 			}			
 		}
@@ -481,22 +493,21 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	function merchant_calc ($XML) {
 		global $Shopp;
 
-		if ($XML->getElementContent('shipping') == 'false') return true;  // ack
+		if ($XML->content('shipping') == 'false') return true;  // ack
 				
-		$sessionid = $XML->getElementContent('shopping-session');
+		$sessionid = $XML->content('shopping-session');
 		$Shopp->resession($sessionid);
 		$Shopp->Order = ShoppingObject::__new('Order');		
 		$Shopping = &$Shopp->Shopping;
 		$Order = &$Shopp->Order;
 		
 		// Get new address information on order
-		$shipto = $XML->getElement('anonymous-address');
-		$shipto = $shipto['CHILDREN'];
+		$shipto = $XML->tag('anonymous-address');
 		
-		$Order->Shipping->city = $shipto['city']['CONTENT'];
-		$Order->Shipping->state = $shipto['region']['CONTENT'];
-		$Order->Shipping->country = $shipto['country-code']['CONTENT'];
-		$Order->Shipping->postcode = $shipto['postal-code']['CONTENT'];
+		$Order->Shipping->city = $shipto->content('city'); //['city']['CONTENT']
+		$Order->Shipping->state = $shipto->content('region'); //['region']['CONTENT']
+		$Order->Shipping->country = $shipto->content('country-code'); //['country-code']['CONTENT']
+		$Order->Shipping->postcode = $shipto->content('postal-code'); //['postal-code']['CONTENT']
 		
 		// Calculate shipping options
 		$Shipping = new CartShipping();
@@ -504,13 +515,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$options = $Shipping->options();
 		if (empty($options)) return true; // acknowledge, but don't respond
 		
-		$methods_data = $XML->getElements('method');
-		// $methods = $methods['CHILDREN'];
-		$methods = array();
-		foreach ($methods_data[0] as $data) {
-			$methods[] = $data['ATTRS']['name'];
-		}
-		$address_id = $XML->getElementAttr('anonymous-address','id');		
+		$methods = $XML->attr('method','name');
+
+		$address_id = $XML->attr('anonymous-address','id');		
 		$_ = array('<?xml version="1.0" encoding="UTF-8"?>');
 		$_[] = "<merchant-calculation-results xmlns=\"http://checkout.google.com/schema/2\">";
 		$_[] = "<results>";
@@ -520,11 +527,12 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				$_[] = '<shipping-rate currency="'.$this->settings['currency'].'">'.number_format($option->amount,$this->precision).'</shipping-rate>';
 				$_[] = '<shippable>true</shippable>';
 				$_[] = '</result>';
-			} 
+			}
 		}
 		$_[] = "</results>";		
 		$_[] = "</merchant-calculation-results>";
-		
+
+		if(SHOPP_DEBUG) new ShoppError(join("\n",$_),'google-merchant-calculation-results',SHOPP_DEBUG_ERR);		
 		$this->response($_);
 		return false; //no ack
 	}
@@ -533,7 +541,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$type = ($this->settings['testmode'] == "on")?'test':'live';
 		$url = sprintf($url[$type],$this->settings['id'],$this->settings['key'],$this->settings['id']);
 		$response = parent::send($message,$url);
-		return new XMLdata($response);
+		return new xmlQuery($response);
 	}
 	
 	function error () { // Error response
