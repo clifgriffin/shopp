@@ -524,7 +524,7 @@ class xmlQuery {
 	 **/
 	private function patterns () {
 		$_ = array(
-			'tags' => '[\w0-9\.\-_:]+',
+			'tags' => '[\w0-9\.\-_]+',
 			'subselects' => '\:(\w+)(?:\((.+?)\))?',
 			'ops' => array(
 				'contains' => '\*=',
