@@ -5,8 +5,8 @@
  * Database management of catalog products
  *
  * @author Jonathan Davis
- * @version 1.0
- * @copyright Ingenesis Limited, 28 March, 2008
+ * @version 1.1
+ * @copyright Ingenesis Limited, July, 2010
  * @package shopp
  * @since 1.0
  * @subpackage products

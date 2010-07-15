@@ -151,11 +151,9 @@ jQuery(document).ready(function() {
 			},function() {
 				row.animate({backgroundColor:rowBG},250);		
 		}).click(function () {
-			if (shippingRates.length > 1) {
-				if (confirm("<?php echo addslashes(__('Are you sure you want to delete this shipping option?','Shopp')); ?>")) {
-					row.remove();
-					shippingRates.splice(i,1);
-				}
+			if (confirm("<?php echo addslashes(__('Are you sure you want to delete this shipping option?','Shopp')); ?>")) {
+				row.remove();
+				shippingRates.splice(i,1);
 			}
 		});
 		

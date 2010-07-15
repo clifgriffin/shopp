@@ -47,7 +47,7 @@
 		</li>
 		<?php endif; ?>
 		<li></li>
-		<?php if (shopp('checkout','shipping')): ?>
+		<?php if (shopp('cart','needs-shipped')): ?>
 			<li class="half" id="billing-address-fields">
 		<?php else: ?>
 			<li>
@@ -77,7 +77,7 @@
 				<?php shopp('checkout','billing-country','required=true&title='.__('Country billing address','Shopp')); ?>
 				<label for="billing-country"><?php _e('Country','Shopp'); ?></label>
 			</div>
-		<?php if (shopp('checkout','shipping')): ?>
+		<?php if (shopp('cart','needs-shipped')): ?>
 			<div class="inline"><?php shopp('checkout','same-shipping-address'); ?></div>
 			</li>
 			<li class="half right" id="shipping-address-fields">

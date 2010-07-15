@@ -112,9 +112,11 @@ class Order {
 	 **/
 	function processor ($processor=false) {
 		global $Shopp;
-		
+
 		$current = $this->processor;
-		if (count($Shopp->Gateways->active) == 1) { // base case
+		if (count($Shopp->Gateways->active) == 1 // base case
+			|| (!$this->processor && !$processor && count($Shopp->Gateways->active) > 1)) { 
+			// Automatically select the first active gateway
 			reset($Shopp->Gateways->active);
 			$Gateway = current($Shopp->Gateways->active);
 			if ($this->processor != $Gateway->module)
@@ -241,7 +243,14 @@ class Order {
 		}
 		
 		$Gateway = $this->processor();
-		
+
+		if (empty($this->paymethod)) {
+			$module = $Gateway->module;
+			$label = is_array($Gateway->settings['label'])?$Gateway->settings['label'][0]:$Gateway->settings['label'];	
+			$this->paymethod = $module.':'.$label;
+		} 
+		if (!$cc) $this->Billing->cardtype = $label;
+
 		$estimated = $this->Cart->Totals->total;
 		
 		$this->Cart->changed(true);
@@ -1175,6 +1184,23 @@ class Order {
 			case "paymentoptions": 
 				if (count($Shopp->Gateways->active) <= 1) return false;
 				extract($options);
+				unset($options['type']);
+				
+				if (isset($mode) && $mode == "loop") {
+					if (!isset($this->_pay_loop)) {
+						reset($Shopp->Gateways->active);
+						$this->_pay_loop = true;
+					} else next($Shopp->Gateways->active);
+					$price = current($Shopp->Gateways->active);
+						
+					if (current($Shopp->Gateways->active) !== false) return true;
+					else {
+						unset($this->_pay_loop);
+						return false;
+					}
+					return true;
+				}
+				
 				$output = '';
 				$js = "var ccpayments = {}, ccallowed = {};\n";
 				if (!isset($type)) $type = "menu";
@@ -1195,30 +1221,55 @@ class Order {
 					}
 				}
 				
-				if ($type == "list") {
-					$output .= '<span><ul>';
-					$options = array();
-					foreach ($payments as $value => $option) {
-						$checked = ($this->paymethod == $value)?' checked="checked"':'';
-						$output .= '<li><label><input type="radio" name="paymethod" value="'.$value.'"'.$checked.' /> '.$option.'</label></li>';
-						$js .= "ccpayments['".$value."'] = ".json_encode($cards[$value]).";\n";
-						$js .= "ccallowed['".$value."'] = ".json_encode($allowed[$value]).";\n";
-					}
-					$output .= '</ul></span>';
-				} else {
-					$output .= '<select name="paymethod">';
-					foreach ($payments as $value => $option) {
-						$selected = ($this->paymethod == $value)?' selected="selected"':'';
-						$output .= '<option value="'.$value.'"'.$selected.'>'.$option.'</option>';
-						$js .= "ccpayments['".$value."'] = ".json_encode($cards[$value]).";\n";
-						$js .= "ccallowed['".$value."'] = ".json_encode($allowed[$value]).";\n";
-					}
-					$output .= '</select>';
+				switch ($type) {
+					case "list":
+						$output .= '<span><ul>';
+						foreach ($payments as $value => $option) {
+							$options['checked'] = ($this->paymethod == $value)?'checked':false;
+							$output .= '<li><label><input type="radio" name="paymethod" '.inputattrs($options).' /> '.$option.'</label></li>';
+							$js .= "ccpayments['".$value."'] = ".json_encode($cards[$value]).";\n";
+							$js .= "ccallowed['".$value."'] = ".json_encode($allowed[$value]).";\n";
+						}
+						$output .= '</ul></span>';
+						break;
+					case "hidden":
+						$output .= '<input type="hidden" name="paymethod"'.inputattrs($options).' />';
+					default:
+						$output .= '<select name="paymethod" '.inputattrs($options,$select_attrs).'>';
+						foreach ($payments as $value => $option) {
+							$selected = ($this->paymethod == $value)?' selected="selected"':'';
+							$output .= '<option value="'.$value.'"'.$selected.'>'.$option.'</option>';
+							$js .= "ccpayments['".$value."'] = ".json_encode($cards[$value]).";\n";
+							$js .= "ccallowed['".$value."'] = ".json_encode($allowed[$value]).";\n";
+						}
+						$output .= '</select>';
+						break;
 				}
 
 				add_storefrontjs($js, true);
 				
 				return $output;
+				break;
+			// case "payment-option":
+			// case "paymentoption":
+				// $gateway = current($Shopp->Gateways->active);
+				// if (is_array($gateway->settings['label'])) {
+				// 	foreach ($gateway->settings['label'] as $method) {
+				// 		$payments[$gateway->module.':'.$method] = $method;
+				// 		$cards[$gateway->module.':'.$method] = $gateway->cards;
+				// 		$allowed[$gateway->module.':'.$method] = is_array($gateway->settings['cards']) ? $gateway->settings['cards'] : false;
+				// 	}
+				// } else {
+				// 	$payments[$gateway->module.':'.$gateway->settings['label']] = $gateway->settings['label'];
+				// 	$cards[$gateway->module.':'.$gateway->settings['label']] = $gateway->cards;
+				// 	$allowed[$gateway->module.':'.$gateway->settings['label']] = is_array($gateway->settings['cards']) ? $gateway->settings['cards'] : false;
+				// }
+				// if (isset($options['label'])) return
+				// $value = key($Shopp->Gateways->active);
+				// $label = current($Shopp->Gateways->active);
+				// if (!isset($options['taxes'])) $options['taxes'] = null;
+				// else $options['taxes'] = value_is_true($options['taxes']);
+				// $taxrate = shopp_taxrate($options['taxes'],$variation->tax);
 				break;
 			case "gatewayinputs":
 			case "gateway-inputs":
