@@ -64,7 +64,7 @@
 		<td class="money">-<?php shopp('cart','discount'); ?></td>
 	</tr>
 	<?php endif; ?>
-	<?php if (shopp('cart','needs-shipped')): ?>
+	<?php if (shopp('cart','hasshipcosts')): ?>
 	<tr class="totals">
 		<th scope="row"><?php shopp('cart','shipping','label='.__('Shipping','Shopp')); ?></th>
 		<td class="money"><?php shopp('cart','shipping'); ?></td>

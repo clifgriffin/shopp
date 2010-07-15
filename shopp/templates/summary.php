@@ -59,10 +59,12 @@
 		<td class="money">-<?php shopp('cart','discount'); ?></td>
 	</tr>
 	<?php endif; ?>
+	<?php if (shopp('cart','hasshipcosts')): ?>
 	<tr class="totals">
 		<th scope="row"><?php shopp('cart','shipping','label='.__('Shipping','Shopp')); ?></th>
 		<td class="money"><?php shopp('cart','shipping'); ?></td>
 	</tr>
+	<?php endif; ?>
 	<tr class="totals">
 		<th scope="row"><?php shopp('cart','tax','label='.__('Taxes','Shopp')); ?></th>
 		<td class="money"><?php shopp('cart','tax'); ?></td>

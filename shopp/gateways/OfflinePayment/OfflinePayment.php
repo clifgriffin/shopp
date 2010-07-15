@@ -93,7 +93,7 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		foreach ($this->settings['label'] as $index => $label) {
 			if ($method == $label) return $this->settings['instructions'][$index];
 		}
-		return "";
+		return false;
 	}
 	
 	function reset () {

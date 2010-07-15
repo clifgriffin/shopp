@@ -30,13 +30,12 @@ class Cart {
 	
 	var $freeship = false;
 	var $showpostcode = false;	// Flag to show postcode field in shipping estimator
+	var $noshipping = false;	// Shipping calculates disabled
 	
 	// Internal properties
 	var $changed = false;		// Flag when Cart updates and needs retotaled
 	var $added = false;			// The index of the last item added
 	
-	var $looping = false;
-	var $itemlooping = false;
 	var $runaway = 0;
 	var $retotal = false;
 	var $handlers = false;
@@ -433,7 +432,6 @@ class Cart {
 	 * @return void
 	 **/
 	function totals () {
-		global $Shopp;
 		if (!$this->retotal && !$this->changed()) return true;
 
 		$this->Totals = new CartTotals();
@@ -733,18 +731,20 @@ class Cart {
 				$result .= '<span><input type="submit" id="apply-code" name="update" '.inputattrs($options,$submit_attrs).' /></span>';
 				$result .= '</li></ul>';
 				return $result;
-			case "has-shipping-methods": return apply_filters('shopp_shipping_hasestimates',!empty($this->shipping),$this->shipping); break;
-				// return (!$this->ShippingDisabled
-				// 		&& count($this->ShipCosts) > 1
-				// 		&& $this->Shipping); break;				
-			case "needs-shipped": return (!empty($this->shipped)); break;
+			case "has-shipping-methods":
+				return apply_filters(
+							'shopp_shipping_hasestimates',
+							(!empty($this->shipping) && !$this->noshipping),
+							$this->shipping
+						); break;
+			case "needs-shipped": return (!empty($this->shipping) && !$this->noshipping); break;
 			case "hasshipcosts":
 			case "has-shipcosts":
 			case "hasship-costs":
 			case "has-ship-costs": return ($this->Totals->shipping > 0); break;
 			case "needs-shipping-estimates":
 				$markets = $Shopp->Settings->get('target_markets');
-				return (!empty($this->shipped) && ($this->showpostcode || count($markets) > 1));
+				return (!empty($this->shipped) && !$this->noshipping && ($this->showpostcode || count($markets) > 1));
 				break;
 			case "shipping-estimates":
 				if (empty($this->shipped)) return "";
@@ -1346,6 +1346,7 @@ class CartShipping {
 	
 	var $options = array();
 	var $modules = false;
+	var $disabled = false;
 	var $fees = 0;
 	var $handling = 0;
 	
@@ -1359,12 +1360,14 @@ class CartShipping {
 	 **/
 	function __construct () {
 		global $Shopp;
+		$Settings =& ShoppSettings();
 		
 		$this->Shipping = &$Shopp->Order->Shipping;
 		$this->modules = &$Shopp->Shipping->active;
 		$this->Cart = &$Shopp->Order->Cart;
 		
-		$this->handling = $Shopp->Settings->get('order_shipfee');
+		$this->disabled = $this->Cart->noshipping = ($Settings->get('shipping') == "off");
+		$this->handling = $Settings->get('order_shipfee');
 		
 	}
 	
@@ -1379,6 +1382,8 @@ class CartShipping {
 	function calculate () {
 		global $Shopp;
 		
+		// If shipping is disabled, bail
+		if ($this->disabled) return false;
 		// If no shipped items, bail
 		if (!$this->Cart->shipped()) return false;
 		// If the cart is flagged for free shipping bail
