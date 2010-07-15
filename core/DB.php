@@ -832,10 +832,10 @@ abstract class SessionObject {
 	 * @return boolean
 	 **/
 	function trash () {
+		if (empty($this->session)) return false;
+
 		$db = &DB::get();
-				
-		// 1800 seconds = 30 minutes, 3600 seconds = 1 hour
-		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified) > ".SHOPP_SESSION_TIMEOUT)) 
+		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE ".SHOPP_SESSION_TIMEOUT." < UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified)")) 
 			trigger_error("Could not delete cached session data.");
 		return true;
 	}
