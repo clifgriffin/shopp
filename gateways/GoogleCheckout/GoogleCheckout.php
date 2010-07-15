@@ -149,10 +149,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				case "risk-information-notification": $this->risk($XML); break;
 				case "order-state-change-notification": $this->state($XML); break;
 				case "merchant-calculation-callback": $ack = $this->merchant_calc($XML); break;
-				case "charge-amount-notification":			// Not implemented
-				case "refund-amount-notification":			// Not implemented
-				case "chargeback-amount-notification":		// Not implemented
-				case "authorization-amount-notification":	// Not implemented
+				case "charge-amount-notification":	break;		// Not implemented
+				case "refund-amount-notification":	$this->refund($XML); break;
+				case "chargeback-amount-notification":		break;	// Not implemented
+				case "authorization-amount-notification":	break;	// Not implemented
 					break;
 			}
 			// Send acknowledgement
@@ -483,6 +483,37 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			}			
 		}
 	}
+
+	/**
+	 * refund
+	 *
+	 * Currently only sets the transaction status to refunded
+	 *
+	 * @author John Dillick
+	 * @since 1.1
+	 * 
+	 * @param string $XML The XML request from google
+	 * @return void
+	 **/
+	function refund($XML) {
+		$summary = $XML->tag('order-summary');
+ 		$id = $summary->content('google-order-number');
+		$refund = $summary->content('total-refund-amount');
+		
+		if (empty($id)) {
+			new ShoppError("No transaction ID was provided with an order refund notification sent by Google Checkout",'google_refund_notification_error',SHOPP_DEBUG_ERR);
+			$this->error();
+		}
+		$Purchase = new Purchase($id,'txnid');
+		if ( empty($Purchase->id) ) { 
+			new ShoppError('Transaction refund on non-existing order.','google_refund_missing_order',SHOPP_DEBUG_ERR);
+			return;
+		}
+		
+		$Purchase->txnstatus = "REFUNDED";
+		$Purchase->save();
+	}
+
 
 	/**
 	* merchant_calc()
