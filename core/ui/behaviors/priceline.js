@@ -198,7 +198,7 @@ function Priceline (id,options,data,target,attachment) {
 	context = $('#context-'+i);
 	optionids = $('#options-'+i);
 	sortorder = $('#sortorder-'+i);
-	optionkey = $('#optionkey-'+i).appendTo(heading);
+	optionkey = $('#optionkey-'+i);
 	_.row.optionkey = optionkey;
 		
 	$(priceTypes).each(function (t,option) { typeOptions += '<option value="'+option.value+'">'+option.label+'</option>'; });
