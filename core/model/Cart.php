@@ -1040,8 +1040,20 @@ class CartPromotions {
 		                    UNIX_TIMESTAMP() < UNIX_TIMESTAMP(ends)
 		                )
 		            ) ORDER BY target DESC";
-		echo $query;
 		$this->promotions = $db->query($query,AS_ARRAY);
+	}
+	
+	/**
+	 * Reset and load all the active promotions
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function reload () {
+		$this->promotions = array();	// Wipe loaded promotions
+		$this->load();					// Re-load active promotions
 	}
 	
 	/**
