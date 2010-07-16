@@ -290,7 +290,7 @@ class Warehouse extends AdminController {
 			$w = ($where == "true")?$subquery['where']:"$where AND ({$subquery['where']})";
 			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $w $having";
 			$result = $db->query($query);
-			$subquery['total'] = (int)$result->total;
+			$subquery['total'] = number_format((int)$result->total);
 		}
 
 		$num_pages = ceil($productcount->total / $per_page);
