@@ -26,7 +26,8 @@ class Item {
 	var $data = array();		// Custom input data
 	var $quantity = 0;			// The selected quantity for the line item
 	var $unitprice = 0;			// Per unit price
-	var $price = 0;				// Per unit price after discounts are applied
+	var $priced = 0;			// Per unit price after discounts are applied
+	var $totald = 0;			// Total price after discounts
 	var $unittax = 0;			// Per unit tax amount
 	var $tax = 0;				// Sum of the per unit tax amount for the line item
 	var $taxrate = 0;			// Tax rate for the item
@@ -433,11 +434,13 @@ class Item {
 	 **/
 	function retotal () {
 		$this->taxrate = shopp_taxrate(true,$this->taxable,$this);
-		$this->price = ($this->unitprice-$this->discount);
-		$this->unittax = ($this->price*$this->taxrate);
+		
+		$this->priced = ($this->unitprice-$this->discount);
+		$this->unittax = ($this->priced*$this->taxrate);
 		$this->discounts = ($this->discount*$this->quantity);
 		$this->tax = ($this->unittax*$this->quantity);
-		$this->total = ($this->price * $this->quantity);
+		$this->total = ($this->unitprice * $this->quantity);
+		$this->totald = ($this->priced * $this->quantity);
 		// print_r($this);
 	}
 
@@ -474,8 +477,6 @@ class Item {
 		$result = "";
 		switch ($property) {
 			case "discount": $result = (float)$this->discount; break;
-			case "price":
-			case "newprice": $result = (float)$this->price+($taxes?$this->unittax:0); break;
 			case "unitprice": $result = (float)$this->unitprice+($taxes?$this->unittax:0); break;
 			case "unittax": $result = (float)$this->unittax; break;
 			case "discounts": $result = (float)$this->discounts; break;
