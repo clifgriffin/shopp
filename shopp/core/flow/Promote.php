@@ -111,9 +111,8 @@ class Promote extends AdminController {
 			if ($Promotion->scope == "Catalog")
 				$Promotion->build_discounts();
 			
-			// Reset cart promotions cache
-			// to force reload for these updates
-			$Shopp->Promotions->load();
+			// Force reload of the session promotions to include any updates
+			$Shopp->Promotions->reload();
 
 		}
 		
