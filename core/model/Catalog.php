@@ -76,9 +76,8 @@ class Catalog extends DatabaseObject {
 		else $parent = 0;
 
 		if ($ancestry) {
-			array_unshift($joins,"LEFT JOIN $category_table AS children ON children.parent=cat.id");
-			if (!empty($where))	$where = array("cat.id=children.parent OR (".join(" AND ",$where).")");
-			else $where = array("cat.id=children.parent");
+			if (!empty($where))	$where = array("cat.id IN (SELECT parent FROM $category_table WHERE parent != 0) OR (".join(" AND ",$where).")");
+			else $where = array("cat.id IN (SELECT parent FROM $category_table WHERE parent != 0)");
 		}
 
 		switch(strtolower($orderby)) {
