@@ -38,7 +38,7 @@
 			</td>
 			<td><?php shopp('cartitem','quantity','input=text'); ?>
 				<?php shopp('cartitem','remove','input=button'); ?></td>
-			<td class="money"><?php shopp('cartitem','price'); ?></td>
+			<td class="money"><?php shopp('cartitem','unitprice'); ?></td>
 			<td class="money"><?php shopp('cartitem','total'); ?></td>
 		</tr>
 	<?php endwhile; ?>

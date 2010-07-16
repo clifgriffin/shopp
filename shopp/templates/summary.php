@@ -32,7 +32,11 @@
 			<td class="money"><?php shopp('cartitem','total'); ?></td>
 		</tr>
 	<?php endwhile; ?>
-
+	
+	<?php while(shopp('cart','promos')): ?>
+		<tr><td colspan="4" class="money"><?php shopp('cart','promo-name'); ?> &mdash; <strong><?php shopp('cart','promo-discount'); ?></strong></td></tr>
+	<?php endwhile; ?>
+	
 	<tr class="totals">
 		<td colspan="2" rowspan="5">
 			<?php if ((shopp('cart','has-shipping-methods'))): ?>

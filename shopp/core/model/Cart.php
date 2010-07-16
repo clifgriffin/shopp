@@ -437,6 +437,9 @@ class Cart {
 		$this->Totals = new CartTotals();
 		$Totals = &$this->Totals;
 		
+		// Setup discount calculator
+		$Discounts = new CartDiscounts();
+		
 		// Free shipping until costs are assessed
 		$this->freeshipping = true;	
 
@@ -452,7 +455,7 @@ class Cart {
 			$Totals->quantity += $Item->quantity;
 			$Totals->subtotal +=  $Item->total;
 			
-			// Reinitialize discount amounts
+			// Reinitialize item discount amounts
 			$Item->discount = 0;
 			
 			// Item does not have free shipping, 
@@ -461,19 +464,18 @@ class Cart {
 			
 		}
 
-		// Calculate discounts
-		$Discounts = new CartDiscounts();
-		$Totals->discount = $Discounts->calculate();
-
-		//$this->promotions();
-		$Totals->discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
-
 		// Calculate shipping
 		$Shipping = new CartShipping();
 		$Totals->shipping = $Shipping->calculate();
 		
 		// Save the generated shipping options
 		$this->shipping = $Shipping->options();
+
+		// Calculate discounts
+		$Totals->discount = $Discounts->calculate();
+
+		//$this->promotions();
+		$Totals->discount = ($Totals->discount > $Totals->subtotal)?$Totals->subtotal:$Totals->discount;
 
 		// Calculate taxes
 		$Tax = new CartTax();
@@ -633,11 +635,16 @@ class Cart {
 			case "total-promos": return count($this->discounts); break;
 			case "haspromos":
 			case "has-promos": return (count($this->discounts) > 0); break;
+			case "discounts":
 			case "promos":
 				if (!isset($this->_promo_looping)) {
 					reset($this->discounts);
 					$this->_promo_looping = true;
 				} else next($this->discounts);
+				
+				$discount = current($this->discounts);
+				while ($discount && empty($discount->applied))
+					$discount = next($this->discounts);
 				
 				if (current($this->discounts)) return true;
 				else {
@@ -946,6 +953,7 @@ class CartTotals {
 	var $quantity = 0;			// Total quantity of items in the cart
 	var $subtotal = 0;			// Subtotal of item totals
 	var $discount = 0;			// Subtotal of cart discounts
+	var $itemsd = 0;			// Subtotal of cart item discounts
 	var $shipping = 0;			// Subtotal of shipping costs for items
 	var $taxed = 0;				// Subtotal of taxable item totals
 	var $tax = 0;				// Subtotal of item taxes
@@ -1031,7 +1039,8 @@ class CartPromotions {
 		                    AND
 		                    UNIX_TIMESTAMP() < UNIX_TIMESTAMP(ends)
 		                )
-		            )";
+		            ) ORDER BY target DESC";
+		echo $query;
 		$this->promotions = $db->query($query,AS_ARRAY);
 	}
 	
@@ -1093,8 +1102,10 @@ class CartDiscounts {
 		$this->Cart = &$Shopp->Order->Cart;
 		$this->promos = &$Shopp->Promotions->promotions;
 		// print_r($this->Cart->promocodes);
+		// echo "<pre>";
 		// print_r($this->Cart->discounts);
-
+		// echo "</pre>";
+		// 
 		// print_r($this->promos);
 	}
 	
@@ -1200,9 +1211,16 @@ class CartDiscounts {
 
 			// Apply the promotional discount
 			switch ($promo->type) {
-				case "Percentage Off": $discount = $this->Cart->Totals->subtotal*($promo->discount/100); break;
 				case "Amount Off": $discount = $promo->discount; break;
-				case "Free Shipping": $discount = 0; $this->Cart->freeshipping = true; break;
+				case "Percentage Off": 
+					$discount = ($this->Cart->Totals->subtotal-$this->Cart->Totals->itemsd) 
+									* ($promo->discount/100);
+					break;
+				case "Free Shipping": 
+					$discount = 0;
+					$this->Cart->freeshipping = true;
+					$this->Cart->Totals->shipping = 0;
+					break;
 			}
 			$this->discount($promo,$discount);
 
@@ -1246,7 +1264,7 @@ class CartDiscounts {
 						
 						if ($Item->match($rule) && !isset($promo->items[$id])) {
 							switch ($promo->type) {
-								case "Percentage Off": $discount = $Item->total*($promo->discount/100); break;
+								case "Percentage Off": $discount = $Item->unitprice*($promo->discount/100); break;
 								case "Amount Off": $discount = $promo->discount; break;
 								case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
 							}
@@ -1256,6 +1274,7 @@ class CartDiscounts {
 					} // endforeach
 				} // end in_array
 			} // endforeach $promo->rules['item']
+			$this->Cart->Totals->itemsd += $promo->applied;
 		} else {
 			$promo->applied = $discount;	
 		}
