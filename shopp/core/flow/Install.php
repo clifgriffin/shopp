@@ -205,7 +205,7 @@ class ShoppInstallation extends FlowController {
 
 		$this->Settings->save('shopp_setup','');
 		$this->Settings->save('maintenance','on');
-		
+				
 		// Process any database schema changes
 		$this->upschema();
 		
@@ -356,7 +356,9 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function upgrade_110 () {
 		$db =& DB::get();
-
+		$meta_table = DatabaseObject::tablename('meta');
+		$db->query("DELETE FROM $meta_table"); // Clear out previous meta
+		
 		// Update product publish status
 		$product_table = DatabaseObject::tablename('product');
 		$db->query("UPDATE $product_table SET status=CAST(published AS unsigned)");
@@ -380,10 +382,10 @@ class ShoppInstallation extends FlowController {
 		$meta_table = DatabaseObject::tablename('meta');
 		$asset_table = DatabaseObject::tablename('asset');
 		$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
-							SELECT parent,context,'image','processing',CONCAT_WS('::',name,value,size,properties,LENGTH(data)),'0',sortorder,created,modified FROM $asset_table WHERE datatype='image'");
+							SELECT parent,context,'image','processing',CONCAT_WS('::',id,name,value,size,properties,LENGTH(data)),'0',sortorder,created,modified FROM $asset_table WHERE datatype='image'");
 		$records = $db->query("SELECT id,value FROM $meta_table WHERE type='image' AND name='processing'",AS_ARRAY);
 		foreach ($records as $r) {
-			list($name,$value,$size,$properties,$datasize) = explode("::",$r->value);
+			list($src,$name,$value,$size,$properties,$datasize) = explode("::",$r->value);
 			$p = unserialize($properties);
 			$value = new StdClass();
 			$value->width = $p['width'];
@@ -393,9 +395,10 @@ class ShoppInstallation extends FlowController {
 			$value->filename = $name;
 			$value->mime = $p['mimetype'];
 			$value->size = $size;
+			error_log(serialize($value));
 			if ($datasize > 0) {
 				$value->storage = "DBStorage";
-				$value->uri = $r->id;
+				$value->uri = $src;
 			} else {
 				$value->storage = "FSStorage";
 				$value->uri = $name;
@@ -408,11 +411,11 @@ class ShoppInstallation extends FlowController {
 		$meta_table = DatabaseObject::tablename('meta');
 		$asset_table = DatabaseObject::tablename('asset');
 		$query = "INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
-					SELECT parent,context,'download','processing',CONCAT_WS('::',name,value,size,properties,LENGTH(data)),'0',sortorder,created,modified FROM $asset_table WHERE datatype='download' AND parent != 0";
+					SELECT parent,context,'download','processing',CONCAT_WS('::',id,name,value,size,properties,LENGTH(data)),'0',sortorder,created,modified FROM $asset_table WHERE datatype='download' AND parent != 0";
 		$db->query($query);
 		$records = $db->query("SELECT id,value FROM $meta_table WHERE type='download' AND name='processing'",AS_ARRAY);
 		foreach ($records as $r) {
-			list($name,$value,$size,$properties,$datasize) = explode("::",$r->value);
+			list($src,$name,$value,$size,$properties,$datasize) = explode("::",$r->value);
 			$p = unserialize($properties);
 			$value = new StdClass();
 			$value->filename = $name;
@@ -420,7 +423,7 @@ class ShoppInstallation extends FlowController {
 			$value->size = $size;
 			if ($datasize > 0) {
 				$value->storage = "DBStorage";
-				$value->uri = $r->id;
+				$value->uri = $src;
 			} else {
 				$value->storage = "FSStorage";
 				$value->uri = $name;

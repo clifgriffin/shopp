@@ -114,9 +114,11 @@ class Shopping extends SessionObject {
  **/
 class ShoppingObject {
 	
-	static function &__new ($class) {
+	static function &__new ($class, &$ref=false) {
 		global $Shopp;
-
+		
+		if ($ref !== false) $ref->__destruct();
+		
 		if (isset($Shopp->Shopping->data->{$class})) // Restore the object
 			$object = $Shopp->Shopping->data->{$class};
 		else {

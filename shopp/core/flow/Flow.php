@@ -22,6 +22,7 @@ class Flow {
 	
 	var $Controller = false;
 	var $Admin = false;
+	var $Installer = false;
 	var $Logins = false;
 	
 	/**
@@ -169,8 +170,11 @@ class Flow {
 	}
 	
 	function installation () {
+		if (!defined('WP_ADMIN')) return;
+		if ($this->Installer !== false) return;
+
 		require_once(SHOPP_FLOW_PATH."/Install.php");
-		$Installation = new ShoppInstallation();
+		if (!$this->Installer) $this->Installer = new ShoppInstallation();
 	}
 	
 	function update () {

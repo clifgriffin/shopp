@@ -30,7 +30,7 @@ class PayPalPro extends GatewayFramework implements GatewayModule {
 		$this->settings['base_operations'] = $Settings->get('base_operations');
 		$this->settings['currency_code'] = $this->currencies[0]; // Use USD by default
 		if (in_array($this->settings['base_operations']['currency']['code'],$this->currencies))
-			$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];
+			$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];			
 	}
 	
 	function actions () {
@@ -40,7 +40,7 @@ class PayPalPro extends GatewayFramework implements GatewayModule {
 	function process () {
 		
 		if ($this->settings['testmode'] == "on") $this->url = $this->sandboxurl;
-		else $this->liveurl;
+		else $this->url = $this->liveurl;
 		
  		$response = $this->send($this->build(),$this->url);
 		$response = $this->response($response);
@@ -69,6 +69,7 @@ class PayPalPro extends GatewayFramework implements GatewayModule {
 		$_['PAYMENTACTION']			= "Sale";
 		$_['IPADDRESS']				= $_SERVER["REMOTE_ADDR"];
 		$_['RETURNFMFDETAILS']		= "1"; // optional - return fraud management filter data
+		$_['BUTTONSOURCE']			= 'shopplugin.net[WPP]';
 		
 		// Customer Contact
 		$_['FIRSTNAME']				= $this->Order->Customer->firstname;
@@ -77,7 +78,8 @@ class PayPalPro extends GatewayFramework implements GatewayModule {
 		$_['PHONENUM']				= $this->Order->Customer->phone;
 		
 		// Billing
-		$_['CREDITCARDTYPE']		= $this->Order->Billing->cardtype;
+		$card = Lookup::paycard($this->Order->Billing->cardtype);
+		$_['CREDITCARDTYPE']		= isset($card->name)?$card->name:'';
 		$_['ACCT']					= $this->Order->Billing->card;
 		$_['EXPDATE']				= date("mY",$this->Order->Billing->cardexpires);
 		$_['CVV2']					= $this->Order->Billing->cvv;
@@ -132,8 +134,8 @@ class PayPalPro extends GatewayFramework implements GatewayModule {
 
 		if ($this->Order->Cart->Totals->discount != 0) {
 			$discounts = array();
-			foreach($Shopp->Cart->data->PromosApplied as $promo)
-				$discounts[] = $promo->name;
+			// foreach($Shopp->Cart->data->PromosApplied as $promo)
+			// 	$discounts[] = $promo->name;
 			
 			$i++;
 			$_['L_NUMBER'.$i]		= $i;
@@ -142,7 +144,7 @@ class PayPalPro extends GatewayFramework implements GatewayModule {
 			$_['L_QTY'.$i]			= 1;
 			$_['L_TAXAMT'.$i]		= number_format(0,$precision);
 		}
-
+				
 		$this->transaction = "";
 		foreach($_ as $key => $value) {
 			if (is_array($value)) {

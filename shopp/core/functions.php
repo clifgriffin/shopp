@@ -1274,7 +1274,7 @@ function shopp_locate_pages ($pages) {
 	$codes = array();
 	$search = "";
 	foreach ($pages as $page) $codes[] = $page['shortcode'];
-	foreach ($codes as $code) $search .= ((!empty($search))?" OR ":"")."post_content LIKE '%$code%'";
+	foreach ($codes as $code) $search .= ((!empty($search))?" OR ":"")."post_content LIKE '%$code%' AND post_type='page'";
 	$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE $search";
 	$results = $wpdb->get_results($query);
 	
