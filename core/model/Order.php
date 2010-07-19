@@ -102,6 +102,12 @@ class Order {
 
 	}
 	
+	function __destruct () {
+		remove_action('shopp_create_purchase',array(&$this,'purchase'));
+		remove_action('shopp_order_notifications',array(&$this,'notify'));
+		remove_action('shopp_order_success',array(&$this,'success'));
+	}
+	
 	/**
 	 * Set or get the currently selected gateway processor 
 	 *
@@ -326,6 +332,8 @@ class Order {
 
 		$this->Billing->customer = $this->Customer->id;
 		$this->Billing->card = substr($this->Billing->card,-4);
+		$paycard = Lookup::paycard($this->Billing->cardtype);
+		$this->Billing->cardtype = !$paycard?$this->Billing->cardtype:$paycard->name;
 		$this->Billing->cvv = false;
 		$this->Billing->save();
 
@@ -1049,7 +1057,7 @@ class Order {
 			case "billing-xcsc-required":
 				$Gateways = $Shopp->Gateways->active;
 				foreach ($Gateways as $Gateway) {
-					foreach ($Gateway->settings['cards'] as $card) {
+					foreach ((array)$Gateway->settings['cards'] as $card) {
 						$PayCard = Lookup::paycard($card);
 						if (!empty($PayCard->inputs)) return true;
 					}

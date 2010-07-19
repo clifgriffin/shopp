@@ -246,7 +246,6 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 	
 	function process () {
 		global $Shopp;
-		error_log('process '.$this->Order->token);
 		if (!isset($this->Order->token) || 
 			!isset($this->Order->payerid)) return false;
 				
@@ -256,6 +255,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$_['PAYMENTACTION']			= "Sale";
 		$_['TOKEN'] 				= $this->Order->token;
 		$_['PAYERID'] 				= $this->Order->payerid;
+		$_['BUTTONSOURCE']			= 'shopplugin.net[PPE]';
 
 		// Transaction
 		$_ = array_merge($_,$this->purchase());

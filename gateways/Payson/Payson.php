@@ -120,10 +120,8 @@ class Payson extends GatewayFramework implements GatewayModule {
 		}
 		
 		if ($Shopp->Shopping->session != $_GET['RefNr']) {
-			// Unqueue previous session hook to prevent duplicate notifications from firing
-			remove_action('shopp_order_notifications',array(&$Shopp->Order,'notify'));
 			$Shopp->resession($_GET['RefNr']);
-			$Shopp->Order = ShoppingObject::__new('Order');
+			$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
 			$Order = &$Shopp->Order;
 		}
 		

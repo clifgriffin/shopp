@@ -115,6 +115,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['first_name']			= $Order->Customer->firstname;
 		$_['last_name']				= $Order->Customer->lastname;
 		$_['lc']					= $this->baseop['country'];
+		$_['bn']					= 'shopplugin.net[WPS]';
 		
 		$AddressType = "Shipping";
 		// Disable shipping fields if no shipped items in cart
@@ -196,18 +197,9 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 		}
 		
-		if (isset($_REQUEST['txn_id'])) { // IPN order processing
-			
+		if (isset($_POST['txn_id'])) { // IPN order processing
 			$txnid = $_POST['txn_id'];
 			$txnstatus = $this->status[$_POST['payment_status']];
-
-			// Validate the order notification
-			$ipnstatus = $this->verifyipn();
-			if ($ipnstatus != "VERIFIED") {
-				$txnstatus = $ipnstatus;
-				new ShoppError('An unverifiable order notification was received from PayPal. Possible fraudulent order attempt! The order will be created, but the order payment status must be manually set to "Charged" when the payment can be verified.','paypal_txn_verification',SHOPP_TRXN_ERR);
-			} else if (SHOPP_DEBUG) new ShoppError('IPN notification validated.',false,SHOPP_DEBUG_ERR);
-			
 		}
 		
 		$Shopp->Order->transaction($txnid,$txnstatus);
@@ -220,10 +212,19 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		// Cancel processing if this is not a PayPal Website Payments Standard/Express Checkout IPN
 		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") return false;
 
+		// Validate the order notification
+		if ($this->verifyipn() != "VERIFIED") {
+			new ShoppError(sprintf(__('An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s','Shopp'),$target,_object_r($_POST)),'paypal_txn_verification',SHOPP_TRXN_ERR);
+			return false;
+		} 
+		
+		
 		// Need an session id to locate pre-order data and a transaction id for the order
 		if (isset($_POST['custom']) && isset($_POST['txn_id']) && !isset($_POST['parent_txn_id'])) {
 
 			$Shopp->resession($_POST['custom']);
+			$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
+			
 			$Shopping = &$Shopp->Shopping;
 			// Couldn't load the session data
 			if ($Shopping->session != $_POST['custom'])
@@ -231,29 +232,25 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			else new ShoppError("PayPal successfully loaded session: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
 			
 			return do_action('shopp_process_order'); // New order
+		} elseif (!empty($_POST['parent_txn_id'])) {
+
+			$target = $_POST['parent_txn_id'];
+
+			$Purchase = new Purchase($target,'txnid');
+
+			if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
+
+			$Purchase->txnstatus = $txnstatus;
+			$Purchase->save();
+
+			$Shopp->Purchase = &$Purchase;
+			$Shopp->Order->purchase = $Purchase->id;
+
+			do_action('shopp_order_notifications');
+
+			if (SHOPP_DEBUG) new ShoppError('PayPal IPN update processed for transaction: '.$target,false,SHOPP_DEBUG_ERR);
+			
 		}
-
-		$target = isset($_POST['parent_txn_id'])?$_POST['parent_txn_id']:$_POST['txn_id'];
-
-		$Purchase = new Purchase($target,'txnid');
-		
-		// Validate the order notification
-		if ($this->verifyipn() != "VERIFIED") {
-			new ShoppError(sprintf(__('An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s','Shopp'),$target,_object_r($_POST)),'paypal_txn_verification',SHOPP_TRXN_ERR);
-			return false;
-		} 
-		
-		if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
-		
-		$Purchase->txnstatus = $txnstatus;
-		$Purchase->save();
-		
-		$Shopp->Purchase = &$Purchase;
-		$Shopp->Order->purchase = $Purchase->id;
-
-		do_action('shopp_order_notifications');
-		
-		if (SHOPP_DEBUG) new ShoppError('PayPal IPN update processed for transaction: '.$target,false,SHOPP_DEBUG_ERR);
 
 		die('PayPal IPN update processed.');
 	}
@@ -273,10 +270,9 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		if ($this->settings['testmode'] == "on") return "VERIFIED";
 		$_ = array();
 		$_['cmd'] = "_notify-synch";
-		$_['tx'] = $txnid;
 		$_['at'] = $this->settings['pdttoken'];
 		
-		$message = $this->encode(array_merge($_POST,$_));
+		$message = $this->encode(array_merge($_GET,$_));
 		$response = $this->send($message);
 		return (strpos($response,"SUCCESS") !== false);
 	}
