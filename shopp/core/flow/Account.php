@@ -82,7 +82,8 @@ class Account extends AdminController {
 		if ($page == $this->Admin->pagename('customers')
 				&& !empty($deleting) 
 				&& !empty($selected) 
-				&& is_array($selected)) {
+				&& is_array($selected)
+				&& current_user_can('shopp_delete_customers')) {
 			foreach($selected as $deletion) {
 				$Customer = new Customer($deletion);
 				$Billing = new Billing($Customer->id,'customer');

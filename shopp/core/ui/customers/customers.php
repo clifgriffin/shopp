@@ -16,7 +16,7 @@
 	
 	<div class="tablenav">
 		<div class="alignleft actions">
-			<button type="submit" id="delete-button" name="deleting" value="customer" class="button-secondary"><?php _e('Delete','Shopp'); ?></button>
+		<?php if(current_user_can('shopp_delete_customers')): ?><button type="submit" id="delete-button" name="deleting" value="customer" class="button-secondary"><?php _e('Delete','Shopp'); ?></button><?php endif; ?>
 			<span class="filtering">
 			<select name="range" id="range">
 				<?php echo menuoptions($ranges,$range,true); ?>
@@ -78,6 +78,7 @@
 	
 	</form>
 	<div class="tablenav">
+		<?php if(current_user_can('shopp_export_customers')): ?>
 		<div class="alignleft actions">
 			<form action="<?php echo esc_url(add_query_arg(array_merge($_GET,array('src'=>'export_customers')),admin_url("admin.php"))); ?>" id="log" method="post">
 			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Export Options','Shopp'); ?></button>
@@ -97,6 +98,7 @@
 				<?php echo menuoptions($exports,$formatPref,true); ?>
 			</select></span>
 			<button type="submit" id="download-button" name="download" value="export" class="button-secondary"><?php _e('Download','Shopp'); ?></button>
+		<?php endif; ?>
 		</div>
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="clear"></div>

@@ -96,7 +96,8 @@ class Service extends AdminController {
 		if ($page == "shopp-orders"
 						&& !empty($deleting)
 						&& !empty($selected) 
-						&& is_array($selected)) {
+						&& is_array($selected)
+						&& current_user_can('shopp_delete_orders')) {
 			foreach($selected as $selection) {
 				$Purchase = new Purchase($selection);
 				$Purchase->load_purchased();
