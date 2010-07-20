@@ -115,6 +115,7 @@ class Customer extends DatabaseObject {
 
 		if (!empty($_POST['customer'])) {
 			$this->updates($_POST);
+			
 			if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
 				$this->password = wp_hash_password($_POST['password']);
 				if($this->accounts == "wordpress" && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser ); 
@@ -540,6 +541,16 @@ class Customer extends DatabaseObject {
 				$result = '<input type="hidden" name="customer" value="true" />';
 				$result .= '<input type="submit" name="save" id="save-button"'.inputattrs($options).' />'; 
 				return $result;
+				break;
+			case "marketing": 
+				if ($options['mode'] == "value") return $this->marketing;
+				if (!empty($this->marketing) && value_is_true($this->marketing)) $options['checked'] = true;
+				$attrs = array("accesskey","alt","checked","class","disabled","format",
+					"minlength","maxlength","readonly","size","src","tabindex",
+					"title");
+				$input = '<input type="hidden" name="marketing" value="no" />';
+				$input .= '<input type="checkbox" name="marketing" id="marketing" value="yes" '.inputattrs($options,$attrs).' />'; 
+				return $input;
 				break;
 			
 			
