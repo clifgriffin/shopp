@@ -275,7 +275,11 @@ class ShoppInstallation extends FlowController {
 			array('shopp_categories', 
 				'shopp_products', 
 				'shopp_promotions',
-				'shopp_financials'));
+				'shopp_financials',
+				'shopp_export_orders',
+				'shopp_export_customers',
+				'shopp_delete_orders',
+				'shopp_delete_customers'));
 		$caps['administrator'] = array_merge($caps['shopp-merchant'], 
 			array('shopp_settings_update', 
 				'shopp_settings_system', 

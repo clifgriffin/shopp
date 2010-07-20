@@ -77,6 +77,7 @@ class Resources {
 	 * @return void
 	 **/
 	function export_purchases () {
+		if (!current_user_can('shopp_financials') || !current_user_can('shopp_export_orders')) exit();
 
 		if (!isset($_POST['settings']['purchaselog_columns'])) {
 			$Purchase = Purchase::exportcolumns();
@@ -109,7 +110,7 @@ class Resources {
 	 * @return void
 	 **/
 	function export_customers () {
-
+		if (!current_user_can('shopp_export_customers')) exit();
 		if (!isset($_POST['settings']['customerexport_columns'])) {
 			$Customer = Customer::exportcolumns();
 			$Billing = Billing::exportcolumns();
