@@ -43,6 +43,9 @@
 			<span><?php shopp('customer','email','required=true&format=email&size=30&title='.__('Email','Shopp')); ?>
 			<label for="email"><?php _e('Email','Shopp'); ?></label></span>
 		</li>
+		<li>
+			<div class="inline"><label for="marketing"><?php shopp('customer','marketing','title='.__('I would like to continue receiving e-mail updates and special offers!','Shopp')); ?> <?php _e('I would like to continue receiving e-mail updates and special offers!','Shopp'); ?></label></div>
+		</li>
 		<?php while (shopp('customer','hasinfo')): ?>
 		<li>
 			<span><?php shopp('customer','info','type=text'); ?>
