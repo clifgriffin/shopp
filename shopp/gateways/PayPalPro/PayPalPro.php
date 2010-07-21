@@ -56,6 +56,7 @@ class PayPalPro extends GatewayFramework implements GatewayModule {
 	}
 	
 	function build () {
+		global $Shopp;
 		$_ = array();
 		$precision = $this->settings['base_operations']['currency']['format']['precision'];
 
@@ -157,6 +158,7 @@ class PayPalPro extends GatewayFramework implements GatewayModule {
 				$this->transaction .= "$key=".urlencode($value);
 			}
 		}
+		$this->transaction .= "&INVNUM=".md5($this->transaction.$Shopp->Shopping->session);
 		return $this->transaction;
 	}
 		
