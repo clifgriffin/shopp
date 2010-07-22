@@ -270,6 +270,7 @@ class Shopp {
 		include('core/ui/widgets/tagcloud.php');
 		include('core/ui/widgets/facetedmenu.php');
 		include('core/ui/widgets/product.php');
+		include('core/ui/widgets/search.php');
 	}
 		
 	/**
