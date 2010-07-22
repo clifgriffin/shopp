@@ -29,20 +29,24 @@ jQuery(document).ready(function() {
 		title = $('#title'),
 		titlePrompt = $('#title-prompt-text');
 
-	// Init postboxes for the editor
-	postboxes.add_postbox_toggles('shopp_page_shopp-products');
-	// close postboxes that should be closed
-	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-	
 	// Give the product name initial focus
-	if (!product) title.focus();
-	
 	title.bind('focus keydown',function () {
 		titlePrompt.hide();
 	}).blur(function () {
 		if (title.val() == '') titlePrompt.show();
 		else titlePrompt.hide();
-	}).blur();
+	});
+	
+	if (!product) {
+		title.focus();
+		titlePrompt.show();
+	}
+
+	// Init postboxes for the editor
+	postboxes.add_postbox_toggles('shopp_page_shopp-products');
+	// close postboxes that should be closed
+	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	
 	
 	$('.postbox a.help').click(function () {
 		$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});

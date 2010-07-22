@@ -24,7 +24,7 @@
 
 				<div id="titlediv">
 					<div id="titlewrap">
-						<label class="hide-if-no-js" id="title-prompt-text" for="title">Enter product name</label>
+						<label class="hide-if-no-js hidden" id="title-prompt-text" for="title"><?php _e('Enter product name','Shopp'); ?></label>
 						<input name="name" id="title" type="text" value="<?php echo esc_attr($Product->name); ?>" size="30" tabindex="1" autocomplete="off" />
 					</div>
 					<div class="inside">
