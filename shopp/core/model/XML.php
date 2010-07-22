@@ -33,7 +33,7 @@ class xmlQuery {
 
 	function __construct ($data=false) {
 		if (!is_array($data)) $this->parse($data);
-		else $this->dom = $data;
+		else $this->dom =& $data;
 		return true;
 	}
 
@@ -118,40 +118,26 @@ class xmlQuery {
 	 * 
 	 * @return string XML markup
 	 **/
-	function markup ($data=false, $depth=0, $forcetag='') {
+	function markup ($data=false, $depth=0, $tag='', $selfclosing = array('area','base','basefont','br','hr','input','img','link','meta'), $xhtml = true) {
 		if (!$data) $data = $this->dom;
-		$res=array('<?xml version="1.0" encoding="utf-8"?>'."\n");
-		foreach ($data as $tag=>$r) {
+		$_=array();
+		foreach ($data as $element=>$r) {
 			if (isset($r[0])) {
-				$res[]=$this->markup($r, $depth, $tag);
+				$_[]=$this->markup($r, $depth, $element, $selfclosing);
 		} else {
-				if ($forcetag) $tag=$forcetag;
+				if ($tag) $element=$tag;
 				$sp=str_repeat("\t", $depth);
-				$res[] = "$sp<$tag";
-				if (isset($r['_a'])) { foreach ($r['_a'] as $at => $av) $res[] = ' '.$at.'="'.htmlentities($av).'"'; }
-				$res[] = ">".((isset($r['_c'])) ? "\n" : '');
-				if (isset($r['_c'])) $res[] = $this->markup($r['_c'], $depth+1);
-				elseif (isset($r['_v'])) $res[] = htmlentities($r['_v']);
-				$res[] = (isset($r['_c']) ? $sp : '')."</$tag>\n";
+				$_[] = "$sp<$element";
+				if (isset($r['_a'])) { foreach ($r['_a'] as $at => $av) $_[] = ' '.$at.'="'.htmlentities($av).'"'; }
+				if (in_array($element,$selfclosing)) { $_[] = ($xhtml)?" />\n":">\n"; continue; }
+				$_[] = ">".((isset($r['_c'])) ? "\n" : '');
+				if (isset($r['_c'])) $_[] = $this->markup($r['_c'], $depth+1,'',$selfclosing);
+				elseif (isset($r['_v'])) $_[] = htmlentities($r['_v']);
+				$_[] = (isset($r['_c']) ? $sp : '')."</$element>\n";
 			}
         
 		}
-		return implode('', $res);
-	}
-
-	/**
-	 * Inserts a new element into the data tree
-	 *
-	 * @author Jonathan Davis, leoSr
-	 * @since 1.1
-	 * 
-	 * @param array $element An DOM-compatible element
-	 * @param int $pos The position in the DOM
-	 * @return void
-	 **/
-	function insert ($element, $pos) {
-		$working = array_slice($this->dom, 0, $pos); $working[] = $element;
-		$this->dom = array_merge($working, array_slice($this->dom, $pos));
+		return implode('', $_);
 	}
 	
 	/**
@@ -160,25 +146,59 @@ class xmlQuery {
 	 * @author Jonathan Davis, leoSr
 	 * @since 1.1
 	 * 
-	 * @param array $element Name of the new element
 	 * @param mixed $target The target element to attach the new element to
-	 * @param array $attrs Attribute name/value pairs for the element
-	 * @param string $content The element's content
-	 * @return array Updated DOM array
+	 * @param array $element A structured element created with xmlQuery::element()
+	 * @return boolean 
 	 **/
-	function &add ($element,$target=false,$attrs=array(),$content=false) {
-		$working = array();
-		$working[$element] = array();
-		if (!empty($attrs) && is_array($attrs)) $working[$element]['_a'] = $attrs;
-		if ($content) $working[$element]['_v'] = $content;
-		if ($target) {
+	function &add ($target,$element) {
+		$working = $element;
+		$element = key($working);
+		if ($target !== false) {
 			if (is_array($target)) $node = &$target;
-			else $node =& $this->find($target,false,true);
-			if (!isset($node['_c'])) $node['_c'][$element] = $working[$element];
-			else $node['_c'][$element] = $working[$element];
-			return $node['_c'][$element];
-		} else $this->dom[$element] = $working[$element];
-		return $this->dom[$element];
+			else $found =& $this->search($target);
+			if (empty($found)) return false;
+
+			$node =& $found[0];
+			if (!isset($node['_c'])) $node['_c'][$element] =& $working[$element];
+			elseif (isset($node['_c'][$element])) {
+				if (!isset($node['_c'][$element][0])) {
+					$_ = $node['_c'][$element];
+					$node['_c'][$element] = array($_);
+				}
+				$node['_c'][$element][] =& $working[$element];	
+				
+			} else $node['_c'][$element] =& $working[$element];
+			return true;
+			
+		} else $this->dom[$element] =& $working[$element];
+		return true;
+	}
+	
+	/**
+	 * Creates a structured element for addition to the DOM
+	 * 
+	 * When creating children to attach with an element, use
+	 * this method to create the child elements and pass them in 
+	 * with the $children parameter.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $name The tag name of the new element
+	 * @param array $attrs (optional) An associative array of attribute name/value pairs
+	 * @param string $content (optional) String contents of the element
+	 * @param array $children (optional) Child xmlQuery::element generated elements
+	 * @return array The structured element
+	 **/
+	function &element ($name,$attrs=array(),$content=false,$children=array()) {
+		$_ = array();
+		$_[$name] = array();
+		if (!empty($attrs) && is_array($attrs)) $_[$name]['_a'] = $attrs;
+		if ($content) $_[$name]['_v'] = $content;
+		if (!empty($children)) 
+			foreach ($children as $childname => $child) 
+				$_[$name]['_c'][$childname] = $child;
+		return $_;
 	}
 	
 	/**
@@ -458,8 +478,8 @@ class xmlQuery {
 			
 			// If this is a branch, append the branch entries as individual results
 			if (count($element) > 0 && isset($element[0]))
-				$_ = array_merge($_,$element);
-			else $_[] = $element;
+				$_ = array_merge($_,&$element);
+			else $_[] =& $element;
 		}
 		
 		return $_;
