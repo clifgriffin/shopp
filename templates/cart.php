@@ -13,7 +13,7 @@
 <?php if (shopp('cart','hasitems')): ?>
 <form id="cart" action="<?php shopp('cart','url'); ?>" method="post">
 <big>
-	<a href="<?php shopp('catalog','url'); ?>">&laquo; <?php _e('Continue Shopping','Shopp'); ?></a>
+	<a href="<?php shopp('cart','referrer'); ?>">&laquo; <?php _e('Continue Shopping','Shopp'); ?></a>
 	<?php if (shopp('checkout','local-payment')): ?>
 	<a href="<?php shopp('checkout','url'); ?>" class="right"><?php _e('Proceed to Checkout','Shopp'); ?> &raquo;</a>
 	<?php endif; ?>
