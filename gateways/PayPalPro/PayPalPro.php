@@ -80,7 +80,7 @@ class PayPalPro extends GatewayFramework implements GatewayModule {
 		
 		// Billing
 		$card = Lookup::paycard($this->Order->Billing->cardtype);
-		$_['CREDITCARDTYPE']		= isset($card->name)?$card->name:'';
+		$_['CREDITCARDTYPE']		= isset($card->symbol)?$card->symbol:'';
 		$_['ACCT']					= $this->Order->Billing->card;
 		$_['EXPDATE']				= date("mY",$this->Order->Billing->cardexpires);
 		$_['CVV2']					= $this->Order->Billing->cvv;
