@@ -566,40 +566,37 @@ class Catalog extends DatabaseObject {
 				$trail = '<li><a href="'.$Shopp->link('catalog').'">'.$pages['catalog']['title'].'</a>'.(empty($trail)?'':$separator).'</li>'.$trail;
 				return '<ul class="breadcrumb">'.$trail.'</ul>';
 				break;
+			case "searchform":
+				ob_start();
+				get_search_form();
+				$content = ob_get_contents();
+				ob_end_clean();
+
+				$markup = new xmlQuery($content);
+				$input = $markup->element('input',array('type'=> 'hidden','name' => 'catalog','value' => 'true'));
+				$div = $markup->element('div',array(),false,$input);
+				$markup->add('form',$div);
+				return $markup->markup();
+				break;
 			case "search":
 				global $wp;
-				$type = "hidden";
-				// if (isset($options['type'])) $type = $options['type'];
-				// if ($type == "radio") {
-				// 	$option = "shopp";
-				// 	if (isset($options['option'])) $option = $options['option'];
-				// 	$default = false;
-				// 	if (isset($options['default'])) $default = value_is_true($options['default']);
-				// 	$selected = ($default)?' checked="checked"':'';
-				// 	
-				// 	if ($option == "blog") return '<input type="radio" name="catalog" value="false"'.$selected.' />';
-				// 	else {
-				// 		if (!empty($wp->query_vars['catalog'])) 
-				// 			$selected = (value_is_true($wp->query_vars['catalog']))?' checked="checked"':'';
-				// 		return '<input type="radio" name="st" value="shopp"'.$selected.' />';
-				// 	}
-				// } elseif ($type == "menu") {
-				// 	if (empty($options['store'])) $options['store'] = __('Search the store','Shopp');
-				// 	if (empty($options['blog'])) $options['blog'] = __('Search the blog','Shopp');
-				// 	$selected = (value_is_true($wp->query_vars['catalog']))?'ecked="checked"':'';
-				// 	$selected = isset($wp->query_vars['st'])?$wp->query_vars['st']:'blog';
-				// 	$menu = '<select name="st">';
-				// 	if (isset($options['default']) && $options['default'] == "blog") {
-				// 		$menu .= '<option value="blog"'.($selected == "blog"?' selected="selected"':'').'>'.$options['blog'].'</option>';
-				// 		$menu .= '<option value="shopp"'.($selected == "shopp"?' selected="selected"':'').'>'.$options['store'].'</option>';
-				// 	} else {
-				// 		$menu .= '<option value=""'.($selected == "shopp"?' selected="selected"':'').'>'.$options['store'].'</option>';
-				// 		$menu .= '<option value="blog"'.($selected == "blog"?' selected="selected"':'').'>'.$options['blog'].'</option>';
-				// 	}
-				// 	$menu .= '</select>';
-				// 	return $menu;
-				// } else 
-				return '<input type="hidden" name="catalog" value="true" />';
+				
+				$defaults = array(
+					'type' => 'hidden',
+					'label_before' => '',
+					'label_after' => ''
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+				
+				$allowed = array("accesskey","alt","checked","class","disabled","format", "id",
+					"minlength","maxlength","readonly","required","size","src","tabindex","title");
+				
+				$intput =  '<input name="catalog" value="true"'.inputattrs($options,$allowed).' />';
+				
+				$before = (!empty($label_before))?'<label>'.$label_before:'<lable>';
+				$after = (!empty($label_after))?$label_after.'</label>':'</lable>';
+				return $before.$input.$after;
 				break;
 			case "catalog-products":
 				if ($property == "catalog-products") $Shopp->Category = new CatalogProducts($options);
