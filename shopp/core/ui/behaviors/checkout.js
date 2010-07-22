@@ -90,7 +90,7 @@ jQuery(document).ready(function () {
 		}
 	});
 	
-	$('#checkout.shopp .shipmethod').change(function () {
+	$('.shopp .shipmethod').change(function () {
 		$('.shopp_cart_shipping, .shopp_cart_tax, .shopp_cart_total').html('?');
 		$.getJSON(ShoppSettings.ajaxurl+"?action=shopp_shipping_costs&method="+$(this).val(),
 			function (result) {
