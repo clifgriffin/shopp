@@ -452,12 +452,9 @@ class Category extends DatabaseObject {
 				$product->minsaleprice = $product->minsaleprice - $product->amountoff;
 			}
 			
-			if ($this->pricing['max'] == 0 || $product->maxsaleprice > $this->pricing['max'])
-				$this->pricing['max'] = $product->maxsaleprice;
-		
-			if ($this->pricing['min'] == 0 || $product->minsaleprice < $this->pricing['min'])
-				$this->pricing['min'] = $product->minsaleprice;
-			
+			$this->pricing['max'] = max($this->pricing['max'],$product->maxsaleprice);
+			$this->pricing['min'] = min($this->pricing['min'],$product->minsaleprice);
+						
 			$this->products[$product->id] = new Product();
 			$this->products[$product->id]->populate($product);
 
@@ -483,6 +480,8 @@ class Category extends DatabaseObject {
 		}
 		$this->pricing['average'] = 0;
 		if (count($prices) > 0) $this->pricing['average'] = array_sum($prices)/count($prices);
+		
+		print_r($pricing);
 		
 		if (!isset($loading['load'])) $loading['load'] = array('prices');
 
@@ -1086,7 +1085,7 @@ class Category extends DatabaseObject {
 							if ($matches[2] == 0) $label = __('Under ','Shopp').$matches[3];
 							if ($matches[4] == 0) $label = $matches[1].' '.__('and up','Shopp');
 						} else $label = $filter;
-						if (!empty($filter)) $list .= '<li><strong>'.$facet.'</strong>: '.stripslashes($label).' <a href="'.$href.'" class="cancel">'.$options['cancel'].'</a></li>';
+						if (!empty($filter)) $list .= '<li><strong>'.$facet.'</strong>: '.stripslashes($label).' <a href="'.$href.'=" class="cancel">'.$options['cancel'].'</a></li>';
 					}
 					$output .= '<ul class="filters enabled">'.$list.'</ul>';
 				}
@@ -1146,7 +1145,7 @@ class Category extends DatabaseObject {
 						} elseif ($spec['facetedmenu'] == "ranges" && !empty($spec['options'])) {
 							foreach ($spec['options'] as $i => $option) {
 								$matches = array();
-								$format = '%s';
+								$format = '%s-%s';
 								$next = 0;
 								if (isset($spec['options'][$i+1])) {
 									if (preg_match('/(\d+[\.\,\d]*)/',$spec['options'][$i+1]['name'],$matches))
@@ -1161,12 +1160,12 @@ class Category extends DatabaseObject {
 									else $range = array("min" => $base, "max" => ($next-1));
 								}
 								if ($i == 1) {
-									$href = add_query_arg('shopp_catfilters['.$spec['name'].']', urlencode(sprintf($format,'0').'-'.sprintf($format,$range['min'])),$link);
+									$href = add_query_arg('shopp_catfilters['.$spec['name'].']', urlencode(sprintf($format,'0',$range['min'])),$link);
 									$label = __('Under ','Shopp').sprintf($format,$range['min']);
 									$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';
 								}
 
-								$href = add_query_arg('shopp_catfilters['.$spec['name'].']', urlencode(sprintf($format,$range['min']).'-'.sprintf($format,$range['max'])), $link);
+								$href = add_query_arg('shopp_catfilters['.$spec['name'].']', urlencode(sprintf($format,$range['min'],$range['max'])), $link);
 								$label = sprintf($format,$range['min']).' &mdash; '.sprintf($format,$range['max']);
 								if ($range['max'] == 0) $label = sprintf($format,$range['min']).' '.__('and up','Shopp');
 								$list .= '<li><a href="'.$href.'">'.$label.'</a></li>';

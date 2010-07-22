@@ -128,17 +128,18 @@ function auto_ranges ($avg,$max,$min) {
 	$range = $max-$min;
 	
 	if ($range == 0) return $ranges;
-	
 	$steps = floor($range/$scale);
 	if ($steps > 7) $steps = 7;
+
 	elseif ($steps < 2) {
 		$scale = $scale/2;
 		$steps = ceil($range/$scale);
 		if ($steps > 7) $steps = 7;
 		elseif ($steps < 2) $steps = 2;
 	}
-		
-	$base = $median-($scale*floor(($steps-1)/2));
+	
+	$base = max($median-($scale*floor(($steps-1)/2)),$scale);
+	
 	for ($i = 0; $i < $steps; $i++) {
 		$range = array("min" => 0,"max" => 0);
 		if ($i == 0) $range['max'] = $base;
@@ -183,6 +184,25 @@ function copy_shopp_templates ($src,$target) {
 			chmod($target_file,0666);
 		}
 	}
+}
+
+/**
+ * Calculates a cyclic redundancy checksum polynomial of 16-bit lengths of the data
+ *
+ * @author Ashley Roll {@link ash@digitalnemesis.com}, Scott Dattalo
+ * @since 1.1
+ * @todo Implement using dechex() to encode/compress strings (e.g. faceted menu filter keys)
+ * 
+ * @return int The checksum polynomial
+ **/
+function crc16 ($data) {
+	$crc = 0xFFFF;
+	for ($i = 0; $i < strlen($data); $i++) {
+		$x = (($crc >> 8) ^ ord($data[$i])) & 0xFF;
+		$x ^= $x >> 4;
+		$crc = (($crc << 8) ^ ($x << 12) ^ ($x << 5) ^ $x) & 0xFFFF;
+	}
+	return $crc;
 }
 
 /**
