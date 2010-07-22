@@ -506,7 +506,10 @@ class Storefront extends FlowController {
 	function canonical_home ($redirect) {
 		$pages = $this->Settings->get('pages');
 		if (!function_exists('home_url')) return $redirect;
-		if ($redirect == home_url('/') && $pages['catalog']['id'] == get_option('page_on_front'))
+		list($url,$query) = explode("?",$redirect);
+		if ($url == home_url('/') && $pages['catalog']['id'] == get_option('page_on_front'))
+			return false;
+		if ( isset($wp->query_vars['shopp_category']) && isset($wp->query_vars['paged']) )
 			return false;
 		return $redirect;
 	}
