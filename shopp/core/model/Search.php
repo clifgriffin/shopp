@@ -58,7 +58,7 @@ class IndexProduct {
 					$prices = array();
 					foreach ($this->Product->prices as $price) {
 						if ($price->type == "N/A") continue; // Skip disabled pricelines
-						$prices[] = $price->label;
+						$prices[] = "$price->label $price->sku";
 					}
 					$content = join(' ',$prices);
 					break;
