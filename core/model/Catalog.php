@@ -41,7 +41,7 @@ class Catalog extends DatabaseObject {
 	 * @param boolean $results (optional) Return the raw structure of results without aggregate processing
 	 * @return boolean|object True when categories are loaded and processed, object of results when $results is set
 	 **/
-	function load_categories ($loading=false,$showsmart=false,$results=false) {
+	function load_categories ($loading=array(),$showsmart=false,$results=false) {
 		$db = DB::get();
 		$category_table = DatabaseObject::tablename(Category::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
@@ -63,16 +63,13 @@ class Catalog extends DatabaseObject {
 		);
 		$options = array_merge($defaults,$loading);
 		extract($options);
-
-		// Ensure the where clause is an array
-		if (isset($loading['where'])) $where = is_array($loading['where'])?$loading['where']:array($loading['where']);
-
+		
 		// Merge joins
 		if (isset($loading['joins'])) $joins = array_merge($defaults['joins'],$loading['joins']);
 
 		if (!$this->outofstock) $where[] = "(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))";
 
-		if ($parent !== false) $where[] = "cat.parent=".$loading['parent'];
+		if ($parent !== false) $where[] = "cat.parent=".$parent;
 		else $parent = 0;
 
 		if ($ancestry) {
