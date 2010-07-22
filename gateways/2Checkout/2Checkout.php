@@ -70,7 +70,7 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 		
 		// Required
 		$_['sid']				= $this->settings['sid'];
-		$_['total']				= number_format($Order->Totals->total,$this->precision);
+		$_['total']				= number_format($Order->Cart->Totals->total,$this->precision);
 		$_['cart_order_id']		= $Order->_2COcart_order_id;
 		$_['vendor_order_id']	= $this->session;
 		$_['id_type']			= 1;
@@ -85,12 +85,12 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 		$_['x_Receipt_Link_URL'] = $this->settings['returnurl'];
 		
 		// Line Items
-		foreach($Shopp->Cart->contents as $i => $Item) {
+		foreach($this->Order->Cart->contents as $i => $Item) {
 			// $description[] = $Item->quantity."x ".$Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
 			$id = $i+1;
 			$_['c_prod_'.$id]			= 'shopp_pid-'.$Item->product.','.$Item->quantity;
 			$_['c_name_'.$id]			= $Item->name;
-			$_['c_description_'.$id]	= !empty($Item->optionlabel)?$Item->optionlabel:'';
+			$_['c_description_'.$id]	= !empty($Item->option->label)?$Item->$Item->option->label:'';
 			$_['c_price_'.$id]			= number_format($Item->unitprice,$this->precision);
 			
 		}
