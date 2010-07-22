@@ -45,7 +45,7 @@ class Promotion extends DatabaseObject {
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
 		$category_table = DatabaseObject::tablename(Category::$table);
 		
-		$where = "";
+		$where = array();
 		// Go through each rule to construct an SQL query 
 		// that gets all applicable product & price ids
 		if (!empty($this->rules) && is_array($this->rules)) {
@@ -68,29 +68,29 @@ class Promotion extends DatabaseObject {
 					case "Is less than or equal to": $match = "<= $value"; break;
 				}
 			
-				$where .= "AND ";
 				switch($rule['property']) {
-					case "Name": $where .= "p.name$match"; break;
-					case "Category": $where .= "cat.name$match"; break;
-					case "Variation": $where .= "prc.label$match"; break;
-					case "Price": $where .= "prc.price$match"; break;
-					case "Sale price": $where .= "(prc.onsale='on' AND prc.saleprice$match)"; break;
-					case "Type": $where .= "prc.type$match"; break;
-					case "In stock": $where .= "(prc.inventory='on' AND prc.stock$match)"; break;
+					case "Name": $where[] = "p.name$match"; break;
+					case "Category": $where[] = "cat.name$match"; break;
+					case "Variation": $where[] = "prc.label$match"; break;
+					case "Price": $where[] = "prc.price$match"; break;
+					case "Sale price": $where[] = "(prc.onsale='on' AND prc.saleprice$match)"; break;
+					case "Type": $where[] = "prc.type$match"; break;
+					case "In stock": $where[] = "(prc.inventory='on' AND prc.stock$match)"; break;
 				}
 			
 			}
 			
 		}
-		
+		if (!empty($where)) $where = "WHERE ".join(" AND ",$where);
+		else $where = false;
 		$type = ($this->type == "Item")?'catalog':'cart';
 		$query = "INSERT INTO $discount_table (promo,product,price) 
 					SELECT '$this->id' as promo,p.id AS product,prc.id AS price
 					FROM $product_table as p 
 					LEFT JOIN $price_table AS prc ON prc.product=p.id 
 					LEFT JOIN $catalog_table AS clog ON clog.product=p.id 
-					LEFT JOIN $category_table AS cat ON clog.category=cat.id 
-					WHERE TRUE $where 
+					LEFT JOIN $category_table AS cat ON clog.parent=cat.id AND clog.type='category'
+					$where
 					GROUP BY prc.id";
 
 		$db->query($query);
