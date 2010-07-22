@@ -92,6 +92,7 @@ class Lookup {
 		$_['CY'] = array('name'=>__('Cyprus','Shopp'),'currency'=>array('code'=>'CYP','format'=>'£#.###,##'),'units'=>'metric','region'=>3); 
 		$_['CZ'] = array('name'=>__('Czech Republic','Shopp'),'currency'=>array('code'=>'CZK','format'=>'#.###,## Kc'),'units'=>'metric','region'=>3); 
 		$_['DK'] = array('name'=>__('Denmark','Shopp'),'currency'=>array('code'=>'DKK','format'=>'#.###,## kr'),'units'=>'metric','region'=>3); 
+		$_['DO'] = array('name'=>__('Dominican Republic','Shopp'),'currency'=>array('code'=>'DOP','format'=>'$#,###.##'),'units'=>'metric','region'=>1); 
 		$_['EC'] = array('name'=>__('Ecuador','Shopp'),'currency'=>array('code'=>'ESC','format'=>'$#,###.##'),'units'=>'metric','region'=>2); 
 		$_['EG'] = array('name'=>__('Egypt','Shopp'),'currency'=>array('code'=>'EGP','format'=>'#.###,## .ج.م'),'units'=>'metric','region'=>5);
 		$_['EE'] = array('name'=>__('Estonia','Shopp'),'currency'=>array('code'=>'EEK','format'=>'# ###,## EEK'),'units'=>'metric','region'=>3);
