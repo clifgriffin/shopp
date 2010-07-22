@@ -576,7 +576,7 @@ class Cart {
 			case "url": return $Shopp->link('cart'); break;
 			case "referrer": 
 			case "referer": 
-				$referrer = wp_get_referer(); 
+				$referrer = $Shopp->Shopping->data->referrer; 
 				if (!$referrer) $referrer = shopp('catalog','url','return=1');
 				return $referrer;
 				break;

@@ -34,6 +34,7 @@ class Storefront extends FlowController {
 	var $Category = false;
 	var $Product = false;
 	var $breadcrumb = false;
+	var $referrer = false;
 	var $search = false;		// The search query string
 	var $searching = false;		// Flags if a search request has been made
 	var $browsing = array();
@@ -61,6 +62,7 @@ class Storefront extends FlowController {
 		ShoppingObject::store('search',$this->search);
 		ShoppingObject::store('browsing',$this->browsing);
 		ShoppingObject::store('breadcrumb',$this->breadcrumb);
+		ShoppingObject::store('referrer',$this->referrer);
 
 		add_action('wp', array(&$this, 'pageid'));
 		add_action('wp', array(&$this, 'cart'));
@@ -515,9 +517,11 @@ class Storefront extends FlowController {
 	}
 	
 	function catalog_page () {
-		global $Shopp;
+		global $Shopp,$wp;
 		if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
 
+		$this->referrer = get_bloginfo('url')."/".$wp->request;
+		
 		ob_start();
 		switch ($Shopp->Catalog->type) {
 			case "product": 
@@ -584,9 +588,10 @@ class Storefront extends FlowController {
 	}
 
 	function cart_page ($attrs=array()) {
+		global $Shopp;
 		$Order = &ShoppOrder();
 		$Cart = $Order->Cart;
-
+				
 		ob_start();
 		include(SHOPP_TEMPLATES."/cart.php");
 		$content = ob_get_contents();
