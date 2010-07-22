@@ -1313,7 +1313,7 @@ class CartDiscounts {
 					|| !is_array($this->Cart->promocodes[$promocode])) 
 					$this->Cart->promocodes[$promocode] = array();
 				else $this->Cart->promocodes[$promocode][] = $promo->id;
-				
+				$this->Cart->promocode = false;
 			}
 		}
 		
@@ -1331,19 +1331,18 @@ class CartDiscounts {
 	 **/
 	function promocode ($rule) {
 		extract($rule);
-
+		$promocode = strtolower($value);
+		
 		// Match previously applied codes
-		if (isset($this->Cart->promocodes[$value]) 
-			&& is_array($this->Cart->promocodes[$value])) return true;
+		if (isset($this->Cart->promocodes[$promocode]) 
+			&& is_array($this->Cart->promocodes[$promocode])) return true;
 		
 		// Match new codes
 		
 		// No code provided, nothing will match
 		if (empty($this->Cart->promocode)) return false;
 
-		$subject = strtolower($this->Cart->promocode);
-		$promocode = strtolower($value);
-		
+		$subject = strtolower($this->Cart->promocode);		
 		return Promotion::match_rule($subject,$logic,$promocode,$property);
 	}
 	
