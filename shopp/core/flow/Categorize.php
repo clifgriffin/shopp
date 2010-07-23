@@ -165,9 +165,7 @@ class Categorize extends AdminController {
 		
 		$filters = array();
 		// $filters['limit'] = "$start,$per_page";
-		if (!empty($s)) 
-			$filters['where'] = "cat.name LIKE '%$s%'";
-		else $filters['where'] = "true";
+		if (!empty($s)) $filters['where'] = "cat.name LIKE '%$s%'";
 		
 		$table = DatabaseObject::tablename(Category::$table);
 		$Catalog = new Catalog();
