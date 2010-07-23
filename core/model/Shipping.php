@@ -438,32 +438,38 @@ abstract class ShippingFramework {
 	}
 	
 	/**
-	 * Send a request to a shipping rate service provider
+	 * Generic connection manager for sending data
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 * 
-	 * @return mixed The response from the service provider
+	 * @param string $data The encoded data to send
+	 * @param string $url The URL to connect to
+	 * @param string $port (optional) Connect to a specific port
+	 * @return string Raw response
 	 **/
-	function send ($url,$port,$data) {   
+	function send ($data,$url,$port=false) {
 		$connection = curl_init();
-		curl_setopt($connection,CURLOPT_URL,"$url:$port");
-		
-		// alternative port not used in some libcurl builds
-		curl_setopt($connection, CURLOPT_PORT, $port);
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
+		curl_setopt($connection,CURLOPT_URL,"$url".($port?":$port":""));
+		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
+		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
+		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
+		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
 		curl_setopt($connection, CURLOPT_POST, 1); 
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $data); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 10); 
+		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_SHIPPING_TIMEOUT); 
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
 		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
+		curl_setopt($connection, CURLOPT_FAILONERROR, 1);
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
-		$buffer = curl_exec($connection);
+		$buffer = curl_exec($connection);   
 		if ($error = curl_error($connection)) 
-			new ShoppError($error,$this->module.'_connection',SHOPP_COMM_ERR);
+			new ShoppError($this->name.": ".$error,'shipping_comm_err',SHOPP_COMM_ERR);
 		curl_close($connection);
 		
-		return apply_filters($this->module.'_response',$buffer);
+		return $buffer;
+		
 	}
 	
 	/**
