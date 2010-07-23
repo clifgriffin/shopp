@@ -679,11 +679,15 @@ class Cart {
 				break;
 			case "function": 
 				$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
-				if (!$Shopp->Errors->exist()) return $result;
-				$errors = $Shopp->Errors->get(SHOPP_STOCK_ERR);
-				foreach ((array)$errors as $error) 
-					if (!empty($error)) $result .= '<p class="error">'.$error->message(true,false).'</p>';
-				return $result;
+
+				$Errors = &ShoppErrors();
+				if (!$Errors->exist(SHOPP_STOCK_ERR)) return $result;
+
+				ob_start();
+				include(SHOPP_TEMPLATES."/errors.php");
+				$errors = ob_get_contents();
+				ob_end_clean();
+				return $result.$errors;
 				break;
 			case "emptybutton":
 			case "empty-button": 
