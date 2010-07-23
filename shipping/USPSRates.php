@@ -18,18 +18,18 @@
  * $Id$
  **/
 
-require_once(SHOPP_PATH."/core/model/XML.php");
+require_once(SHOPP_MODEL_PATH."/XML.php");
 
 class USPSRates extends ShippingFramework implements ShippingModule {
 
-	var $testurl = 'http://testing.shippingapis.com/ShippingAPITest.dll';
-	var $liveurl = 'http://production.shippingapis.com/ShippingAPI.dll';
-	var $request = false;
+	var $url = 'http://production.shippingapis.com/ShippingAPI.dll';
 	var $weight = 0;
 	var $conversion = 1;
-	var $Response = false;
 	var $postcode = true;
-	
+
+	/* Test URL */
+	// var $url = 'http://testing.shippingapis.com/ShippingAPITest.dll';
+
 	var $services = array(
 		"d0" => "First-Class",
 		"d1" => "Priority Mail",
@@ -90,7 +90,7 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 	}
 	
 	function calcitem ($id,$Item) {
-		$this->weight += (($Item->weight*$this->conversion) * $Item->quantity);
+		$this->weight += ($Item->weight*$this->conversion) * $Item->quantity;
 	}
 	
 	function methods () {
@@ -155,42 +155,39 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 			return $options;
 		}
 
-		$this->request = $this->build(session_id(), $this->rate['name'], 
+		$request = $this->build(session_id(), $this->rate['name'], 
 			$Order->Shipping->postcode, $Order->Shipping->country);
 		
-		$this->Response = $this->send();
-		if (!$this->Response) return false;
-		if ($this->Response->getElement('Error')) {
-			new ShoppError($this->Response->getElementContent('Description'),'usps_rate_error',SHOPP_TRXN_ERR);
+		$Response = $this->send($request);
+		if (!$Response) return false;
+		if ($Response->tag('Error')) {
+			new ShoppError($Response->content('Description'),'usps_rate_error',SHOPP_TRXN_ERR);
 			return false;
 		}
 
 		$estimate = false;
 		$type = "domestic";
-		$estimates = $this->Response->getElement('Postage');
-		if (empty($estimates)) {
-			$estimates = $this->Response->getElement('Service');
-			if (!empty($estimates)) $type = "intl";
+		$Estimates = $Response->tag('Postage');
+		if (empty($Estimates)) {
+			$Estimates = $Response->tag('Service');
+			if (!empty($Estimates)) $type = "intl";
 		}
 	
-		if (!is_array($estimates)) return false;
-		foreach ($estimates as $rated) {
+		while ($rated = $Estimates->each()) {
 			$delivery = "5d-7d";
+			
 			if ($type == "domestic") {
-				$service = substr($type,0,1).$rated['ATTRS']['CLASSID'];
-				$amount = $rated['CHILDREN']['Rate']['CONTENT'];
+				$service = substr($type,0,1).$rated->attr(false,'CLASSID');
+				$amount = $rated->content('Rate');
 				$delivery = false;	
+			} else {
+				$service = substr($type,0,1).$rated->attr(false,'ID');
+				$amount = $rated->content('Postage');
+				if ($SvcCommitments = $rated->content('SvcCommitments'))
+					$delivery = $this->delivery($SvcCommitments);
 			}
 			
-			if ($type == "intl") {
-				$service = substr($type,0,1).$rated['ATTRS']['ID'];
-				$amount = $rated['CHILDREN']['Postage']['CONTENT'];
-				if (isset($rated['CHILDREN']['SvcCommitments']['CONTENT']))
-					$delivery = $this->delivery($rated['CHILDREN']['SvcCommitments']['CONTENT']);
-
-			}
-
-			if (is_array($this->rate['services']) && in_array($service,$this->rate['services'])) {
+			if (is_array($this->settings['services']) && array_key_exists($service,$this->settings['services'])) {
 				$rate = array();
 				$rate['name'] = $this->services[$service];
 				$rate['amount'] = $amount;
@@ -206,8 +203,7 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 		if ($this->units == "oz"){
 			$pounds = floor($weight / 16);
 			$ounces = $weight % 16;
-		}
-		else{ 
+		} else { 
 			list($pounds,$ounces) = explode(".",$weight);
 			$ounces = ceil(($weight-$pounds)*16);
 		}
@@ -255,34 +251,14 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 	function verify () {         
 		if (!$this->activated()) return;
 		$this->weight = 1;
-		$this->request = $this->build('1','Authentication test','10022','US');
-		$Response = $this->send();
-		if ($Response->getElement('Error')) new ShoppError($Response->getElementContent('Description'),'usps_verify_auth',SHOPP_ADDON_ERR);
+		$request = $this->build('1','Authentication test','10022','US');
+		$Response = $this->send($request);
+		if ($Response->tag('Error')) new ShoppError($Response->content('Description'),'usps_verify_auth',SHOPP_ADDON_ERR);
 	}   
 	     	
-	function send () {   
-		global $Shopp;
-		$connection = curl_init();
-		curl_setopt($connection,CURLOPT_URL,$this->liveurl);
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
-		curl_setopt($connection, CURLOPT_POST, 1); 
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->request); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 10); 
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
-		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
-		$buffer = curl_exec($connection);
-		if ($error = curl_error($connection)) 
-			new ShoppError($error,'usps_connection',SHOPP_COMM_ERR);
-		curl_close($connection);
-
-		// echo '<!-- '. $buffer. ' -->';		
-		// echo "<pre>REQUEST\n".htmlentities($this->request).BR.BR."</pre>";
-		// echo "<pre>RESPONSE\n".htmlentities($buffer)."</pre>";
-		// exit();
-		
-		$Response = new XMLdata($buffer);
-		return $Response;
+	function send ($data) {
+		$response = parent::send($data,$this->url);
+		return new xmlQuery($response);
 	}
 	
 	function logo () {
