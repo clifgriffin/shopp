@@ -21,13 +21,14 @@
 require_once(SHOPP_PATH."/core/model/XML.php");
 
 class UPSServiceRates extends ShippingFramework implements ShippingModule {
-	var $testurl = 'https://wwwcie.ups.com/ups.app/xml/Rate';
-	var $liveurl = 'https://www.ups.com/ups.app/xml/Rate';
-	var $request = false;
+
+	var $url = 'https://www.ups.com/ups.app/xml/Rate';
 	var $weight = 0;
 	var $conversion = 1;
 	var $dimensions = true;
-	var $Response = false;
+
+	/* Test URL */
+	// var $url = 'https://wwwcie.ups.com/ups.app/xml/Rate';
 	
 	var $codes = array(
 		"01" => "UPS Next Day Air",
@@ -152,24 +153,24 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 			return $options;
 		}
 		
-		$this->request = $this->build(session_id(), $this->rate['name'], 
+		$request = $this->build(session_id(), $this->rate['name'], 
 			$Order->Shipping->postcode, $Order->Shipping->country);
 		
-		$this->Response = $this->send();
-		if (!$this->Response) return false;
-		if ($this->Response->getElement('Error')) {
-			new ShoppError($this->Response->getElementContent('ErrorDescription'),'ups_rate_error',SHOPP_ADDON_ERR);
+		$Response = $this->send($request);
+		
+		if (!$Response) return false;
+		if ($Response->tag('Error')) {
+			new ShoppError($Response->content('ErrorDescription'),'ups_rate_error',SHOPP_ADDON_ERR);
 			return false;
 		}
 
 		$estimate = false;
-		$RatedShipment = $this->Response->getElement('RatedShipment');
-		if (!is_array($RatedShipment)) return false;
-		foreach ($RatedShipment as $rated) {
-			$service = $rated['CHILDREN']['Service']['CHILDREN']['Code']['CONTENT'];
-			$amount = $rated['CHILDREN']['TotalCharges']['CHILDREN']['MonetaryValue']['CONTENT'];
+		if (!$RatedShipment = $Response->tag('RatedShipment')) return false;
+		while ($rated = $RatedShipment->each()) {
+			$service = $rated->content('Service > Code');
+			$amount = $rated->content('TotalCharges > MonetaryValue:first');
 			if(floatval($amount) == 0) continue;
-			$delivery = $rated['CHILDREN']['GuaranteedDaysToDelivery']['CONTENT'];
+			$delivery = $rated->content('GuaranteedDaysToDelivery');
 			if (empty($delivery)) $delivery = "1d-5d";
 			else $delivery .= "d";
 			if (is_array($this->rate['services']) && in_array($service,$this->rate['services'])) {
@@ -236,36 +237,14 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	function verify () {
 		if (!$this->activated()) return;
 		$this->weight = 1;
-		$this->request = $this->build('1','Authentication test','10012','US');
-		$Response = $this->send();
-		if ($Response->getElement('Error')) new ShoppError($Response->getElementContent('ErrorDescription'),'ups_verify_auth',SHOPP_ADDON_ERR);
+		$request = $this->build('1','Authentication test','10012','US');
+		$Response = $this->send($request);
+		if ($Response->tag('Error')) new ShoppError($Response->content('ErrorDescription'),'ups_verify_auth',SHOPP_ADDON_ERR);
 	}   
 	
-	function send () {   
-		global $Shopp;
-		$connection = curl_init();
-		curl_setopt($connection,CURLOPT_URL,$this->liveurl);
-		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
-		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0); 
-		// curl_setopt($connection, CURLOPT_VERBOSE, 1); 
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
-		curl_setopt($connection, CURLOPT_POST, 1); 
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->request); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 10); 
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
-		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
-		$buffer = curl_exec($connection);
-		if ($error = curl_error($connection)) 
-			new ShoppError($error,'ups_connection',SHOPP_COMM_ERR);
-		curl_close($connection);
-
-		// echo '<!-- '. $buffer. ' -->';		
-		// echo "<pre>".htmlentities($this->request)."</pre>";
-		// echo "<pre>".htmlentities($buffer)."</pre>";
-		
-		$Response = new XMLdata($buffer);
-		return $Response;
+	function send ($data) {  
+		$response = parent::send($data,$this->liveurl);
+		return new xmlQuery($response);
 	}
 	
 	function logo () {
