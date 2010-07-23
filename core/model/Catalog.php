@@ -63,7 +63,7 @@ class Catalog extends DatabaseObject {
 		);
 		$options = array_merge($defaults,$loading);
 		extract($options);
-		
+
 		// Merge joins
 		if (isset($loading['joins'])) $joins = array_merge($defaults['joins'],$loading['joins']);
 
@@ -93,6 +93,7 @@ class Catalog extends DatabaseObject {
 		
 		$joins = join(' ',$joins);
 		if (!empty($where)) $where = "WHERE ".join(' AND ',$where);
+		else $where = false;
 		
 		$query = "SELECT $columns FROM $category_table AS cat $joins $where GROUP BY cat.id ORDER BY cat.parent DESC,cat.priority,$orderby $order $limit";
 		$categories = $db->query($query,AS_ARRAY);
