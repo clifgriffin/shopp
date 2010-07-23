@@ -18,7 +18,7 @@
  * $Id$
  **/
 
-require_once(SHOPP_PATH."/core/model/XML.php");
+require_once(SHOPP_MODEL_PATH."/XML.php");
 
 class UPSServiceRates extends ShippingFramework implements ShippingModule {
 
@@ -143,6 +143,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	function init () {
 		$this->weight = 0;
 	}
+
 	function calcitem ($id,$Item) {
 		$this->weight += ($Item->weight*$this->conversion) * $Item->quantity;
 	}
@@ -243,7 +244,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	}   
 	
 	function send ($data) {  
-		$response = parent::send($data,$this->liveurl);
+		$response = parent::send($data,$this->url);
 		return new xmlQuery($response);
 	}
 	
