@@ -4,7 +4,7 @@
  * @class PayPalPro
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.2
  * @copyright Ingenesis Limited, 19 August, 2008
  * @package Shopp
  * @since 1.1
@@ -16,7 +16,10 @@
 class PayPalPro extends GatewayFramework implements GatewayModule {
 
 	var $secure = true;
-	var $cards = array("visa","mc","disc","amex");
+	var $cards = array("visa","mc","disc","amex","maes","solo"); 
+	
+	// Specific cardtype mappings (standard symbol to PayPal Pro expected)
+	var $cardMap = array("Visa"=>"Visa","MC"=>"MasterCard","Disc"=>"Discover","Amex"=>"Amex", "Maes"=>"Maestro", "Solo"=>"Solo");
 
 	var $sandboxurl = "https://api-3t.sandbox.paypal.com/nvp";
 	var $liveurl = "https://api-3t.paypal.com/nvp";
@@ -80,10 +83,12 @@ class PayPalPro extends GatewayFramework implements GatewayModule {
 		
 		// Billing
 		$card = Lookup::paycard($this->Order->Billing->cardtype);
-		$_['CREDITCARDTYPE']		= isset($card->symbol)?$card->symbol:'';
+		$_['CREDITCARDTYPE']		= isset($card->symbol)?$this->cardMap[$card->symbol]:'';
 		$_['ACCT']					= $this->Order->Billing->card;
 		$_['EXPDATE']				= date("mY",$this->Order->Billing->cardexpires);
 		$_['CVV2']					= $this->Order->Billing->cvv;
+		$_['STARTDATE']				= isset($this->Order->Billing->start)?$this->Order->Billing->start:'';
+		$_['ISSUENUMBER']			= isset($this->Order->Billing->issue)?$this->Order->Billing->issue:'';
 		$_['STREET']				= $this->Order->Billing->address;
 		$_['STREET2']				= $this->Order->Billing->xaddress;
 		$_['CITY']					= $this->Order->Billing->city;
