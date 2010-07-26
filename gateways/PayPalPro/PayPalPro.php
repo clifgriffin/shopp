@@ -27,13 +27,14 @@ class PayPalPro extends GatewayFramework implements GatewayModule {
 	var $currencies = array("USD", "AUD", "CAD", "EUR", "GBP", "JPY");
 	
 	function __construct () {
-		parent::__construct();
-
 		$Settings = ShoppSettings();
-		$this->settings['base_operations'] = $Settings->get('base_operations');
-		$this->settings['currency_code'] = $this->currencies[0]; // Use USD by default
-		if (in_array($this->settings['base_operations']['currency']['code'],$this->currencies))
-			$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];			
+		$base = $Settings->get('base_operations');
+		$currency = in_array($base['currency']['code'],$this->currencies) ? $base['currency']['code'] : $this->currencies[0]; // Use USD by default
+		if ($currency != 'GBP') $this->cards = array_diff($this->cards, array("maes","solo"));	
+
+		parent::__construct(); // parent constructor after UK cards filter
+		$this->settings['base_operations'] = $base;
+		$this->settings['currency_code'] = $currency;
 	}
 	
 	function actions () {
