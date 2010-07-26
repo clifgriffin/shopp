@@ -358,11 +358,12 @@ interface ShippingModule {
  **/
 abstract class ShippingFramework {
 	
-	var $module = false;	// The module class name
-	var $base = false;		// Base of operations settings
-	var $postcode = false;	// Flag to enable the postcode field in the cart
-	var $rates = array();	// The shipping rates that apply to the module
-	var $dimensions = false; // Uses dimensions in calculating estimates
+	var $module = false;		// The module class name
+	var $base = false;			// Base of operations settings
+	var $postcode = false;		// Flag to enable the postcode field in the cart
+	var $rates = array();		// The shipping rates that apply to the module
+	var $dimensions = false;	// Uses dimensions in calculating estimates
+	var $xml = false;			// Flag to load and enable XML parsing
 	
 	/**
 	 * Initializes a shipping module
@@ -383,6 +384,7 @@ abstract class ShippingFramework {
 		$this->units = $Shopp->Settings->get('weight_unit');
 
 		if ($this->postcode) $Shopp->Order->Cart->showpostcode = true;
+		if ($this->xml) require_once(SHOPP_MODEL_PATH."/XML.php");
 
 		$rates = $Shopp->Settings->get('shipping_rates');
 		$this->rates = array_filter($rates,array(&$this,'myrates'));
@@ -470,6 +472,31 @@ abstract class ShippingFramework {
 		
 		return $buffer;
 		
+	}
+	
+	/**
+	 * Helper to encode a data structure into a URL-compatible format
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $data Key/value pairs of data to encode
+	 * @return string
+	 **/
+	function encode ($data) {
+		$query = "";
+		foreach($data as $key => $value) {
+			if (is_array($value)) {
+				foreach($value as $item) {
+					if (strlen($query) > 0) $query .= "&";
+					$query .= "$key=".urlencode($item);
+				}
+			} else {
+				if (strlen($query) > 0) $query .= "&";
+				$query .= "$key=".urlencode($value);
+			}
+		}
+		return $query;
 	}
 	
 	/**

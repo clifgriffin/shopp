@@ -533,61 +533,49 @@ function floatvalue($value, $round=true, $format=false) {
 }
 
 /**
- * convert_unit
- *
  * Converts weight units from base setting to needed unit value
  *
- * @author John Dillick
+ * @author John Dillick, Jonathan Davis
  * @since 1.1
+ * @version 1.1
  * 
  * @param float $value The value that needs converted
  * @param string $unit The unit that we are converting to
- * @param string $from The unit that we are converting from (defaults to System Setting)
- * @return mixed The converted value, false on error
+ * @param string $from (optional) The unit that we are converting from - defaults to system settings
+ * @return float|boolean The converted value, false on error
  **/
-function convert_unit ($value = 0, $unit='lb', $from=false) {
-	global $Shopp;
-	// oz, lb, g, kg
-	// 16 oz = 1 lb
-	// 1 pound = 453.59237 grams
-	// 1 ounce = 28.3495231 grams
-	
-	if ($from === false) $from = $Shopp->Settings->get('weight_unit'); 
-	if (empty($from)) return false;
-	
-	// Base
+function convert_unit ($value = 0, $unit, $from=false) {
 	if ($unit == $from || $value == 0) return $value;
-	elseif ($from == 'oz') {
-		switch ($unit) {
-			case 'lb': return ($value / 16); break;
-			case 'g': return ($value * 28.3495231); break;
-			case 'kg': return ($value * 28.3495231 / 1000); break;
-			default: return false;
-		}
-	} elseif ($from == 'lb') {
-		switch ($unit) {
-			case 'oz': return ($value * 16); break;
-			case 'g': return ($value * 453.59237); break;
-			case 'kg': return ($value * 453.59237 / 1000); break;
-			default: return false;
-		}		
-	} elseif ($from == 'g') {
-		switch ($unit) {
-			case 'oz': return ($value / 28.3495231); break;
-			case 'lb': return ($value / 453.59237); break;
-			case 'kg': return ($value / 1000); break;
-			default: return false;
-		}		
-	} elseif ($from == 'kg') {
-		switch ($unit) {
-			case 'oz': return ($value * 1000 / 28.3495231); break;
-			case 'lb': return ($value * 1000 / 453.59237); break;
-			case 'g': return ($value * 1000); break;
-			default: return false;
-		}		
-	} else return false;	
-}
 
+	if (!$from) {
+		// If no originating unit specified, use correlating system preferences
+		$Settings =& ShoppSettings();
+		$defaults = array(
+			'mass' => $Settings->get('weight_unit'),
+			'dimension' => $Settings->get('dimension_unit')
+		);
+	}
+	
+	// Conversion table to International System of Units (SI)
+	$table = array(
+		'mass' => array(		// SI base unit "grams"
+			'lb' => 453.59237, 'oz' => 28.349523125, 'g' => 1, 'kg' => 1000
+		),
+		'dimension' => array(	// SI base unit "meters"
+			'ft' => 0.3048, 'in' => 0.0254, 'mm' => 0.001, 'cm' => 0.01, 'm' => 1
+		)
+	);
+	
+	$table = apply_filters('shopp_unit_conversion_table',$table);
+
+	// Determine which chart to use
+	foreach ($table as $attr => $c) {
+		if (isset($c[$unit])) { $chart = $attr; $from = $defaults[$chart]; break; }
+	}
+	
+	$siv = $value * $table[$chart][$from];	// Convert to SI unit value
+	return $siv/$table[$chart][$unit];		// Return target units
+}
 
 /**
  * Modifies URLs to use SSL connections
