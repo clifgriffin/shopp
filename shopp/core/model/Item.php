@@ -34,7 +34,10 @@ class Item {
 	var $total = 0;				// Total cost of the line item (unitprice x quantity)
 	var $discount = 0;			// Discount applied to each unit
 	var $discounts = 0;			// Sum of per unit discounts (discount for the line)
-	var $weight = 0;			// Weight of the line item (unit weight)
+	var $weight = 0;			// Unit weight of the line item (unit weight)
+	var $length = 0;			// Unit length of the line item (unit length)
+	var $width = 0;				// Unit width of the line item (unit width)
+	var $height = 0;			// Unit height of the line item (unit height)
 	var $shipfee = 0;			// Shipping fees for each unit of the line item
 	var $download = false;		// Download ID of the asset from the selected price object
 	var $shipping = false;		// Shipping setting of the selected price object
@@ -125,6 +128,10 @@ class Item {
 			$this->shipped = true;
 			if ($Price->shipping == "on") {
 				$this->weight = $Price->weight;
+				if (isset($Price->dimensions)) {
+					foreach ($Price->dimensions as $dimension => $value) 
+						$this->$dimension = $value;
+				}
 				$this->shipfee = $Price->shipfee;
 			} else $this->freeshipping = true;
 		}
@@ -293,7 +300,7 @@ class Item {
 	 * @return object An Item variation object
 	 **/
 	function mapprice ($price) {
-		$map = array('id','type','label','onsale','promoprice','price','inventory','stock','options');
+		$map = array('id','type','label','onsale','promoprice','price','inventory','stock','options','dimensions');
 		$_ = new stdClass();
 		foreach ($map as $property) {
 			if (empty($price->options) && $property == 'label') continue;
