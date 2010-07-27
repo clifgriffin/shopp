@@ -726,12 +726,21 @@ class Order {
 				else $output = apply_filters('shopp_checkout_form',$output);
 				return $output;
 				break;
+			case "errors":
 			case "error":
-				$result = "";
 				$Errors = &ShoppErrors();
 				if (!$Errors->exist(SHOPP_COMM_ERR)) return false;
 				$errors = $Errors->get(SHOPP_COMM_ERR);
-				foreach ((array)$errors as $error) if (!empty($error)) $result .= $error->message();
+				$defaults = array(
+					'before' => '<li>',
+					'after' => '<li>'
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+
+				$result = "";
+				foreach ((array)$errors as $error) 
+					if (!empty($error)) $result .= $before.$error->message(true).$after;
 				return $result;
 				break;
 			case "cart-summary":
