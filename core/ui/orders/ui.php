@@ -85,21 +85,15 @@ if (!empty($Shopp->Purchase->data) && is_array($Shopp->Purchase->data) && join("
 function transaction_meta_box ($Purchase) {
 ?>
 <p><strong><?php _e('Processed by','Shopp'); ?> </strong><?php echo $Purchase->gateway; ?><?php echo (!empty($Purchase->txnid)?" ($Purchase->txnid)":""); ?></p>
-<?php if($Purchase->secured): ?>
-<ul>
-	<li><strong><?php _e('Secured Card','Shopp'); ?>:</strong> <span id="card" title="<?php _e('Click here to decrypt the card details&hellip;','Shopp'); ?>"><?php _e('[ENCRYPTED]','Shopp'); ?></span></li>	
-	<li><strong><?php _e('Secured CVV','Shopp'); ?>:</strong> <span id="cvv" title="<?php _e('Click here to decrypt the card details&hellip;','Shopp'); ?>"><?php _e('[ENCRYPTED]','Shopp'); ?></span></li>
-	<li><strong><?php _e('Expiration','Shopp'); ?>:</strong> <?php echo _d('m/Y', $Purchase->cardexpires); ?></li>
-	<li><strong><?php _e('Payment','Shopp'); ?>:</strong> <?php echo $Purchase->txnstatus; ?></li>	
-</ul>
-<?php else: ?>
-<?php if (!empty($Purchase->card) && !empty($Purchase->cardtype)): ?>
-<p><strong><?php echo $Purchase->txnstatus; ?></strong> <?php _e('to','Shopp'); ?> <?php (!empty($Purchase->card))?printf("%'X16d",$Purchase->card):''; ?> <?php echo (!empty($Purchase->cardtype))?'('.$Purchase->cardtype.')':''; ?></p>
-<?php endif; ?>
+<?php 
+	$output = '';
+	if (!empty($Purchase->card) && !empty($Purchase->cardtype))
+		$output = '<p><strong>'.$Purchase->txnstatus.'</strong> '.
+			__('to','Shopp').' '.
+			(!empty($Purchase->card)?sprintf("%'X16d",$Purchase->card):'').' '.
+			(!empty($Purchase->cardtype)?'('.$Purchase->cardtype.')':'').'</p>';
 
-<?php endif;?>
-
-<?php
+	echo apply_filters('shopp_orderui_payment_card',$output);
 }
 add_meta_box('order-transaction', __('Payment Method','Shopp'), 'transaction_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
