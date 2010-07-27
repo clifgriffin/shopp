@@ -67,6 +67,7 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_import_file_progress',array(&$this,'import_file_progress'));
 		add_action('wp_ajax_shopp_storage_suggestions',array(&$this,'storage_suggestions'),11);		
 		add_action('wp_ajax_shopp_verify_file',array(&$this,'verify_file'));
+		add_action('wp_ajax_shopp_gateway',array(&$this,'gateway_ajax'));
 
 	}
 
@@ -645,6 +646,15 @@ class AjaxFlow {
 			} 
 		}
 		echo $Shopp->Order->tag('submit');
+		exit();
+	}
+	
+	function gateway_ajax () {
+		check_admin_referer('wp_ajax_shopp_gateway');
+		if (isset($_POST['pid'])) {
+			$purchase = new Purchase($_POST['pid']);
+			if($purchase->gateway) do_action('shopp_gateway_ajax_'.sanitize_title_with_dashes($purchase->gateway), $_POST);
+		}
 		exit();
 	}
 	
