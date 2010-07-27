@@ -1006,44 +1006,51 @@ class CartPromotions {
 		// Already loaded
 		if (!empty($this->promotions)) return true;
 		
+		// Use an offset amount as a buffer to account for how 
+		// MySQL's UNIX_TIMESTAMP() converts the datetime to a 
+		// UTC-based timestamp from the Jan 1, 1970 00:00:00 epoch
+		// We use 43200 to represent 12-hours (UTC +/- 12 hours) and
+		// add 1 to account for the default amount set in the promotion editor
+		$offset = 43200 + 1;
+		
 		$_table = DatabaseObject::tablename(Promotion::$table);
 		$query = "SELECT * FROM $_table WHERE (target='Cart' OR target='Cart Item')
 		            AND status='enabled' -- Promo must be enabled, in all cases
-		            AND (
-		                -- Promo is not date based
-		                ( 
-		                    UNIX_TIMESTAMP(starts) <= 1
-		                    AND
-		                    UNIX_TIMESTAMP(ends) <= 1
-		                )
-		                OR
-		                -- Promo has start and end dates, check that we are in between
-		                ( 
-		                    UNIX_TIMESTAMP(starts) > 1 
-		                    AND
-		                    UNIX_TIMESTAMP(ends) > 1
-		                    AND
-		                    (UNIX_TIMESTAMP() BETWEEN UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends))
-		                )
-		                OR
-		                -- Promo has _only_ a start date, check that we are after it
-		                ( 
-		                    UNIX_TIMESTAMP(starts) > 1
-		                    AND
-		                    UNIX_TIMESTAMP(ends) <= 1
-		                    AND
-		                    UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP()
-		                )
-		                OR
-		                -- Promo has _only_ an end date, check that we are before it
-		                ( 
-		                    UNIX_TIMESTAMP(starts) <= 1
-		                    AND
-		                    UNIX_TIMESTAMP(ends) > 1
-		                    AND
-		                    UNIX_TIMESTAMP() < UNIX_TIMESTAMP(ends)
-		                )
-		            ) ORDER BY target DESC";
+					AND (
+					    -- Promo is not date based
+					    ( 
+					        UNIX_TIMESTAMP(starts) <= $offset
+					        AND
+					        UNIX_TIMESTAMP(ends) <= $offset
+					    )
+					    OR
+					    -- Promo has start and end dates, check that we are in between
+					    ( 
+					        UNIX_TIMESTAMP(starts) > $offset 
+					        AND
+					        UNIX_TIMESTAMP(ends) > $offset
+					        AND
+					        (UNIX_TIMESTAMP() BETWEEN UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends))
+					    )
+					    OR
+					    -- Promo has _only_ a start date, check that we are after it
+					    ( 
+					        UNIX_TIMESTAMP(starts) > $offset
+					        AND
+					        UNIX_TIMESTAMP(ends) <= $offset
+					        AND
+					        UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP()
+					    )
+					    OR
+					    -- Promo has _only_ an end date, check that we are before it
+					    ( 
+					        UNIX_TIMESTAMP(starts) <= $offset
+					        AND
+					        UNIX_TIMESTAMP(ends) > $offset
+					        AND
+					        UNIX_TIMESTAMP() < UNIX_TIMESTAMP(ends)
+						)
+				    ) ORDER BY target DESC";
 		$this->promotions = $db->query($query,AS_ARRAY);
 	}
 	
