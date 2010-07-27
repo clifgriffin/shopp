@@ -32,9 +32,9 @@ class Login {
 		
 		$this->accounts = $Shopp->Settings->get('account_system');
 		
-		$this->Customer = &$Shopp->Order->Customer;
-		$this->Billing = &$Shopp->Order->Billing;
-		$this->Shipping = &$Shopp->Order->Shipping;
+		$this->Customer =& $Shopp->Order->Customer;
+		$this->Billing =& $Shopp->Order->Billing;
+		$this->Shipping =& $Shopp->Order->Shipping;
 		
 		add_action('shopp_logout',array(&$this,'logout'));
 
@@ -61,25 +61,29 @@ class Login {
 		
 		if (isset($_GET['acct']) && $_GET['acct'] == "logout")
 			return do_action('shopp_logout');
+			
+		if ("wordpress" == $this->accounts) {
+			// See if the wordpress user is already logged in
+			$user = wp_get_current_user();
+
+			// Wordpress user logged in, but Shopp customer isn't
+			if (!empty($user->ID) && !$this->Customer->login) {
+				if ($Account = new Customer($user->ID,'wpuser')) {
+					$this->login($Account);
+					$this->Customer->wpuser = $user->ID;
+					break;
+				}
+			}
+		}
+			
+		if (empty($_POST['process-login'])) return false;
+		if ($_POST['process-login'] != "true") return false;
+		
+		// Prevent checkout form from processing
+		remove_all_actions('shopp_process_checkout');
 
 		switch ($this->accounts) {
 			case "wordpress":
-
-				// See if the wordpress user is already logged in
-				$user = wp_get_current_user();
-
-				// Wordpress user logged in, but Shopp customer isn't
-				if (!empty($user->ID) && !$this->Customer->login) {
-					if ($Account = new Customer($user->ID,'wpuser')) {
-						$this->login($Account);
-						$this->Customer->wpuser = $user->ID;
-						break;
-					}
-				}
-				
-				if (empty($_POST['process-login'])) return false;
-				if ($_POST['process-login'] != "true") return false;
-
 				if (!empty($_POST['account-login'])) {
 					if (strpos($_POST['account-login'],'@') !== false) $mode = "email";
 					else $mode = "loginname";
@@ -93,8 +97,6 @@ class Login {
 				}				
 				break;
 			case "shopp":
-				if (empty($_POST['process-login'])) return false;
-				if ($_POST['process-login'] != "true") return false;
 				$mode = "loginname";
 				if (!empty($_POST['account-login']) && strpos($_POST['account-login'],'@') !== false)
 					$mode = "email";
@@ -193,7 +195,8 @@ class Login {
 	 * @return void
 	 **/
 	function login ($Account) {
-		$this->Customer->copydata($Account,false,array());
+		global $Shopp;
+		$this->Customer->copydata($Account,"",array());
 		$this->Customer->login = true;
 		unset($this->Customer->password);
 		$this->Billing->load($Account->id,'customer');

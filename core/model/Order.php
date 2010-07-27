@@ -194,10 +194,11 @@ class Order {
 
 		if (empty($this->Customer))
 			$this->Customer = new Customer();
+
 		$this->Customer->updates($_POST);
 
 		if (isset($_POST['confirm-password']))
-			$Order->Customer->confirm_password = $_POST['confirm-password'];
+			$this->Customer->confirm_password = $_POST['confirm-password'];
 
 		if (empty($this->Billing))
 			$this->Billing = new Billing();
@@ -324,10 +325,11 @@ class Order {
 		if ($this->accounts == "wordpress" && empty($this->Customer->wpuser))
 			$this->Customer->create_wpuser();
 		 
-		// New customer, save password
+		// New customer, save hashed password
 		if (empty($this->Customer->id) && !empty($this->Customer->password))
 			$this->Customer->password = wp_hash_password($this->Customer->password);
-
+		else unset($this->Customer->password); // Existing customer, do not overwrite password field!
+		
 		$this->Customer->save();
 
 		$this->Billing->customer = $this->Customer->id;
@@ -551,7 +553,7 @@ class Order {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if (apply_filters('shopp_email_exists',(email_exists($_POST['email']) || !empty($ExistingCustomer->id))))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
-		} elseif ($this->accounts == "shopp"  && !$this->data->login) {
+		} elseif ($this->accounts == "shopp"  && !$this->Customer->login) {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if (apply_filters('shopp_email_exists',!empty($ExistingCustomer->id))) 
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account.','Shopp'),'cart_validation');
