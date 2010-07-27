@@ -380,17 +380,22 @@ class Service extends AdminController {
 		
 		$table = DatabaseObject::tablename(Purchase::$table);
 		$labels = $this->Settings->get('order_status');
-		
+
 		if (empty($labels)) return false;
+		$status = array();
 
 		$r = $db->query("SELECT status,COUNT(status) AS total FROM $table GROUP BY status ORDER BY status ASC",AS_ARRAY);
-
-		$status = array();
-		foreach ($r as $count) $status[$count->status] = $count->total;
-		foreach ($labels as $id => $label) if (empty($status[$id])) $status[$id] = 0;
+		foreach ($labels as $id => $label) {
+			$_ = new StdClass();
+			$_->label = $label;
+			$_->id = $id;
+			$_->total = isset($r[$id])?(int)$r[$id]->total:0;
+			$status[$id] = $_;
+		}
+		
 		return $status;
 	}
 	
-} // end Service class
+} // END class Service
 
 ?>
