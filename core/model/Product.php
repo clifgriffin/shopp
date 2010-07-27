@@ -685,7 +685,7 @@ class Product extends DatabaseObject {
 		switch ($property) {
 			case "link": 
 			case "url": 
-				if (SHOPP_PERMALINKS) $url = esc_url(user_trailingslashit($Shopp->canonuri.urldecode($this->slug)));
+				if (SHOPP_PERMALINKS) $url = esc_url(user_trailingslashit(trailingslashit($Shopp->canonuri).urldecode($this->slug)));
 				else $url = add_query_arg('shopp_pid',$this->id,$Shopp->canonuri);
 				return $url;
 				break;

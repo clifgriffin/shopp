@@ -375,7 +375,7 @@ class Warehouse extends AdminController {
 		// echo "<pre>"; print_r($Product->imagesets); echo "</pre>";
 		
 		$Product->slug = apply_filters('editable_slug',$Product->slug);
-		$permalink = $Shopp->shopuri;
+		$permalink = trailingslashit($Shopp->canonuri);
 
 		require_once("$Shopp->path/core/model/Asset.php");
 		require_once("$Shopp->path/core/model/Category.php");
