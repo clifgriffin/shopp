@@ -638,7 +638,7 @@ class Catalog extends DatabaseObject {
 					else $Shopp->Category->view = "list";
 				} 
 				ob_start();
-				if (isset($Shopp->Category->smart) && 
+				if (isset($Shopp->Category->slug) && 
 						file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
 					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
 				elseif (isset($Shopp->Category->id) && 
