@@ -610,7 +610,7 @@ class Category extends DatabaseObject {
 			case "link": 
 			case "url": 
 				return (SHOPP_PERMALINKS)?
-					user_trailingslashit($Shopp->canonuri."category/".urldecode($this->uri)):
+					user_trailingslashit(trailingslashit($Shopp->canonuri)."category/".urldecode($this->uri)):
 					add_query_arg('shopp_category',$this->id,$Shopp->canonuri);
 				break;
 			case "id": return $this->id; break;

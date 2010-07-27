@@ -215,18 +215,18 @@ class Shopp {
 			$this->pages_index();
 			$pages = $this->Settings->get('pages');
 		}
+
+		$this->canonuri = $this->link('catalog');
 		if (SHOPP_PERMALINKS) {
 			$this->shopuri = user_trailingslashit($this->link('catalog'));
-			$this->canonuri = user_trailingslashit($this->link('catalog'),false);
 			if ($this->shopuri == user_trailingslashit(get_bloginfo('url'))) {
-				$this->shopuri .= "{$pages['catalog']['name']}/";
-				$this->canonuri .= "{$pages['catalog']['name']}/";
+				$this->shopuri = trailingslashit($this->shopuri)."{$pages['catalog']['name']}/";
+				$this->canonuri = trailingslashit($this->canonuri)."{$pages['catalog']['name']}/";
 			}
 			$this->imguri = trailingslashit($this->shopuri)."images/";
 		} else {
 			$this->shopuri = add_query_arg('page_id',$pages['catalog']['id'],get_bloginfo('url'));
 			$this->imguri = add_query_arg('siid','=',get_bloginfo('url'));
-			$this->canonuri = $this->link('catalog');
 		}
 		if ($this->secure) {
 			$this->shopuri = str_replace('http://','https://',$this->shopuri);	

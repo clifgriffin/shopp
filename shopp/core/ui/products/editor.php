@@ -30,7 +30,7 @@
 					<div class="inside">
 						<?php if (SHOPP_PERMALINKS && !empty($Product->id)): ?>
 							<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
-							<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo esc_attr($Product->slug); ?></span><span id="editable-slug-full"><?php echo esc_attr($Product->slug); ?></span>/</span>
+							<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo esc_attr($Product->slug); ?></span><span id="editable-slug-full"><?php echo esc_attr($Product->slug); ?></span><?php echo user_trailingslashit(""); ?></span>
 							<span id="edit-slug-buttons"><button type="button" class="edit-slug button"><?php _e('Edit','Shopp'); ?></button><?php if ($Product->status == "publish"): ?><button id="view-product" type="button" class="view button"><?php _e('View','Shopp'); ?></button><?php endif; ?></span>
 							</div>
 						<?php else: ?>
@@ -72,7 +72,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	buttonrsrc = '<?php echo includes_url('images/upload.png'); ?>',
 	uidir = '<?php echo SHOPP_ADMIN_URI; ?>',
 	siteurl = '<?php echo $Shopp->siteurl; ?>',
-	canonurl = '<?php echo $Shopp->canonuri; ?>',
+	canonurl = '<?php echo trailingslashit($Shopp->canonuri); ?>',
 	adminurl = '<?php echo $Shopp->wpadminurl; ?>',
 	ajaxurl = adminurl+'admin-ajax.php',
 	sugg_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_storage_suggestions"); ?>',
