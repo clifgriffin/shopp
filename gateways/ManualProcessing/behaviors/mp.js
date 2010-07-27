@@ -1,78 +1,94 @@
-var dp = new DataProtect();
-dp.supported = window.localStorage ? true : false;
+/*!
+ * mp.js - Shopp ManualProcessing behaviors
+ * Copyright © 2008-2010 by Ingenesis Limited
+ * Licensed under the GPLv3 {@see license.txt}
+ */
+var dp = new DataProtect(), bt=true, bf=false, 
+	bus=BROWSER_UNSUPPORTED, lse=LOCAL_STORAGE_ERROR, lsq=LOCAL_STORAGE_QUOTA, dde=DATE_DESTRUCTION_ERROR;
+dp.supported = window.localStorage ? bt : bf;
 
 function DataProtect() {
-	this.key = false;
-}
-
-function DPstoreKey(psv, prefix) {
-	try {
-			if(window.localStorage){
-					localStorage.setItem(prefix+"shopp_private_key", JSON.stringify(psv));
-					return true;
+	var _ = this;
+	_.key = bf;
+	
+	_.store = function (psv, prefix) {
+		try {
+				if(window.localStorage){
+						localStorage.setItem(prefix+"shopp_private_key", JSON.stringify(psv));
+						return bt;
+				} else {
+					alert(bus);
+					return bf;
+				}
+		} catch (e){
+			if (e == 22) {
+				alert(lsq);
+				return bt;
 			} else {
-				alert(BROWSER_UNSUPPORTED);
-				return false;
+				alert(lse+e.message);
+				return bt;
 			}
-	} catch (e){
-		if (e == 22) {
-			alert(LOCAL_STORAGE_QUOTA);
-			return true;
-		} else {
-			alert(LOCAL_STORAGE_ERROR+e.message);
-			return true;
 		}
-	}
+	};
+
+
+	_.get = function (prefix){
+		try {
+				if(window.localStorage) {
+					if(!_.key) {
+						privstr = localStorage.getItem(prefix+"shopp_private_key");
+						privstr = privstr.replace(/\\([\\'"])/g, '$1').replace(/^(["])|(["])$/g,'');
+						if(!privstr) return bf;
+						psv = JSON.parse(privstr);
+						if(!psv) return bf;
+						else {
+							_.key = new RSAKey();
+							_.key.setPrivate(psv.n,psv.e,psv.d,psv.p,psv.q,psv.dmp1,psv.dmq1,psv.iqmp);
+							return bt;
+						}
+					}	
+				} else {
+					alert(bus);
+					return bf;
+				}
+		} catch (e){
+				alert(lse+e.message);
+				return bf;
+		}	
+	};
+
+	_.decrypt = function (encrypted) {
+		if(!_.key) return bf;
+		return _.key.decrypt(encrypted);
+	};
 }
 
-
-function DPgetKey(prefix){
-	try {
-			if(window.localStorage) {
-				if(!this.key) {
-					privstr = localStorage.getItem(prefix+"shopp_private_key");
-					privstr = privstr.replace(/\\([\\'"])/g, '$1').replace(/^(["])|(["])$/g,'');
-					if(!privstr) return false;
-					psv = JSON.parse(privstr);
-					if(!psv) return false;
-					else {
-						this.key = new RSAKey();
-						this.key.setPrivate(psv.n,psv.e,psv.d,psv.p,psv.q,psv.dmp1,psv.dmq1,psv.iqmp);
-						return true;
-					}
-				}	
-			} else {
-				alert(BROWSER_UNSUPPORTED);
-				return false;
-			}
-	} catch (e){
-			alert(LOCAL_STORAGE_ERROR+e.message);
-			return false;
-	}	
-}
-
-function DPdecrypt(encrypted) {
-	if(!this.key) return false;
-	return this.key.decrypt(encrypted);
-}
-
-DataProtect.prototype.store = DPstoreKey;
-DataProtect.prototype.get = DPgetKey;
-DataProtect.prototype.decrypt = DPdecrypt;
-
-function decrypt (data, prefix) {
-	if(!data || (!dp.key && !dp.get(prefix))) { alert(DECRYPTION_ERROR); return false; }
+function decrypt (data, prefix, pid) {
+	var $ = jqnc(), card = $('#card'), cvv = $('#cvv'), s=SECRET_DATA, d=DECRYPTION_ERROR,sensitive=false;
+	if(!data || (!dp.key && !dp.get(prefix))) { alert(d); return bf; }
 	else {
-		var sensitive = JSON.parse(dp.decrypt(data));
-		if(!sensitive) {
-			alert(DECRYPTION_ERROR);
-			jQuery('#card').html(SECRET_DATA);
-			jQuery('#cvv').html(SECRET_DATA);
-		}
-		else {
-			jQuery('#card').html(sensitive.card).unbind('click');
-			jQuery('#cvv').html(sensitive.cvv).unbind('click');
-		}
+		$.ajax({
+			url:sec_card_url,
+			timeout:3000,
+			type: "POST",
+			datatype: 'text',
+			data: 'pid='+pid,
+			success:function (r) {
+				if (r == '1') { 
+					sensitive = JSON.parse(dp.decrypt(data));
+					if(!sensitive) {
+						alert(d);
+						card.html(s);
+						cvv.html(s);
+					}
+					else {
+						card.html(sensitive.card);
+						cvv.html(sensitive.cvv);
+						$('#reveal').unbind('click').remove();
+					}
+				} else alert(dde);
+			}			
+		});
 	}
-	return true;
+	return bt;
 }

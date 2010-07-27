@@ -93,7 +93,7 @@ function transaction_meta_box ($Purchase) {
 			(!empty($Purchase->card)?sprintf("%'X16d",$Purchase->card):'').' '.
 			(!empty($Purchase->cardtype)?'('.$Purchase->cardtype.')':'').'</p>';
 
-	echo apply_filters('shopp_orderui_payment_card',$output);
+	echo apply_filters('shopp_orderui_payment_card',$output, $Purchase);
 }
 add_meta_box('order-transaction', __('Payment Method','Shopp'), 'transaction_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 

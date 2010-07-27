@@ -35,15 +35,17 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 		if (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') $this->sec_prefix = SECRET_AUTH_KEY;
 		else $this->sec_prefix = DatabaseObject::tablename("");
 		
-		wp_enqueue_script('shopp_rsa', $this->path."behaviors/rsa.js",array());
-		wp_enqueue_script('shopp_mp_gateway', $this->path."behaviors/mp.js", array('json2'));
+		wp_enqueue_script('shopp_rsa', $this->path."behaviors/rsa.js",array(),SHOPP_VERSION,true);
+		wp_enqueue_script('shopp_mp_gateway', $this->path."behaviors/mp.js", array('json2'),SHOPP_VERSION,true);
 		wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
 		
 		add_action('init', array(&$this, 'init'), 11);		
-		add_action('admin_head', array(&$this, 'jserrors'));
+		add_action('admin_head', array(&$this, 'jsvars'));
 		add_action('shopp_order_admin_script', array(&$this, 'decrypt'));
 		add_action('wp_ajax_mp_reinstall_keys', array(&$this, 'reinstall_keypairs'));
 		add_action('shopp_resource_mp_dl_pem', array(&$this, 'download'));
+		add_action('shopp_gateway_ajax_manual-processing', array(&$this, 'destroy'));
+		add_filter('shopp_orderui_payment_card', array(&$this, 'orderui'), 10, 2);
 	}
 	
 	function init () {
@@ -54,17 +56,19 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 		add_action('shopp_process_order',array(&$this,'process'));		
 	}
 	
-	function jserrors() {
-		$errors = "<script type=\"text/javascript\" charset=\"utf-8\">\n";
-		$errors .= "//<![CDATA[\n";
-		$errors .= "var BROWSER_UNSUPPORTED='".__('This browser is unsupported for Manual Processing administration. Please use Opera 10.50, Google Chrome 5, Apple Safari 4, Mozilla Firefox 3.6, Internet Explorer 8, or a later version of these browsers.','Shopp')."';\n";
-		$errors .= "var LOCAL_STORAGE_QUOTA='".__('Browser Local Storage Quota Exceeded, Setup Failed','Shopp')."';\n";
-		$errors .= "var LOCAL_STORAGE_ERROR='".__('Browser Local Storage Error: ','Shopp')."';\n";
-		$errors .= "var DECRYPTION_ERROR='".__('There was a failure retrieving your private key from the browser, or this transaction was encrypted on a different keypair.  Data decryption failed.  You may only decrypt secure data from the browser with a proper private key installed.  See your Payment Settings to reinstall the correct private key.','Shopp')."';\n";
-		$errors .= "var SECRET_DATA='".__('[ENCRYPTED]','Shopp')."';\n";
-		$errors .= "//]]>\n";
-		$errors .= "</script>";
-		echo $errors;
+	function jsvars() {
+		$jsvars = "<script type=\"text/javascript\" charset=\"utf-8\">\n";
+		$jsvars .= "//<![CDATA[\n";
+		$jsvars .= "var BROWSER_UNSUPPORTED='".__('This browser is unsupported for Manual Processing administration. Please use Opera 10.50, Google Chrome 5, Apple Safari 4, Mozilla Firefox 3.6, Internet Explorer 8, or a later version of these browsers.','Shopp')."';\n";
+		$jsvars .= "var LOCAL_STORAGE_QUOTA='".__('Browser Local Storage Quota Exceeded, Setup Failed','Shopp')."';\n";
+		$jsvars .= "var LOCAL_STORAGE_ERROR='".__('Browser Local Storage Error: ','Shopp')."';\n";
+		$jsvars .= "var DECRYPTION_ERROR='".__('There was a failure retrieving your private key from the browser, or this transaction was encrypted on a different keypair.  Data decryption failed.  You may only decrypt secure data from the browser with a proper private key installed.  See your Payment Settings to reinstall the correct private key.','Shopp')."';\n";
+		$jsvars .= "var DATE_DESTRUCTION_ERROR='".__('Shopp was unable to destroy the sensitive card data from this order.  This could result from using a browser with AJAX disabled, try decrypting from a supported browswer.','Shopp')."';\n";
+		$jsvars .= "var SECRET_DATA='".__('[ENCRYPTED]','Shopp')."';\n";
+		$jsvars .= "var sec_card_url='".add_query_arg(array('action'=>'shopp_gateway'),wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_gateway'))."';\n";
+		$jsvars .= "//]]>\n";
+		$jsvars .= "</script>";
+		echo $jsvars;
 	}
 	
 	function process () {
@@ -269,10 +273,9 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 	}
 	
 	function decrypt(&$purchase) {
-		if($purchase->secured){
-			$decrypt = "decrypt('".$purchase->secured[$this->module]."','".$this->sec_prefix."');\n";
-			echo '$(\'#card\').click(function(){'.$decrypt.'});';
-			echo '$(\'#cvv\').click(function(){'.$decrypt.'});';
+		if($purchase->secured && current_user_can('shopp_financials')){
+			$decrypt = "decrypt('".$purchase->secured[$this->module]."','".$this->sec_prefix."','".$purchase->id."');\n";
+			echo '$(\'#reveal\').click(function(){'.$decrypt.'});';
 		}
 	}
 	
@@ -285,6 +288,60 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 			exit();
 		}
 	}
+	
+	/**
+	 * orderui filters content for the transaction_metabox from the order ui
+	 *
+	 * @author John Dillick
+	 * @since 1.1
+	 * 
+	 * @param string $content Description...
+	 * @return void Description...
+	 **/
+	function orderui ($content, $Purchase) {
+		if($Purchase->secured && current_user_can('shopp_financials')){
+			$content = '';
+			$content .= '<p class="error">'.__('Decrypt the secured card data only at transaction time.  Once revealed, sensitive card information is automatically and permanently destroyed.').'</p>';
+			$content .= '<ul>';
+			$content .= '<li><strong>'.__('Secured Card','Shopp').':</strong> <span id="card">'.__('[ENCRYPTED]','Shopp').'</span></li>';
+			$content .= '<li><strong>'.__('Secured CVV','Shopp').':</strong> <span id="cvv">'.__('[ENCRYPTED]','Shopp').'</span></li>';
+			$content .= '<li><strong>'.__('Expiration','Shopp').':</strong> '._d('m/Y', $Purchase->cardexpires).'</li>';
+			$content .= '</ul>';
+			$content .= '<form><div><button id="reveal" type="button" class="button" >'.__('Decrypt Card').'</button></div></form>';
+			return $content;
+		} else return $content;	
+	}
+	
+	/**
+	 * destroy clears out the secured card data
+	 *
+	 * @author John Dillick
+	 * @since 1.1
+	 * 
+	 * @param array $args ajax request variables
+	 * @return void 
+	 **/
+	function destroy ($args) {
+		if(isset($args['pid']) && current_user_can('shopp_financials')) {
+			$purchase = new Purchase($args['pid']);
+			if($purchase->secured) $purchase->secured = false;
+			$purchase->save();
+			
+			unset($purchase);
+			$purchase = new Purchase($args['pid']);
+			if($purchase->secured) { 
+				if(SHOPP_DEBUG) new ShoppError("Unable to destroy sensitive card data for order ".$purchase->id,'manual_processing_destroy',SHOPP_DEBUG_ERR);
+				die('-1'); 
+			}
+			else {
+				if(SHOPP_DEBUG) new ShoppError("Successfully destroyed sensitive card data for order ".$purchase->id,'manual_processing_destroy',SHOPP_DEBUG_ERR);
+			 die('1');
+			}
+		}
+		else die('-1');
+	}
+	
+	
 } // END class ManualProcessing
 
 
@@ -341,8 +398,7 @@ class PEMparser extends ASNValue {
 	    $string = implode('', $lines);
 	    $der = base64_decode($string);
 	    return $der;
-	}
-	
+	}		
 }
 
 /**
