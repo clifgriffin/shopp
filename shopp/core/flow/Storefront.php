@@ -601,9 +601,9 @@ class Storefront extends FlowController {
 	}
 	
 	function checkout_page () {
-		$Errors = &ShoppErrors();
-		$Order = &ShoppOrder();
-		$Cart = $Order->Cart;
+		$Errors =& ShoppErrors();
+		$Order =& ShoppOrder();
+		$Cart =& $Order->Cart;
 		$process = get_query_var('shopp_proc');
 
 		do_action('shopp_init_checkout');
@@ -630,8 +630,8 @@ class Storefront extends FlowController {
 
 	function account_page ($menuonly=false) {
 		global $wp;
-		$Order = &ShoppOrder();
-		$Customer = &$Order->Customer;
+		$Order =& ShoppOrder();
+		$Customer =& $Order->Customer;
 
 		if (isset($Customer->login) && $Customer->login) 
 			$Customer->management();
