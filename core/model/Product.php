@@ -309,9 +309,9 @@ class Product extends DatabaseObject {
 				
 				// Find lowest savings percentage
 				if ($this->min['saved'] == ($price->price-$price->promoprice))
-					$this->min['savings'] = (1 - $price->promoprice/$price->price)*100;
+					$this->min['savings'] = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
 				if ($this->max['saved'] == ($price->price-$price->promoprice))
-					$this->max['savings'] = (1 - $price->promoprice/$price->price)*100;
+					$this->max['savings'] = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
 			}
 			
 			// Determine weight ranges
@@ -684,10 +684,8 @@ class Product extends DatabaseObject {
 
 		switch ($property) {
 			case "link": 
-			case "url": 
-				if (SHOPP_PERMALINKS) $url = esc_url(user_trailingslashit(trailingslashit($Shopp->canonuri).urldecode($this->slug)));
-				else $url = add_query_arg('shopp_pid',$this->id,$Shopp->canonuri);
-				return $url;
+			case "url":
+				return shoppurl(SHOPP_PRETTYURLS?$this->slug:array('shopp_pid'=>$this->id));
 				break;
 			case "found": 
 				if (empty($this->id)) return false;
@@ -820,7 +818,7 @@ class Product extends DatabaseObject {
 
 					if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
 					$alt = esc_attr(!empty($img->alt)?$img->alt:$this->name);
-					return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" '.$options['class'].' />'; break;
+					return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" '.$options['class'].' />'; break;
 				} else return "";
 				break;
 			case "hasimages": 
@@ -870,8 +868,8 @@ class Product extends DatabaseObject {
 
 				$string = "";
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-zoom";
-				if (!empty($options['zoom'])) $string .= '<a href="'.$Shopp->imguri.$img->id.'/image.jpg" class="'.$options['zoomfx'].'" rel="product-gallery">';
-				$string .= '<img src="'.add_query_string($img->resizing($width,$height,$fit,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" '.$class.' />';
+				if (!empty($options['zoom'])) $string .= '<a href="'.shoppurl($img->id,'images').'/image.jpg" class="'.$options['zoomfx'].'" rel="product-gallery">';
+				$string .= '<img src="'.add_query_string($img->resizing($width,$height,$fit,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" '.$class.' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;
@@ -912,8 +910,8 @@ class Product extends DatabaseObject {
 					
 					
 					$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="active"':'').'>';
-					$previews .= '<a href="'.$Shopp->imguri.$img->id.'/image.jpg" class="gallery product_'.$this->id.' '.$options['zoomfx'].'"'.$rel.'>';
-					$previews .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
+					$previews .= '<a href="'.shoppurl($img->id,'images').'" class="gallery product_'.$this->id.' '.$options['zoomfx'].'"'.$rel.'>';
+					$previews .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 					$previews .= '</a>';
 					$previews .= '</li>';
 					$firstPreview = false;
@@ -944,7 +942,7 @@ class Product extends DatabaseObject {
 						$alt = esc_attr(!empty($img->alt)?$img->alt:$img->name);
 
 						$thumbs .= '<li id="thumbnail-'.$img->id.'" class="preview-'.$img->id.(($firstThumb)?' first':' test').'">';
-						$thumbs .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
+						$thumbs .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 						$thumbs .= '</li>';
 						$firstThumb = false;						
 					}
@@ -1429,7 +1427,7 @@ class Product extends DatabaseObject {
 					$string .= '<input type="hidden" name="products['.$this->id.'][price]" value="'.$this->prices[0]->id.'" />';
 
 				if (!empty($Shopp->Category)) {
-					if (SHOPP_PERMALINKS)
+					if (SHOPP_PRETTYURLS)
 						$string .= '<input type="hidden" name="products['.$this->id.'][category]" value="'.$Shopp->Category->uri.'" />';
 					else
 						$string .= '<input type="hidden" name="products['.$this->id.'][category]" value="'.((!empty($Shopp->Category->id))?$Shopp->Category->id:$Shopp->Category->slug).'" />';

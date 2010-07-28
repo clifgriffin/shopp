@@ -8,16 +8,14 @@
  * styles here as necessary.
  * 
  **/
-#shopp,
-br.clear,
-div.clear,
 #shopp div.description,
 #shopp .products, 
 #shopp .products ul,
 #shopp .products li.row,
 #shopp .category,
 #shopp #cart,
-#shopp #cart table { clear: both; }
+#shopp #cart table { overflow: hidden; }
+
 #shopp { position: relative; }
 #shopp ul { list-style: none; text-indent: 0; text-align: left; padding: 0; margin: 0; }
 #shopp li { background: none !important; padding: 0; margin: 0; }
@@ -31,7 +29,7 @@ div.clear,
 #shopp .frame { border: none; }
 
 #shopp .products, #shopp .products ul { width: 100%; margin: 0; padding: 0;}
-#shopp .products ul li { display: block; float: left; }
+#shopp .products ul li { display: block; float: left; border: none; }
 #shopp .products li.row { display: block; width: 100%; }
 #shopp .products .frame { text-align: center; }
 #shopp .products .frame img { display: inline; }

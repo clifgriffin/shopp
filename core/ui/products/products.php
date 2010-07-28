@@ -68,7 +68,7 @@
 					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
 					<span class='edit'><a href="<?php echo $dupurl; ?>" title="<?php _e('Duplicate','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;"><?php _e('Duplicate','Shopp'); ?></a> | </span>
 					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;' href='' rel="<?php echo $Product->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
-					<span class='view'><a href="<?php echo (SHOPP_PERMALINKS)?$Shopp->shopuri.$Product->slug:add_query_arg('shopp_pid',$Product->id,$Shopp->shopuri); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
+					<span class='view'><a href="<?php echo shoppurl(SHOPP_PRETTYURLS?$Product->slug:array('shopp_pid'=>$Product->id)); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>
 				</td>
 			<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo $Product->categories; ?></td>

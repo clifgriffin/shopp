@@ -171,7 +171,8 @@ class Shopp {
 					  get_bloginfo('stylesheet_directory')."/shopp":
 					  $this->uri."/templates");
 
-		define("SHOPP_PERMALINKS",(get_option('permalink_structure') == "")?false:true);
+		define("SHOPP_PRETTYURLS",(get_option('permalink_structure') == "")?false:true);
+		define("SHOPP_PERMALINKS",SHOPP_PRETTYURLS); // Deprecated
 				
 		// Initialize application control processing
 		
@@ -188,10 +189,12 @@ class Shopp {
 		// Theme integration
 		add_action('widgets_init', array(&$this, 'widgets'));
 		add_filter('wp_list_pages',array(&$this,'secure_links'));
+		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
 		add_action('generate_rewrite_rules',array(&$this,'pages_index'));
-		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
 		add_action('save_post', array(&$this, 'pages_index'),10,2);
+		add_action('shopp_reindex_pages', array(&$this, 'pages_index'));
+
 		add_filter('query_vars', array(&$this,'queryvars'));
 
 		add_action('load-plugins.php',array(&$this, 'updates'));
@@ -210,28 +213,6 @@ class Shopp {
 	 * @return void
 	 **/
 	function init () {
-		$pages = $this->Settings->get('pages');
-		if (empty($pages)) {
-			$this->pages_index();
-			$pages = $this->Settings->get('pages');
-		}
-
-		$this->canonuri = $this->link('catalog');
-		if (SHOPP_PERMALINKS) {
-			$this->shopuri = user_trailingslashit($this->link('catalog'));
-			if ($this->shopuri == user_trailingslashit(get_bloginfo('url'))) {
-				$this->shopuri = trailingslashit($this->shopuri)."{$pages['catalog']['name']}/";
-				$this->canonuri = trailingslashit($this->canonuri)."{$pages['catalog']['name']}/";
-			}
-			$this->imguri = trailingslashit($this->shopuri)."images/";
-		} else {
-			$this->shopuri = add_query_arg('page_id',$pages['catalog']['id'],get_bloginfo('url'));
-			$this->imguri = add_query_arg('siid','=',get_bloginfo('url'));
-		}
-		if ($this->secure) {
-			$this->shopuri = str_replace('http://','https://',$this->shopuri);	
-			$this->imguri = str_replace('http://','https://',$this->imguri);	
-		}
 		
 		$this->Errors = new ShoppErrors($this->Settings->get('error_logging'));
 		$this->Order = ShoppingObject::__new('Order');
@@ -442,7 +423,7 @@ class Shopp {
 		else {
 			if (in_array($target,$internals)) {
 				$page = $pages['checkout'];
-				if (SHOPP_PERMALINKS) {
+				if (SHOPP_PRETTYURLS) {
 					$catalog = $pages['catalog']['uri'];
 					if (empty($catalog)) $catalog = $pages['catalog']['name'];
 					$page['uri'] = trailingslashit($catalog).$target;
@@ -450,7 +431,7 @@ class Shopp {
 			} else $page = $pages['catalog'];
  		}
 
-		if (SHOPP_PERMALINKS) return user_trailingslashit($uri."/".$page['uri']);
+		if (SHOPP_PRETTYURLS) return user_trailingslashit($uri."/".$page['uri']);
 		else return add_query_arg('page_id',$page['id'],trailingslashit($uri));
 	}
 
@@ -529,10 +510,10 @@ class Shopp {
 	function secure_links ($linklist) {
 		if (!$this->Gateways->secure) return $linklist;
 		$hrefs = array(
-			'checkout' => $this->link('checkout'),
-			'account' => $this->link('account')
+			'checkout' => shoppurl(false,'checkout'),
+			'account' => shoppurl(false,'account')
 		);
-		if (empty($this->Gateways->active)) return str_replace($hrefs['checkout'],$this->link('cart'),$linklist);
+		if (empty($this->Gateways->active)) return str_replace($hrefs['checkout'],shoppurl(false,'cart'),$linklist);
 
 		foreach ($hrefs as $href) {
 			$secure_href = str_replace("http://","https://",$href);
@@ -650,7 +631,7 @@ class Shopp {
 
 		echo '<html><head>';
 		echo '<link rel="stylesheet" href="'.admin_url().'/css/install.css" type="text/css" />';
-		echo '<link rel="stylesheet" href="'.SHOPP_PLUGINURI.'/core/ui/styles/admin.css" type="text/css" />';
+		echo '<link rel="stylesheet" href="'.SHOPP_ADMIN_URI.'/styles/admin.css" type="text/css" />';
 		echo '</head>';
 		echo '<body id="error-page" class="shopp-update">';
 		echo $response;

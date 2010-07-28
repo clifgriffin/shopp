@@ -268,11 +268,9 @@ class Order {
 		do_action('shopp_checkout_processed');
 		
 		// If the cart's total changes at all, confirm the order
-		if ($estimated != $this->Cart->Totals->total || $this->confirm) {
-			$secure = true;
-			if (!$Shopp->Gateways->secure || $this->Cart->orderisfree()) $secure = false;
-			shopp_redirect($Shopp->link('confirm-order',$secure));
-		} else do_action('shopp_process_order');
+		if ($estimated != $this->Cart->Totals->total || $this->confirm)
+			shopp_redirect( shoppurl(false,'confirm-order',$this->security()) );
+		else do_action('shopp_process_order');
 		
 	}
 	
@@ -317,7 +315,7 @@ class Order {
 			
 			$this->purchase = $Purchase->id;
 			if ($this->purchase !== false)
-				shopp_redirect($Shopp->link('thanks'));
+				shopp_redirect(shoppurl(false,'thanks'));
 			
 		}
 
@@ -409,8 +407,7 @@ class Order {
 		if ($r->locked == 1) return true;
 			
 		new ShoppError(sprintf(__('Transaction %s failed. Could not acheive a transaction lock.','Shopp'),$this->txnid),'order_txn_lock',SHOPP_TXN_ERR);
-		global $Shopp;
-		shopp_redirect($Shopp->link('checkout'));
+		shopp_redirect( shoppurl(false,'checkout',$this->security()) );
 	}
 
 	/**
@@ -497,7 +494,7 @@ class Order {
 		$Shopp->resession();
 		
 		if ($this->purchase !== false)
-			shopp_redirect($Shopp->link('thanks'));
+			shopp_redirect(shoppurl(false,'thanks'));
 	}
 	
 	/**
@@ -677,6 +674,19 @@ class Order {
 	}
 
 	/**
+	 * Evaluates if the checkout form needs to be secured
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean Whether the checkout form should be secured
+	 **/
+	function security () {
+		global $Shopp;
+		return ($Shopp->Gateways->secure && !$this->Cart->orderisfree());
+	}
+	
+	/**
 	 * Provides shopp('checkout') template API functionality
 	 *
 	 * @author Jonathan Davis
@@ -700,10 +710,7 @@ class Order {
 		
 		switch ($property) {
 			case "url": 
-				$secure = true;
-				// Test Mode will not require encrypted checkout
-				if (!$Shopp->Gateways->secure || $this->Cart->orderisfree()) $secure = false;
-				$link = $Shopp->link('checkout',$secure);
+				$link = shoppurl(false,'checkout',$this->security());
 				
 				// Pass any arguments along
 				$args = $_GET;
@@ -714,7 +721,7 @@ class Order {
 				return $link;
 				break;
 			case "function":
-				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_PLUGINURI.'/core/ui/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />';
+				if (!isset($options['shipcalc'])) $options['shipcalc'] = '<img src="'.SHOPP_ADMIN_URI.'/icons/updating.gif" alt="'.__('Updating','Shopp').'" width="16" height="16" />';
 				$regions = Lookup::country_zones();
 				$base = $Shopp->Settings->get('base_operations');
 				

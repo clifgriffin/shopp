@@ -50,11 +50,11 @@ class iDealMollie extends GatewayFramework implements GatewayModule {
 
 		// Options
 		$_['a'] 					= "fetch"; // specify fetch mode
-		$_['returnurl']				= add_query_arg('rmtpay','process',$Shopp->link('confirm-order'));
-		$_['reporturl']				= add_query_arg(array(
+		$_['returnurl']				= shoppurl(array('rmtpay'=>'process'),'confirm-order');
+		$_['reporturl']				= shoppurl(array(
 											'rmtpay'=>'process',
 											'idealreport'=>1 // add a marker for reports so we can ignore them
-										),$Shopp->link('confirm-order')); 
+										),'confirm-order');
 		// Line Items
 		$description = array();
 		foreach($Shopp->Order->Cart->contents as $i => $Item) 
@@ -96,14 +96,14 @@ class iDealMollie extends GatewayFramework implements GatewayModule {
 
 		if (!$Shopp->Order->validate()) {
 			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order',SHOPP_TRXN_ERR);
-			shopp_redirect($Shopp->link('cart'));
+			shopp_redirect(shoppurl(false,'cart'));
 		}
 		
 		// Check for unique transaction id
 		$Purchase = new Purchase($_['transaction_id'],'txnid');
 		if(!empty($Purchase->id)){
 			if(SHOPP_DEBUG) new ShoppError(__('Order validation failed. Received duplicate transaction id: ','Shopp').$_['transaction_id'], 'duplicate_order',SHOPP_TRXN_ERR);
-			shopp_redirect($Shopp->link('cart'));
+			shopp_redirect(shoppurl(false,'cart'));
 		}
 
 		// Try up to 3 times
@@ -119,7 +119,7 @@ class iDealMollie extends GatewayFramework implements GatewayModule {
 		
 		if ($payment == "false") {
 			new ShoppError(__('Payment could not be confirmed, this order cannot be processed.','Shopp'),'ideal_mollie_transaction_error',SHOPP_TRXN_ERR);
-			shopp_redirect($Shopp->link('cart'));
+			shopp_redirect(shoppurl(false,'cart'));
 			return;
 		}
 

@@ -149,11 +149,11 @@ class Storefront extends FlowController {
 		add_action('wp_print_styles',array(&$this, 'catalogcss'));
 		add_action('wp_head', array(&$this, 'header'));
 		add_action('wp_footer', array(&$this, 'footer'),15);
-		wp_enqueue_style('shopp.catalog',SHOPP_PLUGINURI.'/core/ui/styles/catalog.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.catalog',SHOPP_ADMIN_URI.'/styles/catalog.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp',SHOPP_TEMPLATES_URI.'/shopp.css',array(),SHOPP_VERSION,'screen');
-		wp_enqueue_style('shopp.colorbox',SHOPP_PLUGINURI.'/core/ui/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.colorbox',SHOPP_ADMIN_URI.'/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
 		if (is_shopp_page('account') || (isset($wp->query_vars['shopp_proc']) && $wp->query_vars['shopp_proc'] == "sold"))
-			wp_enqueue_style('shopp.printable',SHOPP_PLUGINURI.'/core/ui/styles/printable.css',array(),SHOPP_VERSION,'print');
+			wp_enqueue_style('shopp.printable',SHOPP_ADMIN_URI.'/styles/printable.css',array(),SHOPP_VERSION,'print');
 
 		$loading = $this->Settings->get('script_loading');
 		if (!$loading || $loading == "global" || $tag !== false) {
@@ -241,17 +241,15 @@ class Storefront extends FlowController {
 		global $Shopp;		
 		if (empty($this->Category->name)):?>
 
-<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo $Shopp->shopuri.((SHOPP_PERMALINKS)?'feed/':'&shopp_lookup=newproducts-rss'); ?>" />
+<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo (SHOPP_PRETTYURLS)?shoppurl('feed'):shoppurl(array('shopp_lookup'=>'newproducts-rss')); ?>" />
 <?php
 			else:
 			$uri = 'category/'.$this->Category->uri;
 			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
-
-			if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.urldecode($uri).'/feed');
-			else $link = add_query_arg(array('shopp_category'=>urldecode($this->Category->uri),'src'=>'category_rss'),$this->shopuri);
+			$link = (SHOPP_PRETTYURLS)?shoppurl("$uri/feed"):shoppurl(array('shopp_category'=>urldecode($this->Category->uri),'src'=>'category_rss'));
 			?>
 
-<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> <?php echo htmlentities($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
+<link rel='alternate' type="application/rss+xml" title="<?php echo esc_attr(bloginfo('name')); ?> <?php echo esc_attr($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
 <?php
 		endif;
 	}
@@ -554,7 +552,7 @@ class Storefront extends FlowController {
 			if ($_COOKIE['shopp_catalog_view'] == "grid") $classes .= " grid";
 		}
 
-		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'<div class="clear"></div></div>');
+		return apply_filters('shopp_catalog','<div id="shopp" class="'.$classes.'">'.$content.'</div>');
 	}
 
 	/**
@@ -565,7 +563,7 @@ class Storefront extends FlowController {
 		$Cart = $Shopp->Order->Cart;
 		if (isset($_REQUEST['shopping']) && strtolower($_REQUEST['shopping']) == "reset") {
 			$Shopp->Shopping->reset();
-			shopp_redirect($Shopp->link('catalog'));
+			shopp_redirect(shoppurl());
 		}
 
 		if (empty($_REQUEST['cart'])) return true;
@@ -579,11 +577,11 @@ class Storefront extends FlowController {
 		$redirect = false;
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {
-			case "checkout": shopp_redirect($Shopp->link($redirect,true)); break;
+			case "checkout": shopp_redirect(shoppurl(false,$redirect,$Shopp->Order->security())); break;
 			default: 
 				if (!empty($_REQUEST['redirect']))
-					shopp_redirect(esc_url($Shopp->link($_REQUEST['redirect'])));
-				else shopp_redirect($Shopp->link('cart'));
+					shopp_redirect(shoppurl(false,$_REQUEST['redirect']));
+				else shopp_redirect(shoppurl(false,'cart'));
 		}
 	}
 
@@ -711,7 +709,7 @@ class Storefront extends FlowController {
 		
 		if (isset($atts['nowrap']) && value_is_true($atts['nowrap']))
 			return $Shopp->Catalog->tag('product',$atts);
-		else return apply_filters('shopp_product_shortcode',$Shopp->Catalog->tag('product',$atts).'<div class="clear"></div>');
+		else return apply_filters('shopp_product_shortcode',$Shopp->Catalog->tag('product',$atts).'');
 	}
 	
 	function category_shortcode ($atts) {
@@ -736,7 +734,7 @@ class Storefront extends FlowController {
 		
 		if (isset($atts['nowrap']) && value_is_true($atts['nowrap']))
 			return $Shopp->Catalog->tag($tag,$atts);
-		else return apply_filters('shopp_category_shortcode',$Shopp->Catalog->tag($tag,$atts).'<div class="clear">');
+		else return apply_filters('shopp_category_shortcode',$Shopp->Catalog->tag($tag,$atts).'');
 		
 	}
 	

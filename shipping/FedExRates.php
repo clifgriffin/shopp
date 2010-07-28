@@ -19,15 +19,14 @@
  **/
 
 class FedExRates extends ShippingFramework implements ShippingModule {
-	var $test = false;
+
 	var $wsdl_url = "";
 	var $url = "https://gateway.fedex.com:443/web-services";
 	var $test_url = "https://gatewaybeta.fedex.com:443/web-services";
-	var $request = false;
 	var $weight = 0;
-	var $conversion = 1;
+
+	var $test = false;
 	var $dimensions = true;
-	var $Response = false;
 	
 	var $services = array(
 		'FEDEX_GROUND' => 'FedEx Ground',
@@ -160,7 +159,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 	}
 	
 	function calcitem ($id,$Item) {
- 		$this->weight += ($Item->weight * $this->conversion) * $Item->quantity;
+ 		$this->weight += $Item->weight * $Item->quantity;
 	}
 	
 	function calculate ($options,$Order) {
@@ -169,21 +168,21 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 			return $options;
 		}
 
-		$this->request = $this->build(session_id(), $this->rate['name'], 
+		$request = $this->build(session_id(), $this->rate['name'], 
 			$Order->Shipping->postcode, $Order->Shipping->country);
 		
-		$this->Response = $this->send();
-		if (!$this->Response) return false;
-		if ($this->Response->HighestSeverity == 'FAILURE' || 
-		 		$this->Response->HighestSeverity == 'ERROR') {
-			new ShoppError($this->Response->Notifications->Message,'fedex_rate_error',SHOPP_ADDON_ERR);
+		$Response = $this->send();
+		if (!$Response) return false;
+		if ($Response->HighestSeverity == 'FAILURE' || 
+		 		$Response->HighestSeverity == 'ERROR') {
+			new ShoppError($Response->Notifications->Message,'fedex_rate_error',SHOPP_ADDON_ERR);
 			exit();
 			return false;
 		}
 
 		$estimate = false;
 		
-		$RatedReply = &$this->Response->RateReplyDetails;
+		$RatedReply = &$Response->RateReplyDetails;
 		if (!is_array($RatedReply)) return false;
 		foreach ($RatedReply as $quote) {
 			if (!in_array($quote->ServiceType,$this->rate['services'])) continue;
@@ -280,24 +279,24 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 	function verify () {         
 		if (!$this->activated()) return;
 		$this->weight = 1;
-		$this->request = $this->build('1','Authentication test','10012','US');
-		$response = $this->send();
+		$request = $this->build('1','Authentication test','10012','US');
+		$response = $this->send($request);
 		if (isset($response->HighestSeverity)
 			&& ($response->HighestSeverity == 'FAILURE'
 			|| $response->HighestSeverity == 'ERROR')) 
 		 	new ShoppError($response->Notifications->Message,'fedex_verify_auth',SHOPP_ADDON_ERR);
 	}   
 	
-	function send () {
+	function send ($request) {
 		try {
 			if (class_exists('SoapClient')) {
 				ini_set("soap.wsdl_cache_enabled", "1");
 				$client = new SoapClient($this->wsdl_url);
-				$response = $client->getRates($this->request);
+				$response = $client->getRates($request);
 			} elseif (class_exists('SOAP_Client')) {
 				$WSDL = new SOAP_WSDL($this->wsdl_url);
 				$client = $WSDL->getProxy();
-				$returned = $client->getRates($this->request);
+				$returned = $client->getRates($request);
 				$response = new StdClass();
 				foreach ($returned as $key => $value) {
 					if (empty($key)) continue;

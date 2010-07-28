@@ -470,9 +470,7 @@ class Item {
 			case "type": return $this->type;
 			case "link":
 			case "url": 
-				return (SHOPP_PERMALINKS)?
-					$Shopp->shopuri.$this->slug:
-					add_query_arg('shopp_pid',$this->product,$Shopp->shopuri);
+				return shoppurl(SHOPP_PRETTYURLS?$this->slug:array('shopp_pid'=>$this->product));
 			case "sku": return $this->sku;
 		}
 		
@@ -540,7 +538,7 @@ class Item {
 						    $result = '<input type="checkbox" name="remove['.$id.']" value="'.$id.'"'.$class.' tabindex="" title="'.$label.'"/>'; break;
 					}
 				} else {
-					$result = '<a href="'.href_add_query_arg(array('cart'=>'update','item'=>$id,'quantity'=>0),$Shopp->link('cart')).'"'.$class.'>'.$label.'</a>';
+					$result = '<a href="'.href_add_query_arg(array('cart'=>'update','item'=>$id,'quantity'=>0),shoppurl(false,'cart')).'"'.$class.'>'.$label.'</a>';
 				}
 				break;
 			case "optionlabel": $result = $this->option->label; break;
@@ -651,7 +649,7 @@ class Item {
 
 					if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
 					$alt = esc_attr(!empty($img->alt)?$img->alt:$this->name);
-					return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; 
+					return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; 
 				}
 				break;
 				

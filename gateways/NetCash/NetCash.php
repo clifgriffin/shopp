@@ -28,7 +28,7 @@ class NetCash extends GatewayFramework implements GatewayModule {
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
 		$this->settings['base_operations'] = $Shopp->Settings->get('base_operations');
 
-		$this->ipn = add_query_arg('shopp_xorder','NetCash',$Shopp->link('catalog',true));
+		$this->ipn = shoppurl(array('_txnupdate'=>'ncza'),'catalog',true);
 
 		add_action('shopp_txn_update',array(&$this,'updates'));
 
@@ -67,7 +67,7 @@ class NetCash extends GatewayFramework implements GatewayModule {
 		$_['p2'] = mktime();
 		$_['p3'] = get_bloginfo('sitename');
 		$_['p4'] = number_format($this->Order->Cart->Totals->total,$this->precision);
-		$_['p10'] = $Shopp->link('cart',false);
+		$_['p10'] = shoppurl(false,'cart',false);
 		$_['Budget'] = 'Y';
 		$_['m_4'] = $this->session;
 		// $_['m_5'] = '';		
@@ -109,7 +109,7 @@ class NetCash extends GatewayFramework implements GatewayModule {
 			$Shopp->resession();
 			$Shopp->Purchase = $Purchase;
 			$Shopp->Order->purchase = $Purchase->id;
-			shopp_redirect($Shopp->link('thanks',false));
+			shopp_redirect(shoppurl(false,'thanks',false));
 		}
 
 		$Shopp->resession($_POST['custom']);
@@ -169,7 +169,7 @@ class NetCash extends GatewayFramework implements GatewayModule {
 			&& !empty($_POST['settings']['NetCash']['PIN'])
 			&& !empty($_POST['settings']['NetCash']['terminal'])) {
 
-			$url = $Shopp->link('checkout',false);
+			$url = shoppurl(false,'checkout',false);
 			$_POST['settings']['NetCash']['apiurl'] = $url;
 		}
 	}

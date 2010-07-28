@@ -23,7 +23,7 @@
 
 <?php return true; endif; ?>
 
-<form action="<?php shopp('customer','url'); ?>" method="post" class="shopp">
+<form action="<?php shopp('customer','url'); ?>" method="post" class="shopp" autocomplete="off">
 
 <?php if (shopp('customer','process','return=true') == "account"): ?>
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>

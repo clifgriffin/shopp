@@ -63,6 +63,8 @@ class Catalog extends DatabaseObject {
 		);
 		$options = array_merge($defaults,$loading);
 		extract($options);
+		
+		if (!is_array($where)) $where = array($where);
 
 		// Merge joins
 		if (isset($loading['joins'])) $joins = array_merge($defaults['joins'],$loading['joins']);
@@ -235,12 +237,8 @@ class Catalog extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 
-		$pages = $Shopp->Settings->get('pages');
-		if (SHOPP_PERMALINKS) $path = $Shopp->shopuri;
-		else $page = add_query_arg('page_id',$pages['catalog']['id'],$Shopp->shopuri);		
-
 		switch ($property) {
-			case "url": return $Shopp->link('catalog'); break;
+			case "url": return shoppurl(false,'catalog'); break;
 			case "display":
 			case "type": return $this->type; break;
 			case "is-landing": 
@@ -263,8 +261,7 @@ class Catalog extends DatabaseObject {
 				$string = '<ul class="shopp tagcloud">';
 				foreach ($this->tags as $tag) {
 					$level = floor((1-$tag->products/$max)*$levels)+1;
-					if (SHOPP_PERMALINKS) $link = user_trailingslashit($path.'tag/'.urlencode($tag->name));
-					else $link = add_query_arg('shopp_tag',urlencode($tag->name),$page);
+					$link = SHOPP_PRETTYURLS?shoppurl("tag/$tag->name"):shoppurl(array('shopp_tag'=>$tag->name));
 					$string .= '<li class="level-'.$level.'"><a href="'.$link.'" rel="tag">'.$tag->name.'</a></li> ';
 				}
 				$string .= '</ul>';
@@ -348,8 +345,8 @@ class Catalog extends DatabaseObject {
 						if (value_is_true($hierarchy))
 							$padding = str_repeat("&nbsp;",$category->depth*3);
 
-						if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.'category/'.$category->uri);
-						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
+						$category_uri = empty($category->id)?$category->uri:$category->id;
+						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('shopp_category'=>$category_uri));
 
 						$total = '';
 						if (value_is_true($products) && $category->total > 0) $total = ' ('.$category->total.')';
@@ -406,8 +403,8 @@ class Catalog extends DatabaseObject {
 							}
 						}
 					
-						if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.'category/'.$category->uri);
-						else $link = href_add_query_arg('shopp_category',(!empty($category->id)?$category->id:$category->uri),$Shopp->shopuri);
+						$category_uri = empty($category->id)?$category->uri:$category->id;
+						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('shopp_category'=>$category_uri));
 					
 						$total = '';
 						if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
@@ -468,7 +465,7 @@ class Catalog extends DatabaseObject {
 						$default = $Shopp->Flow->Controller->browsing['orderby'];
 					$string .= $title;
 					$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
-					if (!SHOPP_PERMALINKS) {
+					if (!SHOPP_PRETTYURLS) {
 						foreach ($_GET as $key => $value)
 							if ($key != 'shopp_orderby') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
 					}
@@ -498,6 +495,11 @@ class Catalog extends DatabaseObject {
 				return $string;
 				break;
 			case "breadcrumb":
+				
+				// @todo The category parent backreference does not 
+				// line up to the correct category if smart cats are prepended to the list
+				// need a new lookup index by category id
+				
 				if (isset($Shopp->Category->controls)) return false;
 				if (empty($this->categories)) $this->load_categories();
 				$separator = "&nbsp;&raquo; ";
@@ -521,18 +523,11 @@ class Catalog extends DatabaseObject {
 					$type = "category";
 					if (isset($Category->tag)) $type = "tag";
 					
-					if (SHOPP_PERMALINKS)
-						$link = esc_url(add_query_arg($_GET,$Shopp->shopuri.$type.'/'.$Category->uri));
-					else {
-						if (isset($Category->smart)) 
-							$link = esc_url(add_query_arg(array_merge($_GET,
-								array('shopp_category'=>$Category->slug,'shopp_pid'=>null)),
-								$Shopp->shopuri));
-						else 
-							$link = esc_url(add_query_arg(array_merge($_GET,
-								array('shopp_category'=>$Category->id,'shopp_pid'=>null)), 
-								$Shopp->shopuri));
-					}
+					$category_uri = isset($Category->smart)?$Category->slug:$Category->id;
+					
+					$link = SHOPP_PRETTYURLS?
+						shoppurl("$type/$Category->uri") :
+						shoppurl(array_merge($_GET,array('shopp_category'=>$category_uri,'shopp_pid'=>null)));
 
 					$filters = false;
 					if (!empty($Shopp->Cart->data->Category[$Category->slug]))
@@ -542,26 +537,25 @@ class Catalog extends DatabaseObject {
 						$trail .= '<li><a href="'.$link.'">'.$Category->name.(!$trail?'':$separator).'</a></li>';
 					elseif (!empty($Category->name)) 
 						$trail .= '<li>'.$Category->name.$filters.(!$trail?'':$separator).'</li>';
-					
 
 					// Build category names path by going from the target category up the parent chain
 					$parentkey = (!empty($Category->id))?$this->categories[$Category->id]->parent:0;
 					while ($parentkey != 0) {
 						$tree_category = $this->categories[$parentkey];
 
-						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$tree_category->uri;
-						else $link = esc_url(add_query_arg(array_merge($_GET,
-							array('shopp_category'=>$tree_category->id,'shopp_pid'=>null)),
-							$Shopp->shopuri));
-					
+						$link = SHOPP_PRETTYURLS?
+							shoppurl("category/$tree_category->uri"):
+							shoppurl(array_merge($_GET,array('shopp_category'=>$tree_category->id,'shopp_pid'=>null)));
+											
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.
 							(empty($trail)?'':$separator).'</li>'.$trail;
 					
 						$parentkey = $tree_category->parent;
 					}
 				}
+				$pages = $Shopp->Settings->get('pages');
 
-				$trail = '<li><a href="'.$Shopp->link('catalog').'">'.$pages['catalog']['title'].'</a>'.(empty($trail)?'':$separator).'</li>'.$trail;
+				$trail = '<li><a href="'.shoppurl().'">'.$pages['catalog']['title'].'</a>'.(empty($trail)?'':$separator).'</li>'.$trail;
 				return '<ul class="breadcrumb">'.$trail.'</ul>';
 				break;
 			case "searchform":

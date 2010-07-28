@@ -983,7 +983,7 @@ function raw_request_url () {
 		'://'.
 		$_SERVER['HTTP_HOST'].
 		$_SERVER['REQUEST_URI'].
-		(SHOPP_PERMALINKS?((!empty($_SERVER['QUERY_STRING'])?'?':'').$_SERVER['QUERY_STRING']):'')
+		(SHOPP_PRETTYURLS?((!empty($_SERVER['QUERY_STRING'])?'?':'').$_SERVER['QUERY_STRING']):'')
 	);
 }
 
@@ -1548,6 +1548,85 @@ function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
 function shopp_timezone () {
 	if (function_exists('date_default_timezone_set') && get_option('timezone_string')) 
 		date_default_timezone_set(get_option('timezone_string'));	
+}
+
+/**
+ * Generates canonical storefront URLs that respects the WordPress permalink settings
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param mixed $request Additional URI requests
+ * @param string $page The gateway page
+ * @param boolean $secure (optional) True for secure URLs, false to force unsecure URLs
+ * @return string The final URL
+ **/
+function shoppurl ($request=false,$page='catalog',$secure=null) {
+	$dynamic = array("thanks","receipt","confirm-order");
+	
+	$Settings =& ShoppSettings();
+	if (!$Settings->available) return;
+	
+	// Get the currently indexed Shopp gateway pages
+	$pages = $Settings->get('pages');
+	if (empty($pages)) { // Hrm, no pages, attempt to rescan for them
+		// No WordPress actions, #epicfail
+		if (!function_exists('do_action')) return false;
+		do_action('shopp_reindex_pages');
+		$pages = $Settings->get('pages');
+		// Still no pages? WTH? #epicfailalso
+		if (empty($pages)) return false;
+	}
+	
+	// Start with the site url
+	$siteurl = trailingslashit(get_bloginfo('url'));
+
+	// Rewrite as an HTTPS connection if necessary
+	if ($secure === false) $siteurl = str_replace('https://','http://',$siteurl);
+	elseif (($secure || is_shopp_secure()) && !SHOPP_NOSSL) $siteurl = str_replace('http://','https://',$siteurl);
+
+	// Determine WordPress gateway page URI path fragment
+	if (isset($pages[$page])) {
+		$path = $pages[$page]['uri'];
+		$pageid = $pages[$page]['id'];
+	} else {
+		if (in_array($page,$dynamic)) {
+			$target = $pages['checkout'];
+			if (SHOPP_PRETTYURLS) {
+				$catalog = $pages['catalog']['uri'];
+				if (empty($catalog)) $catalog = $pages['catalog']['name'];
+				$path = trailingslashit($catalog).$target['uri'];
+			} else $pageid = $target['id']."&shopp_proc=$target";
+		} elseif ('images' == $page) {
+			$target = $pages['catalog'];
+			$path = trailingslashit($target['uri']).'images';
+			if (!SHOPP_PRETTYURLS) $request = array('siid'=>$request);
+		} else {
+			$path = $pages['catalog']['uri'];
+			$pageid = $pages['catalog']['id'];
+		}
+	}
+	
+	if (SHOPP_PRETTYURLS) $url = user_trailingslashit($siteurl.$path);
+	else $url = isset($pageid)?add_query_arg('page_id',$pageid,$siteurl):$siteurl;
+	
+	// No extra request, return the complete URL
+	if (!$request) return $url;
+	
+	// Filter URI request
+	$uri = false;
+	if (!is_array($request)) $uri = $request;
+	if (is_array($request && isset($request[0]))) $uri = array_shift($request);
+	if (!empty($uri)) $uri = join('/',array_map('urlencode',explode('/',$uri))); // sanitize
+	
+	$url = user_trailingslashit(trailingslashit($url).$uri);
+	
+	if (!empty($request) && is_array($request)) {
+		$request = array_map('urlencode',$request);
+		$url = add_query_arg($request,$url);
+	}
+
+	return $url;
 }
 
 /**
