@@ -28,7 +28,7 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 		$this->setup('sid','verify','secret','returnurl','testmode');
 
 		global $Shopp;
-		$this->settings['returnurl'] = add_query_arg('rmtpay','process',$Shopp->link('thanks',false));
+		$this->settings['returnurl'] = add_query_arg('rmtpay','process',shoppurl(false,'thanks',false));
 				
 		add_action('shopp_txn_update',array(&$this,'notifications'));
 	}
@@ -127,12 +127,12 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 		
 		if ($this->settings['verify'] == "on" && !$this->verify($_POST['key'])) {
 			new ShoppError(__('The order submitted to 2Checkout could not be verified.','Shopp'),'2co_validation_error',SHOPP_TRXN_ERR);
-			shopp_redirect($Shopp->link('checkout'));
+			shopp_redirect(shoppurl(false,'checkout'));
 		}
 		
 		if (empty($_POST['order_number'])) {
 			new ShoppError(__('The order submitted by 2Checkout did not specify a transaction ID.','Shopp'),'2co_validation_error',SHOPP_TRXN_ERR);
-			shopp_redirect($Shopp->link('checkout'));
+			shopp_redirect(shoppurl(false,'checkout'));
 		}
 		
 		$txnid = $_POST['order_number'];

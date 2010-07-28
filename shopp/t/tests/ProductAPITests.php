@@ -48,7 +48,7 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('product','url');
 		$output = ob_get_contents();
 		ob_end_clean();
-		if (SHOPP_PERMALINKS) $this->assertEquals($Shopp->shopuri.'ultimate-matrix-collection/',$output);
+		if (SHOPP_PRETTYURLS) $this->assertEquals(trailingslashit(get_bloginfo('url')).'ultimate-matrix-collection/',$output);
 	}
 	
 	function test_product_description () {

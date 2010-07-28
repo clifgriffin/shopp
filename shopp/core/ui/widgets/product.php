@@ -40,7 +40,7 @@ class ShoppProductWidget extends WP_Widget {
 		<p><select id="<?php echo $this->get_field_id('source'); ?>" name="<?php echo $this->get_field_name('source'); ?>" class="widefat"><option value="category"<?php echo $options['source'] == "category"?' selected="selected"':''; ?>>From a category</option><option value="product"<?php echo $options['source'] == "product"?' selected="selected"':''; ?>>By product</option></select></p>
 
 		<?php 
-			if (SHOPP_PERMALINKS) $label = __('Category Slug/ID','Shopp');
+			if (SHOPP_PRETTYURLS) $label = __('Category Slug/ID','Shopp');
 			else $label = __('Category ID','Shopp');
 		 ?>
 		<p id="<?php echo $this->get_field_id('category-fields'); ?>" class="hidden">
@@ -68,7 +68,7 @@ class ShoppProductWidget extends WP_Widget {
 		</p>
 		
 		<?php 
-			if (SHOPP_PERMALINKS) $label = __('Product Slug/ID(s)','Shopp');
+			if (SHOPP_PRETTYURLS) $label = __('Product Slug/ID(s)','Shopp');
 			else $label = __('Product ID(s)','Shopp');
 		 ?>
 		<p id="<?php echo $this->get_field_id('product-fields'); ?>" class="hidden">

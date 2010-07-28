@@ -90,9 +90,9 @@ class Cart {
 	function request () {
 		global $Shopp;
 		
-		if (isset($_REQUEST['checkout'])) shopp_redirect($Shopp->link('checkout',true));
+		if (isset($_REQUEST['checkout'])) shopp_redirect(shoppurl(false,'checkout',$Shopp->Order->security()));
 		
-		if (isset($_REQUEST['shopping'])) shopp_redirect($Shopp->link('catalog'));
+		if (isset($_REQUEST['shopping'])) shopp_redirect(shoppurl());
 		
 		if (isset($_REQUEST['shipping'])) {
 			if (!empty($_REQUEST['shipping']['postcode'])) // Protect input field from XSS
@@ -195,11 +195,11 @@ class Cart {
 			exit();
 		}
 		$AjaxCart = new StdClass();
-		$AjaxCart->url = $Shopp->link('cart');
+		$AjaxCart->url = shoppurl(false,'cart');
 		$AjaxCart->label = __('Edit shopping cart','Shopp');
-		$AjaxCart->checkouturl = $Shopp->link('checkout');
+		$AjaxCart->checkouturl = shoppurl(false,'checkout',$Shopp->Order->security());
 		$AjaxCart->checkoutLabel = __('Proceed to Checkout','Shopp');
-		$AjaxCart->imguri = (SHOPP_PERMALINKS)?$Shopp->imguri:$Shopp->imguri.'?siid=';
+		$AjaxCart->imguri = SHOPP_PRETTYURLS?trailingslashit(shoppurl('images')):shoppurl('images').'?siid=';
 		$AjaxCart->Totals = clone($this->Totals);
 		$AjaxCart->Contents = array();
 		foreach($this->contents as $Item) {
@@ -573,7 +573,7 @@ class Cart {
 		
 		// Return strings with no options
 		switch ($property) {
-			case "url": return $Shopp->link('cart'); break;
+			case "url": return shoppurl(false,'cart'); break;
 			case "referrer": 
 			case "referer": 
 				$referrer = $Shopp->Shopping->data->referrer; 

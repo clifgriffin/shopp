@@ -41,11 +41,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			'test' => 'http://sandbox.google.com/checkout/buttons/checkout.gif'
 			);
 		
-		$this->merchant_calc_url = (
-			SHOPP_PERMALINKS ?
-			$Shopp->link('catalog').'?_txnupdate=gc' :
-			add_query_arg(array('_txnupdate' => 'gc'), $Shopp->link('catalog'))
-			);
+		$this->merchant_calc_url = add_query_string('_txn_update=gc',shoppurl(false,'catalog'));
 		
 		$this->setup('id','key','apiurl');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
@@ -96,7 +92,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	function checkout () {
 		global $Shopp;
 
-		if ($this->Order->Cart->Totals->total == 0) shopp_redirect($Shopp->link('checkout'));
+		if ($this->Order->Cart->orderisfree()) shopp_redirect(shoppurl(false,'checkout'),false);
 
 		$stock = true;
 		foreach( $this->Order->Cart->contents as $item ) { //check stock before redirecting to Google
@@ -105,7 +101,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				$stock = false;
 			}
 		}
-		if (!$stock) shopp_redirect($Shopp->link('cart'));
+		if (!$stock) shopp_redirect(shoppurl(false,'cart',false));
 		
 		$message = $this->buildCheckoutRequest();
 		$Response = $this->send($message,$this->urls['checkout']);
@@ -579,24 +575,6 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		header('HTTP/1.1 500 Internal Server Error');
 		die("<h1>500 Internal Server Error</h1>");
 	}
-		
-	function tag ($property,$options=array()) {
-		global $Shopp;
-		switch ($property) {
-			case "button": 
-				$type = "live";
-				if ($this->settings['testmode'] == "on") $type = "test";
-				$buttonuri = $this->urls['button'][$type];
-				$buttonuri .= '?merchant_id='.$this->settings['id'];
-				$buttonuri .= '&'.$this->settings['button'];
-				$buttonuri .= '&style='.$this->settings['buttonstyle'];
-				$buttonuri .= '&variant=text';
-				$buttonuri .= '&loc='.$this->settings['location'];
-				if (SHOPP_PERMALINKS) $url = $Shopp->link('checkout')."?shopp_xco=GoogleCheckout/GoogleCheckout";
-				else $url = add_query_arg('shopp_xco','GoogleCheckout/GoogleCheckout',$Shopp->link('checkout'));
-				return '<p class="google_checkout"><a href="'.$url.'"><img src="'.$buttonuri.'" alt="Checkout with Google Checkout" /></a></p>';
-		}
-	}
 	
 	function settings () {
 		global $Shopp;
@@ -675,7 +653,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				'merc' => $GoogleCheckout->authcode(
 										$_POST['settings']['GoogleCheckout']['id'],
 										$_POST['settings']['GoogleCheckout']['key'])
-				),$Shopp->link('checkout',true));
+				),shoppurl(false,'checkout',true));
 			$_POST['settings']['GoogleCheckout']['apiurl'] = $url;
 		}
 	}

@@ -106,9 +106,9 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['custom']				= $Shopp->Shopping->session;
 		
 		// Options
-		$_['return']				= add_query_arg('rmtpay','process',$Shopp->link('checkout',false));
-		$_['cancel_return']			= $Shopp->link('cart');
-		$_['notify_url']			= add_query_arg('_txnupdate','PPS',$Shopp->link('checkout'));
+		$_['return']				= shoppurl(array('rmtpay'=>'process'),'checkout',false);
+		$_['cancel_return']			= shoppurl(false,'cart');
+		$_['notify_url']			= shoppurl(array('_txnupdate'=>'PPS'),'checkout');
 		$_['rm']					= 1; // Return with no transaction data
 		
 		// Pre-populate PayPal Checkout
@@ -183,7 +183,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			$pdtstatus = $this->verifypdt();
 			if (!$pdtstatus) {
 				new ShoppError(__('The transaction was not verified by PayPal.','Shopp'),false,SHOPP_DEBUG_ERR);
-				shopp_redirect($Shopp->link('checkout',false));
+				shopp_redirect(shoppurl(false,'checkout',false));
 			}
 
 			$Purchase = new Purchase($txnid,'txnid');
@@ -192,7 +192,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 				$Shopp->resession();
 				$Shopp->Purchase = $Purchase;
 				$Shopp->Order->purchase = $Purchase->id;
-				shopp_redirect($Shopp->link('thanks',false));
+				shopp_redirect(shoppurl(false,'thanks',false));
 			}
 
 		}

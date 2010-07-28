@@ -406,7 +406,7 @@ jQuery(document).ready(function() {
 	slideshows();
 	carousels();
 	if ($.fn.colorbox) {
-		$('a.shopp-zoom').colorbox();
+		$('a.shopp-zoom').colorbox({photo:true});
 		$('a.shopp-zoom.gallery').attr('rel','gallery').colorbox({slideshow:true,slideshowSpeed:3500});
 	}
 });

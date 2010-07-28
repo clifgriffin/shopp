@@ -282,7 +282,7 @@ class Categorize extends AdminController {
 		);
 
 		// Build permalink for slug editor
-		$permalink = trailingslashit($Shopp->link('catalog'))."category/";
+		$permalink = trailingslashit(shoppurl())."category/";
 		$Category->slug = apply_filters('editable_slug',$Category->slug);
 		if (!empty($Category->slug))
 			$permalink .= substr($Category->uri,0,strpos($Category->uri,$Category->slug));
@@ -461,7 +461,7 @@ class Categorize extends AdminController {
 	 **/
 	function products_cols () {
 		register_column_headers('shopp_page_shopp-categories', array(
-			'move'=>'<img src="'.SHOPP_PLUGINURI.'/core/ui/icons/updating.gif" alt="updating" width="16" height="16" class="hidden" />',
+			'move'=>'<img src="'.SHOPP_ADMIN_URI.'/icons/updating.gif" alt="updating" width="16" height="16" class="hidden" />',
 			'p'=>__('Product','Shopp'))
 		);
 	}

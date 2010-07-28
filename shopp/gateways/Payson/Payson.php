@@ -77,8 +77,8 @@ class Payson extends GatewayFramework implements GatewayModule {
 		
 		$_['RefNr']					= $Shopp->Shopping->session;
 		
-		$_['OkUrl']					= add_query_arg('rmtpay','true',$Shopp->link('checkout'));
-		$_['CancelUrl']				= $Shopp->link('cart');
+		$_['OkUrl']					= shoppurl(array('rmtpay'=>'true'),'checkout');
+		$_['CancelUrl']				= shoppurl(false,'cart');
 		
 		$checkfields = array(
 			$_['SellerEmail'],
@@ -115,7 +115,7 @@ class Payson extends GatewayFramework implements GatewayModule {
 		if (!empty($Purchase->id)) {
 			$Shopp->Purchase = $Purchase;
 			$Shopp->Order->purchase = $Purchase->id;
-			shopp_redirect($Shopp->link('thanks',false));
+			shopp_redirect(shoppurl(false,'thanks',false));
 			return false;
 		}
 		

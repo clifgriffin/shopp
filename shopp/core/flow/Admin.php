@@ -140,7 +140,7 @@ class AdminFlow extends FlowController {
 			$access,									// Access level
 			$this->MainMenu,							// Page
 			array(&$Shopp->Flow,'parse'),				// Handler
-			"$Shopp->uri/core/ui/icons/shopp.png"		// Icon
+			SHOPP_ADMIN_URI.'/icons/shopp.png'			// Icon
 		);
 
 		if ($this->maintenance()) {
@@ -261,8 +261,8 @@ class AdminFlow extends FlowController {
 	 * @return void Description...
 	 **/
 	function admin_css () {
-		wp_enqueue_style('shopp.colorbox',SHOPP_PLUGINURI.'/core/ui/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
-		wp_enqueue_style('shopp.admin',SHOPP_PLUGINURI.'/core/ui/styles/admin.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.colorbox',SHOPP_ADMIN_URI.'/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
+		wp_enqueue_style('shopp.admin',SHOPP_ADMIN_URI.'/styles/admin.css',array(),SHOPP_VERSION,'screen');
 	}
 
 	/**

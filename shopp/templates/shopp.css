@@ -33,7 +33,7 @@
 #shopp .category .subcategories li { display: inline-block; margin-right: 20px; vertical-align: top; }
 
 #shopp .slideshow,
-#shopp .carousel { margin: 20px 0; clear: both; }
+#shopp .carousel { margin: 20px 0; overflow: hidden; }
 
 /* Each product in a category has a containing frame */
 #shopp ul.products li.product div.frame { padding: 10px; }
@@ -61,7 +61,7 @@
 .filters a.cancel:hover { text-decoration: none; }
 
 /* Product List View */
-#shopp.list ul.products li { float: none; width: 100%; clear: both; padding-bottom: 10px;}
+#shopp.list ul.products li { float: none; width: 100%; overflow: hidden; padding-bottom: 10px;}
 #shopp.list ul.products li.product {  border-bottom: 1px solid #ddd; }
 #shopp.list ul.products li div.frame { width: 100%;  text-align: left; }
 #shopp.list ul.products li img { float: left; margin-right: 10px; }
@@ -95,7 +95,7 @@
 #shopp form.product ul li,
 #shopp form.product ul li label { clear: none; }
 #shopp ul.variations label { display: block; }
-#shopp dl { clear: both; }
+#shopp dl { overflow: hidden; }
 #shopp dl dt { font-weight: bold; float: left; margin-right: 10px; clear: left; }
 #shopp dl dd { display: block; clear: right; }
 

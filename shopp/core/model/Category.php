@@ -362,7 +362,6 @@ class Category extends DatabaseObject {
 			$ac = "SELECT count(DISTINCT p.id) AS total,IF(LEFT(p.name,1) REGEXP '[0-9]',LEFT(p.name,1),LEFT(SOUNDEX(p.name),1)) AS letter,AVG(IF(pd.sale='on',pd.saleprice,pd.price)) as avgprice 
 						FROM $producttable AS p 
 						LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' 
-						LEFT JOIN $catalogtable AS c ON c.product=p.id AND c.parent=$this->id 
 						LEFT JOIN $discounttable AS dc ON dc.product=p.id AND dc.price=pd.id
 						LEFT JOIN $promotable AS pr ON pr.id=dc.promo 
 						LEFT JOIN $imagetable AS img ON img.parent=p.id AND img.context='product' AND img.type='image' AND img.sortorder=0 
@@ -480,9 +479,7 @@ class Category extends DatabaseObject {
 		}
 		$this->pricing['average'] = 0;
 		if (count($prices) > 0) $this->pricing['average'] = array_sum($prices)/count($prices);
-		
-		print_r($pricing);
-		
+				
 		if (!isset($loading['load'])) $loading['load'] = array('prices');
 
 		if (count($this->products) > 0) {
@@ -519,10 +516,10 @@ class Category extends DatabaseObject {
 		
 		if (!$this->products) $this->load_products(array('limit'=>500,'load'=>array('images','prices')));
 		
-		if (SHOPP_PERMALINKS) $rssurl = user_trailingslashit($Shopp->shopuri.'feed');
-		else $rssurl = add_query_arg('shopp_lookup','products-rss',$Shopp->shopuri);
+		$link = SHOPP_PRETTYURLS?shoppurl('feed'):shoppurl(array('shopp_lookup'=>'products_rss'));
+
 		$rss = array('title' => get_bloginfo('name')." ".$this->name,
-			 			'link' => $rssurl,
+			 			'link' => $link,
 					 	'description' => $this->description,
 						'sitename' => get_bloginfo('name').' ('.get_bloginfo('url').')',
 						'xmlns' => array('shopp'=>'http://shopplugin.net/xmlns',
@@ -544,7 +541,7 @@ class Category extends DatabaseObject {
 			$Image = current($product->images);
 			if (!empty($Image)) {
 				$item['description'] .= '<a href="'.$item['link'].'" title="'.$product->name.'">';
-				$item['description'] .= '<img src="'.add_query_string($Image->resizing(96,96,0),$Shopp->imguri.$Image->id).'" alt="'.$product->name.'" width="96" height="96" style="float: left; margin: 0 10px 0 0;" />';
+				$item['description'] .= '<img src="'.add_query_string($Image->resizing(96,96,0),shoppurl($Image->id,'images')).'" alt="'.$product->name.'" width="96" height="96" style="float: left; margin: 0 10px 0 0;" />';
 				$item['description'] .= '</a>';
 			}
 			
@@ -565,7 +562,7 @@ class Category extends DatabaseObject {
 			 	'<![CDATA['.apply_filters('shopp_rss_description',$item['description'],$product).']]>';
 			
 			// Google Base Namespace
-			if($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),$Shopp->imguri.$Image->id);
+			if($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
 			$item['g:condition'] = "new";
 			$item['g:price'] = floatvalue($product->onsale?
 				$product->min['saleprice']:
@@ -595,23 +592,11 @@ class Category extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		$db = DB::get();
-
-		$page = $Shopp->link('catalog');
-		if (SHOPP_PERMALINKS) $imageuri = trailingslashit($page)."images/";
-		else $imageuri = add_query_arg('siid','=',$page);
-		
-		if (SHOPP_PERMALINKS) {
-			$pages = $Shopp->Settings->get('pages');
-			if ($page == user_trailingslashit(get_bloginfo('url')))
-				$page .= "/".$pages['catalog']['name']."/";
-		}
 		
 		switch ($property) {
 			case "link": 
 			case "url": 
-				return (SHOPP_PERMALINKS)?
-					user_trailingslashit(trailingslashit($Shopp->canonuri)."category/".urldecode($this->uri)):
-					add_query_arg('shopp_category',$this->id,$Shopp->canonuri);
+				return shoppurl(SHOPP_PRETTYURLS?'category/'.$this->uri:array('shopp_category'=>$this->id));
 				break;
 			case "id": return $this->id; break;
 			case "parent": return $this->parent; break;
@@ -735,8 +720,8 @@ class Category extends DatabaseObject {
 						}
 						$padding = str_repeat("&nbsp;",$category->depth*3);
 
-						if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.'category/'.$category->uri);
-						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
+						$category_uri = empty($category->id)?$category->uri:$category->id;
+						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('shopp_category'=>$category_uri));
 
 						$total = '';
 						if (value_is_true($products)) $total = '&nbsp;&nbsp;('.$category->products.')';
@@ -749,7 +734,7 @@ class Category extends DatabaseObject {
 					$string .= '</select>';
 
 					$script = "$('#shopp-{$this->slug}-subcategories-menu').change(function(){";
-					$script .= "document.location.href = $(this).val();';";
+					$script .= "document.location.href = $(this).val();";
 					$script .= "})";
 					add_storefrontjs($script);
 					
@@ -786,9 +771,11 @@ class Category extends DatabaseObject {
 							}
 						}
 					
-						if (SHOPP_PERMALINKS) $link = $Shopp->shopuri.'category/'.$category->uri;
-						else $link = add_query_arg('shopp_category',(!empty($category->id)?$category->id:$category->uri),$Shopp->shopuri);
-					
+						$category_uri = empty($category->id)?$category->uri:$category->id;
+						$link = SHOPP_PRETTYURLS?
+							shoppurl("category/$category->uri"):
+							shoppurl(array('shopp_category'=>$category_uri));
+										
 						$total = '';
 						if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
 					
@@ -893,8 +880,8 @@ class Category extends DatabaseObject {
 						}
 						$padding = str_repeat("&nbsp;",$category->depth*3);
 			
-						if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.'category/'.$category->uri);
-						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
+						$category_uri = empty($category->id)?$category->uri:$category->id;
+						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('shopp_category'=>$category_uri));
 			
 						$total = '';
 						if (value_is_true($products)) $total = '&nbsp;&nbsp;('.$category->total.')';
@@ -907,7 +894,7 @@ class Category extends DatabaseObject {
 					$string .= '</select>';
 					
 					$script = "$('#shopp-{$this->slug}-subcategories-menu').change(function(){";
-					$script .= "document.location.href = $(this).val();';";
+					$script .= "document.location.href = $(this).val();";
 					$script .= "})";
 					add_storefrontjs($script);
 								
@@ -927,8 +914,8 @@ class Category extends DatabaseObject {
 						}
 						if (value_is_true($hierarchy) && $category->depth < $depth) $string .= '</ul></li>';
 			
-						if (SHOPP_PERMALINKS) $link = user_trailingslashit($Shopp->shopuri.'category/'.$category->uri);
-						else $link = add_query_arg('shopp_category',$category->id,$Shopp->shopuri);
+						$category_uri = empty($category->id)?$category->uri:$category->id;
+						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('shopp_category'=>$category_uri));
 			
 						if (value_is_true($products)) $total = ' <span>('.$category->total.')</span>';
 			
@@ -952,7 +939,6 @@ class Category extends DatabaseObject {
 				break;
 			case "pagination":
 				if (!$this->paged) return "";
-				$page = $Shopp->shopuri;
 				global $wp;	
 				// Set options
 				if (!isset($options['label'])) $options['label'] = __("Pages:","Shopp");
@@ -976,9 +962,9 @@ class Category extends DatabaseObject {
 
 					$string .= '<ul class="paging">';
 					foreach ($this->alpha as $alpha) {
-						$link = (SHOPP_PERMALINKS)?
-							user_trailingslashit("$page"."$type/$this->uri/page/$alpha->letter"):
-							"$page&shopp_$type=$this->uri&paged=$alpha->letter";
+						$link = SHOPP_PRETTYURLS?
+							shoppurl("$type/$this->uri/page/$alpha->letter"):
+							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$alpha->letter));
 						if ($alpha->total > 0)
 							$string .= '<li><a href="'.$link.'">'.$alpha->letter.'</a></li>';
 						else $string .= '<li><span>'.$alpha->letter.'</span></li>';
@@ -1002,17 +988,16 @@ class Category extends DatabaseObject {
 						$visible_pages = $this->page + floor(($navlimit) / 2) + 1;
 						if ($visible_pages > $this->pages) $visible_pages = $this->pages + 1;
 						if ($i > 1) {
-							$link = (SHOPP_PERMALINKS)?
-								user_trailingslashit("$page"."$type/$this->uri/page/$i"):
-								"$page&shopp_$type=$this->uri&paged=$i";
+							$link = (SHOPP_PRETTYURLS)?
+								shoppurl("$type/$this->uri/page/1"):
+								shoppurl(array("shopp_$type"=>$this->uri,'paged'=>1));
 							$string .= '<li><a href="'.$link.'">1</a></li>';
 
 							$pagenum = ($this->page - $jumps);
 							if ($pagenum < 1) $pagenum = 1;
-							$link = (SHOPP_PERMALINKS)?
-								user_trailingslashit("$page"."$type/$this->uri/page/$pagenum"):
-								"$page&shopp_$type=$this->uri&paged=$pagenum";
-								
+							$link = (SHOPP_PRETTYURLS)?
+								shoppurl("$type/$this->uri/page/$pagenum"):
+								shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$pagenum));								
 							$string .= '<li><a href="'.$link.'">&laquo;</a></li>';
 						}
 					}
@@ -1020,17 +1005,17 @@ class Category extends DatabaseObject {
 					// Add previous button
 					if (!value_is_true($options['previous']) && $this->page > 1) {
 						$prev = $this->page-1;
-						$link = (SHOPP_PERMALINKS)?
-							user_trailingslashit("$page"."$type/$this->uri/page/$prev"):
-							"$page&shopp_$type=$this->uri&paged=$prev";
+						$link = (SHOPP_PRETTYURLS)?
+							shoppurl("$type/$this->uri/page/$prev"):
+							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$prev));
 						$string .= '<li class="previous"><a href="'.$link.'">'.$options['previous'].'</a></li>';
 					} else $string .= '<li class="previous disabled">'.$options['previous'].'</li>';
 					// end previous button
 
 					while ($i < $visible_pages) {
-						$link = (SHOPP_PERMALINKS)?
-							user_trailingslashit("$page"."$type/$this->uri/page/$i"):
-							"$page&shopp_$type=$this->uri&paged=$i";
+						$link = (SHOPP_PRETTYURLS)?
+							shoppurl("$type/$this->uri/page/$i"):
+							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$i));
 						if ( $i == $this->page ) $string .= '<li class="active">'.$i.'</li>';
 						else $string .= '<li><a href="'.$link.'">'.$i.'</a></li>';
 						$i++;
@@ -1038,23 +1023,23 @@ class Category extends DatabaseObject {
 					if ($this->pages > $visible_pages) {
 						$pagenum = ($this->page + $jumps);
 						if ($pagenum > $this->pages) $pagenum = $this->pages;
-						$link = (SHOPP_PERMALINKS)?
-							user_trailingslashit("$page"."$type/$this->uri/page/$pagenum"):
-							"$page&shopp_$type=$this->uri&paged=$pagenum";
+						$link = (SHOPP_PRETTYURLS)?
+							shoppurl("$type/$this->uri/page/$pagenum"):
+							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$pagenum));
 						$string .= '<li><a href="'.$link.'">&raquo;</a></li>';
 
-						$link = (SHOPP_PERMALINKS)?
-							user_trailingslashit("$page"."$type/$this->uri/page/$this->pages"):
-							"$page&shopp_$type=$this->uri&paged=$this->pages";
+						$link = (SHOPP_PRETTYURLS)?
+							shoppurl("$type/$this->uri/page/$this->pages"):
+							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$this->pages));
 						$string .= '<li><a href="'.$link.'">'.$this->pages.'</a></li>';	
 					}
 					
 					// Add next button
 					if (!value_is_true($options['next']) && $this->page < $this->pages) {						
 						$next = $this->page+1;
-						$link = (SHOPP_PERMALINKS)?
-							"$page"."$type/$this->uri/page/$next":
-							"$page&shopp_$type=$this->uri&paged=$next";
+						$link = (SHOPP_PRETTYURLS)?
+							shoppurl("$type/$this->uri/page/$next"):
+							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$next));
 						$string .= '<li class="next"><a href="'.$link.'">'.$options['next'].'</a></li>';
 					} else $string .= '<li class="next disabled">'.$options['next'].'</li>';
 					
@@ -1241,7 +1226,7 @@ class Category extends DatabaseObject {
 
 				if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
 				$alt = esc_attr(!empty($img->alt)?$img->alt:$this->name);
-				return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$Shopp->imguri.$img->id).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; 
+				return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; 
 				break;
 
 			case "hasimages":
@@ -1281,8 +1266,8 @@ class Category extends DatabaseObject {
 				$class = isset($options['class'])?' class="'.esc_attr($options['class']).'"':'';
 
 				$string = "";				
-				if (!empty($options['zoom'])) $string .= '<a href="'.$imageuri.$img->id.'/image.jpg" class="gallery shopp-zoom">';
-				$string .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$imageuri.$img->id).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
+				if (!empty($options['zoom'])) $string .= '<a href="'.shoppurl($img->id,'images').'" class="gallery shopp-zoom">';
+				$string .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
 				if (!empty($options['zoom'])) $string .= "</a>";
 				return $string;
 				break;
@@ -1484,17 +1469,17 @@ class TagProducts extends SmartCategory {
 		$tagtable = DatabaseObject::tablename(Tag::$table);
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 		
-		$this->tag = $options['tag'];
+		$this->tag = urldecode($options['tag']);
 		$tagquery = "";
 		if (strpos($options['tag'],',') !== false) {
 			$tags = explode(",",$options['tag']);
 			foreach ($tags as $tag)
 				$tagquery .= empty($tagquery)?"tag.name='$tag'":" OR tag.name='$tag'";
-		} else $tagquery = "tag.name='{$options['tag']}'";
+		} else $tagquery = "tag.name='{$this->tag}'";
 		
-		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($options['tag'])."&quot;";
-		$this->uri = urlencode($options['tag']);
-		$this->loading = array('where'=>"p.id in (SELECT product FROM $catalogtable AS catalog LEFT JOIN $tagtable AS tag ON catalog.tag=tag.id WHERE $tagquery)");
+		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($this->tag)."&quot;";
+		$this->uri = urlencode($this->tag);
+		$this->loading = array('where'=>"p.id in (SELECT product FROM $catalogtable AS catalog LEFT JOIN $tagtable AS tag ON catalog.parent=tag.id AND catalog.type='tag' WHERE $tagquery)");
 	}
 }
 

@@ -183,12 +183,12 @@ class Customer extends DatabaseObject {
 		$_[] = '';
 		$_[] = __('To reset your password visit the following address, otherwise just ignore this email and nothing will happen.');
 		$_[] = '';
-		$_[] = add_query_arg(array('acct'=>'rp','key'=>$RecoveryCustomer->activation),$Shopp->link('account'));
+		$_[] = add_query_arg(array('acct'=>'rp','key'=>$RecoveryCustomer->activation),shoppurl(false,'account'));
 		$message = apply_filters('shopp_recover_password_message',$_);
 		
 		if (!shopp_email(join("\r\n",$message))) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_recovery_email',SHOPP_ERR);
-			shopp_redirect(add_query_arg('acct','recover',$Shopp->link('account')));
+			shopp_redirect(add_query_arg('acct','recover',shoppurl(false,'account')));
 		} else {
 			new ShoppError(__('Check your email address for instructions on resetting the password for your account.','Shopp'),'password_recovery_email',SHOPP_ERR);
 		}
@@ -240,12 +240,12 @@ class Customer extends DatabaseObject {
 			$_[] = sprintf(__('Login name: %s','Shopp'), $user_data->user_login);
 		$_[] = sprintf(__('Password: %s'), $password) . "\r\n";
 		$_[] = '';
-		$_[] = __('Click here to login:').' '.$Shopp->link('account');
+		$_[] = __('Click here to login:').' '.shoppurl(false,'account');
 		$message = apply_filters('shopp_reset_password_message',$_);
 		
 		if (!shopp_email(join("\r\n",$message))) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_reset_email',SHOPP_ERR);
-			shopp_redirect(add_query_arg('acct','recover',$Shopp->link('account')));
+			shopp_redirect(add_query_arg('acct','recover',shoppurl(false,'account')));
 		} else {
 			new ShoppError(__('Check your email address for your new password.','Shopp'),'password_reset_email',SHOPP_ERR);
 		}
@@ -356,8 +356,8 @@ class Customer extends DatabaseObject {
 		// Return strings with no options
 		switch ($property) {
 			case "url": return add_query_arg('acct',false,esc_url($_SERVER['REQUEST_URI'])); break;
-			case "accounturl": return $Shopp->link('account'); break;
-			case "recover-url": return add_query_arg('acct','recover',$Shopp->link('account'));
+			case "accounturl": return shoppurl(false,'account'); break;
+			case "recover-url": return add_query_arg('acct','recover',shoppurl(false,'account'));
 			case "process":
 				if (isset($_GET['acct'])) return $_GET['acct'];
 				return false;
@@ -423,7 +423,7 @@ class Customer extends DatabaseObject {
 				}
 				break;
 			case "management":				
-				if (array_key_exists('url',$options)) return add_query_arg('acct',key($this->management),$Shopp->link('account'));
+				if (array_key_exists('url',$options)) return add_query_arg('acct',key($this->management),shoppurl(false,'account'));
 				if (array_key_exists('action',$options)) return key($this->management);
 				return $menus[key($this->management)];
 			case "accounts": return $Shopp->Settings->get('account_system'); break;
@@ -587,9 +587,10 @@ class Customer extends DatabaseObject {
 				if (array_key_exists('filetype',$options)) $string .= $properties['mimetype'];
 				if (array_key_exists('size',$options)) $string .= readableFileSize($download->size);
 				if (array_key_exists('date',$options)) $string .= _d($df,mktimestamp($download->created));
-				if (array_key_exists('url',$options)) $string .= (SHOPP_PERMALINKS) ?
-					$Shopp->shopuri."download/".$download->dkey : 
-					add_query_arg('shopp_download',$download->dkey,$Shopp->link('account'));
+				if (array_key_exists('url',$options)) 
+					$string .= SHOPP_PRETTYURLS?
+						shoppurl("download/$download->dkey"):
+						shoppurl(array('shopp_download'=>$download->dkey),'account');
 				
 				return $string;
 				break;
@@ -623,7 +624,7 @@ class Customer extends DatabaseObject {
 					array(
 						'acct'=>'receipt',
 						'id'=>$Shopp->Purchase->id),
-						$Shopp->link('account'));
+						shoppurl(false,'account'));
 
 		}
 	}

@@ -31,7 +31,7 @@ class Resources {
 		
 		if (empty($wp->query_vars)) $this->request = $_GET;
 		else $this->request = $wp->query_vars;
-		
+
 		add_action('shopp_resource_category_rss',array(&$this,'category_rss'));
 		add_action('shopp_resource_download',array(&$this,'download'));
 
@@ -62,8 +62,8 @@ class Resources {
 		global $Shopp;
 		require_once(SHOPP_FLOW_PATH.'/Storefront.php');
 		$Storefront = new Storefront();
-		$Storefront->catalog($this->request);
 		header("Content-type: application/rss+xml; charset=utf-8");
+		$Storefront->catalog($this->request);
 		echo shopp_rss($Shopp->Category->rss());
 		exit();
 	}
@@ -173,7 +173,7 @@ class Resources {
 				&& (!$Order->Customer->login
 				|| $Order->Customer->id != $Purchase->customer)) {
 					new ShoppError(__('You must login to access this download.','Shopp'),'shopp_download_limit',SHOPP_ERR);
-					shopp_redirect($Shopp->link('account'));
+					shopp_redirect(shoppurl(false,'account'));
 			}
 			
 			// Download limit checking

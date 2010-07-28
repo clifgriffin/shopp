@@ -26,7 +26,7 @@
 						<input name="name" id="title" type="text" value="<?php echo esc_attr($Category->name); ?>" size="30" tabindex="1" autocomplete="off" />
 					</div>
 					<div class="inside">
-						<?php if (SHOPP_PERMALINKS && !empty($Category->id)): ?>
+						<?php if (SHOPP_PRETTYURLS && !empty($Category->id)): ?>
 						<div id="edit-slug-box"><strong><?php _e('Permalink','Shopp'); ?>:</strong>
 						<span id="sample-permalink"><?php echo $permalink; ?><span id="editable-slug" title="<?php _e('Click to edit this part of the permalink','Shopp'); ?>"><?php echo esc_attr($Category->slug); ?></span><span id="editable-slug-full"><?php echo esc_attr($Category->slug); ?></span>/</span>
 						<span id="edit-slug-buttons"><button type="button" class="edit-slug button">Edit</button></span>

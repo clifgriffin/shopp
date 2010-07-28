@@ -144,7 +144,7 @@ class Purchase extends DatabaseObject {
 
 		// Return strings with no options
 		switch ($property) {
-			case "url": return $Shopp->link('cart'); break;
+			case "url": return shoppurl(false,'account'); break;
 			case "id": return $this->id; break;
 			case "date": 
 				if (empty($options['format'])) $options['format'] = get_option('date_format').' '.get_option('time_format');
@@ -227,8 +227,8 @@ class Purchase extends DatabaseObject {
 				if (!isset($options['label'])) $options['label'] = __('Download','Shopp');
 				$classes = "";
 				if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
-				if (SHOPP_PERMALINKS) $url = user_trailingslashit($Shopp->shopuri."download/".$item->dkey);
-				else $url = add_query_arg('shopp_download',$item->dkey,$Shopp->link('account'));
+				$request = SHOPP_PRETTYURLS?"download/$item->dkey":array('shopp_download'=>$item->dkey);
+				$url = shoppurl($request,'account');
 				return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>'; break;
 			case "item-quantity":
 				$item = current($this->purchased);
