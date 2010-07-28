@@ -144,6 +144,9 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 		chdir(WP_CONTENT_DIR);
 
+		if (!is_array($this->settings))
+			$this->settings = array('path' => array('image' => false, 'download' => false));
+
 		foreach ($this->settings['path'] as $method => $path) {
 			$error = false;
 			$p = sanitize_path(realpath($path));

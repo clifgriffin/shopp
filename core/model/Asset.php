@@ -579,6 +579,7 @@ interface StorageEngine {
 abstract class StorageModule {
 	
 	var $contexts;
+	var $settings;
 	
 	function __construct () {
 		global $Shopp;
