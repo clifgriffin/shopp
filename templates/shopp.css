@@ -173,12 +173,12 @@ ul.shopp_categories li ul.active { display: block; }
 #shopp #receipt address { font-style: normal; }
 #shopp #receipt fieldset { padding: 10px; border: 1px solid #dadada; margin: 20px 0 30px; }
 #shopp #receipt fieldset legend { display: block; }
-#shopp #receipt table { clear: both; }
+#shopp #receipt table { overflow: hidden; }
 #shopp #receipt table.transaction th { text-align: left; }
 #shopp #receipt .labels { width: 100%; }
 #shopp #receipt table.labels td { vertical-align: top; }
 
-#shopp #receipt .order { width: 100%; clear: both; border: none; }
+#shopp #receipt .order { width: 100%; overflow: hidden; border: none; }
 #shopp #receipt td { border: none; }
 #shopp #receipt th { font-weight: bold; text-align: left; border: none; }
 #shopp #receipt th, 
