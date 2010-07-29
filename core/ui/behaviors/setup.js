@@ -11,38 +11,52 @@ jQuery(document).ready(function () {
 		baseop = $('#base_operations'),
 		baseopZone = $('#base_operations_zone');
 
-	function activation (key,success,status) {
+	function activation (response,success,request) {
 		var button = activationButton.attr('disabled',false).removeClass('updating'),
-			keyin = $('#update-key');
-
+			keyin = $('#update-key'),
+			code = (response instanceof Array)?response[0]:false,
+			key = (response instanceof Array)?response[1]:false;
+			type = (response instanceof Array)?response[2]:false;
+		
+		if (code === false) {
+			button.attr('disabled',true);
+			return activationStatus.html(keyStatus['-000']).addClass('activating').show();
+			
+			//93f771d4a3f07b9b3743fb87ceddb2fe0e2d7ae0
+		}	
+			
+		// console.log('response: '+code+' / '+key+' / '+type);
+		
 		if (button.hasClass('deactivation')) button.html(SHOPP_DEACTIVATE_KEY);
 		else button.html(SHOPP_DEACTIVATE_KEY);
-
-		if (key[0] == "1") {
-			if (key[2] == "dev" && keyin.attr('type') == "text") keyin.replaceWith('<input type="password" name="updatekey" id="update-key" value="'+keyin.val()+'" readonly="readonly" size="40" />');
+		
+		if (code == "1") {
+			if (type == "dev" && keyin.attr('type') == "text") keyin.replaceWith('<input type="password" name="updatekey" id="update-key" value="'+keyin.val()+'" readonly="readonly" size="40" />');
 			else keyin.attr('readonly',true);
 			button.html(SHOPP_DEACTIVATE_KEY).addClass('deactivation');
-		}
-
-		if (key[0] == "0") {
+		} else {
 			if (keyin.attr('type') == "password") 
 				keyin.replaceWith('<input type="text" name="updatekey" id="update-key" value="" size="40" />');
-			else keyin.attr('readonly',false);
+			keyin.attr('readonly',false);
 			button.html(SHOPP_ACTIVATE_KEY).removeClass('deactivation');
 		}
 
-		if (key instanceof Array) 
-			activationStatus.html(keyStatus[key[0]]);
+		if (code !== false) {
+			activationStatus.html(keyStatus[code]);
+			if (code != 0 && code != 1) activationStatus.addClass('activating').show();
+			else activationStatus.removeClass('activating').show();
+		} else activationStatus.addClass('activating').show();
 
-		if (status) activationStatus.removeClass('activating').show();
-		else activationStatus.addClass('activating').show();
 	}
 
-	if (activated) activation([1],'success',true);
+	if (activated) activation([1],'success');
 	else activationStatus.show();
 
 	activationButton.click(function () {
 		$(this).html(SHOPP_CONNECTING+"&hellip;").attr('disabled',true).addClass('updating');
+		$.ajaxSetup({
+			
+		});
 		if ($(this).hasClass('deactivation'))
 			$.getJSON(deact_key_url+'&action=shopp_deactivate_key',activation);
 		else $.getJSON(act_key_url+'&action=shopp_activate_key&key='+$('#update-key').val(),activation);
