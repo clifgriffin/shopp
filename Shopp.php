@@ -397,42 +397,11 @@ class Shopp {
 	}
 	
 	/**
-	 * Builds a full URL for a specific Shopp-related resource
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
+	 * @deprecated {@see shoppurl()}
 	 * 
-	 * @param string $target The name of the target page
-	 * @param boolean $secure Toggle SSL URLs
-	 * @return string Generated URL
 	 **/
 	function link ($target,$secure=false) {
-		$internals = array("thanks","receipt","confirm-order");
-		
-		if (!$this->Settings->available) return;
-		$pages = $this->Settings->get('pages');
-		if (empty($pages)) {
-			$this->pages_index(true);
-			$pages = $this->Settings->get('pages');
-		}
-		
-		$uri = get_bloginfo('url');
-		if ($secure && !SHOPP_NOSSL) $uri = str_replace('http://','https://',$uri);
-
-		if (array_key_exists($target,$pages)) $page = $pages[$target];
-		else {
-			if (in_array($target,$internals)) {
-				$page = $pages['checkout'];
-				if (SHOPP_PRETTYURLS) {
-					$catalog = $pages['catalog']['uri'];
-					if (empty($catalog)) $catalog = $pages['catalog']['name'];
-					$page['uri'] = trailingslashit($catalog).$target;
-				} else $page['id'] .= "&shopp_proc=$target";
-			} else $page = $pages['catalog'];
- 		}
-
-		if (SHOPP_PRETTYURLS) return user_trailingslashit($uri."/".$page['uri']);
-		else return add_query_arg('page_id',$page['id'],trailingslashit($uri));
+		return shoppurl(false,$target,$secure);
 	}
 
 	/**
