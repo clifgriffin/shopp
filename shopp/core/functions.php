@@ -1593,10 +1593,9 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 		if (in_array($page,$dynamic)) {
 			$target = $pages['checkout'];
 			if (SHOPP_PRETTYURLS) {
-				$catalog = $pages['catalog']['uri'];
-				if (empty($catalog)) $catalog = $pages['catalog']['name'];
-				$path = trailingslashit($catalog).$target['uri'];
-			} else $pageid = $target['id']."&shopp_proc=$target";
+				$catalog = empty($pages['catalog']['uri'])?$pages['catalog']['name']:$pages['catalog']['uri'];
+				$path = trailingslashit($catalog).$page;
+			} else $pageid = $target['id']."&shopp_proc=$page";
 		} elseif ('images' == $page) {
 			$target = $pages['catalog'];
 			$path = trailingslashit($target['uri']).'images';
