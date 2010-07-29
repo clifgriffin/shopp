@@ -42,7 +42,7 @@
 #shopp #checkout > ul,
 #shopp #checkout > ul ul,
 #shopp #checkout > ul li { margin: 0; padding: 0; }
-#shopp form ul { width: 100%; clear: both; line-height: 1; }
+#shopp form ul { width: 100%; overflow: hidden; line-height: 1; }
 #shopp form ul li { text-indent: 0; clear: both; display: block; padding: 4px 0; margin: 0; }
 #shopp form label { clear: both; display: block; }
 #shopp form ul li label.inline { display: inline; clear: none; }
