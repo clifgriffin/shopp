@@ -285,53 +285,49 @@ class Shopp {
 		$this->pages_index(true);
 		$pages = $this->Settings->get('pages');
 		if (!$pages) $pages = $this->Flow->Pages;
-		$shop = $pages['catalog']['uri'];
-		if (!empty($shop)) $shop = trailingslashit($shop);
-		$catalog = $pages['catalog']['uri'];
-		$cart = $pages['cart']['uri'];
-		$checkout = $pages['checkout']['uri'];
-		$account = $pages['account']['uri'];
+
+		$uris = array();
+		foreach ($pages as $page => $data) $uris[$page] = $data['uri'];
+		extract($uris);
 
 		$rules = array(
 			$cart.'?$' => 'index.php?pagename='.shopp_pagename($cart),
 			$account.'?$' => 'index.php?pagename='.shopp_pagename($account),
 			$checkout.'?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=checkout',
-			(empty($shop)?"$catalog/":$shop).'feed/?$' => 'index.php?src=category_rss&shopp_category=new',
-			(empty($shop)?"$catalog/":$shop).'(thanks|receipt)/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=thanks',
-			(empty($shop)?"$catalog/":$shop).'confirm-order/?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=confirm-order',
-			(empty($shop)?"$catalog/":$shop).'download/([a-f0-9]{40})/?$' => 'index.php?pagename='.shopp_pagename($account).'&src=download&shopp_download=$matches[1]',
-			(empty($shop)?"$catalog/":$shop).'images/(\d+)/?.*?$' => 'index.php?siid=$matches[1]'
+			
+			/* catalog */
+			$catalog.'/feed/?$' // Catalog feed
+				=> 'index.php?src=category_rss&shopp_category=new',
+			$catalog.'/(thanks|receipt)/?$' // Thanks page handling
+				=> 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=thanks',
+			$catalog.'/confirm-order/?$' // Confirm order page handling
+				=> 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=confirm-order',
+			$catalog.'/download/([a-f0-9]{40})/?$' // Download handling
+				=> 'index.php?pagename='.shopp_pagename($account).'&src=download&shopp_download=$matches[1]',
+			$catalog.'/images/(\d+)/?.*?$' // Image handling
+				=> 'index.php?siid=$matches[1]',
+			
+			/* catalog/category/category-slug */
+			$catalog.'/category/(.+?)/feed/?$' // Category feeds
+				=> 'index.php?src=category_rss&shopp_category=$matches[1]',
+			$catalog.'/category/(.+?)/page/?(0\-9|[A-Z0-9]{1,})/?$' // Category pagination
+				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&paged=$matches[2]',
+			$catalog.'/category/(.+)/?$' // Category permalink
+				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]',
+			
+			/* catalog/tags */
+			$catalog.'/tag/(.+?)/feed/?$' // Tag feeds
+				=> 'index.php?src=category_rss&shopp_tag=$matches[1]',
+			$catalog.'/tag/(.+?)/page/?([0-9]{1,})/?$' // Tag pagination 
+				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]&paged=$matches[2]',
+			$catalog.'/tag/(.+)/?$' // Tag permalink
+				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]',
+
+			/* catalog/product-slug */
+			$catalog.'/(.+)/?$' => 'index.php?pagename='.shopp_pagename($catalog).'&shopp_product=$matches[1]'
+			
 		);
 
-		// catalog/category/category-slug
-		if (empty($shop)) {
-			$rules[$catalog.'/category/(.+?)/feed/?$'] = 'index.php?src=category_rss&shopp_category=$matches[1]';
-			$rules[$catalog.'/category/(.+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$catalog.'/category/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]';
-		} else {
-			$rules[$shop.'category/(.+?)/feed/?$'] = 'index.php?src=category-rss&shopp_category=$matches[1]';
-			$rules[$shop.'category/(.+?)/page/?([A-Z0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'category/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]';
-		}
-
-		// tags
-		if (empty($shop)) {
-			$rules[$catalog.'/tag/(.+?)/feed/?$'] = 'index.php?src=category_rss&shopp_tag=$matches[1]';
-			$rules[$catalog.'/tag/(.+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]&paged=$matches[2]';
-			$rules[$catalog.'/tag/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]';
-		} else {
-			$rules[$shop.'tag/(.+?)/feed/?$'] = 'index.php?shopp_lookup=category-rss&shopp_tag=$matches[1]';
-			$rules[$shop.'tag/(.+?)/page/?([0-9]{1,})/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]&paged=$matches[2]';
-			$rules[$shop.'tag/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_tag=$matches[1]';
-		}
-
-		// catalog/product-slug
-		if (empty($shop)) $rules[$catalog.'/(.+)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_product=$matches[1]'; // category/product-slug
-		else $rules[$shop.'(.+)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_product=$matches[1]'; // category/product-slug			
-
-		// catalog/categories/path/product-slug
-		if (empty($shop)) $rules[$catalog.'/([\w%_\\+-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug
-		else $rules[$shop.'([\w%_\+\-\/]+?)/([\w_\-]+?)/?$'] = 'index.php?pagename='.shopp_pagename($shop).'&shopp_category=$matches[1]&shopp_product=$matches[2]'; // category/product-slug			
 		$corepath = array(PLUGINDIR,$this->directory,'core');
 
 		// Add mod_rewrite rule for image server for low-resource, speedy delivery
@@ -349,16 +345,16 @@ class Shopp {
 	 * @return array Augmented list of query vars including Shopp vars
 	 **/
 	function queryvars ($vars) {
-		$vars[] = 'shopp_proc';
-		$vars[] = 'shopp_category';
-		$vars[] = 'shopp_tag';
-		$vars[] = 'shopp_pid';
-		$vars[] = 'shopp_product';
-		$vars[] = 'shopp_download';
-		$vars[] = 'src';
-		$vars[] = 'siid';
-		$vars[] = 'catalog';
-		$vars[] = 'acct';
+		$vars[] = 'shopp_proc';			// Shopp process parameter
+		$vars[] = 'shopp_category';		// Category slug or id
+		$vars[] = 'shopp_tag';			// Tag slug
+		$vars[] = 'shopp_pid';			// Product ID
+		$vars[] = 'shopp_product';		// Product slug
+		$vars[] = 'shopp_download';		// Download key
+		$vars[] = 'src';				// Shopp resource
+		$vars[] = 'siid';				// Shopp image id
+		$vars[] = 'catalog';			// Catalog flag
+		$vars[] = 'acct';				// Account process
 
 		return $vars;
 	}
