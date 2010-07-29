@@ -71,7 +71,7 @@ class Login {
 				if ($Account = new Customer($user->ID,'wpuser')) {
 					$this->login($Account);
 					$this->Customer->wpuser = $user->ID;
-					break;
+					return;
 				}
 			}
 		}
