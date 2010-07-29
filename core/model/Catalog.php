@@ -111,27 +111,28 @@ class Catalog extends DatabaseObject {
 
 				if (!$this->outofstock && $category->outofstock) continue;
 			}
+			$id = '_'.$category->id;
 			
-			$this->categories[$category->id] = new Category();
-			$this->categories[$category->id]->populate($category);
+			$this->categories[$id] = new Category();
+			$this->categories[$id]->populate($category);
 
 			if (isset($category->depth))
-				$this->categories[$category->id]->depth = $category->depth;
-			else $this->categories[$category->id]->depth = 0;
+				$this->categories[$id]->depth = $category->depth;
+			else $this->categories[$id]->depth = 0;
 
 			if (isset($category->total))
-				$this->categories[$category->id]->total = $category->total;
-			else $this->categories[$category->id]->total = 0;
+				$this->categories[$id]->total = $category->total;
+			else $this->categories[$id]->total = 0;
 
 			if (isset($category->stock))
-				$this->categories[$category->id]->stock = $category->stock;
-			else $this->categories[$category->id]->stock = 0;
+				$this->categories[$id]->stock = $category->stock;
+			else $this->categories[$id]->stock = 0;
 
 
 			if (isset($category->outofstock))
-				$this->categories[$category->id]->outofstock = $category->outofstock;
+				$this->categories[$id]->outofstock = $category->outofstock;
 			
-			$this->categories[$category->id]->_children = false;
+			$this->categories[$id]->_children = false;
 			if ($category->total > 0 && isset($this->categories[$category->parent])) {
 				$ancestor = $category->parent;
 				
@@ -537,10 +538,10 @@ class Catalog extends DatabaseObject {
 						$trail .= '<li><a href="'.$link.'">'.$Category->name.(!$trail?'':$separator).'</a></li>';
 					elseif (!empty($Category->name)) 
 						$trail .= '<li>'.$Category->name.$filters.(!$trail?'':$separator).'</li>';
-
+					
 					// Build category names path by going from the target category up the parent chain
-					$parentkey = (!empty($Category->id))?$this->categories[$Category->id]->parent:0;
-					while ($parentkey != 0) {
+					$parentkey = '_'.(!empty($Category->id)?$this->categories['_'.$Category->id]->parent:'0');
+					while ($parentkey != '_0') {
 						$tree_category = $this->categories[$parentkey];
 
 						$link = SHOPP_PRETTYURLS?
@@ -550,7 +551,7 @@ class Catalog extends DatabaseObject {
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.
 							(empty($trail)?'':$separator).'</li>'.$trail;
 					
-						$parentkey = $tree_category->parent;
+						$parentkey = '_'.$tree_category->parent;
 					}
 				}
 				$pages = $Shopp->Settings->get('pages');
