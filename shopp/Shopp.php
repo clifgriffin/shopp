@@ -284,14 +284,29 @@ class Shopp {
 		$pages = $this->Settings->get('pages');
 		if (!$pages) $pages = $this->Flow->Pages;
 
+		// Collect Shopp page URIs and IDs
 		$uris = array();
-		foreach ($pages as $page => $data) $uris[$page] = $data['uri'];
+		$builtins = array();
+		foreach ($pages as $page => $data) {
+			if ($page == "catalog")	$catalogid = $data['id'];
+			$uris[$page] = $data['uri'];
+			$builtins[] = $data['id'];
+		}
 		extract($uris);
-
+		
+		// Find sub-pages of the main catalog page so we can add rewrite exclusions
+		$pagenames = array();
+		$subpages = get_pages(array('child_of'=>$catalogid,'exclude'=>join(',',$builtins)));
+		foreach ($subpages as $page) $pagenames[] = $page->post_name;
+		
+		// Build the rewrite rules for Shopp
 		$rules = array(
 			$cart.'?$' => 'index.php?pagename='.shopp_pagename($cart),
 			$account.'?$' => 'index.php?pagename='.shopp_pagename($account),
 			$checkout.'?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=checkout',
+			
+			/* Exclude sub-pages of the main storefront page (catalog page) */
+			'('.$catalog.'/('.join('|',$pagenames).'))?$' => 'index.php?pagename=$matches[1]',
 			
 			/* catalog */
 			$catalog.'/feed/?$' // Catalog feed
@@ -326,10 +341,10 @@ class Shopp {
 			
 		);
 
-		$corepath = array(PLUGINDIR,$this->directory,'core');
-
 		// Add mod_rewrite rule for image server for low-resource, speedy delivery
+		$corepath = array(PLUGINDIR,$this->directory,'core');
 		add_rewrite_rule('.*/images/(\d+)[/\?]?(.*?)$',join('/',$corepath).'/image.php?siid=$1&$2');
+
 		return $rules + $wp_rewrite_rules;
 	}
 	
