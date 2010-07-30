@@ -139,18 +139,28 @@ class Setup extends FlowController {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_presentation')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if (isset($_POST['settings']['theme_templates']) && $_POST['settings']['theme_templates'] == "on") 
-			$_POST['settings']['theme_templates'] = addslashes(sanitize_path(STYLESHEETPATH.'/'."shopp"));
+		$builtin_path = SHOPP_PATH.'/templates';
+		$theme_path = sanitize_path(STYLESHEETPATH.'/shopp');
+
+		// if (isset($_POST['settings']['theme_templates']) && $_POST['settings']['theme_templates'] == "on") 
+		// 	$_POST['settings']['theme_templates'] = addslashes(sanitize_path(STYLESHEETPATH.'/'."shopp"));
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-presentation');
+			$updated = __('Shopp presentation settings saved.','Shopp');
+
+			if (isset($_POST['settings']['theme_templates']) 
+				&& $_POST['settings']['theme_templates'] == "on"
+				&& !is_dir($theme_path)) {
+					$_POST['settings']['theme_templates'] = "off";	
+					$updated = __('Shopp theme templates can\'t be used because they don\'t exist.','Shopp');
+			}
+			
 			if (empty($_POST['settings']['catalog_pagination']))
 				$_POST['settings']['catalog_pagination'] = 0;
 			$this->settings_save();
-			$updated = __('Shopp presentation settings saved.');
 		}
 		
-		$builtin_path = SHOPP_PATH.'/'."templates";
-		$theme_path = sanitize_path(STYLESHEETPATH.'/'."shopp");
 
 		// Copy templates to the current WordPress theme
 		if (!empty($_POST['install'])) {
@@ -182,15 +192,7 @@ class Setup extends FlowController {
 						 "name" => __('File name','Shopp'),
 						 "created" => __('Upload date','Shopp'));
 		
-		$sizingOptions = array(	__('Scale to fit','Shopp'),
-								__('Scale &amp; crop','Shopp'));
-								
-		$qualityOptions = array(__('Highest quality, largest file size','Shopp'),
-								__('Higher quality, larger file size','Shopp'),
-								__('Balanced quality &amp; file size','Shopp'),
-								__('Lower quality, smaller file size','Shopp'),
-								__('Lowest quality, smallest file size','Shopp'));
-		
+
 		include(SHOPP_ADMIN_PATH."/settings/presentation.php");
 	}
 

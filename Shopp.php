@@ -162,13 +162,13 @@ class Shopp {
 		define("SHOPP_DBSCHEMA",SHOPP_MODEL_PATH."/schema.sql");
 
 		define("SHOPP_TEMPLATES",($this->Settings->get('theme_templates') != "off" 
-			&& is_dir($this->Settings->get('theme_templates')))?
-					  $this->Settings->get('theme_templates'):
+			&& is_dir(get_stylesheet_directory().'/shopp'))?
+					  get_stylesheet_directory().'/shopp':
 					  SHOPP_PATH.'/'."templates");
 		define("SHOPP_TEMPLATES_URI",($this->Settings->get('theme_templates') != "off"
-			&& is_dir($this->Settings->get('theme_templates')))?
+			&& is_dir(get_stylesheet_directory().'/shopp'))?
 					  get_bloginfo('stylesheet_directory')."/shopp":
-					  $this->uri."/templates");
+					  SHOPP_PLUGINURI."/templates");
 
 		define("SHOPP_PRETTYURLS",(get_option('permalink_structure') == "")?false:true);
 		define("SHOPP_PERMALINKS",SHOPP_PRETTYURLS); // Deprecated

@@ -17,18 +17,19 @@
 					case "directory":?>
 					<input type="button" name="template_instructions" id="show-instructions" value="<?php _e('Use Custom Templates','Shopp'); ?>" class="button-secondary" />
 					<div id="template-instructions">
-					<p><?php _e('To customize shopping templates for your current WordPress theme:','Shopp'); ?> (<a href="http://docs.shopplugin.net/Customizing_Shopping_Templates" target="_blank"><?php _e('Click here for more help','Shopp'); ?></a>)</p>
+					<p><?php _e('To customize shopping templates for your current WordPress theme:','Shopp'); ?></p>
 					<ol>
 						<li><?php _e('Create a directory in your active theme named <code>shopp</code>','Shopp'); ?></li>
 						<li><?php _e('Give your web server access to write to the <code>shopp</code> directory','Shopp'); ?></li>
 						<li><?php _e('Refresh this page for more instructions','Shopp'); ?></li>
 					</ol>
+					<p><a href="<?php echo SHOPP_DOCS; ?>Setting_Up_Theme_Templates" target="_blank"><?php _e('More help setting up theme templates','Shopp'); ?></a></p>
 					</div>
 						<?php
 						break;
 					case "permissions":?>
 					<p><?php _e('The <code>shopp</code> directory exists in your current WordPress theme, but is not writable.','Shopp'); ?></p>
-					<p><?php _e('You need to give <code>write</code> permissions to the <code>shopp</code> directory to continue.','Shopp'); ?> (<a href="http://docs.shopplugin.net/Changing_File_Permissions" target="_blank"><?php _e('Click here for more help','Shopp'); ?></a>)</p>
+					<p><?php _e('You need to give <code>write</code> permissions to the <code>shopp</code> directory to continue.','Shopp'); ?> (<a href="<?php echo SHOPP_DOCS; ?>Giving_the_Web_Server_Write_Permisssions" target="_blank"><?php _e('Giving the Web Server Write Permisssions','Shopp'); ?></a>)</p>
 						<?php
 						break;
 					case "incomplete":?>
