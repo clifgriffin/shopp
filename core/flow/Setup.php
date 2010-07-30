@@ -430,7 +430,7 @@ class Setup extends FlowController {
 		
 		if ($this->Settings->get('error_logging') > 0)
 			$recentlog = $Shopp->ErrorLog->tail(500);
-			
+						
 		include(SHOPP_ADMIN_PATH."/settings/system.php");
 	}
 	

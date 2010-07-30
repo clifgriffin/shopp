@@ -696,12 +696,11 @@ class Order {
 	 **/
 	function tag ($property,$options=array()) {
 		global $Shopp,$wp;
-		$xcos = $Shopp->Settings->get('xco_gateways');
+
 		$pages = $Shopp->Settings->get('pages');
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
 		$process = get_query_var('shopp_proc');
-		$xco = get_query_var('shopp_xco');
 
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
