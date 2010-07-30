@@ -83,16 +83,15 @@ class Shopp {
 	var $Catalog;			// The main catalog
 	var $Category;			// Current category
 	var $Product;			// Current product
-	var $Cart;				// The shopping cart
-	var $Login;				// The currently authenticated customer
 	var $Purchase; 			// Currently requested order receipt
-	var $Promotions;		// Active promotions registry
-	var $Shipping;			// Shipping modules
-	var $Gateways;			// Gateway modules
-	var $Storage;			// Storage engine modules
 	var $Shopping; 			// The shopping session
 	var $Errors;			// Error system
+	var $Order;				// The current session Order
+	var $Promotions;		// Active promotions registry
 	var $SmartCategories;	// Smart Categories registry
+	var $Gateways;			// Gateway modules
+	var $Shipping;			// Shipping modules
+	var $Storage;			// Storage engine modules
 	
 	var $path;		  		// File ystem path to the plugin
 	var $file;		  		// Base file name for the plugin (this file)
@@ -185,6 +184,7 @@ class Shopp {
         add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array(&$this, 'status'),10,2);
         add_action('install_plugins_pre_plugin-information', array(&$this, 'changelog'));
         add_action('shopp_check_updates', array(&$this, 'updates'));
+		add_action('load-plugins.php',array(&$this, 'updates'));
 				
 		// Theme integration
 		add_action('widgets_init', array(&$this, 'widgets'));
@@ -197,8 +197,6 @@ class Shopp {
 
 		add_filter('query_vars', array(&$this,'queryvars'));
 
-		add_action('load-plugins.php',array(&$this, 'updates'));
-		
 		if (!wp_next_scheduled('shopp_check_updates'))
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
 

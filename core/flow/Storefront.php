@@ -365,7 +365,12 @@ class Storefront extends FlowController {
 
 	function searching () {
 		global $Shopp,$wp;
-		if (!isset($_GET['s']) || !isset($wp->query_vars['catalog'])) return false;
+		
+		if (!isset($_GET['s']) 								// No search query
+			|| !isset($wp->query_vars['catalog']) 			// No catalog flag
+			|| (isset($wp->query_vars['catalog']) 			// Catalog flag exists &
+				&& $wp->query_vars['catalog'] == 'false'))	// explicitly turned off
+					return false;							// ...not searching Shopp
 
 		$this->search = $wp->query_vars['s'];
 		$this->searching = true;

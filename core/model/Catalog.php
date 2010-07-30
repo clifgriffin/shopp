@@ -576,6 +576,9 @@ class Catalog extends DatabaseObject {
 				
 				$defaults = array(
 					'type' => 'hidden',
+					'option' => 'shopp',
+					'blog_option' => __('Search the blog','Shopp'),
+					'shop_option' => __('Search the Shop','Shopp'),
 					'label_before' => '',
 					'label_after' => ''
 				);
@@ -583,9 +586,30 @@ class Catalog extends DatabaseObject {
 				extract($options);
 				
 				$allowed = array("accesskey","alt","checked","class","disabled","format", "id",
-					"minlength","maxlength","readonly","required","size","src","tabindex","title");
+					"minlength","maxlength","readonly","required","size","src","tabindex","title","value");
 				
-				$intput =  '<input name="catalog" value="true"'.inputattrs($options,$allowed).' />';
+				$options['value'] = ($option == "shopp");
+				
+				switch ($type) {
+					case "checkbox":
+						$input =  '<input type="checkbox" name="catalog"'.inputattrs($options,$allowed).' />';
+						break;
+					case "radio":
+						$input =  '<input type="radio" name="catalog"'.inputattrs($options,$allowed).' />';
+						break;
+					case "menu":
+						$allowed = array("accesskey","alt","class","disabled","format", "id",
+							"readonly","required","size","tabindex","title");
+						
+						$input = '<select name="catalog"'.inputattrs($options,$allowed).'>';
+						$input .= '<option value="false">'.$blog_option.'</option>';
+						$input .= '<option value="true">'.$shop_option.'</option>';
+						$input .= '</select>';
+						break;
+					default:
+						$input =  '<input type="hidden" name="catalog"'.inputattrs($options,$allowed).' />';
+						break;
+				}
 				
 				$before = (!empty($label_before))?'<label>'.$label_before:'<lable>';
 				$after = (!empty($label_after))?$label_after.'</label>':'</lable>';
