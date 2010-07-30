@@ -28,8 +28,8 @@ class Login {
 	var $accounts = "none";		// Account system setting
 	
 	function __construct () {
-		global $Shopp;
-		
+		global $Shopp,$wp;
+
 		$this->accounts = $Shopp->Settings->get('account_system');
 		
 		$this->Customer =& $Shopp->Order->Customer;
@@ -43,6 +43,9 @@ class Login {
 			add_action('wp_logout',array(&$this,'logout'));
 			add_action('shopp_logout','wp_clear_auth_cookie');					
 		}
+		
+		if (isset($_POST['shopp_registration'])) 
+			$this->registration();
 
 		$this->process();
 		
@@ -229,6 +232,60 @@ class Login {
 		session_commit();
 	}
 	
+	function registration () {
+		$Errors =& ShoppErrors();
+
+		if (isset($_POST['info'])) $this->Customer->info = stripslashes_deep($_POST['info']);
+
+		$this->Customer = new Customer();
+		$this->Customer->updates($_POST);
+
+		if (isset($_POST['confirm-password']))
+			$this->Customer->confirm_password = $_POST['confirm-password'];
+
+		$this->Billing = new Billing();
+		if (isset($_POST['billing'])) 
+			$this->Billing->updates($_POST['billing']);
+		
+		// Special case for updating/tracking billing locale
+		// if (!empty($_POST['billing']['locale'])) 
+		// 	$this->Billing->locale = $_POST['billing']['locale'];
+
+		$this->Shipping = new Shipping();
+		if (isset($_POST['shipping'])) 
+			$this->Shipping->updates($_POST['shipping']);
+
+		// Override posted shipping updates with billing address
+		if ($_POST['sameshipaddress'] == "on")
+			$this->Shipping->updates($this->Billing,
+				array("_datatypes","_table","_key","_lists","id","created","modified"));
+		
+		// WordPress account integration used, customer has no wp user
+		if ($this->accounts == "wordpress" && empty($this->Customer->wpuser))
+			$this->Customer->create_wpuser();
+		
+		if ($Errors->exist(SHOPP_ERR)) return false;
+
+		// New customer, save hashed password
+		if (empty($this->Customer->id) && !empty($this->Customer->password))
+			$this->Customer->password = wp_hash_password($this->Customer->password);
+		else unset($this->Customer->password); // Existing customer, do not overwrite password field!
+
+		$this->Customer->save();
+		if ($Errors->exist(SHOPP_ERR)) return false;
+
+		$this->Billing->customer = $this->Customer->id;
+		$this->Billing->save();
+
+		if (!empty($this->Shipping->address)) {
+			$this->Shipping->customer = $this->Customer->id;
+			$this->Shipping->save();
+		}
+		
+		if (!empty($this->Customer->id)) $this->login($this->Customer);
+		
+		shopp_redirect(shoppurl(false,'account'));
+	}
 
 } // END class Login
 

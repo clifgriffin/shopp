@@ -345,6 +345,8 @@ class Customer extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		
+		$Order =& $Shopp->Order;
+		
 		$menus = array(
 			"account" => __("My Account","Shopp"),
 			"downloads" => __("Downloads","Shopp"),
@@ -358,6 +360,23 @@ class Customer extends DatabaseObject {
 			case "url": return add_query_arg('acct',false,esc_url($_SERVER['REQUEST_URI'])); break;
 			case "accounturl": return shoppurl(false,'account'); break;
 			case "recover-url": return add_query_arg('acct','recover',shoppurl(false,'account'));
+			case "registration-form":
+				$regions = Lookup::country_zones();
+				add_storefrontjs("var regions = ".json_encode($regions).";",true);
+				return $_SERVER['REQUEST_URI'];
+				break;
+			case "registration-errors":
+				$Errors =& ShoppErrors();
+				if (!$Errors->exist(SHOPP_ERR)) return false;
+				ob_start();
+				include(SHOPP_TEMPLATES.'/errors.php');
+				$markup = ob_get_contents();
+				ob_end_clean();
+				return $markup;
+				break;
+			case "register":
+				return '<input type="submit" name="shopp_registration" value="Register" />';
+				break;
 			case "process":
 				if (isset($_GET['acct'])) return $_GET['acct'];
 				return false;
@@ -484,8 +503,8 @@ class Customer extends DatabaseObject {
 				break;
 			case "loginname":
 				if (isset($options['mode']) && $options['mode'] == "value") return $this->loginname;
-				if (!empty($this->login))
-					$options['value'] = $this->login; 
+				if (!empty($this->loginname))
+					$options['value'] = $this->loginname; 
 				return '<input type="text" name="login" id="login"'.inputattrs($options).' />';
 				break;
 			case "password":
@@ -536,6 +555,168 @@ class Customer extends DatabaseObject {
 					return '<input type="text" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />'; 
 				}
 				break;
+
+			// SHIPPING TAGS
+			case "shipping": return $Order->Shipping;
+			case "shipping-address": 
+				if ($options['mode'] == "value") return $Order->Shipping->address;
+				if (!empty($Order->Shipping->address))
+					$options['value'] = $Order->Shipping->address; 
+				return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
+				break;
+			case "shipping-xaddress":
+				if ($options['mode'] == "value") return $Order->Shipping->xaddress;
+				if (!empty($Order->Shipping->xaddress))
+					$options['value'] = $Order->Shipping->xaddress; 
+				return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
+				break;
+			case "shipping-city":
+				if ($options['mode'] == "value") return $Order->Shipping->city;
+				if (!empty($Order->Shipping->city))
+					$options['value'] = $Order->Shipping->city; 
+				return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
+				break;
+			case "shipping-province":
+			case "shipping-state":
+				if ($options['mode'] == "value") return $Order->Shipping->state;
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($Order->Shipping->state)) {
+					$options['selected'] = $Order->Shipping->state;
+					$options['value'] = $Order->Shipping->state;
+				}
+				$countries = Lookup::countries();
+				$output = false;
+				$country = $base['country'];
+				if (!empty($Order->Shipping->country))
+					$country = $Order->Shipping->country;
+				if (!array_key_exists($country,$countries)) $country = key($countries);
+
+				if (empty($options['type'])) $options['type'] = "menu";
+				$regions = Lookup::country_zones();
+				$states = $regions[$country];
+				if (is_array($states) && $options['type'] == "menu") {
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'>';
+					$output .= '<option value="" selected="selected">'.$label.'</option>';
+				 	$output .= menuoptions($states,$options['selected'],true);
+					$output .= '</select>';
+				} else if ($options['type'] == "menu") {
+					$options['disabled'] = 'disabled';
+					$options['class'] = ($options['class']?" ":null).'unavailable'; 
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'></select>';				
+				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
+				return $output;
+				break;
+			case "shipping-postcode":
+				if ($options['mode'] == "value") return $Order->Shipping->postcode;
+				if (!empty($Order->Shipping->postcode))
+					$options['value'] = $Order->Shipping->postcode; 				
+				return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />'; break;
+			case "shipping-country": 
+				if ($options['mode'] == "value") return $Order->Shipping->country;
+				$base = $Shopp->Settings->get('base_operations');
+				if (!empty($Order->Shipping->country))
+					$options['selected'] = $Order->Shipping->country;
+				else if (empty($options['selected'])) $options['selected'] = $base['country'];
+				
+				$countries = $Shopp->Settings->get('target_markets');
+				
+				$output = '<select name="shipping[country]" id="shipping-country" '.inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($countries,$options['selected'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+			case "same-shipping-address":
+				$label = __("Same shipping address","Shopp");
+				if (isset($options['label'])) $label = $options['label'];
+				$checked = ' checked="checked"';
+				if (isset($options['checked']) && !value_is_true($options['checked'])) $checked = '';
+				$output = '<label for="same-shipping"><input type="checkbox" name="sameshipaddress" value="on" id="same-shipping" '.$checked.' /> '.$label.'</label>';
+				return $output;
+				break;
+			case "residential-shipping-address":
+				$label = __("Residential shipping address","Shopp");
+				if (isset($options['label'])) $label = $options['label'];
+				if (isset($options['checked']) && value_is_true($options['checked'])) $checked = ' checked="checked"';
+				$output = '<label for="residential-shipping"><input type="hidden" name="shipping[residential]" value="no" /><input type="checkbox" name="shipping[residential]" value="yes" id="residential-shipping" '.$checked.' /> '.$label.'</label>';
+				return $output;
+				break;
+
+			// BILLING TAGS
+			case "billing-address":
+				if ($options['mode'] == "value") return $Order->Billing->address;
+				if (!empty($Order->Billing->address))
+					$options['value'] = $Order->Billing->address;			
+				return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
+				break;
+			case "billing-xaddress":
+				if ($options['mode'] == "value") return $Order->Billing->xaddress;
+				if (!empty($Order->Billing->xaddress))
+					$options['value'] = $Order->Billing->xaddress;			
+				return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
+				break;
+			case "billing-city":
+				if ($options['mode'] == "value") return $Order->Billing->city;
+				if (!empty($Order->Billing->city))
+					$options['value'] = $Order->Billing->city;			
+				return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />'; 
+				break;
+			case "billing-province": 
+			case "billing-state": 
+				if ($options['mode'] == "value") return $Order->Billing->state;
+				if (!isset($options['selected'])) $options['selected'] = false;
+				if (!empty($Order->Billing->state)) {
+					$options['selected'] = $Order->Billing->state;
+					$options['value'] = $Order->Billing->state;
+				}
+				if (empty($options['type'])) $options['type'] = "menu";
+				$countries = Lookup::countries();
+
+				$output = false;
+				$country = $base['country'];
+				if (!empty($Order->Billing->country))
+					$country = $Order->Billing->country;
+				if (!array_key_exists($country,$countries)) $country = key($countries);
+
+				$regions = Lookup::country_zones();
+				$states = $regions[$country];
+				if (is_array($states) && $options['type'] == "menu") {
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'>';
+					$output .= '<option value="" selected="selected">'.$label.'</option>';
+				 	$output .= menuoptions($states,$options['selected'],true);
+					$output .= '</select>';
+				} else if ($options['type'] == "menu") {
+					$options['disabled'] = 'disabled';
+					$options['class'] = ($options['class']?" ":null).'unavailable';
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'></select>';					
+				} else $output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
+				return $output;
+				break;
+			case "billing-postcode":
+				if ($options['mode'] == "value") return $Order->Billing->postcode;
+				if (!empty($Order->Billing->postcode))
+					$options['value'] = $Order->Billing->postcode;			
+				return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
+				break;
+			case "billing-country": 
+				if ($options['mode'] == "value") return $Order->Billing->country;
+				$base = $Shopp->Settings->get('base_operations');
+
+				if (!empty($Order->Billing->country))
+					$options['selected'] = $Order->Billing->country;
+				else if (empty($options['selected'])) $options['selected'] = $base['country'];
+
+				$countries = $Shopp->Settings->get('target_markets');
+				
+				$output = '<select name="billing[country]" id="billing-country" '.inputattrs($options,$select_attrs).'>';
+			 	$output .= menuoptions($countries,$options['selected'],true);
+				$output .= '</select>';
+				return $output;
+				break;
+				
 			case "save-button":
 				if (!isset($options['label'])) $options['label'] = __('Save','Shopp');
 				$result = '<input type="hidden" name="customer" value="true" />';
