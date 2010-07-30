@@ -142,9 +142,6 @@ class Setup extends FlowController {
 		$builtin_path = SHOPP_PATH.'/templates';
 		$theme_path = sanitize_path(STYLESHEETPATH.'/shopp');
 
-		// if (isset($_POST['settings']['theme_templates']) && $_POST['settings']['theme_templates'] == "on") 
-		// 	$_POST['settings']['theme_templates'] = addslashes(sanitize_path(STYLESHEETPATH.'/'."shopp"));
-
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-presentation');
 			$updated = __('Shopp presentation settings saved.','Shopp');

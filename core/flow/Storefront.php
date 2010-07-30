@@ -204,20 +204,22 @@ class Storefront extends FlowController {
 	 * name and category (when available) */
 	function titles ($title,$sep=" &mdash; ",$placement="left") {
 		global $wp;
+		
 		if (!isset($wp->query_vars['shopp_category']) 
+			&& !isset($wp->query_vars['shopp_tag'])
 			&& !isset($wp->query_vars['shopp_product'])
 			&& !isset($wp->query_vars['shopp_pid'])) return $title;
 		if (empty($this->Product->name) && empty($this->Category->name)) return $title;
 
-		if ($placement == "right") {
-			if (!empty($this->Product->name)) $title = $this->Product->name." $sep ".$title;
-			if (!empty($this->Category->name)) $title = $this->Category->name." $sep ".$title;
-		} else {
-			if (!empty($this->Category->name)) $title .= " $sep ".$this->Category->name;
-			if (!empty($this->Product->name)) $title .=  " $sep ".$this->Product->name;
-		}
+		$_ = array();
+		$_[] = empty($title)?get_bloginfo('name'):$title;
+		if (!empty($this->Category->name)) $_[] = $this->Category->name;
+		if (!empty($this->Product->name)) $_[] = $this->Product->name;
 
-		return $title;
+		if ("right" == $placement) $_ = array_reverse($_);
+		
+		$_ = apply_filters('shopp_document_titles',$_);
+		return join($sep,$_);
 	}
 
 	// Override the post title for internal Shopp checkout process pages
