@@ -152,7 +152,11 @@ jQuery(document).ready(function () {
 			request.page = workflow[setting];
 			request.id = category;
 			if (!request.id) request.id = "new";
-			if (setting == "new") request.next = setting;
+			if (setting == "new") {
+				request.id = "new";
+				request.next = setting;
+			}
+			if (setting == "close") delete request.id;
 
 			// Find previous category
 			if (setting == "previous") {
