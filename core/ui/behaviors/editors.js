@@ -733,7 +733,7 @@ function ImageUploads (id,type) {
 			sorting : false
 			
 		},
-		debug: imageupload_debug
+		debug: true // imageupload_debug
 		
 	}
 	
@@ -880,7 +880,7 @@ function ImageUploads (id,type) {
 	}
 
 	function startImageUpload (file) {
-		this.targetHolder = $('<li class="image uploading"><input type="hidden" name="images[]" value="" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo($('#lightbox'))
+		this.targetHolder = $('<li class="image uploading"><input type="hidden" name="images[]" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo($('#lightbox'))
 		this.progressBar = this.targetHolder.find('div.bar');
 		this.sorting = this.targetHolder.find('input');
 	}
@@ -904,6 +904,7 @@ function ImageUploads (id,type) {
 		}
 	
 		this.targetHolder.attr({'id':'image-'+image.id});
+		this.targetHolder.find('input[type=hidden]').attr({'id':'image-'+image.id}).val(image.id);
 		this.sorting.val(image.src);
 		img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 		deleteButton = $('<button type="button" name="deleteImage" value="'+image.id+'" title="Delete product image&hellip;" class="deleteButton"><img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" /></button>').appendTo(this.targetHolder).hide();
