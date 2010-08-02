@@ -25,6 +25,7 @@ class Item {
 	var $variations = array();	// The available variation options
 	var $data = array();		// Custom input data
 	var $quantity = 0;			// The selected quantity for the line item
+	var $addonsum = 0;			// The sum of selected addons
 	var $unitprice = 0;			// Per unit price
 	var $priced = 0;			// Per unit price after discounts are applied
 	var $totald = 0;			// Total price after discounts
@@ -59,7 +60,7 @@ class Item {
 	 * @return void
 	 **/
 	function __construct ($Product,$pricing,$category=false,$data=array(),$addons=array()) {
-		
+
 		$Product->load_data(array('prices','images','categories','tags','specs'));
 		
 		// If product variations are enabled, disregard the first priceline
@@ -92,9 +93,8 @@ class Item {
 		if ($Product->variations == "on") 
 			$this->variations($Product->prices);
 			
-		$addonsum = 0;
 		if (isset($Product->addons) && $Product->addons == "on") 
-			$this->addons($addonsum,$addons,$Product->prices);
+			$this->addons($this->addonsum,$addons,$Product->prices);
 
 		if (isset($Price->id))
 			$this->option = $this->mapprice($Price);
@@ -105,7 +105,7 @@ class Item {
 		$this->freeshipping = $Price->freeshipping;
 		// $this->saved = ($Price->price - $Price->promoprice);
 		// $this->savings = ($Price->price > 0)?percentage($this->saved/$Price->price)*100:0;
-		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price)+$addonsum;
+		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price)+$this->addonsum;
 		if ($this->type == "Donation")
 			$this->donation = $Price->donation;
 		$this->data = stripslashes_deep(attribute_escape_deep($data));
@@ -187,11 +187,13 @@ class Item {
 
 		$qty = preg_replace('/[^\d+]/','',$qty);
 		if ($this->inventory) {
-			if ($qty > $this->option->stock) {
+			$levels = array($this->option->stock);
+			foreach ($this->addons as $addon) // Take into account stock levels of any addons
+				if ($addon->inventory == "on") $levels[] = $addon->stock;
+			if ($qty > min($levels)) {
 				new ShoppError(__('Not enough of the product is available in stock to fulfill your request.','Shopp'),'item_low_stock');
-				$this->quantity = $this->option->stock;
-			}
-			else $this->quantity = $qty;
+				$this->quantity = min($levels);
+			} else $this->quantity = $qty;
 		} else $this->quantity = $qty;
 		
 		$this->retotal();
@@ -229,7 +231,7 @@ class Item {
 		$string = "";
 		foreach($this->variations as $option) {
 			if ($option->type == "N/A") continue;
-			$currently = ($option->onsale)?$option->promoprice:$option->price;
+			$currently = ($option->onsale?$option->promoprice:$option->price)+$this->addonsum;
 			$difference = (float)($currently+$this->unittax)-($this->unitprice+$this->unittax);
 
 			$price = '';
@@ -259,10 +261,10 @@ class Item {
 	 **/
 	function variations ($prices) {
 		foreach ($prices as $price)	{
-			if ($price->type == "N/A") continue;
+			if ($price->type == "N/A" || $price->context != "variation") continue;
 			$pricing = $this->mapprice($price);
 			if ($pricing) $this->variations[] = $pricing;
-		}		
+		}
 	}
 	
 	/**
@@ -276,13 +278,12 @@ class Item {
 	 **/
 	function addons (&$sum,$addons,$prices) {
 		foreach ($prices as $p)	{
-			if ($p->type == "N/A" || !in_array($p->options,$addons)) continue;
+			if ($p->type == "N/A" || $p->context != "addon") continue;
 			$pricing = $this->mapprice($p);
-			if ($pricing) {
-				$pricing->unitprice = (($p->onsale)?$p->promoprice:$p->price);
-				$this->addons[] = $pricing;
-				$sum += $pricing->unitprice;
-			}
+			if (empty($pricing) || !in_array($pricing->options,$addons)) continue;
+			$pricing->unitprice = (($p->onsale)?$p->promoprice:$p->price);
+			$this->addons[] = $pricing;
+			$sum += $pricing->unitprice;
 		}
 	}
 

@@ -168,7 +168,7 @@ class Cart {
 						}
 						if (isset($item['product']) && isset($item['price']) && 
 							$item['product'] == $this->contents[$id]->product &&
-							$item['price'] != $this->contents[$id]->price) {
+							$item['price'] != $this->contents[$id]->priceline) {
 							$Product = new Product($item['product']);
 							$this->change($id,$Product,$item['price']);
 						}
@@ -336,7 +336,9 @@ class Cart {
 		$qty = $this->contents[$item]->quantity;
 		$category = $this->contents[$item]->category;
 		$data = $this->contents[$item]->data;
-		$this->contents[$item] = new Item($Product,$pricing,$addons,$data,$category);
+		$addons = array();
+		foreach ($this->contents[$item]->addons as $addon) $addons[] = $addon->options;
+		$this->contents[$item] = new Item($Product,$pricing,$category,$data,$addons);
 		$this->contents[$item]->quantity($qty);
 		
 		return $this->changed(true);

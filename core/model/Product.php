@@ -245,12 +245,14 @@ class Product extends DatabaseObject {
 		$freeshipping = true;
 		$this->inventory = false;
 		foreach ($this->prices as $i => &$price) {
-			// Build secondary lookup table using the combined optionkey
-			$this->pricekey[$price->optionkey] = $price;
-			
-			// Build third lookup table using the price id as the key
+			// Build secondary lookup table using the price id as the key
 			$this->priceid[$price->id] = $price;
-			if ($price->type == "N/A" || ($i > 0 && !$variations)) continue;
+
+			if ($price->type == "N/A" || $price->context == "addon" || ($i > 0 && !$variations)) continue;
+
+			// Build third lookup table using the combined optionkey
+			$this->pricekey[$price->optionkey] = $price;
+
 			
 			// Boolean flag for custom product sales
 			$price->onsale = false;
@@ -1291,7 +1293,7 @@ class Product extends DatabaseObject {
 						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 						if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
 						$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
-						$string .= '<select name="products['.$this->id.'][addons][]" class="'.$category_class.' product'.$this->id.' options" id="options-'.$menu['id'].'">';
+						$string .= '<select name="products['.$this->id.'][addons][]" class="'.$category_class.' product'.$this->id.' addons" id="addons-'.$menu['id'].'">';
 						if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 						foreach ($menu['options'] as $key => $option) {
 							
