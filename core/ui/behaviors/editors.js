@@ -756,6 +756,7 @@ function ImageUploads (id,type) {
 			this.sorting = this.targetHolder.find('input');
 		},
 		onComplete: function(results) {
+			console.log(results);
 			var image,img,deleteButton;
 			if (results == "") {
 				$(this.targetHolder).remove();
@@ -768,8 +769,8 @@ function ImageUploads (id,type) {
 				alert(image.error);
 				return true;
 			}
-			$(this.targetHolder).attr({'id':'image-'+image.src});
-			$(this.sorting).val(image.src);
+			this.targetHolder.attr({'id':'image-'+image.id});
+			this.sorting.val(image.id);
 			img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 			deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"><img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" /></button>').appendTo($(this.targetHolder)).hide();
 	
@@ -904,8 +905,7 @@ function ImageUploads (id,type) {
 		}
 	
 		this.targetHolder.attr({'id':'image-'+image.id});
-		this.targetHolder.find('input[type=hidden]').attr({'id':'image-'+image.id}).val(image.id);
-		this.sorting.val(image.src);
+		this.sorting.val(image.id);
 		img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
 		deleteButton = $('<button type="button" name="deleteImage" value="'+image.id+'" title="Delete product image&hellip;" class="deleteButton"><img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" /></button>').appendTo(this.targetHolder).hide();
 		sorting();

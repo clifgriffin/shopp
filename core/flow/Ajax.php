@@ -29,9 +29,12 @@ class AjaxFlow {
 	 * @return void
 	 **/
 	function __construct () {	
+
 		// Flash uploads require unprivileged access
 		add_action('wp_ajax_nopriv_shopp_upload_image',array(&$this,'upload_image'));
 		add_action('wp_ajax_nopriv_shopp_upload_file',array(&$this,'upload_file'));
+		add_action('wp_ajax_shopp_upload_image',array(&$this,'upload_image'));
+		add_action('wp_ajax_shopp_upload_file',array(&$this,'upload_file'));
 
 		// Actions that can happen on front end whether or not logged in
 		add_action('wp_ajax_nopriv_shopp_shipping_costs',array(&$this,'shipping_costs'));
@@ -148,7 +151,6 @@ class AjaxFlow {
 	}
 	
 	function upload_image () {
-		//check_admin_referer('wp_ajax_shopp_upload_image');
 		require_once(SHOPP_FLOW_PATH."/Warehouse.php");
 		$Warehouse = new Warehouse();
 		echo $Warehouse->images();
