@@ -562,8 +562,11 @@ class Order {
 
 		if (isset($_POST['login'])) {
 			require_once(ABSPATH."/wp-includes/registration.php");
+			if (apply_filters('shopp_login_valid',(!validate_username($_POST['login']))))
+				return new ShoppError(__('This login name is invalid because it uses illegal characters. Please enter a valid login name.','Shopp'),'cart_validation');
+
 			if (apply_filters('shopp_login_exists',username_exists($_POST['login'])))
-				return new ShoppError(__('The login name you provided is already in use. Try logging in if you previously created that account, or enter another login name for your new account.','Shopp'),'cart_validation');
+				return new ShoppError(__('The login name is already in use. Try logging in if you previously created that account, or enter another login name for your new account.','Shopp'),'cart_validation');
 		}
 
 		if (isset($_POST['password'])) {
