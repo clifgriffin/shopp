@@ -171,11 +171,11 @@ function notes_meta_box ($Purchase) {
 <table>
 	<?php foreach ($Notes->meta as $Note): $User = get_userdata($Note->value->author); ?>
 	<tr>
-		<th><?php echo $User->user_nicename?><br />
+		<th><?php echo esc_html($User->user_nicename); ?><br />
 			<span><?php echo _d(get_option('date_format').' '.get_option('time_format'), $Note->created); ?></span></th>
 		<td>
 			<div id="note-<?php echo $Note->id; ?>">
-			<?php echo wpautop($Note->value->message); ?>
+			<?php echo esc_html(wpautop($Note->value->message)); ?>
 			</div>
 			<p class="notemeta">
 				<span class="notectrls">
