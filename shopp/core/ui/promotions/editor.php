@@ -247,10 +247,10 @@ $('#discount-type').change(function () {
 	if (type == "Percentage Off" || type == "Amount Off") $('#discount-row').show();
 	if (type == "Buy X Get Y Free") {
 		$('#beyget-row').show();
-		$('#promotion-target').val('Cart').change();
-		$('#promotion-target option').eq(0).attr('disabled',true);
+		$('#promotion-target').val('Cart Item').change();
+		$('#promotion-target option:lt(2)').attr('disabled',true);
 	} else {
-		$('#promotion-target option').eq(0).attr('disabled',false);
+		$('#promotion-target option:lt(2)').attr('disabled',false);
 	}
 	
 	$('#discount-amount').unbind('change').change(function () {
@@ -262,6 +262,7 @@ $('#discount-type').change(function () {
 
 $('#promotion-target').change(function () {
 	var target = $(this).val();
+	console.log(target);
 	var menus = $('#rules select.ruleprops');
 	$('#target-property').html(SCOPEPROP_LANG[target]);
 	$('#rule-target').html(TARGET_LANG[target]);

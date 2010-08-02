@@ -673,7 +673,7 @@ class Cart {
 					case "Free Shipping": $string .= $Shopp->Settings->get('free_shipping_text'); break;
 					case "Percentage Off": $string .= percentage($discount->discount,array('precision' => 0)).$options['label']; break;
 					case "Amount Off": $string .= money($discount->discount).$options['label']; break;
-					case "Buy X Get Y Free": return ""; break;
+					case "Buy X Get Y Free": return sprintf(__('Buy %s get %s free','Shopp'),$discount->buyqty,$discount->getqty); break;
 				}
 				if (!empty($options['after'])) $string .= $options['after'];
 				
@@ -1201,9 +1201,7 @@ class CartDiscounts {
 				extract($rule);
 				if ($property == "Promo code") {
 					// See if a promo code rule matches
-					$match = $this->promocode($rule);
-					// if ($match) echo "$promo->name applying code: ".$this->Cart->promocode.BR;
-					
+					$match = $this->promocode($rule);					
 				} elseif (in_array($property,$this->itemprops)) {
 					// See if an item rule matches
 					foreach ($this->Cart->contents as $id => &$Item)
@@ -1292,6 +1290,7 @@ class CartDiscounts {
 								case "Percentage Off": $discount = $Item->unitprice*($promo->discount/100); break;
 								case "Amount Off": $discount = $promo->discount; break;
 								case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
+								case "Buy X Get Y Free": $discount = floor($Item->quantity / ($promo->buyqty + $promo->getqty))*($Item->unitprice); break;
 							}
 							$promo->applied += $discount;
 							$promo->items[$id] = $discount;
