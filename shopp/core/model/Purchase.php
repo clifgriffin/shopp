@@ -154,38 +154,38 @@ class Purchase extends DatabaseObject {
 			case "cardtype": return $this->cardtype; break;
 			case "txnid":
 			case "transactionid": return $this->txnid; break;
-			case "firstname": return $this->firstname; break;
-			case "lastname": return $this->lastname; break;
-			case "company": return $this->company; break;
-			case "email": return $this->email; break;
-			case "phone": return $this->phone; break;
-			case "address": return $this->address; break;
-			case "xaddress": return $this->xaddress; break;
-			case "city": return $this->city; break;
+			case "firstname": return esc_html($this->firstname); break;
+			case "lastname": return esc_html($this->lastname); break;
+			case "company": return esc_html($this->company); break;
+			case "email": return esc_html($this->email); break;
+			case "phone": return esc_html($this->phone); break;
+			case "address": return esc_html($this->address); break;
+			case "xaddress": return esc_html($this->xaddress); break;
+			case "city": return esc_html($this->city); break;
 			case "state": 
-				if (strlen($this->state > 2)) return $this->state;
+				if (strlen($this->state > 2)) return esc_html($this->state);
 				$regions = Lookup::country_zones();
 				$states = $regions[$this->country];
 				return $states[$this->state];
 				break;
-			case "postcode": return $this->postcode; break;
+			case "postcode": return esc_html($this->postcode); break;
 			case "country": 
 				$countries = $Shopp->Settings->get('target_markets');
 				return $countries[$this->country]; break;
-			case "shipaddress": return $this->shipaddress; break;
-			case "shipxaddress": return $this->shipxaddress; break;
-			case "shipcity": return $this->shipcity; break;
+			case "shipaddress": return esc_html($this->shipaddress); break;
+			case "shipxaddress": return esc_html($this->shipxaddress); break;
+			case "shipcity": return esc_html($this->shipcity); break;
 			case "shipstate":
-				if (strlen($this->shipstate > 2)) return $this->shipstate;
+				if (strlen($this->shipstate > 2)) return esc_html($this->shipstate);
 				$regions = Lookup::country_zones();
 				$states = $regions[$this->country];
 				return $states[$this->shipstate];
 				break;
-			case "shippostcode": return $this->shippostcode; break;
+			case "shippostcode": return esc_html($this->shippostcode); break;
 			case "shipcountry": 
 				$countries = $Shopp->Settings->get('target_markets');
 				return $countries[$this->shipcountry]; break;
-			case "shipmethod": return $this->shipmethod; break;
+			case "shipmethod": return esc_html($this->shipmethod); break;
 			case "totalitems": return count($this->purchased); break;
 			case "hasitems": if (count($this->purchased) > 0) return true; else return false; break;
 			case "items":
@@ -260,8 +260,8 @@ class Purchase extends DatabaseObject {
 				$item = current($this->purchased);
 				$data = current($item->data);
 				$name = key($item->data);
-				if (isset($options['name'])) return $name;
-				return $data;
+				if (isset($options['name'])) return esc_html($name);
+				return esc_html($data);
 				break;
 			case "item-inputs-list":
 			case "item-inputslist":
@@ -278,7 +278,7 @@ class Purchase extends DatabaseObject {
 				$result .= $before.'<ul'.$classes.'>';
 				foreach ($item->data as $name => $data) {
 					if (in_array($name,$excludes)) continue;
-					$result .= '<li><strong>'.$name.'</strong>: '.$data.'</li>';
+					$result .= '<li><strong>'.esc_html($name).'</strong>: '.esc_html($data).'</li>';
 				}
 				$result .= '</ul>'.$after;
 				return $result;
@@ -301,8 +301,8 @@ class Purchase extends DatabaseObject {
 				if (!is_array($this->data)) return false;
 				$data = current($this->data);
 				$name = key($this->data);
-				if (isset($options['name'])) return $name;
-				return $data;
+				if (isset($options['name'])) return esc_html($name);
+				return esc_html($data);
 				break;
 			case "promolist":
 			case "promo-list":

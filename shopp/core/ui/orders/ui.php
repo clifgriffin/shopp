@@ -2,15 +2,15 @@
 global $Shopp;
 function billto_meta_box ($Purchase) {
 ?>
-	<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
-	<?php echo $Purchase->address; ?><br />
-	<?php if (!empty($Purchase->xaddress)) echo $Purchase->xaddress."<br />"; ?>
-	<?php echo "{$Purchase->city}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->state} {$Purchase->postcode}" ?><br />
+	<address><big><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></big><br />
+	<?php echo esc_html($Purchase->address); ?><br />
+	<?php if (!empty($Purchase->xaddress)) echo esc_html($Purchase->xaddress)."<br />"; ?>
+	<?php echo esc_html("{$Purchase->city}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->state} {$Purchase->postcode}") ?><br />
 	<?php echo $targets[$Purchase->country]; ?></address>
 	<?php if (!empty($Customer->info) && is_array($Customer->info)): ?>
 		<ul>
 			<?php foreach ($Customer->info as $name => $value): ?>
-			<li><strong><?php echo $name; ?>:</strong> <?php echo $value; ?></li>
+			<li><strong><?php echo esc_html($name); ?>:</strong> <?php echo esc_html($value); ?></li>
 			<?php endforeach; ?>
 		</ul>
 	<?php endif; ?>
@@ -20,11 +20,11 @@ add_meta_box('order-billing', __('Billing Address','Shopp'), 'billto_meta_box', 
 
 function shipto_meta_box ($Purchase) {
 ?>
-		<address><big><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></big><br />
-		<?php echo !empty($Purchase->company)?"$Purchase->company<br />":""; ?>
-		<?php echo $Purchase->shipaddress; ?><br />
-		<?php if (!empty($Purchase->shipxaddress)) echo $Purchase->shipxaddress."<br />"; ?>
-		<?php echo "{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}" ?><br />
+		<address><big><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></big><br />
+		<?php echo !empty($Purchase->company)?esc_html($Purchase->company)."<br />":""; ?>
+		<?php echo esc_html($Purchase->shipaddress); ?><br />
+		<?php if (!empty($Purchase->shipxaddress)) echo esc_html($Purchase->shipxaddress)."<br />"; ?>
+		<?php echo esc_html("{$Purchase->shipcity}".(!empty($Purchase->shipstate)?', ':'')." {$Purchase->shipstate} {$Purchase->shippostcode}") ?><br />
 		<?php echo $targets[$Purchase->shipcountry]; ?></address>
 <?php
 }
@@ -35,7 +35,7 @@ function contact_meta_box ($Purchase) {
 	$customer_url = add_query_arg(array('page'=>'shopp-customers','id'=>$Purchase->customer),admin_url('admin.php'));
 	$customer_url = apply_filters('shopp_order_customer_url',$customer_url);
 	
-	$email_url = 'mailto:'.$Purchase->email.'?subject='.sprintf(__('RE: %s: Order #%s','Shopp'),get_bloginfo('sitename'),$Purchase->id);
+	$email_url = 'mailto:'.($Purchase->email).'?subject='.sprintf(__('RE: %s: Order #%s','Shopp'),get_bloginfo('sitename'),$Purchase->id);
 	$email_url = apply_filters('shopp_order_customer_email_url',$email_url);
 	
 	$phone_url = 'callto:'.preg_replace('/[^\d+]/','',$Purchase->phone);
@@ -53,12 +53,12 @@ function contact_meta_box ($Purchase) {
 	
 
 ?>
-	<p class="customer name"><a href="<?php echo $customer_url; ?>"><?php echo "{$Purchase->firstname} {$Purchase->lastname}"; ?></a><?php
-		if ($wp_user) echo ' (<a href="'.$edituser_url.'">'.$wp_user->user_login.'</a>)';
+	<p class="customer name"><a href="<?php echo esc_url($customer_url); ?>"><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></a><?php
+		if ($wp_user) echo ' (<a href="'.esc_url($edituser_url).'">'.esc_html($wp_user->user_login).'</a>)';
 	?></p>
-	<?php echo !empty($Purchase->company)?'<p class="customer company">'.$Purchase->company.'</p>':''; ?>
-	<?php echo !empty($Purchase->email)?'<p class="customer email"><a href="'.$email_url.'">'.$Purchase->email.'</a></p>':''; ?>
-	<?php echo !empty($Purchase->phone)?'<p class="customer phone"><a href="'.$phone_url.'">'.$Purchase->phone.'</a></p>':''; ?>
+	<?php echo !empty($Purchase->company)?'<p class="customer company">'.esc_html($Purchase->company).'</p>':''; ?>
+	<?php echo !empty($Purchase->email)?'<p class="customer email"><a href="'.esc_url($email_url).'">'.esc_html($Purchase->email).'</a></p>':''; ?>
+	<?php echo !empty($Purchase->phone)?'<p class="customer phone"><a href="'.esc_url($phone_url).'">'.esc_html($Purchase->phone).'</a></p>':''; ?>
 	<p class="customer <?php echo ($Purchase->Customer->marketing == "yes")?'marketing':'nomarketing'; ?>"><?php ($Purchase->Customer->marketing == "yes")?_e('Agreed to marketing','Shopp'):_e('No marketing','Shopp'); ?></p>
 <?php
 }
@@ -70,7 +70,7 @@ function orderdata_meta_box ($Purchase) {
 	<ul>
 	<?php foreach ($Purchase->data as $name => $value): ?>
 	<?php if (empty($value)) continue; ?>
-	<li><strong><?php echo $name; ?>:</strong><span><?php if (strpos($value,"\n")): ?><textarea name="orderdata[<?php echo $name; ?>]" readonly="readonly" cols="30" rows="4"><?php echo $value; ?></textarea><?php else: echo $value; endif; ?></span></li>
+	<li><strong><?php echo $name; ?>:</strong><span><?php if (strpos($value,"\n")): ?><textarea name="orderdata[<?php echo esc_attr($name); ?>]" readonly="readonly" cols="30" rows="4"><?php echo esc_html($value); ?></textarea><?php else: echo esc_html($value); endif; ?></span></li>
 	<?php endforeach; ?>
 	</ul>
 <?php

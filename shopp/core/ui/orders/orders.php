@@ -75,7 +75,7 @@
 		<tr class="<?php echo join(' ',$classes); ?>">
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Order->id; ?>' /></th>
 			<td class="order column-order<?php echo in_array('order',$hidden)?' hidden':''; ?>"><?php echo $Order->id; ?></td>
-			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>'shopp-orders','id'=>$Order->id),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo (empty($Order->firstname) && empty($Order->lastname))?"(".__('no contact name','Shopp').")":"{$Order->firstname} {$Order->lastname}"; ?></a><?php echo !empty($Order->company)?"<br />$Order->company":""; ?></td>
+			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>'shopp-orders','id'=>$Order->id),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo esc_html(empty($Order->firstname) && empty($Order->lastname))?"(".__('no contact name','Shopp').")":"{$Order->firstname} {$Order->lastname}"; ?></a><?php echo !empty($Order->company)?"<br />".esc_html($Order->company):""; ?></td>
 			<td class="destination column-destination<?php echo in_array('destination',$hidden)?' hidden':''; ?>"><?php 
 				$location = '';
 				$location = $Order->shipcity;
@@ -84,7 +84,7 @@
 				if (!empty($location) && !empty($Order->shipcountry))
 					$location .= ' &mdash; ';
 				$location .= $Order->shipcountry;
-				echo $location;
+				echo esc_html($location);
 				if (isset($Order->downloads)) echo (!empty($location)?'<br />':'').__('Downloads','Shopp');
 				?></td>
 			<td class="txn column-txn<?php echo in_array('txn',$hidden)?' hidden':''; ?>"><?php echo $Order->txnid; ?><br /><strong><?php echo $Order->gateway; ?></strong> &mdash; <?php echo $txnstatus; ?></td>

@@ -52,9 +52,9 @@
 			?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Customer->id; ?>' /></th>
-			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>'shopp-customers','id'=>$Customer->id),admin_url('admin.php')); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $CustomerName; ?>&quot;'><?php echo $CustomerName; ?></a><?php echo !empty($Customer->company)?"<br />$Customer->company":""; ?></td>
-			<td class="login column-login<?php echo in_array('login',$hidden)?' hidden':''; ?>"><?php echo $Customer->user_login; ?></td>
-			<td class="email column-email<?php echo in_array('email',$hidden)?' hidden':''; ?>"><a href="mailto:<?php echo $Customer->email; ?>"><?php echo $Customer->email; ?></a></td>
+			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>'shopp-customers','id'=>$Customer->id),admin_url('admin.php')); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CustomerName); ?>&quot;'><?php echo esc_html($CustomerName); ?></a><?php echo !empty($Customer->company)?"<br />".esc_html($Customer->company):""; ?></td>
+			<td class="login column-login<?php echo in_array('login',$hidden)?' hidden':''; ?>"><?php echo esc_html($Customer->user_login); ?></td>
+			<td class="email column-email<?php echo in_array('email',$hidden)?' hidden':''; ?>"><a href="mailto:<?php echo esc_attr($Customer->email); ?>"><?php echo esc_html($Customer->email); ?></a></td>
 			
 			<td class="location column-location<?php echo in_array('location',$hidden)?' hidden':''; ?>"><?php 
 				$location = '';
@@ -64,7 +64,7 @@
 				if (!empty($location) && !empty($Customer->country))
 					$location .= ' &mdash; ';
 				$location .= $Customer->country;
-				echo $location;
+				echo esc_html($location);
 				 ?></td>
 			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><a href="<?php echo add_query_arg(array('page'=>'shopp-orders','customer'=>$Customer->id),admin_url('admin.php')); ?>"><?php echo $Customer->orders; ?> &mdash; <?php echo money($Customer->total); ?></a></td>
 			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Customer->created)); ?></td>
