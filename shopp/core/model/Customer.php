@@ -289,8 +289,12 @@ class Customer extends DatabaseObject {
 	function create_wpuser () {
 		require_once(ABSPATH."/wp-includes/registration.php");
 		if (empty($this->login)) return false;
+		if (!validate_username($this->login)) {
+			new ShoppError(__('This login name is invalid because it uses illegal characters. Please enter a valid login name.','Shopp'),'login_exists',SHOPP_ERR);
+			return false;
+		}
 		if (username_exists($this->login)){
-			new ShoppError(__('The login name you provided is already in use.  Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
+			new ShoppError(__('The login name is already registered. Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
 			return false;
 		}
 		if (empty($this->password)) $this->password = wp_generate_password(12,true);
