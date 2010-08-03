@@ -37,15 +37,16 @@ class Purchase extends DatabaseObject {
 		return true;
 	}
 	
-	function notification ($addressee,$address,$subject,$template="order.html",$receipt="receipt.php") {
+	function notification ($addressee,$address,$subject,$template="order.php",$receipt="receipt.php") {
 		global $Shopp;
 		global $is_IIS;
 		
-		$template = trailingslashit(SHOPP_TEMPLATES).$template;
+		if ($template == "order.php" && file_exists(SHOPP_TEMPLATES."/order.html")) $template = SHOPP_TEMPLATES."/order.html";
+		else $template = trailingslashit(SHOPP_TEMPLATES).$template;
 		if (!file_exists($template)) 
 			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ADMIN_ERR));
 		
-		// // Send the e-mail receipt
+		// Send the e-mail receipt
 		$email = array();
 		$email['from'] = '"'.get_bloginfo("name").'"';
 		if ($Shopp->Settings->get('merchant_email')) 
@@ -144,6 +145,11 @@ class Purchase extends DatabaseObject {
 
 		// Return strings with no options
 		switch ($property) {
+			case "receipt": 
+				if (isset($options['template']) && is_readable(SHOPP_TEMPLATES."/".$options['template']))
+					return $this->receipt($template);
+				else return $this->receipt();
+				break;
 			case "url": return shoppurl(false,'account'); break;
 			case "id": return $this->id; break;
 			case "date": 
