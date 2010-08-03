@@ -339,8 +339,10 @@ class Service extends AdminController {
 				$email['status'] = strtoupper($labels[$Purchase->status]);
 				$email['message'] = wpautop(stripslashes($_POST['message']));
 
-				if (shopp_email(SHOPP_TEMPLATES."/notification.html",$email))
-					$mailsent = true;
+				if (file_exists(SHOPP_TEMPLATES."/notification.html")) $template = SHOPP_TEMPLATES."/notification.html";
+				if (file_exists(SHOPP_TEMPLATES."/notify.php")) $template = SHOPP_TEMPLATES."/notify.php";
+
+				if (shopp_email($template,$email)) $mailsent = true;
 				
 			}
 			

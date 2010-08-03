@@ -1201,8 +1201,17 @@ function shoppdiv ($string) {
 function shopp_email ($template,$data=array()) {
 	
 	if (strpos($template,"\r\n") !== false) $f = explode("\r\n",$template);
+	elseif (strpos($template,"\n") !== false) $f = explode("\n",$template);
 	else {
-		if (file_exists($template)) $f = file($template);
+		if (strpos($template,".php") !== false) {
+			// Parse a PHP template
+			ob_start();
+			include($template);
+			$content = ob_get_contents();
+			ob_end_clean();
+			if (strpos($content,"\r\n") !== false) $f = explode("\r\n",$content);
+			elseif (strpos($content,"\n") !== false) $f = explode("\n",$content);
+		} elseif (file_exists($template)) $f = file($template);	// Load an HTML/text template
 		else new ShoppError(__("Could not open the email template because the file does not exist or is not readable.","Shopp"),'email_template',SHOPP_ADMIN_ERR,array('template'=>$template));
 	}
 
@@ -1314,19 +1323,20 @@ function shopp_locate_pages ($pages) {
  **/
 function load_shopps_wpconfig () {
 	global $table_prefix;
-	
+
 	$_ = array();
 	$root = realpath($_SERVER['DOCUMENT_ROOT']);
 	$filepath = realpath(dirname(__FILE__));
 	$wp_config_path = false;
 	$wp_root = false;
 
-	if ( isset($_SERVER['SHOPP_WPCONFIG']) && file_exists(sanitize_path($_SERVER['SHOPP_WPCONFIG']).'/wp-config.php') &&
-		 isset($_SERVER['SHOPP_ABSPATH']) && file_exists(sanitize_path($_SERVER['SHOPP_ABSPATH']).'/wp-load.php')
-		) { // SetEnv SHOPP_WP_CONFIG_PATH and SHOPP_ABSPATH used on webserver site config
-		$wp_config_path = $_SERVER['SHOPP_WPCONFIG'];
-		$wp_root = $_SERVER['SHOPP_ABSPATH'];
-	} elseif ( strpos($filepath, $root) !== false ) { // Shopp directory has DOCUMENT_ROOT ancenstor, finding wp-config.php and wordpress install
+	if ( isset($_SERVER['SHOPP_WPCONFIG_PATH']) 
+		&& file_exists(sanitize_path($_SERVER['SHOPP_WPCONFIG_PATH']).'/wp-config.php') ) { 
+		// SetEnv SHOPP_WPCONFIG_PATH and SHOPP_ABSPATH used on webserver site config
+		$wp_config_path = $wp_root = $_SERVER['SHOPP_WPCONFIG_PATH'];
+
+	} elseif ( strpos($filepath, $root) !== false ) {
+		// Shopp directory has DOCUMENT_ROOT ancenstor, finding wp-config.php and wordpress install
 		$levels = count(explode ('/', sanitize_path($filepath) ));
 		$path = $filepath;
 		for ( $i = 1; $i < $levels; $i++ ) { 
@@ -1337,24 +1347,35 @@ function load_shopps_wpconfig () {
 			}
 			$path = dirname($path);
 		}
+
 	} elseif (  file_exists(sanitize_path($root).'/wp-config.php') && 
-				file_exists(sanitize_path($root).'/wp-load.php') ) {  // wordpress install in DOCUMENT_ROOT
+				file_exists(sanitize_path($root).'/wp-load.php') ) { 
+				// wordpress install in DOCUMENT_ROOT
 		$wp_config_path = $wp_root = $root;
+
 	} elseif (  file_exists(sanitize_path(dirname($root)).'/wp-config.php') && 
 				file_exists(sanitize_path($root).'/wp-load.php') && 
-				!file_exists(sanitize_path(dirname($root)).'/wp-load.php')) { // wordpress install in DOCUMENT_ROOT, config up one directory
+				!file_exists(sanitize_path(dirname($root)).'/wp-load.php')) { 
+				// wordpress install in DOCUMENT_ROOT, config up one directory
 		$wp_config_path = dirname($root);
 		$wp_root = $root;
 	}
+
+ 	if (isset($_SERVER['SHOPP_ABSPATH']) && file_exists(sanitize_path($_SERVER['SHOPP_ABSPATH']).'/wp-load.php'))
+		$wp_root = $_SERVER['SHOPP_ABSPATH'];
 		
-	if ( $wp_config_path !== false && $wp_root !== false) $config = file_get_contents(sanitize_path($wp_config_path).'/wp-config.php');
+	if ( $wp_config_path !== false && $wp_root !== false) 
+		$config = file_get_contents(sanitize_path($wp_config_path).'/wp-config.php');
 	else return false;
 	
 	preg_match_all('/^\s*?(define\(\s*?\'(.*?)\'\s*?,\s*(.*?)\);)/m',$config,$defines,PREG_SET_ORDER);
 	foreach($defines as $defined) if (!defined($defined[2])) {
 		$name = $defined[2];
 		$value = trim($defined[3],"'");
-		if ( $name == "ABSPATH" ) $value = sanitize_path($wp_root).'/';
+		if ( $name == "ABSPATH" ) {
+			if (isset($_SERVER['SHOPP_ABSPATH'])) $value = trailingslashit(sanitize_path($_SERVER['SHOPP_ABSPATH']));
+			else $value = sanitize_path($wp_root).'/';
+		} 
 		define($name,$value);
 	}
 
