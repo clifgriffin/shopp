@@ -324,6 +324,7 @@ class Order {
 			$this->Customer->create_wpuser();
 		 
 		// New customer, save hashed password
+		// @todo: New customer notification
 		if (empty($this->Customer->id) && !empty($this->Customer->password))
 			$this->Customer->password = wp_hash_password($this->Customer->password);
 		else unset($this->Customer->password); // Existing customer, do not overwrite password field!

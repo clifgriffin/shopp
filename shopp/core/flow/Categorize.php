@@ -112,7 +112,7 @@ class Categorize extends AdminController {
 		if ($id && $id != "new")
 			$Shopp->Category = new Category($id);
 		else $Shopp->Category = new Category();
-				
+						
 		if ($save) {
 			$this->save($Shopp->Category);
 			$this->Notice = '<strong>'.stripslashes($Shopp->Category->name).'</strong> '.__('has been saved.','Shopp');

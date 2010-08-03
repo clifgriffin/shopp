@@ -131,14 +131,12 @@ class Category extends DatabaseObject {
 	 * Updates the product id of the images to link to the product 
 	 * when the product being saved is new (has no previous id assigned) */
 	function link_images ($images) {
+		if (empty($images) || !is_array($images)) return false;
+
 		$db = DB::get();
 		$table = DatabaseObject::tablename(CategoryImage::$table);
-				
 		$set = "id=".join('OR id=',$images);
-		
-		if (empty($query)) return false;
-		else $query = "UPDATE $table SET parent='$this->id',context='category' WHERE ".$set;
-		
+		$query = "UPDATE $table SET parent='$this->id',context='category' WHERE ".$set;
 		$db->query($query);
 		
 		return true;
