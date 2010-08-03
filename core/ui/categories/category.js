@@ -158,27 +158,24 @@ jQuery(document).ready(function () {
 			}
 			if (setting == "close") delete request.id;
 
-			// Find previous category
+			// Find previous product
 			if (setting == "previous") {
 				$.each(worklist,function (i,entry) {
-					if (entry.id == category) {
-						if (worklist[i-1]) request.next = worklist[i-1].id;
-						else request.page = workflow['close'];
-						return true;
-					}
+					if (entry.id != category) return;
+					if (worklist[i-1]) request.next = worklist[i-1].id;
+					else delete request.id;
 				});
 			}
 
-			// Find next category
+			// Find next product
 			if (setting == "next") {
 				$.each(worklist,function (i,entry) {
-					if (entry.id == category) {
-						if (worklist[i+1]) request.next = worklist[i+1].id;
-						else request.page = workflow['close'];
-						return true;
-					}
+					if (entry.id != category) return;
+					if (worklist[i+1]) request.next = worklist[i+1].id;
+					else delete request.id;
 				});
 			}
+
 		}).change();
 	}
 	

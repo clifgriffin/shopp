@@ -12,6 +12,7 @@ function save_meta_box ($Category) {
 	
 ?>
 	<div id="major-publishing-actions">
+		<input type="hidden" name="id" value="<?php echo $Category->id; ?>" />
 		<select name="settings[workflow]" id="workflow">
 		<?php echo menuoptions($workflows,$Shopp->Settings->get('workflow'),true); ?>
 		</select>
@@ -111,6 +112,7 @@ function templates_meta_box ($Category) {
 	</ul>
 	<div class="clear"></div>	
 	</div>
+</div>
 
 <div id="price-ranges" class="panel">
 	<div class="pricing-label">
@@ -131,7 +133,6 @@ function templates_meta_box ($Category) {
 <div class="clear"></div>
 <div id="pricerange"></div>
 <p><?php _e('Configure how you want price range options in this category to appear.','Shopp'); ?></p>
-</div>
 </div>
 
 <div id="variations-template">
