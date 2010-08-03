@@ -650,8 +650,8 @@ class Product extends DatabaseObject {
 		// Copy sepcs
 		foreach ($this->specs as $spec) {
 			$Spec = new Spec();
-			$Spec->updates($spec,array('id','product','created','modified'));
-			$Spec->product = $this->id;
+			$Spec->updates($spec,array('id','parent','created','modified'));
+			$Spec->parent = $this->id;
 			$Spec->save();
 		}
 		
@@ -670,8 +670,8 @@ class Product extends DatabaseObject {
 		// Copy product images
 		foreach ($this->images as $ProductImage) {
 			$Image = new ProductImage();
-			$Image->updates($ProductImage,array('id','product','created','modified'));
-			$Image->product = $this->id;
+			$Image->updates($ProductImage,array('id','parent','created','modified'));
+			$Image->parent = $this->id;
 			$Image->save();
 		}
 				
