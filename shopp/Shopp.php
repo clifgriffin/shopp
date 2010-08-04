@@ -43,11 +43,8 @@ require_once("core/DB.php");
 require_once("core/model/Settings.php");
 
 // Serve images and bypass loading all of Shopp
-if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI'])) {
-	error_log("WP Bootstrapped");
+if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI']))
 	require("core/image.php");
-	
-}
 
 // Load super controllers
 require("core/flow/Flow.php");

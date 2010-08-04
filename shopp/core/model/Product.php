@@ -236,8 +236,7 @@ class Product extends DatabaseObject {
 	 * @return void
 	 **/
 	function pricing ($options = false) {
-		global $Shopp;
-		
+
 		// Variation range index/properties
 		$varranges = array('price' => 'price','saleprice'=>'promoprice');
 		
@@ -325,11 +324,11 @@ class Product extends DatabaseObject {
 
 			if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
 			if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") { 
-				$base = $Shopp->Settings->get('base_operations');
+				$Settings =& ShoppSettings();
+				$base = $Settings->get('base_operations');
 				if ($base['vat']) {
 					$Taxes = new CartTax();
-					$taxrate = $Taxes->rate();
-
+					$taxrate = $Taxes->rate($this);
 					$price->price += $price->price*$taxrate;
 					$price->saleprice += $price->saleprice*$taxrate;
 				}
@@ -675,6 +674,15 @@ class Product extends DatabaseObject {
 			$Image->save();
 		}
 				
+	}
+	
+	function taxrule ($rule) {
+		switch ($rule['p']) {
+			case "product-name": return ($rule['v'] == $this->name); break;
+			case "product-tags": return (in_array($rule['v'],array_keys($this->tagskey))); break;
+			case "product-category": return (in_array($rule['v'],array_keys($this->categorieskey))); break;
+		}
+		return false;
 	}
 	
 	function tag ($property,$options=array()) {
