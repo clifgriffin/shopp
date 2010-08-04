@@ -299,9 +299,10 @@ class Lookup {
 	 **/
 	static function vat_countries () {
 		return apply_filters('shopp_vat_countries',array(
-			'BE','BG','CZ','DK','DE','EE','GR','ES','FR',
-			'IE','IT','CY','LV','LT','LU','HU','MT','NL',
-			'AT','PL','PT','RO','SI','SK','FI','SE','GB'
+			'AU','AT','BE','BG','CZ','DK','DE','EE','GB',
+			'GR','ES','FR','IE','IT','CY','LV','LT','LU',
+			'HU','MT','NL','PL','PT','RO','SI','SK','FI',
+			'SE'
 		));
 	}
 

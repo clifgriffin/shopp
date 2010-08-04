@@ -43,8 +43,11 @@ require_once("core/DB.php");
 require_once("core/model/Settings.php");
 
 // Serve images and bypass loading all of Shopp
-if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI'])) 
+if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI'])) {
+	error_log("WP Bootstrapped");
 	require("core/image.php");
+	
+}
 
 // Load super controllers
 require("core/flow/Flow.php");
@@ -343,7 +346,7 @@ class Shopp {
 
 		// Add mod_rewrite rule for image server for low-resource, speedy delivery
 		$corepath = array(PLUGINDIR,$this->directory,'core');
-		add_rewrite_rule('.*/images/(\d+)[/\?]?(.*?)$',join('/',$corepath).'/image.php?siid=$1&$2');
+		add_rewrite_rule('.*/images/(\d+)/?\??(.*)$',join('/',$corepath).'/image.php?siid=$1&$2');
 
 		return $rules + $wp_rewrite_rules;
 	}
