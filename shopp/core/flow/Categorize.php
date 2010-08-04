@@ -387,8 +387,9 @@ class Categorize extends AdminController {
 
 		if (empty($_POST['specs'])) $Category->specs = array();
 		else $_POST['specs'] = stripslashes_deep($_POST['specs']);
+		
 		if (empty($_POST['options']) 
-			|| (count($_POST['options'])) == 1 && !isset($_POST['options'][1]['options'])) {
+			|| (count($_POST['options']['v'])) == 1 && !isset($_POST['options']['v'][1]['options'])) {
 				$_POST['options'] = $Category->options = array();
 				$_POST['prices'] = $Category->prices = array();
 		} else $_POST['options'] = stripslashes_deep($_POST['options']);

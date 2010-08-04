@@ -153,15 +153,16 @@ function Pricelines () {
 function Priceline (id,options,data,target,attachment) {
 	var $ = jqnc(),
 		_ = this,
+		tmp = template,
 		controller = Pricelines,
 		typeOptions = "",
 		i,fn,heading,labelText,myid,context,optionids,sortorder,optionkey,type,
 		dataCell,pricingTable,headingsRow,inputsRow;
 	
 	_.id = id;				// Index position in the Pricelines.rows array
-	_.options = options;		// Option indexes for options linked to this priceline
+	_.options = options;	// Option indexes for options linked to this priceline
 	_.data = data;			// The data associated with this priceline
-	_.label = false;			// The label of the priceline
+	_.label = false;		// The label of the priceline
 	_.links = new Array();	// Option linking registry
 	_.inputs = new Array();	// Inputs registry
 	_.lasttype = false;		// Tracks the previous product type selected
@@ -417,19 +418,19 @@ function Priceline (id,options,data,target,attachment) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
 		_.shipping(data.shipping,data.weight,data.shipfee,data.dimensions);
-		_.inventory(data.inventory,data.stock,data.sku);
+		if (!tmp) _.inventory(data.inventory,data.stock,data.sku);
 	}
 
 	_.Virtual = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
-		_.inventory(data.inventory,data.stock,data.sku);
+		if (!tmp) _.inventory(data.inventory,data.stock,data.sku);
 	}
 
 	_.Download = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
-		_.download(data.download,data.filename,data.filedata);
+		if (!tmp) _.download(data.download,data.filename,data.filedata);
 	}
 	
 	_.Donation = function (data) {
