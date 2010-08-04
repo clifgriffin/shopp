@@ -145,7 +145,7 @@ class ModuleFile {
 			$this->description = (!empty($data[1]))?$data[1]:"";
 
 			foreach ($tags as $tag => $value)
-				$this->{$tag} = $value;
+				$this->{$tag} = trim($value);
 		}
 		if ($this->valid() !== true) return;
 		$this->addon = true;
