@@ -643,7 +643,8 @@ class Catalog extends DatabaseObject {
 					else if (isset($options['slug'])) $Shopp->Category = new Category($options['slug'],'slug');
 					else if (isset($options['id'])) $Shopp->Category = new Category($options['id']);
 				}
-				if (isset($options['reset'])) return ($Shopp->Category = false);
+				if (isset($options['reset'])) 
+					return (get_class($Shopp->Requested) == "Category"?($Shopp->Category = $Shopp->Requested):false);
 				if (isset($options['title'])) $Shopp->Category->name = $options['title'];
 				if (isset($options['show'])) $Shopp->Category->loading['limit'] = $options['show'];
 				if (isset($options['pagination'])) $Shopp->Category->loading['pagination'] = $options['pagination'];
@@ -673,6 +674,9 @@ class Catalog extends DatabaseObject {
 				if (isset($options['name'])) $Shopp->Product = new Product($options['name'],'name');
 				else if (isset($options['slug'])) $Shopp->Product = new Product($options['slug'],'slug');
 				else if (isset($options['id'])) $Shopp->Product = new Product($options['id']);
+				
+				if (isset($options['reset'])) 
+					return (get_class($Shopp->Requested) == "Product"?($Shopp->Product = $Shopp->Requested):false);
 				
 				if (isset($Shopp->Product->id) && isset($Shopp->Category->slug)) {
 					$Category = clone($Shopp->Category);
