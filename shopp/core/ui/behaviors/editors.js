@@ -733,7 +733,7 @@ function ImageUploads (id,type) {
 			sorting : false
 			
 		},
-		debug: true // imageupload_debug
+		debug: imageupload_debug
 		
 	}
 	
