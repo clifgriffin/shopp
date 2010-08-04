@@ -10,16 +10,20 @@ var Pricelines = new Pricelines(),
 	changes = false,
 	saving = false,
 	flashUploader = false,
-	pricesPayload = false;
+	template = true;
 
 jQuery(document).ready(function () {	
 	var $=jqnc(),
 		editslug = new SlugEditor(category,'category'),
 		imageUploads = new ImageUploads($('#image-category-id').val(),'category');
 	
+	postboxes.add_postbox_toggles('shopp_page_shopp-categories');
+	// close postboxes that should be closed
+	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+	
 	updateWorkflow();
 	$('#category').submit(function () {
-		this.action = this.action+"?"+$.param(request);
+		this.action = this.action.substr(0,this.action.indexOf("?"))+"?"+$.param(request);
 		return true;
 	});
 		
@@ -41,20 +45,10 @@ jQuery(document).ready(function () {
 			$('#details-facetedmenu, #price-ranges').hide();
 		}
 	}).change();
-	
-	
-	
-	// $('#variations-setting').change(function () {
-	// 	if (this.checked) $('#templates, #variations-template, #variations-pricing').show();
-	// 	else $('#variations-template, #variations-pricing').hide();
-	// 	if (!$('#spectemplates-setting').attr('checked') && !$('#variations-setting').attr('checked'))
-	// 		$('#templates').hide();
-	// }).change();
-	
+		
 	if (details) for (s in details) addDetail(details[s]);
 	$('#addPriceLevel').click(function() { addPriceLevel(); });	
 	$('#addDetail').click(function() { addDetail(); });	
-
 
 	$('#variations-setting').bind('toggleui',function () {
 		if (this.checked) $('#templates, #variations-template, #variations-pricing').show();
@@ -84,11 +78,7 @@ jQuery(document).ready(function () {
 			{'axis':'y','scroll':false});
 		$(menu.label).change(function (){ this.value = asMoney(this.value); }).change();
 	}
-	
-	postboxes.add_postbox_toggles('shopp_page_shopp-categories');
-	// close postboxes that should be closed
-	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-		
+			
 	function addDetail (data) {
 		var menus = $('#details-menu'),
 			entries = $('#details-list'),
@@ -149,7 +139,7 @@ jQuery(document).ready(function () {
 	function updateWorkflow () {
 		$('#workflow').change(function () {
 			setting = $(this).val();
-			request.page = workflow[setting];
+			request.page = adminpage;
 			request.id = category;
 			if (!request.id) request.id = "new";
 			if (setting == "new") {

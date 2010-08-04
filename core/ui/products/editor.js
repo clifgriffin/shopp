@@ -21,7 +21,7 @@ var Pricelines = new Pricelines(),
  	changes = false,
  	saving = false,
  	flashUploader = false,
- 	pricesPayload = true,
+	template = false,
  	fileUploads = false;
 
 jQuery(document).ready(function() {
@@ -115,7 +115,7 @@ jQuery(document).ready(function() {
 	// window.onbeforeunload = unsavedChanges;
 	
 	$('#product').change(function () { changes = true; }).submit(function() {
-		this.action = this.action+"?"+$.param(request);
+		this.action = this.action.substr(0,this.action.indexOf("?"))+"?"+$.param(request);
 		saving = true;
 		return true;
 	});
@@ -133,7 +133,7 @@ function updateWorkflow () {
 	var $=jqnc();
 	$('#workflow').change(function () {
 		setting = $(this).val();
-		request.page = workflow[setting];
+		request.page = adminpage;
 		request.id = product;
 		if (!request.id) request.id = "new";
 		if (setting == "new") {

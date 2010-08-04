@@ -198,7 +198,8 @@ function addVariationOptionsMenu (data) {
 		option.label.click().focus().select().keydown(function(e) { 
 			var key = e.keyCode || e.which; 
 			if (key != 9) return;
-			e.preventDefault(); 
+			e.preventDefault();
+			option.label.blur();
 			addOptionButton.focus();
 		});
 		
