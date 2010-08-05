@@ -345,13 +345,15 @@ class Order {
 			$this->Shipping->customer = $this->Customer->id;
 			$this->Shipping->save();
 		}
+
+		$base = $Shopp->Settings->get('base_operations');
 		
 		$promos = array();
 		foreach ($this->Cart->discounts as &$promo) {
 			$promos[$promo->id] = $promo->name;
 			$promo->uses++;
 		}
-
+		
 		$Purchase = new Purchase();
 		$Purchase->copydata($this);
 		$Purchase->copydata($this->Customer);
@@ -361,6 +363,7 @@ class Order {
 		$Purchase->customer = $this->Customer->id;
 		$Purchase->billing = $this->Billing->id;
 		$Purchase->shipping = $this->Shipping->id;
+		$Purchase->taxing = ($base['vat'])?'inclusive':'exclusive';
 		$Purchase->promos = $promos;
 		$Purchase->freight = $this->Cart->Totals->shipping;
 		$Purchase->ip = $Shopp->Shopping->ip;

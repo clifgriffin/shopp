@@ -43,8 +43,10 @@
 						</ul>
 					</td>
 					<td><?php echo $Item->quantity; ?></td>
-					<td class="money"><?php echo money($Item->unitprice+($Item->unitprice*$taxrate)); ?></td>
-					<td class="money total"><?php echo money($Item->total+($Item->total*$taxrate)); ?></td>
+					<td class="money"><?php $amount = $Item->unitprice+($Purchase->taxing == 'inclusive'?$Item->unittax:0); 
+						echo money($amount); ?></td>
+					<td class="money total"><?php $amount = $Item->total+($Purchase->taxing == 'inclusive'?$Item->unittax*$Item->quantity:0);
+						echo money($amount); ?></td>
 				</tr>
 			<?php endforeach; ?>
 			<tr class="totals">

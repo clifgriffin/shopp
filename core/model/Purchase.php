@@ -241,10 +241,12 @@ class Purchase extends DatabaseObject {
 				return $item->quantity; break;
 			case "item-unitprice":
 				$item = current($this->purchased);
-				return money($item->unitprice+($item->unitprice*$taxrate)); break;
+				$amount = $item->unitprice+($this->taxing == 'inclusive'?$item->unittax:0);
+				return money($amount); break;
 			case "item-total":
 				$item = current($this->purchased);
-				return money($item->total+($item->total*$taxrate)); break;
+				$amount = $item->total+($this->taxing == 'inclusive'?$item->unittax*$item->quantity:0);
+				return money($amount); break;
 			case "item-has-inputs":
 			case "item-hasinputs": 
 				$item = current($this->purchased);
