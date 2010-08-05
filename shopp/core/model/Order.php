@@ -1214,7 +1214,8 @@ class Order {
 			case "xco-buttons": return;	break; // DEPRECATED
 			case "payment-options":
 			case "paymentoptions": 
-				if (count($Shopp->Gateways->active) <= 1) return false;
+				$paymentoptions = apply_filters('shopp_payment_methods',count($Shopp->Gateways->active));
+				if ($paymentoptions <= 1) return false; // Skip if only one gateway is active
 				extract($options);
 				unset($options['type']);
 				
