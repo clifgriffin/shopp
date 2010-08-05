@@ -76,6 +76,7 @@ class AdminFlow extends FlowController {
 	function __construct () {
 		parent::__construct();
 
+		$this->legacyupdate();
 		// Add Dashboard Widgets
 		add_action('wp_dashboard_setup', array(&$this, 'dashboard'));
 		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
@@ -690,6 +691,16 @@ class AdminFlow extends FlowController {
 	function mcebutton ($buttons) {
 		array_push($buttons, "|", "Shopp");
 		return $buttons;
+	}
+	
+	function legacyupdate () {
+		global $plugin_page;
+		
+		if ($plugin_page == 'shopp-settings-update' 
+			&& isset($_GET['updated']) && $_GET['updated'] == 'true') {
+				wp_redirect(add_query_arg('page',$this->pagename('orders'),admin_url('admin.php')));
+				exit();
+		}
 	}
 
 
