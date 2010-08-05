@@ -15,7 +15,8 @@
 class OfflinePayment extends GatewayFramework implements GatewayModule {
 
 	var $secure = false;	// SSL not required
-	var $multi = true;		// Support multiple methods						
+	var $multi = true;		// Support multiple methods
+	var $methods = array(); // List of active OfflinePayment payment methods
 
 	/**
 	 * Setup the Offline Payment module
@@ -29,8 +30,12 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		parent::__construct();
 		$this->setup('instructions');
 		
+		// Scan and build a runtime index of active payment methods
+		foreach ($this->settings['label'] as $i => $entry)
+			$this->methods[$entry] = $this->settings['instructions'][$i];
+		
 		add_filter('shopp_tag_checkout_offline-instructions',array(&$this,'tag_instructions'),10,2);
-
+		add_filter('shopp_payment_methods',array(&$this,'methods'));
 	}
 	
 	function actions () {
@@ -101,6 +106,10 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		if (!in_array($this->module,explode(',',$_POST['settings']['active_gateways']))) 
 			$Settings->save('OfflinePayment',false);
 		
+	}
+	
+	function methods ($methods) {
+		return $methods+(count($this->methods)-1);
 	}
 
 } // END class TestMode
