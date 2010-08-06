@@ -745,7 +745,7 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 			return $this->result;
 
 		// Force refresh of plugin update information
-		$Settings->set('updates',false);
+		$Settings->save('updates',false);
 	}
 		
 	function addons ($return,$plugin) {

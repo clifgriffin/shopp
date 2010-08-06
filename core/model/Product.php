@@ -885,6 +885,9 @@ class Product extends DatabaseObject {
 				
 				$preview_width = $Shopp->Settings->get('gallery_small_width');
 				$preview_height = $Shopp->Settings->get('gallery_small_height');
+				
+				if (!$preview_width) $preview_width = 240;
+				if (!$preview_height) $preview_height = 240;
 
 				if (!empty($options['p.size'])) {
 					$preview_width = $options['p.size'];
@@ -942,7 +945,7 @@ class Product extends DatabaseObject {
 						$quality = empty($options['thumbquality'])?false:min($options['thumbquality'],$img->_quality);
 						$fill = empty($options['thumbbg'])?false:hexdec(ltrim($options['thumbbg'],'#'));
 						// $scaled = $img->scaled($width,$height,$scale);
-						$scaled = $img->scaled($thumbwidth,$thumbheight);
+						$scaled = $img->scaled($thumbwidth,$thumbheight,$scale);
 
 						$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
 						$alt = esc_attr(!empty($img->alt)?$img->alt:$img->name);
