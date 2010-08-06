@@ -509,7 +509,7 @@ class Product extends DatabaseObject {
 		if (empty($images)) return false;
 		$db = DB::get();
 		$table = DatabaseObject::tablename(ProductImage::$table);
-		$set = "id=".join('OR id=',$images);
+		$set = "id=".join(' OR id=',$images);
 		$query = "UPDATE $table SET parent='$this->id',context='product' WHERE ".$set;
 		$db->query($query);
 		return true;
