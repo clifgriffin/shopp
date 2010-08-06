@@ -7,7 +7,8 @@ CREATE TABLE <?php echo $setting; ?> (
 	autoload enum('on','off') NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY id (id)
+	PRIMARY KEY id (id),
+	KEY name (name)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $product = DatabaseObject::tablename('product'); ?>
@@ -78,6 +79,7 @@ CREATE TABLE <?php echo $meta; ?> (
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
+	KEY name (name),
 	KEY lookup (parent,context,type)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 

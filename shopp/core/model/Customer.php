@@ -423,15 +423,18 @@ class Customer extends DatabaseObject {
 				$Errors = &ShoppErrors();
 				return ($Errors->exist(SHOPP_AUTH_ERR));
 				break;
-			case "login-errors":
-				$result = "";
+			case "login-errors": // @deprecated
+			case "errors":
 				$Errors = &ShoppErrors();
 				if (!$Errors->exist(SHOPP_AUTH_ERR)) return false;
-				$errors = $Errors->get(SHOPP_AUTH_ERR);
-				foreach ((array)$errors as $error) if (!empty($error)) $result .= '<p class="error">'.$error->message(true).'</p>';
-				return $result;
-				break;
 
+				ob_start();
+				include(SHOPP_TEMPLATES."/errors.php");
+				$errors = ob_get_contents();
+				ob_end_clean();
+				return $errors;
+				break;
+				
 			case "menu":
 				if (!isset($this->_menu_looping)) {
 					reset($this->management);
