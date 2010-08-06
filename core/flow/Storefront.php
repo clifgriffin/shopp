@@ -316,20 +316,12 @@ class Storefront extends FlowController {
 	function catalogcss () {
 		$Settings = ShoppSettings();
 		if (!isset($row_products)) $row_products = 3;
-		
-		$category_thumb_width = $Settings->get('gallery_thumbnail_width')+20;
 		$row_products = $Settings->get('row_products');
-		$gallery_small_width = $Settings->get('gallery_small_width')+20;
-		$gallery_small_height = $Settings->get('gallery_small_height')+20;
-
 		$products_per_row = floor((100/$row_products));
-
 ?>
 	<!-- Shopp dynamic catalog styles -->
 	<style type="text/css">
-	#shopp .products .frame { width: <?php echo $category_thumb_width; ?>px; }
 	#shopp ul.products li.product { width: <?php echo $products_per_row; ?>%; } /* For grid view */
-	#shopp .gallery .previews li { width: <?php echo $gallery_small_width; ?>px; height: <?php echo $gallery_small_height; ?>px; line-height: <?php echo $gallery_small_height; ?>px; }
 	</style>
 	<!-- END Shopp dynamic catalog styles -->
 <?php
