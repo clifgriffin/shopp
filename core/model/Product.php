@@ -1098,7 +1098,7 @@ class Product extends DatabaseObject {
 								foreach ($spec as $entry) $contents[] = $entry->value;
 								$content = join($delimiter,$contents);
 							}
-						} else $content = $spec->content;
+						} else $content = $spec->value;
 					$string = apply_filters('shopp_product_spec',$content);
 					return $string;
 				}
