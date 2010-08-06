@@ -81,6 +81,7 @@ class AdminFlow extends FlowController {
 		add_action('wp_dashboard_setup', array(&$this, 'dashboard'));
 		add_action('admin_print_styles-index.php', array(&$this, 'dashboard_css'));
 		add_action('admin_init', array(&$this, 'tinymce'));
+		add_action('load-plugins.php',array(&$this, 'pluginspage'));
 		add_action('switch_theme',array(&$this, 'themepath'));
 		add_filter('favorite_actions', array(&$this, 'favorites'));
 		add_filter('shopp_admin_boxhelp', array(&$this, 'keystatus'));
@@ -693,6 +694,14 @@ class AdminFlow extends FlowController {
 		return $buttons;
 	}
 	
+	/**
+	 * Handle auto-updates from Shopp 1.0
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function legacyupdate () {
 		global $plugin_page;
 		
@@ -701,6 +710,18 @@ class AdminFlow extends FlowController {
 				wp_redirect(add_query_arg('page',$this->pagename('orders'),admin_url('admin.php')));
 				exit();
 		}
+	}
+
+	/**
+	 * Suppress the standard WordPress plugin update message for the Shopp listing on the plugin page
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function pluginspage () {
+		remove_action('after_plugin_row_'.SHOPP_PLUGINFILE,'wp_plugin_update_row');
 	}
 
 
