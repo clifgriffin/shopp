@@ -1250,12 +1250,18 @@ class Category extends DatabaseObject {
 				break;
 			case "image":
 				$img = current($this->images);
+
+				$_size = 96;
+				$_width = $Shopp->Settings->get('gallery_thumbnail_width');
+				$_height = $Shopp->Settings->get('gallery_thumbnail_height');
+				if (!$_width) $_width = $_size;
+				if (!$_height) $_height = $_size;
 				
-				$thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
-				$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
-				$width = (isset($options['width']))?$options['width']:$thumbwidth;
-				$height = (isset($options['height']))?$options['height']:$thumbheight;
-				$scale = empty($options['fit'])?false:array_search($options['fit']);
+				if (isset($options['size'])) $_width = $_height = $options['size'];
+				$width = (isset($options['width']))?$options['width']:$_width;
+				$height = (isset($options['height']))?$options['height']:$_height;
+				
+				$scale = empty($options['fit'])?false:array_search($options['fit'],$img->_scaling);
 				$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
 				$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
 				$fill = empty($options['bg'])?false:hexdec(ltrim($options['bg'],'#'));

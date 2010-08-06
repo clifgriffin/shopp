@@ -807,10 +807,17 @@ class Product extends DatabaseObject {
 				if (count($this->images) > 0) {
 					$img = current($this->images);
 					
-					$thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
-					$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
-					$width = (isset($options['width']))?$options['width']:$thumbwidth;
-					$height = (isset($options['height']))?$options['height']:$thumbheight;
+					$_size = 96;
+					
+					$_width = $Shopp->Settings->get('gallery_thumbnail_width');
+					$_height = $Shopp->Settings->get('gallery_thumbnail_height');
+					if (!$_width) $_width = $_size;
+					if (!$_height) $_height = $_size;
+					
+					if (isset($options['size'])) $_width = $_height = $options['size'];
+					
+					$width = (isset($options['width']))?$options['width']:$_width;
+					$height = (isset($options['height']))?$options['height']:$_height;
 					$scale = empty($options['fit'])?false:array_search($options['fit'],$img->_scaling);
 					$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
 					$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
@@ -857,10 +864,18 @@ class Product extends DatabaseObject {
 						default: return $img->id;
 					}
 				}
+				
+				$default_size = 64;
 				$thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
 				$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
+				if (!$thumbwidth) $thumbwidth = $default_size;
+				if (!$thumbheight) $thumbheight = $default_size;
+				
+				if (isset($options['size'])) $thumbwidth = $thumbheight = $options['size'];
+				
 				$width = (isset($options['width']))?$options['width']:$thumbwidth;
 				$height = (isset($options['height']))?$options['height']:$thumbheight;
+				
 				$fit = empty($options['fit'])?false:array_search($options['fit'],$img->_scaling);
 				$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
 				$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
@@ -882,28 +897,32 @@ class Product extends DatabaseObject {
 			case "gallery":
 				if (empty($this->images)) $this->load_data(array('images'));
 				if (empty($this->images)) return false;
+				$styles = '';
+				$_size = 240;
+				$_width = $Shopp->Settings->get('gallery_small_width');
+				$_height = $Shopp->Settings->get('gallery_small_height');
 				
-				$preview_width = $Shopp->Settings->get('gallery_small_width');
-				$preview_height = $Shopp->Settings->get('gallery_small_height');
-				
-				if (!$preview_width) $preview_width = 240;
-				if (!$preview_height) $preview_height = 240;
+				if (!$_width) $_width = $_size;
+				if (!$_height) $_height = $_size;
 
-				if (!empty($options['p.size'])) {
-					$preview_width = $options['p.size'];
-					$preview_height = $options['p.size'];
-				}
-				$width = (isset($options['p.width']))?$options['p.width']:$preview_width;
-				$height = (isset($options['p.height']))?$options['p.height']:$preview_height;
+				if (!empty($options['p.size'])) 
+					$_width = $_height = $options['p.size'];
+
+				$width = (isset($options['p.width']))?$options['p.width']:$_width;
+				$height = (isset($options['p.height']))?$options['p.height']:$_height;
+				
+				$preview_width = $width;
 				
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-zoom";
 				if (!isset($options['preview'])) $options['preview'] = "click";
+				
+				$margins = (isset($options['margins']))?$options['margins']:20;
 				
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
 				
 				foreach ($this->images as $img) {
-					$scale = empty($options['p.fit'])?false:array_search($options['p.fit']);
+					$scale = empty($options['p.fit'])?false:array_search($options['p.fit'],$img->_scaling);
 					$sharpen = empty($options['p.sharpen'])?false:min($options['p.sharpen'],$img->_sharpen);
 					$quality = empty($options['p.quality'])?false:min($options['p.quality'],$img->_quality);
 					$fill = empty($options['p.bg'])?false:hexdec(ltrim($options['p.bg'],'#'));
@@ -929,10 +948,13 @@ class Product extends DatabaseObject {
 
 				$thumbs = "";
 				if (count($this->images) > 1) {
-					$thumbsize = 32;
-					if (isset($options['thumbsize'])) $thumbsize = $options['thumbsize'];
-					$thumbwidth = $thumbsize;
-					$thumbheight = $thumbsize;
+					$default_size = 64;
+					$thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
+					$thumbheight = $Shopp->Settings->get('gallery_thumbnail_height');
+					if (!$thumbwidth) $thumbwidth = $default_size;
+					if (!$thumbheight) $thumbheight = $default_size;
+
+					if (isset($options['thumbsize'])) $thumbwidth = $thumbheight = $options['thumbsize'];
 
 					$width = (isset($options['thumbwidth']))?$options['thumbwidth']:$thumbwidth;
 					$height = (isset($options['thumbheight']))?$options['thumbheight']:$thumbheight;
@@ -940,11 +962,10 @@ class Product extends DatabaseObject {
 					$firstThumb = true;
 					$thumbs = '<ul class="thumbnails">';
 					foreach ($this->images as $img) {
-						$scale = empty($options['thumbfit'])?false:array_search($options['thumbfit']);
+						$scale = empty($options['thumbfit'])?false:array_search($options['thumbfit'],$img->_scaling);
 						$sharpen = empty($options['thumbsharpen'])?false:min($options['thumbsharpen'],$img->_sharpen);
 						$quality = empty($options['thumbquality'])?false:min($options['thumbquality'],$img->_quality);
 						$fill = empty($options['thumbbg'])?false:hexdec(ltrim($options['thumbbg'],'#'));
-						// $scaled = $img->scaled($width,$height,$scale);
 						$scaled = $img->scaled($thumbwidth,$thumbheight,$scale);
 
 						$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
@@ -952,13 +973,22 @@ class Product extends DatabaseObject {
 
 						$thumbs .= '<li id="thumbnail-'.$img->id.'" class="preview-'.$img->id.(($firstThumb)?' first':' test').'">';
 						$thumbs .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
-						$thumbs .= '</li>';
+						$thumbs .= '</li> ';
 						$firstThumb = false;						
 					}
 					$thumbs .= '</ul>';
-				}
+					
+					$twidth = $preview_width+$margins;
+					$rowthumbs = floor(($preview_width+$margins)/($width+$margins));
+					if (isset($options['rowthumbs'])) $twidth = ($width+$margins+2)*(int)$options['rowthumbs'];
 
-				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
+					$styles .= '<style type="text/css">';
+					$styles .= '#shopp .gallery .thumbnails { width: '.$twidth.'px; }';
+					$styles .= '</style>';
+					
+				}
+				
+				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$styles.$previews.$thumbs.'</div>';
 				
 				$script = 'ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'");';
 				add_storefrontjs($script);

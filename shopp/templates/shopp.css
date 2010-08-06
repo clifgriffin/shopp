@@ -63,9 +63,9 @@
 /* Product List View */
 #shopp.list ul.products li { float: none; width: 100%; overflow: hidden; padding-bottom: 10px;}
 #shopp.list ul.products li.product {  border-bottom: 1px solid #ddd; }
-#shopp.list ul.products li div.frame { width: 100%;  text-align: left; }
+#shopp.list ul.products li div.frame { width: 100%; text-align: left; }
 #shopp.list ul.products li img { float: left; margin-right: 10px; }
-#shopp.list ul.products li .details { float: left; width: 65%;}
+#shopp.list ul.products li .details { float: left; width: 65%; }
 #shopp.list ul.products li .listview { display: block; }
 
 #shopp ul.breadcrumb { margin: 10px 0; }
@@ -94,9 +94,10 @@
 #shopp form.product ul,
 #shopp form.product ul li,
 #shopp form.product ul li label { clear: none; }
+#shopp form.product ul { width: auto; }
 #shopp ul.variations label { display: block; }
 #shopp dl { overflow: hidden; }
-#shopp dl dt { font-weight: bold; float: left; margin-right: 10px; clear: left; }
+#shopp dl dt { font-weight: bold; float: left; margin-right: 10px; clear: left;  }
 #shopp dl dd { display: block; clear: right; }
 
 #shopp .gallery { margin: 5px 10px 5px 0; }

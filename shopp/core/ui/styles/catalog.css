@@ -31,7 +31,7 @@
 #shopp .products, #shopp .products ul { width: 100%; margin: 0; padding: 0;}
 #shopp .products ul li { display: block; float: left; border: none; }
 #shopp .products li.row { display: block; width: 100%; }
-#shopp .products .frame { text-align: center; }
+#shopp .products .frame { text-align: center; overflow: hidden; }
 #shopp .products .frame img { display: inline; }
 
 #shopp ul.paging { clear: none; display: inline; }
@@ -60,7 +60,7 @@
 #shopp form ul li.half.right { display: inline; float: right; }
 #shopp form ul li span { float: left; padding: 0 5px 0 0; display: inline-block; text-align: left; }
 #shopp form ul li span label,
-#shopp form div label { clear: both; }
+#shopp form div label { overflow: hidden; }
 
 /* Workaround for IE to hide the cart's 'default button' but keep it active */
 #hidden-update { position: absolute; left: -999em; }
@@ -100,16 +100,17 @@
 #shopp .gallery { float: left; display: block; }
 #shopp .gallery ul { display: block; margin: 0; padding: 0 !important; position: relative; list-style: none !important; text-indent: 0; width: auto; }
 #shopp .gallery ul li:before { content: ""; }
-#shopp .gallery .previews { position: relative; margin: 0 !important; }
+#shopp .gallery li a { margin: 0; padding: 0; float: none; }
+#shopp .gallery .previews { position: relative;  margin: 0 !important; overflow: hidden; }
 #shopp .gallery .previews li { position: absolute; visibility: hidden; top: 0; left: 0; margin: 0; display: block; text-align: center; }
-#shopp .gallery .previews li img { display: inline; vertical-align: middle; margin-top: -3px; }
 #shopp .gallery .previews li.fill { position: relative; }
+#shopp .gallery .previews li.fill img { margin: 0; padding: 0; }
 #shopp .gallery .previews li.active { visibility: visible; }
-#shopp .gallery .thumbnails { margin-top: 10px; }
+#shopp .gallery .thumbnails { margin-top: 10px; overflow: hidden; text-align: justify; display: block; }
 #shopp .gallery .thumbnails ul { padding: 0; }
-#shopp .gallery .thumbnails li { position: relative; display: inline; visibility: visible; height: auto; line-height: 1; top: auto; left: auto; margin: 0 0 0 10px; }
+#shopp .gallery .thumbnails li { position: relative; display: inline; visibility: visible; height: auto; top: auto; left: auto; }
 #shopp .gallery .thumbnails li.first { margin-left: 0; }
-#shopp .gallery .thumbnails li img { cursor: pointer; }
+#shopp .gallery .thumbnails li img { cursor: pointer; display: inline; }
 
 /** Category Slideshow **/
 #shopp .slideshow { position: relative; margin: 0; clear: both; width: 100%; overflow: auto; }
