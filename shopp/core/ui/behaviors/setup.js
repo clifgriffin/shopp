@@ -91,6 +91,7 @@ jQuery(document).ready(function () {
 	});
 
 	function addLabel (id,label,location) {
+		if (isNaN(id)) return;
 		var i = labelInputs.length+1,id = !id?i:id,
 			entry = '<li id="item-'+i+'"><span>'+
 					'<input type="text" name="settings[order_status]['+id+']" id="label-'+i+'" size="14" />'+
@@ -117,7 +118,7 @@ jQuery(document).ready(function () {
 		labelInputs.push(li);
 	}
 
-	if (labels) for (var i = 0; i < labels.length; i++) addLabel(i,labels[i]);
+	if (labels) for (var id in labels) addLabel(id,labels[id]);
 	else addLabel();
 	
 });
