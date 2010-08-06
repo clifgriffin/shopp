@@ -621,6 +621,7 @@ class Category extends DatabaseObject {
 					reset($this->products);
 					$Shopp->Product = current($this->products);
 					$this->_pindex = 0;
+					$this->_rindex = false;
 					$this->_product_loop = true;
 				} else {
 					$Shopp->Product = next($this->products);
@@ -635,8 +636,10 @@ class Category extends DatabaseObject {
 				}
 				break;
 			case "row":
+				if (!isset($this->_rindex) || $this->_rindex === false) $this->_rindex = 0;
+				else $this->_rindex++;
 				if (empty($options['products'])) $options['products'] = $Shopp->Settings->get('row_products');
-				if (isset($this->_pindex) && $this->_pindex > 0 && $this->_pindex % $options['products'] == 0) return true;
+				if (isset($this->_rindex) && $this->_rindex > 0 && $this->_rindex % $options['products'] == 0) return true;
 				else return false;
 				break;
 			case "has-categories":
