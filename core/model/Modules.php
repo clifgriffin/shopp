@@ -22,6 +22,7 @@
  **/
 abstract class ModuleLoader {
 	
+	var $legacy = array();		// Legacy module checksums
 	var $modules = array();		// Installed available modules
 	var $activated = array();	// List of selected modules to be activated
 	var $active = array();		// Instantiated module objects
@@ -49,6 +50,7 @@ abstract class ModuleLoader {
 			// Add the module file to the registry
 			$module = new ModuleFile($path,$file);
 			if ($module->addon) $this->modules[$module->subpackage] = $module;
+			else $this->legacy[] = md5_file($path.$file);
 		}
 
 	}
@@ -87,6 +89,7 @@ abstract class ModuleLoader {
 	function checksums () {
 		$hashes = array();
 		foreach ($this->modules as $module) $hashes[] = md5_file($module->file);
+		if (!empty($this->legacy)) $hashes = array_merge($hashes,$this->legacy);
 		return $hashes;
 	}
 	
