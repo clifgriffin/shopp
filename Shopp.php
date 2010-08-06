@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define('SHOPP_VERSION','1.1b2');
+define('SHOPP_VERSION','1.1b2 r1140');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
@@ -184,7 +184,7 @@ class Shopp {
         add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array(&$this, 'status'),10,2);
         add_action('install_plugins_pre_plugin-information', array(&$this, 'changelog'));
         add_action('shopp_check_updates', array(&$this, 'updates'));
-		add_action('load-plugins.php',array(&$this, 'updates'));
+		add_action('shopp_init',array(&$this, 'loaded'));
 				
 		// Theme integration
 		add_action('widgets_init', array(&$this, 'widgets'));
@@ -211,7 +211,7 @@ class Shopp {
 	 * @return void
 	 **/
 	function init () {
-		
+
 		$this->Errors = new ShoppErrors($this->Settings->get('error_logging'));
 		$this->Order = ShoppingObject::__new('Order');
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
@@ -228,9 +228,13 @@ class Shopp {
 		if (SHOPP_DEBUG && $this->Shopping->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 		
+		global $pagenow;
+		if (WP_ADMIN && $pagenow == "plugins.php") $this->updates();
+
 		new Login();
 		do_action('shopp_init');		
 	}
+	
 	
 	/**
 	 * Initializes theme widgets
@@ -585,9 +589,20 @@ class Shopp {
 		if (isset($response->id))
 			$updates->response[SHOPP_PLUGINFILE] = $response;
 		
-		if (!empty($updates))
+		if (function_exists('get_site_transient')) $plugin_updates = get_site_transient('update_plugins');
+		else $plugin_updates = get_transient('update_plugins');
+
+		if (isset($updates->response)) {
+			$this->Settings->save('updates',$updates);
+
+			// Add Shopp to the WP plugin update notification count
+			$plugin_updates->response[SHOPP_PLUGINFILE] = true;
 			
-		$this->Settings->save('updates',$updates);
+		} else unset($plugin_updates->response[SHOPP_PLUGINFILE]); // No updates, remove Shopp from the plugin update count
+
+		if (function_exists('set_site_transient')) set_site_transient('update_plugins',$plugin_updates);
+		else set_transient('update_plugins',$plugin_updates);
+
 		return $updates;
 	}
 	
