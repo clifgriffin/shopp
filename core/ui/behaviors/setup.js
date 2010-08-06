@@ -117,7 +117,7 @@ jQuery(document).ready(function () {
 		labelInputs.push(li);
 	}
 
-	if (labels) for (var id in labels) addLabel(id,labels[id]);
+	if (labels) for (var i = 0; i < labels.length; i++) addLabel(i,labels[i]);
 	else addLabel();
 	
 });
