@@ -159,12 +159,14 @@ class Resources {
 			
 			$Download = new ProductDownload();
 			$Download->loadby_dkey($download);
+			
+			$name = $Purchased->name.(!empty($Purchased->optionlabel)?' ('.$Purchased->optionlabel.')':'');
 
 			$forbidden = false;
 			// Purchase Completion check
 			if ($Purchase->txnstatus != "CHARGED" 
 				&& !SHOPP_PREPAYMENT_DOWNLOADS) {
-				new ShoppError(__('This file cannot be downloaded because payment has not been received yet.','Shopp'),'shopp_download_limit');
+				new ShoppError(sprintf(__('"%s" cannot be downloaded because payment has not been received yet.','Shopp'),$name),'shopp_download_limit');
 				$forbidden = true;
 			}
 			
@@ -172,21 +174,21 @@ class Resources {
 			if ($this->Settings->get('account_system') != "none"
 				&& (!$Order->Customer->login
 				|| $Order->Customer->id != $Purchase->customer)) {
-					new ShoppError(__('You must login to access this download.','Shopp'),'shopp_download_limit',SHOPP_ERR);
+					new ShoppError(sprintf(__('You must login to download "%s".','Shopp'),$name),'shopp_download_limit',SHOPP_ERR);
 					shopp_redirect(shoppurl(false,'account'));
 			}
 			
 			// Download limit checking
 			if ($this->Settings->get('download_limit') // Has download credits available
 				&& $Purchased->downloads+1 > $this->Settings->get('download_limit')) {
-					new ShoppError(__('This file can no longer be downloaded because the download limit has been reached.','Shopp'),'shopp_download_limit');
+					new ShoppError(sprintf(__('"%s" is no longer available for download because the download limit has been reached.','Shopp'),$name),'shopp_download_limit');
 					$forbidden = true;
 				}
 					
 			// Download expiration checking
 			if ($this->Settings->get('download_timelimit') // Within the timelimit
 				&& $Purchased->created+$this->Settings->get('download_timelimit') < mktime() ) {
-					new ShoppError(__('This file can no longer be downloaded because it has expired.','Shopp'),'shopp_download_limit');
+					new ShoppError(sprintf(__('"%s" is no longer available for download because it has expired.','Shopp'),$name),'shopp_download_limit');
 					$forbidden = true;
 				}
 			
@@ -194,7 +196,7 @@ class Resources {
 			if ($this->Settings->get('download_restriction') == "ip"
 				&& !empty($Purchase->ip) 
 				&& $Purchase->ip != $_SERVER['REMOTE_ADDR']) {
-					new ShoppError(__('The file cannot be downloaded because this computer could not be verified as the system the file was purchased from.','Shopp'),'shopp_download_limit');
+					new ShoppError(sprintf(__('"%s" cannot be downloaded because your computer could not be verified as the system the file was purchased from.','Shopp'),$name),'shopp_download_limit');
 					$forbidden = true;	
 				}
 
@@ -202,7 +204,7 @@ class Resources {
 		}
 	
 		if ($forbidden) {
-			header("Status: 403 Forbidden");
+			shopp_redirect(shoppurl(false,'account'));
 		}
 		
 		if ($Download->download()) {

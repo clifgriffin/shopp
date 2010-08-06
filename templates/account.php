@@ -11,9 +11,7 @@
  **/
 ?>
 <?php if (!shopp('customer','process','return=true')): ?>
-<?php if(shopp('customer','errors-exist')): ?>
-	<p><?php shopp('customer','login-errors'); ?></p>
-<?php endif; ?>
+<?php if(shopp('customer','errors-exist')) shopp('customer','errors'); ?>
 
 <ul class="shopp account">
 <?php while (shopp('customer','menu')): ?>
@@ -58,7 +56,6 @@
 			<span><?php shopp('customer','confirm-password','required=true&minlength=3&size=14&title='.__('Confirm Password','Shopp')); ?><label for="confirm-password"><?php _e('Confirm Password','Shopp'); ?></label></span>
 		</li>
 	</ul>	
-	<br class="clear" />
 	<p><?php shopp('customer','save-button','label='.__('Save','Shopp')); ?></p>
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 	
@@ -153,5 +150,4 @@
 	
 <?php endif; // end status ?>
 
-<br class="clear" />
 </form>
