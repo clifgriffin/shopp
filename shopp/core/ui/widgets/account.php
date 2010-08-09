@@ -21,7 +21,7 @@ class ShoppAccountWidget extends WP_Widget {
 		global $Shopp;
 		if (!empty($args)) extract($args);
 
-		if (empty($options['title'])) $options['title'] = "Your Cart";
+		if (empty($options['title'])) $options['title'] = __('Your Account','Shopp');
 		$title = $before_title.$options['title'].$after_title;
 		$acct = $_GET['acct'];
 		unset($_GET['acct']);

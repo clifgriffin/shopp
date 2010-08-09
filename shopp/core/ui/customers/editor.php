@@ -40,12 +40,12 @@
 <script type="text/javascript">
 helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Customer";
 
-var PWD_INDICATOR = "<?php _e('Strength indicator'); ?>";
+var PWD_INDICATOR = "<?php _e('Strength indicator','Shopp'); ?>";
 
-var PWD_GOOD = "<?php _e('Good'); ?>";
-var PWD_BAD = "<?php _e('Bad'); ?>";
-var PWD_SHORT = "<?php _e('Short'); ?>";
-var PWD_STRONG = "<?php _e('Strong'); ?>";
+var PWD_GOOD = "<?php _e('Good','Shopp'); ?>";
+var PWD_BAD = "<?php _e('Bad','Shopp'); ?>";
+var PWD_SHORT = "<?php _e('Short','Shopp'); ?>";
+var PWD_STRONG = "<?php _e('Strong','Shopp'); ?>";
 
 jQuery(document).ready( function() {
 

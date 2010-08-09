@@ -174,7 +174,7 @@ class Resources {
 			if ($this->Settings->get('account_system') != "none"
 				&& (!$Order->Customer->login
 				|| $Order->Customer->id != $Purchase->customer)) {
-					new ShoppError(sprintf(__('You must login to download "%s".','Shopp'),$name),'shopp_download_limit',SHOPP_ERR);
+					new ShoppError(__('You must login to download purchases.','Shopp'),'shopp_download_limit');
 					shopp_redirect(shoppurl(false,'account'));
 			}
 			

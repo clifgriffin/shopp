@@ -4,7 +4,7 @@
 	<ul id="help">
 		<li>
 			<h3><a href="http://docs.shopplugin.net"><?php _e('Official Documentation','Shopp'); ?></a></h3>
-			<p><?php _e('The wiki is the best place to get started learning about the Shopp e-commerce platform. As Shopp is in beta, the documentation is sketchy at the moment, but it will become more complete as it nears release.','Shopp'); ?></p>
+			<p><?php _e('The wiki is the best place to get started learning about the Shopp e-commerce platform.','Shopp'); ?></p>
 		</li>
 		<li>
 			<h3><a href="http://forums.shopplugin.net"><?php _e('Support Forums','Shopp'); ?></a></h3>

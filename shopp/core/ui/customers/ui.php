@@ -81,7 +81,7 @@ function profile_meta_box ($Customer) {
 <p>
 	<span>
 	<input type="text" name="email" id="email" value="<?php echo esc_attr($Customer->email); ?>" size="24" /><br />
-	<label for="email"><?php _e('Email','Shopp'); ?> <em><?php _e('(required)')?></em></label>
+	<label for="email"><?php _e('Email','Shopp'); ?> <em><?php _e('(required)','Shopp')?></em></label>
 	</span>
 	<span>
 	<input type="text" name="phone" id="phone" value="<?php echo esc_attr($Customer->phone); ?>" size="20" /><br />
