@@ -262,7 +262,6 @@ $('#discount-type').change(function () {
 
 $('#promotion-target').change(function () {
 	var target = $(this).val();
-	console.log(target);
 	var menus = $('#rules select.ruleprops');
 	$('#target-property').html(SCOPEPROP_LANG[target]);
 	$('#rule-target').html(TARGET_LANG[target]);
