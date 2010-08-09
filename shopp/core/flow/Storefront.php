@@ -148,7 +148,7 @@ class Storefront extends FlowController {
 		// Include stylesheets and javascript based on whether shopp shortcodes are used
 		add_action('wp_print_styles',array(&$this, 'catalogcss'));
 		add_action('wp_head', array(&$this, 'header'));
-		add_action('wp_footer', array(&$this, 'footer'),15);
+		add_action('wp_footer', array(&$this, 'footer'));
 		wp_enqueue_style('shopp.catalog',SHOPP_ADMIN_URI.'/styles/catalog.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp',SHOPP_TEMPLATES_URI.'/shopp.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp.colorbox',SHOPP_ADMIN_URI.'/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
@@ -351,9 +351,11 @@ class Storefront extends FlowController {
 		
 		$script = '';
 		if (!empty($globals)) $script .= "\t".join("\n\t",$globals)."\n";
-		$script .= 'jQuery(window).ready(function(){ var $ = jqnc(); '."\n";
-		$script .= "\t".join("\t\n",$this->behaviors)."\n";
-		$script .= '});'."\n";
+		if (!empty($this->behaviors)) {
+			$script .= 'jQuery(window).ready(function(){ var $ = jqnc(); '."\n";
+			$script .= "\t".join("\t\n",$this->behaviors)."\n";
+			$script .= '});'."\n";
+		}
 		shopp_custom_script('catalog',$script);
 	}
 
