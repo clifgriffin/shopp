@@ -19,8 +19,8 @@
 		<?php if (shopp('customer','notloggedin')): ?>
 		<li>
 			<label for="login"><?php _e('Login to Your Account','Shopp'); ?></label>
-			<span><?php shopp('customer','account-login','size=20&title='.__('Login','Shopp')); ?><label for="login"><?php _e('Email','Shopp'); ?></label></span>
-			<span><?php shopp('customer','password-login','size=20&title='.__('Password','Shopp')); ?><label for="password"><?php _e('Password','Shopp'); ?></label></span>
+			<span><?php shopp('customer','account-login','size=20&title='.__('Login','Shopp')); ?><label for="account-login"><?php _e('Email','Shopp'); ?></label></span>
+			<span><?php shopp('customer','password-login','size=20&title='.__('Password','Shopp')); ?><label for="password-login"><?php _e('Password','Shopp'); ?></label></span>
 			<span><?php shopp('customer','submit-login','value=Login'); ?></span>
 		</li>
 		<li></li>
@@ -147,6 +147,7 @@
 		<li>
 		<div class="inline"><label for="marketing"><?php shopp('checkout','marketing','title='.__('','Shopp')); ?> <?php _e('Yes, I would like to receive e-mail updates and special offers!','Shopp'); ?></label></div>
 		</li>
+		<li><?php shopp('checkout','orderdata','type=text&name=Custom Data'); ?><label>Custom Data</label></li>
 	</ul>
 	<p class="submit"><?php shopp('checkout','submit','value='.__('Submit Order','Shopp')); ?></p>
 
