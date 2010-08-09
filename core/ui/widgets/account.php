@@ -20,19 +20,31 @@ class ShoppAccountWidget extends WP_Widget {
     function widget($args, $options) {		
 		global $Shopp;
 		if (!empty($args)) extract($args);
+		
+		
 
 		if (empty($options['title'])) $options['title'] = __('Your Account','Shopp');
 		$title = $before_title.$options['title'].$after_title;
-		$acct = $_GET['acct'];
+		$request = $_GET;
 		unset($_GET['acct']);
+		unset($_GET['id']);
+		remove_filter('shopp_account_template','shoppdiv');
+		add_filter('shopp_show_account_errors',array(&$this,'showerrors'));
 		$sidecart = $Shopp->Flow->Controller->account_page();
+
 		echo $before_widget.$title.$sidecart.$after_widget;
-		$_GET['acct'] = $acct;
+		$_GET = array_merge($_GET,$request);
+		remove_filter('shopp_show_account_errors',array(&$this,'showerrors'));
+		add_filter('shopp_account_template','shoppdiv');
     }
 
     function update($new_instance, $old_instance) {				
         return $new_instance;
     }
+
+	function showerrors () {
+		return false;
+	}
 
     function form($options) {				
 		?>
@@ -42,6 +54,9 @@ class ShoppAccountWidget extends WP_Widget {
     }
 
 } // END class ShoppAccountWidget
+
+global $Shopp;
+if ($Shopp->Settings->get('account_system') == "none") return;
 
 register_widget('ShoppAccountWidget');
 
