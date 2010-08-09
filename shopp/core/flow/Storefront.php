@@ -634,7 +634,6 @@ class Storefront extends FlowController {
 			$Customer->management();
 		
 		if (isset($wp->query_vars['acct']) && $wp->query_vars['acct'] == "rp") $Customer->reset_password($_GET['key']);
-		if (isset($wp->query_vars['acct']) && $wp->query_vars['acct'] == "receipt" && isset($_GET['id'])) return;
 		if (isset($_POST['recover-login'])) $Customer->recovery();
 				
 		ob_start();

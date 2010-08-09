@@ -89,20 +89,20 @@ class Customer extends DatabaseObject {
 				return apply_filters('shopp_account_vieworder',$content);
 			}
 		}
-
-		if (!empty($_GET['acct']) && !empty($_GET['id'])) {
+		
+		if (!empty($_GET['acct']) && !empty($_GET['id']) && $this->login) {
 			$Purchase = new Purchase($_GET['id']);
-			if ($Purchase->customer != $this->id) {
-				new ShoppError(sprintf(__('Order number %s could not be found in your order history.','Shopp'),$Purchase->id),'customer_order_history',SHOPP_AUTH_ERR);
-				unset($_GET['acct']);
-				return false;
-			} else {
+			if ($Purchase->customer == $this->id) {
 				$Shopp->Purchase = $Purchase;
 				$Purchase->load_purchased();
 				ob_start();
 				include(SHOPP_TEMPLATES."/receipt.php");
 				$content = ob_get_contents();
 				ob_end_clean();
+			} else {
+				new ShoppError(sprintf(__('Order number %s could not be found in your order history.','Shopp'),esc_html($_GET['id'])),'customer_order_history',SHOPP_AUTH_ERR);
+				unset($_GET['acct']);
+				return false;
 			}
 			$management = apply_filters('shopp_account_management_url',
 				'<p><a href="'.$this->tag('url').'">&laquo; Return to Account Management</a></p>');
@@ -361,7 +361,7 @@ class Customer extends DatabaseObject {
 		
 		// Return strings with no options
 		switch ($property) {
-			case "url": return add_query_arg('acct',false,esc_url($_SERVER['REQUEST_URI'])); break;
+			case "url": return shoppurl(array('acct'=>false),'account'); break;
 			case "accounturl": return shoppurl(false,'account'); break;
 			case "recover-url": return add_query_arg('acct','recover',shoppurl(false,'account'));
 			case "registration-form":
