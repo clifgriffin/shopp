@@ -61,19 +61,21 @@ class Customer extends DatabaseObject {
 		$this->info = new ObjectMeta($this->id,'customer');
 	}
 	
-	function addpage ($request,$label,$inmenu=true,$callback) {
+	function addpage ($request,$label,$visible=true,$callback,$position=0) {
 		$this->pages[$request] = new CustomerAccountPage($request,$label,$callback);
-		if ($inmenu) $this->menus[$request] =& $this->pages[$request];
+		if ($visible) {
+			array_splice($this->menus,$position,0,array(&$this->pages[$request]));
+		}
 	}
 	
 	function menus () {
 		$this->pages = array();
 		$this->menus = array();
-		$this->addpage('account',__('My Account','Shopp'),true);
-		$this->addpage('downloads',__('Downloads','Shopp'),true,array(&$this,'load_downloads'));
-		$this->addpage('history',__('Order History','Shopp'),true,array(&$this,'load_orders'));
-		$this->addpage('logout',__('Logout','Shopp'),true);
+		$this->addpage('logout',__('Logout','Shopp'));
 		$this->addpage('order',__('Order','Shopp'),false,array(&$this,'order'));
+		$this->addpage('history',__('Order History','Shopp'),true,array(&$this,'load_orders'));
+		$this->addpage('downloads',__('Downloads','Shopp'),true,array(&$this,'load_downloads'));
+		$this->addpage('account',__('My Account','Shopp'));
 		do_action_ref_array('shopp_account_menu',array(&$this));
 	}
 	
