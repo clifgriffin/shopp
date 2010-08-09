@@ -65,22 +65,23 @@ function contact_meta_box ($Purchase) {
 add_meta_box('order-contact', __('Customer Contact','Shopp'), 'contact_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function orderdata_meta_box ($Purchase) {
-	ob_start();
-?>
-	<ul>
-	<?php foreach ($Purchase->data as $name => $value): ?>
-	<?php if (empty($value)) continue; ?>
-	<li><strong><?php echo $name; ?>:</strong><span><?php if (strpos($value,"\n")): ?><textarea name="orderdata[<?php echo esc_attr($name); ?>]" readonly="readonly" cols="30" rows="4"><?php echo esc_html($value); ?></textarea><?php else: echo esc_html($value); endif; ?></span></li>
-	<?php endforeach; ?>
-	</ul>
-<?php
-	$contents = ob_get_contents();
-	ob_end_clean();
-	echo apply_filters('shopp_orderui_orderdata',$content);
+	$_[] = '<ul>';
+	foreach ($Purchase->data as $name => $value) {
+		if (empty($value)) continue;
+		$classname = 'shopp_orderui_orderdata_'.sanitize_title_with_dashes($name);
+		$listing = '<li class="'.$classname.'"><strong>'.$name.':</strong> <span>';
+		if (strpos($value,"\n")) $listing .= '<textarea name="orderdata['.esc_attr($name).']" readonly="readonly" cols="30" rows="4">'.esc_html($value).'</textarea>';
+		else $listing .= esc_html($value);
+		$listing .= '</span></li>';
+		$_[] = apply_filters($classname,$listing);
+	}
+	$_[] = '</ul>';
+	echo apply_filters('shopp_orderui_orderdata',join("\n",$_));
 }
-if (!empty($Shopp->Purchase->data) && is_array($Shopp->Purchase->data) && join("",$Shopp->Purchase->data) != "" 
-		|| apply_filters('shopp_orderui_show_orderdata',false))
-	add_meta_box('order-data', __('Details','Shopp'), 'orderdata_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+if (!empty($Shopp->Purchase->data) && is_array($Shopp->Purchase->data) && join("",$Shopp->Purchase->data) != ""
+		|| apply_filters('shopp_orderui_show_orderdata',false)) {
+			add_meta_box('order-data', __('Details','Shopp'), 'orderdata_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+		}
 
 function transaction_meta_box ($Purchase) {
 ?>
