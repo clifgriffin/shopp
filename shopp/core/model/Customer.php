@@ -74,7 +74,7 @@ class Customer extends DatabaseObject {
 		$this->addpage('history',__('Order History','Shopp'),true,array(&$this,'load_orders'));
 		$this->addpage('logout',__('Logout','Shopp'),true);
 		$this->addpage('order',__('Order','Shopp'),false,array(&$this,'order'));
-		do_action_array_ref('shopp_account_menu',&$this);
+		do_action_ref_array('shopp_account_menu',array(&$this));
 	}
 	
 	/**
