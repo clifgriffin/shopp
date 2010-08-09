@@ -316,7 +316,7 @@ class ShoppInstallation extends FlowController {
 		
 		// General Settings
 		$this->Settings->setup('shipping','on');	
-		$this->Settings->setup('order_status',array('Pending','Completed'));	
+		$this->Settings->setup('order_status',array(__('Pending','Shopp'),__('Completed','Shopp')));	
 		$this->Settings->setup('shopp_setup','completed');
 		$this->Settings->setup('maintenance','off');
 		$this->Settings->setup('dashboard','on');

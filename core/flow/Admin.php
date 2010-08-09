@@ -656,8 +656,8 @@ class AdminFlow extends FlowController {
 			
 			wp_enqueue_script('shopp-tinymce',admin_url('admin-ajax.php').'?action=shopp_tinymce',array());
 			wp_localize_script('shopp-tinymce', 'ShoppDialog', array(
-				'title' => __('Insert from Shopp…', 'Shopp'),
-				'desc' => __('Insert a product or category from Shopp…', 'Shopp')
+				'title' => __('Insert from Shopp...', 'Shopp'),
+				'desc' => __('Insert a product or category from Shopp...', 'Shopp')
 			));
 
 			add_filter('mce_external_plugins', array(&$this,'mceplugin'),5);
