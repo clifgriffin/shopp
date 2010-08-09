@@ -91,7 +91,7 @@ class Storefront extends FlowController {
 		add_filter('shopp_account_template','shoppdiv');
 		add_filter('shopp_order_receipt','shoppdiv');
 		add_filter('shopp_account_manager','shoppdiv');
-		add_filter('shopp_account_vieworder','shoppdiv');
+		add_filter('shopp_account_view_order','shoppdiv');
 
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
 
@@ -632,8 +632,7 @@ class Storefront extends FlowController {
 		$Order =& ShoppOrder();
 		$Customer =& $Order->Customer;
 
-		if (isset($Customer->login) && $Customer->login) 
-			$Customer->management();
+		if (isset($Customer->login) && $Customer->login) do_action('shopp_account_management');
 		
 		if (isset($wp->query_vars['acct']) && $wp->query_vars['acct'] == "rp") $Customer->reset_password($_GET['key']);
 		if (isset($_POST['recover-login'])) $Customer->recovery();

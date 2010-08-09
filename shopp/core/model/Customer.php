@@ -21,16 +21,11 @@ class Customer extends DatabaseObject {
 	var $info = false;
 	var $newuser = false;
 	
-	var $accounts = "none";			// Account system setting
+	var $accounts = "none";		// Account system setting
 	var $merchant = "";
-	
-	var $management = array(
-		"account" => "account",
-		"downloads" => "downloads",
-		"history" => "history",
-		"status" => "status",
-		"logout" => "logout",
-		);
+
+	var $pages = array();		// Account pages
+	var $menus = array();		// Account menus
 	
 	function __construct ($id=false,$key=false) {
 		global $Shopp;
@@ -42,6 +37,16 @@ class Customer extends DatabaseObject {
 		$this->load($id,$key);
 		if (!empty($this->id)) $this->load_info();
 
+		$this->listeners();
+	}
+	
+	function __wakeup () {
+		$this->listeners();
+	}
+	
+	function listeners () {
+		add_action('parse_request',array(&$this,'menus'));
+		add_action('shopp_account_management',array(&$this,'management'));
 	}
 	
 	/**
@@ -56,6 +61,22 @@ class Customer extends DatabaseObject {
 		$this->info = new ObjectMeta($this->id,'customer');
 	}
 	
+	function addpage ($request,$label,$inmenu=true,$callback) {
+		$this->pages[$request] = new CustomerAccountPage($request,$label,$callback);
+		if ($inmenu) $this->menus[$request] =& $this->pages[$request];
+	}
+	
+	function menus () {
+		$this->pages = array();
+		$this->menus = array();
+		$this->addpage('account',__('My Account','Shopp'),true);
+		$this->addpage('downloads',__('Downloads','Shopp'),true,array(&$this,'load_downloads'));
+		$this->addpage('history',__('Order History','Shopp'),true,array(&$this,'load_orders'));
+		$this->addpage('logout',__('Logout','Shopp'),true);
+		$this->addpage('order',__('Order','Shopp'),false,array(&$this,'order'));
+		do_action_array_ref('shopp_account_menu',&$this);
+	}
+	
 	/**
 	 * Management menu controller for the account manager
 	 *
@@ -67,14 +88,26 @@ class Customer extends DatabaseObject {
 	function management () {
 		global $Shopp;
 
-		if (isset($_GET['acct'])) {
-			switch ($_GET['acct']) {
-				case "receipt": break;
-				case "history": $this->load_orders(); break;
-				case "downloads": $this->load_downloads(); break;
-				// case "logout": $Shopp->Cart->logout(); break;
+		if (isset($_GET['acct']) && isset($this->pages[$_GET['acct']]) 
+				&& isset($this->pages[$_GET['acct']]->handler)) 
+			call_user_func($this->pages[$_GET['acct']]->handler);
+
+		if (!empty($_POST['customer'])) {
+			$this->updates($_POST);
+			
+			if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
+				$this->password = wp_hash_password($_POST['password']);
+				if($this->accounts == "wordpress" && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser ); 
+				$this->save();
+			} else {
+				if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
 			}
 		}
+		
+	}
+	
+	function order () {
+		global $Shopp;
 		
 		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
 			
@@ -104,28 +137,17 @@ class Customer extends DatabaseObject {
 				unset($_GET['acct']);
 				return false;
 			}
+			
 			$management = apply_filters('shopp_account_management_url',
 				'<p><a href="'.$this->tag('url').'">&laquo; Return to Account Management</a></p>');
 			
 			$content = $management.$content.$management;
 			
-			echo apply_filters('shopp_account_manager',$content);
+			echo apply_filters('shopp_account_view_order',$content);
 			return false;
 		}
-
-		if (!empty($_POST['customer'])) {
-			$this->updates($_POST);
-			
-			if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
-				$this->password = wp_hash_password($_POST['password']);
-				if($this->accounts == "wordpress" && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser ); 
-				$this->save();
-			} else {
-				if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
-			}
-		}
-		
 	}
+	
 	
 	/**
 	 * Password recovery processing
@@ -351,17 +373,16 @@ class Customer extends DatabaseObject {
 		
 		$Order =& $Shopp->Order;
 		
-		$menus = array(
-			"account" => __("My Account","Shopp"),
-			"downloads" => __("Downloads","Shopp"),
-			"history" => __("Order History","Shopp"),
-			"status" => __("Order Status","Shopp"),
-			"logout" => __("Logout","Shopp")
-		);
 		
 		// Return strings with no options
 		switch ($property) {
 			case "url": return shoppurl(array('acct'=>false),'account'); break;
+			case "action": 
+				$action = null;
+				if (isset($this->pages[$_GET['acct']])) $action = $_GET['acct'];
+				return shoppurl(array('acct'=>$action),'account'); 
+				break;
+
 			case "accounturl": return shoppurl(false,'account'); break;
 			case "recover-url": return add_query_arg('acct','recover',shoppurl(false,'account'));
 			case "registration-form":
@@ -382,7 +403,7 @@ class Customer extends DatabaseObject {
 				return '<input type="submit" name="shopp_registration" value="Register" />';
 				break;
 			case "process":
-				if (isset($_GET['acct'])) return $_GET['acct'];
+				if (!empty($_GET['acct']) && isset($this->pages[$_GET['acct']])) return $_GET['acct'];
 				return false;
 
 			case "loggedin": return $Shopp->Order->Customer->login; break;
@@ -425,6 +446,7 @@ class Customer extends DatabaseObject {
 				break;
 			case "login-errors": // @deprecated
 			case "errors":
+				if (!apply_filters('shopp_show_account_errors',true)) return false;
 				$Errors = &ShoppErrors();
 				if (!$Errors->exist(SHOPP_AUTH_ERR)) return false;
 
@@ -437,21 +459,22 @@ class Customer extends DatabaseObject {
 				
 			case "menu":
 				if (!isset($this->_menu_looping)) {
-					reset($this->management);
+					reset($this->menus);
 					$this->_menu_looping = true;
-				} else next($this->management);
+				} else next($this->menus);
 				
-				if (current($this->management) !== false) return true;
+				if (current($this->menus) !== false) return true;
 				else {
 					unset($this->_menu_looping);
-					reset($this->management);
+					reset($this->menus);
 					return false;
 				}
 				break;
-			case "management":				
-				if (array_key_exists('url',$options)) return add_query_arg('acct',key($this->management),shoppurl(false,'account'));
-				if (array_key_exists('action',$options)) return key($this->management);
-				return $menus[key($this->management)];
+			case "management":
+				$page = current($this->menus);
+				if (array_key_exists('url',$options)) return shoppurl(array('acct'=>$page->request),'account');
+				if (array_key_exists('action',$options)) return $page->request;
+				return $page->label;
 			case "accounts": return $Shopp->Settings->get('account_system'); break;
 			case "hasaccount": 
 				$system = $Shopp->Settings->get('account_system');
@@ -807,12 +830,9 @@ class Customer extends DatabaseObject {
 					return false;
 				}
 				break;
-			case "receipt":
-				return add_query_arg(
-					array(
-						'acct'=>'receipt',
-						'id'=>$Shopp->Purchase->id),
-						shoppurl(false,'account'));
+			case "order":
+				return shoppurl(array('acct'=>'order','id'=>$Shopp->Purchase->id),'account');
+				break;
 
 		}
 	}
@@ -996,5 +1016,27 @@ class CustomersXLSExport extends CustomersExport {
 		$this->r++;
 	}
 }
+
+/**
+ * CustomerAccountPage class
+ *
+ * A property container for Shopp's customer account page meta
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package customer
+ **/
+class CustomerAccountPage {
+	var $request = "";
+	var $label = "";
+	var $handler = false;
+	
+	function __construct ($request,$label,$handler) {
+		$this->request = $request;
+		$this->label = $label;
+		$this->handler = $handler;
+	}
+	
+} // END class CustomerAccountPage 
 
 ?>

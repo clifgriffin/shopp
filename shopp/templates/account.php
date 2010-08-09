@@ -21,9 +21,11 @@
 
 <?php return true; endif; ?>
 
-<form action="<?php shopp('customer','url'); ?>" method="post" class="shopp" autocomplete="off">
+<form action="<?php shopp('customer','action'); ?>" method="post" class="shopp" autocomplete="off">
 
 <?php if (shopp('customer','process','return=true') == "account"): ?>
+	<?php if(shopp('customer','errors-exist')) shopp('customer','errors'); ?>
+
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 	<ul>
 		<li>
@@ -110,7 +112,7 @@
 				<td><?php shopp('purchase','id'); ?></td>
 				<td><?php shopp('purchase','status'); ?></td>
 				<td><?php shopp('purchase','total'); ?></td>
-				<td><a href="<?php shopp('customer','receipt'); ?>"><?php _e('View Order','Shopp'); ?></a></td>
+				<td><a href="<?php shopp('customer','order'); ?>"><?php _e('View Order','Shopp'); ?></a></td>
 			</tr>
 			<?php endwhile; ?>
 		</table>
@@ -120,34 +122,5 @@
 	<?php endif; // end 'has-purchases' ?>
 	
 <?php endif; // end history ?>
-
-<?php if (shopp('customer','process','return=true') == "status"): ?>
-	<?php if (shopp('customer','has-purchases','daysago=15')): ?>
-		<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
-		<table cellspacing="0" cellpadding="0">
-			<thead>
-				<tr>
-					<th scope="col"><?php _e('Date','Shopp'); ?></th>
-					<th scope="col"><?php _e('Order','Shopp'); ?></th>
-					<th scope="col"><?php _e('Status','Shopp'); ?></th>
-					<th scope="col"><?php _e('Total','Shopp'); ?></th>
-				</tr>
-			</thead>
-			<?php while(shopp('customer','purchases')): ?>
-			<tr>
-				<td><?php shopp('purchase','date'); ?></td>
-				<td><?php shopp('purchase','id'); ?></td>
-				<td><?php shopp('purchase','status'); ?></td>
-				<td><?php shopp('purchase','total'); ?></td>
-				<td><a href="<?php shopp('customer','receipt'); ?>"><?php _e('View Order','Shopp'); ?></a></td>
-			</tr>
-			<?php endwhile; ?>
-		</table>
-		<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
-	<?php else: ?>
-	<p><?php _e('There are no recent orders within the last 15 days.','Shopp'); ?></p>
-	<?php endif; // end 'has-purchases' ?>
-	
-<?php endif; // end status ?>
 
 </form>
