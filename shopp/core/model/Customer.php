@@ -61,7 +61,7 @@ class Customer extends DatabaseObject {
 		$this->info = new ObjectMeta($this->id,'customer');
 	}
 	
-	function addpage ($request,$label,$visible=true,$callback,$position=0) {
+	function addpage ($request,$label,$visible=true,$callback=false,$position=0) {
 		$this->pages[$request] = new CustomerAccountPage($request,$label,$callback);
 		if ($visible) {
 			array_splice($this->menus,$position,0,array(&$this->pages[$request]));
