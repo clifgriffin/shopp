@@ -14,7 +14,10 @@ if (class_exists('WP_Widget')) {
 class ShoppFacetedMenuWidget extends WP_Widget {
 
     function ShoppFacetedMenuWidget() {
-        parent::WP_Widget(false, $name = 'Shopp Faceted Menu', array('description' => __('Category products drill-down search menu','Shopp')));
+        parent::WP_Widget(false, 
+			$name = __('Shopp Faceted Menu','Shopp'), 
+			array('description' => __('Category products drill-down search menu','Shopp'))
+		);
     }
 
     function widget($args, $options) {		

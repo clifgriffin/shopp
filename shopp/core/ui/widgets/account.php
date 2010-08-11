@@ -14,15 +14,16 @@ if (class_exists('WP_Widget')) {
 class ShoppAccountWidget extends WP_Widget {
 
     function ShoppAccountWidget() {
-        parent::WP_Widget(false, $name = 'Shopp Account', array('description' => __('Account login &amp; management','Shopp')));
+        parent::WP_Widget(false, 
+			$name = __('Shopp Account','Shopp'), 
+			array('description' => __('Account login &amp; management','Shopp'))
+		);
     }
 
     function widget($args, $options) {		
 		global $Shopp;
 		if (!empty($args)) extract($args);
 		
-		
-
 		if (empty($options['title'])) $options['title'] = __('Your Account','Shopp');
 		$title = $before_title.$options['title'].$after_title;
 		$request = $_GET;
