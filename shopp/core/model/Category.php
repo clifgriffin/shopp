@@ -419,15 +419,16 @@ class Category extends DatabaseObject {
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
 
+		$total = $db->query("SELECT FOUND_ROWS() as count");
+		$this->total = $total->count;
+
 		if ($this->pagination > 0 && $limit > $this->pagination) {
-			$total = $db->query("SELECT FOUND_ROWS() as count");
-			$this->total = $total->count;
 			$this->pages = ceil($this->total / $this->pagination);
 			if ($this->pages > 1) $this->paged = true;			
 		}
 
-		if ($this->pagination == 0 || $limit < $this->pagination) 
-			$this->total = count($this->products);
+		// if ($this->pagination == 0 || $limit < $this->pagination) 
+		// 	$this->total = count($this->products);
 	
 		$this->pricing['min'] = 0;
 		$this->pricing['max'] = 0;
