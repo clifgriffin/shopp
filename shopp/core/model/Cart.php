@@ -354,13 +354,9 @@ class Cart {
 	 * @return boolean|int	Item index if found, false if not found
 	 **/
 	function hasitem($NewItem) {
-		foreach ($this->contents as $i => $Item) {
-			if ($Item->product == $NewItem->product && 
-					$Item->priceline == $NewItem->priceline && 
-					(empty($NewItem->data) || 
-					(serialize($Item->data) == serialize($NewItem->data)))) 
-				return $i;
-		}
+		// Find matching item fingerprints
+		foreach ($this->contents as $i => $Item)
+			if ($Item->fingerprint() === $NewItem->fingerprint()) return $i;
 		return false;
 	}
 			

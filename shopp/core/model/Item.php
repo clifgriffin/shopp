@@ -164,6 +164,21 @@ class Item {
 	}
 
 	/**
+	 * Provides the polynomial fingerprint of the item for detecting uniqueness
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return string
+	 **/
+	function fingerprint () {
+		$_  = array($this->product,$this->priceline);
+		if (!empty($this->addons))	$_[] = serialize($this->addons);
+		if (!empty($this->data))	$_[] = serialize($this->data);
+		return crc32(join('',$_));
+	}
+
+	/**
 	 * Sets the quantity of the line item
 	 * 
 	 * Sets the quantity only if stock is available or 
