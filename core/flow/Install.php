@@ -330,16 +330,9 @@ class ShoppInstallation extends FlowController {
 		$this->Settings->setup('theme_templates','off');
 		$this->Settings->setup('row_products','3');
 		$this->Settings->setup('catalog_pagination','25');
+		$this->Settings->setup('default_product_order','title');
 		$this->Settings->setup('product_image_order','ASC');
 		$this->Settings->setup('product_image_orderby','sortorder');
-		$this->Settings->setup('gallery_small_width','240');
-		$this->Settings->setup('gallery_small_height','240');
-		$this->Settings->setup('gallery_small_sizing','1');
-		$this->Settings->setup('gallery_small_quality','2');
-		$this->Settings->setup('gallery_thumbnail_width','96');
-		$this->Settings->setup('gallery_thumbnail_height','96');
-		$this->Settings->setup('gallery_thumbnail_sizing','1');
-		$this->Settings->setup('gallery_thumbnail_quality','3');
 		
 		// System Settinggs
 		$this->Settings->setup('uploader_pref','flash');

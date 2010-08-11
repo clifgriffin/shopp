@@ -243,7 +243,7 @@ class Category extends DatabaseObject {
 		else $where[] = "(p.status!='publish' OR UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(p.publish))";
 		
 		$defaultOrder = $Shopp->Settings->get('default_product_order');
-		if (empty($defaultOrder)) $defaultOrder = "title";
+		if (empty($defaultOrder)) $defaultOrder = "";
 		$ordering = isset($Shopp->Flow->Controller->browsing['orderby'])?
 						$Shopp->Flow->Controller->browsing['orderby']:$defaultOrder;
 		if (!empty($loading['order'])) $ordering = $loading['order'];
@@ -260,7 +260,7 @@ class Category extends DatabaseObject {
 			case "oldest": $loading['order'] = "p.publish ASC,p.name ASC"; break;
 			case "random": $loading['order'] = "RAND()"; break;
 			case "title": $loading['order'] = "p.name ASC"; break;
-			default: 
+			default:
 				// Need to add the catalog table for access to category-product priorities
 				$loading['joins'] .= " LEFT JOIN $catalogtable AS c ON c.product=p.id AND c.parent = '$this->id'";
 				$loading['order'] = "c.priority ASC,p.name ASC";
@@ -415,7 +415,7 @@ class Category extends DatabaseObject {
 					GROUP BY p.id {$loading['having']}
 					ORDER BY {$loading['order']} 
 					LIMIT {$loading['limit']}";
-				
+
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
 
@@ -577,15 +577,16 @@ class Category extends DatabaseObject {
 	}
 	
 	function sortoptions () {
-		return array(
+		return apply_filters('shopp_category_sortoptions', array(
 			"title" => __('Title','Shopp'),
+			"custom" => __('Recommended','Shopp'),
 			"bestselling" => __('Bestselling','Shopp'),
 			"highprice" => __('Price High to Low','Shopp'),
 			"lowprice" => __('Price Low to High','Shopp'),
 			"newest" => __('Newest to Oldest','Shopp'),
 			"oldest" => __('Oldest to Newest','Shopp'),
 			"random" => __('Random','Shopp')
-		);
+		));
 	}
 	
 	function tag ($property,$options=array()) {
