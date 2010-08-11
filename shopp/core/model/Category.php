@@ -341,7 +341,7 @@ class Category extends DatabaseObject {
 		// Query without promotions for MySQL servers prior to 5
 		if (version_compare($db->mysql,'5.0','<')) {
 			$columns = "p.*,
-						img.id AS thumbnail,img.properties AS thumbnail_properties,
+						img.id AS image,img.value AS imgmeta,
 						MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
 						IF(pd.sale='on',1,0) AS onsale,
 						MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice,
