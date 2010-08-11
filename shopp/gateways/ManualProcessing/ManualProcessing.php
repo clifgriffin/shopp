@@ -35,11 +35,8 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 		if (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') $this->sec_prefix = SECRET_AUTH_KEY;
 		else $this->sec_prefix = DatabaseObject::tablename("");
 		
-		wp_enqueue_script('shopp_rsa', $this->path."behaviors/rsa.js",array(),SHOPP_VERSION,true);
-		wp_enqueue_script('shopp_mp_gateway', $this->path."behaviors/mp.js", array('json2'),SHOPP_VERSION,true);
-		wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);
-		
-		add_action('init', array(&$this, 'init'), 11);		
+		add_action('init', array(&$this, 'init'), 11);
+		add_action('admin_init', array(&$this, 'enqueue_scripts'));		
 		add_action('admin_head', array(&$this, 'jsvars'));
 		add_action('shopp_order_admin_script', array(&$this, 'decrypt'));
 		add_action('wp_ajax_mp_reinstall_keys', array(&$this, 'reinstall_keypairs'));
@@ -50,6 +47,12 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 	
 	function init () {
 		if (!empty($this->public_key)) force_ssl_admin(true); // force ssl admin only if Manual Processing is activated and setup complete
+	}
+	
+	function enqueue_scripts () {
+		wp_enqueue_script('shopp_rsa', $this->path."behaviors/rsa.js",array(),SHOPP_VERSION,true);
+		wp_enqueue_script('shopp_mp_gateway', $this->path."behaviors/mp.js", array('json2'),SHOPP_VERSION,true);
+		wp_enqueue_script('shopp.ocupload',SHOPP_ADMIN_URI."/behaviors/ocupload.js",array('jquery'),SHOPP_VERSION,true);		
 	}
 	
 	function actions () {
