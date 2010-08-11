@@ -99,7 +99,8 @@ class Customer extends DatabaseObject {
 		global $Shopp;
 
 		if (isset($_GET['acct']) && isset($this->pages[$_GET['acct']]) 
-				&& isset($this->pages[$_GET['acct']]->handler)) 
+				&& isset($this->pages[$_GET['acct']]->handler) 
+				&& function_exists($this->pages[$_GET['acct']]->handler))
 			call_user_func($this->pages[$_GET['acct']]->handler);
 
 		if (!empty($_POST['customer'])) {
