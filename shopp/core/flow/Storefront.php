@@ -65,6 +65,7 @@ class Storefront extends FlowController {
 		ShoppingObject::store('referrer',$this->referrer);
 
 		add_action('wp', array(&$this, 'pageid'));
+		add_action('wp', array(&$this, 'security'));
 		add_action('wp', array(&$this, 'cart'));
 		add_action('wp', array(&$this, 'catalog'));
 		add_action('wp', array(&$this, 'shortcodes'));
@@ -115,6 +116,25 @@ class Storefront extends FlowController {
 			if ($Page['id'] == $wp_query->posts[0]->ID) $this->Page = $Page; break;
 		}
 
+	}
+	
+	/**
+	 * Forces SSL on pages when required and available
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function security () {
+		global $Shopp;
+		switch ($this->Page['name']) {
+			case "checkout": break;
+			case "account": 
+				if ($Shopp->Gateways->secure)
+					shopp_redirect(shoppurl($_GET,'account',true));
+				break;
+		}
 	}
 
 	/**

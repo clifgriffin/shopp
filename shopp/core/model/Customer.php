@@ -378,7 +378,8 @@ class Customer extends DatabaseObject {
 		
 		// Return strings with no options
 		switch ($property) {
-			case "url": return shoppurl(array('acct'=>false),'account'); break;
+			case "url": 
+				return shoppurl(array('acct'=>false),'account',$Shopp->Gateways->secure); break;
 			case "action": 
 				$action = null;
 				if (isset($this->pages[$_GET['acct']])) $action = $_GET['acct'];
@@ -421,10 +422,12 @@ class Customer extends DatabaseObject {
 			case "loginname-login": 
 			case "account-login": 
 				if (!empty($_POST['account-login']))
-					$options['value'] = $_POST['account-login']; 
+					$options['value'] = $_POST['account-login'];
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
 				break;
 			case "password-login": 
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($_POST['password-login']))
 					$options['value'] = $_POST['password-login']; 
 				return '<input type="password" name="password-login" id="password-login"'.inputattrs($options).' />';
@@ -535,17 +538,20 @@ class Customer extends DatabaseObject {
 				break;
 			case "loginname":
 				if (isset($options['mode']) && $options['mode'] == "value") return $this->loginname;
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->loginname))
 					$options['value'] = $this->loginname; 
 				return '<input type="text" name="login" id="login"'.inputattrs($options).' />';
 				break;
 			case "password":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (isset($options['mode']) && $options['mode'] == "value") 
 					return strlen($this->password) == 34?str_pad('&bull;',8):$this->password;
 				$options['value'] = "";
 				return '<input type="password" name="password" id="password"'.inputattrs($options).' />';
 				break;
 			case "confirm-password":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				$options['value'] = ""; 
 				return '<input type="password" name="confirm-password" id="confirm-password"'.inputattrs($options).' />';
 				break;

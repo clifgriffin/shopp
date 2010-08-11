@@ -674,7 +674,7 @@ function indian_number ($number,$format=false) {
 function inputattrs ($options,$allowed=array()) {
 	if (!is_array($options)) return "";
 	if (empty($allowed)) {
-		$allowed = array("accesskey","alt","checked","class","disabled","format",
+		$allowed = array("autocomplete","accesskey","alt","checked","class","disabled","format",
 			"minlength","maxlength","readonly","required","size","src","tabindex",
 			"title","value");
 	}
@@ -694,7 +694,7 @@ function inputattrs ($options,$allowed=array()) {
 				$string .= ' '.$key.'="'.esc_attr($value).'"';
 		}
 	}
-	$string .= ' class="'.trim($classes).'"';
+	if (!empty($classes)) $string .= ' class="'.trim($classes).'"';
  	return $string;
 }
 
