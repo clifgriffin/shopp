@@ -770,11 +770,13 @@ class Order {
 			case "email-login":  // Deprecating
 			case "loginname-login":  // Deprecating
 			case "account-login": 
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($_POST['account-login']))
 					$options['value'] = $_POST['account-login']; 
 				return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
 				break;
 			case "password-login": 
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($_POST['password-login']))
 					$options['value'] = $_POST['password-login']; 
 				return '<input type="password" name="password-login" id="password-login" '.inputattrs($options).' />';
@@ -804,12 +806,14 @@ class Order {
 				return '<input type="text" name="email" id="email" '.inputattrs($options).' />';
 				break;
 			case "loginname":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if ($options['mode'] == "value") return $this->Customer->login;
 				if (!empty($this->Customer->login))
 					$options['value'] = $this->Customer->login; 
 				return '<input type="text" name="login" id="login" '.inputattrs($options).' />';
 				break;
 			case "password":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if ($options['mode'] == "value") 
 					return strlen($this->Customer->password) == 34?str_pad('&bull;',8):$this->Customer->password;
 				if (!empty($this->Customer->password))
@@ -817,6 +821,7 @@ class Order {
 				return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
 				break;
 			case "confirm-password":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Customer->confirm_password))
 					$options['value'] = $this->Customer->confirm_password; 
 				return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
@@ -1023,11 +1028,13 @@ class Order {
 					$options['value'] = $this->Billing->card;
 					$this->Billing->card = "";
 				}
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				return '<input type="text" name="billing[card]" id="billing-card" '.inputattrs($options).' />';
 				break;
 			case "billing-cardexpires-mm":
 				if ($options['mode'] == "value") return date("m",$this->Billing->cardexpires);
 				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardexpires))
 					$options['value'] = date("m",$this->Billing->cardexpires);				
 				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm" '.inputattrs($options).' />'; 	
@@ -1035,6 +1042,7 @@ class Order {
 			case "billing-cardexpires-yy": 
 				if ($options['mode'] == "value") return date("y",$this->Billing->cardexpires);
 				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardexpires))
 					$options['value'] = date("y",$this->Billing->cardexpires);							
 				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy" '.inputattrs($options).' />'; 
@@ -1068,11 +1076,13 @@ class Order {
 			case "billing-cardholder":
 				if ($options['mode'] == "value") return $this->Billing->cardholder;
 				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardholder))
 					$options['value'] = $this->Billing->cardholder;			
 				return '<input type="text" name="billing[cardholder]" id="billing-cardholder" '.inputattrs($options).' />';
 				break;
 			case "billing-cvv":
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($_POST['billing']['cvv']))
 					$options['value'] = $_POST['billing']['cvv'];
 				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
@@ -1117,7 +1127,7 @@ class Order {
 				$script .= "else $('#billing-xcsc-$input').attr('disabled',true);";
 				$script .= "}).change();";				
 				add_storefrontjs($script);
-
+				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				$string = '<input type="text" name="billing[xcsc]['.$input.']" id="billing-xcsc-'.$input.'" '.inputattrs($options).' />';
 				return $string;
 				break;
