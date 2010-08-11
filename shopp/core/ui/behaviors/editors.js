@@ -25,13 +25,13 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 	_.sortorder = _.element.find('input.sortorder');
 	_.id = _.element.find('input.id');
 	_.label = _.element.find('input.label');
-	_.deleteButton = _.element.find('button.delete').click(function () {
+	_.deleteButton = _.element.find('button.delete').bind('delete',function () {
 		var deletes = $(target).find('input.deletes');
 		if ($(_.id).val() != "") // Only need db delete if an id exists
 			deletes.val( (deletes.val() == "")?$(_.id).val():deletes.val()+','+$(_.id).val() );
 		if (items) _.itemsElement.remove();
 		_.element.remove();
-	});
+	}).click(function () { $(this).trigger('delete'); });
 
 	if (_.items) {
 		if (items.type == "list") _.itemsElement = $('<ul></ul>').appendTo(items.target).hide();
@@ -214,20 +214,19 @@ function addVariationOptionsMenu (data) {
 	}
 	menu.itemsElement.sortable({'axis':'y','update':function(){ orderVariationPrices() }});
 
-	menu.element.unbind('click',menu.click);
-	menu.element.click(function () {
+	menu.element.unbind('click',menu.click).click(function () {
 		menu.selected();
 		$(addOptionButton).unbind('click').click(menu.addOption);
 	});
 	optionMenus[variationsidx++] = menu;
 	
-	menu.deleteButton.click(function () {
+	menu.deleteButton.unbind('click').click(function () {
 		var deletedOptions = new Array();
 		$(menu.itemsElement).find('li').not('.ui-sortable-helper').find('input.id').each(function (i,id) {
 			deletedOptions.push($(id).val());
 		});
 		deleteVariationPrices(deletedOptions,true);
-		// menu.element.remove();
+		$(this).trigger('delete');
 	});
 	
 	if (!data) {
@@ -329,13 +328,12 @@ function deleteVariationPrices (optionids,reduce) {
 	 	updated = buildVariations(),
 	 	reduced = false,
 		i,key,modOptions,newkey,dbPriceId;
-		
+
 	$(updated).each(function(id,options) {
 		key = xorkey(options);
 
 		for (i = 0; i < optionids.length; i++)  {
 			if (options.indexOf(optionids[i]) != -1) {
-
 				modOptions = new Array();
 				$(options).each(function(index,option) {
 					if (option != optionids[i]) modOptions.push(option);
@@ -368,7 +366,7 @@ function deleteVariationPrices (optionids,reduce) {
 
 	});
 	
-	if (reduced) updateVariationsUI();
+	if (reduced) Pricelines.updateVariationsUI();
 
 }
 
@@ -757,7 +755,6 @@ function ImageUploads (id,type) {
 			this.sorting = this.targetHolder.find('input');
 		},
 		onComplete: function(results) {
-			console.log(results);
 			var image,img,deleteButton;
 			if (results == "") {
 				$(this.targetHolder).remove();
@@ -1014,7 +1011,6 @@ jQuery.fn.FileChooser = function (line,status) {
 			var f = $(this).contents().find('body').html();
 			importdata = $.parseJSON(f);
 			
-			console.log(importdata);
 			if (importdata.error) return file.attr('class','error').html('<small>'+importdata.error+'</small>');
 			if (!importdata.path) return file.attr('class','error').html('<small>'+FILE_UNKNOWN_IMPORT_ERROR+'</small>');
 			
