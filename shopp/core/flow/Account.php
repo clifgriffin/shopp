@@ -2,7 +2,7 @@
 /**
  * Account
  * 
- * Description...
+ * Flow controller for the customer management interfaces
  *
  * @author Jonathan Davis
  * @version 1.0
@@ -11,12 +11,6 @@
  * @subpackage shopp
  **/
 
-/**
- * Account
- *
- * @package shopp
- * @author Jonathan Davis
- **/
 class Account extends AdminController {
 	
 	/**

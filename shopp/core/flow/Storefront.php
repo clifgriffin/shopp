@@ -654,9 +654,6 @@ class Storefront extends FlowController {
 
 		if (isset($Customer->login) && $Customer->login) do_action('shopp_account_management');
 		
-		if (isset($wp->query_vars['acct']) && $wp->query_vars['acct'] == "rp") $Customer->reset_password($_GET['key']);
-		if (isset($_POST['recover-login'])) $Customer->recovery();
-				
 		ob_start();
 		if (isset($wp->query_vars['shopp_download'])) include(SHOPP_TEMPLATES."/errors.php");
 		elseif ($Customer->login) include(SHOPP_TEMPLATES."/account.php");
