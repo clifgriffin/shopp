@@ -100,7 +100,7 @@ class Customer extends DatabaseObject {
 
 		if (isset($_GET['acct']) && isset($this->pages[$_GET['acct']]) 
 				&& isset($this->pages[$_GET['acct']]->handler) 
-				&& (is_array($this->pages[$_GET['acct']]->handler) || is_callable($this->pages[$_GET['acct']]->handler)))
+				&& is_callable($this->pages[$_GET['acct']]->handler))
 			call_user_func($this->pages[$_GET['acct']]->handler);
 
 		if (!empty($_POST['customer'])) {
