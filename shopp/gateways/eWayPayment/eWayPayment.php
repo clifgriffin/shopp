@@ -1,26 +1,26 @@
 <?php
 /**
- * eWAY Australia
+ * eWayPayment
  *
  * @author Jonathan Davis
  * @version 1.1
  * @copyright Ingenesis Limited, 7 January, 2009
  * @package Shopp
  * @since 1.1
- * @subpackage eWayAustralia
+ * @subpackage eWayPayment
  * 
  * $Id$
  **/
 
 require_once(SHOPP_PATH."/core/model/XML.php");
 
-class eWayAustralia extends GatewayFramework implements GatewayModule {
+class eWayPayment extends GatewayFramework implements GatewayModule {
 	
 	var $secure = true;
 
 	var $cards = array("visa","mc","amex","dc","jcb");
 
-	var $testid = "87654321"; // Use when enabling Test Mode
+	var $testid = "87654321";
 	var $testurl = "https://www.eway.com.au/gateway_cvn/xmltest/testpage.asp";
 	var $liveurl = "https://www.eway.com.au/gateway_cvn/xmlpayment.asp";
 	
@@ -38,7 +38,7 @@ class eWayAustralia extends GatewayFramework implements GatewayModule {
 		$XML = $this->send($this->build());
 		$txnid = $this->txnid($XML);
 
-		if ($XML->content('ewayTrxnStatus') == "True") {
+		if ($XML->getElementContent('ewayTrxnStatus') == "True") {
 			$this->Order->transaction($txnid,'CHARGED');
 			return;
 		}
@@ -48,11 +48,11 @@ class eWayAustralia extends GatewayFramework implements GatewayModule {
 	}
 	
 	function txnid ($XML) {
-		return $XML->content('ewayTrxnNumber');
+		return $XML->getElementContent('ewayTrxnNumber');
 	}
 	
 	function error ($XML) {
-		return $XML->content('ewayTrxnError');
+		return $XML->getElementContent('ewayTrxnError');
 	}
 	
 		
@@ -92,7 +92,7 @@ class eWayAustralia extends GatewayFramework implements GatewayModule {
 	function send ($data) {
 		if ($this->settings['testmode'] == "on") $url = $this->testurl;
 		else $url = $this->liveurl;
-		return new xmlQuery(parent::send($data,$url));
+		return new XMLdata(parent::send($data,$url));
 	}
 	
 	
@@ -116,6 +116,6 @@ class eWayAustralia extends GatewayFramework implements GatewayModule {
 		));
 	}
 
-} // END class eWayAustralia
+} // END class eWayPayments
 
 ?>
