@@ -813,7 +813,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 
 		// Force refresh of plugin update information
 		$Settings = ShoppSettings();
-		$Settings->set('updates',false);
+		$Settings->save('updates',false);
 
 	}
 	
@@ -906,7 +906,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 			return $this->result;
 
 		// Force refresh of plugin update information
-		$Settings->set('updates',false);
+		$Settings->save('updates',false);
 	}
 	
 	function run ($options) {
