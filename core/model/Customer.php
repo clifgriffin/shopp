@@ -69,13 +69,21 @@ class Customer extends DatabaseObject {
 	}
 	
 	function menus () {
+		global $wp;
 		$this->pages = array();
 		$this->menus = array();
 		$this->addpage('logout',__('Logout','Shopp'));
-		$this->addpage('order',__('Order','Shopp'),false,array(&$this,'order'));
 		$this->addpage('history',__('Order History','Shopp'),true,array(&$this,'load_orders'));
 		$this->addpage('downloads',__('Downloads','Shopp'),true,array(&$this,'load_downloads'));
 		$this->addpage('account',__('My Account','Shopp'));
+		
+		// Pages with not in menu navigation
+		$this->addpage('order','Order',false,array(&$this,'order'));
+		$this->addpage('recover','Password Recovery',false);
+
+		if (isset($wp->query_vars['acct']) && $wp->query_vars['acct'] == "rp") $this->reset_password($_GET['key']);
+		if (isset($_POST['recover-login'])) $this->recovery();
+
 		do_action_ref_array('shopp_account_menu',array(&$this));
 	}
 	
@@ -227,11 +235,11 @@ class Customer extends DatabaseObject {
 
 		$errors = array();
 		if (empty($activation) || !is_string($activation))
-			$errors[] = new ShoppError(__('Invalid key'));
+			$errors[] = new ShoppError(__('Invalid key','Shopp'));
 		
 		$RecoveryCustomer = new Customer($activation,'activation');
 		if (empty($RecoveryCustomer->id)) 
-			$errors[] = new ShoppError(__('Invalid key'));
+			$errors[] = new ShoppError(__('Invalid key','Shopp'));
 		
 		if (!empty($errors)) return false;
 
@@ -251,7 +259,6 @@ class Customer extends DatabaseObject {
 		
 		$subject = apply_filters('shopp_reset_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
 		
-		global $Shopp;
 		$Settings =& ShoppSettings();
 		$_ = array();
 		$_[] = 'From: "'.get_option('blogname').'" <'.$Settings->get('merchant_email').'>';
@@ -270,9 +277,8 @@ class Customer extends DatabaseObject {
 		if (!shopp_email(join("\r\n",$message))) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_reset_email',SHOPP_ERR);
 			shopp_redirect(add_query_arg('acct','recover',shoppurl(false,'account')));
-		} else {
-			new ShoppError(__('Check your email address for your new password.','Shopp'),'password_reset_email',SHOPP_ERR);
-		}
+		} else new ShoppError(__('Check your email address for your new password.','Shopp'),'password_reset_email',SHOPP_ERR);
+
 		unset($_GET['acct']);
 	}
 	
@@ -379,7 +385,7 @@ class Customer extends DatabaseObject {
 		// Return strings with no options
 		switch ($property) {
 			case "url": 
-				return shoppurl(array('acct'=>false),'account',$Shopp->Gateways->secure); break;
+				return shoppurl(array('acct'=>null),'account',$Shopp->Gateways->secure); break;
 			case "action": 
 				$action = null;
 				if (isset($this->pages[$_GET['acct']])) $action = $_GET['acct'];
