@@ -135,6 +135,7 @@ class ModuleFile {
 		$meta = $this->readmeta($this->file);
 
 		if ($meta) {
+			$meta = preg_replace('/\r\n/',"\n",$meta); // Normalize line endings
 			$lines = explode("\n",substr($meta,1));
 			foreach($lines as $line) {
 				preg_match("/^(?:[\s\*]*?\b([^@\*\/]*))/",$line,$match);
