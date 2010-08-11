@@ -14,7 +14,10 @@ if (class_exists('WP_Widget')) {
 class ShoppTagCloudWidget extends WP_Widget {
 
     function ShoppTagCloudWidget() {
-        parent::WP_Widget(false, $name = 'Shopp Tag Cloud', array('description' => __('Popular product tags in a cloud format','Shopp')));
+        parent::WP_Widget(false, 
+			$name = __('Shopp Tag Cloud','Shopp'), 
+			array('description' => __('Popular product tags in a cloud format','Shopp'))
+		);
     }
 
     function widget($args, $options) {		
