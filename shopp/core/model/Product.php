@@ -207,9 +207,15 @@ class Product extends DatabaseObject {
 				$image = new ProductImage();
 				$image->copydata($record,false,array());
 				$image->expopulate();
+				$name = $image->filename;
 				$record = $image;
+
+				// Reset the product's loaded images if the image was already 
+				// loaded from another context (like Category::load_products())
+				if (isset($target->{$row->rtype}[0]) && $target->{$row->rtype}[0]->id == $image->id)
+					$target->{$row->rtype} = array();
 			}
-						
+			
 			$target->{$row->rtype}[] = $record;
 			if (!empty($name)) {
 				if (isset($target->{$row->rtype.'key'}[$name]))
