@@ -105,6 +105,13 @@ class ShoppScripts extends WP_Scripts {
 			echo $this->print_html;
 	}
 	
+	function all_deps( $handles, $recursion = false, $group = false ) {
+		$r = parent::all_deps( $handles, $recursion );
+		if ( !$recursion )
+			$this->to_do = apply_filters( 'shopp_print_scripts_array', $this->to_do );
+		return $r;
+	}
+	
 	function wp_dependencies () {
 		global $wp_scripts;
 
@@ -123,7 +130,7 @@ class ShoppScripts extends WP_Scripts {
 		
 		foreach ($wpdeps as $handle) wp_enqueue_script($handle);
 		
-	}
+	}	
 	
 	function print_script_custom ($handle) {
 		return !empty($this->registered[$handle]->extra['code'])?$this->registered[$handle]->extra['code']:false;
@@ -288,6 +295,30 @@ function shopp_script_is( $handle, $list = 'queue' ) {
 		return true;
 
 	return $query;
+}
+
+/**
+ * Handle Shopp script dependencies in the WP script queue
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @return void
+ **/
+function shopp_dependencies () {
+	global $ShoppScripts,$wp_scripts;
+	if ( !is_a($ShoppScripts, 'ShoppScripts') )
+		$ShoppScripts = new ShoppScripts();
+
+	foreach ($wp_scripts->queue as $handle) {
+		$deps = $wp_scripts->registered[$handle]->deps;
+		$shoppdeps = array_intersect($deps,array_keys($ShoppScripts->registered));
+		foreach ($shoppdeps as $key => $s_handle) {
+			shopp_enqueue_script($s_handle);
+			array_splice($deps,$key,1);
+		}
+		$wp_scripts->registered[$handle]->deps = $deps;
+	}
 }
 
 add_action('shopp_default_scripts', 'shopp_default_scripts');
