@@ -120,25 +120,25 @@ class Order {
 		global $Shopp;
 
 		$current = $this->processor;
-		if (count($Shopp->Gateways->active) == 1 // base case
-			|| (!$this->processor && !$processor && count($Shopp->Gateways->active) > 1)) { 
+		if (count($Shopp->Gateways->activated) == 1 // base case
+			|| (!$this->processor && !$processor && count($Shopp->Gateways->activated) > 1)) { 
 			// Automatically select the first active gateway
-			reset($Shopp->Gateways->active);
-			$Gateway = current($Shopp->Gateways->active);
-			if ($this->processor != $Gateway->module)
-				$this->processor = $Gateway->module;
+			reset($Shopp->Gateways->activated);
+			$module = current($Shopp->Gateways->activated);
+			if ($this->processor != $module)
+				$this->processor = $module;
 		} elseif ($processor !== false) { 
-			if ($this->processor != $processor && isset($Shopp->Gateways->active[$processor])) 
+			if ($this->processor != $processor && in_array($processor,$Shopp->Gateways->activated)) 
 				$this->processor = $processor; 
 		}
-		
-		if($current != $this->processor) {
-			$this->gateway = $Shopp->Gateways->active[$this->processor]->name;
-			$Shopp->Gateways->active[$this->processor]->actions();
-		}
 
-		if (isset($Shopp->Gateways->active[$this->processor]))
+		if (isset($Shopp->Gateways->active[$this->processor])) {
+			if($current != $this->processor)
+				$this->gateway = $Shopp->Gateways->active[$this->processor]->name;
+			
 			return $Shopp->Gateways->active[$this->processor];
+		}
+			
 		return false;
 	}
 	

@@ -285,11 +285,11 @@ class GatewayModules extends ModuleLoader {
 		
 		// Get hooks in place before getting things started
 		add_action('shopp_module_loaded',array(&$this,'properties'));
-		// add_action('shopp_settings_shipping_ui',array(&$this,'ui'));
-
+		
 		$this->installed();
 		$this->activated();
-		$this->load();
+
+		add_action('shopp_init',array(&$this,'load'));
 	}
 	
 	/**

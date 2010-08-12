@@ -103,14 +103,6 @@ jQuery(document).ready(function () {
 	
 	$('#checkout.shopp [name=paymethod]').change(function () {
 		var paymethod = $(this).val();
-		$.post( ShoppSettings.ajaxurl, 
-			{	action : 'shopp_checkout_submit_button',
-			 	paymethod : paymethod
-			},
-			function (data) {
-				if (data != null) $('#checkout.shopp p.submit').html(data);
-			});
-		
 		if (ccpayments[paymethod] != false && ccpayments[paymethod].length > 0) {
 			$('#checkout.shopp .payment').show();
 			$('#checkout.shopp .creditcard').show();
@@ -130,6 +122,15 @@ jQuery(document).ready(function () {
 			$('#checkout.shopp .creditcard').addClass('disabled').attr('disabled',true);
 			$('#checkout.shopp #billing-cardtype').addClass('disabled').attr('disabled',true);
 		}
-	}).change();
+	}).change().change(function () {
+		var paymethod = $(this).val();
+		$.post( ShoppSettings.ajaxurl, 
+		{	action : 'shopp_checkout_submit_button',
+		 	paymethod : paymethod
+		},
+		function (data) {
+			if (data != null) $('#checkout.shopp p.submit').html(data);
+		});
+	});
 
 });

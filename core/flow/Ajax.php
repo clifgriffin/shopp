@@ -642,8 +642,8 @@ class AjaxFlow {
 				remove_all_filters('shopp_init_checkout');
 				remove_all_filters('shopp_checkout_submit_button');
 				remove_all_filters('shopp_process_checkout');
-				remove_all_filters('shopp_save_payment_settings');				
-				$Gateway = $Shopp->Order->processor($Shopp->Gateways->active[$module]->module);
+				$Gateway = $Shopp->Order->processor($module);
+				$Gateway->actions();
 				do_action('shopp_init_checkout');
 			} 
 		}
