@@ -1273,27 +1273,34 @@ class CartDiscounts {
 
 		$promo->applied = 0;		// Track total discount applied by the promo
 		$promo->items = array();	// Track the cart items the rule applies to
-		
+
 		// Line item discounts
 		if (isset($promo->rules['item'])) {
+			$matches = 0;
 			foreach ($promo->rules['item'] as $rule) {
 				if (in_array($rule['property'],$this->cartitemprops)) {
 					// See if an item rule matches
-					foreach ($this->Cart->contents as $id => &$Item) {
-						
-						if ($Item->match($rule) && !isset($promo->items[$id])) {
-							switch ($promo->type) {
-								case "Percentage Off": $discount = $Item->unitprice*($promo->discount/100); break;
-								case "Amount Off": $discount = $promo->discount; break;
-								case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
-								case "Buy X Get Y Free": $discount = floor($Item->quantity / ($promo->buyqty + $promo->getqty))*($Item->unitprice); break;
-							}
-							$promo->applied += $discount;
-							$promo->items[$id] = $discount;
-						} // endif $Item->match
-					} // endforeach
+					foreach ($this->Cart->contents as $id => &$Item)
+						if ($Item->match($rule) && !isset($promo->items[$id])) $matches++;
 				} // end in_array
 			} // endforeach $promo->rules['item']
+			
+			if ($matches == count($promo->rules['item'])) { // all conditions must match
+				
+				switch ($promo->type) {
+					case "Percentage Off": $discount = ($Item->unitprice*$Item->quantity)*($promo->discount/100); break;
+					case "Amount Off": $discount = $promo->discount; break;
+					case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
+					case "Buy X Get Y Free": $discount = floor(
+															$Item->quantity / 
+															($promo->buyqty + $promo->getqty)
+														  ) * ($Item->unitprice);
+						break;
+				}
+				$promo->applied += $discount;
+				$promo->items[$id] = $discount;
+			}
+			
 			$this->Cart->Totals->itemsd += $promo->applied;
 		} else {
 			$promo->applied = $discount;	
