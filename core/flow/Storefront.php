@@ -95,12 +95,13 @@ class Storefront extends FlowController {
 		add_filter('shopp_account_view_order','shoppdiv');
 
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
-
+		add_action('wp_enqueue_scripts', 'shopp_dependencies');
+		
 		$this->smartcategories();
 		$this->searching();
 		
 	}
-	
+
 	/**
 	 * parse function
 	 *
