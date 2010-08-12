@@ -59,7 +59,8 @@ class Catalog extends DatabaseObject {
 			'orderby' => 'name',
 			'order' => 'ASC',
 			'parent' => false,
-			'ancestry' => false
+			'ancestry' => false,
+			'outofstock' => $this->outofstock
 		);
 		$options = array_merge($defaults,$loading);
 		extract($options);
@@ -497,14 +498,15 @@ class Catalog extends DatabaseObject {
 				break;
 			case "breadcrumb":
 				
-				// @todo The category parent backreference does not 
-				// line up to the correct category if smart cats are prepended to the list
-				// need a new lookup index by category id
+				$defaults = array(
+					'separator' => '&nbsp;&raquo; ',
+					'depth'		=> 7
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
 				
 				if (isset($Shopp->Category->controls)) return false;
-				if (empty($this->categories)) $this->load_categories();
-				$separator = "&nbsp;&raquo; ";
-				if (isset($options['separator'])) $separator = $options['separator'];
+				if (empty($this->categories)) $this->load_categories(array('outofstock' => true));
 				
 				$category = false;
 				if (isset($Shopp->Flow->Controller->breadcrumb))
@@ -540,8 +542,11 @@ class Catalog extends DatabaseObject {
 						$trail .= '<li>'.$Category->name.$filters.(!$trail?'':$separator).'</li>';
 					
 					// Build category names path by going from the target category up the parent chain
-					$parentkey = '_'.(!empty($Category->id)?$this->categories['_'.$Category->id]->parent:'0');
-					while ($parentkey != '_0') {
+					$parentkey = (!empty($Category->id) 
+						&& isset($this->categories['_'.$Category->id]->parent)?
+							'_'.$this->categories['_'.$Category->id]->parent:'_0');
+					
+					while ($parentkey != '_0' && $depth-- > 0) {
 						$tree_category = $this->categories[$parentkey];
 
 						$link = SHOPP_PRETTYURLS?
@@ -550,7 +555,7 @@ class Catalog extends DatabaseObject {
 											
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.
 							(empty($trail)?'':$separator).'</li>'.$trail;
-					
+
 						$parentkey = '_'.$tree_category->parent;
 					}
 				}
