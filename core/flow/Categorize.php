@@ -330,8 +330,8 @@ class Categorize extends AdminController {
 		$Settings->saveform(); // Save workflow setting
 		
 		$Shopp->Catalog = new Catalog();
-		$Shopp->Catalog->load_categories(array('where'=>'true'));
-		
+		$Shopp->Catalog->load_categories(array('outofstock'=>true));
+				
 		if (!isset($_POST['slug']) && empty($Category->slug))
 			$Category->slug = sanitize_title_with_dashes($_POST['name']);
 		if (isset($_POST['slug'])) unset($_POST['slug']);
@@ -343,18 +343,18 @@ class Categorize extends AdminController {
 		$parentkey = -1;
 		// If we're saving a new category, lookup the parent
 		if ($_POST['parent'] > 0) {
-			array_unshift($paths,$Shopp->Catalog->categories[$_POST['parent']]->slug);
-			$parentkey = $Shopp->Catalog->categories[$_POST['parent']]->parent;
+			array_unshift($paths,$Shopp->Catalog->categories['_'.$_POST['parent']]->slug);
+			$parentkey = $Shopp->Catalog->categories['_'.$_POST['parent']]->parent;
 		}
 
-		while ($category_tree = $Shopp->Catalog->categories[$parentkey]) {
+		while ($category_tree = $Shopp->Catalog->categories['_'.$parentkey]) {
 			array_unshift($paths,$category_tree->slug);
-			$parentkey = $category_tree->parent;
+			$parentkey = '_'.$category_tree->parent;
 		}
 
 		if (count($paths) > 1) $_POST['uri'] = join("/",$paths);
 		else $_POST['uri'] = $paths[0];
-					
+							
 		if (!empty($_POST['deleteImages'])) {			
 			$deletes = array();
 			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
