@@ -356,9 +356,12 @@ class ShoppInstallation extends FlowController {
 		$meta_table = DatabaseObject::tablename('meta');
 		$db->query("DELETE FROM $meta_table"); // Clear out previous meta
 		
-		// Update product publish status
+		// Update product status from the 'published' column
 		$product_table = DatabaseObject::tablename('product');
 		$db->query("UPDATE $product_table SET status=CAST(published AS unsigned)");
+
+		// Set product publish date based on the 'created' date column
+		$db->query("UPDATE $product_table SET publish=created WHERE status='publish'");
 
 		// Update Catalog
 		$catalog_table = DatabaseObject::tablename('catalog');
@@ -369,7 +372,6 @@ class ShoppInstallation extends FlowController {
 		$spec_table = DatabaseObject::tablename('spec');
 		$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
 					SELECT product,'product','spec',name,content,numeral,sortorder,now(),now() FROM $spec_table");
-					
 
 		// Update purchase table
 		$purchase_table = DatabaseObject::tablename('purchase');
