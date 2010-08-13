@@ -210,7 +210,6 @@ class ShoppInstallation extends FlowController {
 		$this->upschema();
 		
 		if ($db_version < 1100) $this->upgrade_110();
-		if ($db_version < 1101) $this->upgrade_1101();
 	
 	}
 	
@@ -452,24 +451,64 @@ class ShoppInstallation extends FlowController {
 		$this->Settings->save('product_storage',$product_storage);
 		
 		if (!empty($FSStorage['path'])) $this->Settings->save('FSStorage',$FSStorage);
+
+		// Preserve payment settings
+		
+		// Determine active gateways
+		$active_gateways = array_merge(array($this->Settings->get('payment_gateway')),$this->Settings->get('xco_gateways'));
+
+		// Load 1.0 payment gateway settings for active gateways
+		$gateways = array();
+		foreach ($active_gateways as $reference) {
+			list($dir,$filename) = explode('/',$reference);
+			$gateways[] = preg_replace('/[^\w+]/','',substr($filename,0,strrpos($filename,'.')));
+		}
+
+		$where = "name like '%".join("%' OR name like '%",$gateways)."%'";
+		$query = "SELECT name,value FROM wp_shopp_setting WHERE $where";
+		$result = $db->query($query,AS_ARRAY);
+		require_once(SHOPP_MODEL_PATH.'/Lookup.php');
+		$paycards = Lookup::paycards();
+		
+		// Convert settings to 1.1-compatible settings
+		$active_gateways = array();
+		foreach ($result as $_) {
+			$active_gateways[] = $_->name;		// Add gateway to the active gateways list
+			$setting = unserialize($_->value);	// Parse the settings
+			
+			// Get rid of legacy settings
+			unset($setting['enabled'],$setting['path'],$setting['billing-required']);
+
+			// Convert accepted payment cards
+			$accepted = array();
+			if (is_array($setting['cards'])) {
+				foreach ($setting['cards'] as $cardname) {
+					// Normalize card names
+					$cardname = str_replace(
+						array(	"Discover",
+								"Diner’s Club",
+								"Diners"
+						),
+						array(	"Discover Card",
+								"Diner's Club",
+								"Diner's Club"
+						),
+						$cardname);
+
+					foreach ($paycards as $card) 
+						if ($cardname == $card->name) $accepted[] = $card->symbol;
+				}
+				$setting['cards'] = $accepted;
+			}
+			$this->Settings->save($_->name,$setting); // Save the gateway settings
+		}
+		// Save the active gateways to populate the payment settings page
+		$this->Settings->save('active_gateways',join(',',$active_gateways));
 		
 		$this->roles(); // Setup Roles and Capabilities
 		
 	}
-	
-	/**
-	 * Interim db upgrade for dev versions
-	 * 
-	 * @todo Remove before release
-	 **/
-	function upgrade_1101 () {
-		$db =& DB::get();
 		
-		// Update product publish status
-		$product_table = DatabaseObject::tablename('product');
-		$db->query("UPDATE $product_table SET status=CAST(published AS unsigned)");
-	}
-	
 	/**
 	 * Perform automatic updates for the core plugin and addons
 	 *
