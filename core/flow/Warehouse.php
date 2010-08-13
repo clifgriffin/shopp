@@ -486,11 +486,14 @@ class Warehouse extends AdminController {
 				if ($_POST['publish']['meridiem'] == "PM" && $_POST['publish']['hour'] < 12) 
 					$_POST['publish']['hour'] += 12;
 				$_POST['publish'] = mktime($_POST['publish']['hour'],$_POST['publish']['minute'],0,$_POST['publish']['month'],$_POST['publish']['date'],$_POST['publish']['year']);
-			} elseif ($Product->status != 'publish') {
+			} else {
 				unset($_POST['publish']);
 				$Product->publish = null;
 			}
-		} else $_POST['publish'] = 1;
+		} else {
+			unset($_POST['publish']);
+			$Product->publish = 0;
+		}
 		
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 
