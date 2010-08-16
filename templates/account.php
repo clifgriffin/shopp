@@ -23,7 +23,7 @@
 
 <form action="<?php shopp('customer','action'); ?>" method="post" class="shopp" autocomplete="off">
 
-<?php if (shopp('customer','process','return=true') == "account"): ?>
+<?php if ("account" == shopp('customer','process','return=true')): ?>
 	<?php if(shopp('customer','errors-exist')) shopp('customer','errors'); ?>
 
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
@@ -63,7 +63,7 @@
 	
 <?php endif; // end account ?>
 
-<?php if (shopp('customer','process','return=true') == "downloads"): ?>
+<?php if ("downloads" == shopp('customer','process','return=true')): ?>
 	
 	<h3><?php _e('Downloads','Shopp'); ?></h3>
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
@@ -94,7 +94,7 @@
 
 <?php endif; // end downloads ?>
 
-<?php if (shopp('customer','process','return=true') == "history"): ?>
+<?php if ("history" == shopp('customer','process','return=true')): ?>
 	<?php if (shopp('customer','has-purchases')): ?>
 		<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 		<table cellspacing="0" cellpadding="0">
@@ -122,5 +122,13 @@
 	<?php endif; // end 'has-purchases' ?>
 	
 <?php endif; // end history ?>
+
+<?php if ("order" == shopp('customer','process','return=true')): ?>
+	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
+
+	<?php shopp('purchase','receipt'); ?>
+	
+	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
+<?php endif; ?>
 
 </form>

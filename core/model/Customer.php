@@ -149,13 +149,13 @@ class Customer extends DatabaseObject {
 				return false;
 			}
 			
-			$management = apply_filters('shopp_account_management_url',
-				'<p><a href="'.$this->tag('url').'">&laquo; Return to Account Management</a></p>');
+			// $management = apply_filters('shopp_account_management_url',
+			// 	'<p><a href="'.$this->tag('url').'">&laquo; Return to Account Management</a></p>');
+			// 
+			// $content = $management.$content.$management;
 			
-			$content = $management.$content.$management;
-			
-			echo apply_filters('shopp_account_view_order',$content);
-			return false;
+			// echo apply_filters('shopp_account_view_order',$content);
+			// return false;
 		}
 	}
 	
@@ -445,11 +445,15 @@ class Customer extends DatabaseObject {
 				break;
 			case "submit-login": // Deprecating
 			case "login-button":
+				$contexts = array('account','checkout');
+				$context = isset($options['context']) && in_array($options['context'],$contexts)?
+					$options['context']:'account';
 				if (!isset($options['value'])) $options['value'] = __('Login','Shopp');
-				if (!is_shopp_page('checkout'))
-					$string = '<input type="hidden" name="process-login" id="process-login" value="true" />';
-				else $string = '<input type="hidden" name="process-login" id="process-login" value="false" />';
-				$string .= '<input type="submit" name="submit-login" id="submit-login"'.inputattrs($options).' />';
+				$string = "";
+				if ($context == "checkout") 
+					$string .= '<input type="hidden" name="process-login" id="process-login" value="false" />';
+				else $string .= '<input type="hidden" name="process-login" value="true" />';
+				$string .= '<input type="submit" name="submit-login" id="submit-'.$context.'-login"'.inputattrs($options).' />';
 				return $string;
 				break;
 			case "errors-exist": return true;
