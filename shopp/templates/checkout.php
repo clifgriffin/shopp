@@ -21,7 +21,7 @@
 			<label for="login"><?php _e('Login to Your Account','Shopp'); ?></label>
 			<span><?php shopp('customer','account-login','size=20&title='.__('Login','Shopp')); ?><label for="account-login"><?php _e('Email','Shopp'); ?></label></span>
 			<span><?php shopp('customer','password-login','size=20&title='.__('Password','Shopp')); ?><label for="password-login"><?php _e('Password','Shopp'); ?></label></span>
-			<span><?php shopp('customer','submit-login','value=Login'); ?></span>
+			<span><?php shopp('customer','login-button','context=checkout&value=Login'); ?></span>
 		</li>
 		<li></li>
 		<?php endif; ?>

@@ -2,6 +2,7 @@
 body { position:relative; }
 
 .invisible { visibility:hidden; }
+.nodisplay { display:none; }
 
 .shopp .clickable,
 .shopp button { cursor:pointer; }

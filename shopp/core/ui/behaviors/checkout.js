@@ -1,7 +1,7 @@
 jQuery(document).ready(function () {
 	var $ = jqnc(),
 		sameshipping = $('#same-shipping'),
-		submitLogin = $('#submit-login'),
+		submitLogin = $('#submit-checkout-login'),
 		checkoutForm = $('#checkout.shopp'),
 		shippingFields = $('#shipping-address-fields'),	
 		billingFields = $('#billing-address-fields'),
@@ -26,8 +26,7 @@ jQuery(document).ready(function () {
 	}
 	
 	submitLogin.click(function () {
-		checkoutForm.unbind('submit');
-		checkoutForm.submit(function () {
+		checkoutForm.unbind('submit').submit(function () {
 			if ($('#account-login').val() == "") {
 				alert(CHECKOUT_LOGIN_NAME);
 				$('#account-login').focus();
