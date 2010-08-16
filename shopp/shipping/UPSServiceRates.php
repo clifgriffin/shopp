@@ -57,14 +57,30 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 		"MX" => array("07","08","54","65"),
 		"PL" => array("07","08","11","54","65","82","83","84","85","86") );
 	
+	var $pickups = array(
+		'01' => 'Daily Pickup',
+		'03' => 'Customer Counter',
+		'06' => 'One Time Pickup',
+		'07' => 'On Call Air',
+		'11' => 'Suggested Retail Rates',
+		'19' => 'Letter Center',
+		'20' => 'Air Service Center');
+	
 	function __construct () {
 		parent::__construct();
-		$this->setup('license','postcode','userid','password');
+		$this->setup('license','postcode','pickup','userid','password');
 		
-		$units = array("imperial" => "LBS","metric"=>"KGS");
-		$this->settings['units'] = $units[$this->base['units']];
-		if ($this->units == 'oz') $this->conversion = 0.0625;
-		if ($this->units == 'g') $this->conversion = 0.001;
+		// UPS units
+		$wu = array("imperial" => "LBS","metric"=>"KGS");
+		$du = array("imperial" => "IN","metric"=>"CM");
+		$this->wu = $wu[$this->base['units']];
+		$this->du = $du[$this->base['units']];
+		
+		// Shopp conversion units
+		$wcu = array("imperial" => "lb","metric"=>"kg");
+		$dcu = array("imperial" => "in","metric"=>"cm");
+		$this->wcu = $wcu[$this->base['units']];
+		$this->dcu = $dcu[$this->base['units']];
 
 		// Select service options using base country
 		if (array_key_exists($this->base['country'],$this->services)) 
@@ -75,6 +91,8 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 		$this->settings['services'] = array();
 		foreach ($services as $code) 
 			$this->settings['services'][$code] = $this->codes[$code];
+		
+		if (empty($this->settings['pickup'])) $this->settings['pickup'] = '06';
 		
 		if (isset($this->rates[0])) $this->rate = $this->rates[0];
 		
@@ -114,17 +132,29 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 			settings += '</td>';
 			
 			settings += '<td>';
-			settings += '<div><input type="text" name="settings[UPSServiceRates][license]" id="upsrates_license" value="<?php echo $this->settings['license']; ?>" size="16" /><br /><label for="upsrates_license"><?php echo addslashes(__('UPS Access License Number','Shopp')); ?></label></div>';
+			settings += '<div><input type="text" name="settings[UPSServiceRates][license]" id="upsrates_license" value="<?php echo $this->settings['license']; ?>" size="21" /><br /><label for="upsrates_license"><?php echo addslashes(__('UPS Access License Number','Shopp')); ?></label></div>';
 			settings += '<div><input type="text" name="settings[UPSServiceRates][postcode]" id="upsrates_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="upsrates_postcode"><?php echo addslashes(__('Your postal code','Shopp')); ?></label></div>';
+			settings += '<div><input type="hidden" name="settings[UPSServiceRates][nrates]" value="off" /><input type="checkbox" name="settings[UPSServiceRates][nrates]" id="upsrates_nrates" value="on"<?php echo ($this->settings['nrates'] == "on")?' checked="checked"':''; ?> /><label for="upsrates_nrates"> <?php echo addslashes(__('Negotiated Rates','Shopp')); ?></label></div>';
+			settings += '<div id="upsrates_nrates_fields" class="hidden"><input type="text" name="settings[UPSServiceRates][shipper]" id="upsrates_shipper" value="<?php echo $this->settings['shipper']; ?>" size="7" /><br /><label for="upsrates_postcode"><?php echo addslashes(__('UPS Shipper Number','Shopp')); ?></label></div>';
+			
+
 				
 			settings += '</td>';
 			settings += '<td>';
 			settings += '<div><input type="text" name="settings[UPSServiceRates][userid]" id="upsrates_userid" value="<?php echo $this->settings['userid']; ?>" size="16" /><br /><label for="upsrates_userid"><?php echo addslashes(__('UPS User ID','Shopp')); ?></label></div>';
 			settings += '<div><input type="password" name="settings[UPSServiceRates][password]" id="upsrates_password" value="<?php echo $this->settings['password']; ?>" size="16" /><br /><label for="upsrates_password"><?php echo addslashes(__('UPS password','Shopp')); ?></label></div>';
+			settings += '<div><select name="settings[UPSServiceRates][pickup]" id="upsrates_pickup"><?php echo menuoptions($this->pickups,$this->settings['pickup'],true); ?></select><br /><label for="upsrates_pickup"><?php echo addslashes(__('Pickup','Shopp')); ?></label></div>';
+
 			settings += '</td>';
 			settings += '</tr>';
 
 			$(settings).appendTo(table);
+			
+			$('#upsrates_nrates').change(function () {
+				console.log($(this).attr('checked'));
+				if ($(this).attr('checked')) $('#upsrates_nrates_fields').slideDown();
+				else $('#upsrates_nrates_fields').slideUp();
+			}).change();
 			
 			$('#ups-services-select-all').change(function () {
 				if (this.checked) $('#ups-services input').attr('checked',true);
@@ -154,8 +184,26 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 			return $options;
 		}
 		
-		$request = $this->build(session_id(), $this->rate['name'], 
-			$Order->Shipping->postcode, $Order->Shipping->country);
+		// NOTE: Residential shipping will add a surcharge to the rates.
+		// We assume residential shipping unless proven otherwise to cover 
+		// merchants from having to pay out of their pocket for the inflated rates
+
+		// Determine if residential shipping from checkout form input (if it exists) 
+		$residential = ((isset($Order->Shipping->residential) && value_is_true($Order->Shipping->residential)) 
+							|| !isset($Order->Shipping->residential)); // Assume residential by default
+		
+		$negotiated = ($this->settings['nrates'] == "on");
+		
+		$request = $this->build(
+			session_id(), 				// Session ID
+			$Order->Cart->contents, 	// Items in the cart
+			$this->rate['name'], 		// Rate name
+			$Order->Shipping->state, 	// State/Province code (for negotiated rates)
+			$Order->Shipping->postcode, // Postal code
+			$Order->Shipping->country,	// Country code
+			$residential,				// Residential shipping address flag
+			$negotiated					// Request negotiated rates
+		);
 		
 		$Response = $this->send($request);
 		
@@ -170,6 +218,10 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 		while ($rated = $RatedShipment->each()) {
 			$service = $rated->content('Service > Code');
 			$amount = $rated->content('TotalCharges > MonetaryValue:first');
+			if ($negotiated && ($NegotiatedRates = $rated->tag('NegotiatedRates'))) {
+				$NegotiatedAmount = $NegotiatedRates->content('GrandTotal > MonetaryValue');
+				if (!empty($NegotiatedAmount)) $amount = $NegotiatedAmount;
+			}
 			if(floatval($amount) == 0) continue;
 			$delivery = $rated->content('GuaranteedDaysToDelivery');
 			if (empty($delivery)) $delivery = "1d-5d";
@@ -185,7 +237,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 		return $options;
 	}
 	
-	function build ($cart,$description,$postcode,$country) {
+	function build ($cart,$items,$description,$state,$postcode,$country,$residential=true,$negotiated=false) {
 
 		$_ = array('<?xml version="1.0" encoding="utf-8"?>');
 		$_[] = '<AccessRequest xml:lang="en-US">';
@@ -202,10 +254,12 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 			$_[] = '<RequestAction>Rate</RequestAction>';
 			$_[] = '<RequestOption>Shop</RequestOption>';
 		$_[] = '</Request>';
-		$_[] = '<PickupType><Code>03</Code></PickupType>';
+		$_[] = '<PickupType><Code>'.$this->settings['pickup'].'</Code></PickupType>';
 		$_[] = '<Shipment>';
 			$_[] = '<Description>'.$description.'</Description>';
 			$_[] = '<Shipper>';
+				if ($negotiated)
+					$_[] = '<ShipperNumber>'.$this->settings['shipper'].'</ShipperNumber>';
 				$_[] = '<Address>';
 					$_[] = '<PostalCode>'.$this->settings['postcode'].'</PostalCode>';
 					$_[] = '<CountryCode>'.$this->base['country'].'</CountryCode>';
@@ -213,22 +267,39 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 			$_[] = '</Shipper>';
 			$_[] = '<ShipTo>';
 				$_[] = '<Address>';
+					if ($negotiated)
+						$_[] = '<StateProvinceCode>'.$state.'</StateProvinceCode>';
 					$_[] = '<PostalCode>'.$postcode.'</PostalCode>';
 					$_[] = '<CountryCode>'.$country.'</CountryCode>';
-					$_[] = '<ResidentialAddressIndicator/>';
+					if ($residential) $_[] = '<ResidentialAddressIndicator/>';
 				$_[] = '</Address>';
 			$_[] = '</ShipTo>';
-			$_[] = '<Package>';
-				$_[] = '<PackagingType>';
-					$_[] = '<Code>02</Code>';
-				$_[] = '</PackagingType>';
-				$_[] = '<PackageWeight>';
-					$_[] = '<UnitOfMeasurement>';
-						$_[] = '<Code>'.$this->settings['units'].'</Code>';
-					$_[] = '</UnitOfMeasurement>';
-					$_[] = '<Weight>'.number_format(($this->weight < 1)?1:$this->weight,1,'.','').'</Weight>';
-				$_[] = '</PackageWeight>   ';
-			$_[] = '</Package>';
+			foreach ($items as $Item) {
+				$_[] = '<Package>';
+					$_[] = '<PackagingType>';
+						$_[] = '<Code>02</Code>';
+					$_[] = '</PackagingType>';
+					$_[] = '<Dimensions>';
+						$_[] = '<UnitOfMeasurement>';
+							$_[] = '<Code>'.$this->du.'</Code>';
+						$_[] = '</UnitOfMeasurement>';
+						$_[] = '<Length>'.convert_unit($Item->length,$this->dcu).'</Length>';
+						$_[] = '<Width>'.convert_unit($Item->width,$this->dcu).'</Width>';
+						$_[] = '<Height>'.convert_unit($Item->height*$Item->quantity,$this->dcu).'</Height>';
+					$_[] = '</Dimensions>';					
+					$_[] = '<PackageWeight>';
+						$_[] = '<UnitOfMeasurement>';
+							$_[] = '<Code>'.$this->wu.'</Code>';
+						$_[] = '</UnitOfMeasurement>';
+						$_[] = '<Weight>'.convert_unit($Item->weight,$this->wcu).'</Weight>';
+					$_[] = '</PackageWeight>';
+				$_[] = '</Package>';
+			}
+			if ($negotiated) {
+				$_[] = '<RateInformation>';
+					$_[] = '<NegotiatedRatesIndicator/>';
+				$_[] = '</RateInformation>';
+			}
 		$_[] = '</Shipment>';
 		$_[] = '</RatingServiceSelectionRequest>';
 		
@@ -245,6 +316,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	
 	function send ($data) {  
 		$response = parent::send($data,$this->url);
+		echo $response;
 		return new xmlQuery($response);
 	}
 	
