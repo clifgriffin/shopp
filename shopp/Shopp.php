@@ -117,8 +117,8 @@ class Shopp {
 		$this->file = basename(__FILE__);
 		$this->directory = basename($this->path);
 
-		$languages_path = array(PLUGINDIR,$this->directory,'lang');
-		load_plugin_textdomain('Shopp',sanitize_path(join('/',$languages_path)));
+		$languages_path = array($this->directory,'lang');
+		load_plugin_textdomain('Shopp',false,sanitize_path(join('/',$languages_path)));
 
 		$this->uri = WP_PLUGIN_URL."/".$this->directory;
 		$this->siteurl = get_bloginfo('url');
