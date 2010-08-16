@@ -572,6 +572,8 @@ function convert_unit ($value = 0, $unit, $from=false) {
 	foreach ($table as $attr => $c) {
 		if (isset($c[$unit])) { $chart = $attr; $from = $defaults[$chart]; break; }
 	}
+
+	if ($unit == $from) return $value;
 	
 	$siv = $value * $table[$chart][$from];	// Convert to SI unit value
 	return $siv/$table[$chart][$unit];		// Return target units
