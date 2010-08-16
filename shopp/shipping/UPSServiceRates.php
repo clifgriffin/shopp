@@ -316,7 +316,6 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	
 	function send ($data) {  
 		$response = parent::send($data,$this->url);
-		echo $response;
 		return new xmlQuery($response);
 	}
 	
