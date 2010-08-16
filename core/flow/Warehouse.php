@@ -643,7 +643,7 @@ class Warehouse extends AdminController {
 		if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
 		if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
 			
-		if (!file_exists($_FILES['Filedata']['tmp_name']))
+		if (!is_uploaded_file($_FILES['Filedata']['tmp_name']))
 			die(json_encode(array("error" => __('The file could not be saved because the upload was not found on the server.','Shopp'))));
 			
 		if (!is_readable($_FILES['Filedata']['tmp_name']))
@@ -701,11 +701,11 @@ class Warehouse extends AdminController {
 		if (!$context)
 			die(json_encode(array("error" => __('The file could not be saved because the server cannot tell whether to attach the asset to a product or a category.','Shopp'))));
 			
-		if (!file_exists($_FILES['Filedata']['tmp_name']))
+		if (!is_uploaded_file($_FILES['Filedata']['tmp_name']))
 			die(json_encode(array("error" => __('The file could not be saved because the upload was not found on the server.','Shopp'))));
 			
 		if (!is_readable($_FILES['Filedata']['tmp_name']))
-			die(json_encode(array("error" => __('The file could not be saved because the web server does not have permission to read the upload.','Shopp'))));
+			die(json_encode(array("error" => __('The file could not be saved because the web server does not have permission to read the upload from the server\'s temporary directory.','Shopp'))));
 
 		if ($_FILES['Filedata']['size'] == 0) 
 			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
