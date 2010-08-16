@@ -1328,6 +1328,11 @@ function load_shopps_wpconfig () {
 
 	$_ = array();
 	$root = realpath($_SERVER['DOCUMENT_ROOT']);
+	if (!$root) $root = realpath(substr(	// Attempt to trace document root by script pathing
+					$_SERVER['SCRIPT_FILENAME'],0,
+					strpos($_SERVER['SCRIPT_FILENAME'],$_SERVER['SCRIPT_NAME'])
+				));
+	
 	$filepath = realpath(dirname(__FILE__));
 	$wp_config_path = false;
 	$wp_root = false;
