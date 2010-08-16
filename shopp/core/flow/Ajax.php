@@ -355,7 +355,7 @@ class AjaxFlow {
 		if (isset($_FILES['shopp']['error'])) $error = $_FILES['shopp']['error'];
 		if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
 			
-		if (!file_exists($_FILES['shopp']['tmp_name']))
+		if (!is_uploaded_file($_FILES['shopp']['tmp_name']))
 			die(json_encode(array("error" => __('The file could not be saved because the upload was not found on the server.','Shopp'))));
 			
 		if (!is_readable($_FILES['shopp']['tmp_name']))
