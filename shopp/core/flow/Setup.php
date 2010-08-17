@@ -86,7 +86,7 @@ class Setup extends FlowController {
 		$activated = ($updatekey[0] == "1");
 		$type = "text";
 		$key = $updatekey[1];
-		if ($updatekey[2] == "dev") {
+		if (isset($updatekey[2]) && $updatekey[2] == "dev") {
 			$type = "password";
 			$key = preg_replace('/\w/','?',$key);
 		}
@@ -208,15 +208,18 @@ class Setup extends FlowController {
 		
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-checkout');
-			if ($_POST['settings']['next_order_id'] != $next->id) {
-				if ($db->query("ALTER TABLE $purchasetable AUTO_INCREMENT={$_POST['settings']['next_order_id']}"))
-					$next->id = $_POST['settings']['next_order_id'];
-			} 
+			
+			$next_order_id = $_POST['settings']['next_order_id'] = intval($_POST['settings']['next_order_id']);
+
+			if ($next_order_id >= $next->id) {
+				if ($db->query("ALTER TABLE $purchasetable AUTO_INCREMENT=".$db->escape($next_order_id)))
+					$next_setting = $next_order_id;
+			}
+			
 				
 			$this->settings_save();
 			$updated = __('Shopp checkout settings saved.','Shopp');
 		}
-		
 		
 		$downloads = array("1","2","3","5","10","15","25","100");
 		$promolimit = array("1","2","3","4","5","6","7","8","9","10","15","20","25");
@@ -236,7 +239,7 @@ class Setup extends FlowController {
 			'15901200' => __('6 months','Shopp'),
 			'31536000' => __('1 year','Shopp'),
 			);
-								
+			
 		include(SHOPP_ADMIN_PATH."/settings/checkout.php");
 	}
 
