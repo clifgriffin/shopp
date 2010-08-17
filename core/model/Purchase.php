@@ -294,14 +294,14 @@ class Purchase extends DatabaseObject {
 			case "has-data":
 			case "hasdata": return (is_array($this->data) && count($this->data) > 0); break;
 			case "orderdata":
-				if (!$this->dataloop) {
+				if (!isset($this->_data_loop)) {
 					reset($this->data);
-					$this->dataloop = true;
+					$this->_data_loop = true;
 				} else next($this->data);
 
 				if (current($this->data) !== false) return true;
 				else {
-					$this->dataloop = false;
+					unset($this->_data_loop);
 					return false;
 				}
 				break;
