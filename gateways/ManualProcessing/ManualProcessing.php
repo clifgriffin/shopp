@@ -24,8 +24,17 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 	var $private_pem = false; // private RSA pem
 	var $sec_prefix = false; // security prefix for storing private key in local storage
 	var $path = false; // URI path to ManualProcessing.php
+	var $opensslconf = null; // openssl configuration
 
 	function ManualProcessing () {
+		$this->opensslconf = apply_filters('shopp_mp_opensslconf', array(
+			'digest_alg' => 'sha1',
+			'x509_extensions' => 'v3_ca',
+			'private_key_bits' => 1024,
+			'private_key_type' => OPENSSL_KEYTYPE_RSA
+			));
+		if (defined('SHOPP_OPENSSL_CONF') && false !== $config = realpath(sanitize_path(SHOPP_OPENSSL_CONF))) $this->opensslconf['config'] = $config;
+		
 		$paycards = Lookup::paycards();
 		$this->cards = array_keys($paycards);
 		parent::__construct();
@@ -106,19 +115,31 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 				));
 				$this->gen_button_press();
 			} else if($this->public_key == "generate") { //install key
-				$this->generate_keypairs();
-				
-				$this->ui->hidden(0,array(
-					'name' => 'public_key',
-					'value' => $this->public_key
-				));
-				$this->ui->p(1, array(
-					'name' => 'save-key',
-					'label' => __('Save Your Private Key','Shopp'),
-					'content' => __('To finalize the setup process, click the Finish button to save your settings.  Your private key file will automatically be downloaded.  It is important that this file be retained and remain private to the store owner. We also recommend storing a backup of this file, as secure payment information in your orders will be inaccessible without an installed private key. See <a href="http://docs.shopplugin.net/Manual_Processing">Manual Processing</a> documentation for more information','Shopp').
-					'<br /><iframe id="dlframe" name="dlframe" style="width:0px; height:0px; border:0px;" ></iframe><a id="finish" class="button-secondary">'.__('Finish','Shopp').'</a>'
-				));
-				$this->finish_button_press();
+				$success = $this->generate_keypairs();
+
+				if ($success === false) { // catch keypair generation failure
+					$this->ui->p(1, array(
+						'name' => 'failure',
+						'label' => __('Failed Creating Private Key','Shopp'),
+						'content' => sprintf(__('Creation of your key pairs failed.  See your Shopp log, located in <a href="%s">System Settings</a>, for more information on the errors.  Resave your Payment Settings, and try again after correcting the configuration problem.','Shopp'),add_query_arg(array('page'=>'shopp-settings-system'),admin_url('admin.php')))
+					));
+					$this->ui->hidden(0,array(
+						'name' => 'public_key',
+						'value' => ''
+					));
+				} else {				
+					$this->ui->hidden(0,array(
+						'name' => 'public_key',
+						'value' => $this->public_key
+					));
+					$this->ui->p(1, array(
+						'name' => 'save-key',
+						'label' => __('Save Your Private Key','Shopp'),
+						'content' => __('To finalize the setup process, click the Finish button to save your settings.  Your private key file will automatically be downloaded.  It is important that this file be retained and remain private to the store owner. We also recommend storing a backup of this file, as secure payment information in your orders will be inaccessible without an installed private key. See <a href="http://docs.shopplugin.net/Manual_Processing">Manual Processing</a> documentation for more information','Shopp').
+						'<br /><iframe id="dlframe" name="dlframe" style="width:0px; height:0px; border:0px;" ></iframe><a id="finish" class="button-secondary">'.__('Finish','Shopp').'</a>'
+					));
+					$this->finish_button_press();
+				}
 			} else {  // all setup!
 				$this->ui->hidden(0,array(
 					'name' => 'public_key',
@@ -246,20 +267,33 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 	
 	function generate_keypairs() {
 		if($this->public_key == 'generate') {
-			$res_priv = openssl_pkey_new();
-			
+			$res_priv = openssl_pkey_new($this->opensslconf);
+			if ($res_priv === false) {
+				new ShoppError(__('Private key resource creation failed. openssl_error_string reports ','Shopp').openssl_error_string(),false,SHOPP_ERR);
+				return false;
+			}
+						
 			// Get private key
-			openssl_pkey_export($res_priv, $this->private_pem);
+			$success = openssl_pkey_export($res_priv, $this->private_pem, null, $this->opensslconf);
+			if ($success === false) {
+				new ShoppError(__('Private key PEM export failed. openssl_error_string reports ','Shopp').openssl_error_string(),false,SHOPP_ERR);
+				return false;
+			}
 			$RSA = new PEMparser($this->private_pem);
 			$this->private_key = $RSA->parse();
 
 			// Get public key
 			$details=openssl_pkey_get_details($res_priv);
+			if ($details === false) {
+				new ShoppError(__('Unable to get public key. openssl_error_string reports ','Shopp').openssl_error_string(),false,SHOPP_ERR);
+				return false;				
+			}
+			
 			$this->public_key = urlencode($details['key']);
 
 			echo "if(dp.supported) dp.store('".json_encode($this->private_key)."','".$this->sec_prefix."');\n";
 		}
-		return;
+		return true;
 	} // end generate_keypairs
 
 	function encrypt($data) {
