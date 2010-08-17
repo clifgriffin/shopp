@@ -379,7 +379,7 @@ class Setup extends FlowController {
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-system');
-			
+
 			if (!isset($_POST['settings']['error_notifications'])) 
 				$_POST['settings']['error_notifications'] = array();
 			
@@ -392,7 +392,15 @@ class Setup extends FlowController {
 										$this->Settings->get('error_notifications'));
 
 			$updated = __('Shopp system settings saved.','Shopp');
-		}
+		} elseif (!empty($_POST['rebuild'])) {
+			$db =& DB::get();
+			
+			$assets = DatabaseObject::tablename(ProductImage::$table);
+			$query = "DELETE FROM $assets WHERE context='image' AND type='image'";
+			if ($db->query($query))
+				$updated = __('All cached images have been cleared.','Shopp');
+		} 
+		
 		
 		if (isset($_POST['resetlog'])) $Shopp->ErrorLog->reset();
 		
