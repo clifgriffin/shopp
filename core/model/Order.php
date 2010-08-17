@@ -133,9 +133,7 @@ class Order {
 		}
 
 		if (isset($Shopp->Gateways->active[$this->processor])) {
-			if($current != $this->processor)
-				$this->gateway = $Shopp->Gateways->active[$this->processor]->name;
-			
+			$this->gateway = $Shopp->Gateways->active[$this->processor]->name;
 			return $Shopp->Gateways->active[$this->processor];
 		}
 			
