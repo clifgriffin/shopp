@@ -147,7 +147,6 @@
 		<li>
 		<div class="inline"><label for="marketing"><?php shopp('checkout','marketing','title='.__('','Shopp')); ?> <?php _e('Yes, I would like to receive e-mail updates and special offers!','Shopp'); ?></label></div>
 		</li>
-		<li><?php shopp('checkout','orderdata','type=text&name=Custom Data'); ?><label>Custom Data</label></li>
 	</ul>
 	<p class="submit"><?php shopp('checkout','submit','value='.__('Submit Order','Shopp')); ?></p>
 

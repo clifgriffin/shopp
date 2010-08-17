@@ -320,13 +320,14 @@ class Order {
 		}
 
 		// WordPress account integration used, customer has no wp user
-		if ($this->accounts == "wordpress" && empty($this->Customer->wpuser))
+		if ("wordpress" == $this->accounts && empty($this->Customer->wpuser))
 			$this->Customer->create_wpuser();
 		 
 		// New customer, save hashed password
-		// @todo: New customer notification
-		if (empty($this->Customer->id) && !empty($this->Customer->password))
+		if (empty($this->Customer->id) && !empty($this->Customer->password)) {
+			if ("shopp" == $this->accounts) $this->Customer->notification();
 			$this->Customer->password = wp_hash_password($this->Customer->password);
+		}
 		else unset($this->Customer->password); // Existing customer, do not overwrite password field!
 		
 		$this->Customer->save();
