@@ -455,7 +455,10 @@ class ShoppInstallation extends FlowController {
 		// Preserve payment settings
 		
 		// Determine active gateways
-		$active_gateways = array_merge(array($this->Settings->get('payment_gateway')),$this->Settings->get('xco_gateways'));
+		$active_gateways = array($this->Settings->get('payment_gateway'));
+		$xco_gateways = (array)$this->Settings->get('xco_gateways');
+		if (!empty($xco_gateways))
+			$active_gateways = array_merge($active_gateways,$xco_gateways);
 
 		// Load 1.0 payment gateway settings for active gateways
 		$gateways = array();
