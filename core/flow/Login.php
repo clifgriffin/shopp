@@ -28,7 +28,7 @@ class Login {
 	var $accounts = "none";		// Account system setting
 	
 	function __construct () {
-		global $Shopp,$wp;
+		global $Shopp;
 
 		$this->accounts = $Shopp->Settings->get('account_system');
 		
@@ -61,10 +61,12 @@ class Login {
 	 **/
 	function process () {
 		global $Shopp;
-		
-		if (isset($_GET['acct']) && $_GET['acct'] == "logout")
+
+		if (isset($_GET['acct']) && $_GET['acct'] == "logout") {
+			// add_action('shopp_logged_out',array(&$this,'redirect'));
 			return do_action('shopp_logout');
-			
+		}
+		
 		if ("wordpress" == $this->accounts) {
 			// See if the wordpress user is already logged in
 			$user = wp_get_current_user();
@@ -81,6 +83,8 @@ class Login {
 			
 		if (empty($_POST['process-login'])) return false;
 		if ($_POST['process-login'] != "true") return false;
+
+		add_action('shopp_login',array(&$this,'redirect'));
 		
 		// Prevent checkout form from processing
 		remove_all_actions('shopp_process_checkout');
@@ -230,6 +234,7 @@ class Login {
 		$this->Shipping->id = false;
 		$this->Shipping->customer = false;
 		session_commit();
+		do_action_ref_array('shopp_logged_out',array(&$this->Customer));
 	}
 	
 	function registration () {
@@ -287,6 +292,15 @@ class Login {
 		shopp_redirect(shoppurl(false,'account'));
 	}
 
+	function redirect () {
+		if (!empty($_POST['redirect'])) {
+			wp_safe_redirect($_POST['redirect']);
+			exit();
+		}
+		wp_safe_redirect(shoppurl(false,'account'));
+		exit();
+	}
+	
 } // END class Login
 
 ?>

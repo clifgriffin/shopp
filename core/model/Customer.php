@@ -97,7 +97,7 @@ class Customer extends DatabaseObject {
 	 **/
 	function management () {
 		global $Shopp;
-
+		
 		if (isset($_GET['acct']) && isset($this->pages[$_GET['acct']]) 
 				&& isset($this->pages[$_GET['acct']]->handler) 
 				&& is_callable($this->pages[$_GET['acct']]->handler))
@@ -452,7 +452,7 @@ class Customer extends DatabaseObject {
 				$string = "";
 				if ($context == "checkout") 
 					$string .= '<input type="hidden" name="process-login" id="process-login" value="false" />';
-				else $string .= '<input type="hidden" name="process-login" value="true" />';
+				else $string .= '<input type="hidden" name="process-login" value="true" /><input type="hidden" name="redirect" value='.shoppurl($_GET,'account',$Order->security()).' />';
 				$string .= '<input type="submit" name="submit-login" id="submit-'.$context.'-login"'.inputattrs($options).' />';
 				return $string;
 				break;
