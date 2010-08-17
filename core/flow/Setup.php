@@ -119,7 +119,7 @@ class Setup extends FlowController {
 			else $_POST['settings']['base_operations']['vat'] = false;
 			
 			$this->settings_save();
-			$updated = __('Shopp settings saved.');
+			$updated = __('Shopp settings saved.', 'Shopp');
 		}
 
 		$operations = $Shopp->Settings->get('base_operations');
