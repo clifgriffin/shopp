@@ -1673,7 +1673,7 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 	if ($items) { 
 		foreach ($items as $item) {
 			// Preserve initial priority
-			$item->_priority = $item->priority; 
+			if (isset($item->priority))	$item->_priority = $item->priority;
 			if ($item->parent == $parent) {
 				$item->parentkey = $key;
 				$item->depth = $depth;

@@ -229,7 +229,7 @@ class Shopp {
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 		
 		global $pagenow;
-		if (WP_ADMIN && $pagenow == "plugins.php") $this->updates();
+		if (defined('WP_ADMIN') && $pagenow == "plugins.php") $this->updates();
 
 		new Login();
 		do_action('shopp_init');		
