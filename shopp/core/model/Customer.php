@@ -59,6 +59,27 @@ class Customer extends DatabaseObject {
 	 **/
 	function load_info () {
 		$this->info = new ObjectMeta($this->id,'customer');
+		if (!$this->info) $this->info = new ObjectMeta();
+	}
+	
+	function save () {
+		parent::save();
+		
+		if (empty($this->info) || !is_array($this->info)) return true; 
+		foreach ((array)$this->info as $name => $value) {
+			$Meta = new MetaObject(array(
+				'parent' => $this->id,
+				'context' => 'customer',
+				'type' => 'meta',
+				'name' => $name
+			));
+			$Meta->parent = $this->id;
+			$Meta->context = 'customer';
+			$Meta->type = 'meta';
+			$Meta->name = $name;
+			$Meta->value = $value;
+			$Meta->save();
+		}
 	}
 	
 	function addpage ($request,$label,$visible=true,$callback=false,$position=0) {
@@ -281,6 +302,41 @@ class Customer extends DatabaseObject {
 		} else new ShoppError(__('Check your email address for your new password.','Shopp'),'password_reset_email',SHOPP_ERR);
 
 		unset($_GET['acct']);
+	}
+	
+	function notification () {
+		$Settings =& ShoppSettings();
+		// The blogname option is escaped with esc_html on the way into the database in sanitize_option
+		// we want to reverse this for the plain text arena of emails.
+		$blogname = wp_specialchars_decode(get_option('blogname'), ENT_QUOTES);
+
+		$_ = array();
+		$_[] = 'From: "'.get_option('blogname').'" <'.$Settings->get('merchant_email').'>';
+		$_[] = 'To: '.$Settings->get('merchant_email');
+		$_[] = 'Subject: '.sprintf(__('[%s] New Customer Registration','Shopp'),$blogname);
+		$_[] = '';
+		$_[] = sprintf(__('New customer registration on your "%s" store:','Shopp'), $blogname);
+		$_[] = sprintf(__('E-mail: %s','Shopp'), stripslashes($this->email));
+
+		if (!shopp_email(join("\r\n",$_)))
+			new ShoppError('The new account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
+		elseif (SHOPP_DEBUG) new ShoppError('A new account notification e-mail was sent to the merchant.','new_account_email',SHOPP_DEBUG_ERR);
+		if (empty($this->password)) return;
+
+		$_ = array();
+		$_[] = 'From: "'.get_option('blogname').'" <'.$Settings->get('merchant_email').'>';
+		$_[] = 'To: '.$this->email;
+		$_[] = 'Subject: '.sprintf(__('[%s] New Customer Registration','Shopp'),$blogname);
+		$_[] = '';
+		$_[] = sprintf(__('New customer registration on your "%s" store:','Shopp'), $blogname);
+		$_[] = sprintf(__('E-mail: %s','Shopp'), stripslashes($this->email));
+		$_[] = sprintf(__('Password: %s'), $this->password);
+		$_[] = '';
+		$_[] = shoppurl(false,'account',$Order->security);
+		
+		if (!shopp_email(join("\r\n",$_)))
+			new ShoppError('The customer\'s account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
+		elseif (SHOPP_DEBUG) new ShoppError('A new account notification e-mail was sent to the customer.','new_account_email',SHOPP_DEBUG_ERR);
 	}
 	
 	function load_downloads () {
