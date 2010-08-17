@@ -96,10 +96,10 @@ class Storefront extends FlowController {
 
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
 		add_action('wp_enqueue_scripts', 'shopp_dependencies');
-		
+
 		$this->smartcategories();
 		$this->searching();
-		
+		$this->account();
 	}
 
 	/**
@@ -109,14 +109,15 @@ class Storefront extends FlowController {
 	 * @author Jonathan Davis
 	 **/
 	function pageid () {
-		global $Shopp,$wp_query;
-		if (empty($wp_query->posts)) return false;
+		global $Shopp,$wp_query,$wp;
+		if (empty($wp_query->post)) return false;
 
 		// Identify the current page
 		foreach ($this->Pages as &$Page) {
-			if ($Page['id'] == $wp_query->posts[0]->ID) $this->Page = $Page; break;
+			if ($Page['id'] == $wp_query->post->ID) {
+				$this->Page = $Page; break;
+			}
 		}
-
 	}
 	
 	/**
@@ -136,6 +137,19 @@ class Storefront extends FlowController {
 					shopp_redirect(shoppurl($_GET,'account',true));
 				break;
 		}
+	}
+	
+	function account () {
+		global $wp;
+		if (isset($wp->query_vars['acct'])) {
+			add_filter('wp_headers',array(&$this,'nocache'));
+		}
+			
+	}
+	
+	function nocache ($headers) {
+		$headers = array_merge($headers, wp_get_nocache_headers());
+		return $headers;
 	}
 
 	/**

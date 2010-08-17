@@ -1538,6 +1538,41 @@ function shopp_redirect ($uri,$exit=true) {
 }
 
 /**
+ * Safely handles redirect requests to ensure they remain onsite
+ * 
+ * Derived from WP 2.8 wp_safe_redirect
+ *
+ * @author Mark Jaquith, Ryan Boren
+ * @since 1.1
+ * 
+ * @param string $location The URL to redirect to
+ * @param int $status (optional) The HTTP status to send to the browser
+ * @return void
+ **/
+function shopp_safe_redirect($location, $status = 302) {
+
+	// Need to look at the URL the way it will end up in wp_redirect()
+	$location = wp_sanitize_redirect($location);
+
+	// browsers will assume 'http' is your protocol, and will obey a redirect to a URL starting with '//'
+	if ( substr($location, 0, 2) == '//' )
+		$location = 'http:' . $location;
+
+	// In php 5 parse_url may fail if the URL query part contains http://, bug #38143
+	$test = ( $cut = strpos($location, '?') ) ? substr( $location, 0, $cut ) : $location;
+
+	$lp  = parse_url($test);
+	$wpp = parse_url(get_option('home'));
+
+	$allowed_hosts = (array) apply_filters('allowed_redirect_hosts', array($wpp['host']), isset($lp['host']) ? $lp['host'] : '');
+
+	if ( isset($lp['host']) && ( !in_array($lp['host'], $allowed_hosts) && $lp['host'] != strtolower($wpp['host'])) )
+		$location = shoppurl(false,'account');
+
+	wp_redirect($location, $status);
+}
+
+/**
  * Determines the current taxrate from the store settings and provided options
  *
  * Contextually works out if the tax rate applies or not based on storefront

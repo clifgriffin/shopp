@@ -409,4 +409,5 @@ jQuery(document).ready(function() {
 		$('a.shopp-zoom').colorbox({photo:true});
 		$('a.shopp-zoom.gallery').attr('rel','gallery').colorbox({slideshow:true,slideshowSpeed:3500});
 	}
+	if (ShoppSettings.nocache) $(window).unload(function () { return; });
 });

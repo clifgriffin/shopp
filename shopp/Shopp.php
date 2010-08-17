@@ -436,6 +436,8 @@ class Shopp {
 			'p' => $baseop['currency']['format']['precision'],
 			't' => $baseop['currency']['format']['thousands'],
 			'd' => $baseop['currency']['format']['decimals'],
+			
+			'nocache' => is_shopp_page('account'),
 
 			'opdef' => false,
 			'opreq' => __('You must select the options for this item before you can add it to your shopping cart.','Shopp'),
