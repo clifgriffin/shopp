@@ -151,6 +151,7 @@ class xmlQuery {
 	 * @return boolean 
 	 **/
 	function &add ($target,$element) {
+		$true = true;
 		$working = $element;
 		$element = key($working);
 		if ($target !== false) {
@@ -168,10 +169,10 @@ class xmlQuery {
 				$node['_c'][$element][] =& $working[$element];	
 				
 			} else $node['_c'][$element] =& $working[$element];
-			return true;
+			return $true;
 			
 		} else $this->dom[$element] =& $working[$element];
-		return true;
+		return $true;
 	}
 	
 	/**

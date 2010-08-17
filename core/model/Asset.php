@@ -428,7 +428,7 @@ class StorageEngines extends ModuleLoader {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 * 
-	 * @return void Description...
+	 * @return void
 	 **/
 	function __construct () {
 		$this->path = SHOPP_STORAGE;
@@ -471,7 +471,7 @@ class StorageEngines extends ModuleLoader {
 	}
 	
 	/**
-	 * Loads all the installed gateway modules for the payments settings
+	 * Loads all the installed storage engine modules for the settings page
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -496,10 +496,12 @@ class StorageEngines extends ModuleLoader {
 	}
 	
 	function actions ($module) {
+		if (!isset($this->active[$module])) return;
+		
 		// Register contexts the module is a handler for
 		foreach ($this->engines as $system => $handler) 
 			if ($module == $handler) $this->active[$module]->contexts[] = $system;
-
+		
 		if (method_exists($this->active[$module],'actions'))
 			$this->active[$module]->actions();
 	}
@@ -604,7 +606,7 @@ abstract class StorageModule {
 	 * @return void
 	 **/
 	function setupui ($module,$name) {
-		$this->ui = new ModuleSettingsUI('storage',$module,$name,$this->settings['label'],$this->multi);
+		$this->ui = new ModuleSettingsUI('storage',$module,$name,false,false);
 		$this->settings();
 	}
 		

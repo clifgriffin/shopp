@@ -311,6 +311,7 @@ class Category extends DatabaseObject {
 		}
 
 		if (!empty($having)) $loading['having'] = "HAVING ".join(" AND ",$having);
+		else $loading['having'] = '';
 		$loading['where'] = join(" AND ",$where);
 		
 		if (empty($loading['limit'])) {
@@ -710,6 +711,7 @@ class Category extends DatabaseObject {
 				$wraplist = value_is_true($wraplist);
 
 				if (value_is_true($dropdown)) {
+					$count = 0;
 					$string .= $title;
 					$string .= '<select name="shopp_cats" id="shopp-'.$this->slug.'-subcategories-menu" class="shopp-categories-menu">';
 					$string .= '<option value="">'.__('Select a sub-category&hellip;','Shopp').'</option>';
@@ -851,11 +853,12 @@ class Category extends DatabaseObject {
 
 				// Identify root parent
 				if (empty($this->id)) return false;
-				$parent = $this->id;
+				$parent = '_'.$this->id;
 				while($parent != 0) {
+					if (!isset($Shopp->Catalog->categories[$parent])) break;
 					if ($Shopp->Catalog->categories[$parent]->parent == 0 
 						|| $Shopp->Catalog->categories[$parent]->parent == $parent) break;
-					$parent = $Shopp->Catalog->categories[$parent]->parent;
+					$parent = '_'.$Shopp->Catalog->categories[$parent]->parent;
 				}
 				$root = $Shopp->Catalog->categories[$parent];
 				if ($this->id == $parent && empty($this->children)) return false;
