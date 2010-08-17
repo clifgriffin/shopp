@@ -40,13 +40,6 @@ class Storefront extends FlowController {
 	var $browsing = array();
 	var $behaviors = array();	// Runtime JavaScript behaviors
 	
-	/**
-	 * Storefront constructor
-	 *
-	 * @author Jonathan Davis
-	 * 
-	 * @return void
-	 **/
 	function __construct () {
 		global $Shopp;
 		parent::__construct();
@@ -103,10 +96,12 @@ class Storefront extends FlowController {
 	}
 
 	/**
-	 * parse function
+	 * Identifies the currently loaded Shopp storefront page
 	 *
-	 * @return void
 	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
 	 **/
 	function pageid () {
 		global $Shopp,$wp_query,$wp;
@@ -139,23 +134,43 @@ class Storefront extends FlowController {
 		}
 	}
 	
+	/**
+	 * Adds nocache headers on sensitive account pages
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function account () {
 		global $wp;
-		if (isset($wp->query_vars['acct'])) {
+		if (isset($wp->query_vars['acct']))
 			add_filter('wp_headers',array(&$this,'nocache'));
-		}
 			
 	}
 	
+	/**
+	 * Adds nocache headers to WP page headers
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $headers The current WP HTTP headers
+	 * @return array Modified headers
+	 **/
 	function nocache ($headers) {
 		$headers = array_merge($headers, wp_get_nocache_headers());
 		return $headers;
 	}
 
 	/**
-	 * behaviors()
-	 * Dynamically includes necessary JavaScript and stylesheets as needed in 
-	 * public shopping pages handled by Shopp */
+	 * Queues Shopp storefront javascript and styles as needed
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function behaviors () {
 		global $Shopp;
 
@@ -205,16 +220,23 @@ class Storefront extends FlowController {
 	}
 	
 	/**
-	 * shortcodes()
-	 * Handles shortcodes used on Shopp-installed pages and used by
-	 * site owner for including categories/products in posts and pages */
+	 * Sets handlers for Shopp shortcodes
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function shortcodes () {
 
 		$this->shortcodes = array();
+		// Gateway page shortcodes
 		$this->shortcodes['catalog'] = array(&$this,'catalog_page');
 		$this->shortcodes['cart'] = array(&$this,'cart_page');
 		$this->shortcodes['checkout'] = array(&$this,'checkout_page');
 		$this->shortcodes['account'] = array(&$this,'account_page');
+		
+		// Additional shortcode functionality
 		$this->shortcodes['product'] = array(&$this,'product_shortcode');
 		$this->shortcodes['buynow'] = array(&$this,'buynow_shortcode');
 		$this->shortcodes['category'] = array(&$this,'category_shortcode');
@@ -226,6 +248,14 @@ class Storefront extends FlowController {
 		
 	}
 	
+	/**
+	 * Detects if maintenance mode is necessary
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function maintenance () {
 		$Settings = &ShoppSettings();
 		$db_version = intval($Settings->get('db_version'));
@@ -234,12 +264,19 @@ class Storefront extends FlowController {
 	}
 	
 	/**
-	 * titles ()
-	 * Changes the Shopp catalog page titles to include the product
-	 * name and category (when available) */
+	 * Modifies the WP page title to include product/category names (when available)
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $title The current WP page title
+	 * @param string $sep (optional) The page title separator to include between page titles
+	 * @param string $placement (optional) The placement of the separator (defaults 'left')
+	 * @return string The modified page title
+	 **/
 	function titles ($title,$sep=" &mdash; ",$placement="left") {
 		global $wp;
-		
+
 		if (!isset($wp->query_vars['shopp_category']) 
 			&& !isset($wp->query_vars['shopp_tag'])
 			&& !isset($wp->query_vars['shopp_product'])
@@ -247,17 +284,26 @@ class Storefront extends FlowController {
 		if (empty($this->Product->name) && empty($this->Category->name)) return $title;
 
 		$_ = array();
-		$_[] = empty($title)?get_bloginfo('name'):$title;
-		if (!empty($this->Category->name)) $_[] = $this->Category->name;
-		if (!empty($this->Product->name)) $_[] = $this->Product->name;
-
+		$_[] = empty($title)?' ':$title;
+		if (!empty($this->Category->name))	$_[] = $this->Category->name;
+		if (!empty($this->Product->name))	$_[] = $this->Product->name;
+		
 		if ("right" == $placement) $_ = array_reverse($_);
 		
 		$_ = apply_filters('shopp_document_titles',$_);
 		return join($sep,$_);
 	}
 
-	// Override the post title for internal Shopp checkout process pages
+	/**
+	 * Override the WP page title for the extra checkout process pages
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $title The current WP page title
+	 * @param int $post_id (optional) The post id
+	 * @return string The modified title
+	 **/
 	function pagetitle ($title,$post_id=false) {
 		if (!$post_id) return $title;
 		global $wp;
@@ -274,6 +320,14 @@ class Storefront extends FlowController {
 		return $title;
 	}
 
+	/**
+	 * Renders RSS feed link tags for category product feeds
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function feeds () {
 		global $Shopp;		
 		if (empty($this->Category->name)):?>
@@ -291,11 +345,34 @@ class Storefront extends FlowController {
 		endif;
 	}
 
+	/**
+	 * Updates the WP search query with the Shopp search in progress
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function updatesearch () {
 		global $wp_query;
 		$wp_query->query_vars['s'] = esc_attr(stripslashes($this->search));
 	}
 
+	/**
+	 * Adds 'keyword' and 'description' <meta> tags into the page markup
+	 * 
+	 * The 'keyword' tag is a list of tags applied to a product.  No default 'keyword' meta
+	 * is generated for categories, however, the 'shopp_meta_keywords' filter hook can be
+	 * used to generate a custom list.
+	 * 
+	 * The 'description' tag is generated from the product summary or category description.
+	 * It can also be customized with the 'shopp_meta_description' filter hook.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function metadata () {
 		$keywords = false;
 		$description = false;
@@ -316,6 +393,15 @@ class Storefront extends FlowController {
 		<?php endif;
 	}
 
+	/**
+	 * Returns canonical product and category URLs
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $url The current url
+	 * @return string The canonical url
+	 **/
 	function canonurls ($url) {
 		global $Shopp;
 		if (!empty($Shopp->Product->slug)) return $Shopp->Product->tag('url','echo=0');
@@ -323,6 +409,17 @@ class Storefront extends FlowController {
 		return $url;
 	}
 	
+	/**
+	 * Registers available smart categories
+	 * 
+	 * New smart categories can be added by creating a new smart category class
+	 * in a custom plugin or the theme functions file.
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function smartcategories () {
 		Shopp::add_smartcategory('CatalogProducts');
 		Shopp::add_smartcategory('NewProducts');
@@ -338,8 +435,13 @@ class Storefront extends FlowController {
 	}
 
 	/**
-	 * header()
-	 * Adds stylesheets necessary for Shopp public shopping pages */
+	 * Includes a canonical reference <link> tag for the catalog page
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function header () {
 		global $wp;
 
@@ -348,6 +450,17 @@ class Storefront extends FlowController {
 		endif;
 	}
 
+	/**
+	 * Adds a dynamic style declaration for the category grid view
+	 * 
+	 * Ties the presentation setting to the grid view category rendering 
+	 * in the storefront.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function catalogcss () {
 		$Settings = ShoppSettings();
 		if (!isset($row_products)) $row_products = 3;
@@ -363,8 +476,13 @@ class Storefront extends FlowController {
 	}
 	
 	/**
-	 * footer()
-	 * Adds report information and custom debugging tools to the public and admin footers */
+	 * Renders footer content and extra scripting as needed
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function footer () {
 		$db = DB::get();
 		global $wpdb;
@@ -394,6 +512,14 @@ class Storefront extends FlowController {
 		shopp_custom_script('catalog',$script);
 	}
 
+	/**
+	 * Determines when to search the Shopp catalog instead of WP content
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function searching () {
 		global $Shopp,$wp;
 		
@@ -411,6 +537,14 @@ class Storefront extends FlowController {
 		
 	}
 
+	/**
+	 * Parses catalog page requests
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
 	function catalog () {
 		global $Shopp,$wp;
 		
@@ -592,8 +726,13 @@ class Storefront extends FlowController {
 	}
 
 	/**
-	 * cart()
-	 * Handles shopping cart requests */
+	 * Handles shopping cart requests
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function cart () {
 		global $Shopp;
 		$Cart = $Shopp->Order->Cart;
@@ -621,6 +760,18 @@ class Storefront extends FlowController {
 		}
 	}
 
+	/**
+	 * Displays the cart template
+	 * 
+	 * Replaces the [cart] shortcode on the Cart page with 
+	 * the processed template contents.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $attrs Shortcode attributes
+	 * @return string The cart template content
+	 **/
 	function cart_page ($attrs=array()) {
 		global $Shopp;
 		$Order = &ShoppOrder();
@@ -634,6 +785,18 @@ class Storefront extends FlowController {
 		return apply_filters('shopp_cart_template',$content);
 	}
 	
+	/**
+	 * Displays the appropriate checkout template
+	 * 
+	 * Replaces the [checkout] shortcode on the Checkout page with 
+	 * the processed template contents.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $attrs Shortcode attributes
+	 * @return string The processed template content
+	 **/
 	function checkout_page () {
 		$Errors =& ShoppErrors();
 		$Order =& ShoppOrder();
@@ -661,7 +824,18 @@ class Storefront extends FlowController {
 		return apply_filters('shopp_checkout_page',$content);
 	}
 	
-
+	/**
+	 * Displays the appropriate account page template
+	 * 
+	 * Replaces the [account] shortcode on the Account page with 
+	 * the processed template contents.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $attrs Shortcode attributes
+	 * @return string The cart template content
+	 **/
 	function account_page ($menuonly=false) {
 		global $wp;
 		$Order =& ShoppOrder();
@@ -679,19 +853,15 @@ class Storefront extends FlowController {
 		return apply_filters('shopp_account_template',$content);
 		
 	}
-
-	function shipping_estimate_page ($attrs) {
-		$Cart = $this->Cart;
-
-		ob_start();
-		include(SHOPP_TEMPLATES."/shipping.php");
-		$content = ob_get_contents();
-		ob_end_clean();
-
-		return $content;
-	}
 	
-	// Display the confirm order screen
+	/**
+	 * Renders the order confirmation template
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return string The processed confirm.php template file
+	 **/
 	function order_confirmation () {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
@@ -703,7 +873,14 @@ class Storefront extends FlowController {
 		return apply_filters('shopp_order_confirmation',$content);
 	}
 
-	// Display the thanks (transaction complete) page
+	/**
+	 * Renders the thanks template
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return string The processed thanks.php template file
+	 **/
 	function thanks ($template="thanks.php") {
 		global $Shopp;
 		$Purchase = $Shopp->Purchase;
@@ -715,7 +892,14 @@ class Storefront extends FlowController {
 		return apply_filters('shopp_thanks',$content);
 	}
 	
-	// Display an error page
+	/**
+	 * Renders the errors template
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return string The processed errors.php template file
+	 **/
 	function error_page ($template="errors.php") {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
@@ -727,6 +911,15 @@ class Storefront extends FlowController {
 		return apply_filters('shopp_errors_page',$content);
 	}
 
+	/**
+	 * Handles rendering the [product] shortcode
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $attrs The parsed shortcode attributes
+	 * @return string The processed content
+	 **/
 	function product_shortcode ($atts) {
 		global $Shopp;
 
@@ -742,7 +935,16 @@ class Storefront extends FlowController {
 			return $Shopp->Catalog->tag('product',$atts);
 		else return apply_filters('shopp_product_shortcode',$Shopp->Catalog->tag('product',$atts).'');
 	}
-	
+
+	/**
+	 * Handles rendering the [category] shortcode
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $attrs The parsed shortcode attributes
+	 * @return string The processed content
+	 **/
 	function category_shortcode ($atts) {
 		global $Shopp;
 		
@@ -769,6 +971,16 @@ class Storefront extends FlowController {
 		
 	}
 	
+
+	/**
+	 * Handles rendering the maintenance message in place of all shortcodes
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $attrs The parsed shortcode attributes
+	 * @return string The processed content
+	 **/
 	function maintenance_shortcode ($atts) {
 		if (file_exists(SHOPP_TEMPLATES."/maintenance.php")) {
 			ob_start();
@@ -780,6 +992,15 @@ class Storefront extends FlowController {
 		return $content;
 	}
 
+	/**
+	 * Handles rendering the [buynow] shortcode
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param array $attrs The parsed shortcode attributes
+	 * @return string The processed content
+	 **/
 	function buynow_shortcode ($atts) {
 		global $Shopp;
 		
