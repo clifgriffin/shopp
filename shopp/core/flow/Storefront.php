@@ -53,7 +53,7 @@ class Storefront extends FlowController {
 		$this->Product = &$Shopp->Product;
 		
 		$pages = $this->Settings->get('pages');
-		if (!empty($Pages)) $this->pages = $pages;
+		if (!empty($pages)) $this->pages = $pages;
 
 		ShoppingObject::store('search',$this->search);
 		ShoppingObject::store('browsing',$this->browsing);
@@ -107,12 +107,12 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function pageid () {
-		global $Shopp,$wp_query,$wp;
+		global $Shopp,$wp_query;
 		if (empty($wp_query->post)) return false;
 
 		// Identify the current page
 		foreach ($this->pages as &$page) {
-			if ($Page['id'] == $wp_query->post->ID) {
+			if ($page['id'] == $wp_query->post->ID) {
 				$this->Page = $page; break;
 			}
 		}
@@ -128,13 +128,10 @@ class Storefront extends FlowController {
 	 **/
 	function security () {
 		global $Shopp;
-		if (is_shopp_secure()) return;
+		if (is_shopp_secure() || !$Shopp->Gateways->secure) return;
 		switch ($this->Page['name']) {
-			case "checkout": break;
-			case "account": 
-				if ($Shopp->Gateways->secure)
-					shopp_redirect(shoppurl($_GET,'account',true));
-				break;
+			case "checkout": shopp_redirect(shoppurl($_GET,'checkout',true)); break;
+			case "account":	 shopp_redirect(shoppurl($_GET,'account',true)); break;
 		}
 	}
 	
