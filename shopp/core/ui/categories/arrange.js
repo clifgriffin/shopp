@@ -169,13 +169,15 @@ jQuery(document).ready( function() {
 					else $button.trigger('closed');
 				}
 				cell.addClass('updating');
+
 				$.ajax({
 					url:loadchildren_url+'&action=shopp_category_children&parent='+id,
 					timeout:500,
 					dataType:'json',
 					success:function (categories) {
 						cell.removeClass('updating');
-						if (categories instanceof Object) {
+						if (categories.length == 0) $button.remove();
+						else if (categories instanceof Object) {
 							$.each(categories,function () {
 								new Category(this,row);
 							});
@@ -231,7 +233,7 @@ jQuery(document).ready( function() {
 			classes.push(classes[classes.length-2]+'-child');
 
 			return $('<tr class="'+classes.join(' ')+'" rel="'+category.slug+'">'+
-				'<td>'+indent.repeat(classes.length-1)+'<button type="button" name="top" class="moveto top">&nbsp;</button><button type="button" name="bottom" class="moveto bottom">&nbsp;</button><a class="row-title" href="'+editurl+'" title="&quot;'+category.name+'&quot;">'+category.name+'</a><input type="hidden" name="position['+category.id+']" value="'+category.priority+'" /></td>'+
+				'<td>'+indent.repeat(classes.length-1)+'<button type="button" name="top" class="moveto top">&nbsp;</button><button type="button" name="bottom" class="moveto bottom">&nbsp;</button><a class="row-title" href="'+editurl+'" title="&quot;'+category.name+'&quot;">'+category.name+'</a><input type="hidden" name="id" value="'+category.id+'" /><input type="hidden" name="position['+category.id+']" value="'+category.priority+'" /></td>'+
 				'<th scope="row" width="48"><button type="button" name="collapse" class="collapsing closed">&nbsp;</button></th>'+
 			'</tr>').insertAfter(lastDescendant).arrangeRow();
 
