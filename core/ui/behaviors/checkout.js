@@ -90,14 +90,16 @@ jQuery(document).ready(function () {
 	});
 	
 	$('.shopp .shipmethod').change(function () {
-		$('.shopp_cart_shipping, .shopp_cart_tax, .shopp_cart_total').html('?');
-		$.getJSON(ShoppSettings.ajaxurl+"?action=shopp_shipping_costs&method="+$(this).val(),
-			function (result) {
-				var totals = eval(result);
-				$('span.shopp_cart_shipping').html(asMoney(totals.shipping));
-				$('span.shopp_cart_tax').html(asMoney(totals.tax));
-				$('span.shopp_cart_total').html(asMoney(totals.total));
-		});
+		if ($(this).parents('#checkout').size()) {
+			$('.shopp_cart_shipping, .shopp_cart_tax, .shopp_cart_total').html('?');
+			$.getJSON(ShoppSettings.ajaxurl+"?action=shopp_shipping_costs&method="+$(this).val(),
+				function (result) {
+					var totals = eval(result);
+					$('span.shopp_cart_shipping').html(asMoney(totals.shipping));
+					$('span.shopp_cart_tax').html(asMoney(totals.tax));
+					$('span.shopp_cart_total').html(asMoney(totals.total));
+			});
+		} else $(this).parents('form').submit();
 	});
 	
 	$('#checkout.shopp [name=paymethod]').change(function () {
