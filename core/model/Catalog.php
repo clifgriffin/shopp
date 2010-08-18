@@ -712,7 +712,7 @@ class Catalog extends DatabaseObject {
 					foreach ($products as $product) {
 						$product = trim($product);
 						if (empty($product)) continue;
-						if (preg_match('/^[\d+]$/',$product)) 
+						if (preg_match('/^\d+$/',$product)) 
 							$Shopp->Product = new Product($product);
 						else $Shopp->Product = new Product($product,'slug');
 						
