@@ -225,15 +225,14 @@ class AjaxFlow {
 	}
 		
 	function shipping_costs () {
-		global $Shopp;
+		if (!isset($_GET['method'])) return;
+		$Order =& ShoppOrder();
 		
-		if (isset($_GET['method'])) {
-			$Shopp->Order->Shipping->method = $_GET['method'];
-			$Shopp->Order->Cart->changed(true);
-			$Shopp->Order->Cart->totals();
-			
-			echo json_encode($Shopp->Order->Cart->Totals);
-		}
+		if ($_GET['method'] == $Order->Shipping->method) return;
+
+		$Order->Shipping->method = $_GET['method'];
+		$Order->Cart->totals();
+		echo json_encode($Order->Cart->Totals);
 		exit();
 	}
 	

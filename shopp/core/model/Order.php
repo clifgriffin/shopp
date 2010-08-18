@@ -86,6 +86,7 @@ class Order {
 	 * @return void
 	 **/
 	function listeners () {
+		add_action('shopp_process_shipmethod', array(&$this,'shipmethod'));
 		add_action('shopp_process_checkout', array(&$this,'checkout'));
 		add_action('shopp_confirm_order', array(&$this,'confirmed'));
 		
@@ -273,6 +274,28 @@ class Order {
 	}
 	
 	/**
+	 * Processes changes to the shipping method
+	 *
+	 * Handles changes to the shipping method outside of other
+	 * checkout processes
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
+	function shipmethod () {
+		if (empty($this->Cart->shipped)) return;
+		if (empty($this->Shipping))
+				$this->Shipping = new Shipping();
+
+		if ($_POST['shipmethod'] == $this->Shipping->method) return;
+		
+		$this->Shipping->method = $_POST['shipmethod'];
+		$this->Cart->totals();
+	}
+	
+	/**
 	 * Confirms the order and starts order processing
 	 *
 	 * @author Jonathan Davis
@@ -281,7 +304,7 @@ class Order {
 	 * @return void
 	 **/
 	function confirmed () {
-		
+
 		if ($_POST['checkout'] == "confirmed") {
 			$this->confirmed = true;	
 			do_action('shopp_process_order');

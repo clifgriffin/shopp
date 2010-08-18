@@ -41,16 +41,19 @@
 		<td colspan="2" rowspan="5">
 			<?php if ((shopp('cart','has-shipping-methods'))): ?>
 			<small><?php _e('Select a shipping method:','Shopp'); ?></small>
-
+			
+			<form action="<?php shopp('shipping','url') ?>" method="POST">
+			
 			<ul id="shipping-methods">
 			<?php while(shopp('shipping','methods')): ?>
-				<li><label><?php shopp('shipping','method-selector'); ?>
+				<li><span><label><?php shopp('shipping','method-selector'); ?>
 				<?php shopp('shipping','method-name'); ?> &mdash;
 				<strong><?php shopp('shipping','method-cost'); ?></strong><br />
-				<small><?php shopp('shipping','method-delivery'); ?></small></label>
+				<small><?php shopp('shipping','method-delivery'); ?></small></label></span>
 				</li>
 			<?php endwhile; ?>
 			</ul>
+			</form>
 			
 			<?php endif; ?>
 		</td>
