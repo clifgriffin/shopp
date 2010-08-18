@@ -127,13 +127,17 @@ class Customer extends DatabaseObject {
 		if (!empty($_POST['customer'])) {
 			$this->updates($_POST);
 			
+			$this->info = $_POST['info'];
+
 			if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
 				$this->password = wp_hash_password($_POST['password']);
 				if($this->accounts == "wordpress" && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser ); 
-				$this->save();
 			} else {
 				if (!empty($_POST['password'])) new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'), 'customer_account_management');
 			}
+			$this->save();
+			$this->load_info();
+			
 		}
 		
 	}
@@ -169,14 +173,7 @@ class Customer extends DatabaseObject {
 				unset($_GET['acct']);
 				return false;
 			}
-			
-			// $management = apply_filters('shopp_account_management_url',
-			// 	'<p><a href="'.$this->tag('url').'">&laquo; Return to Account Management</a></p>');
-			// 
-			// $content = $management.$content.$management;
-			
-			// echo apply_filters('shopp_account_view_order',$content);
-			// return false;
+
 		}
 	}
 	
@@ -630,35 +627,47 @@ class Customer extends DatabaseObject {
 				break;
 			case "hasinfo":
 			case "has-info":
-				if (!is_object($this->info) || $this->info->is_empty()) return false;
+				if (!is_object($this->info) || empty($this->info->meta)) return false;
 				if (!isset($this->_info_looping)) {
-					reset($this->info);
+					reset($this->info->meta);
 					$this->_info_looping = true;
-				} else next($this->info);
+				} else next($this->info->meta);
 				
-				if (current($this->info) !== false) return true;
+				if (current($this->info->meta) !== false) return true;
 				else {
 					unset($this->_info_looping);
-					reset($this->info);
+					reset($this->info->meta);
 					return false;
 				}
 				break;
 			case "info":
-				if (is_array($this->info) && isset($options['mode'])) {
-					$options['name'] = key($this->info);
-					$options['value'] = current($this->info);
-				} else {
-					$options['name'] = isset($options['name'])?$options['name']:false;
-					$options['value'] = isset($options['value'])?$options['value']:false;
+				$defaults = array(
+					'mode' => 'input',
+					'type' => 'hidden',
+					'name' => false,
+					'value' => false
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+				
+				if ($this->_info_looping)
+					$info = current($this->info->meta);
+				elseif ($name !== false && is_object($this->info->named[$name]))
+					$info = $this->info->named[$name];
+
+				switch ($mode) {
+					case "name": return $info->name; break;
+					case "value": return $info->value; break;
 				}
 
+				if (!$name && !empty($info->name)) $options['name'] = $info->name;
+				elseif (!$name) return false;
+
+				if (!$value && !empty($info->value)) $options['value'] = $info->value;
+				
 				$allowed_types = array("text","password","hidden","checkbox","radio");
-				if (empty($options['type'])) $options['type'] = "hidden";
-				if (in_array($options['type'],$allowed_types)) {
-					if (isset($options['mode']) && $options['mode'] == "name") return $options['name'];
-					if (isset($options['mode']) && $options['mode'] == "value") return $options['value'];
-					return '<input type="text" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />'; 
-				}
+				$type = in_array($type,$allowed_types)?$type:'hidden';
+				return '<input type="text" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />'; 
 				break;
 
 			// SHIPPING TAGS
