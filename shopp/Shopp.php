@@ -269,7 +269,7 @@ class Shopp {
 	function pages_index ($update=false,$updates=false) {
 		global $wpdb;
 		$pages = $this->Settings->get('pages');
-		$pages = shopp_locate_pages($pages);
+		$pages = shopp_locate_pages();
 		$this->Settings->save('pages',$pages);
 		if ($update) return $update;
 	}
@@ -286,7 +286,7 @@ class Shopp {
 	function rewrites ($wp_rewrite_rules) {
 		$this->pages_index(true);
 		$pages = $this->Settings->get('pages');
-		if (!$pages) $pages = $this->Flow->Pages;
+		if (!$pages) return $wp_rewrite_rules;
 
 		// Collect Shopp page URIs and IDs
 		$uris = array();
