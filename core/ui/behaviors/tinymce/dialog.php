@@ -17,7 +17,12 @@ function shopp_tinymce_find_root ($filename, $directory, $root, &$found) {
 	return false;
 }
 
-$root = $_SERVER['DOCUMENT_ROOT'];
+$root = realpath($_SERVER['DOCUMENT_ROOT']);
+if (!$root) $root = realpath(substr(	// Attempt to trace document root by script pathing
+				$_SERVER['SCRIPT_FILENAME'],0,
+				strpos($_SERVER['SCRIPT_FILENAME'],$_SERVER['SCRIPT_NAME'])
+			));
+
 $found = array();
 shopp_tinymce_find_root('wp-load.php',$root,$root,$found);
 if (empty($found[0])) exit();
