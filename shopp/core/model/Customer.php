@@ -652,7 +652,7 @@ class Customer extends DatabaseObject {
 			case "info":
 				$defaults = array(
 					'mode' => 'input',
-					'type' => 'hidden',
+					'type' => 'text',
 					'name' => false,
 					'value' => false
 				);
@@ -676,7 +676,7 @@ class Customer extends DatabaseObject {
 				
 				$allowed_types = array("text","password","hidden","checkbox","radio");
 				$type = in_array($type,$allowed_types)?$type:'hidden';
-				return '<input type="text" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />'; 
+				return '<input type="'.$type.'" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />'; 
 				break;
 
 			// SHIPPING TAGS
