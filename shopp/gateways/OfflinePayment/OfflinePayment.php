@@ -73,7 +73,7 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		
 		$this->ui->textarea(0,array(
 			'name' => 'instructions',
-			'value' => $this->settings['instructions']
+			'value' => stripslashes_deep($this->settings['instructions'])
 		));
 
 		$this->ui->p(1,array(
