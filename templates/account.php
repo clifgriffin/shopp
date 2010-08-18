@@ -48,7 +48,7 @@
 		</li>
 		<?php while (shopp('customer','hasinfo')): ?>
 		<li>
-			<span><?php shopp('customer','info','type=text'); ?>
+			<span><?php shopp('customer','info'); ?>
 			<label><?php shopp('customer','info','mode=name'); ?></label></span>
 		</li>
 		<?php endwhile; ?>
