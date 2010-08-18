@@ -63,8 +63,10 @@ class Login {
 		global $Shopp;
 
 		if (isset($_GET['acct']) && $_GET['acct'] == "logout") {
-			// add_action('shopp_logged_out',array(&$this,'redirect'));
-			return do_action('shopp_logout');
+			// Redirect to remove the logout request
+			add_action('shopp_logged_out',array(&$this,'redirect'));
+			// Trigger the logout
+			do_action('shopp_logout');
 		}
 		
 		if ("wordpress" == $this->accounts) {
@@ -252,10 +254,6 @@ class Login {
 		if (isset($_POST['billing'])) 
 			$this->Billing->updates($_POST['billing']);
 		
-		// Special case for updating/tracking billing locale
-		// if (!empty($_POST['billing']['locale'])) 
-		// 	$this->Billing->locale = $_POST['billing']['locale'];
-
 		$this->Shipping = new Shipping();
 		if (isset($_POST['shipping'])) 
 			$this->Shipping->updates($_POST['shipping']);
@@ -293,11 +291,13 @@ class Login {
 	}
 
 	function redirect () {
+		global $Shopp;
 		if (!empty($_POST['redirect'])) {
-			wp_safe_redirect($_POST['redirect']);
+			if ($_POST['redirect'] == "checkout") shopp_redirect(shoppurl(false,'checkout',$Shopp->Gateways->secure));
+			else shopp_safe_redirect($_POST['redirect']);
 			exit();
 		}
-		wp_safe_redirect(shoppurl(false,'account'));
+		shopp_safe_redirect(shoppurl(false,'account',$Shopp->Gateways->secure));
 		exit();
 	}
 	

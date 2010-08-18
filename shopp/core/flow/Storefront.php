@@ -38,6 +38,7 @@ class Storefront extends FlowController {
 	var $referrer = false;
 	var $search = false;		// The search query string
 	var $searching = false;		// Flags if a search request has been made
+	var $checkout = false;		// Flags when the checkout form is being processed
 	var $pages = array();
 	var $browsing = array();
 	var $behaviors = array();	// Runtime JavaScript behaviors
@@ -819,6 +820,7 @@ class Storefront extends FlowController {
 			default:
 				ob_start();
 				if ($Errors->exist(SHOPP_COMM_ERR)) include(SHOPP_TEMPLATES."/errors.php");
+				$this->checkout = true;
 				include(SHOPP_TEMPLATES."/checkout.php");
 				$content = ob_get_contents();
 				ob_end_clean();

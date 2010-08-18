@@ -434,7 +434,9 @@ class Customer extends DatabaseObject {
 		global $Shopp;
 		
 		$Order =& $Shopp->Order;
-		
+		$checkout = false;
+		if (isset($Shopp->Flow->Controller->checkout))
+			$checkout = $Shopp->Flow->Controller->checkout;
 		
 		// Return strings with no options
 		switch ($property) {
@@ -481,16 +483,19 @@ class Customer extends DatabaseObject {
 			case "email-login": 
 			case "loginname-login": 
 			case "account-login": 
+				$id = "account-login".($checkout?"-checkout":'');
 				if (!empty($_POST['account-login']))
 					$options['value'] = $_POST['account-login'];
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-				return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
+				return '<input type="text" name="account-login" id="'.$id.'"'.inputattrs($options).' />';
 				break;
 			case "password-login": 
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
+				$id = "password-login".($checkout?"-checkout":'');
+				
 				if (!empty($_POST['password-login']))
 					$options['value'] = $_POST['password-login']; 
-				return '<input type="password" name="password-login" id="password-login"'.inputattrs($options).' />';
+				return '<input type="password" name="password-login" id="'.$id.'"'.inputattrs($options).' />';
 				break;
 			case "recover-button":
 				if (!isset($options['value'])) $options['value'] = __('Get New Password','Shopp');
@@ -498,15 +503,19 @@ class Customer extends DatabaseObject {
 				break;
 			case "submit-login": // Deprecating
 			case "login-button":
-				$contexts = array('account','checkout');
-				$context = isset($options['context']) && in_array($options['context'],$contexts)?
-					$options['context']:'account';
 				if (!isset($options['value'])) $options['value'] = __('Login','Shopp');
 				$string = "";
-				if ($context == "checkout") 
+				$id = "submit-login";
+				
+				$request = $_GET;
+				if (isset($request['acct']) && $request['acct'] == "logout") unset($request['acct']);
+				
+				if ($checkout) {
+					$id .= "-checkout";
 					$string .= '<input type="hidden" name="process-login" id="process-login" value="false" />';
-				else $string .= '<input type="hidden" name="process-login" value="true" /><input type="hidden" name="redirect" value='.shoppurl($_GET,'account',$Order->security()).' />';
-				$string .= '<input type="submit" name="submit-login" id="submit-'.$context.'-login"'.inputattrs($options).' />';
+					$string .= '<input type="hidden" name="redirect" value="checkout" />';
+				} else $string .= '<input type="hidden" name="process-login" value="true" /><input type="hidden" name="redirect" value='.shoppurl($request,'account',$Order->security()).' />';
+				$string .= '<input type="submit" name="submit-login" id="'.$id.'"'.inputattrs($options).' />';
 				return $string;
 				break;
 			case "errors-exist": return true;
