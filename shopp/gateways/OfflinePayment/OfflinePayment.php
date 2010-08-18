@@ -88,6 +88,11 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		global $Shopp;
 		$module = $method = false;
 		
+		add_filter('shopp_offline_payment_instructions', 'stripslashes');
+		add_filter('shopp_offline_payment_instructions', 'wptexturize');
+		add_filter('shopp_offline_payment_instructions', 'convert_chars');
+		add_filter('shopp_offline_payment_instructions', 'wpautop');
+		
 		if (!empty($Shopp->Order->paymethod)) list($module,$method) = explode(":",$Shopp->Order->paymethod);
 		else $module = $Shopp->Order->processor; // Use the current processor for single payment method
 
@@ -96,7 +101,9 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		if (!$method) $method = current($this->settings['label']); // Only one payment method anyways
 		$index = 0;
 		foreach ($this->settings['label'] as $index => $label) {
-			if ($method == $label) return $this->settings['instructions'][$index];
+			if ($method == $label) 
+				return apply_filters('shopp_offline_payment_instructions',
+									$this->settings['instructions'][$index]);
 		}
 		return false;
 	}
