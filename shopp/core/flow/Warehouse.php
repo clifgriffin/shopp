@@ -738,7 +738,7 @@ class Warehouse extends AdminController {
 		$catalog = DatabaseObject::tablename(Catalog::$table);
 		$category = DatabaseObject::tablename(Category::$table);
 		$products = DatabaseObject::tablename(Product::$table);
-		$results = $db->query("SELECT p.id,p.name FROM $catalog AS catalog LEFT JOIN $category AS cat ON cat.id = catalog.category LEFT JOIN $products AS p ON p.id=catalog.product WHERE cat.id='$id' ORDER BY p.name ASC",AS_ARRAY);
+		$results = $db->query("SELECT p.id,p.name FROM $catalog AS catalog LEFT JOIN $category AS cat ON cat.id = catalog.parent AND catalog.type='category' LEFT JOIN $products AS p ON p.id=catalog.product WHERE cat.id='$id' ORDER BY p.name ASC",AS_ARRAY);
 		$products = array();
 		
 		$products[0] = __("Select a product&hellip;","Shopp");
