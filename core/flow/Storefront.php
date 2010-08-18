@@ -22,12 +22,13 @@
  **/
 class Storefront extends FlowController {
 
-	static $Pages = array(
+	static $_pages = array(
 		'catalog'	=> array('name'=>'shop','title'=>'Shop','shortcode'=>'[catalog]'),
 		'cart'		=> array('name'=>'cart','title'=>'Cart','shortcode'=>'[cart]'),
 		'checkout'	=> array('name'=>'checkout','title'=>'Checkout','shortcode'=>'[checkout]'),
 		'account'	=> array('name'=>'account','title'=>'Your Orders','shortcode'=>'[account]')
 	);
+
 	var $Settings = false;
 	var $Page = false;
 	var $Catalog = false;
@@ -37,6 +38,7 @@ class Storefront extends FlowController {
 	var $referrer = false;
 	var $search = false;		// The search query string
 	var $searching = false;		// Flags if a search request has been made
+	var $pages = array();
 	var $browsing = array();
 	var $behaviors = array();	// Runtime JavaScript behaviors
 	
@@ -49,8 +51,8 @@ class Storefront extends FlowController {
 		$this->Category = &$Shopp->Category;
 		$this->Product = &$Shopp->Product;
 		
-		$Pages = $this->Settings->get('pages');
-		if (!empty($Pages)) $this->Pages = $Pages;
+		$pages = $this->Settings->get('pages');
+		if (!empty($Pages)) $this->pages = $pages;
 
 		ShoppingObject::store('search',$this->search);
 		ShoppingObject::store('browsing',$this->browsing);
@@ -108,9 +110,9 @@ class Storefront extends FlowController {
 		if (empty($wp_query->post)) return false;
 
 		// Identify the current page
-		foreach ($this->Pages as &$Page) {
+		foreach ($this->pages as &$page) {
 			if ($Page['id'] == $wp_query->post->ID) {
-				$this->Page = $Page; break;
+				$this->Page = $page; break;
 			}
 		}
 	}
@@ -125,6 +127,7 @@ class Storefront extends FlowController {
 	 **/
 	function security () {
 		global $Shopp;
+		if (is_shopp_secure()) return;
 		switch ($this->Page['name']) {
 			case "checkout": break;
 			case "account": 
@@ -532,7 +535,7 @@ class Storefront extends FlowController {
 		$this->search = $wp->query_vars['s'];
 		$this->searching = true;
 		unset($wp->query_vars['s']); // Not needed any longer
-		$wp->query_vars['pagename'] = $this->Pages['catalog']['name'];
+		$wp->query_vars['pagename'] = $this->pages['catalog']['name'];
 		add_action('wp_head', array(&$this, 'updatesearch'));
 		
 	}
@@ -812,7 +815,7 @@ class Storefront extends FlowController {
 			case "thanks":
 			case "receipt": 
 				$content = $this->thanks(); 
-				break;//$content = $this->order_receipt(); break;
+				break;
 			default:
 				ob_start();
 				if ($Errors->exist(SHOPP_COMM_ERR)) include(SHOPP_TEMPLATES."/errors.php");

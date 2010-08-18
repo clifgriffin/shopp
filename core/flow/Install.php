@@ -140,7 +140,7 @@ class ShoppInstallation extends FlowController {
 		global $wpdb;
 		
 		// Locate any Shopp pages that already exist
-		$pages_installed = shopp_locate_pages(false);
+		$pages_installed = shopp_locate_pages();
 
 		$parent = 0;
 		foreach (Storefront::$Pages as $key => &$page) {
@@ -183,7 +183,7 @@ class ShoppInstallation extends FlowController {
 		if (!in_array($mode,$status)) return;
 		
 		$_ = array();
-		$pages = shopp_locate_pages(false);
+		$pages = shopp_locate_pages();
 		foreach ($pages as $page) if (!empty($page['id'])) $_[] = $page['id'];
 		if (!empty($_)) $wpdb->query("UPDATE $wpdb->posts SET post_status='$mode' WHERE 0<FIND_IN_SET(ID,'".join(',',$_)."')");
 	}

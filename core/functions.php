@@ -1283,18 +1283,17 @@ function shopp_email ($template,$data=array()) {
  * @param array $pages Currently known page data
  * @return array
  **/
-function shopp_locate_pages ($pages) {
+function shopp_locate_pages () {
 	global $wpdb;
 
 	// No pages provided, use the Storefront definitions
-	if (!is_array($pages)) $pages = Storefront::$Pages;
+	$pages = Storefront::$_pages;
 
 	// Find pages with Shopp-related main shortcodes
-	$codes = array();
 	$search = "";
-	foreach ($pages as $page) $codes[] = $page['shortcode'];
-	foreach ($codes as $code) $search .= ((!empty($search))?" OR ":"")."post_content LIKE '%$code%' AND post_type='page'";
-	$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE $search";
+	foreach ($pages as $page) 
+		$search .= (!empty($search)?" OR ":"")."post_content LIKE '%".$page['shortcode']."%'";
+	$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE ($search) AND post_type='page'";
 	$results = $wpdb->get_results($query);
 	
 	// Match updates from the found results to our pages index
