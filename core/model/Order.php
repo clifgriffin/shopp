@@ -719,7 +719,7 @@ class Order {
 				
 				// Pass any arguments along
 				$args = $_GET;
-				if (isset($args['page_id'])) unset($args['page_id']);
+				unset($args['page_id'],$args['acct']);
 				$link = esc_url(add_query_arg($args,$link));
 				if ($process == "confirm-order") $link = apply_filters('shopp_confirm_url',$link);
 				else $link = apply_filters('shopp_checkout_url',$link);

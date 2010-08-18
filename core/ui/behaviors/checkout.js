@@ -1,7 +1,9 @@
 jQuery(document).ready(function () {
-	var $ = jqnc(),
+	var $ = jqnc(),login=false,
 		sameshipping = $('#same-shipping'),
-		submitLogin = $('#submit-checkout-login'),
+		submitLogin = $('#submit-login-checkout'),
+		accountLogin = $('#account-login-checkout'),
+		passwordLogin = $('#password-login-checkout'),
 		checkoutForm = $('#checkout.shopp'),
 		shippingFields = $('#shipping-address-fields'),	
 		billingFields = $('#billing-address-fields'),
@@ -25,29 +27,27 @@ jQuery(document).ready(function () {
 		sameshipping.click(function () { $(this).change(); }); 
 	}
 	
-	submitLogin.click(function () {
-		checkoutForm.unbind('submit').submit(function () {
-			if ($('#account-login').val() == "") {
-				alert(CHECKOUT_LOGIN_NAME);
-				$('#account-login').focus();
+	submitLogin.click(function () { login=true; });
+	checkoutForm.unbind('submit').submit(function () {
+		if (login) {
+			login=false;
+			if (accountLogin.val() == "") {
+				alert(ShoppSettings.LOGIN_NAME_REQUIRED);
+				accountLogin.focus();
 				return false;
 			}
-			if ($('#password-login').val() == "") {
-				alert(CHECKOUT_LOGIN_PASSWORD);
-				$('#password-login').focus();
+			if (passwordLogin.val() == "") {
+				alert(ShoppSettings.LOGIN_PASSWORD_REQUIRED);
+				passwordLogin.focus();
 				return false;
 			}
 			$('#process-login').val('true');
 			return true;
-		}).submit();
+		}
+
+		if (validate(this)) return true;
+		else return false;
 	});
-	
-	if (!checkoutForm.hasClass('validate')) {
-		checkoutForm.submit(function () {
-			if (validate(this)) return true;
-			else return false;
-		});
-	}
 
 	$('#shipping-country').change(function() {
 		if ($('#shipping-state').attr('type') == "text") return true;
