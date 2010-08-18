@@ -53,6 +53,7 @@ class ImageProcessor {
 
 		// Fill image with matte color
 		if ($fit == "matte") {
+			$rgb = false;
 			if (is_int($fill)) $rgb = $this->hexrgb($fill);
 						
 			// Default to white

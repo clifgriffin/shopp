@@ -39,6 +39,7 @@ class ImageServer extends DatabaseObject {
 	var $scale = 0;
 	var $sharpen = 0;
 	var $quality = 80;
+	var $fill = false;
 	var $valid = false;
 	var $Image = false;
 	
