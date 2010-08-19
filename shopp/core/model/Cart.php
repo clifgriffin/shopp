@@ -1247,7 +1247,8 @@ class CartDiscounts {
 		
 		// Promocode was/is applied
 		if (empty($this->Cart->promocode)) return;
-		if (is_array($this->Cart->promocodes[strtolower($this->Cart->promocode)])) return;
+		if (isset($this->Cart->promocodes[strtolower($this->Cart->promocode)]) 
+			&& is_array($this->Cart->promocodes[strtolower($this->Cart->promocode)])) return;
 
 		$codes_applied = array_change_key_case($this->Cart->promocodes);
 		if (!array_key_exists(strtolower($this->Cart->promocode),$codes_applied)) {
@@ -1371,7 +1372,7 @@ class CartDiscounts {
 	 * @return boolean
 	 **/
 	function _filter_promocode_rule ($rule) {
-		return ($rule['property'] == "Promo code");
+		return (isset($rule['property']) && $rule['property'] == "Promo code");
 	}
 	
 } // END class CartDiscounts

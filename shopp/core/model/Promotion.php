@@ -27,7 +27,9 @@ class Promotion extends DatabaseObject {
 		"Shipping amount" => "price",
 		"Subtotal amount" => "price",
 		"Promo use count" => "text",
-		"Promo code" => "text"
+		"Promo code" => "text",
+		"Ship-to country" => "text",
+		"Customer type" => "text"
 	);
 
 	function Promotion ($id=false) {

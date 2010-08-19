@@ -518,8 +518,20 @@ abstract class DatabaseObject {
 	}
 
 	/**
-	 * Populate the object properties from a set of 
-	 * loaded results  */
+	 * Verify the loaded record actually exists in the database
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean
+	 **/
+	function exists () {
+		$db = &DB::get();
+		$key = $this->_key;
+		$id = $this->{$this->_key};
+		$r = $db->query("SELECT id FROM $this->_table WHERE $key='$id' LIMIT 1");
+		return (!empty($r->id));
+	}
 	
 	/**
 	 * Populates the DatabaseObject properties from a db query result object
@@ -727,6 +739,8 @@ abstract class SessionObject {
 		$db = &DB::get();
 
 		if (is_robot() || empty($this->session)) return true;
+
+		$loaded = false;
 		
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
 		if ($result = $db->query($query)) {

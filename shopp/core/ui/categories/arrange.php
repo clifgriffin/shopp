@@ -66,8 +66,10 @@
 </div>
 
 <script type="text/javascript">
-var loadchildren_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_category_children'); ?>';
-var updates_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_category_order'); ?>';
+var loadchildren_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_category_children'); ?>',
+	updates_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_category_order'); ?>',
+	SAVE_ERROR = "<?php _e('The category order could not be updated because of a communication error with the server.','Shopp'); ?>";
+	LOAD_ERROR = "<?php _e('The child categories could not be loaded because of a communication error with the server.','Shopp'); ?>";
 jQuery(document).ready( function() {
 	pagenow = 'shopp_page_shopp-categories';
 	columns.init(pagenow);
