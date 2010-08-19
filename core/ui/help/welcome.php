@@ -10,7 +10,7 @@
 			<?php printf(__('Click the %sHelp menu%s to access help articles about the screen you are using, directly from the %sofficial documentation%s.','Shopp'),'<strong>','</strong>','<a href="http://docs.shopplugin.net" target="_blank">','</a>'); ?>
 			<ul>
 				<li><?php printf(__('You can also get community help from the community %sSupport Forums%s','Shopp'),'<a href="http://forums.shopplugin.net">','</a>'); ?></li>
-				<li><?php printf(__('Or, get official interactive support from the Shopp %sHelp Desk%s','Shopp'),'<a href="http://help.shopplugin.net/">','</a>'); ?></li>
+				<li><?php printf(__('Or, get official interactive support from the Shopp %sHelp Desk%s','Shopp'),'<a href="http://forums.shopplugin.net/forum/help-desk">','</a>'); ?></li>
 				<li><?php printf(__('For guaranteed fast response from the Shopp Support Team, %spurchase a priority support credit%s.','Shopp'),'<a href="https://shopplugin.net/store/category/priority-support/" target="_blank">','</a>'); ?></li>
 				<li><?php _e('Find qualified Shopp professionals you can hire as consultant contractors for customization work.','Shopp'); ?></li>
 			</ul>
