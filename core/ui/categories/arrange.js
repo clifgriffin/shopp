@@ -72,31 +72,7 @@ jQuery(document).ready( function() {
 
 		/* Add drag-drop behaviors */
 		$this.dragRelatedRows({onDrop:updatePositions});
-		
-		/* Deprecated code for numerically specifying category positions */
-		// $this.find('input[name=position]').change(function () {
-		// 	var $pos = $(this),
-		// 		row = $pos.parent().parent(),
-		// 		slug = row.attr('rel'),
-		// 		classes = row.attr('class').replace(' alternate','').split(' ');
-		// 		top = classes[classes.length-1] == "top"?(classes.pop()):false,
-		// 		siblingsClass = classes[classes.length-1].substr(-6) == '-child'?(classes.pop()):top,
-		// 		ancestry = classes.slice(0,-1),
-		// 		branch = row.add('tr.'+slug, row.parent()),
-		// 		siblings = row.parent().find('tr.'+siblingsClass).not(row);
-		// 
-		// 	siblings.each(function (position,sibling) {
-		// 		var $sibling = $(sibling),
-		// 			siblingpos = $sibling.find('input[name=position]');
-		// 
-		// 		if ($pos.val() < siblingpos.val()) {
-		// 			$sibling.before(branch);
-		// 			return false;
-		// 		} else $sibling.after(branch);
-		// 	});
-		// 	updatePositions(row);
-		// });
-		
+				
 		/* Get the current row properties for the row getting interacted with */
 		function thisRow (e) {
 			if (e.is('tr')) {
@@ -172,7 +148,7 @@ jQuery(document).ready( function() {
 
 				$.ajax({
 					url:loadchildren_url+'&action=shopp_category_children&parent='+id,
-					timeout:500,
+					timeout:5000,
 					dataType:'json',
 					success:function (categories) {
 						cell.removeClass('updating');
@@ -182,6 +158,11 @@ jQuery(document).ready( function() {
 								new Category(this,row);
 							});
 						} else $button.addClass('closed').css('background-position','-180px top');
+					},
+					error:function (request, err) {
+						cell.removeClass('updating');
+						$button.addClass('closed').css('background-position','-180px top');
+						alert(LOAD_ERROR+' ('+err+')');
 					}
 				});
 
@@ -213,12 +194,16 @@ jQuery(document).ready( function() {
 			else updating = parent.find('button.collapsing').parent().addClass('updating');
 			$.ajax({
 				url:updates_url+"&action=shopp_category_order",
-				timeout:3000,
+				timeout:7000,
 				type: "POST",
 				datatype:'text',
 				data:data,
 				success:function () {
 					updating.removeClass('updating');
+				},
+				error:function (request, err) {
+					updating.removeClass('updating');
+					alert(SAVE_ERROR+' ('+err+')');
 				}
 			});
 		}

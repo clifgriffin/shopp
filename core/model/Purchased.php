@@ -20,7 +20,8 @@ class Purchased extends DatabaseObject {
 	
 	function copydata ($Item) {
 		parent::copydata ($Item);
-		$this->optionlabel = $Item->option->label;
+		if (isset($Item->option->label))
+			$this->optionlabel = $Item->option->label;
 	}
 	
 	function keygen() {

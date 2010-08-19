@@ -146,7 +146,8 @@ class Categorize extends AdminController {
 		$defaults = array(
 			'pagenum' => 1,
 			'per_page' => 20,
-			's' => ''
+			's' => '',
+			'a' => ''
 			);
 		$args = array_merge($defaults,$_GET);
 		extract($args,EXTR_SKIP);

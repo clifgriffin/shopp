@@ -134,7 +134,8 @@ class Catalog extends DatabaseObject {
 				$this->categories[$id]->outofstock = $category->outofstock;
 			
 			$this->categories[$id]->_children = false;
-			if ($category->total > 0 && isset($this->categories[$category->parent])) {
+			if (isset($category->total) 
+				&& $category->total > 0 && isset($this->categories[$category->parent])) {
 				$ancestor = $category->parent;
 				
 				// Recursively flag the ancestors as having children

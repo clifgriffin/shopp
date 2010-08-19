@@ -302,6 +302,7 @@ class Customer extends DatabaseObject {
 	}
 	
 	function notification () {
+		global $Shopp;
 		$Settings =& ShoppSettings();
 		// The blogname option is escaped with esc_html on the way into the database in sanitize_option
 		// we want to reverse this for the plain text arena of emails.
@@ -329,7 +330,7 @@ class Customer extends DatabaseObject {
 		$_[] = sprintf(__('E-mail: %s','Shopp'), stripslashes($this->email));
 		$_[] = sprintf(__('Password: %s'), $this->password);
 		$_[] = '';
-		$_[] = shoppurl(false,'account',$Order->security);
+		$_[] = shoppurl(false,'account',$Shopp->Gateways->secure);
 		
 		if (!shopp_email(join("\r\n",$_)))
 			new ShoppError('The customer\'s account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);

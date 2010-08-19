@@ -338,7 +338,8 @@ class Lookup {
 	 **/
 	static function paycard ($card) {
 		$cards = Lookup::paycards();
-		return $cards[strtolower($card)];
+		if (isset($cards[strtolower($card)])) return $cards[strtolower($card)];
+		return false;
 	}
 	
 	/**

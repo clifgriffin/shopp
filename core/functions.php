@@ -1236,7 +1236,7 @@ function shopp_email ($template,$data=array()) {
 		if ( preg_match_all("/\[(.+?)\]/",$line,$labels,PREG_SET_ORDER) ) {
 			while ( list($i,$label) = each($labels) ) {
 				$code = $label[1];
-				if (empty($data)) $string = $_POST[$code];
+				if (empty($data)) $string = (isset($_POST[$code])?$_POST[$code]:'');
 				else $string = apply_filters('shopp_email_data', $data[$code], $code);
 
 				$string = str_replace(array_keys($replacements),array_values($replacements),$string); 

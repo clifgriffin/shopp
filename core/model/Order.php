@@ -49,16 +49,12 @@ class Order {
 	 * @return void
 	 **/
 	function __construct () {
-		global $Shopp;
 		$this->Cart = new Cart();
 		$this->Customer = new Customer();
 		$this->Billing = new Billing();
 		$this->Shipping = new Shipping();
 
 		$this->Shipping->destination();
-		
-		$this->confirm = ($Shopp->Settings->get('order_confirmation') == "always");
-		$this->accounts = $Shopp->Settings->get('account_system');
 		
 		$this->created = mktime();
 		
@@ -86,6 +82,10 @@ class Order {
 	 * @return void
 	 **/
 	function listeners () {
+		$Settings =& ShoppSettings();
+		$this->confirm = ($Settings->get('order_confirmation') == "always");
+		$this->accounts = $Settings->get('account_system');
+		
 		add_action('shopp_process_shipmethod', array(&$this,'shipmethod'));
 		add_action('shopp_process_checkout', array(&$this,'checkout'));
 		add_action('shopp_confirm_order', array(&$this,'confirmed'));
@@ -97,6 +97,7 @@ class Order {
 		
 		add_action('shopp_reset_session',array(&$this->Cart,'clear'));
 		add_action('shopp_init',array(&$this,'processor'));
+
 
 		// Set locking timeout for concurrency operation protection
 		if (!defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
@@ -249,12 +250,13 @@ class Order {
 		}
 		
 		$Gateway = $this->processor();
+		$label = is_array($Gateway->settings['label'])?$Gateway->settings['label'][0]:$Gateway->settings['label'];	
 
 		if (empty($this->paymethod)) {
 			$module = $Gateway->module;
-			$label = is_array($Gateway->settings['label'])?$Gateway->settings['label'][0]:$Gateway->settings['label'];	
 			$this->paymethod = $module.':'.$label;
-		} 
+		}
+
 		if (!$cc) $this->Billing->cardtype = $label;
 
 		$estimated = $this->Cart->Totals->total;
@@ -343,13 +345,14 @@ class Order {
 		// WordPress account integration used, customer has no wp user
 		if ("wordpress" == $this->accounts && empty($this->Customer->wpuser))
 			$this->Customer->create_wpuser();
-		 
+
 		// New customer, save hashed password
-		if (empty($this->Customer->id) && !empty($this->Customer->password)) {
+		if (!$this->Customer->exists() && !empty($this->Customer->password)) {
+			$this->Customer->id = false;
+			if (SHOPP_DEBUG) new ShoppError('Creating new Shopp customer record','new_customer',SHOPP_DEBUG_ERR);
 			if ("shopp" == $this->accounts) $this->Customer->notification();
 			$this->Customer->password = wp_hash_password($this->Customer->password);
-		}
-		else unset($this->Customer->password); // Existing customer, do not overwrite password field!
+		} else unset($this->Customer->password); // Existing customer, do not overwrite password field!
 		
 		$this->Customer->save();
 
@@ -548,7 +551,7 @@ class Order {
 						'|\\x5c[\\x00-\\x7f])*\\x5d))*';
 		if(apply_filters('shopp_email_valid',!preg_match("!^$rfc822email$!", $_POST['email'])))
 			return new ShoppError(__('You must provide a valid e-mail address.','Shopp'),'cart_validation');
-			
+						
 		if ($this->accounts == "wordpress" && !$this->Customer->login) {
 			require_once(ABSPATH."/wp-includes/registration.php");
 			
@@ -1156,7 +1159,7 @@ class Order {
 			case "billing-xco": return; break; // DEPRECATED
 			case "billing-localities": 
 				$rates = $Shopp->Settings->get("taxrates");
-				foreach ($rates as $rate) if (is_array($rate['locals'])) return true;
+				foreach ($rates as $rate) if (isset($rate['locals']) && is_array($rate['locals'])) return true;
 				return false;
 				break;
 			case "billing-locale":
