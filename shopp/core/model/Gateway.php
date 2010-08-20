@@ -60,6 +60,7 @@ abstract class GatewayFramework {
 	var $session = false;		// The current shopping session ID
 	var $Order = false;			// The current customer's Order
 	var $name = false;			// The proper name of the gateway
+	var $module = false;		// The module class name of the gateway
 	var $cards = false;			// A list of supported payment cards
 	var $secure = true;			// Flag for requiring encrypted checkout process
 	var $multi = false;			// Flag to enable a multi-instance gateway

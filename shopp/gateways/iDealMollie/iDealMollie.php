@@ -24,6 +24,10 @@ class iDealMollie extends GatewayFramework implements GatewayModule {
 		parent::__construct();
 		$this->setup('account','testmode');
 		$this->buttonurl = SHOPP_PLUGINURI.$this->buttonurl;
+		
+		// Setup extra checkout inputs here so they are available
+		// any time the gateway is active
+		add_filter('shopp_checkout_gateway_inputs',array(&$this,'inputs'));
 	}
 	
 	function actions () { 
@@ -35,7 +39,6 @@ class iDealMollie extends GatewayFramework implements GatewayModule {
 	}
 	
 	function init () {
-		add_filter('shopp_checkout_gateway_inputs',array(&$this,'inputs'),10);
 		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 	}
 	
@@ -158,6 +161,7 @@ class iDealMollie extends GatewayFramework implements GatewayModule {
 
 		$result = '';
 		if ($banks = $Response->tag('bank')) {
+			$result .= '<div id="idealmollie-fields">';
 			$result .= '<h3 class="mast" for="idealmollie-bank">'.__('iDeal Payment','Shopp').'</h3>';
 			$result .= '<span><select name="idealmollie-bank" id="idealmollie-bank">';
 			while($bank = $banks->each()) {
@@ -167,8 +171,18 @@ class iDealMollie extends GatewayFramework implements GatewayModule {
 			}
 			$result .= '</select>';
 			$result .= '<label for="idealmollie-bank">'.__('iDeal Bank','Shopp').'</label></span>';
+			$result .= '</div>';
 		}
-				
+		
+		$script = array();
+		$script[] = "$(document).bind('shopp_paymethod',function (o,pm) {";
+		$script[] = "	var f = $('#idealmollie-fields');";
+		$script[] = "	if (pm.indexOf('$this->module') !== -1) f.show();";
+		$script[] = "	else f.hide();";
+		$script[] =  "});";
+
+		add_storefrontjs(join("\n",$script));
+		
 		return $result;
 	}
 	
