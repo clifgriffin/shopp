@@ -21,7 +21,7 @@
 
 <?php return true; endif; ?>
 
-<form action="<?php shopp('customer','action'); ?>" method="post" class="shopp" autocomplete="off">
+<form action="<?php shopp('customer','action'); ?>" method="post" class="shopp validate" autocomplete="off">
 
 <?php if ("account" == shopp('customer','process','return=true')): ?>
 	<?php if(shopp('customer','errors-exist')) shopp('customer','errors'); ?>
@@ -54,8 +54,8 @@
 		<?php endwhile; ?>
 		<li>
 			<label for="password"><?php _e('Change Your Password','Shopp'); ?></label>
-			<span><?php shopp('customer','password','required=true&minlength=3&size=14&title='.__('New Password','Shopp')); ?><label for="password"><?php _e('New Password','Shopp'); ?></label></span>
-			<span><?php shopp('customer','confirm-password','required=true&minlength=3&size=14&title='.__('Confirm Password','Shopp')); ?><label for="confirm-password"><?php _e('Confirm Password','Shopp'); ?></label></span>
+			<span><?php shopp('customer','password','size=14&title='.__('New Password','Shopp')); ?><label for="password"><?php _e('New Password','Shopp'); ?></label></span>
+			<span><?php shopp('customer','confirm-password','&size=14&title='.__('Confirm Password','Shopp')); ?><label for="confirm-password"><?php _e('Confirm Password','Shopp'); ?></label></span>
 		</li>
 	</ul>	
 	<p><?php shopp('customer','save-button','label='.__('Save','Shopp')); ?></p>
