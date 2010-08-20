@@ -104,6 +104,7 @@ jQuery(document).ready(function () {
 	
 	$('#checkout.shopp [name=paymethod]').change(function () {
 		var paymethod = $(this).val();
+		$(document).trigger('shopp_paymethod',[paymethod]);
 		if (ccpayments[paymethod] != false && ccpayments[paymethod].length > 0) {
 			$('#checkout.shopp .payment').show();
 			$('#checkout.shopp .creditcard').show();

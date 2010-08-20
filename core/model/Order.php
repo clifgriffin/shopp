@@ -133,9 +133,16 @@ class Order {
 			if ($this->processor != $processor && in_array($processor,$Shopp->Gateways->activated)) 
 				$this->processor = $processor; 
 		}
+		
 
 		if (isset($Shopp->Gateways->active[$this->processor])) {
-			$this->gateway = $Shopp->Gateways->active[$this->processor]->name;
+			$Gateway = $Shopp->Gateways->active[$this->processor];
+			$this->gateway = $Gateway->name;
+			
+			$label = is_array($Gateway->settings['label'])?
+				$Gateway->settings['label'][0]:$Gateway->settings['label'];	
+			$this->paymethod = $this->processor.':'.$label;
+			
 			return $Shopp->Gateways->active[$this->processor];
 		}
 			
