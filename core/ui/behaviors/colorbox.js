@@ -662,7 +662,7 @@
 
 	// Added by Jonathan Davis, Ingenesis Limited
 	publicMethod.hide = function () {
-		open = FALSE;
+		open = false;
 		$(document).unbind("keydown.cbox_close keydown.cbox_arrows");
 		$window.unbind(cbox_resize+' resize.cboxie6 scroll.cboxie6');
 		$overlay.css({cursor: 'auto'}).fadeOut('fast');
