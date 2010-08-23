@@ -1229,6 +1229,8 @@ function shopp_email ($template,$data=array()) {
 	$in_body = false;
 	$headers = "";
 	$message = "";
+	$to = "";
+	$subject = "";
 	$protected = array("from","to","subject","cc","bcc");
 	while ( list($linenum,$line) = each($f) ) {
 		$line = rtrim($line);
@@ -1259,6 +1261,12 @@ function shopp_email ($template,$data=array()) {
 		// Catches the first blank line to begin capturing message body
 		if ( empty($line) ) $in_body = true;
 		if ( $in_body ) $message .= $line."\n";
+	}
+
+	// Use only the email address, discard everything else
+	if (strpos($to,'<') !== false) {
+		list($name, $email) = split('<',$to);
+		$to = trim(rtrim($email,'>'));
 	}
 
 	if (!$debug) return wp_mail($to,$subject,$message,$headers);

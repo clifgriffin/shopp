@@ -62,11 +62,11 @@ class Purchase extends DatabaseObject {
 		$email = apply_filters('shopp_email_receipt_data',$email);
 		
 		if (shopp_email($template,$email)) {
-			if (SHOPP_DEBUG) new ShoppError('A purchase notification was sent to "'.$addressee.'" &lt;'.$address.'&gt;',false,SHOPP_DEBUG_ERR);
+			if (SHOPP_DEBUG) new ShoppError('A purchase notification was sent to: '.$email['to'],false,SHOPP_DEBUG_ERR);
 			return true;
 		}
 		
-		if (SHOPP_DEBUG) new ShoppError('A purchase notification FAILED to be sent to "'.$addressee.'" &lt;'.$address.'&gt;',false,SHOPP_DEBUG_ERR);
+		if (SHOPP_DEBUG) new ShoppError('A purchase notification FAILED to be sent to: '.$email['to'],false,SHOPP_DEBUG_ERR);
 		return false;
 	}
 	
