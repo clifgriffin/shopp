@@ -82,7 +82,7 @@ var FlatRates = function (methodid,table,rates) {
 		else value = 0;
 		$('<input type="text" name="settings[shipping_rates]['+methodid+']['+key+'][]" id="'+area+'['+methodid+']" class="selectall right" size="7" tabindex="'+(methodid+1)+'04" />').change(function() {
 			this.value = asMoney(this.value);
-		}).val(value).appendTo(inputCell).change();
+		}).val(asMoney(new Number(value))).appendTo(inputCell);
 	});
 	
 	var inputCell = $('<td/>').appendTo(row);
@@ -90,14 +90,14 @@ var FlatRates = function (methodid,table,rates) {
 	else value = 0;
 	$('<input type="text" name="settings[shipping_rates]['+methodid+']['+region+'][]"  id="'+region+'['+methodid+']" class="selectall right" size="7" tabindex="'+(methodid+1)+'05" />').change(function() {
 		this.value = asMoney(this.value);
-	}).val(value).appendTo(inputCell).change();
+	}).val(asMoney(new Number(value))).appendTo(inputCell);
 	
 	var inputCell = $('<td/>').appendTo(row);
 	if (rates && rates['Worldwide'] && rates['Worldwide'][0]) value = rates['Worldwide'][0];
 	else value = 0;
 	intlInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][Worldwide][]" id="worldwide['+methodid+']" class="selectall right" size="7" tabindex="'+(methodid+1)+'06" />').change(function() {
 		this.value = asMoney(this.value);
-	}).val(value).appendTo(inputCell).change();	
+	}).val(asMoney(new Number(value))).appendTo(inputCell);	
 	
 	$('<td/>').appendTo(row);
 	

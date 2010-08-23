@@ -85,8 +85,8 @@ function AddOrderWeightRange (methodid,table,rates) {
 	else if (id > 1) value = "+";
 	else value = 1;
 	var maxInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][max][]" class="selectall right" size="7" id="max-'+methodid+'-'+id+'" tabindex="'+(methodid+1)+'02" />').change(function() {
-		if (!(this.value == "+" || this.value == ">")) this.value = asNumber(this.value);
-	}).val(value).appendTo(unitCell).change();
+		this.value = (this.value == "+" || this.value == ">")?this.value:formatNumber(this.value);
+	}).val(formatNumber(new Number(value))).appendTo(unitCell);
 	
 	$('<span class="weightunit"></span>').html(weight_units+' = ').appendTo(unitCell);
 	
@@ -97,7 +97,7 @@ function AddOrderWeightRange (methodid,table,rates) {
 		else value = 0;
 		$('<input type="text" name="settings[shipping_rates]['+methodid+']['+key+'][]" id="'+area+'-'+methodid+'-'+id+'" class="selectall right" size="7" tabindex="'+(methodid+1)+'04" />').change(function() {
 			this.value = asMoney(this.value);
-		}).val(value).appendTo(inputCell).change();
+		}).val(asMoney(new Number(value))).appendTo(inputCell);
 	});
 	
 	var inputCell = $('<td/>').appendTo(row);
@@ -105,14 +105,14 @@ function AddOrderWeightRange (methodid,table,rates) {
 	else value = 0;
 	$('<input type="text" name="settings[shipping_rates]['+methodid+']['+region+'][]"  id="'+region+'-'+methodid+'-'+id+'" class="selectall right" size="7" tabindex="'+(methodid+1)+'05" />').change(function() {
 		this.value = asMoney(this.value);
-	}).val(value).appendTo(inputCell).change();
+	}).val(asMoney(new Number(value))).appendTo(inputCell);
 	
 	var inputCell = $('<td/>').appendTo(row);
 	if (rates && rates['Worldwide'] && rates['Worldwide'][id]) value = rates['Worldwide'][id];
 	else value = 0;
 	worldwideInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][Worldwide][]" id="worldwide-'+methodid+'-'+id+'"  class="selectall right" size="7" tabindex="'+(methodid+1)+'06" />').change(function() {
 		this.value = asMoney(this.value);
-	}).val(value).appendTo(inputCell).change();
+	}).val(asMoney(new Number(value))).appendTo(inputCell);
 	
 	var rowCtrlCell = $('<td class="rowctrl" />').appendTo(row);
 	var deleteButton = $('<button type="button" name="delete"></button>').appendTo(rowCtrlCell);

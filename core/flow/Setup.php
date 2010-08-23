@@ -267,7 +267,7 @@ class Setup extends FlowController {
 					if (!is_array($mr)) continue;
 					foreach ($mr as $id => &$v) {
 						if ($v == ">" || $v == "+" || $key == "services") continue;
-						$v = floatvalue($v);								
+						$v = floatvalue($v);
 					}
 				}
 			}
