@@ -127,9 +127,9 @@ function asNumber (n,f) {
 	if (!f || !f.currency) f = defaultCurrencyFormat();
 	
 	if (n instanceof Number) return new Number(n.toFixed(f.precision));
-
-	n = n.toString().replace(new RegExp(/[^\d\.\,]/g),''); // Remove any non-numeric string data
-	n = n.toString().replace(new RegExp(/^\./),'');	// Remove decimals at the beginning (leftover from currency symbol stripping)
+	
+	n = n.toString().replace(f.currency,''); // Remove the currency symbol
+	n = n.toString().replace(new RegExp(/(\D\.|[^\d\,\.])/g),''); // Remove non-digits followed by periods and any other non-numeric string data
 	n = n.toString().replace(new RegExp('\\'+f.thousands,'g'),''); // Remove thousands
 
 	if (f.precision > 0)
