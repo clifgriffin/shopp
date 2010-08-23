@@ -394,7 +394,7 @@ class Item {
 	 **/
 	function getstock () {
 		$db = DB::get();
-		$stock = apply_filters('shopp_cartitem_stock',false,&$this);
+		$stock = apply_filters('shopp_cartitem_stock',false,$this);
 		if ($stock !== false) return $stock;
 
 		$table = DatabaseObject::tablename(Price::$table);
