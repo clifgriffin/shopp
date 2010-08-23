@@ -151,7 +151,6 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 			$(settings).appendTo(table);
 			
 			$('#upsrates_nrates').change(function () {
-				console.log($(this).attr('checked'));
 				if ($(this).attr('checked')) $('#upsrates_nrates_fields').slideDown();
 				else $('#upsrates_nrates_fields').slideUp();
 			}).change();
