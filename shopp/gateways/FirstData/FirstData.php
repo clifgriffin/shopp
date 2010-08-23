@@ -75,7 +75,7 @@ class FirstData extends GatewayFramework implements GatewayModule {
 			$_[] = '</orderoptions>';
 			$_[] = '<payment>';
 				$_[] = '<chargetotal>'.number_format($Order->Cart->Totals->total,$this->precision,'.','').'</chargetotal>';
-				$_[] = '<subtotal>'.number_format($Order->Cart->Totals->subtotal,$this->precision,'.','').'</subtotal>';
+				$_[] = '<subtotal>'.number_format($Order->Cart->Totals->subtotal - $Order->Cart->Totals->discount,$this->precision,'.','').'</subtotal>';
 				$_[] = '<tax>'.number_format($Order->Cart->Totals->tax,$this->precision,'.','').'</tax>';
 				$_[] = '<shipping>'.number_format($Order->Cart->Totals->shipping,$this->precision,'.','').'</shipping>';
 			$_[] = '</payment>';
