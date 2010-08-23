@@ -764,7 +764,7 @@ function shopp () {
 	}
 
 	// Provide a filter hook for every template tag, includes passed options and the relevant Object as parameters
-	$result = apply_filters('shopp_tag_'.strtolower($object).'_'.strtolower($property),$result,$options,&$Object);
+	$result = apply_filters('shopp_tag_'.strtolower($object).'_'.strtolower($property),$result,$options,$Object);
 
 	// Force boolean result
 	if (isset($options['is'])) {
