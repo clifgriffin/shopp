@@ -584,7 +584,7 @@ class Catalog extends DatabaseObject {
 					'type' => 'hidden',
 					'option' => 'shopp',
 					'blog_option' => __('Search the blog','Shopp'),
-					'shop_option' => __('Search the Shop','Shopp'),
+					'shop_option' => __('Search the shop','Shopp'),
 					'label_before' => '',
 					'label_after' => ''
 				);

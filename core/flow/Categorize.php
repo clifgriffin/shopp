@@ -348,7 +348,8 @@ class Categorize extends AdminController {
 			$parentkey = $Shopp->Catalog->categories['_'.$_POST['parent']]->parent;
 		}
 
-		while ($category_tree = $Shopp->Catalog->categories['_'.$parentkey]) {
+		while (isset($Shopp->Catalog->categories['_'.$parentkey]) 
+				&& $category_tree = $Shopp->Catalog->categories['_'.$parentkey]) {
 			array_unshift($paths,$category_tree->slug);
 			$parentkey = '_'.$category_tree->parent;
 		}
@@ -361,19 +362,6 @@ class Categorize extends AdminController {
 			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
 			else $deletes = array($_POST['deleteImages']);
 			$Category->delete_images($deletes);
-		}
-
-		if (!empty($_POST['images']) && is_array($_POST['images'])) {
-			$Category->link_images($_POST['images']);
-			$Category->save_imageorder($_POST['images']);
-			if (!empty($_POST['imagedetails']) && is_array($_POST['imagedetails'])) {
-				foreach($_POST['imagedetails'] as $i => $data) {
-					$Image = new CategoryImage($data['id']);
-					$Image->title = $data['title'];
-					$Image->alt = $data['alt'];
-					$Image->save();
-				}
-			}
 		}
 
 		// Variation price templates
@@ -398,6 +386,19 @@ class Categorize extends AdminController {
 
 		$Category->updates($_POST);
 		$Category->save();
+		
+		if (!empty($_POST['images']) && is_array($_POST['images'])) {
+			$Category->link_images($_POST['images']);
+			$Category->save_imageorder($_POST['images']);
+			if (!empty($_POST['imagedetails']) && is_array($_POST['imagedetails'])) {
+				foreach($_POST['imagedetails'] as $i => $data) {
+					$Image = new CategoryImage($data['id']);
+					$Image->title = $data['title'];
+					$Image->alt = $data['alt'];
+					$Image->save();
+				}
+			}
+		}
 
 		do_action_ref_array('shopp_category_saved',array(&$Category));
 		

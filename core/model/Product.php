@@ -737,14 +737,27 @@ class Product extends DatabaseObject {
 				break;
 			case "weight":
 				if(empty($this->prices)) $this->load_data(array('prices'));
-				$unit = (isset($options['units']) && !value_is_true($options['units'])? 
-					false : $Shopp->Settings->get('weight_unit'));
-				if(!isset($this->min['weight'])) return false;
+				$defaults = array(
+					'unit' => $Shopp->Settings->get('weight_unit'),
+					'min' => $this->min['weight'],
+					'max' => $this->max['weight'],
+					'units' => null,
+					'convert' => false
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
 				
-				$string = ($this->min['weight'] == $this->max['weight']) ? 
-					round($this->min['weight'],3) :  
-					round($this->min['weight'],3) . " - " . round($this->max['weight'],3);
-				$string .= ($unit) ? " $unit" : "";
+				if(!isset($this->min['weight'])) return false;
+
+				if ($convert !== false) {
+					$min = convert_unit($min,$convert);
+					$max = convert_unit($max,$convert);
+					if (is_null($units)) $units = true;
+					$unit = $convert;
+				}
+				
+				$string = ($min == $min)?round($min,3):round($min,3)." - ".round($max,3);
+				$string .= value_is_true($units) ? " $unit" : "";
 				return $string;
 				break;
 			case "onsale":
@@ -805,7 +818,7 @@ class Product extends DatabaseObject {
 				if (empty($this->prices)) $this->load_data(array('prices'));
 				return $this->freeshipping;
 			case "coverimage":
-			case "thumbnail":
+			case "thumbnail": // deprecated
 				if (empty($this->images)) $this->load_data(array('images'));
 				if (empty($options['class'])) $options['class'] = '';
 				else $options['class'] = ' class="'.$options['class'].'"';

@@ -1197,7 +1197,8 @@ class Category extends DatabaseObject {
 				return $output;
 				break;
 
-			case "thumbnail":
+			case "coverimage":
+			case "thumbnail": // deprecated
 				if (empty($this->images)) $this->load_images();
 				if (empty($this->images)) return false;
 
@@ -1206,6 +1207,7 @@ class Category extends DatabaseObject {
 				
 				$defaults = array(
 					'class' => '',
+					'size' => false,
 					'width' => 96,
 					'height' => 96,
 					'fit' => false,
@@ -1218,6 +1220,8 @@ class Category extends DatabaseObject {
 				
 				$options = array_merge($defaults,$options);
 				extract($options);
+				
+				if ($size !== false) $width = $height = $size;
 				
 				$scale = (!$fit)?false:esc_attr($fit);
 				$sharpen = (!$sharpen)?false:esc_attr(min($sharpen,$img->_sharpen));
