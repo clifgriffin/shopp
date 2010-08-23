@@ -1566,13 +1566,12 @@ class CartTax {
 					}
 			} elseif (isset($setting['zone'])) {
 				if ($country == $setting['country'] && $zone == $setting['zone'])
-					$rate = $setting['rate'];
+					$rate = floatvalue($setting['rate']);
 			} elseif ($country == $setting['country']) {
-				$rate = $setting['rate'];
+				$rate = floatvalue($setting['rate']);
 			}
-			
-			// Match tax rules
 
+			// Match tax rules
 			if (isset($setting['rules']) && is_array($setting['rules'])) {
 				$applies = false;
 				$matches = 0;
@@ -1595,8 +1594,8 @@ class CartTax {
 			
 			// Grab the global setting if found
 			if ($setting['country'] == "*") $global = $setting;
-			
-			if ($rate !== false) {
+
+			if ($rate !== false) { // The first rate to fully apply wins
 				if ($settings) return apply_filters('shopp_cart_taxrate_settings',$setting);
 				return apply_filters('shopp_cart_taxrate',$rate/100);
 			}

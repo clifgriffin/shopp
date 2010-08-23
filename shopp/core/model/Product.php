@@ -685,8 +685,13 @@ class Product extends DatabaseObject {
 	function taxrule ($rule) {
 		switch ($rule['p']) {
 			case "product-name": return ($rule['v'] == $this->name); break;
-			case "product-tags": return (in_array($rule['v'],array_keys($this->tagskey))); break;
-			case "product-category": return (in_array($rule['v'],array_keys($this->categorieskey))); break;
+			case "product-tags": 
+				if (!isset($this->tagskey)) return false;
+				else return (in_array($rule['v'],array_keys($this->tagskey))); 
+				break;
+			case "product-category": 
+				if (!isset($this->categorieskey)) return false;
+				else return (in_array($rule['v'],array_keys($this->categorieskey))); break;
 		}
 		return false;
 	}
@@ -701,7 +706,7 @@ class Product extends DatabaseObject {
 				break;
 			case "found": 
 				if (empty($this->id)) return false;
-				$load = array('prices','images','specs');
+				$load = array('prices','images','specs','tags','categories');
 				if (isset($options['load'])) $load = explode(",",$options['load']);
 				$this->load_data($load);
 				return true;
@@ -720,10 +725,10 @@ class Product extends DatabaseObject {
 				if (empty($this->prices)) $this->load_data(array('prices'));
 
 				if (!isset($options['taxes'])) $options['taxes'] = null;
-				else $options['taxes'] = value_is_true($options['taxes']);
-			
+				else $options['taxes'] = value_is_true($options['taxes']);	
+
 				if (count($this->options) > 0) {
-					$taxrate = shopp_taxrate($options['taxes']);
+					$taxrate = shopp_taxrate($options['taxes'],true,$this);
 					if ($this->min['price'] == $this->max['price'])
 						return money($this->min['price'] + ($this->min['price']*$taxrate));
 					else {
@@ -731,9 +736,12 @@ class Product extends DatabaseObject {
 						return money($this->min['price']+($this->min['price']*$taxrate))." &mdash; ".money($this->max['price'] + ($this->max['price']*$taxrate));
 					}
 				} else {
-					$taxrate = shopp_taxrate($options['taxes'],$this->prices[0]->tax);
+					$taxrate = shopp_taxrate($options['taxes'],$this->prices[0]->tax,$this);
 					return money($this->prices[0]->price + ($this->prices[0]->price*$taxrate));
 				}
+				break;
+			case "taxrate":
+				return shopp_taxrate(null,true,$this);
 				break;
 			case "weight":
 				if(empty($this->prices)) $this->load_data(array('prices'));
@@ -780,7 +788,7 @@ class Product extends DatabaseObject {
 
 				if ($this->onsale) $pricetag = 'saleprice';
 				if (count($this->options) > 0) {
-					$taxrate = shopp_taxrate($options['taxes']);
+					$taxrate = shopp_taxrate($options['taxes'],true,$this);
 					if ($this->min[$pricetag] == $this->max[$pricetag])
 						return money($this->min[$pricetag]+($this->min[$pricetag]*$taxrate)); // No price range
 					else {
@@ -788,7 +796,7 @@ class Product extends DatabaseObject {
 						return money($this->min[$pricetag]+($this->min[$pricetag]*$taxrate))." &mdash; ".money($this->max[$pricetag]+($this->max[$pricetag]*$taxrate));
 					}
 				} else {
-					$taxrate = shopp_taxrate($options['taxes'],$this->prices[0]->tax);
+					$taxrate = shopp_taxrate($options['taxes'],$this->prices[0]->tax,$this);
 					return money($this->prices[0]->promoprice+($this->prices[0]->promoprice*$taxrate));
 				}
 				break;
@@ -1199,7 +1207,7 @@ class Product extends DatabaseObject {
 					$baseop = $Shopp->Settings->get('base_operations');
 					$precision = $baseop['currency']['format']['precision'];
 
-					$taxrate = shopp_taxrate($options['taxes'],true);
+					$taxrate = shopp_taxrate($options['taxes'],true,$this);
 					$pricekeys = array();
 					foreach ($this->pricekey as $key => $pricing) {
 						$filter = array('');
@@ -1246,9 +1254,10 @@ class Product extends DatabaseObject {
 				break;
 			case "variation":
 				$variation = current($this->prices);
+				
 				if (!isset($options['taxes'])) $options['taxes'] = null;
 				else $options['taxes'] = value_is_true($options['taxes']);
-				$taxrate = shopp_taxrate($options['taxes'],$variation->tax);
+				$taxrate = shopp_taxrate($options['taxes'],$variation->tax,$this);
 				
 				$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : $Shopp->Settings->get('weight_unit');
 				
@@ -1320,7 +1329,7 @@ class Product extends DatabaseObject {
 					foreach ($this->prices as $pricetag) {
 						if ($pricetag->context != "addon") continue;
 
-						$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax);
+						$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax,$this);
 						$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
 						$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
 
@@ -1335,8 +1344,7 @@ class Product extends DatabaseObject {
 				} else {
 					if (!isset($this->options['a'])) return;
 
-					$taxrate = shopp_taxrate($options['taxes'],true);
-					$options['after_menu'] = $script.$options['after_menu'];
+					$taxrate = shopp_taxrate($options['taxes'],true,$this);
 
 					// Index addon prices by option
 					$pricing = array();
@@ -1354,7 +1362,7 @@ class Product extends DatabaseObject {
 						foreach ($menu['options'] as $key => $option) {
 							
 							$pricetag = $pricing[$option['id']];
-							$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax);
+							$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax,$this);
 							$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
 							$string .= '<option value="'.$option['id'].'">'.$option['name'].' (+'.money($currently).')</option>'."\n";
 						}

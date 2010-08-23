@@ -206,7 +206,7 @@ function images_meta_box ($Product) {
 				<input type="hidden" name="imagedetails[<?php echo $i; ?>][title]" value="<?php echo $Image->title; ?>" class="imagetitle" />
 				<input type="hidden" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $Image->alt; ?>"  class="imagealt" />
 				<?php 
-					if (count($Image->cropped) > 0): 
+					if (isset($Image->cropped) && count($Image->cropped) > 0): 
 						foreach ($Image->cropped as $cache): 
 							$cropping = join(',',array($cache->settings['dx'],$cache->settings['dy'],$cache->settings['cropscale'])); 
 							$c = "$cache->width:$cache->height"; ?>
