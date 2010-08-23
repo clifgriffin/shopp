@@ -885,7 +885,7 @@ function ImageUploads (id,type) {
 	}
 
 	function imageUploadProgress (file, loaded, total) {
-		this.progressBar.animate({'width':Math.ceil((loaded/total)*200)+'px'},100);
+		this.progressBar.animate({'width':Math.ceil((loaded/total)*76)+'px'},100);
 	}
 
 	function imageUploadError (file, error, message) {
