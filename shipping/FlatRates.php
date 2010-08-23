@@ -33,7 +33,7 @@ class FlatRates extends ShippingFramework implements ShippingModule {
 			if ($method == 'item')
 				$rate['amount'] = array_sum($rate['items']);
 			
-			if ($method == 'order') {
+			if ($method == 'order' && isset($rate[$column][0])) {
 				$rate['amount'] = $rate[$column][0];
 			}
 			

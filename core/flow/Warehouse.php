@@ -162,7 +162,8 @@ class Warehouse extends AdminController {
 			'per_page' => 20,
 			's' => '',
 			'sl' => '',
-			'matchcol' => ''
+			'matchcol' => '',
+			'f' => ''
 			);
 		
 		$args = array_merge($defaults,$_GET);
@@ -196,7 +197,7 @@ class Warehouse extends AdminController {
 		
 		$subfilters = array('f' => 'featured','p' => 'published','s' => 'onsale','i' => 'inventory');
 		$subs = array(
-			'all' => array('label' => __('All','Shopp'),'columns' => "count(distinct pd.id) AS total",'where'=>'true','total' => $productcount->total),
+			'all' => array('label' => __('All','Shopp'),'columns' => "count(distinct pd.id) AS total",'where'=>'true'),
 			'published' => array('label' => __('Published','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.status='publish'",'request' => 'p'),
 			'onsale' => array('label' => __('On Sale','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pt.sale='on'",'request' => 's'),
 			'featured' => array('label' => __('Featured','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.featured='on'",'request' => 'f'),
@@ -262,7 +263,7 @@ class Warehouse extends AdminController {
 		if (!empty($f))	$where .= " AND ".$subs[$subfilters[$f]]['where'];
 
 		$base = $Settings->get('base_operations');
-		if ($base['vat']) $taxrate = shopp_taxrate(null,false,$Product);
+		if ($base['vat']) $taxrate = shopp_taxrate(null,false);
 		if (empty($taxrate)) $taxrate = 0;
 		
 		if ('i' == $f) {
@@ -278,7 +279,7 @@ class Warehouse extends AdminController {
 			if ($workflow) $columns = "pd.id";
 
 			// Load the products
-			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
+			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' AND pt.context != 'addon' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
 			$Products = $db->query($query,AS_ARRAY);
 			$productcount = $db->query("SELECT FOUND_ROWS() as total");
 			
@@ -290,7 +291,9 @@ class Warehouse extends AdminController {
 			$w = ($where == "true")?$subquery['where']:"$where AND ({$subquery['where']})";
 			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $w $having";
 			$result = $db->query($query);
-			$subquery['total'] = number_format((int)$result->total);
+			if (isset($result->total)) $subquery['total'] = number_format((int)$result->total);
+			else $subquery['total'] = number_format((int)$productcount->total);
+			
 		}
 
 		$num_pages = ceil($productcount->total / $per_page);
@@ -481,7 +484,7 @@ class Warehouse extends AdminController {
 		}
 		
 		if ($_POST['status'] == "publish") {
-			$datefields = join('',array($_POST['publish']['month'],$_POST['publish']['date'],$_POST['publish']['year']));
+			$publishdate = join('',array_merge(array('month' => '','date' => '','year' => ''),$_POST['publish']));
 			if (!empty($datefields)) {
 				if ($_POST['publish']['meridiem'] == "PM" && $_POST['publish']['hour'] < 12) 
 					$_POST['publish']['hour'] += 12;
@@ -529,7 +532,7 @@ class Warehouse extends AdminController {
 				$option['sortorder'] = array_search($i,$_POST['sortorder'])+1;
 
 				// Remove VAT amount to save in DB
-				if ($base['vat'] && $option['tax'] == "on") {
+				if ($base['vat'] && isset($option['tax']) && $option['tax'] == "on") {
 					$option['price'] = (floatvalue($option['price'])/(1+$taxrate));
 					$option['saleprice'] = (floatvalue($option['saleprice'])/(1+$taxrate));
 				}
