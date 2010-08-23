@@ -78,7 +78,7 @@ function AddOrderAmountRangeRow(methodid,table,rates) {
 	else value = 1;
 	var maxInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][max][]" class="selectall right" size="7" id="max-'+methodid+'-'+id+'" tabindex="'+(id+1)+'02" />').change(function() {
 		if (!(this.value == "+" || this.value == ">")) this.value = asMoney(this.value);
-	}).val(value).appendTo(unitCell).change();
+	}).val(asMoney(new Number(value))).appendTo(unitCell);
 	
 	$('<span> = </span>').appendTo(unitCell);
 	
@@ -90,7 +90,7 @@ function AddOrderAmountRangeRow(methodid,table,rates) {
 		else value = 0;
 		$('<input type="text" name="settings[shipping_rates]['+methodid+']['+key+'][]" id="'+area+'-'+methodid+'-'+id+'" class="selectall right" size="7" tabindex="'+(id+1)+'0'+(d++)+'" />').change(function() {
 			this.value = asMoney(this.value);
-		}).val(value).appendTo(inputCell).change();
+		}).val(asMoney(new Number(value))).appendTo(inputCell);
 	});
 	
 	var inputCell = $('<td/>').appendTo(row);
@@ -98,14 +98,14 @@ function AddOrderAmountRangeRow(methodid,table,rates) {
 	else value = 0;
 	$('<input type="text" name="settings[shipping_rates]['+methodid+']['+region+'][]"  id="'+region+'-'+methodid+'-'+id+'" class="selectall right" size="7" tabindex="'+(id+1)+'10" />').change(function() {
 		this.value = asMoney(this.value);
-	}).val(value).appendTo(inputCell).change();
+	}).val(asMoney(new Number(value))).appendTo(inputCell);
 	
 	var inputCell = $('<td/>').appendTo(row);
 	if (rates && rates['Worldwide'] && rates['Worldwide'][id]) value = rates['Worldwide'][id];
 	else value = 0;
 	worldwideInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][Worldwide][]" id="worldwide-'+methodid+'-'+id+'"  class="selectall right" size="7" tabindex="'+(id+1)+'11" />').change(function() {
 		this.value = asMoney(this.value);
-	}).val(value).appendTo(inputCell).change();
+	}).val(asMoney(new Number(value))).appendTo(inputCell);
 	
 	var rowCtrlCell = $('<td class="rowctrl" />').appendTo(row);
 	var deleteButton = $('<button type="button" name="delete" tabindex="'+(id+1)+'12"></button>').appendTo(rowCtrlCell);

@@ -93,6 +93,8 @@ function asPercent (n,f,p) {
  * @param array f Format settings
  **/
 function formatNumber (n,f) {
+	var currencyFormat = getCurrencyFormat();
+	if (currencyFormat && !f) f = copyOf(currencyFormat);
 	if (!f) f = defaultCurrencyFormat();
 
 	n = asNumber(n);
