@@ -391,7 +391,7 @@ class ShoppErrorLogging {
 	 * @param ShoppError $error The error object to log
 	 * @return void
 	 **/
-	function log (&$error) {
+	function log ($error) {
 		if ($error->level > $this->loglevel) return;
 		$debug = "";
 		if (isset($error->debug['file'])) $debug = " [".basename($error->debug['file']).", line ".$error->debug['line']."]";
@@ -493,7 +493,7 @@ class ShoppErrorNotification {
 	 * @param ShoppError $error The error object
 	 * @return void
 	 **/
-	function notify (&$error) {
+	function notify ($error) {
 		if (!($error->level & $this->types)) return;
 		$url = parse_url(get_bloginfo('url'));
 		$_ = array();
