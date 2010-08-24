@@ -235,7 +235,12 @@ class ShoppInstallation extends FlowController {
 		
 		// Update the table schema
 		$tables = preg_replace('/;\s+/',';',$schema);
+		ob_start();
 		$changes = dbDelta($tables);
+		$errors = ob_get_contents();
+		ob_end_clean();
+
+		$this->Settings->save('data_model','');
 		$this->Settings->save('db_updates',$changes);
 	}
 	
@@ -386,14 +391,13 @@ class ShoppInstallation extends FlowController {
 			list($src,$name,$value,$size,$properties,$datasize) = explode("::",$r->value);
 			$p = unserialize($properties);
 			$value = new StdClass();
-			$value->width = $p['width'];
-			$value->height = $p['height'];
-			$value->alt = $p['alt'];
-			$value->title = $p['title'];
+			if (isset($p['width']))	$value->width = $p['width'];
+			if (isset($p['height']))$value->height = $p['height'];
+			if (isset($p['alt']))	$value->alt = $p['alt'];
+			if (isset($p['title']))	$value->title = $p['title'];
+			if (isset($p['mimetype'])) $value->mime = $p['mimetype'];
 			$value->filename = $name;
-			$value->mime = $p['mimetype'];
 			$value->size = $size;
-			error_log(serialize($value));
 			if ($datasize > 0) {
 				$value->storage = "DBStorage";
 				$value->uri = $src;
@@ -484,7 +488,7 @@ class ShoppInstallation extends FlowController {
 
 			// Convert accepted payment cards
 			$accepted = array();
-			if (is_array($setting['cards'])) {
+			if (isset($setting['cards']) && is_array($setting['cards'])) {
 				foreach ($setting['cards'] as $cardname) {
 					// Normalize card names
 					$cardname = str_replace(
