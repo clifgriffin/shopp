@@ -152,6 +152,53 @@ function auto_ranges ($avg,$max,$min) {
 }
 
 /**
+ * Converts weight units from base setting to needed unit value
+ *
+ * @author John Dillick, Jonathan Davis
+ * @since 1.1
+ * @version 1.1
+ * 
+ * @param float $value The value that needs converted
+ * @param string $unit The unit that we are converting to
+ * @param string $from (optional) The unit that we are converting from - defaults to system settings
+ * @return float|boolean The converted value, false on error
+ **/
+function convert_unit ($value = 0, $unit, $from=false) {
+	if ($unit == $from || $value == 0) return $value;
+
+	if (!$from) {
+		// If no originating unit specified, use correlating system preferences
+		$Settings =& ShoppSettings();
+		$defaults = array(
+			'mass' => $Settings->get('weight_unit'),
+			'dimension' => $Settings->get('dimension_unit')
+		);
+	}
+	
+	// Conversion table to International System of Units (SI)
+	$table = array(
+		'mass' => array(		// SI base unit "grams"
+			'lb' => 453.59237, 'oz' => 28.349523125, 'g' => 1, 'kg' => 1000
+		),
+		'dimension' => array(	// SI base unit "meters"
+			'ft' => 0.3048, 'in' => 0.0254, 'mm' => 0.001, 'cm' => 0.01, 'm' => 1
+		)
+	);
+	
+	$table = apply_filters('shopp_unit_conversion_table',$table);
+
+	// Determine which chart to use
+	foreach ($table as $attr => $c) {
+		if (isset($c[$unit])) { $chart = $attr; $from = $defaults[$chart]; break; }
+	}
+
+	if ($unit == $from) return $value;
+	
+	$siv = $value * $table[$chart][$from];	// Convert to SI unit value
+	return $siv/$table[$chart][$unit];		// Return target units
+}
+
+/**
  * Copies the builtin template files to the active WordPress theme
  *
  * Handles copying the builting template files to the shopp/ directory of 
@@ -331,6 +378,20 @@ function date_format_order () {
  **/
 function duration ($start,$end) {
 	return ceil(($end - $start) / 86400);
+}
+
+/**
+ * Escapes nested data structure values for safe output to the browser
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param mixed $value The data to escape
+ * @return mixed
+ **/
+function esc_attrs ($value) {
+	 $value = is_array($value)?array_map('esc_attrs', $value):esc_attr($value);
+	 return $value;
 }
 
 /**
@@ -530,53 +591,6 @@ function floatvalue($value, $round=true, $format=false) {
 		$value = preg_replace("/\\".$decimals."/",".",$value); // Convert decimal delimter
 
 	return $round?round(floatval($value),$precision):floatval($value);
-}
-
-/**
- * Converts weight units from base setting to needed unit value
- *
- * @author John Dillick, Jonathan Davis
- * @since 1.1
- * @version 1.1
- * 
- * @param float $value The value that needs converted
- * @param string $unit The unit that we are converting to
- * @param string $from (optional) The unit that we are converting from - defaults to system settings
- * @return float|boolean The converted value, false on error
- **/
-function convert_unit ($value = 0, $unit, $from=false) {
-	if ($unit == $from || $value == 0) return $value;
-
-	if (!$from) {
-		// If no originating unit specified, use correlating system preferences
-		$Settings =& ShoppSettings();
-		$defaults = array(
-			'mass' => $Settings->get('weight_unit'),
-			'dimension' => $Settings->get('dimension_unit')
-		);
-	}
-	
-	// Conversion table to International System of Units (SI)
-	$table = array(
-		'mass' => array(		// SI base unit "grams"
-			'lb' => 453.59237, 'oz' => 28.349523125, 'g' => 1, 'kg' => 1000
-		),
-		'dimension' => array(	// SI base unit "meters"
-			'ft' => 0.3048, 'in' => 0.0254, 'mm' => 0.001, 'cm' => 0.01, 'm' => 1
-		)
-	);
-	
-	$table = apply_filters('shopp_unit_conversion_table',$table);
-
-	// Determine which chart to use
-	foreach ($table as $attr => $c) {
-		if (isset($c[$unit])) { $chart = $attr; $from = $defaults[$chart]; break; }
-	}
-
-	if ($unit == $from) return $value;
-	
-	$siv = $value * $table[$chart][$from];	// Convert to SI unit value
-	return $siv/$table[$chart][$unit];		// Return target units
 }
 
 /**

@@ -77,18 +77,6 @@ if(!function_exists('scandir')) {
 	}
 }
 
-if (!function_exists('attribute_escape_deep')) {
-	/**
-	* @todo	Replace with esc_attrs in functions.php
-	**/
-	function attribute_escape_deep($value) {
-		 $value = is_array($value) ?
-			 array_map('attribute_escape_deep', $value) :
-			 esc_attr($value);
-		 return $value;
-	}
-}
-
 if (!function_exists('property_exists')) {
 	/**
 	 * Checks an object for a declared property
