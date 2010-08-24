@@ -23,6 +23,7 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 	var $url = 'http://sellonline.canadapost.ca';
 
 	var $xml = true;	// Requires XML parser
+	var $postcode = true;
 
 	var $weight = 0;
 	var $maxweight = 30; // 30 kg
@@ -141,31 +142,25 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 	}
 	
 	function calculate ($options,$Order) {
-		if (empty($Order->Shipping->postcode)) {
-			new ShoppError(__('A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout.','Shopp','usps_postcode_required',SHOPP_ERR));
-			return $options;
-		}
 
-		$this->request = $this->build($Order->Cart->shipped, $this->rate['name'], 
+		$request = $this->build($Order->Cart->shipped, $this->rate['name'], 
 			$Order->Shipping->postcode, $Order->Shipping->country);
 		
-		$this->Response = $this->send();
-		if (!$this->Response) return false;
-		if ($this->Response->getElement('error')) {
-			new ShoppError($this->Response->getElementContent('statusMessage'),'cpc_rate_error',SHOPP_TRXN_ERR);
+		$Response = $this->send($request);
+		if (!$Response) return false;
+		if ($Response->tag('error')) {
+			new ShoppError($Response->content('statusMessage'),'cpc_rate_error',SHOPP_TRXN_ERR);
 			return false;
 		}
 
 		$estimate = false;
-		$Postage = $this->Response->getElement('product');
-		
-		if (!is_array($Postage)) return false;
-		foreach ($Postage as $rated) {
-			$service = $rated['ATTRS']['id'];
-			$amount = $rated['CHILDREN']['rate']['CONTENT'];
+		$Postage = $Response->tag('product');
+		while ($rated = $Postage->each()) {
+			$service = $rated->attr(false,'id'); //['ATTRS']['id'];
+			$amount = $rated->content('rate'); //['CHILDREN']['rate']['CONTENT'];
 			$delivery = "1d-5d";
-			if (isset($rated['CHILDREN']['deliveryDate']['CONTENT'])) 
-				$delivery = $this->delivery($rated['CHILDREN']['deliveryDate']['CONTENT']);
+			if ($deliveryDate = $rated->content('deliveryDate') !== false)  //['CHILDREN']['deliveryDate']['CONTENT'])
+				$delivery = $this->delivery($deliveryDate);
 			if (is_array($this->rate['services']) && in_array($service,$this->rate['services'])) {
 				$rate['name'] = $this->services[$service];
 				$rate['amount'] = $amount;
@@ -191,41 +186,17 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 				$_[] = '<merchantCPCID> '.$this->settings['merchantid'].' </merchantCPCID>';
 				$_[] = '<fromPostalCode> '.$this->settings['postcode'].' </fromPostalCode>';
 				$_[] = '<lineItems>';
-					if (is_array($items) && !empty($items)) {
-						$items = array();
-						$itemid = 0;
-						$items[$itemid] = array('weight'=>0);
-						foreach ($items as $product) {
-							$weight = ($product->weight*$product->quantity) > 0 ? 
-								($product->weight*$product->quantity):1;
-							if ($this->settings['units'] == "g")
-								$weight = $weight/1000;
-							if ($items[$itemid]['weight'] + $weight > $this->maxweight) {
-								$items[$itemid++] = array('weight'=>$weight);
-							} else $items[$itemid]['weight'] += $weight;
-						}
-						foreach ($items as $id => $item) {
-								$_[] = '<item>';
-								$_[] = '<quantity>1</quantity>';
-								$_[] = '<weight>'.number_format($item['weight'],3,'.','').'</weight>';
-								$_[] = '<length>1</length>';
-								$_[] = '<width>1</width>';
-								$_[] = '<height>1</height>';
-								$_[] = '<description>Box '.($id+1).'</description>';
-								$_[] = '<readyToShip/>';
-								$_[] = '</item>';
-						}						
-					} else {
-						$_[] = '<item>';
-						$_[] = '<quantity>1</quantity>';
-						$_[] = '<weight>1</weight>';
-						$_[] = '<length>1</length>';
-						$_[] = '<width>1</width>';
-						$_[] = '<height>1</height>';
-						$_[] = '<description>'.htmlentities($description).'</description>';
-						$_[] = '<readyToShip/>';
-						$_[] = '</item>';
-					}
+				foreach ((array)$items as $id => $Item) {
+					$_[] = '<item>';
+					$_[] = '<quantity>'.(empty($Item->quantity)?1:$Item->quantity).'</quantity>';
+					$_[] = '<weight>'.(empty($Item->weight)?1:convert_unit($Item->weight,'kg')).'</weight>';
+					$_[] = '<length>'.(empty($Item->length)?1:convert_unit($Item->length,'cm')).'</length>';
+					$_[] = '<width>'.(empty($Item->width)?1:convert_unit($Item->width,'cm')).'</width>';
+					$_[] = '<height>'.(empty($Item->height)?1:convert_unit($Item->height,'cm')).'</height>';
+					$_[] = '<description>Box '.($id+1).'</description>';
+					$_[] = '<readyToShip/>';
+					$_[] = '</item>';
+				}						
 				$_[] = '</lineItems>';
 				
 				// $_[] = '<city>'.'</city>';
@@ -237,40 +208,52 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 		$_[] = '</eparcel>';
 		// echo "<pre>"; print_r($_); echo "</pre>";
 		// exit();
-		return "XMLRequest=".urlencode(join("\n",apply_filters('shopp_capost_request',$_)));
+		return "XMLRequest=".(join("\n",apply_filters('shopp_capost_request',$_)));
 	}  
 
 	function verify () {
 		if (!$this->activated()) return;
-		$this->request = $this->build('1','Authentication test',1,'M1P1C0','CA');
-		$Response = $this->send();
-		if ($Response->getElement('error')) new ShoppError($Response->getElementContent('statusMessage'),'cpc_verify_auth',SHOPP_ADDON_ERR);
+		$request = $this->build('1','Authentication test',1,'M1P1C0','CA');
+		$Response = $this->send($request);
+		if ($Response->tag('error')) new ShoppError($Response->content('statusMessage'),'cpc_verify_auth',SHOPP_ADDON_ERR);
 	}   
 	     	
-	function send () {   
-		global $Shopp;
-		$connection = curl_init();
-		curl_setopt($connection,CURLOPT_URL,$this->testurl.":30000");
-		curl_setopt($connection, CURLOPT_PORT, 30000); // alternative port not used in some libcurl builds
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
-		curl_setopt($connection, CURLOPT_POST, 1); 
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->request); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 10); 
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
-		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
-		$buffer = curl_exec($connection);
-		if ($error = curl_error($connection)) 
-			new ShoppError($error,'cpc_connection',SHOPP_COMM_ERR);
-		curl_close($connection);
+	function send ($data) {
+		// echo "<pre>";
+		// ob_start();
+		// print_r($data);
+		// $content = ob_get_contents();
+		// ob_end_clean();
+		// echo htmlentities($data);
+		// echo "</pre>";
+		// exit();
+		
+		$response = parent::send($data,$this->url,'30000');
+		return new xmlQuery($response);
+		   
+		// global $Shopp;
+		// $connection = curl_init();
+		// curl_setopt($connection,CURLOPT_URL,$this->url.":30000");
+		// curl_setopt($connection, CURLOPT_PORT, 30000); // alternative port not used in some libcurl builds
+		// curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
+		// curl_setopt($connection, CURLOPT_POST, 1); 
+		// curl_setopt($connection, CURLOPT_POSTFIELDS, $this->request); 
+		// curl_setopt($connection, CURLOPT_TIMEOUT, 10); 
+		// curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
+		// curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
+		// curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+		// $buffer = curl_exec($connection);
+		// if ($error = curl_error($connection)) 
+		// 	new ShoppError($error,'cpc_connection',SHOPP_COMM_ERR);
+		// curl_close($connection);
 
 		// echo '<!-- '. $buffer. ' -->';		
 		// echo "<pre>REQUEST\n".htmlentities($this->request).BR.BR."</pre>";
 		// echo "<pre>RESPONSE\n".htmlentities($buffer)."</pre>";
 		// exit();
 
-		$Response = new XMLdata($buffer);
-		return $Response;
+		// $Response = new XMLdata($buffer);
+		// return $Response;
 	}
 	
 	function logo () {

@@ -232,6 +232,7 @@ class AjaxFlow {
 		if ($_GET['method'] == $Order->Shipping->method) return;
 
 		$Order->Shipping->method = $_GET['method'];
+		$Order->Cart->retotal = true;
 		$Order->Cart->totals();
 		echo json_encode($Order->Cart->Totals);
 		exit();

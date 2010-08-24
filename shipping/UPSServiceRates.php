@@ -23,6 +23,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	var $url = 'https://www.ups.com/ups.app/xml/Rate';
 	var $weight = 0;
 
+	var $postcode = true;
 	var $dimensions = true;
 	var $xml = true;
 
