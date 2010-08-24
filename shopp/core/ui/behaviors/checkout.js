@@ -95,9 +95,9 @@ jQuery(document).ready(function () {
 			$.getJSON(ShoppSettings.ajaxurl+"?action=shopp_shipping_costs&method="+$(this).val(),
 				function (result) {
 					var totals = eval(result);
-					$('span.shopp_cart_shipping').html(asMoney(totals.shipping));
-					$('span.shopp_cart_tax').html(asMoney(totals.tax));
-					$('span.shopp_cart_total').html(asMoney(totals.total));
+					$('span.shopp_cart_shipping').html(asMoney(new Number(totals.shipping)));
+					$('span.shopp_cart_tax').html(asMoney(new Number(totals.tax)));
+					$('span.shopp_cart_total').html(asMoney(new Number(totals.total)));
 			});
 		} else $(this).parents('form').submit();
 	});
