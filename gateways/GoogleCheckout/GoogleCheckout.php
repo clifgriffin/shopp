@@ -422,6 +422,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$Order->Billing->state = $buyer->content('region'); 
 		$Order->Billing->country = $buyer->content('country-code'); 
 		$Order->Billing->postcode = $buyer->content('postal-code'); 
+		$Order->Billing->cardtype = "GoogleCheckout";
 		
 		$shipto = $order_summary->tag('buyer-shipping-address');
 		$Order->Shipping->address = $shipto->content('address1'); 
@@ -432,6 +433,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$Order->Shipping->postcode = $shipto->content('postal-code'); 
 		
 		$Shopp->Order->gateway = $this->name;
+		
 
  		$txnid = $order_summary->content('google-order-number');
 
