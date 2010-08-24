@@ -108,7 +108,7 @@ class Item {
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price)+$this->addonsum;
 		if ($this->type == "Donation")
 			$this->donation = $Price->donation;
-		$this->data = stripslashes_deep(attribute_escape_deep($data));
+		$this->data = stripslashes_deep(esc_attrs($data));
 		
 		// Map out the selected menu name and option
 		if ($Product->variations == "on") {
