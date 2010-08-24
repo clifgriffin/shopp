@@ -25,7 +25,14 @@
 
 <?php if ("account" == shopp('customer','process','return=true')): ?>
 	<?php if(shopp('customer','errors-exist')) shopp('customer','errors'); ?>
-
+	<?php if(shopp('customer','password-changed')): ?>
+	<div class="notice"><?php _e('Your password has been changed successfully.','Shopp'); ?></div>
+	<?php endif; ?>
+	<?php if(shopp('customer','profile-saved')): ?>
+	<div class="notice"><?php _e('Your account has been updated.','Shopp'); ?></div>
+	<?php endif; ?>
+	
+	
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 	<ul>
 		<li>

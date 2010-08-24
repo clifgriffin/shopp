@@ -127,7 +127,6 @@ class Customer extends DatabaseObject {
 			$this->updates($_POST);
 			if (isset($_POST['info'])) $this->info = $_POST['info'];
 			
-			
 			if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
 				$this->password = wp_hash_password($_POST['password']);
 				if($this->accounts == "wordpress" && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser );
@@ -519,6 +518,14 @@ class Customer extends DatabaseObject {
 				$string .= '<input type="submit" name="submit-login" id="'.$id.'"'.inputattrs($options).' />';
 				return $string;
 				break;
+			case "profile-saved": 
+				$saved = (isset($this->_saved) && $this->_saved);
+				unset($this->_saved);
+				return $saved;
+			case "password-changed": 
+				$change = (isset($this->_password_change) && $this->_password_change);
+				unset($this->_password_change);
+				return $change;
 			case "errors-exist": return true;
 				$Errors = &ShoppErrors();
 				return ($Errors->exist(SHOPP_AUTH_ERR));
