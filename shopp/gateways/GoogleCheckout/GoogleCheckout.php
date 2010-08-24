@@ -58,7 +58,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		if (isset($_GET['gctest'])) $this->order('');
 		
 		add_action('shopp_txn_update',array(&$this,'notifications'));
+		add_action('get_header',array(&$this,'analytics'));
 	}
+	
+	function analytics() {  do_action('shopp_google_checkout_analytics'); }
 	
 	function actions () {
 		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
@@ -72,7 +75,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		add_filter('shopp_shipping_hasestimates',array(&$this, 'hasestimates_filter'));
 		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 	}
-	
+		
 	function hasestimates_filter () { return false; }
 	
 	function submit ($tag=false,$options=array(),$attrs=array()) {
@@ -353,7 +356,8 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 						$_[] = '</default-tax-table>';
 					$_[] = '</tax-tables>';
 				}
-			
+				
+				if (isset($_POST['analyticsdata'])) $_[] = '<analytics-data>'.$_POST['analyticsdata'].'</analytics-data>';
 				$_[] = '</merchant-checkout-flow-support>';
 			$_[] = '</checkout-flow-support>';
 			
