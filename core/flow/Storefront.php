@@ -756,7 +756,7 @@ class Storefront extends FlowController {
 			case "checkout": shopp_redirect(shoppurl(false,$redirect,$Shopp->Order->security())); break;
 			default: 
 				if (!empty($_REQUEST['redirect']))
-					shopp_redirect(shoppurl(false,$_REQUEST['redirect']));
+					shopp_safe_redirect($_REQUEST['redirect']);
 				else shopp_redirect(shoppurl(false,'cart'));
 		}
 	}
