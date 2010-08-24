@@ -119,7 +119,7 @@ function loadVariations (options,prices) {
 	if (!options) return;
 	var $=jqnc();
 	$.each(options,function (key,option) { 
-		addVariationOptionsMenu(option); 
+		if (option && option.id) addVariationOptionsMenu(option); 
 	});
 
 	$.each(prices,function (key,price) { 
@@ -129,8 +129,9 @@ function loadVariations (options,prices) {
 	Pricelines.updateVariationsUI();
 	
 	$.each(options,function (key,option) { 
+		if (!(option && option.options)) return;
 		$.each(option.options,function(i,data) {
-			if (data.linked == "on") Pricelines.linkVariations(data.id);
+			if (data && data.id && data.linked == "on") Pricelines.linkVariations(data.id);
 		});
 	});
 }

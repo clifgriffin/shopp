@@ -136,7 +136,8 @@ class AjaxFlow {
 		if (empty($result)) exit();
 		$result->options = unserialize($result->options);
 		$result->prices = unserialize($result->prices);
-		foreach ($result->options as &$menu) {
+		$options = isset($result->options['v'])?$result->options['v']:$result->options;
+		foreach ($options as &$menu) {
 			foreach ($menu['options'] as &$option) $option['id'] += $_GET['cat'];
 		}
 		foreach ($result->prices as &$price) {
