@@ -266,6 +266,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		// $_['RequestedShipment']['RateRequestTypes'] = 'LIST'; 
 		$_['RequestedShipment']['PackageCount'] = '1';
 		$_['RequestedShipment']['PackageDetail'] = 'INDIVIDUAL_PACKAGES';
+		// $_['RequestedShipment']['ServiceOptionType'] = 'SATURDAY_DELIVERY';
 		
 		$_['RequestedShipment']['RequestedPackages'] = array(
 				'SequenceNumber' => '1',

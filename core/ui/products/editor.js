@@ -226,32 +226,43 @@ function categories () {
 		});
 
 		// Load category variation option templates
-		$.getJSON(opttemp_url+'&action=shopp_options_template&category='+id,function (template) {
-			if (!template) return true;
-			if (!template.options) return true;
+		$.getJSON(opttemp_url+'&action=shopp_options_template&category='+id,function (t) {
+			if (!(t && t.options)) return true;
+
+			var variations_setting = $('#variations-setting'),
+				options = !t.options.v?t.options:t.options.v,
+				added = false;
 			
-			if (!$('#variations-setting').attr('checked')) {
-				$('#variations-setting').attr('checked',true).trigger('toggleui');
-			}
+			if (!variations_setting.attr('checked'))
+				variations_setting.attr('checked',true).trigger('toggleui');
 
 			if (optionMenus.length > 0) {
-				$.each(template.options,function (tid,tmenu) {
-					if (menu = optionMenuExists(tmenu.name)) {
-						var added = false;
-						$.each(tmenu.options,function (i,option) {
-							if (!optionMenuItemExists(menu,option.name)) {
-								menu.addOption(option);
+				$.each(options,function (tid,tm) {
+					if (!(tm && tm.name && tm.options)) return;
+					if (menu = optionMenuExists(tm.name)) {
+						added = false;
+						$.each(tm.options,function (i,o) {
+							if (!(o && o.name)) return;
+							if (!optionMenuItemExists(menu,o.name)) {
+								menu.addOption(o);
 								added = true;
 							}
 						});
 						if (added) addVariationPrices();
 					} else {
-						addVariationOptionsMenu(tmenu);
-						addVariationPrices();
+						// Initialize as new menu items
+						delete tm.id;
+						$.each(tm.options,function (i,o) {
+							if (!(o && o.name)) return;
+							// Remove the option ID so the option will be built into the 
+							// the variations permutations
+							delete o.id; 
+						});
+						addVariationOptionsMenu(tm);
 					}
 					
 				});
-			} else loadVariations(template.options,template.prices);
+			} else loadVariations(options,t.prices);
 
 		});
 	});
