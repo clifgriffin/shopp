@@ -237,6 +237,14 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 							$_[] = '</shopp-item-data-list>';
 						}
 					$_[] = '</merchant-private-item-data>';
+					
+					if ($this->settings['use_google_taxes'] != 'on' && is_array($this->settings['taxes'])) { // handle tax free or per item tax
+						if ($Item->taxable === false)
+							$_[] = '<tax-table-selector>non-taxable</tax-table-selector>';
+						elseif ($item_tax_table_selector = apply_filters('shopp_google_item_tax_table_selector', false, $Item) !== false)
+							$_[] = $item_tax_table_selector;
+					}
+						
 					$_[] = '</item>';
 				}
 				
@@ -307,6 +315,19 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 				if ($this->settings['use_google_taxes'] != 'on' && is_array($this->settings['taxes'])) {
 					$_[] = '<tax-tables>';
+					
+					$_[] = '<alternate-tax-tables>';
+						$_[] = '<alternate-tax-table standalone="true" name="non-taxable">'; // Built-in non-taxable table
+							$_[] = '<alternate-tax-rules>';
+								$_[] = '<alternate-tax-rule>';
+									$_[] = '<rate>'.number_format(0,4).'</rate><tax-area><world-area /></tax-area>';
+								$_[] = '</alternate-tax-rule>';
+							$_[] = '</alternate-tax-rules>';
+						$_[] = '</alternate-tax-table>';
+						if ($alternate_tax_tables_content = apply_filters('shopp_google_alternate_tax_tables_content', false) !== false)
+							$_[] = $alternate_tax_tables_content;
+					$_[] = '</alternate-tax-tables>';
+					
 						$_[] = '<default-tax-table>';
 							$_[] = '<tax-rules>';
 							foreach ($this->settings['taxes'] as $tax) {
