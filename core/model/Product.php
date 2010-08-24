@@ -622,7 +622,7 @@ class Product extends DatabaseObject {
 	
 	function duplicate () {
 		$db =& DB::get();
-		
+
 		$this->load_data(array('prices','specs','categories','tags','images','taxes'=>'false'));
 		$this->id = '';
 		$this->name = $this->name.' '.__('copy','Shopp');
