@@ -31,25 +31,22 @@ if (!Array.indexOf) {
 }
 
 /**
- * Returns the currency format from Shopp settings
+ * Return a valid currency format 
+ * (returns a valid provided format, or from Shopp Settings or a baseline default)
  **/
-function getCurrencyFormat () {
-	if (!ShoppSettings) return false;
-	return {
-		"indian":(ShoppSettings.india),
-		"cpos":ShoppSettings.cp,
-		"currency":ShoppSettings.c,
-		"precision":parseInt(ShoppSettings.p),
-		"decimals":ShoppSettings.d,
-		"thousands":ShoppSettings.t
-	}
-}
-
-/**
- * Returns a default currency format $#,###.##
- **/
-function defaultCurrencyFormat () {
-	return {
+function getCurrencyFormat (f) {
+	var setting = ShoppSettings;
+	if (f && f.currency) return f; // valid parameter format
+	if (setting && setting.c) 
+		return {	// from base of operations
+			"indian":(setting.india),
+			"cpos":setting.cp,
+			"currency":setting.c,
+			"precision":parseInt(setting.p),
+			"decimals":setting.d,
+			"thousands":setting.t
+		}
+	return {		// Default currency format
 		"cpos":true,
 		"currency":"$",
 		"precision":2,
@@ -64,9 +61,7 @@ function defaultCurrencyFormat () {
  * @param array f Format settings
  **/
 function asMoney (n,f) {
-	var currencyFormat = getCurrencyFormat();
-	if (currencyFormat && !f) f = copyOf(currencyFormat);
-	if (!f || !f.currency) f = defaultCurrencyFormat();
+	f = getCurrencyFormat(f);
 
 	n = formatNumber(n,f);
 	if (f.cpos) return f.currency+n;
@@ -79,9 +74,7 @@ function asMoney (n,f) {
  * @param array f Format settings
  **/
 function asPercent (n,f,p) {
-	var currencyFormat = getCurrencyFormat();
-	if (currencyFormat && !f) f = copyOf(currencyFormat);
-	if (!f) f = defaultCurrencyFormat();
+	f = getCurrencyFormat(f);
 
 	f.precision = p?p:1;
 	return formatNumber(n,f)+"%";
@@ -93,9 +86,7 @@ function asPercent (n,f,p) {
  * @param array f Format settings
  **/
 function formatNumber (n,f) {
-	var currencyFormat = getCurrencyFormat();
-	if (currencyFormat && !f) f = copyOf(currencyFormat);
-	if (!f) f = defaultCurrencyFormat();
+	f = getCurrencyFormat(f);
 
 	n = asNumber(n);
 	var digits,i,d = n.toFixed(f.precision).toString().split(".");
@@ -124,9 +115,7 @@ function formatNumber (n,f) {
  **/
 function asNumber (n,f) {
 	if (!n) return 0;
-	var currencyFormat = getCurrencyFormat();
-	if (currencyFormat && !f) f = copyOf(currencyFormat);
-	if (!f || !f.currency) f = defaultCurrencyFormat();
+	f = getCurrencyFormat(f);
 	
 	if (n instanceof Number) return new Number(n.toFixed(f.precision));
 	

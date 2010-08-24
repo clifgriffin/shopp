@@ -581,9 +581,10 @@ function floatvalue($value, $round=true, $format=false) {
 	$format = currency_format($format);
 	extract($format,EXTR_SKIP);
 
-	if (is_float($value)) return $round?round($value,$precision):$value;
+	$v = floatval($value); // Try interpretting as a float and see if we have a valid value
+	if (is_float($v) && $v > 0) return floatval($round?round($value,$precision):$value);
 
-	$value = preg_replace("/[^\d,\.]/","",$value); // Remove any non-numeric string data
+	$value = preg_replace("/(\D\.|[^\d\,\.])/","",$value); // Remove any non-numeric string data
 	$value = preg_replace("/^\./","",$value); // Remove any decimals at the beginning of the string
 	$value = preg_replace("/\\".$thousands."/","",$value); // Remove thousands
 
