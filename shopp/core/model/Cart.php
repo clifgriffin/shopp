@@ -101,6 +101,8 @@ class Cart {
 			do_action_ref_array('shopp_update_destination',array($_REQUEST['shipping']));
 			if (!empty($_REQUEST['shipping']['country']) || !empty($_REQUEST['shipping']['postcode']))
 				$this->changed(true);
+				
+				
 		}
 
 		if (!empty($_REQUEST['promocode'])) {
@@ -430,7 +432,7 @@ class Cart {
 	 * @return void
 	 **/
 	function totals () {
-		if (!$this->retotal && !$this->changed()) return true;
+		if (!($this->retotal || $this->changed())) return true;
 
 		$this->Totals = new CartTotals();
 		$Totals = &$this->Totals;
@@ -462,13 +464,17 @@ class Cart {
 			
 		}
 
-		// Calculate shipping
+		// Calculate Shipping
 		$Shipping = new CartShipping();
-		$Totals->shipping = $Shipping->calculate();
-		
-		// Save the generated shipping options
-		$this->shipping = $Shipping->options();
+		if ($this->changed()) {
+			// Only fully recalculate shipping costs 
+			// if the cart contents have changed
+			$Totals->shipping = $Shipping->calculate();
 
+			// Save the generated shipping options
+			$this->shipping = $Shipping->options();
+		} else $Totals->shipping = $Shipping->selected();
+		
 		// Calculate discounts
 		$Totals->discount = $Discounts->calculate();
 
@@ -486,6 +492,9 @@ class Cart {
 
 		do_action_ref_array('shopp_cart_retotal',array(&$Totals));
 		$this->Totals = &$Totals;
+		$this->changed = false;
+		$this->retotal = false;
+		
 	}
 			
 	/**
@@ -1413,6 +1422,8 @@ class CartShipping {
 		$this->modules = &$Shopp->Shipping->active;
 		$this->Cart = &$Shopp->Order->Cart;
 		
+		$this->showpostcode = $Shopp->Shipping->postcodes;
+		
 		$this->disabled = $this->Cart->noshipping = ($Settings->get('shipping') == "off");
 		$this->handling = $Settings->get('order_shipfee');
 		
@@ -1435,6 +1446,7 @@ class CartShipping {
 		if (!$this->Cart->shipped()) return false;
 		// If the cart is flagged for free shipping bail
 		if ($this->Cart->freeshipping) return 0;
+		
 
 		// Initialize shipping modules
 		do_action('shopp_calculate_shipping_init');
@@ -1491,6 +1503,21 @@ class CartShipping {
 	 **/
 	function options () {
 		return $this->options;
+	}
+	
+	/**
+	 * Return the currently selected shipping method
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return float The shipping amount
+	 **/
+	function selected () {
+		if (!empty($this->Shipping->method) && isset($this->Cart->shipping[$this->Shipping->method]))
+			return $this->Cart->shipping[$this->Shipping->method]->amount;
+		$method = current($this->Cart->shipping);
+		return $method->amount;
 	}
 	
 } // END class CartShipping

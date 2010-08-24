@@ -151,6 +151,7 @@ class Shipping extends DatabaseObject {
 class ShippingModules extends ModuleLoader {
 
 	var $dimensions = false;	// Flags when a module requires product dimensions
+	var $postcodes = false;		// Flags when a module requires a post code for shipping estimates
 	var $methods = array();		// Registry of shipping method handles
 
 	/**
@@ -224,6 +225,7 @@ class ShippingModules extends ModuleLoader {
 		$m = $this->active[$module]->methods();
 		if (empty($m) || !is_array($m)) return;
 		
+		if ($this->active[$module]->postcode) $this->postcodes = true;
 		if ($this->active[$module]->dimensions) $this->dimensions = true;
 
 		$methods = array();

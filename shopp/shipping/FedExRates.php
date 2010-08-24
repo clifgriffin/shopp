@@ -26,6 +26,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 	var $weight = 0;
 
 	var $test = false;
+	var $postcode = true;
 	var $dimensions = true;
 	
 	var $services = array(
