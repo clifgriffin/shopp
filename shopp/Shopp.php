@@ -647,7 +647,7 @@ class Shopp {
 		$updates = $this->Settings->get('updates');
 		$key = $this->Settings->get('updatekey');
 
-		$activated = isset($key[0])?($key[0] == 1):false;
+		$activated = isset($key[0])?($key[0] == '1'):false;
 		$core = isset($updates->response[SHOPP_PLUGINFILE])?$updates->response[SHOPP_PLUGINFILE]:false;
 		$addons = isset($updates->response[SHOPP_PLUGINFILE.'/addons'])?$updates->response[SHOPP_PLUGINFILE.'/addons']:false;
 
