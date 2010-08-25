@@ -331,7 +331,7 @@ class Categorize extends AdminController {
 		$Settings->saveform(); // Save workflow setting
 		
 		$Shopp->Catalog = new Catalog();
-		$Shopp->Catalog->load_categories(array('outofstock'=>true));
+		$Shopp->Catalog->load_categories(array('columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug", 'where' => array(), 'joins' => array(), 'orderby'=>false, 'order'=>false, 'outofstock' => true ));
 				
 		if (!isset($_POST['slug']) && empty($Category->slug))
 			$Category->slug = sanitize_title_with_dashes($_POST['name']);
