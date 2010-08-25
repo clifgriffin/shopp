@@ -818,7 +818,7 @@ function load_shopps_wpconfig () {
 
 	$configfile = 'wp-config.php';
 	$loadfile = 'wp-load.php';
-	$wp_config_path = false;
+	$wp_config_path = $wp_abspath = false;
 	
 	$root = realpath($_SERVER['DOCUMENT_ROOT']);
 	if (!$root) $root = realpath(substr(	// Determine DOCUMENT_ROOT by script path
@@ -828,6 +828,9 @@ function load_shopps_wpconfig () {
 	
 	$filepath = dirname(!empty($_SERVER['SCRIPT_FILENAME'])?$_SERVER['SCRIPT_FILENAME']:__FILE__);
 
+	if ( file_exists(sanitize_path($root).'/'.$loadfile))
+		$wp_abspath = $root;
+		
 	if ( isset($_SERVER['SHOPP_WPCONFIG_PATH']) 
 		&& file_exists(sanitize_path($_SERVER['SHOPP_WPCONFIG_PATH']).'/'.$configfile) ) { 
 		// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig 
@@ -837,12 +840,15 @@ function load_shopps_wpconfig () {
 	} elseif ( strpos($filepath, $root) !== false ) {
 		// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-config.php
 		$fullpath = explode ('/', sanitize_path($filepath) );
-		while (!$wp_config_path && ($dir = array_pop($fullpath)) !== null)
+		while (!$wp_config_path && ($dir = array_pop($fullpath)) !== null) {
+			if (file_exists( sanitize_path(join('/',$fullpath)).'/'.$loadfile ))
+				$wp_abspath = join('/',$fullpath);
 			if (file_exists( sanitize_path(join('/',$fullpath)).'/'.$configfile ))
 				$wp_config_path = join('/',$fullpath);
+		}
 
 	} elseif ( file_exists(sanitize_path($root).'/'.$configfile) ) {
-		$wp_config_path = $wp_root = $root; // WordPress install in DOCUMENT_ROOT
+		$wp_config_path = $root; // WordPress install in DOCUMENT_ROOT
 	} elseif ( file_exists(sanitize_path(dirname($root)).'/'.$configfile) ) {
 		$wp_config_path = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
 	}
@@ -855,7 +861,7 @@ function load_shopps_wpconfig () {
 	preg_match_all('/^\s*?(define\(\s*?\'(.*?)\'\s*?,\s*(.*?)\);)/m',$config,$defines,PREG_SET_ORDER);
 	foreach($defines as $defined) if (!defined($defined[2])) {
 		list($line,$line,$name,$value) = $defined;
-		$value = str_replace('__FILE__',"'$wp_config_file'",$value);
+		$value = str_replace('__FILE__',"'$wp_abspath/$loadfile'",$value);
 		$value = safe_define_ev($value);
 
 		// Override ABSPATH with SHOPP_ABSPATH
