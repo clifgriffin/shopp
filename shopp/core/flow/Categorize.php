@@ -331,11 +331,20 @@ class Categorize extends AdminController {
 		$Settings->saveform(); // Save workflow setting
 		
 		$Shopp->Catalog = new Catalog();
-		$Shopp->Catalog->load_categories(array('columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug", 'where' => array(), 'joins' => array(), 'orderby'=>false, 'order'=>false, 'outofstock' => true ));
-				
+		$Shopp->Catalog->load_categories(array(
+			'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug", 
+			'where' => array(), 
+			'joins' => array(), 
+			'orderby' => false, 
+			'order' => false, 
+			'outofstock' => true 
+		));
+			
 		if (!isset($_POST['slug']) && empty($Category->slug))
 			$Category->slug = sanitize_title_with_dashes($_POST['name']);
 		if (isset($_POST['slug'])) unset($_POST['slug']);
+
+		if (empty($Category->slug)) $Category->slug = sanitize_title_with_dashes($_POST['name']);	
 
 		// Work out pathing
 		$paths = array();
@@ -354,9 +363,25 @@ class Categorize extends AdminController {
 			$parentkey = '_'.$category_tree->parent;
 		}
 
-		if (count($paths) > 1) $_POST['uri'] = join("/",$paths);
-		else $_POST['uri'] = $paths[0];
-							
+		if (count($paths) > 1) $Category->uri = join("/",$paths);
+		else $Category->uri = $paths[0];
+		
+		// Check for an existing category uri
+		$exclude_category = !empty($Category->id)?"AND id != $Category->id":"";
+		$existing = $db->query("SELECT uri FROM $Category->_table WHERE uri='$Category->uri' $exclude_category LIMIT 1");
+		if ($existing) {
+			$suffix = 2;
+			while($existing) {
+				$altslug = preg_replace('/\-\d+$/','',$Category->slug)."-".$suffix++;
+				$uris = explode('/',$Category->uri);
+				array_splice($uris,-1,1,$altslug);
+				$alturi = join('/',$uris);
+				$existing = $db->query("SELECT uri FROM $Category->_table WHERE uri='$alturi' $exclude_category LIMIT 1");
+			}
+			$Category->slug = $altslug;
+			$Category->uri = $alturi;
+		}
+		
 		if (!empty($_POST['deleteImages'])) {			
 			$deletes = array();
 			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);

@@ -65,7 +65,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	adminurl = '<?php echo $Shopp->wpadminurl; ?>',
 	ajaxurl = adminurl+'admin-ajax.php',
 	addcategory_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_add_category"); ?>',
-	editslug_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_edit_slug"); ?>',
+	editslug_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "wp_ajax_shopp_edit_slug"); ?>',
 	fileverify_url = '<?php echo wp_nonce_url($Shopp->wpadminurl."admin-ajax.php", "shopp-ajax_verify_file"); ?>',
 	adminpage = '<?php echo $this->Admin->pagename('categories'); ?>',
 	request = <?php echo json_encode(stripslashes_deep($_GET)); ?>,
