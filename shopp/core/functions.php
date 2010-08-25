@@ -807,6 +807,75 @@ function linkencode ($url) {
 }
 
 /**
+ * Read the wp-config file to import WP settings without loading all of WordPress
+ *
+ * @author Jonathan Davis, John Dillick
+ * @since 1.1
+ * @return boolean If the load was successful or not
+ **/
+function load_shopps_wpconfig () {
+	global $table_prefix;
+
+	$configfile = 'wp-config.php';
+	$loadfile = 'wp-load.php';
+	$wp_config_path = false;
+	
+	$root = realpath($_SERVER['DOCUMENT_ROOT']);
+	if (!$root) $root = realpath(substr(	// Determine DOCUMENT_ROOT by script path
+					$_SERVER['SCRIPT_FILENAME'],0,
+					strpos($_SERVER['SCRIPT_FILENAME'],$_SERVER['SCRIPT_NAME'])
+				));
+	
+	$filepath = dirname(!empty($_SERVER['SCRIPT_FILENAME'])?$_SERVER['SCRIPT_FILENAME']:__FILE__);
+
+	if ( isset($_SERVER['SHOPP_WPCONFIG_PATH']) 
+		&& file_exists(sanitize_path($_SERVER['SHOPP_WPCONFIG_PATH']).'/'.$configfile) ) { 
+		// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig 
+		// and SHOPP_ABSPATH used on webserver site config
+		$wp_config_path = $_SERVER['SHOPP_WPCONFIG_PATH'];
+
+	} elseif ( strpos($filepath, $root) !== false ) {
+		// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-config.php
+		$fullpath = explode ('/', sanitize_path($filepath) );
+		while (!$wp_config_path && ($dir = array_pop($fullpath)) !== null)
+			if (file_exists( sanitize_path(join('/',$fullpath)).'/'.$configfile ))
+				$wp_config_path = join('/',$fullpath);
+
+	} elseif ( file_exists(sanitize_path($root).'/'.$configfile) ) {
+		$wp_config_path = $wp_root = $root; // WordPress install in DOCUMENT_ROOT
+	} elseif ( file_exists(sanitize_path(dirname($root)).'/'.$configfile) ) {
+		$wp_config_path = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
+	}
+	
+	$wp_config_file = sanitize_path($wp_config_path).'/'.$configfile;
+	if ( $wp_config_path !== false ) 
+		$config = file_get_contents($wp_config_file);
+	else return false;
+	
+	preg_match_all('/^\s*?(define\(\s*?\'(.*?)\'\s*?,\s*(.*?)\);)/m',$config,$defines,PREG_SET_ORDER);
+	foreach($defines as $defined) if (!defined($defined[2])) {
+		list($line,$line,$name,$value) = $defined;
+		$value = str_replace('__FILE__',"'$wp_config_file'",$value);
+		$value = safe_define_ev($value);
+
+		// Override ABSPATH with SHOPP_ABSPATH
+		if ($name == "ABSPATH" && isset($_SERVER['SHOPP_ABSPATH']) 
+				&& file_exists(sanitize_path($_SERVER['SHOPP_ABSPATH']).'/'.$loadfile))
+			$value = rtrim(sanitize_path($_SERVER['SHOPP_ABSPATH']),'/').'/';
+		define($name,$value);
+	}
+
+	// Get the $table_prefix value
+	preg_match('/(\$table_prefix\s*?=.+?);/m',$config,$match);
+	$table_prefix = safe_define_ev($match[1]);
+
+	if(function_exists("date_default_timezone_set") && function_exists("date_default_timezone_get"))
+		@date_default_timezone_set(@date_default_timezone_get());
+
+	return true;
+}
+
+/**
  * Generates a timestamp from a MySQL datetime format
  *
  * @author Jonathan Davis
@@ -1107,6 +1176,56 @@ function rsa_encrypt($data, $pkey){
 	return ($encrypted)?$encrypted:false;
 }
 
+/**
+ * Safely interprets a single PHP statement for dynamic macro definitions
+ *
+ * Ensures that unsafe code cannot be arbitrarily executed by three levels 
+ * of protection: unsafe function blacklist, no anonymous functions, 
+ * no backtick operations, and no variable variables.
+ * 
+ * Additionally, the use of create_function to interpret the code ensures 
+ * that executed code doesn't taint the rest of the runtime environment.
+ * 
+ * An error is generated to help detect and debug problem macro definitions.
+ * 
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @param string $string A PHP statement to be interpreted
+ * @return mixed The returned value
+ **/
+function safe_define_ev ($string) {
+	$error = false;
+	$f = array(	'base64_decode','base64_encode','copy','create_function','curl_init',
+			'dl','exec','file_get_contents','fopen','fpassthru','include',
+			'include_once','ini_restore','leak','link','mail','passthru','pcntl_exec',
+			'pcntl_fork','pcntl_signal','pcntl_waitpid','pcntl_wexitstatus',
+			'pcntl_wifexited','pcntl_wifsignaled','pcntl_wifstopped','pcntl_wstopsig',
+			'pcntl_wtermsig','pfsockopen','phpinfo','popen','preg_replace','proc_get_status',
+			'proc_nice','proc_open','proc_terminate','readfile','register_shutdown_function',
+			'register_tick_function','require','require_once','shell_exec','socket_accept',
+			'socket_bind','socket_connect','socket_create','socket_create_listen',
+			'socket_create_pair','stream_socket_server','symlink','syslog','system');
+	
+	if (preg_match('/('.join('|',$f).')\s*\(.*?\)/',$string) !== 0)
+		$error = "Unsafe function detected while interpreting a macro definition";
+	elseif (preg_match('/\$\w+\s*=\s*function\s*\(/',$string) !== 0) 
+		$error = "Anoymous function detected while interpreting a macro definition";
+	elseif (strpos($string,'`') !== false)
+		$error = "Unsafe backtick operator detected while interpreting a macro definition";
+	elseif (strpos($string,'$$') !== false)
+		$error = "Unsafe variable detected while interpreting a macro definition";
+	
+	if ($error !== false) {
+		trigger_error($error,E_USER_ERROR);
+		return '';
+	}
+
+	$code = create_function('','return ('.$string.');');
+	if (empty($code)) return '';
+	return $code();
+}
+
 if(!function_exists('sanitize_path')){
 	/**
 	 * Normalizes path separators to always use forward-slashes
@@ -1336,86 +1455,6 @@ function shopp_locate_pages () {
 		}
 	}
 	return $pages;
-}
-
-/**
- * Read the wp-config file to import WP settings without loading all of WordPress
- *
- * @author Jonathan Davis, John Dillick
- * @since 1.1
- * @return boolean If the load was successful or not
- **/
-function load_shopps_wpconfig () {
-	global $table_prefix;
-
-	$_ = array();
-	$root = realpath($_SERVER['DOCUMENT_ROOT']);
-	if (!$root) $root = realpath(substr(	// Attempt to trace document root by script pathing
-					$_SERVER['SCRIPT_FILENAME'],0,
-					strpos($_SERVER['SCRIPT_FILENAME'],$_SERVER['SCRIPT_NAME'])
-				));
-	
-	$filepath = realpath(dirname(__FILE__));
-	$wp_config_path = false;
-	$wp_root = false;
-
-	if ( isset($_SERVER['SHOPP_WPCONFIG_PATH']) 
-		&& file_exists(sanitize_path($_SERVER['SHOPP_WPCONFIG_PATH']).'/wp-config.php') ) { 
-		// SetEnv SHOPP_WPCONFIG_PATH and SHOPP_ABSPATH used on webserver site config
-		$wp_config_path = $wp_root = $_SERVER['SHOPP_WPCONFIG_PATH'];
-
-	} elseif ( strpos($filepath, $root) !== false ) {
-		// Shopp directory has DOCUMENT_ROOT ancenstor, finding wp-config.php and wordpress install
-		$levels = count(explode ('/', sanitize_path($filepath) ));
-		$path = $filepath;
-		for ( $i = 1; $i < $levels; $i++ ) { 
-			if ( file_exists(sanitize_path($path).'/wp-load.php') ) $wp_root = $path;
-			if ( file_exists(sanitize_path($path).'/wp-config.php') ) {
-				$wp_config_path = $path;
-				break;
-			}
-			$path = dirname($path);
-		}
-
-	} elseif (  file_exists(sanitize_path($root).'/wp-config.php') && 
-				file_exists(sanitize_path($root).'/wp-load.php') ) { 
-				// wordpress install in DOCUMENT_ROOT
-		$wp_config_path = $wp_root = $root;
-
-	} elseif (  file_exists(sanitize_path(dirname($root)).'/wp-config.php') && 
-				file_exists(sanitize_path($root).'/wp-load.php') && 
-				!file_exists(sanitize_path(dirname($root)).'/wp-load.php')) { 
-				// wordpress install in DOCUMENT_ROOT, config up one directory
-		$wp_config_path = dirname($root);
-		$wp_root = $root;
-	}
-
- 	if (isset($_SERVER['SHOPP_ABSPATH']) && file_exists(sanitize_path($_SERVER['SHOPP_ABSPATH']).'/wp-load.php'))
-		$wp_root = $_SERVER['SHOPP_ABSPATH'];
-		
-	if ( $wp_config_path !== false && $wp_root !== false) 
-		$config = file_get_contents(sanitize_path($wp_config_path).'/wp-config.php');
-	else return false;
-	
-	preg_match_all('/^\s*?(define\(\s*?\'(.*?)\'\s*?,\s*(.*?)\);)/m',$config,$defines,PREG_SET_ORDER);
-	foreach($defines as $defined) if (!defined($defined[2])) {
-		$name = $defined[2];
-		$value = trim($defined[3],"'");
-		if ( $name == "ABSPATH" ) {
-			if (isset($_SERVER['SHOPP_ABSPATH'])) $value = trailingslashit(sanitize_path($_SERVER['SHOPP_ABSPATH']));
-			else $value = sanitize_path($wp_root).'/';
-		} 
-		define($name,$value);
-	}
-
-	// Evaluate the $table_prefix variable
-	preg_match('/\$table_prefix\s*?=\s*?[\'|"](.*?)[\'|"];/',$config,$match);
-	$table_prefix = $match[1];
-	
-	if(function_exists("date_default_timezone_set") && function_exists("date_default_timezone_get"))
-		@date_default_timezone_set(@date_default_timezone_get());
-
-	return true;
 }
 
 /**
@@ -1761,6 +1800,21 @@ function value_is_true ($value) {
 		case "yes": case "true": case "1": case "on": return true;
 		default: return false;
 	}
+}
+
+function safe_ev ($string) {
+	$blacklist = 'include,include_once,require,require_once,
+	curl_init,fpassthru,file,base64_encode,base64_decode,mail,exec,system,proc_open,
+	leak,syslog,pfsockopen,shell_exec,ini_restore,symlink,stream_socket_server,
+	proc_nice,popen,proc_get_status,dl, pcntl_exec, pcntl_fork, pcntl_signal,
+	pcntl_waitpid, pcntl_wexitstatus, pcntl_wifexited, pcntl_wifsignaled,
+	pcntl_wifstopped, pcntl_wstopsig, pcntl_wtermsig, socket_accept,
+	socket_bind, socket_connect, socket_create, socket_create_listen,
+	socket_create_pair,link,register_shutdown_function,register_tick_function';
+	
+	
+	
+	
 }
 
 /**
