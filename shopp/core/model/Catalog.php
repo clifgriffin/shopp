@@ -67,10 +67,7 @@ class Catalog extends DatabaseObject {
 		
 		if (!is_array($where)) $where = array($where);
 
-		// Merge joins
-		if (isset($loading['joins'])) $joins = array_merge($defaults['joins'],$loading['joins']);
-
-		if (!$this->outofstock) $where[] = "(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))";
+		if (!$outofstock) $where[] = "(pt.inventory='off' OR (pt.inventory='on' AND pt.stock > 0))";
 
 		if ($parent !== false) $where[] = "cat.parent=".$parent;
 		else $parent = 0;
