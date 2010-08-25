@@ -476,9 +476,8 @@ class Warehouse extends AdminController {
 		if ($existing) {
 			$suffix = 2;
 			while($existing) {
-				$altslug = substr($Product->slug, 0, 200-(strlen($suffix)+1)). "-$suffix";
+				$altslug = substr($Product->slug, 0, 200-(strlen($suffix)+1)). "-".$suffix++;
 				$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$altslug' $exclude_product LIMIT 1");
-				$suffix++;
 			}
 			$Product->slug = $altslug;
 		}
