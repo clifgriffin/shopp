@@ -40,7 +40,7 @@ class ShoppProductWidget extends WP_Widget {
 		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>
 		
-		<p><select id="<?php echo $this->get_field_id('source'); ?>" name="<?php echo $this->get_field_name('source'); ?>" class="widefat"><option value="category"<?php echo $options['source'] == "category"?' selected="selected"':''; ?>>From a category</option><option value="product"<?php echo $options['source'] == "product"?' selected="selected"':''; ?>>By product</option></select></p>
+		<p><select id="<?php echo $this->get_field_id('source'); ?>" name="<?php echo $this->get_field_name('source'); ?>" class="widefat"><option value="category"<?php echo $options['source'] == "category"?' selected="selected"':''; ?>><?php _e('From a category','Shopp'); ?></option><option value="product"<?php echo $options['source'] == "product"?' selected="selected"':''; ?>><?php _e('By product','Shopp'); ?></option></select></p>
 
 		<?php 
 			if (SHOPP_PRETTYURLS) $label = __('Category Slug/ID','Shopp');
