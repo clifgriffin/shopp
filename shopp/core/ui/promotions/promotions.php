@@ -1,7 +1,7 @@
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<h2><?php _e('Promotions','Shopp'); ?></h2>
+	<h2><?php _e('Promotions','Shopp'); ?> <a href="<?php echo esc_url(add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions','id'=>'new')),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('New Promotion','Shopp'); ?></a></h2>
 
 	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="promotions" method="get">
 	<div>
@@ -12,8 +12,6 @@
 		<input type="text" id="promotions-search-input" name="s" class="search-input" value="<?php echo esc_attr($s); ?>" />
 		<input type="submit" value="<?php _e('Search Promotions','Shopp'); ?>" class="button" />
 	</p>
-
-	<p><a href="<?php echo esc_url(add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions','id'=>'new')),admin_url('admin.php'))); ?>" class="button"><?php _e('New Promotion','Shopp'); ?></a></p>
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>

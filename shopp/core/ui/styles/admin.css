@@ -335,10 +335,10 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order ul.promos { list-style:square;padding-left:25px; }
 #order ul.promos li { text-indent:-5px; }
 
-#order .meta-boxes { position:relative;clear:both;margin-top:20px; }
+#order .meta-boxes { position:relative;margin-top:20px; }
 
-#order .column { float:left;position:relative; }
-#order .left-column { clear:left; }
+#order .column { position:relative; }
+#order .left-column {float:left;width:260px; }
 #order .right-column { float:right;clear:right;width:100%;margin-left:-340px; }
 #order #main-column { margin-left:280px; }
 
@@ -361,6 +361,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order #order-notes textarea { width:100%; }
 #order #order-notes .notectrls { position:relative;display:none;padding:6px 0; }
 
+#order .meta-boxes .inside address { white-space: normal; width: inherit; }
 #order .meta-boxes .inside p.name { background-image:url('../icons/user.png'); }
 #order .meta-boxes .inside p.company { background-image:url('../icons/building.png'); }
 #order .meta-boxes .inside p.email { background-image:url('../icons/email.png'); }
