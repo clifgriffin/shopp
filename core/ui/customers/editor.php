@@ -38,8 +38,6 @@
 <div id="ends-calendar" class="calendar"></div>
 
 <script type="text/javascript">
-helpurl = "<?php echo SHOPP_DOCS; ?>Editing_a_Customer";
-
 var PWD_INDICATOR = "<?php _e('Strength indicator','Shopp'); ?>";
 
 var PWD_GOOD = "<?php _e('Good','Shopp'); ?>";
@@ -49,13 +47,17 @@ var PWD_STRONG = "<?php _e('Strong','Shopp'); ?>";
 
 jQuery(document).ready( function() {
 
-var $=jQuery.noConflict();
-
-var regions = <?php echo json_encode($regions); ?>;
+var $=jqnc(),
+	regions = <?php echo json_encode($regions); ?>;
 
 postboxes.add_postbox_toggles('shopp_page_shopp-customers');
 // close postboxes that should be closed
-jQuery('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
+
+$('.postbox a.help').click(function () {
+	$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
+	return false;
+});
 
 $('#username').click(function () {
 	var url = $(this).attr('rel');

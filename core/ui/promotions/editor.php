@@ -238,6 +238,12 @@ var $=jqnc(),
 		if (type == "cartitem") itemidx++;
 		else ruleidx++;
 	};
+	
+$('.postbox a.help').click(function () {
+	$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
+	return false;
+});
+	
 
 $('#discount-type').change(function () {
 	$('#discount-row').hide();

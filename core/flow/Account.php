@@ -23,6 +23,7 @@ class Account extends AdminController {
 		parent::__construct();
 		if (!empty($_GET['id'])) {
 			wp_enqueue_script('postbox');
+			shopp_enqueue_script('colorbox');
 			do_action('shopp_customer_editor_scripts');
 			add_action('admin_head',array(&$this,'layout'));			
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
@@ -251,6 +252,7 @@ class Account extends AdminController {
 	 **/
 	function layout () {
 		global $Shopp;
+		$Admin =& $Shopp->Flow->Admin;
 		include(SHOPP_ADMIN_PATH."/customers/ui.php");
 	}
 	

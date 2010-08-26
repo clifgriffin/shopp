@@ -21,6 +21,11 @@ jQuery(document).ready(function () {
 	// close postboxes that should be closed
 	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	
+	$('.postbox a.help').click(function () {
+		$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
+		return false;
+	});
+	
 	updateWorkflow();
 	$('#category').submit(function () {
 		this.action = this.action.substr(0,this.action.indexOf("?"))+"?"+$.param(request);
