@@ -30,6 +30,7 @@ class Promote extends AdminController {
 		parent::__construct();
 		if (!empty($_GET['id'])) {
 			wp_enqueue_script('postbox');
+			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('calendar');
 			do_action('shopp_promo_editor_scripts');
 			add_action('admin_head',array(&$this,'layout'));
@@ -170,9 +171,10 @@ class Promote extends AdminController {
 	 * @return void
 	 **/
 	function layout () {
+		global $Shopp;
+		$Admin =& $Shopp->Flow->Admin;
 		include(SHOPP_PATH."/core/ui/promotions/ui.php");
 	}
-	
 	
 	/**
 	 * Interface processor for the promotion editor
