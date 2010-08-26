@@ -101,6 +101,8 @@ jQuery(document).ready( function() {
 		$this.find('button[name=top]').hover(function () { $(this).toggleClass('hover'); }).click(function () {
 			thisRow($(this));
 			if (position == 1) return false;
+			row.parent().find('tr.'+slug).not(row).remove();
+			row.find('button.collapsing').addClass('closed').css('background-position','-180px top');
 			if (!parent.size()) row.insertBefore(row.parent().find('tr:first'));
 			else row.insertAfter(parent);
 			updatePositions(row);
@@ -110,6 +112,8 @@ jQuery(document).ready( function() {
 		$this.find('button[name=bottom]').hover(function () { $(this).toggleClass('hover'); }).click(function () {
 			thisRow($(this));
 			if (position == branchSiblings.size()) return false;
+			row.find('button.collapsing').addClass('closed').css('background-position','-180px top');
+			row.parent().find('tr.'+slug).not(row).remove();
 			row.insertAfter(lastSibling);
 			updatePositions(row);
 		});
