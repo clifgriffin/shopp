@@ -1444,11 +1444,11 @@ class SearchResults extends SmartCategory {
 		if ($prices) {
 			$pricematch = false;
 			switch ($prices->op) {
-				case ">": $pricematch = "HAVING ((onsale=0 AND (minprice > $prices->target OR maxprice > $prices->target)) 
+				case ">": $pricematch = "((onsale=0 AND (minprice > $prices->target OR maxprice > $prices->target)) 
 							OR (onsale=1 AND (minsaleprice > $prices->target OR maxsaleprice > $prices->target)))"; break;
-				case "<": $pricematch = "HAVING ((onsale=0 AND (minprice < $prices->target OR maxprice < $prices->target)) 
+				case "<": $pricematch = "((onsale=0 AND (minprice < $prices->target OR maxprice < $prices->target)) 
 							OR (onsale=1 AND (minsaleprice < $prices->target OR maxsaleprice < $prices->target)))"; break;
-				default: $pricematch = "HAVING ((onsale=0 AND (minprice >= $prices->min AND maxprice <= $prices->max)) 
+				default: $pricematch = "((onsale=0 AND (minprice >= $prices->min AND maxprice <= $prices->max)) 
 								OR (onsale=1 AND (minsaleprice >= $prices->min AND maxsaleprice <= $prices->max)))";
 			}
 		}
