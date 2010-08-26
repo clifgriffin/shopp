@@ -29,8 +29,7 @@ class Category extends DatabaseObject {
 	var $facetedmenus = "off";
 	var $published = true;
 	
-	function Category ($id=false,$key=false) {
-		global $Shopp;
+	function __construct ($id=false,$key=false) {
 		$this->init(self::$table);
 
 		if (!$id) return;
@@ -38,13 +37,15 @@ class Category extends DatabaseObject {
 		return false;
 	}
 	
-	function Smart ($slug) {
-		$categories = array("new");
-		if (in_array($slug,$categories)) return true;
-	}
-	
 	/**
-	 * Load a single record by a slug name */
+	 * Load a single record by slug name
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * 
+	 * @param string $slug The slug name to load
+	 * @return boolean loaded successfully or not
+	 **/
 	function loadby_slug ($slug) {
 		$db = DB::get();
 		
@@ -55,28 +56,57 @@ class Category extends DatabaseObject {
 		return false;
 	}
 	
+	/**
+	 * Load sub-categories
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * 
+	 * @param array $loading Query configuration array
+	 * @return boolean successfully loaded or not
+	 **/
 	function load_children($loading=array()) {
 		if (isset($this->smart) 
 			|| empty($this->id) 
 			|| empty($this->uri)) return false;
-		$db = DB::get();
 		
-		if (empty($loading['orderby'])) $loading['orderby'] = "name";
-		switch(strtolower($loading['orderby'])) {
+		$db = DB::get();
+		$catalog_table = DatabaseObject::tablename(Catalog::$table);
+		
+		$defaults = array(
+			'columns' => 'cat.*,count(sc.product) as total',
+			'joins' => array("LEFT JOIN $catalog_table AS sc ON sc.parent=cat.id AND sc.type='category'"),
+			'where' => array("cat.uri like '%$this->uri%' AND cat.id <> $this->id"),
+			'orderby' => 'name',
+			'order' => 'ASC'
+		);
+		$loading = array_merge($defaults,$loading);
+		extract($loading);
+		
+		switch(strtolower($orderby)) {
 			case "id": $orderby = "cat.id"; break;
 			case "slug": $orderby = "cat.slug"; break;
 			case "count": $orderby = "total"; break;
 			default: $orderby = "cat.name";
 		}
 
-		if (empty($loading['order'])) $loading['order'] = "ASC";
-		switch(strtoupper($loading['order'])) {
+		switch(strtoupper($order)) {
 			case "DESC": $order = "DESC"; break;
 			default: $order = "ASC";
 		}
 		
-		$catalog_table = DatabaseObject::tablename(Catalog::$table);
-		$children = $db->query("SELECT cat.*,count(sc.product) AS total FROM $this->_table AS cat LEFT JOIN $catalog_table AS sc ON sc.parent=cat.id AND sc.type='category' WHERE cat.uri like '%$this->uri%' AND cat.id <> $this->id GROUP BY cat.id ORDER BY cat.parent DESC,$orderby $order,name ASC",AS_ARRAY);
+		$joins = join(' ',$joins);
+		$where = join(' AND ',$where);
+		$name_order = ($orderby !== "name")?",name ASC":"";
+		
+		$query = "SELECT $columns FROM $this->_table AS cat
+					$joins
+					WHERE $where
+					GROUP BY cat.id 
+					ORDER BY cat.parent DESC,$orderby $order$name_order";
+		$children = $db->query($query,AS_ARRAY);
+
 		$children = sort_tree($children,$this->id);
 		foreach ($children as &$child) {
 			$this->children[$child->id] = new Category();
@@ -85,16 +115,24 @@ class Category extends DatabaseObject {
 			$this->children[$child->id]->total = $child->total;
 		}
 
-		if (!empty($this->children)) return true;
-		return false;
+		return (!empty($this->children));
 	}
 	
+	/**
+	 * Loads images assigned to this category
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * 
+	 * @return boolean Successful load or not
+	 **/
 	function load_images () {
-		global $Shopp;
 		$db = DB::get();
+		$Settings =& ShoppSettings();
 		
-		$ordering = $Shopp->Settings->get('product_image_order');
-		$orderby = $Shopp->Settings->get('product_image_orderby');
+		$ordering = $Settings->get('product_image_order');
+		$orderby = $Settings->get('product_image_orderby');
 		
 		if ($ordering == "RAND()") $orderby = $ordering;
 		else $orderby .= ' '.$ordering;
@@ -109,15 +147,115 @@ class Category extends DatabaseObject {
 			$image->expopulate();
 			$this->images[] = $image;
 		}
-		
 					
 		return true;
 	}
 	
 	/**
-	 * save_imageorder()
-	 * Updates the sortorder of image assets (source, featured and thumbnails)
-	 * based on the provided array of image ids */
+	 * Updates category slug and rebuilds changed URIs
+	 *
+	 * Generates the slug if empty. Checks for duplicate slugs
+	 * and adds a numeric suffix to ensure a unique slug.
+	 * 
+	 * If the slug changes, the category uri is rebuilt and
+	 * and all descendant category uri's are rebuilt and updated.
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean successfully updated
+	 **/
+	function update_slug () {
+
+		if (empty($this->slug)) {
+			$name = !empty($_POST['name'])?$_POST['name']:$this->name;
+			$this->slug = sanitize_title_with_dashes($name);
+		}
+		
+		if (empty($this->slug)) return false; // No slug for this category, bail
+
+		$uri = $this->uri;
+		$parent = !empty($_POST['parent'])?$_POST['parent']:$this->parent;
+		if ($parent > 0) {
+
+			$Catalog = new Catalog();
+			$Catalog->load_categories(array(
+				'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug", 
+				'where' => array(), 
+				'joins' => array(), 
+				'orderby' => false, 
+				'order' => false, 
+				'outofstock' => true 
+			));
+
+			$paths = array();
+			if (!empty($this->slug)) $paths = array($this->slug);  // Include self
+
+			$parentkey = -1;
+			// If we're saving a new category, lookup the parent
+			if ($parent > 0) {
+				array_unshift($paths,$Catalog->categories['_'.$parent]->slug);
+				$parentkey = $Catalog->categories['_'.$parent]->parent;
+			}
+
+			while (isset($Catalog->categories['_'.$parentkey]) 
+					&& $category_tree = $Catalog->categories['_'.$parentkey]) {
+				array_unshift($paths,$category_tree->slug);
+				$parentkey = '_'.$category_tree->parent;
+			}
+
+			if (count($paths) > 1) $this->uri = join("/",$paths);
+			else $this->uri = $paths[0];
+
+			$db = DB::get();
+			// Check for an existing category uri
+			$exclude_category = !empty($this->id)?"AND id != $this->id":"";
+			$existing = $db->query("SELECT uri FROM $this->_table WHERE uri='$this->uri' $exclude_category LIMIT 1");
+			if ($existing) {
+				$suffix = 2;
+				while($existing) {
+					$altslug = preg_replace('/\-\d+$/','',$this->slug)."-".$suffix++;
+					$uris = explode('/',$this->uri);
+					array_splice($uris,-1,1,$altslug);
+					$alturi = join('/',$uris);
+					$existing = $db->query("SELECT uri FROM $this->_table WHERE uri='$alturi' $exclude_category LIMIT 1");
+				}
+				$this->slug = $altslug;
+				$this->uri = $alturi;
+			}
+			
+		} // end if ($parent > 0)
+		
+		if ($uri == $this->uri) return true;
+
+		// Update children uris
+		$this->load_children(array(
+			'columns' 	=> 'cat.id,cat.parent,cat.uri',
+			'where' 	=> array("(cat.uri like '%$uri%' OR cat.parent='$this->id')","cat.id <> '$this->id'")
+		));
+		if (empty($this->children)) return true;
+		
+		$categoryuri = explode('/',$this->uri);
+		foreach ($this->children as $child) {
+			$childuri = explode('/',$child->uri);
+			$changed = reset(array_diff($childuri,$categoryuri));
+			array_splice($childuri,array_search($changed,$childuri),1,end($categoryuri));
+			$updateduri = join('/',$childuri);
+			$db->query("UPDATE $this->_table SET uri='$updateduri' WHERE id='$child->id' LIMIT 1");
+		}
+		
+	}
+	
+	/**
+	 * Updates the sort order of category image assets
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * 
+	 * @param array $ordering List of image ids in order
+	 * @return boolean true on success
+	 **/
 	function save_imageorder ($ordering) {
 		$db = DB::get();
 		$table = DatabaseObject::tablename(CategoryImage::$table);
@@ -127,9 +265,15 @@ class Category extends DatabaseObject {
 	}
 	
 	/**
-	 * link_images()
-	 * Updates the product id of the images to link to the product 
-	 * when the product being saved is new (has no previous id assigned) */
+	 * Updates the assigned parent id of images to link them to the category
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * 
+	 * @param array $images List of image ids
+	 * @return boolean true on successful update
+	 **/
 	function link_images ($images) {
 		if (empty($images) || !is_array($images)) return false;
 
@@ -143,9 +287,19 @@ class Category extends DatabaseObject {
 	}
 	
 	/**
-	 * delete_images()
-	 * Delete provided array of image ids, removing the source image and
-	 * all related images (small and thumbnails) */
+	 * Deletes image assignments to the category and metadata (not the binary data)
+	 *
+	 * Removes the meta table record that assigns the image to the category and all
+	 * cached image metadata built from the original image. Does NOT delete binary 
+	 * data.
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * 
+	 * @param array $images List of image ids to delete
+	 * @return boolean true on success
+	 **/
 	function delete_images ($images) {
 		$db = &DB::get();
 		$imagetable = DatabaseObject::tablename(CategoryImage::$table);
@@ -158,6 +312,16 @@ class Category extends DatabaseObject {
 		return true;
 	}
 	
+	/**
+	 * Loads a list of products for the category
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * 
+	 * @param array $loading Loading options for the category
+	 * @return void
+	 **/
 	function load_products ($loading=false) {
 		global $Shopp,$wp;
 		$db = DB::get();
@@ -491,6 +655,15 @@ class Category extends DatabaseObject {
 
 	}
 	
+	/**
+	 * Returns the product adjacent to the requested product in the category
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param int $next (optional) Which product to get (-1 for previous, defaults to 1 for next)
+	 * @return object The Product object
+	 **/
 	function adjacent_product($next=1) {
 		global $Shopp;
 		
@@ -507,7 +680,20 @@ class Category extends DatabaseObject {
 		$product = key($this->products);
 		return new Product($product);
 	}
-			
+	
+	/**
+	 * Generates an RSS feed of products for this category
+	 *
+	 * NOTE: To modify the output of the RSS generator, use 
+	 * the filter hooks provided in a separate plugin or 
+	 * in the theme functions.php file.
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * 
+	 * @return string The final RSS markup
+	 **/
 	function rss () {
 		global $Shopp;
 		$db = DB::get();
@@ -577,6 +763,14 @@ class Category extends DatabaseObject {
 		return $rss;
 	}
 	
+	/**
+	 * A functional list of support category sort options
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return array The list of supported sort methods
+	 **/
 	function sortoptions () {
 		return apply_filters('shopp_category_sortoptions', array(
 			"title" => __('Title','Shopp'),
@@ -590,6 +784,18 @@ class Category extends DatabaseObject {
 		));
 	}
 	
+	/**
+	 * shopp('category','...') tags
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.1
+	 * @see http://docs.shopplugin.net/Category_Tags
+	 * 
+	 * @param string $property The property to handle
+	 * @param array $options (optional) The tag options to process
+	 * @return mixed
+	 **/
 	function tag ($property,$options=array()) {
 		global $Shopp;
 		$db = DB::get();

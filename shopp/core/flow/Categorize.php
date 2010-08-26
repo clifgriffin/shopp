@@ -339,49 +339,9 @@ class Categorize extends AdminController {
 			'order' => false, 
 			'outofstock' => true 
 		));
-			
-		if (!isset($_POST['slug']) && empty($Category->slug))
-			$Category->slug = sanitize_title_with_dashes($_POST['name']);
-		if (isset($_POST['slug'])) unset($_POST['slug']);
 
-		if (empty($Category->slug)) $Category->slug = sanitize_title_with_dashes($_POST['name']);	
+		$Category->update_slug();
 
-		// Work out pathing
-		$paths = array();
-		if (!empty($Category->slug)) $paths = array($Category->slug);  // Include self
-		
-		$parentkey = -1;
-		// If we're saving a new category, lookup the parent
-		if ($_POST['parent'] > 0) {
-			array_unshift($paths,$Shopp->Catalog->categories['_'.$_POST['parent']]->slug);
-			$parentkey = $Shopp->Catalog->categories['_'.$_POST['parent']]->parent;
-		}
-
-		while (isset($Shopp->Catalog->categories['_'.$parentkey]) 
-				&& $category_tree = $Shopp->Catalog->categories['_'.$parentkey]) {
-			array_unshift($paths,$category_tree->slug);
-			$parentkey = '_'.$category_tree->parent;
-		}
-
-		if (count($paths) > 1) $Category->uri = join("/",$paths);
-		else $Category->uri = $paths[0];
-		
-		// Check for an existing category uri
-		$exclude_category = !empty($Category->id)?"AND id != $Category->id":"";
-		$existing = $db->query("SELECT uri FROM $Category->_table WHERE uri='$Category->uri' $exclude_category LIMIT 1");
-		if ($existing) {
-			$suffix = 2;
-			while($existing) {
-				$altslug = preg_replace('/\-\d+$/','',$Category->slug)."-".$suffix++;
-				$uris = explode('/',$Category->uri);
-				array_splice($uris,-1,1,$altslug);
-				$alturi = join('/',$uris);
-				$existing = $db->query("SELECT uri FROM $Category->_table WHERE uri='$alturi' $exclude_category LIMIT 1");
-			}
-			$Category->slug = $altslug;
-			$Category->uri = $alturi;
-		}
-		
 		if (!empty($_POST['deleteImages'])) {			
 			$deletes = array();
 			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
