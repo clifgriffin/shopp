@@ -1550,6 +1550,8 @@ class CartTax {
 	function __construct () {
 		global $Shopp;
 		$this->Order = &ShoppOrder();
+		$base = $Shopp->Settings->get('base_operations');
+		$this->vat = $base['vat'];
 		$this->enabled = ($Shopp->Settings->get('taxes') == "on");
 		$this->rates = $Shopp->Settings->get('taxrates');
 		$this->shipping = ($Shopp->Settings->get('tax_shipping') == "on");
@@ -1646,7 +1648,7 @@ class CartTax {
 	 * @return float Total tax amount
 	 **/
 	function calculate () {
-		$Totals = $this->Order->Cart->Totals;
+		$Totals =& $this->Order->Cart->Totals;
 
 		$tiers = array();
 		$taxes = 0;
@@ -1660,10 +1662,11 @@ class CartTax {
 			$taxes += $Item->tax;
 		}
 		
-		// @todo: Handle discounts > taxable item totals
-		// if ($Totals->discount > $Totals->taxed) $Totals->taxed = 0;
-		// else $Totals->taxed -= $Totals->discount;
-		if($this->shipping) $taxes += roundprice($Totals->shipping*$Totals->taxrate);
+		if ($this->shipping) {
+			if ($this->vat) // Remove the taxes from the shipping amount for inclusive-tax calculations
+				$Totals->shipping = (floatvalue($Totals->shipping)/(1+$Totals->taxrate));
+			$taxes += roundprice($Totals->shipping*$Totals->taxrate);
+		}
 
 		return $taxes;
 	}
