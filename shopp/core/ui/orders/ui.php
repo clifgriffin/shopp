@@ -168,6 +168,15 @@ add_meta_box('order-status', __('Status','Shopp'), 'status_meta_box', 'toplevel_
 
 function notes_meta_box ($Purchase) {
 	global $Notes;
+	
+	add_filter('shopp_order_note', 'esc_html');
+	add_filter('shopp_order_note', 'wptexturize');
+	add_filter('shopp_order_note', 'convert_chars');
+	add_filter('shopp_order_note', 'make_clickable');
+	add_filter('shopp_order_note', 'force_balance_tags');
+	add_filter('shopp_order_note', 'convert_smilies');
+	add_filter('shopp_order_note', 'wpautop');
+	
 ?>
 <table>
 	<?php foreach ($Notes->meta as $Note): $User = get_userdata($Note->value->author); ?>
@@ -176,7 +185,7 @@ function notes_meta_box ($Purchase) {
 			<span><?php echo _d(get_option('date_format').' '.get_option('time_format'), $Note->created); ?></span></th>
 		<td>
 			<div id="note-<?php echo $Note->id; ?>">
-			<?php echo esc_html(wpautop($Note->value->message)); ?>
+			<?php echo apply_filters('shopp_order_note',$Note->value->message); ?>
 			</div>
 			<p class="notemeta">
 				<span class="notectrls">
