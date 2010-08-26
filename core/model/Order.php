@@ -1166,7 +1166,7 @@ class Order {
 			case "billing-xco": return; break; // DEPRECATED
 			case "billing-localities": 
 				$rates = $Shopp->Settings->get("taxrates");
-				foreach ($rates as $rate) if (isset($rate['locals']) && is_array($rate['locals'])) return true;
+				foreach ((array)$rates as $rate) if (isset($rate['locals']) && is_array($rate['locals'])) return true;
 				return false;
 				break;
 			case "billing-locale":
@@ -1200,36 +1200,64 @@ class Order {
 			case "hasdata": return (is_array($this->data) && count($this->data) > 0); break;
 			case "order-data":
 			case "orderdata":
-				if (isset($options['name']) && $options['mode'] == "value") 
-					return $this->data[$options['name']];
-				if (empty($options['type'])) $options['type'] = "hidden";
-				$allowed_types = array("text","hidden",'password','checkbox','radio','textarea');
-				$value_override = array("text","hidden","password","textarea");
-				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
-					if (!isset($options['title'])) $options['title'] = $options['name'];
-					// @todo: Check if this is still necessary
-					if (in_array($options['type'],$value_override) && isset($this->data[$options['name']])) 
-						$options['value'] = $this->data[$options['name']];
-					if (!isset($options['value'])) $options['value'] = "";
-					if (!isset($options['cols'])) $options['cols'] = "30";
-					if (!isset($options['rows'])) $options['rows'] = "3";
-					if ($options['type'] == "textarea") 
-						return '<textarea name="data['.$options['name'].']" cols="'.$options['cols'].'" rows="'.$options['rows'].'" id="order-data-'.$options['name'].'" '.inputattrs($options,array('accesskey','title','tabindex','class','disabled','required')).'>'.$options['value'].'</textarea>';
-					return '<input type="'.$options['type'].'" name="data['.$options['name'].']" id="order-data-'.$options['name'].'" '.inputattrs($options).' />';
-				}
-
-				// Looping for data value output
-				if (!$this->dataloop) {
-					reset($this->data);
-					$this->dataloop = true;
-				} else next($this->data);
-
-				if (current($this->data) !== false) return true;
-				else {
-					$this->dataloop = false;
-					return false;
-				}
+				$defaults = array(
+					'name' => false, // REQUIRED
+					'data' => false,
+					'mode' => false,
+					'title' => '',
+					'type' => 'hidden',
+					'value' => '',
+					'cols' => '30',
+					'rows' => '3',
+					'options' => ''
+				);
+				$op = array_merge($defaults,$options);
+				extract($op);
 				
+				// Allowed input types
+				$allowed_types = array("text","hidden","password","checkbox","radio","textarea","menu");
+				
+				// Input types that can override option-specified value with the loaded data value
+				$value_override = array("text","hidden","password","textarea","menu");
+				
+				/// Allowable attributes for textarea inputs
+				$textarea_attrs = array('accesskey','title','tabindex','class','disabled','required');
+			
+				if (!$name) { // Iterator for order data
+					if (!isset($this->_data_loop)) {
+						reset($this->data);
+						$this->_data_loop = true;
+					} else next($this->data);
+
+					if (current($this->data) !== false) return true;
+					else {
+						unset($this->_data_loop);
+						return false;
+					}
+				}
+
+				if (isset($this->data[$name])) $data = $this->data[$name];
+				if ($name && $mode == "value") return $data;
+				
+				if (!in_array($type,$allowed_types)) $type = 'hidden';
+				if (empty($title)) $title = $name;
+				$id = 'order-data-'.sanitize_title_with_dashes($name);
+				
+				if (in_array($type,$value_override) && !empty($data))
+					$value = $data;
+
+				switch (strtolower($type)) {
+					case "textarea":
+						return '<textarea name="data['.$name.']" cols="'.$cols.'" rows="'.$rows.'" id="'.$id.'" '.inputattrs($options,$textarea_attrs).'>'.$value.'</textarea>';
+						break;
+					case "menu":
+						if (is_string($options)) $options = explode(',',$options);
+						return '<select name="data['.$name.']" id="'.$id.'" '.inputattrs($options,$select_attrs).'>'.menuoptions($options,$value).'</select>';
+						break;
+					default:
+						return '<input type="'.$type.'" name="data['.$name.']" id="'.$id.'" '.inputattrs($options).' />';
+						break;
+				}
 				break;
 			case "data":
 				if (!is_array($this->data)) return false;
