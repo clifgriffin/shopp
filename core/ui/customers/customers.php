@@ -82,7 +82,7 @@
 		<div class="alignleft actions">
 			<form action="<?php echo esc_url(add_query_arg(array_merge($_GET,array('src'=>'export_customers')),admin_url("admin.php"))); ?>" id="log" method="post">
 			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Export Options','Shopp'); ?></button>
-			<span id="export-settings" class="hidden">
+			<div id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">
 				<ul>
 					<li<?php $even = true; if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_columns" id="selectall_columns" /><label for="selectall_columns"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>	
@@ -96,10 +96,11 @@
 			</div><br />
 			<select name="settings[customerexport_format]">
 				<?php echo menuoptions($exports,$formatPref,true); ?>
-			</select></span>
+			</select></div>
 			<button type="submit" id="download-button" name="download" value="export" class="button-secondary"><?php _e('Download','Shopp'); ?></button>
-		<?php endif; ?>
+			</form>
 		</div>
+		<?php endif; ?>
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="clear"></div>
 	</div>

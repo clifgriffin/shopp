@@ -124,6 +124,8 @@
 				<?php echo menuoptions($exports,$formatPref,true); ?>
 			</select></span>
 			<button type="submit" id="download-button" name="download" value="export" class="button-secondary"><?php _e('Download','Shopp'); ?></button>
+			<div class="clear"></div>
+			</form>
 		</div>
 		<?php endif; ?>
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
@@ -139,6 +141,9 @@ var lastexport = new Date(<?php echo date("Y,(n-1),j",$Shopp->Settings->get('pur
 
 jQuery(document).ready( function() {
 var $=jqnc();
+
+pagenow = 'toplevel_page_shopp-orders';
+columns.init(pagenow);
 	
 $('#selectall').change( function() {
 	$('#orders-table th input').each( function () {
@@ -259,9 +264,6 @@ $('#selectall_columns').change(function () {
 	if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true); 
 	else $('#export-columns input').not(this).attr('checked',false); 
 });
-
-pagenow = 'toplevel_page_shopp-orders';
-columns.init(pagenow);
 
 });
 
