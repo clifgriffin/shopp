@@ -347,7 +347,7 @@ class Setup extends FlowController {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_payments')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		add_action('gateway_module_settings',array(&$this,'payments_ui'));
+		add_action('shopp_gateway_module_settings',array(&$this,'payments_ui'));
 		
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-payments');
@@ -375,7 +375,7 @@ class Setup extends FlowController {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_system')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		add_action('storage_module_settings',array(&$this,'storage_ui'));
+		add_action('shopp_storage_module_settings',array(&$this,'storage_ui'));
 
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-system');

@@ -105,7 +105,7 @@ jQuery(document).ready(function() {
 		module.behaviors();
 	}
 
-	<?php do_action('storage_module_settings'); ?>
+	<?php do_action('shopp_storage_module_settings'); ?>
 	
 	$('#image-storage').change(function () {
 		var module = $(this).val();

@@ -86,7 +86,7 @@ class eWayPayment extends GatewayFramework implements GatewayModule {
 			$_[] = '<ewayOption3></ewayOption3>';
 		$_[] = '</ewaygateway>';
 
-		return join("",apply_filters('eway_transaction',$_));
+		return join("",apply_filters('shopp_eway_transaction',$_));
 	}
 	
 	function send ($data) {
