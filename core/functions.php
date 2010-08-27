@@ -1217,8 +1217,8 @@ function safe_define_ev ($string) {
 		$error = "Unsafe function detected while interpreting a macro definition";
 	elseif (preg_match('/\$\w+\s*=\s*function\s*\(/',$string) !== 0) 
 		$error = "Anoymous function detected while interpreting a macro definition";
-	elseif (strpos($string,'`') !== false)
-		$error = "Unsafe backtick operator detected while interpreting a macro definition";
+	elseif (preg_match('/(\`.+?\`)/',preg_replace('/(\'.*?\'|".*?")/m','',$string)) !== 0)
+		$error = "Unsafe backtick operator usage detected while interpreting a macro definition";
 	elseif (strpos($string,'$$') !== false)
 		$error = "Unsafe variable detected while interpreting a macro definition";
 	
