@@ -81,7 +81,8 @@ class ShoppScripts extends WP_Scripts {
 	
 	function print_script_request () {
 		global $compress_scripts;
-
+		$Settings =& ShoppSettings();
+		
 		$zip = $compress_scripts ? 1 : 0;
 		if ( $zip && defined('ENFORCE_GZIP') && ENFORCE_GZIP )
 			$zip = 'gzip';
@@ -97,7 +98,9 @@ class ShoppScripts extends WP_Scripts {
 			}
 
 			$ver = md5("$this->concat_version");
-			$src = $this->base_url . "scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver";
+			if ($Settings->get('script_server') == 'plugin')
+				$src = get_bloginfo('url') . "?sjsl=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver";
+			else $src = $this->base_url . "scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver";
 			echo "<script type='text/javascript' src='" . esc_attr($src) . "'></script>\n";
 		}
 
@@ -128,7 +131,7 @@ class ShoppScripts extends WP_Scripts {
 			$this->registered[$handle]->deps = $mydep;
 		}
 		
-		foreach ($wpdeps as $handle) wp_enqueue_script($handle);
+		if (!empty($wpdeps)) foreach ((array)$wpdeps as $handle) wp_enqueue_script($handle);
 		
 	}	
 	
