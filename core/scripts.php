@@ -13,19 +13,25 @@
  * @subpackage scripts
  **/
 
-$load = preg_replace( '/[^a-z0-9,_-]+/i', '', $_GET['load'] );
+
+$load = isset($_GET['load'])?$_GET['load']:$_GET['sjsl'];
+$load = preg_replace( '/[^a-z0-9,_-]+/i', '', $load );
 $load = explode(',', $load);
 if (empty($load)) exit();
 
 /**
  * @ignore
  */
-function add_action() {}
+if (!function_exists('add_action')) {
+	function add_action() {}
+}
 
 /**
  * @ignore
  */
-function do_action_ref_array() {}
+if (!function_exists('do_action_ref_array')) {
+	function do_action_ref_array() {}
+}
 
 function get_file($path) {
 
@@ -40,7 +46,7 @@ function get_file($path) {
 
 
 require_once('functions.php');
-load_shopps_wpconfig();
+if (!defined('ABSPATH')) load_shopps_wpconfig();
 if (!defined('WPINC')) define('WPINC', 'wp-includes');
 require_once('flow/Scripts.php');
 

@@ -46,6 +46,9 @@ require_once("core/model/Settings.php");
 if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI']))
 	require("core/image.php");
 
+if (isset($_GET['sjsl']))
+	require("core/scripts.php");
+
 // Load super controllers
 require("core/flow/Flow.php");
 require("core/flow/Storefront.php");
