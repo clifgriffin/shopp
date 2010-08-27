@@ -55,7 +55,7 @@ class ImageProcessor {
 		if ($fit == "matte") {
 			$rgb = false;
 			if (is_int($fill)) $rgb = $this->hexrgb($fill);
-						
+			
 			// Default to white
 			if (!is_array($rgb)) $rgb = array('red'=>255,'green'=>255,'blue'=>255);
 			
@@ -300,7 +300,7 @@ class ImageProcessor {
 	 **/
 	function hexrgb ($color) {
 		return array(
-			"red" => (0xFF & ($color >> 0x16)),
+			"red" => (0xFF & ($color >> 0x10)),
 			"green" => (0xFF & ($color >> 0x8)),
 			"blue" => (0xFF & $color)
 		);
