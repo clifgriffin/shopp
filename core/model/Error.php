@@ -251,19 +251,19 @@ class ShoppError {
 	var $level;
 	var $data = array();
 	var $php = array(
-		E_ERROR           => 'ERROR',
-		E_WARNING         => 'WARNING',
-		E_PARSE           => 'PARSE ERROR',
-		E_NOTICE          => 'NOTICE',
-		E_CORE_ERROR      => 'CORE ERROR',
-		E_CORE_WARNING    => 'CORE WARNING',
-		E_COMPILE_ERROR   => 'COMPILE ERROR',
-		E_COMPILE_WARNING => 'COMPILE WARNING',
-		E_USER_ERROR      => 'USER ERROR',
-		E_USER_WARNING    => 'USER WARNING',
-		E_USER_NOTICE     => 'USER NOTICE',
-		E_STRICT          => 'STRICT NOTICE',
-		E_RECOVERABLE_ERROR  => 'RECOVERABLE ERROR'
+		1		=> 'ERROR',
+		2		=> 'WARNING',
+		4		=> 'PARSE ERROR',
+		8		=> 'NOTICE',
+		16		=> 'CORE ERROR',
+		32		=> 'CORE WARNING',
+		64		=> 'COMPILE ERROR',
+		128		=> 'COMPILE WARNING',
+		256		=> 'USER ERROR',
+		512		=> 'USER WARNING',
+		1024	=> 'USER NOTICE',
+		2048	=> 'STRICT NOTICE',
+		4096 	=> 'RECOVERABLE ERROR'
 	);
     
 	/**
@@ -299,7 +299,8 @@ class ShoppError {
 		
 		$this->source = "Shopp";
 		if (isset($this->debug['class'])) $this->source = $this->debug['class'];
-		if (isset($this->data['phperror'])) $this->source = "PHP ".$this->php[$this->data['phperror']];
+		if (isset($this->data['phperror']) && isset($this->php[$this->data['phperror']])) 
+			$this->source = "PHP ".$this->php[$this->data['phperror']];
 		
 		$Errors = &ShoppErrors();
 		if (!empty($Errors)) $Errors->add($this);
