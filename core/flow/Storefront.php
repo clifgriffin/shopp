@@ -88,7 +88,7 @@ class Storefront extends FlowController {
 		add_filter('shopp_account_template','shoppdiv');
 		add_filter('shopp_order_receipt','shoppdiv');
 		add_filter('shopp_account_manager','shoppdiv');
-		add_filter('shopp_account_view_order','shoppdiv');
+		add_filter('shopp_account_vieworder','shoppdiv');
 
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
 		add_action('wp_enqueue_scripts', 'shopp_dependencies');
