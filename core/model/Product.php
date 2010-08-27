@@ -1267,7 +1267,11 @@ class Product extends DatabaseObject {
 				if (array_key_exists('type',$options)) $string .= $variation->type;
 				if (array_key_exists('sku',$options)) $string .= $variation->sku;
 				if (array_key_exists('price',$options)) $string .= money($variation->price+($variation->price*$taxrate));
-				if (array_key_exists('saleprice',$options)) $string .= money($variation->saleprice+($variation->saleprice*$taxrate));
+				if (array_key_exists('saleprice',$options)) {
+					if (isset($options['promos']) && !value_is_true($options['promos'])) {
+						$string .= money($variation->saleprice+($variation->saleprice*$taxrate));
+					} else $string .= money($variation->promoprice+($variation->promoprice*$taxrate));
+				}
 				if (array_key_exists('stock',$options)) $string .= $variation->stock;
 				if (array_key_exists('weight',$options)) $string .= round($variation->weight, 3) . ($weightunit ? " $weightunit" : false);
 				if (array_key_exists('shipfee',$options)) $string .= money(floatvalue($variation->shipfee));
