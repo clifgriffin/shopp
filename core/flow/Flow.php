@@ -68,13 +68,6 @@ class Flow {
 		} else $this->handler("Storefront");
 		
 	}
-		
-	function logins () {
-		
-		if (!empty($_POST['process-login']) && $_POST['process-login'] == "true") 
-			do_action('shopp_auth');
-		
-	}
 	
 	function transactions () {
 		
