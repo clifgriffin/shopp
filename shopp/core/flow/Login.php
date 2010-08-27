@@ -173,6 +173,7 @@ class Login {
 		}
 
 		$this->login($Account);
+		do_action('shopp_auth');
 		
 	}
 	
