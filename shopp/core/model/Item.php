@@ -23,6 +23,7 @@ class Item {
 	var $option = false;		// The option ID of the price object
 	var $variation = array();	// The selected variation
 	var $variations = array();	// The available variation options
+	var $image = false;			// The cover image for the product
 	var $data = array();		// Custom input data
 	var $quantity = 0;			// The selected quantity for the line item
 	var $addonsum = 0;			// The sum of selected addons
@@ -464,7 +465,7 @@ class Item {
 		$this->tax = ($this->unittax*$this->quantity);
 		$this->total = ($this->unitprice * $this->quantity);
 		$this->totald = ($this->priced * $this->quantity);
-		// print_r($this);
+
 	}
 
 	/**
@@ -580,17 +581,26 @@ class Item {
 			case "addons-list":
 			case "addonslist":
 				if (empty($this->addons)) return false;
-				$prefix = "+"; $before = ""; $after = ""; $classes = ""; $excludes = array();
-				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
-				if (!empty($options['exclude'])) $excludes = explode(",",$options['exclude']);
-				if (!empty($options['before'])) $before = $options['before'];
-				if (!empty($options['after'])) $after = $options['after'];
-				if (!empty($options['prefix'])) $prefix = $options['prefix'];
+				$defaults = array(
+					'before' => '',
+					'after' => '',
+					'class' => '',
+					'exclude' => '',
+					'prices' => true,
+					
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
 
+				$classes = !empty($class)?' class="'.join(' ',$class).'"':'';
+				$excludes = explode(',',$exclude);
+				$prices = value_is_true($prices);
+				
 				$result .= $before.'<ul'.$classes.'>';
 				foreach ($this->addons as $id => $addon) {
 					if (in_array($addon->label,$excludes)) continue;
-					$result .= '<li>'.($prefix?$prefix.' ':'').''.$addon->label.'</li>';
+					if ($prices) $pricing = " (".($addon->price < 0?'-':'+').money($addon->price).")";
+					$result .= '<li>'.$addon->label.$pricing.'</li>';
 				}
 				$result .= '</ul>'.$after;
 				return $result;
@@ -633,11 +643,13 @@ class Item {
 				$result .= '</ul>'.$after;
 				return $result;
 				break;
+			case "coverimage":
 			case "thumbnail":
 				$defaults = array(
 					'class' => '',
 					'width' => 48,
 					'height' => 48,
+					'size' => false,
 					'fit' => false,
 					'sharpen' => false,
 					'quality' => false,
@@ -649,10 +661,11 @@ class Item {
 				$options = array_merge($defaults,$options);
 				extract($options);
 
-				if (isset($this->image)) {
+				if ($this->image !== false) {
 					$img = $this->image;
 
-					$scale = (!$fit)?false:esc_attr($fit);
+					if ($size !== false) $width = $height = $size;
+					$scale = (!$fit)?false:esc_attr(array_search($fit,$img->_scaling));
 					$sharpen = (!$sharpen)?false:esc_attr(min($sharpen,$img->_sharpen));
 					$quality = (!$quality)?false:esc_attr(min($quality,$img->_quality));
 					$fill = (!$bg)?false:esc_attr(hexdec(ltrim($bg,'#')));
@@ -671,7 +684,6 @@ class Item {
 				
 		}
 		if (!empty($result)) return $result;
-		
 		
 		return false;
 	}
