@@ -10,13 +10,13 @@
 		
 	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post" id="order-status">
 	<div id="order">
-		<br class="clear" />
+		<p>
 		<div id="titlewrap">
 			<?php _e('Order','Shopp'); ?> #<?php echo $Purchase->id; ?><span class="date"><?php echo _d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small></span>
 			<input type="submit" id="print-button" value="<?php _e('Print Order','Shopp'); ?>" class="button" />
 		</div>
-		<br class="clear" />
-		<div id="poststuff" class="shopp poststuff">
+		</p>
+		<div id="poststuff" class="poststuff">
 		<?php if (sizeof($Purchase->purchased) > 0): ?>
 		<table class="widefat" cellspacing="0">
 			<thead>
@@ -90,15 +90,16 @@
 			<p class="warning"><?php _e('There were no items found for this purchase.','Shopp'); ?></p>
 		<?php endif; ?>
 		
+		
 		<div class="meta-boxes">
+
+			<div id="column-one" class="column left-column">
+				<?php do_meta_boxes('toplevel_page_shopp-orders', 'side', $Purchase, $UI); ?>
+			</div>
 			<div id="main-column">
 				<div id="column-two" class="column right-column">
 					<?php do_meta_boxes('toplevel_page_shopp-orders', 'normal', $Purchase, $UI); ?>
 				</div>
-			</div>
-
-			<div id="column-one" class="column left-column">
-				<?php do_meta_boxes('toplevel_page_shopp-orders', 'side', $Purchase, $UI); ?>
 			</div>
 			<br class="clear" />
 		</div>
@@ -106,8 +107,9 @@
 		<?php wp_nonce_field('shopp-save-order'); ?>
 		<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
 		<?php wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false ); ?>
-		</form>
+		</div>
 	</div>
+	</form>
 	
 </div>
 

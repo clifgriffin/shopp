@@ -258,13 +258,10 @@ span.indent { display: inline-block; width: 36px; }
 #poststuff #save-customer .inside,
 #poststuff #save-promotion .inside,
 #poststuff #order-status .inside { margin:0; }
-.shopp #major-publishing-actions { text-align:right; }
+.shopp #major-publishing-actions { text-align:right; clear: none; }
 .postbox #category-menu,.postbox #summary { width:100%; }
 .postbox #new-category select { width:80%; }
 .shopp .postbox #category-menu ul label { line-height:1; }
-
-.shopp .postbox p label { font-size:11px;font-weight:bold;line-height:24px; }
-
 
 #save-product .misc-pub-section { padding-left: 24px; text-indent: -18px; }
 
@@ -275,13 +272,13 @@ span.indent { display: inline-block; width: 36px; }
 form { position:relative; }
 p.controls { position:absolute;top:0;right:0;margin:0; }
 
-.shopp .postbox p { text-indent:0;clear:both;display:block;padding:4px 0;margin:0;line-height:1; }
+.shopp .postbox p { text-indent:0;display:block;padding:4px 0;margin:0;line-height:1; }
 .shopp .postbox p input,
 .shopp .postbox p select { width:100%; }
 .shopp .postbox p span { float:left;padding:0 5px 0 0;display:inline-block;text-align:left; }
 .shopp .postbox p span input,
 .shopp .postbox p span select { width:auto; }
-.shopp .postbox p label { clear:both;display:block; }
+.shopp .postbox p label { display:block;font-size:11px;font-weight:bold;line-height:24px; }
 .shopp .postbox p label.inline { clear: none;display:inline; }
 
 .shopp #product-settings input,
@@ -338,8 +335,8 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order .meta-boxes { position:relative;margin-top:20px; }
 
 #order .column { position:relative; }
-#order .left-column {float:left;width:260px; }
-#order .right-column { float:right;clear:right;width:100%;margin-left:-340px; }
+#order .left-column {float:left;width:260px;display:inline;overflow:visible; }
+#order .right-column { width:100%;margin-left:-340px; display: inline;}
 #order #main-column { margin-left:280px; }
 
 #order .meta-boxes .inside { line-height:1.3em; }
@@ -361,14 +358,15 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order #order-notes textarea { width:100%; }
 #order #order-notes .notectrls { position:relative;display:none;padding:6px 0; }
 
-#order .meta-boxes .inside address { white-space: normal; width: inherit; }
-#order .meta-boxes .inside p.name { background-image:url('../icons/user.png'); }
-#order .meta-boxes .inside p.company { background-image:url('../icons/building.png'); }
-#order .meta-boxes .inside p.email { background-image:url('../icons/email.png'); }
-#order .meta-boxes .inside p.phone { background-image:url('../icons/phone.png'); }
-#order .meta-boxes .inside p.marketing { background-image:url('../icons/accept.png'); }
-#order .meta-boxes .inside p.nomarketing { background-image:url('../icons/delete.png'); }
-#order .meta-boxes .inside p.customer { background-repeat:no-repeat;background-position:0px 5px;padding-left:24px;line-height:18px; }
+#order .meta-boxes address { white-space: normal; width: inherit; }
+#order-contact .customer { background-repeat:no-repeat;background-position:0px 5px;padding-left:24px;line-height:18px; }
+#order-contact p a { display: inline-block; }
+#order-contact .name { background-image:url('../icons/user.png'); }
+#order-contact .company { background-image:url('../icons/building.png'); }
+#order-contact .email { background-image:url('../icons/email.png'); }
+#order-contact .phone { background-image:url('../icons/phone.png'); }
+#order-contact .marketing { background-image:url('../icons/accept.png'); }
+#order-contact .nomarketing { background-image:url('../icons/delete.png'); }
 
 #order span.date { color:#777;border-left:1px solid #aaa;margin-left:10px;padding-left:10px; }
 #order #titlewrap { font-size: 1.2em; text-shadow: white 0px 1px 0px; }

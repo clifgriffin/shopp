@@ -58,7 +58,7 @@ function contact_meta_box ($Purchase) {
 	?></p>
 	<?php echo !empty($Purchase->company)?'<p class="customer company">'.esc_html($Purchase->company).'</p>':''; ?>
 	<?php echo !empty($Purchase->email)?'<p class="customer email"><a href="'.esc_url($email_url).'">'.esc_html($Purchase->email).'</a></p>':''; ?>
-	<?php echo !empty($Purchase->phone)?'<p class="customer phone"><a href="'.esc_url($phone_url).'">'.esc_html($Purchase->phone).'</a></p>':''; ?>
+	<?php echo !empty($Purchase->phone)?'<p class="customer phone"><a href="'.esc_attr($phone_url).'">'.esc_html($Purchase->phone).'</a></p>':''; ?>
 	<p class="customer <?php echo ($Purchase->Customer->marketing == "yes")?'marketing':'nomarketing'; ?>"><?php ($Purchase->Customer->marketing == "yes")?_e('Agreed to marketing','Shopp'):_e('No marketing','Shopp'); ?></p>
 <?php
 }
@@ -145,7 +145,7 @@ function status_meta_box ($Purchase) {
 	<p><span><input type="hidden" name="receipt" value="no" /><input type="checkbox" name="receipt" value="yes" id="include-order" checked="checked" /><label for="include-order">&nbsp;<?php _e('Include a copy of the order in the message','Shopp'); ?></label></span></p>
 </div>
 
-<p><span class="middle"><input type="hidden" name="notify" value="no" /><input type="checkbox" name="notify" value="yes" id="notify-customer" /><label for="notify-customer">&nbsp;<?php _e('Send a message to the customer','Shopp'); ?></label></span><br class="clear" /></p>
+<p><span class="middle"><input type="hidden" name="notify" value="no" /><input type="checkbox" name="notify" value="yes" id="notify-customer" /><label for="notify-customer">&nbsp;<?php _e('Send a message to the customer','Shopp'); ?></label></span></p>
 
 <p>
 	<span>
@@ -156,7 +156,6 @@ function status_meta_box ($Purchase) {
 <label for="order_status_menu"><?php _e('Order Status','Shopp'); ?>: <select name="status" id="order_status_menu">
 <?php echo menuoptions($UI->statusLabels,$Purchase->status,true); ?>
 </select></label></span>
-<br class="clear" />
 </p>
 </div>
 <div id="major-publishing-actions">
