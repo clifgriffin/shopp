@@ -54,7 +54,7 @@ jQuery(document).ready( function() {
 		module.behaviors();
 	}
 
-	<?php do_action('gateway_module_settings'); ?>
+	<?php do_action('shopp_gateway_module_settings'); ?>
 	
 	// Populate the payment options menu
 	var options = '';
