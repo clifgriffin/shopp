@@ -26,6 +26,7 @@
 				<a href="<?php shopp('cartitem','url'); ?>"><?php shopp('cartitem','name'); ?></a>
 				<?php shopp('cartitem','options','show=selected&before= (&after=)'); ?>
 				<?php shopp('cartitem','inputs-list'); ?>
+				<?php shopp('cartitem','addons-list'); ?>
 			</td>
 			<td><?php shopp('cartitem','quantity'); ?></td>
 			<td class="money"><?php shopp('cartitem','unitprice'); ?></td>
