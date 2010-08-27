@@ -684,10 +684,15 @@ class Catalog extends DatabaseObject {
 				if (isset($Shopp->Product->id) && isset($Shopp->Category->slug)) {
 					$Category = clone($Shopp->Category);
 					
-					if (isset($options['next']) && value_is_true($options['next']))
-						$Shopp->Product = $Category->adjacent_product(1);
-					if (isset($options['previous']) && value_is_true($options['previous']))
-						$Shopp->Product = $Category->adjacent_product(-1);
+					if (isset($options['load'])) {
+						if ($options['load'] == "next") $Shopp->Product = $Category->adjacent_product(1);
+						elseif ($options['load'] == "previous") $Shopp->Product = $Category->adjacent_product(-1);
+					} else {
+						if (isset($options['next']) && value_is_true($options['next']))
+							$Shopp->Product = $Category->adjacent_product(1);
+						elseif (isset($options['previous']) && value_is_true($options['previous']))
+							$Shopp->Product = $Category->adjacent_product(-1);
+					}
 				}
 
 				if (isset($options['load'])) return true;
