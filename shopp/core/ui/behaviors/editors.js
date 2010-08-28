@@ -725,7 +725,7 @@ function ImageUploads (id,type) {
 		upload_progress_handler : imageUploadProgress,
 		upload_error_handler : imageUploadError,
 		upload_success_handler : imageUploadSuccess,
-
+		
 		custom_settings : {
 			loaded: false,
 			targetHolder : false,
@@ -733,6 +733,7 @@ function ImageUploads (id,type) {
 			sorting : false
 			
 		},
+		prevent_swf_caching: $.browser.msie, // Prevents Flash caching issues in IE
 		debug: imageupload_debug
 		
 	}
@@ -880,9 +881,10 @@ function ImageUploads (id,type) {
 	}
 
 	function startImageUpload (file) {
-		this.targetHolder = $('<li class="image uploading"><input type="hidden" name="images[]" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo($('#lightbox'))
-		this.progressBar = this.targetHolder.find('div.bar');
-		this.sorting = this.targetHolder.find('input');
+		var targetHolder = this.targetHolder;
+		targetHolder = $('<li class="image uploading"><input type="hidden" name="images[]" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo($('#lightbox'))
+		this.progressBar = targetHolder.find('div.bar');
+		this.sorting = targetHolder.find('input');
 	}
 
 	function imageUploadProgress (file, loaded, total) {
@@ -894,19 +896,26 @@ function ImageUploads (id,type) {
 	}
 
 	function imageUploadSuccess (file, results) {
-		var image,img,deleteButton;
-		image = $.parseJSON(results);
+		var image = false,img,deleteButton,targetHolder = this.targetHolder;
+		try {
+			image = $.parseJSON(results);
+		} catch (ex) {
+			targetHolder.remove();
+			alert(results);
+			return false;
+		}
+		
 		if (!image.id) {
-			this.targetHolder.remove();
+			targetHolder.remove();
 			if (image.error) alert(image.error);
 			else alert(UNKNOWN_UPLOAD_ERROR);
 			return true;
 		}
 	
-		this.targetHolder.attr({'id':'image-'+image.id});
+		targetHolder.attr({'id':'image-'+image.id});
 		this.sorting.val(image.id);
-		img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(this.targetHolder).hide();
-		deleteButton = $('<button type="button" name="deleteImage" value="'+image.id+'" title="Delete product image&hellip;" class="deleteButton"><img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" /></button>').appendTo(this.targetHolder).hide();
+		img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(targetHolder).hide();
+		deleteButton = $('<button type="button" name="deleteImage" value="'+image.id+'" title="Delete product image&hellip;" class="deleteButton"><img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" /></button>').appendTo(targetHolder).hide();
 		sorting();
 		
 		this.progressBar.animate({'width':'76px'},250,function () { 
@@ -1072,6 +1081,7 @@ function FileUploader (button,defaultButton) {
 			targetLine : false,
 			progressBar : false
 		},
+		prevent_swf_caching: $.browser.msie, // Prevents Flash caching issues in IE
 		debug: fileupload_debug
 		
 	}
@@ -1156,14 +1166,21 @@ function FileUploader (button,defaultButton) {
 	}
 
 	function uploadSuccess (file, results) {
-		var filedata = $.parseJSON(results),
-			targetCell = this.targetCell,
-			i = this.targetLine;
-		if (!filedata.id && !filedata.name) {
-			$(this.targetHolder).html(NO_DOWNLOAD);
+		var filedata = false,targetCell = this.targetCell,targetHolder = this.targetHolder,i = this.targetLine;
+		
+		try {
+			filedata = $.parseJSON(results);
+		} catch (ex) {
+			targetHolder.html(NO_DOWNLOAD);
+			alert(results);
+			return false;
+		}
+		
+		if (!filedata && !filedata.id && !filedata.name) {
+			targetHolder.html(NO_DOWNLOAD);
 			if (filedata.error) alert(filedata.error);
 			else alert(UNKNOWN_UPLOAD_ERROR);
-			return true;
+			return false;
 		}
 
 		filedata.type = filedata.type.replace(/\//gi," ");
