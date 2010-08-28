@@ -8,15 +8,14 @@
 	<?php include("navigation.php"); ?>
 	<br class="clear" />
 		
-	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post" id="order-status">
+	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post" id="order-updates">
 	<div id="order">
-		<p>
-		<div id="titlewrap">
-			<?php _e('Order','Shopp'); ?> #<?php echo $Purchase->id; ?><span class="date"><?php echo _d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small></span>
-			<input type="submit" id="print-button" value="<?php _e('Print Order','Shopp'); ?>" class="button" />
+		<div class="title">
+			<div id="titlewrap">
+				<?php _e('Order','Shopp'); ?> #<?php echo $Purchase->id; ?><span class="date"><?php echo _d(get_option('date_format'), $Purchase->created); ?> <small><?php echo date(get_option('time_format'),$Purchase->created); ?></small></span>
+				<input type="submit" id="print-button" value="<?php _e('Print Order','Shopp'); ?>" class="button" />
+			</div>
 		</div>
-		</p>
-		<div id="poststuff" class="poststuff">
 		<?php if (sizeof($Purchase->purchased) > 0): ?>
 		<table class="widefat" cellspacing="0">
 			<thead>
@@ -90,6 +89,7 @@
 			<p class="warning"><?php _e('There were no items found for this purchase.','Shopp'); ?></p>
 		<?php endif; ?>
 		
+		<div id="poststuff" class="poststuff">
 		
 		<div class="meta-boxes">
 
@@ -116,7 +116,7 @@
 <iframe id="print-receipt" name="receipt" src="<?php echo wp_nonce_url(admin_url('admin-ajax.php').'?action=shopp_order_receipt&amp;id='.$Purchase->id,'wp_ajax_shopp_order_receipt'); ?>" width="400" height="100" class="invisible"></iframe>
 
 <script type="text/javascript">
-
+/* <![CDATA[ */
 jQuery(document).ready(function() {
 	var $=jQuery.noConflict();
 	var noteurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>';
@@ -180,13 +180,13 @@ jQuery(document).ready(function() {
 			if (msg == '1') return;
 			var editor = $('<textarea name="note-editor['+id+']" cols="50" rows="10" />').val(msg).prependTo(cell);
 			var buttons = $('<p class="alignright" />').appendTo(meta);
-			var cancel = $('<button type="button" name="cancel" class="button-secondary">Cancel</button>').appendTo(buttons).click(function () {
+			var cancel = $('<button type="button" name="cancel" class="button-secondary">Cancel<\/button>').appendTo(buttons).click(function () {
 				buttons.remove();
 				editor.remove();
 				note.show();
 				ctrls.addClass('notectrls');
 			});
-			var save = $('<button type="submit" name="edit-note['+id+']" class="button-primary">Save Note</button>').appendTo(buttons);
+			var save = $('<button type="submit" name="edit-note['+id+']" class="button-primary">Save Note<\/button>').appendTo(buttons);
 			note.hide();
 			ctrls.hide().removeClass('notectrls');
 		});
@@ -214,5 +214,5 @@ jQuery(document).ready(function() {
 <?php do_action_ref_array('shopp_order_admin_script',array(&$Purchase)); ?>
 
 });
-
+/* ]]> */
 </script>

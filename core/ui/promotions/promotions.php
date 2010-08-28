@@ -35,14 +35,15 @@
 			$even = false; 
 			foreach ($Promotions as $Promotion): 
 			$editurl = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions','id'=>$Promotion->id)),admin_url('admin.php'));
+			$deleteurl = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions','delete[]'=>$Promotion->id,'deleting'=>'promotion')),admin_url('admin.php'));
 			$PromotionName = empty($Promotion->name)?'('.__('no promotion name').')':$Promotion->name;
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Promotion->id; ?>' /></th>
-			<td width="33%" class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $PromotionName; ?>&quot;'><?php echo $PromotionName; ?></a>
+			<td width="33%" class="name column-name"><a class='row-title' href='<?php echo esc_url($editurl); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;'><?php echo esc_html($PromotionName); ?></a>
 				<div class="row-actions">
-					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo $PromotionName; ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo $PromotionName; ?>&quot;' href='' rel="<?php echo $Promotion->id; ?>"><?php _e('Delete','Shopp'); ?></a></span>
+					<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
+					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;' href="<?php echo esc_url($deleteurl); ?>" rel="<?php echo $Promotion->id; ?>"><?php _e('Delete','Shopp'); ?></a></span>
 				</div>				
 				
 			</td>

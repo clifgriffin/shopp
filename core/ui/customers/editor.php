@@ -38,12 +38,13 @@
 <div id="ends-calendar" class="calendar"></div>
 
 <script type="text/javascript">
-var PWD_INDICATOR = "<?php _e('Strength indicator','Shopp'); ?>";
+/* <![CDATA[ */
 
-var PWD_GOOD = "<?php _e('Good','Shopp'); ?>";
-var PWD_BAD = "<?php _e('Bad','Shopp'); ?>";
-var PWD_SHORT = "<?php _e('Short','Shopp'); ?>";
-var PWD_STRONG = "<?php _e('Strong','Shopp'); ?>";
+var PWD_INDICATOR = "<?php _e('Strength indicator','Shopp'); ?>",
+	PWD_GOOD = "<?php _e('Good','Shopp'); ?>",
+	PWD_BAD = "<?php _e('Bad','Shopp'); ?>",
+	PWD_SHORT = "<?php _e('Short','Shopp'); ?>",
+	PWD_STRONG = "<?php _e('Strong','Shopp'); ?>";
 
 jQuery(document).ready( function() {
 
@@ -89,10 +90,10 @@ function updateStates (country,state)  {
 		if ($(selector).children().length > 1) $(text).val('');
 		if ($(selector).attr('type') == "text") return true;
 		$(selector).empty().attr('disabled',true);
-		$('<option></option>').val('').html('').appendTo(selector);
+		$('<option><\/option>').val('').html('').appendTo(selector);
 		if (regions[this.value]) {
 			$.each(regions[this.value], function (value,label) {
-				option = $('<option></option>').val(value).html(label).appendTo(selector);
+				option = $('<option><\/option>').val(value).html(label).appendTo(selector);
 			});
 			$(selector).attr('disabled',false);
 		}
@@ -155,5 +156,5 @@ function passwordStrength(password,username) {
 }
 
 });
-
+/* ]]> */
 </script>

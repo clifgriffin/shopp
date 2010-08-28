@@ -1,7 +1,7 @@
 <div class="wrap shopp">
 
 	<div class="icon32"></div>
-	<h2><?php _e('Products','Shopp'); ?> <a href="<?php echo add_query_arg(array('page'=>$this->Admin->pagename('products'),'id'=>'new'),admin_url('admin.php')); ?>" class="button add-new"><?php _e('Add New','Shopp'); ?></a></h2>
+	<h2><?php _e('Products','Shopp'); ?> <a href="<?php echo esc_url( add_query_arg(array('page'=>$this->Admin->pagename('products'),'id'=>'new'),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('Add New','Shopp'); ?></a></h2>
 
 	<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
 
@@ -28,7 +28,7 @@
 		<select name="sl" class="filters">
 		<?php echo $inventory_menu; ?>
 		</select>
-		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary">
+		<input type="submit" id="filter-button" value="<?php _e('Filter','Shopp'); ?>" class="button-secondary" />
 		</div>
 		<div class="clear"></div>
 	</div>
@@ -53,6 +53,12 @@
 					'id'=>$Product->id)),
 					admin_url('admin.php'))));
 
+		$delurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
+			array('page'=>'shopp-products',
+					'delete[]'=>$Product->id,
+					'deleteing'=>'product')),
+					admin_url('admin.php'))));
+
 		$dupurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>'shopp-products',
 					'duplicate'=>$Product->id)),
@@ -63,15 +69,15 @@
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
-			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;'><?php echo $ProductName; ?></a>
+			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;'><?php echo esc_html($ProductName); ?></a>
 				<div class="row-actions">
-					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='edit'><a href="<?php echo $dupurl; ?>" title="<?php _e('Duplicate','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;"><?php _e('Duplicate','Shopp'); ?></a> | </span>
-					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;' href='' rel="<?php echo $Product->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
-					<span class='view'><a href="<?php echo shoppurl(SHOPP_PRETTYURLS?$Product->slug:array('shopp_pid'=>$Product->id)); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
+					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
+					<span class='edit'><a href="<?php echo $dupurl; ?>" title="<?php _e('Duplicate','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Duplicate','Shopp'); ?></a> | </span>
+					<span class='delete'><a class="submitdelete" title="<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" href="<?php echo $delurl; ?>" rel="<?php echo $Product->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
+					<span class='view'><a href="<?php echo shoppurl(SHOPP_PRETTYURLS?$Product->slug:array('shopp_pid'=>$Product->id)); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>
 				</td>
-			<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo $Product->categories; ?></td>
+			<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo esc_html($Product->categories); ?></td>
 			<td class="price column-price<?php echo in_array('price',$hidden)?' hidden':''; ?>"><?php
 				if ($Product->variations == "off") echo money($Product->mainprice);
 				elseif ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);

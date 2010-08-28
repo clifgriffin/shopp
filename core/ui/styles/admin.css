@@ -72,7 +72,7 @@ div.comment-item:hover .row-actions { visibility:visible; }
 #product #variations p { margin:6px 0; }
 #product #prices-loading { width:100%;height:120px;background-position:center center; }
 #product #scheduling,
-#product #schedule-toggling { display: none; }
+#product #schedule-toggling { display:none; }
 #scheduling input { text-align: center; }
 
 /* Image details modal */
@@ -272,7 +272,7 @@ span.indent { display: inline-block; width: 36px; }
 form { position:relative; }
 p.controls { position:absolute;top:0;right:0;margin:0; }
 
-.shopp .postbox p { text-indent:0;display:block;padding:4px 0;margin:0;line-height:1; }
+.shopp .postbox p { text-indent:0;display:block;padding:4px 0;margin:0;line-height:1;overflow:hidden;padding-right: 5px;}
 .shopp .postbox p input,
 .shopp .postbox p select { width:100%; }
 .shopp .postbox p span { float:left;padding:0 5px 0 0;display:inline-block;text-align:left; }
@@ -306,6 +306,7 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 
 /* Order Management */
 #order { position:relative; }
+#order .title { margin: 1em 0; line-height: 140%; }
 #order address { font-style:normal; }
 #order fieldset { float:left;width:auto;width:23%;padding:10px;border:1px solid #dadada;margin-bottom:30px; }
 #order table.transaction { float:right;margin-bottom:10px; }
@@ -421,7 +422,9 @@ p.controls { position:absolute;top:0;right:0;margin:0; }
 #order-statuslabels button.delete { position:relative;left:-25px;margin-right:-18px; }
 #print-button { position:absolute;right:15px; }
 
-#orders div.actions span.filtering { margin-left:10px; }
+.shopp div.inline div { display: inline; }
+.shopp div.inline div.hidden { display: none; }
+.shopp .actions .filtering { margin-left:10px; }
 .shopp #report li { display:inline;margin-right:20px; }
 .shopp #report li span { color:#777; }
 

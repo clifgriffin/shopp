@@ -182,8 +182,8 @@ class Warehouse extends AdminController {
 			$categories_menu .= '<option value="-"'.($cat=='-'?' selected="selected"':'').'>'.__('Uncategorized','Shopp').'</option>';
 			foreach ($categories as $category) {
 				$padding = str_repeat("&nbsp;",$category->depth*3);
-				if ($cat == $category->id) $categories_menu .= '<option value="'.$category->id.'" selected="selected">'.$padding.$category->name.'</option>';
-				else $categories_menu .= '<option value="'.$category->id.'">'.$padding.$category->name.'</option>';
+				if ($cat == $category->id) $categories_menu .= '<option value="'.$category->id.'" selected="selected">'.$padding.esc_html($category->name).'</option>';
+				else $categories_menu .= '<option value="'.$category->id.'">'.$padding.esc_html($category->name).'</option>';
 			}
 			$inventory_filters = array(
 				'all' => __('View all products','Shopp'),

@@ -32,7 +32,7 @@ function ModuleSetting (module,name,label,multi) {
 		 	ui = '<th scope="row"><label>'+_.name+'</label><br />'+
 				'<input type="text" name="'+labelName+'" value="'+label+'" id="'+id+'-label" size="16" class="selectall" /><br />'+
 				'<small><label for="'+id+'-label">'+SHOPP_PAYMENT_OPTION+'</label></small></th>',
-		 	row = $('<tr class="form-required" />').html(ui).appendTo('#payment-settings'),
+		 	row = $('<tr />').html(ui).appendTo('#payment-settings'),
 		 	settingsTableCell = $('<td/>').appendTo(row),
 		 	deleteButton = $('<button type="button" name="deleteRate" class="delete deleteRate"><img src="'+SHOPP_PLUGINURI+'/core/ui/icons/delete.png" width="16" height="16" /></button>').appendTo(settingsTableCell).hide(),
 			bodyBG = $('html').css('background-color'),
@@ -89,7 +89,7 @@ function ModuleSetting (module,name,label,multi) {
 			ui = '<th scope="row"><label>'+_.name+'</label><br />'+
 				'<input type="text" name="'+labelName+'" value="'+label+'" id="'+id+'-label" size="16" class="selectall" /><br />'+
 				'<small><label for="'+id+'-label">'+SHOPP_PAYMENT_OPTION+'</label></small></th>',
-			row = $('<tr class="form-required" />').html(ui).appendTo('#payment-settings'),
+			row = $('<tr />').html(ui).appendTo('#payment-settings'),
 			settingsTableCell = $('<td/>').appendTo(row),
 			deleteButton = $('<button type="button" name="deleteRate" class="delete deleteRate"><img src="'+SHOPP_PLUGINURI+'/core/ui/icons/delete.png" width="16" height="16" /></button>').appendTo(settingsTableCell).hide(),
 			bodyBG = $('html').css('background-color'),

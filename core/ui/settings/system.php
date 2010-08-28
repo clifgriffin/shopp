@@ -26,29 +26,29 @@
 	            </td>
 			</tr>
 
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="rebuild-index"><?php _e('Search Index','Shopp'); ?></label></th> 
 				<td><button type="button" id="rebuild-index" name="rebuild" class="button-secondary"><?php _e('Rebuild Product Search Index','Shopp'); ?></button><br /> 
 	            <?php _e('Update search indexes for all the products in the catalog.','Shopp'); ?></td>
 			</tr>			
 
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="image-cache"><?php _e('Image Cache','Shopp'); ?></label></th> 
 				<td><button type="submit" id="image-cache" name="rebuild" value="true" class="button-secondary"><?php _e('Delete Cached Images','Shopp'); ?></button><br />
 	            <?php _e('Removes all cached images so that they will be recreated.','Shopp'); ?></td>
 			</tr>			
 
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="uploader-toggle"><?php _e('Upload System','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[uploader_pref]" value="browser" /><input type="checkbox" name="settings[uploader_pref]" value="flash" id="uploader-toggle"<?php if ($this->Settings->get('uploader_pref') == "flash") echo ' checked="checked"'?> /><label for="uploader-toggle"> <?php _e('Enable Flash-based uploading','Shopp'); ?></label><br /> 
 	            <?php _e('Enable to use Adobe Flash uploads for accurate upload progress. Disable this setting if you are having problems uploading.','Shopp'); ?></td>
 			</tr>			
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="script-server"><?php _e('Script Loading','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[script_server]" value="script" /><input type="checkbox" name="settings[script_server]" value="plugin" id="script-server"<?php if ($this->Settings->get('script_server') == "plugin") echo ' checked="checked"'?> /><label for="script-server"> <?php _e('Load behavioral scripts through WordPress','Shopp'); ?></label><br /> 
-	            <?php _e('Enable this setting when experiencing problems loading scripts with the Shopp Script Server','Shopp'); ?><br /><p></p>
-				<input type="hidden" name="settings[script_loading]" value="catalog" /><input type="checkbox" name="settings[script_loading]" value="global" id="script-loading"<?php if ($this->Settings->get('script_loading') == "global") echo ' checked="checked"'?> /><label for="script-loading"> <?php _e('Enable Shopp behavioral scripts site-wide','Shopp'); ?></label><br /> 
-	            <?php _e('Enable this to make Shopp behaviors available across all of your WordPress posts and pages.','Shopp'); ?>
+	            <?php _e('Enable this setting when experiencing problems loading scripts with the Shopp Script Server','Shopp'); ?>
+				<div><input type="hidden" name="settings[script_loading]" value="catalog" /><input type="checkbox" name="settings[script_loading]" value="global" id="script-loading"<?php if ($this->Settings->get('script_loading') == "global") echo ' checked="checked"'?> /><label for="script-loading"> <?php _e('Enable Shopp behavioral scripts site-wide','Shopp'); ?></label><br /> 
+	            <?php _e('Enable this to make Shopp behaviors available across all of your WordPress posts and pages.','Shopp'); ?></div>
 	
 	</td>
 			</tr>			
@@ -147,7 +147,7 @@ jQuery(document).ready(function() {
 			'innerWidth':'250', 
 			'innerHeight':'50', 
 			'html':
-			'<div id="progress"><div class="bar"></div><div class="gloss"></div></div><iframe id="process" width="0" height="0" src="'+search_url+'&action=shopp_rebuild_search_index"></iframe>',
+			'<div id="progress"><div class="bar"><\/div><div class="gloss"><\/div><\/div><iframe id="process" width="0" height="0" src="'+search_url+'&action=shopp_rebuild_search_index"><\/iframe>',
 			'onComplete':function () {
 				progressbar = $('#progress div.bar');
 				progress();

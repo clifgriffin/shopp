@@ -58,14 +58,14 @@ jQuery(document).ready( function() {
 	
 	// Populate the payment options menu
 	var options = '';
-	options += '<option disabled="disabled">'+SHOPP_GATEWAY_MENU_PROMPT+'</option>';
+	options += '<option disabled="disabled">'+SHOPP_GATEWAY_MENU_PROMPT+'<\/option>';
 	$.each(handlers['options'],function (id,object) {
 		var disabled = '';
 		if ($.inArray(id,gateways) != -1) {
 			handlers.call(id);
 			if (!object.multi) disabled = ' disabled="disabled"';
 		}
-		options += '<option value="'+id+'"'+disabled+'>'+object.name+'</option>';
+		options += '<option value="'+id+'"'+disabled+'>'+object.name+'<\/option>';
 	});
 	$('#payment-option-menu').html(options);
 	

@@ -20,7 +20,7 @@ function save_meta_box ($Product) {
 		<input type="hidden" name="id" value="<?php echo $Product->id; ?>" />
 		
 		<div class="misc-pub-section misc-pub-section-last">
-			<input type="hidden" name="status" value="draft" /><input type="checkbox" name="status" value="publish" id="published" tabindex="11" <?php if ($Product->status == "publish") echo ' checked="checked"'?> /><label for="published"><strong> <?php if ($Product->published() && !empty($Product->id)) _e('Published','Shopp'); else _e('Publish','Shopp'); ?></strong> <span id="publish-status"><?php if ($Product->publish>1) printf(__('on: %s'),"<br />".date($date_format.' @ '.$time_format,$Product->publish)); ?></span></label> <span id="schedule-toggling"><button type="button" name="schedule-toggle" id="schedule-toggle" class="button-secondary"><small><?php if ($Product->publish>1) _e('Edit','Shopp'); else _e('Schedule','Shopp'); ?></small></button></span>
+			<input type="hidden" name="status" value="draft" /><input type="checkbox" name="status" value="publish" id="published" tabindex="11" <?php if ($Product->status == "publish") echo ' checked="checked"'?> /><label for="published"><strong> <?php if ($Product->published() && !empty($Product->id)) _e('Published','Shopp'); else _e('Publish','Shopp'); ?></strong> <span id="publish-status"><?php if ($Product->publish>1) printf(__('on: %s'),"</span><br />".date($date_format.' @ '.$time_format,$Product->publish)); else echo "</span>"; ?></label> <div id="schedule-toggling"><button type="button" name="schedule-toggle" id="schedule-toggle" class="button-secondary"><small><?php if ($Product->publish>1) _e('Edit','Shopp'); else _e('Schedule','Shopp'); ?></small></button></div>
 
 			<div id="scheduling">
 				<div id="schedule-calendar" class="calendar-wrap">
@@ -62,11 +62,11 @@ function categories_meta_box ($Product) {
 	$categories = $db->query("SELECT id,name,parent FROM $category_table ORDER BY parent,name",AS_ARRAY);
 	$categories = sort_tree($categories);
 	if (empty($categories)) $categories = array();
-	
-	$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>';
+
+	$categories_menu = '<option value="0">'.__('Parent Category','Shopp').'&hellip;</option>';
 	foreach ($categories as $category) {
 		$padding = str_repeat("&nbsp;",$category->depth*3);
-		$categories_menu .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'">'.$padding.$category->name.'</option>';
+		$categories_menu .= '<option value="'.$category->id.'">'.$padding.esc_html($category->name).'</option>';
 	}		
 
 	$selectedCategories = array();
@@ -81,7 +81,7 @@ function categories_meta_box ($Product) {
 				</ul></li>
 			<?php endfor; ?>
 		<?php endif; ?>
-		<li id="category-element-<?php echo $category->id; ?>"><input type="checkbox" name="categories[]" value="<?php echo $category->id; ?>" id="category-<?php echo $category->id; ?>" tabindex="3"<?php if (in_array($category->id,$selectedCategories)) echo ' checked="checked"'; ?> class="category-toggle" /><label for="category-<?php echo $category->id; ?>"><?php echo $category->name; ?></label></li>
+		<li id="category-element-<?php echo $category->id; ?>"><input type="checkbox" name="categories[]" value="<?php echo $category->id; ?>" id="category-<?php echo $category->id; ?>" tabindex="3"<?php if (in_array($category->id,$selectedCategories)) echo ' checked="checked"'; ?> class="category-toggle" /><label for="category-<?php echo $category->id; ?>"><?php echo esc_html($category->name); ?></label></li>
 		<?php $depth = $category->depth; endforeach; ?>
 		<?php for ($i = 0; $i < $depth; $i++): ?>
 			</ul></li>

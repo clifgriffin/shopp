@@ -296,7 +296,7 @@ class Categorize extends AdminController {
 		
 		
 		$categories_menu = $this->menu($Category->parent,$Category->id);
-		$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
+		$categories_menu = '<option value="0">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
 
 		$uploader = $Shopp->Settings->get('uploader_pref');
 		if (!$uploader) $uploader = 'flash';
@@ -435,7 +435,7 @@ class Categorize extends AdminController {
 			$padding = str_repeat("&nbsp;",$category->depth*3);
 			$selected = ($category->id == $selection)?' selected="selected"':'';
 			$disabled = ($current && $category->id == $current)?' disabled="disabled"':'';
-			$options .= '<option value="'.$category->id.'" rel="'.$category->parent.','.$category->depth.'"'.$selected.$disabled.'>'.$padding.$category->name.'</option>';
+			$options .= '<option value="'.$category->id.'"'.$selected.$disabled.'>'.$padding.esc_html($category->name).'</option>';
 		}
 		return $options;
 	}

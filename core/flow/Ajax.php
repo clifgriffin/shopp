@@ -81,7 +81,9 @@ class AjaxFlow {
 			$Shopp->Purchase = new Purchase($_GET['id']);
 			$Shopp->Purchase->load_purchased();
 		} else die('-1');
-		echo "<html><head>";
+		echo "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
+			\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">
+		<html><head><title>".get_bloginfo('name').' &mdash; '.__('Order','Shopp').' #'.$Shopp->Purchase->id."</title>";
 			echo '<style type="text/css">body { padding: 20px; font-family: Arial,Helvetica,sans-serif; }</style>';
 			echo "<link rel='stylesheet' href='".SHOPP_TEMPLATES_URI."/shopp.css' type='text/css' />";
 		echo "</head><body>";

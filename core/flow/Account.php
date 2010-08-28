@@ -290,7 +290,7 @@ class Account extends AdminController {
 		$Customer->total = $r->total;
 		
 		
-		$countries = array(''=>'');
+		$countries = array(''=>'&nbsp;');
 		$countrydata = Lookup::countries();
 		foreach ($countrydata as $iso => $c) {
 			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso) 
@@ -300,8 +300,8 @@ class Account extends AdminController {
 		$Customer->countries = $countries;
 
 		$regions = Lookup::country_zones();
-		$Customer->billing_states = array_merge(array(''),(array)$regions[$Customer->Billing->country]);
-		$Customer->shipping_states = array_merge(array(''),(array)$regions[$Customer->Shipping->country]);
+		$Customer->billing_states = array_merge(array(''=>'&nbsp;'),(array)$regions[$Customer->Billing->country]);
+		$Customer->shipping_states = array_merge(array(''=>'&nbsp;'),(array)$regions[$Customer->Shipping->country]);
 
 		include(SHOPP_ADMIN_PATH."/customers/editor.php");
 	}
