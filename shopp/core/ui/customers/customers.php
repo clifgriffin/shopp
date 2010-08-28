@@ -2,7 +2,7 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Customers','Shopp'); ?></h2>
 
-	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="orders" method="get">
+	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" id="orders-list" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $page; ?>" />
 		<input type="hidden" name="status" value="<?php echo $status; ?>" />
@@ -15,19 +15,19 @@
 	</p>
 	
 	<div class="tablenav">
-		<div class="alignleft actions">
+		<div class="alignleft actions inline">
 		<?php if(current_user_can('shopp_delete_customers')): ?><button type="submit" id="delete-button" name="deleting" value="customer" class="button-secondary"><?php _e('Delete','Shopp'); ?></button><?php endif; ?>
-			<span class="filtering">
-			<select name="range" id="range">
-				<?php echo menuoptions($ranges,$range,true); ?>
-			</select>
-			<span id="dates">
-			<div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo $startdate; ?>" size="10" class="search-input selectall" /></div>
-			<small><?php _e('to','Shopp'); ?></small>
-			<div id="end-position" class="calendar-wrap"><input type="text" id="end" name="end" value="<?php echo $enddate; ?>" size="10" class="search-input selectall" /></div>
-			</span>
-			<button type="submit" id="filter-button" name="filter" value="customers" class="button-secondary"><?php _e('Filter','Shopp'); ?></button>
-			</span>
+			<div class="filtering">
+				<select name="range" id="range">
+					<?php echo menuoptions($ranges,$range,true); ?>
+				</select>
+				<div id="dates" class="hidden">
+					<div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo $startdate; ?>" size="10" class="search-input selectall" /></div>
+					<small><?php _e('to','Shopp'); ?></small>
+					<div id="end-position" class="calendar-wrap"><input type="text" id="end" name="end" value="<?php echo $enddate; ?>" size="10" class="search-input selectall" /></div>
+				</div>
+				<button type="submit" id="filter-button" name="filter" value="customers" class="button-secondary"><?php _e('Filter','Shopp'); ?></button>
+			</div>
 			</div>
 			<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="clear"></div>
@@ -52,7 +52,7 @@
 			?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Customer->id; ?>' /></th>
-			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>'shopp-customers','id'=>$Customer->id),admin_url('admin.php')); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CustomerName); ?>&quot;'><?php echo esc_html($CustomerName); ?></a><?php echo !empty($Customer->company)?"<br />".esc_html($Customer->company):""; ?></td>
+			<td class="name column-name"><a class='row-title' href='<?php echo esc_url( add_query_arg(array('page'=>'shopp-customers','id'=>$Customer->id),admin_url('admin.php'))); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CustomerName); ?>&quot;'><?php echo esc_html($CustomerName); ?></a><?php echo !empty($Customer->company)?"<br />".esc_html($Customer->company):""; ?></td>
 			<td class="login column-login<?php echo in_array('login',$hidden)?' hidden':''; ?>"><?php echo esc_html($Customer->user_login); ?></td>
 			<td class="email column-email<?php echo in_array('email',$hidden)?' hidden':''; ?>"><a href="mailto:<?php echo esc_attr($Customer->email); ?>"><?php echo esc_html($Customer->email); ?></a></td>
 			
@@ -66,7 +66,7 @@
 				$location .= $Customer->country;
 				echo esc_html($location);
 				 ?></td>
-			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><a href="<?php echo add_query_arg(array('page'=>'shopp-orders','customer'=>$Customer->id),admin_url('admin.php')); ?>"><?php echo $Customer->orders; ?> &mdash; <?php echo money($Customer->total); ?></a></td>
+			<td class="total column-total<?php echo in_array('total',$hidden)?' hidden':''; ?>"><a href="<?php echo esc_url( add_query_arg(array('page'=>'shopp-orders','customer'=>$Customer->id),admin_url('admin.php'))); ?>"><?php echo $Customer->orders; ?> &mdash; <?php echo money($Customer->total); ?></a></td>
 			<td class="date column-date<?php echo in_array('date',$hidden)?' hidden':''; ?>"><?php echo date("Y/m/d",mktimestamp($Customer->created)); ?></td>
 		</tr>
 		<?php endforeach; ?>

@@ -10,7 +10,7 @@
 		<?php include("navigation.php"); ?>
 		
 		<table class="form-table"> 
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="update-key"><?php _e('Update Key','Shopp'); ?></label></th> 
 				<td>
 					<input type="<?php echo $type; ?>" name="updatekey" id="update-key" size="40" value="<?php echo esc_attr($key); ?>"<?php echo ($activated)?' readonly="readonly"':''; ?> />
@@ -18,15 +18,15 @@
 					<br /><div id="activation-status" class="activating hidden"><?php printf(__('Activate your Shopp access key for automatic updates and official support services. If you don\'t have a Shopp key, feel free to support the project by <a href="%s">purchasing a key from shopplugin.net</a>.','Shopp'),SHOPP_HOME.'store/'); ?></div>
 	            </td>
 			</tr>			
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="merchant_email"><?php _e('Merchant Email','Shopp'); ?></label></th> 
 				<td><input type="text" name="settings[merchant_email]" value="<?php echo esc_attr($this->Settings->get('merchant_email')); ?>" id="merchant_email" size="30" /><br /> 
 	            <?php _e('Enter the email address for the owner of this shop to receive e-mail notifications.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="base_operations"><?php _e('Base of Operations','Shopp'); ?></label></th> 
 				<td><select name="settings[base_operations][country]" id="base_operations">
-					<option></option>
+					<option value="">&nbsp;</option>
 						<?php echo menuoptions($countries,$operations['country'],true); ?>
 					</select>
 					<select name="settings[base_operations][zone]" id="base_operations_zone">
@@ -40,7 +40,7 @@
 					<?php endif; ?>
 				</td> 
 			</tr>
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="target_markets"><?php _e('Target Markets','Shopp'); ?></label></th> 
 				<td>
 					<div id="target_markets" class="multiple-select">
@@ -59,12 +59,12 @@
 					<br /> 
 	            <?php _e('Select the markets you are selling products to.','Shopp'); ?></td> 
 			</tr>
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="dashboard-toggle"><?php _e('Dashboard Widgets','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[dashboard]" value="off" /><input type="checkbox" name="settings[dashboard]" value="on" id="dashboard-toggle"<?php if ($this->Settings->get('dashboard') == "on") echo ' checked="checked"'?> /><label for="dashboard-toggle"> <?php _e('Enabled','Shopp'); ?></label><br /> 
 	            <?php _e('Check this to display store performance metrics and more on the WordPress Dashboard.','Shopp'); ?></td>
 			</tr>			
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="cart-toggle"><?php _e('Order Status Labels','Shopp'); ?></label></th> 
 				<td>
 				<ol id="order-statuslabels">
@@ -87,7 +87,7 @@ var labels = <?php echo json_encode($statusLabels); ?>,
 	SHOPP_DEACTIVATE_KEY = "<?php _e('Deactivate Key','Shopp'); ?>",
 	SHOPP_CONNECTING = "<?php _e('Connecting','Shopp'); ?>",
 	SHOPP_CONFIRM_DELETE_LABEL = "<?php _e('Are you sure you want to remove this order status label?','Shopp'); ?>",
-	SHOPP_CUSTOMER_SERVICE = " <?php printf(__('Contact <a href=\"%s\">customer service</a>.','Shopp'),SHOPP_CUSTOMERS); ?>",
+	SHOPP_CUSTOMER_SERVICE = " <?php printf(__('Contact <a href=\"%s\">customer service<\/a>.','Shopp'),SHOPP_CUSTOMERS); ?>",
 	keyStatus = {
 		'-000':"<?php _e('The server could not be reached because of a connection problem.','Shopp'); ?>",
 		'-1':"<?php _e('An unkown error occurred.','Shopp'); ?>",

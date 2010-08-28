@@ -321,7 +321,7 @@ class AdminFlow extends FlowController {
 	 **/
 	function boxhelp ($id) {
 		$helpurl = add_query_arg(array('src'=>'help','id'=>$id),admin_url('admin.php'));
-		return apply_filters('shopp_admin_boxhelp','<a href="'.$helpurl.'" class="help"></a>');
+		return apply_filters('shopp_admin_boxhelp','<a href="'.esc_url($helpurl).'" class="help"></a>');
 	}
 	
 	/**

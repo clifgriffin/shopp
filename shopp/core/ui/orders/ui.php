@@ -177,6 +177,7 @@ function notes_meta_box ($Purchase) {
 	add_filter('shopp_order_note', 'wpautop');
 	
 ?>
+<?php if (!empty($Notes->meta)): ?>
 <table>
 	<?php foreach ($Notes->meta as $Note): $User = get_userdata($Note->value->author); ?>
 	<tr>
@@ -197,6 +198,7 @@ function notes_meta_box ($Purchase) {
 	</tr>
 	<?php endforeach; ?>
 </table>
+<?php endif; ?>
 
 <div id="notation">
 	<p><label for="notes"><?php _e('New Note','Shopp'); ?>:</label><br />

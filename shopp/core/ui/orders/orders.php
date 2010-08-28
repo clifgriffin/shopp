@@ -24,23 +24,23 @@
 	<?php endif; ?>
 	
 	<div class="tablenav">
-		<div class="alignleft actions">
+		<div class="alignleft actions inline">
 		<?php if (current_user_can('shopp_delete_orders')): ?><button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary"><?php _e('Delete','Shopp'); ?></button><?php endif; ?>
 			<select name="newstatus">
 				<?php echo menuoptions($statusLabels,false,true); ?>
 			</select>
 			<button type="submit" id="update-button" name="update" value="order" class="button-secondary"><?php _e('Update','Shopp'); ?></button>
-			<span class="filtering">
-			<select name="range" id="range">
-				<?php echo menuoptions($ranges,$range,true); ?>
-			</select>
-			<span id="dates">
-			<div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo $startdate; ?>" size="10" class="search-input selectall" /></div>
-			<small>to</small>
-			<div id="end-position" class="calendar-wrap"><input type="text" id="end" name="end" value="<?php echo $enddate; ?>" size="10" class="search-input selectall" /></div>
-			</span>
-			<button type="submit" id="filter-button" name="filter" value="order" class="button-secondary"><?php _e('Filter','Shopp'); ?></button>
-			</span>
+			<div class="filtering">
+				<select name="range" id="range">
+					<?php echo menuoptions($ranges,$range,true); ?>
+				</select>
+				<div id="dates">
+					<div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo $startdate; ?>" size="10" class="search-input selectall" /></div>
+					<small>to</small>
+					<div id="end-position" class="calendar-wrap"><input type="text" id="end" name="end" value="<?php echo $enddate; ?>" size="10" class="search-input selectall" /></div>
+				</div>
+				<button type="submit" id="filter-button" name="filter" value="order" class="button-secondary"><?php _e('Filter','Shopp'); ?></button>
+			</div>
 			</div>
 			<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="clear"></div>
@@ -75,7 +75,7 @@
 		<tr class="<?php echo join(' ',$classes); ?>">
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Order->id; ?>' /></th>
 			<td class="order column-order<?php echo in_array('order',$hidden)?' hidden':''; ?>"><?php echo $Order->id; ?></td>
-			<td class="name column-name"><a class='row-title' href='<?php echo add_query_arg(array('page'=>'shopp-orders','id'=>$Order->id),$Shopp->wpadminurl."admin.php"); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo esc_html(empty($Order->firstname) && empty($Order->lastname))?"(".__('no contact name','Shopp').")":"{$Order->firstname} {$Order->lastname}"; ?></a><?php echo !empty($Order->company)?"<br />".esc_html($Order->company):""; ?></td>
+			<td class="name column-name"><a class='row-title' href='<?php echo esc_url(add_query_arg(array('page'=>'shopp-orders','id'=>$Order->id),admin_url('admin.php'))); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo esc_html(empty($Order->firstname) && empty($Order->lastname))?"(".__('no contact name','Shopp').")":"{$Order->firstname} {$Order->lastname}"; ?></a><?php echo !empty($Order->company)?"<br />".esc_html($Order->company):""; ?></td>
 			<td class="destination column-destination<?php echo in_array('destination',$hidden)?' hidden':''; ?>"><?php 
 				$location = '';
 				$location = $Order->shipcity;
@@ -106,7 +106,7 @@
 		<div class="alignleft actions">
 			<form action="<?php echo esc_url(add_query_arg(array_merge($_GET,array('src'=>'export_purchases')),admin_url("admin.php"))); ?>" id="log" method="post">
 			<button type="button" id="export-settings-button" name="export-settings" class="button-secondary"><?php _e('Export Options','Shopp'); ?></button>
-			<span id="export-settings" class="hidden">
+			<div id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">
 				<ul>
 					<li<?php $even = true; if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_columns" id="selectall_columns" /><label for="selectall_columns"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>	
@@ -122,7 +122,8 @@
 			<br />
 			<select name="settings[purchaselog_format]" id="purchaselog-format">
 				<?php echo menuoptions($exports,$formatPref,true); ?>
-			</select></span>
+			</select>
+			</div>
 			<button type="submit" id="download-button" name="download" value="export" class="button-secondary"><?php _e('Download','Shopp'); ?></button>
 			<div class="clear"></div>
 			</form>

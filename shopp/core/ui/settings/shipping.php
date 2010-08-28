@@ -10,16 +10,16 @@
 		<?php include("navigation.php"); ?>
 		
 		<table class="form-table"> 
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Calculate Shipping','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if ($this->Settings->get('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> <?php _e('Enabled','Shopp'); ?></label><br /> 
 	            <?php _e('Check this to use shipping. Leave un-checked to disable shipping &mdash; helpful if you are only selling subscriptions or downloads.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Weight Unit','Shopp'); ?></label></th> 
 				<td>
 				<select name="settings[weight_unit]" id="weight-unit">
-					<option></option>
+					<option value="">&nbsp;</option>
 						<?php
 							if ($base['units'] == "imperial") $units = array("oz" => __("ounces (oz)","Shopp"),"lb" => __("pounds (lbs)","Shopp"));
 							else $units = array("g"=>__("gram (g)","Shopp"),"kg"=>__("kilogram (kg)","Shopp"));
@@ -28,11 +28,11 @@
 				</select><br />
 				<?php _e('Used as unit of weight for all products.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Dimension Unit','Shopp'); ?></label></th> 
 				<td>
 				<select name="settings[dimension_unit]" id="dimension-unit">
-					<option></option>
+					<option value="">&nbsp;</option>
 						<?php
 							if ($base['units'] == "imperial") $units = array("in" => __("inches (in)","Shopp"),"ft" => __("feet (ft)","Shopp"));
 							else $units = array("cm"=>__("centimeters (cm)","Shopp"),"m"=>__("meters (m)","Shopp"));
@@ -41,27 +41,27 @@
 				</select><br />
 				<?php _e('Used as the unit of dimensions for all products.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="order_handling_fee"><?php _e('Order Handling Fee','Shopp'); ?></label></th> 
 				<td><input type="text" name="settings[order_shipfee]" value="<?php echo money($this->Settings->get('order_shipfee')); ?>" id="order_handling_fee" size="7" class="right selectall" /><br /> 
 	            <?php _e('Handling fee applied once to each order with shipped products.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="free_shipping_text"><?php _e('Free Shipping Text','Shopp'); ?></label></th> 
 				<td><input type="text" name="settings[free_shipping_text]" value="<?php echo esc_attr($this->Settings->get('free_shipping_text')); ?>" id="free_shipping_text" /><br /> 
 	            <?php _e('Text used to highlight no shipping costs (examples: Free shipping! or Shipping Included)','Shopp'); ?></td>
 			</tr>
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="outofstock-text"><?php _e('Out-of-stock Notice','Shopp'); ?></label></th> 
 				<td><input type="text" name="settings[outofstock_text]" value="<?php echo esc_attr($this->Settings->get('outofstock_text')); ?>" id="outofstock-text" /><br /> 
 	            <?php _e('Text used to notify the customer the product is out-of-stock or on backorder.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="lowstock-level"><?php _e('Low Inventory','Shopp'); ?></label></th> 
 				<td><input type="text" name="settings[lowstock_level]" value="<?php echo esc_attr($lowstock); ?>" id="lowstock-level" size="5" /><br /> 
 	            <?php _e('Enter the number for low stock level warnings.','Shopp'); ?></td>
 			</tr>
-			<tr class="form-required"> 
+			<tr> 
 				<th scope="row" valign="top"><label for="regional_rates"><?php _e('Domestic Regions','Shopp'); ?></label></th> 
 				<td><input type="hidden" name="settings[shipping_regions]" value="off" /><input type="checkbox" name="settings[shipping_regions]" value="on" id="regional_rates"<?php echo ($this->Settings->get('shipping_regions') == "on")?' checked="checked"':''; ?> /><label for="regional_rates"> <?php _e('Enabled','Shopp'); ?></label><br /> 
 	            <?php _e('Used for domestic regional shipping rates (only applies to operations based in the U.S. &amp; Canada)','Shopp'); ?><br />
@@ -100,7 +100,7 @@ jQuery(document).ready(function() {
 	function addShippingRate (r) {
 		if (!r) r = false;
 		var i = shippingRates.length;
-		var row = $('<tr class="form-required"></tr>').appendTo($('#shipping-rates'));
+		var row = $('<tr></tr>').appendTo($('#shipping-rates'));
 		var heading = $('<th scope="row" valign="top"><label for="name['+i+']" id="label-'+i+'"><?php echo addslashes(__('Option Name','Shopp')); ?></label><input type="hidden" name="priormethod-'+i+'" id="priormethod-'+i+'" /></th>').appendTo(row);
 		$('<br />').appendTo(heading);
 		var name = $('<input type="text" name="settings[shipping_rates]['+i+'][name]" value="" id="name-'+i+'" size="16" tabindex="'+(i+1)+'00" class="selectall" />').appendTo(heading);
