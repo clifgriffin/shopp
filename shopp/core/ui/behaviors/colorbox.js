@@ -61,6 +61,8 @@
 	event_complete = prefix + '_complete',
 	event_cleanup = prefix + '_cleanup',
 	event_closed = prefix + '_closed',
+	event_resize = 'resize.'+prefix,
+	
 	
 	// Special Handling for IE
 	isIE = $.browser.msie && !$.support.opacity, // feature detection alone gave a false positive on at least one phone browser and on some development versions of Chrome.
@@ -664,11 +666,11 @@
 	publicMethod.hide = function () {
 		open = false;
 		$(document).unbind("keydown.cbox_close keydown.cbox_arrows");
-		$window.unbind(cbox_resize+' resize.cboxie6 scroll.cboxie6');
+		$window.unbind('resize.'+prefix+' resize.cboxie6 scroll.cboxie6');
 		$overlay.css({cursor: 'auto'}).fadeOut('fast');
 
 		$loaded.css({'position':'absolute','left':'-9999em'});
-		$cbox.css({'opacity': 1,'left':'-9999em'});
+		$box.css({'opacity': 1,'left':'-9999em'});
 		
 	};
 
