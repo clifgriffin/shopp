@@ -54,37 +54,41 @@ class FSStorage extends StorageModule implements StorageEngine {
 	function save ($asset,$data,$type='binary') {
 		
 		if ($type == "upload") { // $data is an uploaded temp file path, just move the file
+			error_reporting(E_ALL);
+			ini_set( 'display_errors', 1 );
+			ini_set( 'log_errors', 1 );
+			
 			if (!is_readable($data)) die("$this->module: Could not read the file."); // Die because we can't use ShoppError
-			if (move_uploaded_file($data,$this->path.'/'.$asset->filename)) return $asset->filename;
+			if (move_uploaded_file($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
 			else die("$this->module: Could not move the uploaded file to the storage repository.");
 		} elseif ($type == "file") { // $data is a file path, just move the file
 			if (!is_readable($data)) die("$this->module: Could not read the file."); // Die because we can't use ShoppError
-			if (rename($data,$this->path.'/'.$asset->filename)) return $asset->filename;
+			if (rename($data,sanitize_path($this->path.'/'.$asset->filename))) return $asset->filename;
 			else die("$this->module: Could not move the file to the storage repository.");
 		}
 		
-		if (file_put_contents($this->path.'/'.$asset->filename,$data) > 0) return $asset->filename;
+		if (file_put_contents(sanitize_path($this->path.'/'.$asset->filename),$data) > 0) return $asset->filename;
 		else return false;
 	}
 	
 	function exists ($uri) {
-		$filepath = $this->path."/".$uri;
+		$filepath = sanitize_path($this->path."/".$uri);
 		return (file_exists($filepath) && is_readable($filepath));
 	}
 	
 	function load ($uri) {
-		return file_get_contents($this->path.'/'.$uri);
+		return file_get_contents(sanitize_path($this->path.'/'.$uri));
 	}
 	
 	function meta ($uri) {
 		$_ = array();
-		$_['size'] = filesize($this->path.'/'.$uri);
-		$_['mime'] = file_mimetype($this->path.'/'.$uri);
+		$_['size'] = filesize(sanitize_path($this->path.'/'.$uri));
+		$_['mime'] = file_mimetype(sanitize_path($this->path.'/'.$uri));
 		return $_;
 	}
 	
 	function output ($uri,$etag=false) {
-		$filepath = $this->path.'/'.$uri;
+		$filepath = sanitize_path($this->path.'/'.$uri);
 
 		if ($this->context == "download") {
 			if (!is_file($filepath)) {
