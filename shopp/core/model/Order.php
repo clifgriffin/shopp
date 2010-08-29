@@ -301,6 +301,7 @@ class Order {
 		if ($_POST['shipmethod'] == $this->Shipping->method) return;
 		
 		$this->Shipping->method = $_POST['shipmethod'];
+		$this->Cart->retotal = true;
 		$this->Cart->totals();
 	}
 	
