@@ -16,7 +16,7 @@ function billto_meta_box ($Purchase) {
 	<?php endif; ?>
 <?php
 }
-add_meta_box('order-billing', __('Billing Address','Shopp'), 'billto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
+add_meta_box('order-billing', __('Billing Address','Shopp').$Admin->boxhelp('order-manager-billing'), 'billto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function shipto_meta_box ($Purchase) {
 ?>
@@ -29,7 +29,7 @@ function shipto_meta_box ($Purchase) {
 <?php
 }
 if (!empty($Shopp->Purchase->shipaddress))
-	add_meta_box('order-shipto', __('Shipping Address','Shopp'), 'shipto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
+	add_meta_box('order-shipto', __('Shipping Address','Shopp').$Admin->boxhelp('order-manager-shipto'), 'shipto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function contact_meta_box ($Purchase) {
 	$customer_url = add_query_arg(array('page'=>'shopp-customers','id'=>$Purchase->customer),admin_url('admin.php'));
@@ -62,7 +62,7 @@ function contact_meta_box ($Purchase) {
 	<p class="customer <?php echo ($Purchase->Customer->marketing == "yes")?'marketing':'nomarketing'; ?>"><?php ($Purchase->Customer->marketing == "yes")?_e('Agreed to marketing','Shopp'):_e('No marketing','Shopp'); ?></p>
 <?php
 }
-add_meta_box('order-contact', __('Customer Contact','Shopp'), 'contact_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
+add_meta_box('order-contact', __('Customer Contact','Shopp').$Admin->boxhelp('order-manager-contact'), 'contact_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function orderdata_meta_box ($Purchase) {
 	$_[] = '<ul>';
@@ -80,7 +80,7 @@ function orderdata_meta_box ($Purchase) {
 }
 if (!empty($Shopp->Purchase->data) && is_array($Shopp->Purchase->data) && join("",$Shopp->Purchase->data) != ""
 		|| apply_filters('shopp_orderui_show_orderdata',false)) {
-			add_meta_box('order-data', __('Details','Shopp'), 'orderdata_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+			add_meta_box('order-data', __('Details','Shopp').$Admin->boxhelp('order-manager-details'), 'orderdata_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 		}
 
 function transaction_meta_box ($Purchase) {
@@ -96,7 +96,7 @@ function transaction_meta_box ($Purchase) {
 
 	echo apply_filters('shopp_orderui_payment_card',$output, $Purchase);
 }
-add_meta_box('order-transaction', __('Payment Method','Shopp'), 'transaction_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+add_meta_box('order-transaction', __('Payment Method','Shopp').$Admin->boxhelp('order-manager-transaction'), 'transaction_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 function shipping_meta_box ($Purchase) {
 ?>
@@ -119,7 +119,7 @@ function shipping_meta_box ($Purchase) {
 <?php
 }
 if (!empty($Shopp->Purchase->shipmethod))
-	add_meta_box('order-shipping', __('Shipping','Shopp'), 'shipping_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+	add_meta_box('order-shipping', __('Shipping','Shopp').$Admin->boxhelp('order-manager-shipping'), 'shipping_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 function downloads_meta_box ($Purchase) {
 ?>
@@ -133,7 +133,7 @@ function downloads_meta_box ($Purchase) {
 <?php
 }
 if ($Shopp->Purchase->downloads !== false)
-	add_meta_box('order-downloads', __('Downloads','Shopp'), 'downloads_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+	add_meta_box('order-downloads', __('Downloads','Shopp').$Admin->boxhelp('order-manager-downloads'), 'downloads_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 function status_meta_box ($Purchase) {
 	global $UI;
@@ -163,7 +163,7 @@ function status_meta_box ($Purchase) {
 </div>
 <?php
 }
-add_meta_box('order-status', __('Status','Shopp'), 'status_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core',2);
+add_meta_box('order-status', __('Status','Shopp').$Admin->boxhelp('order-manager-status'), 'status_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core',2);
 
 function notes_meta_box ($Purchase) {
 	global $Notes;
@@ -214,6 +214,6 @@ function notes_meta_box ($Purchase) {
 	<br class="clear" />
 <?php
 }
-add_meta_box('order-notes', __('Notes','Shopp'), 'notes_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
+add_meta_box('order-notes', __('Notes','Shopp').$Admin->boxhelp('order-manager-notes'), 'notes_meta_box', 'toplevel_page_shopp-orders', 'normal', 'core');
 
 ?>
