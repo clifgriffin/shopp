@@ -9,7 +9,7 @@
  * @package shopp
  **/
 
-require("Purchased.php");
+require_once("Purchased.php");
 
 class Purchase extends DatabaseObject {
 	static $table = "purchase";
@@ -28,12 +28,18 @@ class Purchase extends DatabaseObject {
 		$db = DB::get();
 
 		$table = DatabaseObject::tablename(Purchased::$table);
+		$meta = DatabaseObject::tablename(MetaObject::$table);
 		if (empty($this->id)) return false;
 		$this->purchased = $db->query("SELECT * FROM $table WHERE purchase=$this->id",AS_ARRAY);
 		foreach ($this->purchased as &$purchase) {
 			if (!empty($purchase->download)) $this->downloads = true;
 			$purchase->data = unserialize($purchase->data);
+			if ($purchase->addons == "yes") {
+				$purchase->addons = new ObjectMeta($purchase->id,'purchased','addon');
+				if (!$purchase->addons) $purchase->addons = new ObjectMeta();
+			}
 		}
+		
 		return true;
 	}
 	
@@ -287,6 +293,56 @@ class Purchase extends DatabaseObject {
 				foreach ($item->data as $name => $data) {
 					if (in_array($name,$excludes)) continue;
 					$result .= '<li><strong>'.esc_html($name).'</strong>: '.esc_html($data).'</li>';
+				}
+				$result .= '</ul>'.$after;
+				return $result;
+				break;
+			case "item-has-addons":
+			case "item-hasaddons": 
+				$item = current($this->purchased);
+				return (count($item->addons) > 0); break;
+			case "item-addons":
+				$item = current($this->purchased);
+				if (!isset($this->_itemaddons_loop)) {
+					reset($item->addons->meta);
+					$this->_itemaddons_loop = true;
+				} else next($item->addons->meta);
+
+				if (current($item->addons->meta) !== false) return true;
+				else {
+					unset($this->_itemaddons_loop);
+					return false;
+				}
+				break;
+			case "item-addons":
+				$item = current($this->purchased);
+				$addon = current($item->addons->meta);
+				if (isset($options['id'])) return esc_html($addon->id);
+				if (isset($options['name'])) return esc_html($addon->name);
+				if (isset($options['label'])) return esc_html($addon->name);
+				if (isset($options['type'])) return esc_html($addon->value->type);
+				if (isset($options['onsale'])) return $addon->value->onsale;
+				if (isset($options['inventory'])) return $addon->value->inventory;
+				if (isset($options['sku'])) return esc_html($addon->value->sku);
+				if (isset($options['unitprice'])) return money($addon->value->unitprice);
+				return money($addon->value->unitprice);
+				break;
+			case "item-addons-list":
+			case "item-addonslist":
+			case "item-addons-list":
+			case "itemaddonslist":
+				$item = current($this->purchased);
+				if (empty($item->addons)) return false;
+				$before = ""; $after = ""; $classes = ""; $excludes = array();
+				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
+				if (!empty($options['exclude'])) $excludes = explode(",",$options['exclude']);
+				if (!empty($options['before'])) $before = $options['before'];
+				if (!empty($options['after'])) $after = $options['after'];
+
+				$result .= $before.'<ul'.$classes.'>';
+				foreach ($item->addons->meta as $id => $addon) {
+					if (in_array($addon->name,$excludes)) continue;
+					$result .= '<li>'.esc_html($addon->name).' '.($addon->value->unitprice<0?'-':'+').money($addon->value->unitprice).'</li>';
 				}
 				$result .= '</ul>'.$after;
 				return $result;

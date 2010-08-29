@@ -236,8 +236,6 @@
 					if (kv.length == 2 && !options.params[kv[0]]) fparams[kv[0]] = kv[1];
 				});
 				
-				action = url;
-				
 				action = url+'?'+(fparams.length > 0?$.param(fparams)+'&':'')+$.param(options.params);
 				form[0].setAttribute('action',action);
 				
