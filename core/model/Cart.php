@@ -1455,7 +1455,7 @@ class CartShipping {
 			// Calculate any product-specific shipping fee markups
 			if ($Item->shipfee > 0) $this->fees += ($Item->quantity * $Item->shipfee);
 			// Run shipping module item calculations
-								do_action_ref_array('shopp_calculate_item_shipping',array($id,&$Item));
+			do_action_ref_array('shopp_calculate_item_shipping',array($id,&$Item));
 		}
 	
 		// Add order handling fee
