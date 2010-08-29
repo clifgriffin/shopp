@@ -68,12 +68,12 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 					previoustag = optiontext.lastIndexOf("(");
 					if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
 					option.attr('text',optiontext+"  ("+pricetag+")");
+					if ($.browser.msie) option.css('color','#373737');
 					if ((price.i && !price.s) || price.t == "N/A") {
 						if (option.attr('selected')) 
 							option.parent().attr('selectedIndex',0);
 						if (hideDisabled) option.remove();
-						else optionDisable(this);
-					
+						else optionDisable(option);
 					} else option.removeAttr(disabled).show();
 					if (price.t == "N/A" && hideDisabled) option.remove();
 				}
@@ -95,9 +95,9 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 	}
 	
 	function optionDisable (option) {
-		$(option).attr(disabled,true);
+		option.attr(disabled,true);
 		if (!$.browser.msie) return;
-		$(option).css('color','#ccc');
+		option.css('color','#ccc');
 	}
 	
 	function disabledHandler (menu) {

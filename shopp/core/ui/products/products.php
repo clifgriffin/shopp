@@ -48,10 +48,10 @@
 
 		$even = false; 
 		foreach ($Products as $key => $Product):
-		$editurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
+		$editurl = esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>'shopp-products',
 					'id'=>$Product->id)),
-					admin_url('admin.php'))));
+					admin_url('admin.php')));
 
 		$delurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>'shopp-products',
