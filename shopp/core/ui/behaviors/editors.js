@@ -580,6 +580,7 @@ function newAddonGroup (data) {
 			var key = e.keyCode || e.which; 
 			if (key != 9) return;
 			e.preventDefault(); 
+			option.label.blur();
 			addOptionButton.focus();
 		});
 		
@@ -601,14 +602,14 @@ function newAddonGroup (data) {
  
 	addonGroups[addon_group_idx++] = menu;
 	
-	menu.deleteButton.unbind('click');
-	menu.deleteButton.click(function () {
+	menu.deleteButton.unbind('click').click(function () {
 		$('#addon-list #addon-group-'+menu.index+' li').not('.ui-sortable-helper').find('input.id').each(function (id,option) {
 			if (Pricelines.row[$(option).val()])
 				Pricelines.row[$(option).val()].row.remove();
 		});
+		menu.deleteButton.trigger('delete');
 		menu.pricegroup.remove();
-		menu.remove();
+		menu.element.remove();
 	});
 
 	if (!data) {
@@ -617,6 +618,7 @@ function newAddonGroup (data) {
 			var key = e.keyCode || e.which; 
 			if (key != 9) return;
 			e.preventDefault(); 
+			menu.label.blur();
 			addMenuButton.focus();
 		});
 	}
