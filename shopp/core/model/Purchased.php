@@ -22,6 +22,37 @@ class Purchased extends DatabaseObject {
 		parent::copydata ($Item);
 		if (isset($Item->option->label))
 			$this->optionlabel = $Item->option->label;
+		
+		$this->addons = 'no';
+		if (empty($Item->addons) || !is_array($Item->addons)) return true; 
+		$addons = array();
+		// Create meta records for any addons
+		foreach ((array)$Item->addons as $i => $Addon) {
+			$Meta = new MetaObject(array(
+				'parent' => $this->id,
+				'context' => 'purchased',
+				'type' => 'meta',
+				'name' => $Addon->label
+			));
+			$Meta->context = 'purchased';
+			$Meta->type = 'addon';
+			$Meta->name = $Addon->label;
+			$Meta->value = serialize($Addon);
+			$Meta->numeral = $Addon->unitprice;
+			$addons[] = $Meta;
+		}
+		$this->addons = $addons;
+	}
+	
+	function save() {
+		$addons = $this->addons;					// Save current addons model
+		if (!empty($addons)) $this->addons = "yes";	// convert property to usable flag
+		parent::save();
+		foreach ($addons as $Addon) {
+			$Addon->parent = $this->id;
+			$Addon->save();	
+		}
+		$this->addons = $addons; // restore addons model
 	}
 	
 	function keygen() {

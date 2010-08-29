@@ -46,6 +46,7 @@
 			<td><?php shopp('purchase','item-name'); ?><?php shopp('purchase','item-options','before= – '); ?><br />
 				<?php shopp('purchase','item-sku')."<br />"; ?>
 				<?php shopp('purchase','item-download'); ?>
+				<?php shopp('purchase','item-addons-list'); ?>
 				</td>
 			<td><?php shopp('purchase','item-quantity'); ?></td>
 			<td class="money"><?php shopp('purchase','item-unitprice'); ?></td>

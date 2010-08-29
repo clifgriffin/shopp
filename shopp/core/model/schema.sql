@@ -300,6 +300,7 @@ CREATE TABLE <?php echo $purchased; ?> (
 	unittax float(20,6) NOT NULL default '0.00',
 	shipping float(20,6) NOT NULL default '0.00',
 	total float(20,6) NOT NULL default '0.00',
+	addons enum('yes','no') NOT NULL default 'no',
 	variation text NOT NULL,
 	data longtext NOT NULL,
 	created datetime NOT NULL default '0000-00-00 00:00:00',

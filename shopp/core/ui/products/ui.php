@@ -116,7 +116,6 @@ function tags_meta_box ($Product) {
 	<button type="button" name="addtags" id="add-tags" class="button-secondary" tabindex="5"><small><?php _e('Add','Shopp'); ?></small></button><input type="hidden" name="taglist" id="tags" value="<?php echo join(",",esc_attrs($taglist)); ?>" /><br />
 <label><?php _e('Separate tags with commas','Shopp'); ?></label>
 <div id="taglist">
-	<label><big><strong><?php _e('Tags for this product:','Shopp'); ?></strong></big></label><br />
 	<div id="tagchecklist" class="tagchecklist"></div>
 </div>
 <?php

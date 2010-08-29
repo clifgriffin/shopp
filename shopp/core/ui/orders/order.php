@@ -32,12 +32,16 @@
 					<td>
 						<?php echo $Item->name; ?>
 						<?php if (!empty($Item->optionlabel)) echo "({$Item->optionlabel})"; ?>
-						<?php if (is_array($Item->data) || !empty($Item->sku)): ?>
+						<?php if (is_array($Item->data) || !empty($Item->sku) || !empty($Item->addons)): ?>
 						<ul>
 						<?php if (!empty($Item->sku)): ?><li><small><?php _e('SKU','Shopp'); ?>: <strong><?php echo $Item->sku; ?></strong></small></li><?php endif; ?>
+						<?php foreach ($Item->addons->meta as $id => $addon): ?>
+							<li><small><?php echo apply_filters('shopp_purchased_addon_name',$addon->name); ?><?php if (!empty($addon->value->sku)) echo apply_filters('shopp_purchased_addon_sku',' [SKU: '.$addon->value->sku.']'); ?>: <strong><?php echo apply_filters('shopp_purchased_addon_unitprice',money($addon->value->unitprice)); ?></strong></small></li>
+						<?php endforeach; ?>
 						<?php foreach ($Item->data as $name => $value): ?>
 							<li><small><?php echo apply_filters('shopp_purchased_data_name',$name); ?>: <strong><?php echo apply_filters('shopp_purchased_data_value',$value); ?></strong></small></li>
-						<?php endforeach; endif; ?>
+						<?php endforeach; ?>
+						<?php endif; ?>
 						<?php do_action_ref_array('shopp_after_purchased_data',array(&$Item,&$Purchase)); ?>
 						</ul>
 					</td>

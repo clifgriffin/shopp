@@ -317,7 +317,7 @@ class Item {
 	 * @return object An Item variation object
 	 **/
 	function mapprice ($price) {
-		$map = array('id','type','label','onsale','promoprice','price','inventory','stock','options','dimensions');
+		$map = array('id','type','label','onsale','promoprice','price','inventory','stock','sku','options','dimensions');
 		$_ = new stdClass();
 		foreach ($map as $property) {
 			if (empty($price->options) && $property == 'label') continue;
@@ -351,22 +351,35 @@ class Item {
 	 **/
 	function unstock () {
 		if (!$this->inventory) return;
-		global $Shopp;
 		$db = DB::get();
+		$Settings =& ShoppSettings();
 		
 		// Update stock in the database
 		$table = DatabaseObject::tablename(Price::$table);
 		$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$this->priceline}' AND stock > 0");
 		
+		if (!empty($this->addons)) {
+			foreach ($this->addons as &$Addon) {
+				$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$Addon->id}' AND stock > 0");
+				$Addon->stock -= $this->quantity;
+				$product_addon = "$product ($Addon->label)";
+				if ($Addon->stock == 0)
+					new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product_addon),'outofstock_warning',SHOPP_STOCK_ERR);
+				elseif ($Addon->stock <= $Settings->get('lowstock_level'))
+					return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product_addon),'lowstock_warning',SHOPP_STOCK_ERR);
+				
+			}
+		}
+		
 		// Update stock in the model
 		$this->option->stock -= $this->quantity;
 
 		// Handle notifications
-		$product = $this->name.' ('.$this->option->label.')';
+		$product = "$this->name (".$this->option->label.")";
 		if ($this->option->stock == 0)
 			return new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product),'outofstock_warning',SHOPP_STOCK_ERR);
 		
-		if ($this->option->stock <= $Shopp->Settings->get('lowstock_level'))
+		if ($this->option->stock <= $Settings->get('lowstock_level'))
 			return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product),'lowstock_warning',SHOPP_STOCK_ERR);
 
 	}
@@ -399,7 +412,9 @@ class Item {
 		if ($stock !== false) return $stock;
 
 		$table = DatabaseObject::tablename(Price::$table);
-		$result = $db->query("SELECT stock FROM $table WHERE id='$this->priceline'");
+		$ids = array($this->priceline);
+		if (!empty($this->addons)) foreach ($this->addons as $addon) $ids[] = $addon->id;
+		$result = $db->query("SELECT min(stock) AS stock FROM $table WHERE 0 < FIND_IN_SET(id,'".join(',',$ids)."')");
 		if (isset($result->stock)) return $result->stock;
 
 		return $this->option->stock;
