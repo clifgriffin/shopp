@@ -933,9 +933,7 @@ class Storefront extends FlowController {
 			$Shopp->Product = new Product($atts['id']);
 		} else return "";
 		
-		if (isset($atts['nowrap']) && value_is_true($atts['nowrap']))
-			return $Shopp->Catalog->tag('product',$atts);
-		else return apply_filters('shopp_product_shortcode',$Shopp->Catalog->tag('product',$atts).'');
+		return apply_filters('shopp_product_shortcode',$Shopp->Catalog->tag('product',$atts).'');
 	}
 
 	/**
@@ -967,9 +965,7 @@ class Storefront extends FlowController {
 			unset($atts['id']);
 		} else return "";
 		
-		if (isset($atts['nowrap']) && value_is_true($atts['nowrap']))
-			return $Shopp->Catalog->tag($tag,$atts);
-		else return apply_filters('shopp_category_shortcode',$Shopp->Catalog->tag($tag,$atts).'');
+		return apply_filters('shopp_category_shortcode',$Shopp->Catalog->tag($tag,$atts).'');
 		
 	}
 	
