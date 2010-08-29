@@ -122,12 +122,17 @@
 <script type="text/javascript">
 /* <![CDATA[ */
 jQuery(document).ready(function() {
-	var $=jQuery.noConflict();
-	var noteurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>';
+	var $=jqnc(),
+		noteurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>';
 	
 	// close postboxes that should be closed
 	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	postboxes.add_postbox_toggles('toplevel_page_shopp-orders');
+	
+	$('.postbox a.help').click(function () {
+		$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
+		return false;
+	});
 	
 	$('#notification').hide();
 	$('#notify-customer').click(function () {

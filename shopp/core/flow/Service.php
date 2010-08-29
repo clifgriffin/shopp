@@ -31,6 +31,7 @@ class Service extends AdminController {
 
 		if (isset($_GET['id'])) {
 			wp_enqueue_script('postbox');
+			shopp_enqueue_script('colorbox');
 			add_action('load-toplevel_page_shopp-orders',array(&$this,'workflow'));
 			add_action('load-toplevel_page_shopp-orders',array(&$this,'layout'));
 			do_action('shopp_order_management_scripts');
@@ -258,6 +259,7 @@ class Service extends AdminController {
 	 **/
 	function layout () {
 		global $Shopp;
+		$Admin =& $Shopp->Flow->Admin;
 		include(SHOPP_ADMIN_PATH."/orders/ui.php");
 	}
 	
