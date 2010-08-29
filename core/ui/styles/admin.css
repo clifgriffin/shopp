@@ -73,6 +73,7 @@ div.comment-item:hover .row-actions { visibility:visible; }
 #product #prices-loading { width:100%;height:120px;background-position:center center; }
 #product #scheduling,
 #product #schedule-toggling { display:none; }
+#schedule-toggling,#schedule-calendar { text-indent: 0; }
 #scheduling input { text-align: center; }
 
 /* Image details modal */

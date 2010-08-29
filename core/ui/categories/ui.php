@@ -57,7 +57,7 @@ function images_meta_box ($Category) {
 					<input type="hidden" name="imagedetails[<?php echo $i; ?>][cropping][<?php echo $cache->id; ?>]" alt="<?php echo $c; ?>" value="<?php echo $cropping; ?>" class="imagecropped" />
 				<?php endforeach; endif;?>
 			</div>
-				<button type="button" name="deleteImage" value="<?php echo $Image->id; ?>" title="Delete category image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
+				<button type="button" name="deleteImage" value="<?php echo $Image->id; ?>" title="Delete category image&hellip;" class="deleteButton"><input type="hidden" name="ieisstupid" value="<?php echo $Image->id; ?>" /><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
 		<?php endforeach; ?>
 	</ul>
 	<div class="clear"></div>

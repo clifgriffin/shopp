@@ -20,7 +20,7 @@ function save_meta_box ($Product) {
 		<input type="hidden" name="id" value="<?php echo $Product->id; ?>" />
 		
 		<div class="misc-pub-section misc-pub-section-last">
-			<input type="hidden" name="status" value="draft" /><input type="checkbox" name="status" value="publish" id="published" tabindex="11" <?php if ($Product->status == "publish") echo ' checked="checked"'?> /><label for="published"><strong> <?php if ($Product->published() && !empty($Product->id)) _e('Published','Shopp'); else _e('Publish','Shopp'); ?></strong> <span id="publish-status"><?php if ($Product->publish>1) printf(__('on: %s'),"</span><br />".date($date_format.' @ '.$time_format,$Product->publish)); else echo "</span>"; ?></label> <div id="schedule-toggling"><button type="button" name="schedule-toggle" id="schedule-toggle" class="button-secondary"><small><?php if ($Product->publish>1) _e('Edit','Shopp'); else _e('Schedule','Shopp'); ?></small></button></div>
+			<input type="hidden" name="status" value="draft" /><input type="checkbox" name="status" value="publish" id="published" tabindex="11" <?php if ($Product->status == "publish") echo ' checked="checked"'?> /><label for="published"><strong> <?php if ($Product->published() && !empty($Product->id)) _e('Published','Shopp'); else _e('Publish','Shopp'); ?></strong> <span id="publish-status"><?php if ($Product->publish>1) printf(__('on: %s'),"</span><br />".date($date_format.' @ '.$time_format,$Product->publish)); else echo "</span>"; ?></label> <span id="schedule-toggling"><button type="button" name="schedule-toggle" id="schedule-toggle" class="button-secondary"><?php if ($Product->publish>1) _e('Edit','Shopp'); else _e('Schedule','Shopp'); ?></button></span>
 
 			<div id="scheduling">
 				<div id="schedule-calendar" class="calendar-wrap">
@@ -213,7 +213,7 @@ function images_meta_box ($Product) {
 					<input type="hidden" name="imagedetails[<?php echo $i; ?>][cropping][<?php echo $cache->id; ?>]" alt="<?php echo $c; ?>" value="<?php echo $cropping; ?>" class="imagecropped" />
 				<?php endforeach; endif;?>
 			</div>
-			<button type="button" name="deleteImage" value="<?php echo $Image->id; ?>" title="Delete product image&hellip;" class="deleteButton"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
+			<button type="button" name="deleteImage" value="<?php echo $Image->id; ?>" title="Delete product image&hellip;" class="deleteButton"><input type="hidden" name="ieisstupid" value="<?php echo $Image->id; ?>" /><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button></li>
 	<?php endforeach; ?>
 	</ul>
 	<div class="clear"></div>

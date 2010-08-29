@@ -40,17 +40,17 @@
 		$even = false;
 		foreach ($Categories as $Category): 
 		
-		$editurl = esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),
+		$editurl = esc_url(add_query_arg(array_merge($_GET,
 			array('page'=>$this->Admin->pagename('categories'),
-					'id'=>$Category->id),
-					admin_url('admin.php'))));
+					'id'=>$Category->id)),
+					admin_url('admin.php')));
 
-		$deleteurl = esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),
+		$deleteurl = esc_url(add_query_arg(array_merge($_GET,
 			array('page'=>$this->Admin->pagename('categories'),
 					'delete[]'=>$Category->id,
-					'deleting'=>'category'),
-					admin_url('admin.php'))));
-		
+					'deleting'=>'category')),
+					admin_url('admin.php')));
+
 		$CategoryName = empty($Category->name)?'('.__('no category name','Shopp').')':$Category->name;
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>

@@ -111,11 +111,13 @@ jQuery(document).ready(function() {
 
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
 	
-	// @todo Re-enable before shipping
 	// window.onbeforeunload = unsavedChanges;
 	
-	$('#product').change(function () { changes = true; }).submit(function() {
-		this.action = this.action.substr(0,this.action.indexOf("?"))+"?"+$.param(request);
+	$('#product').change(function () { changes = true; }).unbind('submit').submit(function(e) {
+		e.stopPropagation();
+		var url = $('#product').attr('action').split('?'),
+			action = url[0]+"?"+$.param(request); 		// Add our workflow request parameters before submitting
+		$('#product')[0].setAttribute('action',action); // More compatible for **stupid** IE
 		saving = true;
 		return true;
 	});
