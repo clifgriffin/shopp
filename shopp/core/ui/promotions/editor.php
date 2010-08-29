@@ -56,12 +56,12 @@ var $=jqnc(),
 	SCOPEPROP_LANG = {
 		"Catalog":"<?php _e('price','Shopp'); ?>",
 		"Cart":"<?php _e('subtotal','Shopp'); ?>",
-		"Cart Item":"<?php _e('total, where:','Shopp'); ?>",
+		"Cart Item":"<?php _e('total, where:','Shopp'); ?>"
 	},
 	TARGET_LANG = {
 		"Catalog":"<?php _e('product','Shopp'); ?>",
 		"Cart":"<?php _e('cart','Shopp'); ?>",
-		"Cart Item":"<?php _e('cart','Shopp'); ?>",
+		"Cart Item":"<?php _e('cart','Shopp'); ?>"
 	},
 	RULES_LANG = {
 		"Name":"<?php _e('Name','Shopp'); ?>",

@@ -21,23 +21,23 @@
 	
 	$.ocupload = function(element, options) {
 		/** Fix scope problems */
-		var self = this;
+		var self = this,
 	
 		/** A unique id so we can find our elements later */
-		var id = new Date().getTime().toString().substr(8);
+			id = new Date().getTime().toString().substr(8),
 		
 		/** Upload Iframe */
-		var iframe = $(
+			iframe = $(
 			'<iframe '+
 				'id="iframe'+id+'" '+
 				'name="iframe'+id+'"'+
 			'></iframe>'
 		).css({
 			display: 'none'
-		});
+		}),
 		
 		/** Form */
-		var form = $(
+		form = $(
 			'<form '+
 				'method="post" '+
 				'enctype="'+options.enctype+'" '+
@@ -47,10 +47,12 @@
 		).css({
 			margin: 0,
 			padding: 0
-		});
+		}).submit(function (e) {
+			if (e) e.stopPropagation();
+		}),
 		
 		/** File Input */
-		var input = $(
+			input = $(
 			'<input '+
 				'name="'+options.name+'" '+
 				'type="file" '+
@@ -60,7 +62,8 @@
 			display: 'block',
 			marginLeft: -175+'px',
 			opacity: 0
-		});
+		}),
+		container = false;
 		
 		/** Put everything together */
 		element.wrap('<div></div>'); //container
@@ -72,7 +75,7 @@
 		elementWidth = element.outerWidth();
 		
 		/** Find the container and make it nice and snug */
-		var container = element.parent().css({
+		container = element.parent().css({
 			position: 'relative',
 			height: (elementHeight+10)+'px',
 			width: (elementWidth+10)+'px',
@@ -95,15 +98,22 @@
 		
 		/** Watch for file selection */
 		input.change(function() {
+			if (this.value == '') return false;
+			if ($.browser.msie) {
+				// prevent double change events firing in IE
+				if (this.firedChange) return this.firedChange = false;
+				this.firedChange = true;
+			}
+
 			/** Do something when a file is selected. */
 			self.onSelect(); 
 			
 			/** Submit the form automaticly after selecting the file */
 			if(self.autoSubmit) {
-				self.submit();
+				 self.submit();
 			}
 		});
-		
+						
 		/** Methods */
 		$.extend(this, {
 			autoSubmit: true,
@@ -216,15 +226,20 @@
 				this.onSubmit();
 				
 				/** add additional paramters before sending */
-				$.each(options.params, function(key, value) {
-					form.append($(
-						'<input '+
-							'type="hidden" '+
-							'name="'+key+'" '+
-							'value="'+value+'" '+
-						'/>'
-					));
+				var oa = form.attr('action').split('?'),
+					url = oa[0],
+					qp = oa[1]?oa[1].split('&'):[],
+					fparams = [],
+					action = false;				
+				$.each(qp, function (i,pair) {
+					var kv = pair.split('=');
+					if (kv.length == 2 && !options.params[kv[0]]) fparams[kv[0]] = kv[1];
 				});
+				
+				action = url;
+				
+				action = url+'?'+(fparams.length > 0?$.param(fparams)+'&':'')+$.param(options.params);
+				form[0].setAttribute('action',action);
 				
 				/** Submit the actual form */
 				form.submit(); 
@@ -238,6 +253,7 @@
 					/** Do something on complete */
 					self.onComplete(response); //done :D
 				});
+				
 			}
 		});
 	}

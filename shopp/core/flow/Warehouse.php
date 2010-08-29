@@ -688,9 +688,9 @@ class Warehouse extends AdminController {
 
 		require(SHOPP_PATH."/core/model/Image.php");
 		
-		if (isset($_POST['type'])) {
-			$parent = $_POST['parent'];
-			switch (strtolower($_POST['type'])) {
+		if (isset($_REQUEST['type'])) {
+			$parent = $_REQUEST['parent'];
+			switch (strtolower($_REQUEST['type'])) {
 				case "product":
 					$context = "product";
 					break;
