@@ -614,7 +614,11 @@ class Item {
 				$result .= $before.'<ul'.$classes.'>';
 				foreach ($this->addons as $id => $addon) {
 					if (in_array($addon->label,$excludes)) continue;
-					if ($prices) $pricing = " (".($addon->price < 0?'-':'+').money($addon->price).")";
+					
+					$price = ($addon->onsale?$addon->promoprice:$addon->price);
+					if ($this->taxrate > 0) $price = $price+($price*$this->taxrate);
+					
+					if ($prices) $pricing = " (".($addon->unitprice < 0?'-':'+').money($price).")";
 					$result .= '<li>'.$addon->label.$pricing.'</li>';
 				}
 				$result .= '</ul>'.$after;

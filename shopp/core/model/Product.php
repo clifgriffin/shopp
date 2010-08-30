@@ -253,6 +253,18 @@ class Product extends DatabaseObject {
 			// Build secondary lookup table using the price id as the key
 			$this->priceid[$price->id] = $price;
 
+			if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
+			if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") { 
+				$Settings =& ShoppSettings();
+				$base = $Settings->get('base_operations');
+				if ($base['vat']) {
+					$Taxes = new CartTax();
+					$taxrate = $Taxes->rate($this);
+					$price->price += $price->price*$taxrate;
+					$price->saleprice += $price->saleprice*$taxrate;
+				}
+			}
+
 			if ($price->type == "N/A" || $price->context == "addon" || ($i > 0 && !$variations)) continue;
 
 			// Build third lookup table using the combined optionkey
@@ -326,18 +338,6 @@ class Product extends DatabaseObject {
 				if(!isset($this->min['weight'])) $this->min['weight'] = $this->max['weight'] = $price->weight;
 				$this->min['weight'] = min($this->min['weight'],$price->weight);
 				$this->max['weight'] = max($this->max['weight'],$price->weight);
-			}
-
-			if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
-			if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") { 
-				$Settings =& ShoppSettings();
-				$base = $Settings->get('base_operations');
-				if ($base['vat']) {
-					$Taxes = new CartTax();
-					$taxrate = $Taxes->rate($this);
-					$price->price += $price->price*$taxrate;
-					$price->saleprice += $price->saleprice*$taxrate;
-				}
 			}
 			
 		} // end foreach($price)
@@ -1368,6 +1368,7 @@ class Product extends DatabaseObject {
 							$pricetag = $pricing[$option['id']];
 							$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax,$this);
 							$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
+							if ($taxrate > 0) $currently = $currently+($currently*$taxrate);
 							$string .= '<option value="'.$option['id'].'">'.$option['name'].' (+'.money($currently).')</option>'."\n";
 						}
 							
