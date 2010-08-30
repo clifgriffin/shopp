@@ -225,7 +225,16 @@ class ImageServer extends DatabaseObject {
 		// Establish database connection
 		$db = DB::get();
 		$db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
-		mysql_set_charset(DB_CHARSET, $db->dbh);
+
+		if (defined('DB_CHARSET')) {
+			if (function_exists('mysql_set_charset'))
+				mysql_set_charset(DB_CHARSET, $db->dbh);
+			else {
+				$query = "SET NAMES '".DB_CHARSET."'";
+				if (defined('DB_COLLATE')) $query .= " COLLATE '".DB_COLLATE."'";
+				$db->query($query);
+			}
+		}
 			
 	}
 	
