@@ -21,12 +21,8 @@ jQuery(document).ready(function () {
 		if (code === false) {
 			button.attr('disabled',true);
 			return activationStatus.html(keyStatus['-000']).addClass('activating').show();
-			
-			//93f771d4a3f07b9b3743fb87ceddb2fe0e2d7ae0
 		}	
 			
-		// console.log('response: '+code+' / '+key+' / '+type);
-		
 		if (button.hasClass('deactivation')) button.html(SHOPP_DEACTIVATE_KEY);
 		else button.html(SHOPP_DEACTIVATE_KEY);
 		
@@ -54,13 +50,10 @@ jQuery(document).ready(function () {
 
 	activationButton.click(function () {
 		$(this).html(SHOPP_CONNECTING+"&hellip;").attr('disabled',true).addClass('updating');
-		$.ajaxSetup({
-			
-		});
 		if ($(this).hasClass('deactivation'))
 			$.getJSON(deact_key_url+'&action=shopp_deactivate_key',activation);
 		else $.getJSON(act_key_url+'&action=shopp_activate_key&key='+$('#update-key').val(),activation);
-	});
+	}).html(activated?SHOPP_DEACTIVATE_KEY:SHOPP_ACTIVATE_KEY);
 
 	if (!baseop.val() || baseop.val() == '') baseopZone.hide();
 	if (!baseopZone.val()) baseopZone.hide();
