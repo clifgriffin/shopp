@@ -235,12 +235,7 @@ class ShoppInstallation extends FlowController {
 		
 		// Update the table schema
 		$tables = preg_replace('/;\s+/',';',$schema);
-		ob_start();
 		$changes = dbDelta($tables);
-		$errors = ob_get_contents();
-		ob_end_clean();
-
-		$this->Settings->save('data_model','');
 		$this->Settings->save('db_updates',$changes);
 	}
 	
@@ -391,13 +386,14 @@ class ShoppInstallation extends FlowController {
 			list($src,$name,$value,$size,$properties,$datasize) = explode("::",$r->value);
 			$p = unserialize($properties);
 			$value = new StdClass();
-			if (isset($p['width']))	$value->width = $p['width'];
-			if (isset($p['height']))$value->height = $p['height'];
-			if (isset($p['alt']))	$value->alt = $p['alt'];
-			if (isset($p['title']))	$value->title = $p['title'];
-			if (isset($p['mimetype'])) $value->mime = $p['mimetype'];
+			$value->width = $p['width'];
+			$value->height = $p['height'];
+			$value->alt = $p['alt'];
+			$value->title = $p['title'];
 			$value->filename = $name;
+			$value->mime = $p['mimetype'];
 			$value->size = $size;
+			error_log(serialize($value));
 			if ($datasize > 0) {
 				$value->storage = "DBStorage";
 				$value->uri = $src;
@@ -488,7 +484,7 @@ class ShoppInstallation extends FlowController {
 
 			// Convert accepted payment cards
 			$accepted = array();
-			if (isset($setting['cards']) && is_array($setting['cards'])) {
+			if (is_array($setting['cards'])) {
 				foreach ($setting['cards'] as $cardname) {
 					// Normalize card names
 					$cardname = str_replace(
@@ -751,7 +747,7 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 		$Settings = &ShoppSettings();
 		$this->init();
 		$this->upgrade_strings();
-		
+				
 		$current = $Settings->get('updates');
 		if ( !isset( $current->response[ $plugin ] ) ) {
 			$this->skin->set_result(false);
@@ -766,6 +762,9 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 		add_filter('upgrader_pre_install', array(&$this, 'addons'), 10, 2);
 		// add_filter('upgrader_pre_install', array(&$this, 'deactivate_plugin_before_upgrade'), 10, 2);
 		add_filter('upgrader_clear_destination', array(&$this, 'delete_old_plugin'), 10, 4);
+
+		// Turn on Shopp's maintenance mode
+		$Settings->save('maintenance','on');
 
 		$this->run(array(
 					'package' => $r->package,
@@ -785,6 +784,9 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 		if ( ! $this->result || is_wp_error($this->result) )
 			return $this->result;
 
+		// Turn off Shopp's maintenance mode
+		$Settings->save('maintenance','off');
+
 		// Force refresh of plugin update information
 		$Settings->save('updates',false);
 	}
@@ -800,7 +802,9 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 			$upgrader = new ShoppAddon_Upgrader( $this->skin );
 			$upgrader->addon_core_updates($addons,$this->working_dir);
 		}
-				
+		$this->init(); // Get the current skin controller back for the core upgrader
+		$this->upgrade_strings(); // Reinstall our upgrade strings for core
+		$this->skin->feedback('<h4>'.__('Finishing Shopp upgrade...','Shopp').'</h4>');
 	}
 
 }
@@ -1090,7 +1094,10 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 			$source_files = array_keys( $wp_filesystem->dirlist($source) );
 
 		//Protection against deleting files in any important base directories.
-		if (in_array( $destination, array(ABSPATH, WP_CONTENT_DIR, WP_PLUGIN_DIR, WP_CONTENT_DIR . '/themes',SHOPP_GATEWAYS,SHOPP_SHIPPING,SHOPP_STORAGE) ) && $source_isdir) {
+		if ((
+			in_array( $destination, array(ABSPATH, WP_CONTENT_DIR, WP_PLUGIN_DIR, WP_CONTENT_DIR . '/themes',SHOPP_GATEWAYS,SHOPP_SHIPPING,SHOPP_STORAGE) ) ||
+			in_array( basename($destination), array(basename(SHOPP_GATEWAYS),basename(SHOPP_SHIPPING),basename(SHOPP_STORAGE)) )
+		) && $source_isdir) {
 			$remote_destination = trailingslashit($remote_destination) . trailingslashit(basename($source));
 			$destination = trailingslashit($destination) . trailingslashit(basename($source));
 		}
