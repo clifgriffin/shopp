@@ -166,6 +166,7 @@ class Category extends DatabaseObject {
 	 * @return boolean successfully updated
 	 **/
 	function update_slug () {
+		$db = DB::get();
 
 		if (empty($this->slug)) {
 			$name = !empty($_POST['name'])?$_POST['name']:$this->name;
@@ -203,11 +204,10 @@ class Category extends DatabaseObject {
 				array_unshift($paths,$category_tree->slug);
 				$parentkey = '_'.$category_tree->parent;
 			}
-
+			print_r($paths);
 			if (count($paths) > 1) $this->uri = join("/",$paths);
 			else $this->uri = $paths[0];
 
-			$db = DB::get();
 			// Check for an existing category uri
 			$exclude_category = !empty($this->id)?"AND id != $this->id":"";
 			$existing = $db->query("SELECT uri FROM $this->_table WHERE uri='$this->uri' $exclude_category LIMIT 1");
@@ -224,7 +224,7 @@ class Category extends DatabaseObject {
 				$this->uri = $alturi;
 			}
 			
-		} // end if ($parent > 0)
+		} else $this->uri = $this->slug; // end if ($parent > 0)
 		
 		if ($uri == $this->uri) return true;
 
