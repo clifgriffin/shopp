@@ -333,16 +333,28 @@ class Purchase extends DatabaseObject {
 			case "itemaddonslist":
 				$item = current($this->purchased);
 				if (empty($item->addons)) return false;
-				$before = ""; $after = ""; $classes = ""; $excludes = array();
-				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
-				if (!empty($options['exclude'])) $excludes = explode(",",$options['exclude']);
-				if (!empty($options['before'])) $before = $options['before'];
-				if (!empty($options['after'])) $after = $options['after'];
+				$defaults = array(
+					'prices' => "on",
+					'before' => '',
+					'after' => '',
+					'classes' => '',
+					'excludes' => ''
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+				
+				$class = !empty($classses)?' class="'.join(' ',explode(',',$classes)).'"':'';
+				$taxrate = round($item->unittax/$item->unitprice,4);
 
-				$result .= $before.'<ul'.$classes.'>';
+				$result .= $before.'<ul'.$class.'>';
 				foreach ($item->addons->meta as $id => $addon) {
 					if (in_array($addon->name,$excludes)) continue;
-					$result .= '<li>'.esc_html($addon->name).' '.($addon->value->unitprice<0?'-':'+').money($addon->value->unitprice).'</li>';
+					if ($this->taxing == "inclusive")
+						$price = $addon->value->unitprice+($addon->value->unitprice*$taxrate);
+					else $price = $addon->value->unitprice;
+					
+					$pricing = value_is_true($prices)?" (".money($price).")":"";
+					$result .= '<li>'.esc_html($addon->name.$pricing).'</li>';
 				}
 				$result .= '</ul>'.$after;
 				return $result;
