@@ -215,15 +215,19 @@ class ImageServer extends DatabaseObject {
 	 * @return void
 	 **/
 	function dbinit () {
+		$db = DB::get();
+
+		// Skip init if a connection exists
+		if (defined('ABSPATH') && $db->dbh !== false) return;
+
 		global $table_prefix;
-		
+
 		if (!load_shopps_wpconfig())
 			$this->error();
 
 		chdir(ABSPATH.'wp-content');
 
 		// Establish database connection
-		$db = DB::get();
 		$db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
 
 		if (defined('DB_CHARSET')) {
