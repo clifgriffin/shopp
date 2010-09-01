@@ -139,6 +139,8 @@ class ShoppInstallation extends FlowController {
 	function install_pages () {
 		global $wpdb;
 		
+		require_once(SHOPP_FLOW_PATH.'/Storefront.php');
+		
 		// Locate any Shopp pages that already exist
 		$pages_installed = shopp_locate_pages();
 
@@ -295,7 +297,7 @@ class ShoppInstallation extends FlowController {
 			if($wp_roles->is_role($role)) {
 				foreach($caps[$role] as $cap) $wp_roles->add_cap($role, $cap, true);
 			} else {
-				$wp_roles->add_role($role, $display, array_fill_keys($caps[$role],true));
+				$wp_roles->add_role($role, $display, array_combine($caps[$role],array_fill(0,count($caps[$role]),true)));
 			}
 		}
 	}
@@ -484,7 +486,7 @@ class ShoppInstallation extends FlowController {
 
 			// Convert accepted payment cards
 			$accepted = array();
-			if (is_array($setting['cards'])) {
+			if (isset($setting['cards']) && is_array($setting['cards'])) {
 				foreach ($setting['cards'] as $cardname) {
 					// Normalize card names
 					$cardname = str_replace(
