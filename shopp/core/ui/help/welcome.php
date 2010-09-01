@@ -1,5 +1,5 @@
 <div id="welcome" class="wrap">
-	<h2><img src="/wp-content/plugins/shopp/core/ui/icons/shopp.png" width="24" height="24"/> <?php _e('Welcome to Shopp','Shopp'); ?></h2>
+	<h2><img src="<?php echo SHOPP_ADMIN_URI; ?>/icons/shopp32.png" alt="Shopp logo" width="32" height="32"/> <?php _e('Welcome to Shopp','Shopp'); ?></h2>
 	
 	<h3><?php _e('Congratulations on choosing Shopp and WordPress for your e-commerce solution!','Shopp'); ?></h3>
 	
