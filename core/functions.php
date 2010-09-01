@@ -820,11 +820,10 @@ function load_shopps_wpconfig () {
 	$loadfile = 'wp-load.php';
 	$wp_config_path = $wp_abspath = false;
 	
-	$root = realpath($_SERVER['DOCUMENT_ROOT']);
-	if (!$root) $root = realpath(substr(	// Determine DOCUMENT_ROOT by script path
-					$_SERVER['SCRIPT_FILENAME'],0,
-					strpos($_SERVER['SCRIPT_FILENAME'],$_SERVER['SCRIPT_NAME'])
-				));
+	$syspath = explode('/',$_SERVER['SCRIPT_FILENAME']);
+	$uripath = explode('/',$_SERVER['SCRIPT_NAME']);
+	$rootpath = array_diff($syspath,$uripath);
+	$root = '/'.join('/',$rootpath);
 	
 	$filepath = dirname(!empty($_SERVER['SCRIPT_FILENAME'])?$_SERVER['SCRIPT_FILENAME']:__FILE__);
 
