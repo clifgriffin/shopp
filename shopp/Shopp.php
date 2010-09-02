@@ -350,7 +350,7 @@ class Shopp {
 
 		// Add mod_rewrite rule for image server for low-resource, speedy delivery
 		$corepath = array(PLUGINDIR,$this->directory,'core');
-		add_rewrite_rule('.*/images/(\d+)/?\??(.*)$',join('/',$corepath).'/image.php?siid=$1&$2');
+		add_rewrite_rule('.*'.$catalog.'/images/(\d+)/?\??(.*)$',join('/',$corepath).'/image.php?siid=$1&$2');
 
 		return $rules + $wp_rewrite_rules;
 	}
