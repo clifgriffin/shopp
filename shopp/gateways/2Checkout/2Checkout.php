@@ -52,7 +52,7 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 	}
 	
 	function url ($url) {
-		if ($this->settings['singlepage']) return $this->surl;
+		if ($this->settings['singlepage'] == "on") return $this->surl;
 		return $this->url;
 	}
 	
