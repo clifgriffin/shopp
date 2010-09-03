@@ -285,7 +285,7 @@ class Storefront extends FlowController {
 		if (empty($this->Product->name) && empty($this->Category->name)) return $title;
 
 		$_ = array();
-		$_[] = empty($title)?' ':$title;
+		if (!empty($title))					$_[] = $title;
 		if (!empty($this->Category->name))	$_[] = $this->Category->name;
 		if (!empty($this->Product->name))	$_[] = $this->Product->name;
 		
