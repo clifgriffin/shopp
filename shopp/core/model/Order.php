@@ -1246,17 +1246,16 @@ class Order {
 				
 				if (in_array($type,$value_override) && !empty($data))
 					$value = $data;
-
 				switch (strtolower($type)) {
 					case "textarea":
-						return '<textarea name="data['.$name.']" cols="'.$cols.'" rows="'.$rows.'" id="'.$id.'" '.inputattrs($options,$textarea_attrs).'>'.$value.'</textarea>';
+						return '<textarea name="data['.$name.']" cols="'.$cols.'" rows="'.$rows.'" id="'.$id.'" '.inputattrs($op,$textarea_attrs).'>'.$value.'</textarea>';
 						break;
 					case "menu":
 						if (is_string($options)) $options = explode(',',$options);
-						return '<select name="data['.$name.']" id="'.$id.'" '.inputattrs($options,$select_attrs).'>'.menuoptions($options,$value).'</select>';
+						return '<select name="data['.$name.']" id="'.$id.'" '.inputattrs($op,$select_attrs).'>'.menuoptions($options,$value).'</select>';
 						break;
 					default:
-						return '<input type="'.$type.'" name="data['.$name.']" id="'.$id.'" '.inputattrs($options).' />';
+						return '<input type="'.$type.'" name="data['.$name.']" id="'.$id.'" '.inputattrs($op).' />';
 						break;
 				}
 				break;
