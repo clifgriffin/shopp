@@ -881,6 +881,36 @@ function load_shopps_wpconfig () {
 }
 
 /**
+ * Appends the blog id to the table prefix for multisite installs
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @return void
+ **/
+function shopp_ms_tableprefix () {
+	global $table_prefix;
+	
+	$domain = $_SERVER['HTTP_HOST'] = (strpos($_SERVER['HTTP_HOST'],':') !== false) ?
+	 				str_replace(array(':80',':443'),'',addslashes($_SERVER['HTTP_HOST'])):
+					addslashes($_SERVER['HTTP_HOST']);
+					
+	if (strpos($_SERVER['HTTP_HOST'],':') !== false) die('Multisite only works without the port number in the URL.');
+
+	$domain = rtrim($domain, '.');
+
+	$path = preg_replace('|([a-z0-9-]+.php.*)|', '', $_SERVER['REQUEST_URI']);
+	$path = str_replace ('/wp-admin/', '/', $path);
+	$path = preg_replace('|(/[a-z0-9-]+?/).*|', '$1', $path);
+	
+	$wpdb_blogs = $table_prefix.'blogs';
+	$db =& DB::get();
+	$r = $db->query("SELECT blog_id FROM $wpdb_blogs WHERE domain='$domain' AND path='$path' LIMIT 1");
+	if (!empty($r->blog_id))
+		$table_prefix .= $r->blog_id.'_';
+}
+
+/**
  * Generates a timestamp from a MySQL datetime format
  *
  * @author Jonathan Davis
