@@ -204,7 +204,6 @@ class Category extends DatabaseObject {
 				array_unshift($paths,$category_tree->slug);
 				$parentkey = '_'.$category_tree->parent;
 			}
-			print_r($paths);
 			if (count($paths) > 1) $this->uri = join("/",$paths);
 			else $this->uri = $paths[0];
 
