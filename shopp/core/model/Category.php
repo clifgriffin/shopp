@@ -206,24 +206,23 @@ class Category extends DatabaseObject {
 			}
 			if (count($paths) > 1) $this->uri = join("/",$paths);
 			else $this->uri = $paths[0];
-
-			// Check for an existing category uri
-			$exclude_category = !empty($this->id)?"AND id != $this->id":"";
-			$existing = $db->query("SELECT uri FROM $this->_table WHERE uri='$this->uri' $exclude_category LIMIT 1");
-			if ($existing) {
-				$suffix = 2;
-				while($existing) {
-					$altslug = preg_replace('/\-\d+$/','',$this->slug)."-".$suffix++;
-					$uris = explode('/',$this->uri);
-					array_splice($uris,-1,1,$altslug);
-					$alturi = join('/',$uris);
-					$existing = $db->query("SELECT uri FROM $this->_table WHERE uri='$alturi' $exclude_category LIMIT 1");
-				}
-				$this->slug = $altslug;
-				$this->uri = $alturi;
-			}
-			
 		} else $this->uri = $this->slug; // end if ($parent > 0)
+		
+		// Check for an existing category uri
+		$exclude_category = !empty($this->id)?"AND id != $this->id":"";
+		$existing = $db->query("SELECT uri FROM $this->_table WHERE uri='$this->uri' $exclude_category LIMIT 1");
+		if ($existing) {
+			$suffix = 2;
+			while($existing) {
+				$altslug = preg_replace('/\-\d+$/','',$this->slug)."-".$suffix++;
+				$uris = explode('/',$this->uri);
+				array_splice($uris,-1,1,$altslug);
+				$alturi = join('/',$uris);
+				$existing = $db->query("SELECT uri FROM $this->_table WHERE uri='$alturi' $exclude_category LIMIT 1");
+			}
+			$this->slug = $altslug;
+			$this->uri = $alturi;
+		}
 		
 		if ($uri == $this->uri) return true;
 
