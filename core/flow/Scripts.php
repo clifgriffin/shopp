@@ -88,20 +88,19 @@ class ShoppScripts extends WP_Scripts {
 			$zip = 'gzip';
 			
 		if ( !empty($this->concat) ) {
-
-			if ( !empty($this->print_code) ) {
-				echo "<script type='text/javascript'>\n";
-				echo "/* <![CDATA[ */\n";
-				echo $this->print_code;
-				echo "/* ]]> */\n";
-				echo "</script>\n";
-			}
-
 			$ver = md5("$this->concat_version");
 			if ($Settings->get('script_server') == 'plugin')
 				$src = get_bloginfo('url') . "?sjsl=" . trim($this->concat, ', ') . "&c={$zip}&ver=$ver";
 			else $src = $this->base_url . "scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver";
 			echo "<script type='text/javascript' src='" . esc_attr($src) . "'></script>\n";
+		}
+		
+		if ( !empty($this->print_code) ) {
+			echo "<script type='text/javascript'>\n";
+			echo "/* <![CDATA[ */\n";
+			echo $this->print_code;
+			echo "/* ]]> */\n";
+			echo "</script>\n";
 		}
 
 		if ( !empty($this->print_html) )
