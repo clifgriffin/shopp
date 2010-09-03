@@ -238,7 +238,6 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	}
 	
 	function build ($cart,$items,$description,$state,$postcode,$country,$residential=true,$negotiated=false) {
-
 		$_ = array('<?xml version="1.0" encoding="utf-8"?>');
 		$_[] = '<AccessRequest xml:lang="en-US">';
 			$_[] = '<AccessLicenseNumber>'.$this->settings['license'].'</AccessLicenseNumber>';
@@ -308,8 +307,12 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	     
 	function verify () {
 		if (!$this->activated()) return;
-		$this->weight = 1;
-		$request = $this->build('1','Authentication test','10012','US');
+		$item = stdClass();
+		$item->length = 1;
+		$item->width = 1;
+		$item->height = 1;
+		$item->weight = 1;
+		$request = $this->build('1',$item,'Authentication test','NY','10012','US');
 		$Response = $this->send($request);
 		if ($Response->tag('Error')) new ShoppError($Response->content('ErrorDescription'),'ups_verify_auth',SHOPP_ADDON_ERR);
 	}   
