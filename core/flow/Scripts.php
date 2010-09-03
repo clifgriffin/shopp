@@ -145,11 +145,8 @@ class ShoppScripts extends WP_Scripts {
 function shopp_default_scripts (&$scripts) {
 
 	$script = basename(__FILE__);
-	$schema = ( !empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off' ) ? 'https://' : 'http://';
-	if (defined('SHOPP_PLUGINURI')) $url = SHOPP_PLUGINURI.'/core'.'/';
-	else $url = preg_replace("|$script.*|i", '', $schema . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
 	
-	$scripts->base_url = $url;
+	$scripts->base_url = plugins_url('core',SHOPP_PLUGINFILE);
 	$scripts->default_version = mktime(false,false,false,1,1,2010);
 	$scripts->default_dirs = array('/ui/behaviors/','/ui/products');
 	

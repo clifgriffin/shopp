@@ -239,7 +239,9 @@ class ImageServer extends DatabaseObject {
 				$db->query($query);
 			}
 		}
-			
+		
+		if (is_multisite()) shopp_ms_tableprefix();
+
 	}
 	
 } // end ImageServer class
@@ -251,6 +253,18 @@ if (!function_exists('__')) {
 	// Localization API is not available at this point
 	function __ ($string,$domain=false) {
 		return $string;
+	}
+}
+
+if (!function_exists('is_multisite')) {
+	function is_multisite() {
+		if ( defined( 'MULTISITE' ) )
+			return MULTISITE;
+
+		if ( defined( 'VHOST' ) || defined( 'SUNRISE' ) )
+			return true;
+
+		return false;
 	}
 }
 
