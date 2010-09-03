@@ -61,7 +61,7 @@ class Shopping extends SessionObject {
 	 * @return void
 	 **/
 	function init () {
-		if(session_id() == "") @session_start();
+		@session_start();
 	}	
 	
 	/**
