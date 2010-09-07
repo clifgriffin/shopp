@@ -11,7 +11,7 @@ function TaxRate (data) {
 		rules = 0,
 		ratetable = $('#tax-rates'),
 		logicSelect = '<select name="settings[taxrates]['+id+'][logic]"><option value="any">'+ANY_OPTION+'</option><option value="all">'+ALL_OPTION+'</option></select>',
-		ui = '<th scope="row" valign="top"><p><input type="text" name="settings[taxrates]['+id+'][rate]" value="" size="5" class="selectall" /></p></th>'+
+		ui = '<th scope="row" valign="top"><p><input type="text" name="settings[taxrates]['+id+'][rate]" value="" size="6" class="selectall" /></p></th>'+
 				'<td><div class="controls"></div><ul class="conditions"><li class="origin">'+
 				'<select name="settings[taxrates]['+id+'][country]" class="country"></select><select name="settings[taxrates]['+id+'][zone]" class="zone"></select>'+
 				'</li><li class="scope"><p>'+APPLY_LOGIC.replace('%s',logicSelect)+':</p></li></ul></td>',
@@ -76,7 +76,7 @@ function TaxRate (data) {
 
 	}).change();
 	
-	rate.change(function () { this.value = asPercent(this.value); }).change();
+	rate.change(function () { this.value = asPercent(this.value,false,3,true); }).change();
 	row.dequeue().hover(function () { controls.show(); },function () { controls.fadeOut('fast'); });
 	deleteButton.click(function () { row.fadeOut('fast',function () { row.remove(); }); });
 	localToggle.change(function () { LocalRates((data.locals?data.locals:false)); });
@@ -173,14 +173,20 @@ function TaxRate (data) {
 
 		uploadButton.upload({
 			name: 'shopp',
-			action: upload_url+'&action=shopp_upload_local_taxes',
+			action: upload_url,
+			params: {
+				'action':'shopp_upload_local_taxes'
+			},
 			onSubmit: function() {
 				uploadButton.attr('disabled',true).addClass('updating').parent().css('width','100%');
 			},
 			onComplete: function(results) {
 				uploadButton.removeAttr('disabled').removeClass('updating');
-				r = $.parseJSON(results);
-				listings(r);
+				try {
+					r = $.parseJSON(results);
+					if (r.error) alert(r.error);
+					else listings(r);
+				} catch (ex) { alert(LOCAL_RATES_UPLOADERR); }
 			}
 		});
 
@@ -206,8 +212,8 @@ function TaxRate (data) {
 			});				
 
 			ratelist.html(ratesrc).find('input').focus(function() { this.select(); }).change(function () { 
-				this.value = asPercent(this.value,false,2); 
-				$(this).attr('title', asPercent( asNumber(this.value)+asNumber(rate.val()) ) )
+				this.value = asPercent(this.value,false,3,true); 
+				$(this).attr('title', asPercent( asNumber(this.value)+asNumber(rate.val()),false,3,true ) )
 			}).change();
 			
 			counter.html('('+count+')');
