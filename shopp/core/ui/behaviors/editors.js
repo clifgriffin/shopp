@@ -885,10 +885,9 @@ function ImageUploads (id,type) {
 	}
 
 	function startImageUpload (file) {
-		var targetHolder = this.targetHolder;
-		targetHolder = $('<li class="image uploading"><input type="hidden" name="images[]" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo($('#lightbox'))
-		this.progressBar = targetHolder.find('div.bar');
-		this.sorting = targetHolder.find('input');
+		this.targetHolder = $('<li class="image uploading"><input type="hidden" name="images[]" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo($('#lightbox'))
+		this.progressBar = this.targetHolder.find('div.bar');
+		this.sorting = this.targetHolder.find('input');
 	}
 
 	function imageUploadProgress (file, loaded, total) {
