@@ -639,7 +639,7 @@ class AjaxFlow {
 	function checkout_button () {
 		global $Shopp;
 		if (isset($_POST['paymethod'])) {
-			$paymethod = $_POST['paymethod'];
+			$Shopp->Order->paymethod = $paymethod = $_POST['paymethod'];
 			// User selected one of the payment options
 			list($module,$label) = explode(":",$paymethod);
 			if (isset($Shopp->Gateways->active[$module])) {
