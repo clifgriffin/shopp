@@ -1434,7 +1434,7 @@ function shopp_email ($template,$data=array()) {
 
 	// Use only the email address, discard everything else
 	if (strpos($to,'<') !== false) {
-		list($name, $email) = split('<',$to);
+		list($name, $email) = explode('<',$to);
 		$to = trim(rtrim($email,'>'));
 	}
 

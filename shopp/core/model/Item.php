@@ -43,6 +43,7 @@ class Item {
 	var $shipfee = 0;			// Shipping fees for each unit of the line item
 	var $download = false;		// Download ID of the asset from the selected price object
 	var $shipping = false;		// Shipping setting of the selected price object
+	var $shipped = false;		// Shipped flag when the item needs shipped
 	var $inventory = false;		// Inventory setting of the selected price object
 	var $taxable = false;		// Taxable setting of the selected price object
 	var $freeshipping = false;	// Free shipping status of the selected price object
@@ -114,7 +115,8 @@ class Item {
 		// Map out the selected menu name and option
 		if ($Product->variations == "on") {
 			$selected = explode(",",$this->option->options); $s = 0;
-			foreach ($Product->options as $i => $menu) {
+			$variants = isset($Product->options['v'])?$Product->options['v']:$Product->options;
+			foreach ($variants as $i => $menu) {
 				foreach($menu['options'] as $option) {
 					if ($option['id'] == $selected[$s]) {
 						$this->variation[$menu['name']] = $option['name']; break;

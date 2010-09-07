@@ -343,10 +343,12 @@ class Purchase extends DatabaseObject {
 				$options = array_merge($defaults,$options);
 				extract($options);
 				
-				$class = !empty($classses)?' class="'.join(' ',explode(',',$classes)).'"':'';
-				$taxrate = round($item->unittax/$item->unitprice,4);
+				$class = !empty($classes)?' class="'.join(' ',explode(',',$classes)).'"':'';
+				$taxrate = 0;
+				if ($item->unitprice > 0)
+					$taxrate = round($item->unittax/$item->unitprice,4);
 
-				$result .= $before.'<ul'.$class.'>';
+				$result = $before.'<ul'.$class.'>';
 				foreach ($item->addons->meta as $id => $addon) {
 					if (in_array($addon->name,$excludes)) continue;
 					if ($this->taxing == "inclusive")

@@ -90,6 +90,7 @@ class Order {
 		add_action('shopp_process_checkout', array(&$this,'checkout'));
 		add_action('shopp_confirm_order', array(&$this,'confirmed'));
 		
+		add_action('shopp_free_order',array(&$this,'freebie'));
 		add_action('shopp_update_destination',array(&$this->Shipping,'destination'));
 		add_action('shopp_create_purchase',array(&$this,'purchase'));
 		add_action('shopp_order_notifications',array(&$this,'notify'));
@@ -283,6 +284,8 @@ class Order {
 		
 		do_action('shopp_checkout_processed');
 		
+		if (apply_filters('shopp_free_order',!($this->Cart->Totals->total > 0))) return;
+		
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm)
 			shopp_redirect( shoppurl(false,'confirm-order',$this->security()) );
@@ -328,6 +331,22 @@ class Order {
 			do_action('shopp_process_order');
 		}
 		
+	}
+	
+	/**
+	 * Handles processing free orders, overriding any configured gateways
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function freebie ($free) {
+		if (!$free) return $free;
+		
+		$this->gateway = $this->Billing->cardtype = __('Free Order','Shopp');
+		$this->transaction(crc32($this->Customer->email.mktime()),'CHARGED');
+		return true;
 	}
 	
 	/**
