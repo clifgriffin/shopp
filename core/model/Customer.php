@@ -22,6 +22,7 @@ class Customer extends DatabaseObject {
 	var $newuser = false;
 	
 	var $accounts = "none";		// Account system setting
+	var $loginname = false;		// Account login name
 	var $merchant = "";
 
 	var $pages = array();		// Account pages
@@ -372,12 +373,12 @@ class Customer extends DatabaseObject {
 	
 	function create_wpuser () {
 		require_once(ABSPATH."/wp-includes/registration.php");
-		if (empty($this->login)) return false;
-		if (!validate_username($this->login)) {
+		if (empty($this->loginname)) return false;
+		if (!validate_username($this->loginname)) {
 			new ShoppError(__('This login name is invalid because it uses illegal characters. Please enter a valid login name.','Shopp'),'login_exists',SHOPP_ERR);
 			return false;
 		}
-		if (username_exists($this->login)){
+		if (username_exists($this->loginname)){
 			new ShoppError(__('The login name is already registered. Please choose another login name.','Shopp'),'login_exists',SHOPP_ERR);
 			return false;
 		}
@@ -385,7 +386,7 @@ class Customer extends DatabaseObject {
 		
 		// Create the WordPress account
 		$wpuser = wp_insert_user(array(
-			'user_login' => $this->login,
+			'user_login' => $this->loginname,
 			'user_pass' => $this->password,
 			'user_email' => $this->email,
 			'display_name' => $this->firstname.' '.$this->Customer->lastname,
@@ -622,7 +623,7 @@ class Customer extends DatabaseObject {
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->loginname))
 					$options['value'] = $this->loginname; 
-				return '<input type="text" name="login" id="login"'.inputattrs($options).' />';
+				return '<input type="text" name="loginname" id="login"'.inputattrs($options).' />';
 				break;
 			case "password":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
