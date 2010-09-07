@@ -277,7 +277,7 @@ class Category extends DatabaseObject {
 
 		$db = DB::get();
 		$table = DatabaseObject::tablename(CategoryImage::$table);
-		$set = "id=".join('OR id=',$images);
+		$set = "id=".join(' OR id=',$images);
 		$query = "UPDATE $table SET parent='$this->id',context='category' WHERE ".$set;
 		$db->query($query);
 		
