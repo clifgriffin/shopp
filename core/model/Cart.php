@@ -1235,7 +1235,12 @@ class CartDiscounts {
 			if ($promo->search == "all" && $matches == $total)
 				$applypromo = true;
 				
-			if (!$applypromo) continue; // Try next promotion
+			if (!$applypromo) {
+				$promo->applied = 0; 		// Reset promo applied discount
+				if (!empty($promo->items))	// Reset any items applied to
+					$promo->items = array(); 
+				continue; // Try next promotion
+			}
 
 			// Apply the promotional discount
 			switch ($promo->type) {
@@ -1309,6 +1314,8 @@ class CartDiscounts {
 					}
 					$promo->applied += $discount;
 					$promo->items[$id] = $discount;
+				} else {
+					
 				}
 			}
 			
