@@ -73,23 +73,25 @@ function asMoney (n,f) {
  * @param int n Number to convert
  * @param array f Format settings
  **/
-function asPercent (n,f,p) {
+function asPercent (n,f,p,pr) {
 	f = getCurrencyFormat(f);
 
 	f.precision = p?p:1;
-	return formatNumber(n,f)+"%";
+	
+	return formatNumber(n,f,pr)+"%";
 }
 
 /**
  * Formats a number to denote thousands with decimal precision.
  * @param int n Number to convert
  * @param array f Format settings
+ * @param boolean pr Use precision instead of fixed
  **/
-function formatNumber (n,f) {
+function formatNumber (n,f,pr) {
 	f = getCurrencyFormat(f);
 
 	n = asNumber(n);
-	var digits,i,d = n.toFixed(f.precision).toString().split(".");
+	var digits,i,dc = '',d = n.toFixed(f.precision).toString().split(".");
 
 	n = "";
 	if (f.indian) {
@@ -101,8 +103,11 @@ function formatNumber (n,f) {
 		for (i = 0; i < (d[0].length / 3); i++) 
 			n = d[0].slice(-3*(i+1),d[0].length+(-3 * i)) + ((n.length > 0)?f.thousands + n:n);
 	}
+	
+	dc = (pr)?new Number('0.'+d[1]).toString().substr(2):d[1];
+	dc = (!pr || pr && dc.length > 0)?f.decimals+dc:'';
 
-	if (f.precision > 0) n += f.decimals + d[1];
+	if (f.precision > 0) n += dc;
 	return n;
 
 }

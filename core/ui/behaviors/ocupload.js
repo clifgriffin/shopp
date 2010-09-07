@@ -229,14 +229,14 @@
 				var oa = form.attr('action').split('?'),
 					url = oa[0],
 					qp = oa[1]?oa[1].split('&'):[],
-					fparams = [],
+					fparams = {},
 					action = false;				
 				$.each(qp, function (i,pair) {
 					var kv = pair.split('=');
 					if (kv.length == 2 && !options.params[kv[0]]) fparams[kv[0]] = kv[1];
 				});
 				
-				action = url+'?'+(fparams.length > 0?$.param(fparams)+'&':'')+$.param(options.params);
+				action = url+'?'+($(fparams).size() > 0?$.param(fparams)+'&':'')+$.param(options.params);
 				form[0].setAttribute('action',action);
 				
 				/** Submit the actual form */
