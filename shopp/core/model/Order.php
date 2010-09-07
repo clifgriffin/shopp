@@ -96,7 +96,8 @@ class Order {
 		add_action('shopp_order_success',array(&$this,'success'));
 		
 		add_action('shopp_reset_session',array(&$this->Cart,'clear'));
-		add_action('shopp_init',array(&$this,'processor'));
+
+		if (empty($this->processor)) add_action('shopp_init',array(&$this,'processor'));
 
 
 		// Set locking timeout for concurrency operation protection
@@ -122,14 +123,14 @@ class Order {
 		global $Shopp;
 
 		$current = $this->processor;
-		if (count($Shopp->Gateways->activated) == 1 // base case
+		if ((!$this->processor && count($Shopp->Gateways->activated) == 1) // base case
 			|| (!$this->processor && !$processor && count($Shopp->Gateways->activated) > 1)) { 
 			// Automatically select the first active gateway
 			reset($Shopp->Gateways->activated);
 			$module = current($Shopp->Gateways->activated);
 			if ($this->processor != $module)
 				$this->processor = $module;
-		} elseif ($processor !== false) { 
+		} elseif (!empty($processor)) { // Change the current processor
 			if ($this->processor != $processor && in_array($processor,$Shopp->Gateways->activated)) 
 				$this->processor = $processor; 
 		}
@@ -138,10 +139,17 @@ class Order {
 		if (isset($Shopp->Gateways->active[$this->processor])) {
 			$Gateway = $Shopp->Gateways->active[$this->processor];
 			$this->gateway = $Gateway->name;
-			
-			$label = is_array($Gateway->settings['label'])?
-				$Gateway->settings['label'][0]:$Gateway->settings['label'];	
-			$this->paymethod = $this->processor.':'.$label;
+
+			// Set the paymethod if not set already, or if it has changed
+			$label = false;
+			if (!empty($this->paymethod)) list($module,$label) = explode(':',$this->paymethod);
+			if ("$this->processor:$label" !== $this->paymethod) {
+				if (empty($label)) // No paymethod label, init to a default
+					$label = is_array($Gateway->settings['label'])?
+						$Gateway->settings['label'][0]:$Gateway->settings['label'];	
+				// Use the label from the set paymethod
+				$this->paymethod = $this->processor.':'.$label; 
+			}
 			
 			return $Shopp->Gateways->active[$this->processor];
 		}
