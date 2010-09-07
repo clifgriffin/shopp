@@ -123,7 +123,7 @@ class Order {
 		global $Shopp;
 
 		$current = $this->processor;
-		if ((!$this->processor && count($Shopp->Gateways->activated) == 1) // base case
+		if (count($Shopp->Gateways->activated) == 1 // base case
 			|| (!$this->processor && !$processor && count($Shopp->Gateways->activated) > 1)) { 
 			// Automatically select the first active gateway
 			reset($Shopp->Gateways->activated);
@@ -153,7 +153,7 @@ class Order {
 			
 			return $Shopp->Gateways->active[$this->processor];
 		}
-			
+		
 		return false;
 	}
 	
