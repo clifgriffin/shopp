@@ -48,9 +48,11 @@ class Purchased extends DatabaseObject {
 		$addons = $this->addons;					// Save current addons model
 		if (!empty($addons)) $this->addons = "yes";	// convert property to usable flag
 		parent::save();
-		foreach ($addons as $Addon) {
-			$Addon->parent = $this->id;
-			$Addon->save();	
+		if (!empty($addons) && is_array($addons)) {
+			foreach ($addons as $Addon) {
+				$Addon->parent = $this->id;
+				$Addon->save();	
+			}
 		}
 		$this->addons = $addons; // restore addons model
 	}
