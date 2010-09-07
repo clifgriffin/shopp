@@ -591,26 +591,26 @@ class Order {
 			require_once(ABSPATH."/wp-includes/registration.php");
 			
 			// Validate possible wp account names for availability
-			if(isset($_POST['login'])){
-				if(apply_filters('shopp_login_exists',username_exists($_POST['login']))) 
+			if(isset($_POST['loginname'])){
+				if(apply_filters('shopp_login_exists',username_exists($_POST['loginname']))) 
 					return new ShoppError(__('The login name you provided is not available.  Try logging in if you have previously created an account.'), 'cart_validation');
 			} else { // need to find a usuable login
 				list($handle,$domain) = explode("@",$_POST['email']);
-				if(!username_exists($handle)) $_POST['login'] = $handle;
+				if(!username_exists($handle)) $_POST['loginname'] = $handle;
 				
 				$handle = $_POST['firstname'].substr($_POST['lastname'],0,1);				
-				if(!isset($_POST['login']) && !username_exists($handle)) $_POST['login'] = $handle;
+				if(!isset($_POST['loginname']) && !username_exists($handle)) $_POST['loginname'] = $handle;
 				
 				$handle = substr($_POST['firstname'],0,1).$_POST['lastname'];
-				if(!isset($_POST['login']) && !username_exists($handle)) $_POST['login'] = $handle;
+				if(!isset($_POST['loginname']) && !username_exists($handle)) $_POST['loginname'] = $handle;
 				
 				$handle .= rand(1000,9999);
-				if(!isset($_POST['login']) && !username_exists($handle)) $_POST['login'] = $handle;
+				if(!isset($_POST['loginname']) && !username_exists($handle)) $_POST['loginname'] = $handle;
 				
-				if(apply_filters('shopp_login_required',!isset($_POST['login']))) 
+				if(apply_filters('shopp_login_required',!isset($_POST['loginname']))) 
 					return new ShoppError(__('A login is not available for creation with the information you provided.  Please try a different email address or name, or try logging in if you previously created an account.'),'cart_validation');
 			}
-			if(SHOPP_DEBUG) new ShoppError('Login set to '. $_POST['login'] . ' for WordPress account creation.',false,SHOPP_DEBUG_ERR);			 
+			if(SHOPP_DEBUG) new ShoppError('Login set to '. $_POST['loginname'] . ' for WordPress account creation.',false,SHOPP_DEBUG_ERR);			 
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if (apply_filters('shopp_email_exists',(email_exists($_POST['email']) || !empty($ExistingCustomer->id))))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
@@ -621,15 +621,15 @@ class Order {
 		}
 
 		// Validate WP account
-		if (apply_filters('shopp_login_required',(isset($_POST['login']) && empty($_POST['login']))))
+		if (apply_filters('shopp_login_required',(isset($_POST['loginname']) && empty($_POST['loginname']))))
 			return new ShoppError(__('You must enter a login name for your account.','Shopp'),'cart_validation');
 
-		if (isset($_POST['login'])) {
+		if (isset($_POST['loginname'])) {
 			require_once(ABSPATH."/wp-includes/registration.php");
-			if (apply_filters('shopp_login_valid',(!validate_username($_POST['login']))))
+			if (apply_filters('shopp_login_valid',(!validate_username($_POST['loginname']))))
 				return new ShoppError(__('This login name is invalid because it uses illegal characters. Please enter a valid login name.','Shopp'),'cart_validation');
 
-			if (apply_filters('shopp_login_exists',username_exists($_POST['login'])))
+			if (apply_filters('shopp_login_exists',username_exists($_POST['loginname'])))
 				return new ShoppError(__('The login name is already in use. Try logging in if you previously created that account, or enter another login name for your new account.','Shopp'),'cart_validation');
 		}
 
@@ -867,10 +867,10 @@ class Order {
 				break;
 			case "loginname":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-				if ($options['mode'] == "value") return $this->Customer->login;
-				if (!empty($this->Customer->login))
-					$options['value'] = $this->Customer->login; 
-				return '<input type="text" name="login" id="login" '.inputattrs($options).' />';
+				if ($options['mode'] == "value") return $this->Customer->loginname;
+				if (!empty($this->Customer->loginname))
+					$options['value'] = $this->Customer->loginname; 
+				return '<input type="text" name="loginname" id="login" '.inputattrs($options).' />';
 				break;
 			case "password":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
