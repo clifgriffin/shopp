@@ -205,6 +205,9 @@ class Order {
 				$_POST['billing']['card'] = preg_replace('/[^\d]/','',$_POST['billing']['card']);
 
 		}
+		
+		// Remove invlalid characters from the phone number
+		$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
 
 		if (isset($_POST['data'])) $this->data = stripslashes_deep($_POST['data']);
 		if (isset($_POST['info'])) $this->Customer->info = stripslashes_deep($_POST['info']);
