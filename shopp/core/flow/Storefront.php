@@ -524,6 +524,8 @@ class Storefront extends FlowController {
 	function searching () {
 		global $Shopp,$wp;
 		
+		$this->searching = false;
+		
 		if (!isset($_GET['s']) 								// No search query
 			|| !isset($wp->query_vars['catalog']) 			// No catalog flag
 			|| (isset($wp->query_vars['catalog']) 			// Catalog flag exists &
@@ -534,6 +536,7 @@ class Storefront extends FlowController {
 		$this->searching = true;
 		unset($wp->query_vars['s']); // Not needed any longer
 		$wp->query_vars['pagename'] = $this->pages['catalog']['name'];
+		$wp->query_vars['shopp_category'] = "search-results";
 		add_action('wp_head', array(&$this, 'updatesearch'));
 		
 	}
@@ -556,9 +559,9 @@ class Storefront extends FlowController {
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&
 			$category = $wp->query_vars['shopp_category']) $type = "category";
-		if (isset($wp->query_vars['shopp_pid']) && 
+		elseif (isset($wp->query_vars['shopp_pid']) && 
 			$productid = $wp->query_vars['shopp_pid']) $type = "product";
-		if (isset($wp->query_vars['shopp_product']) && 
+		elseif (isset($wp->query_vars['shopp_product']) && 
 			$productname = $wp->query_vars['shopp_product']) $type = "product";
 
 		if (isset($wp->query_vars['shopp_tag']) && 
@@ -575,7 +578,7 @@ class Storefront extends FlowController {
 				|| ($type == "category" && $category == "search-results"))) {
 			add_action('wp_head', array(&$this, 'updatesearch'));
 			$category = "search-results";
-		}
+		} else $this->search = $this->searching = false;
 
 		// If a search request is being made, set the type to category
 		if ($this->searching) {
@@ -600,6 +603,7 @@ class Storefront extends FlowController {
 				$Shopp->Category->load_products(array('load'=>array('images','prices')));
 				if (count($Shopp->Category->products) == 1) {
 					reset($Shopp->Category->products);
+					$type = 'product';
 					$BestBet = current($Shopp->Category->products);
 					shopp_redirect($BestBet->tag('url',array('return'=>true)));
 				}
