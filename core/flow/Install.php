@@ -311,7 +311,7 @@ class ShoppInstallation extends FlowController {
 	 * @return void
 	 **/
 	function setup () {
-
+				
 		$this->Settings->setup('show_welcome','on');	
 		$this->Settings->setup('display_welcome','on');	
 		
@@ -335,9 +335,10 @@ class ShoppInstallation extends FlowController {
 		$this->Settings->setup('product_image_order','ASC');
 		$this->Settings->setup('product_image_orderby','sortorder');
 		
-		// System Settinggs
+		// System Settings
 		$this->Settings->setup('uploader_pref','flash');
 		$this->Settings->setup('script_loading','global');
+		$this->Settings->setup('script_server','plugin');
 
 		$this->Settings->save('version',SHOPP_VERSION);
 		$this->Settings->save('db_version',DB::$version);
@@ -508,7 +509,7 @@ class ShoppInstallation extends FlowController {
 			$this->Settings->save($_->name,$setting); // Save the gateway settings
 		}
 		// Save the active gateways to populate the payment settings page
-		$this->Settings->save('active_gateways',join(',',$active_gateways));
+		$this->Settings->save('active_gateways',join(',',$active_gateways));		
 		
 		$this->roles(); // Setup Roles and Capabilities
 		
