@@ -125,6 +125,9 @@ class Customer extends DatabaseObject {
 			call_user_func($this->pages[$_GET['acct']]->handler);
 
 		if (!empty($_POST['customer'])) {
+			
+			$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
+			
 			$this->updates($_POST);
 			if (isset($_POST['info'])) $this->info = $_POST['info'];
 			
