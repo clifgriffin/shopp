@@ -1327,11 +1327,10 @@ function scan_money_format ($format) {
 	if(!$uniform) $f['precision'] = $dd;
 	
 	if (count($dl) > 1) {
-		if ($dl[0] == "t") {
+		if ($dl[0] == "t" || $dl[0] == $dl[1]) {
 			$f['thousands'] = $dl[1];
 			$f['precision'] = 0;
-		}
-		else {
+		} else {
 			$f['decimals'] = $dl[count($dl)-1];
 			$f['thousands'] = $dl[0];			
 		}
