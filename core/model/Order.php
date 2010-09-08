@@ -89,8 +89,9 @@ class Order {
 		add_action('shopp_process_shipmethod', array(&$this,'shipmethod'));
 		add_action('shopp_process_checkout', array(&$this,'checkout'));
 		add_action('shopp_confirm_order', array(&$this,'confirmed'));
+		add_action('shopp_process_order', array(&$this,'validate'),7);
 		
-		add_action('shopp_free_order',array(&$this,'freebie'));
+		add_action('shopp_process_free_order',array(&$this,'freebie'));
 		add_action('shopp_update_destination',array(&$this->Shipping,'destination'));
 		add_action('shopp_create_purchase',array(&$this,'purchase'));
 		add_action('shopp_order_notifications',array(&$this,'notify'));
@@ -284,7 +285,7 @@ class Order {
 		
 		do_action('shopp_checkout_processed');
 		
-		if (apply_filters('shopp_free_order',!($this->Cart->Totals->total > 0))) return;
+		if (apply_filters('shopp_process_free_order',$this->Cart->orderisfree())) return;
 		
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm)
@@ -684,6 +685,13 @@ class Order {
 		return apply_filters('shopp_validate_checkout',true);
 	}
 
+
+	function validate () {
+		if (apply_filters('shopp_valid_order',$this->isvalid())) return true;
+		
+		shopp_redirect( shoppurl(false,'checkout',$this->security()) );		
+	}
+
 	/**
 	 * Validate order data before transaction processing
 	 *
@@ -692,56 +700,58 @@ class Order {
 	 * 
 	 * @return boolean Validity of the order
 	 **/
-	function validate () {		
+	function isvalid ($report=true) {		
 		$Customer = $this->Customer;
 		$Shipping = $this->Shipping;
 		$Cart = $this->Cart;
 		$errors = 0;
+		$valid = true;
 
-		if (empty($Cart->contents)) { 
-			new ShoppError(__("There are no items in the cart."),'invalid_order'.$errors++,SHOPP_TXN_ERR);
-			return false;
+		if (empty($Cart->contents)) {
+			$valid = false;
+			new ShoppError(__("There are no items in the cart."),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
 		}
 		
 		$stock = true;
 		foreach ($Cart->contents as $item) { 
 			if (!$item->instock()){
+				$valid = false;
 				new ShoppError(sprintf(__("%s does not have sufficient stock to process order."),
 				$item->name . ($item->option->label?" ({$item->option->label})":"")),
-				'invalid_order'.$errors++,SHOPP_TXN_ERR);
+				'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
 				$stock = false;
 			} 
 		}
-		if (!$stock) return false;
-
-		if (empty($this)) {
-			new ShoppError(__("Missing order data."),'invalid_order'.$errors++,SHOPP_TXN_ERR); 
-			return false;
-		}
 		
-		$valid = true;
-		if (!$Customer) $valid = false; // No Customer
+		$valid_customer = true;
+		if (!$Customer) $valid_customer = false; // No Customer
 
 		// Always require name and email
-		if (empty($Customer->firstname) || empty($Customer->lastname)) $valid = false;
-		if (empty($Customer->email)) $valid = false;
+		if (empty($Customer->firstname) || empty($Customer->lastname)) $valid_customer = false;
+		if (empty($Customer->email)) $valid_customer = false;
 
-		if (!$valid) new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order'.$errors++,SHOPP_TXN_ERR);
-		return $valid;
+		if (!$valid_customer) {
+			$valid = false;
+			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
+		}
 		
 		// Check for shipped items but no Shipping information
-		$valid = true;
+		$valid_shipping = true;
 		if ($this->Shipping) {
-			if (empty($Shipping->address)) $valid = false;
-			if (empty($Shipping->country)) $valid = false;
-			if (empty($Shipping->postcode)) $valid = false;
+			if (empty($Shipping->address)) $valid_shipping = false;
+			if (empty($Shipping->country)) $valid_shipping = false;
+			if (empty($Shipping->postcode)) $valid_shipping = false;
 		}
-		if (!$valid) new ShoppError(__('The shipping address information is incomplete.  The order can not be processed','Shopp'),'invalid_order'.$errors++,SHOPP_TXN_ERR);
+		if (!$valid_shipping) {
+			$valid = false;
+			new ShoppError(__('The shipping address information is incomplete.  The order can not be processed','Shopp'),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
+		}
+		
 		return $valid;
 	}
 
 	/**
-	 * Evaluates if the checkout form needs to be secured
+	 * Evaluates if checkout process needs to be secured
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -750,7 +760,7 @@ class Order {
 	 **/
 	function security () {
 		global $Shopp;
-		return ($Shopp->Gateways->secure && !$this->Cart->orderisfree());
+		return $Shopp->Gateways->secure;
 	}
 	
 	/**
@@ -1301,6 +1311,7 @@ class Order {
 				else return $custom;
 				break;
 			case "confirm-button": 
+				if (!$this->isvalid(false)) return false;
 				if (!isset($options['value'])) $options['value'] = __('Confirm Order','Shopp');
 				$custom = apply_filters('shopp_checkout_confirm_button',false,$options,$submit_attrs);
 				if (!$custom)
