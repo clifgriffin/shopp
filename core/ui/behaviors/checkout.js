@@ -94,11 +94,11 @@ jQuery(document).ready(function () {
 		if ($(this).parents('#checkout').size()) {
 			$('.shopp_cart_shipping, .shopp_cart_tax, .shopp_cart_total').html('?');
 			$.getJSON(ShoppSettings.ajaxurl+"?action=shopp_shipping_costs&method="+$(this).val(),
-				function (result) {
-					var totals = eval(result);
-					$('span.shopp_cart_shipping').html(asMoney(new Number(totals.shipping)));
-					$('span.shopp_cart_tax').html(asMoney(new Number(totals.tax)));
-					$('span.shopp_cart_total').html(asMoney(new Number(totals.total)));
+				function (r) {
+					var prefix = 'span.shopp_cart_';
+					$(prefix+'shipping').html(asMoney(new Number(r.shipping)));
+					$(prefix+'tax').html(asMoney(new Number(r.tax)));
+					$(prefix+'total').html(asMoney(new Number(r.total)));
 			});
 		} else $(this).parents('form').submit();
 	});
