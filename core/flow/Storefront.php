@@ -130,7 +130,7 @@ class Storefront extends FlowController {
 		global $Shopp;
 		if (is_shopp_secure() || !$Shopp->Gateways->secure) return;
 		switch ($this->Page['name']) {
-			case "checkout": shopp_redirect(shoppurl($_GET,'checkout',true)); break;
+			case "checkout": shopp_redirect(shoppurl($_GET,get_query_var('shopp_proc'),true)); break;
 			case "account":	 shopp_redirect(shoppurl($_GET,'account',true)); break;
 		}
 	}
@@ -812,7 +812,15 @@ class Storefront extends FlowController {
 		switch ($process) {
 			case "confirm-order": 
 				do_action('shopp_init_confirmation'); 
-				$content = $this->order_confirmation(); 
+				$Order->validated = $Order->isvalid();
+				$errors = "";
+				if ($Errors->exist(SHOPP_STOCK_ERR)) {
+					ob_start();
+					include(SHOPP_TEMPLATES."/errors.php");
+					$errors = ob_get_contents();
+					ob_end_clean();
+				}
+				$content = $errors.$this->order_confirmation();
 				break;
 			case "thanks":
 			case "receipt": 

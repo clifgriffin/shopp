@@ -40,6 +40,7 @@ class Order {
 	var $confirm = false;			// Flag to confirm order or not
 	var $confirmed = false;			// Confirmed by the shopper for processing
 	var $accounts = false;			// Account system setting
+	var $validated = false;			// The pre-processing order validation flag
 	
 	/**
 	 * Order constructor
@@ -85,6 +86,7 @@ class Order {
 		$Settings =& ShoppSettings();
 		$this->confirm = ($Settings->get('order_confirmation') == "always");
 		$this->accounts = $Settings->get('account_system');
+		$this->validated = false; // Reset the order validation flag
 		
 		add_action('shopp_process_shipmethod', array(&$this,'shipmethod'));
 		add_action('shopp_process_checkout', array(&$this,'checkout'));
@@ -100,7 +102,6 @@ class Order {
 		add_action('shopp_reset_session',array(&$this->Cart,'clear'));
 
 		if (empty($this->processor)) add_action('shopp_init',array(&$this,'processor'));
-
 
 		// Set locking timeout for concurrency operation protection
 		if (!defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
@@ -658,7 +659,7 @@ class Order {
 		// Skip validating payment details for purchases not requiring a
 		// payment (credit) card including free orders, remote checkout systems, etc 
 		if (!$this->ccpayment()) return apply_filters('shopp_validate_checkout',true);
-		
+
 		if (apply_filters('shopp_billing_card_required',empty($_POST['billing']['card'])))
 			return new ShoppError(__('You did not provide a credit card number.','Shopp'),'cart_validation');
 
@@ -666,7 +667,8 @@ class Order {
 			return new ShoppError(__('You did not select a credit card type.','Shopp'),'cart_validation');
 
 		$card = Lookup::paycard(strtolower($_POST['billing']['cardtype']));
-		if (apply_filters('shopp_billing_valid_card',$card->validate($_POST['billing']['card'])))
+		if (!$card) return apply_filters('shopp_validate_checkout',true);
+		if (apply_filters('shopp_billing_valid_card',!$card->validate($_POST['billing']['card'])))
 			return new ShoppError(__('The credit card number you provided is invalid.','Shopp'),'cart_validation');
 		
 		if (apply_filters('shopp_billing_cardexpires_month_required',empty($_POST['billing']['cardexpires-mm'])))
@@ -711,14 +713,14 @@ class Order {
 		$valid = true;
 
 		if (empty($Cart->contents)) {
-			$valid = false;
+			$valid = apply_filters('shopp_ordering_empty_cart',false);
 			new ShoppError(__("There are no items in the cart."),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
 		}
 		
 		$stock = true;
 		foreach ($Cart->contents as $item) { 
 			if (!$item->instock()){
-				$valid = false;
+				$valid = apply_filters('shopp_ordering_items_outofstock',false);
 				new ShoppError(sprintf(__("%s does not have sufficient stock to process order."),
 				$item->name . ($item->option->label?" ({$item->option->label})":"")),
 				'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
@@ -727,11 +729,12 @@ class Order {
 		}
 		
 		$valid_customer = true;
-		if (!$Customer) $valid_customer = false; // No Customer
+		if (!$Customer) $valid_customer = apply_filters('shopp_ordering_empty_customer',false); // No Customer
 
 		// Always require name and email
-		if (empty($Customer->firstname) || empty($Customer->lastname)) $valid_customer = false;
-		if (empty($Customer->email)) $valid_customer = false;
+		if (empty($Customer->firstname)) $valid_customer = apply_filters('shopp_ordering_empty_firstname',false);
+		if (empty($Customer->lastname)) $valid_customer = apply_filters('shopp_ordering_empty_lastname',false);
+		if (empty($Customer->email)) $valid_customer = apply_filters('shopp_ordering_empty_email',false);
 
 		if (!$valid_customer) {
 			$valid = false;
@@ -740,10 +743,10 @@ class Order {
 		
 		// Check for shipped items but no Shipping information
 		$valid_shipping = true;
-		if ($this->Shipping) {
-			if (empty($Shipping->address)) $valid_shipping = false;
-			if (empty($Shipping->country)) $valid_shipping = false;
-			if (empty($Shipping->postcode)) $valid_shipping = false;
+		if (!empty($this->Cart->shipped)) {
+			if (empty($Shipping->address)) $valid_shipping = apply_filters('shopp_ordering_empty_shipping_address',false);
+			if (empty($Shipping->country)) $valid_shipping = apply_filters('shopp_ordering_empty_shipping_country',false);
+			if (empty($Shipping->postcode)) $valid_shipping = apply_filters('shopp_ordering_empty_shipping_postcode',false);
 		}
 		if (!$valid_shipping) {
 			$valid = false;
@@ -821,14 +824,14 @@ class Order {
 				$errors = $Errors->get(SHOPP_COMM_ERR);
 				$defaults = array(
 					'before' => '<li>',
-					'after' => '<li>'
+					'after' => '</li>'
 				);
 				$options = array_merge($defaults,$options);
 				extract($options);
 
 				$result = "";
 				foreach ((array)$errors as $error) 
-					if (!empty($error)) $result .= $before.$error->message(true).$after;
+					if (!$error->blank()) $result .= $before.$error->message(true).$after;
 				return $result;
 				break;
 			case "cart-summary":
@@ -836,6 +839,14 @@ class Order {
 				include(SHOPP_TEMPLATES."/summary.php");
 				$content = ob_get_contents();
 				ob_end_clean();
+				
+				// If inside the checkout form, strip the extra <form> tag so we don't break standards
+				// This is ugly, but necessary given the different markup contexts the cart summary is used in
+				if (get_class($Shopp->Flow->Controller) == "Storefront") { 		
+					$Storefront =& $Shopp->Flow->Controller;
+					if ($Storefront->checkout) $content = preg_replace('/<\/?form.*?>/','',$content);
+				}
+				
 				return $content;
 				break;
 			case "loggedin": return $this->Customer->login; break;
@@ -1314,12 +1325,16 @@ class Order {
 				else return $custom;
 				break;
 			case "confirm-button": 
-				if (!$this->isvalid(false)) return false;
-				if (!isset($options['value'])) $options['value'] = __('Confirm Order','Shopp');
-				$custom = apply_filters('shopp_checkout_confirm_button',false,$options,$submit_attrs);
-				if (!$custom)
-					return '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />'; 
-				else return $custom;
+				if (empty($options['errorlabel'])) $options['errorlabel'] = __('Return to Checkout','Shopp');
+				if (empty($options['value'])) $options['value'] = __('Confirm Order','Shopp');
+				
+				$button = '<input type="submit" name="confirmed" id="confirm-button" '.inputattrs($options,$submit_attrs).' />';
+				$return = '<a href="'.shoppurl(false,'checkout',$this->security()).'"'.inputattrs($options,array('class')).'>'.
+								$options['errorlabel'].'</a>';
+				
+				if (!$this->validated) $markup = $return;
+				else $markup = $button;
+				return apply_filters('shopp_checkout_confirm_button',$markup,$options,$submit_attrs);
 				break;
 			case "local-payment": return true; break; // DEPRECATED
 			case "xco-buttons": return;	break; // DEPRECATED
