@@ -130,7 +130,7 @@ class Storefront extends FlowController {
 		global $Shopp;
 		if (is_shopp_secure() || !$Shopp->Gateways->secure) return;
 		switch ($this->Page['name']) {
-			case "checkout": shopp_redirect(shoppurl($_GET,'checkout',true)); break;
+			case "checkout": shopp_redirect(shoppurl($_GET,get_query_var('shopp_proc'),true)); break;
 			case "account":	 shopp_redirect(shoppurl($_GET,'account',true)); break;
 		}
 	}
