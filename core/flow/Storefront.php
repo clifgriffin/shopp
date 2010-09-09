@@ -812,7 +812,15 @@ class Storefront extends FlowController {
 		switch ($process) {
 			case "confirm-order": 
 				do_action('shopp_init_confirmation'); 
-				$content = $this->order_confirmation(); 
+				$Order->validated = $Order->isvalid();
+				$errors = "";
+				if ($Errors->exist(SHOPP_STOCK_ERR)) {
+					ob_start();
+					include(SHOPP_TEMPLATES."/errors.php");
+					$errors = ob_get_contents();
+					ob_end_clean();
+				}
+				$content = $errors.$this->order_confirmation();
 				break;
 			case "thanks":
 			case "receipt": 
