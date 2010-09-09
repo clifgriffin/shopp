@@ -659,7 +659,7 @@ class Order {
 		// Skip validating payment details for purchases not requiring a
 		// payment (credit) card including free orders, remote checkout systems, etc 
 		if (!$this->ccpayment()) return apply_filters('shopp_validate_checkout',true);
-		
+
 		if (apply_filters('shopp_billing_card_required',empty($_POST['billing']['card'])))
 			return new ShoppError(__('You did not provide a credit card number.','Shopp'),'cart_validation');
 
@@ -667,7 +667,8 @@ class Order {
 			return new ShoppError(__('You did not select a credit card type.','Shopp'),'cart_validation');
 
 		$card = Lookup::paycard(strtolower($_POST['billing']['cardtype']));
-		if (apply_filters('shopp_billing_valid_card',$card->validate($_POST['billing']['card'])))
+		if (!$card) return apply_filters('shopp_validate_checkout',true);
+		if (apply_filters('shopp_billing_valid_card',!$card->validate($_POST['billing']['card'])))
 			return new ShoppError(__('The credit card number you provided is invalid.','Shopp'),'cart_validation');
 		
 		if (apply_filters('shopp_billing_cardexpires_month_required',empty($_POST['billing']['cardexpires-mm'])))

@@ -382,7 +382,7 @@ class PayCard {
 	}
 	
 	function validate ($pan) {
-		$n = preg_replace('/[^\d+]/','',$pan);
+		$n = preg_replace('/\D/','',$pan);
 		return ($this->match($n) && $this->checksum($n));
 	}
 	
@@ -399,7 +399,7 @@ class PayCard {
 			$cs += $d % 10;
 			if ($d > 9) $cs += 1;
 		}
-		return ($cs % 10 != 0);
+		return ($cs % 10 == 0);
 	}
 	
 }
