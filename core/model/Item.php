@@ -23,6 +23,7 @@ class Item {
 	var $option = false;		// The option ID of the price object
 	var $variation = array();	// The selected variation
 	var $variations = array();	// The available variation options
+	var $addons = array();		// The addons added to the item
 	var $image = false;			// The cover image for the product
 	var $data = array();		// Custom input data
 	var $quantity = 0;			// The selected quantity for the line item
