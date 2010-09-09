@@ -838,6 +838,14 @@ class Order {
 				include(SHOPP_TEMPLATES."/summary.php");
 				$content = ob_get_contents();
 				ob_end_clean();
+				
+				// If inside the checkout form, strip the extra <form> tag so we don't break standards
+				// This is ugly, but necessary given the different markup contexts the cart summary is used in
+				if (get_class($Shopp->Flow->Controller) == "Storefront") { 		
+					$Storefront =& $Shopp->Flow->Controller;
+					if ($Storefront->checkout) $content = preg_replace('/<\/?form.*?>/','',$content);
+				}
+				
 				return $content;
 				break;
 			case "loggedin": return $this->Customer->login; break;
