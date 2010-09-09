@@ -7,6 +7,7 @@ jQuery(document).ready(function () {
 		checkoutForm = $('#checkout.shopp'),
 		shippingFields = $('#shipping-address-fields'),	
 		billingFields = $('#billing-address-fields'),
+		paymethods = $('#checkout.shopp [name=paymethod]'),
 		localeMenu = $('#billing-locale'),
 		localeFields = $('#checkout.shopp li.locale');
 		
@@ -102,7 +103,7 @@ jQuery(document).ready(function () {
 		} else $(this).parents('form').submit();
 	});
 	
-	$('#checkout.shopp [name=paymethod]').change(function () {
+	paymethods.change(function () {
 		var paymethod = $(this).val();
 		$(document).trigger('shopp_paymethod',[paymethod]);
 		if (ccpayments[paymethod] != false && ccpayments[paymethod].length > 0) {
@@ -134,5 +135,8 @@ jQuery(document).ready(function () {
 			if (data != null) $('#checkout.shopp p.submit').html(data);
 		});
 	});
-
+	
+	$(window).load(function () {
+		$(document).trigger('shopp_paymethod',[paymethods.val()]);
+	});
 });
