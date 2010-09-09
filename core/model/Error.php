@@ -319,6 +319,18 @@ class ShoppError {
 	}
 	
 	/**
+	 * Tests if the error message is blank
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return boolean True for blank error messages
+	 **/
+	function blank () {
+		return (join('',$this->messages) == "");
+	}
+	
+	/**
 	 * Displays messages registered to a specific error code
 	 *
 	 * @author Jonathan Davis
