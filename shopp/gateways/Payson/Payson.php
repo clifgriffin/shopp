@@ -4,7 +4,7 @@
  * @class Payson
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.1.1
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * @since 1.1
@@ -64,7 +64,7 @@ class Payson extends GatewayFramework implements GatewayModule {
 		
 		$_['Agentid']				= $this->settings['agentid'];
 		$_['SellerEmail']			= $this->settings['email'];
-		$_['GuaranteeOffered']		= $this->settings['guarantee'];
+		$_['GuaranteeOffered']		= $this->settings['guarantee'] == "on"?2:1;
 		$_['PaymentMethod']			= $this->settings['payment'];
 		$_['Description']			= $this->settings['description'];
 		
