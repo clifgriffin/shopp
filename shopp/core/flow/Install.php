@@ -91,6 +91,12 @@ class ShoppInstallation extends FlowController {
 		$wp_rewrite->flush_rules();
 
 		$this->Settings->save('data_model','');
+		
+		if (function_exists('get_site_transient')) $plugin_updates = get_site_transient('update_plugins');
+		else $plugin_updates = get_transient('update_plugins');
+		unset($plugin_updates->response[SHOPP_PLUGINFILE]);
+		if (function_exists('set_site_transient')) set_site_transient('update_plugins',$plugin_updates);
+		else set_transient('update_plugins',$plugin_updates);
 
 		return true;
 	}
@@ -142,11 +148,12 @@ class ShoppInstallation extends FlowController {
 		require_once(SHOPP_FLOW_PATH.'/Storefront.php');
 		
 		// Locate any Shopp pages that already exist
+		$pages = Storefront::$_pages;		
 		$pages_installed = shopp_locate_pages();
-
+		
 		$parent = 0;
-		foreach (Storefront::$Pages as $key => &$page) {
-			if (!empty(Storefront::$Pages['catalog']['id'])) $parent = Storefront::$Pages['catalog']['id'];
+		foreach ($pages as $key => &$page) {
+			if (!empty($pages['catalog']['id'])) $parent = $pages['catalog']['id'];
 			if (!empty($pages_installed[$key]['id'])) { // Skip installing pages that already exist
 				$page = $pages_installed[$key];
 				continue;
@@ -167,7 +174,7 @@ class ShoppInstallation extends FlowController {
 			$page['uri'] = get_page_uri($page['id']);
 		}
 
-		$this->Settings->save("pages",Storefront::$Pages);
+		$this->Settings->save("pages",$pages);
 	}
 	
 	/**
