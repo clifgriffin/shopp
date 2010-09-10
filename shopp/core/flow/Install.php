@@ -147,8 +147,9 @@ class ShoppInstallation extends FlowController {
 		
 		require_once(SHOPP_FLOW_PATH.'/Storefront.php');
 		
-		// Locate any Shopp pages that already exist
 		$pages = Storefront::$_pages;		
+
+		// Locate any Shopp pages that already exist
 		$pages_installed = shopp_locate_pages();
 		
 		$parent = 0;
@@ -396,12 +397,12 @@ class ShoppInstallation extends FlowController {
 			list($src,$name,$value,$size,$properties,$datasize) = explode("::",$r->value);
 			$p = unserialize($properties);
 			$value = new StdClass();
-			$value->width = $p['width'];
-			$value->height = $p['height'];
-			$value->alt = $p['alt'];
-			$value->title = $p['title'];
+			if (isset($p['width'])) $value->width = $p['width'];
+			if (isset($p['height'])) $value->height = $p['height'];
+			if (isset($p['alt'])) $value->alt = $p['alt'];
+			if (isset($p['title'])) $value->title = $p['title'];
 			$value->filename = $name;
-			$value->mime = $p['mimetype'];
+			if (isset($p['mimetype'])) $value->mime = $p['mimetype'];
 			$value->size = $size;
 			error_log(serialize($value));
 			if ($datasize > 0) {
@@ -517,6 +518,17 @@ class ShoppInstallation extends FlowController {
 		}
 		// Save the active gateways to populate the payment settings page
 		$this->Settings->save('active_gateways',join(',',$active_gateways));		
+		
+		// Preserve update key
+		$oldkey = $this->Settings->get('updatekey');
+		if (!empty($oldkey)) {
+			$newkey = array(
+				($oldkey['status'] == "activated"?1:0),
+				$oldkey['key'],
+				$oldkey['type']
+			);
+			$this->Settings->save('updatekey',$newkey);
+		}
 		
 		$this->roles(); // Setup Roles and Capabilities
 		
