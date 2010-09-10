@@ -520,9 +520,11 @@ class Cart {
 	 **/
 	function shipped () {
 		$shipped = array_filter($this->contents,array(&$this,'_filter_shipped'));
-		
+
+		$this->shipped = array();
 		foreach ($shipped as $key => $item)
 			$this->shipped[$key] = &$this->contents[$key];
+			
 		return (!empty($this->shipped));
 	}
 	
@@ -548,6 +550,7 @@ class Cart {
 	 **/
 	function downloads () {
 		$downloads = array_filter($this->contents,array(&$this,'_filter_downloads'));
+		$this->downloads = array();
 		foreach ($downloads as $key => $item)
 			$this->downloads[$key] = &$this->contents[$key];
 		return (!empty($this->downloads));
@@ -1436,6 +1439,16 @@ class CartShipping {
 		
 	}
 	
+	function status () {
+		// If shipping is disabled, bail
+		if ($this->disabled) return false;
+		// If no shipped items, bail
+		if (!$this->Cart->shipped()) return false;
+		// If the cart is flagged for free shipping bail
+		if ($this->Cart->freeshipping) return 0;
+		return true;
+	}
+	
 	/**
 	 * Runs the shipping calculation modules
 	 *
@@ -1446,14 +1459,9 @@ class CartShipping {
 	 **/
 	function calculate () {
 		global $Shopp;
-		
-		// If shipping is disabled, bail
-		if ($this->disabled) return false;
-		// If no shipped items, bail
-		if (!$this->Cart->shipped()) return false;
-		// If the cart is flagged for free shipping bail
-		if ($this->Cart->freeshipping) return 0;
-		
+
+		$status = $this->status();
+		if ($status !== true) return $status;
 
 		// Initialize shipping modules
 		do_action('shopp_calculate_shipping_init');
@@ -1521,6 +1529,10 @@ class CartShipping {
 	 * @return float The shipping amount
 	 **/
 	function selected () {
+
+		$status = $this->status();
+		if ($status !== true) return $status;
+
 		if (!empty($this->Shipping->method) && isset($this->Cart->shipping[$this->Shipping->method]))
 			return $this->Cart->shipping[$this->Shipping->method]->amount;
 		$method = current($this->Cart->shipping);

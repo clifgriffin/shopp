@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.1.1
+Version: 1.1.2
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define('SHOPP_VERSION','1.1.1');
+define('SHOPP_VERSION','1.1.2');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','http://shopplugin.net/');
@@ -232,7 +232,9 @@ class Shopp {
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 		
 		global $pagenow;
-		if (defined('WP_ADMIN') && $pagenow == "plugins.php") $this->updates();
+		if (defined('WP_ADMIN') 
+			&& $pagenow == "plugins.php" 
+			&& $_GET['action'] != 'deactivate') $this->updates();
 
 		new Login();
 		do_action('shopp_init');		

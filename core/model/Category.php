@@ -401,8 +401,8 @@ class Category extends DatabaseObject {
 			
 		}
 		
-		if ($this->published) $where[] = "(p.status='publish' AND UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(p.publish))";
-		else $where[] = "(p.status!='publish' OR UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(p.publish))";
+		if ($this->published) $where[] = "(p.status='publish' AND ".time()." > UNIX_TIMESTAMP(p.publish))";
+		else $where[] = "(p.status!='publish' OR ".time()." < UNIX_TIMESTAMP(p.publish))";
 		
 		$defaultOrder = $Shopp->Settings->get('default_product_order');
 		if (empty($defaultOrder)) $defaultOrder = "";

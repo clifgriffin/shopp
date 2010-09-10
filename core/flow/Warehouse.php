@@ -484,7 +484,7 @@ class Warehouse extends AdminController {
 		
 		if ($_POST['status'] == "publish") {
 			$publishdate = join('',array_merge(array('month' => '','date' => '','year' => ''),$_POST['publish']));
-			if (!empty($datefields)) {
+			if (!empty($publishdate)) {
 				if ($_POST['publish']['meridiem'] == "PM" && $_POST['publish']['hour'] < 12) 
 					$_POST['publish']['hour'] += 12;
 				$_POST['publish'] = mktime($_POST['publish']['hour'],$_POST['publish']['minute'],0,$_POST['publish']['month'],$_POST['publish']['date'],$_POST['publish']['year']);
