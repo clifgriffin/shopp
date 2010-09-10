@@ -37,8 +37,8 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			);
 			
 		$this->urls['button'] = array(
-			'live' => 'http://checkout.google.com/buttons/checkout.gif',
-			'test' => 'http://sandbox.google.com/checkout/buttons/checkout.gif'
+			'live' => (is_shopp_secure()?'https':'http').'://checkout.google.com/buttons/checkout.gif',
+			'test' => (is_shopp_secure()?'https':'http').'://sandbox.google.com/checkout/buttons/checkout.gif'
 			);
 		
 		$this->merchant_calc_url = add_query_string('_txnupdate=gc',shoppurl(false,'catalog'));
