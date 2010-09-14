@@ -27,7 +27,8 @@ var Pricelines = new Pricelines(),
 jQuery(document).ready(function() {
 	var $=jqnc(),
 		title = $('#title'),
-		titlePrompt = $('#title-prompt-text');
+		titlePrompt = $('#title-prompt-text'),
+		publishfields = $('.publishdate');
 
 	// Give the product name initial focus
 	title.bind('focus keydown',function () {
@@ -65,12 +66,12 @@ jQuery(document).ready(function() {
 
 	$('#schedule-toggle').click(function () {
 		$('#scheduling').slideToggle('fast',function () {
-			if ($(this).is(':visible')) $('#publish-month,#publish-date,#publish-year').removeAttr('disabled');
-			else $('#publish-month,#publish-date,#publish-year').attr('disabled',true);
+			if ($(this).is(':visible')) publishfields.removeAttr('disabled');
+			else publishfields.attr('disabled',true);
 		});
 	});
 	$('#scheduling').hide();
-	$('#publish-month,#publish-date,#publish-year').attr('disabled',true);
+	publishfields.attr('disabled',true);
 
 	$('#published').change(function () {
 		if ($(this).attr('checked')) $('#publish-status,#schedule-toggling').show();
@@ -111,7 +112,7 @@ jQuery(document).ready(function() {
 
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
 	
-	// window.onbeforeunload = unsavedChanges;
+	window.onbeforeunload = unsavedChanges;
 	
 	$('#product').change(function () { changes = true; }).unbind('submit').submit(function(e) {
 		e.stopPropagation();
