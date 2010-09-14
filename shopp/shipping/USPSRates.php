@@ -164,12 +164,11 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 		}
 
 		$estimate = false;
-		$type = "domestic";
-		$Estimates = $Response->tag('Postage');
-		if (empty($Estimates)) {
-			$Estimates = $Response->tag('Service');
-			if (!empty($Estimates)) $type = "intl";
-		}
+		if ($Order->Shipping->country == $this->base['country']) $type = "domestic";
+		else $type = "intl";
+
+		if ($type == "domestic") $Estimates = $Response->tag('Postage');
+		else $Estimates = $Response->tag('Service');
 	
 		while ($rated = $Estimates->each()) {
 			$delivery = "5d-7d";
@@ -184,8 +183,7 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 				if ($SvcCommitments = $rated->content('SvcCommitments'))
 					$delivery = $this->delivery($SvcCommitments);
 			}
-			
-			if (is_array($this->settings['services']) && array_key_exists($service,$this->settings['services'])) {
+			if (is_array($this->settings['services']) && array_key_exists($service,$this->settings['services']) && in_array($service,$this->rate['services'])) {
 				$rate = array();
 				$rate['name'] = $this->services[$service];
 				$rate['amount'] = $amount;
@@ -206,7 +204,7 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 		if ($country != $this->base['country']) {
 			global $Shopp;
 			$type = "IntlRate";	
-			$countries = Lookup::country_zones();
+			$countries = Lookup::countries();
 			if ($country == "GB") $country = $countries[$country]['name'].' (Great Britain)';
 			else $country = $countries[$country]['name'];
 		}
@@ -245,7 +243,7 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 	function verify () {         
 		if (!$this->activated()) return;
 		$this->weight = 1;
-		$request = $this->build('1','Authentication test','10022','US');
+		$request = $this->build('10022','US');
 		$Response = $this->send($request);
 		if ($Response->tag('Error')) new ShoppError($Response->content('Description'),'usps_verify_auth',SHOPP_ADDON_ERR);
 	}   
