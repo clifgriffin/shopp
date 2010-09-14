@@ -483,14 +483,16 @@ class Warehouse extends AdminController {
 		}
 		
 		if ($_POST['status'] == "publish") {
-			$publishdate = join('',array_merge(array('month' => '','date' => '','year' => ''),$_POST['publish']));
+			$publishfields = array('month' => '','date' => '','year' => '','hour'=>'','minute'=>'','meridiem'=>'');
+			$publishdate = join('',array_merge($publishfields,$_POST['publish']));
 			if (!empty($publishdate)) {
 				if ($_POST['publish']['meridiem'] == "PM" && $_POST['publish']['hour'] < 12) 
 					$_POST['publish']['hour'] += 12;
 				$_POST['publish'] = mktime($_POST['publish']['hour'],$_POST['publish']['minute'],0,$_POST['publish']['month'],$_POST['publish']['date'],$_POST['publish']['year']);
 			} else {
 				unset($_POST['publish']);
-				$Product->publish = null;
+				// Auto set the publish date if not set (or more accurately, if set to an irrelevant timestamp)
+				if ($Product->publish <= 86400) $Product->publish = null;
 			}
 		} else {
 			unset($_POST['publish']);
