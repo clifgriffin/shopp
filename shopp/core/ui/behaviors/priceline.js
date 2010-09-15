@@ -322,19 +322,19 @@ function Priceline (id,options,data,target,attachment) {
 			}
 			
 			dw = $('#dimensions-weight-'+i).val(dimensions.weight).bind('change.value',function () {
-				var num = new Number(this.value); this.value = num.roundFixed(0);
+				var num = new Number(this.value); this.value = num.roundFixed(2).toPrecision(2);
 			}).trigger('change.value');
 			
 			dl = $('#dimensions-length-'+i).val(dimensions.length).bind('change.value',function () {
-				var num = new Number(this.value); this.value = num.roundFixed(0);
+				var num = new Number(this.value); this.value = num.roundFixed(2).toPrecision(2);
 			}).trigger('change.value');
 
 			dwd = $('#dimensions-width-'+i).val(dimensions.width).bind('change.value',function () {
-				var num = new Number(this.value); this.value = num.roundFixed(0);
+				var num = new Number(this.value); this.value = num.roundFixed(2).toPrecision(2);
 			}).trigger('change.value');
 
 			dh = $('#dimensions-height-'+i).val(dimensions.height).bind('change.value',function () {
-				var num = new Number(this.value); this.value = num.roundFixed(0);
+				var num = new Number(this.value); this.value = num.roundFixed(2).toPrecision(2);
 			}).trigger('change.value');
 			
 			weight = _.w;

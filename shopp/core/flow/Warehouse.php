@@ -547,20 +547,24 @@ class Warehouse extends AdminController {
 					if (!empty($Price->download->id) || (empty($Price->download) && $Price->load_download())) {
 						$File = $Price->download;
 					} else $File = new ProductDownload();
-					
+
 					$stored = false;
+					$tmpfile = sanitize_path($option['downloadpath']);
+
 					$File->storage = false;
-					$File->_engine(); // Set engine from storage settings
-					$File->uri = sanitize_path($option['downloadpath']);
+					$Engine = $File->_engine(); // Set engine from storage settings
+
 					$File->parent = $Price->id;
 					$File->context = "price";
 					$File->type = "download";
-					$File->name = !empty($option['downloadfile'])?$option['downloadfile']:basename($File->uri);
+					$File->name = !empty($option['downloadfile'])?$option['downloadfile']:basename($tmpfile);
 					$File->filename = $File->name;
 
-					if (!$File->found()) $stored = $File->store($File->uri,'file');
-					else $stored = true;
-
+					if ($File->found($tmpfile)) {
+						$File->uri = $tmpfile;
+						$stored = true;	
+					} else $stored = $File->store($tmpfile,'file');
+					
 					if ($stored) {
 						$File->readmeta();
 						$File->save();

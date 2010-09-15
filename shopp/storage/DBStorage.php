@@ -23,12 +23,14 @@
 class DBStorage extends StorageModule implements StorageEngine {
 	
 	var $_table = "asset";
+	var $_metatable = "meta";
 	var $_key = "id";
 	
 	function __construct () {
 		parent::__construct();
 		$this->name = __('Database','Shopp');
 		$this->_table = DatabaseObject::tablename($this->_table);
+		$this->_metatable = DatabaseObject::tablename($this->_metatable);
 	}
 	
 	/**
@@ -54,14 +56,30 @@ class DBStorage extends StorageModule implements StorageEngine {
 		
 		$data = @mysql_real_escape_string($data);
 
-		if (!$asset->id) $uri = $db->query("INSERT $this->_table SET data='$data'");
-		else {
-			$db->query("UPDATE $this->_table SET data='$data' WHERE $this->_key='$asset->id'");	
-			$uri = $asset->id;
-		}
-
+		if (!$asset->id) $uri = $db->query("INSERT $this->_table SET data='$data'");	
+		else $db->query("UPDATE $this->_table SET data='$data' WHERE $this->_key='$asset->uri'");	
+		
 		if (isset($uri)) return $uri;
 		return false;
+	}
+	
+	/**
+	 * Gets the size and mimetype meta of a stored asset
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @param string $uri The URI for the resource
+	 * @param string $filename (optional) File name of the asset
+	 * @return array A named list of the stored file size and mimetype
+	 **/
+	function meta ($uri,$filename=false) {
+		$db = &DB::get();
+		$_ = array();
+		$file = $db->query("SELECT LENGTH(data) AS size FROM $this->_table WHERE $this->_key='$uri' LIMIT 1");
+		if ($file && isset($file->size)) $_['size'] = $file->size;
+		if ($filename !== false) $_['mime'] = file_mimetype(false,$filename);
+		return $_;
 	}
 	
 	/**
@@ -75,6 +93,7 @@ class DBStorage extends StorageModule implements StorageEngine {
 	 **/
 	function exists ($uri) {
 		$db = &DB::get();
+		if ((int)$uri == 0) return false;
 		$file = $db->query("SELECT id FROM $this->_table WHERE $this->_key='$uri' LIMIT 1");
 		return (!empty($file));
 	}
