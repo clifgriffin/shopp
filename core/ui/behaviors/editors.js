@@ -956,6 +956,7 @@ function ImageUploads (id,type) {
 
 jQuery.fn.FileChooser = function (line,status) {
 	var $ = jqnc(),
+		_ = this,
 		importurl = $('#import-url'),
 		attach = $('#attach-file'),
 		dlpath = $('#download_path-'+line),
@@ -963,8 +964,10 @@ jQuery.fn.FileChooser = function (line,status) {
 		file = $('#file-'+line),
 		stored = false,
 		progressbar = false;
-		
-	fileUploads.updateLine(line,status);
+
+	_.line = line;
+	_.status = status;
+	
 	importurl.unbind('keydown').unbind('keypress').suggest(
 			sugg_url+'&action=shopp_storage_suggestions&t=download', 
 			{ delay:500, minchars:3, multiple:false, onSelect:function () { importurl.change(); } }
@@ -987,61 +990,66 @@ jQuery.fn.FileChooser = function (line,status) {
 		});
 	});
 	
-	attach.click(function () {
-		$.fn.colorbox.hide()
-		if (stored) {
-			dlpath.val(importurl.val());
-			importurl.val('').attr('class','fileimport');
-			return true;
-		}
+	$(this).click(function () { 
+		fileUploads.updateLine(line,status);
 		
-		var importid = false,
-			importdata = false,
-			importfile = importurl.val(),
-			importing = function () {
-				$.ajax({url:fileimportp_url+'&action=shopp_import_file_progress&proc='+importid,
-					timeout:500,
-					dataType:'text',
-					success:function (status) {
-						var total = parseInt(importdata.size);
-							width = Math.ceil((status/total)*76),
-							progressbar = file.find('div.progress > div.bar');
-						if (status < total) setTimeout(importing,1000);
-						else { // Completed
-							if (progressbar) progressbar.css({'width':'100%'}).fadeOut(500,function () {
-								if (!importdata.name) return $this.attr('class','');
-								file.attr('class','file '+importdata.mime.replace('/',' ')).html(importdata.name+'<br /><small>'+readableFileSize(importdata.size)+'</small>');
-								dlpath.val(importdata.path); dlname.val(importdata.name);
-								importurl.val('').attr('class','fileimport');
-							});
-							return;				
-						}
-						if (progressbar) progressbar.animate({'width':width+'px'},500);
-					}
-				});
-
-			}
-		
-		file.attr('class','').html('<div class="progress"><div class="bar"></div><div class="gloss"></div></div><iframe width="0" height="0" src="'+fileimport_url+'&action=shopp_import_file&url='+importfile+'"></iframe>');
-		file.find('iframe').load(function () {
-			var f = $(this).contents().find('body').html();
-			importdata = $.parseJSON(f);
-			
-			if (importdata.error) return file.attr('class','error').html('<small>'+importdata.error+'</small>');
-			if (!importdata.path) return file.attr('class','error').html('<small>'+FILE_UNKNOWN_IMPORT_ERROR+'</small>');
-			
-			if (importdata.stored) {
-				file.attr('class','file '+importdata.mime.replace('/',' ')).html(importdata.name+'<br /><small>'+readableFileSize(importdata.size)+'</small>');
-				dlpath.val(importdata.path); dlname.val(importdata.name);
+		attach.unbind('click').click(function () {
+			$.fn.colorbox.hide();
+			if (stored) {
+				dlpath.val(importurl.val());
 				importurl.val('').attr('class','fileimport');
-				return;
-			} else {
-				savepath = importdata.path.split('/');
-				importid = savepath[savepath.length-1];
-				importing();
+				return true;
 			}
-		});
 
+			var importid = false,
+				importdata = false,
+				importfile = importurl.val(),
+				importing = function () {
+					$.ajax({url:fileimportp_url+'&action=shopp_import_file_progress&proc='+importid,
+						timeout:500,
+						dataType:'text',
+						success:function (status) {
+							var total = parseInt(importdata.size);
+								width = Math.ceil((status/total)*76),
+								progressbar = file.find('div.progress > div.bar');
+							if (status < total) setTimeout(importing,1000);
+							else { // Completed
+								if (progressbar) progressbar.css({'width':'100%'}).fadeOut(500,function () {
+									if (!importdata.name) return $this.attr('class','');
+									file.attr('class','file '+importdata.mime.replace('/',' ')).html(importdata.name+'<br /><small>'+readableFileSize(importdata.size)+'</small>');
+									dlpath.val(importdata.path); dlname.val(importdata.name);
+									importurl.val('').attr('class','fileimport');
+								});
+								return;				
+							}
+							if (progressbar) progressbar.animate({'width':width+'px'},500);
+						}
+					});
+
+				}
+
+			file.attr('class','').html('<div class="progress"><div class="bar"></div><div class="gloss"></div></div><iframe width="0" height="0" src="'+fileimport_url+'&action=shopp_import_file&url='+importfile+'"></iframe>');
+			file.find('iframe').load(function () {
+				var f = $(this).contents().find('body').html();
+				importdata = $.parseJSON(f);
+
+				if (importdata.error) return file.attr('class','error').html('<small>'+importdata.error+'</small>');
+				if (!importdata.path) return file.attr('class','error').html('<small>'+FILE_UNKNOWN_IMPORT_ERROR+'</small>');
+
+				if (importdata.stored) {
+					file.attr('class','file '+importdata.mime.replace('/',' ')).html(importdata.name+'<br /><small>'+readableFileSize(importdata.size)+'</small>');
+					dlpath.val(importdata.path); dlname.val(importdata.name);
+					importurl.val('').attr('class','fileimport');
+					return;
+				} else {
+					savepath = importdata.path.split('/');
+					importid = savepath[savepath.length-1];
+					importing();
+				}
+			});
+
+		});
+		
 	});
 
 	$(this).colorbox({'title':'File Selector','innerWidth':'360','innerHeight':'140','inline':true,'href':'#chooser'});
@@ -1111,7 +1119,7 @@ function FileUploader (button,defaultButton) {
 		},
 		onComplete: function(results) {
 			var filedata = false,targetHolder = _.targetCell;
-				
+			console.log(results);
 			try {
 				filedata = $.parseJSON(results);
 			} catch (ex) {
@@ -1165,13 +1173,9 @@ function FileUploader (button,defaultButton) {
 	
 	function fileDialogComplete (selected, queued) {
 		$.fn.colorbox.hide();
-
 		if (!selected) return;
-		try {
-			this.startUpload();
-		} catch (ex) {
-			this.debug(ex);
-		}
+		try { this.startUpload(); } 
+		catch (ex) { this.debug(ex); }
 		
 	}
 
@@ -1186,16 +1190,13 @@ function FileUploader (button,defaultButton) {
 	}
 
 	function uploadSuccess (file, results) {
-		var filedata = false,targetCell = this.targetCell,targetHolder = this.targetHolder,i = this.targetLine;
+		var filedata = false,targetCell = this.targetCell,i = this.targetLine;
 		
-		try {
-			filedata = $.parseJSON(results);
-		} catch (ex) {
-			filedata.error = results;
-		}
-		
+		try { filedata = $.parseJSON(results); } 
+		catch (ex) { filedata.error = results; }
+		console.log(filedata);
 		if (!filedata.id && !filedata.name) {
-			targetHolder.html(NO_DOWNLOAD);
+			targetCell.html(NO_DOWNLOAD);
 			if (filedata.error) alert(filedata.error);
 			else alert(UNKNOWN_UPLOAD_ERROR);
 			return false;

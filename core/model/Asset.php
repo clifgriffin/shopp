@@ -123,7 +123,7 @@ class FileAsset extends MetaObject {
 	 **/
 	function readmeta () {
 		$Engine = $this->_engine();
- 		list($this->size,$this->mime) = array_values($Engine->meta($this->uri));
+ 		list($this->size,$this->mime) = array_values($Engine->meta($this->uri,$this->name));
 	}
 	
 	/**
@@ -134,10 +134,11 @@ class FileAsset extends MetaObject {
 	 * 
 	 * @return void
 	 **/
-	function found () {
+	function found ($uri=false) {
 		if (!empty($this->data)) return true;
+		if (!$uri) $uri = $this->uri;
 		$Engine = $this->_engine();
-		return $Engine->exists($this->uri);
+		return $Engine->exists($uri);
 	}
 	
 	/**
@@ -614,6 +615,10 @@ abstract class StorageModule {
 		$data = $this->load($uri);
 		header ("Content-length: ".strlen($data)); 
 		echo $data;
+	}
+	
+	function meta () {
+		return false;
 	}
 	
 	function handles ($context) {
