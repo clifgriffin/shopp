@@ -760,6 +760,6 @@ class Warehouse extends AdminController {
 		$Indexer->index();
 	}
 
-} // end Store class
+} // END Warehouse class
 
 ?>
