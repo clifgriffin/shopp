@@ -39,19 +39,20 @@ function getCurrencyFormat (f) {
 	if (f && f.currency) return f; // valid parameter format
 	if (setting && setting.c) 
 		return {	// from base of operations
-			"indian":(setting.india),
 			"cpos":setting.cp,
 			"currency":setting.c,
 			"precision":parseInt(setting.p),
 			"decimals":setting.d,
-			"thousands":setting.t
+			"thousands":setting.t,
+			"grouping":setting.g
 		}
 	return {		// Default currency format
 		"cpos":true,
 		"currency":"$",
 		"precision":2,
 		"decimals":".",
-		"thousands":","
+		"thousands":",",
+		"grouping":3
 	}
 }
 
@@ -91,25 +92,41 @@ function formatNumber (n,f,pr) {
 	f = getCurrencyFormat(f);
 
 	n = asNumber(n);
-	var digits,i,dc = '',d = n.toFixed(f.precision).toString().split(".");
+	var digits,i,
+		whole=fraction=0,
+		divide = false,
+		sequence = '',
+		ng = [],
+		d = n.toFixed(f.precision).toString().split("."),
+		grouping = f.grouping;
 
 	n = "";
-	if (f.indian) {
-		digits = d[0].slice(0,-3);
-		n = d[0].slice(-3,d[0].length) + ((n.length > 0)?f.thousands+n:n);
-		for (i = 0; i < (digits.length / 2); i++) 
-			n = digits.slice(-2*(i+1),digits.length+(-2 * i)) + ((n.length > 0)?f.thousands+n:n);
-	} else {
-		for (i = 0; i < (d[0].length / 3); i++) 
-			n = d[0].slice(-3*(i+1),d[0].length+(-3 * i)) + ((n.length > 0)?f.thousands + n:n);
-	}
+	whole = d[0];
+	if (d[1]) fraction = d[1];
 	
-	dc = (pr)?new Number('0.'+d[1]).toString().substr(2):d[1];
-	dc = (!pr || pr && dc.length > 0)?f.decimals+dc:'';
+	if (grouping.indexOf(',') > -1) grouping = grouping.split(',');
+	else grouping = [grouping];
 
-	if (f.precision > 0) n += dc;
+	i = 0;
+	lg=grouping.length-1;
+	while(whole.length > grouping[Math.min(i,lg)]) {
+		if (grouping[Math.min(i,lg)] == '') break;
+		divide = whole.length - grouping[Math.min(i++,lg)];
+		sequence = whole;
+		whole = sequence.substr(0,divide);
+		ng.unshift(sequence.substr(divide));
+	}
+	if (whole) ng.unshift(whole);
+	
+	n = ng.join(f.thousands);
+	if (n == '') n = 0;
+	
+	fraction = (pr)?new Number('0.'+fraction).toString().substr(f.precision):fraction;
+	fraction = (!pr || pr && fraction.length > 0)?f.decimals+fraction:'';
+
+	if (f.precision > 0) n += fraction;
+	
 	return n;
-
 }
 
 /**

@@ -268,7 +268,9 @@ function Priceline (id,options,data,target,attachment) {
 	}
 	
 	_.shipping = function (toggle,weight,fee,dimensions) {
-		var hd,ui,dis,inf,dc,dw,dl,dwd,dh;
+		var hd,ui,dis,inf,dc,dw,dl,dwd,dh,nf = getCurrencyFormat();
+		nf.precision = '2';
+		
 		hd = $('<th><input type="hidden" name="'+fn+'[shipping]" value="off" /><input type="checkbox" name="'+fn+'[shipping]" id="shipping-'+i+'" /><label for="shipping-'+i+'"> '+SHIPPING_LABEL+'</label></th>').appendTo(headingsRow);
 		ui = $('<td><span class="status">'+FREE_SHIPPING_TEXT+'</span>'+
 					'<span class="ui"><input type="text" name="'+fn+'[weight]" id="weight-'+i+'" size="8" class="selectall right" />'+
@@ -282,10 +284,8 @@ function Priceline (id,options,data,target,attachment) {
 
 		if (!weight) weight = 0;
 		_.w = $('#weight-'+i);
-		_.w.val(weight).bind('change.value',function () {
-			f = getCurrencyFormat();
-			f.precision = '1';
-			this.value = formatNumber(this.value,f);
+		_.w.val(new Number(weight)).bind('change.value',function () {
+			this.value = formatNumber(new Number(this.value),nf,true);
 		}).trigger('change.value');
 
 		_.fee = $('#shipfee-'+i);
@@ -321,20 +321,20 @@ function Priceline (id,options,data,target,attachment) {
 				dimensions.weight = 0; dimensions.length = 0; dimensions.width = 0; dimensions.height = 0;
 			}
 			
-			dw = $('#dimensions-weight-'+i).val(dimensions.weight).bind('change.value',function () {
-				var num = new Number(this.value); this.value = num.roundFixed(2).toPrecision(2);
+			dw = $('#dimensions-weight-'+i).val(new Number(dimensions.weight)).bind('change.value',function () {
+				this.value = formatNumber(this.value,nf,true);
 			}).trigger('change.value');
 			
-			dl = $('#dimensions-length-'+i).val(dimensions.length).bind('change.value',function () {
-				var num = new Number(this.value); this.value = num.roundFixed(2).toPrecision(2);
+			dl = $('#dimensions-length-'+i).val(new Number(dimensions.length)).bind('change.value',function () {
+				this.value = formatNumber(this.value,nf,true);
 			}).trigger('change.value');
 
-			dwd = $('#dimensions-width-'+i).val(dimensions.width).bind('change.value',function () {
-				var num = new Number(this.value); this.value = num.roundFixed(2).toPrecision(2);
+			dwd = $('#dimensions-width-'+i).val(new Number(dimensions.width)).bind('change.value',function () {
+				this.value = formatNumber(this.value,nf,true);
 			}).trigger('change.value');
 
-			dh = $('#dimensions-height-'+i).val(dimensions.height).bind('change.value',function () {
-				var num = new Number(this.value); this.value = num.roundFixed(2).toPrecision(2);
+			dh = $('#dimensions-height-'+i).val(new Number(dimensions.height)).bind('change.value',function () {
+				this.value = formatNumber(this.value,nf,true);
 			}).trigger('change.value');
 			
 			weight = _.w;
@@ -343,10 +343,10 @@ function Priceline (id,options,data,target,attachment) {
 				dc.toggle(); dw.focus();
 				var d = 0, w = 0;
 				dc.find('input').each(function (id,dims) {
-					if ($(dims).hasClass('weight')) { w = dims.value; }
+					if ($(dims).hasClass('weight')) { w = asNumber(dims.value); }
 					else {
-						if (d == 0) d = dims.value;
-						else d *= dims.value;
+						if (d == 0) d = asNumber(dims.value);
+						else d *= asNumber(dims.value);
 					}
 				});
 				if (!isNaN(d/w)) weight.val((d/w)).trigger('change.value');

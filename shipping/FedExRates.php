@@ -173,12 +173,12 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		$request = $this->build(session_id(), $this->rate['name'], 
 			$Order->Shipping->postcode, $Order->Shipping->country);
 		
-		$Response = $this->send();
+		$Response = $this->send($request);
+		
 		if (!$Response) return false;
 		if ($Response->HighestSeverity == 'FAILURE' || 
 		 		$Response->HighestSeverity == 'ERROR') {
 			new ShoppError($Response->Notifications->Message,'fedex_rate_error',SHOPP_ADDON_ERR);
-			exit();
 			return false;
 		}
 
@@ -236,7 +236,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 
 		$_['Version'] = array(
 			'ServiceId' => 'crs', 
-			'Major' => '5', 
+			'Major' => '8', 
 			'Intermediate' => '0', 
 			'Minor' => '0');
 
@@ -315,7 +315,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 			new ShoppError(__("FedEx could not be reached for realtime rates.","Shopp"),'fedex_connection',SHOPP_COMM_ERR);
 			return false;
 		}
-		
+
 		return $response;
 	}
 	

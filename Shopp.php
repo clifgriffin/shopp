@@ -441,6 +441,7 @@ class Shopp {
 			'p' => $baseop['currency']['format']['precision'],
 			't' => $baseop['currency']['format']['thousands'],
 			'd' => $baseop['currency']['format']['decimals'],
+			'g' => is_array($baseop['currency']['format']['grouping'])?join(',',$baseop['currency']['format']['grouping']):$baseop['currency']['format']['grouping'],
 			
 			'nocache' => is_shopp_page('account'),
 
@@ -483,7 +484,7 @@ class Shopp {
 			'weekday_sat' => __('Sat','Shopp')
 
 		);
-		if (isset($baseop['currency']['format']['indian'])) $settings['india'] = true;
+
 		$defaults = apply_filters('shopp_js_settings',$defaults);
 		shopp_localize_script('shopp','ShoppSettings',$defaults);
 	}
