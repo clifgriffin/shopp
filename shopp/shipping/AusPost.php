@@ -37,6 +37,7 @@ class AusPost extends ShippingFramework implements ShippingModule {
 	var $intl = array('AIR','SEA');
 	var $insurance = 1.1;
 	var $insured = false;
+	var $singular = true; // module can only be loaded once
 				
 	function __construct () {
 		parent::__construct();
@@ -51,7 +52,7 @@ class AusPost extends ShippingFramework implements ShippingModule {
 		// Build the service list
 		$this->settings['services'] = $this->services;
 		
-		if (isset($this->rates[0])) $this->rate = $this->rates[0];
+		if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates); // TODO: remove after 1.1.3
 		
 		add_action('shipping_service_settings',array(&$this,'settings'));
 		add_action('shopp_verify_shipping_services',array(&$this,'verify'));
