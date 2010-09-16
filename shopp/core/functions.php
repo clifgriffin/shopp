@@ -274,7 +274,7 @@ function crc16 ($data) {
  * @return array Format settings array
  **/
 function currency_format ($format=false) {
-	$default = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",");
+	$default = array("cpos"=>true,"currency"=>"$","precision"=>2,"decimals"=>".","thousands" => ",","grouping"=>3);
 	if ($format !== false) return array_merge($default,$format);
 	$Settings = &ShoppSettings();
 	$locale = $Settings->get('base_operations');
@@ -577,20 +577,35 @@ function file_mimetype ($file,$name=false) {
  * @param array $format (optional) The currency format to use for precision (defaults to the current base of operations)
  * @return float
  **/
-function floatvalue($value, $round=true, $format=false) {
+function floatvalue ($value, $round=true, $format=false) {
 	$format = currency_format($format);
 	extract($format,EXTR_SKIP);
 
 	$v = (float)$value; // Try interpretting as a float and see if we have a valid value
-	if (is_float($v) && $v > 0 && strpos($value,$thousands) === false) 
-		return floatval($round?round($value,$precision):$value);
-
+	
+	// If a valid float already, pass the value through
+	// The variety of currency formats makes determining a valid float very difficult
+	if (is_float($value) || (			// Original $value is a float, passthru
+		is_float($v) 					// $v correctly casts to a float
+		&& $v > 0 && (					// The casted float value is not 0
+				$decimals == '.' || 	// not a normalized float if the decimal separator is in the value 
+				!empty($decimals) && $decimals != '.' && strpos($value,$decimals) === false	// and is not a period-character
+			) && (						// Not a valid float if the thousands separator is present at all
+				strpos($value,$thousands) === false
+			)
+		)) return floatval($round?round($value,$precision):$value);
+	// echo "Parsing string to float\n";
+	// echo "$value\n";
 	$value = preg_replace("/(\D\.|[^\d\,\.])/","",$value); // Remove any non-numeric string data
+	// echo "$value\n";
 	$value = preg_replace("/^\./","",$value); // Remove any decimals at the beginning of the string
+	// echo "~$value (thousands $thousands)\n";
 	$value = preg_replace("/\\".$thousands."/","",$value); // Remove thousands
+	// echo "$value\n";
 
 	if ($precision > 0) // Don't convert decimals if not required
 		$value = preg_replace("/\\".$decimals."/",".",$value); // Convert decimal delimter
+		// echo "$value\n";
 
 	return $round?round(floatval($value),$precision):floatval($value);
 }
@@ -645,38 +660,6 @@ if (!function_exists('href_add_query_arg')) {
 		list($uri,$query) = explode("?",$url);
 		return $uri.'?'.htmlspecialchars($query);
 	}
-}
-
-/**
- * Formats a number in the Indian numbering format
- *
- * The Indian numbering format involves grouping thousand
- * decimals by two places instead of by three. (e.g. 1,00,00,000)
- *
- * @author Jonathan Davis
- * @since 1.0
- * 
- * @param float $number The number to format
- * @param array $format A formatting configuration array 
- * @return string Indian format number
- **/
-function indian_number ($number,$format=false) {
-	if (!$format) $format = array("precision"=>1,"decimals"=>".","thousands" => ",");
-	extract($format);
-	
-	$d = explode(".",$number);
-	$number = "";
-	$digits = substr($d[0],0,-3); // Get rid of the last 3
-	
-	if (strlen($d[0]) > 3) $number = substr($d[0],-3);
-	else $number = $d[0];
-	
-	for ($i = 0; $i < (strlen($digits) / 2); $i++)
-		$number = substr($digits,(-2*($i+1)),2).((strlen($number) > 0)?$thousands.$number:$number);
-	if ($precision > 0) 
-		$number = $number.$decimals.substr(number_format('0.'.$d[1],$precision),2);
-	return $number;
-	
 }
 
 /**
@@ -1017,10 +1000,47 @@ function menuoptions ($list,$selected=null,$values=false,$extend=false) {
  **/
 function money ($amount,$format=false) {
 	$format = currency_format($format);
-	if (isset($format['indian'])) $number = indian_number($amount,$format);
-	else $number = number_format($amount, $format['precision'], $format['decimals'], $format['thousands']);
+	$number = numeric_format($amount, $format['precision'], $format['decimals'], $format['thousands'], $format['grouping']);
 	if ($format['cpos']) return $format['currency'].$number;
 	else return $number.$format['currency'];
+}
+
+/**
+ * Formats a number with typographically accurate multi-byte separators and variable algorisms
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * 
+ * @return string Formatted number
+ **/
+function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $grouping=array(3)) {
+	$n = sprintf("%0.{$precision}f",$number);
+	$whole = $fraction = 0;
+
+	if (strpos($n,'.') !== false) list($whole,$fraction) = explode('.',$n);
+	else $whole = $n;
+
+	if (!is_array($grouping)) $grouping = array($grouping);
+
+	$i = 0;
+	$lg = count($grouping)-1;
+	$ng = array();
+	while(strlen($whole) > $grouping[min($i,$lg)] && !empty($grouping[min($i,$lg)])) {
+		$divide = strlen($whole) - $grouping[min($i++,$lg)];
+		$sequence = $whole;
+		$whole = substr($sequence,0,$divide);
+		array_unshift($ng,substr($sequence,$divide));
+	}
+	if (!empty($whole)) array_unshift($ng,$whole);
+	
+	$whole = join($separator,$ng);
+	$whole = str_pad($whole,1,'0');
+
+	$fraction = rtrim(substr($fraction,0,$precision),'0');
+	$fraction = str_pad($fraction,$precision,'0');
+
+	$n = $whole.$decimals.$fraction;
+	return $n;
 }
 
 /**
@@ -1069,8 +1089,7 @@ function phone ($num) {
  **/
 function percentage ($amount,$format=false) {
 	$format = currency_format($format);
-	if (isset($format['indian'])) return indian_number($amount,$format);
-	return number_format(round($amount,$format['precision']), $format['precision'], $format['decimals'], $format['thousands']).'%';
+	return number_format(round($amount,$format['precision']), $format['precision'], $format['decimals'], $format['thousands'], $format['grouping']).'%';
 }
 
 /**
@@ -1286,6 +1305,7 @@ if(!function_exists('sanitize_path')){
  *
  * @author Jonathan Davis
  * @since 1.0
+ * @version 1.1
  * 
  * @param string $format A currency formatting string such as $#,###.##
  * @return array Formatting options list
@@ -1296,13 +1316,14 @@ function scan_money_format ($format) {
 		"currency" => "",
 		"precision" => 0,
 		"decimals" => "",
-		"thousands" => ""
+		"thousands" => "",
+		"grouping" => 3
 	);
 	
 	$ds = strpos($format,'#'); $de = strrpos($format,'#')+1;
 	$df = substr($format,$ds,($de-$ds));
 
-	if ($df == "#,##,###.##") $f['indian'] = true;
+	// if ($df == "#,##,###.##") $f['indian'] = true;
 	
 	$f['cpos'] = true;
 	if ($de == strlen($format)) $f['currency'] = substr($format,0,$ds);
@@ -1311,31 +1332,37 @@ function scan_money_format ($format) {
 		$f['cpos'] = false;
 	}
 
-	$i = 0; $dd = 0;
-	$dl = array();
-	$sdl = "";
-	$uniform = true;
-	while($i < strlen($df)) {
-		$c = substr($df,$i++,1);
-		if ($c != "#") {
-			if(empty($sdl)) $sdl = $c;
-			else if($sdl != $c) $uniform = false;
-			$dl[] = $c;
-			$dd = 0;
-		} else $dd++;
-	}
-	if(!$uniform) $f['precision'] = $dd;
+	$found = array();
+	if (!preg_match_all('/([^#]+)/',$df,$found) || empty($found)) return $f;
+	
+	$dl = $found[0];
+	$dd = 0; // Decimal digits
 	
 	if (count($dl) > 1) {
-		if ($dl[0] == "t" || $dl[0] == $dl[1]) {
+		if ($dl[0] == $dl[1] && !isset($dl[2])) {
 			$f['thousands'] = $dl[1];
 			$f['precision'] = 0;
 		} else {
 			$f['decimals'] = $dl[count($dl)-1];
-			$f['thousands'] = $dl[0];			
+			$f['thousands'] = $dl[0];
 		}
 	} else $f['decimals'] = $dl[0];
-
+	
+	$dfc = $df;
+	// Count for precision
+	if (!empty($f['decimals']) && strpos($df,$f['decimals']) !== false) {
+		list($dfc,$dd) = explode($f['decimals'],$df);
+		$f['precision'] = strlen($dd);
+	}
+	
+	if (!empty($f['thousands']) && strpos($df,$f['thousands']) !== false) {
+		$groupings = explode($f['thousands'],$dfc);
+		$grouping = array();
+		while (list($i,$g) = each($groupings))
+			if (strlen($g) > 1) array_unshift($grouping,strlen($g));
+		$f['grouping'] = $grouping;
+	}
+	
 	return $f;
 }
 
