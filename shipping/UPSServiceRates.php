@@ -26,7 +26,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 	var $postcode = true;
 	var $dimensions = true;
 	var $xml = true;
-
+	var $singular = true; // module can only be loaded once
 
 	/* Test URL */
 	// var $url = 'https://wwwcie.ups.com/ups.app/xml/Rate';
@@ -95,7 +95,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 		
 		if (empty($this->settings['pickup'])) $this->settings['pickup'] = '06';
 		
-		if (isset($this->rates[0])) $this->rate = $this->rates[0];
+		if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates); // TODO: remove after 1.1.3
 		
 		add_action('shipping_service_settings',array(&$this,'settings'));
 	}

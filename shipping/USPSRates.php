@@ -25,6 +25,7 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 
 	var $postcode = true;
 	var $xml = true;
+	var $singular = true;  // module can only be loaded once
 
 	/* Test URL */
 	// var $url = 'http://testing.shippingapis.com/ShippingAPITest.dll';
@@ -78,7 +79,7 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 		
 		// Build the service list
 		$this->settings['services'] = $this->services;
-		if (isset($this->rates[0])) $this->rate = $this->rates[0];
+		if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates); // TODO: remove after 1.1.3
 
 		add_action('shipping_service_settings',array(&$this,'settings'));
 		add_action('shopp_verify_shipping_services',array(&$this,'verify'));
@@ -169,7 +170,7 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 
 		if ($type == "domestic") $Estimates = $Response->tag('Postage');
 		else $Estimates = $Response->tag('Service');
-	
+
 		while ($rated = $Estimates->each()) {
 			$delivery = "5d-7d";
 			
@@ -183,6 +184,7 @@ class USPSRates extends ShippingFramework implements ShippingModule {
 				if ($SvcCommitments = $rated->content('SvcCommitments'))
 					$delivery = $this->delivery($SvcCommitments);
 			}
+
 			if (is_array($this->settings['services']) && array_key_exists($service,$this->settings['services']) && in_array($service,$this->rate['services'])) {
 				$rate = array();
 				$rate['name'] = $this->services[$service];

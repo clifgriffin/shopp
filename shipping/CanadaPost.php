@@ -27,6 +27,7 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 
 	var $weight = 0;
 	var $maxweight = 30; // 30 kg
+	var $singular = true; // module can only be loaded once
 	
 	/* Test URL */
 	// var $url = 'http://sellonline.canadapost.ca';
@@ -70,7 +71,7 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 		// Build the service list
 		$this->settings['services'] = $this->services;
 		
-		if (isset($this->rates[0])) $this->rate = $this->rates[0];
+		if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates); // TODO: remove after 1.1.3
 		
 		add_action('shipping_service_settings',array(&$this,'settings'));
 		add_action('shopp_verify_shipping_services',array(&$this,'verify'));

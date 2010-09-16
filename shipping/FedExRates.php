@@ -28,6 +28,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 	var $test = false;
 	var $postcode = true;
 	var $dimensions = true;
+	var $singular = true; // module only can be loaded once
 	
 	var $services = array(
 		'FEDEX_GROUND' => 'FedEx Ground',
@@ -81,7 +82,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		if ($this->units == 'oz') $this->conversion = 0.0625;
 		if ($this->units == 'g') $this->conversion = 0.001;
 
-		if (isset($this->rates[0])) $this->rate = $this->rates[0];
+		if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates); // TODO: remove after 1.1.3
 		
 		add_action('shipping_service_settings',array(&$this,'settings'));
 		add_action('shopp_verify_shipping_services',array(&$this,'verify'));

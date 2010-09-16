@@ -366,6 +366,7 @@ abstract class ShippingFramework {
 	var $rates = array();		// The shipping rates that apply to the module
 	var $dimensions = false;	// Uses dimensions in calculating estimates
 	var $xml = false;			// Flag to load and enable XML parsing
+	var $singular = false;		// Shipping module can only be loaded once
 	
 	/**
 	 * Initializes a shipping module
@@ -390,6 +391,7 @@ abstract class ShippingFramework {
 
 		$rates = $Shopp->Settings->get('shipping_rates');
 		$this->rates = array_filter($rates,array(&$this,'myrates'));
+		if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates); 
 		
 		add_action('shopp_calculate_shipping_init',array(&$this,'init'));
 		add_action('shopp_calculate_shipping',array(&$this,'calculate'),10,2);
