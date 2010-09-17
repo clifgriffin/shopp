@@ -139,12 +139,13 @@ function catalogViewHandler () {
 /**
  * Create a gallery viewing for a set of images
  **/
-function ShoppGallery (id,evt) {
+function ShoppGallery (id,evt,tw) {
 	var $ = jqnc(),
-		gallery = $(id);
+		gallery = $(id),
+		previews = gallery.find('ul.previews'),
 		thumbnails = gallery.find('ul.thumbnails li');
-		previews = gallery.find('ul.previews');
 	if (!evt) evt = 'click';
+	if (tw) gallery.find('ul.thumbnails').css('width',tw+'px');
 
 	thumbnails.bind(evt,function () {
 		var previous,target = $('#'+$(this).attr('class').split(' ')[0]);

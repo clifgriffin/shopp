@@ -1038,8 +1038,9 @@ function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $
 
 	$fraction = rtrim(substr($fraction,0,$precision),'0');
 	$fraction = str_pad($fraction,$precision,'0');
-
-	$n = $whole.$decimals.$fraction;
+	
+	$n = $whole.(!empty($fraction)?$decimals.$fraction:'');
+	
 	return $n;
 }
 
@@ -1089,7 +1090,7 @@ function phone ($num) {
  **/
 function percentage ($amount,$format=false) {
 	$format = currency_format($format);
-	return number_format(round($amount,$format['precision']), $format['precision'], $format['decimals'], $format['thousands'], $format['grouping']).'%';
+	return numeric_format(round($amount,$format['precision']), $format['precision'], $format['decimals'], $format['thousands'], $format['grouping']).'%';
 }
 
 /**

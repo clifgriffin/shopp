@@ -65,7 +65,7 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 	function assertValidMarkup ($string) {
 		$validator = new xHTMLvalidator();
 		$this->assertTrue($validator->validate($string),
-			'Failed to validate: '.$validator->showErrors());
+			'Failed to validate: '.$validator->showErrors()."\n$string");
 	}
 	
 	/**
@@ -511,7 +511,7 @@ if (!defined('SHOPP_SKIP_TESTS')) define('SHOPP_SKIP_TESTS','');
 
 define('SHOPP_TESTS_DIR',dirname(__FILE__).'/tests');
 $files = get_shopp_test_files(SHOPP_TESTS_DIR);
-// $files = array(SHOPP_TESTS_DIR."/PurchaseAPITests.php");
+// $files = array(SHOPP_TESTS_DIR."/ShippingAPITests.php");
 foreach ($files as $file) require_once($file);
 $tests = get_all_test_cases();
 list ($result, $printer) = shopp_run_tests($tests);

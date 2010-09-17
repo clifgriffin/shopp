@@ -228,11 +228,13 @@ class CartAPITests extends ShoppTestCase {
 		$this->assertTag($expected,$actual,'',true);
 
 		$expected = array(
-			'tag' => 'p',
-			'attributes' => array('class' => 'error'),
-			'content' => 'Error'
+			'tag' => 'ul',
+			'child' => array(
+				'tag' => 'li',
+				'content' => 'Error'
+			)
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"$actual",true);
 		$this->assertValidMarkup($actual);
 	}
 	

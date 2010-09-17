@@ -10,8 +10,14 @@
  **/
 class CategoryAPITests extends ShoppTestCase {
 
+	var $Storefront;
+	
 	function setUp () {
 		parent::setUp();
+		global $Shopp;
+		
+		if (!$Shopp->Catalog) $Shopp->Catalog = new Catalog();
+
 		shopp('catalog','category','id=1&load=true');
 	}
 	
@@ -76,7 +82,10 @@ class CategoryAPITests extends ShoppTestCase {
 	
 	function test_category_row () {
 		shopp('category','has-products');
-		for ($i = 0; $i < 4; $i++) shopp('category','products');
+		for ($i = 0; $i < 3; $i++) {
+			shopp('category','products');
+			shopp('category','row');
+		}
 		$this->assertTrue(shopp('category','row'));
 	}
 		
@@ -128,13 +137,15 @@ class CategoryAPITests extends ShoppTestCase {
 		$this->assertValidMarkup($actual);
 	}
 
-	function test_category_thumbnail () {
+	function test_category_coverimage () {
 		shopp('catalog','category','id=17&load=1');
+		
 		ob_start();
 		shopp('category','thumbnail');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/691?96,96,3603059750" alt="Games" width="96" height="95"/>',$actual);
+	
+		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/691/?96,96,3901571377" alt="Games" width="96" height="95"/>',$actual,$actual);
 		$this->assertValidMarkup($actual);
 	}
 	

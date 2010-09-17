@@ -133,7 +133,7 @@ class Item {
 			if ($Price->shipping == "on") {
 				$this->weight = $Price->weight;
 				if (isset($Price->dimensions)) {
-					foreach ($Price->dimensions as $dimension => $value) 
+					foreach ((array)$Price->dimensions as $dimension => $value) 
 						$this->$dimension = $value;
 				}
 				$this->shipfee = $Price->shipfee;

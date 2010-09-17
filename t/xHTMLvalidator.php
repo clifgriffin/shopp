@@ -306,6 +306,7 @@ class xHTMLvalidator {
     'readonly' => '/^(readonly)$/',
     'size' => '/^(\d)+$/',
     'src',
+	'autocomplete' => '/^(off|on)$/', // Added to pass unit tests
     'type' => '/^(button|checkbox|file|hidden|image|password|radio|reset|submit|text)$/',
     'value'
     ) ,

@@ -424,8 +424,10 @@ class Category extends DatabaseObject {
 			case "title": $loading['order'] = "p.name ASC"; break;
 			default:
 				// Need to add the catalog table for access to category-product priorities
-				$loading['joins'] .= " LEFT JOIN $catalogtable AS c ON c.product=p.id AND c.parent = '$this->id'";
-				$loading['order'] = "c.priority ASC,p.name ASC";
+				if (!isset($this->smart)) {
+					$loading['joins'] .= " LEFT JOIN $catalogtable AS c ON c.product=p.id AND c.parent = '$this->id'";
+					$loading['order'] = "c.priority ASC,p.name ASC";
+				}
 				break;
 		}
 		if (!empty($loading['orderby'])) $loading['order'] = $loading['orderby'];

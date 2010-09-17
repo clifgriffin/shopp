@@ -31,7 +31,7 @@ class PurchaseAPITests extends ShoppTestCase {
 		shopp('purchase','date');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('December 1, 2009',$actual);
+		$this->assertEquals('December 1, 2009 1:03 am',$actual);
 	}
 
 	function test_purchase_card () {
