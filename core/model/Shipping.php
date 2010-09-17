@@ -449,12 +449,12 @@ abstract class ShippingFramework {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 * 
-	 * @param string $data The encoded data to send
+	 * @param string $data The encoded data to send, false for GET queries
 	 * @param string $url The URL to connect to
 	 * @param string $port (optional) Connect to a specific port
 	 * @return string Raw response
 	 **/
-	function send ($data,$url,$port=false) {
+	function send ($data=false,$url,$port=false) {
 		$connection = curl_init();
 		curl_setopt($connection,CURLOPT_URL,"$url".($port?":$port":""));
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
@@ -462,8 +462,10 @@ abstract class ShippingFramework {
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
 		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
-		curl_setopt($connection, CURLOPT_POST, 1); 
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $data); 
+		if ($data !== false) {
+			curl_setopt($connection, CURLOPT_POST, 1); 
+			curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
+		} 
 		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_SHIPPING_TIMEOUT); 
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
 		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 

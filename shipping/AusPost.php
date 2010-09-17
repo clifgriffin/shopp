@@ -168,26 +168,26 @@ class AusPost extends ShippingFramework implements ShippingModule {
 		$_['Country'] = $country;
 		$_['Service_Type'] = $service;
 		$_['Weight'] = convert_unit($this->weight,'g');		// Weight in grams
-		$_['Length'] = convert_unit($this->length,'cm'); 	// Dimensions are
-		$_['Width'] = convert_unit($this->width,'cm');		// measured in
-		$_['Height'] = convert_unit($this->height,'cm');	// centimeters
+		$_['Length'] = convert_unit($this->length,'mm'); 	// Dimensions are
+		$_['Width'] = convert_unit($this->width,'mm');		// measured in
+		$_['Height'] = convert_unit($this->height,'mm');	// millimeters
 		$_['Quantity'] = $quantity;
 		return $this->encode($_);
 	}  
 
 	function verify () {
 		if (!$this->activated()) return;
-		$this->weight = 1;
-		$this->length = 1;
-		$this->width = 1;
-		$this->height = 1;
+		$this->weight = 10;
+		$this->length = 10;
+		$this->width = 10;
+		$this->height = 10;
 		$request = $this->build('STANDARD',1,'3015','AU');
 		$Response = $this->send($request);
 		if ($Response->err_msg != "OK") new ShoppError($Response->err_msg,'auspost_verify_auth',SHOPP_ADDON_ERR);
 	}   
 	     	
 	function send ($data) {
-		$response = parent::send(false,$this->url.'?'.$data);
+		$response = parent::send($data,$this->url);
 		$pairs = explode("\n",trim($response));
 		$_ = new stdClass();
 		foreach ($pairs as $set) {
