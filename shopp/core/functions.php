@@ -594,18 +594,13 @@ function floatvalue ($value, $round=true, $format=false) {
 				strpos($value,$thousands) === false
 			)
 		)) return floatval($round?round($value,$precision):$value);
-	// echo "Parsing string to float\n";
-	// echo "$value\n";
+
 	$value = preg_replace("/(\D\.|[^\d\,\.])/","",$value); // Remove any non-numeric string data
-	// echo "$value\n";
 	$value = preg_replace("/^\./","",$value); // Remove any decimals at the beginning of the string
-	// echo "~$value (thousands $thousands)\n";
 	$value = preg_replace("/\\".$thousands."/","",$value); // Remove thousands
-	// echo "$value\n";
 
 	if ($precision > 0) // Don't convert decimals if not required
 		$value = preg_replace("/\\".$decimals."/",".",$value); // Convert decimal delimter
-		// echo "$value\n";
 
 	return $round?round(floatval($value),$precision):floatval($value);
 }
@@ -1011,7 +1006,12 @@ function money ($amount,$format=false) {
  * @author Jonathan Davis
  * @since 1.1
  * 
- * @return string Formatted number
+ * @param float $number A floating point or integer to format
+ * @param int $precision (optional) The number of decimal precision to format to [default: 2]
+ * @param string $decimals The decimal separator character [default: .]
+ * @param string $separator The number grouping separator character [default: ,]
+ * @param int|array $grouping The number grouping pattern [default: array(3)]
+ * @return string The formatted number
  **/
 function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $grouping=array(3)) {
 	$n = sprintf("%0.{$precision}f",$number);
@@ -1322,8 +1322,6 @@ function scan_money_format ($format) {
 	
 	$ds = strpos($format,'#'); $de = strrpos($format,'#')+1;
 	$df = substr($format,$ds,($de-$ds));
-
-	// if ($df == "#,##,###.##") $f['indian'] = true;
 	
 	$f['cpos'] = true;
 	if ($de == strlen($format)) $f['currency'] = substr($format,0,$ds);
@@ -1862,21 +1860,6 @@ function value_is_true ($value) {
 		case "yes": case "true": case "1": case "on": return true;
 		default: return false;
 	}
-}
-
-function safe_ev ($string) {
-	$blacklist = 'include,include_once,require,require_once,
-	curl_init,fpassthru,file,base64_encode,base64_decode,mail,exec,system,proc_open,
-	leak,syslog,pfsockopen,shell_exec,ini_restore,symlink,stream_socket_server,
-	proc_nice,popen,proc_get_status,dl, pcntl_exec, pcntl_fork, pcntl_signal,
-	pcntl_waitpid, pcntl_wexitstatus, pcntl_wifexited, pcntl_wifsignaled,
-	pcntl_wifstopped, pcntl_wstopsig, pcntl_wtermsig, socket_accept,
-	socket_bind, socket_connect, socket_create, socket_create_listen,
-	socket_create_pair,link,register_shutdown_function,register_tick_function';
-	
-	
-	
-	
 }
 
 /**
