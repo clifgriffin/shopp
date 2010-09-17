@@ -270,11 +270,13 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		$_['RequestedShipment']['PackageDetail'] = 'INDIVIDUAL_PACKAGES';
 		$_['RequestedShipment']['ServiceOptionType'] = 'SATURDAY_DELIVERY';
 		
-		$_['RequestedShipment']['RequestedPackages'] = array(
-				'SequenceNumber' => '1',
-					'Weight' => array(
-						'Units' => $this->settings['units'],
-						'Value' => number_format(($this->weight < 0.1)?0.1:$this->weight,1,'.','')));
+		$_['RequestedShipment']['RequestedPackageLineItems'] = array(
+			'0' => array(
+				'Weight' => array(
+					'Units' => $this->settings['units'],
+					'Value' => number_format(($this->weight < 0.1)?0.1:$this->weight,1,'.',''))
+			)
+		);
 		
 		return apply_filters('shopp_fedex_request', $_, $session,$description,$postcode,$country);
 	} 
