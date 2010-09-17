@@ -21,7 +21,7 @@ class CatalogAPITests extends ShoppTestCase {
 		shopp('catalog','url');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('http://shopptest/',$actual);		
+		$this->assertEquals('http://shopptest/store/',$actual);		
 	}
 
 	function test_catalog_type () {
@@ -130,6 +130,7 @@ class CatalogAPITests extends ShoppTestCase {
 	}
 
 	function test_catalog_smartcategories () {
+		$Storefront = new Storefront();
 		ob_start();
 		shopp('catalog','catalog-products','show=3');
 		$actual = ob_get_contents();

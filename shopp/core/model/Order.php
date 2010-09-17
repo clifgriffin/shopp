@@ -1107,7 +1107,7 @@ class Order {
 				if ($options['mode'] == "value") 
 					return str_repeat('X',strlen($this->Billing->card)-4)
 						.substr($this->Billing->card,-4);
-				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
 				if (!empty($this->Billing->card)) {
 					$options['value'] = $this->Billing->card;
 					$this->Billing->card = "";
@@ -1117,7 +1117,7 @@ class Order {
 				break;
 			case "billing-cardexpires-mm":
 				if ($options['mode'] == "value") return date("m",$this->Billing->cardexpires);
-				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardexpires))
 					$options['value'] = date("m",$this->Billing->cardexpires);				
@@ -1125,7 +1125,7 @@ class Order {
 				break;
 			case "billing-cardexpires-yy": 
 				if ($options['mode'] == "value") return date("y",$this->Billing->cardexpires);
-				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardexpires))
 					$options['value'] = date("y",$this->Billing->cardexpires);							
@@ -1133,7 +1133,7 @@ class Order {
 				break;
 			case "billing-cardtype":
 				if ($options['mode'] == "value") return $this->Billing->cardtype;
-				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
 				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->Billing->cardtype))
 					$options['selected'] = $this->Billing->cardtype;
@@ -1159,7 +1159,7 @@ class Order {
 				break;
 			case "billing-cardholder":
 				if ($options['mode'] == "value") return $this->Billing->cardholder;
-				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardholder))
 					$options['value'] = $this->Billing->cardholder;			
@@ -1169,7 +1169,7 @@ class Order {
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($_POST['billing']['cvv']))
 					$options['value'] = $_POST['billing']['cvv'];
-				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
 				return '<input type="text" name="billing[cvv]" id="billing-cvv" '.inputattrs($options).' />';
 				break;
 			case "billing-xcsc-required":

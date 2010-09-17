@@ -48,7 +48,7 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('product','url');
 		$output = ob_get_contents();
 		ob_end_clean();
-		if (SHOPP_PRETTYURLS) $this->assertEquals(trailingslashit(get_bloginfo('url')).'ultimate-matrix-collection/',$output);
+		if (SHOPP_PRETTYURLS) $this->assertEquals('http://shopptest/store/ultimate-matrix-collection/',$output);
 	}
 	
 	function test_product_description () {
@@ -113,6 +113,7 @@ class ProductAPITests extends ShoppTestCase {
 		                    'precision' => 2,
 		                    'decimals' => '.',
 		                    'thousands' => ',',
+							'grouping' => 3
 		                ),
 		        ),
 		    'units' => 'imperial',
@@ -169,7 +170,7 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('product','savings','show=percent');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals("43% &mdash; 49%",$output);
+		$this->assertEquals("51% &mdash; 57%",$output);
 	}
 	
 	function test_product_weight () {
@@ -185,7 +186,7 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('product','thumbnail');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/652?96,96,2961529844" alt="Ultimate Matrix Collection" width="96" height="96"/>',$output);
+		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/652/?96,96,2395623139" alt="Ultimate Matrix Collection" width="96" height="96"/>',$output);
 		$this->assertValidMarkup($output);
 	}
 	
@@ -258,7 +259,7 @@ class ProductAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 		
-		$this->assertEquals('<img src="http://shopptest/store/images/652?96,96,2961529844" alt="" width="96" height="96"  /><img src="http://shopptest/store/images/690?96,96,1890934674" alt="" width="96" height="67"  />',$output);
+		$this->assertEquals('<img src="http://shopptest/store/images/652/?96,96,2395623139" alt="" width="96" height="96"  /><img src="http://shopptest/store/images/690/?96,96,1325025925" alt="" width="96" height="67"  />',$output);
 	}
 	
 	function test_product_hastags () {

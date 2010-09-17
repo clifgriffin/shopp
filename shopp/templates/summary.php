@@ -43,7 +43,7 @@
 			<?php if ((shopp('cart','has-shipping-methods'))): ?>
 			<small><?php _e('Select a shipping method:','Shopp'); ?></small>
 			
-			<form action="<?php shopp('shipping','url') ?>" method="POST">
+			<form action="<?php shopp('shipping','url') ?>" method="post">
 			
 			<ul id="shipping-methods">
 			<?php while(shopp('shipping','methods')): ?>

@@ -749,7 +749,7 @@ class Product extends DatabaseObject {
 					'unit' => $Shopp->Settings->get('weight_unit'),
 					'min' => $this->min['weight'],
 					'max' => $this->max['weight'],
-					'units' => null,
+					'units' => true,
 					'convert' => false
 				);
 				$options = array_merge($defaults,$options);
@@ -764,7 +764,13 @@ class Product extends DatabaseObject {
 					$unit = $convert;
 				}
 				
-				$string = ($min == $min)?round($min,3):round($min,3)." - ".round($max,3);
+				$range = false;
+				if ($min != $max) {
+					$range = array($min,$max);
+					sort($range);
+				}
+				
+				$string = ($min == $max)?round($min,3):round($range[0],3)." - ".round($range[1],3);
 				$string .= value_is_true($units) ? " $unit" : "";
 				return $string;
 				break;
@@ -806,19 +812,26 @@ class Product extends DatabaseObject {
 				if (!isset($options['taxes'])) $options['taxes'] = null;
 
 				$taxrate = shopp_taxrate($options['taxes']);
-
+				$range = false;
+				
 				if (!isset($options['show'])) $options['show'] = '';
 				if ($options['show'] == "%" || $options['show'] == "percent") {
 					if ($this->options > 1) {
-						if (round($this->min['savings']) == round($this->max['savings']))
-							return percentage($this->min['savings'],array('precision' => 0)); // No price range
-						else return percentage($this->min['savings'],array('precision' => 0))." &mdash; ".percentage($this->max['savings'],array('precision' => 0));
+						if (round($this->min['savings']) != round($this->max['savings'])) {
+							$range = array($this->min['savings'],$this->max['savings']);
+							sort($range);
+						}
+						if (!$range) return percentage($this->min['savings'],array('precision' => 0)); // No price range
+						else return percentage($range[0],array('precision' => 0))." &mdash; ".percentage($range[1],array('precision' => 0));
 					} else return percentage($this->max['savings'],array('precision' => 0));
 				} else {
 					if ($this->options > 1) {
-						if ($this->min['saved'] == $this->max['saved'])
-							return money($this->min['saved']+($this->min['saved']*$taxrate)); // No price range
-						else return money($this->min['saved']+($this->min['saved']*$taxrate))." &mdash; ".money($this->max['saved']+($this->max['saved']*$taxrate));
+						if (round($this->min['saved']) != round($this->max['saved'])) {
+							$range = array($this->min['saved'],$this->max['saved']);
+							sort($range);
+						}
+						if (!$range) return money($this->min['saved']+($this->min['saved']*$taxrate)); // No price range
+						else return money($range[0]+($range[0]*$taxrate))." &mdash; ".money($range[1]+($range[1]*$taxrate));
 					} else return money($this->max['saved']+($this->max['saved']*$taxrate));
 				}
 				break;
@@ -974,6 +987,10 @@ class Product extends DatabaseObject {
 				$previews .= '</ul>';
 
 				$thumbs = "";
+				$twidth = $preview_width+$margins;
+				$rowthumbs = floor(($preview_width+$margins)/($width+$margins));
+				if (isset($options['rowthumbs'])) $twidth = ($width+$margins+2)*(int)$options['rowthumbs'];
+
 				if (count($this->images) > 1) {
 					$default_size = 64;
 					$thumbwidth = $Shopp->Settings->get('gallery_thumbnail_width');
@@ -1005,19 +1022,9 @@ class Product extends DatabaseObject {
 					}
 					$thumbs .= '</ul>';
 					
-					$twidth = $preview_width+$margins;
-					$rowthumbs = floor(($preview_width+$margins)/($width+$margins));
-					if (isset($options['rowthumbs'])) $twidth = ($width+$margins+2)*(int)$options['rowthumbs'];
-
-					$styles .= '<style type="text/css">';
-					$styles .= '#shopp .gallery .thumbnails { width: '.$twidth.'px; }';
-					$styles .= '</style>';
-					
 				}
-				
-				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$styles.$previews.$thumbs.'</div>';
-				
-				$script = 'ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'");';
+				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
+				$script = 'ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'"'.$twidth.');';
 				add_storefrontjs($script);
 				
 				return $result;

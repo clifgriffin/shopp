@@ -119,12 +119,21 @@ class CustomerAPITests extends ShoppTestCase {
 		shopp('customer','login-errors');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
-		$this->assertEquals('<p class="error">Test Error</p>',$actual);
+
+		$expected = array(
+			'tag' => 'ul',
+			'child' => array(
+				'tag' => 'li',
+				'content' => 'Error'
+			)
+		);
+		$this->assertTag($expected,$actual,"$actual",true);
 		$this->assertValidMarkup($actual);
 	}
 	
 	function test_customer_menu_tags () {
+		do_action('parse_request');
+
 		ob_start();
 		while (shopp('customer','menu')) {
 			shopp('customer','management');
@@ -133,7 +142,7 @@ class CustomerAPITests extends ShoppTestCase {
 		$actual = ob_get_contents();
 		ob_end_clean();
 		
-		$this->assertEquals('My Accounthttp://shopptest/store/account/?acct=accountDownloadshttp://shopptest/store/account/?acct=downloadsOrder Historyhttp://shopptest/store/account/?acct=historyOrder Statushttp://shopptest/store/account/?acct=statusLogouthttp://shopptest/store/account/?acct=logout',$actual);
+		$this->assertEquals('My Accounthttp://shopptest/store/account/?acct=accountDownloadshttp://shopptest/store/account/?acct=downloadsOrder Historyhttp://shopptest/store/account/?acct=historyLogouthttp://shopptest/store/account/?acct=logout',$actual);
 	}
 		
 	function test_customer_accounts () {
@@ -220,10 +229,10 @@ class CustomerAPITests extends ShoppTestCase {
 		
 		$expected = array(
 			'tag' => 'input',
-			'attributes' => array('type' => 'text','name' => 'login','id' => 'login')
+			'attributes' => array('type' => 'text','name' => 'loginname','id' => 'login','autocomplete'=>'off')
 		);
 
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,$actual,true);
 		$this->assertValidMarkup($actual);
 	}
 	
@@ -312,10 +321,10 @@ class CustomerAPITests extends ShoppTestCase {
 		ob_start();
 		if (shopp('customer','has-purchases'))
 			while (shopp('customer','purchases'))
-				shopp('customer','receipt');
+				shopp('customer','order');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('http://shopptest/store/account/?acct=receipt&id=2',$actual);
+		$this->assertEquals('http://shopptest/store/account/?acct=order&id=2',$actual);
 	}
 
 } // end CustomerAPITests class

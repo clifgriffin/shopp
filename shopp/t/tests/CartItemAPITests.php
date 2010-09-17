@@ -75,7 +75,7 @@ class CartItemAPITests extends ShoppTestCase {
 		while(shopp('cart', 'items')) shopp('cartitem','url');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$expected = "http://shopptest/store/smart-sexy-push-up-underwire-bra-and-thong-panty-set";
+		$expected = "http://shopptest/store/smart-sexy-push-up-underwire-bra-and-thong-panty-set/";
 		$this->assertEquals($expected, $actual);
 	}
 
@@ -292,7 +292,7 @@ class CartItemAPITests extends ShoppTestCase {
 			}
 		}
 		
-		function test_cartitem_thumbnail (){
+		function test_cartitem_coverimage (){
 			global $Shopp;
 			$Order =& ShoppOrder();
 			$Order->Cart->clear();
@@ -304,12 +304,12 @@ class CartItemAPITests extends ShoppTestCase {
 			$this->assertTrue(shopp('cart','hasitems'));
 			while(shopp('cart', 'items')){
 				ob_start();			 
-				shopp('cartitem','thumbnail','class=cart-thumb&width=200&height=220');
+				shopp('cartitem','coverimage','class=cart-thumb&width=200&height=220');
 				$actual = ob_get_contents();
 				ob_end_clean();
 				
 				ob_start();
-				?><img src="http://shopptest/store/images/623?200,220,3795756877" alt="Smart &amp; Sexy - Push-Up Underwire Bra and Thong Panty Set" width="200" height="192" class="cart-thumb" /><?php
+				?><img src="http://shopptest/store/images/623/?200,220,2321611135" alt="Smart &amp; Sexy - Push-Up Underwire Bra and Thong Panty Set" width="200" height="192" class="cart-thumb" /><?php
 				$expected = ob_get_contents();
 				ob_end_clean();
 				
@@ -324,12 +324,12 @@ class CartItemAPITests extends ShoppTestCase {
 			$this->assertTrue(shopp('cart','hasitems'));
 			while(shopp('cart', 'items')){
 				ob_start();			 
-				shopp('cartitem','thumbnail');
+				shopp('cartitem','coverimage');
 				$actual = ob_get_contents();
 				ob_end_clean();
 				
 				ob_start();
-				?><img src="http://shopptest/store/images/555?48,48,116832631" alt="Faded Glory - Men&#039;s Original Fit Jeans" width="48" height="48" /><?php
+				?><img src="http://shopptest/store/images/555/?48,48,951692384" alt="Faded Glory - Men&#039;s Original Fit Jeans" width="48" height="48" /><?php
 				$expected = ob_get_contents();
 				ob_end_clean();
 				
