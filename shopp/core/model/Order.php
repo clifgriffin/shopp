@@ -108,10 +108,15 @@ class Order {
 
 	}
 	
-	function __destruct () {
+	function unhook () {
 		remove_action('shopp_create_purchase',array(&$this,'purchase'));
 		remove_action('shopp_order_notifications',array(&$this,'notify'));
 		remove_action('shopp_order_success',array(&$this,'success'));
+		remove_action('shopp_process_order', array(&$this,'validate'),7);
+	}
+	
+	function __destruct() {
+		$this->unhook();
 	}
 	
 	/**
@@ -712,6 +717,8 @@ class Order {
 		$errors = 0;
 		$valid = true;
 
+		if (SHOPP_DEBUG) new ShoppError('Validating order data for processing',false,SHOPP_DEBUG_ERR);
+
 		if (empty($Cart->contents)) {
 			$valid = apply_filters('shopp_ordering_empty_cart',false);
 			new ShoppError(__("There are no items in the cart."),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
@@ -1107,7 +1114,7 @@ class Order {
 				if ($options['mode'] == "value") 
 					return str_repeat('X',strlen($this->Billing->card)-4)
 						.substr($this->Billing->card,-4);
-				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard';
 				if (!empty($this->Billing->card)) {
 					$options['value'] = $this->Billing->card;
 					$this->Billing->card = "";
@@ -1117,7 +1124,7 @@ class Order {
 				break;
 			case "billing-cardexpires-mm":
 				if ($options['mode'] == "value") return date("m",$this->Billing->cardexpires);
-				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard';
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardexpires))
 					$options['value'] = date("m",$this->Billing->cardexpires);				
@@ -1125,7 +1132,7 @@ class Order {
 				break;
 			case "billing-cardexpires-yy": 
 				if ($options['mode'] == "value") return date("y",$this->Billing->cardexpires);
-				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard';
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardexpires))
 					$options['value'] = date("y",$this->Billing->cardexpires);							
@@ -1133,7 +1140,7 @@ class Order {
 				break;
 			case "billing-cardtype":
 				if ($options['mode'] == "value") return $this->Billing->cardtype;
-				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard';
 				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->Billing->cardtype))
 					$options['selected'] = $this->Billing->cardtype;
@@ -1144,7 +1151,7 @@ class Order {
 				
 				$cards = array();
 				if (isset($Gateway->settings['cards'])) {
-					foreach ($Gateway->settings['cards'] as $card) {
+					foreach ((array)$Gateway->settings['cards'] as $card) {
 						$PayCard = Lookup::paycard($card);
 						$cards[$PayCard->symbol] = $PayCard->name;
 					}
@@ -1159,7 +1166,7 @@ class Order {
 				break;
 			case "billing-cardholder":
 				if ($options['mode'] == "value") return $this->Billing->cardholder;
-				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard';
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardholder))
 					$options['value'] = $this->Billing->cardholder;			
@@ -1169,7 +1176,7 @@ class Order {
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($_POST['billing']['cvv']))
 					$options['value'] = $_POST['billing']['cvv'];
-				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard';
 				return '<input type="text" name="billing[cvv]" id="billing-cvv" '.inputattrs($options).' />';
 				break;
 			case "billing-xcsc-required":
@@ -1203,7 +1210,7 @@ class Order {
 
 				if (!empty($_POST['billing']['xcsc'][$input]))
 					$options['value'] = $_POST['billing']['xcsc'][$input];
-				$options['class'] = $options['class'] ? $options['class'].' creditcard':'creditcard'; 
+				$options['class'] = isset($options['class']) ? $options['class'].' creditcard':'creditcard';
 				
 				$script = "$('#billing-cardtype').change(function () {";
 				$script .= "var cards = ".json_encode($cards).";";
@@ -1463,6 +1470,5 @@ function &ShoppOrder () {
 	global $Shopp;
 	return $Shopp->Order;
 }
-
 
 ?>
