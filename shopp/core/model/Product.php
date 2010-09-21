@@ -129,7 +129,11 @@ class Product extends DatabaseObject {
 					$query .= "(SELECT '$set->_table' as dataset,$set->_table.product AS product,'$rtype' AS rtype,'' AS alphaorder,$set->_table.sortorder AS sortorder,$cols FROM $set->_table 
 								LEFT JOIN $assettable AS download ON $set->_table.id=download.parent AND download.context='price' AND download.type='download' 
 								LEFT JOIN $discounttable AS discount ON discount.product=$set->_table.product AND discount.price=$set->_table.id
-								LEFT JOIN $promotable AS promo ON promo.id=discount.promo AND (promo.status='enabled' AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1) OR (UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(ends)) ))
+								LEFT JOIN $promotable AS promo ON promo.id=discount.promo AND 
+								(promo.status='enabled' AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1) 
+								OR (".time()." > UNIX_TIMESTAMP(starts) AND ".time()." < UNIX_TIMESTAMP(ends))
+								OR (UNIX_TIMESTAMP(starts)=1 AND ".time()." < UNIX_TIMESTAMP(ends))
+								OR (".time()." > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends)=1) ))
 								WHERE $where GROUP BY $set->_table.id)";
 					break;
 				case "images":
