@@ -55,7 +55,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
 		
 		add_action('shopp_txn_update',array(&$this,'updates'));
-				
+		
 	}
 	
 	function actions () {
@@ -106,7 +106,10 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['custom']				= $Shopp->Shopping->session;
 		
 		// Options
-		$_['return']				= shoppurl(array('rmtpay'=>'process'),'checkout',false);
+		if ($this->settings['pdtverify'] == "on")
+			$_['return']			= shoppurl(array('rmtpay'=>'process'),'checkout',false);
+		else $_['return']				= shoppurl(false,'thanks');
+		
 		$_['cancel_return']			= shoppurl(false,'cart');
 		$_['notify_url']			= shoppurl(array('_txnupdate'=>'PPS'),'checkout');
 		$_['rm']					= 1; // Return with no transaction data
@@ -174,18 +177,22 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		
 		$txnid = false;
 		$txnstatus = false;
-		if (isset($_REQUEST['tx'])) { // PDT order processing
+		if (isset($_POST['txn_id'])) { // IPN order processing
+			if (SHOPP_DEBUG) new ShoppError('Processing transaction from an IPN message.',false,SHOPP_DEBUG_ERR);
+			$txnid = $_POST['txn_id'];
+			$txnstatus = $this->status[$_POST['payment_status']];
+		} elseif (isset($_REQUEST['tx']) && $this->settings['pdtverify'] == "on") { // PDT order processing
 			if (SHOPP_DEBUG) new ShoppError('Processing PDT packet: '._object_r($_GET),false,SHOPP_DEBUG_ERR);
-
+		
 			$txnid = $_GET['tx'];
 			$txnstatus = $this->status[$_GET['st']];
-
+		
 			$pdtstatus = $this->verifypdt();
 			if (!$pdtstatus) {
 				new ShoppError(__('The transaction was not verified by PayPal.','Shopp'),false,SHOPP_DEBUG_ERR);
 				shopp_redirect(shoppurl(false,'checkout',false));
 			}
-
+		
 			$Purchase = new Purchase($txnid,'txnid');
 			if (!empty($Purchase->id)) {
 				if (SHOPP_DEBUG) new ShoppError('Order located, already created from an IPN message.',false,SHOPP_DEBUG_ERR);
@@ -194,14 +201,10 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 				$Shopp->Order->purchase = $Purchase->id;
 				shopp_redirect(shoppurl(false,'thanks',false));
 			}
-
+		
 		}
 		
-		if (isset($_POST['txn_id'])) { // IPN order processing
-			$txnid = $_POST['txn_id'];
-			$txnstatus = $this->status[$_POST['payment_status']];
-		}
-		
+		if (!$txnid) return new ShoppError('No transaction ID was found from either a PDT or IPN message. Transaction cannot be processed.',false,SHOPP_DEBUG_ERR);
 		$Shopp->Order->transaction($txnid,$txnstatus);
 		
 	}
@@ -218,18 +221,20 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			return false;
 		} 
 		
-		
 		// Need an session id to locate pre-order data and a transaction id for the order
 		if (isset($_POST['custom']) && isset($_POST['txn_id']) && !isset($_POST['parent_txn_id'])) {
-
+			
+			$Shopp->Order->unhook();
 			$Shopp->resession($_POST['custom']);
 			$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
+			$this->actions();
 			
 			$Shopping = &$Shopp->Shopping;
 			// Couldn't load the session data
 			if ($Shopping->session != $_POST['custom'])
 				return new ShoppError("Session could not be loaded: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
 			else new ShoppError("PayPal successfully loaded session: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
+
 			
 			return do_action('shopp_process_order'); // New order
 		} elseif (!empty($_POST['parent_txn_id'])) {
@@ -237,8 +242,9 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			$target = $_POST['parent_txn_id'];
 
 			$Purchase = new Purchase($target,'txnid');
+			if ($Purchase->txnid != $target) return;
 
-			if (!$txnstatus) $txnstatus = $this->status[$_POST['payment_status']];
+			$txnstatus = $this->status[$_POST['payment_status']];
 
 			$Purchase->txnstatus = $txnstatus;
 			$Purchase->save();
@@ -248,8 +254,6 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 			do_action('shopp_order_notifications');
 
-			if (SHOPP_DEBUG) new ShoppError('PayPal IPN update processed for transaction: '.$target,false,SHOPP_DEBUG_ERR);
-			
 		}
 
 		die('PayPal IPN update processed.');
@@ -267,6 +271,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	}
 	
 	function verifypdt () {
+		if ($this->settings['pdtverify'] != "on") return false;
 		if ($this->settings['testmode'] == "on") return "VERIFIED";
 		$_ = array();
 		$_['cmd'] = "_notify-synch";

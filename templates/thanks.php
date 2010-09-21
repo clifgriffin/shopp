@@ -10,9 +10,9 @@
  **
  **/
 ?>
-<?php if (shopp('checkout','completed')): ?>
-
 <h3><?php _e('Thank you for your order!','Shopp'); ?></h3>
+
+<?php if (shopp('checkout','completed')): ?>
 
 <?php if (shopp('purchase','notpaid')): ?> 
 	<p><?php _e('Your order has been received but the payment has not yet completed processing.','Shopp'); ?></p>
@@ -39,6 +39,6 @@
 
 <?php else: ?>
 
-<h3><?php _e('An unknown error occured. The transaction failed.','Shopp'); ?></h3>
+<p><?php _e('Your order is still in progress and has not yet been received from the payment processor. You will receive an email notification when your payment has been verified and the order has been completed.','Shopp'); ?></p>
 
 <?php endif; ?>
