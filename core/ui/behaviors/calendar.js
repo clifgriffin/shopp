@@ -322,12 +322,18 @@ jQuery.fn.PopupCalendar = function (settings) {
 	
 	if (input !== false) {
 		pos = input.parent().offset();
-		$this.css({left:pos.left,top:pos.top+input.outerHeight() });
+		pad = 0; // Padding offset
+		
+		if (pos.left+pos.top == 0) {
+			pos = input.parent().parent().css('display','block').offset();
+			pad = 6;
+		}
+			
+		$this.css({left:pos.left,top:pos.top+input.outerHeight(true)+pad });
 
 		if (m_input !== false && (y_input.val()+m_input.val()+d_input.val() != '')) {
 			_.selection = new Date(y_input.val(),m_input.val()-1,d_input.val());
 		}
-			
 
 		inputs.focus(function (e) {
 			_.show();
