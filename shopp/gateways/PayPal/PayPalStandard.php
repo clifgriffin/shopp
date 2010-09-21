@@ -19,7 +19,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	var $secure = false;
 
 	// URLs
-	var $buttonurl = (is_shopp_secure()?'https':'http').'://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
+	var $buttonurl = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
 	var $sandboxurl = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
 	var $checkouturl = 'https://www.paypal.com/cgi-bin/webscr';
 
@@ -39,7 +39,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 	function __construct () {
 		parent::__construct();
-		if (is_shopp_secure()) $this->buttonurl = str_replace('http://','https://',$this->buttonurl);
+
 		$this->setup('account','pdtverify','pdttoken','testmode');
 		
 		$this->settings['currency_code'] = $this->currencies[0];
@@ -50,7 +50,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			$this->settings['locale'] = $this->locales[$this->baseop['country']];
 		else $this->settings['locale'] = $this->locales['US'];
 
-		$this->buttonurl = sprintf($this->buttonurl, $this->settings['locale']);
+		$this->buttonurl = sprintf(force_ssl($this->buttonurl), $this->settings['locale']);
 
 		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
 		
