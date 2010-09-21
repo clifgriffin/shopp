@@ -9,10 +9,10 @@
  * ./wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.1.1
  * @copyright Ingenesis Limited, July, 2010
  * @package shopp
- * @since 1.1b2
+ * @since 1.1
  * @subpackage AusPost
  * 
  **/
