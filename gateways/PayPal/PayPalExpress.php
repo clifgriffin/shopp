@@ -19,7 +19,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 	var $secure = false;
 
 	// URLs
-	var $buttonurl = (is_shopp_secure()?'https':'http').'://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
+	var $buttonurl = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
 	var $sandboxurl = 'https://www.sandbox.paypal.com/%s/cgi-bin/webscr?cmd=_express-checkout';
 	var $liveurl = 'https://www.paypal.com/%s/cgi-bin/webscr?cmd=_express-checkout';
 	var $sandboxapi = 'https://api-3t.sandbox.paypal.com/nvp';
@@ -54,7 +54,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 			$this->settings['locale'] = $this->locales[$this->baseop['country']];
 		else $this->settings['locale'] = $this->locales['US'];
 
-		$this->buttonurl = sprintf($this->buttonurl, $this->settings['locale']);
+		$this->buttonurl = sprintf(force_ssl($this->buttonurl), $this->settings['locale']);
 		$this->sandboxurl = sprintf($this->sandboxurl, $this->settings['locale']);
 		$this->liveurl = sprintf($this->liveurl, $this->settings['locale']);
 
