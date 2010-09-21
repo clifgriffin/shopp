@@ -469,7 +469,7 @@ class Warehouse extends AdminController {
 		else $_POST['options'] = stripslashes_deep($_POST['options']);
 
 		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);	
-
+		
 		// Check for an existing product slug
 		$exclude_product = !empty($Product->id)?"AND id != $Product->id":"";
 		$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$Product->slug' $exclude_product LIMIT 1");
@@ -511,6 +511,7 @@ class Warehouse extends AdminController {
 			$Product->save_tags(explode(",",$_POST['taglist']));
 		
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
+			print_r($_POST['price']);
 
 			// Delete prices that were marked for removal
 			if (!empty($_POST['deletePrices'])) {
@@ -537,10 +538,17 @@ class Warehouse extends AdminController {
 					$option['price'] = (floatvalue($option['price'])/(1+$taxrate));
 					$option['saleprice'] = (floatvalue($option['saleprice'])/(1+$taxrate));
 				}
+				$option['shipfee'] = floatvalue($option['shipfee']);
+
+				$option['weight'] = floatvalue($option['weight']);
+				foreach ($option['dimensions'] as &$dimension) {
+					$dimension = floatvalue($dimension);
+				}
+				
 
 				$Price->updates($option);
 				$Price->save();
-
+				print_r($Price);
 				if (!empty($option['download'])) $Price->attach_download($option['download']);
 
 				if (!empty($option['downloadpath'])) { // Attach file specified by URI/path

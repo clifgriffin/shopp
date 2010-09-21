@@ -268,7 +268,7 @@ function Priceline (id,options,data,target,attachment) {
 	}
 	
 	_.shipping = function (toggle,weight,fee,dimensions) {
-		var hd,ui,dis,inf,dc,dw,dl,dwd,dh,nf = getCurrencyFormat();
+		var hd,ui,dis,inf,dc,dw,dl,dwd,dh,dv,nf = getCurrencyFormat();
 		nf.precision = '2';
 		
 		hd = $('<th><input type="hidden" name="'+fn+'[shipping]" value="off" /><input type="checkbox" name="'+fn+'[shipping]" id="shipping-'+i+'" /><label for="shipping-'+i+'"> '+SHIPPING_LABEL+'</label></th>').appendTo(headingsRow);
@@ -294,6 +294,12 @@ function Priceline (id,options,data,target,attachment) {
 		_.st = hd.find('#shipping-'+i).attr('checked',(toggle == "off"?false:true)).toggler(dis,inf,_.w);
 		
 		if (dimensionsRequired) {
+			dv = function (e,init) {
+				var value = this.value;
+				if (init) value = new Number(value);
+				this.value = formatNumber(value,nf,true);
+			}
+			
 			$('#weight-label-'+i).html(' '+dimensionUnit+'<sup>3</sup>/'+weightUnit);
 			dc = $('<div class="dimensions">'+
 				'<div class="inline">'+
@@ -316,26 +322,28 @@ function Priceline (id,options,data,target,attachment) {
 				'<label for="dimensions-height-'+i+'" title="'+HEIGHT_LABEL+'"> '+HEIGHT_LABEL+'</label>'+
 				'</div>'+
 				'</div>').hide().appendTo(ui);
-			if (!dimensions) {
-				dimensions = {};
-				dimensions.weight = 0; dimensions.length = 0; dimensions.width = 0; dimensions.height = 0;
-			}
+			if (!dimensions)
+				dimensions = {'weight':0,'length':0,'width':0,'height':0};
 			
-			dw = $('#dimensions-weight-'+i).val(new Number(dimensions.weight)).bind('change.value',function () {
-				this.value = formatNumber(this.value,nf,true);
-			}).trigger('change.value');
+			dw = $('#dimensions-weight-'+i)
+				.val(dimensions.weight)
+				.bind('change.value',dv)
+				.trigger('change.value',true);
 			
-			dl = $('#dimensions-length-'+i).val(new Number(dimensions.length)).bind('change.value',function () {
-				this.value = formatNumber(this.value,nf,true);
-			}).trigger('change.value');
+			dl = $('#dimensions-length-'+i)
+				.val(dimensions.length)
+				.bind('change.value',dv)
+				.trigger('change.value',true);
 
-			dwd = $('#dimensions-width-'+i).val(new Number(dimensions.width)).bind('change.value',function () {
-				this.value = formatNumber(this.value,nf,true);
-			}).trigger('change.value');
+			dwd = $('#dimensions-width-'+i)
+				.val(dimensions.width)
+				.bind('change.value',dv)
+				.trigger('change.value',true);
 
-			dh = $('#dimensions-height-'+i).val(new Number(dimensions.height)).bind('change.value',function () {
-				this.value = formatNumber(this.value,nf,true);
-			}).trigger('change.value');
+			dh = $('#dimensions-height-'+i)
+				.val(dimensions.height)
+				.bind('change.value',dv)
+				.trigger('change.value',true);
 			
 			weight = _.w;
 			function toggleDimensions () {
