@@ -511,7 +511,6 @@ class Warehouse extends AdminController {
 			$Product->save_tags(explode(",",$_POST['taglist']));
 		
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
-			print_r($_POST['price']);
 
 			// Delete prices that were marked for removal
 			if (!empty($_POST['deletePrices'])) {
@@ -548,7 +547,7 @@ class Warehouse extends AdminController {
 
 				$Price->updates($option);
 				$Price->save();
-				print_r($Price);
+
 				if (!empty($option['download'])) $Price->attach_download($option['download']);
 
 				if (!empty($option['downloadpath'])) { // Attach file specified by URI/path

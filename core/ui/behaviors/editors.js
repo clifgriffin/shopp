@@ -1119,7 +1119,6 @@ function FileUploader (button,defaultButton) {
 		},
 		onComplete: function(results) {
 			var filedata = false,targetHolder = _.targetCell;
-			console.log(results);
 			try {
 				filedata = $.parseJSON(results);
 			} catch (ex) {
@@ -1194,7 +1193,6 @@ function FileUploader (button,defaultButton) {
 		
 		try { filedata = $.parseJSON(results); } 
 		catch (ex) { filedata.error = results; }
-		console.log(filedata);
 		if (!filedata.id && !filedata.name) {
 			targetCell.html(NO_DOWNLOAD);
 			if (filedata.error) alert(filedata.error);
