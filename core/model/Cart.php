@@ -1041,7 +1041,7 @@ class CartPromotions {
 					        AND
 					        UNIX_TIMESTAMP(ends) > $offset
 					        AND
-					        (UNIX_TIMESTAMP() BETWEEN UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends))
+					        (".time()." BETWEEN UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends))
 					    )
 					    OR
 					    -- Promo has _only_ a start date, check that we are after it
@@ -1050,7 +1050,7 @@ class CartPromotions {
 					        AND
 					        UNIX_TIMESTAMP(ends) <= $offset
 					        AND
-					        UNIX_TIMESTAMP(starts) < UNIX_TIMESTAMP()
+					        UNIX_TIMESTAMP(starts) < ".time()."
 					    )
 					    OR
 					    -- Promo has _only_ an end date, check that we are before it
@@ -1059,7 +1059,7 @@ class CartPromotions {
 					        AND
 					        UNIX_TIMESTAMP(ends) > $offset
 					        AND
-					        UNIX_TIMESTAMP() < UNIX_TIMESTAMP(ends)
+					        ".time()." < UNIX_TIMESTAMP(ends)
 						)
 				    ) ORDER BY target DESC";
 		$this->promotions = $db->query($query,AS_ARRAY);
