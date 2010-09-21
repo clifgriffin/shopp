@@ -1429,7 +1429,7 @@ class Category extends DatabaseObject {
 				
 				if ($size !== false) $width = $height = $size;
 				
-				$scale = (!$fit)?false:esc_attr(array_search($options['fit'],$img->_scaling));
+				$scale = (!$fit)?false:esc_attr(array_search($fit,$img->_scaling));
 				$sharpen = (!$sharpen)?false:esc_attr(min($sharpen,$img->_sharpen));
 				$quality = (!$quality)?false:esc_attr(min($quality,$img->_quality));
 				$fill = (!$bg)?false:esc_attr(hexdec(ltrim($bg,'#')));

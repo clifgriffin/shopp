@@ -954,7 +954,7 @@ class Order {
 				break;
 
 			// SHIPPING TAGS
-			case "shipping": return (!empty($this->shipped));
+			case "shipping": return (!empty($this->shipped)); break;
 			case "shipping-address": 
 				if ($options['mode'] == "value") return $this->Shipping->address;
 				if (!empty($this->Shipping->address))

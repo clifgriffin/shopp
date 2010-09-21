@@ -53,6 +53,7 @@ var $=jqnc(),
 	ruleidx = 1,
 	itemidx = 1,
 	promotion = <?php echo (!empty($Promotion->id))?$Promotion->id:'false'; ?>,
+	loading = true,
 	SCOPEPROP_LANG = {
 		"Catalog":"<?php _e('price','Shopp'); ?>",
 		"Cart":"<?php _e('subtotal','Shopp'); ?>",
@@ -260,8 +261,13 @@ $('#discount-type').change(function () {
 	}
 	
 	$('#discount-amount').unbind('change').change(function () {
-		if (type == "Percentage Off") this.value = asPercent(this.value);
-		if (type == "Amount Off") this.value = asMoney(this.value);
+		var value = this.value;
+		if (loading) {
+			value = new Number(this.value);
+			loading = !loading;
+		}
+		if (type == "Percentage Off") this.value = asPercent(value);
+		if (type == "Amount Off") this.value = asMoney(value);
 	}).change();
 	
 }).change();

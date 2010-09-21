@@ -268,10 +268,10 @@ class CheckoutAPITests extends ShoppTestCase {
 		$this->assertValidMarkup($actual);
 	}
 	
-	function test_checkout_shipping () {
-		$Shipping = shopp('checkout','shipping');
-		$this->assertTrue(!empty($Shipping));
-	}
+	// function test_checkout_shipping () {
+	// 	$shipping = shopp('checkout','shipping');
+	// 	$this->assertTrue($shipping);
+	// }
 	
 	function test_checkout_shipping_address () {
 		ob_start();

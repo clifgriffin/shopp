@@ -263,7 +263,7 @@ class Warehouse extends AdminController {
 		if (!empty($f))	$where .= " AND ".$subs[$subfilters[$f]]['where'];
 
 		$base = $Settings->get('base_operations');
-		if ($base['vat']) $taxrate = shopp_taxrate(null,false);
+		if ($base['vat']) $taxrate = shopp_taxrate();
 		if (empty($taxrate)) $taxrate = 0;
 		
 		if ('i' == $f) {
