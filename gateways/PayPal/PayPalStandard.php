@@ -19,7 +19,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	var $secure = false;
 
 	// URLs
-	var $buttonurl = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
+	var $buttonurl = (is_shopp_secure()?'https':'http').'://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
 	var $sandboxurl = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
 	var $checkouturl = 'https://www.paypal.com/cgi-bin/webscr';
 

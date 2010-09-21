@@ -19,7 +19,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 	var $secure = false;
 
 	// URLs
-	var $buttonurl = 'http://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
+	var $buttonurl = (is_shopp_secure()?'https':'http').'://www.paypal.com/%s/i/btn/btn_xpressCheckout.gif';
 	var $sandboxurl = 'https://www.sandbox.paypal.com/%s/cgi-bin/webscr?cmd=_express-checkout';
 	var $liveurl = 'https://www.paypal.com/%s/cgi-bin/webscr?cmd=_express-checkout';
 	var $sandboxapi = 'https://api-3t.sandbox.paypal.com/nvp';
