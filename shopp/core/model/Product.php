@@ -1028,7 +1028,7 @@ class Product extends DatabaseObject {
 					
 				}
 				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
-				$script = 'ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'"'.$twidth.');';
+				$script = 'ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'"'.($twidth?",$twidth":"").');';
 				add_storefrontjs($script);
 				
 				return $result;
