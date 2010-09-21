@@ -78,7 +78,6 @@ function asPercent (n,f,p,pr) {
 	f = getCurrencyFormat(f);
 
 	f.precision = p?p:1;
-	
 	return formatNumber(n,f,pr)+"%";
 }
 
@@ -120,8 +119,8 @@ function formatNumber (n,f,pr) {
 	
 	n = ng.join(f.thousands);
 	if (n == '') n = 0;
-	
-	fraction = (pr)?new Number('0.'+fraction).toString().substr(f.precision):fraction;
+
+	fraction = (pr)?new Number('0.'+fraction).toString().substr(2,f.precision):fraction;
 	fraction = (!pr || pr && fraction.length > 0)?f.decimals+fraction:'';
 
 	if (f.precision > 0) n += fraction;
@@ -150,7 +149,7 @@ function asNumber (n,f) {
 		
 	if (isNaN(new Number(n)))
 		n = n.replace(new RegExp(/\./g),"").replace(new RegExp(/\,/),"\.");
-
+	
 	return new Number(n);
 }
 

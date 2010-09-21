@@ -1571,6 +1571,7 @@ class CartTax {
 		global $Shopp;
 		$this->Order = &ShoppOrder();
 		$base = $Shopp->Settings->get('base_operations');
+		$this->format = $base['currency']['format'];
 		$this->vat = $base['vat'];
 		$this->enabled = ($Shopp->Settings->get('taxes') == "on");
 		$this->rates = $Shopp->Settings->get('taxrates');
@@ -1612,14 +1613,15 @@ class CartTax {
 				if ($country == $setting['country'] &&
 					$zone == $setting['zone']) {
 						$localrate = isset($setting['locals'][$locale])?$setting['locals'][$locale]:0;
-						$rate = (floatvalue($setting['rate'])+floatvalue($localrate));
+						$rate = ($this->float($setting['rate'])+$this->float($localrate));
 					}
 			} elseif (isset($setting['zone'])) {
 				if ($country == $setting['country'] && $zone == $setting['zone'])
-					$rate = floatvalue($setting['rate']);
+					$rate = $this->float($setting['rate']);
 			} elseif ($country == $setting['country']) {
-				$rate = floatvalue($setting['rate']);
+				$rate = $this->float($setting['rate']);
 			}
+
 
 			// Match tax rules
 			if (isset($setting['rules']) && is_array($setting['rules'])) {
@@ -1654,9 +1656,15 @@ class CartTax {
 		
 		if ($global) {
 			if ($settings) return apply_filters('shopp_cart_taxrate_settings',$global);
-			return apply_filters('shopp_cart_taxrate',$global['rate']/100);
+			return apply_filters('shopp_cart_taxrate',$this->float($global['rate'])/100);
 		}
 		return false;
+	}
+	
+	function float ($rate) {
+		$format = $this->format;
+		$format['precision'] = 3;
+		return floatvalue($rate,true,$format);
 	}
 	
 	/**
