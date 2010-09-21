@@ -52,8 +52,8 @@ class Promotion extends DatabaseObject {
 		// that gets all applicable product & price ids
 		if (!empty($this->rules) && is_array($this->rules)) {
 			foreach ($this->rules as $rule) {
-				
-				if ($this->values[$rule['property']] == "price") 
+
+				if (Promotion::$values[$rule['property']] == "price") 
 					$value = floatvalue($rule['value']);
 				else $value = $rule['value'];
 				
