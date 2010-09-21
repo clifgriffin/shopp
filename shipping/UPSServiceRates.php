@@ -9,10 +9,10 @@
  * ./wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.1.1
  * @copyright Ingenesis Limited, 3 January, 2009
  * @package shopp
- * @since 1.1 dev
+ * @since 1.1
  * @subpackage UPSServiceRates
  * 
  * $Id$
