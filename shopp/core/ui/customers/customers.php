@@ -21,7 +21,7 @@
 				<select name="range" id="range">
 					<?php echo menuoptions($ranges,$range,true); ?>
 				</select>
-				<div id="dates" class="hidden">
+				<div id="dates">
 					<div id="start-position" class="calendar-wrap"><input type="text" id="start" name="start" value="<?php echo $startdate; ?>" size="10" class="search-input selectall" /></div>
 					<small><?php _e('to','Shopp'); ?></small>
 					<div id="end-position" class="calendar-wrap"><input type="text" id="end" name="end" value="<?php echo $enddate; ?>" size="10" class="search-input selectall" /></div>

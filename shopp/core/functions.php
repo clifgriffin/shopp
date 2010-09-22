@@ -681,9 +681,19 @@ function inputattrs ($options,$allowed=array()) {
 		if (!in_array($key,$allowed)) continue;
 		switch($key) {
 			case "class": $classes .= " $value"; break;
-			case "disabled": $classes .= " disabled"; $string .= ' disabled="disabled"'; break;
-			case "readonly": $classes .= " readonly"; $string .= ' readonly="readonly"'; break;
-			case "required": $classes .= " required"; break;
+			case "disabled": 
+				if (value_is_true($value)) {
+					$classes .= " disabled"; 
+					$string .= ' disabled="disabled"'; 
+				}
+				break;
+			case "readonly": 
+				if (value_is_true($value)) {
+					$classes .= " readonly"; 
+					$string .= ' readonly="readonly"';
+				}
+				break;
+			case "required": if (value_is_true($value)) $classes .= " required"; break;
 			case "minlength": $classes .= " min$value"; break;
 			case "format": $classes .= " $value"; break;
 			default:
