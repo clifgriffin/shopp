@@ -67,6 +67,7 @@ class FileAsset extends MetaObject {
 			$properties = $this->value;
 			unset($this->value);
 			$this->copydata($properties);
+			$this->uri = stripslashes($this->uri);
 		}
 	}
 	
