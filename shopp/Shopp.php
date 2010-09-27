@@ -29,7 +29,7 @@ Author URI: http://ingenesis.net
 define('SHOPP_VERSION','1.1.3');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
-define('SHOPP_HOME','http://shopplugin.net/');
+define('SHOPP_HOME','https://shopplugin.net/');
 define('SHOPP_CUSTOMERS','http://customers.shopplugin.net/');
 define('SHOPP_DOCS','http://docs.shopplugin.net/');
 
