@@ -540,10 +540,9 @@ class Warehouse extends AdminController {
 				$option['shipfee'] = floatvalue($option['shipfee']);
 
 				$option['weight'] = floatvalue($option['weight']);
-				foreach ($option['dimensions'] as &$dimension) {
-					$dimension = floatvalue($dimension);
-				}
-				
+				if (isset($options['dimensions']) && is_array($options['dimensions']))
+					foreach ($option['dimensions'] as &$dimension)
+						$dimension = floatvalue($dimension);
 
 				$Price->updates($option);
 				$Price->save();
