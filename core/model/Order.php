@@ -258,7 +258,7 @@ class Order {
 			else $this->Shipping->method = key($this->Cart->shipping);
 
 			// Override posted shipping updates with billing address
-			if ($_POST['sameshipaddress'] == "on")
+			if (isset($_POST['sameshipaddress']) && $_POST['sameshipaddress'] == "on")
 				$this->Shipping->updates($this->Billing,
 					array("_datatypes","_table","_key","_lists","id","created","modified"));
 		} else $this->Shipping = new Shipping(); // Use blank shipping for non-Shipped orders
