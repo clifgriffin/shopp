@@ -965,6 +965,18 @@ class Product extends DatabaseObject {
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
 				
+				// Find the max dimensions to use for the preview spacing image
+				$maxwidth = $maxheight = 0;
+				foreach ($this->images as $img) {
+					$scale = empty($options['p.fit'])?false:array_search($options['p.fit'],$img->_scaling);
+					$scaled = $img->scaled($width,$height,$scale);
+					$maxwidth = max($maxwidth,$scaled['width']);
+					$maxheight = max($maxheight,$scaled['height']);
+				}
+				
+				if ($maxwidth == 0) $maxwidth = $width;
+				if ($maxheight == 0) $maxheight = $height;
+				
 				foreach ($this->images as $img) {
 					$scale = empty($options['p.fit'])?false:array_search($options['p.fit'],$img->_scaling);
 					$sharpen = empty($options['p.sharpen'])?false:min($options['p.sharpen'],$img->_sharpen);
@@ -973,7 +985,7 @@ class Product extends DatabaseObject {
 					$scaled = $img->scaled($width,$height,$scale);
 					if ($firstPreview) {
 						$previews .= '<li id="preview-fill"'.(($firstPreview)?' class="fill"':'').'>';
-						$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt=" " width="'.$width.'" height="'.$height.'" />';
+						$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt=" " width="'.$maxwidth.'" height="'.$maxheight.'" />';
 						$previews .= '</li>';
 					}
 					$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
@@ -1032,6 +1044,7 @@ class Product extends DatabaseObject {
 				add_storefrontjs($script);
 				
 				return $result;
+				
 				break;
 			case "has-categories": 
 				if (empty($this->categories)) $this->load_data(array('categories'));
