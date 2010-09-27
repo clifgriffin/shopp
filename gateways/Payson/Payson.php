@@ -64,7 +64,7 @@ class Payson extends GatewayFramework implements GatewayModule {
 		
 		$_['Agentid']				= $this->settings['agentid'];
 		$_['SellerEmail']			= $this->settings['email'];
-		$_['GuaranteeOffered']		= $this->settings['guarantee'] == "on"?2:1;
+		$_['GuaranteeOffered']		= ($this->settings['guarantee'] == "on"?2:1);
 		$_['PaymentMethod']			= $this->settings['payment'];
 		$_['Description']			= $this->settings['description'];
 		
