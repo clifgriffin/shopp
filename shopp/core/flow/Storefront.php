@@ -878,7 +878,7 @@ class Storefront extends FlowController {
 	 **/
 	function order_confirmation () {
 		global $Shopp;
-		$Cart = $Shopp->Cart;
+		$Cart = $Shopp->Order->Cart;
 		
 		ob_start();
 		include(SHOPP_TEMPLATES."/confirm.php");

@@ -165,10 +165,8 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 	}
 	
 	function calculate ($options,$Order) {
-		if (empty($Order->Shipping->postcode)) {
-			new ShoppError(__('A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout.','Shopp','fedex_postcode_required',SHOPP_ERR));
-			return $options;
-		}
+		// Don't get an estimate without a postal code
+		if (empty($Order->Shipping->postcode)) return $options;
 
 		$request = $this->build(session_id(), $this->rate['name'], 
 			$Order->Shipping->postcode, $Order->Shipping->country);

@@ -143,6 +143,8 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 	}
 	
 	function calculate ($options,$Order) {
+		// Don't get an estimate without a postal code
+		if (empty($Order->Shipping->postcode)) return $options;
 
 		$request = $this->build($Order->Cart->shipped, $this->rate['name'], 
 			$Order->Shipping->postcode, $Order->Shipping->country);

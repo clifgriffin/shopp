@@ -128,10 +128,8 @@ class AusPost extends ShippingFramework implements ShippingModule {
 	}
 	
 	function calculate ($options,$Order) {
-		if (empty($Order->Shipping->postcode)) {
-			new ShoppError(__('A postal code for calculating shipping estimates and taxes is required before you can proceed to checkout.','Shopp','auspost_postcode_required',SHOPP_ERR));
-			return $options;
-		}
+		// Don't get an estimate without a postal code
+		if (empty($Order->Shipping->postcode)) return $options;
 
 		// Domestic or international?
 		if (strtoupper($Order->Shipping->country) == "AU") $available = $this->domestic;
