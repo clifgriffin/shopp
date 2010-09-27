@@ -555,8 +555,8 @@ abstract class DatabaseObject {
 				case "date":
 					$this->{$property} = mktimestamp($value);
 					break;
-				case "int":
-				case "float":
+				case "float": $this->{$property} = (float)$value; break;
+				case "int": $this->{$property} = (int)$value; break;
 				case "string":
 					// If string has been serialized, unserialize it
 					if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/s",$value))
