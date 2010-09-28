@@ -229,6 +229,12 @@ class ImageServer extends DatabaseObject {
 
 		// Establish database connection
 		$db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
+		if ($db->dbh === false) {
+			error_reporting(E_ALL);
+			ini_set('display_errors',1);
+			trigger_error('Error establishing a database connection',E_USER_ERROR);
+			die();
+		}
 
 		if (defined('DB_CHARSET')) {
 			if (function_exists('mysql_set_charset'))
