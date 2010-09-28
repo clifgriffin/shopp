@@ -62,31 +62,37 @@ function ShoppCartAjaxRequest (url,data,response) {
  * is processed and displayed to the shopper.
  **/
 function ShoppCartAjaxHandler (cart,response) {
-	var $ = jqnc(),
+	var $ = jqnc(),label = '',Item=false,Totals=false,
 		widget = $('.widget_shoppcartwidget div.widget-all'),
-		actions = widget.find('ul'),
-		display = $('#shopp-cart-ajax'),
+		wrapper = $('#shopp-cart-ajax'),
+		ui = widget.length > 0?widget:wrapper,
+		actions = ui.find('ul'),
+		status = ui.find('p.status'),
+		added = ui.find('div.added').empty().hide(), // clear any previous additions
 		item = $('<div class="added"></div>');
 
-	if (response == "html") return display.html(cart);
-	
-	added = display.find('div.added').empty().hide(); // clear any previous additions
-	if (added.length == 1) item = added;
-	else item.prependTo(display).hide();
-	
-	if (cart.Item.image)
-		$('<p><img src="'+cart.imguri+cart.Item.image.id+'" alt="" width="96"  height="96" /></p>').appendTo(item);
-	$('<p />').html('<strong>'+cart.Item.name+'</strong>').appendTo(item);
-	// if (cart.Item.optionlabel.length > 0)
-	// 	$('<li></li>').html(cart.Item.optionlabel).appendTo(item);
-	$('<p />').html(asMoney(cart.Item.unitprice)).appendTo(item);
-	
-	widget.find('p.status')
-		.html('<a href="'+cart.url+'"><span id="shopp-sidecart-items">'+cart.Totals.quantity+'</span> '+
-				'<strong>Items</strong> &mdash; <strong>Total</strong> '+
-				'<span id="shopp-sidecart-total">'+asMoney(cart.Totals.total)+'</span></a>');
+	if (response == "html") return ui.html(cart);
 
-	if (actions.length != 1) actions = $('<ul />').appendTo(widget);
+	if (cart.Item) Item = cart.Item;
+	if (cart.Totals) Totals = cart.Totals;
+ 	
+	if (added.length == 1) item = added;
+	else item.prependTo(ui).hide();
+
+	if (Item.option && Item.option.label && Item.option.label != '')
+		label = ' ('+Item.option.label+')';
+	
+	if (Item.image)
+		$('<p><img src="'+cart.imguri+cart.Item.image.id+'" alt="" width="96"  height="96" /></p>').appendTo(item);
+	$('<p />').html('<strong>'+Item.name+'</strong>'+label).appendTo(item);
+
+	$('<p />').html(asMoney(new Number(Item.unitprice))).appendTo(item);
+
+	status.html('<a href="'+cart.url+'"><span id="shopp-sidecart-items">'+Totals.quantity+'</span> '+
+				'<strong>Items</strong> &mdash; <strong>Total</strong> '+
+				'<span id="shopp-sidecart-total">'+asMoney(new Number(Totals.total))+'</span></a>');
+	
+	if (actions.size() != 1) actions = $('<ul />').appendTo(ui);
 	actions.html('<li><a href="'+cart.url+'">'+cart.label+'</a></li><li><a href="'+cart.checkouturl+'">'+cart.checkoutLabel+'</a></li>');
 	item.slideDown();
 }
