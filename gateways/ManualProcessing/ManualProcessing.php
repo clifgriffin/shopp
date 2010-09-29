@@ -3,7 +3,7 @@
  * Manual Processing
  *
  * @author John Dillick
- * @version 1.0
+ * @version 1.1
  * @copyright Ingenesis Limited, February 3, 2010
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package Shopp
@@ -92,6 +92,15 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 	}
 	
 	function settings () {
+		if ( !function_exists('openssl_pkey_new') ) {
+			$this->ui->p(0, array(
+				'name' => 'sslrequired',
+				'label' => __('Unable to Complete Setup', 'Shopp'),
+				'content' => '<p>'.__('This payment method requires PHP to be compiled with OpenSSL library support, see http://www.php.net/manual/en/openssl.installation.php.  Setup can not complete.','Shopp')
+			));
+			return;
+		}  
+		
 		if ( is_shopp_secure() ) {			
 			$this->ui->cardmenu(0,array(
 				'name' => 'cards',
