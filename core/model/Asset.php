@@ -211,19 +211,35 @@ class ImageAsset extends FileAsset {
 	
 	function output ($headers=true) {
 		if ($headers) {
-			header('Last-Modified: '.date('D, d M Y H:i:s', $this->created).' GMT');
+			$Engine = $this->_engine();
+			$data = $this->retrieve($this->uri);
+			$etag = md5($data);
+			$offset = 31536000;
+
+			if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
+				if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $this->modified || 
+				    trim($_SERVER['HTTP_IF_NONE_MATCH']) == $etag) {
+				    header("HTTP/1.1 304 Not Modified");
+					header("Content-type: {$this->mime}");
+				    exit;
+				}
+			}
+			
+			header("Cache-Control: public, max-age=$offset");
+			header('Expires: ' . gmdate( "D, d M Y H:i:s", time() + $offset ) . ' GMT');
+			header('Last-Modified: '.date('D, d M Y H:i:s', $this->modified).' GMT');
+			if (!empty($etag)) header('ETag: '.$etag);
+			
 			header("Content-type: {$this->mime}");
 			if (!empty($this->filename))
 				header("Content-Disposition: inline; filename=".$this->filename); 
 			else header("Content-Disposition: inline; filename=image-".$this->id.".jpg");
 			header("Content-Description: Delivered by WordPress/Shopp Image Server ({$this->storage})");
 		}
-		if (isset($this->data)) {
-			echo $this->data;
-			return;
-		}
-		$Engine = $this->_engine();
-		$Engine->output($this->uri);
+		if (!empty($data)) echo $data;
+		else $Engine->output($this->uri);
+		ob_flush(); flush();
+		return;
 	}
 
 	function scaled ($width,$height,$fit='all') {
