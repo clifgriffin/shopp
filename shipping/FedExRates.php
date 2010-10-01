@@ -9,7 +9,7 @@
  * ./wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.1.1
+ * @version 1.1.2
  * @copyright Ingenesis Limited, 22 January, 2009
  * @package shopp
  * @since 1.1
@@ -266,7 +266,9 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		// $_['RequestedShipment']['RateRequestTypes'] = 'LIST'; 
 		$_['RequestedShipment']['PackageCount'] = '1';
 		$_['RequestedShipment']['PackageDetail'] = 'INDIVIDUAL_PACKAGES';
-		$_['RequestedShipment']['ServiceOptionType'] = 'SATURDAY_DELIVERY';
+		$_['RequestedShipment']['SpecialServicesRequested'] = array(
+			'SpecialServiceTypes' => array('SATURDAY_DELIVERY')
+		);
 		
 		$_['RequestedShipment']['RequestedPackageLineItems'] = array(
 			'0' => array(
