@@ -201,7 +201,7 @@ class Cart {
 		$AjaxCart->label = __('Edit shopping cart','Shopp');
 		$AjaxCart->checkouturl = shoppurl(false,'checkout',$Shopp->Order->security());
 		$AjaxCart->checkoutLabel = __('Proceed to Checkout','Shopp');
-		$AjaxCart->imguri = SHOPP_PRETTYURLS?trailingslashit(shoppurl('images')):shoppurl('images').'?siid=';
+		$AjaxCart->imguri = SHOPP_PRETTYURLS?trailingslashit(shoppurl('images')):shoppurl().'&siid=';
 		$AjaxCart->Totals = clone($this->Totals);
 		$AjaxCart->Contents = array();
 		foreach($this->contents as $Item) {
