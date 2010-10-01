@@ -28,8 +28,6 @@ class SagePay extends GatewayFramework implements GatewayModule {
 		$Settings = ShoppSettings();
 		$this->settings['base_operations'] = $Settings->get('base_operations');
 		$this->settings['currency_code'] = $this->currencies = "GBP"; // Use GBP by default
-		// if (!empty($this->settings['base_operations']['currency']['code']))
-		// 	$this->settings['currency_code'] = $this->settings['base_operations']['currency']['code'];
 		
 	}
 	
@@ -79,7 +77,7 @@ class SagePay extends GatewayFramework implements GatewayModule {
 		$_['CardNumber']			= $Order->Billing->card;
 		$_['ExpiryDate']			= date("my",$Order->Billing->cardexpires);
 		$_['CV2']					= $Order->Billing->cvv;
-		$_['CardType']				= $Order->Billing->cardtype;
+		$_['CardType']				= strtoupper($Order->Billing->cardtype);
 		
 		// Billing
 		$_['BillingSurname']		= $Order->Customer->lastname;
