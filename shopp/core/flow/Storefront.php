@@ -275,9 +275,9 @@ class Storefront extends FlowController {
 	 * @param string $placement (optional) The placement of the separator (defaults 'left')
 	 * @return string The modified page title
 	 **/
-	function titles ($title,$sep=" &mdash; ",$placement="left") {
+	function titles ($title,$sep="&mdash;",$placement="left") {
 		global $wp;
-
+		
 		if (!isset($wp->query_vars['shopp_category']) 
 			&& !isset($wp->query_vars['shopp_tag'])
 			&& !isset($wp->query_vars['shopp_product'])
@@ -292,7 +292,9 @@ class Storefront extends FlowController {
 		if ("right" == $placement) $_ = array_reverse($_);
 		
 		$_ = apply_filters('shopp_document_titles',$_);
-		return join($sep,$_);
+		$sep = trim($sep);
+		if (empty($sep)) $sep = "&mdash;";
+		return join(" $sep ",$_);
 	}
 
 	/**
