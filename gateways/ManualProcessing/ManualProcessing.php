@@ -18,6 +18,8 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 	var $secure = true;
 	var $cards = array();
 
+	var $keyserver = 'https://shopplugin.net/mpgen.php';  // last ditch random key generation
+
 	// Manual Process vars
 	var $public_key = false; // public RSA key
 	var $private_key = false; // private RSA key
@@ -290,7 +292,26 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 			}
 			$RSA = new PEMparser($this->private_pem);
 			$this->private_key = $RSA->parse();
-
+			
+			$verified = $this->verify_key_components();
+			if (!$verified) { // fetch from shopplugin as last ditch
+				if(SHOPP_DEBUG) new ShoppError('Local PEM creation failed, fetching remotely.',false,SHOPP_DEBUG_ERR);
+				openssl_pkey_free($res_priv);
+				$this->private_pem = $this->fetch_new_key();
+				$res_priv = openssl_pkey_get_private($this->private_pem);
+				if ($res_priv === false) {
+					new ShoppError(__('Private key resource creation failed. openssl_error_string reports ','Shopp').openssl_error_string(),false,SHOPP_ERR);
+					return false;
+				}
+				$RSA = new PEMparser($this->private_pem);
+				$this->private_key = $RSA->parse();
+				$verified = $this->verify_key_components();	
+				if (!$verified) {
+					new ShoppError(__('Unable to extract key components from new key.  Installation failed.','Shopp'),false,SHOPP_ERR);
+					return false;
+				}			
+			}
+			
 			// Get public key
 			$details=openssl_pkey_get_details($res_priv);
 			if ($details === false) {
@@ -304,6 +325,25 @@ class ManualProcessing extends GatewayFramework implements GatewayModule {
 		}
 		return true;
 	} // end generate_keypairs
+
+	// only used during generation
+	function fetch_new_key() {
+		return parent::send(null,$this->keyserver,false);
+	}
+	
+	// only used during generation
+	function verify_key_components() {
+		if (!$this->private_key) return false;
+		if (empty($this->private_key['n'])) return false;
+		if (empty($this->private_key['e'])) return false;
+		if (empty($this->private_key['d'])) return false;
+		if (empty($this->private_key['p'])) return false;
+		if (empty($this->private_key['q'])) return false;
+		if (empty($this->private_key['dmp1'])) return false;
+		if (empty($this->private_key['dmq1'])) return false;
+		if (empty($this->private_key['iqmp'])) return false;
+		return true;		
+	}
 
 	function encrypt($data) {
 		if(!$this->public_key) return false;
