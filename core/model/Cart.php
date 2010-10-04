@@ -434,8 +434,8 @@ class Cart {
 	function totals () {
 		if (!($this->retotal || $this->changed())) return true;
 
-		$this->Totals = new CartTotals();
-		$Totals = &$this->Totals;
+		$Totals = new CartTotals();
+		$this->Totals = &$Totals;
 		
 		// Setup discount calculator
 		$Discounts = new CartDiscounts();
@@ -470,9 +470,11 @@ class Cart {
 			// Only fully recalculate shipping costs 
 			// if the cart contents have changed
 			$Totals->shipping = $Shipping->calculate();
+			echo $Totals->shipping;
 
 			// Save the generated shipping options
 			$this->shipping = $Shipping->options();
+			
 		} else $Totals->shipping = $Shipping->selected();
 		
 		// Calculate discounts
@@ -490,10 +492,10 @@ class Cart {
 		$Totals->total = roundprice($Totals->subtotal - roundprice($Totals->discount) + 
 			$Totals->shipping + $Totals->tax);
 
-		do_action_ref_array('shopp_cart_retotal',array(&$Totals));
-		$this->Totals = &$Totals;
+		do_action_ref_array('shopp_cart_retotal',array(&$this->Totals));
 		$this->changed = false;
 		$this->retotal = false;
+		
 		
 	}
 			
@@ -1254,9 +1256,11 @@ class CartDiscounts {
 									* ($promo->discount/100);
 					break;
 				case "Free Shipping": 
-					$discount = 0;
-					$this->Cart->freeshipping = true;
-					$this->Cart->Totals->shipping = 0;
+					if ($promo->target == "Cart") {
+						$discount = 0;
+						$this->Cart->freeshipping = true;
+						$this->Cart->Totals->shipping = 0;
+					}
 					break;
 			}
 			$this->discount($promo,$discount);
@@ -1468,6 +1472,7 @@ class CartShipping {
 		do_action('shopp_calculate_shipping_init');
 
 		foreach ($this->Cart->shipped as $id => &$Item) {
+			if ($Item->freeshipping) continue;
 			// Calculate any product-specific shipping fee markups
 			if ($Item->shipfee > 0) $this->fees += ($Item->quantity * $Item->shipfee);
 			// Run shipping module item calculations
@@ -1499,11 +1504,12 @@ class CartShipping {
 		// Wipe out the selected shipping method if the option doesn't exist
 		if (!isset($this->options[$this->Shipping->method]))
 			$this->Shipping->method = false;
-
+		
 		// Always return the selected shipping option if a method has been set
 		if (!empty($this->Shipping->method))
 			return $this->options[$this->Shipping->method]->amount;
 		else $this->Shipping->method = $estimate->name;
+
 
 		// Return the estimated amount
 		return $estimate->amount;
