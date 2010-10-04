@@ -195,7 +195,6 @@ class Product extends DatabaseObject {
 		$query .= " ORDER BY sortorder";
 		// die($query);
 		
-		echo $query;
 		// Execute the query
 		$data = $db->query($query,AS_ARRAY);
 		
