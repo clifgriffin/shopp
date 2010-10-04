@@ -58,6 +58,7 @@ class Product extends DatabaseObject {
 
 		$Dataset = array();
 		if (in_array('prices',$options)) {
+			$this->prices = array();
 			$promotable = DatabaseObject::tablename(Promotion::$table);
 			$discounttable = DatabaseObject::tablename(Discount::$table);
 			$assettable = DatabaseObject::tablename(ProductDownload::$table);
@@ -76,11 +77,13 @@ class Product extends DatabaseObject {
 		}
 
 		if (in_array('images',$options)) {
+			$this->images = array();
 			$Dataset['images'] = new ProductImage();
 			array_merge($Dataset['images']->_datatypes,$Dataset['images']->_xcols);
 		}
 
 		if (in_array('categories',$options)) {
+			$this->categories = array();
 			$Dataset['categories'] = new Category();
 			unset($Dataset['categories']->_datatypes['priceranges']);
 			unset($Dataset['categories']->_datatypes['specs']);
@@ -88,8 +91,15 @@ class Product extends DatabaseObject {
 			unset($Dataset['categories']->_datatypes['prices']);
 		}
 
-		if (in_array('specs',$options)) $Dataset['specs'] = new Spec();
-		if (in_array('tags',$options)) $Dataset['tags'] = new Tag();
+		if (in_array('specs',$options)) {
+			$this->specs = array();
+			$Dataset['specs'] = new Spec();	
+		} 
+		
+		if (in_array('tags',$options)) {
+			$this->tags = array();
+			$Dataset['tags'] = new Tag();
+		}
 
 		// Determine the maximum columns to allocate
 		$maxcols = 0;
@@ -185,6 +195,7 @@ class Product extends DatabaseObject {
 		$query .= " ORDER BY sortorder";
 		// die($query);
 		
+		echo $query;
 		// Execute the query
 		$data = $db->query($query,AS_ARRAY);
 		
@@ -285,7 +296,7 @@ class Product extends DatabaseObject {
 				$this->stock += $price->stock;
 				$this->inventory = $price->stocked = true;
 			}
-			
+
 			if ($price->freeshipping == 0) $freeshipping = false;
 
 			if ($price->onsale) $price->promoprice = (float)$price->saleprice;
@@ -1079,7 +1090,7 @@ class Product extends DatabaseObject {
 				break;
 			case "hastags": 
 			case "has-tags": 
-				if (empty($this->tags)) $this->load_data(array('tags'));
+				if (empty($this->tags)) $this->load_data(array('tags'));	
 				if (count($this->tags) > 0) return true; else return false; break;
 			case "tags":
 				if (!isset($this->_tags_loop)) {
