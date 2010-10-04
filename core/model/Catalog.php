@@ -568,6 +568,7 @@ class Catalog extends DatabaseObject {
 				$content = ob_get_contents();
 				ob_end_clean();
 
+				require_once(SHOPP_MODEL_PATH."/XML.php");
 				$markup = new xmlQuery($content);
 				$input = $markup->element('input',array('type'=> 'hidden','name' => 'catalog','value' => 'true'));
 				$div = $markup->element('div',array(),false,$input);
