@@ -971,6 +971,7 @@ class Storefront extends FlowController {
 				$SmartCategory_slug = get_class_property($SmartCategory,'_slug');
 				if ($atts['slug'] == $SmartCategory_slug) {
 					$tag = "$SmartCategory_slug-products";
+					if ($tag == "search-results-products") $tag = "search-products";
 					unset($atts['slug']);
 				}
 			}
@@ -978,7 +979,7 @@ class Storefront extends FlowController {
 			$Shopp->Category = new Category($atts['id']);
 			unset($atts['id']);
 		} else return "";
-		
+
 		return apply_filters('shopp_category_shortcode',$Shopp->Catalog->tag($tag,$atts).'');
 		
 	}
