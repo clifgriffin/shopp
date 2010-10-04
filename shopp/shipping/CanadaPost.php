@@ -5,7 +5,7 @@
  * Uses the Canada Post Sell Online Webtools to get live shipping rates based on product weight
  * 
  * INSTALLATION INSTRUCTIONS
- * Upload USPSRates.php to your Shopp install under:  
+ * Upload CanadaPost.php to your Shopp install under:  
  * ./wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
