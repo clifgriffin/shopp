@@ -653,7 +653,7 @@ class Storefront extends FlowController {
 
 		// Product must be published
 		if ((!empty($Shopp->Product->id) && !$Shopp->Product->published()) || empty($Shopp->Product->id))
-			$Shopp->Product = false;
+			$Shopp->Product = new Product(); // blank product displays "no product found" in storefront
 
 		// No product found, try to load a page instead
 		if ($type == "product" && !$Shopp->Product) 
