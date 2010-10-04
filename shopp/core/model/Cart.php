@@ -758,7 +758,7 @@ class Cart {
 							(!empty($this->shipping) && !$this->noshipping),
 							$this->shipping
 						); break;
-			case "needs-shipped": return (!empty($this->shipping) && !$this->noshipping); break;
+			case "needs-shipped": return (!empty($this->shipped)); break;
 			case "hasshipcosts":
 			case "has-shipcosts":
 			case "hasship-costs":
