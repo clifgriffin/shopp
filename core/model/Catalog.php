@@ -672,6 +672,8 @@ class Catalog extends DatabaseObject {
 				$content = ob_get_contents();
 				ob_end_clean();
 				$Shopp->Category = false; // Reset the current category
+				
+				if (isset($options['wrap']) && value_is_true($options['wrap'])) $content = shoppdiv($content);
 				return $content;
 				break;
 			case "product":
