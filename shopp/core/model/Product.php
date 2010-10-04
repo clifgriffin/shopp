@@ -264,6 +264,10 @@ class Product extends DatabaseObject {
 		$freeshipping = true;
 		$this->inventory = false;
 		foreach ($this->prices as $i => &$price) {
+			$price->price = (float)$price->price;
+			$price->saleprice = (float)$price->saleprice;
+			$price->shipfee = (float)$price->shipfee;
+			
 			// Build secondary lookup table using the price id as the key
 			$this->priceid[$price->id] = $price;
 
