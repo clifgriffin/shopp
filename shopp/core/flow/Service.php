@@ -158,7 +158,7 @@ class Service extends AdminController {
 				foreach ($props as $search) {
 					$keyword = !empty($search[2])?$search[2]:$search[3];
 					switch(strtolower($search[1])) {
-						case "txn": $where .= (empty($where)?"WHERE ":" AND ")."transactionid='$keyword'"; break;
+						case "txn": $where .= (empty($where)?"WHERE ":" AND ")."txnid='$keyword'"; break;
 						case "gateway": $where .= (empty($where)?"WHERE ":" AND ")."gateway LIKE '%$keyword%'"; break;
 						case "cardtype": $where .= ((empty($where))?"WHERE ":" AND ")."cardtype LIKE '%$keyword%'"; break;
 						case "address": $where .= ((empty($where))?"WHERE ":" AND ")."(address LIKE '%$keyword%' OR xaddress='%$keyword%')"; break;
