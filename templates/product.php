@@ -43,9 +43,7 @@
 				<?php shopp('product','addons','mode=menu&label=true&defaults='.__('Select an add-on','Shopp').'&before_menu=<li>&after_menu=</li>'); ?>			
 			</ul>
 		<?php endif; ?>
-		
-		<p><?php shopp('product','input','name=Test&type=text&required=true'); ?>
-		
+				
 		<p><?php shopp('product','quantity','class=selectall&input=menu'); ?>
 		<?php shopp('product','addtocart'); ?></p>
 
