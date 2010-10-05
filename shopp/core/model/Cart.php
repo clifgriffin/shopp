@@ -470,7 +470,6 @@ class Cart {
 			// Only fully recalculate shipping costs 
 			// if the cart contents have changed
 			$Totals->shipping = $Shipping->calculate();
-			echo $Totals->shipping;
 
 			// Save the generated shipping options
 			$this->shipping = $Shipping->options();

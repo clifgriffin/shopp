@@ -13,7 +13,6 @@
 <?php shopp('catalog','breadcrumb')?>
 <?php if (shopp('product','found')): ?>
 
-			
 	<?php shopp('product','gallery'); ?>
 
 	<h3><?php shopp('product','name'); ?></h3>
@@ -33,7 +32,7 @@
 	<p class="freeshipping"><?php _e('Free Shipping!','Shopp'); ?></p>
 	<?php endif; ?>
 	
-	<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
+	<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product validate">
 		<?php if(shopp('product','has-variations')): ?>
 		<ul class="variations">
 			<?php shopp('product','variations','mode=multiple&label=true&defaults='.__('Select an option','Shopp').'&before_menu=<li>&after_menu=</li>'); ?>			
@@ -44,6 +43,9 @@
 				<?php shopp('product','addons','mode=menu&label=true&defaults='.__('Select an add-on','Shopp').'&before_menu=<li>&after_menu=</li>'); ?>			
 			</ul>
 		<?php endif; ?>
+		
+		<p><?php shopp('product','input','name=Test&type=text&required=true'); ?>
+		
 		<p><?php shopp('product','quantity','class=selectall&input=menu'); ?>
 		<?php shopp('product','addtocart'); ?></p>
 
