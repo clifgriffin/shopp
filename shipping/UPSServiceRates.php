@@ -9,7 +9,7 @@
  * ./wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.1.1
+ * @version 1.1.2
  * @copyright Ingenesis Limited, 3 January, 2009
  * @package shopp
  * @since 1.1
@@ -194,7 +194,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 		
 		$request = $this->build(
 			session_id(), 				// Session ID
-			$Order->Cart->contents, 	// Items in the cart
+			$Order->Cart->shipped,	 	// Shipped items in the cart
 			$this->rate['name'], 		// Rate name
 			$Order->Shipping->state, 	// State/Province code (for negotiated rates)
 			$Order->Shipping->postcode, // Postal code
@@ -272,6 +272,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 				$_[] = '</Address>';
 			$_[] = '</ShipTo>';
 			foreach ($items as $Item) {
+				if ($Item->freeshipping) continue;
 				$_[] = '<Package>';
 					$_[] = '<PackagingType>';
 						$_[] = '<Code>02</Code>';
@@ -288,7 +289,7 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 						$_[] = '<UnitOfMeasurement>';
 							$_[] = '<Code>'.$this->wu.'</Code>';
 						$_[] = '</UnitOfMeasurement>';
-						$_[] = '<Weight>'.convert_unit($Item->weight,$this->wcu).'</Weight>';
+						$_[] = '<Weight>'.convert_unit($Item->weight*$Item->quantity,$this->wcu).'</Weight>';
 					$_[] = '</PackageWeight>';
 				$_[] = '</Package>';
 			}

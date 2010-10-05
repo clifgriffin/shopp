@@ -190,6 +190,7 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 				$_[] = '<fromPostalCode> '.$this->settings['postcode'].' </fromPostalCode>';
 				$_[] = '<lineItems>';
 				foreach ((array)$items as $id => $Item) {
+					if ($Item->freeshipping) continue;
 					$_[] = '<item>';
 					$_[] = '<quantity>'.(empty($Item->quantity)?1:$Item->quantity).'</quantity>';
 					$_[] = '<weight>'.(empty($Item->weight)?1:convert_unit($Item->weight,'kg')).'</weight>';
