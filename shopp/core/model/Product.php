@@ -549,10 +549,12 @@ class Product extends DatabaseObject {
 			$Image = new ProductImage($img['id']);
 			$Image->title = $img['title'];
 			$Image->alt = $img['alt'];
+			
 			if (!empty($img['cropping'])) {
 				require_once(SHOPP_PATH."/core/model/Image.php");
 
 				foreach ($img['cropping'] as $id => $cropping) {
+					if (empty($cropping)) continue;
 					$Cropped = new ProductImage($id);
 
 					list($Cropped->settings['dx'],
