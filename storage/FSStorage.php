@@ -151,8 +151,9 @@ class FSStorage extends StorageModule implements StorageEngine {
 		if (!is_array($this->settings))
 			$this->settings = array('path' => array('image' => false, 'download' => false));
 
-		foreach ($this->settings['path'] as $method => $path) {
+		foreach ($this->settings['path'] as $method => &$path) {
 			$error = false;
+			$path = stripslashes($path);
 			$p = sanitize_path(realpath($path));
 
 				if	(empty($path)) continue;
