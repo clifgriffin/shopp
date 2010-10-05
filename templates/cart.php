@@ -9,8 +9,6 @@
  ** http://docs.shopplugin.net/Setting_Up_Theme_Templates
  **
  **/
-print_r($Shopp->Order->Cart->Totals);
-
 ?>
 <?php if (shopp('cart','hasitems')): ?>
 <form id="cart" action="<?php shopp('cart','url'); ?>" method="post">
