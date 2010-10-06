@@ -397,7 +397,6 @@
 			if (options.innerWidth) {
 				settings.w = setSize(options.innerWidth, 'x');
 			}
-			$loaded.css({width: settings.w});
 			
 			if (options.height) {
 				settings.h = setSize(options.height, 'y') - loadedHeight - interfaceHeight;
@@ -405,7 +404,7 @@
 			if (options.innerHeight) {
 				settings.h = setSize(options.innerHeight, 'y');
 			}
-			if (!options.innerHeight && !options.height) {				
+			if (!options.width && !options.innerWidth && !options.innerHeight && !options.height) {				
 				var $child = $loaded.wrapInner("<div style='overflow:auto'></div>").children(); // temporary wrapper to get an accurate estimate of just how high the total content should be.
 				settings.w = $child.width(); // Added by Jonathan Davis, Ingenesis Limited
 				settings.h = $child.height();
