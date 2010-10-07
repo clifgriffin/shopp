@@ -1403,49 +1403,6 @@ class Category extends DatabaseObject {
 				
 				return $output;
 				break;
-
-			case "coverimage":
-			case "thumbnail": // deprecated
-				if (empty($this->images)) $this->load_images();
-				if (empty($this->images)) return false;
-
-				reset($this->images);
-				$img = current($this->images);
-				
-				$defaults = array(
-					'class' => '',
-					'size' => false,
-					'width' => 96,
-					'height' => 96,
-					'fit' => false,
-					'sharpen' => false,
-					'quality' => false,
-					'bg' => false,
-					'alt' => false,
-					'title' => false
-				);
-				
-				$options = array_merge($defaults,$options);
-				extract($options);
-				
-				if ($size !== false) $width = $height = $size;
-				
-				$scale = (!$fit)?false:esc_attr(array_search($fit,$img->_scaling));
-				$sharpen = (!$sharpen)?false:esc_attr(min($sharpen,$img->_sharpen));
-				$quality = (!$quality)?false:esc_attr(min($quality,$img->_quality));
-				$fill = (!$bg)?false:esc_attr(hexdec(ltrim($bg,'#')));
-				$scaled = $img->scaled($width,$height,$scale);
-
-				$alt = empty($alt)?$img->alt:$alt;
-				$title = empty($title)?$img->title:$title;
-				$title = empty($title)?'':' title="'.esc_attr($title).'"';
-				$class = !empty($class)?' class="'.esc_attr($class).'"':'';
-
-				if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
-				$alt = esc_attr(!empty($img->alt)?$img->alt:$this->name);
-				return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; 
-				break;
-
 			case "hasimages":
 			case "has-images": 
 				if (empty($this->images)) $this->load_images();
@@ -1464,35 +1421,106 @@ class Category extends DatabaseObject {
 					return false;
 				}
 				break;
+			case "coverimage":
+			case "thumbnail": // deprecated
+				// Force select the first loaded image
+				unset($options['id']);
+				$options['index'] = 0; 
 			case "image":
-				$img = current($this->images);
+				if (empty($this->images)) $this->load_images();
+				if (!(count($this->images) > 0)) return "";
 
+				// Compatibility defaults
 				$_size = 96;
 				$_width = $Shopp->Settings->get('gallery_thumbnail_width');
 				$_height = $Shopp->Settings->get('gallery_thumbnail_height');
 				if (!$_width) $_width = $_size;
 				if (!$_height) $_height = $_size;
-				
-				if (isset($options['size'])) $_width = $_height = $options['size'];
-				$width = (isset($options['width']))?$options['width']:$_width;
-				$height = (isset($options['height']))?$options['height']:$_height;
-				
-				$scale = empty($options['fit'])?false:array_search($options['fit'],$img->_scaling);
-				$sharpen = empty($options['sharpen'])?false:min($options['sharpen'],$img->_sharpen);
-				$quality = empty($options['quality'])?false:min($options['quality'],$img->_quality);
-				$fill = empty($options['bg'])?false:hexdec(ltrim($options['bg'],'#'));
-				$scaled = $img->scaled($width,$height,$scale);
-				
-				$alt = empty($options['alt'])?$img->alt:$options['alt'];
-				$title = empty($options['title'])?$img->title:$options['title'];
-				$title = empty($title)?'':' title="'.esc_attr($title).'"';
-				$class = isset($options['class'])?' class="'.esc_attr($options['class']).'"':'';
 
-				$string = "";				
-				if (!empty($options['zoom'])) $string .= '<a href="'.shoppurl($img->id,'images').'" class="gallery shopp-zoom">';
-				$string .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.esc_attr($alt).'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
-				if (!empty($options['zoom'])) $string .= "</a>";
-				return $string;
+				$defaults = array(
+					'img' => false,
+					'id' => false,
+					'index' => false,
+					'class' => '',
+					'width' => false,
+					'height' => false,
+					'size' => false,
+					'fit' => false,
+					'sharpen' => false,
+					'quality' => false,
+					'bg' => false,
+					'alt' => '',
+					'title' => '',
+					'zoom' => '',
+					'zoomfx' => 'shopp-zoom',
+					'property' => false
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+
+				// Select image by database id
+				if ($id !== false) {
+					for ($i = 0; $i < count($this->images); $i++) {
+						if ($img->id == $id) {
+							$img = $this->images[$i]; break;
+						}
+					}
+					if (!$img) return "";
+				} 
+
+				// Select image by index position in the list
+				if ($index !== false && isset($this->images[$index]))
+					$img = $this->images[$index];
+
+				// Use the current image pointer by default
+				if (!$img) $img = current($this->images); 
+
+				if ($size !== false) $width = $height = $size;
+				if (!$width) $width = $_width;
+				if (!$height) $height = $_height;
+
+				$scale = $fit?array_search($fit,$img->_scaling):false;
+				$sharpen = $sharpen?min($sharpen,$img->_sharpen):false;
+				$quality = $quality?min($quality,$img->_quality):false;
+				$fill = $bg?hexdec(ltrim($bg,'#')):false;
+
+				if ($size == "original") {
+					$width_a = $img->width;
+					$height_a = $img->height;
+				} else list($width_a,$height_a) = $img->scaled($width,$height,$scale);
+				if (!$width_a) $width_a = $width;
+				if (!$height_a) $height_a = $height;
+
+				$alt = esc_attr(empty($alt)?(empty($img->alt)?$img->name:$img->alt):$alt);
+				$title = empty($title)?$img->title:$title;
+				$titleattr = empty($title)?'':' title="'.esc_attr($title).'"';
+				$classes = empty($class)?'':' class="'.esc_attr($class).'"';
+
+				$src = shoppurl($img->id,'images');
+				if ($size != "original") {
+					$src = add_query_string(
+						$img->resizing($width,$height,$scale,$sharpen,$quality,$fill),
+						shoppurl($img->id,'images')
+					);
+				}
+
+				switch (strtolower($property)) {
+					case "id": return $img->id; break;
+					case "url": 
+					case "src": return $src; break;
+					case "title": return $title; break;
+					case "alt": return $alt; break;
+					case "width": return $width_a; break;
+					case "height": return $height_a; break;
+					case "class": return $class; break;
+				}
+
+				$imgtag = '<img src="'.$src.'"'.$titleattr.' alt="'.$alt.'" width="'.$width_a.'" height="'.$height_a.'" '.$classes.' />';
+
+				if (value_is_true($zoom))
+					return '<a href="'.shoppurl($img->id,'images').'/image.jpg'.'" class="'.$zoomfx.'" rel="product-'.$this->id.'">'.$imgtag.'</a>';
+
+				return $imgtag;
 				break;
 			case "slideshow":
 				$options['load'] = array('images');
