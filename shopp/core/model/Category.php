@@ -20,6 +20,7 @@ class Category extends DatabaseObject {
 	var $parent = 0;
 	var $total = 0;
 	var $description = "";
+	var $timestamp = false;
 	var $thumbnail = false;
 	var $products = array();
 	var $pricing = array();
@@ -420,14 +421,14 @@ class Category extends DatabaseObject {
 			case "lowprice": $loading['order'] = "lowprice ASC"; break;
 			case "newest": $loading['order'] = "p.publish DESC,p.name ASC"; break;
 			case "oldest": $loading['order'] = "p.publish ASC,p.name ASC"; break;
-			case "random": $loading['order'] = "RAND()"; break;
+			case "random": $loading['order'] = "RAND(".crc32($Shopp->Shopping->session).")"; break;
 			case "title": $loading['order'] = "p.name ASC"; break;
 			default:
 				// Need to add the catalog table for access to category-product priorities
 				if (!isset($this->smart)) {
 					$loading['joins'] .= " LEFT JOIN $catalogtable AS c ON c.product=p.id AND c.parent = '$this->id'";
 					$loading['order'] = "c.priority ASC,p.name ASC";
-				}
+				} else $loading['order'] = "p.name ASC";
 				break;
 		}
 		if (!empty($loading['orderby'])) $loading['order'] = $loading['orderby'];
