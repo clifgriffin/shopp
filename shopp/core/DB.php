@@ -807,8 +807,11 @@ abstract class SessionObject {
 		global $Shopp;
 		$db = &DB::get();
 
-		$data = $db->escape(addslashes(serialize($this->data)));
+		// Don't update the session for prefetch requests (via <link rel="next" /> tags) currently FF-only
+		if (isset($_SERVER['HTTP_X_MOZ']) && $_SERVER['HTTP_X_MOZ'] == "prefetch") return false;
 		
+		$data = $db->escape(addslashes(serialize($this->data)));
+
 		if ($this->secured() && is_shopp_secure()) {
 			$key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
 			if (!empty($key) && $key !== false) {
@@ -819,9 +822,10 @@ abstract class SessionObject {
 		}
 		
 		$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',modified=now() WHERE session='$this->session'";
+		
 		if (!$db->query($query)) 
 			trigger_error("Could not save session updates to the database.");
-			
+
 		do_action('shopp_session_saved');
 
 		// Save standard session data for compatibility
