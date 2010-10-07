@@ -23,6 +23,7 @@ function addtocart (form) {
 			return false;
 		}
 	}
+	console.log("here");
 
 	if ($(form).find('input.addtocart').hasClass('ajax-html')) 
 		ShoppCartAjaxRequest(form.action,$(form).serialize(),'html');
@@ -112,12 +113,14 @@ jQuery(document).ready(function() {
 		var button = $(this),
 			form = button.parents('form.product');
 		if (!form) return false;
-		form.submit(function (e) {
+		form.bind('submit.addtocart',function (e) {
 			e.preventDefault();
+			if (form.hasClass('validate') && !validate(this)) return false;
 			addtocart(this);
 		});
-		if (button.attr('type') == "button") 
+		if (button.attr('type') == "button")
 			button.click(function() { form.submit(); });
+			
 	});
 
 });

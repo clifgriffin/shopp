@@ -391,9 +391,9 @@ function validate (form) {
  * Auto-initialize form validation forms with a 'validate' class
  **/
 function validateForms () {
-	jQuery('form.validate').submit(function () {
-		if (validate(this)) return true;
-		else return false;
+	var $=jqnc(),forms = $('form.validate');
+	forms.bind('submit.validate',function (e) {
+		return validate(this);
 	});
 }
 
