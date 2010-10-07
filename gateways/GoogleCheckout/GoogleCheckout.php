@@ -41,7 +41,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			'test' => (is_shopp_secure()?'https':'http').'://sandbox.google.com/checkout/buttons/checkout.gif'
 			);
 		
-		$this->merchant_calc_url = add_query_string('_txnupdate=gc',shoppurl(false,'catalog'));
+		$this->merchant_calc_url = esc_url(add_query_string('_txnupdate=gc',shoppurl(false,'catalog')));
 		
 		$this->setup('id','key','apiurl');
 		$this->settings['merchant_email'] = $Shopp->Settings->get('merchant_email');
