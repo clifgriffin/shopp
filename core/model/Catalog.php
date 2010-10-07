@@ -450,7 +450,11 @@ class Catalog extends DatabaseObject {
 			case "orderby-list":
 				if (isset($Shopp->Category->controls)) return false;
 				if (isset($Shopp->Category->loading['order']) || isset($Shopp->Category->loading['orderby'])) return false;
+				
 				$menuoptions = Category::sortoptions();
+				// Don't show custom product order for smart categories
+				if ($Shopp->Category->smart) unset($menuoptions['custom']); 
+				
 				$title = "";
 				$string = "";
 				$dropdown = isset($options['dropdown'])?$options['dropdown']:true;
