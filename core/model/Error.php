@@ -250,21 +250,6 @@ class ShoppError {
 	var $messages;
 	var $level;
 	var $data = array();
-	var $php = array(
-		1		=> 'ERROR',
-		2		=> 'WARNING',
-		4		=> 'PARSE ERROR',
-		8		=> 'NOTICE',
-		16		=> 'CORE ERROR',
-		32		=> 'CORE WARNING',
-		64		=> 'COMPILE ERROR',
-		128		=> 'COMPILE WARNING',
-		256		=> 'USER ERROR',
-		512		=> 'USER WARNING',
-		1024	=> 'USER NOTICE',
-		2048	=> 'STRICT NOTICE',
-		4096 	=> 'RECOVERABLE ERROR'
-	);
     
 	/**
 	 * Creates and registers a new error
@@ -281,6 +266,21 @@ class ShoppError {
 		if ($level > $Errors->reporting) return;
 		if (empty($message)) return;
 
+		$php = array(
+			1		=> 'ERROR',
+			2		=> 'WARNING',
+			4		=> 'PARSE ERROR',
+			8		=> 'NOTICE',
+			16		=> 'CORE ERROR',
+			32		=> 'CORE WARNING',
+			64		=> 'COMPILE ERROR',
+			128		=> 'COMPILE WARNING',
+			256		=> 'USER ERROR',
+			512		=> 'USER WARNING',
+			1024	=> 'USER NOTICE',
+			2048	=> 'STRICT NOTICE',
+			4096 	=> 'RECOVERABLE ERROR'
+		);
 		$debug = debug_backtrace();
 		
 		$this->code = $code;
@@ -299,8 +299,8 @@ class ShoppError {
 		
 		$this->source = "Shopp";
 		if (isset($this->debug['class'])) $this->source = $this->debug['class'];
-		if (isset($this->data['phperror']) && isset($this->php[$this->data['phperror']])) 
-			$this->source = "PHP ".$this->php[$this->data['phperror']];
+		if (isset($this->data['phperror']) && isset($php[$this->data['phperror']])) 
+			$this->source = "PHP ".$php[$this->data['phperror']];
 		
 		$Errors = &ShoppErrors();
 		if (!empty($Errors)) $Errors->add($this);
