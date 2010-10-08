@@ -1274,8 +1274,11 @@ class Product extends DatabaseObject {
 					foreach ($this->pricekey as $key => $pricing) {
 						$filter = array('');
 						$_ = new StdClass();
-						$_->p = round((isset($pricing->onsale) 
-									&& $pricing->onsale == "on")?(float)$pricing->promoprice:(float)$pricing->price,$precision);
+						if ($pricing->type != "Donation")
+							$_->p = round((isset($pricing->onsale) 
+										&& $pricing->onsale == "on")?
+											(float)$pricing->promoprice:
+											(float)$pricing->price,$precision);
 						$_->i = ($pricing->inventory == "on")?true:false;
 						$_->s = ($pricing->inventory == "on")?$pricing->stock:false;
 						$_->t = $pricing->type;
