@@ -937,14 +937,62 @@ class Order {
 				return $input;
 				break;
 			case "customer-info":
-				$allowed_types = array("text","password","hidden","checkbox","radio");
-				if (empty($options['type'])) $options['type'] = "hidden";
-				if (isset($options['name']) && $options['mode'] == "value") 
-					return $this->Customer->info->named[$options['name']];
-				if (isset($options['name']) && in_array($options['type'],$allowed_types)) {
-					if (isset($this->Customer->info->named[$options['name']])) 
-						$options['value'] = $this->Customer->info->named[$options['name']]; 
-					return '<input type="text" name="info['.$options['name'].']" id="customer-info-'.$options['name'].'" '.inputattrs($options).' />'; 
+				$defaults = array(
+					'name' => false, // REQUIRED
+					'info' => false,
+					'mode' => false,
+					'title' => '',
+					'type' => 'hidden',
+					'value' => '',
+					'cols' => '30',
+					'rows' => '3',
+					'options' => ''
+				);
+				$op = array_merge($defaults,$options);
+				extract($op);
+			
+				// Allowed input types
+				$allowed_types = array("text","hidden","password","checkbox","radio","textarea","menu");
+			
+				// Input types that can override option-specified value with the loaded data value
+				$value_override = array("text","hidden","password","textarea","menu");
+			
+				/// Allowable attributes for textarea inputs
+				$textarea_attrs = array('accesskey','title','tabindex','class','disabled','required');
+		
+				if (!$name) { // Iterator for order data
+					if (!isset($this->_customer_info_loop)) {
+						reset($this->Customer->info->named);
+						$this->_customer_info_loop = true;
+					} else next($this->Customer->info->named);
+
+					if (current($this->Customer->info->named) !== false) return true;
+					else {
+						unset($this->_customer_info_loop);
+						return false;
+					}
+				}
+
+				if (isset($this->Customer->info->named[$name])) $info = $this->Customer->info->named[$name];
+				if ($name && $mode == "value") return $info;
+			
+				if (!in_array($type,$allowed_types)) $type = 'hidden';
+				if (empty($title)) $title = $name;
+				$id = 'customer-info-'.sanitize_title_with_dashes($name);
+			
+				if (in_array($type,$value_override) && !empty($info))
+					$value = $info;
+				switch (strtolower($type)) {
+					case "textarea":
+						return '<textarea name="info['.$name.']" cols="'.$cols.'" rows="'.$rows.'" id="'.$id.'" '.inputattrs($op,$textarea_attrs).'>'.$value.'</textarea>';
+						break;
+					case "menu":
+						if (is_string($options)) $options = explode(',',$options);
+						return '<select name="info['.$name.']" id="'.$id.'" '.inputattrs($op,$select_attrs).'>'.menuoptions($options,$value).'</select>';
+						break;
+					default:
+						return '<input type="'.$type.'" name="info['.$name.']" id="'.$id.'" '.inputattrs($op).' />';
+						break;
 				}
 				break;
 
