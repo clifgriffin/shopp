@@ -335,6 +335,7 @@ class Purchase extends DatabaseObject {
 				if (empty($item->addons)) return false;
 				$defaults = array(
 					'prices' => "on",
+					'download' => __('Download','Shopp'),
 					'before' => '',
 					'after' => '',
 					'classes' => '',
@@ -355,8 +356,16 @@ class Purchase extends DatabaseObject {
 						$price = $addon->value->unitprice+($addon->value->unitprice*$taxrate);
 					else $price = $addon->value->unitprice;
 					
+					$link = false;
+					if (isset($addon->value->download) && isset($addon->value->dkey)) {
+						$dkey = $addon->value->dkey;
+						$request = SHOPP_PRETTYURLS?"download/$dkey":array('shopp_download'=>$dkey);
+						$url = shoppurl($request,'catalog');
+						$link = '<br /><a href="'.$url.'">'.$download.'</a>';
+					}
+
 					$pricing = value_is_true($prices)?" (".money($price).")":"";
-					$result .= '<li>'.esc_html($addon->name.$pricing).'</li>';
+					$result .= '<li>'.esc_html($addon->name.$pricing).$link.'</li>';
 				}
 				$result .= '</ul>'.$after;
 				return $result;

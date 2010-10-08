@@ -28,6 +28,7 @@ class Purchased extends DatabaseObject {
 		$addons = array();
 		// Create meta records for any addons
 		foreach ((array)$Item->addons as $i => $Addon) {
+			$Download = false;
 			$Meta = new MetaObject(array(
 				'parent' => $this->id,
 				'context' => 'purchased',
@@ -37,9 +38,29 @@ class Purchased extends DatabaseObject {
 			$Meta->context = 'purchased';
 			$Meta->type = 'addon';
 			$Meta->name = $Addon->label;
-			$Meta->value = serialize($Addon);
 			$Meta->numeral = $Addon->unitprice;
+			
+			// Add a meta record to the purchased line item for an addon download
+			if (!empty($Addon->download)) {
+				$hash = array($this->name,$Addon->label,$this->purchase,$this->product,$this->price,$i);
+				$Addon->dkey = sha1(join('',$hash));
+
+				$Download = new MetaObject(array(
+					'parent' => $this->id,
+					'context' => 'purchased',
+					'type' => 'download',
+					'name' => $Addon->dkey
+				));
+				$Download->context = 'purchased';
+				$Download->type = 'download';
+				$Download->name = $Addon->dkey;
+				$Download->value = $Addon->download;
+			}
+
+			$Meta->value = serialize($Addon);
 			$addons[] = $Meta;
+			if ($Download !== false) $addons[] = $Download;
+			
 		}
 		$this->addons = $addons;
 	}
@@ -57,7 +78,7 @@ class Purchased extends DatabaseObject {
 		$this->addons = $addons; // restore addons model
 	}
 	
-	function keygen() {
+	function keygen () {
 		$message = $this->name.$this->purchase.$this->product.$this->price.$this->download;
 		$key = sha1($message);
 		if (empty($key)) $key = md5($message);

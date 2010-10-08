@@ -320,7 +320,7 @@ class Item {
 	 * @return object An Item variation object
 	 **/
 	function mapprice ($price) {
-		$map = array('id','type','label','onsale','promoprice','price','inventory','stock','sku','options','dimensions');
+		$map = array('id','type','label','onsale','promoprice','price','inventory','stock','sku','options','dimensions','download');
 		$_ = new stdClass();
 		foreach ($map as $property) {
 			if (empty($price->options) && $property == 'label') continue;

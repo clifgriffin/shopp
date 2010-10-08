@@ -153,13 +153,12 @@ class Resources {
 		} else {
 			$Order = &ShoppOrder();
 			
-			require_once(SHOPP_MODEL_PATH."/Purchased.php");
-			$Purchased = new Purchased($download,"dkey");
-			$Purchase = new Purchase($Purchased->purchase);
-			
 			$Download = new ProductDownload();
 			$Download->loadby_dkey($download);
 			
+			$Purchased = $Download->purchased();
+			$Purchase = new Purchase($Purchased->purchase);
+		
 			$name = $Purchased->name.(!empty($Purchased->optionlabel)?' ('.$Purchased->optionlabel.')':'');
 
 			$forbidden = false;
