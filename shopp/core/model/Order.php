@@ -271,19 +271,14 @@ class Order {
 			list($module,$label) = explode(":",$this->paymethod);
 			if (isset($Shopp->Gateways->active[$module])) {
 				$Gateway = $Shopp->Gateways->active[$module];
-				$this->processor($Gateway->module);
+				$Gateway = $this->processor($Gateway->module);
 			} else new ShoppError(__("The payment method you selected is no longer available. Please choose another.","Shopp"));
-		}
-		
-		$Gateway = $this->processor();
-		$label = is_array($Gateway->settings['label'])?$Gateway->settings['label'][0]:$Gateway->settings['label'];	
+		} else $Gateway = $this->processor();
 
-		if (empty($this->paymethod)) {
-			$module = $Gateway->module;
-			$this->paymethod = $module.':'.$label;
+		if (!$cc) {
+			list($module,$label) = explode(":",$this->paymethod);
+			$this->Billing->cardtype = $label;
 		}
-
-		if (!$cc) $this->Billing->cardtype = $label;
 
 		$estimated = $this->Cart->Totals->total;
 		
