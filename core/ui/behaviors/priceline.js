@@ -283,10 +283,9 @@ function Priceline (id,options,data,target,attachment) {
 		inf = ui.find('span.ui').hide();
 
 		if (!weight) weight = 0;
-		_.w = $('#weight-'+i);
-		_.w.val(new Number(weight)).bind('change.value',function () {
-			this.value = formatNumber(new Number(this.value),nf,true);
-		}).trigger('change.value');
+		_.w = $('#weight-'+i).val(formatNumber(new Number(weight))).bind('change.value',function () {
+			this.value = formatNumber(this.value,nf,true);
+		});
 
 		_.fee = $('#shipfee-'+i);
 		_.fee.val(asMoney(new Number(fee)));
