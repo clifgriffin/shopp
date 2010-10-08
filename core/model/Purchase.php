@@ -18,6 +18,7 @@ class Purchase extends DatabaseObject {
 	var $downloads = false;
 
 	function Purchase ($id=false,$key=false) {
+		
 		$this->init(self::$table);
 		if (!$id) return true;
 		if ($this->load($id,$key)) return true;
@@ -422,7 +423,9 @@ class Purchase extends DatabaseObject {
 				break;
 			case "paid": return ($this->txnstatus == "CHARGED"); break;
 			case "notpaid": return ($this->txnstatus != "CHARGED"); break;
-			case "payment": return $this->txnstatus; break;
+			case "payment": 
+				$labels = Lookup::payment_status_labels();
+				return isset($labels[$this->txnstatus])?$labels[$this->txnstatus]:$this->txnstatus; break;
 		}
 	}
 
