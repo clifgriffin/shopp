@@ -60,6 +60,7 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 					keys.push(option.val());
 				price = pricing[xorkey(keys)];
 				if (!price) price = pricing[xorkey_deprecated(keys)];
+				console.log(price);
 				if (price) {
 					p = new Number(price.p);
 					tax = new Number(p*taxrate);
@@ -76,6 +77,9 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 						else optionDisable(option);
 					} else option.removeAttr(disabled).show();
 					if (price.t == "N/A" && hideDisabled) option.remove();
+				} else {
+					if (hideDisabled) option.remove();
+					else optionDisable(option);
 				}
 			}
 		});

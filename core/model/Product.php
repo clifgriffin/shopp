@@ -1257,7 +1257,6 @@ class Product extends DatabaseObject {
 						if ($pricetag->type != "N/A")
 							$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.$pricetag->label.$price.'</option>'."\n";
 					}
-
 					$string .= '</select>';
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 
