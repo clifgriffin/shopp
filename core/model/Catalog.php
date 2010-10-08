@@ -619,7 +619,7 @@ class Catalog extends DatabaseObject {
 						break;
 				}
 				
-				$before = (!empty($label_before))?'<label>'.$label_before:'<lable>';
+				$before = (!empty($label_before))?'<label>'.$label_before:'<label>';
 				$after = (!empty($label_after))?$label_after.'</label>':'</lable>';
 				return $before.$input.$after;
 				break;
