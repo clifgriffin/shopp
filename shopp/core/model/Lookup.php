@@ -343,6 +343,24 @@ class Lookup {
 	}
 	
 	/**
+	 * A list of translatable payment status labels
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
+	static function payment_status_labels () {
+		$_ = array(
+			'PENDING' => __('Pending','Shopp'),
+			'CHARGED' => __('Charged','Shopp'),
+			'REFUNDED' => __('Refunded','Shopp'),
+			'VOID' => __('Void','Shopp')
+		);
+		return apply_filters('shopp_payment_status_labels',$_);
+	}
+	
+	/**
 	 * A list of stop words to be excluded from search indexes
 	 *
 	 * Stop words are commonly used words that are not particularly

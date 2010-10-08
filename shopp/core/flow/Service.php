@@ -354,13 +354,7 @@ class Service extends AdminController {
 		}	
 		
 		$targets = $this->Settings->get('target_markets');
-		$UI->txnStatusLabels = array(
-			'PENDING' => __('Pending','Shopp'),
-			'CHARGED' => __('Charged','Shopp'),
-			'REFUNDED' => __('Refunded','Shopp'),
-			'VOID' => __('Void','Shopp')
-			);
-		
+		$UI->txnStatusLabels = Lookup::payment_status_labels();
 		$UI->statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
 						
