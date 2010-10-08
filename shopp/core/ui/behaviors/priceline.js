@@ -283,7 +283,7 @@ function Priceline (id,options,data,target,attachment) {
 		inf = ui.find('span.ui').hide();
 
 		if (!weight) weight = 0;
-		_.w = $('#weight-'+i).val(formatNumber(new Number(weight))).bind('change.value',function () {
+		_.w = $('#weight-'+i).val(formatNumber(new Number(weight),nf,true)).bind('change.value',function () {
 			this.value = formatNumber(this.value,nf,true);
 		});
 
