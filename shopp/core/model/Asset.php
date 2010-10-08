@@ -374,17 +374,39 @@ class DownloadAsset extends FileAsset {
 	var $type = 'download';
 	var $context = 'product';
 	var $etag = "";
+	var $purchased = false;
 	
 	function loadby_dkey ($key) {
 		$db = &DB::get();
 		require_once(SHOPP_MODEL_PATH."/Purchased.php");
 		$pricetable = DatabaseObject::tablename(Price::$table);
+		
 		$Purchased = new Purchased($key,"dkey");
-		$Purchase = new Purchase($Purchased->purchase);
-		$record = $db->query("SELECT download.* FROM $this->_table AS download LEFT JOIN $pricetable AS pricing ON pricing.id=download.parent WHERE pricing.id=$Purchased->price AND download.context='price' AND download.type='download' LIMIT 1");
-		$this->populate($record);
-		$this->expopulate();
+		if (!empty($Purchased->id)) {
+			// Handle purchased line-item downloads
+			$Purchase = new Purchase($Purchased->purchase);
+			$record = $db->query("SELECT download.* FROM $this->_table AS download LEFT JOIN $pricetable AS pricing ON pricing.id=download.parent WHERE pricing.id=$Purchased->price AND download.context='price' AND download.type='download' LIMIT 1");
+			$this->populate($record);
+			$this->expopulate();
+			$this->purchased = $Purchased->id;
+		} else {
+			// Handle purchased line-item meta downloads (addon downloads)
+			$MetaDownload = new MetaObject(array(
+				'context' => 'purchased',
+				'type' => 'download',
+				'name' => $key
+			));
+			$this->load($MetaDownload->value);
+			$this->purchased = $MetaDownload->parent;
+		}
+		
 		$this->etag = $key;
+	}
+	
+	function purchased () {
+		require_once(SHOPP_MODEL_PATH."/Purchased.php");
+		if (!$this->purchased) return false;
+		return new Purchased($this->purchased);
 	}
 	
 	function download ($dkey=false) {
