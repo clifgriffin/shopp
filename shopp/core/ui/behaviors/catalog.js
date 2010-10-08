@@ -60,7 +60,6 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 					keys.push(option.val());
 				price = pricing[xorkey(keys)];
 				if (!price) price = pricing[xorkey_deprecated(keys)];
-				console.log(price);
 				if (price) {
 					p = new Number(price.p);
 					tax = new Number(p*taxrate);
