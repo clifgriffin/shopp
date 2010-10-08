@@ -41,6 +41,13 @@ p { margin-bottom: 24px; }
 <h2><?php _e('Order','Shopp'); ?> <?php shopp('purchase','id'); ?></h2>
 </div>
 <div id="body">
+	
+<?php if (shopp('purchase','notpaid')): ?> 
+    <?php if (shopp('checkout','offline-instructions','return=1')): ?>
+    <p><?php shopp('checkout','offline-instructions'); ?></p>
+    <?php endif; ?>
+<?php endif; ?>	
+
 <?php shopp('purchase','receipt'); ?>
 </div>
 
