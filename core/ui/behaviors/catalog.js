@@ -52,7 +52,7 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 
 		$(current).children('option').each(function () {
 			
-			var p,tax,pricetag,optiontext,previoustag,
+			var p,tax,optiontext,previoustag,pricetag="",
 				option = $(this),
 				keys = selected.slice(),
 				price;
@@ -61,13 +61,15 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 				price = pricing[xorkey(keys)];
 				if (!price) price = pricing[xorkey_deprecated(keys)];
 				if (price) {
-					p = new Number(price.p);
-					tax = new Number(p*taxrate);
-					pricetag = asMoney(new Number(p+tax));
+					if (price.p) {
+						p = new Number(price.p);
+						tax = new Number(p*taxrate);
+						pricetag = "  ("+asMoney(new Number(p+tax))+")";
+					}
 					optiontext = option.attr('text');
 					previoustag = optiontext.lastIndexOf("(");
 					if (previoustag != -1) optiontext = optiontext.substr(0,previoustag);
-					option.attr('text',optiontext+"  ("+pricetag+")");
+					option.attr('text',optiontext+pricetag);
 					if ($.browser.msie) option.css('color','#373737');
 					if ((price.i && !price.s) || price.t == "N/A") {
 						if (option.attr('selected')) 
