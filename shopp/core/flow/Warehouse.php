@@ -507,8 +507,7 @@ class Warehouse extends AdminController {
 		if (!empty($_POST['categories']))
 			$Product->save_categories($_POST['categories']);
 		
-		if (!empty($_POST['taglist']))
-			$Product->save_tags(explode(",",$_POST['taglist']));
+		$Product->save_tags(explode(",",$_POST['taglist']));
 		
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 

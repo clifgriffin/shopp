@@ -453,7 +453,7 @@ class Product extends DatabaseObject {
 
 	function save_tags ($updates) {
 		$db = DB::get();
-		
+
 		if (empty($updates)) $updates = array();
 		$updates = stripslashes_deep($updates);
 		
@@ -462,7 +462,7 @@ class Product extends DatabaseObject {
 		
 		$added = array_diff($updates,$current);
 		$removed = array_diff($current,$updates);
-
+		
 		if (!empty($added)) {
 			$catalog = DatabaseObject::tablename(Catalog::$table);
 			$tagtable = DatabaseObject::tablename(Tag::$table);
@@ -492,7 +492,8 @@ class Product extends DatabaseObject {
 		if (!empty($removed)) {
 			$catalog = DatabaseObject::tablename(Catalog::$table);
 			foreach ($removed as $tag) {
-				$Tag = new Tag($tag,'name');
+				// Ensure loading tag records by case-sensitive name with BINARY casting
+				$Tag = new Tag($tag,'BINARY name'); 
 				if (!empty($Tag->id))
 					$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE parent='$Tag->id' AND type='tag' AND product='$this->id'"); 
 			}
