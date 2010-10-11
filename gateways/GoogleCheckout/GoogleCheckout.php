@@ -291,8 +291,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 				if ($this->settings['use_google_shipping'] != 'on' && $Cart->shipped()) {
 					if ($Cart->freeshipping === true) { // handle free shipping case and ignore all shipping methods
+						$free_shipping_text = $Shopp->Settings->get('free_shipping_text');
+						if (empty($free_shipping_text)) $free_shipping_text = __('Free Shipping!','Shopp');
 						$_[] = '<shipping-methods>';
-						$_[] = '<flat-rate-shipping name="'.$Shopp->Settings->get('free_shipping_text').'">';
+						$_[] = '<flat-rate-shipping name="'.$free_shipping_text.'">';
 						$_[] = '<price currency="'.$this->settings['currency'].'">0.00</price>';
 						$_[] = '<shipping-restrictions>';
 						$_[] = '<allowed-areas><world-area /></allowed-areas>';
