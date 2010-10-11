@@ -220,18 +220,18 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		}
 	
 		$Customer = $this->Order->Customer;
-		$Customer->firstname = $response->firstname;
-		$Customer->lastname = $response->lastname;
-		$Customer->email = $response->email;
-		$Customer->phone = $response->phonenum;
+		if (empty($Customer->firstname)) $Customer->firstname = $response->firstname;
+		if (empty($Customer->lastname)) $Customer->lastname = $response->lastname;
+		if (empty($Customer->email)) $Customer->email = $response->email;
+		if (empty($Customer->phone)) $Customer->phone = $response->phonenum;
 		
 		$Shipping = &$this->Order->Shipping;		
-		$Shipping->address = $response->shiptostreet;
-		$Shipping->xaddress = $response->shiptostreet2;
-		$Shipping->city = $response->shiptocity;
-		$Shipping->state = $response->shiptostate;
-		$Shipping->country = $response->shiptocountrycode;
-		$Shipping->postcode = $response->shiptozip;
+		if (empty($Shipping->address)) $Shipping->address = $response->shiptostreet;
+		if (empty($Shipping->xaddress)) $Shipping->xaddress = $response->shiptostreet2;
+		if (empty($Shipping->city)) $Shipping->city = $response->shiptocity;
+		if (empty($Shipping->state)) $Shipping->state = $response->shiptostate;
+		if (empty($Shipping->country)) $Shipping->country = $response->shiptocountrycode;
+		if (empty($Shipping->postcode)) $Shipping->postcode = $response->shiptozip;
 		
 		if (empty($Shipping->state) && empty($Shipping->country))
 			add_filter('shopp_cart_taxrate',array(&$this,'notax'));
