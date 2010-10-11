@@ -149,7 +149,7 @@ function addVariationOptionsMenu (data) {
 			{'axis':'y','update':function() { orderOptions(menus,entries) }});
 	
 	menu.addOption = function (data) {
-		var init = false,option;
+		var init = false,option,optionid;
 		if (!data) data = new Object();
 
 		if (!data.id) {
@@ -159,6 +159,7 @@ function addVariationOptionsMenu (data) {
 		
 	 	option = new NestedMenuOption(menu.index,menu.itemsElement,'options[v]',NEW_OPTION_DEFAULT,data);
 		optionsidx++;
+		optionid = option.id.val();
 
 		option.linkIcon = $('<img src="'+uidir+'/icons/linked.png" alt="linked" width="16" height="16" class="link" />').appendTo(option.moveHandle);
 		option.linked = $('<input type="hidden" name="options[v]['+menu.index+'][options]['+option.index+'][linked]" class="linked" />').appendTo(option.element).change(function () {
@@ -181,18 +182,18 @@ function addVariationOptionsMenu (data) {
 		}
 		option.element.click(option.selected);
 
-		productOptions[option.id.val()] = option.label;
+		productOptions[optionid] = option.label;
 		option.label.blur(function() { updateVariationLabels(); });
 		option.deleteButton.unbind('click');
 	
 		option.deleteButton.click(function () {
 			if (menu.itemsElement.children().length == 1)
-				deleteVariationPrices([option.id.val()],true);
-			else deleteVariationPrices([option.id.val()]);
+				deleteVariationPrices([optionid],true);
+			else deleteVariationPrices([optionid]);
 			option.element.remove();
 		});
 		
-		if (!init) addVariationPrices(option.id.val());
+		if (!init) addVariationPrices(optionid);
 		else addVariationPrices();
 		
 		entries.dequeue().animate({ scrollTop: entries.attr('scrollHeight')-entries.height() }, 200);
@@ -548,8 +549,10 @@ function newAddonGroup (data) {
 		} else if (data.id > addonsidx) addonsidx = data.id;
 		
 	 	option = new NestedMenuOption(menu.index,menu.itemsElement,'options[a]',NEW_OPTION_DEFAULT,data);
+
 		addonsidx++;
 		optionid = option.id.val();
+
 		option.selected = function () {
 			if (option.element.hasClass('selected')) {
 				entries.find('ul li').removeClass('selected');
@@ -567,11 +570,11 @@ function newAddonGroup (data) {
 		option.deleteButton.unbind('click');
 	
 		option.deleteButton.click(function () {
-			Pricelines.row[option.id.val()].row.remove();
+			Pricelines.row[optionid].row.remove();
 			option.element.remove();
 		});
 
-		if (init) Pricelines.add(option.id.val(),{context:'addon'},menu.pricegroup);
+		if (init) Pricelines.add(optionid,{context:'addon'},menu.pricegroup);
 		addonOptionsGroup[optionid] = menu.index;
 		menu.items.push(option);
 		
