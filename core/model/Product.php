@@ -1276,10 +1276,10 @@ class Product extends DatabaseObject {
 						$filter = array('');
 						$_ = new StdClass();
 						if ($pricing->type != "Donation")
-							$_->p = round((isset($pricing->onsale) 
+							$_->p = ((isset($pricing->onsale) 
 										&& $pricing->onsale == "on")?
 											(float)$pricing->promoprice:
-											(float)$pricing->price,$precision);
+											(float)$pricing->price);
 						$_->i = ($pricing->inventory == "on")?true:false;
 						$_->s = ($pricing->inventory == "on")?$pricing->stock:false;
 						$_->t = $pricing->type;
