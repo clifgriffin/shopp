@@ -32,7 +32,7 @@ function Pricelines () {
 		}
 		if (data.context == "addon") {
 			p = new Priceline(_.idx,options,data,target,attachment);
-			_.row[_.idx] = p;
+			_.row[options] = p;
 		}
 		if (data.context == "product") {
 			p = new Priceline(0,options,data,target,attachment);
