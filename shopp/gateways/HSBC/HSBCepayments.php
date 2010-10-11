@@ -4,7 +4,7 @@
  * Barclaycard ePDQ URL: https://secure2.epdq.co.uk:11500/
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.1.1
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package shopp
  * @since 1.1
@@ -41,7 +41,7 @@ class HSBCepayments extends GatewayFramework implements GatewayModule {
 		$Response = $this->send($message);
 		$status = $Response->getElementContent('TransactionStatus');
 		
-		if ($status == "E" || $status = "D") {
+		if ($status == "E" || $status == "D") {
 			$message = $Response->getElementContent('CcReturnMsg');
 			$code = $Response->getElementContent('CcErrCode');
 			if (empty($message)) {
@@ -53,7 +53,7 @@ class HSBCepayments extends GatewayFramework implements GatewayModule {
 				return;
 		}
 		
-		$transaction = $this->Response->getElement('Transaction');
+		$transaction = $Response->getElement('Transaction');
 		$txnid = $transaction['CHILDREN']['Id']['CONTENT'];
 		$txnstatus = $this->status[$status];
 		$Shopp->Order->transaction($txnid,$txnstatus);
@@ -134,7 +134,7 @@ class HSBCepayments extends GatewayFramework implements GatewayModule {
 	function send ($message) {
 		$url = $this->url();
 		$response = parent::send($message,$url);
-		return new XMLdata($reponse);
+		return new XMLdata($response);
 	}
 		
 	function settings () {
