@@ -346,7 +346,19 @@ class Customer extends DatabaseObject {
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
 		$asset = DatabaseObject::tablename(ProductDownload::$table);
-		$query = "SELECT p.*,f.id as download,f.name as filename,f.value AS filedata FROM $purchases AS p LEFT JOIN $orders AS o ON o.id=p.purchase LEFT JOIN $asset AS f ON f.parent=p.price WHERE o.customer=$this->id AND context='price' AND type='download'";
+		$query = "(SELECT p.dkey AS dkey,p.id,p.purchase,p.download as download,p.name AS name,p.optionlabel,p.downloads,o.total,o.created,f.id as download,f.name as filename,f.value AS filedata 
+			FROM $purchases AS p 
+			LEFT JOIN $orders AS o ON o.id=p.purchase 
+			LEFT JOIN $asset AS f ON f.parent=p.price 
+			WHERE o.customer=$this->id AND context='price' AND type='download')
+			UNION
+			(SELECT a.name AS dkey,p.id,p.purchase,a.value AS download,ao.name AS name,p.optionlabel,p.downloads,o.total,o.created,f.id as download,f.name as filename,f.value AS filedata 
+			FROM wp_shopp_purchased AS p
+			RIGHT JOIN wp_shopp_meta AS a ON a.parent=p.id AND a.type='download' AND a.context='purchased'
+			LEFT JOIN wp_shopp_meta AS ao ON a.parent=p.id AND ao.type='addon' AND ao.context='purchased'
+			LEFT JOIN wp_shopp_purchase AS o ON o.id=p.purchase
+			LEFT JOIN wp_shopp_meta AS f on f.id=a.value 
+			WHERE o.customer=9 AND f.context='price' AND f.type='download') ORDER BY created DESC";
 		$this->downloads = $db->query($query,AS_ARRAY);
 		foreach ($this->downloads as &$download) {
 			$download->filedata = unserialize($download->filedata);
