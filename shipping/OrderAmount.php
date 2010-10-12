@@ -78,7 +78,7 @@ function AddOrderAmountRangeRow(methodid,table,rates) {
 	else value = 1;
 	var maxInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][max][]" class="selectall right" size="7" id="max-'+methodid+'-'+id+'" tabindex="'+(id+1)+'02" />').change(function() {
 		if (!(this.value == "+" || this.value == ">")) this.value = asMoney(this.value);
-	}).val(asMoney(new Number(value))).appendTo(unitCell);
+	}).val(value=="+"||value==">"?value:asMoney(new Number(value))).appendTo(unitCell);
 	
 	$('<span> = </span>').appendTo(unitCell);
 	

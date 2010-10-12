@@ -86,7 +86,7 @@ function AddOrderWeightRange (methodid,table,rates) {
 	else value = 1;
 	var maxInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][max][]" class="selectall right" size="7" id="max-'+methodid+'-'+id+'" tabindex="'+(methodid+1)+'02" />').change(function() {
 		this.value = (this.value == "+" || this.value == ">")?this.value:formatNumber(this.value);
-	}).val(formatNumber(new Number(value))).appendTo(unitCell);
+	}).val((value=="+"||value==">")?value:formatNumber(new Number(value))).appendTo(unitCell);
 	
 	$('<span class="weightunit"></span>').html(weight_units+' = ').appendTo(unitCell);
 	
