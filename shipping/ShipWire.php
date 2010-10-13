@@ -29,8 +29,8 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 	);
 	var $type = "OrderListXML";
 
-	// var $test = true;
-	// var $dev = true;
+	var $test = true;
+	var $dev = false;
 
 	var $postcode = true;
 	var $dimensions = true;
@@ -188,10 +188,8 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 		// Don't get an estimate without a postal code
 		if (empty($Order->Shipping->postcode)) return $options;
 		
-		$request = $this->build(session_id(), $$this->rate['name'], 
-			$Order->Shipping->postcode, $Order->Shipping->country);
-		
-		$Response = $this->send();
+		$request = $this->build(session_id(), $Order->Cart->shipped, $this->rate['name'], $Order->Shipping);
+		$Response = $this->send($request,"RateRequestXML");
 		if (!$Response) return false;
 		
 		if ($Response->getElement('Error')) {
@@ -222,8 +220,8 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 		return $options;
 	}
 	
-	function build ($cart,$description,$postcode,$country) {
-		$this->type = "RateRequestXML";
+	function build ($cart, $items, $description, $Shipping) {
+		$type = "RateRequestXML";
 		
 		$_ = array('<?xml version="1.0" encoding="utf-8"?>');
 		$_[] = '<!DOCTYPE RateRequest SYSTEM "http://www.shipwire.com/exec/download/RateRequest.dtd">';
@@ -231,24 +229,26 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 			$_[] = '<EmailAddress>'.$this->settings['email'].'</EmailAddress>';
 			$_[] = '<Password>'.$this->settings['password'].'</Password>';
 			$_[] = '<Server>'.($this->test?'Test':'Production').'</Server>';
-			$_[] = '<Order id="">';
-				$_[] = '<Warehouse>0</Warehouse>';
+			$_[] = '<Order id="'.$cart.'">';
+				$_[] = '<Warehouse>00</Warehouse>';
 				$_[] = '<AddressInfo type="ship">';
-					$_[] = '<Address1>321 Foo bar lane</Address1>';
-					$_[] = '<Address2>Apartment #2</Address2>';
-					$_[] = '<City>Nowhere</City>';
-					$_[] = '<State>CA</State>';
-					$_[] = '<Country>'.$country.'</Country>';
-					$_[] = '<Zip>'.$postcode.'</Zip>';
+					$_[] = '<Address1>'.$Shipping->address.'</Address1>';
+					if (!empty($Shipping->xaddress))
+						$_[] = '<Address2>'.$Shipping->xaddress.'</Address2>';
+					$_[] = '<City>'.$Shipping->city.'</City>';
+					$_[] = '<State>'.$Shipping->state.'</State>';
+					$_[] = '<Country>'.$Shipping->country.'</Country>';
+					$_[] = '<Zip>'.$Shipping->postcode.'</Zip>';
 				$_[] = '</AddressInfo>';
-				$_[] = '<Item num="0">';
-					$_[] = '<Code>12345</Code>';
-					$_[] = '<Quantity>1</Quantity>';
-				$_[] = '</Item>';
+				foreach ($items as $id => $Item) {
+					$_[] = '<Item num="'.$id.'">';
+						$_[] = '<Code>'.(empty($Item->sku)?"SHOPP-$Item->product-$Item->priceline":$Item->sku).'</Code>';
+						$_[] = '<Quantity>'.$Item->quantity.'</Quantity>';
+					$_[] = '</Item>';
+				}
 			$_[] = '</Order>';
 		$_[] = '</RateRequest>';	
-
-		return $this->type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_rate_request',$_)));
+		return $type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_rate_request',$_)));
 	}  
 	
 	function verify () {         
@@ -263,7 +263,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 		$db =& DB::get();
 		$product = "";
 		if (!empty($Item->sku) && $Item->inventory == "on") $product = $Item->sku;
-		$this->type = "InventoryUpdateXML";
+		$type = "InventoryUpdateXML";
 
 		$_ = array('<?xml version="1.0" encoding="UTF-8"?>');
 		$_[] = '<!DOCTYPE InventoryStatus SYSTEM "http://www.shipwire.com/exec/download/InventoryUpdate.dtd">';
@@ -274,8 +274,8 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 		$_[] = '<ProductCode>'.$product.'</ProductCode>';
 		$_[] = '</InventoryUpdate>';
 		
-		$this->request = $this->type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_inventory_update',$_)));
-		$Response = $this->send();
+		$request = $type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_inventory_update',$_)));
+		$Response = $this->send($request,$type);
 
 		if ($Response->getElementContent('Status') == "Error") new ShoppError($Response->getElementContent('ErrorMessage'),'shipwire_sync_error',SHOPP_ADDON_ERR);
 	
@@ -297,7 +297,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 	
 	function tracking () {
 		$db =& DB::get();
-		$this->type = "TrackingUpdateXML";
+		$type = "TrackingUpdateXML";
 		$_ = array('<?xml version="1.0" encoding="UTF-8"?>');
 		$_[] = '<!DOCTYPE TrackingStatus SYSTEM "http://www.shipwire.com/exec/download/TrackingUpdate.dtd">';
 		$_[] = '<TrackingUpdate>';
@@ -307,8 +307,8 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 		$_[] = '<Bookmark>3</Bookmark>';
 		$_[] = '</TrackingUpdate>';
 
-		$this->request = $this->type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_tracking_update',$_)));
-		$Response = $this->send();
+		$request = $type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_tracking_update',$_)));
+		$Response = $this->send($request,$type);
 
 		if ($Response->getElementContent('Status') == "Error") new ShoppError($Response->getElementContent('ErrorMessage'),'shipwire_sync_error',SHOPP_ADDON_ERR);
 
@@ -326,7 +326,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 	}
 	
 	function order ($Purchase) {
-		$this->type = "OrderListXML";
+		$type = "OrderListXML";
 
 		$_ = array('<?xml version="1.0" encoding="UTF-8"?>');
 		$_[] = '<!DOCTYPE OrderList SYSTEM "http://www.shipwire.com/exec/download/OrderList.dtd">';
@@ -368,17 +368,17 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 		$_[] = '</OrderList>';
 		// new ShoppError(_object_r($_),'shipwire_order',SHOPP_DEBUG_ERR);
 		
-		$this->request = $this->type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_order_list',$_)));
-		$Response = $this->send();
+		$request = $type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_order_list',$_)));
+		$Response = $this->send($request,$type);
 
 		if ($Response->getElementContent('Status') == "Error") new ShoppError($Response->getElementContent('ErrorMessage'),'shipwire_orderlist_error',SHOPP_ADDON_ERR);
 		
 	}
 	
-	function send () {   
+	function send ($request,$type) {   
 		global $Shopp;
 
-		if ($this->type == "RateRequestXML" && $this->dev) {
+		if ($type == "RateRequestXML" && $this->dev) {
 			return new XMLdata('<?xml version="1.0" encoding="UTF-8"?>
 			<!DOCTYPE RateResponse SYSTEM "http://www.shipwire.com/exec/download/RateResponse.dtd">
 			<RateResponse>
@@ -425,7 +425,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 			</RateResponse>');
 		}
 
-		if ($this->type == "InventoryUpdateXML" && $this->dev) {
+		if ($type == "InventoryUpdateXML" && $this->dev) {
 			sleep(1);
 			return new XMLdata('<InventoryUpdateResponse><Status>Test</Status>
 			    <Product code="GD802-024" quantity="14"/>
@@ -434,7 +434,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 			    </InventoryUpdateResponse>');
 		}
 
-		if ($this->type == "TrackingUpdateXML" && $this->dev) {
+		if ($type == "TrackingUpdateXML" && $this->dev) {
 			return new XMLdata('<TrackingUpdateResponse>
 			<Status>Test</Status>
 			<TotalOrders>0</TotalOrders>
@@ -451,32 +451,11 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 			// <Bookmark>2006-04-28 20:35:45</Bookmark>
 			// </TrackingUpdateResponse>');
 		}
-
-		$connection = curl_init();
-		curl_setopt($connection, CURLOPT_URL,$this->url.$this->apis[$this->type]);
-		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
-		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0); 
-		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
-		curl_setopt($connection, CURLOPT_HTTPHEADER, array("Content-type","application/x-www-form-urlencoded"));
-		curl_setopt($connection, CURLOPT_POST, 1); 
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $this->request); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, 10); 
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		curl_setopt($connection, CURLOPT_REFERER, "https://".$_SERVER['SERVER_NAME']); 
 		
-		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
-		$buffer = curl_exec($connection);
-		if ($error = curl_error($connection)) 
-			new ShoppError($error,'shipwire_connection',SHOPP_COMM_ERR);
-		curl_close($connection);
-
-		// echo "<pre>".htmlentities($this->request)."</pre>";
-		// echo "<pre>".htmlentities($buffer)."</pre>";
-
-		new ShoppError($buffer,'shipwire_response',SHOPP_DEBUG_ERR);
-		$Response = new XMLdata($buffer);
-		return $Response;
+		
+		$response = parent::send($request,$this->url.$this->apis[$type]);
+		new ShoppError($response,'',SHOPP_DEBUG_ERR);
+		return new XMLdata($response);
 	}
 	
 	function ajax () {
