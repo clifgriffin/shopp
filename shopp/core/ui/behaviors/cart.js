@@ -23,7 +23,6 @@ function addtocart (form) {
 			return false;
 		}
 	}
-	console.log("here");
 
 	if ($(form).find('input.addtocart').hasClass('ajax-html')) 
 		ShoppCartAjaxRequest(form.action,$(form).serialize(),'html');
