@@ -942,7 +942,7 @@ class Product extends DatabaseObject {
 				$quality = $quality?min($quality,$img->_quality):false;
 				$fill = $bg?hexdec(ltrim($bg,'#')):false;
 
-				list($width_a,$height_a) = $img->scaled($width,$height,$scale);
+				list($width_a,$height_a) = array_values($img->scaled($width,$height,$scale));
 				if ($size == "original") {
 					$width_a = $img->width;
 					$height_a = $img->height;
