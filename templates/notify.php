@@ -34,7 +34,6 @@ p { margin-bottom: 24px; }
 .order .remove { font-size: 12px; }
 .order tr.totals th,.order tr.totals td { padding: 10px 0 0 0; }
 </style>
-
 <html>
 
 <div id="header">

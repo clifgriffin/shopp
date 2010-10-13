@@ -42,13 +42,14 @@ p { margin-bottom: 24px; }
 </div>
 <div id="body">
 	
+<?php shopp('purchase','receipt'); ?>
+
 <?php if (shopp('purchase','notpaid')): ?> 
     <?php if (shopp('checkout','offline-instructions','return=1')): ?>
     <p><?php shopp('checkout','offline-instructions'); ?></p>
     <?php endif; ?>
 <?php endif; ?>	
 
-<?php shopp('purchase','receipt'); ?>
 </div>
 
 </html>
