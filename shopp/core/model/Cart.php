@@ -780,7 +780,7 @@ class Cart {
 				$result .= '<ul><li>';
 				if ((isset($options['postcode']) && value_is_true($options['postcode'])) || $this->showpostcode) {
 					$result .= '<span>';
-					$result .= '<input name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$Shipping->postcode.'" />&nbsp;';
+					$result .= '<input type="text" name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$Shipping->postcode.'" />&nbsp;';
 					$result .= '</span>';
 				}
 				if (count($countries) > 1) {
