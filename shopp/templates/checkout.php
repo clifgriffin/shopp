@@ -29,7 +29,7 @@
 			<label for="firstname"><?php _e('Contact Information','Shopp'); ?></label>
 			<span><?php shopp('checkout','firstname','required=true&minlength=2&size=8&title='.__('First Name','Shopp')); ?><label for="firstname"><?php _e('First','Shopp'); ?></label></span>
 			<span><?php shopp('checkout','lastname','required=true&minlength=3&size=14&title='.__('Last Name','Shopp')); ?><label for="lastname"><?php _e('Last','Shopp'); ?></label></span>
-			<span><?php shopp('checkout','company','size=22	&title='.__('Company/Organization','Shopp')); ?><label for="company"><?php _e('Company/Organization','Shopp'); ?></label></span>
+			<span><?php shopp('checkout','company','size=22&title='.__('Company/Organization','Shopp')); ?><label for="company"><?php _e('Company/Organization','Shopp'); ?></label></span>
 		</li>
 		<li>
 		</li>
@@ -128,7 +128,7 @@
 			<label for="billing-card"><?php _e('Payment Information','Shopp'); ?></label>
 			<span><?php shopp('checkout','billing-card','required=true&size=30&title='.__('Credit/Debit Card Number','Shopp')); ?><label for="billing-card"><?php _e('Credit/Debit Card Number','Shopp'); ?></label></span>
 			<span><?php shopp('checkout','billing-cardexpires-mm','size=4&required=true&minlength=2&maxlength=2&title='.__('Card\'s 2-digit expiration month','Shopp')); ?> /<label for="billing-cardexpires-mm"><?php _e('MM','Shopp'); ?></label></span>
-			<span><?php shopp('checkout','billing-cardexpires-yy','size=4&required=true&minlength=2&maxlength=2&title=Card\'s 2-digit expiration year'); ?><label for="billing-cardexpires-yy">YY</label></span>
+			<span><?php shopp('checkout','billing-cardexpires-yy','size=4&required=true&minlength=2&maxlength=2&title='.__('Card\'s 2-digit expiration year','Shopp')); ?><label for="billing-cardexpires-yy"><?php _e('YY','Shopp'); ?></label></span>
 			<span><?php shopp('checkout','billing-cardtype','required=true&title='.__('Card Type','Shopp')); ?><label for="billing-cardtype"><?php _e('Card Type','Shopp'); ?></label></span>
 		</li>
 		<li class="payment">
