@@ -900,6 +900,8 @@ class Product extends DatabaseObject {
 					'class' => '',
 					'width' => false,
 					'height' => false,
+					'width_a' => false,
+					'height_a' => false,
 					'size' => false,
 					'fit' => false,
 					'sharpen' => false,
@@ -940,12 +942,13 @@ class Product extends DatabaseObject {
 				$quality = $quality?min($quality,$img->_quality):false;
 				$fill = $bg?hexdec(ltrim($bg,'#')):false;
 
+				list($width_a,$height_a) = $img->scaled($width,$height,$scale);
 				if ($size == "original") {
 					$width_a = $img->width;
 					$height_a = $img->height;
-				} else list($width_a,$height_a) = $img->scaled($width,$height,$scale);
-				if (!$width_a) $width_a = $width;
-				if (!$height_a) $height_a = $height;
+				}
+				if ($width_a === false) $width_a = $width;
+				if ($height_a === false) $height_a = $height;
 
 				$alt = esc_attr(empty($alt)?(empty($img->alt)?$img->name:$img->alt):$alt);
 				$title = empty($title)?$img->title:$title;
