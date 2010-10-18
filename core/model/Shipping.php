@@ -527,7 +527,7 @@ abstract class ShippingFramework {
 		} else if (isset($rate[$Shipping->region])) {
 			// Global region rate
 			$column = $Shipping->region;
-		} else $column = __('Worldwide','Shopp');
+		} else $column = 'Worldwide';
 
 		return $column;
 	}
