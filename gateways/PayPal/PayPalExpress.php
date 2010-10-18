@@ -124,7 +124,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$_['TAXAMT']				= number_format($this->Order->Cart->Totals->tax,$this->precision);
 
 
-		$_['EMAIL']					= $this->Customer->email;
+		$_['EMAIL']					= $this->Order->Customer->email;
 		$_['PHONENUM']				= $this->Order->Customer->phone;
 		
 		// Shipping address override
