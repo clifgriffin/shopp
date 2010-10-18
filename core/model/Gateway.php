@@ -162,7 +162,7 @@ abstract class GatewayFramework {
 	 * @param string $port (optional) Connect to a specific port
 	 * @return string Raw response
 	 **/
-	function send ($data,$url,$port=false) {
+	function send ($data,$url,$port=false, $curlopts = array()) {
 		$connection = curl_init();
 		curl_setopt($connection,CURLOPT_URL,"$url".($port?":$port":""));
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
@@ -177,6 +177,10 @@ abstract class GatewayFramework {
 		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_FAILONERROR, 1);
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+		foreach ($curlopts as $key => $value) {
+			curl_setopt($connection, $key, $value);
+		}
+		
 		$buffer = curl_exec($connection);   
 		if ($error = curl_error($connection)) 
 			new ShoppError($this->name.": ".$error,'gateway_comm_err',SHOPP_COMM_ERR);
