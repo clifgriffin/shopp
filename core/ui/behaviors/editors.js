@@ -681,17 +681,18 @@ function addDetail (data) {
 		if (data && data.value) optionsmenu.val(htmlentities(data.value));	
 	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);	
 
-	
 	if (!data || data.add) {
 		menu.add = $('<input type="hidden" name="details['+menu.index+'][new]" value="true" />').appendTo(menu.element);
 		menus.dequeue().animate({ scrollTop: menus.attr('scrollHeight')-menus.height() }, 200);
 		menu.label.click().focus().select();
-		menu.item.contents.keydown(function(e) { 
-			var key = e.keyCode || e.which; 
-			if (key != 9) return;
-			e.preventDefault(); 
-			$('#addDetail').focus();
-		});
+		if (menu.item) {
+			menu.item.contents.keydown(function(e) { 
+				var key = e.keyCode || e.which; 
+				if (key != 9) return;
+				e.preventDefault(); 
+				$('#addDetail').focus();
+			});
+		}
 
 	}
 }
