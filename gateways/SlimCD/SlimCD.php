@@ -71,7 +71,7 @@ class SlimCD extends GatewayFramework implements GatewayModule {
 			$_[] = '<transtype>SALE</transtype>';
 			$_[] = '<client_transref>'.$Shopp->Shopping->session.'</client_transref>';
 			$_[] = '<amount>'.number_format($Order->Cart->Totals->total,2).'</amount>';
-			if ($this->nopaycard()) {
+			if ($this->nopaycard() && empty($Billing->card)) {
 				$_[] = '<recurring>yes</recurring>';
 				$_[] = '<gateid>'.$Customer->info->named['gateid']->value.'</gateid>';
 			} else {
