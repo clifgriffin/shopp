@@ -379,12 +379,12 @@ class Storefront extends FlowController {
 	function metadata () {
 		$keywords = false;
 		$description = false;
-		if (!empty($this->Product)) {
+		if (!empty($this->Product->id)) {
 			if (empty($this->Product->tags)) $this->Product->load_data(array('tags'));
 			foreach($this->Product->tags as $tag)
 				$keywords .= (!empty($keywords))?", {$tag->name}":$tag->name;
 			$description = $this->Product->summary;
-		} elseif (!empty($this->Category)) {
+		} elseif (!empty($this->Category->id)) {
 			$description = $this->Category->description;
 		}
 		$keywords = esc_attr(apply_filters('shopp_meta_keywords',$keywords));
