@@ -159,6 +159,7 @@ class Purchase extends DatabaseObject {
 				break;
 			case "url": return shoppurl(false,'account'); break;
 			case "id": return $this->id; break;
+			case "customer": return $this->customer; break;
 			case "date": 
 				if (empty($options['format'])) $options['format'] = get_option('date_format').' '.get_option('time_format');
 				return _d($options['format'],((is_int($this->created))?$this->created:mktimestamp($this->created)));
