@@ -9,7 +9,7 @@
  * ./wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.1.2
+ * @version 1.1.3
  * @copyright Ingenesis Limited, 22 January, 2009
  * @package shopp
  * @since 1.1
