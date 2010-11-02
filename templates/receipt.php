@@ -25,7 +25,7 @@
 		<?php shopp('purchase','shipcity'); ?>, <?php shopp('purchase','shipstate'); ?> <?php shopp('purchase','shippostcode'); ?><br />
 		<?php shopp('purchase','shipcountry'); ?></address>
 		
-		<p>Shipping: <?php shopp('purchase','shipmethod'); ?></p>
+		<p><?php _e('Shipping:','Shopp'); ?> <?php shopp('purchase','shipmethod'); ?></p>
 </fieldset></td>
 <?php endif; ?>
 </tr></table>
