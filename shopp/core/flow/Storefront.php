@@ -556,7 +556,7 @@ class Storefront extends FlowController {
 		
 		$options = array();
 		
-		add_filter('redirect_canonical','canonical_home');
+		add_filter('redirect_canonical', array(&$this,'canonical_home'));
 
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&
