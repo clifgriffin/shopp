@@ -113,6 +113,9 @@ class Order {
 		remove_action('shopp_order_notifications',array(&$this,'notify'));
 		remove_action('shopp_order_success',array(&$this,'success'));
 		remove_action('shopp_process_order', array(&$this,'validate'),7);
+		
+		remove_class_actions(array('shopp_create_purchase','shopp_order_notifications','shopp_order_success','shopp_process_order'),'GatewayFramework');
+		
 	}
 	
 	function __destruct() {
