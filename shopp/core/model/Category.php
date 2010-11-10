@@ -1701,9 +1701,9 @@ class SearchResults extends SmartCategory {
 
 		$index = DatabaseObject::tablename(ContentIndex::$table);
 		$this->loading = array(
-			'joins'=>"LEFT JOIN $index AS search ON search.product=p.id",
-			'columns'=> "SUM(MATCH(search.terms) AGAINST ('$search')) AS score",
-			'where'=>"p.id IN (SELECT product FROM $index WHERE MATCH(terms) AGAINST ('$boolean' IN BOOLEAN MODE))",
+			'joins'=>"INNER JOIN $index AS search ON search.product=p.id",
+			'columns'=> "SUM(MATCH(terms) AGAINST ('$search')) AS score",
+			'where'=>"MATCH(terms) AGAINST ('$boolean' IN BOOLEAN MODE)",
 			'orderby'=>'score DESC');
 		if (!empty($pricematch)) $this->loading['having'] = $pricematch;
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
