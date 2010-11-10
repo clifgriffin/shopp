@@ -193,7 +193,10 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$response = $this->send($message);
 		
 		if ($response->ack == "Failure") {
-			
+			$message = join("; ",(array) $response->longmessage);
+			if (empty($message)) $message = __('The transaction failed for an unknown reason. PayPal did not provide any indication of why it failed.','Shopp');
+			new ShoppError($message,'paypal_express_transacton_error',SHOPP_TRXN_ERR,array('codes'=>join('; ',$response->errorcode)));
+			shopp_redirect(shoppurl(false,'checkout'));
 		}
 
 		if (!empty($response) && isset($response->token))
