@@ -66,6 +66,8 @@ class Storefront extends FlowController {
 		add_action('wp', array(&$this, 'catalog'));
 		add_action('wp', array(&$this, 'shortcodes'));
 		add_action('wp', array(&$this, 'behaviors'));
+
+		add_filter('the_title', array(&$this,'pagetitle'), 10, 2);
 		
 		// Shopp product text filters
 		add_filter('shopp_product_name','convert_chars');
@@ -79,6 +81,7 @@ class Storefront extends FlowController {
 		add_filter('shopp_product_spec', 'wptexturize');
 		add_filter('shopp_product_spec', 'convert_chars');
 		add_filter('shopp_product_spec', 'do_shortcode', 11); // AFTER wpautop()
+
 
 		add_filter('shopp_order_lookup','shoppdiv');
 		add_filter('shopp_order_confirmation','shoppdiv');
@@ -198,6 +201,10 @@ class Storefront extends FlowController {
 
 		// Include stylesheets and javascript based on whether shopp shortcodes are used
 		add_action('wp_print_styles',array(&$this, 'catalogcss'));
+
+		// Replace the WordPress canonical link
+		remove_action('wp_head','rel_canonical');
+
 		add_action('wp_head', array(&$this, 'header'));
 		add_action('wp_footer', array(&$this, 'footer'));
 		wp_enqueue_style('shopp.catalog',SHOPP_ADMIN_URI.'/styles/catalog.css',array(),SHOPP_VERSION,'screen');
@@ -310,11 +317,12 @@ class Storefront extends FlowController {
 	function pagetitle ($title,$post_id=false) {
 		if (!$post_id) return $title;
 		global $wp;
-
+		
 		$pages = $this->Settings->get('pages');
 
 		if (isset($wp->query_vars['shopp_proc']) && 
 			$post_id == $pages['checkout']['id']) {
+			
 			switch(strtolower($wp->query_vars['shopp_proc'])) {
 				case "thanks": $title = apply_filters('shopp_thanks_pagetitle',__('Thank You!','Shopp')); break;
 				case "confirm-order": $title = apply_filters('shopp_confirmorder_pagetitle',__('Confirm Order','Shopp')); break;
@@ -407,6 +415,16 @@ class Storefront extends FlowController {
 	 **/
 	function canonurls ($url) {
 		global $Shopp;
+		
+		// Catalog landing as site landing, use site home URL
+		if (is_front_page() && isset($Shopp->Catalog) && $Shopp->Catalog->tag('is-landing','return=1')) 
+			return user_trailingslashit(get_bloginfo('home'));
+			
+		// Catalog landing page URL
+		if (is_shopp_page('catalog') && $Shopp->Catalog->tag('is-landing','return=1')) 
+			return $Shopp->Catalog->tag('url','echo=0');
+			
+		// Specific product/category URLs
 		if (!empty($Shopp->Product->slug)) return $Shopp->Product->tag('url','echo=0');
 		if (!empty($Shopp->Category->slug)) return $Shopp->Category->tag('url','echo=0');
 		return $url;
@@ -447,7 +465,6 @@ class Storefront extends FlowController {
 	 **/
 	function header () {
 		global $wp;
-
 		$canonurl = $this->canonurls(false);
 		if (is_shopp_page('catalog') && !empty($canonurl)): ?><link rel='canonical' href='<?php echo $canonurl ?>' /><?php
 		endif;
