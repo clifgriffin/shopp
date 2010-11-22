@@ -1503,7 +1503,7 @@ class Category extends DatabaseObject {
 				if ($size != "original") {
 					$src = add_query_string(
 						$img->resizing($width,$height,$scale,$sharpen,$quality,$fill),
-						shoppurl($img->id,'images')
+						shoppurl($img->id,'images').'/'.$img->filename
 					);
 				}
 
@@ -1521,7 +1521,7 @@ class Category extends DatabaseObject {
 				$imgtag = '<img src="'.$src.'"'.$titleattr.' alt="'.$alt.'" width="'.$width_a.'" height="'.$height_a.'" '.$classes.' />';
 
 				if (value_is_true($zoom))
-					return '<a href="'.shoppurl($img->id,'images').'/image.jpg'.'" class="'.$zoomfx.'" rel="product-'.$this->id.'">'.$imgtag.'</a>';
+					return '<a href="'.shoppurl($img->id,'images').'/'.$img->filename.'" class="'.$zoomfx.'" rel="product-'.$this->id.'">'.$imgtag.'</a>';
 
 				return $imgtag;
 				break;
