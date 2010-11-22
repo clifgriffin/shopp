@@ -394,13 +394,14 @@ class Shopp {
 	 **/
 	function resession ($session=false) {
 		// Generate new ID while session is started
+		session_write_close();
+		
 		if ($session) {
-			session_write_close();
 			$this->Shopping->session = session_id($session);
 			$this->Shopping = new Shopping();
-			session_start();
 			return true;
 		} else session_regenerate_id();
+		session_start();
 
 		// Ensure we have the newest session ID
 		$this->Shopping->session = session_id();
