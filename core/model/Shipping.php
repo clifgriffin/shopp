@@ -130,7 +130,9 @@ class Shipping extends DatabaseObject {
 		if (empty($this->country))
 			$this->country = $base['country'];
 
-		$this->region = $regions[$countries[$this->country]['region']];
+		$this->region = false;
+		if (isset($regions[$countries[$this->country]['region']]))
+			$this->region = $regions[$countries[$this->country]['region']];
 
 	}
 	
@@ -515,9 +517,9 @@ abstract class ShippingFramework {
 	 * @return string The column index name
 	 **/
 	function ratecolumn ($rate) {
-		global $Shopp;
+		$Order = &ShoppOrder();
 		
-		$Shipping = $Shopp->Order->Shipping;
+		$Shipping = &$Order->Shipping;
 
 		if ($Shipping->country == $this->base['country']) {
 			// Use country/domestic region

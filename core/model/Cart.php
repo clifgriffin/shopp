@@ -1432,9 +1432,10 @@ class CartShipping {
 		global $Shopp;
 		$Settings =& ShoppSettings();
 		
-		$this->Shipping = &$Shopp->Order->Shipping;
-		$this->modules = &$Shopp->Shipping->active;
 		$this->Cart = &$Shopp->Order->Cart;
+		$this->modules = &$Shopp->Shipping->active;
+		$this->Shipping = &$Shopp->Order->Shipping;
+		$this->Shipping->destination();
 		
 		$this->showpostcode = $Shopp->Shipping->postcodes;
 		
