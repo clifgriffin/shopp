@@ -13,6 +13,9 @@
  * @subpackage SlimCD
  * 
  **/
+
+require_once(SHOPP_MODEL_PATH."/XML.php");
+
 class SlimCD extends GatewayFramework implements GatewayModule {
 	
 	// Settings
@@ -143,13 +146,16 @@ class SlimCD extends GatewayFramework implements GatewayModule {
 	 * @return void Description...
 	 **/
 	function error ($Response) {
-		$auth = $Response->tag('authcode');
+		$auth = $Response->content('authcode');
 		
 		switch (strtoupper((string)$auth)) {
 			case "N": $error = new ShoppError(__('The transaction was declined.','Shopp'),'slimcd_auth_error',SHOPP_TRXN_ERR); break;
 			case "D": $error = new ShoppError(__('The transaction was not allowed due to fraud scrubbing.','Shopp'),'slimcd_auth_error',SHOPP_TRXN_ERR); break;
 			default: $error = new ShoppError(__('An error occurred while processing the transaction.','Shopp'),'slimcd_auth_error',SHOPP_TRXN_ERR,array('details' => $Response->content('description'))); break;
 		}
+		
+		new ShoppError('SlimCD reported an error with the transaction or request: '.$Response->content('description'),'slimcd_debug_error',SHOPP_DEBUG_ERR);
+		
 		return $error;
 	}
 		
