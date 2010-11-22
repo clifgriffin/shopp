@@ -64,10 +64,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	function analytics() {  do_action('shopp_google_checkout_analytics'); }
 	
 	function actions () {
-		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
 		add_action('shopp_init_checkout',array(&$this,'init'));
 
 		add_action('shopp_save_payment_settings',array(&$this,'apiurl'));
+		add_action('shopp_process_order',array(&$this, 'process'));
 		
 	}
 	
@@ -91,12 +91,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		return '<input type="image" name="process" src="'.$buttonuri.'" id="checkout-button" '.inputattrs($options,$attrs).' />';
 	}
 	
-	
-	function checkout () {
+	function process () {
 		global $Shopp;
-
-		if ($this->Order->Cart->orderisfree()) shopp_redirect(shoppurl(false,'checkout'),false);
-
+		
 		$stock = true;
 		foreach( $this->Order->Cart->contents as $item ) { //check stock before redirecting to Google
 			if (!$item->instock()){
@@ -112,7 +109,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		if (!empty($Response)) {
 			if ($Response->tag('error')) {
 				new ShoppError($Response->content('error-message'),'google_checkout_error',SHOPP_TXN_ERR);
-				return $this->error();
+				shopp_redirect(shoppurl(false,'checkout'));
 			}
 			$redirect = false;
 			$redirect = $Response->content('redirect-url');
@@ -123,7 +120,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			}
 		}
 			
-		return false;	
+		return false;
 	}
 	
 	function notifications () {
@@ -272,7 +269,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 					if (is_array($this->Order->data) && count($this->Order->data) > 0) {
 						$_[] = '<shopp-order-data-list>';
 						foreach ($this->Order->data AS $name => $data) {
-							$_[] = '<shopp-order-data name="'.esc_attr($name).'">'.esc_attr($data).'</shopp-item-data>';
+							$_[] = '<shopp-order-data name="'.esc_attr($name).'">'.esc_attr($data).'</shopp-order-data>';
 						}
 						$_[] = '</shopp-order-data-list>';
 					}
@@ -386,8 +383,10 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$sessionid = $XML->content('shopping-session:first');
 		$order_summary = $XML->tag('order-summary');
 		
+		$Shopp->Order->unhook();
 		$Shopp->resession($sessionid);
 		$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
+		$Shopp->Order->listeners();
 		
 		$Shopping = &$Shopp->Shopping;
 		$Order = &$Shopp->Order;
@@ -398,11 +397,11 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$this->error();
 		} else new ShoppError("Google Checkout successfully loaded session: $sessionid",'google_session_load_success',SHOPP_DEBUG_ERR);
 
-		// Check if this is a Shopp order or not
-		$origin = $order_summary->content('shopping-cart-agent');
-		if (empty($origin) || 
-			substr($origin,0,strpos("/",SHOPP_GATEWAY_USERAGENT)) == SHOPP_GATEWAY_USERAGENT) 
-				return true;
+		// // Check if this is a Shopp order or not
+		// $origin = $order_summary->content('shopping-cart-agent');
+		// if (empty($origin) || 
+		// 	substr($origin,0,strpos("/",SHOPP_GATEWAY_USERAGENT)) == SHOPP_GATEWAY_USERAGENT) 
+		// 		return true;
 		
 		$buyer = $XML->tag('buyer-billing-address'); // buyer billing address not in order summary
 		$name = $buyer->tag('structured-name');
