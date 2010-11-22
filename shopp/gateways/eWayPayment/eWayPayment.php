@@ -62,7 +62,7 @@ class eWayPayment extends GatewayFramework implements GatewayModule {
 		
 		$InvoiceDescription = array();
 		foreach($Order->Cart->contents as $Item)
-			$InvoiceDescription[] = $Item->quantity.' x '.$Item->name.' '.((sizeof($Item->options) > 1)?' ('.$Item->optionlabel.')':'');
+			$InvoiceDescription[] = $Item->quantity.' x '.$Item->name.' '.((sizeof($Item->options) > 1)?' ('.$Item->option->label.')':'');
 		
 		$_ = array();
 		$_[] = '<ewaygateway>';
