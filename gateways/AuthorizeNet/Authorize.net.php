@@ -108,7 +108,7 @@ class AuthorizeNet extends GatewayFramework implements GatewayModule {
 		// Line Items
 		$i = 1;
 		foreach($Order->Cart->contents as $Item) {
-			$_['x_line_item'][] = ($i++)."<|>".substr($Item->name,0,31)."<|>".((sizeof($Item->options) > 1)?" (".substr($Item->optionlabel,0,253).")":"")."<|>".(int)$Item->quantity."<|>".number_format($Item->unitprice,$this->precision,'.','')."<|>".(($Item->tax)?"Y":"N");
+			$_['x_line_item'][] = ($i++)."<|>".substr($Item->name,0,31)."<|>".((sizeof($Item->options) > 1)?" (".substr($Item->option->label,0,253).")":"")."<|>".(int)$Item->quantity."<|>".number_format($Item->unitprice,$this->precision,'.','')."<|>".(($Item->tax)?"Y":"N");
 		}
 		
 		return $this->encode($_);

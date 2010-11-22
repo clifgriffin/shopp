@@ -115,7 +115,7 @@ class FirstData extends GatewayFramework implements GatewayModule {
 			$_[] = '<items>';
 			foreach($Order->Cart->contents as $Item) {
 				$_[] = '<item>';
-					$_[] = '<description>'.htmlentities($Item->name.' '.((sizeof($Item->options) > 1)?' ('.$Item->optionlabel.')':'')).'</description>';
+					$_[] = '<description>'.htmlentities($Item->name.' '.((sizeof($Item->options) > 1)?' ('.$Item->option->label.')':'')).'</description>';
 					$_[] = '<id>'.$Item->product.'</id>';
 					$_[] = '<price>'.number_format($Item->unitprice,$this->precision,'.','').'</price>';
 					$_[] = '<quantity>'.$Item->quantity.'</quantity>';

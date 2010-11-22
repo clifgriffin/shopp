@@ -214,7 +214,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				foreach($Cart->contents as $i => $Item) {
 					// if(SHOPP_DEBUG) new ShoppError("Item $i: "._object_r($Item),'google_checkout_item_'.$i,SHOPP_DEBUG_ERR);
 					$_[] = '<item>';
-					$_[] = '<item-name>'.htmlspecialchars($Item->name).htmlspecialchars((!empty($Item->optionlabel))?' ('.$Item->optionlabel.')':'').'</item-name>';
+					$_[] = '<item-name>'.htmlspecialchars($Item->name).htmlspecialchars((!empty($Item->option->label))?' ('.$Item->option->label.')':'').'</item-name>';
 					$_[] = '<item-description>'.htmlspecialchars($Item->description).'</item-description>';
 					if ($Item->type == 'Download') $_[] = '<digital-content><description>'.
 						apply_filters('shopp_googlecheckout_download_instructions', __('You will receive an email with download instructions upon receipt of payment.','Shopp')).

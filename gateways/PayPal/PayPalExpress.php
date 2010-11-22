@@ -145,7 +145,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		// Line Items
 		foreach($this->Order->Cart->contents as $i => $Item) {
 			$_['L_NUMBER'.$i]		= $i;
-			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
+			$_['L_NAME'.$i]			= $Item->name.((!empty($Item->option->label))?' '.$Item->option->label:'');
 			$_['L_AMT'.$i]			= number_format($Item->unitprice,$this->precision);
 			$_['L_QTY'.$i]			= $Item->quantity;
 			$_['L_TAXAMT'.$i]		= number_format($Item->taxes,$this->precision);
