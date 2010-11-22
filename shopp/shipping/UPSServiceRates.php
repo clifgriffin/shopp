@@ -9,7 +9,7 @@
  * ./wp-content/plugins/shopp/shipping/
  *
  * @author Jonathan Davis
- * @version 1.1.2
+ * @version 1.1.3
  * @copyright Ingenesis Limited, 3 January, 2009
  * @package shopp
  * @since 1.1
@@ -277,14 +277,16 @@ class UPSServiceRates extends ShippingFramework implements ShippingModule {
 					$_[] = '<PackagingType>';
 						$_[] = '<Code>02</Code>';
 					$_[] = '</PackagingType>';
-					$_[] = '<Dimensions>';
-						$_[] = '<UnitOfMeasurement>';
-							$_[] = '<Code>'.$this->du.'</Code>';
-						$_[] = '</UnitOfMeasurement>';
-						$_[] = '<Length>'.convert_unit($Item->length,$this->dcu).'</Length>';
-						$_[] = '<Width>'.convert_unit($Item->width,$this->dcu).'</Width>';
-						$_[] = '<Height>'.convert_unit($Item->height*$Item->quantity,$this->dcu).'</Height>';
-					$_[] = '</Dimensions>';					
+					if ( $Item->length && $Item->width && $Item->height ) {  // Provide dimensions when available
+						$_[] = '<Dimensions>';
+							$_[] = '<UnitOfMeasurement>';
+								$_[] = '<Code>'.$this->du.'</Code>';
+							$_[] = '</UnitOfMeasurement>';
+							$_[] = '<Length>'.convert_unit($Item->length,$this->dcu).'</Length>';
+							$_[] = '<Width>'.convert_unit($Item->width,$this->dcu).'</Width>';
+							$_[] = '<Height>'.convert_unit($Item->height*$Item->quantity,$this->dcu).'</Height>';
+						$_[] = '</Dimensions>';
+					}
 					$_[] = '<PackageWeight>';
 						$_[] = '<UnitOfMeasurement>';
 							$_[] = '<Code>'.$this->wu.'</Code>';
