@@ -69,7 +69,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 		
 		add_action('init', array(&$this, 'ajax'),9);
 		add_action('shipping_service_settings',array(&$this,'settings'));
-		add_action('shopp_order_success',array(&$this,'order'));
+		add_action('shopp_order_success',array(&$this,'order'),5);
 
 		if (isset($this->settings['services'])) {
 			if (in_array('InventoryUpdateXML',$this->settings['services']))
@@ -366,7 +366,6 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 				}
 			$_[] = '</Order>';
 		$_[] = '</OrderList>';
-		// new ShoppError(_object_r($_),'shipwire_order',SHOPP_DEBUG_ERR);
 		
 		$request = $type.'='.urlencode(join("\n",apply_filters('shopp_shipwire_order_list',$_)));
 		$Response = $this->send($request,$type);
@@ -376,85 +375,7 @@ class ShipWire extends ShippingFramework implements ShippingModule {
 	}
 	
 	function send ($request,$type) {   
-		global $Shopp;
-
-		if ($type == "RateRequestXML" && $this->dev) {
-			return new XMLdata('<?xml version="1.0" encoding="UTF-8"?>
-			<!DOCTYPE RateResponse SYSTEM "http://www.shipwire.com/exec/download/RateResponse.dtd">
-			<RateResponse>
-			<Status>OK</Status>
-
-			<Order sequence="1">
-
-			<Quotes>
-
-			<Quote method="GD">
-			<Warehouse>Reno (Pick/Pack Saver)</Warehouse>
-			<Service>UPS Ground</Service>
-			<Cost currency="USD">7.73</Cost>
-
-			<DeliveryEstimate>
-			<Minimum units="days">1</Minimum>
-			<Maximum units="days">5</Maximum>
-			</DeliveryEstimate>
-			</Quote>
-
-			<Quote method="2D">
-			<Warehouse>Reno (Pick/Pack Saver)</Warehouse>
-			<Service>UPS Second Day Air</Service>
-			<Cost currency="USD">13.64</Cost>
-
-			<DeliveryEstimate>
-			<Minimum units="days">2</Minimum>
-			<Maximum units="days">2</Maximum>
-			</DeliveryEstimate>
-			</Quote>
-
-			<Quote method="1D">
-			<Warehouse>Reno (Pick/Pack Saver)</Warehouse>
-			<Service>USPS Express Mail</Service>
-			<Cost currency="USD">25.25</Cost>
-
-			<DeliveryEstimate>
-			<Minimum units="days">1</Minimum>
-			<Maximum units="days">1</Maximum>
-			</DeliveryEstimate>
-			</Quote>
-			</Quotes>
-			</Order>
-			</RateResponse>');
-		}
-
-		if ($type == "InventoryUpdateXML" && $this->dev) {
-			sleep(1);
-			return new XMLdata('<InventoryUpdateResponse><Status>Test</Status>
-			    <Product code="GD802-024" quantity="14"/>
-			    <Product code="GD201-500" quantity="32"/>
-			    <TotalProducts>2</TotalProducts>
-			    </InventoryUpdateResponse>');
-		}
-
-		if ($type == "TrackingUpdateXML" && $this->dev) {
-			return new XMLdata('<TrackingUpdateResponse>
-			<Status>Test</Status>
-			<TotalOrders>0</TotalOrders>
-			<TotalShippedOrders>0</TotalShippedOrders>
-			<Bookmark>2006-04-28 20:35:45</Bookmark>
-			</TrackingUpdateResponse>');
-			// return new XMLdata('<TrackingUpdateResponse>
-			// <Status>Test</Status>
-			// <Order id="2986" shipped="YES" trackingNumber="1ZW682E90326614239" shipper="UPS GD" handling="1.00" shipping="13.66" total="14.66"/>
-			// <Order id="2987" shipped="YES" trackingNumber="1ZW682E90326795080" shipper="UPS GD" handling="1.50" shipping="9.37" total="10.87"/>
-			// <Order id="2988" shipped="NO" trackingNumber="" shipper="UPS GD" handling="" shipping="" total=""/>
-			// <TotalOrders>3</TotalOrders>
-			// <TotalShippedOrders>2</TotalShippedOrders>
-			// <Bookmark>2006-04-28 20:35:45</Bookmark>
-			// </TrackingUpdateResponse>');
-		}
-		
-		
 		$response = parent::send($request,$this->url.$this->apis[$type]);
-		new ShoppError($response,'',SHOPP_DEBUG_ERR);
 		return new XMLdata($response);
 	}
 	
