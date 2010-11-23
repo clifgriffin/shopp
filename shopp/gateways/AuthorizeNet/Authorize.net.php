@@ -4,7 +4,7 @@
  * @class AuthorizeNet
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.1.1
  * @copyright Ingenesis Limited, 30 March, 2008
  * @package Shopp
  * @since 1.1
@@ -18,7 +18,7 @@ class AuthorizeNet extends GatewayFramework implements GatewayModule {
 	var $cards = array("visa", "mc", "amex", "disc", "jcb", "dc");
 
 	var $liveurl = 'https://secure.authorize.net/gateway/transact.dll';
-	var $testurl = 'https://test.authorize.net/gateway/transact.dll';
+	var $testurl = 'https://secure.authorize.net/gateway/transact.dll';
 
 	function AuthorizeNet () {
 		parent::__construct();
