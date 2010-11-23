@@ -56,7 +56,7 @@
 		$delurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>'shopp-products',
 					'delete[]'=>$Product->id,
-					'deleteing'=>'product')),
+					'deleting'=>'product')),
 					admin_url('admin.php'))));
 
 		$dupurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
