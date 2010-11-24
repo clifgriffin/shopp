@@ -753,7 +753,6 @@ function shopp () {
 		case "cart": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
 		case "cartitem": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
 		case "shipping": if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
-		case "checkout": if (isset($Shopp->Order)) $Object =& $Shopp->Order; break;
 		case "category": if (isset($Shopp->Category)) $Object =& $Shopp->Category; break;
 		case "subcategory": if (isset($Shopp->Category->child)) $Object =& $Shopp->Category->child; break;
 		case "catalog": if (isset($Shopp->Catalog)) $Object =& $Shopp->Catalog; break;
@@ -762,7 +761,7 @@ function shopp () {
 		case "purchase": if (isset($Shopp->Purchase)) $Object =& $Shopp->Purchase; break;
 		case "customer": if (isset($Shopp->Order->Customer)) $Object =& $Shopp->Order->Customer; break;
 		case "error": if (isset($Shopp->Errors)) $Object =& $Shopp->Errors; break;
-		default: $Object = apply_filters('shopp_tag_domain',$Object);
+		default: $Object = apply_filters('shopp_tag_domain',$Object,$object);
 	}
 
 	if (!$Object) new ShoppError("The shopp('$object') tag cannot be used in this context because the object responsible for handling it doesn't exist.",'shopp_tag_error',SHOPP_ADMIN_ERR);
