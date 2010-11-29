@@ -1454,61 +1454,66 @@ class Product extends DatabaseObject {
 			case "amount":
 			case "quantity":
 				if ($this->outofstock) return false;
-				if (!isset($options['value'])) $options['value'] = 1;
-				if (!isset($options['input'])) $options['input'] = "text";
-				if (!isset($options['labelpos'])) $options['labelpos'] = "before";
-				if (!isset($options['label'])) $label ="";
-				else $label = '<label for="quantity'.$this->id.'">'.$options['label'].'</label>';
 				
-				$result = "";
-				if ($options['labelpos'] == "before") $result .= "$label ";
+				$inputs = array('text','menu');
+				$defaults = array(
+					'value' => 1,
+					'input' => 'text', // accepts text,menu
+					'labelpos' => 'before',
+					'label' => '',
+					'options' => '1-15,20,25,30,40,50,75,100',
+					'size' => 3
+				);
+				$options = array_merge($defaults,$options);
+				$_options = $options;
+				extract($options);
+				
+				$labeling = '<label for="quantity'.$this->id.'">'.$label.'</label>';
 				
 				if (!isset($this->_prices_loop)) reset($this->prices);
 				$variation = current($this->prices);
-
-				if (isset($options['input']) && $options['input'] == "menu") {
-					if (!isset($options['options'])) 
-						$values = "1-15,20,25,30,40,50,75,100";
-					else $values = $options['options'];
+				$_ = array();
+				
+				if ("before" == $labelpos) $_[] = $labeling;
+				if ("menu" == $input) {
 					if ($this->inventory && $this->max['stock'] == 0) return "";	
 				
-					if (strpos($values,",") !== false) $values = explode(",",$values);
-					else $values = array($values);
+					if (strpos($options,",") !== false) $options = explode(",",$options);
+					else $options = array($options);
+
 					$qtys = array();
-					foreach ($values as $value) {
-						if (strpos($value,"-") !== false) {
-							$value = explode("-",$value);
-							if ($value[0] >= $value[1]) $qtys[] = $value[0];
-							else for ($i = $value[0]; $i < $value[1]+1; $i++) $qtys[] = $i;
-						} else $qtys[] = $value;
+					foreach ((array)$options as $v) {
+						if (strpos($v,"-") !== false) {
+							$v = explode("-",$v);
+							if ($v[0] >= $v[1]) $qtys[] = $v[0];
+							else for ($i = $v[0]; $i < $v[1]+1; $i++) $qtys[] = $i;
+						} else $qtys[] = $v;
 					}
-					$result .= '<select name="products['.$this->id.'][quantity]" id="quantity-'.$this->id.'">';
+					$_[] = '<select name="products['.$this->id.'][quantity]" id="quantity-'.$this->id.'">';
 					foreach ($qtys as $qty) {
 						$amount = $qty;
-						$selected = (isset($this->quantity))?$this->quantity:1;
+						$selection = (isset($this->quantity))?$this->quantity:1;
 						if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
 							if ($variation->donation['min'] == "on" && $amount < $variation->price) continue;
 							$amount = money($amount);
-							$selected = $variation->price;
+							$selection = $variation->price;
 						} else {
 							if ($this->inventory && $amount > $this->max['stock']) continue;	
 						}
-						$result .= '<option'.(($qty == $selected)?' selected="selected"':'').' value="'.$qty.'">'.$amount.'</option>';
+						$selected = ($qty==$selection)?' selected="selected"':'';
+						$_[] = '<option'.$selected.' value="'.$qty.'">'.$amount.'</option>';
 					}
-					$result .= '</select>';
-					if ($options['labelpos'] == "after") $result .= " $label";
-					return $result;
-				}
-				if (valid_input($options['input'])) {
-					if (!isset($options['size'])) $options['size'] = 3;
+					$_[] = '</select>';
+				} elseif (valid_input($input)) {
 					if ($variation->type == "Donation" && $variation->donation['var'] == "on") {
-						if ($variation->donation['min']) $options['value'] = $variation->price;
-						$options['class'] .= " currency";
+						if ($variation->donation['min']) $_options['value'] = $variation->price;
+						$_options['class'] .= " currency";
 					}
-					$result = '<input type="'.$options['input'].'" name="products['.$this->id.'][quantity]" id="quantity-'.$this->id.'"'.inputattrs($options).' />';
+					$_[] = '<input type="'.$input.'" name="products['.$this->id.'][quantity]" id="quantity-'.$this->id.'"'.inputattrs($_options).' />';
 				}
-				if ($options['labelpos'] == "after") $result .= " $label";
-				return $result;
+				
+				if ("after" == $labelpos) $_[] = $labeling;
+				return join("\n",$_);
 				break;
 			case "input":
 				if (!isset($options['type']) || 
