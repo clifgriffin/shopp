@@ -110,12 +110,12 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function pageid () {
-		global $Shopp,$wp_query;
-		if (empty($wp_query->post)) return false;
-
+		global $wp;
+		if (empty($wp->query_vars)) return false;
+		
 		// Identify the current page
 		foreach ($this->pages as &$page) {
-			if ($page['id'] == $wp_query->post->ID) {
+			if ($page['uri'] == $wp->query_vars['pagename']) {
 				$this->Page = $page; break;
 			}
 		}
@@ -132,6 +132,7 @@ class Storefront extends FlowController {
 	function security () {
 		global $Shopp;
 		if (is_shopp_secure() || !$Shopp->Gateways->secure) return;
+		
 		switch ($this->Page['name']) {
 			case "checkout": shopp_redirect(shoppurl($_GET,get_query_var('shopp_proc'),true)); break;
 			case "account":	 shopp_redirect(shoppurl($_GET,'account',true)); break;
