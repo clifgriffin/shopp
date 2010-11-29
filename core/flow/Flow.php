@@ -62,7 +62,8 @@ class Flow {
 		if (isset($wp->query_vars['src']) || 
 			(defined('WP_ADMIN') && isset($_GET['src']))) $this->resources();
 		
-		if (defined('WP_ADMIN') && isset($_GET['page'])) {
+		if (defined('WP_ADMIN')) {
+			if (!isset($_GET['page'])) return;
 			$controller = $this->Admin->controller(strtolower($_GET['page']));
 			if (!empty($controller)) $this->handler($controller);
 		} else $this->handler("Storefront");
