@@ -1170,8 +1170,6 @@ class CartDiscounts {
 
 		return $discount;
 	}
-	
-	
 
 	/**
 	 * Determines which promotions to apply to the order
@@ -1186,21 +1184,25 @@ class CartDiscounts {
 	 **/
 	function applypromos () {
 
+		usort($this->promos,array(&$this,'_active_discounts'));
+		
 		// Iterate over each promo to determine whether it applies
 		foreach ($this->promos as &$promo) {
 			$applypromo = false;
 			if (!is_array($promo->rules))
 				$promo->rules = unserialize($promo->rules);
-			
-			// If promotion limit has been reached, cancel the loop
-			if ($this->limit > 0 && count($this->Cart->discounts)+1 > $this->limit) {
+		
+			// If promotion limit has been reached and the promo has 
+			// not already applied as a cart discount, cancel the loop
+			if ($this->limit > 0 && count($this->Cart->discounts)+1 > $this->limit
+				&& !isset($this->Cart->discounts[$promo->id])) {
 				if (!empty($this->Cart->promocode)) {
 					new ShoppError(__("No additional codes can be applied.","Shopp"),'cart_promocode_limit',SHOPP_ALL_ERR);
 					$this->Cart->promocode = false;
 				}
 				break;
 			}
-			
+
 			// Match the promo rules against the cart properties
 			$matches = 0;
 			$total = 0;
@@ -1239,7 +1241,7 @@ class CartDiscounts {
 
 			if ($promo->search == "all" && $matches == $total)
 				$applypromo = true;
-				
+
 			if (!$applypromo) {
 				$promo->applied = 0; 		// Reset promo applied discount
 				if (!empty($promo->items))	// Reset any items applied to
@@ -1384,6 +1386,22 @@ class CartDiscounts {
 
 		$subject = strtolower($this->Cart->promocode);		
 		return Promotion::match_rule($subject,$logic,$promocode,$property);
+	}
+	
+	/**
+	 * Helper method to sort active discounts before other promos
+	 *
+	 * Sorts active discounts to the top of the available promo list 
+	 * to enable efficient promo limit enforcement
+	 * 
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void
+	 **/
+	function _active_discounts ($a,$b) {
+		$_ =& $this->Cart->discounts;
+		return (isset($_[$a->id]) && !isset($_[$b->id]))?-1:1;
 	}
 	
 	/**
