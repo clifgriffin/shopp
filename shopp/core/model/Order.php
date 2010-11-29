@@ -231,9 +231,6 @@ class Order {
 
 		$this->Customer->updates($_POST);
 
-		if (isset($_POST['confirm-password']))
-			$this->Customer->confirm_password = $_POST['confirm-password'];
-
 		if (empty($this->Billing))
 			$this->Billing = new Billing();
 		$this->Billing->updates($_POST['billing']);
