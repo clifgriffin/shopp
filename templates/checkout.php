@@ -41,9 +41,9 @@
 		<?php if (shopp('customer','notloggedin')): ?>
 		<li>
 			<span><?php shopp('checkout','password','required=true&format=passwords&size=16&title='.__('Password','Shopp')); ?>
-			<label for="email"><?php _e('Password','Shopp'); ?></label></span>
+			<label for="password"><?php _e('Password','Shopp'); ?></label></span>
 			<span><?php shopp('checkout','confirm-password','required=true&format=passwords&size=16&title='.__('Password Confirmation','Shopp')); ?>
-			<label for="email"><?php _e('Confirm Password','Shopp'); ?></label></span>
+			<label for="confirm-password"><?php _e('Confirm Password','Shopp'); ?></label></span>
 		</li>
 		<?php endif; ?>
 		<li></li>
