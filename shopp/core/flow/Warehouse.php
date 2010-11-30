@@ -492,7 +492,7 @@ class Warehouse extends AdminController {
 			} else {
 				unset($_POST['publish']);
 				// Auto set the publish date if not set (or more accurately, if set to an irrelevant timestamp)
-				if ($Product->publish <= 86400) $Product->publish = null;
+				if ($Product->publish <= 86400) $Product->publish = time();
 			}
 		} else {
 			unset($_POST['publish']);

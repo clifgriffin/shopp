@@ -402,8 +402,11 @@ class Category extends DatabaseObject {
 			
 		}
 		
-		if ($this->published) $where[] = "(p.status='publish' AND ".time()." > UNIX_TIMESTAMP(p.publish))";
-		else $where[] = "(p.status!='publish' OR ".time()." < UNIX_TIMESTAMP(p.publish))";
+		// WP TZ setting based time - (timezone offset:[PHP UTC adjusted time - MySQL UTC adjusted time]) 
+		$now = time()."-(".(time()-date("Z",time()))."-UNIX_TIMESTAMP(UTC_TIMESTAMP()))";
+		
+		if ($this->published) $where[] = "(p.status='publish' AND $now >= UNIX_TIMESTAMP(p.publish))";
+		else $where[] = "(p.status!='publish' OR $now < UNIX_TIMESTAMP(p.publish))";
 		
 		$defaultOrder = $Shopp->Settings->get('default_product_order');
 		if (empty($defaultOrder)) $defaultOrder = "";
