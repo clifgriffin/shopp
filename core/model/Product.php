@@ -373,7 +373,7 @@ class Product extends DatabaseObject {
 	 * @return boolean
 	 **/
 	function published () {
-		return ($this->status == "publish" && mktime() >= $this->publish);
+		return ($this->status == "publish" && time() >= $this->publish);
 	}
 	
 	/**
