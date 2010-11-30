@@ -720,6 +720,9 @@ class Product extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 
+		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
+		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
+
 		switch ($property) {
 			case "link": 
 			case "url":
@@ -1520,7 +1523,7 @@ class Product extends DatabaseObject {
 					($options['type'] != "menu" && $options['type'] != "textarea" && !valid_input($options['type']))) $options['type'] = "text";
 				if (!isset($options['name'])) return "";
 				if ($options['type'] == "menu") {
-					$result = '<select name="products['.$this->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$this->id.'">';
+					$result = '<select name="products['.$this->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$this->id.'"'.inputattrs($options,$select_attrs).'>';
 					if (isset($options['options'])) 
 						$menuoptions = preg_split('/,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/',$options['options']);
 					if (is_array($menuoptions)) {
@@ -1536,7 +1539,7 @@ class Product extends DatabaseObject {
 				} elseif ($options['type'] == "textarea") {
 					if (isset($options['cols'])) $cols = ' cols="'.$options['cols'].'"';
 					if (isset($options['rows'])) $rows = ' rows="'.$options['rows'].'"';
-					$result .= '<textarea  name="products['.$this->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$this->id.'"'.$cols.$rows.'>'.$options['value'].'</textarea>';
+					$result .= '<textarea name="products['.$this->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$this->id.'"'.$cols.$rows.inputattrs($options).'>'.$options['value'].'</textarea>';
 				} else {
 					$result = '<input type="'.$options['type'].'" name="products['.$this->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$this->id.'"'.inputattrs($options).' />';
 				}
