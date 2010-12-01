@@ -376,12 +376,17 @@ class Service extends AdminController {
 		if (empty($labels)) return false;
 		$status = array();
 
-		$r = $db->query("SELECT status,COUNT(status) AS total FROM $table GROUP BY status ORDER BY status ASC",AS_ARRAY);
+		$r = $db->query("SELECT status AS id,COUNT(status) AS total FROM $table GROUP BY status ORDER BY status ASC",AS_ARRAY);
 		foreach ($labels as $id => $label) {
 			$_ = new StdClass();
 			$_->label = $label;
 			$_->id = $id;
-			$_->total = isset($r[$id])?(int)$r[$id]->total:0;
+			$_->total = 0;
+			foreach ($r as $state) {
+				if ($state->id == $id) {
+					$_->total = (int)$state->total;	break;
+				} 
+			}
 			$status[$id] = $_;
 		}
 		
