@@ -154,7 +154,7 @@ class AdminFlow extends FlowController {
 		foreach ($this->Pages as $page) $this->addmenu($page);
 
 		// Add admin JavaScript & CSS
-		foreach ($this->Menus as $menu) add_action("admin_enqueue_scripts", array(&$this, 'behaviors'));
+		foreach ($this->Menus as $menu) add_action("admin_enqueue_scripts", array(&$this, 'behaviors'),50);
 
 		// Add contextual help menus
 		foreach ($this->Menus as $pagename => $menu) $this->help($pagename,$menu);
@@ -247,7 +247,7 @@ class AdminFlow extends FlowController {
 		$this->admin_css();		
 
 		shopp_enqueue_script('shopp');
-		$Shopp->settingsjs();
+		add_action('shopp_print_scripts',array(&$Shopp,'settingsjs'),100);
 				
 		$settings = array_filter(array_keys($this->Pages),array(&$this,'get_settings_pages'));
 		if (in_array($this->Page->page,$settings)) shopp_enqueue_script('settings');		

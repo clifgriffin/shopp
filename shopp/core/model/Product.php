@@ -1087,7 +1087,7 @@ class Product extends DatabaseObject {
 				if (isset($options['rowthumbs'])) $twidth = ($width+$margins+2)*(int)$options['rowthumbs'];
 				
 				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
-				$script = 'ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'"'.($twidth?",$twidth":"").');';
+				$script = "\t".'ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'"'.($twidth?",$twidth":"").');';
 				add_storefrontjs($script);
 				
 				return $result;
@@ -1238,13 +1238,13 @@ class Product extends DatabaseObject {
 				$defaults = array(
 					'defaults' => '',
 					'disabled' => 'show',
+					'pricetags' => 'show',
 					'before_menu' => '',
 					'after_menu' => '',
 					'taxes' => false,
 					'label' => 'on',
-					'required' => ''
+					'required' => __('You must select the options for this item before you can add it to your shopping cart.','Shopp')
 					);
-					
 				$options = array_merge($defaults,$options);
 
 				if ($options['mode'] == "single") {
@@ -1295,14 +1295,13 @@ class Product extends DatabaseObject {
 					
 					ob_start();
 ?><?php if (!empty($options['defaults'])): ?>
-	ShoppSettings.opdef = true;
+	sjss.opdef = true;
 <?php endif; ?>
-<?php if (!empty($required)): ?>
-	ShoppSettings.opdef = "<?php echo $required; ?>";
+<?php if (!empty($options['required'])): ?>
+	sjss.opreq = "<?php echo $options['required']; ?>";
 <?php endif; ?>
-	pricetags[<?php echo $this->id; ?>] = {};
-	pricetags[<?php echo $this->id; ?>]['pricing'] = <?php echo json_encode($pricekeys); ?>;
-	pricetags[<?php echo $this->id; ?>]['menu'] = new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>.options',<?php echo ($options['disabled'] == "hide")?"true":"false"; ?>,pricetags[<?php echo $this->id; ?>]['pricing'],<?php echo empty($taxrate)?'0':$taxrate; ?>);
+	pricetags[<?php echo $this->id; ?>] = <?php echo json_encode($pricekeys); ?>;
+	new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $this->id; ?>.options',{<?php if ($options['disabled'] == "hide") echo "disabled:false,"; ?><?php if ($options['pricetags'] == "hide") echo "pricetags:false,"; ?><?php if (!empty($taxrate)) echo "taxrate:$taxrate,"?>prices:pricetags[<?php echo $this->id; ?>]});
 <?php
 					$script = ob_get_contents();
 					ob_end_clean();

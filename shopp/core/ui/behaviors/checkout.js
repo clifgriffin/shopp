@@ -33,12 +33,12 @@ jQuery(document).ready(function () {
 		if (login) {
 			login=false;
 			if (accountLogin.val() == "") {
-				alert(ShoppSettings.LOGIN_NAME_REQUIRED);
+				alert(sjss.LOGIN_NAME_REQUIRED);
 				accountLogin.focus();
 				return false;
 			}
 			if (passwordLogin.val() == "") {
-				alert(ShoppSettings.LOGIN_PASSWORD_REQUIRED);
+				alert(sjss.LOGIN_PASSWORD_REQUIRED);
 				passwordLogin.focus();
 				return false;
 			}
@@ -93,7 +93,7 @@ jQuery(document).ready(function () {
 	$('.shopp .shipmethod').change(function () {
 		if ($(this).parents('#checkout').size()) {
 			$('.shopp_cart_shipping, .shopp_cart_tax, .shopp_cart_total').html('?');
-			$.getJSON(ShoppSettings.ajaxurl+"?action=shopp_shipping_costs&method="+$(this).val(),
+			$.getJSON(sjss.ajaxurl+"?action=shopp_shipping_costs&method="+$(this).val(),
 				function (r) {
 					var prefix = 'span.shopp_cart_';
 					$(prefix+'shipping').html(asMoney(new Number(r.shipping)));
@@ -127,7 +127,7 @@ jQuery(document).ready(function () {
 		}
 	}).change().change(function () {
 		var paymethod = $(this).val();
-		$.post( ShoppSettings.ajaxurl, 
+		$.post( sjss.ajaxurl, 
 		{	action : 'shopp_checkout_submit_button',
 		 	paymethod : paymethod
 		},

@@ -7,17 +7,22 @@
 /**
  * Product variation option menu behaviors
  **/
-function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
+function ProductOptionsMenus (target,settings) {
 	var $ = jqnc(),
 		i = 0,
 		previous = false,
 		current = false,
 		menucache = new Array(),
 		menus = $(target),
-		disabled = 'disabled';
+		disabled = 'disabled',
+		defaults = { 
+			disabled:true,
+			pricetags:true,
+			taxrate:0,
+			prices:{}
+		},
+		settings = $.extend(defaults,settings);
 		
-	if (!taxrate) taxrate = 0;
-
 	menus.each(function (id,menu) {
 		current = menu;
 		menucache[id] = $(menu).children();			
@@ -57,13 +62,12 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 				keys = selected.slice(),
 				price;
 			if (option.val() != "") {
-					keys.push(option.val());
-				price = pricing[xorkey(keys)];
-				if (!price) price = pricing[xorkey_deprecated(keys)];
+				keys.push(option.val());
+				price = settings.prices[xorkey(keys)] || settings.prices[xorkey(keys,'deprecated')];
 				if (price) {
-					if (price.p) {
+					if (price.p && settings.pricetags) {
 						p = new Number(price.p);
-						tax = new Number(p*taxrate);
+						tax = new Number(p*settings.taxrate);
 						pricetag = "  ("+asMoney(new Number(p+tax))+")";
 					}
 					optiontext = option.attr('text');
@@ -74,12 +78,12 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 					if ((price.i && !price.s) || price.t == "N/A") {
 						if (option.attr('selected')) 
 							option.parent().attr('selectedIndex',0);
-						if (hideDisabled) option.remove();
+						if (!settings.disabled) option.remove();
 						else optionDisable(option);
 					} else option.removeAttr(disabled).show();
-					if (price.t == "N/A" && hideDisabled) option.remove();
+					if (price.t == "N/A" && !settings.disabled) option.remove();
 				} else {
-					if (hideDisabled) option.remove();
+					if (!settings.disabled) option.remove();
 					else optionDisable(option);
 				}
 			}
@@ -87,15 +91,9 @@ function ProductOptionsMenus (target,hideDisabled,pricing,taxrate) {
 	}
 
 	// Magic key generator
-	function xorkey (ids) {
-		for (var key=0,i=0; i < ids.length; i++) 
-			key = key ^ (ids[i]*7001);
-		return key;
-	}
-
-	function xorkey_deprecated (ids) {
-		for (var key=0,i=0; i < ids.length; i++) 
-			key = key ^ (ids[i]*101);
+	function xorkey (ids,deprecated) {
+		for (var key=0,i=0,mod=deprecated?101:7001; i < ids.length; i++)
+			key = key ^ (ids[i]*mod);
 		return key;
 	}
 	
@@ -358,23 +356,23 @@ function validate (form) {
 		if (input.attr('disabled') == true) return;
 		
 		if (input.hasClass(required) && input.val() == "")
-			error = new Array(ShoppSettings.REQUIRED_FIELD.replace(/%s/,input.attr(title)),field);
+			error = new Array(sjss.REQUIRED_FIELD.replace(/%s/,input.attr(title)),field);
 		
 		if (input.hasClass(required) && input.attr('type') == "checkbox" && !input.attr('checked'))
-			error = new Array(ShoppSettings.REQUIRED_CHECKBOX.replace(/%s/,input.attr(title)),field);
+			error = new Array(sjss.REQUIRED_CHECKBOX.replace(/%s/,input.attr(title)),field);
 		
 		if (input.hasClass('email') && !input.val().match(new RegExp('^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+\.)+[a-zA-Z0-9.-]{2,4}$')))
-			error = new Array(ShoppSettings.INVALID_EMAIL,field);
+			error = new Array(sjss.INVALID_EMAIL,field);
 			
 		if (chars = input.attr('class').match(new RegExp('min(\\d+)'))) {
 			if (input.val().length < chars[1])
-				error = new Array(ShoppSettings.MIN_LENGTH.replace(/%s/,input.attr(title)).replace(/%d/,chars[1]),field);
+				error = new Array(sjss.MIN_LENGTH.replace(/%s/,input.attr(title)).replace(/%d/,chars[1]),field);
 		}
 		
 		if (input.hasClass('passwords')) {
 			passwords.push(field);
 			if (passwords.length == 2 && passwords[0].value != passwords[1].value)
-				error = new Array(ShoppSettings.PASSWORD_MISMATCH,passwords[1]);
+				error = new Array(sjss.PASSWORD_MISMATCH,passwords[1]);
 		}
 		
 		if (error[1] && error[1].id == input.attr('id')) {
@@ -415,5 +413,7 @@ jQuery(document).ready(function() {
 		$('a.shopp-zoom').colorbox({photo:true});
 		$('a.shopp-zoom.gallery').attr('rel','gallery').colorbox({slideshow:true,slideshowSpeed:3500});
 	}
-	if (ShoppSettings.nocache) $(window).unload(function () { return; });
+	$('select.shopp-orderby-menu').change(function () { this.form.submit(); });
+	$('select.shopp-categories-menu').change(function () { document.location.href = $(this).val(); });
+	if (sjss.nocache) $(window).unload(function () { return; });
 });

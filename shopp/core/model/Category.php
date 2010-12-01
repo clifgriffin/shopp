@@ -947,12 +947,6 @@ class Category extends DatabaseObject {
 						$count++;
 					}
 					$string .= '</select>';
-
-					$script = "$('#shopp-{$this->slug}-subcategories-menu').change(function(){";
-					$script .= "document.location.href = $(this).val();";
-					$script .= "})";
-					add_storefrontjs($script);
-					
 				} else {
 					if (!empty($class)) $classes = ' class="'.$class.'"';
 					$string .= $title.'<ul'.$classes.'>';
@@ -1108,12 +1102,6 @@ class Category extends DatabaseObject {
 			
 					}
 					$string .= '</select>';
-					
-					$script = "$('#shopp-{$this->slug}-subcategories-menu').change(function(){";
-					$script .= "document.location.href = $(this).val();";
-					$script .= "})";
-					add_storefrontjs($script);
-								
 				} else {
 					if (!empty($class)) $classes = ' class="'.$class.'"';
 					$string .= $title;
