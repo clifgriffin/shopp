@@ -201,7 +201,11 @@ class Purchase extends DatabaseObject {
 				return $countries[$this->shipcountry]; break;
 			case "shipmethod": return esc_html($this->shipmethod); break;
 			case "totalitems": return count($this->purchased); break;
-			case "hasitems": if (count($this->purchased) > 0) return true; else return false; break;
+			case "has-items":
+			case "hasitems": 
+				if (empty($this->purchased)) $this->load_purchased();
+				return (count($this->purchased) > 0);
+				break;
 			case "items":
 				if (!isset($this->_items_loop)) {
 					reset($this->purchased);
