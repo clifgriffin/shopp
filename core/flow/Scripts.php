@@ -40,8 +40,8 @@ class ShoppScripts extends WP_Scripts {
 	}
 	
 	function do_item( $handle, $group = false ) {
-		$this->print_code .= $this->print_script_custom($handle);
-		parent::do_item($handle,$group);
+		if(parent::do_item($handle,$group)) 
+			$this->print_code .= $this->print_script_custom($handle);
 	}
 	
 	function print_head_scripts() {
@@ -107,6 +107,37 @@ class ShoppScripts extends WP_Scripts {
 		if ( !empty($this->print_html) )
 			echo $this->print_html;
 	}
+	function print_scripts_l10n( $handle, $echo = true ) {
+		if ( empty($this->registered[$handle]->extra['l10n']) || empty($this->registered[$handle]->extra['l10n'][0]) || !is_array($this->registered[$handle]->extra['l10n'][1]) )
+			return false;
+
+		$object_name = $this->registered[$handle]->extra['l10n'][0];
+
+		$data = "var $object_name = {";
+		$eol = '';
+		foreach ( $this->registered[$handle]->extra['l10n'][1] as $var => $val ) {
+			if ( 'l10n_print_after' == $var ) {
+				$after = $val;
+				continue;
+			}
+			$data .= "$eol$var: \"" . esc_js( $val ) . '"';
+			$eol = ",";
+		}
+		$data .= "};\n";
+		$data .= isset($after) ? "$after\n" : '';
+
+		if ( $echo ) {
+			echo "<script type='text/javascript'>\n";
+			echo "/* <![CDATA[ */\n";
+			echo $data;
+			echo "/* ]]> */\n";
+			echo "</script>\n";
+			return true;
+		} else {
+			return $data;
+		}
+	}
+	
 	
 	function all_deps( $handles, $recursion = false, $group = false ) {
 		$r = parent::all_deps( $handles, $recursion );

@@ -220,7 +220,8 @@ class Storefront extends FlowController {
 			shopp_enqueue_script("shopp");
 			shopp_enqueue_script("catalog");
 			shopp_enqueue_script("cart");
-			shopp_custom_script('catalog',"\tvar pricetags = {};\n");
+			if (is_shopp_page('catalog'))
+				shopp_custom_script('catalog',"var pricetags = {};\n");
 			$Shopp->settingsjs();
 		}
 
@@ -483,7 +484,7 @@ class Storefront extends FlowController {
 	 * @return void Description...
 	 **/
 	function catalogcss () {
-		$Settings = ShoppSettings();
+		$Settings = &ShoppSettings();
 		if (!isset($row_products)) $row_products = 3;
 		$row_products = $Settings->get('row_products');
 		$products_per_row = floor((100/$row_products));

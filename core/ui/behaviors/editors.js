@@ -660,9 +660,9 @@ function unsavedChanges () {
 
 	if ( mce && !mce.isHidden() ) {
 		if ( mce.isDirty() )
-			return ShoppSettings.UNSAVED_CHANGES_WARNING;
+			return sjss.UNSAVED_CHANGES_WARNING;
 	}
-	if (changes && !saving) return ShoppSettings.UNSAVED_CHANGES_WARNING;	
+	if (changes && !saving) return sjss.UNSAVED_CHANGES_WARNING;	
 }
 
 /**

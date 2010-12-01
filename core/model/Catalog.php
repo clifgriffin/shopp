@@ -477,8 +477,6 @@ class Catalog extends DatabaseObject {
 					$string .= menuoptions($menuoptions,$default,true);
 					$string .= '</select>';
 					$string .= '</form>';
-					
-					add_storefrontjs("$('#shopp-".$Shopp->Category->slug."-orderby-menu select.shopp-orderby-menu').change(function () { this.form.submit(); });");
 				} else {
 					$link = "";
 					$query = "";
