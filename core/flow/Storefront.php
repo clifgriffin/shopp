@@ -111,7 +111,7 @@ class Storefront extends FlowController {
 	 **/
 	function pageid () {
 		global $wp;
-		if (empty($wp->query_vars)) return false;
+		if (empty($wp->query_vars) || !isset($wp->query_vars['pagename'])) return false;
 		
 		// Identify the current page
 		foreach ($this->pages as &$page) {
@@ -702,10 +702,11 @@ class Storefront extends FlowController {
 	function canonical_home ($redirect) {
 		$pages = $this->Settings->get('pages');
 		if (!function_exists('home_url')) return $redirect;
-		list($url,$query) = explode("?",$redirect);
+		list($url,) = explode("?",$redirect);
 		if ($url == home_url('/') && $pages['catalog']['id'] == get_option('page_on_front'))
 			return false;
-		if ( isset($wp->query_vars['shopp_category']) && isset($wp->query_vars['paged']) )
+		// Cancel WP pagination redirects for Shopp category pages
+		if ( get_query_var('shopp_category') && get_query_var('paged') > 0 )
 			return false;
 		return $redirect;
 	}

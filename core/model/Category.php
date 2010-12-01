@@ -334,7 +334,7 @@ class Category extends DatabaseObject {
 		
 		$this->paged = false;
 		$this->pagination = $Shopp->Settings->get('catalog_pagination');
-		$this->page = (isset($wp->query_vars['paged']))?$wp->query_vars['paged']:1;
+		$this->page = (get_query_var('paged') > 0)?get_query_var('paged'):1;
 		
 		if (empty($this->page)) $this->page = 1;
 		
@@ -788,6 +788,15 @@ class Category extends DatabaseObject {
 		));
 	}
 	
+	function pagelink ($page) {
+		$type = isset($this->tag)?'tag':'category';
+		$prettyurl = "$type/$this->uri".($page > 1?"/page/$page":"");
+		$queryvars = array("shopp_$type"=>$this->uri);
+		if ($page > 1) $queryvars['paged'] = $page;
+
+		return apply_filters('shopp_paged_link',shoppurl(SHOPP_PRETTYURLS?$prettyurl:$queryvars));
+	}
+	
 	/**
 	 * shopp('category','...') tags
 	 *
@@ -1143,115 +1152,95 @@ class Category extends DatabaseObject {
 				break;
 			case "pagination":
 				if (!$this->paged) return "";
-				global $wp;	
-				// Set options
-				if (!isset($options['label'])) $options['label'] = __("Pages:","Shopp");
-				if (!isset($options['next'])) $options['next'] = __("next","Shopp");
-				if (!isset($options['previous'])) $options['previous'] = __("previous","Shopp");
-				
-				$navlimit = 1000;
-				if (!empty($options['show'])) $navlimit = $options['show'];
 
-				$before = "<div>".$options['label']; // Set the label
-				if (!empty($options['before'])) $before = $options['before'];
+				$defaults = array(
+					'label' => __("Pages:","Shopp"),
+					'next' => __("next","Shopp"),
+					'previous' => __("previous","Shopp"),
+					'jumpback' => '&laquo;',
+					'jumpfwd' => '&raquo;',
+					'show' => 1000,
+					'before' => '<div>',
+					'after' => '</div>'
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
 
-				$after = "</div>";
-				if (!empty($options['after'])) $after = $options['after'];
-
-				$type = "category";
-				if (isset($wp->query_vars['shopp_tag'])) $type = "tag";
-
-				$string = "";
+				$_ = array();
 				if (isset($this->alpha) && $this->paged) {
-
-					$string .= '<ul class="paging">';
+					$_[] = $before.$label;
+					$_[] = '<ul class="paging">';
 					foreach ($this->alpha as $alpha) {
-						$link = SHOPP_PRETTYURLS?
-							shoppurl("$type/$this->uri/page/$alpha->letter"):
-							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$alpha->letter));
+						$link = $this->pagelink($alpha->letter);
 						if ($alpha->total > 0)
-							$string .= '<li><a href="'.$link.'">'.$alpha->letter.'</a></li>';
-						else $string .= '<li><span>'.$alpha->letter.'</span></li>';
+							$_[] = '<li><a href="'.$link.'">'.$alpha->letter.'</a></li>';
+						else $_[] = '<li><span>'.$alpha->letter.'</span></li>';
 					}
-					$string .= '</ul>';
-					return $string;
+					$_[] = '</ul>';
+					$_[] = $after;
+					return join("\n",$_);
 				}
 				
 				if ($this->pages > 1) {
 
-					if ( $this->pages > $navlimit ) $visible_pages = $navlimit + 1;
+					if ( $this->pages > $show ) $visible_pages = $show + 1;
 					else $visible_pages = $this->pages + 1;
 					$jumps = ceil($visible_pages/2);
-					$string .= $before;
+					$_[] = $before.$label;
 
-					$string .= '<ul class="paging">';
-					if ( $this->page <= floor(($navlimit) / 2) ) {
+					$_[] = '<ul class="paging">';
+					if ( $this->page <= floor(($show) / 2) ) {
 						$i = 1;
 					} else {
-						$i = $this->page - floor(($navlimit) / 2);
-						$visible_pages = $this->page + floor(($navlimit) / 2) + 1;
+						$i = $this->page - floor(($show) / 2);
+						$visible_pages = $this->page + floor(($show) / 2) + 1;
 						if ($visible_pages > $this->pages) $visible_pages = $this->pages + 1;
 						if ($i > 1) {
-							$link = (SHOPP_PRETTYURLS)?
-								shoppurl("$type/$this->uri/page/1"):
-								shoppurl(array("shopp_$type"=>$this->uri,'paged'=>1));
-							$string .= '<li><a href="'.$link.'">1</a></li>';
+							$link = $this->pagelink(1);
+							$_[] = '<li><a href="'.$link.'">1</a></li>';
 
 							$pagenum = ($this->page - $jumps);
 							if ($pagenum < 1) $pagenum = 1;
-							$link = (SHOPP_PRETTYURLS)?
-								shoppurl("$type/$this->uri/page/$pagenum"):
-								shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$pagenum));								
-							$string .= '<li><a href="'.$link.'">&laquo;</a></li>';
+							$link = $this->pagelink($pagenum);
+							$_[] = '<li><a href="'.$link.'">'.$jumpback.'</a></li>';
 						}
 					}
 
 					// Add previous button
-					if (!value_is_true($options['previous']) && $this->page > 1) {
+					if (!empty($previous) && $this->page > 1) {
 						$prev = $this->page-1;
-						$link = (SHOPP_PRETTYURLS)?
-							shoppurl("$type/$this->uri/page/$prev"):
-							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$prev));
-						$string .= '<li class="previous"><a href="'.$link.'">'.$options['previous'].'</a></li>';
-					} else $string .= '<li class="previous disabled">'.$options['previous'].'</li>';
+						$link = $this->pagelink($prev);
+						$_[] = '<li class="previous"><a href="'.$link.'">'.$previous.'</a></li>';
+					} else $_[] = '<li class="previous disabled">'.$previous.'</li>';
 					// end previous button
 
 					while ($i < $visible_pages) {
-						$link = (SHOPP_PRETTYURLS)?
-							shoppurl("$type/$this->uri/page/$i"):
-							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$i));
-						if ( $i == $this->page ) $string .= '<li class="active">'.$i.'</li>';
-						else $string .= '<li><a href="'.$link.'">'.$i.'</a></li>';
+						$link = $this->pagelink($i);
+						if ( $i == $this->page ) $_[] = '<li class="active">'.$i.'</li>';
+						else $_[] = '<li><a href="'.$link.'">'.$i.'</a></li>';
 						$i++;
 					}
 					if ($this->pages > $visible_pages) {
 						$pagenum = ($this->page + $jumps);
 						if ($pagenum > $this->pages) $pagenum = $this->pages;
-						$link = (SHOPP_PRETTYURLS)?
-							shoppurl("$type/$this->uri/page/$pagenum"):
-							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$pagenum));
-						$string .= '<li><a href="'.$link.'">&raquo;</a></li>';
-
-						$link = (SHOPP_PRETTYURLS)?
-							shoppurl("$type/$this->uri/page/$this->pages"):
-							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$this->pages));
-						$string .= '<li><a href="'.$link.'">'.$this->pages.'</a></li>';	
+						$link = $this->pagelink($pagenum);
+						$_[] = '<li><a href="'.$link.'">'.$jumpfwd.'</a></li>';
+						$_[] = '<li><a href="'.$link.'">'.$this->pages.'</a></li>';	
 					}
 					
 					// Add next button
-					if (!value_is_true($options['next']) && $this->page < $this->pages) {						
-						$next = $this->page+1;
-						$link = (SHOPP_PRETTYURLS)?
-							shoppurl("$type/$this->uri/page/$next"):
-							shoppurl(array("shopp_$type"=>$this->uri,'paged'=>$next));
-						$string .= '<li class="next"><a href="'.$link.'">'.$options['next'].'</a></li>';
-					} else $string .= '<li class="next disabled">'.$options['next'].'</li>';
+					if (!empty($next) && $this->page < $this->pages) {						
+						$pagenum = $this->page+1;
+						$link = $this->pagelink($pagenum);
+						$_[] = '<li class="next"><a href="'.$link.'">'.$next.'</a></li>';
+					} else $_[] = '<li class="next disabled">'.$next.'</li>';
 					
-					$string .= '</ul>';
-					$string .= $after;
+					$_[] = '</ul>';
+					$_[] = $after;
 				}
-				return $string;
+				return join("\n",$_);
 				break;
+				
 			case "has-faceted-menu": return ($this->facetedmenus == "on"); break;
 			case "faceted-menu":
 				if ($this->facetedmenus == "off") return;
