@@ -1051,7 +1051,6 @@ class Product extends DatabaseObject {
 				$thumbs = "";
 				$twidth = $preview_width+$margins;
 				$rowthumbs = floor(($preview_width+$margins)/($width+$margins));
-				if (isset($options['rowthumbs'])) $twidth = ($width+$margins+2)*(int)$options['rowthumbs'];
 
 				if (count($this->images) > 1) {
 					$default_size = 64;
@@ -1079,12 +1078,14 @@ class Product extends DatabaseObject {
 
 						$thumbs .= '<li id="thumbnail-'.$img->id.'" class="preview-'.$img->id.(($firstThumb)?' first':' test').'">';
 						$thumbs .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
-						$thumbs .= '</li> ';
-						$firstThumb = false;						
+						$thumbs .= '</li>'."\n";
+						$firstThumb = false;					
 					}
 					$thumbs .= '</ul>';
 					
 				}
+				if (isset($options['rowthumbs'])) $twidth = ($width+$margins+2)*(int)$options['rowthumbs'];
+				
 				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
 				$script = 'ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'"'.($twidth?",$twidth":"").');';
 				add_storefrontjs($script);
