@@ -35,7 +35,7 @@ if (!Array.indexOf) {
  * (returns a valid provided format, or from Shopp Settings or a baseline default)
  **/
 function getCurrencyFormat (f) {
-	var setting = ShoppSettings;
+	var setting = sjss;
 	if (f && f.currency) return f; // valid parameter format
 	if (setting && setting.c) 
 		return {	// from base of operations
