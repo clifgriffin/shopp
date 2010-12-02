@@ -395,6 +395,7 @@ class Shopp {
 	function resession ($session=false) {
 		// Generate new ID while session is started
 		session_write_close();
+		$this->Shopping->handling(); // Workaround for PHP 5.2 bug #32330
 		
 		if ($session) {
 			$this->Shopping->session = session_id($session);
