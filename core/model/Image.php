@@ -30,7 +30,6 @@ class ImageProcessor {
 		else $this->src->image = false;
 	}
 	
-	
 	function canvas ($width,$height,$alpha=false) {
 		$this->processed = ImageCreateTrueColor($width,$height);
 		if ($alpha) {
@@ -55,7 +54,7 @@ class ImageProcessor {
 		if ($fit == "matte") {
 			$rgb = false;
 			if (is_int($fill)) $rgb = $this->hexrgb($fill);
-			
+	
 			// Default to white
 			if (!is_array($rgb)) $rgb = array('red'=>255,'green'=>255,'blue'=>255);
 			
@@ -94,6 +93,7 @@ class ImageProcessor {
 		if ($this->src->width <= $width && $this->src->height <= $height) {
 			$this->width = $this->src->width;
 			$this->height = $this->src->height;
+			if ($fit == "matte") $this->center($width,$height,$dx,$dy);
 			return false;
 		}
 
@@ -115,10 +115,14 @@ class ImageProcessor {
 			}
 		}
 
-		$this->dx = ($dx !== false)?$dx:($this->width - $width)*-0.5;
-		$this->dy = ($dy !== false)?$dy:($this->height - $height)*-0.5;
+		$this->center($width,$height,$dx,$dy);
 
 		return true;
+	}
+
+	private function center ($width,$height,$dx=false,$dy=false) {
+		$this->dx = ($dx !== false)?$dx:($this->width - $width)*-0.5;
+		$this->dy = ($dy !== false)?$dy:($this->height - $height)*-0.5;
 	}
 	
 	private function resized ($width,$height,$axis='y') {
