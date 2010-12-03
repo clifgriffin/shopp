@@ -31,6 +31,7 @@ require_once("model/Asset.php");
 class ImageServer extends DatabaseObject {
 
 	var $request = false;
+	var $caching = true;
 	var $parameters = array();
 	var $args = array('width','height','scale','sharpen','quality','fill');
 	var $scaling = array('all','matte','crop','width','height');
@@ -73,11 +74,9 @@ class ImageServer extends DatabaseObject {
 		if (preg_match('/\/images\/(\d+).*$/',$_SERVER['REQUEST_URI'],$matches)) 
 			$this->request = $matches[1];
 
-		foreach ($this->parameters as $index => $arg) {
-			if ($arg == 0) continue;
-			$this->{$this->args[$index]} = intval($arg);
-		}
-		
+		foreach ($this->parameters as $index => $arg)
+			if ($arg !== false) $this->{$this->args[$index]} = intval($arg);
+
 		if ($this->height == 0 && $this->width > 0) $this->height = $this->width;
 		if ($this->width == 0 && $this->height > 0) $this->width = $this->height;
 		$this->scale = $this->scaling[$this->scale];
@@ -99,8 +98,6 @@ class ImageServer extends DatabaseObject {
 	
 	function loadsized () {
 		// Same size requested, skip resizing
-		if ($this->width > $this->Image->width) $this->width = $this->Image->width;
-		if ($this->height > $this->Image->height) $this->height = $this->Image->height;
 		if ($this->Image->width == $this->width && $this->Image->height == $this->height) return;
 		
 		$Cached = new ImageAsset(array(
@@ -110,9 +107,8 @@ class ImageServer extends DatabaseObject {
 				'name'=>'cache_'.implode('_',$this->parameters)
 		));
 
-		// print_r($Cached);
 		// Use the cached version if it exists, otherwise resize the image
-		if (!empty($Cached->id)) $this->Image = $Cached;
+		if (!empty($Cached->id) && $this->caching) $this->Image = $Cached;
 		else $this->resize(); // No cached copy exists, recreate
 
 	}
