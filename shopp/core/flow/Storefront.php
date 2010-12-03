@@ -556,7 +556,7 @@ class Storefront extends FlowController {
 		$this->search = $wp->query_vars['s'];
 		$this->searching = true;
 		unset($wp->query_vars['s']); // Not needed any longer
-		$wp->query_vars['pagename'] = $this->pages['catalog']['name'];
+		$wp->query_vars['pagename'] = $this->pages['catalog']['uri'];
 		$wp->query_vars['shopp_category'] = "search-results";
 		add_action('wp_head', array(&$this, 'updatesearch'));
 		
