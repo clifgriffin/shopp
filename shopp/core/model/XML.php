@@ -124,18 +124,18 @@ class xmlQuery {
 		foreach ($data as $element=>$r) {
 			if (isset($r[0])) {
 				$_[]=$this->markup($r, $depth, $element, $selfclosing);
-		} else {
+			} else {
 				if ($tag) $element=$tag;
 				$sp=str_repeat("\t", $depth);
 				$_[] = "$sp<$element";
-				if (isset($r['_a'])) { foreach ($r['_a'] as $at => $av) $_[] = ' '.$at.'="'.htmlentities($av).'"'; }
+				if (isset($r['_a'])) { foreach ($r['_a'] as $at => $av) $_[] = ' '.$at.'="'.($av).'"'; }
 				if (in_array($element,$selfclosing)) { $_[] = ($xhtml)?" />\n":">\n"; continue; }
 				$_[] = ">".((isset($r['_c'])) ? "\n" : '');
 				if (isset($r['_c'])) $_[] = $this->markup($r['_c'], $depth+1,'',$selfclosing);
-				elseif (isset($r['_v'])) $_[] = htmlentities($r['_v']);
+				elseif (isset($r['_v'])) $_[] = ($r['_v']);
 				$_[] = (isset($r['_c']) ? $sp : '')."</$element>\n";
 			}
-        
+        	
 		}
 		return implode('', $_);
 	}
