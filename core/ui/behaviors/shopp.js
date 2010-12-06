@@ -35,16 +35,15 @@ if (!Array.indexOf) {
  * (returns a valid provided format, or from Shopp Settings or a baseline default)
  **/
 function getCurrencyFormat (f) {
-	var setting = sjss;
 	if (f && f.currency) return f; // valid parameter format
-	if (setting && setting.c) 
+	if (sjss && sjss.d) 
 		return {	// from base of operations
-			"cpos":setting.cp,
-			"currency":setting.c,
-			"precision":parseInt(setting.p),
-			"decimals":setting.d,
-			"thousands":setting.t,
-			"grouping":setting.g
+			"cpos":sjss.cp,
+			"currency":sjss.c,
+			"precision":parseInt(sjss.p),
+			"decimals":sjss.d,
+			"thousands":sjss.t,
+			"grouping":sjss.g
 		}
 	return {		// Default currency format
 		"cpos":true,
@@ -52,7 +51,7 @@ function getCurrencyFormat (f) {
 		"precision":2,
 		"decimals":".",
 		"thousands":",",
-		"grouping":3
+		"grouping":[3]
 	}
 }
 
