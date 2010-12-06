@@ -1635,7 +1635,7 @@ class BestsellerProducts extends SmartCategory {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("Bestsellers","Shopp");
 		$this->loading = array(
-			'where' => 'TRUE',
+			'where' => 'pur.id IS NOT NULL',
 			'order'=>'bestselling');
 		if (isset($options['where'])) $this->loading['where'] = $options['where'];
 	}
