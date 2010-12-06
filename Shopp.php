@@ -373,6 +373,7 @@ class Shopp {
 		$vars[] = 'shopp_pid';			// Product ID
 		$vars[] = 'shopp_product';		// Product slug
 		$vars[] = 'shopp_download';		// Download key
+		$vars[] = 'shopp_orderby';		// Product sort order (category view)
 		$vars[] = 'src';				// Shopp resource
 		$vars[] = 'siid';				// Shopp image id
 		$vars[] = 'catalog';			// Catalog flag
@@ -434,15 +435,25 @@ class Shopp {
 	 **/
 	function settingsjs () {
 		$baseop = $this->Settings->get('base_operations');
-		$base = array(
-			// Currency formatting
-			'cp' => $baseop['currency']['format']['cpos'],
-			'c' => $baseop['currency']['format']['currency'],
-			'p' => $baseop['currency']['format']['precision'],
-			't' => $baseop['currency']['format']['thousands'],
-			'd' => $baseop['currency']['format']['decimals'],
-			'g' => is_array($baseop['currency']['format']['grouping'])?join(',',$baseop['currency']['format']['grouping']):$baseop['currency']['format']['grouping'],
-			
+		
+		$currency = array();
+		if (isset($baseop['currency']) 
+			&& isset($baseop['currency']['format']) 
+			&& isset($baseop['currency']['format']['decimals'])
+			&& !empty($baseop['currency']['format']['decimals'])
+		) {
+			$currency = array(
+				// Currency formatting
+				'cp' => $baseop['currency']['format']['cpos'],
+				'c' => $baseop['currency']['format']['currency'],
+				'p' => $baseop['currency']['format']['precision'],
+				't' => $baseop['currency']['format']['thousands'],
+				'd' => $baseop['currency']['format']['decimals'],
+				'g' => is_array($baseop['currency']['format']['grouping'])?join(',',$baseop['currency']['format']['grouping']):$baseop['currency']['format']['grouping'],
+			);
+		}
+		
+		$base = array(	
 			'nocache' => is_shopp_page('account'),
 
 			// Validation alerts
@@ -496,7 +507,7 @@ class Shopp {
 			);
 		}
 
-		$defaults = apply_filters('shopp_js_settings',array_merge($base,$checkout,$calendar));
+		$defaults = apply_filters('shopp_js_settings',array_merge($currency,$base,$checkout,$calendar));
 		shopp_localize_script('shopp','sjss',$defaults);
 	}
 	
@@ -679,14 +690,14 @@ class Shopp {
 				$this->Settings->save('updates',false);
 			} else $message = sprintf(__('There is a new version of %1$s available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%5$s">upgrade automatically</a>.'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
 			
-			echo '<tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
+			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 
 			return;
 		}
 
 		if (!$activated) { // No update availableKey not active
 			$message = sprintf(__('Your Shopp key has not been activated. Feel free to <a href="%1$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),SHOPP_HOME."store/");
-			echo '<tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
+			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 			$this->Settings->save('updates',false);
 			return;
 		}
@@ -695,7 +706,7 @@ class Shopp {
 			// Addon update messages
 			foreach ($addons as $addon) {
 				$message = sprintf(__('There is a new version of the %s add-on available. <a href="%s">Upgrade automatically</a> to version %s','Shopp'),$addon->name,wp_nonce_url('update.php?action=shopp&addon=' . $addon->slug.'&type='.$addon->type, 'upgrade-shopp-addon_' . $addon->slug),$addon->new_version);
-				echo '<tr class="plugin-update-tr"><td colspan="5" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
+				echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 
 			}
 		}
