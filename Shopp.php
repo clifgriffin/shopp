@@ -394,13 +394,14 @@ class Shopp {
 	 * @return boolean True on success
 	 **/
 	function resession ($session=false) {
-		// Generate new ID while session is started
 		session_write_close();
 		$this->Shopping->handling(); // Workaround for PHP 5.2 bug #32330
-		
+
+		// Generate new ID while session is started
 		if ($session) {
 			$this->Shopping->session = session_id($session);
 			$this->Shopping = new Shopping();
+			session_start();
 			return true;
 		} else session_regenerate_id();
 		session_start();
