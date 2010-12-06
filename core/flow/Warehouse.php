@@ -201,7 +201,7 @@ class Warehouse extends AdminController {
 			'published' => array('label' => __('Published','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.status='publish'",'request' => 'p'),
 			'onsale' => array('label' => __('On Sale','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pt.sale='on'",'request' => 's'),
 			'featured' => array('label' => __('Featured','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.featured='on'",'request' => 'f'),
-			'inventory' => array('label' => __('Inventory','Shopp'),'total' => 0,'columns' => "count(distinct pt.id) AS total",'where'=>"pt.inventory='on' AND pt.type!='N/A'",'request' => 'i')
+			'inventory' => array('label' => __('Inventory','Shopp'),'total' => 0,'columns' => "count(distinct pt.id) AS total",'where'=>"pt.inventory='on' AND pt.type!='N/A'",'grouping'=>'pt.id','request' => 'i')
 		);
 		
 		if ('i' == $f) $per_page = 50;
@@ -281,18 +281,25 @@ class Warehouse extends AdminController {
 			// Load the products
 			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' AND pt.context != 'addon' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
 			$Products = $db->query($query,AS_ARRAY);
+			
 			$productcount = $db->query("SELECT FOUND_ROWS() as total");
 			
 		}
 				
 		foreach ($subs as $name => &$subquery) {
+			if ($name == "all") { $subquery['total'] = (int)$productcount->total; continue; }
 			$columns = $subquery['columns'];
 			if (!empty($f)) $where = str_replace(" AND ".$subs[$subfilters[$f]]['where'],"",$where);
 			$w = ($where == "true")?$subquery['where']:"$where AND ({$subquery['where']})";
-			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $w $having";
-			$result = $db->query($query);
-			if (isset($result->total)) $subquery['total'] = number_format((int)$result->total);
-			else $subquery['total'] = number_format((int)$productcount->total);
+			$category_join = (strpos($w,"type='category'") !== false)?"LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category'":"";
+			
+			$grouping = "GROUP BY ".(isset($subquery['grouping'])?$subquery['grouping']:"pd.id");
+			
+			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' $category_join WHERE $w $grouping $having";
+			$db->query($query);
+			$found = $db->query("SELECT FOUND_ROWS() as total");
+			
+			if (isset($found->total)) $subquery['total'] = number_format((int)$found->total);
 			
 		}
 
