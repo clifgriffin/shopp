@@ -222,7 +222,9 @@ class Storefront extends FlowController {
 			shopp_enqueue_script("cart");
 			if (is_shopp_page('catalog'))
 				shopp_custom_script('catalog',"var pricetags = {};\n");
-			$Shopp->settingsjs();
+
+			add_action('wp_head', array(&$Shopp, 'settingsjs'));
+				
 		}
 
 		if ($tag == "checkout")	shopp_enqueue_script('checkout');		

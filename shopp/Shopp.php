@@ -506,7 +506,8 @@ class Shopp {
 				'weekday_sat' => __('Sat','Shopp')
 			);
 		}
-
+		
+		
 		$defaults = apply_filters('shopp_js_settings',array_merge($currency,$base,$checkout,$calendar));
 		shopp_localize_script('shopp','sjss',$defaults);
 	}
@@ -517,7 +518,7 @@ class Shopp {
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 * 
-	 * @return void Description...
+	 * @return void
 	 **/
 	function secure_links ($linklist) {
 		if (!$this->Gateways->secure) return $linklist;
