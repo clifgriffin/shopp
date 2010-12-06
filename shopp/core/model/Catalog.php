@@ -236,6 +236,8 @@ class Catalog extends DatabaseObject {
 	 **/
 	function tag ($property,$options=array()) {
 		global $Shopp;
+		
+		$Storefront = get_class($Shopp->Flow->Controller) == "Storefront"?$Shopp->Flow->Controller:false;
 
 		switch ($property) {
 			case "url": return shoppurl(false,'catalog'); break;
@@ -591,11 +593,17 @@ class Catalog extends DatabaseObject {
 				$options = array_merge($defaults,$options);
 				extract($options);
 				
+				$shopsearch = ($Storefront && $Storefront->searching || is_shopp_page('catalog'));
+
 				$allowed = array("accesskey","alt","checked","class","disabled","format", "id",
 					"minlength","maxlength","readonly","required","size","src","tabindex","title","value");
 				
 				$options['value'] = ($option == "shopp");
 				
+				
+				if ($shopsearch && $option == "shopp") $options['checked'] = "checked";
+				if (!$shopsearch && $option != "shopp") $options['checked'] = "checked";
+
 				switch ($type) {
 					case "checkbox":
 						$input =  '<input type="checkbox" name="catalog"'.inputattrs($options,$allowed).' />';
@@ -609,10 +617,11 @@ class Catalog extends DatabaseObject {
 						
 						$input = '<select name="catalog"'.inputattrs($options,$allowed).'>';
 						$input .= '<option value="false">'.$blog_option.'</option>';
-						$input .= '<option value="true">'.$shop_option.'</option>';
+						$input .= '<option value="true"'.($shopsearch || $option == 'shopp'?' selected="selected"':'').'>'.$shop_option.'</option>';
 						$input .= '</select>';
 						break;
 					default:
+						$allowed = array("alt","class","disabled","format","id","readonly","title","value");
 						$input =  '<input type="hidden" name="catalog"'.inputattrs($options,$allowed).' />';
 						break;
 				}
