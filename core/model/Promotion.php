@@ -191,7 +191,7 @@ class Promotion extends DatabaseObject {
 		$db =& DB::get();
 		if (empty($promos) || !is_array($promos)) return;
 		$table = DatabaseObject::tablename(self::$table);
-		$db->query("UPDATE LOW_PRIORITY $table SET uses=uses+1 WHERE 0 < FIND_IN_SET(id,".join(',',$promos).")");
+		$db->query("UPDATE LOW_PRIORITY $table SET uses=uses+1 WHERE 0 < FIND_IN_SET(id,'".join(',',$promos)."')");
 	}
 
 } // end Promotion class
