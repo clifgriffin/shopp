@@ -552,7 +552,8 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 				
 		$sessionid = $XML->content('shopping-session');
 		$Shopp->resession($sessionid);
-		$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);		
+		$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
+		$Shopp->Order->listeners();
 		$Shopping = &$Shopp->Shopping;
 		$Order = &$Shopp->Order;
 		
