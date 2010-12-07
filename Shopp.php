@@ -394,28 +394,31 @@ class Shopp {
 	 * @return boolean True on success
 	 **/
 	function resession ($session=false) {
+		// commit current session
 		session_write_close();
 		$this->Shopping->handling(); // Workaround for PHP 5.2 bug #32330
-
-		// Generate new ID while session is started
-		if ($session) {
-			$this->Shopping->session = session_id($session);
+		
+		if ($session) { // loading session
+			$this->Shopping->session = session_id($session); // session_id while session is closed
 			$this->Shopping = new Shopping();
 			session_start();
 			return true;
-		} else session_regenerate_id();
+		}
+		 
 		session_start();
-
+		session_regenerate_id(); // Generate new ID while session is started		
+		
 		// Ensure we have the newest session ID
 		$this->Shopping->session = session_id();
-		
+
 		// Commit the session and restart
 		session_write_close();
 		$this->Shopping->handling(); // Workaround for PHP 5.2 bug #32330
 		session_start();
-		
+
 		do_action('shopp_reset_session');
 		return true;
+
 	}
 	
 	/**
