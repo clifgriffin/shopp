@@ -30,10 +30,16 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		parent::__construct();
 		$this->setup('instructions');
 		
+		// Reset the index count to shift setting indices so we don't break the JS environment
+		$this->settings['label'] = array_merge(array(),$this->settings['label']);
+		$this->settings['instructions'] = array_merge(array(),$this->settings['instructions']);
+
 		// Scan and build a runtime index of active payment methods
 		foreach ($this->settings['label'] as $i => $entry)
 			$this->methods[$entry] = $this->settings['instructions'][$i];
 		
+		
+		// print_r($this->settings);
 		add_filter('shopp_tag_checkout_offline-instructions',array(&$this,'tag_instructions'),10,2);
 		add_filter('shopp_payment_methods',array(&$this,'methods'));
 	}
