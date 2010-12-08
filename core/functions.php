@@ -1056,7 +1056,7 @@ function money ($amount,$format=false) {
  * @return string The formatted number
  **/
 function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $grouping=array(3)) {
-	$n = sprintf("%0.{$precision}f",$number);
+	$n = sprintf("%0.{$precision}F",$number);
 	$whole = $fraction = 0;
 
 	if (strpos($n,'.') !== false) list($whole,$fraction) = explode('.',$n);
