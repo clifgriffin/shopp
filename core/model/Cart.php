@@ -1136,12 +1136,6 @@ class CartDiscounts {
 		$this->Order = &$Shopp->Order;
 		$this->Cart = &$Shopp->Order->Cart;
 		$this->promos = &$Shopp->Promotions->promotions;
-		// print_r($this->Cart->promocodes);
-		// echo "<pre>";
-		// print_r($this->Cart->discounts);
-		// echo "</pre>";
-		// 
-		// print_r($this->promos);
 	}
 	
 	/**
@@ -1153,6 +1147,7 @@ class CartDiscounts {
 	 * @return float The total discount amount
 	 **/
 	function calculate () {
+
 		$this->applypromos();
 
 		$discount = 0;
@@ -1246,6 +1241,9 @@ class CartDiscounts {
 				$promo->applied = 0; 		// Reset promo applied discount
 				if (!empty($promo->items))	// Reset any items applied to
 					$promo->items = array(); 
+				
+				$this->remove($promo->id);	// Remove it from the discount stack if it is there
+				
 				continue; // Try next promotion
 			}
 
@@ -1323,9 +1321,14 @@ class CartDiscounts {
 					}
 					$promo->applied += $discount;
 					$promo->items[$id] = $discount;
-				} else {
-					
 				}
+				
+			}
+			
+			if ($promo->applied == 0 && empty($promo->items)) {
+				if (isset($this->Cart->discounts[$promo->id])) 
+					unset($this->Cart->discounts[$promo->id]);
+				return;
 			}
 			
 			$this->Cart->Totals->itemsd += $promo->applied;
@@ -1358,9 +1361,26 @@ class CartDiscounts {
 				$this->Cart->promocode = false;
 			}
 		}
-		
+
 		$this->Cart->discounts[$promo->id] = $promo;
 	}
+
+	/**
+	 * Removes an applied discount
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1.5
+	 * 
+	 * @param int $id The promo id to remove
+	 * @return boolean True if successfully removed
+	 **/
+	function remove ($id) {
+		if (!isset($this->Cart->discounts[$id])) return false;
+		
+		unset($this->Cart->discounts[$id]);
+		return true;
+	}
+	
 	
 	/**
 	 * Matches a Promo Code rule to a code submitted from the shopping cart
