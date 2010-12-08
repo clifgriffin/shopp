@@ -592,17 +592,26 @@ class Catalog extends DatabaseObject {
 				);
 				$options = array_merge($defaults,$options);
 				extract($options);
-				
-				$shopsearch = ($Storefront && $Storefront->searching || is_shopp_page('catalog'));
+
+				$searching = is_search(); // Flag when searching (the blog or shopp)
+				$shopsearch = ($Storefront && $Storefront->searching); // Flag when searching shopp
 
 				$allowed = array("accesskey","alt","checked","class","disabled","format", "id",
 					"minlength","maxlength","readonly","required","size","src","tabindex","title","value");
 				
 				$options['value'] = ($option == "shopp");
+
+				// Reset the checked option
+				unset($options['checked']);
+
+				// If searching the blog, check the non-store search option
+				if ($searching && !$shopsearch && $option != "shopp") $options['checked'] = "checked";
 				
-				
+				// If searching the storefront, mark the store search option
 				if ($shopsearch && $option == "shopp") $options['checked'] = "checked";
-				if (!$shopsearch && $option != "shopp") $options['checked'] = "checked";
+				
+				// Override any other settings with the supplied default 'checked' option
+				if (!$searching && $checked) $options['checked'] = $checked;
 
 				switch ($type) {
 					case "checkbox":
@@ -616,8 +625,8 @@ class Catalog extends DatabaseObject {
 							"readonly","required","size","tabindex","title");
 						
 						$input = '<select name="catalog"'.inputattrs($options,$allowed).'>';
-						$input .= '<option value="false">'.$blog_option.'</option>';
-						$input .= '<option value="true"'.($shopsearch || $option == 'shopp'?' selected="selected"':'').'>'.$shop_option.'</option>';
+						$input .= '<option value="">'.$blog_option.'</option>';
+						$input .= '<option value="1"'.($shopsearch || (!$searching && $option == 'shopp')?' selected="selected"':'').'>'.$shop_option.'</option>';
 						$input .= '</select>';
 						break;
 					default:
