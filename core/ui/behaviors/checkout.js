@@ -105,12 +105,11 @@ jQuery(document).ready(function () {
 	
 	paymethods.change(function () {
 		var paymethod = $(this).val();
+		if ($(this).attr('type') == "radio" && $(this).attr('checked') == false) return;
 		$(document).trigger('shopp_paymethod',[paymethod]);
 		if (ccpayments[paymethod] != false && ccpayments[paymethod].length > 0) {
-			$('#checkout.shopp .payment').show();
-			$('#checkout.shopp .creditcard').show();
-			$('#checkout.shopp .creditcard.disabled').attr('disabled',false).removeClass('disabled');
-			$('#checkout.shopp #billing-cardtype').empty().attr('disabled',false).removeClass('disabled');
+			checkoutForm.find('.payment,.creditcard').show();
+			checkoutForm.find('.creditcard.disabled,#billing-cardtype').attr('disabled',false).removeClass('disabled');
 			var options = '<option value="" selected="selected"></option>';
 			$.each(ccpayments[paymethod], function (a,b) {
 				$.each(ccallowed[paymethod], function (c,d){
@@ -120,10 +119,8 @@ jQuery(document).ready(function () {
 			$(options).appendTo('#checkout.shopp #billing-cardtype');
 
 		} else {
-			$('#checkout.shopp .payment').hide();
-			$('#checkout.shopp .creditcard').hide();
-			$('#checkout.shopp .creditcard').addClass('disabled').attr('disabled',true);
-			$('#checkout.shopp #billing-cardtype').addClass('disabled').attr('disabled',true);
+			checkoutForm.find('.payment,.creditcard').hide();
+			checkoutForm.find('.creditcard.disabled,#billing-cardtype').attr('disabled',true).addClass('disabled');
 		}
 	}).change().change(function () {
 		var paymethod = $(this).val();

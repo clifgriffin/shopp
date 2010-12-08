@@ -1441,7 +1441,9 @@ class Order {
 					case "list":
 						$output .= '<span><ul>';
 						foreach ($payments as $value => $option) {
+							$options['value'] = $value;
 							$options['checked'] = ($this->paymethod == $value)?'checked':false;
+							if ($options['checked'] === false) unset($options['checked']);
 							$output .= '<li><label><input type="radio" name="paymethod" '.inputattrs($options).' /> '.$option.'</label></li>';
 							$js .= "ccpayments['".$value."'] = ".json_encode($cards[$value]).";\n";
 							$js .= "ccallowed['".$value."'] = ".json_encode($allowed[$value]).";\n";
