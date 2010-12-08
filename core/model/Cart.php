@@ -874,7 +874,7 @@ class Cart {
 		$result = "";
 		
 		switch ($property) {
-			case "url": return shoppurl(false,'cart');
+			case "url": return is_shopp_page('checkout')?shoppurl(false,'confirm-order'):shoppurl(false,'cart');
 			case "hasestimates": return apply_filters('shopp_shipping_hasestimates',!empty($this->shipping)); break;
 			case "options":
 			case "methods":
