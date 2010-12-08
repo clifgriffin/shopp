@@ -1452,6 +1452,7 @@ class Order {
 						break;
 					case "hidden":
 						$output .= '<input type="hidden" name="paymethod"'.inputattrs($options).' />';
+						break;
 					default:
 						$output .= '<select name="paymethod" '.inputattrs($options,$select_attrs).'>';
 						foreach ($payments as $value => $option) {
