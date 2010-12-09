@@ -152,7 +152,9 @@ class Purchase extends DatabaseObject {
 
 		// Return strings with no options
 		switch ($property) {
-			case "receipt": 
+			case "receipt":
+				// Skip the receipt processing when sending order notifications in admin without the receipt
+				if (defined('WP_ADMIN') && isset($_POST['receipt']) && $_POST['receipt'] == "no") return;
 				if (isset($options['template']) && is_readable(SHOPP_TEMPLATES."/".$options['template']))
 					return $this->receipt($template);
 				else return $this->receipt();
