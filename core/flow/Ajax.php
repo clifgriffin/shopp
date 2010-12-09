@@ -640,6 +640,7 @@ class AjaxFlow {
 		global $Shopp;
 		if (isset($_POST['paymethod'])) {
 			$Shopp->Order->paymethod = $paymethod = $_POST['paymethod'];
+			$Shopp->Order->_paymethod_selected = true;
 			// User selected one of the payment options
 			list($module,$label) = explode(":",$paymethod);
 			if (isset($Shopp->Gateways->active[$module])) {
