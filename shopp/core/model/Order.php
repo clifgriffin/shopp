@@ -272,6 +272,7 @@ class Order {
 		// Determine gateway to use
 		if (isset($_POST['paymethod'])) {
 			$this->paymethod = $_POST['paymethod'];
+			$this->_paymethod_selected = true;
 			// User selected one of the payment options
 			list($module,$label) = explode(":",$this->paymethod);
 			if (isset($Shopp->Gateways->active[$module])) {
@@ -1399,6 +1400,10 @@ class Order {
 			case "paymentoptions": 
 				$paymentoptions = apply_filters('shopp_payment_methods',count($Shopp->Gateways->active));
 				if ($paymentoptions <= 1) return false; // Skip if only one gateway is active
+				$defaults = array(
+					'default' => false
+				);
+				$options = array_merge($defaults,$options);
 				extract($options);
 				unset($options['type']);
 				
@@ -1435,6 +1440,11 @@ class Order {
 						$cards[$gateway->module.':'.$gateway->settings['label']] = $gateway->cards;
 						$allowed[$gateway->module.':'.$gateway->settings['label']] = is_array($gateway->settings['cards']) ? $gateway->settings['cards'] : false;
 					}
+				}
+				
+				if ($default !== false && !isset($this->_paymethod_selected)) {
+					$this->paymethod = array_search($default,$payments);
+					if (!empty($gateway_method)) $this->processor();
 				}
 				
 				switch ($type) {
