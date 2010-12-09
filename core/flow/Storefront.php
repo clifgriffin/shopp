@@ -347,15 +347,10 @@ class Storefront extends FlowController {
 		global $Shopp;		
 		if (empty($this->Category->name)):?>
 
-<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo (SHOPP_PRETTYURLS)?shoppurl('feed'):shoppurl(array('shopp_lookup'=>'newproducts-rss')); ?>" />
-<?php
-			else:
-			$uri = 'category/'.$this->Category->uri;
-			if ($this->Category->slug == "tag") $uri = $this->Category->slug.'/'.$this->Category->tag;
-			$link = (SHOPP_PRETTYURLS)?shoppurl("$uri/feed"):shoppurl(array('shopp_category'=>urldecode($this->Category->uri),'src'=>'category_rss'));
-			?>
+<link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo esc_attr(shoppurl(SHOPP_PRETTYURLS?'feed':array('shopp_lookup'=>'newproducts-rss'))); ?>" />
+<?php else: ?>
 
-<link rel='alternate' type="application/rss+xml" title="<?php echo esc_attr(bloginfo('name')); ?> <?php echo esc_attr($this->Category->name); ?> RSS Feed" href="<?php echo $link; ?>" />
+<link rel='alternate' type="application/rss+xml" title="<?php esc_attr_e(bloginfo('name')); ?> <?php esc_attr_e($this->Category->name); ?> RSS Feed" href="<?php esc_attr_e($this->Category->tag('feed-url')); ?>" />
 <?php
 		endif;
 	}
