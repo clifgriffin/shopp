@@ -1583,16 +1583,16 @@ function shopp_rss ($data) {
 	$xml .= "<rss version=\"2.0\" $xmlns>\n";
 	$xml .= "<channel>\n";
 
-	$xml .= '<atom:link href="'.htmlentities($data['link']).'" rel="self" type="application/rss+xml" />'."\n";
-	$xml .= "<title>".$data['title']."</title>\n";
-	$xml .= "<description>".$data['description']."</description>\n";
-	$xml .= "<link>".htmlentities($data['link'])."</link>\n";
+	$xml .= '<atom:link href="'.esc_attr($data['link']).'" rel="self" type="application/rss+xml" />'."\n";
+	$xml .= "<title>".esc_html($data['title'])."</title>\n";
+	$xml .= "<description>".esc_html($data['description'])."</description>\n";
+	$xml .= "<link>".esc_html($data['link'])."</link>\n";
 	$xml .= "<language>en-us</language>\n";
-	$xml .= "<copyright>Copyright ".date('Y').", ".$data['sitename']."</copyright>\n";
+	$xml .= "<copyright>".esc_html("Copyright ".date('Y').", ".$data['sitename'])."</copyright>\n";
 	
 	if (is_array($data['items'])) {
 		foreach($data['items'] as $item) {
-			$xml .= "<item>\n";
+			$xml .= "\t<item>\n";
 			foreach ($item as $key => $value) {
 				$attrs = '';
 				if (is_array($value)) {
@@ -1600,13 +1600,14 @@ function shopp_rss ($data) {
 					$value = '';
 					foreach ($data as $name => $content) {
 						if (empty($name)) $value = $content;
-						else $attrs .= ' '.$name.'="'.$content.'"';
+						else $attrs .= ' '.$name.'="'.esc_attr($content).'"';
 					}
 				}
-				if (!empty($value)) $xml .= "<$key$attrs>$value</$key>\n";
-				else $xml .= "<$key$attrs />\n";
+				if (strpos($value,'<![CDATA[') === false) $value = esc_html($value);
+				if (!empty($value)) $xml .= "\t\t<$key$attrs>$value</$key>\n";
+				else $xml .= "\t\t<$key$attrs />\n";
 			}
-			$xml .= "</item>\n";
+			$xml .= "\t</item>\n";
 		}
 	}
 	

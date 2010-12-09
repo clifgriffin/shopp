@@ -702,14 +702,19 @@ class Category extends DatabaseObject {
 		global $Shopp;
 		$db = DB::get();
 		
+		add_filter('shopp_rss_description','wptexturize');
+		add_filter('shopp_rss_description','convert_chars');
+		add_filter('shopp_rss_description','make_clickable',9);
+		add_filter('shopp_rss_description','force_balance_tags', 25);
+		add_filter('shopp_rss_description','convert_smilies',20);
+		add_filter('shopp_rss_description','wpautop',30);
+		
 		do_action_ref_array('shopp_category_rss',array(&$this));
 		
 		if (!$this->products) $this->load_products(array('limit'=>500,'load'=>array('images','prices')));
-		
-		$link = SHOPP_PRETTYURLS?shoppurl('feed'):shoppurl(array('shopp_lookup'=>'products_rss'));
 
 		$rss = array('title' => get_bloginfo('name')." ".$this->name,
-			 			'link' => $link,
+			 			'link' => $this->tag('feed-url'),
 					 	'description' => $this->description,
 						'sitename' => get_bloginfo('name').' ('.get_bloginfo('url').')',
 						'xmlns' => array('shopp'=>'http://shopplugin.net/xmlns',
@@ -723,15 +728,16 @@ class Category extends DatabaseObject {
 		foreach ($this->products as $product) {
 			$item = array();
 			$item['guid'] = $product->tag('url','return=1');
-			$item['title'] = esc_attr($product->name);
+			$item['title'] = $product->name;
 			$item['link'] =  $product->tag('url','return=1');
 			
 			// Item Description
 			$item['description'] = '';
+
 			$Image = current($product->images);
 			if (!empty($Image)) {
 				$item['description'] .= '<a href="'.$item['link'].'" title="'.$product->name.'">';
-				$item['description'] .= '<img src="'.add_query_string($Image->resizing(96,96,0),shoppurl($Image->id,'images')).'" alt="'.$product->name.'" width="96" height="96" style="float: left; margin: 0 10px 0 0;" />';
+				$item['description'] .= '<img src="'.esc_attr(add_query_string($Image->resizing(96,96,0),shoppurl($Image->id,'images'))).'" alt="'.$product->name.'" width="96" height="96" style="float: left; margin: 0 10px 0 0;" />';
 				$item['description'] .= '</a>';
 			}
 			
@@ -747,17 +753,19 @@ class Category extends DatabaseObject {
 			}
 			$item['description'] .= "<p><big><strong>$pricing</strong></big></p>";
 			
-			$item['description'] .= wpautop(esc_attr($product->description));
+			$item['description'] .= $product->description;
 			$item['description'] =
-			 	'<![CDATA['.apply_filters('shopp_rss_description',$item['description'],$product).']]>';
+			 	'<![CDATA['.apply_filters('shopp_rss_description',($item['description']),$product).']]>';
 			
 			// Google Base Namespace
-			if($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
+			if ($Image) $item['g:image_link'] = add_query_string($Image->resizing(400,400,0),shoppurl($Image->id,'images'));
 			$item['g:condition'] = "new";
-			$item['g:price'] = floatvalue($product->onsale?
-				$product->min['saleprice']:
-				$product->min['price']);
-			$item['g:price_type'] = "starting";
+
+			$price = floatvalue($product->onsale?$product->min['saleprice']:$product->min['price']);
+			if (!empty($price))	{
+				$item['g:price'] = $price;
+				$item['g:price_type'] = "starting";
+			}
 			
 			$item = apply_filters('shopp_rss_item',$item,$product);
 			$items[] = $item;
@@ -818,6 +826,11 @@ class Category extends DatabaseObject {
 			case "url": 
 				return shoppurl(SHOPP_PRETTYURLS?'category/'.$this->uri:array('shopp_category'=>$this->id));
 				break;
+			case "feed-url":
+			case "feedurl":
+				$uri = 'category/'.$this->uri;
+				if ($this->slug == "tag") $uri = $this->slug.'/'.$this->tag;
+				return shoppurl(SHOPP_PRETTYURLS?"$uri/feed":array('shopp_category'=>urldecode($this->uri),'src'=>'category_rss'));
 			case "id": return $this->id; break;
 			case "parent": return $this->parent; break;
 			case "name": return $this->name; break;
