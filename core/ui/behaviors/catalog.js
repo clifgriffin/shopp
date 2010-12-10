@@ -67,7 +67,7 @@ function ProductOptionsMenus (target,settings) {
 				if (price) {
 					if (price.p && settings.pricetags) {
 						p = new Number(price.p);
-						tax = new Number(p*settings.taxrate);
+						tax = price.tax?new Number(p*settings.taxrate):0;
 						pricetag = "  ("+asMoney(new Number(p+tax))+")";
 					}
 					optiontext = option.attr('text');
