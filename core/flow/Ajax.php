@@ -635,19 +635,26 @@ class AjaxFlow {
 		exit();
 	}
 
-	
+	/**
+	 * @deprecated Discontinuing Use
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return void Description...
+	 **/
 	function checkout_button () {
 		global $Shopp;
-		if (isset($_POST['paymethod'])) {
+		if (isset($_POST['paymethod']) && isset($Shopp->Order->payoptions[ $_POST['paymethod'] ])) {
 			$Shopp->Order->paymethod = $paymethod = $_POST['paymethod'];
 			$Shopp->Order->_paymethod_selected = true;
 			// User selected one of the payment options
-			list($module,$label) = explode(":",$paymethod);
-			if (isset($Shopp->Gateways->active[$module])) {
+			$processor = $Shopp->Order->payoptions[$this->paymethod]->processor;
+			if (isset($Shopp->Gateways->active[$processor])) {
 				remove_all_filters('shopp_init_checkout');
 				remove_all_filters('shopp_checkout_submit_button');
 				remove_all_filters('shopp_process_checkout');
-				$Gateway = $Shopp->Order->processor($module);
+				$Gateway = $Shopp->Order->processor($processor);
 				$Gateway->actions();
 				do_action('shopp_init_checkout');
 			} 

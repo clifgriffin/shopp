@@ -61,6 +61,8 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
 
 		add_action('shopp_txn_update',array(&$this,'updates'));
+		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
+		
 	}
 	
 	function actions () {
@@ -72,12 +74,10 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		add_action('shopp_process_order',array(&$this,'process'));
 	}
 	
-	function init () {
-		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
-	}
 	
 	function submit ($tag=false,$options=array(),$attrs=array()) {
-		return '<input type="image" name="process" src="'.$this->buttonurl.'" id="checkout-button" '.inputattrs($options,$attrs).' />';
+		$tag[] = '<input type="image" name="process" src="'.$this->buttonurl.'" class="checkout-button" '.inputattrs($options,$attrs).' />';
+		return $tag;
 	}
 	
 	function url ($url=false) {

@@ -382,6 +382,17 @@ function validate (form) {
 
 	});
 
+	form.shopp_validate = false;
+	$(form).trigger('shopp_validate',[error]);
+	if (form.shopp_validate) {
+		error = form.shopp_validate;
+		if (error[1] && $('#'+error[1].id).length > 0) {
+			$('#'+error[1].id).addClass('error');
+			$('label[for=' + error[1].id + ']').addClass('error');
+		}
+		
+	}
+
 	if (error.length > 0) {
 		error[1].focus();
 		if ($(form).hasClass('validation-alerts')) alert(error[0]);

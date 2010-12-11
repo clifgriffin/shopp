@@ -58,6 +58,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		if (isset($_GET['gctest'])) $this->order('');
 		
 		add_action('shopp_txn_update',array(&$this,'notifications'));
+		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 		add_action('get_header',array(&$this,'analytics'));
 	}
 	
@@ -73,7 +74,6 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	
 	function init () {
 		add_filter('shopp_shipping_hasestimates',array(&$this, 'hasestimates_filter'));
-		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 	}
 		
 	function hasestimates_filter () { return false; }
@@ -88,7 +88,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$buttonuri .= '&variant=text';
 		$buttonuri .= '&loc='.$this->settings['location'];
 		
-		return '<input type="image" name="process" src="'.$buttonuri.'" id="checkout-button" '.inputattrs($options,$attrs).' />';
+		$tag[$this->settings['label']] = '<input type="image" name="process" src="'.$buttonuri.'" '.inputattrs($options,$attrs).' />';
+		return $tag;
+
 	}
 	
 	function process () {
