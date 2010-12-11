@@ -55,12 +55,12 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
 		
 		add_action('shopp_txn_update',array(&$this,'updates'));
+		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 		
 	}
 	
 	function actions () {
 		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
-		add_action('shopp_init_checkout',array(&$this,'init'));
 
 		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
 		add_action('shopp_remote_payment',array(&$this,'returned'));
@@ -72,17 +72,14 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		add_filter('shopp_confirm_form',array(&$this,'form'));
 	}
 	
-	function init () {
-		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
-	}
-		
 	function checkout () {
 		$this->Order->Billing->cardtype = "PayPal";
 		$this->Order->confirm = true;
 	}
 
 	function submit ($tag=false,$options=array(),$attrs=array()) {
-		return '<input type="image" name="process" src="'.$this->buttonurl.'" id="checkout-button" '.inputattrs($options,$attrs).' />';
+		$tag[$this->settings['label']] = '<input type="image" name="process" src="'.$this->buttonurl.'" '.inputattrs($options,$attrs).' />';
+		return $tag;
 	}
 	
 	function url ($url=false) {

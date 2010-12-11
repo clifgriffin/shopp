@@ -236,6 +236,25 @@ abstract class GatewayFramework {
 		}
 		return $query;
 	}
+
+	/**
+	 * Provides the accepted PayCards for the gateway
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * 
+	 * @return array
+	 **/
+	function cards () {
+		$accepted = empty($this->settings['cards'])?array_keys($this->cards):$this->settings['cards'];
+		$pcs = Lookup::paycards();
+		$cards = array();
+		foreach ($accepted as $card) {
+			$card = strtolower($card);
+			if (isset($pcs[$card])) $cards[$card] = $pcs[$card];
+		}
+		return $cards;
+	}
 	
 	/**
 	 * Loads the enabled payment cards
