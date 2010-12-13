@@ -99,7 +99,9 @@ class Order {
 		add_action('shopp_update_destination',array(&$this->Shipping,'destination'));
 		add_action('shopp_create_purchase',array(&$this,'purchase'));
 		add_action('shopp_order_notifications',array(&$this,'notify'));
-		add_action('shopp_order_success',array(&$this,'success'));
+		
+		// Schedule for the absolute last action to be run
+		add_action('shopp_order_success',array(&$this,'success'),100);
 		
 		add_action('shopp_reset_session',array(&$this->Cart,'clear'));
 
