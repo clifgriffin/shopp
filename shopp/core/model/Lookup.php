@@ -321,9 +321,9 @@ class Lookup {
 		$_['disc'] = new PayCard("Discover Card",'Disc','/^6(011|22[0-9]|4[4-9]0|5[0-9][0-9])\d{12}$/',3);
 		$_['jcb'] = new PayCard('JCB','JCB','/^35(2[8-9]|[3-8][0-9])\d{12}$/',3);
 		$_['lasr'] = new PayCard('Laser','Lasr','/^(6304|6706|6709|6771)\d{12,15}$/');
-		$_['maes'] = new PayCard('Maestro','Maes','/^(5018|5020|5038|6304|6759|6761|6763)\d{8,15}$/',3,array('start'=>5,'issue'=>3));
+		$_['maes'] = new PayCard('Maestro','Maes','/^(311|367|[5-6][0-9][0-9][0-9])\d{8,15}$/',3, array('start'=>5,'issue'=>3));
 		$_['mc'] = new PayCard('MasterCard','MC','/^5[1-5]\d{14}$/',3);
-		$_['solo'] = new PayCard('Solo','Solo','/^(6334|6767)(\d{12}|\d{14,15})$/',3,array('start'=>5,'issue'=>3));
+		$_['solo'] = new PayCard('Solo','Solo','/^(6334|6767)(\d{12}|\d{14,15})$/',3, array('start'=>5,'issue'=>3));
 		$_['visa'] = new PayCard('Visa','Visa','/^4\d{15}$/',3);
 		return apply_filters('shopp_payment_cards',$_);
 	}
