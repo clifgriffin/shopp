@@ -1281,8 +1281,8 @@ class Order {
 				$cards = array();
 				$valid = array();
 				// Collect valid card inputs for all gateways
-				foreach ($Shopp->Gateways->active as $Gateway) {
-					foreach ($Gateway->settings['cards'] as $card) {
+				foreach ($this->payoptions as $payoption) {
+					foreach ($payoption->cards as $card) {
 						$PayCard = Lookup::paycard($card);
 						if (empty($PayCard->inputs)) continue;
 						$cards[] = $PayCard->symbol;
@@ -1295,14 +1295,8 @@ class Order {
 
 				if (!empty($_POST['billing']['xcsc'][$input]))
 					$options['value'] = $_POST['billing']['xcsc'][$input];
-				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
+				$options['class'] = isset($options['class']) ? $options['class'].' paycard xcsc':'paycard xcsc';
 				
-				$script = "$('#billing-cardtype').change(function () {";
-				$script .= "var cards = ".json_encode($cards).";";
-				$script .= "if ($.inArray($(this).val(),cards) != -1) $('#billing-xcsc-$input').attr('disabled',false);";
-				$script .= "else $('#billing-xcsc-$input').attr('disabled',true);";
-				$script .= "}).change();";				
-				add_storefrontjs($script);
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				$string = '<input type="text" name="billing[xcsc]['.$input.']" id="billing-xcsc-'.$input.'" '.inputattrs($options).' />';
 				return $string;

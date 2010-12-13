@@ -365,7 +365,7 @@ function validate (form) {
 			error = new Array(sjss.INVALID_EMAIL,field);
 			
 		if (chars = input.attr('class').match(new RegExp('min(\\d+)'))) {
-			if (input.val().length < chars[1])
+			if (input.val() != "" && input.val().length < chars[1])
 				error = new Array(sjss.MIN_LENGTH.replace(/%s/,input.attr(title)).replace(/%d/,chars[1]),field);
 		}
 		
