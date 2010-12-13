@@ -42,7 +42,7 @@ class Purchased extends DatabaseObject {
 			
 			// Add a meta record to the purchased line item for an addon download
 			if (!empty($Addon->download)) {
-				$hash = array($this->name,$Addon->label,$this->purchase,$this->product,$this->price,$i);
+				$hash = array($this->name,$Addon->label,$this->purchase,$this->product,$this->price,$i,time());
 				$Addon->dkey = sha1(join('',$hash));
 
 				$Download = new MetaObject(array(
