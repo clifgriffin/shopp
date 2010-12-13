@@ -1496,6 +1496,7 @@ class Order {
 						$output .= '</ul></span>';
 						break;
 					case "hidden":
+						if (!isset($options['value']) && $default) $options['value'] = $this->paymethod;
 						$output .= '<input type="hidden" name="paymethod"'.inputattrs($options).' />';
 						break;
 					default:
