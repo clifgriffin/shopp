@@ -25,6 +25,20 @@ jQuery(document).ready(function () {
 	
 	// Validate paycard number on entry
 	billCard.change(validcard);
+	
+	// Enable/disable the extra card security fields when needed
+	billCardtype.change(function () {
+		var cardtype = billCardtype.val(),
+			card = paycards[cardtype.toLowerCase()];
+
+		$('.paycard.xcsc').attr('disabled',true).addClass('disabled');
+		if (!card || !card['inputs']) return;
+			
+		$.each(card['inputs'],function (input,inputlen) {
+			$('#billing-xcsc-'+input).attr('disabled',false).removeClass('disabled');
+		});
+		
+	}).change();
 
 	if (localeMenu.children().size() == 0) localeFields.hide();
 	
@@ -125,7 +139,7 @@ jQuery(document).ready(function () {
 				pc = paycards[s];
 				options += '<option value="'+pc.symbol+'">'+pc.name+'</option>';				
 			});
-			billCardtype.html(options);
+			billCardtype.html(options).change();
 
 		} else {
 			checkoutForm.find('.payment,.paycard').hide();
@@ -143,7 +157,7 @@ jQuery(document).ready(function () {
 			var pc = paycards[s],pattern = new RegExp(pc.pattern.substr(1,pc.pattern.length-2));
 			if (v.match(pattern)) {
 				card = pc.symbol;
-				return billCardtype.val(card);
+				return billCardtype.val(card).change();
 			}
 		});
 		if (!luhn(v)) return false;
