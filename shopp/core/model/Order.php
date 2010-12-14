@@ -195,7 +195,8 @@ class Order {
 			$gateway_label = is_array($Gateway->settings['label'])?
 				$Gateway->settings['label']:array($Gateway->settings['label']);
 
-			if (!$this->paymethod) $this->paymethod = $gateway_label[0];
+			if (!$this->paymethod) 
+				$this->paymethod = sanitize_title_with_dashes($gateway_label[0]);
 
 			return $Shopp->Gateways->active[$this->processor];
 		}
@@ -233,6 +234,18 @@ class Order {
 		global $Shopp;
 		if (!isset($_POST['checkout'])) return;
 		if ($_POST['checkout'] != "process") return;
+		
+		$_POST = stripslashes_deep($_POST);
+
+		// Determine gateway to use
+		if (isset($_POST['paymethod'])) {
+			if (isset($this->payoptions[$_POST['paymethod']])) {
+				$this->paymethod = $_POST['paymethod'];
+				$processor = $this->payoptions[$this->paymethod]->processor;
+				$Gateway = $this->processor($processor);
+				$this->_paymethod_selected = true;
+			} else new ShoppError(__("The payment method you selected is no longer available. Please choose another.","Shopp"));
+		} else $Gateway = $this->processor(); // Auto-select one
 
 		$cc = $this->ccpayment();
 		
@@ -253,8 +266,8 @@ class Order {
 		// Remove invlalid characters from the phone number
 		$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
 
-		if (isset($_POST['data'])) $this->data = stripslashes_deep($_POST['data']);
-		if (isset($_POST['info'])) $this->Customer->info = stripslashes_deep($_POST['info']);
+		if (isset($_POST['data'])) $this->data = $_POST['data'];
+		if (isset($_POST['info'])) $this->Customer->info = $_POST['info'];
 
 		if (empty($this->Customer))
 			$this->Customer = new Customer();
@@ -263,6 +276,8 @@ class Order {
 
 		if (empty($this->Billing))
 			$this->Billing = new Billing();
+		// Default the cardtype to the payment method label selected
+		$this->Billing->cardtype = $this->payoptions[$this->paymethod]->label;
 		$this->Billing->updates($_POST['billing']);
 		
 		// Special case for updating/tracking billing locale
@@ -297,21 +312,6 @@ class Order {
 					array("_datatypes","_table","_key","_lists","id","created","modified"));
 		} else $this->Shipping = new Shipping(); // Use blank shipping for non-Shipped orders
 		
-		
-		// Determine gateway to use
-		if (isset($_POST['paymethod'])) {
-			if (isset($this->payoptions[$_POST['paymethod']])) {
-				$this->paymethod = $_POST['paymethod'];
-				$processor = $this->payoptions[$this->paymethod]->processor;
-				$Gateway = $this->processor($processor);
-				$this->_paymethod_selected = true;
-			} else new ShoppError(__("The payment method you selected is no longer available. Please choose another.","Shopp"));
-		} else $Gateway = $this->processor(); // Auto-select one
-
-		if (!$cc) {
-			$this->Billing->cardtype = $this->paymethod->label;
-		}
-
 		$estimated = $this->Cart->Totals->total;
 		
 		$this->Cart->changed(true);
