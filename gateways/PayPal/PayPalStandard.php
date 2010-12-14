@@ -214,8 +214,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") return false;
 
 		$target = false;
-		// Need a session id ($_POST['custom']) to locate pre-order data and a transaction id for the order
-		if (isset($_POST['custom']) && isset($_POST['txn_id']) && !isset($_POST['parent_txn_id']))
+		if (isset($_POST['txn_id']) && !isset($_POST['parent_txn_id']))
 			$target = $_POST['txn_id'];
 		elseif (!empty($_POST['parent_txn_id'])) $target = $_POST['parent_txn_id'];
 		
@@ -245,7 +244,12 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			do_action('shopp_order_notifications');
 			die('PayPal IPN update processed.');
 		}
-			
+		
+		if (!isset($_POST['custom'])) {
+			new ShoppError(sprintf(__('No reference to the pending order was available in the PayPal IPN message. Purchase creation failed for transaction %s.'),$target),'paypalstandard_process_neworder',SHOPP_TRXN_ERR);
+			die('PayPal IPN failed.');
+		}
+		
 		$Shopp->Order->unhook();
 		$Shopp->resession($_POST['custom']);
 		$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
