@@ -265,8 +265,10 @@ class Login {
 				array("_datatypes","_table","_key","_lists","id","created","modified"));
 		
 		// WordPress account integration used, customer has no wp user
-		if ($this->accounts == "wordpress" && empty($this->Customer->wpuser))
-			$this->Customer->create_wpuser();
+		if ("wordpress" == $this->accounts && empty($this->Customer->wpuser)) {
+			if ( $wpuser = get_current_user_id() ) $this->Customer->wpuser = $wpuser; // use logged in WordPress account
+			else $this->Customer->create_wpuser(); // not logged in, create new account
+		}
 		
 		if ($Errors->exist(SHOPP_ERR)) return false;
 
