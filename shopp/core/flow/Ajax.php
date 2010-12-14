@@ -98,6 +98,8 @@ class AjaxFlow {
 		check_admin_referer('wp_ajax_shopp_category_menu');
 		require_once(SHOPP_FLOW_PATH."/Categorize.php");
 		$Categorize = new Categorize();
+		echo '<option value="">Select a category&hellip;</option>';
+		echo '<option value="catalog-products">All Products</option>';
 		echo $Categorize->menu();
 		exit();
 	}
