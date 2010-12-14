@@ -1514,16 +1514,17 @@ class Order {
 				$defaults = array(
 					'labelpos' => 'after',
 					'labeling' => false,
-					'return' => false,
 					'type' => 'hidden',
 				);
 				$options = array_merge($defaults,$options);
 				extract($options);
 				
-				if ($return == "data") return $payoption;
+				if (value_is_true($return)) return $payoption;
 				
 				$types = array('radio','checkbox','hidden');
 				if (!in_array($type,$types)) $type = 'hidden';
+				
+				if (empty($options['value'])) $options['value'] = key($this->payoptions);
 			
 				$_ = array();
 				if (value_is_true($labeling))
