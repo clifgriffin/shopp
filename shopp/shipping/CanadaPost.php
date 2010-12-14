@@ -175,11 +175,13 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 	}
 	
 	function delivery ($date) {
-		list($year,$month,$day) = sscanf($date,"%4d-%2d-%2d");
-		$days = ceil((mktime(9,0,0,$month,$day,$year) - mktime())/86400);
-		return $days.'d';
+		if (preg_match('/\d{4}-\d{2}-\d{2}/', $date)) {
+			list($year,$month,$day) = sscanf($date,"%4d-%2d-%2d");
+			$days = ceil((mktime(9,0,0,$month,$day,$year) - mktime())/86400);
+			return $days.'d';
+        } else return "14d-28d";
 	}
-	
+ 	
 	function build ($items,$description,$postcode,$country) {
 		
 		$_ = array('<?xml version="1.0"?>');
@@ -210,8 +212,7 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 		
 			$_[] = '</ratesAndServicesRequest>';
 		$_[] = '</eparcel>';
-		// echo "<pre>"; print_r($_); echo "</pre>";
-		// exit();
+
 		return "XMLRequest=".(join("\n",apply_filters('shopp_capost_request',$_)));
 	}  
 
@@ -223,41 +224,8 @@ class CanadaPost extends ShippingFramework implements ShippingModule {
 	}   
 	     	
 	function send ($data) {
-		// echo "<pre>";
-		// ob_start();
-		// print_r($data);
-		// $content = ob_get_contents();
-		// ob_end_clean();
-		// echo htmlentities($data);
-		// echo "</pre>";
-		// exit();
-		
 		$response = parent::send($data,$this->url,'30000');
 		return new xmlQuery($response);
-		   
-		// global $Shopp;
-		// $connection = curl_init();
-		// curl_setopt($connection,CURLOPT_URL,$this->url.":30000");
-		// curl_setopt($connection, CURLOPT_PORT, 30000); // alternative port not used in some libcurl builds
-		// curl_setopt($connection, CURLOPT_FOLLOWLOCATION,0); 
-		// curl_setopt($connection, CURLOPT_POST, 1); 
-		// curl_setopt($connection, CURLOPT_POSTFIELDS, $this->request); 
-		// curl_setopt($connection, CURLOPT_TIMEOUT, 10); 
-		// curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		// curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
-		// curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
-		// $buffer = curl_exec($connection);
-		// if ($error = curl_error($connection)) 
-		// 	new ShoppError($error,'cpc_connection',SHOPP_COMM_ERR);
-		// curl_close($connection);
-
-		// echo '<!-- '. $buffer. ' -->';		
-		// echo "<pre>REQUEST\n".htmlentities($this->request).BR.BR."</pre>";
-		// echo "<pre>RESPONSE\n".htmlentities($buffer)."</pre>";
-		// exit();
-
-		// $Response = new XMLdata($buffer);
-		// return $Response;
 	}
 	
 	function logo () {
