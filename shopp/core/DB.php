@@ -169,8 +169,10 @@ class DB {
 		if (SHOPP_QUERY_DEBUG && class_exists('ShoppError')) new ShoppError($query,'shopp_query_debug',SHOPP_DEBUG_ERR);
 
 		// Error handling
-		if ($this->dbh && $error = mysql_error($this->dbh)) 
+		if ($this->dbh && $error = mysql_error($this->dbh)) {
 			if (class_exists('ShoppError')) new ShoppError(sprintf(__('Query failed: %s - DB Query: %s','Shopp'),$error, str_replace("\n","",$query)),'shopp_query_error',SHOPP_DB_ERR);
+			return false;
+		}
 				
 		// Results handling
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i",$query) ) {
