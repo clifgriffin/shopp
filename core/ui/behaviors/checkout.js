@@ -152,6 +152,7 @@ jQuery(document).ready(function () {
 		var v = billCard.val().replace(/\D/g,''),
 			paymethod = paymethods.filter(':checked').val()?paymethods.filter(':checked').val():paymethods.val(),
 			card = false;
+		if (billCard.attr('disabled')) return true;
 		if (!paymethod || !pm_cards[paymethod]) return false;
 		$.each(pm_cards[paymethod], function (a,s) {
 			var pc = paycards[s],pattern = new RegExp(pc.pattern.substr(1,pc.pattern.length-2));
