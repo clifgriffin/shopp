@@ -25,8 +25,9 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 	// Internals
 	var $baseop = array();
-	var $currencies = array("USD", "AUD", "CAD", "CHF", "CZK", "DKK", "EUR", "GBP", 
-							"HKD", "HUF", "JPY", "NOK", "NZD", "PLN", "SEK", "SGD");
+	var $currencies = array("USD", "AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF",
+	 						"ILS", "JPY", "MYR", "MXN", "NOK", "NZD", "PHP", "PLN", "GBP",
+	 						"SGD", "SEK", "CHF", "TWD", "THB");
 	var $locales = array("AT" => "de_DE", "AU" => "en_AU", "BE" => "en_US", "CA" => "en_US",
 							"CH" => "de_DE", "CN" => "zh_CN", "DE" => "de_DE", "ES" => "es_ES",
 							"FR" => "fr_FR", "GB" => "en_GB", "GF" => "fr_FR", "GI" => "en_US",
