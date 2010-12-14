@@ -27,8 +27,9 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 	// Internals
 	var $baseop = array();
-	var $currencies = array("USD", "AUD", "CAD", "CHF", "CZK", "DKK", "EUR", "GBP", 
-							"HKD", "HUF", "JPY", "NOK", "NZD", "PLN", "SEK", "SGD");
+	var $currencies = array("USD", "AUD", "BRL", "CAD", "CZK", "DKK", "EUR", "HKD", "HUF",
+	 						"ILS", "JPY", "MYR", "MXN", "NOK", "NZD", "PHP", "PLN", "GBP",
+	 						"SGD", "SEK", "CHF", "TWD", "THB");
 	var $locales = array("AT" => "de_DE", "AU" => "en_AU", "BE" => "en_US", "CA" => "en_US",
 							"CH" => "de_DE", "CN" => "zh_CN", "DE" => "de_DE", "ES" => "es_ES",
 							"FR" => "fr_FR", "GB" => "en_GB", "GF" => "fr_FR", "GI" => "en_US",
@@ -67,7 +68,6 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 	
 	function actions () {
 		add_action('shopp_checkout_processed', array(&$this,'checkout'));
-		add_action('shopp_init_checkout',array(&$this,'init'));
 
 		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
 		add_action('shopp_remote_payment',array(&$this,'returned'));
@@ -76,7 +76,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 	
 	
 	function submit ($tag=false,$options=array(),$attrs=array()) {
-		$tag[] = '<input type="image" name="process" src="'.$this->buttonurl.'" class="checkout-button" '.inputattrs($options,$attrs).' />';
+		$tag[$this->settings['label']] = '<input type="image" name="process" src="'.$this->buttonurl.'" class="checkout-button" '.inputattrs($options,$attrs).' />';
 		return $tag;
 	}
 	
@@ -190,7 +190,9 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$_ = array_merge($_,$this->purchase());
 		
 		$message = $this->encode($_);
+		print_r($message); exit();
 		$response = $this->send($message);
+		print_r($response); exit();
 		
 		if ($response->ack == "Failure") {
 			$message = join("; ",(array) $response->longmessage);
