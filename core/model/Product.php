@@ -1233,7 +1233,7 @@ class Product extends DatabaseObject {
 					'pricetags' => 'show',
 					'before_menu' => '',
 					'after_menu' => '',
-					'taxes' => false,
+					'taxes' => null,
 					'label' => 'on',
 					'required' => __('You must select the options for this item before you can add it to your shopping cart.','Shopp')
 					);
@@ -1249,7 +1249,7 @@ class Product extends DatabaseObject {
 					foreach ($this->prices as $pricetag) {
 						if ($pricetag->context != "variation") continue;
 						
-						$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax);
+						$taxrate = shopp_taxrate(value_is_true($taxes),$pricetag->tax);
 						$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
 						$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
 
@@ -1269,7 +1269,8 @@ class Product extends DatabaseObject {
 					$baseop = $Shopp->Settings->get('base_operations');
 					$precision = $baseop['currency']['format']['precision'];
 
-					$taxrate = shopp_taxrate($options['taxes'],true,$this);
+					$taxrate = shopp_taxrate(value_is_true($taxes),true,$this);
+					
 					$pricekeys = array();
 					foreach ($this->pricekey as $key => $pricing) {
 						$filter = array('');
