@@ -201,6 +201,7 @@ abstract class GatewayFramework {
 	 **/
 	function encode ($data) {
 		$query = "";
+		$data = stripslashes_deep($data);
 		foreach($data as $key => $value) {
 			if (is_array($value)) {
 				foreach($value as $item) {
