@@ -437,6 +437,7 @@ class Categorize extends AdminController {
 			$disabled = ($current && $category->id == $current)?' disabled="disabled"':'';
 			$options .= '<option value="'.$category->id.'"'.$selected.$disabled.'>'.$padding.esc_html($category->name).'</option>';
 		}
+		
 		return $options;
 	}
 
