@@ -190,9 +190,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$_ = array_merge($_,$this->purchase());
 		
 		$message = $this->encode($_);
-		print_r($message); exit();
 		$response = $this->send($message);
-		print_r($response); exit();
 		
 		if ($response->ack == "Failure") {
 			$message = join("; ",(array) $response->longmessage);
@@ -295,6 +293,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$target = isset($_POST['parent_txn_id'])?$_POST['parent_txn_id']:$_POST['txn_id'];
 
 		$Purchase = new Purchase($target,'txnid');
+		if ($Purchase->txn != $target || empty($Purchase->id)) return; // No Purchase found to update
 		if ($Purchase->gateway != $this->module) return; // Not a PPE order, don't touch it
 		
 		// Validate the order notification

@@ -213,36 +213,28 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		// Cancel processing if this is not a PayPal Website Payments Standard/Express Checkout IPN
 		if (isset($_POST['txn_type']) && $_POST['txn_type'] != "cart") return false;
 
+		$target = false;
+		// Need a session id ($_POST['custom']) to locate pre-order data and a transaction id for the order
+		if (isset($_POST['custom']) && isset($_POST['txn_id']) && !isset($_POST['parent_txn_id']))
+			$target = $_POST['txn_id'];
+		elseif (!empty($_POST['parent_txn_id'])) $target = $_POST['parent_txn_id'];
+		
+		// No transaction target: invalid IPN, silently ignore the message
+		if (!$target) return;
+
 		// Validate the order notification
 		if ($this->verifyipn() != "VERIFIED") {
 			new ShoppError(sprintf(__('An unverifiable order update notification was received from PayPal for transaction: %s. Possible fraudulent notification!  The order will not be updated.  IPN message: %s','Shopp'),$target,_object_r($_POST)),'paypal_txn_verification',SHOPP_TRXN_ERR);
 			return false;
 		} 
 		
-		// Need an session id to locate pre-order data and a transaction id for the order
-		if (isset($_POST['custom']) && isset($_POST['txn_id']) && !isset($_POST['parent_txn_id'])) {
-			
-			$Shopp->Order->unhook();
-			$Shopp->resession($_POST['custom']);
-			$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
-			$this->actions();
-			
-			$Shopping = &$Shopp->Shopping;
-			// Couldn't load the session data
-			if ($Shopping->session != $_POST['custom'])
-				return new ShoppError("Session could not be loaded: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
-			else new ShoppError("PayPal successfully loaded session: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
+		$Purchase = new Purchase($target,'txnid');
 
-			
-			return do_action('shopp_process_order'); // New order
-		} elseif (!empty($_POST['parent_txn_id'])) {
-
-			$target = $_POST['parent_txn_id'];
-
-			$Purchase = new Purchase($target,'txnid');
-			if ($Purchase->txnid != $target) return;
-
-			$txnstatus = $this->status[$_POST['payment_status']];
+		// Purchase record exists, update it
+		if ($Purchase->txnid == $target && !empty($Purchase->id)) {
+			if ($Purchase->gateway != $this->module) return; // Not a PPS order, don't touch it
+			$txnstatus = isset($this->status[$_POST['payment_status']])?
+				$this->status[$_POST['payment_status']]:$_POST['payment_status'];
 
 			$Purchase->txnstatus = $txnstatus;
 			$Purchase->save();
@@ -251,10 +243,22 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			$Shopp->Order->purchase = $Purchase->id;
 
 			do_action('shopp_order_notifications');
-
+			die('PayPal IPN update processed.');
 		}
+			
+		$Shopp->Order->unhook();
+		$Shopp->resession($_POST['custom']);
+		$Shopp->Order = ShoppingObject::__new('Order',$Shopp->Order);
+		$this->actions();
+		
+		$Shopping = &$Shopp->Shopping;
+		// Couldn't load the session data
+		if ($Shopping->session != $_POST['custom'])
+			return new ShoppError("Session could not be loaded: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
+		else new ShoppError("PayPal successfully loaded session: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
 
-		die('PayPal IPN update processed.');
+		do_action('shopp_process_order'); // New order
+		die('PayPal IPN processed.');
 	}
 	
 	function verifyipn () {
