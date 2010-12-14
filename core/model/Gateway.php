@@ -247,7 +247,9 @@ abstract class GatewayFramework {
 	 * @return array
 	 **/
 	function cards () {
-		$accepted = empty($this->settings['cards'])?array_keys($this->cards):$this->settings['cards'];
+		$accepted = array();
+		if (!empty($this->settings['cards'])) $accepted = $this->settings['cards'];
+		if (empty($accepted) && is_array($this->cards)) $accepted = array_keys($this->cards);
 		$pcs = Lookup::paycards();
 		$cards = array();
 		foreach ($accepted as $card) {
