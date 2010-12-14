@@ -50,8 +50,10 @@ do_action('admin_init');
 	}
 	
 	function insertTag () {
-		
-		var tag = '[category id="'+jQuery('#category-menu').val()+'"]';
+		var tag = '';
+		if (parseInt(jQuery('#category-menu').val()) > 0)
+			tag = '[category id="'+jQuery('#category-menu').val()+'"]';
+		else if (jQuery('#category-menu').val() != '') tag = '[category slug="catalog"]';
 
 		var productid = jQuery('#product-menu').val();
 		if (productid != 0) tag = '[product id="'+productid+'"]';
