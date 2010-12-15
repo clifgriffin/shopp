@@ -136,7 +136,7 @@ abstract class GatewayFramework {
 	 * @return boolean
 	 **/
 	function myorder () {
-		return ($this->Order->processor == $this->module);
+		return ($this->Order->processor() == $this->module);
 	}
 	
 	/**
