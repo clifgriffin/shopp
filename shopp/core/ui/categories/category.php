@@ -75,8 +75,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>',
 	dimensionsRequired = <?php echo $Shopp->Shipping->dimensions?'true':'false'; ?>,
 	storage = '<?php echo $this->Settings->get('product_storage'); ?>',
-	productspath = '<?php chdir(WP_CONTENT_DIR); /* realpath needs for relative paths */
-							echo trailingslashit(sanitize_path(realpath($this->Settings->get('products_path')))); ?>',
+	productspath = '<?php /* realpath needed for relative paths */ chdir(WP_CONTENT_DIR); echo addslashes(trailingslashit(sanitize_path(realpath($this->Settings->get('products_path'))))); ?>',
 	imageupload_debug = <?php echo (defined('SHOPP_IMAGEUPLOAD_DEBUG') && SHOPP_IMAGEUPLOAD_DEBUG)?'true':'false'; ?>,
 	fileupload_debug = <?php echo (defined('SHOPP_FILEUPLOAD_DEBUG') && SHOPP_FILEUPLOAD_DEBUG)?'true':'false'; ?>,
 
