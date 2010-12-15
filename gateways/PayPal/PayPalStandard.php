@@ -56,8 +56,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
 		
 		add_action('shopp_txn_update',array(&$this,'updates'));
+		add_filter('shopp_tag_cart_paypal',array(&$this,'sendcart'),10,2);
 		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
-		
 	}
 	
 	function actions () {
@@ -87,6 +87,18 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	function url ($url=false) {
 		if ($this->settings['testmode'] == "on") return $this->sandboxurl;
 		else return $this->checkouturl;
+	}
+	
+	function sendcart ($result,$options,$Object) {
+
+		$submit = $this->submit(array());
+		$submit = $submit[$this->settings['label']];
+
+		$result .= '<form action="'.$this->url().'" method="POST">';
+		$result .= $this->form('');
+		$result .= $submit;
+		$result .= '</form>';
+		return $result;
 	}
 	
 	/**
