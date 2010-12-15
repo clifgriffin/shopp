@@ -103,7 +103,8 @@ class Order {
 		// Schedule for the absolute last action to be run
 		add_action('shopp_order_success',array(&$this,'success'),100);
 		
-		add_action('shopp_reset_session',array(&$this->Cart,'clear'));
+		add_action('shopp_resession',array(&$this->Cart,'clear'));
+		add_action('shopp_resession',array(&$this,'clear'));
 
 		// Collect available payment methods from active gateways
 		// Schedule for after the gateways are loaded  (priority 20)
@@ -136,7 +137,6 @@ class Order {
 	function __destruct() {
 		$this->unhook();
 	}
-	
 
 	/**
 	 * Builds a list of payment method options
@@ -811,6 +811,22 @@ class Order {
 	function security () {
 		global $Shopp;
 		return $Shopp->Gateways->secure;
+	}
+	
+	/**
+	 * Clear order-specific information to prepare for a new order
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1.5
+	 * 
+	 * @return void
+	 **/
+	function clear () {
+		$this->data = array();			// Custom order data
+		$this->txnid = false;			// The transaction ID reported by the gateway
+		$this->gateway = false;			// Proper name of the gateway used to process the order
+		$this->txnstatus = "PENDING";	// Status of the payment
+		$this->confirmed = false;		// Confirmed by the shopper for processing
 	}
 	
 	/**
