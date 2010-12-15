@@ -60,6 +60,8 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		add_action('shopp_txn_update',array(&$this,'notifications'));
 		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 		add_action('get_header',array(&$this,'analytics'));
+		add_filter('shopp_tag_cart_google',array($this,'cartcheckout'));
+		
 	}
 	
 	function analytics() {  do_action('shopp_google_checkout_analytics'); }
@@ -91,6 +93,18 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$tag[$this->settings['label']] = '<input type="image" name="process" src="'.$buttonuri.'" '.inputattrs($options,$attrs).' />';
 		return $tag;
 
+	}
+	
+	function cartcheckout ($result) {
+		$message = $this->buildCheckoutRequest();
+		$Response = $this->send($message,$this->urls['checkout']);
+		$redirect = $Response->content('redirect-url');
+
+		if ($redirect) {
+			$tag = $this->submit();
+			$form = '<form id="checkout" action="'.$redirect.'" method="post" >'.$tag[$this->settings['label']].'</form>';
+			return $form;
+		} else return "";
 	}
 	
 	function process () {
