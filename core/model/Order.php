@@ -105,10 +105,13 @@ class Order {
 		
 		add_action('shopp_reset_session',array(&$this->Cart,'clear'));
 
-		// Run after active gateways are loaded
+		// Collect available payment methods from active gateways
+		// Schedule for after the gateways are loaded  (priority 20)
 		add_action('shopp_init',array(&$this,'payoptions'),20);
-		
-		if (empty($this->processor)) add_action('shopp_init',array(&$this,'processor'),20);
+
+		// Select the default gateway processor
+		// Schedule for after the gateways are loaded (priority 20)
+		add_action('shopp_init',array(&$this,'processor'),20);
 
 		// Set locking timeout for concurrency operation protection
 		if (!defined('SHOPP_TXNLOCK_TIMEOUT')) define('SHOPP_TXNLOCK_TIMEOUT',10);
@@ -175,6 +178,22 @@ class Order {
 	function processor ($processor=false) {
 		global $Shopp;
 
+		// Set the gateway processor from a selected payment method
+		if (isset($_POST['paymethod'])) {
+			$processor = false;
+			if (isset($this->payoptions[$_POST['paymethod']])) {
+				$this->paymethod = $_POST['paymethod'];
+				$processor = $this->payoptions[$this->paymethod]->processor;
+				if (in_array($processor,$Shopp->Gateways->activated)) {
+					$this->processor = $processor;
+					$this->_paymethod_selected = true;
+					 // Prevent unnecessary reprocessing on subsequent calls
+					unset($_POST['paymethod']);
+				} 
+			}
+			if (!$processor) new ShoppError(__("The payment method you selected is no longer available. Please choose another.","Shopp"));
+		}
+
 		if (count($Shopp->Gateways->activated) == 1 // base case
 			|| (!$this->processor && !$processor && count($Shopp->Gateways->activated) > 1)) { 
 			// Automatically select the first active gateway
@@ -198,10 +217,9 @@ class Order {
 			if (!$this->paymethod) 
 				$this->paymethod = sanitize_title_with_dashes($gateway_label[0]);
 
-			return $Shopp->Gateways->active[$this->processor];
 		}
-
-		return false;
+		
+		return $this->processor;
 	}
 	
 	/**
@@ -236,16 +254,6 @@ class Order {
 		if ($_POST['checkout'] != "process") return;
 		
 		$_POST = stripslashes_deep($_POST);
-
-		// Determine gateway to use
-		if (isset($_POST['paymethod'])) {
-			if (isset($this->payoptions[$_POST['paymethod']])) {
-				$this->paymethod = $_POST['paymethod'];
-				$processor = $this->payoptions[$this->paymethod]->processor;
-				$Gateway = $this->processor($processor);
-				$this->_paymethod_selected = true;
-			} else new ShoppError(__("The payment method you selected is no longer available. Please choose another.","Shopp"));
-		} else $Gateway = $this->processor(); // Auto-select one
 
 		$cc = $this->ccpayment();
 		
