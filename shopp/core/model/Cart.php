@@ -833,7 +833,7 @@ class Cart {
 		}
 		
 		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
-		else return '<span class="shopp_cart_'.$property.'">'.money($result).'</span>';
+		if (!empty($result)) return '<span class="shopp_cart_'.$property.'">'.money($result).'</span>';
 		
 		return false;
 	}
