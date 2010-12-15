@@ -416,7 +416,8 @@ class Shopp {
 		$this->Shopping->handling(); // Workaround for PHP 5.2 bug #32330
 		session_start();
 
-		do_action('shopp_reset_session');
+		do_action('shopp_reset_session'); // Deprecated
+		do_action('shopp_resession');
 		return true;
 
 	}
