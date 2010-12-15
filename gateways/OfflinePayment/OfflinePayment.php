@@ -31,7 +31,9 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		$this->setup('instructions');
 		
 		// Reset the index count to shift setting indices so we don't break the JS environment
-		$this->settings['label'] = array_merge(array(),$this->settings['label']);
+		if (isset($this->settings['label']) && is_array($this->settings['label']))
+			$this->settings['label'] = array_merge(array(),$this->settings['label']);
+		if (isset($this->settings['instructions']) && is_array($this->settings['instructions']))
 		$this->settings['instructions'] = array_merge(array(),$this->settings['instructions']);
 
 		// Scan and build a runtime index of active payment methods
