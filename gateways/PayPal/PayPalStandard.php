@@ -4,7 +4,7 @@
  * @class PayPalStandard
  *
  * @author Jonathan Davis
- * @version 1.0.5
+ * @version 1.1.5
  * @copyright Ingenesis Limited, 27 May, 2009
  * @package Shopp
  * @since 1.1
@@ -64,7 +64,8 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
 
 		add_action('shopp_init_confirmation',array(&$this,'confirmation'));
-		add_action('shopp_remote_payment',array(&$this,'returned'));
+		add_action('shopp_remote_payment',array(&$this,'payment'));
+		add_action('shopp_init_checkout',array(&$this,'returned'));
 		add_action('shopp_process_order',array(&$this,'process'));
 	}
 	
@@ -163,11 +164,26 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		return $form.$this->format($_);
 	}
 	
-	function returned () {
+	function payment () {
 		if (isset($_REQUEST['tx'])) { // PDT
 			// Run order processing
 			do_action('shopp_process_order'); 
 		}
+	}
+	
+	function returned () {
+		$process = get_query_var('shopp_proc');
+		if ($process != 'thanks') return;
+		global $Shopp;
+
+		// Session has already been reset after a processed transaction
+		if (!empty($Shopp->Purchase->id)) return;
+		
+		// Customer returned from PayPal
+		// but no transaction processed yet
+		// reset the session to preserve original order
+		$Shopp->resession();
+		
 	}
 	
 	function process () {
@@ -179,16 +195,18 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			if (SHOPP_DEBUG) new ShoppError('Processing transaction from an IPN message.',false,SHOPP_DEBUG_ERR);
 			$txnid = $_POST['txn_id'];
 			$txnstatus = $this->status[$_POST['payment_status']];
-		} elseif (isset($_REQUEST['tx']) && $this->settings['pdtverify'] == "on") { // PDT order processing
+		} elseif (isset($_REQUEST['tx'])) { // PDT order processing
 			if (SHOPP_DEBUG) new ShoppError('Processing PDT packet: '._object_r($_GET),false,SHOPP_DEBUG_ERR);
 		
 			$txnid = $_GET['tx'];
 			$txnstatus = $this->status[$_GET['st']];
 		
-			$pdtstatus = $this->verifypdt();
-			if (!$pdtstatus) {
-				new ShoppError(__('The transaction was not verified by PayPal.','Shopp'),false,SHOPP_DEBUG_ERR);
-				shopp_redirect(shoppurl(false,'checkout',false));
+			if ($this->settings['pdtverify'] == "on") {
+				$pdtstatus = $this->verifypdt();
+				if (!$pdtstatus) {
+					new ShoppError(__('The transaction was not verified by PayPal.','Shopp'),false,SHOPP_DEBUG_ERR);
+					shopp_redirect(shoppurl(false,'checkout',false));
+				}
 			}
 		
 			$Purchase = new Purchase($txnid,'txnid');
