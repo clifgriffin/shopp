@@ -578,8 +578,18 @@ class Shopp {
 		curl_setopt($connection, CURLOPT_TIMEOUT, 20); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1); 
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION, 1); 
-		
+		 		
 		$result = curl_exec($connection); 
+		if ($error = curl_error($connection)) {
+			if(SHOPP_DEBUG) new ShoppError("cURL error [".curl_errno($connection)."]: ".$error,false,SHOPP_DEBUG_ERR);
+			
+			// Attempt HTTP connection
+			curl_setopt($connection, CURLOPT_URL, str_replace('https://', 'http://', SHOPP_HOME)."?".$query); 
+			$result = curl_exec($connection);
+			if ($error = curl_error($connection)) {
+				if(SHOPP_DEBUG) new ShoppError("cURL error [".curl_errno($connection)."]: ".$error,false,SHOPP_DEBUG_ERR);
+			}
+		}
 		
 		curl_close ($connection);
 		
