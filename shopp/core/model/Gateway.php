@@ -176,15 +176,23 @@ abstract class GatewayFramework {
 		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_FAILONERROR, 1);
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+
+		if (!(ini_get("safe_mode") || ini_get("open_basedir")))
+			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
 		
+		if (defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT) {
+	        curl_setopt($connection, CURLOPT_HTTPPROXYTUNNEL, 1);
+	        curl_setopt($connection, CURLOPT_PROXY, SHOPP_PROXY_SERVER);
+			if (defined('SHOPP_PROXY_USERPWD')) 
+			    curl_setopt($connection, CURLOPT_PROXYUSERPWD, SHOPP_PROXY_USERPWD);
+	    }
+	    
 		// Added to handle SSL timeout issues
 		// Maybe if a timeout occurs the connection should be
 		// re-attempted with this option for better overall performance
 		curl_setopt($connection, CURLOPT_FRESH_CONNECT, 1);
 		
 
-		if (!(ini_get("safe_mode") || ini_get("open_basedir")))
-			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
 
 		foreach ($curlopts as $key => $value) {
 			curl_setopt($connection, $key, $value);
