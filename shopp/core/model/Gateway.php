@@ -168,8 +168,7 @@ abstract class GatewayFramework {
 		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
 		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0);
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
-		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
+		curl_setopt($connection, CURLOPT_VERBOSE, 1);
 		curl_setopt($connection, CURLOPT_POST, 1); 
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $data); 
 		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_GATEWAY_TIMEOUT); 
@@ -177,6 +176,16 @@ abstract class GatewayFramework {
 		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
 		curl_setopt($connection, CURLOPT_FAILONERROR, 1);
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+		
+		// Added to handle SSL timeout issues
+		// Maybe if a timeout occurs the connection should be
+		// re-attempted with this option for better overall performance
+		curl_setopt($connection, CURLOPT_FRESH_CONNECT, 1);
+		
+
+		if (!(ini_get("safe_mode") || ini_get("open_basedir")))
+			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
+
 		foreach ($curlopts as $key => $value) {
 			curl_setopt($connection, $key, $value);
 		}
