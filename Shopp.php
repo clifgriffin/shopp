@@ -579,8 +579,13 @@ class Shopp {
 		curl_setopt($connection, CURLOPT_TIMEOUT, 20); 
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1); 
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION, 1); 
-		 		
-		$result = curl_exec($connection); 
+		
+		// Added to handle SSL timeout issues
+		// Maybe if a timeout occurs the connection should be
+		// re-attempted with this option for better overall performance
+		curl_setopt($connection, CURLOPT_FRESH_CONNECT, 1);
+				
+		$result = curl_exec($connection);
 		if ($error = curl_error($connection)) {
 			if(SHOPP_DEBUG) new ShoppError("cURL error [".curl_errno($connection)."]: ".$error,false,SHOPP_DEBUG_ERR);
 			
