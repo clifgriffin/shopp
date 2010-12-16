@@ -275,7 +275,12 @@ class Warehouse extends AdminController {
 			$productcount = $db->query("SELECT FOUND_ROWS() as total");
 			
 		} else {
-			$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,pd.variations,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories,if(pt.options=0,IF(pt.tax='off',pt.price,pt.price+(pt.price*$taxrate)),-1) AS mainprice,IF(MAX(pt.tax)='off',MAX(pt.price),MAX(pt.price+(pt.price*$taxrate))) AS maxprice,IF(MAX(pt.tax)='off',MIN(pt.price),MIN(pt.price+(pt.price*$taxrate))) AS minprice,IF(pt.inventory='on','on','off') AS inventory,ROUND(SUM(pt.stock)/IF(clog.id IS NULL,1,count(DISTINCT clog.id)),0) AS stock";
+			$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,pd.variations,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories,
+			IF(pt.options=0,IF(pt.tax='off',pt.price,pt.price+(pt.price*$taxrate)),-1) AS mainprice, 
+			IF(MAX(pt.tax)='off',MAX(pt.price),MAX(pt.price+(pt.price*$taxrate))) AS maxprice, 
+			IF(MAX(pt.tax)='off',MIN(pt.price),MIN(pt.price+(pt.price*$taxrate))) AS minprice, 
+			IF(pt.inventory='on','on','off') AS inventory, 
+			ROUND(SUM(pt.stock)/IF(clog.id IS NULL,1,count(DISTINCT clog.id)),0) AS stock";
 			if ($workflow) $columns = "pd.id";
 
 			// Load the products
