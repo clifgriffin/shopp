@@ -1,6 +1,8 @@
 <?php
 global $Shopp;
 function billto_meta_box ($Purchase) {
+	$Settings =& ShoppSettings();
+	$targets = $Settings->get('target_markets');
 ?>
 	<address><big><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></big><br />
 	<?php echo esc_html($Purchase->address); ?><br />
@@ -19,6 +21,8 @@ function billto_meta_box ($Purchase) {
 add_meta_box('order-billing', __('Billing Address','Shopp').$Admin->boxhelp('order-manager-billing'), 'billto_meta_box', 'toplevel_page_shopp-orders', 'side', 'core');
 
 function shipto_meta_box ($Purchase) {
+	$Settings =& ShoppSettings();
+	$targets = $Settings->get('target_markets');
 ?>
 		<address><big><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></big><br />
 		<?php echo !empty($Purchase->company)?esc_html($Purchase->company)."<br />":""; ?>
