@@ -61,6 +61,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 		add_action('get_header',array(&$this,'analytics'));
 		add_filter('shopp_tag_cart_google',array($this,'cartcheckout'));
+		add_action('parse_request',array(&$this,'intercept_cartcheckout'));
 		
 	}
 	
@@ -96,15 +97,18 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	}
 	
 	function cartcheckout ($result) {
-		$message = $this->buildCheckoutRequest();
-		$Response = $this->send($message,$this->urls['checkout']);
-		$redirect = $Response->content('redirect-url');
-
-		if ($redirect) {
-			$tag = $this->submit();
-			$form = '<form id="checkout" action="'.$redirect.'" method="post" >'.$tag[$this->settings['label']].'</form>';
-			return $form;
-		} else return "";
+		$tag = $this->submit();
+		$form = '<form id="checkout" action="'.shoppurl(false,'checkout').'" method="post" >'
+		.'<input type="hidden" name="google_cartcheckout" value="true" />'
+		.shopp('checkout','function','return=1')
+		.$tag[$this->settings['label']].'</form>';
+		return $form;
+	}
+	
+	function intercept_cartcheckout () {
+		if (!empty($_POST['google_cartcheckout'])) {
+			$this->process();
+		}
 	}
 	
 	function process () {
