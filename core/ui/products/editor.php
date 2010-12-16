@@ -151,6 +151,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	IMAGE_DETAILS_TEXT = "<?php _e('Image Details','Shopp'); ?>",
 	IMAGE_DETAILS_TITLE_LABEL = "<?php _e('Title','Shopp'); ?>",
 	IMAGE_DETAILS_ALT_LABEL = "<?php _e('Alt','Shopp'); ?>",
+	IMAGE_DETAILS_DONE = "<?php _e('Done','Shopp'); ?>",
 	IMAGE_DETAILS_CROP_LABEL = "<?php _e('Cropped images','Shopp'); ?>";
 /* ]]> */
 </script>

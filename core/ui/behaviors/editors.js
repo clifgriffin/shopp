@@ -818,13 +818,18 @@ function ImageUploads (id,type) {
 							'<p class="clear">'+IMAGE_DETAILS_CROP_LABEL+': '+
 							'<select name="cropimage"><option></option></select></p>'+
 							'<div class="cropui"></div><br class="clear"/>'+
-						'</div></div>'),
+							'</div>'+
+						'<input type="button" class="button-primary alignright" value="'+IMAGE_DETAILS_DONE+'" />'+	
+						'</div>'),
 				thumb = ui.find('img').attr('src',srcthumb.attr('src')),
 				titlefield = ui.find('input[name=title]').val(srctitle.val()).change(function () {
 					srctitle.val(titlefield.val());
 				}),
 				altfield = ui.find('input[name=alt]').val(srcalt.val()).change(function () {
 					srcalt.val(altfield.val());
+				}),
+				doneButton = ui.find('input[type=button]').click(function () {
+					$.fn.colorbox.close();
 				}),
 				cropping = ui.find('div.cropping').hide(),
 				croptool = ui.find('div.cropui'),
