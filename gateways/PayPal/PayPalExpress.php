@@ -62,6 +62,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		if (!isset($this->settings['label'])) $this->settings['label'] = "PayPal";
 
 		add_action('shopp_txn_update',array(&$this,'updates'));
+		add_filter('shopp_tag_cart_paypal-express',array(&$this,'cartcheckout'),10,2);
 		add_filter('shopp_checkout_submit_button',array(&$this,'submit'),10,3);
 		
 	}
@@ -97,6 +98,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 		if ($_POST['checkout'] == "confirmed") do_action('shopp_confirm_order');
 	}
+	
 	
 	function notax ($rate) { return false; }
 	
@@ -166,10 +168,8 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		
 		return $_;
 	}
-		
-	function checkout () {
-		global $Shopp;
-		
+	
+	function request () {
 		$_ = $this->headers();
 
 		// Options
@@ -190,7 +190,12 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$_ = array_merge($_,$this->purchase());
 		
 		$message = $this->encode($_);
-		$response = $this->send($message);
+		return $this->send($message);
+	}
+		
+	function checkout () {
+
+		$response = $this->request();
 		
 		if ($response->ack == "Failure") {
 			$message = join("; ",(array) $response->longmessage);
@@ -205,15 +210,42 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		return false;	
 	}
 	
+	function cartcheckout () {
+		$Order = $this->Order;
+		
+		$response = $this->request();
+		
+		if ($response->ack == "Failure") {
+			$message = join("; ",(array) $response->longmessage);
+			if (empty($message)) $message = __('The transaction failed for an unknown reason. PayPal did not provide any indication of why it failed.','Shopp');
+			new ShoppError($message,'paypal_express_transacton_error',SHOPP_TRXN_ERR,array('codes'=>join('; ',$response->errorcode)));
+			return false;
+		}
+		
+		if (!empty($response) && isset($response->token))
+		
+		$action = add_query_arg('token',$response->token,$this->url());
+		
+		$submit = $this->submit(array());
+		$submit = $submit[$this->settings['label']];
+
+		$result = '<form action="'.esc_attr($action).'" method="POST">';
+		$result .= $submit;
+		$result .= '</form>';
+		return $result;
+	}
+	
+	
 	function confirmation () {
-		global $Shopp;
-		if (!isset($this->Order->token) 
-			|| !isset($this->Order->payerid)) return false;
+		$Settings =& ShoppSettings();
+		$Order = $this->Order;
+		
+		if (!isset($Order->token) || !isset($Order->payerid)) return false;
 		
 		$_ = $this->headers();
 
    		$_['METHOD'] 				= "GetExpressCheckoutDetails";
-		$_['TOKEN'] 				= $this->Order->token;
+		$_['TOKEN'] 				= $Order->token;
 
 		// Get transaction details
 		$response = false;
@@ -222,25 +254,41 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 			$response = $this->send($message);
 		}
 	
-		$Customer = $this->Order->Customer;
-		if (empty($Customer->firstname)) $Customer->firstname = $response->firstname;
-		if (empty($Customer->lastname)) $Customer->lastname = $response->lastname;
-		if (empty($Customer->email)) $Customer->email = $response->email;
-		if (empty($Customer->phone)) $Customer->phone = $response->phonenum;
+		$fields = array(
+			'Customer' => array(
+				'firstname' => 'firstname',
+				'lastname' => 'lastname',
+				'email' => 'email',
+				'phone' => 'phonenum',
+				'company' => 'payerbusiness'
+			),
+			'Shipping' => array(
+				'address' => 'shiptostreet',
+				'xaddress' => 'shiptostreet2',
+				'city' => 'shiptocity',
+				'state' => 'shiptostate',
+				'country' => 'shiptocountrycode',
+				'postcode' => 'shiptozip'
+			)
+		);
 		
-		$Shipping = &$this->Order->Shipping;		
-		if (empty($Shipping->address)) $Shipping->address = $response->shiptostreet;
-		if (empty($Shipping->xaddress)) $Shipping->xaddress = $response->shiptostreet2;
-		if (empty($Shipping->city)) $Shipping->city = $response->shiptocity;
-		if (empty($Shipping->state)) $Shipping->state = $response->shiptostate;
-		if (empty($Shipping->country)) $Shipping->country = $response->shiptocountrycode;
-		if (empty($Shipping->postcode)) $Shipping->postcode = $response->shiptozip;
 		
-		if (empty($Shipping->state) && empty($Shipping->country))
+		foreach ($fields as $Object => $set) {
+			$changes = false;
+			foreach ($set as $shopp => $paypal) {
+				if (isset($response->{$paypal}) && (empty($Order->{$Object}->{$shopp}) || $changes)) {
+					$Order->{$Object}->{$shopp} = $response->{$paypal};
+					// If any of the fieldset is changed, change the rest to keep data sets in sync
+					$changes = true;
+				}
+			}
+		}
+		
+		if (empty($Order->Shipping->state) && empty($Order->Shipping->country))
 			add_filter('shopp_cart_taxrate',array(&$this,'notax'));
 					
-		$targets = $Shopp->Settings->get('target_markets');
-		if (!in_array($this->Order->Billing->country,array_keys($targets))) {
+		$targets = $Settings->get('target_markets');
+		if (!in_array($Order->Billing->country,array_keys($targets))) {
 			new ShoppError(__('The location you are purchasing from is outside of our market regions. This transaction cannot be processed.','Shopp'),'paypalexpress_market',SHOPP_TRXN_ERR);
 			shopp_redirect(shoppurl(false,'checkout'));
 		}
@@ -248,7 +296,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 	} 
 	
 	function process () {
-		global $Shopp;
+
 		if (!isset($this->Order->token) || 
 			!isset($this->Order->payerid)) return false;
 				
@@ -281,7 +329,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$txnid = $response->transactionid;
 		$txnstatus = $this->status[$response->paymentstatus];
 		
-		$Shopp->Order->transaction($txnid,$txnstatus);
+		$this->Order->transaction($txnid,$txnstatus);
 	}
 	
 	function updates () {
@@ -326,8 +374,7 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 		$response = $this->send($message);
 		if (SHOPP_DEBUG) new ShoppError('PayPal IPN notification verfication response received: '.$response,'paypal_standard',SHOPP_DEBUG_ERR);
 		return $response;
-	}
-	
+	}	
 			
 	function send ($message) {
 		$response = parent::send($message,$this->api());
