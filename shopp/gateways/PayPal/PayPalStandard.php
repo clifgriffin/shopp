@@ -89,13 +89,14 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		else return $this->checkouturl;
 	}
 	
-	function sendcart ($result,$options,$Object) {
-
+	function sendcart () {
+		$Order = $this->Order;
+		
 		$submit = $this->submit(array());
 		$submit = $submit[$this->settings['label']];
 
-		$result .= '<form action="'.$this->url().'" method="POST">';
-		$result .= $this->form('');
+		$result = '<form action="'.$this->url().'" method="POST">';
+		$result .= $this->form('',array('address_override'=>0));
 		$result .= $submit;
 		$result .= '</form>';
 		return $result;
@@ -104,7 +105,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 	/**
 	 * form()
 	 * Builds a hidden form to submit to PayPal when confirming the order for processing */
-	function form ($form) {
+	function form ($form,$options=array()) {
 		global $Shopp;
 		$Order = $this->Order;
 		
@@ -172,15 +173,24 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		$_['tax_cart']					= number_format($Order->Cart->Totals->tax,$this->precision);
 		$_['handling_cart']				= number_format($Order->Cart->Totals->shipping,$this->precision);
 		$_['amount']					= number_format($Order->Cart->Totals->total,$this->precision);
+
+		$_ = array_merge($_,$options);
 		
 		return $form.$this->format($_);
 	}
 	
 	function payment () {
 		if (isset($_REQUEST['tx'])) { // PDT
+			add_filter('shopp_valid_order',array(&$this,'pdtpassthru'));
 			// Run order processing
 			do_action('shopp_process_order'); 
 		}
+	}
+	
+	function pdtpassthru ($valid) {
+		if ($valid) return $valid;
+		// If the order data validation fails, passthru to the thank you page
+		shopp_redirect( shoppurl(false,'thanks') );
 	}
 	
 	function returned () {
@@ -291,10 +301,45 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			return new ShoppError("Session could not be loaded: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
 		else new ShoppError("PayPal successfully loaded session: {$_POST['custom']}",false,SHOPP_DEBUG_ERR);
 
+		$this->ipnupdates();
+
 		do_action('shopp_process_order'); // New order
 		die('PayPal IPN processed.');
 	}
-	
+
+	function ipnupdates () {
+		$Order = $this->Order;
+		$data = stripslashes_deep($_POST);
+		
+		$fields = array(
+			'Customer' => array(
+				'firstname' => 'first_name',
+				'lastname' => 'last_name',
+				'email' => 'payer_email',
+				'phone' => 'contact_phone',
+				'company' => 'payer_business_name'
+			),
+			'Shipping' => array(
+				'address' => 'address_street',
+				'city' => 'address_city',
+				'state' => 'address_state',
+				'country' => 'address_country_code',
+				'postcode' => 'address_zip'
+			)
+		);
+		
+		foreach ($fields as $Object => $set) {
+			$changes = false;
+			foreach ($set as $shopp => $paypal) {
+				if (isset($data[$paypal]) && (empty($Order->{$Object}->{$shopp}) || $changes)) {
+					$Order->{$Object}->{$shopp} = $data[$paypal];
+					// If any of the fieldset is changed, change the rest to keep data sets in sync
+					$changes = true;
+				}
+			}
+		}
+	}
+
 	function verifyipn () {
 		if ($this->settings['testmode'] == "on") return "VERIFIED";
 		$_ = array();
