@@ -1097,21 +1097,27 @@ class Order {
 					$country = $this->Shipping->country;
 				if (!array_key_exists($country,$countries)) $country = key($countries);
 
-				if (empty($options['type'])) $options['type'] = "menu";
 				$regions = Lookup::country_zones();
 				$states = $regions[$country];
-				if (is_array($states) && $options['type'] == "menu") {
-					$label = (!empty($options['label']))?$options['label']:'';
-					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'>';
-					$output .= '<option value="" selected="selected">'.$label.'</option>';
-				 	$output .= menuoptions($states,$options['selected'],true);
-					$output .= '</select>';
-				} else if ($options['type'] == "menu") {
-					$options['disabled'] = 'disabled';
-					$options['class'] = ($options['class']?" ":null).'unavailable'; 
-					$label = (!empty($options['label']))?$options['label']:'';
-					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'></select>';				
-				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
+
+				if (isset($options['options']) && empty($states)) $states = explode(",",$options['options']);
+				
+				if (isset($options['type']) && $options['type'] == "text")
+					return '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
+
+				$classname = isset($options['class'])?$options['class']:'';
+				$label = (!empty($options['label']))?$options['label']:'';
+				$options['disabled'] = 'disabled';
+				$options['class'] = ($classname?"$classname ":"").'disabled hidden';
+
+				$output .= '<select name="shipping[state]" id="shipping-state-menu" '.inputattrs($options,$select_attrs).'>';
+				$output .= '<option value="">'.$label.'</option>';
+				if (is_array($states) && !empty($states)) $output .= menuoptions($states,$options['selected'],true);
+				$output .= '</select>';
+				unset($options['disabled']);
+				$options['class'] = $classname;
+				$output .= '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
+
 				return $output;
 				break;
 			case "shipping-postcode":
@@ -1179,7 +1185,6 @@ class Order {
 					$options['selected'] = $this->Billing->state;
 					$options['value'] = $this->Billing->state;
 				}
-				if (empty($options['type'])) $options['type'] = "menu";
 				
 				$output = false;
 				$country = $base['country'];
@@ -1189,18 +1194,25 @@ class Order {
 
 				$regions = Lookup::country_zones();
 				$states = $regions[$country];
-				if (is_array($states) && $options['type'] == "menu") {
-					$label = (!empty($options['label']))?$options['label']:'';
-					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'>';
-					$output .= '<option value="" selected="selected">'.$label.'</option>';
-				 	$output .= menuoptions($states,$options['selected'],true);
-					$output .= '</select>';
-				} else if ($options['type'] == "menu") {
-					$options['disabled'] = 'disabled';
-					$options['class'] = ($options['class']?" ":null).'unavailable';
-					$label = (!empty($options['label']))?$options['label']:'';
-					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'></select>';					
-				} else $output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
+
+				if (isset($options['options']) && empty($states)) $states = explode(",",$options['options']);
+				
+				if (isset($options['type']) && $options['type'] == "text")
+					return '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
+
+				$classname = isset($options['class'])?$options['class']:'';
+				$label = (!empty($options['label']))?$options['label']:'';
+				$options['disabled'] = 'disabled';
+				$options['class'] = ($classname?"$classname ":"").'disabled hidden';
+
+				$output .= '<select name="billing[state]" id="billing-state-menu" '.inputattrs($options,$select_attrs).'>';
+				$output .= '<option value="">'.$label.'</option>';
+				if (is_array($states) && !empty($states)) $output .= menuoptions($states,$options['selected'],true);
+				$output .= '</select>';
+				unset($options['disabled']);
+				$options['class'] = $classname;
+				$output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
+				
 				return $output;
 				break;
 			case "billing-postcode":

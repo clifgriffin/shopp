@@ -41,14 +41,21 @@ jQuery(document).ready(function () {
 	}).change();
 
 	if (localeMenu.children().size() == 0) localeFields.hide();
+
+	$.fn.setDisabled = function (setting) {
+		var $this = $(this);
+		if (setting) $this.attr('disabled',true).addClass('disabled');
+		else return $this.attr('disabled',false).removeClass('disabled');
+		return $this;
+	}
 	
 	sameship.change(function() {
 		if (sameship.attr('checked')) {
 			billFields.removeClass('half');
-			shipFields.hide().find('.required').attr('disabled',true);
+			shipFields.hide().find('.required').setDisabled(true);
 		} else {
 			billFields.addClass('half');
-			shipFields.show().find('input, select').not('#shipping-xaddress, .unavailable').attr('disabled',false);
+			shipFields.show().find('.disabled').setDisabled(false);
 		}
 	}).change()
 		.click(function () { $(this).change(); }); // For IE compatibility
@@ -76,18 +83,32 @@ jQuery(document).ready(function () {
 		else return false;
 	});
 
-	$('#billing-country,#shipping-country').change(function() {
+	$('#billing-country,#shipping-country').change(function (e,init) {
 		var prefix = $(this).attr('id').split('-')[0],
 			country = $(this).val();
 			state = $('#'+prefix+'-state'),
-			options = ['<option value=""></option>'];
-		if (state.attr('type') == "text") return true;
-		if (!regions[country]) return state.empty().attr('disabled',true).addClass('unavailable disabled');;
-		$.each(regions[country], function (value,label) {
-			options += '<option value="'+value+'">'+label+'</option>';
-		});
-		state.empty().append(options).attr('disabled',false).removeClass('unavailable disabled');
-	});
+			menu = $('#'+prefix+'-state-menu'),
+			options = '<option value=""></option>';
+
+		if (menu.length == 0) return true;
+
+		if (regions[country] || (init && menu.find('option').length > 1)) {
+			state.setDisabled(true).hide();
+			if (regions[country]) {
+				$.each(regions[country], function (value,label) {
+					options += '<option value="'+value+'">'+label+'</option>';
+				});
+				if (!init) menu.empty().append(options).setDisabled(false).show().focus();
+			}
+			menu.setDisabled(false).show();
+		} else {
+			menu.empty().setDisabled(true).hide();
+			state.val('').setDisabled(false).show();
+			if (!init) state.focus();
+		}
+		
+		
+	}).trigger('change',[true]);
 	
 	$('#billing-country, #billing-state').change(function () {
 		var country = $('#billing-country').val(),
