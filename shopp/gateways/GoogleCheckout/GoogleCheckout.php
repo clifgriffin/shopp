@@ -242,8 +242,8 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 						apply_filters('shopp_googlecheckout_download_delivery_markup', '<email-delivery>true</email-delivery>').
 						'</digital-content>';
 					// Shipped Item
-					if ($Item->weight > 0) $_[] = '<item-weight unit="LB" value="'.number_format(convert_unit($Item->weight,'lb'),2).'" />';
-					$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Item->unitprice,$this->precision).'</unit-price>';
+					if ($Item->weight > 0) $_[] = '<item-weight unit="LB" value="'.number_format(convert_unit($Item->weight,'lb'),2,'.','').'" />';
+					$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Item->unitprice,$this->precision,'.','').'</unit-price>';
 					$_[] = '<quantity>'.$Item->quantity.'</quantity>';
 					if (!empty($Item->sku)) $_[] = '<merchant-item-id>'.$Item->sku.'</merchant-item-id>';
 					$_[] = '<merchant-private-item-data>';
@@ -274,7 +274,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 					$_[] = '<item>';
 						$_[] = '<item-name>Discounts</item-name>';
 						$_[] = '<item-description>'.join(", ",$discounts).'</item-description>';
-						$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Cart->Totals->discount*-1,$this->precision).'</unit-price>';
+						$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Cart->Totals->discount*-1,$this->precision,'.','').'</unit-price>';
 						$_[] = '<quantity>1</quantity>';
 					$_[] = '</item>';
 				}
@@ -325,7 +325,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 								$label = __('Shipping Option','Shopp').' '.($i+1);
 								if (!empty($shipping->name)) $label = $shipping->name;
 								$_[] = '<merchant-calculated-shipping name="'.$label.'">';
-								$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping->amount,$this->precision).'</price>';
+								$_[] = '<price currency="'.$this->settings['currency'].'">'.number_format($shipping->amount,$this->precision,'.','').'</price>';
 								$_[] = '<shipping-restrictions>';
 								$_[] = '<allowed-areas><world-area /></allowed-areas>';
 								$_[] = '</shipping-restrictions>';
@@ -518,7 +518,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		if (strtoupper($state) == "CHARGEABLE" && $this->settings['autocharge'] == "on") {
 			$_ = array('<?xml version="1.0" encoding="UTF-8"?>'."\n");
 			$_[] = '<charge-order xmlns="'.$this->urls['schema'].'" google-order-number="'.$id.'">';
-			$_[] = '<amount currency="'.$this->settings['currency'].'">'.number_format($Purchase->total,$this->precision).'</amount>';
+			$_[] = '<amount currency="'.$this->settings['currency'].'">'.number_format($Purchase->total,$this->precision,'.','').'</amount>';
 			$_[] = '</charge-order>';
 			$Response = $this->send(join("\n",$_), $this->urls['order']);
 			if ($Response->tag('error')) {
@@ -600,7 +600,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		foreach ($options as $option) {
 			if (in_array($option->name, $methods)) {	
 				$_[] = '<result shipping-name="'.$option->name.'" address-id="'.$address_id.'">';
-				$_[] = '<shipping-rate currency="'.$this->settings['currency'].'">'.number_format($option->amount,$this->precision).'</shipping-rate>';
+				$_[] = '<shipping-rate currency="'.$this->settings['currency'].'">'.number_format($option->amount,$this->precision,'.','').'</shipping-rate>';
 				$_[] = '<shippable>true</shippable>';
 				$_[] = '</result>';
 			}
