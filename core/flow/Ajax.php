@@ -37,8 +37,8 @@ class AjaxFlow {
 		add_action('wp_ajax_shopp_upload_file',array(&$this,'upload_file'));
 
 		// Actions that can happen on front end whether or not logged in
-		add_action('wp_ajax_nopriv_shopp_shipping_costs',array(&$this,'shipping_costs'));
-		add_action('wp_ajax_shopp_shipping_costs',array(&$this,'shipping_costs'));
+		add_action('wp_ajax_nopriv_shopp_ship_costs',array(&$this,'shipping_costs'));
+		add_action('wp_ajax_shopp_ship_costs',array(&$this,'shipping_costs'));
 		add_action('wp_ajax_nopriv_shopp_checkout_submit_button', array(&$this, 'checkout_button'));
 		add_action('wp_ajax_shopp_checkout_submit_button', array(&$this, 'checkout_button'));
 
