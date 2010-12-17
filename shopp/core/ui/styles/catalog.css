@@ -24,7 +24,9 @@
 #shopp-cart ul li:before,
 #shopp-cart #shopp-cart-ajax ul li:before,
 #shopp ul.breadcrumb li:before { content: ""; }
-#shopp div.hidden { display: none; }
+#shopp div.hidden,
+#shopp select.hidden { display: none; }
+
 
 #shopp .frame { border: none; }
 
