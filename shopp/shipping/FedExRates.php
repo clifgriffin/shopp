@@ -428,7 +428,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 			if (!file_exists(SHOPP_FEDEX_WSDL_FILE)) $error = __('The specified SHOPP_FEDEX_WSDL_FILE does not exist.','Shopp');
 			else $contents = file_get_contents(SHOPP_FEDEX_WSDL_FILE);
 		} else {
-			if (true) $error = __('PHP does not support bzip2 decompression of the embedded WSDL file.','Shopp');
+			if (!function_exists('bzdecompress')) $error = __('PHP does not support bzip2 decompression of the embedded WSDL file.','Shopp');
 			else $contents = bzdecompress(base64_decode($wsdl));
 		}
 		
