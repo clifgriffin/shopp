@@ -223,17 +223,10 @@ class Warehouse extends AdminController {
 		$where = "true";
 		$having = "";
 		if (!empty($s)) {
-			if (strpos($s,"sku:") !== false) { // SKU search
-				$where .= ' AND pt.sku="'.substr($s,4).'"';
-				$orderby = "pd.name";
-			} else {                                   // keyword search
-				$interference = array("'s","'",".","\"");
-				$search = preg_replace('/(\s?)(\w+)(\s?)/','\1*\2*\3',str_replace($interference,"", stripslashes($s)));
-				$match = "MATCH(pd.name,pd.summary,pd.description) AGAINST ('$search' IN BOOLEAN MODE)";
-				$where .= " AND $match";
-				$matchcol = ", $match AS score";
-				$orderby = "score DESC";         
-			}
+			$products = new SearchResults(array("search"=>$s));
+			$products->load_products(array("load"=>array()));
+			$ids = array_keys($products->products);
+			$where .= " AND pd.id IN (".join(',',$ids).")";
 		}
 		// if (!empty($cat)) $where .= " AND cat.id='$cat' AND (clog.category != 0 OR clog.id IS NULL)";
 		if (!empty($cat)) {
