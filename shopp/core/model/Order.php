@@ -282,6 +282,9 @@ class Order {
 
 		$this->Customer->updates($_POST);
 
+		// Keep confirm-password field value when showing checkout validation errors
+		$this->Customer->_confirm_password = $_POST['confirm-password'];
+
 		if (empty($this->Billing))
 			$this->Billing = new Billing();
 		// Default the cardtype to the payment method label selected
@@ -974,8 +977,8 @@ class Order {
 				break;
 			case "confirm-password":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-				if (!empty($this->Customer->confirm_password))
-					$options['value'] = $this->Customer->confirm_password; 
+				if (!empty($this->Customer->_confirm_password))
+					$options['value'] = $this->Customer->_confirm_password;
 				return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
 				break;
 			case "phone": 
