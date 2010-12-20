@@ -737,9 +737,30 @@ class Warehouse extends AdminController {
 		list($Image->width, $Image->height, $Image->mime, $Image->attr) = getimagesize($_FILES['Filedata']['tmp_name']);
 		$Image->mime = image_type_to_mime_type($Image->mime);
 		$Image->size = filesize($_FILES['Filedata']['tmp_name']);
+		
+		$Existing = new ImageAsset();
+		$Existing->uri = $Image->filename;
+		$limit = 100;
+		while ($Existing->found()) { // Rename the filename of the image if it already exists
+			list($name,$ext) = explode(".",$Existing->uri);
+			$_ = explode("-",$name);
+			$last = count($_)-1;
+			$suffix = $last > 0?intval($_[$last])+1:1;
+			if ($suffix == 1) $_[] = $suffix;
+			else $_[$last] = $suffix;
+			$Existing->uri = join("-",$_).'.'.$ext;
+			if (!$limit--)
+				die(json_encode(array("error" => __('The image already exists, but a new filename could not be generated.','Shopp'))));
+		}
+		if ($Existing->uri !== $Image->filename)
+			$Image->filename = $Existing->uri;
+		
 		$Image->store($_FILES['Filedata']['tmp_name'],'upload');
 		$Image->save();
-					
+		
+		if (empty($Image->id)) 
+			die(json_encode(array("error" => __('The image reference was not saved to the database.','Shopp'))));
+				
 		echo json_encode(array("id"=>$Image->id));
 	}
 
