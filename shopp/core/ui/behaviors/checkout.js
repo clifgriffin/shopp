@@ -43,23 +43,12 @@ jQuery(document).ready(function () {
 	if (localeMenu.children().size() == 0) localeFields.hide();
 
 	$.fn.setDisabled = function (setting) {
-		var $this = $(this);
-		if (setting) $this.attr('disabled',true).addClass('disabled');
-		else return $this.attr('disabled',false).removeClass('disabled');
-		return $this;
+		$(this).each(function () {
+			if (setting) $(this).attr('disabled',true).addClass('disabled');
+			else $(this).attr('disabled',false).removeClass('disabled');
+		});
+		return $(this);
 	}
-	
-	sameship.change(function() {
-		if (sameship.attr('checked')) {
-			billFields.removeClass('half');
-			shipFields.hide().find('.required').setDisabled(true);
-		} else {
-			billFields.addClass('half');
-			shipFields.show().find('.disabled').setDisabled(false);
-		}
-	}).change()
-		.click(function () { $(this).change(); }); // For IE compatibility
-
 	
 	submitLogin.click(function () { login=true; });
 	checkoutForm.unbind('submit').submit(function () {
@@ -106,8 +95,6 @@ jQuery(document).ready(function () {
 			state.val('').setDisabled(false).show();
 			if (!init) state.focus();
 		}
-		
-		
 	}).trigger('change',[true]);
 	
 	$('#billing-country, #billing-state').change(function () {
@@ -125,6 +112,18 @@ jQuery(document).ready(function () {
 			localeFields.show();
 		}
 	});
+	
+	sameship.change(function() {
+		if (sameship.attr('checked')) {
+			billFields.removeClass('half');
+			shipFields.hide().find('.required').setDisabled(true);
+		} else {
+			billFields.addClass('half');
+			shipFields.show().find('.disabled').setDisabled(false);
+		}
+	}).change()
+		.click(function () { $(this).change(); }); // For IE compatibility
+	
 	
 	$('.shopp .shipmethod').change(function () {
 		if ($(this).parents('#checkout').size()) {
