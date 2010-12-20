@@ -237,7 +237,7 @@ class Purchase extends DatabaseObject {
 			case "item-options":
 				if (!isset($options['after'])) $options['after'] = "";
 				$item = current($this->purchased);
-				return (!empty($item->option->label))?$options['before'].$item->option->label.$options['after']:''; break;
+				return (!empty($item->optionlabel))?$options['before'].$item->optionlabel.$options['after']:''; break;
 			case "item-sku":
 				$item = current($this->purchased);
 				return $item->sku; break;
