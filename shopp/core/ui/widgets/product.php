@@ -1,7 +1,7 @@
 <?php
 /**
  * ShoppProductWidget class
- * A WordPress widget that provides a navigation menu of a Shopp category section (branch)
+ * A WordPress widget that shows a selection of products
  *
  * @author Jonathan Davis
  * @version 1.0

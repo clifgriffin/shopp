@@ -1,7 +1,7 @@
 <?php
 /**
  * ShoppSearchWidget class
- * A WordPress widget for showing a drilldown search menu for category products
+ * A WordPress widget for showing a storefront-enabled search form
  *
  * @author Jonathan Davis
  * @version 1.0

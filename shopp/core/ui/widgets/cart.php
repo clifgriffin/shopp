@@ -1,7 +1,7 @@
 <?php
 /**
  * ShoppCartWidget class
- * A WordPress widget for showing a drilldown search menu for category products
+ * A WordPress widget to show the contents of the shopping cart
  *
  * @author Jonathan Davis
  * @version 1.0

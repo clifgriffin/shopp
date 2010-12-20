@@ -1,7 +1,7 @@
 <?php
 /**
- * ShoppCartWidget class
- * A WordPress widget for showing a drilldown search menu for category products
+ * ShoppAccountWidget class
+ * A WordPress widget to show the account login or account menu if logged in
  *
  * @author Jonathan Davis
  * @version 1.0
