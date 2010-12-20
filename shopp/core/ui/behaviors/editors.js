@@ -819,7 +819,7 @@ function ImageUploads (id,type) {
 							'<select name="cropimage"><option></option></select></p>'+
 							'<div class="cropui"></div><br class="clear"/>'+
 							'</div>'+
-						'<input type="button" class="button-primary alignright" value="'+IMAGE_DETAILS_DONE+'" />'+	
+						'<input type="button" class="button-primary alignright" value="&nbsp;&nbsp;'+IMAGE_DETAILS_DONE+'&nbsp;&nbsp;" />'+	
 						'</div>'),
 				thumb = ui.find('img').attr('src',srcthumb.attr('src')),
 				titlefield = ui.find('input[name=title]').val(srctitle.val()).change(function () {
