@@ -654,7 +654,7 @@ class Cart {
 				} else next($this->discounts);
 				
 				$discount = current($this->discounts);
-				while ($discount && empty($discount->applied))
+				while ($discount && empty($discount->applied) && !$discount->freeshipping)
 					$discount = next($this->discounts);
 				
 				if (current($this->discounts)) return true;
@@ -666,20 +666,20 @@ class Cart {
 			case "promoname":
 			case "promo-name":
 				$discount = current($this->discounts);
-				if ($discount->applied == 0 && empty($discount->items)) return false;
+				if ($discount->applied == 0 && empty($discount->items) && !isset($this->freeshipping)) return false;
 				return $discount->name;
 				break;
 			case "promodiscount":
 			case "promo-discount":
 				$discount = current($this->discounts);
-				if ($discount->applied == 0 && empty($discount->items)) return false;
+				if ($discount->applied == 0 && empty($discount->items) && !isset($this->freeshipping)) return false;
 				if (!isset($options['label'])) $options['label'] = ' '.__('Off!','Shopp');
 				else $options['label'] = ' '.$options['label'];
 				$string = false;
 				if (!empty($options['before'])) $string = $options['before'];
 
 				switch($discount->type) {
-					case "Free Shipping": $string .= $Shopp->Settings->get('free_shipping_text'); break;
+					case "Free Shipping": $string .= money($discount->freeshipping).$options['label']; break;
 					case "Percentage Off": $string .= percentage($discount->discount,array('precision' => 0)).$options['label']; break;
 					case "Amount Off": $string .= money($discount->discount).$options['label']; break;
 					case "Buy X Get Y Free": return sprintf(__('Buy %s get %s free','Shopp'),$discount->buyqty,$discount->getqty); break;
@@ -802,7 +802,7 @@ class Cart {
 				if (empty($this->shipped)) return "";
 				if (isset($options['label'])) {
 					$options['currency'] = "false";
-					if ($this->Totals->shipping === 0) {
+					if ($this->freeshipping) {
 						$result = $Shopp->Settings->get('free_shipping_text');
 						if (empty($result)) $result = __('Free Shipping!','Shopp');
 					}
@@ -1162,7 +1162,7 @@ class CartDiscounts {
 			}
 			$discount += !empty($Discount->items)?array_sum($Discount->items):$Discount->applied;
 		}
-
+		
 		return $discount;
 	}
 
@@ -1257,6 +1257,7 @@ class CartDiscounts {
 				case "Free Shipping": 
 					if ($promo->target == "Cart") {
 						$discount = 0;
+						$promo->freeshipping = $this->Cart->Totals->shipping;
 						$this->Cart->freeshipping = true;
 						$this->Cart->Totals->shipping = 0;
 					}
