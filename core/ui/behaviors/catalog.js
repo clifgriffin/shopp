@@ -352,7 +352,7 @@ function validate (form) {
 	$.each(inputs,function (id,field) {
 		input = $(field).removeClass('error');
 		label = $('label[for=' + input.attr('id') + ']').removeClass('error');
-		console.log('valdiating '+input.attr('id'));
+
 		if (input.attr('disabled') == true) return;
 		
 		if (input.hasClass(required) && input.val() == "")
