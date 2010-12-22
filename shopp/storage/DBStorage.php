@@ -93,7 +93,7 @@ class DBStorage extends StorageModule implements StorageEngine {
 	 **/
 	function exists ($uri) {
 		$db = &DB::get();
-		if ((int)$uri == 0) return false;
+		if (strpos($uri,'.') !== false || (int)$uri == 0) return false;
 		$file = $db->query("SELECT id FROM $this->_table WHERE $this->_key='$uri' LIMIT 1");
 		return (!empty($file));
 	}
