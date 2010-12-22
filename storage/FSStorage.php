@@ -26,7 +26,8 @@ if (!defined('WP_CONTENT_DIR')) define('WP_CONTENT_DIR', ABSPATH . 'wp-content')
  * @package shopp
  **/
 class FSStorage extends StorageModule implements StorageEngine {
-		
+	
+	var $path = "";	
 	/**
 	 * FSStorage constructor
 	 *
