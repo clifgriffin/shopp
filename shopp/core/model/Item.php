@@ -137,6 +137,8 @@ class Item {
 						$this->$dimension = $value;
 				}
 				$this->shipfee = $Price->shipfee;
+				if (isset($Product->addons) && $Product->addons == "on") 
+					$this->addons($this->shipfee,$addons,$Product->prices,'shipfee');
 			} else $this->freeshipping = true;
 		}
 		$Settings = ShoppSettings();
@@ -287,7 +289,7 @@ class Item {
 	}
 	
 	/**
-	 * Populates the addons from a collection of price objects
+	 * Sums values of the applied addons properties
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
@@ -295,14 +297,19 @@ class Item {
 	 * @param array $prices A list of Price objects
 	 * @return void
 	 **/
-	function addons (&$sum,$addons,$prices) {
+	function addons (&$sum,$addons,$prices,$property='pricing') {
 		foreach ($prices as $p)	{
 			if ($p->type == "N/A" || $p->context != "addon") continue;
 			$pricing = $this->mapprice($p);
 			if (empty($pricing) || !in_array($pricing->options,$addons)) continue;
-			$pricing->unitprice = (($p->onsale)?$p->promoprice:$p->price);
-			$this->addons[] = $pricing;
-			$sum += $pricing->unitprice;
+			if ($property == "pricing") {
+				$pricing->unitprice = (($p->onsale)?$p->promoprice:$p->price);
+				$this->addons[] = $pricing;
+				$sum += $pricing->unitprice;
+				
+			} else {
+				if (isset($pricing->$property)) $sum += $pricing->$property;
+			}
 		}
 	}
 
@@ -320,7 +327,11 @@ class Item {
 	 * @return object An Item variation object
 	 **/
 	function mapprice ($price) {
-		$map = array('id','type','label','onsale','promoprice','price','inventory','stock','sku','options','dimensions','download');
+		$map = array(
+			'id','type','label','onsale','promoprice','price',
+			'inventory','stock','sku','options','dimensions',
+			'shipfee','download'
+		);
 		$_ = new stdClass();
 		foreach ($map as $property) {
 			if (empty($price->options) && $property == 'label') continue;
