@@ -95,16 +95,16 @@ class Shopp {
 	var $Gateways;			// Gateway modules
 	var $Shipping;			// Shipping modules
 	var $Storage;			// Storage engine modules
-	
+
 	var $path;		  		// File ystem path to the plugin
 	var $file;		  		// Base file name for the plugin (this file)
 	var $directory;	  		// The parent directory name
 	var $uri;		  		// The URI fragment to the plugin
 	var $siteurl;	  		// The full site URL
 	var $wpadminurl;  		// The admin URL for the site
-	
+
 	var $_debug;
-	
+
 	function Shopp () {
 		if (WP_DEBUG) {
 			$this->_debug = new StdClass();
@@ -113,7 +113,7 @@ class Shopp {
 			if (function_exists('memory_get_usage'))
 				$this->_debug->memory = memory_get_usage(true);
 		}
-		
+
 		// Determine system and URI paths
 
 		$this->path = sanitize_path(dirname(__FILE__));
@@ -126,7 +126,7 @@ class Shopp {
 		$this->uri = WP_PLUGIN_URL."/".$this->directory;
 		$this->siteurl = get_bloginfo('url');
 		$this->wpadminurl = admin_url();
-		
+
 		if ($this->secure = is_shopp_secure()) {
 			$this->uri = str_replace('http://','https://',$this->uri);
 			$this->siteurl = str_replace('http://','https://',$this->siteurl);
@@ -136,7 +136,7 @@ class Shopp {
 		// Initialize settings & macros
 
 		$this->Settings = new Settings();
-		
+
 		if (!defined('BR')) define('BR','<br />');
 
 		// Overrideable macros
@@ -175,12 +175,12 @@ class Shopp {
 
 		define("SHOPP_PRETTYURLS",(get_option('permalink_structure') == "")?false:true);
 		define("SHOPP_PERMALINKS",SHOPP_PRETTYURLS); // Deprecated
-				
+
 		// Initialize application control processing
-		
+
 		$this->Flow = new Flow();
 		$this->Shopping = new Shopping();
-		
+
 		add_action('init', array(&$this,'init'));
 
 		// Plugin management
@@ -188,7 +188,7 @@ class Shopp {
         add_action('install_plugins_pre_plugin-information', array(&$this, 'changelog'));
         add_action('shopp_check_updates', array(&$this, 'updates'));
 		add_action('shopp_init',array(&$this, 'loaded'));
-				
+
 		// Theme integration
 		add_action('widgets_init', array(&$this, 'widgets'));
 		add_filter('wp_list_pages',array(&$this,'secure_links'));
@@ -204,7 +204,7 @@ class Shopp {
 			wp_schedule_event(time(),'twicedaily','shopp_check_updates');
 
 	}
-	
+
 	/**
 	 * Initializes the Shopp runtime environment
 	 *
@@ -226,11 +226,11 @@ class Shopp {
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
 									$this->Settings->get('error_notifications'));
-			
+
 		if (!$this->Shopping->handlers) new ShoppError(__('The Cart session handlers could not be initialized because the session was started by the active theme or an active plugin before Shopp could establish its session handlers. The cart will not function.','Shopp'),'shopp_cart_handlers',SHOPP_ADMIN_ERR);
 		if (SHOPP_DEBUG && $this->Shopping->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
-		
+
 		global $pagenow;
 		if (defined('WP_ADMIN')
 			&& $pagenow == "plugins.php"
@@ -239,8 +239,8 @@ class Shopp {
 		new Login();
 		do_action('shopp_init');
 	}
-	
-	
+
+
 	/**
 	 * Initializes theme widgets
 	 *
@@ -260,7 +260,7 @@ class Shopp {
 		include('core/ui/widgets/product.php');
 		include('core/ui/widgets/search.php');
 	}
-		
+
 	/**
 	 * Relocates the Shopp-installed pages and indexes any changes
 	 *
@@ -302,21 +302,21 @@ class Shopp {
 			$builtins[] = $data['id'];
 		}
 		extract($uris);
-		
+
 		// Find sub-pages of the main catalog page so we can add rewrite exclusions
 		$pagenames = array();
 		$subpages = get_pages(array('child_of'=>$catalogid,'exclude'=>join(',',$builtins)));
 		foreach ($subpages as $page) $pagenames[] = $page->post_name;
-		
+
 		// Build the rewrite rules for Shopp
 		$rules = array(
 			$cart.'?$' => 'index.php?pagename='.shopp_pagename($cart),
 			$account.'?$' => 'index.php?pagename='.shopp_pagename($account),
 			$checkout.'?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=checkout',
-			
+
 			/* Exclude sub-pages of the main storefront page (catalog page) */
 			'('.$catalog.'/('.join('|',$pagenames).'))?$' => 'index.php?pagename=$matches[1]',
-			
+
 			/* catalog */
 			$catalog.'/feed/?$' // Catalog feed
 				=> 'index.php?src=category_rss&shopp_category=new',
@@ -328,7 +328,7 @@ class Shopp {
 				=> 'index.php?pagename='.shopp_pagename($account).'&src=download&shopp_download=$matches[1]',
 			$catalog.'/images/(\d+)/?.*?$' // Image handling
 				=> 'index.php?siid=$matches[1]',
-			
+
 			/* catalog/category/category-slug */
 			$catalog.'/category/(.+?)/feed/?$' // Category feeds
 				=> 'index.php?src=category_rss&shopp_category=$matches[1]',
@@ -336,7 +336,7 @@ class Shopp {
 				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&paged=$matches[2]',
 			$catalog.'/category/(.+)/?$' // Category permalink
 				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]',
-			
+
 			/* catalog/tags */
 			$catalog.'/tag/(.+?)/feed/?$' // Tag feeds
 				=> 'index.php?src=category_rss&shopp_tag=$matches[1]',
@@ -347,7 +347,7 @@ class Shopp {
 
 			/* catalog/product-slug */
 			$catalog.'/(.+)/?$' => 'index.php?pagename='.shopp_pagename($catalog).'&shopp_product=$matches[1]'
-			
+
 		);
 
 		// Add mod_rewrite rule for image server for low-resource, speedy delivery
@@ -356,7 +356,7 @@ class Shopp {
 
 		return $rules + $wp_rewrite_rules;
 	}
-	
+
 	/**
 	 * Registers the query variables used by Shopp
 	 *
@@ -397,17 +397,17 @@ class Shopp {
 		// commit current session
 		session_write_close();
 		$this->Shopping->handling(); // Workaround for PHP 5.2 bug #32330
-		
+
 		if ($session) { // loading session
 			$this->Shopping->session = session_id($session); // session_id while session is closed
 			$this->Shopping = new Shopping();
 			session_start();
 			return true;
 		}
-		 
+
 		session_start();
 		session_regenerate_id(); // Generate new ID while session is started
-		
+
 		// Ensure we have the newest session ID
 		$this->Shopping->session = session_id();
 
@@ -421,7 +421,7 @@ class Shopp {
 		return true;
 
 	}
-	
+
 	/**
 	 * @deprecated {@see shoppurl()}
 	 *
@@ -440,7 +440,7 @@ class Shopp {
 	 **/
 	function settingsjs () {
 		$baseop = $this->Settings->get('base_operations');
-		
+
 		$currency = array();
 		if (isset($baseop['currency'])
 			&& isset($baseop['currency']['format'])
@@ -457,7 +457,7 @@ class Shopp {
 				'g' => is_array($baseop['currency']['format']['grouping'])?join(',',$baseop['currency']['format']['grouping']):$baseop['currency']['format']['grouping'],
 			);
 		}
-		
+
 		$base = array(
 			'nocache' => is_shopp_page('account'),
 
@@ -468,22 +468,22 @@ class Shopp {
 			'PASSWORD_MISMATCH' => __('The passwords you entered do not match. They must match in order to confirm you are correctly entering the password you want to use.','Shopp'),
 			'REQUIRED_CHECKBOX' => __('%s must be checked before you can proceed.','Shopp')
 		);
-		
+
 		$checkout = array();
 		if (shopp_script_is('checkout')) {
 			$checkout = array(
 				'ajaxurl' => admin_url('admin-ajax.php'),
-				
+
 				// Alerts
 				'LOGIN_NAME_REQUIRED' => __('You did not enter a login.','Shopp'),
 				'LOGIN_PASSWORD_REQUIRED' => __('You did not enter a password to login with.','Shopp'),
 			);
 		}
-		
+
 		// Admin only
 		if (defined('WP_ADMIN'))
 			$base['UNSAVED_CHANGES_WARNING'] = __('There are unsaved changes that will be lost if you continue.','Shopp');
-		
+
 		$calendar = array();
 		if (shopp_script_is('calendar')) {
 			$calendar = array(
@@ -511,12 +511,12 @@ class Shopp {
 				'weekday_sat' => __('Sat','Shopp')
 			);
 		}
-		
-		
+
+
 		$defaults = apply_filters('shopp_js_settings',array_merge($currency,$base,$checkout,$calendar));
 		shopp_localize_script('shopp','sjss',$defaults);
 	}
-	
+
 	/**
 	 * Filters the WP page list transforming unsecured URLs to secure URLs
 	 *
@@ -554,7 +554,7 @@ class Shopp {
 		if (empty($Shopp)) return;
 			$Shopp->SmartCategories[] = $name;
 	}
-	
+
 	/**
 	 * Communicates with the Shopp update service server
 	 *
@@ -579,16 +579,16 @@ class Shopp {
 		curl_setopt($connection, CURLOPT_TIMEOUT, 20);
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($connection, CURLOPT_FOLLOWLOCATION, 1);
-		
+
 		// Added to handle SSL timeout issues
 		// Maybe if a timeout occurs the connection should be
 		// re-attempted with this option for better overall performance
 		curl_setopt($connection, CURLOPT_FRESH_CONNECT, 1);
-				
+
 		$result = curl_exec($connection);
 		if ($error = curl_error($connection)) {
 			if(SHOPP_DEBUG) new ShoppError("cURL error [".curl_errno($connection)."]: ".$error,false,SHOPP_DEBUG_ERR);
-			
+
 			// Attempt HTTP connection
 			curl_setopt($connection, CURLOPT_URL, str_replace('https://', 'http://', SHOPP_HOME)."?".$query);
 			$result = curl_exec($connection);
@@ -596,12 +596,12 @@ class Shopp {
 				if(SHOPP_DEBUG) new ShoppError("cURL error [".curl_errno($connection)."]: ".$error,false,SHOPP_DEBUG_ERR);
 			}
 		}
-		
+
 		curl_close ($connection);
-		
+
 		return $result;
 	}
-	
+
 	/**
 	 * Checks for available updates
 	 *
@@ -629,17 +629,17 @@ class Shopp {
 		$response = $this->callhome($request,$data);
 		if ($response == '-1') return; // Bad response, bail
 		$response = unserialize($response);
-			
+
 		unset($updates->response);
 
 		if (isset($response->addons)) {
 			$updates->response[SHOPP_PLUGINFILE.'/addons'] = $response->addons;
 			unset($response->addons);
 		}
-		
+
 		if (isset($response->id))
 			$updates->response[SHOPP_PLUGINFILE] = $response;
-		
+
 		if (function_exists('get_site_transient')) $plugin_updates = get_site_transient('update_plugins');
 		else $plugin_updates = get_transient('update_plugins');
 
@@ -648,7 +648,7 @@ class Shopp {
 
 			// Add Shopp to the WP plugin update notification count
 			$plugin_updates->response[SHOPP_PLUGINFILE] = true;
-			
+
 		} else unset($plugin_updates->response[SHOPP_PLUGINFILE]); // No updates, remove Shopp from the plugin update count
 
 		if (function_exists('set_site_transient')) set_site_transient('update_plugins',$plugin_updates);
@@ -656,7 +656,7 @@ class Shopp {
 
 		return $updates;
 	}
-	
+
 	/**
 	 * Loads the change log for an available update
 	 *
@@ -667,7 +667,7 @@ class Shopp {
 	 **/
 	function changelog () {
 		if($_REQUEST["plugin"] != "shopp") return;
-		
+
 		$request = array("ShoppServerRequest" => "changelog");
 		$data = array(
 		);
@@ -683,7 +683,7 @@ class Shopp {
 		echo '</html>';
 		exit();
 	}
-	
+
 	/**
 	 * Reports on the availability of new updates and the update key
 	 *
@@ -710,7 +710,7 @@ class Shopp {
 				$message = sprintf(__('There is a new version of %1$s available, but your %1$s key has not been activated. No automatic upgrade available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%4$s">purchase a Shopp key</a> to get access to automatic updates and official support services.','Shopp'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
 				$this->Settings->save('updates',false);
 			} else $message = sprintf(__('There is a new version of %1$s available. <a href="%2$s" class="thickbox" title="%3$s">View version %4$s details</a> or <a href="%5$s">upgrade automatically</a>.'),$plugin_name,$details_url,esc_attr($plugin_name),$core->new_version,$update_url);
-			
+
 			echo '<tr class="plugin-update-tr"><td colspan="3" class="plugin-update"><div class="update-message">'.$message.'</div></td></tr>';
 
 			return;
@@ -731,7 +731,7 @@ class Shopp {
 
 			}
 		}
-        
+
 	}
 
 	/**
@@ -746,7 +746,7 @@ class Shopp {
 		// Settings unavailable
 		if (!$this->Settings->available || !$this->Settings->get('shopp_setup') != "completed")
 			return false;
-			
+
 		$this->Settings->save('maintenance','on');
 		return true;
 	}
@@ -770,7 +770,7 @@ function shopp () {
 	$object = strtolower($args[0]);
 	$property = strtolower($args[1]);
 	$options = array();
-	
+
 	if (isset($args[2])) {
 		if (is_array($args[2]) && !empty($args[2])) {
 			// handle associative array for options
