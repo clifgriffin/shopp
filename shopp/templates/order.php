@@ -44,11 +44,11 @@ p { margin-bottom: 24px; }
 	
 <?php shopp('purchase','receipt'); ?>
 
-<?php if (shopp('purchase','notpaid')): ?> 
+<?php if (shopp('purchase','notpaid')): ?>
     <?php if (shopp('checkout','offline-instructions','return=1')): ?>
     <p><?php shopp('checkout','offline-instructions'); ?></p>
     <?php endif; ?>
-<?php endif; ?>	
+<?php endif; ?>
 
 </div>
 

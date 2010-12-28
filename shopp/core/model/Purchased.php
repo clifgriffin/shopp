@@ -24,7 +24,7 @@ class Purchased extends DatabaseObject {
 			$this->optionlabel = $Item->option->label;
 		
 		$this->addons = 'no';
-		if (empty($Item->addons) || !is_array($Item->addons)) return true; 
+		if (empty($Item->addons) || !is_array($Item->addons)) return true;
 		$addons = array();
 		// Create meta records for any addons
 		foreach ((array)$Item->addons as $i => $Addon) {
@@ -72,7 +72,7 @@ class Purchased extends DatabaseObject {
 		if (!empty($addons) && is_array($addons)) {
 			foreach ($addons as $Addon) {
 				$Addon->parent = $this->id;
-				$Addon->save();	
+				$Addon->save();
 			}
 		}
 		$this->addons = $addons; // restore addons model

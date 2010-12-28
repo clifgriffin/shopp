@@ -1,20 +1,20 @@
 <?php
 /**
  * CurrencyFormatting
- * 
- * 
+ *
+ *
  *
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, 15 September, 2010
  * @package shopp
- * @subpackage 
+ * @subpackage
  **/
 
 /**
  * CurrencyFormatting
  *
- * @author 
+ * @author
  * @since 1.1
  * @package shopp
  **/
@@ -26,14 +26,14 @@ class CurrencyFormatting extends ShoppTestCase {
 		'US' => array(	'$0.01',		'$0.12',		'$1.23',		'$12.35',		'$123.46',		'$1,234.57',	'$12,345.68',	'$123,456.79',	'$1,234,567.90'),
 	  'USAF' => array(	'$0.01',		'$0.12',		'$1.23',		'$12.35',		'$123.46',		'$1,234.57',	'$12,345.68',	'$123,456.79',	'$1,234,567.90'),
 		'GB' => array(	'£0.01',		'£0.12',		'£1.23',		'£12.35',		'£123.46',		'£1,234.57',	'£12,345.68',	'£123,456.79',	'£1,234,567.90'),
-		// 'DZ' 
+		// 'DZ'
 		'AR' => array(	'$0,01',		'$0,12',		'$1,23',		'$12,35',		'$123,46',		'$1.234,57',	'$12.345,68',	'$123.456,79',	'$1.234.567,90'),
 		'AW' => array(	'ƒ0.01',		'ƒ0.12',		'ƒ1.23',		'ƒ12.35',		'ƒ123.46',		'ƒ1,234.57',	'ƒ12,345.68',	'ƒ123,456.79',	'ƒ1,234,567.90'),
 		'AU' => array(	'$0.01',		'$0.12',		'$1.23',		'$12.35',		'$123.46',		'$1 234.57',	'$12 345.68',	'$123 456.79',	'$1 234 567.90'),
 		'AT' => array(	'€0.01',		'€0.12',		'€1.23',		'€12.35',		'€123.46',		'€1,234.57',	'€12,345.68',	'€123,456.79',	'€1,234,567.90'),
 		'BB' => array(	'$0.01',		'$0.12',		'$1.23',		'$12.35',		'$123.46',		'$1,234.57',	'$12,345.68',	'$123,456.79',	'$1,234,567.90'),
 		'BS' => array(	'$0.01',		'$0.12',		'$1.23',		'$12.35',		'$123.46',		'$1,234.57',	'$12,345.68',	'$123,456.79',	'$1,234,567.90'),
-		// 'BH' 
+		// 'BH'
 		'BE' => array(	'€0,01',		'€0,12',		'€1,23',		'€12,35',		'€123,46',		'€1.234,57',	'€12.345,68',	'€123.456,79',	'€1.234.567,90'),
 		'BR' => array(	'R$0,01',		'R$0,12',		'R$1,23',		'R$12,35',		'R$123,46',		'R$1.234,57',	'R$12.345,68',	'R$123.456,79',	'R$1.234.567,90'),
 		'BG' => array(	'0,01 лв.',		'0,12 лв.',		'1,23 лв.',		'12,35 лв.',	'123,46 лв.',	'1 234,57 лв.',	'12 345,68 лв.','123 456,79 лв.','1 234 567,90 лв.'),
@@ -66,7 +66,7 @@ class CurrencyFormatting extends ShoppTestCase {
 		'JM' => array(	'$0.01',		'$0.12',		'$1.23',		'$12.35',		'$123.46',		'$1,234.57',	'$12,345.68',	'$123,456.79',	'$1,234,567.90'),
 		'JP' => array(	'¥0',			'¥0',			'¥1',			'¥12',			'¥123',			'¥1,235',		'¥12,346',		'¥123,457',		'¥1,234,568'),
 		'LV' => array(	'Ls 0.01',		'Ls 0.12',		'Ls 1.23',		'Ls 12.35',		'Ls 123.46',	'Ls 1,234.57',	'Ls 12,345.68',	'Ls 123,456.79','Ls 1,234,567.90'),
-		'LT' => array(	'0,01 Lt',		'0,12 Lt',		'1,23 Lt',		'12,35 Lt',		'123,46 Lt',	'1 234,57 Lt',	'12 345,68 Lt',	'123 456,79 Lt','1 234 567,90 Lt'),		
+		'LT' => array(	'0,01 Lt',		'0,12 Lt',		'1,23 Lt',		'12,35 Lt',		'123,46 Lt',	'1 234,57 Lt',	'12 345,68 Lt',	'123 456,79 Lt','1 234 567,90 Lt'),
 		'LU' => array(	'€0.01',		'€0.12',		'€1.23',		'€12.35',		'€123.46',		'€1,234.57',	'€12,345.68',	'€123,456.79',	'€1,234,567.90'),
 		'MY' => array(	'RM0,01',		'RM0,12',		'RM1,23',		'RM12,35',		'RM123,46',		'RM1.234,57',	'RM12.345,68',	'RM123.456,79',	'RM1.234.567,90'),
 		'MT' => array(	'€0.01',		'€0.12',		'€1.23',		'€12.35',		'€123.46',		'€1,234.57',	'€12,345.68',	'€123,456.79',	'€1,234,567.90'),
@@ -105,7 +105,7 @@ class CurrencyFormatting extends ShoppTestCase {
 
 	function setUp() {
 		parent::setUp();
-		
+
 		$countries = Lookup::countries();
 		foreach ($countries as $code => $country)
 			$this->currencies[$code] = scan_money_format($country['currency']['format']);
@@ -113,38 +113,38 @@ class CurrencyFormatting extends ShoppTestCase {
 	}
 
 	/**
-	 * 
 	 *
-	 * @author 
-	 * 
-	 * @return 
+	 *
+	 * @author
+	 *
+	 * @return
 	 **/
 	public function test_hundredths () {
-		
+
 		$column = 0;
 		$float = 0.0123456789;
-		
+
 		$this->currency_formatting_assertions($column,$float);
 	}
 
 	public function test_tenths () {
-		
+
 		$column = 1;
 		$float = 0.123456789;
-		
+
 		$this->currency_formatting_assertions($column,$float);
 	}
 
 	public function test_singledigit () {
-		
+
 		$column = 2;
 		$float = 1.234567;
-		
+
 		$this->currency_formatting_assertions($column,$float);
 	}
 
 	public function test_tens () {
-		
+
 		$column = 3;
 		$float = 12.345678;
 
@@ -152,7 +152,7 @@ class CurrencyFormatting extends ShoppTestCase {
 	}
 
 	public function test_hundreds () {
-		
+
 		$column = 4;
 		$float = 123.456789;
 
@@ -160,7 +160,7 @@ class CurrencyFormatting extends ShoppTestCase {
 	}
 
 	public function test_thousands () {
-		
+
 		$column = 5;
 		$float = 1234.567890;
 
@@ -168,7 +168,7 @@ class CurrencyFormatting extends ShoppTestCase {
 	}
 
 	public function test_tenthousands () {
-		
+
 		$column = 6;
 		$float = 12345.67890;
 
@@ -176,7 +176,7 @@ class CurrencyFormatting extends ShoppTestCase {
 	}
 
 	public function test_hundredthousands () {
-		
+
 		$column = 7;
 		$float = 123456.7890;
 
@@ -184,16 +184,16 @@ class CurrencyFormatting extends ShoppTestCase {
 	}
 
 	public function test_millions () {
-		
+
 		$column = 8;
 		$float = 1234567.899;
 
 		$this->currency_formatting_assertions($column,$float);
 	}
 
-	
+
 	function currency_formatting_assertions ($column,$float) {
-		
+
 		foreach ($this->formats as $code => $format) {
 			$currency_format = $this->currencies[$code];
 
@@ -201,12 +201,12 @@ class CurrencyFormatting extends ShoppTestCase {
 			$this->assertEquals($format[$column],$formatted,"Formatting failed for country code $code from floating point number");
 			$this->assertEquals($format[$column],money("$float",$currency_format),"Formatting failed for country code $code from a string");
 			$this->assertEquals(round($float,$currency_format['precision']),floatvalue($formatted,true,$currency_format),"Float value failed for country code $code");
-			
+
 			$nf = numeric_format($float,$currency_format['precision'],$currency_format['decimals'],$currency_format['thousands'],$currency_format['grouping']);
 			$this->assertEquals(round($float,$currency_format['precision']),floatvalue($nf,true,$currency_format),"Float value failed to reverse the numeric format of $nf for country code $code");
-			
+
 		}
-		
+
 	}
 
 

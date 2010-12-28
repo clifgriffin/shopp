@@ -5,23 +5,23 @@
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited, 21 October, 2009
- * @package 
+ * @package
  **/
 class CatalogAPITests extends ShoppTestCase {
-	
+
 	function setUp () {
 		global $Shopp;
 		parent::setUp();
 		$Shopp->Catalog = false;
 		$Shopp->Catalog = new Catalog();
 	}
-	
+
 	function test_catalog_url () {
 		ob_start();
 		shopp('catalog','url');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('http://shopptest/store/',$actual);		
+		$this->assertEquals('http://shopptest/store/',$actual);
 	}
 
 	function test_catalog_type () {
@@ -29,9 +29,9 @@ class CatalogAPITests extends ShoppTestCase {
 		shopp('catalog','type');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		$this->assertEquals('catalog',$actual);		
+		$this->assertEquals('catalog',$actual);
 	}
-	
+
 	// Can't get this to work yet, need better http environment emulator
 	// function test_catalog_iscatalog () {
 	// 	global $Shopp;
@@ -39,16 +39,16 @@ class CatalogAPITests extends ShoppTestCase {
 	// 	$Shopp->Catalog->type = 'catalog';
 	// 	$this->assertTrue(shopp('catalog','is-catalog'));
 	// }
-	
+
 	function test_catalog_tagcloud () {
 		ob_start();
 		shopp('catalog','tagcloud');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_catalog_categories () {
 		global $Shopp;
 		shopp('catalog','has-categories');
@@ -58,7 +58,7 @@ class CatalogAPITests extends ShoppTestCase {
 		for ($i = 0; $i < $expected; $i++)
 			$this->assertTrue(shopp('catalog','categories'));
 	}
-	
+
 	function test_catalog_categorylist () {
 		ob_start();
 		shopp('catalog','category-list');
@@ -83,7 +83,7 @@ class CatalogAPITests extends ShoppTestCase {
 
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_catalog_orderbylist () {
 		global $Shopp;
 		$_SERVER['REQUEST_URI'] = "/";
@@ -112,7 +112,7 @@ class CatalogAPITests extends ShoppTestCase {
 
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_catalog_search () {
 		ob_start();
 		shopp('catalog','search');
@@ -160,19 +160,19 @@ class CatalogAPITests extends ShoppTestCase {
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertValidMarkup($actual);
-		
+
 		ob_start();
 		shopp('catalog','random-products','show=3');
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertValidMarkup($actual);
-		
+
 		ob_start();
 		shopp('catalog','tag-products','show=3&tag=wordpress');
 		$actual = ob_get_contents();
 		ob_end_clean();
 		$this->assertValidMarkup($actual);
-		
+
 		ob_start();
 		shopp('catalog','related-products','show=3&product=114');
 		$actual = ob_get_contents();
@@ -201,7 +201,7 @@ class CatalogAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_catalog_sideproduct () {
 		ob_start();
 		shopp('catalog','sideproduct','source=product&product=114');

@@ -1,7 +1,7 @@
 <?php
 /**
  * Categorize
- * 
+ *
  * Flow controller for category management interfaces
  *
  * @author Jonathan Davis
@@ -12,7 +12,7 @@
  **/
 
 class Categorize extends AdminController {
-	
+
 	/**
 	 * Categorize constructor
 	 *
@@ -23,14 +23,14 @@ class Categorize extends AdminController {
 		parent::__construct();
 
 		if (!empty($_GET['id']) && !isset($_GET['a'])) {
-			
+
 			wp_enqueue_script('postbox');
 			if ( user_can_richedit() ) {
 				wp_enqueue_script('editor');
 				wp_enqueue_script('quicktags');
 				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 20 );
 			}
-			
+
 			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('editors');
 			shopp_enqueue_script('category-editor');
@@ -53,7 +53,7 @@ class Categorize extends AdminController {
 		do_action('shopp_category_admin_scripts');
 		add_action('load-shopp_page_shopp-categories',array(&$this,'workflow'));
 	}
-	
+
 	/**
 	 * Parses admin requests to determine which interface to display
 	 *
@@ -93,11 +93,11 @@ class Categorize extends AdminController {
 			|| $page != $this->Admin->pagename('categories'))
 				return false;
 
-		$adminurl = admin_url('admin.php');		
-			
+		$adminurl = admin_url('admin.php');
+
 		if ($page == $this->Admin->pagename('categories')
-				&& !empty($deleting) 
-				&& !empty($delete) 
+				&& !empty($deleting)
+				&& !empty($delete)
 				&& is_array($delete)) {
 			foreach($delete as $deletion) {
 				$Category = new Category($deletion);
@@ -108,24 +108,24 @@ class Categorize extends AdminController {
 			$redirect = (add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
 			shopp_redirect($redirect);
 		}
-		
+
 		if ($id && $id != "new")
 			$Shopp->Category = new Category($id);
 		else $Shopp->Category = new Category();
-						
+
 		if ($save) {
 			$this->save($Shopp->Category);
 			$this->Notice = '<strong>'.stripslashes($Shopp->Category->name).'</strong> '.__('has been saved.','Shopp');
 
 			if ($next) {
-				if ($next != "new") 
+				if ($next != "new")
 					$Shopp->Category = new Category($next);
 				else $Shopp->Category = new Category();
 			} else {
 				if (empty($id)) $id = $Shopp->Category->id;
 				$Shopp->Category = new Category($id);
 			}
-				
+
 		}
 	}
 
@@ -162,12 +162,12 @@ class Categorize extends AdminController {
 			$pagenum = 1;
 		if( !$per_page || $per_page < 0 )
 			$per_page = 20;
-		$start = ($per_page * ($pagenum-1)); 
-		
+		$start = ($per_page * ($pagenum-1));
+
 		$filters = array();
 		// $filters['limit'] = "$start,$per_page";
 		if (!empty($s)) $filters['where'] = "cat.name LIKE '%$s%'";
-		
+
 		$table = DatabaseObject::tablename(Category::$table);
 		$Catalog = new Catalog();
 		$Catalog->outofstock = true;
@@ -180,7 +180,7 @@ class Categorize extends AdminController {
 				$filters['columns'] = "cat.id,cat.parent,cat.priority,cat.name,cat.uri,cat.slug";
 				$filters['parent'] = '0';
 			} else $filters['columns'] = "cat.id,cat.parent,cat.priority,cat.name,cat.description,cat.uri,cat.slug,cat.spectemplate,cat.facetedmenus,count(DISTINCT pd.id) AS total";
-			
+
 			$Catalog->load_categories($filters);
 			$Categories = array_slice($Catalog->categories,$start,$per_page);
 		}
@@ -193,20 +193,20 @@ class Categorize extends AdminController {
 			'total' => $num_pages,
 			'current' => $pagenum
 		));
-		
+
 		$action = esc_url(
 			add_query_arg(
 				array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'))),
 				admin_url('admin.php')
 			)
 		);
-		
+
 		if ('arrange' == $a) {
 			include(SHOPP_ADMIN_PATH."/categories/arrange.php");
 			return;
 		}
-		
-		
+
+
 		include(SHOPP_ADMIN_PATH."/categories/categories.php");
 	}
 
@@ -264,7 +264,7 @@ class Categorize extends AdminController {
 	function editor () {
 		global $Shopp,$CategoryImages;
 		$db = DB::get();
-		
+
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
@@ -293,14 +293,14 @@ class Categorize extends AdminController {
 			"auto" => __('Build price ranges automatically','Shopp'),
 			"custom" => __('Use custom price ranges','Shopp'),
 		);
-		
-		
+
+
 		$categories_menu = $this->menu($Category->parent,$Category->id);
 		$categories_menu = '<option value="0">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
 
 		$uploader = $Shopp->Settings->get('uploader_pref');
 		if (!$uploader) $uploader = 'flash';
-		
+
 		$workflows = array(
 			"continue" => __('Continue Editing','Shopp'),
 			"close" => __('Categories Manager','Shopp'),
@@ -308,7 +308,7 @@ class Categorize extends AdminController {
 			"next" => __('Edit Next','Shopp'),
 			"previous" => __('Edit Previous','Shopp')
 			);
-		
+
 		include(SHOPP_ADMIN_PATH."/categories/category.php");
 	}
 
@@ -324,25 +324,25 @@ class Categorize extends AdminController {
 		$Settings = &ShoppSettings();
 		$db = DB::get();
 		check_admin_referer('shopp-save-category');
-		
+
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
-		
+
 		$Settings->saveform(); // Save workflow setting
-		
+
 		$Shopp->Catalog = new Catalog();
 		$Shopp->Catalog->load_categories(array(
-			'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug", 
-			'where' => array(), 
-			'joins' => array(), 
-			'orderby' => false, 
-			'order' => false, 
-			'outofstock' => true 
+			'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug",
+			'where' => array(),
+			'joins' => array(),
+			'orderby' => false,
+			'order' => false,
+			'outofstock' => true
 		));
 
 		$Category->update_slug();
 
-		if (!empty($_POST['deleteImages'])) {			
+		if (!empty($_POST['deleteImages'])) {
 			$deletes = array();
 			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
 			else $deletes = array($_POST['deleteImages']);
@@ -361,8 +361,8 @@ class Categorize extends AdminController {
 
 		if (empty($_POST['specs'])) $Category->specs = array();
 		else $_POST['specs'] = stripslashes_deep($_POST['specs']);
-		
-		if (empty($_POST['options']) 
+
+		if (empty($_POST['options'])
 			|| (count($_POST['options']['v'])) == 1 && !isset($_POST['options']['v'][1]['options'])) {
 				$_POST['options'] = $Category->options = array();
 				$_POST['prices'] = $Category->prices = array();
@@ -371,7 +371,7 @@ class Categorize extends AdminController {
 
 		$Category->updates($_POST);
 		$Category->save();
-		
+
 		if (!empty($_POST['images']) && is_array($_POST['images'])) {
 			$Category->link_images($_POST['images']);
 			$Category->save_imageorder($_POST['images']);
@@ -386,17 +386,17 @@ class Categorize extends AdminController {
 		}
 
 		do_action_ref_array('shopp_category_saved',array(&$Category));
-		
+
 		$updated = '<strong>'.$Category->name.'</strong> '.__('category saved.','Shopp');
-		
+
 	}
-	
+
 	/**
 	 * Set
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function init_positions () {
@@ -404,7 +404,7 @@ class Categorize extends AdminController {
 		// Load the entire catalog structure and update the category positions
 		$Catalog = new Catalog();
 		$Catalog->outofstock = true;
-	
+
 		$filters['columns'] = "cat.id,cat.parent,cat.priority";
 		$Catalog->load_categories($filters);
 
@@ -412,7 +412,7 @@ class Categorize extends AdminController {
 			if (!isset($Category->_priority) // Check previous priority and only save changes
 					|| (isset($Category->_priority) && $Category->_priority != $Category->priority))
 				$db->query("UPDATE $Category->_table SET priority=$Category->priority WHERE id=$Category->id");
-		
+
 	}
 
 	/**
@@ -426,7 +426,7 @@ class Categorize extends AdminController {
 	 **/
 	function menu ($selection=false,$current=false) {
 		$db = DB::get();
-		$table = DatabaseObject::tablename(Category::$table);			
+		$table = DatabaseObject::tablename(Category::$table);
 		$categories = $db->query("SELECT id,name,parent FROM $table ORDER BY parent,name",AS_ARRAY);
 		$categories = sort_tree($categories);
 
@@ -437,7 +437,7 @@ class Categorize extends AdminController {
 			$disabled = ($current && $category->id == $current)?' disabled="disabled"':'';
 			$options .= '<option value="'.$category->id.'"'.$selected.$disabled.'>'.$padding.esc_html($category->name).'</option>';
 		}
-		
+
 		return $options;
 	}
 
@@ -482,16 +482,16 @@ class Categorize extends AdminController {
 			$pagenum = 1;
 		if( !$per_page || $per_page < 0 )
 			$per_page = 20;
-		$start = ($per_page * ($pagenum-1)); 
-		
+		$start = ($per_page * ($pagenum-1));
+
 		$filters = array();
 		// $filters['limit'] = "$start,$per_page";
-		if (!empty($s)) 
+		if (!empty($s))
 			$filters['where'] = "cat.name LIKE '%$s%'";
 		else $filters['where'] = "true";
-		
+
 		$Category = new Category($id);
-		
+
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$columns = "c.id AS cid,p.id,c.priority,p.name";
@@ -507,15 +507,15 @@ class Categorize extends AdminController {
 			'total' => $num_pages,
 			'current' => $pagenum
 		));
-		
+
 		$action = esc_url(
 			add_query_arg(
 				array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'))),
 				admin_url('admin.php')
 			)
 		);
-		
-		
+
+
 		include(SHOPP_ADMIN_PATH."/categories/products.php");
 	}
 

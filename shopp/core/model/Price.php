@@ -1,7 +1,7 @@
 <?php
 /**
  * Price.php
- * 
+ *
  * Product price objects
  *
  * @author Jonathan Davis
@@ -27,7 +27,7 @@ class Price extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function load_download () {
@@ -47,7 +47,7 @@ class Price extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function attach_download ($id) {

@@ -1,8 +1,8 @@
 <?php
-/** 
+/**
  ** WARNING! DO NOT EDIT!
  **
- ** These templates are part of the core Shopp files 
+ ** These templates are part of the core Shopp files
  ** and will be overwritten when upgrading Shopp.
  **
  ** For editable templates, setup Shopp theme templates:
@@ -14,18 +14,18 @@
 
 <?php if (shopp('checkout','completed')): ?>
 
-<?php if (shopp('purchase','notpaid')): ?> 
+<?php if (shopp('purchase','notpaid')): ?>
 	<p><?php _e('Your order has been received but the payment has not yet completed processing.','Shopp'); ?></p>
 	
 	<?php if (shopp('checkout','offline-instructions','return=1')): ?>
 	<p><?php shopp('checkout','offline-instructions'); ?></p>
 	<?php endif; ?>
 	
-	<?php if (shopp('purchase','hasdownloads')): ?> 
+	<?php if (shopp('purchase','hasdownloads')): ?>
 	<p><?php _e('The download links on your order receipt will not work until the payment is received.','Shopp'); ?></p>
 	<?php endif; ?>
 
-	<?php if (shopp('purchase','hasfreight')): ?> 
+	<?php if (shopp('purchase','hasfreight')): ?>
 	<p><?php _e('Your items will not ship out until the payment is received.','Shopp'); ?></p>
 	<?php endif; ?>
 

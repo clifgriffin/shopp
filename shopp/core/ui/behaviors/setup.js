@@ -17,21 +17,21 @@ jQuery(document).ready(function () {
 			code = (response instanceof Array)?response[0]:false,
 			key = (response instanceof Array)?response[1]:false;
 			type = (response instanceof Array)?response[2]:false;
-		
+
 		if (code === false) {
 			button.attr('disabled',true);
 			return activationStatus.html(keyStatus['-000']).addClass('activating').show();
-		}	
-			
+		}
+
 		if (button.hasClass('deactivation')) button.html(SHOPP_DEACTIVATE_KEY);
 		else button.html(SHOPP_DEACTIVATE_KEY);
-		
+
 		if (code == "1") {
 			if (type == "dev" && keyin.attr('type') == "text") keyin.replaceWith('<input type="password" name="updatekey" id="update-key" value="'+keyin.val()+'" readonly="readonly" size="40" />');
 			else keyin.attr('readonly',true);
 			button.html(SHOPP_DEACTIVATE_KEY).addClass('deactivation');
 		} else {
-			if (keyin.attr('type') == "password") 
+			if (keyin.attr('type') == "password")
 				keyin.replaceWith('<input type="text" name="updatekey" id="update-key" value="" size="40" />');
 			keyin.attr('readonly',false);
 			button.html(SHOPP_ACTIVATE_KEY).removeClass('deactivation');
@@ -78,9 +78,9 @@ jQuery(document).ready(function () {
 		});
 	});
 
-	$('#selectall_targetmarkets').change(function () { 
-		if ($(this).attr('checked')) $('#target_markets input').not(this).attr('checked',true); 
-		else $('#target_markets input').not(this).attr('checked',false); 
+	$('#selectall_targetmarkets').change(function () {
+		if ($(this).attr('checked')) $('#target_markets input').not(this).attr('checked',true);
+		else $('#target_markets input').not(this).attr('checked',false);
 	});
 
 	function addLabel (id,label,location) {
@@ -95,23 +95,23 @@ jQuery(document).ready(function () {
 					'<img src="'+SHOPP_PLUGINURI+'/core/ui/icons/add.png" alt="Add" width="16" height="16" />'+
 					'</button></span></li>',
 			li = !location?$(entry).appendTo('#order-statuslabels'):$(entry).insertAfter(location),
-			input = li.find('input').val(label?label:''), 
+			input = li.find('input').val(label?label:''),
 			deleteButton = li.find('button.delete').hide().click(function () {
 				if (confirm(SHOPP_CONFIRM_DELETE_LABEL)) li.remove();
 			}),
 			addButton = li.find('button.add').click(function () {
 				addLabel(null,null,'#'+li.attr('id'));
 			}),
-			wrap = li.find('span').hover(function() { 
-				if (i > 0) deleteButton.show() 
-			}, function () { 
-				deleteButton.hide(); 
+			wrap = li.find('span').hover(function() {
+				if (i > 0) deleteButton.show()
+			}, function () {
+				deleteButton.hide();
 			});
-			
+
 		labelInputs.push(li);
 	}
 
 	if (labels) for (var id in labels) addLabel(id,labels[id]);
 	else addLabel();
-	
+
 });

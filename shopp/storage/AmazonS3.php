@@ -1,7 +1,7 @@
 <?php
 /**
  * Amazon S3
- * 
+ *
  * Provides Amazon S3 storage of store assets
  *
  * @author Jonathan Davis
@@ -28,7 +28,7 @@ class AmazonS3 extends StorageModule implements StorageEngine {
 	 * AmazonS3 constructor
 	 *
 	 * @author Jonathan Davis
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -60,8 +60,8 @@ class AmazonS3 extends StorageModule implements StorageEngine {
 		if ($type != "binary")  {
 			$this->s3->putObject(
 				$this->s3->inputResource(fopen($data, 'rb'), @filesize($data)),
-				$bucket, 
-				$asset->filename, 
+				$bucket,
+				$asset->filename,
 				S3::ACL_PUBLIC_READ);
 		} else $this->s3->putObject($data, $bucket, $asset->filename, S3::ACL_PUBLIC_READ);
 		return "$bucket:$asset->filename";
@@ -72,7 +72,7 @@ class AmazonS3 extends StorageModule implements StorageEngine {
 		$info = $this->s3->getObjectInfo($bucket, $filename);
 		if ($info) {
 			$info['redirect'] = true;
-			return $info;	
+			return $info;
 		}
 		return false;
 	}
@@ -158,7 +158,7 @@ class AmazonS3 extends StorageModule implements StorageEngine {
 		if ($Shopp->Storage->engines[$this->context] != $this->module) return;
 		
 		$url = parse_url($_GET['q']);
-		if ((isset($url['scheme']) && $url['scheme'] != 'file') || !isset($url['path'])) 
+		if ((isset($url['scheme']) && $url['scheme'] != 'file') || !isset($url['path']))
 			return;
 		
 		$query = sanitize_path($url['path']);

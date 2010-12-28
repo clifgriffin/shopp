@@ -7,22 +7,22 @@
 	<form name="settings" id="payments" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-payments'); ?>
 		<div><input type="hidden" id="active-gateways" name="settings[active_gateways]" /></div>
-		
+
 		<?php include("navigation.php"); ?>
 
-		<table id="payment-settings" class="form-table"> 
+		<table id="payment-settings" class="form-table">
  		</table>
-		
+
 		<br class="clear" />
-		
+
 		<div class="tablenav"><div class="alignright actions">
 			<select name="payment-option-menu" id="payment-option-menu">
 			</select>
 			<button type="button" name="add-payment-option" id="add-payment-option" class="button-secondary" tabindex="9999"><?php _e('Add Payment Option','Shopp'); ?></button>
 			</div>
 		</div>
-		
-		
+
+
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
@@ -46,16 +46,16 @@ jQuery(document).ready( function() {
 		this.callbacks[name] = function () {object['payment']();}
 		this.options[name] = object;
 	}
-	
+
 	handlers.call = function(name,arg1,arg2,arg3) {
-		
+
 		this.callbacks[name](arg1,arg2,arg3);
 		var module = this.options[name];
 		module.behaviors();
 	}
 
 	<?php do_action('shopp_gateway_module_settings'); ?>
-	
+
 	// Populate the payment options menu
 	var options = '';
 	options += '<option disabled="disabled">'+SHOPP_GATEWAY_MENU_PROMPT+'<\/option>';
@@ -68,7 +68,7 @@ jQuery(document).ready( function() {
 		options += '<option value="'+id+'"'+disabled+'>'+object.name+'<\/option>';
 	});
 	$('#payment-option-menu').html(options);
-	
+
 	$('#add-payment-option').click(function () {
 		var module = $('#payment-option-menu').val(),
 			selected = $('#payment-option-menu :selected');
@@ -77,7 +77,7 @@ jQuery(document).ready( function() {
 			if (!handlers.options[module].multi) selected.attr('disabled',true);
 		}
 	});
-	
+
 });
 /* ]]> */
 </script>

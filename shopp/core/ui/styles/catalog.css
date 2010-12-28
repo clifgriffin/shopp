@@ -3,13 +3,13 @@
  *
  * The catalog CSS file provides core styling used to initialize foundational
  * elements of the Shopp catalog layout.
- * 
+ *
  * DO NOT EDIT! Setup custom theme tempaltes and edit shopp.css to override
  * styles here as necessary.
- * 
+ *
  **/
 #shopp div.description,
-#shopp .products, 
+#shopp .products,
 #shopp .products ul,
 #shopp .products li.row,
 #shopp .category,

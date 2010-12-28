@@ -1,7 +1,7 @@
 <?php
 /**
  * Order
- * 
+ *
  * Order data container and middleware object
  *
  * @author Jonathan Davis
@@ -48,7 +48,7 @@ class Order {
 	 * Order constructor
 	 *
 	 * @author Jonathan Davis
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -69,7 +69,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __wakeup () {
@@ -81,7 +81,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function listeners () {
@@ -143,7 +143,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1.5
-	 * 
+	 *
 	 * @return void
 	 **/
 	function payoptions () {
@@ -168,11 +168,11 @@ class Order {
 	}
 	
 	/**
-	 * Set or get the currently selected gateway processor 
+	 * Set or get the currently selected gateway processor
 	 *
 	 * @author Jonathan Davis, John Dillick
 	 * @since 1.1
-	 * 
+	 *
 	 * @return Object|false The currently selected gateway
 	 **/
 	function processor ($processor=false) {
@@ -189,21 +189,21 @@ class Order {
 					$this->_paymethod_selected = true;
 					 // Prevent unnecessary reprocessing on subsequent calls
 					unset($_POST['paymethod']);
-				} 
+				}
 			}
 			if (!$processor) new ShoppError(__("The payment method you selected is no longer available. Please choose another.","Shopp"));
 		}
 
 		if (count($Shopp->Gateways->activated) == 1 // base case
-			|| (!$this->processor && !$processor && count($Shopp->Gateways->activated) > 1)) { 
+			|| (!$this->processor && !$processor && count($Shopp->Gateways->activated) > 1)) {
 			// Automatically select the first active gateway
 			reset($Shopp->Gateways->activated);
 			$module = current($Shopp->Gateways->activated);
 			if ($this->processor != $module)
 				$this->processor = $module;
 		} elseif (!empty($processor)) { // Change the current processor
-			if ($this->processor != $processor && in_array($processor,$Shopp->Gateways->activated)) 
-				$this->processor = $processor; 
+			if ($this->processor != $processor && in_array($processor,$Shopp->Gateways->activated))
+				$this->processor = $processor;
 		}
 
 		if (isset($Shopp->Gateways->active[$this->processor])) {
@@ -214,7 +214,7 @@ class Order {
 			$gateway_label = is_array($Gateway->settings['label'])?
 				$Gateway->settings['label']:array($Gateway->settings['label']);
 
-			if (!$this->paymethod) 
+			if (!$this->paymethod)
 				$this->paymethod = sanitize_title_with_dashes($gateway_label[0]);
 
 		}
@@ -227,12 +227,12 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function ccpayment () {
 		$ccdata = array('card','cardexpires-mm','cardexpires-yy','cvv');
-		foreach ($ccdata as $field) 
+		foreach ($ccdata as $field)
 			if (isset($_POST['billing'][$field])) return true;
 		return false;
 	}
@@ -245,7 +245,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function checkout () {
@@ -292,7 +292,7 @@ class Order {
 		$this->Billing->updates($_POST['billing']);
 		
 		// Special case for updating/tracking billing locale
-		if (!empty($_POST['billing']['locale'])) 
+		if (!empty($_POST['billing']['locale']))
 			$this->Billing->locale = $_POST['billing']['locale'];
 
 		if ($cc) {
@@ -346,10 +346,10 @@ class Order {
 	 *
 	 * Handles changes to the shipping method outside of other
 	 * checkout processes
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function shipmethod () {
@@ -369,13 +369,13 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function confirmed () {
 
 		if ($_POST['checkout'] == "confirmed") {
-			$this->confirmed = true;	
+			$this->confirmed = true;
 			do_action('shopp_process_order');
 		}
 		
@@ -386,7 +386,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function freebie ($free) {
@@ -402,7 +402,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function purchase () {
@@ -506,7 +506,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function lock () {
@@ -529,7 +529,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function unlock () {
@@ -545,7 +545,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function notify () {
@@ -573,11 +573,11 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $id Transaction ID
 	 * @param string $status (optional) Transaction status (PENDING, CHARGED, VOID, etc)
 	 * @param float $fees (optional) Transaction fees assesed by the processor
-	 * 
+	 *
 	 * @return true
 	 **/
 	function transaction ($id,$status="PENDING",$fees=0) {
@@ -599,7 +599,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function success () {
@@ -616,7 +616,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean Status of valid checkout data
 	 **/
 	function validform () {
@@ -642,13 +642,13 @@ class Order {
 			
 			// Validate possible wp account names for availability
 			if(isset($_POST['loginname'])){
-				if(apply_filters('shopp_login_exists',username_exists($_POST['loginname']))) 
+				if(apply_filters('shopp_login_exists',username_exists($_POST['loginname'])))
 					return new ShoppError(__('The login name you provided is not available.  Try logging in if you have previously created an account.'), 'cart_validation');
 			} else { // need to find a usuable login
 				list($handle,$domain) = explode("@",$_POST['email']);
 				if(!username_exists($handle)) $_POST['loginname'] = $handle;
 				
-				$handle = $_POST['firstname'].substr($_POST['lastname'],0,1);				
+				$handle = $_POST['firstname'].substr($_POST['lastname'],0,1);
 				if(!isset($_POST['loginname']) && !username_exists($handle)) $_POST['loginname'] = $handle;
 				
 				$handle = substr($_POST['firstname'],0,1).$_POST['lastname'];
@@ -657,16 +657,16 @@ class Order {
 				$handle .= rand(1000,9999);
 				if(!isset($_POST['loginname']) && !username_exists($handle)) $_POST['loginname'] = $handle;
 				
-				if(apply_filters('shopp_login_required',!isset($_POST['loginname']))) 
+				if(apply_filters('shopp_login_required',!isset($_POST['loginname'])))
 					return new ShoppError(__('A login is not available for creation with the information you provided.  Please try a different email address or name, or try logging in if you previously created an account.'),'cart_validation');
 			}
-			if(SHOPP_DEBUG) new ShoppError('Login set to '. $_POST['loginname'] . ' for WordPress account creation.',false,SHOPP_DEBUG_ERR);			 
+			if(SHOPP_DEBUG) new ShoppError('Login set to '. $_POST['loginname'] . ' for WordPress account creation.',false,SHOPP_DEBUG_ERR);
 			$ExistingCustomer = new Customer($_POST['email'],'email');
 			if (apply_filters('shopp_email_exists',(email_exists($_POST['email']) || !empty($ExistingCustomer->id))))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create your new account.','Shopp'),'cart_validation');
 		} elseif ($this->accounts == "shopp"  && !$this->Customer->login) {
 			$ExistingCustomer = new Customer($_POST['email'],'email');
-			if (apply_filters('shopp_email_exists',!empty($ExistingCustomer->id))) 
+			if (apply_filters('shopp_email_exists',!empty($ExistingCustomer->id)))
 				return new ShoppError(__('The email address you entered is already in use. Try logging in if you previously created an account, or enter another email address to create a new account.','Shopp'),'cart_validation');
 		}
 
@@ -688,21 +688,21 @@ class Order {
 				return new ShoppError(__('You must provide a password for your account and confirm it to ensure correct spelling.','Shopp'),'cart_validation');
 			if (apply_filters('shopp_password_mismatch',($_POST['password'] != $_POST['confirm-password']))) {
 				$_POST['password'] = ""; $_POST['confirm-password'] = "";
-				return new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'),'cart_validation');				
+				return new ShoppError(__('The passwords you entered do not match. Please re-enter your passwords.','Shopp'),'cart_validation');
 			}
 		}
 
 		if (apply_filters('shopp_billing_address_required',(empty($_POST['billing']['address']) || strlen($_POST['billing']['address']) < 4)))
 			return new ShoppError(__('You must enter a valid street address for your billing information.','Shopp'),'cart_validation');
 
-		if (apply_filters('shopp_billing_postcode_required',empty($_POST['billing']['postcode']))) 
+		if (apply_filters('shopp_billing_postcode_required',empty($_POST['billing']['postcode'])))
 			return new ShoppError(__('You must enter a valid postal code for your billing information.','Shopp'),'cart_validation');
 
 		if (apply_filters('shopp_billing_country_required',empty($_POST['billing']['country'])))
 			return new ShoppError(__('You must select a country for your billing information.','Shopp'),'cart_validation');
 
 		// Skip validating payment details for purchases not requiring a
-		// payment (credit) card including free orders, remote checkout systems, etc 
+		// payment (credit) card including free orders, remote checkout systems, etc
 		if (!$this->ccpayment()) return apply_filters('shopp_validate_checkout',true);
 
 		if (apply_filters('shopp_billing_card_required',empty($_POST['billing']['card'])))
@@ -723,7 +723,7 @@ class Order {
 			return new ShoppError(__('You did not enter the year the credit card expires.','Shopp'),'cart_validation');
 
 		if (apply_filters('shopp_billing_card_expired',(!empty($_POST['billing']['cardexpires-mm']) && !empty($_POST['billing']['cardexpires-yy'])))
-		 	&& $_POST['billing']['cardexpires-mm'] < date('n') && $_POST['billing']['cardexpires-yy'] <= date('y')) 
+		 	&& $_POST['billing']['cardexpires-mm'] < date('n') && $_POST['billing']['cardexpires-yy'] <= date('y'))
 			return new ShoppError(__('The credit card expiration date you provided has already expired.','Shopp'),'cart_validation');
 		
 		if (apply_filters('shopp_billing_cardholder_required',strlen($_POST['billing']['cardholder']) < 2))
@@ -739,7 +739,7 @@ class Order {
 	function validate () {
 		if (apply_filters('shopp_valid_order',$this->isvalid())) return true;
 		
-		shopp_redirect( shoppurl(false,'checkout',$this->security()) );		
+		shopp_redirect( shoppurl(false,'checkout',$this->security()) );
 	}
 
 	/**
@@ -747,10 +747,10 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean Validity of the order
 	 **/
-	function isvalid ($report=true) {		
+	function isvalid ($report=true) {
 		$Customer = $this->Customer;
 		$Shipping = $this->Shipping;
 		$Cart = $this->Cart;
@@ -765,14 +765,14 @@ class Order {
 		}
 		
 		$stock = true;
-		foreach ($Cart->contents as $item) { 
+		foreach ($Cart->contents as $item) {
 			if (!$item->instock()){
 				$valid = apply_filters('shopp_ordering_items_outofstock',false);
 				new ShoppError(sprintf(__("%s does not have sufficient stock to process order."),
 				$item->name . ($item->option->label?" ({$item->option->label})":"")),
 				'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
 				$stock = false;
-			} 
+			}
 		}
 		
 		$valid_customer = true;
@@ -808,7 +808,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean Whether the checkout form should be secured
 	 **/
 	function security () {
@@ -821,7 +821,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1.5
-	 * 
+	 *
 	 * @return void
 	 **/
 	function clear () {
@@ -837,7 +837,7 @@ class Order {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return mixed
 	 **/
 	function tag ($property,$options=array()) {
@@ -854,7 +854,7 @@ class Order {
 		if (!isset($options['mode'])) $options['mode'] = "input";
 		
 		switch ($property) {
-			case "url": 
+			case "url":
 				$link = shoppurl(false,'checkout',$this->security());
 				
 				// Pass any arguments along
@@ -883,7 +883,7 @@ class Order {
 				
 				if (!empty($options['value'])) $value = $options['value'];
 				else $value = "process";
-				$output = '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>'; 
+				$output = '<div><input type="hidden" name="checkout" value="'.$value.'" /></div>';
 				if ($value == "confirmed") $output = apply_filters('shopp_confirm_form',$output);
 				else $output = apply_filters('shopp_checkout_form',$output);
 				return $output;
@@ -901,7 +901,7 @@ class Order {
 				extract($options);
 
 				$result = "";
-				foreach ((array)$errors as $error) 
+				foreach ((array)$errors as $error)
 					if (!$error->blank()) $result .= $before.$error->message(true).$after;
 				return $result;
 				break;
@@ -913,7 +913,7 @@ class Order {
 				
 				// If inside the checkout form, strip the extra <form> tag so we don't break standards
 				// This is ugly, but necessary given the different markup contexts the cart summary is used in
-				if (get_class($Shopp->Flow->Controller) == "Storefront") { 		
+				if (get_class($Shopp->Flow->Controller) == "Storefront") {
 					$Storefront =& $Shopp->Flow->Controller;
 					if ($Storefront->checkout) $content = preg_replace('/<\/?form.*?>/','',$content);
 				}
@@ -924,16 +924,16 @@ class Order {
 			case "notloggedin": return (!$this->Customer->login && $Shopp->Settings->get('account_system') != "none"); break;
 			case "email-login":  // Deprecating
 			case "loginname-login":  // Deprecating
-			case "account-login": 
+			case "account-login":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($_POST['account-login']))
-					$options['value'] = $_POST['account-login']; 
+					$options['value'] = $_POST['account-login'];
 				return '<input type="text" name="account-login" id="account-login"'.inputattrs($options).' />';
 				break;
-			case "password-login": 
+			case "password-login":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($_POST['password-login']))
-					$options['value'] = $_POST['password-login']; 
+					$options['value'] = $_POST['password-login'];
 				return '<input type="password" name="password-login" id="password-login" '.inputattrs($options).' />';
 				break;
 			case "submit-login": // Deprecating
@@ -942,37 +942,37 @@ class Order {
 				$string .= '<input type="submit" name="submit-login" id="submit-login" '.inputattrs($options).' />';
 				return $string;
 				break;
-			case "firstname": 
+			case "firstname":
 				if ($options['mode'] == "value") return $this->Customer->firstname;
 				if (!empty($this->Customer->firstname))
-					$options['value'] = $this->Customer->firstname; 
+					$options['value'] = $this->Customer->firstname;
 				return '<input type="text" name="firstname" id="firstname" '.inputattrs($options).' />';
 				break;
 			case "lastname":
 				if ($options['mode'] == "value") return $this->Customer->lastname;
 				if (!empty($this->Customer->lastname))
-					$options['value'] = $this->Customer->lastname; 
-				return '<input type="text" name="lastname" id="lastname" '.inputattrs($options).' />'; 
+					$options['value'] = $this->Customer->lastname;
+				return '<input type="text" name="lastname" id="lastname" '.inputattrs($options).' />';
 				break;
 			case "email":
 				if ($options['mode'] == "value") return $this->Customer->email;
 				if (!empty($this->Customer->email))
-					$options['value'] = $this->Customer->email; 
+					$options['value'] = $this->Customer->email;
 				return '<input type="text" name="email" id="email" '.inputattrs($options).' />';
 				break;
 			case "loginname":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if ($options['mode'] == "value") return $this->Customer->loginname;
 				if (!empty($this->Customer->loginname))
-					$options['value'] = $this->Customer->loginname; 
+					$options['value'] = $this->Customer->loginname;
 				return '<input type="text" name="loginname" id="login" '.inputattrs($options).' />';
 				break;
 			case "password":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-				if ($options['mode'] == "value") 
+				if ($options['mode'] == "value")
 					return strlen($this->Customer->password) == 34?str_pad('&bull;',8):$this->Customer->password;
 				if (!empty($this->Customer->password))
-					$options['value'] = $this->Customer->password; 
+					$options['value'] = $this->Customer->password;
 				return '<input type="password" name="password" id="password" '.inputattrs($options).' />';
 				break;
 			case "confirm-password":
@@ -981,28 +981,28 @@ class Order {
 					$options['value'] = $this->Customer->_confirm_password;
 				return '<input type="password" name="confirm-password" id="confirm-password" '.inputattrs($options).' />';
 				break;
-			case "phone": 
+			case "phone":
 				if ($options['mode'] == "value") return $this->Customer->phone;
 				if (!empty($this->Customer->phone))
-					$options['value'] = $this->Customer->phone; 
-				return '<input type="text" name="phone" id="phone" '.inputattrs($options).' />'; 
+					$options['value'] = $this->Customer->phone;
+				return '<input type="text" name="phone" id="phone" '.inputattrs($options).' />';
 				break;
-			case "organization": 
-			case "company": 
+			case "organization":
+			case "company":
 				if ($options['mode'] == "value") return $this->Customer->company;
 				if (!empty($this->Customer->company))
-					$options['value'] = $this->Customer->company; 
-				return '<input type="text" name="company" id="company" '.inputattrs($options).' />'; 
+					$options['value'] = $this->Customer->company;
+				return '<input type="text" name="company" id="company" '.inputattrs($options).' />';
 				break;
-			case "marketing": 
+			case "marketing":
 				if ($options['mode'] == "value") return $this->Customer->marketing;
 				if (!empty($this->Customer->marketing))
-					$options['value'] = $this->Customer->marketing; 
+					$options['value'] = $this->Customer->marketing;
 				$attrs = array("accesskey","alt","checked","class","disabled","format",
 					"minlength","maxlength","readonly","size","src","tabindex",
 					"title");
 				$input = '<input type="hidden" name="marketing" value="no" />';
-				$input .= '<input type="checkbox" name="marketing" id="marketing" value="yes" '.inputattrs($options,$attrs).' />'; 
+				$input .= '<input type="checkbox" name="marketing" id="marketing" value="yes" '.inputattrs($options,$attrs).' />';
 				return $input;
 				break;
 			case "customer-info":
@@ -1067,22 +1067,22 @@ class Order {
 
 			// SHIPPING TAGS
 			case "shipping": return (!empty($this->shipped)); break;
-			case "shipping-address": 
+			case "shipping-address":
 				if ($options['mode'] == "value") return $this->Shipping->address;
 				if (!empty($this->Shipping->address))
-					$options['value'] = $this->Shipping->address; 
+					$options['value'] = $this->Shipping->address;
 				return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
 				break;
 			case "shipping-xaddress":
 				if ($options['mode'] == "value") return $this->Shipping->xaddress;
 				if (!empty($this->Shipping->xaddress))
-					$options['value'] = $this->Shipping->xaddress; 
+					$options['value'] = $this->Shipping->xaddress;
 				return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
 				break;
 			case "shipping-city":
 				if ($options['mode'] == "value") return $this->Shipping->city;
 				if (!empty($this->Shipping->city))
-					$options['value'] = $this->Shipping->city; 
+					$options['value'] = $this->Shipping->city;
 				return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
 				break;
 			case "shipping-province":
@@ -1126,9 +1126,9 @@ class Order {
 			case "shipping-postcode":
 				if ($options['mode'] == "value") return $this->Shipping->postcode;
 				if (!empty($this->Shipping->postcode))
-					$options['value'] = $this->Shipping->postcode; 				
+					$options['value'] = $this->Shipping->postcode;
 				return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />'; break;
-			case "shipping-country": 
+			case "shipping-country":
 				if ($options['mode'] == "value") return $this->Shipping->country;
 				if (!empty($this->Shipping->country))
 					$options['selected'] = $this->Shipping->country;
@@ -1165,23 +1165,23 @@ class Order {
 			case "billing-address":
 				if ($options['mode'] == "value") return $this->Billing->address;
 				if (!empty($this->Billing->address))
-					$options['value'] = $this->Billing->address;			
+					$options['value'] = $this->Billing->address;
 				return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
 				break;
 			case "billing-xaddress":
 				if ($options['mode'] == "value") return $this->Billing->xaddress;
 				if (!empty($this->Billing->xaddress))
-					$options['value'] = $this->Billing->xaddress;			
+					$options['value'] = $this->Billing->xaddress;
 				return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
 				break;
 			case "billing-city":
 				if ($options['mode'] == "value") return $this->Billing->city;
 				if (!empty($this->Billing->city))
-					$options['value'] = $this->Billing->city;			
-				return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />'; 
+					$options['value'] = $this->Billing->city;
+				return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />';
 				break;
-			case "billing-province": 
-			case "billing-state": 
+			case "billing-province":
+			case "billing-state":
 				if ($options['mode'] == "value") return $this->Billing->state;
 				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($this->Billing->state)) {
@@ -1221,21 +1221,21 @@ class Order {
 			case "billing-postcode":
 				if ($options['mode'] == "value") return $this->Billing->postcode;
 				if (!empty($this->Billing->postcode))
-					$options['value'] = $this->Billing->postcode;			
+					$options['value'] = $this->Billing->postcode;
 				return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
 				break;
-			case "billing-country": 
+			case "billing-country":
 				if ($options['mode'] == "value") return $this->Billing->country;
 				if (!empty($this->Billing->country))
 					$options['selected'] = $this->Billing->country;
-				else if (empty($options['selected'])) $options['selected'] = $base['country'];			
+				else if (empty($options['selected'])) $options['selected'] = $base['country'];
 				$output = '<select name="billing[country]" id="billing-country" '.inputattrs($options,$select_attrs).'>';
 			 	$output .= menuoptions($countries,$options['selected'],true);
 				$output .= '</select>';
 				return $output;
 				break;
 			case "billing-card":
-				if ($options['mode'] == "value") 
+				if ($options['mode'] == "value")
 					return str_repeat('X',strlen($this->Billing->card)-4)
 						.substr($this->Billing->card,-4);
 				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
@@ -1251,16 +1251,16 @@ class Order {
 				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardexpires))
-					$options['value'] = date("m",$this->Billing->cardexpires);				
-				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm" '.inputattrs($options).' />'; 	
+					$options['value'] = date("m",$this->Billing->cardexpires);
+				return '<input type="text" name="billing[cardexpires-mm]" id="billing-cardexpires-mm" '.inputattrs($options).' />';
 				break;
-			case "billing-cardexpires-yy": 
+			case "billing-cardexpires-yy":
 				if ($options['mode'] == "value") return date("y",$this->Billing->cardexpires);
 				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardexpires))
-					$options['value'] = date("y",$this->Billing->cardexpires);							
-				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy" '.inputattrs($options).' />'; 
+					$options['value'] = date("y",$this->Billing->cardexpires);
+				return '<input type="text" name="billing[cardexpires-yy]" id="billing-cardexpires-yy" '.inputattrs($options).' />';
 				break;
 			case "billing-cardtype":
 				if ($options['mode'] == "value") return $this->Billing->cardtype;
@@ -1293,7 +1293,7 @@ class Order {
 				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->Billing->cardholder))
-					$options['value'] = $this->Billing->cardholder;			
+					$options['value'] = $this->Billing->cardholder;
 				return '<input type="text" name="billing[cardholder]" id="billing-cardholder" '.inputattrs($options).' />';
 				break;
 			case "billing-cvv":
@@ -1327,7 +1327,7 @@ class Order {
 						$cards[] = $PayCard->symbol;
 						foreach ($PayCard->inputs as $field => $size)
 							$valid[$field] = $size;
-					} 
+					}
 				}
 
 				if (!array_key_exists($input,$valid)) return;
@@ -1341,7 +1341,7 @@ class Order {
 				return $string;
 				break;
 			case "billing-xco": return; break; // DEPRECATED
-			case "billing-localities": 
+			case "billing-localities":
 				$rates = $Shopp->Settings->get("taxrates");
 				foreach ((array)$rates as $rate) if (isset($rate['locals']) && is_array($rate['locals'])) return true;
 				return false;
@@ -1358,7 +1358,7 @@ class Order {
 
 				
 				$rates = $Shopp->Settings->get("taxrates");
-				foreach ($rates as $rate) if (is_array($rate['locals'])) 
+				foreach ($rates as $rate) if (is_array($rate['locals']))
 					$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
 				
 				add_storefrontjs('var locales = '.json_encode($locales).';',true);
@@ -1442,7 +1442,7 @@ class Order {
 				if (isset($options['name'])) return $name;
 				return $data;
 				break;
-			case "submit": 
+			case "submit":
 				if (!isset($options['value'])) $options['value'] = __('Submit Order','Shopp');
 				$options['class'] = isset($options['class'])?$options['class'].' checkout-button':'checkout-button';
 				$buttons = array('<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />');
@@ -1454,7 +1454,7 @@ class Order {
 					
 				return join("\n",$_);
 				break;
-			case "confirm-button": 
+			case "confirm-button":
 				if (empty($options['errorlabel'])) $options['errorlabel'] = __('Return to Checkout','Shopp');
 				if (empty($options['value'])) $options['value'] = __('Confirm Order','Shopp');
 				
@@ -1470,7 +1470,7 @@ class Order {
 			case "xco-buttons": return;	break; // DEPRECATED
 			case "payoptions":
 			case "payment-options":
-			case "paymentoptions": 
+			case "paymentoptions":
 				$payment_methods = apply_filters('shopp_payment_methods',count($this->payoptions));
 				if ($payment_methods <= 1) return false; // Skip if only one gateway is active
 				$defaults = array(
@@ -1506,7 +1506,7 @@ class Order {
 				if ($default !== false && !isset($this->_paymethod_selected)) {
 					$default = sanitize_title_with_dashes($default);
 					if (in_array($default,$payoptions)) $paymethod = $default;
-				} 
+				}
 				
 				if ($this->paymethod != $paymethod) {
 					$this->paymethod = $paymethod;
@@ -1588,12 +1588,12 @@ class Order {
 				}
 				return false;
 				break;
-			case "receipt":			
-				if (!empty($Shopp->Purchase->id)) 
+			case "receipt":
+				if (!empty($Shopp->Purchase->id))
 					return $Shopp->Purchase->receipt();
 				break;
 		}
-	}	
+	}
 
 } // END class Order
 
@@ -1602,7 +1602,7 @@ class Order {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @return Order
  **/
 function &ShoppOrder () {

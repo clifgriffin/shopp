@@ -1,7 +1,7 @@
 <?php
 /**
  * Service
- * 
+ *
  * Flow controller for order management interfaces
  *
  * @author Jonathan Davis
@@ -64,7 +64,7 @@ class Service extends AdminController {
 	 * Interface processor for the orders list interface
 	 *
 	 * @author Jonathan Davis
-	 * 
+	 *
 	 * @return void
 	 **/
 	function orders () {
@@ -96,7 +96,7 @@ class Service extends AdminController {
 
 		if ($page == "shopp-orders"
 						&& !empty($deleting)
-						&& !empty($selected) 
+						&& !empty($selected)
 						&& is_array($selected)
 						&& current_user_can('shopp_delete_orders')) {
 			foreach($selected as $selection) {
@@ -120,7 +120,7 @@ class Service extends AdminController {
 			);
 
 		if ($update == "order"
-						&& !empty($selected) 
+						&& !empty($selected)
 						&& is_array($selected)) {
 			foreach($selected as $selection) {
 				$Purchase = new Purchase($selection);
@@ -147,7 +147,7 @@ class Service extends AdminController {
 			$pagenum = 1;
 		if( !$per_page || $per_page < 0 )
 			$per_page = 20;
-		$start = ($per_page * ($pagenum-1)); 
+		$start = ($per_page * ($pagenum-1));
 		
 		$where = '';
 		if (!empty($status) || $status === '0') $where = "WHERE status='$status'";
@@ -171,10 +171,10 @@ class Service extends AdminController {
 						case "country": $where .= ((empty($where))?"WHERE ":" AND ")."country='$keyword'"; break;
 					}
 				}
-				if (empty($where)) $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";	
+				if (empty($where)) $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
 			} elseif (strpos($s,'@') !== false) {
-				 $where .= ((empty($where))?"WHERE ":" AND ")." email='$s'";	
-			} else $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";	
+				 $where .= ((empty($where))?"WHERE ":" AND ")." email='$s'";
+			} else $where .= ((empty($where))?"WHERE ":" AND ")." (id='$s' OR CONCAT(firstname,' ',lastname) LIKE '%$s%')";
 		}
 		if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(created) >= '.$starts.' AND UNIX_TIMESTAMP(created) <= '.$ends.')';
 		if (!empty($customer)) $where .= ((empty($where))?"WHERE ":" AND ")."customer=$customer";
@@ -223,7 +223,7 @@ class Service extends AdminController {
 		if (empty($selected)) $selected = array_keys($columns);
 		
 		include(SHOPP_ADMIN_PATH."/orders/orders.php");
-	}      
+	}
 	
 	/**
 	 * Registers the column headers for the orders list interface
@@ -317,7 +317,7 @@ class Service extends AdminController {
 			$mailstatus = false;
 			if ($_POST['notify'] == "yes") {
 				$labels = $this->Settings->get('order_status');
-				// Save a reference to this purchase in Shopp 
+				// Save a reference to this purchase in Shopp
 				// so the Template API works when generating the receipt
 				$Shopp->Purchase =& $Purchase;
 				
@@ -327,7 +327,7 @@ class Service extends AdminController {
 				
 				$email = array();
 				$email['from'] = '"'.get_bloginfo("name").'"';
-				if ($Shopp->Settings->get('merchant_email')) 
+				if ($Shopp->Settings->get('merchant_email'))
 					$email['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
 				if($is_IIS) $email['to'] = $address;
 				else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
@@ -351,7 +351,7 @@ class Service extends AdminController {
 			$Purchase->save();
 			if ($mailsent) $updated = __('Order status updated & notification email sent.','Shopp');
 			else $updated = __('Order status updated.','Shopp');
-		}	
+		}
 		
 		$targets = $this->Settings->get('target_markets');
 		$UI->txnStatusLabels = Lookup::payment_status_labels();
@@ -385,7 +385,7 @@ class Service extends AdminController {
 			foreach ($r as $state) {
 				if ($state->id == $id) {
 					$_->total = (int)$state->total;	break;
-				} 
+				}
 			}
 			$status[$id] = $_;
 		}

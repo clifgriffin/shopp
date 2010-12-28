@@ -1,7 +1,7 @@
 <?php
 /**
  * Cart.php
- * 
+ *
  * The shopping cart system
  *
  * @author Jonathan Davis
@@ -17,7 +17,7 @@ require("Item.php");
 class Cart {
 
 	// properties
-	var $contents = array();	// The contents (Items) of the cart 
+	var $contents = array();	// The contents (Items) of the cart
 	var $shipped = array();		// Reference list of shipped Items
 	var $downloads = array();	// Reference list of digital Items
 	var $discounts = array();	// List of promotional discounts applied
@@ -45,7 +45,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -58,7 +58,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __wakeup () {
@@ -70,7 +70,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function listeners () {
@@ -81,10 +81,10 @@ class Cart {
 	
 	/**
 	 * Processes cart requests and updates the cart data
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function request () {
@@ -118,17 +118,17 @@ class Cart {
 		if (!isset($_REQUEST['quantity'])) $_REQUEST['quantity'] = 1;
 
 		switch($_REQUEST['cart']) {
-			case "add":			
+			case "add":
 				$products = array(); // List of products to add
 				if (isset($_REQUEST['product'])) $products[] = $_REQUEST['product'];
-				if (!empty($_REQUEST['products']) && is_array($_REQUEST['products'])) 
+				if (!empty($_REQUEST['products']) && is_array($_REQUEST['products']))
 					$products = array_merge($products,$_REQUEST['products']);
 				
 				if (empty($products)) break;
 				
 				foreach ($products as $id => $product) {
 					if (isset($product['quantity']) && $product['quantity'] == '0') continue;
-					$quantity = (empty($product['quantity']) && 
+					$quantity = (empty($product['quantity']) &&
 						$product['quantity'] !== 0)?1:$product['quantity']; // Add 1 by default
 					$Product = new Product($product['product']);
 					$pricing = false;
@@ -168,7 +168,7 @@ class Cart {
 							if (!empty($item['quantity'])) $this->update($id,$item['quantity']);
 						    if (isset($_REQUEST['remove'][$id])) $this->remove($_REQUEST['remove'][$id]);
 						}
-						if (isset($item['product']) && isset($item['price']) && 
+						if (isset($item['product']) && isset($item['price']) &&
 							$item['product'] == $this->contents[$id]->product &&
 							$item['price'] != $this->contents[$id]->priceline) {
 							$Product = new Product($item['product']);
@@ -186,10 +186,10 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return string JSON response
 	 **/
-	function ajax () { 
+	function ajax () {
 		global $Shopp;
 		
 		if ($_REQUEST['response'] == "html") {
@@ -224,7 +224,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param int $quantity The quantity of the item to add to the cart
 	 * @param Product $Product Product object to add to the cart
 	 * @param Price $Price Price object to add to the cart
@@ -258,7 +258,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param int $item Index of the item in the Cart contents
 	 * @return boolean
 	 **/
@@ -273,7 +273,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param int $item Index of the item in the Cart contents
 	 * @param int $quantity New quantity to update the item to
 	 * @return boolean
@@ -295,7 +295,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function clear () {
@@ -312,7 +312,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param int $item Index of the item to change
 	 * @param Product $Product Product object to change to
 	 * @param int|array|Price $pricing Price record ID or an array of pricing record IDs or a Price object
@@ -351,7 +351,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param Item $NewItem The new Item object to look for
 	 * @return boolean|int	Item index if found, false if not found
 	 **/
@@ -367,10 +367,10 @@ class Cart {
 	 *
 	 * Set the cart as changed by specifying a changed value or
 	 * get the current changed flag.
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param boolean $changed (optional) Used to set the changed flag
 	 * @return boolean
 	 **/
@@ -428,7 +428,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function totals () {
@@ -441,7 +441,7 @@ class Cart {
 		$Discounts = new CartDiscounts();
 		
 		// Free shipping until costs are assessed
-		$this->freeshipping = true;	
+		$this->freeshipping = true;
 
 		// Identify downloadable products
 		$this->downloads();
@@ -458,7 +458,7 @@ class Cart {
 			// Reinitialize item discount amounts
 			$Item->discount = 0;
 			
-			// Item does not have free shipping, 
+			// Item does not have free shipping,
 			// so the cart shouldn't have free shipping
 			if (!$Item->freeshipping) $this->freeshipping = false;
 			
@@ -467,7 +467,7 @@ class Cart {
 		// Calculate Shipping
 		$Shipping = new CartShipping();
 		if ($this->changed()) {
-			// Only fully recalculate shipping costs 
+			// Only fully recalculate shipping costs
 			// if the cart contents have changed
 			$Totals->shipping = $Shipping->calculate();
 
@@ -488,7 +488,7 @@ class Cart {
 		$Totals->tax = $Tax->calculate();
 	    
 		// Calculate final totals
-		$Totals->total = roundprice($Totals->subtotal - roundprice($Totals->discount) + 
+		$Totals->total = roundprice($Totals->subtotal - roundprice($Totals->discount) +
 			$Totals->shipping + $Totals->tax);
 
 		do_action_ref_array('shopp_cart_retotal',array(&$this->Totals));
@@ -503,7 +503,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return boolean True if the entire order is free
 	 **/
 	function orderisfree() {
@@ -534,7 +534,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	private function _filter_shipped ($item) {
@@ -562,7 +562,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	private function _filter_downloads ($item) {
@@ -575,7 +575,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return mixed
 	 **/
 	function tag ($property,$options=array()) {
@@ -585,9 +585,9 @@ class Cart {
 		// Return strings with no options
 		switch ($property) {
 			case "url": return shoppurl(false,'cart'); break;
-			case "referrer": 
-			case "referer": 
-				$referrer = $Shopp->Shopping->data->referrer; 
+			case "referrer":
+			case "referer":
+				$referrer = $Shopp->Shopping->data->referrer;
 				if (!$referrer) $referrer = shopp('catalog','url','return=1');
 				return $referrer;
 				break;
@@ -688,7 +688,7 @@ class Cart {
 				
 				return $string;
 				break;
-			case "function": 
+			case "function":
 				$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
 
 				$Errors = &ShoppErrors();
@@ -701,12 +701,12 @@ class Cart {
 				return $result.$errors;
 				break;
 			case "emptybutton":
-			case "empty-button": 
+			case "empty-button":
 				if (!isset($options['value'])) $options['value'] = __('Empty Cart','Shopp');
 				return '<input type="submit" name="empty" id="empty-button" '.inputattrs($options,$submit_attrs).' />';
 				break;
 			case "updatebutton":
-			case "update-button": 
+			case "update-button":
 				if (!isset($options['value'])) $options['value'] = __('Update Subtotal','Shopp');
 				if (isset($options['class'])) $options['class'] .= " update-button";
 				else $options['class'] = "update-button";
@@ -729,15 +729,15 @@ class Cart {
 			case "promos-available":
 				if (!$Shopp->Promotions->available()) return false;
 				// Skip if the promo limit has been reached
-				if ($Shopp->Settings->get('promo_limit') > 0 && 
+				if ($Shopp->Settings->get('promo_limit') > 0 &&
 					count($this->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
 				return true;
 				break;
-			case "promo-code": 
+			case "promo-code":
 				// Skip if no promotions exist
 				if (!$Shopp->Promotions->available()) return false;
 				// Skip if the promo limit has been reached
-				if ($Shopp->Settings->get('promo_limit') > 0 && 
+				if ($Shopp->Settings->get('promo_limit') > 0 &&
 					count($this->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
 				if (!isset($options['value'])) $options['value'] = __("Apply Promo Code","Shopp");
 				$result = '<ul><li>';
@@ -798,7 +798,7 @@ class Cart {
 		$result = "";
 		switch ($property) {
 			case "subtotal": $result = $this->Totals->subtotal; break;
-			case "shipping": 
+			case "shipping":
 				if (empty($this->shipped)) return "";
 				if (isset($options['label'])) {
 					$options['currency'] = "false";
@@ -809,9 +809,9 @@ class Cart {
 						
 					else $result = $options['label'];
 				} else {
-					if ($this->Totals->shipping === null) 
+					if ($this->Totals->shipping === null)
 						return __("Enter Postal Code","Shopp");
-					elseif ($this->Totals->shipping === false) 
+					elseif ($this->Totals->shipping === false)
 						return __("Not Available","Shopp");
 					else $result = $this->Totals->shipping;
 				}
@@ -819,7 +819,7 @@ class Cart {
 			case "hastaxes":
 			case "has-taxes":
 				return ($this->Totals->tax > 0); break;
-			case "tax": 
+			case "tax":
 				if ($this->Totals->tax > 0) {
 					if (isset($options['label'])) {
 						$options['currency'] = "false";
@@ -827,8 +827,8 @@ class Cart {
 					} else $result = $this->Totals->tax;
 				} else $options['currency'] = "false";
 				break;
-			case "total": 
-				$result = $this->Totals->total; 
+			case "total":
+				$result = $this->Totals->total;
 				break;
 		}
 		
@@ -843,7 +843,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return mixed
 	 **/
 	function itemtag ($property,$options=array()) {
@@ -861,12 +861,12 @@ class Cart {
 
 	/**
 	 * Provides shopp('shipping') template API functionality
-	 * 
+	 *
 	 * Used primarily in the summary.php template
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return mixed
 	 **/
 	function shippingtag ($property,$options=array()) {
@@ -897,7 +897,7 @@ class Cart {
 				$_ = array();
 				$_[] = '<select name="shipmethod" class="shopp shipmethod">';
 				foreach ($this->shipping as $method) {
-					$selected = ((isset($Shopp->Order->Shipping->method) && 
+					$selected = ((isset($Shopp->Order->Shipping->method) &&
 						$Shopp->Order->Shipping->method == $method->name))?' selected="selected"':false;
 					
 					$_[] = '<option value="'.$method->name.'"'.$selected.'>'.$method->name.' &mdash '.money($method->amount).'</option>';
@@ -905,18 +905,18 @@ class Cart {
 				$_[] = '</select>';
 				return join("",$_);
 				break;
-			case "option-name": 
-			case "method-name": 
+			case "option-name":
+			case "method-name":
 				$option = current($this->shipping);
 				return $option->name;
 				break;
 			case "method-selected":
 				$method = current($this->shipping);
-				return ((isset($Shopp->Order->Shipping->method) && 
-					$Shopp->Order->Shipping->method == $method->name));			
+				return ((isset($Shopp->Order->Shipping->method) &&
+					$Shopp->Order->Shipping->method == $method->name));
 				break;
-			case "option-cost": 
-			case "method-cost": 
+			case "option-cost":
+			case "method-cost":
 				$option = current($this->shipping);
 				return money($option->amount);
 				break;
@@ -924,7 +924,7 @@ class Cart {
 				$method = current($this->shipping);
 
 				$checked = '';
-				if ((isset($Shopp->Order->Shipping->method) && 
+				if ((isset($Shopp->Order->Shipping->method) &&
 					$Shopp->Order->Shipping->method == $method->name))
 						$checked = ' checked="checked"';
 				
@@ -939,14 +939,14 @@ class Cart {
 				if (!$option->delivery) return "";
 				$estimates = explode("-",$option->delivery);
 				$format = get_option('date_format');
-				if (count($estimates) > 1 
+				if (count($estimates) > 1
 					&& $estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
 				$result = "";
 				for ($i = 0; $i < count($estimates); $i++){
 					list($interval,$p) = sscanf($estimates[$i],'%d%s');
 					if (!empty($result)) $result .= "&mdash;";
 					$result .= _d($format,mktime()+($interval*$periods[$p]));
-				}				
+				}
 				return $result;
 		}
 	}
@@ -979,7 +979,7 @@ class CartTotals {
 
 /**
  * CartPromotions class
- * 
+ *
  * Helper class to load session promotions that can apply
  * to the cart
  *
@@ -997,7 +997,7 @@ class CartPromotions {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -1009,7 +1009,7 @@ class CartPromotions {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function load () {
@@ -1018,8 +1018,8 @@ class CartPromotions {
 		// Already loaded
 		if (!empty($this->promotions)) return true;
 		
-		// Use an offset amount as a buffer to account for how 
-		// MySQL's UNIX_TIMESTAMP() converts the datetime to a 
+		// Use an offset amount as a buffer to account for how
+		// MySQL's UNIX_TIMESTAMP() converts the datetime to a
 		// UTC-based timestamp from the Jan 1, 1970 00:00:00 epoch
 		// We use 43200 to represent 12-hours (UTC +/- 12 hours) and
 		// add 1 to account for the default amount set in the promotion editor
@@ -1030,15 +1030,15 @@ class CartPromotions {
 		            AND status='enabled' -- Promo must be enabled, in all cases
 					AND (
 					    -- Promo is not date based
-					    ( 
+					    (
 					        UNIX_TIMESTAMP(starts) <= $offset
 					        AND
 					        UNIX_TIMESTAMP(ends) <= $offset
 					    )
 					    OR
 					    -- Promo has start and end dates, check that we are in between
-					    ( 
-					        UNIX_TIMESTAMP(starts) > $offset 
+					    (
+					        UNIX_TIMESTAMP(starts) > $offset
 					        AND
 					        UNIX_TIMESTAMP(ends) > $offset
 					        AND
@@ -1046,7 +1046,7 @@ class CartPromotions {
 					    )
 					    OR
 					    -- Promo has _only_ a start date, check that we are after it
-					    ( 
+					    (
 					        UNIX_TIMESTAMP(starts) > $offset
 					        AND
 					        UNIX_TIMESTAMP(ends) <= $offset
@@ -1055,7 +1055,7 @@ class CartPromotions {
 					    )
 					    OR
 					    -- Promo has _only_ an end date, check that we are before it
-					    ( 
+					    (
 					        UNIX_TIMESTAMP(starts) <= $offset
 					        AND
 					        UNIX_TIMESTAMP(ends) > $offset
@@ -1071,7 +1071,7 @@ class CartPromotions {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function reload () {
@@ -1084,7 +1084,7 @@ class CartPromotions {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function available () {
@@ -1096,7 +1096,7 @@ class CartPromotions {
 
 /**
  * CartDiscounts class
- * 
+ *
  * Manages the promotional discounts that apply to the cart
  *
  * @author Jonathan Davis
@@ -1124,7 +1124,7 @@ class CartDiscounts {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -1143,7 +1143,7 @@ class CartDiscounts {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return float The total discount amount
 	 **/
 	function calculate () {
@@ -1168,13 +1168,13 @@ class CartDiscounts {
 
 	/**
 	 * Determines which promotions to apply to the order
-	 * 
+	 *
 	 * Matches promotion rules to conditions in the cart to determine which
 	 * promotions apply.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function applypromos () {
@@ -1187,7 +1187,7 @@ class CartDiscounts {
 			if (!is_array($promo->rules))
 				$promo->rules = unserialize($promo->rules);
 		
-			// If promotion limit has been reached and the promo has 
+			// If promotion limit has been reached and the promo has
 			// not already applied as a cart discount, cancel the loop
 			if ($this->limit > 0 && count($this->Cart->discounts)+1 > $this->limit
 				&& !isset($this->Cart->discounts[$promo->id])) {
@@ -1208,7 +1208,7 @@ class CartDiscounts {
 				extract($rule);
 				if ($property == "Promo code") {
 					// See if a promo code rule matches
-					$match = $this->promocode($rule);					
+					$match = $this->promocode($rule);
 				} elseif (in_array($property,$this->itemprops)) {
 					// See if an item rule matches
 					foreach ($this->Cart->contents as $id => &$Item)
@@ -1240,7 +1240,7 @@ class CartDiscounts {
 			if (!$applypromo) {
 				$promo->applied = 0; 		// Reset promo applied discount
 				if (!empty($promo->items))	// Reset any items applied to
-					$promo->items = array(); 
+					$promo->items = array();
 				
 				$this->remove($promo->id);	// Remove it from the discount stack if it is there
 				
@@ -1250,11 +1250,11 @@ class CartDiscounts {
 			// Apply the promotional discount
 			switch ($promo->type) {
 				case "Amount Off": $discount = $promo->discount; break;
-				case "Percentage Off": 
-					$discount = ($this->Cart->Totals->subtotal-$this->Cart->Totals->itemsd) 
+				case "Percentage Off":
+					$discount = ($this->Cart->Totals->subtotal-$this->Cart->Totals->itemsd)
 									* ($promo->discount/100);
 					break;
-				case "Free Shipping": 
+				case "Free Shipping":
 					if ($promo->target == "Cart") {
 						$discount = 0;
 						$promo->freeshipping = $this->Cart->Totals->shipping;
@@ -1269,7 +1269,7 @@ class CartDiscounts {
 		
 		// Promocode was/is applied
 		if (empty($this->Cart->promocode)) return;
-		if (isset($this->Cart->promocodes[strtolower($this->Cart->promocode)]) 
+		if (isset($this->Cart->promocodes[strtolower($this->Cart->promocode)])
 			&& is_array($this->Cart->promocodes[strtolower($this->Cart->promocode)])) return;
 
 		$codes_applied = array_change_key_case($this->Cart->promocodes);
@@ -1287,7 +1287,7 @@ class CartDiscounts {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param Object $Promotion The pseudo-Promotion object to apply
 	 * @param float $discount The calculated discount amount
 	 * @return void
@@ -1315,7 +1315,7 @@ class CartDiscounts {
 						case "Amount Off": $discount = $promo->discount; break;
 						case "Free Shipping": $discount = 0; $Item->freeshipping = true; break;
 						case "Buy X Get Y Free": $discount = floor(
-																$Item->quantity / 
+																$Item->quantity /
 																($promo->buyqty + $promo->getqty)
 															  ) * ($Item->unitprice);
 							break;
@@ -1327,7 +1327,7 @@ class CartDiscounts {
 			}
 			
 			if ($promo->applied == 0 && empty($promo->items)) {
-				if (isset($this->Cart->discounts[$promo->id])) 
+				if (isset($this->Cart->discounts[$promo->id]))
 					unset($this->Cart->discounts[$promo->id]);
 				return;
 			}
@@ -1347,16 +1347,16 @@ class CartDiscounts {
 			
 			if (Promotion::match_rule($subject,$logic,$promocode,$property)) {
 				// Prevent customers from reapplying codes
-				if (isset($this->Cart->promocodes[$promocode]) 
-						&& is_array($this->Cart->promocodes[$promocode]) 
+				if (isset($this->Cart->promocodes[$promocode])
+						&& is_array($this->Cart->promocodes[$promocode])
 						&& in_array($promo->id,$this->Cart->promocodes[$promocode])) {
 					new ShoppError(sprintf(__("%s has already been applied.","Shopp"),$value),'cart_promocode_used',SHOPP_ALL_ERR);
 					$this->Cart->promocode = false;
 					return false;
 				}
 				// Add the code to the registry
-				if (!isset($this->Cart->promocodes[$promocode]) 
-					|| !is_array($this->Cart->promocodes[$promocode])) 
+				if (!isset($this->Cart->promocodes[$promocode])
+					|| !is_array($this->Cart->promocodes[$promocode]))
 					$this->Cart->promocodes[$promocode] = array();
 				else $this->Cart->promocodes[$promocode][] = $promo->id;
 				$this->Cart->promocode = false;
@@ -1371,7 +1371,7 @@ class CartDiscounts {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1.5
-	 * 
+	 *
 	 * @param int $id The promo id to remove
 	 * @return boolean True if successfully removed
 	 **/
@@ -1388,7 +1388,7 @@ class CartDiscounts {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $rule The promo code rule
 	 * @return boolean
 	 **/
@@ -1397,7 +1397,7 @@ class CartDiscounts {
 		$promocode = strtolower($value);
 		
 		// Match previously applied codes
-		if (isset($this->Cart->promocodes[$promocode]) 
+		if (isset($this->Cart->promocodes[$promocode])
 			&& is_array($this->Cart->promocodes[$promocode])) return true;
 		
 		// Match new codes
@@ -1405,19 +1405,19 @@ class CartDiscounts {
 		// No code provided, nothing will match
 		if (empty($this->Cart->promocode)) return false;
 
-		$subject = strtolower($this->Cart->promocode);		
+		$subject = strtolower($this->Cart->promocode);
 		return Promotion::match_rule($subject,$logic,$promocode,$property);
 	}
 	
 	/**
 	 * Helper method to sort active discounts before other promos
 	 *
-	 * Sorts active discounts to the top of the available promo list 
+	 * Sorts active discounts to the top of the available promo list
 	 * to enable efficient promo limit enforcement
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function _active_discounts ($a,$b) {
@@ -1430,7 +1430,7 @@ class CartDiscounts {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $rule The rule to test
 	 * @return boolean
 	 **/
@@ -1442,8 +1442,8 @@ class CartDiscounts {
 
 /**
  * CartShipping class
- * 
- * Mediator object for triggering ShippingModule calculations that are 
+ *
+ * Mediator object for triggering ShippingModule calculations that are
  * then used for a lowest-cost shipping estimate to show in the cart.
  *
  * @author Jonathan Davis
@@ -1464,7 +1464,7 @@ class CartShipping {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -1498,7 +1498,7 @@ class CartShipping {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function calculate () {
@@ -1559,7 +1559,7 @@ class CartShipping {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return array List of ShippingOption objects
 	 **/
 	function options () {
@@ -1571,7 +1571,7 @@ class CartShipping {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return float The shipping amount
 	 **/
 	function selected () {
@@ -1589,7 +1589,7 @@ class CartShipping {
 
 /**
  * CartTax class
- * 
+ *
  * Handles tax calculations
  *
  * @author Jonathan Davis
@@ -1609,7 +1609,7 @@ class CartTax {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -1628,11 +1628,11 @@ class CartTax {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return float The tax rate (or false if no rate applies)
 	 **/
 	function rate ($Item=false,$settings=false) {
-		if (!$this->enabled) return false;		
+		if (!$this->enabled) return false;
 		if (!is_array($this->rates)) return false;
 		
 		$Customer = $this->Order->Customer;
@@ -1717,7 +1717,7 @@ class CartTax {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return float Total tax amount
 	 **/
 	function calculate () {
@@ -1748,7 +1748,7 @@ class CartTax {
 
 /**
  * ShippingOption class
- * 
+ *
  * A data structure for order shipping options
  *
  * @author Jonathan Davis
@@ -1765,12 +1765,12 @@ class ShippingOption {
 	var $items = array();	// Item shipping rates for this shipping option
 
 	/**
-	 * Builds a shipping option from a configured/calculated 
+	 * Builds a shipping option from a configured/calculated
 	 * shipping rate array
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $rate The calculated shipping rate
 	 * @param boolean $estimate Flag to be included/excluded from estimates
 	 * @return void

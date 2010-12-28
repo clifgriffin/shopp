@@ -1,7 +1,7 @@
 <?php
 /**
  * DBStorage
- * 
+ *
  * Provides database storage in the asset table
  *
  * @author Jonathan Davis
@@ -38,7 +38,7 @@ class DBStorage extends StorageModule implements StorageEngine {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param Asset $asset Asset object the data is associated with
 	 * @param string $data Binary data or path to the file to be saved
 	 * @param string $type (optional) Type of data provided - binary (default) or file
@@ -51,13 +51,13 @@ class DBStorage extends StorageModule implements StorageEngine {
 
 		if ($type != "binary") {
 			if (!is_readable($data)) die("Could not read the file."); // Die because we can't use ShoppError
-			$data = file_get_contents($data);			
+			$data = file_get_contents($data);
 		}
 		
 		$data = @mysql_real_escape_string($data);
 
-		if (!$asset->id) $uri = $db->query("INSERT $this->_table SET data='$data'");	
-		else $db->query("UPDATE $this->_table SET data='$data' WHERE $this->_key='$asset->uri'");	
+		if (!$asset->id) $uri = $db->query("INSERT $this->_table SET data='$data'");
+		else $db->query("UPDATE $this->_table SET data='$data' WHERE $this->_key='$asset->uri'");
 		
 		if (isset($uri)) return $uri;
 		return false;
@@ -68,7 +68,7 @@ class DBStorage extends StorageModule implements StorageEngine {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $uri The URI for the resource
 	 * @param string $filename (optional) File name of the asset
 	 * @return array A named list of the stored file size and mimetype
@@ -87,7 +87,7 @@ class DBStorage extends StorageModule implements StorageEngine {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $uri The URI for the resource
 	 * @return boolean True if the resource exists
 	 **/
@@ -103,7 +103,7 @@ class DBStorage extends StorageModule implements StorageEngine {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $uri The URI for the resource
 	 * @return string Binary data
 	 **/

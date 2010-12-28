@@ -1,7 +1,7 @@
 <?php
 /**
  * Account
- * 
+ *
  * Flow controller for the customer management interfaces
  *
  * @author Jonathan Davis
@@ -25,7 +25,7 @@ class Account extends AdminController {
 			wp_enqueue_script('postbox');
 			shopp_enqueue_script('colorbox');
 			do_action('shopp_customer_editor_scripts');
-			add_action('admin_head',array(&$this,'layout'));			
+			add_action('admin_head',array(&$this,'layout'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		do_action('shopp_customer_admin_scripts');
 	}
@@ -44,7 +44,7 @@ class Account extends AdminController {
 	/**
 	 * Interface processor for the customer list screen
 	 *
-	 * Handles processing customer list actions and displaying the 
+	 * Handles processing customer list actions and displaying the
 	 * customer list screen
 	 *
 	 * @author Jonathan Davis
@@ -75,8 +75,8 @@ class Account extends AdminController {
 		extract($args, EXTR_SKIP);
 		
 		if ($page == $this->Admin->pagename('customers')
-				&& !empty($deleting) 
-				&& !empty($selected) 
+				&& !empty($deleting)
+				&& !empty($selected)
 				&& is_array($selected)
 				&& current_user_can('shopp_delete_customers')) {
 			foreach($selected as $deletion) {
@@ -130,7 +130,7 @@ class Account extends AdminController {
 			$pagenum = 1;
 		if( !$per_page || $per_page < 0 )
 			$per_page = 20;
-		$index = ($per_page * ($pagenum-1)); 
+		$index = ($per_page * ($pagenum-1));
 		
 		if (!empty($start)) {
 			$startdate = $start;
@@ -168,7 +168,7 @@ class Account extends AdminController {
 					}
 				}
 			} elseif (strpos($s,'@') !== false) {
-				 $where .= ((empty($where))?"WHERE ":" AND ")."c.email='$s'";	
+				 $where .= ((empty($where))?"WHERE ":" AND ")."c.email='$s'";
 			} else $where .= ((empty($where))?"WHERE ":" AND ")." (c.id='$s' OR CONCAT(c.firstname,' ',c.lastname) LIKE '%$s%' OR c.company LIKE '%$s%')";
 
 		}
@@ -207,7 +207,7 @@ class Account extends AdminController {
 		$exports = array(
 			'tab' => __('Tab-separated.txt','Shopp'),
 			'csv' => __('Comma-separated.csv','Shopp'),
-			'xls' => __('Microsoft&reg; Excel.xls','Shopp')			
+			'xls' => __('Microsoft&reg; Excel.xls','Shopp')
 			);
 		
 		
@@ -259,7 +259,7 @@ class Account extends AdminController {
 	/**
 	 * Interface processor for the customer editor
 	 *
-	 * Handles rendering the interface, processing updated customer details 
+	 * Handles rendering the interface, processing updated customer details
 	 * and handing saving them back to the database
 	 *
 	 * @author Jonathan Davis
@@ -277,7 +277,7 @@ class Account extends AdminController {
 			$Customer = new Customer($_GET['id']);
 			$Customer->Billing = new Billing($Customer->id,'customer');
 			$Customer->Shipping = new Shipping($Customer->id,'customer');
-			if (empty($Customer->id)) 
+			if (empty($Customer->id))
 				wp_die(__('The requested customer record does not exist.','Shopp'));
 		} else $Customer = new Customer();
 
@@ -293,7 +293,7 @@ class Account extends AdminController {
 		$countries = array(''=>'&nbsp;');
 		$countrydata = Lookup::countries();
 		foreach ($countrydata as $iso => $c) {
-			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso) 
+			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso)
 				$base_region = $c['region'];
 			$countries[$iso] = $c['name'];
 		}

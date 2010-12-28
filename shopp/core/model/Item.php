@@ -1,7 +1,7 @@
 <?php
 /**
  * Item.php
- * 
+ *
  * Cart line items generated from product/price objects
  *
  * @author Jonathan Davis
@@ -54,7 +54,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param object $Product Product object
 	 * @param mixed $pricing A list of price IDs; The option key of a price object; or a Price object
 	 * @param int $category (optional)The breadcrumb category ID where the product was added from
@@ -77,8 +77,8 @@ class Item {
 			$Price = $Product->priceid[$pricing];
 		} else {
 			foreach ($Product->prices as &$Price)
-				if ($Price->type != "N/A" && 
-					(!$Price->stocked || 
+				if ($Price->type != "N/A" &&
+					(!$Price->stocked ||
 					($Price->stocked && $Price->stock > 0))) break;
 		}
 		if (isset($Product->id)) $this->product = $Product->id;
@@ -93,10 +93,10 @@ class Item {
 		$this->image = current($Product->images);
 		$this->description = $Product->summary;
 		
-		if ($Product->variations == "on") 
+		if ($Product->variations == "on")
 			$this->variations($Product->prices);
 			
-		if (isset($Product->addons) && $Product->addons == "on") 
+		if (isset($Product->addons) && $Product->addons == "on")
 			$this->addons($this->addonsum,$addons,$Product->prices);
 
 		if (isset($Price->id))
@@ -133,11 +133,11 @@ class Item {
 			if ($Price->shipping == "on") {
 				$this->weight = $Price->weight;
 				if (isset($Price->dimensions)) {
-					foreach ((array)$Price->dimensions as $dimension => $value) 
+					foreach ((array)$Price->dimensions as $dimension => $value)
 						$this->$dimension = $value;
 				}
 				$this->shipfee = $Price->shipfee;
-				if (isset($Product->addons) && $Product->addons == "on") 
+				if (isset($Product->addons) && $Product->addons == "on")
 					$this->addons($this->shipfee,$addons,$Product->prices,'shipfee');
 			} else $this->freeshipping = true;
 		}
@@ -148,13 +148,13 @@ class Item {
 	
 	/**
 	 * Validates the line item
-	 * 
+	 *
 	 * Ensures the product and price object exist in the catalog and that
 	 * inventory is available for the selected price variation.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function valid () {
@@ -174,7 +174,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return string
 	 **/
 	function fingerprint () {
@@ -186,20 +186,20 @@ class Item {
 
 	/**
 	 * Sets the quantity of the line item
-	 * 
-	 * Sets the quantity only if stock is available or 
+	 *
+	 * Sets the quantity only if stock is available or
 	 * the donation amount to the donation minimum.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $qty The quantity to set the line item to
 	 * @return void
 	 **/
 	function quantity ($qty) {
 
 		if ($this->type == "Donation" && $this->donation['var'] == "on") {
-			if ($this->donation['min'] == "on" && floatvalue($qty) < $this->unitprice) 
+			if ($this->donation['min'] == "on" && floatvalue($qty) < $this->unitprice)
 				$this->unitprice = $this->unitprice;
 			else $this->unitprice = floatvalue($qty,false);
 			$this->quantity = 1;
@@ -225,7 +225,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function add ($qty) {
@@ -241,7 +241,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $selection (optional) The selected price option
 	 * @param float $taxrate (optional) The tax rate to apply to pricing information
 	 * @return string
@@ -276,7 +276,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $prices A list of Price objects
 	 * @return void
 	 **/
@@ -293,7 +293,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $prices A list of Price objects
 	 * @return void
 	 **/
@@ -315,14 +315,14 @@ class Item {
 
 	/**
 	 * Maps price object properties
-	 * 
-	 * Populates only the necessary properties from a price object 
-	 * to a variation option to cut down on line item data size 
+	 *
+	 * Populates only the necessary properties from a price object
+	 * to a variation option to cut down on line item data size
 	 * for better serialization performance.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param Object $price Price object to minimize
 	 * @return object An Item variation object
 	 **/
@@ -345,7 +345,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $items List of objects with a name property to grab
 	 * @return array List of names
 	 **/
@@ -360,7 +360,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function unstock () {
@@ -403,7 +403,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function instock () {
@@ -417,7 +417,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return int The amount of stock available
 	 **/
 	function getstock () {
@@ -439,7 +439,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $rule A structured rule array
 	 * @return boolean
 	 **/
@@ -482,7 +482,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function retotal () {
@@ -502,7 +502,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return mixed
 	 **/
 	function tag ($id,$property,$options=array()) {
@@ -515,7 +515,7 @@ class Item {
 			case "name": return $this->name;
 			case "type": return $this->type;
 			case "link":
-			case "url": 
+			case "url":
 				return shoppurl(SHOPP_PRETTYURLS?$this->slug:array('shopp_pid'=>$this->product));
 			case "sku": return $this->sku;
 		}
@@ -542,12 +542,12 @@ class Item {
 		// Handle values with complex options
 		switch ($property) {
 			case "taxrate": return percentage($this->taxrate*100,array('precision' => 1)); break;
-			case "quantity": 
+			case "quantity":
 				$result = $this->quantity;
 				if ($this->type == "Donation" && $this->donation['var'] == "on") return $result;
 				if (isset($options['input']) && $options['input'] == "menu") {
 					if (!isset($options['value'])) $options['value'] = $this->quantity;
-					if (!isset($options['options'])) 
+					if (!isset($options['options']))
 						$values = "1-15,20,25,30,35,40,45,50,60,70,80,90,100";
 					else $values = $options['options'];
 					
@@ -562,7 +562,7 @@ class Item {
 						} else $qtys[] = $value;
 					}
 					$result = '<select name="items['.$id.']['.$property.']">';
-					foreach ($qtys as $qty) 
+					foreach ($qtys as $qty)
 						$result .= '<option'.(($qty == $this->quantity)?' selected="selected"':'').' value="'.$qty.'">'.$qty.'</option>';
 					$result .= '</select>';
 				} elseif (isset($options['input']) && valid_input($options['input'])) {
@@ -592,8 +592,8 @@ class Item {
 				$class = "";
 				if (!isset($options['before'])) $options['before'] = '';
 				if (!isset($options['after'])) $options['after'] = '';
-				if (isset($options['show']) && 
-					strtolower($options['show']) == "selected") 
+				if (isset($options['show']) &&
+					strtolower($options['show']) == "selected")
 					return (!empty($this->option->label))?
 						$options['before'].$this->option->label.$options['after']:'';
 					
@@ -638,9 +638,9 @@ class Item {
 				$result .= '</ul>'.$after;
 				return $result;
 				break;
-			case "hasinputs": 
+			case "hasinputs":
 			case "has-inputs": return (count($this->data) > 0); break;
-			case "inputs":			
+			case "inputs":
 				if (!isset($this->_data_loop)) {
 					reset($this->data);
 					$this->_data_loop = true;
@@ -711,7 +711,7 @@ class Item {
 
 					if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
 					$alt = esc_attr(!empty($img->alt)?$img->alt:$this->name);
-					return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />'; 
+					return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
 				}
 				break;
 				

@@ -23,9 +23,9 @@ function addtocart (form) {
 		}
 	}
 
-	if ($(form).find('input.addtocart').hasClass('ajax-html')) 
+	if ($(form).find('input.addtocart').hasClass('ajax-html'))
 		ShoppCartAjaxRequest(form.action,$(form).serialize(),'html');
-	else if ($(form).find('input.addtocart').hasClass('ajax')) 
+	else if ($(form).find('input.addtocart').hasClass('ajax'))
 		ShoppCartAjaxRequest(form.action,$(form).serialize());
 	else form.submit();
 
@@ -74,13 +74,13 @@ function ShoppCartAjaxHandler (cart,response) {
 
 	if (cart.Item) Item = cart.Item;
 	if (cart.Totals) Totals = cart.Totals;
- 	
+
 	if (added.length == 1) item = added;
 	else item.prependTo(ui).hide();
 
 	if (Item.option && Item.option.label && Item.option.label != '')
 		label = ' ('+Item.option.label+')';
-	
+
 	if (Item.image)
 		$('<p><img src="'+cart.imguri+cart.Item.image.id+'" alt="" width="96"  height="96" /></p>').appendTo(item);
 	$('<p />').html('<strong>'+Item.name+'</strong>'+label).appendTo(item);
@@ -90,7 +90,7 @@ function ShoppCartAjaxHandler (cart,response) {
 	status.html('<a href="'+cart.url+'"><span id="shopp-sidecart-items">'+Totals.quantity+'</span> '+
 				'<strong>Items</strong> &mdash; <strong>Total</strong> '+
 				'<span id="shopp-sidecart-total">'+asMoney(new Number(Totals.total))+'</span></a>');
-	
+
 	if (actions.size() != 1) actions = $('<ul />').appendTo(ui);
 	actions.html('<li><a href="'+cart.url+'">'+cart.label+'</a></li><li><a href="'+cart.checkouturl+'">'+cart.checkoutLabel+'</a></li>');
 	item.slideDown();
@@ -105,9 +105,9 @@ jQuery(document).ready(function() {
 	$('#cart #shipping-country').change(function () {
 		this.form.submit();
 	});
-	
+
 	$('input[type=image]').click(function () { $(this.form).submit(); });
-	
+
 	// "Add to cart" button behaviors
 	$('input.addtocart').each(function() {
 		var button = $(this),
@@ -120,7 +120,7 @@ jQuery(document).ready(function() {
 		});
 		if (button.attr('type') == "button")
 			button.click(function() { form.submit(); });
-			
+
 	});
 
 });

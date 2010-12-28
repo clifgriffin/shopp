@@ -1,7 +1,7 @@
 <?php
 /**
  * Storefront
- * 
+ *
  * Flow controller for the front-end shopping interfaces
  *
  * @author Jonathan Davis
@@ -76,7 +76,7 @@ class Storefront extends FlowController {
 		add_filter('shopp_product_description', 'wptexturize');
 		add_filter('shopp_product_description', 'convert_chars');
 		add_filter('shopp_product_description', 'wpautop');
-		add_filter('shopp_product_description', 'do_shortcode', 11); // AFTER wpautop()	
+		add_filter('shopp_product_description', 'do_shortcode', 11); // AFTER wpautop()
 
 		add_filter('shopp_product_spec', 'wptexturize');
 		add_filter('shopp_product_spec', 'convert_chars');
@@ -106,7 +106,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function pageid () {
@@ -126,7 +126,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function security () {
@@ -144,7 +144,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function account () {
@@ -159,7 +159,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $headers The current WP HTTP headers
 	 * @return array Modified headers
 	 **/
@@ -173,7 +173,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function behaviors () {
@@ -227,7 +227,7 @@ class Storefront extends FlowController {
 				
 		}
 
-		if ($tag == "checkout")	shopp_enqueue_script('checkout');		
+		if ($tag == "checkout")	shopp_enqueue_script('checkout');
 		
 	}
 	
@@ -236,7 +236,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function shortcodes () {
@@ -265,7 +265,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function maintenance () {
@@ -280,7 +280,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $title The current WP page title
 	 * @param string $sep (optional) The page title separator to include between page titles
 	 * @param string $placement (optional) The placement of the separator (defaults 'left')
@@ -289,7 +289,7 @@ class Storefront extends FlowController {
 	function titles ($title,$sep="&mdash;",$placement="left") {
 		global $wp;
 		
-		if (!isset($wp->query_vars['shopp_category']) 
+		if (!isset($wp->query_vars['shopp_category'])
 			&& !isset($wp->query_vars['shopp_tag'])
 			&& !isset($wp->query_vars['shopp_product'])
 			&& !isset($wp->query_vars['shopp_pid'])) return $title;
@@ -313,7 +313,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $title The current WP page title
 	 * @param int $post_id (optional) The post id
 	 * @return string The modified title
@@ -324,7 +324,7 @@ class Storefront extends FlowController {
 		
 		$pages = $this->Settings->get('pages');
 
-		if (isset($wp->query_vars['shopp_proc']) && 
+		if (isset($wp->query_vars['shopp_proc']) &&
 			$post_id == $pages['checkout']['id']) {
 			
 			switch(strtolower($wp->query_vars['shopp_proc'])) {
@@ -340,11 +340,11 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function feeds () {
-		global $Shopp;		
+		global $Shopp;
 		if (empty($this->Category->name)):?>
 
 <link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo esc_attr(shoppurl(SHOPP_PRETTYURLS?'feed':array('shopp_lookup'=>'newproducts-rss'))); ?>" />
@@ -360,7 +360,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function updatesearch () {
@@ -370,17 +370,17 @@ class Storefront extends FlowController {
 
 	/**
 	 * Adds 'keyword' and 'description' <meta> tags into the page markup
-	 * 
+	 *
 	 * The 'keyword' tag is a list of tags applied to a product.  No default 'keyword' meta
 	 * is generated for categories, however, the 'shopp_meta_keywords' filter hook can be
 	 * used to generate a custom list.
-	 * 
+	 *
 	 * The 'description' tag is generated from the product summary or category description.
 	 * It can also be customized with the 'shopp_meta_description' filter hook.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function metadata () {
@@ -408,7 +408,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $url The current url
 	 * @return string The canonical url
 	 **/
@@ -416,11 +416,11 @@ class Storefront extends FlowController {
 		global $Shopp;
 		
 		// Catalog landing as site landing, use site home URL
-		if (is_front_page() && isset($Shopp->Catalog) && $Shopp->Catalog->tag('is-landing','return=1')) 
+		if (is_front_page() && isset($Shopp->Catalog) && $Shopp->Catalog->tag('is-landing','return=1'))
 			return user_trailingslashit(get_bloginfo('home'));
 			
 		// Catalog landing page URL
-		if (is_shopp_page('catalog') && $Shopp->Catalog->tag('is-landing','return=1')) 
+		if (is_shopp_page('catalog') && $Shopp->Catalog->tag('is-landing','return=1'))
 			return $Shopp->Catalog->tag('url','echo=0');
 			
 		// Specific product/category URLs
@@ -431,13 +431,13 @@ class Storefront extends FlowController {
 	
 	/**
 	 * Registers available smart categories
-	 * 
+	 *
 	 * New smart categories can be added by creating a new smart category class
 	 * in a custom plugin or the theme functions file.
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function smartcategories () {
@@ -459,7 +459,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function header () {
@@ -471,13 +471,13 @@ class Storefront extends FlowController {
 
 	/**
 	 * Adds a dynamic style declaration for the category grid view
-	 * 
-	 * Ties the presentation setting to the grid view category rendering 
+	 *
+	 * Ties the presentation setting to the grid view category rendering
 	 * in the storefront.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function catalogcss () {
@@ -499,7 +499,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function footer () {
@@ -536,7 +536,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function searching () {
@@ -564,7 +564,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function catalog () {
@@ -577,22 +577,22 @@ class Storefront extends FlowController {
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&
 			$category = $wp->query_vars['shopp_category']) $type = "category";
-		elseif (isset($wp->query_vars['shopp_pid']) && 
+		elseif (isset($wp->query_vars['shopp_pid']) &&
 			$productid = $wp->query_vars['shopp_pid']) $type = "product";
-		elseif (isset($wp->query_vars['shopp_product']) && 
+		elseif (isset($wp->query_vars['shopp_product']) &&
 			$productname = $wp->query_vars['shopp_product']) $type = "product";
 
-		if (isset($wp->query_vars['shopp_tag']) && 
+		if (isset($wp->query_vars['shopp_tag']) &&
 			$tag = $wp->query_vars['shopp_tag']) {
 			$type = "category";
 			$category = "tag";
 		}
 
-		// If a search query is stored, and this request is a product or the 
-		// search results category repopulate the search box and set the 
+		// If a search query is stored, and this request is a product or the
+		// search results category repopulate the search box and set the
 		// category for the breadcrumb
-		if (!empty($this->search) 
-				&& ($type == "product" 
+		if (!empty($this->search)
+				&& ($type == "product"
 				|| ($type == "category" && $category == "search-results"))) {
 			add_action('wp_head', array(&$this, 'updatesearch'));
 			$category = "search-results";
@@ -600,7 +600,7 @@ class Storefront extends FlowController {
 
 		// If a search request is being made, set the type to category
 		if ($this->searching) {
-			if ($type != "product") $type = "category"; 
+			if ($type != "product") $type = "category";
 			$category = "search-results";
 		}
 		
@@ -626,10 +626,10 @@ class Storefront extends FlowController {
 					shopp_redirect($BestBet->tag('url',array('return'=>true)));
 				}
 			}
-		} 
+		}
 
-		if (empty($category) && empty($tag) && 
-			empty($productid) && empty($productname)) 
+		if (empty($category) && empty($tag) &&
+			empty($productid) && empty($productname))
 			$this->breadcrumb = "";
 
 		// Category Filters
@@ -672,7 +672,7 @@ class Storefront extends FlowController {
 			$Shopp->Product = new Product(); // blank product displays "no product found" in storefront
 
 		// No product found, try to load a page instead
-		if ($type == "product" && !$Shopp->Product) 
+		if ($type == "product" && !$Shopp->Product)
 			$wp->query_vars['pagename'] = $wp->request;
 
 		$Shopp->Catalog = new Catalog($type);
@@ -689,10 +689,10 @@ class Storefront extends FlowController {
 	 * Cancels canonical redirects when the catalog is Set as the front page
 	 *
 	 * Added for WordPress 3.0 compatibility {@see wp-includes/canonical.php line 111}
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $redirect The redirected URL
 	 * @return mixed False when the Shopp catalog is set as the front page
 	 **/
@@ -716,16 +716,16 @@ class Storefront extends FlowController {
 		
 		ob_start();
 		switch ($Shopp->Catalog->type) {
-			case "product": 
+			case "product":
 				if (file_exists(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php"))
 					include(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php");
 				else include(SHOPP_TEMPLATES."/product.php"); break;
 
 			case "category":
-				if (isset($Shopp->Category->slug) && 
+				if (isset($Shopp->Category->slug) &&
 					file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
 					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
-				elseif (isset($Shopp->Category->id) && 
+				elseif (isset($Shopp->Category->id) &&
 					file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
 					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
 				else include(SHOPP_TEMPLATES."/category.php"); break;
@@ -754,7 +754,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function cart () {
@@ -777,7 +777,7 @@ class Storefront extends FlowController {
 		if (isset($_REQUEST['redirect'])) $redirect = $_REQUEST['redirect'];
 		switch ($redirect) {
 			case "checkout": shopp_redirect(shoppurl(false,$redirect,$Shopp->Order->security())); break;
-			default: 
+			default:
 				if (!empty($_REQUEST['redirect']))
 					shopp_safe_redirect($_REQUEST['redirect']);
 				else shopp_redirect(shoppurl(false,'cart'));
@@ -786,13 +786,13 @@ class Storefront extends FlowController {
 
 	/**
 	 * Displays the cart template
-	 * 
-	 * Replaces the [cart] shortcode on the Cart page with 
+	 *
+	 * Replaces the [cart] shortcode on the Cart page with
 	 * the processed template contents.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $attrs Shortcode attributes
 	 * @return string The cart template content
 	 **/
@@ -811,13 +811,13 @@ class Storefront extends FlowController {
 	
 	/**
 	 * Displays the appropriate checkout template
-	 * 
-	 * Replaces the [checkout] shortcode on the Checkout page with 
+	 *
+	 * Replaces the [checkout] shortcode on the Checkout page with
 	 * the processed template contents.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $attrs Shortcode attributes
 	 * @return string The processed template content
 	 **/
@@ -829,8 +829,8 @@ class Storefront extends FlowController {
 
 		do_action('shopp_init_checkout');
 		switch ($process) {
-			case "confirm-order": 
-				do_action('shopp_init_confirmation'); 
+			case "confirm-order":
+				do_action('shopp_init_confirmation');
 				$Order->validated = $Order->isvalid();
 				$errors = "";
 				if ($Errors->exist(SHOPP_STOCK_ERR)) {
@@ -842,8 +842,8 @@ class Storefront extends FlowController {
 				$content = $errors.$this->order_confirmation();
 				break;
 			case "thanks":
-			case "receipt": 
-				$content = $this->thanks(); 
+			case "receipt":
+				$content = $this->thanks();
 				break;
 			default:
 				ob_start();
@@ -859,13 +859,13 @@ class Storefront extends FlowController {
 	
 	/**
 	 * Displays the appropriate account page template
-	 * 
-	 * Replaces the [account] shortcode on the Account page with 
+	 *
+	 * Replaces the [account] shortcode on the Account page with
 	 * the processed template contents.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $attrs Shortcode attributes
 	 * @return string The cart template content
 	 **/
@@ -892,7 +892,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return string The processed confirm.php template file
 	 **/
 	function order_confirmation () {
@@ -911,7 +911,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return string The processed thanks.php template file
 	 **/
 	function thanks ($template="thanks.php") {
@@ -930,7 +930,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return string The processed errors.php template file
 	 **/
 	function error_page ($template="errors.php") {
@@ -949,7 +949,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $attrs The parsed shortcode attributes
 	 * @return string The processed content
 	 **/
@@ -972,7 +972,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $attrs The parsed shortcode attributes
 	 * @return string The processed content
 	 **/
@@ -1007,7 +1007,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $attrs The parsed shortcode attributes
 	 * @return string The processed content
 	 **/
@@ -1027,7 +1027,7 @@ class Storefront extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $attrs The parsed shortcode attributes
 	 * @return string The processed content
 	 **/
@@ -1052,14 +1052,14 @@ class Storefront extends FlowController {
 			<?php if (isset($atts['variations'])): $variations = empty($atts['variations'])?'mode=multiple&label=true&defaults='.__('Select an option','Shopp').'&before_menu=<li>&after_menu=</li>':$atts['variations']; ?>
 				<?php if(shopp('product','has-variations')): ?>
 				<ul class="variations">
-					<?php shopp('product','variations',$variations); ?>			
+					<?php shopp('product','variations',$variations); ?>
 				</ul>
 				<?php endif; ?>
 			<?php endif; ?>
 			<?php if (isset($atts['addons'])): $addons = empty($atts['addons'])?'mode=menu&label=true&defaults='.__('Select an add-on','Shopp').'&before_menu=<li>&after_menu=</li>':$atts['addons']; ?>
 				<?php if(shopp('product','has-addons')): ?>
 					<ul class="addons">
-						<?php shopp('product','addons','mode=menu&label=true&defaults='.__('Select an add-on','Shopp').'&before_menu=<li>&after_menu=</li>'); ?>			
+						<?php shopp('product','addons','mode=menu&label=true&defaults='.__('Select an add-on','Shopp').'&before_menu=<li>&after_menu=</li>'); ?>
 					</ul>
 				<?php endif; ?>
 			<?php endif; ?>

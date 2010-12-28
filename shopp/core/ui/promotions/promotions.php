@@ -29,11 +29,11 @@
 		</tfoot>
 	<?php if (sizeof($Promotions) > 0): ?>
 		<tbody class="list promotions">
-		<?php 
+		<?php
 			$hidden = get_hidden_columns('shopp_page_shopp-promotions');
-			
-			$even = false; 
-			foreach ($Promotions as $Promotion): 
+
+			$even = false;
+			foreach ($Promotions as $Promotion):
 			$editurl = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions','id'=>$Promotion->id)),admin_url('admin.php'));
 			$deleteurl = add_query_arg(array_merge($_GET,array('page'=>'shopp-promotions','delete[]'=>$Promotion->id,'deleting'=>'promotion')),admin_url('admin.php'));
 			$PromotionName = empty($Promotion->name)?'('.__('no promotion name').')':$Promotion->name;
@@ -44,10 +44,10 @@
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
 					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($PromotionName); ?>&quot;' href="<?php echo esc_url($deleteurl); ?>" rel="<?php echo $Promotion->id; ?>"><?php _e('Delete','Shopp'); ?></a></span>
-				</div>				
-				
+				</div>
+
 			</td>
-			<td class="discount column-discount<?php echo in_array('discount',$hidden)?' hidden':''; ?>"><?php 
+			<td class="discount column-discount<?php echo in_array('discount',$hidden)?' hidden':''; ?>"><?php
 				if ($Promotion->type == "Percentage Off") echo percentage($Promotion->discount);
 				if ($Promotion->type == "Amount Off") echo money($Promotion->discount);
 				if ($Promotion->type == "Free Shipping") echo $this->Settings->get("free_shipping_text");
@@ -75,19 +75,19 @@
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="clear"></div>
 	</div>
-</div>   
+</div>
 
 <script type="text/javascript">
 jQuery(document).ready( function() {
 	var $=jQuery.noConflict();
-	
+
 	$('#selectall').change( function() {
 		$('#promotions th input').each( function () {
 			if (this.checked) this.checked = false;
 			else this.checked = true;
 		});
 	});
-	
+
 	$('a.submitdelete').click(function () {
 		if (confirm("<?php _e('You are about to delete this promotion!\n \'Cancel\' to stop, \'OK\' to delete.','Shopp'); ?>")) {
 			$('<input type="hidden" name="delete[]" />').val($(this).attr('rel')).appendTo('#promotions');

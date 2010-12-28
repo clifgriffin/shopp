@@ -1,7 +1,7 @@
 <?php
 /**
  * Login
- * 
+ *
  * Controller for handling logins
  *
  * @author Jonathan Davis
@@ -20,22 +20,22 @@
  * @package shopp
  **/
 class Login {
-	
+
 	var $Customer = false;
 	var $Billing = false;
 	var $Shipping = false;
 
 	var $accounts = "none";		// Account system setting
-	
+
 	function __construct () {
 		global $Shopp;
 
 		$this->accounts = $Shopp->Settings->get('account_system');
-		
+
 		$this->Customer =& $Shopp->Order->Customer;
 		$this->Billing =& $Shopp->Order->Billing;
 		$this->Shipping =& $Shopp->Order->Shipping;
-		
+
 		add_action('shopp_logout',array(&$this,'logout'));
 
 		if ($this->accounts == "wordpress") {
@@ -43,20 +43,20 @@ class Login {
 			add_action('wp_logout',array(&$this,'logout'));
 			add_action('shopp_logout','wp_clear_auth_cookie',1);
 		}
-		
-		if (isset($_POST['shopp_registration'])) 
+
+		if (isset($_POST['shopp_registration']))
 			$this->registration();
-		
+
 		$this->process();
-		
+
 	}
-	
+
 	/**
 	 * Handle Shopp login processing
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function process () {
@@ -68,7 +68,7 @@ class Login {
 			// Trigger the logout
 			do_action('shopp_logout');
 		}
-		
+
 		if ("wordpress" == $this->accounts) {
 			// See if the wordpress user is already logged in
 			$user = wp_get_current_user();
@@ -82,12 +82,12 @@ class Login {
 				}
 			}
 		}
-			
+
 		if (empty($_POST['process-login'])) return false;
 		if ($_POST['process-login'] != "true") return false;
 
 		add_action('shopp_login',array(&$this,'redirect'));
-		
+
 		// Prevent checkout form from processing
 		remove_all_actions('shopp_process_checkout');
 
@@ -100,10 +100,10 @@ class Login {
 				} else {
 					new ShoppError(__('You must provide a valid login name or email address to proceed.'), 'missing_account', SHOPP_AUTH_ERR);
 				}
-									
+
 				if ($loginname) {
-					$this->auth($loginname,$_POST['password-login'],$mode);			
-				}				
+					$this->auth($loginname,$_POST['password-login'],$mode);
+				}
 				break;
 			case "shopp":
 				$mode = "loginname";
@@ -114,13 +114,13 @@ class Login {
 		}
 
 	}
-	
+
 	/**
 	 * Authorize login
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param int $id The supplied identifying credential
 	 * @param string $password The password provided for login authentication
 	 * @param string $type (optional) Type of identifying credential provided (defaults to 'email')
@@ -128,7 +128,7 @@ class Login {
 	 **/
 	function auth ($id,$password,$type='email') {
 		global $Shopp;
-		
+
 		$db = DB::get();
 		switch($this->accounts) {
 			case "shopp":
@@ -137,15 +137,15 @@ class Login {
 				if (empty($Account)) {
 					new ShoppError(__("No customer account was found with that email.","Shopp"),'invalid_account',SHOPP_AUTH_ERR);
 					return false;
-				} 
+				}
 
 				if (!wp_check_password($password,$Account->password)) {
 					new ShoppError(__("The password is incorrect.","Shopp"),'invalid_password',SHOPP_AUTH_ERR);
 					return false;
-				}	
-						
+				}
+
 				break;
-				
+
   		case "wordpress":
 			if($type == 'email'){
 				$user = get_user_by_email($id);
@@ -174,15 +174,15 @@ class Login {
 
 		$this->login($Account);
 		do_action('shopp_auth');
-		
+
 	}
-	
+
 	/**
 	 * Login to the linked Shopp account when logging into WordPress
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param $cookie N/A
 	 * @param $expire N/A
 	 * @param $expiration N/A
@@ -195,13 +195,13 @@ class Login {
 			add_action('wp_logout',array(&$this,'logout'));
 		}
 	}
-	
+
 	/**
 	 * Initialize Shopp customer login data
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function login ($Account) {
@@ -219,13 +219,13 @@ class Login {
 			$this->Shipping->copydata($this->Billing);
 		do_action_ref_array('shopp_login',array(&$this->Customer));
 	}
-	
+
 	/**
 	 * Clear the Customer-related session data
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function logout () {
@@ -239,7 +239,7 @@ class Login {
 		session_commit();
 		do_action_ref_array('shopp_logged_out',array(&$this->Customer));
 	}
-	
+
 	function registration () {
 		$Errors =& ShoppErrors();
 
@@ -252,24 +252,24 @@ class Login {
 			$this->Customer->confirm_password = $_POST['confirm-password'];
 
 		$this->Billing = new Billing();
-		if (isset($_POST['billing'])) 
+		if (isset($_POST['billing']))
 			$this->Billing->updates($_POST['billing']);
-		
+
 		$this->Shipping = new Shipping();
-		if (isset($_POST['shipping'])) 
+		if (isset($_POST['shipping']))
 			$this->Shipping->updates($_POST['shipping']);
 
 		// Override posted shipping updates with billing address
 		if ($_POST['sameshipaddress'] == "on")
 			$this->Shipping->updates($this->Billing,
 				array("_datatypes","_table","_key","_lists","id","created","modified"));
-		
+
 		// WordPress account integration used, customer has no wp user
 		if ("wordpress" == $this->accounts && empty($this->Customer->wpuser)) {
 			if ( $wpuser = get_current_user_id() ) $this->Customer->wpuser = $wpuser; // use logged in WordPress account
 			else $this->Customer->create_wpuser(); // not logged in, create new account
 		}
-		
+
 		if ($Errors->exist(SHOPP_ERR)) return false;
 
 		// New customer, save hashed password
@@ -287,9 +287,9 @@ class Login {
 			$this->Shipping->customer = $this->Customer->id;
 			$this->Shipping->save();
 		}
-		
+
 		if (!empty($this->Customer->id)) $this->login($this->Customer);
-		
+
 		shopp_redirect(shoppurl(false,'account'));
 	}
 
@@ -303,7 +303,7 @@ class Login {
 		shopp_safe_redirect(shoppurl(false,'account',$Shopp->Gateways->secure));
 		exit();
 	}
-	
+
 } // END class Login
 
 ?>

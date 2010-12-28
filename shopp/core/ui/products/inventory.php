@@ -32,7 +32,7 @@
 	</div>
 	</form>
 	<div class="clear"></div>
-	
+
 	<form action="" method="post" id="inventory-manager">
 	<table class="widefat" cellspacing="0">
 		<thead>
@@ -43,17 +43,17 @@
 		</tfoot>
 	<?php if (sizeof($Products) > 0): ?>
 		<tbody id="products" class="list products">
-		<?php 
+		<?php
 		$hidden = get_hidden_columns('shopp_page_shopp-products');
 
-		$even = false; 
+		$even = false;
 		foreach ($Products as $key => $Product):
 		$editurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>'shopp-products',
 					'id'=>$Product->product,
 					'f'=>null)),
 					admin_url('admin.php'))));
-		
+
 		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
 		if (!empty($Product->label) && $Product->optionkey > 0) $ProductName .= " ($Product->label)";
 		?>
@@ -61,10 +61,10 @@
 			<td class="inventory column-inventory">
 			<input type="text" name="stock[<?php echo $Product->id; ?>]" value="<?php echo $Product->stock; ?>" size="6" class="stock selectall" />
 			<input type="hidden" name="db[<?php echo $Product->id; ?>]" value="<?php echo $Product->stock; ?>" class="db" />
-			</td> 
+			</td>
 			<td class="sku column-sku"><?php echo $Product->sku; ?></td>
 			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo $ProductName; ?>&quot;'><?php echo $ProductName; ?></a></td>
-		
+
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
@@ -77,20 +77,20 @@
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="clear"></div>
 	</div>
-</div>    
+</div>
 
 <script type="text/javascript">
 /* <![CDATA[ */
 jQuery(document).ready( function() {
 	var $=jqnc(),
 		updateurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_update_inventory'); ?>';
-	
+
 	$('input.stock').change(function () {
 		var $this = $(this),name = $this.attr('name'),bg = $this.css('background-color'),db = $this.nextAll('input.db');
 		$this.addClass('updating');
-		
+
 		if ($this.val() == db.val()) return $this.removeClass('updating');
-		
+
 		$.ajaxSetup({error:function () {
 				$this.val(db.val()).removeClass('updating').css('background-color','pink').dequeue().animate({backgroundColor:bg},500);
 			}

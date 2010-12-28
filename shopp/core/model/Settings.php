@@ -1,7 +1,7 @@
 <?php
 /**
  * Settings.php
- * 
+ *
  * Shopp settings manager
  *
  * @author Jonathan Davis
@@ -21,14 +21,14 @@ class Settings extends DatabaseObject {
 	
 	/**
 	 * Settings object constructor
-	 * 
-	 * If no settings are available (the table doesn't exist), 
+	 *
+	 * If no settings are available (the table doesn't exist),
 	 * the unavailable flag is set.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 * @version 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct ($name="") {
@@ -42,7 +42,7 @@ class Settings extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function availability () {
@@ -52,14 +52,14 @@ class Settings extends DatabaseObject {
 	
 	/**
 	 * Load settings from the database
-	 * 
-	 * By default, loads all settings with an autoload parameter 
+	 *
+	 * By default, loads all settings with an autoload parameter
 	 * set to "on". Otherwise, loads an individual setting explicitly
 	 * regardless of the autoload parameter.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function load ($name="") {
@@ -79,7 +79,7 @@ class Settings extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $name Name of the setting
 	 * @param mixed $value Value of the setting
 	 * @param boolean $autoload (optional) Automatically load the setting - default true
@@ -105,7 +105,7 @@ class Settings extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $name Name of the setting
 	 * @param mixed $value Value of the setting to update
 	 * @return boolean
@@ -122,7 +122,7 @@ class Settings extends DatabaseObject {
 		$data = $db->prepare($Setting);				// Prepare the data for db entry
 		$dataset = DatabaseObject::dataset($data);	// Format the data in SQL
 		
-		if ($db->query("UPDATE $this->_table SET $dataset WHERE name='$Setting->name'")) 
+		if ($db->query("UPDATE $this->_table SET $dataset WHERE name='$Setting->name'"))
 			$this->registry[$name] = $this->restore($value); // Update the value in the registry
 		else return false;
 		return true;
@@ -131,13 +131,13 @@ class Settings extends DatabaseObject {
 	/**
 	 * Save a setting to the database
 	 *
-	 * Sets an autoload parameter to determine whether the data is 
+	 * Sets an autoload parameter to determine whether the data is
 	 * automatically loaded into the registry, or must be loaded
 	 * explicitly using the get() method.
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $name Name of the setting to save
 	 * @param mixed $value Value of the setting
 	 * @param boolean $autoload (optional) The autoload setting - true by default
@@ -152,10 +152,10 @@ class Settings extends DatabaseObject {
 
 	/**
 	 * Save a setting to the database if it does not already exist
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $name Name of the setting to save
 	 * @param mixed $value Value of the setting
 	 * @param boolean $autoload (optional) The autoload setting - true by default
@@ -170,7 +170,7 @@ class Settings extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $name Name of the setting to remove
 	 * @return boolean
 	 **/
@@ -179,17 +179,17 @@ class Settings extends DatabaseObject {
 		unset($this->registry[$name]);
 		if (!$db->query("DELETE FROM $this->_table WHERE name='$name'")) return false;
 		return true;
-	}	
+	}
 	
 	/**
 	 * Get a specific setting from the registry
-	 * 
+	 *
 	 * If no setting is available in the registry, try
 	 * loading from the database.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return mixed The value of the setting
 	 **/
 	function get ($name) {
@@ -198,7 +198,7 @@ class Settings extends DatabaseObject {
 		$value = false;
 		if (isset($this->registry[$name])) {
 			return $this->registry[$name];
-		} elseif ($this->load($name)) {			
+		} elseif ($this->load($name)) {
 			$value = $this->registry[$name];
 		}
 		
@@ -217,7 +217,7 @@ class Settings extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $value A value to restore if necessary
 	 * @return mixed
 	 **/
@@ -238,11 +238,11 @@ class Settings extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return object
 	 **/
 	function setting () {
-		$setting->_datatypes = array("name" => "string", "value" => "string", "autoload" => "list", 
+		$setting->_datatypes = array("name" => "string", "value" => "string", "autoload" => "list",
 			"created" => "date", "modified" => "date");
 		$setting->name = null;
 		$setting->value = null;
@@ -257,7 +257,7 @@ class Settings extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function saveform () {
@@ -273,7 +273,7 @@ class Settings extends DatabaseObject {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @return void Description...
  **/
 function &ShoppSettings () {

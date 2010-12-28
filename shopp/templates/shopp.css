@@ -131,14 +131,14 @@ ul.shopp_categories li ul.active { display: block; }
 .sideproduct h3 { margin-top: 0; }
 
 /**
- * Shopping Cart 
+ * Shopping Cart
  **/
 #shopp #cart { width: 100%; }
 #shopp #cart table { padding: 10px 0; width: 100%; }
 #shopp #cart th { text-align: left; font-weight: bold; }
 #shopp #cart th, #shopp #cart td { padding: 3px; }
 #shopp #cart .item { width: 50%; }
-#shopp #cart .money, 
+#shopp #cart .money,
 #shopp #cart .totals th,
 #shopp #cart .buttons td { text-align: right; white-space: nowrap; }
 #shopp #cart .totals.total th,
@@ -157,7 +157,7 @@ ul.shopp_categories li ul.active { display: block; }
 #shopp ul.account li { display: inline-block; width: 200px; padding-top: 18px; }
 
 /**
- * Checkout 
+ * Checkout
  **/
 #shopp #shipping-methods { padding-left: 30px; }
 #shopp #shipping-methods li { margin-top: 5px; }
@@ -182,11 +182,11 @@ ul.shopp_categories li ul.active { display: block; }
 #shopp #receipt .order { width: 100%; overflow: hidden; border: none; }
 #shopp #receipt td { border: none; }
 #shopp #receipt th { font-weight: bold; text-align: left; border: none; }
-#shopp #receipt th, 
+#shopp #receipt th,
 #shopp #receipt td { padding: 3px 0; }
 #shopp #receipt .order .item { width: 50%; }
 #shopp #receipt .order td.qty { text-align: center; }
-#shopp #receipt .order .money, 
+#shopp #receipt .order .money,
 #shopp #receipt .order .total,
 #shopp #receipt .order .buttons td { text-align: right; }
 #shopp #receipt .order .totals.total th,

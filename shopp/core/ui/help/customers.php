@@ -1,4 +1,4 @@
-<h5><?php _e('Using Advanced Customer Search','Shopp'); ?></h5>		
+<h5><?php _e('Using Advanced Customer Search','Shopp'); ?></h5>
 <table border="0" class="advsearch">
 	<tr><td><strong><?php _e('Email','Shopp'); ?>:</strong></td><td>help.desk@shopplugin.net</td></tr>
 <tr><td><strong><?php _e('Company','Shopp'); ?>:</strong></td><td>company:"Ingenesis Limited"<br />company:automattic</td></tr>

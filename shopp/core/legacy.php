@@ -61,7 +61,7 @@ if(!function_exists('scandir')) {
 	 *
 	 * @author Jonathan Davis
 	 * @since PHP 5.0+
-	 * 
+	 *
 	 * @param string $dir Directory path to scan
 	 * @param int $sortorder The sort order of the file listing (0=alphabetic, 1=reversed)
 	 * @return array|boolean The list of files or false if not available
@@ -80,10 +80,10 @@ if(!function_exists('scandir')) {
 if (!function_exists('property_exists')) {
 	/**
 	 * Checks an object for a declared property
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since PHP 5.1.0+
-	 * 
+	 *
 	 * @param object $Object The object to inspect
 	 * @param string $property The name of the property to look for
 	 * @return boolean True if the property exists, false otherwise
@@ -99,7 +99,7 @@ if ( !function_exists('sys_get_temp_dir')) {
 	 *
 	 * @author Jonathan Davis
 	 * @since PHP 5.2.1+
-	 * 
+	 *
 	 * @return string The path to the system temp directory
 	 **/
 	function sys_get_temp_dir() {
@@ -117,14 +117,14 @@ if ( !function_exists('sys_get_temp_dir')) {
 if (!function_exists('get_class_property')) {
 	/**
 	 * Gets the property of an uninstantiated class
-	 * 
-	 * Provides support for getting a property of an uninstantiated 
+	 *
+	 * Provides support for getting a property of an uninstantiated
 	 * class by dynamic name.  As of PHP 5.3.0 this function is no
 	 * longer necessary as you can simply reference as $Classname::$property
 	 *
 	 * @author Jonathan Davis
 	 * @since PHP 5.3.0
-	 * 
+	 *
 	 * @param string $classname Name of the class
 	 * @param string $property Name of the property
 	 * @return mixed Value of the property
@@ -141,13 +141,13 @@ if (!function_exists('get_class_property')) {
 if (!function_exists('array_replace')) {
 	/**
 	 * Replaces elements from passed arrays into the first array
-	 * 
+	 *
 	 * Provides backwards compatible support for the PHP 5.3.0
 	 * array_replace() function.
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since PHP 5.3.0
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function array_replace (array &$array, array &$array1) {

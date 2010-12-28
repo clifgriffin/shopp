@@ -2,13 +2,13 @@
 	<div class="icon32"></div>
 	<h2><?php printf(__('Arrange Products for "%s"','Shopp'),$Category->name); ?></h2>
 	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
-	
+
 	<form action="" id="products" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('categories'); ?>" />
 		<input type="hidden" name="category" id="category-id" value="<?php echo $id; ?>" />
 	</div>
-	
+
 	<div class="tablenav">
 		<div class="alignleft actions">
 			<a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'a'=>null)),admin_url('admin.php'))); ?>" class="button add-new">&larr; <?php printf(__('Return to %s','Shopp'),$Category->name); ?></a>
@@ -26,20 +26,20 @@
 		</tfoot>
 	<?php if (sizeof($products) > 0): ?>
 		<tbody id="categories-table" class="list categories">
-		<?php 
+		<?php
 		$hidden = array();
 		$hidden = get_hidden_columns('shopp_page_shopp-categories');
-				
+
 		$even = false;
-		foreach ($products as $Product): 
-		
+		foreach ($products as $Product):
+
 		$editurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>$this->Admin->pagename('products'),
 					'id'=>$Product->id)),
 					admin_url('admin.php'))));
-		
+
 		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
-		
+
 		$stripe = (!$even)?'alternate':''; $even = !$even;
 		$classes = (empty($stripe)?'':' '.$stripe);
 

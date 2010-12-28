@@ -1,7 +1,7 @@
 <?php
 /**
  * Shipping.php
- * 
+ *
  * Shipping addresses and shipping rate modules
  *
  * @author Jonathan Davis
@@ -15,7 +15,7 @@
 
 /**
  * Shipping class
- * 
+ *
  * The shipping address manager
  *
  * @author Jonathan Davis
@@ -37,7 +37,7 @@ class Shipping extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return array
 	 **/
 	function exportcolumns () {
@@ -58,7 +58,7 @@ class Shipping extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return string
 	 **/
 	function postarea () {
@@ -93,8 +93,8 @@ class Shipping extends DatabaseObject {
 			foreach ($areas['CA'] as $name => $provinces) {
 				foreach ($provinces as $id => $fsas) {
 					if (in_array(substr($code,0,1),$fsas)) {
-						$this->state = $id; 
-						return $name; 
+						$this->state = $id;
+						return $name;
 					}
 				}
 			}
@@ -111,7 +111,7 @@ class Shipping extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function destination ($data=false) {
@@ -141,8 +141,8 @@ class Shipping extends DatabaseObject {
 
 /**
  * ShippingModules class
- * 
- * Controller for managing and loading the shipping modules that 
+ *
+ * Controller for managing and loading the shipping modules that
  * are installed.
  *
  * @author Jonathan Davis
@@ -161,7 +161,7 @@ class ShippingModules extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function __construct () {
@@ -175,14 +175,14 @@ class ShippingModules extends ModuleLoader {
 		$this->installed();
 		$this->activated();
 		$this->load();
-	}	
+	}
 	
 	/**
 	 * Determines the activated shipping modules from the configured rates
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return array List of module names for the activated modules
 	 **/
 	function activated () {
@@ -206,7 +206,7 @@ class ShippingModules extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function settings () {
@@ -218,7 +218,7 @@ class ShippingModules extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $module The module class name
 	 * @return void
 	 **/
@@ -244,7 +244,7 @@ class ShippingModules extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return array The list of method handles
 	 **/
 	function methods () {
@@ -256,7 +256,7 @@ class ShippingModules extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function ui () {
@@ -268,7 +268,7 @@ class ShippingModules extends ModuleLoader {
 
 /**
  * ShippingModule interface
- * 
+ *
  * Provides a structured template of object methods that must be implemented
  * in order to have a fully compatible shipping module
  *
@@ -283,7 +283,7 @@ interface ShippingModule {
 	 * Registers the functions the shipping module will implement
 	 *
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	public function methods ();
@@ -292,30 +292,30 @@ interface ShippingModule {
 	 * Embeded JavaScript to render the shipping module settings interface
 	 *
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	public function ui ();
 	
 	/**
 	 * Determines if the shipping module has been activated
-	 * 
+	 *
 	 * NOTE: Automatically implemented by extending the ShippingFramework
 	 *
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	public function activated();
 	
 	/**
 	 * Used to initialize/reset shipping module calculation properties
-	 * 
+	 *
 	 * An empty stub function must be defined even if the module does not
 	 * use it
 	 *
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	public function init ();
@@ -325,9 +325,9 @@ interface ShippingModule {
 	 *
 	 * An empty stub function must be defined even if the module does not
 	 * use it
-	 * 
+	 *
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $id The index of the Item in the cart contents array
 	 * @param Item $Item The cart Item object
 	 * @return void
@@ -336,12 +336,12 @@ interface ShippingModule {
 	
 	/**
 	 * Used to calculate aggregate shipping amounts
-	 * 
+	 *
 	 * An empty stub function must be defined even if the module does not
 	 * use it
 	 *
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $options A list of current ShippingOption objects
 	 * @param Order $Order A reference to the current Order object
 	 * @return array The modified $options list
@@ -352,7 +352,7 @@ interface ShippingModule {
 
 /**
  * ShippingFramework class
- * 
+ *
  * Provides basic shipping module functionality
  *
  * @author Jonathan Davis
@@ -372,13 +372,13 @@ abstract class ShippingFramework {
 	
 	/**
 	 * Initializes a shipping module
-	 * 
+	 *
 	 * Grabs settings that most shipping modules will needs and establishes
 	 * the event listeners to trigger module functionality.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -393,7 +393,7 @@ abstract class ShippingFramework {
 
 		$rates = $Shopp->Settings->get('shipping_rates');
 		$this->rates = array_filter($rates,array(&$this,'myrates'));
-		if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates); 
+		if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates);
 		
 		add_action('shopp_calculate_shipping_init',array(&$this,'init'));
 		add_action('shopp_calculate_shipping',array(&$this,'calculate'),10,2);
@@ -405,7 +405,7 @@ abstract class ShippingFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $rate The rate configuration array
 	 * @return boolean
 	 **/
@@ -419,7 +419,7 @@ abstract class ShippingFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function activated () {
@@ -433,7 +433,7 @@ abstract class ShippingFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $name The name of a setting
 	 * @param string $name... (optional) Additional setting names to initialize
 	 * @return void
@@ -450,7 +450,7 @@ abstract class ShippingFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $data The encoded data to send, false for GET queries
 	 * @param string $url The URL to connect to
 	 * @param string $port (optional) Connect to a specific port
@@ -459,33 +459,33 @@ abstract class ShippingFramework {
 	function send ($data=false,$url,$port=false) {
 		$connection = curl_init();
 		curl_setopt($connection,CURLOPT_URL,"$url".($port?":$port":""));
-		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
+		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0);
-		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
-		curl_setopt($connection, CURLOPT_VERBOSE, 1); 
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
+		curl_setopt($connection, CURLOPT_NOPROGRESS, 1);
+		curl_setopt($connection, CURLOPT_VERBOSE, 1);
+		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1);
 		if ($data !== false) {
-			curl_setopt($connection, CURLOPT_POST, 1); 
+			curl_setopt($connection, CURLOPT_POST, 1);
 			curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
-		} 
-		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_SHIPPING_TIMEOUT); 
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
+		}
+		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_SHIPPING_TIMEOUT);
+		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT);
+		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']);
 		curl_setopt($connection, CURLOPT_FAILONERROR, 1);
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 
 		if (!(ini_get("safe_mode") || ini_get("open_basedir")))
-			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
+			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1);
 		
 		if (defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT) {
 	        curl_setopt($connection, CURLOPT_HTTPPROXYTUNNEL, 1);
 	        curl_setopt($connection, CURLOPT_PROXY, SHOPP_PROXY_SERVER);
-			if (defined('SHOPP_PROXY_USERPWD')) 
+			if (defined('SHOPP_PROXY_USERPWD'))
 			    curl_setopt($connection, CURLOPT_PROXYUSERPWD, SHOPP_PROXY_USERPWD);
 	    }
 		
-		$buffer = curl_exec($connection);   
-		if ($error = curl_error($connection)) 
+		$buffer = curl_exec($connection);
+		if ($error = curl_error($connection))
 			new ShoppError($this->name.": ".$error,'shipping_comm_err',SHOPP_COMM_ERR);
 		curl_close($connection);
 		
@@ -498,7 +498,7 @@ abstract class ShippingFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $data Key/value pairs of data to encode
 	 * @return string
 	 **/
@@ -523,7 +523,7 @@ abstract class ShippingFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $rate The shipping rate to be used
 	 * @return string The column index name
 	 **/

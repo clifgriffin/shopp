@@ -55,7 +55,7 @@ class Customer extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function load_info () {
@@ -66,7 +66,7 @@ class Customer extends DatabaseObject {
 	function save () {
 		parent::save();
 		
-		if (empty($this->info) || !is_array($this->info)) return true; 
+		if (empty($this->info) || !is_array($this->info)) return true;
 		foreach ((array)$this->info as $name => $value) {
 			$Meta = new MetaObject(array(
 				'parent' => $this->id,
@@ -114,13 +114,13 @@ class Customer extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean|string output based on the account menu request
 	 **/
 	function management () {
 	
-		if (isset($_GET['acct']) && isset($this->pages[$_GET['acct']]) 
-				&& isset($this->pages[$_GET['acct']]->handler) 
+		if (isset($_GET['acct']) && isset($this->pages[$_GET['acct']])
+				&& isset($this->pages[$_GET['acct']]->handler)
 				&& is_callable($this->pages[$_GET['acct']]->handler))
 			call_user_func($this->pages[$_GET['acct']]->handler);
 
@@ -187,7 +187,7 @@ class Customer extends DatabaseObject {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 * @version 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function recovery () {
@@ -208,7 +208,7 @@ class Customer extends DatabaseObject {
 				$user_data = get_userdatabylogin($_POST['account-login']);
 				$RecoveryCustomer = new Customer($user_data->ID,'wpuser');
 				if (empty($RecoveryCustomer->id))
-					$errors[] = new ShoppError(__('There is no user registered with that login name.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);				
+					$errors[] = new ShoppError(__('There is no user registered with that login name.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);
 			}
 		}
 		
@@ -260,7 +260,7 @@ class Customer extends DatabaseObject {
 			$errors[] = new ShoppError(__('Invalid key','Shopp'));
 		
 		$RecoveryCustomer = new Customer($activation,'activation');
-		if (empty($RecoveryCustomer->id)) 
+		if (empty($RecoveryCustomer->id))
 			$errors[] = new ShoppError(__('Invalid key','Shopp'));
 		
 		if (!empty($errors)) return false;
@@ -346,18 +346,18 @@ class Customer extends DatabaseObject {
 		$orders = DatabaseObject::tablename(Purchase::$table);
 		$purchases = DatabaseObject::tablename(Purchased::$table);
 		$asset = DatabaseObject::tablename(ProductDownload::$table);
-		$query = "(SELECT p.dkey AS dkey,p.id,p.purchase,p.download as download,p.name AS name,p.optionlabel,p.downloads,o.total,o.created,f.id as download,f.name as filename,f.value AS filedata 
-			FROM $purchases AS p 
-			LEFT JOIN $orders AS o ON o.id=p.purchase 
-			LEFT JOIN $asset AS f ON f.parent=p.price 
+		$query = "(SELECT p.dkey AS dkey,p.id,p.purchase,p.download as download,p.name AS name,p.optionlabel,p.downloads,o.total,o.created,f.id as download,f.name as filename,f.value AS filedata
+			FROM $purchases AS p
+			LEFT JOIN $orders AS o ON o.id=p.purchase
+			LEFT JOIN $asset AS f ON f.parent=p.price
 			WHERE o.customer=$this->id AND context='price' AND type='download')
 			UNION
-			(SELECT a.name AS dkey,p.id,p.purchase,a.value AS download,ao.name AS name,p.optionlabel,p.downloads,o.total,o.created,f.id as download,f.name as filename,f.value AS filedata 
+			(SELECT a.name AS dkey,p.id,p.purchase,a.value AS download,ao.name AS name,p.optionlabel,p.downloads,o.total,o.created,f.id as download,f.name as filename,f.value AS filedata
 			FROM $purchases AS p
 			RIGHT JOIN $asset AS a ON a.parent=p.id AND a.type='download' AND a.context='purchased'
 			LEFT JOIN $asset AS ao ON a.parent=p.id AND ao.type='addon' AND ao.context='purchased'
 			LEFT JOIN $orders AS o ON o.id=p.purchase
-			LEFT JOIN $asset AS f on f.id=a.value 
+			LEFT JOIN $asset AS f on f.id=a.value
 			WHERE o.customer=9 AND f.context='price' AND f.type='download') ORDER BY created DESC";
 		$this->downloads = $db->query($query,AS_ARRAY);
 		foreach ($this->downloads as &$download) {
@@ -456,12 +456,12 @@ class Customer extends DatabaseObject {
 		
 		// Return strings with no options
 		switch ($property) {
-			case "url": 
+			case "url":
 				return shoppurl(array('acct'=>null),'account',$Shopp->Gateways->secure); break;
-			case "action": 
+			case "action":
 				$action = null;
 				if (isset($this->pages[$_GET['acct']])) $action = $_GET['acct'];
-				return shoppurl(array('acct'=>$action),'account'); 
+				return shoppurl(array('acct'=>$action),'account');
 				break;
 
 			case "accounturl": return shoppurl(false,'account'); break;
@@ -489,28 +489,28 @@ class Customer extends DatabaseObject {
 
 			case "loggedin": return $Shopp->Order->Customer->login; break;
 			case "notloggedin": return (!$Shopp->Order->Customer->login && $Shopp->Settings->get('account_system') != "none"); break;
-			case "login-label": 
+			case "login-label":
 				$accounts = $Shopp->Settings->get('account_system');
 				$label = __('Email Address','Shopp');
 				if ($accounts == "wordpress") $label = __('Login Name','Shopp');
 				if (isset($options['label'])) $label = $options['label'];
 				return $label;
 				break;
-			case "email-login": 
-			case "loginname-login": 
-			case "account-login": 
+			case "email-login":
+			case "loginname-login":
+			case "account-login":
 				$id = "account-login".($checkout?"-checkout":'');
 				if (!empty($_POST['account-login']))
 					$options['value'] = $_POST['account-login'];
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				return '<input type="text" name="account-login" id="'.$id.'"'.inputattrs($options).' />';
 				break;
-			case "password-login": 
+			case "password-login":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				$id = "password-login".($checkout?"-checkout":'');
 				
 				if (!empty($_POST['password-login']))
-					$options['value'] = $_POST['password-login']; 
+					$options['value'] = $_POST['password-login'];
 				return '<input type="password" name="password-login" id="'.$id.'"'.inputattrs($options).' />';
 				break;
 			case "recover-button":
@@ -534,11 +534,11 @@ class Customer extends DatabaseObject {
 				$string .= '<input type="submit" name="submit-login" id="'.$id.'"'.inputattrs($options).' />';
 				return $string;
 				break;
-			case "profile-saved": 
+			case "profile-saved":
 				$saved = (isset($this->_saved) && $this->_saved);
 				unset($this->_saved);
 				return $saved;
-			case "password-changed": 
+			case "password-changed":
 				$change = (isset($this->_password_change) && $this->_password_change);
 				unset($this->_password_change);
 				return $change;
@@ -578,7 +578,7 @@ class Customer extends DatabaseObject {
 				if (array_key_exists('action',$options)) return $page->request;
 				return $page->label;
 			case "accounts": return $Shopp->Settings->get('account_system'); break;
-			case "hasaccount": 
+			case "hasaccount":
 				$system = $Shopp->Settings->get('account_system');
 				if ($system == "wordpress") return ($this->wpuser != 0);
 				elseif ($system == "shopp") return (!empty($this->password));
@@ -609,54 +609,54 @@ class Customer extends DatabaseObject {
 				return apply_filters('shopp_order_lookup',$content);
 				break;
 
-			case "firstname": 
+			case "firstname":
 				if (isset($options['mode']) && $options['mode'] == "value") return $this->firstname;
 				if (!empty($this->firstname))
-					$options['value'] = $this->firstname; 
+					$options['value'] = $this->firstname;
 				return '<input type="text" name="firstname" id="firstname"'.inputattrs($options).' />';
 				break;
 			case "lastname":
 				if (isset($options['mode']) && $options['mode'] == "value") return $this->lastname;
 				if (!empty($this->lastname))
-					$options['value'] = $this->lastname; 
-				return '<input type="text" name="lastname" id="lastname"'.inputattrs($options).' />'; 
+					$options['value'] = $this->lastname;
+				return '<input type="text" name="lastname" id="lastname"'.inputattrs($options).' />';
 				break;
 			case "company":
 				if (isset($options['mode']) && $options['mode'] == "value") return $this->company;
 				if (!empty($this->company))
-					$options['value'] = $this->company; 
-				return '<input type="text" name="company" id="company"'.inputattrs($options).' />'; 
+					$options['value'] = $this->company;
+				return '<input type="text" name="company" id="company"'.inputattrs($options).' />';
 				break;
 			case "email":
 				if (isset($options['mode']) && $options['mode'] == "value") return $this->email;
 				if (!empty($this->email))
-					$options['value'] = $this->email; 
+					$options['value'] = $this->email;
 				return '<input type="text" name="email" id="email"'.inputattrs($options).' />';
 				break;
 			case "loginname":
 				if (isset($options['mode']) && $options['mode'] == "value") return $this->loginname;
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				if (!empty($this->loginname))
-					$options['value'] = $this->loginname; 
+					$options['value'] = $this->loginname;
 				return '<input type="text" name="loginname" id="login"'.inputattrs($options).' />';
 				break;
 			case "password":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-				if (isset($options['mode']) && $options['mode'] == "value") 
+				if (isset($options['mode']) && $options['mode'] == "value")
 					return strlen($this->password) == 34?str_pad('&bull;',8):$this->password;
 				$options['value'] = "";
 				return '<input type="password" name="password" id="password"'.inputattrs($options).' />';
 				break;
 			case "confirm-password":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
-				$options['value'] = ""; 
+				$options['value'] = "";
 				return '<input type="password" name="confirm-password" id="confirm-password"'.inputattrs($options).' />';
 				break;
-			case "phone": 
+			case "phone":
 				if (isset($options['mode']) && $options['mode'] == "value") return $this->phone;
 				if (!empty($this->phone))
-					$options['value'] = $this->phone; 
-				return '<input type="text" name="phone" id="phone"'.inputattrs($options).' />'; 
+					$options['value'] = $this->phone;
+				return '<input type="text" name="phone" id="phone"'.inputattrs($options).' />';
 				break;
 			case "hasinfo":
 			case "has-info":
@@ -700,27 +700,27 @@ class Customer extends DatabaseObject {
 				
 				$allowed_types = array("text","password","hidden","checkbox","radio");
 				$type = in_array($type,$allowed_types)?$type:'hidden';
-				return '<input type="'.$type.'" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />'; 
+				return '<input type="'.$type.'" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />';
 				break;
 
 			// SHIPPING TAGS
 			case "shipping": return $Order->Shipping;
-			case "shipping-address": 
+			case "shipping-address":
 				if ($options['mode'] == "value") return $Order->Shipping->address;
 				if (!empty($Order->Shipping->address))
-					$options['value'] = $Order->Shipping->address; 
+					$options['value'] = $Order->Shipping->address;
 				return '<input type="text" name="shipping[address]" id="shipping-address" '.inputattrs($options).' />';
 				break;
 			case "shipping-xaddress":
 				if ($options['mode'] == "value") return $Order->Shipping->xaddress;
 				if (!empty($Order->Shipping->xaddress))
-					$options['value'] = $Order->Shipping->xaddress; 
+					$options['value'] = $Order->Shipping->xaddress;
 				return '<input type="text" name="shipping[xaddress]" id="shipping-xaddress" '.inputattrs($options).' />';
 				break;
 			case "shipping-city":
 				if ($options['mode'] == "value") return $Order->Shipping->city;
 				if (!empty($Order->Shipping->city))
-					$options['value'] = $Order->Shipping->city; 
+					$options['value'] = $Order->Shipping->city;
 				return '<input type="text" name="shipping[city]" id="shipping-city" '.inputattrs($options).' />';
 				break;
 			case "shipping-province":
@@ -749,18 +749,18 @@ class Customer extends DatabaseObject {
 					$output .= '</select>';
 				} else if ($options['type'] == "menu") {
 					$options['disabled'] = 'disabled';
-					$options['class'] = ($options['class']?" ":null).'unavailable'; 
+					$options['class'] = ($options['class']?" ":null).'unavailable';
 					$label = (!empty($options['label']))?$options['label']:'';
-					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'></select>';				
+					$output = '<select name="shipping[state]" id="shipping-state" '.inputattrs($options,$select_attrs).'></select>';
 				} else $output .= '<input type="text" name="shipping[state]" id="shipping-state" '.inputattrs($options).'/>';
 				return $output;
 				break;
 			case "shipping-postcode":
 				if ($options['mode'] == "value") return $Order->Shipping->postcode;
 				if (!empty($Order->Shipping->postcode))
-					$options['value'] = $Order->Shipping->postcode; 				
+					$options['value'] = $Order->Shipping->postcode;
 				return '<input type="text" name="shipping[postcode]" id="shipping-postcode" '.inputattrs($options).' />'; break;
-			case "shipping-country": 
+			case "shipping-country":
 				if ($options['mode'] == "value") return $Order->Shipping->country;
 				$base = $Shopp->Settings->get('base_operations');
 				if (!empty($Order->Shipping->country))
@@ -794,23 +794,23 @@ class Customer extends DatabaseObject {
 			case "billing-address":
 				if ($options['mode'] == "value") return $Order->Billing->address;
 				if (!empty($Order->Billing->address))
-					$options['value'] = $Order->Billing->address;			
+					$options['value'] = $Order->Billing->address;
 				return '<input type="text" name="billing[address]" id="billing-address" '.inputattrs($options).' />';
 				break;
 			case "billing-xaddress":
 				if ($options['mode'] == "value") return $Order->Billing->xaddress;
 				if (!empty($Order->Billing->xaddress))
-					$options['value'] = $Order->Billing->xaddress;			
+					$options['value'] = $Order->Billing->xaddress;
 				return '<input type="text" name="billing[xaddress]" id="billing-xaddress" '.inputattrs($options).' />';
 				break;
 			case "billing-city":
 				if ($options['mode'] == "value") return $Order->Billing->city;
 				if (!empty($Order->Billing->city))
-					$options['value'] = $Order->Billing->city;			
-				return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />'; 
+					$options['value'] = $Order->Billing->city;
+				return '<input type="text" name="billing[city]" id="billing-city" '.inputattrs($options).' />';
 				break;
-			case "billing-province": 
-			case "billing-state": 
+			case "billing-province":
+			case "billing-state":
 				if ($options['mode'] == "value") return $Order->Billing->state;
 				if (!isset($options['selected'])) $options['selected'] = false;
 				if (!empty($Order->Billing->state)) {
@@ -838,17 +838,17 @@ class Customer extends DatabaseObject {
 					$options['disabled'] = 'disabled';
 					$options['class'] = ($options['class']?" ":null).'unavailable';
 					$label = (!empty($options['label']))?$options['label']:'';
-					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'></select>';					
+					$output = '<select name="billing[state]" id="billing-state" '.inputattrs($options,$select_attrs).'></select>';
 				} else $output .= '<input type="text" name="billing[state]" id="billing-state" '.inputattrs($options).'/>';
 				return $output;
 				break;
 			case "billing-postcode":
 				if ($options['mode'] == "value") return $Order->Billing->postcode;
 				if (!empty($Order->Billing->postcode))
-					$options['value'] = $Order->Billing->postcode;			
+					$options['value'] = $Order->Billing->postcode;
 				return '<input type="text" name="billing[postcode]" id="billing-postcode" '.inputattrs($options).' />';
 				break;
-			case "billing-country": 
+			case "billing-country":
 				if ($options['mode'] == "value") return $Order->Billing->country;
 				$base = $Shopp->Settings->get('base_operations');
 
@@ -867,17 +867,17 @@ class Customer extends DatabaseObject {
 			case "save-button":
 				if (!isset($options['label'])) $options['label'] = __('Save','Shopp');
 				$result = '<input type="hidden" name="customer" value="true" />';
-				$result .= '<input type="submit" name="save" id="save-button"'.inputattrs($options).' />'; 
+				$result .= '<input type="submit" name="save" id="save-button"'.inputattrs($options).' />';
 				return $result;
 				break;
-			case "marketing": 
+			case "marketing":
 				if ($options['mode'] == "value") return $this->marketing;
 				if (!empty($this->marketing) && value_is_true($this->marketing)) $options['checked'] = true;
 				$attrs = array("accesskey","alt","checked","class","disabled","format",
 					"minlength","maxlength","readonly","size","src","tabindex",
 					"title");
 				$input = '<input type="hidden" name="marketing" value="no" />';
-				$input .= '<input type="checkbox" name="marketing" id="marketing" value="yes" '.inputattrs($options,$attrs).' />'; 
+				$input .= '<input type="checkbox" name="marketing" id="marketing" value="yes" '.inputattrs($options,$attrs).' />';
 				return $input;
 				break;
 			
@@ -915,7 +915,7 @@ class Customer extends DatabaseObject {
 				if (array_key_exists('filetype',$options)) $string .= $properties['mimetype'];
 				if (array_key_exists('size',$options)) $string .= readableFileSize($download->size);
 				if (array_key_exists('date',$options)) $string .= _d($df,mktimestamp($download->created));
-				if (array_key_exists('url',$options)) 
+				if (array_key_exists('url',$options))
 					$string .= SHOPP_PRETTYURLS?
 						shoppurl("download/$download->dkey"):
 						shoppurl(array('shopp_download'=>$download->dkey),'account');
@@ -927,7 +927,7 @@ class Customer extends DatabaseObject {
 			case "haspurchases":
 			case "has-purchases":
 				$filters = array();
-				if (isset($options['daysago'])) 
+				if (isset($options['daysago']))
 					$filters['where'] = "UNIX_TIMESTAMP(o.created) > UNIX_TIMESTAMP()-".($options['daysago']*86400);
 				if (empty($Shopp->purchases)) $this->load_orders($filters);
 				return (!empty($Shopp->purchases));
@@ -1155,6 +1155,6 @@ class CustomerAccountPage {
 		$this->handler = $handler;
 	}
 	
-} // END class CustomerAccountPage 
+} // END class CustomerAccountPage
 
 ?>

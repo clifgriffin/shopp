@@ -25,8 +25,8 @@ define('SHOPP_DEBUG_ERR',2048);
 
 /**
  * ShoppErrors class
- * 
- * The error message management class that allows other 
+ *
+ * The error message management class that allows other
  * systems to subscribe to notifications when errors are
  * triggered.
  *
@@ -46,7 +46,7 @@ class ShoppErrors {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct ($level = SHOPP_ALL_ERR) {
@@ -69,7 +69,7 @@ class ShoppErrors {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param ShoppError $ShoppError The ShoppError object to add
 	 * @return void
 	 **/
@@ -84,7 +84,7 @@ class ShoppErrors {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $level The maximum error level
 	 * @return array A list of errors
 	 **/
@@ -100,7 +100,7 @@ class ShoppErrors {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $level The level of errors to retrieve
 	 * @return array A list of errors
 	 **/
@@ -116,12 +116,12 @@ class ShoppErrors {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $code The name of the error code
 	 * @return ShoppError The error object
 	 **/
 	function code ($code) {
-		if (!empty($code) && isset($this->errors[$code])) 
+		if (!empty($code) && isset($this->errors[$code]))
 			return $this->errors[$code];
 	}
 	
@@ -130,7 +130,7 @@ class ShoppErrors {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $source The source object of errors
 	 * @return array A list of errors
 	 **/
@@ -147,7 +147,7 @@ class ShoppErrors {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param int $level The maximum level to look for errors in
 	 * @return void Description...
 	 **/
@@ -163,7 +163,7 @@ class ShoppErrors {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param ShoppError $error The ShoppError object to remove
 	 * @return boolean True when removed, false if removal failed
 	 **/
@@ -178,7 +178,7 @@ class ShoppErrors {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function reset () {
@@ -190,7 +190,7 @@ class ShoppErrors {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param int $number The error type
 	 * @param string $message The PHP error message
 	 * @param string $file The file the error occurred in
@@ -205,12 +205,12 @@ class ShoppErrors {
 		
 	/**
 	 * Provides functionality for the shopp('error') tags
-	 * 
+	 *
 	 * Support for triggering errors through the Template API.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $property The error property for the tag
 	 * @param array $options Tag options
 	 * @return void
@@ -235,7 +235,7 @@ class ShoppErrors {
 
 /**
  * ShoppError class
- * 
+ *
  * Triggers an error that is handled by the Shopp error system.
  *
  * @author Jonathan Davis
@@ -256,7 +256,7 @@ class ShoppError {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function ShoppError($message='',$code='',$level=SHOPP_ERR,$data='') {
@@ -299,7 +299,7 @@ class ShoppError {
 		
 		$this->source = "Shopp";
 		if (isset($this->debug['class'])) $this->source = $this->debug['class'];
-		if (isset($this->data['phperror']) && isset($php[$this->data['phperror']])) 
+		if (isset($this->data['phperror']) && isset($php[$this->data['phperror']]))
 			$this->source = "PHP ".$php[$this->data['phperror']];
 		
 		$Errors = &ShoppErrors();
@@ -311,7 +311,7 @@ class ShoppError {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __sleep () {
@@ -323,7 +323,7 @@ class ShoppError {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean True for blank error messages
 	 **/
 	function blank () {
@@ -335,7 +335,7 @@ class ShoppError {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param boolean $remove (optional) (Default true) Removes the error after retrieving it
 	 * @param boolean $source Prefix the error with the source object where the error was triggered
 	 * @param string $delimiter The delimeter used to join multiple error messages
@@ -344,7 +344,7 @@ class ShoppError {
 	function message ($remove=false,$source=false,$delimiter="\n") {
 		$string = "";
 		// Show source if debug is on, or not a general error message
-		if (((defined('WP_DEBUG') && WP_DEBUG) || $this->level > SHOPP_ERR) && 
+		if (((defined('WP_DEBUG') && WP_DEBUG) || $this->level > SHOPP_ERR) &&
 			!empty($this->source) && $source) $string .= "$this->source: ";
 		$string .= join($delimiter,$this->messages);
 		if ($remove) {
@@ -359,9 +359,9 @@ class ShoppError {
 /**
  * ShoppErrorLogging class
  *
- * Subscribes to error notifications in order to log any errors 
+ * Subscribes to error notifications in order to log any errors
  * generated.
- * 
+ *
  * @author Jonathan Davis
  * @since 1.0
  * @package shopp
@@ -379,7 +379,7 @@ class ShoppErrorLogging {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct ($loglevel=0) {
@@ -400,7 +400,7 @@ class ShoppErrorLogging {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param ShoppError $error The error object to log
 	 * @return void
 	 **/
@@ -420,7 +420,7 @@ class ShoppErrorLogging {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function reset () {
@@ -434,7 +434,7 @@ class ShoppErrorLogging {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param int $lines The number of lines to get from the end of the log file
 	 * @return array List of log file lines
 	 **/
@@ -465,8 +465,8 @@ class ShoppErrorLogging {
 
 /**
  * ShoppErrorNotification class
- * 
- * Sends error notification emails when errors are triggered 
+ *
+ * Sends error notification emails when errors are triggered
  * to specified recipients
  *
  * @author Jonathan Davis
@@ -484,7 +484,7 @@ class ShoppErrorNotification {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $recipients List of email addresses
 	 * @param array $types The types of errors to report
 	 * @return void
@@ -502,7 +502,7 @@ class ShoppErrorNotification {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param ShoppError $error The error object
 	 * @return void
 	 **/
@@ -549,7 +549,7 @@ class CallbackSubscription {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @return void Description...
  **/
 function &ShoppErrors () {
@@ -562,7 +562,7 @@ function &ShoppErrors () {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param object $e The object to test
  * @return boolean True if the object is a ShoppError
  **/

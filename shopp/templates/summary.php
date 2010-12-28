@@ -35,7 +35,7 @@
 	<?php endwhile; ?>
 	
 	<?php while(shopp('cart','promos')): ?>
-		<tr><td colspan="4" class="money"><?php shopp('cart','promo-name'); ?> &mdash; <strong><?php shopp('cart','promo-discount'); ?></strong></td></tr>
+		<tr><td colspan="4" class="money"><?php shopp('cart','promo-name'); ?><strong><?php shopp('cart','promo-discount',array('before' => '&nbsp;&mdash;&nbsp;')); ?></strong></td></tr>
 	<?php endwhile; ?>
 	
 	<tr class="totals">
@@ -67,7 +67,7 @@
 		<td class="money">-<?php shopp('cart','discount'); ?></td>
 	</tr>
 	<?php endif; ?>
-	<?php if (shopp('cart','hasshipcosts')): ?>
+	<?php if (shopp('cart','needs-shipped')): ?>
 	<tr class="totals">
 		<th scope="row"><?php shopp('cart','shipping','label='.__('Shipping','Shopp')); ?></th>
 		<td class="money"><?php shopp('cart','shipping'); ?></td>

@@ -1,8 +1,8 @@
 <?php
-/** 
+/**
  ** WARNING! DO NOT EDIT!
  **
- ** These templates are part of the core Shopp files 
+ ** These templates are part of the core Shopp files
  ** and will be overwritten when upgrading Shopp.
  **
  ** For editable templates, setup Shopp theme templates:
@@ -105,7 +105,7 @@
 				<div class="right">
 					<?php shopp('checkout','shipping-country','required=true&title='.__('Country shipping address','Shopp')); ?>
 					<label for="shipping-country"><?php _e('Country','Shopp'); ?></label>
-				</div>				
+				</div>
 			</li>
 		<?php else: ?>
 			</li>

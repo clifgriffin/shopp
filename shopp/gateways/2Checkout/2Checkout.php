@@ -9,7 +9,7 @@
  * @package shopp
  * @since 1.1
  * @subpackage _2Checkout
- * 
+ *
  * $Id$
  **/
 
@@ -21,18 +21,18 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 	// URLs
 	var $url = 'https://www.2checkout.com/checkout/purchase';	// Multi-page checkout
 	var $surl = 'https://www.2checkout.com/checkout/spurchase'; // Single-page, CC-only checkout
-	
+
 	function __construct () {
 		parent::__construct();
-		
+
 		$this->setup('sid','verify','secret','returnurl','testmode');
 
 		global $Shopp;
 		$this->settings['returnurl'] = add_query_arg('rmtpay','process',shoppurl(false,'thanks',false));
-				
+
 		add_action('shopp_txn_update',array(&$this,'notifications'));
 	}
-	
+
 	function actions () {
 		add_action('shopp_process_checkout', array(&$this,'checkout'),9);
 		add_action('shopp_init_checkout',array(&$this,'init'));
@@ -41,21 +41,21 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 		add_action('shopp_remote_payment',array(&$this,'returned'));
 		add_action('shopp_process_order',array(&$this,'process'));
 	}
-	
+
 	function confirmation () {
 		add_filter('shopp_confirm_url',array(&$this,'url'));
 		add_filter('shopp_confirm_form',array(&$this,'form'));
 	}
-		
+
 	function checkout () {
 		$this->Order->confirm = true;
 	}
-	
+
 	function url ($url) {
 		if ($this->settings['singlepage'] == "on") return $this->surl;
 		return $this->url;
 	}
-	
+
 	function form ($form) {
 		$db =& DB::get();
 
@@ -67,23 +67,23 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 
 		// Build the transaction
 		$_ = array();
-		
+
 		// Required
 		$_['sid']				= $this->settings['sid'];
 		$_['total']				= number_format($Order->Cart->Totals->total,$this->precision);
 		$_['cart_order_id']		= $Order->_2COcart_order_id;
 		$_['vendor_order_id']	= $this->session;
 		$_['id_type']			= 1;
-		
+
 		// Extras
 		if ($this->settings['testmode'] == "on")
 			$_['demo']			= "Y";
-		
+
 		$_['fixed'] 			= "Y";
 		$_['skip_landing'] 		= "1";
-		
+
 		$_['x_Receipt_Link_URL'] = $this->settings['returnurl'];
-		
+
 		// Line Items
 		foreach($this->Order->Cart->contents as $i => $Item) {
 			// $description[] = $Item->quantity."x ".$Item->name.((!empty($Item->optionlabel))?' '.$Item->optionlabel:'');
@@ -92,9 +92,9 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 			$_['c_name_'.$id]			= $Item->name;
 			$_['c_description_'.$id]	= !empty($Item->option->label)?$Item->$Item->option->label:'';
 			$_['c_price_'.$id]			= number_format($Item->unitprice,$this->precision);
-			
+
 		}
-			
+
 		$_['card_holder_name'] 		= $Order->Customer->firstname.' '.$Order->Customer->lastname;
 		$_['street_address'] 		= $Order->Billing->address;
 		$_['street_address2'] 		= $Order->Billing->xaddress;
@@ -104,7 +104,7 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 		$_['country'] 				= $Order->Billing->country;
 		$_['email'] 				= $Order->Customer->email;
 		$_['phone'] 				= $Order->Customer->phone;
-		
+
 		$_['ship_name'] 			= $Order->Customer->firstname.' '.$Order->Customer->lastname;
 		$_['ship_street_address'] 	= $Order->Shipping->address;
 		$_['ship_street_address2'] 	= $Order->Shipping->xaddress;
@@ -115,41 +115,41 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 
 		return $form.$this->format($_);
 	}
-	
+
 	function returned () {
 		// Run order processing
-		if (!empty($_POST['order_number'])) 
-			do_action('shopp_process_order'); 
+		if (!empty($_POST['order_number']))
+			do_action('shopp_process_order');
 	}
-	
+
 	function process () {
 		global $Shopp;
-		
+
 		if ($this->settings['verify'] == "on" && !$this->verify($_POST['key'])) {
 			new ShoppError(__('The order submitted to 2Checkout could not be verified.','Shopp'),'2co_validation_error',SHOPP_TRXN_ERR);
 			shopp_redirect(shoppurl(false,'checkout'));
 		}
-		
+
 		if (empty($_POST['order_number'])) {
 			new ShoppError(__('The order submitted by 2Checkout did not specify a transaction ID.','Shopp'),'2co_validation_error',SHOPP_TRXN_ERR);
 			shopp_redirect(shoppurl(false,'checkout'));
 		}
-		
+
 		$txnid = $_POST['order_number'];
 		$txnstatus = $_POST['credit_card_processed'] == "Y"?'CHARGED':'PENDING';
-		
+
 		$Shopp->Order->transaction($txnid,$txnstatus);
-		
+
 	}
-	
+
 	function notification () {
 		// INS updates not implemented
 	}
-			
+
 	function verify ($key) {
 		if ($this->settings['testmode'] == "on") return true;
 		$order = $_POST['order_number'];
-			
+
 		$verification = strtoupper(md5($this->settings['secret'].
 							$this->settings['sid'].
 							$order.
@@ -157,9 +157,9 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 
 		return ($verification == $key);
 	}
-	
+
 	function settings () {
-		
+
 		$this->ui->text(0,array(
 			'name' => 'sid',
 			'size' => 10,
@@ -209,10 +209,10 @@ class _2Checkout extends GatewayFramework implements GatewayModule {
 			'classes' => 'selectall',
 			'content' => '<span style="width: 300px;">&nbsp;</span>'
 		));
-		
+
 		$this->verifysecret();
 	}
-	
+
 	function verifysecret () {
 ?>
 		_2Checkout.behaviors = function () {

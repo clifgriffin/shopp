@@ -5,7 +5,7 @@
  */
 jQuery(document).ready( function() {
 	var $ = jqnc();
-	
+
 	/* Provide table row drag and drop for rows that relate through category relationships */
 	$.fn.dragRelatedRows = function(settings) {
 		var $this = $(this),
@@ -13,7 +13,7 @@ jQuery(document).ready( function() {
 			notextselect = typeof $(document).attr('onselectstart') != 'undefined', // IE workaround for mousedown selections
 			defaults = { onDrop: function () {} },
 			settings = $.extend(defaults,settings);
-		
+
 		/* Capture mouse down to initiate dragging */
 		return rows.unbind('mousedown.dragrow').bind('mousedown.dragrow', function(e) {
 			var target = $(this),
@@ -23,11 +23,11 @@ jQuery(document).ready( function() {
 				tr_siblings_class = tr_classes[tr_classes.length-1].substr(-6) == '-child'?(tr_classes.pop()):tr_top,
 				tr_ancestry = tr_classes.slice(0,-1),
 				tr = target.add('tr.'+slug, target.parent()); // The target rows
-				
+
 				if ($(e.target).is('input,button') || !target.attr('class')) return true;
 
 				tr.not(':hidden').fadeTo('fast', 0.4);
-			
+
 			lastY = e.pageY; // Y-position of the mouse on last button press
 
 			/* Evaluate when to move the dragged row when hovering over another row */
@@ -39,15 +39,15 @@ jQuery(document).ready( function() {
 					ancestry = classes.slice(0,-1),
 					parentClass = ancestry[ancestry.length-1],
 					lastDescendant = $('tr.'+row.attr('rel')+':last', tr.parent());
-												
-				if (ancestry.toString() != tr_ancestry.toString()) 
+
+				if (ancestry.toString() != tr_ancestry.toString())
 					return lastY = e.pageY; 		// Save Y-position of mouse for next mouseenter event
 
 				if (e.pageY > lastY) lastDescendant.after(tr); // Move down
 				else row.before(tr);				// Move up
 				lastY = e.pageY; 					// Save Y-position of mouse for next mouseenter event
 			});
-			
+
 			/* Catch mouseup to stop dragging (drop) the table row */
 			$('body').bind('mouseup.dragrow',function() {
 				tr.not(':hidden').fadeTo('fast', 1);
@@ -62,7 +62,7 @@ jQuery(document).ready( function() {
 			return false;
 		}).css('cursor', 'row-resize');
 	};
-	
+
 	/* Attach category row arranging behaviors to a row (or rows) */
 	$.fn.arrangeRow = function (settings) {
 		if (!$(this).is('tr')) return false;
@@ -72,7 +72,7 @@ jQuery(document).ready( function() {
 
 		/* Add drag-drop behaviors */
 		$this.dragRelatedRows({onDrop:updatePositions});
-				
+
 		/* Get the current row properties for the row getting interacted with */
 		function thisRow (e) {
 			if (e.is('tr')) {
@@ -82,7 +82,7 @@ jQuery(document).ready( function() {
 				cell = e.parent();
 				row = e.parent().parent();
 			}
-			
+
 			id = row.find('input[name=id]').val();
 			position = row.find('input[name^=position]').val();
 			slug = row.attr('rel');
@@ -96,7 +96,7 @@ jQuery(document).ready( function() {
 			parentClass = ancestry[ancestry.length-1]?ancestry[ancestry.length-1]:top;
 			parent = row.parent().find('tr[rel='+parentClass+']');
 		}
-		
+
 		/* Move to top behavior */
 		$this.find('button[name=top]').hover(function () { $(this).toggleClass('hover'); }).click(function () {
 			thisRow($(this));
@@ -117,7 +117,7 @@ jQuery(document).ready( function() {
 			row.insertAfter(lastSibling);
 			updatePositions(row);
 		});
-		
+
 		/* Row collapse/expand behavior */
 		$this.find('button.collapsing').click(function (e) {
 			var $button = $(this),
@@ -125,7 +125,7 @@ jQuery(document).ready( function() {
 				step = 20,
 				pos = new Number($button.css('background-position').replace('%','').replace('px','').split(' ').shift()),
 				max = 180;
-			
+
 			thisRow($button);
 
 			if ($button.hasClass('closed')) {
@@ -137,7 +137,7 @@ jQuery(document).ready( function() {
 					siblings.find('button.collapsing:not(button.closed)');
 					openedButton.addClass('closed').css('background-position','-180px top');
 				}
-				
+
 				$button.bind('closed',function () {
 					// row.parent().find('tr.'+slug).not(row).fadeIn();
 					$button.removeClass('closed');
@@ -187,7 +187,7 @@ jQuery(document).ready( function() {
 			return setTimeout(closeIcon,20);
 
 		}).hover(function() { $(this).toggleClass('hover'); }).css('background-position','-180px top');
-		
+
 		/* Update row positions in DOM and submit to server */
 		function updatePositions (row) {
 			thisRow(row);
@@ -218,7 +218,7 @@ jQuery(document).ready( function() {
 				classes = category.uri.split('/'),
 				editurl = '',
 				lastDescendant = $('tr.'+parent.attr('rel')+':last', parent.parent());
-				
+
 			classes.push(classes[classes.length-2]+'-child');
 
 			return $('<tr class="'+classes.join(' ')+'" rel="'+category.slug+'">'+
@@ -234,9 +234,9 @@ jQuery(document).ready( function() {
 			for (i=1; i<r; i++) result += this;
 			return result;
 		}
-		
+
 	}
 
 	$('#arrange-categories tbody tr').arrangeRow();
-		
+
 });

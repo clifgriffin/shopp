@@ -16,7 +16,7 @@
 		<input type="text" id="products-search-input" class="search-input" name="s" value="<?php echo stripslashes(esc_attr($s)); ?>" />
 		<input type="submit" value="<?php _e('Search Products','Shopp'); ?>" class="button" />
 	</p>
-	
+
 
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
@@ -33,7 +33,7 @@
 		<div class="clear"></div>
 	</div>
 	<div class="clear"></div>
-	
+
 	<table class="widefat" cellspacing="0">
 		<thead>
 		<tr><?php print_column_headers('shopp_page_shopp-products'); ?></tr>
@@ -43,10 +43,10 @@
 		</tfoot>
 	<?php if (sizeof($Products) > 0): ?>
 		<tbody id="products" class="list products">
-		<?php 
+		<?php
 		$hidden = get_hidden_columns('shopp_page_shopp-products');
 
-		$even = false; 
+		$even = false;
 		foreach ($Products as $key => $Product):
 		$editurl = esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>'shopp-products',
@@ -64,7 +64,7 @@
 					'duplicate'=>$Product->id)),
 					admin_url('admin.php'))));
 
-		
+
 		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
@@ -83,9 +83,9 @@
 				elseif ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
 				else echo money($Product->minprice)."&mdash;".money($Product->maxprice);
 			?></td>
-			<td class="inventory column-inventory<?php echo in_array('inventory',$hidden)?' hidden':''; ?>"><?php if ($Product->inventory == "on") echo $Product->stock; ?></td> 
-			<td class="featured column-featured<?php echo in_array('featured',$hidden)?' hidden':''; ?>"><button type="button" name="feature" value="<?php echo $Product->id; ?>" class="<?php echo ($Product->featured == "on")?' feature featured':'feature'; ?>">&nbsp;</button></td> 
-		
+			<td class="inventory column-inventory<?php echo in_array('inventory',$hidden)?' hidden':''; ?>"><?php if ($Product->inventory == "on") echo $Product->stock; ?></td>
+			<td class="featured column-featured<?php echo in_array('featured',$hidden)?' hidden':''; ?>"><button type="button" name="feature" value="<?php echo $Product->id; ?>" class="<?php echo ($Product->featured == "on")?' feature featured':'feature'; ?>">&nbsp;</button></td>
+
 		</tr>
 		<?php endforeach; ?>
 		</tbody>
@@ -98,21 +98,21 @@
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="clear"></div>
 	</div>
-</div>    
+</div>
 
 <script type="text/javascript">
 /* <![CDATA[ */
 jQuery(document).ready( function() {
 	var $=jqnc(),
 		featureurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'),'wp_ajax_shopp_feature_product'); ?>';
-	
+
 	$('#selectall').change( function() {
 		$('#products th input').each( function () {
 			if (this.checked) this.checked = false;
 			else this.checked = true;
 		});
 	});
-	
+
 	$('a.submitdelete').click(function () {
 		var name = $(this).attr('title');
 		if ( confirm("<?php _e('You are about to delete this product!\n \'Cancel\' to stop, \'OK\' to delete.','Shopp'); ?>")) {
@@ -127,7 +127,7 @@ jQuery(document).ready( function() {
 		if (confirm("<?php echo addslashes(__('Are you sure you want to delete the selected products?','Shopp')); ?>")) return true;
 		else return false;
 	});
-	
+
 	$('button.feature').click(function () {
 		var $this = $(this);
 		$.get(featureurl,{'feature':$this.val(),'action':'shopp_feature_product'},function (result) {

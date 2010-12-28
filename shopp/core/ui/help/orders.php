@@ -1,4 +1,4 @@
-<h5><?php _e('Using Advanced Order Search','Shopp'); ?></h5>		
+<h5><?php _e('Using Advanced Order Search','Shopp'); ?></h5>
 <table border="0" class="advsearch">
 <tr><td><strong><?php _e('Email','Shopp'); ?>:</strong></td><td>help.desk@shopplugin.net</td></tr>
 <tr><td><strong><?php _e('Transaction ID','Shopp'); ?>:</strong></td><td>txn:95M27911DT480180V</td></tr>

@@ -59,7 +59,7 @@ class ImageServer extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function request () {
@@ -71,7 +71,7 @@ class ImageServer extends DatabaseObject {
 		}
 		
 		// Handle pretty permalinks
-		if (preg_match('/\/images\/(\d+).*$/',$_SERVER['REQUEST_URI'],$matches)) 
+		if (preg_match('/\/images\/(\d+).*$/',$_SERVER['REQUEST_URI'],$matches))
 			$this->request = $matches[1];
 
 		foreach ($this->parameters as $index => $arg)
@@ -149,7 +149,7 @@ class ImageServer extends DatabaseObject {
 		
 		$ResizedImage->size = strlen($ResizedImage->data);
 		$this->Image = $ResizedImage;
-		if ($ResizedImage->store( $ResizedImage->data ) === false) 
+		if ($ResizedImage->store( $ResizedImage->data ) === false)
 			return false;
 		
 		$ResizedImage->save();
@@ -189,9 +189,9 @@ class ImageServer extends DatabaseObject {
 		else {
 			header("Cache-Control: no-cache, must-revalidate");
 			header("Content-type: image/png");
-			header("Content-Disposition: inline; filename=".basename($notfound).""); 
+			header("Content-Disposition: inline; filename=".basename($notfound)."");
 			header("Content-Description: Delivered by WordPress/Shopp Image Server");
-			header("Content-length: ".@strlen($notfound)); 
+			header("Content-length: ".@strlen($notfound));
 			@readfile($notfound);
 		}
 		die();

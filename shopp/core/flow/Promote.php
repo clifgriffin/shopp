@@ -1,7 +1,7 @@
 <?php
 /**
  * Promote
- * 
+ *
  * Flow controller for promotion management interfaces
  *
  * @author Jonathan Davis
@@ -19,7 +19,7 @@
  **/
 class Promote extends AdminController {
 	var $Notice = false;
-	
+
 	/**
 	 * Promote constructor
 	 *
@@ -37,7 +37,7 @@ class Promote extends AdminController {
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		do_action('shopp_promo_admin_scripts');
 	}
-	
+
 	/**
 	 * Parses admin requests to determine which interface to render
 	 *
@@ -64,7 +64,7 @@ class Promote extends AdminController {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		require_once("{$Shopp->path}/core/model/Promotion.php");
-		
+
 		$defaults = array(
 			'page' => false,
 			'deleting' => false,
@@ -73,20 +73,20 @@ class Promote extends AdminController {
 			'per_page' => 20,
 			's' => ''
 			);
-			
+
 		$args = array_merge($defaults,$_GET);
 		extract($args,EXTR_SKIP);
-		
+
 		if ($page == "shopp-promotions"
-				&& !empty($deleting) 
-				&& !empty($delete) 
+				&& !empty($deleting)
+				&& !empty($delete)
 				&& is_array($delete)) {
 			foreach($delete as $deletion) {
 				$Promotion = new Promotion($deletion);
 				$Promotion->delete();
 			}
 		}
-		
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-save-promotion');
 
@@ -111,32 +111,32 @@ class Promote extends AdminController {
 			$Promotion->reset_discounts();
 			if ($Promotion->target == "Catalog")
 				$Promotion->build_discounts();
-			
+
 			// Force reload of the session promotions to include any updates
 			$Shopp->Promotions->reload();
 
 		}
-		
+
 		$pagenum = absint( $pagenum );
 		if ( empty($pagenum) )
 			$pagenum = 1;
 		if( !$per_page || $per_page < 0 )
 			$per_page = 20;
-		$start = ($per_page * ($pagenum-1)); 
-		
-		
+		$start = ($per_page * ($pagenum-1));
+
+
 		$where = "";
 		if (!empty($s)) $where = "WHERE name LIKE '%$s%'";
-		
+
 		$table = DatabaseObject::tablename(Promotion::$table);
 		$promocount = $db->query("SELECT count(*) as total FROM $table $where");
 		$Promotions = $db->query("SELECT * FROM $table $where",AS_ARRAY);
-		
+
 		$status = array(
 			'enabled' => __('Enabled','Shopp'),
 			'disabled' => __('Disabled','Shopp')
 		);
-		
+
 		$num_pages = ceil($promocount->total / $per_page);
 		$page_links = paginate_links( array(
 			'base' => add_query_arg( 'pagenum', '%#%' ),
@@ -144,7 +144,7 @@ class Promote extends AdminController {
 			'total' => $num_pages,
 			'current' => $pagenum
 		));
-		
+
 		include("{$Shopp->path}/core/ui/promotions/promotions.php");
 	}
 
@@ -175,11 +175,11 @@ class Promote extends AdminController {
 		$Admin =& $Shopp->Flow->Admin;
 		include(SHOPP_PATH."/core/ui/promotions/ui.php");
 	}
-	
+
 	/**
 	 * Interface processor for the promotion editor
 	 *
-	 * 
+	 *
 	 *
 	 * @author Jonathan Davis
 	 * @return void
@@ -195,7 +195,7 @@ class Promote extends AdminController {
 		if ($_GET['id'] != "new") {
 			$Promotion = new Promotion($_GET['id']);
 		} else $Promotion = new Promotion();
-				
+
 		include(SHOPP_PATH."/core/ui/promotions/editor.php");
 	}
 

@@ -1,10 +1,10 @@
-<div class="wrap shopp"> 
+<div class="wrap shopp">
 	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
 
 	<div class="icon32"></div>
-	<h2><?php _e('Category Editor','Shopp'); ?></h2> 
+	<h2><?php _e('Category Editor','Shopp'); ?></h2>
 
-	<div id="ajax-response"></div> 
+	<div id="ajax-response"></div>
 	<form name="category" id="category" action="<?php echo admin_url('admin.php'); ?>" method="post">
 		<?php wp_nonce_field('shopp-save-category'); ?>
 
@@ -38,7 +38,7 @@
 				<?php the_editor($Category->description,'content','Description', false); ?>
 				<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
 				</div>
-				
+
 			<?php
 			do_meta_boxes('shopp_page_shopp-products', 'normal', $Category);
 			do_meta_boxes('shopp_page_shopp-products', 'advanced', $Category);
@@ -46,7 +46,7 @@
 
 			</div>
 			</div>
-				
+
 		</div> <!-- #poststuff -->
 	</form>
 </div>

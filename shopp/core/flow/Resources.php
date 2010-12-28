@@ -1,7 +1,7 @@
 <?php
 /**
  * Resources.php
- * 
+ *
  * Processes resource requests for non-HTML data
  *
  * @author Jonathan Davis
@@ -20,7 +20,7 @@ class Resources {
 	 * Resources constructor
 	 *
 	 * @author Jonathan Davis
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -55,7 +55,7 @@ class Resources {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function category_rss () {
@@ -73,7 +73,7 @@ class Resources {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function export_purchases () {
@@ -106,7 +106,7 @@ class Resources {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function export_customers () {
@@ -138,7 +138,7 @@ class Resources {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function download () {
@@ -163,7 +163,7 @@ class Resources {
 
 			$forbidden = false;
 			// Purchase Completion check
-			if ($Purchase->txnstatus != "CHARGED" 
+			if ($Purchase->txnstatus != "CHARGED"
 				&& !SHOPP_PREPAYMENT_DOWNLOADS) {
 				new ShoppError(sprintf(__('"%s" cannot be downloaded because payment has not been received yet.','Shopp'),$name),'shopp_download_limit');
 				$forbidden = true;
@@ -193,10 +193,10 @@ class Resources {
 			
 			// IP restriction checks
 			if ($this->Settings->get('download_restriction') == "ip"
-				&& !empty($Purchase->ip) 
+				&& !empty($Purchase->ip)
 				&& $Purchase->ip != $_SERVER['REMOTE_ADDR']) {
 					new ShoppError(sprintf(__('"%s" cannot be downloaded because your computer could not be verified as the system the file was purchased from.','Shopp'),$name),'shopp_download_limit');
-					$forbidden = true;	
+					$forbidden = true;
 				}
 
 			do_action_ref_array('shopp_download_request',array(&$Purchased));
@@ -221,7 +221,7 @@ class Resources {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function help () {

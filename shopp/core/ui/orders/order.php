@@ -7,7 +7,7 @@
 
 	<?php include("navigation.php"); ?>
 	<br class="clear" />
-		
+
 	<form action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post" id="order-updates">
 	<div id="order">
 		<div class="title">
@@ -27,9 +27,9 @@
 			</tr>
 			</thead>
 			<tbody>
-			<?php 
-				$even = false; 
-				foreach ($Purchase->purchased as $id => $Item): 
+			<?php
+				$even = false;
+				foreach ($Purchase->purchased as $id => $Item):
 					$taxrate = round($Item->unittax/$Item->unitprice,4);
 			?>
 				<tr<?php if ($even) echo ' class="alternate"'; $even = !$even; ?>>
@@ -39,11 +39,11 @@
 						<?php if (is_array($Item->data) || !empty($Item->sku) || !empty($Item->addons)): ?>
 						<ul>
 						<?php if (!empty($Item->sku)): ?><li><small><?php _e('SKU','Shopp'); ?>: <strong><?php echo $Item->sku; ?></strong></small></li><?php endif; ?>
-						<?php foreach ($Item->addons->meta as $id => $addon): 
-							if ($Purchase->taxing == "inclusive") 
+						<?php foreach ($Item->addons->meta as $id => $addon):
+							if ($Purchase->taxing == "inclusive")
 								$addonprice = $addon->value->unitprice+($addon->value->unitprice*$taxrate);
 							else $addonprice = $addon->value->unitprice;
-						
+
 							?>
 							<li><small><?php echo apply_filters('shopp_purchased_addon_name',$addon->name); ?><?php if (!empty($addon->value->sku)) echo apply_filters('shopp_purchased_addon_sku',' [SKU: '.$addon->value->sku.']'); ?>: <strong><?php echo apply_filters('shopp_purchased_addon_unitprice',money($addonprice)); ?></strong></small></li>
 						<?php endforeach; ?>
@@ -55,7 +55,7 @@
 						</ul>
 					</td>
 					<td><?php echo $Item->quantity; ?></td>
-					<td class="money"><?php $amount = $Item->unitprice+($Purchase->taxing == 'inclusive'?$Item->unittax:0); 
+					<td class="money"><?php $amount = $Item->unitprice+($Purchase->taxing == 'inclusive'?$Item->unittax:0);
 						echo money($amount); ?></td>
 					<td class="money total"><?php $amount = $Item->total+($Purchase->taxing == 'inclusive'?$Item->unittax*$Item->quantity:0);
 						echo money($amount); ?></td>
@@ -97,13 +97,13 @@
 			</tr>
 			</tbody>
 		</table>
-		
+
 		<?php else: ?>
 			<p class="warning"><?php _e('There were no items found for this purchase.','Shopp'); ?></p>
 		<?php endif; ?>
-		
+
 		<div id="poststuff" class="poststuff">
-		
+
 		<div class="meta-boxes">
 
 			<div id="column-one" class="column left-column">
@@ -116,14 +116,14 @@
 			</div>
 			<br class="clear" />
 		</div>
-		
+
 		<?php wp_nonce_field('shopp-save-order'); ?>
 		<?php wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false ); ?>
 		<?php wp_nonce_field( 'meta-box-order', 'meta-box-order-nonce', false ); ?>
 		</div>
 	</div>
 	</form>
-	
+
 </div>
 
 <iframe id="print-receipt" name="receipt" src="<?php echo wp_nonce_url(admin_url('admin-ajax.php').'?action=shopp_order_receipt&amp;id='.$Purchase->id,'wp_ajax_shopp_order_receipt'); ?>" width="400" height="100" class="invisible"></iframe>
@@ -133,21 +133,21 @@
 jQuery(document).ready(function() {
 	var $=jqnc(),
 		noteurl = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), 'wp_ajax_shopp_order_note_message'); ?>';
-	
+
 	// close postboxes that should be closed
 	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
 	postboxes.add_postbox_toggles('toplevel_page_shopp-orders');
-	
+
 	$('.postbox a.help').click(function () {
 		$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
 		return false;
 	});
-	
+
 	$('#notification').hide();
 	$('#notify-customer').click(function () {
-		$('#notification').animate({ 
-			height: "toggle", 
-			opacity:"toggle" 
+		$('#notification').animate({
+			height: "toggle",
+			opacity:"toggle"
 		}, 500);
 	});
 
@@ -155,28 +155,28 @@ jQuery(document).ready(function() {
 	$('#add-note-button').click(function (e) {
 		e.preventDefault();
 		$('#add-note-button').hide();
-		$('#notation').animate({ 
-			height: "toggle", 
-			opacity:"toggle" 
+		$('#notation').animate({
+			height: "toggle",
+			opacity:"toggle"
 		}, 500);
 	});
 
 	$('#cancel-note-button').click(function (e) {
 		e.preventDefault();
 		$('#add-note-button').animate({opacity:"toggle"},500);
-		$('#notation').animate({ 
-			height: "toggle", 
-			opacity:"toggle" 
+		$('#notation').animate({
+			height: "toggle",
+			opacity:"toggle"
 		}, 500);
 	});
 
 	$('#order-notes table tr').hover(function () {
-		$(this).find('.notectrls').animate({ 
+		$(this).find('.notectrls').animate({
 			opacity:"toggle"
 		}, 500);
-	
+
 	},function () {
-		$(this).find('.notectrls').animate({ 
+		$(this).find('.notectrls').animate({
 			opacity:"toggle"
 		}, 100);
 
@@ -208,7 +208,7 @@ jQuery(document).ready(function() {
 			note.hide();
 			ctrls.hide().removeClass('notectrls');
 		});
-	
+
 	});
 
 	$('#print-button').click(function () {
