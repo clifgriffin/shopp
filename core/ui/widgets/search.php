@@ -10,12 +10,12 @@
  **/
 
 if (class_exists('WP_Widget')) {
-	
+
 class ShoppSearchWidget extends WP_Widget {
 
     function ShoppSearchWidget() {
-        parent::WP_Widget(false, 
-			$name = __('Shopp Search','Shopp'), 
+        parent::WP_Widget(false,
+			$name = __('Shopp Search','Shopp'),
 			array('description' => __('A search form for your store','Shopp'))
 		);
     }
@@ -24,7 +24,7 @@ class ShoppSearchWidget extends WP_Widget {
 		require_once(SHOPP_MODEL_PATH."/XML.php");
 		global $Shopp;
 		if (!empty($args)) extract($args);
-		
+
 		if (empty($options['title'])) $options['title'] = __('Shop Search','Shopp');
 		$title = $before_title.$options['title'].$after_title;
 
@@ -32,11 +32,11 @@ class ShoppSearchWidget extends WP_Widget {
 		echo $before_widget.$title.$content.$after_widget;
     }
 
-    function update($new_instance, $old_instance) {				
+    function update($new_instance, $old_instance) {
         return $new_instance;
     }
 
-    function form($options) {				
+    function form($options) {
 		?>
 		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>

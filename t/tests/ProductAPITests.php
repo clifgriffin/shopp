@@ -17,7 +17,7 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('catalog','product','id=81&load=1');
 		shopp('product','found');
 	}
-	
+
 	function test_product_id () {
 		ob_start();
 		shopp('product','id');
@@ -25,7 +25,7 @@ class ProductAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals("81",$output);
 	}
-	
+
 	function test_product_name () {
 		ob_start();
 		shopp('product','name');
@@ -33,7 +33,7 @@ class ProductAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals("Ultimate Matrix Collection",$output);
 	}
-	
+
 	function test_product_slug () {
 		ob_start();
 		shopp('product','slug');
@@ -41,7 +41,7 @@ class ProductAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals("ultimate-matrix-collection",$output);
 	}
-	
+
 	function test_product_url () {
 		global $Shopp;
 		ob_start();
@@ -50,7 +50,7 @@ class ProductAPITests extends ShoppTestCase {
 		ob_end_clean();
 		if (SHOPP_PRETTYURLS) $this->assertEquals('http://shopptest/store/ultimate-matrix-collection/',$output);
 	}
-	
+
 	function test_product_description () {
 		ob_start();
 		shopp('product','description');
@@ -58,7 +58,7 @@ class ProductAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals("a2b247e75ba9fed7afead41f74de4691",md5($output));
 	}
-	
+
 	function test_product_summary () {
 		ob_start();
 		shopp('product','summary');
@@ -66,7 +66,7 @@ class ProductAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals("3b31a462a3ec3b704934bdc5ae960af6",md5($output));
 	}
-	
+
 	function test_product_found () {
 		global $Shopp;
 		$this->assertTrue(shopp('product','found'));
@@ -75,12 +75,12 @@ class ProductAPITests extends ShoppTestCase {
 		$this->assertFalse(shopp('product','found'));
 		$Shopp->Product = $original;
 	}
-	
+
 	function test_product_isfeatured () {
 		$this->assertTrue(shopp('product','isfeatured'));
 		$this->assertTrue(shopp('product','is-featured'));
 	}
-	
+
 	function test_product_price () {
 		ob_start();
 		shopp('product','price');
@@ -88,11 +88,11 @@ class ProductAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals("$34.86 &mdash; $129.95",$output);
 	}
-	
+
 	function test_product_onsale () {
 		$this->assertTrue(shopp('product','onsale'));
 	}
-	
+
 	function test_product_saleprice () {
 		ob_start();
 		shopp('product','saleprice');
@@ -132,7 +132,7 @@ class ProductAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals("$40.09 &mdash; $149.44",$output);
-	
+
 		ob_start();
 		shopp('product','price','taxes=off');
 		$output = ob_get_contents();
@@ -144,7 +144,7 @@ class ProductAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals("$17.32 &mdash; $73.44",$output);
-			
+
 		ob_start();
 		shopp('product','saleprice','taxes=off');
 		$output = ob_get_contents();
@@ -152,27 +152,27 @@ class ProductAPITests extends ShoppTestCase {
 		$this->assertEquals("$15.06 &mdash; $63.86",$output);
 
 		$Shopp->Settings->registry['taxrates'] = array();
-		
+
 	}
-	
+
 	function test_product_hassavings () {
 		$this->assertTrue(shopp('product','has-savings'));
 	}
-	
+
 	function test_product_savings () {
 		ob_start();
 		shopp('product','savings');
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals("$19.80 &mdash; $66.09",$output);
-	
+
 		ob_start();
 		shopp('product','savings','show=percent');
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals("51% &mdash; 57%",$output);
 	}
-	
+
 	function test_product_weight () {
 		ob_start();
 		shopp('product','weight');
@@ -180,7 +180,7 @@ class ProductAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals("0.2 - 1.151 lb",$output);
 	}
-	
+
 	function test_product_thumbnail () {
 		ob_start();
 		shopp('product','thumbnail');
@@ -189,22 +189,22 @@ class ProductAPITests extends ShoppTestCase {
 		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/652/?96,96,2395623139" alt="Ultimate Matrix Collection" width="96" height="96"/>',$output);
 		$this->assertValidMarkup($output);
 	}
-	
+
 	function test_product_gallery () {
 		ob_start();
 		shopp('product','gallery');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertValidMarkup($output);		
+		$this->assertValidMarkup($output);
 	}
-	
+
 	function test_product_quantity () {
 		ob_start();
 		shopp('product','quantity','input=text');
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertValidMarkup($output);
-	
+
 		ob_start();
 		shopp('product','quantity','input=menu&options=1-3,5,10-15');
 		$output = trim(ob_get_contents());
@@ -213,144 +213,144 @@ class ProductAPITests extends ShoppTestCase {
 		$this->assertEquals($control,$output);
 		$this->assertValidMarkup($output);
 	}
-	
+
 	function test_product_freeshipping () {
 		$this->assertFalse(shopp('product','freeshipping'));
 	}
-	
+
 	function test_product_hasimages () {
 		global $Shopp;
 		$this->assertTrue(shopp('product','hasimages'));
 		$this->assertTrue(shopp('product','has-images'));
 		$this->assertEquals(2,count($Shopp->Product->images));
 	}
-	
+
 	function test_product_hascategories () {
 		global $Shopp;
 		$this->assertTrue(shopp('product','has-categories'));
 		$this->assertEquals(3,count($Shopp->Product->categories));
 	}
-	
+
 	function test_product_incategory_byname () {
 		$this->assertTrue(shopp('product','in-category','name=Entertainment'));
 	}
-	
+
 	function test_product_incategory_byslug () {
 		$this->assertTrue(shopp('product','in-category','slug=movies-tv'));
 	}
-	
+
 	function test_product_incategory_byid () {
 		$this->assertTrue(shopp('product','in-category','id=24'));
-	}	
-	
+	}
+
 	function test_product_category_tags () {
 		ob_start();
-		if (shopp('product','has-categories')) 
+		if (shopp('product','has-categories'))
 			while(shopp('product','categories')) shopp('product','category');
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals('EntertainmentMovies & TVBlu-Ray',$output);
 	}
-	
+
 	function test_product_image_tags () {
 		ob_start();
-		if (shopp('product','has-images')) 
+		if (shopp('product','has-images'))
 			while(shopp('product','images')) shopp('product','image');
 		$output = ob_get_contents();
 		ob_end_clean();
-		
+
 		$this->assertEquals('<img src="http://shopptest/store/images/652/?96,96,2395623139" alt="" width="96" height="96"  /><img src="http://shopptest/store/images/690/?96,96,1325025925" alt="" width="96" height="67"  />',$output);
 	}
-	
+
 	function test_product_hastags () {
 		global $Shopp;
 		$this->assertTrue(shopp('product','hastags'));
 		$this->assertTrue(shopp('product','has-tags'));
 		$this->assertEquals(6,count($Shopp->Product->tags));
 	}
-	
+
 	function test_product_tag_tags () {
 		ob_start();
-		if (shopp('product','has-tags')) 
+		if (shopp('product','has-tags'))
 			while(shopp('product','tags')) shopp('product','tag');
 		$output = ob_get_contents();
 		ob_end_clean();
-		
+
 		$this->assertEquals('matrixtrilogybluraymoviewarnerwachowski',$output);
 	}
-	
+
 	function test_product_tagged_byname () {
 		$this->assertTrue(shopp('product','tagged','name=matrix'));
 	}
-	
+
 	function test_product_tagged_byid () {
 		$this->assertTrue(shopp('product','tagged','id=28'));
 	}
-	
-	
+
+
 	function test_product_hasspecs () {
 		global $Shopp;
 		$this->assertTrue(shopp('product','hasspecs'));
 		$this->assertTrue(shopp('product','has-specs'));
 		$this->assertEquals(7,count($Shopp->Product->specs));
 	}
-	
+
 	function test_product_spec_tags () {
 		ob_start();
-		if (shopp('product','has-specs')) 
+		if (shopp('product','has-specs'))
 			while(shopp('product','specs')) shopp('product','spec');
 		$output = ob_get_contents();
 		ob_end_clean();
-		
+
 		$this->assertEquals('Rating: R RatedStudio: Warner Home VideoRun Time (in minutes): 415Format: Blu-Ray, DVDLanguage: EnglishScreen Format: WidescreenDirector: The Wachowski Brothers',$output);
 	}
-	
+
 	function test_product_spec_tags_byname () {
 		ob_start();
-		if (shopp('product','has-specs')) 
+		if (shopp('product','has-specs'))
 			while(shopp('product','specs')) shopp('product','spec','name');
 		$output = ob_get_contents();
 		ob_end_clean();
-		
+
 		$this->assertEquals('RatingStudioRun Time (in minutes)FormatLanguageScreen FormatDirector',$output);
-		
+
 	}
-	
+
 	function test_product_spec_tags_bycontent () {
 		ob_start();
-		if (shopp('product','has-specs')) 
+		if (shopp('product','has-specs'))
 			while(shopp('product','specs')) shopp('product','spec','content');
 		$output = ob_get_contents();
 		ob_end_clean();
-		
+
 		$this->assertEquals('R RatedWarner Home Video415Blu-Ray, DVDEnglishWidescreenThe Wachowski Brothers',$output);
 	}
-	
+
 	function test_product_outofstock () {
 		$this->assertFalse(shopp('product','outofstock'));
 	}
-	
+
 	function test_product_hasvariations () {
 		$this->assertTrue(shopp('product','has-variations'));
 	}
-	
+
 	function test_product_variations_menus () {
 		global $Shopp;
-		
+
 		ob_start();
 		shopp('product','variations','mode=single');
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertValidMarkup($output);
-	
+
 		ob_start();
 		shopp('product','variations','mode=multi');
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertValidMarkup($output);
-		
+
 	}
-	
+
 	function test_product_variation_tags () {
 		ob_start();
 		if (shopp('product','has-variations')) {
@@ -373,15 +373,15 @@ class ProductAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals('228Blu-RayShippedBR-81$129.95$63.86251.151 lb$0.00256DVDShipped$34.86$15.060.2 lb$0.00',$output);
-		
+
 	}
-	
+
 	function test_product_input () {
 		ob_start();
 		shopp('product','input','type=text&name=Testing');
 		$output = ob_get_contents();
 		ob_end_clean();
-		
+
 		$markup = array(
 			'tag' => 'input',
 			'attributes' => array(
@@ -396,7 +396,7 @@ class ProductAPITests extends ShoppTestCase {
 
 	function test_product_addtocart () {
 		global $Shopp;
-		
+
 		$Shopp->Product->outofstock = true;
 		ob_start();
 		shopp('product','addtocart');
@@ -404,35 +404,35 @@ class ProductAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals('<span class="outofstock">Out of stock</span>',$output);
 		$Shopp->Product->outofstock = false;
-		
+
 		ob_start();
 		shopp('product','addtocart');
 		$output = ob_get_contents();
 		ob_end_clean();
-		
+
 		$markup = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'hidden','name' => 'products[81][product]','value' => '81')
 		);
 		$this->assertTag($markup,$output,'',true);
-	
+
 		$markup = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'hidden','name' => 'cart','value' => 'add')
 		);
 		$this->assertTag($markup,$output,'',true);
-	
+
 		$markup = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'submit','name' => 'addtocart')
 		);
 		$this->assertTag($markup,$output,'',true);
-	
+
 		$this->assertValidMarkup($output);
-		
+
 	}
 
-	
+
 } // end ProductAPITests class
 
 ?>

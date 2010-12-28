@@ -9,9 +9,9 @@
 
 /**
 * Validates Xhtml Documments
-* 
+*
 * Ussage:
-* 
+*
 * require_once('XhtmlValidator.php');
 * $XhtmlValidator = new XhtmlValidator();
 * if($XhtmlValidator->validate($xhtml) === false){

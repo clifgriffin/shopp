@@ -5,8 +5,8 @@
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited,  1 December, 2009
- * @package 
- * @subpackage 
+ * @package
+ * @subpackage
  **/
 class PurchaseAPITests extends ShoppTestCase {
 
@@ -312,13 +312,13 @@ class PurchaseAPITests extends ShoppTestCase {
 	function test_purchase_item_input_tags () {
 		shopp('purchase','items');
 		ob_start();
-		if (shopp('purchase','item-has-inputs')) 
-			while(shopp('purchase','item-inputs')) 
+		if (shopp('purchase','item-has-inputs'))
+			while(shopp('purchase','item-inputs'))
 				shopp('purchase','item-input','name');
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals('',$output);
-		
+
 	}
 
 	function test_purchase_item_inputs_list () {
@@ -328,13 +328,13 @@ class PurchaseAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 		$this->assertEquals('',$output);
-		
+
 	}
 
 	function test_purchase_data_tags () {
 		ob_start();
-		if (shopp('purchase','hasdata')) 
-			while(shopp('purchase','orderdata')) 
+		if (shopp('purchase','hasdata'))
+			while(shopp('purchase','orderdata'))
 				shopp('purchase','data','name');
 		$output = ob_get_contents();
 		ob_end_clean();

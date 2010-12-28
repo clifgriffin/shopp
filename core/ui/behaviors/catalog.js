@@ -15,17 +15,17 @@ function ProductOptionsMenus (target,settings) {
 		menucache = new Array(),
 		menus = $(target),
 		disabled = 'disabled',
-		defaults = { 
+		defaults = {
 			disabled:true,
 			pricetags:true,
 			taxrate:0,
 			prices:{}
 		},
 		settings = $.extend(defaults,settings);
-		
+
 	menus.each(function (id,menu) {
 		current = menu;
-		menucache[id] = $(menu).children();			
+		menucache[id] = $(menu).children();
 		if ($.browser.msie) disabledHandler(menu);
 		if (id > 0)	previous = menus[id-1];
 		if (menus.length == 1) {
@@ -33,14 +33,14 @@ function ProductOptionsMenus (target,settings) {
 		} else if (previous) {
 			$(previous).change(function () {
 				if (menus.index(current) == menus.length-1) optionPriceTags();
-				if (this.selectedIndex == 0 && 
+				if (this.selectedIndex == 0 &&
 					this.options[0].value == "") $(menu).attr(disabled,true);
 				else $(menu).removeAttr(disabled);
 			}).change();
 		}
 		i++;
 	});
-		
+
 	// Last menu needs pricing
 	function optionPriceTags () {
 		// Grab selections
@@ -56,7 +56,7 @@ function ProductOptionsMenus (target,settings) {
 		$(current).val(currentSelection);
 
 		$(current).children('option').each(function () {
-			
+
 			var p,tax,optiontext,previoustag,pricetag="",
 				option = $(this),
 				keys = selected.slice(),
@@ -76,7 +76,7 @@ function ProductOptionsMenus (target,settings) {
 					option.attr('text',optiontext+pricetag);
 					if ($.browser.msie) option.css('color','#373737');
 					if ((price.i && !price.s) || price.t == "N/A") {
-						if (option.attr('selected')) 
+						if (option.attr('selected'))
 							option.parent().attr('selectedIndex',0);
 						if (!settings.disabled) option.remove();
 						else optionDisable(option);
@@ -96,13 +96,13 @@ function ProductOptionsMenus (target,settings) {
 			key = key ^ (ids[i]*mod);
 		return key;
 	}
-	
+
 	function optionDisable (option) {
 		option.attr(disabled,true);
 		if (!$.browser.msie) return;
 		option.css('color','#ccc');
 	}
-	
+
 	function disabledHandler (menu) {
 		$(menu).change(function () {
 			var _ = this,firstEnabled;
@@ -114,10 +114,10 @@ function ProductOptionsMenus (target,settings) {
 			else {
 				firstEnabled = $(_).children('option:not(:disabled)').get(0);
 				_.selectedIndex = firstEnabled?firstEnabled.index:0;
-			}				
+			}
 		});
-	}		
-	
+	}
+
 }
 
 
@@ -130,7 +130,7 @@ function catalogViewHandler () {
 		expires = new Date(),
 		toggles = {'list':'grid','grid':'list'};
 	expires.setTime(expires.getTime()+(30*86400000));
-	
+
 	$.each(toggles,function (view,lastview) {
 		display.find('ul.views li button.'+view).click(function () {
 			display.removeClass(lastview).addClass(view);
@@ -180,14 +180,14 @@ function ShoppSlideshow (element,duration,delay,fx,order) {
 		'wipe':[{'display':'block','height':0},{'height':_.element.height()}]
 	},
 	ordering = ['normal','reverse','shuffle'];
-	
+
 	_.duration = (!duration)?800:duration;
 	_.delay = (!delay)?7000:delay;
 	fx = (!fx)?'fade':fx;
 	_.effect = (!effects[fx])?effects['fade']:effects[fx];
 	order = (!order)?'normal':order;
 	_.order = ($.inArray(order,ordering) != -1)?order:'normal';
-	
+
 	_.slides = $(_.element).find('li:not(li.clear)').hide().css('visibility','visible');;
 	_.total = _.slides.length;
 	_.slide = 0;
@@ -203,11 +203,11 @@ function ShoppSlideshow (element,duration,delay,fx,order) {
 			).addClass('active');
 
 		switch (_.order) {
-			case "shuffle": 
+			case "shuffle":
 				if (_.shuffling.length == 0) {
 					_.shuffleList();
 					index = $.inArray(_.slide,_.shuffling);
-					if (index != -1) _.shuffling.splice(index,1);						
+					if (index != -1) _.shuffling.splice(index,1);
 				}
 				selected = Math.floor(Math.random()*_.shuffling.length);
 				_.slide = _.shuffling[selected];
@@ -216,20 +216,20 @@ function ShoppSlideshow (element,duration,delay,fx,order) {
 			case "reverse": _.slide = (_.slide-1 < 0)?_.slides.length-1:_.slide-1; break;
 			default: _.slide = (_.slide+1 == _.total)?0:_.slide+1;
 		}
-		
+
 		if (_.slides.length == 1) return;
 		setTimeout(_.startTransition,_.delay);
 	}
-	
+
 	_.transitionTo = function (slide) {
 		_.slide = slide;
 		_.startTransition();
 	}
-	
+
 	_.shuffleList = function () {
 		for (var i = 0; i < _.total; i++) _.shuffling.push(i);
 	}
-	
+
 	_.startTransition();
 }
 
@@ -271,31 +271,31 @@ function ShoppCarousel (element,duration) {
 	spacing = Math.round(((_.cframe.innerWidth() % items.outerWidth())/items.length)/2);
 
 	items.css('margin','0 '+spacing+'px');
-		
+
 	_.pageWidth = (items.outerWidth()+(spacing*2)) * visible;
 	_.page = 1;
 	_.pages = Math.ceil(items.length / visible);
-	
+
 	// Fill in empty slots
 	if ((items.length % visible) != 0) {
 		list.append( new Array(visible - (items.length % visible)+1).join('<li class="empty" style="width: '+items.outerWidth()+'px; height: 1px; margin: 0 '+spacing+'px"/>') );
 		items = list.find('> li');
 	}
-	
+
 	items.filter(':first').before(items.slice(-visible).clone().addClass('cloned'));
 	items.filter(':last').after(items.slice(0,visible).clone().addClass('cloned'));
 	items = list.find('> li');
-	
+
 	_.cframe.scrollLeft(_.pageWidth);
 
 	_.scrollLeft = carousel.find('button.left');
 	_.scrollRight = carousel.find('button.right');
-	
+
 	_.scrolltoPage = function (page) {
 		var dir = page < _.page?-1:1,
 			delta = Math.abs(_.page-page),
 			scrollby = _.pageWidth*dir*delta;
-		
+
 		_.cframe.filter(':not(:animated)').animate({
 			'scrollLeft':'+='+scrollby
 		},_.duration,function() {
@@ -309,7 +309,7 @@ function ShoppCarousel (element,duration) {
 			_.page = page;
 		});
 	}
-	
+
 	_.scrollLeft.click(function () {
 		return _.scrolltoPage(_.page-1);
 	});
@@ -317,7 +317,7 @@ function ShoppCarousel (element,duration) {
 	_.scrollRight.click(function () {
 		return _.scrolltoPage(_.page+1);
 	});
-	
+
 }
 
 /**
@@ -348,33 +348,33 @@ function validate (form) {
 		inputs = $(form).find('input,select,textarea'),
 		required = 'required',
 		title = 'title';
-	
+
 	$.each(inputs,function (id,field) {
 		input = $(field).removeClass('error');
 		label = $('label[for=' + input.attr('id') + ']').removeClass('error');
 
 		if (input.attr('disabled') == true) return;
-		
+
 		if (input.hasClass(required) && input.val() == "")
 			error = new Array(sjss.REQUIRED_FIELD.replace(/%s/,input.attr(title)),field);
-		
+
 		if (input.hasClass(required) && input.attr('type') == "checkbox" && !input.attr('checked'))
 			error = new Array(sjss.REQUIRED_CHECKBOX.replace(/%s/,input.attr(title)),field);
-		
+
 		if (input.hasClass('email') && !input.val().match(new RegExp('^[a-zA-Z0-9._-]+@([a-zA-Z0-9.-]+\.)+[a-zA-Z0-9.-]{2,4}$')))
 			error = new Array(sjss.INVALID_EMAIL,field);
-			
+
 		if (chars = input.attr('class').match(new RegExp('min(\\d+)'))) {
 			if (input.val() != "" && input.val().length < chars[1])
 				error = new Array(sjss.MIN_LENGTH.replace(/%s/,input.attr(title)).replace(/%d/,chars[1]),field);
 		}
-		
+
 		if (input.hasClass('passwords')) {
 			passwords.push(field);
 			if (passwords.length == 2 && passwords[0].value != passwords[1].value)
 				error = new Array(sjss.PASSWORD_MISMATCH,passwords[1]);
 		}
-		
+
 		if (error[1] && error[1].id == input.attr('id')) {
 			input.addClass('error');
 			label.addClass('error');
@@ -390,7 +390,7 @@ function validate (form) {
 			$('#'+error[1].id).addClass('error');
 			$('label[for=' + error[1].id + ']').addClass('error');
 		}
-		
+
 	}
 
 	if (error.length > 0) {

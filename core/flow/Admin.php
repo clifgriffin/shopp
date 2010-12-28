@@ -21,7 +21,7 @@ class AdminFlow extends FlowController {
 	var $Pages = array();	// List of admin pages
 	var $Menus = array();	// List of initialized WordPress menus
 	var $Ajax = array();	// List of AJAX controllers
-	var $MainMenu = false;	
+	var $MainMenu = false;
 	var $Page = false;
 	var $Menu = false;
 
@@ -30,7 +30,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * Capabilities						Role
 	 * _______________________________________________
-	 * 
+	 *
 	 * shopp_settings					administrator
 	 * shopp_settings_checkout
 	 * shopp_settings_payments
@@ -46,7 +46,7 @@ class AdminFlow extends FlowController {
 	 * shopp_orders						shopp-csr
 	 * shopp_customers
 	 * shopp_menu
-	 * 
+	 *
 	 * @var $caps
 	 **/
 	var $caps = array(
@@ -64,13 +64,13 @@ class AdminFlow extends FlowController {
 		'settings-presentation'=>'shopp_settings_presentation',
 		'settings-system'=>'shopp_settings_system'
 	);
-		
+
 	/**
 	 * Admin constructor
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -86,7 +86,7 @@ class AdminFlow extends FlowController {
 		add_filter('favorite_actions', array(&$this, 'favorites'));
 		add_filter('shopp_admin_boxhelp', array(&$this, 'keystatus'));
 		add_action("load-update.php", array(&$this, 'admin_css'));
-		
+
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
 		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
@@ -106,35 +106,35 @@ class AdminFlow extends FlowController {
 
 		// Action hook for adding custom third-party pages
 		do_action('shopp_admin_menu');
-		
+
 		reset($this->Pages);
 		$this->MainMenu = key($this->Pages);
-		
+
 		// Set the currently requested page and menu
 		if (isset($_GET['page'])) $page = strtolower($_GET['page']);
 		else return;
 		if (isset($this->Pages[$page])) $this->Page = $this->Pages[$page];
 		if (isset($this->Menus[$page])) $this->Menu = $this->Menus[$page];
-		
+
 	}
-	
+
 	/**
 	 * Generates the Shopp admin menu
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function menus () {
 		global $Shopp;
-		
-		
-		$access = defined('SHOPP_USERLEVEL') ? 
+
+
+		$access = defined('SHOPP_USERLEVEL') ?
 			SHOPP_USERLEVEL:$this->caps['main'];
 
 		if ($this->maintenance()) $access = 'manage_options';
-		
+
 		// Add the main Shopp menu
 		$this->Menus['main'] = add_object_page(
 			'Shopp',									// Page title
@@ -149,7 +149,7 @@ class AdminFlow extends FlowController {
 			add_action("admin_enqueue_scripts", array(&$this, 'behaviors'));
 			return add_action('toplevel_page_shopp-orders',array(&$this,'reactivate'));
 		}
-				
+
 		// Add menus to WordPress admin
 		foreach ($this->Pages as $page) $this->addmenu($page);
 
@@ -158,15 +158,15 @@ class AdminFlow extends FlowController {
 
 		// Add contextual help menus
 		foreach ($this->Menus as $pagename => $menu) $this->help($pagename,$menu);
-		
+
 	}
-	
+
 	/**
 	 * Registers a new page to the Shopp admin pages
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $name The internal reference name for the page
 	 * @param string $label The label displayed in the WordPress admin menu
 	 * @param string $controller The name of the controller to use for the page
@@ -179,20 +179,20 @@ class AdminFlow extends FlowController {
 		if (!empty($parent)) $parent = basename(SHOPP_PATH)."-$parent";
 		$this->Pages[$page] = new ShoppAdminPage($name,$page,$label,$controller,$doc,$parent);
 	}
-	
+
 	/**
 	 * Adds a ShoppAdminPage entry to the Shopp admin menu
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 * @param mixed $page ShoppAdminPage object
 	 **/
 	function addmenu ($page) {
 		global $Shopp;
 		$name = $page->page;
-		
+
 		$this->Menus[$page->page] = add_submenu_page(
 			($page->parent)?$page->parent:$this->MainMenu,
 			$page->label,
@@ -209,20 +209,20 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $page The internal reference name for the page
 	 * @return string The fully qualified resource name for the admin page
 	 **/
 	function pagename ($page) {
 		return basename(SHOPP_PATH)."-$page";
 	}
-	
+
 	/**
 	 * Gets the name of the controller for the current request or the specified page resource
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $page (optional) The fully qualified reference name for the page
 	 * @return string|boolean The name of the controller or false if not available
 	 **/
@@ -231,35 +231,35 @@ class AdminFlow extends FlowController {
 		if (isset($this->Pages[$page])) return $this->Pages[$page]->controller;
 		return false;
 	}
-	
+
 	/**
 	 * Dynamically includes necessary JavaScript and stylesheets for the admin
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function behaviors () {
 		global $Shopp,$wp_version,$hook_suffix;
 		if (!in_array($hook_suffix,$this->Menus)) return;
-		
-		$this->admin_css();		
+
+		$this->admin_css();
 
 		shopp_enqueue_script('shopp');
 		add_action('shopp_print_scripts',array(&$Shopp,'settingsjs'),100);
-				
+
 		$settings = array_filter(array_keys($this->Pages),array(&$this,'get_settings_pages'));
-		if (in_array($this->Page->page,$settings)) shopp_enqueue_script('settings');		
-		
+		if (in_array($this->Page->page,$settings)) shopp_enqueue_script('settings');
+
 	}
-	
+
 	/**
 	 * Queues the admin stylesheets
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function admin_css () {
@@ -272,7 +272,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function maintenance () {
@@ -281,13 +281,13 @@ class AdminFlow extends FlowController {
 		if ($db_version != DB::$version) return true;
 		return false;
 	}
-	
+
 	/**
 	 * Adds contextually appropriate help information to interfaces
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function help ($pagename,$menu) {
@@ -297,7 +297,7 @@ class AdminFlow extends FlowController {
 		$url = SHOPP_DOCS.str_replace("+","_",urlencode($page->doc));
 		$link = htmlspecialchars($page->doc);
 		$content = '<a href="'.$url.'" target="_blank">'.$link.'</a>';
-		
+
 		$target = substr($menu,strrpos($menu,'-')+1);
 		if ($target == "orders" || $target == "customers") {
 			ob_start();
@@ -309,13 +309,13 @@ class AdminFlow extends FlowController {
 
 		add_contextual_help($menu,$content);
 	}
-	
+
 	/**
 	 * Returns a postbox help link to launch help screencasts
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $id The ID of the help resource
 	 * @return string The anchor tag for the help link
 	 **/
@@ -323,7 +323,7 @@ class AdminFlow extends FlowController {
 		$helpurl = add_query_arg(array('src'=>'help','id'=>$id),admin_url('admin.php'));
 		return apply_filters('shopp_admin_boxhelp','<a href="'.esc_url($helpurl).'" class="help"></a>');
 	}
-	
+
 	/**
 	 * Displays the welcome screen
 	 *
@@ -338,7 +338,7 @@ class AdminFlow extends FlowController {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Displays the re-activate screen
 	 *
@@ -349,13 +349,13 @@ class AdminFlow extends FlowController {
 		global $Shopp;
 		include(SHOPP_ADMIN_PATH."/help/reactivate.php");
 	}
-		
+
 	/**
 	 * Adds a 'New Product' shortcut to the WordPress admin favorites menu
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $actions List of actions in the menu
 	 * @return array Modified actions list
 	 **/
@@ -364,19 +364,19 @@ class AdminFlow extends FlowController {
 	    $actions[$key] = array(__('New Product','Shopp'),8);
 		return $actions;
 	}
-	
+
 	/**
 	 * Initializes the Shopp dashboard widgets
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function dashboard () {
 		$dashboard = $this->Settings->get('dashboard');
 		if (!((is_shopp_userlevel() || current_user_can('shopp_financials')) && $dashboard == "on")) return false;
-		
+
 		wp_add_dashboard_widget('dashboard_shopp_stats', __('Shopp Stats','Shopp'), array(&$this,'stats_widget'),
 			array('all_link' => '','feed_link' => '','width' => 'half','height' => 'single')
 		);
@@ -388,22 +388,22 @@ class AdminFlow extends FlowController {
 		wp_add_dashboard_widget('dashboard_shopp_products', __('Shopp Products','Shopp'), array(&$this,'products_widget'),
 			array('all_link' => 'admin.php?page='.$this->pagename('products'),'feed_link' => '','width' => 'half','height' => 'single')
 		);
-		
+
 	}
-	
+
 	/**
 	 * Loads the Shopp admin CSS on the WordPress dashboard for widget styles
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function dashboard_css () {
 		global $Shopp;
 		echo "<link rel='stylesheet' href='$Shopp->uri/core/ui/styles/admin.css?ver=".urlencode(SHOPP_VERSION)."' type='text/css' />\n";
 	}
-	
+
 	/**
 	 * Dashboard Widgets
 	 */
@@ -412,7 +412,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function stats_widget ($args=null) {
@@ -434,7 +434,7 @@ class AdminFlow extends FlowController {
 		echo $before_title;
 		echo $widget_name;
 		echo $after_title;
-		
+
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 
 		$results = $db->query("SELECT count(id) AS orders, SUM(total) AS sales, AVG(total) AS average,
@@ -457,17 +457,17 @@ class AdminFlow extends FlowController {
 		echo '<td class="amount"><a href="'.$orderscreen.'">'.money($results->average).'</a></td><td>'.__('Average Order','Shopp').'</td></tr>';
 
 		echo '</tbody></table></div>';
-		
+
 		echo $after_widget;
-		
+
 	}
-	
+
 	/**
 	 * Renders the recent orders dashboard widget
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function orders_widget ($args=null) {
@@ -484,23 +484,23 @@ class AdminFlow extends FlowController {
 		$args = array_merge($defaults,$args);
 		if (!empty($args)) extract( $args, EXTR_SKIP );
 		$statusLabels = $this->Settings->get('order_status');
-		
+
 		echo $before_widget;
 
 		echo $before_title;
 		echo $widget_name;
 		echo $after_title;
-		
+
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
-		
+
 		$Orders = $db->query("SELECT p.*,count(i.id) as items FROM $purchasetable AS p LEFT JOIN $purchasedtable AS i ON i.purchase=p.id GROUP BY i.purchase ORDER BY created DESC LIMIT 6",AS_ARRAY);
 
 		if (!empty($Orders)) {
 		echo '<table class="widefat">';
 		echo '<tr><th scope="col">'.__('Name','Shopp').'</th><th scope="col">'.__('Date','Shopp').'</th><th scope="col" class="num">'.__('Items','Shopp').'</th><th scope="col" class="num">'.__('Total','Shopp').'</th><th scope="col" class="num">'.__('Status','Shopp').'</th></tr>';
 		echo '<tbody id="orders" class="list orders">';
-		$even = false; 
+		$even = false;
 		foreach ($Orders as $Order) {
 			echo '<tr'.((!$even)?' class="alternate"':'').'>';
 			$even = !$even;
@@ -517,15 +517,15 @@ class AdminFlow extends FlowController {
 		}
 
 		echo $after_widget;
-		
+
 	}
-	
+
 	/**
 	 * Renders the bestselling products dashboard widget
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function products_widget ($args=null) {
@@ -538,7 +538,7 @@ class AdminFlow extends FlowController {
 			'after_title' => '',
 			'after_widget' => ''
 		);
-		
+
 		if (!$args) $args = array();
 		$args = array_merge($defaults,$args);
 		if (!empty($args)) extract( $args, EXTR_SKIP );
@@ -556,33 +556,33 @@ class AdminFlow extends FlowController {
 		echo '<td><h4>'.__('Recent Bestsellers','Shopp').'</h4>';
 		echo '<ul>';
 		if (empty($RecentBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';
-		foreach ($RecentBestsellers->products as $product) 
+		foreach ($RecentBestsellers->products as $product)
 			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products'),'id'=>$product->id),admin_url('admin.php')).'">'.$product->name.'</a> ('.$product->sold.')</li>';
 		echo '</ul></td>';
-		
-		
+
+
 		$LifetimeBestsellers = new BestsellerProducts(array('show'=>3));
 		$LifetimeBestsellers->load_products();
 		echo '<td><h4>'.__('Lifetime Bestsellers','Shopp').'</h4>';
 		echo '<ul>';
 		if (empty($LifetimeBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';
-		foreach ($LifetimeBestsellers->products as $product) 
+		foreach ($LifetimeBestsellers->products as $product)
 			echo '<li><a href="'.add_query_arg(array('page'=>$this->pagename('products'),'id'=>$product->id),admin_url('admin.php')).'">'.$product->name.'</a>'.(isset($product->sold)?' ('.$product->sold.')':' (0)').'</li>';
 		echo '</ul></td>';
 		echo '</tr></tbody></table>';
 		echo $after_widget;
-		
+
 	}
-	
+
 	/**
 	 * Update the stored path to the activated theme
-	 * 
+	 *
 	 * Automatically updates the Shopp theme path setting when the
 	 * a new theme is activated.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function themepath () {
@@ -595,7 +595,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function keystatus ($_=true) {
@@ -604,14 +604,14 @@ class AdminFlow extends FlowController {
 		if ($status[0] != "1") return false;
 		return $_;
 	}
-	
+
 	/**
 	 * Helper callback filter to identify editor-related pages in the pages list
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
-	 * @param string $pagename The full page reference name 
+	 *
+	 * @param string $pagename The full page reference name
 	 * @return boolean True if the page is identified as an editor-related page
 	 **/
 	function get_editor_pages ($pagenames) {
@@ -625,8 +625,8 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
-	 * @param string $pagename The page's full reference name 
+	 *
+	 * @param string $pagename The page's full reference name
 	 * @return boolean True if the page is identified as a settings page
 	 **/
 	function get_settings_pages ($pagenames) {
@@ -640,7 +640,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function tinymce () {
@@ -651,9 +651,9 @@ class AdminFlow extends FlowController {
 			global $pagenow,$plugin_page;
 			$pages = array('post.php', 'post-new.php', 'page.php', 'page-new.php');
 			$editors = array('shopp-products','shopp-categories');
-			if(!(in_array($pagenow, $pages) || (in_array($plugin_page, $editors) && !empty($_GET['id'])))) 
+			if(!(in_array($pagenow, $pages) || (in_array($plugin_page, $editors) && !empty($_GET['id']))))
 				return false;
-			
+
 			wp_enqueue_script('shopp-tinymce',admin_url('admin-ajax.php').'?action=shopp_tinymce',array());
 			wp_localize_script('shopp-tinymce', 'ShoppDialog', array(
 				'title' => __('Insert from Shopp...', 'Shopp'),
@@ -670,7 +670,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param array $plugins The current list of plugins to load
 	 * @return array The updated list of plugins to laod
 	 **/
@@ -685,7 +685,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param array $buttons The current list of buttons in the editor
 	 * @return array The updated list of buttons in the editor
 	 **/
@@ -693,19 +693,19 @@ class AdminFlow extends FlowController {
 		array_push($buttons, "|", "Shopp");
 		return $buttons;
 	}
-	
+
 	/**
 	 * Handle auto-updates from Shopp 1.0
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function legacyupdate () {
 		global $plugin_page;
-		
-		if ($plugin_page == 'shopp-settings-update' 
+
+		if ($plugin_page == 'shopp-settings-update'
 			&& isset($_GET['updated']) && $_GET['updated'] == 'true') {
 				wp_redirect(add_query_arg('page',$this->pagename('orders'),admin_url('admin.php')));
 				exit();
@@ -717,7 +717,7 @@ class AdminFlow extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function pluginspage () {
@@ -741,7 +741,7 @@ class ShoppAdminPage {
 	var $controller = "";
 	var $doc = false;
 	var $parent = false;
-	
+
 	function __construct ($name,$page,$label,$controller,$doc=false,$parent=false) {
 		$this->name = $name;
 		$this->page = $page;
@@ -750,7 +750,7 @@ class ShoppAdminPage {
 		$this->doc = $doc;
 		$this->parent = $parent;
 	}
-	
-} // END class ShoppAdminPage 
+
+} // END class ShoppAdminPage
 
 ?>

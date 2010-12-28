@@ -8,7 +8,7 @@
  * @package Shopp
  * @since 1.1
  * @subpackage TestMode
- * 
+ *
  * $Id$
  **/
 
@@ -22,7 +22,7 @@ class TestMode extends GatewayFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function __construct () {
@@ -33,17 +33,17 @@ class TestMode extends GatewayFramework {
 		$this->settings['cards'] = array();
 		foreach ($this->cards as $card)	$this->settings['cards'][] = $card->symbol;
 	}
-	
+
 	function actions () {
 		add_action('shopp_process_order',array(&$this,'process'));
 	}
-	
+
 	/**
 	 * Process the order
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function process () {
@@ -55,16 +55,16 @@ class TestMode extends GatewayFramework {
 		$this->Order->transaction($this->txnid(),'CHARGED');
 		return true;
 	}
-	
+
 	/**
 	 * Render the settings for this gateway
-	 * 
+	 *
 	 * Uses ModuleSettingsUI to generate a JavaScript/jQuery based settings
 	 * panel.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function settings () {

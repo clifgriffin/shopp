@@ -1,7 +1,7 @@
 <?php
 /**
  * FSStorage
- * 
+ *
  * Provides file system storage of store assets
  *
  * @author Jonathan Davis
@@ -20,19 +20,19 @@ if (!defined('WP_CONTENT_DIR')) define('WP_CONTENT_DIR', ABSPATH . 'wp-content')
  *
  * Note that storage modules cannot use ShoppError for logging errors
  * as they are used in another context where WordPress is not fully loaded.
- * 
+ *
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
  **/
 class FSStorage extends StorageModule implements StorageEngine {
 	
-	var $path = "";	
+	var $path = "";
 	/**
 	 * FSStorage constructor
 	 *
 	 * @author Jonathan Davis
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -107,7 +107,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 					// Use first range - http://tools.ietf.org/id/draft-ietf-http-range-retrieval-00.txt
 					list($range, $extra) = explode(',', $reqrange, 2);
 				}
-			} 
+			}
 			
 			// Determine download chunk to grab
 		    list($start, $end) = explode('-', $range, 2);
@@ -122,10 +122,10 @@ class FSStorage extends StorageModule implements StorageEngine {
 
 	        header('Accept-Ranges: bytes');
 	        header('Content-Range: bytes '.$start.'-'.$end.'/'.$size);
-		    header('Content-length: '.($end-$start+1)); 
+		    header('Content-length: '.($end-$start+1));
 
 			// WebKit/Safari resumable download support headers
-		    header('Last-modified: '.date('D, d M Y H:i:s O',$this->modified)); 
+		    header('Last-modified: '.date('D, d M Y H:i:s O',$this->modified));
 			if (isset($etag)) header('ETag: '.$etag);
 
 			$file = fopen($filepath, 'rb');
@@ -193,7 +193,7 @@ class FSStorage extends StorageModule implements StorageEngine {
 		$sep = DIRECTORY_SEPARATOR;
 
 		$url = parse_url($_GET['q']);
-		if ((isset($url['scheme']) && $url['scheme'] != 'file') || !isset($url['path'])) 
+		if ((isset($url['scheme']) && $url['scheme'] != 'file') || !isset($url['path']))
 			return;
 		
 		$query = sanitize_path($url['path']);

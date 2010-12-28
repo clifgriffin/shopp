@@ -5,7 +5,7 @@
  */
 
 function TaxRate (data) {
-	
+
 	var $ = jqnc(),
 		id = ratesidx++,
 		rules = 0,
@@ -30,11 +30,11 @@ function TaxRate (data) {
 		deleteButtonSrc = '<button type="button" class="delete"><img src="'+SHOPP_PLUGINURI+'/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button>',
 		deleteButton = $(deleteButtonSrc).appendTo(controls),
 		countryOptions = '';
-	
+
 	$.each(countries, function(value,label) {
 		countryOptions += '<option value="'+value+'">'+label+'</option>';
 	});
-	
+
 	countryMenu.html(countryOptions).change(function () {
 		var $this = $(this);
 		if (!selectedCountry) selectedCountry = $this.val();
@@ -51,7 +51,7 @@ function TaxRate (data) {
 			var selectNext = false;
 			// Add country zones to the zone menu
 			$.each(zones[$(countryMenu).val()], function(value,label) {
-				if ($.inArray(value,zonesInUse) != -1) option = $('<option></option>').attr('disabled',true).val(value).html(label).appendTo(zoneMenu);				
+				if ($.inArray(value,zonesInUse) != -1) option = $('<option></option>').attr('disabled',true).val(value).html(label).appendTo(zoneMenu);
 				else option = $('<option></option>').val(value).html(label).appendTo(zoneMenu);
 				if (selectNext) { // If the previous option was disabled, select this one in the menu
 					selectNext = false;
@@ -67,7 +67,7 @@ function TaxRate (data) {
 				countryMenu.attr('selectedIndex',countryMenu.attr('selectedIndex')+1).change();
 			}
 		}
-		
+
 		// Hide the zone menu if there are no zones for the selected country
 		if (zoneMenu.children().length == 0) {
 			zoneMenu.hide();
@@ -75,7 +75,7 @@ function TaxRate (data) {
 		zoneMenu.change();
 
 	}).change();
-	
+
 	rate.change(function () { this.value = asPercent(this.value,false,3,true); }).change();
 	row.dequeue().hover(function () { controls.show(); },function () { controls.fadeOut('fast'); });
 	deleteButton.click(function () { row.fadeOut('fast',function () { row.remove(); }); });
@@ -83,8 +83,8 @@ function TaxRate (data) {
 	new AddRuleButton(origin);
 	quickSelects();
 	load(data);
-	
-	
+
+
 	function TaxRateRule (target,d) {
 		var ruleid = rules++,
 			ui = '<li><select name="settings[taxrates]['+id+'][rules]['+ruleid+'][p]" class="property"></select>&nbsp;<input type="text" name="settings[taxrates]['+id+'][rules]['+ruleid+'][v]" size="25" class="value" /></li>',
@@ -92,25 +92,25 @@ function TaxRate (data) {
 			property = rule.find('select.property'),
 			value = rule.find('input.value'),
 			options = '';
-			
+
 		$.each(RULE_LANG, function(value,label) {
 			options += '<option value="'+value+'">'+label+'</option>';
 		});
-		
+
 		property.html(options);
-		
+
 		if (d) {
 			if (d.p) property.val(d.p);
 			if (d.v) value.val(d.v);
 		}
-		
+
 		property.change(function () {
 			value.unbind('keydown').unbind('keypress').suggest(
-				sugg_url+'&action=shopp_suggestions&t='+$(this).val(), 
-				{ delay:500, minchars:2 } 
+				sugg_url+'&action=shopp_suggestions&t='+$(this).val(),
+				{ delay:500, minchars:2 }
 			);
 		}).change();
-		
+
 		new DeleteRuleButton(rule);
 		new AddRuleButton(rule);
 		if (target == origin) {
@@ -120,17 +120,17 @@ function TaxRate (data) {
 		}
 		if (target) rule.insertAfter(target);
 		else rule.appendTo(conditions);
-		
+
 	}
-	
+
 	function LocalRates (d) {
 		var label,counter,ui,instructions,ratelist,uploadButton,pos
 			src = '<div class="local-rates"><div class="label"><label>'+LOCAL_RATES+' <span class="counter"></span><input type="hidden" name="settings[taxrates]['+id+'][locals]" value="" /></label><button type="button" name="toggle" class="toggle">&nbsp;</button></div><div class="ui"><p>'+LOCAL_RATE_INSTRUCTIONS+'</p><ul></ul><button type="button" name="upload" class="button-secondary">Upload</button></div>',
 			panel = origin.find('div.local-rates');
-			
+
 		if (!panel.get(0)) panel = $(src).appendTo(origin);
 		else panel.toggle();
-		
+
 		ui = panel.find('div.ui');
 		label = panel.find('div.label');
 		toggle = label.find('button.toggle');
@@ -139,7 +139,7 @@ function TaxRate (data) {
 		instructions = ui.find('p');
 		ratelist = ui.find('ul');
 		uploadButton = ui.find('button');
-		
+
 		toggle.bind('toggle.clicked',function () {
 			var $button = $(this),
 				step = 20,
@@ -151,7 +151,7 @@ function TaxRate (data) {
 				if (pos < 0) setTimeout(openIcon,20);
 				else $button.css('background-position',null).removeClass('closed');
 			}
-			
+
 			function closeIcon () {
 				pos -= step;
 				$button.css('background-position',pos+'px top');
@@ -161,12 +161,12 @@ function TaxRate (data) {
 
 			if (pos < 0) return setTimeout(openIcon,20);
 			else return setTimeout(closeIcon,20);
-			
+
 		});
-		
+
 		zoneMenu.change(function () {
 			var locales = false;
-			if (localities[countryMenu.val()] && localities[countryMenu.val()][$(this).val()]) 
+			if (localities[countryMenu.val()] && localities[countryMenu.val()][$(this).val()])
 				locales = localities[countryMenu.val()][$(this).val()];
 			listings(locales);
 		});
@@ -196,31 +196,31 @@ function TaxRate (data) {
 			toggle.addClass('closed');
 			listings(d);
 		}
-		
+
 		function listings (list) {
 			var ratesrc = '',count = 0;
 			ratelist.html('');
 			counter.html('');
 			if (!list) return instructions.show();
 			else instructions.hide();
-			
+
 			$.each(list, function(index,element) {
 				var label = index,value = element;
 				if (list instanceof Array) label = element, value = 0;
 				ratesrc += '<li><label><input type="text" name="settings[taxrates]['+id+'][locals]['+label+']" size="6" value="'+value+'" /> '+label+'</label></li>';
 				count++;
-			});				
+			});
 
-			ratelist.html(ratesrc).find('input').focus(function() { this.select(); }).change(function () { 
-				this.value = asPercent(this.value,false,3,true); 
+			ratelist.html(ratesrc).find('input').focus(function() { this.select(); }).change(function () {
+				this.value = asPercent(this.value,false,3,true);
 				$(this).attr('title', asPercent( asNumber(this.value)+asNumber(rate.val()),false,3,true ) )
 			}).change();
-			
+
 			counter.html('('+count+')');
 		}
-		
+
 	}
-	
+
 	function DeleteRuleButton (target) {
 		var button = $(deleteButtonSrc).prependTo(target).click(function () {
 			if (conditions.find('li').size() == 3) scope.hide();
@@ -228,27 +228,27 @@ function TaxRate (data) {
 		});
 		target.hover(function () { button.css('opacity',1); },function () { button.animate({'opacity':0},'fast'); });
 	}
-	
+
 	function AddRuleButton (target) {
 		$(addButtonSrc).appendTo(target).click(function () {
 			new TaxRateRule(target);
 		});
 	}
-	
+
 	function load (d) {
 		if (d.rate) rate.val(d.rate).change();
 		if (d.country) countryMenu.val(d.country).change();
 		if (d.zone) zoneMenu.val(d.zone).change();
 		if (d.logic) scope.find('select').val(d.logic).change();
 		if (d.localrates && d.localrates == "on") localToggle.find('input').attr('checked',true).change();
-		
+
 		if (d.rules) {
 			$.each(d.rules,function (id,r) {
 				new TaxRateRule(origin,r);
 			});
 		}
 	}
-	
+
 }
 
 jQuery(document).ready(function () {
@@ -256,9 +256,9 @@ jQuery(document).ready(function () {
 	if (!ratetable.get(0)) return;
 
 	$('#add-taxrate').click(function() { new TaxRate(); });
-	
+
 	ratetable.empty();
 	if (rates) $(rates).each(function () { new TaxRate(this); });
-	else new TaxRate();	
-	
+	else new TaxRate();
+
 });

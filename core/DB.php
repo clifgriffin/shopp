@@ -1,7 +1,7 @@
 <?php
 /**
  * DB.php
- * 
+ *
  * Database management classes
  *
  * @author Jonathan Davis
@@ -50,7 +50,7 @@ class DB {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	protected function __construct () {
@@ -66,7 +66,7 @@ class DB {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __clone () { trigger_error('Clone is not allowed.', E_USER_ERROR); }
@@ -74,12 +74,12 @@ class DB {
 	/**
 	 * Provides a reference to the instantiated DB singleton
 	 *
-	 * The DB class uses a singleton to ensure only one DB object is 
+	 * The DB class uses a singleton to ensure only one DB object is
 	 * instantiated at any time
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return DB Returns a reference to the DB object
 	 **/
 	static function &get() {
@@ -93,7 +93,7 @@ class DB {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $user The database username
 	 * @param string $password The database password
 	 * @param string $database The database name
@@ -111,12 +111,12 @@ class DB {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $database The database name
 	 * @return void
 	 **/
 	function select ($database) {
-		if(!@mysql_select_db($database,$this->dbh)) 
+		if(!@mysql_select_db($database,$this->dbh))
 			trigger_error("Could not select the '$database' database.");
 	}
 	
@@ -125,7 +125,7 @@ class DB {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string|array|object $data Data to be escaped
 	 * @return string Database-safe data
 	 **/
@@ -143,7 +143,7 @@ class DB {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string|array|object $data Data to be sanitized
 	 * @return string Cleaned up data
 	 **/
@@ -158,7 +158,7 @@ class DB {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $query The SQL query to send
 	 * @param boolean $output (optional) Return results as an object (default) or as an array of result rows
 	 * @return array|object The query results as an object or array of result rows
@@ -202,13 +202,13 @@ class DB {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $type The SQL data type
 	 * @return string|boolean The primitive datatype or false if not found
 	 **/
 	function datatype ($type) {
 		foreach((array)$this->_datatypes as $datatype => $patterns) {
-			foreach((array)$patterns as $pattern) {				
+			foreach((array)$patterns as $pattern) {
 				if (strpos($type,$pattern) !== false) return $datatype;
 			}
 		}
@@ -225,7 +225,7 @@ class DB {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param DatabaseObject $object The object to be prepared
 	 * @return array Data structure ready for query building
 	 **/
@@ -234,7 +234,7 @@ class DB {
 		
 		// Go through each data property of the object
 		foreach(get_object_vars($object) as $property => $value) {
-			if (!isset($object->_datatypes[$property])) continue;				
+			if (!isset($object->_datatypes[$property])) continue;
 
 			// If the property is has a _datatype
 			// it belongs in the database and needs
@@ -246,11 +246,11 @@ class DB {
 					// Escape characters in strings as needed
 					if (is_array($value) || is_object($value)) $data[$property] = "'".addslashes(serialize($this->escape($value)))."'";
 					else $data[$property] = "'".$this->escape($value)."'";
-					break;	
+					break;
 				case "list":
 					// If value is empty, skip setting the field
 					// so it inherits the default value in the db
-					if (!empty($value)) 
+					if (!empty($value))
 						$data[$property] = "'$value'";
 					break;
 				case "date":
@@ -295,7 +295,7 @@ class DB {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $table The table to read column data from
 	 * @param string $column The column name to inspect
 	 * @return array List of values
@@ -314,7 +314,7 @@ class DB {
 
 	/**
 	 * Processes a bulk string of semi-colon terminated SQL queries
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 * @param string $queries Long string of multiple queries
@@ -343,18 +343,18 @@ abstract class DatabaseObject {
 	 * Initializes the DatabaseObject with functional necessities
 	 *
 	 * A DatabaseObject tracks meta data relevant to translating PHP object
-	 * data into SQL-ready data.  This is done by reading and caching the 
+	 * data into SQL-ready data.  This is done by reading and caching the
 	 * table schema so the properties and their data types can be known
 	 * in order to automate query building.
-	 * 
-	 * The table schema is stored in an array structure that contains 
-	 * the columns and their datatypes.  This structure is cached as the 
+	 *
+	 * The table schema is stored in an array structure that contains
+	 * the columns and their datatypes.  This structure is cached as the
 	 * current data_model setting. If a table is missing from the data_model
 	 * a new table schema structure is generated on the fly.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $table The base table name (without prefixes)
 	 * @param string $key (optional) The column name of the primary key
 	 * @return void
@@ -364,7 +364,7 @@ abstract class DatabaseObject {
 		$db = &DB::get();
 		
 		if (empty($this->_table) && $table)		// So we know what the table name is
-			$this->_table = $this->tablename($table); 
+			$this->_table = $this->tablename($table);
 
 		$this->_key = $key;				// So we know what the primary key is
 		$this->_datatypes = array();	// So we know the format of the table
@@ -390,7 +390,7 @@ abstract class DatabaseObject {
 		if (!$r = $db->query("SHOW COLUMNS FROM $this->_table",true,false)) return false;
 		
 		// Map out the table definition into our data structure
-		foreach($r as $object) {	
+		foreach($r as $object) {
 			$property = $object->Field;
 			if (!isset($this->{$property}))
 				$this->{$property} = $object->Default;
@@ -415,11 +415,11 @@ abstract class DatabaseObject {
 	}
 	
 	/**
-	 * Load a single record by the primary key or a custom query 
-	 * 
+	 * Load a single record by the primary key or a custom query
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param $where - An array of key/values to be built into an SQL where clause
 	 * or
 	 * @param $id - A string containing the id for db object's predefined primary key
@@ -434,8 +434,8 @@ abstract class DatabaseObject {
 		if (empty($args[0])) return false;
 		
 		$where = "";
-		if (is_array($args[0])) 
-			foreach ($args[0] as $key => $id) 
+		if (is_array($args[0]))
+			foreach ($args[0] as $key => $id)
 				$where .= ($where == ""?"":" AND ")."$key='".$db->escape($id)."'";
 		else {
 			$id = $args[0];
@@ -456,7 +456,7 @@ abstract class DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $table The base table name
 	 * @return string The full, prefixed table name
 	 **/
@@ -474,7 +474,7 @@ abstract class DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return boolean|int Returns true when UPDATEs are successful; returns an integer with the record ID
 	 **/
 	function save () {
@@ -508,7 +508,7 @@ abstract class DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function delete () {
@@ -524,7 +524,7 @@ abstract class DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function exists () {
@@ -538,13 +538,13 @@ abstract class DatabaseObject {
 	/**
 	 * Populates the DatabaseObject properties from a db query result object
 	 *
-	 * Uses the available data model built from the table schema to 
+	 * Uses the available data model built from the table schema to
 	 * automatically set the object properties, taking care to convert
 	 * special data such as dates and serialized structures.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $data The query results
 	 * @return void
 	 **/
@@ -567,7 +567,7 @@ abstract class DatabaseObject {
 					// Anything not needing processing
 					// passes through into the object
 					$this->{$property} = $value;
-			}			
+			}
 		}
 	}
 	
@@ -576,7 +576,7 @@ abstract class DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param array $data The prepared data
 	 * @return string The query fragment of column value updates
 	 **/
@@ -592,12 +592,12 @@ abstract class DatabaseObject {
 	/**
 	 * Populate the object properties from an array
 	 *
-	 * Updates the DatabaseObject properties when the key of the array 
+	 * Updates the DatabaseObject properties when the key of the array
 	 * entry matches the name of the DatabaseObject property
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $data The array of updated values
 	 * @param array $ignores (optional) A list of properties to skip updating
 	 * @return void
@@ -606,23 +606,23 @@ abstract class DatabaseObject {
 		$db = &DB::get();
 		
 		foreach ($data as $key => $value) {
-			if (!is_null($value) && 
-				($ignores === false || (is_array($ignores) && !in_array($key,$ignores))) && 
+			if (!is_null($value) &&
+				($ignores === false || (is_array($ignores) && !in_array($key,$ignores))) &&
 				property_exists($this, $key) ) {
 				$this->{$key} = $db->clean($value);
-			}	
+			}
 		}
 	}
 	
 	/**
-	 * Copy property values into the current DatbaseObject from another object 	 			
-	 * 
+	 * Copy property values into the current DatbaseObject from another object
+	 *
 	 * Copies the property values from a specified object into the current
 	 * DatabaseObject where the property names match.
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param object $Object The source object to copy from
 	 * @param string $prefix (optional) A property prefix
 	 * @return void
@@ -633,7 +633,7 @@ abstract class DatabaseObject {
 		if ($ignores === false) $ignored = array();
 		foreach(get_object_vars($Object) as $property => $value) {
 			$property = $prefix.$property;
-			if (property_exists($this,$property) && 
+			if (property_exists($this,$property) &&
 				!in_array($property,$ignores))
 					$this->{$property} = $db->clean($value);
 		}
@@ -669,7 +669,7 @@ abstract class SessionObject {
 
 	function __construct () {
 		
-		if (!defined('SHOPP_SECURE_KEY')) 
+		if (!defined('SHOPP_SECURE_KEY'))
 			define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
 
 		// Close out any early session calls
@@ -685,7 +685,7 @@ abstract class SessionObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function handling () {
@@ -704,7 +704,7 @@ abstract class SessionObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function open ($path,$name) {
@@ -718,23 +718,23 @@ abstract class SessionObject {
 	}
 	
 	/**
-	 * Placeholder function as we are working with a persistant 
+	 * Placeholder function as we are working with a persistant
 	 * database as opposed to file handlers.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function close () { return true; }
 
 	/**
-	 * Gets data from the session data table and loads Member 
+	 * Gets data from the session data table and loads Member
 	 * objects into the User from the loaded data.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function load ($id) {
@@ -767,7 +767,7 @@ abstract class SessionObject {
 			do_action('shopp_session_loaded');
 		} else {
 			if (!empty($this->session))
-				$db->query("INSERT INTO $this->_table (session, ip, data, created, modified) 
+				$db->query("INSERT INTO $this->_table (session, ip, data, created, modified)
 							VALUES ('$this->session','$this->ip','',now(),now())");
 		}
 		do_action('shopp_session_load');
@@ -780,18 +780,18 @@ abstract class SessionObject {
 	}
 
 	/**
-	 * Deletes the session data from the database, unregisters the 
+	 * Deletes the session data from the database, unregisters the
 	 * session and releases all the objects.
-	 * 
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function unload () {
 		$db = &DB::get();
-		if(empty($this->session)) return false;		
-		if (!$db->query("DELETE FROM $this->_table WHERE session='$this->session'")) 
+		if(empty($this->session)) return false;
+		if (!$db->query("DELETE FROM $this->_table WHERE session='$this->session'"))
 			trigger_error("Could not clear session data.");
 		unset($this->session,$this->ip,$this->data);
 		return true;
@@ -802,7 +802,7 @@ abstract class SessionObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function save ($id,$session) {
@@ -825,7 +825,7 @@ abstract class SessionObject {
 		
 		$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',modified=now() WHERE session='$this->session'";
 		
-		if (!$db->query($query)) 
+		if (!$db->query($query))
 			trigger_error("Could not save session updates to the database.");
 
 		do_action('shopp_session_saved');
@@ -848,14 +848,14 @@ abstract class SessionObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function trash () {
 		if (empty($this->session)) return false;
 
 		$db = &DB::get();
-		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE ".SHOPP_SESSION_TIMEOUT." < UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified)")) 
+		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE ".SHOPP_SESSION_TIMEOUT." < UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified)"))
 			trigger_error("Could not delete cached session data.");
 		return true;
 	}
@@ -865,7 +865,7 @@ abstract class SessionObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function secured ($setting=null) {
@@ -883,7 +883,7 @@ abstract class SessionObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return string
 	 **/
 	function securekey () {

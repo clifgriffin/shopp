@@ -1,7 +1,7 @@
 <?php
 /**
  * Scripts.php
- * 
+ *
  * Controller for browser script queueing and delivery
  *
  * @author Jonathan Davis
@@ -40,7 +40,7 @@ class ShoppScripts extends WP_Scripts {
 	}
 	
 	function do_item( $handle, $group = false ) {
-		if(parent::do_item($handle,$group)) 
+		if(parent::do_item($handle,$group))
 			$this->print_code .= $this->print_script_custom($handle);
 	}
 	
@@ -164,7 +164,7 @@ class ShoppScripts extends WP_Scripts {
 		
 		if (!empty($wpdeps)) foreach ((array)$wpdeps as $handle) wp_enqueue_script($handle);
 		
-	}	
+	}
 	
 	function print_script_custom ($handle) {
 		return !empty($this->registered[$handle]->extra['code'])?$this->registered[$handle]->extra['code']:false;
@@ -336,7 +336,7 @@ function shopp_script_is( $handle, $list = 'queue' ) {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @return void
  **/
 function shopp_dependencies () {

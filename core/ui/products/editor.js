@@ -37,7 +37,7 @@ jQuery(document).ready(function() {
 		if (title.val() == '') titlePrompt.show();
 		else titlePrompt.hide();
 	});
-	
+
 	if (!product) {
 		title.focus();
 		titlePrompt.show();
@@ -47,13 +47,13 @@ jQuery(document).ready(function() {
 	postboxes.add_postbox_toggles('shopp_page_shopp-products');
 	// close postboxes that should be closed
 	$('.if-js-closed').removeClass('if-js-closed').addClass('closed');
-	
-	
+
+
 	$('.postbox a.help').click(function () {
 		$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
 		return false;
 	});
-	
+
 	// Handle publishing/scheduling
 	$('#publish-calendar').PopupCalendar({
 		m_input:$('#publish-month'),
@@ -77,49 +77,49 @@ jQuery(document).ready(function() {
 		if ($(this).attr('checked')) $('#publish-status,#schedule-toggling').show();
 		else $('#publish-status,#schedule-toggling,#scheduling').hide();
 	}).change();
-	
-	
+
+
 	// Setup the slug editor
 	editslug = new SlugEditor(product,'product');
-	
+
 	// Load up existing specs & setup the add new button
 	if (specs) $.each(specs,function () { addDetail(this) });
 	$('#addDetail').click(function() { addDetail(); });
-	
+
 	// Initialize file uploads before the pricelines
 	fileUploads = new FileUploader('flash-upload-file',$('#ajax-upload-file'));
-	
+
 	// Initalize the base price line
 	basePrice = $(prices).get(0);
 	if (basePrice && basePrice.context == "product") Pricelines.add(false,basePrice,'#product-pricing');
 	else Pricelines.add(false,false,'#product-pricing');
-	
+
 	// Initialize variations
-	$('#variations-setting').bind('toggleui',variationsToggle).click(function() { 
+	$('#variations-setting').bind('toggleui',variationsToggle).click(function() {
 		$(this).trigger('toggleui');
 	}).trigger('toggleui');
 	loadVariations((!options.v && !options.a)?options:options.v,prices);
-	
+
 	$('#addVariationMenu').click(function() { addVariationOptionsMenu(); });
 	$('#linkOptionVariations').click(linkVariationsButton).change(linkVariationsButtonLabel);
 
 	// Initialize Add-ons
-	$('#addons-setting').bind('toggleui',addonsToggle).click(function () { 
+	$('#addons-setting').bind('toggleui',addonsToggle).click(function () {
 		$(this).trigger('toggleui');
 	}).trigger('toggleui');
 	$('#newAddonGroup').click(function() { newAddonGroup(); });
 	if (options.a) loadAddons(options.a,prices);
 
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
-	
+
 	// Setup categories
 	categories();
 	tags();
 	quickSelects();
 	updateWorkflow();
-	
+
 	window.onbeforeunload = unsavedChanges;
-	
+
 	$('#product').change(function () { changes = true; }).unbind('submit').submit(function(e) {
 		e.stopPropagation();
 		var url = $('#product').attr('action').split('?'),
@@ -128,7 +128,7 @@ jQuery(document).ready(function() {
 		saving = true;
 		return true;
 	});
-	
+
 	$('#prices-loading').remove();
 });
 
@@ -144,7 +144,7 @@ function updateWorkflow () {
 			request.next = setting;
 		}
 		if (setting == "close") delete request.id;
-		
+
 		// Find previous product
 		if (setting == "previous") {
 			$.each(worklist,function (i,entry) {
@@ -153,7 +153,7 @@ function updateWorkflow () {
 				else delete request.id;
 			});
 		}
-		
+
 		// Find next product
 		if (setting == "next") {
 			$.each(worklist,function (i,entry) {
@@ -162,15 +162,15 @@ function updateWorkflow () {
 				else delete request.id;
 			});
 		}
-		
+
 	}).change();
 }
 
 function categories () {
 	var $=jqnc();
-	
+
 	$('#new-category').hide();
-	
+
 	// Add New Category button handler
 	$('#new-category-button').click(function () {
 		$('#new-category').toggle();
@@ -207,17 +207,17 @@ function categories () {
 
 		}
 	});
-	
+
 	// Handles toggling a category on/off when the category is pre-existing
 	$('#category-menu input.category-toggle').change(function () {
 		if (!this.checked) return true;
 		var id,details = new Array();
-		
+
 		// Build current list of spec labels
 		$('#details-menu').children().children().find('input.label').each(function(id,item) {
 			details.push($(item).val());
 		});
-		
+
 		id = $(this).attr('id').substr($(this).attr('id').indexOf("-")+1);
 		// Load category spec templates
 		$.getJSON(spectemp_url+'&action=shopp_spec_template&category='+id,function (speclist) {
@@ -235,7 +235,7 @@ function categories () {
 			var variations_setting = $('#variations-setting'),
 				options = !t.options.v?t.options:t.options.v,
 				added = false;
-			
+
 			if (!variations_setting.attr('checked'))
 				variations_setting.attr('checked',true).trigger('toggleui');
 
@@ -257,19 +257,19 @@ function categories () {
 						delete tm.id;
 						$.each(tm.options,function (i,o) {
 							if (!(o && o.name)) return;
-							// Remove the option ID so the option will be built into the 
+							// Remove the option ID so the option will be built into the
 							// the variations permutations
-							delete o.id; 
+							delete o.id;
 						});
 						addVariationOptionsMenu(tm);
 					}
-					
+
 				});
 			} else loadVariations(options,t.prices);
 
 		});
 	});
-		
+
 	// Add to selection menu
 	function addCategoryMenuItem (c) {
 		var $=jqnc(),
@@ -306,12 +306,12 @@ function categories () {
 		$('<input type="checkbox" name="categories[]" value="'+c.id+'" id="category-'+c.id+'" checked="checked" />').appendTo(li);
 		$('<label for="category-'+c.id+'"></label>').html(name).appendTo(li);
 	}
-	
+
 }
 
 function tags () {
 	var $=jqnc();
-	
+
 	function updateTagList () {
 		$('#tagchecklist').empty();
 		var tags = $('#tags').val().split(',');
@@ -327,32 +327,32 @@ function tags () {
 			});
 		}
 	}
-	
+
 	$('#newtags').focus(function () {
-		if ($(this).val() == $(this).attr('title')) 
+		if ($(this).val() == $(this).attr('title'))
 			$(this).val('').toggleClass('form-input-tip');
 	});
-	
+
 	$('#newtags').blur(function () {
-		if ($(this).val() == '') 
+		if ($(this).val() == '')
 			$(this).val($(this).attr('title')).toggleClass('form-input-tip');
 	});
-	
+
 	$('#add-tags').click(function () {
 		if ($('#newtags').val() == $('#newtags').attr('title')) return true;
 		newtags = $('#newtags').val().split(',');
-		
-		$(newtags).each(function(id,tag) { 
+
+		$(newtags).each(function(id,tag) {
 			var tags = $('#tags').val();
 			tag = $.trim(tag);
 			if (tags == '') $('#tags').val(tag);
-			else if (tags != tag && tags.indexOf(tag+',') == -1 && tags.indexOf(','+tag) == -1) 
+			else if (tags != tag && tags.indexOf(tag+',') == -1 && tags.indexOf(','+tag) == -1)
 				$('#tags').val(tags+','+tag);
 		});
 		updateTagList();
 		$('#newtags').val('').blur();
 	});
-	
+
 	updateTagList();
-	
+
 }

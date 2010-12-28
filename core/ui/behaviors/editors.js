@@ -10,7 +10,7 @@
 function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 	var $=jqnc(), _ = this;
 	if (!sortoptions) sortoptions = {'axis':'y'};
-	
+
 	_.items = items;
 	_.dataname = dataname;
 	_.index = i;
@@ -43,7 +43,7 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 		$(_.element).addClass('selected');
 		if (items) {
 			$(items.target).children().hide();
-			$(_.itemsElement).show();	
+			$(_.itemsElement).show();
 		}
 	}
 	_.element
@@ -79,19 +79,19 @@ function NestedMenuContent (i,target,dataname,data) {
 
 function NestedMenuOption (i,target,dataname,defaultlabel,data) {
 	var $=jqnc(), _ = this;
-	
+
 	_.index = $(target).contents().length;
 	_.element = $('<li class="option"><div class="move"></div>'+
 		'<input type="hidden" name="'+dataname+'['+i+'][options]['+this.index+'][id]" class="id" />'+
 		'<input type="text" name="'+dataname+'['+i+'][options]['+this.index+'][name]" class="label" />'+
 		'<button type="button" class="delete"><img src="'+uidir+'/icons/delete.png" alt="delete" width="16" height="16" /></button>'+
 		'</li>').appendTo(target);
-	
+
 	_.moveHandle = _.element.find('div.move');
 	_.id = _.element.find('input.id');
 	_.label = _.element.find('input.label');
 	_.deleteButton = _.element.find('button.delete').click(function () { $(_.element).remove(); });
-	
+
 	_.element.hover(function () { $(this).addClass('hover'); },
 					   function () { $(this).removeClass('hover'); });
 
@@ -103,12 +103,12 @@ function NestedMenuOption (i,target,dataname,defaultlabel,data) {
 			if (e.keyCode == 13) $(this).blur().unbind('keydown');
 		});
 	});
-	
+
 	_.id.val(_.index);
 	if (data.id) _.id.val(data.id);
 	if (data.name) _.label.val(htmlentities(data.name));
 	if (!data.name) _.label.val(defaultlabel+' '+(_.index+1));
-		
+
 }
 
 
@@ -118,17 +118,17 @@ function NestedMenuOption (i,target,dataname,defaultlabel,data) {
 function loadVariations (options,prices) {
 	if (!options) return;
 	var $=jqnc();
-	$.each(options,function (key,option) { 
-		if (option && option.id) addVariationOptionsMenu(option); 
+	$.each(options,function (key,option) {
+		if (option && option.id) addVariationOptionsMenu(option);
 	});
 
-	$.each(prices,function (key,price) { 
+	$.each(prices,function (key,price) {
 		if (this.context == "variation")
 			Pricelines.add(this.options.split(","),this,'#variations-pricing');
 	});
 	Pricelines.updateVariationsUI();
-	
-	$.each(options,function (key,option) { 
+
+	$.each(options,function (key,option) {
 		if (!(option && option.options)) return;
 		$.each(option.options,function(i,data) {
 			if (data && data.id && data.linked == "on") Pricelines.linkVariations(data.id);
@@ -147,7 +147,7 @@ function addVariationOptionsMenu (data) {
 	 	menu = new NestedMenu(id,menus,'options[v]',OPTION_MENU_DEFAULT,data,
 			{target:entries,type:'list'},
 			{'axis':'y','update':function() { orderOptions(menus,entries) }});
-	
+
 	menu.addOption = function (data) {
 		var init = false,option,optionid;
 		if (!data) data = new Object();
@@ -156,7 +156,7 @@ function addVariationOptionsMenu (data) {
 			init = true;
  			data.id = optionsidx;
 		} else if (data.id > optionsidx) optionsidx = data.id;
-		
+
 	 	option = new NestedMenuOption(menu.index,menu.itemsElement,'options[v]',NEW_OPTION_DEFAULT,data);
 		optionsidx++;
 		optionid = option.id.val();
@@ -185,26 +185,26 @@ function addVariationOptionsMenu (data) {
 		productOptions[optionid] = option.label;
 		option.label.blur(function() { updateVariationLabels(); });
 		option.deleteButton.unbind('click');
-	
+
 		option.deleteButton.click(function () {
 			if (menu.itemsElement.children().length == 1)
 				deleteVariationPrices([optionid],true);
 			else deleteVariationPrices([optionid]);
 			option.element.remove();
 		});
-		
+
 		if (!init) addVariationPrices(optionid);
 		else addVariationPrices();
-		
+
 		entries.dequeue().animate({ scrollTop: entries.attr('scrollHeight')-entries.height() }, 200);
-		option.label.click().focus().select().keydown(function(e) { 
-			var key = e.keyCode || e.which; 
+		option.label.click().focus().select().keydown(function(e) {
+			var key = e.keyCode || e.which;
 			if (key != 9) return;
 			e.preventDefault();
 			option.label.blur();
 			addOptionButton.focus();
 		});
-		
+
 		menu.items.push(option);
 	}
 
@@ -221,7 +221,7 @@ function addVariationOptionsMenu (data) {
 		$(addOptionButton).unbind('click').click(menu.addOption);
 	});
 	optionMenus[variationsidx++] = menu;
-	
+
 	menu.deleteButton.unbind('click').click(function () {
 		var deletedOptions = new Array();
 		$(menu.itemsElement).find('li').not('.ui-sortable-helper').find('input.id').each(function (i,id) {
@@ -230,17 +230,17 @@ function addVariationOptionsMenu (data) {
 		deleteVariationPrices(deletedOptions,true);
 		$(this).trigger('delete');
 	});
-	
+
 	if (!data) {
 		entries.dequeue().animate({ scrollTop: entries.attr('scrollHeight')-entries.height() }, 200);
-		menu.label.click().focus().select().keydown(function(e) { 
-			var key = e.keyCode || e.which; 
+		menu.label.click().focus().select().keydown(function(e) {
+			var key = e.keyCode || e.which;
 			if (key != 9) return;
-			e.preventDefault(); 
+			e.preventDefault();
 			addOptionButton.focus();
 		});
 	}
-	
+
 }
 
 /**
@@ -255,11 +255,11 @@ function buildVariations () {
 	 	address = new Array(optionSets.length),			// Helper to reference a specific option in a specific set
 	 	totalOptions = new Array(optionSets.length),	// Reference list of total options of a set
 	 	totalVariations = 0;							// The total variations possible
-	
+
 	// Identify total options in each set and calculate total permutations
 	optionSets.each(function (id,set) {
 		totalOptions[id] = $(set).children().length;	// Save the total options for this set
-		
+
 		// Calculate the total possibilities (options * options * options...)
 		if (totalVariations == 0) totalVariations = $(set).children().length;
 		else totalVariations = totalVariations * $(set).children().length;
@@ -268,7 +268,7 @@ function buildVariations () {
 
 	// Build variation labels for each possible permutation
 	for (i = 0; i < totalVariations; i++) {
-		
+
 		// Grab the label for the currently addressed option in each set
 		// and add it to this variation permutation
 		for (setid = 0; setid < optionSets.length; setid++) {
@@ -276,10 +276,10 @@ function buildVariations () {
 			if (!combos[i]) combos[i] = [$(fields[address[setid]]).val()];
 			else combos[i].push($(fields[address[setid]]).val());
 		}
-		
+
 		// Figure out what is the next combination by trying to increment
-		// the last option set address. If the last address exceeds the total options, 
-		// reset it to 0 and increment the previous option set address 
+		// the last option set address. If the last address exceeds the total options,
+		// reset it to 0 and increment the previous option set address
 		// (and if that exceeds its total, reset and so on)
 		if (++address[lastOptionSet] >= totalOptions[lastOptionSet]) {
 			for (index = lastOptionSet; index > -1; index--) {
@@ -288,7 +288,7 @@ function buildVariations () {
 				if (index-1 > -1) address[(index-1)]++;
 			}
 		}
-		
+
 	}
 
 	return combos;
@@ -341,12 +341,12 @@ function deleteVariationPrices (optionids,reduce) {
 					if (option != optionids[i]) modOptions.push(option);
 				});
 				newkey = xorkey(modOptions);
-			
+
 				if (reduce && !Pricelines.row[newkey]) {
 					if (newkey != 0) Pricelines.row[newkey] = Pricelines.row[key];
 					else Pricelines.row[key].row.remove();
 					delete Pricelines.row[key];
-					
+
 					if (Pricelines.row[newkey]) {
 						Pricelines.row[newkey].setOptions(modOptions);
 						reduced = true;
@@ -362,12 +362,12 @@ function deleteVariationPrices (optionids,reduce) {
 						Pricelines.remove(key);
 					}
 				}
-			
+
 			}
 		}
 
 	});
-	
+
 	if (reduced) Pricelines.updateVariationsUI();
 
 }
@@ -425,7 +425,7 @@ function orderVariationPrices () {
 
 // Magic key generator
 function xorkey (ids) {
-	for (var key=0,i=0; i < ids.length; i++) 
+	for (var key=0,i=0; i < ids.length; i++)
 		key = key ^ (ids[i]*7001);
 	return key;
 }
@@ -435,7 +435,7 @@ function variationsToggle () {
 		toggle = $(this),
 		ui = $('#variations'),
 		baseprice = $('#product-pricing');
-		
+
 	if (toggle.attr('checked')) {
 		if (Pricelines.row[0]) Pricelines.row[0].disable();
 		baseprice.hide();
@@ -451,7 +451,7 @@ function addonsToggle () {
 	var $=jqnc(),
 		toggle = $(this),
 		ui = $('#addons');
-	
+
 	if (toggle.attr('checked')) ui.show();
 	else ui.hide();
 }
@@ -473,7 +473,7 @@ function linkVariationsButton () {
 			Pricelines.linkVariations(selectedMenuOption.id.val());
 		} else {
 			selectedMenuOption.linked.val('off').change();
-			Pricelines.unlinkVariations(selectedMenuOption.id.val());	
+			Pricelines.unlinkVariations(selectedMenuOption.id.val());
 		}
 	} else {
 		// Nothing selected, link/unlink all
@@ -494,7 +494,7 @@ function linkVariationsButtonLabel () {
 		if (Pricelines.allLinked()) $(this).find('small').html(' '+UNLINK_ALL_VARIATIONS);
 		else $(this).find('small').html(' '+LINK_ALL_VARIATIONS);
 	}
-	
+
 }
 
 /**
@@ -505,7 +505,7 @@ function loadAddons (addons,prices) {
 	if (!addons) return;
 
 	$.each(addons,function (key,addon) {
-		newAddonGroup(addon); 
+		newAddonGroup(addon);
 	});
 
 	$.each(prices,function (key,price) {
@@ -514,7 +514,7 @@ function loadAddons (addons,prices) {
 			var group = addonOptionsGroup[price.options];
 			Pricelines.add(price.options,this,'#addon-pricegroup-'+group);
 		}
-			
+
 	});
 	Pricelines.updateVariationsUI();
 }
@@ -530,7 +530,7 @@ function newAddonGroup (data) {
 		{target:entries,type:'list'},
 		{'axis':'y','update':function() { orderAddonGroups() }}
 	);
-	
+
 	menu.itemsElement.attr('id','addon-group-'+id);
 	menu.pricegroup = $('<div id="addon-pricegroup-'+id+'" />').appendTo('#addon-pricing');
 	menu.pricegroupLabel = $('<label />').html('<h4>'+menu.label.val()+'</h4>').prependTo(menu.pricegroup);
@@ -538,7 +538,7 @@ function newAddonGroup (data) {
 		menu.pricegroupLabel.html('<h4>'+menu.label.val()+'</h4>');
 	}
 	menu.label.blur(menu.updatePriceLabel);
-	
+
 	menu.addOption = function (data) {
 		var init = false, option, optionid;
 		if (!data) data = new Object();
@@ -547,7 +547,7 @@ function newAddonGroup (data) {
 			init = true;
  			data.id = addonsidx;
 		} else if (data.id > addonsidx) addonsidx = data.id;
-		
+
 	 	option = new NestedMenuOption(menu.index,menu.itemsElement,'options[a]',NEW_OPTION_DEFAULT,data);
 
 		addonsidx++;
@@ -568,7 +568,7 @@ function newAddonGroup (data) {
 		productAddons[optionid] = option.label;
 		option.label.blur(function() { Pricelines.row[optionid].updateLabel(); });
 		option.deleteButton.unbind('click');
-	
+
 		option.deleteButton.click(function () {
 			Pricelines.row[optionid].row.remove();
 			option.element.remove();
@@ -577,16 +577,16 @@ function newAddonGroup (data) {
 		if (init) Pricelines.add(optionid,{context:'addon'},menu.pricegroup);
 		addonOptionsGroup[optionid] = menu.index;
 		menu.items.push(option);
-		
+
 		entries.dequeue().animate({ scrollTop: entries.attr('scrollHeight')-entries.height() }, 200);
-		option.label.click().focus().select().keydown(function(e) { 
-			var key = e.keyCode || e.which; 
+		option.label.click().focus().select().keydown(function(e) {
+			var key = e.keyCode || e.which;
 			if (key != 9) return;
-			e.preventDefault(); 
+			e.preventDefault();
 			option.label.blur();
 			addOptionButton.focus();
 		});
-		
+
 	}
 
 	menu.items = new Array();
@@ -602,9 +602,9 @@ function newAddonGroup (data) {
 		menu.selected();
 		$(addOptionButton).unbind('click').click(menu.addOption);
 	});
- 
+
 	addonGroups[addon_group_idx++] = menu;
-	
+
 	menu.deleteButton.unbind('click').click(function () {
 		$('#addon-list #addon-group-'+menu.index+' li').not('.ui-sortable-helper').find('input.id').each(function (id,option) {
 			if (Pricelines.row[$(option).val()])
@@ -617,10 +617,10 @@ function newAddonGroup (data) {
 
 	if (!data) {
 		menus.dequeue().animate({ scrollTop: menus.attr('scrollHeight')-menus.height() }, 200);
-		menu.label.click().focus().select().keydown(function(e) { 
-			var key = e.keyCode || e.which; 
+		menu.label.click().focus().select().keydown(function(e) {
+			var key = e.keyCode || e.which;
 			if (key != 9) return;
-			e.preventDefault(); 
+			e.preventDefault();
 			menu.label.blur();
 			addMenuButton.focus();
 		});
@@ -662,7 +662,7 @@ function unsavedChanges () {
 		if ( mce.isDirty() )
 			return sjss.UNSAVED_CHANGES_WARNING;
 	}
-	if (changes && !saving) return sjss.UNSAVED_CHANGES_WARNING;	
+	if (changes && !saving) return sjss.UNSAVED_CHANGES_WARNING;
 }
 
 /**
@@ -677,19 +677,19 @@ function addDetail (data) {
 
 	if (data && data.options) {
 		optionsmenu = $('<select name="details['+menu.index+'][value]"></select>').appendTo(menu.itemsElement);
-		for (i in data.options) $('<option>'+data.options[i]['name']+'</option>').appendTo(optionsmenu);		
-		if (data && data.value) optionsmenu.val(htmlentities(data.value));	
-	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);	
+		for (i in data.options) $('<option>'+data.options[i]['name']+'</option>').appendTo(optionsmenu);
+		if (data && data.value) optionsmenu.val(htmlentities(data.value));
+	} else menu.item = new NestedMenuContent(menu.index,menu.itemsElement,'details',data);
 
 	if (!data || data.add) {
 		menu.add = $('<input type="hidden" name="details['+menu.index+'][new]" value="true" />').appendTo(menu.element);
 		menus.dequeue().animate({ scrollTop: menus.attr('scrollHeight')-menus.height() }, 200);
 		menu.label.click().focus().select();
 		if (menu.item) {
-			menu.item.contents.keydown(function(e) { 
-				var key = e.keyCode || e.which; 
+			menu.item.contents.keydown(function(e) {
+				var key = e.keyCode || e.which;
 				if (key != 9) return;
-				e.preventDefault(); 
+				e.preventDefault();
 				$('#addDetail').focus();
 			});
 		}
@@ -731,23 +731,23 @@ function ImageUploads (id,type) {
 		upload_progress_handler : imageUploadProgress,
 		upload_error_handler : imageUploadError,
 		upload_success_handler : imageUploadSuccess,
-		
+
 		custom_settings : {
 			loaded: false,
 			targetHolder : false,
 			progressBar : false,
 			sorting : false
-			
+
 		},
 		prevent_swf_caching: $.browser.msie, // Prevents Flash caching issues in IE
 		debug: imageupload_debug
-		
+
 	};
-	
+
 	// Initialize image uploader
 	if (flashuploader)
 		swfu = new SWFUpload(settings);
-	
+
 	// Browser image uploader
 	$('#image-upload').upload({
 		name: 'Filedata',
@@ -776,26 +776,26 @@ function ImageUploads (id,type) {
 				else alert(UNKNOWN_UPLOAD_ERROR);
 				return false;
 			}
-			
+
 			targetHolder.attr({'id':'image-'+image.id});
 			this.sorting.val(image.id);
 			img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(targetHolder).hide();
 			deleteButton = $('<button type="button" name="deleteImage" value="'+image.src+'" title="Delete product image&hellip;" class="deleteButton"><img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" /></button>').appendTo($(targetHolder)).hide();
-			
-			$(this.progressBar).animate({'width':'76px'},250,function () { 
+
+			$(this.progressBar).animate({'width':'76px'},250,function () {
 				$(this).parent().fadeOut(500,function() {
-					$(this).remove(); 
+					$(this).remove();
 					$(img).fadeIn('500');
 					enableDeleteButton(deleteButton);
 				});
 			});
 		}
 	});
-	
+
 	$(document).load(function() {
 		if (!swfu.loaded) $('#product-images .swfupload').remove();
 	});
-	
+
 	sorting();
 	$('#lightbox li').each(function () {
 		$(this).dblclick(function () {
@@ -819,7 +819,7 @@ function ImageUploads (id,type) {
 							'<select name="cropimage"><option></option></select></p>'+
 							'<div class="cropui"></div><br class="clear"/>'+
 							'</div>'+
-						'<input type="button" class="button-primary alignright" value="&nbsp;&nbsp;'+IMAGE_DETAILS_DONE+'&nbsp;&nbsp;" />'+	
+						'<input type="button" class="button-primary alignright" value="&nbsp;&nbsp;'+IMAGE_DETAILS_DONE+'&nbsp;&nbsp;" />'+
 						'</div>'),
 				thumb = ui.find('img').attr('src',srcthumb.attr('src')),
 				titlefield = ui.find('input[name=title]').val(srctitle.val()).change(function () {
@@ -839,7 +839,7 @@ function ImageUploads (id,type) {
 						$.fn.colorbox.resize();
 						return;
 					}
-					
+
 					var d = cropselect.val().split(':'),
 						init = srcCropped.filter('input[alt='+cropselect.val()+']').val().split(',');
 					croptool.empty().scaleCrop({
@@ -852,7 +852,7 @@ function ImageUploads (id,type) {
 						if (c) srcCropped.filter('input[alt='+cropselect.val()+']').val(c.x+','+c.y+','+c.s);
 					});
 				});
-		
+
 			if (srcCropped.size() > 0) {
 				srcCropped.each(function (i,e) {
 					var d = $(e).attr('alt');
@@ -862,16 +862,16 @@ function ImageUploads (id,type) {
 			}
 
 			$.fn.colorbox({'title':IMAGE_DETAILS_TEXT,'html':ui})
-			
+
 		});
 		enableDeleteButton($(this).find('button.deleteButton'));
 	});
 
 	function swfuLoaded () {
-		$('#browser-uploader').hide();	
+		$('#browser-uploader').hide();
 		swfu.loaded = true;
 	}
-	
+
 	function sorting () {
 		if ($('#lightbox li').size() > 0) $('#lightbox').sortable({'opacity':0.8});
 	}
@@ -882,7 +882,7 @@ function ImageUploads (id,type) {
 			alert("You selected too many files to upload at one time. " + (message === 0 ? "You have reached the upload limit." : "You may upload " + (message > 1 ? "up to " + message + " files." : "only one file.")));
 			return;
 		} else alert(message);
-	
+
 	}
 
 	function imageFileDialogComplete (selected, queued) {
@@ -916,29 +916,29 @@ function ImageUploads (id,type) {
 			alert(results);
 			return false;
 		}
-		
+
 		if (!image.id) {
 			targetHolder.remove();
 			if (image.error) alert(image.error);
 			else alert(UNKNOWN_UPLOAD_ERROR);
 			return true;
 		}
-	
+
 		targetHolder.attr({'id':'image-'+image.id});
 		this.sorting.val(image.id);
 		img = $('<img src="?siid='+image.id+'" width="96" height="96" class="handle" />').appendTo(targetHolder).hide();
 		deleteButton = $('<button type="button" name="deleteImage" value="'+image.id+'" title="Delete product image&hellip;" class="deleteButton"><input type="hidden" name="ieisstupid" value="'+image.id+'" /><img src="'+uidir+'/icons/delete.png" alt="-" width="16" height="16" /></button>').appendTo(targetHolder).hide();
 		sorting();
-		
-		this.progressBar.animate({'width':'76px'},250,function () { 
+
+		this.progressBar.animate({'width':'76px'},250,function () {
 			$(this).parent().fadeOut(500,function() {
-				$(this).remove(); 
+				$(this).remove();
 				$(img).fadeIn('500');
 				enableDeleteButton(deleteButton);
 			});
 		});
 	}
-	
+
 	function enableDeleteButton (button) {
 		button.hide();
 
@@ -947,7 +947,7 @@ function ImageUploads (id,type) {
 		},function () {
 			button.hide();
 		});
-	
+
 		button.click(function() {
 			if (confirm(DELETE_IMAGE_WARNING)) {
 				var imgid = (button.val().substr(0,1) == "<")?button.find('input[name=ieisstupid]').val():button.val(),
@@ -976,9 +976,9 @@ jQuery.fn.FileChooser = function (line,status) {
 
 	_.line = line;
 	_.status = status;
-	
+
 	importurl.unbind('keydown').unbind('keypress').suggest(
-			sugg_url+'&action=shopp_storage_suggestions&t=download', 
+			sugg_url+'&action=shopp_storage_suggestions&t=download',
 			{ delay:500, minchars:3, multiple:false, onSelect:function () { importurl.change(); } }
 	).change(function () {
 		var $this = $(this);
@@ -998,10 +998,10 @@ jQuery.fn.FileChooser = function (line,status) {
 				}
 		});
 	});
-	
-	$(this).click(function () { 
+
+	$(this).click(function () {
 		fileUploads.updateLine(line,status);
-		
+
 		attach.unbind('click').click(function () {
 			$.fn.colorbox.hide();
 			if (stored) {
@@ -1029,7 +1029,7 @@ jQuery.fn.FileChooser = function (line,status) {
 									dlpath.val(importdata.path); dlname.val(importdata.name);
 									importurl.val('').attr('class','fileimport');
 								});
-								return;				
+								return;
 							}
 							if (progressbar) progressbar.animate({'width':width+'px'},500);
 						}
@@ -1058,7 +1058,7 @@ jQuery.fn.FileChooser = function (line,status) {
 			});
 
 		});
-		
+
 	});
 
 	$(this).colorbox({'title':'File Selector','innerWidth':'360','innerHeight':'140','inline':true,'href':'#chooser'});
@@ -1091,14 +1091,14 @@ function FileUploader (button,defaultButton) {
 		post_params : {
 			action:'shopp_upload_file'
 		},
-				
+
 		swfupload_loaded_handler : swfuLoaded,
 		file_queue_error_handler : fileQueueError,
 		file_dialog_complete_handler : fileDialogComplete,
 		upload_start_handler : startUpload,
 		upload_progress_handler : uploadProgress,
 		upload_success_handler : uploadSuccess,
-		
+
 		custom_settings : {
 			loaded : false,
 			targetCell : false,
@@ -1107,14 +1107,14 @@ function FileUploader (button,defaultButton) {
 		},
 		prevent_swf_caching: $.browser.msie, // Prevents Flash caching issues in IE
 		debug: fileupload_debug
-		
+
 	}
-	
+
 	// Initialize file uploader
-	
+
 	if (flashuploader)
 		_.swfu = new SWFUpload(_.settings);
-	
+
 	// Browser-based AJAX uploads
 	defaultButton.upload({
 		name: 'Filedata',
@@ -1133,7 +1133,7 @@ function FileUploader (button,defaultButton) {
 			} catch (ex) {
 				filedata.error = results;
 			}
-				
+
 			if (!filedata.id && !filedata.name) {
 				targetHolder.html(NO_DOWNLOAD);
 				if (filedata.error) alert(filedata.error);
@@ -1141,10 +1141,10 @@ function FileUploader (button,defaultButton) {
 				return false;
 			}
 			filedata.type = filedata.type.replace(/\//gi," ");
-			$(_.progressBar).animate({'width':'76px'},250,function () { 
+			$(_.progressBar).animate({'width':'76px'},250,function () {
 				$(this).parent().fadeOut(500,function() {
 					targetHolder.attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+readableFileSize(filedata.size)+'</small><input type="hidden" name="price['+_.targetLine+'][download]" value="'+filedata.id+'" />');
-					$(this).remove(); 
+					$(this).remove();
 				});
 			});
 		}
@@ -1153,12 +1153,12 @@ function FileUploader (button,defaultButton) {
 	$(_).load(function () {
 		if (!_.swfu || !_.swfu.loaded) $(defaultButton).parent().parent().find('.swfupload').remove();
 	});
-	
+
 	function swfuLoaded () {
 		$(defaultButton).hide();
 		this.loaded = true;
 	}
-	
+
 	_.updateLine = function (line,status) {
 		if (!_.swfu) {
 			_.targetLine = line;
@@ -1168,7 +1168,7 @@ function FileUploader (button,defaultButton) {
 			_.swfu.targetCell = status;
 		}
 	}
-		
+
 	function fileQueueError (file, error, message) {
 		if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
 			alert("You selected too many files to upload at one time. " + (message === 0 ? "You have reached the upload limit." : "You may upload " + (message > 1 ? "up to " + message + " files." : "only one file.")));
@@ -1178,13 +1178,13 @@ function FileUploader (button,defaultButton) {
 		}
 
 	}
-	
+
 	function fileDialogComplete (selected, queued) {
 		$.fn.colorbox.hide();
 		if (!selected) return;
-		try { this.startUpload(); } 
+		try { this.startUpload(); }
 		catch (ex) { this.debug(ex); }
-		
+
 	}
 
 	function startUpload (file) {
@@ -1199,8 +1199,8 @@ function FileUploader (button,defaultButton) {
 
 	function uploadSuccess (file, results) {
 		var filedata = false,targetCell = this.targetCell,i = this.targetLine;
-		
-		try { filedata = $.parseJSON(results); } 
+
+		try { filedata = $.parseJSON(results); }
 		catch (ex) { filedata.error = results; }
 		if (!filedata.id && !filedata.name) {
 			targetCell.html(NO_DOWNLOAD);
@@ -1210,9 +1210,9 @@ function FileUploader (button,defaultButton) {
 		}
 
 		filedata.type = filedata.type.replace(/\//gi," ");
-		$(this.progressBar).animate({'width':'76px'},250,function () { 
+		$(this.progressBar).animate({'width':'76px'},250,function () {
 			$(this).parent().fadeOut(500,function() {
-				$(this).remove(); 
+				$(this).remove();
 				$(targetCell).attr('class','file '+filedata.type).html(filedata.name+'<br /><small>'+readableFileSize(filedata.size)+'</small><input type="hidden" name="price['+i+'][download]" value="'+filedata.id+'" />');
 			});
 		});
@@ -1222,7 +1222,7 @@ function FileUploader (button,defaultButton) {
 
 function SlugEditor (id,type) {
 	var $ = jqnc(), _ = this;
-	
+
 	_.edit_permalink = function () {
 			var i, c = 0,
 			 	editor = $('#editable-slug'),
@@ -1232,11 +1232,11 @@ function SlugEditor (id,type) {
 			 	buttons = $('#edit-slug-buttons'),
 			 	revert_buttons = buttons.html(),
 			 	full = $('#editable-slug-full').html();
-		
+
 			buttons.html('<button type="button" class="save button">'+SAVE_BUTTON_TEXT+'</button> <button type="button" class="cancel button">'+CANCEL_BUTTON_TEXT+'</button>');
 			buttons.children('.save').click(function() {
 				var slug = editor.children('input').val();
-				$.post(editslug_url+'&action=shopp_edit_slug', 
+				$.post(editslug_url+'&action=shopp_edit_slug',
 					{ 'id':id, 'type':type, 'slug':slug },
 					function (data) {
 						editor.html(revert_editor);
@@ -1255,10 +1255,10 @@ function SlugEditor (id,type) {
 				real_slug.attr('value', revert_slug);
 				_.enable();
 			});
-			
+
 			for(i=0; i < full.length; ++i) if ('%' == full.charAt(i)) c++;
 			slug_value = (c > full.length/4)? '' : full;
-			
+
 			editor.html('<input type="text" id="new-post-slug" value="'+slug_value+'" />').children('input').keypress(function(e) {
 				// on enter, just save the new slug, don't save the post
 				var key = e.which;
@@ -1269,11 +1269,11 @@ function SlugEditor (id,type) {
 			}).focus();
 
 	}
-	
+
 	_.enable = function () {
 		$('#edit-slug-buttons').children('.edit-slug').click(function () { _.edit_permalink(); });
 		$('#edit-slug-buttons').children('.view').click(function () { document.location.href=canonurl+$('#editable-slug-full').html(); });
-		$('#editable-slug').click(function() { $('#edit-slug-buttons').children('.edit-slug').click(); });		
+		$('#editable-slug').click(function() { $('#edit-slug-buttons').children('.edit-slug').click(); });
 	}
 
 	_.enable();

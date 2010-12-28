@@ -14,13 +14,13 @@ if (class_exists('WP_Widget')) {
 class ShoppCategorySectionWidget extends WP_Widget {
 
     function ShoppCategorySectionWidget() {
-        parent::WP_Widget(false, 
-			$name = __('Shopp Category Section','Shopp'), 
+        parent::WP_Widget(false,
+			$name = __('Shopp Category Section','Shopp'),
 			array('description' => __('A list or dropdown of store categories'))
-		);	
+		);
     }
 
-    function widget($args, $options) {		
+    function widget($args, $options) {
 		global $Shopp;
 		extract($args);
 
@@ -31,11 +31,11 @@ class ShoppCategorySectionWidget extends WP_Widget {
 		echo $before_widget.$title.$menu.$after_widget;
     }
 
-    function update($new_instance, $old_instance) {				
+    function update($new_instance, $old_instance) {
         return $new_instance;
     }
 
-    function form($options) {				
+    function form($options) {
 		global $Shopp;
 		
 		?>

@@ -2,7 +2,7 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Categories','Shopp'); ?> <a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'id'=>'new')),admin_url('admin.php'))); ?>" class="button add-new"><?php _e('New Category','Shopp'); ?></a></h2>
 	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
-	
+
 	<form action="" id="categories" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('categories'); ?>" />
@@ -12,7 +12,7 @@
 		<input type="text" id="categories-search-input" class="search-input" name="s" value="<?php echo esc_attr(stripslashes($s)); ?>" />
 		<input type="submit" value="<?php _e('Search Categories','Shopp'); ?>" class="button" />
 	</p>
-	
+
 	<div class="tablenav">
 		<?php if ($page_links) echo "<div class='tablenav-pages'>$page_links</div>"; ?>
 		<div class="alignleft actions">
@@ -33,13 +33,13 @@
 		</tfoot>
 	<?php if (sizeof($Categories) > 0): ?>
 		<tbody id="categories-table" class="list categories">
-		<?php 
+		<?php
 		$hidden = array();
 		$hidden = get_hidden_columns('shopp_page_shopp-categories');
-				
+
 		$even = false;
-		foreach ($Categories as $Category): 
-		
+		foreach ($Categories as $Category):
+
 		$editurl = esc_url(add_query_arg(array_merge($_GET,
 			array('page'=>$this->Admin->pagename('categories'),
 					'id'=>$Category->id)),
@@ -60,7 +60,7 @@
 					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
 					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;' href="<?php echo $deleteurl; ?>" rel="<?php echo $Category->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
 					<span class='view'><a href="<?php echo shoppurl(SHOPP_PRETTYURLS?"category/$Category->uri":array('shopp_category'=>$Category->id)); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
-				</div>				
+				</div>
 			</td>
 			<td width="5%" class="num links column-links<?php echo in_array('links',$hidden)?' hidden':''; ?>"><?php echo $Category->total; ?></td>
 			<td width="5%" class="templates column-templates<?php echo ($Category->spectemplate == "on")?' spectemplates':''; echo in_array('templates',$hidden)?' hidden':''; ?>">&nbsp;</td>

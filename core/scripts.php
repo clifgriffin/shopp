@@ -1,7 +1,7 @@
 <?php
 /**
  * scripts.php
- * 
+ *
  * Provides script concatenation and compression
  *
  * @author Jonathan Davis

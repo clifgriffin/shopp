@@ -1,7 +1,7 @@
 <?php
 /**
  * Catalog class
- * 
+ *
  * Catalog navigational experience data manager
  *
  * @author Jonathan Davis
@@ -35,7 +35,7 @@ class Catalog extends DatabaseObject {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 * @version 1.1
-	 * 
+	 *
 	 * @param array $loading (optional) Loading options for building the query
 	 * @param boolean $showsmart (optional) Include smart categories in the listing
 	 * @param boolean $results (optional) Return the raw structure of results without aggregate processing
@@ -131,7 +131,7 @@ class Catalog extends DatabaseObject {
 				$this->categories[$id]->outofstock = $category->outofstock;
 			
 			$this->categories[$id]->_children = false;
-			if (isset($category->total) 
+			if (isset($category->total)
 				&& $category->total > 0 && isset($this->categories[$category->parent])) {
 				$ancestor = $category->parent;
 				
@@ -152,13 +152,13 @@ class Catalog extends DatabaseObject {
 	
 	/**
 	 * Returns a list of known built-in smart categories
-	 * 
+	 *
 	 * Operates on the list of already loaded categories in the $this->category property
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 * @version 1.1
-	 * 
+	 *
 	 * @param string $method Add smart categories 'before' the list of the loaded categores or 'after' (defaults after)
 	 * @return void
 	 **/
@@ -169,7 +169,7 @@ class Catalog extends DatabaseObject {
 			if (in_array($SmartCategory,$internal)) continue;
 			$category = new $SmartCategory(array("noload" => true));
 			switch($method) {
-				case "before": array_unshift($this->categories,$category); break; 
+				case "before": array_unshift($this->categories,$category); break;
 				default: array_push($this->categories,$category);
 			}
 		}
@@ -181,7 +181,7 @@ class Catalog extends DatabaseObject {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 * @version 1.0
-	 * 
+	 *
 	 * @param array $limits Query limits in the format of [offset,count]
 	 * @return boolean True when tags are loaded
 	 **/
@@ -203,7 +203,7 @@ class Catalog extends DatabaseObject {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 * @version 1.1
-	 * 
+	 *
 	 * @param string|int $category The identifying element of a category (by id/slug or uri)
 	 * @param array $options (optional) Any shopp() tag-compatible options to pass on to smart categories
 	 * @return object The loaded Category object
@@ -229,7 +229,7 @@ class Catalog extends DatabaseObject {
 	 * @since 1.0
 	 * @version 1.1
 	 * @see http://docs.shopplugin.net/Catalog_Tags
-	 * 
+	 *
 	 * @param string $property The property to handle
 	 * @param array $options (optional) The tag options to process
 	 * @return mixed
@@ -243,7 +243,7 @@ class Catalog extends DatabaseObject {
 			case "url": return shoppurl(false,'catalog'); break;
 			case "display":
 			case "type": return $this->type; break;
-			case "is-landing": 
+			case "is-landing":
 			case "is-catalog": return (is_shopp_page('catalog') && $this->type == "catalog"); break;
 			case "is-category": return (is_shopp_page('catalog') && $this->type == "category"); break;
 			case "is-product": return (is_shopp_page('catalog') && $this->type == "product"); break;
@@ -269,8 +269,8 @@ class Catalog extends DatabaseObject {
 				$string .= '</ul>';
 				return $string;
 				break;
-			case "hascategories": 
-			case "has-categories": 
+			case "hascategories":
+			case "has-categories":
 				$showsmart = isset($options['showsmart'])?$options['showsmart']:false;
 				if (empty($this->categories)) $this->load_categories(array('where'=>'true'),$showsmart);
 				if (count($this->categories) > 0) return true; else return false; break;
@@ -383,7 +383,7 @@ class Catalog extends DatabaseObject {
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = $parent->slug;
-							if (substr($string,-5,5) == "</li>") // Keep everything but the 
+							if (substr($string,-5,5) == "</li>") // Keep everything but the
 								$string = substr($string,0,-5);  // last </li> to re-open the entry
 							$active = '';
 
@@ -412,24 +412,24 @@ class Catalog extends DatabaseObject {
 						if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
 					
 						$current = '';
-						if (isset($Shopp->Category->slug) && $Shopp->Category->slug == $category->slug) 
+						if (isset($Shopp->Category->slug) && $Shopp->Category->slug == $category->slug)
 							$current = ' class="current"';
 						
 						$listing = '';
-						if ($category->total > 0 || isset($category->smart) || $linkall) 
+						if ($category->total > 0 || isset($category->smart) || $linkall)
 							$listing = '<a href="'.$link.'"'.$current.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
 						else $listing = $category->name;
 						
-						if (value_is_true($showall) || 
-							$category->total > 0 || 
-							isset($category->smart) || 
-							$category->_children) 
+						if (value_is_true($showall) ||
+							$category->total > 0 ||
+							isset($category->smart) ||
+							$category->_children)
 							$string .= '<li'.$current.'>'.$listing.'</li>';
 
 						$previous = &$category;
 						$depth = $category->depth;
 					}
-					if (value_is_true($hierarchy) && $depth > 0) 
+					if (value_is_true($hierarchy) && $depth > 0)
 						for ($i = $depth; $i > 0; $i--) {
 							if (substr($string,strlen($subcategories)*-1) == $subcategories) {
 								// If the child menu is empty, remove the <ul> to avoid breaking standards
@@ -455,7 +455,7 @@ class Catalog extends DatabaseObject {
 				
 				$menuoptions = Category::sortoptions();
 				// Don't show custom product order for smart categories
-				if ($Shopp->Category->smart) unset($menuoptions['custom']); 
+				if ($Shopp->Category->smart) unset($menuoptions['custom']);
 				
 				$title = "";
 				$string = "";
@@ -467,7 +467,7 @@ class Catalog extends DatabaseObject {
 				if (isset($options['title'])) $title = $options['title'];
 
 				if (value_is_true($dropdown)) {
-					if (isset($Shopp->Flow->Controller->browsing['orderby'])) 
+					if (isset($Shopp->Flow->Controller->browsing['orderby']))
 						$default = $Shopp->Flow->Controller->browsing['orderby'];
 					$string .= $title;
 					$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
@@ -482,7 +482,7 @@ class Catalog extends DatabaseObject {
 				} else {
 					$link = "";
 					$query = "";
-					if (strpos($_SERVER['REQUEST_URI'],"?") !== false) 
+					if (strpos($_SERVER['REQUEST_URI'],"?") !== false)
 						list($link,$query) = explode("\?",$_SERVER['REQUEST_URI']);
 					$query = $_GET;
 					unset($query['shopp_orderby']);
@@ -538,13 +538,13 @@ class Catalog extends DatabaseObject {
 					if (!empty($Shopp->Cart->data->Category[$Category->slug]))
 						$filters = ' (<a href="?shopp_catfilters=cancel">'.__('Clear Filters','Shopp').'</a>)';
 					
-					if (!empty($Shopp->Product)) 
+					if (!empty($Shopp->Product))
 						$trail .= '<li><a href="'.$link.'">'.$Category->name.(!$trail?'':$separator).'</a></li>';
-					elseif (!empty($Category->name)) 
+					elseif (!empty($Category->name))
 						$trail .= '<li>'.$Category->name.$filters.(!$trail?'':$separator).'</li>';
 					
 					// Build category names path by going from the target category up the parent chain
-					$parentkey = (!empty($Category->id) 
+					$parentkey = (!empty($Category->id)
 						&& isset($this->categories['_'.$Category->id]->parent)?
 							'_'.$this->categories['_'.$Category->id]->parent:'_0');
 					
@@ -667,7 +667,7 @@ class Catalog extends DatabaseObject {
 					else if (isset($options['slug'])) $Shopp->Category = new Category($options['slug'],'slug');
 					else if (isset($options['id'])) $Shopp->Category = new Category($options['id']);
 				}
-				if (isset($options['reset'])) 
+				if (isset($options['reset']))
 					return (get_class($Shopp->Requested) == "Category"?($Shopp->Category = $Shopp->Requested):false);
 				if (isset($options['title'])) $Shopp->Category->name = $options['title'];
 				if (isset($options['show'])) $Shopp->Category->loading['limit'] = $options['show'];
@@ -675,17 +675,17 @@ class Catalog extends DatabaseObject {
 				if (isset($options['order'])) $Shopp->Category->loading['order'] = $options['order'];
 
 				if (isset($options['load'])) return true;
-				if (isset($options['controls']) && !value_is_true($options['controls'])) 
+				if (isset($options['controls']) && !value_is_true($options['controls']))
 					$Shopp->Category->controls = false;
 				if (isset($options['view'])) {
 					if ($options['view'] == "grid") $Shopp->Category->view = "grid";
 					else $Shopp->Category->view = "list";
-				} 
+				}
 				ob_start();
-				if (isset($Shopp->Category->slug) && 
+				if (isset($Shopp->Category->slug) &&
 						file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
 					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
-				elseif (isset($Shopp->Category->id) && 
+				elseif (isset($Shopp->Category->id) &&
 					file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
 					include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
 				else include(SHOPP_TEMPLATES."/category.php");
@@ -701,7 +701,7 @@ class Catalog extends DatabaseObject {
 				else if (isset($options['slug'])) $Shopp->Product = new Product($options['slug'],'slug');
 				else if (isset($options['id'])) $Shopp->Product = new Product($options['id']);
 				
-				if (isset($options['reset'])) 
+				if (isset($options['reset']))
 					return (get_class($Shopp->Requested) == "Product"?($Shopp->Product = $Shopp->Requested):false);
 				
 				if (isset($Shopp->Product->id) && isset($Shopp->Category->slug)) {
@@ -738,7 +738,7 @@ class Catalog extends DatabaseObject {
 					foreach ($products as $product) {
 						$product = trim($product);
 						if (empty($product)) continue;
-						if (preg_match('/^\d+$/',$product)) 
+						if (preg_match('/^\d+$/',$product))
 							$Shopp->Product = new Product($product);
 						else $Shopp->Product = new Product($product,'slug');
 						

@@ -1,7 +1,7 @@
 <?php
 /**
  * Install.php
- * 
+ *
  * Flow controller for installation and upgrades
  *
  * @author Jonathan Davis
@@ -19,7 +19,7 @@
  * @author Jonathan Davis
  **/
 class ShoppInstallation extends FlowController {
-	
+
 	/**
 	 * Install constructor
 	 *
@@ -41,7 +41,7 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function activate () {
@@ -54,35 +54,35 @@ class ShoppInstallation extends FlowController {
 
 		// Process any DB upgrades (if needed)
 		$this->upgrades();
-		
+
 		do_action('shopp_setup');
-		
+
 		if ($this->Settings->availability() && $this->Settings->get('db_version'))
 			$this->Settings->save('maintenance','off');
 
 		// Publish/re-enable Shopp pages
 		$this->pages_status('publish');
-		
+
 		// Update rewrite rules
 		$wp_rewrite->flush_rules();
 
-		
+
 		if ($this->Settings->get('show_welcome') == "on")
 			$this->Settings->save('display_welcome','on');
 	}
-	
+
 	/**
 	 * Resets plugin data when deactivated
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function deactivate () {
 		global $Shopp,$wpdb,$wp_rewrite;
 		if (!isset($this->Settings)) return;
-		
+
 		// Unpublish/disable Shopp pages
 		$this->pages_status('draft');
 
@@ -91,7 +91,7 @@ class ShoppInstallation extends FlowController {
 		$wp_rewrite->flush_rules();
 
 		$this->Settings->save('data_model','');
-		
+
 		if (function_exists('get_site_transient')) $plugin_updates = get_site_transient('update_plugins');
 		else $plugin_updates = get_transient('update_plugins');
 		unset($plugin_updates->response[SHOPP_PLUGINFILE]);
@@ -100,58 +100,58 @@ class ShoppInstallation extends FlowController {
 
 		return true;
 	}
-	
+
 	/**
 	 * Installs the database tables and content gateway pages
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function install () {
 		global $wpdb,$wp_rewrite,$wp_version,$table_prefix;
 		$db = DB::get();
-		
+
 		// Install tables
 		if (!file_exists(SHOPP_DBSCHEMA)) {
 		 	trigger_error("Could not install the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA,E_USER_ERROR);
 			exit();
 		}
-		
+
 		ob_start();
 		include(SHOPP_DBSCHEMA);
 		$schema = ob_get_contents();
 		ob_end_clean();
-		
+
 		$db->loaddata($schema);
 		unset($schema);
 		$this->install_pages();
 		$this->Settings->save("db_version",$db->version);
 	}
-	
+
 	/**
 	 * Installs Shopp content gateway pages or reinstalls missing pages
-	 * 
+	 *
 	 * The key to Shopp displaying content is through placeholder pages
 	 * that contain a specific Shopp shortcode.  The shortcode is replaced
 	 * at runtime with Shopp-specific markup & content.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function install_pages () {
 		global $wpdb;
-		
+
 		require_once(SHOPP_FLOW_PATH.'/Storefront.php');
-		
-		$pages = Storefront::$_pages;		
+
+		$pages = Storefront::$_pages;
 
 		// Locate any Shopp pages that already exist
 		$pages_installed = shopp_locate_pages();
-		
+
 		$parent = 0;
 		foreach ($pages as $key => &$page) {
 			if (!empty($pages['catalog']['id'])) $parent = $pages['catalog']['id'];
@@ -177,13 +177,13 @@ class ShoppInstallation extends FlowController {
 
 		$this->Settings->save("pages",$pages);
 	}
-	
+
 	/**
 	 * Sets the content gateway pages publish status
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $mode The publish status (publish or draft)
 	 * @return void
 	 **/
@@ -191,44 +191,44 @@ class ShoppInstallation extends FlowController {
 		global $wpdb;
 		$status = array('publish','draft');
 		if (!in_array($mode,$status)) return;
-		
+
 		$_ = array();
 		$pages = shopp_locate_pages();
 		foreach ($pages as $page) if (!empty($page['id'])) $_[] = $page['id'];
 		if (!empty($_)) $wpdb->query("UPDATE $wpdb->posts SET post_status='$mode' WHERE 0<FIND_IN_SET(ID,'".join(',',$_)."')");
 	}
-	
+
 	/**
 	 * Performs database upgrades when required
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function upgrades () {
 		$db = DB::get();
 		$db_version = intval($this->Settings->get('db_version'));
-		
+
 		// No upgrades required
 		if ($db_version == DB::$version) return;
 
 		$this->Settings->save('shopp_setup','');
 		$this->Settings->save('maintenance','on');
-				
+
 		// Process any database schema changes
 		$this->upschema();
-		
+
 		if ($db_version < 1100) $this->upgrade_110();
-	
+
 	}
-	
+
 	/**
 	 * Updates the database schema
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function upschema () {
@@ -237,24 +237,24 @@ class ShoppInstallation extends FlowController {
 		// Check for the schema definition file
 		if (!file_exists(SHOPP_DBSCHEMA))
 		 	die("Could not upgrade the Shopp database tables because the table definitions file is missing: ".SHOPP_DBSCHEMA);
-		
+
 		ob_start();
 		include(SHOPP_DBSCHEMA);
 		$schema = ob_get_contents();
 		ob_end_clean();
-		
+
 		// Update the table schema
 		$tables = preg_replace('/;\s+/',';',$schema);
 		$changes = dbDelta($tables);
 		$this->Settings->save('db_updates',$changes);
 	}
-	
+
 	/**
 	 * Installed roles and capabilities used for Shopp
 	 *
 	 * Capabilities						Role
 	 * _______________________________________________
-	 * 
+	 *
 	 * shopp_settings					admin
 	 * shopp_settings_checkout
 	 * shopp_settings_payments
@@ -273,34 +273,34 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @author John Dillick
 	 * @since 1.1
-	 * 
+	 *
 	 **/
 	function roles () {
 		global $wp_roles; // WP_Roles roles container
 		if(!$wp_roles) $wp_roles = new WP_Roles();
 		$shopp_roles = array('administrator'=>'Administrator', 'shopp-merchant'=>__('Merchant','Shopp'), 'shopp-csr'=>__('Customer Service Rep','Shopp'));
 		$caps['shopp-csr'] = array('shopp_customers', 'shopp_orders','shopp_menu','read');
-		$caps['shopp-merchant'] = array_merge($caps['shopp-csr'], 
-			array('shopp_categories', 
-				'shopp_products', 
+		$caps['shopp-merchant'] = array_merge($caps['shopp-csr'],
+			array('shopp_categories',
+				'shopp_products',
 				'shopp_promotions',
 				'shopp_financials',
 				'shopp_export_orders',
 				'shopp_export_customers',
 				'shopp_delete_orders',
 				'shopp_delete_customers'));
-		$caps['administrator'] = array_merge($caps['shopp-merchant'], 
-			array('shopp_settings_update', 
-				'shopp_settings_system', 
-				'shopp_settings_presentation', 
-				'shopp_settings_taxes', 
-				'shopp_settings_shipping', 
-				'shopp_settings_payments', 
+		$caps['administrator'] = array_merge($caps['shopp-merchant'],
+			array('shopp_settings_update',
+				'shopp_settings_system',
+				'shopp_settings_presentation',
+				'shopp_settings_taxes',
+				'shopp_settings_shipping',
+				'shopp_settings_payments',
 				'shopp_settings_checkout',
 				'shopp_settings'));
 		$wp_roles->remove_role('shopp-csr');
 		$wp_roles->remove_role('shopp-merchant');
-		
+
 		foreach($shopp_roles as $role => $display) {
 			if($wp_roles->is_role($role)) {
 				foreach($caps[$role] as $cap) $wp_roles->add_cap($role, $cap, true);
@@ -315,25 +315,25 @@ class ShoppInstallation extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function setup () {
-				
-		$this->Settings->setup('show_welcome','on');	
-		$this->Settings->setup('display_welcome','on');	
-		
+
+		$this->Settings->setup('show_welcome','on');
+		$this->Settings->setup('display_welcome','on');
+
 		// General Settings
-		$this->Settings->setup('shipping','on');	
-		$this->Settings->setup('order_status',array(__('Pending','Shopp'),__('Completed','Shopp')));	
+		$this->Settings->setup('shipping','on');
+		$this->Settings->setup('order_status',array(__('Pending','Shopp'),__('Completed','Shopp')));
 		$this->Settings->setup('shopp_setup','completed');
 		$this->Settings->setup('maintenance','off');
 		$this->Settings->setup('dashboard','on');
 
 		// Checkout Settings
-		$this->Settings->setup('order_confirmation','ontax');	
-		$this->Settings->setup('receipt_copy','1');	
-		$this->Settings->setup('account_system','none');	
+		$this->Settings->setup('order_confirmation','ontax');
+		$this->Settings->setup('receipt_copy','1');
+		$this->Settings->setup('account_system','none');
 
 		// Presentation Settings
 		$this->Settings->setup('theme_templates','off');
@@ -342,7 +342,7 @@ class ShoppInstallation extends FlowController {
 		$this->Settings->setup('default_product_order','title');
 		$this->Settings->setup('product_image_order','ASC');
 		$this->Settings->setup('product_image_orderby','sortorder');
-		
+
 		// System Settings
 		$this->Settings->setup('uploader_pref','flash');
 		$this->Settings->setup('script_loading','global');
@@ -350,22 +350,22 @@ class ShoppInstallation extends FlowController {
 
 		$this->Settings->save('version',SHOPP_VERSION);
 		$this->Settings->save('db_version',DB::$version);
-				
+
 	}
-	
+
 	/**
 	 * Shopp 1.1.0 upgrades
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function upgrade_110 () {
 		$db =& DB::get();
 		$meta_table = DatabaseObject::tablename('meta');
 		$db->query("DELETE FROM $meta_table"); // Clear out previous meta
-		
+
 		// Update product status from the 'published' column
 		$product_table = DatabaseObject::tablename('product');
 		$db->query("UPDATE $product_table SET status=CAST(published AS unsigned)");
@@ -376,7 +376,7 @@ class ShoppInstallation extends FlowController {
 		// Update Catalog
 		$catalog_table = DatabaseObject::tablename('catalog');
 		$db->query("UPDATE $catalog_table set parent=IF(category!=0,category,tag),type=IF(category!=0,'category','tag')");
-		
+
 		// Update specs
 		$meta_table = DatabaseObject::tablename('meta');
 		$spec_table = DatabaseObject::tablename('spec');
@@ -413,9 +413,9 @@ class ShoppInstallation extends FlowController {
 				$value->uri = $name;
 			}
 			$value = mysql_real_escape_string(serialize($value));
-			$db->query("UPDATE $meta_table set name='original',value='$value' WHERE id=$r->id"); 			
+			$db->query("UPDATE $meta_table set name='original',value='$value' WHERE id=$r->id");
 		}
-		
+
 		// Update product downloads
 		$meta_table = DatabaseObject::tablename('meta');
 		$asset_table = DatabaseObject::tablename('asset');
@@ -440,11 +440,11 @@ class ShoppInstallation extends FlowController {
 			$value = mysql_real_escape_string(serialize($value));
 			$db->query("UPDATE $meta_table set name='$name',value='$value' WHERE id=$r->id");
 		}
-		
+
 		// Update promotions
 		$promo_table = DatabaseObject::tablename('promo');
 		$records = $db->query("UPDATE $promo_table SET target='Cart' WHERE scope='Order'",AS_ARRAY);
-		
+
 		$FSStorage = array('path' => array());
 		// Migrate Asset storage settings
 		$image_storage = $this->Settings->get('image_storage_pref');
@@ -460,11 +460,11 @@ class ShoppInstallation extends FlowController {
 			$FSStorage['path']['download'] = $this->Settings->get('products_path');
 		} else $product_storage = "DBStorage";
 		$this->Settings->save('product_storage',$product_storage);
-		
+
 		if (!empty($FSStorage['path'])) $this->Settings->save('FSStorage',$FSStorage);
 
 		// Preserve payment settings
-		
+
 		// Determine active gateways
 		$active_gateways = array($this->Settings->get('payment_gateway'));
 		$xco_gateways = (array)$this->Settings->get('xco_gateways');
@@ -483,13 +483,13 @@ class ShoppInstallation extends FlowController {
 		$result = $db->query($query,AS_ARRAY);
 		require_once(SHOPP_MODEL_PATH.'/Lookup.php');
 		$paycards = Lookup::paycards();
-		
+
 		// Convert settings to 1.1-compatible settings
 		$active_gateways = array();
 		foreach ($result as $_) {
 			$active_gateways[] = $_->name;		// Add gateway to the active gateways list
 			$setting = unserialize($_->value);	// Parse the settings
-			
+
 			// Get rid of legacy settings
 			unset($setting['enabled'],$setting['path'],$setting['billing-required']);
 
@@ -509,7 +509,7 @@ class ShoppInstallation extends FlowController {
 						),
 						$cardname);
 
-					foreach ($paycards as $card) 
+					foreach ($paycards as $card)
 						if ($cardname == $card->name) $accepted[] = $card->symbol;
 				}
 				$setting['cards'] = $accepted;
@@ -517,8 +517,8 @@ class ShoppInstallation extends FlowController {
 			$this->Settings->save($_->name,$setting); // Save the gateway settings
 		}
 		// Save the active gateways to populate the payment settings page
-		$this->Settings->save('active_gateways',join(',',$active_gateways));		
-		
+		$this->Settings->save('active_gateways',join(',',$active_gateways));
+
 		// Preserve update key
 		$oldkey = $this->Settings->get('updatekey');
 		if (!empty($oldkey)) {
@@ -529,30 +529,30 @@ class ShoppInstallation extends FlowController {
 			);
 			$this->Settings->save('updatekey',$newkey);
 		}
-		
+
 		$this->roles(); // Setup Roles and Capabilities
-		
+
 	}
-		
+
 	/**
 	 * Perform automatic updates for the core plugin and addons
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function update () {
 		global $parent_file,$submenu_file;
-		
+
 		$plugin = isset($_REQUEST['plugin']) ? trim($_REQUEST['plugin']) : '';
 		$addon = isset($_REQUEST['addon']) ? trim($_REQUEST['addon']) : '';
 		$type = isset($_REQUEST['type']) ? trim($_REQUEST['type']) : '';
 
 		if ( ! current_user_can('update_plugins') )
 			wp_die(__('You do not have sufficient permissions to update plugins for this blog.'));
-		
-		
+
+
 		if (SHOPP_PLUGINFILE == $plugin) {
 			// check_admin_referer('upgrade-plugin_' . $plugin);
 			$title = __('Upgrade Shopp','Shopp');
@@ -620,22 +620,22 @@ if (!class_exists('Plugin_Upgrader'))
 
 /**
  * Shopp_Upgrader class
- * 
- * Provides foundational functionality specific to Shopp update 
+ *
+ * Provides foundational functionality specific to Shopp update
  * processing classes.
- * 
+ *
  * Extensions derived from the WordPress WP_Upgrader & Plugin_Upgrader classes:
  * @see wp-admin/includes/class-wp-upgrader.php
- * 
+ *
  * @copyright WordPress {@link http://codex.wordpress.org/Copyright_Holders}
- * 
+ *
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
  * @subpackage installation
  **/
 class Shopp_Upgrader extends Plugin_Upgrader {
-	
+
 	function download_package($package) {
 
 		if ( ! preg_match('!^(http|https|ftp)://!i', $package) && file_exists($package) ) //Local file or remote?
@@ -645,13 +645,13 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 			return new WP_Error('no_package', $this->strings['no_package']);
 
 		$this->skin->feedback('downloading_package', $package);
-		
+
 		$Settings =& ShoppSettings();
 		$keydata = $Settings->get('updatekey');
 		$vars = array('VERSION','KEY','URL');
 		$values = array(urlencode(SHOPP_VERSION),urlencode($keydata[1]),urlencode(get_option('siteurl')));
 		$package = str_replace($vars,$values,$package);
-		
+
 		$download_file = $this->download_url($package);
 
 		if ( is_wp_error($download_file) )
@@ -659,7 +659,7 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 
 		return $download_file;
 	}
-	
+
 	function download_url ( $url ) {
 		//WARNING: The file is not automatically deleted, The script must unlink() the file.
 		if ( ! $url )
@@ -694,7 +694,7 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 
 		return $tmpfname;
 	}
-	
+
 	function unpack_package($package, $delete_package = true, $clear_working = true) {
 		global $wp_filesystem;
 
@@ -733,26 +733,26 @@ class Shopp_Upgrader extends Plugin_Upgrader {
 
 		return $working_dir;
 	}
-	
+
 }
 
 /**
  * ShoppCore_Upgrader class
- * 
+ *
  * Adds auto-update support for the core plugin.
- * 
+ *
  * Extensions derived from the WordPress WP_Upgrader & Plugin_Upgrader classes:
  * @see wp-admin/includes/class-wp-upgrader.php
- * 
+ *
  * @copyright WordPress {@link http://codex.wordpress.org/Copyright_Holders}
- * 
+ *
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
  * @subpackage installation
  **/
 class ShoppCore_Upgrader extends Shopp_Upgrader {
-	
+
 	function upgrade_strings() {
 		$this->strings['up_to_date'] = __('Shopp is at the latest version.','Shopp');
 		$this->strings['no_package'] = __('Shopp upgrade package not available.','Shopp');
@@ -764,12 +764,12 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 		$this->strings['process_failed'] = __('Shopp upgrade Failed.','Shopp');
 		$this->strings['process_success'] = __('Shopp upgraded successfully.','Shopp');
 	}
-		
+
 	function upgrade($plugin) {
 		$Settings = &ShoppSettings();
 		$this->init();
 		$this->upgrade_strings();
-				
+
 		$current = $Settings->get('updates');
 		if ( !isset( $current->response[ $plugin ] ) ) {
 			$this->skin->set_result(false);
@@ -780,7 +780,7 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 
 		// Get the URL to the zip file
 		$r = $current->response[ $plugin ];
-		
+
 		add_filter('upgrader_pre_install', array(&$this, 'addons'), 10, 2);
 		// add_filter('upgrader_pre_install', array(&$this, 'deactivate_plugin_before_upgrade'), 10, 2);
 		add_filter('upgrader_clear_destination', array(&$this, 'delete_old_plugin'), 10, 4);
@@ -812,7 +812,7 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 		// Force refresh of plugin update information
 		$Settings->save('updates',false);
 	}
-		
+
 	function addons ($return,$plugin) {
 		$Settings = ShoppSettings();
 		$current = $Settings->get('updates');
@@ -833,25 +833,25 @@ class ShoppCore_Upgrader extends Shopp_Upgrader {
 
 /**
  * ShoppAddon_Upgrader class
- * 
+ *
  * Adds auto-update support for individual Shopp add-ons.
- * 
+ *
  * Extensions derived from the WordPress WP_Upgrader & Plugin_Upgrader classes:
  * @see wp-admin/includes/class-wp-upgrader.php
- * 
+ *
  * @copyright WordPress {@link http://codex.wordpress.org/Copyright_Holders}
- * 
+ *
  * @author Jonathan Davis
  * @since 1.1
  * @package shopp
  * @subpackage installation
  **/
 class ShoppAddon_Upgrader extends Shopp_Upgrader {
-	
+
 	var $addon = false;
 	var $addons_dir = false;
 	var $destination = false;
-	
+
 	function upgrade_strings () {
 		$this->strings['up_to_date'] = __('The add-on is at the latest version.','Shopp');
 		$this->strings['no_package'] = __('Upgrade package not available.');
@@ -864,7 +864,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 		$this->strings['process_success'] = __('Add-on upgraded successfully.','Shopp');
 		$this->strings['include_success'] = __('Add-on included successfully.','Shopp');
 	}
-	
+
 	function install ($package) {
 
 		$this->init();
@@ -883,7 +883,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 		$Settings->save('updates',false);
 
 	}
-	
+
 	function addon_core_updates ($addons,$working_core) {
 		$Settings = ShoppSettings();
 
@@ -900,16 +900,16 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 
 			// Get the URL to the zip file
 			$this->addon = $addon->slug;
-			
+
 			$this->show_before = sprintf( '<h4>' . __('Updating addon %1$d of %2$d...') . '</h4>', $i++, $all );
-			
+
 			switch ($addon->type) {
 				case "gateway": $addondir = '/shopp/gateways'; break;
 				case "shipping": $addondir = '/shopp/shipping'; break;
 				case "storage": $addondir = '/shopp/storage'; break;
 				default: $addondir = '/';
 			}
-			
+
 			$this->run(array(
 						'package' => $addon->package,
 						'destination' => $working_core.$addondir,
@@ -920,15 +920,15 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 						)
 			));
 		}
-		
+
 		// Cleanup our hooks, in case something else does an upgrade on this connection.
 		remove_filter('upgrader_destination_selection', array(&$this, 'destination_selector'));
 
 		if ( ! $this->result || is_wp_error($this->result) )
 			return $this->result;
-		
+
 	}
-	
+
 	function upgrade ($addon,$type) {
 		$Settings = ShoppSettings();
 
@@ -975,7 +975,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 		// Force refresh of plugin update information
 		$Settings->save('updates',false);
 	}
-	
+
 	function run ($options) {
 		global $wp_filesystem;
 		$defaults = array( 	'package' => '', //Please always pass this.
@@ -1018,7 +1018,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 			$this->skin->error($working_dir);
 			return $working_dir;
 		}
-		
+
 		// Determine the final destination
 		$source_files = array_keys( $wp_filesystem->dirlist($working_dir) );
 		if ( 1 == count($source_files)) {
@@ -1055,7 +1055,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 
 		return $result;
 	}
-	
+
 	function plugin_info () {
 		if ( ! is_array($this->result) )
 			return false;
@@ -1069,7 +1069,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 		$pluginfiles = array_keys($plugin); //Assume the requested plugin is the first in the list
 
 		return $this->result['destination_name'] . '/' . $pluginfiles[0];
-	}	
+	}
 
 	function install_package ($args = array()) {
 		global $wp_filesystem;
@@ -1098,9 +1098,9 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 		$source_isdir = true;
 		$source_files = array_keys( $wp_filesystem->dirlist($remote_source) );
 		$remote_destination = $wp_filesystem->find_folder($local_destination);
-		
+
 		//Locate which directory to copy to the new folder, This is based on the actual folder holding the files.
-		if ( 1 == count($source_files) && $wp_filesystem->is_dir( trailingslashit($source) . $source_files[0] . '/') ) //Only one folder? Then we want its contents. 
+		if ( 1 == count($source_files) && $wp_filesystem->is_dir( trailingslashit($source) . $source_files[0] . '/') ) //Only one folder? Then we want its contents.
 			$source = trailingslashit($source) . trailingslashit($source_files[0]);
 		elseif ( count($source_files) == 0 )
 				return new WP_Error('bad_package', $this->strings['bad_package']); //There are no files?
@@ -1123,7 +1123,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 			$remote_destination = trailingslashit($remote_destination) . trailingslashit(basename($source));
 			$destination = trailingslashit($destination) . trailingslashit(basename($source));
 		}
-				
+
 		// Clear destination
 		if ( $wp_filesystem->is_dir($remote_destination) && $source_isdir ) {
 			if ( $clear_destination ) {
@@ -1146,7 +1146,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 				}
 			}
 		}
-		
+
 		// Create destination if needed
 		if (!$wp_filesystem->exists($remote_destination) && $source_isdir) {
 			if (!$wp_filesystem->mkdir($remote_destination, FS_CHMOD_DIR) )
@@ -1183,7 +1183,7 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 
 	function source_selector ($source, $remote_source) {
 		global $wp_filesystem;
-		
+
 		$source_files = array_keys( $wp_filesystem->dirlist($source) );
 		if (count($source_files) == 1) $source = trailingslashit($source).$source_files[0];
 
@@ -1192,23 +1192,23 @@ class ShoppAddon_Upgrader extends Shopp_Upgrader {
 
 	function destination_selector ($destination, $remote_destination) {
 		global $wp_filesystem;
-		
+
 		if (strpos(basename($destination),'.tmp') !== false)
 			$destination = trailingslashit(dirname($destination));
-			
+
 		return $destination;
-	}	
-	
+	}
+
 }
 
 /**
  * Shopp_Upgrader_Skin class
- * 
+ *
  * Shopp-ifies the auto-upgrade process.
- * 
+ *
  * Extensions derived from the WordPress Plugin_Upgrader_Skin class:
  * @see wp-admin/includes/class-wp-upgrader.php
- * 
+ *
  * @copyright WordPress {@link http://codex.wordpress.org/Copyright_Holders}
  * @author Jonathan Davis
  * @since 1.1
@@ -1222,7 +1222,7 @@ class Shopp_Upgrader_Skin extends Plugin_Upgrader_Skin {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function header() {
@@ -1233,19 +1233,19 @@ class Shopp_Upgrader_Skin extends Plugin_Upgrader_Skin {
 		echo screen_icon();
 		echo '<h2>' . $this->options['title'] . '</h2>';
 	}
-	
+
 	/**
 	 * Displays a return to plugins page button after installation
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function after() {
 		$this->feedback('<a href="' . admin_url('plugins.php') . '" title="' . esc_attr__('Return to Plugins page') . '" target="_parent" class="button-secondary">' . __('Return to Plugins page') . '</a>');
 	}
-	
+
 } // END class Shopp_Upgrader_Skin
 
 ?>

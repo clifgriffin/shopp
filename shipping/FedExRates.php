@@ -1,9 +1,9 @@
 <?php
 /**
  * FedEx Rates
- * 
+ *
  * Uses FedEx Web Services to get live shipping rates based on product weight
- * 
+ *
  * INSTALLATION INSTRUCTIONS
  * Upload FedExRates.php to your Shopp install under:
  * ./wp-content/plugins/shopp/shipping/
@@ -14,7 +14,7 @@
  * @package shopp
  * @since 1.1
  * @subpackage FedExRates
- * 
+ *
  * $Id$
  **/
 
@@ -24,14 +24,14 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 	var $url = "https://gateway.fedex.com:443/web-services";
 	var $test_url = "https://gatewaybeta.fedex.com:443/web-services";
 	var $documentation = "FedEx Shipping Module";
-	
+
 	var $packages = array();
-	
+
 	var $test = false;
 	var $postcode = true;
 	var $dimensions = true;
 	var $singular = true; // module only can be loaded once
-	
+
 	var $services = array(
 		'FEDEX_GROUND' => 'FedEx Ground',
 		'GROUND_HOME_DELIVERY' => 'FedEx Home Delivery',
@@ -52,7 +52,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		'FEDEX_FREIGHT' => 'Fedex Freight',
 		'FEDEX_NATIONAL_FREIGHT' => 'FedEx National Freight',
 		'INTERNATIONAL_GROUND' => 'FedEx International Ground',
-		'SMART_POST' => 'FedEx Smart Post'	
+		'SMART_POST' => 'FedEx Smart Post'
 		);
 	var $deliverytimes = array(
 		'ONE_DAY' => '1d',
@@ -77,40 +77,40 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		'TWENTY_DAYS' => '20d',
 		'UNKNOWN' => '30d'
 		);
-	
+
 	function __construct () {
 		parent::__construct();
 		$Settings = ShoppSettings();
 		$this->setup('account','meter','postcode','key','password','smartposthubid','insure','saturday');
 
 		if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates); // TODO: remove after 1.1.3
-		
+
 		add_action('shipping_service_settings',array(&$this,'settings'));
 		add_action('shopp_verify_shipping_services',array(&$this,'verify'));
 
 		$this->wsdl_url = add_query_arg(array('shopp_fedex'=>'wsdl','ver'=>'9'),get_bloginfo('siteurl'));
 		$this->wsdl();
-		
+
 		if (defined('SHOPP_FEDEX_TESTMODE')) $this->test = SHOPP_FEDEX_TESTMODE;
-		
+
 		$this->insure = ($this->settings['insure'] == 'on');
 		$this->settings['base_operations'] = $Settings->get('base_operations');
-		
+
 	}
-		
+
 	function methods () {
 		if (class_exists('SoapClient') || class_exists('SOAP_Client'))
 			return array(__("FedEx Rates","Shopp"));
 		elseif (class_exists('ShoppError'))
 			new ShoppError("The SoapClient class is not enabled for PHP. The FedEx Rates add-on cannot be used without the SoapClient class.","fedexrates_nosoap",SHOPP_ALL_ERR);
 	}
-		
+
 	function ui () { ?>
 		function FedExRates (methodid,table,rates) {
 			table.addClass('services').empty();
-			
+
 			if (!uniqueMethod(methodid,'<?php echo get_class($this); ?>')) return;
-			
+
 			var services = <?php echo json_encode($this->services); ?>;
 			var settings = '';
 			settings += '<tr><td>';
@@ -118,26 +118,26 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 			settings += '<input type="hidden" name="settings[shipping_rates]['+methodid+'][postcode-required]" value="true" />';
 
 			settings += '<div class="multiple-select"><ul id="fedex-services">';
-		
+
 			settings += '<li><input type="checkbox" name="select-all" id="fedex-services-select-all" /><label for="fedex-services-select-all"><strong><?php _e('Select All','Shopp'); ?></strong></label>';
 			var even = true;
 
 			for (var service in services) {
 				var checked = '';
 				even = !even;
-				for (var r in rates.services) 
+				for (var r in rates.services)
 					if (rates.services[r] == service) checked = ' checked="checked"';
 				settings += '<li class="'+((even)?'even':'odd')+'"><input type="checkbox" name="settings[shipping_rates]['+methodid+'][services][]" value="'+service+'" id="fedex-service-'+service+'"'+checked+' /><label for="fedex-service-'+service+'">'+services[service]+'</label></li>';
 			}
 
 			settings += '</td>';
-			
+
 			settings += '<td>';
 			settings += '<div><input type="text" name="settings[FedExRates][account]" id="fedexrates_account" value="<?php echo $this->settings['account']; ?>" size="11" /><br /><label for="fedexrates_account"><?php _e('Account Number','Shopp'); ?></label></div>';
 			settings += '<div><input type="text" name="settings[FedExRates][meter]" id="fedexrates_meter" value="<?php echo $this->settings['meter']; ?>" size="11" /><br /><label for="fedexrates_meter"><?php _e('Meter Number','Shopp'); ?></label></div>';
 			settings += '<div><input type="text" name="settings[FedExRates][postcode]" id="fedexrates_postcode" value="<?php echo $this->settings['postcode']; ?>" size="7" /><br /><label for="fedexrates_postcode"><?php _e('Your postal code','Shopp'); ?></label></div>';
 			settings += '<div><input type="text" name="settings[FedExRates][smartposthubid]" id="fedexrates_smartposthubid" value="<?php echo $this->settings['smartposthubid']; ?>" size="7" /><br /><label for="fedexrates_smartposthubid"><?php _e('SmartPost HubID (Required for SmartPost)','Shopp'); ?></label></div>';
-				
+
 			settings += '</td>';
 			settings += '<td>';
 			settings += '<div><input type="text" name="settings[FedExRates][key]" id="fedexrates_key" value="<?php echo $this->settings['key']; ?>" size="16" /><br /><label for="fedexrates_key"><?php _e('FedEx web services key','Shopp'); ?></label></div>';
@@ -154,23 +154,23 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 				if (this.checked) $('#fedex-services input').attr('checked',true);
 				else $('#fedex-services input').attr('checked',false);
 			});
-				
+
 			quickSelects();
 
 		}
 
 		methodHandlers.register('<?php echo get_class($this); ?>',FedExRates);
 
-		<?php		
+		<?php
 	}
 
 	function init () {
 		$this->packages = array();
 	}
-	
+
 	function calcitem ($id,$Item) {
 		$precision = $this->settings['base_operations']['currency']['format']['precision'];
-		
+
 		for ($i = 0; $i < $Item->quantity; $i++) {
 			$count = count($this->packages) + 1;
 			$this->packages[$count] = array(
@@ -183,43 +183,43 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		}
 		if(SHOPP_DEBUG) new ShoppError('packages '._object_r($this->packages),false,SHOPP_DEBUG_ERR);
 	}
-	
+
 	function calculate ($options,$Order) {
 		// Don't get an estimate without a postal code
 		if (empty($Order->Shipping->postcode)) return $options;
 
-		$request = $this->build(session_id(), $this->rate['name'], 
+		$request = $this->build(session_id(), $this->rate['name'],
 			$Order->Shipping);
 		$Response = $this->send($request);
 		if(SHOPP_DEBUG) new ShoppError('RESPONSE: '._object_r($Response),false,SHOPP_DEBUG_ERR);
 		if (!$Response) {
-			new ShoppError(apply_filters('shopp_fedex_error',__('There was an error obtaining FedEx Rates.','Shopp')), 'fedex_rate_error', SHOPP_ADDON_ERR); 
+			new ShoppError(apply_filters('shopp_fedex_error',__('There was an error obtaining FedEx Rates.','Shopp')), 'fedex_rate_error', SHOPP_ADDON_ERR);
 			return apply_filters('shopp_fedex_rates', false, &$options, &$Order); // useful for adding your own hardcoded options
-		}	
-		if ($Response->HighestSeverity == 'FAILURE' || 
+		}
+		if ($Response->HighestSeverity == 'FAILURE' ||
 		 		$Response->HighestSeverity == 'ERROR') {
 			new ShoppError(apply_filters('shopp_fedex_error', $Response->Notifications->Message),'fedex_rate_error',SHOPP_ADDON_ERR);
 			return apply_filters('shopp_fedex_rates', false, &$options, &$Order); // useful for adding your own hardcoded options
 		}
 
 		$estimate = false;
-		
+
 		$RatedReply = &$Response->RateReplyDetails;
 		if (!is_array($RatedReply)) return false;
 		foreach ($RatedReply as $quote) {
 			if (!in_array($quote->ServiceType,$this->rate['services'])) continue;
-			
+
 			$name = $this->services[$quote->ServiceType];
-			if (is_array($quote->RatedShipmentDetails)) 
+			if (is_array($quote->RatedShipmentDetails))
 				$details = &$quote->RatedShipmentDetails[0];
 			else $details = &$quote->RatedShipmentDetails;
-			
-			if (isset($quote->DeliveryTimestamp)) 
+
+			if (isset($quote->DeliveryTimestamp))
 				$delivery = $this->timestamp_delivery($quote->DeliveryTimestamp);
 			elseif(isset($quote->TransitTime))
 				$delivery = $this->deliverytimes[$quote->TransitTime];
 			else $delivery = '5d-7d';
-			
+
 			$amount = apply_filters('shopp_fedex_total',$details->ShipmentRateDetail->TotalNetCharge->Amount,$details);
 
 			$rate = array();
@@ -228,23 +228,23 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 			$rate['delivery'] = $delivery;
 			$options[$rate['name']] = new ShippingOption($rate);
 		}
-		
+
 		return apply_filters('shopp_fedex_rates', $options, &$options, &$Order); // added for completeness
 	}
-	
+
 	function timestamp_delivery ($datetime) {
 		list($year,$month,$day,$hour,$min,$sec) = sscanf($datetime,"%4d-%2d-%2dT%2d:%2d:%2d");
 		$days = ceil((mktime($hour,$min,$sec,$month,$day,$year) - mktime())/86400);
 		return $days.'d';
 	}
-	
+
 	function build ($session,$description,$Shipping) {
-		
+
 		$_ = array();
 
 		$_['WebAuthenticationDetail'] = array(
 			'UserCredential' => array(
-				'Key' => $this->settings['key'], 
+				'Key' => $this->settings['key'],
 				'Password' => $this->settings['password']));
 
 		$_['ClientDetail'] = array(
@@ -255,22 +255,22 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 			'CustomerTransactionId' => empty($session)?mktime():$session);
 
 		$_['Version'] = array(
-			'ServiceId' => 'crs', 
-			'Major' => '9', 
-			'Intermediate' => '0', 
+			'ServiceId' => 'crs',
+			'Major' => '9',
+			'Intermediate' => '0',
 			'Minor' => '0');
 
-		$_['ReturnTransitAndCommit'] = '1'; 
+		$_['ReturnTransitAndCommit'] = '1';
 
 		$_['RequestedShipment'] = array();
 		$_['RequestedShipment']['ShipTimestamp'] = date('c');
-		
+
 		// Valid values REGULAR_PICKUP, REQUEST_COURIER, ...
 		$_['RequestedShipment']['DropoffType'] = 'REGULAR_PICKUP';
 		$_['RequestedShipment']['ShipTimestamp'] = date('c');
-		 
+
 		$_['RequestedShipment']['PackagingType'] = 'YOUR_PACKAGING'; // valid values FEDEX_BOX, FEDEX_PAK, FEDEX_TUBE, YOUR_PACKAGING, ...
-		
+
 		$_['RequestedShipment']['Shipper'] = array(
 			'Address' => array(
 				'PostalCode' => $this->settings['postcode'],
@@ -290,22 +290,22 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 			'PaymentType' => 'SENDER',
 			'Payor' => array('AccountNumber' => $this->settings['account'],
 			'CountryCode' => 'US'));
-		
+
 		if (in_array('SMART_POST', $this->rate['services']) && !empty($this->settings['smartposthubid']) ){
 			$_['RequestedShipment']['SmartPostDetail'] = array(
 				'Indicia' => 'PARCEL_SELECT',
 				'HubId' => $this->settings['smartposthubid']);
 		}
-			
-		$_['RequestedShipment']['RateRequestTypes'] = 'ACCOUNT'; 
+
+		$_['RequestedShipment']['RateRequestTypes'] = 'ACCOUNT';
 		// $_['RequestedShipment']['RateRequestTypes'] = 'LIST';
-		 
+
 		$_['RequestedShipment']['PackageCount'] = count($this->packages);
 		$_['RequestedShipment']['PackageDetail'] = 'INDIVIDUAL_PACKAGES';
 		if ($this->settings['saturday'] == 'on') $_['RequestedShipment']['SpecialServicesRequested'] = array(
 			'SpecialServiceTypes' => array('SATURDAY_DELIVERY')
 		);
-		
+
 		$requested = array();
 		$count = 0;
 		foreach ($this->packages as $seq => $package) {
@@ -329,15 +329,15 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 			$count++;
 		}
 		$_['RequestedShipment']['RequestedPackageLineItems'] = $requested;
-		
+
 		return apply_filters('shopp_fedex_request', $_, $session,$description,$postcode,$country);
-	} 
-	
-	function verify () {         
+	}
+
+	function verify () {
 		if (!$this->activated()) return;
-		
+
 		if (!$this->wsdl(true)) return;
-		
+
 		$this->packages[1] = array(
 			'weight' => 2,
 			'height' => 3,
@@ -348,7 +348,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		$Shipping = new stdClass();
 		$Shipping->postcode = 10012;
 		$Shipping->country = US;
-		
+
 		$request = $this->build('1','Authentication test',$Shipping);
 		$request['RequestedShipment']['PackageCount'] = '2';
 		$request['RequestedShipment']['PackageDetail'] = 'INDIVIDUAL_PACKAGES';  //  Or PACKAGE_SUMMARY
@@ -369,10 +369,10 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		// if(SHOPP_DEBUG) new ShoppError("FedEx verify test response: "._object_r($response),false,SHOPP_DEBUG_ERR);
 		if (isset($response->HighestSeverity)
 			&& ($response->HighestSeverity == 'FAILURE'
-			|| $response->HighestSeverity == 'ERROR')) 
+			|| $response->HighestSeverity == 'ERROR'))
 		 	new ShoppError($response->Notifications->Message,'fedex_verify_auth',SHOPP_ADDON_ERR);
-	}   
-	
+	}
+
 	function send ($request) {
 		try {
 			if (class_exists('SoapClient')) {
@@ -402,8 +402,8 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 
 		return $response;
 	}
-	
-	// Workaround for a severe parse bug in PEAR-SOAP 0.12 beta				
+
+	// Workaround for a severe parse bug in PEAR-SOAP 0.12 beta
 	function fix_pear_soap_result_bug ($array) {
 		$rates = array();
 		foreach ($array as $value) {
@@ -412,11 +412,11 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		}
 		return $rates;
 	}
-	
+
 	function logo () {
 		return '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';
 	}
-	
+
 	function wsdl ($verify=false) {
 		$lookup = (isset($_GET['shopp_fedex']))?$_GET['shopp_fedex']:'';
 		if ($lookup != 'wsdl' && !$verify) return;
@@ -431,9 +431,9 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 			if (!function_exists('bzdecompress')) $error = __('PHP does not support bzip2 decompression of the embedded WSDL file.','Shopp');
 			else $contents = bzdecompress(base64_decode($wsdl));
 		}
-		
+
 		if ($error === false && empty($contents)) $error = __('An unknown error occurred while reading the WSDL file.','Shopp');
-		
+
 		if ($error !== false) {
 			$msg = sprintf(__('Unable to read the web services description file to establish a SOAP connection to FedEx. %s See the <strong>Troubleshooting</strong> section of the "%s" article in the online documentation for help with this issue.','Shopp'),$error,'<a href="'.SHOPP_DOCS.str_replace(" ","_",$this->documentation).'#Troubleshooting">'.$this->documentation.'</a>');
 
@@ -443,13 +443,13 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 				$Shopp->ErrorLog = new ShoppErrorLogging($Shopp->Settings->get('error_logging'));
 			}
 			new ShoppError($msg,'wsdl_decompress',SHOPP_ADDON_ERR);
-			
+
 			if ($verify) return false;
 			status_header('404');
 			wp_die($msg,__('FedEx Rates WSDL Error','Shopp'),array('response'=>404));
 			exit();
 		}
-		
+
 		$contents = str_replace('__SERVICE_URL__',($this->test?$this->test_url:$this->url),$contents);
 
 		$expire = 31536000;
@@ -466,7 +466,7 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 		} else echo $contents;
 		exit();
 	}
-	
+
 }
 
 ?>

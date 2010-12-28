@@ -1,7 +1,7 @@
 <?php
 /**
  * Free Option
- * 
+ *
  * Provides a free shipping rate not included in shipping estimates
  *
  * @author Jonathan Davis
@@ -10,7 +10,7 @@
  * @package shopp
  * @since 1.1 dev
  * @subpackage FreeOption
- * 
+ *
  * $Id: FreeOption.php 510 2009-09-22 14:14:09Z jond $
  **/
 
@@ -19,10 +19,10 @@ class FreeOption extends ShippingFramework implements ShippingModule {
 	function methods () {
 		return array(__("Free Option","Shopp"));
 	}
-	
+
 	function init () {}
 	function calcitem ($id,$Item) {}
-	
+
 	function calculate ($options,$Order) {
 		foreach ($this->rates as $rate) {
 			$rate['amount'] = 0;
@@ -31,7 +31,7 @@ class FreeOption extends ShippingFramework implements ShippingModule {
 		}
 		return $options;
 	}
-	
+
 	function ui () {
 ?>
 var FreeOption = function (methodid,table,rates) {
@@ -39,7 +39,7 @@ var FreeOption = function (methodid,table,rates) {
 	var headingsRow = $('<tr class="headings"/>').appendTo(table);
 }
 methodHandlers.register('<?php echo $this->module; ?>',FreeOption);
-		<?php		
+		<?php
 	}
 
 } // END class FreeOption

@@ -2,7 +2,7 @@
 /**
  ** WARNING! DO NOT EDIT!
  **
- ** These templates are part of the core Shopp files 
+ ** These templates are part of the core Shopp files
  ** and will be overwritten when upgrading Shopp.
  **
  ** For editable templates, setup Shopp theme templates:
@@ -64,7 +64,7 @@
 			<span><?php shopp('customer','password','size=14&title='.__('New Password','Shopp')); ?><label for="password"><?php _e('New Password','Shopp'); ?></label></span>
 			<span><?php shopp('customer','confirm-password','&size=14&title='.__('Confirm Password','Shopp')); ?><label for="confirm-password"><?php _e('Confirm Password','Shopp'); ?></label></span>
 		</li>
-	</ul>	
+	</ul>
 	<p><?php shopp('customer','save-button','label='.__('Save','Shopp')); ?></p>
 	<p><a href="<?php shopp('customer','url'); ?>">&laquo; <?php _e('Return to Account Management','Shopp'); ?></a></p>
 	

@@ -8,16 +8,16 @@
 		<?php wp_nonce_field('shopp-settings-taxes'); ?>
 
 		<?php include("navigation.php"); ?>
-		
-		<table class="form-table"> 
-			<tr> 
-				<th scope="row" valign="top"><label for="taxes-toggle"><?php _e('Calculate Taxes','Shopp'); ?></label></th> 
-				<td><input type="hidden" name="settings[taxes]" value="off" /><input type="checkbox" name="settings[taxes]" value="on" id="taxes-toggle"<?php if ($this->Settings->get('taxes') == "on") echo ' checked="checked"'?> /><label for="taxes-toggle"> <?php _e('Enabled','Shopp'); ?></label><br /> 
+
+		<table class="form-table">
+			<tr>
+				<th scope="row" valign="top"><label for="taxes-toggle"><?php _e('Calculate Taxes','Shopp'); ?></label></th>
+				<td><input type="hidden" name="settings[taxes]" value="off" /><input type="checkbox" name="settings[taxes]" value="on" id="taxes-toggle"<?php if ($this->Settings->get('taxes') == "on") echo ' checked="checked"'?> /><label for="taxes-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
 	            <?php _e('Enables tax calculations.  Disable if you are exclusively selling non-taxable items.','Shopp'); ?></td>
 			</tr>
 			<tr>
-					<th scope="row" valign="top"><label for="tax-shipping-toggle"><?php _e('Tax Shipping','Shopp'); ?></label></th> 
-					<td><input type="hidden" name="settings[tax_shipping]" value="off" /><input type="checkbox" name="settings[tax_shipping]" value="on" id="tax-shipping-toggle"<?php if ($this->Settings->get('tax_shipping') == "on") echo ' checked="checked"'?> /><label for="tax-shipping-toggle"> <?php _e('Enabled','Shopp'); ?></label><br /> 
+					<th scope="row" valign="top"><label for="tax-shipping-toggle"><?php _e('Tax Shipping','Shopp'); ?></label></th>
+					<td><input type="hidden" name="settings[tax_shipping]" value="off" /><input type="checkbox" name="settings[tax_shipping]" value="on" id="tax-shipping-toggle"<?php if ($this->Settings->get('tax_shipping') == "on") echo ' checked="checked"'?> /><label for="tax-shipping-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
 		            <?php _e('Enable to include shipping and handling in taxes.','Shopp'); ?></td>
 				</tr>
 		</table>
@@ -28,12 +28,12 @@
 		<?php else: ?>
 		<p><strong><?php _e('Note','Shopp'); ?>:</strong> <?php sprintf(__('You must select the target markets you will be selling to under %s before you can setup tax rates.','Shopp'),'<a href="?page='.$this->Admin->settings['settings'][0].'">'.__('General settings','Shopp').'</a>'); ?></p>
 		<?php endif; ?>
-		
+
 		<div class="tablenav">
 			<div class="alignright actions"><button type="button" id="add-taxrate" class="button-secondary"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="+" width="16" height="16" /> <?php _e('Add a Tax Rate','Shopp'); ?></button>
 	        </div>
 		</div>
-	
+
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>

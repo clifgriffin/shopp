@@ -2,7 +2,7 @@
 
 function save_meta_box ($Product) {
 	global $Shopp;
-	
+
 	$workflows = array(
 		"continue" => __('Continue Editing','Shopp'),
 		"close" => __('Products Manager','Shopp'),
@@ -10,15 +10,15 @@ function save_meta_box ($Product) {
 		"next" => __('Edit Next','Shopp'),
 		"previous" => __('Edit Previous','Shopp')
 		);
-		
-		
+
+
 	$date_format = get_option('date_format');
 	$time_format = get_option('time_format');
 
 ?>
 	<div id="misc-publishing-actions">
 		<input type="hidden" name="id" value="<?php echo $Product->id; ?>" />
-		
+
 		<div class="misc-pub-section misc-pub-section-last">
 			<input type="hidden" name="status" value="draft" /><input type="checkbox" name="status" value="publish" id="published" tabindex="11" <?php if ($Product->status == "publish") echo ' checked="checked"'?> /><label for="published"><strong> <?php if ($Product->published() && !empty($Product->id)) _e('Published','Shopp'); else _e('Publish','Shopp'); ?></strong> <span id="publish-status"><?php if ($Product->publish>1) printf(__('on: %s'),"</span><br />".date($date_format.' @ '.$time_format,$Product->publish)); else echo "</span>"; ?></label> <span id="schedule-toggling"><button type="button" name="schedule-toggle" id="schedule-toggle" class="button-secondary"><?php if ($Product->publish>1) _e('Edit','Shopp'); else _e('Schedule','Shopp'); ?></button></span>
 
@@ -37,7 +37,7 @@ function save_meta_box ($Product) {
 			</div>
 
 		</div>
-		
+
 	</div>
 	<div id="major-publishing-actions">
 		<select name="settings[workflow]" id="workflow">
@@ -48,11 +48,11 @@ function save_meta_box ($Product) {
 <?php
 }
 add_meta_box(
-	'save-product', 
-	__('Save','Shopp').$Admin->boxhelp('product-editor-save'), 
-	'save_meta_box', 
-	'shopp_page_shopp-products', 
-	'side', 
+	'save-product',
+	__('Save','Shopp').$Admin->boxhelp('product-editor-save'),
+	'save_meta_box',
+	'shopp_page_shopp-products',
+	'side',
 	'core'
 );
 
@@ -67,14 +67,14 @@ function categories_meta_box ($Product) {
 	foreach ($categories as $category) {
 		$padding = str_repeat("&nbsp;",$category->depth*3);
 		$categories_menu .= '<option value="'.$category->id.'">'.$padding.esc_html($category->name).'</option>';
-	}		
+	}
 
 	$selectedCategories = array();
 	foreach ($Product->categories as $category) $selectedCategories[] = $category->id;
 ?>
 <div id="category-menu" class="multiple-select short">
 	<ul>
-		<?php $depth = 0; foreach ($categories as $category): 
+		<?php $depth = 0; foreach ($categories as $category):
 		if ($category->depth > $depth) echo "<li><ul>"; ?>
 		<?php if ($category->depth < $depth): ?>
 			<?php for ($i = $category->depth; $i < $depth; $i++): ?>
@@ -100,11 +100,11 @@ function categories_meta_box ($Product) {
 <?php
 }
 add_meta_box(
-	'categories-box', 
-	__('Categories','Shopp').$Admin->boxhelp('product-editor-categories'), 
-	'categories_meta_box', 
-	'shopp_page_shopp-products', 
-	'side', 
+	'categories-box',
+	__('Categories','Shopp').$Admin->boxhelp('product-editor-categories'),
+	'categories_meta_box',
+	'shopp_page_shopp-products',
+	'side',
 	'core'
 );
 
@@ -121,11 +121,11 @@ function tags_meta_box ($Product) {
 <?php
 }
 add_meta_box(
-	'product-tags', 
-	__('Tags','Shopp').$Admin->boxhelp('product-editor-tags'), 
-	'tags_meta_box', 
-	'shopp_page_shopp-products', 
-	'side', 
+	'product-tags',
+	__('Tags','Shopp').$Admin->boxhelp('product-editor-tags'),
+	'tags_meta_box',
+	'shopp_page_shopp-products',
+	'side',
 	'core'
 );
 
@@ -141,27 +141,27 @@ function settings_meta_box ($Product) {
 <?php
 }
 add_meta_box(
-	'product-settings', 
-	__('Settings','Shopp').$Admin->boxhelp('product-editor-settings'), 
-	'settings_meta_box', 
-	'shopp_page_shopp-products', 
-	'side', 
+	'product-settings',
+	__('Settings','Shopp').$Admin->boxhelp('product-editor-settings'),
+	'settings_meta_box',
+	'shopp_page_shopp-products',
+	'side',
 	'core'
 );
 
 
 function summary_meta_box ($Product) {
 ?>
-	<textarea name="summary" id="summary" rows="2" cols="50" tabindex="6"><?php echo $Product->summary ?></textarea><br /> 
+	<textarea name="summary" id="summary" rows="2" cols="50" tabindex="6"><?php echo $Product->summary ?></textarea><br />
     <label for="summary"><?php _e('A brief description of the product to draw the customer\'s attention.','Shopp'); ?></label>
 <?php
 }
 add_meta_box(
-	'product-summary', 
-	__('Summary','Shopp').$Admin->boxhelp('product-editor-summary'), 
-	'summary_meta_box', 
-	'shopp_page_shopp-products', 
-	'normal', 
+	'product-summary',
+	__('Summary','Shopp').$Admin->boxhelp('product-editor-summary'),
+	'summary_meta_box',
+	'shopp_page_shopp-products',
+	'normal',
 	'core'
 );
 
@@ -180,16 +180,16 @@ function details_meta_box ($Product) {
 	<button type="button" id="addDetail" class="button-secondary" tabindex="8"><small><?php _e('Add Product Detail','Shopp'); ?></small></button>
 	<p><?php _e('Build a list of detailed information such as dimensions or features of the product.','Shopp'); ?></p>
 	</div>
-	
+
 	<p></p>
 <?php
 }
 add_meta_box(
-	'product-details-box', 
-	__('Details &amp; Specs','Shopp').$Admin->boxhelp('product-editor-details'), 
-	'details_meta_box', 
-	'shopp_page_shopp-products', 
-	'normal', 
+	'product-details-box',
+	__('Details &amp; Specs','Shopp').$Admin->boxhelp('product-editor-details'),
+	'details_meta_box',
+	'shopp_page_shopp-products',
+	'normal',
 	'core'
 );
 
@@ -204,12 +204,12 @@ function images_meta_box ($Product) {
 				<input type="hidden" name="imagedetails[<?php echo $i; ?>][id]" value="<?php echo $Image->id; ?>" />
 				<input type="hidden" name="imagedetails[<?php echo $i; ?>][title]" value="<?php echo $Image->title; ?>" class="imagetitle" />
 				<input type="hidden" name="imagedetails[<?php echo $i; ?>][alt]" value="<?php echo $Image->alt; ?>"  class="imagealt" />
-				<?php 
-					if (isset($Image->cropped) && count($Image->cropped) > 0): 
-						foreach ($Image->cropped as $cache): 
+				<?php
+					if (isset($Image->cropped) && count($Image->cropped) > 0):
+						foreach ($Image->cropped as $cache):
 							$cropping = false;
 							if (join('',array($cache->settings['dx'],$cache->settings['dy'],$cache->settings['cropscale'])) != '')
-								$cropping = join(',',array($cache->settings['dx'],$cache->settings['dy'],$cache->settings['cropscale'])); 
+								$cropping = join(',',array($cache->settings['dx'],$cache->settings['dy'],$cache->settings['cropscale']));
 							$c = "$cache->width:$cache->height"; ?>
 					<input type="hidden" name="imagedetails[<?php echo $i; ?>][cropping][<?php echo $cache->id; ?>]" alt="<?php echo $c; ?>" value="<?php echo $cropping; ?>" class="imagecropped" />
 				<?php endforeach; endif;?>
@@ -230,10 +230,10 @@ function images_meta_box ($Product) {
 }
 add_meta_box(
 	'product-images',
-	 __('Product Images','Shopp').$Admin->boxhelp('product-editor-images'), 
-	'images_meta_box', 
-	'shopp_page_shopp-products', 
-	'normal', 
+	 __('Product Images','Shopp').$Admin->boxhelp('product-editor-images'),
+	'images_meta_box',
+	'shopp_page_shopp-products',
+	'normal',
 	'core'
 );
 
@@ -311,11 +311,11 @@ function pricing_meta_box ($Product) {
 <?php
 }
 add_meta_box(
-	'product-pricing-box', 
-	__('Pricing','Shopp').$Admin->boxhelp('product-editor-pricing'), 
-	'pricing_meta_box', 
+	'product-pricing-box',
+	__('Pricing','Shopp').$Admin->boxhelp('product-editor-pricing'),
+	'pricing_meta_box',
 	'shopp_page_shopp-products',
-	'advanced', 
+	'advanced',
 	'core'
 );
 

@@ -30,10 +30,10 @@ jQuery.fn.scaleCrop = function (settings) {
 			}).appendTo($this),
 		image = $('<img src="'+settings.imgsrc+'" />').appendTo(viewport),
 		mask = $('<div/>').css({
-				width:settings.target.width+px,height:settings.target.height+px,border:(maskTop+1)+whiteBorder,opacity:0.8			
+				width:settings.target.width+px,height:settings.target.height+px,border:(maskTop+1)+whiteBorder,opacity:0.8
 			}).appendTo(viewport),
 		frame = $('<div/>').css({
-				top:maskTop+px,left:maskLeft+px,width:settings.target.width+px,height:settings.target.height+px,border:'1'+blackBorder			
+				top:maskTop+px,left:maskLeft+px,width:settings.target.width+px,height:settings.target.height+px,border:'1'+blackBorder
 			}).appendTo(viewport),
 		container = $('<div/>').appendTo(viewport),
 		resizeImage = function (scale) {
@@ -49,18 +49,18 @@ jQuery.fn.scaleCrop = function (settings) {
 			// Resize the image
 			if (aspect<1) image.width(maxWidth*ratio).height(h);
 			else image.width(w).height(maxHeight*ratio);
-			
+
 			image[0].style.left = (image.position().left+Math.ceil((id.width-image.width())/2))+px;
 			image[0].style.top = (image.position().top+Math.ceil((id.height-image.height())/2))+px;
 
 			d = image.position(); // Update the image position
-			
+
 			// Reposition image if the top/left image edge goes inside the frame
 			if (d.left > fp.left) {
 				image[0].style.left = (fp.left+1)+px;
 				d = image.position(); // Update the image position
 			}
-			
+
 			if (d.top > fp.top) {
 				image[0].style.top = (fp.top+1)+px;
 				d = image.position(); // Update the image position
@@ -76,7 +76,7 @@ jQuery.fn.scaleCrop = function (settings) {
 				image[0].style.top = fp.top+frame.height()-image.height()+1+px;
 				d = image.position(); // Update the image position
 			}
-						
+
 			inst.element.css({left:d.left,top:d.top});
 			container.width((image.width()*2)-frame.width()).height((image.height()*2)-frame.height())
 				.css({
@@ -126,14 +126,14 @@ jQuery.fn.scaleCrop = function (settings) {
 		image.hide().load(function () {
 			maxWidth = this.width;
 			maxHeight = this.height;
-			aspect = maxWidth/maxHeight;			
+			aspect = maxWidth/maxHeight;
 			handle.width(maxWidth).height(maxHeight);
 			var initLeft = (settings.init.x !== false)?
 					settings.init.x+px:frame.position().left+((frame.outerWidth()-image.width())/2)+px,
 				initTop = (settings.init.y !== false)?
 					settings.init.y+px:frame.position().top+((frame.outerHeight()-image.height())/2)+px,
 				initScale = (settings.init.s !== false)?settings.init.s:0;
-			
+
 			resizeImage(initScale);
 			inst = handle.data("draggable");
 			image.css({

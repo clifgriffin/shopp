@@ -11,7 +11,7 @@
 
 /**
  * FileAsset class
- * 
+ *
  * Foundational class to provide a useable asset framework built on the meta
  * system introduced in Shopp 1.1.
  *
@@ -44,7 +44,7 @@ class FileAsset extends MetaObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function load ($id) {
@@ -59,7 +59,7 @@ class FileAsset extends MetaObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function expopulate () {
@@ -76,7 +76,7 @@ class FileAsset extends MetaObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function save () {
@@ -91,7 +91,7 @@ class FileAsset extends MetaObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function store ($data,$type='binary') {
@@ -106,7 +106,7 @@ class FileAsset extends MetaObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function retrieve () {
@@ -119,7 +119,7 @@ class FileAsset extends MetaObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function readmeta () {
@@ -132,7 +132,7 @@ class FileAsset extends MetaObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function found ($uri=false) {
@@ -147,7 +147,7 @@ class FileAsset extends MetaObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function &_engine () {
@@ -177,7 +177,7 @@ class FileAsset extends MetaObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function extensions () {}
@@ -186,8 +186,8 @@ class FileAsset extends MetaObject {
 
 /**
  * ImageAsset class
- * 
- * A specific implementation of the FileAsset class that provides helper 
+ *
+ * A specific implementation of the FileAsset class that provides helper
  * methods for imaging-specific tasks.
  *
  * @author Jonathan Davis
@@ -217,7 +217,7 @@ class ImageAsset extends FileAsset {
 			$offset = 31536000;
 
 			if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']) && isset($_SERVER['HTTP_IF_NONE_MATCH'])) {
-				if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $this->modified || 
+				if (@strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) == $this->modified ||
 				    trim($_SERVER['HTTP_IF_NONE_MATCH']) == $etag) {
 				    header("HTTP/1.1 304 Not Modified");
 					header("Content-type: {$this->mime}");
@@ -232,7 +232,7 @@ class ImageAsset extends FileAsset {
 			
 			header("Content-type: {$this->mime}");
 			if (!empty($this->filename))
-				header("Content-Disposition: inline; filename=".$this->filename); 
+				header("Content-Disposition: inline; filename=".$this->filename);
 			else header("Content-Disposition: inline; filename=image-".$this->id.".jpg");
 			header("Content-Description: Delivered by WordPress/Shopp Image Server ({$this->storage})");
 		}
@@ -286,7 +286,7 @@ class ImageAsset extends FileAsset {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function resizing ($width,$height,$scale=false,$sharpen=false,$quality=false,$fill=false) {
@@ -309,7 +309,7 @@ class ImageAsset extends FileAsset {
 
 /**
  * ProductImage class
- * 
+ *
  * An ImageAsset used in a product context.
  *
  * @author Jonathan Davis
@@ -321,14 +321,14 @@ class ProductImage extends ImageAsset {
 	
 	/**
 	 * Truncate image data when stored in a session
-	 * 
+	 *
 	 * A ProductImage can be stored in the session with a cart Item object. We
 	 * strip out unnecessary fields here to keep the session data as small as
 	 * possible.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return array
 	 **/
 	function __sleep () {
@@ -346,7 +346,7 @@ class ProductImage extends ImageAsset {
 
 /**
  * CategoryImage class
- * 
+ *
  * An ImageAsset used in a category context.
  *
  * @author Jonathan Davis
@@ -360,8 +360,8 @@ class CategoryImage extends ImageAsset {
 
 /**
  * DownloadAsset class
- * 
- * A specific implementation of a FileAsset that includes helper methods 
+ *
+ * A specific implementation of a FileAsset that includes helper methods
  * for downloading routines.
  *
  * @author Jonathan Davis
@@ -426,8 +426,8 @@ class DownloadAsset extends FileAsset {
 		
 			header("Pragma: public");
 			header("Cache-Control: maxage=1");
-			header("Content-type: application/octet-stream"); 
-			header("Content-Disposition: attachment; filename=\"".$this->name."\""); 
+			header("Content-type: application/octet-stream");
+			header("Content-Disposition: attachment; filename=\"".$this->name."\"");
 			header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
 		}
 		$this->send();
@@ -449,7 +449,7 @@ class ProductDownload extends DownloadAsset {
 
 /**
  * StorageEngines class
- * 
+ *
  * Storage engine file manager to load storage engines that are active.
  *
  * @author Jonathan Davis
@@ -467,7 +467,7 @@ class StorageEngines extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -485,7 +485,7 @@ class StorageEngines extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return array List of module names for the activated modules
 	 **/
 	function activated () {
@@ -515,7 +515,7 @@ class StorageEngines extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function settings () {
@@ -527,7 +527,7 @@ class StorageEngines extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function ui () {
@@ -539,7 +539,7 @@ class StorageEngines extends ModuleLoader {
 		if (!isset($this->active[$module])) return;
 		
 		// Register contexts the module is a handler for
-		foreach ($this->engines as $system => $handler) 
+		foreach ($this->engines as $system => $handler)
 			if ($module == $handler) $this->active[$module]->contexts[] = $system;
 		
 		if (method_exists($this->active[$module],'actions'))
@@ -550,7 +550,7 @@ class StorageEngines extends ModuleLoader {
 
 /**
  * StorageEngine interface
- * 
+ *
  * Provides a template for storage engine modules to implement
  *
  * @author Jonathan Davis
@@ -565,7 +565,7 @@ interface StorageEngine {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $uri The uniform resource indicator
 	 * @return void
 	 **/
@@ -576,7 +576,7 @@ interface StorageEngine {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $uri The uniform resource indicator
 	 * @return void
 	 **/
@@ -587,7 +587,7 @@ interface StorageEngine {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $uri The uniform resource indicator
 	 * @return boolean
 	 **/
@@ -598,7 +598,7 @@ interface StorageEngine {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param FileAsset $asset The parent asset for the data
 	 * @param mixed $data The raw data to be stored
 	 * @param string $type (optional) Type of data source, one of binary or file (file referring to a filepath)
@@ -610,7 +610,7 @@ interface StorageEngine {
 
 /**
  * StorageModule class
- * 
+ *
  * A framework for storage engine modules.
  *
  * @author Jonathan Davis
@@ -640,7 +640,7 @@ abstract class StorageModule {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $module The module class name
 	 * @param string $name The formal name of the module
 	 * @return void
@@ -652,7 +652,7 @@ abstract class StorageModule {
 		
 	function output ($uri) {
 		$data = $this->load($uri);
-		header ("Content-length: ".strlen($data)); 
+		header ("Content-length: ".strlen($data));
 		echo $data;
 	}
 	

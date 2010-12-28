@@ -1,8 +1,8 @@
 <?php
-/** 
+/**
  ** WARNING! DO NOT EDIT!
  **
- ** These templates are part of the core Shopp files 
+ ** These templates are part of the core Shopp files
  ** and will be overwritten when upgrading Shopp.
  **
  ** For editable templates, setup Shopp theme templates:
@@ -35,12 +35,12 @@
 	<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product validate">
 		<?php if(shopp('product','has-variations')): ?>
 		<ul class="variations">
-			<?php shopp('product','variations','mode=multiple&label=true&defaults='.__('Select an option','Shopp').'&before_menu=<li>&after_menu=</li>'); ?>			
+			<?php shopp('product','variations','mode=multiple&label=true&defaults='.__('Select an option','Shopp').'&before_menu=<li>&after_menu=</li>'); ?>
 		</ul>
 		<?php endif; ?>
 		<?php if(shopp('product','has-addons')): ?>
 			<ul class="addons">
-				<?php shopp('product','addons','mode=menu&label=true&defaults='.__('Select an add-on','Shopp').'&before_menu=<li>&after_menu=</li>'); ?>			
+				<?php shopp('product','addons','mode=menu&label=true&defaults='.__('Select an add-on','Shopp').'&before_menu=<li>&after_menu=</li>'); ?>
 			</ul>
 		<?php endif; ?>
 				

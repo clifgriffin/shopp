@@ -2,12 +2,12 @@
 	<div class="icon32"></div>
 	<h2><?php _e('Arrange Categories','Shopp'); ?></h2>
 	<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
-	
+
 	<form action="" id="categories" method="get">
 	<div>
 		<input type="hidden" name="page" value="<?php echo $this->Admin->pagename('categories'); ?>" />
 	</div>
-	
+
 	<div class="tablenav">
 		<div class="alignleft actions">
 			<a href="<?php echo esc_url(add_query_arg(array_merge(stripslashes_deep($_GET),array('page'=>$this->Admin->pagename('categories'),'a'=>null)),admin_url('admin.php'))); ?>" class="button add-new">&larr; <?php _e('Return to Manage Categories','Shopp'); ?></a>
@@ -25,20 +25,20 @@
 		</tfoot>
 	<?php if (sizeof($Categories) > 0): ?>
 		<tbody id="categories-table" class="list categories">
-		<?php 
+		<?php
 		$hidden = array();
 		$hidden = get_hidden_columns('shopp_page_shopp-categories');
-				
+
 		$even = false;
-		foreach ($Categories as $Category): 
-		
+		foreach ($Categories as $Category):
+
 		$editurl = esc_url(esc_attr(add_query_arg(array_merge(stripslashes_deep($_GET),
 			array('page'=>$this->Admin->pagename('categories'),
 					'id'=>$Category->id)),
 					admin_url('admin.php'))));
-		
+
 		$CategoryName = empty($Category->name)?'('.__('no category name','Shopp').')':$Category->name;
-		
+
 		$membership = explode('/',$Category->uri);
 
 		if (count($membership) > 1) $membership[] = $membership[count($membership)-2].'-child';

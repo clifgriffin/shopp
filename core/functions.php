@@ -15,7 +15,7 @@
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $format A date() format string
  * @param int $timestamp (optional) The timestamp to be formatted (defaults to current timestamp)
  * @return string The formatted localized date/time
@@ -60,9 +60,9 @@ function _d($format,$timestamp=false) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param object $object The object to display
- * @return string The object structure 
+ * @return string The object structure
  **/
 function _object_r ($object) {
 	global $Shopp;
@@ -78,7 +78,7 @@ function _object_r ($object) {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @param string $string The string to add
  * @param string $url The url to append to
  * @return string
@@ -93,7 +93,7 @@ function add_query_string ($string,$url) {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @param string $script JavaScript fragment
  * @param boolean $global (optional) Include the script in the global namespace
  * @return void
@@ -113,7 +113,7 @@ function add_storefrontjs ($script,$global=false) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param int $avg Mean average number in the distribution
  * @param int $max The max number in the distribution
  * @param int $min The minimum in the distribution
@@ -157,7 +157,7 @@ function auto_ranges ($avg,$max,$min) {
  * @author John Dillick, Jonathan Davis
  * @since 1.1
  * @version 1.1
- * 
+ *
  * @param float $value The value that needs converted
  * @param string $unit The unit that we are converting to
  * @param string $from (optional) The unit that we are converting from - defaults to system settings
@@ -201,13 +201,13 @@ function convert_unit ($value = 0, $unit, $from=false) {
 /**
  * Copies the builtin template files to the active WordPress theme
  *
- * Handles copying the builting template files to the shopp/ directory of 
- * the currently active WordPress theme.  Strips out the header comment 
+ * Handles copying the builting template files to the shopp/ directory of
+ * the currently active WordPress theme.  Strips out the header comment
  * block which includes a warning about editing the builtin templates.
  *
  * @author Jonathan Davis, John Dillick
  * @since 1.0
- * 
+ *
  * @param string $src The source directory for the builtin template files
  * @param string $target The target directory in the active theme
  * @return void
@@ -221,13 +221,13 @@ function copy_shopp_templates ($src,$target) {
 			$file = fopen($target_file,'w');
 			$src_file = preg_replace('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/','',$src_file); // strip warning comments
 			
-			/* Translate Strings @since 1.1 */ 
+			/* Translate Strings @since 1.1 */
 			$src_file = preg_replace_callback('/\<\?php _(e)\(\'(.*?)\',\'Shopp\'\); \?\>/','preg_e_callback',$src_file);
 			$src_file = preg_replace_callback('/_(_)\(\'(.*?)\',\'Shopp\'\)/','preg_e_callback',$src_file);
 			$src_file = preg_replace('/\'\.\'/','',$src_file);
 			
 			fwrite($file,$src_file);
-			fclose($file);			
+			fclose($file);
 			chmod($target_file,0666);
 		}
 	}
@@ -239,7 +239,7 @@ function copy_shopp_templates ($src,$target) {
  * @author Ashley Roll {@link ash@digitalnemesis.com}, Scott Dattalo
  * @since 1.1
  * @todo Implement using dechex() to encode/compress strings (e.g. faceted menu filter keys)
- * 
+ *
  * @return int The checksum polynomial
  **/
 function crc16 ($data) {
@@ -255,22 +255,22 @@ function crc16 ($data) {
 /**
  * remove_class_actions
  *
- * Removes all WordPress actions/filters registered by a particular class or its children.  
+ * Removes all WordPress actions/filters registered by a particular class or its children.
  *
  * @author John Dillick
  * @since 1.1.4.1
- * 
+ *
  * @param array/string $tags the action/filter name(s) to be removed
  * @param string $class the classname of the objects you wish to remove actions from
  * @param int $priority
- * @return void 
+ * @return void
  **/
 function remove_class_actions ($tags = false, $class = 'stdCLass', $priority = false ) {
 	global $wp_filter;
 
 	if ($tags === false) return;
 	foreach ((array) $tags as $tag) {
-		foreach ($wp_filter[$tag] as $pri_index => $callbacks) {			
+		foreach ($wp_filter[$tag] as $pri_index => $callbacks) {
 			if ($priority !== $pri_index && $priority !== false) continue;
 			foreach($callbacks as $idx => $callback) {
 				if ( $tag == $idx ) continue; // idx will be the same as tag for non-object function callbacks
@@ -288,20 +288,20 @@ function remove_class_actions ($tags = false, $class = 'stdCLass', $priority = f
  * Determines the currency format for the store
  *
  * If a format is provided, it is passed through. Otherwise the locale-based
- * currency format is used or if no locale setting is available 
- * a default of $#,###.## is returned.  Any formatting settings that are 
+ * currency format is used or if no locale setting is available
+ * a default of $#,###.## is returned.  Any formatting settings that are
  * missing will use settings from the default.
- * 
+ *
  * The currency format settings consist of a named array with the following:
  * cpos boolean The position of the currency symbol: true to prefix the number, false for suffix
  * currency string The currency symbol
  * precision int The decimal precision
  * decimals string The decimal delimiter
  * thousands string The thousands separator
- *  
+ *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @param array $format (optional) A currency format settings array
  * @return array Format settings array
  **/
@@ -319,7 +319,7 @@ function currency_format ($format=false) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param int|string $week The week of the month (1-4, -1 or first-fourth, last)
  * @param int|string $dayOfWeek The day of the week (0-6 or Sunday-Saturday)
  * @param int $month The month, uses current month if none provided
@@ -344,7 +344,7 @@ function datecalc($week=-1,$dayOfWeek=-1,$month=-1,$year=-1) {
 	}
 	if ($dayOfWeek < 0 || $dayOfWeek > 6) return false;
 	
-	if (!is_numeric($week)) $week = $weeks[$week];	
+	if (!is_numeric($week)) $week = $weeks[$week];
 	
 	if ($week == -1) {
 		$lastday = date("t", mktime(0,0,0,$month,1,$year));
@@ -365,11 +365,11 @@ function datecalc($week=-1,$dayOfWeek=-1,$month=-1,$year=-1) {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @return array The list version of date_format
  **/
 function date_format_order () {
-	$format = get_option('date_format'); 
+	$format = get_option('date_format');
 	
 	$tokens = array(
 		'day' => 'dDjl',
@@ -381,7 +381,7 @@ function date_format_order () {
 
 	preg_match("/([$dt]{1})([^$dt]+)([$dt]{1})([^$dt]+)([$dt]{1})/",$format,$matches);
 
-	array_shift($matches); 
+	array_shift($matches);
 	$_ = array(); $s = 0;
 	foreach ($matches as $match) {
 		foreach ($tokens as $type => $pattern) {
@@ -395,7 +395,7 @@ function date_format_order () {
 		}
 	}
 	
-	return $_;	
+	return $_;
 }
 
 /**
@@ -403,7 +403,7 @@ function date_format_order () {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param int $start The starting timestamp
  * @param int $end The ending timestamp
  * @return int	Number of days between the start and end
@@ -417,7 +417,7 @@ function duration ($start,$end) {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @param mixed $value The data to escape
  * @return mixed
  **/
@@ -431,7 +431,7 @@ function esc_attrs ($value) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $name The filename to check
  * @return boolean
  **/
@@ -471,13 +471,13 @@ function find_filepath ($filename, $directory, $root, &$found) {
  *
  * Recursively searches directories and one-level deep of sub-directories for
  * files with a specific extension
- * 
+ *
  * NOTE: Files are saved to the $found parameter, an array passed by
  * reference, not a returned value
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $extension File extension to search for
  * @param string $directory Starting directory
  * @param string $root Starting directory reference
@@ -507,7 +507,7 @@ function find_files ($extension, $directory, $root, &$found) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $file The path to the file
  * @param string $name (optional) The name of the file
  * @return string The mimetype of the file
@@ -603,7 +603,7 @@ function file_mimetype ($file,$name=false) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $value Numeric string to be converted
  * @param boolean $round (optional) Whether to round the value (default true for to round)
  * @param array $format (optional) The currency format to use for precision (defaults to the current base of operations)
@@ -620,7 +620,7 @@ function floatvalue ($value, $round=true, $format=false) {
 	if (is_float($value) || (			// Original $value is a float, passthru
 		is_float($v) 					// $v correctly casts to a float
 		&& $v > 0 && (					// The casted float value is not 0
-				$decimals == '.' || 	// not a normalized float if the decimal separator is in the value 
+				$decimals == '.' || 	// not a normalized float if the decimal separator is in the value
 				!empty($decimals) && $decimals != '.' && strpos($value,$decimals) === false	// and is not a period-character
 			) && (						// Not a valid float if the thousands separator is present at all
 				strpos($value,$thousands) === false
@@ -642,8 +642,8 @@ function floatvalue ($value, $round=true, $format=false) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
- * @param string $url Source URL to rewrite 
+ *
+ * @param string $url Source URL to rewrite
  * @return string $url The secure URL
  **/
 function force_ssl ($url,$rewrite=false) {
@@ -658,8 +658,8 @@ function force_ssl ($url,$rewrite=false) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
- * @param string $file The target gateway file 
+ *
+ * @param string $file The target gateway file
  * @return string The path fragment for the gateway file
  **/
 function gateway_path ($file) {
@@ -669,12 +669,12 @@ function gateway_path ($file) {
 /**
  * Handles sanitizing URLs for use in markup HREF attributes
  *
- * Wrapper for securing URLs generated with the WordPress 
+ * Wrapper for securing URLs generated with the WordPress
  * add_query_arg() function
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param mixed $param1 Either newkey or an associative_array
  * @param mixed $param2 Either newvalue or oldquery or uri
  * @param mixed $param3 Optional. Old query or uri
@@ -694,7 +694,7 @@ if (!function_exists('href_add_query_arg')) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param array $options An associative array of options
  * @param array $allowed (optional) Allowable attribute options for the element
  * @return string Attribute markup fragment
@@ -713,15 +713,15 @@ function inputattrs ($options,$allowed=array()) {
 		if (!in_array($key,$allowed)) continue;
 		switch($key) {
 			case "class": $classes .= " $value"; break;
-			case "disabled": 
+			case "disabled":
 				if (value_is_true($value)) {
-					$classes .= " disabled"; 
-					$string .= ' disabled="disabled"'; 
+					$classes .= " disabled";
+					$string .= ' disabled="disabled"';
 				}
 				break;
-			case "readonly": 
+			case "readonly":
 				if (value_is_true($value)) {
-					$classes .= " readonly"; 
+					$classes .= " readonly";
 					$string .= ' readonly="readonly"';
 				}
 				break;
@@ -741,7 +741,7 @@ function inputattrs ($options,$allowed=array()) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @return boolean Returns true if a bot user agent is detected
  **/
 function is_robot() {
@@ -760,7 +760,7 @@ function is_robot() {
  * @author John Dillick
  * @since 1.1
  * @deprecated
- * 
+ *
  * @return bool SHOPP_USERLEVEL is defined and the user has privs at that level
  **/
 function is_shopp_userlevel () {
@@ -772,7 +772,7 @@ function is_shopp_userlevel () {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $page (optional) Page name to look for in Shopp's page registry
  * @return boolean
  **/
@@ -794,7 +794,7 @@ function is_shopp_page ($page=false) {
 	// Determine if the visitor's requested page matches the provided page
 	if (!isset($pages[strtolower($page)])) return false;
 	$page = $pages[strtolower($page)];
-	if (isset($wp_query->post->ID) && 
+	if (isset($wp_query->post->ID) &&
 		$page['id'] == $wp_query->post->ID) return true;
 	return false;
 }
@@ -804,8 +804,8 @@ function is_shopp_page ($page=false) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
- * @return boolean 
+ *
+ * @return boolean
  **/
 function is_shopp_secure () {
 	return (!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != "off");
@@ -816,7 +816,7 @@ function is_shopp_secure () {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @param string $url The URL of the link to encode
  * @return void
  **/
@@ -851,9 +851,9 @@ function load_shopps_wpconfig () {
 	if ( file_exists(sanitize_path($root).'/'.$loadfile))
 		$wp_abspath = $root;
 		
-	if ( isset($_SERVER['SHOPP_WPCONFIG_PATH']) 
-		&& file_exists(sanitize_path($_SERVER['SHOPP_WPCONFIG_PATH']).'/'.$configfile) ) { 
-		// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig 
+	if ( isset($_SERVER['SHOPP_WPCONFIG_PATH'])
+		&& file_exists(sanitize_path($_SERVER['SHOPP_WPCONFIG_PATH']).'/'.$configfile) ) {
+		// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig
 		// and SHOPP_ABSPATH used on webserver site config
 		$wp_config_path = $_SERVER['SHOPP_WPCONFIG_PATH'];
 
@@ -874,7 +874,7 @@ function load_shopps_wpconfig () {
 	}
 	
 	$wp_config_file = sanitize_path($wp_config_path).'/'.$configfile;
-	if ( $wp_config_path !== false ) 
+	if ( $wp_config_path !== false )
 		$config = file_get_contents($wp_config_file);
 	else return false;
 	
@@ -885,7 +885,7 @@ function load_shopps_wpconfig () {
 		$value = safe_define_ev($value);
 
 		// Override ABSPATH with SHOPP_ABSPATH
-		if ($name == "ABSPATH" && isset($_SERVER['SHOPP_ABSPATH']) 
+		if ($name == "ABSPATH" && isset($_SERVER['SHOPP_ABSPATH'])
 				&& file_exists(sanitize_path($_SERVER['SHOPP_ABSPATH']).'/'.$loadfile))
 			$value = rtrim(sanitize_path($_SERVER['SHOPP_ABSPATH']),'/').'/';
 		define($name,$value);
@@ -906,7 +906,7 @@ function load_shopps_wpconfig () {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @return void
  **/
 function shopp_ms_tableprefix () {
@@ -936,7 +936,7 @@ function shopp_ms_tableprefix () {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $datetime A MySQL date time string
  * @return int A timestamp number usable by PHP date functions
  **/
@@ -952,7 +952,7 @@ function mktimestamp ($datetime) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param int $timestamp A timestamp number
  * @return string An SQL datetime formatted string
  **/
@@ -965,7 +965,7 @@ function mkdatetime ($timestamp) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param int $hour The hour of the meridiem
  * @param string $meridiem Specified meridiem of "AM" or "PM"
  * @return int The 24-hour equivalent
@@ -981,17 +981,17 @@ function mk24hour ($hour, $meridiem) {
 /**
  * Generates HTML markup for the options of a drop-down menu
  *
- * Takes a list of options and generates the option elements for an HTML 
- * select element.  By default, the option values and labels will be the 
- * same.  If the values option is set, the option values will use the 
- * key of the associative array, and the option label will be the value in 
+ * Takes a list of options and generates the option elements for an HTML
+ * select element.  By default, the option values and labels will be the
+ * same.  If the values option is set, the option values will use the
+ * key of the associative array, and the option label will be the value in
  * the array.  The extend option can be used to ensure that if the selected
  * value does not exist in the menu, it will be automatically added at the
  * top of the list.
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param array $list The list of options
  * @param int|string $selected The array index, or key name of the selected value
  * @param boolean $values (optional) Use the array key as the option value attribute (defaults to false)
@@ -1020,17 +1020,17 @@ function menuoptions ($list,$selected=null,$values=false,$extend=false) {
  * Formats a number amount using a specified currency format
  *
  * The number is formatted based on a currency formatting configuration
- * array that  includes the currency symbol position (cpos), the currency 
- * symbol (currency), the decimal precision (precision), the decimal character 
+ * array that  includes the currency symbol position (cpos), the currency
+ * symbol (currency), the decimal precision (precision), the decimal character
  * to use (decimals) and the thousands separator (thousands).
- * 
- * If the currency format is not specified, the currency format from the 
+ *
+ * If the currency format is not specified, the currency format from the
  * store setting is used.  If no setting is available, the currency format
  * for US dollars is used.
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param float $amount The amount to be formatted
  * @param array $format The currency format to use
  * @return string The formatted amount
@@ -1047,7 +1047,7 @@ function money ($amount,$format=false) {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @param float $number A floating point or integer to format
  * @param int $precision (optional) The number of decimal precision to format to [default: 2]
  * @param string $decimals The decimal separator character [default: .]
@@ -1091,7 +1091,7 @@ function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param int $num The number to format
  * @return string The formatted telephone number
  **/
@@ -1116,16 +1116,16 @@ function phone ($num) {
 
 /**
  * Formats a numeric amount to a percentage using a specified format
- * 
+ *
  * Uses a format configuration array to specify how the amount needs to be
- * formatted.  When no format is specified, the currency format setting 
- * is used only paying attention to the decimal precision, decimal symbol and 
- * thousands separator.  If no setting is available, a default configuration 
+ * formatted.  When no format is specified, the currency format setting
+ * is used only paying attention to the decimal precision, decimal symbol and
+ * thousands separator.  If no setting is available, a default configuration
  * is used (precision: 1) (decimal separator: .) (thousands separator: ,)
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param float $amount The amount to format
  * @param array $format A specific format for the number
  * @return string The formatted percentage
@@ -1142,7 +1142,7 @@ function percentage ($amount,$format=false) {
  *
  * @author John Dillick
  * @since 1.1
- * 
+ *
  * @param array $matches preg matches array, expects $1 to be type and $2 to be string
  * @return string _e translated string
  **/
@@ -1157,7 +1157,7 @@ function preg_e_callback ($matches) {
  *
  * @author Jonathan Davis, John Dillick
  * @since 1.1
- * 
+ *
  * @return string raw request url
  **/
 function raw_request_url () {
@@ -1178,7 +1178,7 @@ function raw_request_url () {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param int $bytes The number of bytes
  * @return string The formatted unit size
  **/
@@ -1194,12 +1194,12 @@ function readableFileSize($bytes,$precision=1) {
 /**
  * Creates natural language amount of time from a specified timestamp to today
  *
- * The string includes the number of years, months, days, hours, minutes 
+ * The string includes the number of years, months, days, hours, minutes
  * and even seconds e.g.: 1 year, 5 months, 29 days , 23 hours and 59 minutes
  *
  * @author Timothy Hatcher
  * @since 1.0
- * 
+ *
  * @param int $date The original timestamp
  * @return string The formatted time range
  **/
@@ -1248,7 +1248,7 @@ function readableTime($date, $long = false) {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @param float $amount The number to be rounded
  * @param array $format (optional) The formatting settings to use,
  * @return float The rounded float
@@ -1264,7 +1264,7 @@ function roundprice ($amount,$format=false) {
  *
  * @author John Dillick
  * @since 1.1
- * 
+ *
  * @param string $data data to be encrypted
  * @param string $pkey PEM encoded RSA public key
  * @return string Encrypted binary data
@@ -1277,18 +1277,18 @@ function rsa_encrypt($data, $pkey){
 /**
  * Safely interprets a single PHP statement for dynamic macro definitions
  *
- * Ensures that unsafe code cannot be arbitrarily executed by three levels 
- * of protection: unsafe function blacklist, no anonymous functions, 
+ * Ensures that unsafe code cannot be arbitrarily executed by three levels
+ * of protection: unsafe function blacklist, no anonymous functions,
  * no backtick operations, and no variable variables.
- * 
- * Additionally, the use of create_function to interpret the code ensures 
+ *
+ * Additionally, the use of create_function to interpret the code ensures
  * that executed code doesn't taint the rest of the runtime environment.
- * 
+ *
  * An error is generated to help detect and debug problem macro definitions.
- * 
+ *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @param string $string A PHP statement to be interpreted
  * @return mixed The returned value
  **/
@@ -1307,7 +1307,7 @@ function safe_define_ev ($string) {
 	
 	if (preg_match('/('.join('|',$f).')\s*\(.*?\)/',$string) !== 0)
 		$error = "Unsafe function detected while interpreting a macro definition";
-	elseif (preg_match('/\$\w+\s*=\s*function\s*\(/',$string) !== 0) 
+	elseif (preg_match('/\$\w+\s*=\s*function\s*\(/',$string) !== 0)
 		$error = "Anoymous function detected while interpreting a macro definition";
 	elseif (preg_match('/(\`.+?\`)/',preg_replace('/(\'.*?\'|".*?")/m','',$string)) !== 0)
 		$error = "Unsafe backtick operator usage detected while interpreting a macro definition";
@@ -1328,13 +1328,13 @@ if(!function_exists('sanitize_path')){
 	/**
 	 * Normalizes path separators to always use forward-slashes
 	 *
-	 * PHP path functions on Windows-based systems will return paths with 
-	 * backslashes as the directory separator.  This function is used to 
+	 * PHP path functions on Windows-based systems will return paths with
+	 * backslashes as the directory separator.  This function is used to
 	 * ensure we are always working with forward-slash paths
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $path The path to clean up
 	 * @return string $path The forward-slash path
 	 **/
@@ -1349,7 +1349,7 @@ if(!function_exists('sanitize_path')){
  * @author Jonathan Davis
  * @since 1.0
  * @version 1.1
- * 
+ *
  * @param string $format A currency formatting string such as $#,###.##
  * @return array Formatting options list
  **/
@@ -1412,12 +1412,12 @@ function scan_money_format ($format) {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @param string $string The content markup to be wrapped
  * @return string The wrapped markup
  **/
 function shoppdiv ($string) {
-	if (strpos($string,'<div id="shopp">') === false) 
+	if (strpos($string,'<div id="shopp">') === false)
 		return '<div id="shopp">'.$string.'</div>';
 	return $string;
 }
@@ -1425,14 +1425,14 @@ function shoppdiv ($string) {
 /**
  * Sends an email message based on a specified template file
  *
- * Sends an e-mail message in the format of a specified e-mail 
- * template file using variable substitution for variables appearing in 
- * the template as a bracketed [variable] with data from the 
+ * Sends an e-mail message in the format of a specified e-mail
+ * template file using variable substitution for variables appearing in
+ * the template as a bracketed [variable] with data from the
  * provided data array or the super-global $_POST array
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $template Email template file path
  * @param array $data The data to populate the template with
  * @return boolean True on success, false on failure
@@ -1478,7 +1478,7 @@ function shopp_email ($template,$data=array()) {
 				if (empty($data)) $string = (isset($_POST[$code])?$_POST[$code]:'');
 				else $string = apply_filters('shopp_email_data', $data[$code], $code);
 
-				$string = str_replace(array_keys($replacements),array_values($replacements),$string); 
+				$string = str_replace(array_keys($replacements),array_values($replacements),$string);
 
 				if (isset($string) && !is_array($string)) $line = preg_replace("/\[".$code."\]/",$string,$line);
 			}
@@ -1515,7 +1515,7 @@ function shopp_email ($template,$data=array()) {
 		echo "Headers:\n";
 		print_r($headers);
 		echo "<pre>";
-		exit();		
+		exit();
 	}
 }
 
@@ -1524,7 +1524,7 @@ function shopp_email ($template,$data=array()) {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @param array $pages Currently known page data
  * @return array
  **/
@@ -1536,7 +1536,7 @@ function shopp_locate_pages () {
 
 	// Find pages with Shopp-related main shortcodes
 	$search = "";
-	foreach ($pages as $page) 
+	foreach ($pages as $page)
 		$search .= (!empty($search)?" OR ":"")."post_content LIKE '%".$page['shortcode']."%'";
 	$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE ($search) AND post_type='page'";
 	$results = $wpdb->get_results($query);
@@ -1565,7 +1565,7 @@ function shopp_locate_pages () {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param array $data The data to populate the RSS feed with
  * @return string The RSS markup
  **/
@@ -1622,7 +1622,7 @@ function shopp_rss ($data) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @return boolean Returns true if all technologies are available
  **/
 function shopp_prereqs () {
@@ -1630,10 +1630,10 @@ function shopp_prereqs () {
 	
 	// Check PHP version, this won't appear much since syntax errors in earlier
 	// PHP releases will cause this code to never be executed
-	if (!version_compare(PHP_VERSION, '5.0','>=')) 
+	if (!version_compare(PHP_VERSION, '5.0','>='))
 		$errors[] = __("Shopp requires PHP version 5.0+.  You are using PHP version ").PHP_VERSION;
 
-	if (version_compare(PHP_VERSION, '5.1.3','==')) 
+	if (version_compare(PHP_VERSION, '5.1.3','=='))
 		$errors[] = __("Shopp will not work with PHP version 5.1.3 because of a critical bug in complex POST data structures.  Please upgrade PHP to version 5.1.4 or higher.");
 		
 	// Check WordPress version
@@ -1673,7 +1673,7 @@ function shopp_prereqs () {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $page The normal page name
  * @return string The modified page name
  **/
@@ -1691,7 +1691,7 @@ function shopp_pagename ($page) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $uri The URI to redirect to
  * @param boolean $exit (optional) Exit immediately after the redirect (defaults to true, set to false to override)
  * @return void
@@ -1704,12 +1704,12 @@ function shopp_redirect ($uri,$exit=true) {
 
 /**
  * Safely handles redirect requests to ensure they remain onsite
- * 
+ *
  * Derived from WP 2.8 wp_safe_redirect
  *
  * @author Mark Jaquith, Ryan Boren
  * @since 1.1
- * 
+ *
  * @param string $location The URL to redirect to
  * @param int $status (optional) The HTTP status to send to the browser
  * @return void
@@ -1741,11 +1741,11 @@ function shopp_safe_redirect($location, $status = 302) {
  * Determines the current taxrate from the store settings and provided options
  *
  * Contextually works out if the tax rate applies or not based on storefront
- * settings and the provided override options 
+ * settings and the provided override options
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $override (optional) Specifies whether to override the default taxrate behavior
  * @param string $taxprice (optional) Supports a secondary contextual override
  * @return float The determined tax rate
@@ -1770,12 +1770,12 @@ function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @return void
  **/
 function shopp_timezone () {
-	if (function_exists('date_default_timezone_set') && get_option('timezone_string')) 
-		date_default_timezone_set(get_option('timezone_string'));	
+	if (function_exists('date_default_timezone_set') && get_option('timezone_string'))
+		date_default_timezone_set(get_option('timezone_string'));
 }
 
 /**
@@ -1783,7 +1783,7 @@ function shopp_timezone () {
  *
  * @author Jonathan Davis
  * @since 1.1
- * 
+ *
  * @param mixed $request Additional URI requests
  * @param string $page The gateway page
  * @param boolean $secure (optional) True for secure URLs, false to force unsecure URLs
@@ -1870,7 +1870,7 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 	$depth++;
 	$position = 1;
 	$result = array();
-	if ($items) { 
+	if ($items) {
 		foreach ($items as $item) {
 			// Preserve initial priority
 			if (isset($item->priority))	$item->_priority = $item->priority;
@@ -1890,12 +1890,12 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 
 /**
  * Converts natural language text to boolean values
- * 
+ *
  * Used primarily for handling boolean text provided in shopp() tag options.
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $value The natural language value
  * @return boolean The boolean value of the provided text
  **/
@@ -1911,7 +1911,7 @@ function value_is_true ($value) {
  *
  * @author Jonathan Davis
  * @since 1.0
- * 
+ *
  * @param string $type The HTML element type name
  * @return boolean True if valid, false if not
  **/

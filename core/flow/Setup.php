@@ -1,7 +1,7 @@
 <?php
 /**
  * Setup
- * 
+ *
  * Flow controller for settings management
  *
  * @author Jonathan Davis
@@ -74,7 +74,7 @@ class Setup extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function general () {
@@ -95,7 +95,7 @@ class Setup extends FlowController {
 		$countries = array();
 		$countrydata = Lookup::countries();
 		foreach ($countrydata as $iso => $c) {
-			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso) 
+			if (isset($_POST['settings']) && $_POST['settings']['base_operations']['country'] == $iso)
 				$base_region = $c['region'];
 			$countries[$iso] = $c['name'];
 		}
@@ -112,9 +112,9 @@ class Setup extends FlowController {
 			$_POST['settings']['base_operations'] = $countrydata[$_POST['settings']['base_operations']['country']];
 			$_POST['settings']['base_operations']['country'] = $country;
 			$_POST['settings']['base_operations']['zone'] = $zone;
-			$_POST['settings']['base_operations']['currency']['format'] = 
+			$_POST['settings']['base_operations']['currency']['format'] =
 				scan_money_format($_POST['settings']['base_operations']['currency']['format']);
-			if (in_array($_POST['settings']['base_operations']['country'],$vat_countries)) 
+			if (in_array($_POST['settings']['base_operations']['country'],$vat_countries))
 				$_POST['settings']['base_operations']['vat'] = true;
 			else $_POST['settings']['base_operations']['vat'] = false;
 			
@@ -146,10 +146,10 @@ class Setup extends FlowController {
 			check_admin_referer('shopp-settings-presentation');
 			$updated = __('Shopp presentation settings saved.','Shopp');
 
-			if (isset($_POST['settings']['theme_templates']) 
+			if (isset($_POST['settings']['theme_templates'])
 				&& $_POST['settings']['theme_templates'] == "on"
 				&& !is_dir($theme_path)) {
-					$_POST['settings']['theme_templates'] = "off";	
+					$_POST['settings']['theme_templates'] = "off";
 					$updated = __('Shopp theme templates can\'t be used because they don\'t exist.','Shopp');
 			}
 			
@@ -175,7 +175,7 @@ class Setup extends FlowController {
 				if (empty($theme)) $status = "ready";
 				else if (array_diff($builtin,$theme)) $status = "incomplete";
 			}
-		}		
+		}
 
 		$category_views = array("grid" => __('Grid','Shopp'),"list" => __('List','Shopp'));
 		$row_products = array(2,3,4,5,6,7);
@@ -248,7 +248,7 @@ class Setup extends FlowController {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function shipping () {
@@ -305,7 +305,7 @@ class Setup extends FlowController {
 		$useRegions = $Shopp->Settings->get('shipping_regions');
 
 		$areas = Lookup::country_areas();
-		if (is_array($areas[$base['country']]) && $useRegions == "on") 
+		if (is_array($areas[$base['country']]) && $useRegions == "on")
 			$areas = array_keys($areas[$base['country']]);
 		else $areas = array($base['country'] => $base['name']);
 		unset($countries,$regions);
@@ -339,7 +339,7 @@ class Setup extends FlowController {
 		$zones = Lookup::country_zones();
 		
 		include(SHOPP_ADMIN_PATH."/settings/taxes.php");
-	}	
+	}
 
 	function payments () {
 		global $Shopp;
@@ -353,7 +353,7 @@ class Setup extends FlowController {
 			check_admin_referer('shopp-settings-payments');
 			do_action('shopp_save_payment_settings');
 		
-			$this->settings_save();			
+			$this->settings_save();
 			$updated = __('Shopp payments settings saved.','Shopp');
 		}
 
@@ -380,7 +380,7 @@ class Setup extends FlowController {
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-system');
 
-			if (!isset($_POST['settings']['error_notifications'])) 
+			if (!isset($_POST['settings']['error_notifications']))
 				$_POST['settings']['error_notifications'] = array();
 			
 			$this->settings_save();
@@ -399,7 +399,7 @@ class Setup extends FlowController {
 			$query = "DELETE FROM $assets WHERE context='image' AND type='image'";
 			if ($db->query($query))
 				$updated = __('All cached images have been cleared.','Shopp');
-		} 
+		}
 		
 		
 		if (isset($_POST['resetlog'])) $Shopp->ErrorLog->reset();
@@ -457,7 +457,7 @@ class Setup extends FlowController {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value)
 			$this->Settings->save($setting,$value);
-	}	
+	}
 
 } // END class Setup
 

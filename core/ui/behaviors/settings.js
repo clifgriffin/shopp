@@ -6,10 +6,10 @@
 
 function ModuleSetting (module,name,label,multi) {
 	var $ = jqnc(), _ = this, methods = 0;
-	
+
 	_.name = name;
 	_.module = module;
-	
+
 	_.label = label;
 	_.settings = new Array();
 	_.ui = new Array();
@@ -49,7 +49,7 @@ function ModuleSetting (module,name,label,multi) {
 		deleteButton.hover (function () {
 				row.animate({backgroundColor:deletingBG},250);
 			},function() {
-				row.animate({backgroundColor:bodyBG},250);		
+				row.animate({backgroundColor:bodyBG},250);
 		});
 
 		deleteButton.click (function () {
@@ -64,7 +64,7 @@ function ModuleSetting (module,name,label,multi) {
 		});
 
 		_.tables[methods] = $('<table class="settings"/>').appendTo(settingsTableCell);
-		
+
 		$.each(_.settings,function (id,element) {
 			var input,markup;
 			if (_.multi) input = new SettingInput(_.module,element.attrs,element.options,methods);
@@ -78,7 +78,7 @@ function ModuleSetting (module,name,label,multi) {
 			if (_.label instanceof Array && _.label[methods]) _.payment();
 		}
 	}
-	
+
 	_.shipping = function () {
 		if (_.label instanceof Array) {
 			if (_.label[methods]) label = _.label[methods];
@@ -106,7 +106,7 @@ function ModuleSetting (module,name,label,multi) {
 		deleteButton.hover (function () {
 				row.animate({backgroundColor:deletingBG},250);
 			},function() {
-				row.animate({backgroundColor:bodyBG},250);		
+				row.animate({backgroundColor:bodyBG},250);
 		});
 
 		deleteButton.click (function () {
@@ -121,7 +121,7 @@ function ModuleSetting (module,name,label,multi) {
 		});
 
 		_.tables[methods] = $('<table class="settings"/>').appendTo(settingsTableCell);
-		
+
 		$.each(_.settings,function (id,element) {
 			var input,markup;
 			if (_.multi) input = new SettingInput(_.module,element.attrs,element.options,methods);
@@ -135,7 +135,7 @@ function ModuleSetting (module,name,label,multi) {
 			if (_.label[methods]) _.payment();
 		}
 	}
-	
+
 	_.storage = function () {
 		$.each(_.settings,function (id,element) {
 			element.attrs.setting = _.setting;
@@ -148,21 +148,21 @@ function ModuleSetting (module,name,label,multi) {
 					else input.value = '';
 				} else input.value = element.attrs.value;
 			} else input.value = '';
-			
+
 			if (element.attrs.selected) {
 				if (element.attrs.selected instanceof Object) {
 					if (element.attrs.selected[_.setting]) input.selected = element.attrs.selected[_.setting];
 					else input.selected = 0;
 				} else input.selected = element.attrs.selected;
 			} else input.selected = 0;
-			
-			
+
+
 			markup = input.generate();
 			$(markup).appendTo(_.element);
 			if (input.type == "multimenu") input.selectall();
 		});
 	}
-	
+
  	_.newInput = function (column,attrs,options) {
 		var input = {
 			'target':column,
@@ -171,15 +171,15 @@ function ModuleSetting (module,name,label,multi) {
 		};
 		_.settings.push(input);
 	}
-		
+
 	_.column = function (index,methods) {
 		if (!_.columns[methods]) _.columns[methods] = new Array();
 		if (!_.columns[methods][index]) return _.columns[methods][index] = $('<td/>').appendTo(_.tables[methods])
 		else return _.columns[methods][index];
 	}
-	
+
 	_.behaviors = function () {}
-	
+
 }
 
 function SettingInput (module,attrs,options,method) {
@@ -187,7 +187,7 @@ function SettingInput (module,attrs,options,method) {
 		types = new Array('text','password','hidden','checkbox','menu','textarea','multimenu','p','button');
 
 	if (!attrs.name) return '';
-	
+
 	_.type = ($.inArray(attrs.type,types) != -1)?attrs.type:'text';
 	_.name = 'settings['+module+']['+attrs.name+']';
 	if (method !== undefined ) _.name += '['+method+']';
@@ -197,7 +197,7 @@ function SettingInput (module,attrs,options,method) {
 			else _.value = '';
 		} else _.value = attrs.value;
 	} else _.value = '';
-	
+
 	_.normal = (attrs.normal)?attrs.normal:'';
 	_.keyed = (attrs.keyed)?(attrs.keyed == 'true'?true:false):true;
 	_.selected = (attrs.selected)?attrs.selected:false;
@@ -213,8 +213,8 @@ function SettingInput (module,attrs,options,method) {
 	_.content = (attrs.content)?attrs.content:'';
 	_.label = (attrs.label)?attrs.label:false;
 	if (_.label instanceof Object && attrs.setting)
-		_.label = attrs.label[attrs.setting];	
-	
+		_.label = attrs.label[attrs.setting];
+
 	_.generate = function () {
 		if (!_.name) return;
 		if (_.type == "p") return _.paragraph();
@@ -225,7 +225,7 @@ function SettingInput (module,attrs,options,method) {
 		if (_.type == "textarea") return _.textarea();
 		return _.text();
 	}
-	
+
 	_.text = function () {
 		var readonly = (_.readonly)?' readonly="readonly"':'',
 		 	html = '<div><input type="'+_.type+'" name="'+_.name+'" value="'+_.value+'" size="'+_.size+'" class="'+_.classes+'" id="'+_.id+'"'+readonly+' />';
@@ -262,11 +262,11 @@ function SettingInput (module,attrs,options,method) {
 			});
 		}
 		html += '</select>';
-		
+
 		if (_.label) html += '<br /><label for="'+_.id+'">'+_.label+'</label></div>\n';
 		return html;
 	}
-	
+
 	_.multimenu = function () {
 		var html = '<div><div class="multiple-select">',
 			alt = true,
@@ -281,15 +281,15 @@ function SettingInput (module,attrs,options,method) {
 				if ($.inArray(key,selected) != -1) checked = ' checked="true"';
 				html += '<li'+(alt?' class="odd"':'')+'>';
 				html += '<input type="checkbox" name="'+_.name+'[]" value="'+key+'" id="'+id+'"'+checked+' />';
-				html += '<label for="'+id+'">'+label+'</label>';				
+				html += '<label for="'+id+'">'+label+'</label>';
 				html += '</li>';
 				alt = !alt;
 			});
 		}
 		html += '</ul></div>';
-		
+
 		if (_.label) html += '<br /><label for="'+_.id+'">'+_.label+'</label></div>\n';
-		
+
 		return html;
 	}
 
@@ -299,7 +299,7 @@ function SettingInput (module,attrs,options,method) {
 		var html = '<div><button'+type+' name="'+_.name+'" value="'+_.value+'" id="'+_.id+'"'+classes+'>'+_.label+'</button></div>\n';
 		return html;
 	}
-	
+
 	_.paragraph = function () {
 		var id = (_.id)?' id="'+_.id+'"':'',
 		 	classes = (_.classes)?' class="'+_.classes+'"':'',
@@ -308,7 +308,7 @@ function SettingInput (module,attrs,options,method) {
 		html += '<div'+id+classes+'>'+_.content+'</div>';
 		return html;
 	}
-	
+
 	_.selectall = function () {
 		var id = _.id;
 		$('#'+id+'-select-all').change(function () {
@@ -316,5 +316,5 @@ function SettingInput (module,attrs,options,method) {
 			else $('#'+id+' input').attr('checked',false);
 		});
 	}
-	
+
 }

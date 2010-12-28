@@ -14,13 +14,13 @@ if (class_exists('WP_Widget')) {
 class ShoppTagCloudWidget extends WP_Widget {
 
     function ShoppTagCloudWidget() {
-        parent::WP_Widget(false, 
-			$name = __('Shopp Tag Cloud','Shopp'), 
+        parent::WP_Widget(false,
+			$name = __('Shopp Tag Cloud','Shopp'),
 			array('description' => __('Popular product tags in a cloud format','Shopp'))
 		);
     }
 
-    function widget($args, $options) {		
+    function widget($args, $options) {
 		global $Shopp;
 		if (!empty($args)) extract($args);
 
@@ -31,11 +31,11 @@ class ShoppTagCloudWidget extends WP_Widget {
 		echo $before_widget.$title.$tagcloud.$after_widget;
     }
 
-    function update($new_instance, $old_instance) {				
+    function update($new_instance, $old_instance) {
         return $new_instance;
     }
 
-    function form($options) {				
+    function form($options) {
 		?>
 		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>

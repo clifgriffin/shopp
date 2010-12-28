@@ -1,7 +1,7 @@
 <?php
 /**
  * Warehouse
- * 
+ *
  * Flow controller for product management interfaces
  *
  * @author Jonathan Davis
@@ -96,8 +96,8 @@ class Warehouse extends AdminController {
 
 
 		if ($page == $this->Admin->pagename('products')
-				&& !empty($deleting) 
-				&& !empty($delete) 
+				&& !empty($deleting)
+				&& !empty($delete)
 				&& is_array($delete)) {
 			foreach($delete as $deletion) {
 				$Product = new Product($deletion);
@@ -118,7 +118,7 @@ class Warehouse extends AdminController {
 			$Shopp->Product->load_data(array('prices','specs','categories','tags'));
 		} else {
 			$Shopp->Product = new Product();
-			$Shopp->Product->status = "publish";  
+			$Shopp->Product->status = "publish";
 		}
 		
 		if ($save) {
@@ -128,7 +128,7 @@ class Warehouse extends AdminController {
 			if ($next) {
 				if ($next == "new") {
 					$Shopp->Product = new Product();
-					$Shopp->Product->status = "publish";  
+					$Shopp->Product->status = "publish";
 				} else {
 					$Shopp->Product = new Product($next);
 					$Shopp->Product->load_data(array('prices','specs','categories','tags'));
@@ -136,7 +136,7 @@ class Warehouse extends AdminController {
 			} else {
 				if (empty($id)) $id = $Shopp->Product->id;
 				$Shopp->Product = new Product($id);
-				$Shopp->Product->load_data(array('prices','specs','categories','tags'));			
+				$Shopp->Product->load_data(array('prices','specs','categories','tags'));
 			}
 		}
 				
@@ -169,7 +169,7 @@ class Warehouse extends AdminController {
 		$args = array_merge($defaults,$_GET);
 		extract($args,EXTR_SKIP);
 
-		if (!$workflow) {		
+		if (!$workflow) {
 			if (empty($categories)) $categories = array('');
 		
 			$category_table = DatabaseObject::tablename(Category::$table);
@@ -211,7 +211,7 @@ class Warehouse extends AdminController {
 			$pagenum = 1;
 		if( !$per_page || $per_page < 0 )
 			$per_page = 20;
-		$start = ($per_page * ($pagenum-1)); 
+		$start = ($per_page * ($pagenum-1));
 		
 		$pd = DatabaseObject::tablename(Product::$table);
 		$pt = DatabaseObject::tablename(Price::$table);
@@ -234,20 +234,20 @@ class Warehouse extends AdminController {
 				$having = "HAVING COUNT(cat.id) = 0";
 			} else {
 				$matchcol .= ", GROUP_CONCAT(DISTINCT cat.id ORDER BY cat.id SEPARATOR ',') AS catids";
-				$where .= " AND cat.id IN (SELECT parent FROM $clog WHERE parent=$cat AND type='category')";	
+				$where .= " AND cat.id IN (SELECT parent FROM $clog WHERE parent=$cat AND type='category')";
 			}
 		}
 		if (!empty($sl)) {
 			switch($sl) {
 				case "ns": $where .= " AND pt.inventory='off'"; break;
-				case "oos": 
-					$where .= " AND (pt.inventory='on')"; 
+				case "oos":
+					$where .= " AND (pt.inventory='on')";
 					$having .= (empty($having)?"HAVING ":" AND ")."SUM(pt.stock) = 0";
 					break;
 				case "ls":
 					$ls = $Settings->get('lowstock_level');
 					if (empty($ls)) $ls = '0';
-					$where .= " AND (pt.inventory='on' AND pt.stock <= $ls AND pt.stock > 0)"; 
+					$where .= " AND (pt.inventory='on' AND pt.stock <= $ls AND pt.stock > 0)";
 					break;
 				case "is": $where .= " AND (pt.inventory='on' AND pt.stock > 0)";
 			}
@@ -269,10 +269,10 @@ class Warehouse extends AdminController {
 			
 		} else {
 			$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,pd.variations,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories,
-			IF(pt.options=0,IF(pt.tax='off',pt.price,pt.price+(pt.price*$taxrate)),-1) AS mainprice, 
-			IF(MAX(pt.tax)='off',MAX(pt.price),MAX(pt.price+(pt.price*$taxrate))) AS maxprice, 
-			IF(MAX(pt.tax)='off',MIN(pt.price),MIN(pt.price+(pt.price*$taxrate))) AS minprice, 
-			IF(pt.inventory='on','on','off') AS inventory, 
+			IF(pt.options=0,IF(pt.tax='off',pt.price,pt.price+(pt.price*$taxrate)),-1) AS mainprice,
+			IF(MAX(pt.tax)='off',MAX(pt.price),MAX(pt.price+(pt.price*$taxrate))) AS maxprice,
+			IF(MAX(pt.tax)='off',MIN(pt.price),MIN(pt.price+(pt.price*$taxrate))) AS minprice,
+			IF(pt.inventory='on','on','off') AS inventory,
 			ROUND(SUM(pt.stock)/IF(clog.id IS NULL,1,count(DISTINCT clog.id)),0) AS stock";
 			if ($workflow) $columns = "pd.id";
 
@@ -334,7 +334,7 @@ class Warehouse extends AdminController {
 			'inventory'=>__('Inventory','Shopp'),
 			'featured'=>__('Featured','Shopp'))
 		);
-	}	
+	}
 	
 	function inventory_cols () {
 		register_column_headers('shopp_page_shopp-products', array(
@@ -450,7 +450,7 @@ class Warehouse extends AdminController {
 	 * Handles saving updates from the product editor
 	 *
 	 * Saves all product related information which includes core product data
-	 * and supporting elements such as images, digital downloads, tags, 
+	 * and supporting elements such as images, digital downloads, tags,
 	 * assigned categories, specs and pricing variations.
 	 *
 	 * @author Jonathan Davis
@@ -473,7 +473,7 @@ class Warehouse extends AdminController {
 		if (empty($_POST['options'])) $Product->options = array();
 		else $_POST['options'] = stripslashes_deep($_POST['options']);
 
-		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);	
+		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);
 		
 		// Check for an existing product slug
 		$exclude_product = !empty($Product->id)?"AND id != $Product->id":"";
@@ -491,7 +491,7 @@ class Warehouse extends AdminController {
 			$publishfields = array('month' => '','date' => '','year' => '','hour'=>'','minute'=>'','meridiem'=>'');
 			$publishdate = join('',array_merge($publishfields,$_POST['publish']));
 			if (!empty($publishdate)) {
-				if ($_POST['publish']['meridiem'] == "PM" && $_POST['publish']['hour'] < 12) 
+				if ($_POST['publish']['meridiem'] == "PM" && $_POST['publish']['hour'] < 12)
 					$_POST['publish']['hour'] += 12;
 				$_POST['publish'] = mktime($_POST['publish']['hour'],$_POST['publish']['minute'],0,$_POST['publish']['month'],$_POST['publish']['date'],$_POST['publish']['year']);
 			} else {
@@ -570,7 +570,7 @@ class Warehouse extends AdminController {
 
 					if ($File->found($tmpfile)) {
 						$File->uri = $tmpfile;
-						$stored = true;	
+						$stored = true;
 					} else $stored = $File->store($tmpfile,'file');
 					
 					if ($stored) {
@@ -584,12 +584,12 @@ class Warehouse extends AdminController {
 		}
 
 		// No variation options at all, delete all variation-pricelines
-		if (!empty($Product->prices) && is_array($Product->prices) 
-				&& (empty($_POST['options']['v']) || empty($_POST['options']['a']))) { 
+		if (!empty($Product->prices) && is_array($Product->prices)
+				&& (empty($_POST['options']['v']) || empty($_POST['options']['a']))) {
 			foreach ($Product->prices as $priceline) {
 				// Skip if not tied to variation options
 				if ($priceline->optionkey == 0) continue;
-				if ((empty($_POST['options']['v']) && $priceline->context == "variation") 
+				if ((empty($_POST['options']['v']) && $priceline->context == "variation")
 					|| (empty($_POST['options']['a']) && $priceline->context == "addon")) {
 						$Price = new Price($priceline->id);
 						$Price->delete();
@@ -648,7 +648,7 @@ class Warehouse extends AdminController {
 	/**
 	 * AJAX behavior to process uploaded files intended as digital downloads
 	 *
-	 * Handles processing a file upload from a temporary file to a 
+	 * Handles processing a file upload from a temporary file to a
 	 * the correct storage container (DB, file system, etc)
 	 *
 	 * @author Jonathan Davis
@@ -665,7 +665,7 @@ class Warehouse extends AdminController {
 		if (!is_readable($_FILES['Filedata']['tmp_name']))
 			die(json_encode(array("error" => __('The file could not be saved because the web server does not have permission to read the upload.','Shopp'))));
 
-		if ($_FILES['Filedata']['size'] == 0) 
+		if ($_FILES['Filedata']['size'] == 0)
 			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
 
 		// Save the uploaded file
@@ -723,7 +723,7 @@ class Warehouse extends AdminController {
 		if (!is_readable($_FILES['Filedata']['tmp_name']))
 			die(json_encode(array("error" => __('The file could not be saved because the web server does not have permission to read the upload from the server\'s temporary directory.','Shopp'))));
 
-		if ($_FILES['Filedata']['size'] == 0) 
+		if ($_FILES['Filedata']['size'] == 0)
 			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
 
 		// Save the source image
@@ -758,7 +758,7 @@ class Warehouse extends AdminController {
 		$Image->store($_FILES['Filedata']['tmp_name'],'upload');
 		$Image->save();
 		
-		if (empty($Image->id)) 
+		if (empty($Image->id))
 			die(json_encode(array("error" => __('The image reference was not saved to the database.','Shopp'))));
 				
 		echo json_encode(array("id"=>$Image->id));

@@ -1,7 +1,7 @@
 <?php
 /**
  * Gateway classes
- * 
+ *
  * Generic prototype classes for local and remote payment systems
  *
  * @author Jonathan Davis
@@ -13,7 +13,7 @@
 
 /**
  * GatewayModule interface
- * 
+ *
  * Provides a template for required gateway methods
  *
  * @author Jonathan Davis
@@ -28,7 +28,7 @@ interface GatewayModule {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	public function actions();
@@ -38,7 +38,7 @@ interface GatewayModule {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	public function settings();
@@ -47,7 +47,7 @@ interface GatewayModule {
 
 /**
  * GatewayFramework class
- * 
+ *
  * Provides default helper methods for gateway modules.
  *
  * @author Jonathan Davis
@@ -70,12 +70,12 @@ abstract class GatewayFramework {
 	
 	/**
 	 * Setup the module for runtime
-	 * 
+	 *
 	 * Auto-loads settings for the module and setups defaults
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -84,7 +84,7 @@ abstract class GatewayFramework {
 		$this->Order = &ShoppOrder();
 		$this->module = get_class($this);
 		$this->settings = $Shopp->Settings->get($this->module);
-		if (!isset($this->settings['label']) && $this->cards) 
+		if (!isset($this->settings['label']) && $this->cards)
 			$this->settings['label'] = __("Credit Card","Shopp");
 			
 		$this->baseop = $Shopp->Settings->get('base_operations');
@@ -99,7 +99,7 @@ abstract class GatewayFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $module The module class name
 	 * @param string $name The formal name of the module
 	 * @return void
@@ -115,7 +115,7 @@ abstract class GatewayFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $name The name of a setting
 	 * @param string $name... (optional) Additional setting names to initialize
 	 * @return void
@@ -132,7 +132,7 @@ abstract class GatewayFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function myorder () {
@@ -144,7 +144,7 @@ abstract class GatewayFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return string
 	 **/
 	function txnid () {
@@ -156,7 +156,7 @@ abstract class GatewayFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $data The encoded data to send
 	 * @param string $url The URL to connect to
 	 * @param string $port (optional) Connect to a specific port
@@ -165,25 +165,25 @@ abstract class GatewayFramework {
 	function send ($data,$url,$port=false, $curlopts = array()) {
 		$connection = curl_init();
 		curl_setopt($connection,CURLOPT_URL,"$url".($port?":$port":""));
-		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0); 
+		curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0);
-		curl_setopt($connection, CURLOPT_NOPROGRESS, 1); 
+		curl_setopt($connection, CURLOPT_NOPROGRESS, 1);
 		curl_setopt($connection, CURLOPT_VERBOSE, 1);
-		curl_setopt($connection, CURLOPT_POST, 1); 
-		curl_setopt($connection, CURLOPT_POSTFIELDS, $data); 
-		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_GATEWAY_TIMEOUT); 
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
-		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']); 
+		curl_setopt($connection, CURLOPT_POST, 1);
+		curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
+		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_GATEWAY_TIMEOUT);
+		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT);
+		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']);
 		curl_setopt($connection, CURLOPT_FAILONERROR, 1);
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 
 		if (!(ini_get("safe_mode") || ini_get("open_basedir")))
-			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1); 
+			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1);
 		
 		if (defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT) {
 	        curl_setopt($connection, CURLOPT_HTTPPROXYTUNNEL, 1);
 	        curl_setopt($connection, CURLOPT_PROXY, SHOPP_PROXY_SERVER);
-			if (defined('SHOPP_PROXY_USERPWD')) 
+			if (defined('SHOPP_PROXY_USERPWD'))
 			    curl_setopt($connection, CURLOPT_PROXYUSERPWD, SHOPP_PROXY_USERPWD);
 	    }
 	    
@@ -198,8 +198,8 @@ abstract class GatewayFramework {
 			curl_setopt($connection, $key, $value);
 		}
 		
-		$buffer = curl_exec($connection);   
-		if ($error = curl_error($connection)) 
+		$buffer = curl_exec($connection);
+		if ($error = curl_error($connection))
 			new ShoppError($this->name.": ".$error,'gateway_comm_err',SHOPP_COMM_ERR);
 		curl_close($connection);
 		
@@ -212,7 +212,7 @@ abstract class GatewayFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $data Key/value pairs of data to encode
 	 * @return string
 	 **/
@@ -238,7 +238,7 @@ abstract class GatewayFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $data Key/value pairs of data to format into form elements
 	 * @return string
 	 **/
@@ -260,7 +260,7 @@ abstract class GatewayFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return array
 	 **/
 	function cards () {
@@ -281,7 +281,7 @@ abstract class GatewayFramework {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	private function _loadcards () {
@@ -302,7 +302,7 @@ abstract class GatewayFramework {
 
 /**
  * GatewayModules class
- * 
+ *
  * Gateway module file manager to load gateways that are active.
  *
  * @author Jonathan Davis
@@ -320,7 +320,7 @@ class GatewayModules extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function __construct () {
@@ -341,7 +341,7 @@ class GatewayModules extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return array List of module names for the activated modules
 	 **/
 	function activated () {
@@ -360,7 +360,7 @@ class GatewayModules extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $module Activated module class name
 	 * @return void
 	 **/
@@ -375,7 +375,7 @@ class GatewayModules extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function settings () {
@@ -387,7 +387,7 @@ class GatewayModules extends ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function ui () {
@@ -399,8 +399,8 @@ class GatewayModules extends ModuleLoader {
 
 /**
  * PayCard classs
- * 
- * Implements structured payment card (credit card) behaviors including 
+ *
+ * Implements structured payment card (credit card) behaviors including
  * card number validation and extra security field requirements.
  *
  * @author Jonathan Davis

@@ -50,13 +50,13 @@ class Purchase extends DatabaseObject {
 		
 		if ($template == "order.php" && file_exists(SHOPP_TEMPLATES."/order.html")) $template = SHOPP_TEMPLATES."/order.html";
 		else $template = trailingslashit(SHOPP_TEMPLATES).$template;
-		if (!file_exists($template)) 
+		if (!file_exists($template))
 			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ADMIN_ERR));
 		
 		// Send the e-mail receipt
 		$email = array();
 		$email['from'] = '"'.get_bloginfo("name").'"';
-		if ($Shopp->Settings->get('merchant_email')) 
+		if ($Shopp->Settings->get('merchant_email'))
 			$email['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
 		if($is_IIS) $email['to'] = $address;
 		else $email['to'] = '"'.html_entity_decode($addressee,ENT_QUOTES).'" <'.$address.'>';
@@ -81,8 +81,8 @@ class Purchase extends DatabaseObject {
 		$ignores = array("_datatypes","_table","_key","_lists","id","created","modified");
 		foreach(get_object_vars($Object) as $property => $value) {
 			$property = $prefix.$property;
-			if (property_exists($this,$property) && 
-				!in_array($property,$ignores)) 
+			if (property_exists($this,$property) &&
+				!in_array($property,$ignores))
 				$this->{$property} = $value;
 		}
 	}
@@ -162,7 +162,7 @@ class Purchase extends DatabaseObject {
 			case "url": return shoppurl(false,'account'); break;
 			case "id": return $this->id; break;
 			case "customer": return $this->customer; break;
-			case "date": 
+			case "date":
 				if (empty($options['format'])) $options['format'] = get_option('date_format').' '.get_option('time_format');
 				return _d($options['format'],((is_int($this->created))?$this->created:mktimestamp($this->created)));
 				break;
@@ -178,14 +178,14 @@ class Purchase extends DatabaseObject {
 			case "address": return esc_html($this->address); break;
 			case "xaddress": return esc_html($this->xaddress); break;
 			case "city": return esc_html($this->city); break;
-			case "state": 
+			case "state":
 				if (strlen($this->state > 2)) return esc_html($this->state);
 				$regions = Lookup::country_zones();
 				$states = $regions[$this->country];
 				return $states[$this->state];
 				break;
 			case "postcode": return esc_html($this->postcode); break;
-			case "country": 
+			case "country":
 				$countries = $Shopp->Settings->get('target_markets');
 				return $countries[$this->country]; break;
 			case "shipaddress": return esc_html($this->shipaddress); break;
@@ -198,13 +198,13 @@ class Purchase extends DatabaseObject {
 				return $states[$this->shipstate];
 				break;
 			case "shippostcode": return esc_html($this->shippostcode); break;
-			case "shipcountry": 
+			case "shipcountry":
 				$countries = $Shopp->Settings->get('target_markets');
 				return $countries[$this->shipcountry]; break;
 			case "shipmethod": return esc_html($this->shipmethod); break;
 			case "totalitems": return count($this->purchased); break;
 			case "has-items":
-			case "hasitems": 
+			case "hasitems":
 				if (empty($this->purchased)) $this->load_purchased();
 				return (count($this->purchased) > 0);
 				break;
@@ -262,7 +262,7 @@ class Purchase extends DatabaseObject {
 				$amount = $item->total+($this->taxing == 'inclusive'?$item->unittax*$item->quantity:0);
 				return money($amount); break;
 			case "item-has-inputs":
-			case "item-hasinputs": 
+			case "item-hasinputs":
 				$item = current($this->purchased);
 				return (count($item->data) > 0); break;
 			case "item-inputs":
@@ -306,7 +306,7 @@ class Purchase extends DatabaseObject {
 				return $result;
 				break;
 			case "item-has-addons":
-			case "item-hasaddons": 
+			case "item-hasaddons":
 				$item = current($this->purchased);
 				return (count($item->addons) > 0); break;
 			case "item-addons":
@@ -409,8 +409,8 @@ class Purchase extends DatabaseObject {
 					$output .= '</ul>';
 				}
 				return $output;
-			case "has-promo": 
-			case "haspromo": 
+			case "has-promo":
+			case "haspromo":
 				if (empty($options['name'])) return false;
 				return (in_array($options['name'],$this->promos));
 				break;
@@ -423,14 +423,14 @@ class Purchase extends DatabaseObject {
 			case "hastax": return ($this->tax > 0)?true:false;
 			case "tax": return money($this->tax); break;
 			case "total": return money($this->total); break;
-			case "status": 
+			case "status":
 				$labels = $Shopp->Settings->get('order_status');
 				if (empty($labels)) $labels = array('');
 				return $labels[$this->status];
 				break;
 			case "paid": return ($this->txnstatus == "CHARGED"); break;
 			case "notpaid": return ($this->txnstatus != "CHARGED"); break;
-			case "payment": 
+			case "payment":
 				$labels = Lookup::payment_status_labels();
 				return isset($labels[$this->txnstatus])?$labels[$this->txnstatus]:$this->txnstatus; break;
 		}

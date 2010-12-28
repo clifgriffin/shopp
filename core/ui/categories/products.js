@@ -10,7 +10,7 @@ jQuery(document).ready( function() {
 
 		return rows.bind('mousedown.dragrow', function(e) {
 			var tr = $(this).fadeTo('fast', 0.4); // The target row
-			
+
 			lastY = e.pageY; // Y-position of the mouse on last button press
 
 			$('tr', tr.parent() ).not(tr).bind('mouseenter.dragrow',function() {
@@ -19,7 +19,7 @@ jQuery(document).ready( function() {
 				else row.before(tr);				// Move up
 				lastY = e.pageY; 					// Save Y-position of mouse for next mouseenter event
 			});
-			
+
 			// Catch mouseup to stop dragging (drop) the table row
 			$('body').bind('mouseup.dragrow',function() {
 				tr.fadeTo('fast', 1);
@@ -39,9 +39,9 @@ jQuery(document).ready( function() {
 		var $this = $(this);
 
 		$this.dragrow({onDrop:updatePositions}); // Enable drag-drop behaviors
-		
+
 		updatePositions(); // Initialize positions
-		
+
 		$this.find('button[name=top]').hover(function () { $(this).toggleClass('hover'); }).click(function () {
 			var row = $(this).parent().parent(),position=row.find('input[name^=position]');
 			if (position.val() == 0) return false;
@@ -55,7 +55,7 @@ jQuery(document).ready( function() {
 			row.insertAfter(row.parent().find('tr:last'));
 			updatePositions();
 		});
-		
+
 		/* Recalculate positions  */
 		function updatePositions () {
 			var updates = $('#category-id'),updating = $this.find('th.column-move img');
@@ -70,7 +70,7 @@ jQuery(document).ready( function() {
 				}
 			});
 			if (updates.size() == 1) return;
-			
+
 			// Send updates to the server
 			updating.hide().show();
 			$.ajax({
@@ -83,13 +83,13 @@ jQuery(document).ready( function() {
 					updating.hide();
 				}
 			});
-			
-			
+
+
 		}
-		
+
 
 	};
-	
+
 	$('#arrange-products').arrangeRows();
-	
+
 });

@@ -1,7 +1,7 @@
 <?php
 /**
  * Order Weight Tiers
- * 
+ *
  * Provides shipping calculations based on order amount tiers
  *
  * @author Jonathan Davis
@@ -10,26 +10,26 @@
  * @package shopp
  * @since 1.1 dev
  * @subpackage OrderWeight
- * 
+ *
  * $Id$
  **/
 
 class OrderWeight extends ShippingFramework implements ShippingModule {
-	
+
 	var $weight = 0;
 
 	function init () {
 		$this->weight = 0;
 	}
-	
+
 	function methods () {
 		return array('range' => __("Order Weight Tiers","Shopp"));
 	}
-	
+
 	function calcitem ($id,$Item) {
 		$this->weight += $Item->weight*$Item->quantity;
 	}
-	
+
 	function calculate ($options,$Order) {
 		foreach ($this->rates as $rate) {
 			$column = $this->ratecolumn($rate);
@@ -44,7 +44,7 @@ class OrderWeight extends ShippingFramework implements ShippingModule {
 		}
 		return $options;
 	}
-		
+
 	function ui () {
 		global $Shopp;
 		?>
@@ -59,7 +59,7 @@ var OrderWeightRange = function (methodid,table,rates) {
 	$('<th scope="col"><label for="'+region+'-'+methodid+'-0">'+region+'</label></th>').appendTo(headingsRow);
 	$('<th scope="col"><label for="worldwide-'+methodid+'-0"><?php echo addslashes(__('Worldwide','Shopp')); ?></label></th>').appendTo(headingsRow);
 	$('<th scope="col">').appendTo(headingsRow);
-	
+
 	if (rates && rates['max']) {
 		$.each(rates['max'],function(rowid,rate) {
 			var row = AddOrderWeightRange(methodid,table,rates);
@@ -76,7 +76,7 @@ var OrderWeightRange = function (methodid,table,rates) {
 function AddOrderWeightRange (methodid,table,rates) {
 	var rows = $(table).find('tbody').children().not('tr.headings');
 	var id = rows.length;
-	
+
 	var row = $('<tr/>');
 
 	var unitCell = $('<td class="units"></td>').appendTo(row);
@@ -87,9 +87,9 @@ function AddOrderWeightRange (methodid,table,rates) {
 	var maxInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][max][]" class="selectall right" size="7" id="max-'+methodid+'-'+id+'" tabindex="'+(methodid+1)+'02" />').change(function() {
 		this.value = (this.value == "+" || this.value == ">")?this.value:formatNumber(this.value);
 	}).val((value=="+"||value==">")?value:formatNumber(new Number(value))).appendTo(unitCell);
-	
+
 	$('<span class="weightunit"></span>').html(weight_units+' = ').appendTo(unitCell);
-	
+
 	$.each(domesticAreas,function(key,area) {
 		var inputCell = $('<td/>').appendTo(row);
 		if (!isNaN(key)) key = area;
@@ -99,21 +99,21 @@ function AddOrderWeightRange (methodid,table,rates) {
 			this.value = asMoney(this.value);
 		}).val(asMoney(new Number(value))).appendTo(inputCell);
 	});
-	
+
 	var inputCell = $('<td/>').appendTo(row);
 	if (rates && rates[region] && rates[region][id]) value = rates[region][id];
 	else value = 0;
 	$('<input type="text" name="settings[shipping_rates]['+methodid+']['+region+'][]"  id="'+region+'-'+methodid+'-'+id+'" class="selectall right" size="7" tabindex="'+(methodid+1)+'05" />').change(function() {
 		this.value = asMoney(this.value);
 	}).val(asMoney(new Number(value))).appendTo(inputCell);
-	
+
 	var inputCell = $('<td/>').appendTo(row);
 	if (rates && rates['Worldwide'] && rates['Worldwide'][id]) value = rates['Worldwide'][id];
 	else value = 0;
 	worldwideInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][Worldwide][]" id="worldwide-'+methodid+'-'+id+'"  class="selectall right" size="7" tabindex="'+(methodid+1)+'06" />').change(function() {
 		this.value = asMoney(this.value);
 	}).val(asMoney(new Number(value))).appendTo(inputCell);
-	
+
 	var rowCtrlCell = $('<td class="rowctrl" />').appendTo(row);
 	var deleteButton = $('<button type="button" name="delete"></button>').appendTo(rowCtrlCell);
 	if (rows.length == 0) {
@@ -131,14 +131,14 @@ function AddOrderWeightRange (methodid,table,rates) {
 		$(insertedRow).insertAfter($(row));
 		quickSelects();
 	});
-	
+
 	return row;
-	
+
 }
 
 methodHandlers.register('<?php echo get_class($this); ?>::range',OrderWeightRange);
 
-		<?php		
+		<?php
 	}
 
 } // end flatrates class

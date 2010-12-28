@@ -7,7 +7,7 @@ function save_meta_box ($Promotion) {
 
 	<label for="discount-status"><input type="hidden" name="status" value="disabled" /><input type="checkbox" name="status" id="discount-status" value="enabled"<?php echo ($Promotion->status == "enabled")?' checked="checked"':''; ?> /> &nbsp;<?php _e('Enabled','Shopp'); ?></label>
 	</div>
-	
+
 	<div class="misc-pub-section misc-pub-section-last">
 
 	<div id="start-position" class="calendar-wrap"><?php
@@ -15,14 +15,14 @@ function save_meta_box ($Promotion) {
 		foreach ($dateorder as $type => $format):
 	 		if ("month" == $type): ?><input type="text" name="starts[month]" id="starts-month" title="<?php _e('Month','Shopp'); ?>" size="3" maxlength="2" value="<?php echo ($Promotion->starts>1)?date("n",$Promotion->starts):''; ?>" class="selectall" /><?php elseif ("day" == $type): ?><input type="text" name="starts[date]" id="starts-date" title="<?php _e('Day','Shopp'); ?>" size="3" maxlength="2" value="<?php echo ($Promotion->starts>1)?date("j",$Promotion->starts):''; ?>" class="selectall" /><?php elseif ("year" == $type): ?><input type="text" name="starts[year]" id="starts-year" title="<?php _e('Year','Shopp'); ?>" size="5" maxlength="4" value="<?php echo ($Promotion->starts>1)?date("Y",$Promotion->starts):''; ?>" class="selectall" /><?php elseif ($type[0] == "s"): echo "/"; endif; endforeach; ?></div>
 	<p><?php _e('Start promotion on this date.','Shopp'); ?></p>
-	
-	<div id="end-position" class="calendar-wrap"><?php 
+
+	<div id="end-position" class="calendar-wrap"><?php
 		foreach ($dateorder as $type => $format):
 			if ("month" == $type): ?><input type="text" name="ends[month]" id="ends-month" title="<?php _e('Month','Shopp'); ?>" size="3" maxlength="2" value="<?php echo ($Promotion->ends>1)?date("n",$Promotion->ends):''; ?>" class="selectall" /><?php elseif ("day" == $type): ?><input type="text" name="ends[date]" id="ends-date" title="<?php _e('Day','Shopp'); ?>" size="3" maxlength="2" value="<?php echo ($Promotion->ends>1)?date("j",$Promotion->ends):''; ?>" class="selectall" /><?php elseif ("year" == $type): ?><input type="text" name="ends[year]" id="ends-year" title="<?php _e('Year','Shopp'); ?>" size="5" maxlength="4" value="<?php echo ($Promotion->ends>1)?date("Y",$Promotion->ends):''; ?>" class="selectall" /><?php elseif ($type[0] == "s"): echo "/"; endif; endforeach; ?></div>
 	<p><?php _e('End the promotion on this date.','Shopp'); ?></p>
 
 	</div>
-	
+
 </div>
 
 <div id="major-publishing-actions">
@@ -37,19 +37,19 @@ function discount_meta_box ($Promotion) {
 		'Percentage Off' => __('Percentage Off','Shopp'),
 		'Amount Off' => __('Amount Off','Shopp'),
 		'Free Shipping' => __('Free Shipping','Shopp'),
-		'Buy X Get Y Free' => __('Buy X Get Y Free','Shopp')			
+		'Buy X Get Y Free' => __('Buy X Get Y Free','Shopp')
 	);
-	
+
 ?>
 <p><span>
 <select name="type" id="discount-type">
 	<?php echo menuoptions($types,$Promotion->type,true); ?>
 </select></span>
-<span id="discount-row"> 
+<span id="discount-row">
 	&mdash;
 	<input type="text" name="discount" id="discount-amount" value="<?php echo $Promotion->discount; ?>" size="10" class="selectall" />
 </span>
-<span id="beyget-row"> 
+<span id="beyget-row">
 	&mdash;
 	&nbsp;<?php _e('Buy','Shopp'); ?> <input type="text" name="buyqty" id="buy-x" value="<?php echo $Promotion->buyqty; ?>" size="5" class="selectall" /> <?php _e('Get','Shopp'); ?> <input type="text" name="getqty" id="get-y" value="<?php echo $Promotion->getqty; ?>" size="5" class="selectall" />
 </span></p>
@@ -64,7 +64,7 @@ function rules_meta_box ($Promotion) {
 		'Catalog' => __('catalog product','Shopp'),
 		'Cart' => __('shopping cart','Shopp'),
 		'Cart Item' => __('cart item','Shopp'),
-		
+
 	);
 
 	$target = '<select name="target" id="promotion-target" class="small">';
@@ -72,7 +72,7 @@ function rules_meta_box ($Promotion) {
 	$target .= '</select>';
 
 	if (empty($Promotion->search)) $Promotion->search = "all";
-	
+
 	$logic = '<select name="search" class="small">';
 	$logic .= menuoptions(array('any'=>__('any','Shopp'),'all' => __('all','Shopp')),$Promotion->search,true);
 	$logic .= '</select>';

@@ -13,7 +13,7 @@
 		<input type="text" id="customers-search-input" class="search-input" name="s" value="<?php echo esc_attr($s); ?>" />
 		<input type="submit" value="<?php _e('Search','Shopp'); ?>" class="button" />
 	</p>
-	
+
 	<div class="tablenav">
 		<div class="alignleft actions inline">
 		<?php if(current_user_can('shopp_delete_customers')): ?><button type="submit" id="delete-button" name="deleting" value="customer" class="button-secondary"><?php _e('Delete','Shopp'); ?></button><?php endif; ?>
@@ -43,11 +43,11 @@
 		</tfoot>
 	<?php if (sizeof($Customers) > 0): ?>
 		<tbody id="customers-table" class="list orders">
-		<?php 
+		<?php
 			$hidden = get_hidden_columns('shopp_page_shopp-customers');
-			
-			$even = false; 
-			foreach ($Customers as $Customer): 
+
+			$even = false;
+			foreach ($Customers as $Customer):
 			$CustomerName = (empty($Customer->firstname) && empty($Customer->lastname))?'('.__('no contact name','Shopp').')':"{$Customer->firstname} {$Customer->lastname}";
 			?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
@@ -55,8 +55,8 @@
 			<td class="name column-name"><a class='row-title' href='<?php echo esc_url( add_query_arg(array('page'=>'shopp-customers','id'=>$Customer->id),admin_url('admin.php'))); ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CustomerName); ?>&quot;'><?php echo esc_html($CustomerName); ?></a><?php echo !empty($Customer->company)?"<br />".esc_html($Customer->company):""; ?></td>
 			<td class="login column-login<?php echo in_array('login',$hidden)?' hidden':''; ?>"><?php echo esc_html($Customer->user_login); ?></td>
 			<td class="email column-email<?php echo in_array('email',$hidden)?' hidden':''; ?>"><a href="mailto:<?php echo esc_attr($Customer->email); ?>"><?php echo esc_html($Customer->email); ?></a></td>
-			
-			<td class="location column-location<?php echo in_array('location',$hidden)?' hidden':''; ?>"><?php 
+
+			<td class="location column-location<?php echo in_array('location',$hidden)?' hidden':''; ?>"><?php
 				$location = '';
 				$location = $Customer->city;
 				if (!empty($location) && !empty($Customer->state)) $location .= ', ';
@@ -75,7 +75,7 @@
 		<tbody><tr><td colspan="6"><?php _e('No','Shopp'); ?> <?php _e('customers, yet.','Shopp'); ?></td></tr></tbody>
 	<?php endif; ?>
 	</table>
-	
+
 	</form>
 	<div class="tablenav">
 		<?php if(current_user_can('shopp_export_customers')): ?>
@@ -85,13 +85,13 @@
 			<div id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">
 				<ul>
-					<li<?php $even = true; if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_columns" id="selectall_columns" /><label for="selectall_columns"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>	
-					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="hidden" name="settings[customerexport_headers]" value="off" /><input type="checkbox" name="settings[customerexport_headers]" id="purchaselog_headers" value="on" /><label for="purchaselog_headers"><strong><?php _e('Include column headings','Shopp'); ?></strong></label></li>	
-					
+					<li<?php $even = true; if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_columns" id="selectall_columns" /><label for="selectall_columns"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>
+					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="hidden" name="settings[customerexport_headers]" value="off" /><input type="checkbox" name="settings[customerexport_headers]" id="purchaselog_headers" value="on" /><label for="purchaselog_headers"><strong><?php _e('Include column headings','Shopp'); ?></strong></label></li>
+
 					<?php $even = true; foreach ($columns as $name => $label): ?>
 						<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[customerexport_columns][]" value="<?php echo $name; ?>" id="column-<?php echo $name; ?>" <?php echo in_array($name,$selected)?' checked="checked"':''; ?> /><label for="column-<?php echo $name; ?>" ><?php echo $label; ?></label></li>
 					<?php endforeach; ?>
-					
+
 				</ul>
 			</div><br />
 			<select name="settings[customerexport_format]">
@@ -105,7 +105,7 @@
 		<div class="clear"></div>
 	</div>
 </div>
-  
+
 <div id="start-calendar" class="calendar"></div>
 <div id="end-calendar" class="calendar"></div>
 
@@ -114,7 +114,7 @@ var lastexport = new Date(<?php echo date("Y,(n-1),j",$Shopp->Settings->get('cus
 
 jQuery(document).ready( function() {
 	var $=jqnc();
-	
+
 $('#selectall').change( function() {
 	$('#customers-table th input').each( function () {
 		if (this.checked) this.checked = false;
@@ -225,9 +225,9 @@ range.change(function () {
 }).change();
 
 $('#export-settings-button').click(function () { $('#export-settings-button').hide(); $('#export-settings').removeClass('hidden'); });
-$('#selectall_columns').change(function () { 
-	if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true); 
-	else $('#export-columns input').not(this).attr('checked',false); 
+$('#selectall_columns').change(function () {
+	if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true);
+	else $('#export-columns input').not(this).attr('checked',false);
 });
 
 pagenow = 'shopp_page_shopp-customers';

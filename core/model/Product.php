@@ -1,7 +1,7 @@
 <?php
 /**
  * Product.php
- * 
+ *
  * Database management of catalog products
  *
  * @author Jonathan Davis
@@ -43,7 +43,7 @@ class Product extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $options List of data to load (prices, images, categories, tags, specs)
 	 * @param array $products List of products to load data for
 	 * @return void
@@ -93,8 +93,8 @@ class Product extends DatabaseObject {
 
 		if (in_array('specs',$options)) {
 			$this->specs = array();
-			$Dataset['specs'] = new Spec();	
-		} 
+			$Dataset['specs'] = new Spec();
+		}
 		
 		if (in_array('tags',$options)) {
 			$this->tags = array();
@@ -117,14 +117,14 @@ class Product extends DatabaseObject {
 		// Skip if there are no product ids
 		if (empty($ids) || empty($ids[0])) return false;
 		
-		// Build the mega-query	
+		// Build the mega-query
 		foreach ($Dataset as $rtype => $set) {
 
 			// Allocate generic columns for record data
 			$columns = array(); $i = 0;
 			foreach ($set->_datatypes as $key => $datatype)
 				$columns[] = ((strpos($datatype,'.')!==false)?"$datatype":"{$set->_table}.$key")." AS c".($i++);
-			for ($i = $i; $i < $maxcols; $i++) 
+			for ($i = $i; $i < $maxcols; $i++)
 				$columns[] = "'' AS c$i";
 			
 			$cols = join(',',$columns);
@@ -136,11 +136,11 @@ class Product extends DatabaseObject {
 			switch($rtype) {
 				case "prices":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."$set->_table.product=$id";
-					$query .= "(SELECT '$set->_table' as dataset,$set->_table.product AS product,'$rtype' AS rtype,'' AS alphaorder,$set->_table.sortorder AS sortorder,$cols FROM $set->_table 
-								LEFT JOIN $assettable AS download ON $set->_table.id=download.parent AND download.context='price' AND download.type='download' 
+					$query .= "(SELECT '$set->_table' as dataset,$set->_table.product AS product,'$rtype' AS rtype,'' AS alphaorder,$set->_table.sortorder AS sortorder,$cols FROM $set->_table
+								LEFT JOIN $assettable AS download ON $set->_table.id=download.parent AND download.context='price' AND download.type='download'
 								LEFT JOIN $discounttable AS discount ON discount.product=$set->_table.product AND discount.price=$set->_table.id
-								LEFT JOIN $promotable AS promo ON promo.id=discount.promo AND 
-								(promo.status='enabled' AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1) 
+								LEFT JOIN $promotable AS promo ON promo.id=discount.promo AND
+								(promo.status='enabled' AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1)
 								OR (".time()." > UNIX_TIMESTAMP(starts) AND ".time()." < UNIX_TIMESTAMP(ends))
 								OR (UNIX_TIMESTAMP(starts)=1 AND ".time()." < UNIX_TIMESTAMP(ends))
 								OR (".time()." > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends)=1) ))
@@ -201,7 +201,7 @@ class Product extends DatabaseObject {
 		// Process the results into specific product object data in a product set
 		
 		foreach ($data as $row) {
-			if (is_array($products) && isset($products[$row->product])) 
+			if (is_array($products) && isset($products[$row->product]))
 				$target = $products[$row->product];
 			else $target = $this;
 
@@ -224,7 +224,7 @@ class Product extends DatabaseObject {
 				$name = $image->filename;
 				$record = $image;
 
-				// Reset the product's loaded images if the image was already 
+				// Reset the product's loaded images if the image was already
 				// loaded from another context (like Category::load_products())
 				if (isset($target->{$row->rtype}[0]) && $target->{$row->rtype}[0]->id == $image->id)
 					$target->{$row->rtype} = array();
@@ -251,7 +251,7 @@ class Product extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $options shopp() tag option list
 	 * @return void
 	 **/
@@ -272,7 +272,7 @@ class Product extends DatabaseObject {
 			$this->priceid[$price->id] = $price;
 
 			if (defined('WP_ADMIN') && !isset($options['taxes'])) $options['taxes'] = true;
-			if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") { 
+			if (defined('WP_ADMIN') && value_is_true($options['taxes']) && $price->tax == "on") {
 				$Settings =& ShoppSettings();
 				$base = $Settings->get('base_operations');
 				if ($base['vat']) {
@@ -371,7 +371,7 @@ class Product extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function published () {
@@ -383,7 +383,7 @@ class Product extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return int
 	 **/
 	function sold () {
@@ -398,7 +398,7 @@ class Product extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function merge_specs () {
@@ -406,7 +406,7 @@ class Product extends DatabaseObject {
 		foreach ($this->specs as $key => $spec) {
 			if (!isset($merged[$spec->name])) $merged[$spec->name] = $spec;
 			else {
-				if (!is_array($merged[$spec->name]->value)) 
+				if (!is_array($merged[$spec->name]->value))
 					$merged[$spec->name]->value = array($merged[$spec->name]->value);
 				$merged[$spec->name]->value[] = $spec->value;
 			}
@@ -419,7 +419,7 @@ class Product extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $updates Updated list of category ids the product is assigned to
 	 * @return void
 	 **/
@@ -446,7 +446,7 @@ class Product extends DatabaseObject {
 		if (!empty($removed)) {
 			foreach ($removed as $id) {
 				if (empty($id)) continue;
-				$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND type='category' AND product='$this->id'"); 
+				$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND type='category' AND product='$this->id'");
 			}
 			
 		}
@@ -495,9 +495,9 @@ class Product extends DatabaseObject {
 			$catalog = DatabaseObject::tablename(Catalog::$table);
 			foreach ($removed as $tag) {
 				// Ensure loading tag records by case-sensitive name with BINARY casting
-				$Tag = new Tag($tag,'BINARY name'); 
+				$Tag = new Tag($tag,'BINARY name');
 				if (!empty($Tag->id))
-					$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE parent='$Tag->id' AND type='tag' AND product='$this->id'"); 
+					$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE parent='$Tag->id' AND type='tag' AND product='$this->id'");
 			}
 		}
 
@@ -511,7 +511,7 @@ class Product extends DatabaseObject {
 		else $factor = 7001;
 		if (empty($ids)) return 0;
 		$key = 0;
-		foreach ($ids as $set => $id) 
+		foreach ($ids as $set => $id)
 			$key = $key ^ ($id*$factor);
 		return $key;
 	}
@@ -530,7 +530,7 @@ class Product extends DatabaseObject {
 	
 	/**
 	 * link_images()
-	 * Updates the product id of the images to link to the product 
+	 * Updates the product id of the images to link to the product
 	 * when the product being saved is new (has no previous id assigned) */
 	function link_images ($images) {
 		if (empty($images)) return false;
@@ -578,7 +578,7 @@ class Product extends DatabaseObject {
 					if (empty($Cropped->data)) return false;
 
 					$Cropped->size = strlen($Cropped->data);
-					if ($Cropped->store( $Cropped->data ) === false) 
+					if ($Cropped->store( $Cropped->data ) === false)
 						return false;
 					
 					$Cropped->save();
@@ -708,11 +708,11 @@ class Product extends DatabaseObject {
 	function taxrule ($rule) {
 		switch ($rule['p']) {
 			case "product-name": return ($rule['v'] == $this->name); break;
-			case "product-tags": 
+			case "product-tags":
 				if (!isset($this->tagskey)) return false;
-				else return (in_array($rule['v'],array_keys($this->tagskey))); 
+				else return (in_array($rule['v'],array_keys($this->tagskey)));
 				break;
-			case "product-category": 
+			case "product-category":
 				if (!isset($this->categorieskey)) return false;
 				else return (in_array($rule['v'],array_keys($this->categorieskey))); break;
 		}
@@ -726,11 +726,11 @@ class Product extends DatabaseObject {
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');
 
 		switch ($property) {
-			case "link": 
+			case "link":
 			case "url":
 				return shoppurl(SHOPP_PRETTYURLS?$this->slug:array('shopp_pid'=>$this->id));
 				break;
-			case "found": 
+			case "found":
 				if (empty($this->id)) return false;
 				$load = array('prices','images','specs','tags','categories');
 				if (isset($options['load'])) $load = explode(",",$options['load']);
@@ -742,9 +742,9 @@ class Product extends DatabaseObject {
 			case "name": return apply_filters('shopp_product_name',$this->name); break;
 			case "slug": return $this->slug; break;
 			case "summary": return apply_filters('shopp_product_summary',$this->summary); break;
-			case "description": 
+			case "description":
 				return apply_filters('shopp_product_description',$this->description);
-			case "isfeatured": 
+			case "isfeatured":
 			case "is-featured":
 				return ($this->featured == "on"); break;
 			case "price":
@@ -854,8 +854,8 @@ class Product extends DatabaseObject {
 			case "freeshipping":
 				if (empty($this->prices)) $this->load_data(array('prices'));
 				return $this->freeshipping;
-			case "hasimages": 
-			case "has-images": 
+			case "hasimages":
+			case "has-images":
 				if (empty($this->images)) $this->load_data(array('images'));
 				return (!empty($this->images));
 				break;
@@ -875,7 +875,7 @@ class Product extends DatabaseObject {
 			case "coverimage":
 				// Force select the first loaded image
 				unset($options['id']);
-				$options['index'] = 0; 
+				$options['index'] = 0;
 			case "thumbnail": // deprecated
 			case "image":
 				if (empty($this->images)) $this->load_data(array('images'));
@@ -919,14 +919,14 @@ class Product extends DatabaseObject {
 						}
 					}
 					if (!$img) return "";
-				} 
+				}
 				
 				// Select image by index position in the list
 				if ($index !== false && isset($this->images[$index]))
 					$img = $this->images[$index];
 				
 				// Use the current image pointer by default
-				if (!$img) $img = current($this->images); 
+				if (!$img) $img = current($this->images);
 				
 				if ($size !== false) $width = $height = $size;
 				if (!$width) $width = $_width;
@@ -960,7 +960,7 @@ class Product extends DatabaseObject {
 
 				switch (strtolower($property)) {
 					case "id": return $img->id; break;
-					case "url": 
+					case "url":
 					case "src": return $src; break;
 					case "title": return $title; break;
 					case "alt": return $alt; break;
@@ -987,7 +987,7 @@ class Product extends DatabaseObject {
 				if (!$_width) $_width = $_size;
 				if (!$_height) $_height = $_size;
 
-				if (!empty($options['p.size'])) 
+				if (!empty($options['p.size']))
 					$_width = $_height = $options['p.size'];
 
 				$width = (isset($options['p.width']))?$options['p.width']:$_width;
@@ -1071,7 +1071,7 @@ class Product extends DatabaseObject {
 						$thumbs .= '<li id="thumbnail-'.$img->id.'" class="preview-'.$img->id.(($firstThumb)?' first':' test').'">';
 						$thumbs .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
 						$thumbs .= '</li>'."\n";
-						$firstThumb = false;					
+						$firstThumb = false;
 					}
 					$thumbs .= '</ul>';
 					
@@ -1085,10 +1085,10 @@ class Product extends DatabaseObject {
 				return $result;
 				
 				break;
-			case "has-categories": 
+			case "has-categories":
 				if (empty($this->categories)) $this->load_data(array('categories'));
 				if (count($this->categories) > 0) return true; else return false; break;
-			case "categories":			
+			case "categories":
 				if (!isset($this->_categories_loop)) {
 					reset($this->categories);
 					$this->_categories_loop = true;
@@ -1100,7 +1100,7 @@ class Product extends DatabaseObject {
 					return false;
 				}
 				break;
-			case "in-category": 
+			case "in-category":
 				if (empty($this->categories)) $this->load_data(array('categories'));
 				if (isset($options['id'])) $field = "id";
 				if (isset($options['name'])) $field = "name";
@@ -1116,9 +1116,9 @@ class Product extends DatabaseObject {
 				}
 				return $category->name;
 				break;
-			case "hastags": 
-			case "has-tags": 
-				if (empty($this->tags)) $this->load_data(array('tags'));	
+			case "hastags":
+			case "has-tags":
+				if (empty($this->tags)) $this->load_data(array('tags'));
 				if (count($this->tags) > 0) return true; else return false; break;
 			case "tags":
 				if (!isset($this->_tags_loop)) {
@@ -1132,7 +1132,7 @@ class Product extends DatabaseObject {
 					return false;
 				}
 				break;
-			case "tagged": 
+			case "tagged":
 				if (empty($this->tags)) $this->load_data(array('tags'));
 				if (isset($options['id'])) $field = "id";
 				if (isset($options['name'])) $field = "name";
@@ -1146,14 +1146,14 @@ class Product extends DatabaseObject {
 				}
 				return $tag->name;
 				break;
-			case "hasspecs": 
-			case "has-specs": 
+			case "hasspecs":
+			case "has-specs":
 				if (empty($this->specs)) $this->load_data(array('specs'));
 				if (count($this->specs) > 0) {
 					$this->merge_specs();
 					return true;
 				} else return false; break;
-			case "specs":			
+			case "specs":
 				if (!isset($this->_specs_loop)) {
 					reset($this->specs);
 					$this->_specs_loop = true;
@@ -1175,14 +1175,14 @@ class Product extends DatabaseObject {
 				$spec = current($this->specs);
 				if (is_array($spec->value)) $spec->value = join($delimiter,$spec->value);
 				
-				if (isset($options['name']) 
-					&& !empty($options['name']) 
+				if (isset($options['name'])
+					&& !empty($options['name'])
 					&& isset($this->specskey[$options['name']])) {
 						$spec = $this->specskey[$options['name']];
 						if (is_array($spec)) {
 							if (isset($options['index'])) {
-								foreach ($spec as $index => $entry) 
-									if ($index+1 == $options['index']) 
+								foreach ($spec as $index => $entry)
+									if ($index+1 == $options['index'])
 										$content = $entry->value;
 							} else {
 								foreach ($spec as $entry) $contents[] = $entry->value;
@@ -1279,7 +1279,7 @@ class Product extends DatabaseObject {
 						$filter = array('');
 						$_ = new StdClass();
 						if ($pricing->type != "Donation")
-							$_->p = ((isset($pricing->onsale) 
+							$_->p = ((isset($pricing->onsale)
 										&& $pricing->onsale == "on")?
 											(float)$pricing->promoprice:
 											(float)$pricing->price);
@@ -1477,7 +1477,7 @@ class Product extends DatabaseObject {
 				
 				if ("before" == $labelpos) $_[] = $labeling;
 				if ("menu" == $input) {
-					if ($this->inventory && $this->max['stock'] == 0) return "";	
+					if ($this->inventory && $this->max['stock'] == 0) return "";
 				
 					if (strpos($options,",") !== false) $options = explode(",",$options);
 					else $options = array($options);
@@ -1499,7 +1499,7 @@ class Product extends DatabaseObject {
 							$amount = money($amount);
 							$selection = $variation->price;
 						} else {
-							if ($this->inventory && $amount > $this->max['stock']) continue;	
+							if ($this->inventory && $amount > $this->max['stock']) continue;
 						}
 						$selected = ($qty==$selection)?' selected="selected"':'';
 						$_[] = '<option'.$selected.' value="'.$qty.'">'.$amount.'</option>';
@@ -1517,18 +1517,18 @@ class Product extends DatabaseObject {
 				return join("\n",$_);
 				break;
 			case "input":
-				if (!isset($options['type']) || 
+				if (!isset($options['type']) ||
 					($options['type'] != "menu" && $options['type'] != "textarea" && !valid_input($options['type']))) $options['type'] = "text";
 				if (!isset($options['name'])) return "";
 				if ($options['type'] == "menu") {
 					$result = '<select name="products['.$this->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$this->id.'"'.inputattrs($options,$select_attrs).'>';
-					if (isset($options['options'])) 
+					if (isset($options['options']))
 						$menuoptions = preg_split('/,(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/',$options['options']);
 					if (is_array($menuoptions)) {
 						foreach($menuoptions as $option) {
 							$selected = "";
 							$option = trim($option,'"');
-							if (isset($options['default']) && $options['default'] == $option) 
+							if (isset($options['default']) && $options['default'] == $option)
 								$selected = ' selected="selected"';
 							$result .= '<option value="'.$option.'"'.$selected.'>'.$option.'</option>';
 						}
@@ -1564,12 +1564,12 @@ class Product extends DatabaseObject {
 					$string .= '<span class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</span>';
 					return $string;
 				}
-				if (isset($options['redirect']) && !isset($options['ajax'])) 
+				if (isset($options['redirect']) && !isset($options['ajax']))
 					$string .= '<input type="hidden" name="redirect" value="'.$options['redirect'].'" />';
 				
 				$string .= '<input type="hidden" name="products['.$this->id.'][product]" value="'.$this->id.'" />';
 
-				if (!empty($this->prices[0]) && $this->prices[0]->type != "N/A") 
+				if (!empty($this->prices[0]) && $this->prices[0]->type != "N/A")
 					$string .= '<input type="hidden" name="products['.$this->id.'][price]" value="'.$this->prices[0]->id.'" />';
 
 				if (!empty($Shopp->Category)) {
@@ -1584,9 +1584,9 @@ class Product extends DatabaseObject {
 					if ($options['ajax'] == "html") $options['class'] .= ' ajax-html';
 					else $options['class'] .= " ajax";
 					$string .= '<input type="hidden" name="ajax" value="true" />';
-					$string .= '<input type="button" name="addtocart" '.inputattrs($options).' />';					
+					$string .= '<input type="button" name="addtocart" '.inputattrs($options).' />';
 				} else {
-					$string .= '<input type="submit" name="addtocart" '.inputattrs($options).' />';					
+					$string .= '<input type="submit" name="addtocart" '.inputattrs($options).' />';
 				}
 				
 				return $string;

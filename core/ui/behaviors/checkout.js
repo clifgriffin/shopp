@@ -5,7 +5,7 @@ jQuery(document).ready(function () {
 		accountLogin = $('#account-login-checkout'),
 		passwordLogin = $('#password-login-checkout'),
 		checkoutForm = $('#checkout.shopp'),
-		shipFields = $('#shipping-address-fields'),	
+		shipFields = $('#shipping-address-fields'),
 		billFields = $('#billing-address-fields'),
 		paymethods = $('#checkout.shopp [name=paymethod]'),
 		localeMenu = $('#billing-locale'),
@@ -13,19 +13,19 @@ jQuery(document).ready(function () {
 		billCardtype = $('#billing-cardtype'),
 		checkoutButtons = $('.payoption-button'),
 		localeFields = $('#checkout.shopp li.locale');
-				
+
 	// No payment option selectors found, use default
 	if (paymethods.length == 0) paymethod_select(false,d_pm);
 	else paymethods.change(paymethod_select).change();
-	
+
 	// Validate paycard number before submit
 	checkoutForm.bind('shopp_validate',function () {
 		if (!validcard()) this.shopp_validate = ["Not a valid card number.",billCard.get(0)];
 	});
-	
+
 	// Validate paycard number on entry
 	billCard.change(validcard);
-	
+
 	// Enable/disable the extra card security fields when needed
 	billCardtype.change(function () {
 		var cardtype = billCardtype.val(),
@@ -33,11 +33,11 @@ jQuery(document).ready(function () {
 
 		$('.paycard.xcsc').attr('disabled',true).addClass('disabled');
 		if (!card || !card['inputs']) return;
-			
+
 		$.each(card['inputs'],function (input,inputlen) {
 			$('#billing-xcsc-'+input).attr('disabled',false).removeClass('disabled');
 		});
-		
+
 	}).change();
 
 	if (localeMenu.children().size() == 0) localeFields.hide();
@@ -49,7 +49,7 @@ jQuery(document).ready(function () {
 		});
 		return $(this);
 	}
-	
+
 	submitLogin.click(function () { login=true; });
 	checkoutForm.unbind('submit').submit(function () {
 		if (login) {
@@ -96,7 +96,7 @@ jQuery(document).ready(function () {
 			if (!init) state.focus();
 		}
 	}).trigger('change',[true]);
-	
+
 	$('#billing-country, #billing-state').change(function () {
 		var country = $('#billing-country').val(),
 			state = $('#billing-state').val(),
@@ -112,7 +112,7 @@ jQuery(document).ready(function () {
 			localeFields.show();
 		}
 	});
-	
+
 	sameship.change(function() {
 		if (sameship.attr('checked')) {
 			billFields.removeClass('half');
@@ -123,8 +123,8 @@ jQuery(document).ready(function () {
 		}
 	}).change()
 		.click(function () { $(this).change(); }); // For IE compatibility
-	
-	
+
+
 	$('.shopp .shipmethod').change(function () {
 		if ($(this).parents('#checkout').size()) {
 			$('.shopp_cart_shipping, .shopp_cart_tax, .shopp_cart_total').html('?');
@@ -157,7 +157,7 @@ jQuery(document).ready(function () {
 			$.each(pm_cards[paymethod], function (a,s) {
 				if (!paycards[s]) return;
 				pc = paycards[s];
-				options += '<option value="'+pc.symbol+'">'+pc.name+'</option>';				
+				options += '<option value="'+pc.symbol+'">'+pc.name+'</option>';
 			});
 			billCardtype.html(options).change();
 
@@ -185,7 +185,7 @@ jQuery(document).ready(function () {
 		if (!luhn(v)) return false;
 		return card;
 	}
-	
+
 	function luhn (n) {
 		n = n.toString().replace(/\D/g, '').split('').reverse();
 		if (!n.length) return false;
@@ -198,5 +198,5 @@ jQuery(document).ready(function () {
 		return (total % 10) == 0;
 	}
 
-	
+
 });

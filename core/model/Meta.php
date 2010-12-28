@@ -1,7 +1,7 @@
 <?php
 /**
  * Meta.php
- * 
+ *
  * The meta object abstract
  *
  * @author Jonathan Davis
@@ -30,7 +30,7 @@ class MetaObject extends DatabaseObject {
 	 * Meta constructor
 	 *
 	 * @author Jonathan Davis
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct ($id=false,$key='id') {
@@ -42,7 +42,7 @@ class MetaObject extends DatabaseObject {
 
 /**
  * MetasetObject
- * 
+ *
  * Constructs a runtime object from a set of meta records
  *
  * @author Jonathan Davis
@@ -80,7 +80,7 @@ abstract class MetasetObject extends DatabaseObject {
 		$args = func_get_args();
 		if (empty($args[0])) return false;
 		if (is_array($args[0])) {
-			foreach ($args[0] as $key => $id) 
+			foreach ($args[0] as $key => $id)
 				$where .= ($where == ""?"":" AND ")."$key='".$db->escape($id)."'";
 		} else $where = "{$args[1]}='{$args[0]}' OR (parent={$args[0]} AND context='meta')";
 		
@@ -93,7 +93,7 @@ abstract class MetasetObject extends DatabaseObject {
 
 			// Seed properties
 			$property = $meta->name;
-			if ($property[0] != "_" && in_array($property,$this->_properties)) 
+			if ($property[0] != "_" && in_array($property,$this->_properties))
 				$this->{$property} = $meta->value;
 			
 		}
@@ -109,7 +109,7 @@ abstract class MetasetObject extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function save () {
@@ -149,26 +149,26 @@ abstract class MetasetObject extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function delete () {
 		$db = &DB::get();
 		// Delete records
-		if (!empty($this->id) && !empty($this->_parent)) 
+		if (!empty($this->id) && !empty($this->_parent))
 			return $db->query("DELETE FROM $this->_table WHERE (id='$this->_parent' AND parent=0 AND context='$this->_meta') OR (parent='$this->_parent' AND context='$this->_meta')");
 		else return false;
 	}
 	
 	function _ignore_ ($property) {
 		return ($property[0] != "_");
-	}	
+	}
 	
 }
 
 /**
  * ObjectMeta
- * 
+ *
  * Loads a group of meta data records that have been attached to another object
  *
  * @author Jonathan Davis
@@ -203,7 +203,7 @@ class ObjectMeta {
 		if (!is_array($args[0])) return false;
 
 		$where = "";
-		foreach ($args[0] as $key => $id) 
+		foreach ($args[0] as $key => $id)
 			$where .= ($where == ""?"":" AND ")."$key='".$db->escape($id)."'";
 
 		$r = $db->query("SELECT * FROM $this->_table WHERE $where",AS_ARRAY);
@@ -213,7 +213,7 @@ class ObjectMeta {
 			$meta->populate($row,'',array());
 			
 			$this->meta[$meta->id] = $meta;
-			$this->named[$meta->name] =& $this->meta[$meta->id]; 
+			$this->named[$meta->name] =& $this->meta[$meta->id];
 		}
 		
 		if (isset($row) && count($row) == 0) $this->_loaded = false;

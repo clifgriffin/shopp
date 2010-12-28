@@ -1,10 +1,10 @@
 <div id="welcome" class="wrap">
 	<h2><img src="<?php echo SHOPP_ADMIN_URI; ?>/icons/shopp32.png" alt="Shopp logo" width="32" height="32"/> <?php _e('Welcome to Shopp','Shopp'); ?></h2>
-	
+
 	<h3><?php _e('Congratulations on choosing Shopp and WordPress for your e-commerce solution!','Shopp'); ?></h3>
-	
+
 	<p><?php _e('Before you dive in to setup, here are a few things to keep in mind:','Shopp'); ?></p>
-	
+
 	<ul>
 		<li><strong><?php _e('Shopp has lots of easy to find help built-in.','Shopp'); ?></strong><br />
 			<?php printf(__('Click the %sHelp menu%s to access help articles about the screen you are using, directly from the %sofficial documentation%s.','Shopp'),'<strong>','</strong>','<a href="http://docs.shopplugin.net" target="_blank">','</a>'); ?>
@@ -22,7 +22,7 @@
 	<br />
 	<form action="admin.php?page=shopp-settings" method="post">
 	<div class="alignright"><input type="submit" name="setup" value="<?php _e('Continue to Shopp Setup','Shopp'); ?>&hellip;" class="button-primary" /></div>
-	
+
 	<p><input type="hidden" name="settings[show_welcome]" value="off" /><input type="checkbox" name="settings[show_welcome]" id="welcome-toggle" value="on" <?php echo ($Shopp->Settings->get('show_welcome') == "on")?' checked="checked"':''; ?> /><label for="welcome-toggle"> <small><?php _e('Show this screen every time after activating Shopp','Shopp'); ?></small></label></p>
 	</form>
 </div>

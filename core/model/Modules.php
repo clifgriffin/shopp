@@ -1,7 +1,7 @@
 <?php
 /**
  * Modules.php
- * 
+ *
  * Controller and framework classes for Shopp modules
  *
  * @author Jonathan Davis
@@ -33,7 +33,7 @@ abstract class ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function installed () {
@@ -46,7 +46,7 @@ abstract class ModuleLoader {
 
 		foreach ($files as $file) {
 			// Skip if the file can't be read or isn't a real file at all
-			if (!is_readable($path.$file) && !is_dir($path.$file)) continue; 			
+			if (!is_readable($path.$file) && !is_dir($path.$file)) continue;
 			// Add the module file to the registry
 			$module = new ModuleFile($path,$file);
 			if ($module->addon) $this->modules[$module->subpackage] = $module;
@@ -60,7 +60,7 @@ abstract class ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param boolean $all Loads all installed modules instead
 	 * @return void
 	 **/
@@ -70,7 +70,7 @@ abstract class ModuleLoader {
 
 		foreach ($activate as $module) {
 			// Module isn't available, skip it
-			if (!isset($this->modules[$module])) continue; 
+			if (!isset($this->modules[$module])) continue;
 			// Load the file
 			$this->active[$module] = &$this->modules[$module]->load();
 			do_action_ref_array('shopp_module_loaded',array($module));
@@ -83,7 +83,7 @@ abstract class ModuleLoader {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return array List of checksums
 	 **/
 	function checksums () {
@@ -98,7 +98,7 @@ abstract class ModuleLoader {
 
 /**
  * ModuleFile class
- * 
+ *
  * Manages a module file
  *
  * @author Jonathan Davis
@@ -122,7 +122,7 @@ class ModuleFile {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $path The directory the file lives in
 	 * @param string $file The file name
 	 * @return void
@@ -161,7 +161,7 @@ class ModuleFile {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function load () {
@@ -176,7 +176,7 @@ class ModuleFile {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function valid () {
@@ -203,7 +203,7 @@ class ModuleFile {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param string $file The target file
 	 * @return string The meta block from the file
 	 **/
@@ -232,8 +232,8 @@ class ModuleFile {
 
 /**
  * ModuleSettingsUI class
- * 
- * Provides a PHP interface for building JavaScript based module setting 
+ *
+ * Provides a PHP interface for building JavaScript based module setting
  * widgets using the ModuleSetting Javascript class.
  *
  * @author Jonathan Davis
@@ -251,7 +251,7 @@ class ModuleSettingsUI {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function __construct($type,$module,$name,$label,$multi=false) {
@@ -269,10 +269,10 @@ class ModuleSettingsUI {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $column The table column to add the element to
 	 * @param array $attributes Element attributes; use 'checked' to set whether the element is toggled on or not
-	 * 
+	 *
 	 * @return void
 	 **/
 	function checkbox ($column=0,$attributes=array()) {
@@ -291,11 +291,11 @@ class ModuleSettingsUI {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $column The table column to add the element to
 	 * @param array $attributes Element attributes; use 'selected' to set the selected option
 	 * @param array $options The available options in the menu
-	 * 
+	 *
 	 * @return void
 	 **/
 	function menu ($column=0,$attributes=array(),$options=array()) {
@@ -310,11 +310,11 @@ class ModuleSettingsUI {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $column The table column to add the element to
 	 * @param array $attributes Element attributes; pass a 'selected' attribute as an array to set the selected options
 	 * @param array $options The available options in the menu
-	 * 
+	 *
 	 * @return void
 	 **/
 	function multimenu ($column=0,$attributes=array(),$options=array()) {
@@ -329,11 +329,11 @@ class ModuleSettingsUI {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $column The table column to add the element to
 	 * @param array $attributes Element attributes; pass a 'selected' attribute as an array to set the selected payment cards
 	 * @param array $options The available payment cards in the menu
-	 * 
+	 *
 	 * @return void
 	 **/
 	function cardmenu ($column=0,$attributes=array(),$cards=array()) {
@@ -350,10 +350,10 @@ class ModuleSettingsUI {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $column The table column to add the element to
 	 * @param array $attributes Element attributes; requires a 'name' attribute
-	 * 
+	 *
 	 * @return void
 	 **/
 	function text ($column=0,$attributes=array()) {
@@ -367,10 +367,10 @@ class ModuleSettingsUI {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $column The table column to add the element to
 	 * @param array $attributes Element attributes; requires a 'name' attribute
-	 * 
+	 *
 	 * @return void
 	 **/
 	function password ($column=0,$attributes=array()) {
@@ -384,10 +384,10 @@ class ModuleSettingsUI {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $column The table column to add the element to
 	 * @param array $attributes Element attributes; requires a 'name' attribute
-	 * 
+	 *
 	 * @return void
 	 **/
 	function hidden ($column=0,$attributes=array()) {
@@ -401,10 +401,10 @@ class ModuleSettingsUI {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $column The table column to add the element to
 	 * @param array $attributes Element attributes; requires a 'name' attribute
-	 * 
+	 *
 	 * @return void
 	 **/
 	function textarea ($column=0,$attributes=array()) {
@@ -419,10 +419,10 @@ class ModuleSettingsUI {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $column The table column to add the element to
 	 * @param array $attributes Element attributes; requires a 'name' attribute
-	 * 
+	 *
 	 * @return void
 	 **/
 	function button ($column=0,$attributes=array()) {
@@ -436,10 +436,10 @@ class ModuleSettingsUI {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $column The table column to add the element to
 	 * @param array $attributes Element attributes; requires a 'name' attribute
-	 * 
+	 *
 	 * @return void
 	 **/
 	function p ($column=0,$attributes=array()) {

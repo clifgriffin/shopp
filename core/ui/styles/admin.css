@@ -89,7 +89,7 @@ div.comment-item:hover .row-actions { visibility:visible; }
 
 #cboxContent img { float:left; }
 #cboxContent p { padding:0; }
-#cboxContent p.submit { text-align:right; } 
+#cboxContent p.submit { text-align:right; }
 #cboxContent label { display:inline-block;width:50px;text-align:right;margin-right:5px; }
 
 #cboxContent input.fileimport { padding-right:16px;width:80%; }

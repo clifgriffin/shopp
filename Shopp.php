@@ -164,7 +164,7 @@ class Shopp {
 		define("SHOPP_STORAGE",SHOPP_PATH."/storage");
 		define("SHOPP_DBSCHEMA",SHOPP_MODEL_PATH."/schema.sql");
 
-		define("SHOPP_TEMPLATES",($this->Settings->get('theme_templates') != "off" 
+		define("SHOPP_TEMPLATES",($this->Settings->get('theme_templates') != "off"
 			&& is_dir(sanitize_path(get_stylesheet_directory().'/shopp')))?
 					  sanitize_path(get_stylesheet_directory().'/shopp'):
 					  SHOPP_PATH.'/'."templates");
@@ -210,7 +210,7 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function init () {
@@ -232,12 +232,12 @@ class Shopp {
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 		
 		global $pagenow;
-		if (defined('WP_ADMIN') 
-			&& $pagenow == "plugins.php" 
+		if (defined('WP_ADMIN')
+			&& $pagenow == "plugins.php"
 			&& $_GET['action'] != 'deactivate') $this->updates();
 
 		new Login();
-		do_action('shopp_init');		
+		do_action('shopp_init');
 	}
 	
 	
@@ -246,7 +246,7 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return void
 	 **/
 	function widgets () {
@@ -266,7 +266,7 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param boolean $update (optional) Used in a filter callback context
 	 * @param boolean $updates (optional) Used in an action callback context
 	 * @return boolean The update status
@@ -284,7 +284,7 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param array $wp_rewrite_rules An array of existing WordPress rewrite rules
 	 * @return array Modified rewrite rules
 	 **/
@@ -340,7 +340,7 @@ class Shopp {
 			/* catalog/tags */
 			$catalog.'/tag/(.+?)/feed/?$' // Tag feeds
 				=> 'index.php?src=category_rss&shopp_tag=$matches[1]',
-			$catalog.'/tag/(.+?)/page/?([0-9]{1,})/?$' // Tag pagination 
+			$catalog.'/tag/(.+?)/page/?([0-9]{1,})/?$' // Tag pagination
 				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]&paged=$matches[2]',
 			$catalog.'/tag/(.+)/?$' // Tag permalink
 				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]',
@@ -362,7 +362,7 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @param array $vars The current list of handled WordPress query vars
 	 * @return array Augmented list of query vars including Shopp vars
 	 **/
@@ -385,12 +385,12 @@ class Shopp {
 	/**
 	 * Reset the shopping session
 	 *
-	 * Controls the cart to allocate a new session ID and transparently 
+	 * Controls the cart to allocate a new session ID and transparently
 	 * move existing session data to the new session ID.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * 
+	 *
 	 * @return boolean True on success
 	 **/
 	function resession ($session=false) {
@@ -406,7 +406,7 @@ class Shopp {
 		}
 		 
 		session_start();
-		session_regenerate_id(); // Generate new ID while session is started		
+		session_regenerate_id(); // Generate new ID while session is started
 		
 		// Ensure we have the newest session ID
 		$this->Shopping->session = session_id();
@@ -424,7 +424,7 @@ class Shopp {
 	
 	/**
 	 * @deprecated {@see shoppurl()}
-	 * 
+	 *
 	 **/
 	function link ($target,$secure=false) {
 		return shoppurl(false,$target,$secure);
@@ -435,15 +435,15 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function settingsjs () {
 		$baseop = $this->Settings->get('base_operations');
 		
 		$currency = array();
-		if (isset($baseop['currency']) 
-			&& isset($baseop['currency']['format']) 
+		if (isset($baseop['currency'])
+			&& isset($baseop['currency']['format'])
 			&& isset($baseop['currency']['format']['decimals'])
 			&& !empty($baseop['currency']['format']['decimals'])
 		) {
@@ -458,7 +458,7 @@ class Shopp {
 			);
 		}
 		
-		$base = array(	
+		$base = array(
 			'nocache' => is_shopp_page('account'),
 
 			// Validation alerts
@@ -522,7 +522,7 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function secure_links ($linklist) {
@@ -545,7 +545,7 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $name Class name of the smart category
 	 * @return void
 	 **/
@@ -560,25 +560,25 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $request (optional) A list of request variables to send
 	 * @param array $data (optional) A list of data variables to send
-	 * @param array $options (optional) 
+	 * @param array $options (optional)
 	 * @return string The response from the server
 	 **/
 	function callhome ($request=array(),$data=array(),$options=array()) {
 		$query = http_build_query(array_merge(array('ver'=>'1.1'),$request));
 		$data = http_build_query($data);
 
-		$connection = curl_init(); 
-		curl_setopt($connection, CURLOPT_URL, SHOPP_HOME."?".$query); 
-		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT); 
+		$connection = curl_init();
+		curl_setopt($connection, CURLOPT_URL, SHOPP_HOME."?".$query);
+		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT);
 		curl_setopt($connection, CURLOPT_HEADER, 0);
-		curl_setopt($connection, CURLOPT_POST, 1); 
+		curl_setopt($connection, CURLOPT_POST, 1);
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
-		curl_setopt($connection, CURLOPT_TIMEOUT, 20); 
-		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1); 
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION, 1); 
+		curl_setopt($connection, CURLOPT_TIMEOUT, 20);
+		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($connection, CURLOPT_FOLLOWLOCATION, 1);
 		
 		// Added to handle SSL timeout issues
 		// Maybe if a timeout occurs the connection should be
@@ -590,7 +590,7 @@ class Shopp {
 			if(SHOPP_DEBUG) new ShoppError("cURL error [".curl_errno($connection)."]: ".$error,false,SHOPP_DEBUG_ERR);
 			
 			// Attempt HTTP connection
-			curl_setopt($connection, CURLOPT_URL, str_replace('https://', 'http://', SHOPP_HOME)."?".$query); 
+			curl_setopt($connection, CURLOPT_URL, str_replace('https://', 'http://', SHOPP_HOME)."?".$query);
 			$result = curl_exec($connection);
 			if ($error = curl_error($connection)) {
 				if(SHOPP_DEBUG) new ShoppError("cURL error [".curl_errno($connection)."]: ".$error,false,SHOPP_DEBUG_ERR);
@@ -607,7 +607,7 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return array List of available updates
 	 **/
 	function updates () {
@@ -662,7 +662,7 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function changelog () {
@@ -689,7 +689,7 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function status () {
@@ -739,12 +739,12 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return boolean
 	 **/
 	function maintenance () {
 		// Settings unavailable
-		if (!$this->Settings->available || !$this->Settings->get('shopp_setup') != "completed") 
+		if (!$this->Settings->available || !$this->Settings->get('shopp_setup') != "completed")
 			return false;
 			
 		$this->Settings->save('maintenance','on');
@@ -755,12 +755,12 @@ class Shopp {
 
 /**
  * Defines the shopp() 'tag' handler for complete template customization
- * 
+ *
  * Appropriately routes tag calls to the tag handler for the requested object.
  *
  * @param $object The object to get the tag property from
  * @param $property The property of the object to get/output
- * @param $options Custom options for the property result in query form 
+ * @param $options Custom options for the property result in query form
  *                   (option1=value&option2=value&...) or alternatively as an associative array
  */
 function shopp () {
@@ -783,7 +783,7 @@ function shopp () {
 				if (empty($paramset)) continue;
 				$key = $paramset;
 				$value = "";
-				if (strpos($paramset,"=") !== false) 
+				if (strpos($paramset,"=") !== false)
 					list($key,$value) = explode("=",$paramset);
 				$options[strtolower($key)] = $value;
 			}
@@ -833,7 +833,7 @@ function shopp () {
 
 	// Return the result instead of outputting it
 	if ((isset($options['return']) && value_is_true($options['return'])) ||
-			isset($options['echo']) && !value_is_true($options['echo'])) 
+			isset($options['echo']) && !value_is_true($options['echo']))
 		return $result;
 
 	// Output the result

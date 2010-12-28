@@ -64,7 +64,7 @@ function profile_meta_box ($Customer) {
 	<label for="username"><?php _e('Login (Click to edit user)','Shopp'); ?></label>
 	</span>
 <?php endif; ?>
-<p> 
+<p>
 	<span>
 	<input type="text" name="firstname" id="firstname" value="<?php echo esc_attr($Customer->firstname); ?>" size="14" /><br />
 	<label for="firstname"><?php _e('First Name','Shopp'); ?></label>
@@ -103,7 +103,7 @@ function info_meta_box ($Customer) {
 			<?php echo apply_filters('shopp_customer_info_input','<input type="text" name="info['.$meta->id.']" id="info-'.$meta->id.'" value="'.esc_attr($meta->value).'" />',$meta); ?>
 			<br />
 			<label for="info-<?php echo $meta->id; ?>"><?php echo esc_html($meta->name); ?></label>
-		</p>	
+		</p>
 <?php endforeach; endif;?>
 
 <?php

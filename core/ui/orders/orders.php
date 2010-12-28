@@ -14,7 +14,7 @@
 		<input type="text" id="orders-search-input" class="search-input" name="s" value="<?php echo esc_attr($s); ?>" />
 		<input type="submit" value="<?php _e('Search Orders','Shopp'); ?>" class="button" />
 	</p>
-	
+
 	<?php if (current_user_can('shopp_financials')): ?>
 	<ul id="report">
 		<li><strong><?php echo $ordercount->total; ?></strong> <span><?php _e('Orders','Shopp'); ?></span></li>
@@ -22,7 +22,7 @@
 		<li><strong><?php echo money($ordercount->avgsale); ?></strong> <span><?php _e('Average Sale','Shopp'); ?></span></li>
 	</ul>
 	<?php endif; ?>
-	
+
 	<div class="tablenav">
 		<div class="alignleft actions inline">
 		<?php if (current_user_can('shopp_delete_orders')): ?><button type="submit" id="delete-button" name="deleting" value="order" class="button-secondary"><?php _e('Delete','Shopp'); ?></button><?php endif; ?>
@@ -56,19 +56,19 @@
 		</tfoot>
 	<?php if (sizeof($Orders) > 0): ?>
 		<tbody id="orders-table" class="list orders">
-		<?php 
+		<?php
 			$hidden = get_hidden_columns('toplevel_page_shopp-orders');
-			
-			$even = false; foreach ($Orders as $Order): 
+
+			$even = false; foreach ($Orders as $Order):
 
 			$classes = array();
-			
+
 			$txnstatus = $Order->txnstatus;
 			if (array_key_exists($Order->txnstatus,$txnStatusLabels)) $txnstatus = $txnStatusLabels[$Order->txnstatus];
 			if (empty($txnstatus)) $txnstatus = "UNKNOWN";
 			$classes[] = strtolower(preg_replace('/[^\w]/','_',$txnstatus));
 
-			if (!$even) $classes[] = "alternate"; 
+			if (!$even) $classes[] = "alternate";
 			do_action_ref_array('shopp_order_row_css',array(&$classes,&$Order));
 			$even = !$even;
 			?>
@@ -76,7 +76,7 @@
 			<th scope='row' class='check-column'><input type='checkbox' name='selected[]' value='<?php echo $Order->id; ?>' /></th>
 			<td class="order column-order<?php echo in_array('order',$hidden)?' hidden':''; ?>"><?php echo $Order->id; ?></td>
 			<td class="name column-name"><a class='row-title' href='<?php echo esc_url(add_query_arg(array('page'=>'shopp-orders','id'=>$Order->id),admin_url('admin.php'))); ?>' title='<?php _e('View','Shopp'); ?> &quot;<?php echo $Order->id; ?>&quot;'><?php echo esc_html(empty($Order->firstname) && empty($Order->lastname))?"(".__('no contact name','Shopp').")":"{$Order->firstname} {$Order->lastname}"; ?></a><?php echo !empty($Order->company)?"<br />".esc_html($Order->company):""; ?></td>
-			<td class="destination column-destination<?php echo in_array('destination',$hidden)?' hidden':''; ?>"><?php 
+			<td class="destination column-destination<?php echo in_array('destination',$hidden)?' hidden':''; ?>"><?php
 				$location = '';
 				$location = $Order->shipcity;
 				if (!empty($location) && !empty($Order->shipstate)) $location .= ', ';
@@ -98,9 +98,9 @@
 		<tbody><tr><td colspan="6"><?php _e('No','Shopp'); ?><?php if (!empty($_GET['status'])) echo ' '.strtolower($statusLabels[$_GET['status']]); ?> <?php _e('orders, yet.','Shopp'); ?></td></tr></tbody>
 	<?php endif; ?>
 	</table>
-	
+
 	</form>
-	
+
 	<div class="tablenav">
 		<?php if (current_user_can('shopp_financials') && current_user_can('shopp_export_orders')): ?>
 		<div class="alignleft actions">
@@ -109,13 +109,13 @@
 			<div id="export-settings" class="hidden">
 			<div id="export-columns" class="multiple-select">
 				<ul>
-					<li<?php $even = true; if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_columns" id="selectall_columns" /><label for="selectall_columns"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>	
-					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="hidden" name="settings[purchaselog_headers]" value="off" /><input type="checkbox" name="settings[purchaselog_headers]" id="purchaselog_headers" value="on" /><label for="purchaselog_headers"><strong><?php _e('Include column headings','Shopp'); ?></strong></label></li>	
-					
+					<li<?php $even = true; if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="selectall_columns" id="selectall_columns" /><label for="selectall_columns"><strong><?php _e('Select All','Shopp'); ?></strong></label></li>
+					<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="hidden" name="settings[purchaselog_headers]" value="off" /><input type="checkbox" name="settings[purchaselog_headers]" id="purchaselog_headers" value="on" /><label for="purchaselog_headers"><strong><?php _e('Include column headings','Shopp'); ?></strong></label></li>
+
 					<?php $even = true; foreach ($columns as $name => $label): ?>
 						<li<?php if ($even) echo ' class="odd"'; $even = !$even; ?>><input type="checkbox" name="settings[purchaselog_columns][]" value="<?php echo $name; ?>" id="column-<?php echo $name; ?>" <?php echo in_array($name,$selected)?' checked="checked"':''; ?> /><label for="column-<?php echo $name; ?>" ><?php echo $label; ?></label></li>
 					<?php endforeach; ?>
-					
+
 				</ul>
 			</div>
 			<?php PurchasesIIFExport::settings(); ?>
@@ -133,7 +133,7 @@
 		<div class="clear"></div>
 	</div>
 </div>
-  
+
 <div id="start-calendar" class="calendar"></div>
 <div id="end-calendar" class="calendar"></div>
 
@@ -145,7 +145,7 @@ var $=jqnc();
 
 pagenow = 'toplevel_page_shopp-orders';
 columns.init(pagenow);
-	
+
 $('#selectall').change( function() {
 	$('#orders-table th input').each( function () {
 		if (this.checked) this.checked = false;
@@ -261,9 +261,9 @@ range.change(function () {
 }).change();
 
 $('#export-settings-button').click(function () { $('#export-settings-button').hide(); $('#export-settings').removeClass('hidden'); });
-$('#selectall_columns').change(function () { 
-	if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true); 
-	else $('#export-columns input').not(this).attr('checked',false); 
+$('#selectall_columns').change(function () {
+	if ($(this).attr('checked')) $('#export-columns input').not(this).attr('checked',true);
+	else $('#export-columns input').not(this).attr('checked',false);
 });
 
 });

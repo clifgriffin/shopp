@@ -1,10 +1,10 @@
-<div class="wrap shopp"> 
+<div class="wrap shopp">
 	<?php if (!empty($Shopp->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Notice; ?></p></div><?php endif; ?>
 
 	<div class="icon32"></div>
-	<h2><?php _e('Product Editor','Shopp'); ?></h2> 
+	<h2><?php _e('Product Editor','Shopp'); ?></h2>
 
-	<div id="ajax-response"></div> 
+	<div id="ajax-response"></div>
 	<form name="product" id="product" action="<?php echo admin_url('admin.php'); ?>" method="post">
 		<?php wp_nonce_field('shopp-save-product'); ?>
 		<?php wp_nonce_field('closedpostboxes', 'closedpostboxesnonce', false ); ?>
@@ -45,7 +45,7 @@
 				<div id="<?php echo user_can_richedit() ? 'postdivrich' : 'postdiv'; ?>" class="postarea">
 				<?php the_editor($Product->description,'content','Description', false); ?>
 				</div>
-				
+
 			<?php
 			do_meta_boxes('shopp_page_shopp-products', 'normal', $Product);
 			do_meta_boxes('shopp_page_shopp-products', 'advanced', $Product);
@@ -53,7 +53,7 @@
 
 			</div>
 			</div>
-			
+
 		</div> <!-- #poststuff -->
 	</form>
 </div>

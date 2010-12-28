@@ -1,7 +1,7 @@
 <?php
 /**
  * Order Amount Tiers
- * 
+ *
  * Provides shipping calculations based on order amount ranges
  *
  * @author Jonathan Davis
@@ -10,19 +10,19 @@
  * @package shopp
  * @since 1.1 dev
  * @subpackage OrderAmount
- * 
+ *
  * $Id$
  **/
 
 class OrderAmount extends ShippingFramework implements ShippingModule {
-	
+
 	function init () {}
 	function calcitem ($id,$Item) {}
-	
+
 	function methods () {
 		return array('range' => __("Order Amount Tiers","Shopp"));
 	}
-	
+
 	function calculate ($options,$Order) {
 		foreach ($this->rates as $rate) {
 			$column = $this->ratecolumn($rate);
@@ -37,7 +37,7 @@ class OrderAmount extends ShippingFramework implements ShippingModule {
 		}
 		return $options;
 	}
-		
+
 	function ui () {
 		?>
 var OrderAmountRange = function (methodid,table,rates) {
@@ -51,7 +51,7 @@ var OrderAmountRange = function (methodid,table,rates) {
 	$('<th scope="col"><label for="'+region+'-'+methodid+'-0">'+region+'</label></th>').appendTo(headingsRow);
 	$('<th scope="col"><label for="worldwide-'+methodid+'-0"><?php echo addslashes(__('Worldwide','Shopp')); ?></label></th>').appendTo(headingsRow);
 	$('<th scope="col">').appendTo(headingsRow);
-	
+
 	if (rates && rates['max']) {
 		$.each(rates['max'],function(rowid,rate) {
 			var row = AddOrderAmountRangeRow(methodid,table,rates);
@@ -68,7 +68,7 @@ var OrderAmountRange = function (methodid,table,rates) {
 function AddOrderAmountRangeRow(methodid,table,rates) {
 	var rows = $(table).find('tbody').children().not('tr.headings');
 	var id = rows.length;
-	
+
 	var row = $('<tr/>');
 
 	var unitCell = $('<td class="units"></td>').appendTo(row);
@@ -79,9 +79,9 @@ function AddOrderAmountRangeRow(methodid,table,rates) {
 	var maxInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][max][]" class="selectall right" size="7" id="max-'+methodid+'-'+id+'" tabindex="'+(id+1)+'02" />').change(function() {
 		if (!(this.value == "+" || this.value == ">")) this.value = asMoney(this.value);
 	}).val(value=="+"||value==">"?value:asMoney(new Number(value))).appendTo(unitCell);
-	
+
 	$('<span> = </span>').appendTo(unitCell);
-	
+
 	var d = 3;
 	$.each(domesticAreas,function(key,area) {
 		var inputCell = $('<td/>').appendTo(row);
@@ -92,21 +92,21 @@ function AddOrderAmountRangeRow(methodid,table,rates) {
 			this.value = asMoney(this.value);
 		}).val(asMoney(new Number(value))).appendTo(inputCell);
 	});
-	
+
 	var inputCell = $('<td/>').appendTo(row);
 	if (rates && rates[region] && rates[region][id]) value = rates[region][id];
 	else value = 0;
 	$('<input type="text" name="settings[shipping_rates]['+methodid+']['+region+'][]"  id="'+region+'-'+methodid+'-'+id+'" class="selectall right" size="7" tabindex="'+(id+1)+'10" />').change(function() {
 		this.value = asMoney(this.value);
 	}).val(asMoney(new Number(value))).appendTo(inputCell);
-	
+
 	var inputCell = $('<td/>').appendTo(row);
 	if (rates && rates['Worldwide'] && rates['Worldwide'][id]) value = rates['Worldwide'][id];
 	else value = 0;
 	worldwideInput = $('<input type="text" name="settings[shipping_rates]['+methodid+'][Worldwide][]" id="worldwide-'+methodid+'-'+id+'"  class="selectall right" size="7" tabindex="'+(id+1)+'11" />').change(function() {
 		this.value = asMoney(this.value);
 	}).val(asMoney(new Number(value))).appendTo(inputCell);
-	
+
 	var rowCtrlCell = $('<td class="rowctrl" />').appendTo(row);
 	var deleteButton = $('<button type="button" name="delete" tabindex="'+(id+1)+'12"></button>').appendTo(rowCtrlCell);
 	if (rows.length == 0) {
@@ -124,13 +124,13 @@ function AddOrderAmountRangeRow(methodid,table,rates) {
 		$(insertedRow).insertAfter($(row));
 		quickSelects();
 	});
-	
+
 	return row;
 }
 
 methodHandlers.register('<?php echo get_class($this); ?>::range',OrderAmountRange);
 
-		<?php		
+		<?php
 	}
 
 } // end flatrates class

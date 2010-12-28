@@ -48,12 +48,12 @@ class Promotion extends DatabaseObject {
 		$category_table = DatabaseObject::tablename(Category::$table);
 		
 		$where = array();
-		// Go through each rule to construct an SQL query 
+		// Go through each rule to construct an SQL query
 		// that gets all applicable product & price ids
 		if (!empty($this->rules) && is_array($this->rules)) {
 			foreach ($this->rules as $rule) {
 
-				if (Promotion::$values[$rule['property']] == "price") 
+				if (Promotion::$values[$rule['property']] == "price")
 					$value = floatvalue($rule['value']);
 				else $value = $rule['value'];
 				
@@ -86,11 +86,11 @@ class Promotion extends DatabaseObject {
 		if (!empty($where)) $where = "WHERE ".join(" AND ",$where);
 		else $where = false;
 		$type = ($this->type == "Item")?'catalog':'cart';
-		$query = "INSERT INTO $discount_table (promo,product,price) 
+		$query = "INSERT INTO $discount_table (promo,product,price)
 					SELECT '$this->id' as promo,p.id AS product,prc.id AS price
-					FROM $product_table as p 
-					LEFT JOIN $price_table AS prc ON prc.product=p.id 
-					LEFT JOIN $catalog_table AS clog ON clog.product=p.id 
+					FROM $product_table as p
+					LEFT JOIN $price_table AS prc ON prc.product=p.id
+					LEFT JOIN $catalog_table AS clog ON clog.product=p.id
 					LEFT JOIN $category_table AS cat ON clog.parent=cat.id AND clog.type='category'
 					$where
 					GROUP BY prc.id";
@@ -107,54 +107,54 @@ class Promotion extends DatabaseObject {
 
 	/**
 	 * match_rule ()
-	 * Determines if the value of a given subject matches the rule based 
+	 * Determines if the value of a given subject matches the rule based
 	 * on the specified operation */
 	function match_rule ($subject,$op,$value,$property=false) {
 		switch($op) {
 			// String or Numeric operations
 			case "Is equal to":
 			 	if($property && Promotion::$values[$property] == 'price') {
-					return ( floatvalue($subject) != 0 
-					&& floatvalue($value) != 0 
+					return ( floatvalue($subject) != 0
+					&& floatvalue($value) != 0
 					&& floatvalue($subject) == floatvalue($value));
 				} else {
 					if (is_array($subject)) return (in_array($value,$subject));
 					return ("$subject" === "$value");
-				}		 
+				}
 				break;
-			case "Is not equal to": 		
+			case "Is not equal to":
 				if (is_array($subject)) return (!in_array($value,$subject));
 				return ("$subject" !== "$value"
-						|| (floatvalue($subject) != 0 
-						&& floatvalue($value) != 0 
-						&& floatvalue($subject) != floatvalue($value))); 
+						|| (floatvalue($subject) != 0
+						&& floatvalue($value) != 0
+						&& floatvalue($subject) != floatvalue($value)));
 						break;
 
 			// String operations
-			case "Contains": 
+			case "Contains":
 				if (is_array($subject)) {
-					foreach ($subject as $s) 
+					foreach ($subject as $s)
 						if (stripos($s,$value) !== false) return true;
 					return false;
 				}
 				return (stripos($subject,$value) !== false); break;
-			case "Does not contain": 
+			case "Does not contain":
 				if (is_array($subject)) {
-					foreach ($subject as $s) 
+					foreach ($subject as $s)
 						if (stripos($s,$value) !== false) return false;
 					return true;
 				}
 				return (stripos($subject,$value) === false); break;
-			case "Begins with": 
+			case "Begins with":
 				if (is_array($subject)) {
-					foreach ($subject as $s) 
+					foreach ($subject as $s)
 						if (stripos($s,$value) === 0) return true;
 					return false;
 				}
 				return (stripos($subject,$value) === 0); break;
-			case "Ends with": 
+			case "Ends with":
 				if (is_array($subject)) {
-					foreach ($subject as $s) 
+					foreach ($subject as $s)
 						if (stripos($s,$value) === strlen($s) - strlen($value)) return true;
 					return false;
 				}
@@ -162,16 +162,16 @@ class Promotion extends DatabaseObject {
 			
 			// Numeric operations
 			case "Is greater than":
-				return (floatvalue($subject,false) > floatvalue($value,false)); 
+				return (floatvalue($subject,false) > floatvalue($value,false));
 				break;
-			case "Is greater than or equal to": 
-				return (floatvalue($subject,false) >= floatvalue($value,false)); 
+			case "Is greater than or equal to":
+				return (floatvalue($subject,false) >= floatvalue($value,false));
 				break;
-			case "Is less than": 
-				return (floatvalue($subject,false) < floatvalue($value,false)); 
+			case "Is less than":
+				return (floatvalue($subject,false) < floatvalue($value,false));
 				break;
-			case "Is less than or equal to": 
-				return (floatvalue($subject,false) <= floatvalue($value,false)); 
+			case "Is less than or equal to":
+				return (floatvalue($subject,false) <= floatvalue($value,false));
 				break;
 		}
 		
@@ -183,7 +183,7 @@ class Promotion extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param array $promos A list of Promotion ids of the promotions to be updated
 	 * @return void
 	 **/

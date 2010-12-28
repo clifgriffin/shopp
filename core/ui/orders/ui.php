@@ -38,13 +38,13 @@ if (!empty($Shopp->Purchase->shipaddress))
 function contact_meta_box ($Purchase) {
 	$customer_url = add_query_arg(array('page'=>'shopp-customers','id'=>$Purchase->customer),admin_url('admin.php'));
 	$customer_url = apply_filters('shopp_order_customer_url',$customer_url);
-	
+
 	$email_url = 'mailto:'.($Purchase->email).'?subject='.sprintf(__('RE: %s: Order #%s','Shopp'),get_bloginfo('sitename'),$Purchase->id);
 	$email_url = apply_filters('shopp_order_customer_email_url',$email_url);
-	
+
 	$phone_url = 'callto:'.preg_replace('/[^\d+]/','',$Purchase->phone);
 	$phone_url = apply_filters('shopp_order_customer_phone_url',$phone_url);
-	
+
 	$Settings =& ShoppSettings();
 	$accounts = $Settings->get('account_system');
 	$wp_user = false;
@@ -53,8 +53,8 @@ function contact_meta_box ($Purchase) {
 		$wp_user = get_userdata($Customer->wpuser);
 		$edituser_url = add_query_arg('user_id',$Customer->wpuser,admin_url('user-edit.php'));
 		$edituser_url = apply_filters('shopp_order_customer_wpuser_url',$edituser_url);
-	} 
-	
+	}
+
 
 ?>
 	<p class="customer name"><a href="<?php echo esc_url($customer_url); ?>"><?php echo esc_html("{$Purchase->firstname} {$Purchase->lastname}"); ?></a><?php
@@ -90,7 +90,7 @@ if (!empty($Shopp->Purchase->data) && is_array($Shopp->Purchase->data) && join("
 function transaction_meta_box ($Purchase) {
 ?>
 <p><strong><?php _e('Processed by','Shopp'); ?> </strong><?php echo $Purchase->gateway; ?><?php echo (!empty($Purchase->txnid)?" ($Purchase->txnid)":""); ?></p>
-<?php 
+<?php
 	$output = '';
 	if (!empty($Purchase->card) && !empty($Purchase->cardtype))
 		$output = '<p><strong>'.$Purchase->txnstatus.'</strong> '.
@@ -112,7 +112,7 @@ function shipping_meta_box ($Purchase) {
 		echo "($Purchase->shipmethod)</p>";
 ?>
 	<p><span><input type="text" id="shiptrack" name="shiptrack" size="30" value="<?php echo $Purchase->shiptrack; ?>" /><br /><label for="shiptrack"><?php _e('Tracking ID','Shopp')?></label></span></p>
-		
+
 <?php
 	} else {
 		echo '<p><strong>';
@@ -171,7 +171,7 @@ add_meta_box('order-status', __('Status','Shopp').$Admin->boxhelp('order-manager
 
 function notes_meta_box ($Purchase) {
 	global $Notes;
-	
+
 	add_filter('shopp_order_note', 'esc_html');
 	add_filter('shopp_order_note', 'wptexturize');
 	add_filter('shopp_order_note', 'convert_chars');
@@ -179,7 +179,7 @@ function notes_meta_box ($Purchase) {
 	add_filter('shopp_order_note', 'force_balance_tags');
 	add_filter('shopp_order_note', 'convert_smilies');
 	add_filter('shopp_order_note', 'wpautop');
-	
+
 ?>
 <?php if (!empty($Notes->meta)): ?>
 <table>

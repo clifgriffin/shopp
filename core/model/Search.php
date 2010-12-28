@@ -1,7 +1,7 @@
 <?php
 /**
  * Search.php
- * 
+ *
  * A set of classes for handling search related processes.
  *
  * @author Jonathan Davis
@@ -15,7 +15,7 @@
 
 /**
  * IndexProduct class
- * 
+ *
  * Generates a set of indexes for all Product property data
  *
  * @author Jonathan Davis
@@ -35,7 +35,7 @@ class IndexProduct {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function __construct ($id) {
@@ -48,13 +48,13 @@ class IndexProduct {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function index () {
 		foreach ($this->properties as $property) {
 			switch ($property) {
-				case "prices": 
+				case "prices":
 					$prices = array();
 					foreach ($this->Product->prices as $price) {
 						if ($price->type == "N/A") continue; // Skip disabled pricelines
@@ -62,19 +62,19 @@ class IndexProduct {
 					}
 					$content = join(' ',$prices);
 					break;
-				case "specs": 
+				case "specs":
 					$specs = array();
 					foreach ($this->Product->specs as $Spec)
 						$specs[] = "$Spec->name $Spec->value";
 					$content = join(' ',$specs);
 					break;
-				case "categories": 
+				case "categories":
 					$categories = array();
 					foreach ($this->Product->categories as $Category)
 						$categories[] = $Category->name;
 					$content = join(' ',$categories);
 					break;
-				case "tags": 
+				case "tags":
 					$tags = array();
 					foreach ($this->Product->tags as $Tag)
 						$tags[] = $Tag->name;
@@ -91,8 +91,8 @@ class IndexProduct {
 
 /**
  * ContentIndex class
- * 
- * Builds a forward index of product content and 
+ *
+ * Builds a forward index of product content and
  * manages it in the database.
  *
  * @author Jonathan Davis
@@ -108,7 +108,7 @@ class ContentIndex extends DatabaseObject {
 	 * ContentIndex constructor
 	 *
 	 * @author Jonathan Davis
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct ($product,$type) {
@@ -121,7 +121,7 @@ class ContentIndex extends DatabaseObject {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param int $product Id of the indexed product
 	 * @param string $type Type of product property indexed
 	 * @return void
@@ -141,15 +141,15 @@ class ContentIndex extends DatabaseObject {
 	}
 	
 	/**
-	 * Process content into an index and save it 
+	 * Process content into an index and save it
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void Description...
 	 **/
 	function save ($content) {
-		if (empty($this->product) || empty($this->type) || empty($content)) 
+		if (empty($this->product) || empty($this->type) || empty($content))
 			return false;
 		
 		$factoring = Lookup::index_factors();
@@ -166,7 +166,7 @@ class ContentIndex extends DatabaseObject {
 if (!class_exists('SearchParser')):
 /**
  * SearchParser class
- * 
+ *
  * Prepares a search query for natural language searching
  *
  * @author Jonathan Davis
@@ -181,7 +181,7 @@ class SearchParser extends SearchTextFilters {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -197,7 +197,7 @@ class SearchParser extends SearchTextFilters {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $query A search query string
 	 * @return object The price matching object
 	 **/
@@ -232,7 +232,7 @@ class BooleanParser extends SearchTextFilters {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -257,7 +257,7 @@ class ContentParser extends SearchTextFilters {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return void
 	 **/
 	function __construct () {
@@ -273,7 +273,7 @@ endif;
 
 /**
  * SearchTextFilters class
- * 
+ *
  * A foundational class for parsing a string text for
  * searching.
  *
@@ -288,7 +288,7 @@ abstract class SearchTextFilters {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param boolean $symbol (optional) Require currency symbol - required by default
 	 * @return string The current currency regex pattern
 	 **/
@@ -310,7 +310,7 @@ abstract class SearchTextFilters {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @return string The price match query pattern
 	 **/
 	static function _pricematch_regex () {
@@ -321,13 +321,13 @@ abstract class SearchTextFilters {
 	
 	/**
 	 * Strips HTML tags from the text
-	 * 
+	 *
 	 * Markup is not useful for indexing, so get rid of it to
 	 * optimize index storage.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $text The text to process
 	 * @return string text with markup tags removed
 	 **/
@@ -340,7 +340,7 @@ abstract class SearchTextFilters {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $string The text to transpose
 	 * @return string Transposed text
 	 **/
@@ -350,13 +350,13 @@ abstract class SearchTextFilters {
 	
 	/**
 	 * Removes stop words from the text
-	 * 
+	 *
 	 * Stop words are words that are common English words that
 	 * are not particularly useful for searching.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $text The text to clean up
 	 * @return string The cleaned text
 	 **/
@@ -368,13 +368,13 @@ abstract class SearchTextFilters {
 	
 	/**
 	 * Normalize the text
-	 * 
-	 * Performs acronym & contraction collapsing and removes all other 
+	 *
+	 * Performs acronym & contraction collapsing and removes all other
 	 * non-alphanumeric characters.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $text The text to normalize
 	 * @return string normalized text
 	 **/
@@ -400,7 +400,7 @@ abstract class SearchTextFilters {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $text The text to convert
 	 * @return string Converted text
 	 **/
@@ -413,7 +413,7 @@ abstract class SearchTextFilters {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $text The query string to parse
 	 * @return string The boolean search string
 	 **/
@@ -422,16 +422,16 @@ abstract class SearchTextFilters {
 		$logic = (strtoupper(SHOPP_SEARCH_LOGIC) == "AND")?"+":"";
 
 		$tokens = array();
-		$token = strtok($text,' '); 
-        while ($token) { 
-            // find double quoted tokens 
-            if ($token{0} == '"') { 
+		$token = strtok($text,' ');
+        while ($token) {
+            // find double quoted tokens
+            if ($token{0} == '"') {
 				$token .= ' '.strtok('"').'"';
 				$tokens[] = $token;
 			} else {
 				$tokens[] = "$logic$token*";
 			}
-            $token = strtok(' '); 
+            $token = strtok(' ');
         }
 		return implode(' ',$tokens);
 	}
@@ -441,7 +441,7 @@ abstract class SearchTextFilters {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $text The search query
 	 * @return string search query without price search
 	 **/
@@ -456,7 +456,7 @@ abstract class SearchTextFilters {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * 
+	 *
 	 * @param string $text The text to stem
 	 * @return string The text plus the generated word stems
 	 **/
@@ -478,7 +478,7 @@ abstract class SearchTextFilters {
 /**
  * PHP5 Implementation of the Porter Stemmer algorithm. Certain elements
  * were borrowed from the (broken) implementation by Jon Abernathy.
- * 
+ *
  * @author Richard Heyes
  * @copyright Richard Heyes, 2005. All rights reserved. {@see http://www.phpguru.org/}
  * @since 1.1
@@ -496,7 +496,7 @@ class PorterStemmer {
 	 * @author Richard Heyes
 	 * @since 1.1
 	 * @package shopp
-     * 
+     *
      * @param  string $word Word to stem
      * @return string Stemmed word
      **/

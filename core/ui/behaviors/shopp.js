@@ -31,12 +31,12 @@ if (!Array.indexOf) {
 }
 
 /**
- * Return a valid currency format 
+ * Return a valid currency format
  * (returns a valid provided format, or from Shopp Settings or a baseline default)
  **/
 function getCurrencyFormat (f) {
 	if (f && f.currency) return f; // valid parameter format
-	if (sjss && sjss.d) 
+	if (sjss && sjss.d)
 		return {	// from base of operations
 			"cpos":sjss.cp,
 			"currency":sjss.c,
@@ -101,7 +101,7 @@ function formatNumber (n,f,pr) {
 	n = "";
 	whole = d[0];
 	if (d[1]) fraction = d[1];
-	
+
 	if (grouping.indexOf(',') > -1) grouping = grouping.split(',');
 	else grouping = [grouping];
 
@@ -115,7 +115,7 @@ function formatNumber (n,f,pr) {
 		ng.unshift(sequence.substr(divide));
 	}
 	if (whole) ng.unshift(whole);
-	
+
 	n = ng.join(f.thousands);
 	if (n == '') n = 0;
 
@@ -123,7 +123,7 @@ function formatNumber (n,f,pr) {
 	fraction = (!pr || pr && fraction.length > 0)?f.decimals+fraction:'';
 
 	if (f.precision > 0) n += fraction;
-	
+
 	return n;
 }
 
@@ -136,24 +136,24 @@ function formatNumber (n,f,pr) {
 function asNumber (n,f) {
 	if (!n) return 0;
 	f = getCurrencyFormat(f);
-	
+
 	if (n instanceof Number) return new Number(n.toFixed(f.precision));
-	
+
 	n = n.toString().replace(f.currency,''); // Remove the currency symbol
 	n = n.toString().replace(new RegExp(/(\D\.|[^\d\,\.])/g),''); // Remove non-digits followed by periods and any other non-numeric string data
 	n = n.toString().replace(new RegExp('\\'+f.thousands,'g'),''); // Remove thousands
 
 	if (f.precision > 0)
 		n = n.toString().replace(new RegExp('\\'+f.decimals,'g'),'.'); // Convert decimal delimter
-		
+
 	if (isNaN(new Number(n)))
 		n = n.replace(new RegExp(/\./g),"").replace(new RegExp(/\,/),"\.");
-	
+
 	return new Number(n);
 }
 
 /**
- * Utility class to build a list of functions (callbacks) 
+ * Utility class to build a list of functions (callbacks)
  * to be executed as needed
  **/
 function CallbackRegistry () {
@@ -166,7 +166,7 @@ function CallbackRegistry () {
 	this.call = function(name,arg1,arg2,arg3) {
 		this.callbacks[name](arg1,arg2,arg3);
 	}
-	
+
 	this.get = function(name) {
 		return this.callbacks[name];
 	}
@@ -183,7 +183,7 @@ if (!Number.prototype.roundFixed) {
 }
 
 /**
- * Usability behavior to add automatic select-all to a field 
+ * Usability behavior to add automatic select-all to a field
  * when activating the field by mouse click
  **/
 function quickSelects (target) {
@@ -206,7 +206,7 @@ function htmlentities (string) {
  * as a last resort use evil(), er... eval()
  **/
 jQuery.parseJSON = function (data) {
-	if (typeof (JSON) !== 'undefined' && 
+	if (typeof (JSON) !== 'undefined' &&
 		typeof (JSON.parse) === 'function') {
 			try {
 				return JSON.parse(data);
@@ -221,11 +221,11 @@ jQuery.parseJSON = function (data) {
  **/
 jQuery(document).ready(function() {
 	var $=jqnc();
-		
+
 	// Automatically reformat currency and money inputs
-	$('input.currency, input.money').change(function () { 
+	$('input.currency, input.money').change(function () {
 		this.value = asMoney(this.value); }).change();
-	
+
 	quickSelects();
-	
+
 });

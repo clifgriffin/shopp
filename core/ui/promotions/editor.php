@@ -1,10 +1,10 @@
-	<div class="wrap shopp"> 
+	<div class="wrap shopp">
 		<?php if (!empty($this->Notice)): ?><div id="message" class="updated fade"><p><?php echo $this->Notice; ?></p></div><?php endif; ?>
 
 		<div class="icon32"></div>
-		<h2><?php _e('Promotion Editor','Shopp'); ?></h2> 
+		<h2><?php _e('Promotion Editor','Shopp'); ?></h2>
 
-		<div id="ajax-response"></div> 
+		<div id="ajax-response"></div>
 		<form name="promotion" id="promotion" action="<?php echo add_query_arg('page','shopp-promotions',admin_url('admin.php')); ?>" method="post">
 			<?php wp_nonce_field('shopp-save-promotion'); ?>
 
@@ -93,7 +93,7 @@ var $=jqnc(),
 
 		"Promo code":"<?php _e('Promo code','Shopp'); ?>",
 		"Promo use count":"<?php _e('Promo use count','Shopp'); ?>",
-	
+
 		"Is equal to":"<?php _e('Is equal to','Shopp'); ?>",
 		"Is not equal to":"<?php _e('Is not equal to','Shopp'); ?>",
 		"Contains":"<?php _e('Contains','Shopp'); ?>",
@@ -104,7 +104,7 @@ var $=jqnc(),
 		"Is greater than or equal to":"<?php _e('Is greater than or equal to','Shopp'); ?>",
 		"Is less than":"<?php _e('Is less than','Shopp'); ?>",
 		"Is less than or equal to":"<?php _e('Is less than or equal to','Shopp'); ?>"
-	
+
 	},
 	conditions = {
 		"Catalog":{
@@ -165,7 +165,7 @@ var $=jqnc(),
 			row = false, i = false;
 
 		if (!type) type = 'condition';
-	
+
 		if (type == "cartitem") {
 			i = itemidx;
 			if (!location) row = $('<tr />').appendTo('#cartitem');
@@ -181,7 +181,7 @@ var $=jqnc(),
 
 		var properties_name = (type=='cartitem')?'rules[item]['+i+'][property]':'rules['+i+'][property]';
 		var properties = $('<select name="'+properties_name+'" class="ruleprops"></select>').appendTo(cell);
-	
+
 		if (type == "cartitem") target = "Cart Item Target";
 		if (conditions[target])
 			for (var label in conditions[target])
@@ -190,10 +190,10 @@ var $=jqnc(),
 		var operation_name = (type=='cartitem')?'rules[item]['+i+'][logic]':'rules['+i+'][logic]';
 		var operation = $('<select name="'+operation_name+'" ></select>').appendTo(cell);
 		var value = $('<span></span>').appendTo(cell);
-	
+
 		var addspan = $('<span></span>').appendTo(cell);
 		$('<button type="button" class="add"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="<?php _e('Add','Shopp'); ?>" width="16" height="16" />').appendTo(addspan).click(function () { new Conditional(type,false,row); });
-	
+
 		cell.hover(function () {
 			if (i > 1) deleteButton.css({'opacity':100,'visibility':'visible'});
 		},function () {
@@ -206,7 +206,7 @@ var $=jqnc(),
 			field = $('<input type="text" name="'+name+'" class="selectall" />').appendTo(value);
 			if (fieldtype == "price") field.change(function () { this.value = asMoney(this.value); });
 		}
-	
+
 		// Generate logic operation menu
 		properties.change(function () {
 			operation.empty();
@@ -221,36 +221,36 @@ var $=jqnc(),
 				for (var l = 0; l < c['logic'].length; l++) {
 					var lop = c['logic'][l];
 					if (!lop) break;
-					for (var op = 0; op < logic[lop].length; op++) 
+					for (var op = 0; op < logic[lop].length; op++)
 						$('<option></option>').html(RULES_LANG[logic[lop][op]]).val(logic[lop][op]).appendTo(operation);
 				}
 			} else operation.hide();
-		
+
 			valuefield(c['value']);
 		}).change();
-		
+
 		// Load up existing conditional rule
 		if (settings) {
 			properties.val(settings.property).change();
 			operation.val(settings.logic);
 			if (field) field.val(settings.value);
 		}
-	
+
 		if (type == "cartitem") itemidx++;
 		else ruleidx++;
 	};
-	
+
 $('.postbox a.help').click(function () {
 	$(this).colorbox({iframe:true,open:true,innerWidth:768,innerHeight:480,scrolling:false});
 	return false;
 });
-	
+
 
 $('#discount-type').change(function () {
 	$('#discount-row').hide();
 	$('#beyget-row').hide();
 	var type = $(this).val();
-	
+
 	if (type == "Percentage Off" || type == "Amount Off") $('#discount-row').show();
 	if (type == "Buy X Get Y Free") {
 		$('#beyget-row').show();
@@ -259,7 +259,7 @@ $('#discount-type').change(function () {
 	} else {
 		$('#promotion-target option:lt(2)').attr('disabled',false);
 	}
-	
+
 	$('#discount-amount').unbind('change').change(function () {
 		var value = this.value;
 		if (loading) {
@@ -269,7 +269,7 @@ $('#discount-type').change(function () {
 		if (type == "Percentage Off") this.value = asPercent(value);
 		if (type == "Amount Off") this.value = asMoney(value);
 	}).change();
-	
+
 }).change();
 
 $('#promotion-target').change(function () {
