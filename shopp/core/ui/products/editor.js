@@ -112,6 +112,12 @@ jQuery(document).ready(function() {
 
 	imageUploads = new ImageUploads($('#image-product-id').val(),'product');
 	
+	// Setup categories
+	categories();
+	tags();
+	quickSelects();
+	updateWorkflow();
+	
 	window.onbeforeunload = unsavedChanges;
 	
 	$('#product').change(function () { changes = true; }).unbind('submit').submit(function(e) {
@@ -122,12 +128,6 @@ jQuery(document).ready(function() {
 		saving = true;
 		return true;
 	});
-	
-	// Setup categories
-	categories();
-	tags();
-	quickSelects();
-	updateWorkflow();
 	
 	$('#prices-loading').remove();
 });
