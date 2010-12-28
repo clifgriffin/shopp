@@ -43,8 +43,6 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 					$this->methods[$entry] = $this->settings['instructions'][$i];
 		}
 
-
-		// print_r($this->settings);
 		add_filter('shopp_tag_checkout_offline-instructions',array(&$this,'tag_instructions'),10,2);
 		add_filter('shopp_payment_methods',array(&$this,'methods'));
 	}
@@ -97,21 +95,20 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 
 	function tag_instructions ($result,$options) {
 		global $Shopp;
-		$module = $method = false;
+		$methods = array_map('sanitize_title_with_dashes',$this->settings['label']);
+
+		$module = $Shopp->Order->processor;
+		$method = $Shopp->Order->paymethod;
+
+		if (empty($method) || !in_array($method,$methods) || $module != $this->module) return;
 
 		add_filter('shopp_offline_payment_instructions', 'stripslashes');
 		add_filter('shopp_offline_payment_instructions', 'wptexturize');
 		add_filter('shopp_offline_payment_instructions', 'convert_chars');
 		add_filter('shopp_offline_payment_instructions', 'wpautop');
 
-		if (!empty($Shopp->Order->paymethod)) list($module,$method) = explode(":",$Shopp->Order->paymethod);
-		else $module = $Shopp->Order->processor; // Use the current processor for single payment method
-
-		if ($module != $this->module) return;
-
-		if (!$method) $method = current($this->settings['label']); // Only one payment method anyways
 		$index = 0;
-		foreach ($this->settings['label'] as $index => $label) {
+		foreach ($methods as $index => $label) {
 			if ($method == $label)
 				return apply_filters('shopp_offline_payment_instructions',
 									$this->settings['instructions'][$index]);
@@ -130,6 +127,6 @@ class OfflinePayment extends GatewayFramework implements GatewayModule {
 		return $methods+(count($this->methods)-1);
 	}
 
-} // END class TestMode
+} // END class OfflinePayment
 
 ?>
