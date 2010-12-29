@@ -76,7 +76,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	}
 
 	function init () {
-		add_filter('shopp_shipping_hasestimates',array(&$this, 'hasestimates_filter'));
+		if (count($this->Order->payoptions) == 1) add_filter('shopp_shipping_hasestimates',array(&$this, 'hasestimates_filter'));
 	}
 
 	function hasestimates_filter () { return false; }
