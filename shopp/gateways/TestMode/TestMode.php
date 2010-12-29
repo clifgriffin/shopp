@@ -3,7 +3,7 @@
  * Test Mode
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.1.5
  * @copyright Ingenesis Limited, 9 April, 2008
  * @package Shopp
  * @since 1.1
