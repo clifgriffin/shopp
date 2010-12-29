@@ -155,7 +155,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$type = $XML->context();
 			if ( $type === false ) {
 				if(SHOPP_DEBUG) new ShoppError('Unable to determine context of request.','google_checkout_unknown_notification',SHOPP_DEBUG_ERR);
-				exit();
+				return;
 			}
 			$serial = $XML->attr($type,'serial-number');
 
