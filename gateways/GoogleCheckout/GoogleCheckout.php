@@ -464,7 +464,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 		// Google Adjustments
 		$order_adjustment = $order_summary->tag('order-adjustment');
-		$Order->Shipping->method = $order_adjustment->content('shipping-name');
+		$Order->Shipping->method = $order_adjustment->content('shipping-name') ? $order_adjustment->content('shipping-name') : $Order->Shipping->method;
 		$Order->Cart->Totals->shipping = $order_adjustment->content('shipping-cost');
 		$Order->Cart->Totals->tax = $order_adjustment->content('total-tax');
 
