@@ -29,16 +29,16 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','function');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'hidden','name' => 'checkout')
 		);
-		$this->assertTag($expected,$actual,'',true);
-		
+		$this->assertTag($expected,$actual,"++ $actual",true);
+
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_checkout_error () {
 		new ShoppError('Test Error');
 		ob_start();
@@ -47,11 +47,11 @@ class CheckoutAPITests extends ShoppTestCase {
 		ob_end_clean();
 		$this->assertEquals('<li>Test Error</li>',$actual);
 	}
-	
+
 	function test_checkout_cartsummary () {
 		global $Shopp;
 		$Shopp->Order->Cart->clear();
-	
+
 		$Product = new Product(81); $Price = false;
 		$Shopp->Order->Cart->add(1,$Product,$Price,false);
 		$Shopp->Order->Cart->totals();
@@ -77,32 +77,32 @@ class CheckoutAPITests extends ShoppTestCase {
 
 		$this->assertFalse(shopp('checkout','notloggedin'));
 	}
-	
+
 	function test_checkout_loggedin () {
 		global $Shopp;
 		$Shopp->Settings->registry['account_system'] = 'wordpress';
 		$Order =& ShoppOrder();
 		$Order->Customer = new Customer();
 		$this->assertFalse(shopp('checkout','loggedin'));
-		
+
 		$Login = new Login();
 		$Account = new Customer(4,'wpuser');
 		$Login->login($Account);
 		$this->assertTrue(shopp('checkout','loggedin'));
 	}
-	
+
 	function test_checkout_accountlogin () {
 		ob_start();
 		shopp('checkout','account-login');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'account-login','id' => 'account-login')
 		);
-		$this->assertTag($expected,$actual,'',true);
-		
+		$this->assertTag($expected,$actual,"++ $actual",true);
+
 		$this->assertValidMarkup($actual);
 	}
 
@@ -111,13 +111,13 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','password-login');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'password','name' => 'password-login','id' => 'password-login')
 		);
-		$this->assertTag($expected,$actual,'',true);
-		
+		$this->assertTag($expected,$actual,"++ $actual",true);
+
 		$this->assertValidMarkup($actual);
 	}
 
@@ -126,19 +126,19 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','login-button');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'hidden','name' => 'process-login','id' => 'process-login','value' => 'false')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'submit','name' => 'submit-login','id' => 'submit-login')
 		);
-		$this->assertTag($expected,$actual,'',true);
-		
+		$this->assertTag($expected,$actual,"++ $actual",true);
+
 		$this->assertValidMarkup($actual);
 	}
 
@@ -147,26 +147,26 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','firstname');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'firstname','id' => 'firstname')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_checkout_lastname () {
 		ob_start();
 		shopp('checkout','lastname');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'lastname','id' => 'lastname')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -175,12 +175,12 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','email');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'email','id' => 'email')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -189,7 +189,7 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','loginname');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'loginname','id' => 'login')
@@ -197,13 +197,13 @@ class CheckoutAPITests extends ShoppTestCase {
 		$this->assertTag($expected,$actual,$actual,true);
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_checkout_password () {
 		ob_start();
 		shopp('checkout','password');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'password','name' => 'password','id' => 'password')
@@ -217,12 +217,12 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','confirm-password');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'password','name' => 'confirm-password','id' => 'confirm-password')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -231,26 +231,26 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','phone');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'phone','id' => 'phone')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_checkout_company () {
 		ob_start();
 		shopp('checkout','company');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'company','id' => 'company')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -259,31 +259,31 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','customer-info','type=text&name=Test');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
-			'attributes' => array('type' => 'text','name' => 'info[Test]','id' => 'customer-info-Test')
+			'attributes' => array('type' => 'text','name' => 'info[Test]','id' => 'customer-info-test')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	// function test_checkout_shipping () {
 	// 	$shipping = shopp('checkout','shipping');
 	// 	$this->assertTrue($shipping);
 	// }
-	
+
 	function test_checkout_shipping_address () {
 		ob_start();
 		shopp('checkout','shipping-address');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'shipping[address]','id' => 'shipping-address')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -292,26 +292,26 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','shipping-xaddress');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'shipping[xaddress]','id' => 'shipping-xaddress')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_checkout_shipping_city () {
 		ob_start();
 		shopp('checkout','shipping-city');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'shipping[city]','id' => 'shipping-city')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -323,35 +323,40 @@ class CheckoutAPITests extends ShoppTestCase {
 
 		$expected = array(
 			'tag' => 'select',
-			'attributes' => array('name' => 'shipping[state]','id' => 'shipping-state')
+			'attributes' => array('name' => 'shipping[state]','id' => 'shipping-state-menu')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
+		$expected = array(
+			'tag' => 'input',
+			'attributes' => array('type' => 'text','name' => 'shipping[state]','id' => 'shipping-state')
+		);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 
 		ob_start();
 		shopp('checkout','shipping-state','type=text');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'shipping[state]','id' => 'shipping-state')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_checkout_shipping_postcode () {
 		ob_start();
 		shopp('checkout','shipping-postcode');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'shipping[postcode]','id' => 'shipping-postcode')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -365,7 +370,7 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'select',
 			'attributes' => array('name' => 'shipping[country]','id' => 'shipping-country')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -374,18 +379,18 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','same-shipping-address');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'checkbox','name' => 'sameshipaddress','id' => 'same-shipping')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
 	function test_checkout_billingrequired () {
 		global $Shopp;
-		
+
 		$this->assertTrue(shopp('checkout','billing-required'));
 	}
 
@@ -399,7 +404,7 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'billing[address]','id' => 'billing-address')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -413,7 +418,7 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'billing[xaddress]','id' => 'billing-xaddress')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -427,7 +432,7 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'billing[city]','id' => 'billing-city')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -439,9 +444,14 @@ class CheckoutAPITests extends ShoppTestCase {
 
 		$expected = array(
 			'tag' => 'select',
-			'attributes' => array('name' => 'billing[state]','id' => 'billing-state')
+			'attributes' => array('name' => 'billing[state]','id' => 'billing-state-menu')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
+		$expected = array(
+			'tag' => 'input',
+			'attributes' => array('type' => 'text','name' => 'billing[state]','id' => 'billing-state')
+		);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 
 		ob_start();
@@ -453,7 +463,7 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'billing[state]','id' => 'billing-state')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -467,7 +477,7 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'billing[postcode]','id' => 'billing-postcode')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -481,7 +491,7 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'select',
 			'attributes' => array('name' => 'billing[country]','id' => 'billing-country')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -495,7 +505,7 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'billing[card]','id' => 'billing-card')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -509,7 +519,7 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'select',
 			'attributes' => array('name' => 'billing[cardtype]','id' => 'billing-cardtype')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -523,7 +533,7 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'billing[cardexpires-mm]','id' => 'billing-cardexpires-mm')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -537,10 +547,10 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'billing[cardexpires-yy]','id' => 'billing-cardexpires-yy')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_checkout_billing_cardholder () {
 		ob_start();
 		shopp('checkout','billing-cardholder');
@@ -551,10 +561,10 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'billing[cardholder]','id' => 'billing-cardholder')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
-	
+
 	function test_checkout_billing_cvv () {
 		ob_start();
 		shopp('checkout','billing-cvv');
@@ -565,7 +575,7 @@ class CheckoutAPITests extends ShoppTestCase {
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'billing[cvv]','id' => 'billing-cvv')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -574,7 +584,7 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','order-data','type=text&name=Test');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'text','name' => 'data[Test]','id' => 'order-data-test')
@@ -588,12 +598,12 @@ class CheckoutAPITests extends ShoppTestCase {
 		shopp('checkout','submit');
 		$actual = ob_get_contents();
 		ob_end_clean();
-		
+
 		$expected = array(
 			'tag' => 'input',
 			'attributes' => array('type' => 'submit','name' => 'process','id' => 'checkout-button')
 		);
-		$this->assertTag($expected,$actual,'',true);
+		$this->assertTag($expected,$actual,"++ $actual",true);
 		$this->assertValidMarkup($actual);
 	}
 
@@ -613,20 +623,20 @@ class CheckoutAPITests extends ShoppTestCase {
 
 		// global $Shopp;
 		// $Shopp->Order->Cart->clear();
-		// 	
+		//
 		// $Product = new Product(81); $Price = false;
 		// $Shopp->Order->Cart->add(1,$Product,$Price,false);
 		// $Shopp->Order->Cart->totals();
-		// 
+		//
 		// $expected = array(
 		// 	'tag' => 'input',
 		// 	'attributes' => array('type' => 'submit','name' => 'confirmed','id' => 'confirm-button')
 		// );
 		// $this->assertTag($expected,$actual,$actual,true);
 		// $this->assertValidMarkup($actual);
-		// 
+		//
 		// $Shopp->Order->Cart->clear();
-	}	
+	}
 
 } // end CheckoutAPITests class
 
