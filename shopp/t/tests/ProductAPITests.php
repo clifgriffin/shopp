@@ -186,7 +186,7 @@ class ProductAPITests extends ShoppTestCase {
 		shopp('product','thumbnail');
 		$output = ob_get_contents();
 		ob_end_clean();
-		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/652/?96,96,2395623139" alt="Ultimate Matrix Collection" width="96" height="96"/>',$output);
+		$this->assertXmlStringEqualsXmlString('<img src="http://shopptest/store/images/652/UlitimateMatrixBRCollections.jpg?96,96,2395623139" alt="Ultimate Matrix Collection" width="96" height="96"/>',$output);
 		$this->assertValidMarkup($output);
 	}
 
