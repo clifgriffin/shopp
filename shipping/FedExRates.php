@@ -452,6 +452,8 @@ class FedExRates extends ShippingFramework implements ShippingModule {
 
 		$contents = str_replace('__SERVICE_URL__',($this->test?$this->test_url:$this->url),$contents);
 
+		if ( $verify === true ) return true;
+
 		$expire = 31536000;
 		header('Content-Type: text/xml; charset=UTF-8');
 		header('Vary: Accept-Encoding'); // for proxies
