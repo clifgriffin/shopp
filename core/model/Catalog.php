@@ -595,7 +595,7 @@ class Catalog extends DatabaseObject {
 				extract($options);
 
 				$searching = is_search(); // Flag when searching (the blog or shopp)
-				$shopsearch = ($Storefront && $Storefront->searching); // Flag when searching shopp
+				$shopsearch = ($Storefront !== false && $Storefront->searching); // Flag when searching shopp
 
 				$allowed = array("accesskey","alt","checked","class","disabled","format", "id",
 					"minlength","maxlength","readonly","required","size","src","tabindex","title","value");
