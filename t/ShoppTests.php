@@ -2,12 +2,12 @@
 <?php
 /**
  * ShoppTests
- * 
+ *
  *
  * @author Jonathan Davis
  * @version 1.0
  * @copyright Ingenesis Limited,  6 October, 2009
- * @package 
+ * @package
  **/
 
 /**
@@ -34,11 +34,11 @@ require_once('xHTMLvalidator.php');
 class ShoppTestCase extends PHPUnit_Framework_TestCase {
 
 	function __construct () {}
-	
+
 	protected $backupGlobals = FALSE;
 	var $_time_limit = 120; // max time in seconds for a single test function
 	var $validator = false;
-	
+
 	function setUp() {
 		// error types taken from PHPUnit_Framework_TestResult::run
 		$this->_phpunit_err_mask = E_USER_ERROR | E_NOTICE | E_STRICT;
@@ -61,13 +61,13 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 			restore_error_handler();
 		}
 	}
-	
+
 	function assertValidMarkup ($string) {
 		$validator = new xHTMLvalidator();
 		$this->assertTrue($validator->validate($string),
 			'Failed to validate: '.$validator->showErrors()."\n$string");
 	}
-	
+
 	/**
 	 * Treat any error, which wasn't handled by PHPUnit as a failure
 	 */
@@ -182,9 +182,9 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 
 		wp_cache_flush();
 		unset($GLOBALS['wp_query'], $GLOBALS['wp_the_query']);
-		$GLOBALS['wp_the_query'] =& new WP_Query();
-		$GLOBALS['wp_query'] =& $GLOBALS['wp_the_query'];
-		$GLOBALS['wp'] =& new WP();
+		$GLOBALS['wp_the_query'] = new WP_Query();
+		$GLOBALS['wp_query'] = $GLOBALS['wp_the_query'];
+		$GLOBALS['wp'] = new WP();
 
 		// clean out globals to stop them polluting wp and wp_query
 		foreach ($GLOBALS['wp']->public_query_vars as $v) {
@@ -288,7 +288,7 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 	// with a separate test function for each post.
 	function _generate_post_content_test(&$posts, $separate_funcs = true) {
 		global $wpdb;
-		
+
 		$out = '';
 		if (!$separate_funcs)
 			$out .= "\n\tfunction test_all_posts() {\n";
@@ -337,15 +337,15 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 					$out .= "\t\t".'$this->assertEquals(\''.addslashes($tag->slug).'\', $tags['.$j.']->slug);'."\n";
 				}
 			}
-			
+
 			$meta = $wpdb->get_results("SELECT DISTINCT meta_key FROM {$wpdb->postmeta} WHERE post_id = $post->ID");
 			#$out .= "\t\t".'$this->assertEquals('.count($postmeta).', count($meta));'."\n";
 			foreach ($meta as $m) {
 				#$out .= "\t\t".'$meta = get_post_meta($post->ID, \''.addslashes($m->meta_key).'\', true);'."\n";
 				$out .= "\t\t".'$this->assertEquals('.var_export(get_post_meta($post->ID, $m->meta_key, false), true).', get_post_meta($post->ID, \''.addslashes($m->meta_key).'\', false));'."\n";
 			}
-			
-						
+
+
 			$comments = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d ORDER BY comment_date DESC", $post->ID));
 
 			$out .= "\t\t".'$comments = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d ORDER BY comment_date DESC", $post->ID));'."\n";
@@ -391,10 +391,10 @@ class ShoppTestCase extends PHPUnit_Framework_TestCase {
 		$table_list = join(' ', $args);
 		system('mysqldump -u '.DB_USER.' --password='.DB_PASSWORD.' -cqnt '.DB_NAME.' '.$table_list);
 	}
-	
+
 	function _load_sql_datafile($file) {
 		$lines = file($file);
-		
+
 		global $wpdb;
 		foreach ($lines as $line) {
 			if ( !trim($line) or preg_match('/^-- /', $line) )
@@ -510,8 +510,8 @@ if (defined('SHOPP_PRODUCTS_PATH')) $Shopp->Settings->registry['products_path'] 
 if (!defined('SHOPP_SKIP_TESTS')) define('SHOPP_SKIP_TESTS','');
 
 define('SHOPP_TESTS_DIR',dirname(__FILE__).'/tests');
-$files = get_shopp_test_files(SHOPP_TESTS_DIR);
-// $files = array(SHOPP_TESTS_DIR."/ShippingAPITests.php");
+// $files = get_shopp_test_files(SHOPP_TESTS_DIR);
+$files = array(SHOPP_TESTS_DIR."/CategoryAPITests.php");
 foreach ($files as $file) require_once($file);
 $tests = get_all_test_cases();
 list ($result, $printer) = shopp_run_tests($tests);
