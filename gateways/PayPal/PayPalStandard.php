@@ -285,7 +285,7 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 
 		// Purchase record exists, update it
 		if ($Purchase->txnid == $target && !empty($Purchase->id)) {
-			if ($Purchase->gateway != $this->module) return; // Not a PPS order, don't touch it
+			if ($Purchase->gateway != $this->name) return; // Not a PPS order, don't touch it
 			$txnstatus = isset($this->status[$_POST['payment_status']])?
 				$this->status[$_POST['payment_status']]:$_POST['payment_status'];
 
