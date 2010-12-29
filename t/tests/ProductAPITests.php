@@ -207,10 +207,22 @@ class ProductAPITests extends ShoppTestCase {
 
 		ob_start();
 		shopp('product','quantity','input=menu&options=1-3,5,10-15');
-		$output = trim(ob_get_contents());
+		$output = ob_get_contents();
 		ob_end_clean();
-		$control = '<select name="products[81][quantity]" id="quantity-81"><option selected="selected" value="1">1</option><option value="2">2</option><option value="3">3</option><option value="5">5</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option></select>';
-		$this->assertEquals($control,$output);
+
+		$expected = array(
+			'tag' => 'select',
+			'attributes' => array(
+				'name' => 'products[81][quantity]',
+				'id' => 'quantity-81'
+			),
+			'children' => array(
+					'count' => 10,
+					'only' => array('tag' => 'option')
+			)
+		);
+
+		$this->assertTag($expected,$output,"++ $output",true);
 		$this->assertValidMarkup($output);
 	}
 
@@ -259,7 +271,7 @@ class ProductAPITests extends ShoppTestCase {
 		$output = ob_get_contents();
 		ob_end_clean();
 
-		$this->assertEquals('<img src="http://shopptest/store/images/652/?96,96,2395623139" alt="" width="96" height="96"  /><img src="http://shopptest/store/images/690/?96,96,1325025925" alt="" width="96" height="67"  />',$output);
+		$this->assertEquals('<img src="http://shopptest/store/images/652/UlitimateMatrixBRCollections.jpg?96,96,2395623139" alt="Ultimate Matrix Collection" width="96" height="96"  /><img src="http://shopptest/store/images/690/zz6fac9e2b.jpg?96,96,1325025925" alt="original" width="96" height="67"  />',$output);
 	}
 
 	function test_product_hastags () {
