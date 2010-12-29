@@ -510,8 +510,8 @@ if (defined('SHOPP_PRODUCTS_PATH')) $Shopp->Settings->registry['products_path'] 
 if (!defined('SHOPP_SKIP_TESTS')) define('SHOPP_SKIP_TESTS','');
 
 define('SHOPP_TESTS_DIR',dirname(__FILE__).'/tests');
-// $files = get_shopp_test_files(SHOPP_TESTS_DIR);
-$files = array(SHOPP_TESTS_DIR."/CategoryAPITests.php");
+$files = get_shopp_test_files(SHOPP_TESTS_DIR);
+// $files = array(SHOPP_TESTS_DIR."/CheckoutAPITests.php");
 foreach ($files as $file) require_once($file);
 $tests = get_all_test_cases();
 list ($result, $printer) = shopp_run_tests($tests);
