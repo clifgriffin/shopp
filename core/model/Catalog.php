@@ -455,7 +455,7 @@ class Catalog extends DatabaseObject {
 
 				$menuoptions = Category::sortoptions();
 				// Don't show custom product order for smart categories
-				if ($Shopp->Category->smart) unset($menuoptions['custom']);
+				if (isset($Shopp->Category->smart)) unset($menuoptions['custom']);
 
 				$title = "";
 				$string = "";
