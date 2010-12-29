@@ -955,7 +955,7 @@ class Product extends DatabaseObject {
 				if ($size != "original") {
 					$src = add_query_string(
 						$img->resizing($width,$height,$scale,$sharpen,$quality,$fill),
-						shoppurl($img->id,'images').'/'.$img->filename
+						trailingslashit(shoppurl($img->id,'images')).$img->filename
 					);
 				}
 
