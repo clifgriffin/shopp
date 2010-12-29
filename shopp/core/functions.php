@@ -99,9 +99,8 @@ function add_query_string ($string,$url) {
  * @return void
  **/
 function add_storefrontjs ($script,$global=false) {
-	global $Shopp;
-	if (!isset($Shopp->Flow->Controller) || !is_a($Shopp->Flow->Controller,'Storefront')) return;
-	$Storefront = $Shopp->Flow->Controller;
+	$Storefront =& ShoppStorefront();
+	if ($Storefront) return;
 	if ($global) {
 		if (!isset($Storefront->behaviors['global'])) $Storefront->behaviors['global'] = array();
 		$Storefront->behaviors['global'][] = trim($script);
@@ -126,7 +125,7 @@ function auto_ranges ($avg,$max,$min) {
 	$scale = pow(10,$power);
 	$median = round($avg/$scale)*$scale;
 	$range = $max-$min;
-	
+
 	if ($range == 0) return $ranges;
 	$steps = floor($range/$scale);
 	if ($steps > 7) $steps = 7;
@@ -137,9 +136,9 @@ function auto_ranges ($avg,$max,$min) {
 		if ($steps > 7) $steps = 7;
 		elseif ($steps < 2) $steps = 2;
 	}
-	
+
 	$base = max($median-($scale*floor(($steps-1)/2)),$scale);
-	
+
 	for ($i = 0; $i < $steps; $i++) {
 		$range = array("min" => 0,"max" => 0);
 		if ($i == 0) $range['max'] = $base;
@@ -174,7 +173,7 @@ function convert_unit ($value = 0, $unit, $from=false) {
 			'dimension' => $Settings->get('dimension_unit')
 		);
 	}
-	
+
 	// Conversion table to International System of Units (SI)
 	$table = array(
 		'mass' => array(		// SI base unit "grams"
@@ -184,7 +183,7 @@ function convert_unit ($value = 0, $unit, $from=false) {
 			'ft' => 0.3048, 'in' => 0.0254, 'mm' => 0.001, 'cm' => 0.01, 'm' => 1
 		)
 	);
-	
+
 	$table = apply_filters('shopp_unit_conversion_table',$table);
 
 	// Determine which chart to use
@@ -193,7 +192,7 @@ function convert_unit ($value = 0, $unit, $from=false) {
 	}
 
 	if ($unit == $from) return $value;
-	
+
 	$siv = $value * $table[$chart][$from];	// Convert to SI unit value
 	return $siv/$table[$chart][$unit];		// Return target units
 }
@@ -220,12 +219,12 @@ function copy_shopp_templates ($src,$target) {
 			$src_file = file_get_contents($src.'/'.$template);
 			$file = fopen($target_file,'w');
 			$src_file = preg_replace('/^<\?php\s\/\*\*\s+(.*?\s)*?\*\*\/\s\?>\s/','',$src_file); // strip warning comments
-			
+
 			/* Translate Strings @since 1.1 */
 			$src_file = preg_replace_callback('/\<\?php _(e)\(\'(.*?)\',\'Shopp\'\); \?\>/','preg_e_callback',$src_file);
 			$src_file = preg_replace_callback('/_(_)\(\'(.*?)\',\'Shopp\'\)/','preg_e_callback',$src_file);
 			$src_file = preg_replace('/\'\.\'/','',$src_file);
-			
+
 			fwrite($file,$src_file);
 			fclose($file);
 			chmod($target_file,0666);
@@ -343,9 +342,9 @@ function datecalc($week=-1,$dayOfWeek=-1,$month=-1,$year=-1) {
 		}
 	}
 	if ($dayOfWeek < 0 || $dayOfWeek > 6) return false;
-	
+
 	if (!is_numeric($week)) $week = $weeks[$week];
-	
+
 	if ($week == -1) {
 		$lastday = date("t", mktime(0,0,0,$month,1,$year));
 		$tmp = (date("w",mktime(0,0,0,$month,$lastday,$year)) - $dayOfWeek) % 7;
@@ -356,7 +355,7 @@ function datecalc($week=-1,$dayOfWeek=-1,$month=-1,$year=-1) {
 		if ($tmp < 0) $tmp += 7;
 		$day = (7 * $week) - 6 + $tmp;
 	}
-	
+
 	return mktime(0,0,0,$month,$day,$year);
 }
 
@@ -370,13 +369,13 @@ function datecalc($week=-1,$dayOfWeek=-1,$month=-1,$year=-1) {
  **/
 function date_format_order () {
 	$format = get_option('date_format');
-	
+
 	$tokens = array(
 		'day' => 'dDjl',
 		'month' => 'FmMn',
 		'year' => 'yY'
 	);
-	
+
 	$dt = join('',$tokens);
 
 	preg_match("/([$dt]{1})([^$dt]+)([$dt]{1})([^$dt]+)([$dt]{1})/",$format,$matches);
@@ -394,7 +393,7 @@ function date_format_order () {
 			}
 		}
 	}
-	
+
 	return $_;
 }
 
@@ -486,7 +485,7 @@ function find_filepath ($filename, $directory, $root, &$found) {
  **/
 function find_files ($extension, $directory, $root, &$found) {
 	if (is_dir($directory)) {
-		
+
 		$Directory = @dir($directory);
 		if ($Directory) {
 			while (( $file = $Directory->read() ) !== false) {
@@ -541,9 +540,9 @@ function file_mimetype ($file,$name=false) {
 			return $mime;
 		}
 	}
-	
+
 	if (!preg_match('/\.([a-z0-9]{2,4})$/i', $name, $extension)) return false;
-			
+
 	switch (strtolower($extension[1])) {
 		// misc files
 		case 'txt':	return 'text/plain';
@@ -553,20 +552,20 @@ function file_mimetype ($file,$name=false) {
 		case 'json': return 'application/json';
 		case 'xml': return 'application/xml';
 		case 'swf':	return 'application/x-shockwave-flash';
-	
+
 		// images
 		case 'jpg': case 'jpeg': case 'jpe': return 'image/jpg';
 		case 'png': case 'gif': case 'bmp': case 'tiff': return 'image/'.strtolower($matches[1]);
 		case 'tif': return 'image/tif';
 		case 'svg': case 'svgz': return 'image/svg+xml';
-	
+
 		// archives
 		case 'zip':	return 'application/zip';
 		case 'rar':	return 'application/x-rar-compressed';
 		case 'exe':	case 'msi':	return 'application/x-msdownload';
 		case 'tar':	return 'application/x-tar';
 		case 'cab': return 'application/vnd.ms-cab-compressed';
-	
+
 		// audio/video
 		case 'flv':	return 'video/x-flv';
 		case 'mpeg': case 'mpg':	case 'mpe': return 'video/mpeg';
@@ -578,18 +577,18 @@ function file_mimetype ($file,$name=false) {
 		case 'avi':	return 'video/msvideo';
 		case 'wmv':	return 'video/x-ms-wmv';
 		case 'mov':	case 'qt': return 'video/quicktime';
-	
+
 		// ms office
 		case 'doc':	case 'docx': return 'application/msword';
 		case 'xls':	case 'xlt':	case 'xlm':	case 'xld':	case 'xla':	case 'xlc':	case 'xlw':	case 'xll':	return 'application/vnd.ms-excel';
 		case 'ppt':	case 'pps':	return 'application/vnd.ms-powerpoint';
 		case 'rtf':	return 'application/rtf';
-	
+
 		// adobe
 		case 'pdf':	return 'application/pdf';
 		case 'psd': return 'image/vnd.adobe.photoshop';
 	    case 'ai': case 'eps': case 'ps': return 'application/postscript';
-	
+
 		// open office
 	    case 'odt': return 'application/vnd.oasis.opendocument.text';
 	    case 'ods': return 'application/vnd.oasis.opendocument.spreadsheet';
@@ -614,7 +613,7 @@ function floatvalue ($value, $round=true, $format=false) {
 	extract($format,EXTR_SKIP);
 
 	$v = (float)$value; // Try interpretting as a float and see if we have a valid value
-	
+
 	// If a valid float already, pass the value through
 	// The variety of currency formats makes determining a valid float very difficult
 	if (is_float($value) || (			// Original $value is a float, passthru
@@ -781,9 +780,9 @@ function is_shopp_page ($page=false) {
 
 	if (isset($wp_query->post->post_type) &&
 		$wp_query->post->post_type != "page") return false;
-	
+
 	$pages = $Shopp->Settings->get('pages');
-		
+
 	// Detect if the requested page is a Shopp page
 	if (!$page) {
 		foreach ($pages as $page)
@@ -840,17 +839,17 @@ function load_shopps_wpconfig () {
 	$configfile = 'wp-config.php';
 	$loadfile = 'wp-load.php';
 	$wp_config_path = $wp_abspath = false;
-	
+
 	$syspath = explode('/',$_SERVER['SCRIPT_FILENAME']);
 	$uripath = explode('/',$_SERVER['SCRIPT_NAME']);
 	$rootpath = array_diff($syspath,$uripath);
 	$root = '/'.join('/',$rootpath);
-	
+
 	$filepath = dirname(!empty($_SERVER['SCRIPT_FILENAME'])?$_SERVER['SCRIPT_FILENAME']:__FILE__);
 
 	if ( file_exists(sanitize_path($root).'/'.$loadfile))
 		$wp_abspath = $root;
-		
+
 	if ( isset($_SERVER['SHOPP_WPCONFIG_PATH'])
 		&& file_exists(sanitize_path($_SERVER['SHOPP_WPCONFIG_PATH']).'/'.$configfile) ) {
 		// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig
@@ -872,12 +871,12 @@ function load_shopps_wpconfig () {
 	} elseif ( file_exists(sanitize_path(dirname($root)).'/'.$configfile) ) {
 		$wp_config_path = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
 	}
-	
+
 	$wp_config_file = sanitize_path($wp_config_path).'/'.$configfile;
 	if ( $wp_config_path !== false )
 		$config = file_get_contents($wp_config_file);
 	else return false;
-	
+
 	preg_match_all('/^\s*?(define\(\s*?\'(.*?)\'\s*?,\s*(.*?)\);)/m',$config,$defines,PREG_SET_ORDER);
 	foreach($defines as $defined) if (!defined($defined[2])) {
 		list($line,$line,$name,$value) = $defined;
@@ -911,11 +910,11 @@ function load_shopps_wpconfig () {
  **/
 function shopp_ms_tableprefix () {
 	global $table_prefix;
-	
+
 	$domain = $_SERVER['HTTP_HOST'] = (strpos($_SERVER['HTTP_HOST'],':') !== false) ?
 	 				str_replace(array(':80',':443'),'',addslashes($_SERVER['HTTP_HOST'])):
 					addslashes($_SERVER['HTTP_HOST']);
-					
+
 	if (strpos($_SERVER['HTTP_HOST'],':') !== false) die('Multisite only works without the port number in the URL.');
 
 	$domain = rtrim($domain, '.');
@@ -923,7 +922,7 @@ function shopp_ms_tableprefix () {
 	$path = preg_replace('|([a-z0-9-]+.php.*)|', '', $_SERVER['REQUEST_URI']);
 	$path = str_replace ('/wp-admin/', '/', $path);
 	$path = preg_replace('|(/[a-z0-9-]+?/).*|', '$1', $path);
-	
+
 	$wpdb_blogs = $table_prefix.'blogs';
 	$db =& DB::get();
 	$r = $db->query("SELECT blog_id FROM $wpdb_blogs WHERE domain='$domain' AND path='$path' LIMIT 1");
@@ -1074,15 +1073,15 @@ function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $
 		array_unshift($ng,substr($sequence,$divide));
 	}
 	if (!empty($whole)) array_unshift($ng,$whole);
-	
+
 	$whole = join($separator,$ng);
 	$whole = str_pad($whole,1,'0');
 
 	$fraction = rtrim(substr($fraction,0,$precision),'0');
 	$fraction = str_pad($fraction,$precision,'0');
-	
+
 	$n = $whole.(!empty($fraction)?$decimals.$fraction:'');
-	
+
 	return $n;
 }
 
@@ -1098,12 +1097,12 @@ function numeric_format ($number, $precision=2, $decimals='.', $separator=',', $
 function phone ($num) {
 	if (empty($num)) return "";
 	$num = preg_replace("/[A-Za-z\-\s\(\)]/","",$num);
-	
+
 	if (strlen($num) == 7) sscanf($num, "%3s%4s", $prefix, $exchange);
 	if (strlen($num) == 10) sscanf($num, "%3s%3s%4s", $area, $prefix, $exchange);
 	if (strlen($num) == 11) sscanf($num, "%1s%3s%3s%4s",$country, $area, $prefix, $exchange);
 	//if (strlen($num) > 11) sscanf($num, "%3s%3s%4s%s", $area, $prefix, $exchange, $ext);
-	
+
 	$string = "";
 	$string .= (isset($country))?"$country ":"";
 	$string .= (isset($area))?"($area) ":"";
@@ -1304,7 +1303,7 @@ function safe_define_ev ($string) {
 			'register_tick_function','require','require_once','shell_exec','socket_accept',
 			'socket_bind','socket_connect','socket_create','socket_create_listen',
 			'socket_create_pair','stream_socket_server','symlink','syslog','system');
-	
+
 	if (preg_match('/('.join('|',$f).')\s*\(.*?\)/',$string) !== 0)
 		$error = "Unsafe function detected while interpreting a macro definition";
 	elseif (preg_match('/\$\w+\s*=\s*function\s*\(/',$string) !== 0)
@@ -1313,7 +1312,7 @@ function safe_define_ev ($string) {
 		$error = "Unsafe backtick operator usage detected while interpreting a macro definition";
 	elseif (strpos($string,'$$') !== false)
 		$error = "Unsafe variable detected while interpreting a macro definition";
-	
+
 	if ($error !== false) {
 		trigger_error($error,E_USER_ERROR);
 		return '';
@@ -1362,10 +1361,10 @@ function scan_money_format ($format) {
 		"thousands" => "",
 		"grouping" => 3
 	);
-	
+
 	$ds = strpos($format,'#'); $de = strrpos($format,'#')+1;
 	$df = substr($format,$ds,($de-$ds));
-	
+
 	$f['cpos'] = true;
 	if ($de == strlen($format)) $f['currency'] = substr($format,0,$ds);
 	else {
@@ -1375,10 +1374,10 @@ function scan_money_format ($format) {
 
 	$found = array();
 	if (!preg_match_all('/([^#]+)/',$df,$found) || empty($found)) return $f;
-	
+
 	$dl = $found[0];
 	$dd = 0; // Decimal digits
-	
+
 	if (count($dl) > 1) {
 		if ($dl[0] == $dl[1] && !isset($dl[2])) {
 			$f['thousands'] = $dl[1];
@@ -1388,14 +1387,14 @@ function scan_money_format ($format) {
 			$f['thousands'] = $dl[0];
 		}
 	} else $f['decimals'] = $dl[0];
-	
+
 	$dfc = $df;
 	// Count for precision
 	if (!empty($f['decimals']) && strpos($df,$f['decimals']) !== false) {
 		list($dfc,$dd) = explode($f['decimals'],$df);
 		$f['precision'] = strlen($dd);
 	}
-	
+
 	if (!empty($f['thousands']) && strpos($df,$f['thousands']) !== false) {
 		$groupings = explode($f['thousands'],$dfc);
 		$grouping = array();
@@ -1403,7 +1402,7 @@ function scan_money_format ($format) {
 			if (strlen($g) > 1) array_unshift($grouping,strlen($g));
 		$f['grouping'] = $grouping;
 	}
-	
+
 	return $f;
 }
 
@@ -1438,7 +1437,7 @@ function shoppdiv ($string) {
  * @return boolean True on success, false on failure
  **/
 function shopp_email ($template,$data=array()) {
-	
+
 	if (strpos($template,"\r\n") !== false) $f = explode("\r\n",$template);
 	elseif (strpos($template,"\n") !== false) $f = explode("\n",$template);
 	else {
@@ -1494,7 +1493,7 @@ function shopp_email ($template,$data=array()) {
 			else if ( strtolower($header) == "subject" ) $subject = $string;
 			else $headers .= $line."\n";
 		}
-		
+
 		// Catches the first blank line to begin capturing message body
 		if ( empty($line) ) $in_body = true;
 		if ( $in_body ) $message .= $line."\n";
@@ -1540,7 +1539,7 @@ function shopp_locate_pages () {
 		$search .= (!empty($search)?" OR ":"")."post_content LIKE '%".$page['shortcode']."%'";
 	$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE ($search) AND post_type='page'";
 	$results = $wpdb->get_results($query);
-	
+
 	// Match updates from the found results to our pages index
 	foreach ($pages as $key => &$page) {
 		// Convert Shopp 1.0 page definitions
@@ -1589,7 +1588,7 @@ function shopp_rss ($data) {
 	$xml .= "<link>".esc_html($data['link'])."</link>\n";
 	$xml .= "<language>en-us</language>\n";
 	$xml .= "<copyright>".esc_html("Copyright ".date('Y').", ".$data['sitename'])."</copyright>\n";
-	
+
 	if (is_array($data['items'])) {
 		foreach($data['items'] as $item) {
 			$xml .= "\t<item>\n";
@@ -1610,10 +1609,10 @@ function shopp_rss ($data) {
 			$xml .= "\t</item>\n";
 		}
 	}
-	
+
 	$xml .= "</channel>\n";
 	$xml .= "</rss>\n";
-	
+
 	return $xml;
 }
 
@@ -1627,7 +1626,7 @@ function shopp_rss ($data) {
  **/
 function shopp_prereqs () {
 	$errors = array();
-	
+
 	// Check PHP version, this won't appear much since syntax errors in earlier
 	// PHP releases will cause this code to never be executed
 	if (!version_compare(PHP_VERSION, '5.0','>='))
@@ -1635,31 +1634,31 @@ function shopp_prereqs () {
 
 	if (version_compare(PHP_VERSION, '5.1.3','=='))
 		$errors[] = __("Shopp will not work with PHP version 5.1.3 because of a critical bug in complex POST data structures.  Please upgrade PHP to version 5.1.4 or higher.");
-		
+
 	// Check WordPress version
 	if (!version_compare(get_bloginfo('version'),'2.8','>='))
 		$errors[] = __("Shopp requires WordPress version 2.8+.  You are using WordPress version ").get_bloginfo('version');
-	
+
 	// Check for cURL
 	if( !function_exists("curl_init") &&
 	      !function_exists("curl_setopt") &&
 	      !function_exists("curl_exec") &&
 	      !function_exists("curl_close") ) $errors[] = __("Shopp requires the cURL library for processing transactions securely. Your web hosting environment does not currently have cURL installed (or built into PHP).");
-	
+
 	// Check for GD
 	if (!function_exists("gd_info")) $errors[] = __("Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.  Your web hosting environment does not currently have GD installed (or built into PHP).");
 	else {
 		$gd = gd_info();
 		if (!isset($gd['JPG Support']) && !isset($gd['JPEG Support'])) $errors[] = __("Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.");
 	}
-	
+
 	if (!empty($errors)) {
 		$string .= '<style type="text/css">body { font: 13px/1 "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, sans-serif; } p { margin: 10px; }</style>';
-		
+
 		foreach ($errors as $error) $string .= "<p>$error</p>";
 
 		$string .= '<p>'.__('Sorry! You will not be able to use Shopp.  For more information, see the <a href="http://docs.shopplugin.net/Installation" target="_blank">online Shopp documentation.</a>').'</p>';
-		
+
 		trigger_error($string,E_USER_ERROR);
 		exit();
 	}
@@ -1791,10 +1790,10 @@ function shopp_timezone () {
  **/
 function shoppurl ($request=false,$page='catalog',$secure=null) {
 	$dynamic = array("thanks","receipt","confirm-order");
-	
+
 	$Settings =& ShoppSettings();
 	if (!$Settings->available) return;
-	
+
 	// Get the currently indexed Shopp gateway pages
 	$pages = $Settings->get('pages');
 	if (empty($pages)) { // Hrm, no pages, attempt to rescan for them
@@ -1805,7 +1804,7 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 		// Still no pages? WTH? #epicfailalso
 		if (empty($pages)) return false;
 	}
-	
+
 	// Start with the site url
 	$siteurl = trailingslashit(get_bloginfo('url'));
 
@@ -1833,21 +1832,21 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 			$pageid = $pages['catalog']['id'];
 		}
 	}
-	
+
 	if (SHOPP_PRETTYURLS) $url = user_trailingslashit($siteurl.$path);
 	else $url = isset($pageid)?add_query_arg('page_id',$pageid,$siteurl):$siteurl;
-	
+
 	// No extra request, return the complete URL
 	if (!$request) return $url;
-	
+
 	// Filter URI request
 	$uri = false;
 	if (!is_array($request)) $uri = $request;
 	if (is_array($request && isset($request[0]))) $uri = array_shift($request);
 	if (!empty($uri)) $uri = join('/',array_map('urlencode',explode('/',$uri))); // sanitize
-	
+
 	$url = user_trailingslashit(trailingslashit($url).$uri);
-	
+
 	if (!empty($request) && is_array($request)) {
 		$request = array_map('urlencode',$request);
 		$url = add_query_arg($request,$url);
