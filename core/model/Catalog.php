@@ -237,7 +237,7 @@ class Catalog extends DatabaseObject {
 	function tag ($property,$options=array()) {
 		global $Shopp;
 
-		$Storefront = get_class($Shopp->Flow->Controller) == "Storefront"?$Shopp->Flow->Controller:false;
+		$Storefront =& ShoppStorefront();
 
 		switch ($property) {
 			case "url": return shoppurl(false,'catalog'); break;

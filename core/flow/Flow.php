@@ -254,4 +254,20 @@ abstract class AdminController extends FlowController {
 
 }
 
+/**
+ * Helper to access the Shopp Storefront contoller
+ *
+ * @author Jonathan Davis
+ * @since 1.1.5
+ *
+ * @return Storefront|false
+ **/
+function &ShoppStorefront () {
+	global $Shopp;
+	$false = false;
+	if (!isset($Shopp->Flow) || !is_object($Shopp->Flow->Controller)) return $false;
+	if (get_class($Shopp->Flow->Controller) != "Storefront") return $false;
+	return $Shopp->Flow->Controller;
+}
+
 ?>

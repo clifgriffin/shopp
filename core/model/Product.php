@@ -32,12 +32,12 @@ class Product extends DatabaseObject {
 	var $outofstock = false;
 	var $stock = 0;
 	var $options = 0;
-	
+
 	function __construct ($id=false,$key=false) {
 		$this->init(self::$table);
 		$this->load($id,$key);
 	}
-	
+
 	/**
 	 * Loads specified relational data associated with the product
 	 *
@@ -53,7 +53,7 @@ class Product extends DatabaseObject {
 		$db =& DB::get();
 
 		// Load object schemas on request
-		
+
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 
 		$Dataset = array();
@@ -95,7 +95,7 @@ class Product extends DatabaseObject {
 			$this->specs = array();
 			$Dataset['specs'] = new Spec();
 		}
-		
+
 		if (in_array('tags',$options)) {
 			$this->tags = array();
 			$Dataset['tags'] = new Tag();
@@ -107,16 +107,16 @@ class Product extends DatabaseObject {
 			$cols = count($set->_datatypes);
 			if ($cols > $maxcols) $maxcols = $cols;
 		}
-		
+
 		// Prepare product list depending on single product or entire list
 		$ids = array();
 		if (isset($products) && is_array($products)) {
 			foreach ($products as $product) $ids[] = $product->id;
 		} else $ids[0] = $this->id;
-		
+
 		// Skip if there are no product ids
 		if (empty($ids) || empty($ids[0])) return false;
-		
+
 		// Build the mega-query
 		foreach ($Dataset as $rtype => $set) {
 
@@ -126,7 +126,7 @@ class Product extends DatabaseObject {
 				$columns[] = ((strpos($datatype,'.')!==false)?"$datatype":"{$set->_table}.$key")." AS c".($i++);
 			for ($i = $i; $i < $maxcols; $i++)
 				$columns[] = "'' AS c$i";
-			
+
 			$cols = join(',',$columns);
 
 			// Build object-specific selects and UNION them
@@ -194,12 +194,12 @@ class Product extends DatabaseObject {
 		// Add order by columns
 		$query .= " ORDER BY sortorder";
 		// die($query);
-		
+
 		// Execute the query
 		$data = $db->query($query,AS_ARRAY);
-		
+
 		// Process the results into specific product object data in a product set
-		
+
 		foreach ($data as $row) {
 			if (is_array($products) && isset($products[$row->product]))
 				$target = $products[$row->product];
@@ -216,7 +216,7 @@ class Product extends DatabaseObject {
 					$record->{$key} = $row->{$column};
 				}
 			}
-			
+
 			if ($row->rtype == "images") {
 				$image = new ProductImage();
 				$image->copydata($record,false,array());
@@ -229,7 +229,7 @@ class Product extends DatabaseObject {
 				if (isset($target->{$row->rtype}[0]) && $target->{$row->rtype}[0]->id == $image->id)
 					$target->{$row->rtype} = array();
 			}
-			
+
 			$target->{$row->rtype}[] = $record;
 			if (!empty($name)) {
 				if (isset($target->{$row->rtype.'key'}[$name]))
@@ -237,15 +237,15 @@ class Product extends DatabaseObject {
 				else $target->{$row->rtype.'key'}[$name] = $record;
 			}
 		}
-		
+
 		if (is_array($products)) {
 			foreach ($products as $product) if (!empty($product->prices)) $product->pricing();
 		} else {
 			if (!empty($this->prices)) $this->pricing($options);
 		}
-		
+
 	} // end load_data()
-		
+
 	/**
 	 * Aggregates product pricing information
 	 *
@@ -259,7 +259,7 @@ class Product extends DatabaseObject {
 
 		// Variation range index/properties
 		$varranges = array('price' => 'price','saleprice'=>'promoprice');
-		
+
 		$variations = ($this->variations == "on");
 		$freeshipping = true;
 		$this->inventory = false;
@@ -267,7 +267,7 @@ class Product extends DatabaseObject {
 			$price->price = (float)$price->price;
 			$price->saleprice = (float)$price->saleprice;
 			$price->shipfee = (float)$price->shipfee;
-			
+
 			// Build secondary lookup table using the price id as the key
 			$this->priceid[$price->id] = $price;
 
@@ -292,7 +292,7 @@ class Product extends DatabaseObject {
 			$price->onsale = false;
 			if ($price->sale == "on" && $price->type != "N/A")
 				$this->onsale = $price->onsale = true;
-			
+
 			$price->stocked = false;
 			if ($price->inventory == "on" && $price->type != "N/A") {
 				$this->stock += $price->stock;
@@ -322,18 +322,18 @@ class Product extends DatabaseObject {
 
 				foreach ($varranges as $name => $prop) {
 					if (!isset($price->$prop)) continue;
-					
+
 					if (!isset($this->min[$name])) $this->min[$name] = $price->$prop;
 					else $this->min[$name] = min($this->min[$name],$price->$prop);
 					if ($this->min[$name] == $price->$prop) $this->min[$name.'_tax'] = ($price->tax == "on");
-					
-					
+
+
 					if (!isset($this->max[$name])) $this->max[$name] = $price->$prop;
 					else $this->max[$name] = max($this->max[$name],$price->$prop);
 					if ($this->max[$name] == $price->$prop) $this->max[$name.'_tax'] = ($price->tax == "on");
 				}
 			}
-			
+
 			// Determine savings ranges
 			if ($price->onsale && isset($this->min['price']) && isset($this->min['saleprice'])) {
 
@@ -342,30 +342,30 @@ class Product extends DatabaseObject {
 					$this->min['savings'] = 100;
 					$this->max['saved'] = $this->max['savings'] = 0;
 				}
-				
+
 				$this->min['saved'] = min($this->min['saved'],($price->price-$price->promoprice));
 				$this->max['saved'] = max($this->max['saved'],($price->price-$price->promoprice));
-				
+
 				// Find lowest savings percentage
 				if ($this->min['saved'] == ($price->price-$price->promoprice))
 					$this->min['savings'] = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
 				if ($this->max['saved'] == ($price->price-$price->promoprice))
 					$this->max['savings'] = (1 - $price->promoprice/($price->price == 0?1:$price->price))*100;
 			}
-			
+
 			// Determine weight ranges
 			if($price->weight && $price->weight > 0) {
 				if(!isset($this->min['weight'])) $this->min['weight'] = $this->max['weight'] = $price->weight;
 				$this->min['weight'] = min($this->min['weight'],$price->weight);
 				$this->max['weight'] = max($this->max['weight'],$price->weight);
 			}
-			
+
 		} // end foreach($price)
-		
+
 		if ($this->inventory && $this->stock <= 0) $this->outofstock = true;
 		if ($freeshipping) $this->freeshipping = true;
 	}
-	
+
 	/**
 	 * Detect if the product is currently published
 	 *
@@ -377,7 +377,7 @@ class Product extends DatabaseObject {
 	function published () {
 		return ($this->status == "publish" && time() >= $this->publish);
 	}
-	
+
 	/**
 	 * Returns the number of this product sold
 	 *
@@ -392,7 +392,7 @@ class Product extends DatabaseObject {
 		$r = $db->query("SELECT count(id) AS sold FROM $purchased WHERE product=$this->id LIMIT 1");
 		return $r->sold;
 	}
-	
+
 	/**
 	 * Merges specs with identical names into an array of values
 	 *
@@ -413,7 +413,7 @@ class Product extends DatabaseObject {
 		}
 		$this->specs = $merged;
 	}
-	
+
 	/**
 	 * Saves product category assignments to the catalog
 	 *
@@ -425,9 +425,9 @@ class Product extends DatabaseObject {
 	 **/
 	function save_categories ($updates) {
 		$db = DB::get();
-		
+
 		if (empty($updates)) $updates = array();
-		
+
 		$current = array();
 		foreach ($this->categories as $category) $current[] = $category->id;
 
@@ -442,15 +442,15 @@ class Product extends DatabaseObject {
 				$db->query("INSERT $table SET parent='$id',type='category',product='$this->id',created=now(),modified=now()");
 			}
 		}
-		
+
 		if (!empty($removed)) {
 			foreach ($removed as $id) {
 				if (empty($id)) continue;
 				$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND type='category' AND product='$this->id'");
 			}
-			
+
 		}
-		
+
 	}
 
 	function save_tags ($updates) {
@@ -458,13 +458,13 @@ class Product extends DatabaseObject {
 
 		if (empty($updates)) $updates = array();
 		$updates = stripslashes_deep($updates);
-		
+
 		$current = array();
 		foreach ($this->tags as $tag) $current[] = $tag->name;
-		
+
 		$added = array_diff($updates,$current);
 		$removed = array_diff($current,$updates);
-		
+
 		if (!empty($added)) {
 			$catalog = DatabaseObject::tablename(Catalog::$table);
 			$tagtable = DatabaseObject::tablename(Tag::$table);
@@ -487,7 +487,7 @@ class Product extends DatabaseObject {
 
 				if (!empty($tagid))
 					$db->query("INSERT $catalog SET parent='$tagid',type='tag',product='$this->id',created=now(),modified=now()");
-					
+
 			}
 		}
 
@@ -502,7 +502,7 @@ class Product extends DatabaseObject {
 		}
 
 	}
-			
+
 	/**
 	 * optionkey
 	 * There is no Zul only XOR! */
@@ -515,7 +515,7 @@ class Product extends DatabaseObject {
 			$key = $key ^ ($id*$factor);
 		return $key;
 	}
-	
+
 	/**
 	 * save_imageorder()
 	 * Updates the sortorder of image assets (source, featured and thumbnails)
@@ -527,7 +527,7 @@ class Product extends DatabaseObject {
 			$db->query("UPDATE LOW_PRIORITY $table SET sortorder='$i' WHERE (id='$id' AND parent='$this->id' AND context='product' AND type='image')");
 		return true;
 	}
-	
+
 	/**
 	 * link_images()
 	 * Updates the product id of the images to link to the product
@@ -541,18 +541,18 @@ class Product extends DatabaseObject {
 		$db->query($query);
 		return true;
 	}
-	
+
 	/**
 	 * update_images()
 	 * Updates the image details for all cached images */
 	function update_images ($images) {
 		if (!is_array($images)) return false;
-		
+
 		foreach ($images as $img) {
 			$Image = new ProductImage($img['id']);
 			$Image->title = $img['title'];
 			$Image->alt = $img['alt'];
-			
+
 			if (!empty($img['cropping'])) {
 				require_once(SHOPP_PATH."/core/model/Image.php");
 
@@ -569,7 +569,7 @@ class Product extends DatabaseObject {
 					$scaled = $Image->scaled($width,$height,$scale);
 					$scale = $Cropped->_scaling[$scale];
 					$quality = ($quality === false)?$Cropped->_quality:$quality;
-					
+
 					$Resized->scale($scaled['width'],$scaled['height'],$scale,$alpha,$fill,(int)$dx,(int)$dy,(float)$cropscale);
 
 					// Post sharpen
@@ -580,19 +580,19 @@ class Product extends DatabaseObject {
 					$Cropped->size = strlen($Cropped->data);
 					if ($Cropped->store( $Cropped->data ) === false)
 						return false;
-					
+
 					$Cropped->save();
-					
+
 				}
 			}
-			
+
 			$Image->save();
 		}
-		
+
 		return true;
 	}
-	
-	
+
+
 	/**
 	 * delete_images()
 	 * Delete provided array of image ids, removing the source image and
@@ -609,14 +609,14 @@ class Product extends DatabaseObject {
 			$db->query("DELETE FROM $imagetable WHERE type='image' AND ($imagesets)");
 		return true;
 	}
-	
+
 	/**
 	 * Deletes the record associated with this object */
 	function delete () {
 		$db = DB::get();
 		$id = $this->{$this->_key};
 		if (empty($id)) return false;
-		
+
 		// Delete from categories
 		$table = DatabaseObject::tablename(Catalog::$table);
 		$db->query("DELETE LOW_PRIORITY FROM $table WHERE product='$id'");
@@ -633,7 +633,7 @@ class Product extends DatabaseObject {
 		$src = $db->query("SELECT id FROM $table WHERE parent='$id' AND context='product' AND type='image'",AS_ARRAY);
 		foreach ($src as $img) $images[] = $img->id;
 		$this->delete_images($images);
-		
+
 		// Delete product meta (specs, images, downloads)
 		$table = DatabaseObject::tablename(MetaObject::$table);
 		$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND context='product'");
@@ -642,7 +642,7 @@ class Product extends DatabaseObject {
 		$db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
 
 	}
-	
+
 	function duplicate () {
 		$db =& DB::get();
 
@@ -664,9 +664,9 @@ class Product extends DatabaseObject {
 		}
 		$this->created = '';
 		$this->modified = '';
-		
+
 		$this->save();
-		
+
 		// Copy prices
 		foreach ($this->prices as $price) {
 			$Price = new Price();
@@ -674,7 +674,7 @@ class Product extends DatabaseObject {
 			$Price->product = $this->id;
 			$Price->save();
 		}
-		
+
 		// Copy sepcs
 		foreach ($this->specs as $spec) {
 			$Spec = new Spec();
@@ -682,7 +682,7 @@ class Product extends DatabaseObject {
 			$Spec->parent = $this->id;
 			$Spec->save();
 		}
-		
+
 		// Copy categories
 		$categories = array();
 		foreach ($this->categories as $category) $categories[] = $category->id;
@@ -702,9 +702,9 @@ class Product extends DatabaseObject {
 			$Image->parent = $this->id;
 			$Image->save();
 		}
-				
+
 	}
-	
+
 	function taxrule ($rule) {
 		switch ($rule['p']) {
 			case "product-name": return ($rule['v'] == $this->name); break;
@@ -718,7 +718,7 @@ class Product extends DatabaseObject {
 		}
 		return false;
 	}
-	
+
 	function tag ($property,$options=array()) {
 		global $Shopp;
 
@@ -758,7 +758,7 @@ class Product extends DatabaseObject {
 				extract($options);
 
 				if (!is_null($taxes)) $taxes = value_is_true($taxes);
-				
+
 				$min = $this->min[$property];
 				$mintax = $this->min[$property.'_tax'];
 
@@ -766,7 +766,7 @@ class Product extends DatabaseObject {
 				$maxtax = $this->max[$property.'_tax'];
 
 				$taxrate = shopp_taxrate($taxes,$this->prices[0]->tax,$this);
-					
+
 				if ("saleprice" == $property) $pricetag = $this->prices[0]->promoprice;
 				else $pricetag = $this->prices[0]->price;
 
@@ -774,7 +774,7 @@ class Product extends DatabaseObject {
 					$taxrate = shopp_taxrate($taxes,true,$this);
 					$mintax = $mintax?$min*$taxrate:0;
 					$maxtax = $maxtax?$max*$taxrate:0;
-					
+
 					if ($min == $max) return money($min+$mintax);
 					else {
 						if (!empty($starting)) return "$starting ".money($min+$mintax);
@@ -797,7 +797,7 @@ class Product extends DatabaseObject {
 				);
 				$options = array_merge($defaults,$options);
 				extract($options);
-				
+
 				if(!isset($this->min['weight'])) return false;
 
 				if ($convert !== false) {
@@ -806,13 +806,13 @@ class Product extends DatabaseObject {
 					if (is_null($units)) $units = true;
 					$unit = $convert;
 				}
-				
+
 				$range = false;
 				if ($min != $max) {
 					$range = array($min,$max);
 					sort($range);
 				}
-				
+
 				$string = ($min == $max)?round($min,3):round($range[0],3)." - ".round($range[1],3);
 				$string .= value_is_true($units) ? " $unit" : "";
 				return $string;
@@ -829,7 +829,7 @@ class Product extends DatabaseObject {
 
 				$taxrate = shopp_taxrate($options['taxes']);
 				$range = false;
-				
+
 				if (!isset($options['show'])) $options['show'] = '';
 				if ($options['show'] == "%" || $options['show'] == "percent") {
 					if ($this->options > 1) {
@@ -880,7 +880,7 @@ class Product extends DatabaseObject {
 			case "image":
 				if (empty($this->images)) $this->load_data(array('images'));
 				if (!(count($this->images) > 0)) return "";
-				
+
 				// Compatibility defaults
 				$_size = 96;
 				$_width = $Shopp->Settings->get('gallery_thumbnail_width');
@@ -910,7 +910,7 @@ class Product extends DatabaseObject {
 				);
 				$options = array_merge($defaults,$options);
 				extract($options);
-				
+
 				// Select image by database id
 				if ($id !== false) {
 					for ($i = 0; $i < count($this->images); $i++) {
@@ -920,14 +920,14 @@ class Product extends DatabaseObject {
 					}
 					if (!$img) return "";
 				}
-				
+
 				// Select image by index position in the list
 				if ($index !== false && isset($this->images[$index]))
 					$img = $this->images[$index];
-				
+
 				// Use the current image pointer by default
 				if (!$img) $img = current($this->images);
-				
+
 				if ($size !== false) $width = $height = $size;
 				if (!$width) $width = $_width;
 				if (!$height) $height = $_height;
@@ -970,10 +970,10 @@ class Product extends DatabaseObject {
 				}
 
 				$imgtag = '<img src="'.$src.'"'.$titleattr.' alt="'.$alt.'" width="'.$width_a.'" height="'.$height_a.'" '.$classes.' />';
-				
+
 				if (value_is_true($zoom))
 					return '<a href="'.shoppurl($img->id,'images').'/'.$img->filename.'" class="'.$zoomfx.'" rel="product-'.$this->id.'">'.$imgtag.'</a>';
-				
+
 				return $imgtag;
 				break;
 			case "gallery":
@@ -983,7 +983,7 @@ class Product extends DatabaseObject {
 				$_size = 240;
 				$_width = $Shopp->Settings->get('gallery_small_width');
 				$_height = $Shopp->Settings->get('gallery_small_height');
-				
+
 				if (!$_width) $_width = $_size;
 				if (!$_height) $_height = $_size;
 
@@ -992,17 +992,17 @@ class Product extends DatabaseObject {
 
 				$width = (isset($options['p.width']))?$options['p.width']:$_width;
 				$height = (isset($options['p.height']))?$options['p.height']:$_height;
-				
+
 				$preview_width = $width;
-				
+
 				if (!isset($options['zoomfx'])) $options['zoomfx'] = "shopp-zoom";
 				if (!isset($options['preview'])) $options['preview'] = "click";
-				
+
 				$margins = (isset($options['margins']))?$options['margins']:20;
-				
+
 				$previews = '<ul class="previews">';
 				$firstPreview = true;
-				
+
 				// Find the max dimensions to use for the preview spacing image
 				$maxwidth = $maxheight = 0;
 				foreach ($this->images as $img) {
@@ -1011,10 +1011,10 @@ class Product extends DatabaseObject {
 					$maxwidth = max($maxwidth,$scaled['width']);
 					$maxheight = max($maxheight,$scaled['height']);
 				}
-				
+
 				if ($maxwidth == 0) $maxwidth = $width;
 				if ($maxheight == 0) $maxheight = $height;
-				
+
 				foreach ($this->images as $img) {
 					$scale = empty($options['p.fit'])?false:array_search($options['p.fit'],$img->_scaling);
 					$sharpen = empty($options['p.sharpen'])?false:min($options['p.sharpen'],$img->_sharpen);
@@ -1029,8 +1029,8 @@ class Product extends DatabaseObject {
 					$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
 					$alt = esc_attr(!empty($img->alt)?$img->alt:$img->filename);
 					$rel = (isset($options['rel']) && $options['rel'])?' rel="gallery_product_'.$this->id.'"':'';
-					
-					
+
+
 					$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="active"':'').'>';
 					$previews .= '<a href="'.shoppurl($img->id,'images').'" class="gallery product_'.$this->id.' '.$options['zoomfx'].'"'.$rel.'>';
 					$previews .= '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'" />';
@@ -1074,16 +1074,16 @@ class Product extends DatabaseObject {
 						$firstThumb = false;
 					}
 					$thumbs .= '</ul>';
-					
+
 				}
 				if (isset($options['rowthumbs'])) $twidth = ($width+$margins+2)*(int)$options['rowthumbs'];
-				
+
 				$result = '<div id="gallery-'.$this->id.'" class="gallery">'.$previews.$thumbs.'</div>';
 				$script = "\t".'ShoppGallery("#gallery-'.$this->id.'","'.$options['preview'].'"'.($twidth?",$twidth":"").');';
 				add_storefrontjs($script);
-				
+
 				return $result;
-				
+
 				break;
 			case "has-categories":
 				if (empty($this->categories)) $this->load_data(array('categories'));
@@ -1158,7 +1158,7 @@ class Product extends DatabaseObject {
 					reset($this->specs);
 					$this->_specs_loop = true;
 				} else next($this->specs);
-				
+
 				if (current($this->specs) !== false) return true;
 				else {
 					unset($this->_specs_loop);
@@ -1174,7 +1174,7 @@ class Product extends DatabaseObject {
 
 				$spec = current($this->specs);
 				if (is_array($spec->value)) $spec->value = join($delimiter,$spec->value);
-				
+
 				if (isset($options['name'])
 					&& !empty($options['name'])
 					&& isset($this->specskey[$options['name']])) {
@@ -1192,7 +1192,7 @@ class Product extends DatabaseObject {
 					$string = apply_filters('shopp_product_spec',$content);
 					return $string;
 				}
-				
+
 				if (isset($options['name']) && isset($options['content']))
 					$string = "{$spec->name}{$separator}".apply_filters('shopp_product_spec',$spec->value);
 				elseif (isset($options['name'])) $string = $spec->name;
@@ -1203,7 +1203,7 @@ class Product extends DatabaseObject {
 			case "has-variations":
 				return ($this->variations == "on" && (!empty($this->options['v']) || !empty($this->options))); break;
 			case "variations":
-				
+
 				$string = "";
 
 				if (!isset($options['mode'])) {
@@ -1215,7 +1215,7 @@ class Product extends DatabaseObject {
 
 					if ($price && ($price->type == 'N/A' || $price->context != 'variation'))
 						next($this->prices);
-						
+
 					if (current($this->prices) !== false) return true;
 					else {
 						unset($this->_prices_loop);
@@ -1226,7 +1226,7 @@ class Product extends DatabaseObject {
 
 				if ($this->outofstock) return false; // Completely out of stock, hide menus
 				if (!isset($options['taxes'])) $options['taxes'] = null;
-				
+
 				$defaults = array(
 					'defaults' => '',
 					'disabled' => 'show',
@@ -1247,7 +1247,7 @@ class Product extends DatabaseObject {
 
 					foreach ($this->prices as $pricetag) {
 						if ($pricetag->context != "variation") continue;
-						
+
 						if (!isset($options['taxes']))
 							$taxrate = shopp_taxrate(null,$pricetag->tax);
 						else $taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax);
@@ -1266,14 +1266,14 @@ class Product extends DatabaseObject {
 
 					$menuoptions = $this->options;
 					if (!empty($this->options['v'])) $menuoptions = $this->options['v'];
-					
+
 					$baseop = $Shopp->Settings->get('base_operations');
 					$precision = $baseop['currency']['format']['precision'];
-					
+
 					if (!isset($options['taxes']))
 						$taxrate = shopp_taxrate(null,true,$this);
 					else $taxrate = shopp_taxrate(value_is_true($options['taxes']),true,$this);
-					
+
 					$pricekeys = array();
 					foreach ($this->pricekey as $key => $pricing) {
 						$filter = array('');
@@ -1289,7 +1289,7 @@ class Product extends DatabaseObject {
 						$_->t = $pricing->type;
 						$pricekeys[$key] = $_;
 					}
-					
+
 					ob_start();
 ?><?php if (!empty($options['defaults'])): ?>
 	sjss.opdef = true;
@@ -1304,7 +1304,7 @@ class Product extends DatabaseObject {
 					ob_end_clean();
 
 					add_storefrontjs($script);
-					
+
 					foreach ($menuoptions as $id => $menu) {
 						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 						if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
@@ -1323,13 +1323,13 @@ class Product extends DatabaseObject {
 				break;
 			case "variation":
 				$variation = current($this->prices);
-				
+
 				if (!isset($options['taxes'])) $options['taxes'] = null;
 				else $options['taxes'] = value_is_true($options['taxes']);
 				$taxrate = shopp_taxrate($options['taxes'],$variation->tax,$this);
-				
+
 				$weightunit = (isset($options['units']) && !value_is_true($options['units']) ) ? false : $Shopp->Settings->get('weight_unit');
-				
+
 				$string = '';
 				if (array_key_exists('id',$options)) $string .= $variation->id;
 				if (array_key_exists('label',$options)) $string .= $variation->label;
@@ -1425,7 +1425,7 @@ class Product extends DatabaseObject {
 						if ($pricetag->context != "addon") continue;
 						$pricing[$pricetag->options] = $pricetag;
 					}
-					
+
 					foreach ($this->options['a'] as $id => $menu) {
 						if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
 						if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
@@ -1433,14 +1433,14 @@ class Product extends DatabaseObject {
 						$string .= '<select name="products['.$this->id.'][addons][]" class="'.$category_class.' product'.$this->id.' addons" id="addons-'.$menu['id'].'">';
 						if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 						foreach ($menu['options'] as $key => $option) {
-							
+
 							$pricetag = $pricing[$option['id']];
 							$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax,$this);
 							$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
 							if ($taxrate > 0) $currently = $currently+($currently*$taxrate);
 							$string .= '<option value="'.$option['id'].'">'.$option['name'].' (+'.money($currently).')</option>'."\n";
 						}
-							
+
 						$string .= '</select>';
 					}
 					if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
@@ -1454,7 +1454,7 @@ class Product extends DatabaseObject {
 			case "amount":
 			case "quantity":
 				if ($this->outofstock) return false;
-				
+
 				$inputs = array('text','menu');
 				$defaults = array(
 					'value' => 1,
@@ -1467,18 +1467,18 @@ class Product extends DatabaseObject {
 				$options = array_merge($defaults,$options);
 				$_options = $options;
 				extract($options);
-				
+
 				unset($_options['label']); // Interferes with the text input value when passed to inputattrs()
 				$labeling = '<label for="quantity-'.$this->id.'">'.$label.'</label>';
-				
+
 				if (!isset($this->_prices_loop)) reset($this->prices);
 				$variation = current($this->prices);
 				$_ = array();
-				
+
 				if ("before" == $labelpos) $_[] = $labeling;
 				if ("menu" == $input) {
 					if ($this->inventory && $this->max['stock'] == 0) return "";
-				
+
 					if (strpos($options,",") !== false) $options = explode(",",$options);
 					else $options = array($options);
 
@@ -1512,7 +1512,7 @@ class Product extends DatabaseObject {
 					}
 					$_[] = '<input type="'.$input.'" name="products['.$this->id.'][quantity]" id="quantity-'.$this->id.'"'.inputattrs($_options).' />';
 				}
-				
+
 				if ("after" == $labelpos) $_[] = $labeling;
 				return join("\n",$_);
 				break;
@@ -1541,7 +1541,7 @@ class Product extends DatabaseObject {
 				} else {
 					$result = '<input type="'.$options['type'].'" name="products['.$this->id.'][data]['.$options['name'].']" id="data-'.$options['name'].'-'.$this->id.'"'.inputattrs($options).' />';
 				}
-				
+
 				return $result;
 				break;
 			case "outofstock":
@@ -1554,19 +1554,19 @@ class Product extends DatabaseObject {
 			case "buynow":
 				if (!isset($options['value'])) $options['value'] = __("Buy Now","Shopp");
 			case "addtocart":
-			
+
 				if (!isset($options['class'])) $options['class'] = "addtocart";
 				else $options['class'] .= " addtocart";
 				if (!isset($options['value'])) $options['value'] = __("Add to Cart","Shopp");
 				$string = "";
-				
+
 				if ($this->outofstock) {
 					$string .= '<span class="outofstock">'.$Shopp->Settings->get('outofstock_text').'</span>';
 					return $string;
 				}
 				if (isset($options['redirect']) && !isset($options['ajax']))
 					$string .= '<input type="hidden" name="redirect" value="'.$options['redirect'].'" />';
-				
+
 				$string .= '<input type="hidden" name="products['.$this->id.'][product]" value="'.$this->id.'" />';
 
 				if (!empty($this->prices[0]) && $this->prices[0]->type != "N/A")
@@ -1588,24 +1588,24 @@ class Product extends DatabaseObject {
 				} else {
 					$string .= '<input type="submit" name="addtocart" '.inputattrs($options).' />';
 				}
-				
+
 				return $string;
 		}
-		
-		
+
+
 	}
 
 } // END class Product
 
 class Spec extends MetaObject {
-	
+
 	function __construct ($id=false) {
 		$this->init(self::$table);
 		$this->load($id);
 		$this->context = 'product';
 		$this->type = 'spec';
 	}
-	
+
 	function updates ($data,$ignores=array()) {
 		parent::updates($data,$ignores);
 		if (preg_match('/^.*?(\d+[\.\,\d]*).*$/',$this->value))
