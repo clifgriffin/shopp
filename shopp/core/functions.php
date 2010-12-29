@@ -100,7 +100,7 @@ function add_query_string ($string,$url) {
  **/
 function add_storefrontjs ($script,$global=false) {
 	$Storefront =& ShoppStorefront();
-	if ($Storefront) return;
+	if ($Storefront === false) return;
 	if ($global) {
 		if (!isset($Storefront->behaviors['global'])) $Storefront->behaviors['global'] = array();
 		$Storefront->behaviors['global'][] = trim($script);
