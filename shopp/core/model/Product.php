@@ -267,6 +267,7 @@ class Product extends DatabaseObject {
 			$price->price = (float)$price->price;
 			$price->saleprice = (float)$price->saleprice;
 			$price->shipfee = (float)$price->shipfee;
+			$price->promoprice = 0;
 
 			// Build secondary lookup table using the price id as the key
 			$this->priceid[$price->id] = $price;
