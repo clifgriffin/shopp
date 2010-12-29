@@ -169,9 +169,23 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 			$_['weight_'.$id]			= $Item->quantity;
 		}
 
+		// Workaround a PayPal limitation of not correctly handling no subtotals or
+		// handling discounts in the amount of the item subtotals by adding the
+		// shipping fee to the line items to get included in the subtotal. If no
+		// shipping fee is available use 1.00 to satisfy minimum order amount requirements
+		if ((int)$Order->Cart->Totals->subtotal == 0 ||
+			$Order->Cart->Totals->subtotal-$Order->Cart->Totals->discount == 0) {
+			$id++;
+			$_['item_number_'.$id]		= $id;
+			$_['item_name_'.$id]		= apply_filters('paypal_freeorder_handling_label',
+														__('Shipping & Handling','Shopp'));
+			$_['amount_'.$id]			= number_format(max($Order->Cart->Totals->shipping,1.00),$this->precision);
+			$_['quantity_'.$id]			= 1;
+		} else
+			$_['handling_cart']				= number_format($Order->Cart->Totals->shipping,$this->precision);
+
 		$_['discount_amount_cart'] 		= number_format($Order->Cart->Totals->discount,$this->precision);
 		$_['tax_cart']					= number_format($Order->Cart->Totals->tax,$this->precision);
-		$_['handling_cart']				= number_format($Order->Cart->Totals->shipping,$this->precision);
 		$_['amount']					= number_format($Order->Cart->Totals->total,$this->precision);
 
 		$_ = array_merge($_,$options);
