@@ -4,7 +4,7 @@
  * @class PayPalExpress
  *
  * @author Jonathan Davis
- * @version 1.1
+ * @version 1.1.5
  * @copyright Ingenesis Limited, 26 August, 2008
  * @package shopp
  * @since 1.1
