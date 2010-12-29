@@ -637,7 +637,7 @@ class Catalog extends DatabaseObject {
 				}
 
 				$before = (!empty($label_before))?'<label>'.$label_before:'<label>';
-				$after = (!empty($label_after))?$label_after.'</label>':'</lable>';
+				$after = (!empty($label_after))?$label_after.'</label>':'</label>';
 				return $before.$input.$after;
 				break;
 			case "catalog-products":
