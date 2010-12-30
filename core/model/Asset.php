@@ -38,7 +38,7 @@ class FileAsset extends MetaObject {
 		$this->load($id);
 
 	}
-	
+
 	/**
 	 * Load a FileAsset from the database
 	 *
@@ -53,7 +53,7 @@ class FileAsset extends MetaObject {
 		if (empty($this->id)) return false;
 		$this->expopulate();
 	}
-	
+
 	/**
 	 * Populate extended fields loaded from the MetaObject
 	 *
@@ -70,7 +70,7 @@ class FileAsset extends MetaObject {
 			$this->uri = stripslashes($this->uri);
 		}
 	}
-	
+
 	/**
 	 * Save the object back to the database
 	 *
@@ -85,7 +85,7 @@ class FileAsset extends MetaObject {
 			$this->value->{$col} = $this->{$col};
 		parent::save();
 	}
-	
+
 	/**
 	 * Store the file data using the preferred storage engine
 	 *
@@ -100,7 +100,7 @@ class FileAsset extends MetaObject {
 		if ($this->uri === false) return false;
 		return true;
 	}
-	
+
 	/**
 	 * Retrieve the resource data
 	 *
@@ -113,7 +113,7 @@ class FileAsset extends MetaObject {
 		$Engine = $this->_engine();
 		return $Engine->load($this->uri);
 	}
-	
+
 	/**
 	 * Retreive resource meta information
 	 *
@@ -126,7 +126,7 @@ class FileAsset extends MetaObject {
 		$Engine = $this->_engine();
  		list($this->size,$this->mime) = array_values($Engine->meta($this->uri,$this->name));
 	}
-	
+
 	/**
 	 * Determine if the resource exists
 	 *
@@ -141,7 +141,7 @@ class FileAsset extends MetaObject {
 		$Engine = $this->_engine();
 		return $Engine->exists($uri);
 	}
-	
+
 	/**
 	 * Determine the storage engine to use
 	 *
@@ -168,10 +168,10 @@ class FileAsset extends MetaObject {
 			$Engine = $Shopp->Storage->active[$engine];
 		}
 		if (!empty($Engine)) $Engine->context($this->type);
-		
+
 		return $Engine;
 	}
-	
+
 	/**
 	 * Stub for extensions
 	 *
@@ -181,7 +181,7 @@ class FileAsset extends MetaObject {
 	 * @return void
 	 **/
 	function extensions () {}
-	
+
 } // END class FileAsset
 
 /**
@@ -195,7 +195,7 @@ class FileAsset extends MetaObject {
  * @package shopp
  **/
 class ImageAsset extends FileAsset {
-	
+
 	// Allowable settings
 	var $_scaling = array('all','matte','crop','width','height');
 	var $_sharpen = 500;
@@ -208,7 +208,7 @@ class ImageAsset extends FileAsset {
 	var $settings;
 	var $filename;
 	var $type = 'image';
-	
+
 	function output ($headers=true) {
 		if ($headers) {
 			$Engine = $this->_engine();
@@ -224,12 +224,12 @@ class ImageAsset extends FileAsset {
 				    exit;
 				}
 			}
-			
+
 			header("Cache-Control: public, max-age=$offset");
 			header('Expires: ' . gmdate( "D, d M Y H:i:s", time() + $offset ) . ' GMT');
 			header('Last-Modified: '.date('D, d M Y H:i:s', $this->modified).' GMT');
 			if (!empty($etag)) header('ETag: '.$etag);
-			
+
 			header("Content-type: {$this->mime}");
 			if (!empty($this->filename))
 				header("Content-Disposition: inline; filename=".$this->filename);
@@ -261,10 +261,10 @@ class ImageAsset extends FileAsset {
 				else return $this->scaledHeight($width,$height);
 				break;
 		}
-		
+
 		return $d;
 	}
-	
+
 	function scaledWidth ($width,$height) {
 		$d = array('width'=>$this->width,'height'=>$this->height);
 		$scale = $width / $this->width;
@@ -272,7 +272,7 @@ class ImageAsset extends FileAsset {
 		$d['height'] = ceil($this->height * $scale);
 		return $d;
 	}
-	
+
 	function scaledHeight ($width,$height) {
 		$d = array('width'=>$this->width,'height'=>$this->height);
 		$scale = $height / $this->height;
@@ -280,7 +280,7 @@ class ImageAsset extends FileAsset {
 		$d['width'] = ceil($this->width * $scale);
 		return $d;
 	}
-	
+
 	/**
 	 * Generate a resizing request message
 	 *
@@ -292,16 +292,16 @@ class ImageAsset extends FileAsset {
 	function resizing ($width,$height,$scale=false,$sharpen=false,$quality=false,$fill=false) {
 		$key = (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '')?SECRET_AUTH_KEY:DB_PASSWORD;
 		$args = func_get_args();
-		
+
 		if ($args[1] == 0) $args[1] = $args[0];
-		
+
 		$message = rtrim(join(',',$args),',');
-			
+
 		$validation = crc32($key.$this->id.','.$message);
 		$message .= ",$validation";
 		return $message;
 	}
-	
+
 	function extensions () {
 		array_push($this->_xcols,'filename','width','height','alt','title','settings');
 	}
@@ -318,7 +318,7 @@ class ImageAsset extends FileAsset {
  **/
 class ProductImage extends ImageAsset {
 	var $context = 'product';
-	
+
 	/**
 	 * Truncate image data when stored in a session
 	 *
@@ -370,17 +370,17 @@ class CategoryImage extends ImageAsset {
  * @subpackage asset
  **/
 class DownloadAsset extends FileAsset {
-	
+
 	var $type = 'download';
 	var $context = 'product';
 	var $etag = "";
 	var $purchased = false;
-	
+
 	function loadby_dkey ($key) {
 		$db = &DB::get();
 		require_once(SHOPP_MODEL_PATH."/Purchased.php");
 		$pricetable = DatabaseObject::tablename(Price::$table);
-		
+
 		$Purchased = new Purchased($key,"dkey");
 		if (!empty($Purchased->id)) {
 			// Handle purchased line-item downloads
@@ -399,20 +399,20 @@ class DownloadAsset extends FileAsset {
 			$this->load($MetaDownload->value);
 			$this->purchased = $MetaDownload->parent;
 		}
-		
+
 		$this->etag = $key;
 	}
-	
+
 	function purchased () {
 		require_once(SHOPP_MODEL_PATH."/Purchased.php");
 		if (!$this->purchased) return false;
 		return new Purchased($this->purchased);
 	}
-	
+
 	function download ($dkey=false) {
 		$found = $this->found();
 		if (!$found) return false;
-		
+
 		if (!isset($found['redirect'])) {
 			// Close the session in case of long download
 			@session_write_close();
@@ -420,10 +420,10 @@ class DownloadAsset extends FileAsset {
 			// Don't want interference from the server
 		    if (function_exists('apache_setenv')) @apache_setenv('no-gzip', 1);
 		    @ini_set('zlib.output_compression', 0);
-		
+
 			set_time_limit(0);	// Don't timeout on long downloads
 			// ob_end_clean();		// End any automatic output buffering
-		
+
 			header("Pragma: public");
 			header("Cache-Control: maxage=1");
 			header("Content-type: application/octet-stream");
@@ -431,15 +431,15 @@ class DownloadAsset extends FileAsset {
 			header("Content-Description: Delivered by WordPress/Shopp ".SHOPP_VERSION);
 		}
 		$this->send();
-		
+
 		return true;
 	}
-	
+
 	function send () {
 		$Engine = $this->_engine();
 		$Engine->output($this->uri,$this->etag);
 	}
-	
+
 
 }
 
@@ -458,10 +458,10 @@ class ProductDownload extends DownloadAsset {
  * @subpackage storage
  **/
 class StorageEngines extends ModuleLoader {
-	
+
 	var $engines = array();
 	var $activate = false;
-	
+
 	/**
 	 * Initializes the shipping module loader
 	 *
@@ -472,14 +472,14 @@ class StorageEngines extends ModuleLoader {
 	 **/
 	function __construct () {
 		$this->path = SHOPP_STORAGE;
-		
-		add_action('shopp_module_loaded',array(&$this,'actions'));
-		
+
+		if(function_exists('add_action')) add_action('shopp_module_loaded',array(&$this,'actions'));
+
 		$this->installed();
 		$this->activated();
 		$this->load();
 	}
-	
+
 	/**
 	 * Determines the activated storage engine modules
 	 *
@@ -490,13 +490,13 @@ class StorageEngines extends ModuleLoader {
 	 **/
 	function activated () {
 		global $Shopp;
-	
+
 		$this->activated = array();
 
 		$systems = array();
 		$systems['image'] = $Shopp->Settings->get('image_storage');
 		$systems['download'] = $Shopp->Settings->get('product_storage');
-		
+
 		foreach ($systems as $system => $storage) {
 			foreach ($this->modules as $engine) {
 				if ($engine->subpackage == $storage) {
@@ -509,7 +509,7 @@ class StorageEngines extends ModuleLoader {
 
 		return $this->activated;
 	}
-	
+
 	/**
 	 * Loads all the installed storage engine modules for the settings page
 	 *
@@ -521,7 +521,7 @@ class StorageEngines extends ModuleLoader {
 	function settings () {
 		$this->load(true);
 	}
-	
+
 	/**
 	 * Sets up the storage engine settings interfaces
 	 *
@@ -534,18 +534,18 @@ class StorageEngines extends ModuleLoader {
 		foreach ($this->active as $package => &$module)
 			$module->setupui($package,$this->modules[$package]->name);
 	}
-	
+
 	function actions ($module) {
 		if (!isset($this->active[$module])) return;
-		
+
 		// Register contexts the module is a handler for
 		foreach ($this->engines as $system => $handler)
 			if ($module == $handler) $this->active[$module]->contexts[] = $system;
-		
+
 		if (method_exists($this->active[$module],'actions'))
 			$this->active[$module]->actions();
 	}
-	
+
 }
 
 /**
@@ -559,7 +559,7 @@ class StorageEngines extends ModuleLoader {
  * @subpackage storage
  **/
 interface StorageEngine {
-	
+
 	/**
 	 * Load a resource by the uri
 	 *
@@ -570,7 +570,7 @@ interface StorageEngine {
 	 * @return void
 	 **/
 	public function load($uri);
-	
+
 	/**
 	 * Output the asset data of a given uri
 	 *
@@ -581,7 +581,7 @@ interface StorageEngine {
 	 * @return void
 	 **/
 	public function output($uri);
-	
+
 	/**
 	 * Checks if the binary data of an asset exists
 	 *
@@ -592,7 +592,7 @@ interface StorageEngine {
 	 * @return boolean
 	 **/
 	public function exists($uri);
-	
+
 	/**
 	 * Store the data for an asset
 	 *
@@ -605,7 +605,7 @@ interface StorageEngine {
 	 * @return void
 	 **/
 	public function save($asset,$data,$type='binary');
-	
+
 }
 
 /**
@@ -619,10 +619,10 @@ interface StorageEngine {
  * @subpackage storage
  **/
 abstract class StorageModule {
-	
+
 	var $contexts;
 	var $settings;
-	
+
 	function __construct () {
 		global $Shopp;
 		$this->module = get_class($this);
@@ -631,10 +631,10 @@ abstract class StorageModule {
 			$this->settings = $Settings->get($this->module);
 		} else $this->settings = $Shopp->Settings->get($this->module);
 	}
-	
+
 	function context ($setting) {}
 	function settings () {}
-		
+
 	/**
 	 * Generate the settings UI for the module
 	 *
@@ -649,21 +649,21 @@ abstract class StorageModule {
 		$this->ui = new ModuleSettingsUI('storage',$module,$name,false,false);
 		$this->settings();
 	}
-		
+
 	function output ($uri) {
 		$data = $this->load($uri);
 		header ("Content-length: ".strlen($data));
 		echo $data;
 	}
-	
+
 	function meta () {
 		return false;
 	}
-	
+
 	function handles ($context) {
 		return in_array($context,$this->contexts);
 	}
-	
+
 }
 
 ?>
