@@ -21,7 +21,7 @@
  * @subpackage modules
  **/
 abstract class ModuleLoader {
-	
+
 	var $legacy = array();		// Legacy module checksums
 	var $modules = array();		// Installed available modules
 	var $activated = array();	// List of selected modules to be activated
@@ -54,7 +54,7 @@ abstract class ModuleLoader {
 		}
 
 	}
-	
+
 	/**
 	 * Loads the activated module files
 	 *
@@ -73,11 +73,11 @@ abstract class ModuleLoader {
 			if (!isset($this->modules[$module])) continue;
 			// Load the file
 			$this->active[$module] = &$this->modules[$module]->load();
-			do_action_ref_array('shopp_module_loaded',array($module));
+			if (function_exists('do_action_ref_array')) do_action_ref_array('shopp_module_loaded',array($module));
 		}
-		do_action('shopp_'.strtolower(get_class($this)).'_loaded');
+		if (function_exists('do_action')) do_action('shopp_'.strtolower(get_class($this)).'_loaded');
 	}
-	
+
 	/**
 	 * Hashes module files
 	 *
@@ -92,7 +92,7 @@ abstract class ModuleLoader {
 		if (!empty($this->legacy)) $hashes = array_merge($hashes,$this->legacy);
 		return $hashes;
 	}
-	
+
 
 } // END class ModuleLoader
 
@@ -116,7 +116,7 @@ class ModuleFile {
 	var $version = false;		// The version of the module
 	var $since = false;			// The core version required
 	var $addon = false;			// The valid addon flag
-	
+
 	/**
 	 * Parses the module file meta data and validates it
 	 *
@@ -140,7 +140,7 @@ class ModuleFile {
 			foreach($lines as $line) {
 				preg_match("/^(?:[\s\*]*?\b([^@\*\/]*))/",$line,$match);
 				if (!empty($match[1])) $data[] = $match[1];
-				
+
 				preg_match("/^(?:[\s\*]*?@([^\*\/]+?)\s(.+))/",$line,$match);
 				if (!empty($match[1]) && !empty($match[2])) $tags[$match[1]] = $match[2];
 			}
@@ -153,9 +153,9 @@ class ModuleFile {
 		}
 		if ($this->valid() !== true) return;
 		$this->addon = true;
-		
+
 	}
-	
+
 	/**
 	 * Loads the module file and instantiates the module
 	 *
@@ -170,7 +170,7 @@ class ModuleFile {
 			return new $this->subpackage();
 		}
 	}
-	
+
 	/**
 	 * Determines if the module is a valid and compatible Shopp module
 	 *
@@ -197,7 +197,7 @@ class ModuleFile {
 				'addon_core_version',SHOPP_ADDON_ERR);
 		return true;
 	}
-	
+
 	/**
 	 * Read the file docblock for Shopp addons
 	 *
@@ -226,8 +226,8 @@ class ModuleFile {
 
 		return $string;
 	}
-	
-	
+
+
 } // END class ModuleFile
 
 /**
@@ -241,11 +241,11 @@ class ModuleFile {
  * @package shopp
  **/
 class ModuleSettingsUI {
-	
+
 	var $type;
 	var $module;
 	var $name;
-	
+
 	/**
 	 * Registers a new module setting interface
 	 *
@@ -259,11 +259,11 @@ class ModuleSettingsUI {
 		$this->module = $module;
 		$this->name = $name;
 		$multi = ($multi === false)?'false':'true';
-		
+
 		echo "\n\tvar $module = new ModuleSetting('$module','$name',".json_encode($label).",$multi);\n";
 		echo "\thandlers.register('$module',$module);\n";
 	}
-	
+
 	/**
 	 * Renders a checkbox input
 	 *
@@ -279,9 +279,9 @@ class ModuleSettingsUI {
 		$attributes['type'] = "checkbox";
 		$attributes['normal'] = "off";
 		$attributes['value'] = "on";
-		
+
 		$attributes['checked'] = (value_is_true($attributes['checked'])?true:false);
-		
+
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
@@ -304,7 +304,7 @@ class ModuleSettingsUI {
 		$options = json_encode($options);
 		echo "$this->module.newInput($column,$attrs,$options);\n";
 	}
-	
+
 	/**
 	 * Renders a multiple-select widget
 	 *
@@ -323,7 +323,7 @@ class ModuleSettingsUI {
 		$options = json_encode($options);
 		echo "$this->module.newInput($column,$attrs,$options);\n";
 	}
-	
+
 	/**
 	 * Renders a multiple-select widget from a list of payment cards
 	 *
@@ -361,7 +361,7 @@ class ModuleSettingsUI {
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
-	
+
 	/**
 	 * Renders a password input
 	 *
@@ -430,7 +430,7 @@ class ModuleSettingsUI {
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
-	
+
 	/**
 	 * Renders a paragraph element
 	 *
@@ -447,7 +447,7 @@ class ModuleSettingsUI {
 		$attrs = json_encode($attributes);
 		echo "$this->module.newInput($column,$attrs);\n";
 	}
-		
+
 } // END class ModuleSettingsUI
 
 ?>

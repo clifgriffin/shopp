@@ -43,9 +43,11 @@ class ImageServer extends DatabaseObject {
 	var $fill = false;
 	var $valid = false;
 	var $Image = false;
-	
+
 	function __construct () {
 		define('SHOPP_PATH',sanitize_path(dirname(dirname(__FILE__))));
+		define("SHOPP_STORAGE",SHOPP_PATH."/storage");
+
 		$this->dbinit();
 		$this->request();
 		$this->settings();
@@ -69,7 +71,7 @@ class ImageServer extends DatabaseObject {
 				$this->parameters = explode(',',$key);
 				$this->valid = array_pop($this->parameters);
 		}
-		
+
 		// Handle pretty permalinks
 		if (preg_match('/\/images\/(\d+).*$/',$_SERVER['REQUEST_URI'],$matches))
 			$this->request = $matches[1];
@@ -90,16 +92,18 @@ class ImageServer extends DatabaseObject {
 	 * @return boolean Status of the image load
 	 **/
 	function load () {
+		global $Shopp;
+		if (!$Shopp->Storage) $Shopp->Storage = new StorageEngines();
 		$this->Image = new ImageAsset($this->request);
 		if (max($this->width,$this->height) > 0) $this->loadsized();
 		if (!empty($this->Image->id) || !empty($this->Image->data)) return true;
 		else return false;
 	}
-	
+
 	function loadsized () {
 		// Same size requested, skip resizing
 		if ($this->Image->width == $this->width && $this->Image->height == $this->height) return;
-		
+
 		$Cached = new ImageAsset(array(
 				'parent' => $this->Image->id,
 				'context'=>'image',
@@ -112,7 +116,7 @@ class ImageServer extends DatabaseObject {
 		else $this->resize(); // No cached copy exists, recreate
 
 	}
-	
+
 	function resize () {
 		$key = (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '')?SECRET_AUTH_KEY:DB_PASSWORD;
 		$message = $this->Image->id.','.implode(',',$this->parameters);
@@ -120,7 +124,7 @@ class ImageServer extends DatabaseObject {
 			header("HTTP/1.1 404 Not Found");
 			die('');
 		}
-		
+
 		require_once(SHOPP_PATH."/core/model/Image.php");
 		$Resized = new ImageProcessor($this->Image->retrieve(),$this->Image->width,$this->Image->height);
 		$scaled = $this->Image->scaled($this->width,$this->height,$this->scale);
@@ -130,7 +134,7 @@ class ImageServer extends DatabaseObject {
 		// Post sharpen
 		if ($this->sharpen !== false)
 			$Resized->UnsharpMask($this->sharpen);
-		
+
 		$ResizedImage = new ImageAsset();
 		$ResizedImage->copydata($this->Image,false,array());
 		$ResizedImage->name = 'cache_'.implode('_',$this->parameters);
@@ -143,17 +147,17 @@ class ImageServer extends DatabaseObject {
 		$ResizedImage->height = $Resized->height;
 		foreach ($this->args as $index => $arg)
 			$ResizedImage->settings[$arg] = isset($this->parameters[$index])?intval($this->parameters[$index]):false;
-		
+
 		$ResizedImage->data = $Resized->imagefile($this->quality);
 		if (empty($ResizedImage->data)) return false;
-		
+
 		$ResizedImage->size = strlen($ResizedImage->data);
 		$this->Image = $ResizedImage;
 		if ($ResizedImage->store( $ResizedImage->data ) === false)
 			return false;
-		
+
 		$ResizedImage->save();
-		
+
 	}
 
 	/**
@@ -172,7 +176,7 @@ class ImageServer extends DatabaseObject {
 		} else $this->Image->output();
 		exit();
 	}
-	
+
 	/**
 	 * Output a default image when the requested image is not found
 	 *
@@ -196,7 +200,7 @@ class ImageServer extends DatabaseObject {
 		}
 		die();
 	}
-	
+
 	function settings () {
 		global $Shopp;
 		$Shopp->Settings = new Settings();
@@ -241,11 +245,11 @@ class ImageServer extends DatabaseObject {
 				$db->query($query);
 			}
 		}
-		
+
 		if (is_multisite()) shopp_ms_tableprefix();
 
 	}
-	
+
 } // end ImageServer class
 
 /**
