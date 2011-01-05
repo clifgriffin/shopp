@@ -20,7 +20,7 @@
  * @package shopp
  **/
 class Lookup {
-	
+
 	/**
 	 * Provides a lookup table worldwide regions
 	 *
@@ -41,7 +41,7 @@ class Lookup {
 		$_[7] = __("Oceania","Shopp");
 		return apply_filters('shopp_regions',$_);
 	}
-	
+
 	/**
 	 * Finds the translated region name for a specific region index
 	 *
@@ -126,7 +126,7 @@ class Lookup {
 		$_['PK'] = array('name'=>__('Pakistan','Shopp'),'currency'=>array('code'=>'PKR','format'=>'₨#,###.##'),'units'=>'metric','region'=>4);
 		$_['PE'] = array('name'=>__('Peru','Shopp'),'currency'=>array('code'=>'PEN','format'=>'S/. #,###.##'),'units'=>'metric','region'=>2);
 		$_['PH'] = array('name'=>__('Philippines','Shopp'),'currency'=>array('code'=>'PHP','format'=>'Php #,###.##'),'units'=>'metric','region'=>6);
-		$_['PL'] = array('name'=>__('Poland','Shopp'),'currency'=>array('code'=>'PLZ','format'=>'#.###,## zł'),'units'=>'metric','region'=>3);
+		$_['PL'] = array('name'=>__('Poland','Shopp'),'currency'=>array('code'=>'PLN','format'=>'#.###,## zł'),'units'=>'metric','region'=>3);
 		$_['PT'] = array('name'=>__('Portugal','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
 		$_['PR'] = array('name'=>__('Puerto Rico','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'imperial','region'=>0);
 		$_['RO'] = array('name'=>__('Romania','Shopp'),'currency'=>array('code'=>'ROL','format'=>'#.###,## lei'),'units'=>'metric','region'=>3);
@@ -150,7 +150,7 @@ class Lookup {
 		$_['VE'] = array('name'=>__('Venezuela','Shopp'),'currency'=>array('code'=>'VUB','format'=>'Bs. #,###.##'),'units'=>'metric','region'=>2);
 		return apply_filters('shopp_countries',$_);
 	}
-	
+
 	/**
 	 * Provides a lookup table of country zones (states/provinces)
 	 *
@@ -185,7 +185,7 @@ class Lookup {
 		$_['CA']['PQ'] = 'Quebec';
 		$_['CA']['SK'] = 'Saskatchewan';
 		$_['CA']['YT'] = 'Yukon Territory';
-		
+
 		$_['US'] = array();
 		$_['US']['AL'] = 'Alabama';
 		$_['US']['AK'] = 'Alaska ';
@@ -238,13 +238,13 @@ class Lookup {
 		$_['US']['WV'] = 'West Virginia';
 		$_['US']['WI'] = 'Wisconsin';
 		$_['US']['WY'] = 'Wyoming';
-		
+
 		$_['USAF']['AA'] = 'Americas';
 		$_['USAF']['AE'] = 'Europe';
 		$_['USAF']['AP'] = 'Pacific';
 		return apply_filters('shopp_country_zones',$_);
 	}
-	
+
 	/**
 	 * Provides a lookup table of colloquial country areas codified by post code regions
 	 *
@@ -265,7 +265,7 @@ class Lookup {
 		$_['US']['Midwest US'] = array('OH'=>array('43000','45999'),'IN'=>array('46000','47999'),'MI'=>array('48000','49999'),'IA'=>array('50000','52899'),'WI'=>array('53000','54999'),'MN'=>array('55000','56799'),'SD'=>array('57000','57799'),'ND'=>array('58000','58899'),'IL'=>array('60000','62999'),'MO'=>array('63000','65899'),'KS'=>array('66000','67999'),'NE'=>array('68000','69399'));
 		$_['US']['South US'] =array('DE'=>array('19700','19999'),'DC'=>array('20000','20599'),'MD'=>array('20600','21999'),'VA'=>array('22000','24699','20100','20199'),'WV'=>array('24700','26899'),'NC'=>array('26900','28999'),'SC'=>array('29000','29999'),'GA'=>array('30000','31999','39800','39999'),'FL'=>array('32000','34999'),'AL'=>array('35000','36999'),'TN'=>array('37000','38599'),'MS'=>array('38600','39799'),'KY'=>array('40000','42799'),'LA'=>array('70000','71499'),'AR'=>array('71600','72999','75500','75599'),'OK'=>array('73000','74999'),'TX'=>array('75000','79999','88500','88599'));
 		$_['US']['West US'] =array('MT'=>array('59000','59999'),'CO'=>array('80000','81699'),'WY'=>array('82000','83199'),'ID'=>array('83200','83899'),'UT'=>array('84000','84799'),'AZ'=>array('85000','86599'),'NM'=>array('87000','88499'),'NV'=>array('88900','89899'),'CA'=>array('90000','96699'),'HI'=>array('96700','96899'),'OR'=>array('97000','97999'),'WA'=>array('98000','99499'),'AK'=>array('99500','99999'));
-		
+
 		$_['USAF'] = array();
 		$_['USAF']['Americas'] = array('AA'=>array('34000','34099'));
 		$_['USAF']['Europe'] = array('AE'=>array('09000','09999'));
@@ -283,12 +283,12 @@ class Lookup {
 		return apply_filters('shopp_customer_types',$_);
 	}
 
-	
+
 	function localities () {
 		$_ = array();
 		return apply_filters('shopp_localities',$_);
 	}
-	
+
 	/**
 	 * Provides a list of country codes for countries that use VAT taxes
 	 *
@@ -341,7 +341,7 @@ class Lookup {
 		if (isset($cards[strtolower($card)])) return $cards[strtolower($card)];
 		return false;
 	}
-	
+
 	/**
 	 * A list of translatable payment status labels
 	 *
@@ -359,7 +359,7 @@ class Lookup {
 		);
 		return apply_filters('shopp_payment_status_labels',$_);
 	}
-	
+
 	/**
 	 * A list of stop words to be excluded from search indexes
 	 *
