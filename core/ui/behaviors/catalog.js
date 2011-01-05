@@ -422,7 +422,10 @@ jQuery(document).ready(function() {
 	carousels();
 	if ($.fn.colorbox) {
 		$('a.shopp-zoom').colorbox({photo:true});
-		$('a.shopp-zoom.gallery').attr('rel','gallery').colorbox({slideshow:true,slideshowSpeed:3500});
+		$('a.shopp-zoom.gallery').each(function () {
+			var id = $(this).attr('class').match(/product\_(\d+)/)[1];
+			$(this).attr('rel','gallery-'+id).colorbox({slideshow:true,slideshowSpeed:3500});
+		});
 	}
 	$('select.shopp-orderby-menu').change(function () { this.form.submit(); });
 	$('select.shopp-categories-menu').change(function () { document.location.href = $(this).val(); });
