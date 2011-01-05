@@ -567,8 +567,8 @@ class Shopp {
 	 * @return string The response from the server
 	 **/
 	function callhome ($request=array(),$data=array(),$options=array()) {
-		$query = http_build_query(array_merge(array('ver'=>'1.1'),$request));
-		$data = http_build_query($data);
+		$query = http_build_query(array_merge(array('ver'=>'1.1'),$request),'','&');
+		$data = http_build_query($data,'','&');
 
 		$connection = curl_init();
 		curl_setopt($connection, CURLOPT_URL, SHOPP_HOME."?".$query);
@@ -578,7 +578,9 @@ class Shopp {
 		curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
 		curl_setopt($connection, CURLOPT_TIMEOUT, 20);
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION, 1);
+
+		if (!(ini_get("safe_mode") || ini_get("open_basedir")))
+			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1);
 
 		// Added to handle SSL timeout issues
 		// Maybe if a timeout occurs the connection should be
