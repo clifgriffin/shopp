@@ -145,7 +145,7 @@ jQuery(document).ready(function () {
 	function paymethod_select (e,paymethod) {
 		if (!paymethod) paymethod = $(this).val();
 		var $this = $(this),checkoutButton = $('.payoption-'+paymethod),options='',pc = false;
-		if ($this.attr('type') == "radio" && $this.attr('checked') == false) return;
+		if (this != window && $this.attr && $this.attr('type') == "radio" && $this.attr('checked') == false) return;
 		$(document).trigger('shopp_paymethod',[paymethod]);
 
 		checkoutButtons.hide();
@@ -174,7 +174,8 @@ jQuery(document).ready(function () {
 		var v = billCard.val().replace(/\D/g,''),
 			paymethod = paymethods.filter(':checked').val()?paymethods.filter(':checked').val():paymethods.val(),
 			card = false;
-		if (!paymethod || !pm_cards[paymethod]) return false;
+		if (!paymethod) paymethod = d_pm;
+		if (!pm_cards[paymethod]) return true; // The selected payment method does not have cards
 		$.each(pm_cards[paymethod], function (a,s) {
 			var pc = paycards[s],pattern = new RegExp(pc.pattern.substr(1,pc.pattern.length-2));
 			if (v.match(pattern)) {
