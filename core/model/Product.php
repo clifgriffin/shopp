@@ -300,7 +300,8 @@ class Product extends DatabaseObject {
 				$this->inventory = $price->stocked = true;
 			}
 
-			if ($price->freeshipping == 0) $freeshipping = false;
+			if ($price->freeshipping == '0' || $price->shipping == 'on')
+				$freeshipping = false;
 
 			if ($price->onsale) $price->promoprice = (float)$price->saleprice;
 			else $price->promoprice = (float)$price->price;
