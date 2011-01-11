@@ -572,12 +572,17 @@ class Catalog extends DatabaseObject {
 				$content = ob_get_contents();
 				ob_end_clean();
 
-				require_once(SHOPP_MODEL_PATH."/XML.php");
-				$markup = new xmlQuery($content);
-				$input = $markup->element('input',array('type'=> 'hidden','name' => 'catalog','value' => 'true'));
-				$div = $markup->element('div',array(),false,$input);
-				$markup->add('form',$div);
-				return $markup->markup();
+				preg_match('/^(.*?<form[^>]*>)(.*?)(<\/form>.*?)$/is',$content,$_);
+				list($all,$open,$content,$close) = $_;
+
+				$markup = array(
+					$open,
+					$content,
+					'<div><input type="hidden" name="catalog" value="true" /></div>',
+					$close
+				);
+
+				return join('',$markup);
 				break;
 			case "search":
 				global $wp;
