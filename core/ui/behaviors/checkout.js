@@ -1,3 +1,9 @@
+/*!
+ * checkout.js - Shopp catalog behaviors library
+ * Copyright © 2008-2010 by Ingenesis Limited
+ * Licensed under the GPLv3 {@see license.txt}
+ */
+
 jQuery(document).ready(function () {
 	var $ = jqnc(),login=false,
 		sameship = $('#same-shipping'),
@@ -48,20 +54,21 @@ jQuery(document).ready(function () {
 			else $(this).attr('disabled',false).removeClass('disabled');
 		});
 		return $(this);
-	}
+	};
 
 	submitLogin.click(function () { login=true; });
 	checkoutForm.unbind('submit').submit(function () {
 		if (login) {
-			login=false;
 			if (accountLogin.val() == "") {
 				alert(sjss.LOGIN_NAME_REQUIRED);
 				accountLogin.focus();
+				login=false;
 				return false;
 			}
 			if (passwordLogin.val() == "") {
 				alert(sjss.LOGIN_PASSWORD_REQUIRED);
 				passwordLogin.focus();
+				login=false;
 				return false;
 			}
 			$('#process-login').val('true');
@@ -74,7 +81,7 @@ jQuery(document).ready(function () {
 
 	$('#billing-country,#shipping-country').change(function (e,init) {
 		var prefix = $(this).attr('id').split('-')[0],
-			country = $(this).val();
+			country = $(this).val(),
 			state = $('#'+prefix+'-state'),
 			menu = $('#'+prefix+'-state-menu'),
 			options = '<option value=""></option>';
@@ -194,7 +201,7 @@ jQuery(document).ready(function () {
 
 		var total = 0;
 		for (i = 0; i < n.length; i++) {
-			n[i] = parseInt(n[i]);
+			n[i] = parseInt(n[i],10);
 			total += i % 2 ? 2 * n[i] - (n[i] > 4 ? 9 : 0) : n[i];
 		}
 		return (total % 10) == 0;
