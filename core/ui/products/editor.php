@@ -97,7 +97,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	fileupload_debug = <?php echo (defined('SHOPP_FILEUPLOAD_DEBUG') && SHOPP_FILEUPLOAD_DEBUG)?'true':'false'; ?>,
 	dimensionsRequired = <?php echo $Shopp->Shipping->dimensions?'true':'false'; ?>,
 	startWeekday = <?php echo get_option('start_of_week'); ?>,
-	calendarTitle = '<?php $df = date_format_order(); $format = ''; foreach ($df as $type => $f) if ($type == "month" || $type == "year") $format .= $type[0]; echo $format; ?>',
+	calendarTitle = '<?php $df = date_format_order(true); $format = $df["month"]." ".$df["year"]; echo $format; ?>',
 
 	// Warning/Error Dialogs
 	DELETE_IMAGE_WARNING = "<?php _e('Are you sure you want to delete this product image?','Shopp'); ?>",
