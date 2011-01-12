@@ -65,7 +65,7 @@ class Item {
 	function __construct ($Product,$pricing,$category=false,$data=array(),$addons=array()) {
 
 		$Product->load_data(array('prices','images','categories','tags','specs'));
-		
+
 		// If product variations are enabled, disregard the first priceline
 		if ($Product->variations == "on") array_shift($Product->prices);
 
@@ -92,16 +92,16 @@ class Item {
 		$this->tags = $this->namelist($Product->tags);
 		$this->image = current($Product->images);
 		$this->description = $Product->summary;
-		
+
 		if ($Product->variations == "on")
 			$this->variations($Product->prices);
-			
+
 		if (isset($Product->addons) && $Product->addons == "on")
 			$this->addons($this->addonsum,$addons,$Product->prices);
 
 		if (isset($Price->id))
 			$this->option = $this->mapprice($Price);
-		
+
 		$this->sku = $Price->sku;
 		$this->type = $Price->type;
 		$this->sale = $Price->onsale;
@@ -112,7 +112,7 @@ class Item {
 		if ($this->type == "Donation")
 			$this->donation = $Price->donation;
 		$this->data = stripslashes_deep(esc_attrs($data));
-		
+
 		// Map out the selected menu name and option
 		if ($Product->variations == "on") {
 			$selected = explode(",",$this->option->options); $s = 0;
@@ -145,7 +145,7 @@ class Item {
 		$this->inventory = ($Price->inventory == "on")?true:false;
 		$this->taxable = ($Price->tax == "on" && $Settings->get('taxes') == "on")?true:false;
 	}
-	
+
 	/**
 	 * Validates the line item
 	 *
@@ -162,7 +162,7 @@ class Item {
 			new ShoppError(__('The product could not be added to the cart because it could not be found.','cart_item_invalid',SHOPP_ERR));
 			return false;
 		}
-		if ($this->inventory && $this->option->stock == 0) {
+		if ($this->inventory && !$this->instock()) {
 			new ShoppError(__('The product could not be added to the cart because it is not in stock.','cart_item_invalid',SHOPP_ERR));
 			return false;
 		}
@@ -216,10 +216,10 @@ class Item {
 				$this->quantity = min($levels);
 			} else $this->quantity = $qty;
 		} else $this->quantity = $qty;
-		
+
 		$this->retotal();
 	}
-	
+
 	/**
 	 * Adds a specified quantity to the line item
 	 *
@@ -235,7 +235,7 @@ class Item {
 		}
 		$this->quantity($this->quantity+$qty);
 	}
-	
+
 	/**
 	 * Generates an option menu of available price variations
 	 *
@@ -258,19 +258,19 @@ class Item {
 			$price = '';
 			if ($difference > 0) $price = '  (+'.money($difference).')';
 			if ($difference < 0) $price = '  (-'.money(abs($difference)).')';
-			
+
 			$selected = "";
 			if ($selection == $option->id) $selected = ' selected="selected"';
 			$disabled = "";
 			if ($option->inventory == "on" && $option->stock < $this->quantity)
 				$disabled = ' disabled="disabled"';
-			
+
 			$string .= '<option value="'.$option->id.'"'.$selected.$disabled.'>'.$option->label.$price.'</option>';
 		}
 		return $string;
-			
+
 	}
-	
+
 	/**
 	 * Populates the variations from a collection of price objects
 	 *
@@ -287,7 +287,7 @@ class Item {
 			if ($pricing) $this->variations[] = $pricing;
 		}
 	}
-	
+
 	/**
 	 * Sums values of the applied addons properties
 	 *
@@ -306,7 +306,7 @@ class Item {
 				$pricing->unitprice = (($p->onsale)?$p->promoprice:$p->price);
 				$this->addons[] = $pricing;
 				$sum += $pricing->unitprice;
-				
+
 			} else {
 				if (isset($pricing->$property)) $sum += $pricing->$property;
 			}
@@ -354,7 +354,7 @@ class Item {
 		foreach ($items as $item) $list[$item->id] = $item->name;
 		return $list;
 	}
-	
+
 	/**
 	 * Unstock the item from inventory
 	 *
@@ -367,11 +367,11 @@ class Item {
 		if (!$this->inventory) return;
 		$db = DB::get();
 		$Settings =& ShoppSettings();
-		
+
 		// Update stock in the database
 		$table = DatabaseObject::tablename(Price::$table);
 		$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$this->priceline}' AND stock > 0");
-		
+
 		if (!empty($this->addons)) {
 			foreach ($this->addons as &$Addon) {
 				$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$Addon->id}' AND stock > 0");
@@ -381,10 +381,10 @@ class Item {
 					new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product_addon),'outofstock_warning',SHOPP_STOCK_ERR);
 				elseif ($Addon->stock <= $Settings->get('lowstock_level'))
 					return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product_addon),'lowstock_warning',SHOPP_STOCK_ERR);
-				
+
 			}
 		}
-		
+
 		// Update stock in the model
 		$this->option->stock -= $this->quantity;
 
@@ -392,12 +392,12 @@ class Item {
 		$product = "$this->name (".$this->option->label.")";
 		if ($this->option->stock == 0)
 			return new ShoppError(sprintf(__('%s is now out-of-stock!','Shopp'),$product),'outofstock_warning',SHOPP_STOCK_ERR);
-		
+
 		if ($this->option->stock <= $Settings->get('lowstock_level'))
 			return new ShoppError(sprintf(__('%s has low stock levels and should be re-ordered soon.','Shopp'),$product),'lowstock_warning',SHOPP_STOCK_ERR);
 
 	}
-	
+
 	/**
 	 * Verifies the item is in stock
 	 *
@@ -411,7 +411,7 @@ class Item {
 		$this->option->stock = $this->getstock();
 		return $this->option->stock >= $this->quantity;
 	}
-	
+
 	/**
 	 * Determines the stock level of the line item
 	 *
@@ -433,7 +433,7 @@ class Item {
 
 		return $this->option->stock;
 	}
-	
+
 	/**
 	 * Match a rule to the item
 	 *
@@ -467,7 +467,7 @@ class Item {
 		}
 		return Promotion::match_rule($subject,$logic,$value,$property);
 	}
-	
+
 	function taxrule ($rule) {
 		switch ($rule['p']) {
 			case "product-name": return ($rule['v'] == $this->name); break;
@@ -487,7 +487,7 @@ class Item {
 	 **/
 	function retotal () {
 		$this->taxrate = shopp_taxrate(true,$this->taxable,$this);
-		
+
 		$this->priced = ($this->unitprice-$this->discount);
 		$this->unittax = ($this->priced*$this->taxrate);
 		$this->discounts = ($this->discount*$this->quantity);
@@ -519,7 +519,7 @@ class Item {
 				return shoppurl(SHOPP_PRETTYURLS?$this->slug:array('shopp_pid'=>$this->product));
 			case "sku": return $this->sku;
 		}
-		
+
 		$taxes = isset($options['taxes'])?value_is_true($options['taxes']):null;
 		if (in_array($property,array('price','newprice','unitprice','total','tax','options')))
 			$taxes = shopp_taxrate($taxes,$this->taxable,$this) > 0?true:false;
@@ -538,7 +538,7 @@ class Item {
 			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
 			else return money($result);
 		}
-		
+
 		// Handle values with complex options
 		switch ($property) {
 			case "taxrate": return percentage($this->taxrate*100,array('precision' => 1)); break;
@@ -550,7 +550,7 @@ class Item {
 					if (!isset($options['options']))
 						$values = "1-15,20,25,30,35,40,45,50,60,70,80,90,100";
 					else $values = $options['options'];
-					
+
 					if (strpos($values,",") !== false) $values = explode(",",$values);
 					else $values = array($values);
 					$qtys = array();
@@ -596,7 +596,7 @@ class Item {
 					strtolower($options['show']) == "selected")
 					return (!empty($this->option->label))?
 						$options['before'].$this->option->label.$options['after']:'';
-					
+
 				if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
 				if (count($this->variations) > 1) {
 					$result .= $options['before'];
@@ -616,7 +616,7 @@ class Item {
 					'class' => '',
 					'exclude' => '',
 					'prices' => true,
-					
+
 				);
 				$options = array_merge($defaults,$options);
 				extract($options);
@@ -624,14 +624,14 @@ class Item {
 				$classes = !empty($class)?' class="'.join(' ',$class).'"':'';
 				$excludes = explode(',',$exclude);
 				$prices = value_is_true($prices);
-				
+
 				$result .= $before.'<ul'.$classes.'>';
 				foreach ($this->addons as $id => $addon) {
 					if (in_array($addon->label,$excludes)) continue;
-					
+
 					$price = ($addon->onsale?$addon->promoprice:$addon->price);
 					if ($this->taxrate > 0) $price = $price+($price*$this->taxrate);
-					
+
 					if ($prices) $pricing = " (".($addon->unitprice < 0?'-':'+').money($price).")";
 					$result .= '<li>'.$addon->label.$pricing.'</li>';
 				}
@@ -667,7 +667,7 @@ class Item {
 				if (!empty($options['exclude'])) $excludes = explode(",",$options['exclude']);
 				if (!empty($options['before'])) $before = $options['before'];
 				if (!empty($options['after'])) $after = $options['after'];
-				
+
 				$result .= $before.'<ul'.$classes.'>';
 				foreach ($this->data as $name => $data) {
 					if (in_array($name,$excludes)) continue;
@@ -690,7 +690,7 @@ class Item {
 					'alt' => false,
 					'title' => false
 				);
-				
+
 				$options = array_merge($defaults,$options);
 				extract($options);
 
@@ -714,10 +714,10 @@ class Item {
 					return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
 				}
 				break;
-				
+
 		}
 		if (!empty($result)) return $result;
-		
+
 		return false;
 	}
 
