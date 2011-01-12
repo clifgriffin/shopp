@@ -64,10 +64,13 @@ class Flow {
 
 		if (defined('WP_ADMIN')) {
 			if (!isset($_GET['page'])) return;
+			if ($this->Admin === false) {
+				require_once(SHOPP_FLOW_PATH."/Admin.php");
+				$this->Admin = new AdminFlow();
+			}
 			$controller = $this->Admin->controller(strtolower($_GET['page']));
 			if (!empty($controller)) $this->handler($controller);
 		} else $this->handler("Storefront");
-
 	}
 
 	function transactions () {
