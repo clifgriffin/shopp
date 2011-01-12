@@ -135,11 +135,11 @@ class xmlQuery {
 				elseif (isset($r['_v'])) $_[] = ($r['_v']);
 				$_[] = (isset($r['_c']) ? $sp : '')."</$element>\n";
 			}
-        	
+
 		}
 		return implode('', $_);
 	}
-	
+
 	/**
 	 * Adds a new element to the data tree as a child of the $target element
 	 *
@@ -167,14 +167,14 @@ class xmlQuery {
 					$node['_c'][$element] = array($_);
 				}
 				$node['_c'][$element][] =& $working[$element];
-				
+
 			} else $node['_c'][$element] =& $working[$element];
 			return $true;
-			
+
 		} else $this->dom[$element] =& $working[$element];
 		return $true;
 	}
-	
+
 	/**
 	 * Creates a structured element for addition to the DOM
 	 *
@@ -201,7 +201,7 @@ class xmlQuery {
 				$_[$name]['_c'][$childname] = $child;
 		return $_;
 	}
-	
+
 	/**
 	 * Finds a tag element in the DOM
 	 *
@@ -218,7 +218,7 @@ class xmlQuery {
 		if (!empty($found)) return new xmlQuery($found);
 		return false;
 	}
-	
+
 	/**
 	 * Gets a specific element from a list of matching elements
 	 *
@@ -233,7 +233,7 @@ class xmlQuery {
 			return new xmlQuery($this->dom[$index]);
 		return false;
 	}
-	
+
 	/**
 	 * Get name of the first container node in the DOM
 	 *
@@ -248,7 +248,7 @@ class xmlQuery {
 		if (empty($context)) return false;
 		else return $context;
 	}
-	
+
 	/**
 	 * Iterate through each of the results in the current DOM
 	 *
@@ -265,13 +265,13 @@ class xmlQuery {
 
 		$next = next($this->dom);
 		if ($next) return new xmlQuery(array($next));
-		
+
 		reset($this->dom);
 		$this->_loop = false;
 
 		return false;
 	}
-	
+
 	/**
 	 * Gets the content (or contents) of a tag
 	 *
@@ -283,7 +283,7 @@ class xmlQuery {
 	 **/
 	function content ($tag=false) {
 		if (!$tag) return count($this->dom) == 1 && !empty($this->dom[0]['_v'])?$this->dom[0]['_v']:false;
-			
+
 		$found = $this->find($tag);
 		if (isset($found['_v'])) $found = array($found);
 		$_ = array();
@@ -293,7 +293,7 @@ class xmlQuery {
 		else return $_;
 
 	}
-	
+
 	/**
 	 * Gets an attribute (or attributes) of a tag
 	 *
@@ -323,13 +323,13 @@ class xmlQuery {
 					$_[] = $entry['_a'][$attr];
 			}
 		}
-		
+
 		if (count($_) == 1) return $_[0];
 		else return $_;
-		
+
 		return false;
 	}
-		
+
 	/**
 	 * Recursively find elements in the DOM matching the query
 	 *
@@ -365,13 +365,13 @@ class xmlQuery {
 					// Target is an operator, skip to next target
 					$operator = $target; continue;
 				}
-				
+
 				if (is_array($target)) {
 					$tag = isset($target[0])?$target[0]:false;
 					$subselect = isset($target[1])?$target[1]:false;
 					$attributes = isset($target[2])?$target[2]:false;
 				} else $tag = $target;
-				
+
 				if ($operator !== false) {
 					// Operator detected for this target
 					$last = count($_)-1;
@@ -397,7 +397,7 @@ class xmlQuery {
 					$operator = false;
 					continue;
 				}
-				
+
 				// Recursive dom search for the tag and any attributes
 				$found = $this->search($tag,$attributes,$dom);
 				$_ = array_merge($_,$found);
@@ -418,12 +418,12 @@ class xmlQuery {
 					case "lt": $_ = self::array_key_filter($_,array(&$this,'_filter_lt'),$filter); break;
 				}
 			}
-			
+
 			// Save the results from this query target
 			// into the total result list
 			$results = array_merge($results,$_);
 		}
-		
+
 		return $results;
 	}
 
@@ -442,14 +442,14 @@ class xmlQuery {
 	private function search ($tag,$attributes=array(),&$dom=false,$recursive=true) {
 		if (!$dom) $dom = &$this->dom;
 		if (!is_array($dom)) $dom = array($dom);
-		
+
 		$_ = array();
 		// Iterate through the elements of the DOM and find matches
 		foreach($dom as $key => &$element) {
 			$match = false;
-			
+
 			if ($recursive) {
-				if (isset($element['_c'])) {
+				if (isset($element['_c']) && !empty($element['_c'])) {
 					// Search child elements/nodes first
 					$found = &$this->search($tag,$attributes,$element['_c']);
 					$_ = array_merge($_,$found);
@@ -462,9 +462,9 @@ class xmlQuery {
 					}
 				}
 			}
-			
+
 			if ($key !== $tag) continue;
-			
+
 			// Matched tag already, if attribute search is set check that those match too
 			if (empty($attributes)) $match = true;
 			else foreach ($attributes as $attr => $search) // Match attributes
@@ -474,17 +474,17 @@ class xmlQuery {
 						$match = true;
 
 			if (!$match) return;
-			
+
 			// Element matched, save it to our results
-			
+
 			// If this is a branch, append the branch entries as individual results
 			if (count($element) > 0 && isset($element[0]))
 				$_ = array_merge($_,&$element);
 			else $_[] =& $element;
 		}
-		
+
 		return $_;
-		
+
 	}
 
 	/**
@@ -514,7 +514,7 @@ class xmlQuery {
 
 		$patterns = $this->patterns();
 		extract($patterns);
-		
+
 		$queries = preg_split("/\s*,\s*/",$query,-1);
 		foreach ($queries as &$query) {
 			$query = preg_split("/\s*($delimiters)\s*/",$query,-1,PREG_SPLIT_DELIM_CAPTURE);
@@ -558,10 +558,10 @@ class xmlQuery {
 			'delimiters' => '[>\+ ]'
 		);
 		$_['attrs'] = "\[(\w+)(".join('|',$_['ops']).")?(\w+)?\]";
-		
+
 		return $_;
 	}
-	
+
 	/**
 	 * Compares a source string with a search string using a given operation
 	 *
@@ -584,7 +584,7 @@ class xmlQuery {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Helper filter to find odd-number index array elements
 	 *
@@ -640,7 +640,7 @@ class xmlQuery {
 	private function _filter_lt ($key,$value,$filter) {
 		return ($key < $filter);
 	}
-	
+
 	/**
 	 * Uses a callback to filter arrays based on key/value pairs
 	 *
@@ -755,7 +755,7 @@ class XMLdata {
 				elseif (isset($r['CONTENT'])) $res[] = htmlentities($r['CONTENT']);
 				$res[] = (isset($r['CHILDREN']) ? $sp : '')."</$tag>\n";
 			}
-        
+
 		}
 		return implode('', $res);
 	}
@@ -767,7 +767,7 @@ class XMLdata {
 		$working = array_slice($this->data, 0, $pos); $working[] = $element;
 		$this->data = array_merge($working, array_slice($this->data, $pos));
 	}
-	
+
 	/**
 	 * add()
 	 * Adds a new element to the data tree as a child of the $target element */
@@ -785,7 +785,7 @@ class XMLdata {
 		} else $this->data[$element] = $working[$element];
 		return $this->data[$element];
 	}
-	
+
 	/**
 	 * getRootElement()
 	 * Returns the root element of the tree */
@@ -793,7 +793,7 @@ class XMLdata {
 		reset($this->data);
 		return current($this->data);
 	}
-	
+
 	/**
 	 * getElementContent()
 	 * Searches the tree for the target $element and returns
@@ -823,7 +823,7 @@ class XMLdata {
 		if (!empty($found)) return $found[0]['ATTRS'][$attr];
 		else return false;
 	}
-	
+
 	/**
 	 * getElement()
 	 * Searches the tree for the target $element and returns
@@ -843,7 +843,7 @@ class XMLdata {
 		if (!empty($found)) return new XMLdata($found[0]);
 		else return false;
 	}
-	
+
 	/**
 	 * getElements()
 	 * Searches the tree for the target $element and returns
@@ -853,7 +853,7 @@ class XMLdata {
 	function getElements($element) {
 		return $this->search($element);
 	}
-	
+
 	/**
 	 * search()
 	 * Helper function to perform recursive searches in the tree
