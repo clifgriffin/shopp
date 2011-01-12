@@ -27,7 +27,7 @@ if (!Array.indexOf) {
 		for (var i = 0; i < this.length; i++)
 			if (this[i] == obj) return i;
 		return -1;
-	}
+	};
 }
 
 /**
@@ -40,11 +40,11 @@ function getCurrencyFormat (f) {
 		return {	// from base of operations
 			"cpos":sjss.cp,
 			"currency":sjss.c,
-			"precision":parseInt(sjss.p),
+			"precision":parseInt(sjss.p,10),
 			"decimals":sjss.d,
 			"thousands":sjss.t,
 			"grouping":sjss.g
-		}
+		};
 	return {		// Default currency format
 		"cpos":true,
 		"currency":"$",
@@ -52,7 +52,7 @@ function getCurrencyFormat (f) {
 		"decimals":".",
 		"thousands":",",
 		"grouping":[3]
-	}
+	};
 }
 
 /**
@@ -161,15 +161,15 @@ function CallbackRegistry () {
 
 	this.register = function (name,callback) {
 		this.callbacks[name] = callback;
-	}
+	};
 
 	this.call = function(name,arg1,arg2,arg3) {
 		this.callbacks[name](arg1,arg2,arg3);
-	}
+	};
 
 	this.get = function(name) {
 		return this.callbacks[name];
-	}
+	};
 }
 
 /**
@@ -179,7 +179,7 @@ if (!Number.prototype.roundFixed) {
 	Number.prototype.roundFixed = function(precision) {
 		var power = Math.pow(10, precision || 0);
 		return String(Math.round(this * power)/power);
-	}
+	};
 }
 
 /**
@@ -214,7 +214,7 @@ jQuery.parseJSON = function (data) {
 				return false;
 			}
 	} else return eval('(' + data + ')');
-}
+};
 
 /**
  * DOM-ready initialization

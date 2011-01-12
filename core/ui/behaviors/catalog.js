@@ -171,15 +171,14 @@ function ShoppGallery (id,evt,tw) {
 function ShoppSlideshow (element,duration,delay,fx,order) {
 	var $ = jqnc(),_ = this,effects;
 	_.element = $(element);
-	effects = {
+	var effects = {
 		'fade':[{'display':'none'},{'opacity':'show'}],
 		'slide-down':[{'display':'block','top':_.element.height()*-1},{'top':0}],
 		'slide-up':[{'display':'block','top':_.element.height()},{'top':0}],
 		'slide-left':[{'display':'block','left':_.element.width()*-1},{'left':0}],
 		'slide-right':[{'display':'block','left':_.element.width()},{'left':0}],
 		'wipe':[{'display':'block','height':0},{'height':_.element.height()}]
-	},
-	ordering = ['normal','reverse','shuffle'];
+	},ordering = ['normal','reverse','shuffle'];
 
 	_.duration = (!duration)?800:duration;
 	_.delay = (!delay)?7000:delay;
@@ -219,16 +218,16 @@ function ShoppSlideshow (element,duration,delay,fx,order) {
 
 		if (_.slides.length == 1) return;
 		setTimeout(_.startTransition,_.delay);
-	}
+	};
 
 	_.transitionTo = function (slide) {
 		_.slide = slide;
 		_.startTransition();
-	}
+	};
 
 	_.shuffleList = function () {
 		for (var i = 0; i < _.total; i++) _.shuffling.push(i);
-	}
+	};
 
 	_.startTransition();
 }
@@ -308,7 +307,7 @@ function ShoppCarousel (element,duration) {
 			}
 			_.page = page;
 		});
-	}
+	};
 
 	_.scrollLeft.click(function () {
 		return _.scrolltoPage(_.page-1);

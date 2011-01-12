@@ -112,7 +112,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 			else _.selection = new Date(selection);
 		}
 		_.change().render(_.selection.getMonth()+1,_.selection.getFullYear()).autoselect();
-	}
+	};
 
 	_.render = function (month,year) {
 		$this.empty();
@@ -170,9 +170,9 @@ jQuery.fn.PopupCalendar = function (settings) {
 		}
 
 		for (i = 0; i < dates.length; i++) {
-			thisMonth = dates[i].getMonth()+1,
-			thisYear = dates[i].getFullYear(),
-			thisDate = new Date(thisYear,thisMonth-1,dates[i].getDate());
+			var thisMonth = dates[i].getMonth()+1,
+				thisYear = dates[i].getFullYear(),
+				thisDate = new Date(thisYear,thisMonth-1,dates[i].getDate());
 
 			// Start a new week
 			if (i % 7 == 0) weeks[++w] = $('<div class="week"></div>').appendTo($this);
@@ -216,18 +216,18 @@ jQuery.fn.PopupCalendar = function (settings) {
 		}
 
 		return this;
-	}
+	};
 
 	_.autoselect = function () {
 		for (var i = 0; i < dates.length; i++)
 			if (dates[i].getTime() == _.selection.getTime())
 				return calendar[i].addClass(selected);
-	}
+	};
 
 	_.resetCalendar = function () {
 		for(var i = 0; i < calendar.length; i++)
 			calendar[i].removeClass(selected);
-	}
+	};
 
 	/**
 	 * Fill an array of 42 integers with a calendar.  Assume for a moment
@@ -264,7 +264,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 			days[dw++] = new Date(year,month,++c);
 
 		return days;
-	}
+	};
 
 	/**
 	 * Return the day of the year
@@ -274,7 +274,7 @@ jQuery.fn.PopupCalendar = function (settings) {
 	    for(i = 1; i < month; i++)
 			day += DAYS_IN_MONTH[leap][i];
 	    return day;
-	}
+	};
 
 	/**
 	 * Return the x based day number for any date from 1 Jan. 1 to
@@ -298,26 +298,26 @@ jQuery.fn.PopupCalendar = function (settings) {
 	    if (val <= sw) return val += (7 - sw);
 	    else return val -= sw;
 
-	}
+	};
 
 	_.is_leapyear = function (yr) {
 		if (yr <= 1752) return !((yr) % 4);
 		else return ((!((yr) % 4) && ((yr) % 100) > 0) || (!((yr) % 400)));
-	}
+	};
 
 	_.centuriesSince1700 = function (yr) {
 		if (yr > 1700) return (Math.floor(yr / 100) - 17);
 		else return 0;
-	}
+	};
 
 	_.quadCenturiesSince1700 = function (yr) {
 		if (yr > 1600) return Math.floor((yr - 1600) / 400);
 		else return 0;
-	}
+	};
 
 	_.leapYearsSinceBC = function (yr) {
 		return (Math.floor(yr / 4) - _.centuriesSince1700(yr) + _.quadCenturiesSince1700(yr));
-	}
+	};
 
 
 	if (input !== false) {
@@ -359,4 +359,4 @@ jQuery.fn.PopupCalendar = function (settings) {
 
 	_.render().autoselect();
 	return this;
-}
+};

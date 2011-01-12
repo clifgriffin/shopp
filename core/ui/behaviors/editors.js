@@ -45,7 +45,7 @@ function NestedMenu (i,target,dataname,defaultlabel,data,items,sortoptions) {
 			$(items.target).children().hide();
 			$(_.itemsElement).show();
 		}
-	}
+	};
 	_.element
 		.click(this.selected)
 		.hover(function () { $(this).addClass('hover'); },
@@ -146,7 +146,7 @@ function addVariationOptionsMenu (data) {
 	 	id = variationsidx,
 	 	menu = new NestedMenu(id,menus,'options[v]',OPTION_MENU_DEFAULT,data,
 			{target:entries,type:'list'},
-			{'axis':'y','update':function() { orderOptions(menus,entries) }});
+			{'axis':'y','update':function() { orderOptions(menus,entries); }});
 
 	menu.addOption = function (data) {
 		var init = false,option,optionid;
@@ -179,7 +179,7 @@ function addVariationOptionsMenu (data) {
 				selectedMenuOption = option;
 			}
 			linkOptionVariations.change();
-		}
+		};
 		option.element.click(option.selected);
 
 		productOptions[optionid] = option.label;
@@ -206,15 +206,15 @@ function addVariationOptionsMenu (data) {
 		});
 
 		menu.items.push(option);
-	}
+	};
 
 	menu.items = new Array();
-	if (data && data.options) $.each(data.options,function () { menu.addOption(this) });
+	if (data && data.options) $.each(data.options,function () { menu.addOption(this); });
 	else {
 		menu.addOption();
 		menu.addOption();
 	}
-	menu.itemsElement.sortable({'axis':'y','update':function(){ orderVariationPrices() }});
+	menu.itemsElement.sortable({'axis':'y','update':function(){ orderVariationPrices(); }});
 
 	menu.element.unbind('click',menu.click).click(function () {
 		menu.selected();
@@ -296,7 +296,7 @@ function buildVariations () {
 
 function addVariationPrices (data) {
 	if (data) return;
-	var $=jqnc(), key, preKey
+	var $=jqnc(), key, preKey,
 	 	updated = buildVariations(),
 	 	variationPricing = $('#variations-pricing'),
 	 	variationPricelines = $(variationPricing).children(),
@@ -411,7 +411,7 @@ function orderOptions (menus,options) {
 }
 
 function orderVariationPrices () {
-	var $=jqnc(), key
+	var $=jqnc(), key,
 	 	updated = buildVariations();
 
 	$(updated).each(function (id,options) {
@@ -528,7 +528,7 @@ function newAddonGroup (data) {
 	 	id = addon_group_idx,
 	 	menu = new NestedMenu(id,menus,'options[a]',ADDON_GROUP_DEFAULT,data,
 		{target:entries,type:'list'},
-		{'axis':'y','update':function() { orderAddonGroups() }}
+		{'axis':'y','update':function() { orderAddonGroups(); }}
 	);
 
 	menu.itemsElement.attr('id','addon-group-'+id);
@@ -536,7 +536,7 @@ function newAddonGroup (data) {
 	menu.pricegroupLabel = $('<label />').html('<h4>'+menu.label.val()+'</h4>').prependTo(menu.pricegroup);
 	menu.updatePriceLabel = function () {
 		menu.pricegroupLabel.html('<h4>'+menu.label.val()+'</h4>');
-	}
+	};
 	menu.label.blur(menu.updatePriceLabel);
 
 	menu.addOption = function (data) {
@@ -562,7 +562,7 @@ function newAddonGroup (data) {
 				$(option.element).addClass('selected');
 				selectedMenuOption = option;
 			}
-		}
+		};
 		option.element.click(option.selected);
 
 		productAddons[optionid] = option.label;
@@ -587,15 +587,15 @@ function newAddonGroup (data) {
 			addOptionButton.focus();
 		});
 
-	}
+	};
 
 	menu.items = new Array();
-	if (data && data.options) $.each(data.options,function () { menu.addOption(this) });
+	if (data && data.options) $.each(data.options,function () { menu.addOption(this); });
 	else {
 		menu.addOption();
 		menu.addOption();
 	}
-	menu.itemsElement.sortable({'axis':'y','update':function(){ orderAddonPrices(menu.index) }});
+	menu.itemsElement.sortable({'axis':'y','update':function(){ orderAddonPrices(menu.index); }});
 
 	menu.element.unbind('click',menu.click);
 	menu.element.click(function () {
@@ -606,9 +606,12 @@ function newAddonGroup (data) {
 	addonGroups[addon_group_idx++] = menu;
 
 	menu.deleteButton.unbind('click').click(function () {
-		$('#addon-list #addon-group-'+menu.index+' li').not('.ui-sortable-helper').find('input.id').each(function (id,option) {
-			if (Pricelines.row[$(option).val()])
-				Pricelines.row[$(option).val()].row.remove();
+		$('#addon-list #addon-group-'+menu.index+' li')
+			.not('.ui-sortable-helper')
+			.find('input.id')
+			.each(function (id,option) {
+				if (Pricelines.row[$(option).val()])
+					Pricelines.row[$(option).val()].row.remove();
 		});
 		menu.deleteButton.trigger('delete');
 		menu.pricegroup.remove();
@@ -844,8 +847,8 @@ function ImageUploads (id,type) {
 						init = srcCropped.filter('input[alt='+cropselect.val()+']').val().split(',');
 					croptool.empty().scaleCrop({
 						imgsrc:'?siid='+srcid,
-						target:{width:parseInt(d[0]),height:parseInt(d[1])},
-						init:{x:parseInt(init[0]),y:parseInt(init[1]),s:new Number(init[2])}
+						target:{width:parseInt(d[0],10),height:parseInt(d[1],10)},
+						init:{x:parseInt(init[0],10),y:parseInt(init[1],10),s:new Number(init[2])}
 					}).ready(function () {
 						$.fn.colorbox.resize();
 					}).bind('change.scalecrop',function (e,c) {
@@ -861,7 +864,7 @@ function ImageUploads (id,type) {
 				cropping.show();
 			}
 
-			$.fn.colorbox({'title':IMAGE_DETAILS_TEXT,'html':ui})
+			$.fn.colorbox({'title':IMAGE_DETAILS_TEXT,'html':ui});
 
 		});
 		enableDeleteButton($(this).find('button.deleteButton'));
@@ -894,7 +897,7 @@ function ImageUploads (id,type) {
 	}
 
 	function startImageUpload (file) {
-		this.targetHolder = $('<li class="image uploading"><input type="hidden" name="images[]" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo($('#lightbox'))
+		this.targetHolder = $('<li class="image uploading"><input type="hidden" name="images[]" /><div class="progress"><div class="bar"></div><div class="gloss"></div></div></li>').appendTo($('#lightbox'));
 		this.progressBar = this.targetHolder.find('div.bar');
 		this.sorting = this.targetHolder.find('input');
 	}
@@ -1018,7 +1021,7 @@ jQuery.fn.FileChooser = function (line,status) {
 						timeout:500,
 						dataType:'text',
 						success:function (status) {
-							var total = parseInt(importdata.size);
+							var total = parseInt(importdata.size,10),
 								width = Math.ceil((status/total)*76),
 								progressbar = file.find('div.progress > div.bar');
 							if (status < total) setTimeout(importing,1000);
@@ -1035,7 +1038,7 @@ jQuery.fn.FileChooser = function (line,status) {
 						}
 					});
 
-				}
+				};
 
 			file.attr('class','').html('<div class="progress"><div class="bar"></div><div class="gloss"></div></div><iframe width="0" height="0" src="'+fileimport_url+'&action=shopp_import_file&url='+importfile+'"></iframe>');
 			file.find('iframe').load(function () {
@@ -1062,7 +1065,7 @@ jQuery.fn.FileChooser = function (line,status) {
 	});
 
 	$(this).colorbox({'title':'File Selector','innerWidth':'360','innerHeight':'140','inline':true,'href':'#chooser'});
-}
+};
 
 
 /**
@@ -1108,7 +1111,7 @@ function FileUploader (button,defaultButton) {
 		prevent_swf_caching: $.browser.msie, // Prevents Flash caching issues in IE
 		debug: fileupload_debug
 
-	}
+	};
 
 	// Initialize file uploader
 
@@ -1167,7 +1170,7 @@ function FileUploader (button,defaultButton) {
 			_.swfu.targetLine = line;
 			_.swfu.targetCell = status;
 		}
-	}
+	};
 
 	function fileQueueError (file, error, message) {
 		if (error == SWFUpload.QUEUE_ERROR.QUEUE_LIMIT_EXCEEDED) {
@@ -1265,16 +1268,16 @@ function SlugEditor (id,type) {
 				if (key == 13 || key == 27) e.preventDefault();
 				if (13 == key) buttons.children('.save').click();
 				if (27 == key) buttons.children('.cancel').click();
-				real_slug.val(this.value)
+				real_slug.val(this.value);
 			}).focus();
 
-	}
+	};
 
 	_.enable = function () {
 		$('#edit-slug-buttons').children('.edit-slug').click(function () { _.edit_permalink(); });
 		$('#edit-slug-buttons').children('.view').click(function () { document.location.href=canonurl+$('#editable-slug-full').html(); });
 		$('#editable-slug').click(function() { $('#edit-slug-buttons').children('.edit-slug').click(); });
-	}
+	};
 
 	_.enable();
 }
