@@ -300,7 +300,8 @@ class Product extends DatabaseObject {
 				$this->inventory = $price->stocked = true;
 			}
 
-			if ($price->freeshipping == 0) $freeshipping = false;
+			if ($price->freeshipping == '0' || $price->shipping == 'on')
+				$freeshipping = false;
 
 			if ($price->onsale) $price->promoprice = (float)$price->saleprice;
 			else $price->promoprice = (float)$price->price;
@@ -1029,8 +1030,7 @@ class Product extends DatabaseObject {
 					}
 					$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';
 					$alt = esc_attr(!empty($img->alt)?$img->alt:$img->filename);
-					$rel = (isset($options['rel']) && $options['rel'])?' rel="gallery_product_'.$this->id.'"':'';
-
+					$rel = (isset($options['rel']) && !empty($options['rel']))?$options['rel']:'';
 
 					$previews .= '<li id="preview-'.$img->id.'"'.(($firstPreview)?' class="active"':'').'>';
 					$previews .= '<a href="'.shoppurl($img->id,'images').'" class="gallery product_'.$this->id.' '.$options['zoomfx'].'"'.$rel.'>';

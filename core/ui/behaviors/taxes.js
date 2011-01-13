@@ -124,7 +124,7 @@ function TaxRate (data) {
 	}
 
 	function LocalRates (d) {
-		var label,counter,ui,instructions,ratelist,uploadButton,pos
+		var label,counter,ui,instructions,ratelist,uploadButton,pos,
 			src = '<div class="local-rates"><div class="label"><label>'+LOCAL_RATES+' <span class="counter"></span><input type="hidden" name="settings[taxrates]['+id+'][locals]" value="" /></label><button type="button" name="toggle" class="toggle">&nbsp;</button></div><div class="ui"><p>'+LOCAL_RATE_INSTRUCTIONS+'</p><ul></ul><button type="button" name="upload" class="button-secondary">Upload</button></div>',
 			panel = origin.find('div.local-rates');
 
@@ -206,14 +206,14 @@ function TaxRate (data) {
 
 			$.each(list, function(index,element) {
 				var label = index,value = element;
-				if (list instanceof Array) label = element, value = 0;
+				if (list instanceof Array) { label = element; value = 0; }
 				ratesrc += '<li><label><input type="text" name="settings[taxrates]['+id+'][locals]['+label+']" size="6" value="'+value+'" /> '+label+'</label></li>';
 				count++;
 			});
 
 			ratelist.html(ratesrc).find('input').focus(function() { this.select(); }).change(function () {
 				this.value = asPercent(this.value,false,3,true);
-				$(this).attr('title', asPercent( asNumber(this.value)+asNumber(rate.val()),false,3,true ) )
+				$(this).attr('title', asPercent( asNumber(this.value)+asNumber(rate.val()),false,3,true ) );
 			}).change();
 
 			counter.html('('+count+')');

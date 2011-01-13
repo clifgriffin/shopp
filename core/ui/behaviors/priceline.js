@@ -22,7 +22,7 @@ function Pricelines () {
 			_.row[key] = p;
 
 			if (attachment) {
-				targetkey = parseInt(target.optionkey.val());
+				targetkey = parseInt(target.optionkey.val(),10);
 				index = $.inArray(targetkey,_.variations);
 				if (index != -1) {
 					if (attachment == "before") _.variations.splice(index,0,xorkey(p.options));
@@ -40,12 +40,12 @@ function Pricelines () {
 		}
 
 		$('#prices').val(_.idx++);
-	}
+	};
 
 	_.exists = function (key) {
 		if (_.row[key]) return true;
 		return false;
-	}
+	};
 
 	_.remove = function (row) {
 		var index = $.inArray(row,_.variations);
@@ -53,7 +53,7 @@ function Pricelines () {
 
 		_.row[row].row.remove(); // Remove UI
 		delete _.row[row];		// Remove data
-	}
+	};
 
 	_.reorderVariation = function (key,options) {
 		var variation = _.row[key],
@@ -65,12 +65,12 @@ function Pricelines () {
 		if (index == -1) return;
 		_.variations.splice(index,1);
 		_.variations.push(xorkey(variation.options));
-	}
+	};
 
 	_.reorderAddon = function (id,pricegroup) {
 		var addon = _.row[id];
 		addon.row.appendTo(pricegroup);
-	}
+	};
 
 	_.updateVariationsUI = function (type) {
 		var i,key,row,option;
@@ -90,7 +90,7 @@ function Pricelines () {
 				}
 			}
 		}
-	}
+	};
 
 	_.linkVariations = function (option) {
 		if (!option) return;
@@ -101,7 +101,7 @@ function Pricelines () {
 				_.row[key].linkInputs(option);
 			}
 		}
-	}
+	};
 
 	_.unlinkVariations = function (option) {
 		if (!option) return;
@@ -111,14 +111,14 @@ function Pricelines () {
 				_.row[_.linked[option][row]].unlinkInputs(option);
 		}
 		_.linked.splice(option,1);
-	}
+	};
 
 	_.unlinkAll = function () {
 		for (var key in _.row) {
 			_.row[key].unlinkInputs();
 		}
 		_.linked.splice(0,1);
-	}
+	};
 
 	_.updateVariationLinks = function () {
 		if (!_.linked) return;
@@ -130,12 +130,12 @@ function Pricelines () {
 			_.linked[option] = false;
 			_.linkVariations(option);
 		}
-	}
+	};
 
 	_.allLinked = function () {
 		if (_.linked[0]) return true;
 		return false;
-	}
+	};
 
 	_.linkAll = function () {
 		_.unlinkAll();
@@ -146,7 +146,7 @@ function Pricelines () {
 			_.linked[0].push(key);
 			_.row[key].linkInputs(0);
 		}
-	}
+	};
 
 }
 
@@ -225,7 +225,7 @@ function Priceline (id,options,data,target,attachment) {
 
 		_.p = $('#price-'+i).val(asMoney(new Number(price)));
 		_.t = $('#tax-'+i).attr('checked',tax == "off"?true:false);
-	}
+	};
 
 	_.saleprice = function (toggle,saleprice) {
 		var hd,ui,dis;
@@ -243,7 +243,7 @@ function Priceline (id,options,data,target,attachment) {
 		_.sp.val(asMoney(new Number(saleprice)));
 
 		_.spt = $('#sale-'+i).attr('checked',(toggle == "on"?true:false)).toggler(dis,ui,_.sp);
-	}
+	};
 
 	_.donation = function (price,tax,variable,minimum) {
 		var hd,ui,hd2,ui2;
@@ -265,7 +265,7 @@ function Priceline (id,options,data,target,attachment) {
 
 		_.dv = $('#donation-var-'+i).attr('checked',variable == "on"?true:false);
 		_.dm = $('#donation-min-'+i).attr('checked',minimum == "on"?true:false);
-	}
+	};
 
 	_.shipping = function (toggle,weight,fee,dimensions) {
 		var hd,ui,dis,inf,dc,dw,dl,dwd,dh,dv,nf = getCurrencyFormat();
@@ -297,7 +297,7 @@ function Priceline (id,options,data,target,attachment) {
 				var value = this.value;
 				if (init) value = new Number(value);
 				this.value = formatNumber(value,nf,true);
-			}
+			};
 
 			$('#weight-label-'+i).html(' '+dimensionUnit+'<sup>3</sup>/'+weightUnit);
 			dc = $('<div class="dimensions">'+
@@ -365,7 +365,7 @@ function Priceline (id,options,data,target,attachment) {
 
 		}
 
-	}
+	};
 
 	_.inventory = function (toggle,stock,sku) {
 		var hd,ui,dis;
@@ -389,7 +389,7 @@ function Priceline (id,options,data,target,attachment) {
 		_.sku.val(sku);
 
 		_.it = hd.find('#inventory-'+i).attr('checked',(toggle == "on"?true:false)).toggler(dis,ui,_.stock);
-	}
+	};
 
 	_.download = function (fileid,filename,filedata) {
 		var hd,ui,hd2;
@@ -407,7 +407,7 @@ function Priceline (id,options,data,target,attachment) {
 				window.location.href = adminurl+"admin.php?src=download&shopp_download="+fileid;
 			});
 		}
-	}
+	};
 
 	$.fn.toggler = function (s,ui,f) {
 		this.bind('change.value',function () {
@@ -419,30 +419,30 @@ function Priceline (id,options,data,target,attachment) {
 			if (this.checked) f.focus().select();
 		}).trigger('change.value');
 		return $(this);
-	}
+	};
 
 	_.Shipped = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
 		_.shipping(data.shipping,data.weight,data.shipfee,data.dimensions);
 		if (!tmp) _.inventory(data.inventory,data.stock,data.sku);
-	}
+	};
 
 	_.Virtual = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
 		if (!tmp) _.inventory(data.inventory,data.stock,data.sku);
-	}
+	};
 
 	_.Download = function (data) {
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
 		if (!tmp) _.download(data.download,data.filename,data.filedata);
-	}
+	};
 
 	_.Donation = function (data) {
 		_.donation(data.price,data.tax,data.donation['var'],data.donation['min']);
-	}
+	};
 
 	// Alter the interface depending on the type of price line
 	type.bind('change.value',function () {
@@ -464,8 +464,8 @@ function Priceline (id,options,data,target,attachment) {
 
 
 	// Setup behaviors
-	_.disable = function () { _.lasttype = (type.val())?type.val():false; type.val('N/A').trigger('change.value'); }
-	_.enable = function () { if (_.lasttype) type.val(_.lasttype).trigger('change.value'); }
+	_.disable = function () { _.lasttype = (type.val())?type.val():false; type.val('N/A').trigger('change.value'); };
+	_.enable = function () { if (_.lasttype) type.val(_.lasttype).trigger('change.value'); };
 
 	// Set the context for the db
 	if (data && data.context) context.val(data.context);
@@ -480,11 +480,11 @@ function Priceline (id,options,data,target,attachment) {
 		if (context.val() == "variation")
 			optionkey.val(xorkey(_.options));
 		if (update) _.updateLabel();
-	}
+	};
 
 	_.updateKey = function () {
 		optionkey.val(xorkey(_.options));
-	}
+	};
 
 	_.updateLabel = function () {
 		var type = context.val(),
@@ -507,14 +507,14 @@ function Priceline (id,options,data,target,attachment) {
 		if (string == "") string = DEFAULT_PRICELINE_LABEL;
 		_.label.val(htmlentities(string)).change();
 		optionids.val(ids);
-	}
+	};
 
 	_.updateTabIndex = function (row) {
 		row = new Number(row);
 		$.each(_.inputs,function(i,input) {
 			$(input).attr('tabindex',((row+1)*100)+i);
 		});
-	}
+	};
 
 	_.linkInputs = function (option) {
 		_.links.push(option);
@@ -538,7 +538,7 @@ function Priceline (id,options,data,target,attachment) {
 				});
 			});
 		});
-	}
+	};
 
 	_.unlinkInputs = function (option) {
 		if (option !== false) {
@@ -551,7 +551,7 @@ function Priceline (id,options,data,target,attachment) {
 			if ($(input).attr('type') == "checkbox") type = "click.linkedinputs";
 			$(input).unbind(type);
 		});
-	}
+	};
 
 	if (type.val() != "N/A")
 		_.inputs = new Array(

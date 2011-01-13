@@ -22,7 +22,7 @@
  * @subpackage gateways
  **/
 interface GatewayModule {
-	
+
 	/**
 	 * Used for setting up event listeners
 	 *
@@ -32,7 +32,7 @@ interface GatewayModule {
 	 * @return void
 	 **/
 	public function actions();
-	
+
 	/**
 	 * Used for rendering the gateway settings UI
 	 *
@@ -42,7 +42,7 @@ interface GatewayModule {
 	 * @return void
 	 **/
 	public function settings();
-	
+
 }
 
 /**
@@ -67,7 +67,7 @@ abstract class GatewayFramework {
 	var $baseop = false; 		// Base of operation setting
 	var $precision = 2;			// Currency precision
 	var $settings = array();	// List of settings for the module
-	
+
 	/**
 	 * Setup the module for runtime
 	 *
@@ -86,10 +86,10 @@ abstract class GatewayFramework {
 		$this->settings = $Shopp->Settings->get($this->module);
 		if (!isset($this->settings['label']) && $this->cards)
 			$this->settings['label'] = __("Credit Card","Shopp");
-			
+
 		$this->baseop = $Shopp->Settings->get('base_operations');
 		$this->precision = $this->baseop['currency']['format']['precision'];
-			
+
 		$this->_loadcards();
 		if ($this->myorder()) $this->actions();
 	}
@@ -109,7 +109,7 @@ abstract class GatewayFramework {
 		$this->ui = new ModuleSettingsUI('payment',$module,$name,$this->settings['label'],$this->multi);
 		$this->settings();
 	}
-	
+
 	/**
 	 * Initialize a list of gateway module settings
 	 *
@@ -126,7 +126,7 @@ abstract class GatewayFramework {
 			if (!isset($this->settings[$name]))
 				$this->settings[$name] = false;
 	}
-	
+
 	/**
 	 * Determine if the current order should be processed by this module
 	 *
@@ -138,7 +138,7 @@ abstract class GatewayFramework {
 	function myorder () {
 		return ($this->Order->processor() == $this->module);
 	}
-	
+
 	/**
 	 * Generate a unique transaction ID using a timestamp
 	 *
@@ -150,7 +150,7 @@ abstract class GatewayFramework {
 	function txnid () {
 		return mktime();
 	}
-	
+
 	/**
 	 * Generic connection manager for sending data
 	 *
@@ -179,34 +179,31 @@ abstract class GatewayFramework {
 
 		if (!(ini_get("safe_mode") || ini_get("open_basedir")))
 			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1);
-		
+
 		if (defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT) {
 	        curl_setopt($connection, CURLOPT_HTTPPROXYTUNNEL, 1);
 	        curl_setopt($connection, CURLOPT_PROXY, SHOPP_PROXY_SERVER);
 			if (defined('SHOPP_PROXY_USERPWD'))
 			    curl_setopt($connection, CURLOPT_PROXYUSERPWD, SHOPP_PROXY_USERPWD);
 	    }
-	    
+
 		// Added to handle SSL timeout issues
 		// Maybe if a timeout occurs the connection should be
 		// re-attempted with this option for better overall performance
 		curl_setopt($connection, CURLOPT_FRESH_CONNECT, 1);
-		
 
-
-		foreach ($curlopts as $key => $value) {
+		foreach ($curlopts as $key => $value)
 			curl_setopt($connection, $key, $value);
-		}
-		
+
 		$buffer = curl_exec($connection);
 		if ($error = curl_error($connection))
 			new ShoppError($this->name.": ".$error,'gateway_comm_err',SHOPP_COMM_ERR);
 		curl_close($connection);
-		
+
 		return $buffer;
-		
+
 	}
-	
+
 	/**
 	 * Helper to encode a data structure into a URL-compatible format
 	 *
@@ -232,7 +229,7 @@ abstract class GatewayFramework {
 		}
 		return $query;
 	}
-	
+
 	/**
 	 * Formats a data structure into POST-able form elements
 	 *
@@ -275,7 +272,7 @@ abstract class GatewayFramework {
 		}
 		return $cards;
 	}
-	
+
 	/**
 	 * Loads the enabled payment cards
 	 *
@@ -296,7 +293,7 @@ abstract class GatewayFramework {
 			$this->cards = $cards;
 		}
 	}
-	
+
 } // END class GatewayFramework
 
 
@@ -311,10 +308,10 @@ abstract class GatewayFramework {
  * @subpackage gateways
  **/
 class GatewayModules extends ModuleLoader {
-	
+
 	var $selected = false;		// The chosen gateway to process the order
 	var $secure = false;		// SSL-required flag
-	
+
 	/**
 	 * Initializes the shipping module loader
 	 *
@@ -326,16 +323,16 @@ class GatewayModules extends ModuleLoader {
 	function __construct () {
 
 		$this->path = SHOPP_GATEWAYS;
-		
+
 		// Get hooks in place before getting things started
 		add_action('shopp_module_loaded',array(&$this,'properties'));
-		
+
 		$this->installed();
 		$this->activated();
 
 		add_action('shopp_init',array(&$this,'load'));
 	}
-	
+
 	/**
 	 * Determines the activated gateway modules
 	 *
@@ -354,7 +351,7 @@ class GatewayModules extends ModuleLoader {
 
 		return $this->activated;
 	}
-	
+
 	/**
 	 * Sets Gateway system settings flags based on activated modules
 	 *
@@ -369,7 +366,7 @@ class GatewayModules extends ModuleLoader {
 		$this->active[$module]->name = $this->modules[$module]->name;
 		if ($this->active[$module]->secure) $this->secure = true;
 	}
-	
+
 	/**
 	 * Loads all the installed gateway modules for the payments settings
 	 *
@@ -381,7 +378,7 @@ class GatewayModules extends ModuleLoader {
 	function settings () {
 		$this->load(true);
 	}
-	
+
 	/**
 	 * Initializes the settings UI for each loaded module
 	 *
@@ -394,7 +391,7 @@ class GatewayModules extends ModuleLoader {
 		foreach ($this->active as $package => &$module)
 			$module->setupui($package,$this->modules[$package]->name);
 	}
-	
+
 } // END class GatewayModules
 
 /**
@@ -409,7 +406,7 @@ class GatewayModules extends ModuleLoader {
  * @subpackage gateways
  **/
 class PayCard {
-	
+
 	var $name;
 	var $symbol;
 	var $pattern = false;
@@ -423,17 +420,17 @@ class PayCard {
 		$this->csc = $csc;
 		$this->inputs = $inputs;
 	}
-	
+
 	function validate ($pan) {
 		$n = preg_replace('/\D/','',$pan);
 		return ($this->match($n) && $this->checksum($n));
 	}
-	
+
 	function match ($number) {
 		if ($this->pattern && !preg_match($this->pattern,$number)) return false;
 		return true;
 	}
-	
+
 	function checksum ($number) {
 		$code = strrev($number);
 		for ($i = 0; $i < strlen($code); $i++) {
@@ -444,7 +441,7 @@ class PayCard {
 		}
 		return ($cs % 10 == 0);
 	}
-	
+
 }
 
 

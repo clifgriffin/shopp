@@ -791,13 +791,22 @@ class Order {
 		// Check for shipped items but no Shipping information
 		$valid_shipping = true;
 		if (!empty($this->Cart->shipped)) {
-			if (empty($Shipping->address)) $valid_shipping = apply_filters('shopp_ordering_empty_shipping_address',false);
-			if (empty($Shipping->country)) $valid_shipping = apply_filters('shopp_ordering_empty_shipping_country',false);
-			if (empty($Shipping->postcode)) $valid_shipping = apply_filters('shopp_ordering_empty_shipping_postcode',false);
+			if (empty($Shipping->address))
+				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_address',false);
+			if (empty($Shipping->country))
+				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_country',false);
+			if (empty($Shipping->postcode))
+				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_postcode',false);
+
+			if ($Cart->freeshipping === false && $Cart->Totals->shipping === false) {
+				$valid = apply_filters('shopp_ordering_no_shipping_costs',false);
+				new ShoppError(__('The shipping address provided is invalid and could not be used to determine accurate shipping costs. Please return to checkout to correct the shipping address.','Shopp'),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
+			}
+
 		}
 		if (!$valid_shipping) {
 			$valid = false;
-			new ShoppError(__('The shipping address information is incomplete.  The order can not be processed','Shopp'),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
+			new ShoppError(__('The shipping address information is incomplete. The order cannot be processed.','Shopp'),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
 		}
 
 		return $valid;

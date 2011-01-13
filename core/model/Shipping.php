@@ -25,13 +25,13 @@
 class Shipping extends DatabaseObject {
 	static $table = "shipping";
 	var $method = false;
-	
+
 	function __construct ($id=false,$key=false) {
 		$this->init(self::$table);
 		if ($id && $this->load($id,$key)) return true;
 		else return false;
 	}
-	
+
 	/**
 	 * Registry of supported export fields
 	 *
@@ -51,7 +51,7 @@ class Shipping extends DatabaseObject {
 			$prefix.'postcode' => __('Shipping Postal Code','Shopp'),
 			);
 	}
-	
+
 	/**
 	 * Determines the domestic area name from a U.S. ZIP code or
 	 * Canadian postal code.
@@ -65,16 +65,16 @@ class Shipping extends DatabaseObject {
 		global $Shopp;
 		$code = $this->postcode;
 		$areas = Lookup::country_areas();
-		
+
 		// Skip if there are no areas for this country
 		if (!isset($areas[$this->country])) return false;
 
 		// If no postcode is provided, return the first regional column
 		if (empty($this->postcode)) return key($areas[$this->country]);
-		
+
 		// Lookup US area name
 		if (preg_match("/\d{5}(\-\d{4})?/",$code)) {
-			
+
 			foreach ($areas['US'] as $name => $states) {
 				foreach ($states as $id => $coderange) {
 					for($i = 0; $i<count($coderange); $i+=2) {
@@ -86,10 +86,10 @@ class Shipping extends DatabaseObject {
 				}
 			}
 		}
-		
+
 		// Lookup Canadian area name
 		if (preg_match("/\w\d\w\s*\d\w\d/",$code)) {
-			
+
 			foreach ($areas['CA'] as $name => $provinces) {
 				foreach ($provinces as $id => $fsas) {
 					if (in_array(substr($code,0,1),$fsas)) {
@@ -99,12 +99,12 @@ class Shipping extends DatabaseObject {
 				}
 			}
 			return $name;
-			
+
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Sets the shipping address location for calculating
 	 * shipping estimates.
@@ -116,17 +116,17 @@ class Shipping extends DatabaseObject {
 	 **/
 	function destination ($data=false) {
 		global $Shopp;
-		
+
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = Lookup::countries();
 		$regions = Lookup::regions();
-		
+
 		if ($data) $this->updates($data);
 
 		// Update state if postcode changes for tax updates
 		if (isset($this->postcode))
 			$this->postarea();
-		
+
 		if (empty($this->country))
 			$this->country = $base['country'];
 
@@ -135,7 +135,7 @@ class Shipping extends DatabaseObject {
 			$this->region = $regions[$countries[$this->country]['region']];
 
 	}
-	
+
 
 } // END class Shipping
 
@@ -167,7 +167,7 @@ class ShippingModules extends ModuleLoader {
 	function __construct () {
 
 		$this->path = SHOPP_SHIPPING;
-		
+
 		// Get hooks in place before getting things started
 		add_action('shopp_module_loaded',array(&$this,'addmethods'));
 		add_action('shopp_settings_shipping_ui',array(&$this,'ui'));
@@ -176,7 +176,7 @@ class ShippingModules extends ModuleLoader {
 		$this->activated();
 		$this->load();
 	}
-	
+
 	/**
 	 * Determines the activated shipping modules from the configured rates
 	 *
@@ -200,7 +200,7 @@ class ShippingModules extends ModuleLoader {
 		}
 		return $this->activated;
 	}
-	
+
 	/**
 	 * Loads all the installed shipping modules for the shipping settings
 	 *
@@ -212,7 +212,7 @@ class ShippingModules extends ModuleLoader {
 	function settings () {
 		$this->load(true);
 	}
-	
+
 	/**
 	 * Adds active shipping methods to the ShippingModules method registry
 	 *
@@ -226,7 +226,7 @@ class ShippingModules extends ModuleLoader {
 		if (!isset($this->active[$module])) return;
 		$m = $this->active[$module]->methods();
 		if (empty($m) || !is_array($m)) return;
-		
+
 		if ($this->active[$module]->postcode) $this->postcodes = true;
 		if ($this->active[$module]->dimensions) $this->dimensions = true;
 
@@ -238,7 +238,7 @@ class ShippingModules extends ModuleLoader {
 		}
 		$this->methods = array_merge($this->methods,$methods);
 	}
-	
+
 	/**
 	 * Returns all of the active shipping methods
 	 *
@@ -250,7 +250,7 @@ class ShippingModules extends ModuleLoader {
 	function methods () {
 		return $this->methods;
 	}
-	
+
 	/**
 	 * Renders the settings interface for all activated shipping modules
 	 *
@@ -263,7 +263,7 @@ class ShippingModules extends ModuleLoader {
 		foreach ($this->active as $module)
 			$module->ui();
 	}
-	
+
 } // END class ShippingModules
 
 /**
@@ -278,7 +278,7 @@ class ShippingModules extends ModuleLoader {
  * @subpackage shipping
  **/
 interface ShippingModule {
-	
+
 	/**
 	 * Registers the functions the shipping module will implement
 	 *
@@ -287,7 +287,7 @@ interface ShippingModule {
 	 * @return void
 	 **/
 	public function methods ();
-	
+
 	/**
 	 * Embeded JavaScript to render the shipping module settings interface
 	 *
@@ -296,7 +296,7 @@ interface ShippingModule {
 	 * @return void
 	 **/
 	public function ui ();
-	
+
 	/**
 	 * Determines if the shipping module has been activated
 	 *
@@ -307,7 +307,7 @@ interface ShippingModule {
 	 * @return boolean
 	 **/
 	public function activated();
-	
+
 	/**
 	 * Used to initialize/reset shipping module calculation properties
 	 *
@@ -319,7 +319,7 @@ interface ShippingModule {
 	 * @return void
 	 **/
 	public function init ();
-	
+
 	/**
 	 * Used to calculate Item-specific shipping costs
 	 *
@@ -333,7 +333,7 @@ interface ShippingModule {
 	 * @return void
 	 **/
 	public function calcitem($id,$Item);
-	
+
 	/**
 	 * Used to calculate aggregate shipping amounts
 	 *
@@ -361,7 +361,7 @@ interface ShippingModule {
  * @subpackage shipping
  **/
 abstract class ShippingFramework {
-	
+
 	var $module = false;		// The module class name
 	var $base = false;			// Base of operations settings
 	var $postcode = false;		// Flag to enable the postcode field in the cart
@@ -369,7 +369,7 @@ abstract class ShippingFramework {
 	var $dimensions = false;	// Uses dimensions in calculating estimates
 	var $xml = false;			// Flag to load and enable XML parsing
 	var $singular = false;		// Shipping module can only be loaded once
-	
+
 	/**
 	 * Initializes a shipping module
 	 *
@@ -394,12 +394,12 @@ abstract class ShippingFramework {
 		$rates = $Shopp->Settings->get('shipping_rates');
 		$this->rates = array_filter($rates,array(&$this,'myrates'));
 		if ($this->singular && is_array($this->rates) && !empty($this->rates))  $this->rate = reset($this->rates);
-		
+
 		add_action('shopp_calculate_shipping_init',array(&$this,'init'));
 		add_action('shopp_calculate_shipping',array(&$this,'calculate'),10,2);
 		add_action('shopp_calculate_item_shipping',array(&$this,'calcitem'),10,2);
 	}
-	
+
 	/**
 	 * Helper to identify the rates the module handles calculations for
 	 *
@@ -413,7 +413,7 @@ abstract class ShippingFramework {
 		$method = explode("::",$rate['method']);
 		return ($method[0] == $this->module);
 	}
-	
+
 	/**
 	 * Determines if the current module is configured to be activated or not
 	 *
@@ -427,7 +427,7 @@ abstract class ShippingFramework {
 		$activated = $Shopp->Shipping->activated();
 		return (in_array($this->module,$activated));
 	}
-	
+
 	/**
 	 * Initialize a list of shipping module settings
 	 *
@@ -444,7 +444,7 @@ abstract class ShippingFramework {
 			if (!isset($this->settings[$name]))
 				$this->settings[$name] = false;
 	}
-	
+
 	/**
 	 * Generic connection manager for sending data
 	 *
@@ -463,36 +463,36 @@ abstract class ShippingFramework {
 		curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0);
 		curl_setopt($connection, CURLOPT_NOPROGRESS, 1);
 		curl_setopt($connection, CURLOPT_VERBOSE, 1);
-		curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1);
-		if ($data !== false) {
-			curl_setopt($connection, CURLOPT_POST, 1);
-			curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
-		}
 		curl_setopt($connection, CURLOPT_TIMEOUT, SHOPP_SHIPPING_TIMEOUT);
 		curl_setopt($connection, CURLOPT_USERAGENT, SHOPP_GATEWAY_USERAGENT);
 		curl_setopt($connection, CURLOPT_REFERER, "http://".$_SERVER['SERVER_NAME']);
 		curl_setopt($connection, CURLOPT_FAILONERROR, 1);
 		curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
 
+		if ($data !== false) {
+			curl_setopt($connection, CURLOPT_POST, 1);
+			curl_setopt($connection, CURLOPT_POSTFIELDS, $data);
+		}
+
 		if (!(ini_get("safe_mode") || ini_get("open_basedir")))
 			curl_setopt($connection, CURLOPT_FOLLOWLOCATION,1);
-		
+
 		if (defined('SHOPP_PROXY_CONNECT') && SHOPP_PROXY_CONNECT) {
 	        curl_setopt($connection, CURLOPT_HTTPPROXYTUNNEL, 1);
 	        curl_setopt($connection, CURLOPT_PROXY, SHOPP_PROXY_SERVER);
 			if (defined('SHOPP_PROXY_USERPWD'))
 			    curl_setopt($connection, CURLOPT_PROXYUSERPWD, SHOPP_PROXY_USERPWD);
 	    }
-		
+
 		$buffer = curl_exec($connection);
 		if ($error = curl_error($connection))
 			new ShoppError($this->name.": ".$error,'shipping_comm_err',SHOPP_COMM_ERR);
 		curl_close($connection);
-		
+
 		return $buffer;
-		
+
 	}
-	
+
 	/**
 	 * Helper to encode a data structure into a URL-compatible format
 	 *
@@ -517,7 +517,7 @@ abstract class ShippingFramework {
 		}
 		return $query;
 	}
-	
+
 	/**
 	 * Identify the applicable column rate from the Order shipping information
 	 *
@@ -529,7 +529,7 @@ abstract class ShippingFramework {
 	 **/
 	function ratecolumn ($rate) {
 		$Order = &ShoppOrder();
-		
+
 		$Shipping = &$Order->Shipping;
 
 		if ($Shipping->country == $this->base['country']) {
@@ -544,7 +544,7 @@ abstract class ShippingFramework {
 
 		return $column;
 	}
-	
+
 } // END class ShippingFramework
 
 

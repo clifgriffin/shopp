@@ -11,7 +11,7 @@ function save_meta_box ($Promotion) {
 	<div class="misc-pub-section misc-pub-section-last">
 
 	<div id="start-position" class="calendar-wrap"><?php
-		$dateorder = date_format_order();
+		$dateorder = date_format_order(true);
 		foreach ($dateorder as $type => $format):
 	 		if ("month" == $type): ?><input type="text" name="starts[month]" id="starts-month" title="<?php _e('Month','Shopp'); ?>" size="3" maxlength="2" value="<?php echo ($Promotion->starts>1)?date("n",$Promotion->starts):''; ?>" class="selectall" /><?php elseif ("day" == $type): ?><input type="text" name="starts[date]" id="starts-date" title="<?php _e('Day','Shopp'); ?>" size="3" maxlength="2" value="<?php echo ($Promotion->starts>1)?date("j",$Promotion->starts):''; ?>" class="selectall" /><?php elseif ("year" == $type): ?><input type="text" name="starts[year]" id="starts-year" title="<?php _e('Year','Shopp'); ?>" size="5" maxlength="4" value="<?php echo ($Promotion->starts>1)?date("Y",$Promotion->starts):''; ?>" class="selectall" /><?php elseif ($type[0] == "s"): echo "/"; endif; endforeach; ?></div>
 	<p><?php _e('Start promotion on this date.','Shopp'); ?></p>
