@@ -247,7 +247,9 @@ class Purchase extends DatabaseObject {
 				if (!isset($options['label'])) $options['label'] = __('Download','Shopp');
 				$classes = "";
 				if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
-				$request = SHOPP_PRETTYURLS?"download/$item->dkey":array('shopp_download'=>$item->dkey);
+				$request = SHOPP_PRETTYURLS?
+					"download/$item->dkey":
+					array('src'=>'download','shopp_download'=>$item->dkey);
 				$url = shoppurl($request,'catalog');
 				return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>'; break;
 			case "item-quantity":
