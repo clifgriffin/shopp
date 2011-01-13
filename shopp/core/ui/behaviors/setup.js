@@ -103,7 +103,7 @@ jQuery(document).ready(function () {
 				addLabel(null,null,'#'+li.attr('id'));
 			}),
 			wrap = li.find('span').hover(function() {
-				if (i > 0) deleteButton.show()
+				if (i > 0) deleteButton.show();
 			}, function () {
 				deleteButton.hide();
 			});

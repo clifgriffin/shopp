@@ -83,7 +83,7 @@ jQuery(document).ready(function() {
 	editslug = new SlugEditor(product,'product');
 
 	// Load up existing specs & setup the add new button
-	if (specs) $.each(specs,function () { addDetail(this) });
+	if (specs) $.each(specs,function () { addDetail(this); });
 	$('#addDetail').click(function() { addDetail(); });
 
 	// Initialize file uploads before the pricelines
@@ -273,7 +273,7 @@ function categories () {
 	// Add to selection menu
 	function addCategoryMenuItem (c) {
 		var $=jqnc(),
-			ulparent,liparent,label,li
+			ulparent,liparent,label,li,
 		 	parent = false,
 			insertionPoint = false,
 		 	name = $('#new-category input').val(),

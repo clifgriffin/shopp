@@ -145,4 +145,4 @@ jQuery.fn.scaleCrop = function (settings) {
 			$this.trigger('ready.scalecrop',[cropping]);
 		});
 	return $this;
-}
+};

@@ -18,7 +18,7 @@ class Purchase extends DatabaseObject {
 	var $downloads = false;
 
 	function Purchase ($id=false,$key=false) {
-		
+
 		$this->init(self::$table);
 		if (!$id) return true;
 		if ($this->load($id,$key)) return true;
@@ -40,22 +40,22 @@ class Purchase extends DatabaseObject {
 				if (!$purchase->addons) $purchase->addons = new ObjectMeta();
 			}
 		}
-		
+
 		return true;
 	}
-	
+
 	function notification ($addressee,$address,$subject,$template="order.php",$receipt="receipt.php") {
 		global $Shopp;
 		global $is_IIS;
-		
+
 		if ($template == "order.php" && file_exists(SHOPP_TEMPLATES."/order.html")) $template = SHOPP_TEMPLATES."/order.html";
 		else $template = trailingslashit(SHOPP_TEMPLATES).$template;
 		if (!file_exists($template))
 			return new ShoppError(__('A purchase notification could not be sent because the template for it does not exist.','purchase_notification_template',SHOPP_ADMIN_ERR));
-		
+
 		// Send the e-mail receipt
 		$email = array();
-		$email['from'] = '"'.get_bloginfo("name").'"';
+		$email['from'] = '"'.wp_specialchars_decode( get_bloginfo( 'name' ), ENT_QUOTES ).'"';
 		if ($Shopp->Settings->get('merchant_email'))
 			$email['from'] .= ' <'.$Shopp->Settings->get('merchant_email').'>';
 		if($is_IIS) $email['to'] = $address;
@@ -65,18 +65,18 @@ class Purchase extends DatabaseObject {
 		$email['url'] = get_bloginfo('siteurl');
 		$email['sitename'] = get_bloginfo('name');
 		$email['orderid'] = $this->id;
-		
+
 		$email = apply_filters('shopp_email_receipt_data',$email);
-		
+
 		if (shopp_email($template,$email)) {
 			if (SHOPP_DEBUG) new ShoppError('A purchase notification was sent to: '.$email['to'],false,SHOPP_DEBUG_ERR);
 			return true;
 		}
-		
+
 		if (SHOPP_DEBUG) new ShoppError('A purchase notification FAILED to be sent to: '.$email['to'],false,SHOPP_DEBUG_ERR);
 		return false;
 	}
-	
+
 	function copydata ($Object,$prefix="") {
 		$ignores = array("_datatypes","_table","_key","_lists","id","created","modified");
 		foreach(get_object_vars($Object) as $property => $value) {
@@ -86,7 +86,7 @@ class Purchase extends DatabaseObject {
 				$this->{$property} = $value;
 		}
 	}
-	
+
 	function exportcolumns () {
 		$prefix = "o.";
 		return array(
@@ -130,7 +130,7 @@ class Purchase extends DatabaseObject {
 			$prefix.'modified' => __('Order Last Updated','Shopp')
 			);
 	}
-	
+
 	// Display a sales receipt
 	function receipt ($template="receipt.php") {
 		if (!file_exists(SHOPP_TEMPLATES."/$template")) $template = "receipt.php";
@@ -141,7 +141,7 @@ class Purchase extends DatabaseObject {
 		ob_end_clean();
 		return apply_filters('shopp_order_receipt',$content);
 	}
-	
+
 	function tag ($property,$options=array()) {
 		global $Shopp;
 
@@ -351,7 +351,7 @@ class Purchase extends DatabaseObject {
 				);
 				$options = array_merge($defaults,$options);
 				extract($options);
-				
+
 				$class = !empty($classes)?' class="'.join(' ',explode(',',$classes)).'"':'';
 				$taxrate = 0;
 				if ($item->unitprice > 0)
@@ -363,7 +363,7 @@ class Purchase extends DatabaseObject {
 					if ($this->taxing == "inclusive")
 						$price = $addon->value->unitprice+($addon->value->unitprice*$taxrate);
 					else $price = $addon->value->unitprice;
-					
+
 					$link = false;
 					if (isset($addon->value->download) && isset($addon->value->dkey)) {
 						$dkey = $addon->value->dkey;
@@ -453,14 +453,14 @@ class PurchasesExport {
 	var $time_format = 'g:i:s a';
 	var $set = 0;
 	var $limit = 1024;
-	
+
 	function PurchasesExport () {
 		global $Shopp;
-		
+
 		$this->purchase_cols = Purchase::exportcolumns();
 		$this->purchased_cols = Purchased::exportcolumns();
 		$this->defined = array_merge($this->purchase_cols,$this->purchased_cols);
-		
+
 		$this->sitename = get_bloginfo('name');
 		$this->headings = ($Shopp->Settings->get('purchaselog_headers') == "on");
 		$this->selected = $Shopp->Settings->get('purchaselog_columns');
@@ -468,30 +468,30 @@ class PurchasesExport {
 		$this->time_format = get_option('time_format');
 		$Shopp->Settings->save('purchaselog_lastexport',mktime());
 	}
-	
+
 	function query ($request=array()) {
 		$db =& DB::get();
 		if (empty($request)) $request = $_GET;
-		
+
 		if (!empty($request['start'])) {
 			list($month,$day,$year) = explode("/",$request['start']);
 			$starts = mktime(0,0,0,$month,$day,$year);
 		}
-		
+
 		if (!empty($request['end'])) {
 			list($month,$day,$year) = explode("/",$request['end']);
 			$ends = mktime(0,0,0,$month,$day,$year);
 		}
-		
+
 		$where = "WHERE o.id IS NOT NULL AND p.id IS NOT NULL ";
 		if (isset($request['status'])) $where .= "AND status='{$request['status']}'";
 		if (isset($request['s']) && !empty($request['s'])) $where .= " AND (id='{$request['s']}' OR firstname LIKE '%{$request['s']}%' OR lastname LIKE '%{$request['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$request['s']}%' OR transactionid LIKE '%{$request['s']}%')";
 		if (!empty($request['start']) && !empty($request['end'])) $where .= " AND  (UNIX_TIMESTAMP(o.created) >= $starts AND UNIX_TIMESTAMP(o.created) <= $ends)";
-		
+
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$purchasedtable = DatabaseObject::tablename(Purchased::$table);
 		$offset = ($this->set*$this->limit);
-		
+
 		$c = 0; $columns = array();
 		foreach ($this->selected as $column) $columns[] = "$column AS col".$c++;
 		$query = "SELECT ".join(",",$columns)." FROM $purchasedtable AS p LEFT JOIN $purchasetable AS o ON o.id=p.purchase $where ORDER BY o.created ASC LIMIT $offset,$this->limit";
@@ -514,15 +514,15 @@ class PurchasesExport {
 		$this->records();
 		$this->end();
 	}
-	
+
 	function begin() {}
-	
+
 	function heading () {
 		foreach ($this->selected as $name)
 			$this->export($this->defined[$name]);
 		$this->record();
 	}
-	
+
 	function records () {
 		while (!empty($this->data)) {
 			foreach ($this->data as $key => $record) {
@@ -534,7 +534,7 @@ class PurchasesExport {
 			$this->query();
 		}
 	}
-	
+
 	function parse ($column) {
 		if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$column)) {
 			$list = unserialize($column);
@@ -546,20 +546,20 @@ class PurchasesExport {
 	}
 
 	function end() {}
-	
+
 	// Implement for exporting a single value
 	function export ($value) {
 		echo ($this->recordstart?"":"\t").$value;
 		$this->recordstart = false;
 	}
-	
+
 	function record () {
 		echo "\n";
 		$this->recordstart = true;
 	}
-	
+
 	function settings () {}
-	
+
 }
 
 class PurchasesTabExport extends PurchasesExport {
@@ -576,14 +576,14 @@ class PurchasesCSVExport extends PurchasesExport {
 		$this->extension = "csv";
 		$this->output();
 	}
-	
+
 	function export ($value) {
 		$value = str_replace('"','""',$value);
 		if (preg_match('/^\s|[,"\n\r]|\s$/',$value)) $value = '"'.$value.'"';
 		echo ($this->recordstart?"":",").$value;
 		$this->recordstart = false;
 	}
-	
+
 }
 
 class PurchasesXLSExport extends PurchasesExport {
@@ -594,15 +594,15 @@ class PurchasesXLSExport extends PurchasesExport {
 		$this->c = 0; $this->r = 0;
 		$this->output();
 	}
-	
+
 	function begin () {
 		echo pack("ssssss", 0x809, 0x8, 0x0, 0x10, 0x0, 0x0);
 	}
-	
+
 	function end () {
 		echo pack("ss", 0x0A, 0x00);
 	}
-	
+
 	function export ($value) {
 		if (preg_match('/^[\d\.]+$/',$value)) {
 		 	echo pack("sssss", 0x203, 14, $this->r, $this->c, 0x0);
@@ -614,7 +614,7 @@ class PurchasesXLSExport extends PurchasesExport {
 		}
 		$this->c++;
 	}
-	
+
 	function record () {
 		$this->c = 0;
 		$this->r++;
@@ -652,17 +652,17 @@ class PurchasesIIFExport extends PurchasesExport {
 		);
 		$this->output();
 	}
-	
+
 	function begin () {
 		echo "!TRNS\tDATE\tACCNT\tNAME\tCLASS\tAMOUNT\tMEMO\n!SPL\tDATE\tACCNT\tNAME\tAMOUNT\tMEMO\n!ENDTRNS";
 	}
-	
+
 	function export ($value) {
 		echo (substr($value,0,1) != "\n")?"\t".$value:$value;
 	}
-	
+
 	function record () { }
-	
+
 	function settings () {
 		global $Shopp;
 		?>

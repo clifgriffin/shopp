@@ -77,7 +77,7 @@ function ModuleSetting (module,name,label,multi) {
 			methods++;
 			if (_.label instanceof Array && _.label[methods]) _.payment();
 		}
-	}
+	};
 
 	_.shipping = function () {
 		if (_.label instanceof Array) {
@@ -134,7 +134,7 @@ function ModuleSetting (module,name,label,multi) {
 			methods++;
 			if (_.label[methods]) _.payment();
 		}
-	}
+	};
 
 	_.storage = function () {
 		$.each(_.settings,function (id,element) {
@@ -161,7 +161,7 @@ function ModuleSetting (module,name,label,multi) {
 			$(markup).appendTo(_.element);
 			if (input.type == "multimenu") input.selectall();
 		});
-	}
+	};
 
  	_.newInput = function (column,attrs,options) {
 		var input = {
@@ -170,17 +170,17 @@ function ModuleSetting (module,name,label,multi) {
 			'options':options
 		};
 		_.settings.push(input);
-	}
+	};
 
 	_.column = function (index,methods) {
 		if (!_.columns[methods]) _.columns[methods] = new Array();
-		if (!_.columns[methods][index]) return _.columns[methods][index] = $('<td/>').appendTo(_.tables[methods])
+		if (!_.columns[methods][index]) return _.columns[methods][index] = $('<td/>').appendTo(_.tables[methods]);
 		else return _.columns[methods][index];
-	}
+	};
 
-	_.behaviors = function () {}
+	_.behaviors = function () {};
 
-}
+};
 
 function SettingInput (module,attrs,options,method) {
 	var $ = jqnc(), _ = this,
@@ -224,20 +224,20 @@ function SettingInput (module,attrs,options,method) {
 		if (_.type == "multimenu") return _.multimenu();
 		if (_.type == "textarea") return _.textarea();
 		return _.text();
-	}
+	};
 
 	_.text = function () {
 		var readonly = (_.readonly)?' readonly="readonly"':'',
 		 	html = '<div><input type="'+_.type+'" name="'+_.name+'" value="'+_.value+'" size="'+_.size+'" class="'+_.classes+'" id="'+_.id+'"'+readonly+' />';
 		if (_.label) html += '<br /><label for="'+_.id+'">'+_.label+'</label></div>\n';
 		return html;
-	}
+	};
 
 	_.textarea = function () {
 		var html = '<div><textarea name="'+_.name+'" cols="'+_.cols+'" rows="'+_.rows+'" class="'+_.classes+'" id="'+_.id+'">'+_.value+'</textarea>';
 		if (_.label) html += '<br /><label for="'+_.id+'">'+_.label+'</label></div>\n';
 		return html;
-	}
+	};
 
 	_.checkbox = function () {
 		var html = '<div><label for="'+_.id+'">';
@@ -246,7 +246,7 @@ function SettingInput (module,attrs,options,method) {
 		if (_.label) html += '&nbsp;'+_.label;
 		html += '</label></div>\n';
 		return html;
-	}
+	};
 
 	_.menu = function () {
 		var select,value,
@@ -265,7 +265,7 @@ function SettingInput (module,attrs,options,method) {
 
 		if (_.label) html += '<br /><label for="'+_.id+'">'+_.label+'</label></div>\n';
 		return html;
-	}
+	};
 
 	_.multimenu = function () {
 		var html = '<div><div class="multiple-select">',
@@ -291,14 +291,14 @@ function SettingInput (module,attrs,options,method) {
 		if (_.label) html += '<br /><label for="'+_.id+'">'+_.label+'</label></div>\n';
 
 		return html;
-	}
+	};
 
 	_.button = function () {
 		classes = (_.classes)?' class="button-secondary '+_.classes+'"':' class="button-secondary"';
 		type = (_.type)?' type="'+_.type+'"':'';
 		var html = '<div><button'+type+' name="'+_.name+'" value="'+_.value+'" id="'+_.id+'"'+classes+'>'+_.label+'</button></div>\n';
 		return html;
-	}
+	};
 
 	_.paragraph = function () {
 		var id = (_.id)?' id="'+_.id+'"':'',
@@ -307,7 +307,7 @@ function SettingInput (module,attrs,options,method) {
 		if (_.label) html += '<label><strong>'+_.label+'</strong></label>';
 		html += '<div'+id+classes+'>'+_.content+'</div>';
 		return html;
-	}
+	};
 
 	_.selectall = function () {
 		var id = _.id;
@@ -315,6 +315,6 @@ function SettingInput (module,attrs,options,method) {
 			if (this.checked) $('#'+id+' input').attr('checked',true);
 			else $('#'+id+' input').attr('checked',false);
 		});
-	}
+	};
 
-}
+};

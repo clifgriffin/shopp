@@ -102,7 +102,7 @@ jQuery(document).ready(function () {
 		menu.addOption = function (data) {
 		 	var option = new NestedMenuOption(menu.index,menu.itemsElement,menu.dataname,NEW_OPTION_DEFAULT,data,true);
 			menu.items.push(option);
-		}
+		};
 
 		var facetedSetting = $('<li class="setting"></li>').appendTo(menu.itemsElement);
 		var facetedMenu = $('<select name="specs['+menu.index+'][facetedmenu]"></select>').appendTo(facetedSetting);

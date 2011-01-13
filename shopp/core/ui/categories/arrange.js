@@ -33,7 +33,7 @@ jQuery(document).ready( function() {
 			/* Evaluate when to move the dragged row when hovering over another row */
 			$('tr', tr.parent() ).not(tr).bind('mouseenter.dragrow',function(e) {
 				var row = $(this),
-					classes = row.attr('class').replace(' alternate','').split(' ');
+					classes = row.attr('class').replace(' alternate','').split(' '),
 					top = classes[classes.length-1] == "top"?(classes.pop()):false,
 					siblingsClass = classes[classes.length-1].substr(-6) == '-child'?(classes.pop()):top,
 					ancestry = classes.slice(0,-1),
@@ -233,9 +233,9 @@ jQuery(document).ready( function() {
 			var result = "",i=1;
 			for (i=1; i<r; i++) result += this;
 			return result;
-		}
+		};
 
-	}
+	};
 
 	$('#arrange-categories tbody tr').arrangeRow();
 

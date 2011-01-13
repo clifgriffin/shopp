@@ -364,11 +364,15 @@ function datecalc($week=-1,$dayOfWeek=-1,$month=-1,$year=-1) {
  *
  * @author Jonathan Davis
  * @since 1.1
+ * @version 1.1
  *
+ * @param boolean $fields Ensure all date elements are present for field order (+1.1.6)
  * @return array The list version of date_format
  **/
-function date_format_order () {
+function date_format_order ($fields=false) {
 	$format = get_option('date_format');
+
+	$default = array('month' => 'F','day' => 'j','year' => 'Y');
 
 	$tokens = array(
 		'day' => 'dDjl',
@@ -377,22 +381,21 @@ function date_format_order () {
 	);
 
 	$dt = join('',$tokens);
-
-	preg_match("/([$dt]{1})([^$dt]+)([$dt]{1})([^$dt]+)([$dt]{1})/",$format,$matches);
-
-	array_shift($matches);
 	$_ = array(); $s = 0;
-	foreach ($matches as $match) {
+	preg_match_all("/(.{1})/",$format,$matches);
+	foreach ($matches[1] as $i => $token) {
 		foreach ($tokens as $type => $pattern) {
-			if (preg_match("/[$pattern]/",$match)) {
-				$_[$type] = $match;
+			if (preg_match("/[$pattern]/",$token)) {
+				$_[$type] = $token;
 				break;
-			} elseif (preg_match("/[^$dt]/",$match)) {
-				$_['s'.$s++] = $match;
+			} elseif (preg_match("/[^$dt]/",$token)) {
+				$_['s'.$s++] = $token;
 				break;
 			}
 		}
 	}
+
+	if ($fields) $_ = array_merge($_,$default,$_);
 
 	return $_;
 }

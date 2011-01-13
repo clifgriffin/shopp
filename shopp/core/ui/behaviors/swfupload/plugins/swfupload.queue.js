@@ -1,5 +1,5 @@
 /*!
- * swfupload.queue.js - File queue uploading support derived from SWFUpload 
+ * swfupload.queue.js - File queue uploading support derived from SWFUpload
  * Copyright © 2008-2010 by Ingenesis Limited
  * Licensed under the GPLv3 {@see license.txt}
  */
