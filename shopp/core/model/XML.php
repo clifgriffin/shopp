@@ -55,6 +55,7 @@ class xmlQuery {
 	 * @return boolean
 	 **/
 	function parse (&$markup) {
+		$this->clean($markup,true);
 		$parser = xml_parser_create();
 		xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
 		xml_parse_into_struct($parser, $markup, $vals, $index);
@@ -63,26 +64,28 @@ class xmlQuery {
 		$data = array();
 		$working = &$data;
 		foreach ($vals as $r) {
-			$t=$r['tag'];
+			$t = $r['tag'];
 			if ($r['type'] == 'open') {
-				if (isset($working[$t])) {
-					if (isset($working[$t][0])) $working[$t][] = array();
-					else $working[$t]=array($working[$t], array());
-					$cv = &$working[$t][count($working[$t])-1];
+				if ( isset( $working[$t] ) ) {
+					if ( isset( $working[$t][0] ) ) $working[$t][] = array();
+					else $working[$t] = array( $working[$t], array() );
+					$cv = &$working[$t][ count( $working[$t] )-1 ];
 				} else $cv = &$working[$t];
-				if (isset($r['attributes'])) { foreach ($r['attributes'] as $k => $v) $cv['_a'][$k] = $v; }
+				if ( isset( $r['attributes'] ) ) { foreach ( $r['attributes'] as $k => $v ) $cv['_a'][$k] = $this->clean($v); }
 				$cv['_c'] = array();
 				$cv['_c']['_p'] = &$working;
 				$working = &$cv['_c'];
 
-			} elseif ($r['type']=='complete') {
-				if (isset($working[$t])) { // same as open
-					if (isset($working[$t][0])) $working[$t][] = array();
-					else $working[$t] = array($working[$t], array());
+			} elseif ( $r['type'] == 'complete' ) {
+				if ( isset( $working[$t] ) ) { // same as open
+					if ( isset( $working[$t][0] ) ) $working[$t][] = array();
+					else $working[$t] = array( $working[$t], array() );
 					$cv = &$working[$t][count($working[$t])-1];
 				} else $cv = &$working[$t];
-				if (isset($r['attributes'])) { foreach ($r['attributes'] as $k => $v) $cv['_a'][$k] = $v; }
-				$cv['_v'] = (isset($r['value']) ? $r['value'] : '');
+				if (isset($r['attributes'])) {
+					foreach ($r['attributes'] as $k => $v) $cv['_a'][$k] = $this->clean($v);
+				}
+				$cv['_v'] = (isset($r['value']) ? $this->clean($r['value']) : '');
 
 			} elseif ($r['type'] == 'close') {
 				$working = &$working['_p'];
@@ -92,6 +95,29 @@ class xmlQuery {
 		$this->remove_p($data);
 		$this->dom = $data;
 		return true;
+	}
+
+	/**
+	 * Encode and decode characters mis-handled by the XML parser
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1.6
+	 *
+	 * @param string $markup The markup to encode/decode
+	 * @param boolean $encode True to encode the markup, omit to decode (default)
+	 * @return string The encoded/decoded markup
+	 **/
+	function clean (&$markup,$encode=false) {
+		if (!is_string($markup)) return $markup;
+		$entities = array('&' => '_amp_');
+
+		if ($encode) {
+			$markup = html_entity_decode($markup);
+			$markup = str_replace(array_keys($entities),array_values($entities),$markup);
+			return $markup;
+		}
+
+		return str_replace(array_values($entities),array_keys($entities),$markup);
 	}
 
 	/**
