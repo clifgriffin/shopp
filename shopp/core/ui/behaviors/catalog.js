@@ -423,7 +423,8 @@ jQuery(document).ready(function() {
 		$('a.shopp-zoom').colorbox({photo:true});
 		$('a.shopp-zoom.gallery').each(function () {
 			var id = $(this).attr('class').match(/product\_(\d+)/)[1];
-			$(this).attr('rel','gallery-'+id).colorbox({slideshow:true,slideshowSpeed:3500});
+			if (typeof(cbo) != "undefined") $(this).attr('rel','gallery-'+id).colorbox(cbo);
+			else $(this).attr('rel','gallery-'+id).colorbox({slideshow:true,slideshowSpeed:3500});
 		});
 	}
 	$('select.shopp-orderby-menu').change(function () { this.form.submit(); });
