@@ -11,17 +11,17 @@
  * @subpackage errors
  **/
 
-define('SHOPP_ERR',1);
-define('SHOPP_TRXN_ERR',2);
-define('SHOPP_AUTH_ERR',4);
-define('SHOPP_COMM_ERR',8);
-define('SHOPP_STOCK_ERR',16);
-define('SHOPP_ADDON_ERR',32);
-define('SHOPP_ADMIN_ERR',64);
-define('SHOPP_DB_ERR',128);
-define('SHOPP_PHP_ERR',256);
-define('SHOPP_ALL_ERR',1024);
-define('SHOPP_DEBUG_ERR',2048);
+define('SHOPP_ERR',1);			// Shopper visible general Shopp/shopping errors
+define('SHOPP_TRXN_ERR',2);		// Transaction errors (third-party service errors)
+define('SHOPP_AUTH_ERR',4);		// Authorization errors (login, credential problems)
+define('SHOPP_COMM_ERR',8);		// Communication errors (connectivity)
+define('SHOPP_STOCK_ERR',16);	// Inventory-related warnings (low stock, out-of-stock)
+define('SHOPP_ADDON_ERR',32);	// Shopp module errors (bad descriptors, core version requriements)
+define('SHOPP_ADMIN_ERR',64);	// Admin errors (for logging)
+define('SHOPP_DB_ERR',128);		// DB errors (for logging)
+define('SHOPP_PHP_ERR',256);	// PHP errors (for logging)
+define('SHOPP_ALL_ERR',1024);	// All errors (for logging)
+define('SHOPP_DEBUG_ERR',2048);	// Debug-only (for logging)
 
 /**
  * ShoppErrors class
@@ -36,11 +36,11 @@ define('SHOPP_DEBUG_ERR',2048);
  * @subpackage errors
  **/
 class ShoppErrors {
-	
-	var $errors = array();	// Error message registry
-	var $notifications;		// Notification subscription registry
+
+	var $errors = array();				// Error message registry
+	var $notifications;					// Notification subscription registry
 	var $reporting = SHOPP_ALL_ERR;		// level of reporting
-	
+
 	/**
 	 * Setup error system and PHP error capture
 	 *
@@ -51,10 +51,10 @@ class ShoppErrors {
 	 **/
 	function __construct ($level = SHOPP_ALL_ERR) {
 		ShoppingObject::store('errors',$this->errors);
-		
+
 		if (defined('WP_DEBUG') && WP_DEBUG) $this->reporting = SHOPP_DEBUG_ERR;
 		if ($level > $this->reporting) $this->reporting = $level;
-		
+
 		$this->notifications = new CallbackSubscription();
 
 		$types = E_ALL ^ E_NOTICE;
@@ -63,7 +63,7 @@ class ShoppErrors {
 		if ($this->reporting >= SHOPP_PHP_ERR)
 			set_error_handler(array($this,'phperror'),$types);
 	}
-	
+
 	/**
 	 * Adds a ShoppError to the registry
 	 *
@@ -78,7 +78,7 @@ class ShoppErrors {
 		else $this->errors[] = $ShoppError;
 		$this->notifications->send($ShoppError);
 	}
-	
+
 	/**
 	 * Gets all errors up to a specified error level
 	 *
@@ -94,7 +94,7 @@ class ShoppErrors {
 			if ($error->level <= $level) $errors[] = &$error;
 		return $errors;
 	}
-	
+
 	/**
 	 * Gets all errors of a specific error level
 	 *
@@ -110,7 +110,7 @@ class ShoppErrors {
 			if ($error->level == $level) $errors[] = &$error;
 		return $errors;
 	}
-	
+
 	/**
 	 * Gets an error message with a specific error code
 	 *
@@ -124,7 +124,7 @@ class ShoppErrors {
 		if (!empty($code) && isset($this->errors[$code]))
 			return $this->errors[$code];
 	}
-	
+
 	/**
 	 * Gets all errors from a specified source (object)
 	 *
@@ -141,7 +141,7 @@ class ShoppErrors {
 			if ($error->source == $source) $errors[] = &$error;
 		return $errors;
 	}
-	
+
 	/**
 	 * Determines if any errors exist up to the specified error level
 	 *
@@ -157,7 +157,7 @@ class ShoppErrors {
 			if ($error->level <= $level) $errors[] = &$error;
 		return (count($errors) > 0);
 	}
-	
+
 	/**
 	 * Removes an error from the registry
 	 *
@@ -172,7 +172,7 @@ class ShoppErrors {
 		unset($this->errors[$error->code]);
 		return true;
 	}
-	
+
 	/**
 	 * Removes all errors from the error registry
 	 *
@@ -184,7 +184,7 @@ class ShoppErrors {
 	function reset () {
 		$this->errors = array();
 	}
-	
+
 	/**
 	 * Reports PHP generated errors to the Shopp error system
 	 *
@@ -202,7 +202,7 @@ class ShoppErrors {
 			new ShoppError($message,'php_error',SHOPP_PHP_ERR,
 				array('file'=>$file,'line'=>$line,'phperror'=>$number));
 	}
-		
+
 	/**
 	 * Provides functionality for the shopp('error') tags
 	 *
@@ -230,7 +230,7 @@ class ShoppErrors {
 			default: new ShoppError(key($options),'template_error',SHOPP_ERR); break;
 		}
 	}
-	
+
 }
 
 /**
@@ -250,7 +250,7 @@ class ShoppError {
 	var $messages;
 	var $level;
 	var $data = array();
-    
+
 	/**
 	 * Creates and registers a new error
 	 *
@@ -261,7 +261,7 @@ class ShoppError {
 	 **/
 	function ShoppError($message='',$code='',$level=SHOPP_ERR,$data='') {
 		$Errors = &ShoppErrors();
-		
+
 		if (!is_a($Errors,'ShoppErrors')) return;
 		if ($level > $Errors->reporting) return;
 		if (empty($message)) return;
@@ -282,7 +282,7 @@ class ShoppError {
 			4096 	=> 'RECOVERABLE ERROR'
 		);
 		$debug = debug_backtrace();
-		
+
 		$this->code = $code;
 		$this->messages[] = $message;
 		$this->level = $level;
@@ -292,20 +292,20 @@ class ShoppError {
 		// Handle template errors
 		if (isset($this->debug['class']) && $this->debug['class'] == "ShoppErrors")
 			$this->debug = $debug[2];
-		
+
 		if (isset($data['file'])) $this->debug['file'] = $data['file'];
 		if (isset($data['line'])) $this->debug['line'] = $data['line'];
 		unset($this->debug['object'],$this->debug['args']);
-		
+
 		$this->source = "Shopp";
 		if (isset($this->debug['class'])) $this->source = $this->debug['class'];
 		if (isset($this->data['phperror']) && isset($php[$this->data['phperror']]))
 			$this->source = "PHP ".$php[$this->data['phperror']];
-		
+
 		$Errors = &ShoppErrors();
 		if (!empty($Errors)) $Errors->add($this);
 	}
-	
+
 	/**
 	 * Prevent excess data from being stored in the session
 	 *
@@ -317,7 +317,7 @@ class ShoppError {
 	function __sleep () {
 		return array('code','source','messages','level');
 	}
-	
+
 	/**
 	 * Tests if the error message is blank
 	 *
@@ -329,7 +329,7 @@ class ShoppError {
 	function blank () {
 		return (join('',$this->messages) == "");
 	}
-	
+
 	/**
 	 * Displays messages registered to a specific error code
 	 *
@@ -353,7 +353,7 @@ class ShoppError {
 		}
 		return $string;
 	}
-				
+
 }
 
 /**
@@ -373,7 +373,7 @@ class ShoppErrorLogging {
 	var $logfile;
 	var $log;
 	var $loglevel = 0;
-	
+
 	/**
 	 * Setup for error logging
 	 *
@@ -394,7 +394,7 @@ class ShoppErrorLogging {
 		$Errors = &ShoppErrors();
 		$Errors->notifications->subscribe($this,'log');
 	}
-	
+
 	/**
 	 * Logs an error to the error log file
 	 *
@@ -414,7 +414,7 @@ class ShoppErrorLogging {
 			fclose($this->log);
 		} else error_log($message);
 	}
-	
+
 	/**
 	 * Empties the error log file
 	 *
@@ -428,7 +428,7 @@ class ShoppErrorLogging {
 		fwrite($this->log,'');
 		fclose($this->log);
 	}
-	
+
 	/**
 	 * Gets the end of the log file
 	 *
@@ -475,10 +475,10 @@ class ShoppErrorLogging {
  * @subpackage errors
  **/
 class ShoppErrorNotification {
-	
+
 	var $recipients;	// Recipient addresses to send to
 	var $types=0;		// Error types to send
-	
+
 	/**
 	 * Relays triggered errors to email messages
 	 *
@@ -496,7 +496,7 @@ class ShoppErrorNotification {
 		$Errors = &ShoppErrors();
 		$Errors->notifications->subscribe($this,'notify');
 	}
-	
+
 	/**
 	 * Generates and sends an email of an error to the recipient list
 	 *
@@ -523,7 +523,7 @@ class ShoppErrorNotification {
 
 		shopp_email(join("\r\n",$_));
 	}
-	
+
 }
 
 class CallbackSubscription {
@@ -534,14 +534,14 @@ class CallbackSubscription {
 		if (!isset($this->subscribers[get_class($target)]))
 			$this->subscribers[get_class($target)] = array(&$target,$method);
 	}
-	
+
 	function send () {
 		$args = func_get_args();
 		foreach ($this->subscribers as $callback) {
 			call_user_func_array($callback,$args);
 		}
 	}
-	
+
 }
 
 /**
