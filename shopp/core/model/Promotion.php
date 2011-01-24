@@ -11,7 +11,7 @@
 
 class Promotion extends DatabaseObject {
 	static $table = "promo";
-	
+
 	static $values = array(
 		"Name" => "text",
 		"Category" => "text",
@@ -37,16 +37,16 @@ class Promotion extends DatabaseObject {
 		if ($this->load($id)) return true;
 		else return false;
 	}
-	
+
 	function build_discounts () {
 		$db = DB::get();
-		
+
 		$discount_table = DatabaseObject::tablename(Discount::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
 		$category_table = DatabaseObject::tablename(Category::$table);
-		
+
 		$where = array();
 		// Go through each rule to construct an SQL query
 		// that gets all applicable product & price ids
@@ -56,7 +56,7 @@ class Promotion extends DatabaseObject {
 				if (Promotion::$values[$rule['property']] == "price")
 					$value = floatvalue($rule['value']);
 				else $value = $rule['value'];
-				
+
 				switch($rule['logic']) {
 					case "Is equal to": $match = "='$value'"; break;
 					case "Is not equal to": $match = "!='$value'"; break;
@@ -69,7 +69,7 @@ class Promotion extends DatabaseObject {
 					case "Is less than": $match = "< $value"; break;
 					case "Is less than or equal to": $match = "<= $value"; break;
 				}
-			
+
 				switch($rule['property']) {
 					case "Name": $where[] = "p.name$match"; break;
 					case "Category": $where[] = "cat.name$match"; break;
@@ -79,9 +79,9 @@ class Promotion extends DatabaseObject {
 					case "Type": $where[] = "prc.type$match"; break;
 					case "In stock": $where[] = "(prc.inventory='on' AND prc.stock$match)"; break;
 				}
-			
+
 			}
-			
+
 		}
 		if (!empty($where)) $where = "WHERE ".join(" AND ",$where);
 		else $where = false;
@@ -96,9 +96,9 @@ class Promotion extends DatabaseObject {
 					GROUP BY prc.id";
 
 		$db->query($query);
-		
+
 	}
-	
+
 	function reset_discounts () {
 		$db =& DB::get();
 		$_table = DatabaseObject::tablename(Discount::$table);
@@ -159,7 +159,7 @@ class Promotion extends DatabaseObject {
 					return false;
 				}
 				return  (stripos($subject,$value) === strlen($subject) - strlen($value)); break;
-			
+
 			// Numeric operations
 			case "Is greater than":
 				return (floatvalue($subject,false) > floatvalue($value,false));
@@ -174,10 +174,10 @@ class Promotion extends DatabaseObject {
 				return (floatvalue($subject,false) <= floatvalue($value,false));
 				break;
 		}
-		
+
 		return false;
 	}
-	
+
 	/**
 	 * Records when a specific promotion is used
 	 *
@@ -200,13 +200,13 @@ class Promotion extends DatabaseObject {
 // Discount table provides discount index for faster, efficient discount lookups
 class Discount extends DatabaseObject {
 	static $table = "discount";
-	
+
 	function Promotion ($id=false) {
 		$this->init(self::$table);
 		if ($this->load($id)) return true;
 		else return false;
 	}
-	
+
 	function delete () {
 		$db = DB::get();
 		// Delete record
@@ -215,7 +215,7 @@ class Discount extends DatabaseObject {
 		// Delete related discounts
 		$discount_table = DatabaseObject::tablename(Discount::$table);
 		if (!empty($id)) $db->query("DELETE LOW_PRIORITY FROM $discount_table WHERE promo='$id'");
-		
+
 		if (!empty($id)) $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
 		else return false;
 	}

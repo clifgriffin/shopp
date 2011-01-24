@@ -11,7 +11,7 @@
 
 class Tag extends DatabaseObject {
 	static $table = "tag";
-	
+
 	function Tag ($id=false,$key=false) {
 		$this->init(self::$table);
 		if ($this->load($id,$key)) return true;

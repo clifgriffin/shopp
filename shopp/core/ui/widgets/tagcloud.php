@@ -10,7 +10,7 @@
  **/
 
 if (class_exists('WP_Widget')) {
-	
+
 class ShoppTagCloudWidget extends WP_Widget {
 
     function ShoppTagCloudWidget() {
@@ -47,3 +47,4 @@ class ShoppTagCloudWidget extends WP_Widget {
 register_widget('ShoppTagCloudWidget');
 
 }
+?>

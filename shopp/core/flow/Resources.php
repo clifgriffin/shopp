@@ -12,10 +12,10 @@
  * @subpackage resources
  **/
 class Resources {
-	
+
 	var $Settings = false;
 	var $request = array();
-	
+
 	/**
 	 * Resources constructor
 	 *
@@ -26,9 +26,9 @@ class Resources {
 	function __construct () {
 		global $Shopp,$wp;
 		if (empty($wp->query_vars) && !(defined('WP_ADMIN') && isset($_GET['src']))) return;
-		
+
 		$this->Settings = &$Shopp->Settings;
-		
+
 		if (empty($wp->query_vars)) $this->request = $_GET;
 		else $this->request = $wp->query_vars;
 
@@ -49,7 +49,7 @@ class Resources {
 
 		die('-1');
 	}
-	
+
 	/**
 	 * Handles RSS-feed requests
 	 *
@@ -67,7 +67,7 @@ class Resources {
 		echo shopp_rss($Shopp->Category->rss());
 		exit();
 	}
-	
+
 	/**
 	 * Delivers order export files to the browser
 	 *
@@ -87,10 +87,10 @@ class Resources {
 			$_POST['settings']['purchaselog_headers'] = "on";
 		}
 		$this->Settings->saveform();
-		
+
 		$format = $this->Settings->get('purchaselog_format');
 		if (empty($format)) $format = 'tab';
-		
+
 		switch ($format) {
 			case "csv": new PurchasesCSVExport(); break;
 			case "xls": new PurchasesXLSExport(); break;
@@ -98,9 +98,9 @@ class Resources {
 			default: new PurchasesTabExport();
 		}
 		exit();
-		
+
 	}
-	
+
 	/**
 	 * Delivers customer export files to the browser
 	 *
@@ -132,7 +132,7 @@ class Resources {
 		}
 		exit();
 	}
-	
+
 	/**
 	 * Handles product file download requests
 	 *
@@ -146,19 +146,19 @@ class Resources {
 		$download = $this->request['shopp_download'];
 		$Purchase = false;
 		$Purchased = false;
-		
+
 		if (defined('WP_ADMIN')) {
 			$forbidden = false;
 			$Download = new ProductDownload($download);
 		} else {
 			$Order = &ShoppOrder();
-			
+
 			$Download = new ProductDownload();
 			$Download->loadby_dkey($download);
-			
+
 			$Purchased = $Download->purchased();
 			$Purchase = new Purchase($Purchased->purchase);
-		
+
 			$name = $Purchased->name.(!empty($Purchased->optionlabel)?' ('.$Purchased->optionlabel.')':'');
 
 			$forbidden = false;
@@ -168,7 +168,7 @@ class Resources {
 				new ShoppError(sprintf(__('"%s" cannot be downloaded because payment has not been received yet.','Shopp'),$name),'shopp_download_limit');
 				$forbidden = true;
 			}
-			
+
 			// Account restriction checks
 			if ($this->Settings->get('account_system') != "none"
 				&& (!$Order->Customer->login
@@ -176,21 +176,21 @@ class Resources {
 					new ShoppError(__('You must login to download purchases.','Shopp'),'shopp_download_limit');
 					shopp_redirect(shoppurl(false,'account'));
 			}
-			
+
 			// Download limit checking
 			if ($this->Settings->get('download_limit') // Has download credits available
 				&& $Purchased->downloads+1 > $this->Settings->get('download_limit')) {
 					new ShoppError(sprintf(__('"%s" is no longer available for download because the download limit has been reached.','Shopp'),$name),'shopp_download_limit');
 					$forbidden = true;
 				}
-					
+
 			// Download expiration checking
 			if ($this->Settings->get('download_timelimit') // Within the timelimit
 				&& $Purchased->created+$this->Settings->get('download_timelimit') < mktime() ) {
 					new ShoppError(sprintf(__('"%s" is no longer available for download because it has expired.','Shopp'),$name),'shopp_download_limit');
 					$forbidden = true;
 				}
-			
+
 			// IP restriction checks
 			if ($this->Settings->get('download_restriction') == "ip"
 				&& !empty($Purchase->ip)
@@ -201,11 +201,11 @@ class Resources {
 
 			do_action_ref_array('shopp_download_request',array(&$Purchased));
 		}
-	
+
 		if ($forbidden) {
 			shopp_redirect(shoppurl(false,'account'));
 		}
-		
+
 		if ($Download->download()) {
 			if ($Purchased !== false) {
 				$Purchased->downloads++;
@@ -230,13 +230,13 @@ class Resources {
 		$Settings =& ShoppSettings();
 		list($status,$key) = $Settings->get('updatekey');
 		$site = get_bloginfo('siteurl');
-		
+
 		$request = array("ShoppScreencast" => $_GET['id'],'key'=>$key,'site'=>$site);
 		$response = Shopp::callhome($request);
 		echo $response;
 		exit();
 	}
-	
+
 } // END class Resources
 
 ?>

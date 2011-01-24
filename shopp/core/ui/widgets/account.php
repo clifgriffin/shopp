@@ -10,20 +10,20 @@
  **/
 
 if (class_exists('WP_Widget')) {
-	
+
 class ShoppAccountWidget extends WP_Widget {
 
     function ShoppAccountWidget() {
-        parent::WP_Widget(false, 
-			$name = __('Shopp Account','Shopp'), 
+        parent::WP_Widget(false,
+			$name = __('Shopp Account','Shopp'),
 			array('description' => __('Account login &amp; management','Shopp'))
 		);
     }
 
-    function widget($args, $options) {		
+    function widget($args, $options) {
 		global $Shopp;
 		if (!empty($args)) extract($args);
-		
+
 		if (empty($options['title'])) $options['title'] = __('Your Account','Shopp');
 		$title = $before_title.$options['title'].$after_title;
 		$request = $_GET;
@@ -39,7 +39,7 @@ class ShoppAccountWidget extends WP_Widget {
 		add_filter('shopp_account_template','shoppdiv');
     }
 
-    function update($new_instance, $old_instance) {				
+    function update($new_instance, $old_instance) {
         return $new_instance;
     }
 
@@ -47,7 +47,7 @@ class ShoppAccountWidget extends WP_Widget {
 		return false;
 	}
 
-    function form($options) {				
+    function form($options) {
 		?>
 		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>
@@ -62,3 +62,4 @@ if ($Shopp->Settings->get('account_system') == "none") return;
 register_widget('ShoppAccountWidget');
 
 }
+?>

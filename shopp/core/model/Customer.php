@@ -16,40 +16,40 @@ require("Shipping.php");
 
 class Customer extends DatabaseObject {
 	static $table = "customer";
-	
+
 	var $login = false;
 	var $info = false;
 	var $newuser = false;
-	
+
 	var $accounts = "none";		// Account system setting
 	var $loginname = false;		// Account login name
 	var $merchant = "";
 
 	var $pages = array();		// Account pages
 	var $menus = array();		// Account menus
-	
+
 	function __construct ($id=false,$key=false) {
 		global $Shopp;
-		
+
 		$this->accounts = $Shopp->Settings->get('account_system');
 		$this->merchant = $Shopp->Settings->get('merchant_email');
-		
+
 		$this->init(self::$table);
 		$this->load($id,$key);
 		if (!empty($this->id)) $this->load_info();
 
 		$this->listeners();
 	}
-	
+
 	function __wakeup () {
 		$this->listeners();
 	}
-	
+
 	function listeners () {
 		add_action('parse_request',array(&$this,'menus'));
 		add_action('shopp_account_management',array(&$this,'management'));
 	}
-	
+
 	/**
 	 * Loads customer 'info' meta data
 	 *
@@ -62,10 +62,10 @@ class Customer extends DatabaseObject {
 		$this->info = new ObjectMeta($this->id,'customer');
 		if (!$this->info) $this->info = new ObjectMeta();
 	}
-	
+
 	function save () {
 		parent::save();
-		
+
 		if (empty($this->info) || !is_array($this->info)) return true;
 		foreach ((array)$this->info as $name => $value) {
 			$Meta = new MetaObject(array(
@@ -82,14 +82,14 @@ class Customer extends DatabaseObject {
 			$Meta->save();
 		}
 	}
-	
+
 	function addpage ($request,$label,$visible=true,$callback=false,$position=0) {
 		$this->pages[$request] = new CustomerAccountPage($request,$label,$callback);
 		if ($visible) {
 			array_splice($this->menus,$position,0,array(&$this->pages[$request]));
 		}
 	}
-	
+
 	function menus () {
 		global $wp;
 		$this->pages = array();
@@ -98,7 +98,7 @@ class Customer extends DatabaseObject {
 		$this->addpage('history',__('Order History','Shopp'),true,array(&$this,'load_orders'));
 		$this->addpage('downloads',__('Downloads','Shopp'),true,array(&$this,'load_downloads'));
 		$this->addpage('account',__('My Account','Shopp'));
-		
+
 		// Pages with not in menu navigation
 		$this->addpage('order','Order',false,array(&$this,'order'));
 		$this->addpage('recover','Password Recovery',false);
@@ -108,7 +108,7 @@ class Customer extends DatabaseObject {
 
 		do_action_ref_array('shopp_account_menu',array(&$this));
 	}
-	
+
 	/**
 	 * Management menu controller for the account manager
 	 *
@@ -118,19 +118,19 @@ class Customer extends DatabaseObject {
 	 * @return boolean|string output based on the account menu request
 	 **/
 	function management () {
-	
+
 		if (isset($_GET['acct']) && isset($this->pages[$_GET['acct']])
 				&& isset($this->pages[$_GET['acct']]->handler)
 				&& is_callable($this->pages[$_GET['acct']]->handler))
 			call_user_func($this->pages[$_GET['acct']]->handler);
 
 		if (!empty($_POST['customer'])) {
-			
+
 			$_POST['phone'] = preg_replace('/[^\d\(\)\-+\. (ext|x)]/','',$_POST['phone']);
-			
+
 			$this->updates($_POST);
 			if (isset($_POST['info'])) $this->info = $_POST['info'];
-			
+
 			if (!empty($_POST['password']) && $_POST['password'] == $_POST['confirm-password']) {
 				$this->password = wp_hash_password($_POST['password']);
 				if($this->accounts == "wordpress" && !empty($this->wpuser)) wp_set_password( $_POST['password'], $this->wpuser );
@@ -142,14 +142,14 @@ class Customer extends DatabaseObject {
 			$this->load_info();
 			$this->_saved = true;
 		}
-		
+
 	}
-	
+
 	function order () {
 		global $Shopp;
-		
+
 		if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
-			
+
 			$Purchase = new Purchase($_POST['purchaseid']);
 			if ($Purchase->email == $_POST['email']) {
 				$Shopp->Purchase = $Purchase;
@@ -161,7 +161,7 @@ class Customer extends DatabaseObject {
 				return apply_filters('shopp_account_vieworder',$content);
 			}
 		}
-		
+
 		if (!empty($_GET['acct']) && !empty($_GET['id']) && $this->login) {
 			$Purchase = new Purchase($_GET['id']);
 			if ($Purchase->customer == $this->id) {
@@ -179,8 +179,8 @@ class Customer extends DatabaseObject {
 
 		}
 	}
-	
-	
+
+
 	/**
 	 * Password recovery processing
 	 *
@@ -193,7 +193,7 @@ class Customer extends DatabaseObject {
 	function recovery () {
 		global $Shopp;
 		$errors = array();
-		
+
 		// Check email or login supplied
 		if (empty($_POST['account-login'])) {
 			if ($this->accounts == "wordpress") $errors[] = new ShoppError(__('Enter an email address or login name','Shopp'));
@@ -211,7 +211,7 @@ class Customer extends DatabaseObject {
 					$errors[] = new ShoppError(__('There is no user registered with that login name.','Shopp'),'password_recover_noaccount',SHOPP_AUTH_ERR);
 			}
 		}
-		
+
 		// return errors
 		if (!empty($errors)) return;
 
@@ -221,7 +221,7 @@ class Customer extends DatabaseObject {
 		$RecoveryCustomer->save();
 
 		$subject = apply_filters('shopp_recover_password_subject', sprintf(__('[%s] Password Recovery Request','Shopp'),get_option('blogname')));
-		
+
 		$_ = array();
 		$_[] = 'From: "'.get_option('blogname').'" <'.$Shopp->Settings->get('merchant_email').'>';
 		$_[] = 'To: '.$RecoveryCustomer->email;
@@ -239,7 +239,7 @@ class Customer extends DatabaseObject {
 		$_[] = '';
 		$_[] = add_query_arg(array('acct'=>'rp','key'=>$RecoveryCustomer->activation),shoppurl(false,'account'));
 		$message = apply_filters('shopp_recover_password_message',$_);
-		
+
 		if (!shopp_email(join("\r\n",$message))) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_recovery_email',SHOPP_ERR);
 			shopp_redirect(add_query_arg('acct','recover',shoppurl(false,'account')));
@@ -248,39 +248,39 @@ class Customer extends DatabaseObject {
 		}
 
 	}
-	
+
 	function reset_password ($activation) {
 		if ($this->accounts == "none") return;
-		
+
 		$user_data = false;
 		$activation = preg_replace('/[^a-z0-9]/i', '', $activation);
 
 		$errors = array();
 		if (empty($activation) || !is_string($activation))
 			$errors[] = new ShoppError(__('Invalid key','Shopp'));
-		
+
 		$RecoveryCustomer = new Customer($activation,'activation');
 		if (empty($RecoveryCustomer->id))
 			$errors[] = new ShoppError(__('Invalid key','Shopp'));
-		
+
 		if (!empty($errors)) return false;
 
 		// Generate a new random password
 		$password = wp_generate_password();
-		
+
 		do_action_ref_array('password_reset', array(&$RecoveryCustomer,$password));
-		
+
 		$RecoveryCustomer->password = wp_hash_password($password);
 		if ($this->accounts == "wordpress") {
 			$user_data = get_userdata($RecoveryCustomer->wpuser);
 			wp_set_password($password, $user_data->ID);
 		}
-		
+
 		$RecoveryCustomer->activation = '';
 		$RecoveryCustomer->save();
-		
+
 		$subject = apply_filters('shopp_reset_password_subject', sprintf(__('[%s] New Password','Shopp'),get_option('blogname')));
-		
+
 		$Settings =& ShoppSettings();
 		$_ = array();
 		$_[] = 'From: "'.get_option('blogname').'" <'.$Settings->get('merchant_email').'>';
@@ -295,7 +295,7 @@ class Customer extends DatabaseObject {
 		$_[] = '';
 		$_[] = __('Click here to login:').' '.shoppurl(false,'account');
 		$message = apply_filters('shopp_reset_password_message',$_);
-		
+
 		if (!shopp_email(join("\r\n",$message))) {
 			new ShoppError(__('The e-mail could not be sent.'),'password_reset_email',SHOPP_ERR);
 			shopp_redirect(add_query_arg('acct','recover',shoppurl(false,'account')));
@@ -303,7 +303,7 @@ class Customer extends DatabaseObject {
 
 		unset($_GET['acct']);
 	}
-	
+
 	function notification () {
 		global $Shopp;
 		$Settings =& ShoppSettings();
@@ -334,12 +334,12 @@ class Customer extends DatabaseObject {
 		$_[] = sprintf(__('Password: %s'), $this->password);
 		$_[] = '';
 		$_[] = shoppurl(false,'account',$Shopp->Gateways->secure);
-		
+
 		if (!shopp_email(join("\r\n",$_)))
 			new ShoppError('The customer\'s account notification e-mail could not be sent.','new_account_email',SHOPP_ADMIN_ERR);
 		elseif (SHOPP_DEBUG) new ShoppError('A new account notification e-mail was sent to the customer.','new_account_email',SHOPP_DEBUG_ERR);
 	}
-	
+
 	function load_downloads () {
 		if (empty($this->id)) return false;
 		$db =& DB::get();
@@ -372,7 +372,7 @@ class Customer extends DatabaseObject {
 		if (empty($this->id)) return false;
 		global $Shopp;
 		$db =& DB::get();
-		
+
 		$where = '';
 		if (isset($filters['where'])) $where = " AND {$filters['where']}";
 		$orders = DatabaseObject::tablename(Purchase::$table);
@@ -385,7 +385,7 @@ class Customer extends DatabaseObject {
 			$p = $Purchase;
 		}
 	}
-	
+
 	function create_wpuser () {
 		require_once(ABSPATH."/wp-includes/registration.php");
 		if (empty($this->loginname)) return false;
@@ -398,7 +398,7 @@ class Customer extends DatabaseObject {
 			return false;
 		}
 		if (empty($this->password)) $this->password = wp_generate_password(12,true);
-		
+
 		// Create the WordPress account
 		$wpuser = wp_insert_user(array(
 			'user_login' => $this->loginname,
@@ -413,24 +413,24 @@ class Customer extends DatabaseObject {
 
 		// Link the WP user ID to this customer record
 		$this->wpuser = $wpuser;
-		
+
 		// Send email notification of the new account
 		wp_new_user_notification( $wpuser, $this->password );
 		$this->password = "";
 		if (SHOPP_DEBUG) new ShoppError('Successfully created the WordPress user for the Shopp account.',false,SHOPP_DEBUG_ERR);
-		
+
 		$this->newuser = true;
-		
+
 		return true;
 	}
-	
+
 	function taxrule ($rule) {
 		switch ($rule['p']) {
 			case "customer-type": return ($rule['v'] == $this->type); break;
 		}
 		return false;
 	}
-	
+
 	function exportcolumns () {
 		$prefix = "c.";
 		return array(
@@ -445,15 +445,15 @@ class Customer extends DatabaseObject {
 			$prefix.'modified' => __('Customer Last Updated Date','Shopp'),
 			);
 	}
-	
+
 	function tag ($property,$options=array()) {
 		global $Shopp;
-		
+
 		$Order =& $Shopp->Order;
 		$checkout = false;
 		if (isset($Shopp->Flow->Controller->checkout))
 			$checkout = $Shopp->Flow->Controller->checkout;
-		
+
 		// Return strings with no options
 		switch ($property) {
 			case "url":
@@ -508,7 +508,7 @@ class Customer extends DatabaseObject {
 			case "password-login":
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				$id = "password-login".($checkout?"-checkout":'');
-				
+
 				if (!empty($_POST['password-login']))
 					$options['value'] = $_POST['password-login'];
 				return '<input type="password" name="password-login" id="'.$id.'"'.inputattrs($options).' />';
@@ -522,10 +522,10 @@ class Customer extends DatabaseObject {
 				if (!isset($options['value'])) $options['value'] = __('Login','Shopp');
 				$string = "";
 				$id = "submit-login";
-				
+
 				$request = $_GET;
 				if (isset($request['acct']) && $request['acct'] == "logout") unset($request['acct']);
-				
+
 				if ($checkout) {
 					$id .= "-checkout";
 					$string .= '<input type="hidden" name="process-login" id="process-login" value="false" />';
@@ -558,13 +558,13 @@ class Customer extends DatabaseObject {
 				ob_end_clean();
 				return $errors;
 				break;
-				
+
 			case "menu":
 				if (!isset($this->_menu_looping)) {
 					reset($this->menus);
 					$this->_menu_looping = true;
 				} else next($this->menus);
-				
+
 				if (current($this->menus) !== false) return true;
 				else {
 					unset($this->_menu_looping);
@@ -587,7 +587,7 @@ class Customer extends DatabaseObject {
 			case "order-lookup":
 				$auth = $Shopp->Settings->get('account_system');
 				if ($auth != "none") return true;
-			
+
 				if (!empty($_POST['vieworder']) && !empty($_POST['purchaseid'])) {
 					require_once("Purchase.php");
 					$Purchase = new Purchase($_POST['purchaseid']);
@@ -665,7 +665,7 @@ class Customer extends DatabaseObject {
 					reset($this->info->meta);
 					$this->_info_looping = true;
 				} else next($this->info->meta);
-				
+
 				if (current($this->info->meta) !== false) return true;
 				else {
 					unset($this->_info_looping);
@@ -682,7 +682,7 @@ class Customer extends DatabaseObject {
 				);
 				$options = array_merge($defaults,$options);
 				extract($options);
-				
+
 				if ($this->_info_looping)
 					$info = current($this->info->meta);
 				elseif ($name !== false && is_object($this->info->named[$name]))
@@ -697,7 +697,7 @@ class Customer extends DatabaseObject {
 				elseif (!$name) return false;
 
 				if (!$value && !empty($info->value)) $options['value'] = $info->value;
-				
+
 				$allowed_types = array("text","password","hidden","checkbox","radio");
 				$type = in_array($type,$allowed_types)?$type:'hidden';
 				return '<input type="'.$type.'" name="info['.$options['name'].']" id="customer-info-'.sanitize_title_with_dashes($options['name']).'"'.inputattrs($options).' />';
@@ -766,9 +766,9 @@ class Customer extends DatabaseObject {
 				if (!empty($Order->Shipping->country))
 					$options['selected'] = $Order->Shipping->country;
 				else if (empty($options['selected'])) $options['selected'] = $base['country'];
-				
+
 				$countries = $Shopp->Settings->get('target_markets');
-				
+
 				$output = '<select name="shipping[country]" id="shipping-country" '.inputattrs($options,$select_attrs).'>';
 			 	$output .= menuoptions($countries,$options['selected'],true);
 				$output .= '</select>';
@@ -857,13 +857,13 @@ class Customer extends DatabaseObject {
 				else if (empty($options['selected'])) $options['selected'] = $base['country'];
 
 				$countries = $Shopp->Settings->get('target_markets');
-				
+
 				$output = '<select name="billing[country]" id="billing-country" '.inputattrs($options,$select_attrs).'>';
 			 	$output .= menuoptions($countries,$options['selected'],true);
 				$output .= '</select>';
 				return $output;
 				break;
-				
+
 			case "save-button":
 				if (!isset($options['label'])) $options['label'] = __('Save','Shopp');
 				$result = '<input type="hidden" name="customer" value="true" />';
@@ -880,8 +880,8 @@ class Customer extends DatabaseObject {
 				$input .= '<input type="checkbox" name="marketing" id="marketing" value="yes" '.inputattrs($options,$attrs).' />';
 				return $input;
 				break;
-			
-			
+
+
 			// Downloads UI tags
 			case "hasdownloads":
 			case "has-downloads": return (!empty($this->downloads)); break;
@@ -891,7 +891,7 @@ class Customer extends DatabaseObject {
 					reset($this->downloads);
 					$this->_dowload_looping = true;
 				} else next($this->downloads);
-			
+
 				if (current($this->downloads) !== false) return true;
 				else {
 					unset($this->_dowload_looping);
@@ -919,10 +919,10 @@ class Customer extends DatabaseObject {
 					$string .= SHOPP_PRETTYURLS?
 						shoppurl("download/$download->dkey"):
 						shoppurl(array('shopp_download'=>$download->dkey),'account');
-				
+
 				return $string;
 				break;
-				
+
 			// Downloads UI tags
 			case "haspurchases":
 			case "has-purchases":
@@ -971,44 +971,44 @@ class CustomersExport {
 	var $extension = "txt";
 	var $set = 0;
 	var $limit = 1024;
-	
+
 	function CustomersExport () {
 		global $Shopp;
-		
+
 		$this->customer_cols = Customer::exportcolumns();
 		$this->billing_cols = Billing::exportcolumns();
 		$this->shipping_cols = Shipping::exportcolumns();
 		$this->defined = array_merge($this->customer_cols,$this->billing_cols,$this->shipping_cols);
-		
+
 		$this->sitename = get_bloginfo('name');
 		$this->headings = ($Shopp->Settings->get('customerexport_headers') == "on");
 		$this->selected = $Shopp->Settings->get('customerexport_columns');
 		$Shopp->Settings->save('customerexport_lastexport',mktime());
 	}
-	
+
 	function query ($request=array()) {
 		$db =& DB::get();
 		if (empty($request)) $request = $_GET;
-		
+
 		if (!empty($request['start'])) {
 			list($month,$day,$year) = explode("/",$request['start']);
 			$starts = mktime(0,0,0,$month,$day,$year);
 		}
-		
+
 		if (!empty($request['end'])) {
 			list($month,$day,$year) = explode("/",$request['end']);
 			$ends = mktime(0,0,0,$month,$day,$year);
 		}
-		
+
 		$where = "WHERE c.id IS NOT NULL ";
 		if (isset($request['s']) && !empty($request['s'])) $where .= " AND (id='{$request['s']}' OR firstname LIKE '%{$request['s']}%' OR lastname LIKE '%{$request['s']}%' OR CONCAT(firstname,' ',lastname) LIKE '%{$request['s']}%' OR transactionid LIKE '%{$request['s']}%')";
 		if (!empty($request['start']) && !empty($request['end'])) $where .= " AND  (UNIX_TIMESTAMP(c.created) >= $starts AND UNIX_TIMESTAMP(c.created) <= $ends)";
-		
+
 		$customer_table = DatabaseObject::tablename(Customer::$table);
 		$billing_table = DatabaseObject::tablename(Billing::$table);
 		$shipping_table = DatabaseObject::tablename(Shipping::$table);
 		$offset = $this->set*$this->limit;
-		
+
 		$c = 0; $columns = array();
 		foreach ($this->selected as $column) $columns[] = "$column AS col".$c++;
 		$query = "SELECT ".join(",",$columns)." FROM $customer_table AS c LEFT JOIN $billing_table AS b ON c.id=b.customer LEFT JOIN $shipping_table AS s ON c.id=s.customer $where ORDER BY c.created ASC LIMIT $offset,$this->limit";
@@ -1030,15 +1030,15 @@ class CustomersExport {
 		$this->records();
 		$this->end();
 	}
-	
+
 	function begin() {}
-	
+
 	function heading () {
 		foreach ($this->selected as $name)
 			$this->export($this->defined[$name]);
 		$this->record();
 	}
-	
+
 	function records () {
 		while (!empty($this->data)) {
 			foreach ($this->data as $key => $record) {
@@ -1050,7 +1050,7 @@ class CustomersExport {
 			$this->query();
 		}
 	}
-	
+
 	function parse ($column) {
 		if (preg_match("/^[sibNaO](?:\:.+?\{.*\}$|\:.+;$|;$)/",$column)) {
 			$list = unserialize($column);
@@ -1062,18 +1062,18 @@ class CustomersExport {
 	}
 
 	function end() {}
-	
+
 	// Implement for exporting a single value
 	function export ($value) {
 		echo ($this->recordstart?"":"\t").$value;
 		$this->recordstart = false;
 	}
-	
+
 	function record () {
 		echo "\n";
 		$this->recordstart = true;
 	}
-	
+
 }
 
 class CustomersTabExport extends CustomersExport {
@@ -1090,14 +1090,14 @@ class CustomersCSVExport extends CustomersExport {
 		$this->extension = "csv";
 		$this->output();
 	}
-	
+
 	function export ($value) {
 		$value = str_replace('"','""',$value);
 		if (preg_match('/^\s|[,"\n\r]|\s$/',$value)) $value = '"'.$value.'"';
 		echo ($this->recordstart?"":",").$value;
 		$this->recordstart = false;
 	}
-	
+
 }
 
 class CustomersXLSExport extends CustomersExport {
@@ -1108,15 +1108,15 @@ class CustomersXLSExport extends CustomersExport {
 		$this->c = 0; $this->r = 0;
 		$this->output();
 	}
-	
+
 	function begin () {
 		echo pack("ssssss", 0x809, 0x8, 0x0, 0x10, 0x0, 0x0);
 	}
-	
+
 	function end () {
 		echo pack("ss", 0x0A, 0x00);
 	}
-	
+
 	function export ($value) {
 		if (preg_match('/^[\d\.]+$/',$value)) {
 		 	echo pack("sssss", 0x203, 14, $this->r, $this->c, 0x0);
@@ -1128,7 +1128,7 @@ class CustomersXLSExport extends CustomersExport {
 		}
 		$this->c++;
 	}
-	
+
 	function record () {
 		$this->c = 0;
 		$this->r++;
@@ -1148,13 +1148,13 @@ class CustomerAccountPage {
 	var $request = "";
 	var $label = "";
 	var $handler = false;
-	
+
 	function __construct ($request,$label,$handler) {
 		$this->request = $request;
 		$this->label = $label;
 		$this->handler = $handler;
 	}
-	
+
 } // END class CustomerAccountPage
 
 ?>

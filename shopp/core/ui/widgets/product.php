@@ -10,17 +10,17 @@
  **/
 
 if (class_exists('WP_Widget')) {
-	
+
 class ShoppProductWidget extends WP_Widget {
 
     function ShoppProductWidget() {
-        parent::WP_Widget(false, 
-			$name = __('Shopp Product','Shopp'), 
+        parent::WP_Widget(false,
+			$name = __('Shopp Product','Shopp'),
 			array('description' => __('Highlight specific store products','Shopp'))
-		);	
+		);
     }
 
-    function widget($args, $options) {		
+    function widget($args, $options) {
 		global $Shopp;
 		extract($args);
 
@@ -31,18 +31,18 @@ class ShoppProductWidget extends WP_Widget {
 		echo $before_widget.$title.$content.$after_widget;
     }
 
-    function update($new_instance, $old_instance) {				
+    function update($new_instance, $old_instance) {
         return $new_instance;
     }
 
-    function form($options) {				
+    function form($options) {
 		?>
 		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>
-		
+
 		<p><select id="<?php echo $this->get_field_id('source'); ?>" name="<?php echo $this->get_field_name('source'); ?>" class="widefat"><option value="category"<?php echo $options['source'] == "category"?' selected="selected"':''; ?>><?php _e('From a category','Shopp'); ?></option><option value="product"<?php echo $options['source'] == "product"?' selected="selected"':''; ?>><?php _e('By product','Shopp'); ?></option></select></p>
 
-		<?php 
+		<?php
 			if (SHOPP_PRETTYURLS) $label = __('Category Slug/ID','Shopp');
 			else $label = __('Category ID','Shopp');
 		 ?>
@@ -69,8 +69,8 @@ class ShoppProductWidget extends WP_Widget {
 			</select>
 			<label for="<?php echo $this->get_field_id('order'); ?>"><?php _e('products','Shopp'); ?></label>
 		</p>
-		
-		<?php 
+
+		<?php
 			if (SHOPP_PRETTYURLS) $label = __('Product Slug/ID(s)','Shopp');
 			else $label = __('Product ID(s)','Shopp');
 		 ?>
@@ -78,7 +78,7 @@ class ShoppProductWidget extends WP_Widget {
 			<label for="<?php echo $this->get_field_id('product'); ?>"><?php echo $label; ?></label>
 			<input type="text" name="<?php echo $this->get_field_name('product'); ?>" id="<?php echo $this->get_field_id('product'); ?>" class="widefat" value="<?php echo $options['product']; ?>">
 			<small><?php _e('Use commas to specify multiple products','Shopp')?></small></p>
-		
+
 		<script type="text/javascript">
 		(function($) {
 			$(window).ready(function () {
@@ -105,3 +105,4 @@ class ShoppProductWidget extends WP_Widget {
 register_widget('ShoppProductWidget');
 
 }
+?>
