@@ -10,17 +10,17 @@
  **/
 
 if (class_exists('WP_Widget')) {
-	
+
 class ShoppFacetedMenuWidget extends WP_Widget {
 
     function ShoppFacetedMenuWidget() {
-        parent::WP_Widget(false, 
-			$name = __('Shopp Faceted Menu','Shopp'), 
+        parent::WP_Widget(false,
+			$name = __('Shopp Faceted Menu','Shopp'),
 			array('description' => __('Category products drill-down search menu','Shopp'))
 		);
     }
 
-    function widget($args, $options) {		
+    function widget($args, $options) {
 		global $Shopp;
 		if (!empty($args)) extract($args);
 
@@ -29,15 +29,15 @@ class ShoppFacetedMenuWidget extends WP_Widget {
 
 		if (!empty($Shopp->Category->id) && $Shopp->Category->facetedmenus == "on") {
 			$menu = $Shopp->Category->tag('faceted-menu',$options);
-			echo $before_widget.$title.$menu.$after_widget;			
+			echo $before_widget.$title.$menu.$after_widget;
 		}
     }
 
-    function update($new_instance, $old_instance) {				
+    function update($new_instance, $old_instance) {
         return $new_instance;
     }
 
-    function form($options) {				
+    function form($options) {
 		?>
 		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>
@@ -49,3 +49,4 @@ class ShoppFacetedMenuWidget extends WP_Widget {
 register_widget('ShoppFacetedMenuWidget');
 
 }
+?>

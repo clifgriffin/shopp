@@ -19,7 +19,7 @@
  * @author Jonathan Davis
  **/
 class Service extends AdminController {
-	
+
 	/**
 	 * Service constructor
 	 *
@@ -35,12 +35,12 @@ class Service extends AdminController {
 			add_action('load-toplevel_page_shopp-orders',array(&$this,'workflow'));
 			add_action('load-toplevel_page_shopp-orders',array(&$this,'layout'));
 			do_action('shopp_order_management_scripts');
-			
+
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		do_action('shopp_order_admin_scripts');
 
 	}
-	
+
 	/**
 	 * admin
 	 *
@@ -51,7 +51,7 @@ class Service extends AdminController {
 		if (!empty($_GET['id'])) $this->manager();
 		else $this->orders();
 	}
-	
+
 	function workflow () {
 		global $Shopp;
 		if (preg_match("/\d+/",$_GET['id'])) {
@@ -87,10 +87,10 @@ class Service extends AdminController {
 			'startdate' => '',
 			'enddate' => '',
 		);
-		
+
 		$args = array_merge($defaults,$_GET);
 		extract($args, EXTR_SKIP);
-		
+
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_orders')) )
 			wp_die(__('You do not have sufficient permissions to access this page.','Shopp'));
 
@@ -130,7 +130,7 @@ class Service extends AdminController {
 		}
 
 		$Purchase = new Purchase();
-		
+
 		if (!empty($start)) {
 			$startdate = $start;
 			list($month,$day,$year) = explode("/",$startdate);
@@ -148,10 +148,10 @@ class Service extends AdminController {
 		if( !$per_page || $per_page < 0 )
 			$per_page = 20;
 		$start = ($per_page * ($pagenum-1));
-		
+
 		$where = '';
 		if (!empty($status) || $status === '0') $where = "WHERE status='$status'";
-		
+
 		if (!empty($s)) {
 			$s = stripslashes($s);
 			if (preg_match_all('/(\w+?)\:(?="(.+?)"|(.+?)\b)/',$s,$props,PREG_SET_ORDER) > 0) {
@@ -189,7 +189,7 @@ class Service extends AdminController {
 			'total' => $num_pages,
 			'current' => $pagenum
 		));
-		
+
 		$ranges = array(
 			'all' => __('Show All Orders','Shopp'),
 			'today' => __('Today','Shopp'),
@@ -207,24 +207,24 @@ class Service extends AdminController {
 			'lastexport' => __('Last Export','Shopp'),
 			'custom' => __('Custom Dates','Shopp')
 			);
-		
+
 		$exports = array(
 			'tab' => __('Tab-separated.txt','Shopp'),
 			'csv' => __('Comma-separated.csv','Shopp'),
 			'xls' => __('Microsoft&reg; Excel.xls','Shopp'),
 			'iif' => __('Intuit&reg; QuickBooks.iif','Shopp')
 			);
-		
+
 		$formatPref = $Shopp->Settings->get('purchaselog_format');
 		if (!$formatPref) $formatPref = 'tab';
-		
+
 		$columns = array_merge(Purchase::exportcolumns(),Purchased::exportcolumns());
 		$selected = $Shopp->Settings->get('purchaselog_columns');
 		if (empty($selected)) $selected = array_keys($columns);
-		
+
 		include(SHOPP_ADMIN_PATH."/orders/orders.php");
 	}
-	
+
 	/**
 	 * Registers the column headers for the orders list interface
 	 *
@@ -246,7 +246,7 @@ class Service extends AdminController {
 			'total'=>__('Total','Shopp'))
 		);
 	}
-	
+
 	/**
 	 * Provides overall layout for the order manager interface
 	 *
@@ -262,7 +262,7 @@ class Service extends AdminController {
 		$Admin =& $Shopp->Flow->Admin;
 		include(SHOPP_ADMIN_PATH."/orders/ui.php");
 	}
-	
+
 	/**
 	 * Interface processor for the order manager
 	 *
@@ -304,27 +304,27 @@ class Service extends AdminController {
 			$Note->save();
 		}
 		$Notes = new ObjectMeta($Purchase->id,'purchase','order_note');
-		
+
 		if (!empty($_POST['update'])) {
 			check_admin_referer('shopp-save-order');
-			
+
 			if ($_POST['txnstatus'] != $Purchase->txnstatus)
 				do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['txnstatus'],&$Purchase));
-				
-			
+
+
 			$Purchase->updates($_POST);
-			
+
 			$mailstatus = false;
 			if ($_POST['notify'] == "yes") {
 				$labels = $this->Settings->get('order_status');
 				// Save a reference to this purchase in Shopp
 				// so the Template API works when generating the receipt
 				$Shopp->Purchase =& $Purchase;
-				
+
 				// Send the e-mail notification
 				$addressee = "$Purchase->firstname $Purchase->lastname";
 				$address = "$Purchase->email";
-				
+
 				$email = array();
 				$email['from'] = '"'.get_bloginfo("name").'"';
 				if ($Shopp->Settings->get('merchant_email'))
@@ -345,22 +345,22 @@ class Service extends AdminController {
 				if (file_exists(SHOPP_TEMPLATES."/notify.php")) $template = SHOPP_TEMPLATES."/notify.php";
 
 				if (shopp_email($template,$email)) $mailsent = true;
-				
+
 			}
-			
+
 			$Purchase->save();
 			if ($mailsent) $updated = __('Order status updated & notification email sent.','Shopp');
 			else $updated = __('Order status updated.','Shopp');
 		}
-		
+
 		$targets = $this->Settings->get('target_markets');
 		$UI->txnStatusLabels = Lookup::payment_status_labels();
 		$UI->statusLabels = $this->Settings->get('order_status');
 		if (empty($statusLabels)) $statusLabels = array('');
-						
+
 		include(SHOPP_ADMIN_PATH."/orders/order.php");
 	}
-	
+
 	/**
 	 * Retrieves the number of orders in each customized order status label
 	 *
@@ -369,7 +369,7 @@ class Service extends AdminController {
 	 **/
 	function status_counts () {
 		$db = DB::get();
-		
+
 		$table = DatabaseObject::tablename(Purchase::$table);
 		$labels = $this->Settings->get('order_status');
 
@@ -389,10 +389,10 @@ class Service extends AdminController {
 			}
 			$status[$id] = $_;
 		}
-		
+
 		return $status;
 	}
-	
+
 } // END class Service
 
 ?>

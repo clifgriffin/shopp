@@ -10,17 +10,17 @@
  **/
 
 if (class_exists('WP_Widget')) {
-	
+
 class ShoppCartWidget extends WP_Widget {
 
     function ShoppCartWidget() {
-        parent::WP_Widget(false, 
-			$name = __('Shopp Cart','Shopp'), 
+        parent::WP_Widget(false,
+			$name = __('Shopp Cart','Shopp'),
 			array('description' => __('The customer\'s shopping cart','Shopp'))
 		);
     }
 
-    function widget($args, $options) {		
+    function widget($args, $options) {
 		global $Shopp;
 		if (!empty($args)) extract($args);
 
@@ -31,11 +31,11 @@ class ShoppCartWidget extends WP_Widget {
 		echo $before_widget.$title.$sidecart.$after_widget;
     }
 
-    function update($new_instance, $old_instance) {				
+    function update($new_instance, $old_instance) {
         return $new_instance;
     }
 
-    function form($options) {				
+    function form($options) {
 		?>
 		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>
@@ -47,3 +47,4 @@ class ShoppCartWidget extends WP_Widget {
 register_widget('ShoppCartWidget');
 
 }
+?>

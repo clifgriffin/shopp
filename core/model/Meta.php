@@ -22,10 +22,10 @@
  **/
 class MetaObject extends DatabaseObject {
 	static $table = "meta";
-	
+
 	var $context = 'product';
 	var $type = 'meta';
-	
+
 	/**
 	 * Meta constructor
 	 *
@@ -37,7 +37,7 @@ class MetaObject extends DatabaseObject {
 		$this->init(self::$table);
 		$this->load($id,$key);
 	}
-	
+
 } // END class Meta
 
 /**
@@ -61,19 +61,19 @@ abstract class MetasetObject extends DatabaseObject {
 	var $_type = false;		// Type (class) of object
 
 	var $id = false;		// The root record for the set
-	
+
 	function __construct ($id=false,$key='id') {
 		$this->init(self::$table);
 		$this->load($id,$key);
 	}
-	
+
 	function init () {
 		$this->_table = DatabaseObject::tablename(MetasetObject::$table);
 		$this->_type = get_class($this);
 		$properties = array_keys(get_object_vars($this));
 		$this->_properties = array_filter($properties,array('MetasetObject','_ignore_'));
 	}
-	
+
 	function load () {
 		$db = &DB::get();
 
@@ -83,9 +83,9 @@ abstract class MetasetObject extends DatabaseObject {
 			foreach ($args[0] as $key => $id)
 				$where .= ($where == ""?"":" AND ")."$key='".$db->escape($id)."'";
 		} else $where = "{$args[1]}='{$args[0]}' OR (parent={$args[0]} AND context='meta')";
-		
+
 		$r = $db->query("SELECT * FROM $this->_table WHERE $where",AS_ARRAY);
-		
+
 		foreach ($r as $row) {
 			$meta = new MetaObject();
 			$meta->populate($row,'',array());
@@ -95,15 +95,15 @@ abstract class MetasetObject extends DatabaseObject {
 			$property = $meta->name;
 			if ($property[0] != "_" && in_array($property,$this->_properties))
 				$this->{$property} = $meta->value;
-			
+
 		}
-		
+
 		if (count($row) == 0) $this->_loaded = false;
 		$this->_loaded = true;
 
 		return $this->loaded;
 	}
-	
+
 	/**
 	 * Saves updates or creates records for the defined object properties
 	 *
@@ -114,7 +114,7 @@ abstract class MetasetObject extends DatabaseObject {
 	 **/
 	function save () {
 		$db = &DB::get();
-		
+
 		if (empty($this->id)) {
 			$meta = new MetaObject();
 			$meta->parent = 0;
@@ -126,7 +126,7 @@ abstract class MetasetObject extends DatabaseObject {
 			$this->id = $meta->value;
 			$this->_meta['id'] = $meta;
 		}
-		
+
 		// Go through each data property of the object
 		foreach(get_object_vars($this) as $property => $value) {
 			if ($property[0] == "_") continue; // Skip mapping properties
@@ -141,9 +141,9 @@ abstract class MetasetObject extends DatabaseObject {
 			} else $this->_meta[$property]->value = $value;
 			$this->_meta[$property]->save();
 		}
-		
+
 	}
-		
+
 	/**
 	 * Deletes the entire set of meta entries for the combined record
 	 *
@@ -159,11 +159,11 @@ abstract class MetasetObject extends DatabaseObject {
 			return $db->query("DELETE FROM $this->_table WHERE (id='$this->_parent' AND parent=0 AND context='$this->_meta') OR (parent='$this->_parent' AND context='$this->_meta')");
 		else return false;
 	}
-	
+
 	function _ignore_ ($property) {
 		return ($property[0] != "_");
 	}
-	
+
 }
 
 /**
@@ -182,19 +182,19 @@ class ObjectMeta {
 	var $_loaded = false;
 	var $meta = array();
 	var $named = array();
-	
+
 	function __construct ($parent=false,$context='product',$type=false,$sort='sortorder') {
 		$this->_table = DatabaseObject::tablename(self::$table);
-		
+
 		$params = array(
 			'parent' => $parent,
 			'context' => $context
 		);
-		
+
 		if ($type !== false) $params['type'] = $type;
 		if ($parent !== false) $this->load($params);
 	}
-	
+
 	function load () {
 		$db = &DB::get();
 
@@ -211,22 +211,22 @@ class ObjectMeta {
 		foreach ($r as $row) {
 			$meta = new MetaObject();
 			$meta->populate($row,'',array());
-			
+
 			$this->meta[$meta->id] = $meta;
 			$this->named[$meta->name] =& $this->meta[$meta->id];
 		}
-		
+
 		if (isset($row) && count($row) == 0) $this->_loaded = false;
 		$this->_loaded = true;
 
 		return $this->_loaded;
 	}
-	
+
 	function is_empty () {
 		if (!$this->_loaded) return true;
 		return (empty($this->meta));
 	}
-	
+
 }
 
 ?>

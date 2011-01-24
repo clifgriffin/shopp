@@ -10,7 +10,7 @@
  **/
 
 if (class_exists('WP_Widget')) {
-	
+
 class ShoppCategorySectionWidget extends WP_Widget {
 
     function ShoppCategorySectionWidget() {
@@ -37,11 +37,11 @@ class ShoppCategorySectionWidget extends WP_Widget {
 
     function form($options) {
 		global $Shopp;
-		
+
 		?>
 		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>
-		
+
 		<p>
 		<input type="hidden" name="<?php echo $this->get_field_name('dropdown'); ?>" value="off" /><input type="checkbox" id="<?php echo $this->get_field_id('dropdown'); ?>" name="<?php echo $this->get_field_name('dropdown'); ?>" value="on"<?php echo $options['dropdown'] == "on"?' checked="checked"':''; ?> /><label for="<?php echo $this->get_field_id('dropdown'); ?>"> <?php _e('Show as dropdown','Shopp'); ?></label><br />
 		<input type="hidden" name="<?php echo $this->get_field_name('products'); ?>" value="off" /><input type="checkbox" id="<?php echo $this->get_field_id('products'); ?>" name="<?php echo $this->get_field_name('products'); ?>" value="on"<?php echo $options['products'] == "on"?' checked="checked"':''; ?> /><label for="<?php echo $this->get_field_id('products'); ?>"> <?php _e('Show product counts','Shopp'); ?></label><br />
@@ -55,3 +55,4 @@ class ShoppCategorySectionWidget extends WP_Widget {
 register_widget('ShoppCategorySectionWidget');
 
 }
+?>

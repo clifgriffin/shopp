@@ -18,7 +18,7 @@ class Settings extends DatabaseObject {
 	var $registry = array();	// Registry of setting objects
 	var $available = true;		// Flag when database tables don't exist
 	var $_table = "";			// The table name
-	
+
 	/**
 	 * Settings object constructor
 	 *
@@ -36,7 +36,7 @@ class Settings extends DatabaseObject {
 		if (!$this->load($name))	// If no settings are loaded
 			$this->availability();	// update the Shopp tables availability status
 	}
-	
+
 	/**
 	 * Update the availability status of the settings database table
 	 *
@@ -49,7 +49,7 @@ class Settings extends DatabaseObject {
 		$this->available = $this->init('setting');
 		return $this->available;
 	}
-	
+
 	/**
 	 * Load settings from the database
 	 *
@@ -66,14 +66,14 @@ class Settings extends DatabaseObject {
 		$db = DB::get();
 		if (!empty($name)) $results = $db->query("SELECT name,value FROM $this->_table WHERE name='$name'",AS_ARRAY,false);
 		else $results = $db->query("SELECT name,value FROM $this->_table WHERE autoload='on'",AS_ARRAY,false);
-		
+
 		if (!is_array($results) || sizeof($results) == 0) return false;
 		while(list($key,$entry) = each($results)) $settings[$entry->name] = $this->restore($entry->value);
 
 		if (!empty($settings)) $this->registry = array_merge($this->registry,$settings);
 		return true;
 	}
-	
+
 	/**
 	 * Add a new setting to the registry and store it in the database
 	 *
@@ -121,13 +121,13 @@ class Settings extends DatabaseObject {
 		unset($Setting->autoload);
 		$data = $db->prepare($Setting);				// Prepare the data for db entry
 		$dataset = DatabaseObject::dataset($data);	// Format the data in SQL
-		
+
 		if ($db->query("UPDATE $this->_table SET $dataset WHERE name='$Setting->name'"))
 			$this->registry[$name] = $this->restore($value); // Update the value in the registry
 		else return false;
 		return true;
 	}
-	
+
 	/**
 	 * Save a setting to the database
 	 *
@@ -164,7 +164,7 @@ class Settings extends DatabaseObject {
 	function setup ($name,$value,$autoload=true) {
 		if ($this->get($name) === false) $this->add($name,$value,$autoload);
 	}
-	
+
 	/**
 	 * Remove a setting from the registry and the database
 	 *
@@ -180,7 +180,7 @@ class Settings extends DatabaseObject {
 		if (!$db->query("DELETE FROM $this->_table WHERE name='$name'")) return false;
 		return true;
 	}
-	
+
 	/**
 	 * Get a specific setting from the registry
 	 *
@@ -201,17 +201,17 @@ class Settings extends DatabaseObject {
 		} elseif ($this->load($name)) {
 			$value = $this->registry[$name];
 		}
-		
+
 		// Return false and add an entry to the registry
 		// to avoid repeat database queries
 		if (!isset($this->registry[$name])) {
 			$this->registry[$name] = false;
 			return false;
 		}
-		
+
 		return $value;
 	}
-	
+
 	/**
 	 * Restores a serialized value to a runtime object/structure
 	 *
@@ -232,7 +232,7 @@ class Settings extends DatabaseObject {
 		}
 		return $value;
 	}
-	
+
 	/**
 	 * Provides a blank setting object template
 	 *
@@ -251,7 +251,7 @@ class Settings extends DatabaseObject {
 		$setting->modified = null;
 		return $setting;
 	}
-	
+
 	/**
 	 * Automatically collect and save settings from a POST form
 	 *
@@ -265,7 +265,7 @@ class Settings extends DatabaseObject {
 		foreach ($_POST['settings'] as $setting => $value)
 			$this->save($setting,$value);
 	}
-	
+
 } // END class Settings
 
 /**

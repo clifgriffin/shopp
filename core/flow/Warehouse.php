@@ -12,7 +12,7 @@
  **/
 
 class Warehouse extends AdminController {
-	
+
 	/**
 	 * Store constructor
 	 *
@@ -30,7 +30,7 @@ class Warehouse extends AdminController {
 				wp_enqueue_script('quicktags');
 				add_action( 'admin_print_footer_scripts', 'wp_tiny_mce', 20 );
 			}
-			
+
 			shopp_enqueue_script('colorbox');
 			shopp_enqueue_script('editors');
 			shopp_enqueue_script('scalecrop');
@@ -48,13 +48,13 @@ class Warehouse extends AdminController {
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
 		do_action('shopp_product_admin_scripts');
-		
+
 		// Load the search model for indexing
 		require_once(SHOPP_MODEL_PATH."/Search.php");
 		new ContentParser();
 		add_action('shopp_product_saved',array(&$this,'index'),99,1);
 	}
-	
+
 	/**
 	 * Parses admin requests to determine which interface to display
 	 *
@@ -91,7 +91,7 @@ class Warehouse extends AdminController {
 		if (!defined('WP_ADMIN') || !isset($page)
 			|| $page != $this->Admin->pagename('products'))
 				return false;
-		
+
 		$adminurl = admin_url('admin.php');
 
 
@@ -106,7 +106,7 @@ class Warehouse extends AdminController {
 			$redirect = esc_url(add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
 			shopp_redirect($redirect);
 		}
-		
+
 		if ($duplicate) {
 			$Product = new Product($duplicate);
 			$Product->duplicate();
@@ -120,11 +120,11 @@ class Warehouse extends AdminController {
 			$Shopp->Product = new Product();
 			$Shopp->Product->status = "publish";
 		}
-		
+
 		if ($save) {
 			$this->save_product($Shopp->Product);
 			$this->Notice = '<strong>'.stripslashes($Shopp->Product->name).'</strong> '.__('has been saved.','Shopp');
-			
+
 			if ($next) {
 				if ($next == "new") {
 					$Shopp->Product = new Product();
@@ -139,7 +139,7 @@ class Warehouse extends AdminController {
 				$Shopp->Product->load_data(array('prices','specs','categories','tags'));
 			}
 		}
-				
+
 	}
 
 	/**
@@ -165,19 +165,19 @@ class Warehouse extends AdminController {
 			'matchcol' => '',
 			'f' => ''
 			);
-		
+
 		$args = array_merge($defaults,$_GET);
 		extract($args,EXTR_SKIP);
 
 		if (!$workflow) {
 			if (empty($categories)) $categories = array('');
-		
+
 			$category_table = DatabaseObject::tablename(Category::$table);
 			$query = "SELECT id,name,parent FROM $category_table ORDER BY parent,name";
 			$categories = $db->query($query,AS_ARRAY);
 			$categories = sort_tree($categories);
 			if (empty($categories)) $categories = array();
-		
+
 			$categories_menu = '<option value="">'.__('View all categories','Shopp').'</option>';
 			$categories_menu .= '<option value="-"'.($cat=='-'?' selected="selected"':'').'>'.__('Uncategorized','Shopp').'</option>';
 			foreach ($categories as $category) {
@@ -194,7 +194,7 @@ class Warehouse extends AdminController {
 			);
 			$inventory_menu = menuoptions($inventory_filters,$sl,true);
 		}
-		
+
 		$subfilters = array('f' => 'featured','p' => 'published','s' => 'onsale','i' => 'inventory');
 		$subs = array(
 			'all' => array('label' => __('All','Shopp'),'columns' => "count(distinct pd.id) AS total",'where'=>'true'),
@@ -203,23 +203,23 @@ class Warehouse extends AdminController {
 			'featured' => array('label' => __('Featured','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.featured='on'",'request' => 'f'),
 			'inventory' => array('label' => __('Inventory','Shopp'),'total' => 0,'columns' => "count(distinct pt.id) AS total",'where'=>"pt.inventory='on' AND pt.type!='N/A'",'grouping'=>'pt.id','request' => 'i')
 		);
-		
+
 		if ('i' == $f) $per_page = 50;
-		
+
 		$pagenum = absint( $pagenum );
 		if ( empty($pagenum) )
 			$pagenum = 1;
 		if( !$per_page || $per_page < 0 )
 			$per_page = 20;
 		$start = ($per_page * ($pagenum-1));
-		
+
 		$pd = DatabaseObject::tablename(Product::$table);
 		$pt = DatabaseObject::tablename(Price::$table);
 		$catt = DatabaseObject::tablename(Category::$table);
 		$clog = DatabaseObject::tablename(Catalog::$table);
 
 		$orderby = "pd.created DESC";
-		
+
 		$where = "true";
 		$having = "";
 		if (!empty($s)) {
@@ -252,13 +252,13 @@ class Warehouse extends AdminController {
 				case "is": $where .= " AND (pt.inventory='on' AND pt.stock > 0)";
 			}
 		}
-		
+
 		if (!empty($f))	$where .= " AND ".$subs[$subfilters[$f]]['where'];
 
 		$base = $Settings->get('base_operations');
 		if ($base['vat']) $taxrate = shopp_taxrate();
 		if (empty($taxrate)) $taxrate = 0;
-		
+
 		if ('i' == $f) {
 			$columns = "SQL_CALC_FOUND_ROWS pt.id,pd.id as product,pd.name,pd.slug,pt.label,pt.optionkey,pt.stock,pt.sku";
 
@@ -266,7 +266,7 @@ class Warehouse extends AdminController {
 			$query = "SELECT $columns $matchcol FROM $pt AS pt LEFT JOIN $pd AS pd ON pd.id=pt.product LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pt.id $having ORDER BY pd.id,pt.sortorder LIMIT $start,$per_page";
 			$Products = $db->query($query,AS_ARRAY);
 			$productcount = $db->query("SELECT FOUND_ROWS() as total");
-			
+
 		} else {
 			$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,pd.variations,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories,
 			IF(pt.options=0,IF(pt.tax='off',pt.price,pt.price+(pt.price*$taxrate)),-1) AS mainprice,
@@ -279,26 +279,26 @@ class Warehouse extends AdminController {
 			// Load the products
 			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' AND pt.context != 'addon' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
 			$Products = $db->query($query,AS_ARRAY);
-			
+
 			$productcount = $db->query("SELECT FOUND_ROWS() as total");
-			
+
 		}
-				
+
 		foreach ($subs as $name => &$subquery) {
 			if ($name == "all") { $subquery['total'] = (int)$productcount->total; continue; }
 			$columns = $subquery['columns'];
 			if (!empty($f)) $where = str_replace(" AND ".$subs[$subfilters[$f]]['where'],"",$where);
 			$w = ($where == "true")?$subquery['where']:"$where AND ({$subquery['where']})";
 			$category_join = (strpos($w,"type='category'") !== false)?"LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category'":"";
-			
+
 			$grouping = "GROUP BY ".(isset($subquery['grouping'])?$subquery['grouping']:"pd.id");
-			
+
 			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' $category_join WHERE $w $grouping $having";
 			$db->query($query);
 			$found = $db->query("SELECT FOUND_ROWS() as total");
-			
+
 			if (isset($found->total)) $subquery['total'] = number_format((int)$found->total);
-			
+
 		}
 
 		$num_pages = ceil($productcount->total / $per_page);
@@ -315,7 +315,7 @@ class Warehouse extends AdminController {
 		}
 
 		if ($workflow) return $Products;
-		
+
 		include(SHOPP_ADMIN_PATH."/products/products.php");
 	}
 
@@ -335,7 +335,7 @@ class Warehouse extends AdminController {
 			'featured'=>__('Featured','Shopp'))
 		);
 	}
-	
+
 	function inventory_cols () {
 		register_column_headers('shopp_page_shopp-products', array(
 			'inventory'=>__('Inventory','Shopp'),
@@ -343,7 +343,7 @@ class Warehouse extends AdminController {
 			'name'=>__('Name','Shopp'))
 		);
 	}
-		
+
 	/**
 	 * Provides overall layout for the product editor interface
 	 *
@@ -368,9 +368,9 @@ class Warehouse extends AdminController {
 	 **/
 	function editor () {
 		global $Shopp,$ProductImages;
-		
+
 		$db = DB::get();
-		
+
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_products')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
@@ -378,10 +378,10 @@ class Warehouse extends AdminController {
 			$Product = new Product();
 			$Product->status = "publish";
 		} else $Product = $Shopp->Product;
-		
+
 		// $Product->load_data(array('images'));
 		// echo "<pre>"; print_r($Product->imagesets); echo "</pre>";
-		
+
 		$Product->slug = apply_filters('editable_slug',$Product->slug);
 		$permalink = trailingslashit(shoppurl());
 
@@ -396,7 +396,7 @@ class Warehouse extends AdminController {
 			array('value'=>'Donation','label'=>__('Donation','Shopp')),
 			array('value'=>'N/A','label'=>__('Disabled','Shopp')),
 		);
-		
+
 		$workflows = array(
 			"continue" => __('Continue Editing','Shopp'),
 			"close" => __('Products Manager','Shopp'),
@@ -404,22 +404,22 @@ class Warehouse extends AdminController {
 			"next" => __('Edit Next','Shopp'),
 			"previous" => __('Edit Previous','Shopp')
 			);
-		
+
 		$taglist = array();
 		foreach ($Product->tags as $tag) $taglist[] = $tag->name;
 
 		if ($Product->id) {
-			
+
 			$ProductImage = new ProductImage();
 			$results = $db->query("SELECT * FROM $ProductImage->_table WHERE context='product' AND parent=$Product->id AND type='image' ORDER BY sortorder",AS_ARRAY);
-			
+
 			$ProductImages = array();
 			foreach ((array)$results as $i => $image) {
 				$image->value = unserialize($image->value);
 				$ProductImages[$i] = new ProductImage();
 				$ProductImages[$i]->copydata($image,false,array());
 				$ProductImages[$i]->expopulate();
-				
+
 				// Load any cropped image cache
 				$cropped = $db->query("SELECT * FROM $ProductImage->_table WHERE context='image' AND type='image' AND parent='$image->id' AND '2'=SUBSTRING_INDEX(SUBSTRING_INDEX(name,'_',4),'_',-1)",AS_ARRAY);
 				foreach ((array)$cropped as $c => $cache) {
@@ -441,7 +441,7 @@ class Warehouse extends AdminController {
 
 		$process = (!empty($Product->id)?$Product->id:'new');
 		$_POST['action'] = add_query_arg(array_merge($_GET,array('page'=>$this->Admin->pagename('products'))),admin_url('admin.php'));
-		
+
 		include(SHOPP_ADMIN_PATH."/products/editor.php");
 
 	}
@@ -474,7 +474,7 @@ class Warehouse extends AdminController {
 		else $_POST['options'] = stripslashes_deep($_POST['options']);
 
 		if (empty($Product->slug)) $Product->slug = sanitize_title_with_dashes($_POST['name']);
-		
+
 		// Check for an existing product slug
 		$exclude_product = !empty($Product->id)?"AND id != $Product->id":"";
 		$existing = $db->query("SELECT slug FROM $Product->_table WHERE slug='$Product->slug' $exclude_product LIMIT 1");
@@ -486,7 +486,7 @@ class Warehouse extends AdminController {
 			}
 			$Product->slug = $altslug;
 		}
-		
+
 		if ($_POST['status'] == "publish") {
 			$publishfields = array('month' => '','date' => '','year' => '','hour'=>'','minute'=>'','meridiem'=>'');
 			$publishdate = join('',array_merge($publishfields,$_POST['publish']));
@@ -503,7 +503,7 @@ class Warehouse extends AdminController {
 			unset($_POST['publish']);
 			$Product->publish = 0;
 		}
-		
+
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 
 		$Product->updates($_POST,array('categories','prices'));
@@ -511,7 +511,7 @@ class Warehouse extends AdminController {
 
 		$Product->save_categories($_POST['categories']);
 		$Product->save_tags(explode(",",$_POST['taglist']));
-		
+
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
 
 			// Delete prices that were marked for removal
@@ -519,7 +519,7 @@ class Warehouse extends AdminController {
 				$deletes = array();
 				if (strpos($_POST['deletePrices'],","))	$deletes = explode(',',$_POST['deletePrices']);
 				else $deletes = array($_POST['deletePrices']);
-			
+
 				foreach($deletes as $option) {
 					$Price = new Price($option);
 					$Price->delete();
@@ -572,12 +572,12 @@ class Warehouse extends AdminController {
 						$File->uri = $tmpfile;
 						$stored = true;
 					} else $stored = $File->store($tmpfile,'file');
-					
+
 					if ($stored) {
 						$File->readmeta();
 						$File->save();
 					}
-					
+
 				} // END attach file by path/uri
 			}
 			unset($Price);
@@ -596,7 +596,7 @@ class Warehouse extends AdminController {
 				}
 			}
 		}
-			
+
 		if (!empty($_POST['details']) || !empty($_POST['deletedSpecs'])) {
 			$deletes = array();
 			if (!empty($_POST['deletedSpecs'])) {
@@ -618,20 +618,20 @@ class Warehouse extends AdminController {
 						$spec['parent'] = $Product->id;
 					} else $Spec = new Spec($spec['id']);
 					$spec['sortorder'] = array_search($i,$_POST['details-sortorder'])+1;
-					
+
 					$Spec->updates($spec);
 					$Spec->save();
 				}
 			}
 		}
-		
+
 		if (!empty($_POST['deleteImages'])) {
 			$deletes = array();
 			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
 			else $deletes = array($_POST['deleteImages']);
 			$Product->delete_images($deletes);
 		}
-		
+
 		if (!empty($_POST['images']) && is_array($_POST['images'])) {
 			$Product->link_images($_POST['images']);
 			$Product->save_imageorder($_POST['images']);
@@ -640,11 +640,11 @@ class Warehouse extends AdminController {
 		}
 
 		do_action_ref_array('shopp_product_saved',array(&$Product));
-				
+
 		unset($Product);
 		return true;
 	}
-	
+
 	/**
 	 * AJAX behavior to process uploaded files intended as digital downloads
 	 *
@@ -658,10 +658,10 @@ class Warehouse extends AdminController {
 		$error = false;
 		if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
 		if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
-			
+
 		if (!is_uploaded_file($_FILES['Filedata']['tmp_name']))
 			die(json_encode(array("error" => __('The file could not be saved because the upload was not found on the server.','Shopp'))));
-			
+
 		if (!is_readable($_FILES['Filedata']['tmp_name']))
 			die(json_encode(array("error" => __('The file could not be saved because the web server does not have permission to read the upload.','Shopp'))));
 
@@ -679,12 +679,12 @@ class Warehouse extends AdminController {
 		$File->size = filesize($_FILES['Filedata']['tmp_name']);
 		$File->store($_FILES['Filedata']['tmp_name'],'upload');
 		$File->save();
-		
+
 		do_action('add_product_download',$File,$_FILES['Filedata']);
-		
+
 		echo json_encode(array("id"=>$File->id,"name"=>stripslashes($File->name),"type"=>$File->mime,"size"=>$File->size));
 	}
-	
+
 	/**
 	 * AJAX behavior to process uploaded images
 	 *
@@ -695,13 +695,13 @@ class Warehouse extends AdminController {
 	 **/
 	function images () {
 		$context = false;
-		
+
 		$error = false;
 		if (isset($_FILES['Filedata']['error'])) $error = $_FILES['Filedata']['error'];
 		if ($error) die(json_encode(array("error" => $this->uploadErrors[$error])));
 
 		require(SHOPP_PATH."/core/model/Image.php");
-		
+
 		if (isset($_REQUEST['type'])) {
 			$parent = $_REQUEST['parent'];
 			switch (strtolower($_REQUEST['type'])) {
@@ -713,13 +713,13 @@ class Warehouse extends AdminController {
 					break;
 			}
 		}
-		
+
 		if (!$context)
 			die(json_encode(array("error" => __('The file could not be saved because the server cannot tell whether to attach the asset to a product or a category.','Shopp'))));
-			
+
 		if (!is_uploaded_file($_FILES['Filedata']['tmp_name']))
 			die(json_encode(array("error" => __('The file could not be saved because the upload was not found on the server.','Shopp'))));
-			
+
 		if (!is_readable($_FILES['Filedata']['tmp_name']))
 			die(json_encode(array("error" => __('The file could not be saved because the web server does not have permission to read the upload from the server\'s temporary directory.','Shopp'))));
 
@@ -729,7 +729,7 @@ class Warehouse extends AdminController {
 		// Save the source image
 		if ($context == "category") $Image = new CategoryImage();
 		else $Image = new ProductImage();
-		
+
 		$Image->parent = $parent;
 		$Image->type = "image";
 		$Image->name = "original";
@@ -737,7 +737,7 @@ class Warehouse extends AdminController {
 		list($Image->width, $Image->height, $Image->mime, $Image->attr) = getimagesize($_FILES['Filedata']['tmp_name']);
 		$Image->mime = image_type_to_mime_type($Image->mime);
 		$Image->size = filesize($_FILES['Filedata']['tmp_name']);
-		
+
 		$Existing = new ImageAsset();
 		$Existing->uri = $Image->filename;
 		$limit = 100;
@@ -754,13 +754,13 @@ class Warehouse extends AdminController {
 		}
 		if ($Existing->uri !== $Image->filename)
 			$Image->filename = $Existing->uri;
-		
+
 		$Image->store($_FILES['Filedata']['tmp_name'],'upload');
 		$Image->save();
-		
+
 		if (empty($Image->id))
 			die(json_encode(array("error" => __('The image reference was not saved to the database.','Shopp'))));
-				
+
 		echo json_encode(array("id"=>$Image->id));
 	}
 
@@ -776,18 +776,18 @@ class Warehouse extends AdminController {
 		$catalog = DatabaseObject::tablename(Catalog::$table);
 		$category = DatabaseObject::tablename(Category::$table);
 		$products = DatabaseObject::tablename(Product::$table);
-		
+
 		if ($id == "catalog-products") {
 			$results = $db->query("SELECT p.id,p.name FROM $products AS p ORDER BY p.name ASC",AS_ARRAY);
 		} else $results = $db->query("SELECT p.id,p.name FROM $catalog AS catalog LEFT JOIN $category AS cat ON cat.id = catalog.parent AND catalog.type='category' LEFT JOIN $products AS p ON p.id=catalog.product WHERE cat.id='$id' ORDER BY p.name ASC",AS_ARRAY);
 		$products = array();
-		
+
 		$products[0] = __("Select a product&hellip;","Shopp");
 		foreach ($results as $result) $products[$result->id] = $result->name;
 		return menuoptions($products,0,true);
-		
+
 	}
-	
+
 	function index ($Product) {
 		$Indexer = new IndexProduct($Product->id);
 		$Indexer->index();

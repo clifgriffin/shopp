@@ -25,25 +25,25 @@ require_once( ABSPATH . WPINC . '/class.wp-dependencies.php' );
 require_once( ABSPATH . WPINC . '/class.wp-scripts.php' );
 
 class ShoppScripts extends WP_Scripts {
-	
+
 	function __construct() {
 		do_action_ref_array( 'shopp_default_scripts', array(&$this) );
 
 		add_action('wp_enqueue_scripts', array(&$this,'wp_dependencies'),1);
 		add_action('admin_head', array(&$this,'wp_dependencies'),1);
-		
+
 		add_action('wp_head', array(&$this,'print_head_scripts'),15);
 		add_action('admin_head', array(&$this,'print_head_scripts'),15);
 		add_action('wp_footer', array(&$this,'print_footer_scripts'),15);
 		add_action('admin_footer', array(&$this,'print_footer_scripts'),15);
 
 	}
-	
+
 	function do_item( $handle, $group = false ) {
 		if(parent::do_item($handle,$group))
 			$this->print_code .= $this->print_script_custom($handle);
 	}
-	
+
 	function print_head_scripts() {
 		global $concatenate_scripts;
 
@@ -60,7 +60,7 @@ class ShoppScripts extends WP_Scripts {
 		$this->reset();
 		return $this->done;
 	}
-	
+
 	function print_footer_scripts() {
 		global $concatenate_scripts;
 
@@ -78,15 +78,15 @@ class ShoppScripts extends WP_Scripts {
 		$this->reset();
 		return $this->done;
 	}
-	
+
 	function print_script_request () {
 		global $compress_scripts;
 		$Settings =& ShoppSettings();
-		
+
 		$zip = $compress_scripts ? 1 : 0;
 		if ( $zip && defined('ENFORCE_GZIP') && ENFORCE_GZIP )
 			$zip = 'gzip';
-			
+
 		if ( !empty($this->concat) ) {
 			$ver = md5("$this->concat_version");
 			if ($Settings->get('script_server') == 'plugin') {
@@ -95,7 +95,7 @@ class ShoppScripts extends WP_Scripts {
 			} else $src = $this->base_url . "scripts.php?c={$zip}&load=" . trim($this->concat, ', ') . "&ver=$ver";
 			echo "<script type='text/javascript' src='" . esc_attr($src) . "'></script>\n";
 		}
-		
+
 		if ( !empty($this->print_code) ) {
 			echo "<script type='text/javascript'>\n";
 			echo "/* <![CDATA[ */\n";
@@ -137,15 +137,15 @@ class ShoppScripts extends WP_Scripts {
 			return $data;
 		}
 	}
-	
-	
+
+
 	function all_deps( $handles, $recursion = false, $group = false ) {
 		$r = parent::all_deps( $handles, $recursion );
 		if ( !$recursion )
 			$this->to_do = apply_filters( 'shopp_print_scripts_array', $this->to_do );
 		return $r;
 	}
-	
+
 	function wp_dependencies () {
 		global $wp_scripts;
 
@@ -153,7 +153,7 @@ class ShoppScripts extends WP_Scripts {
 			$wp_scripts = new WP_Scripts();
 
 		$wpscripts = array_keys($wp_scripts->registered);
-		
+
 		$deps = array();
 		foreach ($this->queue as $handle) {
 			if (!isset($this->registered[$handle]) || !isset($this->registered[$handle]->deps)) continue;
@@ -161,16 +161,16 @@ class ShoppScripts extends WP_Scripts {
 			$mydep = array_diff($this->registered[$handle]->deps,$wpdeps);
 			$this->registered[$handle]->deps = $mydep;
 		}
-		
+
 		if (!empty($wpdeps)) foreach ((array)$wpdeps as $handle) wp_enqueue_script($handle);
-		
+
 	}
-	
+
 	function print_script_custom ($handle) {
 		return !empty($this->registered[$handle]->extra['code'])?$this->registered[$handle]->extra['code']:false;
 	}
-	
-	
+
+
 } // END class ShoppScripts
 
 function shopp_default_scripts (&$scripts) {
@@ -179,13 +179,13 @@ function shopp_default_scripts (&$scripts) {
 	$schema = ( !empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) != 'off' ) ? 'https://' : 'http://';
 	if (defined('SHOPP_PLUGINURI')) $url = SHOPP_PLUGINURI.'/core'.'/';
 	else $url = preg_replace("|$script.*|i", '', $schema . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
-	
+
 	$scripts->base_url = $url;
 	$scripts->default_version = mktime(false,false,false,1,1,2010);
 	$scripts->default_dirs = array('/ui/behaviors/','/ui/products');
-	
+
 	// $suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '_dev' : '';
-	
+
 	$scripts->add('shopp', "/ui/behaviors/shopp.js", array('jquery'), '20100101');
 	$scripts->add_data('shopp', 'group', 1);
 
@@ -236,7 +236,7 @@ function shopp_default_scripts (&$scripts) {
 
 	$scripts->add('setup', "/ui/behaviors/setup.js", array('jquery'), '20100101');
 	$scripts->add_data('setup', 'group', 1);
-	
+
 	$scripts->add('shopp-swfobject', "/ui/behaviors/swfupload/plugins/swfupload.swfobject.js", array(), '2202');
 	$scripts->add_data('shopp-swfobject', 'group', 1);
 

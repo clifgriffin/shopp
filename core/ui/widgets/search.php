@@ -48,3 +48,4 @@ class ShoppSearchWidget extends WP_Widget {
 register_widget('ShoppSearchWidget');
 
 }
+?>
