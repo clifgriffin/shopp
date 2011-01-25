@@ -576,11 +576,11 @@ class Storefront extends FlowController {
 
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&
-			$category = $wp->query_vars['shopp_category']) $type = "category";
+			$category = urldecode($wp->query_vars['shopp_category'])) $type = "category";
 		elseif (isset($wp->query_vars['shopp_pid']) &&
 			$productid = $wp->query_vars['shopp_pid']) $type = "product";
 		elseif (isset($wp->query_vars['shopp_product']) &&
-			$productname = $wp->query_vars['shopp_product']) $type = "product";
+			$productname = urldecode($wp->query_vars['shopp_product'])) $type = "product";
 
 		if (isset($wp->query_vars['shopp_tag']) &&
 			$tag = $wp->query_vars['shopp_tag']) {
