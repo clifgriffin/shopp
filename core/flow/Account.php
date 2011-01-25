@@ -12,7 +12,7 @@
  **/
 
 class Account extends AdminController {
-	
+
 	/**
 	 * Account constructor
 	 *
@@ -29,7 +29,7 @@ class Account extends AdminController {
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		do_action('shopp_customer_admin_scripts');
 	}
-	
+
 	/**
 	 * Parses admin requests to determine the interface to render
 	 *
@@ -53,7 +53,7 @@ class Account extends AdminController {
 	function customers () {
 		global $Shopp,$Customers,$wpdb;
 		$db = DB::get();
-		
+
 		$defaults = array(
 			'page' => false,
 			'deleting' => false,
@@ -73,7 +73,7 @@ class Account extends AdminController {
 
 		$args = array_merge($defaults,$_GET);
 		extract($args, EXTR_SKIP);
-		
+
 		if ($page == $this->Admin->pagename('customers')
 				&& !empty($deleting)
 				&& !empty($selected)
@@ -88,7 +88,7 @@ class Account extends AdminController {
 				$Customer->delete();
 			}
 		}
-		
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-save-customer');
 
@@ -97,24 +97,24 @@ class Account extends AdminController {
 				$Billing = new Billing($Customer->id,'customer');
 				$Shipping = new Shipping($Customer->id,'customer');
 			} else $Customer = new Customer();
-			
+
 			$Customer->updates($_POST);
-			
+
 			if (!empty($_POST['new-password']) && !empty($_POST['confirm-password'])
 				&& $_POST['new-password'] == $_POST['confirm-password']) {
 					$Customer->password = wp_hash_password($_POST['new-password']);
 					if (!empty($Customer->wpuser)) wp_set_password($_POST['new-password'], $Customer->wpuser);
 				}
-			
+
 			$Customer->info = false; // No longer used from DB
 			$Customer->save();
-			
+
 			foreach ($_POST['info'] as $id => $info) {
 				$Meta = new MetaObject($id);
 				$Meta->value = $info;
 				$Meta->save();
 			}
-			
+
 			if (isset($Customer->id)) $Billing->customer = $Customer->id;
 			$Billing->updates($_POST['billing']);
 			$Billing->save();
@@ -131,7 +131,7 @@ class Account extends AdminController {
 		if( !$per_page || $per_page < 0 )
 			$per_page = 20;
 		$index = ($per_page * ($pagenum-1));
-		
+
 		if (!empty($start)) {
 			$startdate = $start;
 			list($month,$day,$year) = explode("/",$startdate);
@@ -142,12 +142,12 @@ class Account extends AdminController {
 			list($month,$day,$year) = explode("/",$enddate);
 			$ends = mktime(23,59,59,$month,$day,$year);
 		}
-		
+
 		$customer_table = DatabaseObject::tablename(Customer::$table);
 		$billing_table = DatabaseObject::tablename(Billing::$table);
 		$purchase_table = DatabaseObject::tablename(Purchase::$table);
 		$users_table = $wpdb->users;
-		
+
 		$where = '';
 		if (!empty($s)) {
 			$s = stripslashes($s);
@@ -185,7 +185,7 @@ class Account extends AdminController {
 			'total' => $num_pages,
 			'current' => $pagenum
 		));
-		
+
 		$ranges = array(
 			'all' => __('Show New Customers','Shopp'),
 			'today' => __('Today','Shopp'),
@@ -203,27 +203,27 @@ class Account extends AdminController {
 			'lastexport' => __('Last Export','Shopp'),
 			'custom' => __('Custom Dates','Shopp')
 			);
-		
+
 		$exports = array(
 			'tab' => __('Tab-separated.txt','Shopp'),
 			'csv' => __('Comma-separated.csv','Shopp'),
 			'xls' => __('Microsoft&reg; Excel.xls','Shopp')
 			);
-		
-		
+
+
 		$formatPref = $Shopp->Settings->get('customerexport_format');
 		if (!$formatPref) $formatPref = 'tab';
-		
+
 		$columns = array_merge(Customer::exportcolumns(),Billing::exportcolumns(),Shipping::exportcolumns());
 		$selected = $Shopp->Settings->get('customerexport_columns');
 		if (empty($selected)) $selected = array_keys($columns);
-		
+
 		$authentication = $Shopp->Settings->get('account_system');
-		
+
 		include(SHOPP_ADMIN_PATH."/customers/customers.php");
-		
+
 	}
-	
+
 	/**
 	 * Registers the column headers for the customer list screen
 	 *
@@ -241,7 +241,7 @@ class Account extends AdminController {
 			'orders'=>__('Orders','Shopp'),
 			'joined'=>__('Joined','Shopp'))
 		);
-		
+
 	}
 
 	/**
@@ -255,7 +255,7 @@ class Account extends AdminController {
 		$Admin =& $Shopp->Flow->Admin;
 		include(SHOPP_ADMIN_PATH."/customers/ui.php");
 	}
-	
+
 	/**
 	 * Interface processor for the customer editor
 	 *
@@ -268,7 +268,7 @@ class Account extends AdminController {
 	function editor () {
 		global $Shopp,$Customer;
 		$db =& DB::get();
-		
+
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_customers')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
@@ -282,14 +282,14 @@ class Account extends AdminController {
 		} else $Customer = new Customer();
 
 		if (empty($Customer->info->meta)) remove_meta_box('customer-info','shopp_page_shopp-customers','normal');
-		
+
 		$purchase_table = DatabaseObject::tablename(Purchase::$table);
 		$r = $db->query("SELECT count(id) AS purchases,SUM(total) AS total FROM $purchase_table WHERE customer='$Customer->id' LIMIT 1");
-		
+
 		$Customer->orders = $r->purchases;
 		$Customer->total = $r->total;
-		
-		
+
+
 		$countries = array(''=>'&nbsp;');
 		$countrydata = Lookup::countries();
 		foreach ($countrydata as $iso => $c) {
@@ -305,7 +305,7 @@ class Account extends AdminController {
 
 		include(SHOPP_ADMIN_PATH."/customers/editor.php");
 	}
-	
+
 
 } // END class Account
 

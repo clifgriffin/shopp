@@ -17,12 +17,12 @@ class Purchased extends DatabaseObject {
 		if ($this->load($id,$key)) return true;
 		else return false;
 	}
-	
+
 	function copydata ($Item) {
 		parent::copydata ($Item);
 		if (isset($Item->option->label))
 			$this->optionlabel = $Item->option->label;
-		
+
 		$this->addons = 'no';
 		if (empty($Item->addons) || !is_array($Item->addons)) return true;
 		$addons = array();
@@ -39,7 +39,7 @@ class Purchased extends DatabaseObject {
 			$Meta->type = 'addon';
 			$Meta->name = $Addon->label;
 			$Meta->numeral = $Addon->unitprice;
-			
+
 			// Add a meta record to the purchased line item for an addon download
 			if (!empty($Addon->download)) {
 				$hash = array($this->name,$Addon->label,$this->purchase,$this->product,$this->price,$i,time());
@@ -60,11 +60,11 @@ class Purchased extends DatabaseObject {
 			$Meta->value = serialize($Addon);
 			$addons[] = $Meta;
 			if ($Download !== false) $addons[] = $Download;
-			
+
 		}
 		$this->addons = $addons;
 	}
-	
+
 	function save() {
 		$addons = $this->addons;					// Save current addons model
 		if (!empty($addons)) $this->addons = "yes";	// convert property to usable flag
@@ -77,7 +77,7 @@ class Purchased extends DatabaseObject {
 		}
 		$this->addons = $addons; // restore addons model
 	}
-	
+
 	function keygen () {
 		$message = $this->name.$this->purchase.$this->product.$this->price.$this->download;
 		$key = sha1($message);
@@ -85,7 +85,7 @@ class Purchased extends DatabaseObject {
 		$this->dkey = $key;
 		do_action_ref_array('shopp_download_keygen',array(&$this));
 	}
-	
+
 	function exportcolumns () {
 		$prefix = "p.";
 		return array(

@@ -92,8 +92,6 @@ class ImageServer extends DatabaseObject {
 	 * @return boolean Status of the image load
 	 **/
 	function load () {
-		global $Shopp;
-		if (!isset($Shopp->Storage)) $Shopp->Storage = new StorageEngines();
 		$this->Image = new ImageAsset($this->request);
 		if (max($this->width,$this->height) > 0) $this->loadsized();
 		if (!empty($this->Image->id) || !empty($this->Image->data)) return true;

@@ -15,7 +15,7 @@
 class Price extends DatabaseObject {
 
 	static $table = "price";
-	
+
 	function __construct ($id=false,$key=false) {
 		$this->init(self::$table);
 		if ($this->load($id,$key))
@@ -37,11 +37,11 @@ class Price extends DatabaseObject {
 			'context' => 'price',
 			'type' => 'download'
 			));
-		
+
 		if (empty($this->download->id)) return false;
 		return true;
 	}
-	
+
 	/**
 	 * Attaches a product download asset to the price object
 	 *
@@ -52,13 +52,13 @@ class Price extends DatabaseObject {
 	 **/
 	function attach_download ($id) {
 		if (!$id) return false;
-		
+
 		$Download = new ProductDownload($id);
 		$Download->parent = $this->id;
 		$Download->save();
 
 		do_action('attach_product_download',$id,$this->id);
-		
+
 		return true;
 	}
 

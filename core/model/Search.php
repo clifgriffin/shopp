@@ -24,12 +24,12 @@
  * @subpackage search
  **/
 class IndexProduct {
-	
+
 	var $Product = false;
 	var $properties = array(
 		"name","prices","summary","description","specs","categories","tags"
 	);
-	
+
 	/**
 	 * Loads a specified product for indexing
 	 *
@@ -42,7 +42,7 @@ class IndexProduct {
 		$this->Product = new Product($id);
 		$this->Product->load_data(array('prices','specs','categories','tags'));
 	}
-	
+
 	/**
 	 * Saves product property indexes to the index table
 	 *
@@ -86,7 +86,7 @@ class IndexProduct {
 			$Indexer->save($content);
 		}
 	}
-	
+
 }
 
 /**
@@ -101,9 +101,9 @@ class IndexProduct {
  **/
 class ContentIndex extends DatabaseObject {
 	static $table = "index";
-	
+
 	var $_loaded = false;
-			
+
 	/**
 	 * ContentIndex constructor
 	 *
@@ -115,7 +115,7 @@ class ContentIndex extends DatabaseObject {
 		$this->init(self::$table);
 		$this->load($product,$type);
 	}
-	
+
 	/**
 	 * Load an existing product property index if it exists
 	 *
@@ -139,7 +139,7 @@ class ContentIndex extends DatabaseObject {
 			$this->_loaded = true;
 		}
 	}
-	
+
 	/**
 	 * Process content into an index and save it
 	 *
@@ -151,11 +151,11 @@ class ContentIndex extends DatabaseObject {
 	function save ($content) {
 		if (empty($this->product) || empty($this->type) || empty($content))
 			return false;
-		
+
 		$factoring = Lookup::index_factors();
 		if (isset($factoring[$this->type])) $this->factor = $factoring[$this->type];
 		else $this->factor = 1;
-		
+
 		$this->terms = apply_filters('shopp_index_content',$content);
 
 		parent::save();
@@ -211,13 +211,13 @@ class SearchParser extends SearchTextFilters {
 		$_->max = floatvalue($matches[0][4]);
 		$_->target = $_->min;
 		if ($_->max > 0) $_->op = "-"; // Range matching
-		
+
 		// Roundabout price match
 		if (empty($_->op) && empty($_->max)) {
 			$_->min = $_->target-($_->target/2);
 			$_->max = $_->target+($_->target/2);
 		}
-		
+
 		return $_;
 	}
 
@@ -251,7 +251,7 @@ endif;
 
 if (!class_exists('ContentParser')):
 class ContentParser extends SearchTextFilters {
-	
+
 	/**
 	 * Setup the filtering for content parsing
 	 *
@@ -267,7 +267,7 @@ class ContentParser extends SearchTextFilters {
 		add_filter('shopp_index_content',array('ContentParser','NormalizeFilter'));
 		add_filter('shopp_index_content',array('ContentParser','StemFilter'));
 	}
-		
+
 } // END class ContentParser
 endif;
 
@@ -294,10 +294,10 @@ abstract class SearchTextFilters {
 	 **/
 	static function _currency_regex ($symbol=true) {
 		$Settings = ShoppSettings();
-		
+
 		$baseop = $Settings->get('base_operations');
 		extract($baseop['currency']['format']);
-		
+
 		$pre = ($cpos?''.preg_quote($currency).($symbol?'':'?'):'');
 		$amount = '[\d'.preg_quote($thousands).']+';
 		$fractional = '('.preg_quote($decimals).'\d{'.$precision.'}?)?';
@@ -318,7 +318,7 @@ abstract class SearchTextFilters {
 		$optprice = self::_currency_regex(false);
 		return "[>|<]?\s?($price)(\-($optprice))?";
 	}
-	
+
 	/**
 	 * Strips HTML tags from the text
 	 *
@@ -334,7 +334,7 @@ abstract class SearchTextFilters {
 	static function MarkupFilter ($text) {
 		return strip_tags($text);
 	}
-	
+
 	/**
 	 * Wrapper for transposing text to lowercase characters
 	 *
@@ -347,7 +347,7 @@ abstract class SearchTextFilters {
 	static function LowercaseFilter ($text) {
 		return strtolower($text);
 	}
-	
+
 	/**
 	 * Removes stop words from the text
 	 *
@@ -365,7 +365,7 @@ abstract class SearchTextFilters {
 		$replacements = implode('|',$stopwords);
 		return preg_replace("/\b($replacements)\b/",'',$text);
 	}
-	
+
 	/**
 	 * Normalize the text
 	 *
@@ -379,16 +379,16 @@ abstract class SearchTextFilters {
 	 * @return string normalized text
 	 **/
 	static function NormalizeFilter ($text) {
-		
+
 		// Collapse hyphenated prefix words
 		$text = preg_replace("/(\s?\w{1,3})\-(\w+)\b/","$1$2",$text);
-		
+
 		// Collapse words with periods and commas
 		$text = preg_replace("/[\.\']/",'',$text);
-		
+
 		// Translate any other non-word characters to spaces
 		$text = preg_replace("/[^\w\d\s\_\"]/",' ',$text);
-		
+
 		// Collapse the spaces
 		$text = preg_replace("/\s+/m",' ',$text);
 
@@ -435,7 +435,7 @@ abstract class SearchTextFilters {
         }
 		return implode(' ',$tokens);
 	}
-	
+
 	/**
 	 * Removes price match queries from a search query
 	 *
@@ -472,7 +472,7 @@ abstract class SearchTextFilters {
 		}
 		return $text.' '.join(' ',$_);
 	}
-	
+
 } // END class SearchTextFilters
 
 /**

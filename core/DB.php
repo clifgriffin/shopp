@@ -70,7 +70,7 @@ class DB {
 	 * @return void
 	 **/
 	function __clone () { trigger_error('Clone is not allowed.', E_USER_ERROR); }
-	
+
 	/**
 	 * Provides a reference to the instantiated DB singleton
 	 *
@@ -87,7 +87,7 @@ class DB {
 			self::$instance = new self;
 		return self::$instance;
 	}
-	
+
 	/**
 	 * Connects to the database server
 	 *
@@ -105,7 +105,7 @@ class DB {
 		if (!$this->dbh) trigger_error("Could not connect to the database server '$host'.");
 		else $this->select($database);
 	}
-	
+
 	/**
 	 * Selects the database to use for querying
 	 *
@@ -119,7 +119,7 @@ class DB {
 		if(!@mysql_select_db($database,$this->dbh))
 			trigger_error("Could not select the '$database' database.");
 	}
-	
+
 	/**
 	 * Escape the contents of data for safe insertion into the database
 	 *
@@ -152,7 +152,7 @@ class DB {
 		if (is_string($data)) $data = rtrim($data);
 		return $data;
 	}
-	
+
 	/**
 	 * Send a query to the database and retrieve the results
 	 *
@@ -173,7 +173,7 @@ class DB {
 			if (class_exists('ShoppError')) new ShoppError(sprintf(__('Query failed: %s - DB Query: %s','Shopp'),$error, str_replace("\n","",$query)),'shopp_query_error',SHOPP_DB_ERR);
 			return false;
 		}
-				
+
 		// Results handling
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i",$query) ) {
 			$this->affected = mysql_affected_rows();
@@ -181,7 +181,7 @@ class DB {
 				$insert = @mysql_fetch_object(@mysql_query("SELECT LAST_INSERT_ID() AS id", $this->dbh));
 				return $insert->id;
 			}
-			
+
 			if ($this->affected > 0) return $this->affected;
 			else return true;
 		} else {
@@ -194,9 +194,9 @@ class DB {
 			if ($output && sizeof($this->results) == 1) $this->results = $this->results[0];
 			return $this->results;
 		}
-	
+
 	}
-	
+
 	/**
 	 * Maps the SQL data type to primitive data types used by the DB class
 	 *
@@ -214,7 +214,7 @@ class DB {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Prepares a DatabaseObject for entry into the database
 	 *
@@ -231,7 +231,7 @@ class DB {
 	 **/
 	function prepare ($object) {
 		$data = array();
-		
+
 		// Go through each data property of the object
 		foreach(get_object_vars($object) as $property => $value) {
 			if (!isset($object->_datatypes[$property])) continue;
@@ -270,26 +270,26 @@ class DB {
 				case "float":
 					// Sanitize without rounding to protect precision
 					$value = floatvalue($value,false);
-					
+
 					$data[$property] = "'$value'";
-					
+
 					if (empty($value)) $data[$property] = "'0'";
 
 					// Special exception for id fields
 					if ($property == "id" && empty($value)) $data[$property] = "NULL";
-					
+
 					break;
 				default:
 					// Anything not needing processing
 					// passes through into the structure
 					$data[$property] = "'$value'";
 			}
-			
+
 		}
-				
+
 		return $data;
 	}
-	
+
 	/**
 	 * Get the list of possible values for an SQL enum or set column
 	 *
@@ -305,10 +305,10 @@ class DB {
 		$r = $this->query("SHOW COLUMNS FROM $table LIKE '$column'");
 		if ( strpos($r[0]->Type,"enum('") )
 			$list = substr($r[0]->Type, 6, strlen($r[0]->Type) - 8);
-			
+
 		if ( strpos($r[0]->Type,"set('") )
 			$list = substr($r[0]->Type, 5, strlen($r[0]->Type) - 7);
-	
+
 		return explode("','",$list);
 	}
 
@@ -326,7 +326,7 @@ class DB {
 		foreach ($queries as $query) if (!empty($query)) $this->query($query);
 		return true;
 	}
-	
+
 } // END class DB
 
 
@@ -338,7 +338,7 @@ class DB {
  * @package shopp
  **/
 abstract class DatabaseObject {
-	
+
 	/**
 	 * Initializes the DatabaseObject with functional necessities
 	 *
@@ -362,9 +362,12 @@ abstract class DatabaseObject {
 	function init ($table,$key="id") {
 		global $Shopp;
 		$db = &DB::get();
-		
-		if (empty($this->_table) && $table)		// So we know what the table name is
+
+		// So we know what the table name is
+		if (!empty($table) && (!isset($this->_table) || empty($this->_table))  )
 			$this->_table = $this->tablename($table);
+
+		if (empty($this->_table)) return false;
 
 		$this->_key = $key;				// So we know what the primary key is
 		$this->_datatypes = array();	// So we know the format of the table
@@ -388,7 +391,7 @@ abstract class DatabaseObject {
 		}
 
 		if (!$r = $db->query("SHOW COLUMNS FROM $this->_table",true,false)) return false;
-		
+
 		// Map out the table definition into our data structure
 		foreach($r as $object) {
 			$property = $object->Field;
@@ -396,14 +399,14 @@ abstract class DatabaseObject {
 				$this->{$property} = $object->Default;
 			$this->_datatypes[$property] = $db->datatype($object->Type);
 			$this->_defaults[$property] = $object->Default;
-			
+
 			// Grab out options from list fields
 			if ($db->datatype($object->Type) == "list") {
 				$values = str_replace("','", ",", substr($object->Type,strpos($object->Type,"'")+1,-2));
 				$this->_lists[$property] = explode(",",$values);
 			}
 		}
-		
+
 		if (isset($Shopp->Settings)) {
 			$Tables[$this->_table] = new StdClass();
 			$Tables[$this->_table]->_datatypes = $this->_datatypes;
@@ -413,7 +416,7 @@ abstract class DatabaseObject {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Load a single record by the primary key or a custom query
 	 *
@@ -432,7 +435,7 @@ abstract class DatabaseObject {
 
 		$args = func_get_args();
 		if (empty($args[0])) return false;
-		
+
 		$where = "";
 		if (is_array($args[0]))
 			foreach ($args[0] as $key => $id)
@@ -446,11 +449,11 @@ abstract class DatabaseObject {
 
 		$r = $db->query("SELECT * FROM $this->_table WHERE $where LIMIT 1");
 		$this->populate($r);
-		
+
 		if (!empty($this->id)) return true;
 		return false;
 	}
-	
+
 	/**
 	 * Builds a table name from the defined WP table prefix and Shopp prefix
 	 *
@@ -464,7 +467,7 @@ abstract class DatabaseObject {
 		global $table_prefix;
 		return $table_prefix.SHOPP_DBPREFIX.$table;
 	}
-	
+
 	/**
 	 * Saves the current state of the DatabaseObject to the database
 	 *
@@ -499,7 +502,7 @@ abstract class DatabaseObject {
 		}
 
 	}
-		
+
 	/**
 	 * Deletes the database record associated with the DatabaseObject
 	 *
@@ -534,7 +537,7 @@ abstract class DatabaseObject {
 		$r = $db->query("SELECT id FROM $this->_table WHERE $key='$id' LIMIT 1");
 		return (!empty($r->id));
 	}
-	
+
 	/**
 	 * Populates the DatabaseObject properties from a db query result object
 	 *
@@ -570,7 +573,7 @@ abstract class DatabaseObject {
 			}
 		}
 	}
-	
+
 	/**
 	 * Builds an SQL-ready string of prepared data for entry into the database
 	 *
@@ -588,7 +591,7 @@ abstract class DatabaseObject {
 		}
 		return $query;
 	}
-	
+
 	/**
 	 * Populate the object properties from an array
 	 *
@@ -604,7 +607,7 @@ abstract class DatabaseObject {
 	 **/
 	function updates($data,$ignores = array()) {
 		$db = &DB::get();
-		
+
 		foreach ($data as $key => $value) {
 			if (!is_null($value) &&
 				($ignores === false || (is_array($ignores) && !in_array($key,$ignores))) &&
@@ -613,7 +616,7 @@ abstract class DatabaseObject {
 			}
 		}
 	}
-	
+
 	/**
 	 * Copy property values into the current DatbaseObject from another object
 	 *
@@ -638,7 +641,7 @@ abstract class DatabaseObject {
 					$this->{$property} = $db->clean($value);
 		}
 	}
-	
+
 	function __wakeup () {
 		$this->init(false);
 	}
@@ -663,23 +666,23 @@ abstract class SessionObject {
 	var $created;
 	var $modified;
 	var $path;
-	
+
 	var $secure = false;
-	
+
 
 	function __construct () {
-		
+
 		if (!defined('SHOPP_SECURE_KEY'))
 			define('SHOPP_SECURE_KEY','shopp_sec_'.COOKIEHASH);
 
 		// Close out any early session calls
 		if(session_id()) session_write_close();
-		
+
 		$this->handlers = $this->handling();
-		
+
 		register_shutdown_function('session_write_close');
 	}
-	
+
 	/**
 	 * Register session handlers
 	 *
@@ -698,7 +701,7 @@ abstract class SessionObject {
 			array( &$this, 'trash' )	// Garbage Collection
 		);
 	}
-	
+
 	/**
 	 * Initializing routine for the session management.
 	 *
@@ -716,7 +719,7 @@ abstract class SessionObject {
 		if (!isset($_COOKIE[SHOPP_SECURE_KEY])) $this->securekey();
 		return true;
 	}
-	
+
 	/**
 	 * Placeholder function as we are working with a persistant
 	 * database as opposed to file handlers.
@@ -743,7 +746,7 @@ abstract class SessionObject {
 		if (is_robot() || empty($this->session)) return true;
 
 		$loaded = false;
-		
+
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
 		if ($result = $db->query($query)) {
 			if (substr($result->data,0,1) == "!") {
@@ -771,11 +774,11 @@ abstract class SessionObject {
 							VALUES ('$this->session','$this->ip','',now(),now())");
 		}
 		do_action('shopp_session_load');
-		
+
 		// Read standard session data
 		if (@file_exists("$this->path/sess_$id"))
 			return (string) @file_get_contents("$this->path/sess_$id");
-		
+
 		return $loaded;
 	}
 
@@ -796,7 +799,7 @@ abstract class SessionObject {
 		unset($this->session,$this->ip,$this->data);
 		return true;
 	}
-	
+
 	/**
 	 * Save the session data to our session table in the database.
 	 *
@@ -811,7 +814,7 @@ abstract class SessionObject {
 
 		// Don't update the session for prefetch requests (via <link rel="next" /> tags) currently FF-only
 		if (isset($_SERVER['HTTP_X_MOZ']) && $_SERVER['HTTP_X_MOZ'] == "prefetch") return false;
-		
+
 		$data = $db->escape(addslashes(serialize($this->data)));
 
 		if ($this->secured() && is_shopp_secure()) {
@@ -822,9 +825,9 @@ abstract class SessionObject {
 				$data = "!".base64_encode($secure->data);
 			} else return false;
 		}
-		
+
 		$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',modified=now() WHERE session='$this->session'";
-		
+
 		if (!$db->query($query))
 			trigger_error("Could not save session updates to the database.");
 
@@ -838,7 +841,7 @@ abstract class SessionObject {
 				return $result;
 			} return false;
 		}
-		
+
 		return true;
 	}
 
@@ -859,7 +862,7 @@ abstract class SessionObject {
 			trigger_error("Could not delete cached session data.");
 		return true;
 	}
-	
+
 	/**
 	 * Check or set the security setting for the session
 	 *
@@ -900,7 +903,7 @@ abstract class SessionObject {
 		if ($success) return $content;
 		else return false;
 	}
-	
+
 } // END class SessionObject
 
 ?>

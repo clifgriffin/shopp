@@ -1844,13 +1844,14 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 
 	// Filter URI request
 	$uri = false;
-	if (!is_array($request)) $uri = $request;
+	if (!is_array($request)) $uri = urldecode($request);
 	if (is_array($request && isset($request[0]))) $uri = array_shift($request);
 	if (!empty($uri)) $uri = join('/',array_map('urlencode',explode('/',$uri))); // sanitize
 
 	$url = user_trailingslashit(trailingslashit($url).$uri);
 
 	if (!empty($request) && is_array($request)) {
+		$request = array_map('urldecode',$request);
 		$request = array_map('urlencode',$request);
 		$url = add_query_arg($request,$url);
 	}

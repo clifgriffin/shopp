@@ -20,7 +20,7 @@
 class Setup extends FlowController {
 
 	var $screen = false;
-	
+
 	/**
 	 * Setup constructor
 	 *
@@ -29,7 +29,7 @@ class Setup extends FlowController {
 	 **/
 	function __construct () {
 		parent::__construct();
-		
+
 		$pages = explode("-",$_GET['page']);
 		$this->screen = end($pages);
 		switch ($this->screen) {
@@ -45,9 +45,9 @@ class Setup extends FlowController {
 				shopp_enqueue_script('setup');
 				break;
 		}
-		
+
 	}
-	
+
 	/**
 	 * Parses settings interface requests
 	 *
@@ -99,12 +99,12 @@ class Setup extends FlowController {
 				$base_region = $c['region'];
 			$countries[$iso] = $c['name'];
 		}
-		
+
 		if (!empty($_POST['setup'])) {
 			$_POST['settings']['display_welcome'] = "off";
 			$this->settings_save();
 		}
-		
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-general');
 			$vat_countries = Lookup::vat_countries();
@@ -117,7 +117,7 @@ class Setup extends FlowController {
 			if (in_array($_POST['settings']['base_operations']['country'],$vat_countries))
 				$_POST['settings']['base_operations']['vat'] = true;
 			else $_POST['settings']['base_operations']['vat'] = false;
-			
+
 			$this->settings_save();
 			$updated = __('Shopp settings saved.', 'Shopp');
 		}
@@ -127,14 +127,14 @@ class Setup extends FlowController {
 			$zones = Lookup::country_zones();
 			$zones = $zones[$operations['country']];
 		}
-		
+
 		$targets = $Shopp->Settings->get('target_markets');
 		if (!$targets) $targets = array();
-		
+
 		$statusLabels = $Shopp->Settings->get('order_status');
 		include(SHOPP_ADMIN_PATH."/settings/settings.php");
 	}
-	
+
 	function presentation () {
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_presentation')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -152,19 +152,19 @@ class Setup extends FlowController {
 					$_POST['settings']['theme_templates'] = "off";
 					$updated = __('Shopp theme templates can\'t be used because they don\'t exist.','Shopp');
 			}
-			
+
 			if (empty($_POST['settings']['catalog_pagination']))
 				$_POST['settings']['catalog_pagination'] = 0;
 			$this->settings_save();
 		}
-		
+
 
 		// Copy templates to the current WordPress theme
 		if (!empty($_POST['install'])) {
 			check_admin_referer('shopp-settings-presentation');
 			copy_shopp_templates($builtin_path,$theme_path);
 		}
-		
+
 		$status = "available";
 		if (!is_dir($theme_path)) $status = "directory";
 		else {
@@ -181,7 +181,7 @@ class Setup extends FlowController {
 		$row_products = array(2,3,4,5,6,7);
 		$productOrderOptions = Category::sortoptions();
 		$productOrderOptions['custom'] = __('Custom','Shopp');
-		
+
 		$orderOptions = array("ASC" => __('Order','Shopp'),
 							  "DESC" => __('Reverse Order','Shopp'),
 							  "RAND" => __('Shuffle','Shopp'));
@@ -189,7 +189,7 @@ class Setup extends FlowController {
 		$orderBy = array("sortorder" => __('Custom arrangement','Shopp'),
 						 "name" => __('File name','Shopp'),
 						 "created" => __('Upload date','Shopp'));
-		
+
 
 		include(SHOPP_ADMIN_PATH."/settings/presentation.php");
 	}
@@ -203,24 +203,24 @@ class Setup extends FlowController {
 		$purchasetable = DatabaseObject::tablename(Purchase::$table);
 		$next = $db->query("SELECT IF ((MAX(id)) > 0,(MAX(id)+1),1) AS id FROM $purchasetable LIMIT 1");
 		$next_setting = $Shopp->Settings->get('next_order_id');
-		
+
 		if ($next->id > $next_setting) $next_setting = $next->id;
-		
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-checkout');
-			
+
 			$next_order_id = $_POST['settings']['next_order_id'] = intval($_POST['settings']['next_order_id']);
 
 			if ($next_order_id >= $next->id) {
 				if ($db->query("ALTER TABLE $purchasetable AUTO_INCREMENT=".$db->escape($next_order_id)))
 					$next_setting = $next_order_id;
 			}
-			
-				
+
+
 			$this->settings_save();
 			$updated = __('Shopp checkout settings saved.','Shopp');
 		}
-		
+
 		$downloads = array("1","2","3","5","10","15","25","100");
 		$promolimit = array("1","2","3","4","5","6","7","8","9","10","15","20","25");
 		$time = array(
@@ -239,7 +239,7 @@ class Setup extends FlowController {
 			'15901200' => __('6 months','Shopp'),
 			'31536000' => __('1 year','Shopp'),
 			);
-			
+
 		include(SHOPP_ADMIN_PATH."/settings/checkout.php");
 	}
 
@@ -253,13 +253,13 @@ class Setup extends FlowController {
 	 **/
 	function shipping () {
 		global $Shopp;
-		
+
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_shipping')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
-		
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-shipping');
-			
+
 			// Sterilize $values
 			foreach ($_POST['settings']['shipping_rates'] as $i => &$method) {
 				$method['name'] = stripslashes($method['name']);
@@ -271,19 +271,19 @@ class Setup extends FlowController {
 					}
 				}
 			}
-			
+
 			$_POST['settings']['order_shipfee'] = floatvalue($_POST['settings']['order_shipfee']);
-			
+
 	 		$this->settings_save();
 			$updated = __('Shipping settings saved.','Shopp');
-			
+
 			// Reload the currently active shipping modules
 			$active = $Shopp->Shipping->activated();
 			$Shopp->Shipping->settings();
 
 			$Errors = &ShoppErrors();
 			do_action('shopp_verify_shipping_services');
-			
+
 			if ($Errors->exist()) {
 				// Get all addon related errors
 				$failures = $Errors->level(SHOPP_ADDON_ERR);
@@ -293,9 +293,9 @@ class Setup extends FlowController {
 						$updated .= '<p>'.$error->message(true,true).'</p>';
 				}
 			}
-			
+
 		}
-		
+
 		$Shopp->Shipping->settings();
 
 		$methods = $Shopp->Shipping->methods;
@@ -312,10 +312,10 @@ class Setup extends FlowController {
 
 		$rates = $Shopp->Settings->get('shipping_rates');
 		if (!empty($rates)) ksort($rates);
-		
+
 		$lowstock = $Shopp->Settings->get('lowstock_level');
 		if (empty($lowstock)) $lowstock = 0;
-				
+
 		include(SHOPP_ADMIN_PATH."/settings/shipping.php");
 	}
 
@@ -331,28 +331,28 @@ class Setup extends FlowController {
 
 		$rates = $this->Settings->get('taxrates');
 		$base = $this->Settings->get('base_operations');
-				
+
 		$countries = array_merge(array('*' => __('All Markets','Shopp')),
 			$this->Settings->get('target_markets'));
 
-		
+
 		$zones = Lookup::country_zones();
-		
+
 		include(SHOPP_ADMIN_PATH."/settings/taxes.php");
 	}
 
 	function payments () {
 		global $Shopp;
-		
+
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_payments')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		add_action('shopp_gateway_module_settings',array(&$this,'payments_ui'));
-		
+
 		if (!empty($_POST['save'])) {
 			check_admin_referer('shopp-settings-payments');
 			do_action('shopp_save_payment_settings');
-		
+
 			$this->settings_save();
 			$updated = __('Shopp payments settings saved.','Shopp');
 		}
@@ -363,13 +363,13 @@ class Setup extends FlowController {
 
 		include(SHOPP_ADMIN_PATH."/settings/payments.php");
 	}
-	
+
 	function payments_ui () {
 		global $Shopp;
 		$Shopp->Gateways->settings();
 		$Shopp->Gateways->ui();
 	}
-		
+
 	function system () {
 		global $Shopp;
 		if ( !(current_user_can('manage_options') && current_user_can('shopp_settings_system')) )
@@ -382,7 +382,7 @@ class Setup extends FlowController {
 
 			if (!isset($_POST['settings']['error_notifications']))
 				$_POST['settings']['error_notifications'] = array();
-			
+
 			$this->settings_save();
 
 			// Reinitialize Error System
@@ -394,19 +394,19 @@ class Setup extends FlowController {
 			$updated = __('Shopp system settings saved.','Shopp');
 		} elseif (!empty($_POST['rebuild'])) {
 			$db =& DB::get();
-			
+
 			$assets = DatabaseObject::tablename(ProductImage::$table);
 			$query = "DELETE FROM $assets WHERE context='image' AND type='image'";
 			if ($db->query($query))
 				$updated = __('All cached images have been cleared.','Shopp');
 		}
-		
-		
+
+
 		if (isset($_POST['resetlog'])) $Shopp->ErrorLog->reset();
-		
+
 		$notifications = $this->Settings->get('error_notifications');
 		if (empty($notifications)) $notifications = array();
-		
+
 		$notification_errors = array(
 			SHOPP_TRXN_ERR => __("Transaction Errors","Shopp"),
 			SHOPP_AUTH_ERR => __("Login Errors","Shopp"),
@@ -414,7 +414,7 @@ class Setup extends FlowController {
 			SHOPP_COMM_ERR => __("Communication Errors","Shopp"),
 			SHOPP_STOCK_ERR => __("Inventory Warnings","Shopp")
 			);
-		
+
 		$errorlog_levels = array(
 			0 => __("Disabled","Shopp"),
 			SHOPP_ERR => __("General Shopp Errors","Shopp"),
@@ -429,30 +429,30 @@ class Setup extends FlowController {
 			SHOPP_ALL_ERR => __("All Errors","Shopp"),
 			SHOPP_DEBUG_ERR => __("Debugging Messages","Shopp")
 			);
-		
+
 		// Load Storage settings
 		$Shopp->Storage->settings();
-		
+
 		// Build the storage options menu
 		$storage = array();
 		foreach ($Shopp->Storage->active as $module)
 			$storage[$module->module] = $module->name;
 
 		$loading = array("shopp" => __('Load on Shopp-pages only','Shopp'),"all" => __('Load on entire site','Shopp'));
-		
+
 		if ($this->Settings->get('error_logging') > 0)
 			$recentlog = $Shopp->ErrorLog->tail(500);
-						
+
 		include(SHOPP_ADMIN_PATH."/settings/system.php");
 	}
-	
+
 	function storage_ui () {
 		global $Shopp;
 		$Shopp->Storage->settings();
 		$Shopp->Storage->ui();
 	}
-	
-		
+
+
 	function settings_save () {
 		if (empty($_POST['settings']) || !is_array($_POST['settings'])) return false;
 		foreach ($_POST['settings'] as $setting => $value)

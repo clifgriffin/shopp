@@ -30,7 +30,7 @@
  * @since 1.1
  **/
 class Shopping extends SessionObject {
-	
+
 	/**
 	 * Shopping constructor
 	 *
@@ -63,7 +63,7 @@ class Shopping extends SessionObject {
 	function init () {
 		@session_start();
 	}
-	
+
 	/**
 	 * Resets the entire session
 	 *
@@ -82,7 +82,7 @@ class Shopping extends SessionObject {
 		do_action('shopp_session_reset');
 		return true;
 	}
-		
+
 } // END class Shopping
 
 /**
@@ -113,12 +113,12 @@ class Shopping extends SessionObject {
  * @package shopp
  **/
 class ShoppingObject {
-	
+
 	static function &__new ($class, &$ref=false) {
 		global $Shopp;
-		
+
 		if ($ref !== false) $ref->__destruct();
-		
+
 		if (isset($Shopp->Shopping->data->{$class})) // Restore the object
 			$object = $Shopp->Shopping->data->{$class};
 		else {
@@ -128,7 +128,7 @@ class ShoppingObject {
 
 		return $object;
 	}
-	
+
 	/**
 	 * Handles data to be stored in the shopping session
 	 *
@@ -148,7 +148,7 @@ class ShoppingObject {
 			$data = $Shopp->Shopping->data->{$property};
 		$Shopp->Shopping->data->{$property} = &$data;	// Keep a reference
 	}
-		
+
 }
 
 ?>

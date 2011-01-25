@@ -19,17 +19,17 @@ class ImageProcessor {
 	var $dx = 0;
 	var $dy = 0;
 	var $alpha = false;
-	
+
 	function ImageProcessor ($data,$width,$height) {
 		$this->src = new StdClass();
 		$this->src->width = $width;
 		$this->src->height = $height;
 		$this->src->aspect = $width/$height;
-		
+
 		if ($data) $this->src->image = imagecreatefromstring($data);
 		else $this->src->image = false;
 	}
-	
+
 	function canvas ($width,$height,$alpha=false) {
 		$this->processed = ImageCreateTrueColor($width,$height);
 		if ($alpha) {
@@ -40,7 +40,7 @@ class ImageProcessor {
 			$this->alpha = true;
 		}
 	}
-	
+
 	function scale ($width,$height,$fit='all',$alpha=false,$fill=false,$dx=false,$dy=false,$cropscale=false) {
 		$this->aspect = $width/$height;
 
@@ -54,13 +54,13 @@ class ImageProcessor {
 		if ($fit == "matte") {
 			$rgb = false;
 			if (is_int($fill)) $rgb = $this->hexrgb($fill);
-	
+
 			// Default to white
 			if (!is_array($rgb)) $rgb = array('red'=>255,'green'=>255,'blue'=>255);
-			
+
 			// Allocate the color in the image palette
 			$matte = ImageColorAllocate($this->processed, $rgb['red'], $rgb['green'], $rgb['blue']);
-			
+
 			// Fill the canvas
 			ImageFill($this->processed,0,0,$matte);
 		}
@@ -88,7 +88,7 @@ class ImageProcessor {
 		$this->height = imagesy($this->processed);
 		if (function_exists('apply_filters')) return apply_filters('shopp_image_scale',$this);
 	}
-	
+
 	function dimensions ($width,$height,$fit='all',$dx=false,$dy=false,$cropscale=false) {
 		if ($this->src->width <= $width && $this->src->height <= $height) {
 			$this->width = $this->src->width;
@@ -124,7 +124,7 @@ class ImageProcessor {
 		$this->dx = ($dx !== false)?$dx:($this->width - $width)*-0.5;
 		$this->dy = ($dy !== false)?$dy:($this->height - $height)*-0.5;
 	}
-	
+
 	private function resized ($width,$height,$axis='y') {
 		if ($axis == "x") list($this->width,$this->height) = array($width,$this->ratioHeight($width));
 		else list($this->width,$this->height) = array($this->ratioWidth($height),$height);
@@ -134,12 +134,12 @@ class ImageProcessor {
 		$s_height = $height/$this->src->height;
 		return ceil($this->src->width * $s_height);
 	}
-	
+
 	private function ratioHeight ($width) {
 		$s_width = $width/$this->src->width;
 		return ceil($this->src->height * $s_width);
 	}
-	
+
 	/**
 	 * Return the processed image
 	 *
@@ -151,7 +151,7 @@ class ImageProcessor {
 	function imagefile ($quality=80) {
 		if (!isset($this->processed)) $image =& $this->src->image;
 		else $image = &$this->processed;
-		
+
 		imageinterlace($image, true);						// For progressive loading
 		ob_start();  										// Start capturing output buffer stream
 		if ($this->alpha) imagepng($image);					// Output the image to the stream
@@ -160,7 +160,7 @@ class ImageProcessor {
 		ob_end_clean(); 									// Clear the buffer
 		return $buffer;										// Send it back
 	}
-	
+
 	/**
 	 * Performs an unsharp mask on the processed image
 	 *

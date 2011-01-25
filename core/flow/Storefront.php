@@ -42,16 +42,16 @@ class Storefront extends FlowController {
 	var $pages = array();
 	var $browsing = array();
 	var $behaviors = array();	// Runtime JavaScript behaviors
-	
+
 	function __construct () {
 		global $Shopp;
 		parent::__construct();
-		
+
 		$this->Settings = &$Shopp->Settings;
 		$this->Catalog = &$Shopp->Catalog;
 		$this->Category = &$Shopp->Category;
 		$this->Product = &$Shopp->Product;
-		
+
 		$pages = $this->Settings->get('pages');
 		if (!empty($pages)) $this->pages = $pages;
 
@@ -68,7 +68,7 @@ class Storefront extends FlowController {
 		add_action('wp', array(&$this, 'behaviors'));
 
 		add_filter('the_title', array(&$this,'pagetitle'), 10, 2);
-		
+
 		// Shopp product text filters
 		add_filter('shopp_product_name','convert_chars');
 		add_filter('shopp_product_summary','convert_chars');
@@ -112,7 +112,7 @@ class Storefront extends FlowController {
 	function pageid () {
 		global $wp;
 		if (empty($wp->query_vars) || !isset($wp->query_vars['pagename'])) return false;
-		
+
 		// Identify the current page
 		foreach ($this->pages as &$page) {
 			if ($page['uri'] == $wp->query_vars['pagename']) {
@@ -120,7 +120,7 @@ class Storefront extends FlowController {
 			}
 		}
 	}
-	
+
 	/**
 	 * Forces SSL on pages when required and available
 	 *
@@ -132,13 +132,13 @@ class Storefront extends FlowController {
 	function security () {
 		global $Shopp;
 		if (is_shopp_secure() || !$Shopp->Gateways->secure) return;
-		
+
 		switch ($this->Page['name']) {
 			case "checkout": shopp_redirect(shoppurl($_GET,get_query_var('shopp_proc'),true)); break;
 			case "account":	 shopp_redirect(shoppurl($_GET,'account',true)); break;
 		}
 	}
-	
+
 	/**
 	 * Adds nocache headers on sensitive account pages
 	 *
@@ -151,9 +151,9 @@ class Storefront extends FlowController {
 		global $wp;
 		if (isset($wp->query_vars['acct']))
 			add_filter('wp_headers',array(&$this,'nocache'));
-			
+
 	}
-	
+
 	/**
 	 * Adds nocache headers to WP page headers
 	 *
@@ -224,13 +224,13 @@ class Storefront extends FlowController {
 				shopp_custom_script('catalog',"var pricetags = {};\n");
 
 			add_action('wp_head', array(&$Shopp, 'settingsjs'));
-				
+
 		}
 
 		if ($tag == "checkout")	shopp_enqueue_script('checkout');
-		
+
 	}
-	
+
 	/**
 	 * Sets handlers for Shopp shortcodes
 	 *
@@ -247,7 +247,7 @@ class Storefront extends FlowController {
 		$this->shortcodes['cart'] = array(&$this,'cart_page');
 		$this->shortcodes['checkout'] = array(&$this,'checkout_page');
 		$this->shortcodes['account'] = array(&$this,'account_page');
-		
+
 		// Additional shortcode functionality
 		$this->shortcodes['product'] = array(&$this,'product_shortcode');
 		$this->shortcodes['buynow'] = array(&$this,'buynow_shortcode');
@@ -257,9 +257,9 @@ class Storefront extends FlowController {
 			if ($this->Settings->get("maintenance") == "on" || !$this->Settings->available || $this->maintenance())
 				add_shortcode($name,array(&$this,'maintenance_shortcode'));
 			else add_shortcode($name,$callback);
-		
+
 	}
-	
+
 	/**
 	 * Detects if maintenance mode is necessary
 	 *
@@ -274,7 +274,7 @@ class Storefront extends FlowController {
 		if ($db_version != DB::$version) return true;
 		return false;
 	}
-	
+
 	/**
 	 * Modifies the WP page title to include product/category names (when available)
 	 *
@@ -288,7 +288,7 @@ class Storefront extends FlowController {
 	 **/
 	function titles ($title,$sep="&mdash;",$placement="left") {
 		global $wp;
-		
+
 		if (!isset($wp->query_vars['shopp_category'])
 			&& !isset($wp->query_vars['shopp_tag'])
 			&& !isset($wp->query_vars['shopp_product'])
@@ -299,9 +299,9 @@ class Storefront extends FlowController {
 		if (!empty($title))					$_[] = $title;
 		if (!empty($this->Category->name))	$_[] = $this->Category->name;
 		if (!empty($this->Product->name))	$_[] = $this->Product->name;
-		
+
 		if ("right" == $placement) $_ = array_reverse($_);
-		
+
 		$_ = apply_filters('shopp_document_titles',$_);
 		$sep = trim($sep);
 		if (empty($sep)) $sep = "&mdash;";
@@ -321,12 +321,12 @@ class Storefront extends FlowController {
 	function pagetitle ($title,$post_id=false) {
 		if (!$post_id) return $title;
 		global $wp;
-		
+
 		$pages = $this->Settings->get('pages');
 
 		if (isset($wp->query_vars['shopp_proc']) &&
 			$post_id == $pages['checkout']['id']) {
-			
+
 			switch(strtolower($wp->query_vars['shopp_proc'])) {
 				case "thanks": $title = apply_filters('shopp_thanks_pagetitle',__('Thank You!','Shopp')); break;
 				case "confirm-order": $title = apply_filters('shopp_confirmorder_pagetitle',__('Confirm Order','Shopp')); break;
@@ -414,21 +414,21 @@ class Storefront extends FlowController {
 	 **/
 	function canonurls ($url) {
 		global $Shopp;
-		
+
 		// Catalog landing as site landing, use site home URL
 		if (is_front_page() && isset($Shopp->Catalog) && $Shopp->Catalog->tag('is-landing','return=1'))
 			return user_trailingslashit(get_bloginfo('home'));
-			
+
 		// Catalog landing page URL
 		if (is_shopp_page('catalog') && $Shopp->Catalog->tag('is-landing','return=1'))
 			return $Shopp->Catalog->tag('url','echo=0');
-			
+
 		// Specific product/category URLs
 		if (!empty($Shopp->Product->slug)) return $Shopp->Product->tag('url','echo=0');
 		if (!empty($Shopp->Category->slug)) return $Shopp->Category->tag('url','echo=0');
 		return $url;
 	}
-	
+
 	/**
 	 * Registers available smart categories
 	 *
@@ -493,7 +493,7 @@ class Storefront extends FlowController {
 	<!-- END Shopp dynamic catalog styles -->
 <?php
 	}
-	
+
 	/**
 	 * Renders footer content and extra scripting as needed
 	 *
@@ -514,13 +514,13 @@ class Storefront extends FlowController {
 
 			add_storefrontjs("var memory_profile = '{$this->_debug->memory}',wpquerytotal = {$wpdb->num_queries},shoppquerytotal = ".count($db->queries).";",true);
 		}
-		
+
 		$globals = false;
 		if (isset($this->behaviors['global'])) {
 			$globals = $this->behaviors['global'];
 			unset($this->behaviors['global']);
 		}
-		
+
 		$script = '';
 		if (!empty($globals)) $script .= "\t".join("\n\t",$globals)."\n";
 		if (!empty($this->behaviors)) {
@@ -541,9 +541,9 @@ class Storefront extends FlowController {
 	 **/
 	function searching () {
 		global $Shopp,$wp;
-		
+
 		$this->searching = false;
-		
+
 		if (!isset($_GET['s']) 								// No search query
 			|| !isset($wp->query_vars['catalog']) 			// No catalog flag
 			|| (isset($wp->query_vars['catalog']) 			// Catalog flag exists &
@@ -556,7 +556,7 @@ class Storefront extends FlowController {
 		$wp->query_vars['pagename'] = $this->pages['catalog']['uri'];
 		$wp->query_vars['shopp_category'] = "search-results";
 		add_action('wp_head', array(&$this, 'updatesearch'));
-		
+
 	}
 
 	/**
@@ -569,18 +569,18 @@ class Storefront extends FlowController {
 	 **/
 	function catalog () {
 		global $Shopp,$wp;
-		
+
 		$options = array();
-		
+
 		add_filter('redirect_canonical', array(&$this,'canonical_home'));
 
 		$type = "catalog";
 		if (isset($wp->query_vars['shopp_category']) &&
-			$category = $wp->query_vars['shopp_category']) $type = "category";
+			$category = urldecode($wp->query_vars['shopp_category'])) $type = "category";
 		elseif (isset($wp->query_vars['shopp_pid']) &&
 			$productid = $wp->query_vars['shopp_pid']) $type = "product";
 		elseif (isset($wp->query_vars['shopp_product']) &&
-			$productname = $wp->query_vars['shopp_product']) $type = "product";
+			$productname = urldecode($wp->query_vars['shopp_product'])) $type = "product";
 
 		if (isset($wp->query_vars['shopp_tag']) &&
 			$tag = $wp->query_vars['shopp_tag']) {
@@ -603,7 +603,7 @@ class Storefront extends FlowController {
 			if ($type != "product") $type = "category";
 			$category = "search-results";
 		}
-		
+
 		// Load a category/tag
 		if (!empty($category) || !empty($tag)) {
 			if (isset($this->search)) $options = array('search'=>$this->search);
@@ -612,7 +612,7 @@ class Storefront extends FlowController {
 			// Split for encoding multi-byte slugs
 			$slugs = explode("/",$category);
 			$category = join("/",array_map('urlencode',$slugs));
-			
+
 			// Load the category
 			$Shopp->Category = Catalog::load_category($category,$options);
 			$this->breadcrumb = (isset($tag)?"tag/":"").$Shopp->Category->uri;
@@ -655,7 +655,7 @@ class Storefront extends FlowController {
 
 		// Set the category context by following the breadcrumb
 		if (empty($Shopp->Category->slug)) $Shopp->Category = Catalog::load_category($this->breadcrumb,$options);
-		
+
 		// No category context, use the CatalogProducts smart category
 		if (empty($Shopp->Category->slug)) $Shopp->Category = Catalog::load_category('catalog',$options);
 
@@ -679,7 +679,7 @@ class Storefront extends FlowController {
 
 		if ($type == "category") $Shopp->Requested = $Shopp->Category;
 		else $Shopp->Requested = $Shopp->Product;
-				
+
 		add_filter('wp_title', array(&$this, 'titles'),10,3);
 		add_action('wp_head', array(&$this, 'metadata'));
 		add_action('wp_head', array(&$this, 'feeds'));
@@ -707,13 +707,15 @@ class Storefront extends FlowController {
 			return false;
 		return $redirect;
 	}
-	
+
 	function catalog_page () {
 		global $Shopp,$wp;
 		if (SHOPP_DEBUG) new ShoppError('Displaying catalog page request: '.$_SERVER['REQUEST_URI'],'shopp_catalog',SHOPP_DEBUG_ERR);
 
-		$this->referrer = get_bloginfo('url')."/".$wp->request;
-		
+		$referrer = get_bloginfo('url')."/".$wp->request;
+		if (!empty($wp->query_vars)) $referrer = add_query_arg($wp->query_vars,$referrer);
+		$this->referrer = $referrer;
+
 		ob_start();
 		switch ($Shopp->Catalog->type) {
 			case "product":
@@ -766,7 +768,7 @@ class Storefront extends FlowController {
 		}
 
 		if (empty($_REQUEST['cart'])) return true;
-		
+
 		do_action('shopp_cart_request');
 
 		if (isset($_REQUEST['ajax'])) {
@@ -800,7 +802,7 @@ class Storefront extends FlowController {
 		global $Shopp;
 		$Order = &ShoppOrder();
 		$Cart = $Order->Cart;
-				
+
 		ob_start();
 		include(SHOPP_TEMPLATES."/cart.php");
 		$content = ob_get_contents();
@@ -808,7 +810,7 @@ class Storefront extends FlowController {
 
 		return apply_filters('shopp_cart_template',$content);
 	}
-	
+
 	/**
 	 * Displays the appropriate checkout template
 	 *
@@ -856,7 +858,7 @@ class Storefront extends FlowController {
 
 		return apply_filters('shopp_checkout_page',$content);
 	}
-	
+
 	/**
 	 * Displays the appropriate account page template
 	 *
@@ -875,18 +877,18 @@ class Storefront extends FlowController {
 		$Customer =& $Order->Customer;
 
 		if (isset($Customer->login) && $Customer->login) do_action('shopp_account_management');
-		
+
 		ob_start();
 		if (isset($wp->query_vars['shopp_download'])) include(SHOPP_TEMPLATES."/errors.php");
 		elseif ($Customer->login) include(SHOPP_TEMPLATES."/account.php");
 		else include(SHOPP_TEMPLATES."/login.php");
 		$content = ob_get_contents();
 		ob_end_clean();
-		
+
 		return apply_filters('shopp_account_template',$content);
-		
+
 	}
-	
+
 	/**
 	 * Renders the order confirmation template
 	 *
@@ -898,7 +900,7 @@ class Storefront extends FlowController {
 	function order_confirmation () {
 		global $Shopp;
 		$Cart = $Shopp->Order->Cart;
-		
+
 		ob_start();
 		include(SHOPP_TEMPLATES."/confirm.php");
 		$content = ob_get_contents();
@@ -917,14 +919,14 @@ class Storefront extends FlowController {
 	function thanks ($template="thanks.php") {
 		global $Shopp;
 		$Purchase = $Shopp->Purchase;
-		
+
 		ob_start();
 		include(SHOPP_TEMPLATES."/$template");
 		$content = ob_get_contents();
 		ob_end_clean();
 		return apply_filters('shopp_thanks',$content);
 	}
-	
+
 	/**
 	 * Renders the errors template
 	 *
@@ -936,7 +938,7 @@ class Storefront extends FlowController {
 	function error_page ($template="errors.php") {
 		global $Shopp;
 		$Cart = $Shopp->Cart;
-		
+
 		ob_start();
 		include(SHOPP_TEMPLATES."/$template");
 		$content = ob_get_contents();
@@ -963,7 +965,7 @@ class Storefront extends FlowController {
 		} elseif (isset($atts['id'])) {
 			$Shopp->Product = new Product($atts['id']);
 		} else return "";
-		
+
 		return apply_filters('shopp_product_shortcode',$Shopp->Catalog->tag('product',$atts).'');
 	}
 
@@ -978,7 +980,7 @@ class Storefront extends FlowController {
 	 **/
 	function category_shortcode ($atts) {
 		global $Shopp;
-		
+
 		$tag = 'category';
 		if (isset($atts['name'])) {
 			$Shopp->Category = new Category($atts['name'],'name');
@@ -998,9 +1000,9 @@ class Storefront extends FlowController {
 		} else return "";
 
 		return apply_filters('shopp_category_shortcode',$Shopp->Catalog->tag($tag,$atts).'');
-		
+
 	}
-	
+
 
 	/**
 	 * Handles rendering the maintenance message in place of all shortcodes
@@ -1018,7 +1020,7 @@ class Storefront extends FlowController {
 			$content = ob_get_contents();
 			ob_end_clean();
 		} else $content = '<div id="shopp" class="update"><p>'.__("The store is currently down for maintenance.  We'll be back soon!","Shopp").'</p><div class="clear"></div></div>';
-		
+
 		return $content;
 	}
 
@@ -1033,7 +1035,7 @@ class Storefront extends FlowController {
 	 **/
 	function buynow_shortcode ($atts) {
 		global $Shopp;
-		
+
 		if (empty($Shopp->Product->id)) {
 			if (isset($atts['name'])) {
 				$Shopp->Product = new Product($atts['name'],'name');
@@ -1075,7 +1077,7 @@ class Storefront extends FlowController {
 
 		return $markup;
 	}
-	
+
 } // END class Storefront
 
 ?>

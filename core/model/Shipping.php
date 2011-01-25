@@ -486,7 +486,7 @@ abstract class ShippingFramework {
 
 		$buffer = curl_exec($connection);
 		if ($error = curl_error($connection))
-			new ShoppError($this->name.": ".$error,'shipping_comm_err',SHOPP_COMM_ERR);
+			new ShoppError($error,'shipping_comm_err',SHOPP_COMM_ERR);
 		curl_close($connection);
 
 		return $buffer;
