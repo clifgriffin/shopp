@@ -1453,12 +1453,15 @@ class Order {
 			case "submit":
 				if (!isset($options['value'])) $options['value'] = __('Submit Order','Shopp');
 				$options['class'] = isset($options['class'])?$options['class'].' checkout-button':'checkout-button';
+				if (isset($options['wrapclass'])) $wrapclass = ' '.$options['wrapclass'];
 				$buttons = array('<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />');
-				$buttons = apply_filters('shopp_checkout_submit_button',$buttons,$options,$submit_attrs);
+
+				if (!$this->Cart->orderisfree())
+					$buttons = apply_filters('shopp_checkout_submit_button',$buttons,$options,$submit_attrs);
 
 				$_ = array();
 				foreach ($buttons as $label => $button)
-					$_[] = '<span class="payoption-button payoption-'.sanitize_title_with_dashes($label).'">'.$button.'</span>';
+					$_[] = '<span class="payoption-button payoption-'.sanitize_title_with_dashes($label).($label === 0?$wrapclass:'').'">'.$button.'</span>';
 
 				return join("\n",$_);
 				break;
