@@ -1482,6 +1482,7 @@ class Order {
 			case "payoptions":
 			case "payment-options":
 			case "paymentoptions":
+				if ($this->Cart->orderisfree()) return false;
 				$payment_methods = apply_filters('shopp_payment_methods',count($this->payoptions));
 				if ($payment_methods <= 1) return false; // Skip if only one gateway is active
 				$defaults = array(
