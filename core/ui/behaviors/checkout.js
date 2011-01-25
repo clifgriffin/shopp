@@ -127,10 +127,10 @@ jQuery(document).ready(function () {
 		} else {
 			billFields.addClass('half');
 			shipFields.show().find('.disabled').setDisabled(false);
+			$('#shipping-country').change();
 		}
 	}).change()
 		.click(function () { $(this).change(); }); // For IE compatibility
-
 
 	$('.shopp .shipmethod').change(function () {
 		if ($(this).parents('#checkout').size()) {
@@ -206,6 +206,5 @@ jQuery(document).ready(function () {
 		}
 		return (total % 10) == 0;
 	}
-
 
 });
