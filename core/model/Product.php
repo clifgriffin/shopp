@@ -1440,7 +1440,9 @@ class Product extends DatabaseObject {
 					foreach ($this->prices as $pricetag) {
 						if ($pricetag->context != "addon") continue;
 
-						$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax,$this);
+						if (isset($options['taxes']))
+							$taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax,$this);
+						else $taxrate = shopp_taxrate(null,$pricetag->tax,$this);
 						$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
 						$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
 
@@ -1473,7 +1475,11 @@ class Product extends DatabaseObject {
 						foreach ($menu['options'] as $key => $option) {
 
 							$pricetag = $pricing[$option['id']];
-							$taxrate = shopp_taxrate($options['taxes'],$pricetag->tax,$this);
+
+							if (isset($options['taxes']))
+								$taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax,$this);
+							else $taxrate = shopp_taxrate(null,$pricetag->tax,$this);
+
 							$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
 							if ($taxrate > 0) $currently = $currently+($currently*$taxrate);
 							$string .= '<option value="'.$option['id'].'">'.$option['name'].' (+'.money($currently).')</option>'."\n";
