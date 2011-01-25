@@ -942,8 +942,10 @@ class Cart {
 				if (count($estimates) > 1
 					&& $estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
 				$result = "";
-				for ($i = 0; $i < count($estimates); $i++){
+				for ($i = 0; $i < count($estimates); $i++) {
 					list($interval,$p) = sscanf($estimates[$i],'%d%s');
+					if (empty($interval)) $interval = 1;
+					if (empty($p)) $p = 'd';
 					if (!empty($result)) $result .= "&mdash;";
 					$result .= _d($format,mktime()+($interval*$periods[$p]));
 				}
