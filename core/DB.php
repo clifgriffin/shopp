@@ -363,8 +363,11 @@ abstract class DatabaseObject {
 		global $Shopp;
 		$db = &DB::get();
 
-		if (empty($this->_table) && $table)		// So we know what the table name is
+		// So we know what the table name is
+		if (!empty($table) && (!isset($this->_table) || empty($this->_table))  )
 			$this->_table = $this->tablename($table);
+
+		if (empty($this->_table)) return false;
 
 		$this->_key = $key;				// So we know what the primary key is
 		$this->_datatypes = array();	// So we know the format of the table
