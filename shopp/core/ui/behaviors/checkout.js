@@ -20,8 +20,8 @@ jQuery(document).ready(function () {
 		checkoutButtons = $('.payoption-button'),
 		localeFields = $('#checkout.shopp li.locale');
 
-	// No payment option selectors found, use default
-	if ($('#checkout.shopp input[name=checkout]').val() == "process") {
+	// No payment option selectors found, use default when on checkout page only
+	if (checkoutForm.find('input[name=checkout]').val() == "process") {
 		if (paymethods.length == 0) paymethod_select(false,d_pm);
 		else paymethods.change(paymethod_select).change();
 	}
