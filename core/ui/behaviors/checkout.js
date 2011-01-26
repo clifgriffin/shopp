@@ -164,12 +164,14 @@ jQuery(document).ready(function () {
 		if (pm_cards[paymethod] && pm_cards[paymethod].length > 0) {
 			checkoutForm.find('.payment,.paycard').show();
 			checkoutForm.find('.paycard.disabled').attr('disabled',false).removeClass('disabled');
-			$.each(pm_cards[paymethod], function (a,s) {
-				if (!paycards[s]) return;
-				pc = paycards[s];
-				options += '<option value="'+pc.symbol+'">'+pc.name+'</option>';
-			});
-			billCardtype.html(options).change();
+			if (typeof(paycards) !== 'undefined') {
+				$.each(pm_cards[paymethod], function (a,s) {
+					if (!paycards[s]) return;
+					pc = paycards[s];
+					options += '<option value="'+pc.symbol+'">'+pc.name+'</option>';
+				});
+				billCardtype.html(options).change();
+			}
 
 		} else {
 			checkoutForm.find('.payment,.paycard').hide();
