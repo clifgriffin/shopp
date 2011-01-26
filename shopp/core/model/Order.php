@@ -324,6 +324,7 @@ class Order {
 					array("_datatypes","_table","_key","_lists","id","created","modified"));
 		} else $this->Shipping = new Shipping(); // Use blank shipping for non-Shipped orders
 
+		$freebie = $this->Cart->orderisfree();
 		$estimated = $this->Cart->Totals->total;
 
 		$this->Cart->changed(true);
@@ -334,6 +335,18 @@ class Order {
 		do_action('shopp_checkout_processed');
 
 		if (apply_filters('shopp_process_free_order',$this->Cart->orderisfree())) return;
+
+		// Catch originally free orders that get extra (shipping) costs added to them
+		if ($freebie && $this->Cart->Totals->total > 0) {
+
+			if ( ! (count($this->payoptions) == 1 // One paymethod
+					&& ( isset($this->payoptions[$this->paymethod]->cards) // Remote checkout
+						&& empty( $this->payoptions[$this->paymethod]->cards ) ) )
+				) {
+				new ShoppError(__('Payment information for this order is missing.','Shopp'),'checkout_no_paymethod',SHOPP_ERR);
+				shopp_redirect( shoppurl(false,'checkout',$this->security()) );
+			}
+		}
 
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm)
