@@ -117,7 +117,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		$stock = true;
 		foreach( $this->Order->Cart->contents as $item ) { //check stock before redirecting to Google
 			if (!$item->instock()){
-				new ShoppError(sprintf(__("There is not sufficient stock on %s to process order."),$item->name),'invalid_order',SHOPP_TXN_ERR);
+				new ShoppError(sprintf(__("There is not sufficient stock on %s to process order."),$item->name),'invalid_order',SHOPP_TRXN_ERR);
 				$stock = false;
 			}
 		}
@@ -128,7 +128,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 		if (!empty($Response)) {
 			if ($Response->tag('error')) {
-				new ShoppError($Response->content('error-message'),'google_checkout_error',SHOPP_TXN_ERR);
+				new ShoppError($Response->content('error-message'),'google_checkout_error',SHOPP_TRXN_ERR);
 				shopp_redirect(shoppurl(false,'checkout'));
 			}
 			$redirect = false;
@@ -522,7 +522,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			$_[] = '</charge-order>';
 			$Response = $this->send(join("\n",$_), $this->urls['order']);
 			if ($Response->tag('error')) {
-				new ShoppError($Response->content('error-message'),'google_checkout_error',SHOPP_TXN_ERR);
+				new ShoppError($Response->content('error-message'),'google_checkout_error',SHOPP_TRXN_ERR);
 				return;
 			}
 		}
