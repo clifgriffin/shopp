@@ -950,7 +950,9 @@ class Product extends DatabaseObject {
 				$titleattr = empty($title)?'':' title="'.esc_attr($title).'"';
 				$classes = empty($class)?'':' class="'.esc_attr($class).'"';
 
-				$src = shoppurl(SHOPP_PERMALINKS?trailingslashit($img->id).$img->filename:$img->id,'images');
+				$src = shoppurl($img->id,'images');
+				if (SHOPP_PERMALINKS) $src = trailingslashit($src).$img->filename;
+
 				if ($size != "original")
 					$src = add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),$src);
 
