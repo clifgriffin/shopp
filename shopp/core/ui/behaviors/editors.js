@@ -850,7 +850,8 @@ function ImageUploads (id,type) {
 						target:{width:parseInt(d[0],10),height:parseInt(d[1],10)},
 						init:{x:parseInt(init[0],10),y:parseInt(init[1],10),s:new Number(init[2])}
 					}).ready(function () {
-						$.fn.colorbox.resize();
+						var padding = 125; // Pad the resize so we have enough space
+						$.fn.colorbox.resize({innerWidth:(parseInt(d[0],10))+padding});
 					}).bind('change.scalecrop',function (e,c) {
 						if (c) srcCropped.filter('input[alt='+cropselect.val()+']').val(c.x+','+c.y+','+c.s);
 					});
