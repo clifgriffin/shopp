@@ -283,7 +283,8 @@ class Order {
 		$this->Customer->updates($_POST);
 
 		// Keep confirm-password field value when showing checkout validation errors
-		$this->Customer->_confirm_password = $_POST['confirm-password'];
+		if (isset($_POST['confirm-password']))
+			$this->Customer->_confirm_password = $_POST['confirm-password'];
 
 		if (empty($this->Billing))
 			$this->Billing = new Billing();
@@ -520,7 +521,7 @@ class Order {
 
 		if ($r->locked == 1) return true;
 
-		new ShoppError(sprintf(__('Transaction %s failed. Could not acheive a transaction lock.','Shopp'),$this->txnid),'order_txn_lock',SHOPP_TXN_ERR);
+		new ShoppError(sprintf(__('Transaction %s failed. Could not acheive a transaction lock.','Shopp'),$this->txnid),'order_txn_lock',SHOPP_TRXN_ERR);
 		shopp_redirect( shoppurl(false,'checkout',$this->security()) );
 	}
 
@@ -761,7 +762,7 @@ class Order {
 
 		if (empty($Cart->contents)) {
 			$valid = apply_filters('shopp_ordering_empty_cart',false);
-			new ShoppError(__("There are no items in the cart."),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
+			new ShoppError(__("There are no items in the cart."),'invalid_order'.$errors++,($report?SHOPP_TRXN_ERR:SHOPP_DEBUG_ERR));
 		}
 
 		$stock = true;
@@ -770,7 +771,7 @@ class Order {
 				$valid = apply_filters('shopp_ordering_items_outofstock',false);
 				new ShoppError(sprintf(__("%s does not have sufficient stock to process order."),
 				$item->name . ($item->option->label?" ({$item->option->label})":"")),
-				'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
+				'invalid_order'.$errors++,($report?SHOPP_TRXN_ERR:SHOPP_DEBUG_ERR));
 				$stock = false;
 			}
 		}
@@ -785,7 +786,7 @@ class Order {
 
 		if (!$valid_customer) {
 			$valid = false;
-			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
+			new ShoppError(__('There is not enough customer information to process the order.','Shopp'),'invalid_order'.$errors++,($report?SHOPP_TRXN_ERR:SHOPP_DEBUG_ERR));
 		}
 
 		// Check for shipped items but no Shipping information
@@ -800,13 +801,15 @@ class Order {
 
 			if ($Cart->freeshipping === false && $Cart->Totals->shipping === false) {
 				$valid = apply_filters('shopp_ordering_no_shipping_costs',false);
-				new ShoppError(__('The shipping address provided is invalid and could not be used to determine accurate shipping costs. Please return to checkout to correct the shipping address.','Shopp'),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
+				$message = __('The order cannot be processed. No shipping costs could be determined. Either the shipping rate provider was unavailable, or may have rejected the shipping address you provided. Please return to %scheckout%s and try again.', 'Shopp');
+				new ShoppError( sprintf( $message,'<a href="'.shoppurl(false,'checkout',$this->security()).'">','</a>' ), 'invalid_order'.$errors++, ($report?SHOPP_TRXN_ERR:SHOPP_DEBUG_ERR)
+				);
 			}
 
 		}
 		if (!$valid_shipping) {
 			$valid = false;
-			new ShoppError(__('The shipping address information is incomplete. The order cannot be processed.','Shopp'),'invalid_order'.$errors++,($report?SHOPP_TXN_ERR:SHOPP_DEBUG_ERR));
+			new ShoppError(__('The shipping address information is incomplete. The order cannot be processed.','Shopp'),'invalid_order'.$errors++,($report?SHOPP_TRXN_ERR:SHOPP_DEBUG_ERR));
 		}
 
 		return $valid;
@@ -1453,7 +1456,10 @@ class Order {
 			case "submit":
 				if (!isset($options['value'])) $options['value'] = __('Submit Order','Shopp');
 				$options['class'] = isset($options['class'])?$options['class'].' checkout-button':'checkout-button';
+
+				$wrapclass = '';
 				if (isset($options['wrapclass'])) $wrapclass = ' '.$options['wrapclass'];
+
 				$buttons = array('<input type="submit" name="process" id="checkout-button" '.inputattrs($options,$submit_attrs).' />');
 
 				if (!$this->Cart->orderisfree())
