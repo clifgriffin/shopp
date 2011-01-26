@@ -21,8 +21,10 @@ jQuery(document).ready(function () {
 		localeFields = $('#checkout.shopp li.locale');
 
 	// No payment option selectors found, use default
-	if (paymethods.length == 0) paymethod_select(false,d_pm);
-	else paymethods.change(paymethod_select).change();
+	if ($('#checkout.shopp input[name=checkout]').val() == "process") {
+		if (paymethods.length == 0) paymethod_select(false,d_pm);
+		else paymethods.change(paymethod_select).change();
+	}
 
 	// Validate paycard number before submit
 	checkoutForm.bind('shopp_validate',function () {
