@@ -89,6 +89,7 @@ jQuery(document).ready(function () {
 			options = '<option value=""></option>';
 
 		if (menu.length == 0) return true;
+		if (menu.hasClass('hidden')) menu.removeClass('hidden').hide();
 
 		if (regions[country] || (init && menu.find('option').length > 1)) {
 			state.setDisabled(true).hide();
