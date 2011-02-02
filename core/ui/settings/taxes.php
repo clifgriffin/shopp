@@ -56,18 +56,18 @@ var ratetable,rates,base,countries,zones,localities,taxrates,
 	countriesInUse = new Array(),
 	zonesInUse = new Array(),
 	allCountryZonesInUse = new Array(),
-	APPLY_LOGIC = '<?php _e("Apply tax rate when %s of the following conditions match","Shopp"); ?>',
-	LOCAL_RATES = '<?php _e("Local Rates","Shopp"); ?>',
-	LOCAL_RATE_INSTRUCTIONS = '<?php _e("No local regions have been setup for this location. Local regions can be specified by uploading a formatted local rates file.","Shopp"); ?>',
-	LOCAL_RATES_UPLOADERR = '<?php _e("The file was uploaded successfully, but the data returned by the server cannot be used.","Shopp"); ?>',
-	ANY_OPTION = '<?php _e("any","Shopp"); ?>',
-	ALL_OPTION = '<?php _e("all","Shopp"); ?>',
+	APPLY_LOGIC = <?php _jse("Apply tax rate when %s of the following conditions match","Shopp"); ?>,
+	LOCAL_RATES = <?php _jse("Local Rates","Shopp"); ?>,
+	LOCAL_RATE_INSTRUCTIONS = <?php _jse("No local regions have been setup for this location. Local regions can be specified by uploading a formatted local rates file.","Shopp"); ?>,
+	LOCAL_RATES_UPLOADERR = <?php _jse("The file was uploaded successfully, but the data returned by the server cannot be used.","Shopp"); ?>,
+	ANY_OPTION = <?php _jse("any","Shopp"); ?>,
+	ALL_OPTION = <?php _jse("all","Shopp"); ?>,
 	SHOPP_PLUGINURI = '<?php echo SHOPP_PLUGINURI; ?>',
 	RULE_LANG = {
-		"product-name":"<?php _e('Product name is','Shopp'); ?>",
-		"product-tags":"<?php _e('Product is tagged','Shopp'); ?>",
-		"product-category":"<?php _e('Product in category','Shopp'); ?>",
-		"customer-type":"<?php _e('Customer type is','Shopp'); ?>"
+		"product-name":<?php _jse('Product name is','Shopp'); ?>,
+		"product-tags":<?php _jse('Product is tagged','Shopp'); ?>,
+		"product-category":<?php _jse('Product in category','Shopp'); ?>,
+		"customer-type":<?php _jse('Customer type is','Shopp'); ?>
 	};
 /* ]]> */
 </script>

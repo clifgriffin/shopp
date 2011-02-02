@@ -56,6 +56,20 @@ function _d($format,$timestamp=false) {
 }
 
 /**
+ * JavaScript encodes translation strings
+ *
+ * @author Jonathan Davis
+ * @since 1.1.7
+ *
+ * @param string $text Text to translate
+ * @param string $domain Optional. Domain to retrieve the translated text
+ * @return void
+ **/
+function _jse ( $text, $domain = 'default' ) {
+	echo json_encode(translate( $text, $domain ));
+}
+
+/**
  * Generates a representation of the current state of an object structure
  *
  * @author Jonathan Davis

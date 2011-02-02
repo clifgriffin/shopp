@@ -115,7 +115,7 @@ jQuery(document).ready( function() {
 
 	$('a.submitdelete').click(function () {
 		var name = $(this).attr('title');
-		if ( confirm("<?php _e('You are about to delete this product!\n \'Cancel\' to stop, \'OK\' to delete.','Shopp'); ?>")) {
+		if ( confirm(<?php _jse('You are about to delete this product!\n \'Cancel\' to stop, \'OK\' to delete.','Shopp'); ?>)) {
 			$('<input type="hidden" name="delete[]" />').val($(this).attr('rel')).appendTo('#products-manager');
 			$('<input type="hidden" name="deleting" />').val('product').appendTo('#products-manager');
 			$('#products-manager').submit();

@@ -55,55 +55,55 @@ var $=jqnc(),
 	promotion = <?php echo (!empty($Promotion->id))?$Promotion->id:'false'; ?>,
 	loading = true,
 	SCOPEPROP_LANG = {
-		"Catalog":"<?php _e('price','Shopp'); ?>",
-		"Cart":"<?php _e('subtotal','Shopp'); ?>",
-		"Cart Item":"<?php _e('total, where:','Shopp'); ?>"
+		"Catalog":<?php _jse('price','Shopp'); ?>,
+		"Cart":<?php _jse('subtotal','Shopp'); ?>,
+		"Cart Item":<?php _jse('total, where:','Shopp'); ?>
 	},
 	TARGET_LANG = {
-		"Catalog":"<?php _e('product','Shopp'); ?>",
-		"Cart":"<?php _e('cart','Shopp'); ?>",
-		"Cart Item":"<?php _e('cart','Shopp'); ?>"
+		"Catalog":<?php _jse('product','Shopp'); ?>,
+		"Cart":<?php _jse('cart','Shopp'); ?>,
+		"Cart Item":<?php _jse('cart','Shopp'); ?>
 	},
 	RULES_LANG = {
-		"Name":"<?php _e('Name','Shopp'); ?>",
-		"Category":"<?php _e('Category','Shopp'); ?>",
-		"Variation":"<?php _e('Variation','Shopp'); ?>",
-		"Price":"<?php _e('Price','Shopp'); ?>",
-		"Sale price":"<?php _e('Sale price','Shopp'); ?>",
-		"Type":"<?php _e('Type','Shopp'); ?>",
-		"In stock":"<?php _e('In stock','Shopp'); ?>",
+		"Name":<?php _jse('Name','Shopp'); ?>,
+		"Category":<?php _jse('Category','Shopp'); ?>,
+		"Variation":<?php _jse('Variation','Shopp'); ?>,
+		"Price":<?php _jse('Price','Shopp'); ?>,
+		"Sale price":<?php _jse('Sale price','Shopp'); ?>,
+		"Type":<?php _jse('Type','Shopp'); ?>,
+		"In stock":<?php _jse('In stock','Shopp'); ?>,
 
-		"Tag name":"<?php _e('Tag name','Shopp'); ?>",
-		"Unit price":"<?php _e('Unit price','Shopp'); ?>",
-		"Total price":"<?php _e('Total price','Shopp'); ?>",
-		"Input name":"<?php _e('Input name','Shopp'); ?>",
-		"Input value":"<?php _e('Input value','Shopp'); ?>",
-		"Quantity":"<?php _e('Quantity','Shopp'); ?>",
+		"Tag name":<?php _jse('Tag name','Shopp'); ?>,
+		"Unit price":<?php _jse('Unit price','Shopp'); ?>,
+		"Total price":<?php _jse('Total price','Shopp'); ?>,
+		"Input name":<?php _jse('Input name','Shopp'); ?>,
+		"Input value":<?php _jse('Input value','Shopp'); ?>,
+		"Quantity":<?php _jse('Quantity','Shopp'); ?>,
 
-		"Any item name":"<?php _e('Any item name','Shopp'); ?>",
-		"Any item amount":"<?php _e('Any item amount','Shopp'); ?>",
-		"Any item quantity":"<?php _e('Any item quantity','Shopp'); ?>",
-		"Total quantity":"<?php _e('Total quantity','Shopp'); ?>",
-		"Shipping amount":"<?php _e('Shipping amount','Shopp'); ?>",
-		"Subtotal amount":"<?php _e('Subtotal amount','Shopp'); ?>",
-		"Discount amount":"<?php _e('Discount amount','Shopp'); ?>",
+		"Any item name":<?php _jse('Any item name','Shopp'); ?>,
+		"Any item amount":<?php _jse('Any item amount','Shopp'); ?>,
+		"Any item quantity":<?php _jse('Any item quantity','Shopp'); ?>,
+		"Total quantity":<?php _jse('Total quantity','Shopp'); ?>,
+		"Shipping amount":<?php _jse('Shipping amount','Shopp'); ?>,
+		"Subtotal amount":<?php _jse('Subtotal amount','Shopp'); ?>,
+		"Discount amount":<?php _jse('Discount amount','Shopp'); ?>,
 
-		"Customer type":"<?php _e('Customer type','Shopp'); ?>",
-		"Ship-to country":"<?php _e('Ship-to country','Shopp'); ?>",
+		"Customer type":<?php _jse('Customer type','Shopp'); ?>,
+		"Ship-to country":<?php _jse('Ship-to country','Shopp'); ?>,
 
-		"Promo code":"<?php _e('Promo code','Shopp'); ?>",
-		"Promo use count":"<?php _e('Promo use count','Shopp'); ?>",
+		"Promo code":<?php _jse('Promo code','Shopp'); ?>,
+		"Promo use count":<?php _jse('Promo use count','Shopp'); ?>,
 
-		"Is equal to":"<?php _e('Is equal to','Shopp'); ?>",
-		"Is not equal to":"<?php _e('Is not equal to','Shopp'); ?>",
-		"Contains":"<?php _e('Contains','Shopp'); ?>",
-		"Does not contain":"<?php _e('Does not contain','Shopp'); ?>",
-		"Begins with":"<?php _e('Begins with','Shopp'); ?>",
-		"Ends with":"<?php _e('Ends with','Shopp'); ?>",
-		"Is greater than":"<?php _e('Is greater than','Shopp'); ?>",
-		"Is greater than or equal to":"<?php _e('Is greater than or equal to','Shopp'); ?>",
-		"Is less than":"<?php _e('Is less than','Shopp'); ?>",
-		"Is less than or equal to":"<?php _e('Is less than or equal to','Shopp'); ?>"
+		"Is equal to":<?php _jse('Is equal to','Shopp'); ?>,
+		"Is not equal to":<?php _jse('Is not equal to','Shopp'); ?>,
+		"Contains":<?php _jse('Contains','Shopp'); ?>,
+		"Does not contain":<?php _jse('Does not contain','Shopp'); ?>,
+		"Begins with":<?php _jse('Begins with','Shopp'); ?>,
+		"Ends with":<?php _jse('Ends with','Shopp'); ?>,
+		"Is greater than":<?php _jse('Is greater than','Shopp'); ?>,
+		"Is greater than or equal to":<?php _jse('Is greater than or equal to','Shopp'); ?>,
+		"Is less than":<?php _jse('Is less than','Shopp'); ?>,
+		"Is less than or equal to":<?php _jse('Is less than or equal to','Shopp'); ?>
 
 	},
 	conditions = {
@@ -177,7 +177,7 @@ var $=jqnc(),
 		}
 
 		var cell = $('<td></td>').appendTo(row);
-		var deleteButton = $('<button type="button" class="delete"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="<?php _e('Delete','Shopp'); ?>" width="16" height="16" />').appendTo(cell).click(function () { if (i > 1) $(row).remove(); }).attr('opacity',0);
+		var deleteButton = $('<button type="button" class="delete"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt=<?php _jse('Delete','Shopp'); ?> width="16" height="16" />').appendTo(cell).click(function () { if (i > 1) $(row).remove(); }).attr('opacity',0);
 
 		var properties_name = (type=='cartitem')?'rules[item]['+i+'][property]':'rules['+i+'][property]';
 		var properties = $('<select name="'+properties_name+'" class="ruleprops"></select>').appendTo(cell);
@@ -192,7 +192,7 @@ var $=jqnc(),
 		var value = $('<span></span>').appendTo(cell);
 
 		var addspan = $('<span></span>').appendTo(cell);
-		$('<button type="button" class="add"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt="<?php _e('Add','Shopp'); ?>" width="16" height="16" />').appendTo(addspan).click(function () { new Conditional(type,false,row); });
+		$('<button type="button" class="add"></button>').html('<img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/add.png" alt=<?php _jse('Add','Shopp'); ?> width="16" height="16" />').appendTo(addspan).click(function () { new Conditional(type,false,row); });
 
 		cell.hover(function () {
 			if (i > 1) deleteButton.css({'opacity':100,'visibility':'visible'});
