@@ -834,7 +834,10 @@ class Cart {
 		}
 
 		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
-		if (is_numeric($result)) return '<span class="shopp_cart_'.$property.'">'.money($result).'</span>';
+		if (is_numeric($result)) {
+			if (isset($options['wrapper']) && !value_is_true($options['wrapper'])) return money($result);
+			return '<span class="shopp_cart_'.$property.'">'.money($result).'</span>';
+		}
 
 		return false;
 	}
