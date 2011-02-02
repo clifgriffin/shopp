@@ -1666,6 +1666,7 @@ class SearchResults extends SmartCategory {
 		require_once(SHOPP_MODEL_PATH."/Search.php");
 		new SearchParser();
 		new BooleanParser();
+		new ShortwordParser();
 
 		// Sanitize the search string
 		$search = $options['search'];
@@ -1687,16 +1688,28 @@ class SearchResults extends SmartCategory {
 		// Boolean keyword search
 		$boolean = apply_filters('shopp_boolean_search',$search);
 
+		// Exact shortword search
+		$shortwords = '';
+		if (!(defined('SHOPP_DISABLE_SHORTWORD_SEARCH') && SHOPP_DISABLE_SHORTWORD_SEARCH))
+			$shortwords = apply_filters('shopp_shortword_search',$search);
+
 		// Natural language search for relevance
 		$search = apply_filters('shopp_search_query',$search);
 
 		if (strlen($options['search']) > 0 && empty($boolean)) $boolean = $options['search'];
 
+		$score = "SUM(MATCH(terms) AGAINST ('$search'))";
+		$where = "MATCH(terms) AGAINST ('$boolean' IN BOOLEAN MODE)";
+		if (!empty($shortwords)) {
+			$score = "SUM(MATCH(terms) AGAINST ('$search'))+SUM(terms REGEXP '[[:<:]](".str_replace(' ','|',$shortwords).")[[:>:]]')";
+			$where = "($where OR terms REGEXP '[[:<:]](".str_replace(' ','|',$shortwords).")[[:>:]]')";
+		}
+
 		$index = DatabaseObject::tablename(ContentIndex::$table);
 		$this->loading = array(
 			'joins'=>"INNER JOIN $index AS search ON search.product=p.id",
-			'columns'=> "SUM(MATCH(terms) AGAINST ('$search')) AS score",
-			'where'=>"MATCH(terms) AGAINST ('$boolean' IN BOOLEAN MODE)",
+			'columns'=> "$score AS score",
+			'where'=> $where,
 			'orderby'=>'score DESC');
 		if (!empty($pricematch)) $this->loading['having'] = $pricematch;
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
