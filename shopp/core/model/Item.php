@@ -32,6 +32,7 @@ class Item {
 	var $priced = 0;			// Per unit price after discounts are applied
 	var $totald = 0;			// Total price after discounts
 	var $unittax = 0;			// Per unit tax amount
+	var $pricedtax = 0;			// Per unit tax amount after discounts are applied
 	var $tax = 0;				// Sum of the per unit tax amount for the line item
 	var $taxrate = 0;			// Tax rate for the item
 	var $total = 0;				// Total cost of the line item (unitprice x quantity)
@@ -489,7 +490,8 @@ class Item {
 		$this->taxrate = shopp_taxrate(true,$this->taxable,$this);
 
 		$this->priced = ($this->unitprice-$this->discount);
-		$this->unittax = ($this->priced*$this->taxrate);
+		$this->unittax = ($this->unitprice*$this->taxrate);
+		$this->pricedtax = ($this->priced*$this->taxrate);
 		$this->discounts = ($this->discount*$this->quantity);
 		$this->tax = ($this->unittax*$this->quantity);
 		$this->total = ($this->unitprice * $this->quantity);
