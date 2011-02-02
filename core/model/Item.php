@@ -493,7 +493,7 @@ class Item {
 		$this->unittax = ($this->unitprice*$this->taxrate);
 		$this->pricedtax = ($this->priced*$this->taxrate);
 		$this->discounts = ($this->discount*$this->quantity);
-		$this->tax = ($this->unittax*$this->quantity);
+		$this->tax = ($this->priced*$this->quantity);
 		$this->total = ($this->unitprice * $this->quantity);
 		$this->totald = ($this->priced * $this->quantity);
 
