@@ -29,11 +29,11 @@
 
 <script type="text/javascript">
 /* <![CDATA[ */
-var SHOPP_PAYMENT_OPTION = "<?php _e('Option Name','Shopp'); ?>",
-	SHOPP_DELETE_PAYMENT_OPTION = "<?php echo addslashes(__('Are you sure you want to delete this payment option?','Shopp')); ?>",
-	SHOPP_GATEWAY_MENU_PROMPT = "<?php _e('Select a payment system&hellip;','Shopp'); ?>",
+var SHOPP_PAYMENT_OPTION = <?php _jse('Option Name','Shopp'); ?>,
+	SHOPP_DELETE_PAYMENT_OPTION = <?php echo _jse('Are you sure you want to delete this payment option?','Shopp'); ?>,
+	SHOPP_GATEWAY_MENU_PROMPT = <?php _jse('Select a payment system&hellip;','Shopp'); ?>,
 	SHOPP_PLUGINURI = "<?php echo SHOPP_PLUGINURI; ?>",
-	SHOPP_SELECT_ALL = "<?php _e('Select All','Shopp'); ?>",
+	SHOPP_SELECT_ALL = <?php _jse('Select All','Shopp'); ?>,
 	gateways = <?php echo json_encode($gateways); ?>;
 
 jQuery(document).ready( function() {
