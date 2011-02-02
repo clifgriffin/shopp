@@ -1527,10 +1527,7 @@ class CartShipping {
 		do_action_ref_array('shopp_calculate_shipping',array(&$this->options,$Shopp->Order));
 
 		// No shipping options were generated, bail
-		if (empty($this->options)) {
-			new ShoppError(__('There are no shipping options available for your location.','Shopp'),'shopp_cart_shipping',SHOPP_ERR);
-			return false;
-		}
+		if (empty($this->options)) return false;
 
 		// Determine the lowest cost estimate
 		$estimate = false;
