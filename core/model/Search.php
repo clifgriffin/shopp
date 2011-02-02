@@ -225,6 +225,16 @@ class SearchParser extends SearchTextFilters {
 endif;
 
 if (!class_exists('BooleanParser')):
+/**
+ * BooleanParser class
+ *
+ * Prepares a search query for boolean matches
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ * @package shopp
+ * @subpackage search
+ **/
 class BooleanParser extends SearchTextFilters {
 
 	/**
@@ -237,7 +247,7 @@ class BooleanParser extends SearchTextFilters {
 	 **/
 	function __construct () {
 		add_filter('shopp_boolean_search',array('BooleanParser','MarkupFilter'));
-		add_filter('shopp_boolean_search',array('ContentParser','CurrencyFilter'));
+		add_filter('shopp_boolean_search',array('BooleanParser','CurrencyFilter'));
 		add_filter('shopp_boolean_search',array('BooleanParser','AccentFilter'));
 		add_filter('shopp_boolean_search',array('BooleanParser','LowercaseFilter'));
 		add_filter('shopp_boolean_search',array('BooleanParser','KeywordFilter'));
@@ -248,6 +258,38 @@ class BooleanParser extends SearchTextFilters {
 }
 endif;
 
+if (!class_exists('ShortwordParser')):
+/**
+ * ShortwordParser class
+ *
+ * Prepares a search query for shortword RegExp matching
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package shopp
+ * @subpackage search
+ **/
+class ShortwordParser extends SearchTextFilters {
+
+	/**
+	 * Setup the filtering for shortword parsing
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function __construct () {
+		add_filter('shopp_shortword_search',array('ShortwordParser','MarkupFilter'));
+		add_filter('shopp_shortword_search',array('ShortwordParser','CurrencyFilter'));
+		add_filter('shopp_shortword_search',array('ShortwordParser','AccentFilter'));
+		add_filter('shopp_shortword_search',array('ShortwordParser','LowercaseFilter'));
+		add_filter('shopp_shortword_search',array('ShortwordParser','ShortwordFilter'));
+		add_filter('shopp_shortword_search',array('ShortwordParser','NormalizeFilter'));
+	}
+
+}
+endif;
 
 if (!class_exists('ContentParser')):
 class ContentParser extends SearchTextFilters {
@@ -434,6 +476,21 @@ abstract class SearchTextFilters {
             $token = strtok(' ');
         }
 		return implode(' ',$tokens);
+	}
+
+	/**
+	 * Strips longer search terms from the query
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param string $text The query string to parse
+	 * @return string The shortword search string
+	 **/
+	static function ShortwordFilter ($text) {
+		$text = preg_replace('/\b\w{4,}\b/','',$text);
+		$text = preg_replace('/ +/','|',$text);
+		return $text;
 	}
 
 	/**
