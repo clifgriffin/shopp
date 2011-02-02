@@ -493,7 +493,7 @@ class Item {
 		$this->unittax = ($this->unitprice*$this->taxrate);
 		$this->pricedtax = ($this->priced*$this->taxrate);
 		$this->discounts = ($this->discount*$this->quantity);
-		$this->tax = ($this->priced*$this->quantity);
+		$this->tax = (($this->priced*$this->taxrate)*$this->quantity);
 		$this->total = ($this->unitprice * $this->quantity);
 		$this->totald = ($this->priced * $this->quantity);
 
@@ -534,7 +534,7 @@ class Item {
 			case "unittax": $result = (float)$this->unittax; break;
 			case "discounts": $result = (float)$this->discounts; break;
 			case "tax": $result = (float)$this->tax; break;
-			case "total": $result = (float)$this->total+($taxes?$this->tax:0); break;
+			case "total": $result = (float)$this->total+($taxes?($this->unittax*$this->quantity):0); break;
 		}
 		if (is_float($result)) {
 			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;

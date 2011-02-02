@@ -488,8 +488,9 @@ class Cart {
 		$Totals->tax = $Tax->calculate();
 
 		// Calculate final totals
-		$Totals->total = roundprice($Totals->subtotal - roundprice($Totals->discount) +
-			$Totals->shipping + $Totals->tax);
+		$amounts = array($Totals->subtotal,$Totals->discount*-1,$Totals->shipping,$Totals->tax);
+		$amounts = array_map('roundprice',$amounts);
+		$Totals->total = array_sum($amounts);
 
 		do_action_ref_array('shopp_cart_retotal',array(&$this->Totals));
 		$this->changed = false;
