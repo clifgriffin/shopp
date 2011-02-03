@@ -82,6 +82,8 @@ class ProductAPITests extends ShoppTestCase {
 	}
 
 	function test_product_price () {
+		$Settings =& ShoppSettings();
+		$Settings->registry['base_operations'] = unserialize('a:7:{s:4:"name";s:3:"USA";s:8:"currency";a:2:{s:4:"code";s:3:"USD";s:6:"format";a:6:{s:4:"cpos";b:1;s:8:"currency";s:1:"$";s:9:"precision";i:2;s:8:"decimals";s:1:".";s:9:"thousands";s:1:",";s:8:"grouping";a:1:{i:0;i:3;}}}s:5:"units";s:8:"imperial";s:6:"region";i:0;s:7:"country";s:2:"US";s:4:"zone";s:2:"OH";s:3:"vat";b:0;}');
 		ob_start();
 		shopp('product','price');
 		$output = ob_get_contents();
