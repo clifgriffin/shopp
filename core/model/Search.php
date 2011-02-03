@@ -429,12 +429,12 @@ abstract class SearchTextFilters {
 		$text = preg_replace("/[\.\']/",'',$text);
 
 		// Translate any other non-word characters to spaces
-		$text = preg_replace("/[^\w\d\s\_\"]/",' ',$text);
+		$text = preg_replace("/[^\w\d\s\p{L}\_\"]/u",' ',$text);
 
 		// Collapse the spaces
 		$text = preg_replace("/\s+/m",' ',$text);
 
-		return $text;
+		return trim($text);
 	}
 
 	/**
@@ -447,7 +447,12 @@ abstract class SearchTextFilters {
 	 * @return string Converted text
 	 **/
 	static function AccentFilter ($text) {
-		return iconv('UTF-8','ISO-8859-1//TRANSLIT',$text);
+		$text = preg_replace(
+					"/([\x{0020}-\x{0373}])/ue",
+					"iconv('UTF-8','ASCII//TRANSLIT','\\1')",
+					$text
+				);
+		return $text;
 	}
 
 	/**
