@@ -118,6 +118,9 @@ class Setup extends FlowController {
 				$_POST['settings']['base_operations']['vat'] = true;
 			else $_POST['settings']['base_operations']['vat'] = false;
 
+			if (!isset($_POST['settings']['target_markets']))
+				asort($_POST['settings']['target_markets']);
+
 			$this->settings_save();
 			$updated = __('Shopp settings saved.', 'Shopp');
 		}
