@@ -102,8 +102,8 @@ jQuery(document).ready(function () {
 			menu.setDisabled(false).show();
 		} else {
 			menu.empty().setDisabled(true).hide();
-			state.val('').setDisabled(false).show();
-			if (!init) state.focus();
+			state.setDisabled(false).show();
+			if (!init) state.val('').focus();
 		}
 	}).trigger('change',[true]);
 
