@@ -107,6 +107,26 @@ class DB {
 	}
 
 	/**
+	 * Check if we have a good connection, and if not reconnect
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1.7
+	 *
+	 * @return boolean
+	 **/
+	function reconnect () {
+		if (mysql_ping($this->dbh)) return true;
+
+		@mysql_close($this->dbh);
+		$this->connect(DB_USER, DB_PASSWORD, DB_NAME, DB_HOST);
+		if ($this->dbh) {
+			global $wpdb;
+			$wpdb->dbh = $this->dbh;
+		}
+		return ($this->dbh);
+	}
+
+	/**
 	 * Selects the database to use for querying
 	 *
 	 * @author Jonathan Davis
@@ -746,6 +766,8 @@ abstract class SessionObject {
 		if (is_robot() || empty($this->session)) return true;
 
 		$loaded = false;
+
+		$db->reconnect();
 
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
 		if ($result = $db->query($query)) {
