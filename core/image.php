@@ -82,6 +82,9 @@ class ImageServer extends DatabaseObject {
 		if ($this->height == 0 && $this->width > 0) $this->height = $this->width;
 		if ($this->width == 0 && $this->height > 0) $this->width = $this->height;
 		$this->scale = $this->scaling[$this->scale];
+
+		// Handle clear image requests (used in product gallery to reserve DOM dimensions)
+		if ('000' == substr($this->request,0,3)) $this->clearpng();
 	}
 
 	/**
@@ -197,6 +200,33 @@ class ImageServer extends DatabaseObject {
 			@readfile($notfound);
 		}
 		die();
+	}
+
+	/**
+	 * Renders a transparent PNG of the requested dimensions
+	 *
+	 * Used in the product gallery to reserve DOM dimensions so the
+	 * gallery is rendered with the proper layout
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1.7
+	 *
+	 * @return void Description...
+	 **/
+	function clearpng () {
+		require_once(SHOPP_PATH."/core/model/Image.php");
+		$max = 1920;
+		$this->width = min($max,$this->width);
+		$this->height = min($max,$this->height);
+		$ImageData = new ImageProcessor(false,$this->width,$this->height);
+		$ImageData->canvas($this->width,$this->height,true);
+		$image = $ImageData->imagefile(100);
+		header("Cache-Control: no-cache, must-revalidate");
+		header("Content-type: image/png");
+		header("Content-Disposition: inline; filename=clear.png");
+		header("Content-Description: Delivered by WordPress/Shopp Image Server");
+		header("Content-length: ".@strlen($image));
+		die($image);
 	}
 
 	function settings () {
