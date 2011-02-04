@@ -912,7 +912,6 @@ abstract class SessionObject {
 	 * @return string
 	 **/
 	function securekey () {
-		require_once(ABSPATH . WPINC . '/pluggable.php');
 		if (!is_shopp_secure()) return false;
 		$expiration = time()+SHOPP_SESSION_TIMEOUT;
 		if (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') $key = SECRET_AUTH_KEY;
