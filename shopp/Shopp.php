@@ -702,7 +702,10 @@ class Shopp {
 		$core = isset($updates->response[SHOPP_PLUGINFILE])?$updates->response[SHOPP_PLUGINFILE]:false;
 		$addons = isset($updates->response[SHOPP_PLUGINFILE.'/addons'])?$updates->response[SHOPP_PLUGINFILE.'/addons']:false;
 
-		if (!empty($core)) { // Core update available
+		if (!empty($core)	// Core update available
+				&& isset($core->new_version)	// New version info available
+				&& version_compare($core->new_version,SHOPP_VERSION,'>') // New version is greater than current version
+			) {
 			$plugin_name = 'Shopp';
 			$details_url = admin_url('plugin-install.php?tab=plugin-information&plugin=' . $core->slug . '&TB_iframe=true&width=600&height=800');
 			$update_url = wp_nonce_url('update.php?action=shopp&plugin='.SHOPP_PLUGINFILE,'upgrade-plugin_shopp');
