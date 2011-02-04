@@ -153,7 +153,7 @@ class Cart {
 
 				break;
 			case "remove":
-				if (!empty($this->contents)) $this->remove(current($_REQUEST['remove']));
+				if (!empty($this->contents)) $this->remove(key($_REQUEST['remove']));
 				break;
 			case "empty":
 				$this->clear();
