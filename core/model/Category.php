@@ -1043,7 +1043,8 @@ class Category extends DatabaseObject {
 			case "section-list":
 				if (empty($this->id)) return false;
 				if (isset($Shopp->Category->controls)) return false;
-				if (empty($Shopp->Catalog->categories)) $Shopp->Catalog->load_categories(array("where"=>"(pd.published='on' OR pd.id IS NULL)"));
+				if (empty($Shopp->Catalog->categories))
+					$Shopp->Catalog->load_categories(array("where"=>"(pd.status='publish' OR pd.id IS NULL)"));
 				if (empty($Shopp->Catalog->categories)) return false;
 				if (!$this->children) $this->load_children();
 
