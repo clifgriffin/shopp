@@ -767,8 +767,6 @@ abstract class SessionObject {
 
 		$loaded = false;
 
-		$db->reconnect();
-
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
 		if ($result = $db->query($query)) {
 			if (substr($result->data,0,1) == "!") {
