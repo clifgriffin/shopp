@@ -440,7 +440,7 @@ class Customer extends DatabaseObject {
 			$prefix.'phone' => __('Customer\'s Phone Number','Shopp'),
 			$prefix.'company' => __('Customer\'s Company','Shopp'),
 			$prefix.'marketing' => __('Customer\'s Marketing Preference','Shopp'),
-			$prefix.'info' => __('Customer\'s Custom Information','Shopp'),
+			// $prefix.'info' => __('Customer\'s Custom Information','Shopp'), @todo Re-enable by switching to customer meta data in 1.2
 			$prefix.'created' => __('Customer Created Date','Shopp'),
 			$prefix.'modified' => __('Customer Last Updated Date','Shopp'),
 			);
