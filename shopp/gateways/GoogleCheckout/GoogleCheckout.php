@@ -72,6 +72,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 
 		add_action('shopp_save_payment_settings',array(&$this,'apiurl'));
 		add_action('shopp_process_order',array(&$this, 'process'));
+		add_filter('shopp_ordering_no_shipping_costs',array(&$this, 'hasshipping_filter'));
 
 	}
 
@@ -79,7 +80,15 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 		if (count($this->Order->payoptions) == 1) add_filter('shopp_shipping_hasestimates',array(&$this, 'hasestimates_filter'));
 	}
 
+
 	function hasestimates_filter () { return false; }
+
+	function hasshipping_filter ( $valid ) {
+		if ($this->settings['use_google_shipping'] == 'on') {
+			return true;
+		}
+		return $valid;
+	}
 
 	function submit ($tag=false,$options=array(),$attrs=array()) {
 		$type = "live";
