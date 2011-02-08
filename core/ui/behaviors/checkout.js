@@ -89,6 +89,7 @@ jQuery(document).ready(function () {
 			options = '<option value=""></option>';
 
 		if (menu.length == 0) return true;
+		if (menu.hasClass('hidden')) menu.removeClass('hidden').hide();
 
 		if (regions[country] || (init && menu.find('option').length > 1)) {
 			state.setDisabled(true).hide();
@@ -101,8 +102,8 @@ jQuery(document).ready(function () {
 			menu.setDisabled(false).show();
 		} else {
 			menu.empty().setDisabled(true).hide();
-			state.val('').setDisabled(false).show();
-			if (!init) state.focus();
+			state.setDisabled(false).show();
+			if (!init) state.val('').focus();
 		}
 	}).trigger('change',[true]);
 

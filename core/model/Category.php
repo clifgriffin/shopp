@@ -1043,7 +1043,8 @@ class Category extends DatabaseObject {
 			case "section-list":
 				if (empty($this->id)) return false;
 				if (isset($Shopp->Category->controls)) return false;
-				if (empty($Shopp->Catalog->categories)) $Shopp->Catalog->load_categories(array("where"=>"(pd.published='on' OR pd.id IS NULL)"));
+				if (empty($Shopp->Catalog->categories))
+					$Shopp->Catalog->load_categories(array("where"=>"(pd.status='publish' OR pd.id IS NULL)"));
 				if (empty($Shopp->Catalog->categories)) return false;
 				if (!$this->children) $this->load_children();
 
@@ -1535,8 +1536,11 @@ class Category extends DatabaseObject {
 				$options = array_merge($defaults,$options);
 				extract($options, EXTR_SKIP);
 
+				$href = shoppurl(SHOPP_PERMALINKS?trailingslashit('000'):'000','images');
+				$imgsrc = add_query_string("$width,$height",$href);
+
 				$string = '<ul class="slideshow '.$fx.'-fx '.$order.'-order duration-'.$duration.' delay-'.$delay.'">';
-				$string .= '<li class="clear"><img src="'.SHOPP_ADMIN_URI.'/icons/clear.png" width="'.$width.'" height="'.$height.'" /></li>';
+				$string .= '<li class="clear"><img src="'.$imgsrc.'" width="'.$width.'" height="'.$height.'" /></li>';
 				foreach ($this->products as $Product) {
 					if (empty($Product->images)) continue;
 					$string .= '<li><a href="'.$Product->tag('url').'">';

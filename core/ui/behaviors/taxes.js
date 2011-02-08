@@ -82,7 +82,7 @@ function TaxRate (data) {
 	localToggle.change(function () { LocalRates((data.locals?data.locals:false)); });
 	new AddRuleButton(origin);
 	quickSelects();
-	load(data);
+	if (data) load(data);
 
 
 	function TaxRateRule (target,d) {
@@ -236,6 +236,7 @@ function TaxRate (data) {
 	}
 
 	function load (d) {
+		if (!d) return;
 		if (d.rate) rate.val(d.rate).change();
 		if (d.country) countryMenu.val(d.country).change();
 		if (d.zone) zoneMenu.val(d.zone).change();

@@ -1062,8 +1062,9 @@ class Product extends DatabaseObject {
 					$scaled = $img->scaled($width,$height,$scale);
 
 					if ($firstPreview) { // Adds "filler" image to reserve the dimensions in the DOM
+						$href = shoppurl(SHOPP_PERMALINKS?trailingslashit('000'):'000','images');
 						$previews .= '<li id="preview-fill"'.(($firstPreview)?' class="fill"':'').'>';
-						$previews .= '<img src="'.$Shopp->uri.'/core/ui/icons/clear.png'.'" alt=" " width="'.$maxwidth.'" height="'.$maxheight.'" />';
+						$previews .= '<img src="'.add_query_string("$maxwidth,$maxheight",$href).'" alt=" " width="'.$maxwidth.'" height="'.$maxheight.'" />';
 						$previews .= '</li>';
 					}
 					$title = !empty($img->title)?' title="'.esc_attr($img->title).'"':'';

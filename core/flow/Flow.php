@@ -71,7 +71,6 @@ class Flow {
 			$controller = $this->Admin->controller(strtolower($_GET['page']));
 			if (!empty($controller)) $this->handler($controller);
 		} else $this->handler("Storefront");
-
 	}
 
 	function transactions () {

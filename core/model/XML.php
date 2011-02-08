@@ -55,7 +55,7 @@ class xmlQuery {
 	 * @return boolean
 	 **/
 	function parse (&$markup) {
-		$this->clean($markup,true);
+		$markup = $this->clean($markup,true);
 		$parser = xml_parser_create();
 		xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
 		xml_parse_into_struct($parser, $markup, $vals, $index);
@@ -65,30 +65,30 @@ class xmlQuery {
 		$working = &$data;
 		foreach ($vals as $r) {
 			$t = $r['tag'];
-			if ($r['type'] == 'open') {
-				if ( isset( $working[$t] ) ) {
-					if ( isset( $working[$t][0] ) ) $working[$t][] = array();
-					else $working[$t] = array( $working[$t], array() );
-					$cv = &$working[$t][ count( $working[$t] )-1 ];
-				} else $cv = &$working[$t];
-				if ( isset( $r['attributes'] ) ) { foreach ( $r['attributes'] as $k => $v ) $cv['_a'][$k] = $this->clean($v); }
-				$cv['_c'] = array();
-				$cv['_c']['_p'] = &$working;
-				$working = &$cv['_c'];
-
-			} elseif ( $r['type'] == 'complete' ) {
-				if ( isset( $working[$t] ) ) { // same as open
-					if ( isset( $working[$t][0] ) ) $working[$t][] = array();
-					else $working[$t] = array( $working[$t], array() );
-					$cv = &$working[$t][count($working[$t])-1];
-				} else $cv = &$working[$t];
-				if (isset($r['attributes'])) {
-					foreach ($r['attributes'] as $k => $v) $cv['_a'][$k] = $this->clean($v);
-				}
-				$cv['_v'] = (isset($r['value']) ? $this->clean($r['value']) : '');
-
-			} elseif ($r['type'] == 'close') {
-				$working = &$working['_p'];
+			switch ($r['type']) {
+				case 'open':
+					if ( isset( $working[$t] ) ) {
+						if ( isset( $working[$t][0] ) ) $working[$t][] = array();
+						else $working[$t] = array( $working[$t], array() );
+						$cv = &$working[$t][count( $working[$t] )-1];
+					} else $cv = &$working[$t];
+					if ( isset( $r['attributes'] ) ) { foreach ( $r['attributes'] as $k => $v ) $cv['_a'][$k] = $this->clean($v); }
+					$cv['_c'] = array();
+					$cv['_c']['_p'] = &$working;
+					$working = &$cv['_c'];
+					break;
+				case 'complete':
+					if ( isset( $working[$t] ) ) { // same as open
+						if ( isset( $working[$t][0] ) ) $working[$t][] = array();
+						else $working[$t] = array( $working[$t], array() );
+						$cv = &$working[$t][count( $working[$t] )-1];
+					} else $cv = &$working[$t];
+					if ( isset( $r['attributes'] ) ) { foreach ($r['attributes'] as $k => $v) $cv['_a'][$k] = $this->clean($v); }
+					$cv['_v'] = isset( $r['value'] ) ? $this->clean($r['value']) : '';
+					break;
+				case 'close':
+					$working = &$working['_p'];
+					break;
 			}
 		}
 
@@ -96,6 +96,7 @@ class xmlQuery {
 		$this->dom = $data;
 		return true;
 	}
+
 
 	/**
 	 * Encode and decode characters mis-handled by the XML parser
@@ -109,7 +110,7 @@ class xmlQuery {
 	 **/
 	function clean (&$markup,$encode=false) {
 		if (!is_string($markup)) return $markup;
-		$entities = array('&' => '_amp_');
+		$entities = array('&' => '__amp__','<br>' => '__br__');
 
 		if ($encode) {
 			$markup = html_entity_decode($markup);
@@ -117,7 +118,8 @@ class xmlQuery {
 			return $markup;
 		}
 
-		return str_replace(array_values($entities),array_keys($entities),$markup);
+		$markup = str_replace(array_values($entities),array_keys($entities),$markup);
+		return $markup;
 	}
 
 	/**

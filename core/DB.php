@@ -107,6 +107,26 @@ class DB {
 	}
 
 	/**
+	 * Check if we have a good connection, and if not reconnect
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1.7
+	 *
+	 * @return boolean
+	 **/
+	function reconnect () {
+		if (mysql_ping($this->dbh)) return true;
+
+		@mysql_close($this->dbh);
+		$this->connect(DB_USER, DB_PASSWORD, DB_NAME, DB_HOST);
+		if ($this->dbh) {
+			global $wpdb;
+			$wpdb->dbh = $this->dbh;
+		}
+		return ($this->dbh);
+	}
+
+	/**
 	 * Selects the database to use for querying
 	 *
 	 * @author Jonathan Davis
@@ -890,7 +910,6 @@ abstract class SessionObject {
 	 * @return string
 	 **/
 	function securekey () {
-		require_once(ABSPATH . WPINC . '/pluggable.php');
 		if (!is_shopp_secure()) return false;
 		$expiration = time()+SHOPP_SESSION_TIMEOUT;
 		if (defined('SECRET_AUTH_KEY') && SECRET_AUTH_KEY != '') $key = SECRET_AUTH_KEY;
