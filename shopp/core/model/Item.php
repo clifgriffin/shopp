@@ -387,7 +387,7 @@ class Item {
 		}
 
 		// Update stock in the model
-		$this->option->stock -= $this->quantity;
+		$this->option->stock = max(0, (int) $this->option->stock - $this->quantity);
 
 		// Handle notifications
 		$product = "$this->name (".$this->option->label.")";
