@@ -532,7 +532,8 @@ abstract class SearchTextFilters {
 			if ($stem != $token) $_[] = $stem;
 			$token = strtok(' ');
 		}
-		return $text.' '.join(' ',$_);
+
+		return !empty($_)?"$text ".join(' ',$_):$text;
 	}
 
 } // END class SearchTextFilters
