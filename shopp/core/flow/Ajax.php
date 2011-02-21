@@ -337,7 +337,7 @@ class AjaxFlow {
 
 		switch($_GET['t']) {
 			case "product-name": $table = DatabaseObject::tablename(Product::$table); break;
-			case "product-tags": $table = DatabaseObject::tablename(Tag::$table); break;
+			case "product-tags": $table = DatabaseObject::tablename(CatalogTag::$table); break;
 			case "product-category": $table = DatabaseObject::tablename(Category::$table); break;
 			case "customer-type":
 				$types = Lookup::customer_types();

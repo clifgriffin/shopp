@@ -220,6 +220,7 @@ class ShoppInstallation extends FlowController {
 		$this->upschema();
 
 		if ($db_version < 1100) $this->upgrade_110();
+		if ($db_version < 1120) $this->upgrade_120();
 
 	}
 
@@ -364,7 +365,6 @@ class ShoppInstallation extends FlowController {
 	function upgrade_110 () {
 		$db =& DB::get();
 		$meta_table = DatabaseObject::tablename('meta');
-		$db->query("DELETE FROM $meta_table"); // Clear out previous meta
 
 		// Update product status from the 'published' column
 		$product_table = DatabaseObject::tablename('product');
@@ -531,6 +531,22 @@ class ShoppInstallation extends FlowController {
 		}
 
 		$this->roles(); // Setup Roles and Capabilities
+
+	}
+
+	function upgrade_120 () {
+		$db =& DB::get();
+
+		// Move tags to meta table
+		$meta_table = DatabaseObject::tablename('meta');
+		$tag_table = DatabaseObject::tablename('tag');
+		$catalog_table = DatabaseObject::tablename('catalog');
+
+		$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
+					SELECT 0,'catalog','tag',name,name,0,0,created,modified FROM $tag_table");
+
+		$db->query("UPDATE $catalog_table AS c JOIN $tag_table AS t ON c.parent=t.id AND c.type='tag' LEFT JOIN $meta_table AS m ON t.name=m.name SET c.parent=m.id");
+
 
 	}
 
