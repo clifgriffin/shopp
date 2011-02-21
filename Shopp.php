@@ -820,6 +820,9 @@ function shopp () {
 		}
 	}
 
+	// Multilanguage translation filter to support translation plugins
+	$result = apply_filters('shopp_ml_t',$result,$options,$property,$Object);
+	
 	// Provide a filter hook for every template tag, includes passed options and the relevant Object as parameters
 	$result = apply_filters('shopp_tag_'.strtolower($object).'_'.strtolower($property),$result,$options,$Object);
 
