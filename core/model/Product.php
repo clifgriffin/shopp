@@ -98,7 +98,7 @@ class Product extends DatabaseObject {
 
 		if (in_array('tags',$options)) {
 			$this->tags = array();
-			$Dataset['tags'] = new Tag();
+			$Dataset['tags'] = new CatalogTag();
 		}
 
 		// Determine the maximum columns to allocate
@@ -469,7 +469,7 @@ class Product extends DatabaseObject {
 
 		if (!empty($added)) {
 			$catalog = DatabaseObject::tablename(Catalog::$table);
-			$tagtable = DatabaseObject::tablename(Tag::$table);
+			$tagtable = DatabaseObject::tablename(CatalogTag::$table);
 			$where = "";
 			foreach ($added as $tag) $where .= ($where == ""?"":" OR ")."name='".$db->escape($tag)."'";
 			$results = $db->query("SELECT id,name FROM $tagtable WHERE $where",AS_ARRAY);
@@ -481,7 +481,7 @@ class Product extends DatabaseObject {
 				$tagid = array_search($tag,$exists);
 
 				if (!$tagid) {
-					$Tag = new Tag();
+					$Tag = new CatalogTag();
 					$Tag->name = $tag;
 					$Tag->save();
 					$tagid = $Tag->id;
@@ -497,7 +497,7 @@ class Product extends DatabaseObject {
 			$catalog = DatabaseObject::tablename(Catalog::$table);
 			foreach ($removed as $tag) {
 				// Ensure loading tag records by case-sensitive name with BINARY casting
-				$Tag = new Tag($tag,'BINARY name');
+				$Tag = new CatalogTag($tag,'BINARY name');
 				if (!empty($Tag->id))
 					$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE parent='$Tag->id' AND type='tag' AND product='$this->id'");
 			}

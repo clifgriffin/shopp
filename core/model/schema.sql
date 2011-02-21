@@ -45,11 +45,11 @@ CREATE TABLE <?php echo $price; ?> (
 	context enum('product','variation','addon') NOT NULL,
 	type enum('Shipped','Virtual','Download','Donation','N/A') NOT NULL,
 	sku varchar(100) NOT NULL default '',
-	price float(20,6) NOT NULL default '0.00',
-	saleprice float(20,6) NOT NULL default '0.00',
-	weight float(20,6) NOT NULL default '0',
+	price decimal(16,6) NOT NULL default '0.00',
+	saleprice decimal(16,6) NOT NULL default '0.00',
+	weight decimal(12,6) NOT NULL default '0',
 	dimensions varchar(255) NOT NULL default '0',
-	shipfee float(20,6) NOT NULL default '0',
+	shipfee decimal(12,6) NOT NULL default '0',
 	stock int(10) NOT NULL default '0',
 	inventory enum('off','on') NOT NULL,
 	sale enum('off','on') NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE <?php echo $meta; ?> (
 	type varchar(16) NOT NULL default 'meta',
 	name varchar(255) NOT NULL default '',
 	value longtext NOT NULL,
-	numeral float(20,4) NOT NULL default '0.0000',
+	numeral decimal(16,6) NOT NULL default '0.0000',
 	sortorder int(10) unsigned NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
@@ -119,16 +119,6 @@ CREATE TABLE <?php echo $category; ?> (
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
 	KEY parent (parent)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
-<?php $tag = DatabaseObject::tablename('tag'); ?>
-DROP TABLE IF EXISTS <?php echo $tag; ?>;
-CREATE TABLE <?php echo $tag; ?> (
-	id bigint(20) unsigned NOT NULL auto_increment,
-	name varchar(255) NOT NULL default '',
-	created datetime NOT NULL default '0000-00-00 00:00:00',
-	modified datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY id (id)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 <?php $catalog = DatabaseObject::tablename('catalog'); ?>
@@ -259,12 +249,12 @@ CREATE TABLE <?php echo $purchase; ?> (
 	shippostcode varchar(10) NOT NULL default '',
 	geocode varchar(16) NOT NULL default '',
 	promos varchar(255) NOT NULL default '',
-	subtotal float(20,6) NOT NULL default '0.00',
-	freight float(20,6) NOT NULL default '0.00',
-	tax float(20,6) NOT NULL default '0.00',
-	total float(20,6) NOT NULL default '0.00',
-	discount float(20,6) NOT NULL default '0.00',
-	fees float(20,6) NOT NULL default '0.00',
+	subtotal decimal(16,6) NOT NULL default '0.00',
+	freight decimal(16,6) NOT NULL default '0.00',
+	tax decimal(16,6) NOT NULL default '0.00',
+	total decimal(16,6) NOT NULL default '0.00',
+	discount decimal(16,6) NOT NULL default '0.00',
+	fees decimal(16,6) NOT NULL default '0.00',
 	taxing enum('exclusive','inclusive') default 'exclusive',
 	txnid varchar(64) NOT NULL default '',
 	txnstatus varchar(64) NOT NULL default '',
@@ -296,10 +286,10 @@ CREATE TABLE <?php echo $purchased; ?> (
 	sku varchar(100) NOT NULL default '',
 	quantity int(10) unsigned NOT NULL default '0',
 	downloads int(10) unsigned NOT NULL default '0',
-	unitprice float(20,6) NOT NULL default '0.00',
-	unittax float(20,6) NOT NULL default '0.00',
-	shipping float(20,6) NOT NULL default '0.00',
-	total float(20,6) NOT NULL default '0.00',
+	unitprice decimal(16,6) NOT NULL default '0.00',
+	unittax decimal(16,6) NOT NULL default '0.00',
+	shipping decimal(16,6) NOT NULL default '0.00',
+	total decimal(16,6) NOT NULL default '0.00',
 	addons enum('yes','no') NOT NULL default 'no',
 	variation text NOT NULL,
 	data longtext NOT NULL,
@@ -311,6 +301,23 @@ CREATE TABLE <?php echo $purchased; ?> (
 	KEY dkey (dkey(8))
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
+<?php $txn = DatabaseObject::tablename('txn'); ?>
+DROP TABLE IF EXISTS <?php echo $txn; ?>;
+CREATE TABLE <?php echo $txn; ?> (
+	id bigint(20) unsigned NOT NULL auto_increment,
+	customer bigint(20) unsigned NOT NULL default '0',
+	account int(3) unsigned NOT NULL default '0',
+	parent bigint(20) unsigned NOT NULL default '0',
+	context varchar(16) NOT NULL default 'purchase',
+	op enum('debit','credit') NOT NULL default 'debit',
+	value decimal(16,6) NOT NULL default '0.0000',
+	created datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY id (id),
+	KEY account (account),
+	KEY customer (customer),
+	KEY lookup (parent,context)
+) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
+
 <?php $promo = DatabaseObject::tablename('promo'); ?>
 DROP TABLE IF EXISTS <?php echo $promo; ?>;
 CREATE TABLE <?php echo $promo; ?> (
@@ -319,7 +326,7 @@ CREATE TABLE <?php echo $promo; ?> (
 	status enum('disabled','enabled') default 'disabled',
 	type enum('Percentage Off','Amount Off','Free Shipping','Buy X Get Y Free') default 'Percentage Off',
 	target enum('Catalog','Cart','Cart Item') default 'Catalog',
-	discount float(20,6) NOT NULL default '0.00',
+	discount decimal(16,6) NOT NULL default '0.00',
 	buyqty int(10) NOT NULL default '0',
 	getqty int(10) NOT NULL default '0',
 	uses int(10) NOT NULL default '0',

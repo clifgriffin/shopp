@@ -14,7 +14,6 @@
 
 require_once("Product.php");
 require_once("Category.php");
-require_once("Tag.php");
 
 class Catalog extends DatabaseObject {
 	static $table = "catalog";
@@ -191,7 +190,7 @@ class Catalog extends DatabaseObject {
 		if ($limits) $limit = " LIMIT {$limits[0]},{$limits[1]}";
 		else $limit = "";
 
-		$tagtable = DatabaseObject::tablename(Tag::$table);
+		$tagtable = DatabaseObject::tablename(CatalogTag::$table);
 		$query = "SELECT t.*,count(sc.product) AS products FROM $this->_table AS sc LEFT JOIN $tagtable AS t ON sc.parent=t.id WHERE sc.type='tag' GROUP BY t.id ORDER BY t.name ASC$limit";
 		$this->tags = $db->query($query,AS_ARRAY);
 		return true;
@@ -845,5 +844,16 @@ class Catalog extends DatabaseObject {
 	}
 
 } // END class Catalog
+
+class CatalogTag extends MetaObject {
+
+	function __construct ($id=false,$key=false) {
+		$this->init(self::$table);
+		$this->load($id,$key);
+		$this->context = 'catalog';
+		$this->type = 'tag';
+	}
+
+} // END class CatalogTag
 
 ?>

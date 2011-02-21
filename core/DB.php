@@ -30,7 +30,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  **/
 class DB {
 	private static $instance;
-	static $version = 1110;
+	static $version = 1120;
 
 	// Define datatypes for MySQL
 	var $_datatypes = array("int" => array("int", "bit", "bool", "boolean"),

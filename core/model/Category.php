@@ -1730,7 +1730,7 @@ class TagProducts extends SmartCategory {
 
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
-		$tagtable = DatabaseObject::tablename(Tag::$table);
+		$tagtable = DatabaseObject::tablename(CatalogTag::$table);
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 
 		$this->tag = urldecode($options['tag']);
@@ -1756,7 +1756,7 @@ class RelatedProducts extends SmartCategory {
 
 		global $Shopp;
 		$Cart = $Shopp->Order->Cart;
-		$tagtable = DatabaseObject::tablename(Tag::$table);
+		$tagtable = DatabaseObject::tablename(CatalogTag::$table);
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 
 		// Use the current product if available
@@ -1783,7 +1783,7 @@ class RelatedProducts extends SmartCategory {
 
 		$tagscope = "";
 		if (isset($options['tagged'])) {
-			$tagged = new Tag($options['tagged'],'name');
+			$tagged = new CatalogTag($options['tagged'],'name');
 
 			if (!empty($tagged->id)) {
 				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.parent=$tagged->id";
