@@ -58,6 +58,7 @@ require('core/flow/Scripts.php');
 // Load frameworks & Shopp-managed data model objects
 require("core/model/Modules.php");
 require("core/model/Gateway.php");
+require("core/model/Shipping.php");
 require("core/model/Lookup.php");
 require("core/model/Shopping.php");
 require("core/model/Error.php");
@@ -822,7 +823,7 @@ function shopp () {
 
 	// Multilanguage translation filter to support translation plugins
 	$result = apply_filters('shopp_ml_t',$result,$options,$property,$Object);
-	
+
 	// Provide a filter hook for every template tag, includes passed options and the relevant Object as parameters
 	$result = apply_filters('shopp_tag_'.strtolower($object).'_'.strtolower($property),$result,$options,$Object);
 

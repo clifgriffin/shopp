@@ -2,7 +2,7 @@
 /**
  * Shipping.php
  *
- * Shipping addresses and shipping rate modules
+ * Shipping module control and framework
  *
  * @author Jonathan Davis
  * @version 1.1
@@ -12,132 +12,6 @@
  * @since 1.1
  * @subpackage shipping
  **/
-
-/**
- * Shipping class
- *
- * The shipping address manager
- *
- * @author Jonathan Davis
- * @since 1.0
- * @package shipping
- **/
-class Shipping extends DatabaseObject {
-	static $table = "shipping";
-	var $method = false;
-
-	function __construct ($id=false,$key=false) {
-		$this->init(self::$table);
-		if ($id && $this->load($id,$key)) return true;
-		else return false;
-	}
-
-	/**
-	 * Registry of supported export fields
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return array
-	 **/
-	function exportcolumns () {
-		$prefix = "s.";
-		return array(
-			$prefix.'address' => __('Shipping Street Address','Shopp'),
-			$prefix.'xaddress' => __('Shipping Street Address 2','Shopp'),
-			$prefix.'city' => __('Shipping City','Shopp'),
-			$prefix.'state' => __('Shipping State/Province','Shopp'),
-			$prefix.'country' => __('Shipping Country','Shopp'),
-			$prefix.'postcode' => __('Shipping Postal Code','Shopp'),
-			);
-	}
-
-	/**
-	 * Determines the domestic area name from a U.S. ZIP code or
-	 * Canadian postal code.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return string
-	 **/
-	function postarea () {
-		global $Shopp;
-		$code = $this->postcode;
-		$areas = Lookup::country_areas();
-
-		// Skip if there are no areas for this country
-		if (!isset($areas[$this->country])) return false;
-
-		// If no postcode is provided, return the first regional column
-		if (empty($this->postcode)) return key($areas[$this->country]);
-
-		// Lookup US area name
-		if (preg_match("/\d{5}(\-\d{4})?/",$code)) {
-
-			foreach ($areas['US'] as $name => $states) {
-				foreach ($states as $id => $coderange) {
-					for($i = 0; $i<count($coderange); $i+=2) {
-						if ($code >= (int)$coderange[$i] && $code <= (int)$coderange[$i+1]) {
-							$this->state = $id;
-							return $name;
-						}
-					}
-				}
-			}
-		}
-
-		// Lookup Canadian area name
-		if (preg_match("/\w\d\w\s*\d\w\d/",$code)) {
-
-			foreach ($areas['CA'] as $name => $provinces) {
-				foreach ($provinces as $id => $fsas) {
-					if (in_array(substr($code,0,1),$fsas)) {
-						$this->state = $id;
-						return $name;
-					}
-				}
-			}
-			return $name;
-
-		}
-
-		return false;
-	}
-
-	/**
-	 * Sets the shipping address location for calculating
-	 * shipping estimates.
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return void Description...
-	 **/
-	function destination ($data=false) {
-		global $Shopp;
-
-		$base = $Shopp->Settings->get('base_operations');
-		$countries = Lookup::countries();
-		$regions = Lookup::regions();
-
-		if ($data) $this->updates($data);
-
-		// Update state if postcode changes for tax updates
-		if (isset($this->postcode))
-			$this->postarea();
-
-		if (empty($this->country))
-			$this->country = $base['country'];
-
-		$this->region = false;
-		if (isset($regions[$countries[$this->country]['region']]))
-			$this->region = $regions[$countries[$this->country]['region']];
-
-	}
-
-
-} // END class Shipping
 
 /**
  * ShippingModules class

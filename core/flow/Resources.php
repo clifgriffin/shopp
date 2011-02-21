@@ -113,8 +113,8 @@ class Resources {
 		if (!current_user_can('shopp_export_customers')) exit();
 		if (!isset($_POST['settings']['customerexport_columns'])) {
 			$Customer = Customer::exportcolumns();
-			$Billing = Billing::exportcolumns();
-			$Shipping = Shipping::exportcolumns();
+			$Billing = BillingAddress::exportcolumns();
+			$Shipping = ShippingAddress::exportcolumns();
 			$_POST['settings']['customerexport_columns'] =
 			 	array_keys(array_merge($Customer,$Billing,$Shipping));
 			$_POST['settings']['customerexport_headers'] = "on";

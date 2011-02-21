@@ -11,8 +11,7 @@
  * @subpackage customer
  **/
 
-require("Billing.php");
-require("Shipping.php");
+require("Address.php");
 
 class Customer extends DatabaseObject {
 	static $table = "customer";
@@ -976,8 +975,8 @@ class CustomersExport {
 		global $Shopp;
 
 		$this->customer_cols = Customer::exportcolumns();
-		$this->billing_cols = Billing::exportcolumns();
-		$this->shipping_cols = Shipping::exportcolumns();
+		$this->billing_cols = BillingAddress::exportcolumns();
+		$this->shipping_cols = ShippingAddress::exportcolumns();
 		$this->defined = array_merge($this->customer_cols,$this->billing_cols,$this->shipping_cols);
 
 		$this->sitename = get_bloginfo('name');
@@ -1005,8 +1004,8 @@ class CustomersExport {
 		if (!empty($request['start']) && !empty($request['end'])) $where .= " AND  (UNIX_TIMESTAMP(c.created) >= $starts AND UNIX_TIMESTAMP(c.created) <= $ends)";
 
 		$customer_table = DatabaseObject::tablename(Customer::$table);
-		$billing_table = DatabaseObject::tablename(Billing::$table);
-		$shipping_table = DatabaseObject::tablename(Shipping::$table);
+		$billing_table = DatabaseObject::tablename(BillingAddress::$table);
+		$shipping_table = DatabaseObject::tablename(ShippingAddress::$table);
 		$offset = $this->set*$this->limit;
 
 		$c = 0; $columns = array();

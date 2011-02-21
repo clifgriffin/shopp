@@ -54,8 +54,8 @@ class Order {
 	function __construct () {
 		$this->Cart = new Cart();
 		$this->Customer = new Customer();
-		$this->Billing = new Billing();
-		$this->Shipping = new Shipping();
+		$this->Billing = new BillingAddress();
+		$this->Shipping = new ShippingAddress();
 
 		$this->Shipping->destination();
 
@@ -287,7 +287,7 @@ class Order {
 			$this->Customer->_confirm_password = $_POST['confirm-password'];
 
 		if (empty($this->Billing))
-			$this->Billing = new Billing();
+			$this->Billing = new BillingAddress();
 		// Default the cardtype to the payment method label selected
 		$this->Billing->cardtype = $this->payoptions[$this->paymethod]->label;
 		$this->Billing->updates($_POST['billing']);
@@ -312,7 +312,7 @@ class Order {
 
 		if (!empty($this->Cart->shipped)) {
 			if (empty($this->Shipping))
-				$this->Shipping = new Shipping();
+				$this->Shipping = new ShippingAddress();
 
 			if (isset($_POST['shipping'])) $this->Shipping->updates($_POST['shipping']);
 			if (!empty($_POST['shipmethod'])) $this->Shipping->method = $_POST['shipmethod'];
@@ -321,8 +321,8 @@ class Order {
 			// Override posted shipping updates with billing address
 			if (isset($_POST['sameshipaddress']) && $_POST['sameshipaddress'] == "on")
 				$this->Shipping->updates($this->Billing,
-					array("_datatypes","_table","_key","_lists","id","created","modified"));
-		} else $this->Shipping = new Shipping(); // Use blank shipping for non-Shipped orders
+					array('_datatypes','_table','_key','_lists','id','type','created','modified'));
+		} else $this->Shipping = new ShippingAddress(); // Use blank shipping for non-Shipped orders
 
 		$freebie = $this->Cart->orderisfree();
 		$estimated = $this->Cart->Totals->total;
@@ -369,7 +369,7 @@ class Order {
 	function shipmethod () {
 		if (empty($this->Cart->shipped)) return;
 		if (empty($this->Shipping))
-				$this->Shipping = new Shipping();
+				$this->Shipping = new ShippingAddress();
 
 		if ($_POST['shipmethod'] == $this->Shipping->method) return;
 

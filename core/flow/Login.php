@@ -251,11 +251,11 @@ class Login {
 		if (isset($_POST['confirm-password']))
 			$this->Customer->confirm_password = $_POST['confirm-password'];
 
-		$this->Billing = new Billing();
+		$this->Billing = new BillingAddress();
 		if (isset($_POST['billing']))
 			$this->Billing->updates($_POST['billing']);
 
-		$this->Shipping = new Shipping();
+		$this->Shipping = new ShippingAddress();
 		if (isset($_POST['shipping']))
 			$this->Shipping->updates($_POST['shipping']);
 

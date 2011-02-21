@@ -178,11 +178,13 @@ CREATE TABLE <?php echo $customer; ?> (
 	KEY type (type)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-<?php $shipping = DatabaseObject::tablename('shipping'); ?>
-DROP TABLE IF EXISTS <?php echo $shipping; ?>;
-CREATE TABLE <?php echo $shipping; ?> (
+<?php $address = DatabaseObject::tablename('address'); ?>
+DROP TABLE IF EXISTS <?php echo $address; ?>;
+CREATE TABLE <?php echo $address; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	customer bigint(20) unsigned NOT NULL default '0',
+	type enum('billing','shipping') NOT NULL default 'billing',
+	name varchar(100) NOT NULL default '',
 	address varchar(100) NOT NULL default '',
 	xaddress varchar(100) NOT NULL default '',
 	city varchar(100) NOT NULL default '',
@@ -193,28 +195,7 @@ CREATE TABLE <?php echo $shipping; ?> (
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
-	KEY customer (customer)	
-) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
-
-<?php $billing = DatabaseObject::tablename('billing'); ?>
-DROP TABLE IF EXISTS <?php echo $billing; ?>;
-CREATE TABLE <?php echo $billing; ?> (
-	id bigint(20) unsigned NOT NULL auto_increment,
-	customer bigint(20) unsigned NOT NULL default '0',
-	card varchar(4) NOT NULL default '',
-	cardtype varchar(32) NOT NULL default '',
-	cardexpires date NOT NULL default '0000-00-00',
-	cardholder varchar(96) NOT NULL default '',
-	address varchar(100) NOT NULL default '',
-	xaddress varchar(100) NOT NULL default '',
-	city varchar(100) NOT NULL default '',
-	state varchar(100) NOT NULL default '',
-	country varchar(2) NOT NULL default '',
-	postcode varchar(10) NOT NULL default '',
-	created datetime NOT NULL default '0000-00-00 00:00:00',
-	modified datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY id (id),
-	KEY customer (customer)
+	KEY ref (customer,type)	
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $purchase = DatabaseObject::tablename('purchase'); ?>
