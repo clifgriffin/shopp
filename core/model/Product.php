@@ -186,7 +186,7 @@ class Product extends DatabaseObject {
 				case "tags":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."catalog.product=$id";
 					$where = "($where) AND catalog.type='tag'";
-					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM $catalogtable AS catalog LEFT JOIN $set->_table ON catalog.parent=$set->_table.id AND type='tag' WHERE $where)";
+					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM $catalogtable AS catalog LEFT JOIN $set->_table ON catalog.parent=$set->_table.id AND catalog.type='tag' WHERE $where)";
 					break;
 			}
 		}
