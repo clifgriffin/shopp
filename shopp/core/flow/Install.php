@@ -536,18 +536,32 @@ class ShoppInstallation extends FlowController {
 
 	function upgrade_120 () {
 		$db =& DB::get();
+		$db_version = intval($this->Settings->get('db_version'));
 
-		// Move tags to meta table
-		$meta_table = DatabaseObject::tablename('meta');
-		$tag_table = DatabaseObject::tablename('tag');
-		$catalog_table = DatabaseObject::tablename('catalog');
+		if ($db_version <= 1120) {
+			// Move tags to meta table
+			$meta_table = DatabaseObject::tablename('meta');
+			$tag_table = DatabaseObject::tablename('tag');
+			$catalog_table = DatabaseObject::tablename('catalog');
 
-		$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
-					SELECT 0,'catalog','tag',name,name,0,0,created,modified FROM $tag_table");
+			$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
+						SELECT 0,'catalog','tag',name,name,0,0,created,modified FROM $tag_table");
 
-		$db->query("UPDATE $catalog_table AS c JOIN $tag_table AS t ON c.parent=t.id AND c.type='tag' LEFT JOIN $meta_table AS m ON t.name=m.name SET c.parent=m.id");
+			$db->query("UPDATE $catalog_table AS c JOIN $tag_table AS t ON c.parent=t.id AND c.type='tag' LEFT JOIN $meta_table AS m ON t.name=m.name SET c.parent=m.id");
+		}
 
+		if ($db_version <= 1121) {
+			$address_table = DatabaseObject::tablename('address');
+			$billing_table = DatabaseObject::tablename('billing');
+			$shipping_table = DatabaseObject::tablename('shipping');
 
+			// Move billing address data to the address table
+			$db->query("INSERT INTO $address_table (customer,type,address,xaddress,city,state,country,postcode,created,modified)
+						SELECT customer,'billing',address,xaddress,city,state,country,postcode,created,modified FROM $billing_table");
+
+			$db->query("INSERT INTO $address_table (customer,type,address,xaddress,city,state,country,postcode,created,modified)
+						SELECT customer,'shipping',address,xaddress,city,state,country,postcode,created,modified FROM $shipping_table");
+		}
 	}
 
 	/**

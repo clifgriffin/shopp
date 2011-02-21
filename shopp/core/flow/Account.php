@@ -81,9 +81,9 @@ class Account extends AdminController {
 				&& current_user_can('shopp_delete_customers')) {
 			foreach($selected as $deletion) {
 				$Customer = new Customer($deletion);
-				$Billing = new Billing($Customer->id,'customer');
+				$Billing = new BillingAddress($Customer->id);
 				$Billing->delete();
-				$Shipping = new Shipping($Customer->id,'customer');
+				$Shipping = new ShippingAddress($Customer->id);
 				$Shipping->delete();
 				$Customer->delete();
 			}
@@ -94,8 +94,8 @@ class Account extends AdminController {
 
 			if ($_POST['id'] != "new") {
 				$Customer = new Customer($_POST['id']);
-				$Billing = new Billing($Customer->id,'customer');
-				$Shipping = new Shipping($Customer->id,'customer');
+				$Billing = new BillingAddress($Customer->id);
+				$Shipping = new ShippingAddress($Customer->id);
 			} else $Customer = new Customer();
 
 			$Customer->updates($_POST);
@@ -144,7 +144,7 @@ class Account extends AdminController {
 		}
 
 		$customer_table = DatabaseObject::tablename(Customer::$table);
-		$billing_table = DatabaseObject::tablename(Billing::$table);
+		$billing_table = DatabaseObject::tablename(BillingAddress::$table);
 		$purchase_table = DatabaseObject::tablename(Purchase::$table);
 		$users_table = $wpdb->users;
 
@@ -214,7 +214,7 @@ class Account extends AdminController {
 		$formatPref = $Shopp->Settings->get('customerexport_format');
 		if (!$formatPref) $formatPref = 'tab';
 
-		$columns = array_merge(Customer::exportcolumns(),Billing::exportcolumns(),Shipping::exportcolumns());
+		$columns = array_merge(Customer::exportcolumns(),BillingAddress::exportcolumns(),ShippingAddress::exportcolumns());
 		$selected = $Shopp->Settings->get('customerexport_columns');
 		if (empty($selected)) $selected = array_keys($columns);
 
@@ -275,8 +275,8 @@ class Account extends AdminController {
 
 		if ($_GET['id'] != "new") {
 			$Customer = new Customer($_GET['id']);
-			$Customer->Billing = new Billing($Customer->id,'customer');
-			$Customer->Shipping = new Shipping($Customer->id,'customer');
+			$Customer->Billing = new BillingAddress($Customer->id);
+			$Customer->Shipping = new ShippingAddress($Customer->id);
 			if (empty($Customer->id))
 				wp_die(__('The requested customer record does not exist.','Shopp'));
 		} else $Customer = new Customer();
