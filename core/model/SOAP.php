@@ -5095,29 +5095,6 @@ if (!class_exists('nusoap_base')) {
 		}
 	}
 
-	if (!function_exists('mkobject')) {
-		/**
-		 * Converts an associative array to a stdClass object
-		 *
-		 * Uses recursion to convert nested associative arrays to a
-		 * nested stdClass object while maintaing numeric indexed arrays
-		 * and converting associative arrays contained within the
-		 * numeric arrays
-		 *
-		 * @author Jonathan Davis
-		 *
-		 * @param array $data The associative array to convert
-		 * @return void
-		 **/
-		function mkobject (&$data) {
-			$numeric = false;
-			foreach ($data as $p => &$d) {
-				if (is_array($d)) mkobject($d);
-				if (is_int($p)) $numeric = true;
-			}
-			if (!$numeric) settype($data,'object');
-		}
-	}
 } // END class_exists('nusoap_base')
 
 ?>
