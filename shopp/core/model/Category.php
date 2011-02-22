@@ -328,7 +328,6 @@ class Category extends DatabaseObject {
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 		$producttable = DatabaseObject::tablename(Product::$table);
 		$pricetable = DatabaseObject::tablename(Price::$table);
-		$discounttable = DatabaseObject::tablename(Discount::$table);
 		$promotable = DatabaseObject::tablename(Promotion::$table);
 		$imagetable = DatabaseObject::tablename(ProductImage::$table);
 
@@ -360,8 +359,8 @@ class Category extends DatabaseObject {
 			$where[] = "p.id in (SELECT product FROM $catalogtable WHERE (parent=$this->id AND type='category'))";
 
 		if (!isset($loading['nostock']) && ($Shopp->Settings->get('outofstock_catalog') == "off"))
-			$where[] = "p.id in (SELECT product FROM $pricetable WHERE type != 'N/A' AND inventory='off' OR (inventory='on' AND stock > 0))";
-		else $where[] = "p.id in (SELECT product FROM $pricetable WHERE type != 'N/A')";
+			$where[] = "p.id in (SELECT product FROM $pricetable WHERE type != 'N/A' AND context != 'addon' AND inventory='off' OR (inventory='on' AND stock > 0))";
+		else $where[] = "p.id in (SELECT product FROM $pricetable WHERE type != 'N/A' AND context != 'addon')";
 
 		if (!isset($loading['joins'])) $loading['joins'] = '';
 		if (!empty($Shopp->Flow->Controller->browsing[$this->slug])) {
@@ -493,7 +492,7 @@ class Category extends DatabaseObject {
 		} else $limit = (int)$loading['limit'];
 
 		$columns = "p.*,
-					img.id AS image,img.value AS imgmeta,MAX(pr.status) as promos,
+					MAX(pr.status) as promos,
 					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0))AS percentoff,
 					SUM(DISTINCT IF(pr.type='Amount Off',pr.discount,0)) AS amountoff,
 					if (pr.type='Free Shipping',1,0) AS freeshipping,
@@ -507,16 +506,6 @@ class Category extends DatabaseObject {
 					IF(pd.inventory='on',1,0) AS inventory,
 					SUM(pd.stock) as stock";
 
-		// Query without promotions for MySQL servers prior to 5
-		if (version_compare($db->mysql,'5.0','<')) {
-			$columns = "p.*,
-						img.id AS image,img.value AS imgmeta,
-						MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
-						IF(pd.sale='on',1,0) AS onsale,
-						MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice,
-						IF(pd.inventory='on',1,0) AS inventory,
-						SUM(pd.stock) as stock";
-		}
 
 		// Handle alphabetic page requests
 		if ((!isset($Shopp->Category->controls) ||
@@ -529,9 +518,11 @@ class Category extends DatabaseObject {
 			$ac = "SELECT count(DISTINCT p.id) AS total,IF(LEFT(p.name,1) REGEXP '[0-9]',LEFT(p.name,1),LEFT(SOUNDEX(p.name),1)) AS letter,AVG(IF(pd.sale='on',pd.saleprice,pd.price)) as avgprice
 						FROM $producttable AS p
 						LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A'
-						LEFT JOIN $discounttable AS dc ON dc.product=p.id AND dc.price=pd.id
-						LEFT JOIN $promotable AS pr ON pr.id=dc.promo
-						LEFT JOIN $imagetable AS img ON img.parent=p.id AND img.context='product' AND img.type='image' AND img.sortorder=0
+						LEFT JOIN $promotable AS pr ON 0 < FIND_IN_SET(pr.id,pd.discounts) AND pr.target='Catalog' AND
+							(pr.status='enabled' AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1)
+							OR (".time()." > UNIX_TIMESTAMP(starts) AND ".time()." < UNIX_TIMESTAMP(ends))
+							OR (UNIX_TIMESTAMP(starts)=1 AND ".time()." < UNIX_TIMESTAMP(ends))
+							OR (".time()." > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends)=1) ))
 						{$loading['joins']}
 						WHERE {$loading['where']}
 						GROUP BY letter";
@@ -575,16 +566,18 @@ class Category extends DatabaseObject {
 
 		$query = "SELECT SQL_CALC_FOUND_ROWS $columns{$loading['columns']}
 					FROM $producttable AS p
-					LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A'
-					LEFT JOIN $discounttable AS dc ON dc.product=p.id AND dc.price=pd.id
-					LEFT JOIN $promotable AS pr ON pr.id=dc.promo
-					LEFT JOIN $imagetable AS img ON img.parent=p.id AND img.context='product' AND img.type='image' AND img.sortorder=0
+					LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' AND pd.context != 'addon'
+					LEFT JOIN $promotable AS pr ON 0 < FIND_IN_SET(pr.id,pd.discounts) AND pr.target='Catalog' AND
+						(pr.status='enabled' AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1)
+						OR (".time()." > UNIX_TIMESTAMP(starts) AND ".time()." < UNIX_TIMESTAMP(ends))
+						OR (UNIX_TIMESTAMP(starts)=1 AND ".time()." < UNIX_TIMESTAMP(ends))
+						OR (".time()." > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends)=1) ))
 					{$loading['joins']}
 					WHERE {$loading['where']}
 					GROUP BY p.id {$loading['having']}
 					ORDER BY {$loading['order']}
 					LIMIT {$loading['limit']}";
-
+		echo $query; exit();
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
 
@@ -636,15 +629,8 @@ class Category extends DatabaseObject {
 			if (isset($product->promos))
 				$this->products[$product->id]->promos = $product->promos;
 
-			if (!empty($product->image)) {
-				$image = new ProductImage();
-				$image->id = $product->image;
-				$image->value = unserialize($product->imgmeta);
-				$image->expopulate();
-				$this->products[$product->id]->images = array($image);
-			}
-
 		}
+
 		$this->pricing['average'] = 0;
 		if (count($prices) > 0) $this->pricing['average'] = array_sum($prices)/count($prices);
 

@@ -60,7 +60,6 @@ class Product extends DatabaseObject {
 		if (in_array('prices',$options)) {
 			$this->prices = array();
 			$promotable = DatabaseObject::tablename(Promotion::$table);
-			$discounttable = DatabaseObject::tablename(Discount::$table);
 			$assettable = DatabaseObject::tablename(ProductDownload::$table);
 
 			$Dataset['prices'] = new Price();
@@ -138,8 +137,8 @@ class Product extends DatabaseObject {
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."$set->_table.product=$id";
 					$query .= "(SELECT '$set->_table' as dataset,$set->_table.product AS product,'$rtype' AS rtype,'' AS alphaorder,$set->_table.sortorder AS sortorder,$cols FROM $set->_table
 								LEFT JOIN $assettable AS download ON $set->_table.id=download.parent AND download.context='price' AND download.type='download'
-								LEFT JOIN $discounttable AS discount ON discount.product=$set->_table.product AND discount.price=$set->_table.id
-								LEFT JOIN $promotable AS promo ON promo.id=discount.promo AND
+								LEFT JOIN $promotable AS promo ON 0 < FIND_IN_SET(promo.id,$set->_table.discounts) AND
+								promo.target='Catalog' AND
 								(promo.status='enabled' AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1)
 								OR (".time()." > UNIX_TIMESTAMP(starts) AND ".time()." < UNIX_TIMESTAMP(ends))
 								OR (UNIX_TIMESTAMP(starts)=1 AND ".time()." < UNIX_TIMESTAMP(ends))

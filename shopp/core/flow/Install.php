@@ -246,7 +246,9 @@ class ShoppInstallation extends FlowController {
 
 		// Update the table schema
 		$tables = preg_replace('/;\s+/',';',$schema);
+		ob_start(); // Suppress dbDelta errors
 		$changes = dbDelta($tables);
+		ob_end_clean();
 		$this->Settings->save('db_updates',$changes);
 	}
 
