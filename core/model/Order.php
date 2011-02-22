@@ -603,8 +603,11 @@ class Order {
 
 		$Purchase = new Purchase($this->txnid,'txnid');
 		if (!empty($Purchase->id)) {
-			$Purchase->save();
-			do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['txnstatus'],&$Purchase));
+			if($status != $Purchase->txnstatus) {
+				$Purchase->txnstatus = $status;
+				$Purchase->save();
+				do_action_ref_array('shopp_order_txnstatus_update',array(&$status,&$Purchase));
+			}
 		} else do_action('shopp_create_purchase');
 
 		return true;
