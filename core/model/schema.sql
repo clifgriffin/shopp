@@ -56,12 +56,13 @@ CREATE TABLE <?php echo $price; ?> (
 	shipping enum('on','off') NOT NULL,
 	tax enum('on','off') NOT NULL,
 	donation varchar(255) NOT NULL default '',
+	discounts varchar(255) NOT NULL default '',
 	sortorder int(10) unsigned NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
 	KEY product (product),
-	KEY catalog (product,type,inventory,stock),
+	KEY catalog (product,context,type,inventory,stock),
 	KEY context (context)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
@@ -318,16 +319,6 @@ CREATE TABLE <?php echo $promo; ?> (
 	ends datetime NOT NULL default '0000-00-00 00:00:00',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY id (id)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
-<?php $discount = DatabaseObject::tablename('discount'); ?>
-DROP TABLE IF EXISTS <?php echo $discount; ?>;
-CREATE TABLE <?php echo $discount; ?> (
-	id bigint(20) unsigned NOT NULL auto_increment,
-	promo bigint(20) unsigned NOT NULL default '0',
-	product bigint(20) unsigned NOT NULL default '0',
-	price bigint(20) unsigned NOT NULL default '0',
 	PRIMARY KEY id (id),
-	KEY lookup (product,price)
+	KEY catalog (status,target)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;

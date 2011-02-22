@@ -41,13 +41,12 @@ class Promotion extends DatabaseObject {
 	function build_discounts () {
 		$db = DB::get();
 
-		$discount_table = DatabaseObject::tablename(Discount::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
 		$category_table = DatabaseObject::tablename(Category::$table);
 
-		$where = array();
+		$where = array("0 = FIND_IN_SET($this->id,discounts)");
 		// Go through each rule to construct an SQL query
 		// that gets all applicable product & price ids
 		if (!empty($this->rules) && is_array($this->rules)) {
@@ -83,17 +82,16 @@ class Promotion extends DatabaseObject {
 			}
 
 		}
+
 		if (!empty($where)) $where = "WHERE ".join(" AND ",$where);
 		else $where = false;
 		$type = ($this->type == "Item")?'catalog':'cart';
-		$query = "INSERT INTO $discount_table (promo,product,price)
-					SELECT '$this->id' as promo,p.id AS product,prc.id AS price
-					FROM $product_table as p
-					LEFT JOIN $price_table AS prc ON prc.product=p.id
+		$query = "UPDATE $price_table AS prc
+					LEFT JOIN $product_table as p ON prc.product=p.id
 					LEFT JOIN $catalog_table AS clog ON clog.product=p.id
 					LEFT JOIN $category_table AS cat ON clog.parent=cat.id AND clog.type='category'
-					$where
-					GROUP BY prc.id";
+					SET prc.discounts=CONCAT(prc.discounts,IF(prc.discounts='','$this->id',',$this->id'))
+					$where";
 
 		$db->query($query);
 
@@ -101,8 +99,15 @@ class Promotion extends DatabaseObject {
 
 	function reset_discounts () {
 		$db =& DB::get();
-		$_table = DatabaseObject::tablename(Discount::$table);
-		$db->query("DELETE FROM $_table WHERE promo=$this->id");
+		$_table = DatabaseObject::tablename(Price::$table);
+
+		$discounted = $db->query("SELECT id,discounts,FIND_IN_SET($this->id,discounts) AS offset FROM $_table WHERE 0 < FIND_IN_SET($this->id,discounts)",AS_ARRAY);
+
+		foreach ($discounted as $index => $pricetag) {
+			$promos = explode(',',$pricetag->discounts);
+			array_splice($promos,($offset-1),1);
+			$db->query("UPDATE LOW_PRIORITY $_table SET discounts='".join(',',$promos)."' WHERE id=$pricetag->id");
+		}
 	}
 
 	/**
@@ -195,32 +200,5 @@ class Promotion extends DatabaseObject {
 	}
 
 } // end Promotion class
-
-
-// Discount table provides discount index for faster, efficient discount lookups
-class Discount extends DatabaseObject {
-	static $table = "discount";
-
-	function Promotion ($id=false) {
-		$this->init(self::$table);
-		if ($this->load($id)) return true;
-		else return false;
-	}
-
-	function delete () {
-		$db = DB::get();
-		// Delete record
-		$id = $this->{$this->_key};
-
-		// Delete related discounts
-		$discount_table = DatabaseObject::tablename(Discount::$table);
-		if (!empty($id)) $db->query("DELETE LOW_PRIORITY FROM $discount_table WHERE promo='$id'");
-
-		if (!empty($id)) $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
-		else return false;
-	}
-
-} // end Discount class
-
 
 ?>
