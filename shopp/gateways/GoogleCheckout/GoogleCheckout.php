@@ -505,6 +505,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 	}
 
 	function state ($XML) {
+		global $Shopp;
 		$summary = $XML->tag('order-summary');
  		$id = $summary->content('google-order-number');
 		if (empty($id)) {
@@ -520,9 +521,9 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 			return;
 		}
 
-		$Purchase->txnstatus = $state;
 		$Purchase->card = $XML->content('partial-cc-number');
 		$Purchase->save();
+		$Shopp->Order->transaction($id, $state); // new transaction state
 
 		if (strtoupper($state) == "CHARGEABLE" && $this->settings['autocharge'] == "on") {
 			$_ = array('<?xml version="1.0" encoding="UTF-8"?>'."\n");

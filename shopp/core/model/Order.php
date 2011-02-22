@@ -602,8 +602,10 @@ class Order {
 		if (empty($this->txnid)) return new ShoppError(sprintf('The payment gateway %s did not provide a transaction id. Purchase records cannot be created without a transaction id.',$this->gateway),'shopp_order_transaction',SHOPP_DEBUG_ERR);
 
 		$Purchase = new Purchase($this->txnid,'txnid');
-		if (!empty($Purchase->id)) $Purchase->save();
-		else do_action('shopp_create_purchase');
+		if (!empty($Purchase->id)) {
+			$Purchase->save();
+			do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['txnstatus'],&$Purchase));
+		} else do_action('shopp_create_purchase');
 
 		return true;
 	}
