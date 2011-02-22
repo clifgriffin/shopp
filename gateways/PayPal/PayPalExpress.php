@@ -354,7 +354,8 @@ class PayPalExpress extends GatewayFramework implements GatewayModule {
 
 		$Purchase->txnstatus = $txnstatus;
 		$Purchase->save();
-
+		do_action_ref_array('shopp_order_txnstatus_update',array(&$_POST['txnstatus'],&$Purchase)); // TODO: update to use Order->transaction()
+		
 		$Shopp->Purchase = &$Purchase;
 		$Shopp->Order->purchase = $Purchase->id;
 
