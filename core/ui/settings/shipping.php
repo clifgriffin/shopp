@@ -42,6 +42,21 @@
 				<?php _e('Used as the unit of dimensions for all products.','Shopp'); ?></td>
 			</tr>
 			<tr>
+				<th scope="row" valign="top"><label for="packaging"><?php _e('Packaging','Shopp'); ?></label></th>
+				<td>
+				<select name="settings[shipping_packaging]" id="packaging">
+					<option value="">&nbsp;</option>
+						<?php
+							$packaging = array("mass" => __("All together by weight","Shopp"),
+										"all" => __("All together with dimensions","Shopp"),
+										"like" => __("Only like items together","Shopp"),
+										"piece" => __("Each piece separately","Shopp"));
+							echo menuoptions($packaging,$this->Settings->get('shipping_packaging'),true);
+						?>
+				</select><br />
+				<?php _e('Determines packaging method used for shipment.','Shopp'); ?></td>
+			</tr>
+			<tr>
 				<th scope="row" valign="top"><label for="order_handling_fee"><?php _e('Order Handling Fee','Shopp'); ?></label></th>
 				<td><input type="text" name="settings[order_shipfee]" value="<?php echo money($this->Settings->get('order_shipfee')); ?>" id="order_handling_fee" size="7" class="right selectall" /><br />
 	            <?php _e('Handling fee applied once to each order with shipped products.','Shopp'); ?></td>
