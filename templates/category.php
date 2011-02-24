@@ -16,12 +16,12 @@
 
 	<h3><?php shopp('category','name'); ?></h3>
 	<?php shopp('catalog','views','label='.__('Views: ','Shopp')); ?>
-	
+
 	<p><?php shopp('category','subcategory-list','hierarchy=true&showall=true&class=subcategories&dropdown=1'); ?></p>
-	
+
 	<?php shopp('catalog','orderby-list','dropdown=on'); ?>
 	<div class="alignright"><?php shopp('category','pagination','show=10'); ?></div>
-	
+
 
 	<ul class="products">
 		<li class="row"><ul>
@@ -36,7 +36,7 @@
 					<?php if (shopp('product','has-savings')): ?>
 						<p class="savings"><?php _e('Save ','Shopp'); ?><?php shopp('product','savings','show=percent'); ?></p>
 					<?php endif; ?>
-					
+
 						<div class="listview">
 						<p><?php shopp('product','summary'); ?></p>
 						<form action="<?php shopp('cart','url'); ?>" method="post" class="shopp product">
@@ -44,15 +44,15 @@
 						</form>
 						</div>
 					</div>
-					
+
 				</div>
 			</li>
 		<?php endwhile; ?>
 		</ul></li>
 	</ul>
-	
-	<div class="alignright"><?php shopp('category','pagination'); ?></div>
-	
+
+	<div class="alignright"><?php shopp('category','pagination','show=10'); ?></div>
+
 	</div>
 <?php else: ?>
 	<?php if (!shopp('catalog','is-landing')): ?>
