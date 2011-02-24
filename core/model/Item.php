@@ -49,6 +49,7 @@ class Item {
 	var $inventory = false;		// Inventory setting of the selected price object
 	var $taxable = false;		// Taxable setting of the selected price object
 	var $freeshipping = false;	// Free shipping status of the selected price object
+	var $packaging = "off";		// Should the item be packaged separately
 
 	/**
 	 * Constructs a line item from a Product object and identified price object
@@ -127,6 +128,10 @@ class Item {
 				$s++;
 			}
 		}
+
+		$packaging_meta = new MetaObject();
+		$packaging_meta->load(array('context'=>'product','parent'=>$Product->id,'type'=>'meta','name'=>'packaging'));
+		$this->packaging = ($packaging_meta->id && $packaging_meta->value == "on" ? "on" : "off");
 
 		if (!empty($Price->download)) $this->download = $Price->download;
 		if ($Price->type == "Shipped") {
