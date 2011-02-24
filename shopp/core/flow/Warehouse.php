@@ -504,6 +504,15 @@ class Warehouse extends AdminController {
 			$Product->publish = 0;
 		}
 
+		if (isset($_POST['packaging'])) {
+			$packaging = new MetaObject();
+			$packaging->load(array('parent'=>$Product->id,'context'=>'product','type'=>'meta','name'=>'packaging'));
+			$packaging->parent = $Product->id;
+			$packaging->value = $_POST['packaging'];
+			$packaging->name = "packaging";
+			$packaging->save();
+		}
+
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 
 		$Product->updates($_POST,array('categories','prices'));

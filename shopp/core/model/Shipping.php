@@ -468,7 +468,7 @@ class ShippingPackager {
 		if ($item === false) return;
 		$this->items[] = $item;
 
-		if (isset($item->packaging))
+		if (isset($item->packaging) && $item->packaging == "on")
 			do_action_ref_array('shopp_packager_add_piece', array(&$this, &$item) );
 		else do_action_ref_array('shopp_packager_add_'.$this->pack, array(&$this, &$item) );
 	}
