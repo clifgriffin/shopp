@@ -375,8 +375,11 @@ class Item {
 		$Settings =& ShoppSettings();
 
 		// Update stock in the database
-		$table = DatabaseObject::tablename(Price::$table);
-		$db->query("UPDATE $table SET stock=stock-{$this->quantity} WHERE id='{$this->priceline}' AND stock > 0");
+		$pricetable = DatabaseObject::tablename(Price::$table);
+		if ($db->query("UPDATE $pricetable SET stock=stock-{$this->quantity} WHERE id='{$this->priceline}' AND stock > 0")) {
+			$producttable = DatabaseObject::tablename(Product::$table);
+			$db->query("UPDATE $producttable SET stock=stock-{$this->quantity} WHERE id='{$this->product}' AND stock > 0");
+		}
 
 		if (!empty($this->addons)) {
 			foreach ($this->addons as &$Addon) {

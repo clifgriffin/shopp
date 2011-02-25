@@ -47,12 +47,11 @@ class Catalog extends DatabaseObject {
 		$price_table = DatabaseObject::tablename(Price::$table);
 
 		$defaults = array(
-			'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total,IF(SUM(IF(pt.inventory='off',1,0) OR pt.inventory IS NULL)>0,'off','on') AS inventory, SUM(pt.stock) AS stock",
+			'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total,IF(SUM(IF(pd.inventory='off',1,0) OR pd.inventory IS NULL)>0,'off','on') AS inventory, SUM(pd.stock) AS stock",
 			'where' => array(),
 			'joins' => array(
-				"LEFT JOIN $this->_table AS sc ON sc.parent=cat.id AND sc.type='category'",
-				"LEFT JOIN $product_table AS pd ON sc.product=pd.id",
-				"LEFT JOIN $price_table AS pt ON pt.product=pd.id AND pt.type != 'N/A'"
+				"LEFT OUTER JOIN $this->_table AS sc FORCE INDEX(assignment) ON sc.parent=cat.id AND sc.type='category'",
+				"LEFT OUTER JOIN $product_table AS pd ON sc.product=pd.id"
 			),
 			'limit' => false,
 			'orderby' => 'name',
@@ -711,6 +710,8 @@ class Catalog extends DatabaseObject {
 				if ($property == "bestseller-products") $Shopp->Category = new BestsellerProducts($options);
 			case "bestselling-products":
 				if ($property == "bestselling-products") $Shopp->Category = new BestsellerProducts($options);
+			case "promo-products":
+				if ($property == "promo-products") $Shopp->Category = new PromoProducts($options);
 			case "random-products":
 				if ($property == "random-products") $Shopp->Category = new RandomProducts($options);
 			case "tag-products":

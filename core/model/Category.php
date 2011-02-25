@@ -86,14 +86,14 @@ class Category extends DatabaseObject {
 		extract($loading);
 
 		switch(strtolower($orderby)) {
-			case "id": $orderby = "cat.id"; break;
-			case "slug": $orderby = "cat.slug"; break;
-			case "count": $orderby = "total"; break;
+			case 'id': $orderby = "cat.id"; break;
+			case 'slug': $orderby = "cat.slug"; break;
+			case 'count': $orderby = "total"; break;
 			default: $orderby = "cat.name";
 		}
 
 		switch(strtoupper($order)) {
-			case "DESC": $order = "DESC"; break;
+			case 'DESC': $order = "DESC"; break;
 			default: $order = "ASC";
 		}
 
@@ -150,6 +150,364 @@ class Category extends DatabaseObject {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Loads a list of products for the category
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.2
+	 *
+	 * @param array $loading Loading options for the category
+	 * @return void
+	 **/
+	function load_products ($loading=false) {
+		global $Shopp,$wp;
+		$db = DB::get();
+		$Storefront =& ShoppStorefront();
+		$Settings =& ShoppSettings();
+
+		$catalogtable = DatabaseObject::tablename(Catalog::$table);
+		$producttable = DatabaseObject::tablename(Product::$table);
+		$pricetable = DatabaseObject::tablename(Price::$table);
+
+		$this->paged = false;
+		$this->pagination = $Settings->get('catalog_pagination');
+		$paged = $wp->query_vars['paged'];
+		$this->page = ((int)$paged > 0 || !is_numeric($paged))?$paged:1;
+
+		if (empty($this->page)) $this->page = 1;
+
+		// Hard product limit per category to keep resources "reasonable"
+		$hardlimit = apply_filters('shopp_category_products_hardlimit',1000);
+
+		$options = array(
+			'columns' => false,		// Include extra columns (string) 'c.col1,c.col2…'
+			'useindex' => false,	// FORCE INDEX to be used on the product table (string) 'indexname'
+			'joins' => array(),		// JOIN tables array('INNER JOIN table AS t ON p.id=t.column')
+			'where' => array(),		// WHERE query conditions array('x=y OR x=z','a!=b'…) (array elements are joined by AND
+			'groupby' => false,		// GROUP BY column (string) 'column'
+			'having' => array(),	// HAVING filters
+			'limit' => false,		// Limit
+			'order' => false,		// ORDER BY columns or named methods (string)
+									// 'bestselling','highprice','lowprice','newest','oldest','random','chaos','title'
+
+			'nostock' => true,		// Override to show products that are out of stock (string) 'on','off','yes','no'…
+			'pagination' => true,	// Enable alpha pagination (string) 'alpha'
+			'published' => true,	// Load published or unpublished products (string) 'on','off','yes','no'…
+			'adjacent' => false,	//
+			'product' => false,		//
+			'restat' => false		// Force recalculate product stats
+		);
+
+		$loading = array_merge($options,$this->loading,$loading);
+		extract($loading);
+
+		if (!empty($where) && is_string($where)) $where = array($where);
+
+		// Allow override for loading unpublished products
+		if (!value_is_true($published)) $this->published = false;
+
+		// Handle default WHERE clause matching this category id
+		if (!empty($this->id))
+			$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON p.id=c.product AND parent=$this->id AND type='category'";
+
+		if (!value_is_true($nostock) && $Settings->get('outofstock_catalog') == "off")
+			$where[] = "((p.inventory='on' AND p.stock > 0) OR p.inventory='off')";
+
+		// Faceted browsing
+		if ($Storefront !== false && !empty($Storefront->browsing[$this->slug])) {
+			$spectable = DatabaseObject::tablename(Spec::$table);
+
+			$f = 1;
+			$filters = array();
+			foreach ($Storefront->browsing[$this->slug] as $facet => $value) {
+				if (empty($value)) continue;
+				$specalias = "spec".($f++);
+
+				// Handle Number Range filtering
+				if (!is_array($value) &&
+						preg_match('/^.*?(\d+[\.\,\d]*).*?\-.*?(\d+[\.\,\d]*).*$/',$value,$matches)) {
+
+					if ('price' == strtolower($facet)) { // Prices require complex matching on price line entries
+						list(,$min,$max) = array_map('floatvalue',$matches);
+
+						if ($min > 0) $filters[] = "((sale='on' AND (minprice >= $min OR maxprice >= $min))
+													OR (sale='on' AND (minprice >= $min OR maxprice >= $min)))";
+						if ($max > 0) $filters[] = "((sale='on' AND (minprice <= $max OR maxprice <= $max))
+													OR (sale='on' AND (minprice <= $max OR maxprice <= $max)))";
+
+						// Use HAVING clause for filtering by pricing information because of data aggregation
+						// $having[] = $match;
+						// continue;
+
+					} else { // Spec-based numbers are somewhat more straightforward
+						list(,$min,$max) = $matches;
+						if ($min > 0) $filters[] = "$specalias.numeral >= $min";
+						if ($max > 0) $filters[] = "$specalias.numeral <= $max";
+					}
+				} else $filters[] = "$specalias.value='$value'"; // No range, direct value match
+
+				$joins[$specalias] = "LEFT JOIN $spectable AS $specalias
+										ON $specalias.parent=p.id
+										AND $specalias.context='product'
+										AND $specalias.type='spec'
+										AND $specalias.name='".$db->escape($facet)."'";
+			}
+			$where[] = join(' AND ',$filters);
+
+		}
+
+		// WP TZ setting based time - (timezone offset:[PHP UTC adjusted time - MySQL UTC adjusted time])
+		$now = time()."-(".(time()-date("Z",time()))."-UNIX_TIMESTAMP(UTC_TIMESTAMP()))";
+
+		if ($this->published) $where[] = "(p.status='publish' AND $now >= UNIX_TIMESTAMP(p.publish))";
+		else $where[] = "(p.status!='publish' OR $now < UNIX_TIMESTAMP(p.publish))";
+
+		$defaultOrder = $Settings->get('default_product_order');
+		if (empty($defaultOrder)) $defaultOrder = '';
+		$ordering = isset($Storefront->browsing['orderby'])?
+						$Storefront->browsing['orderby']:$defaultOrder;
+		if ($order !== false) $ordering = $order;
+		switch ($ordering) {
+			case 'bestselling': $order = "sold DESC,p.name ASC"; break;
+			case 'highprice': $order = "maxprice DESC,p.name ASC"; break;
+			case 'lowprice': $order = "minprice ASC,p.name ASC"; $useindex = "lowprice"; break;
+			case 'newest': $order = "p.publish DESC,p.name ASC"; break;
+			case 'oldest': $order = "p.publish ASC,p.name ASC"; $useindex = "oldest";	break;
+			case 'random': $order = "RAND(".crc32($Shopp->Shopping->session).")"; break;
+			case 'chaos': $order = "RAND(".time().")"; break;
+			case 'title': $order = "p.name ASC"; $useindex = "name"; break;
+			case 'recommended':
+			default:
+				// Need to add the catalog table for access to category-product priorities
+				if (!isset($this->smart)) {
+					$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON c.product=p.id AND c.parent='$this->id'";
+					$order = "c.priority ASC,p.name ASC";
+				} else $order = "p.name ASC";
+				break;
+		}
+
+		// Handle adjacent product navigation
+		if ($adjacent && $product) {
+
+			$field = substr($order,0,strpos($order,' '));
+			$op = $adjacent != "next"?'<':'>';
+
+			// Flip the sort order for previous
+			$c = array('ASC','DESC'); $r = array('AAA','DDD');
+			if ($op == '<') $order = str_replace($r,array_reverse($c),str_replace($c,$r,$order));
+
+			switch ($field) {
+				case 'sold':
+					if ($product->sold() == 0) {
+						$field = 'p.name';
+						$target = "'".$db->escape($product->name)."'";
+					} else $target = $product->sold();
+					$where[] = "$field $op $target";
+					break;
+				case 'highprice':
+					if (empty($product->prices)) $product->load_data(array('prices'));
+					$target = !empty($product->max['saleprice'])?$product->max['saleprice']:$product->max['price'];
+					$where[] = "$target $op IF (pd.sale='on' OR pr.discount>0,pd.saleprice,pd.price) AND p.id != $product->id";
+					break;
+				case 'lowprice':
+					if (empty($product->prices)) $product->load_data(array('prices'));
+					$target = !empty($product->max['saleprice'])?$product->max['saleprice']:$product->max['price'];
+					$where[] = "$target $op= IF (pd.sale='on' OR pr.discount>0,pd.saleprice,pd.price) AND p.id != $product->id";
+					break;
+				case 'p.name': $where[] = "$field $op '".$db->escape($product->name)."'"; break;
+				default:
+					if ($product->priority == 0) {
+						$field = 'p.name';
+						$target = "'".$db->escape($product->name)."'";
+					} else $target = $product->priority;
+					$where[] = "$field $op $target";
+					break;
+			}
+
+		}
+
+		// Handle alphabetic page requests
+		if ($Shopp->Category->controls !== false
+				&& ('alpha' === $pagination || !is_numeric($this->page))) {
+
+			$this->alphapages(array(
+				'useindex' => $useindex,
+				'joins' => $joins,
+				'where' => $where
+			));
+
+			$this->paged = true;
+			if (!is_numeric($this->page)) {
+				$where[] = $this->page == "0-9" ?
+					"1 = (LEFT(p.name,1) REGEXP '[0-9]')":
+					"'$this->page' = IF(LEFT(p.name,1) REGEXP '[0-9]',LEFT(p.name,1),LEFT(SOUNDEX(p.name),1))";
+			}
+
+		}
+
+		if (!empty($columns)) {
+			if (is_string($columns)) {
+				if (strpos($columns,',') !== false) $columns = explode(',',$columns);
+				else $columns = array($columns);
+			}
+		} else $columns = array();
+
+		$columns = array_map('trim',$columns);
+		array_unshift($columns,'p.*');
+		$columns = join(',', $columns);
+
+ 		if (!empty($useindex)) $useindex = "FORCE INDEX($useindex)";
+		if (!empty($groupby)) $groupby = "GROUP BY $groupby";
+
+		if (!empty($having)) $having = "HAVING ".join(" AND ",$having);
+		else $having = '';
+
+		$joins = join(' ',$joins);
+		$where = join(' AND ',$where);
+
+		if (empty($limit)) {
+			if ($this->pagination > 0 && is_numeric($this->page) && value_is_true($pagination)) {
+				if( !$this->pagination || $this->pagination < 0 )
+					$this->pagination = $hardlimit;
+				$start = ($this->pagination * ($this->page-1));
+
+				$limit = "$start,$this->pagination";
+			} else $limit = $hardlimit;
+		}
+
+		$query =   "SELECT SQL_CALC_FOUND_ROWS $columns
+					FROM $producttable AS p $useindex
+					$joins
+					WHERE $where
+					$groupby $having
+					ORDER BY $order
+					LIMIT $limit";
+				echo $query;
+
+		// Execute the main category products query
+		$products = $db->query($query,AS_ARRAY);
+
+		$total = $db->query("SELECT FOUND_ROWS() as count");
+		$this->total = $total->count;
+
+		if ($this->pagination > 0 && $this->total > $this->pagination) {
+			$this->pages = ceil($this->total / $this->pagination);
+			if ($this->pages > 1) $this->paged = true;
+		}
+
+		$this->pricing['min'] = 0;
+		$this->pricing['max'] = 0;
+
+		$prices = array();
+		foreach ($products as $i => &$product) {
+			$this->pricing['max'] = max($this->pricing['max'],$product->maxprice);
+			$this->pricing['min'] = min($this->pricing['min'],$product->minprice);
+
+			$this->products[$product->id] = new Product();
+			$this->products[$product->id]->populate($product);
+
+			if (isset($product->score))
+				$this->products[$product->id]->score = $product->score;
+
+			// Special property for Bestseller category
+			if (isset($product->sold) && $product->sold)
+				$this->products[$product->id]->sold = $product->sold;
+
+			// Special property Promotions
+			if (isset($product->promos))
+				$this->products[$product->id]->promos = $product->promos;
+
+		}
+
+		$this->pricing['average'] = 0;
+		if (count($prices) > 0) $this->pricing['average'] = array_sum($prices)/count($prices);
+
+		if (!isset($loading['load'])) $loading['load'] = array('prices');
+
+		if (count($this->products) > 0) {
+			$Processing = new Product();
+			$Processing->load_data($loading['load'],$this->products);
+		}
+
+		$this->loaded = true;
+
+	}
+
+	function alphapages ($loading=array()) {
+		$db =& DB::get();
+
+		$catalogtable = DatabaseObject::tablename(Catalog::$table);
+		$producttable = DatabaseObject::tablename(Product::$table);
+		$pricetable = DatabaseObject::tablename(Price::$table);
+
+		$alphanav = range('A','Z');
+
+		$ac =   "SELECT count(*) AS total,
+						IF(LEFT(p.name,1) REGEXP '[0-9]',LEFT(p.name,1),LEFT(SOUNDEX(p.name),1)) AS letter,
+						AVG((p.maxprice+p.minprice)/2) as avgprice
+					FROM $producttable AS p {$loading['useindex']}
+					{$loading['joins']}
+					WHERE {$loading['where']}
+					GROUP BY letter";
+
+		$alpha = $db->query($ac,AS_ARRAY);
+
+		$entry = new stdClass();
+		$entry->letter = false;
+		$entry->total = $entry->avg = 0;
+
+		$existing = current($alpha);
+		if (!isset($this->alpha['0-9'])) {
+			$this->alpha['0-9'] = clone $entry;
+			$this->alpha['0-9']->letter = '0-9';
+		}
+
+		while (is_numeric($existing->letter)) {
+			$this->alpha['0-9']->total += $existing->total;
+			$this->alpha['0-9']->avg = ($this->alpha['0-9']->avg+$existing->avg)/2;
+			$this->alpha['0-9']->letter = '0-9';
+			$existing = next($alpha);
+		}
+
+		foreach ($alphanav as $letter) {
+			if ($existing->letter == $letter) {
+				$this->alpha[$letter] = $existing;
+				$existing = next($alpha);
+			} else {
+				$this->alpha[$letter] = clone $entry;
+				$this->alpha[$letter]->letter = $letter;
+			}
+		}
+
+	}
+
+	/**
+	 * Returns the product adjacent to the requested product in the category
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @param int $next (optional) Which product to get (-1 for previous, defaults to 1 for next)
+	 * @return object The Product object
+	 **/
+	function adjacent_product($next=1) {
+		global $Shopp;
+
+		if ($next < 0) $this->loading['adjacent'] = "previous";
+		else $this->loading['adjacent'] = "next";
+
+		$this->loading['limit'] = '1';
+		$this->loading['product'] = $Shopp->Requested;
+		$this->load_products();
+
+		if (!$this->loaded) return false;
+
+		reset($this->products);
+		$product = key($this->products);
+		return new Product($product);
 	}
 
 	/**
@@ -312,366 +670,6 @@ class Category extends DatabaseObject {
 	}
 
 	/**
-	 * Loads a list of products for the category
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 * @version 1.1
-	 *
-	 * @param array $loading Loading options for the category
-	 * @return void
-	 **/
-	function load_products ($loading=false) {
-		global $Shopp,$wp;
-		$db = DB::get();
-
-		$catalogtable = DatabaseObject::tablename(Catalog::$table);
-		$producttable = DatabaseObject::tablename(Product::$table);
-		$pricetable = DatabaseObject::tablename(Price::$table);
-		$promotable = DatabaseObject::tablename(Promotion::$table);
-		$imagetable = DatabaseObject::tablename(ProductImage::$table);
-
-		$this->paged = false;
-		$this->pagination = $Shopp->Settings->get('catalog_pagination');
-		$this->page = (get_query_var('paged') > 0)?get_query_var('paged'):1;
-
-		if (empty($this->page)) $this->page = 1;
-
-		$limit = 1000; // Hard product limit per category to keep resources "reasonable"
-
-		if (!$loading) $loading = $this->loading;
-		else $loading = array_merge($this->loading,$loading);
-
-		if (!empty($loading['columns'])) $loading['columns'] = ", ".$loading['columns'];
-		else $loading['columns'] = '';
-
-		// Allow override for loading unpublished products
-		if (isset($loading['published'])) $this->published = value_is_true($loading['published']);
-
-		$where = array();
-		if (!empty($loading['where'])) $where[] = "({$loading['where']})";
-
-		$having = array();
-		if (!empty($loading['having'])) $having[] = "({$loading['having']})";
-
-		// Handle default WHERE clause matching this category id
-		if (empty($loading['where']) && !empty($this->id))
-			$where[] = "p.id in (SELECT product FROM $catalogtable WHERE (parent=$this->id AND type='category'))";
-
-		if (!isset($loading['nostock']) && ($Shopp->Settings->get('outofstock_catalog') == "off"))
-			$where[] = "p.id in (SELECT product FROM $pricetable WHERE type != 'N/A' AND context != 'addon' AND inventory='off' OR (inventory='on' AND stock > 0))";
-		else $where[] = "p.id in (SELECT product FROM $pricetable WHERE type != 'N/A' AND context != 'addon')";
-
-		if (!isset($loading['joins'])) $loading['joins'] = '';
-		if (!empty($Shopp->Flow->Controller->browsing[$this->slug])) {
-			$spectable = DatabaseObject::tablename(Spec::$table);
-
-			$f = 1;
-			$filters = "";
-			foreach ($Shopp->Flow->Controller->browsing[$this->slug] as $facet => $value) {
-				if (empty($value)) continue;
-				$specalias = "spec".($f++);
-
-				// Handle Number Range filtering
-				$match = "";
-				if (!is_array($value) &&
-						preg_match('/^.*?(\d+[\.\,\d]*).*?\-.*?(\d+[\.\,\d]*).*$/',$value,$matches)) {
-					if ($facet == "Price") { // Prices require complex matching on price line entries
-						$min = floatvalue($matches[1]);
-						$max = floatvalue($matches[2]);
-						if ($matches[1] > 0) $match .= " ((onsale=0 AND (minprice >= $min OR maxprice >= $min)) OR (onsale=1 AND (minsaleprice >= $min OR maxsaleprice >= $min)))";
-						if ($matches[2] > 0) $match .= (empty($match)?"":" AND ")." ((onsale=0 AND (minprice <= $max OR maxprice <= $max)) OR (onsale=1 AND (minsaleprice <= $max OR maxsaleprice <= $max)))";
-					} else { // Spec-based numbers are somewhat more straightforward
-						if ($matches[1] > 0) $match .= "$specalias.numeral >= {$matches[1]}";
-						if ($matches[2] > 0) $match .= (empty($match)?"":" AND ")."$specalias.numeral <= {$matches[2]}";
-					}
-				} else $match = "$specalias.value='$value'"; // No range, direct value match
-
-				// Use HAVING clause for filtering by pricing information
-				// because of data aggregation
-				if ($facet == "Price") {
-					$having[] = $match;
-					continue;
-				}
-
-				$loading['joins'] .= " LEFT JOIN $spectable AS $specalias ON $specalias.parent=p.id AND $specalias.context='product' AND $specalias.type='spec' AND $specalias.name='$facet'";
-				$filters .= (empty($filters))?$match:" AND ".$match;
-			}
-			if (!empty($filters)) $where[] = $filters;
-
-		}
-
-		// WP TZ setting based time - (timezone offset:[PHP UTC adjusted time - MySQL UTC adjusted time])
-		$now = time()."-(".(time()-date("Z",time()))."-UNIX_TIMESTAMP(UTC_TIMESTAMP()))";
-
-		if ($this->published) $where[] = "(p.status='publish' AND $now >= UNIX_TIMESTAMP(p.publish))";
-		else $where[] = "(p.status!='publish' OR $now < UNIX_TIMESTAMP(p.publish))";
-
-		$defaultOrder = $Shopp->Settings->get('default_product_order');
-		if (empty($defaultOrder)) $defaultOrder = "";
-		$ordering = isset($Shopp->Flow->Controller->browsing['orderby'])?
-						$Shopp->Flow->Controller->browsing['orderby']:$defaultOrder;
-		if (!empty($loading['order'])) $ordering = $loading['order'];
-		switch ($ordering) {
-			case "bestselling":
-				$purchasedtable = DatabaseObject::tablename(Purchased::$table);
-				$loading['columns'] .= ',count(DISTINCT pur.id) AS sold';
-				$loading['joins'] .= " LEFT JOIN $purchasedtable AS pur ON p.id=pur.product";
-				$loading['order'] = "sold DESC,p.name ASC";
-				break;
-			case "highprice": $loading['order'] = "highprice DESC"; break;
-			case "lowprice": $loading['order'] = "lowprice ASC"; break;
-			case "newest": $loading['order'] = "p.publish DESC,p.name ASC"; break;
-			case "oldest": $loading['order'] = "p.publish ASC,p.name ASC"; break;
-			case "random": $loading['order'] = "RAND(".crc32($Shopp->Shopping->session).")"; break;
-			case "title": $loading['order'] = "p.name ASC"; break;
-			default:
-				// Need to add the catalog table for access to category-product priorities
-				if (!isset($this->smart)) {
-					$loading['joins'] .= " LEFT JOIN $catalogtable AS c ON c.product=p.id AND c.parent = '$this->id'";
-					$loading['order'] = "c.priority ASC,p.name ASC";
-				} else $loading['order'] = "p.name ASC";
-				break;
-		}
-		if (!empty($loading['orderby'])) $loading['order'] = $loading['orderby'];
-
-		if (isset($loading['adjacent']) && isset($loading['product'])) {
-
-			$product = $loading['product'];
-			$field = substr($loading['order'],0,strpos($loading['order'],' '));
-			$op = $loading['adjacent'] != "next"?'<':'>';
-
-			// Flip the sort order for previous
-			if ($op == '<') {
-				$loading['order'] = str_replace(array('ASC','DESC'),array('DSC','ACE'),$loading['order']);
-				$loading['order'] = str_replace(array('DSC','ACE'),array('DESC','ASC'),$loading['order']);
-			}
-
-			switch ($field) {
-				case "sold":
-					if ($product->sold() == 0) {
-						$field = 'p.name';
-						$target = "'".$db->escape($product->name)."'";
-					} else $target = $product->sold();
-					$where[] = "$field $op $target";
-					break;
-				case "highprice":
-					if (empty($product->prices)) $product->load_data(array('prices'));
-					$target = !empty($product->max['saleprice'])?$product->max['saleprice']:$product->max['price'];
-					$where[] = "$target $op IF (pd.sale='on' OR pr.discount>0,pd.saleprice,pd.price) AND p.id != $product->id";
-					break;
-				case "lowprice":
-					if (empty($product->prices)) $product->load_data(array('prices'));
-					$target = !empty($product->max['saleprice'])?$product->max['saleprice']:$product->max['price'];
-					$where[] = "$target $op= IF (pd.sale='on' OR pr.discount>0,pd.saleprice,pd.price) AND p.id != $product->id";
-					break;
-				case "p.name": $where[] = "$field $op '".$db->escape($product->name)."'"; break;
-				default:
-					if ($product->priority == 0) {
-						$field = 'p.name';
-						$target = "'".$db->escape($product->name)."'";
-					} else $target = $product->priority;
-					$where[] = "$field $op $target";
-					break;
-			}
-
-		}
-
-		if (!empty($having)) $loading['having'] = "HAVING ".join(" AND ",$having);
-		else $loading['having'] = '';
-		$loading['where'] = join(" AND ",$where);
-
-		if (empty($loading['limit'])) {
-			if ($this->pagination > 0 && is_numeric($this->page)) {
-				if( !$this->pagination || $this->pagination < 0 )
-					$this->pagination = $limit;
-				$start = ($this->pagination * ($this->page-1));
-
-				$loading['limit'] = "$start,$this->pagination";
-			} else $loading['limit'] = $limit;
-		} else $limit = (int)$loading['limit'];
-
-		$columns = "p.*,
-					MAX(pr.status) as promos,
-					SUM(DISTINCT IF(pr.type='Percentage Off',pr.discount,0))AS percentoff,
-					SUM(DISTINCT IF(pr.type='Amount Off',pr.discount,0)) AS amountoff,
-					if (pr.type='Free Shipping',1,0) AS freeshipping,
-					if (pr.type='Buy X Get Y Free',pr.buyqty,0) AS buyqty,
-					if (pr.type='Buy X Get Y Free',pr.getqty,0) AS getqty,
-					MAX(pd.price) AS maxprice,MIN(pd.price) AS minprice,
-					IF(pd.sale='on',1,IF (pr.discount > 0,1,0)) AS onsale,
-					MAX(pd.saleprice) as maxsaleprice,MIN(pd.saleprice) AS minsaleprice,
-					IF (pd.sale='on' AND MIN(pd.saleprice) > 0,MIN(pd.saleprice),MIN(pd.price)) AS lowprice,
-					IF (pd.sale='on' AND MIN(pd.saleprice) > 0,MAX(pd.saleprice),MAX(pd.price)) AS highprice,
-					IF(pd.inventory='on',1,0) AS inventory,
-					SUM(pd.stock) as stock";
-
-
-		// Handle alphabetic page requests
-		if ((!isset($Shopp->Category->controls) ||
-				(isset($Shopp->Category->controls) && $Shopp->Category->controls !== false)) &&
-				((isset($loading['pagination']) && $loading['pagination'] == "alpha") ||
-				!is_numeric($this->page))) {
-
-			$alphanav = range('A','Z');
-
-			$ac = "SELECT count(DISTINCT p.id) AS total,IF(LEFT(p.name,1) REGEXP '[0-9]',LEFT(p.name,1),LEFT(SOUNDEX(p.name),1)) AS letter,AVG(IF(pd.sale='on',pd.saleprice,pd.price)) as avgprice
-						FROM $producttable AS p
-						LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A'
-						LEFT JOIN $promotable AS pr ON 0 < FIND_IN_SET(pr.id,pd.discounts) AND pr.target='Catalog' AND
-							(pr.status='enabled' AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1)
-							OR (".time()." > UNIX_TIMESTAMP(starts) AND ".time()." < UNIX_TIMESTAMP(ends))
-							OR (UNIX_TIMESTAMP(starts)=1 AND ".time()." < UNIX_TIMESTAMP(ends))
-							OR (".time()." > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends)=1) ))
-						{$loading['joins']}
-						WHERE {$loading['where']}
-						GROUP BY letter";
-			$alpha = $db->query($ac);
-
-			$existing = current($alpha);
-			if (!isset($this->alpha['0-9'])) {
-				$this->alpha['0-9'] = new stdClass();
-				$this->alpha['0-9']->letter = '0-9';
-				$this->alpha['0-9']->total = 0;
-				$this->alpha['0-9']->avg = 0;
-			}
-			while (is_numeric($existing->letter)) {
-				$this->alpha['0-9']->total += $existing->total;
-				$this->alpha['0-9']->avg = ($this->alpha['0-9']->avg+$existing->avg)/2;
-				$this->alpha['0-9']->letter = '0-9';
-				$existing = next($alpha);
-			}
-
-			foreach ($alphanav as $letter) {
-				if ($existing->letter == $letter) {
-					$this->alpha[$letter] = $existing;
-					$existing = next($alpha);
-				} else {
-					$entry = new stdClass();
-					$entry->letter = $letter;
-					$entry->total = 0;
-					$entry->avg = 0;
-					$this->alpha[$letter] = $entry;
-				}
-			}
-			$this->paged = true;
-			if (!is_numeric($this->page)) {
-				$alphafilter = $this->page == "0-9"?
-					"(LEFT(p.name,1) REGEXP '[0-9]') = 1":
-					"IF(LEFT(p.name,1) REGEXP '[0-9]',LEFT(p.name,1),LEFT(SOUNDEX(p.name),1))='$this->page'";
-				$loading['where'] .= (empty($loading['where'])?"":" AND ").$alphafilter;
-			}
-
-		}
-
-		$query = "SELECT SQL_CALC_FOUND_ROWS $columns{$loading['columns']}
-					FROM $producttable AS p
-					LEFT JOIN $pricetable AS pd ON pd.product=p.id AND pd.type != 'N/A' AND pd.context != 'addon'
-					LEFT JOIN $promotable AS pr ON 0 < FIND_IN_SET(pr.id,pd.discounts) AND pr.target='Catalog' AND
-						(pr.status='enabled' AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1)
-						OR (".time()." > UNIX_TIMESTAMP(starts) AND ".time()." < UNIX_TIMESTAMP(ends))
-						OR (UNIX_TIMESTAMP(starts)=1 AND ".time()." < UNIX_TIMESTAMP(ends))
-						OR (".time()." > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends)=1) ))
-					{$loading['joins']}
-					WHERE {$loading['where']}
-					GROUP BY p.id {$loading['having']}
-					ORDER BY {$loading['order']}
-					LIMIT {$loading['limit']}";
-		echo $query; exit();
-		// Execute the main category products query
-		$products = $db->query($query,AS_ARRAY);
-
-		$total = $db->query("SELECT FOUND_ROWS() as count");
-		$this->total = $total->count;
-
-		if ($this->pagination > 0 && $limit > $this->pagination) {
-			$this->pages = ceil($this->total / $this->pagination);
-			if ($this->pages > 1) $this->paged = true;
-		}
-
-		// if ($this->pagination == 0 || $limit < $this->pagination)
-		// 	$this->total = count($this->products);
-
-		$this->pricing['min'] = 0;
-		$this->pricing['max'] = 0;
-
-		$prices = array();
-		foreach ($products as $i => &$product) {
-			if ($product->maxsaleprice == 0) $product->maxsaleprice = $product->maxprice;
-			if ($product->minsaleprice == 0) $product->minsaleprice = $product->minprice;
-
-			$prices[] = $product->onsale?$product->minsaleprice:$product->minprice;
-
-			if (!empty($product->percentoff)) {
-				$product->maxsaleprice = $product->maxsaleprice - ($product->maxsaleprice * ($product->percentoff/100));
-				$product->minsaleprice = $product->minsaleprice - ($product->minsaleprice * ($product->percentoff/100));
-			}
-
-			if (!empty($product->amountoff)) {
-				$product->maxsaleprice = $product->maxsaleprice - $product->amountoff;
-				$product->minsaleprice = $product->minsaleprice - $product->amountoff;
-			}
-
-			$this->pricing['max'] = max($this->pricing['max'],$product->maxsaleprice);
-			$this->pricing['min'] = min($this->pricing['min'],$product->minsaleprice);
-
-			$this->products[$product->id] = new Product();
-			$this->products[$product->id]->populate($product);
-
-			if (isset($product->score))
-				$this->products[$product->id]->score = $product->score;
-
-			// Special property for Bestseller category
-			if (isset($product->sold) && $product->sold)
-				$this->products[$product->id]->sold = $product->sold;
-
-			// Special property Promotions
-			if (isset($product->promos))
-				$this->products[$product->id]->promos = $product->promos;
-
-		}
-
-		$this->pricing['average'] = 0;
-		if (count($prices) > 0) $this->pricing['average'] = array_sum($prices)/count($prices);
-
-		if (!isset($loading['load'])) $loading['load'] = array('prices');
-
-		if (count($this->products) > 0) {
-			$Processing = new Product();
-			$Processing->load_data($loading['load'],$this->products);
-		}
-
-		$this->loaded = true;
-
-	}
-
-	/**
-	 * Returns the product adjacent to the requested product in the category
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param int $next (optional) Which product to get (-1 for previous, defaults to 1 for next)
-	 * @return object The Product object
-	 **/
-	function adjacent_product($next=1) {
-		global $Shopp;
-
-		if ($next < 0) $this->loading['adjacent'] = "previous";
-		else $this->loading['adjacent'] = "next";
-
-		$this->loading['limit'] = '1';
-		$this->loading['product'] = $Shopp->Requested;
-		$this->load_products($this->loading);
-
-		if (!$this->loaded) return false;
-
-		reset($this->products);
-		$product = key($this->products);
-		return new Product($product);
-	}
-
-	/**
 	 * Generates an RSS feed of products for this category
 	 *
 	 * NOTE: To modify the output of the RSS generator, use
@@ -761,6 +759,7 @@ class Category extends DatabaseObject {
 		return $rss;
 	}
 
+
 	/**
 	 * A functional list of support category sort options
 	 *
@@ -784,9 +783,10 @@ class Category extends DatabaseObject {
 
 	function pagelink ($page) {
 		$type = isset($this->tag)?'tag':'category';
-		$prettyurl = "$type/$this->uri".($page > 1?"/page/$page":"");
+		$alpha = preg_match('/\w/',$page);
+		$prettyurl = "$type/$this->uri".($page > 1 || $alpha?"/page/$page":"");
 		$queryvars = array("shopp_$type"=>$this->uri);
-		if ($page > 1) $queryvars['paged'] = $page;
+		if ($page > 1 || $alpha) $queryvars['paged'] = $page;
 
 		return apply_filters('shopp_paged_link',shoppurl(SHOPP_PRETTYURLS?$prettyurl:$queryvars));
 	}
@@ -808,25 +808,25 @@ class Category extends DatabaseObject {
 		$db = DB::get();
 
 		switch ($property) {
-			case "link":
-			case "url":
+			case 'link':
+			case 'url':
 				return shoppurl(SHOPP_PRETTYURLS?'category/'.$this->uri:array('shopp_category'=>$this->id));
 				break;
-			case "feed-url":
-			case "feedurl":
+			case 'feed-url':
+			case 'feedurl':
 				$uri = 'category/'.$this->uri;
 				if ($this->slug == "tag") $uri = $this->slug.'/'.$this->tag;
 				return shoppurl(SHOPP_PRETTYURLS?"$uri/feed":array('shopp_category'=>urldecode($this->uri),'src'=>'category_rss'));
-			case "id": return $this->id; break;
-			case "parent": return $this->parent; break;
-			case "name": return $this->name; break;
-			case "slug": return urldecode($this->slug); break;
-			case "description": return wpautop($this->description); break;
-			case "total": return $this->loaded?$this->total:false; break;
-			case "has-products":
-			case "loadproducts":
-			case "load-products":
-			case "hasproducts":
+			case 'id': return $this->id; break;
+			case 'parent': return $this->parent; break;
+			case 'name': return $this->name; break;
+			case 'slug': return urldecode($this->slug); break;
+			case 'description': return wpautop($this->description); break;
+			case 'total': return $this->loaded?$this->total:false; break;
+			case 'has-products':
+			case 'loadproducts':
+			case 'load-products':
+			case 'hasproducts':
 				if (empty($this->id) && empty($this->slug)) return false;
 				if (isset($options['load'])) {
 					$dataset = explode(",",$options['load']);
@@ -837,7 +837,7 @@ class Category extends DatabaseObject {
 				}
 				if (!$this->loaded) $this->load_products($options);
 				if (count($this->products) > 0) return true; else return false; break;
-			case "products":
+			case 'products':
 				if (!isset($this->_product_loop)) {
 					reset($this->products);
 					$Shopp->Product = current($this->products);
@@ -856,23 +856,23 @@ class Category extends DatabaseObject {
 					return false;
 				}
 				break;
-			case "row":
+			case 'row':
 				if (!isset($this->_rindex) || $this->_rindex === false) $this->_rindex = 0;
 				else $this->_rindex++;
 				if (empty($options['products'])) $options['products'] = $Shopp->Settings->get('row_products');
 				if (isset($this->_rindex) && $this->_rindex > 0 && $this->_rindex % $options['products'] == 0) return true;
 				else return false;
 				break;
-			case "has-categories":
-			case "hascategories":
+			case 'has-categories':
+			case 'hascategories':
 				if (empty($this->children)) $this->load_children();
 				return (!empty($this->children));
 				break;
-			case "is-subcategory":
-			case "issubcategory":
+			case 'is-subcategory':
+			case 'issubcategory':
 				return ($this->parent != 0);
 				break;
-			case "subcategories":
+			case 'subcategories':
 				if (!isset($this->_children_loop)) {
 					reset($this->children);
 					$this->child = current($this->children);
@@ -891,7 +891,7 @@ class Category extends DatabaseObject {
 					return false;
 				}
 				break;
-			case "subcategory-list":
+			case 'subcategory-list':
 				if (isset($Shopp->Category->controls)) return false;
 
 				$defaults = array(
@@ -1026,7 +1026,7 @@ class Category extends DatabaseObject {
 				}
 				return $string;
 				break;
-			case "section-list":
+			case 'section-list':
 				if (empty($this->id)) return false;
 				if (isset($Shopp->Category->controls)) return false;
 				if (empty($Shopp->Catalog->categories))
@@ -1150,7 +1150,7 @@ class Category extends DatabaseObject {
 				}
 				return $string;
 				break;
-			case "pagination":
+			case 'pagination':
 				if (!$this->paged) return "";
 
 				$defaults = array(
@@ -1225,6 +1225,7 @@ class Category extends DatabaseObject {
 						if ($pagenum > $this->pages) $pagenum = $this->pages;
 						$link = $this->pagelink($pagenum);
 						$_[] = '<li><a href="'.$link.'">'.$jumpfwd.'</a></li>';
+						$link = $this->pagelink($this->pages);
 						$_[] = '<li><a href="'.$link.'">'.$this->pages.'</a></li>';
 					}
 
@@ -1241,8 +1242,8 @@ class Category extends DatabaseObject {
 				return join("\n",$_);
 				break;
 
-			case "has-faceted-menu": return ($this->facetedmenus == "on"); break;
-			case "faceted-menu":
+			case 'has-faceted-menu': return ($this->facetedmenus == "on"); break;
+			case 'faceted-menu':
 				if ($this->facetedmenus == "off") return;
 				$output = "";
 				$CategoryFilters =& $Shopp->Flow->Controller->browsing[$this->slug];
@@ -1269,7 +1270,7 @@ class Category extends DatabaseObject {
 				}
 
 				if ($this->pricerange == "auto" && empty($CategoryFilters['Price'])) {
-					if (!$this->loaded) $this->load_products();
+					// if (!$this->loaded) $this->load_products();
 					$list = "";
 					$this->priceranges = auto_ranges($this->pricing['average'],$this->pricing['max'],$this->pricing['min']);
 					foreach ($this->priceranges as $range) {
@@ -1383,13 +1384,13 @@ class Category extends DatabaseObject {
 
 				return $output;
 				break;
-			case "hasimages":
-			case "has-images":
+			case 'hasimages':
+			case 'has-images':
 				if (empty($this->images)) $this->load_images();
 				if (empty($this->images)) return false;
 				return true;
 				break;
-			case "images":
+			case 'images':
 				if (!isset($this->_images_loop)) {
 					reset($this->images);
 					$this->_images_loop = true;
@@ -1401,12 +1402,12 @@ class Category extends DatabaseObject {
 					return false;
 				}
 				break;
-			case "coverimage":
-			case "thumbnail": // deprecated
+			case 'coverimage':
+			case 'thumbnail': // deprecated
 				// Force select the first loaded image
 				unset($options['id']);
 				$options['index'] = 0;
-			case "image":
+			case 'image':
 				if (empty($this->images)) $this->load_images();
 				if (!(count($this->images) > 0)) return "";
 
@@ -1488,14 +1489,14 @@ class Category extends DatabaseObject {
 				}
 
 				switch (strtolower($property)) {
-					case "id": return $img->id; break;
-					case "url":
-					case "src": return $src; break;
-					case "title": return $title; break;
-					case "alt": return $alt; break;
-					case "width": return $width_a; break;
-					case "height": return $height_a; break;
-					case "class": return $class; break;
+					case 'id': return $img->id; break;
+					case 'url':
+					case 'src': return $src; break;
+					case 'title': return $title; break;
+					case 'alt': return $alt; break;
+					case 'width': return $width_a; break;
+					case 'height': return $height_a; break;
+					case 'class': return $class; break;
 				}
 
 				$imgtag = '<img src="'.$src.'"'.$titleattr.' alt="'.$alt.'" width="'.$width_a.'" height="'.$height_a.'" '.$classes.' />';
@@ -1505,7 +1506,7 @@ class Category extends DatabaseObject {
 
 				return $imgtag;
 				break;
-			case "slideshow":
+			case 'slideshow':
 				$options['load'] = array('images');
 				if (!$this->loaded) $this->load_products($options);
 				if (count($this->products) == 0) return false;
@@ -1536,7 +1537,7 @@ class Category extends DatabaseObject {
 				$string .= '</ul>';
 				return $string;
 				break;
-			case "carousel":
+			case 'carousel':
 				$options['load'] = array('images');
 				if (!$this->loaded) $this->load_products($options);
 				if (count($this->products) == 0) return false;
@@ -1591,7 +1592,6 @@ class CatalogProducts extends SmartCategory {
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("Catalog Products","Shopp");
-		$this->loading = array('where'=>"true");
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
 	}
 
@@ -1626,7 +1626,7 @@ class OnSaleProducts extends SmartCategory {
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("On Sale","Shopp");
-		$this->loading = array('where'=>"pd.sale='on' OR (pr.status='enabled' AND pr.discount > 0 AND ((UNIX_TIMESTAMP(starts)=1 AND UNIX_TIMESTAMP(ends)=1) OR (UNIX_TIMESTAMP(now()) > UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(now()) < UNIX_TIMESTAMP(ends)) ))",'order'=>'p.modified DESC');
+		$this->loading = array('where'=>"p.sale='on'",'order'=>'p.modified DESC');
 	}
 
 }
@@ -1637,9 +1637,7 @@ class BestsellerProducts extends SmartCategory {
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("Bestsellers","Shopp");
-		$this->loading = array(
-			'where' => 'pur.id IS NOT NULL',
-			'order'=>'bestselling');
+		$this->loading = array('order'=>'bestselling');
 		if (isset($options['where'])) $this->loading['where'] = $options['where'];
 	}
 
@@ -1666,9 +1664,9 @@ class SearchResults extends SmartCategory {
 		if ($prices) {
 			$pricematch = false;
 			switch ($prices->op) {
-				case ">": $pricematch = "((onsale=0 AND (minprice > $prices->target OR maxprice > $prices->target))
+				case '>': $pricematch = "((onsale=0 AND (minprice > $prices->target OR maxprice > $prices->target))
 							OR (onsale=1 AND (minsaleprice > $prices->target OR maxsaleprice > $prices->target)))"; break;
-				case "<": $pricematch = "((onsale=0 AND (minprice < $prices->target OR maxprice < $prices->target))
+				case '<': $pricematch = "((onsale=0 AND (minprice < $prices->target OR maxprice < $prices->target))
 							OR (onsale=1 AND (minsaleprice < $prices->target OR maxsaleprice < $prices->target)))"; break;
 				default: $pricematch = "((onsale=0 AND (minprice >= $prices->min AND maxprice <= $prices->max))
 								OR (onsale=1 AND (minsaleprice >= $prices->min AND maxsaleprice <= $prices->max)))";
@@ -1700,6 +1698,7 @@ class SearchResults extends SmartCategory {
 			'joins'=>"INNER JOIN $index AS search ON search.product=p.id",
 			'columns'=> "$score AS score",
 			'where'=> $where,
+			'groupby'=>'p.id',
 			'orderby'=>'score DESC');
 		if (!empty($pricematch)) $this->loading['having'] = $pricematch;
 		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
@@ -1729,7 +1728,8 @@ class TagProducts extends SmartCategory {
 
 		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($this->tag)."&quot;";
 		$this->uri = urlencode($this->tag);
-		$this->loading = array('where'=>"p.id in (SELECT product FROM $catalogtable AS catalog LEFT JOIN $tagtable AS tag ON catalog.parent=tag.id AND catalog.type='tag' WHERE $tagquery)");
+		$this->loading = array('joins'=> array("INNER JOIN $catalogtable AS catalog ON p.id=catalog.product AND catalog.type='tag' JOIN $tagtable AS tag ON catalog.parent=tag.id"),'where' => $tagquery);
+
 	}
 }
 
@@ -1810,7 +1810,7 @@ class RandomProducts extends SmartCategory {
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
 		$this->name = __("Random Products","Shopp");
-		$this->loading = array('where'=>'true','order'=>'random');
+		$this->loading = array('order'=>'random');
 		if (isset($options['exclude'])) {
 			$where = array();
 			$excludes = explode(",",$options['exclude']);
@@ -1819,10 +1819,27 @@ class RandomProducts extends SmartCategory {
 				isset($Shopp->Product->id)) $where[] = '(p.id != $Shopp->Product->id)';
 			if (in_array('featured',$excludes)) $where[] = "(p.featured='off')";
 			if (in_array('onsale',$excludes)) $where[] = "(pd.sale='off' OR pr.discount=0)";
-			$this->loading['where'] = join(" AND ",$where);
+			$this->loading['where'] = $where;
 		}
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
 	}
 }
+
+class PromoProducts extends SmartCategory {
+	static $_slug = "promo";
+
+	function smart ($options=array()) {
+		$this->slug = $this->uri = self::$_slug;
+
+		$id = urldecode($options['id']);
+
+		$Promo = new Promotion($id);
+		$this->name = $Promo->name;
+
+		$pricetable = DatabaseObject::tablename(Price::$table);
+		$this->loading = array('where' => "p.id IN (SELECT product FROM $pricetable WHERE 0 < FIND_IN_SET($Promo->id,discounts))");
+	}
+}
+
 
 ?>

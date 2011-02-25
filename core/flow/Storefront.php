@@ -450,6 +450,7 @@ class Storefront extends FlowController {
 		Shopp::add_smartcategory('TagProducts');
 		Shopp::add_smartcategory('RelatedProducts');
 		Shopp::add_smartcategory('RandomProducts');
+		Shopp::add_smartcategory('PromoProducts');
 
 		do_action('shopp_register_smartcategories');
 	}
@@ -506,6 +507,11 @@ class Storefront extends FlowController {
 		$db = DB::get();
 		global $wpdb;
 
+		if (SHOPP_QUERY_DEBUG) {
+			echo "<!--\n\nSHOPP QUERIES\n\n";
+			print_r($db->queries);
+			echo "\n\n-->";
+		}
 		if (WP_DEBUG && current_user_can('manage_options')) {
 			if (function_exists('memory_get_peak_usage'))
 				$this->_debug->memory .= "End: ".number_format(memory_get_peak_usage(true)/1024/1024, 2, '.', ',') . " MB<br />";

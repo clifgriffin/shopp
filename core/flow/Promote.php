@@ -108,9 +108,9 @@ class Promote extends AdminController {
 
 			do_action_ref_array('shopp_promo_saved',array(&$Promotion));
 
-			$Promotion->reset_discounts();
+			// $Promotion->reset_discounts();
 			if ($Promotion->target == "Catalog")
-				$Promotion->build_discounts();
+				$Promotion->catalog_discounts();
 
 			// Force reload of the session promotions to include any updates
 			$Shopp->Promotions->reload();
