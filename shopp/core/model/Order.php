@@ -100,6 +100,8 @@ class Order {
 		add_action('shopp_create_purchase',array(&$this,'purchase'));
 		add_action('shopp_order_notifications',array(&$this,'notify'));
 
+		add_action('shopp_order_txnstatus_update',array(&$this,'salestats'),10,2);
+
 		// Schedule for the absolute last action to be run
 		add_action('shopp_order_success',array(&$this,'success'),100);
 
@@ -516,6 +518,34 @@ class Order {
 	}
 
 	/**
+	 * Recalculates sales stats for products
+	 *
+	 * Updates the sales stats for products affected by purchase transaction status changes.
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param string $status New transaction status being set
+	 * @param Purchase $Purchase The affected Purchase object
+	 * @return void
+	 **/
+	function salestats ($status, &$Purchase) {
+		if (empty($Purchase->id)) return;
+
+		$products = DatabaseObject::tablename(Product::$table);
+		$purchased = DatabaseObject::tablename(Purchased::$table);
+
+		// Transaction status changed
+		if ('CHARGED' == $status) // Now CHARGED, add quantity ordered to product 'sold' stat
+			$query = "UPDATE $products AS p LEFT JOIN $purchased AS s ON p.id=s.product SET p.sold=p.sold+s.quantity WHERE s.purchase=$Purchase->id";
+		elseif ($Purchase->txnstatus == 'CHARGED') // Changed from CHARGED, remove quantity ordered from product 'sold' stat
+			$query = "UPDATE $products AS p LEFT JOIN $purchased AS s ON p.id=s.product SET p.sold=p.sold-s.quantity WHERE s.purchase=$Purchase->id";
+
+		$db->query($query);
+
+	}
+
+	/**
 	 * Create a lock for transaction processing
 	 *
 	 * @author Jonathan Davis
@@ -604,9 +634,9 @@ class Order {
 		$Purchase = new Purchase($this->txnid,'txnid');
 		if (!empty($Purchase->id)) {
 			if($status != $Purchase->txnstatus) {
+				do_action_ref_array('shopp_order_txnstatus_update',array(&$status,&$Purchase));
 				$Purchase->txnstatus = $status;
 				$Purchase->save();
-				do_action_ref_array('shopp_order_txnstatus_update',array(&$status,&$Purchase));
 			}
 		} else do_action('shopp_create_purchase');
 

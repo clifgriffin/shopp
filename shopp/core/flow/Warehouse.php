@@ -535,6 +535,11 @@ class Warehouse extends AdminController {
 				}
 			}
 
+			$Product->maxprice = false;
+			$Product->minprice = false;
+			$Product->stock = false;
+			$Product->sold = 0;
+
 			// Save prices that there are updates for
 			foreach($_POST['price'] as $i => $option) {
 				if (empty($option['id'])) {
@@ -557,6 +562,7 @@ class Warehouse extends AdminController {
 
 				$Price->updates($option);
 				$Price->save();
+				$Product->stats($Price);
 
 				if (!empty($option['download'])) $Price->attach_download($option['download']);
 
@@ -588,9 +594,11 @@ class Warehouse extends AdminController {
 					}
 
 				} // END attach file by path/uri
-			}
+			} // END foreach()
 			unset($Price);
-		}
+		} // END if (!empty($_POST['price']))
+
+		$Product->save_stats();
 
 		// No variation options at all, delete all variation-pricelines
 		if (!empty($Product->prices) && is_array($Product->prices)

@@ -21,17 +21,25 @@ CREATE TABLE <?php echo $product; ?> (
 	description longtext NOT NULL,
 	featured enum('off','on') NOT NULL,
 	variations enum('off','on') NOT NULL,
+	inventory enum('off','on') NOT NULL,
+	sale enum('off','on') NOT NULL,
+	maxprice decimal(16,6) NOT NULL default '0.00',
+	minprice decimal(16,6) NOT NULL default '0.00',
 	options text NOT NULL,
 	addons text NOT NULL,
-	priority int(10) NOT NULL default '0',
+	stock int(10) NOT NULL default '0',
+	sold bigint(20) NOT NULL default '0',
 	status enum('publish','draft','private','trash') NOT NULL,
 	publish datetime NOT NULL default '0000-00-00 00:00:00',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
-	KEY status (status),
 	KEY featured (featured),
-	KEY slug (slug)
+	KEY slug (slug),
+	KEY name (name),
+	KEY lowprice (minprice,name),
+	KEY oldest (publish,name),
+	KEY published (status,publish)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $price = DatabaseObject::tablename('price'); ?>
@@ -47,6 +55,7 @@ CREATE TABLE <?php echo $price; ?> (
 	sku varchar(100) NOT NULL default '',
 	price decimal(16,6) NOT NULL default '0.00',
 	saleprice decimal(16,6) NOT NULL default '0.00',
+	promoprice decimal(16,6) NOT NULL default '0.00',
 	weight decimal(12,6) NOT NULL default '0',
 	dimensions varchar(255) NOT NULL default '0',
 	shipfee decimal(12,6) NOT NULL default '0',
@@ -281,23 +290,6 @@ CREATE TABLE <?php echo $purchased; ?> (
 	KEY purchase (purchase),
 	KEY product (product),
 	KEY dkey (dkey(8))
-) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
-
-<?php $txn = DatabaseObject::tablename('txn'); ?>
-DROP TABLE IF EXISTS <?php echo $txn; ?>;
-CREATE TABLE <?php echo $txn; ?> (
-	id bigint(20) unsigned NOT NULL auto_increment,
-	customer bigint(20) unsigned NOT NULL default '0',
-	account int(3) unsigned NOT NULL default '0',
-	parent bigint(20) unsigned NOT NULL default '0',
-	context varchar(16) NOT NULL default 'purchase',
-	op enum('debit','credit') NOT NULL default 'debit',
-	value decimal(16,6) NOT NULL default '0.0000',
-	created datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY id (id),
-	KEY account (account),
-	KEY customer (customer),
-	KEY lookup (parent,context)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $promo = DatabaseObject::tablename('promo'); ?>

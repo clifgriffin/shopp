@@ -38,7 +38,7 @@ class Promotion extends DatabaseObject {
 		else return false;
 	}
 
-	function build_discounts () {
+	function catalog_discounts () {
 		$db = DB::get();
 
 		$product_table = DatabaseObject::tablename(Product::$table);
@@ -46,7 +46,8 @@ class Promotion extends DatabaseObject {
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
 		$category_table = DatabaseObject::tablename(Category::$table);
 
-		$where = array("0 = FIND_IN_SET($this->id,discounts)");
+		$where_notdiscounted = array("0 = FIND_IN_SET($this->id,discounts)");
+		$where = array();
 		// Go through each rule to construct an SQL query
 		// that gets all applicable product & price ids
 		if (!empty($this->rules) && is_array($this->rules)) {
@@ -85,23 +86,47 @@ class Promotion extends DatabaseObject {
 
 		if (!empty($where)) $where = "WHERE ".join(" AND ",$where);
 		else $where = false;
-		$type = ($this->type == "Item")?'catalog':'cart';
-		$query = "UPDATE $price_table AS prc
+
+		// Find all the pricetags the promotion is *currently assigned* to
+		$query = "SELECT id FROM $price_table WHERE 0 < FIND_IN_SET($this->id,discounts)";
+		$results = $db->query($query,AS_ARRAY);
+		$current = array_map(create_function('$o', 'return $o->id;'), $results);
+
+		// Find all the pricetags the promotion is *going to apply* to
+		$query = "SELECT prc.id,prc.product,prc.discounts FROM $price_table AS prc
 					LEFT JOIN $product_table as p ON prc.product=p.id
 					LEFT JOIN $catalog_table AS clog ON clog.product=p.id
 					LEFT JOIN $category_table AS cat ON clog.parent=cat.id AND clog.type='category'
-					SET prc.discounts=CONCAT(prc.discounts,IF(prc.discounts='','$this->id',',$this->id'))
 					$where";
+		$results = $db->query($query,AS_ARRAY);
+		$updates = array_map(create_function('$o', 'return $o->id;'), $results);
+
+		// Determine which records need promo added to and removed from
+		$added = array_diff($updates,$current);
+		$removed = array_diff($current,$updates);
+
+		// Add discounts to specific rows
+		$query = "UPDATE $price_table
+					SET discounts=CONCAT(discounts,IF(discounts='','$this->id',',$this->id'))
+					WHERE id IN (".join(',',$added).")";
 
 		$db->query($query);
 
+		// Remove discounts from pricetags that now don't match the conditions
+		$this->uncatalog_discounts($removed);
+
+		// Recalculate product status for the products with pricetags that have changed
+		$Collection = new PromoProducts(array('id' => $this->id));
+		$Collection->pagination = false;
+		$Collection->load_products( array('load'=>array('prices','restat')) );
+
 	}
 
-	function reset_discounts () {
+	function uncatalog_discounts ($pricetags) {
 		$db =& DB::get();
 		$_table = DatabaseObject::tablename(Price::$table);
 
-		$discounted = $db->query("SELECT id,discounts,FIND_IN_SET($this->id,discounts) AS offset FROM $_table WHERE 0 < FIND_IN_SET($this->id,discounts)",AS_ARRAY);
+		$discounted = $db->query("SELECT id,discounts,FIND_IN_SET($this->id,discounts) AS offset FROM $_table WHERE id IN ('".join(',',$pricetags)."')",AS_ARRAY);
 
 		foreach ($discounted as $index => $pricetag) {
 			$promos = explode(',',$pricetag->discounts);
@@ -109,6 +134,7 @@ class Promotion extends DatabaseObject {
 			$db->query("UPDATE LOW_PRIORITY $_table SET discounts='".join(',',$promos)."' WHERE id=$pricetag->id");
 		}
 	}
+
 
 	/**
 	 * match_rule ()
@@ -199,6 +225,6 @@ class Promotion extends DatabaseObject {
 		$db->query("UPDATE LOW_PRIORITY $table SET uses=uses+1 WHERE 0 < FIND_IN_SET(id,'".join(',',$promos)."')");
 	}
 
-} // end Promotion class
+} // END clas Promotion
 
 ?>

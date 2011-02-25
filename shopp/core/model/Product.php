@@ -53,7 +53,6 @@ class Product extends DatabaseObject {
 		$db =& DB::get();
 
 		// Load object schemas on request
-
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
 
 		$Dataset = array();
@@ -238,7 +237,7 @@ class Product extends DatabaseObject {
 		}
 
 		if (is_array($products)) {
-			foreach ($products as $product) if (!empty($product->prices)) $product->pricing();
+			foreach ($products as $product) if (!empty($product->prices)) $product->pricing($options);
 		} else {
 			if (!empty($this->prices)) $this->pricing($options);
 		}
@@ -262,11 +261,21 @@ class Product extends DatabaseObject {
 		$variations = ($this->variations == "on");
 		$freeshipping = true;
 		$this->inventory = false;
+
+		// By default, run stat calculations if no stat data exists
+		if ( in_array('restat',$options)
+				|| $this->maxprice+$this->minprice+$this->stock == 0) {
+			add_action('shopp_init_product_pricing',array(&$this,'reset_stats'));
+			add_action('shopp_product_stats',array(&$this,'stats'));
+			add_action('shopp_product_pricing_done',array(&$this,'save_stats'));
+		}
+
+		do_action('shopp_init_product_pricing');
 		foreach ($this->prices as $i => &$price) {
 			$price->price = (float)$price->price;
 			$price->saleprice = (float)$price->saleprice;
 			$price->shipfee = (float)$price->shipfee;
-			$price->promoprice = 0;
+			$price->promoprice = (float)$price->promoprice;
 
 			// Build secondary lookup table using the price id as the key
 			$this->priceid[$price->id] = $price;
@@ -290,11 +299,11 @@ class Product extends DatabaseObject {
 
 			// Boolean flag for custom product sales
 			$price->onsale = false;
-			if ($price->sale == "on" && $price->type != "N/A")
+			if ($price->sale == "on")
 				$this->onsale = $price->onsale = true;
 
 			$price->stocked = false;
-			if ($price->inventory == "on" && $price->type != "N/A") {
+			if ($price->inventory == "on") {
 				$this->stock += $price->stock;
 				$this->inventory = $price->stocked = true;
 			}
@@ -302,37 +311,33 @@ class Product extends DatabaseObject {
 			if ($price->freeshipping == '0' || $price->shipping == 'on')
 				$freeshipping = false;
 
-			if ($price->onsale) $price->promoprice = (float)$price->saleprice;
-			else $price->promoprice = (float)$price->price;
-
-			if ((isset($price->promos) && $price->promos == 'enabled')) {
-				if ($price->percentoff > 0) {
-					$price->promoprice = $price->promoprice - ($price->promoprice * ($price->percentoff/100));
-					$this->onsale = $price->onsale = true;
-				}
-				if ($price->amountoff > 0) {
-					$price->promoprice = $price->promoprice - $price->amountoff;
-					$this->onsale = $price->onsale = true;;
-				}
+			// Calculate catalog discounts if not already calculated
+			if (empty($price->promoprice)) {
+				$Price = new Price();
+				$Price->updates($price);
+				$Price->discounts();
+				$price->promoprice = $Price->promoprice;
 			}
 
+			if ($price->promoprice < $price->price) $this->onsale = $price->onsale = true;
+
 			// Grab price and saleprice ranges (minimum - maximum)
-			if ($price->type != "N/A") {
-				if (!$price->price) $price->price = 0;
-				if ($price->stocked) $varranges['stock'] = 'stock';
+			if (!$price->price) $price->price = 0;
+			if ($price->stocked) $varranges['stock'] = 'stock';
 
-				foreach ($varranges as $name => $prop) {
-					if (!isset($price->$prop)) continue;
+			do_action_ref_array('shopp_product_stats',array(&$price));
 
-					if (!isset($this->min[$name])) $this->min[$name] = $price->$prop;
-					else $this->min[$name] = min($this->min[$name],$price->$prop);
-					if ($this->min[$name] == $price->$prop) $this->min[$name.'_tax'] = ($price->tax == "on");
+			foreach ($varranges as $name => $prop) {
+				if (!isset($price->$prop)) continue;
+
+				if (!isset($this->min[$name])) $this->min[$name] = $price->$prop;
+				else $this->min[$name] = min($this->min[$name],$price->$prop);
+				if ($this->min[$name] == $price->$prop) $this->min[$name.'_tax'] = ($price->tax == "on");
 
 
-					if (!isset($this->max[$name])) $this->max[$name] = $price->$prop;
-					else $this->max[$name] = max($this->max[$name],$price->$prop);
-					if ($this->max[$name] == $price->$prop) $this->max[$name.'_tax'] = ($price->tax == "on");
-				}
+				if (!isset($this->max[$name])) $this->max[$name] = $price->$prop;
+				else $this->max[$name] = max($this->max[$name],$price->$prop);
+				if ($this->max[$name] == $price->$prop) $this->max[$name.'_tax'] = ($price->tax == "on");
 			}
 
 			// Determine savings ranges
@@ -363,6 +368,9 @@ class Product extends DatabaseObject {
 
 		} // end foreach($price)
 
+		do_action('shopp_product_pricing_done');
+		// if ($buildstats) $this->save_stats();
+
 		if ($this->inventory && $this->stock <= 0) $this->outofstock = true;
 		if ($freeshipping) $this->freeshipping = true;
 	}
@@ -377,21 +385,6 @@ class Product extends DatabaseObject {
 	 **/
 	function published () {
 		return ($this->status == "publish" && time() >= $this->publish);
-	}
-
-	/**
-	 * Returns the number of this product sold
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return int
-	 **/
-	function sold () {
-		$db =& DB::get();
-		$purchased = DatabaseObject::tablename(Purchased::$table);
-		$r = $db->query("SELECT count(id) AS sold FROM $purchased WHERE product=$this->id LIMIT 1");
-		return $r->sold;
 	}
 
 	/**
@@ -413,6 +406,85 @@ class Product extends DatabaseObject {
 			}
 		}
 		$this->specs = $merged;
+	}
+
+	/**
+	 * Returns the number of this product sold
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return int
+	 **/
+	function sold () {
+		$db =& DB::get();
+		$purchased = DatabaseObject::tablename(Purchased::$table);
+		$r = $db->query("SELECT count(*) AS sold FROM $purchased WHERE product=$this->id LIMIT 1");
+		return $r->sold;
+	}
+
+	/**
+	 * Calculates aggregate product stats
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param object $Price The price record to calculate against
+	 * @return void
+	 **/
+	function stats ($Price) {
+		if ($Price->type == 'N/A' || $Price->context == 'addon' || (float)$Price->promoprice == 0) return;
+
+		if ($this->maxprice === false) $this->maxprice = (float)$Price->promoprice;
+		else $this->maxprice = max($this->maxprice,$Price->promoprice);
+
+		if ($this->minprice === false) $this->minprice = (float)$Price->promoprice;
+		else $this->minprice = min($this->minprice,$Price->promoprice);
+
+		if ('on' == $Price->sale) $this->sale = $Price->sale;
+
+		if ('on' == $Price->inventory) {
+			$this->inventory = $Price->inventory;
+			if (!$this->stock) $this->stock = $Price->stock;
+			else $this->stock += $Price->stock;
+		} else if (!$this->inventory) $this->inventory = 'off';
+
+		if (!isset($this->_soldcount)) { // Only recalculate sold count once
+			$this->sold = $this->_soldcount = $this->sold();
+			$this->_soldcount = true;
+		}
+
+	}
+
+	function reset_stats () {
+		$this->sale = $this->inventory = 'off';
+		$this->stock = $this->maxprice = $this->minprice = $this->sold = 0;
+	}
+
+	/**
+	 * Saves generated stats to the product record
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $stats The stat properties to update
+	 * @return void
+	 **/
+	function save_stats ($stats = array('sale','inventory','stock','maxprice','minprice','sold')) {
+		$db = DB::get();
+		if (empty($this->id)) return;
+
+		$statdata = new stdClass();
+		$statdata->_datatype = array();
+		foreach ($stats as $stat) {
+			$statdata->_datatypes[$stat] = 'string';
+			$statdata->$stat = $this->$stat;
+		}
+		$data = $db->prepare($statdata);
+		$dataset = $this->dataset($data);
+
+		$query = "UPDATE LOW_PRIORITY $this->_table SET $dataset WHERE $this->_key=$this->id";
+		$db->query($query);
 	}
 
 	/**
@@ -768,7 +840,7 @@ class Product extends DatabaseObject {
 
 				$taxrate = shopp_taxrate($taxes,$this->prices[0]->tax,$this);
 
-				if ("saleprice" == $property) $pricetag = $this->prices[0]->promoprice;
+				if ('saleprice' == $property) $pricetag = $this->prices[0]->promoprice;
 				else $pricetag = $this->prices[0]->price;
 
 				if (count($this->options) > 0) {
