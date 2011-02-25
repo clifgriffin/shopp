@@ -451,7 +451,7 @@ class ShippingPackager {
 			(isset($options['type']) && in_array($options['type'], $this->types) ? $options['type']: $this->pack),
 			$module); // set packing behavior
 
-		foreach ($this->types as $pack) add_action('shopp_packager_add_'.$pack, array(&$this, $pack.'_add'), 10,2);
+		foreach ($this->types as $pack) add_action('shopp_packager_add_'.$pack, array(&$this, $pack.'_add'));
 	}
 
 	/**
@@ -469,8 +469,8 @@ class ShippingPackager {
 		$this->items[] = $item;
 
 		if (isset($item->packaging) && $item->packaging == "on")
-			do_action_ref_array('shopp_packager_add_piece', array(&$this, &$item) );
-		else do_action_ref_array('shopp_packager_add_'.$this->pack, array(&$this, &$item) );
+			do_action_ref_array('shopp_packager_add_piece', array(&$item, &$this) );
+		else do_action_ref_array('shopp_packager_add_'.$this->pack, array(&$item, &$this) );
 	}
 
 
@@ -525,8 +525,8 @@ class ShippingPackager {
 	 * @param array $p packages
 	 * @param Item $item Item to add
 	 **/
-	function mass_add (&$p,&$item) {
-		$this->all_add($p, $item, 'mass');
+	function mass_add (&$item) {
+		$this->all_add($item, 'mass');
 	}
 
 	/**
@@ -537,12 +537,40 @@ class ShippingPackager {
 	 * @author John Dillick
 	 * @since 1.2
 	 *
-	 * @param array $p packages
 	 * @param Item $item Item to add
 	 **/
-	function like_add (&$p,&$item) {
-		$this->packages[] = $package = new ShippingPackage(true);
-		$package->add($item);
+	function like_add (&$item) {
+		$limits = array();
+		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
+		extract($this->options);
+		array_merge($defaults,$limits);
+
+		// one quantity, check for existing package
+		if (!empty($this->packages) && $item->quantity == 1) {
+			$package = $this->packages[count($this->packages)-1];
+			if(in_array("[{$item->product}][{$item->price}]",array_keys($package->contents)) && $package->limits($item)) {
+				$package->add($item);
+				return;
+			}
+		}
+		$package = new ShippingPackage(true,$limits);
+
+		if ( $package->limits($item) ) {
+			$package->add($item);
+			$this->packages[] = $package;
+		} else if ($item->quantity > 1) {
+			$pieces = clone $item;
+			$piece = clone $item;
+			$pieces->quantity = $pieces->quantity - 1;
+			$piece->quantity = 1;
+
+			// break one item off and recurse
+			$this->like_add($pieces);
+			$this->like_add($piece);
+		} else {
+			// doesn't "fit", and by itself
+			$this->piece_add($item);
+		}
 	}
 
 	/**
@@ -553,19 +581,19 @@ class ShippingPackager {
 	 * @author John Dillick
 	 * @since 1.2
 	 *
-	 * @param array $p packages
 	 * @param Item $item Item to add
 	 * @return void Description...
 	 **/
-	function piece_add (&$p,&$item) {
+	function piece_add (&$item) {
 		$count = $item->quantity;
 
 		$piece = clone $item;
 		$piece->quantity = 1;
 
 		for ($i=0; $i < $count;$i++) {
-			$this->packages[] = $package = new ShippingPackage(true);
+			$this->packages[] = $package = new ShippingPackage(true); // no limits on individual add
 			$package->add($piece);
+			$package->full = true;
 		}
 	}
 
@@ -577,20 +605,41 @@ class ShippingPackager {
 	 * @author John Dillick
 	 * @since 1.2
 	 *
-	 * @param array $p packages
 	 * @param Item $item Item to add
 	 * @param string $type expect dimensions, or just mass
 	 * @return void Description...
 	 **/
-	function all_add (&$p, &$item, $type='dims') {
-		// no packages
-		if (!isset($this->allpackage)) {
-			$this->packages[] = $this->allpackage = new ShippingPackage(($type == 'dims'));
+	function all_add (&$item, $type='dims') {
+		$limits = array();
+		$defaults = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1);
+		extract($this->options);
+		array_merge($defaults,$limits);
+
+		if (empty($this->packages)) {
+			$this->packages[] = new ShippingPackage(($type == 'dims'),$limits);
+		} else {
+			foreach($this->packages as $current) if($current->limits($item)) { $current->add($item); return;}
 		}
-		$this->allpackage->add($item);
+		$current = $this->packages[count($this->packages)-1];
+
+		if($item->quantity > 1) {  //try breaking them up
+			$pieces = clone $item;
+			$piece = clone $item;
+			$pieces->quantity = $pieces->quantity - 1;
+			$piece->quantity = 1;
+
+			// break one item off and recurse
+			$this->all_add($pieces,$type);
+			$this->all_add($piece,$type);
+		} else if(!empty($current->contents)) { // full, need new package
+			$this->packages[] = new ShippingPackage(($type == 'dims'));
+			$this->all_add($item,$type);
+		} else { // never fit, ship separately
+			$current->limits = $default;
+			$current->add($item);
+			$current->full = true;
+		}
 	}
-
-
 }
 
 class ShippingPackage {
@@ -604,7 +653,7 @@ class ShippingPackage {
 
 	// limits for this package
 	var $wtl = -1; // no weight limit
-	var $wl = -1; // weight limit
+	var $wl = -1; // width limit
 	var $hl = -1; // height limit
 	var $ll = -1; // lenght limit
 
@@ -613,13 +662,15 @@ class ShippingPackage {
 
 	function __construct( $dims = false, $limits = array('wtl'=>-1,'wl'=>-1,'hl'=>-1,'ll'=>-1), $boxtype = 'custom' ) {
 		$this->dims = $dims;
-		list($this->wtl, $this->wl, $this->hl, $this->ll) = $limits;
+		$this->limits = $limits;
 		$this->boxtype = $boxtype;
+		$this->date = mktime();
 	}
 
 	function add(&$item) {
 		if ($this->limits($item)) {
-			$this->contents[] = $item;
+			if(!empty($this->contents["[{$item->product}][{$item->price}]"])) $this->contents["[{$item->product}][{$item->price}]"]->quantity += $item->quantity;
+			else $this->contents["[{$item->product}][{$item->price}]"] = $item;
 			$this->wt += $item->weight * $item->quantity;
 
 			if ($this->dims) {
@@ -633,7 +684,23 @@ class ShippingPackage {
 	}
 
 	function limits(&$item) {
-		return apply_filters('shopp_package_limit',true, $item, $this); // stub, always fits
+		if($this->full) return apply_filters('shopp_package_limit',false, $item, $this);
+
+		$underlimit = true;
+		extract($this->limits);
+
+		if ($this->dims && $wl > 0 && $hl > 0 && $ll > 0) {
+			$underlimit = ($wl > max($this->w,$item->width) &&
+				$ll > max($this->l,$item->length) &&
+				$hl > ($this->h + $item->height * $item->quantity)
+			);
+		}
+
+		if($wtl > 0) {
+			$underlimit = $underlimit && ($wtl > ($this->wt + $item->weight * $item->quantity));
+		}
+
+		return apply_filters('shopp_package_limit',$underlimit, $item, $this); // stub, always fits
 	}
 
 }
