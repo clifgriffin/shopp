@@ -1930,21 +1930,32 @@ function sort_tree ($items,$parent=0,$key=-1,$depth=-1) {
 }
 
 /**
- * Converts natural language text to boolean values
+ * Evaluates natural language strings to boolean equivalent
  *
  * Used primarily for handling boolean text provided in shopp() tag options.
+ * All values defined as true will return true, anything else is false.
+ *
+ * Boolean values will be passed through.
+ *
+ * Replaces the 1.0-1.1 value_is_true()
  *
  * @author Jonathan Davis
- * @since 1.0
+ * @since 1.2
  *
- * @param string $value The natural language value
+ * @param string $string The natural language value
+ * @param array $istrue A list strings that are true
  * @return boolean The boolean value of the provided text
  **/
+function str_true ( $string, $istrue = array('yes', 'y', 'true','1','on') ) {
+	if (is_bool($value)) return $string;
+	return in_array(strtolower($string),$istrue);
+}
+
+/**
+ * @deprecated
+ **/
 function value_is_true ($value) {
-	switch (strtolower($value)) {
-		case "yes": case "true": case "1": case "on": return true;
-		default: return false;
-	}
+	return str_true ($value);
 }
 
 /**
