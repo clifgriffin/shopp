@@ -385,7 +385,6 @@ class Category extends DatabaseObject {
 					$groupby $having
 					ORDER BY $order
 					LIMIT $limit";
-				echo $query;
 
 		// Execute the main category products query
 		$products = $db->query($query,AS_ARRAY);
