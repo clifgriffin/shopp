@@ -683,6 +683,21 @@ function gateway_path ($file) {
 }
 
 /**
+ * Determine if the environment has SOAP Support
+ *
+ * Checks for either a previously loaded NuSOAP class or
+ * if PHP SoapClient is available.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @return boolean
+ **/
+function has_soap () {
+	return (class_exists('nusoap_base') || class_exists('SoapClient'));
+}
+
+/**
  * Handles sanitizing URLs for use in markup HREF attributes
  *
  * Wrapper for securing URLs generated with the WordPress

@@ -242,6 +242,7 @@ abstract class ShippingFramework {
 	var $rates = array();		// The shipping rates that apply to the module
 	var $dimensions = false;	// Uses dimensions in calculating estimates
 	var $xml = false;			// Flag to load and enable XML parsing
+	var $soap = false;			// Flag to load and SOAP client helper
 	var $singular = false;		// Shipping module can only be loaded once
 
 	/**
@@ -264,6 +265,7 @@ abstract class ShippingFramework {
 
 		if ($this->postcode) $Shopp->Order->Cart->showpostcode = true;
 		if ($this->xml) require_once(SHOPP_MODEL_PATH."/XML.php");
+		if (!has_soap() && $this->soap) require_once(SHOPP_MODEL_PATH."/SOAP.php");
 
 		$rates = $Shopp->Settings->get('shipping_rates');
 		$this->rates = array_filter($rates,array(&$this,'myrates'));
