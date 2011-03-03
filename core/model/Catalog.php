@@ -1013,9 +1013,38 @@ class CatalogTaxonomies extends RegistryManager {
 
 }
 
+/**
+ * Access the registered Taxonomies
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @return void Description...
+ **/
 function &ShoppTaxonomies () {
 	global $Shopp;
 	return $Shopp->Taxonomies;
 }
+
+function init_shopp_taxonomies () {
+	register_catalog_taxonomy('category',array(
+		'_builtin' => true,
+		'hierarchical' => true,
+		'public' => true,
+		'editor_ui' => true
+	));
+
+	register_catalog_taxonomy('tag',array(
+		'_builtin' => true,
+		'editor_ui' => true
+	));
+
+	register_catalog_taxonomy('promo',array(
+		'_builtin' => true,
+		'editor_ui' => false
+	));
+
+}
+add_action( 'shopp_init', 'init_shopp_taxonomies', 0 ); // highest priority
 
 ?>
