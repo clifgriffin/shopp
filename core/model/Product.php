@@ -54,6 +54,8 @@ class Product extends DatabaseObject {
 
 		// Load object schemas on request
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
+		$ct_id = get_catalog_taxonomy_id('category');
+		$tt_id = get_catalog_taxonomy_id('tag');
 
 		$Dataset = array();
 		if (in_array('prices',$options)) {
@@ -178,13 +180,13 @@ class Product extends DatabaseObject {
 					break;
 				case "categories":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."catalog.product=$id";
-					$where = "($where) AND catalog.type='category'";
-					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM $catalogtable AS catalog LEFT JOIN $set->_table ON catalog.parent=$set->_table.id AND catalog.type='category' WHERE $where)";
+					$where = "($where) AND catalog.taxonomy='$ct_id'";
+					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM $catalogtable AS catalog LEFT JOIN $set->_table ON catalog.parent=$set->_table.id AND catalog.taxonomy='$ct_id' WHERE $where)";
 					break;
 				case "tags":
 					foreach ($ids as $id) $where .= ((!empty($where))?" OR ":"")."catalog.product=$id";
-					$where = "($where) AND catalog.type='tag'";
-					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM $catalogtable AS catalog LEFT JOIN $set->_table ON catalog.parent=$set->_table.id AND catalog.type='tag' WHERE $where)";
+					$where = "($where) AND catalog.taxonomy='$tt_id'";
+					$query .= "(SELECT '$set->_table' as dataset,catalog.product AS product,'$rtype' AS rtype,$set->_table.name AS alphaorder,0 AS sortorder,$cols FROM $catalogtable AS catalog LEFT JOIN $set->_table ON catalog.parent=$set->_table.id AND catalog.taxonomy='$tt_id' WHERE $where)";
 					break;
 			}
 		}
@@ -499,6 +501,8 @@ class Product extends DatabaseObject {
 	function save_categories ($updates) {
 		$db = DB::get();
 
+		$taxonomy = get_catalog_taxonomy_id('category');
+
 		if (empty($updates)) $updates = array();
 
 		$current = array();
@@ -512,14 +516,14 @@ class Product extends DatabaseObject {
 		if (!empty($added)) {
 			foreach ($added as $id) {
 				if (empty($id)) continue;
-				$db->query("INSERT $table SET parent='$id',type='category',product='$this->id',created=now(),modified=now()");
+				$db->query("INSERT $table SET parent='$id',taxonomy='$taxonomy',product='$this->id',created=now(),modified=now()");
 			}
 		}
 
 		if (!empty($removed)) {
 			foreach ($removed as $id) {
 				if (empty($id)) continue;
-				$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND type='category' AND product='$this->id'");
+				$db->query("DELETE LOW_PRIORITY FROM $table WHERE parent='$id' AND taxonomy='$taxonomy' AND product='$this->id'");
 			}
 
 		}
@@ -528,6 +532,8 @@ class Product extends DatabaseObject {
 
 	function save_tags ($updates) {
 		$db = DB::get();
+
+		$taxonomy = get_catalog_taxonomy_id('tag');
 
 		if (empty($updates)) $updates = array();
 		$updates = stripslashes_deep($updates);
@@ -559,7 +565,70 @@ class Product extends DatabaseObject {
 				}
 
 				if (!empty($tagid))
-					$db->query("INSERT $catalog SET parent='$tagid',type='tag',product='$this->id',created=now(),modified=now()");
+					$db->query("INSERT $catalog
+								SET parent='$tagid',
+									taxonomy='$taxonomy',
+									product='$this->id',
+									created=now(),
+									modified=now()");
+			}
+		}
+
+		if (!empty($removed)) {
+			$catalog = DatabaseObject::tablename(Catalog::$table);
+			foreach ($removed as $tag) {
+				// Ensure loading tag records by case-sensitive name with BINARY casting
+				$Tag = new CatalogTag($tag,'BINARY name');
+				if (!empty($Tag->id))
+					$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE parent='$Tag->id' AND type='$taxonomy' AND product='$this->id'");
+			}
+		}
+	}
+
+	function save_taxonomy ($taxonomy,$updates) {
+		$db = DB::get();
+
+		if (!catalog_taxonomy_exists($taxonomy))
+			return new ShoppError(sprintf(__('Cannot save the product taxonomy updates because "%s" is not a valid taxonomy.'),$taxonomy),'invalid_taxonomy',SHOPP_ADMIN_ERR);
+
+		$type = get_catalog_taxonomy_id($taxonomy);
+		if (empty($type)) {
+			$type = save_catalog_taxomony($taxonomy);
+			if (empty($type))
+				return new ShoppError(sprintf(__('Cannot save the product taxonomy updates because a database failure prevented "%s" reserving the taxonomy.'),$taxonomy),'save_taxonomy',SHOPP_ADMIN_ERR);
+		}
+
+		if (empty($updates)) $updates = array();
+		$updates = stripslashes_deep($updates);
+
+		$current = array();
+		foreach ($this->taxonomies[$taxonomy] as $t) $current[] = $t->name;
+
+		$added = array_diff($updates,$current);
+		$removed = array_diff($current,$updates);
+
+		if (!empty($added)) {
+			$catalog = DatabaseObject::tablename(Catalog::$table);
+			$taxonomies = DatabaseObject::tablename(CatalogTaxonomy::$table);
+			$where = "";
+			foreach ($added as $tag) $where .= ($where == ""?"":" OR ")."name='".$db->escape($tag)."'";
+			$results = $db->query("SELECT id,name FROM $taxonomies WHERE $where",AS_ARRAY);
+			$exists = array();
+			foreach ($results as $r) $exists[$r->id] = $r->name;
+
+			foreach ($added as $t) {
+				if (empty($t)) continue; // No empty tags
+				$id = array_search($t,$exists);
+
+				if (!$id) {
+					$Entry = new CatalogTaxonomy($taxonomy);
+					$Entry->name = $t;
+					$Entry->save();
+					$id = $Entry->id;
+				}
+
+				if (!empty($id))
+					$db->query("INSERT $catalog SET parent='$id',type='$type',product='$this->id',created=now(),modified=now()");
 
 			}
 		}
@@ -570,10 +639,9 @@ class Product extends DatabaseObject {
 				// Ensure loading tag records by case-sensitive name with BINARY casting
 				$Tag = new CatalogTag($tag,'BINARY name');
 				if (!empty($Tag->id))
-					$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE parent='$Tag->id' AND type='tag' AND product='$this->id'");
+					$db->query("DELETE LOW_PRIORITY FROM $catalog WHERE parent='$Tag->id' AND type='$type' AND product='$this->id'");
 			}
 		}
-
 	}
 
 	/**

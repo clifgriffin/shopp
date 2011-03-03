@@ -218,6 +218,8 @@ class Warehouse extends AdminController {
 		$catt = DatabaseObject::tablename(Category::$table);
 		$clog = DatabaseObject::tablename(Catalog::$table);
 
+		$ct_id = get_catalog_taxonomy_id('category');
+
 		$orderby = "pd.created DESC";
 
 		$where = "true";
@@ -234,7 +236,7 @@ class Warehouse extends AdminController {
 				$having = "HAVING COUNT(cat.id) = 0";
 			} else {
 				$matchcol .= ", GROUP_CONCAT(DISTINCT cat.id ORDER BY cat.id SEPARATOR ',') AS catids";
-				$where .= " AND cat.id IN (SELECT parent FROM $clog WHERE parent=$cat AND type='category')";
+				$where .= " AND cat.id IN (SELECT parent FROM $clog WHERE parent=$cat AND taxonomy='$ct_id')";
 			}
 		}
 		if (!empty($sl)) {
@@ -263,7 +265,7 @@ class Warehouse extends AdminController {
 			$columns = "SQL_CALC_FOUND_ROWS pt.id,pd.id as product,pd.name,pd.slug,pt.label,pt.optionkey,pt.stock,pt.sku";
 
 			// Load the products
-			$query = "SELECT $columns $matchcol FROM $pt AS pt LEFT JOIN $pd AS pd ON pd.id=pt.product LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pt.id $having ORDER BY pd.id,pt.sortorder LIMIT $start,$per_page";
+			$query = "SELECT $columns $matchcol FROM $pt AS pt LEFT JOIN $pd AS pd ON pd.id=pt.product LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.taxonomy='$ct_id' WHERE $where GROUP BY pt.id $having ORDER BY pd.id,pt.sortorder LIMIT $start,$per_page";
 			$Products = $db->query($query,AS_ARRAY);
 			$productcount = $db->query("SELECT FOUND_ROWS() as total");
 
@@ -277,7 +279,7 @@ class Warehouse extends AdminController {
 			if ($workflow) $columns = "pd.id";
 
 			// Load the products
-			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' AND pt.context != 'addon' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category' WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
+			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' AND pt.context != 'addon' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.taxonomy='$ct_id' WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
 			$Products = $db->query($query,AS_ARRAY);
 
 			$productcount = $db->query("SELECT FOUND_ROWS() as total");
@@ -289,7 +291,7 @@ class Warehouse extends AdminController {
 			$columns = $subquery['columns'];
 			if (!empty($f)) $where = str_replace(" AND ".$subs[$subfilters[$f]]['where'],"",$where);
 			$w = ($where == "true")?$subquery['where']:"$where AND ({$subquery['where']})";
-			$category_join = (strpos($w,"type='category'") !== false)?"LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.type='category'":"";
+			$category_join = (strpos($w,"taxonomy='$ct_id'") !== false)?"LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.taxonomy='$ct_id'":"";
 
 			$grouping = "GROUP BY ".(isset($subquery['grouping'])?$subquery['grouping']:"pd.id");
 
@@ -796,7 +798,7 @@ class Warehouse extends AdminController {
 
 		if ($id == "catalog-products") {
 			$results = $db->query("SELECT p.id,p.name FROM $products AS p ORDER BY p.name ASC",AS_ARRAY);
-		} else $results = $db->query("SELECT p.id,p.name FROM $catalog AS catalog LEFT JOIN $category AS cat ON cat.id = catalog.parent AND catalog.type='category' LEFT JOIN $products AS p ON p.id=catalog.product WHERE cat.id='$id' ORDER BY p.name ASC",AS_ARRAY);
+		} else $results = $db->query("SELECT p.id,p.name FROM $catalog AS catalog LEFT JOIN $category AS cat ON cat.id = catalog.parent AND catalog.taxonomy='$ct_id' LEFT JOIN $products AS p ON p.id=catalog.product WHERE cat.id='$id' ORDER BY p.name ASC",AS_ARRAY);
 		$products = array();
 
 		$products[0] = __("Select a product&hellip;","Shopp");

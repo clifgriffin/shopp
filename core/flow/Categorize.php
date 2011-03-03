@@ -495,7 +495,7 @@ class Categorize extends AdminController {
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$columns = "c.id AS cid,p.id,c.priority,p.name";
-		$where = "c.parent=$id AND type='category'";
+		$where = "c.parent=$id AND taxonomy='$Category->taxonomy'";
 		$query = "SELECT $columns FROM $catalog_table AS c LEFT JOIN $product_table AS p ON c.product=p.id WHERE $where ORDER BY c.priority ASC,p.name ASC LIMIT $start,$per_page";
 		$products = $db->query($query);
 
