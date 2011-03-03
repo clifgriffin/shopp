@@ -10,55 +10,70 @@
  * @subpackage Taxonomy
  **/
 
-function init_shopp_taxonomies () {
-	register_catalog_taxonomy('category',array(
-		'_builtin' => true,
-		'hierarchical' => true,
-		'public' => true,
-		'editor_ui' => true
-	));
-
-	register_catalog_taxonomy('tag',array(
-		'_builtin' => true,
-		'editor_ui' => true
-	));
-
-	register_catalog_taxonomy('promo',array(
-		'_builtin' => true,
-		'editor_ui' => false
-	));
-
-}
-add_action( 'shopp_init', 'init_shopp_taxonomies', 0 ); // highest priority
-
-
+/**
+ * Registers a new taxonomy into the system
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $name The name of the new taxonomy
+ * @param array $options An associative array of taxonomy options
+ * @return void
+ **/
 function register_catalog_taxonomy ($name, $options = array()) {
 	$Taxonomies =& ShoppTaxonomies();
 
-	$defaults = array(	'_builtin' => false,
-						'hierarchical' => false,
-						'rewrite' => true,
-						'query_var' => sanitize_title_with_dashes($name),
-						'public' => true,
-						'edit_ui' => null,
-						'labels' => array(),
-						'capabilities' => array(),
+	$defaults = array(	'_builtin' => false,		// Flag for built-in system taxonomies
+						'hierarchical' => false,	// Flag for taxonomies supporting hierarchies
+						'rewrite' => true,			// @todo not implemented
+						'query_var' => sanitize_title_with_dashes($name),	// @todo not implemented
+						'public' => true,			// @todo not implemented
+						'edit_ui' => null,			// @todo not implemented
+						'labels' => array(),		// @todo not implemented
+						'capabilities' => array()	// @todo not implemented
 					);
 	$options = array_merge($defaults,$options);
 
 	$Taxonomies->add($name,$options);
 }
 
-function catalog_taxonomy_exists () {
+/**
+ * Determines if a taxonomy is registered
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $name The name of the taxonomy
+ * @return boolean True if the taxonomy exists
+ **/
+function catalog_taxonomy_exists ($name) {
 	$Taxonomies =& ShoppTaxonomies();
 	return $Taxonomies->exists($name);
 }
 
+/**
+ * Gets a registered taxonomy entry
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $name The taxonomy name
+ * @return array An array of taxonomy settings
+ **/
 function &get_catalog_taxonomy ($name) {
 	$Taxonomies =& ShoppTaxonomies();
 	return $Taxonomies->get($name);
 }
 
+/**
+ * Get the reserved ID for a registered taxonomy
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $name The taxonomy name
+ * @return int The ID of the taxonomy (or boolean false if it fails)
+ **/
 function get_catalog_taxonomy_id ($name) {
 	$Taxonomies =& ShoppTaxonomies();
 	return $Taxonomies->get_id($name);
