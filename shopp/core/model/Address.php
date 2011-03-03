@@ -57,16 +57,23 @@ class Address extends DatabaseObject {
 
 		// Lookup US area name
 		if (preg_match("/\d{5}(\-\d{4})?/",$code)) {
+			$prefix = substr($code,0,3);
 
-			foreach ($areas['US'] as $name => $states) {
-				foreach ($states as $id => $coderange) {
-					for($i = 0; $i<count($coderange); $i+=2) {
-						if ($code >= (int)$coderange[$i] && $code <= (int)$coderange[$i+1]) {
-							$this->state = $id;
+			$countries = array('US','USAF');
+
+			// Lookup the state
+			if (isset($areas['USZIP'][$prefix])) {
+				$this->state = $areas['USZIP'][$prefix];
+
+				foreach ($countries as $code) {
+					foreach ($areas[$code] as $name => $states) {
+						if (array_search($this->state,$states) !== false) {
+							$this->country = $code;
 							return $name;
 						}
 					}
 				}
+
 			}
 		}
 
