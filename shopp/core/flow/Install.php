@@ -564,6 +564,15 @@ class ShoppInstallation extends FlowController {
 			$db->query("INSERT INTO $address_table (customer,type,address,xaddress,city,state,country,postcode,created,modified)
 						SELECT customer,'shipping',address,xaddress,city,state,country,postcode,created,modified FROM $shipping_table");
 		}
+
+		if ($db_version <= 1124) {
+			// Upgrade catalog to use taxonomy system
+			$catalog_table = DatabaseObject::tablename('catalog');
+			$ct_id = get_catalog_taxonomy_id('category');
+			$tt_id = get_catalog_taxonomy_id('tag');
+			$db->query("UPDATE $catalog_table SET taxonomy='$ct_id' WHERE type='category'");
+			$db->query("UPDATE $catalog_table SET taxonomy='$tt_id' WHERE type='tag'");
+		}
 	}
 
 	/**

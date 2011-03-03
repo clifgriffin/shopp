@@ -50,25 +50,30 @@ if (isset($_GET['sjsl']))
 	require("core/scripts.php");
 
 // Load super controllers
-require("core/flow/Flow.php");
-require("core/flow/Storefront.php");
-require("core/flow/Login.php");
+require('core/flow/Flow.php');
+require('core/flow/Storefront.php');
+require('core/flow/Login.php');
 require('core/flow/Scripts.php');
 
 // Load frameworks & Shopp-managed data model objects
-require("core/model/Modules.php");
-require("core/model/Gateway.php");
-require("core/model/Shipping.php");
-require("core/model/Lookup.php");
-require("core/model/Shopping.php");
-require("core/model/Error.php");
-require("core/model/Order.php");
-require("core/model/Cart.php");
-require("core/model/Meta.php");
-require("core/model/Asset.php");
-require("core/model/Catalog.php");
-require("core/model/Purchase.php");
-require("core/model/Customer.php");
+require('core/model/Modules.php');
+require('core/model/Gateway.php');
+require('core/model/Shipping.php');
+require('core/model/Lookup.php');
+require('core/model/Shopping.php');
+require('core/model/Error.php');
+require('core/model/Order.php');
+require('core/model/Cart.php');
+require('core/model/Meta.php');
+require('core/model/Asset.php');
+require('core/model/Catalog.php');
+require('core/model/Purchase.php');
+require('core/model/Customer.php');
+
+// Load public development API
+require('api/taxonomy.php');
+
+
 
 // Start up the core
 $Shopp = new Shopp();
@@ -223,6 +228,7 @@ class Shopp {
 		$this->Shipping = new ShippingModules();
 		$this->Storage = new StorageEngines();
 		$this->SmartCategories = array();
+		$this->Taxonomies = new CatalogTaxonomies();
 
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),

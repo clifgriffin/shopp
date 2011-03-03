@@ -29,9 +29,12 @@ class Category extends DatabaseObject {
 	var $images = array();
 	var $facetedmenus = "off";
 	var $published = true;
+	var $taxonomy = false;
+	var $depth = false;
 
 	function __construct ($id=false,$key=false) {
 		$this->init(self::$table);
+		$this->taxonomy = get_catalog_taxonomy_id('category');
 
 		if (!$id) return;
 		if ($this->load($id,$key)) return true;
@@ -77,7 +80,7 @@ class Category extends DatabaseObject {
 
 		$defaults = array(
 			'columns' => 'cat.*,count(sc.product) as total',
-			'joins' => array("LEFT JOIN $catalog_table AS sc ON sc.parent=cat.id AND sc.type='category'"),
+			'joins' => array("LEFT JOIN $catalog_table AS sc ON sc.parent=cat.id AND sc.taxonomy='$this->taxonomy'"),
 			'where' => array("cat.uri like '%$this->uri%' AND cat.id <> $this->id"),
 			'orderby' => 'name',
 			'order' => 'ASC'
@@ -211,7 +214,7 @@ class Category extends DatabaseObject {
 
 		// Handle default WHERE clause matching this category id
 		if (!empty($this->id))
-			$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON p.id=c.product AND parent=$this->id AND type='category'";
+			$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON p.id=c.product AND parent=$this->id AND taxonomy='$this->taxonomy'";
 
 		if (!value_is_true($nostock) && $Settings->get('outofstock_catalog') == "off")
 			$where[] = "((p.inventory='on' AND p.stock > 0) OR p.inventory='off')";
@@ -1293,7 +1296,7 @@ class Category extends DatabaseObject {
 					FROM $catalogtable AS cat
 					LEFT JOIN $producttable AS p ON cat.product=p.id
 					LEFT JOIN $spectable AS spec ON p.id=spec.parent AND spec.context='product' AND spec.type='spec'
-					WHERE cat.parent=$this->id AND cat.type='category' AND spec.value != '' AND spec.value != '0' GROUP BY merge ORDER BY spec.name,merge";
+					WHERE cat.parent=$this->id AND cat.taxonomy='$this->taxonomy' AND spec.value != '' AND spec.value != '0' GROUP BY merge ORDER BY spec.name,merge";
 
 				$results = $db->query($query,AS_ARRAY);
 
@@ -1716,7 +1719,7 @@ class TagProducts extends SmartCategory {
 		$this->slug = self::$_slug;
 		$tagtable = DatabaseObject::tablename(CatalogTag::$table);
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
-
+		$this->taxonomy = get_catalog_taxonomy_id('tag');
 		$this->tag = urldecode($options['tag']);
 		$tagquery = "";
 		if (strpos($options['tag'],',') !== false) {
@@ -1727,7 +1730,7 @@ class TagProducts extends SmartCategory {
 
 		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($this->tag)."&quot;";
 		$this->uri = urlencode($this->tag);
-		$this->loading = array('joins'=> array("INNER JOIN $catalogtable AS catalog ON p.id=catalog.product AND catalog.type='tag' JOIN $tagtable AS tag ON catalog.parent=tag.id"),'where' => $tagquery);
+		$this->loading = array('joins'=> array("INNER JOIN $catalogtable AS catalog ON p.id=catalog.product AND catalog.taxonomy='$this->taxonomy' JOIN $tagtable AS tag ON catalog.parent=tag.id"),'where' => $tagquery);
 
 	}
 }
@@ -1743,6 +1746,7 @@ class RelatedProducts extends SmartCategory {
 		$Cart = $Shopp->Order->Cart;
 		$tagtable = DatabaseObject::tablename(CatalogTag::$table);
 		$catalogtable = DatabaseObject::tablename(Catalog::$table);
+		$this->taxonomy = get_catalog_taxonomy_id('tag');
 
 		// Use the current product if available
 		if (!empty($Shopp->Product->id))
@@ -1780,7 +1784,7 @@ class RelatedProducts extends SmartCategory {
 			if (!empty($tag->id))
 				$tagscope .= (empty($tagscope)?"":" OR ")."catalog.parent=$tag->id";
 
-		if (!empty($tagscope)) $tagscope = "($tagscope) AND catalog.type='tag'";
+		if (!empty($tagscope)) $tagscope = "($tagscope) AND catalog.taxonomy='$this->taxonomy'";
 
 		$this->tag = "product-".$this->product->id;
 		$this->name = __("Products related to","Shopp")." &quot;".stripslashes($this->product->name)."&quot;";
