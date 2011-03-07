@@ -137,13 +137,13 @@ CREATE TABLE <?php echo $catalog; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	product bigint(20) unsigned NOT NULL default '0',
 	parent bigint(20) unsigned NOT NULL default '0',
-	type enum('category','tag') NOT NULL,
+	taxonomy int(10) unsigned NOT NULL default '0',
 	priority int(10) NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
 	KEY product (product),
-	KEY assignment (parent,type)
+	KEY assignment (parent,taxonomy)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $asset = DatabaseObject::tablename('asset'); ?>
