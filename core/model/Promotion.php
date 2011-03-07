@@ -71,8 +71,15 @@ class Promotion extends DatabaseObject {
 				}
 
 				switch($rule['property']) {
-					case "Name": $where[] = "p.name$match"; break;
-					case "Category": $where[] = "cat.name$match"; break;
+					case "Name":
+						$where[] = "p.name$match";
+						$joins[$product_table] = "LEFT JOIN $product_table as p ON prc.product=p.id";
+						break;
+					case "Category":
+						$where[] = "cat.name$match";
+						$joins[$catalog_table] = "LEFT JOIN $catalog_table AS catalog ON catalog.product=prc.product";
+						$joins[$category_table] = "LEFT JOIN $category_table AS cat ON catalog.parent=cat.id AND catalog.type='category'";
+						break;
 					case "Variation": $where[] = "prc.label$match"; break;
 					case "Price": $where[] = "prc.price$match"; break;
 					case "Sale price": $where[] = "(prc.onsale='on' AND prc.saleprice$match)"; break;
@@ -87,6 +94,9 @@ class Promotion extends DatabaseObject {
 		if (!empty($where)) $where = "WHERE ".join(" AND ",$where);
 		else $where = false;
 
+		if (!empty($joins)) $joins = join(' ',$joins);
+		else $joins = false;
+
 		// Find all the pricetags the promotion is *currently assigned* to
 		$query = "SELECT id FROM $price_table WHERE 0 < FIND_IN_SET($this->id,discounts)";
 		$results = $db->query($query,AS_ARRAY);
@@ -94,10 +104,9 @@ class Promotion extends DatabaseObject {
 
 		// Find all the pricetags the promotion is *going to apply* to
 		$query = "SELECT prc.id,prc.product,prc.discounts FROM $price_table AS prc
-					LEFT JOIN $product_table as p ON prc.product=p.id
-					LEFT JOIN $catalog_table AS clog ON clog.product=p.id
-					LEFT JOIN $category_table AS cat ON clog.parent=cat.id AND clog.type='category'
+					$joins
 					$where";
+
 		$results = $db->query($query,AS_ARRAY);
 		$updates = array_map(create_function('$o', 'return $o->id;'), $results);
 
@@ -115,7 +124,7 @@ class Promotion extends DatabaseObject {
 		// Remove discounts from pricetags that now don't match the conditions
 		$this->uncatalog_discounts($removed);
 
-		// Recalculate product status for the products with pricetags that have changed
+		// Recalculate product stats for the products with pricetags that have changed
 		$Collection = new PromoProducts(array('id' => $this->id));
 		$Collection->pagination = false;
 		$Collection->load_products( array('load'=>array('prices','restat')) );
@@ -134,7 +143,6 @@ class Promotion extends DatabaseObject {
 			$db->query("UPDATE LOW_PRIORITY $_table SET discounts='".join(',',$promos)."' WHERE id=$pricetag->id");
 		}
 	}
-
 
 	/**
 	 * match_rule ()
