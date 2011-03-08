@@ -116,7 +116,6 @@ class Flow {
 	 **/
 	function admin () {
 		if (!defined('WP_ADMIN')) return false;
-		if ($this->Admin->maintenance()) return $this->Admin->reactivate();
 		$controller = $this->Admin->controller(strtolower($_GET['page']));
 		require_once(SHOPP_FLOW_PATH."/$controller.php");
 		$this->Controller = new $controller();
