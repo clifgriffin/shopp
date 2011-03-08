@@ -565,11 +565,12 @@ class ShoppInstallation extends FlowController {
 						SELECT customer,'shipping',address,xaddress,city,state,country,postcode,created,modified FROM $shipping_table");
 		}
 
-		if ($db_version <= 1124) {
+		if ($db_version <= 1125) {
+
 			// Upgrade catalog to use taxonomy system
 			$catalog_table = DatabaseObject::tablename('catalog');
-			$ct_id = get_catalog_taxonomy_id('category');
-			$tt_id = get_catalog_taxonomy_id('tag');
+			$ct_id = 0;
+			$tt_id = 1;
 			$db->query("UPDATE $catalog_table SET taxonomy='$ct_id' WHERE type='category'");
 			$db->query("UPDATE $catalog_table SET taxonomy='$tt_id' WHERE type='tag'");
 		}
@@ -592,7 +593,6 @@ class ShoppInstallation extends FlowController {
 
 		if ( ! current_user_can('update_plugins') )
 			wp_die(__('You do not have sufficient permissions to update plugins for this blog.'));
-
 
 		if (SHOPP_PLUGINFILE == $plugin) {
 			// check_admin_referer('upgrade-plugin_' . $plugin);
