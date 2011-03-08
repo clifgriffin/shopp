@@ -566,7 +566,6 @@ class ShoppInstallation extends FlowController {
 		}
 
 		if ($db_version <= 1125) {
-
 			// Upgrade catalog to use taxonomy system
 			$catalog_table = DatabaseObject::tablename('catalog');
 			$ct_id = 0;
@@ -574,6 +573,13 @@ class ShoppInstallation extends FlowController {
 			$db->query("UPDATE $catalog_table SET taxonomy='$ct_id' WHERE type='category'");
 			$db->query("UPDATE $catalog_table SET taxonomy='$tt_id' WHERE type='tag'");
 		}
+
+		if ($db_version <= 1127) {
+			// Upgrade price tag to use settings column
+			$price_table = DatabaseObject::tablename('price');
+			$db->query("UPDATE $price_table SET settings=CONCAT('a:1:{s:8:\"donation\";',donation,'}') WHERE type='Donation'");
+		}
+
 	}
 
 	/**

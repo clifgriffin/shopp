@@ -396,7 +396,25 @@ class Warehouse extends AdminController {
 			array('value'=>'Virtual','label'=>__('Virtual','Shopp')),
 			array('value'=>'Download','label'=>__('Download','Shopp')),
 			array('value'=>'Donation','label'=>__('Donation','Shopp')),
+			array('value'=>'Subscription','label'=>__('Subscription','Shopp')),
+			array('value'=>'Membership','label'=>__('Membership','Shopp')),
 			array('value'=>'N/A','label'=>__('Disabled','Shopp')),
+		);
+
+		$billPeriods = array(
+			array(
+				array('value'=>'d','label'=>__('days','Shopp')),
+				array('value'=>'w','label'=>__('weeks','Shopp')),
+				array('value'=>'m','label'=>__('months','Shopp')),
+				array('value'=>'y','label'=>__('years','Shopp')),
+
+			),
+			array(
+				array('value'=>'d','label'=>__('day','Shopp')),
+				array('value'=>'w','label'=>__('week','Shopp')),
+				array('value'=>'m','label'=>__('month','Shopp')),
+				array('value'=>'y','label'=>__('year','Shopp')),
+			)
 		);
 
 		$workflows = array(
@@ -411,7 +429,6 @@ class Warehouse extends AdminController {
 		foreach ($Product->tags as $tag) $taglist[] = $tag->name;
 
 		if ($Product->id) {
-
 			$ProductImage = new ProductImage();
 			$results = $db->query("SELECT * FROM $ProductImage->_table WHERE context='product' AND parent=$Product->id AND type='image' ORDER BY sortorder",AS_ARRAY);
 
@@ -556,11 +573,19 @@ class Warehouse extends AdminController {
 					$option['saleprice'] = (floatvalue($option['saleprice'])/(1+$taxrate));
 				}
 				$option['shipfee'] = floatvalue($option['shipfee']);
+				if (isset($option['recurring']['trialprice']))
+					$option['recurring']['trialprice'] = floatvalue($option['recurring']['trialprice']);
 
 				$option['weight'] = floatvalue($option['weight']);
 				if (isset($options['dimensions']) && is_array($options['dimensions']))
 					foreach ($option['dimensions'] as &$dimension)
 						$dimension = floatvalue($dimension);
+
+				$option['settings'] = array();
+				$settings = array('donation','recurring','membership');
+
+				foreach ($settings as $setting)
+					if (isset($option[$setting])) $option['settings'][$setting] = $option[$setting];
 
 				$Price->updates($option);
 				$Price->save();
