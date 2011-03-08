@@ -201,6 +201,12 @@ function htmlentities (string) {
 	return string;
 }
 
+function debuglog (o) {
+	if (window.console != undefined) {
+		console.log(o);
+	}
+}
+
 /**
  * Parse JSON data with native browser parsing or
  * as a last resort use evil(), er... eval()

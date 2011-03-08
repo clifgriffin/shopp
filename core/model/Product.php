@@ -230,6 +230,15 @@ class Product extends DatabaseObject {
 					$target->{$row->rtype} = array();
 			}
 
+			if ($row->rtype == "prices") {
+				// Handle expanding price settings
+				if (!empty($record->settings)) {
+					$sets = array('donation','recurring','membership');
+					foreach ($sets as $setting)
+						if (isset($record->settings[$setting])) $record->{$setting} = $record->settings[$setting];
+				}
+			}
+
 			$target->{$row->rtype}[] = $record;
 			if (!empty($name)) {
 				if (isset($target->{$row->rtype.'key'}[$name]))

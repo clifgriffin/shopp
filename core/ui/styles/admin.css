@@ -127,13 +127,16 @@ div.comment-item:hover .row-actions { visibility:visible; }
 .shopp .priceline .dimensions { position:absolute;padding:6px;border-width:1px;border-style:solid;-moz-border-radius:3px;-khtml-border-radius:3px;-webkit-border-radius:3px;border-radius:3px;border-color:#ccc;margin-bottom:6px;border-color:#dfdfdf;background-color:#f1f1f1;-webkit-box-shadow:0px 2px 10px #aaa;-moz-box-shadow:0px 2px 10px #aaa;top:53px;margin-left:1px;z-index:1000; }
 .shopp .priceline .extoggle { background-color:#f1f1f1;color:#777;cursor:pointer; }
 
+.priceline select.period { width: 66px; }
+.priceline select.membership { width: 100px; }
+
 .shopp .icon32 { background:url('../icons/shopp32.png') no-repeat; }
 
 .pricing-table { width:100%; }
 .pricing-table tr { background:none; }
 .pricing-table th { width:auto;border:none;padding:0;vertical-align:top;text-align:left;white-space:nowrap; }
 .pricing-table td { position:relative;overflow:visible;border:none;padding:0;vertical-align:top; }
-.pricing-table span.status { display:block;padding-top:4px;font-size:11px; }
+.pricing-table .status { display:block;padding-top:4px;font-size:11px; }
 .pricing-table span.fields label { white-space:nowrap; }
 
 .pricing tr.dragging th,
@@ -145,7 +148,7 @@ div.comment-item:hover .row-actions { visibility:visible; }
 
 .pricing tbody th,.pricing tbody td { padding-bottom:1px;border-bottom-width:3px; }
 
-.pricing-table div.file { line-height:1.3em;background:url('../icons/page_white.png') no-repeat;padding-left:20px;cursor:pointer; }
+.pricing-table div.file { line-height:1.3em;background:url('../icons/page_white.png') no-repeat;padding-left:20px;cursor:pointer;font-size:11px; }
 .pricing-table div.file small { color:#606060; }
 .pricing-table div.file.image { background-image:url('../icons/image.png'); }
 .pricing-table div.file.audio { background-image:url('../icons/music.png'); }

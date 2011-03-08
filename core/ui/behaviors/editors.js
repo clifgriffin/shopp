@@ -908,7 +908,7 @@ function ImageUploads (id,type) {
 	}
 
 	function imageUploadError (file, error, message) {
-		//console.log(error+": "+message);
+		//debuglog(error+": "+message);
 	}
 
 	function imageUploadSuccess (file, results) {
