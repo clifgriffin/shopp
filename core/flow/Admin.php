@@ -129,7 +129,6 @@ class AdminFlow extends FlowController {
 	function menus () {
 		global $Shopp;
 
-
 		$access = defined('SHOPP_USERLEVEL') ?
 			SHOPP_USERLEVEL:$this->caps['main'];
 
@@ -145,16 +144,13 @@ class AdminFlow extends FlowController {
 			SHOPP_ADMIN_URI.'/icons/shopp.png'			// Icon
 		);
 
-		if ($this->maintenance()) {
-			add_action("admin_enqueue_scripts", array(&$this, 'behaviors'));
-			return add_action('toplevel_page_shopp-orders',array(&$this,'reactivate'));
-		}
-
 		// Add menus to WordPress admin
 		foreach ($this->Pages as $page) $this->addmenu($page);
 
 		// Add admin JavaScript & CSS
 		foreach ($this->Menus as $menu) add_action("admin_enqueue_scripts", array(&$this, 'behaviors'),50);
+
+		if ($this->maintenance()) return;
 
 		// Add contextual help menus
 		foreach ($this->Menus as $pagename => $menu) $this->help($pagename,$menu);
