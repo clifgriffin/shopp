@@ -800,6 +800,7 @@ class Order {
 	 * @return boolean Validity of the order
 	 **/
 	function isvalid ($report=true) {
+		global $Shopp;
 		$Customer = $this->Customer;
 		$Shipping = $this->Shipping;
 		$Cart = $this->Cart;
@@ -839,7 +840,7 @@ class Order {
 
 		// Check for shipped items but no Shipping information
 		$valid_shipping = true;
-		if (!empty($this->Cart->shipped)) {
+		if (!empty($this->Cart->shipped) && $Shopp->Settings->get('shipping') != "off") {
 			if (empty($Shipping->address))
 				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_address',false);
 			if (empty($Shipping->country))
@@ -847,7 +848,7 @@ class Order {
 			if (empty($Shipping->postcode))
 				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_postcode',false);
 
-			if ($Cart->freeshipping === false && $Cart->Totals->shipping === false) {
+			if ($Cart->freeshipping === false && !$Cart->Totals->shipping) {
 				$valid = apply_filters('shopp_ordering_no_shipping_costs',false);
 				$message = __('The order cannot be processed. No shipping costs could be determined. Either the shipping rate provider was unavailable, or may have rejected the shipping address you provided. Please return to %scheckout%s and try again.', 'Shopp');
 				if (!$valid) new ShoppError( sprintf( $message,'<a href="'.shoppurl(false,'checkout',$this->security()).'">','</a>' ), 'invalid_order'.$errors++, ($report?SHOPP_TRXN_ERR:SHOPP_DEBUG_ERR)
