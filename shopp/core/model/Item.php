@@ -336,7 +336,7 @@ class Item {
 		$map = array(
 			'id','type','label','onsale','promoprice','price',
 			'inventory','stock','sku','options','dimensions',
-			'shipfee','download'
+			'shipfee','download','recurring'
 		);
 		$_ = new stdClass();
 		foreach ($map as $property) {
@@ -555,6 +555,7 @@ class Item {
 			case "quantity":
 				$result = $this->quantity;
 				if ($this->type == "Donation" && $this->donation['var'] == "on") return $result;
+				if ($this->type == "Subscription" || $this->type == "Membership") return $result;
 				if (isset($options['input']) && $options['input'] == "menu") {
 					if (!isset($options['value'])) $options['value'] = $this->quantity;
 					if (!isset($options['options']))

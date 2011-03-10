@@ -496,7 +496,6 @@ class Cart {
 		$this->changed = false;
 		$this->retotal = false;
 
-
 	}
 
 	/**
@@ -521,13 +520,47 @@ class Cart {
 	 * @return boolean True if there are shipped items in the cart
 	 **/
 	function shipped () {
-		$shipped = array_filter($this->contents,array(&$this,'_filter_shipped'));
+		return $this->_typeitems('shipped');
+	}
 
-		$this->shipped = array();
-		foreach ($shipped as $key => $item)
-			$this->shipped[$key] = &$this->contents[$key];
 
-		return (!empty($this->shipped));
+	/**
+	 * Finds downloadable items in the cart and builds a reference list
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 *
+	 * @return boolean True if there are shipped items in the cart
+	 **/
+	function downloads () {
+		return $this->_typeitems('downloads');
+	}
+
+	/**
+	 * Finds recurring payment items in the cart and builds a reference list
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return boolean True if there are recurring payment items in the cart
+	 **/
+	function recurring () {
+		return $this->_typeitems('recurring');
+	}
+
+
+	private function _typeitems ($type) {
+		$types = array('shipped','downloads','recurring');
+		if (!in_array($type,$types)) return false;
+
+		$filter = "_filter_$type";
+		$items = array_filter($this->contents,array(&$this,$filter));
+
+		$this->$type = array();
+		foreach ($items as $key => $item)
+			$this->{$type}[$key] =& $this->contents[$key];
+
+		return (!empty($this->$type));
 	}
 
 	/**
@@ -543,22 +576,6 @@ class Cart {
 	}
 
 	/**
-	 * Finds downloadable items in the cart and builds a reference list
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @return boolean True if there are shipped items in the cart
-	 **/
-	function downloads () {
-		$downloads = array_filter($this->contents,array(&$this,'_filter_downloads'));
-		$this->downloads = array();
-		foreach ($downloads as $key => $item)
-			$this->downloads[$key] = &$this->contents[$key];
-		return (!empty($this->downloads));
-	}
-
-	/**
 	 * Helper method to identify digital items in the cart
 	 *
 	 * @author Jonathan Davis
@@ -570,6 +587,17 @@ class Cart {
 		return ($item->download >= 0);
 	}
 
+	/**
+	 * Helper method to identify recurring payment items in the cart
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return boolean
+	 **/
+	private function _filter_recurring ($item) {
+		return ($item->type == "Subscription" || $item->type == "Membership");
+	}
 
 	/**
 	 * Provides shopp('cart') template api functionality
@@ -778,8 +806,10 @@ class Cart {
 				foreach ($markets as $iso => $country) $countries[$iso] = $country;
 				if (!empty($Shipping->country)) $selected = $Shipping->country;
 				else $selected = $base['country'];
+				$postcode = false;
 				$result .= '<ul><li>';
 				if ((isset($options['postcode']) && value_is_true($options['postcode'])) || $this->showpostcode) {
+					$postcode = true;
 					$result .= '<span>';
 					$result .= '<input type="text" name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$Shipping->postcode.'" />&nbsp;';
 					$result .= '</span>';
@@ -791,7 +821,12 @@ class Cart {
 					$result .= '</select>';
 					$result .= '</span>';
 				} else $result .= '<input type="hidden" name="shipping[country]" id="shipping-country" value="'.key($markets).'" />';
-				$result .= '<br class="clear" /></li></ul>';
+				if ($postcode) {
+					$result .= '</li><li>';
+					$result .= shopp('cart','update-button',array('value' => __('Estimate Shipping & Taxes','Shopp'),'return'=>'1'));
+				}
+
+				$result .= '</li></ul>';
 				return $result;
 				break;
 		}

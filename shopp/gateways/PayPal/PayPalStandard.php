@@ -158,35 +158,59 @@ class PayPalStandard extends GatewayFramework implements GatewayModule {
 		// Transaction
 		$_['currency_code']			= $this->settings['currency_code'];
 
+		if ($Order->Cart->recurring()) {
 
-		// Line Items
-		foreach($Order->Cart->contents as $i => $Item) {
-			$id=$i+1;
-			$_['item_number_'.$id]		= $id;
-			$_['item_name_'.$id]		= $Item->name.((!empty($Item->option->label))?' '.$Item->option->label:'');
-			$_['amount_'.$id]			= number_format($Item->unitprice,$this->precision);
-			$_['quantity_'.$id]			= $Item->quantity;
-			$_['weight_'.$id]			= $Item->quantity;
+			$Item = $Order->Cart->recurring[0];
+			$_['cmd']	= '_xclick-subscriptions';
+			$_['rm']	= 2; // Return with transaction data
+
+			$_['item_number'] = $Item->product;
+			$_['item_name'] = $Item->name.((!empty($Item->option->label))?' ('.$Item->option->label.')':'');
+
+			// Trial pricing
+			$_['a1']	= number_format($Item->recurring['trialprice'],$this->precision);
+			$_['p1']	= $Item->option->recurring['trialint'];
+			$_['t1']	= strtoupper($Item->option->recurring['trialperiod']);
+
+
+			$_['a3']	= number_format($Item->unitprice,$this->precision);
+			$_['p3']	= $Item->option->recurring['interval'];
+			$_['t3']	= strtoupper($Item->option->recurring['period']);
+
+			$_['src']	= 1;
+
+		} else {
+
+			// Line Items
+			foreach($Order->Cart->contents as $i => $Item) {
+				$id=$i+1;
+				$_['item_number_'.$id]		= $id;
+				$_['item_name_'.$id]		= $Item->name.((!empty($Item->option->label))?' '.$Item->option->label:'');
+				$_['amount_'.$id]			= number_format($Item->unitprice,$this->precision);
+				$_['quantity_'.$id]			= $Item->quantity;
+				$_['weight_'.$id]			= $Item->quantity;
+			}
+
+			// Workaround a PayPal limitation of not correctly handling no subtotals or
+			// handling discounts in the amount of the item subtotals by adding the
+			// shipping fee to the line items to get included in the subtotal. If no
+			// shipping fee is available use 1.00 to satisfy minimum order amount requirements
+			if ((int)$Order->Cart->Totals->subtotal == 0 ||
+				$Order->Cart->Totals->subtotal-$Order->Cart->Totals->discount == 0) {
+				$id++;
+				$_['item_number_'.$id]		= $id;
+				$_['item_name_'.$id]		= apply_filters('paypal_freeorder_handling_label',
+															__('Shipping & Handling','Shopp'));
+				$_['amount_'.$id]			= number_format(max($Order->Cart->Totals->shipping,1.00),$this->precision);
+				$_['quantity_'.$id]			= 1;
+			} else
+				$_['handling_cart']				= number_format($Order->Cart->Totals->shipping,$this->precision);
+
+			$_['discount_amount_cart'] 		= number_format($Order->Cart->Totals->discount,$this->precision);
+			$_['tax_cart']					= number_format($Order->Cart->Totals->tax,$this->precision);
+			$_['amount']					= number_format($Order->Cart->Totals->total,$this->precision);
+
 		}
-
-		// Workaround a PayPal limitation of not correctly handling no subtotals or
-		// handling discounts in the amount of the item subtotals by adding the
-		// shipping fee to the line items to get included in the subtotal. If no
-		// shipping fee is available use 1.00 to satisfy minimum order amount requirements
-		if ((int)$Order->Cart->Totals->subtotal == 0 ||
-			$Order->Cart->Totals->subtotal-$Order->Cart->Totals->discount == 0) {
-			$id++;
-			$_['item_number_'.$id]		= $id;
-			$_['item_name_'.$id]		= apply_filters('paypal_freeorder_handling_label',
-														__('Shipping & Handling','Shopp'));
-			$_['amount_'.$id]			= number_format(max($Order->Cart->Totals->shipping,1.00),$this->precision);
-			$_['quantity_'.$id]			= 1;
-		} else
-			$_['handling_cart']				= number_format($Order->Cart->Totals->shipping,$this->precision);
-
-		$_['discount_amount_cart'] 		= number_format($Order->Cart->Totals->discount,$this->precision);
-		$_['tax_cart']					= number_format($Order->Cart->Totals->tax,$this->precision);
-		$_['amount']					= number_format($Order->Cart->Totals->total,$this->precision);
 
 		$_ = array_merge($_,$options);
 
