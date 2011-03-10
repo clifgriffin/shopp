@@ -1696,7 +1696,18 @@ function Priceline (id,options,data,target,attachment) {
 	};
 
 	_.recurring = function (d) {
-		var hd,ui,hd2,ui2,ints,n,cycs = '<option value="0">&infin;</option>',pp,ps;
+		var hd,ui,hd2,ui2,ints,n,cycs = '<option value="0">&infin;</option>',pp,ps,
+			defaults = {
+				cycles:0,
+				period:'d',
+				interval:1,
+				trial:'off',
+				trialint:1,
+				trialperiod:'d',
+				trialprice:'0.00'
+			};
+		if (typeof(d) == 'undefined') d = {};
+		d = $.extend(defaults,d);
 
 		for(n = 1; n < 31; n++) {
 			ints += '<option value="'+n+'">'+n+'</option>';
@@ -1727,8 +1738,8 @@ function Priceline (id,options,data,target,attachment) {
 		dis = ui2.find('span.status');
 		ui = ui2.find('span.ui').hide();
 
-		_.cycles = $('#cycles-'+i).val(d['cycles']);
-		_.period = $('#period-'+i).val(d['period']);
+		_.cycles = $('#cycles-'+i).val(typeof(d.cycles) !== 'undefined'?d.cycles:0);
+		_.period = $('#period-'+i).val(d.period);
 		_.interval = $('#interval-'+i).change(function () {
 			var $this=$(this),s = _.period.val();
 			if ($this.val() == 1) _.period.html(ps);
@@ -1751,7 +1762,6 @@ function Priceline (id,options,data,target,attachment) {
 
 	_.memberlevel = function (d) {
 		var hd,ui,memberships,mo;
-		debuglog(d);
 
 		memberships = ['Basic','Silver','Gold','Platinum'];
 		$(memberships).each(function (n,option) { mo += '<option value="'+option+'">'+option+'</option>'; });
@@ -1799,12 +1809,14 @@ function Priceline (id,options,data,target,attachment) {
 	};
 
 	_.Subscription = function (data) {
+		if (data.tax != 'on') data.tax = 'off';
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
 		if (!tmp) _.recurring(data.recurring);
 	};
 
 	_.Membership = function (data) {
+		if (data.tax != 'on') data.tax = 'off';
 		_.price(data.price,data.tax);
 		_.saleprice(data.sale,data.saleprice);
 		if (!tmp) _.recurring(data.recurring);
