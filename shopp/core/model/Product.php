@@ -494,6 +494,8 @@ class Product extends DatabaseObject {
 		$data = $db->prepare($statdata);
 		$dataset = $this->dataset($data);
 
+		if (empty($dataset)) return;
+
 		$query = "UPDATE LOW_PRIORITY $this->_table SET $dataset WHERE $this->_key=$this->id";
 		$db->query($query);
 	}
