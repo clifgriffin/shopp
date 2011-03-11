@@ -33,10 +33,9 @@ define('SHOPP_HOME','https://shopplugin.net/');
 define('SHOPP_CUSTOMERS','http://customers.shopplugin.net/');
 define('SHOPP_DOCS','http://docs.shopplugin.net/');
 
-require("core/functions.php");
 require("core/legacy.php");
+require("core/functions.php");
 
-shopp_prereqs();
 shopp_timezone();
 
 require_once("core/DB.php");

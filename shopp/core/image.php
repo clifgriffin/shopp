@@ -47,13 +47,37 @@ class ImageServer extends DatabaseObject {
 	function __construct () {
 		define('SHOPP_PATH',sanitize_path(dirname(dirname(__FILE__))));
 		define("SHOPP_STORAGE",SHOPP_PATH."/storage");
+		define('SHOPP_QUERY_DEBUG',true);
 
-		$this->dbinit();
+		$this->init();
 		$this->request();
 		$this->settings();
 		if ($this->load())
 			$this->render();
 		else $this->error();
+	}
+
+	/**
+	 * Boot WordPress
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.1
+	 * @return void
+	 **/
+	function init () {
+		$loadfile = shopp_find_wpload();
+		if ($loadfile) {
+			 // barebones bootstrap (say that 5x fast)
+			define('SHORTINIT',true);
+			global $table_prefix;
+			require($loadfile);
+			$db = DB::get();
+			if(function_exists("date_default_timezone_set") && function_exists("date_default_timezone_get"))
+				@date_default_timezone_set(@date_default_timezone_get());
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -235,49 +259,6 @@ class ImageServer extends DatabaseObject {
 		$this->Settings = &ShoppSettings();
 	}
 
-	/**
-	 * Read the wp-config file to connect to the database
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 * @return void
-	 **/
-	function dbinit () {
-		$db = DB::get();
-
-		// Skip init if a connection exists
-		if (defined('ABSPATH') && $db->dbh !== false) return;
-
-		global $table_prefix;
-
-		if (!load_shopps_wpconfig())
-			$this->error();
-
-		chdir(ABSPATH.'wp-content');
-
-		// Establish database connection
-		$db->connect(DB_USER,DB_PASSWORD,DB_NAME,DB_HOST);
-		if ($db->dbh === false) {
-			error_reporting(E_ALL);
-			ini_set('display_errors',1);
-			trigger_error('Error establishing a database connection',E_USER_ERROR);
-			die();
-		}
-
-		if (defined('DB_CHARSET')) {
-			if (function_exists('mysql_set_charset'))
-				mysql_set_charset(DB_CHARSET, $db->dbh);
-			else {
-				$query = "SET NAMES '".DB_CHARSET."'";
-				if (defined('DB_COLLATE')) $query .= " COLLATE '".DB_COLLATE."'";
-				$db->query($query);
-			}
-		}
-
-		if (is_multisite()) shopp_ms_tableprefix();
-
-	}
-
 } // end ImageServer class
 
 /**
@@ -290,17 +271,6 @@ if (!function_exists('__')) {
 	}
 }
 
-if (!function_exists('is_multisite')) {
-	function is_multisite() {
-		if ( defined( 'MULTISITE' ) )
-			return MULTISITE;
-
-		if ( defined( 'VHOST' ) || defined( 'SUNRISE' ) )
-			return true;
-
-		return false;
-	}
-}
 
 // Start the server
 new ImageServer();
