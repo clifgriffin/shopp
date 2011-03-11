@@ -858,110 +858,6 @@ function linkencode ($url) {
 	return str_replace($search, $replace, $url);
 }
 
-/**
- * Read the wp-config file to import WP settings without loading all of WordPress
- *
- * @author Jonathan Davis, John Dillick
- * @since 1.1
- * @return boolean If the load was successful or not
- **/
-function load_shopps_wpconfig () {
-	global $table_prefix;
-
-	$configfile = 'wp-config.php';
-	$loadfile = 'wp-load.php';
-	$wp_config_path = $wp_abspath = false;
-
-	$syspath = explode('/',$_SERVER['SCRIPT_FILENAME']);
-	$uripath = explode('/',$_SERVER['SCRIPT_NAME']);
-	$rootpath = array_diff($syspath,$uripath);
-	$root = '/'.join('/',$rootpath);
-
-	$filepath = dirname(!empty($_SERVER['SCRIPT_FILENAME'])?$_SERVER['SCRIPT_FILENAME']:__FILE__);
-
-	if ( file_exists(sanitize_path($root).'/'.$loadfile))
-		$wp_abspath = $root;
-
-	if ( isset($_SERVER['SHOPP_WPCONFIG_PATH'])
-		&& file_exists(sanitize_path($_SERVER['SHOPP_WPCONFIG_PATH']).'/'.$configfile) ) {
-		// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig
-		// and SHOPP_ABSPATH used on webserver site config
-		$wp_config_path = $_SERVER['SHOPP_WPCONFIG_PATH'];
-
-	} elseif ( strpos($filepath, $root) !== false ) {
-		// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-config.php
-		$fullpath = explode ('/', sanitize_path($filepath) );
-		while (!$wp_config_path && ($dir = array_pop($fullpath)) !== null) {
-			if (file_exists( sanitize_path(join('/',$fullpath)).'/'.$loadfile ))
-				$wp_abspath = join('/',$fullpath);
-			if (file_exists( sanitize_path(join('/',$fullpath)).'/'.$configfile ))
-				$wp_config_path = join('/',$fullpath);
-		}
-
-	} elseif ( file_exists(sanitize_path($root).'/'.$configfile) ) {
-		$wp_config_path = $root; // WordPress install in DOCUMENT_ROOT
-	} elseif ( file_exists(sanitize_path(dirname($root)).'/'.$configfile) ) {
-		$wp_config_path = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
-	}
-
-	$wp_config_file = sanitize_path($wp_config_path).'/'.$configfile;
-	if ( $wp_config_path !== false )
-		$config = file_get_contents($wp_config_file);
-	else return false;
-
-	preg_match_all('/^\s*?(define\(\s*?\'(.*?)\'\s*?,\s*(.*?)\);)/m',$config,$defines,PREG_SET_ORDER);
-	foreach($defines as $defined) if (!defined($defined[2])) {
-		list($line,$line,$name,$value) = $defined;
-		$value = str_replace('__FILE__',"'$wp_abspath/$loadfile'",$value);
-		$value = safe_define_ev($value);
-
-		// Override ABSPATH with SHOPP_ABSPATH
-		if ($name == "ABSPATH" && isset($_SERVER['SHOPP_ABSPATH'])
-				&& file_exists(sanitize_path($_SERVER['SHOPP_ABSPATH']).'/'.$loadfile))
-			$value = rtrim(sanitize_path($_SERVER['SHOPP_ABSPATH']),'/').'/';
-		define($name,$value);
-	}
-
-	// Get the $table_prefix value
-	preg_match('/(\$table_prefix\s*?=.+?);/m',$config,$match);
-	$table_prefix = safe_define_ev($match[1]);
-
-	if(function_exists("date_default_timezone_set") && function_exists("date_default_timezone_get"))
-		@date_default_timezone_set(@date_default_timezone_get());
-
-	return true;
-}
-
-/**
- * Appends the blog id to the table prefix for multisite installs
- *
- * @author Jonathan Davis
- * @since 1.1
- *
- * @return void
- **/
-function shopp_ms_tableprefix () {
-	global $table_prefix;
-
-	$domain = $_SERVER['HTTP_HOST'] = (strpos($_SERVER['HTTP_HOST'],':') !== false) ?
-	 				str_replace(array(':80',':443'),'',addslashes($_SERVER['HTTP_HOST'])):
-					addslashes($_SERVER['HTTP_HOST']);
-
-	if (strpos($_SERVER['HTTP_HOST'],':') !== false) die('Multisite only works without the port number in the URL.');
-
-	$domain = rtrim($domain, '.');
-
-	$path = preg_replace('|([a-z0-9-]+.php.*)|', '', $_SERVER['REQUEST_URI']);
-	$path = str_replace ('/wp-admin/', '/', $path);
-	$path = preg_replace('|(/[a-z0-9-]+?/).*|', '$1', $path);
-
-	$wpdb_blogs = $table_prefix.'blogs';
-	$db =& DB::get();
-	$r = $db->query("SELECT blog_id FROM $wpdb_blogs WHERE domain='$domain' AND path='$path' LIMIT 1");
-	if (!empty($r->blog_id))
-		$table_prefix .= $r->blog_id.'_';
-}
-
 if (!function_exists('mkobject')) {
 	/**
 	 * Converts an associative array to a stdClass object
@@ -1324,59 +1220,9 @@ function roundprice ($amount,$format=false) {
  * @param string $pkey PEM encoded RSA public key
  * @return string Encrypted binary data
  **/
-function rsa_encrypt($data, $pkey){
+function rsa_encrypt ($data, $pkey){
 	openssl_public_encrypt($data, $encrypted,$pkey);
 	return ($encrypted)?$encrypted:false;
-}
-
-/**
- * Safely interprets a single PHP statement for dynamic macro definitions
- *
- * Ensures that unsafe code cannot be arbitrarily executed by three levels
- * of protection: unsafe function blacklist, no anonymous functions,
- * no backtick operations, and no variable variables.
- *
- * Additionally, the use of create_function to interpret the code ensures
- * that executed code doesn't taint the rest of the runtime environment.
- *
- * An error is generated to help detect and debug problem macro definitions.
- *
- * @author Jonathan Davis
- * @since 1.1
- *
- * @param string $string A PHP statement to be interpreted
- * @return mixed The returned value
- **/
-function safe_define_ev ($string) {
-	$error = false;
-	$f = array(	'base64_decode','base64_encode','copy','create_function','curl_init',
-			'dl','exec','file_get_contents','fopen','fpassthru','include',
-			'include_once','ini_restore','leak','link','mail','passthru','pcntl_exec',
-			'pcntl_fork','pcntl_signal','pcntl_waitpid','pcntl_wexitstatus',
-			'pcntl_wifexited','pcntl_wifsignaled','pcntl_wifstopped','pcntl_wstopsig',
-			'pcntl_wtermsig','pfsockopen','phpinfo','popen','preg_replace','proc_get_status',
-			'proc_nice','proc_open','proc_terminate','readfile','register_shutdown_function',
-			'register_tick_function','require','require_once','shell_exec','socket_accept',
-			'socket_bind','socket_connect','socket_create','socket_create_listen',
-			'socket_create_pair','stream_socket_server','symlink','syslog','system');
-
-	if (preg_match('/('.join('|',$f).')\s*\(.*?\)/',$string) !== 0)
-		$error = "Unsafe function detected while interpreting a macro definition";
-	elseif (preg_match('/\$\w+\s*=\s*function\s*\(/',$string) !== 0)
-		$error = "Anoymous function detected while interpreting a macro definition";
-	elseif (preg_match('/(\`.+?\`)/',preg_replace('/(\'.*?\'|".*?")/m','',$string)) !== 0)
-		$error = "Unsafe backtick operator usage detected while interpreting a macro definition";
-	elseif (strpos($string,'$$') !== false)
-		$error = "Unsafe variable detected while interpreting a macro definition";
-
-	if ($error !== false) {
-		trigger_error($error,E_USER_ERROR);
-		return '';
-	}
-
-	$code = create_function('','return ('.$string.');');
-	if (empty($code)) return '';
-	return $code();
 }
 
 if(!function_exists('sanitize_path')){
@@ -1574,6 +1420,49 @@ function shopp_email ($template,$data=array()) {
 	}
 }
 
+function shopp_find_wpload () {
+	global $table_prefix;
+
+	$loadfile = 'wp-load.php';
+	$wp_abspath = false;
+
+	$syspath = explode('/',$_SERVER['SCRIPT_FILENAME']);
+	$uripath = explode('/',$_SERVER['SCRIPT_NAME']);
+	$rootpath = array_diff($syspath,$uripath);
+	$root = '/'.join('/',$rootpath);
+
+	$filepath = dirname(!empty($_SERVER['SCRIPT_FILENAME'])?$_SERVER['SCRIPT_FILENAME']:__FILE__);
+
+	if ( file_exists(sanitize_path($root).'/'.$loadfile))
+		$wp_abspath = $root;
+
+	if ( isset($_SERVER['SHOPP_WP_ABSPATH'])
+		&& file_exists(sanitize_path($_SERVER['SHOPP_WP_ABSPATH']).'/'.$configfile) ) {
+		// SetEnv SHOPP_WPCONFIG_PATH /path/to/wpconfig
+		// and SHOPP_ABSPATH used on webserver site config
+		$wp_abspath = $_SERVER['SHOPP_WP_ABSPATH'];
+
+	} elseif ( strpos($filepath, $root) !== false ) {
+		// Shopp directory has DOCUMENT_ROOT ancenstor, find wp-config.php
+		$fullpath = explode ('/', sanitize_path($filepath) );
+		while (!$wp_abspath && ($dir = array_pop($fullpath)) !== null) {
+			if (file_exists( sanitize_path(join('/',$fullpath)).'/'.$loadfile ))
+				$wp_abspath = join('/',$fullpath);
+		}
+
+	} elseif ( file_exists(sanitize_path($root).'/'.$loadfile) ) {
+		$wp_abspath = $root; // WordPress install in DOCUMENT_ROOT
+	} elseif ( file_exists(sanitize_path(dirname($root)).'/'.$loadfile) ) {
+		$wp_abspath = dirname($root); // wp-config up one directory from DOCUMENT_ROOT
+	}
+
+	$wp_load_file = sanitize_path($wp_abspath).'/'.$loadfile;
+
+	if ( $wp_load_file !== false ) return $wp_load_file;
+	return false;
+
+}
+
 /**
  * Locates the Shopp content gateway pages in the WordPress posts table
  *
@@ -1670,55 +1559,6 @@ function shopp_rss ($data) {
 	$xml .= "</rss>\n";
 
 	return $xml;
-}
-
-/**
- * Checks for prerequisite technologies needed for Shopp
- *
- * @author Jonathan Davis
- * @since 1.0
- *
- * @return boolean Returns true if all technologies are available
- **/
-function shopp_prereqs () {
-	$errors = array();
-
-	// Check PHP version, this won't appear much since syntax errors in earlier
-	// PHP releases will cause this code to never be executed
-	if (!version_compare(PHP_VERSION, '5.0','>='))
-		$errors[] = __("Shopp requires PHP version 5.0+.  You are using PHP version ").PHP_VERSION;
-
-	if (version_compare(PHP_VERSION, '5.1.3','=='))
-		$errors[] = __("Shopp will not work with PHP version 5.1.3 because of a critical bug in complex POST data structures.  Please upgrade PHP to version 5.1.4 or higher.");
-
-	// Check WordPress version
-	if (!version_compare(get_bloginfo('version'),'2.8','>='))
-		$errors[] = __("Shopp requires WordPress version 2.8+.  You are using WordPress version ").get_bloginfo('version');
-
-	// Check for cURL
-	if( !function_exists("curl_init") &&
-	      !function_exists("curl_setopt") &&
-	      !function_exists("curl_exec") &&
-	      !function_exists("curl_close") ) $errors[] = __("Shopp requires the cURL library for processing transactions securely. Your web hosting environment does not currently have cURL installed (or built into PHP).");
-
-	// Check for GD
-	if (!function_exists("gd_info")) $errors[] = __("Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.  Your web hosting environment does not currently have GD installed (or built into PHP).");
-	else {
-		$gd = gd_info();
-		if (!isset($gd['JPG Support']) && !isset($gd['JPEG Support'])) $errors[] = __("Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.");
-	}
-
-	if (!empty($errors)) {
-		$string .= '<style type="text/css">body { font: 13px/1 "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, sans-serif; } p { margin: 10px; }</style>';
-
-		foreach ($errors as $error) $string .= "<p>$error</p>";
-
-		$string .= '<p>'.__('Sorry! You will not be able to use Shopp.  For more information, see the <a href="http://docs.shopplugin.net/Installation" target="_blank">online Shopp documentation.</a>').'</p>';
-
-		trigger_error($string,E_USER_ERROR);
-		exit();
-	}
-	return true;
 }
 
 /**

@@ -10,6 +10,59 @@
  * @package shopp
  **/
 
+
+/**
+ * Checks for prerequisite technologies needed for Shopp
+ *
+ * @author Jonathan Davis
+ * @since 1.0
+ *
+ * @return boolean Returns true if all technologies are available
+ **/
+function shopp_prereqs () {
+	$errors = array();
+
+	// Check PHP version, this won't appear much since syntax errors in earlier
+	// PHP releases will cause this code to never be executed
+	if (!version_compare(PHP_VERSION, '5.0','>='))
+		$errors[] = __("Shopp requires PHP version 5.0+.  You are using PHP version ").PHP_VERSION;
+
+	if (version_compare(PHP_VERSION, '5.1.3','=='))
+		$errors[] = __("Shopp will not work with PHP version 5.1.3 because of a critical bug in complex POST data structures.  Please upgrade PHP to version 5.1.4 or higher.");
+
+	// Check WordPress version
+	if (!version_compare(get_bloginfo('version'),'3.0','>='))
+		$errors[] = __("Shopp requires WordPress version 2.8+.  You are using WordPress version ").get_bloginfo('version');
+
+	// Check for cURL
+	if( !function_exists("curl_init") &&
+	      !function_exists("curl_setopt") &&
+	      !function_exists("curl_exec") &&
+	      !function_exists("curl_close") ) $errors[] = __("Shopp requires the cURL library for processing transactions securely. Your web hosting environment does not currently have cURL installed (or built into PHP).");
+
+	// Check for GD
+	if (!function_exists("gd_info")) $errors[] = __("Shopp requires the GD image library with JPEG support for generating gallery and thumbnail images.  Your web hosting environment does not currently have GD installed (or built into PHP).");
+	else {
+		$gd = gd_info();
+		if (!isset($gd['JPG Support']) && !isset($gd['JPEG Support'])) $errors[] = __("Shopp requires JPEG support in the GD image library.  Your web hosting environment does not currently have a version of GD installed that has JPEG support.");
+	}
+
+	if (!empty($errors)) {
+		$string .= '<style type="text/css">body { font: 13px/1 "Lucida Grande", "Lucida Sans Unicode", Tahoma, Verdana, sans-serif; } p { margin: 10px; }</style>';
+
+		foreach ($errors as $error) $string .= "<p>$error</p>";
+
+		$string .= '<p>'.__('Sorry! You will not be able to use Shopp.  For more information, see the <a href="http://docs.shopplugin.net/Installation" target="_blank">online Shopp documentation.</a>').'</p>';
+
+		trigger_error($string,E_USER_ERROR);
+		exit();
+	}
+	return true;
+}
+
+// Check for Shopp requisite technologies first
+shopp_prereqs();
+
 if (!function_exists('json_encode')) {
 	/**
 	 * Builds JSON {@link http://www.json.org/} formatted strings from PHP data structures

@@ -13,7 +13,6 @@
  * @subpackage scripts
  **/
 
-
 $load = isset($_GET['load'])?$_GET['load']:$_GET['sjsl'];
 $load = preg_replace( '/[^a-z0-9,_-]+/i', '', $load );
 $load = explode(',', $load);
@@ -46,7 +45,14 @@ function get_file($path) {
 
 
 require_once('functions.php');
-if (!defined('ABSPATH')) load_shopps_wpconfig();
+
+if (!defined('ABSPATH')) {
+	$loadfile = shopp_find_wpload();
+	define('ABSPATH',dirname($loadfile).'/');
+	if(function_exists("date_default_timezone_set") && function_exists("date_default_timezone_get"))
+		@date_default_timezone_set(@date_default_timezone_get());
+}
+
 if (!defined('WPINC')) define('WPINC', 'wp-includes');
 require_once('flow/Scripts.php');
 
