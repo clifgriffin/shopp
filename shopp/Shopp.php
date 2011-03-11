@@ -36,17 +36,8 @@ define('SHOPP_DOCS','http://docs.shopplugin.net/');
 require("core/legacy.php");
 require("core/functions.php");
 
-shopp_timezone();
-
 require_once("core/DB.php");
 require_once("core/model/Settings.php");
-
-// Serve images and bypass loading all of Shopp
-if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI']))
-	require("core/image.php");
-
-if (isset($_GET['sjsl']))
-	require("core/scripts.php");
 
 // Load super controllers
 require('core/flow/Flow.php');

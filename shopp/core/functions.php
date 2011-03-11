@@ -1661,19 +1661,6 @@ function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
 }
 
 /**
- * Sets the default timezone based on the WordPress option (if available)
- *
- * @author Jonathan Davis
- * @since 1.1
- *
- * @return void
- **/
-function shopp_timezone () {
-	if (function_exists('date_default_timezone_set') && get_option('timezone_string'))
-		date_default_timezone_set(get_option('timezone_string'));
-}
-
-/**
  * Generates canonical storefront URLs that respects the WordPress permalink settings
  *
  * @author Jonathan Davis
