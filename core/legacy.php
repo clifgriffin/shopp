@@ -63,6 +63,20 @@ function shopp_prereqs () {
 // Check for Shopp requisite technologies first
 shopp_prereqs();
 
+/**
+ * Sets the default timezone based on the WordPress option (if available)
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ *
+ * @return void
+ **/
+function shopp_timezone () {
+	if (function_exists('date_default_timezone_set') && get_option('timezone_string'))
+		date_default_timezone_set(get_option('timezone_string'));
+}
+shopp_timezone();
+
 if (!function_exists('json_encode')) {
 	/**
 	 * Builds JSON {@link http://www.json.org/} formatted strings from PHP data structures

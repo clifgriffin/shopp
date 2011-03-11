@@ -11,6 +11,14 @@
  * @subpackage shopp
  **/
 
+// Image Server request handling
+if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI']))
+	require("core/image.php");
+
+// Script Server request handling
+if (isset($_GET['sjsl']))
+	require("core/scripts.php");
+
 /**
  * Flow
  *
