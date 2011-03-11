@@ -113,7 +113,9 @@ class Item {
 		$this->unitprice = (($Price->onsale)?$Price->promoprice:$Price->price)+$this->addonsum;
 		if ($this->type == "Donation")
 			$this->donation = $Price->donation;
+
 		$this->data = stripslashes_deep(esc_attrs($data));
+		$this->recurrences();
 
 		// Map out the selected menu name and option
 		if ($Product->variations == "on") {
@@ -210,6 +212,11 @@ class Item {
 			else $this->unitprice = floatvalue($qty,false);
 			$this->quantity = 1;
 			$qty = 1;
+		}
+
+		if ($this->type == "Subscription" || $this->type == "Membership") {
+			$this->quantity = 1;
+			return;
 		}
 
 		$qty = preg_replace('/[^\d+]/','',$qty);
@@ -359,6 +366,43 @@ class Item {
 		$list = array();
 		foreach ($items as $item) $list[$item->id] = $item->name;
 		return $list;
+	}
+
+	/**
+	 * Sets the current subscription payment plan status
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function recurrences () {
+		if (empty($this->option->recurring)) return;
+		extract($this->option->recurring);
+
+		$ps = Price::periods();
+		$periods = array();
+		foreach ($ps as $i => $p) {
+			$periods[$i] = array();
+			foreach ($p as $r) $periods[$i][$r['value']] = $r['label'];
+		}
+
+		$subscription = array();
+		if ($trial == 'on') {
+			$singular = (int)($trialint==1);
+			$periodLabel = $periods[$singular][$trialperiod];
+			$price = $trialprice > 0?money($trialprice):__('Free','Shopp');
+			$for = __('for','Shopp');
+			$subscription[] = "$price $for $trialint $periodLabel";
+		}
+
+		$singular = (int)($interval==1);
+		$periodLabel = $periods[$singular][$period];
+		$price = $this->unitprice > 0?money($this->unitprice):__('Free','Shopp');
+		$for = __('for','Shopp');
+		$subscription[] = "$price $for $interval $periodLabel";
+
+		$this->data['Subscription'] = $subscription;
 	}
 
 	/**
@@ -673,15 +717,23 @@ class Item {
 			case "inputs-list":
 			case "inputslist":
 				if (empty($this->data)) return false;
-				$before = ""; $after = ""; $classes = ""; $excludes = array();
-				if (!empty($options['class'])) $classes = ' class="'.$options['class'].'"';
-				if (!empty($options['exclude'])) $excludes = explode(",",$options['exclude']);
-				if (!empty($options['before'])) $before = $options['before'];
-				if (!empty($options['after'])) $after = $options['after'];
+				$defaults = array(
+					'class' => '',
+					'exclude' => array(),
+					'before' => '',
+					'after' => '',
+					'separator' => '<br />'
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+
+				$classes = '';
+				if (!empty($class)) $classes = ' class="'.$class.'"';
 
 				$result .= $before.'<ul'.$classes.'>';
 				foreach ($this->data as $name => $data) {
 					if (in_array($name,$excludes)) continue;
+					if (is_array($data)) $data = join($separator,$data);
 					$result .= '<li><strong>'.$name.'</strong>: '.$data.'</li>';
 				}
 				$result .= '</ul>'.$after;

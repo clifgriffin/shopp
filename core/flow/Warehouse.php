@@ -391,31 +391,9 @@ class Warehouse extends AdminController {
 		require_once("$Shopp->path/core/model/Category.php");
 
 		$Price = new Price();
-		$priceTypes = array(
-			array('value'=>'Shipped','label'=>__('Shipped','Shopp')),
-			array('value'=>'Virtual','label'=>__('Virtual','Shopp')),
-			array('value'=>'Download','label'=>__('Download','Shopp')),
-			array('value'=>'Donation','label'=>__('Donation','Shopp')),
-			array('value'=>'Subscription','label'=>__('Subscription','Shopp')),
-			array('value'=>'Membership','label'=>__('Membership','Shopp')),
-			array('value'=>'N/A','label'=>__('Disabled','Shopp')),
-		);
 
-		$billPeriods = array(
-			array(
-				array('value'=>'d','label'=>__('days','Shopp')),
-				array('value'=>'w','label'=>__('weeks','Shopp')),
-				array('value'=>'m','label'=>__('months','Shopp')),
-				array('value'=>'y','label'=>__('years','Shopp')),
-
-			),
-			array(
-				array('value'=>'d','label'=>__('day','Shopp')),
-				array('value'=>'w','label'=>__('week','Shopp')),
-				array('value'=>'m','label'=>__('month','Shopp')),
-				array('value'=>'y','label'=>__('year','Shopp')),
-			)
-		);
+		$priceTypes = Price::types();
+		$billPeriods = Price::periods();
 
 		$workflows = array(
 			"continue" => __('Continue Editing','Shopp'),
