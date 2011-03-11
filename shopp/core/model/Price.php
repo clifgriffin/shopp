@@ -113,6 +113,58 @@ class Price extends DatabaseObject {
 		if ($p > 0)	$this->promoprice -= ($this->promoprice * ($p/100));
 	}
 
+	/**
+	 * Returns structured product price line type values and labels
+	 *
+	 * Used for building selection UIs in the editors
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return array
+	 **/
+	static function types () {
+		 return array(
+			array('value'=>'Shipped','label'=>__('Shipped','Shopp')),
+			array('value'=>'Virtual','label'=>__('Virtual','Shopp')),
+			array('value'=>'Download','label'=>__('Download','Shopp')),
+			array('value'=>'Donation','label'=>__('Donation','Shopp')),
+			array('value'=>'Subscription','label'=>__('Subscription','Shopp')),
+			array('value'=>'Membership','label'=>__('Membership','Shopp')),
+			array('value'=>'N/A','label'=>__('Disabled','Shopp')),
+		);
+	}
+
+	/**
+	 * Returns structured subscription period values and labels
+	 *
+	 * Used for building selector UIs in the editors. The structure
+	 * is organized with plural labels first array[0] and singular
+	 * labels are second array[1].
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return array
+	 **/
+	static function periods () {
+		return array(
+			array(
+				array('value'=>'d','label'=>__('days','Shopp')),
+				array('value'=>'w','label'=>__('weeks','Shopp')),
+				array('value'=>'m','label'=>__('months','Shopp')),
+				array('value'=>'y','label'=>__('years','Shopp')),
+
+			),
+			array(
+				array('value'=>'d','label'=>__('day','Shopp')),
+				array('value'=>'w','label'=>__('week','Shopp')),
+				array('value'=>'m','label'=>__('month','Shopp')),
+				array('value'=>'y','label'=>__('year','Shopp')),
+			)
+		);
+	}
+
 } // END class Price
 
 ?>
