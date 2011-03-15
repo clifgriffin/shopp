@@ -13,11 +13,11 @@
 
 // Image Server request handling
 if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI']))
-	require("core/image.php");
+	require(dirname(dirname(__FILE__))."/image.php");
 
 // Script Server request handling
 if (isset($_GET['sjsl']))
-	require("core/scripts.php");
+	require(dirname(dirname(__FILE__))."/scripts.php");
 
 /**
  * Flow
