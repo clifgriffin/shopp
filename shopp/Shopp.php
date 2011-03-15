@@ -34,6 +34,10 @@ define('SHOPP_CUSTOMERS','http://customers.shopplugin.net/');
 define('SHOPP_DOCS','http://docs.shopplugin.net/');
 
 require("core/legacy.php");
+
+// Don't load Shopp if unsupported
+if (SHOPP_UNSUPPORTED) return;
+
 require("core/functions.php");
 
 require_once("core/DB.php");
