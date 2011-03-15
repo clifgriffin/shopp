@@ -72,8 +72,6 @@ class ImageServer extends DatabaseObject {
 			global $table_prefix;
 			require($loadfile);
 			$db = DB::get();
-			if(function_exists("date_default_timezone_set") && function_exists("date_default_timezone_get"))
-				@date_default_timezone_set(@date_default_timezone_get());
 			return true;
 		}
 
@@ -270,7 +268,6 @@ if (!function_exists('__')) {
 		return $string;
 	}
 }
-
 
 // Start the server
 new ImageServer();

@@ -10,6 +10,8 @@
  * @package shopp
  **/
 
+shopp_default_timezone();
+
 /**
  * Converts timestamps to formatted localized date/time strings
  *
@@ -1321,6 +1323,19 @@ function shoppdiv ($string) {
 	if (strpos($string,'<div id="shopp">') === false)
 		return '<div id="shopp">'.$string.'</div>';
 	return $string;
+}
+
+/**
+ * Sets the default timezone based on the WordPress option (if available)
+ *
+ * @author Jonathan Davis
+ * @since 1.1
+ *
+ * @return void
+ **/
+function shopp_default_timezone () {
+	if (function_exists('date_default_timezone_set'))
+		date_default_timezone_set('UTC');
 }
 
 /**

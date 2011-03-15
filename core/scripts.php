@@ -49,8 +49,6 @@ require_once('functions.php');
 if (!defined('ABSPATH')) {
 	$loadfile = shopp_find_wpload();
 	define('ABSPATH',dirname($loadfile).'/');
-	if(function_exists("date_default_timezone_set") && function_exists("date_default_timezone_get"))
-		@date_default_timezone_set(@date_default_timezone_get());
 }
 
 if (!defined('WPINC')) define('WPINC', 'wp-includes');
