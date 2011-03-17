@@ -59,7 +59,7 @@ class Catalog extends DatabaseObject {
 			'order' => 'ASC',
 			'parent' => false,
 			'ancestry' => false,
-			'outofstock' => $this->outofstock
+			'outofstock' => $this->outofstock,
 		);
 		$options = array_merge($defaults,$loading);
 		extract($options);
@@ -144,7 +144,7 @@ class Catalog extends DatabaseObject {
 		}
 
 		if ($showsmart == "before" || $showsmart == "after")
-			$this->smart_categories($showsmart);
+			$this->collections($showsmart);
 
 		return true;
 	}
@@ -161,12 +161,11 @@ class Catalog extends DatabaseObject {
 	 * @param string $method Add smart categories 'before' the list of the loaded categores or 'after' (defaults after)
 	 * @return void
 	 **/
-	function smart_categories ($method="after") {
+	function collections ($method="after") {
 		global $Shopp;
-		$internal = array('CatalogProducts','SearchResults','TagProducts','RelatedProducts','RandomProducts');
-		foreach ($Shopp->SmartCategories as $SmartCategory) {
-			if (in_array($SmartCategory,$internal)) continue;
-			$category = new $SmartCategory(array("noload" => true));
+		foreach ($Shopp->Collections as $Collection) {
+			if (isset($Collection::$_internal)) continue;
+			$category = new $Collection(array("noload" => true));
 			switch($method) {
 				case "before": array_unshift($this->categories,$category); break;
 				default: array_push($this->categories,$category);
@@ -210,10 +209,10 @@ class Catalog extends DatabaseObject {
 	 **/
 	function load_category ($category,$options=array()) {
 		global $Shopp;
-		foreach ($Shopp->SmartCategories as $SmartCategory) {
-			$SmartCategory_slug = get_class_property($SmartCategory,'_slug');
-			if ($category == $SmartCategory_slug)
-				return new $SmartCategory($options);
+		foreach ($Shopp->Collections as $Collection) {
+			$Collection_slug = get_class_property($Collection,'_slug');
+			if ($category == $Collection_slug)
+				return new $Collection($options);
 		}
 
 		$key = "id";

@@ -129,7 +129,7 @@ class CatalogAPITests extends ShoppTestCase {
 		$this->assertValidMarkup($actual);
 	}
 
-	function test_catalog_smartcategories () {
+	function test_catalog_collections () {
 		$Storefront = new Storefront();
 		ob_start();
 		shopp('catalog','catalog-products','show=3');
