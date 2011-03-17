@@ -1743,7 +1743,15 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 	}
 
 	// Start with the site url
-	$siteurl = trailingslashit(get_bloginfo('url'));
+	$siteurl = get_bloginfo('url');
+	if (strpos($siteurl,'?') !== false) list($siteurl,$query) = explode('?',$siteurl);
+	$siteurl = trailingslashit($siteurl);
+
+	if (!empty($query)) {
+		parse_str($query,$query_vars);
+		if ($request === false) $request = array();
+		$request = array_merge($query_vars,$request);
+	}
 
 	// Rewrite as an HTTPS connection if necessary
 	if ($secure === false) $siteurl = str_replace('https://','http://',$siteurl);
