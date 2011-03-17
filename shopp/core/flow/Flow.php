@@ -13,11 +13,11 @@
 
 // Image Server request handling
 if (isset($_GET['siid']) || preg_match('/images\/\d+/',$_SERVER['REQUEST_URI']))
-	require(dirname(dirname(__FILE__))."/image.php");
+	require(SHOPP_PATH.'/core/image.php');
 
 // Script Server request handling
 if (isset($_GET['sjsl']))
-	require(dirname(dirname(__FILE__))."/scripts.php");
+	require(SHOPP_PATH.'/core/scripts.php');
 
 /**
  * Flow
@@ -61,13 +61,12 @@ class Flow {
 	 *
 	 * @return boolean
 	 **/
-	function parse () {
-		global $Shopp,$wp;
+	function parse ($wp) {
+		global $Shopp;
+		$request = $wp->query_vars;
 
-		$this->transactions();
-
-		if (isset($wp->query_vars['src']) ||
-			(defined('WP_ADMIN') && isset($_GET['src']))) $this->resources();
+		if (isset($request['src']) ||
+			(defined('WP_ADMIN') && isset($_GET['src']))) $this->resources($request);
 
 		if (defined('WP_ADMIN')) {
 			if (!isset($_GET['page'])) return;
@@ -75,9 +74,9 @@ class Flow {
 				require_once(SHOPP_FLOW_PATH."/Admin.php");
 				$this->Admin = new AdminFlow();
 			}
-			$controller = $this->Admin->controller(strtolower($_GET['page']));
+			$controller = $this->Admin->controller(strtolower($request['page']));
 			if (!empty($controller)) $this->handler($controller);
-		} else $this->handler("Storefront");
+		} else $this->handler('Storefront');
 	}
 
 	function transactions () {
@@ -112,6 +111,7 @@ class Flow {
 		if (!$controller) return false;
 		require_once(SHOPP_FLOW_PATH."/$controller.php");
 		$this->Controller = new $controller();
+		do_action('shopp_'.strtolower($controller).'_init');
 		return true;
 	}
 
@@ -150,9 +150,9 @@ class Flow {
 		$this->Ajax = new AjaxFlow();
 	}
 
-	function resources () {
+	function resources ($request) {
 		require_once(SHOPP_FLOW_PATH."/Resources.php");
-		$this->Controller = new Resources();
+		$this->Controller = new Resources($request);
 	}
 
 	/**

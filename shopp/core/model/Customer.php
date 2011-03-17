@@ -90,7 +90,6 @@ class Customer extends DatabaseObject {
 	}
 
 	function menus () {
-		global $wp;
 		$this->pages = array();
 		$this->menus = array();
 		$this->addpage('logout',__('Logout','Shopp'));
@@ -102,7 +101,8 @@ class Customer extends DatabaseObject {
 		$this->addpage('order','Order',false,array(&$this,'order'));
 		$this->addpage('recover','Password Recovery',false);
 
-		if (isset($wp->query_vars['acct']) && $wp->query_vars['acct'] == "rp") $this->reset_password($_GET['key']);
+		$request = get_query_var('acct');
+		if ('rp' == $request) $this->reset_password($_GET['key']);
 		if (isset($_POST['recover-login'])) $this->recovery();
 
 		do_action_ref_array('shopp_account_menu',array(&$this));

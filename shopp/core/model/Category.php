@@ -166,7 +166,7 @@ class Category extends DatabaseObject {
 	 * @return void
 	 **/
 	function load_products ($loading=false) {
-		global $Shopp,$wp;
+		global $Shopp;
 		$db = DB::get();
 		$Storefront =& ShoppStorefront();
 		$Settings =& ShoppSettings();
@@ -177,7 +177,7 @@ class Category extends DatabaseObject {
 
 		$this->paged = false;
 		$this->pagination = $Settings->get('catalog_pagination');
-		$paged = $wp->query_vars['paged'];
+		$paged = get_query_var('paged');
 		$this->page = ((int)$paged > 0 || !is_numeric($paged))?$paged:1;
 
 		if (empty($this->page)) $this->page = 1;
@@ -208,6 +208,7 @@ class Category extends DatabaseObject {
 		extract($loading);
 
 		if (!empty($where) && is_string($where)) $where = array($where);
+		if (!empty($joins) && is_string($joins)) $joins = array($joins);
 
 		// Allow override for loading unpublished products
 		if (!value_is_true($published)) $this->published = false;
@@ -299,7 +300,7 @@ class Category extends DatabaseObject {
 			$op = $adjacent != "next"?'<':'>';
 
 			// Flip the sort order for previous
-			$c = array('ASC','DESC'); $r = array('AAA','DDD');
+			$c = array('ASC','DESC'); $r = array('__A__','__D__');
 			if ($op == '<') $order = str_replace($r,array_reverse($c),str_replace($c,$r,$order));
 
 			switch ($field) {
@@ -1586,6 +1587,7 @@ class SmartCategory extends Category {
 		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
 		$this->smart($options);
 	}
+
 }
 
 class CatalogProducts extends SmartCategory {
@@ -1697,7 +1699,7 @@ class SearchResults extends SmartCategory {
 
 		$index = DatabaseObject::tablename(ContentIndex::$table);
 		$this->loading = array(
-			'joins'=>"INNER JOIN $index AS search ON search.product=p.id",
+			'joins'=>array($index => "INNER JOIN $index AS search ON search.product=p.id"),
 			'columns'=> "$score AS score",
 			'where'=> $where,
 			'groupby'=>'p.id',
