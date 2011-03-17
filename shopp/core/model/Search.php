@@ -447,12 +447,9 @@ abstract class SearchTextFilters {
 	 * @return string Converted text
 	 **/
 	static function AccentFilter ($text) {
-		$text = preg_replace(
-					"/([\x{0020}-\x{0373}])/ue",
-					"iconv('UTF-8','ASCII//TRANSLIT','\\1')",
-					$text
-				);
-		return $text;
+		if (!function_exists('remove_accents'))
+			require( ABSPATH . WPINC . '/formatting.php' );
+		return remove_accents($string);
 	}
 
 	/**
