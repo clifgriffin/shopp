@@ -1592,7 +1592,6 @@ class Collection extends Category {
 
 class CatalogProducts extends Collection {
 	static $_slug = "catalog";
-	static $_internal = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1604,6 +1603,7 @@ class CatalogProducts extends Collection {
 
 class NewProducts extends Collection {
 	static $_slug = "new";
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1616,6 +1616,7 @@ class NewProducts extends Collection {
 
 class FeaturedProducts extends Collection {
 	static $_slug = "featured";
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1627,6 +1628,7 @@ class FeaturedProducts extends Collection {
 
 class OnSaleProducts extends Collection {
 	static $_slug = "onsale";
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1638,6 +1640,7 @@ class OnSaleProducts extends Collection {
 
 class BestsellerProducts extends Collection {
 	static $_slug = "bestsellers";
+	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1650,7 +1653,6 @@ class BestsellerProducts extends Collection {
 
 class SearchResults extends Collection {
 	static $_slug = "search-results";
-	static $_internal = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1718,7 +1720,6 @@ class SearchResults extends Collection {
 
 class TagProducts extends Collection {
 	static $_slug = "tag";
-	static $_internal = true;
 
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
@@ -1742,7 +1743,6 @@ class TagProducts extends Collection {
 
 class RelatedProducts extends Collection {
 	static $_slug = "related";
-	static $_internal = true;
 	var $product = false;
 
 	function smart ($options=array()) {
@@ -1815,7 +1815,6 @@ class RelatedProducts extends Collection {
 
 class RandomProducts extends Collection {
 	static $_slug = "random";
-	static $_internal = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1837,7 +1836,6 @@ class RandomProducts extends Collection {
 
 class PromoProducts extends Collection {
 	static $_slug = "promo";
-	static $_internal = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
