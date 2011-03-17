@@ -164,7 +164,7 @@ class Catalog extends DatabaseObject {
 	function collections ($method="after") {
 		global $Shopp;
 		foreach ($Shopp->Collections as $Collection) {
-			if (isset($Collection::$_internal)) continue;
+			if (!isset($Collection::$_auto)) continue;
 			$category = new $Collection(array("noload" => true));
 			switch($method) {
 				case "before": array_unshift($this->categories,$category); break;
