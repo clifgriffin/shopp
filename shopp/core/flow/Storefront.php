@@ -60,8 +60,6 @@ class Storefront extends FlowController {
 		ShoppingObject::store('breadcrumb',$this->breadcrumb);
 		ShoppingObject::store('referrer',$this->referrer);
 
-		// add_action('wp', array(&$this, 'searching'), 1);
-		add_action('wp', array($this, 'account'));
 		add_action('wp', array($this, 'pageid'));
 		add_action('wp', array($this, 'security'));
 		add_action('wp', array($this, 'cart'));
@@ -98,7 +96,7 @@ class Storefront extends FlowController {
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
 		add_action('wp_enqueue_scripts', 'shopp_dependencies');
 
-		add_action('shopp_storefront_init',array($this,'smartcategories'));
+		add_action('shopp_storefront_init',array($this,'collections'));
 		add_action('shopp_storefront_init',array($this,'searching'));
 		add_action('shopp_storefront_init',array($this,'account'));
 
@@ -432,29 +430,32 @@ class Storefront extends FlowController {
 	}
 
 	/**
-	 * Registers available smart categories
+	 * Registers available collections
 	 *
-	 * New smart categories can be added by creating a new smart category class
-	 * in a custom plugin or the theme functions file.
+	 * New collections can be added by creating a new Collection class
+	 * in a custom plugin or the theme functions.php file.
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
 	 *
 	 * @return void Description...
 	 **/
-	function smartcategories () {
-		Shopp::add_smartcategory('CatalogProducts');
-		Shopp::add_smartcategory('NewProducts');
-		Shopp::add_smartcategory('FeaturedProducts');
-		Shopp::add_smartcategory('OnSaleProducts');
-		Shopp::add_smartcategory('BestsellerProducts');
-		Shopp::add_smartcategory('SearchResults');
-		Shopp::add_smartcategory('TagProducts');
-		Shopp::add_smartcategory('RelatedProducts');
-		Shopp::add_smartcategory('RandomProducts');
-		Shopp::add_smartcategory('PromoProducts');
+	function collections () {
 
+		Shopp::add_collection('CatalogProducts');
+		Shopp::add_collection('NewProducts');
+		Shopp::add_collection('FeaturedProducts');
+		Shopp::add_collection('OnSaleProducts');
+		Shopp::add_collection('BestsellerProducts');
+		Shopp::add_collection('SearchResults');
+		Shopp::add_collection('TagProducts');
+		Shopp::add_collection('RelatedProducts');
+		Shopp::add_collection('RandomProducts');
+		Shopp::add_collection('PromoProducts');
+
+		// Deprecated
 		do_action('shopp_register_smartcategories');
+		do_action('shopp_register_collections');
 	}
 
 	/**
@@ -1007,10 +1008,10 @@ class Storefront extends FlowController {
 			$Shopp->Category = new Category($atts['name'],'name');
 			unset($atts['name']);
 		} elseif (isset($atts['slug'])) {
-			foreach ($Shopp->SmartCategories as $SmartCategory) {
-				$SmartCategory_slug = get_class_property($SmartCategory,'_slug');
-				if ($atts['slug'] == $SmartCategory_slug) {
-					$tag = "$SmartCategory_slug-products";
+			foreach ($Shopp->Collections as $Collection) {
+				$Collection_slug = get_class_property($Collection,'_slug');
+				if ($atts['slug'] == $Collection_slug) {
+					$tag = "$Collection_slug-products";
 					if ($tag == "search-results-products") $tag = "search-products";
 					unset($atts['slug']);
 				}

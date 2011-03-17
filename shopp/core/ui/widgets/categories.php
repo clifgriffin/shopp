@@ -35,15 +35,6 @@ class ShoppCategoriesWidget extends WP_Widget {
     }
 
     function form($options) {
-		global $Shopp;
-
-		// if (isset($_POST['categories_widget_options'])) {
-		// 	$options = $_POST['shopp_categories_options'];
-		// 	$Shopp->Settings->save('categories_widget_options',$options);
-		// }
-		//
-		// $options = $Shopp->Settings->get('categories_widget_options');
-
 		?>
 		<p><label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label>
 		<input type="text" name="<?php echo $this->get_field_name('title'); ?>" id="<?php echo $this->get_field_id('title'); ?>" class="widefat" value="<?php echo $options['title']; ?>"></p>

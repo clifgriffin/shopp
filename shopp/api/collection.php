@@ -12,28 +12,6 @@
  **/
 
 /**
- * collection
- *
- * @author Jonathan Davis
- * @since 1.2
- * @package shopp
- **/
-class Collection {
-
-	/**
-	 * collection constructor
-	 *
-	 * @author Jonathan Davis
-	 *
-	 * @return void
-	 **/
-	function __construct () {
-
-	}
-
-} // END class collection
-
-/**
  * Registers a smart category
  *
  * @author Jonathan Davis
@@ -43,9 +21,7 @@ class Collection {
  * @return void
  **/
 function register_collection ($class) {
-	global $Shopp;
-	if (empty($Shopp)) return;
-		$Shopp->SmartCategories[] = $name;
+	Shopp::add_collection($class);
 }
 
 

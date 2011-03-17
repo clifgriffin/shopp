@@ -67,6 +67,7 @@ require('core/model/Customer.php');
 // Load public development API
 require('api/taxonomy.php');
 require('api/template.php');
+require('api/collection.php');
 
 // Start up the core
 $Shopp = new Shopp();
@@ -90,7 +91,7 @@ class Shopp {
 	var $Errors;			// Error system
 	var $Order;				// The current session Order
 	var $Promotions;		// Active promotions registry
-	var $SmartCategories;	// Smart Categories registry
+	var $Collections;		// Collections registry
 	var $Gateways;			// Gateway modules
 	var $Shipping;			// Shipping modules
 	var $Storage;			// Storage engine modules
@@ -220,7 +221,7 @@ class Shopp {
 		$this->Gateways = new GatewayModules();
 		$this->Shipping = new ShippingModules();
 		$this->Storage = new StorageEngines();
-		$this->SmartCategories = array();
+		$this->Collections = array();
 		$this->Taxonomies = new CatalogTaxonomies();
 
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
@@ -552,10 +553,10 @@ class Shopp {
 	 * @param string $name Class name of the smart category
 	 * @return void
 	 **/
-	function add_smartcategory ($name) {
-		global $Shopp;
+	function add_collection ($name) {
+		global $Shopp; // For static calls
 		if (empty($Shopp)) return;
-			$Shopp->SmartCategories[] = $name;
+			$Shopp->Collections[] = $name;
 	}
 
 	/**

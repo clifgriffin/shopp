@@ -1574,7 +1574,7 @@ class Category extends DatabaseObject {
 
 } // END class Category
 
-class SmartCategory extends Category {
+class Collection extends Category {
 	var $smart = true;
 	var $slug = false;
 	var $uri = false;
@@ -1590,8 +1590,9 @@ class SmartCategory extends Category {
 
 }
 
-class CatalogProducts extends SmartCategory {
+class CatalogProducts extends Collection {
 	static $_slug = "catalog";
+	static $_internal = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1601,7 +1602,7 @@ class CatalogProducts extends SmartCategory {
 
 }
 
-class NewProducts extends SmartCategory {
+class NewProducts extends Collection {
 	static $_slug = "new";
 
 	function smart ($options=array()) {
@@ -1613,7 +1614,7 @@ class NewProducts extends SmartCategory {
 
 }
 
-class FeaturedProducts extends SmartCategory {
+class FeaturedProducts extends Collection {
 	static $_slug = "featured";
 
 	function smart ($options=array()) {
@@ -1624,7 +1625,7 @@ class FeaturedProducts extends SmartCategory {
 
 }
 
-class OnSaleProducts extends SmartCategory {
+class OnSaleProducts extends Collection {
 	static $_slug = "onsale";
 
 	function smart ($options=array()) {
@@ -1635,7 +1636,7 @@ class OnSaleProducts extends SmartCategory {
 
 }
 
-class BestsellerProducts extends SmartCategory {
+class BestsellerProducts extends Collection {
 	static $_slug = "bestsellers";
 
 	function smart ($options=array()) {
@@ -1647,8 +1648,9 @@ class BestsellerProducts extends SmartCategory {
 
 }
 
-class SearchResults extends SmartCategory {
+class SearchResults extends Collection {
 	static $_slug = "search-results";
+	static $_internal = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1714,8 +1716,9 @@ class SearchResults extends SmartCategory {
 	}
 }
 
-class TagProducts extends SmartCategory {
+class TagProducts extends Collection {
 	static $_slug = "tag";
+	static $_internal = true;
 
 	function smart ($options=array()) {
 		$this->slug = self::$_slug;
@@ -1737,8 +1740,9 @@ class TagProducts extends SmartCategory {
 	}
 }
 
-class RelatedProducts extends SmartCategory {
+class RelatedProducts extends Collection {
 	static $_slug = "related";
+	static $_internal = true;
 	var $product = false;
 
 	function smart ($options=array()) {
@@ -1809,8 +1813,9 @@ class RelatedProducts extends SmartCategory {
 
 }
 
-class RandomProducts extends SmartCategory {
+class RandomProducts extends Collection {
 	static $_slug = "random";
+	static $_internal = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
@@ -1830,8 +1835,9 @@ class RandomProducts extends SmartCategory {
 	}
 }
 
-class PromoProducts extends SmartCategory {
+class PromoProducts extends Collection {
 	static $_slug = "promo";
+	static $_internal = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
