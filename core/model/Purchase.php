@@ -249,7 +249,7 @@ class Purchase extends DatabaseObject {
 				if (isset($options['class'])) $classes = ' class="'.$options['class'].'"';
 				$request = SHOPP_PRETTYURLS?
 					"download/$item->dkey":
-					array('src'=>'download','shopp_download'=>$item->dkey);
+					array('src'=>'download','s_dl'=>$item->dkey);
 				$url = shoppurl($request,'catalog');
 				return '<a href="'.$url.'"'.$classes.'>'.$options['label'].'</a>'; break;
 			case "item-quantity":
@@ -369,7 +369,7 @@ class Purchase extends DatabaseObject {
 					$link = false;
 					if (isset($addon->value->download) && isset($addon->value->dkey)) {
 						$dkey = $addon->value->dkey;
-						$request = SHOPP_PRETTYURLS?"download/$dkey":array('shopp_download'=>$dkey);
+						$request = SHOPP_PRETTYURLS?"download/$dkey":array('s_dl'=>$dkey);
 						$url = shoppurl($request,'catalog');
 						$link = '<br /><a href="'.$url.'">'.$download.'</a>';
 					}

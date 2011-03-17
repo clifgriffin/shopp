@@ -917,7 +917,7 @@ class Customer extends DatabaseObject {
 				if (array_key_exists('url',$options))
 					$string .= SHOPP_PRETTYURLS?
 						shoppurl("download/$download->dkey"):
-						shoppurl(array('shopp_download'=>$download->dkey),'account');
+						shoppurl(array('s_dl'=>$download->dkey),'account');
 
 				return $string;
 				break;

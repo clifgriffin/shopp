@@ -312,7 +312,7 @@ class Shopp {
 		$rules = array(
 			$cart.'?$' => 'index.php?pagename='.shopp_pagename($cart),
 			$account.'?$' => 'index.php?pagename='.shopp_pagename($account),
-			$checkout.'?$' => 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=checkout',
+			$checkout.'?$' => 'index.php?pagename='.shopp_pagename($checkout).'&s_pr=checkout',
 
 			/* Exclude sub-pages of the main storefront page (catalog page) */
 			'('.$catalog.'/('.join('|',$pagenames).'))?$' => 'index.php?pagename=$matches[1]',
@@ -321,32 +321,32 @@ class Shopp {
 			$catalog.'/feed/?$' // Catalog feed
 				=> 'index.php?src=category_rss&shopp_category=new',
 			$catalog.'/(thanks|receipt)/?$' // Thanks page handling
-				=> 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=thanks',
+				=> 'index.php?pagename='.shopp_pagename($checkout).'&s_pr=thanks',
 			$catalog.'/confirm-order/?$' // Confirm order page handling
-				=> 'index.php?pagename='.shopp_pagename($checkout).'&shopp_proc=confirm-order',
+				=> 'index.php?pagename='.shopp_pagename($checkout).'&s_pr=confirm-order',
 			$catalog.'/download/([a-f0-9]{40})/?$' // Download handling
-				=> 'index.php?pagename='.shopp_pagename($account).'&src=download&shopp_download=$matches[1]',
+				=> 'index.php?pagename='.shopp_pagename($account).'&src=download&s_dl=$matches[1]',
 			$catalog.'/images/(\d+)/?.*?$' // Image handling
 				=> 'index.php?siid=$matches[1]',
 
 			/* catalog/category/category-slug */
 			$catalog.'/category/(.+?)/feed/?$' // Category feeds
-				=> 'index.php?src=category_rss&shopp_category=$matches[1]',
+				=> 'index.php?src=category_rss&s_cat=$matches[1]',
 			$catalog.'/category/(.+?)/page/?(0\-9|[A-Z0-9]{1,})/?$' // Category pagination
-				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]&paged=$matches[2]',
+				=> 'index.php?pagename='.shopp_pagename($catalog).'&s_cat=$matches[1]&paged=$matches[2]',
 			$catalog.'/category/(.+)/?$' // Category permalink
-				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_category=$matches[1]',
+				=> 'index.php?pagename='.shopp_pagename($catalog).'&s_cat=$matches[1]',
 
 			/* catalog/tags */
 			$catalog.'/tag/(.+?)/feed/?$' // Tag feeds
-				=> 'index.php?src=category_rss&shopp_tag=$matches[1]',
+				=> 'index.php?src=category_rss&s_tag=$matches[1]',
 			$catalog.'/tag/(.+?)/page/?([0-9]{1,})/?$' // Tag pagination
-				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]&paged=$matches[2]',
+				=> 'index.php?pagename='.shopp_pagename($catalog).'&s_tag=$matches[1]&paged=$matches[2]',
 			$catalog.'/tag/(.+)/?$' // Tag permalink
-				=> 'index.php?pagename='.shopp_pagename($catalog).'&shopp_tag=$matches[1]',
+				=> 'index.php?pagename='.shopp_pagename($catalog).'&s_tag=$matches[1]',
 
 			/* catalog/product-slug */
-			$catalog.'/(.+)/?$' => 'index.php?pagename='.shopp_pagename($catalog).'&shopp_product=$matches[1]'
+			$catalog.'/(.+)/?$' => 'index.php?pagename='.shopp_pagename($catalog).'&s_pd=$matches[1]'
 
 		);
 
@@ -369,32 +369,18 @@ class Shopp {
 	 **/
 	function queryvars ($vars) {
 
-		// Proposed New Vars
-		// $vars[] = 's_pr';		// Shopp process parameter
-		// $vars[] = 's_rs';		// Shopp resource
-		// $vars[] = 's_iid';		// Shopp image id
-		// $vars[] = 'catalog';	// Catalog (search) flag
-		// $vars[] = 's_ac';		// Account process
-		// $vars[] = 's_cat';		// Category slug or id
-		// $vars[] = 's_tag';		// Tag slug
-		// $vars[] = 's_pid';		// Product ID
-		// $vars[] = 's_pd';		// Product slug
-		// $vars[] = 's_dl';		// Download key
-		// $vars[] = 's_ob';		// Product sort order (category view)
-		// $vars[] = 's_cf';		// Category filters
-
-		// OLD VARS
-		$vars[] = 'shopp_proc';			// Shopp process parameter
-		$vars[] = 'shopp_category';		// Category slug or id
-		$vars[] = 'shopp_tag';			// Tag slug
-		$vars[] = 'shopp_pid';			// Product ID
-		$vars[] = 'shopp_product';		// Product slug
-		$vars[] = 'shopp_download';		// Download key
-		$vars[] = 'shopp_orderby';		// Product sort order (category view)
-		$vars[] = 'src';				// Shopp resource
-		$vars[] = 'siid';				// Shopp image id
-		$vars[] = 'catalog';			// Catalog flag
-		$vars[] = 'acct';				// Account process
+		$vars[] = 's_pr';		// Shopp process parameter
+		$vars[] = 's_rs';		// Shopp resource
+		$vars[] = 's_iid';		// Shopp image id
+		$vars[] = 's_cs';		// Catalog (search) flag
+		$vars[] = 's_ac';		// Account process
+		$vars[] = 's_cat';		// Category slug or id
+		$vars[] = 's_tag';		// Tag slug
+		$vars[] = 's_pid';		// Product ID
+		$vars[] = 's_pd';		// Product slug
+		$vars[] = 's_dl';		// Download key
+		$vars[] = 's_ob';		// Product sort order (category view)
+		$vars[] = 's_cf';		// Category filters
 
 		return $vars;
 	}

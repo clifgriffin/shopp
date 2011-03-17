@@ -142,7 +142,7 @@ class Resources {
 	 **/
 	function download () {
 		global $Shopp;
-		$download = $this->request['shopp_download'];
+		$download = $this->request['s_dl'];
 		$Purchase = false;
 		$Purchased = false;
 

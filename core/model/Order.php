@@ -334,6 +334,8 @@ class Order {
 		if ($this->validform() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
 
+		do_action('shopp_checkout_processed');
+
 		if (apply_filters('shopp_process_free_order',$this->Cart->orderisfree())) return;
 
 		// Catch originally free orders that get extra (shipping) costs added to them
@@ -347,7 +349,6 @@ class Order {
 				shopp_redirect( shoppurl(false,'checkout',$this->security()) );
 			}
 		}
-		do_action('shopp_checkout_processed');
 
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm)
@@ -799,7 +800,6 @@ class Order {
 	 * @return boolean Validity of the order
 	 **/
 	function isvalid ($report=true) {
-		global $Shopp;
 		$Customer = $this->Customer;
 		$Shipping = $this->Shipping;
 		$Cart = $this->Cart;
@@ -839,7 +839,7 @@ class Order {
 
 		// Check for shipped items but no Shipping information
 		$valid_shipping = true;
-		if (!empty($this->Cart->shipped) && $Shopp->Settings->get('shipping') != "off") {
+		if (!empty($this->Cart->shipped)) {
 			if (empty($Shipping->address))
 				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_address',false);
 			if (empty($Shipping->country))
@@ -847,7 +847,7 @@ class Order {
 			if (empty($Shipping->postcode))
 				$valid_shipping = apply_filters('shopp_ordering_empty_shipping_postcode',false);
 
-			if ($Cart->freeshipping === false && !$Cart->Totals->shipping) {
+			if ($Cart->freeshipping === false && $Cart->Totals->shipping === false) {
 				$valid = apply_filters('shopp_ordering_no_shipping_costs',false);
 				$message = __('The order cannot be processed. No shipping costs could be determined. Either the shipping rate provider was unavailable, or may have rejected the shipping address you provided. Please return to %scheckout%s and try again.', 'Shopp');
 				if (!$valid) new ShoppError( sprintf( $message,'<a href="'.shoppurl(false,'checkout',$this->security()).'">','</a>' ), 'invalid_order'.$errors++, ($report?SHOPP_TRXN_ERR:SHOPP_DEBUG_ERR)
@@ -906,7 +906,7 @@ class Order {
 		$pages = $Shopp->Settings->get('pages');
 		$base = $Shopp->Settings->get('base_operations');
 		$countries = $Shopp->Settings->get('target_markets');
-		$process = get_query_var('shopp_proc');
+		$process = get_query_var('s_pr');
 
 		$select_attrs = array('title','required','class','disabled','required','size','tabindex','accesskey');
 		$submit_attrs = array('title','class','value','disabled','tabindex','accesskey');

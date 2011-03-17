@@ -813,13 +813,13 @@ class Category extends DatabaseObject {
 		switch ($property) {
 			case 'link':
 			case 'url':
-				return shoppurl(SHOPP_PRETTYURLS?'category/'.$this->uri:array('shopp_category'=>$this->id));
+				return shoppurl(SHOPP_PRETTYURLS?'category/'.$this->uri:array('s_cat'=>$this->id));
 				break;
 			case 'feed-url':
 			case 'feedurl':
 				$uri = 'category/'.$this->uri;
 				if ($this->slug == "tag") $uri = $this->slug.'/'.$this->tag;
-				return shoppurl(SHOPP_PRETTYURLS?"$uri/feed":array('shopp_category'=>urldecode($this->uri),'src'=>'category_rss'));
+				return shoppurl(SHOPP_PRETTYURLS?"$uri/feed":array('s_cat'=>urldecode($this->uri),'src'=>'category_rss'));
 			case 'id': return $this->id; break;
 			case 'parent': return $this->parent; break;
 			case 'name': return $this->name; break;
@@ -947,7 +947,7 @@ class Category extends DatabaseObject {
 						$padding = str_repeat("&nbsp;",$category->depth*3);
 
 						$category_uri = empty($category->id)?$category->uri:$category->id;
-						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('shopp_category'=>$category_uri));
+						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
 
 						$total = '';
 						if (value_is_true($products)) $total = '&nbsp;&nbsp;('.$category->products.')';
@@ -994,7 +994,7 @@ class Category extends DatabaseObject {
 						$category_uri = empty($category->id)?$category->uri:$category->id;
 						$link = SHOPP_PRETTYURLS?
 							shoppurl("category/$category->uri"):
-							shoppurl(array('shopp_category'=>$category_uri));
+							shoppurl(array('s_cat'=>$category_uri));
 
 						$total = '';
 						if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
@@ -1103,7 +1103,7 @@ class Category extends DatabaseObject {
 						$padding = str_repeat("&nbsp;",$category->depth*3);
 
 						$category_uri = empty($category->id)?$category->uri:$category->id;
-						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('shopp_category'=>$category_uri));
+						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
 
 						$total = '';
 						if (value_is_true($products)) $total = '&nbsp;&nbsp;('.$category->total.')';
@@ -1131,7 +1131,7 @@ class Category extends DatabaseObject {
 						if (value_is_true($hierarchy) && $category->depth < $depth) $string .= '</ul></li>';
 
 						$category_uri = empty($category->id)?$category->uri:$category->id;
-						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('shopp_category'=>$category_uri));
+						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
 
 						if (value_is_true($products)) $total = ' <span>('.$category->total.')</span>';
 

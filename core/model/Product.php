@@ -880,7 +880,7 @@ class Product extends DatabaseObject {
 		switch ($property) {
 			case "link":
 			case "url":
-				return shoppurl(SHOPP_PRETTYURLS?$this->slug:array('shopp_pid'=>$this->id));
+				return shoppurl(SHOPP_PRETTYURLS?$this->slug:array('s_pid'=>$this->id));
 				break;
 			case "found":
 				if (empty($this->id)) return false;

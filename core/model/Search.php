@@ -449,7 +449,7 @@ abstract class SearchTextFilters {
 	static function AccentFilter ($text) {
 		if (!function_exists('remove_accents'))
 			require( ABSPATH . WPINC . '/formatting.php' );
-		return remove_accents($string);
+		return remove_accents($text);
 	}
 
 	/**
