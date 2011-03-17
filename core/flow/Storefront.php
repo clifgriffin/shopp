@@ -60,14 +60,16 @@ class Storefront extends FlowController {
 		ShoppingObject::store('breadcrumb',$this->breadcrumb);
 		ShoppingObject::store('referrer',$this->referrer);
 
-		add_action('wp', array(&$this, 'pageid'));
-		add_action('wp', array(&$this, 'security'));
-		add_action('wp', array(&$this, 'cart'));
-		add_action('wp', array(&$this, 'catalog'));
-		add_action('wp', array(&$this, 'shortcodes'));
-		add_action('wp', array(&$this, 'behaviors'));
+		// add_action('wp', array(&$this, 'searching'), 1);
+		add_action('wp', array($this, 'account'));
+		add_action('wp', array($this, 'pageid'));
+		add_action('wp', array($this, 'security'));
+		add_action('wp', array($this, 'cart'));
+		add_action('wp', array($this, 'catalog'));
+		add_action('wp', array($this, 'shortcodes'));
+		add_action('wp', array($this, 'behaviors'));
 
-		add_filter('the_title', array(&$this,'pagetitle'), 10, 2);
+		add_filter('the_title', array($this,'pagetitle'), 10, 2);
 
 		// Shopp product text filters
 		add_filter('shopp_product_name','convert_chars');
@@ -96,9 +98,13 @@ class Storefront extends FlowController {
 		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
 		add_action('wp_enqueue_scripts', 'shopp_dependencies');
 
+		add_action('shopp_storefront_init',array($this,'smartcategories'));
+		add_action('shopp_storefront_init',array($this,'searching'));
+		add_action('shopp_storefront_init',array($this,'account'));
+
 		$this->smartcategories();
-		$this->searching();
-		$this->account();
+		// $this->searching();
+		// $this->account();
 	}
 
 	/**
@@ -110,15 +116,15 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function pageid () {
-		global $wp;
-		if (empty($wp->query_vars) || !isset($wp->query_vars['pagename'])) return false;
+		$pagename = get_query_var('pagename');
+		if (empty($pagename)) return false;
 
 		// Identify the current page
-		foreach ($this->pages as &$page) {
-			if ($page['uri'] == $wp->query_vars['pagename']) {
-				$this->Page = $page; break;
-			}
-		}
+		foreach ($this->pages as &$page)
+			if ($page['uri'] == $pagename) break;
+
+		if (!empty($page)) $this->Page = $page;
+
 	}
 
 	/**
@@ -148,10 +154,8 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function account () {
-		global $wp;
-		if (isset($wp->query_vars['acct']))
-			add_filter('wp_headers',array(&$this,'nocache'));
-
+		$request = get_query_var('acct');
+		if (!empty($request)) add_filter('wp_headers',array(&$this,'nocache'));
 	}
 
 	/**
@@ -179,9 +183,6 @@ class Storefront extends FlowController {
 	function behaviors () {
 		global $Shopp;
 
-		global $wp_query;
-		$object = $wp_query->get_queried_object();
-
 		if(is_shopp_secure()) {
 			add_filter('option_siteurl', 'force_ssl');
 			add_filter('option_home', 'force_ssl');
@@ -193,6 +194,8 @@ class Storefront extends FlowController {
 		}
 
 		// Determine which tag is getting used in the current post/page
+		global $wp_query;
+		$object = $wp_query->get_queried_object();
 		$tag = false;
 		$tagregexp = join( '|', array_keys($this->shortcodes) );
 		foreach ($wp_query->posts as $post) {
@@ -211,7 +214,11 @@ class Storefront extends FlowController {
 		wp_enqueue_style('shopp.catalog',SHOPP_ADMIN_URI.'/styles/catalog.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp',SHOPP_TEMPLATES_URI.'/shopp.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp.colorbox',SHOPP_ADMIN_URI.'/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
-		if (is_shopp_page('account') || (isset($wp->query_vars['shopp_proc']) && $wp->query_vars['shopp_proc'] == "sold"))
+
+
+		$thankspage = ('thanks' == get_query_var('shopp_proc'));
+		$orderhistory = (is_shopp_page('account') && !empty($_GET['id']));
+		if ($thankspage || $orderhistory)
 			wp_enqueue_style('shopp.printable',SHOPP_ADMIN_URI.'/styles/printable.css',array(),SHOPP_VERSION,'print');
 
 		$loading = $this->Settings->get('script_loading');
@@ -287,12 +294,12 @@ class Storefront extends FlowController {
 	 * @return string The modified page title
 	 **/
 	function titles ($title,$sep="&mdash;",$placement="left") {
-		global $wp;
 
-		if (!isset($wp->query_vars['shopp_category'])
-			&& !isset($wp->query_vars['shopp_tag'])
-			&& !isset($wp->query_vars['shopp_product'])
-			&& !isset($wp->query_vars['shopp_pid'])) return $title;
+		$request = array();
+		$vars = array('shopp_category','shopp_tag','shopp_product','shopp_pid');
+		foreach ($vars as $v) $request[] = get_query_var($v);
+
+		if (empty($request)) return $title;
 		if (empty($this->Product->name) && empty($this->Category->name)) return $title;
 
 		$_ = array();
@@ -323,11 +330,10 @@ class Storefront extends FlowController {
 		global $wp;
 
 		$pages = $this->Settings->get('pages');
+		$process = get_query_var('shopp_proc');
 
-		if (isset($wp->query_vars['shopp_proc']) &&
-			$post_id == $pages['checkout']['id']) {
-
-			switch(strtolower($wp->query_vars['shopp_proc'])) {
+		if (!empty($process) && $post_id == $pages['checkout']['id']) {
+			switch($process) {
 				case "thanks": $title = apply_filters('shopp_thanks_pagetitle',__('Thank You!','Shopp')); break;
 				case "confirm-order": $title = apply_filters('shopp_confirmorder_pagetitle',__('Confirm Order','Shopp')); break;
 			}
@@ -364,8 +370,7 @@ class Storefront extends FlowController {
 	 * @return void
 	 **/
 	function updatesearch () {
-		global $wp_query;
-		$wp_query->query_vars['s'] = esc_attr(stripslashes($this->search));
+		set_wp_query_var('s', esc_attr(stripslashes($this->search)) );
 	}
 
 	/**
@@ -540,27 +545,33 @@ class Storefront extends FlowController {
 	/**
 	 * Determines when to search the Shopp catalog instead of WP content
 	 *
+	 * This has to be done before the WP::query_posts() runs which typically
+	 * is during the parse_request action. Currently this is called during the
+	 * WP 'request' filter hook which occurs just before parse_request and is
+	 * queued up in the Flow super controller.
+	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
+	 * @version 1.2
 	 *
 	 * @return void
 	 **/
 	function searching () {
-		global $Shopp,$wp;
 
 		$this->searching = false;
+		$catalog = get_wp_query_var('catalog');
+		$search = get_wp_query_var('s');
 
-		if (!isset($_GET['s']) 								// No search query
-			|| !isset($wp->query_vars['catalog']) 			// No catalog flag
-			|| (isset($wp->query_vars['catalog']) 			// Catalog flag exists &
-				&& $wp->query_vars['catalog'] == 'false'))	// explicitly turned off
-					return false;							// ...not searching Shopp
+			// No search	// No catalog flag	// Catalog search turned off
+		if (empty($search) || empty($catalog)	|| $catalog == 'false')
+			return false; // ...not searching Shopp catalog
 
-		$this->search = $wp->query_vars['s'];
+		$this->search = $search;
 		$this->searching = true;
-		unset($wp->query_vars['s']); // Not needed any longer
-		$wp->query_vars['pagename'] = $this->pages['catalog']['uri'];
-		$wp->query_vars['shopp_category'] = "search-results";
+
+		set_wp_query_var('s',null); // Not needed any longer
+		set_wp_query_var('pagename',$this->pages['catalog']['uri']);
+		set_wp_query_var('shopp_category',SearchResults::$_slug);
 		add_action('wp_head', array(&$this, 'updatesearch'));
 
 	}
@@ -580,16 +591,19 @@ class Storefront extends FlowController {
 
 		add_filter('redirect_canonical', array(&$this,'canonical_home'));
 
-		$type = "catalog";
-		if (isset($wp->query_vars['shopp_category']) &&
-			$category = urldecode($wp->query_vars['shopp_category'])) $type = "category";
-		elseif (isset($wp->query_vars['shopp_pid']) &&
-			$productid = $wp->query_vars['shopp_pid']) $type = "product";
-		elseif (isset($wp->query_vars['shopp_product']) &&
-			$productname = urldecode($wp->query_vars['shopp_product'])) $type = "product";
+		$category = get_query_var('shopp_category');
+		$tag = get_query_var('shopp_tag');
+		$productid = get_query_var('shopp_pid');
+		$productname = get_query_var('shopp_product');
+		$paged = get_query_var('paged');
+		$orderby = get_query_var('shopp_orderby');
+		$filters = isset($_GET['shopp_catfilters'])?$_GET['shopp_catfilters']:false;
 
-		if (isset($wp->query_vars['shopp_tag']) &&
-			$tag = $wp->query_vars['shopp_tag']) {
+		$type = "catalog";
+		if (!empty($category)) $type = 'category';
+		if (!empty($productid) || !empty($productname)) $type = 'product';
+
+		if (!empty($tag)) {
 			$type = "category";
 			$category = "tag";
 		}
@@ -597,23 +611,25 @@ class Storefront extends FlowController {
 		// If a search query is stored, and this request is a product or the
 		// search results category repopulate the search box and set the
 		// category for the breadcrumb
-		if (!empty($this->search)
-				&& ($type == "product"
-				|| ($type == "category" && $category == "search-results"))) {
-			add_action('wp_head', array(&$this, 'updatesearch'));
-			$category = "search-results";
-		} else $this->search = $this->searching = false;
 
 		// If a search request is being made, set the type to category
 		if ($this->searching) {
-			if ($type != "product") $type = "category";
-			$category = "search-results";
+
+			if (!empty($this->search)
+					&& ($type == "product"
+					|| ($type == "category" && $category == SearchResults::$_slug))) {
+				add_action('wp_head', array(&$this, 'updatesearch'));
+
+				if ($type != "product") $type = "category";
+				$category = SearchResults::$_slug;
+
+			} else $this->search = $this->searching = false;
 		}
 
 		// Load a category/tag
 		if (!empty($category) || !empty($tag)) {
-			if (isset($this->search)) $options = array('search'=>$this->search);
-			if (isset($tag)) $options = array('tag'=>$tag);
+			if (!empty($this->search)) $options = array('search'=>$this->search);
+			if (!empty($tag)) $options = array('tag'=>$tag);
 
 			// Split for encoding multi-byte slugs
 			$slugs = explode("/",$category);
@@ -621,9 +637,9 @@ class Storefront extends FlowController {
 
 			// Load the category
 			$Shopp->Category = Catalog::load_category($category,$options);
-			$this->breadcrumb = (isset($tag)?"tag/":"").$Shopp->Category->uri;
+			$this->breadcrumb = (!empty($tag)?"tag/":"").$Shopp->Category->uri;
 
-			if (!empty($this->searching)) {
+			if ($this->searching) {
 				$Shopp->Category->load_products(array('load'=>array('images','prices')));
 				if (count($Shopp->Category->products) == 1) {
 					reset($Shopp->Category->products);
@@ -645,11 +661,11 @@ class Storefront extends FlowController {
 			$CategoryFilters =& $this->browsing[$Shopp->Category->slug];
 
 			// Add new filters
-			if (isset($_GET['shopp_catfilters'])) {
-				if (is_array($_GET['shopp_catfilters'])) {
-					$CategoryFilters = array_filter(array_merge($CategoryFilters,$_GET['shopp_catfilters']));
+			if (!empty($filters)) {
+				if (is_array($filters)) {
+					$CategoryFilters = array_filter(array_merge($CategoryFilters,$filters));
 					$CategoryFilters = stripslashes_deep($CategoryFilters);
-					if (isset($wp->query_vars['paged'])) $wp->query_vars['paged'] = 1; // Force back to page 1
+					if (!empty($paged)) set_query_var('paged',1); // Force back to page 1
 				} else unset($this->browsing[$Shopp->Category->slug]);
 			}
 
@@ -677,9 +693,10 @@ class Storefront extends FlowController {
 		if ((!empty($Shopp->Product->id) && !$Shopp->Product->published()) || empty($Shopp->Product->id))
 			$Shopp->Product = new Product(); // blank product displays "no product found" in storefront
 
+		// @todo Investigate if this is still necessary
 		// No product found, try to load a page instead
-		if ($type == "product" && !$Shopp->Product)
-			$wp->query_vars['pagename'] = $wp->request;
+		// if ($type == "product" && !$Shopp->Product)
+		// 	set_query_var('pagename',$wp->request);
 
 		$Shopp->Catalog = new Catalog($type);
 
@@ -882,10 +899,11 @@ class Storefront extends FlowController {
 		$Order =& ShoppOrder();
 		$Customer =& $Order->Customer;
 
+		$download_request = get_query_var('shopp_download');
 		if (isset($Customer->login) && $Customer->login) do_action('shopp_account_management');
 
 		ob_start();
-		if (isset($wp->query_vars['shopp_download'])) include(SHOPP_TEMPLATES."/errors.php");
+		if (!empty($download_request)) include(SHOPP_TEMPLATES."/errors.php");
 		elseif ($Customer->login) include(SHOPP_TEMPLATES."/account.php");
 		else include(SHOPP_TEMPLATES."/login.php");
 		$content = ob_get_contents();

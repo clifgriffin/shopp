@@ -362,11 +362,28 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
+	 * @version 1.2
 	 *
 	 * @param array $vars The current list of handled WordPress query vars
 	 * @return array Augmented list of query vars including Shopp vars
 	 **/
 	function queryvars ($vars) {
+
+		// Proposed New Vars
+		// $vars[] = 's_pr';		// Shopp process parameter
+		// $vars[] = 's_rs';		// Shopp resource
+		// $vars[] = 's_iid';		// Shopp image id
+		// $vars[] = 'catalog';	// Catalog (search) flag
+		// $vars[] = 's_ac';		// Account process
+		// $vars[] = 's_cat';		// Category slug or id
+		// $vars[] = 's_tag';		// Tag slug
+		// $vars[] = 's_pid';		// Product ID
+		// $vars[] = 's_pd';		// Product slug
+		// $vars[] = 's_dl';		// Download key
+		// $vars[] = 's_ob';		// Product sort order (category view)
+		// $vars[] = 's_cf';		// Category filters
+
+		// OLD VARS
 		$vars[] = 'shopp_proc';			// Shopp process parameter
 		$vars[] = 'shopp_category';		// Category slug or id
 		$vars[] = 'shopp_tag';			// Tag slug

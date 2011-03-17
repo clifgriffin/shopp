@@ -1311,6 +1311,45 @@ function scan_money_format ($format) {
 }
 
 /**
+ * Wrapper function to set the WP and WP_Query query_vars
+ *
+ * This wrapper is to make it easier to set query_vars in the
+ * WP global object and the WP_Query simultaneously. This makes
+ * it easier to manipulate requests as necessary
+ * (especially in the case of Shopp searches)
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $var Name of the var to set
+ * @param string $value Value to set
+ * @return void
+ **/
+function set_wp_query_var ($var,$value) {
+	global $wp;
+	$wp->set_query_var($var,$value);
+	set_query_var($var,$value);
+}
+
+/**
+ * Wrapper function to get a WP query_var
+ *
+ * This is used only in contexts where the WP_Query public API
+ * call get_query_var() doesn't work (specifically during parse_request)
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param string $key The name of the query_var to retrieve
+ * @return mixed
+ **/
+function get_wp_query_var ($key) {
+	global $wp;
+	if (isset($wp->query_vars[$key]))
+		return $wp->query_vars[$key];
+}
+
+/**
  * Wraps mark-up in a #shopp container, if needed
  *
  * @author Jonathan Davis

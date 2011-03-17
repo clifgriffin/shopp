@@ -23,14 +23,13 @@ class Resources {
 	 *
 	 * @return void
 	 **/
-	function __construct () {
-		global $Shopp,$wp;
-		if (empty($wp->query_vars) && !(defined('WP_ADMIN') && isset($_GET['src']))) return;
+	function __construct ( $request = array() ) {
 
-		$this->Settings = &$Shopp->Settings;
+		if (empty($request) && !( defined('WP_ADMIN') && isset($request['src']) ))
+			return;
 
-		if (empty($wp->query_vars)) $this->request = $_GET;
-		else $this->request = $wp->query_vars;
+		$this->Settings = ShoppSettings();
+		$this->request = empty($request)?$_GET:$request;
 
 		add_action('shopp_resource_category_rss',array(&$this,'category_rss'));
 		add_action('shopp_resource_download',array(&$this,'download'));
