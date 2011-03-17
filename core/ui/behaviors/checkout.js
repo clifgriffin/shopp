@@ -131,6 +131,7 @@ jQuery(document).ready(function () {
 			billFields.addClass('half');
 			shipFields.show().find('.disabled').setDisabled(false);
 			$('#shipping-country').change();
+			$('#shipping-address').focus();
 		}
 	}).change()
 		.click(function () { $(this).change(); }); // For IE compatibility
