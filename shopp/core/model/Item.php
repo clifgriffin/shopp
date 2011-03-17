@@ -570,7 +570,7 @@ class Item {
 			case "type": return $this->type;
 			case "link":
 			case "url":
-				return shoppurl(SHOPP_PRETTYURLS?$this->slug:array('shopp_pid'=>$this->product));
+				return shoppurl(SHOPP_PRETTYURLS?$this->slug:array('s_pid'=>$this->product));
 			case "sku": return $this->sku;
 		}
 

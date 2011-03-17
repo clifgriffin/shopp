@@ -59,7 +59,7 @@
 				<div class="row-actions">
 					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
 					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;' href="<?php echo $deleteurl; ?>" rel="<?php echo $Category->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
-					<span class='view'><a href="<?php echo shoppurl(SHOPP_PRETTYURLS?"category/$Category->uri":array('shopp_category'=>$Category->id)); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
+					<span class='view'><a href="<?php echo shoppurl(SHOPP_PRETTYURLS?"category/$Category->uri":array('s_cat'=>$Category->id)); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($CategoryName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>
 			</td>
 			<td width="5%" class="num links column-links<?php echo in_array('links',$hidden)?' hidden':''; ?>"><?php echo $Category->total; ?></td>

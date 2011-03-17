@@ -263,7 +263,7 @@ class Catalog extends DatabaseObject {
 				$string = '<ul class="shopp tagcloud">';
 				foreach ($this->tags as $tag) {
 					$level = floor((1-$tag->products/$max)*$levels)+1;
-					$link = SHOPP_PRETTYURLS?shoppurl("tag/$tag->name"):shoppurl(array('shopp_tag'=>$tag->name));
+					$link = SHOPP_PRETTYURLS?shoppurl("tag/$tag->name"):shoppurl(array('s_tag'=>$tag->name));
 					$string .= '<li class="level-'.$level.'"><a href="'.$link.'" rel="tag">'.$tag->name.'</a></li> ';
 				}
 				$string .= '</ul>';
@@ -348,7 +348,7 @@ class Catalog extends DatabaseObject {
 							$padding = str_repeat("&nbsp;",$category->depth*3);
 
 						$category_uri = empty($category->id)?$category->uri:$category->id;
-						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('shopp_category'=>$category_uri));
+						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
 
 						$total = '';
 						if (value_is_true($products) && $category->total > 0) $total = ' ('.$category->total.')';
@@ -406,7 +406,7 @@ class Catalog extends DatabaseObject {
 						}
 
 						$category_uri = empty($category->id)?$category->uri:$category->id;
-						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('shopp_category'=>$category_uri));
+						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
 
 						$total = '';
 						if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
@@ -473,7 +473,7 @@ class Catalog extends DatabaseObject {
 					$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
 					if (!SHOPP_PRETTYURLS) {
 						foreach ($_GET as $key => $value)
-							if ($key != 'shopp_orderby') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
+							if ($key != 's_ob') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
 					}
 					$string .= '<select name="shopp_orderby" class="shopp-orderby-menu">';
 					$string .= menuoptions($menuoptions,$default,true);
@@ -485,7 +485,7 @@ class Catalog extends DatabaseObject {
 					if (strpos($_SERVER['REQUEST_URI'],"?") !== false)
 						list($link,$query) = explode("\?",$_SERVER['REQUEST_URI']);
 					$query = $_GET;
-					unset($query['shopp_orderby']);
+					unset($query['s_ob']);
  					$query = http_build_query($query);
 					if (!empty($query)) $query .= '&';
 
@@ -532,7 +532,7 @@ class Catalog extends DatabaseObject {
 
 					$link = SHOPP_PRETTYURLS?
 						shoppurl("$type/$Category->uri") :
-						shoppurl(array_merge($_GET,array('shopp_category'=>$category_uri,'shopp_pid'=>null)));
+						shoppurl(array_merge($_GET,array('s_cat'=>$category_uri,'s_pid'=>null)));
 
 					$filters = false;
 					if (!empty($Shopp->Cart->data->Category[$Category->slug]))
@@ -553,7 +553,7 @@ class Catalog extends DatabaseObject {
 
 						$link = SHOPP_PRETTYURLS?
 							shoppurl("category/$tree_category->uri"):
-							shoppurl(array_merge($_GET,array('shopp_category'=>$tree_category->id,'shopp_pid'=>null)));
+							shoppurl(array_merge($_GET,array('s_cat'=>$tree_category->id,'s_pid'=>null)));
 
 						$trail = '<li><a href="'.$link.'">'.$tree_category->name.'</a>'.
 							(empty($trail)?'':$separator).'</li>'.$trail;
@@ -578,7 +578,7 @@ class Catalog extends DatabaseObject {
 				$markup = array(
 					$open,
 					$content,
-					'<div><input type="hidden" name="catalog" value="true" /></div>',
+					'<div><input type="hidden" name="s_cs" value="true" /></div>',
 					$close
 				);
 
@@ -621,23 +621,23 @@ class Catalog extends DatabaseObject {
 
 				switch ($type) {
 					case "checkbox":
-						$input =  '<input type="checkbox" name="catalog"'.inputattrs($options,$allowed).' />';
+						$input =  '<input type="checkbox" name="s_cs"'.inputattrs($options,$allowed).' />';
 						break;
 					case "radio":
-						$input =  '<input type="radio" name="catalog"'.inputattrs($options,$allowed).' />';
+						$input =  '<input type="radio" name="s_cs"'.inputattrs($options,$allowed).' />';
 						break;
 					case "menu":
 						$allowed = array("accesskey","alt","class","disabled","format", "id",
 							"readonly","required","size","tabindex","title");
 
-						$input = '<select name="catalog"'.inputattrs($options,$allowed).'>';
+						$input = '<select name="s_cs"'.inputattrs($options,$allowed).'>';
 						$input .= '<option value="">'.$blog_option.'</option>';
 						$input .= '<option value="1"'.($shopsearch || (!$searching && $option == 'shopp')?' selected="selected"':'').'>'.$shop_option.'</option>';
 						$input .= '</select>';
 						break;
 					default:
 						$allowed = array("alt","class","disabled","format","id","readonly","title","value");
-						$input =  '<input type="hidden" name="catalog"'.inputattrs($options,$allowed).' />';
+						$input =  '<input type="hidden" name="s_cs"'.inputattrs($options,$allowed).' />';
 						break;
 				}
 
