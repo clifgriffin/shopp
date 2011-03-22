@@ -86,7 +86,7 @@ class Login {
 		if (empty($_POST['process-login'])) return false;
 		if ($_POST['process-login'] != "true") return false;
 
-		add_action('shopp_login',array(&$this,'redirect'));
+		// add_action('shopp_login',array(&$this,'redirect'));
 
 		// Prevent checkout form from processing
 		remove_all_actions('shopp_process_checkout');
@@ -157,8 +157,9 @@ class Login {
 			} else $loginname = $id;
 			$user = wp_authenticate($loginname,$password);
 			if (!is_wp_error($user)) {
-				wp_set_auth_cookie($user->ID, false, $Shopp->secure);
+				wp_set_auth_cookie($user->ID);
 				do_action('wp_login', $loginname);
+				wp_set_current_user($user->ID,$user->user_login);
 
 				return true;
 			} else { // WordPress User Authentication failed
