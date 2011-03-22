@@ -41,7 +41,7 @@ class Login {
 		if ($this->accounts == "wordpress") {
 			add_action('set_logged_in_cookie',array(&$this,'wplogin'),10,4);
 			add_action('wp_logout',array(&$this,'logout'));
-			add_action('shopp_logout','wp_clear_auth_cookie',1);
+			add_action('shopp_logout','wp_logout',1);
 		}
 
 		if (isset($_POST['shopp_registration']))
