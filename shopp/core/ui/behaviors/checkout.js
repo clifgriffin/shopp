@@ -123,17 +123,16 @@ jQuery(document).ready(function () {
 		}
 	});
 
-	sameship.change(function() {
+	sameship.change(function(e,init) {
 		if (sameship.attr('checked')) {
 			billFields.removeClass('half');
 			shipFields.hide().find('.required').setDisabled(true);
 		} else {
 			billFields.addClass('half');
 			shipFields.show().find('.disabled').setDisabled(false);
-			$('#shipping-country').change();
-			$('#shipping-address').focus();
+			$('#shipping-country').change(init);
 		}
-	}).change()
+	}).change(true)
 		.click(function () { $(this).change(); }); // For IE compatibility
 
 	$('.shopp .shipmethod').change(function () {
