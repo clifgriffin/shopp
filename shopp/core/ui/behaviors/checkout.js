@@ -132,7 +132,7 @@ jQuery(document).ready(function () {
 			shipFields.show().find('.disabled').setDisabled(false);
 			$('#shipping-country').change(init);
 		}
-	}).change(true)
+	}).trigger('change',[true])
 		.click(function () { $(this).change(); }); // For IE compatibility
 
 	$('.shopp .shipmethod').change(function () {
