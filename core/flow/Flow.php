@@ -65,6 +65,8 @@ class Flow {
 		global $Shopp;
 		$request = $wp->query_vars;
 
+		$this->transactions();
+
 		if (isset($request['src']) ||
 			(defined('WP_ADMIN') && isset($_GET['src']))) $this->resources($request);
 
@@ -81,14 +83,11 @@ class Flow {
 
 	function transactions () {
 
-		if (!empty($_REQUEST['_txnupdate'])) {
+		if (!empty($_REQUEST['_txnupdate']))
 			return do_action('shopp_txn_update');
-		}
 
-		if (!empty($_REQUEST['rmtpay'])) {
+		if (!empty($_REQUEST['rmtpay']))
 			return do_action('shopp_remote_payment');
-		}
-
 
 		if (isset($_POST['checkout'])) {
 			if ($_POST['checkout'] == "process") do_action('shopp_process_checkout');
