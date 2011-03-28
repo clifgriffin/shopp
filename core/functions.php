@@ -1748,9 +1748,14 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 	$siteurl = trailingslashit($siteurl);
 
 	if (!empty($query)) {
-		parse_str($query,$query_vars);
-		if ($request === false) $request = array();
-		$request = array_merge($query_vars,$request);
+		parse_str($query,$home_queryvars);
+		if ($request === false) {
+			$request = array();
+			$request = array_merge($home_queryvars,$request);
+		} else {
+			$request = array($request);
+			array_push($request,$home_queryvars);
+		}
 	}
 
 	// Rewrite as an HTTPS connection if necessary
@@ -1787,7 +1792,7 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 	// Filter URI request
 	$uri = false;
 	if (!is_array($request)) $uri = urldecode($request);
-	if (is_array($request && isset($request[0]))) $uri = array_shift($request);
+	if (is_array($request) && isset($request[0])) $uri = array_shift($request);
 	if (!empty($uri)) $uri = join('/',array_map('urlencode',explode('/',$uri))); // sanitize
 
 	$url = user_trailingslashit(trailingslashit($url).$uri);
