@@ -28,7 +28,8 @@ function shopp_prereqs () {
 		$activation = ('activate' == $_GET['action']);
 		if ($activation) {
 			$plugin = $_GET['plugin'];
-			check_admin_referer('activate-plugin_' . $plugin);
+			if (function_exists('check_admin_referer'))
+				check_admin_referer('activate-plugin_' . $plugin);
 		}
 	}
 
