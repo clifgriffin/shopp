@@ -508,33 +508,6 @@ div.storage-settings { clear:both;margin-top:8px; }
 .ac_results .ac_over { background: #cee1ef; color: #333; }
 .ac_results .ac_match { text-decoration: none; font-weight: bold; color: #21759B; }
 
-/**
- * Dashboard Widgets
- **/
-#dashboard_shopp_stats h4,
-#dashboard_shopp_products.postbox h4 { font-family:'Lucida Grande',Verdana,Arial,'Bitstream Vera Sans',sans-serif; }
-
-#dashboard_shopp_stats ul,
-#dashboard_shopp_products ul { list-style:none;padding:0;line-height:1;font-size:12px;margin-top:10px; }
-#dashboard_shopp_stats ul li,
-#dashboard_shopp_products ul li { list-style:none;padding:0;line-height:1; }
-#dashboard_shopp_stats table,
-#dashboard_shopp_stats.postbox table,
-#dashboard_shopp_products table,
-#dashboard_shopp_products.postbox table { width:100%; }
-
-#dashboard_shopp_stats table td,
-#dashboard_shopp_products table td,
-#dashboard_shopp_stats.postbox table td,
-#dashboard_shopp_products.postbox table td { vertical-align:top; }
-#dashboard_shopp_orders table.widefat { margin-top:10px; }
-#dashboard_shopp_orders table.widefat td { padding:7px 7px 5px; }
-
-#dashboard_shopp_stats .table { background:#f9f9f9;border-top:#ececec 1px solid;border-bottom:#ececec 1px solid;margin:0 -9px 10px;padding:0 10px; }
-#dashboard_shopp_stats table th { text-align:left;padding:5px 0; }
-#dashboard_shopp_stats table td { border-top:#ececec 1px solid;padding:6px 0 3px 0;white-space:nowrap;color:#777; }
-#dashboard_shopp_stats table td.amount { width:10%;padding:3px 6px 3px 0;text-align:right;font-family:Georgia,"Times New Roman","Bitstream Charter",Times,serif;font-size:18px; }
-
 #errorlog { font-family:monospace;font-size:1em;line-height:1em;background:white;height:300px;overflow:scroll;border:1px solid #dfdfdf;padding:1px; }
 #errorlog ol { list-style:decimal;padding-left:50px;background:#ececec;margin-left:0; }
 #errorlog ol li { background:white;margin:0;padding:5px; }
