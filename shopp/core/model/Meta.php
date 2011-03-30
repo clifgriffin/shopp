@@ -51,10 +51,10 @@ class MetaObject extends DatabaseObject {
  * @subpackage meta
  **/
 abstract class MetasetObject extends DatabaseObject {
-	static $table = "meta";
+	static $table = 'meta';
 
 	var $_table = false;	// Fully qualified table name
-	var $_loaded = false;	// If he record is successfully loaded
+	var $_loaded = false;	// If the record is successfully loaded
 	var $_meta = array();	// The meta record definitions
 	var $_context = 'meta';	// The meta context
 	var $_parent = 0;		// Linking reference to the root record
