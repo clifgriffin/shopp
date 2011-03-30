@@ -96,13 +96,6 @@ class Shopp {
 	var $Shipping;			// Shipping modules
 	var $Storage;			// Storage engine modules
 
-	var $path;		  		// File ystem path to the plugin
-	var $file;		  		// Base file name for the plugin (this file)
-	var $directory;	  		// The parent directory name
-	var $uri;		  		// The URI fragment to the plugin
-	var $siteurl;	  		// The full site URL
-	var $wpadminurl;  		// The admin URL for the site
-
 	var $_debug;
 
 	function Shopp () {
@@ -116,21 +109,19 @@ class Shopp {
 
 		// Determine system and URI paths
 
-		$this->path = sanitize_path(dirname(__FILE__));
-		$this->file = basename(__FILE__);
-		$this->directory = basename($this->path);
+		$path = sanitize_path(dirname(__FILE__));
+		$file = basename(__FILE__);
+		$directory = basename($path);
 
-		$languages_path = array($this->directory,'lang');
+		$languages_path = array($directory,'lang');
 		load_plugin_textdomain('Shopp',false,sanitize_path(join('/',$languages_path)));
 
-		$this->uri = WP_PLUGIN_URL."/".$this->directory;
-		$this->siteurl = get_bloginfo('url');
-		$this->wpadminurl = admin_url();
+		$uri = WP_PLUGIN_URL."/$directory";
+		$wpadmin_url = admin_url();
 
 		if ($this->secure = is_shopp_secure()) {
-			$this->uri = str_replace('http://','https://',$this->uri);
-			$this->siteurl = str_replace('http://','https://',$this->siteurl);
-			$this->wpadminurl = str_replace('http://','https://',$this->wpadminurl);
+			$uri = str_replace('http://','https://',$uri);
+			$wpadmin_url = str_replace('http://','https://',$wpadmin_url);
 		}
 
 		// Initialize settings & macros
@@ -149,32 +140,34 @@ class Shopp {
 		if (!defined('SHOPP_TEMP_PATH')) define('SHOPP_TEMP_PATH',sys_get_temp_dir());
 
 		// Settings & Paths
-		define("SHOPP_DEBUG",($this->Settings->get('error_logging') == 2048));
-		define("SHOPP_PATH",$this->path);
-		define("SHOPP_PLUGINURI",$this->uri);
-		define("SHOPP_PLUGINFILE",$this->directory."/".$this->file);
+		define('SHOPP_DEBUG',($this->Settings->get('error_logging') == 2048));
+		define('SHOPP_PATH',$path);
+		define('SHOPP_DIR',$directory);
+		define('SHOPP_PLUGINURI',$uri);
+		define('SHOPP_WPADMIN_URL',$wpadmin_url);
+		define('SHOPP_PLUGINFILE',"$directory/$file");
 
-		define("SHOPP_ADMIN_DIR","/core/ui");
-		define("SHOPP_ADMIN_PATH",SHOPP_PATH.SHOPP_ADMIN_DIR);
-		define("SHOPP_ADMIN_URI",SHOPP_PLUGINURI.SHOPP_ADMIN_DIR);
-		define("SHOPP_FLOW_PATH",SHOPP_PATH."/core/flow");
-		define("SHOPP_MODEL_PATH",SHOPP_PATH."/core/model");
-		define("SHOPP_GATEWAYS",SHOPP_PATH."/gateways");
-		define("SHOPP_SHIPPING",SHOPP_PATH."/shipping");
-		define("SHOPP_STORAGE",SHOPP_PATH."/storage");
-		define("SHOPP_DBSCHEMA",SHOPP_MODEL_PATH."/schema.sql");
+		define('SHOPP_ADMIN_DIR','/core/ui');
+		define('SHOPP_ADMIN_PATH',SHOPP_PATH.SHOPP_ADMIN_DIR);
+		define('SHOPP_ADMIN_URI',SHOPP_PLUGINURI.SHOPP_ADMIN_DIR);
+		define('SHOPP_FLOW_PATH',SHOPP_PATH.'/core/flow');
+		define('SHOPP_MODEL_PATH',SHOPP_PATH.'/core/model');
+		define('SHOPP_GATEWAYS',SHOPP_PATH.'/gateways');
+		define('SHOPP_SHIPPING',SHOPP_PATH.'/shipping');
+		define('SHOPP_STORAGE',SHOPP_PATH.'/storage');
+		define('SHOPP_DBSCHEMA',SHOPP_MODEL_PATH.'/schema.sql');
 
-		define("SHOPP_TEMPLATES",($this->Settings->get('theme_templates') != "off"
+		define('SHOPP_TEMPLATES',($this->Settings->get('theme_templates') != 'off'
 			&& is_dir(sanitize_path(get_stylesheet_directory().'/shopp')))?
 					  sanitize_path(get_stylesheet_directory().'/shopp'):
-					  SHOPP_PATH.'/'."templates");
-		define("SHOPP_TEMPLATES_URI",($this->Settings->get('theme_templates') != "off"
+					  SHOPP_PATH.'/templates');
+		define('SHOPP_TEMPLATES_URI',($this->Settings->get('theme_templates') != 'off'
 			&& is_dir(sanitize_path(get_stylesheet_directory().'/shopp')))?
-					  sanitize_path(get_bloginfo('stylesheet_directory')."/shopp"):
-					  SHOPP_PLUGINURI."/templates");
+					  sanitize_path(get_bloginfo('stylesheet_directory').'/shopp'):
+					  SHOPP_PLUGINURI.'/templates');
 
-		define("SHOPP_PRETTYURLS",(get_option('permalink_structure') == "")?false:true);
-		define("SHOPP_PERMALINKS",SHOPP_PRETTYURLS); // Deprecated
+		define('SHOPP_PRETTYURLS',(get_option('permalink_structure') == '')?false:true);
+		define('SHOPP_PERMALINKS',SHOPP_PRETTYURLS); // Deprecated
 
 		// Initialize application control processing
 
@@ -352,7 +345,7 @@ class Shopp {
 		);
 
 		// Add mod_rewrite rule for image server for low-resource, speedy delivery
-		$corepath = array(PLUGINDIR,$this->directory,'core');
+		$corepath = array(PLUGINDIR,SHOPP_DIR,'core');
 		add_rewrite_rule('.*'.$catalog.'/images/(\d+)/?\??(.*)$',join('/',$corepath).'/image.php?siid=$1&$2');
 
 		return $rules + $wp_rewrite_rules;

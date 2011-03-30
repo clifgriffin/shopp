@@ -53,6 +53,7 @@ class AdminFlow extends FlowController {
 		'main'=>'shopp_menu',
 		'orders'=>'shopp_orders',
 		'customers'=>'shopp_customers',
+		'memberships'=>'shopp_products',
 		'products'=>'shopp_products',
 		'categories'=>'shopp_categories',
 		'promotions'=>'shopp_promotions',
@@ -90,6 +91,7 @@ class AdminFlow extends FlowController {
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
 		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
+		$this->addpage('memberships',__('Memberships','Shopp'),'Members','Memberships & Access');
 		$this->addpage('products',__('Products','Shopp'),'Warehouse','Editing a Product');
 		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category');
 		$this->addpage('promotions',__('Promotions','Shopp'),'Promote','Running Sales & Promotions');
@@ -193,6 +195,8 @@ class AdminFlow extends FlowController {
 		if ($Shopp->Settings->get('display_welcome') == "on" &&  empty($_POST['setup']))
 			$controller = array(&$this,'welcome');
 		if ($this->maintenance()) $controller = array(&$this,'reactivate');
+
+		do_action('shopp_add_menu_'.$page->page);
 
 		$this->Menus[$page->page] = add_submenu_page(
 			($page->parent)?$page->parent:$this->MainMenu,
@@ -301,7 +305,7 @@ class AdminFlow extends FlowController {
 		$target = substr($menu,strrpos($menu,'-')+1);
 		if ($target == "orders" || $target == "customers") {
 			ob_start();
-			include("{$Shopp->path}/core/ui/help/$target.php");
+			include(SHOPP_PATH."/core/ui/help/$target.php");
 			$help = ob_get_contents();
 			ob_end_clean();
 			$content .= $help;
@@ -400,8 +404,7 @@ class AdminFlow extends FlowController {
 	 * @return void
 	 **/
 	function dashboard_css () {
-		global $Shopp;
-		echo "<link rel='stylesheet' href='$Shopp->uri/core/ui/styles/admin.css?ver=".urlencode(SHOPP_VERSION)."' type='text/css' />\n";
+		wp_enqueue_style('shopp.dashboard',SHOPP_ADMIN_URI.'/styles/dashboard.css',array(),SHOPP_VERSION,'screen');
 	}
 
 	/**
