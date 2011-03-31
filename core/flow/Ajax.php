@@ -523,7 +523,7 @@ class AjaxFlow {
 		flush();
 		ob_end_clean();
 
-		if ($_->stored) return;
+		if ($_->stored) exit();
 
 		$progress = 0;
 		fseek($file, 0);
