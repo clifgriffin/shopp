@@ -967,7 +967,7 @@ class Cart {
 					$Shopp->Order->Shipping->method == $method->name))
 						$checked = ' checked="checked"';
 
-				$result = '<input type="radio" name="shipmethod" value="'.$method->name.'" class="shopp shipmethod" '.$checked.' />';
+				$result = '<input type="radio" name="shipmethod" value="'.urlencode($method->name).'" class="shopp shipmethod" '.$checked.' />';
 				return $result;
 
 				break;
