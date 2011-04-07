@@ -348,7 +348,7 @@ class Item {
 		$_ = new stdClass();
 		foreach ($map as $property) {
 			if (empty($price->options) && $property == 'label') continue;
-			$_->{$property} = $price->{$property};
+			if (isset($price->{$property})) $_->{$property} = $price->{$property};
 		}
 		return $_;
 	}

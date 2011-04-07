@@ -482,6 +482,9 @@ class Product extends DatabaseObject {
 	 * @return void
 	 **/
 	function save_stats ($stats = array('sale','inventory','stock','maxprice','minprice','sold')) {
+		$default = array('sale','inventory','stock','maxprice','minprice','sold');
+		if(empty($stats)) $stats = $default;
+
 		$db = DB::get();
 		if (empty($this->id)) return;
 
