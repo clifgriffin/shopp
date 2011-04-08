@@ -14,7 +14,7 @@
 
 			<?php
 			do_action('submitpage_box');
-			$side_meta_boxes = do_meta_boxes('shopp_page_shopp-products', 'side', $Category);
+			$side_meta_boxes = do_meta_boxes('shopp_page_shopp-category', 'side', $Category);
 			?>
 			</div>
 
@@ -40,8 +40,8 @@
 				</div>
 
 			<?php
-			do_meta_boxes('shopp_page_shopp-products', 'normal', $Category);
-			do_meta_boxes('shopp_page_shopp-products', 'advanced', $Category);
+			do_meta_boxes('shopp_page_shopp-category', 'normal', $Category);
+			do_meta_boxes('shopp_page_shopp-category', 'advanced', $Category);
 			?>
 
 			</div>

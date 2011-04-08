@@ -335,25 +335,117 @@ class AjaxFlow {
 		check_admin_referer('wp_ajax_shopp_suggestions');
 		$db = DB::get();
 
-		switch($_GET['t']) {
-			case "product-name": $table = DatabaseObject::tablename(Product::$table); break;
-			case "product-tags": $table = DatabaseObject::tablename(CatalogTag::$table); break;
-			case "product-category": $table = DatabaseObject::tablename(Category::$table); break;
-			case "customer-type":
-				$types = Lookup::customer_types();
-				$results = array();
-				foreach ($types as $type)
-					if (strpos(strtolower($type),strtolower($_GET['q'])) !== false) $results[] = $type;
-				echo join("\n",$results);
-				exit();
-				break;
+		if (isset($_GET['t'])) {
+			switch($_GET['t']) {
+				case "product-name": $table = DatabaseObject::tablename(Product::$table); break;
+				case "product-tags": $table = DatabaseObject::tablename(CatalogTag::$table); break;
+				case "product-category": $table = DatabaseObject::tablename(Category::$table); break;
+				case "customer-type":
+					$types = Lookup::customer_types();
+					$results = array();
+					foreach ($types as $type)
+						if (strpos(strtolower($type),strtolower($_GET['q'])) !== false) $results[] = $type;
+					echo join("\n",$results);
+					exit();
+					break;
+			}
+
+			$entries = $db->query("SELECT name FROM $table WHERE name LIKE '%{$_GET['q']}%'",AS_ARRAY);
+			$results = array();
+			foreach ($entries as $entry) $results[] = $entry->name;
+			echo join("\n",$results);
+			exit();
 		}
 
-		$entries = $db->query("SELECT name FROM $table WHERE name LIKE '%{$_GET['q']}%'",AS_ARRAY);
-		$results = array();
-		foreach ($entries as $entry) $results[] = $entry->name;
-		echo join("\n",$results);
-		exit();
+		if (isset($_GET['s'])) {
+			global $wpdb;
+
+			$source = strtolower($_GET['s']);
+			$q = $db->escape($_GET['q']);
+
+			do_action('shopp_suggestions_from_'.$source);
+
+			$joins = $where = array();
+			switch ($source) {
+				case 'wp_posts':
+					$id = 'ID';
+					$name = 'post_title';
+					$table = $wpdb->posts;
+					$where[] = "post_type='post'";
+					break;
+				case 'wp_pages':
+					$id = 'ID';
+					$name = 'post_title';
+					$table = $wpdb->posts;
+					$where[] = "post_type='page'";
+					break;
+				case 'wp_categories':
+					$id = 't.term_id';
+					$name = 'name';
+					$table = "$wpdb->terms AS t";
+					$joins = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
+					$where[] = "tt.taxonomy = 'category'";
+					break;
+				case 'wp_tags':
+					$id = 't.term_id';
+					$name = 'name';
+					$table = "$wpdb->terms AS t";
+					$joins = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
+					$where[] = "tt.taxonomy = 'post_tag'";
+					break;
+				case 'wp_media':
+					$id = 'ID';
+					$name = 'post_title';
+					$table = $wpdb->posts;
+					$where[] = "post_type='attachment'";
+					break;
+				case 'shopp_memberships':
+					$id = 'id';
+					$name = 'name';
+					$table = DatabaseObject::tablename('meta');
+					$where[] = "context='membership'";
+					$where[] = "type='membership'";
+					break;
+				case 'shopp_products':
+					$id = 'id';
+					$name = 'name';
+					$table = DatabaseObject::tablename(Product::$table);
+					break;
+				case 'shopp_categories':
+					$id = 'id';
+					$name = 'name';
+					$table = DatabaseObject::tablename(Category::$table);
+					break;
+				case 'shopp_tags':
+					$id = 'id';
+					$name = 'name';
+					$table = DatabaseObject::tablename('meta');
+					$where[] = "context='catalog'";
+					$where[] = "type='tag'";
+					break;
+				case 'shopp_promotions':
+					$id = 'id';
+					$name = 'name';
+					$table = DatabaseObject::tablename(Promotion::$table);
+					break;
+				case 'shopp_downloads':
+					$id = 'id';
+					$name = 'name';
+					$table = DatabaseObject::tablename('meta');
+					$where[] = "context='price'";
+					$where[] = "type='download'";
+					break;
+			}
+			$where[] = "$name LIKE '%$q%'";
+			$wheres = join(' AND ',$where);
+
+			$query = "SELECT $id AS id, $name AS name FROM $table $joins WHERE $wheres";
+
+			$items = $db->query($query,AS_ARRAY);
+			echo json_encode($items);
+			exit();
+		}
+
 	}
 
 	function upload_local_taxes () {

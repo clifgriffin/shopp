@@ -1,0 +1,40 @@
+<?php
+function save_meta_box ($Membership) {
+?>
+	<div id="major-publishing-actions">
+	<input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" />
+	</div>
+<?php
+}
+add_meta_box('save-membership', __('Save','Shopp').$Admin->boxhelp('membership-editor-save'), 'save_meta_box', 'shopp_page_shopp-memberships', 'side', 'core');
+
+function settings_meta_box ($Membership) {
+?>
+<p><input type="hidden" name="continuity" value="off" /><input type="checkbox" name="continuity" value="on" id="featured" tabindex="12" <?php if ($Membership->continuity == "on") echo ' checked="checked"'?> /><label for="featured"> <?php _e('Continued access' ,'Shopp'); ?></label></p>
+<?php $roles = get_editable_roles(); ?>
+<p><select name="role" id="wp-roles">
+<?php foreach ($roles as $value => $role): $selected = (strtolower($Membership->role) == strtolower($value)?' selected="selected"':''); ?>
+<option value="<?php echo $value; ?>"<?php echo $selected; ?>><?php echo $role['name']; ?></option>
+<?php endforeach; ?>
+</select><label for="wp-roles"><?php _e('Default User Role','Shopp'); ?></p>
+
+<?php
+}
+add_meta_box('membership-settings', __('Settings','Shopp').$Admin->boxhelp('membership-editor-settings'), 'settings_meta_box', 'shopp_page_shopp-memberships', 'side', 'core');
+
+function sources_meta_box ($Membership) {
+?>
+<ul id="sources"></ul>
+<p>Show list of content sources...</p>
+<?php
+}
+add_meta_box('membership-sources', __('Content','Shopp').$Admin->boxhelp('membership-editor-sources'), 'sources_meta_box', 'shopp_page_shopp-memberships', 'side', 'core');
+
+function rules_meta_box ($Membership) {
+?>
+<ul id="rules"></ul>
+<input type="button" id="add-group" name="add-group" value="<?php _e('Add Step','Shopp'); ?>" class="button-secondary" />
+<?php
+}
+add_meta_box('membership-rules', __('Access','Shopp').$Admin->boxhelp('membership-editor-rules'), 'rules_meta_box', 'shopp_page_shopp-memberships', 'normal', 'core');
+?>

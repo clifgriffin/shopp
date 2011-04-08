@@ -207,6 +207,22 @@ function debuglog (o) {
 	}
 }
 
+jQuery.fn.fadeRemove = function (duration,callback) {
+	var $this = jQuery(this);
+	$this.fadeOut(duration,function () { $this.remove(); if (callback) callback(); });
+	return this;
+};
+
+jQuery.fn.hoverClass = function () {
+	var $this = jQuery(this);
+	$this.hover(function () {
+		$this.addClass('hover');
+	},function () {
+		$this.removeClass('hover');
+	});
+	return this;
+};
+
 /**
  * Parse JSON data with native browser parsing or
  * as a last resort use evil(), er... eval()
