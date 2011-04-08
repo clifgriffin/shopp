@@ -286,6 +286,7 @@ class ShoppInstallation extends FlowController {
 		$caps['shopp-merchant'] = array_merge($caps['shopp-csr'],
 			array('shopp_categories',
 				'shopp_products',
+				'shopp_memberships',
 				'shopp_promotions',
 				'shopp_financials',
 				'shopp_export_orders',
@@ -580,6 +581,8 @@ class ShoppInstallation extends FlowController {
 			$price_table = DatabaseObject::tablename('price');
 			$db->query("UPDATE $price_table SET settings=CONCAT('a:1:{s:8:\"donation\";',donation,'}') WHERE type='Donation'");
 		}
+
+		$this->roles(); // Setup Roles and Capabilities
 
 	}
 

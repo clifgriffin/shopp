@@ -62,8 +62,7 @@ class Flow {
 	 * @return boolean
 	 **/
 	function parse ($wp) {
-		global $Shopp;
-		$request = $wp->query_vars;
+		$request = empty($wp->query_vars)?$_GET:$wp->query_vars;
 
 		$this->transactions();
 

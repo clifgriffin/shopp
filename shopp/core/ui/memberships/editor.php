@@ -1,0 +1,109 @@
+	<div class="wrap shopp">
+		<?php if (!empty($Shopp->Flow->Notice)): ?><div id="message" class="updated fade"><p><?php echo $Shopp->Flow->Notice; ?></p></div><?php endif; ?>
+
+		<div class="icon32"></div>
+		<h2><?php _e('Membership Editor','Shopp'); ?></h2>
+
+		<div id="ajax-response"></div>
+		<form name="membership" id="membership" action="<?php echo add_query_arg('page',$this->Admin->pagename('memberships'),admin_url('admin.php')); ?>" method="post">
+			<?php wp_nonce_field('shopp-save-membership'); ?>
+
+			<div class="hidden"><input type="hidden" name="id" value="<?php echo $Membership->id; ?>" /></div>
+
+			<div id="poststuff" class="metabox-holder has-right-sidebar">
+
+				<div id="side-info-column" class="inner-sidebar">
+				<?php
+				do_action('submitpage_box');
+				$side_meta_boxes = do_meta_boxes('shopp_page_shopp-memberships', 'side', $Membership);
+				?>
+				</div>
+
+				<div id="post-body" class="<?php echo $side_meta_boxes ? 'has-sidebar' : 'has-sidebar'; ?>">
+				<div id="post-body-content" class="has-sidebar-content">
+					<div id="titlediv">
+						<div id="titlewrap">
+							<input name="name" id="title" type="text" value="<?php echo esc_attr($Membership->name); ?>" size="30" tabindex="1" autocomplete="off" />
+						</div>
+					</div>
+
+				<?php
+				do_meta_boxes('shopp_page_shopp-memberships', 'normal', $Membership);
+				do_meta_boxes('shopp_page_shopp-memberships', 'advanced', $Membership);
+				wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
+				?>
+
+				</div>
+				</div>
+
+			</div> <!-- #poststuff -->
+		</form>
+	</div>
+
+<script id="panelUI" type="text/x-jquery-tmpl">
+<li class="panel subpanel ${type}">
+	<div class="label">
+		<label>${label}</label>
+		<button type="button" name="delete" class="delete"><img src="<?php echo SHOPP_PLUGINURI; ?>/core/ui/icons/delete.png" alt="-" width="16" height="16" /></button>
+	</div>
+	<div class="ui"></div>
+</li>
+</script>
+
+<script id="groupPanelControls" type="text/x-jquery-tmpl">
+<fieldset>
+<label for="advance-${index}"><input type="hidden" name="rules[${index}][settings][advance]" value="off" /><input type="checkbox" id="advance-${index}" name="rules[${index}][settings][advance]" value="on" class="advance" />&nbsp;<?php _e('Advance automatically','Shopp'); ?></label>
+<span class="schedule"><label>
+<?php _e('after','Shopp'); ?></label>
+ <select name="rules[${index}][settings][interval]" class="interval">
+<?php for ($i=1; $i < 31; $i++): ?><option><?php echo $i; ?></option><?php endfor; ?>
+</select><select name="rules[${index}][settings][period]" class="period"></select>
+</span>
+
+<div class="alignright actions">
+<select name="access-type" class="content">
+<option value="">+&nbsp;&nbsp;Add Access&hellip;</option>
+<?php foreach ($rulegroups as $prefix => $group): ?>
+	<optgroup label="<?php echo $group; ?>">
+	<?php foreach ($ruletypes as $value => $label): if (strpos($value,$prefix) !== 0) continue; ?><option value="<?php echo $value; ?>"><?php echo $label; ?></option><?php endforeach; ?>
+	</optgroup>
+<?php endforeach; ?>
+</select>
+</div>
+</fieldset>
+</script>
+
+<script id="billPeriodOptions" type="text/x-jquery-tmpl">
+	<option value="${value}">${label}</option>
+</script>
+
+<script id="accessMenu" type="text/x-jquery-tmpl">
+<div class="alignleft action">
+<select name="${name}" class="access">
+	<optgroup label="<?php _e('Allow Access','Shopp'); ?>">
+	<option value="allow" class="allow"><?php _e('Allow','Shopp'); ?></option>
+	<option value="allow-all" class="allow"><?php _e('Allow All','Shopp'); ?></option>
+	</optgroup>
+	<optgroup label="<?php _e('Deny Access','Shopp'); ?>">
+	<option value="deny" class="deny"><?php _e('Deny','Shopp'); ?></option>
+	<option value="deny-all" class="deny"><?php _e('Deny All','Shopp'); ?></option>
+	</optgroup>
+</select>
+</div>
+</script>
+
+<script type="text/javascript">
+/* <![CDATA[ */
+var sugg_url = '<?php echo wp_nonce_url(admin_url("admin-ajax.php"), "wp_ajax_shopp_suggestions"); ?>',
+	pluginuri = <?php echo json_encode(SHOPP_PLUGINURI); ?>,
+	rule_groups = <?php echo json_encode($rulegroups); ?>,
+	rule_types = <?php echo json_encode($ruletypes); ?>,
+	bill_periods = <?php echo json_encode(Price::periods()); ?>,
+	rules = <?php echo json_encode($Membership->rules); ?>,
+	GROUP_LABEL = <?php _jse('Content Access Rules','Shopp'); ?>,
+	STEP_LABEL = <?php _jse('Step','Shopp'); ?>,
+	DELETE_RULE_PROMPT = <?php _jse('Are you sure you want to delete this rule?','Shopp'); ?>,
+	DELETE_GROUP_PROMPT = <?php _jse('Are you sure you want to delete this rule?','Shopp'); ?>;
+
+/* ]]> */
+</script>

@@ -387,8 +387,8 @@ class Warehouse extends AdminController {
 		$Product->slug = apply_filters('editable_slug',$Product->slug);
 		$permalink = trailingslashit(shoppurl());
 
-		require_once("$Shopp->path/core/model/Asset.php");
-		require_once("$Shopp->path/core/model/Category.php");
+		require_once(SHOPP_PATH.'/core/model/Asset.php');
+		require_once(SHOPP_PATH.'/core/model/Category.php');
 
 		$Price = new Price();
 

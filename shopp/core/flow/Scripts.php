@@ -246,6 +246,18 @@ function shopp_default_scripts (&$scripts) {
 	$scripts->add('swfupload', "/ui/behaviors/swfupload/swfupload.js", array('jquery','shopp-swfobject'), '2202');
 	$scripts->add_data('swfupload', 'group', 1);
 
+	$scripts->add('suggest', "/ui/behaviors/suggest.js", array('jquery'), '20110330');
+	$scripts->add_data('suggest', 'group', 1);
+
+	$scripts->add('search-select', "/ui/behaviors/searchselect.js", array('jquery'), '20110401');
+	$scripts->add_data('search-select', 'group', 1);
+
+	$scripts->add('jquery-tmpl', "/ui/behaviors/jquery/jquery.tmpl.js", array('jquery'), '20100101');
+	$scripts->add_data('jquery-tmpl', 'group', 1);
+
+	$scripts->add('membership-editor', "/ui/memberships/editor.js", array('jquery','jquery-tmpl','search-select'), '20100101');
+	$scripts->add_data('membership-editor', 'group', 1);
+
 }
 
 /**
