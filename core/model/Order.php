@@ -1425,6 +1425,12 @@ class Order {
 				$Taxes = new CartTax();
 				$rate = $Taxes->rate(false,true);
 
+		        if(!isset($rate['locals']))
+		            foreach ($this->Cart->contents as $Item)
+		                if ( ( $rate = $Taxes->rate($Item,true) )
+		                    && isset($rate['locals']) )
+		                    break;
+
 				$localities = array_keys($rate['locals']);
 				$label = (!empty($options['label']))?$options['label']:'';
 				$output = '<select name="billing[locale]" id="billing-locale" '.inputattrs($options,$select_attrs).'>';
