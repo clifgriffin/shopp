@@ -13,39 +13,31 @@
 			<tr>
 				<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Calculate Shipping','Shopp'); ?></label></th>
 				<td><input type="hidden" name="settings[shipping]" value="off" /><input type="checkbox" name="settings[shipping]" value="on" id="shipping-toggle"<?php if ($this->Settings->get('shipping') == "on") echo ' checked="checked"'?> /><label for="shipping-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
-	            <?php _e('Check this to use shipping. Leave un-checked to disable shipping &mdash; helpful if you are only selling subscriptions or downloads.','Shopp'); ?></td>
+	            <?php _e('Enables calculating shipping costs. Disable if you are exclusively selling intangible products.','Shopp'); ?></td>
 			</tr>
 			<tr>
-				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Weight Unit','Shopp'); ?></label></th>
+				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Units','Shopp'); ?></label></th>
 				<td>
 				<select name="settings[weight_unit]" id="weight-unit">
-					<option value="">&nbsp;</option>
 						<?php
 							if ($base['units'] == "imperial") $units = array("oz" => __("ounces (oz)","Shopp"),"lb" => __("pounds (lbs)","Shopp"));
 							else $units = array("g"=>__("gram (g)","Shopp"),"kg"=>__("kilogram (kg)","Shopp"));
 							echo menuoptions($units,$this->Settings->get('weight_unit'),true);
 						?>
-				</select><br />
-				<?php _e('Used as unit of weight for all products.','Shopp'); ?></td>
-			</tr>
-			<tr>
-				<th scope="row" valign="top"><label for="weight-unit"><?php _e('Dimension Unit','Shopp'); ?></label></th>
-				<td>
+				</select>
 				<select name="settings[dimension_unit]" id="dimension-unit">
-					<option value="">&nbsp;</option>
 						<?php
 							if ($base['units'] == "imperial") $units = array("in" => __("inches (in)","Shopp"),"ft" => __("feet (ft)","Shopp"));
 							else $units = array("cm"=>__("centimeters (cm)","Shopp"),"m"=>__("meters (m)","Shopp"));
 							echo menuoptions($units,$this->Settings->get('dimension_unit'),true);
 						?>
 				</select><br />
-				<?php _e('Used as the unit of dimensions for all products.','Shopp'); ?></td>
+				<?php _e('Standard weight &amp; dimension units used for all products.','Shopp'); ?></td>
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="packaging"><?php _e('Packaging','Shopp'); ?></label></th>
 				<td>
 				<select name="settings[shipping_packaging]" id="packaging">
-					<option value="">&nbsp;</option>
 						<?php
 							$packaging = array("mass" => __("All together by weight","Shopp"),
 										"all" => __("All together with dimensions","Shopp"),
@@ -73,7 +65,7 @@
 			</tr>
 			<tr>
 				<th scope="row" valign="top"><label for="lowstock-level"><?php _e('Low Inventory','Shopp'); ?></label></th>
-				<td><input type="text" name="settings[lowstock_level]" value="<?php echo esc_attr($lowstock); ?>" id="lowstock-level" size="5" /><br />
+				<td><input type="text" name="settings[lowstock_level]" value="<?php echo esc_attr($lowstock); ?>" id="lowstock-level" size="5" class="selectall" /><br />
 	            <?php _e('Enter the number for low stock level warnings.','Shopp'); ?></td>
 			</tr>
 			<tr>

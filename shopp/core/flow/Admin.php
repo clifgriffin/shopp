@@ -92,25 +92,26 @@ class AdminFlow extends FlowController {
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
 		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
 		$this->addpage('memberships',__('Memberships','Shopp'),'Members','Memberships & Access');
-		$this->addpage('products',__('Products','Shopp'),'Warehouse','Editing a Product');
-		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category');
-		$this->addpage('promotions',__('Promotions','Shopp'),'Promote','Running Sales & Promotions');
-		$this->addpage('settings',__('Settings','Shopp'),'Setup','General Settings');
-		$this->addpage('settings-checkout',__('Checkout','Shopp'),'Setup','Checkout Settings',"settings");
+		$this->addpage('products',__('Products','Shopp'),'Warehouse','Editing a Product','products');
+		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category','products');
+		$this->addpage('promotions',__('Promotions','Shopp'),'Promote','Running Sales & Promotions','products');
+		$this->addpage('settings',__('Settings','Shopp'),'Setup','General Settings','settings');
 		$this->addpage('settings-payments',__('Payments','Shopp'),'Setup','Payments Settings',"settings");
 		$this->addpage('settings-shipping',__('Shipping','Shopp'),'Setup','Shipping Settings',"settings");
 		$this->addpage('settings-taxes',__('Taxes','Shopp'),'Setup','Taxes Settings',"settings");
+		$this->addpage('settings-checkout',__('Checkout','Shopp'),'Setup','Checkout Settings',"settings");
 		$this->addpage('settings-presentation',__('Presentation','Shopp'),'Setup','Presentation Settings',"settings");
 		$this->addpage('settings-system',__('System','Shopp'),'Setup','System Settings',"settings");
-
-		// if ($Shopp->Settings->get('display_welcome') == "on" && empty($_POST['setup']))
-			// $this->addpage('welcome',__('Welcome','Shopp'),'Admin',$base);
 
 		// Action hook for adding custom third-party pages
 		do_action('shopp_admin_menu');
 
 		reset($this->Pages);
 		$this->MainMenu = key($this->Pages);
+
+		global $menu;
+		$menu[50] = array( '', 'read', 'separator-shopp', '', 'wp-menu-separator' );
+		wp_enqueue_style('shopp.menu',SHOPP_ADMIN_URI.'/styles/menu.css',array(),SHOPP_VERSION,'screen');
 
 		// Set the currently requested page and menu
 		if (isset($_GET['page'])) $page = strtolower($_GET['page']);
@@ -136,15 +137,9 @@ class AdminFlow extends FlowController {
 
 		if ($this->maintenance()) $access = 'manage_options';
 
-		// Add the main Shopp menu
-		$this->Menus['main'] = add_object_page(
-			'Shopp',									// Page title
-			'Shopp',									// Menu title
-			$access,									// Access level
-			$this->MainMenu,							// Page
-			array(&$Shopp->Flow,'parse'),				// Handler
-			SHOPP_ADMIN_URI.'/icons/shopp.png'			// Icon
-		);
+		$this->topmenu('main','Shopp',$access,'orders',50);
+		$this->topmenu('catalog',__('Catalog','Shopp'),$access,'products',50);
+		$this->topmenu('setup',__('Setup','Shopp'),$access,'settings',50);
 
 		// Add menus to WordPress admin
 		foreach ($this->Pages as $page) $this->addmenu($page);
@@ -205,6 +200,24 @@ class AdminFlow extends FlowController {
 			defined('SHOPP_USERLEVEL')?SHOPP_USERLEVEL:$this->caps[$page->name],
 			$name,
 			$controller
+		);
+	}
+
+	function topmenu ($name,$label,$access,$page,$position=50) {
+		global $Shopp,$menu;
+
+		do_action('shopp_add_topmenu_'.$page->page);
+
+		while (isset($menu[$position])) $position++;
+
+		$this->Menus[$page->page] = add_menu_page(
+			$label,										// Page title
+			$label,										// Menu title
+			$access,									// Access level
+			basename(SHOPP_PATH).'-'.$page,				// Page
+			array(&$Shopp->Flow,'parse'),				// Handler
+			SHOPP_ADMIN_URI.'/icons/clear.png',			// Icon
+			$position									// Menu position
 		);
 	}
 
