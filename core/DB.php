@@ -13,7 +13,7 @@
  * @subpackage db
  **/
 
-define("AS_ARRAY",false);
+define("AS_ARRAY",false); // @deprecated
 define("SHOPP_DBPREFIX","shopp_");
 if (!defined('SHOPP_QUERY_DEBUG')) define('SHOPP_QUERY_DEBUG',false);
 
@@ -39,6 +39,8 @@ class DB {
 							"list" => array("enum","set"),
 							"date" => array("date", "time", "year")
 							);
+
+	var $_formats = array('auto','object','array');
 	var $results = array();
 	var $queries = array();
 	var $dbh = false;
@@ -183,7 +185,13 @@ class DB {
 	 * @param boolean $output (optional) Return results as an object (default) or as an array of result rows
 	 * @return array|object The query results as an object or array of result rows
 	 **/
-	function query ($query, $output=true) {
+	function query ($query, $format='auto', $callback=false) {
+		$args = func_get_args();
+		$args = (count($args) > 3)?array_slice($args,3):array();
+
+		// Supports deprecated AS_ARRAY argument
+		if ($format === AS_ARRAY) $format = 'array';
+
 		if (SHOPP_QUERY_DEBUG) $this->queries[] = $query;
 		$result = @mysql_query($query, $this->dbh);
 		if (SHOPP_QUERY_DEBUG && class_exists('ShoppError')) new ShoppError($query,'shopp_query_debug',SHOPP_DEBUG_ERR);
@@ -194,7 +202,9 @@ class DB {
 			return false;
 		}
 
-		// Results handling
+		/** Results handling **/
+
+		// Handle special cases
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i",$query) ) {
 			$this->affected = mysql_affected_rows();
 			if ( preg_match("/^\\s*(insert|replace) /i",$query) ) {
@@ -204,15 +214,30 @@ class DB {
 
 			if ($this->affected > 0) return $this->affected;
 			else return true;
-		} else {
-			if ($result === true) return true;
-			$this->results = array();
-			while ($row = @mysql_fetch_object($result)) {
-				$this->results[] = $row;
-			}
-			@mysql_free_result($result);
-			if ($output && sizeof($this->results) == 1) $this->results = $this->results[0];
-			return $this->results;
+		}
+
+		// Default data processing
+		if (is_bool($result)) return (boolean)$result;
+
+		// Setup record processing callback
+		if (is_string($callback) && !function_exists($callback))
+			$callback = array($this,$callback);
+
+		if (!$callback || (is_array($callback) && !method_exists($callback[0],$callback[1])))
+			$callback =  array($this,'auto');
+
+		$this->results = array();
+
+		while ($row = @mysql_fetch_object($result)) {
+			call_user_func_array($callback,array_merge(array(&$this->results,&$row),$args));
+		}
+
+		@mysql_free_result($result);
+
+		switch (strtolower($format)) {
+			case 'object': return reset($this->results); break;
+			case 'array': return $this->results; break;
+			default: return (count($this->results) == 1)?reset($this->results):$this->results; break;
 		}
 
 	}
@@ -347,7 +372,36 @@ class DB {
 		return true;
 	}
 
+
+	private function auto (&$records,&$record) {
+		$records[] = $record;
+	}
+
+	private function index (&$records,&$record,$column,$collate=false) {
+		if (isset($record->$column)) $col = $record->$column;
+		else $col = null;
+		if ($collate) {
+			if (isset($records[$col])) $records[$col][] = $record;
+			else $records[$col] = array($record);
+		} else $records[$col] = $record;
+	}
+
+	private function col (&$records,&$record,$column,$index=false,$collate=false) {
+		if (isset($record->$column)) $col = $record->$column;
+		else $col = null;
+		if ($index) {
+			if (isset($record->$index)) $id = $record->$index;
+			else $id = null;
+			if ($collate && !empty($id)) {
+				if (isset($records[$id])) $records[$id][] = $col;
+				else $records[$id] = array($col);
+			} else $records[$id] = $col;
+		} else $records[] = $col;
+	}
+
+
 } // END class DB
+
 
 
 /**
@@ -357,7 +411,11 @@ class DB {
  * @since 1.1
  * @package shopp
  **/
-abstract class DatabaseObject {
+abstract class DatabaseObject implements Iterator {
+
+	private $_position = 0;
+	private $_properties = array();
+	private $_ignores = array('_');
 
 	/**
 	 * Initializes the DatabaseObject with functional necessities
@@ -475,6 +533,32 @@ abstract class DatabaseObject {
 	}
 
 	/**
+	 * Callback for loading objects from a record set
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @param array $records A reference to the loaded record set
+	 * @param object $record Result record data object
+	 * @return void
+	 **/
+	function loader (&$records,&$record,$DatabaseObject=false,$index='id',$collate=false) {
+		if (isset($this)) {
+			$index = $this->_key;
+			$DatabaseObject = get_class($this);
+		}
+		$index = isset($record->$index)?$record->$index:'!NO_INDEX!';
+		if (!isset($DatabaseObject) || !class_exists($DatabaseObject)) return;
+		$Object = new $DatabaseObject();
+		$Object->populate($record);
+
+		if ($collate) {
+			if (!isset($records[$index])) $records[$index] = array();
+			$records[$index][] = $Object;
+		} else $records[$index] = $Object;
+	}
+
+	/**
 	 * Builds a table name from the defined WP table prefix and Shopp prefix
 	 *
 	 * @author Jonathan Davis
@@ -571,7 +655,7 @@ abstract class DatabaseObject {
 	 * @param string $data The query results
 	 * @return void
 	 **/
-	function populate($data) {
+	function populate ($data) {
 		if(empty($data)) return false;
 		foreach(get_object_vars($data) as $property => $value) {
 			if (empty($this->_datatypes[$property])) continue;
@@ -660,6 +744,52 @@ abstract class DatabaseObject {
 				!in_array($property,$ignores))
 					$this->{$property} = $db->clean($value);
 		}
+	}
+
+	function json ($ignores = array()) {
+		$this->_ignores = array_merge($this->_ignores,$ignores);
+		$this->_get_properties(true);
+		$json = array();
+		foreach ($this as $name => $property) $json[$name] = $property;
+		return $json;
+	}
+
+	/** Iterator Support **/
+
+	function current () {
+		return $this->{$this->_properties[$this->_position]};
+	}
+
+	function key () {
+		return $this->_properties[$this->_position];
+	}
+
+	function next () {
+		++$this->_position;
+	}
+
+	function rewind () {
+		$this->_position = 0;
+	}
+
+	function valid () {
+		return isset($this->{$this->_properties[$this->_position]});
+	}
+
+	private function _get_properties ($compact=false) {
+		$this->_properties = array_keys(get_object_vars($this));
+		if ($compact) $this->_properties = array_values(array_filter($this->_properties,array($this,'_ignored')));
+	}
+
+	private function _ignored ($property) {
+		return (! (
+					in_array($property,$this->_ignores)
+					|| (
+						in_array('_',$this->_ignores)
+						&& '_' == $property[0])
+					)
+				);
+
 	}
 
 	function __wakeup () {
