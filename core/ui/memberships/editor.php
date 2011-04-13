@@ -50,14 +50,15 @@
 </li>
 </script>
 
-<script id="groupPanelControls" type="text/x-jquery-tmpl">
+<script id="stagePanelControls" type="text/x-jquery-tmpl">
 <fieldset>
-<label for="advance-${index}"><input type="hidden" name="rules[${index}][settings][advance]" value="off" /><input type="checkbox" id="advance-${index}" name="rules[${index}][settings][advance]" value="on" class="advance" />&nbsp;<?php _e('Advance automatically','Shopp'); ?></label>
+<input type="hidden" name="stages[${index}][id]" value="${id}" class="id" />
+<label for="advance-${index}"><input type="hidden" name="stages[${index}][advance]" value="off" /><input type="checkbox" id="advance-${index}" name="stages[${index}][advance]" value="on" class="advance" />&nbsp;<?php _e('Advance automatically','Shopp'); ?></label>
 <span class="schedule"><label>
 <?php _e('after','Shopp'); ?></label>
- <select name="rules[${index}][settings][interval]" class="interval">
+ <select name="stages[${index}][interval]" class="interval">
 <?php for ($i=1; $i < 31; $i++): ?><option><?php echo $i; ?></option><?php endfor; ?>
-</select><select name="rules[${index}][settings][period]" class="period"></select>
+</select><select name="stages[${index}][period]" class="period"></select>
 </span>
 
 <div class="alignright actions">
@@ -99,9 +100,9 @@ var sugg_url = '<?php echo wp_nonce_url(admin_url("admin-ajax.php"), "wp_ajax_sh
 	rule_groups = <?php echo json_encode($rulegroups); ?>,
 	rule_types = <?php echo json_encode($ruletypes); ?>,
 	bill_periods = <?php echo json_encode(Price::periods()); ?>,
-	rules = <?php echo json_encode($Membership->rules); ?>,
-	GROUP_LABEL = <?php _jse('Content Access Rules','Shopp'); ?>,
-	STEP_LABEL = <?php _jse('Step','Shopp'); ?>,
+	rules = <?php echo json_encode($Membership->stages); ?>,
+	STAGE_LABEL = <?php _jse('Content Access Rules','Shopp'); ?>,
+	STAGES_LABEL = <?php _jse('Step','Shopp'); ?>,
 	DELETE_RULE_PROMPT = <?php _jse('Are you sure you want to delete this rule?','Shopp'); ?>,
 	DELETE_GROUP_PROMPT = <?php _jse('Are you sure you want to delete this rule?','Shopp'); ?>;
 

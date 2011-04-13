@@ -5,7 +5,7 @@
  */
 
 jQuery(document).ready( function() {
-	var $=jqnc(),groups = [],r_ui = $('#rules'),rulecount = 0;
+	var $=jqnc(),stages = [],r_ui = $('#rules'),rulecount = 0;
 
 	postboxes.add_postbox_toggles('shopp_page_shopp-memberships');
 	// close postboxes that should be closed
@@ -16,7 +16,7 @@ jQuery(document).ready( function() {
 		return false;
 	});
 
-	function Rule (parent,content,access,group,data) {
+	function Rule (parent,content,access,stage,data) {
 		var $=jqnc(),
 			_ = this,
 			id = rulecount++,
@@ -38,7 +38,7 @@ jQuery(document).ready( function() {
 				deleteButton.fadeOut('fast');
 			}),
 
-			accessMenu = $.tmpl('accessMenu',{name:'rules['+group+']['+content+']['+id+'][access]'}).appendTo(ui)
+			accessMenu = $.tmpl('accessMenu',{name:'stages['+stage+'][rules]['+content+']['+id+'][access]'}).appendTo(ui)
 				.find('select.access').change(function () {
 
 					var selectedClass = accessMenu.find('option:selected').attr('class');
@@ -51,7 +51,7 @@ jQuery(document).ready( function() {
 			selector = new SearchSelector(
 				content,ui,
 				sugg_url,
-				'rules['+group+']['+content+']['+id+'][content]',
+				'stages['+stage+'][rules]['+content+']['+id+'][content]',
 				'Type the name of the '+source+' '+label+' to add.',
 				'membership'
 			);
@@ -73,14 +73,15 @@ jQuery(document).ready( function() {
 		return this;
 	}
 
-	function GroupPanel (parent,data) {
-		groups.push(this);
+	function StagePanel (parent,data) {
+		stages.push(this);
 
 		var registry = {},
-			id = groups.length,
-			labeling = (groups.length > 1?STEP_LABEL:GROUP_LABEL),
-			panel = $.tmpl('panelUI',{type:'group'}),
-			controls = $.tmpl('groupPanelControls',{index:id}).appendTo(panel),
+			id = stages.length,
+			labeling = (stages.length > 1?STAGES_LABEL:STAGE_LABEL),
+			panel = $.tmpl('panelUI',{type:'stage'}),
+			recordid = (typeof data == 'undefined' || typeof data.id == 'undefined'?'':data.id),
+			controls = $.tmpl('stagePanelControls',{index:id,id:recordid}).appendTo(panel),
 			ui = panel.find('div.ui'),
 			rules = $('<ul/>').appendTo(ui),
 			panelLabel = panel.find('div.label'),
@@ -119,27 +120,32 @@ jQuery(document).ready( function() {
 				else scheduling.hide();
 			}).click(function () {
 				if (advance.attr('checked') &&
-					!panel.next().get(0)) new GroupPanel(parent);
+					!panel.next().get(0)) new StagePanel(parent);
 			}),
 
 			deleteButton = panelLabel.find('button.delete').hide().click(function () {
 				if (!confirm(DELETE_GROUP_PROMPT)) return false;
-				groups.splice(id-1,1);
+				stages.splice(id-1,1);
 				panel.fadeRemove('fast',function () {
-					if (groups.length > 1)
-						parent.find('li.group').addClass('advance').last().removeClass('advance');
-					else parent.removeClass('steps').find('li.group:last').removeClass('advance');
-					parent.find('li.group div.label').trigger('relabel');
+					if (stages.length > 1)
+						parent.find('li.stage').addClass('advance').last().removeClass('advance');
+					else parent.removeClass('steps').find('li.stage:last').removeClass('advance');
+					parent.find('li.stage div.label').trigger('relabel');
 				});
 			}),
 
 			load = function (data) {
+				var content = [];
 				$.each(data,function (type,rulesets) {
-					if (type == "settings") return;
-					$.each(rulesets,function(r,rule) {
-						new Rule(rules,type,rule.access,id,rule.content);
+					if ('content' == type) content = rulesets;
+					if ('rules' != type) return;
+					$.each(rulesets,function(content_type,access) {
+						$.each(access,function (r,rule) {
+							new Rule(rules,rule.name,rule.value,id,content[rule.id]);
+						});
 					});
 					rules.trigger('rule-change',[type]);
+					content = [];
 				});
 				if (data.settings) {
 					$.each(data.settings,function (name,value) {
@@ -186,6 +192,7 @@ jQuery(document).ready( function() {
 					$menu.find('option.'+disableClass).attr('disabled',true);
 					if ($menu.find('option:selected').attr('disabled')) {
 						$menu.find('option:enabled:first').attr('selected',true);
+						reselected = true;
 					}
 				});
 
@@ -194,20 +201,19 @@ jQuery(document).ready( function() {
 					contentMenu.find('option[value='+content+']').attr('disabled',true);
 				else contentMenu.find('option[value='+content+']').attr('disabled',false);
 
-
 				// If a different option was selected because of disabling options
 				// Rerun the entire rule change behavior to capture new active options
 				if (reselected) rules.trigger('rule-change',[content]);
 			});
 
 			panelLabel.bind('relabel',function () {
-				var label = (groups.length > 1?STEP_LABEL:GROUP_LABEL);
+				var label = (stages.length > 1?STAGES_LABEL:STAGE_LABEL);
 				panelLabel.find('label').html(label);
 			}).trigger('relabel');
 
-			if (groups.length > 1) {
+			if (stages.length > 1) {
 				parent.addClass('steps')
-					.find('li.group').addClass('advance')
+					.find('li.stage').addClass('advance')
 					.find('div.label').trigger('relabel');
 			}
 
@@ -219,21 +225,23 @@ jQuery(document).ready( function() {
 	}
 
 	$.template('panelUI',$('#panelUI'));
-	$.template('groupPanelControls',$('#groupPanelControls'));
+	$.template('stagePanelControls',$('#stagePanelControls'));
 	$.template('billPeriodOptions',$('#billPeriodOptions'));
 	$.template('accessMenu',$('#accessMenu'));
 
-	$.each(rules,function (i,data) {
-		new GroupPanel(r_ui,data);
+	$('#add-stage').click(function () {
+		new StagePanel(r_ui);
 	});
 
-	$('#add-group').click(function () {
-		new GroupPanel(r_ui);
-	});
+	if (rules) {
+		$.each(rules,function (i,data) {
+			new StagePanel(r_ui,data);
+		});
+	} else new StagePanel(r_ui);
 
 	r_ui.sortable({'axis':'y','handle':'div.label','update':function (e,ui) {
-		if (groups.length > 1) {
-			r_ui.find('li.group').addClass('advance')
+		if (stages.length > 1) {
+			r_ui.find('li.stage').addClass('advance')
 				.last().removeClass('advance')
 					.find('input.advance').attr('checked',false).change();
 		}
