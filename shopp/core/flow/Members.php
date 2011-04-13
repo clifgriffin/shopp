@@ -72,29 +72,23 @@ class Members extends AdminController {
 		$defaults = array(
 			'page' => false,
 			'deleting' => false,
-			'selected' => false,
-			'update' => false,
-			'newstatus' => false,
+			'delete' => false,
 			'pagenum' => 1,
-			'per_page' => false,
-			'start' => '',
-			'end' => '',
-			'status' => false,
+			'per_page' => 20,
 			's' => '',
-			'range' => '',
-			'startdate' => '',
-			'enddate' => '',
 		);
 
 		$args = array_merge($defaults,$_GET);
 		extract($args, EXTR_SKIP);
 
+
 		if ($page == $this->Admin->pagename('memberships')
 				&& !empty($deleting)
-				&& !empty($selected)
-				&& is_array($selected)
-				&& current_user_can('shopp_delete_memberships')) {
-			foreach($selected as $deletion) {
+				&& !empty($delete)
+				&& is_array($delete)
+				//&& current_user_can('shopp_delete_memberships')
+			) {
+			foreach($delete as $deletion) {
 				$Membership = new Membership($deletion);
 				$Membership->delete();
 			}
@@ -110,17 +104,69 @@ class Members extends AdminController {
 			$Membership->updates($_POST);
 			$Membership->save();
 
-			// foreach ($_POST['access'] as $type => $items) {
-			// 	$AccessRule = new MembershipAccess($Membership->id,$type,'allow');
-			// 	$AccessRule->save();
-			//
-			// 	// Determine the catalog entries for access taxonomy
-			// 	// foreach ($access as $id => $name) {
-			// 	//
-			// 	// }
-			// }
+			$Membership->load_stages();
+			$stages = array_keys($Membership->stages);
+
+
+			// Process updates
+			foreach ($_POST['stages'] as $i => $stage) {
+
+				if (empty($stage['id'])) {
+					$Stage = new MemberStage($Membership->id);
+					$stage['parent'] = $Membership->id;
+				} else $Stage = new MemberStage($Membership->id,$stage['id']);
+
+				$Stage->updates($stage);
+				$Stage->sortorder = $i;
+				$Stage->save();
+
+				$Stage->content = array();
+				$stage_updates[] = $Stage->id;
+
+				// If the stage data did not save, go to the next stage record
+				if (empty($Stage->id)) continue;
+
+				foreach ($stage['rules'] as $type => $rules) {
+					foreach ($rules as $rule) {
+						$AccessRule = new MemberAccess($Stage->id,$type,$rule['access']);
+						if (empty($AccessRule->id)) $AccessRule->save();
+
+						// If access rule applies to all content, skip content cataloging
+						if (strpos($AccessRule->value,'-all') !== false) continue;
+
+						// Catalog content access rules for this access taxonomy
+						foreach ($rule['content'] as $id => $name) {
+							$CatalogEntry = new MemberContent($id,$AccessRule->id,$Stage->id);
+							if (empty($CatalogEntry->id)) $CatalogEntry->save();
+							$Stage->content[$AccessRule->id][$id] = $name;
+						} // endforeach $rule['content']
+
+					}// endforeach $rules
+				} // endforeach $stage['rules']
+
+				$Stage->save(); // Secondary save for specific content rules
+
+			} // endforeach $_POST['stages']
+		}
+
+		$stageids = array_diff($stages,$stage_updates);
+		if (!empty($stageids)) {
+			$stagelist = join(',',$stageids);
+
+			// Delete Catalog entries
+			$ContentRemoval = new MemberContent();
+			$db->query("DELETE FROM $ContentRemoval->_table WHERE 0 < FIND_IN_SET(parent,'$stagelist')");
+
+			// Delete Access taxonomies
+			$AccessRemoval = new MemberAccess();
+			$db->query("DELETE FROM $AccessRemoval->_table WHERE 0 < FIND_IN_SET(parent,'$stagelist')");
+
+			// Remove old stages
+			$StageRemoval = new MemberStage();
+			$db->query("DELETE FROM $StageRemoval->_table WHERE 0 < FIND_IN_SET(id,'$stagelist')");
 
 		}
+
 
 		$pagenum = absint( $pagenum );
 		if ( empty($pagenum) )
@@ -169,7 +215,7 @@ class Members extends AdminController {
 		// }
 		// if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 
-		$count = $db->query("SELECT count(*) as total FROM $customer_table AS c $where");
+		$count = $db->query("SELECT count(*) as total FROM $Membership->_table AS c $where");
 		$query = "SELECT *
 					FROM $Membership->_table
 					WHERE parent='$Membership->parent'
@@ -177,7 +223,7 @@ class Members extends AdminController {
 						AND type='$Membership->type'
 					LIMIT $index,$per_page";
 
-		$Memberships = $db->query($query,AS_ARRAY);
+		$Memberships = $db->query($query,'array');
 
 		$num_pages = ceil($count->total / $per_page);
 		$page_links = paginate_links( array(
@@ -260,13 +306,23 @@ class Members extends AdminController {
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_memberships')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-
 		if ($_GET['id'] != "new") {
 			$Membership = new Membership($_GET['id']);
 			if (empty($Membership->id))
 				wp_die(__('The requested membership record does not exist.','Shopp'));
-		} else $Customer = new Customer();
+			$Membership->load_stages();
+			$Membership->load_access();
+		} else $Membership = new Membership();
 
+		$skip = array('created','modified','numeral','context','type','sortorder','parent');
+		foreach ($Membership->stages as &$Stage) {
+			foreach ($Stage->rules as &$rules) {
+				foreach ($rules as &$Access)
+					if (method_exists($Access,'json'))
+						$Access = $Access->json($skip);
+			}
+			$Stage = $Stage->json($skip);
+		}
 		include(SHOPP_ADMIN_PATH."/memberships/editor.php");
 	}
 

@@ -33,7 +33,7 @@ add_meta_box('membership-sources', __('Content','Shopp').$Admin->boxhelp('member
 function rules_meta_box ($Membership) {
 ?>
 <ul id="rules"></ul>
-<input type="button" id="add-group" name="add-group" value="<?php _e('Add Step','Shopp'); ?>" class="button-secondary" />
+<input type="button" id="add-stage" name="add-stage" value="<?php _e('Add Step','Shopp'); ?>" class="button-secondary" />
 <?php
 }
 add_meta_box('membership-rules', __('Access','Shopp').$Admin->boxhelp('membership-editor-rules'), 'rules_meta_box', 'shopp_page_shopp-memberships', 'normal', 'core');
