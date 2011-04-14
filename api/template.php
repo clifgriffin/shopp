@@ -67,6 +67,8 @@ function shopp () {
 		default: $Object = apply_filters('shopp_tag_domain',$Object,$object);
 	}
 
+	if ('has-context' == $property) return ($Object);
+
 	if (!$Object) new ShoppError("The shopp('$object') tag cannot be used in this context because the object responsible for handling it doesn't exist.",'shopp_tag_error',SHOPP_ADMIN_ERR);
 	else {
 		switch (strtolower($object)) {
