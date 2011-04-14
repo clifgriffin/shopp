@@ -264,7 +264,7 @@ class Product extends DatabaseObject {
 	 * @param array $options shopp() tag option list
 	 * @return void
 	 **/
-	function pricing ($options = false) {
+	function pricing ($options = array()) {
 
 		// Variation range index/properties
 		$varranges = array('price' => 'price','saleprice'=>'promoprice');
