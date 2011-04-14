@@ -637,7 +637,7 @@ class ShippingPackager {
 			$this->packages[] = new ShippingPackage(($type == 'dims'));
 			$this->all_add($item,$type);
 		} else { // never fit, ship separately
-			$current->limits = $default;
+			$current->limits = $defaults;
 			$current->add($item);
 			$current->full = true;
 		}
