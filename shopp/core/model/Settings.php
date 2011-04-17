@@ -5,15 +5,15 @@
  * Shopp settings manager
  *
  * @author Jonathan Davis
- * @version 1.1
- * @copyright Ingenesis Limited, 28 March, 2008
+ * @version 1.2
+ * @copyright 2008-2011 Ingenesis Limited
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
  * @since 1.0
  * @subpackage settings
  **/
 class Settings extends DatabaseObject {
-	static $table = "setting";
+	static $table = "meta";
 
 	var $registry = array();	// Registry of setting objects
 	var $available = true;		// Flag when database tables don't exist
@@ -46,7 +46,7 @@ class Settings extends DatabaseObject {
 	 * @return boolean
 	 **/
 	function availability () {
-		$this->available = $this->init('setting');
+		$this->available = $this->init('meta');
 		return $this->available;
 	}
 
@@ -62,16 +62,22 @@ class Settings extends DatabaseObject {
 	 *
 	 * @return boolean
 	 **/
-	function load ($name="") {
-		$db = DB::get();
-		if (!empty($name)) $results = $db->query("SELECT name,value FROM $this->_table WHERE name='$name'",AS_ARRAY,false);
-		else $results = $db->query("SELECT name,value FROM $this->_table WHERE autoload='on'",AS_ARRAY,false);
+	function load ($name='') {
+		$Setting = $this->setting();
 
-		if (!is_array($results) || sizeof($results) == 0) return false;
-		while(list($key,$entry) = each($results)) $settings[$entry->name] = $this->restore($entry->value);
+		$where = array("context='$Setting->context'","type='$Setting->type'");
+		if (!empty($name)) $where[] = "name='".DB::clean($name)."'";
+		$where = join(' AND ',$where);
+		$settings = DB::query("SELECT name,value FROM $this->_table WHERE $where",'array',array(&$this,'register'));
+
+		if (!is_array($settings) || count($settings) == 0) return false;
 
 		if (!empty($settings)) $this->registry = array_merge($this->registry,$settings);
 		return true;
+	}
+
+	function register (&$records,$record) {
+		$records[$record->name] = $this->restore($record->value);
 	}
 
 	/**
@@ -85,17 +91,15 @@ class Settings extends DatabaseObject {
 	 * @param boolean $autoload (optional) Automatically load the setting - default true
 	 * @return boolean
 	 **/
-	function add ($name, $value,$autoload = true) {
-		$db = DB::get();
+	function add ($name, $value) {
 		$Setting = $this->setting();
 		$Setting->name = $name;
-		$Setting->value = $db->clean($value);
-		$Setting->autoload = ($autoload)?'on':'off';
+		$Setting->value = DB::clean($value);
 
-		$data = $db->prepare($Setting);
+		$data = DB::prepare($Setting);
 		$dataset = DatabaseObject::dataset($data);
-		if ($db->query("INSERT $this->_table SET $dataset"))
-		 	$this->registry[$name] = $this->restore($db->clean($value));
+		if (DB::query("INSERT $this->_table SET $dataset"))
+		 	$this->registry[$name] = $this->restore(DB::clean($value));
 		else return false;
 		return true;
 	}
@@ -111,18 +115,20 @@ class Settings extends DatabaseObject {
 	 * @return boolean
 	 **/
 	function update ($name,$value) {
-		$db = DB::get();
 
 		if ($this->get($name) == $value) return true;
 
 		$Setting = $this->setting();
 		$Setting->name = $name;
-		$Setting->value = $db->clean($value);
-		unset($Setting->autoload);
-		$data = $db->prepare($Setting);				// Prepare the data for db entry
+		$Setting->value = DB::clean($value);
+		$data = DB::prepare($Setting);				// Prepare the data for db entry
 		$dataset = DatabaseObject::dataset($data);	// Format the data in SQL
 
-		if ($db->query("UPDATE $this->_table SET $dataset WHERE name='$Setting->name'"))
+		$where = array("context='$Setting->context'","type='$Setting->type'");
+		if (!empty($name)) $where[] = "name='".DB::clean($name)."'";
+		$where = join(' AND ',$where);
+
+		if (DB::query("UPDATE $this->_table SET $dataset WHERE $where"))
 			$this->registry[$name] = $this->restore($value); // Update the value in the registry
 		else return false;
 		return true;
@@ -143,9 +149,9 @@ class Settings extends DatabaseObject {
 	 * @param boolean $autoload (optional) The autoload setting - true by default
 	 * @return void
 	 **/
-	function save ($name,$value,$autoload=true) {
+	function save ($name,$value) {
 		// Update or Insert as needed
-		if ($this->get($name) === false) $this->add($name,$value,$autoload);
+		if ($this->get($name) === false) $this->add($name,$value);
 		else $this->update($name,$value);
 	}
 
@@ -175,9 +181,15 @@ class Settings extends DatabaseObject {
 	 * @return boolean
 	 **/
 	function delete ($name) {
-		$db = DB::get();
-		unset($this->registry[$name]);
-		if (!$db->query("DELETE FROM $this->_table WHERE name='$name'")) return false;
+		if (empty($name)) return false;
+		$Setting = $this->setting();
+
+		$where = array("context='$Setting->context'","type='$Setting->type'");
+		if (!empty($name)) $where[] = "name='".DB::clean($name)."'";
+		$where = join(' AND ',$where);
+
+		if (!DB::query("DELETE FROM $this->_table WHERE $where")) return false;
+		if (isset($this->registry[$name])) unset($this->registry[$name]);
 		return true;
 	}
 
@@ -192,24 +204,16 @@ class Settings extends DatabaseObject {
 	 *
 	 * @return mixed The value of the setting
 	 **/
-	function get ($name) {
-		global $Shopp;
+	function &get ($name) {
+		if (isset($this->registry[$name])) return $this->registry[$name];
+		else $this->load($name);
 
-		$value = false;
-		if (isset($this->registry[$name])) {
-			return $this->registry[$name];
-		} elseif ($this->load($name)) {
-			$value = $this->registry[$name];
-		}
+		if (isset($this->registry[$name])) return $this->registry[$name];
 
 		// Return false and add an entry to the registry
 		// to avoid repeat database queries
-		if (!isset($this->registry[$name])) {
-			$this->registry[$name] = false;
-			return false;
-		}
-
-		return $value;
+		$this->registry[$name] = false;
+		return $this->registry[$name];
 	}
 
 	/**
@@ -244,9 +248,10 @@ class Settings extends DatabaseObject {
 	function setting () {
 		$setting->_datatypes = array("name" => "string", "value" => "string", "autoload" => "list",
 			"created" => "date", "modified" => "date");
+		$setting->context = 'shopp';
+		$setting->type = 'setting';
 		$setting->name = null;
 		$setting->value = null;
-		$setting->autoload = null;
 		$setting->created = null;
 		$setting->modified = null;
 		return $setting;
@@ -265,6 +270,15 @@ class Settings extends DatabaseObject {
 		foreach ($_POST['settings'] as $setting => $value)
 			$this->save($setting,$value);
 	}
+
+	function legacy ($name) {
+		$table = DatabaseObject::tablename('setting');
+		echo "SELECT value FROM $table WHERE name='$name'";
+		if ($result = DB::query("SELECT value FROM $table WHERE name='$name'",'object'))
+			return $result->value;
+		return false;
+	}
+
 
 } // END class Settings
 

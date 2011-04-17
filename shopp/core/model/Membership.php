@@ -25,18 +25,61 @@ class Membership extends DatabaseObject  {
 
 	var $_table = false;	// Fully qualified table name
 	var $_settings = array('role','continuity');
+
 	var $stages = array();		// Loaded MemberStage(s) associated with this membership
 
 	// Meta table properties
 	var $id = false;
 	var $parent = 0;			// Linking reference to the root record
 	var $context= 'membership';	// The meta context
-	var $type = 'membership';	// Type (class) of object
+	var $type = 'memberplan';	// Type (class) of object
 	var $name = '';
 
 
 	/**
-	 * Membership constructor
+	 * MemberPlan constructor
+	 *
+	 * @author Jonathan Davis
+	 *
+	 * @return void
+	 **/
+	function __construct ($id=false,$key='id') {
+		$this->init(self::$table);
+
+		// Packed object settings
+		$this->role = 'subscriber';
+		$this->continuity = 'off';
+
+		$this->load($id,$key);
+	}
+
+}
+
+
+/**
+ * MemberPlan
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ * @package membership
+ **/
+class MemberPlan extends DatabaseObject  {
+	static $table = 'meta';
+
+	var $_table = false;	// Fully qualified table name
+	var $_settings = array('role','continuity');
+	var $stages = array();		// Loaded MemberStage(s) associated with this membership
+
+	// Meta table properties
+	var $id = false;
+	var $parent = 0;			// Linking reference to the root record
+	var $context= 'membership';	// The meta context
+	var $type = 'memberplan';	// Type (class) of object
+	var $name = '';
+
+
+	/**
+	 * MemberPlan constructor
 	 *
 	 * @author Jonathan Davis
 	 *
@@ -91,7 +134,6 @@ class Membership extends DatabaseObject  {
 	// 	$query = "SELECT * FROM $ContentLoader->_table WHERE $taxonomy";
 	// 	$this->content = $db->query($query,'array', array($this,'map_stageaccess'));
 	// }
-
 
 	/**
 	 * Saves updates or creates records for the defined object properties
@@ -161,7 +203,7 @@ class Membership extends DatabaseObject  {
 		return ($property[0] != "_");
 	}
 
-} // END class Membership
+} // END class MemberPlan
 
 /**
  * MemberStage
@@ -170,7 +212,7 @@ class Membership extends DatabaseObject  {
  * @since 1.2
  * @package membership
  **/
-class MemberStage extends Membership  {
+class MemberStage extends MemberPlan  {
 	static $table = 'meta';
 
 	var $_table = false;	// Fully qualified table name

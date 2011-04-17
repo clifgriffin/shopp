@@ -1,14 +1,19 @@
-<?php $setting = DatabaseObject::tablename('setting'); ?>
-DROP TABLE IF EXISTS <?php echo $setting; ?>;
-CREATE TABLE <?php echo $setting; ?> (
+<?php $meta = DatabaseObject::tablename('meta'); ?>
+DROP TABLE IF EXISTS <?php echo $meta; ?>;
+CREATE TABLE <?php echo $meta; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
+	parent bigint(20) unsigned NOT NULL default '0',
+	context varchar(16) NOT NULL default 'product',
+	type varchar(16) NOT NULL default 'meta',
 	name varchar(255) NOT NULL default '',
 	value longtext NOT NULL,
-	autoload enum('on','off') NOT NULL,
+	numeral decimal(16,6) NOT NULL default '0.0000',
+	sortorder int(10) unsigned NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
 	PRIMARY KEY id (id),
-	KEY name (name)
+	KEY name (name),
+	KEY lookup (parent,context,type)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
 <?php $product = DatabaseObject::tablename('product'); ?>
@@ -76,24 +81,6 @@ CREATE TABLE <?php echo $price; ?> (
 	KEY context (context)
 ) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
 
-<?php $meta = DatabaseObject::tablename('meta'); ?>
-DROP TABLE IF EXISTS <?php echo $meta; ?>;
-CREATE TABLE <?php echo $meta; ?> (
-	id bigint(20) unsigned NOT NULL auto_increment,
-	parent bigint(20) unsigned NOT NULL default '0',
-	context varchar(16) NOT NULL default 'product',
-	type varchar(16) NOT NULL default 'meta',
-	name varchar(255) NOT NULL default '',
-	value longtext NOT NULL,
-	numeral decimal(16,6) NOT NULL default '0.0000',
-	sortorder int(10) unsigned NOT NULL default '0',
-	created datetime NOT NULL default '0000-00-00 00:00:00',
-	modified datetime NOT NULL default '0000-00-00 00:00:00',
-	PRIMARY KEY id (id),
-	KEY name (name),
-	KEY lookup (parent,context,type)
-) ENGINE=MyIsAM DEFAULT CHARSET=utf8;
-
 <?php $index = DatabaseObject::tablename('index'); ?>
 DROP TABLE IF EXISTS <?php echo $index; ?>;
 CREATE TABLE <?php echo $index; ?> (
@@ -138,7 +125,7 @@ CREATE TABLE <?php echo $catalog; ?> (
 	id bigint(20) unsigned NOT NULL auto_increment,
 	product bigint(20) unsigned NOT NULL default '0',
 	parent bigint(20) unsigned NOT NULL default '0',
-	taxonomy int(10) unsigned NOT NULL default '0',
+	taxonomy bigint(20) unsigned NOT NULL default '0',
 	priority int(10) NOT NULL default '0',
 	created datetime NOT NULL default '0000-00-00 00:00:00',
 	modified datetime NOT NULL default '0000-00-00 00:00:00',
@@ -315,3 +302,19 @@ CREATE TABLE <?php echo $promo; ?> (
 	PRIMARY KEY id (id),
 	KEY catalog (status,target)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+<?php $ownership = DatabaseObject::tablename('ownership'); ?>
+DROP TABLE IF EXISTS <?php echo $ownership; ?>;
+CREATE TABLE <?php echo $ownership; ?> (
+	id bigint(20) unsigned NOT NULL auto_increment,
+	customer bigint(20) unsigned NOT NULL default '0',
+	purchase bigint(20) unsigned NOT NULL default '0',
+	parent bigint(20) unsigned NOT NULL default '0',
+	taxonomy int(10) unsigned NOT NULL default '0',
+	priority int(10) NOT NULL default '0',
+	created datetime NOT NULL default '0000-00-00 00:00:00',
+	modified datetime NOT NULL default '0000-00-00 00:00:00',
+	PRIMARY KEY id (id),
+	KEY type (customer,taxonomy),
+	KEY purchased (customer,purchase)
+) ENGINE=MyIsAM DEFAULT CHARSET=utf8;

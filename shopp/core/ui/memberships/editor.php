@@ -8,14 +8,14 @@
 		<form name="membership" id="membership" action="<?php echo add_query_arg('page',$this->Admin->pagename('memberships'),admin_url('admin.php')); ?>" method="post">
 			<?php wp_nonce_field('shopp-save-membership'); ?>
 
-			<div class="hidden"><input type="hidden" name="id" value="<?php echo $Membership->id; ?>" /></div>
+			<div class="hidden"><input type="hidden" name="id" value="<?php echo $MemberPlan->id; ?>" /></div>
 
 			<div id="poststuff" class="metabox-holder has-right-sidebar">
 
 				<div id="side-info-column" class="inner-sidebar">
 				<?php
 				do_action('submitpage_box');
-				$side_meta_boxes = do_meta_boxes('shopp_page_shopp-memberships', 'side', $Membership);
+				$side_meta_boxes = do_meta_boxes('shopp_page_shopp-memberships', 'side', $MemberPlan);
 				?>
 				</div>
 
@@ -23,13 +23,13 @@
 				<div id="post-body-content" class="has-sidebar-content">
 					<div id="titlediv">
 						<div id="titlewrap">
-							<input name="name" id="title" type="text" value="<?php echo esc_attr($Membership->name); ?>" size="30" tabindex="1" autocomplete="off" />
+							<input name="name" id="title" type="text" value="<?php echo esc_attr($MemberPlan->name); ?>" size="30" tabindex="1" autocomplete="off" />
 						</div>
 					</div>
 
 				<?php
-				do_meta_boxes('shopp_page_shopp-memberships', 'normal', $Membership);
-				do_meta_boxes('shopp_page_shopp-memberships', 'advanced', $Membership);
+				do_meta_boxes('shopp_page_shopp-memberships', 'normal', $MemberPlan);
+				do_meta_boxes('shopp_page_shopp-memberships', 'advanced', $MemberPlan);
 				wp_nonce_field( 'closedpostboxes', 'closedpostboxesnonce', false );
 				?>
 
@@ -100,7 +100,7 @@ var sugg_url = '<?php echo wp_nonce_url(admin_url("admin-ajax.php"), "wp_ajax_sh
 	rule_groups = <?php echo json_encode($rulegroups); ?>,
 	rule_types = <?php echo json_encode($ruletypes); ?>,
 	bill_periods = <?php echo json_encode(Price::periods()); ?>,
-	rules = <?php echo json_encode($Membership->stages); ?>,
+	rules = <?php echo json_encode($MemberPlan->stages); ?>,
 	STAGE_LABEL = <?php _jse('Content Access Rules','Shopp'); ?>,
 	STAGES_LABEL = <?php _jse('Step','Shopp'); ?>,
 	DELETE_RULE_PROMPT = <?php _jse('Are you sure you want to delete this rule?','Shopp'); ?>,

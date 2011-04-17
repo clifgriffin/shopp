@@ -209,6 +209,7 @@ class ShoppInstallation extends FlowController {
 	function upgrades () {
 		$db = DB::get();
 		$db_version = intval($this->Settings->get('db_version'));
+		if (!$db_version) $db_version = intval($this->Settings->legacy('db_version'));
 
 		// No upgrades required
 		if ($db_version == DB::$version) return;
@@ -220,7 +221,7 @@ class ShoppInstallation extends FlowController {
 		$this->upschema();
 
 		if ($db_version < 1100) $this->upgrade_110();
-		if ($db_version < 1120) $this->upgrade_120();
+		if ($db_version < 1200) $this->upgrade_120();
 
 	}
 
@@ -540,7 +541,18 @@ class ShoppInstallation extends FlowController {
 
 	function upgrade_120 () {
 		$db =& DB::get();
+
 		$db_version = intval($this->Settings->get('db_version'));
+		if (!$db_version) $db_version = intval($this->Settings->legacy('db_version'));
+
+		if ($db_version <= 1130) {
+			// Upgrade price tag to use settings column
+			$meta_table = DatabaseObject::tablename('meta');
+			$setting_table = DatabaseObject::tablename('setting');
+			DB::query("INSERT INTO $meta_table (context,type,name,value,created,modified) SELECT 'shopp','setting',name,value,created,modified FROM $setting_table");
+			$this->Settings->load();
+			$db_version = intval($this->Settings->get('db_version'));
+		}
 
 		if ($db_version <= 1120) {
 			// Move tags to meta table

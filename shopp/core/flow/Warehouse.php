@@ -46,7 +46,8 @@ class Warehouse extends AdminController {
 			do_action('shopp_inventory_manager_scripts');
 			add_action('admin_print_scripts',array(&$this,'inventory_cols'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
-		add_action('load-shopp_page_shopp-products',array(&$this,'workflow'));
+
+		add_action('load-toplevel_page_shopp-products',array(&$this,'workflow'));
 		do_action('shopp_product_admin_scripts');
 
 		// Load the search model for indexing
@@ -116,6 +117,7 @@ class Warehouse extends AdminController {
 		if (isset($id) && $id != "new") {
 			$Shopp->Product = new Product($id);
 			$Shopp->Product->load_data(array('prices','specs','categories','tags'));
+
 		} else {
 			$Shopp->Product = new Product();
 			$Shopp->Product->status = "publish";
@@ -281,7 +283,6 @@ class Warehouse extends AdminController {
 			// Load the products
 			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' AND pt.context != 'addon' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.taxonomy='$ct_id' WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
 			$Products = $db->query($query,AS_ARRAY);
-
 			$productcount = $db->query("SELECT FOUND_ROWS() as total");
 
 		}
