@@ -7,7 +7,7 @@ Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
 Author URI: http://ingenesis.net
 
-	Portions created by Ingenesis Limited are Copyright © 2008-2010 by Ingenesis Limited
+	Portions created by Ingenesis Limited are Copyright © 2008-2011 by Ingenesis Limited
 
 	This file is part of Shopp.
 
@@ -72,6 +72,8 @@ require('api/collection.php');
 // Start up the core
 $Shopp = new Shopp();
 do_action('shopp_loaded');
+
+
 
 /**
  * Shopp class
@@ -207,7 +209,6 @@ class Shopp {
 	 * @return void
 	 **/
 	function init () {
-
 		$this->Errors = new ShoppErrors($this->Settings->get('error_logging'));
 		$this->Order = ShoppingObject::__new('Order');
 		$this->Promotions = ShoppingObject::__new('CartPromotions');
