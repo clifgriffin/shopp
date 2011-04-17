@@ -30,28 +30,28 @@
 		<tfoot>
 		<tr><?php print_column_headers('shopp_page_shopp-memberships',false); ?></tr>
 		</tfoot>
-	<?php if (sizeof($Memberships) > 0): ?>
+	<?php if (sizeof($MemberPlans) > 0): ?>
 		<tbody id="customers-table" class="list orders">
 		<?php
 			$hidden = get_hidden_columns('shopp_page_shopp-memberships');
 
 			$even = false;
-			foreach ($Memberships as $Membership):
-				$MembershipName = empty($Membership->name)?'('.__('no membership name','Shopp').')':$Membership->name;
+			foreach ($MemberPlans as $MemberPlan):
+				$MemberPlanName = empty($MemberPlan->name)?'('.__('no membership name','Shopp').')':$MemberPlan->name;
 
-				$editurl =  add_query_arg(array('page'=>'shopp-memberships','id'=>$Membership->id),admin_url('admin.php'));
+				$editurl =  add_query_arg(array('page'=>'shopp-memberships','id'=>$MemberPlan->id),admin_url('admin.php'));
 				$deleteurl = esc_attr(add_query_arg(
-						array_merge($_GET,array('page'=>'shopp-memberships','delete[]'=>$Membership->id,'deleting'=>'membership')),
+						array_merge($_GET,array('page'=>'shopp-memberships','delete[]'=>$MemberPlan->id,'deleting'=>'membership')),
 						admin_url('admin.php')
 						));
 
 			?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
-			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Membership->id; ?>' /></th>
-			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($MembershipName); ?>&quot;'><?php echo esc_html($MembershipName); ?></a>
+			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $MemberPlan->id; ?>' /></th>
+			<td class="name column-name"><a class='row-title' href='<?php echo $editurl; ?>' title='<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($MemberPlanName); ?>&quot;'><?php echo esc_html($MemberPlanName); ?></a>
 				<div class="row-actions">
-					<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($MembershipName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
-					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($MembershipName); ?>&quot;' href="<?php echo esc_url($deleteurl); ?>" rel="<?php echo $Membership->id; ?>"><?php _e('Delete','Shopp'); ?></a></span>
+					<span class='edit'><a href="<?php echo esc_url($editurl); ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($MemberPlanName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
+					<span class='delete'><a class='submitdelete' title='<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($MemberPlanName); ?>&quot;' href="<?php echo esc_url($deleteurl); ?>" rel="<?php echo $MemberPlan->id; ?>"><?php _e('Delete','Shopp'); ?></a></span>
 				</div>
 			</td>
 			<td class="type column-type<?php echo in_array('type',$hidden)?' hidden':''; ?>"><?php echo esc_html($Customer->user_login); ?></td>

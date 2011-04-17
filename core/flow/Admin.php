@@ -91,10 +91,10 @@ class AdminFlow extends FlowController {
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
 		$this->addpage('customers',__('Customers','Shopp'),'Account','Managing Customers');
-		$this->addpage('memberships',__('Memberships','Shopp'),'Members','Memberships & Access');
 		$this->addpage('products',__('Products','Shopp'),'Warehouse','Editing a Product','products');
 		$this->addpage('categories',__('Categories','Shopp'),'Categorize','Editing a Category','products');
 		$this->addpage('promotions',__('Promotions','Shopp'),'Promote','Running Sales & Promotions','products');
+		$this->addpage('memberships',__('Memberships','Shopp'),'Members','Memberships & Access','products');
 		$this->addpage('settings',__('Settings','Shopp'),'Setup','General Settings','settings');
 		$this->addpage('settings-payments',__('Payments','Shopp'),'Setup','Payments Settings',"settings");
 		$this->addpage('settings-shipping',__('Shipping','Shopp'),'Setup','Shipping Settings',"settings");
@@ -206,11 +206,11 @@ class AdminFlow extends FlowController {
 	function topmenu ($name,$label,$access,$page,$position=50) {
 		global $Shopp,$menu;
 
-		do_action('shopp_add_topmenu_'.$page->page);
+		do_action('shopp_add_topmenu_'.$page);
 
 		while (isset($menu[$position])) $position++;
 
-		$this->Menus[$page->page] = add_menu_page(
+		$this->Menus[$page] = add_menu_page(
 			$label,										// Page title
 			$label,										// Menu title
 			$access,									// Access level

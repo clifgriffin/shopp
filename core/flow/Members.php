@@ -81,7 +81,6 @@ class Members extends AdminController {
 		$args = array_merge($defaults,$_GET);
 		extract($args, EXTR_SKIP);
 
-
 		if ($page == $this->Admin->pagename('memberships')
 				&& !empty($deleting)
 				&& !empty($delete)
@@ -89,8 +88,8 @@ class Members extends AdminController {
 				//&& current_user_can('shopp_delete_memberships')
 			) {
 			foreach($delete as $deletion) {
-				$Membership = new Membership($deletion);
-				$Membership->delete();
+				$MemberPlan = new MemberPlan($deletion);
+				$MemberPlan->delete();
 			}
 		}
 
@@ -98,23 +97,23 @@ class Members extends AdminController {
 			check_admin_referer('shopp-save-membership');
 
 			if ($_POST['id'] != "new") {
-				$Membership = new Membership($_POST['id']);
-			} else $Membership = new Membership();
+				$MemberPlan = new MemberPlan($_POST['id']);
+			} else $MemberPlan = new MemberPlan();
 
-			$Membership->updates($_POST);
-			$Membership->save();
+			$MemberPlan->updates($_POST);
+			$MemberPlan->save();
 
-			$Membership->load_stages();
-			$stages = array_keys($Membership->stages);
+			$MemberPlan->load_stages();
+			$stages = array_keys($MemberPlan->stages);
 
 
 			// Process updates
 			foreach ($_POST['stages'] as $i => $stage) {
 
 				if (empty($stage['id'])) {
-					$Stage = new MemberStage($Membership->id);
-					$stage['parent'] = $Membership->id;
-				} else $Stage = new MemberStage($Membership->id,$stage['id']);
+					$Stage = new MemberStage($MemberPlan->id);
+					$stage['parent'] = $MemberPlan->id;
+				} else $Stage = new MemberStage($MemberPlan->id,$stage['id']);
 
 				$Stage->updates($stage);
 				$Stage->sortorder = $i;
@@ -186,8 +185,8 @@ class Members extends AdminController {
 			$ends = mktime(23,59,59,$month,$day,$year);
 		}
 
-		$membership_table = DatabaseObject::tablename(Membership::$table);
-		$Membership = new Membership();
+		$membership_table = DatabaseObject::tablename(MemberPlan::$table);
+		$MemberPlan = new MemberPlan();
 
 		$where = '';
 		// if (!empty($s)) {
@@ -215,15 +214,15 @@ class Members extends AdminController {
 		// }
 		// if (!empty($starts) && !empty($ends)) $where .= ((empty($where))?"WHERE ":" AND ").' (UNIX_TIMESTAMP(c.created) >= '.$starts.' AND UNIX_TIMESTAMP(c.created) <= '.$ends.')';
 
-		$count = $db->query("SELECT count(*) as total FROM $Membership->_table AS c $where");
+		$count = $db->query("SELECT count(*) as total FROM $MemberPlan->_table AS c $where");
 		$query = "SELECT *
-					FROM $Membership->_table
-					WHERE parent='$Membership->parent'
-						AND context='$Membership->context'
-						AND type='$Membership->type'
+					FROM $MemberPlan->_table
+					WHERE parent='$MemberPlan->parent'
+						AND context='$MemberPlan->context'
+						AND type='$MemberPlan->type'
 					LIMIT $index,$per_page";
 
-		$Memberships = $db->query($query,'array');
+		$MemberPlans = $db->query($query,'array');
 
 		$num_pages = ceil($count->total / $per_page);
 		$page_links = paginate_links( array(
@@ -307,15 +306,15 @@ class Members extends AdminController {
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
 		if ($_GET['id'] != "new") {
-			$Membership = new Membership($_GET['id']);
-			if (empty($Membership->id))
+			$MemberPlan = new MemberPlan($_GET['id']);
+			if (empty($MemberPlan->id))
 				wp_die(__('The requested membership record does not exist.','Shopp'));
-			$Membership->load_stages();
-			$Membership->load_access();
-		} else $Membership = new Membership();
+			$MemberPlan->load_stages();
+			$MemberPlan->load_access();
+		} else $MemberPlan = new MemberPlan();
 
 		$skip = array('created','modified','numeral','context','type','sortorder','parent');
-		foreach ($Membership->stages as &$Stage) {
+		foreach ($MemberPlan->stages as &$Stage) {
 			foreach ($Stage->rules as &$rules) {
 				foreach ($rules as &$Access)
 					if (method_exists($Access,'json'))

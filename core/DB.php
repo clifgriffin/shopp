@@ -5,7 +5,7 @@
  * Database management classes
  *
  * @author Jonathan Davis
- * @version 1.0
+ * @version 1.2
  * @copyright Ingenesis Limited, 28 March, 2008
  * @license GNU GPL version 3 (or later) {@see license.txt}
  * @package shopp
@@ -29,21 +29,22 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @package shopp
  **/
 class DB {
+	static $version = 1130;	// Database schema version
+
 	private static $instance;
-	static $version = 1128;
-
 	// Define datatypes for MySQL
-	var $_datatypes = array("int" => array("int", "bit", "bool", "boolean"),
-							"float" => array("float", "double", "decimal", "real"),
-							"string" => array("char", "binary", "varbinary", "text", "blob"),
-							"list" => array("enum","set"),
-							"date" => array("date", "time", "year")
-							);
+	private static $datatypes = array(
+		'int'		=> array('int', 'bit', 'bool', 'boolean'),
+		'float'		=> array('float', 'double', 'decimal', 'real'),
+		'string'	=> array('char', 'binary', 'text', 'blob'),
+		'list' 		=> array('enum','set'),
+		'date' 		=> array('date', 'time', 'year')
+	);
 
-	var $_formats = array('auto','object','array');
 	var $results = array();
 	var $queries = array();
 	var $dbh = false;
+	var $table_prefix = '';
 
 	/**
 	 * Initializes the DB object
@@ -59,6 +60,7 @@ class DB {
 		global $wpdb;
 		if (isset($wpdb->dbh)) {
 			$this->dbh = $wpdb->dbh;
+			$this->table_prefix = $wpdb->get_blog_prefix();
 			$this->mysql = mysql_get_server_info();
 		}
 	}
@@ -151,11 +153,11 @@ class DB {
 	 * @param string|array|object $data Data to be escaped
 	 * @return string Database-safe data
 	 **/
-	function escape ($data) {
+	function escape($data) {
 		// Prevent double escaping by stripping any existing escapes out
-		if (is_array($data)) array_map(array(&$this,'escape'), $data);
+		if (is_array($data)) array_map(array('DB','escape'), $data);
 		elseif (is_object($data)) {
-			foreach (get_object_vars($data) as $p => $v) $data->{$p} = $this->escape($v);
+			foreach (get_object_vars($data) as $p => $v) $data->{$p} = DB::escape($v);
 		} else $data = addslashes(stripslashes($data));
 		return $data;
 	}
@@ -170,7 +172,7 @@ class DB {
 	 * @return string Cleaned up data
 	 **/
 	function clean ($data) {
-		if (is_array($data)) array_map(array(&$this,'clean'), $data);
+		if (is_array($data)) array_map(array('DB','clean'), $data);
 		if (is_string($data)) $data = rtrim($data);
 		return $data;
 	}
@@ -186,18 +188,19 @@ class DB {
 	 * @return array|object The query results as an object or array of result rows
 	 **/
 	function query ($query, $format='auto', $callback=false) {
+		$db = DB::get();
 		$args = func_get_args();
 		$args = (count($args) > 3)?array_slice($args,3):array();
 
 		// Supports deprecated AS_ARRAY argument
 		if ($format === AS_ARRAY) $format = 'array';
 
-		if (SHOPP_QUERY_DEBUG) $this->queries[] = $query;
-		$result = @mysql_query($query, $this->dbh);
+		if (SHOPP_QUERY_DEBUG) $db->queries[] = $query;
+		$result = @mysql_query($query, $db->dbh);
 		if (SHOPP_QUERY_DEBUG && class_exists('ShoppError')) new ShoppError($query,'shopp_query_debug',SHOPP_DEBUG_ERR);
 
 		// Error handling
-		if ($this->dbh && $error = mysql_error($this->dbh)) {
+		if ($db->dbh && $error = mysql_error($db->dbh)) {
 			if (class_exists('ShoppError')) new ShoppError(sprintf(__('Query failed: %s - DB Query: %s','Shopp'),$error, str_replace("\n","",$query)),'shopp_query_error',SHOPP_DB_ERR);
 			return false;
 		}
@@ -206,13 +209,13 @@ class DB {
 
 		// Handle special cases
 		if ( preg_match("/^\\s*(create|drop|insert|delete|update|replace) /i",$query) ) {
-			$this->affected = mysql_affected_rows();
+			$db->affected = mysql_affected_rows();
 			if ( preg_match("/^\\s*(insert|replace) /i",$query) ) {
-				$insert = @mysql_fetch_object(@mysql_query("SELECT LAST_INSERT_ID() AS id", $this->dbh));
+				$insert = @mysql_fetch_object(@mysql_query("SELECT LAST_INSERT_ID() AS id", $db->dbh));
 				return $insert->id;
 			}
 
-			if ($this->affected > 0) return $this->affected;
+			if ($db->affected > 0) return $db->affected;
 			else return true;
 		}
 
@@ -221,25 +224,24 @@ class DB {
 
 		// Setup record processing callback
 		if (is_string($callback) && !function_exists($callback))
-			$callback = array($this,$callback);
+			$callback = array('DB',$callback);
 
 		if (!$callback || (is_array($callback) && !method_exists($callback[0],$callback[1])))
-			$callback =  array($this,'auto');
+			$callback =  array('DB','auto');
 
-		$this->results = array();
+		$records = array();
 
 		while ($row = @mysql_fetch_object($result)) {
-			call_user_func_array($callback,array_merge(array(&$this->results,&$row),$args));
+			call_user_func_array($callback,array_merge(array(&$records,&$row),$args));
 		}
 
 		@mysql_free_result($result);
 
 		switch (strtolower($format)) {
-			case 'object': return reset($this->results); break;
-			case 'array': return $this->results; break;
-			default: return (count($this->results) == 1)?reset($this->results):$this->results; break;
+			case 'object': return reset($records); break;
+			case 'array': return $records; break;
+			default: return (count($records) == 1)?reset($records):$records; break;
 		}
-
 	}
 
 	/**
@@ -252,7 +254,7 @@ class DB {
 	 * @return string|boolean The primitive datatype or false if not found
 	 **/
 	function datatype ($type) {
-		foreach((array)$this->_datatypes as $datatype => $patterns) {
+		foreach((array)DB::$datatypes as $datatype => $patterns) {
 			foreach((array)$patterns as $pattern) {
 				if (strpos($type,$pattern) !== false) return $datatype;
 			}
@@ -271,26 +273,27 @@ class DB {
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
-	 * @param DatabaseObject $object The object to be prepared
+	 * @param DatabaseObject $Object The object to be prepared
 	 * @return array Data structure ready for query building
 	 **/
-	function prepare ($object) {
+	function prepare ($Object,$mapping = array()) {
 		$data = array();
 
 		// Go through each data property of the object
-		foreach(get_object_vars($object) as $property => $value) {
-			if (!isset($object->_datatypes[$property])) continue;
+		foreach(get_object_vars($Object) as $var => $value) {
+			$property = isset($mapping[$var])?$mapping[$var]:$var;
+			if (!isset($Object->_datatypes[$property])) continue;
 
 			// If the property is has a _datatype
 			// it belongs in the database and needs
 			// to be prepared
 
 			// Process the data
-			switch ($object->_datatypes[$property]) {
+			switch ($Object->_datatypes[$property]) {
 				case "string":
 					// Escape characters in strings as needed
-					if (is_array($value) || is_object($value)) $data[$property] = "'".addslashes(serialize($this->escape($value)))."'";
-					else $data[$property] = "'".$this->escape($value)."'";
+					if (is_array($value) || is_object($value)) $data[$property] = "'".addslashes(serialize(DB::escape($value)))."'";
+					else $data[$property] = "'".DB::escape($value)."'";
 					break;
 				case "list":
 					// If value is empty, skip setting the field
@@ -347,7 +350,7 @@ class DB {
 	 **/
 	function column_options($table = null, $column = null) {
 		if ( ! ($table && $column)) return array();
-		$r = $this->query("SHOW COLUMNS FROM $table LIKE '$column'");
+		$r = DB::query("SHOW COLUMNS FROM $table LIKE '$column'");
 		if ( strpos($r[0]->Type,"enum('") )
 			$list = substr($r[0]->Type, 6, strlen($r[0]->Type) - 8);
 
@@ -368,7 +371,7 @@ class DB {
 	function loaddata ($queries) {
 		$queries = explode(";\n", $queries);
 		array_pop($queries);
-		foreach ($queries as $query) if (!empty($query)) $this->query($query);
+		foreach ($queries as $query) if (!empty($query)) DB::query($query);
 		return true;
 	}
 
@@ -402,8 +405,6 @@ class DB {
 
 } // END class DB
 
-
-
 /**
  * Provides interfacing between database records and active data objects
  *
@@ -416,6 +417,7 @@ abstract class DatabaseObject implements Iterator {
 	private $_position = 0;
 	private $_properties = array();
 	private $_ignores = array('_');
+	protected $_map = array();
 
 	/**
 	 * Initializes the DatabaseObject with functional necessities
@@ -438,8 +440,7 @@ abstract class DatabaseObject implements Iterator {
 	 * @return void
 	 **/
 	function init ($table,$key="id") {
-		global $Shopp;
-		$db = &DB::get();
+		$Settings = ShoppSettings();
 
 		// So we know what the table name is
 		if (!empty($table) && (!isset($this->_table) || empty($this->_table))  )
@@ -452,15 +453,18 @@ abstract class DatabaseObject implements Iterator {
 		$this->_lists = array();		// So we know the options for each list
 		$this->_defaults = array();		// So we know the default values for each field
 
-		if (isset($Shopp->Settings)) {
-			$Tables = $Shopp->Settings->get('data_model');
+		if (!empty($Settings)) {
+			$Tables = $Settings->get('data_model');
 			if (isset($Tables[$this->_table])) {
 				$this->_datatypes = $Tables[$this->_table]->_datatypes;
 				$this->_lists = $Tables[$this->_table]->_lists;
-				foreach($this->_datatypes as $property => $type) {
+				foreach($this->_datatypes as $var => $type) {
+					if (!empty($this->_map) && !isset($this->_map[$var])) continue;
+					$property = isset($this->_map[$var])?$this->_map[$var]:$var;
+
 					if (!isset($this->{$property}))
-						$this->{$property} = (isset($this->_defaults[$property]))?
-							$this->_defaults[$property]:'';
+						$this->{$property} = (isset($this->_defaults[$var]))?
+							$this->_defaults[$var]:'';
 					if (empty($this->{$property}) && $type == "date")
 						$this->{$property} = null;
 				}
@@ -468,29 +472,32 @@ abstract class DatabaseObject implements Iterator {
 			}
 		}
 
-		if (!$r = $db->query("SHOW COLUMNS FROM $this->_table",true,false)) return false;
-
+		if (!$r = DB::query("SHOW COLUMNS FROM $this->_table",'array')) return false;
 		// Map out the table definition into our data structure
 		foreach($r as $object) {
-			$property = $object->Field;
-			if (!isset($this->{$property}))
-				$this->{$property} = $object->Default;
-			$this->_datatypes[$property] = $db->datatype($object->Type);
-			$this->_defaults[$property] = $object->Default;
+			$var = $object->Field;
+			$this->_datatypes[$var] = DB::datatype($object->Type);
+			$this->_defaults[$var] = $object->Default;
 
 			// Grab out options from list fields
-			if ($db->datatype($object->Type) == "list") {
+			if ('list' == DB::datatype($object->Type)) {
 				$values = str_replace("','", ",", substr($object->Type,strpos($object->Type,"'")+1,-2));
-				$this->_lists[$property] = explode(",",$values);
+				$this->_lists[$var] = explode(",",$values);
 			}
+
+			if (!empty($this->_map) && !isset($this->_map[$var])) continue;
+			$property = isset($this->_map[$var])?$this->_map[$var]:$var;
+			if (!isset($this->{$property}))
+				$this->{$property} = $this->_defaults[$var];
+
 		}
 
-		if (isset($Shopp->Settings)) {
+		if (!empty($Settings)) {
 			$Tables[$this->_table] = new StdClass();
-			$Tables[$this->_table]->_datatypes = $this->_datatypes;
-			$Tables[$this->_table]->_lists = $this->_lists;
-			$Tables[$this->_table]->_defaults = $this->_defaults;
-			$Shopp->Settings->save('data_model',$Tables);
+			$Tables[$this->_table]->_datatypes =& $this->_datatypes;
+			$Tables[$this->_table]->_lists =& $this->_lists;
+			$Tables[$this->_table]->_defaults =& $this->_defaults;
+			$Settings->save('data_model',$Tables);
 		}
 		return true;
 	}
@@ -509,23 +516,21 @@ abstract class DatabaseObject implements Iterator {
 	 * @param $key - A string of the name of the db object's primary key
 	 **/
 	function load () {
-		$db = &DB::get();
-
 		$args = func_get_args();
 		if (empty($args[0])) return false;
 
 		$where = "";
 		if (is_array($args[0]))
 			foreach ($args[0] as $key => $id)
-				$where .= ($where == ""?"":" AND ")."$key='".$db->escape($id)."'";
+				$where .= ($where == ""?"":" AND ")."$key='".DB::escape($id)."'";
 		else {
 			$id = $args[0];
 			$key = $this->_key;
 			if (!empty($args[1])) $key = $args[1];
-			$where = $key."='".$db->escape($id)."'";
+			$where = $key."='".DB::escape($id)."'";
 		}
 
-		$r = $db->query("SELECT * FROM $this->_table WHERE $where LIMIT 1");
+		$r = DB::query("SELECT * FROM $this->_table WHERE $where LIMIT 1",'object');
 		$this->populate($r);
 
 		if (!empty($this->id)) return true;
@@ -568,8 +573,8 @@ abstract class DatabaseObject implements Iterator {
 	 * @return string The full, prefixed table name
 	 **/
 	function tablename ($table) {
-		global $table_prefix;
-		return $table_prefix.SHOPP_DBPREFIX.$table;
+		$db = DB::get();
+		return $db->table_prefix.SHOPP_DBPREFIX.$table;
 	}
 
 	/**
@@ -585,23 +590,21 @@ abstract class DatabaseObject implements Iterator {
 	 * @return boolean|int Returns true when UPDATEs are successful; returns an integer with the record ID
 	 **/
 	function save () {
-		$db = &DB::get();
+		$data = DB::prepare($this,$this->_map);
 
-		$data = $db->prepare($this);
 		$id = $this->{$this->_key};
 		// Update record
 		if (!empty($id)) {
 			if (isset($data['modified'])) $data['modified'] = "now()";
 			$dataset = $this->dataset($data);
-			$db->query("UPDATE $this->_table SET $dataset WHERE $this->_key=$id");
+			DB::query("UPDATE $this->_table SET $dataset WHERE $this->_key=$id");
 			return true;
 		// Insert new record
 		} else {
 			if (isset($data['created'])) $data['created'] = "now()";
 			if (isset($data['modified'])) $data['modified'] = "now()";
 			$dataset = $this->dataset($data);
-			//print "INSERT $this->_table SET $dataset";
-			$this->id = $db->query("INSERT $this->_table SET $dataset");
+			$this->id = DB::query("INSERT $this->_table SET $dataset");
 			return $this->id;
 		}
 
@@ -619,10 +622,9 @@ abstract class DatabaseObject implements Iterator {
 	 * @return boolean
 	 **/
 	function delete () {
-		$db = &DB::get();
 		// Delete record
 		$id = $this->{$this->_key};
-		if (!empty($id)) return $db->query("DELETE FROM $this->_table WHERE $this->_key='$id'");
+		if (!empty($id)) return DB::query("DELETE FROM $this->_table WHERE $this->_key='$id'");
 		else return false;
 	}
 
@@ -635,10 +637,9 @@ abstract class DatabaseObject implements Iterator {
 	 * @return boolean
 	 **/
 	function exists () {
-		$db = &DB::get();
 		$key = $this->_key;
 		$id = $this->{$this->_key};
-		$r = $db->query("SELECT id FROM $this->_table WHERE $key='$id' LIMIT 1");
+		$r = DB::query("SELECT id FROM $this->_table WHERE $key='$id' LIMIT 1");
 		return (!empty($r->id));
 	}
 
@@ -657,10 +658,15 @@ abstract class DatabaseObject implements Iterator {
 	 **/
 	function populate ($data) {
 		if(empty($data)) return false;
-		foreach(get_object_vars($data) as $property => $value) {
-			if (empty($this->_datatypes[$property])) continue;
+		foreach(get_object_vars($data) as $var => $value) {
+			$mapping = empty($this->_map)?array():array_flip($this->_map);
+			if (!empty($mapping) && !isset($mapping[$var])) continue;
+			$property = isset($mapping[$var])?$mapping[$var]:$var;
+
+			if (empty($this->_datatypes[$var])) continue;
+
 			// Process the data
-			switch ($this->_datatypes[$property]) {
+			switch ($this->_datatypes[$var]) {
 				case "date":
 					$this->{$property} = mktimestamp($value);
 					break;
@@ -688,12 +694,10 @@ abstract class DatabaseObject implements Iterator {
 	 * @return string The query fragment of column value updates
 	 **/
 	function dataset($data) {
-		$query = "";
-		foreach($data as $property => $value) {
-			if (!empty($query)) $query .= ", ";
-			$query .= "$property=$value";
-		}
-		return $query;
+		$sets = array();
+		foreach($data as $property => $value)
+			$sets[] = "$property=$value";
+		return join(',',$sets);
 	}
 
 	/**
@@ -710,13 +714,11 @@ abstract class DatabaseObject implements Iterator {
 	 * @return void
 	 **/
 	function updates($data,$ignores = array()) {
-		$db = &DB::get();
-
 		foreach ($data as $key => $value) {
 			if (!is_null($value) &&
 				($ignores === false || (is_array($ignores) && !in_array($key,$ignores))) &&
 				property_exists($this, $key) ) {
-				$this->{$key} = $db->clean($value);
+				$this->{$key} = DB::clean($value);
 			}
 		}
 	}
@@ -735,14 +737,12 @@ abstract class DatabaseObject implements Iterator {
 	 * @return void
 	 **/
 	function copydata ($Object,$prefix="",$ignores=array("_datatypes","_table","_key","_lists","id","created","modified")) {
-		$db = &DB::get();
-
 		if ($ignores === false) $ignored = array();
 		foreach(get_object_vars($Object) as $property => $value) {
 			$property = $prefix.$property;
 			if (property_exists($this,$property) &&
 				!in_array($property,$ignores))
-					$this->{$property} = $db->clean($value);
+					$this->{$property} = DB::clean($value);
 		}
 	}
 
@@ -798,6 +798,42 @@ abstract class DatabaseObject implements Iterator {
 
 } // END class DatabaseObject
 
+class WPDatabaseObject extends DatabaseObject {
+
+	/**
+	 * Builds a table name from the defined WP table prefix and Shopp prefix
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 *
+	 * @param string $table The base table name
+	 * @return string The full, prefixed table name
+	 **/
+	function tablename ($table) {
+		global $table_prefix;
+		return $table_prefix.$table;
+	}
+
+}
+
+class WPPostTypeObject extends WPDatabaseObject {
+	protected $_post_type = false;
+
+	function load () {
+		$args = func_get_args();
+		if (empty($args[0])) return false;
+
+		if (count($args) == 2) {
+			list($id,$key) = $args;
+			$p = array($key => $id);
+		}
+		if (is_array($args[0])) $p = $args[0];
+		if ($this->_post_type !== false) $p['post_type'] = $this->_post_type;
+
+		parent::load($p);
+	}
+
+}
 
 /**
  * Provides integration between the database and session handling
@@ -891,19 +927,17 @@ abstract class SessionObject {
 	 * @return boolean
 	 **/
 	function load ($id) {
-		$db = &DB::get();
-
 		if (is_robot() || empty($this->session)) return true;
 
 		$loaded = false;
 
 		$query = "SELECT * FROM $this->_table WHERE session='$this->session'";
-		if ($result = $db->query($query)) {
+		if ($result = DB::query($query)) {
 			if (substr($result->data,0,1) == "!") {
 				$key = $_COOKIE[SHOPP_SECURE_KEY];
 				if (empty($key) && !is_shopp_secure())
 					shopp_redirect(force_ssl(raw_request_url(),true));
-				$readable = $db->query("SELECT AES_DECRYPT('".
+				$readable = DB::query("SELECT AES_DECRYPT('".
 										mysql_real_escape_string(
 											base64_decode(
 												substr($result->data,1)
@@ -920,7 +954,7 @@ abstract class SessionObject {
 			do_action('shopp_session_loaded');
 		} else {
 			if (!empty($this->session))
-				$db->query("INSERT INTO $this->_table (session, ip, data, created, modified)
+				DB::query("INSERT INTO $this->_table (session, ip, data, created, modified)
 							VALUES ('$this->session','$this->ip','',now(),now())");
 		}
 		do_action('shopp_session_load');
@@ -942,9 +976,8 @@ abstract class SessionObject {
 	 * @return boolean
 	 **/
 	function unload () {
-		$db = &DB::get();
 		if(empty($this->session)) return false;
-		if (!$db->query("DELETE FROM $this->_table WHERE session='$this->session'"))
+		if (!DB::query("DELETE FROM $this->_table WHERE session='$this->session'"))
 			trigger_error("Could not clear session data.");
 		unset($this->session,$this->ip,$this->data);
 		return true;
@@ -959,26 +992,23 @@ abstract class SessionObject {
 	 * @return boolean
 	 **/
 	function save ($id,$session) {
-		global $Shopp;
-		$db = &DB::get();
 
 		// Don't update the session for prefetch requests (via <link rel="next" /> tags) currently FF-only
 		if (isset($_SERVER['HTTP_X_MOZ']) && $_SERVER['HTTP_X_MOZ'] == "prefetch") return false;
 
-		$data = $db->escape(addslashes(serialize($this->data)));
+		$data = DB::escape(addslashes(serialize($this->data)));
 
 		if ($this->secured() && is_shopp_secure()) {
 			$key = isset($_COOKIE[SHOPP_SECURE_KEY])?$_COOKIE[SHOPP_SECURE_KEY]:'';
 			if (!empty($key) && $key !== false) {
 				new ShoppError('Cart saving in secure mode!',false,SHOPP_DEBUG_ERR);
-				$secure = $db->query("SELECT AES_ENCRYPT('$data','$key') AS data");
+				$secure = DB::query("SELECT AES_ENCRYPT('$data','$key') AS data");
 				$data = "!".base64_encode($secure->data);
 			} else return false;
 		}
 
 		$query = "UPDATE $this->_table SET ip='$this->ip',data='$data',modified=now() WHERE session='$this->session'";
-
-		if (!$db->query($query))
+		if (!DB::query($query))
 			trigger_error("Could not save session updates to the database.");
 
 		do_action('shopp_session_saved');
@@ -1007,8 +1037,7 @@ abstract class SessionObject {
 	function trash () {
 		if (empty($this->session)) return false;
 
-		$db = &DB::get();
-		if (!$db->query("DELETE LOW_PRIORITY FROM $this->_table WHERE ".SHOPP_SESSION_TIMEOUT." < UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified)"))
+		if (!DB::query("DELETE LOW_PRIORITY FROM $this->_table WHERE ".SHOPP_SESSION_TIMEOUT." < UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(modified)"))
 			trigger_error("Could not delete cached session data.");
 		return true;
 	}
