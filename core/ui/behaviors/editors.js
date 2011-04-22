@@ -144,7 +144,7 @@ function addVariationOptionsMenu (data) {
 	 	addOptionButton = $('#addVariationOption'),
 	 	linkOptionVariations = $('#linkOptionVariations'),
 	 	id = variationsidx,
-	 	menu = new NestedMenu(id,menus,'options[v]',OPTION_MENU_DEFAULT,data,
+	 	menu = new NestedMenu(id,menus,'meta[options][v]',OPTION_MENU_DEFAULT,data,
 			{target:entries,type:'list'},
 			{'axis':'y','update':function() { orderOptions(menus,entries); }});
 
@@ -157,12 +157,12 @@ function addVariationOptionsMenu (data) {
  			data.id = optionsidx;
 		} else if (data.id > optionsidx) optionsidx = data.id;
 
-	 	option = new NestedMenuOption(menu.index,menu.itemsElement,'options[v]',NEW_OPTION_DEFAULT,data);
+	 	option = new NestedMenuOption(menu.index,menu.itemsElement,'meta[options][v]',NEW_OPTION_DEFAULT,data);
 		optionsidx++;
 		optionid = option.id.val();
 
 		option.linkIcon = $('<img src="'+uidir+'/icons/linked.png" alt="linked" width="16" height="16" class="link" />').appendTo(option.moveHandle);
-		option.linked = $('<input type="hidden" name="options[v]['+menu.index+'][options]['+option.index+'][linked]" class="linked" />').appendTo(option.element).change(function () {
+		option.linked = $('<input type="hidden" name="meta[options][v]['+menu.index+'][options]['+option.index+'][linked]" class="linked" />').appendTo(option.element).change(function () {
 			if ($(this).val() == "off")	option.linkIcon.addClass('invisible');
 			if ($(this).val() == "on") option.linkIcon.removeClass('invisible');
 		});
@@ -526,7 +526,7 @@ function newAddonGroup (data) {
 		addMenuButton = $('#newAddonGroup'),
 	 	addOptionButton = $('#addAddonOption'),
 	 	id = addon_group_idx,
-	 	menu = new NestedMenu(id,menus,'options[a]',ADDON_GROUP_DEFAULT,data,
+	 	menu = new NestedMenu(id,menus,'meta[options][a]',ADDON_GROUP_DEFAULT,data,
 		{target:entries,type:'list'},
 		{'axis':'y','update':function() { orderAddonGroups(); }}
 	);
@@ -548,7 +548,7 @@ function newAddonGroup (data) {
  			data.id = addonsidx;
 		} else if (data.id > addonsidx) addonsidx = data.id;
 
-	 	option = new NestedMenuOption(menu.index,menu.itemsElement,'options[a]',NEW_OPTION_DEFAULT,data);
+	 	option = new NestedMenuOption(menu.index,menu.itemsElement,'meta[options][a]',NEW_OPTION_DEFAULT,data);
 
 		addonsidx++;
 		optionid = option.id.val();

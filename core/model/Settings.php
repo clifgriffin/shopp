@@ -13,11 +13,11 @@
  * @subpackage settings
  **/
 class Settings extends DatabaseObject {
-	static $table = "meta";
+	static $table = 'meta';
 
 	var $registry = array();	// Registry of setting objects
 	var $available = true;		// Flag when database tables don't exist
-	var $_table = "";			// The table name
+	var $_table = '';			// The table name
 
 	/**
 	 * Settings object constructor
@@ -246,8 +246,9 @@ class Settings extends DatabaseObject {
 	 * @return object
 	 **/
 	function setting () {
-		$setting->_datatypes = array("name" => "string", "value" => "string", "autoload" => "list",
-			"created" => "date", "modified" => "date");
+		$setting->_datatypes = array(   'context' => 'string', 'type' => 'string',
+										'name' => 'string', 'value' => 'string',
+										'created' => 'date', 'modified' => 'date');
 		$setting->context = 'shopp';
 		$setting->type = 'setting';
 		$setting->name = null;

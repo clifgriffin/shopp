@@ -86,7 +86,8 @@ class AdminFlow extends FlowController {
 		add_action('switch_theme',array(&$this, 'themepath'));
 		add_filter('favorite_actions', array(&$this, 'favorites'));
 		add_filter('shopp_admin_boxhelp', array(&$this, 'keystatus'));
-		add_action("load-update.php", array(&$this, 'admin_css'));
+		add_action('load-update.php', array(&$this, 'admin_css'));
+		add_action('admin_footer',array(&$this,'debug'));
 
 		// Add the default Shopp pages
 		$this->addpage('orders',__('Orders','Shopp'),'Service','Managing Orders');
@@ -738,6 +739,26 @@ class AdminFlow extends FlowController {
 	 **/
 	function pluginspage () {
 		remove_action('after_plugin_row_'.SHOPP_PLUGINFILE,'wp_plugin_update_row');
+	}
+
+
+	function debug () {
+		// return true;
+		$db = DB::get();
+		global $wpdb;
+
+		// if (SAVEQUERIES) {
+		// 	echo "<pre>\nWP QUERIES\n\n";
+		// 	print_r($wpdb->queries);
+		// 	echo "\n\n</pre>";
+		// }
+
+		if (SHOPP_QUERY_DEBUG) {
+			echo "<pre>\n\nSHOPP QUERIES\n\n";
+			print_r($db->queries);
+			echo "\n\n</pre>";
+		}
+
 	}
 
 

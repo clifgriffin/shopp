@@ -4,7 +4,7 @@
  * Licensed under the GPLv3 {@see license.txt}
  */
 
-function SearchSelector (type,parent,url,field,label,classname) {
+function SearchSelector (type,parent,url,field,label,classname,freeform) {
 	var $ = jqnc(),
 		_ = this,
 		$this = $(this),form,
@@ -13,7 +13,8 @@ function SearchSelector (type,parent,url,field,label,classname) {
 				'</ul>'),
 		$input = ui.find('input.input').focus(function () {
 			ui.find('li.selected').removeClass('selected');
-			$(document).unbind('keydown').keydown(_.keyhandler);
+			$(document).unbind('keydown');
+			$(this).unbind('keydown').keydown(_.keyhandler);
 		});
 
 		_.ui = ui;
@@ -29,6 +30,9 @@ function SearchSelector (type,parent,url,field,label,classname) {
 		};
 
 		_.keyhandler = function (e) {
+			var $input = $(this),
+				entry = $input.val();
+
 
 			if (!(/8$|9$|13$|46$|37$|39$/.test(e.keyCode))) return;
 			var selection = ui.find('li.item.selected'),previous;
@@ -37,10 +41,23 @@ function SearchSelector (type,parent,url,field,label,classname) {
 				previous = $input.parent().prev();
 
 				switch (e.keyCode) {
+
 					case 9: // tab key
 					case 13: // return key
 						_.stopEvent(e);
+						if (freeform && entry.length > 0) {
+							ui.append(_.newItem('',entry));
+							$input.val('').parent().appendTo(ui);
+							$input.focus();
+						}
 						break;
+					case 188: // comma key
+						if (freeform && entry.length > 0) {
+							_.stopEvent(e);
+							ui.append(_.newItem('',entry));
+							$input.val('').parent().appendTo(ui);
+							$input.focus();
+						}
 					case 37:	// left arrow
 					case 8:		// backspace key
 					case 46:	// delete key
@@ -51,6 +68,7 @@ function SearchSelector (type,parent,url,field,label,classname) {
 						previous.click();
 						break;
 				}
+				return;
 			}
 
 			if (selection.length) {
