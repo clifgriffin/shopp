@@ -847,6 +847,98 @@ class Catalog extends DatabaseObject {
 
 } // END class Catalog
 
+class ProductCollection implements Iterator {
+
+	var $paged = false;
+	var $pagination = false;
+	var $products = array();
+	var $total = 0;
+
+	private $_keys = array();
+	private $_position = array();
+
+	function load ($options=array()) {
+		$Storefront =& ShoppStorefront();
+		$Settings =& ShoppSettings();
+		$Processing = new Product();
+
+		$defaults = array(
+			'columns' => false,		// Include extra columns (string) 'c.col1,c.col2…'
+			'useindex' => false,	// FORCE INDEX to be used on the product table (string) 'indexname'
+			'joins' => array(),		// JOIN tables array('INNER JOIN table AS t ON p.id=t.column')
+			'where' => array(),		// WHERE query conditions array('x=y OR x=z','a!=b'…) (array elements are joined by AND
+			'groupby' => false,		// GROUP BY column (string) 'column'
+			'having' => array(),	// HAVING filters
+			'limit' => false,		// Limit
+			'order' => false,		// ORDER BY columns or named methods (string)
+									// 'bestselling','highprice','lowprice','newest','oldest','random','chaos','title'
+
+			'nostock' => true,		// Override to show products that are out of stock (string) 'on','off','yes','no'…
+			'pagination' => true,	// Enable alpha pagination (string) 'alpha'
+			'published' => true,	// Load published or unpublished products (string) 'on','off','yes','no'…
+			'adjacent' => false,	//
+			'product' => false,		//
+			'restat' => false		// Force recalculate product stats
+		);
+		$loading = array_merge($defaults,$options);
+
+		$this->paged = false;
+		$this->pagination = $Settings->get('catalog_pagination');
+		$paged = get_query_var('paged');
+		$this->page = ((int)$paged > 0 || !is_numeric($paged))?$paged:1;
+
+		// Hard product limit per category to keep resources "reasonable"
+		$hardlimit = apply_filters('shopp_category_products_hardlimit',1000);
+
+		// Core loading options
+		$loading['columns'] = "SQL_CALC_FOUND_ROWS p.ID,p.post_title,p.post_name,p.post_excerpt,p.post_status,p.post_date_gmt,p.post_modified";
+		$loading['table'] = $Processing->_table;
+		$loading['where'][] = "p.post_type='$Processing->_post_type'";
+		$query = DB::select($loading);
+		$this->products = DB::query($query,'array',array($this,'loader'));
+		$this->total = DB::query("SELECT FOUND_ROWS() as total");
+
+		$Processing->load_data(array('stats','categories','tags'),$this->index);
+
+	}
+
+	function loader (&$records,$record) {
+		$Product = new Product();
+		$Product->populate($record);
+		$records[] = &$Product;
+		$this->index[$Product->id] = &$Product;
+	}
+
+	function workflow () {
+		return array_keys($this->index);
+	}
+
+	/** Iterator implementation **/
+
+	function current () {
+		return $this->products[$this->_position];
+	}
+
+	function key () {
+		return $this->_position;
+	}
+
+	function next () {
+		++$this->_position;
+	}
+
+	function rewind () {
+		$this->_position = 0;
+	}
+
+	function valid () {
+		return isset($this->products[$this->_position]);
+	}
+
+
+}
+
+
 class CatalogTag extends MetaObject {
 
 	function __construct ($id=false,$key=false) {

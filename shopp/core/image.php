@@ -45,9 +45,12 @@ class ImageServer extends DatabaseObject {
 	var $Image = false;
 
 	function __construct () {
-		define('SHOPP_PATH',sanitize_path(dirname(dirname(__FILE__))));
-		define("SHOPP_STORAGE",SHOPP_PATH."/storage");
-		define('SHOPP_QUERY_DEBUG',true);
+		if (!defined('SHOPP_PATH'))
+			define('SHOPP_PATH',sanitize_path(dirname(dirname(__FILE__))));
+		if (!defined('SHOPP_STORAGE'))
+			define("SHOPP_STORAGE",SHOPP_PATH."/storage");
+		if (!defined('SHOPP_QUERY_DEBUG'))
+			define('SHOPP_QUERY_DEBUG',true);
 
 		$this->init();
 		$this->request();
@@ -65,6 +68,7 @@ class ImageServer extends DatabaseObject {
 	 * @return void
 	 **/
 	function init () {
+		if (defined('ABSPATH')) return;
 		$loadfile = shopp_find_wpload();
 		if ($loadfile) {
 			 // barebones bootstrap (say that 5x fast)

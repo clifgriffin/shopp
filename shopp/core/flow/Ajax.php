@@ -417,11 +417,11 @@ class AjaxFlow {
 					$table = DatabaseObject::tablename(Category::$table);
 					break;
 				case 'shopp_tags':
-					$id = 'id';
+					$id = 't.term_id';
 					$name = 'name';
-					$table = DatabaseObject::tablename('meta');
-					$where[] = "context='catalog'";
-					$where[] = "type='tag'";
+					$table = "$wpdb->terms AS t";
+					$joins = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
+					$where[] = "tt.taxonomy = 'shopp_tag'";
 					break;
 				case 'shopp_promotions':
 					$id = 'id';

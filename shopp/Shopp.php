@@ -40,8 +40,10 @@ if (SHOPP_UNSUPPORTED) return;
 
 require("core/functions.php");
 
+// Load core app helpers
 require_once("core/DB.php");
 require_once("core/model/Settings.php");
+require_once('core/model/Error.php');
 
 // Load super controllers
 require('core/flow/Flow.php');
@@ -55,7 +57,6 @@ require('core/model/Gateway.php');
 require('core/model/Shipping.php');
 require('core/model/Lookup.php');
 require('core/model/Shopping.php');
-require('core/model/Error.php');
 require('core/model/Order.php');
 require('core/model/Cart.php');
 require('core/model/Meta.php');
@@ -177,6 +178,7 @@ class Shopp {
 		$this->Shopping = new Shopping();
 
 		add_action('init', array(&$this,'init'));
+		add_action('init', array(&$this,'wpdata'));
 
 		// Plugin management
         add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array(&$this, 'status'),10,2);
@@ -233,6 +235,44 @@ class Shopp {
 
 		new Login();
 		do_action('shopp_init');
+	}
+
+
+	function wpdata () {
+
+		register_post_type( 'shopp_product',array(
+				'labels' => array(
+					'name' => __('Products','Shopp'),
+					'singular_name' => __('Product','Shopp')
+				),
+			'public' => true,
+			'has_archive' => true,
+			'show_ui' => true
+		));
+
+		register_taxonomy('shopp_category',array('shopp_product'), array(
+			'hierarchical' => true,
+			'labels' => array(
+				'name' => __('Categories','Shopp'),
+				'singular_name' => __('Category','Shopp')
+			),
+			'show_ui' => true,
+			'query_var' => true,
+			'rewrite' => array( 'slug' => 'category' ),
+		));
+
+		register_taxonomy('shopp_tag',array('shopp_product'), array(
+			'hierarchical' => false,
+			'labels' => array(
+				'name' => __('Tags','Shopp'),
+				'singular_name' => __('Tag','Shopp')
+			),
+			'show_ui' => true,
+			'query_var' => true,
+			'rewrite' => array( 'slug' => 'tag' ),
+		));
+
+
 	}
 
 

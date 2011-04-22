@@ -41,7 +41,7 @@
 		<tfoot>
 		<tr><?php print_column_headers('shopp_page_shopp-products',false); ?></tr>
 		</tfoot>
-	<?php if (sizeof($Products) > 0): ?>
+	<?php if (count($Products) > 0): ?>
 		<tbody id="products" class="list products">
 		<?php
 		$hidden = get_hidden_columns('shopp_page_shopp-products');
@@ -66,6 +66,12 @@
 
 
 		$ProductName = empty($Product->name)?'('.__('no product name','Shopp').')':$Product->name;
+
+		$categories = array();
+		foreach ($Product->categories as $id => $category) {
+			$categories[] = '<a href="">'.esc_html($category->name).'</a>';
+		}
+
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
@@ -77,7 +83,7 @@
 					<span class='view'><a href="<?php echo shoppurl(SHOPP_PRETTYURLS?$Product->slug:array('s_pid'=>$Product->id)); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>
 				</td>
-			<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo esc_html($Product->categories); ?></td>
+			<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo join(', ',$categories); ?></td>
 			<td class="price column-price<?php echo in_array('price',$hidden)?' hidden':''; ?>"><?php
 				if ($Product->variations == "off") echo money($Product->mainprice);
 				elseif ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);

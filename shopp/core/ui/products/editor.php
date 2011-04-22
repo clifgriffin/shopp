@@ -62,11 +62,12 @@
 
 <script type="text/javascript">
 /* <![CDATA[ */
+jQuery('.hide-if-no-js').removeClass('hide-if-no-js');
 var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strtolower($_SERVER['HTTP_USER_AGENT']), 'mac') && apache_mod_loaded('mod_security')))?'true':'false'; ?>,
 	product = <?php echo (!empty($Product->id))?$Product->id:'false'; ?>,
 	prices = <?php echo json_encode($Product->prices) ?>,
 	specs = <?php echo json_encode($Product->specs) ?>,
-	options = <?php echo json_encode($Product->options) ?>,
+	options = <?php echo json_encode($Product->meta['options']->value) ?>,
 	priceTypes = <?php echo json_encode($priceTypes) ?>,
 	billPeriods = <?php echo json_encode($billPeriods) ?>,
 	shiprates = <?php echo json_encode($shiprates); ?>,
@@ -75,8 +76,8 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	siteurl = '<?php bloginfo('url'); ?>',
 	canonurl = '<?php echo trailingslashit(shoppurl()); ?>',
 	adminurl = '<?php echo SHOPP_WPADMIN_URL; ?>',
-	ajaxurl = adminurl+'admin-ajax.php',
 	sugg_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_storage_suggestions"); ?>',
+	tagsugg_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_suggestions"); ?>',
 	spectemp_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_spec_template"); ?>',
 	opttemp_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_options_template"); ?>',
 	catmenu_url = '<?php echo wp_nonce_url(admin_url('admin-ajax.php'), "wp_ajax_shopp_category_menu"); ?>',
@@ -88,7 +89,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	imageul_url = '<?php echo wp_nonce_url(SHOPP_WPADMIN_URL."admin-ajax.php", "wp_ajax_shopp_upload_image"); ?>',
 	adminpage = '<?php echo $this->Admin->pagename('products'); ?>',
 	request = <?php echo json_encode(stripslashes_deep($_GET)); ?>,
-	worklist = <?php echo json_encode($this->products(true)); ?>,
+	worklist = <?php echo json_encode($this->manager(true)); ?>,
 	filesizeLimit = <?php echo wp_max_upload_size(); ?>,
 	weightUnit = '<?php echo $this->Settings->get('weight_unit'); ?>',
 	dimensionUnit = '<?php echo $this->Settings->get('dimension_unit'); ?>',
@@ -158,6 +159,7 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	IMAGE_DETAILS_TITLE_LABEL = <?php _jse('Title','Shopp'); ?>,
 	IMAGE_DETAILS_ALT_LABEL = <?php _jse('Alt','Shopp'); ?>,
 	IMAGE_DETAILS_DONE = <?php _jse('OK','Shopp'); ?>,
-	IMAGE_DETAILS_CROP_LABEL = <?php _jse('Cropped images','Shopp'); ?>;
+	IMAGE_DETAILS_CROP_LABEL = <?php _jse('Cropped images','Shopp'); ?>,
+	TAG_SEARCHSELECT_LABEL = <?php _jse('Begin typing to search tags&hellip;','Shopp'); ?>;
 /* ]]> */
 </script>
