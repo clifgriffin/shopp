@@ -251,7 +251,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 						apply_filters('shopp_googlecheckout_download_delivery_markup', '<email-delivery>true</email-delivery>').
 						'</digital-content>';
 					// Shipped Item
-					if ($Item->weight > 0) $_[] = '<item-weight unit="LB" value="'.number_format(convert_unit($Item->weight,'lb'),2,'.','').'" />';
+					$_[] = '<item-weight unit="LB" value="'.($Item->weight > 0 ? number_format(convert_unit($Item->weight,'lb'),2,'.','') : 0).'" />';
 					$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Item->unitprice,$this->precision,'.','').'</unit-price>';
 					$_[] = '<quantity>'.$Item->quantity.'</quantity>';
 					if (!empty($Item->sku)) $_[] = '<merchant-item-id>'.$Item->sku.'</merchant-item-id>';
@@ -285,6 +285,7 @@ class GoogleCheckout extends GatewayFramework implements GatewayModule {
 						$_[] = '<item-description>'.join(", ",$discounts).'</item-description>';
 						$_[] = '<unit-price currency="'.$this->settings['currency'].'">'.number_format($Cart->Totals->discount*-1,$this->precision,'.','').'</unit-price>';
 						$_[] = '<quantity>1</quantity>';
+						$_[] = '<item-weight unit="LB" value="0" />';
 					$_[] = '</item>';
 				}
 				$_[] = '</items>';
