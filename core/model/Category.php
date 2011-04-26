@@ -1728,7 +1728,7 @@ class TagProducts extends SmartCategory {
 				$tagquery .= empty($tagquery)?"tag.name='$tag'":" OR tag.name='$tag'";
 		} else $tagquery = "tag.name='{$this->tag}'";
 
-		$this->name = __("Products tagged","Shopp")." &quot;".stripslashes($this->tag)."&quot;";
+		$this->name = __("Products tagged","Shopp")." &quot;".esc_html(stripslashes($this->tag))."&quot;";
 		$this->uri = urlencode($this->tag);
 		$this->loading = array('where'=>"p.id in (SELECT product FROM $catalogtable AS catalog LEFT JOIN $tagtable AS tag ON catalog.parent=tag.id AND catalog.type='tag' WHERE $tagquery)");
 	}
