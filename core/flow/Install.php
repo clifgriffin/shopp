@@ -364,6 +364,7 @@ class ShoppInstallation extends FlowController {
 	function upgrade_110 () {
 		$db =& DB::get();
 		$meta_table = DatabaseObject::tablename('meta');
+		$setting_table = DatabaseObject::tablename('setting');
 		$db->query("DELETE FROM $meta_table"); // Clear out previous meta
 
 		// Update product status from the 'published' column
@@ -479,7 +480,7 @@ class ShoppInstallation extends FlowController {
 		}
 
 		$where = "name like '%".join("%' OR name like '%",$gateways)."%'";
-		$query = "SELECT name,value FROM wp_shopp_setting WHERE $where";
+		$query = "SELECT name,value FROM $setting_table WHERE $where";
 		$result = $db->query($query,AS_ARRAY);
 		require_once(SHOPP_MODEL_PATH.'/Lookup.php');
 		$paycards = Lookup::paycards();
