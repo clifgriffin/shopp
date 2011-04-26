@@ -190,14 +190,18 @@ class AdminFlow extends FlowController {
 		global $Shopp;
 		$name = $page->page;
 
+		$controller = array(&$Shopp->Flow,'admin');
+		if ($Shopp->Settings->get('display_welcome') == "on" &&  empty($_POST['setup']))
+			$controller = array(&$this,'welcome');
+		if ($this->maintenance()) $controller = array(&$this,'reactivate');
+
 		$this->Menus[$page->page] = add_submenu_page(
 			($page->parent)?$page->parent:$this->MainMenu,
 			$page->label,
 			$page->label,
 			defined('SHOPP_USERLEVEL')?SHOPP_USERLEVEL:$this->caps[$page->name],
 			$name,
-			($Shopp->Settings->get('display_welcome') == "on" &&  empty($_POST['setup']))?
-				array(&$this,'welcome'):array(&$Shopp->Flow,'admin')
+			$controller
 		);
 	}
 
