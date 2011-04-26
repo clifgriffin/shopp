@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Shopp
-Version: 1.1.7
+Version: 1.1.8
 Description: Bolt-on ecommerce solution for WordPress
 Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
@@ -26,7 +26,7 @@ Author URI: http://ingenesis.net
 
 */
 
-define('SHOPP_VERSION','1.1.7');
+define('SHOPP_VERSION','1.1.8');
 define('SHOPP_REVISION','$Rev$');
 define('SHOPP_GATEWAY_USERAGENT','WordPress Shopp Plugin/'.SHOPP_VERSION);
 define('SHOPP_HOME','https://shopplugin.net/');
@@ -807,6 +807,8 @@ function shopp () {
 		case "error": if (isset($Shopp->Errors)) $Object =& $Shopp->Errors; break;
 		default: $Object = apply_filters('shopp_tag_domain',$Object,$object);
 	}
+
+	if ('has-context' == $property) return ($Object);
 
 	if (!$Object) new ShoppError("The shopp('$object') tag cannot be used in this context because the object responsible for handling it doesn't exist.",'shopp_tag_error',SHOPP_ADMIN_ERR);
 	else {
