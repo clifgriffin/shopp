@@ -1269,10 +1269,9 @@ class Order {
 					return str_repeat('X',strlen($this->Billing->card)-4)
 						.substr($this->Billing->card,-4);
 				$options['class'] = isset($options['class']) ? $options['class'].' paycard':'paycard';
-				if (!empty($this->Billing->card)) {
+				if (!empty($this->Billing->card))
 					$options['value'] = $this->Billing->card;
-					$this->Billing->card = "";
-				}
+
 				if (!isset($options['autocomplete'])) $options['autocomplete'] = "off";
 				return '<input type="text" name="billing[card]" id="billing-card" '.inputattrs($options).' />';
 				break;
