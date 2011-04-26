@@ -448,9 +448,10 @@ class Order {
 		}
 
 		// New customer, save hashed password
-		if (!$this->Customer->exists() && !empty($this->Customer->password)) {
+		if (!$this->Customer->exists()) {
 			$this->Customer->id = false;
 			if (SHOPP_DEBUG) new ShoppError('Creating new Shopp customer record','new_customer',SHOPP_DEBUG_ERR);
+			if (empty($this->Customer->password)) $this->Customer->password = wp_generate_password(12,true);
 			if ("shopp" == $this->accounts) $this->Customer->notification();
 			$this->Customer->password = wp_hash_password($this->Customer->password);
 		} else unset($this->Customer->password); // Existing customer, do not overwrite password field!
@@ -1429,6 +1430,7 @@ class Order {
 		                    && isset($rate['locals']) )
 		                    break;
 
+				if (!is_array($rate)) return;
 				$localities = array_keys($rate['locals']);
 				$label = (!empty($options['label']))?$options['label']:'';
 				$output = '<select name="billing[locale]" id="billing-locale" '.inputattrs($options,$select_attrs).'>';
