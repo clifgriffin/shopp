@@ -332,8 +332,6 @@ class Order {
 		if ($this->validform() !== true) return;
 		else $this->Customer->updates($_POST); // Catch changes from validation
 
-		do_action('shopp_checkout_processed');
-
 		if (apply_filters('shopp_process_free_order',$this->Cart->orderisfree())) return;
 
 		// Catch originally free orders that get extra (shipping) costs added to them
@@ -347,6 +345,7 @@ class Order {
 				shopp_redirect( shoppurl(false,'checkout',$this->security()) );
 			}
 		}
+		do_action('shopp_checkout_processed');
 
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm)
