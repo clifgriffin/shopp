@@ -445,9 +445,10 @@ class Order {
 		}
 
 		// New customer, save hashed password
-		if (!$this->Customer->exists() && !empty($this->Customer->password)) {
+		if (!$this->Customer->exists()) {
 			$this->Customer->id = false;
 			if (SHOPP_DEBUG) new ShoppError('Creating new Shopp customer record','new_customer',SHOPP_DEBUG_ERR);
+			if (empty($this->Customer->password)) $this->Customer->password = wp_generate_password(12,true);
 			if ("shopp" == $this->accounts) $this->Customer->notification();
 			$this->Customer->password = wp_hash_password($this->Customer->password);
 		} else unset($this->Customer->password); // Existing customer, do not overwrite password field!
@@ -1375,33 +1376,40 @@ class Order {
 				foreach ((array)$rates as $rate) if (isset($rate['locals']) && is_array($rate['locals'])) return true;
 				return false;
 				break;
-			case "billing-locale":
-				if ($options['mode'] == "value") return $this->Billing->locale;
-				if (!isset($options['selected'])) $options['selected'] = false;
-				if (!empty($this->Billing->locale)) {
-					$options['selected'] = $this->Billing->locale;
-					$options['value'] = $this->Billing->locale;
-				}
-				if (empty($options['type'])) $options['type'] = "menu";
-				$output = false;
+				case "billing-locale":
+					if ($options['mode'] == "value") return $this->Billing->locale;
+					if (!isset($options['selected'])) $options['selected'] = false;
+					if (!empty($this->Billing->locale)) {
+						$options['selected'] = $this->Billing->locale;
+						$options['value'] = $this->Billing->locale;
+					}
+					if (empty($options['type'])) $options['type'] = "menu";
+					$output = false;
 
 
-				$rates = $Shopp->Settings->get("taxrates");
-				foreach ($rates as $rate) if (is_array($rate['locals']))
-					$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
+					$rates = $Shopp->Settings->get("taxrates");
+					foreach ($rates as $rate) if (is_array($rate['locals']))
+						$locales[$rate['country'].$rate['zone']] = array_keys($rate['locals']);
 
-				add_storefrontjs('var locales = '.json_encode($locales).';',true);
+					add_storefrontjs('var locales = '.json_encode($locales).';',true);
 
-				$Taxes = new CartTax();
-				$rate = $Taxes->rate(false,true);
+					$Taxes = new CartTax();
+					$rate = $Taxes->rate(false,true);
 
-				$localities = array_keys($rate['locals']);
-				$label = (!empty($options['label']))?$options['label']:'';
-				$output = '<select name="billing[locale]" id="billing-locale" '.inputattrs($options,$select_attrs).'>';
-			 	$output .= menuoptions($localities,$options['selected']);
-				$output .= '</select>';
-				return $output;
-				break;
+			        if(!isset($rate['locals']))
+			            foreach ($this->Cart->contents as $Item)
+			                if ( ( $rate = $Taxes->rate($Item,true) )
+			                    && isset($rate['locals']) )
+			                    break;
+
+					if (!is_array($rate)) return;
+					$localities = array_keys($rate['locals']);
+					$label = (!empty($options['label']))?$options['label']:'';
+					$output = '<select name="billing[locale]" id="billing-locale" '.inputattrs($options,$select_attrs).'>';
+				 	$output .= menuoptions($localities,$options['selected']);
+					$output .= '</select>';
+					return $output;
+					break;
 			case "has-data":
 			case "hasdata": return (is_array($this->data) && count($this->data) > 0); break;
 			case "order-data":
