@@ -7,7 +7,7 @@ Plugin URI: http://shopplugin.net
 Author: Ingenesis Limited
 Author URI: http://ingenesis.net
 
-	Portions created by Ingenesis Limited are Copyright © 2008-2010 by Ingenesis Limited
+	Portions created by Ingenesis Limited are Copyright © 2008-2011 by Ingenesis Limited
 
 	This file is part of Shopp.
 
