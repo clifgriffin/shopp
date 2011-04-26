@@ -94,7 +94,7 @@ class Lookup {
 		$_['CZ'] = array('name'=>__('Czech Republic','Shopp'),'currency'=>array('code'=>'CZK','format'=>'# ###,## Kč'),'units'=>'metric','region'=>3);
 		$_['DK'] = array('name'=>__('Denmark','Shopp'),'currency'=>array('code'=>'DKK','format'=>'#.###,## kr'),'units'=>'metric','region'=>3);
 		$_['DO'] = array('name'=>__('Dominican Republic','Shopp'),'currency'=>array('code'=>'DOP','format'=>'$#,###.##'),'units'=>'metric','region'=>1);
-		$_['EC'] = array('name'=>__('Ecuador','Shopp'),'currency'=>array('code'=>'ESC','format'=>'$#,###.##'),'units'=>'metric','region'=>2);
+		$_['EC'] = array('name'=>__('Ecuador','Shopp'),'currency'=>array('code'=>'USD','format'=>'$#,###.##'),'units'=>'metric','region'=>2);
 		$_['EG'] = array('name'=>__('Egypt','Shopp'),'currency'=>array('code'=>'EGP','format'=>'£#,###.##'),'units'=>'metric','region'=>5);
 		$_['EE'] = array('name'=>__('Estonia','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
 		$_['FI'] = array('name'=>__('Finland','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#,###.##'),'units'=>'metric','region'=>3);
@@ -124,7 +124,7 @@ class Lookup {
 		$_['NG'] = array('name'=>__('Nigeria','Shopp'),'currency'=>array('code'=>'NGN','format'=>'₦#,###.##'),'units'=>'metric','region'=>5);
 		$_['NO'] = array('name'=>__('Norway','Shopp'),'currency'=>array('code'=>'NOK','format'=>'kr # ###,##'),'units'=>'metric','region'=>3);
 		$_['PK'] = array('name'=>__('Pakistan','Shopp'),'currency'=>array('code'=>'PKR','format'=>'₨#,###.##'),'units'=>'metric','region'=>4);
-		$_['PA'] = array('name'=>__('Panama','Shopp'),'currency'=>array('code'=>'PAB','format'=>'B/. #,###.##'),'units'=>'metric','region'=>1);
+		$_['PA'] = array('name'=>__('Panama','Shopp'),'currency'=>array('code'=>'USD','format'=>'$ #,###.##'),'units'=>'metric','region'=>1);
 		$_['PE'] = array('name'=>__('Peru','Shopp'),'currency'=>array('code'=>'PEN','format'=>'S/. #,###.##'),'units'=>'metric','region'=>2);
 		$_['PH'] = array('name'=>__('Philippines','Shopp'),'currency'=>array('code'=>'PHP','format'=>'Php #,###.##'),'units'=>'metric','region'=>6);
 		$_['PL'] = array('name'=>__('Poland','Shopp'),'currency'=>array('code'=>'PLN','format'=>'#.###,## zł'),'units'=>'metric','region'=>3);
