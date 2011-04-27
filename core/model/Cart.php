@@ -833,7 +833,11 @@ class Cart {
 		}
 
 		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
-		if (is_numeric($result)) return '<span class="shopp_cart_'.$property.'">'.money($result).'</span>';
+
+		if (is_numeric($result)) {
+			if (isset($options['wrapper']) && !value_is_true($options['wrapper'])) return money($result);
+			return '<span class="shopp_cart_'.$property.'">'.money($result).'</span>';
+		}
 
 		return false;
 	}
@@ -1033,34 +1037,34 @@ class CartPromotions {
 					AND (
 					    -- Promo is not date based
 					    (
-					        UNIX_TIMESTAMP(starts) <= $offset
+							$offset >= UNIX_TIMESTAMP(starts)
 					        AND
-					        UNIX_TIMESTAMP(ends) <= $offset
+					        $offset >= UNIX_TIMESTAMP(ends)
 					    )
 					    OR
 					    -- Promo has start and end dates, check that we are in between
 					    (
-					        UNIX_TIMESTAMP(starts) > $offset
+					        $offset < UNIX_TIMESTAMP(starts)
 					        AND
-					        UNIX_TIMESTAMP(ends) > $offset
+					        $offset < UNIX_TIMESTAMP(ends)
 					        AND
 					        (".time()." BETWEEN UNIX_TIMESTAMP(starts) AND UNIX_TIMESTAMP(ends))
 					    )
 					    OR
 					    -- Promo has _only_ a start date, check that we are after it
 					    (
-					        UNIX_TIMESTAMP(starts) > $offset
+					        $offset < UNIX_TIMESTAMP(starts)
 					        AND
-					        UNIX_TIMESTAMP(ends) <= $offset
+					        $offset >= UNIX_TIMESTAMP(ends)
 					        AND
-					        UNIX_TIMESTAMP(starts) < ".time()."
+					        ".time()." > UNIX_TIMESTAMP(starts)
 					    )
 					    OR
 					    -- Promo has _only_ an end date, check that we are before it
 					    (
-					        UNIX_TIMESTAMP(starts) <= $offset
+					        $offset >= UNIX_TIMESTAMP(starts)
 					        AND
-					        UNIX_TIMESTAMP(ends) > $offset
+					        $offset < UNIX_TIMESTAMP(ends)
 					        AND
 					        ".time()." < UNIX_TIMESTAMP(ends)
 						)
