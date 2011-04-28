@@ -155,6 +155,7 @@ class ShippingAddress extends Address {
 
 	var $type = 'shipping';
 	var $method = false;
+	var $residential = "on";
 
 	/**
 	 * Shipping constructor
