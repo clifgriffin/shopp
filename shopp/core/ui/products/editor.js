@@ -356,13 +356,19 @@ function tags () {
 			$this = $(this),
 			taxonomy = $(this).attr('id').split('-').slice(1).join('-'),
 			tags = $this.find('.tags').val().split(','),
-			selector = new SearchSelector('shopp_tags',$this,tagsugg_url,
-				'tax_input['+taxonomy+']',
-				TAG_SEARCHSELECT_LABEL,
-				'tags',true
-			);
+			selector = new SearchSelector({
+				source:'shopp_tags',
+				parent:$this,
+				url:tagsugg_url,
+				fieldname:'tax_input['+taxonomy+']',
+				label:TAG_SEARCHSELECT_LABEL,
+				classname:'tags',
+				freeform:true,
+				autosuggest:'shopp_popular_tags'
+			});
 
 		$.each(tags,function (id,tag) {
+			if (tag.length == 0) return;
 			selector.ui.prepend(selector.newItem('',tag));
 		});
 	});

@@ -175,19 +175,19 @@ class Warehouse extends AdminController {
 		if (!$workflow) {
 			if (empty($categories)) $categories = array('');
 
-			$category_table = DatabaseObject::tablename(Category::$table);
-			$query = "SELECT id,name,parent FROM $category_table ORDER BY parent,name";
-			$categories = $db->query($query,AS_ARRAY);
-			$categories = sort_tree($categories);
-			if (empty($categories)) $categories = array();
+			// $category_table = DatabaseObject::tablename(Category::$table);
+			// $query = "SELECT id,name,parent FROM $category_table ORDER BY parent,name";
+			// $categories = $db->query($query,AS_ARRAY);
+			// $categories = sort_tree($categories);
+			// if (empty($categories)) $categories = array();
 
 			$categories_menu = '<option value="">'.__('View all categories','Shopp').'</option>';
 			$categories_menu .= '<option value="-"'.($cat=='-'?' selected="selected"':'').'>'.__('Uncategorized','Shopp').'</option>';
-			foreach ($categories as $category) {
-				$padding = str_repeat("&nbsp;",$category->depth*3);
-				if ($cat == $category->id) $categories_menu .= '<option value="'.$category->id.'" selected="selected">'.$padding.esc_html($category->name).'</option>';
-				else $categories_menu .= '<option value="'.$category->id.'">'.$padding.esc_html($category->name).'</option>';
-			}
+			// foreach ($categories as $category) {
+			// 	$padding = str_repeat("&nbsp;",$category->depth*3);
+			// 	if ($cat == $category->id) $categories_menu .= '<option value="'.$category->id.'" selected="selected">'.$padding.esc_html($category->name).'</option>';
+			// 	else $categories_menu .= '<option value="'.$category->id.'">'.$padding.esc_html($category->name).'</option>';
+			// }
 			$inventory_filters = array(
 				'all' => __('View all products','Shopp'),
 				'is' => __('In stock','Shopp'),
@@ -200,10 +200,10 @@ class Warehouse extends AdminController {
 
 		$subfilters = array('f' => 'featured','p' => 'published','s' => 'onsale','i' => 'inventory');
 		$subs = array(
-			'all' => array('label' => __('All','Shopp'),'columns' => "count(distinct pd.id) AS total",'where'=>'true'),
-			'published' => array('label' => __('Published','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.status='publish'",'request' => 'p'),
-			'onsale' => array('label' => __('On Sale','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pt.sale='on'",'request' => 's'),
-			'featured' => array('label' => __('Featured','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"pd.featured='on'",'request' => 'f'),
+			'all' => array('label' => __('All','Shopp'),'columns' => "count(*) AS total",'where'=>"p.post_type='shopp_product'"),
+			'published' => array('label' => __('Published','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"p.post_status='publish'",'request' => 'p'),
+			'onsale' => array('label' => __('On Sale','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"s.sale='on'",'request' => 's'),
+			'featured' => array('label' => __('Featured','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"s.featured='on'",'request' => 'f'),
 			'inventory' => array('label' => __('Inventory','Shopp'),'total' => 0,'columns' => "count(distinct pt.id) AS total",'where'=>"pt.inventory='on' AND pt.type!='N/A'",'grouping'=>'pt.id','request' => 'i')
 		);
 
@@ -218,15 +218,16 @@ class Warehouse extends AdminController {
 
 		$pd = WPPostTypeObject::tablename(Product::$table);
 		$pt = DatabaseObject::tablename(Price::$table);
-		$catt = DatabaseObject::tablename(Category::$table);
+		$stats = DatabaseObject::tablename(ProductStat::$table);
+		// $catt = DatabaseObject::tablename(Category::$table);
 		$clog = DatabaseObject::tablename(Catalog::$table);
 
 		$ct_id = get_catalog_taxonomy_id('category');
 
 		$orderby = "pd.created DESC";
 
-		$where = "true";
 		$having = "";
+		$where = array();
 		if (!empty($s)) {
 			$products = new SearchResults(array("search"=>$s));
 			$products->load_products(array("load"=>array()));
@@ -244,74 +245,86 @@ class Warehouse extends AdminController {
 		}
 		if (!empty($sl)) {
 			switch($sl) {
-				case "ns": $where .= " AND pt.inventory='off'"; break;
+				case "ns": $where[] = "s.inventory='off'"; break;
 				case "oos":
-					$where .= " AND (pt.inventory='on')";
-					$having .= (empty($having)?"HAVING ":" AND ")."SUM(pt.stock) = 0";
+					$where[] = "(s.inventory='on' AND s.stock = 0)";
 					break;
 				case "ls":
 					$ls = $Settings->get('lowstock_level');
 					if (empty($ls)) $ls = '0';
-					$where .= " AND (pt.inventory='on' AND pt.stock <= $ls AND pt.stock > 0)";
+					$where[] = "(s.inventory='on' AND s.stock <= $ls AND s.stock > 0)";
 					break;
-				case "is": $where .= " AND (pt.inventory='on' AND pt.stock > 0)";
+				case "is": $where[] = "(s.inventory='on' AND s.stock > 0)";
 			}
 		}
 
-		if (!empty($f))	$where .= " AND ".$subs[$subfilters[$f]]['where'];
+		if (!empty($f))	$where[] = $subs[$subfilters[$f]]['where'];
 
 		$base = $Settings->get('base_operations');
 		if ($base['vat']) $taxrate = shopp_taxrate();
 		if (empty($taxrate)) $taxrate = 0;
 
-		if ('i' == $f) {
-			$columns = "SQL_CALC_FOUND_ROWS pt.id,pd.id as product,pd.name,pd.slug,pt.label,pt.optionkey,pt.stock,pt.sku";
-
-			// Load the products
-			$query = "SELECT $columns $matchcol FROM $pt AS pt LEFT JOIN $pd AS pd ON pd.id=pt.product LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.taxonomy='$ct_id' WHERE $where GROUP BY pt.id $having ORDER BY pd.id,pt.sortorder LIMIT $start,$per_page";
-			$Products = $db->query($query,AS_ARRAY);
-			$productcount = $db->query("SELECT FOUND_ROWS() as total");
-
+		if ('i' == $f) { // Inventory products
+			$loading = array(
+				'columns' => "CONCAT(p.post_title,': ',pt.label) AS post_title,pt.sku AS sku",
+				'joins' => array($pt => "JOIN $pt AS pt ON p.ID=pt.product"),
+				'where' => $where,
+				'groupby' => 'pt.id',
+				'orderby' => 'p.ID,pt.sortorder',
+				'limit'=>"$start,$per_page"
+			);
 		} else {
-			$columns = "SQL_CALC_FOUND_ROWS pd.id,pd.name,pd.slug,pd.featured,pd.variations,GROUP_CONCAT(DISTINCT cat.name ORDER BY cat.name SEPARATOR ', ') AS categories,
-			IF(pt.options=0,IF(pt.tax='off',pt.price,pt.price+(pt.price*$taxrate)),-1) AS mainprice,
-			IF(MAX(pt.tax)='off',MAX(pt.price),MAX(pt.price+(pt.price*$taxrate))) AS maxprice,
-			IF(MAX(pt.tax)='off',MIN(pt.price),MIN(pt.price+(pt.price*$taxrate))) AS minprice,
-			IF(pt.inventory='on','on','off') AS inventory,
-			ROUND(SUM(pt.stock)/IF(clog.id IS NULL,1,count(DISTINCT clog.id)),0) AS stock";
-			if ($workflow) $columns = "pd.id";
-
-
-			// Load the products
-			// $query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' AND pt.context != 'addon' LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.taxonomy='$ct_id' WHERE $where GROUP BY pd.id $having ORDER BY $orderby LIMIT $start,$per_page";
-
-			$Products = new ProductCollection();
-			$Products->load();
-			// print_r($Products);
-
-			// $Products = DB::query($query,'array');
-			// $productcount = DB::query("SELECT FOUND_ROWS() as total");
-
-
+			$loading = array(
+				'where' => $where,
+				'limit'=>"$start,$per_page"
+			);
 		}
+
+		$Products = new ProductCollection();
+		$Products->load($loading);
+
 		if ($workflow) return $Products->workflow();
 
+		// @todo Add wp_cache support
 		foreach ($subs as $name => &$subquery) {
-			if ($name == "all") { $subquery['total'] = (int)$productcount->total; continue; }
-			$columns = $subquery['columns'];
-			if (!empty($f)) $where = str_replace(" AND ".$subs[$subfilters[$f]]['where'],"",$where);
-			$w = ($where == "true")?$subquery['where']:"$where AND ({$subquery['where']})";
-			$category_join = (strpos($w,"taxonomy='$ct_id'") !== false)?"LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.taxonomy='$ct_id'":"";
+			if ('all' == $name)
+				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p WHERE p.post_type='shopp_product'",'auto','col','total');
 
-			$grouping = "GROUP BY ".(isset($subquery['grouping'])?$subquery['grouping']:"pd.id");
+			if ('published' == $name)
+				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p WHERE p.post_type='shopp_product' AND p.post_status='publish'",'auto','col','total');
+
+			if ('onsale' == $name) {
+				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $stats AS s ON p.ID=s.post AND s.sale='on' WHERE p.post_type='shopp_product'",'auto','col','total');
+			}
+
+			if ('featured' == $name) {
+				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $stats AS s ON p.ID=s.post AND s.featured='on' WHERE p.post_type='shopp_product'",'auto','col','total');
+			}
+
+			if ('inventory' == $name) {
+				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $stats AS s ON p.ID=s.post AND s.inventory='on' WHERE p.post_type='shopp_product'",'auto','col','total');
+			}
 
 
-
-			$query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' $category_join WHERE $w $grouping $having";
-			$db->query($query);
-			$found = $db->query("SELECT FOUND_ROWS() as total");
-
-			if (isset($found->total)) $subquery['total'] = number_format((int)$found->total);
+			//
+			//
+			// if ($name == "all") { $subquery['total'] = (int)$productcount->total; continue; }
+			// $columns = $subquery['columns'];
+			// if (!empty($f)) $where = str_replace(" AND ".$subs[$subfilters[$f]]['where'],"",$where);
+			// $w = ($where == "true")?$subquery['where']:"$where AND ({$subquery['where']})";
+			// // $category_join = (strpos($w,"taxonomy='$ct_id'") !== false)?"LEFT JOIN $clog AS clog ON pd.id=clog.product LEFT JOIN $catt AS cat ON cat.id=clog.parent AND clog.taxonomy='$ct_id'":"";
+			//
+			// $grouping = "GROUP BY ".(isset($subquery['grouping'])?$subquery['grouping']:"pd.id");
+			//
+			// $query = DB::select($options);
+			//
+			//
+			//
+			// $query = "SELECT $columns $matchcol FROM $pd AS pd LEFT JOIN $pt AS pt ON pd.id=pt.product AND pt.type != 'N/A' $category_join WHERE $w $grouping $having";
+			// $db->query($query);
+			// $found = $db->query("SELECT FOUND_ROWS() as total");
+			//
+			// if (isset($found->total)) $subquery['total'] = number_format((int)$found->total);
 
 		}
 
@@ -379,7 +392,7 @@ class Warehouse extends AdminController {
 	 * @return void
 	 **/
 	function editor () {
-		global $Shopp,$ProductImages;
+		global $Shopp;
 
 		$db = DB::get();
 
@@ -414,9 +427,11 @@ class Warehouse extends AdminController {
 		foreach ($Product->tags as $tag) $taglist[] = $tag->name;
 
 		if ($Product->id && !empty($Product->images)) {
-			foreach ($Product->images as $i => $Image) {
-				$Image->cropped = DB::query("SELECT * FROM $Image->_table WHERE context='image' AND type='image' AND parent='$image->id' AND '2'=SUBSTRING_INDEX(SUBSTRING_INDEX(name,'_',4),'_',-1)",'array',array($Image,'loader'));
-			}
+			$ids = join(',',array_keys($Product->images));
+			$CoverImage = reset($Product->images);
+			$image_table = $CoverImage->_table;
+			//array($Image,'loader')
+			$cropped = DB::query("SELECT * FROM $image_table WHERE context='image' AND type='image' AND '2'=SUBSTRING_INDEX(SUBSTRING_INDEX(name,'_',4),'_',-1) AND parent IN ($ids)",'array');
 		}
 
 		// if ($Product->id) {

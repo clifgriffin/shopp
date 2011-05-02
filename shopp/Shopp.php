@@ -245,6 +245,7 @@ class Shopp {
 					'name' => __('Products','Shopp'),
 					'singular_name' => __('Product','Shopp')
 				),
+			'rewrite' => array( 'slug' => 'products' ),
 			'public' => true,
 			'has_archive' => true,
 			'show_ui' => true
@@ -271,7 +272,6 @@ class Shopp {
 			'query_var' => true,
 			'rewrite' => array( 'slug' => 'tag' ),
 		));
-
 
 	}
 

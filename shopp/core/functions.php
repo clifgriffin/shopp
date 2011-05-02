@@ -124,6 +124,28 @@ function add_storefrontjs ($script,$global=false) {
 }
 
 /**
+ * Filters associative array with a mask array of keys to keep
+ *
+ * Compares the keys of the associative array to values in the mask array and
+ * keeps only the elements of the array that exist as a value of the mask array.
+ *
+ * @author Jonathan Davis
+ * @since 1.2
+ *
+ * @param array $array The array to filter
+ * @param array $mask A list of keys to keep
+ * @return array The filtered array
+ **/
+function array_filter_keys ($array,$mask) {
+	if ( !is_array($array) ) return $array;
+
+	foreach ($array as $key => $value)
+		if ( !in_array($key,$mask) ) unset($array[$key]);
+
+	return $array;
+}
+
+/**
  * Automatically generates a list of number ranges distributed across a number set
  *
  * @author Jonathan Davis
