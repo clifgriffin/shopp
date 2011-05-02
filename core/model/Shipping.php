@@ -25,6 +25,7 @@
 class Shipping extends DatabaseObject {
 	static $table = "shipping";
 	var $method = false;
+	var $residential = "on";
 
 	function __construct ($id=false,$key=false) {
 		$this->init(self::$table);

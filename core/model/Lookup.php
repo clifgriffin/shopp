@@ -90,7 +90,7 @@ class Lookup {
 		$_['CO'] = array('name'=>__('Colombia','Shopp'),'currency'=>array('code'=>'COP','format'=>'$#.###,##'),'units'=>'metric','region'=>2);
 		$_['CR'] = array('name'=>__('Costa Rica','Shopp'),'currency'=>array('code'=>'CRC','format'=>'₡#.###,##'),'units'=>'metric','region'=>1);
 		$_['HR'] = array('name'=>__('Croatia','Shopp'),'currency'=>array('code'=>'HRK','format'=>'#.###,## kn'),'units'=>'metric','region'=>3);
-		$_['CY'] = array('name'=>__('Cyprus','Shopp'),'currency'=>array('code'=>'CYP','format'=>'£#.###,##'),'units'=>'metric','region'=>3);
+		$_['CY'] = array('name'=>__('Cyprus','Shopp'),'currency'=>array('code'=>'EUR','format'=>'€#.###,##'),'units'=>'metric','region'=>3);
 		$_['CZ'] = array('name'=>__('Czech Republic','Shopp'),'currency'=>array('code'=>'CZK','format'=>'# ###,## Kč'),'units'=>'metric','region'=>3);
 		$_['DK'] = array('name'=>__('Denmark','Shopp'),'currency'=>array('code'=>'DKK','format'=>'#.###,## kr'),'units'=>'metric','region'=>3);
 		$_['DO'] = array('name'=>__('Dominican Republic','Shopp'),'currency'=>array('code'=>'DOP','format'=>'$#,###.##'),'units'=>'metric','region'=>1);
