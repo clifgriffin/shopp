@@ -26,7 +26,7 @@ error_reporting(E_ALL);
 ini_set('display_errors', true);
 
 // require_once('PHPUnit.php');
-require_once('PHPUnit/Framework.php');
+require_once('PHPUnit/Framework/TestCase.php');
 require_once('PHPUnit/Util/ErrorHandler.php');
 require_once('xHTMLvalidator.php');
 
