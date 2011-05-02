@@ -92,33 +92,96 @@ class Product extends WPPostTypeObject {
 		$load = array_flip(array_intersect($options,array_keys($loaders)));
 		$loadcalls = array_unique(array_values(array_intersect_key($loaders,$load)));
 
+
+		if (!empty($products) ) {
+			$ids = join(',',array_keys($products));
+			$this->products = &$products;
+		} else $ids = $this->id;
+		if ( empty($ids) ) return;
+
 		foreach ($loadcalls as $loadmethod) {
 			if (method_exists($this,$loadmethod))
-				call_user_func_array(array($this,$loadmethod),array(&$products));
+				call_user_func_array(array($this,$loadmethod),array($ids));
 		}
 
 	}
 
-	function load_stats (&$products=array()) {
+	function load_stats ($ids) {
+		if ( empty($ids) ) return;
 		$Object = new ProductStat();
 
-		if (!empty($products)) $ids = join(',',array_keys($products));
-		else $ids = $this->id;
-
 		$columns = join(',',array_keys($Object->__datatypes));
-		DB::query("SELECT $columns FROM $Object->_table WHERE post IN ($ids)",'array',array($this,'metaloader'),&$products,'post','stats',false,'merge');
+		DB::query("SELECT $columns FROM $Object->_table WHERE post IN ($ids)",'array',array($this,'metaloader'),'post','stats',false,'merge');
 	}
 
-	function load_meta (&$products=array()) {
+	/**
+	 * Loads price records and populates the product
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function load_prices ($ids) {
+		if ( empty($ids) ) return;
+		$Object = new Price();
+
+		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids)",'array',array($this,'pricing'));
+
+		if (isset($this->products) && !empty($this->products))
+			foreach ($this->products as $Product) $Product->save_stats();
+		else $this->save_stats();
+	}
+
+	function load_meta ($ids) {
+		if ( empty($ids) ) return;
 		$Object = new ObjectMeta();
 
-		if (!empty($products)) $ids = join(',',array_keys($products));
-		else $ids = $this->id;
-
-		DB::query("SELECT * FROM $Object->_table WHERE context='product' AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),&$products,'parent','metatype','name',false);
+		DB::query("SELECT * FROM $Object->_table WHERE context='product' AND parent IN ($ids) ORDER BY sortorder",'array',array($this,'metaloader'),'parent','metatype','name',false);
 	}
 
-	function metaloader (&$records,&$record,$products=array(),$id='id',$property=false,$collate=true,$merge=false) {
+	/**
+	 * Loads assigned taxonomies
+	 *
+	 * Loads both shopp_category and shopp_tag built-in custom taxonomies as well
+	 * as other user-defined taxonomies assigned to the Shopp product custom post type
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function load_taxonomies ($ids) {
+		if ( empty($ids) ) return;
+
+		if (isset($this->products) && !empty($this->products)) {
+			$products = &$this->products;
+			$ids = array_keys($this->products);
+		} else $ids = array($this->id);
+
+		$taxonomies = get_object_taxonomies( $this->_post_type );
+		$terms = wp_get_object_terms($ids,$taxonomies,array('fields' => 'all_with_object_id'));
+
+		foreach ($terms as $term) { // Map wp taxonomy data to object meta
+			if (!isset($term->term_id) || empty($term->term_id)) continue; 		// Skip invalid entries
+			if (!isset($term->object_id) || empty($term->object_id)) continue;	// Skip invalid entries
+			if (!isset(Product::$_taxonomies[$term->taxonomy])) continue;
+			$property = Product::$_taxonomies[$term->taxonomy];
+
+			if (isset($products[$term->object_id]))
+				$target = $products[$term->object_id];
+			else $target = $this;
+
+			if (is_array($target->$property)) // Map term to object
+				$target->{$property}[ $term->term_id ] = $term;
+
+		} // END foreach ($terms)
+	}
+
+	function metaloader (&$records,&$record,$id='id',$property=false,$collate=true,$merge=false) {
+
+		if (isset($this->products) && !empty($this->products)) $products = &$this->products;
+
 		$metamap = array(
 			'image' => 'images',
 			'setting' => 'settings',
@@ -142,61 +205,9 @@ class Product extends WPPostTypeObject {
 				$Object->expopulate();
 			$record = $Object;
 		}
-		if ('meta' == $property) {
-		}
+		if ('images' == $property) $collate = 'id';
 
-		parent::metaloader(&$records,&$record,$products,$id,$property,$collate,$merge);
-	}
-
-	/**
-	 * Loads assigned taxonomies
-	 *
-	 * Loads both shopp_category and shopp_tag built-in custom taxonomies as well
-	 * as other user-defined taxonomies assigned to the Shopp product custom post type
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @return void
-	 **/
-	function load_taxonomies (&$products=array()) {
-		if (!empty($products)) $ids = array_keys($products);
-		else $ids = array($this->id);
-
-		$taxonomies = get_object_taxonomies( $this->_post_type );
-		$terms = wp_get_object_terms($ids,$taxonomies,array('fields' => 'all_with_object_id'));
-
-		foreach ($terms as $term) { // Map wp taxonomy data to object meta
-			if (!isset($term->term_id) || empty($term->term_id)) continue; 		// Skip invalid entries
-			if (!isset($term->object_id) || empty($term->object_id)) continue;	// Skip invalid entries
-			if (!isset(Product::$_taxonomies[$term->taxonomy])) continue;
-			$property = Product::$_taxonomies[$term->taxonomy];
-
-			if (isset($products[$term->object_id]))
-				$target = $products[$term->object_id];
-			else $target = $this;
-
-			if (is_array($target->$property)) // Map term to object
-				$target->{$property}[ $term->term_id ] = $term;
-
-		} // END foreach ($terms)
-	}
-
-	/**
-	 * Loads price records and populates the product
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.2
-	 *
-	 * @return void
-	 **/
-	function load_prices (&$products=array()) {
-		$Object = new Price();
-
-		if (!empty($products)) $ids = join(',',array_keys($products));
-		else $ids = $this->id;
-
-		$this->prices = DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids)",'array',array($this,'pricing'),&$products);
+		parent::metaloader($records,$record,$products,$id,$property,$collate,$merge);
 	}
 
 	/**
@@ -208,28 +219,32 @@ class Product extends WPPostTypeObject {
 	 * @param array $options shopp() tag option list
 	 * @return void
 	 **/
-	function pricing (&$records,&$price,$products=array(),$restat=false) {
-		if (is_array($products) && isset($products[$record->{$id}]))
-			$target = $products[$record->{$id}];
-		else $target = $this;
+	function pricing (&$records,&$price,$restat=false) {
+		if ( isset($this->products) && !empty($this->products) ) {
+			if ( !isset($this->products[$price->product]) ) return false;
+			$target = &$this->products[$price->product];
+		} else $target = &$this;
 
-		$records[] = $price;
+		$target->prices[] = $price;
 
 		// Variation range index/properties
 		$varranges = array('price' => 'price','saleprice'=>'promoprice');
 
-		$variations = ($target->variations == "on");
+		$variations = ($target->variations == 'on');
 		$freeshipping = true;
-		$target->inventory = false;
 
-		// By default, run stat calculations if no stat data exists
-		if ( in_array('restat',$options) || $target->maxprice+$target->minprice+$target->stock == 0) {
-			add_action('shopp_init_product_pricing',array(&$this,'reset_stats'));
-			add_action('shopp_product_stats',array(&$this,'stats'));
-			add_action('shopp_product_pricing_done',array(&$this,'save_stats'));
+		if (!isset($target->_restat)) {
+			$target->sale = $target->inventory = 'off';
+			$target->stock = $target->minprice = $target->maxprice = 0;
+			$target->_restat = true;
 		}
 
-		do_action('shopp_init_product_pricing');
+		// By default, run stat calculations if no stat data exists
+		// add_action('shopp_init_product_pricing',array(&$target,'reset_stats'));
+		// add_action('shopp_product_stats',array(&$target,'stats'));
+		// add_action('shopp_product_pricing_done',array(&$target,'save_stats'));
+
+		// do_action('shopp_init_product_pricing');
 		// foreach ($this->prices as $i => &$price) {
 			$price->price = (float)$price->price;
 			$price->saleprice = (float)$price->saleprice;
@@ -257,14 +272,15 @@ class Product extends WPPostTypeObject {
 			$target->pricekey[$price->optionkey] = $price;
 
 			// Boolean flag for custom product sales
-			$price->onsale = false;
-			if ($price->sale == "on")
-				$target->onsale = $price->onsale = true;
+			$target->sale = 'off';
+			if ($price->sale == 'on') {
+				$target->sale = 'on'; $price->onsale = true;
+			}
 
-			$price->stocked = false;
-			if ($price->inventory == "on") {
+			if ($price->inventory == 'on') {
 				$target->stock += $price->stock;
-				$target->inventory = $price->stocked = true;
+				$target->inventory = 'on';
+				$price->stocked = true;
 			}
 
 			if ($price->freeshipping == '0' || $price->shipping == 'on')
@@ -284,7 +300,7 @@ class Product extends WPPostTypeObject {
 			if (!$price->price) $price->price = 0;
 			if ($price->stocked) $varranges['stock'] = 'stock';
 
-			do_action_ref_array('shopp_product_stats',array(&$price));
+			// do_action_ref_array('shopp_product_stats',array(&$price));
 
 			foreach ($varranges as $name => $prop) {
 				if (!isset($price->$prop)) continue;
@@ -327,7 +343,13 @@ class Product extends WPPostTypeObject {
 
 		// } // end foreach($price)
 
-		do_action('shopp_product_pricing_done');
+		// Update stats
+		$target->maxprice = $target->max['price'];
+		$target->minprice = $target->min['price'];
+		if ($target->sale == 'on') $target->minprice = $target->min['saleprice'];
+
+		// $this->save_stats();
+		// do_action('shopp_product_pricing_done');
 
 		if ($target->inventory && $target->stock <= 0) $target->outofstock = true;
 		if ($freeshipping) $target->freeshipping = true;
@@ -432,10 +454,10 @@ class Product extends WPPostTypeObject {
 	function save_stats () {
 		if (empty($this->id) || empty($this->stats)) return;
 
-		$Stats = new ProductStat();
-		$Stats->updates($this->stats);
-		$Stats->post = $this->id;
-		$Stats->save();
+		// $Stats = new ProductStat();
+		// $Stats->updates($this->stats);
+		// $Stats->post = $this->id;
+		// $Stats->save();
 
 	}
 
@@ -662,7 +684,7 @@ class Product extends WPPostTypeObject {
 		switch ($property) {
 			case "link":
 			case "url":
-				return shoppurl(SHOPP_PRETTYURLS?$this->slug:array('s_pid'=>$this->id));
+				return get_post_permalink($this->id);
 				break;
 			case "found":
 				if (empty($this->id)) return false;

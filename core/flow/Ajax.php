@@ -422,6 +422,16 @@ class AjaxFlow {
 					$table = "$wpdb->terms AS t";
 					$joins = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
 					$where[] = "tt.taxonomy = 'shopp_tag'";
+					if ('shopp_popular_tags' == strtolower($q)) {
+						$q = ''; $orderlimit = "ORDER BY tt.count DESC LIMIT 15";
+					}
+					break;
+				case 'shopp_tags':
+					$id = 't.term_id';
+					$name = 'name';
+					$table = "$wpdb->terms AS t";
+					$joins = "INNER JOIN  $wpdb->term_taxonomy AS tt ON tt.term_id = t.term_id";
+					$where[] = "tt.taxonomy = 'shopp_tag'";
 					break;
 				case 'shopp_promotions':
 					$id = 'id';
@@ -436,10 +446,11 @@ class AjaxFlow {
 					$where[] = "type='download'";
 					break;
 			}
-			$where[] = "$name LIKE '%$q%'";
+			if (!empty($q))
+				$where[] = "$name LIKE '%$q%'";
 			$wheres = join(' AND ',$where);
 
-			$query = "SELECT $id AS id, $name AS name FROM $table $joins WHERE $wheres";
+			$query = "SELECT $id AS id, $name AS name FROM $table $joins WHERE $wheres $orderlimit";
 
 			$items = $db->query($query,AS_ARRAY);
 			echo json_encode($items);

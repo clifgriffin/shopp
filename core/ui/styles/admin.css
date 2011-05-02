@@ -47,6 +47,9 @@ h2 a.add-new { font-style: normal; margin: 0px 6px; position: relative; top: -3p
 tr:hover .row-actions,
 div.comment-item:hover .row-actions { visibility:visible; }
 
+.saletag { position: relative; display: inline-block; background: #608E0F; height: 11px; font-size: 7px; color: #fff; text-transform: uppercase; margin-left: 10px; line-height: 7px; text-indent: -12px; padding: 0 2px 0 2px; -moz-border-radius:2px;-khtml-border-radius:2px;-webkit-border-radius:2px;border-radius:2px;  top: -1px; }
+.saletag:before { position: relative; content: "\25C0"; color: #608E0F; background: none; left: 2px; top: 2px; font-size: 11px; text-shadow: none;  }
+
 /** Editors Global **/
 .postbox h3 span a.help,
 .postbox label a.help { margin-bottom:-3px;margin-top:-2px;margin-left:5px;top:5px;display:inline-block;background:url('../icons/help.png') no-repeat;width:12px;height:13px;border:none; }
@@ -348,6 +351,7 @@ span.indent { display: inline-block; width: 36px; }
 	
 /** Tags Metabox **/
 .shopp .tags-metabox .search-select input.input { width: 100px; }
+.search-select-results.tags { width: 266px; }
 
 #save-product .misc-pub-section { padding-left: 24px; text-indent: -18px; }
 

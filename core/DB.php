@@ -29,7 +29,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @package shopp
  **/
 class DB {
-	static $version = 1130;	// Database schema version
+	static $version = 1131;	// Database schema version
 
 	private static $instance;
 	// Define datatypes for MySQL
@@ -277,14 +277,14 @@ class DB {
 		}
 
 		$useindex 	= empty($useindex)?'':"FORCE INDEX($useindex)";
-		$joins 		= empty($joins)?'':"\n\t\t".join(' ',$joins);
+		$joins 		= empty($joins)?'':"\n\t\t".join("\n\t\t",$joins);
 		$where 		= empty($where)?'':"\n\tWHERE ".join(' AND ',$where);
 		$groupby 	= empty($groupby)?'':"GROUP BY $groupby";
 		$having 	= empty($having)?'':"HAVING ".join(" AND ",$having);
 		$orderby	= empty($orderby)?'':"\n\tORDER BY $orderby";
 		$limit 		= empty($limit)?'':"\n\tLIMIT $limit";
 
-		return "SELECT $columns\n\tFROM $table AS p $useindex $joins $where $groupby $having $orderby $limit";
+		return "SELECT $columns\n\tFROM $table $useindex $joins $where $groupby $having $orderby $limit";
 	}
 
 	/**

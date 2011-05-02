@@ -747,11 +747,11 @@ class AdminFlow extends FlowController {
 		$db = DB::get();
 		global $wpdb;
 
-		// if (SAVEQUERIES) {
-		// 	echo "<pre>\nWP QUERIES\n\n";
-		// 	print_r($wpdb->queries);
-		// 	echo "\n\n</pre>";
-		// }
+		if (SAVEQUERIES) {
+			echo "<pre>\nWP QUERIES\n\n";
+			print_r($wpdb->queries);
+			echo "\n\n</pre>";
+		}
 
 		if (SHOPP_QUERY_DEBUG) {
 			echo "<pre>\n\nSHOPP QUERIES\n\n";

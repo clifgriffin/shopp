@@ -160,6 +160,6 @@ var flashuploader = <?php echo ($uploader == 'flash' && !(false !== strpos(strto
 	IMAGE_DETAILS_ALT_LABEL = <?php _jse('Alt','Shopp'); ?>,
 	IMAGE_DETAILS_DONE = <?php _jse('OK','Shopp'); ?>,
 	IMAGE_DETAILS_CROP_LABEL = <?php _jse('Cropped images','Shopp'); ?>,
-	TAG_SEARCHSELECT_LABEL = <?php _jse('Begin typing to search tags&hellip;','Shopp'); ?>;
+	TAG_SEARCHSELECT_LABEL = <?php _jse('Type to search tags or wait for popular tags&hellip;','Shopp'); ?>;
 /* ]]> */
 </script>

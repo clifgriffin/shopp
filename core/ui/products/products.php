@@ -71,7 +71,6 @@
 		foreach ($Product->categories as $id => $category) {
 			$categories[] = '<a href="">'.esc_html($category->name).'</a>';
 		}
-
 		?>
 		<tr<?php if (!$even) echo " class='alternate'"; $even = !$even; ?>>
 			<th scope='row' class='check-column'><input type='checkbox' name='delete[]' value='<?php echo $Product->id; ?>' /></th>
@@ -80,15 +79,17 @@
 					<span class='edit'><a href="<?php echo $editurl; ?>" title="<?php _e('Edit','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Edit','Shopp'); ?></a> | </span>
 					<span class='edit'><a href="<?php echo $dupurl; ?>" title="<?php _e('Duplicate','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;"><?php _e('Duplicate','Shopp'); ?></a> | </span>
 					<span class='delete'><a class="submitdelete" title="<?php _e('Delete','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" href="<?php echo $delurl; ?>" rel="<?php echo $Product->id; ?>"><?php _e('Delete','Shopp'); ?></a> | </span>
-					<span class='view'><a href="<?php echo shoppurl(SHOPP_PRETTYURLS?$Product->slug:array('s_pid'=>$Product->id)); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
+					<span class='view'><a href="<?php echo $Product->tag('url'); ?>" title="<?php _e('View','Shopp'); ?> &quot;<?php echo esc_attr($ProductName); ?>&quot;" rel="permalink" target="_blank"><?php _e('View','Shopp'); ?></a></span>
 				</div>
 				</td>
 			<td class="category column-category<?php echo in_array('category',$hidden)?' hidden':''; ?>"><?php echo join(', ',$categories); ?></td>
-			<td class="price column-price<?php echo in_array('price',$hidden)?' hidden':''; ?>"><?php
-				if ($Product->variations == "off") echo money($Product->mainprice);
+			<td class="price column-price<?php echo in_array('price',$hidden)?' hidden':''; if ($Product->sale == 'on') echo " sale"?>"><?php
+				if ($Product->variations == "off") echo money($Product->minprice);
 				elseif ($Product->maxprice == $Product->minprice) echo money($Product->maxprice);
 				else echo money($Product->minprice)."&mdash;".money($Product->maxprice);
-			?></td>
+				if ($Product->sale == 'on') echo '<span class="saletag">'.__('Sale','Shopp').'</span>';
+			?>
+			</td>
 			<td class="inventory column-inventory<?php echo in_array('inventory',$hidden)?' hidden':''; ?>"><?php if ($Product->inventory == "on") echo $Product->stock; ?></td>
 			<td class="featured column-featured<?php echo in_array('featured',$hidden)?' hidden':''; ?>"><button type="button" name="feature" value="<?php echo $Product->id; ?>" class="<?php echo ($Product->featured == "on")?' feature featured':'feature'; ?>">&nbsp;</button></td>
 
