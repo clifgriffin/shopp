@@ -524,7 +524,7 @@ class AjaxFlow {
 		check_admin_referer('wp_ajax_shopp_feature_product');
 
 		if (empty($_GET['feature'])) die('0');
-		$Product = new Product($_GET['feature']);
+		$Product = new ProductSummary($_GET['feature']);
 		if ($Product->featured == "on") $Product->featured = "off";
 		else $Product->featured = "on";
 		$Product->save();

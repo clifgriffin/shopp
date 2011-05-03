@@ -24,6 +24,7 @@ class Product extends WPPostTypeObject {
 	);
 
 	var $_post_type = 'shopp_product';
+
 	protected $_map = array(
 		'id' => 'ID',
 		'name' => 'post_title',
@@ -35,8 +36,6 @@ class Product extends WPPostTypeObject {
 		'modified' => 'post_modified'
 	);
 
-
-	var $stats = false;
 	var $prices = array();
 	var $pricekey = array();
 	var $priceid = array();
@@ -47,6 +46,7 @@ class Product extends WPPostTypeObject {
 	var $meta = array();
 	var $max = array();
 	var $min = array();
+	var $summary = false;
 	var $onsale = false;
 	var $freeshipping = false;
 	var $outofstock = false;
@@ -76,22 +76,22 @@ class Product extends WPPostTypeObject {
 	 *
 	 * @return void
 	 **/
-	function load_data ($options=array('stats','prices','specs','images','categories','tags','meta'),&$products=array()) {
+	function load_data ($options=array('prices','specs','images','categories','tags','meta','summary'),&$products=array()) {
 		$loaders = array(
 		//  'name'     'callback_method'
-			'stats' 	=> 'load_stats',
 			'prices' 	=> 'load_prices',
 			'images' 	=> 'load_meta',
 			'specs' 	=> 'load_meta',
 			'meta' 		=> 'load_meta',
 			'categories' => 'load_taxonomies',
-			'tags' 		=> 'load_taxonomies'
+			'tags' 		=> 'load_taxonomies',
+			'summary' 	=> 'load_summary'
+
 		);
 
 		$options = array_map('strtolower',$options);
 		$load = array_flip(array_intersect($options,array_keys($loaders)));
 		$loadcalls = array_unique(array_values(array_intersect_key($loaders,$load)));
-
 
 		if (!empty($products) ) {
 			$ids = join(',',array_keys($products));
@@ -106,12 +106,11 @@ class Product extends WPPostTypeObject {
 
 	}
 
-	function load_stats ($ids) {
+	function load_summary ($ids) {
 		if ( empty($ids) ) return;
-		$Object = new ProductStat();
+		$Object = new ProductSummary();
 
-		$columns = join(',',array_keys($Object->__datatypes));
-		DB::query("SELECT $columns FROM $Object->_table WHERE post IN ($ids)",'array',array($this,'metaloader'),'post','stats',false,'merge');
+		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids)",'array',array($this,'summary'));
 	}
 
 	/**
@@ -126,11 +125,13 @@ class Product extends WPPostTypeObject {
 		if ( empty($ids) ) return;
 		$Object = new Price();
 
-		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids)",'array',array($this,'pricing'));
+		DB::query("SELECT * FROM $Object->_table WHERE product IN ($ids) ORDER BY product",'array',array($this,'pricing'));
 
-		if (isset($this->products) && !empty($this->products))
-			foreach ($this->products as $Product) $Product->save_stats();
-		else $this->save_stats();
+		if ( $this->_last_product != false
+				&& $this->_last_product != $price->product
+				&& isset($this->products[$this->_last_product]) )
+			$this->products[$this->_last_product]->sumup();
+
 	}
 
 	function load_meta ($ids) {
@@ -220,9 +221,18 @@ class Product extends WPPostTypeObject {
 	 * @return void
 	 **/
 	function pricing (&$records,&$price,$restat=false) {
+
 		if ( isset($this->products) && !empty($this->products) ) {
 			if ( !isset($this->products[$price->product]) ) return false;
+
+			if ( $this->_last_product != false
+					&& $this->_last_product != $price->product
+					&& isset($this->products[$this->_last_product]) )
+				$this->products[$this->_last_product]->sumup();
+
 			$target = &$this->products[$price->product];
+
+			$this->_last_product = $price->product;
 		} else $target = &$this;
 
 		$target->prices[] = $price;
@@ -232,17 +242,6 @@ class Product extends WPPostTypeObject {
 
 		$variations = ($target->variations == 'on');
 		$freeshipping = true;
-
-		if (!isset($target->_restat)) {
-			$target->sale = $target->inventory = 'off';
-			$target->stock = $target->minprice = $target->maxprice = 0;
-			$target->_restat = true;
-		}
-
-		// By default, run stat calculations if no stat data exists
-		// add_action('shopp_init_product_pricing',array(&$target,'reset_stats'));
-		// add_action('shopp_product_stats',array(&$target,'stats'));
-		// add_action('shopp_product_pricing_done',array(&$target,'save_stats'));
 
 		// do_action('shopp_init_product_pricing');
 		// foreach ($this->prices as $i => &$price) {
@@ -405,6 +404,29 @@ class Product extends WPPostTypeObject {
 	}
 
 	/**
+	 * Populates the product with summary data
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.2
+	 *
+	 * @return void
+	 **/
+	function summary (&$records,&$data) {
+
+		$Summary = new ProductSummary();
+
+		$properties = array_keys($Summary->_datatypes);
+		$ignore = array('id','product');
+		if (isset($data->sumid)) $this->sumid = $data->sumid;
+		else $this->sumid = $data->id;
+		foreach ($properties as $property) {
+			if (in_array($property,$ignore)) continue;
+			$this->{$property} = isset($data->{$property})?($data->{$property}):false;
+		}
+
+	}
+
+	/**
 	 * Calculates aggregate product stats
 	 *
 	 * @author Jonathan Davis
@@ -413,7 +435,7 @@ class Product extends WPPostTypeObject {
 	 * @param object $Price The price record to calculate against
 	 * @return void
 	 **/
-	function stats ($Price) {
+	function sumprice ($Price) {
 		if ($Price->type == 'N/A' || $Price->context == 'addon' || (float)$Price->promoprice == 0) return;
 
 		if ($this->maxprice === false) $this->maxprice = (float)$Price->promoprice;
@@ -437,7 +459,7 @@ class Product extends WPPostTypeObject {
 
 	}
 
-	function reset_stats () {
+	function resum () {
 		$this->sale = $this->inventory = 'off';
 		$this->stock = $this->maxprice = $this->minprice = $this->sold = 0;
 	}
@@ -451,14 +473,14 @@ class Product extends WPPostTypeObject {
 	 * @param array $stats The stat properties to update
 	 * @return void
 	 **/
-	function save_stats () {
-		if (empty($this->id) || empty($this->stats)) return;
+	function sumup () {
+		if (empty($this->id)) return;
+		$Summary = new ProductSummary();
+		$Summary->copydata($this);
 
-		// $Stats = new ProductStat();
-		// $Stats->updates($this->stats);
-		// $Stats->post = $this->id;
-		// $Stats->save();
-
+		if (!empty($this->sumid)) $Summary->id = $this->sumid;
+		$Summary->product = $this->id;
+		$Summary->save();
 	}
 
 	/**
@@ -1598,31 +1620,15 @@ class Product extends WPPostTypeObject {
 
 } // END class Product
 
-class ProductStat extends DatabaseObject {
-	static $table = 'product';
+class ProductSummary extends DatabaseObject {
+	static $table = 'summary';
 
-	var $__datatypes = array(
-        'id' => 'int',
-        'post' => 'int',
-        'featured' => 'list',
-        'variations' => 'list',
-        'addons' => 'list',
-        'inventory' => 'list',
-        'sale' => 'list',
-        'maxprice' => 'float',
-        'minprice' => 'float',
-        'stock' => 'int',
-        'sold' => 'int',
-        'modified' => 'date'
-	);
-
-	function __construct ($id=false,$key='post') {
+	function __construct ($id=false,$key='product') {
 		$this->init(self::$table);
-		$this->load($id,'post');
+		$this->load($id,$key);
 	}
 
-
-} // END class ProductStat
+} // END class ProductSummary
 
 
 class Spec extends MetaObject {

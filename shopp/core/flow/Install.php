@@ -602,6 +602,7 @@ class ShoppInstallation extends FlowController {
 				$catalog_table = DatabaseObject::tablename('catalog');
 				$product_table = DatabaseObject::tablename('product');
 				$price_table = DatabaseObject::tablename('price');
+				$summary_table = DatabaseObject::tablename('summary');
 				$meta_table = DatabaseObject::tablename('meta');
 				$category_table = DatabaseObject::tablename('category');
 				$tag_table = DatabaseObject::tablename('tag');
@@ -614,21 +615,20 @@ class ShoppInstallation extends FlowController {
 							SELECT '$post_type',slug,name,summary,description,status,publish,modified,id FROM $product_table");
 
 				// Link original product data to new custom post type record
-				DB::query("UPDATE $product_table AS sp JOIN $wpdb->posts AS wp ON wp.post_parent=sp.id SET sp.post=wp.ID");
+				// DB::query("UPDATE $summary_table AS sp JOIN $wpdb->posts AS wp ON wp.post_parent=sp.id SET sp.product=wp.ID");
 
 				// @todo Update purchased table product column with new Post ID so sold counts can be updated
-				DB::query("UPDATE $purchased_table AS pd JOIN $wpdb->posts AS wp ON wp.post_parent=pd.product SET pd.product='wp.ID'");
-
-				// Clear custom post type parents
-				DB::query("UPDATE $wpdb->posts SET post_parent=0 WHERE post_type='$post_type'");
+				DB::query("UPDATE $purchased_table AS pd JOIN $wpdb->posts AS wp ON wp.post_parent=pd.product AND wp.post_type='$post_type' SET pd.product=wp.ID");
 
 				// Update product links for prices and meta
-				DB::query("UPDATE $price_table AS price JOIN $product_table AS product ON price.product=product.id SET price.product=product.post");
-				DB::query("UPDATE $meta_table AS meta JOIN $product_table AS product ON meta.parent=product.id AND meta.context='product' SET meta.parent=product.post");
+				DB::query("UPDATE $price_table AS price JOIN $wpdb->posts wp ON price.product=wp.post_parent AND wp.post_type='$post_type' SET price.product=wp.ID");
+				DB::query("UPDATE $meta_table AS meta JOIN $wpdb->posts AS wp ON meta.parent=wp.post_parent AND wp.post_type='$post_type' AND meta.context='product' SET meta.parent=wp.ID");
 
 				// Move product options column to meta setting
 				DB::query("INSERT INTO $meta_table (parent,context,type,name,value)
-							SELECT post,'product','meta','options',options FROM $product_table");
+							SELECT wp.ID,'product','meta','options',options
+							FROM $product_table AS p
+							JOIN $wpdb->posts wp ON p.product=wp.post_parent AND wp.post_type='$post_type'");
 
 			// Migrate Shopp categories and tags to WP taxonomies
 
@@ -709,14 +709,16 @@ class ShoppInstallation extends FlowController {
 					'tag' => 'shopp_tag'
 				);
 
-				$cols = 'p.post AS product,c.parent,c.type';
+				$cols = 'wp.ID AS product,c.parent,c.type';
 				$where = "type='category' OR type='tag'";
 				if ($db_version >= 1125) {
-					$cols = 'p.post AS product,c.parent,c.taxonomy,c.type';
+					$cols = 'wp.ID AS product,c.parent,c.taxonomy,c.type';
 					$where = "taxonomy=0 OR taxonomy=1";
 				}
 
-				$rels = DB::query("SELECT $cols FROM $catalog_table AS c LEFT JOIN $product_table AS p ON c.product=p.id WHERE $where",'array');
+				error_log("SELECT $cols FROM $catalog_table AS c LEFT JOIN $wpdb->posts AS wp ON c.product=wp.post_parent AND wp.post_type='$post_type' WHERE $where");
+
+				$rels = DB::query("SELECT $cols FROM $catalog_table AS c LEFT JOIN $wpdb->posts AS wp ON c.product=wp.post_parent AND wp.post_type='$post_type' WHERE $where",'array');
 				foreach ((array)$rels as $r) {
 					$object_id = $r->product;
 					$taxonomy = $wp_taxonomies[($db_version >= 1125?$r->taxonomy:$r->type)];
@@ -733,7 +735,33 @@ class ShoppInstallation extends FlowController {
 				if (isset($tt_ids['shopp_category']))
 					wp_update_term_count_now($tt_ids['shopp_category'],'shopp_category');
 
+				// Clear custom post type parents
+				DB::query("UPDATE $wpdb->posts SET post_parent=0 WHERE post_type='$post_type'");
+
+
 		} // END if ($db_version <= 1131)
+
+		// Move needed price table columns to price meta records
+		if ($db_version <= 1132) {
+			$meta_table = DatabaseObject::tablename('meta');
+			$price_table = DatabaseObject::tablename('price');
+
+			// Move 'options' to meta 'options' record
+			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
+						SELECT id,'price','meta','options',options,created,modified FROM $price_table");
+
+			// Move 'donation' column to 'settings' record
+			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
+						SELECT id,'price','meta','settings',donation,created,modified FROM $price_table");
+
+			// Reformat price type column
+			DB::query("UPDATE $price_table SET type='' WHERE type='N/A'");
+			DB::query("UPDATE $price_table SET type=LOWER(type)");
+
+
+
+
+		} // END if ($db_version <= 1132)
 
 		$this->roles(); // Setup Roles and Capabilities
 

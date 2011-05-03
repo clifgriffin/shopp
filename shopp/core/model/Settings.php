@@ -274,7 +274,6 @@ class Settings extends DatabaseObject {
 
 	function legacy ($name) {
 		$table = DatabaseObject::tablename('setting');
-		echo "SELECT value FROM $table WHERE name='$name'";
 		if ($result = DB::query("SELECT value FROM $table WHERE name='$name'",'object'))
 			return $result->value;
 		return false;

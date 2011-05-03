@@ -29,7 +29,7 @@ if (ini_get('zend.ze1_compatibility_mode'))
  * @package shopp
  **/
 class DB {
-	static $version = 1131;	// Database schema version
+	static $version = 1132;	// Database schema version
 
 	private static $instance;
 	// Define datatypes for MySQL
@@ -837,7 +837,7 @@ abstract class DatabaseObject implements Iterator {
 	 * @param string $prefix (optional) A property prefix
 	 * @return void
 	 **/
-	function copydata ($Object,$prefix="",$ignores=array("_datatypes","_table","_key","_lists","id","created","modified")) {
+	function copydata ($Object,$prefix="",$ignores=array("_datatypes","_table","_key","_lists","_map","id","created","modified")) {
 		if ($ignores === false) $ignored = array();
 		foreach(get_object_vars($Object) as $property => $value) {
 			$property = $prefix.$property;
