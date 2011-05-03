@@ -13,6 +13,7 @@ class ProductCollection implements Iterator {
 	var $paged = false;
 	var $pagination = false;
 	var $products = array();
+	var $resum = array();
 	var $total = 0;
 
 	private $_keys = array();
@@ -22,7 +23,7 @@ class ProductCollection implements Iterator {
 		$Storefront =& ShoppStorefront();
 		$Settings =& ShoppSettings();
 		$Processing = new Product();
-		$stats_table = DatabaseObject::tablename(ProductStat::$table);
+		$summary_table = DatabaseObject::tablename(ProductSummary::$table);
 
 		$defaults = array(
 			'columns' => false,		// Include extra columns (string) 'c.col1,c.col2…'
@@ -40,6 +41,7 @@ class ProductCollection implements Iterator {
 			'published' => true,	// Load published or unpublished products (string) 'on','off','yes','no'…
 			'adjacent' => false,	//
 			'product' => false,		//
+			'load' => array(),		// Product data to load
 			'restat' => false		// Force recalculate product stats
 		);
 		$loading = array_merge($defaults,$options);
@@ -56,10 +58,15 @@ class ProductCollection implements Iterator {
 		if ($published) $where[] = "p.post_status='publish'";
 
 		// Core query components
-		$columns = "SQL_CALC_FOUND_ROWS p.ID,p.post_title,p.post_name,p.post_excerpt,p.post_status,p.post_date_gmt,p.post_modified".($columns !== false?','.$columns:'');
+
+		// Load core product data and product summary columns
+		$cols = array(	'p.ID','p.post_title','p.post_name','p.post_excerpt','p.post_status','p.post_date_gmt','p.post_modified',
+						's.id AS sumid','s.modified AS summed','s.sold','s.maxprice','s.minprice','s.stock','s.inventory','s.featured','s.variants','s.addons','s.sale');
+
+		$columns = "SQL_CALC_FOUND_ROWS ".join(',',$cols).($columns !== false?','.$columns:'');
 		$table = "$Processing->_table AS p";
 		$where[] = "p.post_type='$Processing->_post_type'";
-		$joins[$stats_table] = "JOIN $stats_table AS s ON s.post=p.ID";
+		$joins[$stats_table] = "LEFT OUTER JOIN $summary_table AS s ON s.product=p.ID";
 
 		$options = compact('columns','useindex','table','joins','where','groupby','having','limit','order');
 		$query = DB::select($options);
@@ -67,15 +74,31 @@ class ProductCollection implements Iterator {
 		$this->products = DB::query($query,'array',array($this,'loader'));
 		$this->total = DB::query("SELECT FOUND_ROWS() as total",'auto','col','total');
 
-		$Processing->load_data(array('prices'),$this->index);
+		$Processing->load_data($load,$this->index);
+
+		// If products are missing summary data, resum them
+		if (!empty($this->resum)) {
+			$Processing->load_data(array('prices'),$this->resum);
+		}
+
 		return (count($this->products) > 0);
 	}
 
 	function loader (&$records,$record) {
 		$Product = new Product();
 		$Product->populate($record);
+		$Product->summary($records,$record);
 		$records[] = &$Product;
 		$this->index[$Product->id] = &$Product;
+
+		// Resum the product pricing data if there is no summation data,
+		// or if the summation data hasn't yet been updated today
+		if ( empty($record->summed) || mktimestamp($record->summed) < mktime(0,0,0)) {
+			$Product->resum();
+			$this->resum[$Product->id] = &$Product;
+		}
+
+
 	}
 
 	function workflow () {

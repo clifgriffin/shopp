@@ -218,7 +218,7 @@ class Warehouse extends AdminController {
 
 		$pd = WPPostTypeObject::tablename(Product::$table);
 		$pt = DatabaseObject::tablename(Price::$table);
-		$stats = DatabaseObject::tablename(ProductStat::$table);
+		$ps = DatabaseObject::tablename(ProductSummary::$table);
 		// $catt = DatabaseObject::tablename(Category::$table);
 		$clog = DatabaseObject::tablename(Catalog::$table);
 
@@ -276,7 +276,9 @@ class Warehouse extends AdminController {
 		} else {
 			$loading = array(
 				'where' => $where,
-				'limit'=>"$start,$per_page"
+				'limit'=>"$start,$per_page",
+				'load' => array('categories'),
+				'published' => false
 			);
 		}
 
@@ -294,15 +296,15 @@ class Warehouse extends AdminController {
 				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p WHERE p.post_type='shopp_product' AND p.post_status='publish'",'auto','col','total');
 
 			if ('onsale' == $name) {
-				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $stats AS s ON p.ID=s.post AND s.sale='on' WHERE p.post_type='shopp_product'",'auto','col','total');
+				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $ps AS s ON p.ID=s.post AND s.sale='on' WHERE p.post_type='shopp_product'",'auto','col','total');
 			}
 
 			if ('featured' == $name) {
-				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $stats AS s ON p.ID=s.post AND s.featured='on' WHERE p.post_type='shopp_product'",'auto','col','total');
+				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $ps AS s ON p.ID=s.post AND s.featured='on' WHERE p.post_type='shopp_product'",'auto','col','total');
 			}
 
 			if ('inventory' == $name) {
-				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $stats AS s ON p.ID=s.post AND s.inventory='on' WHERE p.post_type='shopp_product'",'auto','col','total');
+				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $ps AS s ON p.ID=s.post AND s.inventory='on' WHERE p.post_type='shopp_product'",'auto','col','total');
 			}
 
 
@@ -523,7 +525,8 @@ class Warehouse extends AdminController {
 		$Product->slug = wp_unique_post_slug($Product->slug, $Product->id, $Product->status, $Product->_post_type, 0);
 
 		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
-		$Product->updates($_POST,array('categories','prices','tags'));
+		$Product->updates($_POST,array('meta','categories','prices','tags'));
+
 		do_action('shopp_pre_product_save');
 		$Product->save();
 
@@ -605,7 +608,7 @@ class Warehouse extends AdminController {
 				$Price->updates($priceline);
 				$Price->save();
 
-				$Product->stats($Price);
+				$Product->sumprice($Price);
 
 				if (!empty($priceline['download'])) $Price->attach_download($priceline['download']);
 
@@ -641,7 +644,7 @@ class Warehouse extends AdminController {
 			unset($Price);
 		} // END if (!empty($_POST['price']))
 
-		$Product->save_stats();
+		$Product->sumup();
 
 		if (!empty($_POST['meta']['options']))
 			$_POST['meta']['options'] = stripslashes_deep($_POST['meta']['options']);
