@@ -126,7 +126,7 @@ class AjaxFlow {
 	function load_spec_template () {
 		check_admin_referer('wp_ajax_shopp_spec_template');
 		$db = DB::get();
-		$table = DatabaseObject::tablename(Category::$table);
+		$table = DatabaseObject::tablename(ProductCategory::$table);
 		$result = $db->query("SELECT specs FROM $table WHERE id='{$_GET['category']}' AND spectemplate='on'");
 		echo json_encode(unserialize($result->specs));
 		exit();
@@ -135,7 +135,7 @@ class AjaxFlow {
 	function load_options_template() {
 		check_admin_referer('wp_ajax_shopp_options_template');
 		$db = DB::get();
-		$table = DatabaseObject::tablename(Category::$table);
+		$table = DatabaseObject::tablename(ProductCategory::$table);
 		$result = $db->query("SELECT options,prices FROM $table WHERE id='{$_GET['category']}' AND variations='on'");
 		if (empty($result)) exit();
 		$result->options = unserialize($result->options);
@@ -177,7 +177,7 @@ class AjaxFlow {
 		$Catalog = new Catalog();
 		$Catalog->load_categories();
 
-		$Category = new Category();
+		$Category = new ProductCategory();
 		$Category->name = $_GET['name'];
 		$Category->slug = sanitize_title_with_dashes($Category->name);
 		$Category->parent = $_GET['parent'];
@@ -212,7 +212,7 @@ class AjaxFlow {
 
 		switch ($_REQUEST['type']) {
 			case "category":
-				$Category = new Category($_REQUEST['id']);
+				$Category = new ProductCategory($_REQUEST['id']);
 				if (empty($_REQUEST['slug'])) $_REQUEST['slug'] = $Category->name;
 				$Category->slug = sanitize_title_with_dashes($_REQUEST['slug']);
 				$Category->update_slug();
@@ -339,7 +339,7 @@ class AjaxFlow {
 			switch($_GET['t']) {
 				case "product-name": $table = DatabaseObject::tablename(Product::$table); break;
 				case "product-tags": $table = DatabaseObject::tablename(CatalogTag::$table); break;
-				case "product-category": $table = DatabaseObject::tablename(Category::$table); break;
+				case "product-category": $table = DatabaseObject::tablename(ProductCategory::$table); break;
 				case "customer-type":
 					$types = Lookup::customer_types();
 					$results = array();
@@ -414,7 +414,7 @@ class AjaxFlow {
 				case 'shopp_categories':
 					$id = 'id';
 					$name = 'name';
-					$table = DatabaseObject::tablename(Category::$table);
+					$table = DatabaseObject::tablename(ProductCategory::$table);
 					break;
 				case 'shopp_tags':
 					$id = 't.term_id';
@@ -719,7 +719,7 @@ class AjaxFlow {
 		if (empty($_POST['position']) || !is_array($_POST['position'])) die('0');
 
 		$db =& DB::get();
-		$table = DatabaseObject::tablename(Category::$table);
+		$table = DatabaseObject::tablename(ProductCategory::$table);
 		$updates = $_POST['position'];
 		foreach ($updates as $id => $position)
 			$db->query("UPDATE $table SET priority='$position' WHERE id='$id'");

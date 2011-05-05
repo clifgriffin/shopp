@@ -182,7 +182,7 @@ class Setup extends FlowController {
 
 		$category_views = array("grid" => __('Grid','Shopp'),"list" => __('List','Shopp'));
 		$row_products = array(2,3,4,5,6,7);
-		$productOrderOptions = Category::sortoptions();
+		$productOrderOptions = ProductCategory::sortoptions();
 		$productOrderOptions['custom'] = __('Custom','Shopp');
 
 		$orderOptions = array("ASC" => __('Order','Shopp'),

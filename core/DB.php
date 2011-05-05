@@ -902,7 +902,7 @@ abstract class DatabaseObject implements Iterator {
 class WPDatabaseObject extends DatabaseObject {
 
 	/**
-	 * Builds a table name from the defined WP table prefix and Shopp prefix
+	 * Builds a table name from the defined WP table prefix
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
@@ -917,8 +917,8 @@ class WPDatabaseObject extends DatabaseObject {
 
 }
 
-class WPPostTypeObject extends WPDatabaseObject {
-	var $_post_type = false;
+class WPShoppObject extends WPDatabaseObject {
+	static $posttype = 'shopp_post';
 
 	function load () {
 		$args = func_get_args();
@@ -936,6 +936,19 @@ class WPPostTypeObject extends WPDatabaseObject {
 		parent::load($p);
 	}
 
+	function register ($class,$labels) {
+		register_post_type( $class::$posttype,array(
+				'labels' => array(
+					'name' => __('Products','Shopp'),
+					'singular_name' => __('Product','Shopp')
+				),
+			'rewrite' => array( 'slug' => $class::$namespace ),
+			'public' => true,
+			'has_archive' => true,
+			'show_ui' => false,
+			'_edit_link' => 'admin.php?page=shopp-products&id=%d'
+		));
+	}
 }
 
 /**

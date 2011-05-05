@@ -567,7 +567,7 @@ class AdminFlow extends FlowController {
 		echo $after_title;
 
 		$RecentBestsellers = new BestsellerProducts(array('where'=>'UNIX_TIMESTAMP(pur.created) > UNIX_TIMESTAMP()-(86400*30)','show'=>3));
-		$RecentBestsellers->load_products();
+		$RecentBestsellers->load();
 
 		echo '<table><tbody><tr>';
 		echo '<td><h4>'.__('Recent Bestsellers','Shopp').'</h4>';
@@ -579,7 +579,7 @@ class AdminFlow extends FlowController {
 
 
 		$LifetimeBestsellers = new BestsellerProducts(array('show'=>3));
-		$LifetimeBestsellers->load_products();
+		$LifetimeBestsellers->load();
 		echo '<td><h4>'.__('Lifetime Bestsellers','Shopp').'</h4>';
 		echo '<ul>';
 		if (empty($LifetimeBestsellers->products)) echo '<li>'.__('Nothing has been sold, yet.','Shopp').'</li>';

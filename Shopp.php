@@ -133,7 +133,7 @@ class Shopp {
 
 		if (!defined('BR')) define('BR','<br />');
 
-		// Overrideable macros
+		// Overrideable config macros
 		if (!defined('SHOPP_NOSSL')) define('SHOPP_NOSSL',false);
 		if (!defined('SHOPP_PREPAYMENT_DOWNLOADS')) define('SHOPP_PREPAYMENT_DOWNLOADS',false);
 		if (!defined('SHOPP_SESSION_TIMEOUT')) define('SHOPP_SESSION_TIMEOUT',7200);
@@ -141,6 +141,8 @@ class Shopp {
 		if (!defined('SHOPP_GATEWAY_TIMEOUT')) define('SHOPP_GATEWAY_TIMEOUT',10);
 		if (!defined('SHOPP_SHIPPING_TIMEOUT')) define('SHOPP_SHIPPING_TIMEOUT',10);
 		if (!defined('SHOPP_TEMP_PATH')) define('SHOPP_TEMP_PATH',sys_get_temp_dir());
+		if (!defined('SHOPP_CATALOG_SLUG')) define('SHOPP_CATALOG_SLUG','shop');
+		if (!defined('SHOPP_NAMESPACE_TAXONOMIES')) define('SHOPP_NAMESPACE_TAXONOMIES',true);
 
 		// Settings & Paths
 		define('SHOPP_DEBUG',($this->Settings->get('error_logging') == 2048));
@@ -178,7 +180,6 @@ class Shopp {
 		$this->Shopping = new Shopping();
 
 		add_action('init', array(&$this,'init'));
-		add_action('init', array(&$this,'wpdata'));
 
 		// Plugin management
         add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array(&$this, 'status'),10,2);
@@ -189,7 +190,9 @@ class Shopp {
 		// Theme integration
 		add_action('widgets_init', array(&$this, 'widgets'));
 		add_filter('wp_list_pages',array(&$this,'secure_links'));
-		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
+
+		// add_filter('rewrite_rules_array',array(&$this,'rewrites'));
+
 		add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
 		add_action('generate_rewrite_rules',array(&$this,'pages_index'));
 		add_action('save_post', array(&$this, 'pages_index'),10,2);
@@ -228,6 +231,10 @@ class Shopp {
 		if (SHOPP_DEBUG && $this->Shopping->handlers) new ShoppError('Session handlers initialized successfully.','shopp_cart_handlers',SHOPP_DEBUG_ERR);
 		if (SHOPP_DEBUG) new ShoppError('Session started.','shopp_session_debug',SHOPP_DEBUG_ERR);
 
+		ProductTaxonomy::register('ProductCategory');
+		ProductTaxonomy::register('ProductTag');
+		WPShoppObject::register('Product');
+
 		global $pagenow;
 		if (defined('WP_ADMIN')
 			&& $pagenow == "plugins.php"
@@ -236,45 +243,6 @@ class Shopp {
 		new Login();
 		do_action('shopp_init');
 	}
-
-
-	function wpdata () {
-
-		register_post_type( 'shopp_product',array(
-				'labels' => array(
-					'name' => __('Products','Shopp'),
-					'singular_name' => __('Product','Shopp')
-				),
-			'rewrite' => array( 'slug' => 'products' ),
-			'public' => true,
-			'has_archive' => true,
-			'show_ui' => true
-		));
-
-		register_taxonomy('shopp_category',array('shopp_product'), array(
-			'hierarchical' => true,
-			'labels' => array(
-				'name' => __('Categories','Shopp'),
-				'singular_name' => __('Category','Shopp')
-			),
-			'show_ui' => true,
-			'query_var' => true,
-			'rewrite' => array( 'slug' => 'category' ),
-		));
-
-		register_taxonomy('shopp_tag',array('shopp_product'), array(
-			'hierarchical' => false,
-			'labels' => array(
-				'name' => __('Tags','Shopp'),
-				'singular_name' => __('Tag','Shopp')
-			),
-			'show_ui' => true,
-			'query_var' => true,
-			'rewrite' => array( 'slug' => 'tag' ),
-		));
-
-	}
-
 
 	/**
 	 * Initializes theme widgets
@@ -324,6 +292,7 @@ class Shopp {
 	 * @return array Modified rewrite rules
 	 **/
 	function rewrites ($wp_rewrite_rules) {
+
 		$this->pages_index(true);
 		$pages = $this->Settings->get('pages');
 		if (!$pages) return $wp_rewrite_rules;

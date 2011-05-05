@@ -754,13 +754,6 @@ class ShoppInstallation extends FlowController {
 			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
 						SELECT id,'price','meta','settings',donation,created,modified FROM $price_table");
 
-			// Reformat price type column
-			DB::query("UPDATE $price_table SET type='' WHERE type='N/A'");
-			DB::query("UPDATE $price_table SET type=LOWER(type)");
-
-
-
-
 		} // END if ($db_version <= 1132)
 
 		$this->roles(); // Setup Roles and Capabilities

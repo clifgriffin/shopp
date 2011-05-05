@@ -16,14 +16,15 @@ require_once("Asset.php");
 require_once("Price.php");
 require_once("Promotion.php");
 
-class Product extends WPPostTypeObject {
+class Product extends WPShoppObject {
 	static $table = 'posts';
 	static $_taxonomies = array(
 		'shopp_category' => 'categories',
 		'shopp_tag' => 'tags'
 	);
+	static $posttype = 'shopp_product';
+	static $namespace = SHOPP_CATALOG_SLUG;
 
-	var $_post_type = 'shopp_product';
 
 	protected $_map = array(
 		'id' => 'ID',
@@ -35,6 +36,8 @@ class Product extends WPPostTypeObject {
 		'publish' => 'post_date',
 		'modified' => 'post_modified'
 	);
+
+	var $_post_type;
 
 	var $prices = array();
 	var $pricekey = array();
@@ -62,8 +65,13 @@ class Product extends WPPostTypeObject {
 	 * @return void
 	 **/
 	function __construct ($id=false,$key=false) {
+		$this->_post_type = self::$posttype;
 		$this->init(self::$table,'ID');
 		$this->load($id,$key);
+	}
+
+	function posttype () {
+		return $this->_post_type;
 	}
 
 	/**
@@ -350,7 +358,7 @@ class Product extends WPPostTypeObject {
 		// $this->save_stats();
 		// do_action('shopp_product_pricing_done');
 
-		if ($target->inventory && $target->stock <= 0) $target->outofstock = true;
+		if ($target->inventory == 'on' && $target->stock <= 0) $target->outofstock = true;
 		if ($freeshipping) $target->freeshipping = true;
 	}
 

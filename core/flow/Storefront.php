@@ -82,7 +82,6 @@ class Storefront extends FlowController {
 		add_filter('shopp_product_spec', 'convert_chars');
 		add_filter('shopp_product_spec', 'do_shortcode', 11); // AFTER wpautop()
 
-
 		add_filter('shopp_order_lookup','shoppdiv');
 		add_filter('shopp_order_confirmation','shoppdiv');
 		add_filter('shopp_errors_page','shoppdiv');
@@ -100,7 +99,102 @@ class Storefront extends FlowController {
 		add_action('shopp_storefront_init',array($this,'searching'));
 		add_action('shopp_storefront_init',array($this,'account'));
 
+
+		// Experimental
+		add_filter('archive_template',array($this,'collection'));
+		add_filter('search_template',array($this,'collection'));
+		add_filter('single_template',array($this,'single'));
+
 	}
+
+	function catalog () {
+		global $Shopp,$wp_query;
+
+		$Shopp->Catalog = new Catalog($type);
+		$posttype = get_query_var('post_type');
+		$category = get_query_var(ProductCategory::$taxonomy);
+
+
+		if ($category == '' &&
+			$posttype != Product::$posttype) return;
+
+		$object = $wp_query->get_queried_object();
+
+		if (is_single()) {
+			$Product = new Product();
+			$Product->populate($object);
+			$Shopp->Product = &$Product;
+		}
+
+		if (is_archive() && !empty($category)) {
+			$Shopp->Category  = new ProductCategory($category,'slug');
+		}
+
+		if (get_query_var('s') != '') {
+			$Shopp->Category = new SearchResults(array('search'=>get_query_var('s')));
+		}
+
+
+	}
+
+	function collection ($template) {
+		global $Shopp;
+
+		// Bail if not the product archive
+		// or not a shopp taxonomy request
+		if (empty($Shopp->Category) && get_query_var('post_type') != Product::$posttype) return $template;
+
+		/* @todo Handle category/collection title */
+		add_filter('the_title',create_function('$title','if (!in_the_loop()) return $title; if (is_archive()) return "Store";'));
+		add_filter('the_content',array(&$this,'category_template'));
+
+		$templates = array('shopp-category.php', 'shopp.php', 'page.php');
+		return locate_template($templates);
+	}
+
+	function single ($template) {
+		global $wp_query;
+		$object = $wp_query->get_queried_object();
+		if ($object->post_type != Product::$posttype) return $template;
+
+		add_filter('the_content',array(&$this,'product_template'));
+
+		$templates = array('single-' . $object->post_type . '.php', 'shopp.php', 'page.php');
+		return locate_template($templates);
+	}
+
+	function product_template ($content) {
+		ob_start();
+		if (file_exists(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php"))
+			include(SHOPP_TEMPLATES."/product-{$Shopp->Product->id}.php");
+		else include(SHOPP_TEMPLATES."/product.php");
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		return shoppdiv($content);
+	}
+
+	function category_template ($content) {
+		global $Shopp,$wp_query;
+		// Short-circuit the loop for the archive/category requests
+		$wp_query->current_post = $wp_query->post_count;
+		ob_start();
+		if (empty($Shopp->Category)) include(SHOPP_TEMPLATES."/catalog.php");
+		else {
+			if (isset($Shopp->Category->slug) &&
+				file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php"))
+				include(SHOPP_TEMPLATES."/category-{$Shopp->Category->slug}.php");
+			elseif (isset($Shopp->Category->id) &&
+				file_exists(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php"))
+				include(SHOPP_TEMPLATES."/category-{$Shopp->Category->id}.php");
+			else include(SHOPP_TEMPLATES."/category.php");
+		}
+		$content = ob_get_contents();
+		ob_end_clean();
+
+		return shoppdiv($content);
+	}
+
 
 	/**
 	 * Identifies the currently loaded Shopp storefront page
@@ -204,7 +298,7 @@ class Storefront extends FlowController {
 		// Replace the WordPress canonical link
 		remove_action('wp_head','rel_canonical');
 
-		add_action('wp_head', array(&$this, 'header'));
+		// add_action('wp_head', array(&$this, 'header'));
 		add_action('wp_footer', array(&$this, 'footer'));
 		wp_enqueue_style('shopp.catalog',SHOPP_ADMIN_URI.'/styles/catalog.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp',SHOPP_TEMPLATES_URI.'/shopp.css',array(),SHOPP_VERSION,'screen');
@@ -346,6 +440,7 @@ class Storefront extends FlowController {
 	 **/
 	function feeds () {
 		global $Shopp;
+		return true;
 		if (empty($this->Category->name)):?>
 
 <link rel='alternate' type="application/rss+xml" title="<?php htmlentities(bloginfo('name')); ?> New Products RSS Feed" href="<?php echo esc_attr(shoppurl(SHOPP_PRETTYURLS?'feed':array('shopp_lookup'=>'newproducts-rss'))); ?>" />
@@ -425,7 +520,7 @@ class Storefront extends FlowController {
 
 		// Specific product/category URLs
 		if (!empty($Shopp->Product->slug)) return $Shopp->Product->tag('url','echo=0');
-		if (!empty($Shopp->Category->slug)) return $Shopp->Category->tag('url','echo=0');
+		if (!!empty($Shopp->Category->slug)) return $Shopp->Category->tag('url','echo=0');
 		return $url;
 	}
 
@@ -582,7 +677,7 @@ class Storefront extends FlowController {
 	 *
 	 * @return void
 	 **/
-	function catalog () {
+	function __catalog__ () {
 		global $Shopp,$wp;
 
 		$options = array();
@@ -638,7 +733,7 @@ class Storefront extends FlowController {
 			$this->breadcrumb = (!empty($tag)?"tag/":"").$Shopp->Category->uri;
 
 			if ($this->searching) {
-				$Shopp->Category->load_products(array('load'=>array('images','prices')));
+				$Shopp->Category->load(array('load'=>array('images','prices')));
 				if (count($Shopp->Category->products) == 1) {
 					reset($Shopp->Category->products);
 					$type = 'product';
@@ -1005,7 +1100,7 @@ class Storefront extends FlowController {
 
 		$tag = 'category';
 		if (isset($atts['name'])) {
-			$Shopp->Category = new Category($atts['name'],'name');
+			$Shopp->Category = new ProductCategory($atts['name'],'name');
 			unset($atts['name']);
 		} elseif (isset($atts['slug'])) {
 			foreach ($Shopp->Collections as $Collection) {
@@ -1017,7 +1112,7 @@ class Storefront extends FlowController {
 				}
 			}
 		} elseif (isset($atts['id'])) {
-			$Shopp->Category = new Category($atts['id']);
+			$Shopp->Category = new ProductCategory($atts['id']);
 			unset($atts['id']);
 		} else return "";
 
