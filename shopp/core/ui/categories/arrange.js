@@ -159,7 +159,7 @@ jQuery(document).ready( function() {
 						if (categories.length == 0) $button.remove();
 						else if (categories instanceof Object) {
 							$.each(categories,function () {
-								new Category(this,row);
+								new ProductCategory(this,row);
 							});
 						} else $button.addClass('closed').css('background-position','-180px top');
 					},

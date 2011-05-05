@@ -175,7 +175,7 @@ class Warehouse extends AdminController {
 		if (!$workflow) {
 			if (empty($categories)) $categories = array('');
 
-			// $category_table = DatabaseObject::tablename(Category::$table);
+			// $category_table = DatabaseObject::tablename(ProductCategory::$table);
 			// $query = "SELECT id,name,parent FROM $category_table ORDER BY parent,name";
 			// $categories = $db->query($query,AS_ARRAY);
 			// $categories = sort_tree($categories);
@@ -216,10 +216,10 @@ class Warehouse extends AdminController {
 			$per_page = 20;
 		$start = ($per_page * ($pagenum-1));
 
-		$pd = WPPostTypeObject::tablename(Product::$table);
+		$pd = WPShoppObject::tablename(Product::$table);
 		$pt = DatabaseObject::tablename(Price::$table);
 		$ps = DatabaseObject::tablename(ProductSummary::$table);
-		// $catt = DatabaseObject::tablename(Category::$table);
+		// $catt = DatabaseObject::tablename(ProductCategory::$table);
 		$clog = DatabaseObject::tablename(Catalog::$table);
 
 		$ct_id = get_catalog_taxonomy_id('category');
@@ -790,7 +790,7 @@ class Warehouse extends AdminController {
 			die(json_encode(array("error" => __('The file could not be saved because the uploaded file is empty.','Shopp'))));
 
 		// Save the source image
-		if ($context == "category") $Image = new CategoryImage();
+		if ($context == "category") $Image = new ProductCategoryImage();
 		else $Image = new ProductImage();
 
 		$Image->parent = $parent;
@@ -837,7 +837,7 @@ class Warehouse extends AdminController {
 		$db = DB::get();
 
 		$catalog = DatabaseObject::tablename(Catalog::$table);
-		$category = DatabaseObject::tablename(Category::$table);
+		$category = DatabaseObject::tablename(ProductCategory::$table);
 		$products = DatabaseObject::tablename(Product::$table);
 
 		if ($id == "catalog-products") {

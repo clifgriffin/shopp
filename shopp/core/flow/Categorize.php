@@ -102,7 +102,7 @@ class Categorize extends AdminController {
 
 					print_r($delete);
 			foreach($delete as $deletion) {
-				$Category = new Category($deletion);
+				$Category = new ProductCategory($deletion);
 				if (empty($Category->id)) continue;
 				$Category->delete();
 			}
@@ -111,8 +111,8 @@ class Categorize extends AdminController {
 		}
 
 		if ($id && $id != "new")
-			$Shopp->Category = new Category($id);
-		else $Shopp->Category = new Category();
+			$Shopp->Category = new ProductCategory($id);
+		else $Shopp->Category = new ProductCategory();
 
 		if ($save) {
 			$this->save($Shopp->Category);
@@ -120,65 +120,19 @@ class Categorize extends AdminController {
 
 			if ($next) {
 				if ($next != "new")
-					$Shopp->Category = new Category($next);
-				else $Shopp->Category = new Category();
+					$Shopp->Category = new ProductCategory($next);
+				else $Shopp->Category = new ProductCategory();
 			} else {
 				if (empty($id)) $id = $Shopp->Category->id;
-				$Shopp->Category = new Category($id);
+				$Shopp->Category = new ProductCategory($id);
 			}
 
-		}
-
-	}
-
-	function category_hierarchy ($taxonomy,$terms,&$children,&$count,&$categories = array(),$page=1,$per_page=20,$parent=0,$level=0) {
-
-		$start = ($page - 1) * $per_page;
-		$end = $start + $per_page;
-
-		foreach ($terms as $id => $term_parent) {
-			if ( $count >= $end ) break;
-			if ($term_parent != $parent ) continue;
-
-			// Render parents when pagination starts in a branch
-			if ( $count == $start && $term_parent > 0 ) {
-				$parents = $parent_ids = array();
-				$p = $term_parent;
-				while ( $p ) {
-					$terms_parent = get_term( $p, $taxonomy );
-					$parents[] = $terms_parent;
-					$p = $terms_parent->parent;
-
-					if (in_array($p,$parent_ids)) break;
-
-					$parent_ids[] = $p;
-				}
-				unset($parent_ids);
-
-				$parent_count = count($parents);
-				while ($terms_parent = array_pop($parents)) {
-					$categories[$terms_parent->term_id] = $terms_parent;
-					$categories[$terms_parent->term_id]->level = $level-$parent_count;
-					$parent_count--;
-				}
-			}
-
-			if ($count >= $start) {
-				if (isset($categories[$id])) continue;
-				$categories[$id] = get_term($id,$taxonomy);
-				$categories[$id]->level = $level;
-			}
-			++$count;
-			unset($terms[$id]);
-
-			if (isset($children[$id]))
-				$this->category_hierarchy($taxonomy,$terms,$children,$count,$categories,$page,$per_page,$id,$level+1);
 		}
 
 	}
 
 	function load_category ($term,$taxonomy) {
-		$Category = new Category();
+		$Category = new ProductCategory();
 		$Category->populate($term);
 		return $Category;
 	}
@@ -226,11 +180,12 @@ class Categorize extends AdminController {
 		// $filters['limit'] = "$start,$per_page";
 		if (!empty($s)) $filters['search'] = $s;
 
-		$Categories = array();
+		$Categories = array(); $count = 0;
 		$terms = get_terms( $taxonomy, $filters );
 		$children = _get_term_hierarchy($taxonomy);
-		$count = 0;
-		$this->category_hierarchy($taxonomy,$terms,$children,$count,$Categories,$pagenum,$per_page);
+		ProductCategory::tree($taxonomy,$terms,$children,$count,$Categories,$pagenum,$per_page);
+
+
 
 		if ($workflow) return array_keys($Categories);
 		// $children = array();
@@ -266,7 +221,7 @@ class Categorize extends AdminController {
 		// echo '</pre>';
 		// return;
 
-		// $table = DatabaseObject::tablename(Category::$table);
+		// $table = DatabaseObject::tablename(ProductCategory::$table);
 		// $Catalog = new Catalog();
 		// $Catalog->outofstock = true;
 		// if ($workflow) {
@@ -370,7 +325,7 @@ class Categorize extends AdminController {
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if (empty($Shopp->Category)) $Category = new Category();
+		if (empty($Shopp->Category)) $Category = new ProductCategory();
 		else $Category = $Shopp->Category;
 		$Category->load_meta();
 
@@ -484,7 +439,7 @@ class Categorize extends AdminController {
 			$Category->save_imageorder($_POST['images']);
 			if (!empty($_POST['imagedetails']) && is_array($_POST['imagedetails'])) {
 				foreach($_POST['imagedetails'] as $i => $data) {
-					$Image = new CategoryImage($data['id']);
+					$Image = new ProductCategoryImage($data['id']);
 					$Image->title = $data['title'];
 					$Image->alt = $data['alt'];
 					$Image->save();
@@ -533,7 +488,7 @@ class Categorize extends AdminController {
 	 **/
 	function menu ($selection=false,$current=false) {
 		$db = DB::get();
-		$table = DatabaseObject::tablename(Category::$table);
+		$table = DatabaseObject::tablename(ProductCategory::$table);
 		$categories = $db->query("SELECT id,name,parent FROM $table ORDER BY parent,name",AS_ARRAY);
 		$categories = sort_tree($categories);
 
@@ -597,7 +552,7 @@ class Categorize extends AdminController {
 			$filters['where'] = "cat.name LIKE '%$s%'";
 		else $filters['where'] = "true";
 
-		$Category = new Category($id);
+		$Category = new ProductCategory($id);
 
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);

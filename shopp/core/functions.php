@@ -1742,24 +1742,28 @@ function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
 function shoppurl ($request=false,$page='catalog',$secure=null) {
 	$dynamic = array("thanks","receipt","confirm-order");
 
-	$Settings =& ShoppSettings();
-	if (!$Settings->available) return;
+	global $wp_post_types;
 
-	// Get the currently indexed Shopp gateway pages
-	$pages = $Settings->get('pages');
-	if (empty($pages)) { // Hrm, no pages, attempt to rescan for them
-		// No WordPress actions, #epicfail
-		if (!function_exists('do_action')) return false;
-		do_action('shopp_reindex_pages');
-		$pages = $Settings->get('pages');
-		// Still no pages? WTH? #epicfailalso
-		if (empty($pages)) return false;
-	}
+	// $Settings =& ShoppSettings();
+	// if (!$Settings->available) return;
+	//
+	// // Get the currently indexed Shopp gateway pages
+	// $pages = $Settings->get('pages');
+	// if (empty($pages)) { // Hrm, no pages, attempt to rescan for them
+	// 	// No WordPress actions, #epicfail
+	// 	if (!function_exists('do_action')) return false;
+	// 	do_action('shopp_reindex_pages');
+	// 	$pages = $Settings->get('pages');
+	// 	// Still no pages? WTH? #epicfailalso
+	// 	if (empty($pages)) return false;
+	// }
 
 	// Start with the site url
 	$siteurl = get_bloginfo('url');
 	if (strpos($siteurl,'?') !== false) list($siteurl,$query) = explode('?',$siteurl);
 	$siteurl = trailingslashit($siteurl);
+
+	$path = array($wp_post_types[Product::$posttype]->rewrite['slug']);
 
 	if (!empty($query)) {
 		parse_str($query,$home_queryvars);
@@ -1777,27 +1781,32 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 	elseif (($secure || is_shopp_secure()) && !SHOPP_NOSSL) $siteurl = str_replace('http://','https://',$siteurl);
 
 	// Determine WordPress gateway page URI path fragment
-	if (isset($pages[$page])) {
-		$path = $pages[$page]['uri'];
-		$pageid = $pages[$page]['id'];
-	} else {
-		if (in_array($page,$dynamic)) {
-			$target = $pages['checkout'];
-			if (SHOPP_PRETTYURLS) {
-				$catalog = empty($pages['catalog']['uri'])?$pages['catalog']['name']:$pages['catalog']['uri'];
-				$path = trailingslashit($catalog).$page;
-			} else $pageid = $target['id']."&shopp_proc=$page";
-		} elseif ('images' == $page) {
-			$target = $pages['catalog'];
-			$path = trailingslashit($target['uri']).'images';
-			if (!SHOPP_PRETTYURLS) $request = array('siid'=>$request);
-		} else {
-			$path = $pages['catalog']['uri'];
-			$pageid = $pages['catalog']['id'];
-		}
+	if ('images' == $page) {
+		$path[] = 'images';
+		if (!SHOPP_PRETTYURLS) $request = array('siid'=>$request);
 	}
 
-	if (SHOPP_PRETTYURLS) $url = user_trailingslashit($siteurl.$path);
+	// if (isset($pages[$page])) {
+	// 	$path = $pages[$page]['uri'];
+	// 	$pageid = $pages[$page]['id'];
+	// } else {
+	// 	if (in_array($page,$dynamic)) {
+	// 		$target = $pages['checkout'];
+	// 		if (SHOPP_PRETTYURLS) {
+	// 			$catalog = empty($pages['catalog']['uri'])?$pages['catalog']['name']:$pages['catalog']['uri'];
+	// 			$path = trailingslashit($catalog).$page;
+	// 		} else $pageid = $target['id']."&shopp_proc=$page";
+	// 	} elseif ('images' == $page) {
+	// 		$target = $pages['catalog'];
+	// 		$path = trailingslashit($target['uri']).'images';
+	// 		if (!SHOPP_PRETTYURLS) $request = array('siid'=>$request);
+	// 	} else {
+	// 		$path = $pages['catalog']['uri'];
+	// 		$pageid = $pages['catalog']['id'];
+	// 	}
+	// }
+
+	if (SHOPP_PRETTYURLS) $url = user_trailingslashit($siteurl.join('/',$path));
 	else $url = isset($pageid)?add_query_arg('page_id',$pageid,$siteurl):$siteurl;
 
 	// No extra request, return the complete URL
