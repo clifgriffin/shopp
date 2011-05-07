@@ -8,12 +8,12 @@
  * @version 1.1
  * @since 1.0
  * @copyright Ingenesis Limited, 24 June, 2010
- * @package shopp
- * @subpackage storefront
+ * @package Shopp
+ * @subpackage Catalog
  **/
 
 require_once("Product.php");
-require_once("Category.php");
+require_once("Collection.php");
 
 class Catalog extends DatabaseObject {
 	static $table = "catalog";
@@ -185,12 +185,10 @@ class Catalog extends DatabaseObject {
 	 **/
 	function load_tags ($limits=false) {
 		$db = DB::get();
-		$taxonomy = get_catalog_taxonomy_id('tag');
 
 		if ($limits) $limit = " LIMIT {$limits[0]},{$limits[1]}";
 		else $limit = "";
 
-		$tagtable = DatabaseObject::tablename(CatalogTag::$table);
 		$query = "SELECT t.*,count(sc.product) AS products FROM $this->_table AS sc LEFT JOIN $tagtable AS t ON sc.parent=t.id WHERE sc.taxonomy='$taxonomy' GROUP BY t.id ORDER BY t.name ASC$limit";
 		$this->tags = $db->query($query,AS_ARRAY);
 		return true;
@@ -207,17 +205,17 @@ class Catalog extends DatabaseObject {
 	 * @param array $options (optional) Any shopp() tag-compatible options to pass on to smart categories
 	 * @return object The loaded Category object
 	 **/
-	function load_category ($category,$options=array()) {
+	function load_collection ($slug,$options=array()) {
 		global $Shopp;
 		foreach ($Shopp->Collections as $Collection) {
 			$Collection_slug = get_class_property($Collection,'_slug');
-			if ($category == $Collection_slug)
+			if ($slug == $Collection_slug)
 				return new $Collection($options);
 		}
 
 		$key = "id";
-		if (!preg_match("/^\d+$/",$category)) $key = "uri";
-		return new ProductCategory($category,$key);
+		if (!preg_match("/^\d+$/",$slug)) $key = "slug";
+		return new ProductCategory($slug,$key);
 
 	}
 
@@ -250,23 +248,58 @@ class Catalog extends DatabaseObject {
 			case "is-checkout": return (is_shopp_page('checkout')); break;
 			case "is-account": return (is_shopp_page('account')); break;
 			case "tagcloud":
-				if (!empty($options['levels'])) $levels = $options['levels'];
-				else $levels = 7;
-				if (empty($this->tags)) $this->load_tags();
-				$min = -1; $max = -1;
-				foreach ($this->tags as $tag) {
-					if ($min == -1 || $tag->products < $min) $min = $tag->products;
-					if ($max == -1 || $tag->products > $max) $max = $tag->products;
+
+				$defaults = array(
+					'orderby' => 'name',
+					'number' => 45,
+					'levels' => 7,
+					'format' => 'list',
+					'link' => 'view'
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+
+				$tags = get_terms( ProductTag::$taxonomy, array( 'orderby' => 'count', 'order' => 'DESC', 'number' => $number) );
+
+				if (empty($tags)) return false;
+
+				$min = $max = false;
+				foreach ($tags as &$tag) {
+					$min = !$min?$tag->count:min($min,$tag->count);
+					$max = !$max?$tag->count:max($max,$tag->count);
+
+					$link_function = ('edit' == $link?'get_edit_tag_link':'get_term_link');
+					$tag->link = $link_function(intval($tag->term_id),ProductTag::$taxonomy);
 				}
-				if ($max == 0) $max = 1;
-				$string = '<ul class="shopp tagcloud">';
-				foreach ($this->tags as $tag) {
-					$level = floor((1-$tag->products/$max)*$levels)+1;
-					$link = SHOPP_PRETTYURLS?shoppurl("tag/$tag->name"):shoppurl(array('s_tag'=>$tag->name));
-					$string .= '<li class="level-'.$level.'"><a href="'.$link.'" rel="tag">'.$tag->name.'</a></li> ';
+
+				// Sorting
+				$sorted = apply_filters( 'tag_cloud_sort', $tags, $args );
+				if ( $sorted != $tags  ) $tags = &$sorted;
+				else {
+					if ( 'RAND' == $order ) shuffle($tags);
+					else {
+						if ( 'name' == $orderby )
+							uasort( $tags, create_function('$a, $b', 'return strnatcasecmp($a->name, $b->name);') );
+						else
+							uasort( $tags, create_function('$a, $b', 'return ($a->count > $b->count);') );
+
+						if ( 'DESC' == $order ) $tags = array_reverse( $tags, true );
+					}
 				}
-				$string .= '</ul>';
-				return $string;
+
+				// Markup
+				if ('inline' == $format) $markup = '<div class="shopp tagcloud">';
+				if ('list' == $format) $markup = '<ul class="shopp tagcloud">';
+				foreach ((array)$tags as $tag) {
+					$level = floor((1-$tag->count/$max)*$levels)+1;
+					if ('list' == $format) $markup .= '<li class="level-'.$level.'">';
+					$markup .= '<a href="'.esc_url($tag->link).'" rel="tag">'.$tag->name.'</a>';
+					if ('list' == $format) $markup .= '</li> ';
+				}
+				if ('list' == $format) $markup .= '</ul>';
+				if ('inline' == $format) $markup .= '</div>';
+
+				return $markup;
 				break;
 			case "hascategories":
 			case "has-categories":
@@ -472,15 +505,15 @@ class Catalog extends DatabaseObject {
 				if (isset($options['title'])) $title = $options['title'];
 
 				if (value_is_true($dropdown)) {
-					if (isset($Shopp->Flow->Controller->browsing['orderby']))
-						$default = $Shopp->Flow->Controller->browsing['orderby'];
+					if (isset($Shopp->Flow->Controller->browsing['sortorder']))
+						$default = $Shopp->Flow->Controller->browsing['sortorder'];
 					$string .= $title;
 					$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
 					if (!SHOPP_PRETTYURLS) {
 						foreach ($_GET as $key => $value)
 							if ($key != 's_ob') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
 					}
-					$string .= '<select name="shopp_orderby" class="shopp-orderby-menu">';
+					$string .= '<select name="s_so" class="shopp-orderby-menu">';
 					$string .= menuoptions($menuoptions,$default,true);
 					$string .= '</select>';
 					$string .= '</form>';
@@ -527,7 +560,7 @@ class Catalog extends DatabaseObject {
 					$category = "tag";
 					$search = array('tag'=>urldecode($path[1]));
 				}
-				$Category = Catalog::load_category($category,$search);
+				$Category = Catalog::load_collection($category,$search);
 
 				if (!empty($Category->uri)) {
 					$type = "category";
@@ -852,204 +885,5 @@ class Catalog extends DatabaseObject {
 	}
 
 } // END class Catalog
-
-class CatalogTag extends MetaObject {
-
-	function __construct ($id=false,$key=false) {
-		$this->init(self::$table);
-		$this->load($id,$key);
-		$this->context = 'catalog';
-		$this->type = 'tag';
-	}
-
-} // END class CatalogTag
-
-/**
- * CatalogTaxonomy class
- *
- *
- *
- * @author Jonathan Davis
- * @since 1.2
- * @package shopp
- **/
-class CatalogTaxonomy extends MetaObject {
-
-	var $id;
-	var $name;
-	var $label;
-	var $parent;
-	var $hierarchical;
-	var $rewrite;
-	var $queryvar;
-	var $public;
-	var $capabilities;
-
-	function __construct ($id=false,$key=false) {
-		$this->init(self::$table);
-		$this->load($id,$key);
-		$this->context = 'taxonomy';
-		$this->type = $taxonomy;
-	}
-
-} // END class CatalogTaxonomy
-
-class RegistryManager implements Iterator {
-
-	private $_list = array();
-	private $_keys = array();
-	private $_false = false;
-
-	public function __construct() {
-        $this->_position = 0;
-	}
-
-	public function add ($key,$entry) {
-		$this->_list[$key] = $entry;
-		$this->rekey();
-	}
-
-	public function update ($key,$entry) {
-		if (!$this->exists($key)) return false;
-		$entry = array_merge($this->_list[$key],$entry);
-		$this->_list[$key] = $entry;
-	}
-
-	public function &get ($key) {
-		if ($this->exists($key)) return $this->_list[$key];
-		else return $_false;
-	}
-
-	public function exists ($key) {
-		return array_key_exists($key,$this->_list);
-	}
-
-	public function remove ($key) {
-		if (!$this->exists($key)) return false;
-		unset($this->_list[$key]);
-		$this->rekey();
-	}
-
-	private function rekey () {
-		$this->_keys = array_keys($this->_list);
-	}
-
-	function current () {
-		return $this->_list[ $this->keys[$this->_position] ];
-	}
-
-	function key () {
-		return $this->keys[$this->_position];
-	}
-
-	function next () {
-		++$this->_position;
-	}
-
-	function rewind () {
-		$this->_position = 0;
-	}
-
-	function valid () {
-		return (
-			array_key_exists($this->_position,$this->_keys)
-			&& array_key_exists($this->keys[$this->_position],$this->_list)
-		);
-	}
-
-}
-
-class CatalogTaxonomies extends RegistryManager {
-	private $_table = "meta";
-	private $nextid = false;
-	private $ids = array();
-
-	public function __construct () {
-		$this->_table = DatabaseObject::tablename(CatalogTaxonomy::$table);
-
-		$Settings =& ShoppSettings();
-		$this->ids = $Settings->get('taxonomies');
-		if (!$this->ids) $this->ids = array();
-		$this->nextid = $Settings->get('next_taxonomy_id');
-		if (!$this->nextid) $this->nextid = 0;
-	}
-
-	public function add ($name,$options) {
-		$taxonomy = sanitize_title_with_dashes($name);
-		if (isset($this->ids[$name])) $options['id'] = $this->ids[$name];
-		else $options['id'] = $this->reserve($name);
-		parent::add($taxonomy,$options);
-	}
-
-	public function reserve ($name) {
-		$Settings =& ShoppSettings();
-		$id = $this->nextid();
-		$this->ids[$name] = $id;
-
-		$Settings->save('next_taxonomy_id',$this->nextid());
-		$Settings->save('taxonomies',$this->ids);
-		return $id;
-	}
-
-	public function get_id ($name) {
-		return $this->get_option($name,'id');
-	}
-
-	public function get_option ($name,$option = 'id') {
-		$taxonomy = $this->get($name);
-		if (isset($taxonomy[$option]))
-			return $taxonomy[$option];
-		return false;
-	}
-
-	private function nextid () {
-		if (!$this->reserved($this->nextid))
-			return $this->nextid;
-
-		$this->nextid++;
-
-		// Recursively check for existing id
-		$this->nextid();
-	}
-
-	private function reserved ($id) {
-		return (array_search($id,$this->ids) !== false);
-	}
-
-}
-
-/**
- * Access the registered Taxonomies
- *
- * @author Jonathan Davis
- * @since 1.2
- *
- * @return void Description...
- **/
-function &ShoppTaxonomies () {
-	global $Shopp;
-	return $Shopp->Taxonomies;
-}
-
-function init_shopp_taxonomies () {
-	register_catalog_taxonomy('category',array(
-		'_builtin' => true,
-		'hierarchical' => true,
-		'public' => true,
-		'editor_ui' => true
-	));
-
-	register_catalog_taxonomy('tag',array(
-		'_builtin' => true,
-		'editor_ui' => true
-	));
-
-	register_catalog_taxonomy('promo',array(
-		'_builtin' => true,
-		'editor_ui' => false
-	));
-
-}
-add_action( 'shopp_init', 'init_shopp_taxonomies', 0 ); // highest priority
 
 ?>

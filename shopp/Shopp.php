@@ -66,6 +66,7 @@ require('core/model/Purchase.php');
 require('core/model/Customer.php');
 
 // Load public development API
+require('api/core.php');
 require('api/taxonomy.php');
 require('api/template.php');
 require('api/collection.php');
@@ -221,7 +222,6 @@ class Shopp {
 		$this->Shipping = new ShippingModules();
 		$this->Storage = new StorageEngines();
 		$this->Collections = array();
-		$this->Taxonomies = new CatalogTaxonomies();
 
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
@@ -233,6 +233,18 @@ class Shopp {
 
 		ProductTaxonomy::register('ProductCategory');
 		ProductTaxonomy::register('ProductTag');
+
+		register_collection('CatalogProducts');
+		register_collection('NewProducts');
+		register_collection('FeaturedProducts');
+		register_collection('OnSaleProducts');
+		register_collection('BestsellerProducts');
+		register_collection('SearchResults');
+		register_collection('TagProducts');
+		register_collection('RelatedProducts');
+		register_collection('RandomProducts');
+		register_collection('PromoProducts');
+
 		WPShoppObject::register('Product');
 
 		global $pagenow;
@@ -292,7 +304,9 @@ class Shopp {
 	 * @return array Modified rewrite rules
 	 **/
 	function rewrites ($wp_rewrite_rules) {
-
+		print_r($wp_rewrite_rules);
+		return $wp_rewrite_rules;
+		exit();
 		$this->pages_index(true);
 		$pages = $this->Settings->get('pages');
 		if (!$pages) return $wp_rewrite_rules;
@@ -383,7 +397,7 @@ class Shopp {
 		$vars[] = 's_pid';		// Product ID
 		$vars[] = 's_pd';		// Product slug
 		$vars[] = 's_dl';		// Download key
-		$vars[] = 's_ob';		// Product sort order (category view)
+		$vars[] = 's_so';		// Product sort order (product collections)
 		$vars[] = 's_cf';		// Category filters
 
 		return $vars;
@@ -545,21 +559,6 @@ class Shopp {
 			$linklist = str_replace($href,$secure_href,$linklist);
 		}
 		return $linklist;
-	}
-
-	/**
-	 * Registers a smart category
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param string $name Class name of the smart category
-	 * @return void
-	 **/
-	function add_collection ($name) {
-		global $Shopp; // For static calls
-		if (empty($Shopp)) return;
-			$Shopp->Collections[] = $name;
 	}
 
 	/**

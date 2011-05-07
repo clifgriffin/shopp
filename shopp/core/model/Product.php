@@ -64,9 +64,10 @@ class Product extends WPShoppObject {
 	 *
 	 * @return void
 	 **/
-	function __construct ($id=false,$key=false) {
+	function __construct ($id=false,$key='ID') {
 		$this->_post_type = self::$posttype;
-		$this->init(self::$table,'ID');
+		if ('slug' == $key) $key = 'post_name';
+		$this->init(self::$table,$key);
 		$this->load($id,$key);
 	}
 
