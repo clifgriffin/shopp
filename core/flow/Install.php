@@ -716,9 +716,8 @@ class ShoppInstallation extends FlowController {
 					$where = "taxonomy=0 OR taxonomy=1";
 				}
 
-				error_log("SELECT $cols FROM $catalog_table AS c LEFT JOIN $wpdb->posts AS wp ON c.product=wp.post_parent AND wp.post_type='$post_type' WHERE $where");
-
 				$rels = DB::query("SELECT $cols FROM $catalog_table AS c LEFT JOIN $wpdb->posts AS wp ON c.product=wp.post_parent AND wp.post_type='$post_type' WHERE $where",'array');
+
 				foreach ((array)$rels as $r) {
 					$object_id = $r->product;
 					$taxonomy = $wp_taxonomies[($db_version >= 1125?$r->taxonomy:$r->type)];
@@ -735,9 +734,11 @@ class ShoppInstallation extends FlowController {
 				if (isset($tt_ids['shopp_category']))
 					wp_update_term_count_now($tt_ids['shopp_category'],'shopp_category');
 
+				if (isset($tt_ids['shopp_tag']))
+					wp_update_term_count_now($tt_ids['shopp_tag'],'shopp_tag');
+
 				// Clear custom post type parents
 				DB::query("UPDATE $wpdb->posts SET post_parent=0 WHERE post_type='$post_type'");
-
 
 		} // END if ($db_version <= 1131)
 
