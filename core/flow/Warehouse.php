@@ -222,8 +222,6 @@ class Warehouse extends AdminController {
 		// $catt = DatabaseObject::tablename(ProductCategory::$table);
 		$clog = DatabaseObject::tablename(Catalog::$table);
 
-		$ct_id = get_catalog_taxonomy_id('category');
-
 		$orderby = "pd.created DESC";
 
 		$having = "";
@@ -410,7 +408,6 @@ class Warehouse extends AdminController {
 		$permalink = trailingslashit(shoppurl());
 
 		require_once(SHOPP_PATH.'/core/model/Asset.php');
-		require_once(SHOPP_PATH.'/core/model/Category.php');
 
 		$Price = new Price();
 

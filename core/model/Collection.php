@@ -1,13 +1,18 @@
 <?php
 /**
- * Category class
+ * Collection classes
  *
+ * Library product collection models
  *
  * @author Jonathan Davis
  * @version 1.0
- * @copyright Ingenesis Limited,  9 April, 2008
- * @package shopp
+ * @copyright Ingenesis Limited, May  5, 2011
+ * @license GNU GPL version 3 (or later) {@see license.txt}
+ * @package Shopp
+ * @since 1.0
+ * @subpackage Collection
  **/
+
 class ProductCollection implements Iterator {
 
 	var $paged = false;
@@ -42,7 +47,6 @@ class ProductCollection implements Iterator {
 			'adjacent' => false,	//
 			'product' => false,		//
 			'load' => array(),		// Product data to load
-			'restat' => false		// Force recalculate product stats
 		);
 		$loading = array_merge($defaults,$options);
 		extract($loading);
@@ -57,6 +61,35 @@ class ProductCollection implements Iterator {
 
 		if ($published) $where[] = "p.post_status='publish'";
 
+		// Sort Order
+		$defaultOrder = $Settings->get('default_product_order');
+		if (empty($defaultOrder)) $defaultOrder = '';
+		$ordering = isset($Storefront->browsing['sortorder'])?
+						$Storefront->browsing['sortorder']:$defaultOrder;
+		if ($order !== false) $ordering = $order;
+		switch ($ordering) {
+			case 'bestselling': $order = "s.sold DESC,p.post_title ASC"; break;
+			case 'highprice': $order = "maxprice DESC,p.post_title ASC"; break;
+			case 'lowprice': $order = "minprice ASC,p.post_title ASC"; /* $useindex = "lowprice"; */ break;
+			case 'newest': $order = "p.post_date DESC,p.post_title ASC"; break;
+			case 'oldest': $order = "p.post_date ASC,p.post_title ASC"; /* $useindex = "oldest";	*/ break;
+			case 'random': $order = "RAND(".crc32($Shopp->Shopping->session).")"; break;
+			case 'chaos': $order = "RAND(".time().")"; break;
+			case 'title': $order = "p.post_title ASC"; /* $useindex = "name"; */ break;
+			case 'recommended':
+			default:
+				// Need to add the catalog table for access to category-product priorities
+				// if (!isset($this->smart)) {
+				// 	$joins[$catalogtable] = "INNER JOIN $catalogtable AS c ON c.product=p.id AND c.parent='$this->id'";
+				// 	$order = "c.priority ASC,p.name ASC";
+				// } else $order = "p.name ASC";
+				$order = "p.post_title ASC";
+				break;
+		}
+		$orderby = false;
+		if (!empty($order)) $orderby = $order;
+
+		// Pagination
 		if (empty($limit)) {
 			if ($this->pagination > 0 && is_numeric($this->page) && value_is_true($pagination)) {
 				if( !$this->pagination || $this->pagination < 0 )
@@ -78,7 +111,7 @@ class ProductCollection implements Iterator {
 		$where[] = "p.post_type='$Processing->_post_type'";
 		$joins[$stats_table] = "LEFT OUTER JOIN $summary_table AS s ON s.product=p.ID";
 
-		$options = compact('columns','useindex','table','joins','where','groupby','having','limit','order');
+		$options = compact('columns','useindex','table','joins','where','groupby','having','limit','orderby');
 		$query = DB::select($options);
 
 		$this->products = DB::query($query,'array',array($this,'loader'));
@@ -88,7 +121,6 @@ class ProductCollection implements Iterator {
 			$this->pages = ceil($this->total / $this->pagination);
 			if ($this->pages > 1) $this->paged = true;
 		}
-
 
 		$Processing->load_data($load,$this->index);
 
@@ -3366,29 +3398,17 @@ class __Category extends DatabaseObject {
 
 } // END class Category
 
-
-class SmartCollection extends ProductCollection {
-	var $smart = true;
-	var $slug = false;
-	var $uri = false;
-	var $name = false;
-	var $loading = array();
-
-	function __construct ($options=array()) {
-		global $Shopp;
-		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
-		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
-		$this->smart($options);
-	}
-
-}
-
 class ProductTag extends ProductTaxonomy {
 	static $taxonomy = 'shopp_tag';
 	static $namespace = 'tag';
 	static $hierarchical = false;
 
 	protected $context = 'tag';
+
+	function __construct ($id,$key='id') {
+		$this->taxonomy = self::$taxonomy;
+		parent::__construct($id,$key);
+	}
 
 	static function labels ($class) {
 		return array(
@@ -3409,12 +3429,44 @@ class ProductTag extends ProductTaxonomy {
 
 }
 
+class SmartCollection extends ProductCollection {
+	var $smart = true;
+	var $slug = false;
+	var $uri = false;
+	var $name = false;
+	var $loading = array();
+
+	function __construct ($options=array()) {
+		global $Shopp;
+		if (isset($options['show'])) $this->loading['limit'] = $options['show'];
+		if (isset($options['pagination'])) $this->loading['pagination'] = $options['pagination'];
+		$this->smart($options);
+	}
+
+	function load () {
+		parent::load($this->loading);
+	}
+
+	function register () {
+
+		if ('' == get_option('permalink_structure') ) return;
+
+		$args['rewrite'] = wp_parse_args($args['rewrite'], array(
+			'slug' => sanitize_title_with_dashes($taxonomy),
+			'with_front' => true,
+		));
+		add_rewrite_tag("%$taxonomy%", '([^/]+)', $args['query_var'] ? "{$args['query_var']}=" : "taxonomy=$taxonomy&term=");
+		add_permastruct($taxonomy, "{$args['rewrite']['slug']}/%$taxonomy%", $args['rewrite']['with_front']);
+	}
+
+}
+
 class CatalogProducts extends SmartCollection {
 	static $_slug = "catalog";
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
-		$this->name = __("Catalog Products","Shopp");
+		$this->name = __('Catalog Products','Shopp');
 		if (isset($options['order'])) $this->loading['order'] = $options['order'];
 	}
 
@@ -3426,21 +3478,21 @@ class NewProducts extends SmartCollection {
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
-		$this->name = __("New Products","Shopp");
-		$this->loading = array('where'=>"p.id IS NOT NULL",'order'=>'newest');
+		$this->name = __('New Products','Shopp');
+		$this->loading = array('order'=>'newest');
 		if (isset($options['columns'])) $this->loading['columns'] = $options['columns'];
 	}
 
 }
 
 class FeaturedProducts extends SmartCollection {
-	static $_slug = "featured";
+	static $_slug = 'featured';
 	static $_auto = true;
 
 	function smart ($options=array()) {
 		$this->slug = $this->uri = self::$_slug;
-		$this->name = __("Featured Products","Shopp");
-		$this->loading = array('where'=>"p.featured='on'",'order'=>'p.modified DESC');
+		$this->name = __('Featured Products','Shopp');
+		$this->loading = array('where'=>array("s.featured='on'"),'order'=>'newest');
 	}
 
 }
@@ -3671,6 +3723,5 @@ class PromoProducts extends SmartCollection {
 		$this->loading = array('where' => "p.id IN (SELECT product FROM $pricetable WHERE 0 < FIND_IN_SET($Promo->id,discounts))");
 	}
 }
-
 
 ?>

@@ -13,7 +13,18 @@
  * @subpackage shopp
  **/
 
+function &ShoppProduct (&$Object=false) {
+	global $Shopp; $false = false;
+	if (empty($Shopp)) return $false;
+	if ($Object !== false) $Shopp->Product = $Object;
+	return $Shopp->Product;
+}
 
-
+function &ShoppCatalog (&$Object=false) {
+	global $Shopp; $false = false;
+	if (empty($Shopp)) return $false;
+	if ($Object !== false) $Shopp->Catalog = $Object;
+	return $Shopp->Catalog;
+}
 
 ?>
