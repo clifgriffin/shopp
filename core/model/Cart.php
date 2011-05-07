@@ -604,12 +604,11 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 *
+	 * @deprecated 2.1
 	 * @return mixed
 	 **/
 	function tag ($property,$options=array()) {
-		// deprecated
-		if(!isset($options['return'])) $options['return'] = 'on';
+		$options['return'] = 'on';
 		return shopp('cart',$property,$options);
 	}
 
@@ -618,7 +617,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 *
+	 * @deprecated 2.1
 	 * @return mixed
 	 **/
 	function itemtag ($property,$options=array()) {
@@ -641,91 +640,12 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 *
+	 * @deprecated 2.1
 	 * @return mixed
 	 **/
 	function shippingtag ($property,$options=array()) {
-		global $Shopp;
-		$result = "";
-
-		switch ($property) {
-			case "url": return is_shopp_page('checkout')?shoppurl(false,'confirm-order'):shoppurl(false,'cart');
-			case "hasestimates": return apply_filters('shopp_shipping_hasestimates',!empty($this->shipping)); break;
-			case "options":
-			case "methods":
-				if (!isset($this->sclooping)) $this->sclooping = false;
-				if (!$this->sclooping) {
-					reset($this->shipping);
-					$this->sclooping = true;
-				} else next($this->shipping);
-
-				if (current($this->shipping) !== false) return true;
-				else {
-					$this->sclooping = false;
-					reset($this->shipping);
-					return false;
-				}
-				break;
-			case "option-menu":
-			case "method-menu":
-				// @todo Add options for differential pricing and estimated delivery dates
-				$_ = array();
-				$_[] = '<select name="shipmethod" class="shopp shipmethod">';
-				foreach ($this->shipping as $method) {
-					$selected = ((isset($Shopp->Order->Shipping->method) &&
-						$Shopp->Order->Shipping->method == $method->name))?' selected="selected"':false;
-
-					$_[] = '<option value="'.$method->name.'"'.$selected.'>'.$method->name.' &mdash '.money($method->amount).'</option>';
-				}
-				$_[] = '</select>';
-				return join("",$_);
-				break;
-			case "option-name":
-			case "method-name":
-				$option = current($this->shipping);
-				return $option->name;
-				break;
-			case "method-selected":
-				$method = current($this->shipping);
-				return ((isset($Shopp->Order->Shipping->method) &&
-					$Shopp->Order->Shipping->method == $method->name));
-				break;
-			case "option-cost":
-			case "method-cost":
-				$option = current($this->shipping);
-				return money($option->amount);
-				break;
-			case "method-selector":
-				$method = current($this->shipping);
-
-				$checked = '';
-				if ((isset($Shopp->Order->Shipping->method) &&
-					$Shopp->Order->Shipping->method == $method->name))
-						$checked = ' checked="checked"';
-
-				$result = '<input type="radio" name="shipmethod" value="'.urlencode($method->name).'" class="shopp shipmethod" '.$checked.' />';
-				return $result;
-
-				break;
-			case "option-delivery":
-			case "method-delivery":
-				$periods = array("h"=>3600,"d"=>86400,"w"=>604800,"m"=>2592000);
-				$option = current($this->shipping);
-				if (!$option->delivery) return "";
-				$estimates = explode("-",$option->delivery);
-				$format = get_option('date_format');
-				if (count($estimates) > 1
-					&& $estimates[0] == $estimates[1]) $estimates = array($estimates[0]);
-				$result = "";
-				for ($i = 0; $i < count($estimates); $i++) {
-					list($interval,$p) = sscanf($estimates[$i],'%d%s');
-					if (empty($interval)) $interval = 1;
-					if (empty($p)) $p = 'd';
-					if (!empty($result)) $result .= "&mdash;";
-					$result .= _d($format,mktime()+($interval*$periods[$p]));
-				}
-				return $result;
-		}
+		$options['return'] = 'on';
+		return shopp('shipping',$property,$options);
 	}
 
 
