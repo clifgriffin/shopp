@@ -2,7 +2,7 @@
 /**
  * Template API
  *
- * @author Jonathan Davis
+ * @author Jonathan Davis, John Dillick
  * @version 1.0
  * @copyright Ingenesis Limited, February 25, 2011
  * @license GNU GPL version 3 (or later) {@see license.txt}
@@ -29,10 +29,21 @@ class shoppapi {
 		list($object,$property) = explode("_",$method);
 		if (empty($object) || empty($property)) return;
 
+		if (is_array($property) && count($property) == 1) $property = $property[0];
+
 		$Object = false; $result = false;
 		switch (strtolower($object)) {
 			case "cart": 		if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
-			case "cartitem": 	if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
+			case "cartitem": 	if (isset($Shopp->Order->Cart)) {
+									$Cart =& $Shopp->Order->Cart;
+									$Item = false;
+									if (isset($Cart->_item_loop)) { $Item = current($Cart->contents); $Item->_id = key($Cart->contents); }
+									elseif (isset($Cart->_shipped_loop)) { $Item = current($Cart->shipped); $Item->_id = key($Cart->shipped); }
+									elseif (isset($Cart->_downloads_loop)) { $Item = current($Cart->downloads); $Item->_id = key($Cart->downloads); }
+									if ($Item === false) return false;
+									$Object = $Item;
+								}
+								break;
 			case "shipping": 	if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
 			case "category": 	if (isset($Shopp->Category)) $Object =& $Shopp->Category; break;
 			case "subcategory": if (isset($Shopp->Category->child)) $Object =& $Shopp->Category->child; break;
@@ -47,10 +58,16 @@ class shoppapi {
 
 		if ('has-context' == $property) return ($Object);
 
-		if (!$Object) new ShoppError("The shopp('$object') tag cannot be used in this context because the object responsible for handling it doesn't exist.",'shopp_tag_error',SHOPP_ADMIN_ERR);
+		if (!$Object) new ShoppError( sprintf( __('The shopp(\'%s\') tag cannot be used in this context because the object responsible for handling it doesn\'t exist.', 'Shopp'), $object ),'shopp_tag_error',SHOPP_ADMIN_ERR);
+
+		// global property getters
+		if ( 'get' == substr($property, 0, 3) && property_exists($Object, substr($property, 3)) ) {
+			$getter = substr($property, 4);
+			$result = $Object->$getter;
+		}
 
 		$result = apply_filters('shoppapi_'.strtolower($object).'_'.strtolower($property),$result,$options,$Object); // property specific tag filter
-		$result = apply_filters('shoppapi_'.strtolower($object),$result,$property,$options,$Object); // global object tag filter
+		$result = apply_filters('shoppapi_'.strtolower($object),$result,$options,$property,$Object); // global object tag filter
 
 		$result = apply_filters('shopp_tag_'.strtolower($object).'_'.strtolower($property),$result,$options,$Object); // deprecated
 
@@ -127,8 +144,15 @@ function shopp () {
 		}
 	}
 
+	// strip hypens from all properties, allows all manner of hyphenated properties without creating invalid method call
+	$property = str_replace ( "-", "", $property);
+
 	if (!empty($object) && !empty($property)) {
 		$apicall = $object."_".$property;
+		if (!preg_match('/[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*./', $apicall )) {
+			new ShoppError(__(sprintf('Invalid Shoppapi method call shoppapi::%s', $apicall),'Shopp'),false,SHOPP_ADMIN_ERR);
+			return;
+		}
 		return shoppapi::$apicall($options);
 	}
 	return;
