@@ -4,16 +4,16 @@ add_filter('shoppapi_shipping_url', array('ShoppCartShippingAPI', 'url'), 10, 3)
 add_filter('shoppapi_shipping_hasestimates', array('ShoppCartShippingAPI', 'hasestimates'), 10, 3);
 add_filter('shoppapi_shipping_options', array('ShoppCartShippingAPI', 'options'), 10, 3);
 add_filter('shoppapi_shipping_methods', array('ShoppCartShippingAPI', 'options'), 10, 3);
-add_filter('shoppapi_shipping_option-menu', array('ShoppCartShippingAPI', 'optionmenu'), 10, 3);
-add_filter('shoppapi_shipping_method-menu', array('ShoppCartShippingAPI', 'optionmenu'), 10, 3);
-add_filter('shoppapi_shipping_option-name', array('ShoppCartShippingAPI', 'optionname'), 10, 3);
-add_filter('shoppapi_shipping_method-name', array('ShoppCartShippingAPI', 'optionname'), 10, 3);
-add_filter('shoppapi_shipping_method-selected', array('ShoppCartShippingAPI', 'methodselected'), 10, 3);
-add_filter('shoppapi_shipping_option-cost', array('ShoppCartShippingAPI', 'optioncost'), 10, 3);
-add_filter('shoppapi_shipping_method-cost', array('ShoppCartShippingAPI', 'optioncost'), 10, 3);
-add_filter('shoppapi_shipping_method-selector', array('ShoppCartShippingAPI', 'methodselector'), 10, 3);
-add_filter('shoppapi_shipping_option-delivery', array('ShoppCartShippingAPI', 'optiondelivery'), 10, 3);
-add_filter('shoppapi_shipping_method-delivery', array('ShoppCartShippingAPI', 'optiondelivery'), 10, 3);
+add_filter('shoppapi_shipping_optionmenu', array('ShoppCartShippingAPI', 'optionmenu'), 10, 3);
+add_filter('shoppapi_shipping_methodmenu', array('ShoppCartShippingAPI', 'optionmenu'), 10, 3);
+add_filter('shoppapi_shipping_optionname', array('ShoppCartShippingAPI', 'optionname'), 10, 3);
+add_filter('shoppapi_shipping_methodname', array('ShoppCartShippingAPI', 'optionname'), 10, 3);
+add_filter('shoppapi_shipping_methodselected', array('ShoppCartShippingAPI', 'methodselected'), 10, 3);
+add_filter('shoppapi_shipping_optioncost', array('ShoppCartShippingAPI', 'optioncost'), 10, 3);
+add_filter('shoppapi_shipping_methodcost', array('ShoppCartShippingAPI', 'optioncost'), 10, 3);
+add_filter('shoppapi_shipping_methodselector', array('ShoppCartShippingAPI', 'methodselector'), 10, 3);
+add_filter('shoppapi_shipping_optiondelivery', array('ShoppCartShippingAPI', 'optiondelivery'), 10, 3);
+add_filter('shoppapi_shipping_methoddelivery', array('ShoppCartShippingAPI', 'optiondelivery'), 10, 3);
 
 
 /**

@@ -5,53 +5,35 @@ add_filter('shoppapi_cart_url', array('ShoppCartAPI', 'url'), 10, 3);
 add_filter('shoppapi_cart_referrer', array('ShoppCartAPI', 'referrer'), 10, 3);
 add_filter('shoppapi_cart_referer', array('ShoppCartAPI', 'referrer'), 10, 3);
 add_filter('shoppapi_cart_hasitems', array('ShoppCartAPI', 'hasitems'), 10, 3);
-add_filter('shoppapi_cart_has-items', array('ShoppCartAPI', 'hasitems'), 10, 3);
 add_filter('shoppapi_cart_totalitems', array('ShoppCartAPI', 'totalitems'), 10, 3);
-add_filter('shoppapi_cart_total-items', array('ShoppCartAPI', 'totalitems'), 10, 3);
 add_filter('shoppapi_cart_items', array('ShoppCartAPI', 'items'), 10, 3);
 add_filter('shoppapi_cart_hasshipped', array('ShoppCartAPI', 'hasshipped'), 10, 3);
-add_filter('shoppapi_cart_has-shipped', array('ShoppCartAPI', 'hasshipped'), 10, 3);
 add_filter('shoppapi_cart_shippeditems', array('ShoppCartAPI', 'shippeditems'), 10, 3);
-add_filter('shoppapi_cart_shipped-items', array('ShoppCartAPI', 'shippeditems'), 10, 3);
 add_filter('shoppapi_cart_hasdownloads', array('ShoppCartAPI', 'hasdownloads'), 10, 3);
-add_filter('shoppapi_cart_has-downloads', array('ShoppCartAPI', 'hasdownloads'), 10, 3);
 add_filter('shoppapi_cart_downloaditems', array('ShoppCartAPI', 'downloaditems'), 10, 3);
-add_filter('shoppapi_cart_download-items', array('ShoppCartAPI', 'downloaditems'), 10, 3);
 add_filter('shoppapi_cart_lastitem', array('ShoppCartAPI', 'lastitem'), 10, 3);
-add_filter('shoppapi_cart_last-item', array('ShoppCartAPI', 'lastitem'), 10, 3);
 add_filter('shoppapi_cart_totalpromos', array('ShoppCartAPI', 'totalpromos'), 10, 3);
-add_filter('shoppapi_cart_total-promos', array('ShoppCartAPI', 'totalpromos'), 10, 3);
 add_filter('shoppapi_cart_haspromos', array('ShoppCartAPI', 'haspromos'), 10, 3);
-add_filter('shoppapi_cart_has-promos', array('ShoppCartAPI', 'haspromos'), 10, 3);
 add_filter('shoppapi_cart_discounts', array('ShoppCartAPI', 'discounts'), 10, 3);
 add_filter('shoppapi_cart_promos', array('ShoppCartAPI', 'promos'), 10, 3);
 add_filter('shoppapi_cart_promoname', array('ShoppCartAPI', 'promoname'), 10, 3);
-add_filter('shoppapi_cart_promo-name', array('ShoppCartAPI', 'promoname'), 10, 3);
 add_filter('shoppapi_cart_promodiscount', array('ShoppCartAPI', 'promodiscount'), 10, 3);
-add_filter('shoppapi_cart_promo-discount', array('ShoppCartAPI', 'promodiscount'), 10, 3);
 add_filter('shoppapi_cart_function', array('ShoppCartAPI', 'cartfunction'), 10, 3);
 add_filter('shoppapi_cart_emptybutton', array('ShoppCartAPI', 'emptybutton'), 10, 3);
-add_filter('shoppapi_cart_empty-button', array('ShoppCartAPI', 'emptybutton'), 10, 3);
 add_filter('shoppapi_cart_updatebutton', array('ShoppCartAPI', 'updatebutton'), 10, 3);
-add_filter('shoppapi_cart_update-button', array('ShoppCartAPI', 'updatebutton'), 10, 3);
 add_filter('shoppapi_cart_sidecart', array('ShoppCartAPI', 'sidecart'), 10, 3);
 add_filter('shoppapi_cart_hasdiscount', array('ShoppCartAPI', 'hasdiscount'), 10, 3);
-add_filter('shoppapi_cart_has-discount', array('ShoppCartAPI', 'hasdiscount'), 10, 3);
 add_filter('shoppapi_cart_discount', array('ShoppCartAPI', 'discount'), 10, 3);
-add_filter('shoppapi_cart_promos-available', array('ShoppCartAPI', 'promosavailable'), 10, 3);
-add_filter('shoppapi_cart_promo-code', array('ShoppCartAPI', 'promocode'), 10, 3);
-add_filter('shoppapi_cart_has-shipping-methods', array('ShoppCartAPI', 'hasshippingmethods'), 10, 3);
-add_filter('shoppapi_cart_needs-shipped', array('ShoppCartAPI', 'needsshipped'), 10, 3);
+add_filter('shoppapi_cart_promosavailable', array('ShoppCartAPI', 'promosavailable'), 10, 3);
+add_filter('shoppapi_cart_promocode', array('ShoppCartAPI', 'promocode'), 10, 3);
+add_filter('shoppapi_cart_hasshippingmethods', array('ShoppCartAPI', 'hasshippingmethods'), 10, 3);
+add_filter('shoppapi_cart_needsshipped', array('ShoppCartAPI', 'needsshipped'), 10, 3);
 add_filter('shoppapi_cart_hasshipcosts', array('ShoppCartAPI', 'hasshipcosts'), 10, 3);
-add_filter('shoppapi_cart_has-shipcosts', array('ShoppCartAPI', 'hasshipcosts'), 10, 3);
-add_filter('shoppapi_cart_hasship-costs', array('ShoppCartAPI', 'hasshipcosts'), 10, 3);
-add_filter('shoppapi_cart_has-ship-costs', array('ShoppCartAPI', 'hasshipcosts'), 10, 3);
-add_filter('shoppapi_cart_needs-shipping-estimates', array('ShoppCartAPI', 'needsshippingestimates'), 10, 3);
-add_filter('shoppapi_cart_shipping-estimates', array('ShoppCartAPI', 'shippingestimates'), 10, 3);
+add_filter('shoppapi_cart_needsshippingestimates', array('ShoppCartAPI', 'needsshippingestimates'), 10, 3);
+add_filter('shoppapi_cart_shippingestimates', array('ShoppCartAPI', 'shippingestimates'), 10, 3);
 add_filter('shoppapi_cart_subtotal', array('ShoppCartAPI', 'subtotal'), 10, 3);
 add_filter('shoppapi_cart_shipping', array('ShoppCartAPI', 'shipping'), 10, 3);
 add_filter('shoppapi_cart_hastaxes', array('ShoppCartAPI', 'hastaxes'), 10, 3);
-add_filter('shoppapi_cart_has-taxes', array('ShoppCartAPI', 'hastaxes'), 10, 3);
 add_filter('shoppapi_cart_tax', array('ShoppCartAPI', 'tax'), 10, 3);
 add_filter('shoppapi_cart_total', array('ShoppCartAPI', 'total'), 10, 3);
 
@@ -63,7 +45,7 @@ add_filter('shoppapi_cart_total', array('ShoppCartAPI', 'total'), 10, 3);
  *
  **/
 class ShoppCartAPI {
-	function _cart ($result, $property, $options, $obj) {
+	function _cart ($result, $options, $property, $obj) {
 		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
 		if (is_numeric($result)) {
 			if (isset($options['wrapper']) && !value_is_true($options['wrapper'])) return money($result);
@@ -204,10 +186,10 @@ class ShoppCartAPI {
 		if (!empty($options['before'])) $string = $options['before'];
 
 		switch($discount->type) {
-			case "Free Shipping": $string .= money($discount->freeshipping).$options['label']; //break;
-			case "Percentage Off": $string .= percentage($discount->discount,array('precision' => 0)).$options['label']; //break;
-			case "Amount Off": $string .= money($discount->discount).$options['label']; //break;
-			case "Buy X Get Y Free": return sprintf(__('Buy %s get %s free','Shopp'),$discount->buyqty,$discount->getqty); //break;
+			case "Free Shipping": $string .= money($discount->freeshipping).$options['label']; break;
+			case "Percentage Off": $string .= percentage($discount->discount,array('precision' => 0)).$options['label']; break;
+			case "Amount Off": $string .= money($discount->discount).$options['label']; break;
+			case "Buy X Get Y Free": return sprintf(__('Buy %s get %s free','Shopp'),$discount->buyqty,$discount->getqty); break;
 		}
 		if (!empty($options['after'])) $string .= $options['after'];
 
