@@ -23,6 +23,12 @@ require_once('theme/purchase.php');
 require_once('theme/customer.php');
 require_once('theme/error.php');
 
+/*
+*
+*
+* @todo __call Magic method has a PHP 5.1 requirement, and is limited to object context
+*
+*/
 class shoppapi {
 	function __call($method, $options) {
 		global $Shopp;
@@ -113,6 +119,8 @@ class shoppapi {
  *                   (option1=value&option2=value&...) or alternatively as an associative array
  */
 function shopp () {
+	$shoppapi = new shoppapi();
+
 	$args = func_get_args();
 	list($object,$property) = explode('.', strtolower($args[0]));
 
@@ -153,7 +161,7 @@ function shopp () {
 			new ShoppError(__(sprintf('Invalid Shoppapi method call shoppapi::%s', $apicall),'Shopp'),false,SHOPP_ADMIN_ERR);
 			return;
 		}
-		return shoppapi::$apicall($options);
+		return $shoppapi->$apicall($options);
 	}
 	return;
 }
