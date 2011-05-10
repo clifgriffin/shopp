@@ -556,7 +556,7 @@ class Item {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
-	 * @deprecated
+	 * @deprecated 1.2
 	 * @return mixed
 	 **/
 	function tag ($id,$property,$options=array()) {

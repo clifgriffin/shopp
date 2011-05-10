@@ -640,7 +640,7 @@ class Cart {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
-	 * @deprecated 2.1
+	 * @deprecated 1.2
 	 * @return mixed
 	 **/
 	function shippingtag ($property,$options=array()) {
