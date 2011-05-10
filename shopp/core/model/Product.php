@@ -886,7 +886,7 @@ class Product extends DatabaseObject {
 	 **/
 	function tag ($property,$options=array()) {
 		$options['return'] = 'on';
-		return shopp('product',$property,$options);
+		return shopp('product',$property,$options, $this);
 	}
 
 } // END class Product

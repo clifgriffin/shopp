@@ -645,7 +645,7 @@ class Cart {
 	 **/
 	function shippingtag ($property,$options=array()) {
 		$options['return'] = 'on';
-		return shopp('shipping',$property,$options);
+		return shopp('shipping',$property,$options, $this);
 	}
 
 

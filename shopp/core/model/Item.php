@@ -561,7 +561,7 @@ class Item {
 	 **/
 	function tag ($id,$property,$options=array()) {
 		$options['return'] = 'on';
-		return shopp('cartitem',$property,$options);
+		return shopp('cartitem',$property,$options,$this);
 	}
 
 } // END class Item
