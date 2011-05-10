@@ -57,6 +57,7 @@ add_filter('shoppapi_product_weight', array('ShoppProductAPI', 'weight'), 10, 3)
  **/
 class ShoppProductAPI {
 	function addons ($result, $options, $obj) {
+		global $Shopp;
 		$string = "";
 
 		if (!isset($options['mode'])) {
@@ -852,122 +853,123 @@ class ShoppProductAPI {
 	}
 
 	function variations ($result, $options, $obj) {
-						$string = "";
+		global $Shopp;
+		$string = "";
 
-						if (!isset($options['mode'])) {
-							if (!isset($obj->_prices_loop)) {
-								reset($obj->prices);
-								$obj->_prices_loop = true;
-							} else next($obj->prices);
-							$price = current($obj->prices);
+		if (!isset($options['mode'])) {
+			if (!isset($obj->_prices_loop)) {
+				reset($obj->prices);
+				$obj->_prices_loop = true;
+			} else next($obj->prices);
+			$price = current($obj->prices);
 
-							if ($price && ($price->type == 'N/A' || $price->context != 'variation'))
-								next($obj->prices);
+			if ($price && ($price->type == 'N/A' || $price->context != 'variation'))
+				next($obj->prices);
 
-							if (current($obj->prices) !== false) return true;
-							else {
-								unset($obj->_prices_loop);
-								return false;
-							}
-							return true;
-						}
+			if (current($obj->prices) !== false) return true;
+			else {
+				unset($obj->_prices_loop);
+				return false;
+			}
+			return true;
+		}
 
-						if ($obj->outofstock) return false; // Completely out of stock, hide menus
-						if (!isset($options['taxes'])) $options['taxes'] = null;
+		if ($obj->outofstock) return false; // Completely out of stock, hide menus
+		if (!isset($options['taxes'])) $options['taxes'] = null;
 
-						$defaults = array(
-							'defaults' => '',
-							'disabled' => 'show',
-							'pricetags' => 'show',
-							'before_menu' => '',
-							'after_menu' => '',
-							'label' => 'on',
-							'required' => __('You must select the options for this item before you can add it to your shopping cart.','Shopp')
-							);
-						$options = array_merge($defaults,$options);
+		$defaults = array(
+			'defaults' => '',
+			'disabled' => 'show',
+			'pricetags' => 'show',
+			'before_menu' => '',
+			'after_menu' => '',
+			'label' => 'on',
+			'required' => __('You must select the options for this item before you can add it to your shopping cart.','Shopp')
+			);
+		$options = array_merge($defaults,$options);
 
-						if ($options['mode'] == "single") {
-							if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-							if (value_is_true($options['label'])) $string .= '<label for="product-options'.$obj->id.'">'. __('Options').': </label> '."\n";
+		if ($options['mode'] == "single") {
+			if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
+			if (value_is_true($options['label'])) $string .= '<label for="product-options'.$obj->id.'">'. __('Options').': </label> '."\n";
 
-							$string .= '<select name="products['.$obj->id.'][price]" id="product-options'.$obj->id.'">';
-							if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
+			$string .= '<select name="products['.$obj->id.'][price]" id="product-options'.$obj->id.'">';
+			if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
 
-							foreach ($obj->prices as $pricetag) {
-								if ($pricetag->context != "variation") continue;
+			foreach ($obj->prices as $pricetag) {
+				if ($pricetag->context != "variation") continue;
 
-								if (!isset($options['taxes']))
-									$taxrate = shopp_taxrate(null,$pricetag->tax);
-								else $taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax);
-								$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
-								$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
+				if (!isset($options['taxes']))
+					$taxrate = shopp_taxrate(null,$pricetag->tax);
+				else $taxrate = shopp_taxrate(value_is_true($options['taxes']),$pricetag->tax);
+				$currently = ($pricetag->sale == "on")?$pricetag->promoprice:$pricetag->price;
+				$disabled = ($pricetag->inventory == "on" && $pricetag->stock == 0)?' disabled="disabled"':'';
 
-								$price = '  ('.money($currently).')';
-								if ($pricetag->type != "N/A")
-									$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.$pricetag->label.$price.'</option>'."\n";
-							}
-							$string .= '</select>';
-							if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
+				$price = '  ('.money($currently).')';
+				if ($pricetag->type != "N/A")
+					$string .= '<option value="'.$pricetag->id.'"'.$disabled.'>'.$pricetag->label.$price.'</option>'."\n";
+			}
+			$string .= '</select>';
+			if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
 
-						} else {
-							if (!isset($obj->options)) return;
+		} else {
+			if (!isset($obj->options)) return;
 
-							$menuoptions = $obj->options;
-							if (!empty($obj->options['v'])) $menuoptions = $obj->options['v'];
+			$menuoptions = $obj->options;
+			if (!empty($obj->options['v'])) $menuoptions = $obj->options['v'];
 
-							$baseop = $Shopp->Settings->get('base_operations');
-							$precision = $baseop['currency']['format']['precision'];
+			$baseop = $Shopp->Settings->get('base_operations');
+			$precision = $baseop['currency']['format']['precision'];
 
-							if (!isset($options['taxes']))
-								$taxrate = shopp_taxrate(null,true,$this);
-							else $taxrate = shopp_taxrate(value_is_true($options['taxes']),true,$this);
+			if (!isset($options['taxes']))
+				$taxrate = shopp_taxrate(null,true,$this);
+			else $taxrate = shopp_taxrate(value_is_true($options['taxes']),true,$this);
 
-							$pricekeys = array();
-							foreach ($obj->pricekey as $key => $pricing) {
-								$filter = array('');
-								$_ = new StdClass();
-								if ($pricing->type != "Donation")
-									$_->p = ((isset($pricing->onsale)
-												&& $pricing->onsale == "on")?
-													(float)$pricing->promoprice:
-													(float)$pricing->price);
-								$_->i = ($pricing->inventory == "on");
-								$_->s = ($pricing->inventory == "on")?$pricing->stock:false;
-								$_->tax = ($pricing->tax == "on");
-								$_->t = $pricing->type;
-								$pricekeys[$key] = $_;
-							}
+			$pricekeys = array();
+			foreach ($obj->pricekey as $key => $pricing) {
+				$filter = array('');
+				$_ = new StdClass();
+				if ($pricing->type != "Donation")
+					$_->p = ((isset($pricing->onsale)
+								&& $pricing->onsale == "on")?
+									(float)$pricing->promoprice:
+									(float)$pricing->price);
+				$_->i = ($pricing->inventory == "on");
+				$_->s = ($pricing->inventory == "on")?$pricing->stock:false;
+				$_->tax = ($pricing->tax == "on");
+				$_->t = $pricing->type;
+				$pricekeys[$key] = $_;
+			}
 
-							ob_start();
-		?><?php if (!empty($options['defaults'])): ?>
-			sjss.opdef = true;
-		<?php endif; ?>
-		<?php if (!empty($options['required'])): ?>
-			sjss.opreq = "<?php echo $options['required']; ?>";
-		<?php endif; ?>
-			pricetags[<?php echo $obj->id; ?>] = <?php echo json_encode($pricekeys); ?>;
-			new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $obj->id; ?>.options',{<?php if ($options['disabled'] == "hide") echo "disabled:false,"; ?><?php if ($options['pricetags'] == "hide") echo "pricetags:false,"; ?><?php if (!empty($taxrate)) echo "taxrate:$taxrate,"?>prices:pricetags[<?php echo $obj->id; ?>]});
-		<?php
-							$script = ob_get_contents();
-							ob_end_clean();
+			ob_start();
+?><?php if (!empty($options['defaults'])): ?>
+sjss.opdef = true;
+<?php endif; ?>
+<?php if (!empty($options['required'])): ?>
+sjss.opreq = "<?php echo $options['required']; ?>";
+<?php endif; ?>
+pricetags[<?php echo $obj->id; ?>] = <?php echo json_encode($pricekeys); ?>;
+new ProductOptionsMenus('select<?php if (!empty($Shopp->Category->slug)) echo ".category-".$Shopp->Category->slug; ?>.product<?php echo $obj->id; ?>.options',{<?php if ($options['disabled'] == "hide") echo "disabled:false,"; ?><?php if ($options['pricetags'] == "hide") echo "pricetags:false,"; ?><?php if (!empty($taxrate)) echo "taxrate:$taxrate,"?>prices:pricetags[<?php echo $obj->id; ?>]});
+<?php
+			$script = ob_get_contents();
+			ob_end_clean();
 
-							add_storefrontjs($script);
+			add_storefrontjs($script);
 
-							foreach ($menuoptions as $id => $menu) {
-								if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
-								if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
-								$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
-								$string .= '<select name="products['.$obj->id.'][options][]" class="'.$category_class.' product'.$obj->id.' options" id="options-'.$menu['id'].'">';
-								if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
-								foreach ($menu['options'] as $key => $option)
-									$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
+			foreach ($menuoptions as $id => $menu) {
+				if (!empty($options['before_menu'])) $string .= $options['before_menu']."\n";
+				if (value_is_true($options['label'])) $string .= '<label for="options-'.$menu['id'].'">'.$menu['name'].'</label> '."\n";
+				$category_class = isset($Shopp->Category->slug)?'category-'.$Shopp->Category->slug:'';
+				$string .= '<select name="products['.$obj->id.'][options][]" class="'.$category_class.' product'.$obj->id.' options" id="options-'.$menu['id'].'">';
+				if (!empty($options['defaults'])) $string .= '<option value="">'.$options['defaults'].'</option>'."\n";
+				foreach ($menu['options'] as $key => $option)
+					$string .= '<option value="'.$option['id'].'">'.$option['name'].'</option>'."\n";
 
-								$string .= '</select>';
-							}
-							if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
-						}
+				$string .= '</select>';
+			}
+			if (!empty($options['after_menu'])) $string .= $options['after_menu']."\n";
+		}
 
-						return $string;
+		return $string;
 	}
 
 	function weight ($result, $options, $obj) {
