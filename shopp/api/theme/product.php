@@ -159,6 +159,7 @@ class ShoppProductAPI {
 	}
 
 	function addtocart ($result, $options, $obj) {
+		global $Shopp;
 		if (!isset($options['class'])) $options['class'] = "addtocart";
 		else $options['class'] .= " addtocart";
 		if (!isset($options['value'])) $options['value'] = __("Add to Cart","Shopp");
@@ -246,6 +247,7 @@ class ShoppProductAPI {
 	}
 
 	function gallery ($result, $options, $obj) {
+		global $Shopp;
 		if (empty($obj->images)) $obj->load_data(array('images'));
 		if (empty($obj->images)) return false;
 		$styles = '';
@@ -429,6 +431,7 @@ class ShoppProductAPI {
 	function id ($result, $options, $obj) { return $obj->id; }
 
 	function image ($result, $options, $obj) {
+		global $Shopp;
 		if (empty($obj->images)) $obj->load_data(array('images'));
 		if (!(count($obj->images) > 0)) return "";
 
@@ -591,6 +594,7 @@ class ShoppProductAPI {
 	}
 
 	function outofstock ($result, $options, $obj) {
+		global $Shopp;
 		if ($obj->outofstock) {
 			$label = isset($options['label'])?$options['label']:$Shopp->Settings->get('outofstock_text');
 			$string = '<span class="outofstock">'.$label.'</span>';
@@ -817,6 +821,7 @@ class ShoppProductAPI {
 	function url ($result, $options, $obj) { return shoppurl(SHOPP_PRETTYURLS?$obj->slug:array('s_pid'=>$obj->id)); }
 
 	function variation ($result, $options, $obj) {
+		global $Shopp;
 		$variation = current($obj->prices);
 
 		if (!isset($options['taxes'])) $options['taxes'] = null;
@@ -966,6 +971,7 @@ class ShoppProductAPI {
 	}
 
 	function weight ($result, $options, $obj) {
+		global $Shopp;
 		if(empty($obj->prices)) $obj->load_data(array('prices'));
 		$defaults = array(
 			'unit' => $Shopp->Settings->get('weight_unit'),
