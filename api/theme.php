@@ -23,21 +23,20 @@ require_once('theme/purchase.php');
 require_once('theme/customer.php');
 require_once('theme/error.php');
 
-/*
-*
-*
-* @todo __call Magic method has a PHP 5.1 requirement, and is limited to object context
-*
-*/
 class shoppapi {
-	function __call($method, $options) {
+	function __call($method, $params) {
 		global $Shopp;
+		$Object = false;
+		$options = array();
+
 		list($object,$property) = explode("_",$method);
 		if (empty($object) || empty($property)) return;
 
-		if (is_array($property) && count($property) == 1) $property = $property[0];
+		if (isset($params[0])) $options = $params[0];
+		if (isset($params[1])) $Object = $params[1];
 
-		$Object = false; $result = false;
+		$result = false;
+		if ($Object === false)
 		switch (strtolower($object)) {
 			case "cart": 		if (isset($Shopp->Order->Cart)) $Object =& $Shopp->Order->Cart; break;
 			case "cartitem": 	if (isset($Shopp->Order->Cart)) {
@@ -120,16 +119,20 @@ class shoppapi {
  */
 function shopp () {
 	$shoppapi = new shoppapi();
+	$Object = false;
 
 	$args = func_get_args();
 	list($object,$property) = explode('.', strtolower($args[0]));
 
-	if (!empty($object) && !empty($property)) if(isset($args[1])) $optionsarg = $args[1];
-	else {
+	if (!empty($object) && !empty($property)) {
+		if(isset($args[1])) $optionsarg = $args[1];
+		if(isset($args[2])) $Object = $args[2];
+	} else {
 		if (count($args) < 2) return; // missing property
 		$object = strtolower($args[0]);
 		$property = strtolower($args[1]);
 		if(isset($args[2])) $optionsarg = $args[2];
+		if(isset($args[3])) $Object = $args[3];
 	}
 
 	$options = array();
@@ -161,7 +164,7 @@ function shopp () {
 			new ShoppError(__(sprintf('Invalid Shoppapi method call shoppapi::%s', $apicall),'Shopp'),false,SHOPP_ADMIN_ERR);
 			return;
 		}
-		return $shoppapi->$apicall($options);
+		return $shoppapi->$apicall($options, $Object);
 	}
 	return;
 }
