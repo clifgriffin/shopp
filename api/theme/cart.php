@@ -40,7 +40,7 @@ add_filter('shoppapi_cart_total', array('ShoppCartAPI', 'total'), 10, 3);
 /**
  * Provides shopp('cart') theme api functionality
  *
- * @author Jonathan Davis, John Dillic
+ * @author Jonathan Davis, John Dillick
  * @since 1.2
  *
  **/
