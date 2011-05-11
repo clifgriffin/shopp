@@ -1,4 +1,4 @@
-<?
+<?php
 
 add_filter('shoppapi_catalog_bestsellerproducts', array('ShoppCatalogAPI','bestsellerproducts'), 10, 3);
 add_filter('shoppapi_catalog_bestsellersproducts', array('ShoppCatalogAPI','bestsellerproducts'), 10, 3);

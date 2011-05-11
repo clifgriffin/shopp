@@ -1,4 +1,5 @@
 <?php
+
 add_filter('shoppapi_cart', array('ShoppCartAPI', '_cart'), 10, 4); // default filter
 
 add_filter('shoppapi_cart_url', array('ShoppCartAPI', 'url'), 10, 3);
