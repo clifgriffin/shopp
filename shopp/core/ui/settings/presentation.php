@@ -7,8 +7,6 @@
 	<form name="settings" id="presentation" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-presentation'); ?>
 
-		<?php include("navigation.php"); ?>
-
 		<table class="form-table">
 			<tr>
 				<th scope="row" valign="top"><label for="theme-templates"><?php _e('Theme Templates','Shopp'); ?></label></th>

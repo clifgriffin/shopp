@@ -7,8 +7,6 @@
 	<form name="settings" id="general" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-general'); ?>
 
-		<?php include("navigation.php"); ?>
-
 		<table class="form-table">
 			<tr>
 				<th scope="row" valign="top"><label for="update-key"><?php _e('Update Key','Shopp'); ?></label></th>
@@ -64,13 +62,6 @@
 				<td><input type="hidden" name="settings[dashboard]" value="off" /><input type="checkbox" name="settings[dashboard]" value="on" id="dashboard-toggle"<?php if ($this->Settings->get('dashboard') == "on") echo ' checked="checked"'?> /><label for="dashboard-toggle"> <?php _e('Enabled','Shopp'); ?></label><br />
 	            <?php _e('Check this to display store performance metrics and more on the WordPress Dashboard.','Shopp'); ?></td>
 			</tr>
-			<tr>
-				<th scope="row" valign="top"><label for="cart-toggle"><?php _e('Order Status Labels','Shopp'); ?></label></th>
-				<td>
-				<ol id="order-statuslabels">
-				</ol>
-				<?php _e('Add your own order processing status labels. Be sure to click','Shopp'); ?> <strong><?php _e('Save Changes','Shopp'); ?></strong> <?php _e('below!','Shopp'); ?></td>
-			</tr>
 		</table>
 
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
@@ -86,7 +77,6 @@ var labels = <?php echo json_encode($statusLabels); ?>,
 	SHOPP_ACTIVATE_KEY = <?php _jse('Activate Key','Shopp'); ?>,
 	SHOPP_DEACTIVATE_KEY = <?php _jse('Deactivate Key','Shopp'); ?>,
 	SHOPP_CONNECTING = <?php _jse('Connecting','Shopp'); ?>,
-	SHOPP_CONFIRM_DELETE_LABEL = <?php _jse('Are you sure you want to remove this order status label?','Shopp'); ?>,
 	SHOPP_CUSTOMER_SERVICE = <?php printf(json_encode(__('Contact <a href="%s">customer service</a>.','Shopp')),SHOPP_CUSTOMERS); ?>,
 	keyStatus = {
 		'-000':<?php _jse('The server could not be reached because of a connection problem.','Shopp'); ?>,

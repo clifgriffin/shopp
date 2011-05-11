@@ -1532,47 +1532,6 @@ function shopp_find_wpload () {
 }
 
 /**
- * Locates the Shopp content gateway pages in the WordPress posts table
- *
- * @author Jonathan Davis
- * @since 1.1
- *
- * @param array $pages Currently known page data
- * @return array
- **/
-function shopp_locate_pages () {
-	global $wpdb;
-
-	// No pages provided, use the Storefront definitions
-	$pages = Storefront::$_pages;
-
-	// Find pages with Shopp-related main shortcodes
-	$search = "";
-	foreach ($pages as $page)
-		$search .= (!empty($search)?" OR ":"")."post_content LIKE '%".$page['shortcode']."%'";
-	$query = "SELECT ID,post_title,post_name,post_content FROM $wpdb->posts WHERE ($search) AND post_type='page'";
-	$results = $wpdb->get_results($query);
-
-	// Match updates from the found results to our pages index
-	foreach ($pages as $key => &$page) {
-		// Convert Shopp 1.0 page definitions
-		if (!isset($page['shortcode']) && isset($page['content'])) $page['shortcode'] = $page['content'];
-		foreach ($results as $index => $post) {
-			if (strpos($post->post_content,$page['shortcode']) !== false) {
-				$page = array(
-					'id' => $post->ID,
-					'title' => $post->post_title,
-					'name' => $post->post_name,
-					'uri' => get_page_uri($post->ID)
-				);
-				break;
-			}
-		}
-	}
-	return $pages;
-}
-
-/**
  * Generates RSS markup in XML from a set of provided data
  *
  * @author Jonathan Davis
@@ -1733,6 +1692,7 @@ function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
  *
  * @author Jonathan Davis
  * @since 1.1
+ * @version 1.2
  *
  * @param mixed $request Additional URI requests
  * @param string $page The gateway page
@@ -1740,30 +1700,27 @@ function shopp_taxrate ($override=null,$taxprice=true,$Item=false) {
  * @return string The final URL
  **/
 function shoppurl ($request=false,$page='catalog',$secure=null) {
-	$dynamic = array("thanks","receipt","confirm-order");
 
-	global $wp_post_types;
+	// Build request path based on Storefront shopp_page requested
+	if ('images' == $page) {
+		$path[] = 'images';
+		if (!SHOPP_PRETTYURLS) $request = array('siid'=>$request);
+	} else {
+		$path[] = Storefront::slug('catalog');
+		if ($page != 'catalog') {
+			if ('confirm-order' == $page) $page = 'confirm'; // For compatibility with 1.1 addons
+			$page_slug = Storefront::slug($page);
+			if (!empty($page_slug)) $path[] = $page_slug;
+		}
+	}
 
-	// $Settings =& ShoppSettings();
-	// if (!$Settings->available) return;
-	//
-	// // Get the currently indexed Shopp gateway pages
-	// $pages = $Settings->get('pages');
-	// if (empty($pages)) { // Hrm, no pages, attempt to rescan for them
-	// 	// No WordPress actions, #epicfail
-	// 	if (!function_exists('do_action')) return false;
-	// 	do_action('shopp_reindex_pages');
-	// 	$pages = $Settings->get('pages');
-	// 	// Still no pages? WTH? #epicfailalso
-	// 	if (empty($pages)) return false;
-	// }
+	// Change the URL scheme as necessary
+	$scheme = null; // Full-auto
+	if ($secure === false) $scheme = 'http'; // Contextually forced off
+	elseif (($secure || is_shopp_secure()) && !SHOPP_NOSSL) $scheme = 'https'; // HTTPS required
 
-	// Start with the site url
-	$siteurl = get_bloginfo('url');
-	if (strpos($siteurl,'?') !== false) list($siteurl,$query) = explode('?',$siteurl);
-	$siteurl = trailingslashit($siteurl);
-
-	$path = array($wp_post_types[Product::$posttype]->rewrite['slug']);
+	$url = home_url(join('/',$path),$scheme);
+	if (strpos($url,'?') !== false) list($url,$query) = explode('?',$url);
 
 	if (!empty($query)) {
 		parse_str($query,$home_queryvars);
@@ -1776,41 +1733,10 @@ function shoppurl ($request=false,$page='catalog',$secure=null) {
 		}
 	}
 
-	// Rewrite as an HTTPS connection if necessary
-	if ($secure === false) $siteurl = str_replace('https://','http://',$siteurl);
-	elseif (($secure || is_shopp_secure()) && !SHOPP_NOSSL) $siteurl = str_replace('http://','https://',$siteurl);
-
-	// Determine WordPress gateway page URI path fragment
-	if ('images' == $page) {
-		$path[] = 'images';
-		if (!SHOPP_PRETTYURLS) $request = array('siid'=>$request);
-	}
-
-	// if (isset($pages[$page])) {
-	// 	$path = $pages[$page]['uri'];
-	// 	$pageid = $pages[$page]['id'];
-	// } else {
-	// 	if (in_array($page,$dynamic)) {
-	// 		$target = $pages['checkout'];
-	// 		if (SHOPP_PRETTYURLS) {
-	// 			$catalog = empty($pages['catalog']['uri'])?$pages['catalog']['name']:$pages['catalog']['uri'];
-	// 			$path = trailingslashit($catalog).$page;
-	// 		} else $pageid = $target['id']."&shopp_proc=$page";
-	// 	} elseif ('images' == $page) {
-	// 		$target = $pages['catalog'];
-	// 		$path = trailingslashit($target['uri']).'images';
-	// 		if (!SHOPP_PRETTYURLS) $request = array('siid'=>$request);
-	// 	} else {
-	// 		$path = $pages['catalog']['uri'];
-	// 		$pageid = $pages['catalog']['id'];
-	// 	}
-	// }
-
-	if (SHOPP_PRETTYURLS) $url = user_trailingslashit($siteurl.join('/',$path));
-	else $url = isset($pageid)?add_query_arg('page_id',$pageid,$siteurl):$siteurl;
+	if (!SHOPP_PRETTYURLS) $url = isset($pageid)?add_query_arg('page_id',$pageid,$url):$url;
 
 	// No extra request, return the complete URL
-	if (!$request) return $url;
+	if (!$request) return user_trailingslashit($url);
 
 	// Filter URI request
 	$uri = false;

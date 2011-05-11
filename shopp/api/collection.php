@@ -27,7 +27,7 @@ function register_collection ($name) {
 	$slug = $name::$_slug;
 
 	add_rewrite_tag("%shopp_collection%",'collection/([^/]+)');
-	add_permastruct('shopp_collection', SHOPP_CATALOG_SLUG."/%shopp_collection%", true);
+	add_permastruct('shopp_collection', Storefront::slug()."/%shopp_collection%", true);
 
 }
 

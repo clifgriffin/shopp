@@ -181,13 +181,21 @@ class Warehouse extends AdminController {
 			// $categories = sort_tree($categories);
 			// if (empty($categories)) $categories = array();
 
-			$categories_menu = '<option value="">'.__('View all categories','Shopp').'</option>';
-			$categories_menu .= '<option value="-"'.($cat=='-'?' selected="selected"':'').'>'.__('Uncategorized','Shopp').'</option>';
-			// foreach ($categories as $category) {
-			// 	$padding = str_repeat("&nbsp;",$category->depth*3);
-			// 	if ($cat == $category->id) $categories_menu .= '<option value="'.$category->id.'" selected="selected">'.$padding.esc_html($category->name).'</option>';
-			// 	else $categories_menu .= '<option value="'.$category->id.'">'.$padding.esc_html($category->name).'</option>';
-			// }
+			// $categories_menu = '<option value="">'.__('View all categories','Shopp').'</option>';
+			// $categories_menu .= '<option value="-"'.($cat=='-'?' selected="selected"':'').'>'.__('Uncategorized','Shopp').'</option>';
+
+			$categories_menu = wp_dropdown_categories(array(
+				'show_option_all' => __('View all categories','Shopp'),
+				'show_option_none' => __('Uncategorized','Shopp'),
+				'hide_empty' => 0,
+				'hierarchical' => 1,
+				'show_count' => 0,
+				'orderby' => 'name',
+				'selected' => $cat,
+				'echo' => 0,
+				'taxonomy' => 'shopp_category'
+			));
+
 			$inventory_filters = array(
 				'all' => __('View all products','Shopp'),
 				'is' => __('In stock','Shopp'),
@@ -201,10 +209,10 @@ class Warehouse extends AdminController {
 		$subfilters = array('f' => 'featured','p' => 'published','s' => 'onsale','i' => 'inventory');
 		$subs = array(
 			'all' => array('label' => __('All','Shopp'),'columns' => "count(*) AS total",'where'=>"p.post_type='shopp_product'"),
-			'published' => array('label' => __('Published','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"p.post_status='publish'",'request' => 'p'),
-			'onsale' => array('label' => __('On Sale','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"s.sale='on'",'request' => 's'),
-			'featured' => array('label' => __('Featured','Shopp'),'total' => 0,'columns' => "count(distinct pd.id) AS total",'where'=>"s.featured='on'",'request' => 'f'),
-			'inventory' => array('label' => __('Inventory','Shopp'),'total' => 0,'columns' => "count(distinct pt.id) AS total",'where'=>"pt.inventory='on' AND pt.type!='N/A'",'grouping'=>'pt.id','request' => 'i')
+			'published' => array('label' => __('Published','Shopp'),'total' => 0,'columns' => "count(*) AS total",'where'=>"p.post_status='publish'",'request' => 'p'),
+			'onsale' => array('label' => __('On Sale','Shopp'),'total' => 0,'columns' => "count(*) AS total",'where'=>"s.sale='on'",'request' => 's'),
+			'featured' => array('label' => __('Featured','Shopp'),'total' => 0,'columns' => "count(*) AS total",'where'=>"s.featured='on'",'request' => 'f'),
+			'inventory' => array('label' => __('Inventory','Shopp'),'total' => 0,'columns' => "count(*) AS total",'where'=>"pt.inventory='on' AND pt.type!='N/A'",'grouping'=>'pt.id','request' => 'i')
 		);
 
 		if ('i' == $f) $per_page = 50;
@@ -227,10 +235,10 @@ class Warehouse extends AdminController {
 		$having = "";
 		$where = array();
 		if (!empty($s)) {
-			$products = new SearchResults(array("search"=>$s));
-			$products->load_products(array("load"=>array()));
-			$ids = array_keys($products->products);
-			$where .= " AND pd.id IN (".join(',',$ids).")";
+			$SearchResults = new SearchResults(array('search'=>$s,'debug'=>true,'load'=>array()));
+			$SearchResults->load();
+			$ids = array_keys($SearchResults->index);
+			$where[] = "p.ID IN (".join(',',$ids).")";
 		}
 		// if (!empty($cat)) $where .= " AND cat.id='$cat' AND (clog.category != 0 OR clog.id IS NULL)";
 		if (!empty($cat)) {
@@ -238,7 +246,7 @@ class Warehouse extends AdminController {
 				$having = "HAVING COUNT(cat.id) = 0";
 			} else {
 				$matchcol .= ", GROUP_CONCAT(DISTINCT cat.id ORDER BY cat.id SEPARATOR ',') AS catids";
-				$where .= " AND cat.id IN (SELECT parent FROM $clog WHERE parent=$cat AND taxonomy='$ct_id')";
+				$where[] = " AND cat.id IN (SELECT parent FROM $clog WHERE parent=$cat AND taxonomy='$ct_id')";
 			}
 		}
 		if (!empty($sl)) {
@@ -294,15 +302,15 @@ class Warehouse extends AdminController {
 				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p WHERE p.post_type='shopp_product' AND p.post_status='publish'",'auto','col','total');
 
 			if ('onsale' == $name) {
-				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $ps AS s ON p.ID=s.post AND s.sale='on' WHERE p.post_type='shopp_product'",'auto','col','total');
+				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $ps AS s ON p.ID=s.product AND s.sale='on' WHERE p.post_type='shopp_product'",'auto','col','total');
 			}
 
 			if ('featured' == $name) {
-				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $ps AS s ON p.ID=s.post AND s.featured='on' WHERE p.post_type='shopp_product'",'auto','col','total');
+				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $ps AS s ON p.ID=s.product AND s.featured='on' WHERE p.post_type='shopp_product'",'auto','col','total');
 			}
 
 			if ('inventory' == $name) {
-				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $ps AS s ON p.ID=s.post AND s.inventory='on' WHERE p.post_type='shopp_product'",'auto','col','total');
+				$subquery['total'] = DB::query("SELECT count(*) AS total FROM $pd AS p INNER JOIN $ps AS s ON p.ID=s.product AND s.inventory='on' WHERE p.post_type='shopp_product'",'auto','col','total');
 			}
 
 

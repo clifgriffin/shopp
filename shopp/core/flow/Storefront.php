@@ -39,9 +39,10 @@ class Storefront extends FlowController {
 	var $search = false;		// The search query string
 	var $searching = false;		// Flags if a search request has been made
 	var $checkout = false;		// Flags when the checkout form is being processed
-	var $pages = array();
+	// var $pages = array();
 	var $browsing = array();
 	var $behaviors = array();	// Runtime JavaScript behaviors
+	var $request = false;
 
 	function __construct () {
 		global $Shopp;
@@ -65,10 +66,10 @@ class Storefront extends FlowController {
 		add_filter('posts_results', array($this, 'found'));
 
 		add_action('wp', array($this, 'loaded'));
-		add_action('wp', array($this, 'pageid'));
-		add_action('wp', array($this, 'security'));
+		// add_action('wp', array($this, 'pageid'));
+		// add_action('wp', array($this, 'security'));
 		add_action('wp', array($this, 'cart'));
-		add_action('wp', array($this, 'shortcodes'));
+		// add_action('wp', array($this, 'shortcodes'));
 		add_action('wp', array($this, 'behaviors'));
 
 		add_filter('the_title', array($this,'pagetitle'), 10, 2);
@@ -96,17 +97,17 @@ class Storefront extends FlowController {
 		add_filter('shopp_account_manager','shoppdiv');
 		add_filter('shopp_account_vieworder','shoppdiv');
 
-		add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
+		// add_filter('aioseop_canonical_url', array(&$this,'canonurls'));
 		add_action('wp_enqueue_scripts', 'shopp_dependencies');
 
 		add_action('shopp_storefront_init',array($this,'collections'));
 		add_action('shopp_storefront_init',array($this,'searching'));
 		add_action('shopp_storefront_init',array($this,'account'));
 
-
 		// Experimental
 		add_filter('archive_template',array($this,'collection'));
 		add_filter('search_template',array($this,'collection'));
+		add_filter('page_template',array($this,'pages'));
 		add_filter('single_template',array($this,'single'));
 
 	}
@@ -116,21 +117,22 @@ class Storefront extends FlowController {
 	}
 
 	function noquery ($request) {
-		if (!$this->is_shopp_request() || is_single()) return $request;
+		if (!$this->is_shopp_request()) return $request;
 		return false;
 	}
 
 	function found ($results) {
-		if (!$this->is_shopp_request() || is_single()) return $results;
+		if (!$this->is_shopp_request()) return $results;
 		return array(1);
 	}
 
 	function query ($wp_query) {
 		global $Shopp;
 
-		$Catalog = new Catalog($type);
+		$Catalog = new Catalog();
 		ShoppCatalog($Catalog);
 
+		$page	 	= get_query_var('shopp_page');
 		$posttype 	= get_query_var('post_type');
 		$product 	= get_query_var(Product::$posttype);
 		$category 	= get_query_var(ProductCategory::$taxonomy);
@@ -140,29 +142,35 @@ class Storefront extends FlowController {
 
 		if (!empty($sortorder))	$this->browsing['sortorder'] = $sortorder;
 
-		if ($category.$collection.$tag == ''
+		if ($category.$collection.$tag.$page == ''
 			&& $posttype != Product::$posttype) return;
 
-		if (!empty($product)) {
-			$this->request = true;
+		$this->request = true;
+		set_query_var('suppress_filters',true); // Override default WP_Query request
+
+		if (!empty($page)) {
+			// Overrides to enforce page behavior
+			$wp_query->is_home = false;
+			$wp_query->is_singular = false;
+			$wp_query->is_page = true;
+			$wp_query->post_count = true;
+			return;
 		}
 
 		if (is_archive() && !empty($category)) {
-			$this->request = true;
 			$Shopp->Category = new ProductCategory($category,'slug');
 		}
 
 		if (is_archive() && !empty($tag)) {
-			$this->request = true;
 			$Shopp->Category = new ProductTag($tag,'slug');
 		}
 
 		if (!empty($collection)) {
-			$this->request = true;
 			// Overrides to enforce archive behavior
 			$wp_query->is_archive = true;
 			$wp_query->is_post_type_archive = true;
 			$wp_query->is_home = false;
+			$wp_query->is_page = false;
 			$wp_query->post_count = true;
 			$Shopp->Category = Catalog::load_collection($collection);
 		}
@@ -199,10 +207,30 @@ class Storefront extends FlowController {
 		return locate_template($templates);
 	}
 
+	function pages ($template) {
+		global $wp_query;
+
+		$page = Storefront::slugpage( get_query_var('shopp_page') );
+
+		if (empty($page)) return $template;
+
+		$Settings = ShoppSettings();
+
+		$pagetitle = $Settings->get($page.'_page_title');
+
+		add_filter('the_title',create_function('$title','return in_the_loop()?"'.$pagetitle.'":$title;'));
+		add_filter('the_content',array(&$this,$page.'_page'));
+
+		$templates = array("$page.php", 'shopp.php', 'page.php');
+		return locate_template($templates);
+	}
+
 	function single ($template) {
 		$post_type = get_query_var('post_type');
+
 		if ($post_type != Product::$posttype) return $template;
 		add_filter('the_content',array(&$this,'product_template'));
+
 		$templates = array('single-' . $post_type . '.php', 'shopp.php', 'page.php');
 		return locate_template($templates);
 	}
@@ -329,16 +357,6 @@ class Storefront extends FlowController {
 			add_filter('script_loader_src', 'force_ssl');
 		}
 
-		// Determine which tag is getting used in the current post/page
-		global $wp_query;
-		$object = $wp_query->get_queried_object();
-		$tag = false;
-		$tagregexp = join( '|', array_keys($this->shortcodes) );
-		foreach ($wp_query->posts as $post) {
-			if (preg_match('/\[('.$tagregexp.')\b(.*?)(?:(\/))?\](?:(.+?)\[\/\1\])?/',$post->post_content,$matches))
-				$tag = $matches[1];
-		}
-
 		// Include stylesheets and javascript based on whether shopp shortcodes are used
 		add_action('wp_print_styles',array(&$this, 'catalogcss'));
 
@@ -351,14 +369,16 @@ class Storefront extends FlowController {
 		wp_enqueue_style('shopp',SHOPP_TEMPLATES_URI.'/shopp.css',array(),SHOPP_VERSION,'screen');
 		wp_enqueue_style('shopp.colorbox',SHOPP_ADMIN_URI.'/styles/colorbox.css',array(),SHOPP_VERSION,'screen');
 
+		$page = $this->slugpage(get_query_var('shopp_page'));
 
-		$thankspage = ('thanks' == get_query_var('s_pr'));
-		$orderhistory = (is_shopp_page('account') && !empty($_GET['id']));
+		$thankspage = ('thanks' == $page);
+		$orderhistory = ('account' == $page && !empty($_GET['id']));
+
 		if ($thankspage || $orderhistory)
 			wp_enqueue_style('shopp.printable',SHOPP_ADMIN_URI.'/styles/printable.css',array(),SHOPP_VERSION,'print');
 
 		$loading = $this->Settings->get('script_loading');
-		if (!$loading || $loading == "global" || $tag !== false) {
+		if (!$loading || 'global' == $loading || !empty($page)) {
 			shopp_enqueue_script("colorbox");
 			shopp_enqueue_script("shopp");
 			shopp_enqueue_script("catalog");
@@ -370,7 +390,7 @@ class Storefront extends FlowController {
 
 		}
 
-		if ($tag == "checkout")	shopp_enqueue_script('checkout');
+		if ('checkout' == $page) shopp_enqueue_script('checkout');
 
 	}
 
@@ -386,10 +406,10 @@ class Storefront extends FlowController {
 
 		$this->shortcodes = array();
 		// Gateway page shortcodes
-		$this->shortcodes['catalog'] = array(&$this,'catalog_page');
-		$this->shortcodes['cart'] = array(&$this,'cart_page');
-		$this->shortcodes['checkout'] = array(&$this,'checkout_page');
-		$this->shortcodes['account'] = array(&$this,'account_page');
+		// $this->shortcodes['catalog'] = array(&$this,'catalog_page');
+		// $this->shortcodes['cart'] = array(&$this,'cart_page');
+		// $this->shortcodes['checkout'] = array(&$this,'checkout_page');
+		// $this->shortcodes['account'] = array(&$this,'account_page');
 
 		// Additional shortcode functionality
 		$this->shortcodes['product'] = array(&$this,'product_shortcode');
@@ -1010,6 +1030,43 @@ class Storefront extends FlowController {
 		return apply_filters('shopp_checkout_page',$content);
 	}
 
+	function confirm_page () {
+		$Errors = ShoppErrors();
+		$Order = ShoppOrder();
+		$Cart = $Order->Cart;
+
+		do_action('shopp_init_confirmation');
+		$Order->validated = $Order->isvalid();
+
+		$errors = '';
+		if ($Errors->exist(SHOPP_STOCK_ERR)) {
+			ob_start();
+			include(SHOPP_TEMPLATES.'/errors.php');
+			$errors = ob_get_contents();
+			ob_end_clean();
+		}
+
+		ob_start();
+		include(SHOPP_TEMPLATES.'/confirm.php');
+		$content = ob_get_contents();
+		ob_end_clean();
+		return apply_filters('shopp_order_confirmation',$errors.$content);
+	}
+
+	function thanks_page () {
+		global $Shopp;
+		$Errors = ShoppErrors();
+		$Order = ShoppOrder();
+		$Cart = $Order->Cart;
+		$Purchase = $Shopp->Purchase;
+
+		ob_start();
+		include(SHOPP_TEMPLATES."/thanks.php");
+		$content = ob_get_contents();
+		ob_end_clean();
+		return apply_filters('shopp_thanks',$content);
+	}
+
 	/**
 	 * Displays the appropriate account page template
 	 *
@@ -1049,16 +1106,16 @@ class Storefront extends FlowController {
 	 *
 	 * @return string The processed confirm.php template file
 	 **/
-	function order_confirmation () {
-		global $Shopp;
-		$Cart = $Shopp->Order->Cart;
-
-		ob_start();
-		include(SHOPP_TEMPLATES."/confirm.php");
-		$content = ob_get_contents();
-		ob_end_clean();
-		return apply_filters('shopp_order_confirmation',$content);
-	}
+	// function order_confirmation () {
+	// 	global $Shopp;
+	// 	$Cart = $Shopp->Order->Cart;
+	//
+	// 	ob_start();
+	// 	include(SHOPP_TEMPLATES."/confirm.php");
+	// 	$content = ob_get_contents();
+	// 	ob_end_clean();
+	// 	return apply_filters('shopp_order_confirmation',$content);
+	// }
 
 	/**
 	 * Renders the thanks template
@@ -1068,16 +1125,16 @@ class Storefront extends FlowController {
 	 *
 	 * @return string The processed thanks.php template file
 	 **/
-	function thanks ($template="thanks.php") {
-		global $Shopp;
-		$Purchase = $Shopp->Purchase;
-
-		ob_start();
-		include(SHOPP_TEMPLATES."/$template");
-		$content = ob_get_contents();
-		ob_end_clean();
-		return apply_filters('shopp_thanks',$content);
-	}
+	// function thanks ($template="thanks.php") {
+	// 	global $Shopp;
+	// 	$Purchase = $Shopp->Purchase;
+	//
+	// 	ob_start();
+	// 	include(SHOPP_TEMPLATES."/$template");
+	// 	$content = ob_get_contents();
+	// 	ob_end_clean();
+	// 	return apply_filters('shopp_thanks',$content);
+	// }
 
 	/**
 	 * Renders the errors template
@@ -1228,6 +1285,48 @@ class Storefront extends FlowController {
 		ob_end_clean();
 
 		return $markup;
+	}
+
+	function default_pages () {
+		return array(
+			'catalog' => 	array('title' => __('Shop','Shopp'), 'slug' => 'shop', 'description'=>__('The page title and base slug for products, categories &amp; collections.','Shopp') ),
+			'account' => 	array('title' => __('Account','Shopp'), 'slug' => 'account', 'description'=>__('Used to display customer account dashboard &amp; profile pages.','Shopp') ),
+			'cart' => 		array('title' => __('Cart','Shopp'), 'slug' => 'cart', 'description'=>__('Displays the shopping cart.','Shopp') ),
+			'checkout' => 	array('title' => __('Checkout','Shopp'), 'slug' => 'checkout', 'description'=>__('Displays the checkout form.','Shopp') ),
+			'confirm' => 	array('title' => __('Confirm Order','Shopp'), 'slug' => 'confirm-order', 'description'=>__('Used to display an order summary to confirm changes in order price.','Shopp') ),
+			'thanks' => 	array('title' => __('Thank You!','Shopp'), 'slug' => 'thanks', 'description'=>__('The final page of the ordering process.','Shopp') ),
+		);
+	}
+
+	function pages_settings ($updates=false) {
+		$pages = self::default_pages();
+
+		$ShoppSettings = ShoppSettings();
+		if (!$ShoppSettings) $ShoppSettings = new Settings();
+
+		$settings = $ShoppSettings->get('storefront_pages');
+		// @todo Check if slug is unique amongst shopp_product post type records to prevent namespace conflicts
+		foreach ($pages as $name => &$page) {
+			if (is_array($settings) && isset($settings[$name]))
+				$page = array_merge($page,$settings[$name]);
+			if (is_array($updates) && isset($updates[$name]))
+				$page = array_merge($page,$updates[$name]);
+		}
+
+		return $pages;
+	}
+
+	function slug ($page='catalog') {
+		$pages = self::pages_settings();
+		if (!isset($pages[$page])) $page = 'catalog';
+		return $pages[$page]['slug'];
+	}
+
+	function slugpage ($slug) {
+		$pages = self::pages_settings();
+		foreach ($pages as $name => $page)
+			if ($slug == $page['slug']) return $name;
+		return false;
 	}
 
 } // END class Storefront

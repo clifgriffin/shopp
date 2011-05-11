@@ -23,7 +23,6 @@ class Product extends WPShoppObject {
 		'shopp_tag' => 'tags'
 	);
 	static $posttype = 'shopp_product';
-	static $namespace = SHOPP_CATALOG_SLUG;
 
 
 	protected $_map = array(
@@ -234,6 +233,8 @@ class Product extends WPShoppObject {
 		if ( isset($this->products) && !empty($this->products) ) {
 			if ( !isset($this->products[$price->product]) ) return false;
 
+			if (!isset($this->_last_product)) $this->_last_product = false;
+
 			if ( $this->_last_product != false
 					&& $this->_last_product != $price->product
 					&& isset($this->products[$this->_last_product]) )
@@ -249,7 +250,7 @@ class Product extends WPShoppObject {
 		// Variation range index/properties
 		$varranges = array('price' => 'price','saleprice'=>'promoprice');
 
-		$variations = ($target->variations == 'on');
+		$variations = ($target->variants == 'on');
 		$freeshipping = true;
 
 		// do_action('shopp_init_product_pricing');
@@ -274,7 +275,7 @@ class Product extends WPShoppObject {
 				}
 			}
 
-			if ($price->type == "N/A" || $price->context == "addon" || ($i > 0 && !$variations)) return;
+			if ($price->type == "N/A" || $price->context == "addon" || (count($target->prices) > 1 && !$variations)) return;
 
 			// Build third lookup table using the combined optionkey
 			$target->pricekey[$price->optionkey] = $price;
