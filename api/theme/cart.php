@@ -45,7 +45,7 @@ add_filter('shoppapi_cart_total', array('ShoppCartAPI', 'total'), 10, 3);
  *
  **/
 class ShoppCartAPI {
-	function _cart ($result, $options, $property, $obj) {
+	function _cart ($result, $options, $property, $O) {
 		if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
 		if (is_numeric($result)) {
 			if (isset($options['wrapper']) && !value_is_true($options['wrapper'])) return money($result);
@@ -54,47 +54,47 @@ class ShoppCartAPI {
 		return $result;
 	}
 
-	function discount ($result, $options, $obj) { return money($obj->Totals->discount); }
+	function discount ($result, $options, $O) { return money($O->Totals->discount); }
 
-	function discounts ($result, $options, $obj) {
-		if (!isset($obj->_promo_looping)) {
-			reset($obj->discounts);
-			$obj->_promo_looping = true;
-		} else next($obj->discounts);
+	function discounts ($result, $options, $O) {
+		if (!isset($O->_promo_looping)) {
+			reset($O->discounts);
+			$O->_promo_looping = true;
+		} else next($O->discounts);
 
-		$discount = current($obj->discounts);
+		$discount = current($O->discounts);
 		while ($discount && empty($discount->applied) && !$discount->freeshipping)
-			$discount = next($obj->discounts);
+			$discount = next($O->discounts);
 
-		if (current($obj->discounts)) return true;
+		if (current($O->discounts)) return true;
 		else {
-			unset($obj->_promo_looping);
-			reset($obj->discounts);
+			unset($O->_promo_looping);
+			reset($O->discounts);
 			return false;
 		}
 	}
 
-	function downloaditems ($result, $options, $obj) {
-		if (!isset($obj->_downloads_loop)) {
-			reset($obj->downloads);
-			$obj->_downloads_loop = true;
-		} else next($obj->downloads);
+	function downloaditems ($result, $options, $O) {
+		if (!isset($O->_downloads_loop)) {
+			reset($O->downloads);
+			$O->_downloads_loop = true;
+		} else next($O->downloads);
 
-		if (current($obj->downloads)) return true;
+		if (current($O->downloads)) return true;
 		else {
-			unset($obj->_downloads_loop);
-			reset($obj->downloads);
+			unset($O->_downloads_loop);
+			reset($O->downloads);
 			return false;
 		}
 	}
 
-	function emptybutton ($result, $options, $obj) {
+	function emptybutton ($result, $options, $O) {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
 		if (!isset($options['value'])) $options['value'] = __('Empty Cart','Shopp');
 		return '<input type="submit" name="empty" id="empty-button" '.inputattrs($options,$submit_attrs).' />';
 	}
 
-	function cartfunction ($result, $options, $obj) {
+	function cartfunction ($result, $options, $O) {
 		$result = '<div class="hidden"><input type="hidden" id="cart-action" name="cart" value="true" /></div><input type="submit" name="update" id="hidden-update" />';
 
 		$Errors = &ShoppErrors();
@@ -107,60 +107,60 @@ class ShoppCartAPI {
 		return $result.$errors;
 	}
 
-	function hasdiscount ($result, $options, $obj) { return ($obj->Totals->discount > 0); }
+	function hasdiscount ($result, $options, $O) { return ($O->Totals->discount > 0); }
 
-	function hasdownloads ($result, $options, $obj) { return $obj->downloads(); }
+	function hasdownloads ($result, $options, $O) { return $O->downloads(); }
 
-	function hasitems ($result, $options, $obj) { return (count($obj->contents) > 0); }
+	function hasitems ($result, $options, $O) { return (count($O->contents) > 0); }
 
-	function haspromos ($result, $options, $obj) { return (count($obj->discounts) > 0);  }
+	function haspromos ($result, $options, $O) { return (count($O->discounts) > 0);  }
 
-	function hasshipcosts ($result, $options, $obj) { return ($obj->Totals->shipping > 0); }
+	function hasshipcosts ($result, $options, $O) { return ($O->Totals->shipping > 0); }
 
-	function hasshipped ($result, $options, $obj) { return $obj->shipped();	}
+	function hasshipped ($result, $options, $O) { return $O->shipped();	}
 
-	function hasshippingmethods ($result, $options, $obj) {
+	function hasshippingmethods ($result, $options, $O) {
 		return apply_filters(
 					'shopp_shipping_hasestimates',
-					(!empty($obj->shipping) && !$obj->noshipping),
-					$obj->shipping
+					(!empty($O->shipping) && !$O->noshipping),
+					$O->shipping
 				);
 	}
 
-	function hastaxes ($result, $options, $obj) { return ($obj->Totals->tax > 0); }
+	function hastaxes ($result, $options, $O) { return ($O->Totals->tax > 0); }
 
-	function items ($result, $options, $obj) {
-		if (!isset($obj->_item_loop)) {
-			reset($obj->contents);
-			$obj->_item_loop = true;
-		} else next($obj->contents);
+	function items ($result, $options, $O) {
+		if (!isset($O->_item_loop)) {
+			reset($O->contents);
+			$O->_item_loop = true;
+		} else next($O->contents);
 
-		if (current($obj->contents)) return true;
+		if (current($O->contents)) return true;
 		else {
-			unset($obj->_item_loop);
-			reset($obj->contents);
+			unset($O->_item_loop);
+			reset($O->contents);
 			return false;
 		}
 	}
 
-	function lastitem ($result, $options, $obj) { return $obj->contents[$obj->added]; }
+	function lastitem ($result, $options, $O) { return $O->contents[$O->added]; }
 
-	function needsshipped ($result, $options, $obj) { return (!empty($obj->shipped)); }
+	function needsshipped ($result, $options, $O) { return (!empty($O->shipped)); }
 
-	function needsshippingestimates ($result, $options, $obj) {
+	function needsshippingestimates ($result, $options, $O) {
 		global $Shopp;
 		$markets = $Shopp->Settings->get('target_markets');
-		return (!empty($obj->shipped) && !$obj->noshipping && ($obj->showpostcode || count($markets) > 1));
+		return (!empty($O->shipped) && !$O->noshipping && ($O->showpostcode || count($markets) > 1));
 	}
 
-	function promocode ($result, $options, $obj) {
+	function promocode ($result, $options, $O) {
 		global $Shopp;
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
 		// Skip if no promotions exist
 		if (!$Shopp->Promotions->available()) return false;
 		// Skip if the promo limit has been reached
 		if ($Shopp->Settings->get('promo_limit') > 0 &&
-			count($obj->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
+			count($O->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
 		if (!isset($options['value'])) $options['value'] = __("Apply Promo Code","Shopp");
 		$result = '<ul><li>';
 
@@ -177,9 +177,9 @@ class ShoppCartAPI {
 		return $result;
 	}
 
-	function promodiscount ($result, $options, $obj) {
-		$discount = current($obj->discounts);
-		if ($discount->applied == 0 && empty($discount->items) && !isset($obj->freeshipping)) return false;
+	function promodiscount ($result, $options, $O) {
+		$discount = current($O->discounts);
+		if ($discount->applied == 0 && empty($discount->items) && !isset($O->freeshipping)) return false;
 		if (!isset($options['label'])) $options['label'] = ' '.__('Off!','Shopp');
 		else $options['label'] = ' '.$options['label'];
 		$string = false;
@@ -196,68 +196,68 @@ class ShoppCartAPI {
 		return $string;
 	}
 
-	function promoname ($result, $options, $obj) {
-		$discount = current($obj->discounts);
-		if ($discount->applied == 0 && empty($discount->items) && !isset($obj->freeshipping)) return false;
+	function promoname ($result, $options, $O) {
+		$discount = current($O->discounts);
+		if ($discount->applied == 0 && empty($discount->items) && !isset($O->freeshipping)) return false;
 		return $discount->name;
 	}
 
-	function promos ($result, $options, $obj) {}
+	function promos ($result, $options, $O) {}
 
-	function promosavailable ($result, $options, $obj) {
+	function promosavailable ($result, $options, $O) {
 		global $Shopp;
 		if (!$Shopp->Promotions->available()) return false;
 		// Skip if the promo limit has been reached
 		if ($Shopp->Settings->get('promo_limit') > 0 &&
-			count($obj->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
+			count($O->discounts) >= $Shopp->Settings->get('promo_limit')) return false;
 		return true;
 	}
 
-	function referrer ($result, $options, $obj) {
+	function referrer ($result, $options, $O) {
 		global $Shopp;
 		$referrer = $Shopp->Shopping->data->referrer;
 		if (!$referrer) $referrer = shopp('catalog','url','return=1');
 		return $referrer;
 	}
 
-	function shippeditems ($result, $options, $obj) {
-		if (!isset($obj->_shipped_loop)) {
-			reset($obj->shipped);
-			$obj->_shipped_loop = true;
-		} else next($obj->shipped);
+	function shippeditems ($result, $options, $O) {
+		if (!isset($O->_shipped_loop)) {
+			reset($O->shipped);
+			$O->_shipped_loop = true;
+		} else next($O->shipped);
 
-		if (current($obj->shipped)) return true;
+		if (current($O->shipped)) return true;
 		else {
-			unset($obj->_shipped_loop);
-			reset($obj->shipped);
+			unset($O->_shipped_loop);
+			reset($O->shipped);
 			return false;
 		}
 	}
 
-	function shipping ($result, $options, $obj) {
+	function shipping ($result, $options, $O) {
 		global $Shopp;
-		if (empty($obj->shipped)) return "";
+		if (empty($O->shipped)) return "";
 		if (isset($options['label'])) {
 			$options['currency'] = "false";
-			if ($obj->freeshipping) {
+			if ($O->freeshipping) {
 				$result = $Shopp->Settings->get('free_shipping_text');
 				if (empty($result)) $result = __('Free Shipping!','Shopp');
 			}
 
 			else $result = $options['label'];
 		} else {
-			if ($obj->Totals->shipping === null)
+			if ($O->Totals->shipping === null)
 				return __("Enter Postal Code","Shopp");
-			elseif ($obj->Totals->shipping === false)
+			elseif ($O->Totals->shipping === false)
 				return __("Not Available","Shopp");
-			else $result = $obj->Totals->shipping;
+			else $result = $O->Totals->shipping;
 		}
 		return $result;
 	}
 
-	function shippingestimates ($result, $options, $obj) {
+	function shippingestimates ($result, $options, $O) {
 		global $Shopp;
-		if (empty($obj->shipped)) return "";
+		if (empty($O->shipped)) return "";
 		$base = $Shopp->Settings->get('base_operations');
 		$markets = $Shopp->Settings->get('target_markets');
 		$Shipping = &$Shopp->Order->Shipping;
@@ -267,7 +267,7 @@ class ShoppCartAPI {
 		else $selected = $base['country'];
 		$postcode = false;
 		$result .= '<ul><li>';
-		if ((isset($options['postcode']) && value_is_true($options['postcode'])) || $obj->showpostcode) {
+		if ((isset($options['postcode']) && value_is_true($options['postcode'])) || $O->showpostcode) {
 			$postcode = true;
 			$result .= '<span>';
 			$result .= '<input type="text" name="shipping[postcode]" id="shipping-postcode" size="6" value="'.$Shipping->postcode.'" />&nbsp;';
@@ -289,7 +289,7 @@ class ShoppCartAPI {
 		return $result;
 	}
 
-	function sidecart ($result, $options, $obj) {
+	function sidecart ($result, $options, $O) {
 		ob_start();
 		include(SHOPP_TEMPLATES."/sidecart.php");
 		$content = ob_get_contents();
@@ -297,27 +297,27 @@ class ShoppCartAPI {
 		return $content;
 	}
 
-	function subtotal ($result, $options, $obj) { return $obj->Totals->subtotal; }
+	function subtotal ($result, $options, $O) { return $O->Totals->subtotal; }
 
-	function tax ($result, $options, $obj) {
-		if ($obj->Totals->tax > 0) {
+	function tax ($result, $options, $O) {
+		if ($O->Totals->tax > 0) {
 			if (isset($options['label'])) {
 				$options['currency'] = "false";
 				$result = $options['label'];
-			} else $result = $obj->Totals->tax;
+			} else $result = $O->Totals->tax;
 		} else $options['currency'] = "false";
 		return $result;
 	}
 
-	function total ($result, $options, $obj) { return $obj->Totals->total; }
+	function total ($result, $options, $O) { return $O->Totals->total; }
 
-	function totalitems ($result, $options, $obj) {
-	 	return $obj->Totals->quantity;
+	function totalitems ($result, $options, $O) {
+	 	return $O->Totals->quantity;
 	}
 
-	function totalpromos ($result, $options, $obj) { return count($obj->discounts); }
+	function totalpromos ($result, $options, $O) { return count($O->discounts); }
 
-	function updatebutton ($result, $options, $obj) {
+	function updatebutton ($result, $options, $O) {
 		$submit_attrs = array('title','value','disabled','tabindex','accesskey','class');
 		if (!isset($options['value'])) $options['value'] = __('Update Subtotal','Shopp');
 		if (isset($options['class'])) $options['class'] .= " update-button";
@@ -325,7 +325,7 @@ class ShoppCartAPI {
 		return '<input type="submit" name="update"'.inputattrs($options,$submit_attrs).' />';
 	}
 
-	function url ($result, $options, $obj) {
+	function url ($result, $options, $O) {
 			return shoppurl(false,'cart');
 	}
 }

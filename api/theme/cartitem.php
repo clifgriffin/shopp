@@ -38,7 +38,7 @@ add_filter('shoppapi_cartitem_thumbnail', array('ShoppCartItemAPI', 'coverimage'
  **/
 class ShoppCartItemAPI {
 
-	function _cartitem ($result, $options, $property, $obj) {
+	function _cartitem ($result, $options, $property, $O) {
 		if (is_float($result)) {
 			if (isset($options['currency']) && !value_is_true($options['currency'])) return $result;
 			else return money($result);
@@ -47,48 +47,48 @@ class ShoppCartItemAPI {
 			return false;
 	}
 
-	function id ($result, $options, $obj) { return $obj->_id; }
+	function id ($result, $options, $O) { return $O->_id; }
 
-	function product ($result, $options, $obj) { return $obj->product; }
+	function product ($result, $options, $O) { return $O->product; }
 
-	function name ($result, $options, $obj) { return $obj->name; }
+	function name ($result, $options, $O) { return $O->name; }
 
-	function type ($result, $options, $obj) { return $obj->type; }
+	function type ($result, $options, $O) { return $O->type; }
 
-	function url ($result, $options, $obj) { return shoppurl(SHOPP_PRETTYURLS?$obj->slug:array('s_pid'=>$obj->product)); }
+	function url ($result, $options, $O) { return shoppurl(SHOPP_PRETTYURLS?$O->slug:array('s_pid'=>$O->product)); }
 
-	function sku ($result, $options, $obj) { return $obj->sku; }
+	function sku ($result, $options, $O) { return $O->sku; }
 
-	function discount ($result, $options, $obj) { return (float)$obj->discount; }
+	function discount ($result, $options, $O) { return (float)$O->discount; }
 
-	function unitprice ($result, $options, $obj) {
+	function unitprice ($result, $options, $O) {
 		$taxes = isset($options['taxes'])?value_is_true($options['taxes']):null;
 		if (in_array($property,array('price','newprice','unitprice','total','tax','options')))
-			$taxes = shopp_taxrate($taxes,$obj->taxable,$this) > 0?true:false;
-		return (float)$obj->unitprice+($taxes?$obj->unittax:0);
+			$taxes = shopp_taxrate($taxes,$O->taxable,$this) > 0?true:false;
+		return (float)$O->unitprice+($taxes?$O->unittax:0);
 	}
 
-	function unittax ($result, $options, $obj) { return (float)$obj->unittax; }
+	function unittax ($result, $options, $O) { return (float)$O->unittax; }
 
-	function discounts ($result, $options, $obj) { return (float)$obj->discounts; }
+	function discounts ($result, $options, $O) { return (float)$O->discounts; }
 
-	function tax ($result, $options, $obj) { return (float)$obj->tax; }
+	function tax ($result, $options, $O) { return (float)$O->tax; }
 
-	function total ($result, $options, $obj) {
+	function total ($result, $options, $O) {
 		$taxes = isset($options['taxes'])?value_is_true($options['taxes']):null;
 		if (in_array($property,array('price','newprice','unitprice','total','tax','options')))
-			$taxes = shopp_taxrate($taxes,$obj->taxable,$this) > 0?true:false;
-		return (float)$obj->total+($taxes?($obj->unittax*$obj->quantity):0);
+			$taxes = shopp_taxrate($taxes,$O->taxable,$this) > 0?true:false;
+		return (float)$O->total+($taxes?($O->unittax*$O->quantity):0);
 	}
 
-	function taxrate ($result, $options, $obj) { return percentage($obj->taxrate*100,array('precision' => 1)); }
+	function taxrate ($result, $options, $O) { return percentage($O->taxrate*100,array('precision' => 1)); }
 
-	function quantity ($result, $options, $obj) {
-		$result = $obj->quantity;
-		if ($obj->type == "Donation" && $obj->donation['var'] == "on") return $result;
-		if ($obj->type == "Subscription" || $obj->type == "Membership") return $result;
+	function quantity ($result, $options, $O) {
+		$result = $O->quantity;
+		if ($O->type == "Donation" && $O->donation['var'] == "on") return $result;
+		if ($O->type == "Subscription" || $O->type == "Membership") return $result;
 		if (isset($options['input']) && $options['input'] == "menu") {
-			if (!isset($options['value'])) $options['value'] = $obj->quantity;
+			if (!isset($options['value'])) $options['value'] = $O->quantity;
 			if (!isset($options['options']))
 				$values = "1-15,20,25,30,35,40,45,50,60,70,80,90,100";
 			else $values = $options['options'];
@@ -103,19 +103,19 @@ class ShoppCartItemAPI {
 					else for ($i = $value[0]; $i < $value[1]+1; $i++) $qtys[] = $i;
 				} else $qtys[] = $value;
 			}
-			$result = '<select name="items['.$obj->_id.']['.$property.']">';
+			$result = '<select name="items['.$O->_id.']['.$property.']">';
 			foreach ($qtys as $qty)
-				$result .= '<option'.(($qty == $obj->quantity)?' selected="selected"':'').' value="'.$qty.'">'.$qty.'</option>';
+				$result .= '<option'.(($qty == $O->quantity)?' selected="selected"':'').' value="'.$qty.'">'.$qty.'</option>';
 			$result .= '</select>';
 		} elseif (isset($options['input']) && valid_input($options['input'])) {
 			if (!isset($options['size'])) $options['size'] = 5;
-			if (!isset($options['value'])) $options['value'] = $obj->quantity;
-			$result = '<input type="'.$options['input'].'" name="items['.$obj->_id.']['.$property.']" id="items-'.$obj->_id.'-'.$property.'" '.inputattrs($options).'/>';
-		} else $result = $obj->quantity;
+			if (!isset($options['value'])) $options['value'] = $O->quantity;
+			$result = '<input type="'.$options['input'].'" name="items['.$O->_id.']['.$property.']" id="items-'.$O->_id.'-'.$property.'" '.inputattrs($options).'/>';
+		} else $result = $O->quantity;
 		return $result;
 	}
 
-	function remove ($result, $options, $obj) {
+	function remove ($result, $options, $O) {
 		$label = __("Remove");
 		if (isset($options['label'])) $label = $options['label'];
 		if (isset($options['class'])) $class = ' class="'.$options['class'].'"';
@@ -123,41 +123,41 @@ class ShoppCartItemAPI {
 		if (isset($options['input'])) {
 			switch ($options['input']) {
 				case "button":
-					$result = '<button type="submit" name="remove['.$obj->_id.']" value="'.$obj->_id.'"'.$class.' tabindex="">'.$label.'</button>'; break;
+					$result = '<button type="submit" name="remove['.$O->_id.']" value="'.$O->_id.'"'.$class.' tabindex="">'.$label.'</button>'; break;
 				case "checkbox":
-				    $result = '<input type="checkbox" name="remove['.$obj->_id.']" value="'.$obj->_id.'"'.$class.' tabindex="" title="'.$label.'"/>'; break;
+				    $result = '<input type="checkbox" name="remove['.$O->_id.']" value="'.$O->_id.'"'.$class.' tabindex="" title="'.$label.'"/>'; break;
 			}
 		} else {
-			$result = '<a href="'.href_add_query_arg(array('cart'=>'update','item'=>$obj->_id,'quantity'=>0),shoppurl(false,'cart')).'"'.$class.'>'.$label.'</a>';
+			$result = '<a href="'.href_add_query_arg(array('cart'=>'update','item'=>$O->_id,'quantity'=>0),shoppurl(false,'cart')).'"'.$class.'>'.$label.'</a>';
 		}
 		return $result;
 	}
 
-	function optionlabel ($result, $options, $obj) { return $obj->option->label; }
+	function optionlabel ($result, $options, $O) { return $O->option->label; }
 
-	function options ($result, $options, $obj) {
+	function options ($result, $options, $O) {
 		$class = "";
 		if (!isset($options['before'])) $options['before'] = '';
 		if (!isset($options['after'])) $options['after'] = '';
 		if (isset($options['show']) &&
 			strtolower($options['show']) == "selected")
-			return (!empty($obj->option->label))?
-				$options['before'].$obj->option->label.$options['after']:'';
+			return (!empty($O->option->label))?
+				$options['before'].$O->option->label.$options['after']:'';
 
 		if (isset($options['class'])) $class = ' class="'.$options['class'].'" ';
-		if (count($obj->variations) > 1) {
+		if (count($O->variations) > 1) {
 			$result .= $options['before'];
-			$result .= '<input type="hidden" name="items['.$obj->_id.'][product]" value="'.$obj->product.'"/>';
-			$result .= ' <select name="items['.$obj->_id.'][price]" id="items-'.$obj->_id.'-price"'.$class.'>';
-			$result .= $obj->options($obj->priceline);
+			$result .= '<input type="hidden" name="items['.$O->_id.'][product]" value="'.$O->product.'"/>';
+			$result .= ' <select name="items['.$O->_id.'][price]" id="items-'.$O->_id.'-price"'.$class.'>';
+			$result .= $O->options($O->priceline);
 			$result .= '</select>';
 			$result .= $options['after'];
 		}
 		return $result;
 	}
 
-	function addonslist ($result, $options, $obj) {
-		if (empty($obj->addons)) return false;
+	function addonslist ($result, $options, $O) {
+		if (empty($O->addons)) return false;
 		$defaults = array(
 			'before' => '',
 			'after' => '',
@@ -174,11 +174,11 @@ class ShoppCartItemAPI {
 		$prices = value_is_true($prices);
 
 		$result .= $before.'<ul'.$classes.'>';
-		foreach ($obj->addons as $id => $addon) {
+		foreach ($O->addons as $id => $addon) {
 			if (in_array($addon->label,$excludes)) continue;
 
 			$price = ($addon->onsale?$addon->promoprice:$addon->price);
-			if ($obj->taxrate > 0) $price = $price+($price*$obj->taxrate);
+			if ($O->taxrate > 0) $price = $price+($price*$O->taxrate);
 
 			if ($prices) $pricing = " (".($addon->unitprice < 0?'-':'+').money($price).")";
 			$result .= '<li>'.$addon->label.$pricing.'</li>';
@@ -187,30 +187,30 @@ class ShoppCartItemAPI {
 		return $result;
 	}
 
-	function hasinputs ($result, $options, $obj) { return (count($obj->data) > 0); }
+	function hasinputs ($result, $options, $O) { return (count($O->data) > 0); }
 
-	function inputs ($result, $options, $obj) {
-		if (!isset($obj->_data_loop)) {
-			reset($obj->data);
-			$obj->_data_loop = true;
-		} else next($obj->data);
+	function inputs ($result, $options, $O) {
+		if (!isset($O->_data_loop)) {
+			reset($O->data);
+			$O->_data_loop = true;
+		} else next($O->data);
 
-		if (current($obj->data) !== false) return true;
+		if (current($O->data) !== false) return true;
 
-		unset($obj->_data_loop);
-		reset($obj->data);
+		unset($O->_data_loop);
+		reset($O->data);
 		return false;
 	}
 
-	function input ($result, $options, $obj) {
-		$data = current($obj->data);
-		$name = key($obj->data);
+	function input ($result, $options, $O) {
+		$data = current($O->data);
+		$name = key($O->data);
 		if (isset($options['name'])) return $name;
 		return $data;
 	}
 
-	function inputslist ($result, $options, $obj) {
-		if (empty($obj->data)) return false;
+	function inputslist ($result, $options, $O) {
+		if (empty($O->data)) return false;
 		$defaults = array(
 			'class' => '',
 			'exclude' => array(),
@@ -225,7 +225,7 @@ class ShoppCartItemAPI {
 		if (!empty($class)) $classes = ' class="'.$class.'"';
 
 		$result .= $before.'<ul'.$classes.'>';
-		foreach ($obj->data as $name => $data) {
+		foreach ($O->data as $name => $data) {
 			if (in_array($name,$excludes)) continue;
 			if (is_array($data)) $data = join($separator,$data);
 			$result .= '<li><strong>'.$name.'</strong>: '.$data.'</li>';
@@ -234,7 +234,7 @@ class ShoppCartItemAPI {
 		return $result;
 	}
 
-	function coverimage ($result, $options, $obj) {
+	function coverimage ($result, $options, $O) {
 		$defaults = array(
 			'class' => '',
 			'width' => 48,
@@ -251,8 +251,8 @@ class ShoppCartItemAPI {
 		$options = array_merge($defaults,$options);
 		extract($options);
 
-		if ($obj->image !== false) {
-			$img = $obj->image;
+		if ($O->image !== false) {
+			$img = $O->image;
 
 			if ($size !== false) $width = $height = $size;
 			$scale = (!$fit)?false:esc_attr(array_search($fit,$img->_scaling));
@@ -267,7 +267,7 @@ class ShoppCartItemAPI {
 			$class = !empty($class)?' class="'.esc_attr($class).'"':'';
 
 			if (!empty($options['title'])) $title = ' title="'.esc_attr($options['title']).'"';
-			$alt = esc_attr(!empty($img->alt)?$img->alt:$obj->name);
+			$alt = esc_attr(!empty($img->alt)?$img->alt:$O->name);
 			return '<img src="'.add_query_string($img->resizing($width,$height,$scale,$sharpen,$quality,$fill),shoppurl($img->id,'images')).'"'.$title.' alt="'.$alt.'" width="'.$scaled['width'].'" height="'.$scaled['height'].'"'.$class.' />';
 		}
 	}
