@@ -6,8 +6,6 @@
 	<form name="settings" id="system" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-system'); ?>
 
-		<?php include("navigation.php"); ?>
-
 		<table class="form-table">
 			<tr>
 				<th scope="row" valign="top"><label for="image-storage"><?php _e('Image Storage','Shopp'); ?></label></th>

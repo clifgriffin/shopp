@@ -352,7 +352,7 @@ class Order {
 
 		// If the cart's total changes at all, confirm the order
 		if ($estimated != $this->Cart->Totals->total || $this->confirm)
-			shopp_redirect( shoppurl(false,'confirm-order',$this->security()) );
+			shopp_redirect( shoppurl(false,'confirm',$this->security()) );
 		else do_action('shopp_process_order');
 
 	}
@@ -497,6 +497,11 @@ class Order {
 		$Purchase->save();
 		$this->unlock();
 		Promotion::used(array_keys($promos));
+
+		if (empty($Purchase->id)) {
+			new ShoppError(__('The order could not be created because of a technical problem on the server. Please try again, or contact the website adminstrator.','Shopp'),'shopp_purchase_save_failure');
+			return;
+		}
 
 		foreach($this->Cart->contents as $Item) {
 			$Purchased = new Purchased();

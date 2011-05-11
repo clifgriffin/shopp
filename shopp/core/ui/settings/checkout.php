@@ -7,8 +7,6 @@
 	<form name="settings" id="checkout" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-checkout'); ?>
 
-		<?php include("navigation.php"); ?>
-
 		<table class="form-table">
 			<tr>
 				<th scope="row" valign="top"><label for="confirm_url"><?php _e('Order Confirmation','Shopp'); ?></label></th>
@@ -27,11 +25,6 @@
 					<input type="radio" name="settings[account_system]" value="wordpress" id="account-system-wp"<?php if($this->Settings->get('account_system') == "wordpress") echo ' checked="checked"' ?> /> <label for="account-system-wp"><?php _e('Enable Account Logins integrated with WordPress Accounts','Shopp'); ?></label></td>
 			</tr>
 			<tr>
-				<th scope="row" valign="top"><label for="accounting-serial"><?php _e('Next Order Number','Shopp'); ?></label></th>
-				<td><input type="text" name="settings[next_order_id]" id="accounting-serial" value="<?php echo esc_attr($next_setting); ?>" size="7" class="selectall" /><br />
-					<?php _e('Set the next order number to sync with your accounting systems.','Shopp'); ?></td>
-			</tr>
-			<tr>
 				<th scope="row" valign="top"><label for="promo-limit"><?php _e('Promotions Limit','Shopp'); ?></label></th>
 				<td><select name="settings[promo_limit]" id="promo-limit">
 					<option value="">&infin;</option>
@@ -39,6 +32,18 @@
 					</select>
 					<label> <?php _e('per order','Shopp'); ?></label>
 				</td>
+			</tr>
+			<tr>
+				<th scope="row" valign="top"><label for="accounting-serial"><?php _e('Next Order Number','Shopp'); ?></label></th>
+				<td><input type="text" name="settings[next_order_id]" id="accounting-serial" value="<?php echo esc_attr($next_setting); ?>" size="7" class="selectall" /><br />
+					<?php _e('Set the next order number to sync with your accounting systems.','Shopp'); ?></td>
+			</tr>
+			<tr>
+				<th scope="row" valign="top"><label for="cart-toggle"><?php _e('Order Status Labels','Shopp'); ?></label></th>
+				<td>
+				<ol id="order-statuslabels">
+				</ol>
+				<?php _e('Add your own order processing status labels. Be sure to click','Shopp'); ?> <strong><?php _e('Save Changes','Shopp'); ?></strong> <?php _e('below!','Shopp'); ?></td>
 			</tr>
 
 		</table>
@@ -66,6 +71,28 @@
 					<label for="download-restriction"><input type="checkbox" name="settings[download_restriction]" id="download-restriction" value="ip" <?php echo ($this->Settings->get('download_restriction') == "ip")?'checked="checked" ':'';?> /> <?php _e('Restrict to the computer the product is purchased from','Shopp'); ?></label></td>
 			</tr>
 		</table>
+
 		<p class="submit"><input type="submit" class="button-primary" name="save" value="<?php _e('Save Changes','Shopp'); ?>" /></p>
 	</form>
 </div>
+
+<script id="statusLabel" type="text/x-jquery-tmpl">
+<li id="status-${id}">
+	<span>
+	<input type="text" name="settings[order_status][${id}]" id="label-${id}" size="14" value="${label}" /><button type="button" class="delete">
+		<img src="<?php echo SHOPP_ICONS_URI; ?>/delete.png" alt="<?php _e('Delete','Shopp'); ?>" width="16" height="16" />
+	</button><button type="button" class="add">
+			<img src="<?php echo SHOPP_ICONS_URI; ?>/add.png" alt="<?php _e('Add','Shopp'); ?>" width="16" height="16" />
+	</button>
+	</span>
+</li>
+</script>
+
+<script type="text/javascript">
+/* <![CDATA[ */
+jQuery(document).ready(function ($) {
+	var labels = <?php echo json_encode($statusLabels); ?>;
+	$('#order-statuslabels').statusLabels(labels);
+});
+/* ]]> */
+</script>

@@ -40,8 +40,10 @@ if (SHOPP_UNSUPPORTED) return;
 
 require("core/functions.php");
 
+// Load core app helpers
 require_once("core/DB.php");
 require_once("core/model/Settings.php");
+require_once('core/model/Error.php');
 
 // Load super controllers
 require('core/flow/Flow.php');
@@ -55,7 +57,6 @@ require('core/model/Gateway.php');
 require('core/model/Shipping.php');
 require('core/model/Lookup.php');
 require('core/model/Shopping.php');
-require('core/model/Error.php');
 require('core/model/Order.php');
 require('core/model/Cart.php');
 require('core/model/Meta.php');
@@ -65,6 +66,7 @@ require('core/model/Purchase.php');
 require('core/model/Customer.php');
 
 // Load public development API
+require('api/core.php');
 require('api/taxonomy.php');
 require('api/theme.php');
 require('api/collection.php');
@@ -132,7 +134,7 @@ class Shopp {
 
 		if (!defined('BR')) define('BR','<br />');
 
-		// Overrideable macros
+		// Overrideable config macros
 		if (!defined('SHOPP_NOSSL')) define('SHOPP_NOSSL',false);
 		if (!defined('SHOPP_PREPAYMENT_DOWNLOADS')) define('SHOPP_PREPAYMENT_DOWNLOADS',false);
 		if (!defined('SHOPP_SESSION_TIMEOUT')) define('SHOPP_SESSION_TIMEOUT',7200);
@@ -140,6 +142,7 @@ class Shopp {
 		if (!defined('SHOPP_GATEWAY_TIMEOUT')) define('SHOPP_GATEWAY_TIMEOUT',10);
 		if (!defined('SHOPP_SHIPPING_TIMEOUT')) define('SHOPP_SHIPPING_TIMEOUT',10);
 		if (!defined('SHOPP_TEMP_PATH')) define('SHOPP_TEMP_PATH',sys_get_temp_dir());
+		if (!defined('SHOPP_NAMESPACE_TAXONOMIES')) define('SHOPP_NAMESPACE_TAXONOMIES',true);
 
 		// Settings & Paths
 		define('SHOPP_DEBUG',($this->Settings->get('error_logging') == 2048));
@@ -152,6 +155,7 @@ class Shopp {
 		define('SHOPP_ADMIN_DIR','/core/ui');
 		define('SHOPP_ADMIN_PATH',SHOPP_PATH.SHOPP_ADMIN_DIR);
 		define('SHOPP_ADMIN_URI',SHOPP_PLUGINURI.SHOPP_ADMIN_DIR);
+		define('SHOPP_ICONS_URI',SHOPP_ADMIN_URI.'/icons');
 		define('SHOPP_FLOW_PATH',SHOPP_PATH.'/core/flow');
 		define('SHOPP_MODEL_PATH',SHOPP_PATH.'/core/model');
 		define('SHOPP_GATEWAYS',SHOPP_PATH.'/gateways');
@@ -178,6 +182,13 @@ class Shopp {
 
 		add_action('init', array(&$this,'init'));
 
+		// Core WP integration
+		add_action('shopp_init', array(&$this,'pages'));
+		add_action('shopp_init', array(&$this,'collections'));
+		add_action('shopp_init', array(&$this,'taxonomies'));
+		add_action('shopp_init', array(&$this,'product'),99);
+
+
 		// Plugin management
         add_action('after_plugin_row_'.SHOPP_PLUGINFILE, array(&$this, 'status'),10,2);
         add_action('install_plugins_pre_plugin-information', array(&$this, 'changelog'));
@@ -187,11 +198,13 @@ class Shopp {
 		// Theme integration
 		add_action('widgets_init', array(&$this, 'widgets'));
 		add_filter('wp_list_pages',array(&$this,'secure_links'));
+
 		add_filter('rewrite_rules_array',array(&$this,'rewrites'));
-		add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
-		add_action('generate_rewrite_rules',array(&$this,'pages_index'));
-		add_action('save_post', array(&$this, 'pages_index'),10,2);
-		add_action('shopp_reindex_pages', array(&$this, 'pages_index'));
+
+		// add_action('admin_head-options-reading.php',array(&$this,'pages_index'));
+		// add_action('generate_rewrite_rules',array(&$this,'pages_index'));
+		// add_action('save_post', array(&$this, 'pages_index'),10,2);
+		// add_action('shopp_reindex_pages', array(&$this, 'pages_index'));
 
 		add_filter('query_vars', array(&$this,'queryvars'));
 
@@ -216,7 +229,6 @@ class Shopp {
 		$this->Shipping = new ShippingModules();
 		$this->Storage = new StorageEngines();
 		$this->Collections = array();
-		$this->Taxonomies = new CatalogTaxonomies();
 
 		$this->ErrorLog = new ShoppErrorLogging($this->Settings->get('error_logging'));
 		$this->ErrorNotify = new ShoppErrorNotification($this->Settings->get('merchant_email'),
@@ -234,7 +246,6 @@ class Shopp {
 		new Login();
 		do_action('shopp_init');
 	}
-
 
 	/**
 	 * Initializes theme widgets
@@ -256,100 +267,50 @@ class Shopp {
 		include('core/ui/widgets/search.php');
 	}
 
-	/**
-	 * Relocates the Shopp-installed pages and indexes any changes
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.0
-	 *
-	 * @param boolean $update (optional) Used in a filter callback context
-	 * @param boolean $updates (optional) Used in an action callback context
-	 * @return boolean The update status
-	 **/
-	function pages_index ($update=false,$updates=false) {
-		global $wpdb;
-		$pages = $this->Settings->get('pages');
-		$pages = shopp_locate_pages();
-		$this->Settings->save('pages',$pages);
-		if ($update) return $update;
+	function pages () {
+		$var = "shopp_page"; $pages = array();
+		$settings = Storefront::pages_settings();
+		$catalog = array_shift($settings);
+		foreach ($settings as $page) $pages[] = $page['slug'];
+		add_rewrite_tag("%$var%", '('.join('|',$pages).')');
+		add_permastruct($var, "{$catalog['slug']}/%$var%", false, EP_NONE);
+	}
+
+	function collections () {
+		register_collection('CatalogProducts');
+		register_collection('NewProducts');
+		register_collection('FeaturedProducts');
+		register_collection('OnSaleProducts');
+		register_collection('BestsellerProducts');
+		register_collection('SearchResults');
+		register_collection('TagProducts');
+		register_collection('RelatedProducts');
+		register_collection('RandomProducts');
+		register_collection('PromoProducts');
+	}
+
+	function taxonomies () {
+		ProductTaxonomy::register('ProductCategory');
+		ProductTaxonomy::register('ProductTag');
+	}
+
+	function product () {
+		WPShoppObject::register('Product',Storefront::slug());
 	}
 
 	/**
-	 * Adds Shopp-specific pretty-url rewrite rules to WordPress rewrite rules
+	 * Adds Shopp-specific mod_rewrite rule for low-resource, speedy image server
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.0
 	 *
 	 * @param array $wp_rewrite_rules An array of existing WordPress rewrite rules
-	 * @return array Modified rewrite rules
+	 * @return array Rewrite rules
 	 **/
 	function rewrites ($wp_rewrite_rules) {
-		$this->pages_index(true);
-		$pages = $this->Settings->get('pages');
-		if (!$pages) return $wp_rewrite_rules;
-
-		// Collect Shopp page URIs and IDs
-		$uris = array();
-		$builtins = array();
-		foreach ($pages as $page => $data) {
-			if ($page == "catalog")	$catalogid = $data['id'];
-			$uris[$page] = $data['uri'];
-			$builtins[] = $data['id'];
-		}
-		extract($uris);
-
-		// Find sub-pages of the main catalog page so we can add rewrite exclusions
-		$pagenames = array();
-		$subpages = get_pages(array('child_of'=>$catalogid,'exclude'=>join(',',$builtins)));
-		foreach ($subpages as $page) $pagenames[] = $page->post_name;
-
-		// Build the rewrite rules for Shopp
-		$rules = array(
-			$cart.'?$' => 'index.php?pagename='.shopp_pagename($cart),
-			$account.'?$' => 'index.php?pagename='.shopp_pagename($account),
-			$checkout.'?$' => 'index.php?pagename='.shopp_pagename($checkout).'&s_pr=checkout',
-
-			/* Exclude sub-pages of the main storefront page (catalog page) */
-			'('.$catalog.'/('.join('|',$pagenames).'))?$' => 'index.php?pagename=$matches[1]',
-
-			/* catalog */
-			$catalog.'/feed/?$' // Catalog feed
-				=> 'index.php?src=category_rss&shopp_category=new',
-			$catalog.'/(thanks|receipt)/?$' // Thanks page handling
-				=> 'index.php?pagename='.shopp_pagename($checkout).'&s_pr=thanks',
-			$catalog.'/confirm-order/?$' // Confirm order page handling
-				=> 'index.php?pagename='.shopp_pagename($checkout).'&s_pr=confirm-order',
-			$catalog.'/download/([a-f0-9]{40})/?$' // Download handling
-				=> 'index.php?pagename='.shopp_pagename($account).'&src=download&s_dl=$matches[1]',
-			$catalog.'/images/(\d+)/?.*?$' // Image handling
-				=> 'index.php?siid=$matches[1]',
-
-			/* catalog/category/category-slug */
-			$catalog.'/category/(.+?)/feed/?$' // Category feeds
-				=> 'index.php?src=category_rss&s_cat=$matches[1]',
-			$catalog.'/category/(.+?)/page/?(0\-9|[A-Z0-9]{1,})/?$' // Category pagination
-				=> 'index.php?pagename='.shopp_pagename($catalog).'&s_cat=$matches[1]&paged=$matches[2]',
-			$catalog.'/category/(.+)/?$' // Category permalink
-				=> 'index.php?pagename='.shopp_pagename($catalog).'&s_cat=$matches[1]',
-
-			/* catalog/tags */
-			$catalog.'/tag/(.+?)/feed/?$' // Tag feeds
-				=> 'index.php?src=category_rss&s_tag=$matches[1]',
-			$catalog.'/tag/(.+?)/page/?([0-9]{1,})/?$' // Tag pagination
-				=> 'index.php?pagename='.shopp_pagename($catalog).'&s_tag=$matches[1]&paged=$matches[2]',
-			$catalog.'/tag/(.+)/?$' // Tag permalink
-				=> 'index.php?pagename='.shopp_pagename($catalog).'&s_tag=$matches[1]',
-
-			/* catalog/product-slug */
-			$catalog.'/(.+)/?$' => 'index.php?pagename='.shopp_pagename($catalog).'&s_pd=$matches[1]'
-
-		);
-
-		// Add mod_rewrite rule for image server for low-resource, speedy delivery
-		$corepath = array(PLUGINDIR,SHOPP_DIR,'core');
-		add_rewrite_rule('.*'.$catalog.'/images/(\d+)/?\??(.*)$',join('/',$corepath).'/image.php?siid=$1&$2');
-
-		return $rules + $wp_rewrite_rules;
+		$path = array(PLUGINDIR,SHOPP_DIR,'core');
+		add_rewrite_rule('.*'.Storefront::slug().'/images/(\d+)/?\??(.*)$',join('/',$path).'/image.php?siid=$1&$2');
+		return $wp_rewrite_rules;
 	}
 
 	/**
@@ -374,8 +335,10 @@ class Shopp {
 		$vars[] = 's_pid';		// Product ID
 		$vars[] = 's_pd';		// Product slug
 		$vars[] = 's_dl';		// Download key
-		$vars[] = 's_ob';		// Product sort order (category view)
+		$vars[] = 's_so';		// Product sort order (product collections)
 		$vars[] = 's_cf';		// Category filters
+
+		$vars[] = 'shopp_page'; // Shopp pages
 
 		return $vars;
 	}
@@ -433,6 +396,7 @@ class Shopp {
 	 *
 	 * @author Jonathan Davis
 	 * @since 1.1
+	 * @todo Move Shopp::settingsjs predefined to Scripts.php
 	 *
 	 * @return void
 	 **/
@@ -445,15 +409,20 @@ class Shopp {
 			&& isset($baseop['currency']['format']['decimals'])
 			&& !empty($baseop['currency']['format']['decimals'])
 		) {
+			$settings = &$baseop['currency']['format'];
 			$currency = array(
 				// Currency formatting
-				'cp' => $baseop['currency']['format']['cpos'],
-				'c' => $baseop['currency']['format']['currency'],
-				'p' => $baseop['currency']['format']['precision'],
-				't' => $baseop['currency']['format']['thousands'],
-				'd' => $baseop['currency']['format']['decimals'],
-				'g' => is_array($baseop['currency']['format']['grouping'])?join(',',$baseop['currency']['format']['grouping']):$baseop['currency']['format']['grouping'],
+				'cp' => $settings['cpos'],
+				'c' =>  $settings['currency'],
+				'p' =>  $settings['precision'],
+				't' =>  $settings['thousands'],
+				'd' =>  $settings['decimals']
 			);
+
+			if (isset($settings['grouping'])) {
+				if (is_array($settings['grouping'])) $currency['g'] = join(',',$settings['grouping']);
+				else $currency['g'] = $settings['grouping'];
+			}
 		}
 
 		$base = array(
@@ -536,21 +505,6 @@ class Shopp {
 			$linklist = str_replace($href,$secure_href,$linklist);
 		}
 		return $linklist;
-	}
-
-	/**
-	 * Registers a smart category
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param string $name Class name of the smart category
-	 * @return void
-	 **/
-	function add_collection ($name) {
-		global $Shopp; // For static calls
-		if (empty($Shopp)) return;
-			$Shopp->Collections[] = $name;
 	}
 
 	/**

@@ -8,8 +8,6 @@
 		<?php wp_nonce_field('shopp-settings-payments'); ?>
 		<div><input type="hidden" id="active-gateways" name="settings[active_gateways]" /></div>
 
-		<?php include("navigation.php"); ?>
-
 		<table id="payment-settings" class="form-table">
  		</table>
 

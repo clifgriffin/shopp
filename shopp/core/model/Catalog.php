@@ -8,24 +8,24 @@
  * @version 1.1
  * @since 1.0
  * @copyright Ingenesis Limited, 24 June, 2010
- * @package shopp
- * @subpackage storefront
+ * @package Shopp
+ * @subpackage Catalog
  **/
 
 require_once("Product.php");
-require_once("Category.php");
+require_once("Collection.php");
 
 class Catalog extends DatabaseObject {
 	static $table = "catalog";
 
 	var $categories = array();
 	var $outofstock = false;
+	var $type = false; 			// @deprecated
 
-	function __construct ($type="catalog") {
-		global $Shopp;
+	function __construct () {
+		$Settings = ShoppSettings();
 		$this->init(self::$table);
-		$this->type = $type;
-		$this->outofstock = ($Shopp->Settings->get('outofstock_catalog') == "on");
+		$this->outofstock = ($Settings->get('outofstock_catalog') == "on");
 	}
 
 	/**
@@ -41,28 +41,28 @@ class Catalog extends DatabaseObject {
 	 * @return boolean|object True when categories are loaded and processed, object of results when $results is set
 	 **/
 	function load_categories ($loading=array(),$showsmart=false,$results=false) {
-		$db = DB::get();
-		$category_table = DatabaseObject::tablename(Category::$table);
-		$product_table = DatabaseObject::tablename(Product::$table);
-		$price_table = DatabaseObject::tablename(Price::$table);
-		$ct_id = get_catalog_taxonomy_id('category');
-
-		$defaults = array(
-			'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total,IF(SUM(IF(pd.inventory='off',1,0) OR pd.inventory IS NULL)>0,'off','on') AS inventory, SUM(pd.stock) AS stock",
-			'where' => array(),
-			'joins' => array(
-				"LEFT OUTER JOIN $this->_table AS sc FORCE INDEX(assignment) ON sc.parent=cat.id AND sc.taxonomy='$ct_id'",
-				"LEFT OUTER JOIN $product_table AS pd ON sc.product=pd.id"
-			),
-			'limit' => false,
-			'orderby' => 'name',
-			'order' => 'ASC',
-			'parent' => false,
-			'ancestry' => false,
-			'outofstock' => $this->outofstock,
-		);
-		$options = array_merge($defaults,$loading);
-		extract($options);
+		// $db = DB::get();
+		// $category_table = DatabaseObject::tablename(ProductCategory::$table);
+		// $product_table = DatabaseObject::tablename(Product::$table);
+		// $price_table = DatabaseObject::tablename(Price::$table);
+		// $ct_id = get_catalog_taxonomy_id('category');
+		//
+		// $defaults = array(
+		// 	'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug,count(DISTINCT pd.id) AS total,IF(SUM(IF(pd.inventory='off',1,0) OR pd.inventory IS NULL)>0,'off','on') AS inventory, SUM(pd.stock) AS stock",
+		// 	'where' => array(),
+		// 	'joins' => array(
+		// 		"LEFT OUTER JOIN $this->_table AS sc FORCE INDEX(assignment) ON sc.parent=cat.id AND sc.taxonomy='$ct_id'",
+		// 		"LEFT OUTER JOIN $product_table AS pd ON sc.product=pd.id"
+		// 	),
+		// 	'limit' => false,
+		// 	'orderby' => 'name',
+		// 	'order' => 'ASC',
+		// 	'parent' => false,
+		// 	'ancestry' => false,
+		// 	'outofstock' => $this->outofstock,
+		// );
+		// $options = array_merge($defaults,$loading);
+		// extract($options);
 
 		if (!is_array($where)) $where = array($where);
 
@@ -94,8 +94,8 @@ class Catalog extends DatabaseObject {
 		if (!empty($where)) $where = "WHERE ".join(' AND ',$where);
 		else $where = false;
 
-		$query = "SELECT $columns FROM $category_table AS cat $joins $where GROUP BY cat.id ORDER BY cat.parent DESC,cat.priority,$orderby $order $limit";
-		$categories = $db->query($query,AS_ARRAY);
+		// $query = "SELECT $columns FROM $category_table AS cat $joins $where GROUP BY cat.id ORDER BY cat.parent DESC,cat.priority,$orderby $order $limit";
+		// $categories = $db->query($query,AS_ARRAY);
 
 		if (count($categories) > 1) $categories = sort_tree($categories, $parent);
 		if ($results) return $categories;
@@ -110,15 +110,15 @@ class Catalog extends DatabaseObject {
 			}
 			$id = '_'.$category->id;
 
-			$this->categories[$id] = new Category();
+			$this->categories[$id] = new ProductCategory();
 			$this->categories[$id]->populate($category);
 
 			if (isset($category->depth))
 				$this->categories[$id]->depth = $category->depth;
 			else $this->categories[$id]->depth = 0;
 
-			if (isset($category->total))
-				$this->categories[$id]->total = $category->total;
+			if (isset($category->count))
+				$this->categories[$id]->total = $category->count;
 			else $this->categories[$id]->total = 0;
 
 			if (isset($category->stock))
@@ -130,8 +130,8 @@ class Catalog extends DatabaseObject {
 				$this->categories[$id]->outofstock = $category->outofstock;
 
 			$this->categories[$id]->_children = false;
-			if (isset($category->total)
-				&& $category->total > 0 && isset($this->categories[$category->parent])) {
+			if (isset($category->count)
+				&& $category->count > 0 && isset($this->categories[$category->parent])) {
 				$ancestor = $category->parent;
 
 				// Recursively flag the ancestors as having children
@@ -185,12 +185,10 @@ class Catalog extends DatabaseObject {
 	 **/
 	function load_tags ($limits=false) {
 		$db = DB::get();
-		$taxonomy = get_catalog_taxonomy_id('tag');
 
 		if ($limits) $limit = " LIMIT {$limits[0]},{$limits[1]}";
 		else $limit = "";
 
-		$tagtable = DatabaseObject::tablename(CatalogTag::$table);
 		$query = "SELECT t.*,count(sc.product) AS products FROM $this->_table AS sc LEFT JOIN $tagtable AS t ON sc.parent=t.id WHERE sc.taxonomy='$taxonomy' GROUP BY t.id ORDER BY t.name ASC$limit";
 		$this->tags = $db->query($query,AS_ARRAY);
 		return true;
@@ -207,17 +205,17 @@ class Catalog extends DatabaseObject {
 	 * @param array $options (optional) Any shopp() tag-compatible options to pass on to smart categories
 	 * @return object The loaded Category object
 	 **/
-	function load_category ($category,$options=array()) {
+	function load_collection ($slug,$options=array()) {
 		global $Shopp;
 		foreach ($Shopp->Collections as $Collection) {
 			$Collection_slug = get_class_property($Collection,'_slug');
-			if ($category == $Collection_slug)
+			if ($slug == $Collection_slug)
 				return new $Collection($options);
 		}
 
 		$key = "id";
-		if (!preg_match("/^\d+$/",$category)) $key = "uri";
-		return new Category($category,$key);
+		if (!preg_match("/^\d+$/",$slug)) $key = "slug";
+		return new ProductCategory($slug,$key);
 
 	}
 
@@ -250,23 +248,59 @@ class Catalog extends DatabaseObject {
 			case "is-checkout": return (is_shopp_page('checkout')); break;
 			case "is-account": return (is_shopp_page('account')); break;
 			case "tagcloud":
-				if (!empty($options['levels'])) $levels = $options['levels'];
-				else $levels = 7;
-				if (empty($this->tags)) $this->load_tags();
-				$min = -1; $max = -1;
-				foreach ($this->tags as $tag) {
-					if ($min == -1 || $tag->products < $min) $min = $tag->products;
-					if ($max == -1 || $tag->products > $max) $max = $tag->products;
+
+				$defaults = array(
+					'orderby' => 'name',
+					'order' => false,
+					'number' => 45,
+					'levels' => 7,
+					'format' => 'list',
+					'link' => 'view'
+				);
+				$options = array_merge($defaults,$options);
+				extract($options);
+
+				$tags = get_terms( ProductTag::$taxonomy, array( 'orderby' => 'count', 'order' => 'DESC', 'number' => $number) );
+
+				if (empty($tags)) return false;
+
+				$min = $max = false;
+				foreach ($tags as &$tag) {
+					$min = !$min?$tag->count:min($min,$tag->count);
+					$max = !$max?$tag->count:max($max,$tag->count);
+
+					$link_function = ('edit' == $link?'get_edit_tag_link':'get_term_link');
+					$tag->link = $link_function(intval($tag->term_id),ProductTag::$taxonomy);
 				}
-				if ($max == 0) $max = 1;
-				$string = '<ul class="shopp tagcloud">';
-				foreach ($this->tags as $tag) {
-					$level = floor((1-$tag->products/$max)*$levels)+1;
-					$link = SHOPP_PRETTYURLS?shoppurl("tag/$tag->name"):shoppurl(array('s_tag'=>$tag->name));
-					$string .= '<li class="level-'.$level.'"><a href="'.$link.'" rel="tag">'.$tag->name.'</a></li> ';
+
+				// Sorting
+				$sorted = apply_filters( 'tag_cloud_sort', $tags, $options );
+				if ( $sorted != $tags  ) $tags = &$sorted;
+				else {
+					if ( 'RAND' == $order ) shuffle($tags);
+					else {
+						if ( 'name' == $orderby )
+							uasort( $tags, create_function('$a, $b', 'return strnatcasecmp($a->name, $b->name);') );
+						else
+							uasort( $tags, create_function('$a, $b', 'return ($a->count > $b->count);') );
+
+						if ( 'DESC' == $order ) $tags = array_reverse( $tags, true );
+					}
 				}
-				$string .= '</ul>';
-				return $string;
+
+				// Markup
+				if ('inline' == $format) $markup = '<div class="shopp tagcloud">';
+				if ('list' == $format) $markup = '<ul class="shopp tagcloud">';
+				foreach ((array)$tags as $tag) {
+					$level = floor((1-$tag->count/$max)*$levels)+1;
+					if ('list' == $format) $markup .= '<li class="level-'.$level.'">';
+					$markup .= '<a href="'.esc_url($tag->link).'" rel="tag">'.$tag->name.'</a>';
+					if ('list' == $format) $markup .= '</li> ';
+				}
+				if ('list' == $format) $markup .= '</ul>';
+				if ('inline' == $format) $markup .= '</div>';
+
+				return $markup;
 				break;
 			case "hascategories":
 			case "has-categories":
@@ -289,6 +323,7 @@ class Catalog extends DatabaseObject {
 					return false;
 				}
 				break;
+			case "list-categories":
 			case "category-list":
 				$defaults = array(
 					'title' => '',
@@ -314,7 +349,12 @@ class Catalog extends DatabaseObject {
 				$options = array_merge($defaults,$options);
 				extract($options, EXTR_SKIP);
 
-				$this->load_categories(array("ancestry"=>true,"where"=>array("(pd.status='publish' OR pd.id IS NULL)"),"orderby"=>$orderby,"order"=>$order),$showsmart);
+				$taxonomy = 'shopp_category';
+
+				$categories = array(); $count = 0;
+				$terms = get_terms( $taxonomy, array('hide_empty' => 0,'fields'=>'id=>parent') );
+				$children = _get_term_hierarchy($taxonomy);
+				ProductCategory::tree($taxonomy,$terms,$children,$count,$categories);
 
 				$string = "";
 				$depthlimit = $depth;
@@ -335,7 +375,7 @@ class Catalog extends DatabaseObject {
 							continue;
 						}
 						if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
-						if ($category->total == 0 && !isset($category->smart) && !$category->_children) continue; // Only show categories with products
+						if ($category->count == 0 && !isset($category->smart) && !$category->_children) continue; // Only show categories with products
 						if ($depthlimit && $category->depth >= $depthlimit) continue;
 
 						if (value_is_true($hierarchy) && $category->depth > $depth) {
@@ -350,7 +390,7 @@ class Catalog extends DatabaseObject {
 						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
 
 						$total = '';
-						if (value_is_true($products) && $category->total > 0) $total = ' ('.$category->total.')';
+						if (value_is_true($products) && $category->count > 0) $total = ' ('.$category->count.')';
 
 						$string .= '<option value="'.$link.'">'.$padding.$category->name.$total.'</option>';
 						$previous = &$category;
@@ -367,9 +407,9 @@ class Catalog extends DatabaseObject {
 				} else {
 					$string .= $title;
 					if ($wraplist) $string .= '<ul'.$classes.'>';
-					foreach ($this->categories as &$category) {
-						if (!isset($category->total)) $category->total = 0;
-						if (!isset($category->depth)) $category->depth = 0;
+					foreach ($categories as &$category) {
+						if (!isset($category->count)) $category->count = 0;
+						if (!isset($category->level)) $category->level = 0;
 
 						// If the parent of this category was excluded, add this to the excludes and skip
 						if (!empty($category->parent) && in_array($category->parent,$exclude)) {
@@ -378,8 +418,8 @@ class Catalog extends DatabaseObject {
 						}
 
 						if (!empty($category->id) && in_array($category->id,$exclude)) continue; // Skip excluded categories
-						if ($depthlimit && $category->depth >= $depthlimit) continue;
-						if (value_is_true($hierarchy) && $category->depth > $depth) {
+					if ($depthlimit && $category->level >= $depthlimit) continue;
+						if (value_is_true($hierarchy) && $category->level > $depth) {
 							$parent = &$previous;
 							if (!isset($parent->path)) $parent->path = $parent->slug;
 							if (substr($string,-5,5) == "</li>") // Keep everything but the
@@ -395,8 +435,8 @@ class Catalog extends DatabaseObject {
 							$string .= $subcategories;
 						}
 
-						if (value_is_true($hierarchy) && $category->depth < $depth) {
-							for ($i = $depth; $i > $category->depth; $i--) {
+						if (value_is_true($hierarchy) && $category->level < $depth) {
+							for ($i = $depth; $i > $category->level; $i--) {
 								if (substr($string,strlen($subcategories)*-1) == $subcategories) {
 									// If the child menu is empty, remove the <ul> to avoid breaking standards
 									$string = substr($string,0,strlen($subcategories)*-1).'</li>';
@@ -404,29 +444,29 @@ class Catalog extends DatabaseObject {
 							}
 						}
 
-						$category_uri = empty($category->id)?$category->uri:$category->id;
-						$link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
-
+						// $category_uri = empty($category->id)?$category->uri:$category->id;
+						// $link = SHOPP_PRETTYURLS?shoppurl("category/$category->uri"):shoppurl(array('s_cat'=>$category_uri));
+						$link = get_term_link($category->name,$category->taxonomy);
 						$total = '';
-						if (value_is_true($products) && $category->total > 0) $total = ' <span>('.$category->total.')</span>';
+						if (value_is_true($products) && $category->count > 0) $total = ' <span>('.$category->count.')</span>';
 
 						$current = '';
 						if (isset($Shopp->Category->slug) && $Shopp->Category->slug == $category->slug)
 							$current = ' class="current"';
 
 						$listing = '';
-						if ($category->total > 0 || isset($category->smart) || $linkall)
+						if ($category->count > 0 || isset($category->smart) || $linkall)
 							$listing = '<a href="'.$link.'"'.$current.'>'.$category->name.($linkcount?$total:'').'</a>'.(!$linkcount?$total:'');
 						else $listing = $category->name;
 
 						if (value_is_true($showall) ||
-							$category->total > 0 ||
+							$category->count > 0 ||
 							isset($category->smart) ||
 							$category->_children)
 							$string .= '<li'.$current.'>'.$listing.'</li>';
 
 						$previous = &$category;
-						$depth = $category->depth;
+						$depth = $category->level;
 					}
 					if (value_is_true($hierarchy) && $depth > 0)
 						for ($i = $depth; $i > 0; $i--) {
@@ -452,7 +492,7 @@ class Catalog extends DatabaseObject {
 				if (isset($Shopp->Category->controls)) return false;
 				if (isset($Shopp->Category->loading['order']) || isset($Shopp->Category->loading['orderby'])) return false;
 
-				$menuoptions = Category::sortoptions();
+				$menuoptions = ProductCategory::sortoptions();
 				// Don't show custom product order for smart categories
 				if (isset($Shopp->Category->smart)) unset($menuoptions['custom']);
 
@@ -466,15 +506,15 @@ class Catalog extends DatabaseObject {
 				if (isset($options['title'])) $title = $options['title'];
 
 				if (value_is_true($dropdown)) {
-					if (isset($Shopp->Flow->Controller->browsing['orderby']))
-						$default = $Shopp->Flow->Controller->browsing['orderby'];
+					if (isset($Shopp->Flow->Controller->browsing['sortorder']))
+						$default = $Shopp->Flow->Controller->browsing['sortorder'];
 					$string .= $title;
 					$string .= '<form action="'.esc_url($_SERVER['REQUEST_URI']).'" method="get" id="shopp-'.$Shopp->Category->slug.'-orderby-menu">';
 					if (!SHOPP_PRETTYURLS) {
 						foreach ($_GET as $key => $value)
 							if ($key != 's_ob') $string .= '<input type="hidden" name="'.$key.'" value="'.$value.'" />';
 					}
-					$string .= '<select name="shopp_orderby" class="shopp-orderby-menu">';
+					$string .= '<select name="s_so" class="shopp-orderby-menu">';
 					$string .= menuoptions($menuoptions,$default,true);
 					$string .= '</select>';
 					$string .= '</form>';
@@ -521,7 +561,7 @@ class Catalog extends DatabaseObject {
 					$category = "tag";
 					$search = array('tag'=>urldecode($path[1]));
 				}
-				$Category = Catalog::load_category($category,$search);
+				$Category = Catalog::load_collection($category,$search);
 
 				if (!empty($Category->uri)) {
 					$type = "category";
@@ -723,9 +763,9 @@ class Catalog extends DatabaseObject {
 				if ($property == "search-products") $Shopp->Category = new SearchResults($options);
 			case "category":
 				if ($property == "category") {
-					if (isset($options['name'])) $Shopp->Category = new Category($options['name'],'name');
-					else if (isset($options['slug'])) $Shopp->Category = new Category($options['slug'],'slug');
-					else if (isset($options['id'])) $Shopp->Category = new Category($options['id']);
+					if (isset($options['name'])) $Shopp->Category = new ProductCategory($options['name'],'name');
+					else if (isset($options['slug'])) $Shopp->Category = new ProductCategory($options['slug'],'slug');
+					else if (isset($options['id'])) $Shopp->Category = new ProductCategory($options['id']);
 				}
 				if (isset($options['reset']))
 					return (get_class($Shopp->Requested) == "Category"?($Shopp->Category = $Shopp->Requested):false);
@@ -846,204 +886,5 @@ class Catalog extends DatabaseObject {
 	}
 
 } // END class Catalog
-
-class CatalogTag extends MetaObject {
-
-	function __construct ($id=false,$key=false) {
-		$this->init(self::$table);
-		$this->load($id,$key);
-		$this->context = 'catalog';
-		$this->type = 'tag';
-	}
-
-} // END class CatalogTag
-
-/**
- * CatalogTaxonomy class
- *
- *
- *
- * @author Jonathan Davis
- * @since 1.2
- * @package shopp
- **/
-class CatalogTaxonomy extends MetaObject {
-
-	var $id;
-	var $name;
-	var $label;
-	var $parent;
-	var $hierarchical;
-	var $rewrite;
-	var $queryvar;
-	var $public;
-	var $capabilities;
-
-	function __construct ($id=false,$key=false) {
-		$this->init(self::$table);
-		$this->load($id,$key);
-		$this->context = 'taxonomy';
-		$this->type = $taxonomy;
-	}
-
-} // END class CatalogTaxonomy
-
-class RegistryManager implements Iterator {
-
-	private $_list = array();
-	private $_keys = array();
-	private $_false = false;
-
-	public function __construct() {
-        $this->_position = 0;
-	}
-
-	public function add ($key,$entry) {
-		$this->_list[$key] = $entry;
-		$this->rekey();
-	}
-
-	public function update ($key,$entry) {
-		if (!$this->exists($key)) return false;
-		$entry = array_merge($this->_list[$key],$entry);
-		$this->_list[$key] = $entry;
-	}
-
-	public function &get ($key) {
-		if ($this->exists($key)) return $this->_list[$key];
-		else return $_false;
-	}
-
-	public function exists ($key) {
-		return array_key_exists($key,$this->_list);
-	}
-
-	public function remove ($key) {
-		if (!$this->exists($key)) return false;
-		unset($this->_list[$key]);
-		$this->rekey();
-	}
-
-	private function rekey () {
-		$this->_keys = array_keys($this->_list);
-	}
-
-	function current () {
-		return $this->_list[ $this->keys[$this->_position] ];
-	}
-
-	function key () {
-		return $this->keys[$this->_position];
-	}
-
-	function next () {
-		++$this->_position;
-	}
-
-	function rewind () {
-		$this->_position = 0;
-	}
-
-	function valid () {
-		return (
-			array_key_exists($this->_position,$this->_keys)
-			&& array_key_exists($this->keys[$this->_position],$this->_list)
-		);
-	}
-
-}
-
-class CatalogTaxonomies extends RegistryManager {
-	private $_table = "meta";
-	private $nextid = false;
-	private $ids = array();
-
-	public function __construct () {
-		$this->_table = DatabaseObject::tablename(CatalogTaxonomy::$table);
-
-		$Settings =& ShoppSettings();
-		$this->ids = $Settings->get('taxonomies');
-		if (!$this->ids) $this->ids = array();
-		$this->nextid = $Settings->get('next_taxonomy_id');
-		if (!$this->nextid) $this->nextid = 0;
-	}
-
-	public function add ($name,$options) {
-		$taxonomy = sanitize_title_with_dashes($name);
-		if (isset($this->ids[$name])) $options['id'] = $this->ids[$name];
-		else $options['id'] = $this->reserve($name);
-		parent::add($taxonomy,$options);
-	}
-
-	public function reserve ($name) {
-		$Settings =& ShoppSettings();
-		$id = $this->nextid();
-		$this->ids[$name] = $id;
-
-		$Settings->save('next_taxonomy_id',$this->nextid());
-		$Settings->save('taxonomies',$this->ids);
-		return $id;
-	}
-
-	public function get_id ($name) {
-		return $this->get_option($name,'id');
-	}
-
-	public function get_option ($name,$option = 'id') {
-		$taxonomy = $this->get($name);
-		if (isset($taxonomy[$option]))
-			return $taxonomy[$option];
-		return false;
-	}
-
-	private function nextid () {
-		if (!$this->reserved($this->nextid))
-			return $this->nextid;
-
-		$this->nextid++;
-
-		// Recursively check for existing id
-		$this->nextid();
-	}
-
-	private function reserved ($id) {
-		return (array_search($id,$this->ids) !== false);
-	}
-
-}
-
-/**
- * Access the registered Taxonomies
- *
- * @author Jonathan Davis
- * @since 1.2
- *
- * @return void Description...
- **/
-function &ShoppTaxonomies () {
-	global $Shopp;
-	return $Shopp->Taxonomies;
-}
-
-function init_shopp_taxonomies () {
-	register_catalog_taxonomy('category',array(
-		'_builtin' => true,
-		'hierarchical' => true,
-		'public' => true,
-		'editor_ui' => true
-	));
-
-	register_catalog_taxonomy('tag',array(
-		'_builtin' => true,
-		'editor_ui' => true
-	));
-
-	register_catalog_taxonomy('promo',array(
-		'_builtin' => true,
-		'editor_ui' => false
-	));
-
-}
-add_action( 'shopp_init', 'init_shopp_taxonomies', 0 ); // highest priority
 
 ?>

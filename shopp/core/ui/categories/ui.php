@@ -24,10 +24,12 @@ add_meta_box('save-category', __('Save','Shopp').$Admin->boxhelp('category-edito
 
 function settings_meta_box ($Category) {
 	global $Shopp;
-	$categories_menu = $Shopp->Flow->Controller->menu($Category->parent,$Category->id);
-	$categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
+	$tax = get_taxonomy($Category->taxonomy);
+
+	// $categories_menu = $Shopp->Flow->Controller->menu($Category->parent,$Category->id);
+	// $categories_menu = '<option value="0" rel="-1,-1">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
 ?>
-	<p><select name="parent" id="category_parent"><?php echo $categories_menu; ?></select><br />
+	<p><?php wp_dropdown_categories( array( 'taxonomy' => $Category->taxonomy, 'selected'=> $Category->parent,'hide_empty' => 0, 'name' => 'parent', 'orderby' => 'name', 'hierarchical' => 1, 'show_option_none' => $tax->labels->parent_item.'&hellip;', 'tab_index' => 3 ) );?><br />
 <?php _e('Categories, unlike tags, can be or have nested sub-categories.','Shopp'); ?></p>
 
 	<p><input type="hidden" name="spectemplate" value="off" /><input type="checkbox" name="spectemplate" value="on" id="spectemplates-setting" tabindex="11" <?php if ($Category->spectemplate == "on") echo ' checked="checked"'?> /><label for="spectemplates-setting"> <?php _e('Product Details Template','Shopp'); ?></label><br /><?php _e('Predefined details for products created in this category','Shopp'); ?></p>

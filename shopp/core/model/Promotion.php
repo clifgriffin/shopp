@@ -44,7 +44,7 @@ class Promotion extends DatabaseObject {
 		$product_table = DatabaseObject::tablename(Product::$table);
 		$price_table = DatabaseObject::tablename(Price::$table);
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
-		$category_table = DatabaseObject::tablename(Category::$table);
+		$category_table = DatabaseObject::tablename(ProductCategory::$table);
 
 		$where_notdiscounted = array("0 = FIND_IN_SET($this->id,discounts)");
 		$where = array();

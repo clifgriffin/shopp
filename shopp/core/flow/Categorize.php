@@ -51,7 +51,7 @@ class Categorize extends AdminController {
 			add_action('admin_print_scripts',array(&$this,'products_cols'));
 		} else add_action('admin_print_scripts',array(&$this,'columns'));
 		do_action('shopp_category_admin_scripts');
-		add_action('load-shopp_page_shopp-categories',array(&$this,'workflow'));
+		add_action('load-catalog_page_shopp-categories',array(&$this,'workflow'));
 	}
 
 	/**
@@ -99,10 +99,11 @@ class Categorize extends AdminController {
 				&& !empty($deleting)
 				&& !empty($delete)
 				&& is_array($delete)) {
+
+					print_r($delete);
 			foreach($delete as $deletion) {
-				$Category = new Category($deletion);
+				$Category = new ProductCategory($deletion);
 				if (empty($Category->id)) continue;
-				$db->query("UPDATE $Category->_table SET parent=0 WHERE parent=$Category->id");
 				$Category->delete();
 			}
 			$redirect = (add_query_arg(array_merge($_GET,array('delete'=>null,'deleting'=>null)),$adminurl));
@@ -110,8 +111,8 @@ class Categorize extends AdminController {
 		}
 
 		if ($id && $id != "new")
-			$Shopp->Category = new Category($id);
-		else $Shopp->Category = new Category();
+			$Shopp->Category = new ProductCategory($id);
+		else $Shopp->Category = new ProductCategory();
 
 		if ($save) {
 			$this->save($Shopp->Category);
@@ -119,16 +120,22 @@ class Categorize extends AdminController {
 
 			if ($next) {
 				if ($next != "new")
-					$Shopp->Category = new Category($next);
-				else $Shopp->Category = new Category();
+					$Shopp->Category = new ProductCategory($next);
+				else $Shopp->Category = new ProductCategory();
 			} else {
 				if (empty($id)) $id = $Shopp->Category->id;
-				$Shopp->Category = new Category($id);
+				$Shopp->Category = new ProductCategory($id);
 			}
 
 		}
+
 	}
 
+	function load_category ($term,$taxonomy) {
+		$Category = new ProductCategory();
+		$Category->populate($term);
+		return $Category;
+	}
 	/**
 	 * Interface processor for the category list manager
 	 *
@@ -138,7 +145,7 @@ class Categorize extends AdminController {
 	 **/
 	function categories ($workflow=false) {
 		global $Shopp;
-		$db = DB::get();
+
 
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
@@ -163,34 +170,82 @@ class Categorize extends AdminController {
 		if( !$per_page || $per_page < 0 )
 			$per_page = 20;
 		$start = ($per_page * ($pagenum-1));
+		$end = $start + $per_page;
 
-		$filters = array();
+		$taxonomy = 'shopp_category';
+
+		$filters = array('hide_empty' => 0,'fields'=>'id=>parent');
+		add_filter('get_shopp_category',array(&$this,'load_category'));
+
 		// $filters['limit'] = "$start,$per_page";
-		if (!empty($s)) $filters['where'] = "cat.name LIKE '%$s%'";
+		if (!empty($s)) $filters['search'] = $s;
 
-		$table = DatabaseObject::tablename(Category::$table);
-		$Catalog = new Catalog();
-		$Catalog->outofstock = true;
-		if ($workflow) {
-			$filters['columns'] = "cat.id,cat.parent,cat.priority";
-			$results = $Catalog->load_categories($filters,false,true);
-			return array_slice($results,$start,$per_page);
-		} else {
-			if ('arrange' == $a) {
-				$filters['columns'] = "cat.id,cat.parent,cat.priority,cat.name,cat.uri,cat.slug";
-				$filters['parent'] = '0';
-			} else $filters['columns'] = "cat.id,cat.parent,cat.priority,cat.name,cat.description,cat.uri,cat.slug,cat.spectemplate,cat.facetedmenus,count(DISTINCT pd.id) AS total";
+		$Categories = array(); $count = 0;
+		$terms = get_terms( $taxonomy, $filters );
+		$children = _get_term_hierarchy($taxonomy);
+		ProductCategory::tree($taxonomy,$terms,$children,$count,$Categories,$pagenum,$per_page);
 
-			$Catalog->load_categories($filters);
-			$Categories = array_slice($Catalog->categories,$start,$per_page);
-		}
 
-		$count = $db->query("SELECT count(*) AS total FROM $table");
-		$num_pages = ceil($count->total / $per_page);
+
+		if ($workflow) return array_keys($Categories);
+		// $children = array();
+		// $childterms = get_terms($taxonomy, array('get' => 'all', 'orderby' => 'id', 'fields' => 'id=>parent'));
+		// foreach ( $childterms as $term_id => $parent ) {
+		// 	if ( $parent > 0 )
+		// 		$children[$parent][] = $term_id;
+		// }
+
+		// $my_parents = $parent_ids = array();
+		// $p = $Category->parent;
+		// while ( $p ) {
+		// 	$my_parent = get_term( $p, $taxonomy );
+		// 	$my_parents[] = $my_parent;
+		// 	$p = $my_parent->parent;
+		// 	if ( in_array($p, $parent_ids) ) // Prevent parent loops.
+		// 		break;
+		// 	$parent_ids[] = $p;
+		// }
+		// unset($parent_ids);
+		//
+		// $num_parents = count($my_parents);
+		// $Category->depth = count($my_parents);
+		// $Categories = array();
+		// $pagecount = 0;
+		// foreach ($children as $id => $child) {
+		// 	echo "$id => $child".BR;
+		// 	if ($pagecount++ > $per_page);
+		// }
+
+		// echo '<pre>';
+		// print_r($Categories);
+		// echo '</pre>';
+		// return;
+
+		// $table = DatabaseObject::tablename(ProductCategory::$table);
+		// $Catalog = new Catalog();
+		// $Catalog->outofstock = true;
+		// if ($workflow) {
+		// 	$filters['columns'] = "cat.id,cat.parent,cat.priority";
+		// 	$results = $Catalog->load_categories($filters,false,true);
+		// 	return array_slice($results,$start,$per_page);
+		// } else {
+		// 	if ('arrange' == $a) {
+		// 		$filters['columns'] = "cat.id,cat.parent,cat.priority,cat.name,cat.uri,cat.slug";
+		// 		$filters['parent'] = '0';
+		// 	} else $filters['columns'] = "cat.id,cat.parent,cat.priority,cat.name,cat.description,cat.uri,cat.slug,cat.spectemplate,cat.facetedmenus,count(DISTINCT pd.id) AS total";
+		//
+		// 	$Catalog->load_categories($filters);
+		// 	$Categories = array_slice($Catalog->categories,$start,$per_page);
+		// }
+
+		// $count = $db->query("SELECT count(*) AS total FROM $table");
+		// $num_pages = ceil($count->total / $per_page);
 		$page_links = paginate_links( array(
 			'base' => add_query_arg( array('edit'=>null,'pagenum' => '%#%' )),
 			'format' => '',
-			'total' => $num_pages,
+			'prev_text' => __('&laquo;'),
+			'next_text' => __('&raquo;'),
+			'total' => ceil(wp_count_terms('shopp_category') / $per_page),
 			'current' => $pagenum
 		));
 
@@ -201,10 +256,11 @@ class Categorize extends AdminController {
 			)
 		);
 
-		if ('arrange' == $a) {
-			include(SHOPP_ADMIN_PATH."/categories/arrange.php");
-			return;
-		}
+		// @todo Fix category arrange ui and updating to use WP taxonomies
+		// if ('arrange' == $a) {
+		// 	include(SHOPP_ADMIN_PATH."/categories/arrange.php");
+		// 	return;
+		// }
 
 
 		include(SHOPP_ADMIN_PATH."/categories/categories.php");
@@ -221,7 +277,8 @@ class Categorize extends AdminController {
 		register_column_headers('shopp_page_shopp-categories', array(
 			'cb'=>'<input type="checkbox" />',
 			'name'=>__('Name','Shopp'),
-			'links'=>__('Products','Shopp'),
+			'slug'=>__('Slug','Shopp'),
+			'products'=>__('Products','Shopp'),
 			'templates'=>__('Templates','Shopp'),
 			'menus'=>__('Menus','Shopp'))
 		);
@@ -268,8 +325,9 @@ class Categorize extends AdminController {
 		if ( !(is_shopp_userlevel() || current_user_can('shopp_categories')) )
 			wp_die(__('You do not have sufficient permissions to access this page.'));
 
-		if (empty($Shopp->Category)) $Category = new Category();
+		if (empty($Shopp->Category)) $Category = new ProductCategory();
 		else $Category = $Shopp->Category;
+		$Category->load_meta();
 
 		$Category->load_images();
 
@@ -293,10 +351,6 @@ class Categorize extends AdminController {
 			"auto" => __('Build price ranges automatically','Shopp'),
 			"custom" => __('Use custom price ranges','Shopp'),
 		);
-
-
-		$categories_menu = $this->menu($Category->parent,$Category->id);
-		$categories_menu = '<option value="0">'.__('Parent Category','Shopp').'&hellip;</option>'.$categories_menu;
 
 		$uploader = $Shopp->Settings->get('uploader_pref');
 		if (!$uploader) $uploader = 'flash';
@@ -330,24 +384,14 @@ class Categorize extends AdminController {
 
 		$Settings->saveform(); // Save workflow setting
 
-		$Shopp->Catalog = new Catalog();
-		$Shopp->Catalog->load_categories(array(
-			'columns' => "cat.id,cat.parent,cat.name,cat.description,cat.uri,cat.slug",
-			'where' => array(),
-			'joins' => array(),
-			'orderby' => false,
-			'order' => false,
-			'outofstock' => true
-		));
+		if (empty($Category->meta))
+			$Category->load_meta();
 
-		$Category->update_slug();
+		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
 
-		if (!empty($_POST['deleteImages'])) {
-			$deletes = array();
-			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
-			else $deletes = array($_POST['deleteImages']);
-			$Category->delete_images($deletes);
-		}
+		$Category->name = $_POST['name'];
+		$Category->description = $_POST['description'];
+		$Category->parent = $_POST['parent'];
 
 		// Variation price templates
 		if (!empty($_POST['price']) && is_array($_POST['price'])) {
@@ -356,28 +400,46 @@ class Categorize extends AdminController {
 				$pricing['saleprice'] = floatvalue($pricing['saleprice'],false);
 				$pricing['shipfee'] = floatvalue($pricing['shipfee'],false);
 			}
-			$Category->prices = stripslashes_deep($_POST['price']);
 		} else $Category->prices = array();
 
 		if (empty($_POST['specs'])) $Category->specs = array();
-		else $_POST['specs'] = stripslashes_deep($_POST['specs']);
+
+		/* @todo Move the rest of category meta inputs to [meta] inputs eventually */
+		if (isset($_POST['meta']) && isset($_POST['meta']['options'])) {
+			// Moves the meta options input to 'options' index for compatibility
+			$_POST['options'] = $_POST['meta']['options'];
+		}
 
 		if (empty($_POST['options'])
 			|| (count($_POST['options']['v'])) == 1 && !isset($_POST['options']['v'][1]['options'])) {
 				$_POST['options'] = $Category->options = array();
 				$_POST['prices'] = $Category->prices = array();
-		} else $_POST['options'] = stripslashes_deep($_POST['options']);
-		if (isset($_POST['content'])) $_POST['description'] = $_POST['content'];
+		}
 
-		$Category->updates($_POST);
+		$meta = array(
+			'spectemplate','facetedmenus','variations','pricerange','priceranges','specs','options','prices'
+		);
+		$metadata = array_filter_keys($_POST,$meta);
+		foreach ($metadata as $name => $data) {
+			if (!isset($Category->meta[$name])) new MetaObject();
+			$Category->meta[$name]->value = stripslashes_deep($data);
+		}
+		print_r($Category);
 		$Category->save();
+
+		if (!empty($_POST['deleteImages'])) {
+			$deletes = array();
+			if (strpos($_POST['deleteImages'],","))	$deletes = explode(',',$_POST['deleteImages']);
+			else $deletes = array($_POST['deleteImages']);
+			$Category->delete_images($deletes);
+		}
 
 		if (!empty($_POST['images']) && is_array($_POST['images'])) {
 			$Category->link_images($_POST['images']);
 			$Category->save_imageorder($_POST['images']);
 			if (!empty($_POST['imagedetails']) && is_array($_POST['imagedetails'])) {
 				foreach($_POST['imagedetails'] as $i => $data) {
-					$Image = new CategoryImage($data['id']);
+					$Image = new ProductCategoryImage($data['id']);
 					$Image->title = $data['title'];
 					$Image->alt = $data['alt'];
 					$Image->save();
@@ -426,7 +488,7 @@ class Categorize extends AdminController {
 	 **/
 	function menu ($selection=false,$current=false) {
 		$db = DB::get();
-		$table = DatabaseObject::tablename(Category::$table);
+		$table = DatabaseObject::tablename(ProductCategory::$table);
 		$categories = $db->query("SELECT id,name,parent FROM $table ORDER BY parent,name",AS_ARRAY);
 		$categories = sort_tree($categories);
 
@@ -490,7 +552,7 @@ class Categorize extends AdminController {
 			$filters['where'] = "cat.name LIKE '%$s%'";
 		else $filters['where'] = "true";
 
-		$Category = new Category($id);
+		$Category = new ProductCategory($id);
 
 		$catalog_table = DatabaseObject::tablename(Catalog::$table);
 		$product_table = DatabaseObject::tablename(Product::$table);

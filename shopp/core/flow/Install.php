@@ -60,12 +60,8 @@ class ShoppInstallation extends FlowController {
 		if ($this->Settings->availability() && $this->Settings->get('db_version'))
 			$this->Settings->save('maintenance','off');
 
-		// Publish/re-enable Shopp pages
-		$this->pages_status('publish');
-
 		// Update rewrite rules
-		$wp_rewrite->flush_rules();
-
+		flush_rewrite_rules();
 
 		if ($this->Settings->get('show_welcome') == "on")
 			$this->Settings->save('display_welcome','on');
@@ -81,14 +77,12 @@ class ShoppInstallation extends FlowController {
 	 **/
 	function deactivate () {
 		global $Shopp,$wpdb,$wp_rewrite;
-		if (!isset($this->Settings)) return;
 
-		// Unpublish/disable Shopp pages
-		$this->pages_status('draft');
+		//if (!isset($this->Settings)) return;
 
 		// Update rewrite rules (cleanup Shopp rewrites)
 		remove_filter('rewrite_rules_array',array(&$Shopp,'rewrites'));
-		$wp_rewrite->flush_rules();
+		flush_rewrite_rules();
 
 		$this->Settings->save('data_model','');
 
@@ -178,25 +172,6 @@ class ShoppInstallation extends FlowController {
 		$this->Settings->save("pages",$pages);
 	}
 
-	/**
-	 * Sets the content gateway pages publish status
-	 *
-	 * @author Jonathan Davis
-	 * @since 1.1
-	 *
-	 * @param string $mode The publish status (publish or draft)
-	 * @return void
-	 **/
-	function pages_status ($mode) {
-		global $wpdb;
-		$status = array('publish','draft');
-		if (!in_array($mode,$status)) return;
-
-		$_ = array();
-		$pages = shopp_locate_pages();
-		foreach ($pages as $page) if (!empty($page['id'])) $_[] = $page['id'];
-		if (!empty($_)) $wpdb->query("UPDATE $wpdb->posts SET post_status='$mode' WHERE 0<FIND_IN_SET(ID,'".join(',',$_)."')");
-	}
 
 	/**
 	 * Performs database upgrades when required
@@ -540,30 +515,19 @@ class ShoppInstallation extends FlowController {
 	}
 
 	function upgrade_120 () {
+		global $wpdb;
 		$db =& DB::get();
 
 		$db_version = intval($this->Settings->get('db_version'));
 		if (!$db_version) $db_version = intval($this->Settings->legacy('db_version'));
 
 		if ($db_version <= 1130) {
-			// Upgrade price tag to use settings column
+			// Move settings to meta table
 			$meta_table = DatabaseObject::tablename('meta');
 			$setting_table = DatabaseObject::tablename('setting');
 			DB::query("INSERT INTO $meta_table (context,type,name,value,created,modified) SELECT 'shopp','setting',name,value,created,modified FROM $setting_table");
 			$this->Settings->load();
 			$db_version = intval($this->Settings->get('db_version'));
-		}
-
-		if ($db_version <= 1120) {
-			// Move tags to meta table
-			$meta_table = DatabaseObject::tablename('meta');
-			$tag_table = DatabaseObject::tablename('tag');
-			$catalog_table = DatabaseObject::tablename('catalog');
-
-			$db->query("INSERT INTO $meta_table (parent,context,type,name,value,numeral,sortorder,created,modified)
-						SELECT 0,'catalog','tag',name,name,0,0,created,modified FROM $tag_table");
-
-			$db->query("UPDATE $catalog_table AS c JOIN $tag_table AS t ON c.parent=t.id AND c.type='tag' LEFT JOIN $meta_table AS m ON t.name=m.name SET c.parent=m.id");
 		}
 
 		if ($db_version <= 1121) {
@@ -579,19 +543,198 @@ class ShoppInstallation extends FlowController {
 						SELECT customer,'shipping',address,xaddress,city,state,country,postcode,created,modified FROM $shipping_table");
 		}
 
-		if ($db_version <= 1125) {
-			// Upgrade catalog to use taxonomy system
-			$catalog_table = DatabaseObject::tablename('catalog');
-			$ct_id = 0;
-			$tt_id = 1;
-			$db->query("UPDATE $catalog_table SET taxonomy='$ct_id' WHERE type='category'");
-			$db->query("UPDATE $catalog_table SET taxonomy='$tt_id' WHERE type='tag'");
-		}
-
 		if ($db_version <= 1127) {
 			// Upgrade price tag to use settings column
 			$price_table = DatabaseObject::tablename('price');
 			$db->query("UPDATE $price_table SET settings=CONCAT('a:1:{s:8:\"donation\";',donation,'}') WHERE type='Donation'");
+		}
+
+		// Migrate to WP custom posts & taxonomies
+		if ($db_version <= 1131) {
+
+			// Copy products to posts
+				$catalog_table = DatabaseObject::tablename('catalog');
+				$product_table = DatabaseObject::tablename('product');
+				$price_table = DatabaseObject::tablename('price');
+				$summary_table = DatabaseObject::tablename('summary');
+				$meta_table = DatabaseObject::tablename('meta');
+				$category_table = DatabaseObject::tablename('category');
+				$tag_table = DatabaseObject::tablename('tag');
+				$purchased_table = DatabaseObject::tablename('purchased');
+				$index_table = DatabaseObject::tablename('index');
+
+				$post_type = 'shopp_product';
+
+				// Create custom post types from products, temporarily use post_parent for link to original product entry
+				DB::query("INSERT INTO $wpdb->posts (post_type,post_name,post_title,post_excerpt,post_content,post_status,post_date,post_modified,post_parent)
+							SELECT '$post_type',slug,name,summary,description,status,publish,modified,id FROM $product_table");
+
+				// Link original product data to new custom post type record
+				// DB::query("UPDATE $summary_table AS sp JOIN $wpdb->posts AS wp ON wp.post_parent=sp.id SET sp.product=wp.ID");
+
+				// @todo Update purchased table product column with new Post ID so sold counts can be updated
+				DB::query("UPDATE $purchased_table AS pd JOIN $wpdb->posts AS wp ON wp.post_parent=pd.product AND wp.post_type='$post_type' SET pd.product=wp.ID");
+
+				// Update product links for prices and meta
+				DB::query("UPDATE $price_table AS price JOIN $wpdb->posts wp ON price.product=wp.post_parent AND wp.post_type='$post_type' SET price.product=wp.ID");
+				DB::query("UPDATE $meta_table AS meta JOIN $wpdb->posts AS wp ON meta.parent=wp.post_parent AND wp.post_type='$post_type' AND meta.context='product' SET meta.parent=wp.ID");
+
+				DB::query("UPDATE $index_table AS i JOIN $wpdb->posts AS wp ON i.product=wp.post_parent AND wp.post_type='$post_type' SET i.product=wp.ID");
+
+				// Move product options column to meta setting
+				DB::query("INSERT INTO $meta_table (parent,context,type,name,value)
+							SELECT wp.ID,'product','meta','options',options
+							FROM $product_table AS p
+							JOIN $wpdb->posts wp ON p.product=wp.post_parent AND wp.post_type='$post_type'");
+
+			// Migrate Shopp categories and tags to WP taxonomies
+
+				// Are there tag entries in the meta table? Old dev data present use meta table tags. No? use tags table.
+				$dev_migration = ($db_version >= 1120);
+
+				// Copy categories and tags to WP taxonomies
+				$tag_current_table = $dev_migration?"$meta_table WHERE context='catalog' AND type='tag'":$tag_table;
+
+				$terms = DB::query("(SELECT id,'shopp_category' AS taxonomy,name,parent,description,slug FROM $category_table)
+											UNION
+										(SELECT id,'shopp_tag' AS taxonomy,name,0 AS parent,'' AS description,name AS slug FROM $tag_current_table) ORDER BY id");
+
+				$mapping = array();
+				$tt_ids = array();
+				foreach ($terms as $term) {
+					$term_id = (int) $term->id;
+					$taxonomy = $term->taxonomy;
+					if (!isset($mapping[$taxonomy])) $mapping[$taxonomy] = array();
+					$name = $term->name;
+					$parent = $term->parent;
+					$description = $term->description;
+					$slug = (strpos($term->slug,' ') === false)?$term->slug:sanitize_title_with_dashes($term->slug);
+					$term_group = 0;
+
+					if ($exists = DB::query("SELECT term_id,term_group FROM $wpdb->terms WHERE slug = '$slug'",'array')) {
+						$term_group = $exists[0]->term_group;
+						$id = $exists[0]->term_id;
+						$num = 2;
+						do {
+							$alternate = DB::escape($slug."-".$num++);
+							$alternate_used = DB::query("SELECT slug FROM $wpdb->terms WHERE slug='$alternate'");
+						} while ($alternate_used);
+						$slug = $alternate;
+
+						if ( empty($term_group) ) {
+							$term_group = DB::query("SELECT MAX(term_group) AS term_group FROM $wpdb->terms GROUP BY term_group",'auto','col','term_group');
+							DB::query("UPDATE $wpdb->terms SET term_group='$term_group' WHERE term_id='$id'");
+						}
+					}
+
+					$wpdb->query( $wpdb->prepare("INSERT INTO $wpdb->terms (name, slug, term_group) VALUES (%s, %s, %d)", $name, $slug, $term_group) );
+					$mapping[$taxonomy][$term_id] = (int) $wpdb->insert_id;
+					$term_id = $mapping[$taxonomy][$term_id];
+					if (!isset($tt_ids[$taxonomy])) $tt_ids[$taxonomy] = array();
+
+					if (isset($mapping[$taxonomy][$parent])) $parent = $mapping[$taxonomy][$parent];
+
+					if ( 'shopp_category' == $taxonomy ) {
+						$wpdb->query( $wpdb->prepare("INSERT INTO $wpdb->term_taxonomy (term_id, taxonomy, description, parent, count) VALUES ( %d, %s, %s, %d, %d)", $term_id, $taxonomy, $description, $parent, 0) );
+						$tt_ids[$taxonomy][$term_id] = (int) $wpdb->insert_id;
+
+						if (!empty($term_id)) {
+							// Move category settings to meta
+							$metafields = array('spectemplate','facetedmenus','variations','pricerange','priceranges','specs','options','prices');
+							foreach ($metafields as $field)
+								DB::query("INSERT INTO $meta_table (parent,context,type,name,value)
+											SELECT $term_id,'category','meta','$field',$field
+											FROM $category_table
+											WHERE id=$term->id");
+						}
+					}
+
+					if ( 'shopp_tag' == $taxonomy ) {
+						$wpdb->query( $wpdb->prepare("INSERT INTO $wpdb->term_taxonomy (term_id, taxonomy, description, parent, count) VALUES ( %d, %s, %s, %d, %d)", $term_id, $taxonomy, $description, $parent, 0) );
+						$tt_ids[$taxonomy][$term_id] = (int) $wpdb->insert_id;
+					}
+
+				}
+				update_option('shopp_category_children', '');
+
+			// Re-catalog custom post type_products term relationships (new taxonomical catalog) from old Shopp catalog table
+
+				$wp_taxonomies = array(
+					0 => 'shopp_category',
+					1 => 'shopp_tag',
+					'category' => 'shopp_category',
+					'tag' => 'shopp_tag'
+				);
+
+				$cols = 'wp.ID AS product,c.parent,c.type';
+				$where = "type='category' OR type='tag'";
+				if ($db_version >= 1125) {
+					$cols = 'wp.ID AS product,c.parent,c.taxonomy,c.type';
+					$where = "taxonomy=0 OR taxonomy=1";
+				}
+
+				$rels = DB::query("SELECT $cols FROM $catalog_table AS c LEFT JOIN $wpdb->posts AS wp ON c.product=wp.post_parent AND wp.post_type='$post_type' WHERE $where",'array');
+
+				foreach ((array)$rels as $r) {
+					$object_id = $r->product;
+					$taxonomy = $wp_taxonomies[($db_version >= 1125?$r->taxonomy:$r->type)];
+					$term_id = $mapping[$taxonomy][$r->parent];
+					if ( !isset($tt_ids[$taxonomy]) ) continue;
+					if ( !isset($tt_ids[$taxonomy][$term_id]) ) continue;
+
+					$tt_id = $tt_ids[$taxonomy][$term_id];
+					if ( empty($tt_id) ) continue;
+
+					DB::query("INSERT $wpdb->term_relationships (object_id,term_taxonomy_id) VALUES ($object_id,$tt_id)");
+				}
+
+				if (isset($tt_ids['shopp_category']))
+					wp_update_term_count_now($tt_ids['shopp_category'],'shopp_category');
+
+				if (isset($tt_ids['shopp_tag']))
+					wp_update_term_count_now($tt_ids['shopp_tag'],'shopp_tag');
+
+				// Clear custom post type parents
+				DB::query("UPDATE $wpdb->posts SET post_parent=0 WHERE post_type='$post_type'");
+
+		} // END if ($db_version <= 1131)
+
+		// Move needed price table columns to price meta records
+		if ($db_version <= 1132) {
+			$meta_table = DatabaseObject::tablename('meta');
+			$price_table = DatabaseObject::tablename('price');
+
+			// Move 'options' to meta 'options' record
+			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
+						SELECT id,'price','meta','options',options,created,modified FROM $price_table");
+
+			// Move 'donation' column to 'settings' record
+			DB::query("INSERT INTO $meta_table (parent,context,type,name,value,created,modified)
+						SELECT id,'price','meta','settings',donation,created,modified FROM $price_table");
+
+		} // END if ($db_version <= 1132)
+
+		if ($db_version <= 1133) {
+
+			// Ditch old WP pages for pseudorific new ones
+			$search = array();
+			$shortcodes = array('[catalog]','[cart]','[checkout]','[account]');
+			foreach ($shortcodes as $string) $search[] = "post_content LIKE '%$string%'";
+			$results = DB::query("SELECT ID,post_title AS title,post_name AS slug,post_content FROM $wpdb->posts WHERE post_type='page' AND (".join(" OR ",$search).")",'array');
+
+			$pages = $trash = array();
+			foreach ($results as $post) {
+				$trash[] = $post->ID;
+				foreach ($shortcodes as $code) {
+					if (strpos($post->post_content,$code) === false) continue;
+					$pagename = trim($code,'[]');
+					$pages[$pagename] = array('title' => $post->title,'slug' => $post->slug);
+				} // end foreach $shortcodes
+			} // end foreach $results
+
+			$this->Settings->save('storefront_pages',$pages);
+
+			DB::query("UPDATE $wpdb->posts SET post_status='trash' where ID IN (".join(',',$trash).")");
 		}
 
 		$this->roles(); // Setup Roles and Capabilities

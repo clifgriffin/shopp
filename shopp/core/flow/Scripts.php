@@ -186,77 +186,86 @@ function shopp_default_scripts (&$scripts) {
 
 	// $suffix = defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ? '_dev' : '';
 
-	$scripts->add('shopp', "/ui/behaviors/shopp.js", array('jquery'), '20100101');
+	$scripts->add('shopp', '/ui/behaviors/shopp.js', array('jquery'), '20100101');
 	$scripts->add_data('shopp', 'group', 1);
 
-	$scripts->add('cart', "/ui/behaviors/cart.js", array('jquery','shopp'), '20100101');
-	$scripts->add_data('cart', 'group', 1);
-
-	$scripts->add('catalog', "/ui/behaviors/catalog.js", array('jquery','shopp'), '20100101');
-	$scripts->add_data('catalog', 'group', 1);
-
-	$scripts->add('calendar', "/ui/behaviors/calendar.js", array('jquery','shopp'), '20100101');
-	$scripts->add_data('calendar', 'group', 1);
-
-	$scripts->add('checkout', "/ui/behaviors/checkout.js", array('jquery','shopp'), '20100101');
-	$scripts->add_data('checkout', 'group', 1);
-
-	$scripts->add('colorbox', "/ui/behaviors/colorbox.js", array('jquery'), '20100101');
-	$scripts->add_data('colorbox', 'group', 1);
-
-	$scripts->add('ocupload', "/ui/behaviors/ocupload.js", array('jquery'), '20100101');
-	$scripts->add_data('ocupload', 'group', 1);
-
-	$scripts->add('scalecrop', "/ui/behaviors/scalecrop.js", array('jquery','jquery-ui-core','jquery-ui-draggable'), '20100101');
-	$scripts->add_data('scalecrop', 'group', 1);
-
-	$scripts->add('priceline', "/ui/behaviors/priceline.js", array('jquery','shopp'), '20100101');
-	$scripts->add_data('priceline', 'group', 1);
-
-	$scripts->add('editors', "/ui/behaviors/editors.js", array('jquery','jquery-ui-sortable'), '20100101');
-	$scripts->add_data('editors', 'group', 1);
-
-	$scripts->add('product-editor', "/ui/products/editor.js", array('jquery','priceline'), '20100101');
-	$scripts->add_data('product-editor', 'group', 1);
-
-	$scripts->add('category-editor', "/ui/categories/category.js", array('jquery','priceline'), '20100101');
-	$scripts->add_data('category-editor', 'group', 1);
-
-	$scripts->add('category-arrange', "/ui/categories/arrange.js", array('jquery','shopp'), '20100101');
-	$scripts->add_data('category-arrange', 'group', 1);
-
-	$scripts->add('products-arrange', "/ui/categories/products.js", array('jquery'), '20100101');
-	$scripts->add_data('products-arrange', 'group', 1);
-
-	$scripts->add('settings', "/ui/behaviors/settings.js", array('jquery'), '20100101');
-	$scripts->add_data('settings', 'group', 1);
-
-	$scripts->add('taxes', "/ui/behaviors/taxes.js", array('jquery'), '20100101');
-	$scripts->add_data('taxes', 'group', 1);
-
-	$scripts->add('setup', "/ui/behaviors/setup.js", array('jquery'), '20100101');
-	$scripts->add_data('setup', 'group', 1);
-
-	$scripts->add('shopp-swfobject', "/ui/behaviors/swfupload/plugins/swfupload.swfobject.js", array(), '2202');
-	$scripts->add_data('shopp-swfobject', 'group', 1);
-
-	$scripts->add('shopp-swfupload-queue', "/ui/behaviors/swfupload/plugins/swfupload.queue.js", array(), '2202');
-	$scripts->add_data('shopp-swfupload-queue', 'group', 1);
-
-	$scripts->add('swfupload', "/ui/behaviors/swfupload/swfupload.js", array('jquery','shopp-swfobject'), '2202');
-	$scripts->add_data('swfupload', 'group', 1);
-
-	$scripts->add('suggest', "/ui/behaviors/suggest.js", array('jquery'), '20110330');
-	$scripts->add_data('suggest', 'group', 1);
-
-	$scripts->add('search-select', "/ui/behaviors/searchselect.js", array('jquery'), '20110401');
-	$scripts->add_data('search-select', 'group', 1);
-
-	$scripts->add('jquery-tmpl', "/ui/behaviors/jquery/jquery.tmpl.js", array('jquery'), '20100101');
+	$scripts->add('jquery-tmpl', '/ui/behaviors/jquery/jquery.tmpl.js', array('jquery'), '20110401');
 	$scripts->add_data('jquery-tmpl', 'group', 1);
 
-	$scripts->add('membership-editor', "/ui/memberships/editor.js", array('jquery','jquery-tmpl','search-select'), '20100101');
+	$scripts->add('cart', '/ui/behaviors/cart.js', array('jquery','shopp'), '20100101');
+	$scripts->add_data('cart', 'group', 1);
+
+	$scripts->add('catalog', '/ui/behaviors/catalog.js', array('jquery','shopp'), '20100101');
+	$scripts->add_data('catalog', 'group', 1);
+
+	$scripts->add('calendar', '/ui/behaviors/calendar.js', array('jquery','shopp'), '20100101');
+	$scripts->add_data('calendar', 'group', 1);
+
+	$scripts->add('checkout', '/ui/behaviors/checkout.js', array('jquery','shopp'), '20100101');
+	$scripts->add_data('checkout', 'group', 1);
+
+	$scripts->add('colorbox', '/ui/behaviors/colorbox.js', array('jquery'), '20100101');
+	$scripts->add_data('colorbox', 'group', 1);
+
+	$scripts->add('ocupload', '/ui/behaviors/ocupload.js', array('jquery'), '20100101');
+	$scripts->add_data('ocupload', 'group', 1);
+
+	$scripts->add('scalecrop', '/ui/behaviors/scalecrop.js', array('jquery','jquery-ui-core','jquery-ui-draggable'), '20100101');
+	$scripts->add_data('scalecrop', 'group', 1);
+
+	$scripts->add('priceline', '/ui/behaviors/priceline.js', array('jquery','shopp'), '20100101');
+	$scripts->add_data('priceline', 'group', 1);
+
+	$scripts->add('editors', '/ui/behaviors/editors.js', array('jquery','jquery-ui-sortable'), '20100101');
+	$scripts->add_data('editors', 'group', 1);
+
+	$scripts->add('product-editor', '/ui/products/editor.js', array('jquery','priceline'), '20100101');
+	$scripts->add_data('product-editor', 'group', 1);
+
+	$scripts->add('category-editor', '/ui/categories/category.js', array('jquery','priceline'), '20100101');
+	$scripts->add_data('category-editor', 'group', 1);
+
+	$scripts->add('category-arrange', '/ui/categories/arrange.js', array('jquery','shopp'), '20100101');
+	$scripts->add_data('category-arrange', 'group', 1);
+
+	$scripts->add('products-arrange', '/ui/categories/products.js', array('jquery'), '20100101');
+	$scripts->add_data('products-arrange', 'group', 1);
+
+	$scripts->add('settings', '/ui/behaviors/settings.js', array('jquery'), '20100101');
+	$scripts->add_data('settings', 'group', 1);
+
+	$scripts->add('taxes', '/ui/behaviors/taxes.js', array('jquery'), '20100101');
+	$scripts->add_data('taxes', 'group', 1);
+
+	$scripts->add('setup', '/ui/behaviors/setup.js', array('jquery'), '20100101');
+	$scripts->add_data('setup', 'group', 1);
+
+	$scripts->add('pages-settings', '/ui/behaviors/pages-settings.js', array('jquery'), '20100101');
+	$scripts->add_data('pages-settings', 'group', 1);
+
+	$scripts->add('shopp-swfobject', '/ui/behaviors/swfupload/plugins/swfupload.swfobject.js', array(), '2202');
+	$scripts->add_data('shopp-swfobject', 'group', 1);
+
+	$scripts->add('shopp-swfupload-queue', '/ui/behaviors/swfupload/plugins/swfupload.queue.js', array(), '2202');
+	$scripts->add_data('shopp-swfupload-queue', 'group', 1);
+
+	$scripts->add('swfupload', '/ui/behaviors/swfupload/swfupload.js', array('jquery','shopp-swfobject'), '2202');
+	$scripts->add_data('swfupload', 'group', 1);
+
+	$scripts->add('suggest', '/ui/behaviors/suggest.js', array('jquery'), '20110330');
+	$scripts->add_data('suggest', 'group', 1);
+
+	$scripts->add('search-select', '/ui/behaviors/searchselect.js', array('jquery'), '20110401');
+	$scripts->add_data('search-select', 'group', 1);
+
+	$scripts->add('membership-editor', '/ui/memberships/editor.js', array('jquery','jquery-tmpl','search-select'), '20110401');
 	$scripts->add_data('membership-editor', 'group', 1);
+
+	$scripts->add('status-labels', '/ui/behaviors/status-labels.js', array('jquery','jquery-tmpl'), '20110508');
+	$scripts->add_data('status-labels', 'group', 1);
+	$scripts->localize( 'status-labels', '$sl', array(
+		'prompt' => __('Are you sure you want to remove this order status label?','Shopp'),
+	));
 
 }
 

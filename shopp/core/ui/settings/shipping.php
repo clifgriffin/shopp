@@ -7,8 +7,6 @@
 	<form name="settings" id="shipping" action="<?php echo esc_url($_SERVER['REQUEST_URI']); ?>" method="post">
 		<?php wp_nonce_field('shopp-settings-shipping'); ?>
 
-		<?php include("navigation.php"); ?>
-
 		<table class="form-table">
 			<tr>
 				<th scope="row" valign="top"><label for="shipping-toggle"><?php _e('Calculate Shipping','Shopp'); ?></label></th>

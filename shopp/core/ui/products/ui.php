@@ -57,78 +57,107 @@ add_meta_box(
 	'core'
 );
 
-function categories_meta_box ($Product) {
-	$db =& DB::get();
-	$category_table = DatabaseObject::tablename(Category::$table);
-	$categories = $db->query("SELECT id,name,parent FROM $category_table ORDER BY parent,name",AS_ARRAY);
-	$categories = sort_tree($categories);
-	if (empty($categories)) $categories = array();
+function shopp_popular_terms_checklist( $post_ID, $taxonomy, $default = 0, $number = 10, $echo = true ) {
+	if ( $post_ID )
+		$checked_terms = wp_get_object_terms($post_ID, $taxonomy, array('fields'=>'ids'));
+	else
+		$checked_terms = array();
 
-	$categories_menu = '<option value="0">'.__('Parent Category','Shopp').'&hellip;</option>';
-	foreach ($categories as $category) {
-		$padding = str_repeat("&nbsp;",$category->depth*3);
-		$categories_menu .= '<option value="'.$category->id.'">'.$padding.esc_html($category->name).'</option>';
+	$terms = get_terms( $taxonomy, array( 'orderby' => 'count', 'order' => 'DESC', 'number' => $number, 'hierarchical' => false ) );
+
+	$tax = get_taxonomy($taxonomy);
+	if ( ! current_user_can($tax->cap->assign_terms) )
+		$disabled = 'disabled="disabled"';
+	else
+		$disabled = '';
+
+	$popular_ids = array();
+	foreach ( (array) $terms as $term ) {
+		$popular_ids[] = $term->term_id;
+		if ( !$echo ) // hack for AJAX use
+			continue;
+		$id = "popular-$taxonomy-$term->term_id";
+		$checked = in_array( $term->term_id, $checked_terms ) ? 'checked="checked"' : '';
+		?>
+
+		<li id="<?php echo $id; ?>" class="popular-category">
+			<label class="selectit">
+			<input id="in-<?php echo $id; ?>" type="checkbox" <?php echo $checked; ?> value="<?php echo (int) $term->term_id; ?>" <?php echo $disabled ?>/>
+				<?php echo esc_html( apply_filters( 'the_category', $term->name ) ); ?>
+			</label>
+		</li>
+
+		<?php
 	}
+	return $popular_ids;
+}
 
-	$selectedCategories = array();
-	foreach ($Product->categories as $category) $selectedCategories[] = $category->id;
+function shopp_categories_meta_box ($Product,$options) {
+	$defaults = array('taxonomy' => 'shopp_category');
+	if ( !isset($options['args']) || !is_array($options['args']) ) $options = array();
+	else $options = $options['args'];
+	extract( wp_parse_args($options, $defaults), EXTR_SKIP );
+	$tax = get_taxonomy($taxonomy);
 ?>
-<div id="category-menu" class="multiple-select short">
-	<ul>
-		<?php $depth = 0; foreach ($categories as $category):
-		if ($category->depth > $depth) echo "<li><ul>"; ?>
-		<?php if ($category->depth < $depth): ?>
-			<?php for ($i = $category->depth; $i < $depth; $i++): ?>
-				</ul></li>
-			<?php endfor; ?>
-		<?php endif; ?>
-		<li id="category-element-<?php echo $category->id; ?>"><input type="checkbox" name="categories[]" value="<?php echo $category->id; ?>" id="category-<?php echo $category->id; ?>" tabindex="3"<?php if (in_array($category->id,$selectedCategories)) echo ' checked="checked"'; ?> class="category-toggle" /><label for="category-<?php echo $category->id; ?>"><?php echo esc_html($category->name); ?></label></li>
-		<?php $depth = $category->depth; endforeach; ?>
-		<?php for ($i = 0; $i < $depth; $i++): ?>
-			</ul></li>
-		<?php endfor; ?>
+<div id="taxonomy-<?php echo $taxonomy; ?>" class="category-metabox">
+	<div id="<?php echo $taxonomy; ?>-pop" class="multiple-select category-menu tabs-panel hide-if-no-js hidden">
+		<ul id="<?php echo $taxonomy; ?>-checklist-pop">
+			<?php $popular_ids = shopp_popular_terms_checklist($Product->id,$taxonomy); ?>
+		</ul>
+	</div>
+
+	<div id="<?php echo $taxonomy; ?>-all" class="multiple-select category-menu tabs-panel">
+		<ul id="<?php echo $taxonomy; ?>-checklist" class="list:<?php echo $taxonomy?>">
+		<?php wp_terms_checklist($Product->id, array( 'taxonomy' => $taxonomy, 'popular_cats' => $popular_ids) ) ?>
+		</ul>
+	</div>
+
+	<div id="new-<?php echo $taxonomy; ?>" class="new-category hide-if-no-js">
+	<input type="text" name="new<?php echo $taxonomy; ?>" value="" id="new-<?php echo $taxonomy; ?>-name" /><br />
+	<?php wp_dropdown_categories( array( 'taxonomy' => $taxonomy, 'hide_empty' => 0, 'name' => 'new'.$taxonomy.'_parent', 'orderby' => 'name', 'hierarchical' => 1, 'show_option_none' => $tax->labels->parent_item.'&hellip;', 'tab_index' => 3 ) ); ?>
+	<button id="add-new-category" type="button" class="add:<?php echo $taxonomy ?>-checklist:taxonomy-<?php echo $taxonomy ?> button category-add-sumbit" tabindex="2"><small><?php _e('Add','Shopp'); ?></small></button>
+	<?php wp_nonce_field( 'add-'.$taxonomy, '_ajax_nonce-add-'.$taxonomy, false ); ?>
+	<span id="<?php echo $taxonomy; ?>-ajax-response"></span>
+	</div>
+
+	<ul id="<?php echo $taxonomy; ?>-tabs" class="category-tabs">
+		<li class="tabs"><a href="#<?php echo $taxonomy; ?>-all" tabindex="3"><?php _e('Show All'); ?></a></li>
+		<li class="hide-if-no-js"><a href="#<?php echo $taxonomy; ?>-pop" tabindex="3"><?php _e( 'Popular','Shopp' ); ?></a></li>
+		<li class="hide-if-no-js new-category"><a href="#<?php echo $taxonomy; ?>-all" tabindex="3"  class="new-category-tab"><?php _e( 'New Category' ); ?></a></li>
 	</ul>
-</div>
-<div>
-<div id="new-category" class="hidden">
-<input type="text" name="new-category" value="" size="15" id="new-category-name" /><br />
-<select name="new-category-parent"><?php echo $categories_menu; ?></select>
-<button id="add-new-category" type="button" class="button-secondary" tabindex="2"><small><?php _e('Add','Shopp'); ?></small></button>
-</div>
-<button id="new-category-button" type="button" class="button-secondary" tabindex="2"><small><?php _e('New Category','Shopp'); ?></small></button>
-</div>
-
-<?php
+</div><?php
 }
-add_meta_box(
-	'categories-box',
-	__('Categories','Shopp').$Admin->boxhelp('product-editor-categories'),
-	'categories_meta_box',
-	'shopp_page_shopp-products',
-	'side',
-	'core'
-);
 
-function tags_meta_box ($Product) {
-	$taglist = array();
-	foreach ($Product->tags as $tag) $taglist[] = $tag->name;
+function shopp_tags_meta_box ($Product) {
+	$defaults = array('taxonomy' => 'shopp_tag');
+	if ( !isset($options['args']) || !is_array($options['args']) ) $options = array();
+	else $options = $options['args'];
+	extract( wp_parse_args($options, $defaults), EXTR_SKIP );
+	$tax = get_taxonomy($taxonomy);
+	$disabled = !current_user_can($tax->cap->assign_terms) ? 'disabled="disabled"' : '';
+
 ?>
-<input name="newtags" id="newtags" type="text" size="16" tabindex="4" autocomplete="off" value="<?php _e('enter, new, tags','Shopp'); ?>…" title="<?php _e('enter, new, tags','Shopp'); ?>…" class="form-input-tip" />
-	<button type="button" name="addtags" id="add-tags" class="button-secondary" tabindex="5"><small><?php _e('Add','Shopp'); ?></small></button><input type="hidden" name="taglist" id="tags" value="<?php echo join(",",esc_attrs($taglist)); ?>" /><br />
-<label><?php _e('Separate tags with commas','Shopp'); ?></label>
-<div id="taglist">
-	<div id="tagchecklist" class="tagchecklist"></div>
+<div id="taxonomy-<?php echo $taxonomy; ?>" class="tags-metabox">
+<div class="hide-if-no-js">
+<p><?php echo sprintf(__('Type a tag name and press %s tab to add it.','Shopp'),'<abbr title="'.__('tab key','Shopp').'">&#8677;</abbr>'); ?></p>
+</div>
+<div class="nojs-tags hide-if-js">
+<p><?php echo $tax->labels->add_or_remove_items; ?></p>
+<textarea name="<?php echo "taxonomy[$taxonomy]"; ?>" rows="3" cols="20" class="tags" id="tax-input-<?php echo $taxonomy; ?>" <?php echo $disabled; ?>><?php echo esc_attr(get_terms_to_edit( $Product->id, $taxonomy )); ?></textarea></div>
 </div>
 <?php
 }
-add_meta_box(
-	'product-tags',
-	__('Tags','Shopp').$Admin->boxhelp('product-editor-tags'),
-	'tags_meta_box',
-	'shopp_page_shopp-products',
-	'side',
-	'core'
-);
+
+// Load all Shopp product taxonomies
+global $Shopp;
+foreach ( get_object_taxonomies($Shopp->Product->_post_type) as $taxonomy_name ) {
+	$taxonomy = get_taxonomy($taxonomy_name);
+	$label = $taxonomy->labels->name;
+	if ( !is_taxonomy_hierarchical($taxonomy_name) )
+		add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-tags'), 'shopp_tags_meta_box', 'shopp_page_shopp-products', 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+	else
+		add_meta_box($taxonomy_name.'-box', $label.$Admin->boxhelp('product-editor-categories'), 'shopp_categories_meta_box', 'shopp_page_shopp-products', 'side', 'core', array( 'taxonomy' => $taxonomy_name ));
+}
 
 function settings_meta_box ($Product) {
 	global $Shopp;
@@ -137,7 +166,7 @@ function settings_meta_box ($Product) {
 	foreach ($Product->tags as $tag) $taglist[] = $tag->name;
 ?>
 	<p><input type="hidden" name="featured" value="off" /><input type="checkbox" name="featured" value="on" id="featured" tabindex="12" <?php if ($Product->featured == "on") echo ' checked="checked"'?> /><label for="featured"> <?php _e('Featured Product','Shopp'); ?></label></p>
-	<p><input type="hidden" name="packaging" value="off" /><input type="checkbox" name="packaging" value="on" id="packaging-setting" tabindex="18"  <?php $packaging = new MetaObject(); $packaging->load(array('parent'=>$Product->id,'context'=>'product','type'=>'meta','name'=>'packaging')); if($packaging->id && $packaging->value == "on") echo 'checked="checked"'; ?> /> <label for="packaging-setting"><?php _e('Separate Packaging','Shopp'); ?></label></p>
+	<p><input type="hidden" name="meta[packaging" value="off" /><input type="checkbox" name="meta[packaging]" value="on" id="packaging-setting" tabindex="18"  <?php if(isset($Product->meta['packaging']) && $Product->meta['packaging']->value == "on") echo 'checked="checked"'; ?> /> <label for="packaging-setting"><?php _e('Separate Packaging','Shopp'); ?></label></p>
 	<p><input type="hidden" name="variations" value="off" /><input type="checkbox" name="variations" value="on" id="variations-setting" tabindex="13"<?php if ($Product->variations == "on") echo ' checked="checked"'?> /><label for="variations-setting"> <?php _e('Variations','Shopp'); ?><?php echo $Admin->boxhelp('product-editor-variations'); ?></label></p>
 	<p><input type="hidden" name="addons" value="off" /><input type="checkbox" name="addons" value="on" id="addons-setting" tabindex="13"<?php if ($Product->addons == "on") echo ' checked="checked"'?> /><label for="addons-setting"> <?php _e('Add-ons','Shopp'); ?><?php echo $Admin->boxhelp('product-editor-addons'); ?></label></p>
 <?php
@@ -150,7 +179,6 @@ add_meta_box(
 	'side',
 	'core'
 );
-
 
 function summary_meta_box ($Product) {
 ?>
@@ -199,7 +227,7 @@ function images_meta_box ($Product) {
 	global $ProductImages;
 ?>
 	<ul id="lightbox">
-	<?php foreach ((array)$ProductImages as $i => $Image): ?>
+	<?php foreach ((array)$Product->images as $i => $Image): ?>
 		<li id="image-<?php echo $Image->id; ?>"><input type="hidden" name="images[]" value="<?php echo $Image->id; ?>" />
 			<div id="image-<?php echo $Image->id; ?>-details">
 				<img src="?siid=<?php echo $Image->id; ?>&amp;<?php echo $Image->resizing(96,0,1); ?>" width="96" height="96" />
