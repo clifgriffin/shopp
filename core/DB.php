@@ -855,6 +855,23 @@ abstract class DatabaseObject implements Iterator {
 		return $json;
 	}
 
+	/**
+	 * shopp('...','...') tags
+	 *
+	 * @author Jonathan Davis
+	 * @since 1.0
+	 * @version 1.2
+	 * @deprecated Retained for compatibility
+	 *
+	 * @param string $property The property to handle
+	 * @param array $options (optional) The tag options to process
+	 * @return mixed
+	 **/
+	function tag ($property,$options=array()) {
+		$options = array_merge( array('return' => true),shopp_parse_options($options) );
+		return shopp($this,$property,$options);
+	}
+
 	/** Iterator Support **/
 
 	function current () {
